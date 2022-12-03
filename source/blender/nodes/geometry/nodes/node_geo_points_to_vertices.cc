@@ -62,6 +62,8 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
     }
   }
 
+  mesh->loose_edges_tag_none();
+
   geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
 }
 

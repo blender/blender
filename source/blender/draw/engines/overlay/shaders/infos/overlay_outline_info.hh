@@ -72,6 +72,7 @@ GPU_SHADER_CREATE_INFO(overlay_outline_prepass_gpencil)
     /* Using uint because 16bit uint can contain more ids than int. */
     .fragment_out(0, Type::UINT, "out_object_id")
     .fragment_source("overlay_outline_prepass_gpencil_frag.glsl")
+    .depth_write(DepthWrite::ANY)
     .additional_info("draw_gpencil", "draw_resource_handle", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_gpencil_clipped)

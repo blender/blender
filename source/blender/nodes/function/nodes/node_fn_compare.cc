@@ -19,7 +19,7 @@ namespace blender::nodes::node_fn_compare_cc {
 
 NODE_STORAGE_FUNCS(NodeFunctionCompare)
 
-static void fn_node_compare_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Float>(N_("A")).min(-10000.0f).max(10000.0f);
@@ -44,7 +44,7 @@ static void fn_node_compare_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Result"));
 }
 
-static void geo_node_compare_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   const NodeFunctionCompare &data = node_storage(*static_cast<const bNode *>(ptr->data));
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
@@ -54,7 +54,7 @@ static void geo_node_compare_layout(uiLayout *layout, bContext * /*C*/, PointerR
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
 }
 
-static void node_compare_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   NodeFunctionCompare *data = (NodeFunctionCompare *)node->storage;
 
@@ -82,7 +82,7 @@ static void node_compare_update(bNodeTree *ntree, bNode *node)
                                 data->data_type == SOCK_VECTOR);
 }
 
-static void node_compare_init(bNodeTree * /*tree*/, bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeFunctionCompare *data = MEM_cnew<NodeFunctionCompare>(__func__);
   data->operation = NODE_COMPARE_GREATER_THAN;
@@ -107,7 +107,7 @@ class SocketSearchOp {
   }
 };
 
-static void node_compare_gather_link_searches(GatherLinkSearchOpParams &params)
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const eNodeSocketDatatype type = static_cast<eNodeSocketDatatype>(params.other_socket().type);
   if (!ELEM(type, SOCK_BOOLEAN, SOCK_FLOAT, SOCK_RGBA, SOCK_VECTOR, SOCK_INT, SOCK_STRING)) {
@@ -148,10 +148,7 @@ static void node_compare_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void node_compare_label(const bNodeTree * /*tree*/,
-                               const bNode *node,
-                               char *label,
-                               int maxlen)
+static void node_label(const bNodeTree * /*tree*/, const bNode *node, char *label, int maxlen)
 {
   const NodeFunctionCompare *data = (NodeFunctionCompare *)node->storage;
   const char *name;
@@ -566,7 +563,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
   return nullptr;
 }
 
-static void fn_node_compare_build_multi_function(NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const fn::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
@@ -580,14 +577,14 @@ void register_node_type_fn_compare()
 
   static bNodeType ntype;
   fn_node_type_base(&ntype, FN_NODE_COMPARE, "Compare", NODE_CLASS_CONVERTER);
-  ntype.declare = file_ns::fn_node_compare_declare;
-  ntype.labelfunc = file_ns::node_compare_label;
-  ntype.updatefunc = file_ns::node_compare_update;
-  ntype.initfunc = file_ns::node_compare_init;
+  ntype.declare = file_ns::node_declare;
+  ntype.labelfunc = file_ns::node_label;
+  ntype.updatefunc = file_ns::node_update;
+  ntype.initfunc = file_ns::node_init;
   node_type_storage(
       &ntype, "NodeFunctionCompare", node_free_standard_storage, node_copy_standard_storage);
-  ntype.build_multi_function = file_ns::fn_node_compare_build_multi_function;
-  ntype.draw_buttons = file_ns::geo_node_compare_layout;
-  ntype.gather_link_search_ops = file_ns::node_compare_gather_link_searches;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.draw_buttons = file_ns::node_layout;
+  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   nodeRegisterType(&ntype);
 }

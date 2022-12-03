@@ -248,6 +248,7 @@ class InfoPropertyRNA:
         "collection_type",
         "type",
         "fixed_type",
+        "subtype",
         "is_argument_optional",
         "is_enum_flag",
         "is_required",
@@ -272,6 +273,7 @@ class InfoPropertyRNA:
         self.array_length = getattr(rna_prop, "array_length", 0)
         self.array_dimensions = getattr(rna_prop, "array_dimensions", ())[:]
         self.collection_type = GetInfoStructRNA(rna_prop.srna)
+        self.subtype = getattr(rna_prop, "subtype", "")
         self.is_required = rna_prop.is_required
         self.is_readonly = rna_prop.is_readonly
         self.is_never_none = rna_prop.is_never_none
@@ -358,6 +360,7 @@ class InfoPropertyRNA:
             as_ret=False,
             as_arg=False,
             class_fmt="%s",
+            mathutils_fmt="%s",
             collection_id="Collection",
             enum_descr_override=None,
     ):
@@ -371,11 +374,31 @@ class InfoPropertyRNA:
             type_str += self.type
             if self.array_length:
                 if self.array_dimensions[1] != 0:
-                    type_str += " multi-dimensional array of %s items" % (
+                    dimension_str = " of %s items" % (
                         " * ".join(str(d) for d in self.array_dimensions if d != 0)
                     )
+                    type_str += " multi-dimensional array" + dimension_str
                 else:
-                    type_str += " array of %d items" % (self.array_length)
+                    dimension_str = " of %d items" % (self.array_length)
+                    type_str += " array" + dimension_str
+
+                # Describe mathutils types; logic mirrors pyrna_math_object_from_array
+                if self.type == "float":
+                    if self.subtype == "MATRIX":
+                        if self.array_length in {9, 16}:
+                            type_str = (mathutils_fmt % "Matrix") + dimension_str
+                    elif self.subtype in {"COLOR", "COLOR_GAMMA"}:
+                        if self.array_length == 3:
+                            type_str = (mathutils_fmt % "Color") + dimension_str
+                    elif self.subtype in {"EULER", "QUATERNION"}:
+                        if self.array_length == 3:
+                            type_str = (mathutils_fmt % "Euler") + " rotation" + dimension_str
+                        elif self.array_length == 4:
+                            type_str = (mathutils_fmt % "Quaternion") + " rotation" + dimension_str
+                    elif self.subtype in {"COORDINATES", "TRANSLATION", "DIRECTION", "VELOCITY",
+                                          "ACCELERATION", "XYZ", "XYZ_LENGTH"}:
+                        if 2 <= self.array_length <= 4:
+                            type_str = (mathutils_fmt % "Vector") + dimension_str
 
             if self.type in {"float", "int"}:
                 type_str += " in [%s, %s]" % (range_str(self.min), range_str(self.max))

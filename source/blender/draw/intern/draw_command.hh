@@ -138,6 +138,8 @@ struct ResourceBind {
     Image,
     UniformBuf,
     StorageBuf,
+    UniformAsStorageBuf,
+    VertexAsStorageBuf,
   } type;
 
   union {
@@ -164,6 +166,14 @@ struct ResourceBind {
       : slot(slot_), is_reference(false), type(Type::StorageBuf), storage_buf(res){};
   ResourceBind(int slot_, GPUStorageBuf **res)
       : slot(slot_), is_reference(true), type(Type::StorageBuf), storage_buf_ref(res){};
+  ResourceBind(int slot_, GPUUniformBuf *res, Type /* type */)
+      : slot(slot_), is_reference(false), type(Type::UniformAsStorageBuf), uniform_buf(res){};
+  ResourceBind(int slot_, GPUUniformBuf **res, Type /* type */)
+      : slot(slot_), is_reference(true), type(Type::UniformAsStorageBuf), uniform_buf_ref(res){};
+  ResourceBind(int slot_, GPUVertBuf *res, Type /* type */)
+      : slot(slot_), is_reference(false), type(Type::VertexAsStorageBuf), vertex_buf(res){};
+  ResourceBind(int slot_, GPUVertBuf **res, Type /* type */)
+      : slot(slot_), is_reference(true), type(Type::VertexAsStorageBuf), vertex_buf_ref(res){};
   ResourceBind(int slot_, draw::Image *res)
       : slot(slot_), is_reference(false), type(Type::Image), texture(draw::as_texture(res)){};
   ResourceBind(int slot_, draw::Image **res)
@@ -558,7 +568,9 @@ class DrawMultiBuf {
   void bind(RecordingState &state,
             Vector<Header, 0> &headers,
             Vector<Undetermined, 0> &commands,
-            VisibilityBuf &visibility_buf);
+            VisibilityBuf &visibility_buf,
+            int visibility_word_per_draw,
+            int view_len);
 };
 
 /** \} */

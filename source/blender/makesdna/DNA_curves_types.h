@@ -25,9 +25,33 @@ typedef struct CurvesGeometryRuntimeHandle CurvesGeometryRuntimeHandle;
 #endif
 
 typedef enum CurveType {
+  /**
+   * Catmull Rom curves provide automatic smoothness, like Bezier curves with automatic handle
+   * positions. This is the default type for the hair system because of the simplicity of
+   * interaction and data storage.
+   */
   CURVE_TYPE_CATMULL_ROM = 0,
+  /**
+   * Poly curves (often called "polylines") have no interpolation at all. They evaluate to the same
+   * set of points as the original control points. They are a good choice for high-resolution
+   * data-sets or when constrained by performance.
+   */
   CURVE_TYPE_POLY = 1,
+  /**
+   * Bezier curves provide a common intuitive control system made up of handles and control points.
+   * Handles are stored separately from positions, and do not store extra generic attribute values.
+   * Bezier curves also give the flexibility to set handle types (see #HandleType) that influence
+   * the number of evaluated points in each segment.
+   */
   CURVE_TYPE_BEZIER = 2,
+  /**
+   * NURBS curves offer the most flexibility at the cost of increased complexity. Given the choice
+   * of different knot modes (see #KnotsMode) and different orders (see "nurbs_order" attribute),
+   * any of the other types can theoretically be created with a NURBS curve.
+   *
+   * Note that Blender currently does not support custom knot vectors, though that should be
+   * supported in the long term.
+   */
   CURVE_TYPE_NURBS = 3,
 } CurveType;
 /* The number of supported curve types. */
@@ -63,8 +87,8 @@ typedef enum NormalMode {
  * stored contiguously for better efficiency. Data for each curve is stored as a slice of the
  * main #point_data array.
  *
- * The data structure is meant to be embedded in other data-blocks to allow reusing
- * curve-processing algorithms for multiple Blender data-block types.
+ * The data structure is meant to separate geometry data storage and processing from Blender
+ * focussed ID data-block handling. The struct can also be embedded to allow reusing it.
  */
 typedef struct CurvesGeometry {
   /**
@@ -108,9 +132,10 @@ typedef struct CurvesGeometry {
 
 typedef struct Curves {
   ID id;
-  /* Animation data (must be immediately after id). */
+  /** Animation data (must be immediately after #id). */
   struct AnimData *adt;
 
+  /** Geometry data. */
   CurvesGeometry geometry;
 
   int flag;
@@ -148,7 +173,7 @@ typedef struct Curves {
    */
   char *surface_uv_map;
 
-  /* Draw Cache. */
+  /* Draw cache to store data used for viewport drawing. */
   void *batch_cache;
 } Curves;
 

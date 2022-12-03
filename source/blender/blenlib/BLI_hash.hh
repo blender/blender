@@ -33,14 +33,14 @@
  *
  * There are three main ways to provide a hash table implementation with a custom hash function.
  *
- * - When you want to provide a default hash function for your own custom type: Add a `hash`
+ * - When you want to provide a default hash function for your own custom type: Add a `hash()`
  *   member function to it. The function should return `uint64_t` and take no arguments. This
  *   method will be called by the default implementation of #DefaultHash. It will automatically be
  *   used by hash table implementations.
  *
  * - When you want to provide a default hash function for a type that you cannot modify: Add a new
  *   specialization to the #DefaultHash struct. This can be done by writing code like below in
- *   either global or BLI namespace.
+ *   either global or `blender` namespace.
  *
  *     template<> struct blender::DefaultHash<TheType> {
  *       uint64_t operator()(const TheType &value) const {
@@ -246,18 +246,17 @@ uint64_t get_default_hash_4(const T1 &v1, const T2 &v2, const T3 &v3, const T4 &
   return h1 ^ (h2 * 19349669) ^ (h3 * 83492791) ^ (h4 * 3632623);
 }
 
-template<typename T> struct DefaultHash<std::unique_ptr<T>> {
-  uint64_t operator()(const std::unique_ptr<T> &value) const
+/** Support hashing different kinds of pointer types. */
+template<typename T> struct PointerHashes {
+  template<typename U> uint64_t operator()(const U &value) const
   {
-    return get_default_hash(value.get());
+    return get_default_hash(&*value);
   }
 };
 
-template<typename T> struct DefaultHash<std::shared_ptr<T>> {
-  uint64_t operator()(const std::shared_ptr<T> &value) const
-  {
-    return get_default_hash(value.get());
-  }
+template<typename T> struct DefaultHash<std::unique_ptr<T>> : public PointerHashes<T> {
+};
+template<typename T> struct DefaultHash<std::shared_ptr<T>> : public PointerHashes<T> {
 };
 
 template<typename T> struct DefaultHash<std::reference_wrapper<T>> {

@@ -319,6 +319,8 @@ static Mesh *create_uv_sphere_mesh(const float radius, const int segments, const
       [&]() { calculate_sphere_corners(loops, segments, rings); },
       [&]() { calculate_sphere_uvs(mesh, segments, rings); });
 
+  mesh->loose_edges_tag_none();
+
   return mesh;
 }
 

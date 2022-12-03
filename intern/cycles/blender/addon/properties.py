@@ -86,6 +86,14 @@ enum_sampling_pattern = (
     ('PROGRESSIVE_MULTI_JITTER', "Progressive Multi-Jitter", "Use Progressive Multi-Jitter random sampling pattern", 1),
 )
 
+enum_emission_sampling = (
+    ('NONE', 'None', "Do not use this surface as a light for sampling", 0),
+    ('AUTO', 'Auto', "Automatically determine if the surface should be treated as a light for sampling, based on estimated emission intensity", 1),
+    ('FRONT', 'Front', "Treat only front side of the surface as a light, usually for closed meshes whose interior is not visible", 2),
+    ('BACK', 'Back', "Treat only back side of the surface as a light for sampling", 3),
+    ('FRONT_BACK', 'Front and Back', "Treat surface as a light for sampling, emitting from both the front and back side", 4),
+)
+
 enum_volume_sampling = (
     ('DISTANCE',
      "Distance",
@@ -1043,13 +1051,13 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
 
 class CyclesMaterialSettings(bpy.types.PropertyGroup):
 
-    sample_as_light: BoolProperty(
-        name="Multiple Importance Sample",
-        description="Use multiple importance sampling for this material, "
-        "disabling may reduce overall noise for large "
-        "objects that emit little light compared to other light sources",
-        default=True,
+    emission_sampling: EnumProperty(
+        name="Emission Sampling",
+        description="Sampling strategy for emissive surfaces",
+        items=enum_emission_sampling,
+        default="AUTO",
     )
+
     use_transparent_shadow: BoolProperty(
         name="Transparent Shadows",
         description="Use transparent shadows for this material if it contains a Transparent BSDF, "

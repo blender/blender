@@ -56,6 +56,12 @@ void ResourceBind::execute() const
     case ResourceBind::Type::StorageBuf:
       GPU_storagebuf_bind(is_reference ? *storage_buf_ref : storage_buf, slot);
       break;
+    case ResourceBind::Type::UniformAsStorageBuf:
+      GPU_uniformbuf_bind_as_ssbo(is_reference ? *uniform_buf_ref : uniform_buf, slot);
+      break;
+    case ResourceBind::Type::VertexAsStorageBuf:
+      GPU_vertbuf_bind_as_ssbo(is_reference ? *vertex_buf_ref : vertex_buf, slot);
+      break;
   }
 }
 
@@ -266,6 +272,12 @@ std::string ResourceBind::serialize() const
     case Type::StorageBuf:
       return std::string(".bind_storage_buf") + (is_reference ? "_ref" : "") + "(" +
              std::to_string(slot) + ")";
+    case Type::UniformAsStorageBuf:
+      return std::string(".bind_uniform_as_ssbo") + (is_reference ? "_ref" : "") + "(" +
+             std::to_string(slot) + ")";
+    case Type::VertexAsStorageBuf:
+      return std::string(".bind_vertbuf_as_ssbo") + (is_reference ? "_ref" : "") + "(" +
+             std::to_string(slot) + ")";
     default:
       BLI_assert_unreachable();
       return "";
@@ -408,7 +420,7 @@ std::string DrawMulti::serialize(std::string line_prefix) const
     intptr_t offset = grp.start;
 
     if (grp.back_proto_len > 0) {
-      for (DrawPrototype &proto : prototypes.slice({offset, grp.back_proto_len})) {
+      for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.back_proto_len})) {
         BLI_assert(proto.group_id == group_index);
         ResourceHandle handle(proto.resource_handle);
         BLI_assert(handle.has_inverted_handedness());
@@ -420,7 +432,7 @@ std::string DrawMulti::serialize(std::string line_prefix) const
     }
 
     if (grp.front_proto_len > 0) {
-      for (DrawPrototype &proto : prototypes.slice({offset, grp.front_proto_len})) {
+      for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.front_proto_len})) {
         BLI_assert(proto.group_id == group_index);
         ResourceHandle handle(proto.resource_handle);
         BLI_assert(!handle.has_inverted_handedness());
@@ -567,7 +579,9 @@ void DrawCommandBuf::bind(RecordingState &state,
 void DrawMultiBuf::bind(RecordingState &state,
                         Vector<Header, 0> &headers,
                         Vector<Undetermined, 0> &commands,
-                        VisibilityBuf &visibility_buf)
+                        VisibilityBuf &visibility_buf,
+                        int visibility_word_per_draw,
+                        int view_len)
 {
   UNUSED_VARS(headers, commands);
 
@@ -607,6 +621,8 @@ void DrawMultiBuf::bind(RecordingState &state,
     GPUShader *shader = DRW_shader_draw_command_generate_get();
     GPU_shader_bind(shader);
     GPU_shader_uniform_1i(shader, "prototype_len", prototype_count_);
+    GPU_shader_uniform_1i(shader, "visibility_word_per_draw", visibility_word_per_draw);
+    GPU_shader_uniform_1i(shader, "view_shift", log2_ceil_u(view_len));
     GPU_storagebuf_bind(group_buf_, GPU_shader_get_ssbo(shader, "group_buf"));
     GPU_storagebuf_bind(visibility_buf, GPU_shader_get_ssbo(shader, "visibility_buf"));
     GPU_storagebuf_bind(prototype_buf_, GPU_shader_get_ssbo(shader, "prototype_buf"));

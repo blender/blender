@@ -3,8 +3,10 @@ import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 
-from bpy.app.translations import pgettext_tip as tip_
-
+from bpy.app.translations import (
+    pgettext_tip as iface_,
+    pgettext_tip as tip_,
+)
 
 class MESH_MT_vertex_group_context_menu(Menu):
     bl_label = "Vertex Group Specials"
@@ -538,10 +540,7 @@ class MESH_UL_attributes(UIList):
         show_all = _context.tool_settings.save_temp_layers if hasattr(_context, "tool_settings") else False
 
         for item in attributes:
-            if show_all:
-                flags.append(self.bitflag_filter_item)
-            else:
-                flags.append(0)
+            flags.append(0 if item.is_internal else self.bitflag_filter_item)
 
         return flags, indices
 
@@ -556,7 +555,8 @@ class MESH_UL_attributes(UIList):
         sub = split.row()
         sub.alignment = 'RIGHT'
         sub.active = False
-        sub.label(text="%s ▶ %s" % (domain_name, data_type.name))
+        sub.label(text="%s ▶ %s" % (iface_(domain_name), iface_(data_type.name)),
+                  translate=False)
 
 
 class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
@@ -636,9 +636,9 @@ class ColorAttributesListBase():
             skip = (
                 (item.domain not in {"POINT", "CORNER"}) or
                 (item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"}) or
-                (not item.is_internal)
+                item.is_internal
             )
-            ret.append(self.bitflag_filter_item if not skip else 0)
+            ret.append(0 if skip else self.bitflag_filter_item)
             idxs.append(idx)
 
         return ret, idxs
@@ -657,7 +657,8 @@ class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
         sub = split.row()
         sub.alignment = 'RIGHT'
         sub.active = False
-        sub.label(text="%s ▶ %s" % (domain_name, data_type.name))
+        sub.label(text="%s ▶ %s" % (iface_(domain_name), iface_(data_type.name)),
+                  translate=False)
 
         active_render = _index == data.color_attributes.render_color_index
 

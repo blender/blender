@@ -108,6 +108,10 @@ find_package_wrapper(ZLIB REQUIRED)
 find_package_wrapper(Zstd REQUIRED)
 find_package_wrapper(Epoxy REQUIRED)
 
+if(WITH_VULKAN_BACKEND)
+  find_package_wrapper(Vulkan REQUIRED)
+endif()
+
 function(check_freetype_for_brotli)
   include(CheckSymbolExists)
   set(CMAKE_REQUIRED_INCLUDES ${FREETYPE_INCLUDE_DIRS})
@@ -322,9 +326,10 @@ if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
   file(GLOB _sycl_runtime_libraries
     ${SYCL_ROOT_DIR}/lib/libsycl.so
     ${SYCL_ROOT_DIR}/lib/libsycl.so.*
-    ${SYCL_ROOT_DIR}/lib/libpi_level_zero.so
+    ${SYCL_ROOT_DIR}/lib/libpi_*.so
   )
   list(FILTER _sycl_runtime_libraries EXCLUDE REGEX ".*\.py")
+  list(REMOVE_ITEM _sycl_runtime_libraries "${SYCL_ROOT_DIR}/lib/libpi_opencl.so")
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 endif()
@@ -965,16 +970,9 @@ if(WITH_COMPILER_CCACHE)
   endif()
 endif()
 
-# On some platforms certain atomic operations are not possible with assembly and/or intrinsics and
-# they are emulated in software with locks. For example, on armel there is no intrinsics to grant
-# 64 bit atomic operations and STL library uses libatomic to offload software emulation of atomics
-# to.
-# This function will check whether libatomic is required and if so will configure linker flags.
-# If atomic operations are possible without libatomic then linker flags are left as-is.
-function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
-  # Source which is used to enforce situation when software emulation of atomics is required.
-  # Assume that using 64bit integer gives a definitive answer (as in, if 64bit atomic operations
-  # are possible using assembly/intrinsics 8, 16, and 32 bit operations will also be possible.
+# Always link with libatomic if available, as it is required for data types
+# which don't have intrinsics.
+function(configure_atomic_lib_if_needed)
   set(_source
       "#include <atomic>
       #include <cstdint>
@@ -985,25 +983,12 @@ function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
   )
 
   include(CheckCXXSourceCompiles)
-  check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITHOUT_LIBATOMIC)
+  set(CMAKE_REQUIRED_LIBRARIES atomic)
+  check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITH_LIBATOMIC)
+  unset(CMAKE_REQUIRED_LIBRARIES)
 
-  if(NOT ATOMIC_OPS_WITHOUT_LIBATOMIC)
-    # Compilation of the test program has failed.
-    # Try it again with -latomic to see if this is what is needed, or whether something else is
-    # going on.
-
-    set(CMAKE_REQUIRED_LIBRARIES atomic)
-    check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITH_LIBATOMIC)
-    unset(CMAKE_REQUIRED_LIBRARIES)
-
-    if(ATOMIC_OPS_WITH_LIBATOMIC)
-      set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -latomic" PARENT_SCOPE)
-    else()
-      # Atomic operations are required part of Blender and it is not possible to process forward.
-      # We expect that either standard library or libatomic will make atomics to work. If both
-      # cases has failed something fishy o na bigger scope is going on.
-      message(FATAL_ERROR "Failed to detect required configuration for atomic operations")
-    endif()
+  if(ATOMIC_OPS_WITH_LIBATOMIC)
+    set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -latomic" PARENT_SCOPE)
   endif()
 endfunction()
 

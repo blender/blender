@@ -24,6 +24,7 @@
 #include "GPU_matrix.h"
 #undef USE_GPU_PY_MATRIX_API
 
+#include "gpu_py.h"
 #include "gpu_py_matrix.h" /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -542,9 +543,9 @@ PyObject *bpygpu_matrix_init(void)
 {
   PyObject *submodule;
 
-  submodule = PyModule_Create(&pygpu_matrix_module_def);
+  submodule = bpygpu_create_module(&pygpu_matrix_module_def);
 
-  if (PyType_Ready(&PyGPUMatrixStackContext_Type) < 0) {
+  if (bpygpu_finalize_type(&PyGPUMatrixStackContext_Type) < 0) {
     return NULL;
   }
 

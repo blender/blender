@@ -109,7 +109,7 @@ void SVMShaderManager::device_update_specific(Device *device,
     Shader *shader = scene->shaders[i];
 
     shader->clear_modified();
-    if (shader->get_use_mis() && shader->has_surface_emission) {
+    if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
       scene->light_manager->tag_update(scene, LightManager::SHADER_COMPILED);
     }
 
@@ -516,8 +516,6 @@ void SVMCompiler::generate_closure_node(ShaderNode *node, CompilerState *state)
   mix_weight_offset = SVM_STACK_INVALID;
 
   if (current_type == SHADER_TYPE_SURFACE) {
-    if (node->has_surface_emission())
-      current_shader->has_surface_emission = true;
     if (node->has_surface_transparent())
       current_shader->has_surface_transparent = true;
     if (node->has_surface_bssrdf()) {
@@ -873,7 +871,6 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
   current_shader = shader;
 
   shader->has_surface = false;
-  shader->has_surface_emission = false;
   shader->has_surface_transparent = false;
   shader->has_surface_raytrace = false;
   shader->has_surface_bssrdf = false;
@@ -928,6 +925,9 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
     summary->peak_stack_usage = max_stack_use;
     summary->num_svm_nodes = svm_nodes.size() - start_num_svm_nodes;
   }
+
+  /* Estimate emission for MIS. */
+  shader->estimate_emission();
 }
 
 /* Compiler summary implementation. */

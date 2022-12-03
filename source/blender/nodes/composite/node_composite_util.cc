@@ -5,6 +5,8 @@
  * \ingroup nodes
  */
 
+#include "BKE_node_runtime.hh"
+
 #include "NOD_socket_search_link.hh"
 
 #include "node_composite_util.hh"
@@ -20,13 +22,7 @@ bool cmp_node_poll_default(bNodeType * /*ntype*/, bNodeTree *ntree, const char *
 
 void cmp_node_update_default(bNodeTree * /*ntree*/, bNode *node)
 {
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-    if (sock->cache) {
-      // free_compbuf(sock->cache);
-      // sock->cache = nullptr;
-    }
-  }
-  node->need_exec = 1;
+  node->runtime->need_exec = 1;
 }
 
 void cmp_node_type_base(bNodeType *ntype, int type, const char *name, short nclass)

@@ -15,6 +15,16 @@ IndexMask IndexMask::slice(IndexRange slice) const
   return IndexMask(indices_.slice(slice));
 }
 
+IndexMask IndexMask::slice_safe(int64_t start, int64_t size) const
+{
+  return this->slice_safe(IndexRange(start, size));
+}
+
+IndexMask IndexMask::slice_safe(IndexRange slice) const
+{
+  return IndexMask(indices_.slice_safe(slice));
+}
+
 IndexMask IndexMask::slice_and_offset(const IndexRange slice, Vector<int64_t> &r_new_indices) const
 {
   const int slice_size = slice.size();

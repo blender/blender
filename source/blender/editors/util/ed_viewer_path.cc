@@ -56,13 +56,18 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
   BLI_addtail(&r_dst.path, modifier_elem);
 
   Vector<const bNodeTreePath *, 16> tree_path = snode.treepath;
-  for (const bNodeTreePath *tree_path_elem : tree_path.as_span().drop_front(1)) {
+  for (const int i : tree_path.index_range().drop_back(1)) {
+    /* The tree path contains the name of the node but not its ID. */
+    const bNode *node = nodeFindNodebyName(tree_path[i]->nodetree, tree_path[i + 1]->node_name);
+    /* The name in the tree path should match a group node in the tree. */
+    BLI_assert(node != nullptr);
     NodeViewerPathElem *node_elem = BKE_viewer_path_elem_new_node();
-    node_elem->node_name = BLI_strdup(tree_path_elem->node_name);
-    BLI_addtail(&r_dst.path, node_elem);
+    node_elem->node_id = node->identifier;
+    node_elem->node_name = BLI_strdup(node->name);
   }
 
   NodeViewerPathElem *viewer_node_elem = BKE_viewer_path_elem_new_node();
+  viewer_node_elem->node_id = node.identifier;
   viewer_node_elem->node_name = BLI_strdup(node.name);
   BLI_addtail(&r_dst.path, viewer_node_elem);
 }
@@ -73,7 +78,7 @@ void activate_geometry_node(Main &bmain, SpaceNode &snode, bNode &node)
   if (wm == nullptr) {
     return;
   }
-  LISTBASE_FOREACH (bNode *, iter_node, &snode.edittree->nodes) {
+  for (bNode *iter_node : snode.edittree->all_nodes()) {
     if (iter_node->type == GEO_NODE_VIEWER) {
       SET_FLAG_FROM_TEST(iter_node->flag, iter_node == &node, NODE_DO_OUTPUT);
     }
@@ -171,19 +176,16 @@ std::optional<ViewerPathForGeometryNodesViewer> parse_geometry_nodes_viewer(
     return std::nullopt;
   }
   remaining_elems = remaining_elems.drop_front(1);
-  Vector<StringRefNull> node_names;
+  Vector<int32_t> node_ids;
   for (const ViewerPathElem *elem : remaining_elems) {
     if (elem->type != VIEWER_PATH_ELEM_TYPE_NODE) {
       return std::nullopt;
     }
-    const char *node_name = reinterpret_cast<const NodeViewerPathElem *>(elem)->node_name;
-    if (node_name == nullptr) {
-      return std::nullopt;
-    }
-    node_names.append(node_name);
+    const int32_t node_id = reinterpret_cast<const NodeViewerPathElem *>(elem)->node_id;
+    node_ids.append(node_id);
   }
-  const StringRefNull viewer_node_name = node_names.pop_last();
-  return ViewerPathForGeometryNodesViewer{root_ob, modifier_name, node_names, viewer_node_name};
+  const int32_t viewer_node_id = node_ids.pop_last();
+  return ViewerPathForGeometryNodesViewer{root_ob, modifier_name, node_ids, viewer_node_id};
 }
 
 bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed_viewer_path)
@@ -207,10 +209,10 @@ bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed
   }
   const bNodeTree *ngroup = modifier->node_group;
   ngroup->ensure_topology_cache();
-  for (const StringRefNull group_node_name : parsed_viewer_path.group_node_names) {
+  for (const int32_t group_node_id : parsed_viewer_path.group_node_ids) {
     const bNode *group_node = nullptr;
     for (const bNode *node : ngroup->group_nodes()) {
-      if (node->name != group_node_name) {
+      if (node->identifier != group_node_id) {
         continue;
       }
       group_node = node;
@@ -226,7 +228,7 @@ bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed
   }
   const bNode *viewer_node = nullptr;
   for (const bNode *node : ngroup->nodes_by_type("GeometryNodeViewer")) {
-    if (node->name != parsed_viewer_path.viewer_node_name) {
+    if (node->identifier != parsed_viewer_path.viewer_node_id) {
       continue;
     }
     viewer_node = node;
@@ -234,6 +236,25 @@ bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed
   }
   if (viewer_node == nullptr) {
     return false;
+  }
+  return true;
+}
+
+static bool viewer_path_matches_node_editor_path(
+    const SpaceNode &snode, const ViewerPathForGeometryNodesViewer &parsed_viewer_path)
+{
+  Vector<const bNodeTreePath *, 16> tree_path = snode.treepath;
+  if (tree_path.size() != parsed_viewer_path.group_node_ids.size() + 1) {
+    return false;
+  }
+  for (const int i : parsed_viewer_path.group_node_ids.index_range()) {
+    const bNode *node = tree_path[i]->nodetree->node_by_id(parsed_viewer_path.group_node_ids[i]);
+    if (!node) {
+      return false;
+    }
+    if (!STREQ(node->name, tree_path[i + 1]->node_name)) {
+      return false;
+    }
   }
   return true;
 }
@@ -297,29 +318,12 @@ bool is_active_geometry_nodes_viewer(const bContext &C,
         if (snode.nodetree != modifier->node_group) {
           continue;
         }
-        Vector<const bNodeTreePath *, 16> tree_path = snode.treepath;
-        if (tree_path.size() != parsed_viewer_path.group_node_names.size() + 1) {
-          continue;
-        }
-        bool valid_path = true;
-        for (const int i : parsed_viewer_path.group_node_names.index_range()) {
-          if (parsed_viewer_path.group_node_names[i] != tree_path[i + 1]->node_name) {
-            valid_path = false;
-            break;
-          }
-        }
-        if (!valid_path) {
+        if (!viewer_path_matches_node_editor_path(snode, parsed_viewer_path)) {
           continue;
         }
         const bNodeTree *ngroup = snode.edittree;
         ngroup->ensure_topology_cache();
-        const bNode *viewer_node = nullptr;
-        for (const bNode *node : ngroup->nodes_by_type("GeometryNodeViewer")) {
-          if (node->name != parsed_viewer_path.viewer_node_name) {
-            continue;
-          }
-          viewer_node = node;
-        }
+        const bNode *viewer_node = ngroup->node_by_id(parsed_viewer_path.viewer_node_id);
         if (viewer_node == nullptr) {
           continue;
         }
@@ -342,13 +346,7 @@ bNode *find_geometry_nodes_viewer(const ViewerPath &viewer_path, SpaceNode &snod
   }
 
   snode.edittree->ensure_topology_cache();
-  bNode *possible_viewer = nullptr;
-  for (bNode *node : snode.edittree->nodes_by_type("GeometryNodeViewer")) {
-    if (node->name == parsed_viewer_path->viewer_node_name) {
-      possible_viewer = node;
-      break;
-    }
-  }
+  bNode *possible_viewer = snode.edittree->node_by_id(parsed_viewer_path->viewer_node_id);
   if (possible_viewer == nullptr) {
     return nullptr;
   }

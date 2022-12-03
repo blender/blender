@@ -7,4 +7,5 @@ GPU_SHADER_CREATE_INFO(workbench_merge_infront)
     .sampler(0, ImageType::DEPTH_2D, "depthBuffer")
     .fragment_source("workbench_merge_infront_frag.glsl")
     .additional_info("draw_fullscreen")
+    .depth_write(DepthWrite::ANY)
     .do_static_compilation(true);

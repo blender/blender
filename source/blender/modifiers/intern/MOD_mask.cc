@@ -774,8 +774,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
                                        edges_add_num);
   }
 
-  BKE_mesh_calc_edges_loose(result);
-
   return result;
 }
 

@@ -267,7 +267,6 @@ static PyObject *pygpu_framebuffer__tp_new(PyTypeObject *UNUSED(self),
                                            PyObject *args,
                                            PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
   if (!GPU_context_active_get()) {
     PyErr_SetString(PyExc_RuntimeError, "No active GPU context found");
     return NULL;

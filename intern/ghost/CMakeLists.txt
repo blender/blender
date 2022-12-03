@@ -76,6 +76,24 @@ set(LIB
   ${Epoxy_LIBRARIES}
 )
 
+if(WITH_VULKAN_BACKEND)
+  list(APPEND SRC
+    intern/GHOST_ContextVK.cpp
+
+    intern/GHOST_ContextVK.h
+  )
+
+  list(APPEND INC_SYS
+    ${VULKAN_INCLUDE_DIRS}
+  )
+
+  list(APPEND LIB
+    ${VULKAN_LIBRARIES}
+  )
+
+  add_definitions(-DWITH_VULKAN_BACKEND)
+endif()
+
 if(WITH_GHOST_DEBUG)
   list(APPEND SRC
     intern/GHOST_EventPrinter.cpp
@@ -393,6 +411,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     unset(INC_DST)
 
     add_definitions(-DWITH_GHOST_WAYLAND)
+
+    if(NOT WITH_GHOST_WAYLAND_APP_ID STREQUAL "")
+      add_definitions(-DWITH_GHOST_WAYLAND_APP_ID=${WITH_GHOST_WAYLAND_APP_ID})
+    endif()
+
   endif()
 
   if(WITH_INPUT_NDOF)

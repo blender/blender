@@ -16,6 +16,10 @@
 #include "BLI_compiler_typecheck.h"
 #include "BLI_utildefines.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* disable holes for now,
  * these are ifdef'd because they use more memory and can't be saved in DNA currently */
 // #define USE_BMESH_HOLES
@@ -692,3 +696,7 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 /* note does not check if ids are enabled for a given element type */
 #define BM_ELEM_GET_ID(bm, elem) \
   BM_ELEM_CD_GET_INT(elem, bm->idmap.cd_id_off[(int)(elem)->head.htype])
+
+#ifdef __cplusplus
+}
+#endif

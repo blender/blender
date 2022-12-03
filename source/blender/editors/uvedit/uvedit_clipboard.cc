@@ -272,7 +272,7 @@ static int uv_copy_exec(bContext *C, wmOperator * /*op*/)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
@@ -306,7 +306,7 @@ static int uv_paste_exec(bContext *C, wmOperator * /*op*/)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];

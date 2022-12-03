@@ -593,7 +593,6 @@ void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
         uint *indices = mp->getPositionIndices().getData();
 
         for (int j = 0; j < edge_count; j++, med++) {
-          med->flag |= ME_LOOSEEDGE;
           med->v1 = indices[2 * j];
           med->v2 = indices[2 * j + 1];
         }
@@ -621,8 +620,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
 
   MaterialIdPrimitiveArrayMap mat_prim_map;
 
-  int *material_indices = (int *)CustomData_add_layer_named(
-      &me->pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, me->totpoly, "material_index");
+  int *material_indices = BKE_mesh_material_indices_for_write(me);
 
   COLLADAFW::MeshPrimitiveArray &prim_arr = collada_mesh->getMeshPrimitives();
   COLLADAFW::MeshVertexData &nor = collada_mesh->getNormals();
@@ -775,6 +773,9 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
         }
 
         mpoly++;
+        if (material_indices) {
+          material_indices++;
+        }
         mloop += vcount;
         loop_index += vcount;
         start_index += vcount;

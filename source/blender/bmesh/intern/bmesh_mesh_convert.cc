@@ -1065,9 +1065,9 @@ BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
  *     Also not correct but it's better then having it zeroed for e.g.
  *
  * - Missing key-index layer.
- *   In this case the basis key wont apply it's deltas to other keys and in the case
- *   a shape-key layer is missing, its coordinates will be initialized from the edit-mesh
- *   vertex locations instead of attempting to remap the shape-keys coordinates.
+ *   In this case the basis key won't apply its deltas to other keys and if a shape-key layer is
+ *   missing, its coordinates will be initialized from the edit-mesh vertex locations instead of
+ *   attempting to remap the shape-keys coordinates.
  *
  * \note These cases are considered abnormal and shouldn't occur in typical usage.
  * A warning is logged in this case to help troubleshooting bugs with shape-keys.
@@ -1310,23 +1310,6 @@ static void bm_to_mesh_shape(BMesh *bm,
 
 /** \} */
 
-BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
-{
-  /* This is a cheap way to set the edge draw, its not precise and will
-   * pick the first 2 faces an edge uses.
-   * The dot comparison is a little arbitrary, but set so that a 5 subdivisions
-   * ico-sphere won't vanish but 6 subdivisions will (as with pre-bmesh Blender). */
-
-  if (/* (med->flag & ME_EDGEDRAW) && */ /* Assume to be true. */
-      (e->l && (e->l != e->l->radial_next)) &&
-      (dot_v3v3(e->l->f->no, e->l->radial_next->f->no) > 0.9995f)) {
-    med->flag &= ~ME_EDGEDRAW;
-  }
-  else {
-    med->flag |= ME_EDGEDRAW;
-  }
-}
-
 template<typename T, typename GetFn>
 static void write_fn_to_attribute(blender::bke::MutableAttributeAccessor attributes,
                                   const StringRef attribute_name,
@@ -1473,6 +1456,8 @@ void BM_mesh_bm_to_me(
   CustomData_free(&me->ldata, me->totloop);
   CustomData_free(&me->pdata, me->totpoly);
 
+  BKE_mesh_runtime_clear_geometry(me);
+
   /* Add new custom data. */
   me->totvert = bm->totvert;
   me->totedge = bm->totedge;
@@ -1524,10 +1509,6 @@ void BM_mesh_bm_to_me(
   bool need_hide_poly = false;
   bool need_material_index = false;
 
-  /* Clear normals on the mesh completely, since the original vertex and polygon count might be
-   * different than the BMesh's. */
-  BKE_mesh_clear_derived_normals(me);
-
   i = 0;
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     copy_v3_v3(mvert[i].co, v->co);
@@ -1567,8 +1548,6 @@ void BM_mesh_bm_to_me(
 
     /* Copy over custom-data. */
     CustomData_from_bmesh_block(&bm->edata, &me->edata, e->head.data, i);
-
-    bmesh_quick_edgedraw_flag(&medge[i], e);
 
     i++;
     BM_CHECK_ELEMENT(e);
@@ -1736,9 +1715,6 @@ void BM_mesh_bm_to_me(
   /* Topology could be changed, ensure #CD_MDISPS are ok. */
   multires_topology_changed(me);
 
-  /* To be removed as soon as COW is enabled by default. */
-  BKE_mesh_runtime_clear_geometry(me);
-
   // restore original cd layer flags to bmesh id layers
   if (!params->ignore_mesh_id_layers) {
     for (int i = 0; i < 4; i++) {
@@ -1763,6 +1739,8 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   /* Must be an empty mesh. */
   BLI_assert(me->totvert == 0);
   BLI_assert(cd_mask_extra == nullptr || (cd_mask_extra->vmask & CD_MASK_SHAPEKEY) == 0);
+  /* Just in case, clear the derived geometry caches from the input mesh. */
+  BKE_mesh_runtime_clear_geometry(me);
 
   me->totvert = bm->totvert;
   me->totedge = bm->totedge;
@@ -1798,10 +1776,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   MutableSpan<MLoop> loops = me->loops_for_write();
   MLoop *mloop = loops.data();
   uint i, j;
-
-  /* Clear normals on the mesh completely, since the original vertex and polygon count might be
-   * different than the BMesh's. */
-  BKE_mesh_clear_derived_normals(me);
 
   me->runtime->deformed_only = true;
 
@@ -1859,14 +1833,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
             ".select_edge", ATTR_DOMAIN_EDGE);
       }
       select_edge_attribute.span[i] = true;
-    }
-
-    /* Handle this differently to editmode switching,
-     * only enable draw for single user edges rather than calculating angle. */
-    if ((med->flag & ME_EDGEDRAW) == 0) {
-      if (eed->l && eed->l == eed->l->radial_next) {
-        med->flag |= ME_EDGEDRAW;
-      }
     }
 
     CustomData_from_bmesh_block(&bm->edata, &me->edata, eed->head.data, i);

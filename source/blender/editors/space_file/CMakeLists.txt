@@ -3,6 +3,7 @@
 set(INC
   ../asset
   ../include
+  ../../asset_system
   ../../blenfont
   ../../blenkernel
   ../../blenlib

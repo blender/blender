@@ -3,6 +3,8 @@
 
 #include "node_shader_util.hh"
 
+#include "BKE_node_runtime.hh"
+
 namespace blender::nodes::node_shader_tex_environment_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -33,7 +35,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
 
   /* We get the image user from the original node, since GPU image keeps
    * a pointer to it and the dependency refreshes the original. */
-  bNode *node_original = node->original ? node->original : node;
+  bNode *node_original = node->runtime->original ? node->runtime->original : node;
   NodeTexImage *tex_original = (NodeTexImage *)node_original->storage;
   ImageUser *iuser = &tex_original->iuser;
   eGPUSamplerState sampler = GPU_SAMPLER_REPEAT | GPU_SAMPLER_ANISO | GPU_SAMPLER_FILTER;

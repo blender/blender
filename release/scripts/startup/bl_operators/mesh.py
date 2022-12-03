@@ -7,6 +7,7 @@ from bpy.props import (
     EnumProperty,
     IntProperty,
 )
+from bpy.app.translations import pgettext_tip as tip_
 
 
 class MeshMirrorUV(Operator):
@@ -164,18 +165,18 @@ class MeshMirrorUV(Operator):
 
         if total_duplicates and total_no_active_UV:
             self.report({'WARNING'},
-                        "%d mesh(es) with no active UV layer, "
-                        "%d duplicates found in %d mesh(es), mirror may be incomplete"
+                        tip_("%d mesh(es) with no active UV layer, "
+                             "%d duplicates found in %d mesh(es), mirror may be incomplete")
                         % (total_no_active_UV,
                            total_duplicates,
                            meshes_with_duplicates))
         elif total_no_active_UV:
             self.report({'WARNING'},
-                        "%d mesh(es) with no active UV layer"
+                        tip_("%d mesh(es) with no active UV layer")
                         % (total_no_active_UV,))
         elif total_duplicates:
             self.report({'WARNING'},
-                        "%d duplicates found in %d mesh(es), mirror may be incomplete"
+                        tip_("%d duplicates found in %d mesh(es), mirror may be incomplete")
                         % (total_duplicates, meshes_with_duplicates))
 
         return {'FINISHED'}

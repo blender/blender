@@ -74,6 +74,13 @@ void BKE_mesh_tag_coords_changed(struct Mesh *mesh);
  */
 void BKE_mesh_tag_coords_changed_uniformly(struct Mesh *mesh);
 
+void BKE_mesh_tag_topology_changed(struct Mesh *mesh);
+
+/**
+ * Call when new edges and vertices have been created but positions and faces haven't changed.
+ */
+void BKE_mesh_tag_edges_split(struct Mesh *mesh);
+
 /* *** mesh.c *** */
 
 struct BMesh *BKE_mesh_to_bmesh_ex(const struct Object *ob,
@@ -130,7 +137,8 @@ int BKE_mesh_edge_other_vert(const struct MEdge *e, int v);
 /**
  * Sets each output array element to the edge index if it is a real edge, or -1.
  */
-void BKE_mesh_looptri_get_real_edges(const struct Mesh *mesh,
+void BKE_mesh_looptri_get_real_edges(const struct MEdge *edges,
+                                     const struct MLoop *loops,
                                      const struct MLoopTri *looptri,
                                      int r_edges[3]);
 
@@ -386,15 +394,9 @@ const float (*BKE_mesh_poly_normals_ensure(const struct Mesh *mesh))[3];
 void BKE_mesh_normals_tag_dirty(struct Mesh *mesh);
 
 /**
- * Check that a mesh with non-dirty normals has vertex and face custom data layers.
- * If these asserts fail, it means some area cleared the dirty flag but didn't copy or add the
- * normal layers, or removed normals but didn't set the dirty flag.
- */
-void BKE_mesh_assert_normals_dirty_or_calculated(const struct Mesh *mesh);
-
-/**
- * Retrieve write access to the vertex normal layer, ensuring that it exists and that it is not
- * shared. The provided vertex normals should be the same as if they were calculated automatically.
+ * Retrieve write access to the cached vertex normals, ensuring that they are allocated but *not*
+ * that they are calculated. The provided vertex normals should be the same as if they were
+ * calculated automatically.
  *
  * \note In order to clear the dirty flag, this function should be followed by a call to
  * #BKE_mesh_vertex_normals_clear_dirty. This is separate so that normals are still tagged dirty
@@ -406,8 +408,9 @@ void BKE_mesh_assert_normals_dirty_or_calculated(const struct Mesh *mesh);
 float (*BKE_mesh_vertex_normals_for_write(struct Mesh *mesh))[3];
 
 /**
- * Retrieve write access to the poly normal layer, ensuring that it exists and that it is not
- * shared. The provided poly normals should be the same as if they were calculated automatically.
+ * Retrieve write access to the cached polygon normals, ensuring that they are allocated but *not*
+ * that they are calculated. The provided polygon normals should be the same as if they were
+ * calculated automatically.
  *
  * \note In order to clear the dirty flag, this function should be followed by a call to
  * #BKE_mesh_poly_normals_clear_dirty. This is separate so that normals are still tagged dirty
@@ -417,17 +420,6 @@ float (*BKE_mesh_vertex_normals_for_write(struct Mesh *mesh))[3];
  * allocated.
  */
 float (*BKE_mesh_poly_normals_for_write(struct Mesh *mesh))[3];
-
-/**
- * Free any cached vertex or poly normals. Face corner (loop) normals are also derived data,
- * but are not handled with the same method yet, so they are not included. It's important that this
- * is called after the mesh changes size, since otherwise cached normal arrays might not be large
- * enough (though it may be called indirectly by other functions).
- *
- * \note Normally it's preferred to call #BKE_mesh_normals_tag_dirty instead,
- * but this can be used in specific situations to reset a mesh or reduce memory usage.
- */
-void BKE_mesh_clear_derived_normals(struct Mesh *mesh);
 
 /**
  * Mark the mesh's vertex normals non-dirty, for when they are calculated or assigned manually.
@@ -450,6 +442,15 @@ bool BKE_mesh_vertex_normals_are_dirty(const struct Mesh *mesh);
  * This can be used to help decide whether to transfer them when copying a mesh.
  */
 bool BKE_mesh_poly_normals_are_dirty(const struct Mesh *mesh);
+
+void BKE_mesh_calc_poly_normal(const struct MPoly *mpoly,
+                               const struct MLoop *loopstart,
+                               const struct MVert *mvarray,
+                               float r_no[3]);
+void BKE_mesh_calc_poly_normal_coords(const struct MPoly *mpoly,
+                                      const struct MLoop *loopstart,
+                                      const float (*vertex_coords)[3],
+                                      float r_no[3]);
 
 /**
  * Calculate face normals directly into a result array.
@@ -493,12 +494,6 @@ void BKE_mesh_calc_normals(struct Mesh *me);
  * Called after calculating all modifiers.
  */
 void BKE_mesh_ensure_normals_for_display(struct Mesh *mesh);
-void BKE_mesh_calc_normals_looptri(const struct MVert *mverts,
-                                   int numVerts,
-                                   const struct MLoop *mloop,
-                                   const struct MLoopTri *looptri,
-                                   int looptri_num,
-                                   float (*r_tri_nors)[3]);
 
 /**
  * Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
@@ -613,10 +608,10 @@ void BKE_lnor_space_add_loop(MLoopNorSpaceArray *lnors_spacearr,
                              int ml_index,
                              void *bm_loop,
                              bool is_single);
-void BKE_lnor_space_custom_data_to_normal(MLoopNorSpace *lnor_space,
+void BKE_lnor_space_custom_data_to_normal(const MLoopNorSpace *lnor_space,
                                           const short clnor_data[2],
                                           float r_custom_lnor[3]);
-void BKE_lnor_space_custom_normal_to_data(MLoopNorSpace *lnor_space,
+void BKE_lnor_space_custom_normal_to_data(const MLoopNorSpace *lnor_space,
                                           const float custom_lnor[3],
                                           short r_clnor_data[2]);
 
@@ -719,14 +714,6 @@ void BKE_mesh_set_custom_normals_from_verts(struct Mesh *mesh, float (*r_custom_
 
 /* *** mesh_evaluate.cc *** */
 
-void BKE_mesh_calc_poly_normal(const struct MPoly *mpoly,
-                               const struct MLoop *loopstart,
-                               const struct MVert *mvarray,
-                               float r_no[3]);
-void BKE_mesh_calc_poly_normal_coords(const struct MPoly *mpoly,
-                                      const struct MLoop *loopstart,
-                                      const float (*vertex_coords)[3],
-                                      float r_no[3]);
 void BKE_mesh_calc_poly_center(const struct MPoly *mpoly,
                                const struct MLoop *loopstart,
                                const struct MVert *mvarray,
@@ -970,7 +957,6 @@ void BKE_mesh_strip_loose_faces(struct Mesh *me);
 void BKE_mesh_strip_loose_polysloops(struct Mesh *me);
 void BKE_mesh_strip_loose_edges(struct Mesh *me);
 
-void BKE_mesh_calc_edges_loose(struct Mesh *mesh);
 /**
  * Calculate edges from polygons.
  */
@@ -992,10 +978,10 @@ void BKE_mesh_eval_geometry(struct Depsgraph *depsgraph, struct Mesh *mesh);
 
 /* Draw Cache */
 void BKE_mesh_batch_cache_dirty_tag(struct Mesh *me, eMeshBatchDirtyMode mode);
-void BKE_mesh_batch_cache_free(struct Mesh *me);
+void BKE_mesh_batch_cache_free(void *batch_cache);
 
 extern void (*BKE_mesh_batch_cache_dirty_tag_cb)(struct Mesh *me, eMeshBatchDirtyMode mode);
-extern void (*BKE_mesh_batch_cache_free_cb)(struct Mesh *me);
+extern void (*BKE_mesh_batch_cache_free_cb)(void *batch_cache);
 
 /* mesh_debug.c */
 
@@ -1139,6 +1125,18 @@ inline blender::Span<MDeformVert> Mesh::deform_verts() const
 inline blender::MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
 {
   return {BKE_mesh_deform_verts_for_write(this), this->totvert};
+}
+
+inline blender::Span<blender::float3> Mesh::poly_normals() const
+{
+  return {reinterpret_cast<const blender::float3 *>(BKE_mesh_poly_normals_ensure(this)),
+          this->totpoly};
+}
+
+inline blender::Span<blender::float3> Mesh::vertex_normals() const
+{
+  return {reinterpret_cast<const blender::float3 *>(BKE_mesh_vertex_normals_ensure(this)),
+          this->totvert};
 }
 
 #endif

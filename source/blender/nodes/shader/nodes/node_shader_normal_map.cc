@@ -4,6 +4,7 @@
 #include "node_shader_util.hh"
 
 #include "BKE_context.h"
+#include "BKE_node_runtime.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -52,8 +53,9 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   if (in[0].link) {
     strength = in[0].link;
   }
-  else if (node->original) {
-    bNodeSocket *socket = static_cast<bNodeSocket *>(BLI_findlink(&node->original->inputs, 0));
+  else if (node->runtime->original) {
+    bNodeSocket *socket = static_cast<bNodeSocket *>(
+        BLI_findlink(&node->runtime->original->inputs, 0));
     bNodeSocketValueFloat *socket_data = static_cast<bNodeSocketValueFloat *>(
         socket->default_value);
     strength = GPU_uniform(&socket_data->value);
@@ -66,8 +68,9 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   if (in[1].link) {
     newnormal = in[1].link;
   }
-  else if (node->original) {
-    bNodeSocket *socket = static_cast<bNodeSocket *>(BLI_findlink(&node->original->inputs, 1));
+  else if (node->runtime->original) {
+    bNodeSocket *socket = static_cast<bNodeSocket *>(
+        BLI_findlink(&node->runtime->original->inputs, 1));
     bNodeSocketValueRGBA *socket_data = static_cast<bNodeSocketValueRGBA *>(socket->default_value);
     newnormal = GPU_uniform(socket_data->value);
   }

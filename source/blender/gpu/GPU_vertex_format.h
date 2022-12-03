@@ -37,6 +37,8 @@ typedef enum {
 
   GPU_COMP_I10,
   /* Warning! adjust GPUVertAttr if changing. */
+
+  GPU_COMP_MAX
 } GPUVertCompType;
 
 typedef enum {

@@ -228,6 +228,7 @@ struct AddOperationExecutor {
     add_inputs.fallback_curve_length = brush_settings_->curve_length;
     add_inputs.fallback_point_count = std::max(2, brush_settings_->points_per_curve);
     add_inputs.transforms = &transforms_;
+    add_inputs.surface_looptris = surface_looptris_orig;
     add_inputs.reverse_uv_sampler = &reverse_uv_sampler;
     add_inputs.surface = &surface_orig;
     add_inputs.corner_normals_su = corner_normals_su;

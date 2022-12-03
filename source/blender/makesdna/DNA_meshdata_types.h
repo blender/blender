@@ -71,9 +71,12 @@ enum {
   /*  SELECT = (1 << 0), */
   ME_EDGEDRAW = (1 << 1),
   ME_SEAM = (1 << 2),
-  /** Deprecated hide status. Now stored in ".hide_edge" attribute. */
-  /*  ME_HIDE = (1 << 4), */
+/** Deprecated hide status. Now stored in ".hide_edge" attribute. */
+/*  ME_HIDE = (1 << 4), */
+#ifdef DNA_DEPRECATED_ALLOW
+  /** Deprecated loose edge status. Now stored in #Mesh::loose_edges() runtime cache. */
   ME_LOOSEEDGE = (1 << 7),
+#endif
   ME_SHARP = (1 << 9), /* only reason this flag remains a 'short' */
 };
 

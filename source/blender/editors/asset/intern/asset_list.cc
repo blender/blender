@@ -22,8 +22,6 @@
 
 #include "BKE_preferences.h"
 
-#include "ED_fileselect.h"
-
 #include "WM_api.h"
 
 /* XXX uses private header of file-space. */
@@ -119,7 +117,6 @@ class AssetList : NonCopyable {
   int size() const;
   void tagMainDataDirty() const;
   void remapID(ID *id_old, ID *id_new) const;
-  StringRef filepath() const;
 };
 
 AssetList::AssetList(eFileSelectType filesel_type, const AssetLibraryReference &asset_library_ref)
@@ -296,11 +293,6 @@ void AssetList::remapID(ID * /*id_old*/, ID * /*id_new*/) const
   tagMainDataDirty();
 }
 
-StringRef AssetList::filepath() const
-{
-  return filelist_dir(filelist_);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -465,46 +457,6 @@ void ED_assetlist_iterate(const AssetLibraryReference &library_reference, AssetL
   }
 }
 
-/* TODO hack to use the File Browser path, so we can keep all the import logic handled by the asset
- * API. Get rid of this once the File Browser is integrated better with the asset list. */
-static const char *assetlist_library_path_from_sfile_get_hack(const bContext *C)
-{
-  SpaceFile *sfile = CTX_wm_space_file(C);
-  if (!sfile || !ED_fileselect_is_asset_browser(sfile)) {
-    return nullptr;
-  }
-
-  FileAssetSelectParams *asset_select_params = ED_fileselect_get_asset_params(sfile);
-  if (!asset_select_params) {
-    return nullptr;
-  }
-
-  return filelist_dir(sfile->files);
-}
-
-std::string ED_assetlist_asset_filepath_get(const bContext *C,
-                                            const AssetLibraryReference &library_reference,
-                                            const AssetHandle &asset_handle)
-{
-  if (ED_asset_handle_get_local_id(&asset_handle) ||
-      !ED_asset_handle_get_metadata(&asset_handle)) {
-    return {};
-  }
-  const char *library_path = ED_assetlist_library_path(&library_reference);
-  if (!library_path && C) {
-    library_path = assetlist_library_path_from_sfile_get_hack(C);
-  }
-  if (!library_path) {
-    return {};
-  }
-  const char *asset_relpath = asset_handle.file_data->relpath;
-
-  char path[FILE_MAX_LIBEXTRA];
-  BLI_path_join(path, sizeof(path), library_path, asset_relpath);
-
-  return path;
-}
-
 ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)
 {
   ImBuf *imbuf = filelist_file_getimage(asset_handle->file_data);
@@ -513,15 +465,6 @@ ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)
   }
 
   return filelist_geticon_image_ex(asset_handle->file_data);
-}
-
-const char *ED_assetlist_library_path(const AssetLibraryReference *library_reference)
-{
-  AssetList *list = AssetListStorage::lookup_list(*library_reference);
-  if (list) {
-    return list->filepath().data();
-  }
-  return nullptr;
 }
 
 bool ED_assetlist_listen(const AssetLibraryReference *library_reference,

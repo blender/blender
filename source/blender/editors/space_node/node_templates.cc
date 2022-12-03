@@ -32,7 +32,7 @@
 #include "NOD_socket.h"
 #include "NOD_socket_declarations.hh"
 
-#include "../interface/interface_intern.h" /* XXX bad level */
+#include "../interface/interface_intern.hh" /* XXX bad level */
 #include "UI_interface.h"
 
 #include "ED_node.h" /* own include */
@@ -830,7 +830,7 @@ static void ui_node_draw_input(
 
     sub = uiLayoutRow(sub, true);
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
-    uiItemL(sub, IFACE_(input.name), ICON_NONE);
+    uiItemL(sub, IFACE_(nodeSocketLabel(&input)), ICON_NONE);
   }
 
   if (dependency_loop) {

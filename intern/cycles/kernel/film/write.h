@@ -12,6 +12,7 @@
 CCL_NAMESPACE_BEGIN
 
 /* Get pointer to pixel in render buffer. */
+
 ccl_device_forceinline ccl_global float *film_pass_pixel_render_buffer(
     KernelGlobals kg, ConstIntegratorState state, ccl_global float *ccl_restrict render_buffer)
 {
@@ -21,7 +22,8 @@ ccl_device_forceinline ccl_global float *film_pass_pixel_render_buffer(
   return render_buffer + render_buffer_offset;
 }
 
-/* Write to pixel. */
+/* Accumulate in passes. */
+
 ccl_device_inline void film_write_pass_float(ccl_global float *ccl_restrict buffer, float value)
 {
 #ifdef __ATOMIC_PASS_WRITE__
@@ -73,6 +75,25 @@ ccl_device_inline void film_write_pass_float4(ccl_global float *ccl_restrict buf
   buffer[3] += value.w;
 #endif
 }
+
+/* Overwrite for passes that only write on sample 0. This assumes only a single thread will write
+ * to this pixel and no atomics are needed. */
+
+ccl_device_inline void film_overwrite_pass_float(ccl_global float *ccl_restrict buffer,
+                                                 float value)
+{
+  *buffer = value;
+}
+
+ccl_device_inline void film_overwrite_pass_float3(ccl_global float *ccl_restrict buffer,
+                                                  float3 value)
+{
+  buffer[0] = value.x;
+  buffer[1] = value.y;
+  buffer[2] = value.z;
+}
+
+/* Read back from passes. */
 
 ccl_device_inline float kernel_read_pass_float(ccl_global float *ccl_restrict buffer)
 {

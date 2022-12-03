@@ -6,6 +6,8 @@
 #  include <openvdb/tools/ParticlesToLevelSet.h>
 #endif
 
+#include "BLI_bounds.hh"
+
 #include "node_geometry_util.hh"
 
 #include "BKE_lib_id.h"
@@ -142,9 +144,7 @@ static float compute_voxel_size(const GeoNodeExecParams &params,
     return 0.0f;
   }
 
-  float3 min, max;
-  INIT_MINMAX(min, max);
-  minmax_v3v3_v3_array(min, max, (float(*)[3])positions.data(), positions.size());
+  const Bounds<float3> bounds = *bounds::min_max(positions);
 
   const float voxel_amount = params.get_input<float>("Voxel Amount");
   if (voxel_amount <= 1) {
@@ -152,7 +152,7 @@ static float compute_voxel_size(const GeoNodeExecParams &params,
   }
 
   /* The voxel size adapts to the final size of the volume. */
-  const float diagonal = math::distance(min, max);
+  const float diagonal = math::distance(bounds.min, bounds.max);
   const float extended_diagonal = diagonal + 2.0f * radius;
   const float voxel_size = extended_diagonal / voxel_amount;
   return voxel_size;

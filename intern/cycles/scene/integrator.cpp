@@ -257,12 +257,18 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
     kintegrator->light_inv_rr_threshold = 0.0f;
   }
 
+  constexpr int num_sequences = NUM_PMJ_PATTERNS;
+  int sequence_size = clamp(next_power_of_two(aa_samples - 1), MIN_PMJ_SAMPLES, MAX_PMJ_SAMPLES);
   if (kintegrator->sampling_pattern == SAMPLING_PATTERN_PMJ &&
-      dscene->sample_pattern_lut.size() == 0) {
-    constexpr int sequence_size = NUM_PMJ_SAMPLES;
-    constexpr int num_sequences = NUM_PMJ_PATTERNS;
+      dscene->sample_pattern_lut.size() !=
+          (sequence_size * NUM_PMJ_DIMENSIONS * NUM_PMJ_PATTERNS)) {
+    kintegrator->pmj_sequence_size = sequence_size;
+
+    if (dscene->sample_pattern_lut.size() != 0) {
+      dscene->sample_pattern_lut.free();
+    }
     float2 *directions = (float2 *)dscene->sample_pattern_lut.alloc(sequence_size * num_sequences *
-                                                                    2);
+                                                                    NUM_PMJ_DIMENSIONS);
     TaskPool pool;
     for (int j = 0; j < num_sequences; ++j) {
       float2 *sequence = directions + j * sequence_size;

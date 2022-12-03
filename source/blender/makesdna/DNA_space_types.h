@@ -1124,7 +1124,8 @@ typedef struct FileDirEntry {
   /** ID type, in case typeflag has FILE_TYPE_BLENDERLIB set. */
   int blentype;
 
-  /* Path to item that is relative to current folder root. */
+  /* Path to item that is relative to current folder root. To get the full path, use
+   * #filelist_file_get_full_path() */
   char *relpath;
   /** Optional argument for shortcuts, aliases etc. */
   char *redirection_path;
@@ -1736,7 +1737,8 @@ typedef struct SpaceClip {
   char _pad0[6];
   /* End 'SpaceLink' header. */
 
-  char _pad1[4];
+  char gizmo_flag;
+  char _pad1[3];
 
   /** User defined offset, image is centered. */
   float xof, yof;
@@ -1836,6 +1838,13 @@ typedef enum eSpaceClip_GPencil_Source {
   SC_GPENCIL_SRC_CLIP = 0,
   SC_GPENCIL_SRC_TRACK = 1,
 } eSpaceClip_GPencil_Source;
+
+/** #SpaceClip.gizmo_flag */
+enum {
+  /** All gizmos. */
+  SCLIP_GIZMO_HIDE = (1 << 0),
+  SCLIP_GIZMO_HIDE_NAVIGATE = (1 << 1),
+};
 
 /** \} */
 

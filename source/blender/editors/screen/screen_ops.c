@@ -3106,7 +3106,9 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   while ((ak != NULL) && (done == false)) {
     if (scene->r.cfra != (int)ak->cfra) {
       /* this changes the frame, so set the frame and we're done */
-      scene->r.cfra = (int)ak->cfra;
+      const int whole_frame = (int)ak->cfra;
+      scene->r.cfra = whole_frame;
+      scene->r.subframe = ak->cfra - whole_frame;
       done = true;
     }
     else {

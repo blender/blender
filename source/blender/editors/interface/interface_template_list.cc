@@ -30,7 +30,7 @@
 
 #include "WM_api.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 /**
  * The validated data that was passed to #uiTemplateList (typically through Python).

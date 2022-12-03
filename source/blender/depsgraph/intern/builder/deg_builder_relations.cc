@@ -2627,7 +2627,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
                  RELATION_FLAG_NO_FLUSH);
   }
   /* nodetree's nodes... */
-  LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
+  for (bNode *bnode : ntree->all_nodes()) {
     build_idproperties(bnode->prop);
     LISTBASE_FOREACH (bNodeSocket *, socket, &bnode->inputs) {
       build_nodetree_socket(socket);
@@ -2970,6 +2970,11 @@ void DepsgraphRelationBuilder::build_sound(bSound *sound)
   build_idproperties(sound->id.properties);
   build_animdata(&sound->id);
   build_parameters(&sound->id);
+
+  const ComponentKey parameters_key(&sound->id, NodeType::PARAMETERS);
+  const ComponentKey audio_key(&sound->id, NodeType::AUDIO);
+
+  add_relation(parameters_key, audio_key, "Parameters -> Audio");
 }
 
 void DepsgraphRelationBuilder::build_simulation(Simulation *simulation)

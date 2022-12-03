@@ -298,7 +298,6 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
   }
 
   const float(*vert_normals)[3] = nullptr;
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
   if (!BKE_mesh_vertex_normals_are_dirty(mesh)) {
     vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   }
@@ -1108,8 +1107,6 @@ bool BKE_mesh_is_valid(Mesh *me)
   bool is_valid = true;
   bool changed = true;
 
-  BKE_mesh_assert_normals_dirty_or_calculated(me);
-
   is_valid &= BKE_mesh_validate_all_customdata(
       &me->vdata,
       me->totvert,
@@ -1144,6 +1141,13 @@ bool BKE_mesh_is_valid(Mesh *me)
                                        do_verbose,
                                        do_fixes,
                                        &changed);
+
+  if (!me->runtime->vert_normals_dirty) {
+    BLI_assert(me->runtime->vert_normals || me->totvert == 0);
+  }
+  if (!me->runtime->poly_normals_dirty) {
+    BLI_assert(me->runtime->poly_normals || me->totpoly == 0);
+  }
 
   BLI_assert(changed == false);
 
@@ -1318,24 +1322,6 @@ void BKE_mesh_strip_loose_edges(Mesh *me)
 /* -------------------------------------------------------------------- */
 /** \name Mesh Edge Calculation
  * \{ */
-
-void BKE_mesh_calc_edges_loose(Mesh *mesh)
-{
-  const Span<MLoop> loops = mesh->loops();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
-
-  for (const int i : edges.index_range()) {
-    edges[i].flag |= ME_LOOSEEDGE;
-  }
-  for (const int i : loops.index_range()) {
-    edges[loops[i].e].flag &= ~ME_LOOSEEDGE;
-  }
-  for (const int i : edges.index_range()) {
-    if (edges[i].flag & ME_LOOSEEDGE) {
-      edges[i].flag |= ME_EDGEDRAW;
-    }
-  }
-}
 
 void BKE_mesh_calc_edges_tessface(Mesh *mesh)
 {

@@ -635,7 +635,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
             continue;
           }
 
-          const MLoopTri &looptri = *lookup_result.looptri;
+          const MLoopTri &looptri = surface_looptris[lookup_result.looptri_index];
           const float3 &bary_coords = lookup_result.bary_weights;
 
           const float3 &p0_su = verts[loops[looptri.tri[0]].v].co;
@@ -997,7 +997,7 @@ static int surface_set_exec(bContext *C, wmOperator *op)
 
     DEG_id_tag_update(&curves_ob.id, ID_RECALC_TRANSFORM);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, &curves_id);
-    WM_event_add_notifier(C, NC_NODE | NA_ADDED, NULL);
+    WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
 
     /* Required for deformation. */
     new_surface_ob.modifier_flag |= OB_MODIFIER_FLAG_ADD_REST_POSITION;

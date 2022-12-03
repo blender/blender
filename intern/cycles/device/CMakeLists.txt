@@ -8,26 +8,11 @@ set(INC
 set(INC_SYS )
 
 if(WITH_CYCLES_DEVICE_OPTIX OR WITH_CYCLES_DEVICE_CUDA)
-  if(WITH_CUDA_DYNLOAD)
-    list(APPEND INC
-      ../../../extern/cuew/include
-    )
-    add_definitions(-DWITH_CUDA_DYNLOAD)
-  else()
-    list(APPEND INC_SYS
-      ${CUDA_TOOLKIT_INCLUDE}
-    )
+  if(NOT WITH_CUDA_DYNLOAD)
     add_definitions(-DCYCLES_CUDA_NVCC_EXECUTABLE="${CUDA_NVCC_EXECUTABLE}")
   endif()
 
   add_definitions(-DCYCLES_RUNTIME_OPTIX_ROOT_DIR="${CYCLES_RUNTIME_OPTIX_ROOT_DIR}")
-endif()
-
-if(WITH_CYCLES_DEVICE_HIP AND WITH_HIP_DYNLOAD)
-  list(APPEND INC
-    ../../../extern/hipew/include
-  )
-  add_definitions(-DWITH_HIP_DYNLOAD)
 endif()
 
 set(SRC_BASE
@@ -168,24 +153,15 @@ if(WITH_CYCLES_DEVICE_HIP AND WITH_HIP_DYNLOAD)
   )
 endif()
 
-if(WITH_CYCLES_DEVICE_CUDA)
-  add_definitions(-DWITH_CUDA)
-endif()
-if(WITH_CYCLES_DEVICE_HIP)
-  add_definitions(-DWITH_HIP)
-endif()
-if(WITH_CYCLES_DEVICE_OPTIX)
-  add_definitions(-DWITH_OPTIX)
-endif()
 if(WITH_CYCLES_DEVICE_METAL)
   list(APPEND LIB
     ${METAL_LIBRARY}
   )
-  add_definitions(-DWITH_METAL)
   list(APPEND SRC
     ${SRC_METAL}
   )
 endif()
+
 if (WITH_CYCLES_DEVICE_ONEAPI)
   if(WITH_CYCLES_ONEAPI_BINARIES)
     set(cycles_kernel_oneapi_lib_suffix "_aot")
@@ -203,7 +179,6 @@ if (WITH_CYCLES_DEVICE_ONEAPI)
   else()
     list(APPEND LIB ${SYCL_LIBRARY})
   endif()
-  add_definitions(-DWITH_ONEAPI)
   list(APPEND SRC
     ${SRC_ONEAPI}
   )

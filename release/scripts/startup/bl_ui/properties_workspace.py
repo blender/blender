@@ -3,6 +3,7 @@ import bpy
 from bpy.types import (
     Panel,
 )
+from bpy.app.translations import pgettext_iface as iface_
 
 from rna_prop_ui import PropertyPanel
 
@@ -67,7 +68,8 @@ class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):
             row.operator(
                 "wm.owner_disable" if is_enabled else "wm.owner_enable",
                 icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT',
-                text="%s: %s" % (info["category"], info["name"]),
+                text=iface_("%s: %s" ) % (iface_(info["category"]), iface_(info["name"])),
+                translate=False,
                 emboss=False,
             ).owner_id = module_name
             if is_enabled:

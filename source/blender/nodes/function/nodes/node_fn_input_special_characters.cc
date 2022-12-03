@@ -4,7 +4,7 @@
 
 namespace blender::nodes::node_fn_input_special_characters_cc {
 
-static void fn_node_input_special_characters_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::String>(N_("Line Break"));
   b.add_output<decl::String>(N_("Tab"));
@@ -38,8 +38,7 @@ class MF_SpecialCharacters : public fn::MultiFunction {
   }
 };
 
-static void fn_node_input_special_characters_build_multi_function(
-    NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   static MF_SpecialCharacters special_characters_fn;
   builder.set_matching_fn(special_characters_fn);
@@ -55,7 +54,7 @@ void register_node_type_fn_input_special_characters()
 
   fn_node_type_base(
       &ntype, FN_NODE_INPUT_SPECIAL_CHARACTERS, "Special Characters", NODE_CLASS_INPUT);
-  ntype.declare = file_ns::fn_node_input_special_characters_declare;
-  ntype.build_multi_function = file_ns::fn_node_input_special_characters_build_multi_function;
+  ntype.declare = file_ns::node_declare;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
   nodeRegisterType(&ntype);
 }

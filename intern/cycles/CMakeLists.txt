@@ -253,6 +253,33 @@ if(WITH_CYCLES_OSL)
   )
 endif()
 
+if(WITH_CYCLES_DEVICE_CUDA OR WITH_CYCLES_DEVICE_OPTIX)
+  add_definitions(-DWITH_CUDA)
+
+  if(WITH_CUDA_DYNLOAD)
+    include_directories(
+      ../../extern/cuew/include
+    )
+    add_definitions(-DWITH_CUDA_DYNLOAD)
+  else()
+    include_directories(
+      SYSTEM
+      ${CUDA_TOOLKIT_INCLUDE}
+    )
+  endif()
+endif()
+
+if(WITH_CYCLES_DEVICE_HIP)
+  add_definitions(-DWITH_HIP)
+
+  if(WITH_HIP_DYNLOAD)
+    include_directories(
+      ../../extern/hipew/include
+    )
+    add_definitions(-DWITH_HIP_DYNLOAD)
+  endif()
+endif()
+
 if(WITH_CYCLES_DEVICE_OPTIX)
   find_package(OptiX 7.3.0)
 
@@ -261,10 +288,14 @@ if(WITH_CYCLES_DEVICE_OPTIX)
     include_directories(
       SYSTEM
       ${OPTIX_INCLUDE_DIR}
-      )
+    )
   else()
     set_and_warn_library_found("OptiX" OPTIX_FOUND WITH_CYCLES_DEVICE_OPTIX)
   endif()
+endif()
+
+if(WITH_CYCLES_DEVICE_METAL)
+  add_definitions(-DWITH_METAL)
 endif()
 
 if (WITH_CYCLES_DEVICE_ONEAPI)
@@ -392,7 +423,7 @@ if(WITH_CYCLES_HYDRA_RENDER_DELEGATE AND (NOT WITH_BLENDER) AND (NOT WITH_CYCLES
   set(CYCLES_INSTALL_PATH ${CYCLES_INSTALL_PATH}/hdCycles/resources)
 endif()
 
-if(WITH_CYCLES_CUDA_BINARIES AND (NOT WITH_CYCLES_CUBIN_COMPILER))
+if(WITH_CYCLES_CUDA_BINARIES)
   if(MSVC)
     set(MAX_MSVC 1800)
     if(${CUDA_VERSION} EQUAL "8.0")
@@ -404,24 +435,7 @@ if(WITH_CYCLES_CUDA_BINARIES AND (NOT WITH_CYCLES_CUBIN_COMPILER))
     elseif(${CUDA_VERSION} VERSION_GREATER_EQUAL 10.0)
       set(MAX_MSVC 1999)
     endif()
-    if(NOT MSVC_VERSION LESS ${MAX_MSVC} OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-      message(STATUS "nvcc not supported for this compiler version, using cycles_cubin_cc instead.")
-      set(WITH_CYCLES_CUBIN_COMPILER ON)
-    endif()
     unset(MAX_MSVC)
-  elseif(APPLE)
-    if(NOT (${XCODE_VERSION} VERSION_LESS 10.0))
-      message(STATUS "nvcc not supported for this compiler version, using cycles_cubin_cc instead.")
-      set(WITH_CYCLES_CUBIN_COMPILER ON)
-    endif()
-  endif()
-endif()
-
-# NVRTC gives wrong rendering result in CUDA 10.0, so we must use NVCC.
-if(WITH_CYCLES_CUDA_BINARIES AND WITH_CYCLES_CUBIN_COMPILER AND NOT WITH_CYCLES_CUBIN_COMPILER_OVERRRIDE)
-  if(NOT (${CUDA_VERSION} VERSION_LESS 10.0))
-    message(STATUS "cycles_cubin_cc not supported for CUDA 10.0+, using nvcc instead.")
-    set(WITH_CYCLES_CUBIN_COMPILER OFF)
   endif()
 endif()
 

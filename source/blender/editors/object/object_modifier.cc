@@ -614,7 +614,7 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
       if (k) {
         medge->v1 = cvert - 1;
         medge->v2 = cvert;
-        medge->flag = ME_EDGEDRAW | ME_LOOSEEDGE;
+        medge->flag = ME_EDGEDRAW;
         medge++;
       }
       else {
@@ -633,7 +633,7 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
       if (k) {
         medge->v1 = cvert - 1;
         medge->v2 = cvert;
-        medge->flag = ME_EDGEDRAW | ME_LOOSEEDGE;
+        medge->flag = ME_EDGEDRAW;
         medge++;
       }
       else {

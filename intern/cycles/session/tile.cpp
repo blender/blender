@@ -342,8 +342,8 @@ void TileManager::reset_scheduling(const BufferParams &params, int2 tile_size)
 
   tile_size_ = tile_size;
 
-  tile_state_.num_tiles_x = divide_up(params.width, tile_size_.x);
-  tile_state_.num_tiles_y = divide_up(params.height, tile_size_.y);
+  tile_state_.num_tiles_x = tile_size_.x ? divide_up(params.width, tile_size_.x) : 0;
+  tile_state_.num_tiles_y = tile_size_.y ? divide_up(params.height, tile_size_.y) : 0;
   tile_state_.num_tiles = tile_state_.num_tiles_x * tile_state_.num_tiles_y;
 
   tile_state_.next_tile_index = 0;

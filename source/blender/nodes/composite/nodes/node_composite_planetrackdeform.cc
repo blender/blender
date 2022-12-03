@@ -5,6 +5,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BLT_translation.h"
+
 #include "DNA_movieclip_types.h"
 #include "DNA_tracking_types.h"
 
@@ -51,11 +53,10 @@ static void init(const bContext *C, PointerRNA *ptr)
     const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
     BLI_strncpy(data->tracking_object, tracking_object->name, sizeof(data->tracking_object));
 
-    const MovieTrackingPlaneTrack *active_plane_track = BKE_tracking_plane_track_get_active(
-        tracking);
-    if (active_plane_track) {
-      BLI_strncpy(
-          data->plane_track_name, active_plane_track->name, sizeof(data->plane_track_name));
+    if (tracking_object->active_plane_track) {
+      BLI_strncpy(data->plane_track_name,
+                  tracking_object->active_plane_track->name,
+                  sizeof(data->plane_track_name));
     }
   }
 }
@@ -79,7 +80,7 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
   if (node->id) {
     MovieClip *clip = (MovieClip *)node->id;
     MovieTracking *tracking = &clip->tracking;
-    MovieTrackingObject *object;
+    MovieTrackingObject *tracking_object;
     uiLayout *col;
     PointerRNA tracking_ptr;
 
@@ -88,11 +89,11 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
     col = uiLayoutColumn(layout, false);
     uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
 
-    object = BKE_tracking_object_get_named(tracking, data->tracking_object);
-    if (object) {
+    tracking_object = BKE_tracking_object_get_named(tracking, data->tracking_object);
+    if (tracking_object) {
       PointerRNA object_ptr;
 
-      RNA_pointer_create(&clip->id, &RNA_MovieTrackingObject, object, &object_ptr);
+      RNA_pointer_create(&clip->id, &RNA_MovieTrackingObject, tracking_object, &object_ptr);
 
       uiItemPointerR(
           col, ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
@@ -119,6 +120,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
   {
     get_input("Image").pass_through(get_result("Image"));
     get_result("Plane").allocate_invalid();
+    context().set_info_message("Viewport compositor setup not fully supported");
   }
 };
 
@@ -142,6 +144,8 @@ void register_node_type_cmp_planetrackdeform()
   node_type_storage(
       &ntype, "NodePlaneTrackDeformData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

@@ -30,7 +30,7 @@ static TrackPositionOperation *create_motion_operation(NodeConverter &converter,
   operation->set_track_name(trackpos_data->track_name);
   operation->set_framenumber(frame_number);
   operation->set_axis(axis);
-  operation->set_position(CMP_TRACKPOS_ABSOLUTE);
+  operation->set_position(CMP_NODE_TRACK_POSITION_ABSOLUTE);
   operation->set_relative_frame(frame_number + delta);
   operation->set_speed_output(true);
   converter.add_operation(operation);
@@ -49,7 +49,7 @@ void TrackPositionNode::convert_to_operations(NodeConverter &converter,
   NodeOutput *output_speed = this->get_output_socket(2);
 
   int frame_number;
-  if (editor_node->custom1 == CMP_TRACKPOS_ABSOLUTE_FRAME) {
+  if (editor_node->custom1 == CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME) {
     frame_number = editor_node->custom2;
   }
   else {
@@ -62,7 +62,7 @@ void TrackPositionNode::convert_to_operations(NodeConverter &converter,
   operationX->set_track_name(trackpos_data->track_name);
   operationX->set_framenumber(frame_number);
   operationX->set_axis(0);
-  operationX->set_position(editor_node->custom1);
+  operationX->set_position(static_cast<CMPNodeTrackPositionMode>(editor_node->custom1));
   operationX->set_relative_frame(editor_node->custom2);
   converter.add_operation(operationX);
   converter.map_output_socket(outputX, operationX->get_output_socket());
@@ -73,7 +73,7 @@ void TrackPositionNode::convert_to_operations(NodeConverter &converter,
   operationY->set_track_name(trackpos_data->track_name);
   operationY->set_framenumber(frame_number);
   operationY->set_axis(1);
-  operationY->set_position(editor_node->custom1);
+  operationX->set_position(static_cast<CMPNodeTrackPositionMode>(editor_node->custom1));
   operationY->set_relative_frame(editor_node->custom2);
   converter.add_operation(operationY);
   converter.map_output_socket(outputY, operationY->get_output_socket());

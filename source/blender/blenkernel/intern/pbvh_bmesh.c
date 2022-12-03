@@ -378,7 +378,7 @@ static void pbvh_bmesh_node_split(
   BKE_pbvh_free_proxyarray(pbvh, n);
 #endif
 
-  if (n->depth >= pbvh->depth_limit || BLI_table_gset_len(n->bm_faces) <= pbvh->leaf_limit) {
+  if (n->depth >= PBVH_STACK_FIXED_DEPTH || BLI_table_gset_len(n->bm_faces) <= pbvh->leaf_limit) {
     /* Node limit not exceeded */
     pbvh_bmesh_node_finalize(pbvh, node_index, cd_vert_node_offset, cd_face_node_offset, add_orco);
     return;
@@ -542,7 +542,8 @@ bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
 
   // pbvh_bmesh_check_nodes(pbvh);
 
-  if (bm_faces_size <= pbvh->leaf_limit || pbvh->nodes[node_index].depth >= pbvh->depth_limit) {
+  if (bm_faces_size <= pbvh->leaf_limit ||
+      pbvh->nodes[node_index].depth >= PBVH_STACK_FIXED_DEPTH) {
     /* Node limit not exceeded */
     return false;
   }
@@ -948,7 +949,8 @@ bool pbvh_bmesh_node_raycast(PBVH *pbvh,
       }
     }
 
-    if (ray_face_intersection_depth_tri(ray_start, isect_precalc, cos[0], cos[1], cos[2], depth, back_depth, hit_count)) {
+    if (ray_face_intersection_depth_tri(
+            ray_start, isect_precalc, cos[0], cos[1], cos[2], depth, back_depth, hit_count)) {
       hit = true;
 
       if (r_face_normal) {
@@ -1318,7 +1320,7 @@ static void pbvh_bmesh_node_limit_ensure_fast(PBVH *pbvh,
 {
   FastNodeBuildInfo *child1, *child2;
 
-  if (node->totface <= pbvh->leaf_limit || node->depth >= pbvh->depth_limit) {
+  if (node->totface <= pbvh->leaf_limit || node->depth >= PBVH_STACK_FIXED_DEPTH) {
     return;
   }
 
@@ -2179,8 +2181,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->bm_log = log;
   pbvh->cd_faceset_offset = CustomData_get_offset_named(
       &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
-
-  pbvh->depth_limit = 28;
 
   int tottri = poly_to_tri_count(bm->totface, bm->totloop);
 

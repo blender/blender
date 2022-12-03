@@ -201,7 +201,7 @@ static constexpr DRWBatchFlag batches_that_use_buffer(const int buffer_index)
 }
 
 static void mesh_batch_cache_discard_surface_batches(MeshBatchCache *cache);
-static void mesh_batch_cache_clear(Mesh *me);
+static void mesh_batch_cache_clear(MeshBatchCache *cache);
 
 static void mesh_batch_cache_discard_batch(MeshBatchCache *cache, const DRWBatchFlag batch_map)
 {
@@ -618,7 +618,9 @@ static void mesh_batch_cache_init(Object *object, Mesh *me)
 void DRW_mesh_batch_cache_validate(Object *object, Mesh *me)
 {
   if (!mesh_batch_cache_valid(object, me)) {
-    mesh_batch_cache_clear(me);
+    if (me->runtime->batch_cache) {
+      mesh_batch_cache_clear(static_cast<MeshBatchCache *>(me->runtime->batch_cache));
+    }
     mesh_batch_cache_init(object, me);
   }
 }
@@ -819,12 +821,8 @@ static void mesh_batch_cache_free_subdiv_cache(MeshBatchCache *cache)
   }
 }
 
-static void mesh_batch_cache_clear(Mesh *me)
+static void mesh_batch_cache_clear(MeshBatchCache *cache)
 {
-  MeshBatchCache *cache = static_cast<MeshBatchCache *>(me->runtime->batch_cache);
-  if (!cache) {
-    return;
-  }
   FOREACH_MESH_BUFFER_CACHE (cache, mbc) {
     mesh_buffer_cache_clear(mbc);
   }
@@ -850,10 +848,12 @@ static void mesh_batch_cache_clear(Mesh *me)
   mesh_batch_cache_free_subdiv_cache(cache);
 }
 
-void DRW_mesh_batch_cache_free(Mesh *me)
+void DRW_mesh_batch_cache_free(void *batch_cache)
 {
-  mesh_batch_cache_clear(me);
-  MEM_SAFE_FREE(me->runtime->batch_cache);
+  if (batch_cache) {
+    mesh_batch_cache_clear(static_cast<MeshBatchCache *>(batch_cache));
+    MEM_freeN(batch_cache);
+  }
 }
 
 /** \} */

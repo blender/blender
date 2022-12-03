@@ -6,6 +6,7 @@
 #include "kernel/integrator/path_state.h"
 #include "kernel/integrator/surface_shader.h"
 
+#include "kernel/light/distribution.h"
 #include "kernel/light/light.h"
 
 #include "kernel/sample/mapping.h"
@@ -277,6 +278,8 @@ ccl_device_inline void light_sample_to_volume_shadow_ray(
   shadow_ray_setup(sd, ls, P, ray, false);
 }
 
+/* Multiple importance sampling weights. */
+
 ccl_device_inline float light_sample_mis_weight_forward(KernelGlobals kg,
                                                         const float forward_pdf,
                                                         const float nee_pdf)
@@ -307,6 +310,140 @@ ccl_device_inline float light_sample_mis_weight_nee(KernelGlobals kg,
   else
 #endif
     return power_heuristic(nee_pdf, forward_pdf);
+}
+
+/* Next event estimation sampling.
+ *
+ * Sample a position on a light in the scene, from a position on a surface or
+ * from a volume segment. */
+
+ccl_device_inline bool light_sample_from_volume_segment(KernelGlobals kg,
+                                                        float randu,
+                                                        const float randv,
+                                                        const float time,
+                                                        const float3 P,
+                                                        const float3 D,
+                                                        const float t,
+                                                        const int bounce,
+                                                        const uint32_t path_flag,
+                                                        ccl_private LightSample *ls)
+{
+  return light_distribution_sample<true>(kg, randu, randv, time, P, bounce, path_flag, ls);
+}
+
+ccl_device bool light_sample_from_position(KernelGlobals kg,
+                                           ccl_private const RNGState *rng_state,
+                                           const float randu,
+                                           const float randv,
+                                           const float time,
+                                           const float3 P,
+                                           const float3 N,
+                                           const int shader_flags,
+                                           const int bounce,
+                                           const uint32_t path_flag,
+                                           ccl_private LightSample *ls)
+{
+  return light_distribution_sample<false>(kg, randu, randv, time, P, bounce, path_flag, ls);
+}
+
+ccl_device_inline bool light_sample_new_position(KernelGlobals kg,
+                                                 const float randu,
+                                                 const float randv,
+                                                 const float time,
+                                                 const float3 P,
+                                                 ccl_private LightSample *ls)
+{
+  /* Sample a new position on the same light, for volume sampling. */
+  if (ls->type == LIGHT_TRIANGLE) {
+    if (!triangle_light_sample<false>(kg, ls->prim, ls->object, randu, randv, time, ls, P)) {
+      return false;
+    }
+    return true;
+  }
+  else {
+    if (!light_sample<false>(kg, ls->lamp, randu, randv, P, 0, ls)) {
+      return false;
+    }
+    ls->pdf *= ls->pdf_selection;
+    return true;
+  }
+}
+
+ccl_device_forceinline void light_sample_update_position(KernelGlobals kg,
+                                                         ccl_private LightSample *ls,
+                                                         const float3 P)
+{
+  /* Update light sample for new shading point position, while keeping
+   * position on the light fixed. */
+
+  /* NOTE : preserve pdf in area measure. */
+  light_update_position(kg, ls, P);
+
+  /* Re-apply already computed selection pdf. */
+  ls->pdf *= ls->pdf_selection;
+}
+
+/* Forward sampling.
+ *
+ * Multiple importance sampling weights for hitting surface, light or background
+ * through indirect light ray.
+ *
+ * The BSDF or phase pdf from the previous bounce was stored in mis_ray_pdf and
+ * is used for balancing with the light sampling pdf. */
+
+ccl_device_inline float light_sample_mis_weight_forward_surface(KernelGlobals kg,
+                                                                IntegratorState state,
+                                                                const uint32_t path_flag,
+                                                                const ccl_private ShaderData *sd)
+{
+  const float bsdf_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
+  const float t = sd->ray_length;
+  float pdf = triangle_light_pdf(kg, sd, t);
+
+  /* Light selection pdf. */
+  /* Handled in triangle_light_pdf for effeciency. */
+
+  return light_sample_mis_weight_forward(kg, bsdf_pdf, pdf);
+}
+
+ccl_device_inline float light_sample_mis_weight_forward_lamp(KernelGlobals kg,
+                                                             IntegratorState state,
+                                                             const uint32_t path_flag,
+                                                             const ccl_private LightSample *ls,
+                                                             const float3 P)
+{
+  const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
+  float pdf = ls->pdf;
+
+  /* Light selection pdf. */
+  pdf *= light_distribution_pdf_lamp(kg);
+
+  return light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
+}
+
+ccl_device_inline float light_sample_mis_weight_forward_distant(KernelGlobals kg,
+                                                                IntegratorState state,
+                                                                const uint32_t path_flag,
+                                                                const ccl_private LightSample *ls)
+{
+  const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
+  return light_sample_mis_weight_forward_lamp(kg, state, path_flag, ls, ray_P);
+}
+
+ccl_device_inline float light_sample_mis_weight_forward_background(KernelGlobals kg,
+                                                                   IntegratorState state,
+                                                                   const uint32_t path_flag)
+{
+  const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
+  const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
+  const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
+
+  float pdf = background_light_pdf(kg, ray_P, ray_D);
+
+  /* Light selection pdf. */
+  pdf *= light_distribution_pdf_lamp(kg);
+
+  return light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
 }
 
 CCL_NAMESPACE_END

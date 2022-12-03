@@ -232,7 +232,7 @@ NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, co
 
     NodeResizeDirection dir = NODE_RESIZE_NONE;
 
-    const rctf &totr = node->totr;
+    const rctf &totr = node->runtime->totr;
     const float size = NODE_RESIZE_MARGIN;
 
     if (x > totr.xmax - size && x <= totr.xmax && y >= totr.ymin && y < totr.ymax) {
@@ -253,8 +253,8 @@ NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, co
 
   if (node->flag & NODE_HIDDEN) {
     /* right part of node */
-    rctf totr = node->totr;
-    totr.xmin = node->totr.xmax - 1.0f * U.widget_unit;
+    rctf totr = node->runtime->totr;
+    totr.xmin = node->runtime->totr.xmax - 1.0f * U.widget_unit;
     if (BLI_rctf_isect_pt(&totr, x, y)) {
       return NODE_RESIZE_RIGHT;
     }
@@ -263,7 +263,7 @@ NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, co
   }
 
   const float size = NODE_RESIZE_MARGIN;
-  const rctf &totr = node->totr;
+  const rctf &totr = node->runtime->totr;
   NodeResizeDirection dir = NODE_RESIZE_NONE;
 
   if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
@@ -1585,10 +1585,10 @@ static float2 socket_link_connection_location(const bNode &node,
                                               const bNodeSocket &socket,
                                               const bNodeLink &link)
 {
-  const float2 socket_location(socket.locx, socket.locy);
+  const float2 socket_location(socket.runtime->locx, socket.runtime->locy);
   if (socket.is_multi_input() && socket.is_input() && !(node.flag & NODE_HIDDEN)) {
     return node_link_calculate_multi_input_position(
-        socket_location, link.multi_input_socket_index, socket.total_inputs);
+        socket_location, link.multi_input_socket_index, socket.runtime->total_inputs);
   }
   return socket_location;
 }

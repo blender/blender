@@ -50,6 +50,7 @@ typedef struct BassReliefTreeData {
   struct SpaceTransform transform;
   float keepDist;
 
+  const float (*vert_normals)[3];
   float (*pnors)[3];
   float (*clnors)[3];
 } BassReliefTreeData;

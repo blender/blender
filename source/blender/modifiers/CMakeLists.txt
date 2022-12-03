@@ -47,7 +47,7 @@ set(SRC
   intern/MOD_curve.c
   intern/MOD_datatransfer.cc
   intern/MOD_decimate.c
-  intern/MOD_displace.c
+  intern/MOD_displace.cc
   intern/MOD_dynamicpaint.c
   intern/MOD_edgesplit.c
   intern/MOD_explode.c
@@ -86,7 +86,7 @@ set(SRC
   intern/MOD_subsurf.cc
   intern/MOD_surface.c
   intern/MOD_surfacedeform.c
-  intern/MOD_triangulate.c
+  intern/MOD_triangulate.cc
   intern/MOD_ui_common.c
   intern/MOD_util.cc
   intern/MOD_uvproject.cc

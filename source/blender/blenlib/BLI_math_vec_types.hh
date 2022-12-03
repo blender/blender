@@ -86,32 +86,16 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
 
   vec_base() = default;
 
-  explicit vec_base(uint value)
+  explicit vec_base(T value)
   {
     for (int i = 0; i < Size; i++) {
-      (*this)[i] = T(value);
+      (*this)[i] = value;
     }
   }
 
-  explicit vec_base(int value)
+  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
+  explicit vec_base(U value) : vec_base(T(value))
   {
-    for (int i = 0; i < Size; i++) {
-      (*this)[i] = T(value);
-    }
-  }
-
-  explicit vec_base(float value)
-  {
-    for (int i = 0; i < Size; i++) {
-      (*this)[i] = T(value);
-    }
-  }
-
-  explicit vec_base(double value)
-  {
-    for (int i = 0; i < Size; i++) {
-      (*this)[i] = T(value);
-    }
   }
 
 /* Workaround issue with template BLI_ENABLE_IF((Size == 2)) not working. */
@@ -277,9 +261,8 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
 
   vec_base &operator+=(const T &b)
   {
-    vec_base result;
     unroll<Size>([&](auto i) { (*this)[i] += b; });
-    return result;
+    return *this;
   }
 
   friend vec_base operator-(const vec_base &a)

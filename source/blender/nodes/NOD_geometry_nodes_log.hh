@@ -169,36 +169,36 @@ using TimePoint = Clock::time_point;
 class GeoTreeLogger {
  public:
   std::optional<ComputeContextHash> parent_hash;
-  std::optional<std::string> group_node_name;
+  std::optional<int32_t> group_node_id;
   Vector<ComputeContextHash> children_hashes;
 
   LinearAllocator<> *allocator = nullptr;
 
   struct WarningWithNode {
-    StringRefNull node_name;
+    int32_t node_id;
     NodeWarning warning;
   };
   struct SocketValueLog {
-    StringRefNull node_name;
+    int32_t node_id;
     StringRefNull socket_identifier;
     destruct_ptr<ValueLog> value;
   };
   struct NodeExecutionTime {
-    StringRefNull node_name;
+    int32_t node_id;
     TimePoint start;
     TimePoint end;
   };
   struct ViewerNodeLogWithNode {
-    StringRefNull node_name;
+    int32_t node_id;
     destruct_ptr<ViewerNodeLog> viewer_log;
   };
   struct AttributeUsageWithNode {
-    StringRefNull node_name;
+    int32_t node_id;
     StringRefNull attribute_name;
     NamedAttributeUsage usage;
   };
   struct DebugMessage {
-    StringRefNull node_name;
+    int32_t node_id;
     StringRefNull message;
   };
 
@@ -269,8 +269,8 @@ class GeoTreeLog {
   bool reduced_debug_messages_ = false;
 
  public:
-  Map<StringRefNull, GeoNodeLog> nodes;
-  Map<StringRefNull, ViewerNodeLog *, 0> viewer_node_logs;
+  Map<int32_t, GeoNodeLog> nodes;
+  Map<int32_t, ViewerNodeLog *, 0> viewer_node_logs;
   Vector<NodeWarning> all_warnings;
   std::chrono::nanoseconds run_time_sum{0};
   Vector<const GeometryAttributeInfo *> existing_attributes;

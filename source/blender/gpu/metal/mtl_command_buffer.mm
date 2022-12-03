@@ -483,7 +483,7 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
     }
     if (barrier_bits & GPU_BARRIER_SHADER_STORAGE ||
         barrier_bits & GPU_BARRIER_VERTEX_ATTRIB_ARRAY ||
-        barrier_bits & GPU_BARRIER_ELEMENT_ARRAY) {
+        barrier_bits & GPU_BARRIER_ELEMENT_ARRAY || barrier_bits & GPU_BARRIER_UNIFORM) {
       scope = scope | MTLBarrierScopeBuffers;
     }
 
@@ -536,6 +536,24 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
   }
   /* No barrier support. */
   return false;
+}
+
+void MTLCommandBufferManager::encode_signal_event(id<MTLEvent> event, uint64_t signal_value)
+{
+  /* Ensure active command buffer. */
+  id<MTLCommandBuffer> cmd_buf = this->ensure_begin();
+  BLI_assert(cmd_buf);
+  this->end_active_command_encoder();
+  [cmd_buf encodeSignalEvent:event value:signal_value];
+}
+
+void MTLCommandBufferManager::encode_wait_for_event(id<MTLEvent> event, uint64_t signal_value)
+{
+  /* Ensure active command buffer. */
+  id<MTLCommandBuffer> cmd_buf = this->ensure_begin();
+  BLI_assert(cmd_buf);
+  this->end_active_command_encoder();
+  [cmd_buf encodeWaitForEvent:event value:signal_value];
 }
 
 /** \} */

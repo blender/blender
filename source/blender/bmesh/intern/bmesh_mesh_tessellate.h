@@ -6,6 +6,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMPartialUpdate;
 
 struct BMeshCalcTessellation_Params {
@@ -33,3 +37,7 @@ void BM_mesh_calc_tessellation_with_partial_ex(BMesh *bm,
 void BM_mesh_calc_tessellation_with_partial(BMesh *bm,
                                             BMLoop *(*looptris)[3],
                                             const struct BMPartialUpdate *bmpinfo);
+
+#ifdef __cplusplus
+}
+#endif

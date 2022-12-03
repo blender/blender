@@ -59,14 +59,15 @@ static void rna_Mask_update_parent(Main *bmain, Scene *scene, PointerRNA *ptr)
     if (GS(parent->id->name) == ID_MC) {
       MovieClip *clip = (MovieClip *)parent->id;
       MovieTracking *tracking = &clip->tracking;
-      MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, parent->parent);
+      MovieTrackingObject *tracking_object = BKE_tracking_object_get_named(tracking,
+                                                                           parent->parent);
 
-      if (object) {
+      if (tracking_object) {
         int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, scene->r.cfra);
 
         if (parent->type == MASK_PARENT_POINT_TRACK) {
-          MovieTrackingTrack *track = BKE_tracking_track_get_named(
-              tracking, object, parent->sub_parent);
+          MovieTrackingTrack *track = BKE_tracking_object_find_track_with_name(tracking_object,
+                                                                               parent->sub_parent);
 
           if (track) {
             MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_framenr);
@@ -83,8 +84,8 @@ static void rna_Mask_update_parent(Main *bmain, Scene *scene, PointerRNA *ptr)
           }
         }
         else /* if (parent->type == MASK_PARENT_PLANE_TRACK) */ {
-          MovieTrackingPlaneTrack *plane_track = BKE_tracking_plane_track_get_named(
-              tracking, object, parent->sub_parent);
+          MovieTrackingPlaneTrack *plane_track = BKE_tracking_object_find_plane_track_with_name(
+              tracking_object, parent->sub_parent);
           if (plane_track) {
             MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track,
                                                                                    clip_framenr);

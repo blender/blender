@@ -218,6 +218,11 @@ void GPU_uniformbuf_bind(GPUUniformBuf *ubo, int slot)
   unwrap(ubo)->bind(slot);
 }
 
+void GPU_uniformbuf_bind_as_ssbo(GPUUniformBuf *ubo, int slot)
+{
+  unwrap(ubo)->bind_as_ssbo(slot);
+}
+
 void GPU_uniformbuf_unbind(GPUUniformBuf *ubo)
 {
   unwrap(ubo)->unbind();
@@ -226,6 +231,11 @@ void GPU_uniformbuf_unbind(GPUUniformBuf *ubo)
 void GPU_uniformbuf_unbind_all()
 {
   /* FIXME */
+}
+
+void GPU_uniformbuf_clear_to_zero(GPUUniformBuf *ubo)
+{
+  unwrap(ubo)->clear_to_zero();
 }
 
 /** \} */

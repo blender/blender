@@ -47,7 +47,19 @@ void main()
   uint resource_index = (proto.resource_handle & 0x7FFFFFFFu);
 
   /* Visibility test result. */
-  bool is_visible = ((visibility_buf[resource_index / 32u] & (1u << (resource_index % 32u)))) != 0;
+  uint visible_instance_len = 0;
+  if (visibility_word_per_draw > 0) {
+    uint visibility_word = resource_index * visibility_word_per_draw;
+    for (uint i = 0; i < visibility_word_per_draw; i++, visibility_word++) {
+      visible_instance_len += bitCount(visibility_buf[visibility_word]);
+    }
+  }
+  else {
+    if ((visibility_buf[resource_index / 32u] & (1u << (resource_index % 32u))) != 0) {
+      visible_instance_len = proto.instance_len;
+    }
+  }
+  bool is_visible = visible_instance_len > 0;
 
   DrawGroup group = group_buf[group_id];
 
@@ -63,22 +75,38 @@ void main()
   uint front_facing_len = group.front_facing_len;
   uint dst_index = group.start;
   if (is_inverted) {
-    uint offset = atomicAdd(group_buf[group_id].back_facing_counter, proto.instance_len);
+    uint offset = atomicAdd(group_buf[group_id].back_facing_counter, visible_instance_len);
     dst_index += offset;
     if (atomicAddAndGet(group_buf[group_id].total_counter, proto.instance_len) == group.len) {
       write_draw_call(group, group_id);
     }
   }
   else {
-    uint offset = atomicAdd(group_buf[group_id].front_facing_counter, proto.instance_len);
+    uint offset = atomicAdd(group_buf[group_id].front_facing_counter, visible_instance_len);
     dst_index += back_facing_len + offset;
     if (atomicAddAndGet(group_buf[group_id].total_counter, proto.instance_len) == group.len) {
       write_draw_call(group, group_id);
     }
   }
 
-  for (uint i = dst_index; i < dst_index + proto.instance_len; i++) {
-    /* Fill resource_id buffer for each instance of this draw */
-    resource_id_buf[i] = resource_index;
+  /* Fill resource_id buffer for each instance of this draw */
+  if (visibility_word_per_draw > 0) {
+    uint visibility_word = resource_index * visibility_word_per_draw;
+    for (uint i = 0; i < visibility_word_per_draw; i++, visibility_word++) {
+      uint word = visibility_buf[visibility_word];
+      uint view_index = i * 32u;
+      while (word != 0u) {
+        if ((word & 1u) != 0u) {
+          resource_id_buf[dst_index++] = view_index | (resource_index << view_shift);
+        }
+        view_index++;
+        word >>= 1u;
+      }
+    }
+  }
+  else {
+    for (uint i = dst_index; i < dst_index + visible_instance_len; i++) {
+      resource_id_buf[i] = resource_index;
+    }
   }
 }

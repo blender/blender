@@ -2807,6 +2807,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_KeyMapItem_propvalue_itemf");
   RNA_def_property_ui_text(
       prop, "Property Value", "The value this event translates to in a modal keymap");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_WINDOWMANAGER);
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
   prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);

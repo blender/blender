@@ -99,7 +99,7 @@ def do_versions(self):
         library_versions.setdefault(library.version, []).append(library)
 
     # Do versioning per library, since they might have different versions.
-    max_need_versioning = (3, 0, 25)
+    max_need_versioning = (3, 5, 2)
     for version, libraries in library_versions.items():
         if version > max_need_versioning:
             continue
@@ -297,3 +297,8 @@ def do_versions(self):
                 cmat = mat.cycles
                 if not cmat.is_property_set("displacement_method"):
                     cmat.displacement_method = 'DISPLACEMENT'
+
+            if version <= (3, 5, 3):
+                cmat = mat.cycles
+                if not cmat.get("sample_as_light", True):
+                    cmat.emission_sampling = 'NONE'

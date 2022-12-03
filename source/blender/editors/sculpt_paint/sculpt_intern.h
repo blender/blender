@@ -154,6 +154,14 @@ typedef struct SculptSmoothArgs {
   float bevel_smooth_factor;
 } SculptSmoothArgs;
 
+typedef struct SculptOrigFaceData {
+  struct SculptUndoNode *unode;
+  struct BMLog *bm_log;
+  const int *face_sets;
+  int face_set;
+} SculptOrigFaceData;
+
+/* Flood Fill. */
 typedef struct {
   GSQueue *queue;
   BLI_bitmap *visited_verts;
@@ -258,6 +266,9 @@ typedef struct SculptUndoNode {
   int *nodemap;
   int nodemap_size;
   int typemask;
+
+  PBVHFaceRef *faces;
+  int faces_num;
 
   size_t undo_size;
   // int gen, lasthash;
@@ -1339,15 +1350,15 @@ int SCULPT_active_face_set_get(SculptSession *ss);
 int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 
+int SCULPT_face_set_get(const SculptSession *ss, PBVHFaceRef face);
+void SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset);
+
 bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, PBVHVertRef vertex);
 
 int SCULPT_face_set_next_available_get(SculptSession *ss);
 
 void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visible);
-
-int SCULPT_face_set_get(SculptSession *ss, PBVHFaceRef face);
-int SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset);
 
 int SCULPT_face_set_original_get(SculptSession *ss, PBVHFaceRef face);
 
@@ -1385,6 +1396,7 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data,
                                       Object *ob,
                                       struct SculptUndoNode *unode);
 
+
 void SCULPT_face_check_origdata(SculptSession *ss, PBVHFaceRef face);
 bool SCULPT_vertex_check_origdata(SculptSession *ss, PBVHVertRef vertex);
 
@@ -1393,6 +1405,25 @@ bool SCULPT_vertex_check_origdata(SculptSession *ss, PBVHVertRef vertex);
  */
 void SCULPT_face_ensure_original(SculptSession *ss, struct Object *ob);
 
+/**
+ * Initialize a #SculptOrigFaceData for accessing original face data;
+ * handles #BMesh, #Mesh, and multi-resolution.
+ */
+void SCULPT_orig_face_data_init(SculptOrigFaceData *data,
+                                Object *ob,
+                                PBVHNode *node,
+                                SculptUndoType type);
+/**
+ * Update a #SculptOrigFaceData for a particular vertex from the PBVH iterator.
+ */
+void SCULPT_orig_face_data_update(SculptOrigFaceData *orig_data, PBVHFaceIter *iter);
+/**
+ * Initialize a #SculptOrigVertData for accessing original vertex data;
+ * handles #BMesh, #Mesh, and multi-resolution.
+ */
+void SCULPT_orig_face_data_unode_init(SculptOrigFaceData *data,
+                                      Object *ob,
+                                      struct SculptUndoNode *unode);
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1662,6 +1693,7 @@ float SCULPT_automasking_factor_get(struct AutomaskingCache *automasking,
  * for brushes and filter. */
 struct AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss);
 
+/* Brush can be null. */
 struct AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, Object *ob);
 void SCULPT_automasking_cache_free(SculptSession *ss,
                                    Object *ob,
@@ -2529,6 +2561,8 @@ BLI_INLINE bool SCULPT_tool_is_face_sets(int tool)
 void SCULPT_stroke_id_ensure(struct Object *ob);
 void SCULPT_stroke_id_next(struct Object *ob);
 bool SCULPT_tool_can_reuse_automask(int sculpt_tool);
+
+void SCULPT_ensure_valid_pivot(const struct Object *ob, struct Scene *scene);
 
 /* Make SCULPT_ alias to a few blenkernel sculpt methods. */
 

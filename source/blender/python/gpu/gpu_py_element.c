@@ -26,8 +26,6 @@
 
 static PyObject *pygpu_IndexBuf__tp_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
   const char *error_prefix = "IndexBuf.__new__";
   bool ok = true;
 

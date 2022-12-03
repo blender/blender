@@ -292,8 +292,9 @@ struct SlideOperationExecutor {
       /* Compute the normal at the initial surface position. */
       const float3 normal_cu = math::normalize(
           transforms_.surface_to_curves_normal *
-          geometry::compute_surface_point_normal(
-              *result.looptri, result.bary_weights, corner_normals_orig_su_));
+          geometry::compute_surface_point_normal(surface_looptris_orig_[result.looptri_index],
+                                                 result.bary_weights,
+                                                 corner_normals_orig_su_));
 
       r_curves_to_slide.append({curve_i, radius_falloff, normal_cu});
     }
@@ -389,7 +390,7 @@ struct SlideOperationExecutor {
           found_invalid_uv_mapping_.store(true);
           continue;
         }
-        const MLoopTri &looptri_orig = *result.looptri;
+        const MLoopTri &looptri_orig = surface_looptris_orig_[result.looptri_index];
         const float3 &bary_weights_orig = result.bary_weights;
 
         /* Gather old and new surface normal. */
@@ -397,7 +398,7 @@ struct SlideOperationExecutor {
         const float3 new_normal_cu = math::normalize(
             transforms_.surface_to_curves_normal *
             geometry::compute_surface_point_normal(
-                *result.looptri, result.bary_weights, corner_normals_orig_su_));
+                looptri_orig, result.bary_weights, corner_normals_orig_su_));
 
         /* Gather old and new surface position. */
         const float3 old_first_pos_orig_cu = self_->initial_positions_cu_[first_point_i];

@@ -53,10 +53,10 @@ static bool solve_camera_initjob(
   MovieClip *clip = ED_space_clip_get_clip(sc);
   Scene *scene = CTX_data_scene(C);
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
   int width, height;
 
-  if (!BKE_tracking_reconstruction_check(tracking, object, error_msg, max_error)) {
+  if (!BKE_tracking_reconstruction_check(tracking, tracking_object, error_msg, max_error)) {
     return false;
   }
 
@@ -69,8 +69,12 @@ static bool solve_camera_initjob(
   scj->reports = op->reports;
   scj->user = sc->user;
 
-  scj->context = BKE_tracking_reconstruction_context_new(
-      clip, object, object->keyframe1, object->keyframe2, width, height);
+  scj->context = BKE_tracking_reconstruction_context_new(clip,
+                                                         tracking_object,
+                                                         tracking_object->keyframe1,
+                                                         tracking_object->keyframe2,
+                                                         width,
+                                                         height);
 
   tracking->stats = MEM_callocN(sizeof(MovieTrackingStats), "solve camera stats");
 
@@ -126,10 +130,11 @@ static void solve_camera_freejob(void *scv)
     }
   }
   else {
+    const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
     BKE_reportf(scj->reports,
                 RPT_INFO,
                 "Average re-projection error: %.2f px",
-                BKE_tracking_get_active_reconstruction(tracking)->error);
+                tracking_object->reconstruction.error);
   }
 
   /* Set currently solved clip as active for scene. */
@@ -188,7 +193,8 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingReconstruction *reconstruction = BKE_tracking_get_active_reconstruction(tracking);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+  MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
   wmJob *wm_job;
   char error_msg[256] = "\0";
 
@@ -275,11 +281,10 @@ static int clear_solution_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTracking *tracking = &clip->tracking;
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
-  MovieTrackingReconstruction *reconstruction = BKE_tracking_get_active_reconstruction(tracking);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
 
-  for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     track->flag &= ~TRACK_HAS_BUNDLE;
   }
 

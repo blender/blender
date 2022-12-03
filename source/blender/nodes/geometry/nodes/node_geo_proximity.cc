@@ -144,7 +144,7 @@ class ProximityFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Geometry Proximity"};
+    fn::MFSignatureBuilder signature{"Geometry Proximity"};
     signature.single_input<float3>("Source Position");
     signature.single_output<float3>("Position");
     signature.single_output<float>("Distance");

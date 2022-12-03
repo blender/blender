@@ -10,8 +10,11 @@ from bpy.props import (
     BoolProperty,
     StringProperty,
 )
+from bpy.app.translations import (
+    pgettext_tip as tip_,
+    pgettext_data as data_,
+)
 
-from bpy.app.translations import pgettext_data as data_
 
 # For preset popover menu
 WindowManager.preset_name = StringProperty(
@@ -186,7 +189,7 @@ class AddPresetBase:
                 else:
                     os.remove(filepath)
             except Exception as e:
-                self.report({'ERROR'}, "Unable to remove preset: %r" % e)
+                self.report({'ERROR'}, tip_("Unable to remove preset: %r") % e)
                 import traceback
                 traceback.print_exc()
                 return {'CANCELLED'}
@@ -236,7 +239,7 @@ class ExecutePreset(Operator):
         ext = splitext(filepath)[1].lower()
 
         if ext not in {".py", ".xml"}:
-            self.report({'ERROR'}, "Unknown file type: %r" % ext)
+            self.report({'ERROR'}, tip_("Unknown file type: %r") % ext)
             return {'CANCELLED'}
 
         if hasattr(preset_class, "reset_cb"):

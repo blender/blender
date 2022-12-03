@@ -378,6 +378,18 @@ RenderWork Session::run_update_for_next_iteration()
     const int width = max(1, buffer_params_.full_width / resolution);
     const int height = max(1, buffer_params_.full_height / resolution);
 
+    {
+      /* Load render kernels, before device update where we upload data to the GPU.
+       * Do it outside of the scene mutex since the heavy part of the loading (i.e. kernel
+       * compilation) does not depend on the scene and some other functionality (like display
+       * driver) might be waiting on the scene mutex to synchronize display pass.
+       *
+       * The scene will lock itself for the short period if it needs to update kernel features. */
+      scene_lock.unlock();
+      scene->load_kernels(progress);
+      scene_lock.lock();
+    }
+
     if (update_scene(width, height)) {
       profiler.reset(scene->shaders.size(), scene->objects.size());
     }

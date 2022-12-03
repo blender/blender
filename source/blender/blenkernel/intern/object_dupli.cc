@@ -344,8 +344,10 @@ static void make_recursive_duplis(const DupliContext *ctx,
       ctx->instance_stack->append(ob);
       rctx.gen->make_duplis(&rctx);
       ctx->instance_stack->remove_last();
-      if (!ctx->dupli_gen_type_stack->is_empty()) {
-        ctx->dupli_gen_type_stack->remove_last();
+      if (rctx.gen->type != GEOMETRY_SET_DUPLI_GENERATOR_TYPE) {
+        if (!ctx->dupli_gen_type_stack->is_empty()) {
+          ctx->dupli_gen_type_stack->remove_last();
+        }
       }
     }
   }
@@ -391,8 +393,10 @@ static void make_child_duplis(const DupliContext *ctx,
             ob->flag |= OB_DONE; /* Doesn't render. */
           }
           make_child_duplis_cb(&pctx, userdata, ob);
-          if (!ctx->dupli_gen_type_stack->is_empty()) {
-            ctx->dupli_gen_type_stack->remove_last();
+          if (pctx.gen->type != GEOMETRY_SET_DUPLI_GENERATOR_TYPE) {
+            if (!ctx->dupli_gen_type_stack->is_empty()) {
+              ctx->dupli_gen_type_stack->remove_last();
+            }
           }
         }
       }
@@ -419,8 +423,10 @@ static void make_child_duplis(const DupliContext *ctx,
           }
 
           make_child_duplis_cb(&pctx, userdata, ob);
-          if (!ctx->dupli_gen_type_stack->is_empty()) {
-            ctx->dupli_gen_type_stack->remove_last();
+          if (pctx.gen->type != GEOMETRY_SET_DUPLI_GENERATOR_TYPE) {
+            if (!ctx->dupli_gen_type_stack->is_empty()) {
+              ctx->dupli_gen_type_stack->remove_last();
+            }
           }
         }
       }

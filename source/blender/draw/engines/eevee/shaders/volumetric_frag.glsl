@@ -20,7 +20,7 @@ layout(location = 1) out vec4 volumeExtinction;
 layout(location = 2) out vec4 volumeEmissive;
 layout(location = 3) out vec4 volumePhase;
 
-int attr_id;
+int attr_id = 0;
 
 #ifndef CLEAR
 GlobalData init_globals(void)

@@ -108,48 +108,6 @@ ccl_device_inline float mat22_inverse(const float4 m, ccl_private float4 &m_inve
   return det;
 }
 
-/* Update light sample */
-ccl_device_forceinline void mnee_update_light_sample(KernelGlobals kg,
-                                                     const float3 P,
-                                                     ccl_private LightSample *ls)
-{
-  /* correct light sample position/direction and pdf
-   * NOTE: preserve pdf in area measure */
-  const ccl_global KernelLight *klight = &kernel_data_fetch(lights, ls->lamp);
-
-  if (ls->type == LIGHT_POINT || ls->type == LIGHT_SPOT) {
-    ls->D = normalize_len(ls->P - P, &ls->t);
-    ls->Ng = -ls->D;
-
-    float2 uv = map_to_sphere(ls->Ng);
-    ls->u = uv.x;
-    ls->v = uv.y;
-
-    float invarea = klight->spot.invarea;
-    ls->eval_fac = (0.25f * M_1_PI_F) * invarea;
-    ls->pdf = invarea;
-
-    if (ls->type == LIGHT_SPOT) {
-      /* spot light attenuation */
-      float3 dir = make_float3(klight->spot.dir[0], klight->spot.dir[1], klight->spot.dir[2]);
-      ls->eval_fac *= spot_light_attenuation(
-          dir, klight->spot.spot_angle, klight->spot.spot_smooth, ls->Ng);
-    }
-  }
-  else if (ls->type == LIGHT_AREA) {
-    float invarea = fabsf(klight->area.invarea);
-    ls->D = normalize_len(ls->P - P, &ls->t);
-    ls->pdf = invarea;
-    if (klight->area.tan_spread > 0.f) {
-      ls->eval_fac = 0.25f * invarea;
-      ls->eval_fac *= light_spread_attenuation(
-          ls->D, ls->Ng, klight->area.tan_spread, klight->area.normalize_spread);
-    }
-  }
-
-  ls->pdf *= kernel_data.integrator.pdf_lights;
-}
-
 /* Manifold vertex setup from ray and intersection data */
 ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
                                                        ccl_private ManifoldVertex *vtx,
@@ -819,7 +777,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
 
   /* Update light sample with new position / direct.ion
    * and keep pdf in vertex area measure */
-  mnee_update_light_sample(kg, vertices[vertex_count - 1].p, ls);
+  light_sample_update_position(kg, ls, vertices[vertex_count - 1].p);
 
   /* Save state path bounce info in case a light path node is used in the refractive interface or
    * light shader graph. */

@@ -183,7 +183,9 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
 
         if (clip) {
           if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
-            MovieTrackingTrack *track = BKE_tracking_track_get_active(&clip->tracking);
+            const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(
+                &clip->tracking);
+            MovieTrackingTrack *track = tracking_object->active_track;
 
             if (!track) {
               return NULL;
@@ -1662,11 +1664,7 @@ static bool gpencil_check_cursor_region(bContext *C, const int mval_i[2])
   ScrArea *area = CTX_wm_area(C);
   Object *ob = CTX_data_active_object(C);
 
-  if ((ob == NULL) || !ELEM(ob->mode,
-                            OB_MODE_PAINT_GPENCIL,
-                            OB_MODE_SCULPT_GPENCIL,
-                            OB_MODE_WEIGHT_GPENCIL,
-                            OB_MODE_VERTEX_GPENCIL)) {
+  if ((ob == NULL) || ((ob->mode & OB_MODE_ALL_PAINT_GPENCIL) == 0)) {
     return false;
   }
 

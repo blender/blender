@@ -453,17 +453,6 @@ void IMB_remakemipmap(struct ImBuf *ibuf, int use_filter);
 struct ImBuf *IMB_getmipmap(struct ImBuf *ibuf, int level);
 
 /**
- * \attention Defined in cache.c
- */
-
-/**
- * Presumed to be called when no threads are running.
- */
-void IMB_tile_cache_params(int totthread, int maxmem);
-unsigned int *IMB_gettile(struct ImBuf *ibuf, int tx, int ty, int thread);
-void IMB_tiles_to_rect(struct ImBuf *ibuf);
-
-/**
  * \attention Defined in filter.c
  */
 void IMB_filtery(struct ImBuf *ibuf);
@@ -815,9 +804,6 @@ bool imb_addrectfloatImBuf(struct ImBuf *ibuf, const unsigned int channels);
  */
 void imb_freerectfloatImBuf(struct ImBuf *ibuf);
 void imb_freemipmapImBuf(struct ImBuf *ibuf);
-
-bool imb_addtilesImBuf(struct ImBuf *ibuf);
-void imb_freetilesImBuf(struct ImBuf *ibuf);
 
 /** Free all pixel data (associated with image size). */
 void imb_freerectImbuf_all(struct ImBuf *ibuf);

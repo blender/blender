@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_float4x4.hh"
 #include "BLI_kdopbvh.h"
 #include "BLI_listbase.h"
@@ -254,7 +255,6 @@ static void snap_object_data_mesh_get(SnapObjectContext *sctx,
       r_treedata, me_eval, use_hide ? BVHTREE_FROM_LOOPTRI_NO_HIDDEN : BVHTREE_FROM_LOOPTRI, 4);
 
   BLI_assert(r_treedata->vert == verts.data());
-  BLI_assert(!verts.data() || r_treedata->vert_normals);
   BLI_assert(r_treedata->loop == loops.data());
   BLI_assert(!polys.data() || r_treedata->looptri);
   BLI_assert(!r_treedata->tree || r_treedata->looptri);
@@ -360,7 +360,7 @@ static BVHTreeFromEditMesh *snap_object_data_editmesh_treedata_get(SnapObjectCon
       BMesh *bm = em->bm;
       BLI_assert(poly_to_tri_count(bm->totface, bm->totloop) == em->tottri);
 
-      BLI_bitmap *elem_mask = BLI_BITMAP_NEW(em->tottri, __func__);
+      blender::BitVector<> elem_mask(em->tottri);
       int looptri_num_active = BM_iter_mesh_bitmap_from_filter_tessface(
           bm,
           elem_mask,
@@ -368,8 +368,6 @@ static BVHTreeFromEditMesh *snap_object_data_editmesh_treedata_get(SnapObjectCon
           sctx->callbacks.edit_mesh.user_data);
 
       bvhtree_from_editmesh_looptri_ex(treedata, em, elem_mask, looptri_num_active, 0.0f, 4, 6);
-
-      MEM_freeN(elem_mask);
     }
     else {
       /* Only cache if BVH-tree is created without a mask.
@@ -1311,7 +1309,7 @@ static eSnapMode nearest_world_object_fn(SnapObjectContext *sctx,
       return SCE_SNAP_MODE_NONE;
     }
   }
-  else if (GS(ob_data) != ID_ME) {
+  else if (GS(ob_data->name) != ID_ME) {
     return SCE_SNAP_MODE_NONE;
   }
   else if (is_object_active && ELEM(ob_eval->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
@@ -2475,7 +2473,6 @@ static eSnapMode snapCamera(const SnapObjectContext *sctx,
         &neasrest_precalc, sctx->runtime.pmat, sctx->runtime.win_size, sctx->runtime.mval);
 
     LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
-      ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
       float reconstructed_camera_mat[4][4], reconstructed_camera_imat[4][4];
       const float(*vertex_obmat)[4];
 
@@ -2486,7 +2483,7 @@ static eSnapMode snapCamera(const SnapObjectContext *sctx,
         invert_m4_m4(reconstructed_camera_imat, reconstructed_camera_mat);
       }
 
-      LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+      LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
         float bundle_pos[3];
 
         if ((track->flag & TRACK_HAS_BUNDLE) == 0) {
@@ -2742,11 +2739,9 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
     treedata.tree = sod->bvhtree[0];
 
     if (treedata.tree == nullptr) {
-      BLI_bitmap *verts_mask = nullptr;
-      int verts_num_active = -1;
       if (sctx->callbacks.edit_mesh.test_vert_fn) {
-        verts_mask = BLI_BITMAP_NEW(em->bm->totvert, __func__);
-        verts_num_active = BM_iter_mesh_bitmap_from_filter(
+        blender::BitVector<> verts_mask(em->bm->totvert);
+        const int verts_num_active = BM_iter_mesh_bitmap_from_filter(
             BM_VERTS_OF_MESH,
             em->bm,
             verts_mask,
@@ -2754,7 +2749,6 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
             sctx->callbacks.edit_mesh.user_data);
 
         bvhtree_from_editmesh_verts_ex(&treedata, em, verts_mask, verts_num_active, 0.0f, 2, 6);
-        MEM_freeN(verts_mask);
       }
       else {
         BKE_bvhtree_from_editmesh_get(&treedata,
@@ -2774,11 +2768,9 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
     treedata.tree = sod->bvhtree[1];
 
     if (treedata.tree == nullptr) {
-      BLI_bitmap *edges_mask = nullptr;
-      int edges_num_active = -1;
       if (sctx->callbacks.edit_mesh.test_edge_fn) {
-        edges_mask = BLI_BITMAP_NEW(em->bm->totedge, __func__);
-        edges_num_active = BM_iter_mesh_bitmap_from_filter(
+        blender::BitVector<> edges_mask(em->bm->totedge);
+        const int edges_num_active = BM_iter_mesh_bitmap_from_filter(
             BM_EDGES_OF_MESH,
             em->bm,
             edges_mask,
@@ -2786,7 +2778,6 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
             sctx->callbacks.edit_mesh.user_data);
 
         bvhtree_from_editmesh_edges_ex(&treedata, em, edges_mask, edges_num_active, 0.0f, 2, 6);
-        MEM_freeN(edges_mask);
       }
       else {
         BKE_bvhtree_from_editmesh_get(&treedata,

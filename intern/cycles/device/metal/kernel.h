@@ -54,6 +54,10 @@ enum MetalPipelineType {
   PSO_NUM
 };
 
+#  define METALRT_FEATURE_MASK \
+    (KERNEL_FEATURE_HAIR | KERNEL_FEATURE_HAIR_THICK | KERNEL_FEATURE_POINTCLOUD | \
+     KERNEL_FEATURE_OBJECT_MOTION)
+
 const char *kernel_type_as_string(MetalPipelineType pso_type);
 
 struct MetalKernelPipeline {
@@ -67,9 +71,7 @@ struct MetalKernelPipeline {
 
   KernelData kernel_data_;
   bool use_metalrt;
-  bool metalrt_hair;
-  bool metalrt_hair_thick;
-  bool metalrt_pointcloud;
+  uint32_t metalrt_features = 0;
 
   int threads_per_threadgroup;
 

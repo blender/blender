@@ -5,6 +5,8 @@
  * \ingroup bke
  */
 
+#include "BKE_undo_system.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,8 +14,6 @@ extern "C" {
 struct Main;
 struct MemFileUndoData;
 struct bContext;
-
-enum eUndoStepDir;
 
 #define BKE_UNDO_STR_MAX 64
 

@@ -44,6 +44,7 @@ enum eNodeTreeChangedFlag {
   NTREE_CHANGED_REMOVED_SOCKET = (1 << 7),
   NTREE_CHANGED_SOCKET_PROPERTY = (1 << 8),
   NTREE_CHANGED_INTERNAL_LINK = (1 << 9),
+  NTREE_CHANGED_PARENT = (1 << 10),
   NTREE_CHANGED_ALL = -1,
 };
 
@@ -732,7 +733,7 @@ struct NodeTreeRelations {
     this->ensure_all_trees();
 
     for (bNodeTree *ntree : *all_trees_) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      for (bNode *node : ntree->all_nodes()) {
         if (node->id == nullptr) {
           continue;
         }
@@ -997,7 +998,6 @@ class NodeTreeMainUpdater {
     result.output_changed = this->check_if_output_changed(ntree);
 
     this->update_socket_link_and_use(ntree);
-    this->update_node_levels(ntree);
     this->update_link_validation(ntree);
 
     if (ntree.type == NTREE_TEXTURE) {
@@ -1009,9 +1009,14 @@ class NodeTreeMainUpdater {
       result.interface_changed = true;
     }
 
-    if (result.interface_changed) {
-      ntreeInterfaceTypeUpdate(&ntree);
+#ifdef DEBUG
+    /* Check the uniqueness of node identifiers. */
+    Set<int32_t> node_identifiers;
+    for (bNode *node : ntree.all_nodes()) {
+      BLI_assert(node->identifier > 0);
+      node_identifiers.add_new(node->identifier);
     }
+#endif
 
     return result;
   }
@@ -1048,7 +1053,7 @@ class NodeTreeMainUpdater {
   void update_individual_nodes(bNodeTree &ntree)
   {
     Vector<bNode *> group_inout_nodes;
-    LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+    for (bNode *node : ntree.all_nodes()) {
       nodeDeclarationEnsure(&ntree, node);
       if (this->should_update_individual_node(ntree, *node)) {
         bNodeType &ntype = *node->typeinfo;
@@ -1136,7 +1141,7 @@ class NodeTreeMainUpdater {
         }
       }
       /* Rebuilt internal links if they have changed. */
-      if (node->internal_links_span().size() != expected_internal_links.size()) {
+      if (node->runtime->internal_links.size() != expected_internal_links.size()) {
         this->update_internal_links_in_node(ntree, *node, expected_internal_links);
       }
       else {
@@ -1144,7 +1149,7 @@ class NodeTreeMainUpdater {
           const bNodeSocket *from_socket = item.first;
           const bNodeSocket *to_socket = item.second;
           bool found = false;
-          for (const bNodeLink *internal_link : node->internal_links_span()) {
+          for (const bNodeLink *internal_link : node->runtime->internal_links) {
             if (from_socket == internal_link->fromsock && to_socket == internal_link->tosock) {
               found = true;
             }
@@ -1191,7 +1196,10 @@ class NodeTreeMainUpdater {
                                      bNode &node,
                                      Span<std::pair<bNodeSocket *, bNodeSocket *>> links)
   {
-    BLI_freelistN(&node.internal_links);
+    for (bNodeLink *link : node.runtime->internal_links) {
+      MEM_freeN(link);
+    }
+    node.runtime->internal_links.clear();
     for (const auto &item : links) {
       bNodeSocket *from_socket = item.first;
       bNodeSocket *to_socket = item.second;
@@ -1201,7 +1209,7 @@ class NodeTreeMainUpdater {
       link->tonode = &node;
       link->tosock = to_socket;
       link->flag |= NODE_LINK_VALID;
-      BLI_addtail(&node.internal_links, link);
+      node.runtime->internal_links.append(link);
     }
     BKE_ntree_update_tag_node_internal_link(&ntree, &node);
   }
@@ -1265,24 +1273,32 @@ class NodeTreeMainUpdater {
     }
   }
 
-  void update_node_levels(bNodeTree &ntree)
-  {
-    ntreeUpdateNodeLevels(&ntree);
-  }
-
   void update_link_validation(bNodeTree &ntree)
   {
+    const Span<const bNode *> toposort = ntree.toposort_left_to_right();
+
+    /* Build an array of toposort indices to allow retrieving the "depth" for each node. */
+    Array<int> toposort_indices(toposort.size());
+    for (const int i : toposort.index_range()) {
+      const bNode &node = *toposort[i];
+      toposort_indices[node.runtime->index_in_tree] = i;
+    }
+
     LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
       link->flag |= NODE_LINK_VALID;
-      if (link->fromnode && link->tonode && link->fromnode->level <= link->tonode->level) {
+      const bNode &from_node = *link->fromnode;
+      const bNode &to_node = *link->tonode;
+      if (toposort_indices[from_node.runtime->index_in_tree] >
+          toposort_indices[to_node.runtime->index_in_tree]) {
         link->flag &= ~NODE_LINK_VALID;
+        continue;
       }
-      else if (ntree.typeinfo->validate_link) {
-        const eNodeSocketDatatype from_type = static_cast<eNodeSocketDatatype>(
-            link->fromsock->type);
-        const eNodeSocketDatatype to_type = static_cast<eNodeSocketDatatype>(link->tosock->type);
+      if (ntree.typeinfo->validate_link) {
+        const eNodeSocketDatatype from_type = eNodeSocketDatatype(link->fromsock->type);
+        const eNodeSocketDatatype to_type = eNodeSocketDatatype(link->tosock->type);
         if (!ntree.typeinfo->validate_link(from_type, to_type)) {
           link->flag &= ~NODE_LINK_VALID;
+          continue;
         }
       }
     }
@@ -1594,9 +1610,9 @@ class NodeTreeMainUpdater {
   void reset_changed_flags(bNodeTree &ntree)
   {
     ntree.runtime->changed_flag = NTREE_CHANGED_NOTHING;
-    LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+    for (bNode *node : ntree.all_nodes()) {
       node->runtime->changed_flag = NTREE_CHANGED_NOTHING;
-      node->update = 0;
+      node->runtime->update = 0;
       LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
         socket->runtime->changed_flag = NTREE_CHANGED_NOTHING;
       }
@@ -1704,12 +1720,17 @@ void BKE_ntree_update_tag_interface(bNodeTree *ntree)
   add_tree_tag(ntree, NTREE_CHANGED_INTERFACE);
 }
 
+void BKE_ntree_update_tag_parent_change(bNodeTree *ntree, bNode *node)
+{
+  add_node_tag(ntree, node, NTREE_CHANGED_PARENT);
+}
+
 void BKE_ntree_update_tag_id_changed(Main *bmain, ID *id)
 {
   FOREACH_NODETREE_BEGIN (bmain, ntree, ntree_id) {
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    for (bNode *node : ntree->all_nodes()) {
       if (node->id == id) {
-        node->update |= NODE_UPDATE_ID;
+        node->runtime->update |= NODE_UPDATE_ID;
         add_node_tag(ntree, node, NTREE_CHANGED_NODE_PROPERTY);
       }
     }

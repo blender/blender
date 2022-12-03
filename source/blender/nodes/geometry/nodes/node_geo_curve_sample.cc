@@ -268,7 +268,7 @@ class SampleCurveFunction : public fn::MultiFunction {
 
   fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Sample Curve"};
+    fn::MFSignatureBuilder signature{"Sample Curve"};
     signature.single_input<int>("Curve Index");
     signature.single_input<float>("Length");
     signature.single_output<float3>("Position");

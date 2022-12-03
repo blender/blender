@@ -885,6 +885,61 @@ void gpu::MTLTexture::update_sub(
   }
 }
 
+void MTLTexture::update_sub(int offset[3],
+                            int extent[3],
+                            eGPUDataFormat format,
+                            GPUPixelBuffer *pixbuf)
+{
+  /* Update texture from pixel buffer. */
+  BLI_assert(validate_data_format(format_, format));
+  BLI_assert(pixbuf != nullptr);
+
+  /* Fetch pixel buffer metal buffer. */
+  MTLPixelBuffer *mtl_pix_buf = static_cast<MTLPixelBuffer *>(unwrap(pixbuf));
+  id<MTLBuffer> buffer = mtl_pix_buf->get_metal_buffer();
+  BLI_assert(buffer != nil);
+  if (buffer == nil) {
+    return;
+  }
+
+  /* Ensure texture is ready. */
+  this->ensure_baked();
+  BLI_assert(texture_ != nil);
+
+  /* Calculate dimensions. */
+  int num_image_channels = to_component_len(format_);
+
+  uint bits_per_pixel = num_image_channels * to_bytesize(format);
+  uint bytes_per_row = bits_per_pixel * extent[0];
+  uint bytes_per_image = bytes_per_row * extent[1];
+
+  /* Currently only required for 2D textures. */
+  if (type_ == GPU_TEXTURE_2D) {
+
+    /* Create blit command encoder to copy data. */
+    MTLContext *ctx = MTLContext::get();
+    BLI_assert(ctx);
+
+    id<MTLBlitCommandEncoder> blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
+    [blit_encoder copyFromBuffer:buffer
+                    sourceOffset:0
+               sourceBytesPerRow:bytes_per_row
+             sourceBytesPerImage:bytes_per_image
+                      sourceSize:MTLSizeMake(extent[0], extent[1], 1)
+                       toTexture:texture_
+                destinationSlice:0
+                destinationLevel:0
+               destinationOrigin:MTLOriginMake(offset[0], offset[1], 0)];
+
+    if (texture_.storageMode == MTLStorageModeManaged) {
+      [blit_encoder synchronizeResource:texture_];
+    }
+  }
+  else {
+    BLI_assert(false);
+  }
+}
+
 void gpu::MTLTexture::ensure_mipmaps(int miplvl)
 {
 
@@ -1793,6 +1848,76 @@ void gpu::MTLTexture::reset()
 
   BLI_assert(texture_ == nil);
   BLI_assert(mip_swizzle_view_ == nil);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pixel Buffer
+ * \{ */
+
+MTLPixelBuffer::MTLPixelBuffer(uint size) : PixelBuffer(size)
+{
+  MTLContext *ctx = MTLContext::get();
+  BLI_assert(ctx);
+  /* Ensure buffer satifies the alignment of 256 bytes for copying
+   * data between buffers and textures. As specified in:
+   * https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf */
+  BLI_assert(size >= 256);
+
+  MTLResourceOptions resource_options = ([ctx->device hasUnifiedMemory]) ?
+                                            MTLResourceStorageModeShared :
+                                            MTLResourceStorageModeManaged;
+  buffer_ = [ctx->device newBufferWithLength:size options:resource_options];
+  BLI_assert(buffer_ != nil);
+}
+
+MTLPixelBuffer::~MTLPixelBuffer()
+{
+  if (buffer_) {
+    [buffer_ release];
+    buffer_ = nil;
+  }
+}
+
+void *MTLPixelBuffer::map()
+{
+  if (buffer_ == nil) {
+    return nullptr;
+  }
+
+  return [buffer_ contents];
+}
+
+void MTLPixelBuffer::unmap()
+{
+  if (buffer_ == nil) {
+    return;
+  }
+
+  /* Ensure changes are synchronized. */
+  if (buffer_.resourceOptions & MTLResourceStorageModeManaged) {
+    [buffer_ didModifyRange:NSMakeRange(0, size_)];
+  }
+}
+
+int64_t MTLPixelBuffer::get_native_handle()
+{
+  if (buffer_ == nil) {
+    return 0;
+  }
+
+  return reinterpret_cast<int64_t>(buffer_);
+}
+
+uint MTLPixelBuffer::get_size()
+{
+  return size_;
+}
+
+id<MTLBuffer> MTLPixelBuffer::get_metal_buffer()
+{
+  return buffer_;
 }
 
 /** \} */

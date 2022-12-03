@@ -1241,8 +1241,8 @@ struct BassReliefCalcData {
 
   struct Object *ob; /* object we are applying shrinkwrap to */
 
-  const struct MVert *vert;    /* Array of verts being projected (to fetch normals or other data) */
-  float (*vertexCos)[3]; /* vertexs being shrinkwraped */
+  const struct MVert *vert; /* Array of verts being projected (to fetch normals or other data) */
+  float (*vertexCos)[3];    /* vertexs being shrinkwraped */
   const float (*vertexNos)[3]; /* vertexs being shrinkwraped */
   int numVerts;
 
@@ -1307,7 +1307,7 @@ bool BKE_bassrelief_init_tree(
 
   data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_LOOPTRI, 4);
 
-  data->treeData.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
+  data->vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
 
   if (data->bvh == nullptr) {
     return false;
@@ -1915,9 +1915,9 @@ ATTR_NO_OPT static void mesh_looptri_target_project(void *userdata,
   }
 
   /* Decode normals */
-  copy_v3_v3(vtri_no[0], tree->treeData.vert_normals[loop[0]->v]);
-  copy_v3_v3(vtri_no[1], tree->treeData.vert_normals[loop[1]->v]);
-  copy_v3_v3(vtri_no[2], tree->treeData.vert_normals[loop[2]->v]);
+  copy_v3_v3(vtri_no[0], tree->vert_normals[loop[0]->v]);
+  copy_v3_v3(vtri_no[1], tree->vert_normals[loop[1]->v]);
+  copy_v3_v3(vtri_no[2], tree->vert_normals[loop[2]->v]);
 
   /* Solve the equations for the triangle */
   if (target_project_solve_point_tri(vtri_co, vtri_no, co, raw_hit_co, dist_sq, hit_co, hit_no)) {
@@ -1959,9 +1959,9 @@ ATTR_NO_OPT void BKE_bassrelief_compute_smooth_normal(const struct BassReliefTre
     }
     /* Ordinary vertex normals. */
     else {
-      copy_v3_v3(no[0], treeData->vert_normals[treeData->loop[tri->tri[0]].v]);
-      copy_v3_v3(no[1], treeData->vert_normals[treeData->loop[tri->tri[1]].v]);
-      copy_v3_v3(no[2], treeData->vert_normals[treeData->loop[tri->tri[2]].v]);
+      copy_v3_v3(no[0], tree->vert_normals[treeData->loop[tri->tri[0]].v]);
+      copy_v3_v3(no[1], tree->vert_normals[treeData->loop[tri->tri[1]].v]);
+      copy_v3_v3(no[2], tree->vert_normals[treeData->loop[tri->tri[2]].v]);
     }
 
     /* Barycentric weights from hit point. */

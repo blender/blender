@@ -480,6 +480,12 @@ def main():
                                                     "use_center": True}, "VERT", {i for i in range(5)})],
         ),
 
+        # Triangulate Faces
+        SpecMeshTest(
+            "Triangulate Faces", "testCubeTriangulate", "expectedCubeTriangulate",
+            [OperatorSpecEditMode("quads_convert_to_tris", {}, "FACE", {i for i in range(6)})],
+        ),
+
         # Tris to Quads
         SpecMeshTest(
             "TrisToQuads", "testPlanesTrisToQuad", "expectedPlanesTrisToQuad",

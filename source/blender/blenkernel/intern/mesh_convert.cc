@@ -223,7 +223,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
         for (b = 1; b < dl->nr; b++) {
           medge->v1 = startvert + ofs + b - 1;
           medge->v2 = startvert + ofs + b;
-          medge->flag = ME_LOOSEEDGE | ME_EDGEDRAW;
+          medge->flag = ME_EDGEDRAW;
 
           medge++;
         }
@@ -251,7 +251,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
             else {
               medge->v2 = startvert + ofs + b + 1;
             }
-            medge->flag = ME_LOOSEEDGE | ME_EDGEDRAW;
+            medge->flag = ME_EDGEDRAW;
             medge++;
           }
         }

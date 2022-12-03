@@ -36,7 +36,7 @@ set(SRC
   space_clip.c
   tracking_ops.c
   tracking_ops_detect.c
-  tracking_ops_orient.c
+  tracking_ops_orient.cc
   tracking_ops_plane.c
   tracking_ops_solve.c
   tracking_ops_stabilize.c

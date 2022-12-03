@@ -31,6 +31,8 @@ bool device_oneapi_init()
    * improves stability as of intel/LLVM SYCL-nightly/20220529.
    * All these env variable can be set beforehand by end-users and
    * will in that case -not- be overwritten. */
+  /* By default, enable only Level-Zero and if all devices are allowed, also CUDA and HIP.
+   * OpenCL backend isn't currently well supported. */
 #  ifdef _WIN32
   if (getenv("SYCL_CACHE_PERSISTENT") == nullptr) {
     _putenv_s("SYCL_CACHE_PERSISTENT", "1");
@@ -39,7 +41,12 @@ bool device_oneapi_init()
     _putenv_s("SYCL_CACHE_THRESHOLD", "0");
   }
   if (getenv("SYCL_DEVICE_FILTER") == nullptr) {
-    _putenv_s("SYCL_DEVICE_FILTER", "level_zero");
+    if (getenv("CYCLES_ONEAPI_ALL_DEVICES") == nullptr) {
+      _putenv_s("SYCL_DEVICE_FILTER", "level_zero");
+    }
+    else {
+      _putenv_s("SYCL_DEVICE_FILTER", "level_zero,cuda,hip");
+    }
   }
   if (getenv("SYCL_ENABLE_PCI") == nullptr) {
     _putenv_s("SYCL_ENABLE_PCI", "1");
@@ -50,7 +57,12 @@ bool device_oneapi_init()
 #  elif __linux__
   setenv("SYCL_CACHE_PERSISTENT", "1", false);
   setenv("SYCL_CACHE_THRESHOLD", "0", false);
-  setenv("SYCL_DEVICE_FILTER", "level_zero", false);
+  if (getenv("CYCLES_ONEAPI_ALL_DEVICES") == nullptr) {
+    setenv("SYCL_DEVICE_FILTER", "level_zero", false);
+  }
+  else {
+    setenv("SYCL_DEVICE_FILTER", "level_zero,cuda,hip", false);
+  }
   setenv("SYCL_ENABLE_PCI", "1", false);
   setenv("SYCL_PI_LEVEL_ZERO_USE_COPY_ENGINE_FOR_IN_ORDER_QUEUE", "0", false);
 #  endif

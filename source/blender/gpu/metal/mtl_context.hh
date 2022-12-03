@@ -555,6 +555,8 @@ class MTLCommandBufferManager {
   bool insert_memory_barrier(eGPUBarrier barrier_bits,
                              eGPUStageBarrierBits before_stages,
                              eGPUStageBarrierBits after_stages);
+  void encode_signal_event(id<MTLEvent> event, uint64_t value);
+  void encode_wait_for_event(id<MTLEvent> event, uint64_t value);
   /* TODO(Metal): Support fences in command buffer class. */
 
   /* Debug. */

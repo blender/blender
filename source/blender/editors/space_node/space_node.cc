@@ -19,6 +19,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_screen.h"
 
 #include "ED_node.h"
@@ -196,7 +197,8 @@ void ED_node_set_active_viewer_key(SpaceNode *snode)
   if (snode->nodetree && path) {
     /* A change in active viewer may result in the change of the output node used by the
      * compositor, so we need to get notified about such changes. */
-    if (snode->nodetree->active_viewer_key.value != path->parent_key.value) {
+    if (snode->nodetree->active_viewer_key.value != path->parent_key.value &&
+        snode->nodetree->type == NTREE_COMPOSIT) {
       DEG_id_tag_update(&snode->nodetree->id, ID_RECALC_NTREE_OUTPUT);
       WM_main_add_notifier(NC_NODE, nullptr);
     }
@@ -329,7 +331,7 @@ static bool any_node_uses_id(const bNodeTree *ntree, const ID *id)
   if (ELEM(nullptr, ntree, id)) {
     return false;
   }
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (const bNode *node : ntree->all_nodes()) {
     if (node->id == id) {
       return true;
     }

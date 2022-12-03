@@ -17,6 +17,7 @@ GPU_SHADER_CREATE_INFO(depth_2d_update_info_base)
     .push_constant(Type::VEC2, "size")
     .push_constant(Type::INT, "mip")
     .sampler(0, ImageType::FLOAT_2D, "source_data", Frequency::PASS)
+    .depth_write(DepthWrite::ANY)
     .vertex_source("depth_2d_update_vert.glsl");
 
 GPU_SHADER_CREATE_INFO(depth_2d_update_float)

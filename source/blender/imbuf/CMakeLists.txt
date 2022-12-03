@@ -24,7 +24,6 @@ set(SRC
   intern/allocimbuf.c
   intern/anim_movie.c
   intern/bmp.c
-  intern/cache.c
   intern/colormanagement.c
   intern/colormanagement_inline.c
   intern/divers.c

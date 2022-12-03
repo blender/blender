@@ -13,8 +13,8 @@
 #include "BLI_math.h"
 #include "BLI_smallhash.h"
 #include "BLI_task.h"
-#include "BLI_vector.hh"
 #include "BLI_task.hh"
+#include "BLI_vector.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
@@ -89,29 +89,6 @@ int SCULPT_face_set_get(SculptSession *ss, PBVHFaceRef face)
       return ss->face_sets[face.i];
   }
   return -1;
-}
-
-// returns previous face set
-int SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset)
-{
-  int ret = 0;
-
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_BMESH: {
-      BMFace *f = (BMFace *)face.i;
-      ret = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
-
-      BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
-      break;
-    }
-    case PBVH_FACES:
-    case PBVH_GRIDS:
-      ret = ss->face_sets[face.i];
-      ss->face_sets[face.i] = fset;
-      break;
-  }
-
-  return ret;
 }
 
 void SCULPT_face_check_origdata(SculptSession *ss, PBVHFaceRef face)
@@ -338,6 +315,8 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
     cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
   }
 
+  SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_FACE_SETS);
+
   /*check if we need to sample the current face set*/
 
   bool set_active_faceset = ss->cache->automasking &&
@@ -362,6 +341,7 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
   SCULPT_automasking_node_begin(
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
+  bool changed = false;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
@@ -799,7 +779,9 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   }
 
   SCULPT_undo_push_begin(ob, op);
-  SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+  for (const int i : blender::IndexRange(totnode)) {
+    SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_FACE_SETS);
+  }
 
   const int next_face_set = SCULPT_face_set_next_available_get(ss);
 
@@ -1199,7 +1181,9 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   }
 
   SCULPT_undo_push_begin(ob, op);
-  SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+  for (const int i : blender::IndexRange(totnode)) {
+    SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_FACE_SETS);
+  }
 
   const float threshold = RNA_float_get(op->ptr, "threshold");
 
@@ -2117,7 +2101,9 @@ static void sculpt_face_set_edit_modify_face_sets(Object *ob,
     return;
   }
   SCULPT_undo_push_begin(ob, op);
-  SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+  for (const int i : blender::IndexRange(totnode)) {
+    SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_FACE_SETS);
+  }
   sculpt_face_set_apply_edit(ob, abs(active_face_set), mode, modify_hidden);
   SCULPT_undo_push_end(ob);
   face_set_edit_do_post_visibility_updates(ob, nodes, totnode);

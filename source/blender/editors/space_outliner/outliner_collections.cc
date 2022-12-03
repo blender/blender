@@ -799,7 +799,6 @@ static int collection_instance_exec(bContext *C, wmOperator * /*op*/)
         C, OB_EMPTY, collection->id.name + 2, scene->cursor.location, nullptr, false, 0);
     ob->instance_collection = collection;
     ob->transflag |= OB_DUPLICOLLECTION;
-    id_lib_extern(&collection->id);
     id_us_plus(&collection->id);
   }
 

@@ -191,7 +191,8 @@ void SCULPT_filter_cache_init(bContext *C,
 
     BKE_pbvh_search_gather(pbvh, SCULPT_search_sphere_cb, &search_data2, &nodes, &totnode);
 
-    if (SCULPT_pbvh_calc_area_normal(
+    if (BKE_paint_brush(&sd->paint) &&
+        SCULPT_pbvh_calc_area_normal(
             brush, ob, nodes, totnode, true, ss->filter_cache->initial_normal)) {
       copy_v3_v3(ss->last_normal, ss->filter_cache->initial_normal);
     }

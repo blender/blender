@@ -2005,23 +2005,23 @@ static size_t animdata_filter_ds_cachefile(
 /* Helper for Mask Editing - mask layers */
 static size_t animdata_filter_mask_data(ListBase *anim_data, Mask *mask, const int filter_mode)
 {
-  MaskLayer *masklay_act = BKE_mask_layer_active(mask);
-  MaskLayer *masklay;
+  const MaskLayer *masklay_act = BKE_mask_layer_active(mask);
   size_t items = 0;
 
-  /* loop over layers as the conditions are acceptable */
-  for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-    /* only if selected */
-    if (ANIMCHANNEL_SELOK(SEL_MASKLAY(masklay))) {
-      /* only if editable */
-      if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_MASK(masklay)) {
-        /* active... */
-        if (!(filter_mode & ANIMFILTER_ACTIVE) || (masklay_act == masklay)) {
-          /* add to list */
-          ANIMCHANNEL_NEW_CHANNEL(masklay, ANIMTYPE_MASKLAYER, mask, NULL);
-        }
-      }
+  LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
+    if (!ANIMCHANNEL_SELOK(SEL_MASKLAY(masklay))) {
+      continue;
     }
+
+    if ((filter_mode & ANIMFILTER_FOREDIT) && !EDITABLE_MASK(masklay)) {
+      continue;
+    }
+
+    if ((filter_mode & ANIMFILTER_ACTIVE) & (masklay_act != masklay)) {
+      continue;
+    }
+
+    ANIMCHANNEL_NEW_CHANNEL(masklay, ANIMTYPE_MASKLAYER, mask, NULL);
   }
 
   return items;
@@ -2033,12 +2033,11 @@ static size_t animdata_filter_mask(Main *bmain,
                                    void *UNUSED(data),
                                    int filter_mode)
 {
-  Mask *mask;
   size_t items = 0;
 
   /* For now, grab mask data-blocks directly from main. */
   /* XXX: this is not good... */
-  for (mask = bmain->masks.first; mask; mask = mask->id.next) {
+  LISTBASE_FOREACH (Mask *, mask, &bmain->masks) {
     ListBase tmp_data = {NULL, NULL};
     size_t tmp_items = 0;
 
@@ -2048,24 +2047,28 @@ static size_t animdata_filter_mask(Main *bmain,
     }
 
     /* add mask animation channels */
-    BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_MASK(mask)) {
-      tmp_items += animdata_filter_mask_data(&tmp_data, mask, filter_mode);
+    if (!(filter_mode & ANIMFILTER_FCURVESONLY)) {
+      BEGIN_ANIMFILTER_SUBCHANNELS (EXPANDED_MASK(mask)) {
+        tmp_items += animdata_filter_mask_data(&tmp_data, mask, filter_mode);
+      }
+      END_ANIMFILTER_SUBCHANNELS;
     }
-    END_ANIMFILTER_SUBCHANNELS;
 
     /* did we find anything? */
-    if (tmp_items) {
-      /* include data-expand widget first */
-      if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
-        /* add mask data-block as channel too (if for drawing, and it has layers) */
-        ANIMCHANNEL_NEW_CHANNEL(mask, ANIMTYPE_MASKDATABLOCK, NULL, NULL);
-      }
-
-      /* now add the list of collected channels */
-      BLI_movelisttolist(anim_data, &tmp_data);
-      BLI_assert(BLI_listbase_is_empty(&tmp_data));
-      items += tmp_items;
+    if (!tmp_items) {
+      continue;
     }
+
+    /* include data-expand widget first */
+    if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
+      /* add mask data-block as channel too (if for drawing, and it has layers) */
+      ANIMCHANNEL_NEW_CHANNEL(mask, ANIMTYPE_MASKDATABLOCK, NULL, NULL);
+    }
+
+    /* now add the list of collected channels */
+    BLI_movelisttolist(anim_data, &tmp_data);
+    BLI_assert(BLI_listbase_is_empty(&tmp_data));
+    items += tmp_items;
   }
 
   /* return the number of items added to the list */
@@ -2826,7 +2829,7 @@ static size_t animdata_filter_dopesheet_ob(
     }
 
     /* object data */
-    if (ob->data) {
+    if ((ob->data) && (ob->type != OB_GPENCIL)) {
       tmp_items += animdata_filter_ds_obdata(ac, &tmp_data, ads, ob, filter_mode);
     }
 

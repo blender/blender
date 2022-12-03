@@ -21,17 +21,21 @@ typedef struct BMTracer {
   void *userdata;
 } BMTracer;
 
-void BM_empty_tracer(BMTracer *tracer, void *userdata);
-
 typedef enum {
   MULTIRES_SPACE_TANGENT,  // convert absolute to tangent
   MULTIRES_SPACE_ABSOLUTE  // convert tangent to absolute
 } MultiResSpace;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMAllocTemplate;
 struct BMLoopNorEditDataArray;
 struct BMPartialUpdate;
 struct MLoopNorSpaceArray;
+
+void BM_empty_tracer(BMTracer *tracer, void *userdata);
 
 void BM_mesh_elem_toolflags_ensure(BMesh *bm);
 void BM_mesh_elem_toolflags_clear(BMesh *bm);
@@ -39,7 +43,7 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm);
 struct BMeshCreateParams {
   bool create_unique_ids : 1;
   int id_elem_mask : 8;  // which element types to make unique ids for
-  bool id_map : 1;        // maintain an id to element lookup table
+  bool id_map : 1;       // maintain an id to element lookup table
   bool use_toolflags : 1;
   bool no_reuse_ids : 1;  // do not reuse IDs; a GHash will be used internally instead of a lookup
                           // array
@@ -250,3 +254,7 @@ void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
   (((id) >= 0 && (id) < (bm)->idmap.maxid) ? (BM_ELEM_FROM_ID(bm, id)) : NULL)
 
 bool BM_elem_is_free(BMElem *elem, int htype);
+
+#ifdef __cplusplus
+}
+#endif

@@ -76,7 +76,6 @@ Mesh *create_grid_mesh(const int verts_x,
 
   const int y_edges_start = 0;
   const int x_edges_start = verts_x * edges_y;
-  const short edge_flag = (edges_x == 0 || edges_y == 0) ? ME_LOOSEEDGE : ME_EDGEDRAW;
 
   /* Build the horizontal edges in the X direction. */
   threading::parallel_for(IndexRange(verts_x), 512, [&](IndexRange x_range) {
@@ -89,7 +88,7 @@ Mesh *create_grid_mesh(const int verts_x,
           MEdge &edge = edges[y_edge_offset + y];
           edge.v1 = vert_index;
           edge.v2 = vert_index + 1;
-          edge.flag = edge_flag;
+          edge.flag = ME_EDGEDRAW;
         }
       });
     }
@@ -105,7 +104,7 @@ Mesh *create_grid_mesh(const int verts_x,
           MEdge &edge = edges[x_edge_offset + x];
           edge.v1 = vert_index;
           edge.v2 = vert_index + verts_y;
-          edge.flag = edge_flag;
+          edge.flag = ME_EDGEDRAW;
         }
       });
     }
@@ -143,6 +142,8 @@ Mesh *create_grid_mesh(const int verts_x,
   if (mesh->totpoly != 0) {
     calculate_uvs(mesh, verts, loops, size_x, size_y);
   }
+
+  mesh->loose_edges_tag_none();
 
   return mesh;
 }

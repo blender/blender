@@ -999,10 +999,6 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
     int x;
     int edgeIdx = POINTER_AS_INT(ccgSubSurf_getEdgeEdgeHandle(e));
 
-    if (!ccgSubSurf_getEdgeNumFaces(e)) {
-      ed_flag |= ME_LOOSEEDGE;
-    }
-
     if (edgeFlags) {
       if (edgeIdx != -1) {
         ed_flag |= ((edgeFlags[index] & (ME_SEAM | ME_SHARP)) | ME_EDGEDRAW);

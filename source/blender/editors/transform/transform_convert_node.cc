@@ -15,10 +15,11 @@
 
 #include "BKE_context.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_report.h"
 
-#include "ED_node.h"
+#include "ED_node.hh"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
@@ -55,8 +56,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const
   /* use top-left corner as the transform origin for nodes */
   /* Weirdo - but the node system is a mix of free 2d elements and DPI sensitive UI. */
 #ifdef USE_NODE_CENTER
-  td2d->loc[0] = (locx * dpi_fac) + (BLI_rctf_size_x(&node->totr) * +0.5f);
-  td2d->loc[1] = (locy * dpi_fac) + (BLI_rctf_size_y(&node->totr) * -0.5f);
+  td2d->loc[0] = (locx * dpi_fac) + (BLI_rctf_size_x(&node->runtime->totr) * +0.5f);
+  td2d->loc[1] = (locy * dpi_fac) + (BLI_rctf_size_y(&node->runtime->totr) * -0.5f);
 #else
   td2d->loc[0] = locx * dpi_fac;
   td2d->loc[1] = locy * dpi_fac;
@@ -74,8 +75,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const
   memset(td->axismtx, 0, sizeof(td->axismtx));
   td->axismtx[2][2] = 1.0f;
 
-  td->ext = NULL;
-  td->val = NULL;
+  td->ext = nullptr;
+  td->val = nullptr;
 
   td->flag = TD_SELECTED;
   td->dist = 0.0f;
@@ -128,8 +129,8 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
   t->flag = t->flag & ~T_PROP_EDIT_ALL;
 
   /* set transform flags on nodes */
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
-    if (node->flag & NODE_SELECT && is_node_parent_select(node) == false) {
+  for (bNode *node : snode->edittree->all_nodes()) {
+    if (node->flag & NODE_SELECT && !is_node_parent_select(node)) {
       node->flag |= NODE_TRANSFORM;
       tc->data_len++;
     }
@@ -145,7 +146,7 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
   TransData *td = tc->data = MEM_cnew_array<TransData>(tc->data_len, __func__);
   TransData2D *td2d = tc->data_2d = MEM_cnew_array<TransData2D>(tc->data_len, __func__);
 
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  for (bNode *node : snode->edittree->all_nodes()) {
     if (node->flag & NODE_TRANSFORM) {
       NodeToTransData(td++, td2d++, node, dpi_fac);
     }
@@ -246,8 +247,8 @@ static void flushTransNodes(TransInfo *t)
       add_v2_v2v2(loc, td2d->loc, offset);
 
 #ifdef USE_NODE_CENTER
-      loc[0] -= 0.5f * BLI_rctf_size_x(&node->totr);
-      loc[1] += 0.5f * BLI_rctf_size_y(&node->totr);
+      loc[0] -= 0.5f * BLI_rctf_size_x(&node->runtime->totr);
+      loc[1] += 0.5f * BLI_rctf_size_y(&node->runtime->totr);
 #endif
 
       /* Weirdo - but the node system is a mix of free 2d elements and DPI sensitive UI. */

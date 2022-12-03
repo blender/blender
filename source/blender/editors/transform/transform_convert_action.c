@@ -16,6 +16,7 @@
 #include "BLI_rect.h"
 
 #include "BKE_context.h"
+#include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
@@ -750,11 +751,13 @@ static void posttrans_action_clean(bAnimContext *ac, bAction *act)
 
     if (adt) {
       ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0);
-      posttrans_fcurve_clean(ale->key_data, SELECT, false); /* only use handles in graph editor */
+      BKE_fcurve_merge_duplicate_keys(
+          ale->key_data, SELECT, false); /* only use handles in graph editor */
       ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
     }
     else {
-      posttrans_fcurve_clean(ale->key_data, SELECT, false); /* only use handles in graph editor */
+      BKE_fcurve_merge_duplicate_keys(
+          ale->key_data, SELECT, false); /* only use handles in graph editor */
     }
   }
 
@@ -806,11 +809,13 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
           if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
             if (adt) {
               ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
-              posttrans_fcurve_clean(fcu, SELECT, false); /* only use handles in graph editor */
+              BKE_fcurve_merge_duplicate_keys(
+                  fcu, SELECT, false); /* only use handles in graph editor */
               ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 0);
             }
             else {
-              posttrans_fcurve_clean(fcu, SELECT, false); /* only use handles in graph editor */
+              BKE_fcurve_merge_duplicate_keys(
+                  fcu, SELECT, false); /* only use handles in graph editor */
             }
           }
           break;

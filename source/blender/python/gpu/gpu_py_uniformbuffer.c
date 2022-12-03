@@ -59,8 +59,6 @@ static PyObject *pygpu_uniformbuffer__tp_new(PyTypeObject *UNUSED(self),
                                              PyObject *args,
                                              PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
   GPUUniformBuf *ubo = NULL;
   PyObject *pybuffer_obj;
   char err_out[256] = "unknown error. See console";

@@ -51,16 +51,72 @@ struct PyC_StringEnumItems bpygpu_dataformat_items[] = {
 /** \name Utilities
  * \{ */
 
-bool bpygpu_is_init_or_error(void)
-{
-  if (!GPU_is_init()) {
-    PyErr_SetString(PyExc_SystemError,
-                    "GPU functions for drawing are not available in background mode");
+static const char g_error[] = "GPU API is not available in background mode";
 
-    return false;
+static PyObject *py_error__ml_meth(PyObject *UNUSED(self), PyObject *UNUSED(args))
+{
+  PyErr_SetString(PyExc_SystemError, g_error);
+  return NULL;
+}
+
+static PyObject *py_error__getter(PyObject *UNUSED(self), void *UNUSED(type))
+{
+  PyErr_SetString(PyExc_SystemError, g_error);
+  return NULL;
+}
+
+static int py_error__setter(PyObject *UNUSED(self), PyObject *UNUSED(value), void *UNUSED(type))
+{
+  PyErr_SetString(PyExc_SystemError, g_error);
+  return -1;
+}
+
+static PyObject *py_error__tp_new(PyTypeObject *UNUSED(type),
+                                  PyObject *UNUSED(args),
+                                  PyObject *UNUSED(kwds))
+{
+  PyErr_SetString(PyExc_SystemError, g_error);
+  return NULL;
+}
+
+PyObject *bpygpu_create_module(PyModuleDef *module_type)
+{
+  if (!GPU_is_init() && module_type->m_methods) {
+    /* Replace all methods with an error method.
+     * That way when the method is called, an error will appear instead. */
+    for (PyMethodDef *meth = module_type->m_methods; meth->ml_name; meth++) {
+      meth->ml_meth = py_error__ml_meth;
+    }
   }
 
-  return true;
+  PyObject *module = PyModule_Create(module_type);
+
+  return module;
+}
+
+int bpygpu_finalize_type(PyTypeObject *py_type)
+{
+  if (!GPU_is_init()) {
+    if (py_type->tp_methods) {
+      /* Replace all methods with an error method. */
+      for (PyMethodDef *meth = py_type->tp_methods; meth->ml_name; meth++) {
+        meth->ml_meth = py_error__ml_meth;
+      }
+    }
+    if (py_type->tp_getset) {
+      /* Replace all getters and setter with a functions that always returns error. */
+      for (PyGetSetDef *getset = py_type->tp_getset; getset->name; getset++) {
+        getset->get = py_error__getter;
+        getset->set = py_error__setter;
+      }
+    }
+    if (py_type->tp_new) {
+      /* If initialized, return error. */
+      py_type->tp_new = py_error__tp_new;
+    }
+  }
+
+  return PyType_Ready(py_type);
 }
 
 /** \} */

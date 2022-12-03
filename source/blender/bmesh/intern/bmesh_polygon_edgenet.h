@@ -6,6 +6,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Splits a face into many smaller faces defined by an edge-net.
  * handle customdata and degenerate cases.
@@ -38,3 +42,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
                                            BMEdge ***r_edge_net_new,
                                            uint *r_edge_net_new_len) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2, 3, 6, 7, 8);
+
+#ifdef __cplusplus
+}
+#endif

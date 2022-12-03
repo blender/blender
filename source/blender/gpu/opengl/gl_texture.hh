@@ -46,6 +46,10 @@ class GLTexture : public Texture {
 
   void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data) override;
+  void update_sub(int offset[3],
+                  int extent[3],
+                  eGPUDataFormat format,
+                  GPUPixelBuffer *pixbuf) override;
 
   /**
    * This will create the mipmap images and populate them with filtered data from base level.
@@ -85,6 +89,22 @@ class GLTexture : public Texture {
   GPUFrameBuffer *framebuffer_get();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLTexture")
+};
+
+class GLPixelBuffer : public PixelBuffer {
+ private:
+  GLuint gl_id_ = 0;
+
+ public:
+  GLPixelBuffer(uint size);
+  ~GLPixelBuffer();
+
+  void *map() override;
+  void unmap() override;
+  int64_t get_native_handle() override;
+  uint get_size() override;
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("GLPixelBuffer")
 };
 
 inline GLenum to_gl_internal_format(eGPUTextureFormat format)
@@ -282,6 +302,8 @@ inline GLenum to_gl(eGPUDataFormat format)
       return GL_UNSIGNED_INT_2_10_10_10_REV;
     case GPU_DATA_10_11_11_REV:
       return GL_UNSIGNED_INT_10F_11F_11F_REV;
+    case GPU_DATA_HALF_FLOAT:
+      return GL_HALF_FLOAT;
     default:
       BLI_assert_msg(0, "Unhandled data format");
       return GL_FLOAT;

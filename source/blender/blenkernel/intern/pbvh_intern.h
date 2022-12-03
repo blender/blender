@@ -14,6 +14,8 @@
 
 #include "bmesh.h"
 
+#define PBVH_STACK_FIXED_DEPTH 100
+
 struct PBVHGPUFormat;
 
 /** \file
@@ -174,9 +176,9 @@ struct PBVH {
   int *prim_indices;
   int totprim;
   int totvert;
+  int faces_num; /* Do not use directly, use BKE_pbvh_num_faces. */
 
   int leaf_limit;
-  int depth_limit;
 
   /* Mesh data */
   struct MeshElemMap *vemap;
@@ -282,6 +284,8 @@ struct PBVH {
   struct PBVHGPUFormat *vbo_id;
   int *boundary_flags;
   int cd_boundary_flag;
+
+  PBVHPixels pixels;
 };
 
 /* pbvh.c */
@@ -458,7 +462,8 @@ void pbvh_bmesh_check_other_verts(PBVHNode *node);
 
 /* pbvh_pixels.hh */
 
-void pbvh_pixels_free(PBVHNode *node);
+void pbvh_node_pixels_free(PBVHNode *node);
+void pbvh_pixels_free(PBVH *pbvh);
 void pbvh_pixels_free_brush_test(PBVHNode *node);
 void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node);
 

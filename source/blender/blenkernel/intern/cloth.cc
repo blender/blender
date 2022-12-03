@@ -1377,6 +1377,7 @@ BLI_INLINE bool cloth_bend_set_poly_vert_array(int **poly, int len, const MLoop 
 }
 
 static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
+                                               const float (*vert_normals)[3],
                                                uint v_idx,
                                                RNG *rng,
                                                float max_length,
@@ -1388,7 +1389,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
   float radius;
 
   copy_v3_v3(co, treedata->vert[v_idx].co);
-  negate_v3_v3(no, treedata->vert_normals[v_idx]);
+  negate_v3_v3(no, vert_normals[v_idx]);
 
   float vec_len = sin(max_diversion);
   float offset[3];
@@ -1455,6 +1456,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
 
 static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
 {
+  using namespace blender::bke;
   Cloth *cloth = clmd->clothObject;
   ClothSpring *spring = nullptr, *tspring = nullptr, *tspring2 = nullptr;
   uint struct_springs = 0, shear_springs = 0, bend_springs = 0, struct_springs_real = 0;
@@ -1518,9 +1520,12 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     BKE_bvhtree_from_mesh_get(&treedata, tmp_mesh ? tmp_mesh : mesh, BVHTREE_FROM_LOOPTRI, 2);
     rng = BLI_rng_new_srandom(0);
 
+    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(tmp_mesh ? tmp_mesh : mesh);
+
     for (int i = 0; i < mvert_num; i++) {
       if (find_internal_spring_target_vertex(
               &treedata,
+              vert_normals,
               i,
               rng,
               clmd->sim_parms->internal_spring_max_length,
@@ -1587,12 +1592,14 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   }
 
   /* Structural springs. */
+  const LooseEdgeCache &loose_edges = mesh->loose_edges();
   for (int i = 0; i < numedges; i++) {
     spring = (ClothSpring *)MEM_callocN(sizeof(ClothSpring), "cloth spring");
 
     if (spring) {
       spring_verts_ordered_set(spring, medge[i].v1, medge[i].v2);
-      if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW && medge[i].flag & ME_LOOSEEDGE) {
+      if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW && loose_edges.count > 0 &&
+          loose_edges.is_loose_bits[i]) {
         /* handle sewing (loose edges will be pulled together) */
         spring->restlen = 0.0f;
         spring->lin_stiffness = 1.0f;

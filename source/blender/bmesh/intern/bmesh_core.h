@@ -6,6 +6,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMTracer;
 
 BMFace *BM_face_copy(BMesh *bm_dst, BMesh *bm_src, BMFace *f, bool copy_verts, bool copy_edges);
@@ -411,3 +415,6 @@ BMVert *bmesh_kernel_unglue_region_make_vert_multi_isolated(BMesh *bm, BMLoop *l
 
 void BM_reassign_ids(BMesh *bm);
 void BM_clear_ids(BMesh *bm);
+#ifdef __cplusplus
+}
+#endif

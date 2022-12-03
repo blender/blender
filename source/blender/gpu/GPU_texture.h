@@ -16,6 +16,9 @@ struct GPUVertBuf;
 /** Opaque type hiding blender::gpu::Texture. */
 typedef struct GPUTexture GPUTexture;
 
+/** Opaque type hiding blender::gpu::PixelBuffer. */
+typedef struct GPUPixelBuffer GPUPixelBuffer;
+
 /**
  * GPU Samplers state
  * - Specify the sampler state to bind a texture with.
@@ -284,6 +287,17 @@ void GPU_texture_update_sub(GPUTexture *tex,
                             int width,
                             int height,
                             int depth);
+
+/* Update from API Buffer. */
+void GPU_texture_update_sub_from_pixel_buffer(GPUTexture *tex,
+                                              eGPUDataFormat data_format,
+                                              GPUPixelBuffer *pix_buf,
+                                              int offset_x,
+                                              int offset_y,
+                                              int offset_z,
+                                              int width,
+                                              int height,
+                                              int depth);
 /**
  * Makes data interpretation aware of the source layout.
  * Skipping pixels correctly when changing rows when doing partial update.
@@ -365,6 +379,15 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);
 
 size_t GPU_texture_component_len(eGPUTextureFormat format);
 size_t GPU_texture_dataformat_size(eGPUDataFormat data_format);
+
+/* GPU Pixel Buffer. */
+GPUPixelBuffer *GPU_pixel_buffer_create(uint size);
+void GPU_pixel_buffer_free(GPUPixelBuffer *pix_buf);
+
+void *GPU_pixel_buffer_map(GPUPixelBuffer *pix_buf);
+void GPU_pixel_buffer_unmap(GPUPixelBuffer *pix_buf);
+uint GPU_pixel_buffer_size(GPUPixelBuffer *pix_buf);
+int64_t GPU_pixel_buffer_get_native_handle(GPUPixelBuffer *pix_buf);
 
 #ifdef __cplusplus
 }

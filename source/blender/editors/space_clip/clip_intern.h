@@ -7,6 +7,15 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
+#include "DNA_space_types.h"
+#include "DNA_tracking_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegion;
 struct MovieClip;
 struct MovieTrackingMarker;
@@ -220,8 +229,6 @@ void CLIP_OT_set_scale(struct wmOperatorType *ot);
 void CLIP_OT_set_solution_scale(struct wmOperatorType *ot);
 void CLIP_OT_apply_solution_scale(struct wmOperatorType *ot);
 
-void CLIP_OT_set_center_principal(struct wmOperatorType *ot);
-
 void CLIP_OT_slide_marker(struct wmOperatorType *ot);
 
 void CLIP_OT_frame_jump(struct wmOperatorType *ot);
@@ -262,3 +269,36 @@ void CLIP_OT_select_box(struct wmOperatorType *ot);
 void CLIP_OT_select_lasso(struct wmOperatorType *ot);
 void CLIP_OT_select_circle(struct wmOperatorType *ot);
 void CLIP_OT_select_grouped(struct wmOperatorType *ot);
+
+/* -------------------------------------------------------------------- */
+/** \name Inlined utilities.
+ * \{ */
+
+/* Check whether the marker can is visible within the given context.
+ * The track must be visible, and no restrictions from the clip editor are to be in effect on the
+ * disabled marker visibility (unless the track is active). */
+BLI_INLINE bool ED_space_clip_marker_is_visible(const SpaceClip *space_clip,
+                                                const MovieTrackingObject *tracking_object,
+                                                const MovieTrackingTrack *track,
+                                                const MovieTrackingMarker *marker)
+{
+  if (track->flag & TRACK_HIDDEN) {
+    return false;
+  }
+
+  if ((marker->flag & MARKER_DISABLED) == 0) {
+    return true;
+  }
+
+  if ((space_clip->flag & SC_HIDE_DISABLED) == 0) {
+    return true;
+  }
+
+  return track == tracking_object->active_track;
+}
+
+/** \} */
+
+#ifdef __cplusplus
+}
+#endif

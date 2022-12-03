@@ -14,6 +14,44 @@
 
 #include <wayland-util.h> /* For #wl_fixed_t */
 
+/**
+ * Define to workaround for a bug/limitation in WAYLAND, see: T100855 & upstream report:
+ * https://gitlab.freedesktop.org/wayland/wayland/-/issues/159
+ *
+ * Consume events from WAYLAND in a thread, this is needed because overflowing the event queue
+ * causes a fatal error (more than `sizeof(wl_buffer.data)` at the time of writing).
+ *
+ * Solve this using a thread that handles events, locking must be performed as follows:
+ *
+ * - Lock #GWL_Display.server_mutex to prevent #wl_display_dispatch / #wl_display_roundtrip
+ *   running from multiple threads at once.
+ *
+ *   Even though WAYLAND functions that communicate with `wl_display_*` have their own locks,
+ *   GHOST functions that communicate with WAYLAND must use this lock to be thread safe.
+ *
+ *   Without this reading/writing values such as changing the cursor or setting the window size
+ *   could conflict with WAYLAND callbacks running in a separate thread.
+ *   So the `server_mutex` ensures either GHOST or WAYLAND is manipulating this data,
+ *   having two WAYLAND callbacks accessing the data at once isn't a problem.
+ *
+ *   \warning Some operations such as #ContextEGL creation/deletion & swap-buffers may call
+ *   #wl_display_dispatch indirectly, so it's important to take care to lock the `server_mutex`,
+ *   before accessing these functions too.
+ *
+ *   \warning An unfortunate side-effect of this is care needs to be taken not to call public
+ *   GHOST functions from each other in situations that would otherwise be supported.
+ *   As both using a `server_mutex` results in a dead-lock. In some cases this means the
+ *   implementation and the public function may need to be split.
+ *
+ * - Lock #GWL_Display.timer_mutex when WAYLAND callbacks manipulate timers.
+ *
+ * - Lock #GWL_Display.events_pending_mutex before manipulating #GWL_Display.events_pending.
+ *
+ * - Lock #GWL_Window.frame_pending_mutex before changing window size & frame settings,
+ *   this is flushed in #GHOST_WindowWayland::pending_actions_handle.
+ */
+#define USE_EVENT_BACKGROUND_THREAD
+
 class GHOST_SystemWayland;
 
 struct GWL_Output;
@@ -39,6 +77,10 @@ class GHOST_WindowWayland : public GHOST_Window {
   ~GHOST_WindowWayland() override;
 
   /* Ghost API */
+
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  GHOST_TSuccess swapBuffers() override; /* Only for assertion. */
+#endif
 
   uint16_t getDPIHint() override;
 
@@ -115,6 +157,10 @@ class GHOST_WindowWayland : public GHOST_Window {
   bool outputs_leave(GWL_Output *output);
 
   bool outputs_changed_update_scale();
+
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  void pending_actions_handle();
+#endif
 
  private:
   GHOST_SystemWayland *system_;

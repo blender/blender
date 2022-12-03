@@ -11,6 +11,10 @@
 struct BMAllocTemplate;
 struct Mesh;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Fill in a vertex array from an edge array.
  *
@@ -171,5 +175,10 @@ char BM_edge_flag_from_mflag(short mflag);
 /* ME -> BM */
 char BM_face_flag_to_mflag(BMFace *f);
 short BM_edge_flag_to_mflag(BMEdge *e);
+
 /* BM -> ME */
 void BM_sort_disk_cycle(BMVert *v);
+
+#ifdef __cplusplus
+}
+#endif

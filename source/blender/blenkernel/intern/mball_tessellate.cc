@@ -1499,7 +1499,10 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   for (int i = 0; i < mesh->totvert; i++) {
     normalize_v3(process.no[i]);
   }
-  mesh->runtime->vert_normals = process.no;
+  memcpy(BKE_mesh_vertex_normals_for_write(mesh),
+         process.no,
+         sizeof(float[3]) * size_t(mesh->totvert));
+  MEM_freeN(process.no);
   BKE_mesh_vertex_normals_clear_dirty(mesh);
 
   mesh->totloop = loop_offset;

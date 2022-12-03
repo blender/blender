@@ -76,6 +76,7 @@ class KeyingOperation : public NodeOperation {
     get_input("Image").pass_through(get_result("Image"));
     get_result("Matte").allocate_invalid();
     get_result("Edges").allocate_invalid();
+    context().set_info_message("Viewport compositor setup not fully supported");
   }
 };
 
@@ -99,6 +100,8 @@ void register_node_type_cmp_keying()
   node_type_storage(
       &ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

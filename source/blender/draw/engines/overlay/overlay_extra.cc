@@ -27,6 +27,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_fluid_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -859,7 +860,7 @@ static void camera_view3d_reconstruction(
                                ((v3d->shading.type != OB_SOLID) || !XRAY_FLAG_ENABLED(v3d));
 
   MovieTracking *tracking = &clip->tracking;
-  /* Index must start in 1, to mimic BKE_tracking_track_get_indexed. */
+  /* Index must start in 1, to mimic BKE_tracking_track_get_for_selection_index. */
   int track_index = 1;
 
   float bundle_color_custom[3];
@@ -893,8 +894,7 @@ static void camera_view3d_reconstruction(
       mul_m4_m4m4(tracking_object_mat, ob->object_to_world, object_imat);
     }
 
-    ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
-    LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
       if ((track->flag & TRACK_HAS_BUNDLE) == 0) {
         continue;
       }
@@ -961,11 +961,10 @@ static void camera_view3d_reconstruction(
 
     if ((v3d->flag2 & V3D_SHOW_CAMERAPATH) && (tracking_object->flag & TRACKING_OBJECT_CAMERA) &&
         !is_select) {
-      MovieTrackingReconstruction *reconstruction;
-      reconstruction = BKE_tracking_object_get_reconstruction(tracking, tracking_object);
+      const MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
 
       if (reconstruction->camnr) {
-        MovieReconstructedCamera *camera = reconstruction->cameras;
+        const MovieReconstructedCamera *camera = reconstruction->cameras;
         float v0[3], v1[3];
         for (int a = 0; a < reconstruction->camnr; a++, camera++) {
           copy_v3_v3(v0, v1);
@@ -1265,6 +1264,20 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
   for (ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
     if (md->type == eModifierType_Hook) {
       HookModifierData *hmd = (HookModifierData *)md;
+      float center[3];
+      mul_v3_m4v3(center, ob->object_to_world, hmd->cent);
+      if (hmd->object) {
+        OVERLAY_extra_line_dashed(cb, hmd->object->object_to_world[3], center, relation_color);
+      }
+      OVERLAY_extra_point(cb, center, relation_color);
+    }
+  }
+  for (GpencilModifierData *md =
+           static_cast<GpencilModifierData *>(ob->greasepencil_modifiers.first);
+       md;
+       md = md->next) {
+    if (md->type == eGpencilModifierType_Hook) {
+      HookGpencilModifierData *hmd = (HookGpencilModifierData *)md;
       float center[3];
       mul_v3_m4v3(center, ob->object_to_world, hmd->cent);
       if (hmd->object) {

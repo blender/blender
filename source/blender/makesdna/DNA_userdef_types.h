@@ -640,6 +640,7 @@ typedef struct UserDef_Experimental {
   char show_asset_debug_info;
   char no_asset_indexing;
   char use_viewport_debug;
+  char use_all_linked_data_direct;
   char SANITIZE_AFTER_HERE;
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
@@ -658,8 +659,8 @@ typedef struct UserDef_Experimental {
 
   char enable_eevee_next;
   char use_sculpt_texture_paint;
-  char use_draw_manager_acquire_lock;
   char use_realtime_compositor;
+  char _pad0[4];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -950,7 +951,7 @@ typedef struct UserDef {
 
   UserDef_Experimental experimental;
 
-  char _pad15[4];
+  char _pad15[8];
   /** Runtime data (keep last). */
   UserDef_Runtime runtime;
 } UserDef;

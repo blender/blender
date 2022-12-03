@@ -105,9 +105,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-class SampleUVSurfaceFunction : public fn::MultiFunction {
+class SampleMeshBarycentricFunction : public fn::MultiFunction {
   GeometrySet source_;
-  Field<float2> src_uv_map_field_;
   GField src_field_;
 
   /**
@@ -122,60 +121,50 @@ class SampleUVSurfaceFunction : public fn::MultiFunction {
   std::optional<bke::MeshFieldContext> source_context_;
   std::unique_ptr<FieldEvaluator> source_evaluator_;
   const GVArray *source_data_;
-  VArraySpan<float2> source_uv_map_;
 
-  std::optional<ReverseUVSampler> reverse_uv_sampler_;
+  Span<MLoopTri> looptris_;
 
  public:
-  SampleUVSurfaceFunction(GeometrySet geometry, Field<float2> src_uv_map_field, GField src_field)
-      : source_(std::move(geometry)),
-        src_uv_map_field_(std::move(src_uv_map_field)),
-        src_field_(std::move(src_field))
+  SampleMeshBarycentricFunction(GeometrySet geometry, GField src_field)
+      : source_(std::move(geometry)), src_field_(std::move(src_field))
   {
     source_.ensure_owns_direct_data();
-    signature_ = this->create_signature();
     this->set_signature(&signature_);
+    signature_ = this->create_signature();
     this->evaluate_source();
   }
 
   fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Sample UV Surface"};
-    signature.single_input<float2>("Sample UV");
+    fn::MFSignatureBuilder signature{"Sample Barycentric Triangles"};
+    signature.single_input<int>("Triangle Index");
+    signature.single_input<float3>("Barycentric Weight");
     signature.single_output("Value", src_field_.cpp_type());
-    signature.single_output<bool>("Is Valid");
     return signature.build();
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
   {
-    const VArray<float2> &sample_uvs = params.readonly_single_input<float2>(0, "Sample UV");
-    GMutableSpan dst = params.uninitialized_single_output_if_required(1, "Value");
-    MutableSpan<bool> valid_dst = params.uninitialized_single_output_if_required<bool>(2,
-                                                                                       "Is Valid");
+    const VArraySpan<int> triangle_indices = params.readonly_single_input<int>(0,
+                                                                               "Triangle Index");
+    const VArraySpan<float3> bary_weights = params.readonly_single_input<float3>(
+        1, "Barycentric Weight");
+    GMutableSpan dst = params.uninitialized_single_output(2, "Value");
 
-    const CPPType &type = src_field_.cpp_type();
-    attribute_math::convert_to_static_type(type, [&](auto dummy) {
+    attribute_math::convert_to_static_type(src_field_.cpp_type(), [&](auto dummy) {
       using T = decltype(dummy);
       const VArray<T> src_typed = source_data_->typed<T>();
       MutableSpan<T> dst_typed = dst.typed<T>();
       for (const int i : mask) {
-        const float2 sample_uv = sample_uvs[i];
-        const ReverseUVSampler::Result result = reverse_uv_sampler_->sample(sample_uv);
-        const bool valid = result.type == ReverseUVSampler::ResultType::Ok;
-        if (!dst_typed.is_empty()) {
-          if (valid) {
-            dst_typed[i] = attribute_math::mix3(result.bary_weights,
-                                                src_typed[result.looptri->tri[0]],
-                                                src_typed[result.looptri->tri[1]],
-                                                src_typed[result.looptri->tri[2]]);
-          }
-          else {
-            dst_typed[i] = {};
-          }
+        const int triangle_index = triangle_indices[i];
+        if (triangle_indices[i] != -1) {
+          dst_typed[i] = attribute_math::mix3(bary_weights[i],
+                                              src_typed[looptris_[triangle_index].tri[0]],
+                                              src_typed[looptris_[triangle_index].tri[1]],
+                                              src_typed[looptris_[triangle_index].tri[2]]);
         }
-        if (!valid_dst.is_empty()) {
-          valid_dst[i] = valid;
+        else {
+          dst_typed[i] = {};
         }
       }
     });
@@ -185,14 +174,91 @@ class SampleUVSurfaceFunction : public fn::MultiFunction {
   void evaluate_source()
   {
     const Mesh &mesh = *source_.get_mesh_for_read();
+    looptris_ = mesh.looptris();
     source_context_.emplace(bke::MeshFieldContext{mesh, domain_});
     const int domain_size = mesh.attributes().domain_size(domain_);
     source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, domain_size);
-    source_evaluator_->add(src_uv_map_field_);
     source_evaluator_->add(src_field_);
     source_evaluator_->evaluate();
+    source_data_ = &source_evaluator_->get_evaluated(0);
+  }
+};
+
+class ReverseUVSampleFunction : public fn::MultiFunction {
+  GeometrySet source_;
+  Field<float2> src_uv_map_field_;
+
+  std::optional<bke::MeshFieldContext> source_context_;
+  std::unique_ptr<FieldEvaluator> source_evaluator_;
+  VArraySpan<float2> source_uv_map_;
+
+  std::optional<ReverseUVSampler> reverse_uv_sampler_;
+
+ public:
+  ReverseUVSampleFunction(GeometrySet geometry, Field<float2> src_uv_map_field)
+      : source_(std::move(geometry)), src_uv_map_field_(std::move(src_uv_map_field))
+  {
+    source_.ensure_owns_direct_data();
+    static fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+    this->evaluate_source();
+  }
+
+  static fn::MFSignature create_signature()
+  {
+    fn::MFSignatureBuilder signature{"Sample UV Surface"};
+    signature.single_input<float2>("Sample UV");
+    signature.single_output<bool>("Is Valid");
+    signature.single_output<int>("Triangle Index");
+    signature.single_output<float3>("Barycentric Weights");
+    return signature.build();
+  }
+
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  {
+    const VArraySpan<float2> sample_uvs = params.readonly_single_input<float2>(0, "Sample UV");
+    MutableSpan<bool> is_valid = params.uninitialized_single_output_if_required<bool>(1,
+                                                                                      "Is Valid");
+    MutableSpan<int> tri_index = params.uninitialized_single_output_if_required<int>(
+        2, "Triangle Index");
+    MutableSpan<float3> bary_weights = params.uninitialized_single_output_if_required<float3>(
+        3, "Barycentric Weights");
+
+    Array<ReverseUVSampler::Result> results(mask.min_array_size());
+    reverse_uv_sampler_->sample_many(sample_uvs, results);
+
+    if (!is_valid.is_empty()) {
+      std::transform(results.begin(),
+                     results.end(),
+                     is_valid.begin(),
+                     [](const ReverseUVSampler::Result &result) {
+                       return result.type == ReverseUVSampler::ResultType::Ok;
+                     });
+    }
+    if (!tri_index.is_empty()) {
+      std::transform(results.begin(),
+                     results.end(),
+                     tri_index.begin(),
+                     [](const ReverseUVSampler::Result &result) { return result.looptri_index; });
+    }
+
+    if (!bary_weights.is_empty()) {
+      std::transform(results.begin(),
+                     results.end(),
+                     bary_weights.begin(),
+                     [](const ReverseUVSampler::Result &result) { return result.bary_weights; });
+    }
+  }
+
+ private:
+  void evaluate_source()
+  {
+    const Mesh &mesh = *source_.get_mesh_for_read();
+    source_context_.emplace(bke::MeshFieldContext{mesh, ATTR_DOMAIN_CORNER});
+    source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, mesh.totloop);
+    source_evaluator_->add(src_uv_map_field_);
+    source_evaluator_->evaluate();
     source_uv_map_ = source_evaluator_->get_evaluated<float2>(0);
-    source_data_ = &source_evaluator_->get_evaluated(1);
 
     reverse_uv_sampler_.emplace(source_uv_map_, mesh.looptris());
   }
@@ -260,19 +326,24 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const CPPType &float2_type = CPPType::get<float2>();
-
+  /* Do reverse sampling of the UV map first. */
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+  const CPPType &float2_type = CPPType::get<float2>();
   Field<float2> source_uv_map = conversions.try_convert(
       params.extract_input<Field<float3>>("Source UV Map"), float2_type);
-  GField field = get_input_attribute_field(params, data_type);
   Field<float2> sample_uvs = conversions.try_convert(
       params.extract_input<Field<float3>>("Sample UV"), float2_type);
-  auto fn = std::make_shared<SampleUVSurfaceFunction>(
-      std::move(geometry), std::move(source_uv_map), std::move(field));
-  auto op = FieldOperation::Create(std::move(fn), {std::move(sample_uvs)});
-  output_attribute_field(params, GField(op, 0));
-  params.set_output("Is Valid", Field<bool>(op, 1));
+  auto uv_op = FieldOperation::Create(
+      std::make_shared<ReverseUVSampleFunction>(geometry, std::move(source_uv_map)),
+      {std::move(sample_uvs)});
+  params.set_output("Is Valid", Field<bool>(uv_op, 0));
+
+  /* Use the output of the UV sampling to interpolate the mesh attribute. */
+  GField field = get_input_attribute_field(params, data_type);
+  auto sample_op = FieldOperation::Create(
+      std::make_shared<SampleMeshBarycentricFunction>(std::move(geometry), std::move(field)),
+      {Field<int>(uv_op, 1), Field<float3>(uv_op, 2)});
+  output_attribute_field(params, GField(sample_op, 0));
 }
 
 }  // namespace blender::nodes::node_geo_sample_uv_surface_cc

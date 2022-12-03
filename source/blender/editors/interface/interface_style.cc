@@ -30,7 +30,7 @@
 
 #include "ED_datafiles.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #ifdef WIN32
 #  include "BLI_math_base.h" /* M_PI */

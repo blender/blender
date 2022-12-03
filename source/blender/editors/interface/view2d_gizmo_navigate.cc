@@ -136,6 +136,13 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType * /*gz
       }
       break;
     }
+    case SPACE_CLIP: {
+      const SpaceClip *sc = static_cast<const SpaceClip *>(area->spacedata.first);
+      if (sc->gizmo_flag & (SCLIP_GIZMO_HIDE | SCLIP_GIZMO_HIDE_NAVIGATE)) {
+        return false;
+      }
+      break;
+    }
   }
   return true;
 }

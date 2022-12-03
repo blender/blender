@@ -285,10 +285,16 @@ set(SRC_KERNEL_INTEGRATOR_HEADERS
 )
 
 set(SRC_KERNEL_LIGHT_HEADERS
-  light/light.h
+  light/area.h
   light/background.h
   light/common.h
+  light/distant.h
+  light/distribution.h
+  light/light.h
+  light/point.h
   light/sample.h
+  light/spot.h
+  light/triangle.h
 )
 
 set(SRC_KERNEL_SAMPLE_HEADERS
@@ -468,54 +474,29 @@ if(WITH_CYCLES_CUDA_BINARIES)
 
     if(WITH_CYCLES_DEBUG)
       set(cuda_flags ${cuda_flags} -D WITH_CYCLES_DEBUG)
+      set(cuda_flags ${cuda_flags} --ptxas-options="-v")
     endif()
 
-    if(WITH_CYCLES_CUBIN_COMPILER)
-      string(SUBSTRING ${arch} 3 -1 CUDA_ARCH)
+    set(_cuda_nvcc_args
+          -arch=${arch}
+          ${CUDA_NVCC_FLAGS}
+          --${format}
+          ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
+          ${cuda_flags})
 
-      # Needed to find libnvrtc-builtins.so. Can't do it from inside
-      # cycles_cubin_cc since the env variable is read before main()
-      if(APPLE)
-        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
-          -E env DYLD_LIBRARY_PATH="${cuda_toolkit_root_dir}/lib")
-      elseif(UNIX)
-        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
-          -E env LD_LIBRARY_PATH="${cuda_toolkit_root_dir}/lib64")
-      endif()
-
+    if(WITH_COMPILER_CCACHE AND CCACHE_PROGRAM)
       add_custom_command(
         OUTPUT ${cuda_file}
-        COMMAND ${CUBIN_CC_ENV}
-            "$<TARGET_FILE:cycles_cubin_cc>"
-            -target ${CUDA_ARCH}
-            -i ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
-            ${cuda_flags}
-            -v
-            -cuda-toolkit-dir "${cuda_toolkit_root_dir}"
-        DEPENDS ${kernel_sources} cycles_cubin_cc)
+        COMMAND ${CCACHE_PROGRAM} ${cuda_nvcc_executable} ${_cuda_nvcc_args}
+        DEPENDS ${kernel_sources})
     else()
-      set(_cuda_nvcc_args
-            -arch=${arch}
-            ${CUDA_NVCC_FLAGS}
-            --${format}
-            ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
-            --ptxas-options="-v"
-            ${cuda_flags})
-
-      if(WITH_COMPILER_CCACHE AND CCACHE_PROGRAM)
-        add_custom_command(
-          OUTPUT ${cuda_file}
-          COMMAND ${CCACHE_PROGRAM} ${cuda_nvcc_executable} ${_cuda_nvcc_args}
-          DEPENDS ${kernel_sources})
-      else()
-        add_custom_command(
-          OUTPUT ${cuda_file}
-          COMMAND ${cuda_nvcc_executable} ${_cuda_nvcc_args}
-          DEPENDS ${kernel_sources})
-      endif()
-
-      unset(_cuda_nvcc_args)
+      add_custom_command(
+        OUTPUT ${cuda_file}
+        COMMAND ${cuda_nvcc_executable} ${_cuda_nvcc_args}
+        DEPENDS ${kernel_sources})
     endif()
+
+    unset(_cuda_nvcc_args)
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_file}" ${CYCLES_INSTALL_PATH}/lib)
     list(APPEND cuda_cubins ${cuda_file})
 
@@ -591,11 +572,20 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
     if(WIN32)
       set(hip_command ${CMAKE_COMMAND})
       set(hip_flags
-        -E env "HIP_PATH=${HIP_ROOT_DIR}" "PATH=${HIP_PERL_DIR}"
+        -E env "HIP_PATH=${HIP_ROOT_DIR}"
         ${HIP_HIPCC_EXECUTABLE}.bat)
     else()
       set(hip_command ${HIP_HIPCC_EXECUTABLE})
       set(hip_flags)
+    endif()
+
+    # There's a bug in the compiler causing some scenes to fail to render on Vega cards
+    # A workaround currently is to set -O1 opt level during kernel compilation for these
+    # cards Remove this when a newer compiler is available with fixes.
+    if(WIN32 AND (${arch} MATCHES "gfx90[a-z0-9]+"))
+      set(hip_opt_flags "-O1")
+    else()
+      set(hip_opt_flags)
     endif()
 
     set(hip_flags
@@ -614,6 +604,7 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       -Wno-unused-value
       --hipcc-func-supp
       -ffast-math
+      ${hip_opt_flags}
       -o ${CMAKE_CURRENT_BINARY_DIR}/${hip_file})
 
     if(WITH_NANOVDB)
@@ -667,55 +658,25 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
       set(cuda_flags ${cuda_flags} -D WITH_CYCLES_DEBUG)
     endif()
 
-    if(WITH_CYCLES_CUBIN_COMPILER)
-      # Needed to find libnvrtc-builtins.so. Can't do it from inside
-      # cycles_cubin_cc since the env variable is read before main()
-      if(APPLE)
-        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
-          -E env DYLD_LIBRARY_PATH="${CUDA_TOOLKIT_ROOT_DIR}/lib")
-      elseif(UNIX)
-        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
-          -E env LD_LIBRARY_PATH="${CUDA_TOOLKIT_ROOT_DIR}/lib64")
-      endif()
+    add_custom_command(
+      OUTPUT
+        ${output}
+      DEPENDS
+        ${input}
+        ${SRC_KERNEL_HEADERS}
+        ${SRC_KERNEL_DEVICE_GPU_HEADERS}
+        ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
+        ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
+        ${SRC_UTIL_HEADERS}
+      COMMAND
+        ${CUDA_NVCC_EXECUTABLE}
+        --ptx
+        -arch=sm_50
+        ${cuda_flags}
+        ${input}
+      WORKING_DIRECTORY
+        "${CMAKE_CURRENT_SOURCE_DIR}")
 
-      add_custom_command(
-        OUTPUT ${output}
-        DEPENDS
-          ${input}
-          ${SRC_KERNEL_HEADERS}
-          ${SRC_KERNEL_DEVICE_GPU_HEADERS}
-          ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
-          ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
-          ${SRC_UTIL_HEADERS}
-        COMMAND ${CUBIN_CC_ENV}
-            "$<TARGET_FILE:cycles_cubin_cc>"
-            -target 50
-            -ptx
-            -i ${CMAKE_CURRENT_SOURCE_DIR}/${input}
-            ${cuda_flags}
-            -v
-            -cuda-toolkit-dir "${CUDA_TOOLKIT_ROOT_DIR}"
-        DEPENDS ${kernel_sources} cycles_cubin_cc)
-    else()
-      add_custom_command(
-        OUTPUT
-          ${output}
-        DEPENDS
-          ${input}
-          ${SRC_KERNEL_HEADERS}
-          ${SRC_KERNEL_DEVICE_GPU_HEADERS}
-          ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
-          ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
-          ${SRC_UTIL_HEADERS}
-        COMMAND
-          ${CUDA_NVCC_EXECUTABLE}
-          --ptx
-          -arch=sm_50
-          ${cuda_flags}
-          ${input}
-        WORKING_DIRECTORY
-          "${CMAKE_CURRENT_SOURCE_DIR}")
-    endif()
     list(APPEND optix_ptx ${output})
 
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${output}" ${CYCLES_INSTALL_PATH}/lib)

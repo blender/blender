@@ -33,8 +33,8 @@ AssetMetaData *BKE_asset_metadata_create()
 
 void BKE_asset_metadata_free(AssetMetaData **asset_data)
 {
-  (*asset_data)->~AssetMetaData();
-  MEM_SAFE_FREE(*asset_data);
+  MEM_delete(*asset_data);
+  *asset_data = nullptr;
 }
 
 AssetMetaData::~AssetMetaData()
@@ -45,13 +45,6 @@ AssetMetaData::~AssetMetaData()
   MEM_SAFE_FREE(author);
   MEM_SAFE_FREE(description);
   BLI_freelistN(&tags);
-}
-
-std::unique_ptr<AssetMetaData> BKE_asset_metadata_move_to_unique_ptr(AssetMetaData *asset_data)
-{
-  std::unique_ptr unique_asset_data = std::make_unique<AssetMetaData>(*asset_data);
-  *asset_data = *DNA_struct_default_get(AssetMetaData);
-  return unique_asset_data;
 }
 
 static AssetTag *asset_metadata_tag_add(AssetMetaData *asset_data, const char *const name)

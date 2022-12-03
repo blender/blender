@@ -20,6 +20,7 @@
 
 #include "GPU_select.h"
 
+#include "gpu_py.h"
 #include "gpu_py_select.h" /* Own include. */
 
 /* -------------------------------------------------------------------- */
@@ -72,7 +73,7 @@ PyObject *bpygpu_select_init(void)
 {
   PyObject *submodule;
 
-  submodule = PyModule_Create(&pygpu_select_module_def);
+  submodule = bpygpu_create_module(&pygpu_select_module_def);
 
   return submodule;
 }
