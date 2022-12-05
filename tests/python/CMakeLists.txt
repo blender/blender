@@ -797,6 +797,7 @@ set(geo_node_tests
   mesh/extrude
   mesh/split_edges
   points
+  texture
   utilities
   vector
 )
