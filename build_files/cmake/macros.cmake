@@ -422,7 +422,9 @@ function(blender_add_test_suite)
       --test-assets-dir "${CMAKE_SOURCE_DIR}/../lib/tests"
       --test-release-dir "${_test_release_dir}"
   )
-
+  if(WIN32)
+    set_tests_properties(${ARGS_SUITE_NAME} PROPERTIES ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/blender.shared/;$ENV{PATH}")
+  endif()
   unset(_test_release_dir)
 endfunction()
 
@@ -1256,4 +1258,22 @@ endmacro()
 
 macro(without_system_libs_end)
   unset(CMAKE_IGNORE_PATH)
+endmacro()
+
+# Utility to gather and install precompiled shared libraries.
+macro(add_bundled_libraries library_dir)
+  if(EXISTS ${LIBDIR})
+    set(_library_dir ${LIBDIR}/${library_dir})
+    if(WIN32)
+      file(GLOB _all_library_versions ${_library_dir}/*\.dll)
+    elseif(APPLE)
+      file(GLOB _all_library_versions ${_library_dir}/*\.dylib*)
+    else()
+      file(GLOB _all_library_versions ${_library_dir}/*\.so*)
+    endif()
+    list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
+    list(APPEND PLATFORM_BUNDLED_LIBRARY_DIRS ${_library_dir})
+    unset(_all_library_versions)
+    unset(_library_dir)
+ endif()
 endmacro()

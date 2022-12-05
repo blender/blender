@@ -83,15 +83,6 @@ macro(find_package_wrapper)
   endif()
 endmacro()
 
-# Utility to install precompiled shared libraries.
-macro(add_bundled_libraries library)
-  if(EXISTS ${LIBDIR})
-    file(GLOB _all_library_versions ${LIBDIR}/${library}/lib/*\.so*)
-    list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
-    unset(_all_library_versions)
-  endif()
-endmacro()
-
 # ----------------------------------------------------------------------------
 # Precompiled Libraries
 #
@@ -1005,4 +996,10 @@ if(PLATFORM_BUNDLED_LIBRARIES)
   # and because the build and install folder may be different.
   set(CMAKE_SKIP_BUILD_RPATH FALSE)
   list(APPEND CMAKE_BUILD_RPATH $ORIGIN/lib ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib)
+
+  # Environment variables to run precompiled executables that needed libraries.
+  list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ":" _library_paths)
+  set(PLATFORM_ENV_BUILD "LD_LIBRARY_PATH=\"${_library_paths};${LD_LIBRARY_PATH}\"")
+  set(PLATFORM_ENV_INSTALL "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib/;$LD_LIBRARY_PATH")
+  unset(_library_paths)
 endif()

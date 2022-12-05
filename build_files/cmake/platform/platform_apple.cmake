@@ -21,18 +21,6 @@ function(print_found_status
   endif()
 endfunction()
 
-# Utility to install precompiled shared libraries.
-macro(add_bundled_libraries library)
-  if(EXISTS ${LIBDIR})
-    set(_library_dir ${LIBDIR}/${library}/lib)
-    file(GLOB _all_library_versions ${_library_dir}/*\.dylib*)
-    list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
-    list(APPEND PLATFORM_BUNDLED_LIBRARY_DIRS ${_library_dir})
-    unset(_all_library_versions)
-    unset(_library_dir)
-  endif()
-endmacro()
-
 # ------------------------------------------------------------------------
 # Find system provided libraries.
 
@@ -364,7 +352,7 @@ if(WITH_OPENMP)
     set(OpenMP_LIBRARY_DIR "${LIBDIR}/openmp/lib/")
     set(OpenMP_LINKER_FLAGS "-L'${OpenMP_LIBRARY_DIR}' -lomp")
     set(OpenMP_LIBRARY "${OpenMP_LIBRARY_DIR}/libomp.dylib")
-    add_bundled_libraries(openmp)
+    add_bundled_libraries(openmp/lib)
   endif()
 endif()
 
@@ -480,6 +468,12 @@ if(PLATFORM_BUNDLED_LIBRARIES)
   # different.
   set(CMAKE_SKIP_BUILD_RPATH FALSE)
   list(APPEND CMAKE_BUILD_RPATH ${PLATFORM_BUNDLED_LIBRARY_DIRS})
+
+  # Environment variables to run precompiled executables that needed libraries.
+  list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ":" _library_paths)
+  set(PLATFORM_ENV_BUILD "DYLD_LIBRARY_PATH=\"${_library_paths};${DYLD_LIBRARY_PATH}\"")
+  set(PLATFORM_ENV_INSTALL "DYLD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}Blender.app/Contents/Resources/lib/;$DYLD_LIBRARY_PATH")
+  unset(_library_paths)
 endif()
 
 # Same as `CFBundleIdentifier` in Info.plist.

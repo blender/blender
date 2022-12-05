@@ -31,6 +31,9 @@ function(add_blender_test testname)
   set_tests_properties(${testname} PROPERTIES ENVIRONMENT
     LSAN_OPTIONS=exitcode=0:$ENV{LSAN_OPTIONS}
   )
+  if(PLATFORM_ENV_INSTALL)
+    set_tests_properties(${testname} PROPERTIES ENVIRONMENT "${PLATFORM_ENV_INSTALL}")
+  endif()
 endfunction()
 
 # Run Python script outside Blender.
@@ -42,10 +45,14 @@ function(add_python_test testname testscript)
   add_test(
     NAME ${testname}
     COMMAND ${TEST_PYTHON_EXE} ${TEST_PYTHON_EXE_EXTRA_ARGS} ${testscript} ${ARGN}
+    WORKING_DIRECTORY $<TARGET_FILE_DIR:blender>
   )
   set_tests_properties(${testname} PROPERTIES ENVIRONMENT
     LSAN_OPTIONS=exitcode=0:$ENV{LSAN_OPTIONS}
   )
+  if(PLATFORM_ENV_INSTALL)
+    set_tests_properties(${testname} PROPERTIES ENVIRONMENT "${PLATFORM_ENV_INSTALL}")
+  endif()
 endfunction()
 
 # ------------------------------------------------------------------------------
