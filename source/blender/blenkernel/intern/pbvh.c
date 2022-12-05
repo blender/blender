@@ -176,8 +176,7 @@ static int partition_indices_faces(int *prim_indices,
                                    int axis,
                                    float mid,
                                    BBC *prim_bbc,
-                                   const MLoopTri *looptri,
-                                   const MPoly *mpoly)
+                                   const MLoopTri *looptri)
 {
   for (int i = lo; i < hi; i++) {
     prim_scratch[i - lo] = prim_indices[i];
@@ -586,8 +585,7 @@ static void build_sub(PBVH *pbvh,
                                     axis,
                                     (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
                                     prim_bbc,
-                                    pbvh->looptri,
-                                    pbvh->mpoly);
+                                    pbvh->looptri);
     }
     else {
       end = partition_indices_grids(pbvh->prim_indices,
