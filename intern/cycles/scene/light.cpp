@@ -1038,14 +1038,14 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       float invarea = (area != 0.0f) ? 1.0f / area : 1.0f;
       float3 dir = light->dir;
 
-      /* Convert from spread angle 0..180 to 90..0, clamping to a minimum
-       * angle to avoid excessive noise. */
-      const float min_spread_angle = 1.0f * M_PI_F / 180.0f;
-      const float spread_angle = 0.5f * (M_PI_F - max(light->spread, min_spread_angle));
+      /* Clamping to a minimum angle to avoid excessive noise. */
+      const float min_spread = 1.0f * M_PI_F / 180.0f;
+      const float half_spread = 0.5f * max(light->spread, min_spread);
+      /* cot_half_spread is h in D10594#269626 */
+      const float cot_half_spread = tanf(M_PI_2_F - half_spread);
       /* Normalization computed using:
-       * integrate cos(x) * (1 - tan(x) * tan(a)) * sin(x) from x = 0 to pi/2 - a. */
-      const float tan_spread = tanf(spread_angle);
-      const float normalize_spread = 2.0f / (2.0f + (2.0f * spread_angle - M_PI_F) * tan_spread);
+       * integrate cos(x) * (1 - tan(x) / tan(a)) * sin(x) from x = 0 to a, a being half_spread */
+      const float normalize_spread = 1.0f / (1.0f - half_spread * cot_half_spread);
 
       dir = safe_normalize(dir);
 
@@ -1059,7 +1059,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       klights[light_index].area.len_v = len_v;
       klights[light_index].area.invarea = invarea;
       klights[light_index].area.dir = dir;
-      klights[light_index].area.tan_spread = tan_spread;
+      klights[light_index].area.cot_half_spread = cot_half_spread;
       klights[light_index].area.normalize_spread = normalize_spread;
     }
     else if (light->light_type == LIGHT_SPOT) {
