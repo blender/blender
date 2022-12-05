@@ -118,8 +118,8 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
   }
 
   /* Meta strips requires their content is to be translated, and then frame range of the meta is
-   * updated based on nested strips. Thiw won't work for empty metas, so they can be treated as
-   * normal strip. */
+   * updated based on nested strips. This won't work for empty meta-strips,
+   * so they can be treated as normal strip. */
   if (seq->type == SEQ_TYPE_META && !BLI_listbase_is_empty(&seq->seqbase)) {
     Sequence *seq_child;
     for (seq_child = seq->seqbase.first; seq_child; seq_child = seq_child->next) {

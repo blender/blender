@@ -401,7 +401,7 @@ ccl_device_inline float light_sample_mis_weight_forward_surface(KernelGlobals kg
   float pdf = triangle_light_pdf(kg, sd, t);
 
   /* Light selection pdf. */
-  /* Handled in triangle_light_pdf for effeciency. */
+  /* Handled in triangle_light_pdf for efficiency. */
 
   return light_sample_mis_weight_forward(kg, bsdf_pdf, pdf);
 }

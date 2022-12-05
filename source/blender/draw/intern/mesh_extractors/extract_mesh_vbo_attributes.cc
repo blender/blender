@@ -132,7 +132,7 @@ static GPUVertCompType get_comp_type_for_type(eCustomDataType type)
       return GPU_COMP_I32;
     case CD_PROP_BYTE_COLOR:
       /* This should be u8,
-       * but u16 is required to store the color in linear space without precission loss */
+       * but u16 is required to store the color in linear space without precision loss */
       return GPU_COMP_U16;
     default:
       return GPU_COMP_F32;

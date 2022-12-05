@@ -88,7 +88,7 @@ class MTLStateManager : public StateManager {
 class MTLFence : public Fence {
  private:
   /* Using an event in this instance, as this is global for the command stream, rather than being
-   * inserted at the encoder level. This has the behaviour to match the GL functionality. */
+   * inserted at the encoder level. This has the behavior to match the GL functionality. */
   id<MTLEvent> mtl_event_ = nil;
   /* Events can be re-used multiple times. We can track a counter flagging the latest value
    * signalled. */

@@ -5,7 +5,7 @@
  *
  * This file defines a singleton py object accessed via 'bpy.app.translations',
  * which exposes various data and functions useful in i18n work.
- * Most notably, it allows to extend main translations with py dicts.
+ * Most notably, it allows to extend main translations with Python dictionaries.
  */
 
 #include <Python.h>
@@ -44,7 +44,7 @@ typedef struct {
   /** A readonly mapping {C context id: python id}  (actually, a MappingProxy). */
   PyObject *contexts_C_to_py;
   /**
-   * A py dict containing all registered py dicts
+   * A Python dictionary containing all registered Python dictionaries
    * (order is more or less random, first match wins!).
    */
   PyObject *py_messages;
@@ -112,7 +112,9 @@ static void _ghashutil_keyfree(void *ptr)
 /** \name Python'S Messages Cache
  * \{ */
 
-/* We cache all messages available for a given locale from all py dicts into a single ghash.
+/**
+ * We cache all messages available for a given locale
+ * from all Python dictionaries into a single #GHash.
  * Changing of locale is not so common, while looking for a message translation is,
  * so let's try to optimize the later as much as we can!
  * Note changing of locale, as well as (un)registering a message dict, invalidate that cache.
@@ -141,7 +143,7 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
   _clear_translations_cache();
   _translations_cache = BLI_ghash_new(_ghashutil_keyhash, _ghashutil_keycmp, __func__);
 
-  /* Iterate over all py dicts. */
+  /* Iterate over all Python dictionaries. */
   while (PyDict_Next(py_messages, &pos, &uuid, &uuid_dict)) {
     PyObject *lang_dict;
 

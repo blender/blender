@@ -847,7 +847,7 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *r_size)
 
 GPUPixelBuffer *GPU_pixel_buffer_create(uint size)
 {
-  /* Ensure buffer satifies the alignment of 256 bytes for copying
+  /* Ensure buffer satisfies the alignment of 256 bytes for copying
    * data between buffers and textures. As specified in:
    * https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
    *

@@ -499,7 +499,7 @@ static std::optional<UVBorderCorner> sharpest_border_corner(UVIsland &island)
 /** The inner edge of a fan. */
 struct InnerEdge {
   MeshPrimitive *primitive;
-  /* UVs order are already applied. So uvs[0] mathes primitive->vertices[vert_order[0]]/ */
+  /* UVs order are already applied. So `uvs[0]` matches `primitive->vertices[vert_order[0]]`. */
   float2 uvs[3];
   int vert_order[3];
 
@@ -1198,7 +1198,7 @@ UVBorder UVPrimitive::extract_border() const
 {
   Vector<UVBorderEdge> border_edges;
   for (UVEdge *edge : edges) {
-    /* TODO remove const cast. only needed for debugging atm. */
+    /* TODO remove const cast. only needed for debugging ATM. */
     UVBorderEdge border_edge(edge, const_cast<UVPrimitive *>(this));
     border_edges.append(border_edge);
   }

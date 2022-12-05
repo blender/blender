@@ -226,7 +226,7 @@ enum PathRayFlag : uint32_t {
    */
 
   /* Surface had transmission component at previous bounce. Used for light tree
-   * traversal and culling to be consistent with MIS pdf at the next bounce. */
+   * traversal and culling to be consistent with MIS PDF at the next bounce. */
   PATH_RAY_MIS_HAD_TRANSMISSION = (1U << 10U),
 
   /* Don't apply multiple importance sampling weights to emission from

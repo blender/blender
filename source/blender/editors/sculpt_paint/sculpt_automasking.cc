@@ -508,9 +508,8 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
 
   float mask = 1.0f;
 
-  /* Since brush normal mode depends on the current mirror symmery pass
-   * it is not folded into the factor cache (when it exists).
-   */
+  /* Since brush normal mode depends on the current mirror symmetry pass
+   * it is not folded into the factor cache (when it exists). */
   if ((ss->cache || ss->filter_cache) &&
       (automasking->settings.flags & BRUSH_AUTOMASKING_BRUSH_NORMAL)) {
     mask *= automasking_brush_normal_factor(automasking, ss, vert, automask_data);

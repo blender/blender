@@ -242,8 +242,8 @@ static void movieclip_blend_write(BlendWriter *writer, ID *id, const void *id_ad
 
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
 #if USE_LEGACY_CAMERA_OBJECT_FORMAT_ON_SAVE
-    /* When saving camers object in the legacy format clear the list of tracks. This is because the
-     * tracking object code is generic and assumes object owns the tracks in the list. For the
+    /* When saving cameras object in the legacy format clear the list of tracks. This is because
+     * the tracking object code is generic and assumes object owns the tracks in the list. For the
      * camera tracks that is not the case in the legacy format. */
     if (!is_undo && (object->flag & TRACKING_OBJECT_CAMERA)) {
       MovieTrackingObject legacy_object = *object;

@@ -172,7 +172,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
     if (use_creases) {
       /* Remove the layer in case it was created by the node from the field input. The fact
-       * that this node uses #CD_CREASE to input creases to the subvision code is meant to be
+       * that this node uses #CD_CREASE to input creases to the subdivision code is meant to be
        * an implementation detail ideally. */
       CustomData_free_layers(&mesh_out->edata, CD_CREASE, mesh_out->totedge);
     }

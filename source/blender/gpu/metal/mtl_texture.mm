@@ -1860,7 +1860,7 @@ MTLPixelBuffer::MTLPixelBuffer(uint size) : PixelBuffer(size)
 {
   MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
-  /* Ensure buffer satifies the alignment of 256 bytes for copying
+  /* Ensure buffer satisfies the alignment of 256 bytes for copying
    * data between buffers and textures. As specified in:
    * https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf */
   BLI_assert(size >= 256);
