@@ -376,7 +376,6 @@ elseif(APPLE)
     set(TARGETDIR_LIB Blender.app/Contents/Resources/lib)
     set(TARGETDIR_TEXT Blender.app/Contents/Resources/text)
   endif()
-
   # Skip re-linking on CPACK / install.
   set_target_properties(blender PROPERTIES BUILD_WITH_INSTALL_RPATH true)
 endif()
@@ -418,10 +417,24 @@ if(WITH_PYTHON)
     PATTERN ".github" EXCLUDE
     PATTERN ".arcconfig" EXCLUDE
     PATTERN "__pycache__" EXCLUDE
+    PATTERN "site" EXCLUDE
     PATTERN "${ADDON_EXCLUDE_CONDITIONAL}" EXCLUDE
     PATTERN "${FREESTYLE_EXCLUDE_CONDITIONAL}" EXCLUDE
   )
 
+  if(WITH_PYTHON_INSTALL)
+    if(WIN32)
+      install(
+        FILES ${CMAKE_SOURCE_DIR}/release/scripts/site/sitecustomize.py
+        DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+      )
+    else()
+      install(
+        FILES ${CMAKE_SOURCE_DIR}/release/scripts/site/sitecustomize.py
+        DESTINATION ${TARGETDIR_VER}/python/lib/python${PYTHON_VERSION}/site-packages
+      )
+    endif()
+  endif()
   unset(ADDON_EXCLUDE_CONDITIONAL)
   unset(FREESTYLE_EXCLUDE_CONDITIONAL)
 endif()
@@ -480,6 +493,28 @@ if(WITH_OPENCOLORIO)
     DIRECTORY ${CMAKE_SOURCE_DIR}/release/datafiles/colormanagement
     DESTINATION ${TARGETDIR_VER}/datafiles
   )
+  if(WIN32)
+    if(EXISTS ${LIBDIR}/opencolorio/bin/opencolorio_2_2.dll) # 3.5
+      windows_install_shared_manifest(
+        FILES ${LIBDIR}/opencolorio/bin/opencolorio_2_2.dll
+        RELEASE
+      )
+      windows_install_shared_manifest(
+        FILES ${LIBDIR}/opencolorio/bin/opencolorio_d_2_2.dll
+        DEBUG
+      )
+      install(
+        FILES ${LIBDIR}/opencolorio/lib/site-packages-debug/PyOpenColorIO_d.pyd
+        DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+        CONFIGURATIONS Debug
+      )
+      install(
+        FILES ${LIBDIR}/opencolorio/lib/site-packages/PyOpenColorIO.pyd
+        DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+        CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+      )
+    endif()
+  endif()
 endif()
 
 # Helpful tip when using make.
@@ -493,6 +528,33 @@ if("${CMAKE_GENERATOR}" MATCHES ".*Makefiles.*")
   )
 endif()
 
+# macro to help install files without dragging in unnecessary data.
+macro(install_dir from to)
+  install(
+    DIRECTORY ${from}
+    DESTINATION ${to}
+    # Irrelevant files and caches.
+    PATTERN ".git" EXCLUDE
+    PATTERN ".svn" EXCLUDE
+    PATTERN "*.pyc" EXCLUDE
+    PATTERN "*.pyo" EXCLUDE
+    PATTERN "*.orig" EXCLUDE
+    PATTERN "*.rej" EXCLUDE
+    PATTERN "__pycache__" EXCLUDE
+    PATTERN "__MACOSX" EXCLUDE
+    PATTERN ".DS_Store" EXCLUDE
+    # Unneeded Python files.
+    PATTERN "config-${PYTHON_VERSION}/*.a" EXCLUDE  # static lib
+    PATTERN "lib2to3" EXCLUDE                   # ./lib2to3
+    PATTERN "tkinter" EXCLUDE                   # ./tkinter
+    PATTERN "lib-dynload/_tkinter.*" EXCLUDE    # ./lib-dynload/_tkinter.co
+    PATTERN "idlelib" EXCLUDE                   # ./idlelib
+    PATTERN "test" EXCLUDE                      # ./test
+    PATTERN "turtledemo" EXCLUDE                # ./turtledemo
+    PATTERN "turtle.py" EXCLUDE                 # ./turtle.py
+    PATTERN "wininst*.exe" EXCLUDE              # from distutils, avoid malware false positive
+  )
+endmacro()
 
 # -----------------------------------------------------------------------------
 # Install Targets (Platform Specific)
@@ -532,6 +594,7 @@ if(UNIX AND NOT APPLE)
         LIBRARY DESTINATION ${TARGETDIR_BPY}
       )
     endif()
+
     # none of the other files are needed currently
   elseif(WITH_INSTALL_PORTABLE)
     install(
@@ -620,9 +683,21 @@ if(UNIX AND NOT APPLE)
     endif()
   endif()
 
-  if(WITH_PYTHON)
-    if(WITH_PYTHON_INSTALL)
+  if(WITH_PYTHON AND WITH_PYTHON_INSTALL)
+    # Install executable
+    install(
+      PROGRAMS ${PYTHON_EXECUTABLE}
+      DESTINATION ${TARGETDIR_VER}/python/bin
+    )
 
+    if(EXISTS ${LIBDIR})
+      # Precompiled libraries, copy over complete lib directory.
+      install_dir(
+        ${PYTHON_LIBPATH}
+        ${TARGETDIR_VER}/python
+      )
+    else()
+      # System libraries.
       install(
         PROGRAMS ${PYTHON_EXECUTABLE}
         DESTINATION ${TARGETDIR_VER}/python/bin
@@ -699,6 +774,24 @@ if(UNIX AND NOT APPLE)
         install(
           FILES ${PYTHON_NUMPY_PATH}/cython.py
           DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/${_suffix}
+        )
+        unset(_suffix)
+      endif()
+
+      if(WITH_USD)
+        # Install to the same directory as the source, so debian-like
+        # distros are happy with their policy.
+        set(_suffix "site-packages")
+        if(${PYTHON_USD_PATH} MATCHES "dist-packages")
+          set(_suffix "dist-packages")
+        endif()
+        install(
+          DIRECTORY ${USD_LIBRARY_DIR}/python/
+          DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/${_suffix}
+          PATTERN ".svn" EXCLUDE
+          PATTERN "__pycache__" EXCLUDE           # * any cache *
+          PATTERN "*.pyc" EXCLUDE                 # * any cache *
+          PATTERN "*.pyo" EXCLUDE                 # * any cache *
         )
         unset(_suffix)
       endif()
@@ -814,6 +907,46 @@ elseif(WIN32)
     unset(ASAN_DLL)
     unset(ASAN_DEBUG_DLL)
   endif()
+  if(WITH_IMAGE_OPENEXR OR WITH_OPENIMAGEIO)
+    if(EXISTS ${LIBDIR}/openexr/bin/Iex.dll)
+      windows_install_shared_manifest(
+        FILES
+          ${LIBDIR}/openexr/bin/Iex.dll
+          ${LIBDIR}/openexr/bin/IlmThread.dll
+          ${LIBDIR}/openexr/bin/OpenEXRCore.dll
+          ${LIBDIR}/openexr/bin/OpenEXRUtil.dll
+          ${LIBDIR}/openexr/bin/OpenEXR.dll
+          ${LIBDIR}/imath/bin/imath.dll
+        RELEASE
+      )
+      windows_install_shared_manifest(
+        FILES
+          ${LIBDIR}/openexr/bin/Iex_d.dll
+          ${LIBDIR}/openexr/bin/IlmThread_d.dll
+          ${LIBDIR}/openexr/bin/OpenEXRCore_d.dll
+          ${LIBDIR}/openexr/bin/OpenEXRUtil_d.dll
+          ${LIBDIR}/openexr/bin/OpenEXR_d.dll
+          ${LIBDIR}/imath/bin/imath_d.dll
+        DEBUG
+      )
+    endif()
+  endif()
+  if(WITH_OPENIMAGEIO)
+    if(EXISTS ${LIBDIR}/openimageio/bin/openimageio.dll)
+      windows_install_shared_manifest(
+        FILES
+          ${LIBDIR}/openimageio/bin/openimageio.dll
+          ${LIBDIR}/openimageio/bin/openimageio_util.dll
+        RELEASE
+      )
+      windows_install_shared_manifest(
+        FILES
+          ${LIBDIR}/openimageio/bin/openimageio_d.dll
+          ${LIBDIR}/openimageio/bin/openimageio_util_d.dll
+        DEBUG
+      )
+    endif()
+  endif()
   if(WITH_GMP)
     windows_install_shared_manifest(
       FILES ${LIBDIR}/gmp/lib/libgmp-10.dll
@@ -853,6 +986,45 @@ elseif(WIN32)
         FILES ${LIBDIR}/openvdb/bin/openvdb_d.dll
         DEBUG
       )
+
+      # This will not exist for 3.4 and earlier lib folders
+      # to ease the transition, support both 3.4 and 3.5 lib
+      # folders.
+      if(EXISTS ${LIBDIR}/openvdb/python/pyopenvdb_d.pyd)
+        install(
+          FILES ${LIBDIR}/openvdb/python/pyopenvdb_d.pyd
+          DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+          CONFIGURATIONS Debug
+        )
+        install(
+          FILES ${LIBDIR}/openvdb/python/pyopenvdb.pyd
+          DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+          CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+        )
+      endif()
+  endif()
+
+  if(WITH_MATERIALX)
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/materialx/bin/MaterialXCore.dll
+        ${LIBDIR}/materialx/bin/MaterialXFormat.dll
+        ${LIBDIR}/materialx/bin/MaterialXGenGlsl.dll
+        ${LIBDIR}/materialx/bin/MaterialXGenMdl.dll
+        ${LIBDIR}/materialx/bin/MaterialXGenOsl.dll
+        ${LIBDIR}/materialx/bin/MaterialXGenShader.dll
+      RELEASE
+    )
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/materialx/bin/MaterialXCore_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXFormat_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXGenGlsl_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXGenMdl_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXGenOsl_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXGenShader_d.dll
+      DEBUG
+    )
   endif()
 
   if(WITH_PYTHON)
@@ -903,7 +1075,7 @@ elseif(WIN32)
         PATTERN ".svn" EXCLUDE
         PATTERN "__pycache__" EXCLUDE           # * any cache *
         PATTERN "*.pyc" EXCLUDE                 # * any cache *
-        PATTERN "*.pyo" EXCLUDE                 # * any cache *)
+        PATTERN "*.pyo" EXCLUDE                 # * any cache *
       )
 
       install(
@@ -934,6 +1106,80 @@ elseif(WIN32)
         DESTINATION ${BLENDER_VERSION}/python/bin
         CONFIGURATIONS Debug
       )
+      if(WITH_OPENIMAGEIO)
+        if(EXISTS ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}/site-packages) #this will only exist for 3.5+
+           install(
+            DIRECTORY ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}/site-packages/
+            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
+            CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+            PATTERN ".svn" EXCLUDE
+            PATTERN "__pycache__" EXCLUDE           # * any cache *
+            PATTERN "*.pyc" EXCLUDE                 # * any cache *
+            PATTERN "*.pyo" EXCLUDE                 # * any cache *
+          )
+        endif()
+        if(EXISTS ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}_debug/site-packages)
+          install(
+            DIRECTORY ${LIBDIR}/openimageio/lib/python${PYTHON_VERSION}_debug/site-packages/
+            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
+            CONFIGURATIONS Debug
+            PATTERN ".svn" EXCLUDE
+            PATTERN "__pycache__" EXCLUDE           # * any cache *
+            PATTERN "*.pyc" EXCLUDE                 # * any cache *
+            PATTERN "*.pyo" EXCLUDE                 # * any cache *
+          )
+        endif()
+      endif()
+      if(WITH_USD)
+        # This will not exist for 3.4 and earlier lib folders
+        # to ease the transition, support both 3.4 and 3.5 lib
+        # folders.
+        if(EXISTS ${USD_LIBRARY_DIR}/python/)
+          install(
+            DIRECTORY ${USD_LIBRARY_DIR}/python/
+            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+            CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+            PATTERN ".svn" EXCLUDE
+            PATTERN "__pycache__" EXCLUDE           # * any cache *
+            PATTERN "*.pyc" EXCLUDE                 # * any cache *
+            PATTERN "*.pyo" EXCLUDE                 # * any cache *
+          )
+        endif()
+        if(EXISTS ${USD_LIBRARY_DIR}/debug/python/)
+          install(
+            DIRECTORY ${USD_LIBRARY_DIR}/debug/python/
+            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+            CONFIGURATIONS Debug
+            PATTERN ".svn" EXCLUDE
+            PATTERN "__pycache__" EXCLUDE           # * any cache *
+            PATTERN "*.pyc" EXCLUDE                 # * any cache *
+            PATTERN "*.pyo" EXCLUDE                 # * any cache *
+          )
+        endif()
+      endif()
+
+      if(WITH_MATERIALX)
+        # MaterialX python bindings
+
+        install(
+            DIRECTORY ${LIBDIR}/materialx/python/Release/MaterialX
+            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
+            CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+            PATTERN ".svn" EXCLUDE
+            PATTERN "__pycache__" EXCLUDE           # * any cache *
+            PATTERN "*.pyc" EXCLUDE                 # * any cache *
+            PATTERN "*.pyo" EXCLUDE                 # * any cache *
+        )
+        install(
+            DIRECTORY ${LIBDIR}/materialx/python/Debug/MaterialX
+            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
+            CONFIGURATIONS Debug
+            PATTERN ".svn" EXCLUDE
+            PATTERN "__pycache__" EXCLUDE           # * any cache *
+            PATTERN "*.pyc" EXCLUDE                 # * any cache *
+            PATTERN "*.pyo" EXCLUDE                 # * any cache *
+        )
+      endif()
 
       if(WINDOWS_PYTHON_DEBUG)
         install(
@@ -1326,6 +1572,39 @@ if(WITH_USD)
       DESTINATION "${TARGETDIR_VER}/datafiles"
     )
   endif()
+  if(WIN32)
+    # If this file exists we are building against a 3.5 22.03 library folder
+    # that needs these dll's installed.
+    if(EXISTS ${LIBDIR}/usd/lib/usd_usd_ms.dll)
+      windows_install_shared_manifest(FILES
+        ${LIBDIR}/usd/lib/usd_usd_ms.dll
+        RELEASE
+      )
+      windows_install_shared_manifest(FILES
+        ${LIBDIR}/usd/lib/usd_usd_ms_d.dll
+        DEBUG
+      )
+    endif()
+    # If this file exists we are building against a 3.5 22.11 library folder
+    # that needs these dll's installed.
+    if(EXISTS ${LIBDIR}/usd/lib/usd_ms.dll)
+      windows_install_shared_manifest(FILES
+        ${LIBDIR}/usd/lib/usd_ms.dll
+        RELEASE
+      )
+      windows_install_shared_manifest(FILES
+        ${LIBDIR}/usd/lib/usd_ms_d.dll
+        DEBUG
+      )
+    endif()
+  endif()
+endif()
+
+if(WITH_MATERIALX AND TARGETDIR_LIB)
+  install(
+    DIRECTORY ${LIBDIR}/materialx/libraries
+    DESTINATION "${TARGETDIR_LIB}/materialx"
+  )
 endif()
 
 if(WIN32 AND WITH_BOOST)

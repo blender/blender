@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(SNDFILE_EXTRA_ARGS)
-set(SNDFILE_ENV PKG_CONFIG_PATH=${mingw_LIBDIR}/ogg/lib/pkgconfig:${mingw_LIBDIR}/vorbis/lib/pkgconfig:${mingw_LIBDIR}/flac/lib/pkgconfig:${mingw_LIBDIR})
+set(SNDFILE_ENV PKG_CONFIG_PATH=${mingw_LIBDIR}/ogg/lib/pkgconfig:${mingw_LIBDIR}/vorbis/lib/pkgconfig:${mingw_LIBDIR}/flac/lib/pkgconfig:${mingw_LIBDIR}/opus/lib/pkgconfig:${mingw_LIBDIR})
 
 if(WIN32)
   set(SNDFILE_ENV set ${SNDFILE_ENV} &&)
@@ -30,6 +30,7 @@ add_dependencies(
   external_sndfile
   external_ogg
   external_vorbis
+  external_opus
 )
 if(UNIX)
   add_dependencies(

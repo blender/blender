@@ -24,6 +24,7 @@ SET(_opencolorio_FIND_COMPONENTS
   yaml-cpp
   expat
   pystring
+  minizip
 )
 
 SET(_opencolorio_SEARCH_DIRS

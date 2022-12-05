@@ -68,10 +68,7 @@ if(EXISTS ${LIBDIR})
   set(Boost_NO_SYSTEM_PATHS ON)
   set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
   set(CLANG_ROOT_DIR ${LIBDIR}/llvm)
-endif()
-
-if(WITH_STATIC_LIBS)
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " -static-libstdc++")
+  set(MaterialX_DIR ${LIBDIR}/materialx/lib/cmake/MaterialX)
 endif()
 
 # Wrapper to prefer static libraries
@@ -170,6 +167,10 @@ endif()
 if(WITH_IMAGE_OPENEXR)
   find_package_wrapper(OpenEXR)  # our own module
   set_and_warn_library_found("OpenEXR" OPENEXR_FOUND WITH_IMAGE_OPENEXR)
+  if(WITH_IMAGE_OPENEXR)
+    add_bundled_libraries(openexr/lib)
+    add_bundled_libraries(imath/lib)
+  endif()
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
@@ -326,11 +327,12 @@ if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
 endif()
 
 if(WITH_OPENVDB)
-  find_package_wrapper(OpenVDB)
+  find_package(OpenVDB)
   set_and_warn_library_found("OpenVDB" OPENVDB_FOUND WITH_OPENVDB)
 
   if(OPENVDB_FOUND)
-    find_package_wrapper(Blosc)
+  add_bundled_libraries(openvdb/lib)
+  find_package_wrapper(Blosc)
     set_and_warn_library_found("Blosc" BLOSC_FOUND WITH_OPENVDB_BLOSC)
   endif()
 endif()
@@ -352,13 +354,24 @@ endif()
 if(WITH_USD)
   find_package_wrapper(USD)
   set_and_warn_library_found("USD" USD_FOUND WITH_USD)
+ if(WITH_USD)
+    add_bundled_libraries(usd/lib)
+ endif()
+endif()
+
+if(WITH_MATERIALX)
+  find_package_wrapper(MaterialX)
+  set_and_warn_library_found("MaterialX" MaterialX_FOUND WITH_MATERIALX)
+  if(WITH_MATERIALX)
+    add_bundled_libraries(materialx/lib)
+  endif()
 endif()
 
 if(WITH_BOOST)
   # uses in build instructions to override include and library variables
   if(NOT BOOST_CUSTOM)
     if(WITH_STATIC_LIBS)
-      set(Boost_USE_STATIC_LIBS ON)
+      set(Boost_USE_STATIC_LIBS OFF)
     endif()
     set(Boost_USE_MULTITHREADED ON)
     set(__boost_packages filesystem regex thread date_time)
@@ -373,6 +386,9 @@ if(WITH_BOOST)
     endif()
     if(WITH_OPENVDB)
       list(APPEND __boost_packages iostreams)
+    endif()
+    if(WITH_USD AND USD_PYTHON_SUPPORT)
+      list(APPEND __boost_packages python${PYTHON_VERSION_NO_DOTS})
     endif()
     list(APPEND __boost_packages system)
     find_package(Boost 1.48 COMPONENTS ${__boost_packages})
@@ -400,6 +416,8 @@ if(WITH_BOOST)
     find_package(IcuLinux)
     list(APPEND BOOST_LIBRARIES ${ICU_LIBRARIES})
   endif()
+
+  add_bundled_libraries(boost/lib)
 endif()
 
 if(WITH_PUGIXML)
@@ -422,7 +440,6 @@ if(WITH_OPENIMAGEIO)
     ${ZLIB_LIBRARIES}
     ${BOOST_LIBRARIES}
   )
-  set(OPENIMAGEIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
   set(OPENIMAGEIO_DEFINITIONS "")
 
   if(WITH_IMAGE_TIFF)
@@ -436,16 +453,20 @@ if(WITH_OPENIMAGEIO)
   endif()
 
   set_and_warn_library_found("OPENIMAGEIO" OPENIMAGEIO_FOUND WITH_OPENIMAGEIO)
+  if(WITH_OPENIMAGEIO)
+    add_bundled_libraries(openimageio/lib)
+  endif()
 endif()
 
 if(WITH_OPENCOLORIO)
   find_package_wrapper(OpenColorIO 2.0.0)
 
-  set(OPENCOLORIO_LIBRARIES ${OPENCOLORIO_LIBRARIES})
-  set(OPENCOLORIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
   set(OPENCOLORIO_DEFINITIONS)
-
   set_and_warn_library_found("OpenColorIO" OPENCOLORIO_FOUND WITH_OPENCOLORIO)
+
+  if(WITH_OPENCOLORIO)
+    add_bundled_libraries(opencolorio/lib)
+  endif()
 endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
@@ -481,17 +502,23 @@ if(WITH_LLVM)
 endif()
 
 if(WITH_OPENSUBDIV)
-  find_package_wrapper(OpenSubdiv)
+  find_package(OpenSubdiv)
 
   set(OPENSUBDIV_LIBRARIES ${OPENSUBDIV_LIBRARIES})
   set(OPENSUBDIV_LIBPATH)  # TODO, remove and reference the absolute path everywhere
 
   set_and_warn_library_found("OpenSubdiv" OPENSUBDIV_FOUND WITH_OPENSUBDIV)
+  if(WITH_OPENSUBDIV)
+    add_bundled_libraries(opensubdiv/lib)
+  endif()
 endif()
 
 if(WITH_TBB)
   find_package_wrapper(TBB)
   set_and_warn_library_found("TBB" TBB_FOUND WITH_TBB)
+  if(WITH_TBB)
+    add_bundled_libraries(tbb/lib)
+  endif()
 endif()
 
 if(WITH_XR_OPENXR)

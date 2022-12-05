@@ -63,6 +63,7 @@ set(WITH_QUADRIFLOW          OFF CACHE BOOL "" FORCE)
 set(WITH_SDL                 OFF CACHE BOOL "" FORCE)
 set(WITH_TBB                 OFF CACHE BOOL "" FORCE)
 set(WITH_USD                 OFF CACHE BOOL "" FORCE)
+set(WITH_MATERIALX           OFF CACHE BOOL "" FORCE)
 set(WITH_WASAPI              OFF CACHE BOOL "" FORCE)
 set(WITH_XR_OPENXR           OFF CACHE BOOL "" FORCE)
 
