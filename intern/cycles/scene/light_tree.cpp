@@ -88,7 +88,7 @@ LightTreePrimitive::LightTreePrimitive(Scene *scene, int prim_id, int object_id)
 
     /* TODO: need a better way to handle this when textures are used. */
     float area = triangle_area(vertices[0], vertices[1], vertices[2]);
-    energy = area * scene->shader_manager->linear_rgb_to_gray(shader->emission_estimate);
+    energy = area * average(shader->emission_estimate);
 
     /* NOTE: the original implementation used the bounding box centroid, but primitive centroid
      * seems to work fine */
@@ -181,7 +181,7 @@ LightTreePrimitive::LightTreePrimitive(Scene *scene, int prim_id, int object_id)
       strength *= lamp->get_shader()->emission_estimate;
     }
 
-    energy = scene->shader_manager->linear_rgb_to_gray(strength);
+    energy = average(strength);
   }
 }
 

@@ -456,7 +456,7 @@ void LightManager::device_update_distribution(Device *,
   dscene->light_distribution.copy_to_device();
 }
 
-void LightManager::device_update_tree(Device *device,
+void LightManager::device_update_tree(Device *,
                                       DeviceScene *dscene,
                                       Scene *scene,
                                       Progress &progress)

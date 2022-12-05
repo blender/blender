@@ -302,6 +302,8 @@ ccl_device_forceinline bool triangle_light_tree_parameters(
     distance = make_float2(min_distance, min_distance);
   }
 
+  cos_theta_u = FLT_MAX;
+
   const int object = kemitter->mesh_light.object_id;
   float3 vertices[3];
   triangle_world_space_vertices(kg, object, kemitter->prim_id, -1.0f, vertices);

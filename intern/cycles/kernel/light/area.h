@@ -361,6 +361,8 @@ ccl_device_forceinline bool area_light_tree_parameters(const ccl_global KernelLi
     distance = make_float2(min_distance, min_distance);
   }
 
+  cos_theta_u = FLT_MAX;
+
   const float3 extentu = klight->area.axis_u * klight->area.len_u;
   const float3 extentv = klight->area.axis_v * klight->area.len_v;
   for (int i = 0; i < 4; i++) {
