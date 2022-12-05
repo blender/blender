@@ -9,13 +9,14 @@ __all__ = (
 )
 
 import bpy
-from typing import  Mapping, List, Tuple, Sequence
+from typing import Mapping, List, Tuple, Sequence
 
 # (fcurve.data_path, fcurve.array_index)
 FCurveKey = Tuple[str, int]
 # [frame0, value0, frame1, value1, ...]
 ListKeyframes = List[float]
 Action = bpy.types.Action
+
 
 def bake_action(
         obj,
@@ -429,6 +430,7 @@ def bake_action_iter(
                     i += 1
 
     yield action
+
 
 class KeyframesCo:
     """A buffer for keyframe Co unpacked values per FCurveKey. FCurveKeys are added using

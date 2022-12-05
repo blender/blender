@@ -68,7 +68,7 @@ class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):
             row.operator(
                 "wm.owner_disable" if is_enabled else "wm.owner_enable",
                 icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT',
-                text=iface_("%s: %s" ) % (iface_(info["category"]), iface_(info["name"])),
+                text=iface_("%s: %s") % (iface_(info["category"]), iface_(info["name"])),
                 translate=False,
                 emboss=False,
             ).owner_id = module_name

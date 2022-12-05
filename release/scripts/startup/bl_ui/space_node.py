@@ -354,7 +354,6 @@ class NODE_MT_node(Menu):
         layout.operator("node.options_toggle")
         layout.operator("node.collapse_hide_unused_toggle")
 
-
         if is_compositor:
             layout.separator()
 

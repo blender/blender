@@ -87,11 +87,26 @@ enum_sampling_pattern = (
 )
 
 enum_emission_sampling = (
-    ('NONE', 'None', "Do not use this surface as a light for sampling", 0),
-    ('AUTO', 'Auto', "Automatically determine if the surface should be treated as a light for sampling, based on estimated emission intensity", 1),
-    ('FRONT', 'Front', "Treat only front side of the surface as a light, usually for closed meshes whose interior is not visible", 2),
-    ('BACK', 'Back', "Treat only back side of the surface as a light for sampling", 3),
-    ('FRONT_BACK', 'Front and Back', "Treat surface as a light for sampling, emitting from both the front and back side", 4),
+    ('NONE',
+     'None',
+     "Do not use this surface as a light for sampling",
+     0),
+    ('AUTO',
+     'Auto',
+     "Automatically determine if the surface should be treated as a light for sampling, based on estimated emission intensity",
+     1),
+    ('FRONT',
+     'Front',
+     "Treat only front side of the surface as a light, usually for closed meshes whose interior is not visible",
+     2),
+    ('BACK',
+     'Back',
+     "Treat only back side of the surface as a light for sampling",
+     3),
+    ('FRONT_BACK',
+     'Front and Back',
+     "Treat surface as a light for sampling, emitting from both the front and back side",
+     4),
 )
 
 enum_volume_sampling = (

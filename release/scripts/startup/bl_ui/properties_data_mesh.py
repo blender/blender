@@ -8,6 +8,7 @@ from bpy.app.translations import (
     pgettext_tip as tip_,
 )
 
+
 class MESH_MT_vertex_group_context_menu(Menu):
     bl_label = "Vertex Group Specials"
 
