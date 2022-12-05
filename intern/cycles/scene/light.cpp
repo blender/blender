@@ -106,7 +106,7 @@ NODE_DEFINE(Light)
   SOCKET_FLOAT(sizeu, "Size U", 1.0f);
   SOCKET_VECTOR(axisv, "Axis V", zero_float3());
   SOCKET_FLOAT(sizev, "Size V", 1.0f);
-  SOCKET_BOOLEAN(round, "Round", false);
+  SOCKET_BOOLEAN(ellipse, "Ellipse", false);
   SOCKET_FLOAT(spread, "Spread", M_PI_F);
 
   SOCKET_INT(map_resolution, "Map Resolution", 0);
@@ -911,7 +911,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       float3 axis_u = normalize_len(extentu, &len_u);
       float3 axis_v = normalize_len(extentv, &len_v);
       float area = len_u * len_v;
-      if (light->round) {
+      if (light->ellipse) {
         area *= -M_PI_4_F;
       }
       float invarea = (area != 0.0f) ? 1.0f / area : 1.0f;
@@ -1032,7 +1032,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       float3 axis_u = normalize_len(extentu, &len_u);
       float3 axis_v = normalize_len(extentv, &len_v);
       float area = len_u * len_v;
-      if (light->round) {
+      if (light->ellipse) {
         area *= -M_PI_4_F;
       }
       float invarea = (area != 0.0f) ? 1.0f / area : 1.0f;

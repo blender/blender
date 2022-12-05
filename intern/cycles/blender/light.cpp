@@ -75,19 +75,19 @@ void BlenderSync::sync_light(BL::Object &b_parent,
       switch (b_area_light.shape()) {
         case BL::AreaLight::shape_SQUARE:
           light->set_sizev(light->get_sizeu());
-          light->set_round(false);
+          light->set_ellipse(false);
           break;
         case BL::AreaLight::shape_RECTANGLE:
           light->set_sizev(b_area_light.size_y());
-          light->set_round(false);
+          light->set_ellipse(false);
           break;
         case BL::AreaLight::shape_DISK:
           light->set_sizev(light->get_sizeu());
-          light->set_round(true);
+          light->set_ellipse(true);
           break;
         case BL::AreaLight::shape_ELLIPSE:
           light->set_sizev(b_area_light.size_y());
-          light->set_round(true);
+          light->set_ellipse(true);
           break;
       }
       light->set_light_type(LIGHT_AREA);
