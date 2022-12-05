@@ -9,6 +9,7 @@
 #include "BKE_instances.hh"
 #include "BKE_vfont.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_hash.h"
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"
@@ -109,12 +110,14 @@ static float3 get_pivot_point(GeoNodeExecParams &params, bke::CurvesGeometry &cu
   const GeometryNodeStringToCurvesPivotMode pivot_mode = (GeometryNodeStringToCurvesPivotMode)
                                                              storage.pivot_mode;
 
-  float3 min(FLT_MAX), max(FLT_MIN);
+  const std::optional<Bounds<float3>> bounds = bounds::min_max(curves.positions());
 
   /* Check if curve is empty. */
-  if (!curves.bounds_min_max(min, max)) {
+  if (!bounds.has_value()) {
     return {0.0f, 0.0f, 0.0f};
   }
+  const float3 min = bounds->min;
+  const float3 max = bounds->max;
 
   switch (pivot_mode) {
     case GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_MIDPOINT:
