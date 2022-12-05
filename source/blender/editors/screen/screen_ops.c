@@ -4812,19 +4812,28 @@ bScreen *ED_screen_animation_no_scrub(const wmWindowManager *wm)
 int ED_screen_animation_play(bContext *C, int sync, int mode)
 {
   bScreen *screen = CTX_wm_screen(C);
-  Scene *scene = CTX_data_scene(C);
-  Scene *scene_eval = DEG_get_evaluated_scene(CTX_data_ensure_evaluated_depsgraph(C));
 
   if (ED_screen_animation_playing(CTX_wm_manager(C))) {
     /* stop playback now */
     ED_screen_animation_timer(C, 0, 0, 0);
-    BKE_sound_stop_scene(scene_eval);
-
-    WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+    Main *bmain = CTX_data_main(C);
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+        Depsgraph *graph = BKE_scene_get_depsgraph(scene, view_layer);
+        if (graph) {
+          Scene *scene_eval = DEG_get_evaluated_scene(graph);
+          /* The audio handles are preserved throughout the dependency graph evaluation.
+           * Checking for scene->playback_handle even for non-evaluated scene should be okay. */
+          BKE_sound_stop_scene(scene_eval);
+          WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+        }
+      }
+    }
   }
   else {
     /* these settings are currently only available from a menu in the TimeLine */
     if (mode == 1) { /* XXX only play audio forwards!? */
+      Scene *scene_eval = DEG_get_evaluated_scene(CTX_data_ensure_evaluated_depsgraph(C));
       BKE_sound_play_scene(scene_eval);
     }
 
