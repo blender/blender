@@ -1227,9 +1227,6 @@ const UVVertex *UVBorderEdge::get_uv_vertex(int index) const
   return edge->vertices[actual_index];
 }
 
-/**
- * Get the uv vertex from the primitive that is not part of the edge.
- */
 const UVVertex *UVBorderEdge::get_other_uv_vertex() const
 {
   return uv_primitive->get_other_uv_vertex(edge->vertices[0], edge->vertices[1]);
