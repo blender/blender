@@ -1277,3 +1277,70 @@ macro(add_bundled_libraries library_dir)
     unset(_library_dir)
  endif()
 endmacro()
+
+macro(windows_install_shared_manifest)
+  set(options OPTIONAL DEBUG RELEASE ALL)
+  set(oneValueArgs)
+  set(multiValueArgs FILES)
+  cmake_parse_arguments(WINDOWS_INSTALL "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+  # If none of the options are set assume ALL.
+  unset(WINDOWS_CONFIGURATIONS)
+  if(NOT WINDOWS_INSTALL_ALL AND
+     NOT WINDOWS_INSTALL_DEBUG AND
+     NOT WINDOWS_INSTALL_RELEASE)
+    set(WINDOWS_INSTALL_ALL TRUE)
+  endif()
+  # If all is set, turn both DEBUG and RELEASE on.
+  if(WINDOWS_INSTALL_ALL)
+    set(WINDOWS_INSTALL_DEBUG TRUE)
+    set(WINDOWS_INSTALL_RELEASE TRUE)
+  endif()
+  if(WINDOWS_INSTALL_DEBUG)
+    set(WINDOWS_CONFIGURATIONS "${WINDOWS_CONFIGURATIONS};Debug")
+    list(APPEND WINDOWS_SHARED_MANIFEST_DEBUG ${WINDOWS_INSTALL_FILES})
+  endif()
+  if(WINDOWS_INSTALL_RELEASE)
+    list(APPEND WINDOWS_SHARED_MANIFEST_RELEASE ${WINDOWS_INSTALL_FILES})
+    set(WINDOWS_CONFIGURATIONS "${WINDOWS_CONFIGURATIONS};Release;RelWithDebInfo;MinSizeRel")
+  endif()
+  install(FILES ${WINDOWS_INSTALL_FILES}
+          CONFIGURATIONS ${WINDOWS_CONFIGURATIONS}
+          DESTINATION "./blender.shared"
+  )
+endmacro()
+
+macro(windows_generate_manifest)
+  set(options)
+  set(oneValueArgs OUTPUT NAME)
+  set(multiValueArgs FILES)
+  cmake_parse_arguments(WINDOWS_MANIFEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+  set(MANIFEST_LIBS "")
+  foreach(lib ${WINDOWS_MANIFEST_FILES})
+    get_filename_component(filename ${lib} NAME)
+    set(MANIFEST_LIBS "${MANIFEST_LIBS}    <file name=\"${filename}\"/>\n")
+  endforeach()
+  configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.manifest.in ${WINDOWS_MANIFEST_OUTPUT} @ONLY)
+endmacro()
+
+macro(windows_generate_shared_manifest)
+  windows_generate_manifest(
+    FILES "${WINDOWS_SHARED_MANIFEST_DEBUG}"
+    OUTPUT "${CMAKE_BINARY_DIR}/Debug/blender.shared.manifest"
+    NAME "blender.shared"
+  )
+  windows_generate_manifest(
+    FILES "${WINDOWS_SHARED_MANIFEST_RELEASE}"
+    OUTPUT "${CMAKE_BINARY_DIR}/Release/blender.shared.manifest"
+    NAME "blender.shared"
+  )
+  install(
+      FILES ${CMAKE_BINARY_DIR}/Release/blender.shared.manifest
+      DESTINATION "./blender.shared"
+      CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+  )
+  install(
+      FILES ${CMAKE_BINARY_DIR}/Debug/blender.shared.manifest
+      DESTINATION "./blender.shared"
+      CONFIGURATIONS Debug
+  )
+endmacro()

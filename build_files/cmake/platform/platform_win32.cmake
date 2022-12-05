@@ -110,7 +110,41 @@ remove_cc_flag("/GR")
 
 # Make the Windows 8.1 API available for use.
 add_definitions(-D_WIN32_WINNT=0x603)
-include(build_files/cmake/platform/platform_win32_bundle_crt.cmake)
+
+# First generate the manifest for tests since it will not need the dependency on the CRT.
+configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/tests.exe.manifest @ONLY)
+
+if(WITH_WINDOWS_BUNDLE_CRT)
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+  set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
+  set(CMAKE_INSTALL_OPENMP_LIBRARIES ${WITH_OPENMP})
+  include(InstallRequiredSystemLibraries)
+
+  # ucrtbase(d).dll cannot be in the manifest, due to the way windows 10 handles
+  # redirects for this dll, for details see T88813.
+  foreach(lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
+    string(FIND ${lib} "ucrtbase" pos)
+    if(NOT pos EQUAL -1)
+      list(REMOVE_ITEM CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${lib})
+      install(FILES ${lib} DESTINATION . COMPONENT Libraries)
+    endif()
+  endforeach()
+  # Install the CRT to the blender.crt Sub folder.
+  install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ./blender.crt COMPONENT Libraries)
+
+  windows_generate_manifest(
+    FILES "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}"
+    OUTPUT "${CMAKE_BINARY_DIR}/blender.crt.manifest"
+    NAME "blender.crt"
+  )
+
+  install(FILES ${CMAKE_BINARY_DIR}/blender.crt.manifest DESTINATION ./blender.crt)
+  set(BUNDLECRT "<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.crt\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
+  set(BUNDLECRT "${BUNDLECRT}<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.shared\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
+endif()
+configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/blender.exe.manifest @ONLY)
+
+
 remove_cc_flag("/MDd" "/MD" "/Zi")
 
 if(MSVC_CLANG) # Clangs version of cl doesn't support all flags
