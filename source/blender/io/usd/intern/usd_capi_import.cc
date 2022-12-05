@@ -382,13 +382,16 @@ static void import_freejob(void *user_data)
 
 using namespace blender::io::usd;
 
+void USD_ensure_plugin_path_registered()
+{
+  blender::io::usd::ensure_usd_plugin_path_registered();
+}
+
 bool USD_import(struct bContext *C,
                 const char *filepath,
                 const USDImportParams *params,
                 bool as_background_job)
 {
-  blender::io::usd::ensure_usd_plugin_path_registered();
-
   /* Using new here since `MEM_*` functions do not call constructor to properly initialize data. */
   ImportJobData *job = new ImportJobData();
   job->bmain = CTX_data_main(C);
@@ -542,9 +545,6 @@ CacheArchiveHandle *USD_create_handle(struct Main * /*bmain*/,
                                       const char *filepath,
                                       ListBase *object_paths)
 {
-  /* Must call this so that USD file format plugins are loaded. */
-  ensure_usd_plugin_path_registered();
-
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(filepath);
 
   if (!stage) {

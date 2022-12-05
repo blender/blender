@@ -11,6 +11,7 @@ set(INC
   ../blender/editors/include
   ../blender/gpu
   ../blender/imbuf
+  ../blender/io/usd
   ../blender/makesdna
   ../blender/makesrna
   ../blender/render
@@ -1312,10 +1313,32 @@ blender_target_include_dirs(blender ${INC})
 # These files are required at runtime.
 if(WITH_USD)
   add_definitions(-DWITH_USD)
-  install(
-    DIRECTORY ${USD_LIBRARY_DIR}/usd
-    DESTINATION "${TARGETDIR_VER}/datafiles"
-  )
+  absolute_include_dirs(../blender/io/usd)
+
+  # On windows the usd library sits in ./blender.shared copy the files
+  # relative to the location of the USD dll, if the dll does not exist
+  # assume we are linking against the static 3.5 lib.
+  if(WIN32 AND
+      (
+        EXISTS ${LIBDIR}/usd/lib/usd_usd_ms.dll OR  # USD 22.03
+        EXISTS ${LIBDIR}/usd/lib/usd_ms.dll         # USD 22.11
+      )
+    )
+    install(DIRECTORY
+      ${USD_LIBRARY_DIR}/usd
+      DESTINATION "./blender.shared"
+    )
+  elseif(USD_PYTHON_SUPPORT)
+    install(DIRECTORY
+      ${USD_LIBRARY_DIR}/usd
+      DESTINATION ${TARGETDIR_LIB}
+    )
+  else()
+    install(DIRECTORY
+      ${USD_LIBRARY_DIR}/usd
+      DESTINATION "${TARGETDIR_VER}/datafiles"
+    )
+  endif()
 endif()
 
 

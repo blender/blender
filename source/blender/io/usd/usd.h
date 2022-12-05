@@ -119,7 +119,7 @@ struct CacheReader *CacheReader_open_usd_object(struct CacheArchiveHandle *handl
 
 void USD_CacheReader_incref(struct CacheReader *reader);
 void USD_CacheReader_free(struct CacheReader *reader);
-
+void USD_ensure_plugin_path_registered(void);
 #ifdef __cplusplus
 }
 #endif
