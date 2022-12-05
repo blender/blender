@@ -507,7 +507,7 @@ struct bNodeTree *ntreeFromID(struct ID *id);
 
 void ntreeFreeLocalNode(struct bNodeTree *ntree, struct bNode *node);
 void ntreeFreeLocalTree(struct bNodeTree *ntree);
-struct bNode *ntreeFindType(const struct bNodeTree *ntree, int type);
+struct bNode *ntreeFindType(struct bNodeTree *ntree, int type);
 bool ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);
 void ntreeUpdateAllNew(struct Main *main);
 void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
@@ -629,7 +629,7 @@ const char *nodeStaticSocketLabel(int type, int subtype);
   } \
   ((void)0)
 
-struct bNodeSocket *nodeFindSocket(const struct bNode *node,
+struct bNodeSocket *nodeFindSocket(struct bNode *node,
                                    eNodeSocketInOut in_out,
                                    const char *identifier);
 struct bNodeSocket *nodeAddSocket(struct bNodeTree *ntree,

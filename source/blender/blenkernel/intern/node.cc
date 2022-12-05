@@ -1455,7 +1455,7 @@ const char *nodeSocketTypeLabel(const bNodeSocketType *stype)
   return stype->label[0] != '\0' ? stype->label : RNA_struct_ui_name(stype->ext_socket.srna);
 }
 
-bNodeSocket *nodeFindSocket(const bNode *node, eNodeSocketInOut in_out, const char *identifier)
+bNodeSocket *nodeFindSocket(bNode *node, eNodeSocketInOut in_out, const char *identifier)
 {
   const ListBase *sockets = (in_out == SOCK_IN) ? &node->inputs : &node->outputs;
   LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
@@ -3437,7 +3437,7 @@ void ntreeRemoveSocketInterface(bNodeTree *ntree, bNodeSocket *sock)
 
 /* ************ find stuff *************** */
 
-bNode *ntreeFindType(const bNodeTree *ntree, int type)
+bNode *ntreeFindType(bNodeTree *ntree, int type)
 {
   if (ntree) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {

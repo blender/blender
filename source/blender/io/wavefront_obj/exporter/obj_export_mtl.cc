@@ -47,7 +47,7 @@ static void copy_property_from_node(const eNodeSocketDatatype property_type,
   if (!node) {
     return;
   }
-  bNodeSocket *socket{nodeFindSocket(node, SOCK_IN, identifier)};
+  const bNodeSocket *socket = nodeFindSocket(const_cast<bNode *>(node), SOCK_IN, identifier);
   BLI_assert(socket && socket->type == property_type);
   if (!socket) {
     return;
@@ -55,21 +55,21 @@ static void copy_property_from_node(const eNodeSocketDatatype property_type,
   switch (property_type) {
     case SOCK_FLOAT: {
       BLI_assert(r_property.size() == 1);
-      bNodeSocketValueFloat *socket_def_value = static_cast<bNodeSocketValueFloat *>(
+      const bNodeSocketValueFloat *socket_def_value = static_cast<const bNodeSocketValueFloat *>(
           socket->default_value);
       r_property[0] = socket_def_value->value;
       break;
     }
     case SOCK_RGBA: {
       BLI_assert(r_property.size() == 3);
-      bNodeSocketValueRGBA *socket_def_value = static_cast<bNodeSocketValueRGBA *>(
+      const bNodeSocketValueRGBA *socket_def_value = static_cast<const bNodeSocketValueRGBA *>(
           socket->default_value);
       copy_v3_v3(r_property.data(), socket_def_value->value);
       break;
     }
     case SOCK_VECTOR: {
       BLI_assert(r_property.size() == 3);
-      bNodeSocketValueVector *socket_def_value = static_cast<bNodeSocketValueVector *>(
+      const bNodeSocketValueVector *socket_def_value = static_cast<const bNodeSocketValueVector *>(
           socket->default_value);
       copy_v3_v3(r_property.data(), socket_def_value->value);
       break;
