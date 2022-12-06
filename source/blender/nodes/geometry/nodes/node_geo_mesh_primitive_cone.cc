@@ -372,45 +372,51 @@ static void calculate_cone_faces(const ConeConfig &config,
                                  MutableSpan<MLoop> loops,
                                  MutableSpan<MPoly> polys)
 {
-  int loop_index = 0;
-  int poly_index = 0;
-
+  int rings_poly_start;
+  int rings_loop_start;
   if (config.top_has_center_vert) {
+    rings_poly_start = config.circle_segments;
+    rings_loop_start = config.circle_segments * 3;
+
     /* Top cone tip or center triangle fan in the fill. */
     const int top_center_vert = 0;
     const int top_fan_edges_start = 0;
 
     for (const int i : IndexRange(config.circle_segments)) {
-      MPoly &poly = polys[poly_index++];
-      poly.loopstart = loop_index;
+      const int loop_start = i * 3;
+      MPoly &poly = polys[i];
+      poly.loopstart = loop_start;
       poly.totloop = 3;
 
-      MLoop &loop_a = loops[loop_index++];
-      loop_a.v = config.first_ring_verts_start + i;
-      loop_a.e = config.first_ring_edges_start + i;
-      MLoop &loop_b = loops[loop_index++];
-      loop_b.v = config.first_ring_verts_start + ((i + 1) % config.circle_segments);
-      loop_b.e = top_fan_edges_start + ((i + 1) % config.circle_segments);
-      MLoop &loop_c = loops[loop_index++];
-      loop_c.v = top_center_vert;
-      loop_c.e = top_fan_edges_start + i;
+      loops[loop_start + 0].v = config.first_ring_verts_start + i;
+      loops[loop_start + 0].e = config.first_ring_edges_start + i;
+
+      loops[loop_start + 1].v = config.first_ring_verts_start + ((i + 1) % config.circle_segments);
+      loops[loop_start + 1].e = top_fan_edges_start + ((i + 1) % config.circle_segments);
+
+      loops[loop_start + 2].v = top_center_vert;
+      loops[loop_start + 2].e = top_fan_edges_start + i;
     }
   }
   else if (config.fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
+    rings_poly_start = 1;
+    rings_loop_start = config.circle_segments;
+
     /* Center n-gon in the fill. */
-    MPoly &poly = polys[poly_index++];
-    poly.loopstart = loop_index;
+    MPoly &poly = polys[0];
+    poly.loopstart = 0;
     poly.totloop = config.circle_segments;
     for (const int i : IndexRange(config.circle_segments)) {
-      MLoop &loop = loops[loop_index++];
-      loop.v = i;
-      loop.e = i;
+      loops[i].v = i;
+      loops[i].e = i;
     }
   }
 
   /* Quads connect one edge ring to the next one. */
   if (config.tot_quad_rings > 0) {
     for (const int i : IndexRange(config.tot_quad_rings)) {
+      const int this_ring_poly_start = rings_poly_start + i * config.circle_segments;
+      const int this_ring_loop_start = rings_loop_start + i * config.circle_segments * 4;
       const int this_ring_vert_start = config.first_ring_verts_start +
                                        (i * config.circle_segments);
       const int next_ring_vert_start = this_ring_vert_start + config.circle_segments;
@@ -421,55 +427,58 @@ static void calculate_cone_faces(const ConeConfig &config,
       const int ring_connections_start = this_ring_edges_start + config.circle_segments;
 
       for (const int j : IndexRange(config.circle_segments)) {
-        MPoly &poly = polys[poly_index++];
-        poly.loopstart = loop_index;
+        const int loop_start = this_ring_loop_start + j * 4;
+        MPoly &poly = polys[this_ring_poly_start + j];
+        poly.loopstart = loop_start;
         poly.totloop = 4;
 
-        MLoop &loop_a = loops[loop_index++];
-        loop_a.v = this_ring_vert_start + j;
-        loop_a.e = ring_connections_start + j;
-        MLoop &loop_b = loops[loop_index++];
-        loop_b.v = next_ring_vert_start + j;
-        loop_b.e = next_ring_edges_start + j;
-        MLoop &loop_c = loops[loop_index++];
-        loop_c.v = next_ring_vert_start + ((j + 1) % config.circle_segments);
-        loop_c.e = ring_connections_start + ((j + 1) % config.circle_segments);
-        MLoop &loop_d = loops[loop_index++];
-        loop_d.v = this_ring_vert_start + ((j + 1) % config.circle_segments);
-        loop_d.e = this_ring_edges_start + j;
+        loops[loop_start + 0].v = this_ring_vert_start + j;
+        loops[loop_start + 0].e = ring_connections_start + j;
+
+        loops[loop_start + 1].v = next_ring_vert_start + j;
+        loops[loop_start + 1].e = next_ring_edges_start + j;
+
+        loops[loop_start + 2].v = next_ring_vert_start + ((j + 1) % config.circle_segments);
+        loops[loop_start + 2].e = ring_connections_start + ((j + 1) % config.circle_segments);
+
+        loops[loop_start + 3].v = this_ring_vert_start + ((j + 1) % config.circle_segments);
+        loops[loop_start + 3].e = this_ring_edges_start + j;
       }
     }
   }
 
+  const int bottom_poly_start = rings_poly_start + config.tot_quad_rings * config.circle_segments;
+  const int bottom_loop_start = rings_loop_start +
+                                config.tot_quad_rings * config.circle_segments * 4;
+
   if (config.bottom_has_center_vert) {
     /* Bottom cone tip or center triangle fan in the fill. */
     for (const int i : IndexRange(config.circle_segments)) {
-      MPoly &poly = polys[poly_index++];
-      poly.loopstart = loop_index;
+      const int loop_start = bottom_loop_start + i * 3;
+      MPoly &poly = polys[bottom_poly_start + i];
+      poly.loopstart = loop_start;
       poly.totloop = 3;
 
-      MLoop &loop_a = loops[loop_index++];
-      loop_a.v = config.last_ring_verts_start + i;
-      loop_a.e = config.last_fan_edges_start + i;
-      MLoop &loop_b = loops[loop_index++];
-      loop_b.v = config.last_vert;
-      loop_b.e = config.last_fan_edges_start + (i + 1) % config.circle_segments;
-      MLoop &loop_c = loops[loop_index++];
-      loop_c.v = config.last_ring_verts_start + (i + 1) % config.circle_segments;
-      loop_c.e = config.last_ring_edges_start + i;
+      loops[loop_start + 0].v = config.last_ring_verts_start + i;
+      loops[loop_start + 0].e = config.last_fan_edges_start + i;
+
+      loops[loop_start + 1].v = config.last_vert;
+      loops[loop_start + 1].e = config.last_fan_edges_start + (i + 1) % config.circle_segments;
+
+      loops[loop_start + 2].v = config.last_ring_verts_start + (i + 1) % config.circle_segments;
+      loops[loop_start + 2].e = config.last_ring_edges_start + i;
     }
   }
   else if (config.fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
     /* Center n-gon in the fill. */
-    MPoly &poly = polys[poly_index++];
-    poly.loopstart = loop_index;
+    MPoly &poly = polys[bottom_poly_start];
+    poly.loopstart = bottom_loop_start;
     poly.totloop = config.circle_segments;
 
     for (const int i : IndexRange(config.circle_segments)) {
       /* Go backwards to reverse surface normal. */
-      MLoop &loop = loops[loop_index++];
-      loop.v = config.last_vert - i;
-      loop.e = config.last_edge - ((i + 1) % config.circle_segments);
+      loops[bottom_loop_start + i].v = config.last_vert - i;
+      loops[bottom_loop_start + i].e = config.last_edge - ((i + 1) % config.circle_segments);
     }
   }
 }
