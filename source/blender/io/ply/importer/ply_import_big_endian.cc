@@ -5,20 +5,19 @@
 #include <fstream>
 
 namespace blender::io::ply {
-Mesh *import_ply_big_endian(std::ifstream &file, PlyHeader *header, Mesh* mesh)
+Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh* mesh)
 {
-  PlyData data = load_ply_big_endian(file, header);
+  PlyData data = load_ply_binary(file, header);
   if (data.vertices.size() != 0) {
     return convert_ply_to_mesh(data, mesh);
   }
   return nullptr;
 }
 
-template<typename T> T read(std::ifstream& file) {
+template<typename T> T read(std::ifstream& file){
   T returnVal;
   file.read((char *)&returnVal, sizeof(returnVal));
   check_file_errors(file);
-  returnVal = swap_bits<T>(returnVal);
   return returnVal;
 }
 
@@ -31,14 +30,16 @@ template int32_t read<int32_t>(std::ifstream& file);
 template float read<float>(std::ifstream& file);
 template double read<double>(std::ifstream& file);
 
-float3 read_float3(std::ifstream &file) {
+float3 read_float3(std::ifstream& file, bool isBigEndian){
   float3 currFloat3;
 
   for (int i = 0; i < 3; i++) {
     float temp;
     file.read((char *)&temp, sizeof(temp));
     check_file_errors(file);
-    temp = swap_bits<float>(temp);
+    if (isBigEndian) {
+      temp = swap_bits<float>(temp);
+    }
     currFloat3[i] = temp;
   }
 
@@ -99,7 +100,7 @@ void check_file_errors(std::ifstream& file) {
   }
 }
 
-PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)
+PlyData load_ply_binary(std::ifstream &file, PlyHeader *header)
 {
   PlyData data;
 
@@ -113,11 +114,11 @@ PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)
     // switch (prop.second) {}
     for (auto prop : header->properties) {
       if (prop.first == "x") {
-        currFloat3 = read_float3(file);
+        currFloat3 = read_float3(file, header->type == PlyFormatType::BINARY_BE);
       } else if (prop.first == "z") {
         data.vertices.append(currFloat3);
       } else if (prop.first == "nx") {
-        currFloat3 = read_float3(file);
+        currFloat3 = read_float3(file, header->type == PlyFormatType::BINARY_BE);
       } else if (prop.first == "nz") {
         data.vertex_normals.append(currFloat3);
       } else if (prop.first == "red" && !hasAlpha) {
@@ -172,7 +173,9 @@ PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)
       uint32_t index;
       file.read((char*)&index, sizeof(index));
       check_file_errors(file);
-      index = swap_bits<uint32_t>(index);
+      if (header->type == PlyFormatType::BINARY_BE){
+        index = swap_bits<uint32_t>(index);
+      }
       vertex_indices.append(index);
     }
     data.faces.append(vertex_indices);

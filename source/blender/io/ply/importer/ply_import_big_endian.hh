@@ -12,7 +12,7 @@ namespace blender::io::ply {
  * @param header The information in the PLY header
  * @return The mesh that can be used inside blender
  */
-Mesh *import_ply_big_endian(std::ifstream &file, PlyHeader *header, Mesh* mesh);
+Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh* mesh);
 
 /**
  * Loads the information from the PLY file in Big_Endian format to the PlyData datastructure
@@ -20,9 +20,9 @@ Mesh *import_ply_big_endian(std::ifstream &file, PlyHeader *header, Mesh* mesh);
  * @param header The information in the PLY header
  * @return The PlyData datastructure that can be used for conversion to a Mesh
  */
-PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header);
+PlyData load_ply_binary(std::ifstream &file, PlyHeader *header);
 
-float3 read_float3(std::ifstream &file);
+float3 read_float3(std::ifstream &file, bool isBigEndian);
 
 uchar3 read_uchar3(std::ifstream& file);
 uchar4 read_uchar4(std::ifstream& file);
