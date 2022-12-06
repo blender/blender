@@ -851,6 +851,8 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
 
   BLO_read_id_address(reader, ob->id.lib, &ob->parent);
   BLO_read_id_address(reader, ob->id.lib, &ob->track);
+
+  /* XXX deprecated - old pose library, deprecated in Blender 3.5. */
   BLO_read_id_address(reader, ob->id.lib, &ob->poselib);
 
   /* 2.8x drops support for non-empty dupli instances. */

@@ -3750,15 +3750,6 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_GPencil_update");
 
   /* pose */
-  prop = RNA_def_property(srna, "pose_library", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, NULL, "poselib");
-  RNA_def_property_struct_type(prop, "Action");
-  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
-  RNA_def_property_ui_text(prop,
-                           "Pose Library",
-                           "Deprecated, will be removed in Blender 3.3. "
-                           "Action used as a pose library for armatures");
-
   prop = RNA_def_property(srna, "pose", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "pose");
   RNA_def_property_struct_type(prop, "Pose");
