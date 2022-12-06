@@ -1052,10 +1052,10 @@ static void shader_node_disconnect_inactive_mix_branch(bNodeTree *ntree,
 static void ntree_shader_disconnect_inactive_mix_branches(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_MIX_SHADER) {
+    if (node->typeinfo->type == SH_NODE_MIX_SHADER) {
       shader_node_disconnect_inactive_mix_branch(ntree, node, 0, 1, 2, true);
     }
-    else if (node->type == SH_NODE_MIX) {
+    else if (node->typeinfo->type == SH_NODE_MIX) {
       const NodeShaderMix *storage = static_cast<NodeShaderMix *>(node->storage);
       if (storage->data_type == SOCK_FLOAT) {
         shader_node_disconnect_inactive_mix_branch(ntree, node, 0, 2, 3, storage->clamp_factor);
