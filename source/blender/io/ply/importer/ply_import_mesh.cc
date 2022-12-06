@@ -1,5 +1,7 @@
 #include "ply_import_mesh.hh"
+#include "BKE_attribute.h"
 #include "BKE_customdata.h"
+#include "BKE_mesh.h"
 #include "BLI_math_vector.h"
 
 namespace blender::io::ply {
@@ -21,6 +23,31 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
   CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
+
+  for (int i = 0; i < mesh->totpoly; i++) {
+    int size = data.faces[i].size();
+    polys[i].loopstart = size * i;
+    polys[i].totloop = size;
+
+    for (int j = 0; j < size; j++) {
+      loops[size * i + j].v = data.faces[i][j];
+    }
+  }
+
+  // Vertex colours
+  if (data.vertex_colors.size() > 0) {
+    // Create a data layer for vertex colours and set them
+    CustomDataLayer *color_layer = BKE_id_attribute_new(
+        &mesh->id, "Color", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
+    float4 *colors = (float4 *)color_layer->data;
+    for (int i = 0; i < data.vertex_colors.size(); i++) {
+      float3 c = data.vertex_colors[i];
+      colors[i] = float4(c.x, c.y, c.z, 1.0f);
+    }
+  }
+
+  // Calculate mesh from edges
+  BKE_mesh_calc_edges(mesh, false, false);
 
   return mesh;
 }
