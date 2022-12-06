@@ -18,7 +18,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
 
   // Add faces and edges to the mesh
   mesh->totpoly = data.faces.size();
-  mesh->totloop = data.edges.size();
+  mesh->totloop = data.faces.size() * data.faces[0].size(); // TODO: Make this more dynamic using data.edges()
   CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
   CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
   MutableSpan<MPoly> polys = mesh->polys_for_write();
@@ -38,7 +38,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
   if (data.vertex_colors.size() > 0) {
     // Create a data layer for vertex colours and set them
     CustomDataLayer *color_layer = BKE_id_attribute_new(
-        &mesh->id, "Color", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
+        &mesh->id, "Col", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
     float4 *colors = (float4 *)color_layer->data;
     for (int i = 0; i < data.vertex_colors.size(); i++) {
       float4 c = data.vertex_colors[i];
