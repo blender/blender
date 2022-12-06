@@ -796,11 +796,11 @@ ccl_device float bits_to_01(uint bits)
 ccl_device_inline uint popcount(uint x)
 {
   /* TODO(Stefan): pop-count intrinsic for Windows with fallback for older CPUs. */
-  uint i = x & 0xaaaaaaaa;
+  uint i = x;
   i = i - ((i >> 1) & 0x55555555);
   i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
   i = (((i + (i >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
-  return i & 1;
+  return i;
 }
 #  endif
 #elif defined(__KERNEL_ONEAPI__)
