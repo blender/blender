@@ -20,10 +20,7 @@ float3 read_float3(std::ifstream &file) {
   for (int i = 0; i < 3; i++) {
     float temp;
     file.read((char *)&temp, sizeof(temp));
-    if (!file.good()) {
-      printf("Error reading data");
-      break;
-    }
+    check_file_errors(file);
     temp = swap_bits<float>(temp);
     currFloat3[i] = temp;
   }
@@ -37,15 +34,26 @@ uchar3 read_uchar3(std::ifstream& file) {
   for (int i = 0; i < 3; i++) {
     uchar temp;
     file.read((char*)&temp, sizeof(temp));
-    if (!file.good()) {
-      printf("Error reading data");
-      break;
-    }
+    check_file_errors(file);
     // No swapping of bytes necessary as uchar is only 1 byte
     currUchar3[i] = temp;
   }
 
   return currUchar3;
+}
+
+uchar4 read_uchar4(std::ifstream& file) {
+  uchar4 currUchar4;
+
+  for (int i = 0; i < 4; i++) {
+    uchar temp;
+    file.read((char*)&temp, sizeof(temp));
+    check_file_errors(file);
+    // No swapping of bytes necessary as uchar is only 1 byte
+    currUchar4[i] = temp;
+  }
+
+  return currUchar4;
 }
 
 float3 convert_uchar3_float3(uchar3 input) {
@@ -55,13 +63,34 @@ float3 convert_uchar3_float3(uchar3 input) {
   }
   return returnVal;
 }
+float4 convert_uchar4_float4(uchar4 input)
+{
+  float4 returnVal;
+  for (int i = 0; i < 4; i++) {
+    returnVal[i] = input[i] / 255.0f;
+  }
+  return returnVal;
+}
+
+void check_file_errors(std::ifstream& file) {
+  if (file.bad()) {
+    printf("Read/Write error on io operation");
+  } else if (file.fail()) {
+    printf("Logical error on io operation");
+  } else if (file.eof()) {
+    printf("Reached end of the file");
+  }
+}
 
 PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)
 {
   PlyData data;
 
+  std::pair<std::string, PlyDataTypes> alpha = {"alpha", PlyDataTypes::UCHAR};
+  bool hasAlpha = std::find(header->properties.begin(), header->properties.end(), alpha) != header->properties.end();
   for (int i = 0; i < header->vertex_count; i++) {
     float3 currFloat3;
+    float4 currFloat4;
 
     for (auto prop : header->properties) {
       if (prop.first == "x") {
@@ -72,33 +101,45 @@ PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)
         currFloat3 = read_float3(file);
       } else if (prop.first == "nz") {
         data.vertex_normals.append(currFloat3);
-      } else if (prop.first == "red") {
+      } else if (prop.first == "red" && !hasAlpha) {
         currFloat3 = convert_uchar3_float3(read_uchar3(file));
-      } else if (prop.first == "blue") {
-        data.vertex_colors.append(currFloat3);
+      } else if (prop.first == "red" && hasAlpha) {
+        currFloat4 = convert_uchar4_float4(read_uchar4(file));
+      } else if (prop.first == "blue" && !hasAlpha) {
+        data.vertex_colors.append(float4(currFloat3.x, currFloat3.y, currFloat3.z, 1.0f));
+      } else if (prop.first == "alpha") {
+        data.vertex_colors.append(currFloat4);
       }
     }
   }
 
   for (int i = 0; i < header->face_count; i++) {
-    // Read
-  }
-
-  for (int i = 0; i < data.vertices.size(); i++) {
-    std::cout << data.vertices[i] << std::endl;
+    // Assume vertex_index_count_type is uchar
+    uchar count;
+    Vector<uint> vertex_indices;
+    file.read((char*)&count, sizeof(count));
+    check_file_errors(file);
+    for (uchar j = 0; j < count; j++) {
+      uint32_t index;
+      file.read((char*)&index, sizeof(index));
+      check_file_errors(file);
+      index = swap_bits<uint32_t>(index);
+      vertex_indices.append(index);
+    }
+    data.faces.append(vertex_indices);
   }
 
   std::cout << std::endl;
 
-//  std::cout << "Vertex count: " << data.vertices.size() << std::endl;
-//  std::cout << "\tFirst: " << data.vertices.first() << std::endl;
-//  std::cout << "\tLast: " << data.vertices.last() << std::endl;
-//  std::cout << "Normals count: " << data.vertex_normals.size() << std::endl;
-//  std::cout << "\tFirst: " << data.vertex_normals.first() << std::endl;
-//  std::cout << "\tLast: " << data.vertex_normals.last() << std::endl;
-//  std::cout << "Colours count: " << data.vertex_colors.size() << std::endl;
-//  std::cout << "\tFirst: " << data.vertex_colors.first() << std::endl;
-//  std::cout << "\tLast: " << data.vertex_colors.last() << std::endl;
+  /*std::cout << "Vertex count: " << data.vertices.size() << std::endl;
+  std::cout << "\tFirst: " << data.vertices.first() << std::endl;
+  std::cout << "\tLast: " << data.vertices.last() << std::endl;
+  std::cout << "Normals count: " << data.vertex_normals.size() << std::endl;
+  std::cout << "\tFirst: " << data.vertex_normals.first() << std::endl;
+  std::cout << "\tLast: " << data.vertex_normals.last() << std::endl;
+  std::cout << "Colours count: " << data.vertex_colors.size() << std::endl;
+  std::cout << "\tFirst: " << data.vertex_colors.first() << std::endl;
+  std::cout << "\tLast: " << data.vertex_colors.last() << std::endl;*/
 
   return data;
 }

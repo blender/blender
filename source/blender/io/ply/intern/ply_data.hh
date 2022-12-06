@@ -18,9 +18,10 @@ struct PlyData {
   Vector<float3> vertices;
   Vector<float3> vertex_normals;
   // value between 0 and 1
-  Vector<float3> vertex_colors;
-  Vector<MEdge> edges;
-  Vector<Vector<int>> faces;
+  Vector<float4> vertex_colors;
+  Vector<std::pair<int, int>> edges;
+  Vector<float3> edge_colors;
+  Vector<Vector<uint32_t>> faces;
 };
 
 enum PlyFormatType { ASCII, BINARY_LE, BINARY_BE };
@@ -28,6 +29,7 @@ enum PlyFormatType { ASCII, BINARY_LE, BINARY_BE };
 struct PlyHeader {
   int vertex_count = 0, edge_count = 0, face_count = 0, header_size = 0;
   std::vector<std::pair<std::string, PlyDataTypes>> properties;
+  PlyDataTypes vertex_index_count_type, vertex_index_type;
   PlyFormatType type;
 };
 
