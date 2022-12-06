@@ -41,8 +41,8 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
         &mesh->id, "Color", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
     float4 *colors = (float4 *)color_layer->data;
     for (int i = 0; i < data.vertex_colors.size(); i++) {
-      float3 c = data.vertex_colors[i];
-      colors[i] = float4(c.x, c.y, c.z, 1.0f);
+      float4 c = data.vertex_colors[i];
+      colors[i] = float4(c.x, c.y, c.z, c.w);
     }
   }
 
