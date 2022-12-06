@@ -5,9 +5,9 @@
 #include <fstream>
 
 namespace blender::io::ply {
-Mesh *import_ply_big_endian(std::ifstream &file, PlyHeader *header, Mesh* mesh)
+Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh* mesh)
 {
-  PlyData data = load_ply_big_endian(file, header);
+  PlyData data = load_ply_binary(file, header);
   if (data.vertices.size() != 0) {
     return convert_ply_to_mesh(data, mesh);
   }
@@ -100,7 +100,7 @@ void check_file_errors(std::ifstream& file) {
   }
 }
 
-PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)
+PlyData load_ply_binary(std::ifstream &file, PlyHeader *header)
 {
   PlyData data;
 
@@ -173,7 +173,7 @@ PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)
       uint32_t index;
       file.read((char*)&index, sizeof(index));
       check_file_errors(file);
-      if (header->isBigEndian) {
+      if (header->type == PlyFormatType::BINARY_BE){
         index = swap_bits<uint32_t>(index);
       }
       vertex_indices.append(index);

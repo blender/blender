@@ -162,11 +162,11 @@ void importer_main(Main *bmain,
   }
   else if (header.type == PlyFormatType::BINARY_BE) {
     printf("Binary Big Endian \n");
-    mesh = import_ply_big_endian(infile, &header, mesh);
+    mesh = import_ply_binary(infile, &header, mesh);
   }
   else {
     printf("Binary Little Endian \n");
-    mesh = import_ply_big_endian(infile, &header, mesh);
+    mesh = import_ply_binary(infile, &header, mesh);
   }
 
   BKE_view_layer_base_deselect_all(scene, view_layer);
