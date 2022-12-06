@@ -43,8 +43,7 @@ void load_plydata(std::unique_ptr<PlyData> &plyData, bContext *C)
       // TODO: This seems a bit convoluted, try optimizing
       auto loopVector = mesh->loops().slice(poly.loopstart, poly.totloop);
       Vector<int> polyVector;
-      for (auto &&loop : loopVector)
-      {
+      for (auto &&loop : loopVector) {
         polyVector.append(loop.v);
       }
 

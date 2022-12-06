@@ -38,13 +38,15 @@ class FileBufferAscii : public FileBuffer {
 
   void write_face(int count, Vector<int> vertices)
   {
-    // fmt::memory_buffer buf;
-    // for (auto &&vtx : vertices)
-    // {
-    //   fmt::format_to(fmt::appender(buf), "{} ", vtx);
-    // }
+    std::stringstream stream;
+    stream << count;
 
-    // write_fstring("{} {}", count, vertices);
+    for (auto &&v : vertices) {
+      stream << " " << v;
+    }
+    stream << "\n";
+
+    write_fstring(stream.str().c_str());
   }
 };
 }  // namespace blender::io::ply

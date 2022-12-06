@@ -28,6 +28,7 @@
 #include "ply_export_load_plydata.hh"
 #include "ply_export.hh"
 #include "ply_export_header.hh"
+#include "ply_export_data.hh"
 #include "ply_file_buffer_ascii.hh"
 #include "ply_file_buffer_binary.hh"
 
@@ -62,31 +63,15 @@ void exporter_main(Main *bmain,
   }
 
   // Generate and write header
-  generate_header(buffer, plyData, export_params);
+  write_header(buffer, plyData, export_params);
 
   // Generate and write vertices
-  export_vertices(buffer, plyData, export_params);
+  write_vertices(buffer, plyData, export_params);
 
   // Generate and write faces
-  export_faces(buffer, plyData, export_params);
+  write_faces(buffer, plyData, export_params);
 
-  // CLean up
+  // Clean up
   buffer->close_file();
-}
-
-void export_vertices(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData, const PLYExportParams export_params)
-{
-  for (auto &&vertex : plyData->vertices) {
-    buffer->write_vertex(vertex.x, vertex.y, vertex.z);
-  }
-  buffer->write_to_file();
-}
-
-void export_faces(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData, const PLYExportParams export_params)
-{
-  for (auto &&face : plyData->faces) {
-    buffer->write_face(face.size(), face);
-  }
-  buffer->write_to_file();
 }
 }  // namespace blender::io::ply
