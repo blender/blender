@@ -106,16 +106,22 @@ static int viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
         break;
     }
   }
-  else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
-    /* Note this does not remove auto-keys on locked cameras. */
-    copy_qt_qt(vod->rv3d->viewquat, vod->init.quat);
-    ED_view3d_camera_lock_sync(vod->depsgraph, vod->v3d, vod->rv3d);
-    viewops_data_free(C, op->customdata);
-    op->customdata = NULL;
-    return OPERATOR_CANCELLED;
+  else if (event->type == vod->init.event_type) {
+    /* Check `vod->init.event_type` first in case RMB was used to invoke.
+     * in this case confirming takes precedence over canceling, see: T102937. */
+    if (event->val == KM_RELEASE) {
+      event_code = VIEW_CONFIRM;
+    }
   }
-  else if (event->type == vod->init.event_type && event->val == KM_RELEASE) {
-    event_code = VIEW_CONFIRM;
+  else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
+    if (event->val == KM_PRESS) {
+      /* Note this does not remove auto-keys on locked cameras. */
+      copy_qt_qt(vod->rv3d->viewquat, vod->init.quat);
+      ED_view3d_camera_lock_sync(vod->depsgraph, vod->v3d, vod->rv3d);
+      viewops_data_free(C, op->customdata);
+      op->customdata = NULL;
+      return OPERATOR_CANCELLED;
+    }
   }
 
   if (event_code == VIEW_APPLY) {

@@ -507,7 +507,7 @@ struct bNodeTree *ntreeFromID(struct ID *id);
 
 void ntreeFreeLocalNode(struct bNodeTree *ntree, struct bNode *node);
 void ntreeFreeLocalTree(struct bNodeTree *ntree);
-struct bNode *ntreeFindType(const struct bNodeTree *ntree, int type);
+struct bNode *ntreeFindType(struct bNodeTree *ntree, int type);
 bool ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);
 void ntreeUpdateAllNew(struct Main *main);
 void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
@@ -629,7 +629,7 @@ const char *nodeStaticSocketLabel(int type, int subtype);
   } \
   ((void)0)
 
-struct bNodeSocket *nodeFindSocket(const struct bNode *node,
+struct bNodeSocket *nodeFindSocket(struct bNode *node,
                                    eNodeSocketInOut in_out,
                                    const char *identifier);
 struct bNodeSocket *nodeAddSocket(struct bNodeTree *ntree,
@@ -669,6 +669,13 @@ void nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
  */
 void nodeUniqueName(struct bNodeTree *ntree, struct bNode *node);
 void nodeUniqueID(struct bNodeTree *ntree, struct bNode *node);
+
+/**
+ * Rebuild the `node_by_id` runtime vector set. Call after removing a node if not handled
+ * separately. This is important instead of just using `nodes_by_id.remove()` since it maintains
+ * the node order.
+ */
+void nodeRebuildIDVector(struct bNodeTree *node_tree);
 
 /**
  * Delete node, associated animation data and ID user count.

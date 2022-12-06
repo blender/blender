@@ -312,9 +312,9 @@ void node_deselect_all_output_sockets(SpaceNode &snode, const bool deselect_node
   }
 }
 
-Set<bNode *> get_selected_nodes(bNodeTree &node_tree)
+VectorSet<bNode *> get_selected_nodes(bNodeTree &node_tree)
 {
-  Set<bNode *> selected_nodes;
+  VectorSet<bNode *> selected_nodes;
   for (bNode *node : node_tree.all_nodes()) {
     if (node->flag & NODE_SELECT) {
       selected_nodes.add(node);
@@ -1142,7 +1142,7 @@ static int node_select_linked_to_exec(bContext *C, wmOperator * /*op*/)
 
   node_tree.ensure_topology_cache();
 
-  Set<bNode *> initial_selection = get_selected_nodes(node_tree);
+  VectorSet<bNode *> initial_selection = get_selected_nodes(node_tree);
 
   for (bNode *node : initial_selection) {
     for (bNodeSocket *output_socket : node->output_sockets()) {
@@ -1192,7 +1192,7 @@ static int node_select_linked_from_exec(bContext *C, wmOperator * /*op*/)
 
   node_tree.ensure_topology_cache();
 
-  Set<bNode *> initial_selection = get_selected_nodes(node_tree);
+  VectorSet<bNode *> initial_selection = get_selected_nodes(node_tree);
 
   for (bNode *node : initial_selection) {
     for (bNodeSocket *input_socket : node->input_sockets()) {

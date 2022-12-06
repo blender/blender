@@ -69,6 +69,7 @@ Thanks to Tyler Alden Gubala for maintaining the original version of this packag
 # ------------------------------------------------------------------------------
 # Generic Functions
 
+
 def find_dominating_file(
     path: str,
     search: Sequence[str],

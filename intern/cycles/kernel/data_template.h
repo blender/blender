@@ -97,8 +97,6 @@ KERNEL_STRUCT_MEMBER(film, int, pass_emission)
 KERNEL_STRUCT_MEMBER(film, int, pass_background)
 KERNEL_STRUCT_MEMBER(film, int, pass_ao)
 KERNEL_STRUCT_MEMBER(film, float, pass_alpha_threshold)
-KERNEL_STRUCT_MEMBER(film, int, pass_shadow)
-KERNEL_STRUCT_MEMBER(film, float, pass_shadow_scale)
 KERNEL_STRUCT_MEMBER(film, int, pass_shadow_catcher)
 KERNEL_STRUCT_MEMBER(film, int, pass_shadow_catcher_sample_count)
 KERNEL_STRUCT_MEMBER(film, int, pass_shadow_catcher_matte)
@@ -132,9 +130,6 @@ KERNEL_STRUCT_MEMBER(film, int, use_approximate_shadow_catcher)
 KERNEL_STRUCT_MEMBER(film, int, pass_guiding_color)
 KERNEL_STRUCT_MEMBER(film, int, pass_guiding_probability)
 KERNEL_STRUCT_MEMBER(film, int, pass_guiding_avg_roughness)
-/* Padding. */
-KERNEL_STRUCT_MEMBER(film, int, pad1)
-KERNEL_STRUCT_MEMBER(film, int, pad2)
 KERNEL_STRUCT_END(KernelFilm)
 
 /* Integrator. */
@@ -143,6 +138,7 @@ KERNEL_STRUCT_BEGIN(KernelIntegrator, integrator)
 /* Emission. */
 KERNEL_STRUCT_MEMBER(integrator, int, use_direct_light)
 KERNEL_STRUCT_MEMBER(integrator, int, use_light_mis)
+KERNEL_STRUCT_MEMBER(integrator, int, use_light_tree)
 KERNEL_STRUCT_MEMBER(integrator, int, num_lights)
 KERNEL_STRUCT_MEMBER(integrator, int, num_distant_lights)
 KERNEL_STRUCT_MEMBER(integrator, int, num_background_lights)
@@ -209,7 +205,6 @@ KERNEL_STRUCT_MEMBER(integrator, int, use_guiding_mis_weights)
 /* Padding. */
 KERNEL_STRUCT_MEMBER(integrator, int, pad1)
 KERNEL_STRUCT_MEMBER(integrator, int, pad2)
-KERNEL_STRUCT_MEMBER(integrator, int, pad3)
 KERNEL_STRUCT_END(KernelIntegrator)
 
 /* SVM. For shader specialization. */

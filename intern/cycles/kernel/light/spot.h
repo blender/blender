@@ -150,4 +150,30 @@ ccl_device_inline bool spot_light_sample_from_intersection(
 
   return true;
 }
+
+template<bool in_volume_segment>
+ccl_device_forceinline bool spot_light_tree_parameters(const ccl_global KernelLight *klight,
+                                                       const float3 centroid,
+                                                       const float3 P,
+                                                       ccl_private float &cos_theta_u,
+                                                       ccl_private float2 &distance,
+                                                       ccl_private float3 &point_to_centroid)
+{
+  float min_distance;
+  const float3 point_to_centroid_ = safe_normalize_len(centroid - P, &min_distance);
+
+  const float radius = klight->spot.radius;
+  const float hypotenus = sqrtf(sqr(radius) + sqr(min_distance));
+  cos_theta_u = min_distance / hypotenus;
+
+  if (in_volume_segment) {
+    return true;
+  }
+
+  distance = make_float2(hypotenus, min_distance);
+  point_to_centroid = point_to_centroid_;
+
+  return true;
+}
+
 CCL_NAMESPACE_END

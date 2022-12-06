@@ -126,7 +126,7 @@ class BlenderDisplayDriver : public DisplayDriver {
   void gpu_context_lock();
   void gpu_context_unlock();
 
-  /* Create GPU resources used by the dispaly driver. */
+  /* Create GPU resources used by the display driver. */
   bool gpu_resources_create();
 
   /* Destroy all GPU resources which are being used by this object. */

@@ -23,7 +23,6 @@ void ColorGeometry4fMixer::set(const int64_t index,
                                const ColorGeometry4f &color,
                                const float weight)
 {
-  BLI_assert(weight >= 0.0f);
   buffer_[index].r = color.r * weight;
   buffer_[index].g = color.g * weight;
   buffer_[index].b = color.b * weight;
@@ -35,7 +34,6 @@ void ColorGeometry4fMixer::mix_in(const int64_t index,
                                   const ColorGeometry4f &color,
                                   const float weight)
 {
-  BLI_assert(weight >= 0.0f);
   ColorGeometry4f &output_color = buffer_[index];
   output_color.r += color.r * weight;
   output_color.g += color.g * weight;
@@ -89,7 +87,6 @@ void ColorGeometry4bMixer::ColorGeometry4bMixer::set(int64_t index,
                                                      const ColorGeometry4b &color,
                                                      const float weight)
 {
-  BLI_assert(weight >= 0.0f);
   accumulation_buffer_[index][0] = color.r * weight;
   accumulation_buffer_[index][1] = color.g * weight;
   accumulation_buffer_[index][2] = color.b * weight;
@@ -99,7 +96,6 @@ void ColorGeometry4bMixer::ColorGeometry4bMixer::set(int64_t index,
 
 void ColorGeometry4bMixer::mix_in(int64_t index, const ColorGeometry4b &color, float weight)
 {
-  BLI_assert(weight >= 0.0f);
   float4 &accum_value = accumulation_buffer_[index];
   accum_value[0] += color.r * weight;
   accum_value[1] += color.g * weight;

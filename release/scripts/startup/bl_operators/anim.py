@@ -112,7 +112,10 @@ class ANIM_OT_keying_set_export(Operator):
                             break
 
                 if not found:
-                    self.report({'WARN'}, tip_("Could not find material or light using Shader Node Tree - %s") % (ksp.id))
+                    self.report(
+                        {'WARN'},
+                        tip_("Could not find material or light using Shader Node Tree - %s") %
+                        (ksp.id))
             elif ksp.id.bl_rna.identifier.startswith("CompositorNodeTree"):
                 # Find compositor nodetree using this node tree...
                 for scene in bpy.data.scenes:
@@ -335,7 +338,7 @@ class ClearUselessActions(Operator):
                     removed += 1
 
         self.report({'INFO'}, tip_("Removed %d empty and/or fake-user only Actions")
-                              % removed)
+                    % removed)
         return {'FINISHED'}
 
 

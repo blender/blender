@@ -1400,7 +1400,7 @@ static void insert_seam_vert_array(const ProjPaintState *ps,
   vec[1] *= ibuf_y;
   vseam->angle = atan2f(vec[1], vec[0]);
 
-  /* If face windings are not initialized, something must be wrong. */
+  /* If the face winding data is not initialized, something must be wrong. */
   BLI_assert((ps->faceWindingFlags[tri_index] & PROJ_FACE_WINDING_INIT) != 0);
   vseam->normal_cw = (ps->faceWindingFlags[tri_index] & PROJ_FACE_WINDING_CW);
 

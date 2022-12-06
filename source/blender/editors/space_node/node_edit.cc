@@ -1709,7 +1709,7 @@ void NODE_OT_preview_toggle(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = node_preview_toggle_exec;
-  ot->poll = ED_operator_node_active;
+  ot->poll = composite_node_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2795,7 +2795,7 @@ static bool node_shader_script_update_text_recursive(RenderEngine *engine,
                                                      RenderEngineType *type,
                                                      bNodeTree *ntree,
                                                      Text *text,
-                                                     Set<bNodeTree *> &done_trees)
+                                                     VectorSet<bNodeTree *> &done_trees)
 {
   bool found = false;
 
@@ -2855,7 +2855,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 
     if (text) {
 
-      Set<bNodeTree *> done_trees;
+      VectorSet<bNodeTree *> done_trees;
 
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {

@@ -792,11 +792,13 @@ set(geo_node_tests
   curve_primitives
   curves
   geometry
+  instance
   mesh_primitives
   mesh
   mesh/extrude
   mesh/split_edges
   points
+  texture
   utilities
   vector
 )

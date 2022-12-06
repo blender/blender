@@ -1231,6 +1231,12 @@ void transform_convert_mesh_mirrordata_calc(struct BMEditMesh *em,
          * It can happen when vertices occupy the same position. */
         continue;
       }
+      if (vert_map[i].flag & flag) {
+        /* It's already a mirror.
+         * Avoid a mirror vertex dependency cycle.
+         * This can happen when the vertices are within the mirror threshold. */
+        continue;
+      }
 
       vert_map[i_mirr] = (struct MirrorDataVert){i, flag};
       mirror_elem_len++;

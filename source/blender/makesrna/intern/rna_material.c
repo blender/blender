@@ -1033,6 +1033,7 @@ static void rna_def_tex_slot(BlenderRNA *brna)
   RNA_def_property_string_funcs(
       prop, "rna_TexPaintSlot_name_get", "rna_TexPaintSlot_name_length", NULL);
   RNA_def_property_ui_text(prop, "Name", "Name of the slot");
+  RNA_def_struct_name_property(srna, prop);
 
   prop = RNA_def_property(srna, "icon_value", PROP_INT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

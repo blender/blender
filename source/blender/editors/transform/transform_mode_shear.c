@@ -239,7 +239,7 @@ static bool uv_shear_in_clip_bounds_test(const TransInfo *t, const float value)
       sub_v2_v2v2(uv, td->iloc, center);
       uv[axis] = uv[axis] + value * uv[1 - axis] * (2 * axis - 1);
       add_v2_v2(uv, center);
-      /* TODO: udim support. */
+      /* TODO: UDIM support. */
       if (uv[axis] < 0.0f || 1.0f < uv[axis]) {
         return false;
       }

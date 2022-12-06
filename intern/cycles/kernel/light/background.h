@@ -439,4 +439,19 @@ ccl_device float background_light_pdf(KernelGlobals kg, float3 P, float3 directi
 
   return pdf;
 }
+
+ccl_device_forceinline bool background_light_tree_parameters(const float3 centroid,
+                                                             ccl_private float &cos_theta_u,
+                                                             ccl_private float2 &distance,
+                                                             ccl_private float3 &point_to_centroid)
+{
+  /* Cover the whole sphere */
+  cos_theta_u = -1.0f;
+
+  distance = make_float2(1.0f, 1.0f);
+  point_to_centroid = -centroid;
+
+  return true;
+}
+
 CCL_NAMESPACE_END

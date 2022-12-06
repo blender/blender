@@ -60,6 +60,7 @@ CCL_NAMESPACE_BEGIN
 #define __DENOISING_FEATURES__
 #define __DPDU__
 #define __HAIR__
+#define __LIGHT_TREE__
 #define __OBJECT_MOTION__
 #define __PASSES__
 #define __PATCH_EVAL__
@@ -73,6 +74,11 @@ CCL_NAMESPACE_BEGIN
 #define __TRANSPARENT_SHADOWS__
 #define __VISIBILITY_FLAG__
 #define __VOLUME__
+
+/* TODO: solve internal compiler errors and enable light tree on HIP. */
+#ifdef __KERNEL_HIP__
+#  undef __LIGHT_TREE__
+#endif
 
 /* Device specific features */
 #ifdef WITH_OSL
@@ -226,7 +232,7 @@ enum PathRayFlag : uint32_t {
    */
 
   /* Surface had transmission component at previous bounce. Used for light tree
-   * traversal and culling to be consistent with MIS pdf at the next bounce. */
+   * traversal and culling to be consistent with MIS PDF at the next bounce. */
   PATH_RAY_MIS_HAD_TRANSMISSION = (1U << 10U),
 
   /* Don't apply multiple importance sampling weights to emission from
@@ -348,7 +354,6 @@ typedef enum PassType {
   PASS_EMISSION,
   PASS_BACKGROUND,
   PASS_AO,
-  PASS_SHADOW,
   PASS_DIFFUSE,
   PASS_DIFFUSE_DIRECT,
   PASS_DIFFUSE_INDIRECT,
@@ -1302,7 +1307,7 @@ typedef struct KernelAreaLight {
   float len_v;
   packed_float3 dir;
   float invarea;
-  float tan_spread;
+  float cot_half_spread;
   float normalize_spread;
   float pad[2];
 } KernelAreaLight;
@@ -1336,18 +1341,69 @@ static_assert_align(KernelLight, 16);
 typedef struct KernelLightDistribution {
   float totarea;
   int prim;
-  union {
-    struct {
-      int shader_flag;
-      int object_id;
-    } mesh_light;
-    struct {
-      float pad;
-      float size;
-    } lamp;
-  };
+  struct {
+    int shader_flag;
+    int object_id;
+  } mesh_light;
 } KernelLightDistribution;
 static_assert_align(KernelLightDistribution, 16);
+
+/* Bounding box. */
+using BoundingBox = struct BoundingBox {
+  packed_float3 min;
+  packed_float3 max;
+};
+
+using BoundingCone = struct BoundingCone {
+  packed_float3 axis;
+  float theta_o;
+  float theta_e;
+};
+
+typedef struct KernelLightTreeNode {
+  /* Bounding box. */
+  BoundingBox bbox;
+
+  /* Bounding cone. */
+  BoundingCone bcone;
+
+  /* Energy. */
+  float energy;
+
+  /* If this is 0 or less, we're at a leaf node
+   * and the negative value indexes into the first child of the light array.
+   * Otherwise, it's an index to the node's second child. */
+  int child_index;
+  int num_prims; /* leaf nodes need to know the number of primitives stored. */
+
+  /* Bit trail. */
+  uint bit_trail;
+
+  /* Padding. */
+  int pad;
+} KernelLightTreeNode;
+static_assert_align(KernelLightTreeNode, 16);
+
+typedef struct KernelLightTreeEmitter {
+  /* Bounding cone. */
+  float theta_o;
+  float theta_e;
+
+  /* Energy. */
+  float energy;
+
+  /* prim_id denotes the location in the lights or triangles array. */
+  int prim_id;
+  struct {
+    int shader_flag;
+    int object_id;
+    EmissionSampling emission_sampling;
+  } mesh_light;
+
+  /* Parent. */
+  int parent_index;
+} KernelLightTreeEmitter;
+static_assert_align(KernelLightTreeEmitter, 16);
 
 typedef struct KernelParticle {
   int index;
@@ -1548,22 +1604,19 @@ enum KernelFeatureFlag : uint32_t {
   /* Light render passes. */
   KERNEL_FEATURE_LIGHT_PASSES = (1U << 21U),
 
-  /* Shadow render pass. */
-  KERNEL_FEATURE_SHADOW_PASS = (1U << 22U),
-
   /* AO. */
-  KERNEL_FEATURE_AO_PASS = (1U << 23U),
-  KERNEL_FEATURE_AO_ADDITIVE = (1U << 24U),
+  KERNEL_FEATURE_AO_PASS = (1U << 22U),
+  KERNEL_FEATURE_AO_ADDITIVE = (1U << 23U),
   KERNEL_FEATURE_AO = (KERNEL_FEATURE_AO_PASS | KERNEL_FEATURE_AO_ADDITIVE),
 
   /* MNEE. */
-  KERNEL_FEATURE_MNEE = (1U << 25U),
+  KERNEL_FEATURE_MNEE = (1U << 24U),
 
   /* Path guiding. */
-  KERNEL_FEATURE_PATH_GUIDING = (1U << 26U),
+  KERNEL_FEATURE_PATH_GUIDING = (1U << 25U),
 
   /* OSL. */
-  KERNEL_FEATURE_OSL = (1U << 27U),
+  KERNEL_FEATURE_OSL = (1U << 26U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */

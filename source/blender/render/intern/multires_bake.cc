@@ -516,7 +516,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
           vert_normals,
           poly_normals,
           (const float(*)[3])dm->getLoopDataArray(dm, CD_NORMAL),
-          (const float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* may be nullptrptr */
+          (const float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* May be nullptr. */
           /* result */
           &dm->loopData,
           dm->getNumLoops(dm),

@@ -1049,9 +1049,9 @@ void GHOST_SystemWin32::processPointerEvent(
   }
 }
 
-GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window)
+GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window,
+                                                         const int32_t screen_co[2])
 {
-  int32_t x_screen, y_screen;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
   if (window->getTabletData().Active != GHOST_kTabletModeNone) {
@@ -1059,8 +1059,7 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
     return NULL;
   }
 
-  system->getCursorPosition(x_screen, y_screen);
-
+  int32_t x_screen = screen_co[0], y_screen = screen_co[1];
   if (window->getCursorGrabModeIsWarp()) {
     /* WORKAROUND:
      * Sometimes Windows ignores `SetCursorPos()` or `SendInput()` calls or the mouse event is
@@ -1834,7 +1833,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
             }
           }
 
-          event = processCursorEvent(window);
+          const int32_t window_co[2] = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+          int32_t screen_co[2];
+          window->clientToScreen(UNPACK2(window_co), UNPACK2(screen_co));
+          event = processCursorEvent(window, screen_co);
 
           break;
         }
@@ -1876,7 +1878,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           WINTAB_PRINTF("HWND %p mouse leave\n", window->getHWND());
           window->m_mousePresent = false;
           if (window->getTabletData().Active == GHOST_kTabletModeNone) {
-            event = processCursorEvent(window);
+            /* FIXME: document why the cursor motion event on mouse leave is needed. */
+            int32_t screen_co[2] = {0, 0};
+            system->getCursorPosition(screen_co[0], screen_co[1]);
+            event = processCursorEvent(window, screen_co);
           }
           GHOST_Wintab *wt = window->getWintab();
           if (wt) {

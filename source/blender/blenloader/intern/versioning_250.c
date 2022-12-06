@@ -2001,6 +2001,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
              */
             link = MEM_callocN(sizeof(bNodeLink), "link");
             BLI_addtail(&ntree->links, link);
+            nodeUniqueID(ntree, node);
             link->fromnode = NULL;
             link->fromsock = gsock;
             link->tonode = node;
@@ -2024,6 +2025,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
              */
             link = MEM_callocN(sizeof(bNodeLink), "link");
             BLI_addtail(&ntree->links, link);
+            nodeUniqueID(ntree, node);
             link->fromnode = node;
             link->fromsock = sock;
             link->tonode = NULL;
