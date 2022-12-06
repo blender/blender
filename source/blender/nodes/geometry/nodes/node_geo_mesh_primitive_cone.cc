@@ -413,37 +413,34 @@ static void calculate_cone_faces(const ConeConfig &config,
   }
 
   /* Quads connect one edge ring to the next one. */
-  if (config.tot_quad_rings > 0) {
-    for (const int i : IndexRange(config.tot_quad_rings)) {
-      const int this_ring_poly_start = rings_poly_start + i * config.circle_segments;
-      const int this_ring_loop_start = rings_loop_start + i * config.circle_segments * 4;
-      const int this_ring_vert_start = config.first_ring_verts_start +
-                                       (i * config.circle_segments);
-      const int next_ring_vert_start = this_ring_vert_start + config.circle_segments;
+  for (const int i : IndexRange(config.tot_quad_rings)) {
+    const int this_ring_poly_start = rings_poly_start + i * config.circle_segments;
+    const int this_ring_loop_start = rings_loop_start + i * config.circle_segments * 4;
+    const int this_ring_vert_start = config.first_ring_verts_start + (i * config.circle_segments);
+    const int next_ring_vert_start = this_ring_vert_start + config.circle_segments;
 
-      const int this_ring_edges_start = config.first_ring_edges_start +
-                                        (i * 2 * config.circle_segments);
-      const int next_ring_edges_start = this_ring_edges_start + (2 * config.circle_segments);
-      const int ring_connections_start = this_ring_edges_start + config.circle_segments;
+    const int this_ring_edges_start = config.first_ring_edges_start +
+                                      (i * 2 * config.circle_segments);
+    const int next_ring_edges_start = this_ring_edges_start + (2 * config.circle_segments);
+    const int ring_connections_start = this_ring_edges_start + config.circle_segments;
 
-      for (const int j : IndexRange(config.circle_segments)) {
-        const int loop_start = this_ring_loop_start + j * 4;
-        MPoly &poly = polys[this_ring_poly_start + j];
-        poly.loopstart = loop_start;
-        poly.totloop = 4;
+    for (const int j : IndexRange(config.circle_segments)) {
+      const int loop_start = this_ring_loop_start + j * 4;
+      MPoly &poly = polys[this_ring_poly_start + j];
+      poly.loopstart = loop_start;
+      poly.totloop = 4;
 
-        loops[loop_start + 0].v = this_ring_vert_start + j;
-        loops[loop_start + 0].e = ring_connections_start + j;
+      loops[loop_start + 0].v = this_ring_vert_start + j;
+      loops[loop_start + 0].e = ring_connections_start + j;
 
-        loops[loop_start + 1].v = next_ring_vert_start + j;
-        loops[loop_start + 1].e = next_ring_edges_start + j;
+      loops[loop_start + 1].v = next_ring_vert_start + j;
+      loops[loop_start + 1].e = next_ring_edges_start + j;
 
-        loops[loop_start + 2].v = next_ring_vert_start + ((j + 1) % config.circle_segments);
-        loops[loop_start + 2].e = ring_connections_start + ((j + 1) % config.circle_segments);
+      loops[loop_start + 2].v = next_ring_vert_start + ((j + 1) % config.circle_segments);
+      loops[loop_start + 2].e = ring_connections_start + ((j + 1) % config.circle_segments);
 
-        loops[loop_start + 3].v = this_ring_vert_start + ((j + 1) % config.circle_segments);
-        loops[loop_start + 3].e = this_ring_edges_start + j;
-      }
+      loops[loop_start + 3].v = this_ring_vert_start + ((j + 1) % config.circle_segments);
+      loops[loop_start + 3].e = this_ring_edges_start + j;
     }
   }
 
