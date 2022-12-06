@@ -118,17 +118,11 @@ PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)
     uchar count;
     Vector<uint> vertex_indices;
     file.read((char*)&count, sizeof(count));
-    if (!file.good()) {
-      printf("Error reading data");
-      break;
-    }
+    check_file_errors(file);
     for (uchar j = 0; j < count; j++) {
       uint32_t index;
       file.read((char*)&index, sizeof(index));
-      if (!file.good()) {
-        printf("Error reading data");
-        break;
-      }
+      check_file_errors(file);
       index = swap_bits<uint32_t>(index);
       vertex_indices.append(index);
     }
