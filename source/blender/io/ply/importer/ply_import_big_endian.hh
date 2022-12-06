@@ -25,8 +25,10 @@ PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header);
 float3 read_float3(std::ifstream &file);
 
 uchar3 read_uchar3(std::ifstream& file);
+uchar4 read_uchar4(std::ifstream& file);
 
 float3 convert_uchar3_float3(uchar3);
+float4 convert_uchar4_float4(uchar4);
 
 template<typename T> T swap_bits(T input)
 {

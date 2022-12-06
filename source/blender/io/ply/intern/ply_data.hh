@@ -18,7 +18,7 @@ struct PlyData {
   Vector<float3> vertices;
   Vector<float3> vertex_normals;
   // value between 0 and 1
-  Vector<float3> vertex_colors;
+  Vector<float4> vertex_colors;
   Vector<std::pair<int, int>> edges;
   Vector<float3> edge_colors;
   Vector<Vector<uint32_t>> faces;

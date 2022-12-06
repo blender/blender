@@ -54,9 +54,37 @@ uchar3 read_uchar3(std::ifstream& file) {
   return currUchar3;
 }
 
+uchar4 read_uchar4(std::ifstream& file) {
+  uchar4 currUchar4;
+
+  for (int i = 0; i < 4; i++) {
+    uchar temp;
+    file.read((char*)&temp, sizeof(temp));
+    if (file.bad()) {
+      printf("Read/Write error on io operation");
+    } else if (file.fail()) {
+      printf("Logical error on io operation");
+    } else if (file.eof()) {
+      printf("Reached end of the file");
+    }
+    // No swapping of bytes necessary as uchar is only 1 byte
+    currUchar4[i] = temp;
+  }
+
+  return currUchar4;
+}
+
 float3 convert_uchar3_float3(uchar3 input) {
   float3 returnVal;
   for (int i = 0; i < 3; i++) {
+    returnVal[i] = input[i] / 255.0f;
+  }
+  return returnVal;
+}
+float4 convert_uchar4_float4(uchar4 input)
+{
+  float4 returnVal;
+  for (int i = 0; i < 4; i++) {
     returnVal[i] = input[i] / 255.0f;
   }
   return returnVal;
@@ -66,8 +94,11 @@ PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)
 {
   PlyData data;
 
+  std::pair<std::string, PlyDataTypes> alpha = {"alpha", PlyDataTypes::UCHAR};
+  bool hasAlpha = std::find(header->properties.begin(), header->properties.end(), alpha) != header->properties.end();
   for (int i = 0; i < header->vertex_count; i++) {
     float3 currFloat3;
+    float4 currFloat4;
 
     for (auto prop : header->properties) {
       if (prop.first == "x") {
@@ -78,10 +109,14 @@ PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)
         currFloat3 = read_float3(file);
       } else if (prop.first == "nz") {
         data.vertex_normals.append(currFloat3);
-      } else if (prop.first == "red") {
+      } else if (prop.first == "red" && !hasAlpha) {
         currFloat3 = convert_uchar3_float3(read_uchar3(file));
-      } else if (prop.first == "blue") {
-        data.vertex_colors.append(currFloat3);
+      } else if (prop.first == "red" && hasAlpha) {
+        currFloat4 = convert_uchar4_float4(read_uchar4(file));
+      } else if (prop.first == "blue" && !hasAlpha) {
+        data.vertex_colors.append(float4(currFloat3.x, currFloat3.y, currFloat3.z, 1.0f));
+      } else if (prop.first == "alpha") {
+        data.vertex_colors.append(currFloat4);
       }
     }
   }
