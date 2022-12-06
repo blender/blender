@@ -1467,7 +1467,7 @@ size_t BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__
   size_t dirlen = BLI_strnlen(dst, maxlen);
 
   /* Inline #BLI_path_slash_ensure. */
-  if ((dirlen > 0) && (dst[dirlen - 1] != SEP)) {
+  if ((dirlen > 0) && !is_sep_native_compat(dst[dirlen - 1])) {
     dst[dirlen++] = SEP;
     dst[dirlen] = '\0';
   }
@@ -1484,7 +1484,7 @@ size_t BLI_path_append_dir(char *__restrict dst, const size_t maxlen, const char
   size_t dirlen = BLI_path_append(dst, maxlen, dir);
   if (dirlen + 1 < maxlen) {
     /* Inline #BLI_path_slash_ensure. */
-    if ((dirlen > 0) && (dst[dirlen - 1] != SEP)) {
+    if ((dirlen > 0) && !is_sep_native_compat(dst[dirlen - 1])) {
       dst[dirlen++] = SEP;
       dst[dirlen] = '\0';
     }
@@ -1749,7 +1749,7 @@ int BLI_path_slash_ensure(char *string, size_t string_maxlen)
 {
   int len = strlen(string);
   BLI_assert(len < string_maxlen);
-  if (len == 0 || string[len - 1] != SEP) {
+  if (len == 0 || !is_sep_native_compat(string[len - 1])) {
     /* Avoid unlikely buffer overflow. */
     if (len + 1 < string_maxlen) {
       string[len] = SEP;
@@ -1764,7 +1764,7 @@ void BLI_path_slash_rstrip(char *string)
 {
   int len = strlen(string);
   while (len) {
-    if (string[len - 1] == SEP) {
+    if (is_sep_native_compat(string[len - 1])) {
       string[len - 1] = '\0';
       len--;
     }
