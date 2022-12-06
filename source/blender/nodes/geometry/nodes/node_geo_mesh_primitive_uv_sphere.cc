@@ -189,7 +189,7 @@ BLI_NOINLINE static void calculate_sphere_corners(MutableSpan<MLoop> loops,
   };
 
   /* Add the triangles connected to the top vertex. */
-  const int first_vert_ring_index_start = 1;
+  const int first_vert_ring_start = 1;
   for (const int segment : IndexRange(segments)) {
     const int loop_start = segment * 3;
     const int segment_next = segment_next_or_first(segment);
@@ -197,51 +197,51 @@ BLI_NOINLINE static void calculate_sphere_corners(MutableSpan<MLoop> loops,
     loops[loop_start + 0].v = 0;
     loops[loop_start + 0].e = segment;
 
-    loops[loop_start + 1].v = first_vert_ring_index_start + segment;
+    loops[loop_start + 1].v = first_vert_ring_start + segment;
     loops[loop_start + 1].e = segments + segment;
 
-    loops[loop_start + 2].v = first_vert_ring_index_start + segment_next;
+    loops[loop_start + 2].v = first_vert_ring_start + segment_next;
     loops[loop_start + 2].e = segment_next;
   }
 
-  const int rings_vert_index_start = 1;
-  const int rings_edge_index_start = segments;
-  const int rings_loop_index_start = segments * 3;
+  const int rings_vert_start = 1;
+  const int rings_edge_start = segments;
+  const int rings_loop_start = segments * 3;
   for (const int ring : IndexRange(1, rings - 2)) {
-    const int ring_vert_index_start = rings_vert_index_start + (ring - 1) * segments;
-    const int ring_edge_index_start = rings_edge_index_start + (ring - 1) * segments * 2;
-    const int ring_loop_index_start = rings_loop_index_start + (ring - 1) * segments * 4;
+    const int ring_vert_start = rings_vert_start + (ring - 1) * segments;
+    const int ring_edge_start = rings_edge_start + (ring - 1) * segments * 2;
+    const int ring_loop_start = rings_loop_start + (ring - 1) * segments * 4;
 
-    const int next_ring_vert_index_start = ring_vert_index_start + segments;
-    const int next_ring_edge_index_start = ring_edge_index_start + segments * 2;
-    const int ring_vertical_edge_index_start = ring_edge_index_start + segments;
+    const int next_ring_vert_start = ring_vert_start + segments;
+    const int next_ring_edge_start = ring_edge_start + segments * 2;
+    const int ring_vertical_edge_start = ring_edge_start + segments;
 
     for (const int segment : IndexRange(segments)) {
-      const int loop_start = ring_loop_index_start + segment * 4;
+      const int loop_start = ring_loop_start + segment * 4;
       const int segment_next = segment_next_or_first(segment);
 
-      loops[loop_start + 0].v = ring_vert_index_start + segment;
-      loops[loop_start + 0].e = ring_vertical_edge_index_start + segment;
+      loops[loop_start + 0].v = ring_vert_start + segment;
+      loops[loop_start + 0].e = ring_vertical_edge_start + segment;
 
-      loops[loop_start + 1].v = next_ring_vert_index_start + segment;
-      loops[loop_start + 1].e = next_ring_edge_index_start + segment;
+      loops[loop_start + 1].v = next_ring_vert_start + segment;
+      loops[loop_start + 1].e = next_ring_edge_start + segment;
 
-      loops[loop_start + 2].v = next_ring_vert_index_start + segment_next;
-      loops[loop_start + 2].e = ring_vertical_edge_index_start + segment_next;
+      loops[loop_start + 2].v = next_ring_vert_start + segment_next;
+      loops[loop_start + 2].e = ring_vertical_edge_start + segment_next;
 
-      loops[loop_start + 3].v = ring_vert_index_start + segment_next;
-      loops[loop_start + 3].e = ring_edge_index_start + segment;
+      loops[loop_start + 3].v = ring_vert_start + segment_next;
+      loops[loop_start + 3].e = ring_edge_start + segment;
     }
   }
 
   /* Add the triangles connected to the bottom vertex. */
-  const int bottom_loop_index_start = rings_loop_index_start + segments * (rings - 2) * 4;
+  const int bottom_loop_start = rings_loop_start + segments * (rings - 2) * 4;
   const int last_edge_ring_start = segments * (rings - 2) * 2 + segments;
   const int bottom_edge_fan_start = last_edge_ring_start + segments;
   const int last_vert_index = sphere_vert_total(segments, rings) - 1;
   const int last_vert_ring_start = last_vert_index - segments;
   for (const int segment : IndexRange(segments)) {
-    const int loop_start = bottom_loop_index_start + segment * 3;
+    const int loop_start = bottom_loop_start + segment * 3;
     const int segment_next = segment_next_or_first(segment);
 
     loops[loop_start + 0].v = last_vert_index;
@@ -275,12 +275,12 @@ BLI_NOINLINE static void calculate_sphere_uvs(Mesh *mesh, const float segments, 
     uvs[loop_start + 2] = float2((segment + 1.0f) * segments_inv, dy);
   }
 
-  const int rings_loop_index_start = segments * 3;
+  const int rings_loop_start = segments * 3;
   for (const int i_ring : IndexRange(1, rings - 2)) {
-    const int ring_loop_index_start = rings_loop_index_start + (i_ring - 1) * segments * 4;
+    const int ring_loop_start = rings_loop_start + (i_ring - 1) * segments * 4;
     const float ring = float(i_ring);
     for (const int i_segment : IndexRange(segments)) {
-      const int loop_start = ring_loop_index_start + i_segment * 4;
+      const int loop_start = ring_loop_start + i_segment * 4;
       const float segment = float(i_segment);
       uvs[loop_start + 0] = float2(segment * segments_inv, ring / rings);
       uvs[loop_start + 1] = float2(segment * segments_inv, (ring + 1.0f) / rings);
@@ -289,9 +289,9 @@ BLI_NOINLINE static void calculate_sphere_uvs(Mesh *mesh, const float segments, 
     }
   }
 
-  const int bottom_loop_index_start = rings_loop_index_start + segments * (rings - 2) * 4;
+  const int bottom_loop_start = rings_loop_start + segments * (rings - 2) * 4;
   for (const int i_segment : IndexRange(segments)) {
-    const int loop_start = bottom_loop_index_start + i_segment * 3;
+    const int loop_start = bottom_loop_start + i_segment * 3;
     const float segment = float(i_segment);
     uvs[loop_start + 0] = float2((segment + 0.5f) * segments_inv, 1.0f);
     uvs[loop_start + 1] = float2((segment + 1.0f) * segments_inv, 1.0f - dy);
