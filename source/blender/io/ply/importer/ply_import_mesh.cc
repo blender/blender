@@ -17,20 +17,23 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
   }
 
   // Add faces and edges to the mesh
-  mesh->totpoly = data.faces.size();
-  mesh->totloop = data.faces.size() * data.faces[0].size(); // TODO: Make this more dynamic using data.edges()
-  CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
-  CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
-  MutableSpan<MPoly> polys = mesh->polys_for_write();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
+  if (data.faces.size() > 0) {
+    mesh->totpoly = data.faces.size();
+    mesh->totloop = data.faces.size() *
+                    data.faces[0].size();  // TODO: Make this more dynamic using data.edges()
+    CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
+    CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
+    MutableSpan<MPoly> polys = mesh->polys_for_write();
+    MutableSpan<MLoop> loops = mesh->loops_for_write();
 
-  for (int i = 0; i < mesh->totpoly; i++) {
-    int size = data.faces[i].size();
-    polys[i].loopstart = size * i;
-    polys[i].totloop = size;
+    for (int i = 0; i < mesh->totpoly; i++) {
+      int size = data.faces[i].size();
+      polys[i].loopstart = size * i;
+      polys[i].totloop = size;
 
-    for (int j = 0; j < size; j++) {
-      loops[size * i + j].v = data.faces[i][j];
+      for (int j = 0; j < size; j++) {
+        loops[size * i + j].v = data.faces[i][j];
+      }
     }
   }
 
