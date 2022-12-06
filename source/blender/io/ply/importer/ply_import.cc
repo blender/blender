@@ -40,7 +40,7 @@ void ply_import_report_error(FILE *file)
   }
 }
 
-void splitstr(std::string str, std::vector<std::string> &words, std::string deli = " ")
+void splitstr(std::string str, std::vector<std::string> &words, std::string deli)
 {
   int pos = 0;
   int end = str.find(deli);
@@ -51,6 +51,34 @@ void splitstr(std::string str, std::vector<std::string> &words, std::string deli
   }
   // adds the final word to the vector
   words.push_back(str.substr());
+}
+
+enum PlyDataTypes from_string(std::string input) {
+  if (input == "uchar") {
+    return PlyDataTypes::UCHAR;
+  }
+  if (input == "char") {
+    return PlyDataTypes::CHAR;
+  }
+  if (input == "ushort") {
+    return PlyDataTypes::USHORT;
+  }
+  if (input == "short") {
+    return PlyDataTypes::SHORT;
+  }
+  if (input == "uint") {
+    return PlyDataTypes::UINT;
+  }
+  if (input == "int") {
+    return PlyDataTypes::INT;
+  }
+  if (input == "float") {
+    return PlyDataTypes::FLOAT;
+  }
+  if (input == "double") {
+    return PlyDataTypes::DOUBLE;
+  }
+  return PlyDataTypes::FLOAT;
 }
 
 void importer_main(bContext *C, const PLYImportParams &import_params)
@@ -107,36 +135,14 @@ void importer_main(Main *bmain,
       }
     }
     else if (strcmp(words[0].c_str(), "property") == 0) {
-      if (strcmp(words[1].c_str(), "list") == 0) { // TODO: Support list properties
+      if (strcmp(words[1].c_str(), "list") == 0) {
+        header.vertex_index_count_type = from_string(words[2]);
+        header.vertex_index_type = from_string(words[3]);
         continue;
       }
       std::pair<std::string, PlyDataTypes> property;
       property.first = words[2];
-
-      if (strcmp(words[1].c_str(), "uchar") == 0) {
-        property.second = PlyDataTypes::UCHAR;
-      }
-      else if (strcmp(words[1].c_str(), "char") == 0) {
-        property.second = PlyDataTypes::CHAR;
-      }
-      else if (strcmp(words[1].c_str(), "short") == 0) {
-        property.second = PlyDataTypes::SHORT;
-      }
-      else if (strcmp(words[1].c_str(), "ushort") == 0) {
-        property.second = PlyDataTypes::USHORT;
-      }
-      else if (strcmp(words[1].c_str(), "int") == 0) {
-        property.second = PlyDataTypes::UINT;
-      }
-      else if (strcmp(words[1].c_str(), "uint") == 0) {
-        property.second = PlyDataTypes::UINT;
-      }
-      else if (strcmp(words[1].c_str(), "float") == 0) {
-        property.second = PlyDataTypes::FLOAT;
-      }
-      else if (strcmp(words[1].c_str(), "double") == 0) {
-        property.second = PlyDataTypes::DOUBLE;
-      }
+      property.second = from_string(words[1]);
 
       header.properties.push_back(property);
     }
