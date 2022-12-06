@@ -51,7 +51,7 @@ static void assert_act_key_column(const ActKeyColumn *column,
                                   const std::optional<float> expected_frame)
 {
   if (expected_frame.has_value()) {
-    EXPECT_NE(column, nullptr);
+    ASSERT_NE(column, nullptr);
     EXPECT_NEAR(column->cfra, *expected_frame, KEYLIST_NEAR_ERROR);
   }
   else {
