@@ -29,11 +29,13 @@ set(SRC
     exporter/ply_export.cc
     importer/ply_import.cc
     importer/ply_import_big_endian.cc
+    importer/ply_import_mesh.cc
 
     IO_ply.h
     exporter/ply_export.hh
     importer/ply_import.hh
     importer/ply_import_big_endian.hh
+    importer/ply_import_mesh.hh
 
     intern/ply_data.hh
 )
