@@ -1124,16 +1124,6 @@ static PFace *p_face_add_fill(ParamHandle *handle, PChart *chart, PVert *v1, PVe
   return f;
 }
 
-static bool p_quad_split_direction(ParamHandle *handle, const float **co, const ParamKey *vkeys)
-{
-  /* Slight bias to prefer one edge over the other in case they are equal, so
-   * that in symmetric models we choose the same split direction instead of
-   * depending on floating point errors to decide. */
-  float bias = 1.0f + 1e-6f;
-  float fac = len_v3v3(co[0], co[2]) * bias - len_v3v3(co[1], co[3]);
-  return fac <= 0.0f;
-}
-
 /* Construction: boundary filling */
 
 static void p_chart_boundaries(PChart *chart, PEdge **r_outer)
@@ -3946,20 +3936,9 @@ void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
     }
     /* No "ears" have previously been inserted. Continue as normal. */
   }
-  if (nverts > 4) {
+  if (nverts > 3) {
     /* ngon */
     p_add_ngon(phandle, key, nverts, vkeys, co, uv, pin, select);
-  }
-  else if (nverts == 4) {
-    /* quad */
-    if (p_quad_split_direction(phandle, co, vkeys)) {
-      p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 2, pin, select);
-      p_face_add_construct(phandle, key, vkeys, co, uv, 0, 2, 3, pin, select);
-    }
-    else {
-      p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 3, pin, select);
-      p_face_add_construct(phandle, key, vkeys, co, uv, 1, 2, 3, pin, select);
-    }
   }
   else if (!p_face_exists(phandle, vkeys, 0, 1, 2)) {
     /* triangle */
