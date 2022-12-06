@@ -28,7 +28,6 @@ enum PlyFormatType { ASCII, BINARY_LE, BINARY_BE };
 
 struct PlyHeader {
   int vertex_count = 0, edge_count = 0, face_count = 0, header_size = 0;
-  bool isBigEndian;
   std::vector<std::pair<std::string, PlyDataTypes>> properties;
   PlyDataTypes vertex_index_count_type, vertex_index_type;
   PlyFormatType type;

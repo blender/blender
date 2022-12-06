@@ -30,14 +30,14 @@ template int32_t read<int32_t>(std::ifstream& file);
 template float read<float>(std::ifstream& file);
 template double read<double>(std::ifstream& file);
 
-float3 read_float3(std::ifstream &file, bool &isBingEndian){
+float3 read_float3(std::ifstream& file, bool isBigEndian){
   float3 currFloat3;
 
   for (int i = 0; i < 3; i++) {
     float temp;
     file.read((char *)&temp, sizeof(temp));
     check_file_errors(file);
-    if (isBingEndian) {
+    if (isBigEndian) {
       temp = swap_bits<float>(temp);
     }
     currFloat3[i] = temp;
@@ -114,11 +114,11 @@ PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)
     // switch (prop.second) {}
     for (auto prop : header->properties) {
       if (prop.first == "x") {
-        currFloat3 = read_float3(file, header->isBigEndian);
+        currFloat3 = read_float3(file, header->type == PlyFormatType::BINARY_BE);
       } else if (prop.first == "z") {
         data.vertices.append(currFloat3);
       } else if (prop.first == "nx") {
-        currFloat3 = read_float3(file, header->isBigEndian);
+        currFloat3 = read_float3(file, header->type == PlyFormatType::BINARY_BE);
       } else if (prop.first == "nz") {
         data.vertex_normals.append(currFloat3);
       } else if (prop.first == "red" && !hasAlpha) {

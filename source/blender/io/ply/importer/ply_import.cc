@@ -118,11 +118,9 @@ void importer_main(Main *bmain,
       }
       else if (strcmp(words[1].c_str(), "binary_big_endian") == 0) {
         header.type = PlyFormatType::BINARY_BE;
-        header.isBigEndian = true;
       }
       else if (strcmp(words[1].c_str(), "binary_little_endian") == 0) {
         header.type = PlyFormatType::BINARY_LE;
-        header.isBigEndian = false;
       }
     }
     else if (strcmp(words[0].c_str(), "element") == 0) {

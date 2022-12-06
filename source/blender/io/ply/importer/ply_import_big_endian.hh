@@ -22,7 +22,7 @@ Mesh *import_ply_big_endian(std::ifstream &file, PlyHeader *header, Mesh* mesh);
  */
 PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header);
 
-float3 read_float3(std::ifstream &file, bool* isBingEndian);
+float3 read_float3(std::ifstream &file, bool isBigEndian);
 
 uchar3 read_uchar3(std::ifstream& file);
 uchar4 read_uchar4(std::ifstream& file);
