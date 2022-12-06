@@ -43,5 +43,19 @@ class FileBufferBinary : public FileBuffer {
 
     write_bytes(data);
   }
+
+  void write_face(int size, Vector<int> vertices)
+  {
+    std::vector<char> data;
+    data.push_back((char)size);
+    for (auto &&vertexIndex : vertices)
+    {
+      uint32_t x = vertexIndex;
+      char *vtxbits = static_cast<char*>(static_cast<void*>(&x));
+      data.insert(data.end(), vtxbits, vtxbits + sizeof(uint32_t));
+    }
+
+    write_bytes(data);
+  }
 };
 }  // namespace blender::io::ply

@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include "BKE_context.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_context.h"
 
 #include "RNA_types.h"
 
@@ -20,7 +20,7 @@
 
 namespace blender::io::ply {
 
-void load_plydata(PlyData *plyData, bContext *C)
+void load_plydata(std::unique_ptr<PlyData> &plyData, bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -37,6 +37,18 @@ void load_plydata(PlyData *plyData, bContext *C)
     auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
     for (auto &&vertex : mesh->verts()) {
       plyData->vertices.append(vertex.co);
+    }
+
+    for (auto &&poly : mesh->polys()) {
+      // TODO: This seems a bit convoluted, try optimizing
+      auto loopVector = mesh->loops().slice(poly.loopstart, poly.totloop);
+      Vector<int> polyVector;
+      for (auto &&loop : loopVector)
+      {
+        polyVector.append(loop.v);
+      }
+
+      plyData->faces.append(polyVector);
     }
   }
 

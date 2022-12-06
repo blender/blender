@@ -48,31 +48,45 @@ void exporter_main(Main *bmain,
                    const PLYExportParams &export_params)
 {
   // Load bmesh data into PlyData struct
-  PlyData *plyData = new PlyData();
+  std::unique_ptr<PlyData> plyData(new PlyData());
   load_plydata(plyData, C);
 
   // Create file, get writer
-  FileBuffer *buffer = nullptr;
+  std::unique_ptr<FileBuffer> buffer;
 
   if (export_params.ascii_format) {
-    buffer = new FileBufferAscii(export_params.filepath);
+    buffer = std::make_unique<FileBufferAscii>(export_params.filepath);
   }
   else {
-    buffer = new FileBufferBinary(export_params.filepath);
+    buffer = std::make_unique<FileBufferBinary>(export_params.filepath);
   }
 
   // Generate and write header
-  generate_header(*buffer, *plyData, export_params);
+  generate_header(buffer, plyData, export_params);
 
   // Generate and write vertices
+  export_vertices(buffer, plyData, export_params);
+
+  // Generate and write faces
+  export_faces(buffer, plyData, export_params);
+
+  // CLean up
+  buffer->close_file();
+}
+
+void export_vertices(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData, const PLYExportParams export_params)
+{
   for (auto &&vertex : plyData->vertices) {
     buffer->write_vertex(vertex.x, vertex.y, vertex.z);
   }
   buffer->write_to_file();
+}
 
-  // CLean up
-  buffer->close_file();
-  delete buffer;
-  delete plyData;
+void export_faces(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData, const PLYExportParams export_params)
+{
+  for (auto &&face : plyData->faces) {
+    buffer->write_face(face.size(), face);
+  }
+  buffer->write_to_file();
 }
 }  // namespace blender::io::ply

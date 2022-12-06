@@ -15,6 +15,7 @@
 #include "BLI_fileops.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
+#include "BLI_vector.hh"
 
 /* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */
 #undef SEP
@@ -94,6 +95,8 @@ class FileBuffer : NonMovable {
 
   virtual void write_vertex_color(float x, float y, float z, float r, float g, float b) {}
 
+  virtual void write_face(int count, Vector<int> vertices) {}
+
   void write_header_element(StringRef name, int count)
   {
     write_fstring("element {} {}\n", name, count);
@@ -101,6 +104,11 @@ class FileBuffer : NonMovable {
   void write_header_scalar_property(StringRef dataType, StringRef name)
   {
     write_fstring("property {} {}\n", dataType, name);
+  }
+
+  void write_header_list_property(StringRef countType, StringRef dataType, StringRef name)
+  {
+    write_fstring("property list {} {} {}\n", countType, dataType, name);
   }
 
   void write_string(StringRef s)

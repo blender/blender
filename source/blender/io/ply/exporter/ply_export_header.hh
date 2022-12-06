@@ -12,6 +12,8 @@
 
 namespace blender::io::ply {
 
-void generate_header(FileBuffer &FB, const PlyData &plyData, const PLYExportParams &export_params);
+void generate_header(std::unique_ptr<FileBuffer> &buffer,
+                     std::unique_ptr<PlyData> &plyData,
+                     const PLYExportParams &export_params);
 
 }  // namespace blender::io::ply

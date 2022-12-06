@@ -13,19 +13,23 @@
 
 namespace blender::io::ply {
 
-void generate_header(FileBuffer &FB, const PlyData &plyData, const PLYExportParams &export_params)
+void generate_header(std::unique_ptr<FileBuffer> &buffer,
+                     std::unique_ptr<PlyData> &plyData,
+                     const PLYExportParams &export_params)
 {
-  FB.write_string("ply");
+  buffer->write_string("ply");
   StringRef format = export_params.ascii_format ? "ascii" : "binary_little_endian";
-  FB.write_string("format " + format + " 1.0");
+  buffer->write_string("format " + format + " 1.0");
   StringRef version = BKE_blender_version_string();
-  FB.write_string("comment Created in Blender version " + version);
-  FB.write_header_element("vertex", plyData.vertices.size());
-  FB.write_header_scalar_property("float", "x");
-  FB.write_header_scalar_property("float", "y");
-  FB.write_header_scalar_property("float", "z");
-  FB.write_string("end_header");
-  FB.write_to_file();
+  buffer->write_string("comment Created in Blender version " + version);
+  buffer->write_header_element("vertex", plyData->vertices.size());
+  buffer->write_header_scalar_property("float", "x");
+  buffer->write_header_scalar_property("float", "y");
+  buffer->write_header_scalar_property("float", "z");
+  buffer->write_header_element("face", plyData->faces.size());
+  buffer->write_header_list_property("uchar", "uint", "vertex_indices");
+  buffer->write_string("end_header");
+  buffer->write_to_file();
 }
 
 }  // namespace blender::io::ply

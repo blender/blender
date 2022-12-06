@@ -15,6 +15,7 @@
 #include "BLI_fileops.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
+#include "BLI_vector.hh"
 #include "ply_file_buffer.hh"
 
 /* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */
@@ -33,6 +34,17 @@ class FileBufferAscii : public FileBuffer {
   void write_vertex(float x, float y, float z)
   {
     write_fstring("{} {} {}\n", x, y, z);
+  }
+
+  void write_face(int count, Vector<int> vertices)
+  {
+    // fmt::memory_buffer buf;
+    // for (auto &&vtx : vertices)
+    // {
+    //   fmt::format_to(fmt::appender(buf), "{} ", vtx);
+    // }
+
+    // write_fstring("{} {}", count, vertices);
   }
 };
 }  // namespace blender::io::ply
