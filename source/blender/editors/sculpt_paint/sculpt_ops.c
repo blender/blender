@@ -909,13 +909,15 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
     v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
   }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
-
   /* Color data is not available in multi-resolution or dynamic topology. */
   if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
+  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
   SCULPT_vertex_random_access_ensure(ss);
 
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
