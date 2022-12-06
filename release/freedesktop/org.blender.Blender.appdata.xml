@@ -40,6 +40,25 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="3.4" date="2022-12-07">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Cycles Path Guiding</li>
+                    <li>Sculpt geometry-based relax brush</li>
+                    <li>Viewport overlay for Geometry Nodes Viewer Node</li>
+                    <li>EEVEE headless rendering support on Linux</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Many new Geometry Nodes for meshes, curves and more</li>
+                    <li>NLA editor usability improvements</li>
+                    <li>FFmpeg AV1 codec encoding</li>
+                    <li>Improved font thumbnails</li>
+                    <li>Blender as a Python Module</li>
+                </ul>
+            </description>
+        </release>
         <release version="3.3" date="2022-09-07">
             <description>
                 <p>New features:</p>
