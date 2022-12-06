@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_boxpack_2d.h"
 #include "BLI_convexhull_2d.h"
 #include "BLI_ghash.h"
@@ -16,6 +17,7 @@
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_rand.h"
+#include "BLI_vector.hh"
 
 #include "eigen_capi.h"
 
@@ -1129,23 +1131,7 @@ static bool p_quad_split_direction(ParamHandle *handle, const float **co, const 
    * depending on floating point errors to decide. */
   float bias = 1.0f + 1e-6f;
   float fac = len_v3v3(co[0], co[2]) * bias - len_v3v3(co[1], co[3]);
-  bool dir = (fac <= 0.0f);
-
-  /* The face exists check is there because of a special case:
-   * when two quads share three vertices, they can each be split into two triangles,
-   * resulting in two identical triangles. For example in Suzanne's nose. */
-  if (dir) {
-    if (p_face_exists(handle, vkeys, 0, 1, 2) || p_face_exists(handle, vkeys, 0, 2, 3)) {
-      return !dir;
-    }
-  }
-  else {
-    if (p_face_exists(handle, vkeys, 0, 1, 3) || p_face_exists(handle, vkeys, 1, 2, 3)) {
-      return !dir;
-    }
-  }
-
-  return dir;
+  return fac <= 0.0f;
 }
 
 /* Construction: boundary filling */
@@ -3895,6 +3881,71 @@ void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
   BLI_assert(nverts >= 3);
   param_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
 
+  if (nverts > 3) {
+    /* Protect against (manifold) geometry which has a non-manifold triangulation.
+     * See T102543. */
+
+    blender::Vector<int, 32> permute;
+    permute.reserve(nverts);
+    for (int i = 0; i < nverts; i++) {
+      permute.append_unchecked(i);
+    }
+
+    int i = nverts - 1;
+    while (i >= 0) {
+      /* Just check the "ears" of the n-gon.
+       * For quads, this is sufficient.
+       * For pents and higher, we might miss internal duplicate triangles, but note
+       * that such cases are rare if the source geometry is manifold and non-intersecting. */
+      int pm = permute.size();
+      BLI_assert(pm > 3);
+      int i0 = permute[i];
+      int i1 = permute[(i + 1) % pm];
+      int i2 = permute[(i + 2) % pm];
+      if (!p_face_exists(phandle, vkeys, i0, i1, i2)) {
+        i--; /* ...All good...*/
+        continue;
+      }
+
+      /* An existing triangle has already been inserted. As a heuristic, attempt to add the
+       * *previous* triangle. \note: Should probably call `GEO_uv_parametrizer_face_add` instead of
+       * `p_face_add_construct`. */
+      int iprev = permute[(i + pm - 1) % pm];
+      p_face_add_construct(phandle, key, vkeys, co, uv, iprev, i0, i1, pin, select);
+
+      permute.remove(i);
+      if (permute.size() == 3) {
+        break;
+      }
+    }
+    if (permute.size() != nverts) {
+      int pm = permute.size();
+      /* Add the remaining pm-gon. */
+      blender::Array<ParamKey> vkeys_sub(pm);
+      blender::Array<const float *> co_sub(pm);
+      blender::Array<float *> uv_sub(pm);
+      blender::Array<bool> pin_sub(pm);
+      blender::Array<bool> select_sub(pm);
+      for (int i = 0; i < pm; i++) {
+        int j = permute[i];
+        vkeys_sub[i] = vkeys[j];
+        co_sub[i] = co[j];
+        uv_sub[i] = uv[j];
+        pin_sub[i] = pin && pin[j];
+        select_sub[i] = select && select[j];
+      }
+      p_add_ngon(phandle,
+                 key,
+                 pm,
+                 &vkeys_sub.first(),
+                 &co_sub.first(),
+                 &uv_sub.first(),
+                 &pin_sub.first(),
+                 &select_sub.first());
+      return; /* Nothing more to do. */
+    }
+    /* No "ears" have previously been inserted. Continue as normal. */
+  }
   if (nverts > 4) {
     /* ngon */
     p_add_ngon(phandle, key, nverts, vkeys, co, uv, pin, select);
