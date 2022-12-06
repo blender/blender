@@ -14,6 +14,23 @@ Mesh *import_ply_big_endian(std::ifstream &file, PlyHeader *header, Mesh* mesh)
   return nullptr;
 }
 
+template<typename T> T read(std::ifstream& file) {
+  T returnVal;
+  file.read((char *)&returnVal, sizeof(returnVal));
+  check_file_errors(file);
+  returnVal = swap_bits<T>(returnVal);
+  return returnVal;
+}
+
+template uint8_t read<uint8_t>(std::ifstream& file);
+template int8_t read<int8_t>(std::ifstream& file);
+template uint16_t read<uint16_t>(std::ifstream& file);
+template int16_t read<int16_t>(std::ifstream& file);
+template uint32_t read<uint32_t>(std::ifstream& file);
+template int32_t read<int32_t>(std::ifstream& file);
+template float read<float>(std::ifstream& file);
+template double read<double>(std::ifstream& file);
+
 float3 read_float3(std::ifstream &file) {
   float3 currFloat3;
 
@@ -88,10 +105,12 @@ PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)
 
   std::pair<std::string, PlyDataTypes> alpha = {"alpha", PlyDataTypes::UCHAR};
   bool hasAlpha = std::find(header->properties.begin(), header->properties.end(), alpha) != header->properties.end();
+  std::cout << "Has alpha: " << hasAlpha << std::endl;
   for (int i = 0; i < header->vertex_count; i++) {
     float3 currFloat3;
     float4 currFloat4;
 
+    // switch (prop.second) {}
     for (auto prop : header->properties) {
       if (prop.first == "x") {
         currFloat3 = read_float3(file);
@@ -109,6 +128,36 @@ PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)
         data.vertex_colors.append(float4(currFloat3.x, currFloat3.y, currFloat3.z, 1.0f));
       } else if (prop.first == "alpha") {
         data.vertex_colors.append(currFloat4);
+      } else if (prop.first == "y" || prop.first == "ny" || prop.first == "green" || (prop.first == "blue" && hasAlpha)){
+        continue;
+      } else {
+        // We don't support any other properties yet
+        switch (prop.second) {
+          case CHAR:
+            read<int8_t>(file);
+            break;
+          case UCHAR:
+            read<uint8_t>(file);
+            break;
+          case SHORT:
+            read<int16_t>(file);
+            break;
+          case USHORT:
+            read<uint16_t>(file);
+            break;
+          case INT:
+            read<int32_t>(file);
+            break;
+          case UINT:
+            read<uint32_t>(file);
+            break;
+          case FLOAT:
+            read<float>(file);
+            break;
+          case DOUBLE:
+            read<double>(file);
+            break;
+        }
       }
     }
   }

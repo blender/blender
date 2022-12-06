@@ -31,7 +31,7 @@ namespace blender::io::ply {
 
 void ply_import_report_error(FILE *file)
 {
-  fprintf(stderr, "STL Importer: failed to read file");
+  fprintf(stderr, "PLY Importer: failed to read file");
   if (feof(file)) {
     fprintf(stderr, ", end of file reached.\n");
   }

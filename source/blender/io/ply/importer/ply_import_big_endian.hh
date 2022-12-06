@@ -55,7 +55,20 @@ template<typename T> T swap_bits(T input)
     T value = *(T *)&output;
     return value;  // Reinterpret the bytes of output as a T value
   }
+
+  if (sizeof(T) == 8) {
+    uint64_t newInput = *(uint64_t *)&input;  // Cursed pointer magic
+    uint64_t output = 0;
+    for (int i = 0; i < 8; i++) {
+      output |= ((newInput >> i * 8) & 0xFF) << (56 - i * 8);
+    }
+    T value = *(T *)&output;
+    return value;  // Reinterpret the bytes of output as a T value
+  }
 }
+
+template<typename T> T read(std::ifstream& file);
+
 }  // namespace blender::io::ply
 
 #endif  // BLENDER_PLY_IMPORT_BIG_ENDIAN_HH
