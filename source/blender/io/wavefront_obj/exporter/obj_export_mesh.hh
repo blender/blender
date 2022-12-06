@@ -35,11 +35,15 @@ class OBJMesh : NonCopyable {
    * sometimes builds an Object in a temporary space that doesn't persist.
    */
   Object export_object_eval_;
-  Mesh *export_mesh_eval_;
-  /**
-   * For curves which are converted to mesh, and triangulated meshes, a new mesh is allocated.
-   */
-  bool mesh_eval_needs_free_ = false;
+  /** A pointer to #owned_export_mesh_ or the object'ed evaluated/original mesh. */
+  const Mesh *export_mesh_;
+  /** A mesh owned here, if created or modified for the export. May be null. */
+  Mesh *owned_export_mesh_ = nullptr;
+  Span<MVert> mesh_verts_;
+  Span<MEdge> mesh_edges_;
+  Span<MPoly> mesh_polys_;
+  Span<MLoop> mesh_loops_;
+
   /**
    * Final transform of an object obtained from export settings (up_axis, forward_axis) and the
    * object's world transform matrix.
@@ -216,23 +220,19 @@ class OBJMesh : NonCopyable {
     return i < 0 || i >= poly_order_.size() ? i : poly_order_[i];
   }
 
-  Mesh *get_mesh() const
+  const Mesh *get_mesh() const
   {
-    return export_mesh_eval_;
+    return export_mesh_;
   }
 
  private:
+  /** Override the mesh from the export scene's object. Takes ownership of the mesh. */
+  void set_mesh(Mesh *mesh);
   /**
-   * Free the mesh if _the exporter_ created it.
+   * Triangulate the mesh pointed to by this object, potentially replacing it with a newly created
+   * mesh.
    */
-  void free_mesh_if_needed();
-  /**
-   * Allocate a new Mesh with triangulated polygons.
-   *
-   * The returned mesh can be the same as the old one.
-   * \return Owning pointer to the new Mesh, and whether a new Mesh was created.
-   */
-  std::pair<Mesh *, bool> triangulate_mesh_eval();
+  void triangulate_mesh_eval();
   /**
    * Set the final transform after applying axes settings and an Object's world transform.
    */
