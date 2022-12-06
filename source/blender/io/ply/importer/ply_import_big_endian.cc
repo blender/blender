@@ -20,13 +20,7 @@ float3 read_float3(std::ifstream &file) {
   for (int i = 0; i < 3; i++) {
     float temp;
     file.read((char *)&temp, sizeof(temp));
-    if (file.bad()) {
-      printf("Read/Write error on io operation\n");
-    } else if (file.fail()) {
-      printf("Logical error on io operation\n");
-    } else if (file.eof()) {
-      printf("Reached end of the file\n");
-    }
+    check_file_errors(file);
     temp = swap_bits<float>(temp);
     currFloat3[i] = temp;
   }
@@ -40,13 +34,7 @@ uchar3 read_uchar3(std::ifstream& file) {
   for (int i = 0; i < 3; i++) {
     uchar temp;
     file.read((char*)&temp, sizeof(temp));
-    if (file.bad()) {
-      printf("Read/Write error on io operation");
-    } else if (file.fail()) {
-      printf("Logical error on io operation");
-    } else if (file.eof()) {
-      printf("Reached end of the file");
-    }
+    check_file_errors(file);
     // No swapping of bytes necessary as uchar is only 1 byte
     currUchar3[i] = temp;
   }
@@ -60,13 +48,7 @@ uchar4 read_uchar4(std::ifstream& file) {
   for (int i = 0; i < 4; i++) {
     uchar temp;
     file.read((char*)&temp, sizeof(temp));
-    if (file.bad()) {
-      printf("Read/Write error on io operation");
-    } else if (file.fail()) {
-      printf("Logical error on io operation");
-    } else if (file.eof()) {
-      printf("Reached end of the file");
-    }
+    check_file_errors(file);
     // No swapping of bytes necessary as uchar is only 1 byte
     currUchar4[i] = temp;
   }
@@ -88,6 +70,16 @@ float4 convert_uchar4_float4(uchar4 input)
     returnVal[i] = input[i] / 255.0f;
   }
   return returnVal;
+}
+
+void check_file_errors(std::ifstream& file) {
+  if (file.bad()) {
+    printf("Read/Write error on io operation");
+  } else if (file.fail()) {
+    printf("Logical error on io operation");
+  } else if (file.eof()) {
+    printf("Reached end of the file");
+  }
 }
 
 PlyData load_ply_big_endian(std::ifstream &file, PlyHeader *header)

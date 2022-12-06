@@ -29,6 +29,7 @@ uchar4 read_uchar4(std::ifstream& file);
 
 float3 convert_uchar3_float3(uchar3);
 float4 convert_uchar4_float4(uchar4);
+void check_file_errors(std::ifstream& file);
 
 template<typename T> T swap_bits(T input)
 {
