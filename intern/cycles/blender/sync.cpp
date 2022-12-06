@@ -347,7 +347,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
     integrator->set_motion_blur(view_layer.use_motion_blur);
   }
 
-  bool use_light_tree = false;  // get_boolean(cscene, "use_light_tree");
+  bool use_light_tree = get_boolean(cscene, "use_light_tree");
   integrator->set_use_light_tree(use_light_tree);
   integrator->set_light_sampling_threshold(
       (use_light_tree) ? 0.0f : get_float(cscene, "light_sampling_threshold"));
