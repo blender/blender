@@ -157,7 +157,8 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
   AssetLibrary &all_library = *all_library_;
   auto build_catalogs_fn = [&all_library](const bool is_first_load) {
     /* Start with empty catalog storage. */
-    all_library.catalog_service = std::make_unique<AssetCatalogService>();
+    all_library.catalog_service = std::make_unique<AssetCatalogService>(
+        AssetCatalogService::read_only_tag());
 
     /* (Re-)load catalogs on refresh. */
     AssetLibrary::foreach_loaded(

@@ -44,6 +44,11 @@ AssetCatalogService::AssetCatalogService()
 {
 }
 
+AssetCatalogService::AssetCatalogService(read_only_tag) : AssetCatalogService()
+{
+  const_cast<bool &>(is_read_only_) = true;
+}
+
 AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_root)
     : AssetCatalogService()
 {
@@ -52,6 +57,8 @@ AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_ro
 
 void AssetCatalogService::tag_has_unsaved_changes(AssetCatalog *edited_catalog)
 {
+  BLI_assert(!is_read_only_);
+
   if (edited_catalog) {
     edited_catalog->flags.has_unsaved_changes = true;
   }
@@ -84,6 +91,11 @@ bool AssetCatalogService::has_unsaved_changes() const
 {
   BLI_assert(catalog_collection_);
   return catalog_collection_->has_unsaved_changes_;
+}
+
+bool AssetCatalogService::is_read_only() const
+{
+  return is_read_only_;
 }
 
 void AssetCatalogService::tag_all_catalogs_as_unsaved_changes()
@@ -458,6 +470,8 @@ bool AssetCatalogService::is_catalog_known_with_unsaved_changes(const CatalogID 
 
 bool AssetCatalogService::write_to_disk(const CatalogFilePath &blend_file_path)
 {
+  BLI_assert(!is_read_only_);
+
   if (!write_to_disk_ex(blend_file_path)) {
     return false;
   }
@@ -631,6 +645,7 @@ void AssetCatalogService::undo()
 
 void AssetCatalogService::redo()
 {
+  BLI_assert(!is_read_only_);
   BLI_assert_msg(is_redo_possbile(), "Redo stack is empty");
 
   undo_snapshots_.append(std::move(catalog_collection_));
@@ -640,6 +655,7 @@ void AssetCatalogService::redo()
 
 void AssetCatalogService::undo_push()
 {
+  BLI_assert(!is_read_only_);
   std::unique_ptr<AssetCatalogCollection> snapshot = catalog_collection_->deep_copy();
   undo_snapshots_.append(std::move(snapshot));
   redo_snapshots_.clear();

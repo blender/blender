@@ -45,11 +45,17 @@ class AssetCatalogService {
   Vector<std::unique_ptr<AssetCatalogCollection>> undo_snapshots_;
   Vector<std::unique_ptr<AssetCatalogCollection>> redo_snapshots_;
 
+  const bool is_read_only_ = false;
+
  public:
   static const CatalogFilePath DEFAULT_CATALOG_FILENAME;
 
+  struct read_only_tag {
+  };
+
  public:
   AssetCatalogService();
+  explicit AssetCatalogService(read_only_tag);
   explicit AssetCatalogService(const CatalogFilePath &asset_library_root);
 
   /**
@@ -61,6 +67,13 @@ class AssetCatalogService {
    * from disk. Any catalog with unsaved changes will not be overwritten by on-disk changes. */
   void tag_has_unsaved_changes(AssetCatalog *edited_catalog);
   bool has_unsaved_changes() const;
+
+  /**
+   * Check if this is a read-only service meaning the user shouldn't be able to do edits. This is
+   * not enforced by internal catalog code, the catalog service user is responsible for it. For
+   * example the UI should disallow edits.
+   */
+  bool is_read_only() const;
 
   /** Load asset catalog definitions from the files found in the asset library. */
   void load_from_disk();
