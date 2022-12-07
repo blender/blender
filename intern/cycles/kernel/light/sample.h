@@ -522,7 +522,7 @@ ccl_device_inline bool light_sample_new_position(KernelGlobals kg,
     else
 #endif
     {
-      /* Handled in triangle_light_sample for effeciency. */
+      /* Handled in triangle_light_sample for efficiency. */
     }
     return true;
   }
