@@ -84,7 +84,7 @@ class InputHolder {
     input.face = spec_arrays_.face.as_span();
     input.contour = spec_arrays_.contour.as_span();
     input.inset_amount = amount;
-    input.slope = 0.0f;
+    input.slope = 0.5f;
     input.need_ids = false;
   }
 };

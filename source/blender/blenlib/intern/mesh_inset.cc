@@ -164,7 +164,8 @@ class Triangle {
     TSPOKE0 = 1 << 3,
     TSPOKE1 = 1 << 4,
     TSPOKE2 = 1 << 5,
-    /* TORIGi means the ith edge is an edge that was in the incoming mesh (before triangulation). */
+    /* TORIGi means the ith edge is an edge that was in the incoming mesh (before triangulation).
+     */
     TORIG0 = 1 << 6,
     TORIG1 = 1 << 7,
     TORIG2 = 1 << 8,
@@ -322,7 +323,7 @@ class Triangle {
 
 void Triangle::calculate_normal()
 {
-  BLI_assert(!this->is_ghost());
+  BLI_assert(!this->is_ghost() && !this->is_deleted());
   float3 v0v1 = vert_[1]->co - vert_[0]->co;
   float3 v0v2 = vert_[2]->co - vert_[0]->co;
   normal_ = math::normalize(math::cross_high_precision(v0v1, v0v2));
@@ -332,7 +333,7 @@ void Triangle::calculate_normal()
 /* For use when we may not have calculated tri->normal_ (mostly for debugging). */
 static float3 triangle_normal(const Triangle *tri)
 {
-  if (tri->is_ghost()) {
+  if (tri->is_ghost() || tri->is_deleted()) {
     return float3(0.0f, 0.0f, 0.0f);
   }
   BLI_assert(!tri->is_ghost());
@@ -443,12 +444,14 @@ static Vector<Triangle *> triangles_of_vert(const Vert *v)
  */
 static float3 vertex_normal(const Vert *vert)
 {
+  BLI_assert(!vert->is_deleted());
   float3 ans{0.0f, 0.0f, 0.0f};
   Edge e0 = vert->e;
   BLI_assert(!e0.is_null());
   Edge ecur = e0;
   do {
     Triangle *tri = ecur.tri();
+    BLI_assert(!tri->is_deleted());
     if (!tri->is_ghost()) {
       Edge eprev = ecur.triangle_pred();
       float3 din = math::normalize(vert->co - v_src(eprev)->co);
@@ -548,6 +551,14 @@ class TriangleMesh {
    */
   Vert *collapse_triangle(Triangle *tri, int pos);
 
+  /** Delete \a tri, which should have a repeated vertex and therefore is degenerate.
+   * This means merging the two non-degenerate sides, which means properly setting
+   * the neighbor relations across the new single edge.
+   * Also, if any vertex was using an edge in \a tri for its representative, then a
+   * new representaative must be found.
+   */
+  Edge delete_degenerate_triangle(Triangle *tri);
+
   Span<Vert *> all_verts() const
   {
     return verts_.as_span();
@@ -560,6 +571,8 @@ class TriangleMesh {
   }
 
   void calculate_all_tri_normals();
+
+  void validate();
 
   friend std::ostream &operator<<(std::ostream &os, const TriangleMesh &trimesh);
 };
@@ -626,6 +639,9 @@ std::ostream &operator<<(std::ostream &os, const Triangle &tri)
     if (tri.is_orig(i)) {
       os << " o" << i;
     }
+  }
+  if (tri.is_deleted()) {
+    os << " deleted";
   }
   return os;
 }
@@ -798,7 +814,7 @@ static void trimesh_draw(const std::string &label, const TriangleMesh &trimesh)
 void TriangleMesh::calculate_all_tri_normals()
 {
   for (Triangle *tri : triangles_) {
-    if (!tri->is_ghost()) {
+    if (!tri->is_ghost() && !tri->is_deleted()) {
       tri->calculate_normal();
     }
   }
@@ -913,6 +929,62 @@ Vert *TriangleMesh::split_vert(Vert *v, Edge e1, Edge e2)
   return v_new;
 }
 
+/** Find and set a `v->e` that is not part of Triangle `tri`. */
+static void set_rep_excluding(Vert *v, const Triangle *tri)
+{
+  Edge e0 = v->e;
+  Edge ecur = e0;
+  do {
+    /* It is possible that, triangles around v may be deleted as we are in the process of deleting
+     * v. */
+    if (ecur.tri() != tri && !ecur.tri()->is_deleted()) {
+      v->e = ecur;
+      return;
+    }
+    ecur = rot_ccw(ecur);
+  } while (ecur != e0);
+  BLI_assert_unreachable();
+}
+
+/** Delete \a tri, which should have a repeated vertex and therefore is degenerate.
+ * This means merging the two non-degenerate sides, which means properly setting
+ * the neighbor relations across the new single edge.
+ * Also, if any vertex was using an edge in \a tri for its representative, then a
+ * new representaative must be found.
+ * Return one of the edges that represents the merged non-degenerate edges.
+ */
+Edge TriangleMesh::delete_degenerate_triangle(Triangle *tri)
+{
+  /* Find positions of non-degenerate edges. */
+  Vector<int> good_edges;
+  for (int i = 0; i < 3; ++i) {
+    if (tri->vert(i) != tri->vert(succ_index(i))) {
+      good_edges.append(i);
+    }
+  }
+  BLI_assert(good_edges.size() == 2);
+  const int p0 = good_edges[0];
+  const int p1 = good_edges[1];
+  Edge en_0 = tri->neighbor(p0);
+  Edge en_1 = tri->neighbor(p1);
+  if (tri->is_spoke(p0) || tri->is_spoke(p1)) {
+    en_0.tri()->mark_spoke(en_0.tri_edge_index());
+    en_1.tri()->mark_spoke(en_1.tri_edge_index());
+  }
+  BLI_assert(en_0.tri() != en_1.tri());
+  set_mutual_neighbors(en_0.tri(), en_0.tri_edge_index(), en_1.tri(), en_1.tri_edge_index());
+  Vert *v0 = tri->vert(p0);
+  Vert *v1 = tri->vert(p1);
+  if (v0->e.tri() == tri) {
+    set_rep_excluding(v0, tri);
+  }
+  if (v1->e.tri() == tri) {
+    set_rep_excluding(v1, tri);
+  }
+  tri->mark_deleted();
+  return en_0;
+}
+
 /* Collapse the edge \a e to the single vertex at its source end.
  * This will delete the trriangle that \a e is part of, and also the vertex
  * at the destination end of \a e, and will fix the affected neighbor relations.
@@ -963,71 +1035,85 @@ Vert *TriangleMesh::split_vert(Vert *v, Edge e1, Edge e2)
  *              -/           |          \-
  *             --------------|-------------
  *
+ * It is even possible that t0 == t1 or t0 == t2 but not both. If t0 == t1, we the result is:
+ *
+ *                    -            -
+ *                  -- \-        -/ -\
+ *                -/     \-    -/     -\
+ *              -/  t2a    \  /  t0b    -
+ *              ------------ |------------
+ *               \           |          /|
+ *              | -\    t2   |  t0a    /-
+ *              |   -\       |      /-
+ *              |     -\   e'|    /-
+ *              |  t2b  -\   |  /-
+ *              |         -\v0/-
+ *              |-------------
+ *
+ * and if t0 == t2 it is like this:
+ *
+ *                                 -
+ *                               -/ -\
+ *                             -/     -\
+ *                            /  t1b    -
+ *              ------------ |------------
+ *               \           |          /|
+ *                -\    t2a  |  t1    /- |
+ *                  -\       |      /-   |
+ *                    -\   e'|    /-     |
+ *                      -\   |  /-  t1a  |
+ *                        -\v0/-         |
+ *                          --------------
+ *                     --/   |  \--
+ *                   -/      |     \-
+ *                --/    t0a |  t0b  \--
+ *              -/           |          \-
+ *             --------------|-------------
+ *
  */
 Edge TriangleMesh::collapse_edge(Edge e)
 {
-  Triangle *t = e.tri();
-  int epos = e.tri_edge_index();
+  Triangle *t_a = e.tri();
   Vert *v0 = v_src(e);
   Vert *v1 = v_dst(e);
-  Edge e_t0 = neighbor_edge(e);
-  Edge e_t1 = neighbor_edge(Edge(t, succ_index(epos)));
-  Edge e_t2 = neighbor_edge(Edge(t, pred_index(epos)));
-  Triangle *t0 = e_t0.tri();
-  Triangle *t2 = e_t2.tri();
-  Edge e_t0a = neighbor_edge(e_t0.triangle_succ());
-  Edge e_t0b = neighbor_edge(e_t0.triangle_pred());
-  Triangle *t0a = e_t0a.tri();
-  bool t1t2_spoke = e_t1.tri()->is_spoke(e_t1.tri_edge_index()) ||
-                    e_t2.tri()->is_spoke(e_t2.tri_edge_index());
-  bool t0at0b_spoke = e_t0a.tri()->is_spoke(e_t0a.tri_edge_index()) ||
-                      e_t0b.tri()->is_spoke(e_t0b.tri_edge_index());
-
-  /* If v0 has e as representative edge, it will have to get a new one.
-   * Similarly if v2 has an edge in t as representative edge, it will have to get a new one.
-   * Similarly if the third vertex of t0 (v3) has a representative edge in t0, it needs a new one.
-   */
-  Vert *v2 = v_src(e.triangle_succ().triangle_succ());
-  Vert *v3 = v_src(e_t0.triangle_pred());
-  if (v0->e.tri() == t) {
-    v0->e = e_t2;
-    BLI_assert(v_src(v0->e) == v0);
-  }
-  if (v2->e.tri() == t) {
-    v2->e = rot_ccw(e_t1);
-    BLI_assert(v_src(v2->e) == v2);
-  }
-  if (v3->e.tri() == t0) {
-    v3->e = neighbor_edge(e_t0.triangle_succ());
-    BLI_assert(v_src(v3->e) == v3);
-  }
-  /* Change v1 to v0 in affected triangles.
-   * If any triangle has v1 as a representative vertex, it needs a new one.
-   */
-  Edge e_fix = e_t0b;
-  Edge e_fix_done = e.triangle_succ();
+  /* Gather triangles around `v1` that will get `v1` changed to `v0`. */
+  Vector<Triangle *> v1_tris;
+  Edge ecur = v1->e;
   do {
-    BLI_assert(v_src(e_fix) == v1);
-    Triangle *tri_fix = e_fix.tri();
-    tri_fix->set_vert(e_fix.tri_edge_index(), v0);
-    tri_fix->calculate_normal();
-    Edge e_fix_next = rot_ccw(e_fix);
-    e_fix = e_fix_next;
-  } while (e_fix != e_fix_done);
-
-  /* Fix up neighbor relations, spokes, and delete things. */
-  set_mutual_neighbors(t0a, e_t0a.tri_edge_index(), e_t0b);
-  set_mutual_neighbors(t2, e_t2.tri_edge_index(), e_t1);
-  if (t1t2_spoke) {
-    e_t1.tri()->mark_spoke(e_t1.tri_edge_index());
-  }
-  if (t0at0b_spoke) {
-    e_t0a.tri()->mark_spoke(e_t0a.tri_edge_index());
+    Triangle *t = ecur.tri();
+    BLI_assert(!t->is_ghost() && !t->is_deleted());
+    v1_tris.append(t);
+    ecur = rot_ccw(ecur);
+  } while (ecur != v1->e);
+  /* For each triangle in `v1_tris`, replace `v1` by `v0` then eliminate if now there are two
+   * `v0`s. */
+  Edge e_ans = null_edge;
+  for (Triangle *t : v1_tris) {
+    int v0_count = 0;
+    for (int i = 0; i < 3; ++i) {
+      Vert *v = t->vert(i);
+      if (v == v1) {
+        t->set_vert(i, v0);
+        v0_count++;
+      }
+      else if (v == v0) {
+        v0_count++;
+      }
+    }
+    if (v0_count > 1) {
+      Edge enew = delete_degenerate_triangle(t);
+      if (t == t_a) {
+        e_ans = enew;
+      }
+    }
   }
   v1->mark_deleted();
-  t->mark_deleted();
-  t0->mark_deleted();
-  return e_t2;
+  BLI_assert(e_ans != null_edge);
+  if (v_src(e_ans) != v0) {
+    e_ans = e_ans.tri()->neighbor(e_ans.tri_edge_index());
+    BLI_assert(v_src(e_ans) == v0);
+  }
+  return e_ans;
 }
 
 /** Collapse the triangle \a tri to a single vertex (the one at \pos)).
@@ -1047,6 +1133,49 @@ Vert *TriangleMesh::collapse_triangle(Triangle *tri, int pos)
   Edge e_prime = collapse_edge(e);
   collapse_edge(e_prime);
   return v;
+}
+
+/** Check that we have a valid Triangle mesh, asserting false if not. */
+void TriangleMesh::validate()
+{
+  for (const Vert *v : verts_) {
+    if (!v->is_deleted()) {
+      const Edge e = v->e;
+      const Triangle *t = e.tri();
+      const int index = e.tri_edge_index();
+      BLI_assert(t != nullptr);
+      BLI_assert(!t->is_deleted());
+      BLI_assert(0 <= index && index <= 2);
+      int count_edges = 0;
+      Edge eloop = e;
+      do {
+        eloop = rot_ccw(eloop);
+        BLI_assert(!eloop.tri()->is_deleted());
+        count_edges++;
+        BLI_assert(count_edges < 1000000);
+      } while (eloop != e);
+    }
+  }
+  for (const Triangle *t : triangles_) {
+    if (!t->is_deleted()) {
+      if (t->is_ghost()) {
+        BLI_assert(!t->is_deleted());
+        BLI_assert(t->vert(0) != nullptr && !t->vert(0)->is_deleted());
+        BLI_assert(t->vert(1) == nullptr);
+        BLI_assert(t->vert(2) != nullptr && !t->vert(2)->is_deleted());
+      }
+      else {
+        for (int i = 0; i < 2; ++i) {
+          const Edge e = t->edge(i);
+          const Edge en = t->neighbor(i);
+          BLI_assert(!en.is_null());
+          const Triangle *tn = en.tri();
+          const int in = en.tri_edge_index();
+          BLI_assert(tn->neighbor(in) == e);
+        }
+      }
+    }
+  }
 }
 
 /** Make the initial contours inset for \a contours
@@ -2087,6 +2216,68 @@ Edge StraightSkeleton::handle_vertex_event(Edge edge)
   return new_spoke;
 }
 
+/* Handle a split event. The initial situation looks something like this:
+ *
+ * |\--\
+ * \ |\ -----\ /---/|
+ *  ||\ \-\    ----\                                                                             /-----
+ * /-//
+ *   \ \ -\---\     ----\                                                                  /-----
+ * /- / | | \  \   ---\      -----\                                                      /----- /-
+ * / / \  |  \      ---\        ----\                                          /------ /-   /  | |
+ * \   \         ---\         ----\                               /-----                  /-    / /
+ *    \  \   \            ---\          -----\                   /-----                      /- s
+ * /  / |  |   -\s             --\             ----\        /-----                          /- / |
+ *     |  \     \                ---\     E        ---|------------------------------------       /
+ * / \   \     \        C          ---\             |                        -----/    |       / |
+ *      |   |     -                      ---\         |s       F     w  ------/          /      / /
+ *      \   \      |--------\  w             ---\     |          ------/                |      | /
+ *       |   \     |         ---------------\    ---\ |    -----/     ew3               /      / |
+ *       \    \    |              ew1        -------------/                            |      / /
+ *        |    |    \                                -v-\                              |w    /    /
+ *        \    \    |                            ---/    ---\                 G        /    /     |
+ *         |    \  w|         B              ---/            --\                      |    /     /
+ *         \     |  |                    ---/                   ---\                  |   /      |
+ *          |    \  |                ---/                         e3--\               /  /      /
+ *          |     \ |            ---/   e1=edge       A                ---\          |  /      /
+ *          \      \ \       ---/                                          --\       / /       |
+ *           |      ||   ---/                                                 ---\  | /       /
+ *           \      \|--/                             e2                          --|/        |
+ *            |      |--------------------------------------------------------------|        /
+ *            \     - --------\                          w                          \       /
+ *             | s /           ----------------\                       H             -\     |
+ *             \  /                             ----------------\                      \s  /
+ *              |/                                               ----------------\      -  |
+ *              |--------------------------------------------------------------------------
+ *
+ * where vertex v, the source of \a edge, is to split edge e2. The edges marked s are spokes and
+ * the edges marked w are wavefront edges. We first split vertex v twice, so that there is now a
+ * line v0--v--v1, at points that make the diagram look like the following (detail):
+ *
+ *
+ *                                       | --------\
+ *                           --          |          ---------
+ *                             \-    E   |                    /--  --
+ *        \------\          C    \-      |    F           /---  --/ |
+ *         |  \--------\           \-    |           /----   --/    |
+ *         \      \---- ------\      \-  |       /---     --/       /
+ *          \          \---    -----\  \-|   /---      --/         |
+ *           |             \--       ----|---        -/        G   |
+ *           \      B          v0---------v--------v1 --           |
+ *            \             /--       ---- ---\         \--        /
+ *             |        /---  -------/         ------\     \-     |
+ *             \    /--- ----/             A          ----   \--  |
+ *              |---------------------------------------------- \-|vc
+ *               va     \---------   en2       en1                \
+ *                                \---------             H         \
+ *                                          \---------       en3    -\
+ *                                                    \---------      \
+ *                                                              \----- -vb
+ *
+ * Finally, triangles A and H are deleted and new trangles are formed by adding diagonals from vb
+ * to v and v0.
+ */
+
 std::tuple<Vert *, Vert *, Vert *> StraightSkeleton::handle_split_event(Edge edge)
 {
   constexpr int dbg_level = 0;
@@ -2105,6 +2296,7 @@ std::tuple<Vert *, Vert *, Vert *> StraightSkeleton::handle_split_event(Edge edg
     std::cout << "ew1=" << ew1 << ". ew3=" << ew3 << "\n";
   }
   /* Make the new wavefront verts by splitting vert twice. */
+  trimesh_.validate();
   Vert *new_v0 = trimesh_.split_vert(vert, ew1, e1);
   Vert *new_v1 = trimesh_.split_vert(vert, neighbor_edge(e3), ew3);
   Edge evv0 = edge_between(vert, new_v0);
@@ -2133,6 +2325,22 @@ std::tuple<Vert *, Vert *, Vert *> StraightSkeleton::handle_split_event(Edge edg
   }
   if (nbr_en_3.tri()->is_spoke(nbr_en_3.tri_edge_index())) {
     tnew1->mark_spoke(1);
+  }
+  /* Any vertex that used an edge in triangle A or H as representative
+   * now needs a new representative. */
+  Triangle *ta = edge.tri();
+  Triangle *th = en_1.tri();
+  if (vert->e.tri() == ta) {
+    vert->e = Edge(tnew0, 0);
+  }
+  if (va->e.tri() == ta || va->e.tri() == th) {
+    va->e = Edge(tnew0, 1);
+  }
+  if (vb->e.tri() == th) {
+    vb->e = Edge(tnew1, 1);
+  }
+  if (vc->e.tri() == ta || vc->e.tri() == th) {
+    vc->e = Edge(tnew1, 2);
   }
   edge.tri()->mark_deleted();
   en_1.tri()->mark_deleted();
@@ -2239,6 +2447,9 @@ void StraightSkeleton::compute()
 
   calculate_contour_and_region_data();
   trimesh_.calculate_all_tri_normals();
+  if (dbg_level > 0) {
+    trimesh_.validate();
+  }
 
   /* Create the skeleton vertices, first for the contours. */
   int count_non_zero = 0;
@@ -2310,6 +2521,7 @@ void StraightSkeleton::compute()
       else {
         dump_event_queue();
       }
+      trimesh_.validate();
     }
     epoch_++;
     SkeletonEvent event = event_queue_.top();
@@ -2435,7 +2647,8 @@ void StraightSkeleton::compute()
       set_skel_vertex_map(v_src(new_spoke)->id, skv);
       new_v->co = event.final_pos();
       vertex_height_map.add(new_v->id, height);
-      /* Also need to set the height for the other end of the spoke, which has 0 length right now. */
+      /* Also need to set the height for the other end of the spoke, which has 0 length right now.
+       */
       vertex_height_map.add(v_src(new_spoke)->id, height);
 
       if (dbg_level > 0) {
@@ -2635,6 +2848,10 @@ void StraightSkeleton::compute()
         remove_from_skel_vertex_map(vert->id);
       }
     }
+  }
+  if (dbg_level > 0) {
+    std::cout << "Final state\n";
+    dump_state();
   }
 }
 
