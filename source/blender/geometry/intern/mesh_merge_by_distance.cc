@@ -41,7 +41,7 @@ struct WeldGroupEdge {
 };
 
 struct WeldVert {
-  /* Indexes relative to the original Mesh. */
+  /* Indices relative to the original Mesh. */
   int vert_dest;
   int vert_orig;
 };
@@ -50,7 +50,7 @@ struct WeldEdge {
   union {
     int flag;
     struct {
-      /* Indexes relative to the original Mesh. */
+      /* Indices relative to the original Mesh. */
       int edge_dest;
       int edge_orig;
       int vert_a;
@@ -63,7 +63,7 @@ struct WeldLoop {
   union {
     int flag;
     struct {
-      /* Indexes relative to the original Mesh. */
+      /* Indices relative to the original Mesh. */
       int vert;
       int edge;
       int loop_orig;
@@ -76,7 +76,7 @@ struct WeldPoly {
   union {
     int flag;
     struct {
-      /* Indexes relative to the original Mesh. */
+      /* Indices relative to the original Mesh. */
       int poly_dst;
       int poly_orig;
       int loop_start;
@@ -312,6 +312,11 @@ static void weld_assert_poly_len(const WeldPoly *wp, const Span<WeldLoop> wloop)
 /** \name Vert API
  * \{ */
 
+/**
+ * Create a Weld Verts Context.
+ *
+ * \return array with the context weld vertices.
+ */
 static Vector<WeldVert> weld_vert_ctx_alloc_and_setup(Span<int> vert_dest_map,
                                                       const int vert_kill_len)
 {
@@ -329,11 +334,18 @@ static Vector<WeldVert> weld_vert_ctx_alloc_and_setup(Span<int> vert_dest_map,
   return wvert;
 }
 
+/**
+ * Create groups of vertices to merge.
+ *
+ * \return r_vert_groups_map: Map that points out the group of vertices that a vertex belongs to.
+ * \return r_vert_groups_buffer: Buffer containing the indices of all vertices that merge.
+ * \return r_vert_groups_offs: Array that indicates where each vertex group starts in the buffer.
+ */
 static void weld_vert_groups_setup(Span<WeldVert> wvert,
                                    Span<int> vert_dest_map,
                                    MutableSpan<int> r_vert_groups_map,
                                    Array<int> &r_vert_groups_buffer,
-                                   Array<WeldGroup> &r_vert_groups)
+                                   Array<WeldGroup> &r_vert_groups_offs)
 {
   /* Get weld vert groups. */
 
@@ -354,17 +366,16 @@ static void weld_vert_groups_setup(Span<WeldVert> wvert,
     }
   }
 
-  r_vert_groups.reinitialize(wgroups_len);
-  r_vert_groups.fill({0, 0});
-  MutableSpan<WeldGroup> wgroups = r_vert_groups;
+  r_vert_groups_offs.reinitialize(wgroups_len);
+  r_vert_groups_offs.fill({0, 0});
 
   for (const WeldVert &wv : wvert) {
     int group_index = r_vert_groups_map[wv.vert_dest];
-    wgroups[group_index].len++;
+    r_vert_groups_offs[group_index].len++;
   }
 
   int ofs = 0;
-  for (WeldGroup &wg : wgroups) {
+  for (WeldGroup &wg : r_vert_groups_offs) {
     wg.ofs = ofs;
     ofs += wg.len;
   }
@@ -374,10 +385,10 @@ static void weld_vert_groups_setup(Span<WeldVert> wvert,
   r_vert_groups_buffer.reinitialize(ofs);
   for (const WeldVert &wv : wvert) {
     int group_index = r_vert_groups_map[wv.vert_dest];
-    r_vert_groups_buffer[wgroups[group_index].ofs++] = wv.vert_orig;
+    r_vert_groups_buffer[r_vert_groups_offs[group_index].ofs++] = wv.vert_orig;
   }
 
-  for (WeldGroup &wg : wgroups) {
+  for (WeldGroup &wg : r_vert_groups_offs) {
     wg.ofs -= wg.len;
   }
 }
@@ -388,6 +399,12 @@ static void weld_vert_groups_setup(Span<WeldVert> wvert,
 /** \name Edge API
  * \{ */
 
+/**
+ * Alloc Weld Edges.
+ *
+ * \return r_edge_dest_map: First step to create map of indices pointing edges that will be merged.
+ * \return r_edge_ctx_map: Map of indices pointing original edges to weld context edges.
+ */
 static Vector<WeldEdge> weld_edge_ctx_alloc(Span<MEdge> medge,
                                             Span<int> vert_dest_map,
                                             MutableSpan<int> r_edge_dest_map,
@@ -423,15 +440,25 @@ static Vector<WeldEdge> weld_edge_ctx_alloc(Span<MEdge> medge,
   return wedge;
 }
 
+/**
+ * Configure Weld Edges.
+ *
+ * \param r_vlinks: An uninitialized buffer used to compute groups of WeldEdges attached to each
+ *                  weld target vertex. It doesn't need to be passed as a parameter but this is
+ *                  done to reduce allocations.
+ * \return r_edge_dest_map: Map of indices pointing edges that will be merged.
+ * \return r_wedge: Weld edges. `flag` and `edge_dest` members will be set here.
+ * \return r_edge_kill_len: Number of edges to be destroyed by merging or collapsing.
+ */
 static void weld_edge_ctx_setup(MutableSpan<WeldGroup> r_vlinks,
                                 MutableSpan<int> r_edge_dest_map,
                                 MutableSpan<WeldEdge> r_wedge,
-                                int *r_edge_kiil_len)
+                                int *r_edge_kill_len)
 {
   /* Setup Edge Overlap. */
   int edge_kill_len = 0;
 
-  MutableSpan<WeldGroup> v_links = r_vlinks;
+  r_vlinks.fill({0, 0});
 
   for (WeldEdge &we : r_wedge) {
     int dst_vert_a = we.vert_a;
@@ -445,8 +472,8 @@ static void weld_edge_ctx_setup(MutableSpan<WeldGroup> r_vlinks,
       continue;
     }
 
-    v_links[dst_vert_a].len++;
-    v_links[dst_vert_b].len++;
+    r_vlinks[dst_vert_a].len++;
+    r_vlinks[dst_vert_b].len++;
   }
 
   int link_len = 0;
@@ -467,8 +494,8 @@ static void weld_edge_ctx_setup(MutableSpan<WeldGroup> r_vlinks,
       int dst_vert_a = we.vert_a;
       int dst_vert_b = we.vert_b;
 
-      link_edge_buffer[v_links[dst_vert_a].ofs++] = i;
-      link_edge_buffer[v_links[dst_vert_b].ofs++] = i;
+      link_edge_buffer[r_vlinks[dst_vert_a].ofs++] = i;
+      link_edge_buffer[r_vlinks[dst_vert_b].ofs++] = i;
     }
 
     for (WeldGroup &vl : r_vlinks) {
@@ -487,8 +514,8 @@ static void weld_edge_ctx_setup(MutableSpan<WeldGroup> r_vlinks,
       int dst_vert_a = we.vert_a;
       int dst_vert_b = we.vert_b;
 
-      struct WeldGroup *link_a = &v_links[dst_vert_a];
-      struct WeldGroup *link_b = &v_links[dst_vert_b];
+      struct WeldGroup *link_a = &r_vlinks[dst_vert_a];
+      struct WeldGroup *link_b = &r_vlinks[dst_vert_b];
 
       int edges_len_a = link_a->len;
       int edges_len_b = link_b->len;
@@ -532,22 +559,28 @@ static void weld_edge_ctx_setup(MutableSpan<WeldGroup> r_vlinks,
 #endif
   }
 
-  *r_edge_kiil_len = edge_kill_len;
+  *r_edge_kill_len = edge_kill_len;
 }
 
+/**
+ * Create groups of edges to merge.
+ *
+ * \return r_edge_groups_map: Map that points out the group of edges that an edge belongs to.
+ * \return r_edge_groups_buffer: Buffer containing the indices of all edges that merge.
+ * \return r_edge_groups_offs: Array that indicates where each edge group starts in the buffer.
+ */
 static void weld_edge_groups_setup(const int medge_len,
                                    const int edge_kill_len,
                                    MutableSpan<WeldEdge> wedge,
                                    Span<int> wedge_map,
                                    MutableSpan<int> r_edge_groups_map,
                                    Array<int> &r_edge_groups_buffer,
-                                   Array<WeldGroupEdge> &r_edge_groups)
+                                   Array<WeldGroupEdge> &r_edge_groups_offs)
 {
-  /* Get weld edge groups. */
   int wgroups_len = wedge.size() - edge_kill_len;
-  r_edge_groups.reinitialize(wgroups_len);
-  r_edge_groups.fill({{0}});
-  MutableSpan<WeldGroupEdge> wegroups = r_edge_groups;
+  r_edge_groups_offs.reinitialize(wgroups_len);
+  r_edge_groups_offs.fill({{0}});
+  MutableSpan<WeldGroupEdge> wegroups = r_edge_groups_offs;
 
   wgroups_len = 0;
   for (const int i : IndexRange(medge_len)) {
@@ -718,6 +751,11 @@ static bool weld_iter_loop_of_poly_next(WeldLoopOfPolyIter &iter)
   return false;
 }
 
+/**
+ * Alloc Weld Polygons and Weld Loops.
+ *
+ * \return r_weld_mesh: Loop and poly members will be allocated here.
+ */
 static void weld_poly_loop_ctx_alloc(Span<MPoly> mpoly,
                                      Span<MLoop> mloop,
                                      Span<int> vert_dest_map,
@@ -949,6 +987,15 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
 #endif
 }
 
+/**
+ * Alloc Weld Polygons and Weld Loops.
+ *
+ * \param remain_edge_ctx_len: Context weld edges that won't be destroyed by merging or collapsing.
+ * \param r_vlinks: An uninitialized buffer used to compute groups of WeldPolys attached to each
+ *                  weld target vertex. It doesn't need to be passed as a parameter but this is
+ *                  done to reduce allocations.
+ * \return r_weld_mesh: Loop and poly members will be configured here.
+ */
 static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
 #ifdef USE_WELD_DEBUG
                                      Span<MPoly> mpoly,
@@ -1162,6 +1209,7 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
 static void weld_mesh_context_create(const Mesh &mesh,
                                      MutableSpan<int> vert_dest_map,
                                      const int vert_kill_len,
+                                     MutableSpan<int> r_vert_group_map,
                                      WeldMesh *r_weld_mesh)
 {
   const int mvert_len = mesh.totvert;
@@ -1176,7 +1224,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
   Array<int> edge_ctx_map(edges.size());
   Vector<WeldEdge> wedge = weld_edge_ctx_alloc(edges, vert_dest_map, edge_dest_map, edge_ctx_map);
 
-  Array<WeldGroup> v_links(mvert_len, {0, 0});
+  Array<WeldGroup> v_links(mvert_len);
   weld_edge_ctx_setup(v_links, edge_dest_map, wedge, &r_weld_mesh->edge_kill_len);
 
   weld_poly_loop_ctx_alloc(polys, loops, vert_dest_map, edge_dest_map, r_weld_mesh);
@@ -1194,7 +1242,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
 
   weld_vert_groups_setup(wvert,
                          vert_dest_map,
-                         vert_dest_map,
+                         r_vert_group_map,
                          r_weld_mesh->vert_groups_buffer,
                          r_weld_mesh->vert_groups);
 
@@ -1347,8 +1395,12 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   const int totvert = mesh.totvert;
   const int totedge = mesh.totedge;
 
+  /* Reuse the same buffer as #vert_dest_map.
+   * Note: the caller must be made aware of it changes. */
+  MutableSpan<int> vert_group_map = vert_dest_map;
+
   WeldMesh weld_mesh;
-  weld_mesh_context_create(mesh, vert_dest_map, removed_vertex_count, &weld_mesh);
+  weld_mesh_context_create(mesh, vert_dest_map, removed_vertex_count, vert_group_map, &weld_mesh);
 
   const int result_nverts = totvert - weld_mesh.vert_kill_len;
   const int result_nedges = totedge - weld_mesh.edge_kill_len;
@@ -1363,16 +1415,16 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
 
   /* Vertices. */
 
-  /* Be careful when editing this array, to avoid new allocations it uses the same buffer as
-   * #vert_dest_map. This map will be used to adjust the edges, polys and loops. */
-  MutableSpan<int> vert_final = vert_dest_map;
+  /* Be careful when setting values to this array as it uses the same buffer as #vert_group_map.
+   * This map will be used to adjust edges and loops to point to new vertex indices. */
+  MutableSpan<int> vert_final_map = vert_group_map;
 
   int dest_index = 0;
   for (int i = 0; i < totvert; i++) {
     int source_index = i;
     int count = 0;
-    while (i < totvert && vert_dest_map[i] == OUT_OF_CONTEXT) {
-      vert_final[i] = dest_index + count;
+    while (i < totvert && vert_group_map[i] == OUT_OF_CONTEXT) {
+      vert_final_map[i] = dest_index + count;
       count++;
       i++;
     }
@@ -1383,14 +1435,14 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     if (i == totvert) {
       break;
     }
-    if (vert_dest_map[i] != ELEM_MERGED) {
-      struct WeldGroup *wgroup = &weld_mesh.vert_groups[vert_dest_map[i]];
+    if (vert_group_map[i] != ELEM_MERGED) {
+      struct WeldGroup *wgroup = &weld_mesh.vert_groups[vert_group_map[i]];
       customdata_weld(&mesh.vdata,
                       &result->vdata,
                       &weld_mesh.vert_groups_buffer[wgroup->ofs],
                       wgroup->len,
                       dest_index);
-      vert_final[i] = dest_index;
+      vert_final_map[i] = dest_index;
       dest_index++;
     }
   }
@@ -1399,16 +1451,16 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
 
   /* Edges. */
 
-  /* Be careful when editing this array, to avoid new allocations it uses the same buffer as
-   * #edge_groups_map. This map will be used to adjust the polys and loops. */
-  MutableSpan<int> edge_final = weld_mesh.edge_groups_map;
+  /* Be careful when editing this array as it uses the same buffer as #WeldMesh::edge_groups_map.
+   * This map will be used to adjust edges and loops to point to new edge indices. */
+  MutableSpan<int> edge_final_map = weld_mesh.edge_groups_map;
 
   dest_index = 0;
   for (int i = 0; i < totedge; i++) {
     const int source_index = i;
     int count = 0;
     while (i < totedge && weld_mesh.edge_groups_map[i] == OUT_OF_CONTEXT) {
-      edge_final[i] = dest_index + count;
+      edge_final_map[i] = dest_index + count;
       count++;
       i++;
     }
@@ -1417,8 +1469,8 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       MEdge *me = &dst_edges[dest_index];
       dest_index += count;
       for (; count--; me++) {
-        me->v1 = vert_final[me->v1];
-        me->v2 = vert_final[me->v2];
+        me->v1 = vert_final_map[me->v1];
+        me->v2 = vert_final_map[me->v2];
       }
     }
     if (i == totedge) {
@@ -1432,10 +1484,10 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
                       wegrp->group.len,
                       dest_index);
       MEdge *me = &dst_edges[dest_index];
-      me->v1 = vert_final[wegrp->v1];
-      me->v2 = vert_final[wegrp->v2];
+      me->v1 = vert_final_map[wegrp->v1];
+      me->v2 = vert_final_map[wegrp->v2];
 
-      edge_final[i] = dest_index;
+      edge_final_map[i] = dest_index;
       dest_index++;
     }
   }
@@ -1458,8 +1510,8 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       CustomData_copy_data(&mesh.ldata, &result->ldata, mp.loopstart, loop_cur, mp_loop_len);
       loop_cur += mp_loop_len;
       for (; mp_loop_len--; r_ml++) {
-        r_ml->v = vert_final[r_ml->v];
-        r_ml->e = edge_final[r_ml->e];
+        r_ml->v = vert_final_map[r_ml->v];
+        r_ml->e = edge_final_map[r_ml->e];
       }
     }
     else {
@@ -1476,8 +1528,8 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       while (weld_iter_loop_of_poly_next(iter)) {
         customdata_weld(
             &mesh.ldata, &result->ldata, group_buffer.data(), iter.group_len, loop_cur);
-        int v = vert_final[iter.v];
-        int e = edge_final[iter.e];
+        int v = vert_final_map[iter.v];
+        int e = edge_final_map[iter.e];
         r_ml->v = v;
         r_ml->e = e;
         r_ml++;
@@ -1507,8 +1559,8 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     }
     while (weld_iter_loop_of_poly_next(iter)) {
       customdata_weld(&mesh.ldata, &result->ldata, group_buffer.data(), iter.group_len, loop_cur);
-      int v = vert_final[iter.v];
-      int e = edge_final[iter.e];
+      int v = vert_final_map[iter.v];
+      int e = edge_final_map[iter.e];
       r_ml->v = v;
       r_ml->e = e;
       r_ml++;
