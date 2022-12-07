@@ -41,6 +41,8 @@ enum {
   VIEW_PASS = 0,
   VIEW_APPLY,
   VIEW_CONFIRM,
+  /** Only supported by some viewport operators. */
+  VIEW_CANCEL,
 };
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
