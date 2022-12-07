@@ -1038,9 +1038,10 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       float invarea = (area != 0.0f) ? 1.0f / area : 1.0f;
       float3 dir = light->dir;
 
-      /* Clamping to a minimum angle to avoid excessive noise. */
-      const float min_spread = 1.0f * M_PI_F / 180.0f;
-      const float half_spread = 0.5f * max(light->spread, min_spread);
+      /* Clamp angles in (0, 0.1) to 0.1 to prevent zero intensity due to floating-point precision
+       * issues, but still handles spread = 0 */
+      const float min_spread = 0.1f * M_PI_F / 180.0f;
+      const float half_spread = light->spread == 0 ? 0.0f : 0.5f * max(light->spread, min_spread);
       const float tan_half_spread = light->spread == M_PI_F ? FLT_MAX : tanf(half_spread);
       /* Normalization computed using:
        * integrate cos(x) * (1 - tan(x) / tan(a)) * sin(x) from x = 0 to a, a being half_spread.
