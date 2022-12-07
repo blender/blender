@@ -28,14 +28,12 @@ set(SRC
     IO_ply.cc
     exporter/ply_export.cc
     importer/ply_import.cc
-    importer/ply_import_ascii.cc
     importer/ply_import_binary.cc
     importer/ply_import_mesh.cc
 
     IO_ply.h
     exporter/ply_export.hh
     importer/ply_import.hh
-    importer/ply_import_ascii.hh
     importer/ply_import_binary.hh
     importer/ply_import_mesh.hh
 
