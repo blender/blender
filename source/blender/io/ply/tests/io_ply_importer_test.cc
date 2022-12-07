@@ -25,6 +25,7 @@
 #include "IO_ply.h"
 #include "intern/ply_data.hh"
 #include "ply_import.hh"
+#include "ply_import_binary.hh"
 
 namespace blender::io::ply {
 
@@ -149,6 +150,29 @@ TEST_F(PlyImportTest, PlyImportManySmallHoles) {
       {"OBmany_small_holes", BINARY_LE, 2004, 3524, 5564, float3(-0.0131592, -0.0598382, 1.58958), float3(-0.0177622, 0.0105153, 1.61977)}
   };
   import_and_check("many_small_holes.ply", expect, 2);
+}
+
+TEST(PlyImportFunctionsTest, PlySwapBytes) {
+  // Individual bits shouldn't swap with each other
+  uint8_t val8 = 0xA8;
+  uint8_t exp8 = 0xA8;
+  uint8_t actual8 = swap_bytes<uint8_t>(val8);
+  ASSERT_EQ(exp8, actual8);
+
+  uint16_t val16 = 0xFEB0;
+  uint16_t exp16 = 0xB0FE;
+  uint16_t actual16 = swap_bytes<uint16_t>(val16);
+  ASSERT_EQ(exp16, actual16);
+
+  uint32_t val32 = 0x80A37B0A;
+  uint32_t exp32 = 0x0A7BA380;
+  uint32_t actual32 = swap_bytes<uint32_t>(val32);
+  ASSERT_EQ(exp32, actual32);
+
+  uint64_t val64 = 0x0102030405060708;
+  uint64_t exp64 = 0x0807060504030201;
+  uint64_t actual64 = swap_bytes<uint64_t>(val64);
+  ASSERT_EQ(exp64, actual64);
 }
 
 }  // namespace blender::io::ply

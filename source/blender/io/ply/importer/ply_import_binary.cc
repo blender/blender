@@ -19,7 +19,7 @@ template<typename T> T read(std::ifstream& file, bool isBigEndian){
   file.read((char *)&returnVal, sizeof(returnVal));
   check_file_errors(file);
   if (isBigEndian) {
-    returnVal = swap_bits<T>(returnVal);
+    returnVal = swap_bytes<T>(returnVal);
   }
   return returnVal;
 }
@@ -129,7 +129,7 @@ PlyData load_ply_binary(std::ifstream &file, PlyHeader *header)
       file.read((char*)&index, sizeof(index));
       check_file_errors(file);
       if (header->type == PlyFormatType::BINARY_BE){
-        index = swap_bits<uint32_t>(index);
+        index = swap_bytes<uint32_t>(index);
       }
       vertex_indices.append(index);
     }
