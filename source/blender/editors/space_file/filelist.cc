@@ -3900,10 +3900,14 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
   if (job_params->only_main_data) {
     return;
   }
-  /* TODO propertly update progress? */
+
+  /* Count how many asset libraries need to be loaded, for progress reporting. Not very precise. */
+  int library_count = 0;
+  asset_system::AssetLibrary::foreach_loaded([&library_count](auto &) { library_count++; }, false);
 
   BLI_assert(filelist->asset_library != nullptr);
 
+  int libraries_done_count = 0;
   /* The "All" asset library was loaded, which means all other asset libraries are also loaded.
    * Load their assets from disk into the "All" library. */
   asset_system::AssetLibrary::foreach_loaded(
@@ -3917,7 +3921,12 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
         job_params->load_asset_library = &nested_library;
         BLI_strncpy(filelist->filelist.root, root_path.c_str(), sizeof(filelist->filelist.root));
 
-        filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);
+        float progress_this = 0.0f;
+        filelist_readjob_recursive_dir_add_items(
+            true, job_params, stop, do_update, &progress_this);
+
+        libraries_done_count++;
+        *progress = float(libraries_done_count) / library_count;
       },
       false);
 }
