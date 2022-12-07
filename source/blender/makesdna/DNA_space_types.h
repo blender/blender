@@ -995,7 +995,6 @@ enum eFileDetails {
 
 /** File selector types. */
 typedef enum eFileSelectType {
-  FILE_SELECT_TYPE_UNSET = 0,
   FILE_LOADLIB = 1,
   FILE_MAIN = 2,
   /** Load assets from #Main. */

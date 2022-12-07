@@ -555,7 +555,6 @@ static void file_draw_preview(const SpaceFile *sfile,
     /* path is no more static, cannot give it directly to but... */
     else if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS &&
              (file->typeflag & FILE_TYPE_ASSET) != 0) {
-      /* TODO enable drag & drop support, get path from asset representation. */
       char blend_path[FILE_MAX_LIBEXTRA];
 
       if (BLO_library_path_explode(path, blend_path, NULL, NULL)) {

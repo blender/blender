@@ -31,8 +31,6 @@ class AssetStorage {
    * faster lookups. Not possible until each asset is only represented once in the storage. */
   StorageT local_id_assets_;
 
-  friend class AssetLibrary;
-
  public:
   /** See #AssetLibrary::add_external_asset(). */
   AssetRepresentation &add_external_asset(AssetIdentifier &&identifier,

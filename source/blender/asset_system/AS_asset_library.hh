@@ -109,7 +109,6 @@ class AssetLibrary {
   /** Remove an asset from the library that was added using #add_external_asset() or
    * #add_local_id_asset(). Can usually be expected to be constant time complexity (worst case may
    * differ).
-   *
    * \note This is save to call if \a asset is freed (dangling reference), will not perform any
    *       change then.
    * \return True on success, false if the asset couldn't be found inside the library (also the

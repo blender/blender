@@ -1643,7 +1643,6 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     BLI_thread_queue_push(cache->previews_done, preview);
   }
   else {
-    /* XXX */
     if (entry->redirection_path) {
       BLI_strncpy(preview->filepath, entry->redirection_path, FILE_MAXDIR);
     }

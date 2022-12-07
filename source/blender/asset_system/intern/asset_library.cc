@@ -257,7 +257,6 @@ StringRefNull AssetLibrary::root_path() const
   return *root_path_;
 }
 
-/* TODO get rid of this. */
 Vector<AssetLibraryReference> all_valid_asset_library_refs()
 {
   Vector<AssetLibraryReference> result;
