@@ -809,6 +809,11 @@ void BlenderDisplayDriver::draw(const Params &params)
    * is bound externally. */
   immBindShader(active_shader);
 
+  if (tiles_->current_tile.need_update_texture_pixels) {
+    update_tile_texture_pixels(tiles_->current_tile);
+    tiles_->current_tile.need_update_texture_pixels = false;
+  }
+
   draw_tile(zoom_, texcoord_attribute, position_attribute, tiles_->current_tile.tile);
 
   for (const DrawTile &tile : tiles_->finished_tiles.tiles) {
