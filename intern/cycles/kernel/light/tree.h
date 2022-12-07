@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2011-2022 Blender Foundation */
 
+/* This code implements a modified version of the paper [Importance Sampling of Many Lights with
+ * Adaptive Tree Splitting](http://www.aconty.com/pdf/many-lights-hpg2018.pdf) by Alejandro Conty
+ * Estevez, Christopher Kulla.
+ * The original paper traverses both children when the variance of a node is too high (called
+ * splitting). However, Cycles does not support multiple lights per shading point. Therefore, we
+ * adjust the importance computation: instead of using a conservative measure (i.e., the maximal
+ * possible contribution a node could make to a shading point) as in the paper, we additionally
+ * compute the minimal possible contribution and choose uniformly between these two measures. Also,
+ * support for distant lights is added, which is not included in the paper.
+ */
+
 #pragma once
 
 #include "kernel/light/area.h"
