@@ -26,7 +26,7 @@
 #include "intern/ply_data.hh"
 #include "ply_import.hh"
 #include "ply_import_ascii.hh"
-#include "ply_import_big_endian.hh"
+#include "ply_import_binary.hh"
 
 namespace blender::io::ply {
 
