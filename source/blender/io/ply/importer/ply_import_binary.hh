@@ -1,5 +1,5 @@
-#ifndef BLENDER_PLY_IMPORT_BIG_ENDIAN_HH
-#define BLENDER_PLY_IMPORT_BIG_ENDIAN_HH
+#ifndef BLENDER_PLY_IMPORT_BINARY_HH
+#define BLENDER_PLY_IMPORT_BINARY_HH
 
 #include "DNA_mesh_types.h"
 #include "ply_data.hh"
@@ -22,13 +22,6 @@ Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh* mesh);
  */
 PlyData load_ply_binary(std::ifstream &file, PlyHeader *header);
 
-float3 read_float3(std::ifstream &file, bool isBigEndian);
-
-uchar3 read_uchar3(std::ifstream& file);
-uchar4 read_uchar4(std::ifstream& file);
-
-float3 convert_uchar3_float3(uchar3);
-float4 convert_uchar4_float4(uchar4);
 void check_file_errors(std::ifstream& file);
 
 template<typename T> T swap_bits(T input)
@@ -67,8 +60,8 @@ template<typename T> T swap_bits(T input)
   }
 }
 
-template<typename T> T read(std::ifstream& file);
+template<typename T> T read(std::ifstream& file, bool isBigEndian);
 
 }  // namespace blender::io::ply
 
-#endif  // BLENDER_PLY_IMPORT_BIG_ENDIAN_HH
+#endif  // BLENDER_PLY_IMPORT_BINARY_HH
