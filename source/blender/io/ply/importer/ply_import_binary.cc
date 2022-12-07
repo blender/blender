@@ -55,7 +55,6 @@ PlyData load_ply_binary(std::ifstream &file, PlyHeader *header)
     float3 normal {0};
     float4 color {1};
 
-    // switch (prop.second) {}
     for (auto prop : header->properties) {
       if (prop.first == "x") {
         coord.x = read<float>(file, isBigEndian);
