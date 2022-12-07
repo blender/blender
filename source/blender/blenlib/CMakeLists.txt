@@ -272,7 +272,7 @@ set(SRC
   BLI_math_matrix.h
   BLI_math_mpq.hh
   BLI_math_rotation.h
-  BLI_math_rotation.hh
+  BLI_math_rotation_legacy.hh
   BLI_math_solvers.h
   BLI_math_statistics.h
   BLI_math_time.h

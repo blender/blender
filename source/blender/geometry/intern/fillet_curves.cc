@@ -7,7 +7,7 @@
 
 #include "BLI_devirtualize_parameters.hh"
 #include "BLI_math_geom.h"
-#include "BLI_math_rotation.hh"
+#include "BLI_math_rotation_legacy.hh"
 #include "BLI_task.hh"
 
 #include "GEO_fillet_curves.hh"
