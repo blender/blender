@@ -8,7 +8,10 @@
 
 #include "kernel/light/distribution.h"
 #include "kernel/light/light.h"
-#include "kernel/light/tree.h"
+
+#ifdef __LIGHT_TREE__
+#  include "kernel/light/tree.h"
+#endif
 
 #include "kernel/sample/mapping.h"
 #include "kernel/sample/mis.h"
