@@ -2,15 +2,11 @@
 #include "tests/blendfile_loading_base_test.h"
 
 #include "BKE_curve.h"
-#include "BKE_customdata.h"
 #include "BKE_main.h"
-#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_base.hh"
 #include "BLI_math_vec_types.hh"
 
 #include "BLO_readfile.h"
@@ -35,7 +31,6 @@ namespace blender::io::ply {
 struct Expectation {
   std::string name;
   PlyFormatType type;
-  PlyData *data;
   int totvert, totface, totedge;
   float3 vert_first, vert_last;
   // float3 normal_first;
@@ -46,19 +41,6 @@ struct Expectation {
 
 class PlyImportTest : public BlendfileLoadingBaseTest {
  public:
-  PlyData cube;
-
-  void SetUp() override
-  {
-    cube.vertices = {{1, 1, -1},
-                     {1, -1, -1},
-                     {-1, -1, -1},
-                     {-1, 1, -1},
-                     {1, 0.999999, 1},
-                     {0.999999, -1, 1},
-                     {-1, -1, 1},
-                     {-1, 1, 1}};
-  }
 
   void import_and_check(const char *path, const Expectation *expect, size_t expect_count)
   {
@@ -146,79 +128,27 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
 
 TEST_F(PlyImportTest, PLYImportCube)
 {
-  PlyData plyData;
-  plyData.vertices = {{1, 1, -1},
-                      {1, -1, -1},
-                      {-1, -1, -1},
-                      {-1, 1, -1},
-                      {1, 0.999999, 1},
-                      {-1, 1, 1},
-                      {-1, -1, 1},
-                      {0.999999, -1.000001, 1},
-                      {1, 1, -1},
-                      {1, 0.999999, 1},
-                      {0.999999, -1.000001, 1},
-                      {1, -1, -1},
-                      {1, -1, -1},
-                      {0.999999, -1.000001, 1},
-                      {-1, -1, 1},
-                      {-1, -1, -1},
-                      {-1, -1, -1},
-                      {-1, -1, 1},
-                      {-1, 1, 1},
-                      {-1, 1, -1},
-                      {1, 0.999999, 1},
-                      {1, 1, -1},
-                      {-1, 1, -1},
-                      {-1, 1, 1}};
-
-  plyData.vertex_normals = {{0, 0, -1}, {0, 0, -1}, {0, 0, -1}, {0, 0, -1}, {0, 0, 1},  {0, 0, 1},
-                            {0, 0, 1},  {0, 0, 1},  {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {1, 0, 0},
-                            {0, -1, 0}, {0, -1, 0}, {0, -1, 0}, {0, -1, 0}, {-1, 0, 0}, {-1, 0, 0},
-                            {-1, 0, 0}, {-1, 0, 0}, {0, 1, 0},  {0, 1, 0},  {0, 1, 0},  {0, 1, 0}};
-
-  plyData.vertex_colors = {{1, 0.8470588235294118, 0, 1},
-                           {0, 0.011764705882352941, 1, 1},
-                           {0, 0.011764705882352941, 1, 1},
-                           {1, 0.8470588235294118, 0, 1},
-                           {1, 0.8509803921568627, 0.08627450980392157, 1},
-                           {1, 0.8470588235294118, 0, 1},
-                           {0, 0.00392156862745098, 1, 1},
-                           {0.00392156862745098, 0.00392156862745098, 1, 1},
-                           {1, 0.8470588235294118, 0.01568627450980392, 1},
-                           {1, 0.8509803921568627, 0.08627450980392157, 1},
-                           {0.00392156862745098, 0.00392156862745098, 1, 1},
-                           {0, 0.00392156862745098, 1, 1},
-                           {0, 0.00392156862745098, 1, 1},
-                           {0.00392156862745098, 0.00392156862745098, 1, 1},
-                           {0, 0.00392156862745098, 1, 1},
-                           {0, 0.00392156862745098, 1, 1},
-                           {0, 0.011764705882352941, 1, 1},
-                           {0, 0.00392156862745098, 1, 1},
-                           {1, 0.8470588235294118, 0, 1},
-                           {1, 0.8470588235294118, 0, 1},
-                           {1, 0.8509803921568627, 0.08627450980392157, 1},
-                           {1, 0.8470588235294118, 0, 1},
-                           {1, 0.8470588235294118, 0, 1},
-                           {1, 0.8470588235294118, 0, 1}};
-
-  EXPECT_EQ(24, plyData.vertices.size());
-  EXPECT_EQ(24, plyData.vertex_normals.size());
-  EXPECT_EQ(24, plyData.vertex_colors.size());
-
   Expectation expect[] = {
-      {"OBCube", ASCII, &cube, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
-      {"cube_ascii", ASCII, &plyData, 24, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)}};
+      {"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBcube_ascii", ASCII, 24, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)}};
 
   import_and_check("cube_ascii.ply", expect, 2);
 }
 
 TEST_F(PlyImportTest, PLYImportBunny) {
   Expectation expect[] = {
-    {"OBCube", ASCII, &cube, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
-    {"OBbunny2", BINARY_LE, nullptr, 1623, 1000, 1513, float3(0.0380425, 0.109755, 0.0161689), float3(-0.0722821, 0.143895, -0.0129091)}
+    {"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
+    {"OBbunny2", BINARY_LE, 1623, 1000, 1513, float3(0.0380425, 0.109755, 0.0161689), float3(-0.0722821, 0.143895, -0.0129091)}
   };
   import_and_check("bunny2.ply", expect, 2);
+}
+
+TEST_F(PlyImportTest, PlyImportManySmallHoles) {
+  Expectation expect[] = {
+      {"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBmany_small_holes", BINARY_LE, 2004, 3524, 5564, float3(-0.0131592, -0.0598382, 1.58958), float3(-0.0177622, 0.0105153, 1.61977)}
+  };
+  import_and_check("many_small_holes.ply", expect, 2);
 }
 
 }  // namespace blender::io::ply
