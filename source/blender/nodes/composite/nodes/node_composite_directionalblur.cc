@@ -46,7 +46,6 @@ static void node_composit_buts_dblur(uiLayout *layout, bContext * /*C*/, Pointer
   uiLayout *col;
 
   uiItemR(layout, ptr, "iterations", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_wrap", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
   uiItemL(col, IFACE_("Center:"), ICON_NONE);

@@ -822,7 +822,7 @@ typedef struct NodeBlurData {
 typedef struct NodeDBlurData {
   float center_x, center_y, distance, angle, spin, zoom;
   short iter;
-  char wrap, _pad;
+  char _pad[2];
 } NodeDBlurData;
 
 typedef struct NodeBilateralBlurData {
