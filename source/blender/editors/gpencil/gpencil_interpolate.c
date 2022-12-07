@@ -483,10 +483,17 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
     tgpil = MEM_callocN(sizeof(tGPDinterpolate_layer), "GPencil Interpolate Layer");
 
     tgpil->gpl = gpl;
+
     bGPDframe *gpf = gpencil_get_previous_keyframe(gpl, scene->r.cfra);
+    if (gpf == NULL) {
+      continue;
+    }
     tgpil->prevFrame = BKE_gpencil_frame_duplicate(gpf, true);
 
     gpf = gpencil_get_next_keyframe(gpl, scene->r.cfra);
+    if (gpf == NULL) {
+      continue;
+    }
     tgpil->nextFrame = BKE_gpencil_frame_duplicate(gpf, true);
 
     BLI_addtail(&tgpi->ilayers, tgpil);
