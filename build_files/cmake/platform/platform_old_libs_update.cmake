@@ -45,14 +45,16 @@ if(UNIX AND DEFINED NANOVDB_INCLUDE_DIR)
   endif()
 endif()
 
-# Detect update to 3.4 libs with shared libraries.
+# Detect update to 3.5 libs with shared libraries.
 if(UNIX AND
   DEFINED TBB_LIBRARY AND
   TBB_LIBRARY MATCHES "libtbb.a$" AND
   EXISTS ${LIBDIR}/usd/include/pxr/base/tf/pyModule.h)
-  message(STATUS "Auto updating CMake configuration for Blender 3.4 libraries")
+  message(STATUS "Auto updating CMake configuration for Blender 3.5 libraries")
   unset_cache_variables("^BLOSC")
   unset_cache_variables("^BOOST")
+  unset_cache_variables("^Boost")
+  unset_cache_variables("^IMATH")
   unset_cache_variables("^OPENCOLORIO")
   unset_cache_variables("^OPENEXR")
   unset_cache_variables("^OPENIMAGEIO")
