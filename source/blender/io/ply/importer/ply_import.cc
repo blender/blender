@@ -25,6 +25,7 @@
 
 #include "intern/ply_data.hh"
 #include "ply_import.hh"
+#include "ply_import_ascii.hh"
 #include "ply_import_binary.hh"
 
 namespace blender::io::ply {
@@ -158,7 +159,8 @@ void importer_main(Main *bmain,
 
   Mesh *mesh = BKE_mesh_add(bmain, ob_name);
   if (header.type == PlyFormatType::ASCII) {
-    printf("ASCII PLY \n");
+    printf("ASCII \n");
+    mesh = import_ply_ascii(infile, &header, mesh);
   }
   else if (header.type == PlyFormatType::BINARY_BE) {
     printf("Binary Big Endian \n");
