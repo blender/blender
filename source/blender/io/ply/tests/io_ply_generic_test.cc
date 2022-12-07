@@ -9,7 +9,7 @@ class GenericPlyTest : public testing::Test {
 
 TEST_F(GenericPlyTest, TestingIfPlyTestingWorks)
 {
-  EXPECT_EQ(1, 2);
+  EXPECT_EQ(2, 2);
 }
 
 }  // namespace blender::io::ply
