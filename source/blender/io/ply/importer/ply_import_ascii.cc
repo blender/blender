@@ -10,8 +10,6 @@ namespace blender::io::ply {
 
 Mesh *import_ply_ascii(std::ifstream &file, PlyHeader *header, Mesh *mesh)
 {
-  printf("printf check \n");
-  std::cout << "import "<< std::endl;
   PlyData data = load_ply_ascii(file, header);
   if (data.vertices.size() != 0) {
     return convert_ply_to_mesh(data, mesh);
@@ -21,7 +19,6 @@ Mesh *import_ply_ascii(std::ifstream &file, PlyHeader *header, Mesh *mesh)
 
 PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
 {
-  std::cout << "load "<< std::endl;
   PlyData data;
   // check if has alpha
   std::pair<std::string, PlyDataTypes> alpha = {"alpha", PlyDataTypes::UCHAR};
@@ -48,18 +45,18 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
 
   if (hasAlpha)
   {
-    int alphapos = get_index(header, "alpha", PlyDataTypes::UCHAR);
+    alphapos = get_index(header, "alpha", PlyDataTypes::UCHAR);
   }
 
   if (hasColor)
   {
     // x=red,y=green,z=blue
     //xyz = rgb
-    int3 colorpos = get_color_pos(header);
+    colorpos = get_color_pos(header);
   }
 
   if (hasNormals){
-    int3 normalpos = get_normal_pos(header);
+    normalpos = get_normal_pos(header);
   }
   
 
@@ -85,15 +82,15 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
     {
       float4 colors4;
       //get pos of red in properties, grab that value from file line and convert from uchar?
-      colors4.x = std::stof(value_arr.at(colorpos.x))/255;
+      colors4.x = std::stof(value_arr.at(colorpos.x))/255.0f; 
       //get pos of green in properties, grab that value from file line 
-      colors4.y = std::stof(value_arr.at(colorpos.y))/255;
+      colors4.y = std::stof(value_arr.at(colorpos.y))/255.0f;
       //get pos of blue in properties, grab that value from file line 
-      colors4.z = std::stof(value_arr.at(colorpos.z))/255;
+      colors4.z = std::stof(value_arr.at(colorpos.z))/255.0f;
       //if alpha get pos of alpha in properties, grab that value from file line else alpha 1.0f
       if (hasAlpha)
       {
-        colors4.w = std::stof(value_arr.at(alphapos))/255;
+        colors4.w = std::stof(value_arr.at(alphapos))/255.0f;
       } else {
         colors4.w = 1.0f;
       }
@@ -118,16 +115,19 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
     }
     
   }
+  for (int i = 0; i < header->face_count; i++) {
+    std::string line;
+    getline(file, line);
+    std::vector<std::string> value_arr = explode(line, ' ');
+    Vector<uint> vertex_indices;
 
-  // std::cout << "Vertex count: " << data.vertices.size() << std::endl;
-  // std::cout << "\tFirst: " << data.vertices.first() << std::endl;
-  // std::cout << "\tLast: " << data.vertices.last() << std::endl;
-  // std::cout << "Normals count: " << data.vertex_normals.size() << std::endl;
-  // std::cout << "\tFirst: " << data.vertex_normals.first() << std::endl;
-  // std::cout << "\tLast: " << data.vertex_normals.last() << std::endl;
-  // std::cout << "Colours count: " << data.vertex_colors.size() << std::endl;
-  // std::cout << "\tFirst: " << data.vertex_colors.first() << std::endl;
-  // std::cout << "\tLast: " << data.vertex_colors.last() << std::endl;
+    for (int j = 1; j <= std::stoi(value_arr.at(0)); j++)
+      {
+        vertex_indices.append(std::stoi(value_arr.at(j)));
+      }
+    data.faces.append(vertex_indices);
+      
+  }
 
   return data;
 }
@@ -161,7 +161,8 @@ int3 get_normal_pos(PlyHeader *header){
 
 int get_index(PlyHeader *header, std::string property, PlyDataTypes datatype){
   std::pair<std::string, PlyDataTypes> pair = {property, datatype};
-  return std::find(header->properties.begin(), header->properties.end(), pair) - header->properties.begin();
+  auto it = std::find(header->properties.begin(), header->properties.end(), pair);
+  return it - header->properties.begin();
 }
 
 std::vector<std::string> explode(const std::string& str, const char& ch) {
@@ -185,7 +186,6 @@ std::vector<std::string> explode(const std::string& str, const char& ch) {
     }
     if (!next.empty()){
       result.push_back(next);
-      std::cout << next << std::endl;
     }
          
     return result;
