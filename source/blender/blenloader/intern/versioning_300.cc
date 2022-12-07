@@ -3732,5 +3732,26 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         image->seam_margin = 8;
       }
     }
+
+    /* Add a properties sidebar to the spreadsheet editor. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_VIEW3D) {
+            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
+            ARegion *new_asset_shelf = do_versions_add_region_if_not_found(
+                regionbase,
+                RGN_TYPE_ASSET_SHELF,
+                "asset shelf for view3d (versioning)",
+                RGN_TYPE_UI);
+            if (new_asset_shelf != nullptr) {
+              new_asset_shelf->alignment = RGN_ALIGN_BOTTOM;
+              new_asset_shelf->flag |= RGN_FLAG_HIDDEN;
+            }
+          }
+        }
+      }
+    }
   }
 }

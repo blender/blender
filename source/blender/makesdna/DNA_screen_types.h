@@ -657,8 +657,9 @@ typedef enum eRegion_Type {
   /* Region type used exclusively by internal code and add-ons to register draw callbacks to the XR
    * context (surface, mirror view). Does not represent any real region. */
   RGN_TYPE_XR = 13,
+  RGN_TYPE_ASSET_SHELF = 14,
 
-#define RGN_TYPE_NUM (RGN_TYPE_XR + 1)
+#define RGN_TYPE_NUM (RGN_TYPE_ASSET_SHELF + 1)
 } eRegion_Type;
 
 /* use for function args */
