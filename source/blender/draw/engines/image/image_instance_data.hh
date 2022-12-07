@@ -21,8 +21,12 @@
 
 /**
  * \brief max allowed textures to use by the ScreenSpaceDrawingMode.
+ *
+ * The image engine uses 4 full screen textures to draw the image. With 4 textures it is possible
+ * to pan the screen where only the texture needs to be updated when they are not visible on the
+ * screen.
  */
-constexpr int SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN = 1;
+constexpr int SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN = 4;
 
 struct IMAGE_InstanceData {
   struct Image *image;
@@ -60,13 +64,13 @@ struct IMAGE_InstanceData {
  public:
   virtual ~IMAGE_InstanceData() = default;
 
-  void clear_dirty_flag()
+  void clear_need_full_update_flag()
   {
-    reset_dirty_flag(false);
+    reset_need_full_update(false);
   }
   void mark_all_texture_slots_dirty()
   {
-    reset_dirty_flag(true);
+    reset_need_full_update(true);
   }
 
   void update_gpu_texture_allocations()
@@ -74,11 +78,10 @@ struct IMAGE_InstanceData {
     for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
       TextureInfo &info = texture_infos[i];
       const bool is_allocated = info.texture != nullptr;
-      const bool is_visible = info.visible;
       const bool resolution_changed = assign_if_different(info.last_viewport_size,
                                                           float2(DRW_viewport_size_get()));
-      const bool should_be_freed = is_allocated && (!is_visible || resolution_changed);
-      const bool should_be_created = is_visible && (!is_allocated || resolution_changed);
+      const bool should_be_freed = is_allocated && resolution_changed;
+      const bool should_be_created = !is_allocated || resolution_changed;
 
       if (should_be_freed) {
         GPU_texture_free(info.texture);
@@ -89,7 +92,7 @@ struct IMAGE_InstanceData {
         DRW_texture_ensure_fullscreen_2d(
             &info.texture, GPU_RGBA16F, static_cast<DRWTextureFlag>(0));
       }
-      info.dirty |= should_be_created;
+      info.need_full_update |= should_be_created;
     }
   }
 
@@ -97,9 +100,6 @@ struct IMAGE_InstanceData {
   {
     for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
       TextureInfo &info = texture_infos[i];
-      if (!info.dirty) {
-        continue;
-      }
       BatchUpdater batch_updater(info);
       batch_updater.update_batch();
     }
@@ -110,17 +110,17 @@ struct IMAGE_InstanceData {
     ImageUsage usage(image, image_user, flags.do_tile_drawing);
     if (last_usage != usage) {
       last_usage = usage;
-      reset_dirty_flag(true);
+      reset_need_full_update(true);
       float_buffers.clear();
     }
   }
 
  private:
   /** \brief Set dirty flag of all texture slots to the given value. */
-  void reset_dirty_flag(bool new_value)
+  void reset_need_full_update(bool new_value)
   {
     for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
-      texture_infos[i].dirty = new_value;
+      texture_infos[i].need_full_update = new_value;
     }
   }
 };

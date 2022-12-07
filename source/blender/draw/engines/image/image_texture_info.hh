@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "BLI_math_vec_types.hh"
 #include "BLI_rect.h"
 
 #include "GPU_batch.h"
@@ -14,18 +15,11 @@
 
 struct TextureInfo {
   /**
-   * \brief Is the texture clipped.
-   *
-   * Resources of clipped textures are freed and ignored when performing partial updates.
-   */
-  bool visible : 1;
-
-  /**
    * \brief does this texture need a full update.
    *
    * When set to false the texture can be updated using a partial update.
    */
-  bool dirty : 1;
+  bool need_full_update : 1;
 
   /** \brief area of the texture in screen space. */
   rctf clipping_bounds;
@@ -59,5 +53,32 @@ struct TextureInfo {
       GPU_texture_free(texture);
       texture = nullptr;
     }
+  }
+
+  /**
+   * \brief return the offset of the texture with the area.
+   *
+   * A texture covers only a part of the area. The offset if the offset in screen coordinates
+   * between the area and the part that the texture covers.
+   */
+  int2 offset() const
+  {
+    return int2(clipping_bounds.xmin, clipping_bounds.ymin);
+  }
+
+  /**
+   * \brief Update the region bounds from the uv bounds by applying the given transform matrix.
+   */
+  void calc_region_bounds_from_uv_bounds(const float4x4 &uv_to_region)
+  {
+    float3 bottom_left_uv = float3(clipping_uv_bounds.xmin, clipping_uv_bounds.ymin, 0.0f);
+    float3 top_right_uv = float3(clipping_uv_bounds.xmax, clipping_uv_bounds.ymax, 0.0f);
+    float3 bottom_left_region = uv_to_region * bottom_left_uv;
+    float3 top_right_region = uv_to_region * top_right_uv;
+    BLI_rctf_init(&clipping_bounds,
+                  bottom_left_region.x,
+                  top_right_region.x,
+                  bottom_left_region.y,
+                  top_right_region.y);
   }
 };

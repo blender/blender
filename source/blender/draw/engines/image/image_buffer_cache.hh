@@ -49,12 +49,26 @@ struct FloatImageBuffer {
   }
 };
 
+/**
+ * \brief Float buffer cache for image buffers.
+ *
+ * Image buffers might not have float buffers which are required for the image engine.
+ * Image buffers are not allowed to have both a float buffer and a byte buffer as some
+ * functionality doesn't know what to do.
+ *
+ * For this reason we store the float buffer in separate image buffers. The FloatBufferCache keep
+ * track of the cached buffers and if they are still used.
+ *
+ * TODO: When an image buffer has a float buffer but not stored in scene linear, it currently
+ * doesn't apply color management. In this case we still need to create another float buffer, but
+ * with the buffer converted to scene linear.
+ */
 struct FloatBufferCache {
  private:
   blender::Vector<FloatImageBuffer> cache_;
 
  public:
-  ImBuf *ensure_float_buffer(ImBuf *image_buffer)
+  ImBuf *cached_float_buffer(ImBuf *image_buffer)
   {
     /* Check if we can use the float buffer of the given image_buffer. */
     if (image_buffer->rect_float != nullptr) {
