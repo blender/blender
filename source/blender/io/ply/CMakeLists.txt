@@ -38,6 +38,8 @@ set(SRC
     importer/ply_import_mesh.hh
 
     intern/ply_data.hh
+    intern/ply_functions.hh
+    intern/ply_functions.cc
 )
 
 set(LIB
