@@ -446,6 +446,14 @@ void MetalDevice::erase_allocation(device_memory &mem)
   }
 }
 
+bool MetalDevice::max_working_set_exceeded(size_t safety_margin) const
+{
+  /* We're allowed to allocate beyond the safe working set size, but then if all resources are made
+   * resident we will get command buffer failures at render time. */
+  size_t available = [mtlDevice recommendedMaxWorkingSetSize] - safety_margin;
+  return (stats.mem_used > available);
+}
+
 MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
 {
   size_t size = mem.memory_size();
@@ -521,6 +529,11 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
   }
   else {
     mmem->use_UMA = false;
+  }
+
+  if (max_working_set_exceeded()) {
+    set_error("System is out of GPU memory");
+    return nullptr;
   }
 
   return mmem;
@@ -921,9 +934,8 @@ void MetalDevice::tex_alloc(device_texture &mem)
               << string_human_readable_size(mem.memory_size()) << ")";
 
     mtlTexture = [mtlDevice newTextureWithDescriptor:desc];
-    assert(mtlTexture);
-
     if (!mtlTexture) {
+      set_error("System is out of GPU memory");
       return;
     }
 
@@ -955,7 +967,10 @@ void MetalDevice::tex_alloc(device_texture &mem)
               << string_human_readable_size(mem.memory_size()) << ")";
 
     mtlTexture = [mtlDevice newTextureWithDescriptor:desc];
-    assert(mtlTexture);
+    if (!mtlTexture) {
+      set_error("System is out of GPU memory");
+      return;
+    }
 
     [mtlTexture replaceRegion:MTLRegionMake2D(0, 0, mem.data_width, mem.data_height)
                   mipmapLevel:0
@@ -1017,6 +1032,10 @@ void MetalDevice::tex_alloc(device_texture &mem)
   need_texture_info = true;
 
   texture_info[slot].data = uint64_t(slot) | (sampler_index << 32);
+
+  if (max_working_set_exceeded()) {
+    set_error("System is out of GPU memory");
+  }
 }
 
 void MetalDevice::tex_free(device_texture &mem)
@@ -1076,6 +1095,10 @@ void MetalDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         bvhMetalRT = bvh_metal;
       }
     }
+  }
+
+  if (max_working_set_exceeded()) {
+    set_error("System is out of GPU memory");
   }
 }
 
