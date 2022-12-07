@@ -10,6 +10,8 @@ namespace blender::io::ply {
 
 Mesh *import_ply_ascii(std::ifstream &file, PlyHeader *header, Mesh *mesh)
 {
+  printf("printf check \n");
+  std::cout << "import "<< std::endl;
   PlyData data = load_ply_ascii(file, header);
   if (data.vertices.size() != 0) {
     return convert_ply_to_mesh(data, mesh);
@@ -19,168 +21,175 @@ Mesh *import_ply_ascii(std::ifstream &file, PlyHeader *header, Mesh *mesh)
 
 PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
 {
+  std::cout << "load "<< std::endl;
   PlyData data;
-
+  // check if has alpha
   std::pair<std::string, PlyDataTypes> alpha = {"alpha", PlyDataTypes::UCHAR};
   bool hasAlpha = std::find(header->properties.begin(), header->properties.end(), alpha) !=
                   header->properties.end();
   std::cout << "Has alpha: " << hasAlpha << std::endl;
 
-  for (int i = 0; i < header->vertex_count; i++) {
-    float3 currFloat3;
-    float4 currFloat4;
+  //check if has colours
+  std::pair<std::string, PlyDataTypes> red = {"red", PlyDataTypes::UCHAR};
+  bool hasColor = std::find(header->properties.begin(), header->properties.end(), red) !=
+                  header->properties.end();
+  std::cout << "Has color: " << hasColor << std::endl;
 
-    // switch (prop.second) {}
-    for (auto prop : header->properties) {
-      if (prop.first == "x") {
-        currFloat3 = read_float3_ascii(file);
-      } else if (prop.first == "z") {
-        data.vertices.append(currFloat3);
-      } else if (prop.first == "nx") {
-        currFloat3 = read_float3_ascii(file);
-      } else if (prop.first == "nz") {
-        data.vertex_normals.append(currFloat3);
-      } else if (prop.first == "red" && !hasAlpha) {
-        currFloat3 = convert_uchar3_float3_ascii(read_uchar3_ascii(file));
-      } else if (prop.first == "red" && hasAlpha) {
-        currFloat4 = convert_uchar4_float4_ascii(read_uchar4_ascii(file));
-      } else if (prop.first == "blue" && !hasAlpha) {
-        data.vertex_colors.append(float4(currFloat3.x, currFloat3.y, currFloat3.z, 1.0f));
-      } else if (prop.first == "alpha") {
-        data.vertex_colors.append(currFloat4);
-      } else if (prop.first == "y" || prop.first == "ny" || prop.first == "green" || (prop.first == "blue" && hasAlpha)){
-        continue;
-      } else {
-        // We don't support any other properties yet
-        switch (prop.second) {
-          case CHAR:
-            read<int8_t>(file);
-            break;
-          case UCHAR:
-            read<uint8_t>(file);
-            break;
-          case SHORT:
-            read<int16_t>(file);
-            break;
-          case USHORT:
-            read<uint16_t>(file);
-            break;
-          case INT:
-            read<int32_t>(file);
-            break;
-          case UINT:
-            read<uint32_t>(file);
-            break;
-          case FLOAT:
-            read<float>(file);
-            break;
-          case DOUBLE:
-            read<double>(file);
-            break;
-        }
-      }
-    }
+  //check if has normals
+  std::pair<std::string, PlyDataTypes> normalx = {"nx", PlyDataTypes::FLOAT};
+  bool hasNormals = std::find(header->properties.begin(), header->properties.end(), normalx) !=
+                  header->properties.end();
+  std::cout << "Has normals: " << hasNormals << std::endl;
+
+  int3 vertexpos = get_vertex_pos(header);
+  int alphapos;
+  int3 colorpos;
+  int3 normalpos;
+
+  if (hasAlpha)
+  {
+    int alphapos = get_index(header, "alpha", PlyDataTypes::UCHAR);
   }
 
-  std::cout << "Vertex count: " << data.vertices.size() << std::endl;
-  std::cout << "\tFirst: " << data.vertices.first() << std::endl;
-  std::cout << "\tLast: " << data.vertices.last() << std::endl;
-  std::cout << "Normals count: " << data.vertex_normals.size() << std::endl;
-  std::cout << "\tFirst: " << data.vertex_normals.first() << std::endl;
-  std::cout << "\tLast: " << data.vertex_normals.last() << std::endl;
-  std::cout << "Colours count: " << data.vertex_colors.size() << std::endl;
-  std::cout << "\tFirst: " << data.vertex_colors.first() << std::endl;
-  std::cout << "\tLast: " << data.vertex_colors.last() << std::endl;
+  if (hasColor)
+  {
+    // x=red,y=green,z=blue
+    //xyz = rgb
+    int3 colorpos = get_color_pos(header);
+  }
+
+  if (hasNormals){
+    int3 normalpos = get_normal_pos(header);
+  }
+  
+
+  for (int i = 0; i < header->vertex_count; i++) {
+    std::string line;
+    getline(file, line);
+    std::vector<std::string> value_arr = explode(line, ' ');
+    
+    //vertex coords
+    float3 vertex3;
+    //get pos of x in properties, grab that value from file line 
+    vertex3.x = std::stof(value_arr.at(vertexpos.x));
+    //get pos of y in properties, grab that value from file line 
+    vertex3.y = std::stof(value_arr.at(vertexpos.y));
+    //get pos of z in properties, grab that value from file line 
+    vertex3.z = std::stof(value_arr.at(vertexpos.z));
+
+    data.vertices.append(vertex3);
+    
+    // vertex colours
+    // if colours 
+    if (hasColor)
+    {
+      float4 colors4;
+      //get pos of red in properties, grab that value from file line and convert from uchar?
+      colors4.x = std::stof(value_arr.at(colorpos.x))/255;
+      //get pos of green in properties, grab that value from file line 
+      colors4.y = std::stof(value_arr.at(colorpos.y))/255;
+      //get pos of blue in properties, grab that value from file line 
+      colors4.z = std::stof(value_arr.at(colorpos.z))/255;
+      //if alpha get pos of alpha in properties, grab that value from file line else alpha 1.0f
+      if (hasAlpha)
+      {
+        colors4.w = std::stof(value_arr.at(alphapos))/255;
+      } else {
+        colors4.w = 1.0f;
+      }
+      
+      data.vertex_colors.append(colors4);
+    }
+
+    // if normals
+    if (hasNormals)
+    {
+      float3 normals3;
+      //get pos of nx in properties, grab that value from file line 
+      vertex3.x = std::stof(value_arr.at(normalpos.x));
+      
+      //genormals3t pos of ny in properties, grab that value from file line 
+      normals3.y = std::stof(value_arr.at(normalpos.y));
+
+      //get pos of nz in properties, grab that value from file line 
+      normals3.z = std::stof(value_arr.at(normalpos.z));
+
+      data.vertex_normals.append(normals3);
+    }
+    
+  }
+
+  // std::cout << "Vertex count: " << data.vertices.size() << std::endl;
+  // std::cout << "\tFirst: " << data.vertices.first() << std::endl;
+  // std::cout << "\tLast: " << data.vertices.last() << std::endl;
+  // std::cout << "Normals count: " << data.vertex_normals.size() << std::endl;
+  // std::cout << "\tFirst: " << data.vertex_normals.first() << std::endl;
+  // std::cout << "\tLast: " << data.vertex_normals.last() << std::endl;
+  // std::cout << "Colours count: " << data.vertex_colors.size() << std::endl;
+  // std::cout << "\tFirst: " << data.vertex_colors.first() << std::endl;
+  // std::cout << "\tLast: " << data.vertex_colors.last() << std::endl;
 
   return data;
 }
 
-float3 read_float3_ascii(std::ifstream& file){
-  float3 currFloat3;
+int3 get_vertex_pos(PlyHeader *header){
+  int3 vertexPos;
+  vertexPos.x = get_index(header, "x", PlyDataTypes::FLOAT);
+  vertexPos.y = get_index(header, "y", PlyDataTypes::FLOAT);
+  vertexPos.z = get_index(header, "z", PlyDataTypes::FLOAT);
 
-  for (int i = 0; i < 3; i++) {
-    float temp;
-    file.read((char *)&temp, sizeof(temp));
-    check_file_errors_ascii(file);
-    currFloat3[i] = temp;
-  }
-
-  return currFloat3;
+  return vertexPos;
 }
 
-uchar3 read_uchar3_ascii(std::ifstream &file)
-{
-  uchar3 currUchar3;
+int3 get_color_pos(PlyHeader *header){
+  int3 vertexPos;
+  vertexPos.x = get_index(header, "red", PlyDataTypes::UCHAR);
+  vertexPos.y = get_index(header, "green", PlyDataTypes::UCHAR);
+  vertexPos.z = get_index(header, "blue", PlyDataTypes::UCHAR);
 
-  for (int i = 0; i < 3; i++) {
-    uchar temp;
-    file.read((char *)&temp, sizeof(temp));
-    check_file_errors_ascii(file);
-    // No swapping of bytes necessary as uchar is only 1 byte
-    currUchar3[i] = temp;
-  }
-
-  return currUchar3;
-}
-uchar4 read_uchar4_ascii(std::ifstream &file)
-{
-  uchar4 currUchar4;
-
-  for (int i = 0; i < 4; i++) {
-    uchar temp;
-    file.read((char *)&temp, sizeof(temp));
-    check_file_errors_ascii(file);
-    // No swapping of bytes necessary as uchar is only 1 byte
-    currUchar4[i] = temp;
-  }
-
-  return currUchar4;
+  return vertexPos;
 }
 
-float3 convert_uchar3_float3_ascii(uchar3 input) {
-  float3 returnVal;
-  for (int i = 0; i < 3; i++) {
-    returnVal[i] = input[i] / 255.0f;
-  }
-  return returnVal;
-}
-float4 convert_uchar4_float4_ascii(uchar4 input)
-{
-  float4 returnVal;
-  for (int i = 0; i < 4; i++) {
-    returnVal[i] = input[i] / 255.0f;
-  }
-  return returnVal;
+int3 get_normal_pos(PlyHeader *header){
+  int3 vertexPos;
+  vertexPos.x = get_index(header, "nx", PlyDataTypes::FLOAT);
+  vertexPos.y = get_index(header, "ny", PlyDataTypes::FLOAT);
+  vertexPos.z = get_index(header, "nz", PlyDataTypes::FLOAT);
+
+  return vertexPos;
 }
 
-void check_file_errors_ascii(std::ifstream &file)
-{
-  if (file.bad()) {
-    printf("Read/Write error on io operation");
-  }
-  else if (file.fail()) {
-    printf("Logical error on io operation");
-  }
-  else if (file.eof()) {
-    printf("Reached end of the file");
-  }
+int get_index(PlyHeader *header, std::string property, PlyDataTypes datatype){
+  std::pair<std::string, PlyDataTypes> pair = {property, datatype};
+  return std::find(header->properties.begin(), header->properties.end(), pair) - header->properties.begin();
 }
 
-template<typename T> T read(std::ifstream &file)
-{
-  T returnVal;
-  file.read((char *)&returnVal, sizeof(returnVal));
-  check_file_errors_ascii(file);
-  return returnVal;
+std::vector<std::string> explode(const std::string& str, const char& ch) {
+    std::string next;
+    std::vector<std::string> result;
+
+    // For each character in the string
+    for (std::string::const_iterator it = str.begin(); it != str.end(); it++) {
+        // If we've hit the terminal character
+        if (*it == ch) {
+            // If we have some characters accumulated
+            if (!next.empty()) {
+                // Add them to the result vector
+                result.push_back(next);
+                next.clear();
+            }
+        } else {
+            // Accumulate the next character into the sequence
+            next += *it;
+        }
+    }
+    if (!next.empty()){
+      result.push_back(next);
+      std::cout << next << std::endl;
+    }
+         
+    return result;
 }
 
-template uint8_t read<uint8_t>(std::ifstream &file);
-template int8_t read<int8_t>(std::ifstream &file);
-template uint16_t read<uint16_t>(std::ifstream &file);
-template int16_t read<int16_t>(std::ifstream &file);
-template uint32_t read<uint32_t>(std::ifstream &file);
-template int32_t read<int32_t>(std::ifstream &file);
-template float read<float>(std::ifstream &file);
-template double read<double>(std::ifstream &file);
 
 }  // namespace blender::io::ply
