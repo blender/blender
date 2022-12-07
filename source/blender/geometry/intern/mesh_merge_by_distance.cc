@@ -16,7 +16,6 @@
 #include "GEO_mesh_merge_by_distance.hh"
 
 //#define USE_WELD_DEBUG
-//#define USE_WELD_NORMALS
 
 namespace blender::geometry {
 
@@ -1277,9 +1276,6 @@ static void customdata_weld(
   int j;
 
   float co[3] = {0.0f, 0.0f, 0.0f};
-#ifdef USE_WELD_NORMALS
-  float no[3] = {0.0f, 0.0f, 0.0f};
-#endif
   short flag = 0;
 
   /* interpolates a layer at a time */
@@ -1307,12 +1303,6 @@ static void customdata_weld(
         for (j = 0; j < count; j++) {
           MVert *mv_src = &((MVert *)src_data)[src_indices[j]];
           add_v3_v3(co, mv_src->co);
-#ifdef USE_WELD_NORMALS
-          short *mv_src_no = mv_src->no;
-          no[0] += mv_src_no[0];
-          no[1] += mv_src_no[1];
-          no[2] += mv_src_no[2];
-#endif
         }
       }
       else if (type == CD_MEDGE) {
@@ -1356,13 +1346,6 @@ static void customdata_weld(
       mul_v3_fl(co, fac);
 
       copy_v3_v3(mv->co, co);
-#ifdef USE_WELD_NORMALS
-      mul_v3_fl(no, fac);
-      short *mv_no = mv->no;
-      mv_no[0] = short(no[0]);
-      mv_no[1] = short(no[1]);
-      mv_no[2] = short(no[2]);
-#endif
     }
     else if (type == CD_MEDGE) {
       MEdge *me = &((MEdge *)layer_dst->data)[dest_index];
