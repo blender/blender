@@ -14,6 +14,7 @@ void register_geometry_nodes()
   register_node_type_geo_attribute_capture();
   register_node_type_geo_attribute_domain_size();
   register_node_type_geo_attribute_statistic();
+  register_node_type_geo_blur_attribute();
   register_node_type_geo_boolean();
   register_node_type_geo_bounding_box();
   register_node_type_geo_collection_info();

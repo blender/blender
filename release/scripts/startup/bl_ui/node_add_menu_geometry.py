@@ -12,6 +12,7 @@ class NODE_MT_geometry_node_GEO_ATTRIBUTE(Menu):
     def draw(self, _context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeAttributeStatistic")
+        node_add_menu.add_node_type(layout, "GeometryNodeBlurAttribute")
         node_add_menu.add_node_type(layout, "GeometryNodeCaptureAttribute")
         node_add_menu.add_node_type(layout, "GeometryNodeAttributeDomainSize")
         node_add_menu.add_node_type(layout, "GeometryNodeRemoveAttribute")
