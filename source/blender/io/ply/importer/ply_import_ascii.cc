@@ -3,6 +3,7 @@
 //
 #include "ply_import_ascii.hh"
 #include "BLI_math_vector.h"
+#include "ply_functions.hh"
 #include "ply_import_mesh.hh"
 #include <fstream>
 
@@ -58,34 +59,34 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
   if (hasNormals){
     normalpos = get_normal_pos(header);
   }
-  
+
 
   for (int i = 0; i < header->vertex_count; i++) {
     std::string line;
-    getline(file, line);
+    safe_getline(file, line);
     std::vector<std::string> value_arr = explode(line, ' ');
-    
+
     //vertex coords
     float3 vertex3;
-    //get pos of x in properties, grab that value from file line 
+    //get pos of x in properties, grab that value from file line
     vertex3.x = std::stof(value_arr.at(vertexpos.x));
-    //get pos of y in properties, grab that value from file line 
+    //get pos of y in properties, grab that value from file line
     vertex3.y = std::stof(value_arr.at(vertexpos.y));
-    //get pos of z in properties, grab that value from file line 
+    //get pos of z in properties, grab that value from file line
     vertex3.z = std::stof(value_arr.at(vertexpos.z));
 
     data.vertices.append(vertex3);
-    
+
     // vertex colours
-    // if colours 
+    // if colours
     if (hasColor)
     {
       float4 colors4;
       //get pos of red in properties, grab that value from file line and convert from uchar?
-      colors4.x = std::stof(value_arr.at(colorpos.x))/255.0f; 
-      //get pos of green in properties, grab that value from file line 
+      colors4.x = std::stof(value_arr.at(colorpos.x))/255.0f;
+      //get pos of green in properties, grab that value from file line
       colors4.y = std::stof(value_arr.at(colorpos.y))/255.0f;
-      //get pos of blue in properties, grab that value from file line 
+      //get pos of blue in properties, grab that value from file line
       colors4.z = std::stof(value_arr.at(colorpos.z))/255.0f;
       //if alpha get pos of alpha in properties, grab that value from file line else alpha 1.0f
       if (hasAlpha)
@@ -94,7 +95,7 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
       } else {
         colors4.w = 1.0f;
       }
-      
+
       data.vertex_colors.append(colors4);
     }
 
@@ -102,18 +103,18 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
     if (hasNormals)
     {
       float3 normals3;
-      //get pos of nx in properties, grab that value from file line 
+      //get pos of nx in properties, grab that value from file line
       vertex3.x = std::stof(value_arr.at(normalpos.x));
-      
-      //genormals3t pos of ny in properties, grab that value from file line 
+
+      //genormals3t pos of ny in properties, grab that value from file line
       normals3.y = std::stof(value_arr.at(normalpos.y));
 
-      //get pos of nz in properties, grab that value from file line 
+      //get pos of nz in properties, grab that value from file line
       normals3.z = std::stof(value_arr.at(normalpos.z));
 
       data.vertex_normals.append(normals3);
     }
-    
+
   }
   for (int i = 0; i < header->face_count; i++) {
     std::string line;
@@ -126,7 +127,7 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
         vertex_indices.append(std::stoi(value_arr.at(j)));
       }
     data.faces.append(vertex_indices);
-      
+
   }
 
   return data;
@@ -187,7 +188,7 @@ std::vector<std::string> explode(const std::string& str, const char& ch) {
     if (!next.empty()){
       result.push_back(next);
     }
-         
+
     return result;
 }
 

@@ -24,6 +24,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "intern/ply_data.hh"
+#include "ply_functions.hh"
 #include "ply_import.hh"
 #include "ply_import_ascii.hh"
 #include "ply_import_binary.hh"
@@ -108,7 +109,8 @@ void importer_main(Main *bmain,
 
   PlyHeader header;
 
-  while (std::getline(infile, line)) {
+  while (true) { // We break when end_header is encountered
+    safe_getline(infile, line);
     header.header_size++;
     std::vector<std::string> words{};
     splitstr(line, words);
