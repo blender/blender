@@ -663,7 +663,7 @@ if(WITH_OPENCOLORIO)
         debug ${OPENCOLORIO_LIBPATH}/OpencolorIO_d.lib
         debug ${OPENCOLORIO_LIBPATH}/libexpatdMD.lib
         debug ${OPENCOLORIO_LIBPATH}/pystring_d.lib
-        debug ${OPENCOLORIO_LIBPATH}/yaml-cppd.lib
+        debug ${OPENCOLORIO_LIBPATH}/libyaml-cpp_d.lib
       )
       set(OPENCOLORIO_DEFINITIONS "-DOpenColorIO_SKIP_IMPORTS")
     else()
