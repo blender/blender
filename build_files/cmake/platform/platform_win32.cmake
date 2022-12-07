@@ -575,7 +575,7 @@ if(WITH_BOOST)
     )
     if (EXISTS ${BOOST_34_TRIGGER_FILE})
       if(WITH_USD)
-        set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
+        set(BOOST_PYTHON_LIBRARIES
           debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python310-${BOOST_DEBUG_POSTFIX}.lib
           optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python310-${BOOST_POSTFIX}.lib
         )

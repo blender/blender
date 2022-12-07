@@ -260,7 +260,12 @@ if(WITH_BOOST)
   endif()
   find_package(Boost COMPONENTS ${_boost_FIND_COMPONENTS})
 
+  # Boost Python is separate to avoid linking Python into tests that don't need it.
   set(BOOST_LIBRARIES ${Boost_LIBRARIES})
+  if(WITH_USD AND USD_PYTHON_SUPPORT)
+    set(BOOST_PYTHON_LIBRARIES ${Boost_PYTHON${PYTHON_VERSION_NO_DOTS}_LIBRARY})
+    list(REMOVE_ITEM BOOST_LIBRARIES ${BOOST_PYTHON_LIBRARIES})
+  endif()
   set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
   set(BOOST_DEFINITIONS)
 
