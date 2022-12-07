@@ -1307,7 +1307,7 @@ typedef struct KernelAreaLight {
   float len_v;
   packed_float3 dir;
   float invarea;
-  float cot_half_spread;
+  float tan_half_spread;
   float normalize_spread;
   float pad[2];
 } KernelAreaLight;

@@ -91,7 +91,7 @@ ccl_device_inline float area_light_rect_sample(float3 P,
 
 ccl_device float area_light_spread_attenuation(const float3 D,
                                                const float3 lightNg,
-                                               const float cot_half_spread,
+                                               const float tan_half_spread,
                                                const float normalize_spread)
 {
   /* Model a soft-box grid, computing the ratio of light not hidden by the
@@ -99,7 +99,7 @@ ccl_device float area_light_spread_attenuation(const float3 D,
   const float cos_a = -dot(D, lightNg);
   const float sin_a = safe_sqrtf(1.0f - sqr(cos_a));
   const float tan_a = sin_a / cos_a;
-  return max((1.0f - (cot_half_spread * tan_a)) * normalize_spread, 0.0f);
+  return max((tan_half_spread - tan_a) * normalize_spread, 0.0f);
 }
 
 /* Compute the minimal rectangle, circle or ellipse that covers the valid sample region, to reduce
@@ -111,7 +111,7 @@ ccl_device bool area_light_spread_clamp_light(const float3 P,
                                               ccl_private float *len_u,
                                               ccl_private float3 *axis_v,
                                               ccl_private float *len_v,
-                                              const float cot_half_spread,
+                                              const float tan_half_spread,
                                               ccl_private bool *sample_rectangle)
 {
   /* Closest point in area light plane and distance to that plane. */
@@ -119,7 +119,7 @@ ccl_device bool area_light_spread_clamp_light(const float3 P,
   const float t = len(closest_P - P);
 
   /* Radius of circle on area light that actually affects the shading point. */
-  const float r_spread = t / cot_half_spread;
+  const float r_spread = t * tan_half_spread;
 
   /* Local uv coordinates of closest point. */
   const float spread_u = dot(*axis_u, closest_P - *lightP);
@@ -261,7 +261,7 @@ ccl_device_inline bool area_light_sample(const ccl_global KernelLight *klight,
     float sample_len_u = len_u;
     float sample_len_v = len_v;
 
-    if (klight->area.cot_half_spread > 0.0f) {
+    if (klight->area.normalize_spread > 0) {
       if (!area_light_spread_clamp_light(P,
                                          Ng,
                                          &ls->P,
@@ -269,7 +269,7 @@ ccl_device_inline bool area_light_sample(const ccl_global KernelLight *klight,
                                          &sample_len_u,
                                          &sample_axis_v,
                                          &sample_len_v,
-                                         klight->area.cot_half_spread,
+                                         klight->area.tan_half_spread,
                                          &sample_rectangle)) {
         return false;
       }
@@ -307,10 +307,10 @@ ccl_device_inline bool area_light_sample(const ccl_global KernelLight *klight,
 
   ls->eval_fac = 0.25f * invarea;
 
-  if (klight->area.cot_half_spread > 0.0f) {
+  if (klight->area.normalize_spread > 0) {
     /* Area Light spread angle attenuation */
     ls->eval_fac *= area_light_spread_attenuation(
-        ls->D, ls->Ng, klight->area.cot_half_spread, klight->area.normalize_spread);
+        ls->D, ls->Ng, klight->area.tan_half_spread, klight->area.normalize_spread);
   }
 
   if (!sample_rectangle) {
@@ -328,10 +328,10 @@ ccl_device_forceinline void area_light_update_position(const ccl_global KernelLi
   ls->D = normalize_len(ls->P - P, &ls->t);
   ls->pdf = invarea;
 
-  if (klight->area.cot_half_spread > 0.f) {
+  if (klight->area.tan_half_spread > 0) {
     ls->eval_fac = 0.25f * invarea;
     ls->eval_fac *= area_light_spread_attenuation(
-        ls->D, ls->Ng, klight->area.cot_half_spread, klight->area.normalize_spread);
+        ls->D, ls->Ng, klight->area.tan_half_spread, klight->area.normalize_spread);
   }
 }
 
@@ -401,7 +401,7 @@ ccl_device_inline bool area_light_sample_from_intersection(
   bool is_ellipse = (klight->area.invarea < 0.0f);
   bool sample_rectangle = !is_ellipse;
 
-  if (klight->area.cot_half_spread > 0.0f) {
+  if (klight->area.normalize_spread > 0) {
     if (!area_light_spread_clamp_light(ray_P,
                                        Ng,
                                        &light_P,
@@ -409,7 +409,7 @@ ccl_device_inline bool area_light_sample_from_intersection(
                                        &sample_len_u,
                                        &sample_axis_v,
                                        &sample_len_v,
-                                       klight->area.cot_half_spread,
+                                       klight->area.tan_half_spread,
                                        &sample_rectangle)) {
       return false;
     }
@@ -425,10 +425,10 @@ ccl_device_inline bool area_light_sample_from_intersection(
 
   ls->eval_fac = 0.25f * invarea;
 
-  if (klight->area.cot_half_spread > 0.0f) {
+  if (klight->area.normalize_spread > 0) {
     /* Area Light spread angle attenuation */
     ls->eval_fac *= area_light_spread_attenuation(
-        ls->D, ls->Ng, klight->area.cot_half_spread, klight->area.normalize_spread);
+        ls->D, ls->Ng, klight->area.tan_half_spread, klight->area.normalize_spread);
     if (ls->eval_fac == 0.0f) {
       return false;
     }

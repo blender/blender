@@ -1041,11 +1041,11 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       /* Clamping to a minimum angle to avoid excessive noise. */
       const float min_spread = 1.0f * M_PI_F / 180.0f;
       const float half_spread = 0.5f * max(light->spread, min_spread);
-      /* cot_half_spread is h in D10594#269626 */
-      const float cot_half_spread = tanf(M_PI_2_F - half_spread);
+      const float tan_half_spread = light->spread == M_PI_F ? FLT_MAX : tanf(half_spread);
       /* Normalization computed using:
-       * integrate cos(x) * (1 - tan(x) / tan(a)) * sin(x) from x = 0 to a, a being half_spread */
-      const float normalize_spread = 1.0f / (1.0f - half_spread * cot_half_spread);
+       * integrate cos(x) * (1 - tan(x) / tan(a)) * sin(x) from x = 0 to a, a being half_spread.
+       * Divided by tan_half_spread to simplify the attentuation computation in `area.h`. */
+      const float normalize_spread = 1.0f / (tan_half_spread - half_spread);
 
       dir = safe_normalize(dir);
 
@@ -1059,7 +1059,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       klights[light_index].area.len_v = len_v;
       klights[light_index].area.invarea = invarea;
       klights[light_index].area.dir = dir;
-      klights[light_index].area.cot_half_spread = cot_half_spread;
+      klights[light_index].area.tan_half_spread = tan_half_spread;
       klights[light_index].area.normalize_spread = normalize_spread;
     }
     else if (light->light_type == LIGHT_SPOT) {
