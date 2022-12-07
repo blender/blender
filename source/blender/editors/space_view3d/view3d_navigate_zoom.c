@@ -408,6 +408,11 @@ static int viewzoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_CONFIRM;
       }
     }
+    else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
+      if (event->val == KM_PRESS) {
+        event_code = VIEW_CANCEL;
+      }
+    }
   }
 
   switch (event_code) {
@@ -426,6 +431,20 @@ static int viewzoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case VIEW_CONFIRM: {
       use_autokey = true;
       ret = OPERATOR_FINISHED;
+      break;
+    }
+    case VIEW_CANCEL: {
+      /* Note this does not remove auto-keys on locked cameras. */
+      vod->rv3d->dist = vod->init.dist;
+      /* The offset may have change when zooming to mouse position. */
+      copy_v3_v3(vod->rv3d->ofs, vod->init.ofs);
+      vod->rv3d->camzoom = vod->init.camzoom;
+      /* Zoom to mouse position in camera view changes these values. */
+      vod->rv3d->camdx = vod->init.camdx;
+      vod->rv3d->camdy = vod->init.camdy;
+
+      ED_view3d_camera_lock_sync(vod->depsgraph, vod->v3d, vod->rv3d);
+      ret = OPERATOR_CANCELLED;
       break;
     }
   }

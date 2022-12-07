@@ -4,6 +4,8 @@
  * \ingroup spview3d
  */
 
+#include "BLI_math_vector.h"
+
 #include "BKE_context.h"
 
 #include "WM_api.h"
@@ -126,6 +128,11 @@ static int viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_CONFIRM;
       }
     }
+    else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
+      if (event->val == KM_PRESS) {
+        event_code = VIEW_CANCEL;
+      }
+    }
   }
 
   switch (event_code) {
@@ -139,6 +146,12 @@ static int viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case VIEW_CONFIRM: {
       use_autokey = true;
       ret = OPERATOR_FINISHED;
+      break;
+    }
+    case VIEW_CANCEL: {
+      viewmove_apply_reset(vod);
+      ED_view3d_camera_lock_sync(vod->depsgraph, vod->v3d, vod->rv3d);
+      ret = OPERATOR_CANCELLED;
       break;
     }
   }

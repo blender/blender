@@ -182,7 +182,7 @@ static void viewrotate_apply_snap(ViewOpsData *vod)
     }
   }
   else if (U.uiflag & USER_AUTOPERSP) {
-    rv3d->persp = vod->init.persp;
+    rv3d->persp = vod->init.persp_with_auto_persp_applied;
   }
 }
 
@@ -338,7 +338,7 @@ static int viewrotate_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_APPLY;
         break;
       case VIEWROT_MODAL_AXIS_SNAP_DISABLE:
-        vod->rv3d->persp = vod->init.persp;
+        vod->rv3d->persp = vod->init.persp_with_auto_persp_applied;
         vod->axis_snap = false;
         event_code = VIEW_APPLY;
         break;
@@ -361,6 +361,11 @@ static int viewrotate_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_CONFIRM;
       }
     }
+    else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
+      if (event->val == KM_PRESS) {
+        event_code = VIEW_CANCEL;
+      }
+    }
   }
 
   switch (event_code) {
@@ -374,6 +379,25 @@ static int viewrotate_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case VIEW_CONFIRM: {
       use_autokey = true;
       ret = OPERATOR_FINISHED;
+      break;
+    }
+    case VIEW_CANCEL: {
+      /* Note this does not remove auto-keys on locked cameras. */
+      copy_qt_qt(vod->rv3d->viewquat, vod->init.quat);
+      /* The offset may have change when rotating around objects or last-brush. */
+      copy_v3_v3(vod->rv3d->ofs, vod->init.ofs);
+      /* The dist may have changed when orbiting from a camera view.
+       * In this case the `dist` is calculated based on the camera relative to the `ofs`. */
+      vod->rv3d->dist = vod->init.dist;
+
+      vod->rv3d->persp = vod->init.persp;
+      vod->rv3d->view = vod->init.view;
+      vod->rv3d->view_axis_roll = vod->init.view_axis_roll;
+
+      /* NOTE: there is no need to restore "last" values (as set by #ED_view3d_lastview_store). */
+
+      ED_view3d_camera_lock_sync(vod->depsgraph, vod->v3d, vod->rv3d);
+      ret = OPERATOR_CANCELLED;
       break;
     }
   }
