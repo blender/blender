@@ -343,6 +343,12 @@ void gpu_shader_create_info_init()
     overlay_motion_path_line = overlay_motion_path_line_no_geom;
     overlay_motion_path_line_clipped = overlay_motion_path_line_clipped_no_geom;
 
+    /* Overlay prepass wire. */
+    overlay_outline_prepass_wire = overlay_outline_prepass_wire_no_geom;
+
+    /* Edit UV Edges. */
+    overlay_edit_uv_edges = overlay_edit_uv_edges_no_geom;
+
     /* Downsample Cube/Proe rendering. */
     eevee_legacy_effect_downsample_cube = eevee_legacy_effect_downsample_cube_no_geom;
     eevee_legacy_probe_filter_glossy = eevee_legacy_probe_filter_glossy_no_geom;

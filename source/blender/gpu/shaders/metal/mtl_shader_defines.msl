@@ -40,6 +40,8 @@
 #define vec3_1010102_Inorm int
 
 /* Strip GLSL Decorators. */
+/* NOTE: For debugging, keep decorators in to ensure we have not missed any
+ * shader resources which are not guarded behind Macro's. */
 #if 0
 #  define in
 #  define flat

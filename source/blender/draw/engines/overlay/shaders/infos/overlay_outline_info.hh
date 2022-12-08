@@ -39,17 +39,25 @@ GPU_SHADER_CREATE_INFO(overlay_outline_prepass_curves_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_outline_prepass_curves", "drw_clipped");
 
+GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire_common)
+    .vertex_in(0, Type::VEC3, "pos")
+    .additional_info("draw_mesh", "overlay_outline_prepass")
+    .additional_info("draw_object_infos");
+
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire)
     .do_static_compilation(true)
+    .additional_info("overlay_outline_prepass_wire_common")
     .define("USE_GEOM")
-    .vertex_in(0, Type::VEC3, "pos")
     .vertex_out(overlay_outline_prepass_wire_iface)
     .geometry_layout(PrimitiveIn::LINES_ADJACENCY, PrimitiveOut::LINE_STRIP, 2)
     .geometry_out(overlay_outline_prepass_iface)
     .vertex_source("overlay_outline_prepass_vert.glsl")
-    .geometry_source("overlay_outline_prepass_geom.glsl")
-    .additional_info("draw_mesh", "overlay_outline_prepass")
-    .additional_info("draw_object_infos");
+    .geometry_source("overlay_outline_prepass_geom.glsl");
+
+GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire_no_geom)
+    // .do_static_compilation(true)
+    .additional_info("overlay_outline_prepass_wire_common")
+    .vertex_source("overlay_outline_prepass_vert_no_geom.glsl");
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire_clipped)
     .do_static_compilation(true)
