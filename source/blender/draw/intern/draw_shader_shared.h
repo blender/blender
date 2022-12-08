@@ -22,7 +22,8 @@ typedef struct DRWDebugPrintBuffer DRWDebugPrintBuffer;
 typedef struct DRWDebugVert DRWDebugVert;
 typedef struct DRWDebugDrawBuffer DRWDebugDrawBuffer;
 
-#  ifdef __cplusplus
+/* __cplusplus is true when compiling with MSL. */
+#  if defined(__cplusplus) && !defined(GPU_SHADER)
 /* C++ only forward declarations. */
 struct Object;
 struct ViewLayer;

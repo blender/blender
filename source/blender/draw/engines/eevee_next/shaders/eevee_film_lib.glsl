@@ -134,7 +134,7 @@ void film_sample_accum_mist(FilmSample samp, inout float accum)
     return;
   }
   float depth = texelFetch(depth_tx, samp.texel, 0).x;
-  vec2 uv = (vec2(samp.texel) + 0.5) / textureSize(depth_tx, 0).xy;
+  vec2 uv = (vec2(samp.texel) + 0.5) / vec2(textureSize(depth_tx, 0).xy);
   vec3 vP = get_view_space_from_depth(uv, depth);
   bool is_persp = ProjectionMatrix[3][3] == 0.0;
   float mist = (is_persp) ? length(vP) : abs(vP.z);
@@ -159,10 +159,17 @@ void film_sample_accum_combined(FilmSample samp, inout vec4 accum, inout float w
   weight_accum += weight;
 }
 
+#ifdef GPU_METAL
+void film_sample_cryptomatte_accum(FilmSample samp,
+                                   int layer,
+                                   sampler2D tex,
+                                   thread vec2 *crypto_samples)
+#else
 void film_sample_cryptomatte_accum(FilmSample samp,
                                    int layer,
                                    sampler2D tex,
                                    inout vec2 crypto_samples[4])
+#endif
 {
   float hash = texelFetch(tex, samp.texel, 0)[layer];
   /* Find existing entry. */
@@ -257,7 +264,11 @@ vec2 film_pixel_history_motion_vector(ivec2 texel_sample)
 /* \a t is inter-pixel position. 0 means perfectly on a pixel center.
  * Returns weights in both dimensions.
  * Multiply each dimension weights to get final pixel weights. */
+#ifdef GPU_METAL
+void film_get_catmull_rom_weights(vec2 t, thread vec2 *weights)
+#else
 void film_get_catmull_rom_weights(vec2 t, out vec2 weights[4])
+#endif
 {
   vec2 t2 = t * t;
   vec2 t3 = t2 * t;
@@ -436,7 +447,7 @@ float film_history_blend_factor(float velocity,
   /* Linearly blend when history gets below to 25% of the bbox size. */
   blend *= saturate(distance_to_luma_clip * 4.0 + 0.1);
   /* Discard out of view history. */
-  if (any(lessThan(texel, vec2(0))) || any(greaterThanEqual(texel, film_buf.extent))) {
+  if (any(lessThan(texel, vec2(0))) || any(greaterThanEqual(texel, vec2(film_buf.extent)))) {
     blend = 1.0;
   }
   /* Discard history if invalid. */
@@ -655,7 +666,7 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
       float depth = texelFetch(depth_tx, film_sample.texel, 0).x;
       vec4 vector = velocity_resolve(vector_tx, film_sample.texel, depth);
       /* Transform to pixel space. */
-      vector *= vec4(film_buf.render_extent, -film_buf.render_extent);
+      vector *= vec4(vec2(film_buf.render_extent), -vec2(film_buf.render_extent));
 
       film_store_depth(texel_film, depth, out_depth);
       film_store_data(texel_film, film_buf.normal_id, normal, out_color);

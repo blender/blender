@@ -1,6 +1,25 @@
 
 /* NOTE: To be used with UNIFORM_RESOURCE_ID and INSTANCED_ATTR as define. */
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#ifdef POINTCLOUD_SHADER
+#  define COMMON_POINTCLOUD_LIB
+
+#  ifndef USE_GPU_SHADER_CREATE_INFO
+#    ifndef DRW_SHADER_SHARED_H
+
+in vec4 pos; /* Position and radius. */
+
+/* ---- Instanced attribs ---- */
+
+in vec3 pos_inst;
+in vec3 nor;
+
+#    endif
+#  else
+#    ifndef DRW_POINTCLOUD_INFO
+#      error Ensure createInfo includes `draw_pointcloud`.
+#    endif
+#  endif /* !USE_GPU_SHADER_CREATE_INFO */
 
 int pointcloud_get_point_id()
 {
@@ -98,3 +117,4 @@ vec2 pointcloud_get_barycentric(void)
   /* TODO: To be implemented. */
   return vec2(0.0);
 }
+#endif

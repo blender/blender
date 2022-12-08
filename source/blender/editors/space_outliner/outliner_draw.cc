@@ -3450,7 +3450,7 @@ static void outliner_draw_hierarchy_line(
   const short line_padding = UI_UNIT_Y / 4.0f;
 
   /* >= is 1.0 for un-dashed lines. */
-  immUniform1f("dash_factor", draw_dashed ? 0.5f : 1.0f);
+  immUniform1f("udash_factor", draw_dashed ? 0.5f : 1.0f);
 
   immBegin(GPU_PRIM_LINES, 2);
   /* Intentionally draw from top to bottom, so collapsing a child item doesn't make the dashes

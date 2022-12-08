@@ -1,27 +1,18 @@
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-uniform float sphere_size;
-uniform int offset;
-uniform ivec3 grid_resolution;
-uniform vec3 corner;
-uniform vec3 increment_x;
-uniform vec3 increment_y;
-uniform vec3 increment_z;
-
-flat out int cellOffset;
-out vec2 quadCoord;
-
-const vec2 pos[6] = vec2[6](vec2(-1.0, -1.0),
-                            vec2(1.0, -1.0),
-                            vec2(-1.0, 1.0),
-
-                            vec2(1.0, -1.0),
-                            vec2(1.0, 1.0),
-                            vec2(-1.0, 1.0));
-
 void main()
 {
+  /* Constant array moved inside function scope.
+   * Minimises local register allocation in MSL. */
+  const vec2 pos[6] = vec2[6](vec2(-1.0, -1.0),
+                              vec2(1.0, -1.0),
+                              vec2(-1.0, 1.0),
+
+                              vec2(1.0, -1.0),
+                              vec2(1.0, 1.0),
+                              vec2(-1.0, 1.0));
+
   int cell_id = gl_VertexID / 6;
   int vert_id = gl_VertexID % 6;
 

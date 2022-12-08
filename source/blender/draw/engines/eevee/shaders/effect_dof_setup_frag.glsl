@@ -8,16 +8,6 @@
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 
-/* Full resolution. */
-uniform sampler2D colorBuffer;
-uniform sampler2D depthBuffer;
-
-uniform float bokehMaxSize;
-
-/* Half resolution. */
-layout(location = 0) out vec4 outColor;
-layout(location = 1) out vec2 outCoc; /* x: Downsample CoC, y: Max slight focus abs CoC */
-
 void main()
 {
   vec2 fullres_texel_size = 1.0 / vec2(textureSize(colorBuffer, 0).xy);

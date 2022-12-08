@@ -1,41 +1,30 @@
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-#ifdef STANDALONE
-layout(triangles) in;
-layout(triangle_strip, max_vertices = 3) out;
-#endif
-
-in vec4 vPos[];
-
-flat out int slice;
-
-RESOURCE_ID_VARYING
-
 #ifdef MESH_SHADER
 /* TODO: tight slices. */
 void main()
 {
-  gl_Layer = slice = int(vPos[0].z);
+  gl_Layer = volumetric_geom_iface.slice = int(volumetric_vert_iface[0].vPos.z);
 
   PASS_RESOURCE_ID
 
 #  ifdef USE_ATTR
   pass_attr(0);
 #  endif
-  gl_Position = vPos[0].xyww;
+  gl_Position = volumetric_vert_iface[0].vPos.xyww;
   EmitVertex();
 
 #  ifdef USE_ATTR
   pass_attr(1);
 #  endif
-  gl_Position = vPos[1].xyww;
+  gl_Position = volumetric_vert_iface[1].vPos.xyww;
   EmitVertex();
 
 #  ifdef USE_ATTR
   pass_attr(2);
 #  endif
-  gl_Position = vPos[2].xyww;
+  gl_Position = volumetric_vert_iface[2].vPos.xyww;
   EmitVertex();
 
   EndPrimitive();
@@ -48,26 +37,26 @@ void main()
 
 void main()
 {
-  gl_Layer = slice = int(vPos[0].z);
+  gl_Layer = volumetric_geom_iface.slice = int(volumetric_vert_iface[0].vPos.z);
 
   PASS_RESOURCE_ID
 
 #  ifdef USE_ATTR
   pass_attr(0);
 #  endif
-  gl_Position = vPos[0].xyww;
+  gl_Position = volumetric_vert_iface[0].vPos.xyww;
   EmitVertex();
 
 #  ifdef USE_ATTR
   pass_attr(1);
 #  endif
-  gl_Position = vPos[1].xyww;
+  gl_Position = volumetric_vert_iface[1].vPos.xyww;
   EmitVertex();
 
 #  ifdef USE_ATTR
   pass_attr(2);
 #  endif
-  gl_Position = vPos[2].xyww;
+  gl_Position = volumetric_vert_iface[2].vPos.xyww;
   EmitVertex();
 
   EndPrimitive();

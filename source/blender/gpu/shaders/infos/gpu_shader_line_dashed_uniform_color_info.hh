@@ -19,7 +19,7 @@ GPU_SHADER_CREATE_INFO(gpu_shader_3D_line_dashed_uniform_color)
     .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
     .push_constant(Type::VEC2, "viewport_size")
     .push_constant(Type::FLOAT, "dash_width")
-    .push_constant(Type::FLOAT, "dash_factor") /* if > 1.0, solid line. */
+    .push_constant(Type::FLOAT, "udash_factor") /* if > 1.0, solid line. */
     /* TODO(fclem): Remove this. And decide to discard if color2 alpha is 0. */
     .push_constant(Type::INT, "colors_len") /* Enabled if > 0, 1 for solid line. */
     .push_constant(Type::VEC4, "color")

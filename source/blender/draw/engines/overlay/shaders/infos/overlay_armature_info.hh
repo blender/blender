@@ -49,7 +49,8 @@ GPU_SHADER_CREATE_INFO(overlay_armature_sphere_solid)
     .vertex_out(overlay_armature_sphere_solid_iface)
     .vertex_source("overlay_armature_sphere_solid_vert.glsl")
     .fragment_source("overlay_armature_sphere_solid_frag.glsl")
-    .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
+    .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals")
+    .depth_write(DepthWrite::ANY);
 
 GPU_SHADER_CREATE_INFO(overlay_armature_sphere_solid_clipped)
     .do_static_compilation(true)

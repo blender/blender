@@ -396,6 +396,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   /* TODO(Metal): Add support? */
   GCaps.shader_draw_parameters_support = false;
   GCaps.compute_shader_support = false; /* TODO(Metal): Add compute support. */
+  GCaps.geometry_shader_support = false;
   GCaps.shader_storage_buffer_objects_support =
       false; /* TODO(Metal): implement Storage Buffer support. */
 

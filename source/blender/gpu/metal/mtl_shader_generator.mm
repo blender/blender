@@ -165,8 +165,9 @@ static bool is_program_word(const char *chr, int *len)
   int numchars = 0;
   for (const char *c = chr; *c != '\0'; c++) {
     char ch = *c;
+    /* Note: Hash (`#`) is not valid in var names, but is used by Closure macro patterns. */
     if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
-        (numchars > 0 && ch >= '0' && ch <= '9') || ch == '_') {
+        (numchars > 0 && ch >= '0' && ch <= '9') || ch == '_' || ch == '#') {
       numchars++;
     }
     else {
@@ -674,8 +675,9 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 
     /* NOTE(Metal): FragDepth output mode specified in create-info 'DepthWrite depth_write_'.
      * If parsing without create-info, manual extraction will be required. */
-    msl_iface.uses_gl_FragDepth = shd_builder_->glsl_fragment_source_.find("gl_FragDepth") !=
-                                  std::string::npos;
+    msl_iface.uses_gl_FragDepth = (info->depth_write_ != DepthWrite::NONE) &&
+                                  shd_builder_->glsl_fragment_source_.find("gl_FragDepth") !=
+                                      std::string::npos;
     msl_iface.depth_write = info->depth_write_;
   }
 
@@ -1194,6 +1196,27 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
   /** Prepare textures and uniform blocks.
    * Perform across both resource categories and extract both
    * texture samplers and image types. */
+
+  /* NOTE: Metal requires Samplers and images to share slots. We will re-map these.
+   * If `auto_resource_location_` is not used, then slot collision could occur and
+   * this should be resolved in the original create-info. */
+  int texture_slot_id = 0;
+
+  /* Determine max sampler slot for image resource offset, when not using auto resource location,
+   * as image resources cannot overlap sampler ranges. */
+  int max_sampler_slot = 0;
+  if (!create_info_->auto_resource_location_) {
+    for (int i = 0; i < 2; i++) {
+      const Vector<ShaderCreateInfo::Resource> &resources = (i == 0) ? info->pass_resources_ :
+                                                                       info->batch_resources_;
+      for (const ShaderCreateInfo::Resource &res : resources) {
+        if (res.bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
+          max_sampler_slot = max_ii(res.slot, max_sampler_slot);
+        }
+      }
+    }
+  }
+
   for (int i = 0; i < 2; i++) {
     const Vector<ShaderCreateInfo::Resource> &resources = (i == 0) ? info->pass_resources_ :
                                                                      info->batch_resources_;
@@ -1203,6 +1226,13 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
       switch (res.bind_type) {
         case shader::ShaderCreateInfo::Resource::BindType::SAMPLER: {
 
+          /* Re-map sampler slot to share texture indices with images.
+           * Only applies if `auto_resource_location_` is enabled. */
+          BLI_assert(res.slot >= 0 && res.slot < MTL_MAX_TEXTURE_SLOTS);
+          unsigned int used_slot = (create_info_->auto_resource_location_) ? (texture_slot_id++) :
+                                                                             res.slot;
+          BLI_assert(used_slot < MTL_MAX_TEXTURE_SLOTS);
+
           /* Samplers to have access::sample by default. */
           MSLTextureSamplerAccess access = MSLTextureSamplerAccess::TEXTURE_ACCESS_SAMPLE;
           /* TextureBuffers must have read/write/read-write access pattern. */
@@ -1211,13 +1241,23 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
               res.sampler.type == ImageType::UINT_BUFFER) {
             access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READ;
           }
-          BLI_assert(res.slot >= 0 && res.slot < MTL_MAX_TEXTURE_SLOTS);
+
           MSLTextureSampler msl_tex(
-              ShaderStage::BOTH, res.sampler.type, res.sampler.name, access, res.slot);
+              ShaderStage::BOTH, res.sampler.type, res.sampler.name, access, used_slot);
           texture_samplers.append(msl_tex);
         } break;
 
         case shader::ShaderCreateInfo::Resource::BindType::IMAGE: {
+
+          /* Re-map sampler slot to share texture indices with samplers.
+           * Automatically applies if `auto_resource_location_` is enabled.
+           * Otherwise, if not using automatic resource location, offset by max sampler slot. */
+          BLI_assert(res.slot >= 0 && res.slot < MTL_MAX_TEXTURE_SLOTS);
+          unsigned int used_slot = (create_info_->auto_resource_location_) ?
+                                       (texture_slot_id++) :
+                                       res.slot + max_sampler_slot + 1;
+          BLI_assert(used_slot < MTL_MAX_TEXTURE_SLOTS);
+
           /* Flatten qualifier flags into final access state. */
           MSLTextureSamplerAccess access;
           if (bool(res.image.qualifiers & Qualifier::READ_WRITE)) {
@@ -1229,9 +1269,9 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
           else {
             access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READ;
           }
-          BLI_assert(res.slot >= 0 && res.slot < MTL_MAX_TEXTURE_SLOTS);
+          BLI_assert(used_slot >= 0 && used_slot < MTL_MAX_TEXTURE_SLOTS);
           MSLTextureSampler msl_tex(
-              ShaderStage::BOTH, res.image.type, res.image.name, access, res.slot);
+              ShaderStage::BOTH, res.image.type, res.image.name, access, used_slot);
           texture_samplers.append(msl_tex);
         } break;
 

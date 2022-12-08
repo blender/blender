@@ -610,19 +610,22 @@ static void eevee_lightbake_context_enable(EEVEE_LightBake *lbake)
 
 static void eevee_lightbake_context_disable(EEVEE_LightBake *lbake)
 {
-  GPU_render_end();
+
   if (GPU_use_main_context_workaround() && !BLI_thread_is_main()) {
     DRW_opengl_context_disable();
+    GPU_render_end();
     GPU_context_main_unlock();
     return;
   }
 
   if (lbake->gl_context) {
     DRW_gpu_render_context_disable(lbake->gpu_context);
+    GPU_render_end();
     DRW_opengl_render_context_disable(lbake->gl_context);
   }
   else {
     DRW_opengl_context_disable();
+    GPU_render_end();
   }
 }
 

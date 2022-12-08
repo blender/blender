@@ -392,6 +392,10 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
     shader->compute_shader_from_glsl(sources);
   }
 
+  if (info.tf_type_ != GPU_SHADER_TFB_NONE && info.tf_names_.size() > 0) {
+    shader->transform_feedback_names_set(info.tf_names_.as_span(), info.tf_type_);
+  }
+
   if (!shader->finalize(&info)) {
     delete shader;
     GPU_debug_group_end();

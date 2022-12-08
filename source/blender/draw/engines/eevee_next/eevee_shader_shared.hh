@@ -725,7 +725,8 @@ BLI_STATIC_ASSERT_ALIGN(SubsurfaceData, 16)
 #define UTIL_DISK_INTEGRAL_LAYER 3
 #define UTIL_DISK_INTEGRAL_COMP 2
 
-#ifndef __cplusplus
+/* __cplusplus is true when compiling with MSL, so include if inside a shader. */
+#if !defined(__cplusplus) || defined(GPU_SHADER)
 /* Fetch texel. Wrapping if above range. */
 float4 utility_tx_fetch(sampler2DArray util_tx, float2 texel, float layer)
 {
@@ -741,7 +742,8 @@ float4 utility_tx_sample(sampler2DArray util_tx, float2 uv, float layer)
 
 /** \} */
 
-#ifdef __cplusplus
+/* __cplusplus is true when compiling with MSL, so ensure we are not inside a shader. */
+#if defined(__cplusplus) && !defined(GPU_SHADER)
 
 using AOVsInfoDataBuf = draw::StorageBuffer<AOVsInfoData>;
 using CameraDataBuf = draw::UniformBuffer<CameraData>;

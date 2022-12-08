@@ -256,6 +256,7 @@ set(SRC
   engines/eevee/eevee_lightcache.h
   engines/eevee/eevee_lut.h
   engines/eevee/eevee_private.h
+  engines/eevee/engine_eevee_shared_defines.h
   engines/eevee_next/eevee_camera.hh
   engines/eevee_next/eevee_cryptomatte.hh
   engines/eevee_next/eevee_depth_of_field.hh
@@ -316,6 +317,7 @@ set(GLSL_SRC
   engines/eevee/shaders/lightprobe_filter_visibility_frag.glsl
   engines/eevee/shaders/lightprobe_geom.glsl
   engines/eevee/shaders/lightprobe_vert.glsl
+  engines/eevee/shaders/lightprobe_vert_no_geom.glsl
   engines/eevee/shaders/lightprobe_cube_display_frag.glsl
   engines/eevee/shaders/lightprobe_cube_display_vert.glsl
   engines/eevee/shaders/lightprobe_grid_display_frag.glsl
@@ -381,7 +383,6 @@ set(GLSL_SRC
   engines/eevee/shaders/raytrace_lib.glsl
   engines/eevee/shaders/renderpass_lib.glsl
   engines/eevee/shaders/renderpass_postprocess_frag.glsl
-  engines/eevee/shaders/cryptomatte_lib.glsl
   engines/eevee/shaders/cryptomatte_frag.glsl
   engines/eevee/shaders/cryptomatte_vert.glsl
   engines/eevee/shaders/ltc_lib.glsl
@@ -400,6 +401,8 @@ set(GLSL_SRC
   engines/eevee/shaders/volumetric_scatter_frag.glsl
   engines/eevee/shaders/volumetric_integration_frag.glsl
   engines/eevee/shaders/world_vert.glsl
+  engines/eevee/shaders/infos/engine_eevee_legacy_shared.h
+  engines/eevee/engine_eevee_shared_defines.h
 
   engines/eevee_next/shaders/eevee_attributes_lib.glsl
   engines/eevee_next/shaders/eevee_camera_lib.glsl

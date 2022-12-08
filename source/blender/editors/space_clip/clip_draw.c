@@ -373,7 +373,7 @@ static void draw_stabilization_border(
     immUniform1i("colors_len", 0); /* "simple" mode */
     immUniformColor4f(1.0f, 1.0f, 1.0f, 0.0f);
     immUniform1f("dash_width", 6.0f);
-    immUniform1f("dash_factor", 0.5f);
+    immUniform1f("udash_factor", 0.5f);
 
     imm_draw_box_wire_2d(shdr_pos, 0.0f, 0.0f, width, height);
 
@@ -777,14 +777,14 @@ static void draw_marker_areas(SpaceClip *sc,
                             marker->pattern_corners[3])) {
       GPU_point_size(tiny ? 1.0f : 2.0f);
 
-      immUniform1f("dash_factor", 2.0f); /* Solid "line" */
+      immUniform1f("udash_factor", 2.0f); /* Solid "line" */
 
       immBegin(GPU_PRIM_POINTS, 1);
       immVertex2f(shdr_pos, pos[0], pos[1]);
       immEnd();
     }
     else {
-      immUniform1f("dash_factor", 2.0f); /* Solid line */
+      immUniform1f("udash_factor", 2.0f); /* Solid line */
 
       immBegin(GPU_PRIM_LINES, 8);
 
@@ -804,7 +804,7 @@ static void draw_marker_areas(SpaceClip *sc,
 
       immUniformColor4f(1.0f, 1.0f, 1.0f, 0.0f);
       immUniform1f("dash_width", 6.0f);
-      immUniform1f("dash_factor", 0.5f);
+      immUniform1f("udash_factor", 0.5f);
 
       GPU_logic_op_xor_set(true);
 
@@ -825,10 +825,10 @@ static void draw_marker_areas(SpaceClip *sc,
 
   if (tiny) {
     immUniform1f("dash_width", 6.0f);
-    immUniform1f("dash_factor", 0.5f);
+    immUniform1f("udash_factor", 0.5f);
   }
   else {
-    immUniform1f("dash_factor", 2.0f); /* Solid line */
+    immUniform1f("udash_factor", 2.0f); /* Solid line */
   }
 
   if ((track->pat_flag & SELECT) == sel && (sc->flag & SC_SHOW_MARKER_PATTERN)) {
@@ -1298,10 +1298,10 @@ static void draw_plane_marker_ex(SpaceClip *sc,
 
       if (stipple) {
         immUniform1f("dash_width", 6.0f);
-        immUniform1f("dash_factor", 0.5f);
+        immUniform1f("udash_factor", 0.5f);
       }
       else {
-        immUniform1f("dash_factor", 2.0f); /* Solid line */
+        immUniform1f("udash_factor", 2.0f); /* Solid line */
       }
 
       if (draw_outline) {

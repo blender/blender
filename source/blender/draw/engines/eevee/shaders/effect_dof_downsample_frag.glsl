@@ -8,13 +8,6 @@
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 
-/* Half resolution. */
-uniform sampler2D colorBuffer;
-uniform sampler2D cocBuffer;
-
-/* Quarter resolution. */
-layout(location = 0) out vec4 outColor;
-
 void main()
 {
   vec2 halfres_texel_size = 1.0 / vec2(textureSize(colorBuffer, 0).xy);

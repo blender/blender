@@ -18,18 +18,6 @@
  * https://media.contentapi.ea.com/content/dam/ea/seed/presentations/dd18-seed-raytracing-in-hybrid-real-time-rendering.pdf
  */
 
-uniform sampler2D colorBuffer;
-uniform sampler2D normalBuffer;
-uniform sampler2D specroughBuffer;
-uniform sampler2D hitBuffer;
-uniform sampler2D hitDepth;
-
-uniform int samplePoolOffset;
-
-in vec4 uvcoordsvar;
-
-out vec4 fragColor;
-
 vec4 ssr_get_scene_color_and_mask(vec3 hit_vP, int planar_index, float mip)
 {
   vec2 uv;

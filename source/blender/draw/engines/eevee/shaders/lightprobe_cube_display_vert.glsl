@@ -1,34 +1,18 @@
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-/* XXX TODO: fix code duplication. */
-struct CubeData {
-  vec4 position_type;
-  vec4 attenuation_fac_type;
-  mat4 influencemat;
-  mat4 parallaxmat;
-};
-
-layout(std140) uniform probe_block
-{
-  CubeData probes_data[MAX_PROBE];
-};
-
-uniform float sphere_size;
-
-flat out int pid;
-out vec2 quadCoord;
-
-const vec2 pos[6] = vec2[6](vec2(-1.0, -1.0),
-                            vec2(1.0, -1.0),
-                            vec2(-1.0, 1.0),
-
-                            vec2(1.0, -1.0),
-                            vec2(1.0, 1.0),
-                            vec2(-1.0, 1.0));
-
 void main()
 {
+  /* Constant array moved inside function scope.
+   * Minimises local register allocation in MSL. */
+  const vec2 pos[6] = vec2[6](vec2(-1.0, -1.0),
+                              vec2(1.0, -1.0),
+                              vec2(-1.0, 1.0),
+
+                              vec2(1.0, -1.0),
+                              vec2(1.0, 1.0),
+                              vec2(-1.0, 1.0));
+
   pid = 1 + (gl_VertexID / 6); /* +1 for the world */
   int vert_id = gl_VertexID % 6;
 

@@ -2828,7 +2828,7 @@ void DRW_draw_depth_object(
     for (int i = 0; i < 6; i++) {
       copy_v4_v4(planes.world[i], rv3d->clip_local[i]);
     }
-    copy_m4_m4(planes.ModelMatrix, object->object_to_world);
+    copy_m4_m4(planes.ClipModelMatrix, object->object_to_world);
   }
 
   drw_batch_cache_validate(object);
@@ -3131,10 +3131,9 @@ void DRW_render_context_enable(Render *render)
 
 void DRW_render_context_disable(Render *render)
 {
-  GPU_render_end();
-
   if (GPU_use_main_context_workaround()) {
     DRW_opengl_context_disable();
+    GPU_render_end();
     GPU_context_main_unlock();
     return;
   }
@@ -3144,11 +3143,14 @@ void DRW_render_context_disable(Render *render)
   if (re_gl_context != NULL) {
     void *re_gpu_context = NULL;
     re_gpu_context = RE_gpu_context_get(render);
+    /* GPU rendering may occur during context disable. */
     DRW_gpu_render_context_disable(re_gpu_context);
+    GPU_render_end();
     DRW_opengl_render_context_disable(re_gl_context);
   }
   else {
     DRW_opengl_context_disable();
+    GPU_render_end();
   }
 }
 

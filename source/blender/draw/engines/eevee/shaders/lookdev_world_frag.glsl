@@ -4,15 +4,6 @@
 #pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
 #pragma BLENDER_REQUIRE(surface_lib.glsl)
 
-uniform sampler2D studioLight;
-
-uniform float backgroundAlpha;
-uniform mat3 StudioLightMatrix;
-uniform float studioLightIntensity; /* Default 1.0; */
-uniform float studioLightBlur;      /* Default 0.0; */
-
-out vec4 FragColor;
-
 vec3 background_transform_to_world(vec3 viewvec)
 {
   vec4 v = (ProjectionMatrix[3][3] == 0.0) ? vec4(viewvec, 1.0) : vec4(0.0, 0.0, 1.0, 1.0);
