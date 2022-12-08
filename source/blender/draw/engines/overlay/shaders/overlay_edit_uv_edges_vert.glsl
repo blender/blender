@@ -11,9 +11,9 @@ void main()
                    half_pixel_offset;
 
 #ifdef USE_EDGE_SELECT
-  bool is_select = (flag & EDGE_UV_SELECT) != 0u;
+  bool is_select = (flag & int(EDGE_UV_SELECT)) != 0u;
 #else
-  bool is_select = (flag & VERT_UV_SELECT) != 0u;
+  bool is_select = (flag & int(VERT_UV_SELECT)) != 0u;
 #endif
   geom_in.selectionFac = is_select ? 1.0 : 0.0;
   /* Move selected edges to the top

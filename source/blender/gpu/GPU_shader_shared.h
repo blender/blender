@@ -54,7 +54,7 @@ struct GPUClipPlanes {
 BLI_STATIC_ASSERT_ALIGN(struct GPUClipPlanes, 16)
 
 struct SimpleLightingData {
-  float4 color;
+  float4 l_color;
   float3 light;
   float _pad;
 };
