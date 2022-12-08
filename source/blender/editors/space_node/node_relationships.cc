@@ -1680,6 +1680,8 @@ static int node_join_exec(bContext *C, wmOperator * /*op*/)
   bNode *frame_node = nodeAddStaticNode(C, &ntree, NODE_FRAME);
   nodeSetActive(&ntree, frame_node);
 
+  ntree.ensure_topology_cache();
+
   Array<NodeJoinState> join_states(ntree.all_nodes().size(), NodeJoinState{false, false});
 
   for (bNode *node : ntree.all_nodes()) {
