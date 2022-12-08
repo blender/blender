@@ -166,13 +166,13 @@ class MTLTexture : public Texture {
   /* 'baking' refers to the generation of GPU-backed resources. This flag ensures GPU resources are
    * ready. Baking is generally deferred until as late as possible, to ensure all associated
    * resource state has been specified up-front. */
-  bool is_baked_;
-  MTLTextureDescriptor *texture_descriptor_;
-  id<MTLTexture> texture_;
+  bool is_baked_ = false;
+  MTLTextureDescriptor *texture_descriptor_ = nullptr;
+  id<MTLTexture> texture_ = nil;
   MTLTextureUsage usage_;
 
   /* Texture Storage. */
-  id<MTLBuffer> texture_buffer_;
+  id<MTLBuffer> texture_buffer_ = nil;
   uint aligned_w_ = 0;
 
   /* Blit Frame-buffer. */

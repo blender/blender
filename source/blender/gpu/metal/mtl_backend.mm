@@ -144,15 +144,15 @@ void MTLBackend::render_step()
    * is also thread-safe. */
 
   /* Flush any MTLSafeFreeLists which have previously been released by any MTLContext. */
-  MTLContext::get_global_memory_manager().update_memory_pools();
+  MTLContext::get_global_memory_manager()->update_memory_pools();
 
   /* End existing MTLSafeFreeList and begin new list --
    * Buffers wont `free` until all associated in-flight command buffers have completed.
    * Decrement final reference count for ensuring the previous list is certainly
    * released. */
   MTLSafeFreeList *cmd_free_buffer_list =
-      MTLContext::get_global_memory_manager().get_current_safe_list();
-  MTLContext::get_global_memory_manager().begin_new_safe_list();
+      MTLContext::get_global_memory_manager()->get_current_safe_list();
+  MTLContext::get_global_memory_manager()->begin_new_safe_list();
   cmd_free_buffer_list->decrement_reference();
 }
 

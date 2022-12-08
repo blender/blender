@@ -115,7 +115,7 @@ bool MTLCommandBufferManager::submit(bool wait)
    * This ensures that in-use resources are not prematurely de-referenced and returned to the
    * available buffer pool while they are in-use by the GPU. */
   MTLSafeFreeList *cmd_free_buffer_list =
-      MTLContext::get_global_memory_manager().get_current_safe_list();
+      MTLContext::get_global_memory_manager()->get_current_safe_list();
   BLI_assert(cmd_free_buffer_list);
   cmd_free_buffer_list->increment_reference();
 

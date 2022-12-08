@@ -943,7 +943,7 @@ id<MTLBuffer> MTLBatch::get_emulated_toplogy_buffer(GPUPrimType &in_out_prim_typ
     /* Allocate buffer. */
     uint32_t buffer_bytes = output_IB_elems * 4;
     BLI_assert(buffer_bytes > 0);
-    this->emulated_topology_buffer_ = MTLContext::get_global_memory_manager().allocate(
+    this->emulated_topology_buffer_ = MTLContext::get_global_memory_manager()->allocate(
         buffer_bytes, true);
 
     /* Populate. */

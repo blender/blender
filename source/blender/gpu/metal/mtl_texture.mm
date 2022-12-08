@@ -1272,17 +1272,14 @@ void gpu::MTLTexture::read_internal(int mip,
   BLI_assert(total_bytes <= debug_data_size);
 
   /* Fetch allocation from scratch buffer. */
-  id<MTLBuffer> destination_buffer = nil;
-  uint destination_offset = 0;
-  void *destination_buffer_host_ptr = nullptr;
+  gpu::MTLBuffer *dest_buf = MTLContext::get_global_memory_manager()->allocate_aligned(
+      total_bytes, 256, true);
+  BLI_assert(dest_buf != nullptr);
 
-  /* TODO(Metal): Optimize buffer allocation. */
-  MTLResourceOptions bufferOptions = MTLResourceStorageModeManaged;
-  destination_buffer = [ctx->device newBufferWithLength:max_ii(total_bytes, 256)
-                                                options:bufferOptions];
-  destination_offset = 0;
-  destination_buffer_host_ptr = (void *)((uint8_t *)([destination_buffer contents]) +
-                                         destination_offset);
+  id<MTLBuffer> destination_buffer = dest_buf->get_metal_buffer();
+  BLI_assert(destination_buffer != nil);
+  void *destination_buffer_host_ptr = dest_buf->get_host_ptr();
+  BLI_assert(destination_buffer_host_ptr != nullptr);
 
   /* Prepare specialization struct (For non-trivial texture read routine). */
   int depth_format_mode = 0;
@@ -1339,10 +1336,9 @@ void gpu::MTLTexture::read_internal(int mip,
                           sourceOrigin:MTLOriginMake(x_off, y_off, 0)
                             sourceSize:MTLSizeMake(width, height, 1)
                               toBuffer:destination_buffer
-                     destinationOffset:destination_offset
+                     destinationOffset:0
                 destinationBytesPerRow:bytes_per_row
               destinationBytesPerImage:bytes_per_image];
-          [enc synchronizeResource:destination_buffer];
           copy_successful = true;
         }
         else {
@@ -1359,17 +1355,10 @@ void gpu::MTLTexture::read_internal(int mip,
           };
           [compute_encoder setComputePipelineState:pso];
           [compute_encoder setBytes:&params length:sizeof(params) atIndex:0];
-          [compute_encoder setBuffer:destination_buffer offset:destination_offset atIndex:1];
+          [compute_encoder setBuffer:destination_buffer offset:0 atIndex:1];
           [compute_encoder setTexture:read_texture atIndex:0];
           [compute_encoder dispatchThreads:MTLSizeMake(width, height, 1) /* Width, Height, Layer */
                      threadsPerThreadgroup:MTLSizeMake(8, 8, 1)];
-
-          /* Use Blit encoder to synchronize results back to CPU. */
-          id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
-          if (G.debug & G_DEBUG_GPU) {
-            [enc insertDebugSignpost:@"GPUTextureRead-syncResource"];
-          }
-          [enc synchronizeResource:destination_buffer];
           copy_successful = true;
         }
       } break;
@@ -1392,11 +1381,9 @@ void gpu::MTLTexture::read_internal(int mip,
                             sourceOrigin:MTLOriginMake(x_off, y_off, 0)
                               sourceSize:MTLSizeMake(width, height, 1)
                                 toBuffer:destination_buffer
-                       destinationOffset:destination_offset + texture_array_relative_offset
+                       destinationOffset:texture_array_relative_offset
                   destinationBytesPerRow:bytes_per_row
                 destinationBytesPerImage:bytes_per_image];
-            [enc synchronizeResource:destination_buffer];
-
             texture_array_relative_offset += bytes_per_image;
           }
           copy_successful = true;
@@ -1415,18 +1402,11 @@ void gpu::MTLTexture::read_internal(int mip,
           };
           [compute_encoder setComputePipelineState:pso];
           [compute_encoder setBytes:&params length:sizeof(params) atIndex:0];
-          [compute_encoder setBuffer:destination_buffer offset:destination_offset atIndex:1];
+          [compute_encoder setBuffer:destination_buffer offset:0 atIndex:1];
           [compute_encoder setTexture:read_texture atIndex:0];
           [compute_encoder
                     dispatchThreads:MTLSizeMake(width, height, depth) /* Width, Height, Layer */
               threadsPerThreadgroup:MTLSizeMake(8, 8, 1)];
-
-          /* Use Blit encoder to synchronize results back to CPU. */
-          id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
-          if (G.debug & G_DEBUG_GPU) {
-            [enc insertDebugSignpost:@"GPUTextureRead-syncResource"];
-          }
-          [enc synchronizeResource:destination_buffer];
           copy_successful = true;
         }
       } break;
@@ -1448,10 +1428,9 @@ void gpu::MTLTexture::read_internal(int mip,
                             sourceOrigin:MTLOriginMake(x_off, y_off, 0)
                               sourceSize:MTLSizeMake(width, height, 1)
                                 toBuffer:destination_buffer
-                       destinationOffset:destination_offset + texture_array_relative_offset
+                       destinationOffset:texture_array_relative_offset
                   destinationBytesPerRow:bytes_per_row
                 destinationBytesPerImage:bytes_per_image];
-            [enc synchronizeResource:destination_buffer];
 
             texture_array_relative_offset += bytes_per_image;
           }
@@ -1472,6 +1451,16 @@ void gpu::MTLTexture::read_internal(int mip,
     }
 
     if (copy_successful) {
+
+      /* Use Blit encoder to synchronize results back to CPU. */
+      if (dest_buf->get_resource_options() == MTLResourceStorageModeManaged) {
+        id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
+        if (G.debug & G_DEBUG_GPU) {
+          [enc insertDebugSignpost:@"GPUTextureRead-syncResource"];
+        }
+        [enc synchronizeResource:destination_buffer];
+      }
+
       /* Ensure GPU copy commands have completed. */
       GPU_finish();
 
@@ -1491,6 +1480,9 @@ void gpu::MTLTexture::read_internal(int mip,
           image_components,
           num_output_components);
     }
+
+    /* Release destination buffer. */
+    dest_buf->free();
   }
 }
 
@@ -1658,12 +1650,13 @@ void gpu::MTLTexture::ensure_baked()
 {
 
   /* If properties have changed, re-bake. */
+  id<MTLTexture> previous_texture = nil;
   bool copy_previous_contents = false;
+
   if (is_baked_ && is_dirty_) {
     copy_previous_contents = true;
-    id<MTLTexture> previous_texture = texture_;
+    previous_texture = texture_;
     [previous_texture retain];
-
     this->reset();
   }
 
@@ -1812,10 +1805,8 @@ void gpu::MTLTexture::ensure_baked()
 
   /* Re-apply previous contents. */
   if (copy_previous_contents) {
-    id<MTLTexture> previous_texture;
     /* TODO(Metal): May need to copy previous contents of texture into new texture. */
-    /*[previous_texture release]; */
-    UNUSED_VARS(previous_texture);
+    [previous_texture release];
   }
 }
 

@@ -28,6 +28,7 @@
 #include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
+#include <mutex>
 
 @class CAMetalLayer;
 @class MTLCommandQueue;
@@ -309,6 +310,12 @@ struct MTLContextTextureUtils {
     if (fullscreen_blit_shader) {
       GPU_shader_free(fullscreen_blit_shader);
     }
+
+    /* Free depth 2D Update shaders */
+    for (auto item : depth_2d_update_shaders.items()) {
+      GPU_shader_free(item.value);
+    }
+    depth_2d_update_shaders.clear();
 
     /* Free Read shader maps */
     free_cached_pso_map(texture_1d_read_compute_psos);
@@ -599,7 +606,9 @@ class MTLContext : public Context {
 
   /* Memory Management. */
   MTLScratchBufferManager memory_manager;
-  static MTLBufferPool global_memory_manager;
+  static std::mutex global_memory_manager_reflock;
+  static int global_memory_manager_refcount;
+  static MTLBufferPool *global_memory_manager;
 
   /* CommandBuffer managers. */
   MTLCommandBufferManager main_command_buffer;
@@ -780,8 +789,34 @@ class MTLContext : public Context {
     return this->memory_manager;
   }
 
-  static MTLBufferPool &get_global_memory_manager()
+  static void global_memory_manager_acquire_ref()
   {
+    MTLContext::global_memory_manager_reflock.lock();
+    if (MTLContext::global_memory_manager == nullptr) {
+      BLI_assert(MTLContext::global_memory_manager_refcount == 0);
+      MTLContext::global_memory_manager = new MTLBufferPool();
+    }
+    MTLContext::global_memory_manager_refcount++;
+    MTLContext::global_memory_manager_reflock.unlock();
+  }
+
+  static void global_memory_manager_release_ref()
+  {
+    MTLContext::global_memory_manager_reflock.lock();
+    MTLContext::global_memory_manager_refcount--;
+    BLI_assert(MTLContext::global_memory_manager_refcount >= 0);
+    BLI_assert(MTLContext::global_memory_manager != nullptr);
+
+    if (MTLContext::global_memory_manager_refcount <= 0) {
+      delete MTLContext::global_memory_manager;
+      MTLContext::global_memory_manager = nullptr;
+    }
+    MTLContext::global_memory_manager_reflock.unlock();
+  }
+
+  static MTLBufferPool *get_global_memory_manager()
+  {
+    BLI_assert(MTLContext::global_memory_manager != nullptr);
     return MTLContext::global_memory_manager;
   }
 
