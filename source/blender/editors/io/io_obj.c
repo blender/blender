@@ -49,10 +49,10 @@ static const EnumPropertyItem io_obj_export_evaluation_mode[] = {
     {0, NULL, 0, NULL, NULL}};
 
 static const EnumPropertyItem io_obj_path_mode[] = {
-    {PATH_REFERENCE_AUTO, "AUTO", 0, "Auto", "Use Relative paths with subdirectories only"},
+    {PATH_REFERENCE_AUTO, "AUTO", 0, "Auto", "Use relative paths with subdirectories only"},
     {PATH_REFERENCE_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Always write absolute paths"},
     {PATH_REFERENCE_RELATIVE, "RELATIVE", 0, "Relative", "Write relative paths where possible"},
-    {PATH_REFERENCE_MATCH, "MATCH", 0, "Match", "Match Absolute/Relative setting with input path"},
+    {PATH_REFERENCE_MATCH, "MATCH", 0, "Match", "Match absolute/relative setting with input path"},
     {PATH_REFERENCE_STRIP, "STRIP", 0, "Strip", "Write filename only"},
     {PATH_REFERENCE_COPY, "COPY", 0, "Copy", "Copy the file to the destination path"},
     {0, NULL, 0, NULL, NULL}};
