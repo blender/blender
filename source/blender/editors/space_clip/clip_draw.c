@@ -1196,8 +1196,13 @@ static void draw_plane_marker_image(Scene *scene,
         GPU_blend(GPU_BLEND_ALPHA);
       }
 
-      GPUTexture *texture = GPU_texture_create_2d(
-          "plane_marker_image", ibuf->x, ibuf->y, 1, GPU_RGBA8, NULL);
+      GPUTexture *texture = GPU_texture_create_2d_ex("plane_marker_image",
+                                                     ibuf->x,
+                                                     ibuf->y,
+                                                     1,
+                                                     GPU_RGBA8,
+                                                     GPU_TEXTURE_USAGE_SHADER_READ,
+                                                     NULL);
       GPU_texture_update(texture, GPU_DATA_UBYTE, display_buffer);
       GPU_texture_filter_mode(texture, false);
 

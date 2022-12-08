@@ -106,7 +106,8 @@ static GPUTexture *create_transfer_function(int type, const struct ColorBand *co
       break;
   }
 
-  GPUTexture *tex = GPU_texture_create_1d("transf_func", TFUNC_WIDTH, 1, GPU_SRGB8_A8, data);
+  GPUTexture *tex = GPU_texture_create_1d_ex(
+      "transf_func", TFUNC_WIDTH, 1, GPU_SRGB8_A8, GPU_TEXTURE_USAGE_SHADER_READ, data);
 
   MEM_freeN(data);
 
@@ -178,8 +179,13 @@ static GPUTexture *create_volume_texture(const int dim[3],
   }
 
   while (1) {
-    tex = GPU_texture_create_3d(
-        "volume", UNPACK3(final_dim), 1, texture_format, data_format, NULL);
+    tex = GPU_texture_create_3d_ex("volume",
+                                   UNPACK3(final_dim),
+                                   1,
+                                   texture_format,
+                                   data_format,
+                                   GPU_TEXTURE_USAGE_SHADER_READ,
+                                   NULL);
 
     if (tex != NULL) {
       break;
@@ -502,12 +508,27 @@ void DRW_smoke_ensure_velocity(FluidModifierData *fmd)
     }
 
     if (!fds->tex_velocity_x) {
-      fds->tex_velocity_x = GPU_texture_create_3d(
-          "velx", UNPACK3(fds->res), 1, GPU_R16F, GPU_DATA_FLOAT, vel_x);
-      fds->tex_velocity_y = GPU_texture_create_3d(
-          "vely", UNPACK3(fds->res), 1, GPU_R16F, GPU_DATA_FLOAT, vel_y);
-      fds->tex_velocity_z = GPU_texture_create_3d(
-          "velz", UNPACK3(fds->res), 1, GPU_R16F, GPU_DATA_FLOAT, vel_z);
+      fds->tex_velocity_x = GPU_texture_create_3d_ex("velx",
+                                                     UNPACK3(fds->res),
+                                                     1,
+                                                     GPU_R16F,
+                                                     GPU_DATA_FLOAT,
+                                                     GPU_TEXTURE_USAGE_SHADER_READ,
+                                                     vel_x);
+      fds->tex_velocity_y = GPU_texture_create_3d_ex("vely",
+                                                     UNPACK3(fds->res),
+                                                     1,
+                                                     GPU_R16F,
+                                                     GPU_DATA_FLOAT,
+                                                     GPU_TEXTURE_USAGE_SHADER_READ,
+                                                     vel_y);
+      fds->tex_velocity_z = GPU_texture_create_3d_ex("velz",
+                                                     UNPACK3(fds->res),
+                                                     1,
+                                                     GPU_R16F,
+                                                     GPU_DATA_FLOAT,
+                                                     GPU_TEXTURE_USAGE_SHADER_READ,
+                                                     vel_z);
       BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_x));
       BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_y));
       BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_z));

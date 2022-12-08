@@ -109,7 +109,8 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
       BLI_assert(image->type == IMA_TYPE_R_RESULT);
 
       float zero[4] = {0, 0, 0, 0};
-      *r_gpu_texture = GPU_texture_create_2d(__func__, 1, 1, 0, GPU_RGBA16F, zero);
+      *r_gpu_texture = GPU_texture_create_2d_ex(
+          __func__, 1, 1, 0, GPU_RGBA16F, GPU_TEXTURE_USAGE_SHADER_READ, zero);
       *r_owns_texture = true;
       return;
     }
@@ -121,13 +122,23 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
         BLI_assert_msg(0, "Integer based depth buffers not supported");
       }
       else if (image_buffer->zbuf_float) {
-        *r_gpu_texture = GPU_texture_create_2d(
-            __func__, image_buffer->x, image_buffer->y, 0, GPU_R16F, image_buffer->zbuf_float);
+        *r_gpu_texture = GPU_texture_create_2d_ex(__func__,
+                                                  image_buffer->x,
+                                                  image_buffer->y,
+                                                  0,
+                                                  GPU_R16F,
+                                                  GPU_TEXTURE_USAGE_SHADER_READ,
+                                                  image_buffer->zbuf_float);
         *r_owns_texture = true;
       }
       else if (image_buffer->rect_float && image_buffer->channels == 1) {
-        *r_gpu_texture = GPU_texture_create_2d(
-            __func__, image_buffer->x, image_buffer->y, 0, GPU_R16F, image_buffer->rect_float);
+        *r_gpu_texture = GPU_texture_create_2d_ex(__func__,
+                                                  image_buffer->x,
+                                                  image_buffer->y,
+                                                  0,
+                                                  GPU_R16F,
+                                                  GPU_TEXTURE_USAGE_SHADER_READ,
+                                                  image_buffer->rect_float);
         *r_owns_texture = true;
       }
     }

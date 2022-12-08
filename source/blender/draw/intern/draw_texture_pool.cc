@@ -42,9 +42,18 @@ void DRW_texture_pool_free(DRWTexturePool *pool)
   delete pool;
 }
 
-GPUTexture *DRW_texture_pool_query(
-    DRWTexturePool *pool, int width, int height, eGPUTextureFormat format, void *user)
+GPUTexture *DRW_texture_pool_query(DRWTexturePool *pool,
+                                   int width,
+                                   int height,
+                                   eGPUTextureFormat format,
+                                   eGPUTextureUsage usage,
+                                   void *user)
 {
+  /* Texture pools have an implicit usage as a texture attachment*/
+  BLI_assert_msg(usage & GPU_TEXTURE_USAGE_ATTACHMENT,
+                 "Pool textures must be of usage type attachment.");
+  usage = usage | GPU_TEXTURE_USAGE_ATTACHMENT;
+
   int user_id = pool->last_user_id;
   /* Try cached value. */
   if (user_id != -1) {
@@ -74,7 +83,8 @@ GPUTexture *DRW_texture_pool_query(
     /* If everything matches reuse the texture. */
     if ((GPU_texture_format(handle.texture) == format) &&
         (GPU_texture_width(handle.texture) == width) &&
-        (GPU_texture_height(handle.texture) == height)) {
+        (GPU_texture_height(handle.texture) == height) &&
+        (GPU_texture_usage(handle.texture) == usage)) {
       handle.users_bits |= user_bit;
       return handle.texture;
     }
@@ -88,7 +98,7 @@ GPUTexture *DRW_texture_pool_query(
 
   DRWTexturePoolHandle handle;
   handle.users_bits = user_bit;
-  handle.texture = GPU_texture_create_2d(name, width, height, 1, format, nullptr);
+  handle.texture = GPU_texture_create_2d_ex(name, width, height, 1, format, usage, nullptr);
   pool->handles.append(handle);
   /* Doing filtering for depth does not make sense when not doing shadow mapping,
    * and enabling texture filtering on integer texture make them unreadable. */
@@ -98,10 +108,8 @@ GPUTexture *DRW_texture_pool_query(
   return handle.texture;
 }
 
-GPUTexture *DRW_texture_pool_texture_acquire(DRWTexturePool *pool,
-                                             int width,
-                                             int height,
-                                             eGPUTextureFormat format)
+GPUTexture *DRW_texture_pool_texture_acquire(
+    DRWTexturePool *pool, int width, int height, eGPUTextureFormat format, eGPUTextureUsage usage)
 {
   GPUTexture *tmp_tex = nullptr;
   int64_t found_index = 0;
@@ -109,7 +117,7 @@ GPUTexture *DRW_texture_pool_texture_acquire(DRWTexturePool *pool,
   auto texture_match = [&](GPUTexture *tex) -> bool {
     /* TODO(@fclem): We could reuse texture using texture views if the formats are compatible. */
     return (GPU_texture_format(tex) == format) && (GPU_texture_width(tex) == width) &&
-           (GPU_texture_height(tex) == height);
+           (GPU_texture_height(tex) == height) && (GPU_texture_usage(tex) == usage);
   };
 
   /* Search released texture first. */
@@ -146,7 +154,7 @@ GPUTexture *DRW_texture_pool_texture_acquire(DRWTexturePool *pool,
       int texture_id = pool->handles.size();
       SNPRINTF(name, "DRW_tex_pool_%d", texture_id);
     }
-    tmp_tex = GPU_texture_create_2d(name, width, height, 1, format, nullptr);
+    tmp_tex = GPU_texture_create_2d_ex(name, width, height, 1, format, usage, nullptr);
   }
 
   pool->tmp_tex_acquired.append(tmp_tex);

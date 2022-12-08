@@ -212,13 +212,11 @@ class MTLTexture : public Texture {
 
   /* Max mip-maps for currently allocated texture resource. */
   int mtl_max_mips_ = 1;
+  bool has_generated_mips_ = false;
 
   /* VBO. */
   MTLVertBuf *vert_buffer_;
   id<MTLBuffer> vert_buffer_mtl_;
-
-  /* Core parameters and sub-resources. */
-  eGPUTextureUsage gpu_image_usage_flags_;
 
   /* Whether the texture's properties or state has changed (e.g. mipmap range), and re-baking of
    * GPU resource is required. */
@@ -607,6 +605,48 @@ inline eGPUDataFormat to_mtl_internal_data_format(eGPUTextureFormat tex_format)
       BLI_assert(false && "Texture not yet handled");
       return GPU_DATA_FLOAT;
   }
+}
+
+inline MTLTextureUsage mtl_usage_from_gpu(eGPUTextureUsage usage)
+{
+  MTLTextureUsage mtl_usage = MTLTextureUsageUnknown;
+  if (usage == GPU_TEXTURE_USAGE_GENERAL) {
+    return MTLTextureUsageUnknown;
+  }
+  if (usage & GPU_TEXTURE_USAGE_SHADER_READ) {
+    mtl_usage = mtl_usage | MTLTextureUsageShaderRead;
+  }
+  if (usage & GPU_TEXTURE_USAGE_SHADER_WRITE) {
+    mtl_usage = mtl_usage | MTLTextureUsageShaderWrite;
+  }
+  if (usage & GPU_TEXTURE_USAGE_ATTACHMENT) {
+    mtl_usage = mtl_usage | MTLTextureUsageRenderTarget;
+  }
+  if (usage & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW) {
+    mtl_usage = mtl_usage | MTLTextureUsagePixelFormatView;
+  }
+  return mtl_usage;
+}
+
+inline eGPUTextureUsage gpu_usage_from_mtl(MTLTextureUsage mtl_usage)
+{
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
+  if (mtl_usage == MTLTextureUsageUnknown) {
+    return GPU_TEXTURE_USAGE_GENERAL;
+  }
+  if (mtl_usage & MTLTextureUsageShaderRead) {
+    usage = usage | GPU_TEXTURE_USAGE_SHADER_READ;
+  }
+  if (mtl_usage & MTLTextureUsageShaderWrite) {
+    usage = usage | GPU_TEXTURE_USAGE_SHADER_WRITE;
+  }
+  if (mtl_usage & MTLTextureUsageRenderTarget) {
+    usage = usage | GPU_TEXTURE_USAGE_ATTACHMENT;
+  }
+  if (mtl_usage & MTLTextureUsagePixelFormatView) {
+    usage = usage | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+  }
+  return usage;
 }
 
 }  // namespace blender::gpu

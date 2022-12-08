@@ -64,9 +64,12 @@ static bool workbench_render_framebuffers_init(void)
   /* When doing a multi view rendering the first view will allocate the buffers
    * the other views will reuse these buffers */
   if (dtxl->color == NULL) {
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
     BLI_assert(dtxl->depth == NULL);
-    dtxl->color = GPU_texture_create_2d("txl.color", UNPACK2(size), 1, GPU_RGBA16F, NULL);
-    dtxl->depth = GPU_texture_create_2d("txl.depth", UNPACK2(size), 1, GPU_DEPTH24_STENCIL8, NULL);
+    dtxl->color = GPU_texture_create_2d_ex(
+        "txl.color", UNPACK2(size), 1, GPU_RGBA16F, usage, NULL);
+    dtxl->depth = GPU_texture_create_2d_ex(
+        "txl.depth", UNPACK2(size), 1, GPU_DEPTH24_STENCIL8, usage, NULL);
   }
 
   if (!(dtxl->depth && dtxl->color)) {

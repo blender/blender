@@ -307,12 +307,13 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
 
     /* Create GPU texture. */
     eGPUTextureFormat format = (channels == 3) ? GPU_RGB16F : GPU_R16F;
-    cache_grid->texture = GPU_texture_create_3d("volume_grid",
-                                                UNPACK3(dense_grid.resolution),
-                                                1,
-                                                format,
-                                                GPU_DATA_FLOAT,
-                                                dense_grid.voxels);
+    cache_grid->texture = GPU_texture_create_3d_ex("volume_grid",
+                                                   UNPACK3(dense_grid.resolution),
+                                                   1,
+                                                   format,
+                                                   GPU_DATA_FLOAT,
+                                                   GPU_TEXTURE_USAGE_SHADER_READ,
+                                                   dense_grid.voxels);
     /* The texture can be null if the resolution along one axis is larger than
      * GL_MAX_3D_TEXTURE_SIZE. */
     if (cache_grid->texture != nullptr) {

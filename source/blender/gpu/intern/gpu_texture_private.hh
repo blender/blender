@@ -82,6 +82,8 @@ class Texture {
   eGPUTextureFormatFlag format_flag_;
   /** Texture type. */
   eGPUTextureType type_;
+  /** Texutre usage flags */
+  eGPUTextureUsage gpu_image_usage_flags_;
 
   /** Number of mipmaps this texture has (Max miplvl). */
   /* TODO(fclem): Should become immutable and the need for mipmaps should be specified upfront. */
@@ -127,6 +129,8 @@ class Texture {
   void detach_from(FrameBuffer *fb);
   void update(eGPUDataFormat format, const void *data);
 
+  void usage_set(eGPUTextureUsage usage_flags);
+
   virtual void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data) = 0;
   virtual void update_sub(int offset[3],
@@ -147,6 +151,10 @@ class Texture {
   int depth_get() const
   {
     return d_;
+  }
+  eGPUTextureUsage usage_get() const
+  {
+    return gpu_image_usage_flags_;
   }
 
   void mip_size_get(int mip, int r_size[3]) const

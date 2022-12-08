@@ -186,14 +186,39 @@ typedef enum eGPUDataFormat {
   GPU_DATA_HALF_FLOAT
 } eGPUDataFormat;
 
+/** Texture usage flags.
+ * Texture usage flags allow backend implementations to contextually optimise texture resources.
+ * Any texture with an explicit flag should not perform operations which are not explicitly
+ * specified in the usage flags. If usage is unknown upfront, then GPU_TEXTURE_USAGE_GENERAL can be
+ * used.
+ *
+ * NOTE: These usage flags act as hints for the backend implementations. There may be no benefit in
+ * some circumstances, and certain resource types may insert additional usage as required. However,
+ * explicit usage can ensure that hardware features such as render target/texture compression can
+ * be used. For explicit APIs such as Metal/Vulkan, texture usage needs to be specified up-front.
+ */
 typedef enum eGPUTextureUsage {
+  /* Whether texture is sampled or read during a shader. */
   GPU_TEXTURE_USAGE_SHADER_READ = (1 << 0),
+  /* Whether the texture is written to by a shader using imageStore. */
   GPU_TEXTURE_USAGE_SHADER_WRITE = (1 << 1),
+  /* Whether a texture is used as an attachment in a framebuffer. */
   GPU_TEXTURE_USAGE_ATTACHMENT = (1 << 2),
-  GPU_TEXTURE_USAGE_GENERAL = 0xFF
+  /* Whether the texture is used as a texture view, uses mip-map layer adjustment,
+   * OR, uses swizzle access masks. Mip-map base layer adjustment and texture channel swizzling
+   * requires a texture view under-the-hood. */
+  GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW = (1 << 3),
+  /* Whether a texture can be allocated without any backing memory. It is used as an
+   * attachment to store data, but is not needed by any future passes.
+   * This usage mode should be used in scenarios where an attachment has no previous
+   * contents and is not stored after a render pass. */
+  GPU_TEXTURE_USAGE_MEMORYLESS = (1 << 4),
+  /* Whether the texture needs to be read from by the CPU. */
+  GPU_TEXTURE_USAGE_HOST_READ = (1 << 5),
+  GPU_TEXTURE_USAGE_GENERAL = 0xFF,
 } eGPUTextureUsage;
 
-ENUM_OPERATORS(eGPUTextureUsage, GPU_TEXTURE_USAGE_GENERAL)
+ENUM_OPERATORS(eGPUTextureUsage, GPU_TEXTURE_USAGE_GENERAL);
 
 unsigned int GPU_texture_memory_usage_get(void);
 
@@ -201,14 +226,72 @@ unsigned int GPU_texture_memory_usage_get(void);
  * \note \a data is expected to be float. If the \a format is not compatible with float data or if
  * the data is not in float format, use GPU_texture_update to upload the data with the right data
  * format.
- * \a mip_len is the number of mip level to allocate. It must be >= 1.
+ * NOTE: _ex variants of texure creation functions allow specification of explicit usage for
+ * optimal performance. Using standard texture creation will use the `GPU_TEXTURE_USAGE_GENERAL`.
+ *
+ * Textures created via other means will either inherit usage from the source resource, or also
+ * be initialised with `GPU_TEXTURE_USAGE_GENERAL`.
+ *
+ * flag. \a mips is the number of mip level to allocate. It must be >= 1.
  */
+GPUTexture *GPU_texture_create_1d_ex(const char *name,
+                                     int w,
+                                     int mip_len,
+                                     eGPUTextureFormat format,
+                                     eGPUTextureUsage usage_flags,
+                                     const float *data);
+GPUTexture *GPU_texture_create_1d_array_ex(const char *name,
+                                           int w,
+                                           int h,
+                                           int mip_len,
+                                           eGPUTextureFormat format,
+                                           eGPUTextureUsage usage_flags,
+                                           const float *data);
+GPUTexture *GPU_texture_create_2d_ex(const char *name,
+                                     int w,
+                                     int h,
+                                     int mips,
+                                     eGPUTextureFormat format,
+                                     eGPUTextureUsage usage_flags,
+                                     const float *data);
+GPUTexture *GPU_texture_create_2d_array_ex(const char *name,
+                                           int w,
+                                           int h,
+                                           int d,
+                                           int mip_len,
+                                           eGPUTextureFormat format,
+                                           eGPUTextureUsage usage_flags,
+                                           const float *data);
+GPUTexture *GPU_texture_create_3d_ex(const char *name,
+                                     int w,
+                                     int h,
+                                     int d,
+                                     int mip_len,
+                                     eGPUTextureFormat texture_format,
+                                     eGPUDataFormat data_format,
+                                     eGPUTextureUsage usage_flags,
+                                     const void *data);
+GPUTexture *GPU_texture_create_cube_ex(const char *name,
+                                       int w,
+                                       int mip_len,
+                                       eGPUTextureFormat format,
+                                       eGPUTextureUsage usage_flags,
+                                       const float *data);
+GPUTexture *GPU_texture_create_cube_array_ex(const char *name,
+                                             int w,
+                                             int d,
+                                             int mip_len,
+                                             eGPUTextureFormat format,
+                                             eGPUTextureUsage usage_flags,
+                                             const float *data);
+
+/* Standard texture functions. */
 GPUTexture *GPU_texture_create_1d(
     const char *name, int w, int mip_len, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_1d_array(
     const char *name, int w, int h, int mip_len, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_2d(
-    const char *name, int w, int h, int mip_len, eGPUTextureFormat format, const float *data);
+    const char *name, int w, int h, int mips, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_2d_array(const char *name,
                                         int w,
                                         int h,
@@ -229,6 +312,9 @@ GPUTexture *GPU_texture_create_cube(
 GPUTexture *GPU_texture_create_cube_array(
     const char *name, int w, int d, int mip_len, eGPUTextureFormat format, const float *data);
 
+/* Fetch Usage. */
+eGPUTextureUsage GPU_texture_usage(const GPUTexture *texture);
+
 /* Special textures. */
 
 GPUTexture *GPU_texture_create_from_vertbuf(const char *name, struct GPUVertBuf *vert);
@@ -238,8 +324,16 @@ GPUTexture *GPU_texture_create_from_vertbuf(const char *name, struct GPUVertBuf 
 /**
  * DDS texture loading. Return NULL if support is not available.
  */
+GPUTexture *GPU_texture_create_compressed_2d_ex(const char *name,
+                                                int w,
+                                                int h,
+                                                int miplen,
+                                                eGPUTextureFormat format,
+                                                eGPUTextureUsage usage,
+                                                const void *data);
 GPUTexture *GPU_texture_create_compressed_2d(
     const char *name, int w, int h, int miplen, eGPUTextureFormat format, const void *data);
+
 /**
  * Create an error texture that will bind an invalid texture (pink) at draw time.
  */

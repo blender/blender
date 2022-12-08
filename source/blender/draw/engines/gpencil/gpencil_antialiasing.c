@@ -40,13 +40,16 @@ void GPENCIL_antialiasing_init(struct GPENCIL_Data *vedata)
     return;
   }
 
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+
   if (txl->smaa_search_tx == NULL) {
-    txl->smaa_search_tx = GPU_texture_create_2d(
-        "smaa_search", SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, 1, GPU_R8, NULL);
+
+    txl->smaa_search_tx = GPU_texture_create_2d_ex(
+        "smaa_search", SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, 1, GPU_R8, usage, NULL);
     GPU_texture_update(txl->smaa_search_tx, GPU_DATA_UBYTE, searchTexBytes);
 
-    txl->smaa_area_tx = GPU_texture_create_2d(
-        "smaa_area", AREATEX_WIDTH, AREATEX_HEIGHT, 1, GPU_RG8, NULL);
+    txl->smaa_area_tx = GPU_texture_create_2d_ex(
+        "smaa_area", AREATEX_WIDTH, AREATEX_HEIGHT, 1, GPU_RG8, usage, NULL);
     GPU_texture_update(txl->smaa_area_tx, GPU_DATA_UBYTE, areaTexBytes);
 
     GPU_texture_filter_mode(txl->smaa_search_tx, true);
@@ -54,10 +57,10 @@ void GPENCIL_antialiasing_init(struct GPENCIL_Data *vedata)
   }
 
   {
-    pd->smaa_edge_tx = DRW_texture_pool_query_2d(
-        size[0], size[1], GPU_RG8, &draw_engine_gpencil_type);
-    pd->smaa_weight_tx = DRW_texture_pool_query_2d(
-        size[0], size[1], GPU_RGBA8, &draw_engine_gpencil_type);
+    pd->smaa_edge_tx = DRW_texture_pool_query_2d_ex(
+        size[0], size[1], GPU_RG8, usage, &draw_engine_gpencil_type);
+    pd->smaa_weight_tx = DRW_texture_pool_query_2d_ex(
+        size[0], size[1], GPU_RGBA8, usage, &draw_engine_gpencil_type);
 
     GPU_framebuffer_ensure_config(&fbl->smaa_edge_fb,
                                   {
