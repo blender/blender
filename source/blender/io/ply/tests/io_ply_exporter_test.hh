@@ -6,26 +6,25 @@
 
 namespace blender::io::ply {
 
-struct PLYExportParamsDefault {
-  PLYExportParams params;
+struct PLYExportParamsDefault : public PLYExportParams {
   PLYExportParamsDefault()
   {
-    params.filepath[0] = '\0';
-    params.file_base_for_tests[0] = '\0';
-    params.blen_filepath = "";
+    filepath[0] = '\0';
+    file_base_for_tests[0] = '\0';
+    blen_filepath = "";
 
-    params.forward_axis = IO_AXIS_NEGATIVE_Z;
-    params.up_axis = IO_AXIS_Y;
-    params.global_scale = 1.f;
+    forward_axis = IO_AXIS_NEGATIVE_Z;
+    up_axis = IO_AXIS_Y;
+    global_scale = 1.f;
 
-    params.apply_modifiers = true;
-    params.export_selected_objects = false;
-    params.export_uv = true;
-    params.export_normals = true;
-    params.export_colors = false;
-    params.export_triangulated_mesh = false;
+    apply_modifiers = true;
+    export_selected_objects = false;
+    export_uv = true;
+    export_normals = true;
+    export_colors = false;
+    export_triangulated_mesh = false;
 
-    params.ascii_format = false;
+    ascii_format = false;
   }
 };
 

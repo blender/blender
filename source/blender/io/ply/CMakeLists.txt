@@ -64,6 +64,15 @@ blender_add_lib(bf_ply "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 if (WITH_GTESTS)
   set(TEST_SRC
           tests/io_ply_importer_test.cc
+          tests/io_ply_generic_test.cc
+          tests/io_ply_exporter_test.cc
+          tests/io_ply_exporter_generate_test.cc
+          tests/io_ply_exporter_mock_filebuffer.cc
+
+
+
+          tests/io_ply_exporter_generate_test.hh
+          tests/io_ply_exporter_test.hh
   )
   set(TEST_INC
     ../../blenloader
