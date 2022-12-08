@@ -348,6 +348,7 @@ static void weld_vert_groups_setup(Span<WeldVert> wvert,
    * \endcode
    */
   BLI_assert(r_vert_groups_map.data() == vert_dest_map.data());
+  UNUSED_VARS_NDEBUG(vert_dest_map);
 
   const int vert_groups_len = wvert.size() - vert_kill_len;
 
