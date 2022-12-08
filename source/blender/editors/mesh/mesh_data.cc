@@ -781,49 +781,48 @@ void MESH_OT_customdata_skin_clear(wmOperatorType *ot)
 static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Mesh *me = ED_mesh_context(C);
-
-  if (!BKE_mesh_has_custom_loop_normals(me)) {
-    CustomData *data = GET_CD_DATA(me, ldata);
-
-    if (me->edit_mesh) {
-      /* Tag edges as sharp according to smooth threshold if needed,
-       * to preserve auto-smooth shading. */
-      if (me->flag & ME_AUTOSMOOTH) {
-        BM_edges_sharp_from_angle_set(me->edit_mesh->bm, me->smoothresh);
-      }
-
-      BM_data_layer_add(me->edit_mesh->bm, data, CD_CUSTOMLOOPNORMAL);
-    }
-    else {
-      /* Tag edges as sharp according to smooth threshold if needed,
-       * to preserve auto-smooth shading. */
-      if (me->flag & ME_AUTOSMOOTH) {
-        const Span<MVert> verts = me->verts();
-        MutableSpan<MEdge> edges = me->edges_for_write();
-        const Span<MPoly> polys = me->polys();
-        const Span<MLoop> loops = me->loops();
-
-        BKE_edges_sharp_from_angle_set(verts.data(),
-                                       verts.size(),
-                                       edges.data(),
-                                       edges.size(),
-                                       loops.data(),
-                                       loops.size(),
-                                       polys.data(),
-                                       BKE_mesh_poly_normals_ensure(me),
-                                       polys.size(),
-                                       me->smoothresh);
-      }
-
-      CustomData_add_layer(data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, me->totloop);
-    }
-
-    DEG_id_tag_update(&me->id, 0);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
-
-    return OPERATOR_FINISHED;
+  if (BKE_mesh_has_custom_loop_normals(me)) {
+    return OPERATOR_CANCELLED;
   }
-  return OPERATOR_CANCELLED;
+
+  if (me->edit_mesh) {
+    BMesh &bm = *me->edit_mesh->bm;
+    /* Tag edges as sharp according to smooth threshold if needed,
+     * to preserve auto-smooth shading. */
+    if (me->flag & ME_AUTOSMOOTH) {
+      BM_edges_sharp_from_angle_set(&bm, me->smoothresh);
+    }
+
+    BM_data_layer_add(&bm, &bm.ldata, CD_CUSTOMLOOPNORMAL);
+  }
+  else {
+    /* Tag edges as sharp according to smooth threshold if needed,
+     * to preserve auto-smooth shading. */
+    if (me->flag & ME_AUTOSMOOTH) {
+      const Span<MVert> verts = me->verts();
+      MutableSpan<MEdge> edges = me->edges_for_write();
+      const Span<MPoly> polys = me->polys();
+      const Span<MLoop> loops = me->loops();
+
+      BKE_edges_sharp_from_angle_set(verts.data(),
+                                     verts.size(),
+                                     edges.data(),
+                                     edges.size(),
+                                     loops.data(),
+                                     loops.size(),
+                                     polys.data(),
+                                     BKE_mesh_poly_normals_ensure(me),
+                                     polys.size(),
+                                     me->smoothresh);
+    }
+
+    CustomData_add_layer(&me->ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, me->totloop);
+  }
+
+  DEG_id_tag_update(&me->id, 0);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+
+  return OPERATOR_FINISHED;
 }
 
 void MESH_OT_customdata_custom_splitnormals_add(wmOperatorType *ot)
