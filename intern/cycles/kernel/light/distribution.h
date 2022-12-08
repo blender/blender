@@ -74,25 +74,26 @@ ccl_device_noinline bool light_distribution_sample(KernelGlobals kg,
     }
 
     const int shader_flag = kdistribution->mesh_light.shader_flag;
-    triangle_light_sample<in_volume_segment>(kg, prim, object, randu, randv, time, ls, P);
+    if (!triangle_light_sample<in_volume_segment>(kg, prim, object, randu, randv, time, ls, P)) {
+      return false;
+    }
     ls->shader |= shader_flag;
-    return (ls->pdf > 0.0f);
+  }
+  else {
+    const int lamp = -prim - 1;
+
+    if (UNLIKELY(light_select_reached_max_bounces(kg, lamp, bounce))) {
+      return false;
+    }
+
+    if (!light_sample<in_volume_segment>(kg, lamp, randu, randv, P, path_flag, ls)) {
+      return false;
+    }
+    ls->pdf_selection = kernel_data.integrator.distribution_pdf_lights;
   }
 
-  const int lamp = -prim - 1;
-
-  if (UNLIKELY(light_select_reached_max_bounces(kg, lamp, bounce))) {
-    return false;
-  }
-
-  if (!light_sample<in_volume_segment>(kg, lamp, randu, randv, P, path_flag, ls)) {
-    return false;
-  }
-
-  ls->pdf_selection = kernel_data.integrator.distribution_pdf_lights;
   ls->pdf *= ls->pdf_selection;
-
-  return true;
+  return (ls->pdf > 0.0f);
 }
 
 ccl_device_inline float light_distribution_pdf_lamp(KernelGlobals kg)
