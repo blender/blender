@@ -1185,7 +1185,7 @@ const UVVertex *UVPrimitive::get_other_uv_vertex(const UVVertex *v1, const UVVer
 
   for (const UVEdge *edge : edges) {
     for (const UVVertex *uv_vertex : edge->vertices) {
-      if (uv_vertex != v1 && uv_vertex != v2) {
+      if (!ELEM(uv_vertex, v1, v2)) {
         return uv_vertex;
       }
     }

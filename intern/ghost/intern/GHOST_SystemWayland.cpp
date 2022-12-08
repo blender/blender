@@ -1244,7 +1244,7 @@ static void ghost_wl_display_report_error(struct wl_display *display)
 {
   int ecode = wl_display_get_error(display);
   GHOST_ASSERT(ecode, "Error not set!");
-  if ((ecode == EPIPE || ecode == ECONNRESET)) {
+  if (ELEM(ecode, EPIPE, ECONNRESET)) {
     fprintf(stderr, "The Wayland connection broke. Did the Wayland compositor die?\n");
   }
   else {
