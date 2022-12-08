@@ -345,6 +345,9 @@ struct ShaderCreateInfo {
   bool legacy_resource_location_ = false;
   /** Allow optimization when fragment shader writes to `gl_FragDepth`. */
   DepthWrite depth_write_ = DepthWrite::NONE;
+  /** GPU Backend compatibility flag. Temporary requirement until Metal enablement is fully
+   * complete. */
+  bool metal_backend_only_ = false;
   /**
    * Maximum length of all the resource names including each null terminator.
    * Only for names used by #gpu::ShaderInterface.
@@ -791,6 +794,12 @@ struct ShaderCreateInfo {
   Self &legacy_resource_location(bool value)
   {
     legacy_resource_location_ = value;
+    return *(Self *)this;
+  }
+
+  Self &metal_backend_only(bool flag)
+  {
+    metal_backend_only_ = flag;
     return *(Self *)this;
   }
 

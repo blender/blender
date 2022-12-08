@@ -45,14 +45,14 @@ void main()
   /* Vertex shader per input vertex. */
   vec3 world_pos0 = point_object_to_world(vec3(root_au0, 0.0));
   vec3 world_pos1 = point_object_to_world(vec3(root_au1, 0.0));
-  vec4 gl_pos0 = point_world_to_ndc(world_pos0);
-  vec4 gl_pos1 = point_world_to_ndc(world_pos1);
+  vec4 ndc_pos0 = point_world_to_ndc(world_pos0);
+  vec4 ndc_pos1 = point_world_to_ndc(world_pos1);
 
   /* Snap vertices to the pixel grid to reduce artifacts. */
   vec2 half_viewport_res = sizeViewport * 0.5;
   vec2 half_pixel_offset = sizeViewportInv * 0.5;
-  gl_pos0.xy = floor(gl_pos0.xy * half_viewport_res) / half_viewport_res + half_pixel_offset;
-  gl_pos1.xy = floor(gl_pos1.xy * half_viewport_res) / half_viewport_res + half_pixel_offset;
+  ndc_pos0.xy = floor(ndc_pos0.xy * half_viewport_res) / half_viewport_res + half_pixel_offset;
+  ndc_pos1.xy = floor(ndc_pos1.xy * half_viewport_res) / half_viewport_res + half_pixel_offset;
 
 #ifdef USE_EDGE_SELECT
   bool is_select0 = (root_flag0 & EDGE_UV_SELECT) != 0;
@@ -74,19 +74,19 @@ void main()
    * actual pixels are at 0.75, 1.0 is used for the background. */
   float depth0 = is_select0 ? 0.25 : 0.35;
   float depth1 = is_select1 ? 0.25 : 0.35;
-  gl_pos0.z = depth0;
-  gl_pos1.z = depth1;
+  ndc_pos0.z = depth0;
+  ndc_pos1.z = depth1;
 
   /* Avoid precision loss. */
-  vec2 stipplePos0 = 500.0 + 500.0 * (gl_pos0.xy / gl_pos0.w);
-  vec2 stipplePos1 = 500.0 + 500.0 * (gl_pos1.xy / gl_pos1.w);
+  vec2 stipplePos0 = 500.0 + 500.0 * (ndc_pos0.xy / ndc_pos0.w);
+  vec2 stipplePos1 = 500.0 + 500.0 * (ndc_pos1.xy / ndc_pos1.w);
   vec2 stippleStart0 = stipplePos0;
   vec2 stippleStart1 = stipplePos1;
 
   /* Geometry shader equivalent calculations. */
   vec2 ss_pos[2];
-  ss_pos[0] = gl_pos0.xy / gl_pos0.w;
-  ss_pos[1] = gl_pos1.xy / gl_pos1.w;
+  ss_pos[0] = ndc_pos0.xy / ndc_pos0.w;
+  ss_pos[1] = ndc_pos1.xy / ndc_pos1.w;
 
   float half_size = sizeEdge;
 
@@ -108,19 +108,19 @@ void main()
   switch (quad_vertex_id) {
     case 1: /* vertex A */
     case 3:
-      do_vertex(gl_pos1, selectionFac1, stippleStart1, stipplePos1, half_size, edge_ofs.xy);
+      do_vertex(ndc_pos1, selectionFac1, stippleStart1, stipplePos1, half_size, edge_ofs.xy);
       break;
     case 0: /* B */
-      do_vertex(gl_pos0, selectionFac0, stippleStart0, stipplePos0, half_size, edge_ofs.xy);
+      do_vertex(ndc_pos0, selectionFac0, stippleStart0, stipplePos0, half_size, edge_ofs.xy);
       break;
 
     case 2: /* C */
     case 4:
-      do_vertex(gl_pos0, selectionFac0, stippleStart0, stipplePos0, -half_size, -edge_ofs.xy);
+      do_vertex(ndc_pos0, selectionFac0, stippleStart0, stipplePos0, -half_size, -edge_ofs.xy);
       break;
 
     case 5: /* D */
-      do_vertex(gl_pos1, selectionFac1, stippleStart1, stipplePos1, -half_size, -edge_ofs.xy);
+      do_vertex(ndc_pos1, selectionFac1, stippleStart1, stipplePos1, -half_size, -edge_ofs.xy);
       break;
   }
 }

@@ -22,7 +22,9 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_common)
     .vertex_source("overlay_edit_mesh_vert.glsl")
     .additional_info("draw_modelmat", "draw_globals");
 
+#ifdef WITH_METAL_BACKEND
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_common_no_geom)
+    .metal_backend_only(true)
     .define("blender_srgb_to_framebuffer_space(a)", "a")
     .sampler(0, ImageType::DEPTH_2D, "depthTex")
     .fragment_out(0, Type::VEC4, "fragColor")
@@ -32,6 +34,7 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_common_no_geom)
     .push_constant(Type::IVEC4, "dataMask")
     .vertex_source("overlay_edit_mesh_vert_no_geom.glsl")
     .additional_info("draw_modelmat", "draw_globals");
+#endif
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_vert_iface, "")
     .smooth(Type::VEC4, "finalColor")
@@ -73,8 +76,10 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge)
     .additional_info("overlay_edit_mesh_common");
 
 /* The Non-Geometry shader variant passes directly to fragment. */
+#ifdef WITH_METAL_BACKEND
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_no_geom)
-    // .do_static_compilation(true) /* TODO fix on GL */
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .define("EDGE")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::UCHAR4, "data")
@@ -83,16 +88,20 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_no_geom)
     .vertex_out(overlay_edit_mesh_edge_geom_iface)
     .fragment_source("overlay_edit_mesh_frag.glsl")
     .additional_info("overlay_edit_mesh_common_no_geom");
+#endif
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_flat)
     .do_static_compilation(true)
     .define("FLAT")
     .additional_info("overlay_edit_mesh_edge");
 
+#ifdef WITH_METAL_BACKEND
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_flat_no_geom)
-    // .do_static_compilation(true) /* TODO fix on GL */
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .define("FLAT")
     .additional_info("overlay_edit_mesh_edge_no_geom");
+#endif
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_face)
     .do_static_compilation(true)
@@ -164,17 +173,23 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_edit_mesh_edge", "drw_clipped");
 
+#ifdef WITH_METAL_BACKEND
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_clipped_no_geom)
-    // .do_static_compilation(true) /* TODO fix on GL */
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .additional_info("overlay_edit_mesh_edge_no_geom", "drw_clipped");
+#endif
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_flat_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_edit_mesh_edge_flat", "drw_clipped");
 
+#ifdef WITH_METAL_BACKEND
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_flat_clipped_no_geom)
-    // .do_static_compilation(true) /* TODO fix on GL */
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .additional_info("overlay_edit_mesh_edge_flat_no_geom", "drw_clipped");
+#endif
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_face_clipped)
     .do_static_compilation(true)
@@ -215,7 +230,7 @@ GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_geom_iface, "geom_out")
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges_common)
     .vertex_in(0, Type::VEC2, "au")
-    .vertex_in(1, Type::UINT, "flag")
+    .vertex_in(1, Type::INT, "flag")
     .push_constant(Type::INT, "lineStyle")
     .push_constant(Type::BOOL, "doSmoothWire")
     .push_constant(Type::FLOAT, "alpha")
@@ -233,11 +248,14 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges)
     .vertex_source("overlay_edit_uv_edges_vert.glsl")
     .geometry_source("overlay_edit_uv_edges_geom.glsl");
 
+#ifdef WITH_METAL_BACKEND
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges_no_geom)
+    .metal_backend_only(true)
     .additional_info("overlay_edit_uv_edges_common")
-    // .do_static_compilation(true)
+    .do_static_compilation(true)
     .vertex_out(overlay_edit_uv_geom_iface)
     .vertex_source("overlay_edit_uv_edges_vert_no_geom.glsl");
+#endif
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges_select)
     .do_static_compilation(true)
@@ -371,8 +389,10 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle)
     .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
+#ifdef WITH_METAL_BACKEND
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_no_geom)
-    // .do_static_compilation(true) /* TODO fix on GL */
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .typedef_source("overlay_shader_shared.h")
     /* NOTE: Color already in Linear space. Which is what we want. */
     .define("srgbTarget", "false")
@@ -385,14 +405,18 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_no_geom)
     .vertex_source("overlay_edit_curve_handle_vert_no_geom.glsl")
     .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_mesh", "draw_globals");
+#endif
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_edit_curve_handle", "drw_clipped");
 
+#ifdef WITH_METAL_BACKEND
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_clipped_no_geom)
-    // .do_static_compilation(true) /* TODO fix on GL */
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .additional_info("overlay_edit_curve_handle_no_geom", "drw_clipped");
+#endif
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_point)
     .do_static_compilation(true)
