@@ -58,9 +58,8 @@ ccl_device float3 compute_v(
     const float3 centroid, const float3 P, const float3 D, const float3 bcone_axis, const float t)
 {
   const float3 unnormalized_v0 = P - centroid;
-  float len_v0;
   const float3 unnormalized_v1 = unnormalized_v0 + D * fminf(t, 1e12f);
-  const float3 v0 = normalize_len(unnormalized_v0, &len_v0);
+  const float3 v0 = normalize(unnormalized_v0);
   const float3 v1 = normalize(unnormalized_v1);
 
   const float3 o0 = v0;
@@ -69,10 +68,11 @@ ccl_device float3 compute_v(
 
   const float dot_o0_a = dot(o0, bcone_axis);
   const float dot_o1_a = dot(o1, bcone_axis);
-  const float cos_phi0 = dot_o0_a / sqrtf(sqr(dot_o0_a) + sqr(dot_o1_a));
+  const float inv_len = inversesqrtf(sqr(dot_o0_a) + sqr(dot_o1_a));
+  const float cos_phi0 = dot_o0_a * inv_len;
 
   return (dot_o1_a < 0 || dot(v0, v1) > cos_phi0) ? (dot_o0_a > dot(v1, bcone_axis) ? v0 : v1) :
-                                                    cos_phi0 * o0 + sin_from_cos(cos_phi0) * o1;
+                                                    cos_phi0 * o0 + dot_o1_a * inv_len * o1;
 }
 
 /* This is the general function for calculating the importance of either a cluster or an emitter.
