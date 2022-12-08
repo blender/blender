@@ -23,9 +23,12 @@ void ensure_usd_plugin_path_registered()
 
   /* Tell USD which directory to search for its JSON files. If 'datafiles/usd'
    * does not exist, the USD library will not be able to read or write any files. */
-  const std::string blender_usd_datafiles = BKE_appdir_folder_id(BLENDER_DATAFILES, "usd");
-  /* The trailing slash indicates to the USD library that the path is a directory. */
-  pxr::PlugRegistry::GetInstance().RegisterPlugins(blender_usd_datafiles + "/");
+  const char *blender_usd_datafiles = BKE_appdir_folder_id(BLENDER_DATAFILES, "usd");
+  if (blender_usd_datafiles) {
+    const std::string blender_usd_data_folder = blender_usd_datafiles;
+    /* The trailing slash indicates to the USD library that the path is a directory. */
+    pxr::PlugRegistry::GetInstance().RegisterPlugins(blender_usd_data_folder + "/");
+  }
 #endif
 }
 
