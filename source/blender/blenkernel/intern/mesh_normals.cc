@@ -39,6 +39,7 @@
 
 using blender::BitVector;
 using blender::float3;
+using blender::int2;
 using blender::MutableSpan;
 using blender::short2;
 using blender::Span;
@@ -824,7 +825,7 @@ struct LoopSplitTaskDataCommon {
   MutableSpan<MEdge> edges;
   Span<MLoop> loops;
   Span<MPoly> polys;
-  int (*edge_to_loops)[2];
+  MutableSpan<int2> edge_to_loops;
   Span<int> loop_to_poly;
   Span<float3> polynors;
   Span<float3> vert_normals;
@@ -848,7 +849,7 @@ static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
   MutableSpan<float3> loopnors = data->loopnors; /* NOTE: loopnors may be empty here. */
   const Span<float3> polynors = data->polynors;
 
-  int(*edge_to_loops)[2] = data->edge_to_loops;
+  MutableSpan<int2> edge_to_loops = data->edge_to_loops;
 
   BitVector sharp_edges;
   if (do_sharp_edges_tag) {
@@ -859,14 +860,13 @@ static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
 
   for (const int mp_index : polys.index_range()) {
     const MPoly &poly = polys[mp_index];
-    int *e2l;
     int ml_curr_index = poly.loopstart;
     const int ml_last_index = (ml_curr_index + poly.totloop) - 1;
 
     const MLoop *ml_curr = &loops[ml_curr_index];
 
     for (; ml_curr_index <= ml_last_index; ml_curr++, ml_curr_index++) {
-      e2l = edge_to_loops[ml_curr->e];
+      int2 &e2l = edge_to_loops[ml_curr->e];
 
       /* Pre-populate all loop normals as if their verts were all-smooth,
        * this way we don't have to compute those later!
@@ -950,8 +950,7 @@ void BKE_edges_sharp_from_angle_set(const MVert *mverts,
   }
 
   /* Mapping edge -> loops. See #BKE_mesh_normals_loop_split for details. */
-  int(*edge_to_loops)[2] = (int(*)[2])MEM_calloc_arrayN(
-      size_t(numEdges), sizeof(*edge_to_loops), __func__);
+  Array<int2> edge_to_loops(numEdges, int2(0));
 
   /* Simple mapping from a loop to its polygon index. */
   const Array<int> loop_to_poly = mesh_topology::build_loop_to_poly_map({mpolys, numPolys},
@@ -967,8 +966,6 @@ void BKE_edges_sharp_from_angle_set(const MVert *mverts,
   common_data.polynors = {reinterpret_cast<const float3 *>(polynors), numPolys};
 
   mesh_edges_sharp_tag(&common_data, true, split_angle, true);
-
-  MEM_freeN(edge_to_loops);
 }
 
 static void loop_manifold_fan_around_vert_next(const Span<MLoop> loops,
@@ -1086,7 +1083,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
   const Span<MEdge> edges = common_data->edges;
   const Span<MPoly> polys = common_data->polys;
   const Span<MLoop> loops = common_data->loops;
-  const int(*edge_to_loops)[2] = common_data->edge_to_loops;
+  const Span<int2> edge_to_loops = common_data->edge_to_loops;
   const Span<int> loop_to_poly = common_data->loop_to_poly;
   const Span<float3> polynors = common_data->polynors;
 
@@ -1332,7 +1329,7 @@ static void loop_split_worker(TaskPool *__restrict pool, void *taskdata)
  */
 static bool loop_split_generator_check_cyclic_smooth_fan(const Span<MLoop> mloops,
                                                          const Span<MPoly> mpolys,
-                                                         const int (*edge_to_loops)[2],
+                                                         const Span<int2> edge_to_loops,
                                                          const Span<int> loop_to_poly,
                                                          const int *e2l_prev,
                                                          BitVector<> &skip_loops,
@@ -1406,7 +1403,7 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
   const Span<MLoop> loops = common_data->loops;
   const Span<MPoly> polys = common_data->polys;
   const Span<int> loop_to_poly = common_data->loop_to_poly;
-  const int(*edge_to_loops)[2] = common_data->edge_to_loops;
+  const Span<int2> edge_to_loops = common_data->edge_to_loops;
 
   BitVector<> skip_loops(loops.size(), false);
 
@@ -1624,8 +1621,7 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
    * However, if needed, we can store the negated value of loop index instead of INDEX_INVALID
    * to retrieve the real value later in code).
    * Note also that loose edges always have both values set to 0! */
-  int(*edge_to_loops)[2] = (int(*)[2])MEM_calloc_arrayN(
-      size_t(numEdges), sizeof(*edge_to_loops), __func__);
+  Array<int2> edge_to_loops(numEdges, int2(0));
 
   /* Simple mapping from a loop to its polygon index. */
   Span<int> loop_to_poly;
@@ -1685,8 +1681,6 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
 
     BLI_task_pool_free(task_pool);
   }
-
-  MEM_freeN(edge_to_loops);
 
   if (r_lnors_spacearr) {
     if (r_lnors_spacearr == &_lnors_spacearr) {
