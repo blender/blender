@@ -234,7 +234,7 @@ def main():
             args_in_index[:] = [i for (i, a) in enumerate(args_in) if type(a) == tuple]
         if args_out is not None:
             args_out_index[:] = [i for (i, a) in enumerate(args_out) if type(a) == tuple]
-        
+
         # get the args
         def get_args_wash(args, args_index, is_ret):
             args_wash = []
@@ -369,7 +369,7 @@ def main():
         # end get_args_wash
 
         args_in_wash = get_args_wash(args_in, args_in_index, False)
-        
+
         fw(".. function:: %s(bm, %s)\n\n" % (b[0], ", ".join([print_arg_in(arg) for arg in args_in_wash])))
 
         # -- wash the comment
@@ -390,7 +390,6 @@ def main():
         fw("\n".join(comment_washed))
         fw("\n")
         # -- done
-
 
         # all ops get this arg
         fw("   :arg bm: The bmesh to operate on.\n")
@@ -423,11 +422,13 @@ def main():
     del fout
     print(OUT_RST)
 
+
 def print_arg_in(arg):
     (name, default_value, _, _) = arg
     if default_value is None:
         return name
     return name + '=' + default_value
+
 
 if __name__ == "__main__":
     main()
