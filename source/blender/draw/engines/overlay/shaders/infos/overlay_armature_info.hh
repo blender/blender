@@ -91,7 +91,8 @@ GPU_SHADER_CREATE_INFO(overlay_armature_shape_outline)
     .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_shape_outline_no_geom)
-    // .do_static_compilation(true) /* TODO fix on GL */
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::VEC3, "snor")
     /* Per instance. */
@@ -107,7 +108,8 @@ GPU_SHADER_CREATE_INFO(overlay_armature_shape_outline_clipped)
     .additional_info("overlay_armature_shape_outline", "drw_clipped");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_shape_outline_clipped_no_geom)
-    // .do_static_compilation(true) /* TODO fix on GL */
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .additional_info("overlay_armature_shape_outline_no_geom", "drw_clipped");
 
 GPU_SHADER_INTERFACE_INFO(overlay_armature_shape_solid_iface, "")

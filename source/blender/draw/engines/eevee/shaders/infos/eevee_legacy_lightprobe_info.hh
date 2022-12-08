@@ -48,7 +48,8 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_probe_filter_glossy_no_geom)
     .push_constant(Type::FLOAT, "fireflyFactor")
     .push_constant(Type::FLOAT, "sampleCount")
     .fragment_out(0, Type::VEC4, "FragColor")
-    // .do_static_compilation(true)
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .auto_resource_location(true);
 #endif
 
@@ -87,7 +88,8 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_effect_downsample_cube_no_geom)
     .sampler(0, ImageType::FLOAT_CUBE, "source")
     .push_constant(Type::FLOAT, "texelSize")
     .fragment_out(0, Type::VEC4, "FragColor")
-    // .do_static_compilation(true)
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .auto_resource_location(true);
 #endif
 
@@ -231,7 +233,8 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_lightprobe_planar_downsample)
 GPU_SHADER_CREATE_INFO(eevee_legacy_lightprobe_planar_downsample_no_geom)
     .additional_info("eevee_legacy_lightprobe_planar_downsample_common")
     .vertex_out(eevee_legacy_probe_planar_downsample_geom_frag_iface)
-    // .do_static_compilation(true)
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .auto_resource_location(true);
 #endif
 

@@ -55,7 +55,8 @@ GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire)
     .geometry_source("overlay_outline_prepass_geom.glsl");
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire_no_geom)
-    // .do_static_compilation(true)
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .additional_info("overlay_outline_prepass_wire_common")
     .vertex_source("overlay_outline_prepass_vert_no_geom.glsl");
 

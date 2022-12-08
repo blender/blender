@@ -52,7 +52,8 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_clear_no_geom)
     .fragment_out(1, Type::VEC4, "volumeExtinction")
     .fragment_out(2, Type::VEC4, "volumeEmissive")
     .fragment_out(3, Type::VEC4, "volumePhase")
-    // .do_static_compilation(true)
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .auto_resource_location(true);
 #endif
 
@@ -93,7 +94,8 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_scatter)
 GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_scatter_no_geom)
     .additional_info("eevee_legacy_volumes_scatter_common")
     .vertex_out(legacy_volume_geom_frag_iface)
-    // .do_static_compilation(true)
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .auto_resource_location(true);
 #endif
 
@@ -110,7 +112,8 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_scatter_with_lights)
 GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_scatter_with_lights_no_geom)
     .additional_info("eevee_legacy_volumes_scatter_with_lights_common")
     .additional_info("eevee_legacy_volumes_scatter_no_geom")
-    // .do_static_compilation(true)
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .auto_resource_location(true);
 #endif
 
@@ -167,13 +170,15 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_integration_OPTI)
 GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_integration_no_geom)
     .additional_info("eevee_legacy_volumes_integration_common_no_geom")
     .additional_info("eevee_legacy_volumes_integration_common_no_opti")
-    // .do_static_compilation(true)
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .auto_resource_location(true);
 
 GPU_SHADER_CREATE_INFO(eevee_legacy_volumes_integration_OPTI_no_geom)
     .additional_info("eevee_legacy_volumes_integration_common_no_geom")
     .additional_info("eevee_legacy_volumes_integration_common_opti")
-    // .do_static_compilation(true)
+    .metal_backend_only(true)
+    .do_static_compilation(true)
     .auto_resource_location(true);
 #endif
 
