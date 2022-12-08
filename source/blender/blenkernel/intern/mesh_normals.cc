@@ -1799,70 +1799,71 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
         }
         continue;
       }
+      if (done_loops[i]) {
+        continue;
+      }
 
-      if (!done_loops[i]) {
-        /* Notes:
-         * - In case of mono-loop smooth fan, we have nothing to do.
-         * - Loops in this linklist are ordered (in reversed order compared to how they were
-         *   discovered by BKE_mesh_normals_loop_split(), but this is not a problem).
-         *   Which means if we find a mismatching clnor,
-         *   we know all remaining loops will have to be in a new, different smooth fan/lnor space.
-         * - In smooth fan case, we compare each clnor against a ref one,
-         *   to avoid small differences adding up into a real big one in the end!
-         */
-        if (lnors_spacearr.lspacearr[i]->flags & MLNOR_SPACE_IS_SINGLE) {
-          done_loops[i].set();
-          continue;
+      /* Notes:
+       * - In case of mono-loop smooth fan, we have nothing to do.
+       * - Loops in this linklist are ordered (in reversed order compared to how they were
+       *   discovered by BKE_mesh_normals_loop_split(), but this is not a problem).
+       *   Which means if we find a mismatching clnor,
+       *   we know all remaining loops will have to be in a new, different smooth fan/lnor space.
+       * - In smooth fan case, we compare each clnor against a ref one,
+       *   to avoid small differences adding up into a real big one in the end!
+       */
+      if (lnors_spacearr.lspacearr[i]->flags & MLNOR_SPACE_IS_SINGLE) {
+        done_loops[i].set();
+        continue;
+      }
+
+      LinkNode *loops = lnors_spacearr.lspacearr[i]->loops;
+      const MLoop *prev_ml = nullptr;
+      const float *org_nor = nullptr;
+
+      while (loops) {
+        const int lidx = POINTER_AS_INT(loops->link);
+        const MLoop *ml = &mloops[lidx];
+        const int nidx = lidx;
+        float *nor = r_custom_loopnors[nidx];
+
+        if (!org_nor) {
+          org_nor = nor;
+        }
+        else if (dot_v3v3(org_nor, nor) < LNOR_SPACE_TRIGO_THRESHOLD) {
+          /* Current normal differs too much from org one, we have to tag the edge between
+           * previous loop's face and current's one as sharp.
+           * We know those two loops do not point to the same edge,
+           * since we do not allow reversed winding in a same smooth fan. */
+          const MPoly *mp = &mpolys[loop_to_poly[lidx]];
+          const MLoop *mlp =
+              &mloops[(lidx == mp->loopstart) ? mp->loopstart + mp->totloop - 1 : lidx - 1];
+          medges[(prev_ml->e == mlp->e) ? prev_ml->e : ml->e].flag |= ME_SHARP;
+
+          org_nor = nor;
         }
 
-        LinkNode *loops = lnors_spacearr.lspacearr[i]->loops;
-        const MLoop *prev_ml = nullptr;
-        const float *org_nor = nullptr;
+        prev_ml = ml;
+        loops = loops->next;
+        done_loops[lidx].set();
+      }
 
-        while (loops) {
-          const int lidx = POINTER_AS_INT(loops->link);
-          const MLoop *ml = &mloops[lidx];
-          const int nidx = lidx;
-          float *nor = r_custom_loopnors[nidx];
+      /* We also have to check between last and first loops,
+       * otherwise we may miss some sharp edges here!
+       * This is just a simplified version of above while loop.
+       * See T45984. */
+      loops = lnors_spacearr.lspacearr[i]->loops;
+      if (loops && org_nor) {
+        const int lidx = POINTER_AS_INT(loops->link);
+        const MLoop *ml = &mloops[lidx];
+        const int nidx = lidx;
+        float *nor = r_custom_loopnors[nidx];
 
-          if (!org_nor) {
-            org_nor = nor;
-          }
-          else if (dot_v3v3(org_nor, nor) < LNOR_SPACE_TRIGO_THRESHOLD) {
-            /* Current normal differs too much from org one, we have to tag the edge between
-             * previous loop's face and current's one as sharp.
-             * We know those two loops do not point to the same edge,
-             * since we do not allow reversed winding in a same smooth fan. */
-            const MPoly *mp = &mpolys[loop_to_poly[lidx]];
-            const MLoop *mlp =
-                &mloops[(lidx == mp->loopstart) ? mp->loopstart + mp->totloop - 1 : lidx - 1];
-            medges[(prev_ml->e == mlp->e) ? prev_ml->e : ml->e].flag |= ME_SHARP;
-
-            org_nor = nor;
-          }
-
-          prev_ml = ml;
-          loops = loops->next;
-          done_loops[lidx].set();
-        }
-
-        /* We also have to check between last and first loops,
-         * otherwise we may miss some sharp edges here!
-         * This is just a simplified version of above while loop.
-         * See T45984. */
-        loops = lnors_spacearr.lspacearr[i]->loops;
-        if (loops && org_nor) {
-          const int lidx = POINTER_AS_INT(loops->link);
-          const MLoop *ml = &mloops[lidx];
-          const int nidx = lidx;
-          float *nor = r_custom_loopnors[nidx];
-
-          if (dot_v3v3(org_nor, nor) < LNOR_SPACE_TRIGO_THRESHOLD) {
-            const MPoly *mp = &mpolys[loop_to_poly[lidx]];
-            const MLoop *mlp =
-                &mloops[(lidx == mp->loopstart) ? mp->loopstart + mp->totloop - 1 : lidx - 1];
-            medges[(prev_ml->e == mlp->e) ? prev_ml->e : ml->e].flag |= ME_SHARP;
-          }
+        if (dot_v3v3(org_nor, nor) < LNOR_SPACE_TRIGO_THRESHOLD) {
+          const MPoly *mp = &mpolys[loop_to_poly[lidx]];
+          const MLoop *mlp =
+              &mloops[(lidx == mp->loopstart) ? mp->loopstart + mp->totloop - 1 : lidx - 1];
+          medges[(prev_ml->e == mlp->e) ? prev_ml->e : ml->e].flag |= ME_SHARP;
         }
       }
     }
