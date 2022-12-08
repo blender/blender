@@ -343,6 +343,13 @@ void gpu_shader_create_info_init()
     overlay_motion_path_line = overlay_motion_path_line_no_geom;
     overlay_motion_path_line_clipped = overlay_motion_path_line_clipped_no_geom;
 
+    /* Conservative rasterization. */
+    basic_depth_mesh_conservative = basic_depth_mesh_conservative_no_geom;
+    basic_depth_mesh_conservative_clipped = basic_depth_mesh_conservative_no_geom_clipped;
+    basic_depth_pointcloud_conservative = basic_depth_pointcloud_conservative_no_geom;
+    basic_depth_pointcloud_conservative_clipped =
+        basic_depth_pointcloud_conservative_no_geom_clipped;
+
     /* Overlay prepass wire. */
     overlay_outline_prepass_wire = overlay_outline_prepass_wire_no_geom;
 

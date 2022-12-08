@@ -3823,6 +3823,9 @@ void wm_event_do_handlers(bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
   BLI_assert(ED_undo_is_state_valid(C));
 
+  /* Begin GPU render boundary - Certain event handlers require GPU usage. */
+  GPU_render_begin();
+
   /* Update key configuration before handling events. */
   WM_keyconfig_update(wm);
   WM_gizmoconfig_update(CTX_data_main(C));
@@ -3962,6 +3965,7 @@ void wm_event_do_handlers(bContext *C)
       /* File-read case. */
       if (CTX_wm_window(C) == nullptr) {
         wm_event_free_and_remove_from_queue_if_valid(event);
+        GPU_render_end();
         return;
       }
 
@@ -4016,6 +4020,7 @@ void wm_event_do_handlers(bContext *C)
             /* File-read case (Python), T29489. */
             if (CTX_wm_window(C) == nullptr) {
               wm_event_free_and_remove_from_queue_if_valid(event);
+              GPU_render_end();
               return;
             }
 
@@ -4044,6 +4049,7 @@ void wm_event_do_handlers(bContext *C)
           /* File-read case. */
           if (CTX_wm_window(C) == nullptr) {
             wm_event_free_and_remove_from_queue_if_valid(event);
+            GPU_render_end();
             return;
           }
         }
@@ -4094,6 +4100,9 @@ void wm_event_do_handlers(bContext *C)
   /* Update key configuration after handling events. */
   WM_keyconfig_update(wm);
   WM_gizmoconfig_update(CTX_data_main(C));
+
+  /* End GPU render boundary. Certain event handlers require GPU usage. */
+  GPU_render_end();
 }
 
 /** \} */

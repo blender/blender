@@ -45,7 +45,7 @@ void pointcloud_get_pos_and_radius(out vec3 outpos, out float outradius)
 }
 
 /* Return world position and normal. */
-void pointcloud_get_pos_and_nor(out vec3 outpos, out vec3 outnor)
+void pointcloud_get_pos_nor_radius(out vec3 outpos, out vec3 outnor, out float outradius)
 {
   vec3 p;
   float radius;
@@ -79,6 +79,17 @@ void pointcloud_get_pos_and_nor(out vec3 outpos, out vec3 outnor)
   radius *= 0.01;
   outnor = facing_mat * pos_inst;
   outpos = p + outnor * radius;
+  outradius = radius;
+}
+
+/* Return world position and normal. */
+void pointcloud_get_pos_and_nor(out vec3 outpos, out vec3 outnor)
+{
+  vec3 nor, pos;
+  float radius;
+  pointcloud_get_pos_nor_radius(pos, nor, radius);
+  outpos = pos;
+  outnor = nor;
 }
 
 vec3 pointcloud_get_pos()
