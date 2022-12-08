@@ -1784,7 +1784,10 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
    * matching given custom lnors.
    * Note this code *will never* unsharp edges! And quite obviously,
    * when we set custom normals per vertices, running this is absolutely useless. */
-  if (!use_vertices) {
+  if (use_vertices) {
+    done_loops.fill(true);
+  }
+  else {
     for (int i = 0; i < numLoops; i++) {
       if (!lnors_spacearr.lspacearr[i]) {
         /* This should not happen in theory, but in some rare case (probably ugly geometry)
@@ -1882,9 +1885,6 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
                                 loop_to_poly.data(),
                                 &lnors_spacearr,
                                 nullptr);
-  }
-  else {
-    done_loops.fill(true);
   }
 
   /* And we just have to convert plain object-space custom normals to our
