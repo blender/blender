@@ -2571,15 +2571,19 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
     if (bad) {
       MEM_SAFE_FREE(attr->data);
     }
+    else {
+      attr->data_for_bmesh = false;
+    }
   }
   else {
     CustomData *cdata = sculpt_get_cdata(ob, attr->domain);
 
     if (cdata) {
       int layer_index = CustomData_get_named_layer_index(cdata, attr->proptype, attr->name);
-      bad = layer_index == -1;
 
-      if (ss->bm) {
+      bad |= (ss->bm != nullptr) != attr->data_for_bmesh;
+
+      if (attr->data_for_bmesh) {
         attr->bmesh_cd_offset = cdata->layers[layer_index].offset;
       }
     }
