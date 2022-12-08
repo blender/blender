@@ -496,9 +496,7 @@ void BKE_mesh_ensure_normals_for_display(struct Mesh *mesh);
  * Used when defining an empty custom loop normals data layer,
  * to keep same shading as with auto-smooth!
  */
-void BKE_edges_sharp_from_angle_set(const struct MVert *mverts,
-                                    int numVerts,
-                                    struct MEdge *medges,
+void BKE_edges_sharp_from_angle_set(struct MEdge *medges,
                                     int numEdges,
                                     const struct MLoop *mloops,
                                     int numLoops,

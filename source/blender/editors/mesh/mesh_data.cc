@@ -799,14 +799,11 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
     /* Tag edges as sharp according to smooth threshold if needed,
      * to preserve auto-smooth shading. */
     if (me->flag & ME_AUTOSMOOTH) {
-      const Span<MVert> verts = me->verts();
       MutableSpan<MEdge> edges = me->edges_for_write();
       const Span<MPoly> polys = me->polys();
       const Span<MLoop> loops = me->loops();
 
-      BKE_edges_sharp_from_angle_set(verts.data(),
-                                     verts.size(),
-                                     edges.data(),
+      BKE_edges_sharp_from_angle_set(edges.data(),
                                      edges.size(),
                                      loops.data(),
                                      loops.size(),

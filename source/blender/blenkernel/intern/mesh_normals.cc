@@ -822,7 +822,7 @@ struct LoopSplitTaskDataCommon {
 
   /* Read-only. */
   Span<MVert> verts;
-  MutableSpan<MEdge> edges;
+  Span<MEdge> edges;
   Span<MLoop> loops;
   Span<MPoly> polys;
   MutableSpan<int2> edge_to_loops;
@@ -836,75 +836,57 @@ struct LoopSplitTaskDataCommon {
 /* See comment about edge_to_loops below. */
 #define IS_EDGE_SHARP(_e2l) ELEM((_e2l)[1], INDEX_UNSET, INDEX_INVALID)
 
-static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
+static void mesh_edges_sharp_tag(const Span<MEdge> edges,
+                                 const Span<MPoly> polys,
+                                 const Span<MLoop> loops,
+                                 const Span<int> loop_to_poly_map,
+                                 const Span<float3> poly_normals,
                                  const bool check_angle,
                                  const float split_angle,
-                                 const bool do_sharp_edges_tag)
+                                 MutableSpan<int2> edge_to_loops,
+                                 BitVector<> *r_sharp_edges)
 {
-  MutableSpan<MEdge> edges = data->edges;
-  const Span<MPoly> polys = data->polys;
-  const Span<MLoop> loops = data->loops;
-  const Span<int> loop_to_poly = data->loop_to_poly;
-
-  MutableSpan<float3> loopnors = data->loopnors; /* NOTE: loopnors may be empty here. */
-  const Span<float3> polynors = data->polynors;
-
-  MutableSpan<int2> edge_to_loops = data->edge_to_loops;
-
-  BitVector sharp_edges;
-  if (do_sharp_edges_tag) {
-    sharp_edges.resize(edges.size(), false);
-  }
-
+  using namespace blender;
   const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
 
-  for (const int mp_index : polys.index_range()) {
-    const MPoly &poly = polys[mp_index];
-    int ml_curr_index = poly.loopstart;
-    const int ml_last_index = (ml_curr_index + poly.totloop) - 1;
+  for (const int poly_i : polys.index_range()) {
+    const MPoly &poly = polys[poly_i];
+    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+      const int vert_i = loops[loop_index].v;
+      const int edge_i = loops[loop_index].e;
 
-    const MLoop *ml_curr = &loops[ml_curr_index];
-
-    for (; ml_curr_index <= ml_last_index; ml_curr++, ml_curr_index++) {
-      int2 &e2l = edge_to_loops[ml_curr->e];
-
-      /* Pre-populate all loop normals as if their verts were all-smooth,
-       * this way we don't have to compute those later!
-       */
-      if (!loopnors.is_empty()) {
-        copy_v3_v3(loopnors[ml_curr_index], data->vert_normals[ml_curr->v]);
-      }
+      int2 &e2l = edge_to_loops[edge_i];
 
       /* Check whether current edge might be smooth or sharp */
       if ((e2l[0] | e2l[1]) == 0) {
         /* 'Empty' edge until now, set e2l[0] (and e2l[1] to INDEX_UNSET to tag it as unset). */
-        e2l[0] = ml_curr_index;
+        e2l[0] = loop_index;
         /* We have to check this here too, else we might miss some flat faces!!! */
         e2l[1] = (poly.flag & ME_SMOOTH) ? INDEX_UNSET : INDEX_INVALID;
       }
       else if (e2l[1] == INDEX_UNSET) {
         const bool is_angle_sharp = (check_angle &&
-                                     dot_v3v3(polynors[loop_to_poly[e2l[0]]], polynors[mp_index]) <
-                                         split_angle_cos);
+                                     dot_v3v3(poly_normals[loop_to_poly_map[e2l[0]]],
+                                              poly_normals[poly_i]) < split_angle_cos);
 
         /* Second loop using this edge, time to test its sharpness.
          * An edge is sharp if it is tagged as such, or its face is not smooth,
          * or both poly have opposed (flipped) normals, i.e. both loops on the same edge share the
          * same vertex, or angle between both its polys' normals is above split_angle value.
          */
-        if (!(poly.flag & ME_SMOOTH) || (edges[ml_curr->e].flag & ME_SHARP) ||
-            ml_curr->v == loops[e2l[0]].v || is_angle_sharp) {
+        if (!(poly.flag & ME_SMOOTH) || (edges[edge_i].flag & ME_SHARP) ||
+            vert_i == loops[e2l[0]].v || is_angle_sharp) {
           /* NOTE: we are sure that loop != 0 here ;). */
           e2l[1] = INDEX_INVALID;
 
           /* We want to avoid tagging edges as sharp when it is already defined as such by
            * other causes than angle threshold. */
-          if (do_sharp_edges_tag && is_angle_sharp) {
-            sharp_edges[ml_curr->e].set();
+          if (r_sharp_edges && is_angle_sharp) {
+            (*r_sharp_edges)[edge_i].set();
           }
         }
         else {
-          e2l[1] = ml_curr_index;
+          e2l[1] = loop_index;
         }
       }
       else if (!IS_EDGE_SHARP(e2l)) {
@@ -913,27 +895,16 @@ static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
 
         /* We want to avoid tagging edges as sharp when it is already defined as such by
          * other causes than angle threshold. */
-        if (do_sharp_edges_tag) {
-          sharp_edges[ml_curr->e].reset();
+        if (r_sharp_edges) {
+          (*r_sharp_edges)[edge_i].reset();
         }
       }
       /* Else, edge is already 'disqualified' (i.e. sharp)! */
     }
   }
-
-  /* If requested, do actual tagging of edges as sharp in another loop. */
-  if (do_sharp_edges_tag) {
-    for (const int i : edges.index_range()) {
-      if (sharp_edges[i]) {
-        edges[i].flag |= ME_SHARP;
-      }
-    }
-  }
 }
 
-void BKE_edges_sharp_from_angle_set(const MVert *mverts,
-                                    const int numVerts,
-                                    MEdge *medges,
+void BKE_edges_sharp_from_angle_set(MEdge *medges,
                                     const int numEdges,
                                     const MLoop *mloops,
                                     const int numLoops,
@@ -956,16 +927,24 @@ void BKE_edges_sharp_from_angle_set(const MVert *mverts,
   const Array<int> loop_to_poly = mesh_topology::build_loop_to_poly_map({mpolys, numPolys},
                                                                         numLoops);
 
-  LoopSplitTaskDataCommon common_data = {};
-  common_data.verts = {mverts, numVerts};
-  common_data.edges = {medges, numEdges};
-  common_data.polys = {mpolys, numPolys};
-  common_data.loops = {mloops, numLoops};
-  common_data.edge_to_loops = edge_to_loops;
-  common_data.loop_to_poly = loop_to_poly;
-  common_data.polynors = {reinterpret_cast<const float3 *>(polynors), numPolys};
+  BitVector<> sharp_edges(numEdges, false);
+  mesh_edges_sharp_tag({medges, numEdges},
+                       {mpolys, numPolys},
+                       {mloops, numLoops},
+                       loop_to_poly,
+                       {reinterpret_cast<const float3 *>(polynors), numPolys},
+                       true,
+                       split_angle,
+                       edge_to_loops,
+                       &sharp_edges);
 
-  mesh_edges_sharp_tag(&common_data, true, split_angle, true);
+  threading::parallel_for(IndexRange(numEdges), 4096, [&](const IndexRange range) {
+    for (const int edge_i : range) {
+      if (sharp_edges[edge_i]) {
+        medges[edge_i].flag |= ME_SHARP;
+      }
+    }
+  });
 }
 
 static void loop_manifold_fan_around_vert_next(const Span<MLoop> loops,
@@ -1651,22 +1630,44 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
     BKE_lnor_spacearr_init(r_lnors_spacearr, numLoops, MLNOR_SPACEARR_LOOP_INDEX);
   }
 
+  const Span<MPoly> polys(mpolys, numPolys);
+  const Span<MLoop> loops(mloops, numLoops);
+
   /* Init data common to all tasks. */
   LoopSplitTaskDataCommon common_data;
   common_data.lnors_spacearr = r_lnors_spacearr;
   common_data.loopnors = {reinterpret_cast<float3 *>(r_loopnors), numLoops};
   common_data.clnors_data = {reinterpret_cast<short2 *>(clnors_data), clnors_data ? numLoops : 0};
   common_data.verts = {mverts, numVerts};
-  common_data.edges = {const_cast<MEdge *>(medges), numEdges};
-  common_data.polys = {mpolys, numPolys};
-  common_data.loops = {mloops, numLoops};
+  common_data.edges = {medges, numEdges};
+  common_data.polys = polys;
+  common_data.loops = loops;
   common_data.edge_to_loops = edge_to_loops;
   common_data.loop_to_poly = loop_to_poly;
   common_data.polynors = {reinterpret_cast<const float3 *>(polynors), numPolys};
   common_data.vert_normals = {reinterpret_cast<const float3 *>(vert_normals), numVerts};
 
+  /* Pre-populate all loop normals as if their verts were all smooth.
+   * This way we don't have to compute those later! */
+  threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
+    for (const int poly_i : range) {
+      const MPoly &poly = polys[poly_i];
+      for (const int loop_i : IndexRange(poly.loopstart, poly.totloop)) {
+        copy_v3_v3(r_loopnors[loop_i], vert_normals[loops[loop_i].v]);
+      }
+    }
+  });
+
   /* This first loop check which edges are actually smooth, and compute edge vectors. */
-  mesh_edges_sharp_tag(&common_data, check_angle, split_angle, false);
+  mesh_edges_sharp_tag({medges, numEdges},
+                       polys,
+                       loops,
+                       loop_to_poly,
+                       {reinterpret_cast<const float3 *>(polynors), numPolys},
+                       check_angle,
+                       split_angle,
+                       edge_to_loops,
+                       nullptr);
 
   if (numLoops < LOOP_SPLIT_TASK_BLOCK_SIZE * 8) {
     /* Not enough loops to be worth the whole threading overhead. */
