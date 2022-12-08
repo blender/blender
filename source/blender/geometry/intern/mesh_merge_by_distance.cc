@@ -29,7 +29,7 @@ namespace blender::geometry {
 /* Used to indicate a range in an array specifying a group. */
 struct WeldGroup {
   int len;
-  int ofs;
+  int offs;
 };
 
 /* Edge groups that will be merged. Final vertices are also indicated. */
@@ -284,10 +284,10 @@ static void weld_assert_poly_len(const WeldPoly *wp, const Span<WeldLoop> wloop)
   }
 
   int loop_len = wp->loop_len;
-  const WeldLoop *wl = &wloop[wp->loops.ofs];
+  const WeldLoop *wl = &wloop[wp->loops.offs];
   BLI_assert(wp->loop_start <= wl->loop_orig);
 
-  int end_wloop = wp->loops.ofs + wp->loops.len;
+  int end_wloop = wp->loops.offs + wp->loops.len;
   const WeldLoop *wl_end = &wloop[end_wloop - 1];
 
   int min_len = 0;
@@ -373,22 +373,22 @@ static void weld_vert_groups_setup(Span<WeldVert> wvert,
     r_vert_groups_offs[group_index].len++;
   }
 
-  int ofs = 0;
+  int offs = 0;
   for (WeldGroup &wg : r_vert_groups_offs) {
-    wg.ofs = ofs;
-    ofs += wg.len;
+    wg.offs = offs;
+    offs += wg.len;
   }
 
-  BLI_assert(ofs == wvert.size());
+  BLI_assert(offs == wvert.size());
 
-  r_vert_groups_buffer.reinitialize(ofs);
+  r_vert_groups_buffer.reinitialize(offs);
   for (const WeldVert &wv : wvert) {
     int group_index = r_vert_groups_map[wv.vert_dest];
-    r_vert_groups_buffer[r_vert_groups_offs[group_index].ofs++] = wv.vert_orig;
+    r_vert_groups_buffer[r_vert_groups_offs[group_index].offs++] = wv.vert_orig;
   }
 
   for (WeldGroup &wg : r_vert_groups_offs) {
-    wg.ofs -= wg.len;
+    wg.offs -= wg.len;
   }
 }
 
@@ -477,7 +477,7 @@ static void weld_edge_ctx_setup(MutableSpan<WeldGroup> r_vlinks,
 
   int link_len = 0;
   for (WeldGroup &vl : r_vlinks) {
-    vl.ofs = link_len;
+    vl.offs = link_len;
     link_len += vl.len;
   }
 
@@ -493,13 +493,13 @@ static void weld_edge_ctx_setup(MutableSpan<WeldGroup> r_vlinks,
       int dst_vert_a = we.vert_a;
       int dst_vert_b = we.vert_b;
 
-      link_edge_buffer[r_vlinks[dst_vert_a].ofs++] = i;
-      link_edge_buffer[r_vlinks[dst_vert_b].ofs++] = i;
+      link_edge_buffer[r_vlinks[dst_vert_a].offs++] = i;
+      link_edge_buffer[r_vlinks[dst_vert_b].offs++] = i;
     }
 
     for (WeldGroup &vl : r_vlinks) {
       /* Fix offset */
-      vl.ofs -= vl.len;
+      vl.offs -= vl.len;
     }
 
     for (const int i : r_wedge.index_range()) {
@@ -523,8 +523,8 @@ static void weld_edge_ctx_setup(MutableSpan<WeldGroup> r_vlinks,
         continue;
       }
 
-      int *edges_ctx_a = &link_edge_buffer[link_a->ofs];
-      int *edges_ctx_b = &link_edge_buffer[link_b->ofs];
+      int *edges_ctx_a = &link_edge_buffer[link_a->offs];
+      int *edges_ctx_b = &link_edge_buffer[link_b->offs];
       int edge_orig = we.edge_orig;
 
       for (; edges_len_a--; edges_ctx_a++) {
@@ -579,7 +579,6 @@ static void weld_edge_groups_setup(const int medge_len,
   int wgroups_len = wedge.size() - edge_kill_len;
   r_edge_groups_offs.reinitialize(wgroups_len);
   r_edge_groups_offs.fill({{0}});
-  MutableSpan<WeldGroupEdge> wegroups = r_edge_groups_offs;
 
   wgroups_len = 0;
   for (const int i : IndexRange(medge_len)) {
@@ -593,8 +592,8 @@ static void weld_edge_groups_setup(const int medge_len,
       }
       else {
         we->edge_dest = we->edge_orig;
-        wegroups[wgroups_len].v1 = we->vert_a;
-        wegroups[wgroups_len].v2 = we->vert_b;
+        r_edge_groups_offs[wgroups_len].v1 = we->vert_a;
+        r_edge_groups_offs[wgroups_len].v2 = we->vert_b;
         r_edge_groups_map[i] = wgroups_len;
         wgroups_len++;
       }
@@ -616,26 +615,26 @@ static void weld_edge_groups_setup(const int medge_len,
       continue;
     }
     int group_index = r_edge_groups_map[we.edge_dest];
-    wegroups[group_index].group.len++;
+    r_edge_groups_offs[group_index].group.len++;
   }
 
-  int ofs = 0;
-  for (WeldGroupEdge &wegrp : wegroups) {
-    wegrp.group.ofs = ofs;
-    ofs += wegrp.group.len;
+  int offs = 0;
+  for (WeldGroupEdge &wegrp : r_edge_groups_offs) {
+    wegrp.group.offs = offs;
+    offs += wegrp.group.len;
   }
 
-  r_edge_groups_buffer.reinitialize(ofs);
+  r_edge_groups_buffer.reinitialize(offs);
   for (const WeldEdge &we : wedge) {
     if (we.flag == ELEM_COLLAPSED) {
       continue;
     }
     int group_index = r_edge_groups_map[we.edge_dest];
-    r_edge_groups_buffer[wegroups[group_index].group.ofs++] = we.edge_orig;
+    r_edge_groups_buffer[r_edge_groups_offs[group_index].group.offs++] = we.edge_orig;
   }
 
-  for (WeldGroupEdge &wegrp : wegroups) {
-    wegrp.group.ofs -= wegrp.group.len;
+  for (WeldGroupEdge &wegrp : r_edge_groups_offs) {
+    wegrp.group.offs -= wegrp.group.len;
   }
 }
 
@@ -814,7 +813,7 @@ static void weld_poly_loop_ctx_alloc(Span<MPoly> mpoly,
       wp.poly_dst = OUT_OF_CONTEXT;
       wp.poly_orig = i;
       wp.loops.len = loops_len;
-      wp.loops.ofs = prev_wloop_len;
+      wp.loops.offs = prev_wloop_len;
       wp.loop_start = loopstart;
       wp.loop_end = loopstart + totloop - 1;
       wp.loop_len = totloop;
@@ -859,7 +858,7 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
   }
 
   const int ctx_loops_len = r_wp->loops.len;
-  const int ctx_loops_ofs = r_wp->loops.ofs;
+  const int ctx_loops_ofs = r_wp->loops.offs;
   MutableSpan<WeldLoop> wloop = r_weld_mesh->wloop;
 
   int loop_kill = 0;
@@ -938,7 +937,7 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
               new_wp->poly_dst = OUT_OF_CONTEXT;
               new_wp->poly_orig = r_wp->poly_orig;
               new_wp->loops.len = new_loops_len;
-              new_wp->loops.ofs = new_loops_ofs;
+              new_wp->loops.offs = new_loops_ofs;
               new_wp->loop_start = wla->loop_orig;
               new_wp->loop_end = wlb_prev->loop_orig;
               new_wp->loop_len = dist_a;
@@ -1021,7 +1020,7 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
     for (const int i : wpoly_original_range) {
       WeldPoly &wp = wpoly[i];
       const int ctx_loops_len = wp.loops.len;
-      const int ctx_loops_ofs = wp.loops.ofs;
+      const int ctx_loops_ofs = wp.loops.offs;
 
       int poly_loop_len = wp.loop_len;
       int ctx_verts_len = 0;
@@ -1086,7 +1085,7 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
 
     int link_len = 0;
     for (const int i : IndexRange(mvert_len)) {
-      v_links[i].ofs = link_len;
+      v_links[i].offs = link_len;
       link_len += v_links[i].len;
     }
 
@@ -1098,14 +1097,14 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
         WeldLoopOfPolyIter iter;
         if (weld_iter_loop_of_poly_begin(iter, wp, wloop, mloop, loop_map, nullptr)) {
           while (weld_iter_loop_of_poly_next(iter)) {
-            link_poly_buffer[v_links[iter.v].ofs++] = i;
+            link_poly_buffer[v_links[iter.v].offs++] = i;
           }
         }
       }
 
       for (WeldGroup &vl : r_vlinks) {
         /* Fix offset */
-        vl.ofs -= vl.len;
+        vl.offs -= vl.len;
       }
 
       int polys_len_a, polys_len_b, *polys_ctx_a, *polys_ctx_b, p_ctx_a, p_ctx_b;
@@ -1125,11 +1124,11 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
         struct WeldGroup *link_a = &v_links[iter.v];
         polys_len_a = link_a->len;
         if (polys_len_a == 1) {
-          BLI_assert(link_poly_buffer[link_a->ofs] == i);
+          BLI_assert(link_poly_buffer[link_a->offs] == i);
           continue;
         }
         int wp_loop_len = wp.loop_len;
-        polys_ctx_a = &link_poly_buffer[link_a->ofs];
+        polys_ctx_a = &link_poly_buffer[link_a->offs];
         for (; polys_len_a--; polys_ctx_a++) {
           p_ctx_a = *polys_ctx_a;
           if (p_ctx_a == i) {
@@ -1146,12 +1145,12 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
             struct WeldGroup *link_b = &v_links[iter_b.v];
             polys_len_b = link_b->len;
             if (polys_len_b == 1) {
-              BLI_assert(link_poly_buffer[link_b->ofs] == i);
+              BLI_assert(link_poly_buffer[link_b->offs] == i);
               polys_len_b = 0;
               break;
             }
 
-            polys_ctx_b = &link_poly_buffer[link_b->ofs];
+            polys_ctx_b = &link_poly_buffer[link_b->offs];
             for (; polys_len_b; polys_len_b--, polys_ctx_b++) {
               p_ctx_b = *polys_ctx_b;
               if (p_ctx_b < p_ctx_a) {
@@ -1422,7 +1421,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       struct WeldGroup *wgroup = &weld_mesh.vert_groups[vert_group_map[i]];
       customdata_weld(&mesh.vdata,
                       &result->vdata,
-                      &weld_mesh.vert_groups_buffer[wgroup->ofs],
+                      &weld_mesh.vert_groups_buffer[wgroup->offs],
                       wgroup->len,
                       dest_index);
       vert_final_map[i] = dest_index;
@@ -1463,7 +1462,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       struct WeldGroupEdge *wegrp = &weld_mesh.edge_groups[weld_mesh.edge_groups_map[i]];
       customdata_weld(&mesh.edata,
                       &result->edata,
-                      &weld_mesh.edge_groups_buffer[wegrp->group.ofs],
+                      &weld_mesh.edge_groups_buffer[wegrp->group.offs],
                       wegrp->group.len,
                       dest_index);
       MEdge *me = &dst_edges[dest_index];
