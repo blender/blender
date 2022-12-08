@@ -280,42 +280,14 @@ typedef enum eNodeSocketFlag {
   SOCK_HIDE_LABEL = (1 << 12),
 } eNodeSocketFlag;
 
-/** TODO: Limit data in #bNode to what we want to see saved. */
 typedef struct bNode {
   struct bNode *next, *prev;
 
-  /** User-defined properties. */
-  IDProperty *prop;
-
-  /** Runtime type information. */
-  struct bNodeType *typeinfo;
-  /** Runtime type identifier. */
-  char idname[64];
-
-  /** MAX_NAME. */
-  char name[64];
-  int flag;
-  short type;
-
-  char _pad2[6];
-
-  /** Custom user-defined color. */
-  float color[3];
-
+  /* Input and output #bNodeSocket. */
   ListBase inputs, outputs;
-  /** Parent node. */
-  struct bNode *parent;
-  /** Optional link to libdata. */
-  struct ID *id;
-  /** Custom data, must be struct, for storage in file. */
-  void *storage;
 
-  /** Root offset for drawing (parent space). */
-  float locx, locy;
-  /** Node custom width and height. */
-  float width, height;
-  /** Additional offset from loc. */
-  float offsetx, offsety;
+  /** The node's name for unique identification and string lookup. MAX_NAME. */
+  char name[64];
 
   /**
    * A value that uniquely identifies a node in a node tree even when the name changes.
@@ -326,11 +298,62 @@ typedef struct bNode {
    */
   int32_t identifier;
 
+  int flag;
+
+  /**
+   * String identifier of the type like "FunctionNodeCompare". Stored in files to allow retrieving
+   * the node type for node types including custom nodes defined in Python by addons.
+   */
+  char idname[64];
+
+  /** Type information retrieved from the #idname. TODO: Move to runtime data. */
+  struct bNodeType *typeinfo;
+
+  /**
+   * Integer type used for builtin nodes, allowing cheaper lookup and changing ID names with
+   * versioning code. Avoid using directly if possible, since may not match runtime node type if it
+   * wasn't found.
+   */
+  int16_t type;
+
+  char _pad1[2];
+
+  /** Used for some builtin nodes that store properties but don't have a storage struct . */
+  int16_t custom1, custom2;
+  float custom3, custom4;
+
+  /** Optional link to libdata. */
+  struct ID *id;
+
+  /** Custom data struct for node properties for storage in files. */
+  void *storage;
+
+  /**
+   * Custom properties often defined by addons to store arbitrary data on nodes. A non-builtin
+   * equivalent to #storage.
+   */
+  IDProperty *prop;
+
+  /** Parent node (for frame nodes). */
+  struct bNode *parent;
+
+  /** Root location in the node canvas (in parent space). */
+  float locx, locy;
+  /**
+   * Custom width and height controlled by users. Height is calculate automatically for most
+   * nodes.
+   */
+  float width, height;
+  /** Additional offset from loc. TODO: Redundant with #locx and #locy, remove/deprecate. */
+  float offsetx, offsety;
+
   /** Custom user-defined label, MAX_NAME. */
   char label[64];
-  /** To be abused for buttons. */
-  short custom1, custom2;
-  float custom3, custom4;
+
+  /** Custom user-defined color. */
+  float color[3];
+
+  char _pad2[4];
 
   bNodeRuntimeHandle *runtime;
 
