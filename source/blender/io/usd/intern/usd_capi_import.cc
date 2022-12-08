@@ -450,7 +450,9 @@ bool USD_import(struct bContext *C,
  * USD reader is compatible with the type of the given (currently unused) 'ob'
  * Object parameter, similar to the logic in get_abc_reader() in the
  * Alembic importer code. */
-static USDPrimReader *get_usd_reader(CacheReader *reader, Object * /* ob */, const char **err_str)
+static USDPrimReader *get_usd_reader(CacheReader *reader,
+                                     const Object * /* ob */,
+                                     const char **err_str)
 {
   USDPrimReader *usd_reader = reinterpret_cast<USDPrimReader *>(reader);
   pxr::UsdPrim iobject = usd_reader->prim();
@@ -479,8 +481,11 @@ struct Mesh *USD_read_mesh(struct CacheReader *reader,
   return usd_reader->read_mesh(existing_mesh, time, read_flag, err_str);
 }
 
-bool USD_mesh_topology_changed(
-    CacheReader *reader, Object *ob, Mesh *existing_mesh, const double time, const char **err_str)
+bool USD_mesh_topology_changed(CacheReader *reader,
+                               const Object *ob,
+                               const Mesh *existing_mesh,
+                               const double time,
+                               const char **err_str)
 {
   USDGeomReader *usd_reader = dynamic_cast<USDGeomReader *>(get_usd_reader(reader, ob, err_str));
 
