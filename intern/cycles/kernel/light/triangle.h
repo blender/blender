@@ -306,7 +306,7 @@ ccl_device_forceinline bool triangle_light_tree_parameters(
 
   const int object = kemitter->mesh_light.object_id;
   float3 vertices[3];
-  triangle_world_space_vertices(kg, object, kemitter->prim_id, -1.0f, vertices);
+  triangle_world_space_vertices(kg, object, kemitter->prim, -1.0f, vertices);
 
   bool shape_above_surface = false;
   for (int i = 0; i < 3; i++) {

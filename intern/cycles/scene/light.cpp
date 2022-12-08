@@ -616,18 +616,16 @@ void LightManager::device_update_tree(Device *,
             shader_flag |= SHADER_EXCLUDE_SHADOW_CATCHER;
           }
 
-          light_tree_emitters[emitter_index].prim_id = prim.prim_id + mesh->prim_offset;
+          light_tree_emitters[emitter_index].prim = prim.prim_id + mesh->prim_offset;
           light_tree_emitters[emitter_index].mesh_light.shader_flag = shader_flag;
-          light_tree_emitters[emitter_index].mesh_light.emission_sampling =
-              shader->emission_sampling;
+          light_tree_emitters[emitter_index].emission_sampling = shader->emission_sampling;
           triangle_array[prim.prim_id + object_lookup_offsets[prim.object_id]] = emitter_index;
         }
         else {
-          light_tree_emitters[emitter_index].prim_id = prim.prim_id;
+          light_tree_emitters[emitter_index].prim = prim.prim_id;
           light_tree_emitters[emitter_index].mesh_light.shader_flag = 0;
           light_tree_emitters[emitter_index].mesh_light.object_id = OBJECT_NONE;
-          light_tree_emitters[emitter_index].mesh_light.emission_sampling =
-              EMISSION_SAMPLING_FRONT_BACK;
+          light_tree_emitters[emitter_index].emission_sampling = EMISSION_SAMPLING_FRONT_BACK;
           light_array[~prim.prim_id] = emitter_index;
         }
 

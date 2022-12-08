@@ -59,41 +59,9 @@ ccl_device_noinline bool light_distribution_sample(KernelGlobals kg,
 {
   /* Sample light index from distribution. */
   const int index = light_distribution_sample(kg, &randu);
-  ccl_global const KernelLightDistribution *kdistribution = &kernel_data_fetch(light_distribution,
-                                                                               index);
-  const int prim = kdistribution->prim;
-
-  if (prim >= 0) {
-    /* Mesh light. */
-    const int object = kdistribution->mesh_light.object_id;
-
-    /* Exclude synthetic meshes from shadow catcher pass. */
-    if ((path_flag & PATH_RAY_SHADOW_CATCHER_PASS) &&
-        !(kernel_data_fetch(object_flag, object) & SD_OBJECT_SHADOW_CATCHER)) {
-      return false;
-    }
-
-    const int shader_flag = kdistribution->mesh_light.shader_flag;
-    if (!triangle_light_sample<in_volume_segment>(kg, prim, object, randu, randv, time, ls, P)) {
-      return false;
-    }
-    ls->shader |= shader_flag;
-  }
-  else {
-    const int lamp = -prim - 1;
-
-    if (UNLIKELY(light_select_reached_max_bounces(kg, lamp, bounce))) {
-      return false;
-    }
-
-    if (!light_sample<in_volume_segment>(kg, lamp, randu, randv, P, path_flag, ls)) {
-      return false;
-    }
-    ls->pdf_selection = kernel_data.integrator.distribution_pdf_lights;
-  }
-
-  ls->pdf *= ls->pdf_selection;
-  return (ls->pdf > 0.0f);
+  const float pdf_selection = kernel_data.integrator.distribution_pdf_lights;
+  return light_sample<in_volume_segment>(
+      kg, randu, randv, time, P, bounce, path_flag, index, pdf_selection, ls);
 }
 
 ccl_device_inline float light_distribution_pdf_lamp(KernelGlobals kg)

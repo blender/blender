@@ -189,7 +189,7 @@ ccl_device bool compute_emitter_centroid_and_dir(KernelGlobals kg,
                                                  ccl_private float3 &centroid,
                                                  ccl_private packed_float3 &dir)
 {
-  const int prim_id = kemitter->prim_id;
+  const int prim_id = kemitter->prim;
   if (prim_id < 0) {
     const ccl_global KernelLight *klight = &kernel_data_fetch(lights, ~prim_id);
     centroid = klight->co;
@@ -223,10 +223,10 @@ ccl_device bool compute_emitter_centroid_and_dir(KernelGlobals kg,
     triangle_world_space_vertices(kg, object, prim_id, -1.0f, vertices);
     centroid = (vertices[0] + vertices[1] + vertices[2]) / 3.0f;
 
-    if (kemitter->mesh_light.emission_sampling == EMISSION_SAMPLING_FRONT) {
+    if (kemitter->emission_sampling == EMISSION_SAMPLING_FRONT) {
       dir = safe_normalize(cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
     }
-    else if (kemitter->mesh_light.emission_sampling == EMISSION_SAMPLING_BACK) {
+    else if (kemitter->emission_sampling == EMISSION_SAMPLING_BACK) {
       dir = -safe_normalize(cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
     }
     else {
@@ -264,7 +264,7 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
     return;
   }
 
-  const int prim_id = kemitter->prim_id;
+  const int prim_id = kemitter->prim;
 
   if (in_volume_segment) {
     const float3 D = N_or_D;
@@ -568,8 +568,8 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
 
   const bool has_transmission = (shader_flags & SD_BSDF_HAS_TRANSMISSION);
   float pdf_leaf = 1.0f;
-  float pdf_emitter_from_leaf = 1.0f;
-  int selected_light = -1;
+  float pdf_selection = 1.0f;
+  int selected_emitter = -1;
 
   int node_index = 0; /* Root node. */
 
@@ -579,8 +579,8 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
 
     if (knode->child_index <= 0) {
       /* At a leaf node, we pick an emitter. */
-      selected_light = light_tree_cluster_select_emitter<in_volume_segment>(
-          kg, randv, P, N_or_D, t, has_transmission, knode, &pdf_emitter_from_leaf);
+      selected_emitter = light_tree_cluster_select_emitter<in_volume_segment>(
+          kg, randv, P, N_or_D, t, has_transmission, knode, &pdf_selection);
       break;
     }
 
@@ -602,46 +602,14 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
     pdf_leaf *= (node_index == left_index) ? left_prob : (1.0f - left_prob);
   }
 
-  if (selected_light < 0) {
+  if (selected_emitter < 0) {
     return false;
   }
 
-  /* Sample a point on the chosen emitter. */
-  ccl_global const KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
-                                                                         selected_light);
+  pdf_selection *= pdf_leaf;
 
-  /* TODO: this is the same code as light_distribution_sample, except the index is determined
-   * differently. Would it be better to refactor this into a separate function? */
-  const int prim = kemitter->prim_id;
-  if (prim >= 0) {
-    /* Mesh light. */
-    const int object = kemitter->mesh_light.object_id;
-
-    /* Exclude synthetic meshes from shadow catcher pass. */
-    if ((path_flag & PATH_RAY_SHADOW_CATCHER_PASS) &&
-        !(kernel_data_fetch(object_flag, object) & SD_OBJECT_SHADOW_CATCHER)) {
-      return false;
-    }
-
-    const int mesh_shader_flag = kemitter->mesh_light.shader_flag;
-    if (!triangle_light_sample<in_volume_segment>(kg, prim, object, randu, randv, time, ls, P)) {
-      return false;
-    }
-    ls->shader |= mesh_shader_flag;
-  }
-  else {
-    if (UNLIKELY(light_select_reached_max_bounces(kg, ~prim, bounce))) {
-      return false;
-    }
-
-    if (!light_sample<in_volume_segment>(kg, ~prim, randu, randv, P, path_flag, ls)) {
-      return false;
-    }
-  }
-
-  ls->pdf_selection = pdf_leaf * pdf_emitter_from_leaf;
-  ls->pdf *= ls->pdf_selection;
-  return (ls->pdf > 0);
+  return light_sample<in_volume_segment>(
+      kg, randu, randv, time, P, bounce, path_flag, selected_emitter, pdf_selection, ls);
 }
 
 /* We need to be able to find the probability of selecting a given light for MIS. */
