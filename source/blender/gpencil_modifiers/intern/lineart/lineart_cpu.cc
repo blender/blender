@@ -4602,7 +4602,7 @@ static void lineart_create_edges_from_isec_data(LineartIsecData *d)
       e->t1 = is->tri1;
       e->t2 = is->tri2;
       /* This is so we can also match intersection edges from shadow to later viewing stage. */
-      e->edge_identifier = (((uint64_t)e->t1->target_reference) << 32) | e->t2->target_reference;
+      e->edge_identifier = ((uint64_t(e->t1->target_reference)) << 32) | e->t2->target_reference;
       e->flags = LRT_EDGE_FLAG_INTERSECTION;
       e->intersection_mask = (is->tri1->intersection_mask | is->tri2->intersection_mask);
       BLI_addtail(&e->segments, es);

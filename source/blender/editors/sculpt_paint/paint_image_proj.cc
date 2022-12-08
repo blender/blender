@@ -540,8 +540,8 @@ static int project_paint_face_paint_tile(Image *ima, const float *uv)
   }
 
   /* Currently, faces are assumed to belong to one tile, so checking the first loop is enough. */
-  int tx = (int)uv[0];
-  int ty = (int)uv[1];
+  int tx = int(uv[0]);
+  int ty = int(uv[1]);
   return 1001 + 10 * ty + tx;
 }
 
@@ -782,8 +782,8 @@ static bool project_paint_PickColor(
     // if (xi < 0 || xi >= ibuf->x  ||  yi < 0 || yi >= ibuf->y) return false;
 
     /* wrap */
-    xi = mod_i((int)(uv[0] * ibuf->x), ibuf->x);
-    yi = mod_i((int)(uv[1] * ibuf->y), ibuf->y);
+    xi = mod_i(int(uv[0] * ibuf->x), ibuf->x);
+    yi = mod_i(int(uv[1] * ibuf->y), ibuf->y);
 
     if (rgba) {
       if (ibuf->rect_float) {
@@ -1303,8 +1303,8 @@ static void uv_image_outset(const ProjPaintState *ps,
 
   float ibuf_inv[2];
 
-  ibuf_inv[0] = 1.0f / (float)ibuf_x;
-  ibuf_inv[1] = 1.0f / (float)ibuf_y;
+  ibuf_inv[0] = 1.0f / float(ibuf_x);
+  ibuf_inv[1] = 1.0f / float(ibuf_y);
 
   for (fidx[0] = 0; fidx[0] < 3; fidx[0]++) {
     LoopSeamData *seam_data;
@@ -1944,8 +1944,8 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
   }
 
   /* which bounding box cell are we in?, needed for undo */
-  projPixel->bb_cell_index = (int)(((float)x_px / (float)ibuf->x) * PROJ_BOUNDBOX_DIV) +
-                             (int)(((float)y_px / (float)ibuf->y) * PROJ_BOUNDBOX_DIV) *
+  projPixel->bb_cell_index = (int)((float(x_px) / float(ibuf->x)) * PROJ_BOUNDBOX_DIV) +
+                             (int)((float(y_px) / float(ibuf->y)) * PROJ_BOUNDBOX_DIV) *
                                  PROJ_BOUNDBOX_DIV;
 
   /* done with view3d_project_float inline */
@@ -2768,8 +2768,8 @@ static void project_bucket_clip_face(const bool is_ortho,
       cent[0] += isectVCosSS[i][0];
       cent[1] += isectVCosSS[i][1];
     }
-    cent[0] = cent[0] / (float)(*tot);
-    cent[1] = cent[1] / (float)(*tot);
+    cent[0] = cent[0] / float(*tot);
+    cent[1] = cent[1] / float(*tot);
 
     /* Collect angles for every point around the center point */
 
@@ -3021,7 +3021,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
   /* Bucket bounds in UV space so we can init pixels only for this face. */
   float lt_uv_pxoffset[3][2];
   float xhalfpx, yhalfpx;
-  const float ibuf_xf = (float)ibuf->x, ibuf_yf = (float)ibuf->y;
+  const float ibuf_xf = float(ibuf->x), ibuf_yf = float(ibuf->y);
 
   /* for early loop exit */
   int has_x_isect = 0, has_isect = 0;
@@ -3104,13 +3104,13 @@ static void project_paint_face_init(const ProjPaintState *ps,
       for (y = bounds_px.ymin; y < bounds_px.ymax; y++) {
         // uv[1] = (((float)y) + 0.5f) / (float)ibuf->y;
         /* use pixel offset UV coords instead */
-        uv[1] = (float)y / ibuf_yf;
+        uv[1] = float(y) / ibuf_yf;
 
         has_x_isect = 0;
         for (x = bounds_px.xmin; x < bounds_px.xmax; x++) {
           // uv[0] = (((float)x) + 0.5f) / ibuf->x;
           /* use pixel offset UV coords instead */
-          uv[0] = (float)x / ibuf_xf;
+          uv[0] = float(x) / ibuf_xf;
 
           /* Note about IsectPoly2Df_twoside, checking the face or uv flipping doesn't work,
            * could check the poly direction but better to do this */
@@ -3314,15 +3314,15 @@ static void project_paint_face_init(const ProjPaintState *ps,
               for (y = bounds_px.ymin; y < bounds_px.ymax; y++) {
                 // uv[1] = (((float)y) + 0.5f) / (float)ibuf->y;
                 /* use offset uvs instead */
-                uv[1] = (float)y / ibuf_yf;
+                uv[1] = float(y) / ibuf_yf;
 
                 has_x_isect = 0;
                 for (x = bounds_px.xmin; x < bounds_px.xmax; x++) {
-                  const float puv[2] = {(float)x, (float)y};
+                  const float puv[2] = {float(x), float(y)};
                   bool in_bounds;
                   // uv[0] = (((float)x) + 0.5f) / (float)ibuf->x;
                   /* use offset uvs instead */
-                  uv[0] = (float)x / ibuf_xf;
+                  uv[0] = float(x) / ibuf_xf;
 
                   /* test we're inside uvspace bucket and triangle bounds */
                   if (equals_v2v2(seam_uvs[0], seam_uvs[1])) {
@@ -3371,7 +3371,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
                       mul_m4_v4((float(*)[4])ps->projectMat, pixel_on_edge);
                       pixel_on_edge[0] = (float)(ps->winx * 0.5f) +
                                          (ps->winx * 0.5f) * pixel_on_edge[0] / pixel_on_edge[3];
-                      pixel_on_edge[1] = (float)(ps->winy * 0.5f) +
+                      pixel_on_edge[1] = float(ps->winy * 0.5f) +
                                          (ps->winy * 0.5f) * pixel_on_edge[1] / pixel_on_edge[3];
                       /* Use the depth for bucket point occlusion */
                       pixel_on_edge[2] = pixel_on_edge[2] / pixel_on_edge[3];
@@ -3855,21 +3855,21 @@ static void proj_paint_state_screen_coords_init(ProjPaintState *ps, const int di
 
   if (ps->source == PROJ_SRC_VIEW) {
 #ifdef PROJ_DEBUG_WINCLIP
-    CLAMP(ps->screenMin[0], (float)(-diameter), (float)(ps->winx + diameter));
-    CLAMP(ps->screenMax[0], (float)(-diameter), (float)(ps->winx + diameter));
+    CLAMP(ps->screenMin[0], float(-diameter), float(ps->winx + diameter));
+    CLAMP(ps->screenMax[0], float(-diameter), float(ps->winx + diameter));
 
-    CLAMP(ps->screenMin[1], (float)(-diameter), (float)(ps->winy + diameter));
-    CLAMP(ps->screenMax[1], (float)(-diameter), (float)(ps->winy + diameter));
+    CLAMP(ps->screenMin[1], float(-diameter), float(ps->winy + diameter));
+    CLAMP(ps->screenMax[1], float(-diameter), float(ps->winy + diameter));
 #else
     UNUSED_VARS(diameter);
 #endif
   }
   else if (ps->source != PROJ_SRC_VIEW_FILL) { /* re-projection, use bounds */
     ps->screenMin[0] = 0;
-    ps->screenMax[0] = (float)(ps->winx);
+    ps->screenMax[0] = float(ps->winx);
 
     ps->screenMin[1] = 0;
-    ps->screenMax[1] = (float)(ps->winy);
+    ps->screenMax[1] = float(ps->winy);
   }
 }
 
@@ -3900,7 +3900,7 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
       if (counter[a] > 0) {
         mul_v3_fl(edges[a], 1.0f / counter[a]);
         /* Augment the difference. */
-        cavities[a] = saacos(10.0f * dot_v3v3(ps->vert_normals[a], edges[a])) * (float)M_1_PI;
+        cavities[a] = saacos(10.0f * dot_v3v3(ps->vert_normals[a], edges[a])) * float(M_1_PI);
       }
       else {
         cavities[a] = 0.0;
@@ -4536,8 +4536,8 @@ static void project_paint_begin(const bContext *C,
   ps->screen_width = ps->screenMax[0] - ps->screenMin[0];
   ps->screen_height = ps->screenMax[1] - ps->screenMin[1];
 
-  ps->buckets_x = (int)(ps->screen_width / (((float)diameter) / PROJ_BUCKET_BRUSH_DIV));
-  ps->buckets_y = (int)(ps->screen_height / (((float)diameter) / PROJ_BUCKET_BRUSH_DIV));
+  ps->buckets_x = (int)(ps->screen_width / ((float(diameter)) / PROJ_BUCKET_BRUSH_DIV));
+  ps->buckets_y = int(ps->screen_height / (float(diameter) / PROJ_BUCKET_BRUSH_DIV));
 
   // printf("\tscreenspace bucket division x:%d y:%d\n", ps->buckets_x, ps->buckets_y);
 
@@ -4935,7 +4935,7 @@ static void do_projectpaint_soften_f(ProjPaintState *ps,
   }
 
   if (LIKELY(accum_tot != 0)) {
-    mul_v4_fl(rgba, 1.0f / (float)accum_tot);
+    mul_v4_fl(rgba, 1.0f / float(accum_tot));
 
     if (ps->mode == BRUSH_STROKE_INVERT) {
       /* subtract blurred image from normal image gives high pass filter */
@@ -4998,7 +4998,7 @@ static void do_projectpaint_soften(ProjPaintState *ps,
   if (LIKELY(accum_tot != 0)) {
     uchar *rgba_ub = projPixel->newColor.ch;
 
-    mul_v4_fl(rgba, 1.0f / (float)accum_tot);
+    mul_v4_fl(rgba, 1.0f / float(accum_tot));
 
     if (ps->mode == BRUSH_STROKE_INVERT) {
       float rgba_pixel[4];
@@ -5282,7 +5282,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
               }
             }
             BKE_colorband_evaluate(brush->gradient, f, color_f);
-            color_f[3] *= ((float)projPixel->mask) * (1.0f / 65535.0f) * brush_alpha;
+            color_f[3] *= (float(projPixel->mask)) * (1.0f / 65535.0f) * brush_alpha;
 
             if (is_floatbuf) {
               /* Convert to premutliplied. */
@@ -5312,7 +5312,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
           else {
             if (is_floatbuf) {
               float newColor_f[4];
-              newColor_f[3] = ((float)projPixel->mask) * (1.0f / 65535.0f) * brush_alpha;
+              newColor_f[3] = (float(projPixel->mask)) * (1.0f / 65535.0f) * brush_alpha;
               copy_v3_v3(newColor_f, ps->paint_color_linear);
 
               IMB_blend_color_float(projPixel->pixel.f_pt,
@@ -5321,7 +5321,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
                                     IMB_BlendMode(ps->blend));
             }
             else {
-              float mask = ((float)projPixel->mask) * (1.0f / 65535.0f);
+              float mask = float(projPixel->mask) * (1.0f / 65535.0f);
               projPixel->newColor.ch[3] = mask * 255 * brush_alpha;
 
               rgb_float_to_uchar(projPixel->newColor.ch, ps->paint_color);
@@ -5349,7 +5349,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
                                         projPixel->projCoSS[0],
                                         projPixel->projCoSS[1]);
             if (projPixel->newColor.f[3]) {
-              float mask = ((float)projPixel->mask) * (1.0f / 65535.0f);
+              float mask = (float(projPixel->mask)) * (1.0f / 65535.0f);
 
               mul_v4_v4fl(projPixel->newColor.f, projPixel->newColor.f, mask);
 
@@ -5366,7 +5366,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
                                         projPixel->projCoSS[0],
                                         projPixel->projCoSS[1]);
             if (projPixel->newColor.ch[3]) {
-              float mask = ((float)projPixel->mask) * (1.0f / 65535.0f);
+              float mask = (float(projPixel->mask)) * (1.0f / 65535.0f);
               projPixel->newColor.ch[3] *= mask;
 
               blend_color_mix_byte(
@@ -5396,7 +5396,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
             float mask;
 
             /* Extra mask for normal, layer stencil, etc. */
-            float custom_mask = ((float)projPixel->mask) * (1.0f / 65535.0f);
+            float custom_mask = (float(projPixel->mask)) * (1.0f / 65535.0f);
 
             /* Mask texture. */
             if (ps->is_maskbrush) {
@@ -5452,7 +5452,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
               }
 
               mask = min_ff(mask, 65535.0f);
-              mask_short = (ushort)mask;
+              mask_short = ushort(mask);
 
               if (mask_short > *projPixel->mask_accum) {
                 *projPixel->mask_accum = mask_short;
@@ -5795,7 +5795,7 @@ void paint_proj_stroke(const bContext *C,
     View3D *v3d = CTX_wm_view3d(C);
     ARegion *region = CTX_wm_region(C);
     float *cursor = scene->cursor.location;
-    const int mval_i[2] = {(int)pos[0], (int)pos[1]};
+    const int mval_i[2] = {(int)pos[0], int(pos[1])};
 
     view3d_operator_needs_opengl(C);
 
@@ -5908,8 +5908,8 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
     ps->normal_angle_inner = ps->normal_angle = settings->imapaint.normal_angle;
   }
 
-  ps->normal_angle_inner *= (float)(M_PI_2 / 90);
-  ps->normal_angle *= (float)(M_PI_2 / 90);
+  ps->normal_angle_inner *= float(M_PI_2 / 90);
+  ps->normal_angle *= float(M_PI_2 / 90);
   ps->normal_angle_range = ps->normal_angle - ps->normal_angle_inner;
 
   if (ps->normal_angle_range <= 0.0f) {

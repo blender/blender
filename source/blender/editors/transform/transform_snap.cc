@@ -1091,7 +1091,7 @@ static void snap_calc_uv_fn(TransInfo *t, float *UNUSED(vec))
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
         t->scene, t->view_layer, nullptr, &objects_len);
 
-    float dist_sq = square_f((float)SNAP_MIN_DISTANCE);
+    float dist_sq = square_f(float(SNAP_MIN_DISTANCE));
     if (ED_uvedit_nearest_uv_multi(&t->region->v2d,
                                    t->scene,
                                    objects,

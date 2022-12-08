@@ -644,7 +644,7 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_fill)
       }
       /* Compute directly inside the IBO data buffer. */
       /* OPTI: This is a bottleneck if the stroke is very long. */
-      BLI_polyfill_calc(tpoints2d, (uint)vert_len, 0, (uint(*)[3])ibo_builder.data);
+      BLI_polyfill_calc(tpoints2d, uint(vert_len), 0, (uint(*)[3])ibo_builder.data);
       /* Add stroke start offset and shift. */
       for (int i = 0; i < gps->tot_triangles * 3; i++) {
         ibo_builder.data[i] = (ibo_builder.data[i] + 1) << GP_VERTEX_ID_SHIFT;

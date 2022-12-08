@@ -42,8 +42,8 @@ static void mul_v2_m2_add_v2v2(float r[2],
                                const float b[2])
 {
   /* Compute `r = mat * (a + b)` with high precision. */
-  const double x = static_cast<double>(a[0]) + static_cast<double>(b[0]);
-  const double y = static_cast<double>(a[1]) + static_cast<double>(b[1]);
+  const double x = static_cast<double>(a[0]) + double(b[0]);
+  const double y = static_cast<double>(a[1]) + double(b[1]);
 
   r[0] = static_cast<float>(mat[0][0] * x + mat[1][0] * y);
   r[1] = static_cast<float>(mat[0][1] * x + mat[1][1] * y);

@@ -1787,7 +1787,7 @@ static eSnapMode snap_mesh_polygon(SnapObjectContext *sctx,
       BLI_assert(nearest2d.edge != nullptr);
       for (int i = mp->totloop; i--; ml++) {
         cb_snap_edge(&nearest2d,
-                     (int)ml->e,
+                     int(ml->e),
                      &neasrest_precalc,
                      clip_planes_local,
                      sctx->runtime.clip_plane_len,
@@ -1798,7 +1798,7 @@ static eSnapMode snap_mesh_polygon(SnapObjectContext *sctx,
       elem = SCE_SNAP_MODE_VERTEX;
       for (int i = mp->totloop; i--; ml++) {
         cb_snap_vert(&nearest2d,
-                     (int)ml->v,
+                     int(ml->v),
                      &neasrest_precalc,
                      clip_planes_local,
                      sctx->runtime.clip_plane_len,

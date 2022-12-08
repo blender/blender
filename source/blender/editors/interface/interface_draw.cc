@@ -1224,7 +1224,7 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors * /*wcol*/, const rc
 
   immBegin(GPU_PRIM_TRI_STRIP, (sizex + 1) * 2);
   for (int a = 0; a <= sizex; a++) {
-    const float pos = (float(a)) / sizex;
+    const float pos = float(a) / sizex;
     BKE_colorband_evaluate(coba, pos, colf);
     if (display) {
       IMB_colormanagement_scene_linear_to_display_v3(colf, display);
@@ -1244,7 +1244,7 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors * /*wcol*/, const rc
 
   immBegin(GPU_PRIM_TRI_STRIP, (sizex + 1) * 2);
   for (int a = 0; a <= sizex; a++) {
-    const float pos = (float(a)) / sizex;
+    const float pos = float(a) / sizex;
     BKE_colorband_evaluate(coba, pos, colf);
     if (display) {
       IMB_colormanagement_scene_linear_to_display_v3(colf, display);
@@ -1871,7 +1871,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
 
   /* Draw the handles for the selected control points. */
   pts = profile->path;
-  const int path_len = tot_points = (uint)profile->path_len;
+  const int path_len = tot_points = uint(profile->path_len);
   int selected_free_points = 0;
   for (int i = 0; i < path_len; i++) {
     if (point_draw_handles(&pts[i])) {
@@ -1966,7 +1966,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
 
   /* Draw the sampled points in addition to the control points if they have been created */
   pts = profile->segments;
-  const int segments_len = (uint)profile->segments_len;
+  const int segments_len = uint(profile->segments_len);
   if (segments_len > 0 && pts) {
     GPU_point_size(max_ff(2.0f, min_ff(UI_DPI_FAC / but->block->aspect * 3.0f, 3.0f)));
     immBegin(GPU_PRIM_POINTS, segments_len);

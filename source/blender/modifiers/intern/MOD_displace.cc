@@ -295,7 +295,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   Tex *tex_target = dmd->texture;
   if (tex_target != nullptr) {
     tex_co = static_cast<float(*)[3]>(
-        MEM_calloc_arrayN((size_t)verts_num, sizeof(*tex_co), "displaceModifier_do tex_co"));
+        MEM_calloc_arrayN(size_t(verts_num), sizeof(*tex_co), "displaceModifier_do tex_co"));
     MOD_get_texture_coords((MappingInfoModifierData *)dmd, ctx, ob, mesh, vertexCos, tex_co);
 
     MOD_init_texture((MappingInfoModifierData *)dmd, ctx);

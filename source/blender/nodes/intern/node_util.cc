@@ -308,7 +308,7 @@ static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree,
 {
   bNodeSocket *first = to_socket->in_out == SOCK_IN ?
                            static_cast<bNodeSocket *>(node->inputs.first) :
-                           static_cast<bNodeSocket *>((node->outputs.first));
+                           static_cast<bNodeSocket *>(node->outputs.first);
 
   /* Wrap around the list end. */
   bNodeSocket *socket_iter = to_socket->next ? to_socket->next : first;

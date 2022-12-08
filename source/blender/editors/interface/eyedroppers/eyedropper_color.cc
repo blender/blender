@@ -417,7 +417,7 @@ static void eyedropper_color_sample(bContext *C, Eyedropper *eye, const int m_xy
   /* Apply to property. */
   float accum_col[3];
   if (eye->accum_tot > 1) {
-    mul_v3_v3fl(accum_col, eye->accum_col, 1.0f / (float)eye->accum_tot);
+    mul_v3_v3fl(accum_col, eye->accum_col, 1.0f / float(eye->accum_tot));
   }
   else {
     copy_v3_v3(accum_col, eye->accum_col);

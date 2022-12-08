@@ -413,7 +413,7 @@ static void vicon_collection_color_draw(
   bTheme *btheme = UI_GetTheme();
   const ThemeCollectionColor *collection_color = &btheme->collection_color[color_tag];
 
-  const float aspect = (float)ICON_DEFAULT_WIDTH / (float)w;
+  const float aspect = float(ICON_DEFAULT_WIDTH) / float(w);
 
   UI_icon_draw_ex(x,
                   y,
@@ -449,7 +449,7 @@ static void vicon_strip_color_draw(
   bTheme *btheme = UI_GetTheme();
   const ThemeStripColor *strip_color = &btheme->strip_color[color_tag];
 
-  const float aspect = (float)ICON_DEFAULT_WIDTH / (float)w;
+  const float aspect = float(ICON_DEFAULT_WIDTH) / float(w);
 
   UI_icon_draw_ex(
       x, y, ICON_SNAP_FACE, aspect, 1.0f, 0.0f, strip_color->color, true, UI_NO_ICON_OVERLAY_TEXT);
@@ -478,7 +478,7 @@ DEF_ICON_STRIP_COLOR_DRAW(09, SEQUENCE_COLOR_09);
 static void vicon_strip_color_draw_library_data_indirect(
     int x, int y, int w, int UNUSED(h), float alpha)
 {
-  const float aspect = (float)ICON_DEFAULT_WIDTH / (float)w;
+  const float aspect = float(ICON_DEFAULT_WIDTH) / float(w);
 
   UI_icon_draw_ex(x,
                   y,
@@ -494,7 +494,7 @@ static void vicon_strip_color_draw_library_data_indirect(
 static void vicon_strip_color_draw_library_data_override_noneditable(
     int x, int y, int w, int UNUSED(h), float alpha)
 {
-  const float aspect = (float)ICON_DEFAULT_WIDTH / (float)w;
+  const float aspect = float(ICON_DEFAULT_WIDTH) / float(w);
 
   UI_icon_draw_ex(x,
                   y,
@@ -1543,16 +1543,16 @@ static void icon_draw_rect(float x,
     /* preserve aspect ratio and center */
     if (rw > rh) {
       draw_w = w;
-      draw_h = (int)(((float)rh / (float)rw) * (float)w);
+      draw_h = (int)((float(rh) / float(rw)) * float(w));
       draw_y += (h - draw_h) / 2;
     }
     else if (rw < rh) {
-      draw_w = (int)(((float)rw / (float)rh) * (float)h);
+      draw_w = (int)((float(rw) / float(rh)) * float(h));
       draw_h = h;
       draw_x += (w - draw_w) / 2;
     }
-    scale_x = draw_w / (float)rw;
-    scale_y = draw_h / (float)rh;
+    scale_x = draw_w / float(rw);
+    scale_y = draw_h / float(rh);
     /* If the image is squared, the `draw_*` initialization values are good. */
   }
 
@@ -1849,7 +1849,7 @@ static void icon_draw_size(float x,
                            const IconTextOverlay *text_overlay)
 {
   bTheme *btheme = UI_GetTheme();
-  const float fdraw_size = (float)draw_size;
+  const float fdraw_size = float(draw_size);
 
   Icon *icon = BKE_icon_get(icon_id);
   alpha *= btheme->tui.icon_alpha;
@@ -1863,7 +1863,7 @@ static void icon_draw_size(float x,
 
   /* scale width and height according to aspect */
   int w = (int)(fdraw_size / aspect + 0.5f);
-  int h = (int)(fdraw_size / aspect + 0.5f);
+  int h = int(fdraw_size / aspect + 0.5f);
 
   DrawInfo *di = icon_ensure_drawinfo(icon);
 
@@ -1880,14 +1880,14 @@ static void icon_draw_size(float x,
   else if (di->type == ICON_TYPE_VECTOR) {
     /* vector icons use the uiBlock transformation, they are not drawn
      * with untransformed coordinates like the other icons */
-    di->data.vector.func((int)x, (int)y, w, h, 1.0f);
+    di->data.vector.func(int(x), int(y), w, h, 1.0f);
   }
   else if (di->type == ICON_TYPE_GEOM) {
 #ifdef USE_UI_TOOLBAR_HACK
     /* TODO(@campbellbarton): scale icons up for toolbar,
      * we need a way to detect larger buttons and do this automatic. */
     {
-      float scale = (float)ICON_DEFAULT_HEIGHT_TOOLBAR / (float)ICON_DEFAULT_HEIGHT;
+      float scale = float(ICON_DEFAULT_HEIGHT_TOOLBAR) / float(ICON_DEFAULT_HEIGHT);
       y = (y + (h / 2)) - ((h * scale) / 2);
       w *= scale;
       h *= scale;
@@ -1926,8 +1926,8 @@ static void icon_draw_size(float x,
     /* texture image use premul alpha for correct scaling */
     icon_draw_texture(x,
                       y,
-                      (float)w,
-                      (float)h,
+                      float(w),
+                      float(h),
                       di->data.texture.x,
                       di->data.texture.y,
                       di->data.texture.w,
@@ -1954,15 +1954,15 @@ static void icon_draw_size(float x,
     uint border_texel = 0;
 #ifndef WITH_HEADLESS
     if (with_border) {
-      const float scale = (float)ICON_GRID_W / (float)ICON_DEFAULT_WIDTH;
+      const float scale = float(ICON_GRID_W) / float(ICON_DEFAULT_WIDTH);
       border_texel = ICON_MONO_BORDER_OUTSET;
       border_outset = ICON_MONO_BORDER_OUTSET / (scale * aspect);
     }
 #endif
     icon_draw_texture(x - border_outset,
                       y - border_outset,
-                      (float)w + 2 * border_outset,
-                      (float)h + 2 * border_outset,
+                      float(w) + 2 * border_outset,
+                      float(h) + 2 * border_outset,
                       di->data.texture.x - border_texel,
                       di->data.texture.y - border_texel,
                       di->data.texture.w + 2 * border_texel,
@@ -2009,7 +2009,7 @@ static void icon_draw_size(float x,
 
     /* Just draw a colored rect - Like for vicon_colorset_draw() */
 #ifndef WITH_HEADLESS
-    vicon_gplayer_color_draw(icon, (int)x, (int)y, w, h);
+    vicon_gplayer_color_draw(icon, int(x), int(y), w, h);
 #endif
   }
 }

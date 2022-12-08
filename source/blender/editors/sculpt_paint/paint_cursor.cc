@@ -175,8 +175,8 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
 
     int index = j * size + i;
 
-    float x = (float)i / size;
-    float y = (float)j / size;
+    float x = float(i) / size;
+    float y = float(j) / size;
     float len;
 
     if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
@@ -375,8 +375,8 @@ static void load_tex_cursor_task_cb(void *__restrict userdata,
     /* Largely duplicated from tex_strength. */
 
     const int index = j * size + i;
-    const float x = (((float)i / size) - 0.5f) * 2.0f;
-    const float y = (((float)j / size) - 0.5f) * 2.0f;
+    const float x = ((float(i) / size) - 0.5f) * 2.0f;
+    const float y = ((float(j) / size) - 0.5f) * 2.0f;
     const float len = sqrtf(x * x + y * y);
 
     if (len <= 1.0f) {
@@ -1105,7 +1105,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
       /* Radial Symmetry. */
       for (char raxis = 0; raxis < 3; raxis++) {
         for (int r = 1; r < sd->radial_symm[raxis]; r++) {
-          float angle = 2 * M_PI * r / sd->radial_symm[(int)raxis];
+          float angle = 2 * M_PI * r / sd->radial_symm[int(raxis)];
           flip_v3_v3(location, true_location, ePaintSymmetryFlags(i));
           unit_m4(symm_rot_mat);
           rotate_m4(symm_rot_mat, raxis + 'X', angle);
@@ -1286,8 +1286,8 @@ static bool paint_cursor_context_init(bContext *C,
 
   pcontext->x = x;
   pcontext->y = y;
-  pcontext->translation[0] = (float)x;
-  pcontext->translation[1] = (float)y;
+  pcontext->translation[0] = float(x);
+  pcontext->translation[1] = float(y);
 
   float zoomx, zoomy;
   get_imapaint_zoom(C, &zoomx, &zoomy);

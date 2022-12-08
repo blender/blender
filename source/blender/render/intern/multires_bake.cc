@@ -420,8 +420,8 @@ static void *do_multires_bake_thread(void *data_v)
     }
 
     if (bkr->progress) {
-      *bkr->progress = ((float)bkr->baked_objects +
-                        (float)bkr->baked_faces / handle->queue->tot_tri) /
+      *bkr->progress = (float(bkr->baked_objects) +
+                        float(bkr->baked_faces) / handle->queue->tot_tri) /
                        bkr->tot_obj;
     }
     BLI_spin_unlock(&handle->queue->spin);
@@ -621,10 +621,10 @@ static void interp_bilinear_grid(
   float u, v;
   float data[4][3];
 
-  x0 = (int)crn_x;
+  x0 = int(crn_x);
   x1 = x0 >= (key->grid_size - 1) ? (key->grid_size - 1) : (x0 + 1);
 
-  y0 = (int)crn_y;
+  y0 = int(crn_y);
   y1 = y0 >= (key->grid_size - 1) ? (key->grid_size - 1) : (y0 + 1);
 
   u = crn_x - x0;

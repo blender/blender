@@ -391,7 +391,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     const int totloop = result->totloop;
     const int totpoly = result->totpoly;
     float(*loop_normals)[3] = static_cast<float(*)[3]>(
-        MEM_calloc_arrayN((size_t)totloop, sizeof(*loop_normals), __func__));
+        MEM_calloc_arrayN(size_t(totloop), sizeof(*loop_normals), __func__));
     CustomData *ldata = &result->ldata;
     short(*clnors)[2] = static_cast<short(*)[2]>(CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL));
     MLoopNorSpaceArray lnors_spacearr = {nullptr};

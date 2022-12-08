@@ -881,22 +881,22 @@ static void shape_preset_init_trias_ex(uiWidgetTrias *tria,
 
   /* center position and size */
   float centx = (float)rect->xmin + 0.4f * minsize;
-  float centy = (float)rect->ymin + 0.5f * minsize;
+  float centy = float(rect->ymin) + 0.5f * minsize;
   tria->size = sizex = sizey = -0.5f * triasize * minsize;
 
   if (where == 'r') {
-    centx = (float)rect->xmax - 0.4f * minsize;
+    centx = float(rect->xmax) - 0.4f * minsize;
     sizex = -sizex;
   }
   else if (where == 't') {
-    centx = (float)rect->xmin + 0.5f * minsize;
-    centy = (float)rect->ymax - 0.5f * minsize;
+    centx = float(rect->xmin) + 0.5f * minsize;
+    centy = float(rect->ymax) - 0.5f * minsize;
     sizey = -sizey;
     i2 = 0;
     i1 = 1;
   }
   else if (where == 'b') {
-    centx = (float)rect->xmin + 0.5f * minsize;
+    centx = float(rect->xmin) + 0.5f * minsize;
     sizex = -sizex;
     i2 = 0;
     i1 = 1;
@@ -1515,7 +1515,7 @@ static void ui_text_clip_right_ex(const uiFontStyle *fstyle,
     l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth, nullptr);
     str[l_end] = '\0';
     if (r_final_len) {
-      *r_final_len = (size_t)l_end;
+      *r_final_len = size_t(l_end);
     }
   }
 }
@@ -2134,7 +2134,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
                         (bounds.xmax - bounds.xmin - ul_width) / 2;
             int pos_y = rect->ymin + font_yofs + bounds.ymin - U.pixelsize;
             /* Use text output because direct drawing doesn't always work. See T89246. */
-            BLF_position(fstyle->uifont_id, (float)pos_x, pos_y, 0.0f);
+            BLF_position(fstyle->uifont_id, float(pos_x), pos_y, 0.0f);
             BLF_color4ubv(fstyle->uifont_id, wcol->text);
             BLF_draw(fstyle->uifont_id, "_", 2);
           }
@@ -2227,7 +2227,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
                                   rcti *rect)
 {
   const bool show_menu_icon = ui_but_draw_menu_icon(but);
-  const float alpha = (float)wcol->text[3] / 255.0f;
+  const float alpha = float(wcol->text[3]) / 255.0f;
   char password_str[UI_MAX_DRAW_STR];
   bool no_text_padding = but->drawflag & UI_BUT_NO_TEXT_PADDING;
 
@@ -2739,10 +2739,10 @@ static void widget_softshadow(const rcti *rect, int roundboxalign, const float r
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-  for (int step = 1; step <= (int)radout; step++) {
+  for (int step = 1; step <= int(radout); step++) {
     const float expfac = sqrtf(step / radout);
 
-    round_box_shadow_edges(wtb.outer_v, &rect1, radin, UI_CNR_ALL, (float)step);
+    round_box_shadow_edges(wtb.outer_v, &rect1, radin, UI_CNR_ALL, float(step));
 
     immUniformColor4f(0.0f, 0.0f, 0.0f, alphastep * (1.0f - expfac));
 
@@ -2819,7 +2819,7 @@ void ui_hsvcircle_vals_from_pos(
   const float dist_sq = len_squared_v2(m_delta);
 
   *r_val_dist = (dist_sq < (radius * radius)) ? sqrtf(dist_sq) / radius : 1.0f;
-  *r_val_rad = atan2f(m_delta[0], m_delta[1]) / (2.0f * (float)M_PI) + 0.5f;
+  *r_val_rad = atan2f(m_delta[0], m_delta[1]) / (2.0f * float(M_PI)) + 0.5f;
 }
 
 void ui_hsvcircle_pos_from_vals(
@@ -2830,7 +2830,7 @@ void ui_hsvcircle_pos_from_vals(
   const float centy = BLI_rcti_cent_y_fl(rect);
   const float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
 
-  const float ang = 2.0f * (float)M_PI * hsv[0] + (float)M_PI_2;
+  const float ang = 2.0f * float(M_PI) * hsv[0] + float(M_PI_2);
 
   float radius_t;
   if (cpicker->use_color_cubic && (U.color_picker_type == USER_CP_CIRCLE_HSV)) {
@@ -2850,7 +2850,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   /* TODO(merwin): reimplement as shader for pixel-perfect colors */
 
   const int tot = 64;
-  const float radstep = 2.0f * (float)M_PI / (float)tot;
+  const float radstep = 2.0f * float(M_PI) / float(tot);
   const float centx = BLI_rcti_cent_x_fl(rect);
   const float centy = BLI_rcti_cent_y_fl(rect);
   const float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
@@ -3685,7 +3685,7 @@ static void widget_nodesocket(uiBut *but,
   rect->ymax = cent_y + radi;
 
   wtb.draw_outline = true;
-  round_box_edges(&wtb, UI_CNR_ALL, rect, (float)radi);
+  round_box_edges(&wtb, UI_CNR_ALL, rect, float(radi));
   widgetbase_draw(&wtb, wcol);
 
   copy_v3_v3_uchar(wcol->inner, old_inner);
@@ -4979,9 +4979,9 @@ static void ui_draw_clip_tri(uiBlock *block, rcti *rect, uiWidgetType *wt)
     float draw_color[4];
     const uchar *color = wt->wcol.text;
 
-    draw_color[0] = ((float)color[0]) / 255.0f;
-    draw_color[1] = ((float)color[1]) / 255.0f;
-    draw_color[2] = ((float)color[2]) / 255.0f;
+    draw_color[0] = (float(color[0])) / 255.0f;
+    draw_color[1] = (float(color[1])) / 255.0f;
+    draw_color[2] = (float(color[2])) / 255.0f;
     draw_color[3] = 1.0f;
 
     if (block->flag & UI_BLOCK_CLIPTOP) {
@@ -5183,18 +5183,12 @@ void ui_draw_pie_center(uiBlock *block)
                  btheme->tui.wcol_pie_menu.inner,
                  btheme->tui.wcol_pie_menu.shadetop,
                  btheme->tui.wcol_pie_menu.shadedown);
-    draw_disk_shaded(0.0f,
-                     (float)(M_PI * 2.0),
-                     pie_radius_internal,
-                     pie_radius_external,
-                     subd,
-                     col1,
-                     col2,
-                     true);
+    draw_disk_shaded(
+        0.0f, float(M_PI * 2.0), pie_radius_internal, pie_radius_external, subd, col1, col2, true);
   }
   else {
     draw_disk_shaded(0.0f,
-                     (float)(M_PI * 2.0),
+                     float(M_PI * 2.0),
                      pie_radius_internal,
                      pie_radius_external,
                      subd,
@@ -5492,7 +5486,7 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
     char drawstr[UI_MAX_DRAW_STR];
     const float okwidth = (float)BLI_rcti_size_x(&trect);
     const size_t max_len = sizeof(drawstr);
-    const float minwidth = (float)(UI_DPI_ICON_SIZE);
+    const float minwidth = float(UI_DPI_ICON_SIZE);
 
     BLI_strncpy(drawstr, name, sizeof(drawstr));
     UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');

@@ -405,7 +405,7 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
     butal_array = static_cast<ButAlign *>(
         MEM_mallocN(sizeof(*butal_array) * num_buttons, __func__));
   }
-  memset(butal_array, 0, sizeof(*butal_array) * (size_t)num_buttons);
+  memset(butal_array, 0, sizeof(*butal_array) * size_t(num_buttons));
 
   /* Second loop: we initialize our ButAlign data for each button. */
   butal = butal_array;
@@ -424,7 +424,7 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
   /* This will give us ButAlign items regrouped by align group, vertical and horizontal location.
    * Note that, given how buttons are defined in UI code,
    * butal_array shall already be "nearly sorted"... */
-  qsort(butal_array, (size_t)num_buttons, sizeof(*butal_array), ui_block_align_butal_cmp);
+  qsort(butal_array, size_t(num_buttons), sizeof(*butal_array), ui_block_align_butal_cmp);
 
   /* Third loop: for each pair of buttons in the same align group,
    * we compute their potential proximity. Note that each pair is checked only once, and that we

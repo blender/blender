@@ -585,8 +585,8 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
       if (use_delete) {
         if (tot_dst) {
           data_dst_to_delete = static_cast<bool *>(
-              MEM_mallocN(sizeof(*data_dst_to_delete) * (size_t)tot_dst, __func__));
-          memset(data_dst_to_delete, true, sizeof(*data_dst_to_delete) * (size_t)tot_dst);
+              MEM_mallocN(sizeof(*data_dst_to_delete) * size_t(tot_dst), __func__));
+          memset(data_dst_to_delete, true, sizeof(*data_dst_to_delete) * size_t(tot_dst));
         }
       }
 
@@ -824,7 +824,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
   else if (fromlayers == DT_LAYERS_ALL_SRC) {
     int num_src = CustomData_number_of_layers(cd_src, cddata_type);
     bool *use_layers_src = num_src ? static_cast<bool *>(MEM_mallocN(
-                                         sizeof(*use_layers_src) * (size_t)num_src, __func__)) :
+                                         sizeof(*use_layers_src) * size_t(num_src), __func__)) :
                                      nullptr;
     bool ret;
 
@@ -1392,7 +1392,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 
       if (mdef && vg_idx != -1 && !weights[VDATA]) {
         weights[VDATA] = static_cast<float *>(
-            MEM_mallocN(sizeof(*(weights[VDATA])) * (size_t)num_verts_dst, __func__));
+            MEM_mallocN(sizeof(*(weights[VDATA])) * size_t(num_verts_dst), __func__));
         BKE_defvert_extract_vgroup_to_vertweights(
             mdef, vg_idx, num_verts_dst, invert_vgroup, weights[VDATA]);
       }
@@ -1473,7 +1473,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 
       if (mdef && vg_idx != -1 && !weights[EDATA]) {
         weights[EDATA] = static_cast<float *>(
-            MEM_mallocN(sizeof(*weights[EDATA]) * (size_t)num_edges_dst, __func__));
+            MEM_mallocN(sizeof(*weights[EDATA]) * size_t(num_edges_dst), __func__));
         BKE_defvert_extract_vgroup_to_edgeweights(
             mdef, vg_idx, num_verts_dst, edges_dst, num_edges_dst, invert_vgroup, weights[EDATA]);
       }
@@ -1570,7 +1570,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 
       if (mdef && vg_idx != -1 && !weights[LDATA]) {
         weights[LDATA] = static_cast<float *>(
-            MEM_mallocN(sizeof(*weights[LDATA]) * (size_t)num_loops_dst, __func__));
+            MEM_mallocN(sizeof(*weights[LDATA]) * size_t(num_loops_dst), __func__));
         BKE_defvert_extract_vgroup_to_loopweights(
             mdef, vg_idx, num_verts_dst, loops_dst, num_loops_dst, invert_vgroup, weights[LDATA]);
       }
@@ -1652,7 +1652,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 
       if (mdef && vg_idx != -1 && !weights[PDATA]) {
         weights[PDATA] = static_cast<float *>(
-            MEM_mallocN(sizeof(*weights[PDATA]) * (size_t)num_polys_dst, __func__));
+            MEM_mallocN(sizeof(*weights[PDATA]) * size_t(num_polys_dst), __func__));
         BKE_defvert_extract_vgroup_to_polyweights(mdef,
                                                   vg_idx,
                                                   num_verts_dst,

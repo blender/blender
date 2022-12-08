@@ -204,11 +204,11 @@ static void generate_next_domains(uint8_t domains[][BDS],
                    bd[LL] - l_len,
                    bd[RL] - r_len,
                    bd[ADJ],
-                   (uint8_t)(cur_pos));
+                   uint8_t(cur_pos));
       bound += std::min(bd[LL] - l_len, bd[RL] - r_len);
     }
     if (l_len && r_len) {
-      add_bidomain(domains, bd_pos, bd[L], bd[R], l_len, r_len, true, (uint8_t)(cur_pos));
+      add_bidomain(domains, bd_pos, bd[L], bd[R], l_len, r_len, true, uint8_t(cur_pos));
       bound += std::min(l_len, r_len);
     }
   }
@@ -351,7 +351,7 @@ static void maximum_common_subgraph_internal(
         bd[W] = w; /* Store the W used for this iteration. */
         cur[bd[P]][L] = v;
         cur[bd[P]][R] = w;
-        update_incumbent(cur, incumbent, bd[P] + (uint8_t)1, inc_pos);
+        update_incumbent(cur, incumbent, bd[P] + uint8_t(1), inc_pos);
         generate_next_domains(
             domains, &bd_pos, bd[P] + 1, left, right, v, w, *inc_pos, adjmat0, adjmat1);
       }

@@ -588,7 +588,7 @@ void BKE_id_material_append(Main *bmain, ID *id, Material *ma)
 
 Material *BKE_id_material_pop(Main *bmain, ID *id, int index_i)
 {
-  short index = (short)index_i;
+  short index = short(index_i);
   Material *ret = nullptr;
   Material ***matar;
   if ((matar = BKE_id_material_array_p(id))) {
@@ -878,7 +878,7 @@ void BKE_object_materials_test(Main *bmain, Object *ob, ID *id)
      * use object's material slots amount as reference.
      * This avoids losing materials in a local object when its linked obdata goes missing.
      * See T92780. */
-    BKE_id_material_resize(bmain, id, (short)ob->totcol, false);
+    BKE_id_material_resize(bmain, id, short(ob->totcol), false);
   }
   else {
     /* Normal case: the use the obdata amount of materials slots to update the object's one. */

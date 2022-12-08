@@ -237,9 +237,9 @@ static int ui_item_fit(
       return available - pos;
     }
 
-    const float width = *extra_pixel + (item * available) / (float)all;
-    *extra_pixel = width - (int)width;
-    return (int)width;
+    const float width = *extra_pixel + (item * available) / float(all);
+    *extra_pixel = width - int(width);
+    return int(width);
   }
 
   /* contents is smaller or equal to available space */
@@ -248,9 +248,9 @@ static int ui_item_fit(
       return available - pos;
     }
 
-    const float width = *extra_pixel + (item * available) / (float)all;
-    *extra_pixel = width - (int)width;
-    return (int)width;
+    const float width = *extra_pixel + (item * available) / float(all);
+    *extra_pixel = width - int(width);
+    return int(width);
   }
   return item;
 }
@@ -4316,7 +4316,7 @@ static void ui_litem_grid_flow_compute(ListBase *items,
     ui_item_size(item, &item_w, &item_h);
 
     global_avg_w += (float)(item_w * item_w);
-    global_totweight_w += (float)item_w;
+    global_totweight_w += float(item_w);
     global_max_h = max_ii(global_max_h, item_h);
 
     if (parameters->tot_rows != 0 && parameters->tot_columns != 0) {
@@ -4325,8 +4325,8 @@ static void ui_litem_grid_flow_compute(ListBase *items,
       const int index_row = parameters->row_major ? i / parameters->tot_columns :
                                                     i % parameters->tot_rows;
 
-      avg_w[index_col] += (float)(item_w * item_w);
-      totweight_w[index_col] += (float)item_w;
+      avg_w[index_col] += float(item_w * item_w);
+      totweight_w[index_col] += float(item_w);
 
       max_h[index_row] = max_ii(max_h[index_row], item_h);
     }
@@ -4407,7 +4407,7 @@ static void ui_litem_grid_flow_compute(ListBase *items,
     *results->global_max_h = global_max_h;
   }
   if (results->tot_w) {
-    *results->tot_w = (int)tot_w + parameters->space_x * (parameters->tot_columns - 1);
+    *results->tot_w = int(tot_w) + parameters->space_x * (parameters->tot_columns - 1);
   }
   if (results->tot_h) {
     *results->tot_h = tot_h + parameters->space_y * (parameters->tot_rows - 1);
@@ -4463,7 +4463,7 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
         gflow->tot_columns = min_ii(max_ii((int)(litem->w / avg_w), 1), gflow->tot_items);
       }
     }
-    gflow->tot_rows = (int)ceilf((float)gflow->tot_items / gflow->tot_columns);
+    gflow->tot_rows = (int)ceilf(float(gflow->tot_items) / gflow->tot_columns);
 
     /* Try to tweak number of columns and rows to get better filling of last column or row,
      * and apply 'modulo' value to number of columns or rows.
@@ -4479,9 +4479,9 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
           gflow->tot_columns = gflow->tot_columns - (gflow->tot_columns % modulo);
         }
         /* Find smallest number of columns conserving computed optimal number of rows. */
-        for (gflow->tot_rows = (int)ceilf((float)gflow->tot_items / gflow->tot_columns);
+        for (gflow->tot_rows = (int)ceilf(float(gflow->tot_items) / gflow->tot_columns);
              (gflow->tot_columns - step) > 0 &&
-             (int)ceilf((float)gflow->tot_items / (gflow->tot_columns - step)) <= gflow->tot_rows;
+             (int)ceilf(float(gflow->tot_items) / (gflow->tot_columns - step)) <= gflow->tot_rows;
              gflow->tot_columns -= step) {
           /* pass */
         }
@@ -4493,9 +4493,9 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
                                    gflow->tot_items);
         }
         /* Find smallest number of rows conserving computed optimal number of columns. */
-        for (gflow->tot_columns = (int)ceilf((float)gflow->tot_items / gflow->tot_rows);
+        for (gflow->tot_columns = (int)ceilf(float(gflow->tot_items) / gflow->tot_rows);
              (gflow->tot_rows - step) > 0 &&
-             (int)ceilf((float)gflow->tot_items / (gflow->tot_rows - step)) <= gflow->tot_columns;
+             (int)ceilf(float(gflow->tot_items) / (gflow->tot_rows - step)) <= gflow->tot_columns;
              gflow->tot_rows -= step) {
           /* pass */
         }
@@ -4646,10 +4646,10 @@ static void ui_litem_layout_absolute(uiLayout *litem)
   toth -= miny;
 
   if (litem->w && totw > 0) {
-    scalex = (float)litem->w / (float)totw;
+    scalex = float(litem->w) / float(totw);
   }
   if (litem->h && toth > 0) {
-    scaley = (float)litem->h / (float)toth;
+    scaley = float(litem->h) / float(toth);
   }
 
   x = litem->x;
@@ -4700,7 +4700,7 @@ static void ui_litem_layout_split(uiLayout *litem)
   int x = litem->x;
   const int y = litem->y;
 
-  const float percentage = (split->percentage == 0.0f) ? 1.0f / (float)tot : split->percentage;
+  const float percentage = (split->percentage == 0.0f) ? 1.0f / float(tot) : split->percentage;
 
   const int w = (litem->w - (tot - 1) * litem->space);
   int colw = w * percentage;
@@ -4714,9 +4714,9 @@ static void ui_litem_layout_split(uiLayout *litem)
     x += colw;
 
     if (item->next) {
-      const float width = extra_pixel + (w - (int)(w * percentage)) / ((float)tot - 1);
-      extra_pixel = width - (int)width;
-      colw = (int)width;
+      const float width = extra_pixel + (w - (int)(w * percentage)) / (float(tot) - 1);
+      extra_pixel = width - int(width);
+      colw = int(width);
       colw = MAX2(colw, 0);
 
       x += litem->space;
@@ -6010,7 +6010,7 @@ void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout)
 static void ui_layout_introspect_button(DynStr *ds, uiButtonItem *bitem)
 {
   uiBut *but = bitem->but;
-  BLI_dynstr_appendf(ds, "'type':%d, ", (int)but->type);
+  BLI_dynstr_appendf(ds, "'type':%d, ", int(but->type));
   BLI_dynstr_appendf(ds, "'draw_string':'''%s''', ", but->drawstr);
   /* Not exactly needed, rna has this. */
   BLI_dynstr_appendf(ds, "'tip':'''%s''', ", but->tip ? but->tip : "");
@@ -6136,7 +6136,7 @@ uiLayout *uiItemsAlertBox(uiBlock *block, const int size, const eAlertIcon icon)
    * making the icon placement more symmetrical, between the block edge and the text. */
   const float icon_padding = 5.0f * U.dpi_fac;
   /* Calculate the factor of the fixed icon column depending on the block width. */
-  const float split_factor = ((float)icon_size + icon_padding) /
+  const float split_factor = (float(icon_size) + icon_padding) /
                              (float)(dialog_width - style->columnspace);
 
   uiLayout *block_layout = UI_block_layout(

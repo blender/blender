@@ -405,7 +405,7 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm,
 
 void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle)
 {
-  if (split_angle >= (float)M_PI) {
+  if (split_angle >= float(M_PI)) {
     /* Nothing to do! */
     return;
   }
@@ -715,8 +715,8 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
 
             while ((clnor = static_cast<short *>(BLI_SMALLSTACK_POP(clnors)))) {
               // print_v2("org clnor", clnor);
-              clnor[0] = (short)clnors_avg[0];
-              clnor[1] = (short)clnors_avg[1];
+              clnor[0] = short(clnors_avg[0]);
+              clnor[1] = short(clnors_avg[1]);
             }
             // print_v2("new clnors", clnors_avg);
           }
@@ -1382,7 +1382,7 @@ static bool bm_mesh_loops_split_lnor_fans(BMesh *bm,
                                           MLoopNorSpaceArray *lnors_spacearr,
                                           const float (*new_lnors)[3])
 {
-  BLI_bitmap *done_loops = BLI_BITMAP_NEW((size_t)bm->totloop, __func__);
+  BLI_bitmap *done_loops = BLI_BITMAP_NEW(size_t(bm->totloop), __func__);
   bool changed = false;
 
   BLI_assert(lnors_spacearr->data_type == MLNOR_SPACEARR_BMLOOP_PTR);
@@ -1480,7 +1480,7 @@ static void bm_mesh_loops_assign_normal_data(BMesh *bm,
                                              const int cd_loop_clnors_offset,
                                              const float (*new_lnors)[3])
 {
-  BLI_bitmap *done_loops = BLI_BITMAP_NEW((size_t)bm->totloop, __func__);
+  BLI_bitmap *done_loops = BLI_BITMAP_NEW(size_t(bm->totloop), __func__);
 
   BLI_SMALLSTACK_DECLARE(clnors_data, short *);
 
@@ -1540,7 +1540,7 @@ static void bm_mesh_loops_assign_normal_data(BMesh *bm,
           BLI_BITMAP_ENABLE(done_loops, lidx);
         }
 
-        mul_v3_fl(avg_nor, 1.0f / (float)avg_nor_count);
+        mul_v3_fl(avg_nor, 1.0f / float(avg_nor_count));
         BKE_lnor_space_custom_normal_to_data(
             lnors_spacearr->lspacearr[i], avg_nor, clnor_data_tmp);
 

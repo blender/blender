@@ -5407,8 +5407,8 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
            "",
            0,
            0,
-           (short)path_width,
-           (short)path_height,
+           short(path_width),
+           short(path_height),
            profile,
            0.0f,
            1.0f,
@@ -6106,7 +6106,7 @@ static char *progress_tooltip_func(bContext * /*C*/, void *argN, const char * /*
   BLI_timecode_string_from_time_simple(elapsed_str, sizeof(elapsed_str), elapsed);
 
   if (progress) {
-    const double remaining = (elapsed / (double)progress) - elapsed;
+    const double remaining = (elapsed / double(progress)) - elapsed;
     BLI_timecode_string_from_time_simple(remaining_str, sizeof(remaining_str), remaining);
   }
 

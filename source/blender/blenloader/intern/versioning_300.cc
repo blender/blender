@@ -3696,8 +3696,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
       MovieTracking *tracking = &clip->tracking;
 
-      const float frame_center_x = ((float)clip->lastsize[0]) / 2;
-      const float frame_center_y = ((float)clip->lastsize[1]) / 2;
+      const float frame_center_x = (float(clip->lastsize[0])) / 2;
+      const float frame_center_y = float(clip->lastsize[1]) / 2;
 
       tracking->camera.principal_point[0] = (tracking->camera.principal_legacy[0] -
                                              frame_center_x) /

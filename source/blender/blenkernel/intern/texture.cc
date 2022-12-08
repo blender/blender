@@ -451,7 +451,7 @@ Tex *give_current_linestyle_texture(FreestyleLineStyle *linestyle)
   Tex *tex = nullptr;
 
   if (linestyle) {
-    mtex = linestyle->mtex[(int)(linestyle->texact)];
+    mtex = linestyle->mtex[int(linestyle->texact)];
     if (mtex) {
       tex = mtex->tex;
     }
@@ -555,7 +555,7 @@ Tex *give_current_particle_texture(ParticleSettings *part)
     return nullptr;
   }
 
-  mtex = part->mtex[(int)(part->texact)];
+  mtex = part->mtex[int(part->texact)];
   if (mtex) {
     tex = mtex->tex;
   }
