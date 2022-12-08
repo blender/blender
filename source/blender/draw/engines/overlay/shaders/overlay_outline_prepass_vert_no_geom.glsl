@@ -2,7 +2,9 @@
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-#define DISCARD_VERTEX gl_Position=vec4(0.0); return;
+#define DISCARD_VERTEX \
+  gl_Position = vec4(0.0); \
+  return;
 
 uint outline_colorid_get(void)
 {
@@ -39,8 +41,9 @@ void main()
   vec4 gl_pos[4];
   vec3 world_pos[4];
   vec3 view_pos[4];
-  for(int i=0; i < 4; i++) {
-    vec3 in_pos = vertex_fetch_attribute_raw(vertex_id_from_index_id(4 * line_prim_id + i), pos, vec3);
+  for (int i = 0; i < 4; i++) {
+    vec3 in_pos = vertex_fetch_attribute_raw(
+        vertex_id_from_index_id(4 * line_prim_id + i), pos, vec3);
     world_pos[i] = point_object_to_world(in_pos);
     view_pos[i] = point_world_to_view(world_pos[i]);
     gl_pos[i] = point_world_to_ndc(world_pos[i]);
@@ -75,7 +78,7 @@ void main()
   /* ID 0 is nothing (background). */
   interp.ob_id = uint(resource_handle + 1);
 
-    /* Should be 2 bits only [0..3]. */
+  /* Should be 2 bits only [0..3]. */
   uint outline_id = outline_colorid_get();
 
   /* Combine for 16bit uint target. */
