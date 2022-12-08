@@ -472,21 +472,6 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_first, uint v_count, uint i_fi
                                                   this->elem ? @"(indexed)" : @"",
                                                   active_shader_->get_interface()->get_name()]];
   }
-
-  /* Ensure Context Render Pipeline State is fully setup and ready to execute the draw. */
-  MTLPrimitiveType mtl_prim_type = gpu_prim_type_to_metal(this->prim_type);
-  if (!ctx->ensure_render_pipeline_state(mtl_prim_type)) {
-    printf("FAILED TO ENSURE RENDER PIPELINE STATE");
-    BLI_assert(false);
-
-    if (G.debug & G_DEBUG_GPU) {
-      [rec popDebugGroup];
-    }
-    return nil;
-  }
-
-  /*** Bind Vertex Buffers and Index Buffers **/
-
   /* SSBO Vertex Fetch Buffer bindings. */
   if (uses_ssbo_fetch) {
 
@@ -514,7 +499,7 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_first, uint v_count, uint i_fi
     }
     rps.bind_vertex_buffer(idx_buffer, 0, MTL_SSBO_VERTEX_FETCH_IBO_INDEX);
 
-    /* Ensure all attributes are set */
+    /* Ensure all attributes are set. */
     active_shader_->ssbo_vertex_fetch_bind_attributes_end(rec);
 
     /* Bind NULL Buffers for unused vertex data slots. */
@@ -529,7 +514,7 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_first, uint v_count, uint i_fi
     /* Flag whether Indexed rendering is used or not. */
     int &uniform_ssbo_use_indexed = active_shader_->uni_ssbo_uses_indexed_rendering;
     BLI_assert(uniform_ssbo_use_indexed != -1);
-    int uses_indexed_rendering = (mtl_elem != NULL) ? 1 : 0;
+    int uses_indexed_rendering = (mtl_elem != nullptr) ? 1 : 0;
     active_shader_->uniform_int(uniform_ssbo_use_indexed, 1, 1, &uses_indexed_rendering);
 
     /* Set SSBO-fetch-mode status uniforms. */
@@ -545,6 +530,19 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_first, uint v_count, uint i_fi
                                   1,
                                   1,
                                   (const int *)(&v_count));
+  }
+
+  /* Ensure Context Render Pipeline State is fully setup and ready to execute the draw.
+   * This should happen after all other final rendeirng setup is complete. */
+  MTLPrimitiveType mtl_prim_type = gpu_prim_type_to_metal(this->prim_type);
+  if (!ctx->ensure_render_pipeline_state(mtl_prim_type)) {
+    printf("FAILED TO ENSURE RENDER PIPELINE STATE");
+    BLI_assert(false);
+
+    if (G.debug & G_DEBUG_GPU) {
+      [rec popDebugGroup];
+    }
+    return nil;
   }
 
   /* Bind Vertex Buffers. */
@@ -755,6 +753,10 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
         mtl_vertex_count_fits_primitive_type(
             output_num_verts, active_shader_->get_ssbo_vertex_fetch_output_prim_type()),
         "Output Vertex count is not compatible with the requested output vertex primitive type");
+
+    /* Set depth stencil state (requires knowledge of primitive type). */
+    ctx->ensure_depth_stencil_state(active_shader_->get_ssbo_vertex_fetch_output_prim_type());
+
     [rec drawPrimitives:active_shader_->get_ssbo_vertex_fetch_output_prim_type()
             vertexStart:0
             vertexCount:output_num_verts

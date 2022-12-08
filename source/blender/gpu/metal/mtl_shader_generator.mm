@@ -675,7 +675,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 
     /* NOTE(Metal): FragDepth output mode specified in create-info 'DepthWrite depth_write_'.
      * If parsing without create-info, manual extraction will be required. */
-    msl_iface.uses_gl_FragDepth = (info->depth_write_ != DepthWrite::NONE) &&
+    msl_iface.uses_gl_FragDepth = (info->depth_write_ != DepthWrite::UNCHANGED) &&
                                   shd_builder_->glsl_fragment_source_.find("gl_FragDepth") !=
                                       std::string::npos;
     msl_iface.depth_write = info->depth_write_;

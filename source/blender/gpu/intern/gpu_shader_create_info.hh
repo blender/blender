@@ -189,8 +189,8 @@ ENUM_OPERATORS(BuiltinBits, BuiltinBits::USE_DEBUG_PRINT);
  * https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_conservative_depth.txt
  */
 enum class DepthWrite {
-  /* NONE specified as default to indicate gl_FragDepth is not used. */
-  NONE = 0,
+  /* UNCHANGED specified as default to indicate gl_FragDepth is not used. */
+  UNCHANGED = 0,
   ANY,
   GREATER,
   LESS,
@@ -344,7 +344,7 @@ struct ShaderCreateInfo {
   /** If true, force the use of the GL shader introspection for resource location. */
   bool legacy_resource_location_ = false;
   /** Allow optimization when fragment shader writes to `gl_FragDepth`. */
-  DepthWrite depth_write_ = DepthWrite::NONE;
+  DepthWrite depth_write_ = DepthWrite::UNCHANGED;
   /** GPU Backend compatibility flag. Temporary requirement until Metal enablement is fully
    * complete. */
   bool metal_backend_only_ = false;

@@ -282,27 +282,25 @@ void MTLStateManager::set_stencil_test(const eGPUStencilTest test, const eGPUSte
           context_, MTLStencilOperationKeep, MTLStencilOperationKeep, MTLStencilOperationReplace);
       break;
     case GPU_STENCIL_OP_COUNT_DEPTH_PASS:
-      /* Winding inversed due to flipped Y coordinate system in Metal. */
       mtl_stencil_set_op_separate(context_,
-                                  GPU_CULL_FRONT,
+                                  GPU_CULL_BACK,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationIncrementWrap);
       mtl_stencil_set_op_separate(context_,
-                                  GPU_CULL_BACK,
+                                  GPU_CULL_FRONT,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationDecrementWrap);
       break;
     case GPU_STENCIL_OP_COUNT_DEPTH_FAIL:
-      /* Winding inversed due to flipped Y coordinate system in Metal. */
       mtl_stencil_set_op_separate(context_,
-                                  GPU_CULL_FRONT,
+                                  GPU_CULL_BACK,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationDecrementWrap,
                                   MTLStencilOperationKeep);
       mtl_stencil_set_op_separate(context_,
-                                  GPU_CULL_BACK,
+                                  GPU_CULL_FRONT,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationIncrementWrap,
                                   MTLStencilOperationKeep);
