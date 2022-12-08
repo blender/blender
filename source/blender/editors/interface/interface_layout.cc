@@ -1508,7 +1508,7 @@ void uiItemsFullEnumO_items(uiLayout *layout,
   bool last_iter = false;
   const EnumPropertyItem *item = item_array;
   for (int i = 1; item->identifier && !last_iter; i++, item++) {
-    /* handle oversized pies */
+    /* Handle over-sized pies. */
     if (radial && (totitem > PIE_MAX_ITEMS) && (i >= PIE_MAX_ITEMS)) {
       if (item->name) { /* only visible items */
         const EnumPropertyItem *tmp;

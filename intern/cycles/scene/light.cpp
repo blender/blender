@@ -1045,7 +1045,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       const float tan_half_spread = light->spread == M_PI_F ? FLT_MAX : tanf(half_spread);
       /* Normalization computed using:
        * integrate cos(x) * (1 - tan(x) / tan(a)) * sin(x) from x = 0 to a, a being half_spread.
-       * Divided by tan_half_spread to simplify the attentuation computation in `area.h`. */
+       * Divided by tan_half_spread to simplify the attenuation computation in `area.h`. */
       const float normalize_spread = 1.0f / (tan_half_spread - half_spread);
 
       dir = safe_normalize(dir);

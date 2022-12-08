@@ -41,7 +41,7 @@ ccl_device float light_tree_cos_bounding_box_angle(const BoundingBox bbox,
                                       (i & 2) ? bbox.max.y : bbox.min.y,
                                       (i & 4) ? bbox.max.z : bbox.min.z);
 
-    /* Caculate the bounding box angle. */
+    /* Calculate the bounding box angle. */
     float3 point_to_corner = normalize(corner - P);
     cos_theta_u = fminf(cos_theta_u, dot(point_to_centroid, point_to_corner));
   }
@@ -461,7 +461,7 @@ ccl_device int light_tree_cluster_select_emitter(KernelGlobals kg,
 
   for (int i = 0; i < knode->num_prims; i++) {
     int current_index = -knode->child_index + i;
-    /* maximum importance = importance[0], mininum importance = importance[1] */
+    /* maximum importance = importance[0], minimum importance = importance[1] */
     float importance[2];
     light_tree_emitter_importance<in_volume_segment>(
         kg, P, N_or_D, t, has_transmission, current_index, importance[0], importance[1]);

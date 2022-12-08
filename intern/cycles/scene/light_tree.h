@@ -33,7 +33,7 @@ struct OrientationBounds {
 
   enum empty_t { empty = 0 };
 
-  /* If the orientation bound is set to empty, the values are set to minumums
+  /* If the orientation bound is set to empty, the values are set to minimums
    * so that merging it with another non-empty orientation bound guarantees that
    * the return value is equal to non-empty orientation bound. */
   __forceinline OrientationBounds(empty_t)

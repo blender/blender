@@ -3885,7 +3885,7 @@ void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
     while (i >= 0) {
       /* Just check the "ears" of the n-gon.
        * For quads, this is sufficient.
-       * For pents and higher, we might miss internal duplicate triangles, but note
+       * For pentagons and higher, we might miss internal duplicate triangles, but note
        * that such cases are rare if the source geometry is manifold and non-intersecting. */
       int pm = permute.size();
       BLI_assert(pm > 3);
