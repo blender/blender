@@ -27,6 +27,14 @@ static inline bool naive_edges_equal(const MEdge &edge1, const MEdge &edge2)
   return edge1.v1 == edge2.v1 && edge1.v2 == edge2.v2;
 }
 
+template<typename T>
+static void copy_to_new_verts(MutableSpan<T> data, const Span<int> new_to_old_verts_map)
+{
+  const Span<T> old_data = data.drop_back(new_to_old_verts_map.size());
+  MutableSpan<T> new_data = data.take_back(new_to_old_verts_map.size());
+  array_utils::gather(old_data, new_to_old_verts_map, new_data);
+}
+
 static void add_new_vertices(Mesh &mesh, const Span<int> new_to_old_verts_map)
 {
   CustomData_realloc(&mesh.vdata, mesh.totvert, mesh.totvert + new_to_old_verts_map.size());
@@ -44,13 +52,16 @@ static void add_new_vertices(Mesh &mesh, const Span<int> new_to_old_verts_map)
 
     attribute_math::convert_to_static_type(attribute.span.type(), [&](auto dummy) {
       using T = decltype(dummy);
-      MutableSpan<T> span = attribute.span.typed<T>();
-      const Span<T> old_data = span.drop_back(new_to_old_verts_map.size());
-      MutableSpan<T> new_data = span.take_back(new_to_old_verts_map.size());
-      array_utils::gather(old_data, new_to_old_verts_map, new_data);
+      copy_to_new_verts(attribute.span.typed<T>(), new_to_old_verts_map);
     });
 
     attribute.finish();
+  }
+  if (float3 *orco = static_cast<float3 *>(CustomData_get_layer(&mesh.vdata, CD_ORCO))) {
+    copy_to_new_verts<float3>({orco, mesh.totvert}, new_to_old_verts_map);
+  }
+  if (int *orig_indices = static_cast<int *>(CustomData_get_layer(&mesh.vdata, CD_ORIGINDEX))) {
+    copy_to_new_verts<int>({orig_indices, mesh.totvert}, new_to_old_verts_map);
   }
 }
 
@@ -116,10 +127,24 @@ static void add_new_edges(Mesh &mesh,
     dst_attributes.append({id, type, new_data});
   }
 
+  int *new_orig_indices = nullptr;
+  if (const int *orig_indices = static_cast<const int *>(
+          CustomData_get_layer(&mesh.edata, CD_ORIGINDEX))) {
+    new_orig_indices = static_cast<int *>(
+        MEM_malloc_arrayN(new_edges.size(), sizeof(int), __func__));
+    array_utils::gather(Span(orig_indices, mesh.totedge),
+                        new_to_old_edges_map,
+                        {new_orig_indices, new_edges.size()});
+  }
+
   CustomData_free(&mesh.edata, mesh.totedge);
   mesh.totedge = new_edges.size();
   CustomData_add_layer(&mesh.edata, CD_MEDGE, CD_CONSTRUCT, nullptr, mesh.totedge);
   mesh.edges_for_write().copy_from(new_edges);
+
+  if (new_orig_indices != nullptr) {
+    CustomData_add_layer(&mesh.edata, CD_ORIGINDEX, CD_ASSIGN, new_orig_indices, mesh.totedge);
+  }
 
   for (NewAttributeData &new_data : dst_attributes) {
     attributes.add(new_data.local_id,
