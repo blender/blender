@@ -10015,7 +10015,10 @@ static void def_geo_collection_info(StructRNA *srna)
 
   prop = RNA_def_property(srna, "transform_space", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_node_geometry_collection_info_transform_space_items);
-  RNA_def_property_ui_text(prop, "Transform Space", "The transformation of the geometry output");
+  RNA_def_property_ui_text(
+      prop,
+      "Transform Space",
+      "The transformation of the instances output. Does not affect the internal geometry");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 }
 
