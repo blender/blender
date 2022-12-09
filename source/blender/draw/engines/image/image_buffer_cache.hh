@@ -9,6 +9,7 @@
 
 #include "BLI_vector.hh"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -68,6 +69,11 @@ struct FloatBufferCache {
   {
     /* Check if we can use the float buffer of the given image_buffer. */
     if (image_buffer->rect_float != nullptr) {
+      BLI_assert_msg(
+          IMB_colormanagement_space_name_is_scene_linear(
+              IMB_colormanagement_get_float_colorspace(image_buffer)),
+          "Expected rect_float to be scene_linear - if there are code paths where this "
+          "isn't the case we should convert those and add to the FloatBufferCache as well.");
       return image_buffer;
     }
 
