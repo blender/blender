@@ -2045,6 +2045,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   tri_data.ob_info = ob_info;
   tri_data.mlooptri = mlooptri;
   tri_data.verts = me->verts();
+  tri_data.loops = me->loops();
   tri_data.material_indices = material_indices;
   tri_data.vert_arr = la_v_arr;
   tri_data.tri_arr = la_tri_arr;
