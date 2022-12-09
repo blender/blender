@@ -58,10 +58,6 @@ struct FloatImageBuffer {
  *
  * For this reason we store the float buffer in separate image buffers. The FloatBufferCache keep
  * track of the cached buffers and if they are still used.
- *
- * TODO: When an image buffer has a float buffer but not stored in scene linear, it currently
- * doesn't apply color management. In this case we still need to create another float buffer, but
- * with the buffer converted to scene linear.
  */
 struct FloatBufferCache {
  private:
