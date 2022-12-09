@@ -5618,7 +5618,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
        "JONSWAP",
        0,
        "Established Ocean (Sharp Peaks)",
-       "Use for sharp peaks ('JONSWAP', Pierson-Moskowitz method) with peak sharpening"},
+       "Use for established oceans ('JONSWAP', Pierson-Moskowitz method) with peak sharpening"},
       {MOD_OCEAN_SPECTRUM_TEXEL_MARSEN_ARSLOE,
        "TEXEL_MARSEN_ARSLOE",
        0,

@@ -385,7 +385,7 @@ static void object_offset_header_draw(const bContext *UNUSED(C), Panel *panel)
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
-  uiItemR(layout, ptr, "use_object_offset", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_object_offset", 0, IFACE_("Object Offset"), ICON_NONE);
 }
 
 static void object_offset_draw(const bContext *UNUSED(C), Panel *panel)
@@ -399,7 +399,7 @@ static void object_offset_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *col = uiLayoutColumn(layout, false);
 
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_object_offset"));
-  uiItemR(col, ptr, "offset_object", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "offset_object", 0, IFACE_("Object"), ICON_NONE);
 }
 
 static void random_panel_draw(const bContext *UNUSED(C), Panel *panel)
