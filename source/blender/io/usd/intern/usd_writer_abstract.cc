@@ -5,6 +5,8 @@
 #include "usd_writer_material.h"
 
 #include <pxr/base/tf/stringUtils.h>
+#include <pxr/usd/kind/registry.h>
+#include <pxr/usd/usd/modelAPI.h>
 
 #include "BKE_customdata.h"
 #include "BLI_assert.h"
@@ -275,6 +277,12 @@ void USDAbstractWriter::write_visibility(const HierarchyContext &context,
   usd_value_writer_.SetAttribute(attr_visibility, pxr::VtValue(visibility), timecode);
 }
 
+void USDAbstractWriter::write_kind(pxr::UsdPrim& prim, pxr::TfToken kind)
+{
+  pxr::UsdModelAPI api(prim);
+  api.SetKind(kind);
+}
+
 bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const pxr::UsdPrim &prim)
 {
   BLI_assert(context.is_instance());
@@ -344,8 +352,17 @@ void USDAbstractWriter::write_user_properties(pxr::UsdPrim &prim,
     return;
   }
 
+  const StringRef kind_identifier = "usdkind";
+
   IDProperty *prop;
   for (prop = (IDProperty *)properties->data.group.first; prop; prop = prop->next) {
+    if (kind_identifier == prop->name) {
+      if (prop->type == IDP_STRING && usd_export_context_.export_params.export_usd_kind && prop->data.pointer) {
+        write_kind(prim, pxr::TfToken(static_cast<char*>(prop->data.pointer)));
+      }
+      continue;
+    }
+
     std::string prop_name = pxr::TfMakeValidIdentifier(prop->name);
 
     std::string full_prop_name;

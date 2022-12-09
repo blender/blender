@@ -71,6 +71,14 @@ typedef enum eUSDAttrImportMode {
   USD_ATTR_IMPORT_ALL = 2,
 } eUSDAttrImportMode;
 
+typedef enum eUSDDefaultPrimKind {
+  USD_KIND_NONE = 0,
+  USD_KIND_COMPONENT,
+  USD_KIND_GROUP,
+  USD_KIND_ASSEMBLY,
+  USD_KIND_CUSTOM
+} eUSDDefaultPrimKind;
+
 struct USDExportParams {
   double frame_start;
   double frame_end;
@@ -138,6 +146,9 @@ struct USDExportParams {
   bool triangulate_meshes;
   int quad_method;
   int ngon_method;
+  bool export_usd_kind;
+  eUSDDefaultPrimKind default_prim_kind;
+  char *default_prim_custom_kind;
 };
 
 struct USDImportParams {

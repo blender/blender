@@ -68,6 +68,8 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
                         const pxr::UsdTimeCode timecode,
                         pxr::UsdGeomImageable &usd_geometry);
 
+  void write_kind(pxr::UsdPrim& prim, pxr::TfToken kind);
+
   /**
    * Turn `prim` into an instance referencing `context.original_export_path`.
    * Return true when the instancing was successful, false otherwise.

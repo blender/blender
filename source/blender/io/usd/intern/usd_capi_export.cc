@@ -11,6 +11,8 @@
 
 #include <pxr/base/plug/registry.h>
 #include <pxr/pxr.h>
+#include <pxr/usd/kind/registry.h>
+#include <pxr/usd/usd/modelAPI.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdGeom/scope.h>
@@ -96,6 +98,12 @@ static bool validate_params(const USDExportParams &params)
     WM_reportf(RPT_ERROR,
                "USD Export: invalid default prim path parameter '%s'",
                params.default_prim_path);
+    valid = false;
+  }
+
+  if (params.export_usd_kind && params.default_prim_kind == USD_KIND_CUSTOM && strlen(params.default_prim_custom_kind) == 0) {
+    WM_reportf(RPT_ERROR,
+               "USD Export: Default Prim Kind is set to Custom, but the value is empty.");
     valid = false;
   }
 
@@ -196,6 +204,31 @@ static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &p
     mul_v3_fl(eul, 180.0f / M_PI);
 
     xf_api.SetRotate(pxr::GfVec3f(eul[0], eul[1], eul[2]));
+  }
+
+  /* Handle root prim USD Kind. */
+  if (params.export_usd_kind && params.default_prim_kind) {
+    pxr::UsdModelAPI api(root_prim);
+    switch (params.default_prim_kind) {
+      case USD_KIND_COMPONENT:
+        api.SetKind(pxr::KindTokens->component);
+        break;
+
+      case USD_KIND_GROUP:
+        api.SetKind(pxr::KindTokens->group);
+        break;
+
+      case USD_KIND_ASSEMBLY:
+        api.SetKind(pxr::KindTokens->assembly);
+        break;
+
+      case USD_KIND_CUSTOM:
+        api.SetKind(pxr::TfToken(params.default_prim_custom_kind));
+        break;
+
+      default:
+        break;
+    }
   }
 }
 

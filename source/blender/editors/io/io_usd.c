@@ -164,6 +164,16 @@ const EnumPropertyItem prop_usdz_downscale_size[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem prop_default_prim_kind_items[] = {
+    { USD_KIND_NONE,      "NONE", 0, "None", "No kind is exported for default prim" },
+    { USD_KIND_COMPONENT, "COMPONENT", 0, "Component", "Set Default Prim Kind to Component" },
+    { USD_KIND_GROUP,     "GROUP", 0, "Group", "Set Default Prim Kind to Group" },
+    { USD_KIND_ASSEMBLY,  "ASSEMBLY", 0, "Assembly", "Set Default Prim Kind to Assembly" },
+    { USD_KIND_CUSTOM,    "CUSTOM", 0, "Custom", "Specify a custom Kind for the Default Prim" },
+    {0, NULL, 0, NULL, NULL},
+};
+
+
 /* Stored in the wmOperator's customdata field to indicate it should run as a background job.
  * This is set when the operator is invoked, and not set when it is only executed. */
 enum { AS_BACKGROUND_JOB = 1 };
@@ -314,6 +324,11 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   const bool export_blender_metadata = RNA_boolean_get(op->ptr, "export_blender_metadata");
 
+  /* USDKind support. */
+  const bool export_usd_kind = RNA_boolean_get(op->ptr, "export_usd_kind");
+  const int default_prim_kind = RNA_enum_get(op->ptr, "default_prim_kind");
+  char *default_prim_custom_kind = RNA_string_get_alloc(op->ptr, "default_prim_custom_kind", NULL, 0, NULL);
+
   struct USDExportParams params = {RNA_int_get(op->ptr, "start"),
                                    RNA_int_get(op->ptr, "end"),
                                    export_animation,
@@ -377,7 +392,11 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    export_blender_metadata,
                                    triangulate_meshes,
                                    quad_method,
-                                   ngon_method};
+                                   ngon_method,
+                                   .export_usd_kind = export_usd_kind,
+                                   .default_prim_kind = default_prim_kind,
+                                   .default_prim_custom_kind = default_prim_custom_kind
+                                   };
 
   /* Take some defaults from the scene, if not specified explicitly. */
   Scene *scene = CTX_data_scene(C);
@@ -427,6 +446,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     uiItemR(box, ptr, "end", 0, NULL, ICON_NONE);
     uiItemR(box, ptr, "frame_step", 0, NULL, ICON_NONE);
   }
+  uiItemR(box, ptr, "export_usd_kind", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "export_as_overs", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "merge_transform_and_shape", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "export_identity_transforms", 0, NULL, ICON_NONE);
@@ -493,6 +513,12 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   uiItemR(box, ptr, "default_prim_path", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "root_prim_path", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "material_prim_path", 0, NULL, ICON_NONE);
+  if (RNA_boolean_get(ptr, "export_usd_kind")) {
+    uiItemR(box, ptr, "default_prim_kind", 0, NULL, ICON_NONE);
+    if (RNA_enum_get(ptr, "default_prim_kind") == USD_KIND_CUSTOM) {
+        uiItemR(box, ptr, "default_prim_custom_kind", 0, NULL, ICON_NONE);
+      }
+  }
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Conversion:"), ICON_ORIENTATION_GLOBAL);
@@ -1010,6 +1036,26 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                MOD_TRIANGULATE_NGON_BEAUTY,
                "N-gon Method",
                "Method for splitting the n-gons into triangles");
+
+  RNA_def_boolean(ot->srna,
+                  "export_usd_kind",
+                  true,
+                  "Export USD Kind",
+                  "Export Kind per-prim when specified through 'usdkind' custom property.");
+
+  RNA_def_enum(ot->srna,
+               "default_prim_kind",
+               prop_default_prim_kind_items,
+               USD_KIND_NONE,
+               "Default Prim Kind",
+               "Kind to author on the Default Prim");
+
+  RNA_def_string(ot->srna,
+                 "default_prim_custom_kind",
+                 NULL,
+                 128,
+                 "Default Prim Custom Kind",
+                 "If default_prim_kind is True, author this value as the Default Prim's Kind");
 }
 
 /* ====== USD Import ====== */
