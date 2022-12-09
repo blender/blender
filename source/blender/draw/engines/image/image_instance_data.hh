@@ -21,15 +21,6 @@
 
 namespace blender::draw::image_engine {
 
-/**
- * \brief max allowed textures to use by the ScreenSpaceDrawingMode.
- *
- * The image engine uses 4 full screen textures to draw the image. With 4 textures it is possible
- * to pan the screen where only the texture needs to be updated when they are not visible on the
- * screen.
- */
-constexpr int SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN = 4;
-
 struct IMAGE_InstanceData {
   struct Image *image;
   /** Usage data of the previous time, to identify changes that require a full update. */
@@ -61,7 +52,8 @@ struct IMAGE_InstanceData {
 
   /** \brief Transform matrix to convert a normalized screen space coordinates to texture space. */
   float ss_to_texture[4][4];
-  TextureInfo texture_infos[SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN];
+
+  Vector<TextureInfo> texture_infos;
 
  public:
   virtual ~IMAGE_InstanceData() = default;
@@ -75,33 +67,9 @@ struct IMAGE_InstanceData {
     reset_need_full_update(true);
   }
 
-  void update_gpu_texture_allocations()
-  {
-    for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
-      TextureInfo &info = texture_infos[i];
-      const bool is_allocated = info.texture != nullptr;
-      const bool resolution_changed = assign_if_different(info.last_viewport_size,
-                                                          float2(DRW_viewport_size_get()));
-      const bool should_be_freed = is_allocated && resolution_changed;
-      const bool should_be_created = !is_allocated || resolution_changed;
-
-      if (should_be_freed) {
-        GPU_texture_free(info.texture);
-        info.texture = nullptr;
-      }
-
-      if (should_be_created) {
-        DRW_texture_ensure_fullscreen_2d(
-            &info.texture, GPU_RGBA16F, static_cast<DRWTextureFlag>(0));
-      }
-      info.need_full_update |= should_be_created;
-    }
-  }
-
   void update_batches()
   {
-    for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
-      TextureInfo &info = texture_infos[i];
+    for (TextureInfo &info : texture_infos) {
       BatchUpdater batch_updater(info);
       batch_updater.update_batch();
     }
@@ -121,8 +89,8 @@ struct IMAGE_InstanceData {
   /** \brief Set dirty flag of all texture slots to the given value. */
   void reset_need_full_update(bool new_value)
   {
-    for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
-      texture_infos[i].need_full_update = new_value;
+    for (TextureInfo &info : texture_infos) {
+      info.need_full_update = new_value;
     }
   }
 };

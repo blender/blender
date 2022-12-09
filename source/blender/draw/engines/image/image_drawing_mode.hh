@@ -32,6 +32,14 @@ struct FullScreenTextures {
   }
 
   /**
+   * \brief Ensure enough texture infos are allocated in `instance_data`.
+   */
+  void ensure_texture_infos()
+  {
+    instance_data->texture_infos.resize(4);
+  }
+
+  /**
    * \brief Update the uv and region bounds of all texture_infos of instance_data.
    */
   void update_bounds(const ARegion *region)
@@ -45,7 +53,7 @@ struct FullScreenTextures {
     BLI_rctf_init(
         &region_uv_bounds, region_uv_min.x, region_uv_max.x, region_uv_min.y, region_uv_max.y);
 
-    /* Calculate 9 coordinates that will be used as uv bounds of the 4 textures. */
+    /* Calculate 9 coordinates that will be used as uv bounds of the textures. */
     float2 onscreen_multiple = (blender::math::floor(region_uv_min / region_uv_span) +
                                 float2(1.0f)) *
                                region_uv_span;
@@ -135,6 +143,15 @@ struct FullScreenTextures {
       info.calc_region_bounds_from_uv_bounds(uv_to_screen);
     }
   }
+
+  void ensure_gpu_textures_allocation()
+  {
+    float2 viewport_size = DRW_viewport_size_get();
+    int2 texture_size(viewport_size.x, viewport_size.y);
+    for (TextureInfo &info : instance_data->texture_infos) {
+      info.ensure_gpu_texture(texture_size);
+    }
+  }
 };
 
 using namespace blender::bke::image::partial_update;
@@ -171,8 +188,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     DRW_shgroup_uniform_texture(shgrp, "depth_texture", dtxl->depth);
     float image_mat[4][4];
     unit_m4(image_mat);
-    for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
-      const TextureInfo &info = instance_data->texture_infos[i];
+    for (const TextureInfo &info : instance_data->texture_infos) {
       DRWShadingGroup *shgrp_sub = DRW_shgroup_create_sub(shgrp);
       DRW_shgroup_uniform_ivec2_copy(shgrp_sub, "offset", info.offset());
       DRW_shgroup_uniform_texture_ex(shgrp_sub, "imageTexture", info.texture, GPU_SAMPLER_DEFAULT);
@@ -200,8 +216,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       tile_user = *image_user;
     }
 
-    for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
-      const TextureInfo &info = instance_data.texture_infos[i];
+    for (const TextureInfo &info : instance_data.texture_infos) {
       LISTBASE_FOREACH (ImageTile *, image_tile_ptr, &image->tiles) {
         const ImageTileWrapper image_tile(image_tile_ptr);
         const int tile_x = image_tile.get_tile_x_offset();
@@ -305,8 +320,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       const float tile_width = float(iterator.tile_data.tile_buffer->x);
       const float tile_height = float(iterator.tile_data.tile_buffer->y);
 
-      for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
-        const TextureInfo &info = instance_data.texture_infos[i];
+      for (const TextureInfo &info : instance_data.texture_infos) {
         /* Dirty images will receive a full update. No need to do a partial one now. */
         if (info.need_full_update) {
           continue;
@@ -407,8 +421,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
   void do_full_update_for_dirty_textures(IMAGE_InstanceData &instance_data,
                                          const ImageUser *image_user) const
   {
-    for (int i = 0; i < SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN; i++) {
-      TextureInfo &info = instance_data.texture_infos[i];
+    for (TextureInfo &info : instance_data.texture_infos) {
       if (!info.need_full_update) {
         continue;
       }
@@ -518,6 +531,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
 
     /* Step: Find out which screen space textures are needed to draw on the screen. Remove the
      * screen space textures that aren't needed. */
+    method.ensure_texture_infos();
     const ARegion *region = draw_ctx->region;
     method.update_bounds(region);
 
@@ -525,7 +539,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     instance_data->update_image_usage(iuser);
 
     /* Step: Update the GPU textures based on the changes in the image. */
-    instance_data->update_gpu_texture_allocations();
+    method.ensure_gpu_textures_allocation();
     update_textures(*instance_data, image, iuser);
 
     /* Step: Add the GPU textures to the shgroup. */

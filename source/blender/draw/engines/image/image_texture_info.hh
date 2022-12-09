@@ -42,7 +42,7 @@ struct TextureInfo {
    */
   GPUTexture *texture;
 
-  float2 last_viewport_size = float2(0.0f, 0.0f);
+  int2 last_texture_size = int2(0);
 
   ~TextureInfo()
   {
@@ -82,6 +82,28 @@ struct TextureInfo {
                   top_right_region.x,
                   bottom_left_region.y,
                   top_right_region.y);
+  }
+
+  void ensure_gpu_texture(int2 texture_size)
+  {
+    const bool is_allocated = texture != nullptr;
+    const bool resolution_changed = assign_if_different(last_texture_size, texture_size);
+    const bool should_be_freed = is_allocated && resolution_changed;
+    const bool should_be_created = !is_allocated || resolution_changed;
+
+    if (should_be_freed) {
+      GPU_texture_free(texture);
+      texture = nullptr;
+    }
+
+    if (should_be_created) {
+      texture = DRW_texture_create_2d_ex(UNPACK2(texture_size),
+                                         GPU_RGBA16F,
+                                         GPU_TEXTURE_USAGE_GENERAL,
+                                         static_cast<DRWTextureFlag>(0),
+                                         nullptr);
+    }
+    need_full_update |= should_be_created;
   }
 };
 
