@@ -13,6 +13,8 @@
 #include "GPU_batch.h"
 #include "GPU_texture.h"
 
+namespace blender::draw::image_engine {
+
 struct TextureInfo {
   /**
    * \brief does this texture need a full update.
@@ -82,3 +84,5 @@ struct TextureInfo {
                   top_right_region.y);
   }
 };
+
+}  // namespace blender::draw::image_engine

@@ -19,6 +19,8 @@
 
 #include "DRW_render.h"
 
+namespace blender::draw::image_engine {
+
 /**
  * \brief max allowed textures to use by the ScreenSpaceDrawingMode.
  *
@@ -124,3 +126,5 @@ struct IMAGE_InstanceData {
     }
   }
 };
+
+}  // namespace blender::draw::image_engine

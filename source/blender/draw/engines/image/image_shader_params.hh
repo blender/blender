@@ -19,6 +19,8 @@
 
 #include "image_space.hh"
 
+namespace blender::draw::image_engine {
+
 struct ShaderParameters {
   int flags = 0;
   float shuffle[4];
@@ -40,3 +42,5 @@ struct ShaderParameters {
     space->get_shader_parameters(*this, image_buffer);
   }
 };
+
+}  // namespace blender::draw::image_engine

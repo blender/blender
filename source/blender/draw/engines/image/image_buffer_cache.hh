@@ -13,6 +13,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+namespace blender::draw::image_engine {
+
 struct FloatImageBuffer {
   ImBuf *source_buffer = nullptr;
   ImBuf *float_buffer = nullptr;
@@ -62,7 +64,7 @@ struct FloatImageBuffer {
  */
 struct FloatBufferCache {
  private:
-  blender::Vector<FloatImageBuffer> cache_;
+  Vector<FloatImageBuffer> cache_;
 
  public:
   ImBuf *cached_float_buffer(ImBuf *image_buffer)
@@ -130,3 +132,5 @@ struct FloatBufferCache {
     cache_.clear();
   }
 };
+
+}  // namespace blender::draw::image_engine

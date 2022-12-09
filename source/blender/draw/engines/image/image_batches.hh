@@ -9,6 +9,8 @@
 
 #include "image_texture_info.hh"
 
+namespace blender::draw::image_engine {
+
 /** \brief Create GPUBatch for a IMAGE_ScreenSpaceTextureInfo. */
 class BatchUpdater {
   TextureInfo &info;
@@ -89,3 +91,5 @@ class BatchUpdater {
     }
   }
 };
+
+}  // namespace blender::draw::image_engine

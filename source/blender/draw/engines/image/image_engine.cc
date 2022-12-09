@@ -128,7 +128,7 @@ class ImageEngine {
   {
     drawing_mode.draw_scene(vedata);
   }
-};  // namespace blender::draw::image_engine
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Engine Callbacks
