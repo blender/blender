@@ -32,13 +32,11 @@ if(WIN32)
     # Python will download its own deps and there's very little we can do about
     # that beyond placing some code in their externals dir before it tries.
     # the foldernames *HAVE* to match the ones inside pythons get_externals.cmd.
-    # python 3.10.8 still ships zlib 1.2.12, replace it with our 1.2.13
-    # copy until they update. Same rules apply to openssl foldernames HAVE to match
     # regardless of the version actually in there.
     PATCH_COMMAND mkdir ${PYTHON_EXTERNALS_FOLDER_DOS} &&
-      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\zlib-1.2.12 ${ZLIB_SOURCE_FOLDER_DOS} &&
+      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\zlib-1.2.13 ${ZLIB_SOURCE_FOLDER_DOS} &&
       mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\openssl-1.1.1q ${SSL_SOURCE_FOLDER_DOS} &&
-      ${CMAKE_COMMAND} -E copy ${ZLIB_SOURCE_FOLDER}/../external_zlib-build/zconf.h ${PYTHON_EXTERNALS_FOLDER}/zlib-1.2.12/zconf.h &&
+      ${CMAKE_COMMAND} -E copy ${ZLIB_SOURCE_FOLDER}/../external_zlib-build/zconf.h ${PYTHON_EXTERNALS_FOLDER}/zlib-1.2.13/zconf.h &&
       ${PATCH_CMD} --verbose -p1 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python_windows.diff
     CONFIGURE_COMMAND echo "."
     BUILD_COMMAND ${CONFIGURE_ENV_MSVC} && cd ${BUILD_DIR}/python/src/external_python/pcbuild/ && set IncludeTkinter=false && set LDFLAGS=/DEBUG && call prepare_ssl.bat && call build.bat -e -p x64 -c ${BUILD_MODE}

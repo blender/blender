@@ -201,6 +201,11 @@ set(OSL_HASH 53211da86c34ba6e0344998c1a6d219c)
 set(OSL_HASH_TYPE MD5)
 set(OSL_FILE OpenShadingLanguage-${OSL_VERSION}.tar.gz)
 
+# NOTE: When updating the python version, it's required to check the versions of
+# it wants to use in PCbuild/get_externals.bat for the following dependencies:
+# BZIP2, FFI, SQLITE and change the versions in this file as well. For compliance 
+# reasons there can be no exceptions to this.
+
 set(PYTHON_VERSION 3.10.9)
 set(PYTHON_SHORT_VERSION 3.10)
 set(PYTHON_SHORT_VERSION_NO_DOTS 310)
@@ -240,10 +245,10 @@ set(PYCODESTYLE_VERSION 2.8.0)
 set(TOML_VERSION 0.10.2)
 set(MESON_VERSION 0.63.0)
 
-set(NUMPY_VERSION 1.23.2)
+set(NUMPY_VERSION 1.23.5)
 set(NUMPY_SHORT_VERSION 1.23)
 set(NUMPY_URI https://github.com/numpy/numpy/releases/download/v${NUMPY_VERSION}/numpy-${NUMPY_VERSION}.tar.gz)
-set(NUMPY_HASH 9bf2a361509797de14ceee607387fe0f)
+set(NUMPY_HASH 8b2692a511a3795f3af8af2cd7566a15)
 set(NUMPY_HASH_TYPE MD5)
 set(NUMPY_FILE numpy-${NUMPY_VERSION}.tar.gz)
 set(NUMPY_CPE "cpe:2.3:a:numpy:numpy:${NUMPY_VERSION}:*:*:*:*:*:*:*")
@@ -437,9 +442,7 @@ set(LZMA_HASH 5117f930900b341493827d63aa910ff5e011e0b994197c3b71c08a20228a42df)
 set(LZMA_HASH_TYPE SHA256)
 set(LZMA_FILE xz-${LZMA_VERSION}.tar.bz2)
 
-# NOTE: This will *HAVE* to match the version python ships on windows which
-# is hardcoded in pythons PCbuild/get_externals.bat. For compliance reasons there
-# can be no exceptions to this.
+# NOTE: Python's build has been modified to use our ssl version.
 set(SSL_VERSION 1.1.1q)
 set(SSL_URI https://www.openssl.org/source/openssl-${SSL_VERSION}.tar.gz)
 set(SSL_HASH d7939ce614029cdff0b6c20f0e2e5703158a489a72b2507b8bd51bf8c8fd10ca)
@@ -450,10 +453,10 @@ set(SSL_CPE "cpe:2.3:a:openssl:openssl:${SSL_VERSION}:*:*:*:*:*:*:*")
 # Note: This will *HAVE* to match the version python ships on windows which
 # is hardcoded in pythons PCbuild/get_externals.bat for compliance reasons there
 # can be no exceptions to this.
-set(SQLITE_VERSION 3.37.2)
-set(SQLLITE_LONG_VERSION 3370200)
+set(SQLITE_VERSION 3.39.4)
+set(SQLLITE_LONG_VERSION 3390400)
 set(SQLITE_URI https://www.sqlite.org/2022/sqlite-autoconf-${SQLLITE_LONG_VERSION}.tar.gz)
-set(SQLITE_HASH e56faacadfb4154f8fbd0f2a3f827d13706b70a1)
+set(SQLITE_HASH c4c5c39269d1b9bb1487cff580c1f583608229b2)
 set(SQLITE_HASH_TYPE SHA1)
 set(SQLITE_FILE sqlite-autoconf-${SQLLITE_LONG_VERSION}.tar.gz)
 set(SQLITE_CPE "cpe:2.3:a:sqlite:sqlite:${SQLITE_VERSION}:*:*:*:*:*:*:*")
