@@ -106,6 +106,43 @@ static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*
   return (mcmd->cache_file == nullptr) || (mcmd->object_path[0] == '\0');
 }
 
+/* Return true if the modifier evaluation is for the ORCO mesh and the mesh hasn't changed
+ * topology.
+ */
+static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
+                                             const ModifierEvalContext *ctx,
+                                             const Mesh *mesh,
+                                             const float time,
+                                             const char **err_str)
+{
+  if ((ctx->flag & MOD_APPLY_ORCO) == 0) {
+    return false;
+  }
+
+  CacheFile *cache_file = mcmd->cache_file;
+
+  switch (cache_file->type) {
+    case CACHEFILE_TYPE_ALEMBIC:
+#ifdef WITH_ALEMBIC
+      if (!ABC_mesh_topology_changed(mcmd->reader, ctx->object, mesh, time, err_str)) {
+        return true;
+      }
+#endif
+      break;
+    case CACHEFILE_TYPE_USD:
+#ifdef WITH_USD
+      if (!USD_mesh_topology_changed(mcmd->reader, ctx->object, mesh, time, err_str)) {
+        return true;
+      }
+#endif
+      break;
+    case CACHE_FILE_TYPE_INVALID:
+      break;
+  }
+
+  return false;
+}
+
 static Mesh *generate_bounding_box_mesh(const Mesh *org_mesh)
 {
   using namespace blender;
@@ -154,25 +191,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* If this invocation is for the ORCO mesh, and the mesh hasn't changed topology, we
    * must return the mesh as-is instead of deforming it. */
-  if (ctx->flag & MOD_APPLY_ORCO) {
-    switch (cache_file->type) {
-      case CACHEFILE_TYPE_ALEMBIC:
-#  ifdef WITH_ALEMBIC
-        if (!ABC_mesh_topology_changed(mcmd->reader, ctx->object, mesh, time, &err_str)) {
-          return mesh;
-        }
-#  endif
-        break;
-      case CACHEFILE_TYPE_USD:
-#  ifdef WITH_USD
-        if (!USD_mesh_topology_changed(mcmd->reader, ctx->object, mesh, time, &err_str)) {
-          return mesh;
-        }
-#  endif
-        break;
-      case CACHE_FILE_TYPE_INVALID:
-        break;
-    }
+  if (can_use_mesh_for_orco_evaluation(mcmd, ctx, mesh, time, &err_str)) {
+    return mesh;
   }
 
   if (me != nullptr) {
