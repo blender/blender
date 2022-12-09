@@ -301,7 +301,7 @@ static void oldnewmap_clear(OldNewMap *onm)
       MEM_freeN(new_addr.newp);
     }
   }
-  onm->map.clear();
+  onm->map.clear_and_shrink();
 }
 
 static void oldnewmap_free(OldNewMap *onm)
