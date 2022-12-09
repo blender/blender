@@ -44,40 +44,40 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
     const int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(image_buffer);
     if ((sima_flag & SI_USE_ALPHA) != 0) {
       /* Show RGBA */
-      r_shader_parameters.flags |= IMAGE_DRAW_FLAG_SHOW_ALPHA | IMAGE_DRAW_FLAG_APPLY_ALPHA;
+      r_shader_parameters.flags |= ImageDrawFlags::ShowAlpha | ImageDrawFlags::ApplyAlpha;
     }
     else if ((sima_flag & SI_SHOW_ALPHA) != 0) {
-      r_shader_parameters.flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
       copy_v4_fl4(r_shader_parameters.shuffle, 0.0f, 0.0f, 0.0f, 1.0f);
     }
     else if ((sima_flag & SI_SHOW_ZBUF) != 0) {
-      r_shader_parameters.flags |= IMAGE_DRAW_FLAG_DEPTH | IMAGE_DRAW_FLAG_SHUFFLING;
+      r_shader_parameters.flags |= ImageDrawFlags::Depth | ImageDrawFlags::Shuffling;
       copy_v4_fl4(r_shader_parameters.shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
     }
     else if ((sima_flag & SI_SHOW_R) != 0) {
-      r_shader_parameters.flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
       if (IMB_alpha_affects_rgb(image_buffer)) {
-        r_shader_parameters.flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
       }
       copy_v4_fl4(r_shader_parameters.shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
     }
     else if ((sima_flag & SI_SHOW_G) != 0) {
-      r_shader_parameters.flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
       if (IMB_alpha_affects_rgb(image_buffer)) {
-        r_shader_parameters.flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
       }
       copy_v4_fl4(r_shader_parameters.shuffle, 0.0f, 1.0f, 0.0f, 0.0f);
     }
     else if ((sima_flag & SI_SHOW_B) != 0) {
-      r_shader_parameters.flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
       if (IMB_alpha_affects_rgb(image_buffer)) {
-        r_shader_parameters.flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
       }
       copy_v4_fl4(r_shader_parameters.shuffle, 0.0f, 0.0f, 1.0f, 0.0f);
     }
     else /* RGB */ {
       if (IMB_alpha_affects_rgb(image_buffer)) {
-        r_shader_parameters.flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
       }
     }
   }

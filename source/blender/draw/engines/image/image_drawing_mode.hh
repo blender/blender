@@ -166,7 +166,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     DRWShadingGroup *shgrp = DRW_shgroup_create(shader, instance_data->passes.image_pass);
     DRW_shgroup_uniform_vec2_copy(shgrp, "farNearDistances", sh_params.far_near);
     DRW_shgroup_uniform_vec4_copy(shgrp, "shuffle", sh_params.shuffle);
-    DRW_shgroup_uniform_int_copy(shgrp, "drawFlags", sh_params.flags);
+    DRW_shgroup_uniform_int_copy(shgrp, "drawFlags", static_cast<int32_t>(sh_params.flags));
     DRW_shgroup_uniform_bool_copy(shgrp, "imgPremultiplied", sh_params.use_premul_alpha);
     DRW_shgroup_uniform_texture(shgrp, "depth_texture", dtxl->depth);
     float image_mat[4][4];

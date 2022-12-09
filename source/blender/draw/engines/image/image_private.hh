@@ -34,11 +34,6 @@ struct IMAGE_Data {
   IMAGE_InstanceData *instance_data;
 };
 
-/* Shader parameters. */
-#define IMAGE_DRAW_FLAG_SHOW_ALPHA (1 << 0)
-#define IMAGE_DRAW_FLAG_APPLY_ALPHA (1 << 1)
-#define IMAGE_DRAW_FLAG_SHUFFLING (1 << 2)
-#define IMAGE_DRAW_FLAG_DEPTH (1 << 3)
 
 /**
  * Abstract class for a drawing mode of the image engine.
