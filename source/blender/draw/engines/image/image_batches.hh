@@ -31,11 +31,6 @@ class BatchUpdater {
     init_batch();
   }
 
-  void discard_batch()
-  {
-    GPU_BATCH_DISCARD_SAFE(info.batch);
-  }
-
  private:
   void ensure_clear_batch()
   {
