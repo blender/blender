@@ -54,6 +54,7 @@ void register_node_type_geo_extrude_mesh();
 void register_node_type_geo_field_at_index();
 void register_node_type_geo_flip_faces();
 void register_node_type_geo_geometry_to_instance();
+void register_node_type_geo_image();
 void register_node_type_geo_image_info();
 void register_node_type_geo_image_texture();
 void register_node_type_geo_input_curve_handles();

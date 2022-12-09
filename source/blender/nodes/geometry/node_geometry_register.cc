@@ -57,6 +57,7 @@ void register_geometry_nodes()
   register_node_type_geo_field_at_index();
   register_node_type_geo_flip_faces();
   register_node_type_geo_geometry_to_instance();
+  register_node_type_geo_image();
   register_node_type_geo_image_info();
   register_node_type_geo_image_texture();
   register_node_type_geo_input_curve_handles();

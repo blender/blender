@@ -1542,6 +1542,7 @@ struct TexResult;
 #define GEO_NODE_SET_CURVE_NORMAL 1188
 #define GEO_NODE_IMAGE_INFO 1189
 #define GEO_NODE_BLUR_ATTRIBUTE 1190
+#define GEO_NODE_IMAGE 1191
 
 /** \} */
 

@@ -140,6 +140,7 @@ class NODE_MT_geometry_node_GEO_INPUT(Menu):
         node_add_menu.add_node_type(layout, "FunctionNodeInputBool")
         node_add_menu.add_node_type(layout, "GeometryNodeCollectionInfo")
         node_add_menu.add_node_type(layout, "FunctionNodeInputColor")
+        node_add_menu.add_node_type(layout, "GeometryNodeInputImage")
         node_add_menu.add_node_type(layout, "GeometryNodeImageInfo")
         node_add_menu.add_node_type(layout, "FunctionNodeInputInt")
         node_add_menu.add_node_type(layout, "GeometryNodeIsViewport")
