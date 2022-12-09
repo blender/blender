@@ -519,7 +519,7 @@ void CurvesGeometry::ensure_evaluated_offsets() const
       this->runtime->bezier_evaluated_offsets.resize(this->points_num());
     }
     else {
-      this->runtime->bezier_evaluated_offsets.clear_and_make_inline();
+      this->runtime->bezier_evaluated_offsets.clear_and_shrink();
     }
 
     calculate_evaluated_offsets(
@@ -605,7 +605,7 @@ Span<float3> CurvesGeometry::evaluated_positions() const
   this->runtime->position_cache_mutex.ensure([&]() {
     if (this->is_single_type(CURVE_TYPE_POLY)) {
       this->runtime->evaluated_positions_span = this->positions();
-      this->runtime->evaluated_position_cache.clear_and_make_inline();
+      this->runtime->evaluated_position_cache.clear_and_shrink();
       return;
     }
 

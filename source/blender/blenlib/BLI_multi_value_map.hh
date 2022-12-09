@@ -150,6 +150,11 @@ template<typename Key, typename Value> class MultiValueMap {
   {
     map_.clear();
   }
+
+  void clear_and_shrink()
+  {
+    map_.clear_and_shrink();
+  }
 };
 
 }  // namespace blender
