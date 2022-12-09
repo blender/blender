@@ -191,7 +191,7 @@ void register_node_type_cmp_rgbtobw()
 
   cmp_node_type_base(&ntype, CMP_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_rgbtobw_declare;
-  node_type_size_preset(&ntype, NODE_SIZE_SMALL);
+  node_type_size_preset(&ntype, NODE_SIZE_DEFAULT);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   nodeRegisterType(&ntype);
