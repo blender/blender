@@ -14,6 +14,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
+#include "BKE_geometry_fields.hh"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 
@@ -442,6 +443,11 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
              value_field_ == other_blur->value_field_ && iterations_ == other_blur->iterations_;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const GeometryComponent &component) const override
+  {
+    return bke::try_detect_field_domain(component, value_field_);
   }
 };
 
