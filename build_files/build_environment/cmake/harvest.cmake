@@ -63,6 +63,8 @@ endfunction()
 # Ideally this would be done as part of the Blender build since it makes assumptions
 # about where the files will be installed. However it would add patchelf as a new
 # dependency for building.
+#
+# Also removes versioned symlinks, which give errors with macOS notarization.
 if(APPLE)
   set(set_rpath_cmd python3 ${CMAKE_CURRENT_SOURCE_DIR}/darwin/set_rpath.py @loader_path)
 else()
@@ -76,7 +78,11 @@ function(harvest_rpath_lib from to pattern)
     cmake_policy(SET CMP0009 NEW)\n
     file(GLOB_RECURSE shared_libs ${HARVEST_TARGET}/${to}/${pattern}) \n
     foreach(f \${shared_libs}) \n
-      if(NOT IS_SYMLINK \${f})\n
+      if(IS_SYMLINK \${f})\n
+        if(APPLE)\n
+          file(REMOVE_RECURSE \${f})
+        endif()\n
+      else()\n
         execute_process(COMMAND ${set_rpath_cmd} \${f}) \n
       endif()\n
     endforeach()")
@@ -101,15 +107,21 @@ function(harvest_rpath_python from to pattern)
   install(CODE "\
     file(GLOB_RECURSE shared_libs ${HARVEST_TARGET}/${to}/${pattern}\.so*) \n
     foreach(f \${shared_libs}) \n
-      get_filename_component(f_dir \${f} DIRECTORY) \n
-      file(RELATIVE_PATH relative_dir \${f_dir} ${HARVEST_TARGET}) \n
-      execute_process(COMMAND ${set_rpath_cmd}/\${relative_dir}../lib \${f}) \n
+      if(IS_SYMLINK \${f})\n
+        if(APPLE)\n
+          file(REMOVE_RECURSE \${f})
+        endif()\n
+      else()\n
+        get_filename_component(f_dir \${f} DIRECTORY) \n
+        file(RELATIVE_PATH relative_dir \${f_dir} ${HARVEST_TARGET}) \n
+        execute_process(COMMAND ${set_rpath_cmd}/\${relative_dir}../lib \${f}) \n
+      endif()\n
     endforeach()")
 endfunction()
 
 harvest(alembic/include alembic/include "*.h")
 harvest(alembic/lib/libAlembic.a alembic/lib/libAlembic.a)
-harvest(alembic/bin alembic/bin "*")
+harvest_rpath_bin(alembic/bin alembic/bin "*")
 harvest(brotli/include brotli/include "*.h")
 harvest(brotli/lib brotli/lib "*.a")
 harvest(boost/include boost/include "*")
@@ -151,7 +163,7 @@ harvest(llvm/lib llvm/lib "libLLVM*.a")
 harvest(llvm/lib llvm/lib "libclang*.a")
 harvest(llvm/lib/clang llvm/lib/clang "*.h")
 if(APPLE)
-  harvest(openmp/lib openmp/lib "*")
+  harvest(openmp/lib openmp/lib "libomp.dylib")
   harvest(openmp/include openmp/include "*.h")
 endif()
 if(BLENDER_PLATFORM_ARM)
@@ -242,9 +254,8 @@ harvest(usd/lib/usd usd/lib/usd "*")
 harvest_rpath_python(usd/lib/python/pxr python/lib/python${PYTHON_SHORT_VERSION}/site-packages/pxr "*")
 harvest(usd/plugin usd/plugin "*")
 harvest(materialx/include materialx/include "*.h")
-harvest(materialx/lib materialx/lib "*")
+harvest_rpath_lib(materialx/lib materialx/lib "*${SHAREDLIBEXT}*")
 harvest(materialx/libraries materialx/libraries "*")
-harvest(materialx/python materialx/python "*")
 harvest(materialx/lib/cmake/MaterialX materialx/lib/cmake/MaterialX "*.cmake")
 harvest_rpath_python(materialx/python/MaterialX python/lib/python${PYTHON_SHORT_VERSION}/site-packages/MaterialX "*")
 # We do not need anything from the resources folder, but the MaterialX config
