@@ -2066,6 +2066,14 @@ typedef enum CMPNodeTrackPositionMode {
   CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME = 3,
 } CMPNodeTrackPositionMode;
 
+/* Glare Node. Stored in NodeGlare.type. */
+typedef enum CMPNodeGlareType {
+  CMP_NODE_GLARE_SIMPLE_STAR = 0,
+  CMP_NODE_GLARE_FOG_GLOW = 1,
+  CMP_NODE_GLARE_STREAKS = 2,
+  CMP_NODE_GLARE_GHOST = 3,
+} CMPNodeGlareType;
+
 /* Plane track deform node. */
 
 enum {
