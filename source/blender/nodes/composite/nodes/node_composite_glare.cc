@@ -9,6 +9,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_index_range.hh"
+#include "BLI_math_base.hh"
 #include "BLI_math_vec_types.hh"
 
 #include "DNA_scene_types.h"
@@ -127,10 +128,10 @@ class GlareOperation : public NodeOperation {
       return true;
     }
 
-    /* Only the ghost operation is currently supported. */
+    /* Only the ghost and simple star operations are currently supported. */
     switch (node_storage(bnode()).type) {
       case CMP_NODE_GLARE_SIMPLE_STAR:
-        return true;
+        return false;
       case CMP_NODE_GLARE_FOG_GLOW:
         return true;
       case CMP_NODE_GLARE_STREAKS:
@@ -198,11 +199,139 @@ class GlareOperation : public NodeOperation {
    * Simple Star Glare.
    * ------------------ */
 
-  /* Not yet implemented. Unreachable code due to the is_identity method. */
   Result execute_simple_star(Result &highlights_result)
   {
-    BLI_assert_unreachable();
-    return Result(ResultType::Color, texture_pool());
+    if (node_storage(bnode()).star_45) {
+      return execute_simple_star_diagonal(highlights_result);
+    }
+    else {
+      return execute_simple_star_axis_aligned(highlights_result);
+    }
+  }
+
+  Result execute_simple_star_axis_aligned(Result &highlights_result)
+  {
+    Result horizontal_pass_result = execute_simple_star_horizontal_pass(highlights_result);
+
+    /* The vertical pass is applied in-plane, but the highlights result is no longer needed,
+     * so just use it as the pass result. */
+    Result &vertical_pass_result = highlights_result;
+
+    GPUShader *shader = shader_manager().get("compositor_glare_simple_star_vertical_pass");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1i(shader, "iterations", get_number_of_iterations());
+    GPU_shader_uniform_1f(shader, "fade_factor", node_storage(bnode()).fade);
+
+    horizontal_pass_result.bind_as_texture(shader, "horizontal_tx");
+
+    vertical_pass_result.bind_as_image(shader, "vertical_img");
+
+    /* Dispatch a thread for each column in the image. */
+    const int width = get_glare_size().x;
+    compute_dispatch_threads_at_least(shader, int2(width, 1));
+
+    horizontal_pass_result.unbind_as_texture();
+    vertical_pass_result.unbind_as_image();
+    GPU_shader_unbind();
+
+    horizontal_pass_result.release();
+
+    return vertical_pass_result;
+  }
+
+  Result execute_simple_star_horizontal_pass(Result &highlights_result)
+  {
+    /* The horizontal pass is applied in-plane, so copy the highlights to a new image since the
+     * highlights result is still needed by the vertical pass. */
+    const int2 glare_size = get_glare_size();
+    Result horizontal_pass_result = Result::Temporary(ResultType::Color, texture_pool());
+    horizontal_pass_result.allocate_texture(glare_size);
+    GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+    GPU_texture_copy(horizontal_pass_result.texture(), highlights_result.texture());
+
+    GPUShader *shader = shader_manager().get("compositor_glare_simple_star_horizontal_pass");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1i(shader, "iterations", get_number_of_iterations());
+    GPU_shader_uniform_1f(shader, "fade_factor", node_storage(bnode()).fade);
+
+    horizontal_pass_result.bind_as_image(shader, "horizontal_img");
+
+    /* Dispatch a thread for each row in the image. */
+    compute_dispatch_threads_at_least(shader, int2(glare_size.y, 1));
+
+    horizontal_pass_result.unbind_as_image();
+    GPU_shader_unbind();
+
+    return horizontal_pass_result;
+  }
+
+  Result execute_simple_star_diagonal(Result &highlights_result)
+  {
+    Result diagonal_pass_result = execute_simple_star_diagonal_pass(highlights_result);
+
+    /* The anti-diagonal pass is applied in-plane, but the highlights result is no longer needed,
+     * so just use it as the pass result. */
+    Result &anti_diagonal_pass_result = highlights_result;
+
+    GPUShader *shader = shader_manager().get("compositor_glare_simple_star_anti_diagonal_pass");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1i(shader, "iterations", get_number_of_iterations());
+    GPU_shader_uniform_1f(shader, "fade_factor", node_storage(bnode()).fade);
+
+    diagonal_pass_result.bind_as_texture(shader, "diagonal_tx");
+
+    anti_diagonal_pass_result.bind_as_image(shader, "anti_diagonal_img");
+
+    /* Dispatch a thread for each diagonal in the image. */
+    compute_dispatch_threads_at_least(shader, int2(compute_simple_star_diagonals_count(), 1));
+
+    diagonal_pass_result.unbind_as_texture();
+    anti_diagonal_pass_result.unbind_as_image();
+    GPU_shader_unbind();
+
+    diagonal_pass_result.release();
+
+    return anti_diagonal_pass_result;
+  }
+
+  Result execute_simple_star_diagonal_pass(Result &highlights_result)
+  {
+    /* The diagonal pass is applied in-plane, so copy the highlights to a new image since the
+     * highlights result is still needed by the anti-diagonal pass. */
+    const int2 glare_size = get_glare_size();
+    Result diagonal_pass_result = Result::Temporary(ResultType::Color, texture_pool());
+    diagonal_pass_result.allocate_texture(glare_size);
+    GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+    GPU_texture_copy(diagonal_pass_result.texture(), highlights_result.texture());
+
+    GPUShader *shader = shader_manager().get("compositor_glare_simple_star_diagonal_pass");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1i(shader, "iterations", get_number_of_iterations());
+    GPU_shader_uniform_1f(shader, "fade_factor", node_storage(bnode()).fade);
+
+    diagonal_pass_result.bind_as_image(shader, "diagonal_img");
+
+    /* Dispatch a thread for each diagonal in the image. */
+    compute_dispatch_threads_at_least(shader, int2(compute_simple_star_diagonals_count(), 1));
+
+    diagonal_pass_result.unbind_as_image();
+    GPU_shader_unbind();
+
+    return diagonal_pass_result;
+  }
+
+  /* The Star 45 option of the Simple Star mode of glare is applied on the diagonals of the image.
+   * This method computes the number of diagonals in the glare image. For more information on the
+   * used equation, see the compute_number_of_diagonals function in the following shader library
+   * file: gpu_shader_compositor_image_diagonals.glsl */
+  int compute_simple_star_diagonals_count()
+  {
+    const int2 size = get_glare_size();
+    return size.x + size.y - 1;
   }
 
   /* ---------------

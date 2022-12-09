@@ -44,3 +44,41 @@ GPU_SHADER_CREATE_INFO(compositor_glare_ghost_accumulate)
     .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "accumulated_ghost_img")
     .compute_source("compositor_glare_ghost_accumulate.glsl")
     .do_static_compilation(true);
+
+/* -----------
+ * Simple Star
+ * ----------- */
+
+GPU_SHADER_CREATE_INFO(compositor_glare_simple_star_horizontal_pass)
+    .local_group_size(16)
+    .push_constant(Type::INT, "iterations")
+    .push_constant(Type::FLOAT, "fade_factor")
+    .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "horizontal_img")
+    .compute_source("compositor_glare_simple_star_horizontal_pass.glsl")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_glare_simple_star_vertical_pass)
+    .local_group_size(16)
+    .push_constant(Type::INT, "iterations")
+    .push_constant(Type::FLOAT, "fade_factor")
+    .sampler(0, ImageType::FLOAT_2D, "horizontal_tx")
+    .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "vertical_img")
+    .compute_source("compositor_glare_simple_star_vertical_pass.glsl")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_glare_simple_star_diagonal_pass)
+    .local_group_size(16)
+    .push_constant(Type::INT, "iterations")
+    .push_constant(Type::FLOAT, "fade_factor")
+    .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "diagonal_img")
+    .compute_source("compositor_glare_simple_star_diagonal_pass.glsl")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_glare_simple_star_anti_diagonal_pass)
+    .local_group_size(16)
+    .push_constant(Type::INT, "iterations")
+    .push_constant(Type::FLOAT, "fade_factor")
+    .sampler(0, ImageType::FLOAT_2D, "diagonal_tx")
+    .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "anti_diagonal_img")
+    .compute_source("compositor_glare_simple_star_anti_diagonal_pass.glsl")
+    .do_static_compilation(true);

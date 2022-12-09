@@ -102,6 +102,10 @@ set(GLSL_SRC
   shaders/compositor_glare_ghost_base.glsl
   shaders/compositor_glare_highlights.glsl
   shaders/compositor_glare_mix.glsl
+  shaders/compositor_glare_simple_star_anti_diagonal_pass.glsl
+  shaders/compositor_glare_simple_star_diagonal_pass.glsl
+  shaders/compositor_glare_simple_star_horizontal_pass.glsl
+  shaders/compositor_glare_simple_star_vertical_pass.glsl
   shaders/compositor_image_crop.glsl
   shaders/compositor_morphological_distance.glsl
   shaders/compositor_morphological_distance_feather.glsl
@@ -135,6 +139,7 @@ set(GLSL_SRC
   shaders/library/gpu_shader_compositor_gamma.glsl
   shaders/library/gpu_shader_compositor_hue_correct.glsl
   shaders/library/gpu_shader_compositor_hue_saturation_value.glsl
+  shaders/library/gpu_shader_compositor_image_diagonals.glsl
   shaders/library/gpu_shader_compositor_invert.glsl
   shaders/library/gpu_shader_compositor_luminance_matte.glsl
   shaders/library/gpu_shader_compositor_main.glsl
