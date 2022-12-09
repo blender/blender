@@ -106,6 +106,8 @@ static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*
   return (mcmd->cache_file == nullptr) || (mcmd->object_path[0] == '\0');
 }
 
+#if defined(WITH_USD) || defined(WITH_ALEMBIC)
+
 /* Return true if the modifier evaluation is for the ORCO mesh and the mesh hasn't changed
  * topology.
  */
@@ -123,18 +125,18 @@ static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
 
   switch (cache_file->type) {
     case CACHEFILE_TYPE_ALEMBIC:
-#ifdef WITH_ALEMBIC
+#  ifdef WITH_ALEMBIC
       if (!ABC_mesh_topology_changed(mcmd->reader, ctx->object, mesh, time, err_str)) {
         return true;
       }
-#endif
+#  endif
       break;
     case CACHEFILE_TYPE_USD:
-#ifdef WITH_USD
+#  ifdef WITH_USD
       if (!USD_mesh_topology_changed(mcmd->reader, ctx->object, mesh, time, err_str)) {
         return true;
       }
-#endif
+#  endif
       break;
     case CACHE_FILE_TYPE_INVALID:
       break;
@@ -157,6 +159,8 @@ static Mesh *generate_bounding_box_mesh(const Mesh *org_mesh)
 
   return result;
 }
+
+#endif
 
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
@@ -261,7 +265,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   return result ? result : mesh;
 #else
-  UNUSED_VARS(ctx, md, generate_bounding_box_mesh);
+  UNUSED_VARS(ctx, md);
   return mesh;
 #endif
 }
