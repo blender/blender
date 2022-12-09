@@ -896,7 +896,7 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
         RPT_WARNING,
         "Proxies have been removed from Blender (%d proxies were automatically converted "
         "to library overrides, %d proxies could not be converted and were cleared). "
-        "Please also consider re-saving any library .blend file with the newest Blender version",
+        "Consider re-saving any library .blend file with the newest Blender version",
         bf_reports->count.proxies_to_lib_overrides_success,
         bf_reports->count.proxies_to_lib_overrides_failures);
   }

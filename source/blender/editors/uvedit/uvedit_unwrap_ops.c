@@ -999,7 +999,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
                   "fill_holes",
                   1,
                   "Fill Holes",
-                  "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and "
+                  "Virtually fill holes in mesh before unwrapping, to better avoid overlaps and "
                   "preserve symmetry");
   RNA_def_float_factor(ot->srna,
                        "blend",
@@ -2064,7 +2064,7 @@ void UV_OT_unwrap(wmOperatorType *ot)
                   "fill_holes",
                   1,
                   "Fill Holes",
-                  "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and "
+                  "Virtually fill holes in mesh before unwrapping, to better avoid overlaps and "
                   "preserve symmetry");
   RNA_def_boolean(ot->srna,
                   "correct_aspect",

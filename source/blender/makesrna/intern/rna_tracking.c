@@ -900,7 +900,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem speed_items[] = {
-      {0, "FASTEST", 0, "Fastest", "Track as fast as it's possible"},
+      {0, "FASTEST", 0, "Fastest", "Track as fast as possible"},
       {TRACKING_SPEED_DOUBLE, "DOUBLE", 0, "Double", "Track with double speed"},
       {TRACKING_SPEED_REALTIME, "REALTIME", 0, "Realtime", "Track with realtime speed"},
       {TRACKING_SPEED_HALF, "HALF", 0, "Half", "Track with half of realtime speed"},

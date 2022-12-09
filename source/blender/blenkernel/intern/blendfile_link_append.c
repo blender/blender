@@ -1001,7 +1001,7 @@ static void blendfile_link_append_proxies_convert(Main *bmain, ReportList *repor
         RPT_WARNING,
         "Proxies have been removed from Blender (%d proxies were automatically converted "
         "to library overrides, %d proxies could not be converted and were cleared). "
-        "Please consider re-saving any library .blend file with the newest Blender version",
+        "Consider re-saving any library .blend file with the newest Blender version",
         bf_reports.count.proxies_to_lib_overrides_success,
         bf_reports.count.proxies_to_lib_overrides_failures);
   }

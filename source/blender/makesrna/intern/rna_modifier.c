@@ -5669,7 +5669,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Generate Normals",
-      "Output normals for bump mapping - disabling can speed up performance if its not needed");
+      "Output normals for bump mapping - disabling can speed up performance if it's not needed");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 
   prop = RNA_def_property(srna, "use_foam", PROP_BOOLEAN, PROP_NONE);

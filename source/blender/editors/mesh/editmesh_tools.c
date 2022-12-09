@@ -8687,7 +8687,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
             break;
 
           default:
-            BKE_report(op->reports, RPT_WARNING, "Does not support Individual Origin as pivot");
+            BKE_report(op->reports, RPT_WARNING, "Does not support Individual Origins as pivot");
             copy_v3_v3(target, obedit->loc);
         }
         ret = OPERATOR_RUNNING_MODAL;

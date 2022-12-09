@@ -79,7 +79,7 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *fx = stl->effects;
 
-  /* XXX TODO: OPTIMIZATION: This is a complete waist of texture memory.
+  /* XXX TODO: OPTIMIZATION: This is a complete waste of texture memory.
    * Instead of allocating each planar probe for each viewport,
    * only alloc them once using the biggest viewport resolution. */
 

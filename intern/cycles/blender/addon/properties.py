@@ -1206,7 +1206,7 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
     )
     homogeneous_volume: BoolProperty(
         name="Homogeneous Volume",
-        description="When using volume rendering, assume volume has the same density everywhere"
+        description="When using volume rendering, assume volume has the same density everywhere "
         "(not using any textures), for faster rendering",
         default=False,
     )

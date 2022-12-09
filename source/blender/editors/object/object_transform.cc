@@ -748,7 +748,7 @@ static int apply_objects_internal(bContext *C,
       if (apply_rot || apply_loc) {
         BKE_reportf(reports,
                     RPT_ERROR,
-                    "Text objects can only have scale applied: \"%s\"",
+                    "Text objects can only have their scale applied: \"%s\"",
                     ob->id.name + 2);
         changed = false;
       }

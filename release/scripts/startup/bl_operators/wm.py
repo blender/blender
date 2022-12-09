@@ -2084,7 +2084,7 @@ class WM_OT_operator_cheat_sheet(Operator):
 # Add-on Operators
 
 class WM_OT_owner_enable(Operator):
-    """Enable workspace owner ID"""
+    """Enable add-on for workspace"""
     bl_idname = "wm.owner_enable"
     bl_label = "Enable Add-on"
 
@@ -2099,9 +2099,9 @@ class WM_OT_owner_enable(Operator):
 
 
 class WM_OT_owner_disable(Operator):
-    """Enable workspace owner ID"""
+    """Disable add-on for workspace"""
     bl_idname = "wm.owner_disable"
-    bl_label = "Disable UI Tag"
+    bl_label = "Disable Add-on"
 
     owner_id: StringProperty(
         name="UI Tag",
