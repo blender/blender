@@ -215,7 +215,7 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
 
   const float max_radius = *std::max_element(radii.begin(), radii.end());
   const float voxel_size = compute_voxel_size(params, positions, max_radius);
-  const double determinant = std::pow<double>(voxel_size, 3.0);
+  const double determinant = std::pow(double(voxel_size), 3.0);
   if (!BKE_volume_grid_determinant_valid(determinant)) {
     return;
   }
