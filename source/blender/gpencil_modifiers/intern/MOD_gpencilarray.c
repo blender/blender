@@ -113,7 +113,45 @@ static void BKE_gpencil_instance_modifier_instance_tfm(Object *ob,
     zero_v3(r_mat[3]);
   }
 }
+static bool gpencil_data_selected_minmax(ArrayGpencilModifierData *mmd,
+                                         Object *ob,
+                                         float r_min[3],
+                                         float r_max[3])
+{
+  bGPdata *gpd = (bGPdata *)ob->data;
+  bool changed = false;
 
+  INIT_MINMAX(r_min, r_max);
+
+  if (gpd == NULL) {
+    return changed;
+  }
+
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    bGPDframe *gpf = gpl->actframe;
+
+    if (gpf != NULL) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+        if (is_stroke_affected_by_modifier(ob,
+                                           mmd->layername,
+                                           mmd->material,
+                                           mmd->pass_index,
+                                           mmd->layer_pass,
+                                           1,
+                                           gpl,
+                                           gps,
+                                           mmd->flag & GP_ARRAY_INVERT_LAYER,
+                                           mmd->flag & GP_ARRAY_INVERT_PASS,
+                                           mmd->flag & GP_ARRAY_INVERT_LAYERPASS,
+                                           mmd->flag & GP_ARRAY_INVERT_MATERIAL)) {
+          changed |= BKE_gpencil_stroke_minmax(gps, false, r_min, r_max);
+        }
+      }
+    }
+  }
+
+  return changed;
+}
 /* array modifier - generate geometry callback (for viewport/rendering) */
 static void generate_geometry(GpencilModifierData *md,
                               Depsgraph *depsgraph,
@@ -131,7 +169,7 @@ static void generate_geometry(GpencilModifierData *md,
   if (mmd->flag & GP_ARRAY_USE_RELATIVE) {
     float min[3];
     float max[3];
-    if (BKE_gpencil_data_minmax(gpd, min, max)) {
+    if (gpencil_data_selected_minmax(mmd, ob, min, max)) {
       sub_v3_v3v3(size, max, min);
       /* Need a minimum size (for flat drawings). */
       CLAMP3_MIN(size, 0.01f);
