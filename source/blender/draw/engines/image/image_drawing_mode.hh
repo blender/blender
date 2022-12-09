@@ -22,12 +22,28 @@ namespace blender::draw::image_engine {
 constexpr float EPSILON_UV_BOUNDS = 0.00001f;
 
 /**
- * \brief Screen space method using a 4 textures spawning the whole screen.
+ * \brief Screen space method using a multiple textures covering the region.
+ *
  */
-struct FullScreenTextures {
+template<size_t Divisions> class ScreenTileTextures {
+ public:
+  static const size_t TexturesPerDimension = Divisions + 1;
+  static const size_t TexturesRequired = TexturesPerDimension * TexturesPerDimension;
+  static const size_t VerticesPerDimension = TexturesPerDimension + 1;
+
+ private:
+  /**
+   * \brief Helper struct to pair a texture info and a region in uv space of the area.
+   */
+  struct TextureInfoBounds {
+    TextureInfo *info = nullptr;
+    rctf uv_bounds;
+  };
+
   IMAGE_InstanceData *instance_data;
 
-  FullScreenTextures(IMAGE_InstanceData *instance_data) : instance_data(instance_data)
+ public:
+  ScreenTileTextures(IMAGE_InstanceData *instance_data) : instance_data(instance_data)
   {
   }
 
@@ -36,7 +52,7 @@ struct FullScreenTextures {
    */
   void ensure_texture_infos()
   {
-    instance_data->texture_infos.resize(4);
+    instance_data->texture_infos.resize(TexturesRequired);
   }
 
   /**
@@ -44,112 +60,105 @@ struct FullScreenTextures {
    */
   void update_bounds(const ARegion *region)
   {
-    // determine uv_area of the region.
+    /* determine uv_area of the region. */
+    Vector<TextureInfo *> unassigned_textures;
     float4x4 mat = float4x4(instance_data->ss_to_texture).inverted();
     float2 region_uv_min = float2(mat * float3(0.0f, 0.0f, 0.0f));
     float2 region_uv_max = float2(mat * float3(1.0f, 1.0f, 0.0f));
     float2 region_uv_span = region_uv_max - region_uv_min;
+
+    /* Calculate uv coordinates of each vert in the grid of textures. */
+
+    /* Construct the uv bounds of the 4 textures that are needed to fill the region. */
+    Vector<TextureInfoBounds> info_bounds = create_uv_bounds(region_uv_span, region_uv_min);
+    assign_texture_infos_by_uv_bounds(info_bounds, unassigned_textures);
+    assign_unused_texture_infos(info_bounds, unassigned_textures);
+
+    /* Calculate the region bounds from the uv bounds. */
     rctf region_uv_bounds;
     BLI_rctf_init(
         &region_uv_bounds, region_uv_min.x, region_uv_max.x, region_uv_min.y, region_uv_max.y);
-
-    /* Calculate 9 coordinates that will be used as uv bounds of the textures. */
-    float2 onscreen_multiple = (blender::math::floor(region_uv_min / region_uv_span) +
-                                float2(1.0f)) *
-                               region_uv_span;
-    BLI_assert(onscreen_multiple.x > region_uv_min.x);
-    BLI_assert(onscreen_multiple.y > region_uv_min.y);
-    BLI_assert(onscreen_multiple.x < region_uv_max.x);
-    BLI_assert(onscreen_multiple.y < region_uv_max.y);
-    float2 uv_coords[3][3];
-    uv_coords[0][0] = onscreen_multiple + float2(-region_uv_span.x, -region_uv_span.y);
-    uv_coords[0][1] = onscreen_multiple + float2(-region_uv_span.x, 0.0);
-    uv_coords[0][2] = onscreen_multiple + float2(-region_uv_span.x, region_uv_span.y);
-    uv_coords[1][0] = onscreen_multiple + float2(0.0f, -region_uv_span.y);
-    uv_coords[1][1] = onscreen_multiple + float2(0.0f, 0.0);
-    uv_coords[1][2] = onscreen_multiple + float2(0.0f, region_uv_span.y);
-    uv_coords[2][0] = onscreen_multiple + float2(region_uv_span.x, -region_uv_span.y);
-    uv_coords[2][1] = onscreen_multiple + float2(region_uv_span.x, 0.0);
-    uv_coords[2][2] = onscreen_multiple + float2(region_uv_span.x, region_uv_span.y);
-
-    /* Construct the uv bounds of the 4 textures that are needed to fill the region. */
-    Vector<TextureInfo *> unassigned_textures;
-    struct TextureInfoBounds {
-      TextureInfo *info = nullptr;
-      rctf uv_bounds;
-    };
-    TextureInfoBounds bottom_left;
-    TextureInfoBounds bottom_right;
-    TextureInfoBounds top_left;
-    TextureInfoBounds top_right;
-
-    BLI_rctf_init(&bottom_left.uv_bounds,
-                  uv_coords[0][0].x,
-                  uv_coords[1][1].x,
-                  uv_coords[0][0].y,
-                  uv_coords[1][1].y);
-    BLI_rctf_init(&bottom_right.uv_bounds,
-                  uv_coords[1][0].x,
-                  uv_coords[2][1].x,
-                  uv_coords[1][0].y,
-                  uv_coords[2][1].y);
-    BLI_rctf_init(&top_left.uv_bounds,
-                  uv_coords[0][1].x,
-                  uv_coords[1][2].x,
-                  uv_coords[0][1].y,
-                  uv_coords[1][2].y);
-    BLI_rctf_init(&top_right.uv_bounds,
-                  uv_coords[1][1].x,
-                  uv_coords[2][2].x,
-                  uv_coords[1][1].y,
-                  uv_coords[2][2].y);
-    Vector<TextureInfoBounds *> info_bounds;
-    info_bounds.append(&bottom_left);
-    info_bounds.append(&bottom_right);
-    info_bounds.append(&top_left);
-    info_bounds.append(&top_right);
-
-    /* Assign any existing texture that matches uv bounds. */
-    for (TextureInfo &info : instance_data->texture_infos) {
-      bool assigned = false;
-      for (TextureInfoBounds *info_bound : info_bounds) {
-        if (info_bound->info == nullptr &&
-            BLI_rctf_compare(&info_bound->uv_bounds, &info.clipping_uv_bounds, 0.001)) {
-          info_bound->info = &info;
-          assigned = true;
-          break;
-        }
-      }
-      if (!assigned) {
-        unassigned_textures.append(&info);
-      }
-    }
-
-    /* Assign free textures to bounds that weren't found. */
-    for (TextureInfoBounds *info_bound : info_bounds) {
-      if (info_bound->info == nullptr) {
-        info_bound->info = unassigned_textures.pop_last();
-        info_bound->info->need_full_update = true;
-        info_bound->info->clipping_uv_bounds = info_bound->uv_bounds;
-      }
-    }
-
-    /* Calculate the region bounds from the uv bounds. */
-    rctf region_bounds;
-    BLI_rctf_init(&region_bounds, 0.0, region->winx, 0.0, region->winy);
-    float4x4 uv_to_screen;
-    BLI_rctf_transform_calc_m4_pivot_min(&region_uv_bounds, &region_bounds, uv_to_screen.ptr());
-    for (TextureInfo &info : instance_data->texture_infos) {
-      info.calc_region_bounds_from_uv_bounds(uv_to_screen);
-    }
+    update_region_bounds_from_uv_bounds(region_uv_bounds, float2(region->winx, region->winy));
   }
 
   void ensure_gpu_textures_allocation()
   {
     float2 viewport_size = DRW_viewport_size_get();
-    int2 texture_size(viewport_size.x, viewport_size.y);
+    int2 texture_size(ceil(viewport_size.x / Divisions), ceil(viewport_size.y / Divisions));
     for (TextureInfo &info : instance_data->texture_infos) {
       info.ensure_gpu_texture(texture_size);
+    }
+  }
+
+ private:
+  Vector<TextureInfoBounds> create_uv_bounds(float2 region_uv_span, float2 region_uv_min)
+  {
+    float2 uv_coords[VerticesPerDimension][VerticesPerDimension];
+    float2 region_tile_uv_span = region_uv_span / float2(float(Divisions));
+    float2 onscreen_multiple = (blender::math::floor(region_uv_min / region_tile_uv_span) +
+                                float2(1.0f)) *
+                               region_tile_uv_span;
+    for (int y = 0; y < VerticesPerDimension; y++) {
+      for (int x = 0; x < VerticesPerDimension; x++) {
+        uv_coords[x][y] = region_tile_uv_span * float2(float(x - 1), float(y - 1)) +
+                          onscreen_multiple;
+      }
+    }
+
+    Vector<TextureInfoBounds> info_bounds;
+    for (int x = 0; x < TexturesPerDimension; x++) {
+      for (int y = 0; y < TexturesPerDimension; y++) {
+        TextureInfoBounds texture_info_bounds;
+        BLI_rctf_init(&texture_info_bounds.uv_bounds,
+                      uv_coords[x][y].x,
+                      uv_coords[x + 1][y + 1].x,
+                      uv_coords[x][y].y,
+                      uv_coords[x + 1][y + 1].y);
+        info_bounds.append(texture_info_bounds);
+      }
+    }
+    return info_bounds;
+  }
+
+  void assign_texture_infos_by_uv_bounds(Vector<TextureInfoBounds> &info_bounds,
+                                         Vector<TextureInfo *> &r_unassigned_textures)
+  {
+    for (TextureInfo &info : instance_data->texture_infos) {
+      bool assigned = false;
+      for (TextureInfoBounds &info_bound : info_bounds) {
+        if (info_bound.info == nullptr &&
+            BLI_rctf_compare(&info_bound.uv_bounds, &info.clipping_uv_bounds, 0.001)) {
+          info_bound.info = &info;
+          assigned = true;
+          break;
+        }
+      }
+      if (!assigned) {
+        r_unassigned_textures.append(&info);
+      }
+    }
+  }
+
+  void assign_unused_texture_infos(Vector<TextureInfoBounds> &info_bounds,
+                                   Vector<TextureInfo *> &unassigned_textures)
+  {
+    for (TextureInfoBounds &info_bound : info_bounds) {
+      if (info_bound.info == nullptr) {
+        info_bound.info = unassigned_textures.pop_last();
+        info_bound.info->need_full_update = true;
+        info_bound.info->clipping_uv_bounds = info_bound.uv_bounds;
+      }
+    }
+  }
+
+  void update_region_bounds_from_uv_bounds(const rctf &region_uv_bounds, const float2 region_size)
+  {
+    rctf region_bounds;
+    BLI_rctf_init(&region_bounds, 0.0, region_size.x, 0.0, region_size.y);
+    float4x4 uv_to_screen;
+    BLI_rctf_transform_calc_m4_pivot_min(&region_uv_bounds, &region_bounds, uv_to_screen.ptr());
+    for (TextureInfo &info : instance_data->texture_infos) {
+      info.update_region_bounds_from_uv_bounds(uv_to_screen);
     }
   }
 };
@@ -523,19 +532,20 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
   {
     const DRWContextState *draw_ctx = DRW_context_state_get();
     IMAGE_InstanceData *instance_data = vedata->instance_data;
+
     TextureMethod method(instance_data);
+    method.ensure_texture_infos();
 
     instance_data->partial_update.ensure_image(image);
     instance_data->clear_need_full_update_flag();
     instance_data->float_buffers.reset_usage_flags();
 
-    /* Step: Find out which screen space textures are needed to draw on the screen. Remove the
-     * screen space textures that aren't needed. */
-    method.ensure_texture_infos();
+    /* Step: Find out which screen space textures are needed to draw on the screen. Recycle
+     * textures that are not on screen anymore. */
     const ARegion *region = draw_ctx->region;
     method.update_bounds(region);
 
-    /* Check for changes in the image user compared to the last time. */
+    /* Step: Check for changes in the image user compared to the last time. */
     instance_data->update_image_usage(iuser);
 
     /* Step: Update the GPU textures based on the changes in the image. */

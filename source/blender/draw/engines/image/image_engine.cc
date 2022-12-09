@@ -53,7 +53,7 @@ template<
      *
      * Useful during development to switch between drawing implementations.
      */
-    typename DrawingMode = ScreenSpaceDrawingMode<FullScreenTextures>>
+    typename DrawingMode = ScreenSpaceDrawingMode<ScreenTileTextures<1>>>
 class ImageEngine {
  private:
   const DRWContextState *draw_ctx;

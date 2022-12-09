@@ -35,12 +35,12 @@ struct TextureInfo {
    * `pos` (2xF32) is relative to the origin of the space.
    * `uv` (2xF32) reflect the uv bounds.
    */
-  GPUBatch *batch;
+  GPUBatch *batch = nullptr;
 
   /**
    * \brief GPU Texture for a partial region of the image editor.
    */
-  GPUTexture *texture;
+  GPUTexture *texture = nullptr;
 
   int2 last_texture_size = int2(0);
 
@@ -71,7 +71,7 @@ struct TextureInfo {
   /**
    * \brief Update the region bounds from the uv bounds by applying the given transform matrix.
    */
-  void calc_region_bounds_from_uv_bounds(const float4x4 &uv_to_region)
+  void update_region_bounds_from_uv_bounds(const float4x4 &uv_to_region)
   {
     float3 bottom_left_uv = float3(clipping_uv_bounds.xmin, clipping_uv_bounds.ymin, 0.0f);
     float3 top_right_uv = float3(clipping_uv_bounds.xmax, clipping_uv_bounds.ymax, 0.0f);
