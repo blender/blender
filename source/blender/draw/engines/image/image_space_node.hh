@@ -77,18 +77,6 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
     }
   }
 
-  void get_gpu_textures(Image *image,
-                        ImageUser *iuser,
-                        ImBuf *ibuf,
-                        GPUTexture **r_gpu_texture,
-                        bool *r_owns_texture,
-                        GPUTexture **r_tex_tile_data) override
-  {
-    *r_gpu_texture = BKE_image_get_gpu_texture(image, iuser, ibuf);
-    *r_owns_texture = false;
-    *r_tex_tile_data = nullptr;
-  }
-
   bool use_tile_drawing() const override
   {
     return false;

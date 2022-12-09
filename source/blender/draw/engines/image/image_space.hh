@@ -61,16 +61,6 @@ class AbstractSpaceAccessor {
   virtual void get_shader_parameters(ShaderParameters &r_shader_parameters,
                                      ImBuf *image_buffer) = 0;
 
-  /**
-   * Retrieve the gpu textures to draw.
-   */
-  virtual void get_gpu_textures(Image *image,
-                                ImageUser *iuser,
-                                ImBuf *image_buffer,
-                                GPUTexture **r_gpu_texture,
-                                bool *r_owns_texture,
-                                GPUTexture **r_tex_tile_data) = 0;
-
   /** \brief Is (wrap) repeat option enabled in the space. */
   virtual bool use_tile_drawing() const = 0;
 
