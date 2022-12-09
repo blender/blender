@@ -509,20 +509,15 @@ static void determine_group_output_states(const bNodeTree &tree,
                                           FieldInferencingInterface &new_inferencing_interface,
                                           const Span<SocketFieldState> field_state_by_socket_id)
 {
-  for (const bNode *group_output_node : tree.nodes_by_type("NodeGroupOutput")) {
-    /* Ignore inactive group output nodes. */
-    if (!(group_output_node->flag & NODE_DO_OUTPUT)) {
-      continue;
-    }
-    /* Determine dependencies of all group outputs. */
-    for (const bNodeSocket *group_output_socket :
-         group_output_node->input_sockets().drop_back(1)) {
-      OutputFieldDependency field_dependency = find_group_output_dependencies(
-          *group_output_socket, field_state_by_socket_id);
-      new_inferencing_interface.outputs[group_output_socket->index()] = std::move(
-          field_dependency);
-    }
-    break;
+  const bNode *group_output_node = tree.group_output_node();
+  if (!group_output_node) {
+    return;
+  }
+
+  for (const bNodeSocket *group_output_socket : group_output_node->input_sockets().drop_back(1)) {
+    OutputFieldDependency field_dependency = find_group_output_dependencies(
+        *group_output_socket, field_state_by_socket_id);
+    new_inferencing_interface.outputs[group_output_socket->index()] = std::move(field_dependency);
   }
 }
 
