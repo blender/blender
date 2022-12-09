@@ -49,9 +49,9 @@ struct IMAGE_Data {
 class AbstractDrawingMode {
  public:
   virtual ~AbstractDrawingMode() = default;
-  virtual void cache_init(IMAGE_Data *vedata) const = 0;
-  virtual void cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser) const = 0;
-  virtual void draw_scene(IMAGE_Data *vedata) const = 0;
+  virtual void begin_sync(IMAGE_Data *vedata) const = 0;
+  virtual void image_sync(IMAGE_Data *vedata, Image *image, ImageUser *iuser) const = 0;
+  virtual void draw_viewport(IMAGE_Data *vedata) const = 0;
   virtual void draw_finish(IMAGE_Data *vedata) const = 0;
 };
 

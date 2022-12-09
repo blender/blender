@@ -499,14 +499,14 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
   }
 
  public:
-  void cache_init(IMAGE_Data *vedata) const override
+  void begin_sync(IMAGE_Data *vedata) const override
   {
     IMAGE_InstanceData *instance_data = vedata->instance_data;
     instance_data->passes.image_pass = create_image_pass();
     instance_data->passes.depth_pass = create_depth_pass();
   }
 
-  void cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser) const override
+  void image_sync(IMAGE_Data *vedata, Image *image, ImageUser *iuser) const override
   {
     const DRWContextState *draw_ctx = DRW_context_state_get();
     IMAGE_InstanceData *instance_data = vedata->instance_data;
@@ -542,7 +542,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     instance_data->float_buffers.remove_unused_buffers();
   }
 
-  void draw_scene(IMAGE_Data *vedata) const override
+  void draw_viewport(IMAGE_Data *vedata) const override
   {
     IMAGE_InstanceData *instance_data = vedata->instance_data;
 
