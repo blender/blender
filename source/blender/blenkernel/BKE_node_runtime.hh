@@ -320,6 +320,10 @@ inline bool topology_cache_is_available(const bNodeSocket &socket)
 
 }  // namespace node_tree_runtime
 
+namespace node_field_inferencing {
+bool update_field_inferencing(const bNodeTree &tree);
+}
+
 }  // namespace blender::bke
 
 /* -------------------------------------------------------------------- */
