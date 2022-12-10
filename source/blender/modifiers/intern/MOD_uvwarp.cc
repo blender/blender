@@ -120,7 +120,7 @@ static void uv_warp_compute(void *__restrict userdata,
     }
   }
   else {
-    for (l = 0; l < mp->totloop; l++, ml++, mluv++) {
+    for (l = 0; l < mp->totloop; l++, mluv++) {
       uv_warp_from_mat4_pair(mluv->uv, mluv->uv, warp_mat);
     }
   }

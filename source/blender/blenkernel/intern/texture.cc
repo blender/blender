@@ -48,6 +48,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
@@ -85,8 +86,8 @@ static void texture_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
     texture_dst->coba = static_cast<ColorBand *>(MEM_dupallocN(texture_dst->coba));
   }
   if (texture_src->nodetree) {
-    if (texture_src->nodetree->execdata) {
-      ntreeTexEndExecTree(texture_src->nodetree->execdata);
+    if (texture_src->nodetree->runtime->execdata) {
+      ntreeTexEndExecTree(texture_src->nodetree->runtime->execdata);
     }
 
     if (is_localized) {
@@ -450,7 +451,7 @@ Tex *give_current_linestyle_texture(FreestyleLineStyle *linestyle)
   Tex *tex = nullptr;
 
   if (linestyle) {
-    mtex = linestyle->mtex[(int)(linestyle->texact)];
+    mtex = linestyle->mtex[int(linestyle->texact)];
     if (mtex) {
       tex = mtex->tex;
     }
@@ -554,7 +555,7 @@ Tex *give_current_particle_texture(ParticleSettings *part)
     return nullptr;
   }
 
-  mtex = part->mtex[(int)(part->texact)];
+  mtex = part->mtex[int(part->texact)];
   if (mtex) {
     tex = mtex->tex;
   }
@@ -729,7 +730,7 @@ static void texture_nodes_fetch_images_for_pool(Tex *texture,
                                                 bNodeTree *ntree,
                                                 struct ImagePool *pool)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->type == SH_NODE_TEX_IMAGE && node->id != nullptr) {
       Image *image = (Image *)node->id;
       BKE_image_pool_acquire_ibuf(image, &texture->iuser, pool);

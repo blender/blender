@@ -80,7 +80,8 @@ static GPUTexture *edit_uv_mask_texture(
 
   /* Free memory. */
   BKE_maskrasterize_handle_free(handle);
-  GPUTexture *texture = GPU_texture_create_2d(mask->id.name, width, height, 1, GPU_R16F, buffer);
+  GPUTexture *texture = GPU_texture_create_2d_ex(
+      mask->id.name, width, height, 1, GPU_R16F, GPU_TEXTURE_USAGE_SHADER_READ, buffer);
   MEM_freeN(buffer);
   return texture;
 }

@@ -968,7 +968,8 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
 
   for (int i = 0; i < totpoints; i++, pt++) {
 
-    if (flag & GP_BRUSH_FILL_HIDE) {
+    /* This flag is inverted in the UI. */
+    if ((flag & GP_BRUSH_FILL_HIDE) == 0) {
       float alpha = gp_style->stroke_rgba[3] * pt->strength;
       CLAMP(alpha, 0.0f, 1.0f);
       col[3] = alpha <= thershold ? 0.0f : 1.0f;
@@ -2461,7 +2462,7 @@ static void gpencil_fill_exit(bContext *C, wmOperator *op)
     if (tgpf->draw_handle_3d) {
       ED_region_draw_cb_exit(tgpf->region->type, tgpf->draw_handle_3d);
     }
-    WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+    WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DOT);
 
     /* Remove depth buffer in cache. */
     if (tgpf->depths) {
@@ -3011,7 +3012,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
         tgpf->initial_length = len_v2(mlen);
       }
       if (event->val == KM_RELEASE) {
-        WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+        WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_PAINT_BRUSH);
 
         tgpf->mouse_init[0] = -1.0f;
         tgpf->mouse_init[1] = -1.0f;

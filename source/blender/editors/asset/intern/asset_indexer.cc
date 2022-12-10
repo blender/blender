@@ -357,6 +357,7 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
 
   AssetMetaData *asset_data = BKE_asset_metadata_create();
   indexer_entry.datablock_info.asset_data = asset_data;
+  indexer_entry.datablock_info.free_asset_data = true;
 
   if (entry.has_description()) {
     const StringRefNull description = entry.get_description();

@@ -180,7 +180,7 @@ static void mesh_calc_eigen_matrix(const MVert *verts,
     const MVert *mv;
     float(*co)[3];
 
-    cos = static_cast<float(*)[3]>(MEM_mallocN(sizeof(*cos) * (size_t)numverts, __func__));
+    cos = static_cast<float(*)[3]>(MEM_mallocN(sizeof(*cos) * size_t(numverts), __func__));
     for (i = 0, co = cos, mv = verts; i < numverts; i++, co++, mv++) {
       copy_v3_v3(*co, mv->co);
     }
@@ -325,7 +325,7 @@ void BKE_mesh_remap_init(MeshPairRemap *map, const int items_num)
   BKE_mesh_remap_free(map);
 
   map->items = static_cast<MeshPairRemapItem *>(
-      BLI_memarena_alloc(mem, sizeof(*map->items) * (size_t)items_num));
+      BLI_memarena_alloc(mem, sizeof(*map->items) * size_t(items_num)));
   map->items_num = items_num;
 
   map->mem = mem;
@@ -356,11 +356,11 @@ static void mesh_remap_item_define(MeshPairRemap *map,
   if (sources_num) {
     mapit->sources_num = sources_num;
     mapit->indices_src = static_cast<int *>(
-        BLI_memarena_alloc(mem, sizeof(*mapit->indices_src) * (size_t)sources_num));
-    memcpy(mapit->indices_src, indices_src, sizeof(*mapit->indices_src) * (size_t)sources_num);
+        BLI_memarena_alloc(mem, sizeof(*mapit->indices_src) * size_t(sources_num)));
+    memcpy(mapit->indices_src, indices_src, sizeof(*mapit->indices_src) * size_t(sources_num));
     mapit->weights_src = static_cast<float *>(
-        BLI_memarena_alloc(mem, sizeof(*mapit->weights_src) * (size_t)sources_num));
-    memcpy(mapit->weights_src, weights_src, sizeof(*mapit->weights_src) * (size_t)sources_num);
+        BLI_memarena_alloc(mem, sizeof(*mapit->weights_src) * size_t(sources_num)));
+    memcpy(mapit->weights_src, weights_src, sizeof(*mapit->weights_src) * size_t(sources_num));
   }
   else {
     mapit->sources_num = 0;
@@ -395,8 +395,8 @@ static int mesh_remap_interp_poly_data_get(const MPoly *mp,
   const int sources_num = mp->totloop;
   int i;
 
-  if ((size_t)sources_num > *buff_size) {
-    *buff_size = (size_t)sources_num;
+  if (size_t(sources_num) > *buff_size) {
+    *buff_size = size_t(sources_num);
     *vcos = static_cast<float(*)[3]>(MEM_reallocN(*vcos, sizeof(**vcos) * *buff_size));
     *indices = static_cast<int *>(MEM_reallocN(*indices, sizeof(**indices) * *buff_size));
     if (do_weights) {
@@ -684,7 +684,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
     }
     else {
       CLOG_WARN(&LOG, "Unsupported mesh-to-mesh vertex mapping mode (%d)!", mode);
-      memset(r_map->items, 0, sizeof(*r_map->items) * (size_t)numverts_dst);
+      memset(r_map->items, 0, sizeof(*r_map->items) * size_t(numverts_dst));
     }
 
     free_bvhtree_from_mesh(&treedata);
@@ -739,7 +739,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
         int index;
       };
       HitData *v_dst_to_src_map = static_cast<HitData *>(
-          MEM_mallocN(sizeof(*v_dst_to_src_map) * (size_t)numverts_dst, __func__));
+          MEM_mallocN(sizeof(*v_dst_to_src_map) * size_t(numverts_dst), __func__));
 
       for (i = 0; i < numverts_dst; i++) {
         v_dst_to_src_map[i].hit_dist = -1.0f;
@@ -932,10 +932,10 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
 
       /* Subtleness - this one we can allocate only max number of cast rays per edges! */
       int *indices = static_cast<int *>(
-          MEM_mallocN(sizeof(*indices) * (size_t)min_ii(numedges_src, num_rays_max), __func__));
+          MEM_mallocN(sizeof(*indices) * size_t(min_ii(numedges_src, num_rays_max)), __func__));
       /* Here it's simpler to just allocate for all edges :/ */
       float *weights = static_cast<float *>(
-          MEM_mallocN(sizeof(*weights) * (size_t)numedges_src, __func__));
+          MEM_mallocN(sizeof(*weights) * size_t(numedges_src), __func__));
 
       BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_EDGES, 2);
 
@@ -1031,7 +1031,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
     }
     else {
       CLOG_WARN(&LOG, "Unsupported mesh-to-mesh edge mapping mode (%d)!", mode);
-      memset(r_map->items, 0, sizeof(*r_map->items) * (size_t)numedges_dst);
+      memset(r_map->items, 0, sizeof(*r_map->items) * size_t(numedges_dst));
     }
 
     free_bvhtree_from_mesh(&treedata);
@@ -1118,7 +1118,7 @@ static void mesh_island_to_astar_graph(MeshIslandStore *islands,
 
   const int node_num = islands ? island_poly_map->count : numpolys;
   uchar *poly_status = static_cast<uchar *>(
-      MEM_callocN(sizeof(*poly_status) * (size_t)node_num, __func__));
+      MEM_callocN(sizeof(*poly_status) * size_t(node_num), __func__));
   float(*poly_centers)[3];
 
   int pidx_isld;
@@ -1127,12 +1127,12 @@ static void mesh_island_to_astar_graph(MeshIslandStore *islands,
   BLI_astar_graph_init(r_as_graph, node_num, nullptr);
   /* poly_centers is owned by graph memarena. */
   poly_centers = static_cast<float(*)[3]>(
-      BLI_memarena_calloc(r_as_graph->mem, sizeof(*poly_centers) * (size_t)node_num));
+      BLI_memarena_calloc(r_as_graph->mem, sizeof(*poly_centers) * size_t(node_num)));
 
   if (islands) {
     /* poly_island_index_map is owned by graph memarena. */
     poly_island_index_map = static_cast<int *>(
-        BLI_memarena_calloc(r_as_graph->mem, sizeof(*poly_island_index_map) * (size_t)numpolys));
+        BLI_memarena_calloc(r_as_graph->mem, sizeof(*poly_island_index_map) * size_t(numpolys)));
     for (i = island_poly_map->count; i--;) {
       poly_island_index_map[island_poly_map->indices[i]] = i;
     }
@@ -1427,9 +1427,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                   num_loops_src);
     if (use_from_vert) {
       loop_to_poly_map_src = static_cast<int *>(
-          MEM_mallocN(sizeof(*loop_to_poly_map_src) * (size_t)num_loops_src, __func__));
+          MEM_mallocN(sizeof(*loop_to_poly_map_src) * size_t(num_loops_src), __func__));
       poly_cents_src = static_cast<float(*)[3]>(
-          MEM_mallocN(sizeof(*poly_cents_src) * (size_t)num_polys_src, __func__));
+          MEM_mallocN(sizeof(*poly_cents_src) * size_t(num_polys_src), __func__));
       for (pidx_src = 0, mp_src = polys_src; pidx_src < num_polys_src; pidx_src++, mp_src++) {
         ml_src = &loops_src[mp_src->loopstart];
         for (plidx_src = 0, lidx_src = mp_src->loopstart; plidx_src < mp_src->totloop;
@@ -1461,10 +1461,10 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
       num_trees = use_islands ? island_store.islands_num : 1;
       treedata = static_cast<BVHTreeFromMesh *>(
-          MEM_callocN(sizeof(*treedata) * (size_t)num_trees, __func__));
+          MEM_callocN(sizeof(*treedata) * size_t(num_trees), __func__));
       if (isld_steps_src) {
         as_graphdata = static_cast<BLI_AStarGraph *>(
-            MEM_callocN(sizeof(*as_graphdata) * (size_t)num_trees, __func__));
+            MEM_callocN(sizeof(*as_graphdata) * size_t(num_trees), __func__));
       }
 
       if (use_islands) {
@@ -1571,7 +1571,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
     /* And check each dest poly! */
     islands_res = static_cast<IslandResult **>(
-        MEM_mallocN(sizeof(*islands_res) * (size_t)num_trees, __func__));
+        MEM_mallocN(sizeof(*islands_res) * size_t(num_trees), __func__));
     for (tindex = 0; tindex < num_trees; tindex++) {
       islands_res[tindex] = static_cast<IslandResult *>(
           MEM_mallocN(sizeof(**islands_res) * islands_res_buff_size, __func__));
@@ -1593,7 +1593,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       }
 
       if ((size_t)mp_dst->totloop > islands_res_buff_size) {
-        islands_res_buff_size = (size_t)mp_dst->totloop + MREMAP_DEFAULT_BUFSIZE;
+        islands_res_buff_size = size_t(mp_dst->totloop) + MREMAP_DEFAULT_BUFSIZE;
         for (tindex = 0; tindex < num_trees; tindex++) {
           islands_res[tindex] = static_cast<IslandResult *>(
               MEM_reallocN(islands_res[tindex], sizeof(**islands_res) * islands_res_buff_size));
@@ -2302,8 +2302,8 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
 
         copy_vn_fl(weights, int(numpolys_src), 0.0f);
 
-        if (UNLIKELY((size_t)mp->totloop > tmp_poly_size)) {
-          tmp_poly_size = (size_t)mp->totloop;
+        if (UNLIKELY(size_t(mp->totloop) > tmp_poly_size)) {
+          tmp_poly_size = size_t(mp->totloop);
           poly_vcos_2d = static_cast<float(*)[2]>(
               MEM_reallocN(poly_vcos_2d, sizeof(*poly_vcos_2d) * tmp_poly_size));
           tri_vidx_2d = static_cast<int(*)[3]>(
@@ -2343,7 +2343,7 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
         }
         tot_rays *= tot_rays;
 
-        poly_area_2d_inv = area_poly_v2(poly_vcos_2d, (uint)mp->totloop);
+        poly_area_2d_inv = area_poly_v2(poly_vcos_2d, uint(mp->totloop));
         /* In case we have a null-area degenerated poly... */
         poly_area_2d_inv = 1.0f / max_ff(poly_area_2d_inv, 1e-9f);
 
@@ -2362,7 +2362,7 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
           tri_vidx_2d[1][2] = 3;
         }
         else {
-          BLI_polyfill_calc(poly_vcos_2d, (uint)mp->totloop, -1, (uint(*)[3])tri_vidx_2d);
+          BLI_polyfill_calc(poly_vcos_2d, uint(mp->totloop), -1, (uint(*)[3])tri_vidx_2d);
         }
 
         for (j = 0; j < tris_num; j++) {
@@ -2431,7 +2431,7 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
     }
     else {
       CLOG_WARN(&LOG, "Unsupported mesh-to-mesh poly mapping mode (%d)!", mode);
-      memset(r_map->items, 0, sizeof(*r_map->items) * (size_t)numpolys_dst);
+      memset(r_map->items, 0, sizeof(*r_map->items) * size_t(numpolys_dst));
     }
 
     free_bvhtree_from_mesh(&treedata);

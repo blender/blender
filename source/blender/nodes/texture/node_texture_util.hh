@@ -37,6 +37,8 @@
 #include "BKE_texture.h"
 
 #include "NOD_texture.h"
+
+#include "node_texture_register.hh"
 #include "node_util.h"
 
 #include "BLT_translation.h"

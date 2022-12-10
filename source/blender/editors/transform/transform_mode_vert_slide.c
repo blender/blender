@@ -449,7 +449,7 @@ void drawVertSlide(TransInfo *t)
         immUniform1i("colors_len", 0); /* "simple" mode */
         immUniformColor4f(1.0f, 1.0f, 1.0f, 1.0f);
         immUniform1f("dash_width", 6.0f);
-        immUniform1f("dash_factor", 0.5f);
+        immUniform1f("udash_factor", 0.5f);
 
         immBegin(GPU_PRIM_LINES, 2);
         immVertex3fv(shdr_pos, curr_sv->co_orig_3d);

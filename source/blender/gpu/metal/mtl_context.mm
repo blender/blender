@@ -35,7 +35,9 @@ using namespace blender::gpu;
 namespace blender::gpu {
 
 /* Global memory manager. */
-MTLBufferPool MTLContext::global_memory_manager;
+std::mutex MTLContext::global_memory_manager_reflock;
+int MTLContext::global_memory_manager_refcount = 0;
+MTLBufferPool *MTLContext::global_memory_manager = nullptr;
 
 /* Swap-chain and latency management. */
 std::atomic<int> MTLContext::max_drawables_in_flight = 0;
@@ -207,7 +209,8 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
   this->imm = new MTLImmediate(this);
 
   /* Ensure global memory manager is initialized. */
-  MTLContext::global_memory_manager.init(this->device);
+  MTLContext::global_memory_manager_acquire_ref();
+  MTLContext::get_global_memory_manager()->init(this->device);
 
   /* Initialize texture read/update structures. */
   this->get_texture_utils().init();
@@ -237,6 +240,16 @@ MTLContext::~MTLContext()
     if (this->get_inside_frame()) {
       this->end_frame();
     }
+  }
+
+  /* Release context textures. */
+  if (default_fbo_gputexture_) {
+    GPU_texture_free(wrap(static_cast<Texture *>(default_fbo_gputexture_)));
+    default_fbo_gputexture_ = nullptr;
+  }
+  if (default_fbo_mtltexture_) {
+    [default_fbo_mtltexture_ release];
+    default_fbo_mtltexture_ = nil;
   }
 
   /* Release Memory Manager */
@@ -282,6 +295,9 @@ MTLContext::~MTLContext()
   if (null_attribute_buffer_) {
     [null_attribute_buffer_ release];
   }
+
+  /* Release memory manager reference. */
+  MTLContext::global_memory_manager_release_ref();
 
   /* Free Metal objects. */
   if (this->queue) {
@@ -1291,8 +1307,8 @@ void MTLContext::ensure_texture_bindings(
                                        size;
 
           /* Allocate buffer to store encoded sampler arguments. */
-          encoder_buffer = MTLContext::get_global_memory_manager().allocate(aligned_alloc_size,
-                                                                            true);
+          encoder_buffer = MTLContext::get_global_memory_manager()->allocate(aligned_alloc_size,
+                                                                             true);
           BLI_assert(encoder_buffer);
           BLI_assert(encoder_buffer->get_metal_buffer());
           [argument_encoder setArgumentBuffer:encoder_buffer->get_metal_buffer() offset:0];
@@ -1687,7 +1703,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
 
   /* Ensure freed buffers have usage tracked against active CommandBuffer submissions. */
   MTLSafeFreeList *cmd_free_buffer_list =
-      MTLContext::get_global_memory_manager().get_current_safe_list();
+      MTLContext::get_global_memory_manager()->get_current_safe_list();
   BLI_assert(cmd_free_buffer_list);
 
   id<MTLCommandBuffer> cmd_buffer_ref = cmdbuf;

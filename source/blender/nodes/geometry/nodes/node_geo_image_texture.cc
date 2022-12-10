@@ -40,21 +40,23 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryImageTexture *tex = MEM_cnew<NodeGeometryImageTexture>(__func__);
+  tex->interpolation = SHD_INTERP_LINEAR;
+  tex->extension = SHD_IMAGE_EXTENSION_REPEAT;
   node->storage = tex;
 }
 
 class ImageFieldsFunction : public fn::MultiFunction {
  private:
-  const int interpolation_;
-  const int extension_;
+  const int8_t interpolation_;
+  const int8_t extension_;
   Image &image_;
   ImageUser image_user_;
   void *image_lock_;
   ImBuf *image_buffer_;
 
  public:
-  ImageFieldsFunction(const int interpolation,
-                      const int extension,
+  ImageFieldsFunction(const int8_t interpolation,
+                      const int8_t extension,
                       Image &image,
                       ImageUser image_user)
       : interpolation_(interpolation),
@@ -112,12 +114,12 @@ class ImageFieldsFunction : public fn::MultiFunction {
     return std::clamp(x, 0, width - 1);
   }
 
-  static float4 image_pixel_lookup(const ImBuf *ibuf, const int px, const int py)
+  static float4 image_pixel_lookup(const ImBuf &ibuf, const int px, const int py)
   {
-    if (px < 0 || py < 0 || px >= ibuf->x || py >= ibuf->y) {
+    if (px < 0 || py < 0 || px >= ibuf.x || py >= ibuf.y) {
       return float4(0.0f, 0.0f, 0.0f, 0.0f);
     }
-    return ((const float4 *)ibuf->rect_float)[px + py * ibuf->x];
+    return ((const float4 *)ibuf.rect_float)[px + py * ibuf.x];
   }
 
   static float frac(const float x, int *ix)
@@ -127,13 +129,13 @@ class ImageFieldsFunction : public fn::MultiFunction {
     return x - float(i);
   }
 
-  static float4 image_cubic_texture_lookup(const ImBuf *ibuf,
+  static float4 image_cubic_texture_lookup(const ImBuf &ibuf,
                                            const float px,
                                            const float py,
                                            const int extension)
   {
-    const int width = ibuf->x;
-    const int height = ibuf->y;
+    const int width = ibuf.x;
+    const int height = ibuf.y;
     int pix, piy, nix, niy;
     const float tx = frac(px * float(width) - 0.5f, &pix);
     const float ty = frac(py * float(height) - 0.5f, &piy);
@@ -207,13 +209,13 @@ class ImageFieldsFunction : public fn::MultiFunction {
                     u[3] * image_pixel_lookup(ibuf, xc[3], yc[3])));
   }
 
-  static float4 image_linear_texture_lookup(const ImBuf *ibuf,
+  static float4 image_linear_texture_lookup(const ImBuf &ibuf,
                                             const float px,
                                             const float py,
-                                            const int extension)
+                                            const int8_t extension)
   {
-    const int width = ibuf->x;
-    const int height = ibuf->y;
+    const int width = ibuf.x;
+    const int height = ibuf.y;
     int pix, piy, nix, niy;
     const float nfx = frac(px * float(width) - 0.5f, &pix);
     const float nfy = frac(py * float(height) - 0.5f, &piy);
@@ -249,13 +251,13 @@ class ImageFieldsFunction : public fn::MultiFunction {
            image_pixel_lookup(ibuf, nix, niy) * nfx * nfy;
   }
 
-  static float4 image_closest_texture_lookup(const ImBuf *ibuf,
+  static float4 image_closest_texture_lookup(const ImBuf &ibuf,
                                              const float px,
                                              const float py,
                                              const int extension)
   {
-    const int width = ibuf->x;
-    const int height = ibuf->y;
+    const int width = ibuf.x;
+    const int height = ibuf.y;
     int ix, iy;
     const float tx = frac(px * float(width), &ix);
     const float ty = frac(py * float(height), &iy);
@@ -299,20 +301,20 @@ class ImageFieldsFunction : public fn::MultiFunction {
       case SHD_INTERP_LINEAR:
         for (const int64_t i : mask) {
           const float3 p = vectors[i];
-          color_data[i] = image_linear_texture_lookup(image_buffer_, p.x, p.y, extension_);
+          color_data[i] = image_linear_texture_lookup(*image_buffer_, p.x, p.y, extension_);
         }
         break;
       case SHD_INTERP_CLOSEST:
         for (const int64_t i : mask) {
           const float3 p = vectors[i];
-          color_data[i] = image_closest_texture_lookup(image_buffer_, p.x, p.y, extension_);
+          color_data[i] = image_closest_texture_lookup(*image_buffer_, p.x, p.y, extension_);
         }
         break;
       case SHD_INTERP_CUBIC:
       case SHD_INTERP_SMART:
         for (const int64_t i : mask) {
           const float3 p = vectors[i];
-          color_data[i] = image_cubic_texture_lookup(image_buffer_, p.x, p.y, extension_);
+          color_data[i] = image_cubic_texture_lookup(*image_buffer_, p.x, p.y, extension_);
         }
         break;
     }

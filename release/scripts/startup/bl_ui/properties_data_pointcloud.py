@@ -70,8 +70,16 @@ class POINTCLOUD_UL_attributes(UIList):
         flags = []
         indices = [i for i in range(len(attributes))]
 
-        for item in attributes:
-            flags.append(self.bitflag_filter_item if item.is_internal else 0)
+        # Filtering by name
+        if self.filter_name:
+            flags = bpy.types.UI_UL_list.filter_items_by_name(
+                self.filter_name, self.bitflag_filter_item, attributes, "name", reverse=self.use_filter_invert)
+        if not flags:
+            flags = [self.bitflag_filter_item] * len(attributes)
+
+        # Filtering internal attributes
+        for idx, item in enumerate(attributes):
+            flags[idx] = 0 if item.is_internal else flags[idx]
 
         return flags, indices
 

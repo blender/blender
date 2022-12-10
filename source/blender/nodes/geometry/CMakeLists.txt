@@ -30,6 +30,7 @@ set(SRC
   nodes/node_geo_attribute_domain_size.cc
   nodes/node_geo_attribute_statistic.cc
   nodes/node_geo_bevel_mesh.cc
+  nodes/node_geo_blur_attribute.cc
   nodes/node_geo_boolean.cc
   nodes/node_geo_bounding_box.cc
   nodes/node_geo_collection_info.cc
@@ -73,6 +74,7 @@ set(SRC
   nodes/node_geo_field_at_index.cc
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_geometry_to_instance.cc
+  nodes/node_geo_image.cc
   nodes/node_geo_image_info.cc
   nodes/node_geo_image_texture.cc
   nodes/node_geo_input_curve_handles.cc
@@ -166,7 +168,7 @@ set(SRC
   nodes/node_geo_string_to_curves.cc
   nodes/node_geo_subdivision_surface.cc
   nodes/node_geo_switch.cc
-  nodes/node_geo_transform.cc
+  nodes/node_geo_transform_geometry.cc
   nodes/node_geo_translate_instances.cc
   nodes/node_geo_triangulate.cc
   nodes/node_geo_uv_pack_islands.cc
@@ -175,9 +177,11 @@ set(SRC
   nodes/node_geo_volume_cube.cc
   nodes/node_geo_volume_to_mesh.cc
 
+  node_geometry_register.cc
   node_geometry_tree.cc
   node_geometry_util.cc
 
+  node_geometry_register.hh
   node_geometry_util.hh
 )
 

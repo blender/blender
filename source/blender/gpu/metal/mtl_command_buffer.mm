@@ -115,7 +115,7 @@ bool MTLCommandBufferManager::submit(bool wait)
    * This ensures that in-use resources are not prematurely de-referenced and returned to the
    * available buffer pool while they are in-use by the GPU. */
   MTLSafeFreeList *cmd_free_buffer_list =
-      MTLContext::get_global_memory_manager().get_current_safe_list();
+      MTLContext::get_global_memory_manager()->get_current_safe_list();
   BLI_assert(cmd_free_buffer_list);
   cmd_free_buffer_list->increment_reference();
 
@@ -536,6 +536,24 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
   }
   /* No barrier support. */
   return false;
+}
+
+void MTLCommandBufferManager::encode_signal_event(id<MTLEvent> event, uint64_t signal_value)
+{
+  /* Ensure active command buffer. */
+  id<MTLCommandBuffer> cmd_buf = this->ensure_begin();
+  BLI_assert(cmd_buf);
+  this->end_active_command_encoder();
+  [cmd_buf encodeSignalEvent:event value:signal_value];
+}
+
+void MTLCommandBufferManager::encode_wait_for_event(id<MTLEvent> event, uint64_t signal_value)
+{
+  /* Ensure active command buffer. */
+  id<MTLCommandBuffer> cmd_buf = this->ensure_begin();
+  BLI_assert(cmd_buf);
+  this->end_active_command_encoder();
+  [cmd_buf encodeWaitForEvent:event value:signal_value];
 }
 
 /** \} */

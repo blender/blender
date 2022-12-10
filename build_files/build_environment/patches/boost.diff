@@ -1,0 +1,12 @@
+--- a/boost/python//detail/wrap_python.hpp	2022-12-09 19:16:17
++++ b/boost/python//detail/wrap_python.hpp	2022-12-09 19:18:08
+@@ -206,7 +206,8 @@
+ 
+ #ifdef DEBUG_UNDEFINED_FROM_WRAP_PYTHON_H
+ # undef DEBUG_UNDEFINED_FROM_WRAP_PYTHON_H
+-# define _DEBUG
++// BLENDER: TBB excepts this to have a value.
++# define _DEBUG 1
+ # ifdef _CRT_NOFORCE_MANIFEST_DEFINED_FROM_WRAP_PYTHON_H
+ #  undef _CRT_NOFORCE_MANIFEST_DEFINED_FROM_WRAP_PYTHON_H
+ #  undef _CRT_NOFORCE_MANIFEST

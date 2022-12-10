@@ -526,7 +526,7 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_
   immUniform1i("colors_len", 0); /* "simple" mode */
   immUniformThemeColor3(TH_VIEW_OVERLAY);
   immUniform1f("dash_width", 6.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   immBegin(GPU_PRIM_LINES, 2);
   immVertex2fv(shdr_pos, mval_src);

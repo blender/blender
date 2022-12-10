@@ -236,6 +236,10 @@ void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports)
       .flag = BKE_BPATH_FOREACH_PATH_ABSOLUTE | BKE_BPATH_FOREACH_PATH_SKIP_PACKED |
               BKE_BPATH_FOREACH_PATH_RESOLVE_TOKEN | BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES,
       .user_data = reports});
+
+  if (BLI_listbase_is_empty(&reports->list)) {
+    BKE_reportf(reports, RPT_INFO, "No missing files");
+  }
 }
 
 /** \} */

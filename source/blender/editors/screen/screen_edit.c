@@ -382,7 +382,7 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
     const short xmin = MIN2(sa1->v1->vec.x, sa2->v1->vec.x);
     const short xmax = MAX2(sa1->v3->vec.x, sa2->v3->vec.x);
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area == sa1 || area == sa2) {
+      if (ELEM(area, sa1, sa2)) {
         continue;
       }
       if (area->v3->vec.x - area->v1->vec.x < tolerance &&
@@ -396,7 +396,7 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
     const short ymin = MIN2(sa1->v1->vec.y, sa2->v1->vec.y);
     const short ymax = MAX2(sa1->v3->vec.y, sa2->v3->vec.y);
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area == sa1 || area == sa2) {
+      if (ELEM(area, sa1, sa2)) {
         continue;
       }
       if (area->v3->vec.y - area->v1->vec.y < tolerance &&

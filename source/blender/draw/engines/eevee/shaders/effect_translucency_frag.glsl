@@ -4,29 +4,6 @@
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
 #pragma BLENDER_REQUIRE(lights_lib.glsl)
 
-in vec4 uvcoordsvar;
-
-out vec4 FragColor;
-
-uniform depth2D depthBuffer;
-uniform sampler1D sssTexProfile;
-uniform sampler2D sssRadius;
-uniform sampler2DArray sssShadowCubes;
-uniform sampler2DArray sssShadowCascades;
-
-#define MAX_SSS_SAMPLES 65
-#define SSS_LUT_SIZE 64.0
-#define SSS_LUT_SCALE ((SSS_LUT_SIZE - 1.0) / float(SSS_LUT_SIZE))
-#define SSS_LUT_BIAS (0.5 / float(SSS_LUT_SIZE))
-
-layout(std140) uniform sssProfile
-{
-  vec4 sss_kernel[MAX_SSS_SAMPLES];
-  vec4 radii_max_radius;
-  float avg_inv_radius;
-  int sss_samples;
-};
-
 vec3 sss_profile(float s)
 {
   s /= radii_max_radius.w * avg_inv_radius;

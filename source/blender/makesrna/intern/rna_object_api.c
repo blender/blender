@@ -205,6 +205,10 @@ static bool rna_Object_holdout_get(Object *ob, bContext *C, PointerRNA *view_lay
 static bool rna_Object_indirect_only_get(Object *ob, bContext *C, PointerRNA *view_layer_ptr)
 {
   Base *base = find_view_layer_base_with_synced_ensure(ob, C, view_layer_ptr, NULL, NULL);
+  if (!base) {
+    return false;
+  }
+
   return ((base->flag & BASE_INDIRECT_ONLY) != 0);
 }
 

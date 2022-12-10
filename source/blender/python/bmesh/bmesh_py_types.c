@@ -2269,7 +2269,7 @@ PyDoc_STRVAR(bpy_bmfaceseq_new_doc,
              "   Create a new face from a given set of verts.\n"
              "\n"
              "   :arg verts: Sequence of 3 or more verts.\n"
-             "   :type verts: :class:`BMVert`\n"
+             "   :type verts: sequence of :class:`BMVert`\n"
              "   :arg example: Existing face to initialize settings (optional argument).\n"
              "   :type example: :class:`BMFace`\n"
              "   :return: The newly created face.\n"

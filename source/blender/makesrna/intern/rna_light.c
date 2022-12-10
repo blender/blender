@@ -472,7 +472,7 @@ static void rna_def_area_light(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "spread", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "area_spread");
-  RNA_def_property_range(prop, DEG2RADF(1.0f), DEG2RADF(180.0f));
+  RNA_def_property_range(prop, DEG2RADF(0.0f), DEG2RADF(180.0f));
   RNA_def_property_ui_text(
       prop,
       "Spread",

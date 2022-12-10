@@ -8,7 +8,11 @@
  * tables.
  * \{ */
 
+#if !defined(USE_GPU_SHADER_CREATE_INFO)
+
 uniform sampler2DArray utilTex;
+
+#endif
 
 #define LUT_SIZE 64
 

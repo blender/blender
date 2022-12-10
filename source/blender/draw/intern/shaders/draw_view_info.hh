@@ -101,6 +101,8 @@ GPU_SHADER_CREATE_INFO(draw_globals)
 GPU_SHADER_CREATE_INFO(draw_mesh).additional_info("draw_modelmat", "draw_resource_id");
 
 GPU_SHADER_CREATE_INFO(draw_hair)
+    .define("HAIR_SHADER")
+    .define("DRW_HAIR_INFO")
     .sampler(15, ImageType::FLOAT_BUFFER, "hairPointBuffer")
     /* TODO(@fclem): Pack these into one UBO. */
     .push_constant(Type::INT, "hairStrandsRes")
@@ -115,6 +117,11 @@ GPU_SHADER_CREATE_INFO(draw_hair)
 
 GPU_SHADER_CREATE_INFO(draw_pointcloud)
     .sampler(0, ImageType::FLOAT_BUFFER, "ptcloud_pos_rad_tx", Frequency::BATCH)
+    .define("POINTCLOUD_SHADER")
+    .define("DRW_POINTCLOUD_INFO")
+    .vertex_in(0, Type::VEC4, "pos")
+    .vertex_in(1, Type::VEC3, "pos_inst")
+    .vertex_in(2, Type::VEC3, "nor")
     .additional_info("draw_modelmat_instanced_attr", "draw_resource_id_uniform");
 
 GPU_SHADER_CREATE_INFO(draw_volume).additional_info("draw_modelmat", "draw_resource_id_uniform");

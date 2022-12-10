@@ -6,22 +6,6 @@
 
 /* Based on Separable SSS. by Jorge Jimenez and Diego Gutierrez */
 
-#define MAX_SSS_SAMPLES 65
-layout(std140) uniform sssProfile
-{
-  vec4 sss_kernel[MAX_SSS_SAMPLES];
-  vec4 radii_max_radius;
-  float avg_inv_radius;
-  int sss_samples;
-};
-
-uniform sampler2D depthBuffer;
-uniform sampler2D sssIrradiance;
-uniform sampler2D sssRadius;
-uniform sampler2D sssAlbedo;
-
-layout(location = 0) out vec4 sssRadiance;
-
 void main(void)
 {
   vec2 pixel_size = 1.0 / vec2(textureSize(depthBuffer, 0).xy); /* TODO: precompute. */

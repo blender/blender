@@ -42,6 +42,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_preferences.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -212,6 +213,12 @@ static void setup_app_data(bContext *C,
     SWAP(ListBase, bmain->wm, bfd->main->wm);
     SWAP(ListBase, bmain->workspaces, bfd->main->workspaces);
     SWAP(ListBase, bmain->screens, bfd->main->screens);
+    if (bmain->name_map != NULL) {
+      BKE_main_namemap_destroy(&bmain->name_map);
+    }
+    if (bfd->main->name_map != NULL) {
+      BKE_main_namemap_destroy(&bfd->main->name_map);
+    }
 
     /* In case of actual new file reading without loading UI, we need to regenerate the session
      * uuid of the UI-related datablocks we are keeping from previous session, otherwise their uuid

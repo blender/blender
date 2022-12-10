@@ -120,22 +120,32 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     });
   }
   else {
+    /* Make sure the switch input comes first in the search for boolean sockets. */
+    int true_false_weights = 0;
     if (params.other_socket().type == SOCK_BOOLEAN) {
       params.add_item(IFACE_("Switch"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeSwitch");
         params.update_and_connect_available_socket(node, "Switch");
       });
+      true_false_weights--;
     }
-    params.add_item(IFACE_("False"), [](LinkSearchOpParams &params) {
-      bNode &node = params.add_node("GeometryNodeSwitch");
-      node_storage(node).input_type = params.socket.type;
-      params.update_and_connect_available_socket(node, "False");
-    });
-    params.add_item(IFACE_("True"), [](LinkSearchOpParams &params) {
-      bNode &node = params.add_node("GeometryNodeSwitch");
-      node_storage(node).input_type = params.socket.type;
-      params.update_and_connect_available_socket(node, "True");
-    });
+
+    params.add_item(
+        IFACE_("False"),
+        [](LinkSearchOpParams &params) {
+          bNode &node = params.add_node("GeometryNodeSwitch");
+          node_storage(node).input_type = params.socket.type;
+          params.update_and_connect_available_socket(node, "False");
+        },
+        true_false_weights);
+    params.add_item(
+        IFACE_("True"),
+        [](LinkSearchOpParams &params) {
+          bNode &node = params.add_node("GeometryNodeSwitch");
+          node_storage(node).input_type = params.socket.type;
+          params.update_and_connect_available_socket(node, "True");
+        },
+        true_false_weights);
   }
 }
 

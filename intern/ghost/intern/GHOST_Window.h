@@ -233,6 +233,12 @@ class GHOST_Window : public GHOST_IWindow {
   GHOST_TSuccess setDrawingContextType(GHOST_TDrawingContextType type) override;
 
   /**
+   * Returns the drawing context used in this window.
+   * \return The current drawing context.
+   */
+  virtual GHOST_IContext *getDrawingContext() override;
+
+  /**
    * Swaps front and back buffers of a window.
    * \return A boolean success indicator.
    */
@@ -262,6 +268,18 @@ class GHOST_Window : public GHOST_IWindow {
    * \return The ID of an OpenGL frame-buffer object.
    */
   virtual unsigned int getDefaultFramebuffer() override;
+
+  /**
+   * Gets the Vulkan framebuffer related resource handles associated with the Vulkan context.
+   * Needs to be called after each swap events as the framebuffer will change.
+   * \return  A boolean success indicator.
+   */
+  virtual GHOST_TSuccess getVulkanBackbuffer(void *image,
+                                             void *framebuffer,
+                                             void *command_buffer,
+                                             void *render_pass,
+                                             void *extent,
+                                             uint32_t *fb_id) override;
 
   /**
    * Returns the window user data.

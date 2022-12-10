@@ -266,8 +266,8 @@ typedef struct Object {
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
   /* struct Path *path; */
-  struct bAction *action DNA_DEPRECATED; /* XXX deprecated... old animation system */
-  struct bAction *poselib;
+  struct bAction *action DNA_DEPRECATED;  /* XXX deprecated... old animation system */
+  struct bAction *poselib DNA_DEPRECATED; /* Pre-Blender 3.0 pose library, deprecated in 3.5. */
   /** Pose data, armature objects only. */
   struct bPose *pose;
   /** Pointer to objects data - an 'ID' or NULL. */

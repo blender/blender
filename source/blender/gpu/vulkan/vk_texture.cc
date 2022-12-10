@@ -46,6 +46,13 @@ void VKTexture::update_sub(int /*mip*/,
 {
 }
 
+void VKTexture::update_sub(int /*offset*/[3],
+                           int /*extent*/[3],
+                           eGPUDataFormat /*format*/,
+                           GPUPixelBuffer * /*pixbuf*/)
+{
+}
+
 /* TODO(fclem): Legacy. Should be removed at some point. */
 uint VKTexture::gl_bindcode_get() const
 {

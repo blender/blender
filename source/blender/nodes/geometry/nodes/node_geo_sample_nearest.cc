@@ -211,9 +211,6 @@ static bool component_is_available(const GeometrySet &geometry,
     return false;
   }
   const GeometryComponent &component = *geometry.get_component_for_read(type);
-  if (component.is_empty()) {
-    return false;
-  }
   return component.attribute_domain_size(domain) != 0;
 }
 

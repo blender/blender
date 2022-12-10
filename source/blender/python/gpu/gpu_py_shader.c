@@ -95,8 +95,6 @@ static int pygpu_shader_uniform_location_get(GPUShader *shader,
 
 static PyObject *pygpu_shader__tp_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
   struct {
     const char *vertexcode;
     const char *fragcode;
@@ -835,8 +833,6 @@ PyDoc_STRVAR(
     "   :rtype: :class:`bpy.types.GPUShader`\n");
 static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
   struct PyC_StringEnum pygpu_bultinshader = {pygpu_shader_builtin_items};
   struct PyC_StringEnum pygpu_config = {pygpu_shader_config_items, GPU_SHADER_CFG_DEFAULT};
 
@@ -954,7 +950,7 @@ PyObject *bpygpu_shader_init(void)
 {
   PyObject *submodule;
 
-  submodule = PyModule_Create(&pygpu_shader_module_def);
+  submodule = bpygpu_create_module(&pygpu_shader_module_def);
 
   return submodule;
 }

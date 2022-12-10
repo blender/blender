@@ -68,10 +68,7 @@ if(EXISTS ${LIBDIR})
   set(Boost_NO_SYSTEM_PATHS ON)
   set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
   set(CLANG_ROOT_DIR ${LIBDIR}/llvm)
-endif()
-
-if(WITH_STATIC_LIBS)
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " -static-libstdc++")
+  set(MaterialX_DIR ${LIBDIR}/materialx/lib/cmake/MaterialX)
 endif()
 
 # Wrapper to prefer static libraries
@@ -80,15 +77,6 @@ macro(find_package_wrapper)
     find_package_static(${ARGV})
   else()
     find_package(${ARGV})
-  endif()
-endmacro()
-
-# Utility to install precompiled shared libraries.
-macro(add_bundled_libraries library)
-  if(EXISTS ${LIBDIR})
-    file(GLOB _all_library_versions ${LIBDIR}/${library}/lib/*\.so*)
-    list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
-    unset(_all_library_versions)
   endif()
 endmacro()
 
@@ -107,6 +95,10 @@ find_package_wrapper(PNG REQUIRED)
 find_package_wrapper(ZLIB REQUIRED)
 find_package_wrapper(Zstd REQUIRED)
 find_package_wrapper(Epoxy REQUIRED)
+
+if(WITH_VULKAN_BACKEND)
+  find_package_wrapper(Vulkan REQUIRED)
+endif()
 
 function(check_freetype_for_brotli)
   include(CheckSymbolExists)
@@ -175,6 +167,10 @@ endif()
 if(WITH_IMAGE_OPENEXR)
   find_package_wrapper(OpenEXR)  # our own module
   set_and_warn_library_found("OpenEXR" OPENEXR_FOUND WITH_IMAGE_OPENEXR)
+  if(WITH_IMAGE_OPENEXR)
+    add_bundled_libraries(openexr/lib)
+    add_bundled_libraries(imath/lib)
+  endif()
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
@@ -322,19 +318,21 @@ if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
   file(GLOB _sycl_runtime_libraries
     ${SYCL_ROOT_DIR}/lib/libsycl.so
     ${SYCL_ROOT_DIR}/lib/libsycl.so.*
-    ${SYCL_ROOT_DIR}/lib/libpi_level_zero.so
+    ${SYCL_ROOT_DIR}/lib/libpi_*.so
   )
   list(FILTER _sycl_runtime_libraries EXCLUDE REGEX ".*\.py")
+  list(REMOVE_ITEM _sycl_runtime_libraries "${SYCL_ROOT_DIR}/lib/libpi_opencl.so")
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 endif()
 
 if(WITH_OPENVDB)
-  find_package_wrapper(OpenVDB)
+  find_package(OpenVDB)
   set_and_warn_library_found("OpenVDB" OPENVDB_FOUND WITH_OPENVDB)
 
   if(OPENVDB_FOUND)
-    find_package_wrapper(Blosc)
+  add_bundled_libraries(openvdb/lib)
+  find_package_wrapper(Blosc)
     set_and_warn_library_found("Blosc" BLOSC_FOUND WITH_OPENVDB_BLOSC)
   endif()
 endif()
@@ -356,13 +354,24 @@ endif()
 if(WITH_USD)
   find_package_wrapper(USD)
   set_and_warn_library_found("USD" USD_FOUND WITH_USD)
+ if(WITH_USD)
+    add_bundled_libraries(usd/lib)
+ endif()
+endif()
+
+if(WITH_MATERIALX)
+  find_package_wrapper(MaterialX)
+  set_and_warn_library_found("MaterialX" MaterialX_FOUND WITH_MATERIALX)
+  if(WITH_MATERIALX)
+    add_bundled_libraries(materialx/lib)
+  endif()
 endif()
 
 if(WITH_BOOST)
   # uses in build instructions to override include and library variables
   if(NOT BOOST_CUSTOM)
     if(WITH_STATIC_LIBS)
-      set(Boost_USE_STATIC_LIBS ON)
+      set(Boost_USE_STATIC_LIBS OFF)
     endif()
     set(Boost_USE_MULTITHREADED ON)
     set(__boost_packages filesystem regex thread date_time)
@@ -377,6 +386,9 @@ if(WITH_BOOST)
     endif()
     if(WITH_OPENVDB)
       list(APPEND __boost_packages iostreams)
+    endif()
+    if(WITH_USD AND USD_PYTHON_SUPPORT)
+      list(APPEND __boost_packages python${PYTHON_VERSION_NO_DOTS})
     endif()
     list(APPEND __boost_packages system)
     find_package(Boost 1.48 COMPONENTS ${__boost_packages})
@@ -395,8 +407,13 @@ if(WITH_BOOST)
     mark_as_advanced(Boost_INCLUDE_DIR)  # why doesn't boost do this?
   endif()
 
-  set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
+  # Boost Python is separate to avoid linking Python into tests that don't need it.
   set(BOOST_LIBRARIES ${Boost_LIBRARIES})
+  if(WITH_USD AND USD_PYTHON_SUPPORT)
+    set(BOOST_PYTHON_LIBRARIES ${Boost_PYTHON${PYTHON_VERSION_NO_DOTS}_LIBRARY})
+    list(REMOVE_ITEM BOOST_LIBRARIES ${BOOST_PYTHON_LIBRARIES})
+  endif()
+  set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
   set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
   set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 
@@ -404,6 +421,8 @@ if(WITH_BOOST)
     find_package(IcuLinux)
     list(APPEND BOOST_LIBRARIES ${ICU_LIBRARIES})
   endif()
+
+  add_bundled_libraries(boost/lib)
 endif()
 
 if(WITH_PUGIXML)
@@ -426,7 +445,6 @@ if(WITH_OPENIMAGEIO)
     ${ZLIB_LIBRARIES}
     ${BOOST_LIBRARIES}
   )
-  set(OPENIMAGEIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
   set(OPENIMAGEIO_DEFINITIONS "")
 
   if(WITH_IMAGE_TIFF)
@@ -440,16 +458,20 @@ if(WITH_OPENIMAGEIO)
   endif()
 
   set_and_warn_library_found("OPENIMAGEIO" OPENIMAGEIO_FOUND WITH_OPENIMAGEIO)
+  if(WITH_OPENIMAGEIO)
+    add_bundled_libraries(openimageio/lib)
+  endif()
 endif()
 
 if(WITH_OPENCOLORIO)
   find_package_wrapper(OpenColorIO 2.0.0)
 
-  set(OPENCOLORIO_LIBRARIES ${OPENCOLORIO_LIBRARIES})
-  set(OPENCOLORIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
   set(OPENCOLORIO_DEFINITIONS)
-
   set_and_warn_library_found("OpenColorIO" OPENCOLORIO_FOUND WITH_OPENCOLORIO)
+
+  if(WITH_OPENCOLORIO)
+    add_bundled_libraries(opencolorio/lib)
+  endif()
 endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
@@ -485,17 +507,23 @@ if(WITH_LLVM)
 endif()
 
 if(WITH_OPENSUBDIV)
-  find_package_wrapper(OpenSubdiv)
+  find_package(OpenSubdiv)
 
   set(OPENSUBDIV_LIBRARIES ${OPENSUBDIV_LIBRARIES})
   set(OPENSUBDIV_LIBPATH)  # TODO, remove and reference the absolute path everywhere
 
   set_and_warn_library_found("OpenSubdiv" OPENSUBDIV_FOUND WITH_OPENSUBDIV)
+  if(WITH_OPENSUBDIV)
+    add_bundled_libraries(opensubdiv/lib)
+  endif()
 endif()
 
 if(WITH_TBB)
   find_package_wrapper(TBB)
   set_and_warn_library_found("TBB" TBB_FOUND WITH_TBB)
+  if(WITH_TBB)
+    add_bundled_libraries(tbb/lib)
+  endif()
 endif()
 
 if(WITH_XR_OPENXR)
@@ -965,16 +993,9 @@ if(WITH_COMPILER_CCACHE)
   endif()
 endif()
 
-# On some platforms certain atomic operations are not possible with assembly and/or intrinsics and
-# they are emulated in software with locks. For example, on armel there is no intrinsics to grant
-# 64 bit atomic operations and STL library uses libatomic to offload software emulation of atomics
-# to.
-# This function will check whether libatomic is required and if so will configure linker flags.
-# If atomic operations are possible without libatomic then linker flags are left as-is.
-function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
-  # Source which is used to enforce situation when software emulation of atomics is required.
-  # Assume that using 64bit integer gives a definitive answer (as in, if 64bit atomic operations
-  # are possible using assembly/intrinsics 8, 16, and 32 bit operations will also be possible.
+# Always link with libatomic if available, as it is required for data types
+# which don't have intrinsics.
+function(configure_atomic_lib_if_needed)
   set(_source
       "#include <atomic>
       #include <cstdint>
@@ -985,25 +1006,12 @@ function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
   )
 
   include(CheckCXXSourceCompiles)
-  check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITHOUT_LIBATOMIC)
+  set(CMAKE_REQUIRED_LIBRARIES atomic)
+  check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITH_LIBATOMIC)
+  unset(CMAKE_REQUIRED_LIBRARIES)
 
-  if(NOT ATOMIC_OPS_WITHOUT_LIBATOMIC)
-    # Compilation of the test program has failed.
-    # Try it again with -latomic to see if this is what is needed, or whether something else is
-    # going on.
-
-    set(CMAKE_REQUIRED_LIBRARIES atomic)
-    check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITH_LIBATOMIC)
-    unset(CMAKE_REQUIRED_LIBRARIES)
-
-    if(ATOMIC_OPS_WITH_LIBATOMIC)
-      set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -latomic" PARENT_SCOPE)
-    else()
-      # Atomic operations are required part of Blender and it is not possible to process forward.
-      # We expect that either standard library or libatomic will make atomics to work. If both
-      # cases has failed something fishy o na bigger scope is going on.
-      message(FATAL_ERROR "Failed to detect required configuration for atomic operations")
-    endif()
+  if(ATOMIC_OPS_WITH_LIBATOMIC)
+    set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -latomic" PARENT_SCOPE)
   endif()
 endfunction()
 
@@ -1020,4 +1028,10 @@ if(PLATFORM_BUNDLED_LIBRARIES)
   # and because the build and install folder may be different.
   set(CMAKE_SKIP_BUILD_RPATH FALSE)
   list(APPEND CMAKE_BUILD_RPATH $ORIGIN/lib ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib)
+
+  # Environment variables to run precompiled executables that needed libraries.
+  list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ":" _library_paths)
+  set(PLATFORM_ENV_BUILD "LD_LIBRARY_PATH=\"${_library_paths};${LD_LIBRARY_PATH}\"")
+  set(PLATFORM_ENV_INSTALL "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib/;$LD_LIBRARY_PATH")
+  unset(_library_paths)
 endif()

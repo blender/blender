@@ -23,7 +23,7 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_screen.h"
 
-#include "ED_node.h" /* own include */
+#include "ED_node.hh" /* own include */
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -300,12 +300,12 @@ static void sort_multi_input_socket_links_with_drag(bNode &node,
     if (!socket->is_multi_input()) {
       continue;
     }
-    const float2 &socket_location = {socket->locx, socket->locy};
+    const float2 &socket_location = {socket->runtime->locx, socket->runtime->locy};
 
     Vector<LinkAndPosition, 8> links;
     for (bNodeLink *link : socket->directly_linked_links()) {
       const float2 location = node_link_calculate_multi_input_position(
-          socket_location, link->multi_input_socket_index, link->tosock->total_inputs);
+          socket_location, link->multi_input_socket_index, link->tosock->runtime->total_inputs);
       links.append({link, location});
     };
 
@@ -343,7 +343,7 @@ static void snode_autoconnect(SpaceNode &snode, const bool allow_multiple, const
   bNodeTree *ntree = snode.edittree;
   Vector<bNode *> sorted_nodes;
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->flag & NODE_SELECT) {
       sorted_nodes.append(node);
     }
@@ -616,7 +616,7 @@ static int view_socket(const bContext &C,
 {
   bNode *viewer_node = nullptr;
   /* Try to find a viewer that is already active. */
-  LISTBASE_FOREACH (bNode *, node, &btree.nodes) {
+  for (bNode *node : btree.all_nodes()) {
     if (is_viewer_node(*node)) {
       if (node->flag & NODE_DO_OUTPUT) {
         viewer_node = node;
@@ -636,7 +636,7 @@ static int view_socket(const bContext &C,
   }
 
   if (viewer_node == nullptr) {
-    LISTBASE_FOREACH (bNode *, node, &btree.nodes) {
+    for (bNode *node : btree.all_nodes()) {
       if (is_viewer_node(*node)) {
         viewer_node = node;
         break;
@@ -645,8 +645,8 @@ static int view_socket(const bContext &C,
   }
   if (viewer_node == nullptr) {
     const int viewer_type = get_default_viewer_type(&C);
-    const float2 location{bsocket_to_view.locx / UI_DPI_FAC + 100,
-                          bsocket_to_view.locy / UI_DPI_FAC};
+    const float2 location{bsocket_to_view.runtime->locx / UI_DPI_FAC + 100,
+                          bsocket_to_view.runtime->locy / UI_DPI_FAC};
     viewer_node = add_static_node(C, viewer_type, location);
   }
 
@@ -902,8 +902,6 @@ static void node_link_exit(bContext &C, wmOperator &op, const bool apply_links)
   bNodeTree &ntree = *snode.edittree;
   bNodeLinkDrag *nldrag = (bNodeLinkDrag *)op.customdata;
 
-  /* avoid updates while applying links */
-  ntree.is_updating = true;
   for (bNodeLink *link : nldrag->links) {
     link->flag &= ~NODE_LINK_DRAGGED;
 
@@ -929,7 +927,6 @@ static void node_link_exit(bContext &C, wmOperator &op, const bool apply_links)
       nodeRemLink(&ntree, link);
     }
   }
-  ntree.is_updating = false;
 
   ED_node_tree_propagate_change(&C, bmain, &ntree);
 
@@ -1557,7 +1554,7 @@ static int detach_links_exec(bContext *C, wmOperator * /*op*/)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     if (node->flag & SELECT) {
       nodeInternalRelink(&ntree, node);
     }
@@ -1596,7 +1593,7 @@ static int node_parent_set_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+  for (bNode *node : ntree.all_nodes()) {
     if (node == frame) {
       continue;
     }
@@ -1633,40 +1630,42 @@ void NODE_OT_parent_set(wmOperatorType *ot)
 /** \name Join Nodes Operator
  * \{ */
 
-/* tags for depth-first search */
-#define NODE_JOIN_DONE 1
-#define NODE_JOIN_IS_DESCENDANT 2
+struct NodeJoinState {
+  bool done;
+  bool descendent;
+};
 
 static void node_join_attach_recursive(bNodeTree &ntree,
+                                       MutableSpan<NodeJoinState> join_states,
                                        bNode *node,
                                        bNode *frame,
-                                       const Set<bNode *> &selected_nodes)
+                                       const VectorSet<bNode *> &selected_nodes)
 {
-  node->runtime->done |= NODE_JOIN_DONE;
+  join_states[node->runtime->index_in_tree].done = true;
 
   if (node == frame) {
-    node->runtime->done |= NODE_JOIN_IS_DESCENDANT;
+    join_states[node->runtime->index_in_tree].descendent = true;
   }
   else if (node->parent) {
     /* call recursively */
-    if (!(node->parent->runtime->done & NODE_JOIN_DONE)) {
-      node_join_attach_recursive(ntree, node->parent, frame, selected_nodes);
+    if (!join_states[node->parent->runtime->index_in_tree].done) {
+      node_join_attach_recursive(ntree, join_states, node->parent, frame, selected_nodes);
     }
 
     /* in any case: if the parent is a descendant, so is the child */
-    if (node->parent->runtime->done & NODE_JOIN_IS_DESCENDANT) {
-      node->runtime->done |= NODE_JOIN_IS_DESCENDANT;
+    if (join_states[node->parent->runtime->index_in_tree].descendent) {
+      join_states[node->runtime->index_in_tree].descendent = true;
     }
     else if (selected_nodes.contains(node)) {
       /* if parent is not an descendant of the frame, reattach the node */
       nodeDetachNode(&ntree, node);
       nodeAttachNode(&ntree, node, frame);
-      node->runtime->done |= NODE_JOIN_IS_DESCENDANT;
+      join_states[node->runtime->index_in_tree].descendent = true;
     }
   }
   else if (selected_nodes.contains(node)) {
     nodeAttachNode(&ntree, node, frame);
-    node->runtime->done |= NODE_JOIN_IS_DESCENDANT;
+    join_states[node->runtime->index_in_tree].descendent = true;
   }
 }
 
@@ -1676,19 +1675,18 @@ static int node_join_exec(bContext *C, wmOperator * /*op*/)
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
 
-  const Set<bNode *> selected_nodes = get_selected_nodes(ntree);
+  const VectorSet<bNode *> selected_nodes = get_selected_nodes(ntree);
 
   bNode *frame_node = nodeAddStaticNode(C, &ntree, NODE_FRAME);
   nodeSetActive(&ntree, frame_node);
 
-  /* reset tags */
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    node->runtime->done = 0;
-  }
+  ntree.ensure_topology_cache();
 
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    if (!(node->runtime->done & NODE_JOIN_DONE)) {
-      node_join_attach_recursive(ntree, node, frame_node, selected_nodes);
+  Array<NodeJoinState> join_states(ntree.all_nodes().size(), NodeJoinState{false, false});
+
+  for (bNode *node : ntree.all_nodes()) {
+    if (!join_states[node->runtime->index_in_tree].done) {
+      node_join_attach_recursive(ntree, join_states, node, frame_node, selected_nodes);
     }
   }
 
@@ -1811,32 +1809,35 @@ void NODE_OT_attach(wmOperatorType *ot)
 /** \name Detach Operator
  * \{ */
 
-/* tags for depth-first search */
-#define NODE_DETACH_DONE 1
-#define NODE_DETACH_IS_DESCENDANT 2
+struct NodeDetachstate {
+  bool done;
+  bool descendent;
+};
 
-static void node_detach_recursive(bNodeTree &ntree, bNode *node)
+static void node_detach_recursive(bNodeTree &ntree,
+                                  MutableSpan<NodeDetachstate> detach_states,
+                                  bNode *node)
 {
-  node->runtime->done |= NODE_DETACH_DONE;
+  detach_states[node->runtime->index_in_tree].done = true;
 
   if (node->parent) {
     /* call recursively */
-    if (!(node->parent->runtime->done & NODE_DETACH_DONE)) {
-      node_detach_recursive(ntree, node->parent);
+    if (!detach_states[node->parent->runtime->index_in_tree].done) {
+      node_detach_recursive(ntree, detach_states, node->parent);
     }
 
     /* in any case: if the parent is a descendant, so is the child */
-    if (node->parent->runtime->done & NODE_DETACH_IS_DESCENDANT) {
-      node->runtime->done |= NODE_DETACH_IS_DESCENDANT;
+    if (detach_states[node->parent->runtime->index_in_tree].descendent) {
+      detach_states[node->runtime->index_in_tree].descendent = true;
     }
     else if (node->flag & NODE_SELECT) {
       /* if parent is not a descendant of a selected node, detach */
       nodeDetachNode(&ntree, node);
-      node->runtime->done |= NODE_DETACH_IS_DESCENDANT;
+      detach_states[node->runtime->index_in_tree].descendent = true;
     }
   }
   else if (node->flag & NODE_SELECT) {
-    node->runtime->done |= NODE_DETACH_IS_DESCENDANT;
+    detach_states[node->runtime->index_in_tree].descendent = true;
   }
 }
 
@@ -1846,16 +1847,14 @@ static int node_detach_exec(bContext *C, wmOperator * /*op*/)
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
 
-  /* reset tags */
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    node->runtime->done = 0;
-  }
+  Array<NodeDetachstate> detach_states(ntree.all_nodes().size(), NodeDetachstate{false, false});
+
   /* detach nodes recursively
    * relative order is preserved here!
    */
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    if (!(node->runtime->done & NODE_DETACH_DONE)) {
-      node_detach_recursive(ntree, node);
+  for (bNode *node : ntree.all_nodes()) {
+    if (!detach_states[node->runtime->index_in_tree].done) {
+      node_detach_recursive(ntree, detach_states, node);
     }
   }
 
@@ -2169,7 +2168,7 @@ static void node_parent_offset_apply(NodeInsertOfsData *data, bNode *parent, con
 
   /* Flag all children as offset to prevent them from being offset
    * separately (they've already moved with the parent). */
-  LISTBASE_FOREACH (bNode *, node, &data->ntree->nodes) {
+  for (bNode *node : data->ntree->all_nodes()) {
     if (nodeIsChildOf(parent, node)) {
       /* NODE_TEST is used to flag nodes that shouldn't be offset (again) */
       node->flag |= NODE_TEST;
@@ -2204,12 +2203,12 @@ static bool node_link_insert_offset_frame_chain_cb(bNode *fromnode,
 /**
  * Applies #NodeInsertOfsData.offset_x to all children of \a parent.
  */
-static void node_link_insert_offset_frame_chains(const bNodeTree *ntree,
+static void node_link_insert_offset_frame_chains(bNodeTree *ntree,
                                                  const bNode *parent,
                                                  NodeInsertOfsData *data,
                                                  const bool reversed)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (nodeIsChildOf(parent, node)) {
       nodeChainIter(ntree, node, node_link_insert_offset_frame_chain_cb, data, reversed);
     }
@@ -2387,7 +2386,7 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
 
   /* handle animation - do this before possibly aborting due to duration, since
    * main thread might be so busy that node hasn't reached final position yet */
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  for (bNode *node : snode->edittree->all_nodes()) {
     if (UNLIKELY(node->runtime->anim_ofsx)) {
       const float endval = node->runtime->anim_init_locx + node->runtime->anim_ofsx;
       if (IS_EQF(node->locx, endval) == false) {
@@ -2413,7 +2412,7 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
   if (duration > NODE_INSOFS_ANIM_DURATION) {
     WM_event_remove_timer(CTX_wm_manager(C), nullptr, iofsd->anim_timer);
 
-    LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+    for (bNode *node : snode->edittree->all_nodes()) {
       node->runtime->anim_init_locx = node->runtime->anim_ofsx = 0.0f;
     }
 

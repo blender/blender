@@ -1787,7 +1787,7 @@ static eSnapMode snap_mesh_polygon(SnapObjectContext *sctx,
       BLI_assert(nearest2d.edge != nullptr);
       for (int i = mp->totloop; i--; ml++) {
         cb_snap_edge(&nearest2d,
-                     (int)ml->e,
+                     int(ml->e),
                      &neasrest_precalc,
                      clip_planes_local,
                      sctx->runtime.clip_plane_len,
@@ -1798,7 +1798,7 @@ static eSnapMode snap_mesh_polygon(SnapObjectContext *sctx,
       elem = SCE_SNAP_MODE_VERTEX;
       for (int i = mp->totloop; i--; ml++) {
         cb_snap_vert(&nearest2d,
-                     (int)ml->v,
+                     int(ml->v),
                      &neasrest_precalc,
                      clip_planes_local,
                      sctx->runtime.clip_plane_len,
@@ -2467,7 +2467,6 @@ static eSnapMode snapCamera(const SnapObjectContext *sctx,
         &neasrest_precalc, sctx->runtime.pmat, sctx->runtime.win_size, sctx->runtime.mval);
 
     LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
-      ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
       float reconstructed_camera_mat[4][4], reconstructed_camera_imat[4][4];
       const float(*vertex_obmat)[4];
 
@@ -2478,7 +2477,7 @@ static eSnapMode snapCamera(const SnapObjectContext *sctx,
         invert_m4_m4(reconstructed_camera_imat, reconstructed_camera_mat);
       }
 
-      LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+      LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
         float bundle_pos[3];
 
         if ((track->flag & TRACK_HAS_BUNDLE) == 0) {

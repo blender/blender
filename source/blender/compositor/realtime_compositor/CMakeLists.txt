@@ -60,8 +60,10 @@ set(SRC
   COM_utilities.hh
 
   algorithms/intern/algorithm_parallel_reduction.cc
+  algorithms/intern/symmetric_separable_blur.cc
 
   algorithms/COM_algorithm_parallel_reduction.hh
+  algorithms/COM_algorithm_symmetric_separable_blur.hh
 
   cached_resources/intern/morphological_distance_feather_weights.cc
   cached_resources/intern/symmetric_blur_weights.cc
@@ -96,6 +98,14 @@ set(GLSL_SRC
   shaders/compositor_ellipse_mask.glsl
   shaders/compositor_filter.glsl
   shaders/compositor_flip.glsl
+  shaders/compositor_glare_ghost_accumulate.glsl
+  shaders/compositor_glare_ghost_base.glsl
+  shaders/compositor_glare_highlights.glsl
+  shaders/compositor_glare_mix.glsl
+  shaders/compositor_glare_simple_star_anti_diagonal_pass.glsl
+  shaders/compositor_glare_simple_star_diagonal_pass.glsl
+  shaders/compositor_glare_simple_star_horizontal_pass.glsl
+  shaders/compositor_glare_simple_star_vertical_pass.glsl
   shaders/compositor_image_crop.glsl
   shaders/compositor_morphological_distance.glsl
   shaders/compositor_morphological_distance_feather.glsl
@@ -129,6 +139,7 @@ set(GLSL_SRC
   shaders/library/gpu_shader_compositor_gamma.glsl
   shaders/library/gpu_shader_compositor_hue_correct.glsl
   shaders/library/gpu_shader_compositor_hue_saturation_value.glsl
+  shaders/library/gpu_shader_compositor_image_diagonals.glsl
   shaders/library/gpu_shader_compositor_invert.glsl
   shaders/library/gpu_shader_compositor_luminance_matte.glsl
   shaders/library/gpu_shader_compositor_main.glsl
@@ -181,6 +192,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_ellipse_mask_info.hh
   shaders/infos/compositor_filter_info.hh
   shaders/infos/compositor_flip_info.hh
+  shaders/infos/compositor_glare_info.hh
   shaders/infos/compositor_image_crop_info.hh
   shaders/infos/compositor_morphological_distance_feather_info.hh
   shaders/infos/compositor_morphological_distance_info.hh

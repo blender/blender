@@ -352,7 +352,7 @@ DRWDebugVert DebugDraw::vert_pack(float3 pos, uint color)
   vert.pos0 = *reinterpret_cast<uint32_t *>(&pos.x);
   vert.pos1 = *reinterpret_cast<uint32_t *>(&pos.y);
   vert.pos2 = *reinterpret_cast<uint32_t *>(&pos.z);
-  vert.color = color;
+  vert.vert_color = color;
   return vert;
 }
 

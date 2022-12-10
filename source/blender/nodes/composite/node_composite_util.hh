@@ -12,6 +12,7 @@
 
 #include "BLT_translation.h"
 
+#include "node_composite_register.hh"
 #include "node_util.h"
 
 #include "NOD_composite.h"

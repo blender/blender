@@ -231,7 +231,7 @@ void Object::tag_update(Scene *scene)
 
     foreach (Node *node, geometry->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(node);
-      if (shader->get_use_mis() && shader->has_surface_emission)
+      if (shader->emission_sampling != EMISSION_SAMPLING_NONE)
         scene->light_manager->tag_update(scene, LightManager::EMISSIVE_MESH_MODIFIED);
     }
   }
@@ -565,10 +565,12 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 
 void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dscene, Scene *scene)
 {
-  BVHLayoutMask layout_mask = device->get_bvh_layout_mask();
-  if (layout_mask != BVH_LAYOUT_METAL && layout_mask != BVH_LAYOUT_MULTI_METAL &&
-      layout_mask != BVH_LAYOUT_MULTI_METAL_EMBREE) {
-    return;
+  if (!scene->integrator->get_use_light_tree()) {
+    BVHLayoutMask layout_mask = device->get_bvh_layout_mask();
+    if (layout_mask != BVH_LAYOUT_METAL && layout_mask != BVH_LAYOUT_MULTI_METAL &&
+        layout_mask != BVH_LAYOUT_MULTI_METAL_EMBREE) {
+      return;
+    }
   }
 
   /* On MetalRT, primitive / curve segment offsets can't be baked at BVH build time. Intersection

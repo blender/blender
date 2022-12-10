@@ -130,7 +130,6 @@ void BKE_movieclip_free_gputexture(struct MovieClip *clip);
 void BKE_movieclip_eval_update(struct Depsgraph *depsgraph,
                                struct Main *bmain,
                                struct MovieClip *clip);
-void BKE_movieclip_eval_selection_update(struct Depsgraph *depsgraph, struct MovieClip *clip);
 
 /** Caching flags. */
 #define MOVIECLIP_CACHE_SKIP (1 << 0)

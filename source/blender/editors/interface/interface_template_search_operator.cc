@@ -28,7 +28,7 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Operator Search Template Implementation

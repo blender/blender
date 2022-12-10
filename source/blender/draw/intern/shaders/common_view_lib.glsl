@@ -3,26 +3,8 @@
 #ifndef COMMON_VIEW_LIB_GLSL
 #define COMMON_VIEW_LIB_GLSL
 
-/* Temporary until we fully make the switch. */
-#if !defined(USE_GPU_SHADER_CREATE_INFO)
-
-#  define DRW_RESOURCE_CHUNK_LEN 512
-
-/* keep in sync with DRWManager.view_data */
-layout(std140) uniform viewBlock
-{
-  mat4 ViewMatrix;
-  mat4 ViewMatrixInverse;
-  mat4 ProjectionMatrix;
-  mat4 ProjectionMatrixInverse;
-};
-
-#endif /* USE_GPU_SHADER_CREATE_INFO */
-
-#ifdef USE_GPU_SHADER_CREATE_INFO
-#  ifndef DRW_RESOURCE_CHUNK_LEN
-#    error Missing draw_view additional create info on shader create info
-#  endif
+#ifndef DRW_RESOURCE_CHUNK_LEN
+#  error Missing draw_view additional create info on shader create info
 #endif
 
 /* Not supported anymore. TODO(fclem): Add back support. */
@@ -39,7 +21,7 @@ vec3 cameraVec(vec3 P)
 
 #ifdef COMMON_GLOBALS_LIB
 /* TODO move to overlay engine. */
-float mul_project_m4_v3_zfac(in vec3 co)
+float mul_project_m4_v3_zfac(vec3 co)
 {
   vec3 vP = (ViewMatrix * vec4(co, 1.0)).xyz;
   return pixelFac * ((ProjectionMatrix[0][3] * vP.x) + (ProjectionMatrix[1][3] * vP.y) +
@@ -144,7 +126,7 @@ uniform int drw_ResourceID;
 #    define PASS_RESOURCE_ID drw_ResourceID_iface.resource_index = resource_id;
 
 #  elif defined(GPU_GEOMETRY_SHADER)
-#    define resource_id drw_ResourceID_iface_in[0].index
+#    define resource_id drw_ResourceID_iface_in[0].resource_index
 #    define PASS_RESOURCE_ID drw_ResourceID_iface_out.resource_index = resource_id;
 
 #  elif defined(GPU_FRAGMENT_SHADER)

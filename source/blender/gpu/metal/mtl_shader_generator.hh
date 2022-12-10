@@ -657,7 +657,7 @@ inline const char *to_string_msl(const shader::Interpolation &interp)
 {
   switch (interp) {
     case shader::Interpolation::SMOOTH:
-      return "[[smooth]]";
+      return "[[center_perspective]]";
     case shader::Interpolation::FLAT:
       return "[[flat]]";
     case shader::Interpolation::NO_PERSPECTIVE:

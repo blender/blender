@@ -112,7 +112,10 @@ class ANIM_OT_keying_set_export(Operator):
                             break
 
                 if not found:
-                    self.report({'WARN'}, tip_("Could not find material or light using Shader Node Tree - %s") % (ksp.id))
+                    self.report(
+                        {'WARN'},
+                        tip_("Could not find material or light using Shader Node Tree - %s") %
+                        (ksp.id))
             elif ksp.id.bl_rna.identifier.startswith("CompositorNodeTree"):
                 # Find compositor nodetree using this node tree...
                 for scene in bpy.data.scenes:
@@ -252,9 +255,14 @@ class NLA_OT_bake(Operator):
         do_pose = 'POSE' in self.bake_types
         do_object = 'OBJECT' in self.bake_types
 
-        objects = context.selected_editable_objects
-        if do_pose and not do_object:
-            objects = [obj for obj in objects if obj.pose is not None]
+        if do_pose and self.only_selected:
+            pose_bones = context.selected_pose_bones or []
+            armatures = {pose_bone.id_data for pose_bone in pose_bones}
+            objects = list(armatures)
+        else:
+            objects = context.selected_editable_objects
+            if do_pose and not do_object:
+                objects = [obj for obj in objects if obj.pose is not None]
 
         object_action_pairs = (
             [(obj, getattr(obj.animation_data, "action", None)) for obj in objects]
@@ -282,8 +290,12 @@ class NLA_OT_bake(Operator):
 
     def invoke(self, context, _event):
         scene = context.scene
-        self.frame_start = scene.frame_start
-        self.frame_end = scene.frame_end
+        if scene.use_preview_range:
+            self.frame_start = scene.frame_preview_start
+            self.frame_end = scene.frame_preview_end
+        else:
+            self.frame_start = scene.frame_start
+            self.frame_end = scene.frame_end
         self.bake_types = {'POSE'} if context.mode == 'POSE' else {'OBJECT'}
 
         wm = context.window_manager
@@ -326,7 +338,7 @@ class ClearUselessActions(Operator):
                     removed += 1
 
         self.report({'INFO'}, tip_("Removed %d empty and/or fake-user only Actions")
-                              % removed)
+                    % removed)
         return {'FINISHED'}
 
 

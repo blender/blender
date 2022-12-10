@@ -135,8 +135,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
     if (geo_eval_log::GeoModifierLog *modifier_log = user_data->modifier_data->eval_log) {
       geo_eval_log::GeoTreeLogger &tree_logger = modifier_log->get_local_tree_logger(
           *user_data->compute_context);
-      tree_logger.node_execution_times.append(
-          {tree_logger.allocator->copy_string(node_.name), start_time, end_time});
+      tree_logger.node_execution_times.append({node_.identifier, start_time, end_time});
     }
   }
 };
@@ -570,8 +569,7 @@ class LazyFunctionForViewerNode : public LazyFunction {
                   used_domain = *detected_domain;
                 }
                 else {
-                  used_domain = type == GEO_COMPONENT_TYPE_MESH ? ATTR_DOMAIN_CORNER :
-                                                                  ATTR_DOMAIN_POINT;
+                  used_domain = ATTR_DOMAIN_POINT;
                 }
               }
               bke::try_capture_field_on_geometry(
@@ -663,7 +661,8 @@ class LazyFunctionForGroupNode : public LazyFunction {
     }
 
     /* The compute context changes when entering a node group. */
-    bke::NodeGroupComputeContext compute_context{user_data->compute_context, group_node_.name};
+    bke::NodeGroupComputeContext compute_context{user_data->compute_context,
+                                                 group_node_.identifier};
     GeoNodesLFUserData group_user_data = *user_data;
     group_user_data.compute_context = &compute_context;
 
@@ -1399,8 +1398,7 @@ GeometryNodesLazyFunctionGraphInfo::~GeometryNodesLazyFunctionGraphInfo()
       if (!bsockets.is_empty()) {
         const bNodeSocket &bsocket = *bsockets[0];
         const bNode &bnode = bsocket.owner_node();
-        tree_logger.debug_messages.append(
-            {tree_logger.allocator->copy_string(bnode.name), thread_id_str});
+        tree_logger.debug_messages.append({bnode.identifier, thread_id_str});
         return true;
       }
     }

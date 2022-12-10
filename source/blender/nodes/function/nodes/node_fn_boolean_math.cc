@@ -14,7 +14,7 @@
 
 namespace blender::nodes::node_fn_boolean_math_cc {
 
-static void fn_node_boolean_math_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Bool>(N_("Boolean"), "Boolean");
@@ -22,22 +22,19 @@ static void fn_node_boolean_math_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Boolean"));
 }
 
-static void fn_node_boolean_math_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
 }
 
-static void node_boolean_math_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sockB = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
 
   nodeSetSocketAvailability(ntree, sockB, !ELEM(node->custom1, NODE_BOOLEAN_MATH_NOT));
 }
 
-static void node_boolean_math_label(const bNodeTree * /*tree*/,
-                                    const bNode *node,
-                                    char *label,
-                                    int maxlen)
+static void node_label(const bNodeTree * /*tree*/, const bNode *node, char *label, int maxlen)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_boolean_math_items, node->custom1, &name);
@@ -114,7 +111,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &bnode)
   return nullptr;
 }
 
-static void fn_node_boolean_math_build_multi_function(NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const fn::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
@@ -129,11 +126,11 @@ void register_node_type_fn_boolean_math()
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_BOOLEAN_MATH, "Boolean Math", NODE_CLASS_CONVERTER);
-  ntype.declare = file_ns::fn_node_boolean_math_declare;
-  ntype.labelfunc = file_ns::node_boolean_math_label;
-  ntype.updatefunc = file_ns::node_boolean_math_update;
-  ntype.build_multi_function = file_ns::fn_node_boolean_math_build_multi_function;
-  ntype.draw_buttons = file_ns::fn_node_boolean_math_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.labelfunc = file_ns::node_label;
+  ntype.updatefunc = file_ns::node_update;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.draw_buttons = file_ns::node_layout;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   nodeRegisterType(&ntype);
 }

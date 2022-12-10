@@ -7211,6 +7211,7 @@ void SetNormalNode::compile(OSLCompiler &compiler)
 OSLNode::OSLNode() : ShaderNode(new NodeType(NodeType::SHADER))
 {
   special_type = SHADER_SPECIAL_TYPE_OSL;
+  has_emission = false;
 }
 
 OSLNode::~OSLNode()
@@ -7257,12 +7258,12 @@ char *OSLNode::input_default_value()
   return (char *)this + align_up(sizeof(OSLNode), 16) + inputs_size;
 }
 
-void OSLNode::add_input(ustring name, SocketType::Type socket_type)
+void OSLNode::add_input(ustring name, SocketType::Type socket_type, const int flags)
 {
   char *memory = input_default_value();
   size_t offset = memory - (char *)this;
   const_cast<NodeType *>(type)->register_input(
-      name, name, socket_type, offset, memory, NULL, NULL, SocketType::LINKABLE);
+      name, name, socket_type, offset, memory, NULL, NULL, flags | SocketType::LINKABLE);
 }
 
 void OSLNode::add_output(ustring name, SocketType::Type socket_type)

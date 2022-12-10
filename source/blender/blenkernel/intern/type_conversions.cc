@@ -372,7 +372,7 @@ static void call_convert_to_uninitialized_fn(const GVArray &from,
                                              const IndexMask mask,
                                              GMutableSpan to)
 {
-  fn::MFParamsBuilder params{fn, from.size()};
+  fn::MFParamsBuilder params{fn, mask.min_array_size()};
   params.add_readonly_single_input(from);
   params.add_uninitialized_single_output(to);
   fn::MFContextBuilder context;

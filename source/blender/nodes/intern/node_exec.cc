@@ -144,6 +144,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
                                 bNodeTree *ntree,
                                 bNodeInstanceKey parent_key)
 {
+  using namespace blender;
   bNodeTreeExec *exec;
   bNode *node;
   bNodeExec *nodeexec;
@@ -151,8 +152,6 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   bNodeSocket *sock;
   bNodeStack *ns;
   int index;
-  bNode **nodelist;
-  int totnodes, n;
   /* XXX: texture-nodes have threading issues with muting, have to disable it there. */
 
   /* ensure all sock->link pointers and node levels are correct */
@@ -161,8 +160,8 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
    * since most of the time it won't be (thanks to ntree design)!!! */
   BKE_ntree_update_main_tree(G.main, ntree, nullptr);
 
-  /* get a dependency-sorted list of nodes */
-  ntreeGetDependencyList(ntree, &nodelist, &totnodes);
+  ntree->ensure_topology_cache();
+  const Span<bNode *> nodelist = ntree->toposort_left_to_right();
 
   /* XXX could let callbacks do this for specialized data */
   exec = MEM_cnew<bNodeTreeExec>("node tree execution data");
@@ -171,7 +170,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
 
   /* set stack indices */
   index = 0;
-  for (n = 0; n < totnodes; n++) {
+  for (const int n : nodelist.index_range()) {
     node = nodelist[n];
 
     /* init node socket stack indexes */
@@ -192,7 +191,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   }
 
   /* allocated exec data pointers for nodes */
-  exec->totnodes = totnodes;
+  exec->totnodes = nodelist.size();
   exec->nodeexec = (bNodeExec *)MEM_callocN(exec->totnodes * sizeof(bNodeExec),
                                             "node execution data");
   /* allocate data pointer for node stack */
@@ -200,12 +199,13 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   exec->stack = (bNodeStack *)MEM_callocN(exec->stacksize * sizeof(bNodeStack), "bNodeStack");
 
   /* all non-const results are considered inputs */
+  int n;
   for (n = 0; n < exec->stacksize; n++) {
     exec->stack[n].hasinput = 1;
   }
 
   /* prepare all nodes for execution */
-  for (n = 0, nodeexec = exec->nodeexec; n < totnodes; n++, nodeexec++) {
+  for (n = 0, nodeexec = exec->nodeexec; n < nodelist.size(); n++, nodeexec++) {
     node = nodeexec->node = nodelist[n];
     nodeexec->free_exec_fn = node->typeinfo->free_exec_fn;
 
@@ -234,10 +234,6 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
     if (node->typeinfo->init_exec_fn) {
       nodeexec->data.data = node->typeinfo->init_exec_fn(context, node, nodekey);
     }
-  }
-
-  if (nodelist) {
-    MEM_freeN(nodelist);
   }
 
   return exec;

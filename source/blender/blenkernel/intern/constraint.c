@@ -4880,8 +4880,7 @@ static bool followtrack_context_init(FollowTrackContext *context,
     return false;
   }
 
-  context->track = BKE_tracking_track_get_named(
-      context->tracking, context->tracking_object, data->track);
+  context->track = BKE_tracking_object_find_track_with_name(context->tracking_object, data->track);
   if (context->track == NULL) {
     return false;
   }
@@ -5232,11 +5231,11 @@ static void camerasolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
   if (clip) {
     float mat[4][4], obmat[4][4];
     MovieTracking *tracking = &clip->tracking;
-    MovieTrackingObject *object = BKE_tracking_object_get_camera(tracking);
-    float ctime = DEG_get_ctime(depsgraph);
-    float framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
+    MovieTrackingObject *tracking_object = BKE_tracking_object_get_camera(tracking);
+    const float ctime = DEG_get_ctime(depsgraph);
+    const float framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
 
-    BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
+    BKE_tracking_camera_get_reconstructed_interpolate(tracking, tracking_object, framenr, mat);
 
     copy_m4_m4(obmat, cob->matrix);
 
@@ -5294,10 +5293,8 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
   }
 
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingObject *object;
-
-  object = BKE_tracking_object_get_named(tracking, data->object);
-  if (!object) {
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_named(tracking, data->object);
+  if (!tracking_object) {
     return;
   }
 
@@ -5305,7 +5302,7 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
   float ctime = DEG_get_ctime(depsgraph);
   float framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
 
-  BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
+  BKE_tracking_camera_get_reconstructed_interpolate(tracking, tracking_object, framenr, mat);
 
   invert_m4_m4(imat, mat);
   mul_m4_m4m4(parmat, camob->object_to_world, imat);

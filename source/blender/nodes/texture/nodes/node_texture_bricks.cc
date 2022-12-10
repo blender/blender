@@ -36,7 +36,7 @@ static float noise(int n) /* fast integer noise */
   int nn;
   n = (n >> 13) ^ n;
   nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
-  return 0.5f * ((float)nn / 1073741824.0f);
+  return 0.5f * (float(nn) / 1073741824.0f);
 }
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)

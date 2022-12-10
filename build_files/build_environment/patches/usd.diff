@@ -1,7 +1,7 @@
-diff -x .git -ur usd.orig/cmake/defaults/Packages.cmake external_usd/cmake/defaults/Packages.cmake
---- usd.orig/cmake/defaults/Packages.cmake	2019-10-24 22:39:53.000000000 +0200
-+++ external_usd/cmake/defaults/Packages.cmake	2019-11-28 13:00:33.185957483 +0100
-@@ -64,7 +64,7 @@
+diff -Naur orig/cmake/defaults/Packages.cmake external_usd/cmake/defaults/Packages.cmake
+--- orig/cmake/defaults/Packages.cmake	2022-10-27 12:56:33 -0600
++++ external_usd/cmake/defaults/Packages.cmake	2022-10-27 13:05:08 -0600
+@@ -129,7 +129,7 @@
  endif()
  
  # --TBB
@@ -10,10 +10,9 @@ diff -x .git -ur usd.orig/cmake/defaults/Packages.cmake external_usd/cmake/defau
  add_definitions(${TBB_DEFINITIONS})
  
  # --math
-
-diff -Naur usd_orig/cmake/defaults/msvcdefaults.cmake external_usd/cmake/defaults/msvcdefaults.cmake
---- usd_orig/cmake/defaults/msvcdefaults.cmake	2022-02-18 14:49:09 -0700
-+++ external_usd/cmake/defaults/msvcdefaults.cmake	2022-03-14 11:41:50 -0600
+diff -Naur orig/cmake/defaults/msvcdefaults.cmake external_usd/cmake/defaults/msvcdefaults.cmake
+--- orig/cmake/defaults/msvcdefaults.cmake	2022-10-27 12:56:33 -0600
++++ external_usd/cmake/defaults/msvcdefaults.cmake	2022-10-27 13:05:08 -0600
 @@ -120,9 +120,6 @@
  # for all translation units.
  set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /bigobj")
@@ -24,38 +23,10 @@ diff -Naur usd_orig/cmake/defaults/msvcdefaults.cmake external_usd/cmake/default
  # Enable multiprocessor builds.
  set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /MP")
  set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /Gm-")
-
-diff --git a/pxr/base/work/singularTask.h b/pxr/base/work/singularTask.h
---- a/pxr/base/work/singularTask.h
-+++ b/pxr/base/work/singularTask.h
-@@ -120,7 +120,7 @@
-                     // case we go again to ensure the task can do whatever it
-                     // was awakened to do.  Once we successfully take the count
-                     // to zero, we stop.
--                    size_t old = count;
-+                    std::size_t old = count;
-                     do { _fn(); } while (
-                         !count.compare_exchange_strong(old, 0));
-                 });
-
-diff --git a/pxr/usd/sdr/shaderMetadataHelpers.h b/pxr/usd/sdr/shaderMetadataHelpers.h
---- a/pxr/usd/sdr/shaderMetadataHelpers.h
-+++ b/pxr/usd/sdr/shaderMetadataHelpers.h
-@@ -32,6 +32,8 @@
- #include "pxr/base/tf/token.h"
- #include "pxr/usd/sdr/declare.h"
- 
-+#include <limits>
-+
- PXR_NAMESPACE_OPEN_SCOPE
- 
- /// \namespace ShaderMetadataHelpers
-
-diff --git a/pxr/base/arch/timing.h b/pxr/base/arch/timing.h
-index 517561f..fda5a1f 100644
---- a/pxr/base/arch/timing.h
-+++ b/pxr/base/arch/timing.h
-@@ -91,6 +91,10 @@ ArchGetTickTime()
+diff -Naur orig/pxr/base/arch/timing.h external_usd/pxr/base/arch/timing.h
+--- orig/pxr/base/arch/timing.h	2022-10-27 12:56:34 -0600
++++ external_usd/pxr/base/arch/timing.h	2022-10-27 13:05:08 -0600
+@@ -84,6 +84,10 @@
  inline uint64_t
  ArchGetStartTickTime()
  {
@@ -66,7 +37,7 @@ index 517561f..fda5a1f 100644
      uint64_t t;
  #if defined (ARCH_OS_DARWIN)
      return ArchGetTickTime();
-@@ -123,6 +127,7 @@ ArchGetStartTickTime()
+@@ -116,6 +120,7 @@
  #error "Unsupported architecture."
  #endif
    return t;
@@ -74,7 +45,7 @@ index 517561f..fda5a1f 100644
  }
  
  /// Get a "stop" tick time for measuring an interval of time.  See
-@@ -132,6 +137,10 @@ ArchGetStartTickTime()
+@@ -125,6 +130,10 @@
  inline uint64_t
  ArchGetStopTickTime()
  {
@@ -85,7 +56,7 @@ index 517561f..fda5a1f 100644
      uint64_t t;
  #if defined (ARCH_OS_DARWIN)
      return ArchGetTickTime();
-@@ -162,11 +171,11 @@ ArchGetStopTickTime()
+@@ -155,11 +164,11 @@
  #error "Unsupported architecture."
  #endif
    return t;
@@ -100,3 +71,46 @@ index 517561f..fda5a1f 100644
  
  /// A simple timer class for measuring an interval of time using the
  /// ArchTickTimer facilities.
+diff -Naur orig/pxr/imaging/hioOpenVDB/CMakeLists.txt external_usd/pxr/imaging/hioOpenVDB/CMakeLists.txt
+--- orig/pxr/imaging/hioOpenVDB/CMakeLists.txt	2022-10-27 12:56:35 -0600
++++ external_usd/pxr/imaging/hioOpenVDB/CMakeLists.txt	2022-10-27 13:05:08 -0600
+@@ -20,6 +20,12 @@
+     LIST(APPEND __VDB_IMATH_LIBS ${OPENEXR_Half_LIBRARY})
+ endif()
+ 
++if (WIN32)
++    # OpenVDB uses constants from <cmath> that aren't available on
++    # Windows unless this is defined.
++    add_definitions(-D_USE_MATH_DEFINES)
++endif()
++
+ pxr_library(hioOpenVDB
+     LIBRARIES
+         ar
+diff -Naur orig/pxr/usdImaging/CMakeLists.txt external_usd/pxr/usdImaging/CMakeLists.txt
+--- orig/pxr/usdImaging/CMakeLists.txt	2022-10-27 12:56:37 -0600
++++ external_usd/pxr/usdImaging/CMakeLists.txt	2022-10-27 13:05:08 -0600
+@@ -7,7 +7,7 @@
+     usdVolImaging
+     usdAppUtils
+     usdviewq
+-    bin
++#    bin
+     plugin
+ )
+ 
+diff -Naur orig/cmake/macros/Private.cmake external_usd/cmake/macros/Private.cmake
+--- orig/cmake/macros/Private.cmake     2022-02-18 14:49:09 -0700
++++ external_usd/cmake/macros/Private.cmake     2022-08-05 10:42:03 -0600
+@@ -900,8 +900,10 @@
+         return()
+     endif()
+
+-    if (WIN32 AND PXR_USE_DEBUG_PYTHON)
++    if (WIN32 AND PXR_USE_DEBUG_PYTHON AND NOT CMAKE_DEBUG_POSTFIX)
+         # On Windows when compiling with debug python the library must be named with _d.
++        # Blender: but this can be skipped if CMAKE_DEBUG_POSTFIX is set, it knows
++        # what it is doing and we don't want libraries ending in _d_d.pyd 
+         set(LIBRARY_NAME "_${NAME}_d")
+     else()
+         set(LIBRARY_NAME "_${NAME}")

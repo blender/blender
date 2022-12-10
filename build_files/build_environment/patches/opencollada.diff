@@ -155,3 +155,15 @@ diff -Naur a/CMakeLists.txt b/CMakeLists.txt
  
  # Library export
  install(EXPORT LibraryExport DESTINATION ${OPENCOLLADA_INST_CMAKECONFIG} FILE OpenCOLLADATargets.cmake)
+diff -Naur OpenCOLLADA-1.6.68/common/libBuffer/include/CommonFWriteBufferFlusher.h external_opencollada/common/libBuffer/include/CommonFWriteBufferFlusher.h
+--- OpenCOLLADA-1.6.68/common/libBuffer/include/CommonFWriteBufferFlusher.h	2018-11-26 14:43:10 -0700
++++ external_opencollada/common/libBuffer/include/CommonFWriteBufferFlusher.h	2022-08-19 11:36:04 -0600
+@@ -23,7 +23,7 @@
+ #	include <tr1/unordered_map>
+ #endif
+ 
+-#ifdef _LIBCPP_VERSION
++#if defined(_LIBCPP_VERSION) || defined(WIN32)
+ // If we're compiling with libc++, create a namespace alias for tr1 that points to std.
+ // Not particularly elegant, and largely should be filed under "hack", but it works for OS X with clang for now.
+ namespace std {

@@ -1380,15 +1380,13 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 278, 0)) {
     if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingTrack", "float", "weight_stab")) {
-      MovieClip *clip;
-      for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
-        MovieTracking *tracking = &clip->tracking;
-        MovieTrackingObject *tracking_object;
-        for (tracking_object = tracking->objects.first; tracking_object != NULL;
-             tracking_object = tracking_object->next) {
-          ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
-          MovieTrackingTrack *track;
-          for (track = tracksbase->first; track != NULL; track = track->next) {
+      LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+        const MovieTracking *tracking = &clip->tracking;
+        LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
+          const ListBase *tracksbase = (tracking_object->flag & TRACKING_OBJECT_CAMERA) ?
+                                           &tracking->tracks_legacy :
+                                           &tracking_object->tracks;
+          LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
             track->weight_stab = track->weight;
           }
         }

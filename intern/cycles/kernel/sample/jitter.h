@@ -7,6 +7,25 @@
 #pragma once
 CCL_NAMESPACE_BEGIN
 
+ccl_device uint pmj_shuffled_sample_index(KernelGlobals kg, uint sample, uint dimension, uint seed)
+{
+  const uint sample_count = kernel_data.integrator.pmj_sequence_size;
+
+  /* Shuffle the pattern order and sample index to better decorrelate
+   * dimensions and make the most of the finite patterns we have.
+   * The funky sample mask stuff is to ensure that we only shuffle
+   * *within* the current sample pattern, which is necessary to avoid
+   * early repeat pattern use. */
+  const uint pattern_i = hash_shuffle_uint(dimension, NUM_PMJ_PATTERNS, seed);
+  /* sample_count should always be a power of two, so this results in a mask. */
+  const uint sample_mask = sample_count - 1;
+  const uint sample_shuffled = nested_uniform_scramble(sample,
+                                                       hash_wang_seeded_uint(dimension, seed));
+  sample = (sample & ~sample_mask) | (sample_shuffled & sample_mask);
+
+  return ((pattern_i * sample_count) + sample) % (sample_count * NUM_PMJ_PATTERNS);
+}
+
 ccl_device float pmj_sample_1D(KernelGlobals kg,
                                uint sample,
                                const uint rng_hash,
@@ -20,22 +39,9 @@ ccl_device float pmj_sample_1D(KernelGlobals kg,
     seed = kernel_data.integrator.seed;
   }
 
-  /* Shuffle the pattern order and sample index to better decorrelate
-   * dimensions and make the most of the finite patterns we have.
-   * The funky sample mask stuff is to ensure that we only shuffle
-   * *within* the current sample pattern, which is necessary to avoid
-   * early repeat pattern use. */
-  const uint pattern_i = hash_shuffle_uint(dimension, NUM_PMJ_PATTERNS, seed);
-  /* NUM_PMJ_SAMPLES should be a power of two, so this results in a mask. */
-  const uint sample_mask = NUM_PMJ_SAMPLES - 1;
-  const uint sample_shuffled = nested_uniform_scramble(sample,
-                                                       hash_wang_seeded_uint(dimension, seed));
-  sample = (sample & ~sample_mask) | (sample_shuffled & sample_mask);
-
   /* Fetch the sample. */
-  const uint index = ((pattern_i * NUM_PMJ_SAMPLES) + sample) %
-                     (NUM_PMJ_SAMPLES * NUM_PMJ_PATTERNS);
-  float x = kernel_data_fetch(sample_pattern_lut, index * 2);
+  const uint index = pmj_shuffled_sample_index(kg, sample, dimension, seed);
+  float x = kernel_data_fetch(sample_pattern_lut, index * NUM_PMJ_DIMENSIONS);
 
   /* Do limited Cranley-Patterson rotation when using scrambling distance. */
   if (kernel_data.integrator.scrambling_distance < 1.0f) {
@@ -61,23 +67,10 @@ ccl_device float2 pmj_sample_2D(KernelGlobals kg,
     seed = kernel_data.integrator.seed;
   }
 
-  /* Shuffle the pattern order and sample index to better decorrelate
-   * dimensions and make the most of the finite patterns we have.
-   * The funky sample mask stuff is to ensure that we only shuffle
-   * *within* the current sample pattern, which is necessary to avoid
-   * early repeat pattern use. */
-  const uint pattern_i = hash_shuffle_uint(dimension, NUM_PMJ_PATTERNS, seed);
-  /* NUM_PMJ_SAMPLES should be a power of two, so this results in a mask. */
-  const uint sample_mask = NUM_PMJ_SAMPLES - 1;
-  const uint sample_shuffled = nested_uniform_scramble(sample,
-                                                       hash_wang_seeded_uint(dimension, seed));
-  sample = (sample & ~sample_mask) | (sample_shuffled & sample_mask);
-
   /* Fetch the sample. */
-  const uint index = ((pattern_i * NUM_PMJ_SAMPLES) + sample) %
-                     (NUM_PMJ_SAMPLES * NUM_PMJ_PATTERNS);
-  float x = kernel_data_fetch(sample_pattern_lut, index * 2);
-  float y = kernel_data_fetch(sample_pattern_lut, index * 2 + 1);
+  const uint index = pmj_shuffled_sample_index(kg, sample, dimension, seed);
+  float x = kernel_data_fetch(sample_pattern_lut, index * NUM_PMJ_DIMENSIONS);
+  float y = kernel_data_fetch(sample_pattern_lut, index * NUM_PMJ_DIMENSIONS + 1);
 
   /* Do limited Cranley-Patterson rotation when using scrambling distance. */
   if (kernel_data.integrator.scrambling_distance < 1.0f) {

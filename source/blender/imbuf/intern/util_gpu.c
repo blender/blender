@@ -251,10 +251,12 @@ GPUTexture *IMB_touch_gpu_texture(const char *name,
 
   GPUTexture *tex;
   if (layers > 0) {
-    tex = GPU_texture_create_2d_array(name, w, h, layers, 9999, tex_format, NULL);
+    tex = GPU_texture_create_2d_array_ex(
+        name, w, h, layers, 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
   }
   else {
-    tex = GPU_texture_create_2d(name, w, h, 9999, tex_format, NULL);
+    tex = GPU_texture_create_2d_ex(
+        name, w, h, 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
   }
 
   GPU_texture_swizzle_set(tex, imb_gpu_get_swizzle(ibuf));
@@ -349,11 +351,13 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
   bool freebuf = false;
 
   /* Create Texture. */
-  tex = GPU_texture_create_2d(name, UNPACK2(size), 9999, tex_format, NULL);
+  tex = GPU_texture_create_2d_ex(
+      name, UNPACK2(size), 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
   if (tex == NULL) {
     size[0] = max_ii(1, size[0] / 2);
     size[1] = max_ii(1, size[1] / 2);
-    tex = GPU_texture_create_2d(name, UNPACK2(size), 9999, tex_format, NULL);
+    tex = GPU_texture_create_2d_ex(
+        name, UNPACK2(size), 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
     do_rescale = true;
   }
   BLI_assert(tex != NULL);

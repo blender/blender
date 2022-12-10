@@ -8,6 +8,7 @@ from bpy.app.translations import (
     pgettext_tip as tip_,
 )
 
+
 class MESH_MT_vertex_group_context_menu(Menu):
     bl_label = "Vertex Group Specials"
 
@@ -536,8 +537,16 @@ class MESH_UL_attributes(UIList):
         flags = []
         indices = [i for i in range(len(attributes))]
 
-        for item in attributes:
-            flags.append(self.bitflag_filter_item if item.is_internal else 0)
+        # Filtering by name
+        if self.filter_name:
+            flags = bpy.types.UI_UL_list.filter_items_by_name(
+                self.filter_name, self.bitflag_filter_item, attributes, "name", reverse=self.use_filter_invert)
+        if not flags:
+            flags = [self.bitflag_filter_item] * len(attributes)
+
+        # Filtering internal attributes
+        for idx, item in enumerate(attributes):
+            flags[idx] = 0 if item.is_internal else flags[idx]
 
         return flags, indices
 
@@ -625,20 +634,26 @@ class ColorAttributesListBase():
     }
 
     def filter_items(self, _context, data, property):
-        attrs = getattr(data, property)
-        ret = []
-        idxs = []
+        attributes = getattr(data, property)
+        flags = []
+        indices = [i for i in range(len(attributes))]
 
-        for idx, item in enumerate(attrs):
+        # Filtering by name
+        if self.filter_name:
+            flags = bpy.types.UI_UL_list.filter_items_by_name(
+                self.filter_name, self.bitflag_filter_item, attributes, "name", reverse=self.use_filter_invert)
+        if not flags:
+            flags = [self.bitflag_filter_item] * len(attributes)
+
+        for idx, item in enumerate(attributes):
             skip = (
                 (item.domain not in {"POINT", "CORNER"}) or
                 (item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"}) or
-                (not item.is_internal)
+                item.is_internal
             )
-            ret.append(self.bitflag_filter_item if not skip else 0)
-            idxs.append(idx)
+            flags[idx] = 0 if skip else flags[idx]
 
-        return ret, idxs
+        return flags, indices
 
 
 class MESH_UL_color_attributes(UIList, ColorAttributesListBase):

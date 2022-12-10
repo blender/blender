@@ -1620,7 +1620,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
   RNA_def_property_float_default(prop, DEG2RADF(30.0f));
   RNA_def_property_ui_text(prop,
                            "Angle",
-                           "Maximum angle between face normals that will be considered as smooth"
+                           "Maximum angle between face normals that will be considered as smooth "
                            "(unused if custom split normals data are available)");
 }
 

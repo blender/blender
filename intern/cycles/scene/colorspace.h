@@ -21,6 +21,7 @@ class ColorSpaceManager {
    * convert to and from. If the colorspace is u_colorspace_auto, we auto
    * detect a colospace. */
   static ustring detect_known_colorspace(ustring colorspace,
+                                         const char *file_colorspace,
                                          const char *file_format,
                                          bool is_float);
 

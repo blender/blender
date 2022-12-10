@@ -1,13 +1,6 @@
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-uniform sampler2DArray probePlanars;
-
-in vec3 worldPosition;
-flat in int probeIdx;
-
-out vec4 FragColor;
-
 void main()
 {
   vec4 refco = ProjectionMatrix * (ViewMatrix * vec4(worldPosition, 1.0));

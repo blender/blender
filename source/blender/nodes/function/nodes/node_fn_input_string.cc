@@ -7,18 +7,18 @@
 
 namespace blender::nodes::node_fn_input_string_cc {
 
-static void fn_node_input_string_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_output<decl::String>(N_("String"));
 }
 
-static void fn_node_input_string_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "string", 0, "", ICON_NONE);
 }
 
-static void fn_node_input_string_build_multi_function(NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &bnode = builder.node();
   NodeInputString *node_storage = static_cast<NodeInputString *>(bnode.storage);
@@ -26,12 +26,12 @@ static void fn_node_input_string_build_multi_function(NodeMultiFunctionBuilder &
   builder.construct_and_set_matching_fn<fn::CustomMF_Constant<std::string>>(std::move(string));
 }
 
-static void fn_node_input_string_init(bNodeTree * /*tree*/, bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->storage = MEM_callocN(sizeof(NodeInputString), __func__);
 }
 
-static void fn_node_input_string_free(bNode *node)
+static void node_storage_free(bNode *node)
 {
   NodeInputString *storage = (NodeInputString *)node->storage;
   if (storage == nullptr) {
@@ -43,7 +43,7 @@ static void fn_node_input_string_free(bNode *node)
   MEM_freeN(storage);
 }
 
-static void fn_node_string_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNode *src_node)
+static void node_storage_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNode *src_node)
 {
   NodeInputString *source_storage = (NodeInputString *)src_node->storage;
   NodeInputString *destination_storage = (NodeInputString *)MEM_dupallocN(source_storage);
@@ -64,11 +64,11 @@ void register_node_type_fn_input_string()
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_INPUT_STRING, "String", NODE_CLASS_INPUT);
-  ntype.declare = file_ns::fn_node_input_string_declare;
-  ntype.initfunc = file_ns::fn_node_input_string_init;
+  ntype.declare = file_ns::node_declare;
+  ntype.initfunc = file_ns::node_init;
   node_type_storage(
-      &ntype, "NodeInputString", file_ns::fn_node_input_string_free, file_ns::fn_node_string_copy);
-  ntype.build_multi_function = file_ns::fn_node_input_string_build_multi_function;
-  ntype.draw_buttons = file_ns::fn_node_input_string_layout;
+      &ntype, "NodeInputString", file_ns::node_storage_free, file_ns::node_storage_copy);
+  ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

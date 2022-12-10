@@ -44,101 +44,41 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
     const int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(image_buffer);
     if ((sima_flag & SI_USE_ALPHA) != 0) {
       /* Show RGBA */
-      r_shader_parameters.flags |= IMAGE_DRAW_FLAG_SHOW_ALPHA | IMAGE_DRAW_FLAG_APPLY_ALPHA;
+      r_shader_parameters.flags |= ImageDrawFlags::ShowAlpha | ImageDrawFlags::ApplyAlpha;
     }
     else if ((sima_flag & SI_SHOW_ALPHA) != 0) {
-      r_shader_parameters.flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
       copy_v4_fl4(r_shader_parameters.shuffle, 0.0f, 0.0f, 0.0f, 1.0f);
     }
     else if ((sima_flag & SI_SHOW_ZBUF) != 0) {
-      r_shader_parameters.flags |= IMAGE_DRAW_FLAG_DEPTH | IMAGE_DRAW_FLAG_SHUFFLING;
+      r_shader_parameters.flags |= ImageDrawFlags::Depth | ImageDrawFlags::Shuffling;
       copy_v4_fl4(r_shader_parameters.shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
     }
     else if ((sima_flag & SI_SHOW_R) != 0) {
-      r_shader_parameters.flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
       if (IMB_alpha_affects_rgb(image_buffer)) {
-        r_shader_parameters.flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
       }
       copy_v4_fl4(r_shader_parameters.shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
     }
     else if ((sima_flag & SI_SHOW_G) != 0) {
-      r_shader_parameters.flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
       if (IMB_alpha_affects_rgb(image_buffer)) {
-        r_shader_parameters.flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
       }
       copy_v4_fl4(r_shader_parameters.shuffle, 0.0f, 1.0f, 0.0f, 0.0f);
     }
     else if ((sima_flag & SI_SHOW_B) != 0) {
-      r_shader_parameters.flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
       if (IMB_alpha_affects_rgb(image_buffer)) {
-        r_shader_parameters.flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
       }
       copy_v4_fl4(r_shader_parameters.shuffle, 0.0f, 0.0f, 1.0f, 0.0f);
     }
     else /* RGB */ {
       if (IMB_alpha_affects_rgb(image_buffer)) {
-        r_shader_parameters.flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
       }
-    }
-  }
-
-  void get_gpu_textures(Image *image,
-                        ImageUser *iuser,
-                        ImBuf *image_buffer,
-                        GPUTexture **r_gpu_texture,
-                        bool *r_owns_texture,
-                        GPUTexture **r_tex_tile_data) override
-  {
-    if (image->rr != nullptr) {
-      /* Update multi-index and pass for the current eye. */
-      BKE_image_multilayer_index(image->rr, iuser);
-    }
-    else {
-      BKE_image_multiview_index(image, iuser);
-    }
-
-    if (image_buffer == nullptr) {
-      return;
-    }
-
-    if (image_buffer->rect == nullptr && image_buffer->rect_float == nullptr) {
-      /* This code-path is only supposed to happen when drawing a lazily-allocatable render result.
-       * In all the other cases the `ED_space_image_acquire_buffer()` is expected to return nullptr
-       * as an image buffer when it has no pixels. */
-
-      BLI_assert(image->type == IMA_TYPE_R_RESULT);
-
-      float zero[4] = {0, 0, 0, 0};
-      *r_gpu_texture = GPU_texture_create_2d(__func__, 1, 1, 0, GPU_RGBA16F, zero);
-      *r_owns_texture = true;
-      return;
-    }
-
-    const int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(image_buffer);
-    if (sima_flag & SI_SHOW_ZBUF &&
-        (image_buffer->zbuf || image_buffer->zbuf_float || (image_buffer->channels == 1))) {
-      if (image_buffer->zbuf) {
-        BLI_assert_msg(0, "Integer based depth buffers not supported");
-      }
-      else if (image_buffer->zbuf_float) {
-        *r_gpu_texture = GPU_texture_create_2d(
-            __func__, image_buffer->x, image_buffer->y, 0, GPU_R16F, image_buffer->zbuf_float);
-        *r_owns_texture = true;
-      }
-      else if (image_buffer->rect_float && image_buffer->channels == 1) {
-        *r_gpu_texture = GPU_texture_create_2d(
-            __func__, image_buffer->x, image_buffer->y, 0, GPU_R16F, image_buffer->rect_float);
-        *r_owns_texture = true;
-      }
-    }
-    else if (image->source == IMA_SRC_TILED) {
-      *r_gpu_texture = BKE_image_get_gpu_tiles(image, iuser, image_buffer);
-      *r_tex_tile_data = BKE_image_get_gpu_tilemap(image, iuser, nullptr);
-      *r_owns_texture = false;
-    }
-    else {
-      *r_gpu_texture = BKE_image_get_gpu_texture(image, iuser, image_buffer);
-      *r_owns_texture = false;
     }
   }
 

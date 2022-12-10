@@ -6,30 +6,7 @@
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 
-/** Inputs:
- * COPY_PASS: Is output of setup pass (halfres) and downsample pass (quarter res).
- * REDUCE_PASS: Is previous Gather input miplvl (halfres >> miplvl).
- */
-uniform sampler2D colorBuffer;
-uniform sampler2D cocBuffer;
-uniform sampler2D downsampledBuffer;
-
-uniform vec2 bokehAnisotropy;
-uniform float scatterColorThreshold;
-uniform float scatterCocThreshold;
-uniform float scatterColorNeighborMax;
-uniform float colorNeighborClamping;
-
-/** Outputs:
- * COPY_PASS: Gather input mip0.
- * REDUCE_PASS: Is next Gather input miplvl (halfres >> miplvl).
- */
-layout(location = 0) out vec4 outColor;
-layout(location = 1) out float outCoc;
-
 #ifdef COPY_PASS
-
-layout(location = 2) out vec3 outScatterColor;
 
 /* NOTE: Do not compare alpha as it is not scattered by the scatter pass. */
 float dof_scatter_neighborhood_rejection(vec3 color)

@@ -124,6 +124,11 @@ static void rna_MaterialLineArt_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
   WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
 }
 
+static char *rna_MaterialLineArt_path(const PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("lineart");
+}
+
 static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Material *ma = (Material *)ptr->owner_id;
@@ -712,6 +717,7 @@ static void rna_def_material_lineart(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "MaterialLineArt", NULL);
   RNA_def_struct_sdna(srna, "MaterialLineArt");
   RNA_def_struct_ui_text(srna, "Material Line Art", "");
+  RNA_def_struct_path_func(srna, "rna_MaterialLineArt_path");
 
   prop = RNA_def_property(srna, "use_material_mask", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_default(prop, 0);
@@ -1027,6 +1033,7 @@ static void rna_def_tex_slot(BlenderRNA *brna)
   RNA_def_property_string_funcs(
       prop, "rna_TexPaintSlot_name_get", "rna_TexPaintSlot_name_length", NULL);
   RNA_def_property_ui_text(prop, "Name", "Name of the slot");
+  RNA_def_struct_name_property(srna, prop);
 
   prop = RNA_def_property(srna, "icon_value", PROP_INT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

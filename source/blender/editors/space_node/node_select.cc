@@ -247,7 +247,7 @@ static void node_socket_toggle(bNode *node, bNodeSocket &sock, bool deselect_nod
 
 void node_deselect_all(SpaceNode &snode)
 {
-  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
+  for (bNode *node : snode.edittree->all_nodes()) {
     nodeSetSelected(node, false);
   }
 }
@@ -259,7 +259,7 @@ void node_deselect_all_input_sockets(SpaceNode &snode, const bool deselect_nodes
    * We can do that more efficiently here.
    */
 
-  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
+  for (bNode *node : snode.edittree->all_nodes()) {
     bool sel = false;
 
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
@@ -289,7 +289,7 @@ void node_deselect_all_output_sockets(SpaceNode &snode, const bool deselect_node
    * We can do that more efficiently here.
    */
 
-  LISTBASE_FOREACH (bNode *, node, &snode.edittree->nodes) {
+  for (bNode *node : snode.edittree->all_nodes()) {
     bool sel = false;
 
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
@@ -312,9 +312,9 @@ void node_deselect_all_output_sockets(SpaceNode &snode, const bool deselect_node
   }
 }
 
-Set<bNode *> get_selected_nodes(bNodeTree &node_tree)
+VectorSet<bNode *> get_selected_nodes(bNodeTree &node_tree)
 {
-  Set<bNode *> selected_nodes;
+  VectorSet<bNode *> selected_nodes;
   for (bNode *node : node_tree.all_nodes()) {
     if (node->flag & NODE_SELECT) {
       selected_nodes.add(node);
@@ -334,7 +334,7 @@ Set<bNode *> get_selected_nodes(bNodeTree &node_tree)
 static bool node_select_grouped_type(bNodeTree &node_tree, bNode &node_act)
 {
   bool changed = false;
-  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
+  for (bNode *node : node_tree.all_nodes()) {
     if ((node->flag & SELECT) == 0) {
       if (node->type == node_act.type) {
         nodeSetSelected(node, true);
@@ -348,7 +348,7 @@ static bool node_select_grouped_type(bNodeTree &node_tree, bNode &node_act)
 static bool node_select_grouped_color(bNodeTree &node_tree, bNode &node_act)
 {
   bool changed = false;
-  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
+  for (bNode *node : node_tree.all_nodes()) {
     if ((node->flag & SELECT) == 0) {
       if (compare_v3v3(node->color, node_act.color, 0.005f)) {
         nodeSetSelected(node, true);
@@ -375,7 +375,7 @@ static bool node_select_grouped_name(bNodeTree &node_tree, bNode &node_act, cons
     suf_act = node_act.name;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
+  for (bNode *node : node_tree.all_nodes()) {
     if (node->flag & SELECT) {
       continue;
     }
@@ -501,7 +501,7 @@ void node_select_single(bContext &C, bNode &node)
   const wmWindowManager *wm = CTX_wm_manager(&C);
   bool active_texture_changed = false;
 
-  LISTBASE_FOREACH (bNode *, node_iter, &node_tree.nodes) {
+  for (bNode *node_iter : node_tree.all_nodes()) {
     if (node_iter != &node) {
       nodeSetSelected(node_iter, false);
     }
@@ -771,7 +771,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
     node_deselect_all(snode);
   }
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
+  for (bNode *node : node_tree.all_nodes()) {
     bool is_inside = false;
 
     switch (node->type) {
@@ -1142,7 +1142,7 @@ static int node_select_linked_to_exec(bContext *C, wmOperator * /*op*/)
 
   node_tree.ensure_topology_cache();
 
-  Set<bNode *> initial_selection = get_selected_nodes(node_tree);
+  VectorSet<bNode *> initial_selection = get_selected_nodes(node_tree);
 
   for (bNode *node : initial_selection) {
     for (bNodeSocket *output_socket : node->output_sockets()) {
@@ -1192,7 +1192,7 @@ static int node_select_linked_from_exec(bContext *C, wmOperator * /*op*/)
 
   node_tree.ensure_topology_cache();
 
-  Set<bNode *> initial_selection = get_selected_nodes(node_tree);
+  VectorSet<bNode *> initial_selection = get_selected_nodes(node_tree);
 
   for (bNode *node : initial_selection) {
     for (bNodeSocket *input_socket : node->input_sockets()) {
@@ -1235,86 +1235,48 @@ void NODE_OT_select_linked_from(wmOperatorType *ot)
 /** \name Select Same Type Step Operator
  * \{ */
 
+static bool nodes_are_same_type_for_select(const bNode &a, const bNode &b)
+{
+  return a.type == b.type;
+}
+
 static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
-  bNode **node_array;
-  bNode *active = nodeGetActive(snode->edittree);
-  int totnodes;
-  const bool revert = RNA_boolean_get(op->ptr, "prev");
-  const bool same_type = true;
+  const bool prev = RNA_boolean_get(op->ptr, "prev");
+  bNode &active_node = *nodeGetActive(snode->edittree);
 
-  ntreeGetDependencyList(snode->edittree, &node_array, &totnodes);
+  bNodeTree &node_tree = *snode->edittree;
+  node_tree.ensure_topology_cache();
+  if (node_tree.all_nodes().size() == 1) {
+    return OPERATOR_CANCELLED;
+  }
 
-  if (totnodes > 1) {
-    int a;
+  const Span<const bNode *> toposort = node_tree.toposort_left_to_right();
+  const int index = toposort.first_index(&active_node);
 
-    for (a = 0; a < totnodes; a++) {
-      if (node_array[a] == active) {
-        break;
-      }
+  int new_index = index;
+  while (true) {
+    new_index += (prev ? -1 : 1);
+    if (!toposort.index_range().contains(new_index)) {
+      return OPERATOR_CANCELLED;
     }
-
-    if (same_type) {
-      bNode *node = nullptr;
-
-      while (node == nullptr) {
-        if (revert) {
-          a--;
-        }
-        else {
-          a++;
-        }
-
-        if (a < 0 || a >= totnodes) {
-          break;
-        }
-
-        node = node_array[a];
-
-        if (node->type == active->type) {
-          break;
-        }
-        node = nullptr;
-      }
-      if (node) {
-        active = node;
-      }
-    }
-    else {
-      if (revert) {
-        if (a == 0) {
-          active = node_array[totnodes - 1];
-        }
-        else {
-          active = node_array[a - 1];
-        }
-      }
-      else {
-        if (a == totnodes - 1) {
-          active = node_array[0];
-        }
-        else {
-          active = node_array[a + 1];
-        }
-      }
-    }
-
-    node_select_single(*C, *active);
-
-    /* is note outside view? */
-    if (active->runtime->totr.xmax < region->v2d.cur.xmin ||
-        active->runtime->totr.xmin > region->v2d.cur.xmax ||
-        active->runtime->totr.ymax < region->v2d.cur.ymin ||
-        active->runtime->totr.ymin > region->v2d.cur.ymax) {
-      const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-      space_node_view_flag(*C, *snode, *region, NODE_SELECT, smooth_viewtx);
+    if (nodes_are_same_type_for_select(*toposort[new_index], active_node)) {
+      break;
     }
   }
 
-  if (node_array) {
-    MEM_freeN(node_array);
+  bNode *new_active_node = node_tree.all_nodes()[toposort[new_index]->runtime->index_in_tree];
+  if (new_active_node == &active_node) {
+    return OPERATOR_CANCELLED;
+  }
+
+  node_select_single(*C, *new_active_node);
+
+  if (!BLI_rctf_inside_rctf(&region->v2d.cur, &new_active_node->runtime->totr)) {
+    const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+    space_node_view_flag(*C, *snode, *region, NODE_SELECT, smooth_viewtx);
   }
 
   return OPERATOR_FINISHED;
@@ -1364,7 +1326,7 @@ static void node_find_update_fn(const bContext *C,
 
   StringSearch *search = BLI_string_search_new();
 
-  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+  for (bNode *node : snode->edittree->all_nodes()) {
     char name[256];
     node_find_create_label(node, name, ARRAY_SIZE(name));
     BLI_string_search_add(search, name, node, 0);
@@ -1395,11 +1357,7 @@ static void node_find_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
     ARegion *region = CTX_wm_region(C);
     node_select_single(*C, *active);
 
-    /* is note outside view? */
-    if (active->runtime->totr.xmax < region->v2d.cur.xmin ||
-        active->runtime->totr.xmin > region->v2d.cur.xmax ||
-        active->runtime->totr.ymax < region->v2d.cur.ymin ||
-        active->runtime->totr.ymin > region->v2d.cur.ymax) {
+    if (!BLI_rctf_inside_rctf(&region->v2d.cur, &active->runtime->totr)) {
       space_node_view_flag(*C, *snode, *region, NODE_SELECT, U.smooth_viewtx);
     }
   }
@@ -1474,8 +1432,6 @@ void NODE_OT_find_node(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  RNA_def_boolean(ot->srna, "prev", false, "Previous", "");
 }
 
 /** \} */

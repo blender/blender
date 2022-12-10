@@ -13,6 +13,16 @@ namespace blender::gpu {
 
 class VKBackend : public GPUBackend {
  public:
+  VKBackend()
+  {
+    VKBackend::init_platform();
+  }
+
+  virtual ~VKBackend()
+  {
+    VKBackend::platform_exit();
+  }
+
   void delete_resources() override;
 
   void samplers_update() override;
@@ -23,8 +33,10 @@ class VKBackend : public GPUBackend {
 
   Batch *batch_alloc() override;
   DrawList *drawlist_alloc(int list_length) override;
+  Fence *fence_alloc() override;
   FrameBuffer *framebuffer_alloc(const char *name) override;
   IndexBuf *indexbuf_alloc() override;
+  PixelBuffer *pixelbuf_alloc(uint size) override;
   QueryPool *querypool_alloc() override;
   Shader *shader_alloc(const char *name) override;
   Texture *texture_alloc(const char *name) override;
@@ -37,6 +49,10 @@ class VKBackend : public GPUBackend {
   void render_begin() override;
   void render_end() override;
   void render_step() override;
+
+ private:
+  static void init_platform();
+  static void platform_exit();
 };
 
 }  // namespace blender::gpu

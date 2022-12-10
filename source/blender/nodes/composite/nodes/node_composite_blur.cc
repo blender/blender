@@ -19,9 +19,9 @@
 #include "GPU_state.h"
 #include "GPU_texture.h"
 
+#include "COM_algorithm_symmetric_separable_blur.hh"
 #include "COM_node_operation.hh"
 #include "COM_symmetric_blur_weights.hh"
-#include "COM_symmetric_separable_blur_weights.hh"
 #include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
@@ -34,8 +34,14 @@ NODE_STORAGE_FUNCS(NodeBlurData)
 
 static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>(N_("Size")).default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_input<decl::Color>(N_("Image"))
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .compositor_domain_priority(0);
+  b.add_input<decl::Float>(N_("Size"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .compositor_domain_priority(1);
   b.add_output<decl::Color>(N_("Image"));
 }
 
@@ -101,8 +107,13 @@ class BlurOperation : public NodeOperation {
     }
 
     if (use_separable_filter()) {
-      GPUTexture *horizontal_pass_result = execute_separable_blur_horizontal_pass();
-      execute_separable_blur_vertical_pass(horizontal_pass_result);
+      symmetric_separable_blur(context(),
+                               get_input("Image"),
+                               get_result("Image"),
+                               compute_blur_radius(),
+                               node_storage(bnode()).filtertype,
+                               get_extend_bounds(),
+                               node_storage(bnode()).gamma);
     }
     else {
       execute_blur();
@@ -142,94 +153,6 @@ class BlurOperation : public NodeOperation {
     output_image.unbind_as_image();
     input_image.unbind_as_texture();
     weights.unbind_as_texture();
-  }
-
-  GPUTexture *execute_separable_blur_horizontal_pass()
-  {
-    GPUShader *shader = shader_manager().get("compositor_symmetric_separable_blur");
-    GPU_shader_bind(shader);
-
-    GPU_shader_uniform_1b(shader, "extend_bounds", get_extend_bounds());
-    GPU_shader_uniform_1b(shader, "gamma_correct_input", node_storage(bnode()).gamma);
-    GPU_shader_uniform_1b(shader, "gamma_uncorrect_output", false);
-
-    const Result &input_image = get_input("Image");
-    input_image.bind_as_texture(shader, "input_tx");
-
-    const float2 blur_radius = compute_blur_radius();
-
-    const SymmetricSeparableBlurWeights &weights =
-        context().cache_manager().get_symmetric_separable_blur_weights(
-            node_storage(bnode()).filtertype, blur_radius.x);
-    weights.bind_as_texture(shader, "weights_tx");
-
-    Domain domain = compute_domain();
-    if (get_extend_bounds()) {
-      domain.size.x += int(math::ceil(blur_radius.x)) * 2;
-    }
-
-    /* We allocate an output image of a transposed size, that is, with a height equivalent to the
-     * width of the input and vice versa. This is done as a performance optimization. The shader
-     * will blur the image horizontally and write it to the intermediate output transposed. Then
-     * the vertical pass will execute the same horizontal blur shader, but since its input is
-     * transposed, it will effectively do a vertical blur and write to the output transposed,
-     * effectively undoing the transposition in the horizontal pass. This is done to improve
-     * spatial cache locality in the shader and to avoid having two separate shaders for each blur
-     * pass. */
-    const int2 transposed_domain = int2(domain.size.y, domain.size.x);
-
-    GPUTexture *horizontal_pass_result = texture_pool().acquire_color(transposed_domain);
-    const int image_unit = GPU_shader_get_texture_binding(shader, "output_img");
-    GPU_texture_image_bind(horizontal_pass_result, image_unit);
-
-    compute_dispatch_threads_at_least(shader, domain.size);
-
-    GPU_shader_unbind();
-    input_image.unbind_as_texture();
-    weights.unbind_as_texture();
-    GPU_texture_image_unbind(horizontal_pass_result);
-
-    return horizontal_pass_result;
-  }
-
-  void execute_separable_blur_vertical_pass(GPUTexture *horizontal_pass_result)
-  {
-    GPUShader *shader = shader_manager().get("compositor_symmetric_separable_blur");
-    GPU_shader_bind(shader);
-
-    GPU_shader_uniform_1b(shader, "extend_bounds", get_extend_bounds());
-    GPU_shader_uniform_1b(shader, "gamma_correct_input", false);
-    GPU_shader_uniform_1b(shader, "gamma_uncorrect_output", node_storage(bnode()).gamma);
-
-    GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
-    const int texture_image_unit = GPU_shader_get_texture_binding(shader, "input_tx");
-    GPU_texture_bind(horizontal_pass_result, texture_image_unit);
-
-    const float2 blur_radius = compute_blur_radius();
-
-    const SymmetricSeparableBlurWeights &weights =
-        context().cache_manager().get_symmetric_separable_blur_weights(
-            node_storage(bnode()).filtertype, blur_radius.y);
-    weights.bind_as_texture(shader, "weights_tx");
-
-    Domain domain = compute_domain();
-    if (get_extend_bounds()) {
-      /* Add a radius amount of pixels in both sides of the image, hence the multiply by 2. */
-      domain.size += int2(math::ceil(compute_blur_radius())) * 2;
-    }
-
-    Result &output_image = get_result("Image");
-    output_image.allocate_texture(domain);
-    output_image.bind_as_image(shader, "output_img");
-
-    /* Notice that the domain is transposed, see the note on the horizontal pass method for more
-     * information on the reasoning behind this. */
-    compute_dispatch_threads_at_least(shader, int2(domain.size.y, domain.size.x));
-
-    GPU_shader_unbind();
-    output_image.unbind_as_image();
-    weights.unbind_as_texture();
-    GPU_texture_unbind(horizontal_pass_result);
   }
 
   float2 compute_blur_radius()

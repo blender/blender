@@ -14,6 +14,9 @@
 
 #include "GHOST_ContextEGL.h"
 #include "GHOST_ContextNone.h"
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_ContextVK.h"
+#endif
 
 #include <wayland-client-protocol.h>
 
@@ -1211,6 +1214,21 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
     case GHOST_kDrawingContextTypeNone:
       context = new GHOST_ContextNone(m_wantStereoVisual);
       break;
+
+#ifdef WITH_VULKAN_BACKEND
+    case GHOST_kDrawingContextTypeVulkan:
+      context = new GHOST_ContextVK(m_wantStereoVisual,
+                                    GHOST_kVulkanPlatformWayland,
+                                    0,
+                                    NULL,
+                                    window_->wl_surface,
+                                    system_->wl_display(),
+                                    1,
+                                    0,
+                                    true);
+      break;
+#endif
+
     case GHOST_kDrawingContextTypeOpenGL:
       for (int minor = 6; minor >= 0; --minor) {
         context = new GHOST_ContextEGL(system_,

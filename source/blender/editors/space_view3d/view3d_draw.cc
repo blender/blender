@@ -631,7 +631,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
 
     immUniform1i("colors_len", 0); /* "simple" mode */
     immUniform1f("dash_width", 6.0f);
-    immUniform1f("dash_factor", 0.5f);
+    immUniform1f("udash_factor", 0.5f);
 
     /* outer line not to confuse with object selection */
     if (v3d->flag2 & V3D_LOCK_CAMERA) {
@@ -812,7 +812,7 @@ static void drawrenderborder(ARegion *region, View3D *v3d)
   immUniform1i("colors_len", 0); /* "simple" mode */
   immUniform4f("color", 1.0f, 0.25f, 0.25f, 1.0f);
   immUniform1f("dash_width", 6.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   imm_draw_box_wire_2d(shdr_pos,
                        v3d->render_border.xmin * region->winx,
@@ -1761,7 +1761,7 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      GPUOffScreen *ofs,
                                      GPUViewport *viewport)
 {
-  View3D v3d = {nullptr};
+  View3D v3d = blender::dna::shallow_zero_initialize();
   ARegion ar = {nullptr};
   RegionView3D rv3d = {{{0}}};
 
@@ -2011,7 +2011,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                              GPUOffScreen *ofs,
                                              char err_out[256])
 {
-  View3D v3d = {nullptr};
+  View3D v3d = blender::dna::shallow_zero_initialize();
   ARegion region = {nullptr};
   RegionView3D rv3d = {{{0}}};
 

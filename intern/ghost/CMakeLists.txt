@@ -76,6 +76,24 @@ set(LIB
   ${Epoxy_LIBRARIES}
 )
 
+if(WITH_VULKAN_BACKEND)
+  list(APPEND SRC
+    intern/GHOST_ContextVK.cpp
+
+    intern/GHOST_ContextVK.h
+  )
+
+  list(APPEND INC_SYS
+    ${VULKAN_INCLUDE_DIRS}
+  )
+
+  list(APPEND LIB
+    ${VULKAN_LIBRARIES}
+  )
+
+  add_definitions(-DWITH_VULKAN_BACKEND)
+endif()
+
 if(WITH_GHOST_DEBUG)
   list(APPEND SRC
     intern/GHOST_EventPrinter.cpp

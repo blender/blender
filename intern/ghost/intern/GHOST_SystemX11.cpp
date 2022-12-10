@@ -36,6 +36,10 @@
 #include "GHOST_ContextEGL.h"
 #include "GHOST_ContextGLX.h"
 
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_ContextVK.h"
+#endif
+
 #ifdef WITH_XF86KEYSYM
 #  include <X11/XF86keysym.h>
 #endif
@@ -431,8 +435,20 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSetti
    *   no fall-backs. */
 
   const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
+  GHOST_Context *context = nullptr;
 
-  GHOST_Context *context;
+#ifdef WITH_VULKAN_BACKEND
+  if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
+    context = new GHOST_ContextVK(
+        false, GHOST_kVulkanPlatformX11, 0, m_display, NULL, NULL, 1, 0, debug_context);
+
+    if (!context->initializeDrawingContext()) {
+      delete context;
+      return nullptr;
+    }
+    return context;
+  }
+#endif
 
 #ifdef USE_EGL
   /* Try to initialize an EGL context. */
@@ -945,10 +961,13 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
             window->getClientBounds(bounds);
 
             /* TODO(@campbellbarton): warp the cursor to `window->getCursorGrabInitPos`,
-             * on every motion event, see: T102346. */
+             * on every motion event, see: D16557 (alternative fix for T102346). */
             const int32_t subregion_div = 4; /* One quarter of the region. */
             const int32_t size[2] = {bounds.getWidth(), bounds.getHeight()};
-            const int center[2] = {(bounds.m_l + bounds.m_r) / 2, (bounds.m_t + bounds.m_b) / 2};
+            const int32_t center[2] = {
+                (bounds.m_l + bounds.m_r) / 2,
+                (bounds.m_t + bounds.m_b) / 2,
+            };
             /* Shrink the box to prevent the cursor escaping. */
             bounds.m_l = center[0] - (size[0] / (subregion_div * 2));
             bounds.m_r = center[0] + (size[0] / (subregion_div * 2));

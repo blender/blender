@@ -6,11 +6,6 @@
 #pragma BLENDER_REQUIRE(closure_eval_surface_lib.glsl)
 #pragma BLENDER_REQUIRE(surface_lib.glsl)
 
-#ifndef HAIR_SHADER
-in vec3 pos;
-in vec3 nor;
-#endif
-
 RESOURCE_ID_VARYING
 
 void main()
@@ -58,7 +53,9 @@ void main()
   /* No need to normalize since this is just a rotation. */
   viewNormal = normal_world_to_view(worldNormal);
 
+#  ifndef NO_ATTRIB_LOAD
   attrib_load();
+#  endif
 #endif
 }
 

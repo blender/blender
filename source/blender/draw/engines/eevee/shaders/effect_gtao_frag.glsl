@@ -10,12 +10,6 @@
  * The final integration is done at the resolve stage with the shading normal.
  */
 
-in vec4 uvcoordsvar;
-
-out vec4 FragColor;
-
-uniform sampler2D normalBuffer;
-
 /* Similar to https://atyuwen.github.io/posts/normal-reconstruction/.
  * This samples the depth buffer 4 time for each direction to get the most correct
  * implicit normal reconstruction out of the depth buffer. */

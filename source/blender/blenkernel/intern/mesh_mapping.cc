@@ -577,11 +577,43 @@ Array<Vector<int>> build_vert_to_edge_map(const Span<MEdge> edges, const int ver
   return map;
 }
 
+Array<Vector<int>> build_vert_to_poly_map(const Span<MPoly> polys,
+                                          const Span<MLoop> loops,
+                                          int verts_num)
+{
+  Array<Vector<int>> map(verts_num);
+  for (const int64_t i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
+      map[loop.v].append(int(i));
+    }
+  }
+  return map;
+}
+
 Array<Vector<int>> build_vert_to_loop_map(const Span<MLoop> loops, const int verts_num)
 {
   Array<Vector<int>> map(verts_num);
   for (const int64_t i : loops.index_range()) {
     map[loops[i].v].append(int(i));
+  }
+  return map;
+}
+
+Array<Vector<int>> build_edge_to_loop_map(const Span<MLoop> loops, const int edges_num)
+{
+  Array<Vector<int>> map(edges_num);
+  for (const int64_t i : loops.index_range()) {
+    map[loops[i].e].append(int(i));
+  }
+  return map;
+}
+
+Vector<Vector<int>> build_edge_to_loop_map_resizable(const Span<MLoop> loops, const int edges_num)
+{
+  Vector<Vector<int>> map(edges_num);
+  for (const int64_t i : loops.index_range()) {
+    map[loops[i].e].append(int(i));
   }
   return map;
 }

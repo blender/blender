@@ -922,6 +922,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
         }
       }
       else {
+        wm_draw_region_stereo_set(bmain, area, region, STEREO_LEFT_ID);
         wm_draw_region_buffer_create(region, false, use_viewport);
         wm_draw_region_bind(region, 0);
         ED_region_do_draw(C, region);

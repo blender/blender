@@ -43,6 +43,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -823,7 +824,7 @@ static void sculpt_vertex_neighbors_get_bmesh(PBVHVertRef vertex, SculptVertexNe
       const BMVert *v_other = adj_v[i];
       if (v_other != v) {
         sculpt_vertex_neighbor_add(
-            iter, BKE_pbvh_make_vref((intptr_t)v_other), BM_elem_index_get(v_other));
+            iter, BKE_pbvh_make_vref(intptr_t(v_other)), BM_elem_index_get(v_other));
       }
     }
   }
@@ -1407,6 +1408,39 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
   }
 }
 
+void SCULPT_orig_face_data_unode_init(SculptOrigFaceData *data, Object *ob, SculptUndoNode *unode)
+{
+  SculptSession *ss = ob->sculpt;
+  BMesh *bm = ss->bm;
+
+  memset(data, 0, sizeof(*data));
+  data->unode = unode;
+
+  if (bm) {
+    data->bm_log = ss->bm_log;
+  }
+  else {
+    data->face_sets = unode->face_sets;
+  }
+}
+
+void SCULPT_orig_face_data_init(SculptOrigFaceData *data,
+                                Object *ob,
+                                PBVHNode *node,
+                                SculptUndoType type)
+{
+  SculptUndoNode *unode;
+  unode = SCULPT_undo_push_node(ob, node, type);
+  SCULPT_orig_face_data_unode_init(data, ob, unode);
+}
+
+void SCULPT_orig_face_data_update(SculptOrigFaceData *orig_data, PBVHFaceIter *iter)
+{
+  if (orig_data->unode->type == SCULPT_UNDO_FACE_SETS) {
+    orig_data->face_set = orig_data->face_sets ? orig_data->face_sets[iter->i] : false;
+  }
+}
+
 static void sculpt_rake_data_update(SculptRakeData *srd, const float co[3])
 {
   float rake_dist = len_v3v3(srd->follow_co, co);
@@ -1458,6 +1492,9 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
     case SCULPT_TOOL_SMEAR:
       type = SCULPT_UNDO_COLOR;
       break;
+    case SCULPT_TOOL_DRAW_FACE_SETS:
+      type = ss->cache->alt_smooth ? SCULPT_UNDO_COORDS : SCULPT_UNDO_FACE_SETS;
+      break;
     default:
       type = SCULPT_UNDO_COORDS;
       break;
@@ -1481,6 +1518,9 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
     case SCULPT_UNDO_COLOR:
       BKE_pbvh_node_mark_update_color(data->nodes[n]);
       break;
+    case SCULPT_UNDO_FACE_SETS:
+      BKE_pbvh_node_mark_update_face_sets(data->nodes[n]);
+      break;
     case SCULPT_UNDO_COORDS:
       BKE_pbvh_node_mark_update(data->nodes[n]);
       break;
@@ -1489,30 +1529,50 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
   }
 
   PBVHVertexIter vd;
-  SculptOrigVertData orig_data;
+  SculptOrigVertData orig_vert_data;
+  SculptOrigFaceData orig_face_data;
 
-  SCULPT_orig_vert_data_unode_init(&orig_data, data->ob, unode);
+  if (type != SCULPT_UNDO_FACE_SETS) {
+    SCULPT_orig_vert_data_unode_init(&orig_vert_data, data->ob, unode);
+  }
+  else {
+    SCULPT_orig_face_data_unode_init(&orig_face_data, data->ob, unode);
+  }
+
+  if (unode->type == SCULPT_UNDO_FACE_SETS) {
+    PBVHFaceIter fd;
+    BKE_pbvh_face_iter_begin (ss->pbvh, data->nodes[n], fd) {
+      SCULPT_orig_face_data_update(&orig_face_data, &fd);
+
+      if (fd.face_set) {
+        *fd.face_set = orig_face_data.face_set;
+      }
+    }
+
+    BKE_pbvh_face_iter_end(fd);
+    return;
+  }
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_vert_data, &vd);
 
-    if (orig_data.unode->type == SCULPT_UNDO_COORDS) {
-      copy_v3_v3(vd.co, orig_data.co);
+    if (orig_vert_data.unode->type == SCULPT_UNDO_COORDS) {
+      copy_v3_v3(vd.co, orig_vert_data.co);
       if (vd.no) {
-        copy_v3_v3(vd.no, orig_data.no);
+        copy_v3_v3(vd.no, orig_vert_data.no);
       }
       else {
-        copy_v3_v3(vd.fno, orig_data.no);
+        copy_v3_v3(vd.fno, orig_vert_data.no);
       }
       if (vd.mvert) {
         BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
       }
     }
-    else if (orig_data.unode->type == SCULPT_UNDO_MASK) {
-      *vd.mask = orig_data.mask;
+    else if (orig_vert_data.unode->type == SCULPT_UNDO_MASK) {
+      *vd.mask = orig_vert_data.mask;
     }
-    else if (orig_data.unode->type == SCULPT_UNDO_COLOR) {
-      SCULPT_vertex_color_set(ss, vd.vertex, orig_data.col);
+    else if (orig_vert_data.unode->type == SCULPT_UNDO_COLOR) {
+      SCULPT_vertex_color_set(ss, vd.vertex, orig_vert_data.col);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1772,14 +1832,27 @@ SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(SculptSession *ss,
                                                             SculptBrushTest *test,
                                                             char falloff_shape)
 {
+  if (!ss->cache && !ss->filter_cache) {
+    falloff_shape = PAINT_FALLOFF_SHAPE_SPHERE;
+  }
+
   SCULPT_brush_test_init(ss, test);
   SculptBrushTestFn sculpt_brush_test_sq_fn;
   if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
     sculpt_brush_test_sq_fn = SCULPT_brush_test_sphere_sq;
   }
   else {
+    float view_normal[3];
+
+    if (ss->cache) {
+      copy_v3_v3(view_normal, ss->cache->view_normal);
+    }
+    else {
+      copy_v3_v3(view_normal, ss->filter_cache->view_normal);
+    }
+
     /* PAINT_FALLOFF_SHAPE_TUBE */
-    plane_from_point_normal_v3(test->plane_view, test->location, ss->cache->view_normal);
+    plane_from_point_normal_v3(test->plane_view, test->location, view_normal);
     sculpt_brush_test_sq_fn = SCULPT_brush_test_circle_sq;
   }
   return sculpt_brush_test_sq_fn;
@@ -3299,12 +3372,15 @@ static void do_brush_action_task_cb(void *__restrict userdata,
 
   bool need_coords = ss->cache->supports_gravity;
 
-  /* Face Sets modifications do a single undo push */
   if (data->brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
-    BKE_pbvh_node_mark_redraw(data->nodes[n]);
+    BKE_pbvh_node_mark_update_face_sets(data->nodes[n]);
+
     /* Draw face sets in smooth mode moves the vertices. */
     if (ss->cache->alt_smooth) {
       need_coords = true;
+    }
+    else {
+      SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_FACE_SETS);
     }
   }
   else if (data->brush->sculpt_tool == SCULPT_TOOL_MASK) {
@@ -3383,14 +3459,6 @@ static void do_brush_action(Sculpt *sd,
    * and the number of nodes under the brush influence. */
   if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS &&
       SCULPT_stroke_is_first_brush_step(ss->cache) && !ss->cache->alt_smooth) {
-
-    /* Dynamic-topology does not support Face Sets data, so it can't store/restore it from undo. */
-    /* TODO(pablodp606): This check should be done in the undo code and not here, but the rest of
-     * the sculpt code is not checking for unsupported undo types that may return a null node. */
-    if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
-      SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_FACE_SETS);
-    }
-
     if (ss->cache->invert) {
       /* When inverting the brush, pick the paint face mask ID from the mesh. */
       ss->cache->paint_face_set = SCULPT_active_face_set_get(ss);
@@ -4771,6 +4839,10 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
                                            SculptSession *ss,
                                            int stroke_mode)
 {
+  if (!brush) {
+    return true;
+  }
+
   if (ss && ss->pbvh && SCULPT_is_automasking_enabled(sd, ss, brush)) {
     return true;
   }
@@ -5194,13 +5266,6 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
        BKE_brush_use_size_pressure(brush)) ||
       (brush->flag & BRUSH_DRAG_DOT)) {
 
-    SculptUndoNode *unode = SCULPT_undo_get_first_node();
-    if (unode && unode->type == SCULPT_UNDO_FACE_SETS) {
-      for (int i = 0; i < ss->totfaces; i++) {
-        ss->face_sets[i] = unode->face_sets[i];
-      }
-    }
-
     paint_mesh_restore_co(sd, ob);
 
     if (ss->cache) {
@@ -5568,7 +5633,7 @@ static void sculpt_brush_exit_tex(Sculpt *sd)
   MTex *mtex = &brush->mtex;
 
   if (mtex->tex && mtex->tex->nodetree) {
-    ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
+    ntreeTexEndExecTree(mtex->tex->nodetree->runtime->execdata);
   }
 }
 
@@ -5789,7 +5854,7 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
   ot->ui = sculpt_redo_empty_ui;
 
   /* Flags (sculpt does own undo? (ton)). */
-  ot->flag = OPTYPE_BLOCKING | OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_BLOCKING;
 
   /* Properties. */
 
@@ -6181,6 +6246,32 @@ void SCULPT_stroke_id_ensure(Object *ob)
         CD_PROP_INT8,
         SCULPT_ATTRIBUTE_NAME(automasking_stroke_id),
         &params);
+  }
+}
+
+int SCULPT_face_set_get(const SculptSession *ss, PBVHFaceRef face)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH:
+      return 0;
+    case PBVH_FACES:
+    case PBVH_GRIDS:
+      return ss->face_sets[face.i];
+  }
+
+  BLI_assert_unreachable();
+
+  return 0;
+}
+
+void SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH:
+      break;
+    case PBVH_FACES:
+    case PBVH_GRIDS:
+      ss->face_sets[face.i] = fset;
   }
 }
 

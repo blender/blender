@@ -69,6 +69,12 @@
 
 #include "BLO_read_write.h"
 
+#include "tracking_private.h"
+
+/* Convert camera object to legacy format where the camera tracks are stored in the MovieTracking
+ * structure when saving .blend file. */
+#define USE_LEGACY_CAMERA_OBJECT_FORMAT_ON_SAVE 1
+
 static void free_buffers(MovieClip *clip);
 
 static void movie_clip_init_data(ID *id)
@@ -117,17 +123,10 @@ static void movie_clip_foreach_id(ID *id, LibraryForeachIDData *data)
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, movie_clip->gpd, IDWALK_CB_USER);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking->tracks) {
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, track->gpd, IDWALK_CB_USER);
-  }
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
     LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, track->gpd, IDWALK_CB_USER);
     }
-  }
-
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking->plane_tracks) {
-    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, plane_track->image, IDWALK_CB_USER);
   }
 }
 
@@ -200,7 +199,39 @@ static void movieclip_blend_write(BlendWriter *writer, ID *id, const void *id_ad
   clip->tracking.stats = NULL;
 
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingObject *object;
+
+#if USE_LEGACY_CAMERA_OBJECT_FORMAT_ON_SAVE
+  const bool is_undo = BLO_write_is_undo(writer);
+
+  /* When using legacy format for camera object assign the list of camera tracks to the
+   * MovieTracking object. Do it in-place as it simplifies the code a bit, and it is not
+   * supposed to cause threading issues as no other code is meant to access the legacy fields. */
+  if (!is_undo) {
+    MovieTrackingObject *active_tracking_object = BKE_tracking_object_get_active(tracking);
+    MovieTrackingObject *tracking_camera_object = BKE_tracking_object_get_camera(tracking);
+    BLI_assert(active_tracking_object != NULL);
+    BLI_assert(tracking_camera_object != NULL);
+
+    tracking->tracks_legacy = tracking_camera_object->tracks;
+    tracking->plane_tracks_legacy = tracking_camera_object->plane_tracks;
+
+    /* The active track in the tracking structure used to be shared across all tracking objects. */
+    tracking->act_track_legacy = active_tracking_object->active_track;
+    tracking->act_plane_track_legacy = active_tracking_object->active_plane_track;
+
+    tracking->reconstruction_legacy = tracking_camera_object->reconstruction;
+  }
+#endif
+
+  /* Assign the pixel-space principal point for forward compatibility. */
+  /* TODO(sergey): Remove with the next major version update when forward compatibility is allowed
+   * to be broken. */
+  if (!is_undo && clip->lastsize[0] != 0 && clip->lastsize[1] != 0) {
+    tracking_principal_point_normalized_to_pixel(tracking->camera.principal_point,
+                                                 clip->lastsize[0],
+                                                 clip->lastsize[1],
+                                                 tracking->camera.principal_legacy);
+  }
 
   BLO_write_id_struct(writer, MovieClip, id_address, &clip->id);
   BKE_id_blend_write(writer, &clip->id);
@@ -209,20 +240,40 @@ static void movieclip_blend_write(BlendWriter *writer, ID *id, const void *id_ad
     BKE_animdata_blend_write(writer, clip->adt);
   }
 
-  write_movieTracks(writer, &tracking->tracks);
-  write_moviePlaneTracks(writer, &tracking->plane_tracks);
-  write_movieReconstruction(writer, &tracking->reconstruction);
-
-  object = tracking->objects.first;
-  while (object) {
-    BLO_write_struct(writer, MovieTrackingObject, object);
+  LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
+#if USE_LEGACY_CAMERA_OBJECT_FORMAT_ON_SAVE
+    /* When saving cameras object in the legacy format clear the list of tracks. This is because
+     * the tracking object code is generic and assumes object owns the tracks in the list. For the
+     * camera tracks that is not the case in the legacy format. */
+    if (!is_undo && (object->flag & TRACKING_OBJECT_CAMERA)) {
+      MovieTrackingObject legacy_object = *object;
+      BLI_listbase_clear(&legacy_object.tracks);
+      BLI_listbase_clear(&legacy_object.plane_tracks);
+      legacy_object.active_track = NULL;
+      legacy_object.active_plane_track = NULL;
+      memset(&legacy_object.reconstruction, 0, sizeof(legacy_object.reconstruction));
+      BLO_write_struct_at_address(writer, MovieTrackingObject, object, &legacy_object);
+    }
+    else
+#endif
+    {
+      BLO_write_struct(writer, MovieTrackingObject, object);
+    }
 
     write_movieTracks(writer, &object->tracks);
     write_moviePlaneTracks(writer, &object->plane_tracks);
     write_movieReconstruction(writer, &object->reconstruction);
-
-    object = object->next;
   }
+
+#if USE_LEGACY_CAMERA_OBJECT_FORMAT_ON_SAVE
+  if (!is_undo) {
+    BLI_listbase_clear(&tracking->tracks_legacy);
+    BLI_listbase_clear(&tracking->plane_tracks_legacy);
+    tracking->act_track_legacy = NULL;
+    tracking->act_plane_track_legacy = NULL;
+    memset(&tracking->reconstruction_legacy, 0, sizeof(tracking->reconstruction_legacy));
+  }
+#endif
 }
 
 static void direct_link_movieReconstruction(BlendDataReader *reader,
@@ -262,12 +313,12 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_data_address(reader, &clip->adt);
   BKE_animdata_blend_read_data(reader, clip->adt);
 
-  direct_link_movieTracks(reader, &tracking->tracks);
-  direct_link_moviePlaneTracks(reader, &tracking->plane_tracks);
-  direct_link_movieReconstruction(reader, &tracking->reconstruction);
+  direct_link_movieTracks(reader, &tracking->tracks_legacy);
+  direct_link_moviePlaneTracks(reader, &tracking->plane_tracks_legacy);
+  direct_link_movieReconstruction(reader, &tracking->reconstruction_legacy);
 
-  BLO_read_data_address(reader, &clip->tracking.act_track);
-  BLO_read_data_address(reader, &clip->tracking.act_plane_track);
+  BLO_read_data_address(reader, &clip->tracking.act_track_legacy);
+  BLO_read_data_address(reader, &clip->tracking.act_plane_track_legacy);
 
   clip->anim = NULL;
   clip->tracking_context = NULL;
@@ -290,6 +341,9 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
     direct_link_movieTracks(reader, &object->tracks);
     direct_link_moviePlaneTracks(reader, &object->plane_tracks);
     direct_link_movieReconstruction(reader, &object->reconstruction);
+
+    BLO_read_data_address(reader, &object->active_track);
+    BLO_read_data_address(reader, &object->active_plane_track);
   }
 }
 
@@ -315,9 +369,6 @@ static void movieclip_blend_read_lib(BlendLibReader *reader, ID *id)
   MovieTracking *tracking = &clip->tracking;
 
   BLO_read_id_address(reader, clip->id.lib, &clip->gpd);
-
-  lib_link_movieTracks(reader, clip, &tracking->tracks);
-  lib_link_moviePlaneTracks(reader, clip, &tracking->plane_tracks);
 
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
     lib_link_movieTracks(reader, clip, &object->tracks);
@@ -686,7 +737,7 @@ typedef struct MovieClipCache {
 
     /* cache for undistorted shot */
     float focal_length;
-    float principal[2];
+    float principal_point[2];
     float polynomial_k[3];
     float division_k[2];
     float nuke_k[2];
@@ -942,17 +993,6 @@ static void movieclip_load_get_size(MovieClip *clip)
   }
 }
 
-static void movieclip_principal_to_center(MovieClip *clip)
-{
-  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
-
-  int width, height;
-  BKE_movieclip_get_size(clip, &user, &width, &height);
-
-  clip->tracking.camera.principal[0] = ((float)width) / 2.0f;
-  clip->tracking.camera.principal[1] = ((float)height) / 2.0f;
-}
-
 static void detect_clip_source(Main *bmain, MovieClip *clip)
 {
   ImBuf *ibuf;
@@ -1002,7 +1042,6 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *name)
     clip->tracking.camera.focal = 24.0f * width / clip->tracking.camera.sensor_width;
   }
 
-  movieclip_principal_to_center(clip);
   movieclip_calc_length(clip);
 
   return clip;
@@ -1115,7 +1154,7 @@ static bool check_undistortion_cache_flags(const MovieClip *clip)
   }
 
   /* check for distortion model changes */
-  if (!equals_v2v2(camera->principal, cache->postprocessed.principal)) {
+  if (!equals_v2v2(camera->principal_point, cache->postprocessed.principal_point)) {
     return false;
   }
 
@@ -1240,7 +1279,7 @@ static void put_postprocessed_frame_to_cache(
   if (need_undistortion_postprocess(user, flag)) {
     cache->postprocessed.distortion_model = camera->distortion_model;
     cache->postprocessed.focal_length = camera->focal;
-    copy_v2_v2(cache->postprocessed.principal, camera->principal);
+    copy_v2_v2(cache->postprocessed.principal_point, camera->principal_point);
     copy_v3_v3(cache->postprocessed.polynomial_k, &camera->k1);
     copy_v2_v2(cache->postprocessed.division_k, &camera->division_k1);
     copy_v2_v2(cache->postprocessed.nuke_k, &camera->nuke_k1);
@@ -1680,25 +1719,11 @@ void BKE_movieclip_reload(Main *bmain, MovieClip *clip)
   /* update clip source */
   detect_clip_source(bmain, clip);
 
-  const int old_width = clip->lastsize[0];
-  const int old_height = clip->lastsize[1];
-
   /* Tag for re-calculation of the actual size. */
   clip->lastsize[0] = clip->lastsize[1] = 0;
 
   movieclip_load_get_size(clip);
   movieclip_calc_length(clip);
-
-  int width, height;
-  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
-  BKE_movieclip_get_size(clip, &user, &width, &height);
-
-  /* If the resolution changes then re-initialize the principal point.
-   * Ideally the principal point will be in some sort of relative space, but this is not how it is
-   * designed currently. The code should cover the most of the common cases. */
-  if (width != old_width || height != old_height) {
-    movieclip_principal_to_center(clip);
-  }
 
   BKE_ntree_update_tag_id_changed(bmain, &clip->id);
 }
@@ -1730,7 +1755,8 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
     return;
   }
 
-  MovieTrackingTrack *track = BKE_tracking_track_get_active(&clip->tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  MovieTrackingTrack *track = tracking_object->active_track;
   if (track == NULL) {
     return;
   }
@@ -1984,41 +2010,6 @@ bool BKE_movieclip_put_frame_if_possible(MovieClip *clip, MovieClipUser *user, I
   return result;
 }
 
-static void movieclip_selection_sync(MovieClip *clip_dst, const MovieClip *clip_src)
-{
-  BLI_assert(clip_dst != clip_src);
-  MovieTracking *tracking_dst = &clip_dst->tracking, tracking_src = clip_src->tracking;
-  /* Syncs the active object, track and plane track. */
-  tracking_dst->objectnr = tracking_src.objectnr;
-  const int active_track_index = BLI_findindex(&tracking_src.tracks, tracking_src.act_track);
-  const int active_plane_track_index = BLI_findindex(&tracking_src.plane_tracks,
-                                                     tracking_src.act_plane_track);
-  tracking_dst->act_track = BLI_findlink(&tracking_dst->tracks, active_track_index);
-  tracking_dst->act_plane_track = BLI_findlink(&tracking_dst->plane_tracks,
-                                               active_plane_track_index);
-
-  /* Syncs the tracking selection flag. */
-  MovieTrackingObject *tracking_object_dst, *tracking_object_src;
-  tracking_object_src = tracking_src.objects.first;
-
-  for (tracking_object_dst = tracking_dst->objects.first; tracking_object_dst != NULL;
-       tracking_object_dst = tracking_object_dst->next,
-      tracking_object_src = tracking_object_src->next) {
-    ListBase *tracksbase_dst, *tracksbase_src;
-    tracksbase_dst = BKE_tracking_object_get_tracks(tracking_dst, tracking_object_dst);
-    tracksbase_src = BKE_tracking_object_get_tracks(&tracking_src, tracking_object_src);
-
-    MovieTrackingTrack *track_dst, *track_src;
-    track_src = tracksbase_src->first;
-    for (track_dst = tracksbase_dst->first; track_dst != NULL;
-         track_dst = track_dst->next, track_src = track_src->next) {
-      track_dst->flag = track_src->flag;
-      track_dst->pat_flag = track_src->pat_flag;
-      track_dst->search_flag = track_src->search_flag;
-    }
-  }
-}
-
 static void movieclip_eval_update_reload(struct Depsgraph *depsgraph, Main *bmain, MovieClip *clip)
 {
   BKE_movieclip_reload(bmain, clip);
@@ -2046,12 +2037,6 @@ void BKE_movieclip_eval_update(struct Depsgraph *depsgraph, Main *bmain, MovieCl
   else {
     movieclip_eval_update_generic(depsgraph, clip);
   }
-}
-
-void BKE_movieclip_eval_selection_update(struct Depsgraph *depsgraph, MovieClip *clip)
-{
-  DEG_debug_print_eval(depsgraph, __func__, clip->id.name, clip);
-  movieclip_selection_sync(clip, (MovieClip *)clip->id.orig_id);
 }
 
 /* -------------------------------------------------------------------- */

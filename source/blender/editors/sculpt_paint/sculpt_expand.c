@@ -2074,7 +2074,9 @@ static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache)
       }
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
-      SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+      for (int i = 0; i < totnode; i++) {
+        SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_FACE_SETS);
+      }
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       for (int i = 0; i < totnode; i++) {

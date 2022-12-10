@@ -206,6 +206,9 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
   }
 
   BLI_listbase_clear(&G_MAIN->wm);
+  if (G_MAIN->name_map != NULL) {
+    BKE_main_namemap_destroy(&G_MAIN->name_map);
+  }
 
   /* reset active window */
   CTX_wm_window_set(C, active_win);
@@ -893,7 +896,7 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
         RPT_WARNING,
         "Proxies have been removed from Blender (%d proxies were automatically converted "
         "to library overrides, %d proxies could not be converted and were cleared). "
-        "Please also consider re-saving any library .blend file with the newest Blender version",
+        "Consider re-saving any library .blend file with the newest Blender version",
         bf_reports->count.proxies_to_lib_overrides_success,
         bf_reports->count.proxies_to_lib_overrides_failures);
   }

@@ -231,6 +231,21 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   MEM_SAFE_FREE(mesh->runtime->subsurf_face_dot_tags);
 }
 
+void BKE_mesh_tag_edges_split(struct Mesh *mesh)
+{
+  /* Triangulation didn't change because vertex positions and loop vertex indices didn't change.
+   * Face normals didn't change either, but tag those anyway, since there is no API function to
+   * only tag vertex normals dirty. */
+  free_bvh_cache(*mesh->runtime);
+  free_normals(*mesh->runtime);
+  free_subdiv_ccg(*mesh->runtime);
+  mesh->runtime->loose_edges_cache.tag_dirty();
+  if (mesh->runtime->shrinkwrap_data) {
+    BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
+  }
+  MEM_SAFE_FREE(mesh->runtime->subsurf_face_dot_tags);
+}
+
 void BKE_mesh_tag_coords_changed(Mesh *mesh)
 {
   BKE_mesh_normals_tag_dirty(mesh);

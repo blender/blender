@@ -22,6 +22,9 @@ NODE_STORAGE_FUNCS(NodeShaderMix)
 static void sh_node_mix_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
+  /** WARNING:
+   * Input socket indices must be kept in sync with ntree_shader_disconnect_inactive_mix_branches
+   */
   b.add_input<decl::Float>(N_("Factor"), "Factor_Float")
       .no_muted_links()
       .default_value(0.5f)
@@ -138,55 +141,83 @@ class SocketSearchOp {
 
 static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype sock_type = static_cast<eNodeSocketDatatype>(
-      params.other_socket().type);
+  eNodeSocketDatatype type;
+  switch (eNodeSocketDatatype(params.other_socket().type)) {
+    case SOCK_BOOLEAN:
+    case SOCK_INT:
+    case SOCK_FLOAT:
+      type = SOCK_FLOAT;
+      break;
+    case SOCK_VECTOR:
+      type = SOCK_VECTOR;
+      break;
+    case SOCK_RGBA:
+      type = SOCK_RGBA;
+      break;
+    default:
+      return;
+  }
 
-  if (ELEM(sock_type, SOCK_BOOLEAN, SOCK_FLOAT, SOCK_RGBA, SOCK_VECTOR, SOCK_INT)) {
-    const eNodeSocketDatatype type = ELEM(sock_type, SOCK_BOOLEAN, SOCK_INT) ? SOCK_FLOAT :
-                                                                               sock_type;
-
-    const int weight = ELEM(params.other_socket().type, SOCK_RGBA) ? 0 : -1;
-    const std::string socket_name = params.in_out() == SOCK_IN ? "A" : "Result";
-    for (const EnumPropertyItem *item = rna_enum_ramp_blend_items; item->identifier != nullptr;
-         item++) {
-      if (item->name != nullptr && item->identifier[0] != '\0') {
-        params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
-                        SocketSearchOp{socket_name, item->value},
-                        weight);
-      }
-    }
-
-    if (params.in_out() == SOCK_OUT) {
-      params.add_item(IFACE_("Result"), [type](LinkSearchOpParams &params) {
-        bNode &node = params.add_node("ShaderNodeMix");
-        node_storage(node).data_type = type;
-        params.update_and_connect_available_socket(node, "Result");
-      });
-    }
-    else {
-      if (ELEM(sock_type, SOCK_VECTOR, SOCK_RGBA)) {
-        params.add_item(IFACE_("Factor (Non-Uniform)"), [](LinkSearchOpParams &params) {
+  int weight = 0;
+  if (params.in_out() == SOCK_OUT) {
+    params.add_item(IFACE_("Result"), [type](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("ShaderNodeMix");
+      node_storage(node).data_type = type;
+      params.update_and_connect_available_socket(node, "Result");
+    });
+  }
+  else {
+    params.add_item(
+        IFACE_("A"),
+        [type](LinkSearchOpParams &params) {
           bNode &node = params.add_node("ShaderNodeMix");
-          node_storage(node).data_type = SOCK_VECTOR;
-          node_storage(node).factor_mode = NODE_MIX_MODE_NON_UNIFORM;
+          node_storage(node).data_type = type;
+          params.update_and_connect_available_socket(node, "A");
+        },
+        weight);
+    weight--;
+    params.add_item(
+        IFACE_("B"),
+        [type](LinkSearchOpParams &params) {
+          bNode &node = params.add_node("ShaderNodeMix");
+          node_storage(node).data_type = type;
+          params.update_and_connect_available_socket(node, "B");
+        },
+        weight);
+    weight--;
+    if (ELEM(type, SOCK_VECTOR, SOCK_RGBA)) {
+      params.add_item(
+          IFACE_("Factor (Non-Uniform)"),
+          [](LinkSearchOpParams &params) {
+            bNode &node = params.add_node("ShaderNodeMix");
+            node_storage(node).data_type = SOCK_VECTOR;
+            node_storage(node).factor_mode = NODE_MIX_MODE_NON_UNIFORM;
+            params.update_and_connect_available_socket(node, "Factor");
+          },
+          weight);
+      weight--;
+    }
+    params.add_item(
+        IFACE_("Factor"),
+        [type](LinkSearchOpParams &params) {
+          bNode &node = params.add_node("ShaderNodeMix");
+          node_storage(node).data_type = type;
           params.update_and_connect_available_socket(node, "Factor");
-        });
-      }
-      params.add_item(IFACE_("Factor"), [type](LinkSearchOpParams &params) {
-        bNode &node = params.add_node("ShaderNodeMix");
-        node_storage(node).data_type = type;
-        params.update_and_connect_available_socket(node, "Factor");
-      });
-      params.add_item(IFACE_("A"), [type](LinkSearchOpParams &params) {
-        bNode &node = params.add_node("ShaderNodeMix");
-        node_storage(node).data_type = type;
-        params.update_and_connect_available_socket(node, "A");
-      });
-      params.add_item(IFACE_("B"), [type](LinkSearchOpParams &params) {
-        bNode &node = params.add_node("ShaderNodeMix");
-        node_storage(node).data_type = type;
-        params.update_and_connect_available_socket(node, "B");
-      });
+        },
+        weight);
+    weight--;
+  }
+
+  if (type != SOCK_RGBA) {
+    weight--;
+  }
+  const std::string socket_name = params.in_out() == SOCK_IN ? "A" : "Result";
+  for (const EnumPropertyItem *item = rna_enum_ramp_blend_items; item->identifier != nullptr;
+       item++) {
+    if (item->name != nullptr && item->identifier[0] != '\0') {
+      params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
+                      SocketSearchOp{socket_name, item->value},
+                      weight);
     }
   }
 }

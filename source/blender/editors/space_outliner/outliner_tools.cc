@@ -216,13 +216,25 @@ static bool outliner_operation_tree_element_poll(bContext *C)
 }
 
 static void unlink_action_fn(bContext *C,
-                             ReportList * /*reports*/,
+                             ReportList *reports,
                              Scene * /*scene*/,
                              TreeElement * /*te*/,
                              TreeStoreElem *tsep,
-                             TreeStoreElem * /*tselem*/,
+                             TreeStoreElem *tselem,
                              void * /*user_data*/)
 {
+  if (!tsep || !TSE_IS_REAL_ID(tsep)) {
+    /* Valid case, no parent element of the action or it is not an ID (could be a #TSE_ID_BASE
+     * for example) so there's no data to unlink from. */
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Cannot unlink action '%s'. It's not clear which object or object-data it "
+                "should be unlinked from, there's no object or object-data as parent in the "
+                "Outliner tree",
+                tselem->id->name + 2);
+    return;
+  }
+
   /* just set action to nullptr */
   BKE_animdata_set_action(CTX_wm_reports(C), tsep->id, nullptr);
   DEG_id_tag_update(tsep->id, ID_RECALC_ANIMATION);

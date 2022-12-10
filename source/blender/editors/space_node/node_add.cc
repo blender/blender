@@ -372,17 +372,14 @@ void NODE_OT_add_group(wmOperatorType *ot)
 /** \name Add Node Group Asset Operator
  * \{ */
 
-static bool add_node_group_asset(const bContext &C,
-                                 const AssetLibraryReference &library_ref,
-                                 const AssetHandle asset,
-                                 ReportList &reports)
+static bool add_node_group_asset(const bContext &C, const AssetHandle asset, ReportList &reports)
 {
   Main &bmain = *CTX_data_main(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   bNodeTree &edit_tree = *snode.edittree;
 
   bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
-      asset::get_local_id_from_asset_or_append_and_reuse(bmain, library_ref, asset));
+      asset::get_local_id_from_asset_or_append_and_reuse(bmain, asset));
   if (!node_group) {
     return false;
   }
@@ -439,7 +436,7 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
 
   snode.runtime->cursor /= UI_DPI_FAC;
 
-  if (!add_node_group_asset(*C, *library_ref, handle, *op->reports)) {
+  if (!add_node_group_asset(*C, handle, *op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -625,7 +622,7 @@ void NODE_OT_add_collection(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Node Collection";
-  ot->description = "Add an collection info node to the current node editor";
+  ot->description = "Add a collection info node to the current node editor";
   ot->idname = "NODE_OT_add_collection";
 
   /* callbacks */

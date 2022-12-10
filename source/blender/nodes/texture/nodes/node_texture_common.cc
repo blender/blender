@@ -84,24 +84,24 @@ static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
  */
 static void group_copy_outputs(bNode *gnode, bNodeStack **out, bNodeStack *gstack)
 {
-  bNodeTree *ngroup = (bNodeTree *)gnode->id;
-  bNode *node;
-  bNodeSocket *sock;
-  bNodeStack *ns;
-  int a;
+  const bNodeTree &ngroup = *reinterpret_cast<bNodeTree *>(gnode->id);
 
-  for (node = static_cast<bNode *>(ngroup->nodes.first); node; node = node->next) {
-    if (node->type == NODE_GROUP_OUTPUT && (node->flag & NODE_DO_OUTPUT)) {
-      for (sock = static_cast<bNodeSocket *>(node->inputs.first), a = 0; sock;
-           sock = sock->next, a++) {
-        if (out[a]) { /* shouldn't need to check this T36694. */
-          ns = node_get_socket_stack(gstack, sock);
-          if (ns) {
-            copy_stack(out[a], ns);
-          }
-        }
-      }
-      break; /* only one active output node */
+  ngroup.ensure_topology_cache();
+  const bNode *group_output_node = ngroup.group_output_node();
+  if (!group_output_node) {
+    return;
+  }
+
+  int a;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &group_output_node->inputs, a) {
+    if (!out[a]) {
+      /* shouldn't need to check this T36694. */
+      continue;
+    }
+
+    bNodeStack *ns = node_get_socket_stack(gstack, sock);
+    if (ns) {
+      copy_stack(out[a], ns);
     }
   }
 }
