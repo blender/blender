@@ -1148,6 +1148,8 @@ class SCULPT_OT_set_dyntopo_mode(Operator):
         elif self.mode == "C":
             finalch.flags_value = oldf.union({"COLLAPSE"})
 
+        print("NEWF", finalch.flags_value)
+
         return {'FINISHED'}
 
 
@@ -2891,7 +2893,8 @@ class VIEW3D_PT_gpencil_brush_presets(Panel, PresetPanel):
     preset_add_operator = "scene.gpencil_brush_preset_add"
 
 
-classes = (VIEW3D_MT_brush_context_menu,
+classes = (SCULPT_OT_set_dyntopo_mode,
+    VIEW3D_MT_brush_context_menu,
     VIEW3D_MT_brush_gpencil_context_menu,
     VIEW3D_PT_tools_object_options,
     VIEW3D_PT_tools_object_options_transform,
@@ -2990,8 +2993,7 @@ classes = (VIEW3D_MT_brush_context_menu,
     VIEW3D_PT_tools_grease_pencil_brush_vertex_falloff,
     VIEW3D_PT_tools_brush_swatches_channels,
     VIEW3D_PT_tools_persistent_base_channels,
-    VIEW3D_PT_sculpt_dyntopo_advanced,
-    SCULPT_OT_set_dyntopo_mode)
+    VIEW3D_PT_sculpt_dyntopo_advanced)
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class

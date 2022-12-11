@@ -18,10 +18,12 @@ typedef struct BMLogEntry BMLogEntry;
 extern "C" {
 #endif
 
+struct BMIdMap;
+
 /**
  * Allocate, initialize, and assign a new BMLog.
  */
-BMLog *BM_log_create(BMesh *bm);
+BMLog *BM_log_create(BMesh *bm, struct BMIdMap *idmap, int cd_sculpt_vert);
 
 /**
  * Allocate and initialize a new #BMLog using existing #BMLogEntries
@@ -32,7 +34,7 @@ BMLog *BM_log_create(BMesh *bm);
  * The unused IDs field of the log will be initialized by taking all
  * keys from all GHashes in the log entry.
  */
-BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry);
+BMLog *BM_log_from_existing_entries_create(BMesh *bm, struct BMIdMap *idmap, BMLogEntry *entry);
 
 /**
  * Free all the data in a BMLog including the log itself.

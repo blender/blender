@@ -53,6 +53,7 @@
 #include "bmesh.h"
 #include "bmesh_log.h"
 #include "bmesh_tools.h"
+#include "../../bmesh/intern/bmesh_idmap.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -567,7 +568,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
     /* Also check bm_log. */
     if (!ss->bm_log) {
-      ss->bm_log = BM_log_create(ss->bm, ss->cd_sculpt_vert);
+      ss->bm_log = BM_log_create(ss->bm, ss->bm_idmap, ss->cd_sculpt_vert);
     }
 
     return;
@@ -676,9 +677,14 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   /* Enable dynamic topology. */
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
+  if (!ss->bm_idmap) {
+    ss->bm_idmap = BM_idmap_new(ss->bm, BM_VERT|BM_EDGE|BM_FACE);
+    BKE_sculptsession_update_attr_refs(ob);
+  }
+
   /* Enable logging for undo/redo. */
   if (!ss->bm_log) {
-    ss->bm_log = BM_log_create(ss->bm, ss->cd_sculpt_vert);
+    ss->bm_log = BM_log_create(ss->bm, ss->bm_idmap, ss->cd_sculpt_vert);
   }
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
@@ -714,6 +720,11 @@ static void SCULPT_dynamic_topology_disable_ex(
 
   /* Clear data. */
   me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
+
+  if (ss->bm_idmap) {
+    BM_idmap_destroy(ss->bm_idmap);
+    ss->bm_idmap = NULL;
+  }
 
   if (ss->bm_log) {
     BM_log_free(ss->bm_log, true);

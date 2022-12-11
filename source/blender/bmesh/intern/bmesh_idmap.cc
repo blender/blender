@@ -1,6 +1,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_assert.h"
+#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
@@ -19,7 +21,7 @@ using namespace blender;
 #define FREELIST_HASHMAP_THRESHOLD_HIGH 1024
 #define FREELIST_HASHMAP_THRESHOLD_LOW 700
 
-BMIdMap *BM_idmap_new(BMesh *bm, int elem_mask)
+ATTR_NO_OPT BMIdMap *BM_idmap_new(BMesh *bm, int elem_mask)
 {
   BMIdMap *idmap = MEM_new<BMIdMap>("BMIdMap");
 
@@ -35,7 +37,7 @@ BMIdMap *BM_idmap_new(BMesh *bm, int elem_mask)
   return idmap;
 }
 
-static void idmap_grow_map(BMIdMap *idmap, int newid)
+ATTR_NO_OPT static void idmap_grow_map(BMIdMap *idmap, int newid)
 {
   if (idmap->map_size > newid) {
     return;
@@ -54,12 +56,14 @@ static void idmap_grow_map(BMIdMap *idmap, int newid)
   idmap->map_size = newsize;
 }
 
-void BM_idmap_check_ids(BMIdMap *idmap)
+ATTR_NO_OPT void BM_idmap_check_ids(BMIdMap *idmap)
 {
   BMIter iter;
   BMVert *v;
   BMEdge *e;
   BMFace *f;
+
+  BM_idmap_check_attributes(idmap);
 
   idmap->freelist.clear();
   if (idmap->free_idx_map) {
@@ -67,63 +71,61 @@ void BM_idmap_check_ids(BMIdMap *idmap)
     idmap->free_idx_map = nullptr;
   }
 
-  Set<int> used;
   int max_id = 0;
 
   if (idmap->flag & BM_VERT) {
     BM_ITER_MESH (v, &iter, idmap->bm, BM_VERTS_OF_MESH) {
       int id = BM_ELEM_CD_GET_INT(v, idmap->cd_id_off[BM_VERT]);
 
-      max_id = max_ff(max_id, id);
+      max_id = max_ii(max_id, id);
     }
   }
   if (idmap->flag & BM_EDGE) {
     BM_ITER_MESH (e, &iter, idmap->bm, BM_EDGES_OF_MESH) {
       int id = BM_ELEM_CD_GET_INT(e, idmap->cd_id_off[BM_EDGE]);
 
-      max_id = max_ff(max_id, id);
+      max_id = max_ii(max_id, id);
     }
   }
   if (idmap->flag & (BM_FACE | BM_LOOP)) {
     BM_ITER_MESH (f, &iter, idmap->bm, BM_FACES_OF_MESH) {
       if (idmap->flag & BM_FACE) {
         int id = BM_ELEM_CD_GET_INT(f, idmap->cd_id_off[BM_FACE]);
-        max_id = max_ff(max_id, id);
+        max_id = max_ii(max_id, id);
       }
 
       if (idmap->flag & BM_LOOP) {
         BMLoop *l = f->l_first;
         do {
           int id = BM_ELEM_CD_GET_INT(l, idmap->cd_id_off[BM_LOOP]);
-          max_id = max_ff(max_id, id);
+          max_id = max_ii(max_id, id);
         } while ((l = l->next) != f->l_first);
       }
     }
   }
+
+  max_id++;
 
   if (idmap->map_size >= max_id) {
     memset((void *)idmap->map, 0, sizeof(void *) * idmap->map_size);
   }
   else {
     MEM_SAFE_FREE(idmap->map);
-    idmap->map_size = max_id;
-    idmap->map = (BMElem **)MEM_calloc_arrayN(max_id, sizeof(BMElem *), "bm idmap->map");
+    idmap->map_size = max_id + 1;
+    idmap->map = (BMElem **)MEM_calloc_arrayN(max_id + 1, sizeof(BMElem *), "bm idmap->map");
   }
 
   auto check_elem = [&](auto *elem) {
     int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[(int)elem->head.htype]);
 
-    if (id < 0 || used.contains(id)) {
+    if (id < 0 || id >= idmap->map_size || idmap->map[id]) {
       id = max_id++;
+      BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[(int)elem->head.htype], id);
     }
 
     idmap_grow_map(idmap, id);
     idmap->map[id] = reinterpret_cast<BMElem *>(elem);
-
-    used.add(id);
   };
-
-  idmap->maxid = max_id;
 
   if (idmap->flag & BM_VERT) {
     BM_ITER_MESH (v, &iter, idmap->bm, BM_VERTS_OF_MESH) {
@@ -152,9 +154,11 @@ void BM_idmap_check_ids(BMIdMap *idmap)
       check_elem(v);
     }
   }
+
+  idmap->maxid = max_id;
 }
 
-void BM_idmap_check_attributes(BMIdMap *idmap)
+ATTR_NO_OPT void BM_idmap_check_attributes(BMIdMap *idmap)
 {
   auto check_attr = [&](int type) {
     if (!(idmap->flag & type)) {
@@ -166,19 +170,19 @@ void BM_idmap_check_attributes(BMIdMap *idmap)
 
     switch (type) {
       case BM_VERT:
-        name = ".sculpt.vertex.id";
+        name = "vertex_id";
         cdata = &idmap->bm->vdata;
         break;
       case BM_EDGE:
-        name = ".sculpt.edge.id";
+        name = "edge_id";
         cdata = &idmap->bm->edata;
         break;
       case BM_LOOP:
-        name = ".sculpt.loop.id";
+        name = "loop_id";
         cdata = &idmap->bm->ldata;
         break;
       case BM_FACE:
-        name = ".sculpt.face.id";
+        name = "face_id";
         cdata = &idmap->bm->pdata;
         break;
       default:
@@ -186,11 +190,11 @@ void BM_idmap_check_attributes(BMIdMap *idmap)
         return;
     }
 
-    int idx = CustomData_get_named_layer(cdata, CD_PROP_INT32, name);
+    int idx = CustomData_get_named_layer_index(cdata, CD_PROP_INT32, name);
 
-    if (idx < 0) {
+    if (idx == -1) {
       BM_data_layer_add_named(idmap->bm, cdata, CD_PROP_INT32, name);
-      idx = CustomData_get_named_layer(cdata, CD_PROP_INT32, name);
+      idx = CustomData_get_named_layer_index(cdata, CD_PROP_INT32, name);
     }
 
     if (!cdata->layers[idx].default_data) {
@@ -211,22 +215,22 @@ void BM_idmap_check_attributes(BMIdMap *idmap)
   check_attr(BM_FACE);
 }
 
-void BM_idmap_destroy(BMIdMap *idmap)
+ATTR_NO_OPT void BM_idmap_destroy(BMIdMap *idmap)
 {
   MEM_SAFE_FREE(idmap->map);
   MEM_delete<BMIdMap>(idmap);
 }
 
-static void check_idx_map(BMIdMap *idmap)
+ATTR_NO_OPT static void check_idx_map(BMIdMap *idmap)
 {
   if (idmap->free_idx_map && idmap->freelist.size() < FREELIST_HASHMAP_THRESHOLD_LOW) {
-    printf("%s: Deleting free_idx_map\n", __func__);
+    //printf("%s: Deleting free_idx_map\n", __func__);
 
     MEM_delete<BMIdMap::FreeIdxMap>(idmap->free_idx_map);
     idmap->free_idx_map = nullptr;
   }
   else if (!idmap->free_idx_map && idmap->freelist.size() < FREELIST_HASHMAP_THRESHOLD_HIGH) {
-    printf("%s: Adding free_idx_map\n", __func__);
+    //printf("%s: Adding free_idx_map\n", __func__);
 
     idmap->free_idx_map = MEM_new<BMIdMap::FreeIdxMap>("BMIdMap::FreeIdxMap");
 
@@ -236,7 +240,7 @@ static void check_idx_map(BMIdMap *idmap)
   }
 }
 
-void BM_idmap_assign(BMIdMap *idmap, BMElem *elem)
+ATTR_NO_OPT int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem)
 {
   int id = -1;
 
@@ -260,10 +264,15 @@ void BM_idmap_assign(BMIdMap *idmap, BMElem *elem)
 
   idmap_grow_map(idmap, id);
   idmap->map[id] = elem;
+
+  BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[elem->head.htype], id);
+
+  return id;
 }
 
-void BM_idmap_reassign(BMIdMap *idmap, BMElem *elem, int id)
+ATTR_NO_OPT void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id)
 {
+  /* Remove id from freelist. */
   if (idmap->free_idx_map) {
     const int *val;
 
@@ -280,13 +289,15 @@ void BM_idmap_reassign(BMIdMap *idmap, BMElem *elem, int id)
     }
   }
 
+  BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[elem->head.htype], id);
+
   idmap_grow_map(idmap, id);
   idmap->map[id] = elem;
 
   check_idx_map(idmap);
 }
 
-void BM_idmap_release(BMIdMap *idmap, BMElem *elem)
+ATTR_NO_OPT void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
 {
   int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[(int)elem->head.htype]);
 
@@ -295,7 +306,13 @@ void BM_idmap_release(BMIdMap *idmap, BMElem *elem)
     return;
   }
 
-  idmap->map[id] = nullptr;
+  if (id < 0 || id >= idmap->map_size || (idmap->map[id] && idmap->map[id] != elem)) {
+    printf("%s: id corruptions\n", __func__);
+  }
+  else {
+    idmap->map[id] = nullptr;
+  }
+
   idmap->freelist.append(id);
 
   if (idmap->free_idx_map) {
@@ -303,13 +320,19 @@ void BM_idmap_release(BMIdMap *idmap, BMElem *elem)
   }
 
   check_idx_map(idmap);
+
+  if (clear_id) {
+    BM_ELEM_CD_SET_INT(elem, idmap->cd_id_off[elem->head.htype], -1);
+  }
 }
 
-void BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem)
+int BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem)
 {
   int id = BM_ELEM_CD_GET_INT(elem, idmap->cd_id_off[(int)elem->head.htype]);
 
   if (id == -1) {
-    BM_idmap_assign(idmap, elem);
+    return BM_idmap_alloc(idmap, elem);
   }
+
+  return id;
 }

@@ -909,7 +909,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
 
   if (!ss->bm_log) {
     /* Restore the BMLog using saved entries. */
-    ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
+    ss->bm_log = BM_log_from_existing_entries_create(ss->bm, ss->bm_idmap, unode->bm_entry);
     BMLogEntry *entry = is_redo ? BM_log_entry_prev(unode->bm_entry) : unode->bm_entry;
 
     BM_log_set_current_entry(ss->bm_log, entry);
@@ -1118,7 +1118,7 @@ static int sculpt_undo_bmesh_restore(
 
 #ifdef WHEN_GLOBAL_UNDO_WORKS
   if (!ss->bm_log && ss->bm && unode->bm_entry) {  // && BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
+    ss->bm_log = BM_log_from_existing_entries_create(ss->bm, ss->bm_idmap, unode->bm_entry);
   }
 #endif
 
@@ -2013,14 +2013,16 @@ void SCULPT_undo_ensure_bmlog(Object *ob)
 
   SculptUndoNode *unode = usculpt->nodes.first;
 
+  BKE_sculpt_ensure_idmap(ob);
+
   /*when transition between undo step types the log might simply
   have been freed, look for entries to rebuild it with*/
   if (!ss->bm_log) {
     if (unode && unode->bm_entry) {
-      ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
+      ss->bm_log = BM_log_from_existing_entries_create(ss->bm, ss->bm_idmap, unode->bm_entry);
     }
     else {
-      ss->bm_log = BM_log_create(ss->bm, ss->cd_sculpt_vert);
+      ss->bm_log = BM_log_create(ss->bm, ss->bm_idmap, ss->cd_sculpt_vert);
     }
 
     if (ss->pbvh) {
@@ -2040,7 +2042,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
   SCULPT_undo_ensure_bmlog(ob);
 
   if (!ss->bm_log) {
-    ss->bm_log = BM_log_create(ss->bm, ss->cd_sculpt_vert);
+    ss->bm_log = BM_log_create(ss->bm, ss->bm_idmap, ss->cd_sculpt_vert);
   }
 
   bool new_node = false;
@@ -2465,7 +2467,10 @@ static void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_firs
   if (ss && ss->bm && ss->bm_log && BM_log_is_dead(ss->bm_log)) {
     // forcibly destroy all entries? the 'true' parameter
     BM_log_free(ss->bm_log, true);
-    ss->bm_log = BM_log_create(ss->bm, ss->cd_sculpt_vert);
+
+    BKE_sculpt_ensure_idmap(ob);
+
+    ss->bm_log = BM_log_create(ss->bm, ss->bm_idmap, ss->cd_sculpt_vert);
 
     if (ss->pbvh) {
       BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
@@ -3105,7 +3110,7 @@ void SCULPT_substep_undo(bContext *C, int dir)
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 }
 
-void BM_log_get_changed(BMesh *bm, BMLogEntry *_entry, SmallHash *sh);
+void BM_log_get_changed(BMesh *bm, struct BMIdMap *idmap, BMLogEntry *_entry, SmallHash *sh);
 
 void ED_sculpt_fast_save_bmesh(Object *ob)
 {
@@ -3153,7 +3158,7 @@ void ED_sculpt_fast_save_bmesh(Object *ob)
 
         LISTBASE_FOREACH (SculptUndoNode *, unode, &usculpt->data.nodes) {
           if (unode->bm_entry) {
-            BM_log_get_changed(bm, unode->bm_entry, &elems);
+            BM_log_get_changed(bm, ss->bm_idmap, unode->bm_entry, &elems);
           }
         }
 

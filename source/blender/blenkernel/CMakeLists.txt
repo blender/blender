@@ -131,7 +131,7 @@ set(SRC
   intern/deform.c
   intern/displist.cc
   intern/dynamicpaint.c
-  intern/dyntopo.c
+  intern/dyntopo.cc
   intern/editlattice.c
   intern/editmesh.cc
   intern/editmesh_bvh.c

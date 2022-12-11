@@ -30,6 +30,7 @@ struct SculptAttribute;
 struct MSculptVert;
 struct BMFace;
 struct BMesh;
+struct BMIdMap;
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
@@ -821,6 +822,7 @@ typedef struct SculptSession {
 
   /* BMesh for dynamic topology sculpting */
   struct BMesh *bm;
+  struct BMIdMap *bm_idmap;
 
   /* TODO: get rid of these cd_ members and use
    * .attrs.XXX.bmesh_cd_offset directly.
@@ -1042,7 +1044,9 @@ void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
 int BKE_sculptsession_vertex_count(const SculptSession *ss);
 
-/* Ensure an attribute layer exists. */
+void BKE_sculpt_ensure_idmap(struct Object *ob);
+
+    /* Ensure an attribute layer exists. */
 SculptAttribute *BKE_sculpt_attribute_ensure(struct Object *ob,
                                              eAttrDomain domain,
                                              eCustomDataType proptype,

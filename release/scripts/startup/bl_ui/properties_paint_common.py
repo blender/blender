@@ -2158,10 +2158,10 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         is_cavity_active = "CAVITY" in flags or "CAVITY_INVERTED" in flags
 
         if is_cavity_active:
-            props = row.operator("sculpt.mask_from_cavity", text="Create Mask")
+            props = layout.operator("sculpt.mask_from_cavity", text="Create Mask")
             props.settings_source = "BRUSH"
 
-        col.prop(brush, "use_automasking_cavity_inverted", text="Cavity (inverted)")
+        layout.prop(brush, "use_automasking_cavity_inverted", text="Cavity (inverted)")
 
         if is_cavity_active:
             col = layout.column(align=True)

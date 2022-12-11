@@ -71,6 +71,7 @@
 
 #include "BLO_read_write.h"
 
+#include "../../bmesh/intern/bmesh_idmap.h"
 #include "bmesh.h"
 #include "bmesh_log.h"
 
@@ -1579,6 +1580,11 @@ void BKE_sculptsession_free(Object *ob)
       ss->msculptverts = nullptr;
     }
 
+    if (ss->bm_idmap) {
+      BM_idmap_destroy(ss->bm_idmap);
+      ss->bm_idmap = nullptr;
+    }
+
     if (ss->bm_log && BM_log_free(ss->bm_log, true)) {
       ss->bm_log = nullptr;
     }
@@ -1744,6 +1750,16 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
   }
 
   return false;
+}
+
+void BKE_sculpt_ensure_idmap(Object *ob)
+{
+  if (!ob->sculpt->bm_idmap) {
+    ob->sculpt->bm_idmap = BM_idmap_new(ob->sculpt->bm, BM_VERT | BM_EDGE | BM_FACE);
+    BM_idmap_check_ids(ob->sculpt->bm_idmap);
+
+    BKE_sculptsession_update_attr_refs(ob);
+  }
 }
 
 char BKE_get_fset_boundary_symflag(Object *object)
@@ -2575,12 +2591,15 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool update_sculptverts
     sculpt_boundary_flags_ensure(ob, pbvh, ob->sculpt->bm->totvert);
     sculpt_check_face_areas(ob, pbvh);
 
+    BKE_sculpt_ensure_idmap(ob);
+
     sculptsession_bmesh_add_layers(ob);
     BKE_pbvh_build_bmesh(pbvh,
                          BKE_object_get_original_mesh(ob),
                          ob->sculpt->bm,
                          ob->sculpt->bm_smooth_shading,
                          ob->sculpt->bm_log,
+                         ob->sculpt->bm_idmap,
                          ob->sculpt->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
                          ob->sculpt->attrs.dyntopo_node_id_face->bmesh_cd_offset,
                          ob->sculpt->cd_sculpt_vert,
@@ -3609,6 +3628,7 @@ static void sculptsession_bmesh_attr_update_internal(Object *ob)
                               ss->attrs.dyntopo_node_id_face->bmesh_cd_offset :
                               -1;
 
+    BKE_pbvh_set_idmap(ss->pbvh, ss->bm_idmap);
     BKE_pbvh_update_offsets(ss->pbvh,
                             cd_dyntopo_vert,
                             cd_dyntopo_face,

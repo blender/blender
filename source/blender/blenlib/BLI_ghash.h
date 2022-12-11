@@ -375,13 +375,23 @@ bool BLI_table_gset_haskey(TableGSet *ts, void *elem);
 
 int BLI_table_gset_len(TableGSet *ts);
 
-#define TGSET_ITER(v, ts) \
-  { \
-    int _i1; \
-    for (_i1 = 0; _i1 < (ts)->cur; _i1++) { \
-      if (!(ts)->elems[_i1]) \
-        continue; \
-      v = (ts)->elems[_i1];
+#ifdef __cplusplus
+#  define TGSET_ITER(v, ts) \
+    { \
+      int _i1; \
+      for (_i1 = 0; _i1 < (ts)->cur; _i1++) { \
+        if (!(ts)->elems[_i1]) \
+          continue; \
+        v = static_cast<decltype(v)>((ts)->elems[_i1]);
+#else
+#  define TGSET_ITER(v, ts) \
+    { \
+      int _i1; \
+      for (_i1 = 0; _i1 < (ts)->cur; _i1++) { \
+        if (!(ts)->elems[_i1]) \
+          continue; \
+        v = (ts)->elems[_i1];
+#endif
 
 #define TGSET_ITER_END \
   } \

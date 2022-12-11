@@ -8,6 +8,8 @@
 #  define WITH_BM_ID_FREELIST
 #endif
 
+//#define USE_NEW_IDMAP
+
 #ifdef __cplusplus
 #  include "BLI_map.hh"
 #  include "BLI_vector.hh"
@@ -39,15 +41,15 @@ typedef struct BMIdMap {
 extern "C" {
 #endif
 
-BMIdMap *BM_idmap_new(BMesh *bm);
+BMIdMap *BM_idmap_new(BMesh *bm, int elem_mask);
 void BM_idmap_check_attributes(BMIdMap *idmap);
 void BM_idmap_check_ids(BMIdMap *idmap);
 void BM_idmap_destroy(BMIdMap *idmap);
 
-void BM_idmap_assign(BMIdMap *idmap, BMElem *elem);
-void BM_idmap_reassign(BMIdMap *idmap, BMElem *elem);
-void BM_idmap_release(BMIdMap *idmap, BMElem *elem);
-void BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem);
+int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem);
+void BM_idmap_assign(BMIdMap *idmap, BMElem *elem, int id);
+void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id);
+int BM_idmap_check_assign(BMIdMap *idmap, BMElem *elem);
 
 BLI_INLINE int BM_idmap_get_id(BMIdMap *map, BMElem *elem)
 {

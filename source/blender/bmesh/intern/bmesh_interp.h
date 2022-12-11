@@ -11,7 +11,7 @@ struct MemArena;
 
 typedef struct BMCustomLayerReq {
   int type;
-  char *name;  // can be NULL
+  const char *name;  // can be NULL
   int flag;
 } BMCustomLayerReq;
 

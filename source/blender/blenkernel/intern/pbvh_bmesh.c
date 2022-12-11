@@ -2144,12 +2144,18 @@ void BKE_pbvh_update_sculpt_verts(PBVH *pbvh)
   }
 }
 
+void BKE_pbvh_set_idmap(PBVH *pbvh, BMIdMap *idmap)
+{
+  pbvh->bm_idmap = idmap;
+}
+
 /* Build a PBVH from a BMesh */
 void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           Mesh *me,
                           BMesh *bm,
                           bool smooth_shading,
                           BMLog *log,
+                          BMIdMap *idmap,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset,
                           const int cd_sculpt_vert,
@@ -2159,6 +2165,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           bool update_sculptverts)
 {
   // coalese_pbvh(pbvh, bm);
+
+  pbvh->bm_idmap = idmap;
 
   pbvh->cd_hide_poly = CustomData_get_offset_named(
       &bm->pdata, CD_PROP_INT32, ".sculpt_face_areas");
@@ -2347,6 +2355,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 void BKE_pbvh_set_bm_log(PBVH *pbvh, struct BMLog *log)
 {
   pbvh->bm_log = log;
+  BM_log_set_idmap(log, pbvh->bm_idmap);
 }
 
 bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
@@ -3933,6 +3942,10 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
 
   pbvh->totuv = CustomData_number_of_layers(&pbvh->header.bm->ldata, CD_MLOOPUV);
   pbvh->cd_boundary_flag = cd_boundary_flag;
+
+  if (pbvh->bm_idmap) {
+    BM_idmap_check_attributes(pbvh->bm_idmap);
+  }
 }
 
 static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)
@@ -5426,6 +5439,8 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   BM_data_layer_add(bm, &bm->vdata, CD_DYNTOPO_VERT);
   BM_data_layer_add(bm, &bm->vdata, CD_PROP_COLOR);
 
+  BMIdMap *idmap = BM_idmap_new(bm, BM_VERT | BM_EDGE | BM_FACE);
+
   for (int side = 0; side < 6; side++) {
     int axis = side >= 3 ? side - 3 : side;
     float sign = side >= 3 ? -1.0f : 1.0f;
@@ -5552,7 +5567,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   cd_face_area = bm->pdata.layers[cd_face_area].offset;
 
   const int cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
-  BMLog *bmlog = BM_log_create(bm, cd_sculpt_vert);
+  BMLog *bmlog = BM_log_create(bm, idmap, cd_sculpt_vert);
 
   PBVH *pbvh = BKE_pbvh_new(PBVH_BMESH);
 
@@ -5566,6 +5581,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
                        bm,
                        false,
                        bmlog,
+                       idmap,
                        cd_vert_node,
                        cd_face_node,
                        cd_sculpt_vert,

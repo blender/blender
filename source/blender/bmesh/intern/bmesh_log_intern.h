@@ -39,6 +39,7 @@ struct BMFace;
 struct BMVert;
 struct BMesh;
 struct RangeTreeUInt;
+struct BMIdMap;
 
 typedef struct BMLog BMLog;
 typedef struct BMLogEntry BMLogEntry;
@@ -75,8 +76,10 @@ void _bm_logstack_push(const char *name);
 #  define bm_logstack_pop()
 #endif
 
+struct BMIdMap;
+
 /* Allocate and initialize a new BMLog */
-BMLog *BM_log_create(BMesh *bm, int cd_sculpt_vert);
+BMLog *BM_log_create(BMesh *bm, struct BMIdMap *idmap, int cd_sculpt_vert);
 void BM_log_set_cd_offsets(BMLog *log, int cd_sculpt_vert);
 
 /* Allocate and initialize a new BMLog using existing BMLogEntries */
@@ -88,7 +91,7 @@ void BM_log_set_cd_offsets(BMLog *log, int cd_sculpt_vert);
  * The unused IDs field of the log will be initialized by taking all
  * keys from all GHashes in the log entry.
  */
-BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry);
+BMLog *BM_log_from_existing_entries_create(BMesh *bm, struct BMIdMap *idmap, BMLogEntry *entry);
 
 /* Free all the data in a BMLog including the log itself */
 bool BM_log_free(BMLog *log, bool safe_mode);
@@ -279,6 +282,8 @@ void BM_log_redo_skip(BMesh *bm, BMLog *log);
 void BM_log_undo_skip(BMesh *bm, BMLog *log);
 BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, float t);
 
+void BM_log_set_idmap(BMLog *log, struct BMIdMap *idmap);
+
 int BM_log_entry_size(BMLogEntry *entry);
 
 bool BM_log_has_vert(BMLog *log, BMVert *v);
@@ -294,30 +299,29 @@ bool BM_log_has_edge_pre(BMLog *log, BMEdge *e);
 bool BM_log_has_face_pre(BMLog *log, BMFace *f);
 
 /*Log an edge before changing its topological connections*/
-void _BM_log_edge_topo_pre(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS);
-#define BM_log_edge_topo_pre(log, e) _BM_log_edge_topo_pre(log, e BMLOG_DEBUG_ARGS_INVOKE)
+void _BM_log_edge_pre(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS);
+#define BM_log_edge_pre(log, e) _BM_log_edge_pre(log, e BMLOG_DEBUG_ARGS_INVOKE)
 
 /*Log an edge after changing its topological connections*/
-void _BM_log_edge_topo_post(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS);
-#define BM_log_edge_topo_post(log, e) _BM_log_edge_topo_post(log, e BMLOG_DEBUG_ARGS_INVOKE)
+void _BM_log_edge_post(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS);
+#define BM_log_edge_post(log, e) _BM_log_edge_post(log, e BMLOG_DEBUG_ARGS_INVOKE)
 
 /*Log a face before changing its topological connections*/
-void _BM_log_face_topo_pre(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS);
-#define BM_log_face_topo_pre(log, f) _BM_log_face_topo_pre(log, f BMLOG_DEBUG_ARGS_INVOKE)
+void _BM_log_face_pre(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS);
+#define BM_log_face_pre(log, f) _BM_log_face_pre(log, f BMLOG_DEBUG_ARGS_INVOKE)
 
 /*Log a face after changing its topological connections*/
-void _BM_log_face_topo_post(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS);
-#define BM_log_face_topo_post(log, f) _BM_log_face_topo_post(log, f BMLOG_DEBUG_ARGS_INVOKE)
+void _BM_log_face_post(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS);
+#define BM_log_face_post(log, f) _BM_log_face_post(log, f BMLOG_DEBUG_ARGS_INVOKE)
 
-void _BM_log_vert_topo_pre(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS);
-#define BM_log_vert_topo_pre(log, v) _BM_log_vert_topo_pre(log, v BMLOG_DEBUG_ARGS_INVOKE)
+void _BM_log_vert_pre(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS);
+#define BM_log_vert_pre(log, v) _BM_log_vert_pre(log, v BMLOG_DEBUG_ARGS_INVOKE)
 
-void _BM_log_vert_topo_post(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS);
-#define BM_log_vert_topo_post(log, v) _BM_log_vert_topo_post(log, v BMLOG_DEBUG_ARGS_INVOKE)
+void _BM_log_vert_post(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS);
+#define BM_log_vert_post(log, v) _BM_log_vert_post(log, v BMLOG_DEBUG_ARGS_INVOKE)
 
 bool BM_log_validate(BMesh *inbm, BMLogEntry *entry, bool is_applied);
 bool BM_log_validate_cur(BMLog *log);
 #ifdef __cplusplus
 }
 #endif
-

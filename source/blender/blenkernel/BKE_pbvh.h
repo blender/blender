@@ -98,6 +98,7 @@ struct BMesh;
 struct BMVert;
 struct BMEdge;
 struct BMFace;
+struct BMIdMap;
 struct Scene;
 struct CCGElem;
 struct MeshElemMap;
@@ -276,6 +277,8 @@ typedef enum {
   PBVH_UpdateOtherVerts = 1 << 21
 } PBVHNodeFlags;
 
+ENUM_OPERATORS(PBVHNodeFlags, PBVH_UpdateOtherVerts);
+
 typedef struct PBVHFrustumPlanes {
   float (*planes)[4];
   int num_planes;
@@ -433,6 +436,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           struct BMesh *bm,
                           bool smooth_shading,
                           struct BMLog *log,
+                          struct BMIdMap *idmap,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset,
                           const int cd_sculpt_vert,
@@ -440,6 +444,9 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_boundary_flag,
                           bool fast_draw,
                           bool update_sculptverts);
+
+void BKE_pbvh_set_idmap(PBVH *pbvh, struct BMIdMap *idmap);
+
 void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_vert_node_offset,
                              const int cd_face_node_offset,

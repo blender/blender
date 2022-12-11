@@ -540,7 +540,7 @@ class MESH_UL_attributes(UIList):
         show_all = _context.tool_settings.save_temp_layers if hasattr(_context, "tool_settings") else False
 
         for item in attributes:
-            flags.append(0 if item.is_internal else self.bitflag_filter_item)
+            flags.append(0 if (not show_all and item.is_internal) else self.bitflag_filter_item)
 
         return flags, indices
 

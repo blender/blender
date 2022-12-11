@@ -1457,6 +1457,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                          sgcontext->ss->bm,
                          sgcontext->ss->bm_smooth_shading,
                          sgcontext->ss->bm_log,
+                         sgcontext->ss->bm_idmap,
                          sgcontext->ss->cd_vert_node_offset,
                          sgcontext->ss->cd_face_node_offset,
                          sgcontext->ss->cd_sculpt_vert,
@@ -1472,7 +1473,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                                               }),
                                               sculpt_mesh);
     BM_mesh_free(bm);
-    
+
     BKE_mesh_normals_tag_dirty(result);
     BKE_mesh_nomain_to_mesh(result, sgcontext->vc.obact->data, sgcontext->vc.obact);
   }

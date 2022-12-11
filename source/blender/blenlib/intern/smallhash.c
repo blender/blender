@@ -77,7 +77,7 @@
 #define SMHASH_NEXT(h, hoff) \
   (CHECK_TYPE_INLINE(&(h), uintptr_t *), \
    CHECK_TYPE_INLINE(&(hoff), uintptr_t *), \
-   ((h) + (((hoff) = ((hoff)*2) + 1), (hoff))))
+   ((h) + (((hoff) = ((hoff)*3) + 1), (hoff))))
 
 BLI_INLINE bool check_stack_move(SmallHash *sh)
 {
@@ -188,7 +188,7 @@ BLI_INLINE SmallHashEntry *smallhash_lookup(SmallHash *sh, const uintptr_t key)
   return NULL;
 }
 
-BLI_INLINE SmallHashEntry *smallhash_lookup_first_free(SmallHash *sh, const uintptr_t key)
+ATTR_NO_OPT BLI_INLINE SmallHashEntry *smallhash_lookup_first_free(SmallHash *sh, const uintptr_t key)
 {
   check_stack_move(sh);
 

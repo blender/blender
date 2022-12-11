@@ -13,6 +13,7 @@
 #include "BKE_pbvh.h"
 
 #include "bmesh.h"
+#include "../../bmesh/intern/bmesh_idmap.h"
 
 #define PBVH_STACK_FIXED_DEPTH 100
 
@@ -31,6 +32,7 @@ extern "C" {
 
 struct MLoop;
 struct MLoopTri;
+struct BMIdMap;
 struct MPoly;
 struct MVert;
 
@@ -116,7 +118,7 @@ struct PBVHNode {
 
   /* Indicates whether this node is a leaf or not; also used for
    * marking various updates that need to be applied. */
-  PBVHNodeFlags flag : 32;
+  PBVHNodeFlags flag;
 
   /* Used for raycasting: how close bb is to the ray point. */
   float tmin;
@@ -234,6 +236,7 @@ struct PBVH {
   float bm_max_edge_len;
   float bm_min_edge_len;
   float bm_detail_range;
+  struct BMIdMap *bm_idmap;
 
   int cd_sculpt_vert;
   int cd_vert_node_offset;

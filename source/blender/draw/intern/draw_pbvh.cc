@@ -1003,6 +1003,37 @@ struct PBVHBatches {
             *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = face_set_color;
           });
         }
+
+        break;
+      }
+      case CD_PROP_INT32: {
+        const int cd_prop = CustomData_get_offset_named(cdata, CD_PROP_INT32, vbo.name.c_str());
+
+        foreach_bmesh([&](BMLoop *l) {
+          BMElem *elem;
+
+          switch (vbo.domain) {
+            case ATTR_DOMAIN_POINT:
+              elem = reinterpret_cast<BMElem *>(l->v);
+              break;
+            case ATTR_DOMAIN_EDGE:
+              elem = reinterpret_cast<BMElem *>(l->e);
+              break;
+            case ATTR_DOMAIN_CORNER:
+              elem = reinterpret_cast<BMElem *>(l);
+              break;
+            case ATTR_DOMAIN_FACE:
+              elem = reinterpret_cast<BMElem *>(l->f);
+              break;
+            default:
+              return;
+          }
+
+          int val = BM_ELEM_CD_GET_INT(elem, cd_prop);
+          *static_cast<int *>(GPU_vertbuf_raw_step(&access)) = val;
+        });
+
+        break;
       }
     }
   }
@@ -1022,7 +1053,10 @@ struct PBVHBatches {
     }
   }
 
-  void create_vbo(eAttrDomain domain, const uint32_t type, string name, PBVH_GPU_Args *args)
+  ATTR_NO_OPT void create_vbo(eAttrDomain domain,
+                              const uint32_t type,
+                              string name,
+                              PBVH_GPU_Args *args)
   {
     PBVHVbo vbo(domain, type, name);
     GPUVertFormat format;
@@ -1061,6 +1095,16 @@ struct PBVHBatches {
         GPU_vertformat_attr_add(&format, "f", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
         need_aliases = true;
         break;
+      case CD_PROP_INT32: {
+        char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
+        GPU_vertformat_safe_attr_name(name.c_str(), attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+        /* Attributes use auto-name. */
+        BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
+
+        GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_I32, 1, GPU_FETCH_INT_TO_FLOAT);
+        need_aliases = true;
+        break;
+      }
       case CD_PROP_COLOR:
       case CD_PROP_BYTE_COLOR: {
         GPU_vertformat_attr_add(&format, "c", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
@@ -1116,6 +1160,9 @@ struct PBVHBatches {
           switch (type) {
             case CD_MLOOPUV:
               prefix = "u";
+              break;
+            case CD_PROP_INT32:
+              prefix = "a";
               break;
             default:
               break;
@@ -1425,7 +1472,7 @@ struct PBVHBatches {
     }
   }
 
-  void create_batch(PBVHAttrReq *attrs, int attrs_num, PBVH_GPU_Args *args)
+  ATTR_NO_OPT void create_batch(PBVHAttrReq *attrs, int attrs_num, PBVH_GPU_Args *args)
   {
     check_index_buffers(args);
 

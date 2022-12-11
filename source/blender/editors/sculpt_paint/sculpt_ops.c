@@ -84,6 +84,8 @@
 #include "bmesh_log.h"
 #include "bmesh_tools.h"
 
+#include "../../bmesh/intern/bmesh_idmap.h"
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -508,11 +510,21 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
           ob->sculpt->bm_log = NULL;
         }
 
+        if (ob->sculpt->bm_idmap) {
+          BM_idmap_destroy(ob->sculpt->bm_idmap);
+          ob->sculpt->bm_idmap = NULL;
+        }
+
+        /* Recreate idmap and log. */
+
+        BKE_sculpt_ensure_idmap(ob);
+
+        /* See if we can rebuild the log from the undo stack. */
         SCULPT_undo_ensure_bmlog(ob);
 
-        // SCULPT_undo_ensure_bmlog failed to find a sculpt undo step
+        /* Create an empty log if reconstruction failed. */
         if (!ob->sculpt->bm_log) {
-          ob->sculpt->bm_log = BM_log_create(ob->sculpt->bm, ob->sculpt->cd_sculpt_vert);
+          ob->sculpt->bm_log = BM_log_create(ob->sculpt->bm, ob->sculpt->bm_idmap, ob->sculpt->cd_sculpt_vert);
         }
       }
     }
