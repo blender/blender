@@ -309,7 +309,6 @@ class NodeDeclaration {
  private:
   Vector<SocketDeclarationPtr> inputs_;
   Vector<SocketDeclarationPtr> outputs_;
-  bool is_function_node_ = false;
 
   friend NodeDeclarationBuilder;
 
@@ -320,11 +319,6 @@ class NodeDeclaration {
   Span<SocketDeclarationPtr> outputs() const;
   Span<SocketDeclarationPtr> sockets(eNodeSocketInOut in_out) const;
 
-  bool is_function_node() const
-  {
-    return is_function_node_;
-  }
-
   MEM_CXX_CLASS_ALLOC_FUNCS("NodeDeclaration")
 };
 
@@ -332,21 +326,21 @@ class NodeDeclarationBuilder {
  private:
   NodeDeclaration &declaration_;
   Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> builders_;
+  bool is_function_node_ = false;
 
  public:
   NodeDeclarationBuilder(NodeDeclaration &declaration);
 
   /**
    * All inputs support fields, and all outputs are fields if any of the inputs is a field.
-   * Calling field status definitions on each socket is unnecessary. Must be called before adding
-   * any sockets.
+   * Calling field status definitions on each socket is unnecessary.
    */
-  void is_function_node(bool value = true)
+  void is_function_node()
   {
-    BLI_assert_msg(declaration_.inputs().is_empty() && declaration_.outputs().is_empty(),
-                   "is_function_node() must be called before any socket is created");
-    declaration_.is_function_node_ = value;
+    is_function_node_ = true;
   }
+
+  void finalize();
 
   template<typename DeclType>
   typename DeclType::Builder &add_input(StringRef name, StringRef identifier = "");
@@ -553,10 +547,6 @@ inline typename DeclType::Builder &NodeDeclarationBuilder::add_socket(StringRef 
   socket_decl->name_ = name;
   socket_decl->identifier_ = identifier.is_empty() ? name : identifier;
   socket_decl->in_out_ = in_out;
-  if (declaration_.is_function_node()) {
-    socket_decl->input_field_type_ = InputSocketFieldType::IsSupported;
-    socket_decl->output_field_dependency_ = OutputFieldDependency::ForDependentField();
-  }
   declarations.append(std::move(socket_decl));
   Builder &socket_decl_builder_ref = *socket_decl_builder;
   builders_.append(std::move(socket_decl_builder));

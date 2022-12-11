@@ -56,13 +56,6 @@ static InputSocketFieldType get_interface_input_field_type(const bNode &node,
   /* Get the field type from the declaration. */
   const SocketDeclaration &socket_decl = *node_decl->inputs()[socket.index()];
   const InputSocketFieldType field_type = socket_decl.input_field_type();
-  if (field_type == InputSocketFieldType::Implicit) {
-    return field_type;
-  }
-  if (node_decl->is_function_node()) {
-    /* In a function node, every socket supports fields. */
-    return InputSocketFieldType::IsSupported;
-  }
   return field_type;
 }
 
@@ -92,11 +85,6 @@ static OutputFieldDependency get_interface_output_field_dependency(const bNode &
 
   /* Node declarations should be implemented for nodes involved here. */
   BLI_assert(node_decl != nullptr);
-
-  if (node_decl->is_function_node()) {
-    /* In a generic function node, all outputs depend on all inputs. */
-    return OutputFieldDependency::ForDependentField();
-  }
 
   /* Use the socket declaration. */
   const SocketDeclaration &socket_decl = *node_decl->outputs()[socket.index()];
