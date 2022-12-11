@@ -7,6 +7,12 @@
 
 namespace blender::nodes {
 
+void build_node_declaration(const bNodeType &typeinfo, NodeDeclaration &r_declaration)
+{
+  NodeDeclarationBuilder node_decl_builder{r_declaration};
+  typeinfo.declare(node_decl_builder);
+}
+
 bool NodeDeclaration::matches(const bNode &node) const
 {
   auto check_sockets = [&](ListBase sockets, Span<SocketDeclarationPtr> socket_decls) {

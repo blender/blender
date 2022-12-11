@@ -1373,8 +1373,7 @@ void nodeRegisterType(bNodeType *nt)
   if (nt->declare && !nt->declaration_is_dynamic) {
     if (nt->fixed_declaration == nullptr) {
       nt->fixed_declaration = new blender::nodes::NodeDeclaration();
-      blender::nodes::NodeDeclarationBuilder builder{*nt->fixed_declaration};
-      nt->declare(builder);
+      blender::nodes::build_node_declaration(*nt, *nt->fixed_declaration);
     }
   }
 
@@ -3607,8 +3606,7 @@ bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree * /*ntree*/, bNode *node)
   }
   if (node->typeinfo->declaration_is_dynamic) {
     node->runtime->declaration = new blender::nodes::NodeDeclaration();
-    blender::nodes::NodeDeclarationBuilder builder{*node->runtime->declaration};
-    node->typeinfo->declare(builder);
+    blender::nodes::build_node_declaration(*node->typeinfo, *node->runtime->declaration);
   }
   else {
     /* Declaration should have been created in #nodeRegisterType. */

@@ -367,6 +367,8 @@ void index(const bNode &node, void *r_value);
 void id_or_index(const bNode &node, void *r_value);
 }  // namespace implicit_field_inputs
 
+void build_node_declaration(const bNodeType &typeinfo, NodeDeclaration &r_declaration);
+
 /* -------------------------------------------------------------------- */
 /** \name #OutputFieldDependency Inline Methods
  * \{ */
