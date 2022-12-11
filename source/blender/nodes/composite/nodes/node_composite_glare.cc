@@ -339,7 +339,7 @@ class GlareOperation : public NodeOperation {
    * --------------- */
 
   /* Not yet implemented. Unreachable code due to the is_identity method. */
-  Result execute_fog_glow(Result &highlights_result)
+  Result execute_fog_glow(Result & /*highlights_result*/)
   {
     BLI_assert_unreachable();
     return Result(ResultType::Color, texture_pool());
@@ -350,7 +350,7 @@ class GlareOperation : public NodeOperation {
    * -------------- */
 
   /* Not yet implemented. Unreachable code due to the is_identity method. */
-  Result execute_streaks(Result &highlights_result)
+  Result execute_streaks(Result & /*highlights_result*/)
   {
     BLI_assert_unreachable();
     return Result(ResultType::Color, texture_pool());
