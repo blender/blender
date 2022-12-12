@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "BLI_vector_set.hh"
 #include "ED_node.h"
 
 struct SpaceNode;
@@ -10,6 +11,8 @@ struct Main;
 struct bNodeTree;
 
 namespace blender::ed::space_node {
+
+VectorSet<bNode *> get_selected_nodes(bNodeTree &node_tree);
 
 void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region);
 

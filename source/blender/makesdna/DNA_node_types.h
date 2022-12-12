@@ -417,7 +417,7 @@ typedef struct bNode {
 /* node is always behind others */
 #define NODE_BACKGROUND (1 << 12)
 /* automatic flag for nodes included in transforms */
-#define NODE_TRANSFORM (1 << 13)
+// #define NODE_TRANSFORM (1 << 13) /* deprecated */
 /* node is active texture */
 
 /* NOTE: take care with this flag since its possible it gets

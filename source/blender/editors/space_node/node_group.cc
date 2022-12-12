@@ -33,6 +33,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "ED_node.h" /* own include */
+#include "ED_node.hh"
 #include "ED_render.h"
 #include "ED_screen.h"
 
