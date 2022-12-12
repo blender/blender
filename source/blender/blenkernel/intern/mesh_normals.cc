@@ -822,7 +822,7 @@ struct LoopSplitTaskDataCommon {
   Span<MEdge> edges;
   Span<MLoop> loops;
   Span<MPoly> polys;
-  MutableSpan<int2> edge_to_loops;
+  Span<int2> edge_to_loops;
   Span<int> loop_to_poly;
   Span<float3> polynors;
   Span<float3> vert_normals;
