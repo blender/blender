@@ -1374,9 +1374,10 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
   RNA_def_string(ot->srna,
                  "prim_path_mask",
                  NULL,
-                 1024,
+                 0,
                  "Path Mask",
-                 "Import only the subset of the USD scene rooted at the given primitive");
+                 "Import only the primitive at the given path and its descendents.  "
+                 "Multiple paths may be specified in a list delimited by spaces, commas or somicolons");
 
   RNA_def_boolean(ot->srna, "import_guide", false, "Guide", "Import guide geometry");
 
