@@ -48,6 +48,7 @@ if(WITH_GTESTS)
   set(TEST_SRC
     tests/asset_catalog_path_test.cc
     tests/asset_catalog_test.cc
+    tests/asset_catalog_tree_test.cc
     tests/asset_library_service_test.cc
     tests/asset_library_test.cc
 
