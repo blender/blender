@@ -17,6 +17,8 @@
 
 #include "testing/testing.h"
 
+#include "asset_library_test_common.hh"
+
 namespace blender::asset_system::tests {
 
 /* UUIDs from lib/tests/asset_library/blender_assets.cats.txt */
@@ -76,59 +78,8 @@ class TestableAssetCatalogService : public AssetCatalogService {
   }
 };
 
-class AssetCatalogTest : public testing::Test {
+class AssetCatalogTest : public AssetLibraryTestBase {
  protected:
-  CatalogFilePath asset_library_root_;
-  CatalogFilePath temp_library_path_;
-
-  static void SetUpTestSuite()
-  {
-    testing::Test::SetUpTestSuite();
-    CLG_init();
-  }
-
-  static void TearDownTestSuite()
-  {
-    CLG_exit();
-    testing::Test::TearDownTestSuite();
-  }
-
-  void SetUp() override
-  {
-    const std::string test_files_dir = blender::tests::flags_test_asset_dir();
-    if (test_files_dir.empty()) {
-      FAIL();
-    }
-
-    asset_library_root_ = test_files_dir + SEP_STR + "asset_library";
-    temp_library_path_ = "";
-  }
-
-  void TearDown() override
-  {
-    if (!temp_library_path_.empty()) {
-      BLI_delete(temp_library_path_.c_str(), true, true);
-      temp_library_path_ = "";
-    }
-  }
-
-  /* Register a temporary path, which will be removed at the end of the test.
-   * The returned path ends in a slash. */
-  CatalogFilePath use_temp_path()
-  {
-    BKE_tempdir_init("");
-    const CatalogFilePath tempdir = BKE_tempdir_session();
-    temp_library_path_ = tempdir + "test-temporary-path" + SEP_STR;
-    return temp_library_path_;
-  }
-
-  CatalogFilePath create_temp_path()
-  {
-    CatalogFilePath path = use_temp_path();
-    BLI_dir_create_recursive(path.c_str());
-    return path;
-  }
-
   void assert_expected_item(const AssetCatalogPath &expected_path,
                             const AssetCatalogTreeItem &actual_item)
   {
