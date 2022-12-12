@@ -27,6 +27,7 @@
 #include "BLI_stack.h"
 #include "BLI_task.h"
 #include "BLI_task.hh"
+#include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
@@ -792,23 +793,20 @@ void BKE_lnor_space_custom_normal_to_data(const MLoopNorSpace *lnor_space,
 #define LOOP_SPLIT_TASK_BLOCK_SIZE 1024
 
 struct LoopSplitTaskData {
-  /* Specific to each instance (each task). */
+  enum class Type : int8_t {
+    BlockEnd = 0, /* Set implicitly by calloc. */
+    Fan = 1,
+    Single = 2,
+  };
 
   /** We have to create those outside of tasks, since #MemArena is not thread-safe. */
   MLoopNorSpace *lnor_space;
-  const MLoop *ml_curr;
-  const MLoop *ml_prev;
   int ml_curr_index;
-  int ml_prev_index;
   /** Also used a flag to switch between single or fan process! */
-  const int *e2l_prev;
+  int ml_prev_index;
   int mp_index;
 
-  /** This one is special, it's owned and managed by worker tasks,
-   * avoid to have to create it for each fan! */
-  BLI_Stack *edge_vectors;
-
-  char pad_c;
+  Type flag;
 };
 
 struct LoopSplitTaskDataCommon {
@@ -1048,7 +1046,9 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
   }
 }
 
-static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSplitTaskData *data)
+static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
+                                  LoopSplitTaskData *data,
+                                  BLI_Stack *edge_vectors)
 {
   MLoopNorSpaceArray *lnors_spacearr = common_data->lnors_spacearr;
   MutableSpan<float3> loopnors = common_data->loopnors;
@@ -1069,8 +1069,6 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
   const int ml_curr_index = data->ml_curr_index;
   const int ml_prev_index = data->ml_prev_index;
   const int mp_index = data->mp_index;
-
-  BLI_Stack *edge_vectors = data->edge_vectors;
 
   /* Sigh! we have to fan around current vertex, until we find the other non-smooth edge,
    * and accumulate face normals into the vertex!
@@ -1253,11 +1251,9 @@ static void loop_split_worker_do(LoopSplitTaskDataCommon *common_data,
                                  LoopSplitTaskData *data,
                                  BLI_Stack *edge_vectors)
 {
-  BLI_assert(data->ml_curr);
-  if (data->e2l_prev) {
+  if (data->flag == LoopSplitTaskData::Type::Fan) {
     BLI_assert((edge_vectors == nullptr) || BLI_stack_is_empty(edge_vectors));
-    data->edge_vectors = edge_vectors;
-    split_loop_nor_fan_do(common_data, data);
+    split_loop_nor_fan_do(common_data, data, edge_vectors);
   }
   else {
     /* No need for edge_vectors for 'single' case! */
@@ -1276,8 +1272,7 @@ static void loop_split_worker(TaskPool *__restrict pool, void *taskdata)
                                 nullptr;
 
   for (int i = 0; i < LOOP_SPLIT_TASK_BLOCK_SIZE; i++, data++) {
-    /* A nullptr ml_curr is used to tag ended data! */
-    if (data->ml_curr == nullptr) {
+    if (data->flag == LoopSplitTaskData::Type::BlockEnd) {
       break;
     }
 
@@ -1448,13 +1443,9 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
 
         if (IS_EDGE_SHARP(edge_to_loops[loops[ml_curr_index].e]) &&
             IS_EDGE_SHARP(edge_to_loops[loops[ml_prev_index].e])) {
-          data->ml_curr = &loops[ml_curr_index];
-          data->ml_prev = &loops[ml_prev_index];
           data->ml_curr_index = ml_curr_index;
           data->ml_prev_index = ml_prev_index;
-#if 0 /* Not needed for 'single' loop. */
-          data->e2l_prev = nullptr; /* Tag as 'single' task. */
-#endif
+          data->flag = LoopSplitTaskData::Type::Single;
           data->mp_index = mp_index;
           if (lnors_spacearr) {
             data->lnor_space = BKE_lnor_space_create(lnors_spacearr);
@@ -1470,11 +1461,9 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
          * All this due/thanks to link between normals and loop ordering (i.e. winding).
          */
         else {
-          data->ml_curr = &loops[ml_curr_index];
-          data->ml_prev = &loops[ml_prev_index];
           data->ml_curr_index = ml_curr_index;
           data->ml_prev_index = ml_prev_index;
-          data->e2l_prev = edge_to_loops[loops[ml_prev_index].e]; /* Also tag as 'fan' task. */
+          data->flag = LoopSplitTaskData::Type::Fan;
           data->mp_index = mp_index;
           if (lnors_spacearr) {
             data->lnor_space = BKE_lnor_space_create(lnors_spacearr);
@@ -1495,8 +1484,6 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
     }
   }
 
-  /* Last block of data. Since it is calloc'ed and we use first nullptr item as stopper,
-   * everything is fine. */
   if (pool && data_idx) {
     BLI_task_pool_push(pool, loop_split_worker, data_buff, true, nullptr);
   }
