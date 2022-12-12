@@ -358,6 +358,8 @@ typedef struct bNode {
   bNodeRuntimeHandle *runtime;
 
 #ifdef __cplusplus
+  /** The index in the owner node tree. */
+  int index() const;
   blender::StringRefNull label_or_name() const;
   bool is_muted() const;
   bool is_reroute() const;

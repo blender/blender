@@ -268,6 +268,7 @@ void node_sort(bNodeTree &ntree)
   for (const int i : sort_nodes.index_range()) {
     BLI_addtail(&ntree.nodes, sort_nodes[i]);
     ntree.runtime->nodes_by_id.add_new(sort_nodes[i]);
+    sort_nodes[i]->runtime->index_in_tree = i;
   }
 }
 

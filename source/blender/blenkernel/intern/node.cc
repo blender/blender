@@ -145,11 +145,13 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
 
   dst_runtime.nodes_by_id.reserve(ntree_src->all_nodes().size());
   BLI_listbase_clear(&ntree_dst->nodes);
-  LISTBASE_FOREACH (const bNode *, src_node, &ntree_src->nodes) {
+  int i;
+  LISTBASE_FOREACH_INDEX (const bNode *, src_node, &ntree_src->nodes, i) {
     /* Don't find a unique name for every node, since they should have valid names already. */
     bNode *new_node = blender::bke::node_copy_with_mapping(
         ntree_dst, *src_node, flag_subdata, false, socket_map);
     dst_runtime.nodes_by_id.add_new(new_node);
+    new_node->runtime->index_in_tree = i;
   }
 
   /* copy links */
@@ -673,9 +675,11 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
   BKE_animdata_blend_read_data(reader, ntree->adt);
 
   BLO_read_list(reader, &ntree->nodes);
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  int i;
+  LISTBASE_FOREACH_INDEX (bNode *, node, &ntree->nodes, i) {
     node->runtime = MEM_new<bNodeRuntime>(__func__);
     node->typeinfo = nullptr;
+    node->runtime->index_in_tree = i;
 
     /* Create the `nodes_by_id` cache eagerly so it can be expected to be valid. Because
      * we create it here we also have to check for zero identifiers from previous versions. */
@@ -2197,6 +2201,8 @@ void nodeUniqueID(bNodeTree *ntree, bNode *node)
 
   node->identifier = new_id;
   ntree->runtime->nodes_by_id.add_new(node);
+  node->runtime->index_in_tree = ntree->runtime->nodes_by_id.index_range().last();
+  BLI_assert(node->runtime->index_in_tree == ntree->runtime->nodes_by_id.index_of(node));
 }
 
 bNode *nodeAddNode(const bContext *C, bNodeTree *ntree, const char *idname)
@@ -2936,8 +2942,10 @@ void nodeRebuildIDVector(bNodeTree *node_tree)
 {
   /* Rebuild nodes #VectorSet which must have the same order as the list. */
   node_tree->runtime->nodes_by_id.clear();
-  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+  int i;
+  LISTBASE_FOREACH_INDEX (bNode *, node, &node_tree->nodes, i) {
     node_tree->runtime->nodes_by_id.add_new(node);
+    node->runtime->index_in_tree = i;
   }
 }
 

@@ -1641,31 +1641,31 @@ static void node_join_attach_recursive(bNodeTree &ntree,
                                        bNode *frame,
                                        const VectorSet<bNode *> &selected_nodes)
 {
-  join_states[node->runtime->index_in_tree].done = true;
+  join_states[node->index()].done = true;
 
   if (node == frame) {
-    join_states[node->runtime->index_in_tree].descendent = true;
+    join_states[node->index()].descendent = true;
   }
   else if (node->parent) {
     /* call recursively */
-    if (!join_states[node->parent->runtime->index_in_tree].done) {
+    if (!join_states[node->parent->index()].done) {
       node_join_attach_recursive(ntree, join_states, node->parent, frame, selected_nodes);
     }
 
     /* in any case: if the parent is a descendant, so is the child */
-    if (join_states[node->parent->runtime->index_in_tree].descendent) {
-      join_states[node->runtime->index_in_tree].descendent = true;
+    if (join_states[node->parent->index()].descendent) {
+      join_states[node->index()].descendent = true;
     }
     else if (selected_nodes.contains(node)) {
       /* if parent is not an descendant of the frame, reattach the node */
       nodeDetachNode(&ntree, node);
       nodeAttachNode(&ntree, node, frame);
-      join_states[node->runtime->index_in_tree].descendent = true;
+      join_states[node->index()].descendent = true;
     }
   }
   else if (selected_nodes.contains(node)) {
     nodeAttachNode(&ntree, node, frame);
-    join_states[node->runtime->index_in_tree].descendent = true;
+    join_states[node->index()].descendent = true;
   }
 }
 
@@ -1685,7 +1685,7 @@ static int node_join_exec(bContext *C, wmOperator * /*op*/)
   Array<NodeJoinState> join_states(ntree.all_nodes().size(), NodeJoinState{false, false});
 
   for (bNode *node : ntree.all_nodes()) {
-    if (!join_states[node->runtime->index_in_tree].done) {
+    if (!join_states[node->index()].done) {
       node_join_attach_recursive(ntree, join_states, node, frame_node, selected_nodes);
     }
   }
@@ -1818,26 +1818,26 @@ static void node_detach_recursive(bNodeTree &ntree,
                                   MutableSpan<NodeDetachstate> detach_states,
                                   bNode *node)
 {
-  detach_states[node->runtime->index_in_tree].done = true;
+  detach_states[node->index()].done = true;
 
   if (node->parent) {
     /* call recursively */
-    if (!detach_states[node->parent->runtime->index_in_tree].done) {
+    if (!detach_states[node->parent->index()].done) {
       node_detach_recursive(ntree, detach_states, node->parent);
     }
 
     /* in any case: if the parent is a descendant, so is the child */
-    if (detach_states[node->parent->runtime->index_in_tree].descendent) {
-      detach_states[node->runtime->index_in_tree].descendent = true;
+    if (detach_states[node->parent->index()].descendent) {
+      detach_states[node->index()].descendent = true;
     }
     else if (node->flag & NODE_SELECT) {
       /* if parent is not a descendant of a selected node, detach */
       nodeDetachNode(&ntree, node);
-      detach_states[node->runtime->index_in_tree].descendent = true;
+      detach_states[node->index()].descendent = true;
     }
   }
   else if (node->flag & NODE_SELECT) {
-    detach_states[node->runtime->index_in_tree].descendent = true;
+    detach_states[node->index()].descendent = true;
   }
 }
 
@@ -1853,7 +1853,7 @@ static int node_detach_exec(bContext *C, wmOperator * /*op*/)
    * relative order is preserved here!
    */
   for (bNode *node : ntree.all_nodes()) {
-    if (!detach_states[node->runtime->index_in_tree].done) {
+    if (!detach_states[node->index()].done) {
       node_detach_recursive(ntree, detach_states, node);
     }
   }

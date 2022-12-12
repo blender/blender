@@ -492,9 +492,12 @@ class NodeTreeMainUpdater {
 #ifdef DEBUG
     /* Check the uniqueness of node identifiers. */
     Set<int32_t> node_identifiers;
-    for (bNode *node : ntree.all_nodes()) {
-      BLI_assert(node->identifier > 0);
-      node_identifiers.add_new(node->identifier);
+    const Span<const bNode *> nodes = ntree.all_nodes();
+    for (const int i : nodes.index_range()) {
+      const bNode &node = *nodes[i];
+      BLI_assert(node.identifier > 0);
+      node_identifiers.add_new(node.identifier);
+      BLI_assert(node.runtime->index_in_tree == i);
     }
 #endif
 
@@ -761,15 +764,14 @@ class NodeTreeMainUpdater {
     Array<int> toposort_indices(toposort.size());
     for (const int i : toposort.index_range()) {
       const bNode &node = *toposort[i];
-      toposort_indices[node.runtime->index_in_tree] = i;
+      toposort_indices[node.index()] = i;
     }
 
     LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
       link->flag |= NODE_LINK_VALID;
       const bNode &from_node = *link->fromnode;
       const bNode &to_node = *link->tonode;
-      if (toposort_indices[from_node.runtime->index_in_tree] >
-          toposort_indices[to_node.runtime->index_in_tree]) {
+      if (toposort_indices[from_node.index()] > toposort_indices[to_node.index()]) {
         link->flag &= ~NODE_LINK_VALID;
         continue;
       }

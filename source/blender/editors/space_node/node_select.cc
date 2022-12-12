@@ -1267,7 +1267,7 @@ static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
     }
   }
 
-  bNode *new_active_node = node_tree.all_nodes()[toposort[new_index]->runtime->index_in_tree];
+  bNode *new_active_node = node_tree.all_nodes()[toposort[new_index]->index()];
   if (new_active_node == &active_node) {
     return OPERATOR_CANCELLED;
   }

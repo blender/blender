@@ -668,6 +668,10 @@ void nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
  * Find the first available, non-duplicate name for a given node.
  */
 void nodeUniqueName(struct bNodeTree *ntree, struct bNode *node);
+/**
+ * Create a new unique integer identifier for the node. Also set the node's
+ * index in the tree, which is an eagerly maintained cache.
+ */
 void nodeUniqueID(struct bNodeTree *ntree, struct bNode *node);
 
 /**
