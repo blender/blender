@@ -57,13 +57,8 @@ static void create_transform_data_for_node(TransData &td,
 
   /* use top-left corner as the transform origin for nodes */
   /* Weirdo - but the node system is a mix of free 2d elements and DPI sensitive UI. */
-#ifdef USE_NODE_CENTER
-  td2d.loc[0] = (locx * dpi_fac) + (BLI_rctf_size_x(&node.runtime->totr) * +0.5f);
-  td2d.loc[1] = (locy * dpi_fac) + (BLI_rctf_size_y(&node.runtime->totr) * -0.5f);
-#else
   td2d.loc[0] = locx * dpi_fac;
   td2d.loc[1] = locy * dpi_fac;
-#endif
   td2d.loc[2] = 0.0f;
   td2d.loc2d = td2d.loc; /* current location */
 
@@ -234,11 +229,6 @@ static void flushTransNodes(TransInfo *t)
 
       float loc[2];
       add_v2_v2v2(loc, td2d->loc, offset);
-
-#ifdef USE_NODE_CENTER
-      loc[0] -= 0.5f * BLI_rctf_size_x(&node->runtime->totr);
-      loc[1] += 0.5f * BLI_rctf_size_y(&node->runtime->totr);
-#endif
 
       /* Weirdo - but the node system is a mix of free 2d elements and DPI sensitive UI. */
       loc[0] /= dpi_fac;

@@ -23,10 +23,6 @@
 extern "C" {
 #endif
 
-/* use node center for transform instead of upper-left corner.
- * disabled since it makes absolute snapping not work so nicely
- */
-// #define USE_NODE_CENTER
 
 /* -------------------------------------------------------------------- */
 /** \name Types/
