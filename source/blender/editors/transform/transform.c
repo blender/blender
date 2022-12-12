@@ -1336,7 +1336,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
 
   t->state = TRANS_RUNNING;
 
-  /* avoid calculating PET */
+  /* Avoid calculating proportional editing. */
   t->options = CTX_NO_PET;
 
   t->mode = TFM_DUMMY;

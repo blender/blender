@@ -314,7 +314,8 @@ static void createTransUVs(bContext *C, TransInfo *t)
 
     float *prop_dists = NULL;
 
-    /* Support other objects using PET to adjust these, unless connected is enabled. */
+    /* Support other objects using proportional editing to adjust these, unless connected is
+     * enabled. */
     if (((is_prop_edit && !is_prop_connected) ? count : countsel) == 0) {
       goto finally;
     }

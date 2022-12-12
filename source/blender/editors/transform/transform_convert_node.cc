@@ -125,7 +125,7 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
     return;
   }
 
-  /* Nodes don't support PET and probably never will. */
+  /* Nodes don't support proportional editing and probably never will. */
   t->flag = t->flag & ~T_PROP_EDIT_ALL;
 
   /* set transform flags on nodes */

@@ -843,7 +843,8 @@ void transform_convert_mesh_islands_calc(struct BMEditMesh *em,
     MEM_freeN(group_index);
   }
 
-  /* for PET we need islands of 1 so connected vertices can use it with V3D_AROUND_LOCAL_ORIGINS */
+  /* for proportional editing we need islands of 1 so connected vertices can use it with
+   * V3D_AROUND_LOCAL_ORIGINS */
   if (calc_single_islands) {
     BMIter viter;
     BMVert *v;
@@ -1484,7 +1485,8 @@ static void createTransEditVerts(bContext *UNUSED(C), TransInfo *t)
      * transform data is created by selected vertices.
      */
 
-    /* Support other objects using PET to adjust these, unless connected is enabled. */
+    /* Support other objects using proportional editing to adjust these, unless connected is
+     * enabled. */
     if ((!prop_mode || (prop_mode & T_PROP_CONNECTED)) && (bm->totvertsel == 0)) {
       continue;
     }

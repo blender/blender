@@ -131,7 +131,8 @@ static void createTransCurveVerts(bContext *UNUSED(C), TransInfo *t)
       }
     }
 
-    /* Support other objects using PET to adjust these, unless connected is enabled. */
+    /* Support other objects using proportional editing to adjust these, unless connected is
+     * enabled. */
     if (((is_prop_edit && !is_prop_connected) ? count : countsel) == 0) {
       tc->data_len = 0;
       continue;

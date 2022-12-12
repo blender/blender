@@ -709,7 +709,7 @@ static int countAndCleanTransDataContainer(TransInfo *t)
 
 static void init_proportional_edit(TransInfo *t)
 {
-  /* NOTE: PET is not usable in pose mode yet T32444. */
+  /* NOTE: Proportional editing is not usable in pose mode yet T32444. */
   if (!ELEM(t->data_type,
             &TransConvertType_Action,
             &TransConvertType_Curve,
@@ -726,7 +726,7 @@ static void init_proportional_edit(TransInfo *t)
             &TransConvertType_Node,
             &TransConvertType_Object,
             &TransConvertType_Particle)) {
-    /* Disable PET */
+    /* Disable proportional editing */
     t->options |= CTX_NO_PET;
     t->flag &= ~T_PROP_EDIT_ALL;
     return;
