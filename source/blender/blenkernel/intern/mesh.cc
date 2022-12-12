@@ -500,13 +500,18 @@ static int customdata_compare(
 
   for (int i1 = 0; i1 < c1->totlayer; i1++) {
     l1 = c1->layers + i1;
+    if (l1->anonymous_id != nullptr) {
+      continue;
+    }
+    bool found_corresponding_layer = false;
     for (int i2 = 0; i2 < c2->totlayer; i2++) {
       l2 = c2->layers + i2;
-      if (l1->type != l2->type || !STREQ(l1->name, l2->name) || l1->anonymous_id != nullptr ||
-          l2->anonymous_id != nullptr) {
+      if (l1->type != l2->type || !STREQ(l1->name, l2->name) || l2->anonymous_id != nullptr) {
         continue;
       }
       /* At this point `l1` and `l2` have the same name and type, so they should be compared. */
+
+      found_corresponding_layer = true;
 
       switch (l1->type) {
 
@@ -717,6 +722,11 @@ static int customdata_compare(
         default: {
           break;
         }
+      }
+    }
+    if (!found_corresponding_layer) {
+      if ((1 << l1->type) & CD_MASK_PROP_ALL) {
+        return MESHCMP_CDLAYERS_MISMATCH;
       }
     }
   }
