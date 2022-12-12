@@ -59,6 +59,20 @@ static void camera_init_data(ID *id)
   MEMCPY_STRUCT_AFTER(cam, DNA_struct_default_get(Camera), id);
 }
 
+/** Free (or release) any data used by this camera (does not free the camera itself). */
+static void camera_free_runtime_data(Camera *cam, const Camera *cam_src)
+{
+  if (cam->runtime.virtual_monitor_offscreen) {
+    if (!cam_src ||
+        (cam_src->runtime.virtual_monitor_offscreen != cam->runtime.virtual_monitor_offscreen)) {
+      GPU_offscreen_free(cam->runtime.virtual_monitor_offscreen);
+    }
+    cam->runtime.virtual_monitor_offscreen = NULL;
+  }
+  /* GPU texture is owned by the GPUOffscreen instance. */
+  cam->runtime.offscreen_color_texture = NULL;
+}
+
 /**
  * Only copy internal data of Camera ID from source
  * to already allocated/initialized destination.
@@ -82,24 +96,17 @@ static void camera_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
     CameraBGImage *bgpic_dst = BKE_camera_background_image_copy(bgpic_src, flag_subdata);
     BLI_addtail(&cam_dst->bg_images, bgpic_dst);
   }
-}
 
-/** Free (or release) any data used by this camera (does not free the camera itself). */
-static void camera_free_runtime_data(Camera *camera)
-{
-  if (camera->runtime.virtual_monitor_offscreen) {
-    GPU_offscreen_free(camera->runtime.virtual_monitor_offscreen);
-    camera->runtime.virtual_monitor_offscreen = NULL;
-  }
-  /* GPU texture is owned by the GPUOffscreen instance. */
-  camera->runtime.offscreen_color_texture = NULL;
+  /* Free runtime data to prevent virtual monitor offscreen from being shared across data-blocks.
+   */
+  camera_free_runtime_data(cam_dst, cam_src);
 }
 
 static void camera_free_data(ID *id)
 {
   Camera *cam = (Camera *)id;
   BLI_freelistN(&cam->bg_images);
-  camera_free_runtime_data(cam);
+  camera_free_runtime_data(cam, NULL);
 }
 
 static void camera_foreach_id(ID *id, LibraryForeachIDData *data)
