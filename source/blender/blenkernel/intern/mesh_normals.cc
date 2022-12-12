@@ -1451,16 +1451,14 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
             data->lnor_space = BKE_lnor_space_create(lnors_spacearr);
           }
         }
-        /* We *do not need* to check/tag loops as already computed!
-         * Due to the fact a loop only links to one of its two edges,
-         * a same fan *will never be walked more than once!*
-         * Since we consider edges having neighbor polys with inverted
-         * (flipped) normals as sharp, we are sure that no fan will be skipped,
-         * even only considering the case (sharp curr_edge, smooth prev_edge),
-         * and not the alternative (smooth curr_edge, sharp prev_edge).
-         * All this due/thanks to link between normals and loop ordering (i.e. winding).
-         */
         else {
+          /* We do not need to check/tag loops as already computed. Due to the fact that a loop
+           * only points to one of its two edges, the same fan will never be walked more than once.
+           * Since we consider edges that have neighbor polys with inverted (flipped) normals as
+           * sharp, we are sure that no fan will be skipped, even only considering the case (sharp
+           * current edge, smooth previous edge), and not the alternative (smooth current edge,
+           * sharp previous edge). All this due/thanks to the link between normals and loop
+           * ordering (i.e. winding). */
           data->ml_curr_index = ml_curr_index;
           data->ml_prev_index = ml_prev_index;
           data->flag = LoopSplitTaskData::Type::Fan;
