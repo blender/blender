@@ -253,7 +253,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
   kintegrator->use_light_tree = scene->integrator->use_light_tree;
   if (light_sampling_threshold > 0.0f) {
-    kintegrator->light_inv_rr_threshold = 1.0f / light_sampling_threshold;
+    kintegrator->light_inv_rr_threshold = scene->film->get_exposure() / light_sampling_threshold;
   }
   else {
     kintegrator->light_inv_rr_threshold = 0.0f;
