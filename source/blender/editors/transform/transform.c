@@ -1859,9 +1859,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
      * lead to keymap conflicts for other modes (see T31584)
      */
     if (ELEM(mode, TFM_TRANSLATION, TFM_ROTATION, TFM_RESIZE)) {
-      wmKeyMapItem *kmi;
-
-      for (kmi = t->keymap->items.first; kmi; kmi = kmi->next) {
+      LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &t->keymap->items) {
         if (kmi->flag & KMI_INACTIVE) {
           continue;
         }

@@ -524,7 +524,7 @@ static bool v3d_cursor_is_snap_invert(SnapCursorDataIntern *data_intern, const w
   const int snap_on = data_intern->snap_on;
 
   wmKeyMap *keymap = WM_keymap_active(wm, data_intern->keymap);
-  for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+  LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &keymap->items) {
     if (kmi->flag & KMI_INACTIVE) {
       continue;
     }
