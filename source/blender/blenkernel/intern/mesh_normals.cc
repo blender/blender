@@ -796,7 +796,6 @@ struct LoopSplitTaskData {
 
   /** We have to create those outside of tasks, since #MemArena is not thread-safe. */
   MLoopNorSpace *lnor_space;
-  float3 *lnor;
   const MLoop *ml_curr;
   const MLoop *ml_prev;
   int ml_curr_index;
@@ -999,9 +998,9 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
   const Span<MVert> verts = common_data->verts;
   const Span<MEdge> edges = common_data->edges;
   const Span<float3> polynors = common_data->polynors;
+  MutableSpan<float3> loop_normals = common_data->loopnors;
 
   MLoopNorSpace *lnor_space = data->lnor_space;
-  float3 *lnor = data->lnor;
   const MLoop *ml_curr = data->ml_curr;
   const MLoop *ml_prev = data->ml_prev;
   const int ml_curr_index = data->ml_curr_index;
@@ -1014,7 +1013,7 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
   /* Simple case (both edges around that vertex are sharp in current polygon),
    * this loop just takes its poly normal.
    */
-  copy_v3_v3(*lnor, polynors[mp_index]);
+  loop_normals[ml_curr_index] = polynors[mp_index];
 
 #if 0
   printf("BASIC: handling loop %d / edge %d / vert %d / poly %d\n",
@@ -1042,12 +1041,13 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
     sub_v3_v3v3(vec_prev, mv_3->co, mv_pivot->co);
     normalize_v3(vec_prev);
 
-    BKE_lnor_space_define(lnor_space, *lnor, vec_curr, vec_prev, nullptr);
+    BKE_lnor_space_define(lnor_space, loop_normals[ml_curr_index], vec_curr, vec_prev, nullptr);
     /* We know there is only one loop in this space, no need to create a link-list in this case. */
     BKE_lnor_space_add_loop(lnors_spacearr, lnor_space, ml_curr_index, nullptr, true);
 
     if (!clnors_data.is_empty()) {
-      BKE_lnor_space_custom_data_to_normal(lnor_space, clnors_data[ml_curr_index], *lnor);
+      BKE_lnor_space_custom_data_to_normal(
+          lnor_space, clnors_data[ml_curr_index], loop_normals[ml_curr_index]);
     }
   }
 }
@@ -1377,7 +1377,6 @@ static bool loop_split_generator_check_cyclic_smooth_fan(const Span<MLoop> mloop
 static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common_data)
 {
   MLoopNorSpaceArray *lnors_spacearr = common_data->lnors_spacearr;
-  MutableSpan<float3> loopnors = common_data->loopnors;
 
   const Span<MLoop> loops = common_data->loops;
   const Span<MPoly> polys = common_data->polys;
@@ -1414,9 +1413,8 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
 
     const MLoop *ml_curr = &loops[ml_curr_index];
     const MLoop *ml_prev = &loops[ml_prev_index];
-    float3 *lnors = &loopnors[ml_curr_index];
 
-    for (; ml_curr_index <= ml_last_index; ml_curr++, ml_curr_index++, lnors++) {
+    for (; ml_curr_index <= ml_last_index; ml_curr++, ml_curr_index++) {
       const int *e2l_curr = edge_to_loops[ml_curr->e];
       const int *e2l_prev = edge_to_loops[ml_prev->e];
 
@@ -1471,7 +1469,6 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
         }
 
         if (IS_EDGE_SHARP(e2l_curr) && IS_EDGE_SHARP(e2l_prev)) {
-          data->lnor = lnors;
           data->ml_curr = ml_curr;
           data->ml_prev = ml_prev;
           data->ml_curr_index = ml_curr_index;
@@ -1494,9 +1491,6 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
          * All this due/thanks to link between normals and loop ordering (i.e. winding).
          */
         else {
-#if 0 /* Not needed for 'fan' loops. */
-          data->lnor = lnors;
-#endif
           data->ml_curr = ml_curr;
           data->ml_prev = ml_prev;
           data->ml_curr_index = ml_curr_index;
