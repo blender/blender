@@ -951,11 +951,13 @@ static void loop_manifold_fan_around_vert_next(const Span<MLoop> loops,
                                                const Span<int> loop_to_poly,
                                                const int *e2lfan_curr,
                                                const uint mv_pivot_index,
-                                               const MLoop **r_mlfan_curr,
                                                int *r_mlfan_curr_index,
                                                int *r_mlfan_vert_index,
                                                int *r_mpfan_curr_index)
 {
+  const int mlfan_curr_orig = *r_mlfan_curr_index;
+  const uint vert_fan_orig = loops[mlfan_curr_orig].v;
+
   /* WARNING: This is rather complex!
    * We have to find our next edge around the vertex (fan mode).
    * First we find the next loop, which is either previous or next to mlfan_curr_index, depending
@@ -969,10 +971,10 @@ static void loop_manifold_fan_around_vert_next(const Span<MLoop> loops,
   BLI_assert(*r_mlfan_curr_index >= 0);
   BLI_assert(*r_mpfan_curr_index >= 0);
 
-  const MLoop &mlfan_next = loops[*r_mlfan_curr_index];
+  const uint vert_fan_next = loops[*r_mlfan_curr_index].v;
   const MPoly &mpfan_next = polys[*r_mpfan_curr_index];
-  if (((*r_mlfan_curr)->v == mlfan_next.v && (*r_mlfan_curr)->v == mv_pivot_index) ||
-      ((*r_mlfan_curr)->v != mlfan_next.v && (*r_mlfan_curr)->v != mv_pivot_index)) {
+  if ((vert_fan_orig == vert_fan_next && vert_fan_orig == mv_pivot_index) ||
+      (vert_fan_orig != vert_fan_next && vert_fan_orig != mv_pivot_index)) {
     /* We need the previous loop, but current one is our vertex's loop. */
     *r_mlfan_vert_index = *r_mlfan_curr_index;
     if (--(*r_mlfan_curr_index) < mpfan_next.loopstart) {
@@ -986,8 +988,6 @@ static void loop_manifold_fan_around_vert_next(const Span<MLoop> loops,
     }
     *r_mlfan_vert_index = *r_mlfan_curr_index;
   }
-  *r_mlfan_curr = &loops[*r_mlfan_curr_index];
-  /* And now we are back in sync, mlfan_curr_index is the index of `mlfan_curr`! Pff! */
 }
 
 static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopSplitTaskData *data)
@@ -1098,7 +1098,6 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
   /* Temp clnors stack. */
   BLI_SMALLSTACK_DECLARE(clnors, short *);
 
-  const MLoop *mlfan_curr = &loops[ml_prev_index];
   /* `mlfan_vert_index` the loop of our current edge might not be the loop of our current vertex!
    */
   int mlfan_curr_index = ml_prev_index;
@@ -1192,7 +1191,6 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
                                        loop_to_poly,
                                        edge_to_loops[loops[mlfan_curr_index].e],
                                        mv_pivot_index,
-                                       &mlfan_curr,
                                        &mlfan_curr_index,
                                        &mlfan_vert_index,
                                        &mpfan_curr_index);
@@ -1316,7 +1314,6 @@ static bool loop_split_generator_check_cyclic_smooth_fan(const Span<MLoop> mloop
 
   /* `mlfan_vert_index` the loop of our current edge might not be the loop of our current vertex!
    */
-  const MLoop *mlfan_curr = &mloops[ml_prev_index];
   int mlfan_curr_index = ml_prev_index;
   int mlfan_vert_index = ml_curr_index;
   int mpfan_curr_index = mp_curr_index;
@@ -1335,7 +1332,6 @@ static bool loop_split_generator_check_cyclic_smooth_fan(const Span<MLoop> mloop
                                        loop_to_poly,
                                        e2lfan_curr,
                                        mv_pivot_index,
-                                       &mlfan_curr,
                                        &mlfan_curr_index,
                                        &mlfan_vert_index,
                                        &mpfan_curr_index);
