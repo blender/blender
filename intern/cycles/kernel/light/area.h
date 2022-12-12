@@ -255,8 +255,9 @@ ccl_device_inline bool area_light_sample(const ccl_global KernelLight *klight,
   float3 inplane;
 
   if (in_volume_segment) {
-    /* FIXME: handle rectangular light. */
-    inplane = ellipse_sample(axis_u * len_u * 0.5f, axis_v * len_v * 0.5f, randu, randv);
+    inplane = sample_rectangle ?
+                  rectangle_sample(axis_u * len_u * 0.5f, axis_v * len_v * 0.5f, randu, randv) :
+                  ellipse_sample(axis_u * len_u * 0.5f, axis_v * len_v * 0.5f, randu, randv);
     ls->P += inplane;
     ls->pdf = invarea;
   }

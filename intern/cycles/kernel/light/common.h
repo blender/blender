@@ -34,6 +34,11 @@ ccl_device_inline float3 ellipse_sample(float3 ru, float3 rv, float randu, float
   return ru * randu + rv * randv;
 }
 
+ccl_device_inline float3 rectangle_sample(float3 ru, float3 rv, float randu, float randv)
+{
+  return ru * (2.0f * randu - 1.0f) + rv * (2.0f * randv - 1.0f);
+}
+
 ccl_device float3 disk_light_sample(float3 v, float randu, float randv)
 {
   float3 ru, rv;
