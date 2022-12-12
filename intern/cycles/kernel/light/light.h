@@ -156,7 +156,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
   }
 
   ls->pdf *= ls->pdf_selection;
-  return (ls->pdf > 0.0f);
+  return in_volume_segment || (ls->pdf > 0.0f);
 }
 
 /* Intersect ray with individual light. */
