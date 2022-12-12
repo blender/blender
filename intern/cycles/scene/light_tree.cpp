@@ -181,7 +181,9 @@ LightTreePrimitive::LightTreePrimitive(Scene *scene, int prim_id, int object_id)
       strength *= lamp->get_shader()->emission_estimate;
     }
 
-    energy = average(strength);
+    /* Use absolute value of energy so lights with negative strength are properly
+     * supported in the light tree. */
+    energy = fabsf(average(strength));
   }
 }
 
