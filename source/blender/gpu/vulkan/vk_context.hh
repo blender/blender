@@ -47,6 +47,16 @@ class VKContext : public Context {
   void debug_group_begin(const char *, int) override;
   void debug_group_end() override;
 
+  static VKContext *get(void)
+  {
+    return static_cast<VKContext *>(Context::get());
+  }
+
+  VkDevice device_get() const
+  {
+    return device_;
+  }
+
   VmaAllocator mem_allocator_get() const
   {
     return mem_allocator_;
