@@ -726,7 +726,6 @@ void LightManager::device_update_background(Device *device,
   foreach (ShaderNode *node, shader->graph->nodes) {
     if (node->type == EnvironmentTextureNode::get_node_type()) {
       EnvironmentTextureNode *env = (EnvironmentTextureNode *)node;
-      ImageMetaData metadata;
       if (!env->handle.empty()) {
         ImageMetaData metadata = env->handle.metadata();
         environment_res.x = max(environment_res.x, (int)metadata.width);
