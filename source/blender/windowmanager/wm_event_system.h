@@ -145,7 +145,10 @@ void wm_event_do_handlers(bContext *C);
  */
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata);
 #ifdef WITH_XR_OPENXR
-void wm_event_add_xrevent(wmWindow *win, struct wmXrActionData *actiondata, short val);
+void wm_event_add_xrevent(wmWindow *win,
+                          struct wmXrActionData *actiondata,
+                          short val,
+                          int mval[2]);
 #endif
 
 void wm_event_do_depsgraph(bContext *C, bool is_after_open_file);

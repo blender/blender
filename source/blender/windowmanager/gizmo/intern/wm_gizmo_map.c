@@ -936,11 +936,16 @@ void wm_gizmomap_handler_context_op(bContext *C, wmEventHandler_Op *handler)
   bScreen *screen = CTX_wm_screen(C);
 
   if (screen) {
-    ScrArea *area;
+    ScrArea *area = NULL;
 
-    for (area = screen->areabase.first; area; area = area->next) {
-      if (area == handler->context.area) {
-        break;
+    if ((handler->context.area->flag & AREA_FLAG_OFFSCREEN) != 0) {
+      area = handler->context.area;
+    }
+    else {
+      for (area = screen->areabase.first; area; area = area->next) {
+        if (area == handler->context.area) {
+          break;
+        }
       }
     }
     if (area == NULL) {

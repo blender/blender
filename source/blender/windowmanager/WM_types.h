@@ -841,6 +841,11 @@ typedef struct wmXrActionData {
 
   /** Whether bimanual interaction is occurring. */
   bool bimanual;
+  /** Whether the action is simulating mouse inputs. */
+  bool simulate_mouse;
+  /** Type and value for simulated mouse event. */
+  short simulate_type;
+  short simulate_val;
 } wmXrActionData;
 #endif
 

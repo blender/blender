@@ -30,7 +30,9 @@ typedef struct XrSessionSettings {
   char draw_flags;
   /** Draw style for controller visualization. */
   char controller_draw_style;
-  char _pad2[2];
+  /** The eye (view) used for 3D->2D projection when simulating mouse. */
+  char projection_eye;
+  char _pad2;
 
   /** Clipping distance. */
   float clip_start, clip_end;
@@ -71,6 +73,11 @@ typedef enum eXrSessionControllerDrawStyle {
   XR_CONTROLLER_DRAW_LIGHT_RAY = 3,
 } eXrSessionControllerDrawStyle;
 
+typedef enum eXrSessionEye {
+  XR_EYE_LEFT = 0,
+  XR_EYE_RIGHT = 1,
+} eXrSessionEye;
+
 /** XR action type. Enum values match those in GHOST_XrActionType enum for consistency. */
 typedef enum eXrActionType {
   XR_BOOLEAN_INPUT = 1,
@@ -90,6 +97,8 @@ typedef enum eXrOpFlag {
 typedef enum eXrActionFlag {
   /** Action depends on two sub-action paths (i.e. two-handed/bi-manual action). */
   XR_ACTION_BIMANUAL = (1 << 0),
+  /** Whether to use controller inputs to simulate mouse inputs. */
+  XR_ACTION_SIMULATE_MOUSE = (1 << 1),
 } eXrActionFlag;
 
 typedef enum eXrHapticFlag {
@@ -174,6 +183,16 @@ typedef struct XrUserPath {
   char path[64]; /* XR_MAX_USER_PATH_LENGTH */
 } XrUserPath;
 
+typedef struct XrSimulateMouseParams {
+  short press_type; /* wmEvent.type */
+  short press_val;  /* wmEvent.val */
+  short hold_type;
+  short hold_val;
+  short release_type;
+  short release_val;
+  short _pad[2];
+} XrSimulateMouseParams;
+
 typedef struct XrActionMapItem {
   struct XrActionMapItem *next, *prev;
 
@@ -192,6 +211,9 @@ typedef struct XrActionMapItem {
   IDProperty *op_properties;
   /** RNA pointer to access properties. */
   struct PointerRNA *op_properties_ptr;
+
+  /** Mouse simulation. */
+  XrSimulateMouseParams simulate;
 
   short op_flag;     /* eXrOpFlag */
   short action_flag; /* eXrActionFlag */

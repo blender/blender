@@ -142,14 +142,8 @@ wmEvent *wm_event_add(wmWindow *win, const wmEvent *event_to_add)
   return wm_event_add_ex(win, event_to_add, nullptr);
 }
 
-wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
+static void wm_event_simulate_eventstate(wmWindow *win, wmEvent *event)
 {
-  if ((G.f & G_FLAG_EVENT_SIMULATE) == 0) {
-    BLI_assert_unreachable();
-    return nullptr;
-  }
-  wmEvent *event = wm_event_add(win, event_to_add);
-
   /* Logic for setting previous value is documented on the #wmEvent struct,
    * see #wm_event_add_ghostevent for the implementation of logic this follows. */
   copy_v2_v2_int(win->eventstate->xy, event->xy);
@@ -158,9 +152,21 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
     copy_v2_v2_int(win->eventstate->prev_xy, win->eventstate->xy);
     copy_v2_v2_int(event->prev_xy, win->eventstate->xy);
   }
-  else if (ISKEYBOARD_OR_BUTTON(event->type)) {
+  else if (ISKEYBOARD_OR_BUTTON(event->type) && ELEM(event->val, KM_PRESS, KM_RELEASE)) {
     wm_event_state_update_and_click_set_ex(event, win->eventstate, ISKEYBOARD(event->type), false);
   }
+}
+
+wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
+{
+  if ((G.f & G_FLAG_EVENT_SIMULATE) == 0) {
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+  wmEvent *event = wm_event_add(win, event_to_add);
+
+  wm_event_simulate_eventstate(win, event);
+
   return event;
 }
 
@@ -1990,10 +1996,15 @@ static void wm_handler_op_context_get_if_valid(bContext *C,
   else {
     ScrArea *area = nullptr;
 
-    ED_screen_areas_iter (win, screen, area_iter) {
-      if (area_iter == handler->context.area) {
-        area = area_iter;
-        break;
+    if ((handler->context.area->flag & AREA_FLAG_OFFSCREEN) != 0) {
+      area = handler->context.area;
+    }
+    else {
+      ED_screen_areas_iter (win, screen, area_iter) {
+        if (area_iter == handler->context.area) {
+          area = area_iter;
+          break;
+        }
       }
     }
 
@@ -3698,13 +3709,22 @@ static void wm_event_handle_xrevent(bContext *C,
   }
   BLI_assert(WM_region_use_viewport(area, region)); /* For operators using GPU-based selection. */
 
+  /* Check for simulated mouse event. */
+  wmXrActionData *actiondata = static_cast<wmXrActionData *>(event->customdata);
+  const bool simulate_event = (actiondata->simulate_mouse &&
+                               (actiondata->simulate_type != EVENT_NONE));
+  if (simulate_event) {
+    event->type = actiondata->simulate_type;
+    event->val = actiondata->simulate_val;
+    wm_event_simulate_eventstate(win, event);
+  }
+
   CTX_wm_area_set(C, area);
   CTX_wm_region_set(C, region);
 
   int action = wm_handlers_do(C, event, &win->modalhandlers);
 
   if ((action & WM_HANDLER_BREAK) == 0) {
-    wmXrActionData *actiondata = static_cast<wmXrActionData *>(event->customdata);
     if (actiondata->ot->modal && event->val == KM_RELEASE) {
       /* Don't execute modal operators on release. */
     }
@@ -5693,7 +5713,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 }
 
 #ifdef WITH_XR_OPENXR
-void wm_event_add_xrevent(wmWindow *win, wmXrActionData *actiondata, short val)
+void wm_event_add_xrevent(wmWindow *win, wmXrActionData *actiondata, short val, int mval[2])
 {
   BLI_assert(ELEM(val, KM_PRESS, KM_RELEASE));
 
@@ -5704,6 +5724,11 @@ void wm_event_add_xrevent(wmWindow *win, wmXrActionData *actiondata, short val)
   event.custom = EVT_DATA_XR;
   event.customdata = actiondata;
   event.customdata_free = true;
+
+  if (mval) {
+    copy_v2_v2_int(event.xy, mval);
+    copy_v2_v2_int(event.mval, mval);
+  }
 
   wm_event_add(win, &event);
 }

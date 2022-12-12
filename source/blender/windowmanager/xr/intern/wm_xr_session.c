@@ -25,6 +25,7 @@
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_view3d.h"
 
 #include "GHOST_C-api.h"
 
@@ -88,6 +89,7 @@ static void wm_xr_session_controller_data_free(ListBase *controllers)
 
 void wm_xr_session_data_free(wmXrSessionState *state)
 {
+  BLI_freelistN(&state->eyes);
   wm_xr_session_controller_data_free(&state->controllers);
   wm_xr_session_controller_data_free(&state->trackers);
   BLI_freelistN(&state->mocap_orig_poses);
@@ -344,10 +346,22 @@ void wm_xr_session_draw_data_update(wmXrSessionState *state,
 void wm_xr_session_state_update(const XrSessionSettings *settings,
                                 const wmXrDrawData *draw_data,
                                 const GHOST_XrDrawViewInfo *draw_view,
+                                const float viewmat[4][4],
+                                const float viewmat_base[4][4],
                                 wmXrSessionState *state)
 {
   GHOST_XrPose viewer_pose;
   float viewer_mat[4][4], base_mat[4][4], nav_mat[4][4];
+
+  wmXrEye *eye = NULL;
+  if (draw_view->view_idx >= BLI_listbase_count(&state->eyes)) {
+    eye = MEM_callocN(sizeof(*eye), __func__);
+    BLI_addtail(&state->eyes, eye);
+  }
+  else {
+    eye = BLI_findlink(&state->eyes, draw_view->view_idx);
+  }
+  BLI_assert(eye);
 
   /* Calculate viewer matrix. */
   copy_qt_qt(viewer_pose.orientation_quat, draw_view->local_pose.orientation_quat);
@@ -374,9 +388,11 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
       &state->viewer_pose, draw_data->base_scale * state->nav_scale_prev, state->viewer_viewmat);
 
   /* No idea why, but multiplying by two seems to make it match the VR view more. */
-  state->focal_len = 2.0f *
-                     fov_to_focallength(draw_view->fov.angle_right - draw_view->fov.angle_left,
-                                        DEFAULT_SENSOR_WIDTH);
+  eye->focal_len = 2.0f *
+                   fov_to_focallength(draw_view->fov.angle_right - draw_view->fov.angle_left,
+                                      DEFAULT_SENSOR_WIDTH);
+  copy_m4_m4(eye->viewmat, viewmat);
+  copy_m4_m4(eye->viewmat_base, viewmat_base);
 
   copy_v3_v3(state->prev_eye_position_ofs, draw_data->eye_position_ofs);
   memcpy(&state->prev_base_pose, &draw_data->base_pose, sizeof(state->prev_base_pose));
@@ -435,7 +451,16 @@ bool WM_xr_session_state_viewer_pose_matrix_info_get(const wmXrData *xr,
   }
 
   copy_m4_m4(r_viewmat, xr->runtime->session_state.viewer_viewmat);
-  *r_focal_len = xr->runtime->session_state.focal_len;
+
+  /* Since viewer (eye centroid) does not have a focal length, just take it from projection eye. */
+  const wmXrEye *eye = BLI_findlink(&xr->runtime->session_state.eyes,
+                                    xr->session_settings.projection_eye);
+  if (!eye) {
+    /* Fall back to first XR view. */
+    eye = xr->runtime->session_state.eyes.first;
+    BLI_assert(eye);
+  }
+  *r_focal_len = eye->focal_len;
 
   return true;
 }
@@ -954,7 +979,8 @@ static void wm_xr_session_action_states_interpret(wmXrData *xr,
                                                   int64_t time_now,
                                                   bool modal,
                                                   bool haptic,
-                                                  short *r_val)
+                                                  short *r_val,
+                                                  bool *r_press_start)
 {
   const char *haptic_subaction_path = ((action->haptic_flag & XR_HAPTIC_MATCHUSERPATHS) != 0) ?
                                           action->subaction_paths[subaction_idx] :
@@ -1016,6 +1042,7 @@ static void wm_xr_session_action_states_interpret(wmXrData *xr,
     if (!prev) {
       if (modal || (action->op_flag == XR_OP_PRESS)) {
         *r_val = KM_PRESS;
+        *r_press_start = true;
       }
       if (haptic && (action->haptic_flag & (XR_HAPTIC_PRESS | XR_HAPTIC_REPEAT)) != 0) {
         /* Apply haptics. */
@@ -1033,6 +1060,7 @@ static void wm_xr_session_action_states_interpret(wmXrData *xr,
     }
     else if (modal) {
       *r_val = KM_PRESS;
+      *r_press_start = false;
     }
     if (modal && !action->active_modal_path) {
       /* Set active modal path. */
@@ -1060,6 +1088,7 @@ static void wm_xr_session_action_states_interpret(wmXrData *xr,
   else if (prev) {
     if (modal || (action->op_flag == XR_OP_RELEASE)) {
       *r_val = KM_RELEASE;
+      *r_press_start = false;
       if (modal && (action->subaction_paths[subaction_idx] == action->active_modal_path)) {
         /* Unset active modal path. */
         action->active_modal_path = NULL;
@@ -1152,7 +1181,9 @@ static wmXrActionData *wm_xr_session_event_create(const char *action_set_name,
                                                   const GHOST_XrPose *controller_aim_pose_other,
                                                   uint subaction_idx,
                                                   uint subaction_idx_other,
-                                                  bool bimanual)
+                                                  bool bimanual,
+                                                  short val,
+                                                  bool press_start)
 {
   wmXrActionData *data = MEM_callocN(sizeof(wmXrActionData), __func__);
   strcpy(data->action_set, action_set_name);
@@ -1211,8 +1242,54 @@ static wmXrActionData *wm_xr_session_event_create(const char *action_set_name,
   data->op_properties = action->op_properties;
 
   data->bimanual = bimanual;
+  data->simulate_mouse = (((action->action_flag & XR_ACTION_SIMULATE_MOUSE) != 0) &&
+                          controller_aim_pose);
+  if (data->simulate_mouse) {
+    switch (val) {
+      case KM_PRESS:
+        if (press_start) {
+          data->simulate_type = action->simulate.press_type;
+          data->simulate_val = action->simulate.press_val;
+        }
+        else {
+          data->simulate_type = action->simulate.hold_type;
+          data->simulate_val = action->simulate.hold_val;
+        }
+        break;
+      case KM_RELEASE:
+        data->simulate_type = action->simulate.release_type;
+        data->simulate_val = action->simulate.release_val;
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+  }
 
   return data;
+}
+
+/**
+ * Convert 3D controller coordinates to 2D mouse (pixel) coordinates.
+ */
+static void map_to_pixel(
+    const float co[3], const float persmat[4][4], int winx, int winy, int r_co[2])
+{
+  float vec[3];
+  mul_v3_project_m4_v3(vec, persmat, co);
+  r_co[0] = (int)(((float)winx / 2.0f) * (1.0f + vec[0]));
+  r_co[1] = (int)(((float)winy / 2.0f) * (1.0f + vec[1]));
+}
+
+static void wm_xr_session_event_mval_calc(const wmXrRuntimeData *runtime,
+                                          const GHOST_XrPose *controller_aim_pose,
+                                          int r_mval[2])
+{
+  const ARegion *region = BKE_area_find_region_type(runtime->area, RGN_TYPE_WINDOW);
+  BLI_assert(region);
+  const RegionView3D *rv3d = region->regiondata;
+  BLI_assert(rv3d);
+  map_to_pixel(controller_aim_pose->position, rv3d->persmat, region->winx, region->winy, r_mval);
 }
 
 /* Dispatch events to window queues. */
@@ -1223,19 +1300,16 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
                                           wmWindow *win)
 {
   const char *action_set_name = action_set->name;
-
   const uint count = GHOST_XrGetActionCount(xr_context, action_set_name);
   if (count < 1) {
     return;
   }
 
   const int64_t time_now = (int64_t)(PIL_check_seconds_timer() * 1000);
-
   ListBase *active_modal_actions = &action_set->active_modal_actions;
   ListBase *active_haptic_actions = &action_set->active_haptic_actions;
 
   wmXrAction **actions = MEM_calloc_arrayN(count, sizeof(*actions), __func__);
-
   GHOST_XrGetActionCustomdataArray(xr_context, action_set_name, (void **)actions);
 
   /* Check haptic action timers. */
@@ -1243,58 +1317,143 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
 
   for (uint action_idx = 0; action_idx < count; ++action_idx) {
     wmXrAction *action = actions[action_idx];
-    if (action && action->ot) {
-      const bool modal = action->ot->modal;
-      const bool haptic = (GHOST_XrGetActionCustomdata(
-                               xr_context, action_set_name, action->haptic_name) != NULL);
+    if (!action || !action->ot) {
+      continue;
+    }
 
-      for (uint subaction_idx = 0; subaction_idx < action->count_subaction_paths;
-           ++subaction_idx) {
-        short val = KM_NOTHING;
+    const bool modal = action->ot->modal;
+    const bool haptic = (GHOST_XrGetActionCustomdata(
+                             xr_context, action_set_name, action->haptic_name) != NULL);
 
-        /* Interpret action states (update modal/haptic action lists, apply haptics, etc). */
-        wm_xr_session_action_states_interpret(xr,
-                                              action_set_name,
-                                              action,
-                                              subaction_idx,
-                                              active_modal_actions,
-                                              active_haptic_actions,
-                                              time_now,
-                                              modal,
-                                              haptic,
-                                              &val);
+    for (uint subaction_idx = 0; subaction_idx < action->count_subaction_paths; ++subaction_idx) {
+      short val = KM_NOTHING;
+      bool press_start = false;
 
+      /* Interpret action states (update modal/haptic action lists, apply haptics, etc). */
+      wm_xr_session_action_states_interpret(xr,
+                                            action_set_name,
+                                            action,
+                                            subaction_idx,
+                                            active_modal_actions,
+                                            active_haptic_actions,
+                                            time_now,
+                                            modal,
+                                            haptic,
+                                            &val,
+                                            &press_start);
+      if (val == KM_NOTHING) {
+        continue;
+      }
+
+      if (modal) {
         const bool is_active_modal_action = wm_xr_session_modal_action_test(
             active_modal_actions, action, NULL);
+        if (!is_active_modal_action) {
+          continue;
+        }
         const bool is_active_modal_subaction = (!action->active_modal_path ||
                                                 (action->subaction_paths[subaction_idx] ==
                                                  action->active_modal_path));
-
-        if ((val != KM_NOTHING) &&
-            (!modal || (is_active_modal_action && is_active_modal_subaction))) {
-          const GHOST_XrPose *aim_pose = wm_xr_session_controller_aim_pose_find(
-              session_state, action->subaction_paths[subaction_idx]);
-          const GHOST_XrPose *aim_pose_other = NULL;
-          uint subaction_idx_other = 0;
-
-          /* Test for bimanual interaction. */
-          const bool bimanual = wm_xr_session_action_test_bimanual(
-              session_state, action, subaction_idx, &subaction_idx_other, &aim_pose_other);
-
-          wmXrActionData *actiondata = wm_xr_session_event_create(action_set_name,
-                                                                  action,
-                                                                  aim_pose,
-                                                                  aim_pose_other,
-                                                                  subaction_idx,
-                                                                  subaction_idx_other,
-                                                                  bimanual);
-          wm_event_add_xrevent(win, actiondata, val);
+        if (!is_active_modal_subaction) {
+          continue;
         }
       }
+
+      const GHOST_XrPose *aim_pose = wm_xr_session_controller_aim_pose_find(
+          session_state, action->subaction_paths[subaction_idx]);
+      const GHOST_XrPose *aim_pose_other = NULL;
+      unsigned int subaction_idx_other = 0;
+      int mval[2];
+
+      /* Test for bimanual interaction. */
+      const bool bimanual = wm_xr_session_action_test_bimanual(
+          session_state, action, subaction_idx, &subaction_idx_other, &aim_pose_other);
+
+      wmXrActionData *actiondata = wm_xr_session_event_create(action_set_name,
+                                                              action,
+                                                              aim_pose,
+                                                              aim_pose_other,
+                                                              subaction_idx,
+                                                              subaction_idx_other,
+                                                              bimanual,
+                                                              val,
+                                                              press_start);
+      /* Calculate simulated mouse coordinates. */
+      if (actiondata->simulate_mouse) {
+        wm_xr_session_event_mval_calc(xr->runtime, aim_pose, mval);
+      }
+
+      wm_event_add_xrevent(win, actiondata, val, actiondata->simulate_mouse ? mval : NULL);
     }
   }
 
   MEM_freeN(actions);
+}
+
+static bool wm_xr_session_area_ensure(const XrSessionSettings *settings,
+                                      const wmXrSessionState *state,
+                                      const wmXrSurfaceData *surface_data,
+                                      wmWindowManager *wm,
+                                      Scene *scene,
+                                      Depsgraph *depsgraph,
+                                      wmWindow *win)
+{
+  if (settings->projection_eye >= BLI_listbase_count(&state->eyes) ||
+      settings->projection_eye >= BLI_listbase_count(&surface_data->viewports)) {
+    return false;
+  }
+
+  const wmXrEye *eye = BLI_findlink(&state->eyes, settings->projection_eye);
+  BLI_assert(eye);
+  const wmXrViewportPair *vp = BLI_findlink(&surface_data->viewports, settings->projection_eye);
+  BLI_assert(vp && vp->offscreen);
+  const int width = GPU_offscreen_width(vp->offscreen);
+  const int height = GPU_offscreen_height(vp->offscreen);
+
+  wmXrRuntimeData *runtime = wm->xr.runtime;
+  wmWindow *win_prev = wm->windrawable;
+
+  /* Ensure an XR area exists for events. */
+  if (!runtime->area) {
+    runtime->area = ED_area_offscreen_create(win, SPACE_VIEW3D);
+  }
+
+  ARegion *region = BKE_area_find_region_type(runtime->area, RGN_TYPE_WINDOW);
+  BLI_assert(region);
+  View3D *v3d = (View3D *)runtime->area->spacedata.first;
+  BLI_assert(v3d);
+  RegionView3D *rv3d = region->regiondata;
+  BLI_assert(rv3d);
+
+  /* Ensure region dimensions and view params match the XR (projection eye) view.*/
+  runtime->area->winx = width;
+  runtime->area->winy = height;
+
+  region->winx = width;
+  region->winy = height;
+  region->winrct.xmin = 0;
+  region->winrct.xmax = width - 1;
+  region->winrct.ymin = 0;
+  region->winrct.ymax = height - 1;
+
+  v3d->clip_start = settings->clip_start;
+  v3d->clip_end = settings->clip_end;
+  v3d->object_type_exclude_viewport = settings->object_type_exclude_viewport;
+  v3d->object_type_exclude_select = settings->object_type_exclude_select;
+  rv3d->persp = RV3D_PERSP;
+
+  wm_window_make_drawable(wm, win);
+
+  ED_view3d_update_viewmat(depsgraph, scene, v3d, region, eye->viewmat, NULL, NULL, true);
+
+  if (win_prev) {
+    wm_window_make_drawable(wm, win_prev);
+  }
+  else {
+    wm_window_clear_drawable(wm);
+  }
+
+  return true;
 }
 
 void wm_xr_session_actions_update(const bContext *C)
@@ -1323,6 +1482,11 @@ void wm_xr_session_actions_update(const bContext *C)
     mat4_to_loc_quat(state->viewer_pose.position, state->viewer_pose.orientation_quat, viewer_mat);
     wm_xr_pose_scale_to_imat(
         &state->viewer_pose, settings->base_scale * state->nav_scale, state->viewer_viewmat);
+
+    wm_xr_pose_scale_to_imat(&state->nav_pose, state->nav_scale, m);
+    LISTBASE_FOREACH (wmXrEye *, eye, &state->eyes) {
+      mul_m4_m4m4(eye->viewmat, eye->viewmat_base, m);
+    }
   }
 
   /* Set active action set if requested previously. */
@@ -1369,18 +1533,15 @@ void wm_xr_session_actions_update(const bContext *C)
                                                        win);
     }
 
-    if (win) {
-      /* Ensure an XR area exists for events. */
-      if (!xr->runtime->area) {
-        xr->runtime->area = ED_area_offscreen_create(win, SPACE_VIEW3D);
+    if (win && g_xr_surface) {
+      Scene *scene;
+      Depsgraph *depsgraph;
+      wm_xr_session_scene_and_depsgraph_get(wm, &scene, &depsgraph);
+
+      if (wm_xr_session_area_ensure(
+              settings, state, g_xr_surface->customdata, wm, scene, depsgraph, win)) {
+        wm_xr_session_events_dispatch(xr, xr_context, active_action_set, state, win);
       }
-
-      /* Set XR area object type flags for operators. */
-      View3D *v3d = xr->runtime->area->spacedata.first;
-      v3d->object_type_exclude_viewport = settings->object_type_exclude_viewport;
-      v3d->object_type_exclude_select = settings->object_type_exclude_select;
-
-      wm_xr_session_events_dispatch(xr, xr_context, active_action_set, state, win);
     }
   }
 }

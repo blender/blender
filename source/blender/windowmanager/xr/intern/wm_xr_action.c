@@ -60,6 +60,7 @@ static wmXrAction *action_create(const char *action_name,
                                  const ListBase *user_paths,
                                  wmOperatorType *ot,
                                  IDProperty *op_properties,
+                                 const XrSimulateMouseParams *simulate,
                                  const char *haptic_name,
                                  const int64_t *haptic_duration,
                                  const float *haptic_frequency,
@@ -118,6 +119,11 @@ static wmXrAction *action_create(const char *action_name,
 
   action->ot = ot;
   action->op_properties = op_properties;
+
+  if (simulate) {
+    BLI_assert(is_button_action);
+    memcpy(&action->simulate, simulate, sizeof(action->simulate));
+  }
 
   if (haptic_name) {
     BLI_assert(is_button_action);
@@ -222,6 +228,7 @@ bool WM_xr_action_create(wmXrData *xr,
                          const ListBase *user_paths,
                          wmOperatorType *ot,
                          IDProperty *op_properties,
+                         const XrSimulateMouseParams *simulate,
                          const char *haptic_name,
                          const int64_t *haptic_duration,
                          const float *haptic_frequency,
@@ -239,6 +246,7 @@ bool WM_xr_action_create(wmXrData *xr,
                                      user_paths,
                                      ot,
                                      op_properties,
+                                     simulate,
                                      haptic_name,
                                      haptic_duration,
                                      haptic_frequency,

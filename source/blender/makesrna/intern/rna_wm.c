@@ -2832,6 +2832,53 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   RNA_api_keymapitem(srna);
 }
 
+#  ifdef WITH_XR_OPENXR
+/* Defined here instead of rna_xr.c to access event type/value enums. */
+static void rna_def_xr_simulate_mouse_params(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "XrSimulateMouseParams", NULL);
+  RNA_def_struct_ui_text(srna,
+                         "XR Mouse Simulation Parameters",
+                         "Parameters for simulating mouse with VR controllers");
+
+  prop = RNA_def_property(srna, "press_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "press_type");
+  RNA_def_property_enum_items(prop, rna_enum_event_type_items);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
+  RNA_def_property_ui_text(prop, "Press Type", "Event type to simulate on VR action press");
+
+  prop = RNA_def_property(srna, "press_value", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "press_val");
+  RNA_def_property_enum_items(prop, rna_enum_event_value_items);
+  RNA_def_property_ui_text(prop, "Press Value", "Event value to simulate on VR action press");
+
+  prop = RNA_def_property(srna, "hold_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "hold_type");
+  RNA_def_property_enum_items(prop, rna_enum_event_type_items);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
+  RNA_def_property_ui_text(prop, "Hold Type", "Event type to simulate on VR action hold");
+
+  prop = RNA_def_property(srna, "hold_value", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "hold_val");
+  RNA_def_property_enum_items(prop, rna_enum_event_value_items);
+  RNA_def_property_ui_text(prop, "Hold Value", "Event value to simulate on VR action hold");
+
+  prop = RNA_def_property(srna, "release_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "release_type");
+  RNA_def_property_enum_items(prop, rna_enum_event_type_items);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
+  RNA_def_property_ui_text(prop, "Release Type", "Event type to simulate on VR action release");
+
+  prop = RNA_def_property(srna, "release_value", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "release_val");
+  RNA_def_property_enum_items(prop, rna_enum_event_value_items);
+  RNA_def_property_ui_text(prop, "Release Value", "Event value to simulate on VR action release");
+}
+#  endif
+
 void RNA_def_wm(BlenderRNA *brna)
 {
   rna_def_operator(brna);
@@ -2849,6 +2896,9 @@ void RNA_def_wm(BlenderRNA *brna)
   rna_def_windowmanager(brna);
   rna_def_keyconfig_prefs(brna);
   rna_def_keyconfig(brna);
+#  ifdef WITH_XR_OPENXR
+  rna_def_xr_simulate_mouse_params(brna);
+#  endif
 }
 
 #endif /* RNA_RUNTIME */

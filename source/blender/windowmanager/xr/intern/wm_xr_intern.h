@@ -21,7 +21,6 @@ typedef struct wmXrSessionState {
   float viewer_viewmat[4][4];
   /** The last known viewer matrix, without navigation applied. */
   float viewer_mat_base[4][4];
-  float focal_len;
 
   /** Copy of XrSessionSettings.base_pose_ data to detect changes that need
    * resetting to base pose. */
@@ -50,6 +49,8 @@ typedef struct wmXrSessionState {
   float nav_scale_prev;
   bool is_navigation_dirty;
 
+  /** Last known eye data. */
+  ListBase eyes; /* #wmXrEye */
   /** Last known controller data. */
   ListBase controllers; /* #wmXrController */
   /** Last known tracker data. */
@@ -118,6 +119,14 @@ typedef struct wmXrDrawData {
   float eye_position_ofs[3]; /* Local/view space. */
 } wmXrDrawData;
 
+typedef struct wmXrEye {
+  struct wmXrEye *next, *prev;
+  float focal_len;
+  float viewmat[4][4];
+  /** Viewmat without navigation applied. */
+  float viewmat_base[4][4];
+} wmXrEye;
+
 typedef struct wmXrController {
   struct wmXrController *next, *prev;
   /** OpenXR user path identifier. */
@@ -156,6 +165,9 @@ typedef struct wmXrAction {
   /** Operator to be called on XR events. */
   struct wmOperatorType *ot;
   IDProperty *op_properties;
+
+  /** Mouse simulation. */
+  XrSimulateMouseParams simulate;
 
   /** Haptics. */
   char *haptic_name;
@@ -198,12 +210,10 @@ typedef struct wmXrMotionCapturePose {
 } wmXrMotionCapturePose;
 
 /* wm_xr.c */
-
 wmXrRuntimeData *wm_xr_runtime_data_create(void);
 void wm_xr_runtime_data_free(wmXrRuntimeData **runtime);
 
 /* wm_xr_session.c */
-
 void wm_xr_session_data_free(wmXrSessionState *state);
 wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
                                                     const wmXrRuntimeData *runtime_data);
@@ -219,6 +229,8 @@ void wm_xr_session_draw_data_update(wmXrSessionState *state,
 void wm_xr_session_state_update(const XrSessionSettings *settings,
                                 const wmXrDrawData *draw_data,
                                 const GHOST_XrDrawViewInfo *draw_view,
+                                const float viewmat[4][4],
+                                const float viewmat_base[4][4],
                                 wmXrSessionState *state);
 bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
                                             const GHOST_XrDrawViewInfo *draw_view);

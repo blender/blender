@@ -73,10 +73,11 @@ static void wm_xr_draw_matrices_create(const wmXrDrawData *draw_data,
                                        const XrSessionSettings *session_settings,
                                        const wmXrSessionState *session_state,
                                        float r_viewmat[4][4],
+                                       float r_viewmat_base[4][4],
                                        float r_projmat[4][4])
 {
   GHOST_XrPose eye_pose;
-  float eye_inv[4][4], base_inv[4][4], nav_inv[4][4], m[4][4];
+  float eye_inv[4][4], base_inv[4][4], nav_inv[4][4];
 
   /* Calculate inverse eye matrix. */
   copy_qt_qt(eye_pose.orientation_quat, draw_view->eye_pose.orientation_quat);
@@ -93,8 +94,8 @@ static void wm_xr_draw_matrices_create(const wmXrDrawData *draw_data,
   /* Apply base pose and navigation. */
   wm_xr_pose_scale_to_imat(&draw_data->base_pose, draw_data->base_scale, base_inv);
   wm_xr_pose_scale_to_imat(&session_state->nav_pose_prev, session_state->nav_scale_prev, nav_inv);
-  mul_m4_m4m4(m, eye_inv, base_inv);
-  mul_m4_m4m4(r_viewmat, m, nav_inv);
+  mul_m4_m4m4(r_viewmat_base, eye_inv, base_inv);
+  mul_m4_m4m4(r_viewmat, r_viewmat_base, nav_inv);
 
   perspective_m4_fov(r_projmat,
                      draw_view->fov.angle_left,
@@ -135,13 +136,14 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
 
   const int display_flags = V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS | settings->draw_flags;
 
-  float viewmat[4][4], winmat[4][4];
+  float viewmat[4][4], viewmat_base[4][4], winmat[4][4];
 
   BLI_assert(WM_xr_session_is_ready(xr_data));
 
   wm_xr_session_draw_data_update(session_state, settings, draw_view, draw_data);
-  wm_xr_draw_matrices_create(draw_data, draw_view, settings, session_state, viewmat, winmat);
-  wm_xr_session_state_update(settings, draw_data, draw_view, session_state);
+  wm_xr_draw_matrices_create(
+      draw_data, draw_view, settings, session_state, viewmat, viewmat_base, winmat);
+  wm_xr_session_state_update(settings, draw_data, draw_view, viewmat, viewmat_base, session_state);
 
   if (!wm_xr_session_surface_offscreen_ensure(surface_data, draw_view)) {
     return;

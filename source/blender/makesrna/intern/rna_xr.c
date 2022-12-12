@@ -426,6 +426,41 @@ static void rna_XrActionMapItem_bimanual_set(PointerRNA *ptr, bool value)
 #  endif
 }
 
+static bool rna_XrActionMapItem_simulate_mouse_get(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrActionMapItem *ami = ptr->data;
+  if ((ami->action_flag & XR_ACTION_SIMULATE_MOUSE) != 0) {
+    return true;
+  }
+#  else
+  UNUSED_VARS(ptr);
+#  endif
+  return false;
+}
+
+static void rna_XrActionMapItem_simulate_mouse_set(PointerRNA *ptr, bool value)
+{
+#  ifdef WITH_XR_OPENXR
+  XrActionMapItem *ami = ptr->data;
+  SET_FLAG_FROM_TEST(ami->action_flag, value, XR_ACTION_SIMULATE_MOUSE);
+#  else
+  UNUSED_VARS(ptr, value);
+#  endif
+}
+
+static PointerRNA rna_XrActionMapItem_simulate_get(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrActionMapItem *ami = ptr->data;
+  XrSimulateMouseParams *simulate = &ami->simulate;
+  return rna_pointer_inherit_refine(ptr, &RNA_XrSimulateMouseParams, simulate);
+#  else
+  UNUSED_VARS(ptr);
+  return PointerRNA_NULL;
+#  endif
+}
+
 static bool rna_XrActionMapItem_haptic_match_user_paths_get(PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
@@ -1003,6 +1038,7 @@ static bool rna_XrSessionState_action_create(bContext *C,
                              &ami->user_paths,
                              ot,
                              op_properties,
+                             is_button_action ? &ami->simulate : NULL,
                              is_button_action ? ami->haptic_name : NULL,
                              is_button_action ? &haptic_duration_msec : NULL,
                              is_button_action ? &ami->haptic_frequency : NULL,
@@ -1545,6 +1581,17 @@ static bool rna_XrEventData_bimanual_get(PointerRNA *ptr)
 #  endif
 }
 
+static bool rna_XrEventData_simulate_mouse_get(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  return data->simulate_mouse;
+#  else
+  UNUSED_VARS(ptr);
+  return false;
+#  endif
+}
+
 /** \} */
 
 #else /* RNA_RUNTIME */
@@ -1951,6 +1998,18 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Bimanual", "The action depends on the states/poses of both user paths");
 
+  prop = RNA_def_property(srna, "simulate_mouse", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_XrActionMapItem_simulate_mouse_get", "rna_XrActionMapItem_simulate_mouse_set");
+  RNA_def_property_ui_text(
+      prop, "Simulate Mouse", "Use VR controller inputs to simulate mouse inputs");
+
+  prop = RNA_def_property(srna, "simulate", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "XrSimulateMouseParams");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop, "rna_XrActionMapItem_simulate_get", NULL, NULL, NULL);
+  RNA_def_property_ui_text(prop, "Simulate", "Mouse simulation parameters");
+
   prop = RNA_def_property(srna, "pose_is_controller_grip", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop,
                                  "rna_XrActionMapItem_pose_is_controller_grip_get",
@@ -2234,6 +2293,20 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem projection_eyes[] = {
+      {XR_EYE_LEFT,
+       "EYE_LEFT",
+       0,
+       "Left Eye",
+       "Use the left eye's perspective for projection when simulating mouse"},
+      {XR_EYE_RIGHT,
+       "EYE_RIGHT",
+       0,
+       "Right Eye",
+       "Use the right eye's perspective for projection when simulating mouse"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "XrSessionSettings", NULL);
   RNA_def_struct_ui_text(srna, "XR Session Settings", "");
 
@@ -2318,6 +2391,14 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, controller_draw_styles);
   RNA_def_property_ui_text(
       prop, "Controller Draw Style", "Style to use when drawing VR controllers");
+  RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+  prop = RNA_def_property(srna, "projection_eye", PROP_ENUM, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_enum_items(prop, projection_eyes);
+  RNA_def_property_ui_text(prop,
+                           "Projection Eye",
+                           "Which eye's perspective to use for projection when simulating mouse");
   RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
 
   prop = RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
@@ -2835,7 +2916,7 @@ static void rna_def_xr_eventdata(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "XrEventData", NULL);
-  RNA_def_struct_ui_text(srna, "XrEventData", "XR Data for Window Manager Event");
+  RNA_def_struct_ui_text(srna, "Xr Event Data", "XR Data for Window Manager Event");
 
   prop = RNA_def_property(srna, "action_set", PROP_STRING, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -2922,6 +3003,12 @@ static void rna_def_xr_eventdata(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_boolean_funcs(prop, "rna_XrEventData_bimanual_get", NULL);
   RNA_def_property_ui_text(prop, "Bimanual", "Whether bimanual interaction is occurring");
+
+  prop = RNA_def_property(srna, "simulate_mouse", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_XrEventData_simulate_mouse_get", NULL);
+  RNA_def_property_ui_text(
+      prop, "Simulate Mouse", "Whether the action is simulating mouse inputs");
 }
 
 /** \} */
