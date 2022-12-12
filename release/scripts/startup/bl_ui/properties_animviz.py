@@ -32,8 +32,10 @@ class MotionPathButtonsPanel:
             col.prop(mps, "frame_step", text="Step")
         elif mps.type == 'RANGE':
             col = layout.column(align=True)
-            col.prop(mps, "frame_start", text="Frame Range Start")
-            col.prop(mps, "frame_end", text="End")
+            start_end_group = col.column(align=True)
+            start_end_group.active = mps.range == 'MANUAL'
+            start_end_group.prop(mps, "frame_start", text="Frame Range Start")
+            start_end_group.prop(mps, "frame_end", text="End")
             col.prop(mps, "frame_step", text="Step")
 
         # Calculation Range

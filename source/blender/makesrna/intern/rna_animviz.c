@@ -58,6 +58,7 @@ const EnumPropertyItem rna_enum_motionpath_range_items[] = {
      "Selected Keys",
      "From the first selected keyframe to the last"},
     {MOTIONPATH_RANGE_SCENE, "SCENE", 0, "Scene Frame Range", "The entire Scene / Preview range"},
+    {MOTIONPATH_RANGE_MANUAL, "MANUAL", 0, "Manual Range", "Manually determined frame range"},
     {0, NULL, 0, NULL, NULL},
 };
 
