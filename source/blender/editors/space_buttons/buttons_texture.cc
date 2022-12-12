@@ -34,10 +34,9 @@
 #include "BKE_linestyle.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
-#ifdef WITH_FREESTYLE
-#endif
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
@@ -51,7 +50,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "../interface/interface_intern.h"
+#include "../interface/interface_intern.hh"
 
 #include "buttons_intern.h" /* own include */
 
@@ -163,7 +162,7 @@ static void buttons_texture_modifier_geonodes_users_add(Object *ob,
   PointerRNA ptr;
   PropertyRNA *prop;
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+  for (bNode *node : node_tree->all_nodes()) {
     if (node->type == NODE_GROUP && node->id) {
       /* Recurse into the node group */
       buttons_texture_modifier_geonodes_users_add(ob, nmd, (bNodeTree *)node->id, users);
@@ -442,7 +441,7 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
     ct->texture = nullptr;
 
     /* Not totally sure if we should also change selection? */
-    LISTBASE_FOREACH (bNode *, node, &user->ntree->nodes) {
+    for (bNode *node : user->ntree->all_nodes()) {
       nodeSetSelected(node, false);
     }
     nodeSetSelected(user->node, true);

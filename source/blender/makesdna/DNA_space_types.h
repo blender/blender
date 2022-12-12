@@ -1123,7 +1123,8 @@ typedef struct FileDirEntry {
   /** ID type, in case typeflag has FILE_TYPE_BLENDERLIB set. */
   int blentype;
 
-  /* Path to item that is relative to current folder root. */
+  /* Path to item that is relative to current folder root. To get the full path, use
+   * #filelist_file_get_full_path() */
   char *relpath;
   /** Optional argument for shortcuts, aliases etc. */
   char *redirection_path;

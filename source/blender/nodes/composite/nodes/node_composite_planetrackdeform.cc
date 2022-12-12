@@ -5,6 +5,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BLT_translation.h"
+
 #include "DNA_movieclip_types.h"
 #include "DNA_tracking_types.h"
 
@@ -118,6 +120,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
   {
     get_input("Image").pass_through(get_result("Image"));
     get_result("Plane").allocate_invalid();
+    context().set_info_message("Viewport compositor setup not fully supported");
   }
 };
 
@@ -141,6 +144,8 @@ void register_node_type_cmp_planetrackdeform()
   node_type_storage(
       &ntype, "NodePlaneTrackDeformData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

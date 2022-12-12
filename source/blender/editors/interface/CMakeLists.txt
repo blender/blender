@@ -27,26 +27,26 @@ set(INC
 )
 
 set(SRC
-  eyedroppers/eyedropper_color.c
-  eyedroppers/eyedropper_colorband.c
-  eyedroppers/eyedropper_datablock.c
-  eyedroppers/eyedropper_depth.c
-  eyedroppers/eyedropper_driver.c
-  eyedroppers/eyedropper_gpencil_color.c
-  eyedroppers/interface_eyedropper.c
+  eyedroppers/eyedropper_color.cc
+  eyedroppers/eyedropper_colorband.cc
+  eyedroppers/eyedropper_datablock.cc
+  eyedroppers/eyedropper_depth.cc
+  eyedroppers/eyedropper_driver.cc
+  eyedroppers/eyedropper_gpencil_color.cc
+  eyedroppers/interface_eyedropper.cc
   interface.cc
-  interface_align.c
+  interface_align.cc
   interface_anim.cc
-  interface_button_group.c
-  interface_context_menu.c
+  interface_button_group.cc
+  interface_context_menu.cc
   interface_context_path.cc
   interface_drag.cc
-  interface_draw.c
+  interface_draw.cc
   interface_dropboxes.cc
-  interface_handlers.c
-  interface_icons.c
-  interface_icons_event.c
-  interface_layout.c
+  interface_handlers.cc
+  interface_icons.cc
+  interface_icons_event.cc
+  interface_layout.cc
   interface_ops.cc
   interface_panel.cc
   interface_query.cc
@@ -65,11 +65,11 @@ set(SRC
   interface_template_list.cc
   interface_template_search_menu.cc
   interface_template_search_operator.cc
-  interface_templates.c
+  interface_templates.cc
   interface_undo.cc
   interface_utils.cc
-  interface_widgets.c
-  resources.c
+  interface_widgets.cc
+  resources.cc
   view2d.cc
   view2d_draw.cc
   view2d_edge_pan.cc
@@ -81,8 +81,8 @@ set(SRC
   views/interface_view.cc
   views/tree_view.cc
 
-  eyedroppers/eyedropper_intern.h
-  interface_intern.h
+  eyedroppers/eyedropper_intern.hh
+  interface_intern.hh
   interface_regions_intern.hh
 )
 

@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-#include "BLI_math_rotation.hh"
+#include "BLI_math_rotation_legacy.hh"
 #include "BLI_math_vector.hh"
 
 #include "BKE_curves.hh"

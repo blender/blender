@@ -304,6 +304,27 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   }
 }
 
+void SCULPT_ensure_valid_pivot(const Object *ob, Scene *scene)
+{
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  const SculptSession *ss = ob->sculpt;
+
+  /* No valid pivot? Use bounding box center. */
+  if (ups->average_stroke_counter == 0 || !ups->last_stroke_valid) {
+    float location[3], max[3];
+    BKE_pbvh_bounding_box(ss->pbvh, location, max);
+
+    interp_v3_v3v3(location, location, max, 0.5f);
+    mul_m4_v3(ob->object_to_world, location);
+
+    copy_v3_v3(ups->average_stroke_accum, location);
+    ups->average_stroke_counter = 1;
+
+    /* Update last stroke position. */
+    ups->last_stroke_valid = true;
+  }
+}
+
 void ED_object_sculptmode_enter_ex(Main *bmain,
                                    Depsgraph *depsgraph,
                                    Scene *scene,
@@ -387,6 +408,8 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
     }
   }
+
+  SCULPT_ensure_valid_pivot(ob, scene);
 
   /* Flush object mode. */
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
@@ -887,13 +910,15 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
     v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
   }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
-
   /* Color data is not available in multi-resolution or dynamic topology. */
   if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
+  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
   SCULPT_vertex_random_access_ensure(ss);
 
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,

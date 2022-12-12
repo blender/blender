@@ -34,6 +34,7 @@
 #include "UI_resources.h"
 
 #include "ED_geometry.h"
+#include "ED_mesh.h"
 #include "ED_object.h"
 
 #include "geometry_intern.hh"
@@ -559,6 +560,28 @@ void GEOMETRY_OT_color_attribute_duplicate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int geometry_attribute_convert_invoke(bContext *C,
+                                             wmOperator *op,
+                                             const wmEvent * /*event*/)
+{
+  Object *ob = ED_object_context(C);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+
+  const bke::AttributeMetaData meta_data = *mesh->attributes().lookup_meta_data(
+      BKE_id_attributes_active_get(&mesh->id)->name);
+
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_enum_set(op->ptr, "domain", meta_data.domain);
+  }
+  prop = RNA_struct_find_property(op->ptr, "data_type");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_enum_set(op->ptr, "data_type", meta_data.data_type);
+  }
+
+  return WM_operator_props_dialog_popup(C, op, 300);
+}
+
 static void geometry_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
@@ -574,13 +597,6 @@ static void geometry_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
     uiItemR(layout, op->ptr, "domain", 0, nullptr, ICON_NONE);
     uiItemR(layout, op->ptr, "data_type", 0, nullptr, ICON_NONE);
   }
-}
-
-static int geometry_attribute_convert_invoke(bContext *C,
-                                             wmOperator *op,
-                                             const wmEvent * /*event*/)
-{
-  return WM_operator_props_dialog_popup(C, op, 300);
 }
 
 static bool geometry_color_attribute_convert_poll(bContext *C)
@@ -614,6 +630,28 @@ static int geometry_color_attribute_convert_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int geometry_color_attribute_convert_invoke(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent * /*event*/)
+{
+  Object *ob = ED_object_context(C);
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+
+  const bke::AttributeMetaData meta_data = *mesh->attributes().lookup_meta_data(
+      BKE_id_attributes_active_color_get(&mesh->id)->name);
+
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_enum_set(op->ptr, "domain", meta_data.domain);
+  }
+  prop = RNA_struct_find_property(op->ptr, "data_type");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_enum_set(op->ptr, "data_type", meta_data.data_type);
+  }
+
+  return WM_operator_props_dialog_popup(C, op, 300);
+}
+
 static void geometry_color_attribute_convert_ui(bContext *UNUSED(C), wmOperator *op)
 {
   uiLayout *layout = op->layout;
@@ -630,7 +668,7 @@ void GEOMETRY_OT_color_attribute_convert(wmOperatorType *ot)
   ot->description = "Change how the color attribute is stored";
   ot->idname = "GEOMETRY_OT_color_attribute_convert";
 
-  ot->invoke = geometry_attribute_convert_invoke;
+  ot->invoke = geometry_color_attribute_convert_invoke;
   ot->exec = geometry_color_attribute_convert_exec;
   ot->poll = geometry_color_attribute_convert_poll;
   ot->ui = geometry_color_attribute_convert_ui;

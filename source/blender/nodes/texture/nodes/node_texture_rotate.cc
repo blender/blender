@@ -28,8 +28,8 @@ static void rotate(float new_co[3], float a, const float ax[3], const float co[3
   float perp[3];
   float cp[3];
 
-  float cos_a = cosf(a * (float)(2 * M_PI));
-  float sin_a = sinf(a * (float)(2 * M_PI));
+  float cos_a = cosf(a * float(2 * M_PI));
+  float sin_a = sinf(a * float(2 * M_PI));
 
   /* `x' = xcosa + n(n.x)(1-cosa) + (x*n)sina`. */
 

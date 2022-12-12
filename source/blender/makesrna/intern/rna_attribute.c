@@ -251,7 +251,7 @@ static int rna_Attribute_domain_get(PointerRNA *ptr)
 static bool rna_Attribute_is_internal_get(PointerRNA *ptr)
 {
   const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
-  return BKE_attribute_allow_procedural_access(layer->name);
+  return !BKE_attribute_allow_procedural_access(layer->name);
 }
 
 static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

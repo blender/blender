@@ -275,7 +275,7 @@ static void tracking_object_copy(MovieTrackingObject *tracking_object_dst,
   }
   if (tracking_object_src->active_plane_track) {
     tracking_object_dst->active_plane_track = BLI_ghash_lookup(
-        ctx.old_to_new_track_map, tracking_object_src->active_plane_track);
+        ctx.old_to_new_plane_track_map, tracking_object_src->active_plane_track);
     BLI_assert(tracking_object_dst->active_plane_track != NULL);
   }
 

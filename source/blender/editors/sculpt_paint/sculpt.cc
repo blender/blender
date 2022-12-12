@@ -43,6 +43,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -823,7 +824,7 @@ static void sculpt_vertex_neighbors_get_bmesh(PBVHVertRef vertex, SculptVertexNe
       const BMVert *v_other = adj_v[i];
       if (v_other != v) {
         sculpt_vertex_neighbor_add(
-            iter, BKE_pbvh_make_vref((intptr_t)v_other), BM_elem_index_get(v_other));
+            iter, BKE_pbvh_make_vref(intptr_t(v_other)), BM_elem_index_get(v_other));
       }
     }
   }
@@ -1831,14 +1832,27 @@ SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(SculptSession *ss,
                                                             SculptBrushTest *test,
                                                             char falloff_shape)
 {
+  if (!ss->cache && !ss->filter_cache) {
+    falloff_shape = PAINT_FALLOFF_SHAPE_SPHERE;
+  }
+
   SCULPT_brush_test_init(ss, test);
   SculptBrushTestFn sculpt_brush_test_sq_fn;
   if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
     sculpt_brush_test_sq_fn = SCULPT_brush_test_sphere_sq;
   }
   else {
+    float view_normal[3];
+
+    if (ss->cache) {
+      copy_v3_v3(view_normal, ss->cache->view_normal);
+    }
+    else {
+      copy_v3_v3(view_normal, ss->filter_cache->view_normal);
+    }
+
     /* PAINT_FALLOFF_SHAPE_TUBE */
-    plane_from_point_normal_v3(test->plane_view, test->location, ss->cache->view_normal);
+    plane_from_point_normal_v3(test->plane_view, test->location, view_normal);
     sculpt_brush_test_sq_fn = SCULPT_brush_test_circle_sq;
   }
   return sculpt_brush_test_sq_fn;
@@ -4825,6 +4839,10 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
                                            SculptSession *ss,
                                            int stroke_mode)
 {
+  if (!brush) {
+    return true;
+  }
+
   if (ss && ss->pbvh && SCULPT_is_automasking_enabled(sd, ss, brush)) {
     return true;
   }
@@ -5615,7 +5633,7 @@ static void sculpt_brush_exit_tex(Sculpt *sd)
   MTex *mtex = &brush->mtex;
 
   if (mtex->tex && mtex->tex->nodetree) {
-    ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
+    ntreeTexEndExecTree(mtex->tex->nodetree->runtime->execdata);
   }
 }
 
@@ -5836,7 +5854,7 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
   ot->ui = sculpt_redo_empty_ui;
 
   /* Flags (sculpt does own undo? (ton)). */
-  ot->flag = OPTYPE_BLOCKING | OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_BLOCKING;
 
   /* Properties. */
 

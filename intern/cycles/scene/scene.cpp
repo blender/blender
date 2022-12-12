@@ -71,6 +71,11 @@ DeviceScene::DeviceScene(Device *device)
       lights(device, "lights", MEM_GLOBAL),
       light_background_marginal_cdf(device, "light_background_marginal_cdf", MEM_GLOBAL),
       light_background_conditional_cdf(device, "light_background_conditional_cdf", MEM_GLOBAL),
+      light_tree_nodes(device, "light_tree_nodes", MEM_GLOBAL),
+      light_tree_emitters(device, "light_tree_emitters", MEM_GLOBAL),
+      light_to_tree(device, "light_to_tree", MEM_GLOBAL),
+      object_lookup_offset(device, "object_lookup_offset", MEM_GLOBAL),
+      triangle_to_tree(device, "triangle_to_tree", MEM_GLOBAL),
       particles(device, "particles", MEM_GLOBAL),
       svm_nodes(device, "svm_nodes", MEM_GLOBAL),
       shaders(device, "shaders", MEM_GLOBAL),
@@ -485,6 +490,8 @@ void Scene::update_kernel_features()
     return;
   }
 
+  thread_scoped_lock scene_lock(mutex);
+
   /* These features are not being tweaked as often as shaders,
    * so could be done selective magic for the viewport as well. */
   uint kernel_features = shader_manager->get_kernel_features(this);
@@ -571,9 +578,6 @@ bool Scene::update(Progress &progress)
     return false;
   }
 
-  /* Load render kernels, before device update where we upload data to the GPU. */
-  load_kernels(progress, false);
-
   /* Upload scene data to the GPU. */
   progress.set_status("Updating Scene");
   MEM_GUARDED_CALL(&progress, device_update, device, progress);
@@ -613,13 +617,8 @@ static void log_kernel_features(const uint features)
             << "\n";
 }
 
-bool Scene::load_kernels(Progress &progress, bool lock_scene)
+bool Scene::load_kernels(Progress &progress)
 {
-  thread_scoped_lock scene_lock;
-  if (lock_scene) {
-    scene_lock = thread_scoped_lock(mutex);
-  }
-
   update_kernel_features();
 
   const uint kernel_features = dscene.data.kernel_features;

@@ -33,14 +33,14 @@
  *
  * There are three main ways to provide a hash table implementation with a custom hash function.
  *
- * - When you want to provide a default hash function for your own custom type: Add a `hash`
+ * - When you want to provide a default hash function for your own custom type: Add a `hash()`
  *   member function to it. The function should return `uint64_t` and take no arguments. This
  *   method will be called by the default implementation of #DefaultHash. It will automatically be
  *   used by hash table implementations.
  *
  * - When you want to provide a default hash function for a type that you cannot modify: Add a new
  *   specialization to the #DefaultHash struct. This can be done by writing code like below in
- *   either global or BLI namespace.
+ *   either global or `blender` namespace.
  *
  *     template<> struct blender::DefaultHash<TheType> {
  *       uint64_t operator()(const TheType &value) const {

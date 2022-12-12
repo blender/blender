@@ -999,6 +999,15 @@ static void rna_SpaceView3D_object_type_visibility_update(Main *UNUSED(bmain),
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 }
 
+static void rna_SpaceView3D_shading_use_compositor_update(Main *UNUSED(bmain),
+                                                          Scene *UNUSED(scene),
+                                                          PointerRNA *UNUSED(ptr))
+{
+  /* Nodes may display warnings when the compositor is enabled, so we need a redraw in that case,
+   * and even when it gets disabled in order to potentially remove the warning. */
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_NODE, NULL);
+}
+
 static void rna_SpaceView3D_region_quadviews_begin(CollectionPropertyIterator *iter,
                                                    PointerRNA *ptr)
 {
@@ -3325,6 +3334,26 @@ static int rna_FileAssetSelectParams_catalog_id_length(PointerRNA *UNUSED(ptr))
   return UUID_STRING_LEN - 1;
 }
 
+static void rna_FileAssetSelectParams_catalog_id_set(PointerRNA *ptr, const char *value)
+{
+  FileAssetSelectParams *params = ptr->data;
+
+  if (value[0] == '\0') {
+    params->catalog_id = BLI_uuid_nil();
+    params->asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
+    return;
+  }
+
+  bUUID new_uuid;
+  if (!BLI_uuid_parse_string(&new_uuid, value)) {
+    printf("UUID %s not formatted correctly, ignoring new value\n", value);
+    return;
+  }
+
+  params->catalog_id = new_uuid;
+  params->asset_catalog_visibility = FILE_SHOW_ASSETS_FROM_CATALOG;
+}
+
 #else
 
 static const EnumPropertyItem dt_uv_items[] = {
@@ -3939,6 +3968,25 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem use_compositor_items[] = {
+      {V3D_SHADING_USE_COMPOSITOR_DISABLED,
+       "DISABLED",
+       0,
+       "Disabled",
+       "The compositor is disabled"},
+      {V3D_SHADING_USE_COMPOSITOR_CAMERA,
+       "CAMERA",
+       0,
+       "Camera",
+       "The compositor is enabled only in camera view"},
+      {V3D_SHADING_USE_COMPOSITOR_ALWAYS,
+       "ALWAYS",
+       0,
+       "Always",
+       "The compositor is always enabled regardless of the view"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   /* Note these settings are used for both 3D viewport and the OpenGL render
    * engine in the scene, so can't assume to always be part of a screen. */
   srna = RNA_def_struct(brna, "View3DShading", NULL);
@@ -4225,13 +4273,15 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_HIDDEN);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "use_compositor", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_COMPOSITOR);
+  prop = RNA_def_property(srna, "use_compositor", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "use_compositor");
+  RNA_def_property_enum_items(prop, use_compositor_items);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_boolean_default(prop, false);
   RNA_def_property_ui_text(
-      prop, "Compositor", "Preview the compositor output inside the viewport");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
+      prop, "Compositor", "When to preview the compositor output inside the viewport");
+  RNA_def_property_update(prop,
+                          NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING,
+                          "rna_SpaceView3D_shading_use_compositor_update");
 }
 
 static void rna_def_space_view3d_overlay(BlenderRNA *brna)
@@ -6274,7 +6324,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
   /* editing */
   prop = RNA_def_property(srna, "use_auto_merge_keyframes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NOTRANSKEYCULL);
-  RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Automatically merge nearby keyframes");
+  RNA_def_property_ui_text(prop, "Auto-Merge Keyframes", "Automatically merge nearby keyframes");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
   prop = RNA_def_property(srna, "use_realtime_update", PROP_BOOLEAN, PROP_NONE);
@@ -6870,9 +6920,9 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop,
                                 "rna_FileAssetSelectParams_catalog_id_get",
                                 "rna_FileAssetSelectParams_catalog_id_length",
-                                NULL);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+                                "rna_FileAssetSelectParams_catalog_id_set");
   RNA_def_property_ui_text(prop, "Catalog UUID", "The UUID of the catalog shown in the browser");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
   prop = RNA_def_property(srna, "filter_asset_id", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);

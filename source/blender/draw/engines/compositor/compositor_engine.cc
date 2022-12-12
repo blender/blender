@@ -163,7 +163,14 @@ static void compositor_engine_free(void *instance_data)
 
 static void compositor_engine_draw(void *data)
 {
-  const COMPOSITOR_Data *compositor_data = static_cast<COMPOSITOR_Data *>(data);
+  COMPOSITOR_Data *compositor_data = static_cast<COMPOSITOR_Data *>(data);
+
+#if defined(__APPLE__)
+  blender::StringRef("Viewport compositor not supported on MacOS")
+      .copy(compositor_data->info, GPU_INFO_SIZE);
+  return;
+#endif
+
   compositor_data->instance_data->draw();
 }
 

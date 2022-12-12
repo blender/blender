@@ -7,6 +7,27 @@
 
 namespace blender::nodes {
 
+void build_node_declaration(const bNodeType &typeinfo, NodeDeclaration &r_declaration)
+{
+  NodeDeclarationBuilder node_decl_builder{r_declaration};
+  typeinfo.declare(node_decl_builder);
+  node_decl_builder.finalize();
+}
+
+void NodeDeclarationBuilder::finalize()
+{
+  if (is_function_node_) {
+    for (SocketDeclarationPtr &socket_decl : declaration_.inputs_) {
+      if (socket_decl->input_field_type_ != InputSocketFieldType::Implicit) {
+        socket_decl->input_field_type_ = InputSocketFieldType::IsSupported;
+      }
+    }
+    for (SocketDeclarationPtr &socket_decl : declaration_.outputs_) {
+      socket_decl->output_field_dependency_ = OutputFieldDependency::ForDependentField();
+    }
+  }
+}
+
 bool NodeDeclaration::matches(const bNode &node) const
 {
   auto check_sockets = [&](ListBase sockets, Span<SocketDeclarationPtr> socket_decls) {

@@ -13,7 +13,7 @@
 
 namespace blender::nodes::node_fn_rotate_euler_cc {
 
-static void fn_node_rotate_euler_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   auto enable_axis_angle = [](bNode &node) {
     node.custom1 = FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE;
@@ -32,7 +32,7 @@ static void fn_node_rotate_euler_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Rotation"));
 }
 
-static void fn_node_rotate_euler_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *rotate_by_socket = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
   bNodeSocket *axis_socket = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2));
@@ -46,7 +46,7 @@ static void fn_node_rotate_euler_update(bNodeTree *ntree, bNode *node)
       ntree, angle_socket, ELEM(node->custom1, FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE));
 }
 
-static void fn_node_rotate_euler_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
@@ -115,7 +115,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &bnode)
   return nullptr;
 }
 
-static void fn_node_rotate_euler_build_multi_function(NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const fn::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
@@ -130,9 +130,9 @@ void register_node_type_fn_rotate_euler()
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_ROTATE_EULER, "Rotate Euler", NODE_CLASS_CONVERTER);
-  ntype.declare = file_ns::fn_node_rotate_euler_declare;
-  ntype.draw_buttons = file_ns::fn_node_rotate_euler_layout;
-  ntype.updatefunc = file_ns::fn_node_rotate_euler_update;
-  ntype.build_multi_function = file_ns::fn_node_rotate_euler_build_multi_function;
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons = file_ns::node_layout;
+  ntype.updatefunc = file_ns::node_update;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
   nodeRegisterType(&ntype);
 }

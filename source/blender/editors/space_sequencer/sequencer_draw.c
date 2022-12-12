@@ -1654,7 +1654,7 @@ static void sequencer_draw_borders_overlay(const SpaceSeq *sseq,
   immUniformThemeColor(TH_BACK);
   immUniform1i("colors_len", 0); /* Simple dashes. */
   immUniform1f("dash_width", 6.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   imm_draw_box_wire_2d(shdr_pos, x1 - 0.5f, y1 - 0.5f, x2 + 0.5f, y2 + 0.5f);
 
@@ -1907,9 +1907,9 @@ static void sequencer_draw_display_buffer(const bContext *C,
     GPU_matrix_push_projection();
     GPU_matrix_identity_projection_set();
   }
-
-  GPUTexture *texture = GPU_texture_create_2d(
-      "seq_display_buf", ibuf->x, ibuf->y, 1, format, NULL);
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+  GPUTexture *texture = GPU_texture_create_2d_ex(
+      "seq_display_buf", ibuf->x, ibuf->y, 1, format, usage, NULL);
   GPU_texture_update(texture, data, display_buffer);
   GPU_texture_filter_mode(texture, false);
 
@@ -2662,7 +2662,7 @@ static void draw_overlap_frame_indicator(const struct Scene *scene, const View2D
   /* Shader may have color set from past usage - reset it. */
   immUniform1i("colors_len", 0);
   immUniform1f("dash_width", 20.0f * U.pixelsize);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
   immUniformThemeColor(TH_CFRAME);
 
   immBegin(GPU_PRIM_LINES, 2);

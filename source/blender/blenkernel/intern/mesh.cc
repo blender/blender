@@ -500,13 +500,18 @@ static int customdata_compare(
 
   for (int i1 = 0; i1 < c1->totlayer; i1++) {
     l1 = c1->layers + i1;
+    if (l1->anonymous_id != nullptr) {
+      continue;
+    }
+    bool found_corresponding_layer = false;
     for (int i2 = 0; i2 < c2->totlayer; i2++) {
       l2 = c2->layers + i2;
-      if (l1->type != l2->type || !STREQ(l1->name, l2->name) || l1->anonymous_id != nullptr ||
-          l2->anonymous_id != nullptr) {
+      if (l1->type != l2->type || !STREQ(l1->name, l2->name) || l2->anonymous_id != nullptr) {
         continue;
       }
       /* At this point `l1` and `l2` have the same name and type, so they should be compared. */
+
+      found_corresponding_layer = true;
 
       switch (l1->type) {
 
@@ -717,6 +722,11 @@ static int customdata_compare(
         default: {
           break;
         }
+      }
+    }
+    if (!found_corresponding_layer) {
+      if ((1 << l1->type) & CD_MASK_PROP_ALL) {
+        return MESHCMP_CDLAYERS_MISMATCH;
       }
     }
   }
@@ -1490,13 +1500,13 @@ int BKE_mesh_edge_other_vert(const MEdge *e, int v)
   return -1;
 }
 
-void BKE_mesh_looptri_get_real_edges(const Mesh *mesh, const MLoopTri *looptri, int r_edges[3])
+void BKE_mesh_looptri_get_real_edges(const MEdge *edges,
+                                     const MLoop *loops,
+                                     const MLoopTri *tri,
+                                     int r_edges[3])
 {
-  const Span<MEdge> edges = mesh->edges();
-  const Span<MLoop> loops = mesh->loops();
-
   for (int i = 2, i_next = 0; i_next < 3; i = i_next++) {
-    const MLoop *l1 = &loops[looptri->tri[i]], *l2 = &loops[looptri->tri[i_next]];
+    const MLoop *l1 = &loops[tri->tri[i]], *l2 = &loops[tri->tri[i_next]];
     const MEdge *e = &edges[l1->e];
 
     bool is_real = (l1->v == e->v1 && l2->v == e->v2) || (l1->v == e->v2 && l2->v == e->v1);
@@ -1832,7 +1842,7 @@ struct SplitFaceNewVert {
   struct SplitFaceNewVert *next;
   int new_index;
   int orig_index;
-  float *vnor;
+  const float *vnor;
 };
 
 struct SplitFaceNewEdge {
@@ -1843,82 +1853,79 @@ struct SplitFaceNewEdge {
   int v2;
 };
 
-/* Detect needed new vertices, and update accordingly loops' vertex indices.
- * WARNING! Leaves mesh in invalid state. */
-static int split_faces_prepare_new_verts(Mesh *mesh,
-                                         MLoopNorSpaceArray *lnors_spacearr,
+/**
+ * Detect necessary new vertices, and update loop vertex indices accordingly.
+ * \warning Leaves mesh in invalid state.
+ * \param lnors_spacearr: Mandatory because trying to do the job in simple way without that data is
+ * doomed to fail, even when only dealing with smooth/flat faces one can find cases that no simple
+ * algorithm can handle properly.
+ */
+static int split_faces_prepare_new_verts(Mesh &mesh,
+                                         const MLoopNorSpaceArray &lnors_spacearr,
                                          SplitFaceNewVert **new_verts,
-                                         MemArena *memarena)
+                                         MemArena &memarena)
 {
-  /* This is now mandatory, trying to do the job in simple way without that data is doomed to fail,
-   * even when only dealing with smooth/flat faces one can find cases that no simple algorithm
-   * can handle properly. */
-  BLI_assert(lnors_spacearr != nullptr);
-
-  const int loops_len = mesh->totloop;
-  int verts_len = mesh->totvert;
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
-  BKE_mesh_vertex_normals_ensure(mesh);
-  float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(mesh);
+  const int loops_len = mesh.totloop;
+  int verts_len = mesh.totvert;
+  MutableSpan<MLoop> loops = mesh.loops_for_write();
+  BKE_mesh_vertex_normals_ensure(&mesh);
+  float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(&mesh);
 
   BitVector<> verts_used(verts_len, false);
   BitVector<> done_loops(loops_len, false);
 
-  MLoop *ml = loops.data();
-  MLoopNorSpace **lnor_space = lnors_spacearr->lspacearr;
+  BLI_assert(lnors_spacearr.data_type == MLNOR_SPACEARR_LOOP_INDEX);
 
-  BLI_assert(lnors_spacearr->data_type == MLNOR_SPACEARR_LOOP_INDEX);
+  for (int loop_idx = 0; loop_idx < loops_len; loop_idx++) {
+    if (done_loops[loop_idx]) {
+      continue;
+    }
+    const MLoopNorSpace &lnor_space = *lnors_spacearr.lspacearr[loop_idx];
+    const int vert_idx = loops[loop_idx].v;
+    const bool vert_used = verts_used[vert_idx];
+    /* If vert is already used by another smooth fan, we need a new vert for this one. */
+    const int new_vert_idx = vert_used ? verts_len++ : vert_idx;
 
-  for (int loop_idx = 0; loop_idx < loops_len; loop_idx++, ml++, lnor_space++) {
-    if (!done_loops[loop_idx]) {
-      const int vert_idx = ml->v;
-      const bool vert_used = verts_used[vert_idx];
-      /* If vert is already used by another smooth fan, we need a new vert for this one. */
-      const int new_vert_idx = vert_used ? verts_len++ : vert_idx;
-
-      BLI_assert(*lnor_space);
-
-      if ((*lnor_space)->flags & MLNOR_SPACE_IS_SINGLE) {
-        /* Single loop in this fan... */
-        BLI_assert(POINTER_AS_INT((*lnor_space)->loops) == loop_idx);
-        done_loops[loop_idx].set();
+    if (lnor_space.flags & MLNOR_SPACE_IS_SINGLE) {
+      /* Single loop in this fan... */
+      BLI_assert(POINTER_AS_INT(lnor_space.loops) == loop_idx);
+      done_loops[loop_idx].set();
+      if (vert_used) {
+        loops[loop_idx].v = new_vert_idx;
+      }
+    }
+    else {
+      for (const LinkNode *lnode = lnor_space.loops; lnode; lnode = lnode->next) {
+        const int ml_fan_idx = POINTER_AS_INT(lnode->link);
+        done_loops[ml_fan_idx].set();
         if (vert_used) {
-          ml->v = new_vert_idx;
+          loops[ml_fan_idx].v = new_vert_idx;
         }
       }
-      else {
-        for (LinkNode *lnode = (*lnor_space)->loops; lnode; lnode = lnode->next) {
-          const int ml_fan_idx = POINTER_AS_INT(lnode->link);
-          done_loops[ml_fan_idx].set();
-          if (vert_used) {
-            loops[ml_fan_idx].v = new_vert_idx;
-          }
-        }
-      }
+    }
 
-      if (!vert_used) {
-        verts_used[vert_idx].set();
-        /* We need to update that vertex's normal here, we won't go over it again. */
-        /* This is important! *DO NOT* set vnor to final computed lnor,
-         * vnor should always be defined to 'automatic normal' value computed from its polys,
-         * not some custom normal.
-         * Fortunately, that's the loop normal space's 'lnor' reference vector. ;) */
-        copy_v3_v3(vert_normals[vert_idx], (*lnor_space)->vec_lnor);
-      }
-      else {
-        /* Add new vert to list. */
-        SplitFaceNewVert *new_vert = (SplitFaceNewVert *)BLI_memarena_alloc(memarena,
-                                                                            sizeof(*new_vert));
-        new_vert->orig_index = vert_idx;
-        new_vert->new_index = new_vert_idx;
-        new_vert->vnor = (*lnor_space)->vec_lnor; /* See note above. */
-        new_vert->next = *new_verts;
-        *new_verts = new_vert;
-      }
+    if (!vert_used) {
+      verts_used[vert_idx].set();
+      /* We need to update that vertex's normal here, we won't go over it again. */
+      /* This is important! *DO NOT* set vnor to final computed lnor,
+       * vnor should always be defined to 'automatic normal' value computed from its polys,
+       * not some custom normal.
+       * Fortunately, that's the loop normal space's 'lnor' reference vector. ;) */
+      copy_v3_v3(vert_normals[vert_idx], lnor_space.vec_lnor);
+    }
+    else {
+      /* Add new vert to list. */
+      SplitFaceNewVert *new_vert = static_cast<SplitFaceNewVert *>(
+          BLI_memarena_alloc(&memarena, sizeof(*new_vert)));
+      new_vert->orig_index = vert_idx;
+      new_vert->new_index = new_vert_idx;
+      new_vert->vnor = lnor_space.vec_lnor; /* See note above. */
+      new_vert->next = *new_verts;
+      *new_verts = new_vert;
     }
   }
 
-  return verts_len - mesh->totvert;
+  return verts_len - mesh.totvert;
 }
 
 /* Detect needed new edges, and update accordingly loops' edge indices.
@@ -2045,7 +2052,7 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 
   /* Detect loop normal spaces (a.k.a. smooth fans) that will need a new vert. */
   const int num_new_verts = split_faces_prepare_new_verts(
-      mesh, &lnors_spacearr, &new_verts, memarena);
+      *mesh, lnors_spacearr, &new_verts, *memarena);
 
   if (num_new_verts > 0) {
     /* Reminder: beyond this point, there is no way out, mesh is in invalid state

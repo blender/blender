@@ -9,13 +9,17 @@ if(UNIX)
   # as does the OPENCOLLADA package, if this can be corrected upstream that would be better.
   # For now use `sed` to force UNIX line endings so the patch applies.
   # Needed as neither ignoring white-space or applying as a binary resolve this problem.
+  if(APPLE)
+    set(_dos2unix dos2unix)
+  else()
+    set(_dos2unix sed -i "s/\\r//")
+  endif()
   set(PATCH_MAYBE_DOS2UNIX_CMD
-    sed -i "s/\\r//"
+    ${_dos2unix}
     ${PATCH_DIR}/opencollada.diff
     ${BUILD_DIR}/opencollada/src/external_opencollada/CMakeLists.txt
     ${BUILD_DIR}/opencollada/src/external_opencollada/Externals/LibXML/CMakeLists.txt &&
   )
-
 else()
   set(OPENCOLLADA_EXTRA_ARGS
     -DCMAKE_DEBUG_POSTFIX=_d

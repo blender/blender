@@ -235,7 +235,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer * /*gpl*/,
   if (show_stroke) {
     int vfirst = gps->runtime.stroke_start * 3;
     bool is_cyclic = ((gps->flag & GP_STROKE_CYCLIC) != 0) && (gps->totpoints > 2);
-    int vcount = (gps->totpoints + (int)is_cyclic) * 2 * 3;
+    int vcount = (gps->totpoints + int(is_cyclic)) * 2 * 3;
     DRW_shgroup_call_range(iter->stroke_grp, iter->ob, geom, vfirst, vcount);
   }
 }

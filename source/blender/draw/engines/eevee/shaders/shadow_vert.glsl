@@ -4,9 +4,6 @@
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 #pragma BLENDER_REQUIRE(surface_lib.glsl)
 
-in vec3 pos;
-in vec3 nor;
-
 void main()
 {
   GPU_INTEL_VERTEX_SHADER_WORKAROUND

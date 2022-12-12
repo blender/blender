@@ -175,53 +175,28 @@ static eRedrawFlag handleEventShear(TransInfo *t, const wmEvent *event)
   return status;
 }
 
-static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
+static void apply_shear_value(TransInfo *t, const float value)
 {
-  float smat[3][3], axismat[3][3], axismat_inv[3][3], mat_final[3][3];
-  float value;
-  int i;
-  char str[UI_MAX_DRAW_STR];
-  const bool is_local_center = transdata_check_local_center(t, t->around);
-
-  value = t->values[0] + t->values_modal_offset[0];
-
-  transform_snap_increment(t, &value);
-
-  applyNumInput(&t->num, &value);
-
-  t->values_final[0] = value;
-
-  /* header print for NumInput */
-  if (hasNumInput(&t->num)) {
-    char c[NUM_STR_REP_LEN];
-
-    outputNumInput(&(t->num), c, &t->scene->unit);
-
-    BLI_snprintf(str, sizeof(str), TIP_("Shear: %s %s"), c, t->proptext);
-  }
-  else {
-    /* default header print */
-    BLI_snprintf(str,
-                 sizeof(str),
-                 TIP_("Shear: %.3f %s (Press X or Y to set shear axis)"),
-                 value,
-                 t->proptext);
-  }
-
+  float smat[3][3];
   unit_m3(smat);
   smat[1][0] = value;
 
+  float axismat_inv[3][3];
   copy_v3_v3(axismat_inv[0], t->spacemtx[t->orient_axis_ortho]);
   copy_v3_v3(axismat_inv[2], t->spacemtx[t->orient_axis]);
   cross_v3_v3v3(axismat_inv[1], axismat_inv[0], axismat_inv[2]);
+  float axismat[3][3];
   invert_m3_m3(axismat, axismat_inv);
 
+  float mat_final[3][3];
   mul_m3_series(mat_final, axismat_inv, smat, axismat);
+
+  const bool is_local_center = transdata_check_local_center(t, t->around);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
       TransData *td = tc->data;
-      for (i = 0; i < tc->data_len; i++, td++) {
+      for (int i = 0; i < tc->data_len; i++, td++) {
         if (td->flag & TD_SKIP) {
           continue;
         }
@@ -241,8 +216,109 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
       BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_shear_fn, &settings);
     }
   }
+}
+
+static bool uv_shear_in_clip_bounds_test(const TransInfo *t, const float value)
+{
+  const int axis = t->orient_axis_ortho;
+  if (axis < 0 || 1 < axis) {
+    return true; /* Non standard axis, nothing to do. */
+  }
+  const float *center = t->center_global;
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    TransData *td = tc->data;
+    for (int i = 0; i < tc->data_len; i++, td++) {
+      if (td->flag & TD_SKIP) {
+        continue;
+      }
+      if (td->factor < 1.0f) {
+        continue; /* Proportional edit, will get picked up in next phase. */
+      }
+
+      float uv[2];
+      sub_v2_v2v2(uv, td->iloc, center);
+      uv[axis] = uv[axis] + value * uv[1 - axis] * (2 * axis - 1);
+      add_v2_v2(uv, center);
+      /* TODO: UDIM support. */
+      if (uv[axis] < 0.0f || 1.0f < uv[axis]) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+static bool clip_uv_transform_shear(const TransInfo *t, float *vec, float *vec_inside_bounds)
+{
+  float value = vec[0];
+  if (uv_shear_in_clip_bounds_test(t, value)) {
+    vec_inside_bounds[0] = value; /* Store for next iteration. */
+    return false;                 /* Nothing to do. */
+  }
+  float value_inside_bounds = vec_inside_bounds[0];
+  if (!uv_shear_in_clip_bounds_test(t, value_inside_bounds)) {
+    return false; /* No known way to fix, may as well shear anyway. */
+  }
+  const int max_i = 32; /* Limit iteration, mainly for debugging. */
+  for (int i = 0; i < max_i; i++) {
+    /* Binary search. */
+    const float value_mid = (value_inside_bounds + value) / 2.0f;
+    if (value_mid == value_inside_bounds || value_mid == value) {
+      break; /* float precision reached. */
+    }
+    if (uv_shear_in_clip_bounds_test(t, value_mid)) {
+      value_inside_bounds = value_mid;
+    }
+    else {
+      value = value_mid;
+    }
+  }
+
+  vec_inside_bounds[0] = value_inside_bounds; /* Store for next iteration. */
+  vec[0] = value_inside_bounds;               /* Update shear value. */
+  return true;
+}
+
+static void apply_shear(TransInfo *t, const int UNUSED(mval[2]))
+{
+  float value = t->values[0] + t->values_modal_offset[0];
+  transform_snap_increment(t, &value);
+  applyNumInput(&t->num, &value);
+  t->values_final[0] = value;
+
+  apply_shear_value(t, value);
+
+  if (t->flag & T_CLIP_UV) {
+    if (clip_uv_transform_shear(t, t->values_final, t->values_inside_constraints)) {
+      apply_shear_value(t, t->values_final[0]);
+    }
+
+    /* In proportional edit it can happen that */
+    /* vertices in the radius of the brush end */
+    /* outside the clipping area               */
+    /* XXX HACK - dg */
+    if (t->flag & T_PROP_EDIT) {
+      clipUVData(t);
+    }
+  }
 
   recalcData(t);
+
+  char str[UI_MAX_DRAW_STR];
+  /* header print for NumInput */
+  if (hasNumInput(&t->num)) {
+    char c[NUM_STR_REP_LEN];
+    outputNumInput(&(t->num), c, &t->scene->unit);
+    BLI_snprintf(str, sizeof(str), TIP_("Shear: %s %s"), c, t->proptext);
+  }
+  else {
+    /* default header print */
+    BLI_snprintf(str,
+                 sizeof(str),
+                 TIP_("Shear: %.3f %s (Press X or Y to set shear axis)"),
+                 value,
+                 t->proptext);
+  }
 
   ED_area_status_text(t->area, str);
 }
@@ -250,7 +326,7 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 void initShear(TransInfo *t)
 {
   t->mode = TFM_SHEAR;
-  t->transform = applyShear;
+  t->transform = apply_shear;
   t->handleEvent = handleEventShear;
 
   if (t->orient_axis == t->orient_axis_ortho) {

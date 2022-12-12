@@ -9,10 +9,6 @@
 
 #define BTDF_BIAS 0.85
 
-uniform sampler2D refractColorBuffer;
-
-uniform float refractionDepth;
-
 vec4 screen_space_refraction(vec3 vP, vec3 N, vec3 V, float ior, float roughnessSquared, vec4 rand)
 {
   float alpha = max(0.002, roughnessSquared);

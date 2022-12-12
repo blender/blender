@@ -200,8 +200,26 @@ static GPUVertFormat *get_custom_normals_format()
   return &format;
 }
 
+static void extract_vertex_flags(const MeshRenderData *mr, char *flags)
+{
+  for (int i = 0; i < mr->vert_len; i++) {
+    char *flag = &flags[i];
+    const bool vert_hidden = mr->hide_vert && mr->hide_vert[i];
+    /* Flag for paint mode overlay. */
+    if (vert_hidden || ((mr->v_origindex) && (mr->v_origindex[i] == ORIGINDEX_NONE))) {
+      *flag = -1;
+    }
+    else if (mr->select_vert && mr->select_vert[i]) {
+      *flag = 1;
+    }
+    else {
+      *flag = 0;
+    }
+  }
+}
+
 static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                        const MeshRenderData * /*mr*/,
+                                        const MeshRenderData *mr,
                                         MeshBatchCache *cache,
                                         void *buffer,
                                         void * /*data*/)
@@ -217,6 +235,17 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
     return;
   }
 
+  GPUVertBuf *flags_buffer = GPU_vertbuf_calloc();
+  static GPUVertFormat flag_format = {0};
+  if (flag_format.attr_len == 0) {
+    GPU_vertformat_attr_add(&flag_format, "flag", GPU_COMP_I32, 1, GPU_FETCH_INT);
+  }
+  GPU_vertbuf_init_with_format(flags_buffer, &flag_format);
+  GPU_vertbuf_data_alloc(flags_buffer, divide_ceil_u(mr->vert_len, 4));
+  char *flags = static_cast<char *>(GPU_vertbuf_get_data(flags_buffer));
+  extract_vertex_flags(mr, flags);
+  GPU_vertbuf_tag_dirty(flags_buffer);
+
   GPUVertBuf *orco_vbo = cache->final.buff.vbo.orco;
 
   if (orco_vbo) {
@@ -231,7 +260,7 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
     GPU_vertbuf_init_build_on_device(orco_vbo, &format, subdiv_cache->num_subdiv_loops);
   }
 
-  draw_subdiv_extract_pos_nor(subdiv_cache, vbo, orco_vbo);
+  draw_subdiv_extract_pos_nor(subdiv_cache, flags_buffer, vbo, orco_vbo);
 
   if (subdiv_cache->use_custom_loop_normals) {
     Mesh *coarse_mesh = subdiv_cache->mesh;
@@ -251,7 +280,7 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
         dst_custom_normals, get_custom_normals_format(), subdiv_cache->num_subdiv_loops);
 
     draw_subdiv_interp_custom_data(
-        subdiv_cache, src_custom_normals, dst_custom_normals, 3, 0, false);
+        subdiv_cache, src_custom_normals, dst_custom_normals, GPU_COMP_F32, 3, 0);
 
     draw_subdiv_finalize_custom_normals(subdiv_cache, dst_custom_normals, vbo);
 
@@ -279,6 +308,8 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
     GPU_vertbuf_discard(vertex_normals);
     GPU_vertbuf_discard(subdiv_loop_subdiv_vert_index);
   }
+
+  GPU_vertbuf_discard(flags_buffer);
 }
 
 static void extract_pos_nor_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,

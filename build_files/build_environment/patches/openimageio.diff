@@ -21,16 +21,3 @@ diff -Naur orig/src/cmake/compiler.cmake external_openimageio/src/cmake/compiler
  endif (MSVC)
  
  if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD"
-diff -Naur orig/src/include/OpenImageIO/platform.h external_openimageio/src/include/OpenImageIO/platform.h
---- orig/src/include/OpenImageIO/platform.h	2020-05-10 21:43:52 -0600
-+++ external_openimageio/src/include/OpenImageIO/platform.h	2020-05-13 17:04:36 -0600
-@@ -41,6 +41,9 @@
- #    ifndef NOMINMAX
- #        define NOMINMAX
- #    endif
-+#    ifndef NOGDI
-+#        define NOGDI
-+#    endif
- #    include <windows.h>
- #endif
- 

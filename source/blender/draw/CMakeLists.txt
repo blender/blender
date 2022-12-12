@@ -256,6 +256,7 @@ set(SRC
   engines/eevee/eevee_lightcache.h
   engines/eevee/eevee_lut.h
   engines/eevee/eevee_private.h
+  engines/eevee/engine_eevee_shared_defines.h
   engines/eevee_next/eevee_camera.hh
   engines/eevee_next/eevee_cryptomatte.hh
   engines/eevee_next/eevee_depth_of_field.hh
@@ -316,6 +317,7 @@ set(GLSL_SRC
   engines/eevee/shaders/lightprobe_filter_visibility_frag.glsl
   engines/eevee/shaders/lightprobe_geom.glsl
   engines/eevee/shaders/lightprobe_vert.glsl
+  engines/eevee/shaders/lightprobe_vert_no_geom.glsl
   engines/eevee/shaders/lightprobe_cube_display_frag.glsl
   engines/eevee/shaders/lightprobe_cube_display_vert.glsl
   engines/eevee/shaders/lightprobe_grid_display_frag.glsl
@@ -381,7 +383,6 @@ set(GLSL_SRC
   engines/eevee/shaders/raytrace_lib.glsl
   engines/eevee/shaders/renderpass_lib.glsl
   engines/eevee/shaders/renderpass_postprocess_frag.glsl
-  engines/eevee/shaders/cryptomatte_lib.glsl
   engines/eevee/shaders/cryptomatte_frag.glsl
   engines/eevee/shaders/cryptomatte_vert.glsl
   engines/eevee/shaders/ltc_lib.glsl
@@ -400,6 +401,8 @@ set(GLSL_SRC
   engines/eevee/shaders/volumetric_scatter_frag.glsl
   engines/eevee/shaders/volumetric_integration_frag.glsl
   engines/eevee/shaders/world_vert.glsl
+  engines/eevee/shaders/infos/engine_eevee_legacy_shared.h
+  engines/eevee/engine_eevee_shared_defines.h
 
   engines/eevee_next/shaders/eevee_attributes_lib.glsl
   engines/eevee_next/shaders/eevee_camera_lib.glsl
@@ -474,9 +477,11 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_prepass_pointcloud_vert.glsl
   engines/workbench/shaders/workbench_prepass_vert.glsl
   engines/workbench/shaders/workbench_shadow_caps_geom.glsl
+  engines/workbench/shaders/workbench_shadow_caps_vert_no_geom.glsl
   engines/workbench/shaders/workbench_shadow_debug_frag.glsl
   engines/workbench/shaders/workbench_shadow_geom.glsl
   engines/workbench/shaders/workbench_shadow_vert.glsl
+  engines/workbench/shaders/workbench_shadow_vert_no_geom.glsl
   engines/workbench/shaders/workbench_transparent_accum_frag.glsl
   engines/workbench/shaders/workbench_transparent_resolve_frag.glsl
   engines/workbench/shaders/workbench_volume_frag.glsl
@@ -550,6 +555,7 @@ set(GLSL_SRC
 
   engines/basic/shaders/basic_conservative_depth_geom.glsl
   engines/basic/shaders/basic_depth_vert.glsl
+  engines/basic/shaders/basic_depth_vert_conservative_no_geom.glsl
   engines/basic/shaders/basic_depth_curves_vert.glsl
   engines/basic/shaders/basic_depth_pointcloud_vert.glsl
   engines/basic/shaders/basic_depth_frag.glsl
@@ -602,6 +608,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_edit_uv_edges_frag.glsl
   engines/overlay/shaders/overlay_edit_uv_edges_geom.glsl
   engines/overlay/shaders/overlay_edit_uv_edges_vert.glsl
+  engines/overlay/shaders/overlay_edit_uv_edges_vert_no_geom.glsl
   engines/overlay/shaders/overlay_edit_uv_face_dots_vert.glsl
   engines/overlay/shaders/overlay_edit_uv_faces_vert.glsl
   engines/overlay/shaders/overlay_edit_uv_image_mask_frag.glsl
@@ -639,6 +646,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_outline_prepass_gpencil_vert.glsl
   engines/overlay/shaders/overlay_outline_prepass_pointcloud_vert.glsl
   engines/overlay/shaders/overlay_outline_prepass_vert.glsl
+  engines/overlay/shaders/overlay_outline_prepass_vert_no_geom.glsl
   engines/overlay/shaders/overlay_paint_face_vert.glsl
   engines/overlay/shaders/overlay_paint_point_vert.glsl
   engines/overlay/shaders/overlay_paint_texture_frag.glsl

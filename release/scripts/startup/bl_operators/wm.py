@@ -2084,7 +2084,7 @@ class WM_OT_operator_cheat_sheet(Operator):
 # Add-on Operators
 
 class WM_OT_owner_enable(Operator):
-    """Enable workspace owner ID"""
+    """Enable add-on for workspace"""
     bl_idname = "wm.owner_enable"
     bl_label = "Enable Add-on"
 
@@ -2099,9 +2099,9 @@ class WM_OT_owner_enable(Operator):
 
 
 class WM_OT_owner_disable(Operator):
-    """Enable workspace owner ID"""
+    """Disable add-on for workspace"""
     bl_idname = "wm.owner_disable"
-    bl_label = "Disable UI Tag"
+    bl_label = "Disable Add-on"
 
     owner_id: StringProperty(
         name="UI Tag",
@@ -3083,7 +3083,13 @@ class WM_MT_splash_quick_setup(Menu):
 
         old_version = bpy.types.PREFERENCES_OT_copy_prev.previous_version()
         if bpy.types.PREFERENCES_OT_copy_prev.poll(context) and old_version:
-            sub.operator("preferences.copy_prev", text=iface_("Load %d.%d Settings", "Operator") % old_version, translate=False)
+            sub.operator(
+                "preferences.copy_prev",
+                text=iface_(
+                    "Load %d.%d Settings",
+                    "Operator") %
+                old_version,
+                translate=False)
             sub.operator("wm.save_userpref", text="Save New Settings")
         else:
             sub.label()

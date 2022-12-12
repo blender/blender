@@ -862,8 +862,7 @@ def asset_path_str_get(_self):
     if asset_file_handle.local_id:
         return "Current File"
 
-    asset_library_ref = bpy.context.asset_library_ref
-    return bpy.types.AssetHandle.get_full_library_path(asset_file_handle, asset_library_ref)
+    return bpy.types.AssetHandle.get_full_library_path(asset_file_handle)
 
 
 def register_props():

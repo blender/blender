@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "AS_asset_catalog_tree.hh"
+#include "AS_asset_identifier.hh"
 #include "AS_asset_library.h"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
@@ -22,6 +23,7 @@
 
 #include "asset_library_service.hh"
 #include "asset_storage.hh"
+#include "utils.hh"
 
 using namespace blender;
 using namespace blender::asset_system;
@@ -120,8 +122,9 @@ void AS_asset_library_remap_ids(const IDRemapper *mappings)
 
 namespace blender::asset_system {
 
-AssetLibrary::AssetLibrary()
-    : asset_storage_(std::make_unique<AssetStorage>()),
+AssetLibrary::AssetLibrary(StringRef root_path)
+    : root_path_(std::make_shared<std::string>(utils::normalize_directory_path(root_path))),
+      asset_storage_(std::make_unique<AssetStorage>()),
       catalog_service(std::make_unique<AssetCatalogService>())
 {
 }
@@ -133,9 +136,9 @@ AssetLibrary::~AssetLibrary()
   }
 }
 
-void AssetLibrary::load_catalogs(StringRefNull library_root_directory)
+void AssetLibrary::load_catalogs()
 {
-  auto catalog_service = std::make_unique<AssetCatalogService>(library_root_directory);
+  auto catalog_service = std::make_unique<AssetCatalogService>(root_path());
   catalog_service->load_from_disk();
   this->catalog_service = std::move(catalog_service);
 }
@@ -145,15 +148,18 @@ void AssetLibrary::refresh()
   this->catalog_service->reload_catalogs();
 }
 
-AssetRepresentation &AssetLibrary::add_external_asset(StringRef name,
+AssetRepresentation &AssetLibrary::add_external_asset(StringRef relative_asset_path,
+                                                      StringRef name,
                                                       std::unique_ptr<AssetMetaData> metadata)
 {
-  return asset_storage_->add_external_asset(name, std::move(metadata));
+  AssetIdentifier identifier = asset_identifier_from_library(relative_asset_path);
+  return asset_storage_->add_external_asset(std::move(identifier), name, std::move(metadata));
 }
 
-AssetRepresentation &AssetLibrary::add_local_id_asset(ID &id)
+AssetRepresentation &AssetLibrary::add_local_id_asset(StringRef relative_asset_path, ID &id)
 {
-  return asset_storage_->add_local_id_asset(id);
+  AssetIdentifier identifier = asset_identifier_from_library(relative_asset_path);
+  return asset_storage_->add_local_id_asset(std::move(identifier), id);
 }
 
 bool AssetLibrary::remove_asset(AssetRepresentation &asset)
@@ -209,6 +215,11 @@ void AssetLibrary::on_blend_save_post(struct Main *main,
   }
 }
 
+AssetIdentifier AssetLibrary::asset_identifier_from_library(StringRef relative_asset_path)
+{
+  return AssetIdentifier(root_path_, relative_asset_path);
+}
+
 void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
 {
   if (BLI_uuid_is_nil(asset_data->catalog_id)) {
@@ -222,6 +233,11 @@ void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
     return;
   }
   STRNCPY(asset_data->catalog_simple_name, catalog->simple_name.c_str());
+}
+
+StringRefNull AssetLibrary::root_path() const
+{
+  return *root_path_;
 }
 
 Vector<AssetLibraryReference> all_valid_asset_library_refs()

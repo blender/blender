@@ -176,20 +176,3 @@ bool ED_space_node_color_sample(struct Main *bmain,
 #ifdef __cplusplus
 }
 #endif
-
-#ifdef __cplusplus
-
-/* node_relationships.cc */
-
-namespace blender::ed::space_node {
-
-void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region);
-/**
- * Assumes link with #NODE_LINKFLAG_HILITE set.
- */
-void node_insert_on_link_flags(Main &bmain, SpaceNode &snode);
-void node_insert_on_link_flags_clear(bNodeTree &node_tree);
-
-}  // namespace blender::ed::space_node
-
-#endif

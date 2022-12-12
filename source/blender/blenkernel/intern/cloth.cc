@@ -1186,7 +1186,7 @@ static void cloth_update_spring_lengths(ClothModifierData *clmd, Mesh *mesh)
   LinkNode *search = cloth->springs;
   uint struct_springs = 0;
   uint i = 0;
-  uint mvert_num = (uint)mesh->totvert;
+  uint mvert_num = uint(mesh->totvert);
   float shrink_factor;
 
   clmd->sim_parms->avg_spring_len = 0.0f;
@@ -1461,7 +1461,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   ClothSpring *spring = nullptr, *tspring = nullptr, *tspring2 = nullptr;
   uint struct_springs = 0, shear_springs = 0, bend_springs = 0, struct_springs_real = 0;
   uint mvert_num = (uint)mesh->totvert;
-  uint numedges = (uint)mesh->totedge;
+  uint numedges = uint(mesh->totedge);
   uint numpolys = (uint)mesh->totpoly;
   float shrink_factor;
   const MEdge *medge = BKE_mesh_edges(mesh);
@@ -1647,7 +1647,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   for (int i = 0; i < mvert_num; i++) {
     if (cloth->verts[i].spring_count > 0) {
       cloth->verts[i].avg_spring_len = cloth->verts[i].avg_spring_len * 0.49f /
-                                       ((float)cloth->verts[i].spring_count);
+                                       (float(cloth->verts[i].spring_count));
     }
   }
 

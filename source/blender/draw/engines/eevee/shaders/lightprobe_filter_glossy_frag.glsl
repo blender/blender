@@ -3,21 +3,6 @@
 #pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 
-uniform samplerCube probeHdr;
-uniform float probe_roughness;
-uniform float texelSize;
-uniform float lodFactor;
-uniform float lodMax;
-uniform float paddingSize;
-uniform float intensityFac;
-uniform float fireflyFactor;
-
-uniform float sampleCount;
-
-in vec3 worldPosition;
-
-out vec4 FragColor;
-
 vec3 octahedral_to_cubemap_proj(vec2 co)
 {
   co = co * 2.0 - 1.0;
@@ -36,7 +21,7 @@ void main()
 {
   vec3 N, T, B, V;
 
-  vec3 R = normalize(worldPosition);
+  vec3 R = normalize(geom_iface.worldPosition);
 
   /* Isotropic assumption */
   N = V = R;

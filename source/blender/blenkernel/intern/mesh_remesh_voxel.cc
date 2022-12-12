@@ -288,7 +288,7 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, const Mesh *source)
 {
   BVHTreeFromMesh bvhtree = {nullptr};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
-  const MVert *target_verts = (const MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
+  const Span<MVert> target_verts = target->verts();
   const float *source_mask = (const float *)CustomData_get_layer(&source->vdata, CD_PAINT_MASK);
   if (source_mask == nullptr) {
     return;
@@ -305,13 +305,11 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, const Mesh *source)
 
   blender::threading::parallel_for(IndexRange(target->totvert), 4096, [&](const IndexRange range) {
     for (const int i : range) {
-      float from_co[3];
       BVHTreeNearest nearest;
       nearest.index = -1;
       nearest.dist_sq = FLT_MAX;
-      copy_v3_v3(from_co, target_verts[i].co);
       BLI_bvhtree_find_nearest(
-          bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
+          bvhtree.tree, target_verts[i].co, &nearest, bvhtree.nearest_callback, &bvhtree);
       if (nearest.index != -1) {
         target_mask[i] = source_mask[nearest.index];
       }
@@ -326,9 +324,9 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
   using namespace blender::bke;
   const AttributeAccessor src_attributes = source->attributes();
   MutableAttributeAccessor dst_attributes = target->attributes_for_write();
-  const MPoly *target_polys = (const MPoly *)CustomData_get_layer(&target->pdata, CD_MPOLY);
-  const MVert *target_verts = (const MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
-  const MLoop *target_loops = (const MLoop *)CustomData_get_layer(&target->ldata, CD_MLOOP);
+  const Span<MVert> target_verts = target->verts();
+  const Span<MPoly> target_polys = target->polys();
+  const Span<MLoop> target_loops = target->loops();
 
   const VArray<int> src_face_sets = src_attributes.lookup<int>(".sculpt_face_set",
                                                                ATTR_DOMAIN_FACE);
@@ -354,8 +352,9 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
       BVHTreeNearest nearest;
       nearest.index = -1;
       nearest.dist_sq = FLT_MAX;
-      const MPoly *mpoly = &target_polys[i];
-      BKE_mesh_calc_poly_center(mpoly, &target_loops[mpoly->loopstart], target_verts, from_co);
+      const MPoly &poly = target_polys[i];
+      BKE_mesh_calc_poly_center(
+          &poly, &target_loops[poly.loopstart], target_verts.data(), from_co);
       BLI_bvhtree_find_nearest(
           bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
       if (nearest.index != -1) {
@@ -403,7 +402,7 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
     size_t data_size = CustomData_sizeof(layer->type);
     void *target_data = target_cdata->layers[layer_i].data;
     void *source_data = layer->data;
-    MVert *target_verts = (MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
+    const Span<MVert> target_verts = target->verts();
 
     if (domain == ATTR_DOMAIN_POINT) {
       blender::threading::parallel_for(

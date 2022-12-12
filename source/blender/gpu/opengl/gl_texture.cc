@@ -303,6 +303,42 @@ void GLTexture::update_sub(
   has_pixels_ = true;
 }
 
+void GLTexture::update_sub(int offset[3],
+                           int extent[3],
+                           eGPUDataFormat format,
+                           GPUPixelBuffer *pixbuf)
+{
+  /* Update texture from pixel buffer. */
+  BLI_assert(validate_data_format(format_, format));
+  BLI_assert(pixbuf != nullptr);
+
+  const int dimensions = this->dimensions_count();
+  GLenum gl_format = to_gl_data_format(format_);
+  GLenum gl_type = to_gl(format);
+
+  /* Temporarily Bind texture. */
+  GLContext::state_manager_active_get()->texture_bind_temp(this);
+
+  /* Bind pixel buffer for source data. */
+  GLint pix_buf_handle = (GLint)GPU_pixel_buffer_get_native_handle(pixbuf);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pix_buf_handle);
+
+  switch (dimensions) {
+    default:
+    case 1:
+      glTexSubImage1D(target_, 0, offset[0], extent[0], gl_format, gl_type, 0);
+      break;
+    case 2:
+      glTexSubImage2D(target_, 0, UNPACK2(offset), UNPACK2(extent), gl_format, gl_type, 0);
+      break;
+    case 3:
+      glTexSubImage3D(target_, 0, UNPACK3(offset), UNPACK3(extent), gl_format, gl_type, 0);
+      break;
+  }
+
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+}
+
 /**
  * This will create the mipmap images and populate them with filtered data from base level.
  *
@@ -739,4 +775,63 @@ uint GLTexture::gl_bindcode_get() const
   return tex_id_;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Pixel Buffer
+ * \{ */
+
+GLPixelBuffer::GLPixelBuffer(uint size) : PixelBuffer(size)
+{
+  glGenBuffers(1, &gl_id_);
+  BLI_assert(gl_id_);
+
+  if (!gl_id_) {
+    return;
+  }
+
+  /* Ensure size is non-zero for pixel buffer backing storage creation. */
+  size = max_ii(size, 32);
+
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, gl_id_);
+  glBufferData(GL_PIXEL_UNPACK_BUFFER, size, 0, GL_DYNAMIC_DRAW);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+}
+
+GLPixelBuffer::~GLPixelBuffer()
+{
+  if (!gl_id_) {
+    return;
+  }
+  glDeleteBuffers(1, &gl_id_);
+}
+
+void *GLPixelBuffer::map()
+{
+  if (!gl_id_) {
+    BLI_assert(false);
+    return nullptr;
+  }
+
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, gl_id_);
+  void *ptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+  BLI_assert(ptr);
+  return ptr;
+}
+
+void GLPixelBuffer::unmap()
+{
+  glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+}
+
+int64_t GLPixelBuffer::get_native_handle()
+{
+  return (int64_t)gl_id_;
+}
+
+uint GLPixelBuffer::get_size()
+{
+  return size_;
+}
+
+/** \} */
 }  // namespace blender::gpu

@@ -40,12 +40,16 @@
 #define vec3_1010102_Inorm int
 
 /* Strip GLSL Decorators. */
-#define in
-#define flat
-#define smooth
-#define noperspective
-#define layout(std140) struct
-#define uniform
+/* NOTE: For debugging, keep decorators in to ensure we have not missed any
+ * shader resources which are not guarded behind Macro's. */
+#if 0
+#  define in
+#  define flat
+#  define smooth
+#  define noperspective
+#  define layout(std140) struct
+#  define uniform
+#endif
 
 /* Used to replace 'out' in function parameters with threadlocal reference
  * shortened to avoid expanding the glsl source string. */
@@ -131,6 +135,7 @@ struct SStruct {
 #define texelFetch _texelFetch_internal
 #define texelFetchOffset(__tex, __texel, __lod, __offset) \
   _texelFetch_internal(__tex, __texel, __lod, __offset)
+#define imageLoad(__image, __coord) _texelFetch_internal(__image, __coord, 0)
 #define texture2(__tex, __uv) _texture_internal_samp(__tex, __uv)
 #define texture3(__tex, __uv, _bias) _texture_internal_bias(__tex, __uv, bias(float(_bias)))
 #define textureLod(__tex, __uv, __lod) _texture_internal_level(__tex, __uv, level(float(__lod)))
@@ -164,7 +169,9 @@ union _msl_return_float {
  * type, as return types are specific to the signature of 'tex'. */
 /* Texture Read. */
 template<typename S, typename T, access A>
-inline vec<S, 4> _texelFetch_internal(thread _mtl_combined_image_sampler_1d<S, A> tex, T texel)
+inline vec<S, 4> _texelFetch_internal(thread _mtl_combined_image_sampler_1d<S, A> tex,
+                                      T texel,
+                                      uint lod = 0)
 {
   float w = tex.texture->get_width();
   if (texel >= 0 && texel < w) {
@@ -177,7 +184,7 @@ inline vec<S, 4> _texelFetch_internal(thread _mtl_combined_image_sampler_1d<S, A
 
 template<typename S, typename T>
 inline vec<S, 4> _texelFetch_internal(
-    const thread _mtl_combined_image_sampler_buffer<S, access::read> tex, T texel)
+    const thread _mtl_combined_image_sampler_buffer<S, access::read> tex, T texel, uint lod = 0)
 {
   float w = tex.texture->get_width();
   if (texel >= 0 && texel < w) {
@@ -607,6 +614,15 @@ inline float4 _texture_gather_internal(
   return tex.texture->gather(*tex.samp, uv, offset);
 }
 
+inline float4 _texture_gather_internal(
+    thread _mtl_combined_image_sampler_depth_2d_array<float, access::sample> tex,
+    float3 uva,
+    const int comp = 0,
+    int2 offset = int2(0))
+{
+  return tex.texture->gather(*tex.samp, uva.xy, uint(uva.z), offset);
+}
+
 template<typename T>
 inline vec<T, 4> _texture_gather_internal(
     thread _mtl_combined_image_sampler_2d<T, access::sample> tex,
@@ -620,11 +636,11 @@ inline vec<T, 4> _texture_gather_internal(
 template<typename T>
 inline vec<T, 4> _texture_gather_internal(
     thread _mtl_combined_image_sampler_2d_array<T, access::sample> tex,
-    float2 uv,
+    float3 uva,
     const int comp = 0,
     int2 offset = int2(0))
 {
-  return tex.texture->gather(*tex.samp, uv, offset);
+  return tex.texture->gather(*tex.samp, uva.xy, uint(uva.z), offset);
 }
 
 /* Texture write support. */
@@ -637,6 +653,20 @@ inline void _texture_write_internal(thread _mtl_combined_image_sampler_2d<S, A> 
   float h = tex.texture->get_height();
   if (_coord.x >= 0 && _coord.x < w && _coord.y >= 0 && _coord.y < h) {
     tex.texture->write(value, uint2(_coord.xy));
+  }
+}
+
+template<typename S, typename T, access A>
+inline void _texture_write_internal(thread _mtl_combined_image_sampler_2d_array<S, A> tex,
+                                    T _coord,
+                                    vec<S, 4> value)
+{
+  float w = tex.texture->get_width();
+  float h = tex.texture->get_height();
+  float d = tex.texture->get_array_size();
+  if (_coord.x >= 0 && _coord.x < w && _coord.y >= 0 && _coord.y < h && _coord.z >= 0 &&
+      _coord.z < d) {
+    tex.texture->write(value, uint2(_coord.xy), _coord.z);
   }
 }
 
@@ -813,7 +843,29 @@ inline float4 intBitsToFloat(int4 f)
   return as_type<float4>(f);
 }
 
+inline float uintBitsToFloat(uint f)
+{
+  return as_type<float>(f);
+}
+
+inline float2 uintBitsToFloat(uint2 f)
+{
+  return as_type<float2>(f);
+}
+
+inline float3 uintBitsToFloat(uint3 f)
+{
+  return as_type<float3>(f);
+}
+
+inline float4 uintBitsToFloat(uint4 f)
+{
+  return as_type<float4>(f);
+}
+
 /* Texture size functions. Add texture types as needed. */
+#define imageSize(image) textureSize(image, 0)
+
 template<typename T, access A>
 int textureSize(thread _mtl_combined_image_sampler_1d<T, A> image, uint lod)
 {
@@ -900,19 +952,24 @@ int _mtlmod(int a, int b)
   return a - b * (a / b);
 }
 
+float _mtlmod(float a, float b)
+{
+  return a - b * floor(a / b);
+}
+
 template<typename T, int n> vec<T, n> _mtlmod(vec<T, n> x, vec<T, n> y)
 {
-  return x - y * floor(x / y);
+  return x - (y * floor(x / y));
 }
 
 template<typename T, int n, typename U> vec<T, n> _mtlmod(vec<T, n> x, U y)
 {
-  return x - vec<T, n>(y) * floor(x / vec<T, n>(y));
+  return x - (vec<T, n>(y) * floor(x / vec<T, n>(y)));
 }
 
 template<typename T, typename U, int n> vec<U, n> _mtlmod(T x, vec<U, n> y)
 {
-  return vec<U, n>(x) - y * floor(vec<U, n>(x) / y);
+  return vec<U, n>(x) - (y * floor(vec<U, n>(x) / y));
 }
 
 /* Mathematical functions. */
@@ -1054,6 +1111,34 @@ template<typename T, unsigned int Size> bool is_zero(vec<T, Size> a)
 mat3 MAT3(vec3 a, vec3 b, vec3 c)
 {
   return mat3(a, b, c);
+}
+mat3 MAT3(vec3 a, vec3 b, float c1, float c2, float c3)
+{
+  return mat3(a, b, vec3(c1, c2, c3));
+}
+mat3 MAT3(vec3 a, float b1, float b2, float b3, vec3 c)
+{
+  return mat3(a, vec3(b1, b2, b3), c);
+}
+mat3 MAT3(vec3 a, float b1, float b2, float b3, float c1, float c2, float c3)
+{
+  return mat3(a, vec3(b1, b2, b3), vec3(c1, c2, c3));
+}
+mat3 MAT3(float a1, float a2, float a3, float b1, float b2, float b3, float c1, float c2, float c3)
+{
+  return mat3(vec3(a1, a2, a3), vec3(b1, b2, b3), vec3(c1, c2, c3));
+}
+mat3 MAT3(float a1, float a2, float a3, vec3 b, vec3 c)
+{
+  return mat3(vec3(a1, a2, a3), b, c);
+}
+mat3 MAT3(float a1, float a2, float a3, vec3 b, float c1, float c2, float c3)
+{
+  return mat3(vec3(a1, a2, a3), b, vec3(c1, c2, c3));
+}
+mat3 MAT3(float a1, float a2, float a3, float b1, float b2, float b3, vec3 c)
+{
+  return mat3(vec3(a1, a2, a3), vec3(b1, b2, b3), c);
 }
 mat3 MAT3(float f)
 {

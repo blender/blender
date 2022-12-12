@@ -42,7 +42,7 @@ set(SRC
   curves_sculpt_smooth.cc
   curves_sculpt_snake_hook.cc
   paint_canvas.cc
-  paint_cursor.c
+  paint_cursor.cc
   paint_curve.c
   paint_curve_undo.c
   paint_hide.c
@@ -50,7 +50,7 @@ set(SRC
   paint_image_2d.c
   paint_image_2d_curve_mask.cc
   paint_image_ops_paint.cc
-  paint_image_proj.c
+  paint_image_proj.cc
   paint_mask.c
   paint_ops.c
   paint_stroke.c
@@ -101,11 +101,10 @@ if(WITH_TBB)
     ${TBB_INCLUDE_DIRS}
   )
   add_definitions(-DWITH_TBB)
-  if(WIN32)
-    # TBB includes Windows.h which will define min/max macros
-    # that will collide with the stl versions.
+endif()
+
+if(WIN32)
     add_definitions(-DNOMINMAX)
-  endif()
 endif()
 
 blender_add_lib(bf_editor_sculpt_paint "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

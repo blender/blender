@@ -141,13 +141,30 @@ template<typename T> class Span {
   {
     BLI_assert(start >= 0);
     BLI_assert(size >= 0);
-    const int64_t new_size = std::max<int64_t>(0, std::min(size, size_ - start));
-    return Span(data_ + start, new_size);
+    BLI_assert(start + size <= size_ || size == 0);
+    return Span(data_ + start, size);
   }
 
   constexpr Span slice(IndexRange range) const
   {
     return this->slice(range.start(), range.size());
+  }
+
+  /**
+   * Returns a contiguous part of the array. This invokes undefined behavior when the start or size
+   * is negative. Clamps the size of the new new span so it fits in the current one.
+   */
+  constexpr Span slice_safe(const int64_t start, const int64_t size) const
+  {
+    BLI_assert(start >= 0);
+    BLI_assert(size >= 0);
+    const int64_t new_size = std::max<int64_t>(0, std::min(size, size_ - start));
+    return Span(data_ + start, new_size);
+  }
+
+  constexpr Span slice_safe(IndexRange range) const
+  {
+    return this->slice_safe(range.start(), range.size());
   }
 
   /**
@@ -578,8 +595,9 @@ template<typename T> class MutableSpan {
    */
   constexpr MutableSpan slice(const int64_t start, const int64_t size) const
   {
-    BLI_assert(this->index_range().contains(start));
-    BLI_assert(this->index_range().contains(IndexRange(start, size).last()));
+    BLI_assert(start >= 0);
+    BLI_assert(size >= 0);
+    BLI_assert(start + size <= size_ || size == 0);
     return MutableSpan(data_ + start, size);
   }
 

@@ -446,10 +446,12 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
     /* migrate node */
     BLI_remlink(&ngroup->nodes, node);
     BLI_addtail(&ntree->nodes, node);
+    nodeUniqueID(ntree, node);
     /* ensure unique node name in the node tree */
     /* This is very slow and it has no use for GPU nodetree. (see T70609) */
     // nodeUniqueName(ntree, node);
   }
+  ngroup->runtime->nodes_by_id.clear();
 
   /* Save first and last link to iterate over flattened group links. */
   bNodeLink *glinks_first = static_cast<bNodeLink *>(ntree->links.last);
@@ -578,8 +580,13 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->runtime->tmp_flag >= 0) {
       int id = node->runtime->tmp_flag;
+      /* Avoid creating unique names in the new tree, since it is very slow. The names on the new
+       * nodes will be invalid. But identifiers must be created for the `bNodeTree::all_nodes()`
+       * vector, though they won't match the original. */
       nodes_copy[id] = blender::bke::node_copy(
           ntree, *node, LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_MAIN, false);
+      nodeUniqueID(ntree, nodes_copy[id]);
+
       nodes_copy[id]->runtime->tmp_flag = -2; /* Copy */
       /* Make sure to clear all sockets links as they are invalid. */
       LISTBASE_FOREACH (bNodeSocket *, sock, &nodes_copy[id]->inputs) {
@@ -1045,10 +1052,10 @@ static void shader_node_disconnect_inactive_mix_branch(bNodeTree *ntree,
 static void ntree_shader_disconnect_inactive_mix_branches(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_MIX_SHADER) {
+    if (node->typeinfo->type == SH_NODE_MIX_SHADER) {
       shader_node_disconnect_inactive_mix_branch(ntree, node, 0, 1, 2, true);
     }
-    else if (node->type == SH_NODE_MIX) {
+    else if (node->typeinfo->type == SH_NODE_MIX) {
       const NodeShaderMix *storage = static_cast<NodeShaderMix *>(node->storage);
       if (storage->data_type == SOCK_FLOAT) {
         shader_node_disconnect_inactive_mix_branch(ntree, node, 0, 2, 3, storage->clamp_factor);
@@ -1181,8 +1188,8 @@ bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree)
   /* XXX hack: prevent exec data from being generated twice.
    * this should be handled by the renderer!
    */
-  if (ntree->execdata) {
-    return ntree->execdata;
+  if (ntree->runtime->execdata) {
+    return ntree->runtime->execdata;
   }
 
   context.previews = ntree->previews;
@@ -1192,7 +1199,7 @@ bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree)
   /* XXX: this should not be necessary, but is still used for compositor/shader/texture nodes,
    * which only store the `ntree` pointer. Should be fixed at some point!
    */
-  ntree->execdata = exec;
+  ntree->runtime->execdata = exec;
 
   return exec;
 }
@@ -1225,6 +1232,6 @@ void ntreeShaderEndExecTree(bNodeTreeExec *exec)
 
     /* XXX: clear node-tree back-pointer to exec data,
      * same problem as noted in #ntreeBeginExecTree. */
-    ntree->execdata = nullptr;
+    ntree->runtime->execdata = nullptr;
   }
 }

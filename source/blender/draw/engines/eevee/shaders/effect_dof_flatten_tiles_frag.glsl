@@ -9,13 +9,6 @@
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 
-/* Half resolution. */
-uniform sampler2D halfResCocBuffer;
-
-/* 1/8th of halfResCocBuffer resolution. So 1/16th of fullres. */
-layout(location = 0) out vec4 outFgCoc;
-layout(location = 1) out vec3 outBgCoc;
-
 const int halfres_tile_divisor = DOF_TILE_DIVISOR / 2;
 
 void main()

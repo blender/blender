@@ -99,6 +99,10 @@ static const EnumPropertyItem event_ndof_type_items[] = {
     {NDOF_BUTTON_DOMINANT, "NDOF_BUTTON_DOMINANT", 0, "Dominant", ""},
     {NDOF_BUTTON_PLUS, "NDOF_BUTTON_PLUS", 0, "Plus", ""},
     {NDOF_BUTTON_MINUS, "NDOF_BUTTON_MINUS", 0, "Minus", ""},
+    /* View buttons. */
+    {NDOF_BUTTON_V1, "NDOF_BUTTON_V1", 0, "View 1", ""},
+    {NDOF_BUTTON_V2, "NDOF_BUTTON_V2", 0, "View 2", ""},
+    {NDOF_BUTTON_V3, "NDOF_BUTTON_V3", 0, "View 3", ""},
     /* general-purpose buttons */
     {NDOF_BUTTON_1, "NDOF_BUTTON_1", 0, "Button 1", ""},
     {NDOF_BUTTON_2, "NDOF_BUTTON_2", 0, "Button 2", ""},
@@ -113,10 +117,6 @@ static const EnumPropertyItem event_ndof_type_items[] = {
     {NDOF_BUTTON_A, "NDOF_BUTTON_A", 0, "Button A", ""},
     {NDOF_BUTTON_B, "NDOF_BUTTON_B", 0, "Button B", ""},
     {NDOF_BUTTON_C, "NDOF_BUTTON_C", 0, "Button C", ""},
-    /* View buttons. */
-    {NDOF_BUTTON_V1, "NDOF_BUTTON_V1", 0, "View 1", ""},
-    {NDOF_BUTTON_V2, "NDOF_BUTTON_V2", 0, "View 2", ""},
-    {NDOF_BUTTON_V3, "NDOF_BUTTON_V3", 0, "View 3", ""},
 #  if 0 /* Never used (converted to keyboard events by GHOST). */
     /* keyboard emulation */
     {NDOF_BUTTON_ESC, "NDOF_BUTTON_ESC", 0, "Esc"},
@@ -347,6 +347,10 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {NDOF_BUTTON_SHIFT, "NDOF_BUTTON_SHIFT", 0, "NDOF Shift", "NdofShift"},
     {NDOF_BUTTON_CTRL, "NDOF_BUTTON_CTRL", 0, "NDOF Ctrl", "NdofCtrl"},
 #endif
+    /* View buttons. */
+    {NDOF_BUTTON_V1, "NDOF_BUTTON_V1", 0, "NDOF View 1", ""},
+    {NDOF_BUTTON_V2, "NDOF_BUTTON_V2", 0, "NDOF View 2", ""},
+    {NDOF_BUTTON_V3, "NDOF_BUTTON_V3", 0, "NDOF View 3", ""},
     /* general-purpose buttons */
     {NDOF_BUTTON_1, "NDOF_BUTTON_1", 0, "NDOF Button 1", "NdofB1"},
     {NDOF_BUTTON_2, "NDOF_BUTTON_2", 0, "NDOF Button 2", "NdofB2"},

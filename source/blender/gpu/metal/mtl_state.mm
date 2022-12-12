@@ -282,27 +282,25 @@ void MTLStateManager::set_stencil_test(const eGPUStencilTest test, const eGPUSte
           context_, MTLStencilOperationKeep, MTLStencilOperationKeep, MTLStencilOperationReplace);
       break;
     case GPU_STENCIL_OP_COUNT_DEPTH_PASS:
-      /* Winding inversed due to flipped Y coordinate system in Metal. */
       mtl_stencil_set_op_separate(context_,
-                                  GPU_CULL_FRONT,
+                                  GPU_CULL_BACK,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationIncrementWrap);
       mtl_stencil_set_op_separate(context_,
-                                  GPU_CULL_BACK,
+                                  GPU_CULL_FRONT,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationDecrementWrap);
       break;
     case GPU_STENCIL_OP_COUNT_DEPTH_FAIL:
-      /* Winding inversed due to flipped Y coordinate system in Metal. */
       mtl_stencil_set_op_separate(context_,
-                                  GPU_CULL_FRONT,
+                                  GPU_CULL_BACK,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationDecrementWrap,
                                   MTLStencilOperationKeep);
       mtl_stencil_set_op_separate(context_,
-                                  GPU_CULL_BACK,
+                                  GPU_CULL_FRONT,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationIncrementWrap,
                                   MTLStencilOperationKeep);
@@ -558,6 +556,44 @@ void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits)
   }
 
   ctx->main_command_buffer.insert_memory_barrier(barrier_bits, before_stages, after_stages);
+}
+
+MTLFence::~MTLFence()
+{
+  if (mtl_event_) {
+    [mtl_event_ release];
+    mtl_event_ = nil;
+  }
+}
+
+void MTLFence::signal()
+{
+  if (mtl_event_ == nil) {
+    MTLContext *ctx = MTLContext::get();
+    BLI_assert(ctx);
+    mtl_event_ = [ctx->device newEvent];
+  }
+  MTLContext *ctx = MTLContext::get();
+  BLI_assert(ctx);
+  ctx->main_command_buffer.encode_signal_event(mtl_event_, ++last_signalled_value_);
+
+  signalled_ = true;
+}
+
+void MTLFence::wait()
+{
+  /* do not attempt to wait if event has not yet been signalled for the first time. */
+  if (mtl_event_ == nil) {
+    return;
+  }
+
+  if (signalled_) {
+    MTLContext *ctx = MTLContext::get();
+    BLI_assert(ctx);
+
+    ctx->main_command_buffer.encode_wait_for_event(mtl_event_, last_signalled_value_);
+    signalled_ = false;
+  }
 }
 
 /** \} */

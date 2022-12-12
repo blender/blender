@@ -245,7 +245,6 @@ static DupliObject *make_dupli(const DupliContext *ctx,
   dob->ob = ob;
   dob->ob_data = const_cast<ID *>(object_data);
   mul_m4_m4m4(dob->mat, (float(*)[4])ctx->space_mat, mat);
-  std::cout << "Use\n";
   dob->type = ctx->gen == nullptr ? 0 : ctx->dupli_gen_type_stack->last();
   dob->preview_base_geometry = ctx->preview_base_geometry;
   dob->preview_instance_index = ctx->preview_instance_index;

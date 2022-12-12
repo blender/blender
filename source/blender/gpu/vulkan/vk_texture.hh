@@ -26,6 +26,10 @@ class VKTexture : public Texture {
   void *read(int mip, eGPUDataFormat format) override;
   void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data) override;
+  void update_sub(int offset[3],
+                  int extent[3],
+                  eGPUDataFormat format,
+                  GPUPixelBuffer *pixbuf) override;
 
   /* TODO(fclem): Legacy. Should be removed at some point. */
   uint gl_bindcode_get() const override;

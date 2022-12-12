@@ -1175,6 +1175,8 @@ static void vertex_paint_init_session(Depsgraph *depsgraph,
   ob->sculpt = (SculptSession *)MEM_callocN(sizeof(SculptSession), "sculpt session");
   ob->sculpt->mode_type = object_mode;
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, true);
+
+  SCULPT_ensure_valid_pivot(ob, scene);
 }
 
 static void vwpaint_init_stroke(Depsgraph *depsgraph, Object *ob)

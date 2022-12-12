@@ -242,8 +242,8 @@ bNodeTreeExec *ntreeTexBeginExecTree(bNodeTree *ntree)
   /* XXX hack: prevent exec data from being generated twice.
    * this should be handled by the renderer!
    */
-  if (ntree->execdata) {
-    return ntree->execdata;
+  if (ntree->runtime->execdata) {
+    return ntree->runtime->execdata;
   }
 
   context.previews = ntree->previews;
@@ -253,7 +253,7 @@ bNodeTreeExec *ntreeTexBeginExecTree(bNodeTree *ntree)
   /* XXX this should not be necessary, but is still used for compositor/shading/texture nodes,
    * which only store the ntree pointer. Should be fixed at some point!
    */
-  ntree->execdata = exec;
+  ntree->runtime->execdata = exec;
 
   return exec;
 }
@@ -311,7 +311,7 @@ void ntreeTexEndExecTree(bNodeTreeExec *exec)
 
     /* XXX: clear node-tree back-pointer to exec data,
      * same problem as noted in #ntreeBeginExecTree. */
-    ntree->execdata = nullptr;
+    ntree->runtime->execdata = nullptr;
   }
 }
 
@@ -331,7 +331,7 @@ int ntreeTexExecTree(bNodeTree *ntree,
   TexCallData data;
   int retval = TEX_INT;
   bNodeThreadStack *nts = nullptr;
-  bNodeTreeExec *exec = ntree->execdata;
+  bNodeTreeExec *exec = ntree->runtime->execdata;
 
   data.co = co;
   data.dxt = dxt;
@@ -348,12 +348,12 @@ int ntreeTexExecTree(bNodeTree *ntree,
   /* ensure execdata is only initialized once */
   if (!exec) {
     BLI_thread_lock(LOCK_NODES);
-    if (!ntree->execdata) {
+    if (!ntree->runtime->execdata) {
       ntreeTexBeginExecTree(ntree);
     }
     BLI_thread_unlock(LOCK_NODES);
 
-    exec = ntree->execdata;
+    exec = ntree->runtime->execdata;
   }
 
   nts = ntreeGetThreadStack(exec, thread);

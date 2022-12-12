@@ -118,7 +118,7 @@ set(SRC
   intern/curves_utils.cc
   intern/customdata.cc
   intern/customdata_file.c
-  intern/data_transfer.c
+  intern/data_transfer.cc
   intern/deform.c
   intern/displist.cc
   intern/dynamicpaint.c
@@ -164,7 +164,7 @@ set(SRC
   intern/instances.cc
   intern/ipo.c
   intern/kelvinlet.c
-  intern/key.c
+  intern/key.cc
   intern/keyconfig.c
   intern/lattice.c
   intern/lattice_deform.c
@@ -203,7 +203,7 @@ set(SRC
   intern/mesh_mapping.cc
   intern/mesh_merge.c
   intern/mesh_merge_customdata.cc
-  intern/mesh_mirror.c
+  intern/mesh_mirror.cc
   intern/mesh_normals.cc
   intern/mesh_remap.cc
   intern/mesh_remesh_voxel.cc
@@ -229,6 +229,7 @@ set(SRC
   intern/nla.c
   intern/node.cc
   intern/node_runtime.cc
+  intern/node_tree_field_inferencing.cc
   intern/node_tree_update.cc
   intern/object.cc
   intern/object_deform.c
@@ -250,6 +251,7 @@ set(SRC
   intern/pbvh.cc
   intern/pbvh_bmesh.c
   intern/pbvh_pixels.cc
+  intern/pbvh_uv_islands.cc
   intern/pointcache.c
   intern/pointcloud.cc
   intern/preferences.c

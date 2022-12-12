@@ -54,6 +54,8 @@
 #include "NOD_multi_function.hh"
 #include "NOD_shader.h"
 #include "NOD_socket_declarations.hh"
+
+#include "node_shader_register.hh"
 #include "node_util.h"
 
 #include "RE_pipeline.h"

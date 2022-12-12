@@ -172,7 +172,7 @@ static void subdivide_bezier_segment(const float3 &position_prev,
   auto fill_segment_handle_types = [&](const HandleType type) {
     /* Also change the left handle of the control point following the segment's points. And don't
      * change the left handle of the first point, since that is part of the previous segment. */
-    dst_types_l.slice(segment_points.shift(1)).fill(type);
+    dst_types_l.slice_safe(segment_points.shift(1)).fill(type);
     dst_types_r.slice(segment_points).fill(type);
   };
 

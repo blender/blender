@@ -559,7 +559,7 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_setup(ccl_private MicrofacetBsdf 
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
 
-  return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_NEEDS_LCG;
+  return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_NEEDS_LCG | SD_BSDF_HAS_TRANSMISSION;
 }
 
 ccl_device int bsdf_microfacet_multi_ggx_glass_fresnel_setup(ccl_private MicrofacetBsdf *bsdf,

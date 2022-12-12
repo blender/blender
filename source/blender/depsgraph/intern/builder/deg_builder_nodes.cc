@@ -1764,7 +1764,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   }
 
   /* nodetree's nodes... */
-  LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
+  for (bNode *bnode : ntree->all_nodes()) {
     build_idproperties(bnode->prop);
     LISTBASE_FOREACH (bNodeSocket *, socket, &bnode->inputs) {
       build_nodetree_socket(socket);

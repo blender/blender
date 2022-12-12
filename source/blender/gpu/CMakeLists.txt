@@ -43,6 +43,7 @@ set(INC
 
 set(INC_SYS
   ${Epoxy_INCLUDE_DIRS}
+  ${VULKAN_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -191,10 +192,13 @@ set(VULKAN_SRC
   vulkan/vk_batch.cc
   vulkan/vk_context.cc
   vulkan/vk_drawlist.cc
+  vulkan/vk_fence.cc
   vulkan/vk_framebuffer.cc
   vulkan/vk_index_buffer.cc
+  vulkan/vk_pixel_buffer.cc
   vulkan/vk_query.cc
   vulkan/vk_shader.cc
+  vulkan/vk_shader_log.cc
   vulkan/vk_storage_buffer.cc
   vulkan/vk_texture.cc
   vulkan/vk_uniform_buffer.cc
@@ -204,10 +208,13 @@ set(VULKAN_SRC
   vulkan/vk_batch.hh
   vulkan/vk_context.hh
   vulkan/vk_drawlist.hh
+  vulkan/vk_fence.hh
   vulkan/vk_framebuffer.hh
   vulkan/vk_index_buffer.hh
+  vulkan/vk_pixel_buffer.hh
   vulkan/vk_query.hh
   vulkan/vk_shader.hh
+  vulkan/vk_shader_log.hh
   vulkan/vk_storage_buffer.hh
   vulkan/vk_texture.hh
   vulkan/vk_uniform_buffer.hh
@@ -265,19 +272,32 @@ if(WITH_OPENGL)
   list(APPEND SRC ${OPENGL_SRC})
 endif()
 
-if(WITH_VULKAN_BACKEND)
-  list(APPEND SRC ${VULKAN_SRC})
-
-  add_definitions(-DWITH_VULKAN_BACKEND)
-endif()
-
 if(WITH_METAL_BACKEND)
   list(APPEND SRC ${METAL_SRC})
 endif()
 
 set(LIB
   ${Epoxy_LIBRARIES}
+  ${VULKAN_LIBRARIES}
 )
+
+if(WITH_VULKAN_BACKEND)
+  list(APPEND SRC ${VULKAN_SRC})
+
+  add_definitions(-DWITH_VULKAN_BACKEND)
+
+  list(APPEND INC_SYS
+    ${VULKAN_INCLUDE_DIRS}
+  )
+
+  list(APPEND INC
+    ../../../extern/vulkan_memory_allocator/
+  )
+
+  list(APPEND LIB
+    extern_vulkan_memory_allocator
+  )
+endif()
 
 set(MSL_SRC
   shaders/metal/mtl_shader_defines.msl
@@ -559,6 +579,17 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/workbench/shaders/infos/workbench_shadow_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_transparent_resolve_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_volume_info.hh
+
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_common_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_bloom_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_lightprobe_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_effects_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_dof_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_volume_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_shadow_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_material_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_motion_blur_info.hh
+
   ../draw/engines/image/shaders/infos/engine_image_info.hh
   ../draw/intern/shaders/draw_debug_info.hh
   ../draw/intern/shaders/draw_fullscreen_info.hh

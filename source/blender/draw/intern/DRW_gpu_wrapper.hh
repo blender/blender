@@ -469,17 +469,19 @@ class Texture : NonCopyable {
 
   Texture(const char *name,
           eGPUTextureFormat format,
+          eGPUTextureUsage usage,
           int extent,
           float *data = nullptr,
           bool cubemap = false,
           int mip_len = 1)
       : name_(name)
   {
-    tx_ = create(extent, 0, 0, mip_len, format, data, false, cubemap);
+    tx_ = create(extent, 0, 0, mip_len, format, usage, data, false, cubemap);
   }
 
   Texture(const char *name,
           eGPUTextureFormat format,
+          eGPUTextureUsage usage,
           int extent,
           int layers,
           float *data = nullptr,
@@ -487,38 +489,41 @@ class Texture : NonCopyable {
           int mip_len = 1)
       : name_(name)
   {
-    tx_ = create(extent, layers, 0, mip_len, format, data, true, cubemap);
+    tx_ = create(extent, layers, 0, mip_len, format, usage, data, true, cubemap);
   }
 
   Texture(const char *name,
           eGPUTextureFormat format,
+          eGPUTextureUsage usage,
           int2 extent,
           float *data = nullptr,
           int mip_len = 1)
       : name_(name)
   {
-    tx_ = create(UNPACK2(extent), 0, mip_len, format, data, false, false);
+    tx_ = create(UNPACK2(extent), 0, mip_len, format, usage, data, false, false);
   }
 
   Texture(const char *name,
           eGPUTextureFormat format,
+          eGPUTextureUsage usage,
           int2 extent,
           int layers,
           float *data = nullptr,
           int mip_len = 1)
       : name_(name)
   {
-    tx_ = create(UNPACK2(extent), layers, mip_len, format, data, true, false);
+    tx_ = create(UNPACK2(extent), layers, mip_len, format, usage, data, true, false);
   }
 
   Texture(const char *name,
           eGPUTextureFormat format,
+          eGPUTextureUsage usage,
           int3 extent,
           float *data = nullptr,
           int mip_len = 1)
       : name_(name)
   {
-    tx_ = create(UNPACK3(extent), mip_len, format, data, false, false);
+    tx_ = create(UNPACK3(extent), mip_len, format, usage, data, false, false);
   }
 
   ~Texture()
@@ -553,66 +558,94 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_1d(eGPUTextureFormat format, int extent, float *data = nullptr, int mip_len = 1)
+  bool ensure_1d(eGPUTextureFormat format,
+                 int extent,
+                 eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                 float *data = nullptr,
+                 int mip_len = 1)
   {
-    return ensure_impl(extent, 0, 0, mip_len, format, data, false, false);
+    return ensure_impl(extent, 0, 0, mip_len, format, usage, data, false, false);
   }
 
   /**
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_1d_array(
-      eGPUTextureFormat format, int extent, int layers, float *data = nullptr, int mip_len = 1)
+  bool ensure_1d_array(eGPUTextureFormat format,
+                       int extent,
+                       int layers,
+                       eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                       float *data = nullptr,
+                       int mip_len = 1)
   {
-    return ensure_impl(extent, layers, 0, mip_len, format, data, true, false);
+    return ensure_impl(extent, layers, 0, mip_len, format, usage, data, true, false);
   }
 
   /**
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_2d(eGPUTextureFormat format, int2 extent, float *data = nullptr, int mip_len = 1)
+  bool ensure_2d(eGPUTextureFormat format,
+                 int2 extent,
+                 eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                 float *data = nullptr,
+                 int mip_len = 1)
   {
-    return ensure_impl(UNPACK2(extent), 0, mip_len, format, data, false, false);
+    return ensure_impl(UNPACK2(extent), 0, mip_len, format, usage, data, false, false);
   }
 
   /**
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_2d_array(
-      eGPUTextureFormat format, int2 extent, int layers, float *data = nullptr, int mip_len = 1)
+  bool ensure_2d_array(eGPUTextureFormat format,
+                       int2 extent,
+                       int layers,
+                       eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                       float *data = nullptr,
+                       int mip_len = 1)
   {
-    return ensure_impl(UNPACK2(extent), layers, mip_len, format, data, true, false);
+    return ensure_impl(UNPACK2(extent), layers, mip_len, format, usage, data, true, false);
   }
 
   /**
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_3d(eGPUTextureFormat format, int3 extent, float *data = nullptr, int mip_len = 1)
+  bool ensure_3d(eGPUTextureFormat format,
+                 int3 extent,
+                 eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                 float *data = nullptr,
+                 int mip_len = 1)
   {
-    return ensure_impl(UNPACK3(extent), mip_len, format, data, false, false);
+    return ensure_impl(UNPACK3(extent), mip_len, format, usage, data, false, false);
   }
 
   /**
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_cube(eGPUTextureFormat format, int extent, float *data = nullptr, int mip_len = 1)
+  bool ensure_cube(eGPUTextureFormat format,
+                   int extent,
+                   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                   float *data = nullptr,
+                   int mip_len = 1)
   {
-    return ensure_impl(extent, extent, 0, mip_len, format, data, false, true);
+    return ensure_impl(extent, extent, 0, mip_len, format, usage, data, false, true);
   }
 
   /**
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_cube_array(
-      eGPUTextureFormat format, int extent, int layers, float *data = nullptr, int mip_len = 1)
+  bool ensure_cube_array(eGPUTextureFormat format,
+                         int extent,
+                         int layers,
+                         eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                         float *data = nullptr,
+                         int mip_len = 1)
   {
-    return ensure_impl(extent, extent, layers, mip_len, format, data, false, true);
+    return ensure_impl(extent, extent, layers, mip_len, format, usage, data, false, true);
   }
 
   /**
@@ -807,6 +840,7 @@ class Texture : NonCopyable {
                    int d = 0,
                    int mip_len = 1,
                    eGPUTextureFormat format = GPU_RGBA8,
+                   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
                    float *data = nullptr,
                    bool layered = false,
                    bool cubemap = false)
@@ -822,7 +856,7 @@ class Texture : NonCopyable {
       }
     }
     if (tx_ == nullptr) {
-      tx_ = create(w, h, d, mip_len, format, data, layered, cubemap);
+      tx_ = create(w, h, d, mip_len, format, usage, data, layered, cubemap);
       return true;
     }
     return false;
@@ -833,35 +867,37 @@ class Texture : NonCopyable {
                      int d,
                      int mip_len,
                      eGPUTextureFormat format,
+                     eGPUTextureUsage usage,
                      float *data,
                      bool layered,
                      bool cubemap)
   {
     if (h == 0) {
-      return GPU_texture_create_1d(name_, w, mip_len, format, data);
+      return GPU_texture_create_1d_ex(name_, w, mip_len, format, usage, data);
     }
     else if (cubemap) {
       if (layered) {
-        return GPU_texture_create_cube_array(name_, w, d, mip_len, format, data);
+        return GPU_texture_create_cube_array_ex(name_, w, d, mip_len, format, usage, data);
       }
       else {
-        return GPU_texture_create_cube(name_, w, mip_len, format, data);
+        return GPU_texture_create_cube_ex(name_, w, mip_len, format, usage, data);
       }
     }
     else if (d == 0) {
       if (layered) {
-        return GPU_texture_create_1d_array(name_, w, h, mip_len, format, data);
+        return GPU_texture_create_1d_array_ex(name_, w, h, mip_len, format, usage, data);
       }
       else {
-        return GPU_texture_create_2d(name_, w, h, mip_len, format, data);
+        return GPU_texture_create_2d_ex(name_, w, h, mip_len, format, usage, data);
       }
     }
     else {
       if (layered) {
-        return GPU_texture_create_2d_array(name_, w, h, d, mip_len, format, data);
+        return GPU_texture_create_2d_array_ex(name_, w, h, d, mip_len, format, usage, data);
       }
       else {
-        return GPU_texture_create_3d(name_, w, h, d, mip_len, format, GPU_DATA_FLOAT, data);
+        return GPU_texture_create_3d_ex(
+            name_, w, h, d, mip_len, format, GPU_DATA_FLOAT, usage, data);
       }
     }
   }
@@ -872,12 +908,14 @@ class TextureFromPool : public Texture, NonMovable {
   TextureFromPool(const char *name = "gpu::Texture") : Texture(name){};
 
   /* Always use `release()` after rendering. */
-  void acquire(int2 extent, eGPUTextureFormat format)
+  void acquire(int2 extent,
+               eGPUTextureFormat format,
+               eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL)
   {
     BLI_assert(this->tx_ == nullptr);
 
     this->tx_ = DRW_texture_pool_texture_acquire(
-        DST.vmempool->texture_pool, UNPACK2(extent), format);
+        DST.vmempool->texture_pool, UNPACK2(extent), format, usage);
   }
 
   void release()
@@ -910,13 +948,13 @@ class TextureFromPool : public Texture, NonMovable {
   }
 
   /** Remove methods that are forbidden with this type of textures. */
-  bool ensure_1d(int, int, eGPUTextureFormat, float *) = delete;
-  bool ensure_1d_array(int, int, int, eGPUTextureFormat, float *) = delete;
-  bool ensure_2d(int, int, int, eGPUTextureFormat, float *) = delete;
-  bool ensure_2d_array(int, int, int, int, eGPUTextureFormat, float *) = delete;
-  bool ensure_3d(int, int, int, int, eGPUTextureFormat, float *) = delete;
-  bool ensure_cube(int, int, eGPUTextureFormat, float *) = delete;
-  bool ensure_cube_array(int, int, int, eGPUTextureFormat, float *) = delete;
+  bool ensure_1d(int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
+  bool ensure_1d_array(int, int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
+  bool ensure_2d(int, int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
+  bool ensure_2d_array(int, int, int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
+  bool ensure_3d(int, int, int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
+  bool ensure_cube(int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
+  bool ensure_cube_array(int, int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
   void filter_mode(bool) = delete;
   void free() = delete;
   GPUTexture *mip_view(int) = delete;

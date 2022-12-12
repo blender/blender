@@ -27,7 +27,7 @@
 
 #include "ED_screen.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #include "UI_interface.hh"
 

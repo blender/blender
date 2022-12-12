@@ -428,7 +428,7 @@ class PHYSICS_PT_fire(PhysicButtonsPanel, Panel):
         col.prop(domain, "flame_max_temp", text="Temperature Maximum")
         col.prop(domain, "flame_ignition", text="Minimum")
         row = col.row()
-        row.prop(domain, "flame_smoke_color", text="Flame Color")
+        row.prop(domain, "flame_smoke_color", text="Smoke Color")
 
 
 class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):

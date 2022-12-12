@@ -332,12 +332,7 @@ struct UVMapUDIM_Params {
   const struct Image *image;
   /** Copied from #SpaceImage.tile_grid_shape */
   int grid_shape[2];
-  bool use_target_udim;
-  int target_udim;
 };
-bool ED_uvedit_udim_params_from_image_space(const struct SpaceImage *sima,
-                                            bool use_active,
-                                            struct UVMapUDIM_Params *udim_params);
 
 typedef enum {
   ED_UVPACK_MARGIN_SCALED = 0, /* Use scale of existing UVs to multiply margin. */
@@ -353,8 +348,10 @@ struct UVPackIsland_Params {
   uint use_seams : 1;
   uint correct_aspect : 1;
   bool ignore_pinned;                       /* Ignore islands which have any pinned UVs. */
+  bool pin_unselected;                      /* Treat unselected UVs as if they were pinned. */
   eUVPackIsland_MarginMethod margin_method; /* Which formula to use when scaling island margin. */
   float margin;                             /* Additional space to add around each island. */
+  float udim_base_offset[2];                /* Additional translation for bottom left corner. */
 };
 
 /**
@@ -381,7 +378,7 @@ void ED_uvedit_pack_islands_multi(const struct Scene *scene,
                                   Object **objects,
                                   uint objects_len,
                                   struct BMesh **bmesh_override,
-                                  const struct UVMapUDIM_Params *udim_params,
+                                  const struct UVMapUDIM_Params *closest_udim,
                                   const struct UVPackIsland_Params *params);
 
 #ifdef __cplusplus

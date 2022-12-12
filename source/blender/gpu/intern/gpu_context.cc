@@ -321,6 +321,12 @@ eGPUBackendType GPU_backend_get_type()
   }
 #endif
 
+#ifdef WITH_VULKAN_BACKEND
+  if (g_backend && dynamic_cast<VKBackend *>(g_backend) != nullptr) {
+    return GPU_BACKEND_VULKAN;
+  }
+#endif
+
   return GPU_BACKEND_NONE;
 }
 

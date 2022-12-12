@@ -1357,6 +1357,7 @@ float SCULPT_automasking_factor_get(struct AutomaskingCache *automasking,
  * brushes and filter. */
 struct AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss);
 
+/* Brush can be null. */
 struct AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object *ob);
 void SCULPT_automasking_cache_free(struct AutomaskingCache *automasking);
 
@@ -1929,6 +1930,8 @@ BLI_INLINE bool SCULPT_tool_is_face_sets(int tool)
 void SCULPT_stroke_id_ensure(struct Object *ob);
 void SCULPT_stroke_id_next(struct Object *ob);
 bool SCULPT_tool_can_reuse_automask(int sculpt_tool);
+
+void SCULPT_ensure_valid_pivot(const struct Object *ob, struct Scene *scene);
 
 #ifdef __cplusplus
 }

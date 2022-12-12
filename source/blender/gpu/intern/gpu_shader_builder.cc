@@ -54,6 +54,12 @@ void ShaderBuilder::init()
       break;
 #endif
 
+#ifdef WITH_VULKAN_BACKEND
+    case GPU_BACKEND_VULKAN:
+      glSettings.context_type = GHOST_kDrawingContextTypeVulkan;
+      break;
+#endif
+
     default:
       BLI_assert_unreachable();
       break;
@@ -101,6 +107,9 @@ int main(int argc, const char *argv[])
 #ifdef WITH_METAL_BACKEND
   backends_to_validate.append({"Metal", GPU_BACKEND_METAL});
 #endif
+#ifdef WITH_VULKAN_BACKEND
+  backends_to_validate.append({"Vulkan", GPU_BACKEND_VULKAN});
+#endif
   for (NamedBackend &backend : backends_to_validate) {
     GPU_backend_type_selection_set(backend.backend);
     if (!GPU_backend_supported()) {
@@ -113,6 +122,9 @@ int main(int argc, const char *argv[])
     if (!builder.bake_create_infos()) {
       printf("Shader compilation failed for %s backend\n", backend.name.c_str());
       exit_code = 1;
+    }
+    else {
+      printf("%s backend shader compilation succeeded.\n", backend.name.c_str());
     }
     builder.exit();
   }

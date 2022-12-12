@@ -277,7 +277,7 @@ PointTrackPick ed_tracking_pick_point_track(const TrackPickOptions *options,
 
       /* Here we also check whether the mouse is actually closer to the widget which controls scale
        * and tilt.
-       * NOTE: The tilt contorl is only visible for selected tracks. */
+       * NOTE: The tilt control is only visible for selected tracks. */
       if (is_track_selected) {
         distance_squared = mouse_to_tilt_distance_squared(marker, co, width, height);
         if (distance_squared < current_pick.distance_px_squared) {
@@ -454,7 +454,7 @@ bool ed_tracking_plane_track_pick_can_slide(const PlaneTrackPick *pick)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Point closest to point or plane track.
+/** \name Pick closest point or plane track.
  * \{ */
 
 BLI_INLINE TrackingPick tracking_pick_make_null(void)

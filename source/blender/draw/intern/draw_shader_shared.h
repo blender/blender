@@ -22,7 +22,8 @@ typedef struct DRWDebugPrintBuffer DRWDebugPrintBuffer;
 typedef struct DRWDebugVert DRWDebugVert;
 typedef struct DRWDebugDrawBuffer DRWDebugDrawBuffer;
 
-#  ifdef __cplusplus
+/* __cplusplus is true when compiling with MSL. */
+#  if defined(__cplusplus) && !defined(GPU_SHADER)
 /* C++ only forward declarations. */
 struct Object;
 struct ViewLayer;
@@ -150,7 +151,7 @@ struct ObjectInfos {
 #if defined(GPU_SHADER) && !defined(DRAW_FINALIZE_SHADER)
   /* TODO Rename to struct member for glsl too. */
   float4 orco_mul_bias[2];
-  float4 color;
+  float4 ob_color;
   float4 infos;
 #else
   /** Uploaded as center + size. Converted to mul+bias to local coord. */
@@ -159,7 +160,7 @@ struct ObjectInfos {
   float3 orco_mul;
   uint object_attrs_len;
 
-  float4 color;
+  float4 ob_color;
   uint index;
   uint _pad2;
   float random;
@@ -326,7 +327,8 @@ struct DRWDebugVert {
   uint pos0;
   uint pos1;
   uint pos2;
-  uint color;
+  /* Named vert_color to avoid global namespace collision with uniform color.*/
+  uint vert_color;
 };
 BLI_STATIC_ASSERT_ALIGN(DRWDebugVert, 16)
 

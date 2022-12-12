@@ -851,6 +851,8 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
 
   BLO_read_id_address(reader, ob->id.lib, &ob->parent);
   BLO_read_id_address(reader, ob->id.lib, &ob->track);
+
+  /* XXX deprecated - old pose library, deprecated in Blender 3.5. */
   BLO_read_id_address(reader, ob->id.lib, &ob->poselib);
 
   /* 2.8x drops support for non-empty dupli instances. */
@@ -881,13 +883,13 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
       if (ob->id.lib) {
         BLO_reportf_wrap(reports,
                          RPT_INFO,
-                         TIP_("Proxy lost from  object %s lib %s\n"),
+                         TIP_("Proxy lost from object %s lib %s\n"),
                          ob->id.name + 2,
                          ob->id.lib->filepath);
       }
       else {
         BLO_reportf_wrap(
-            reports, RPT_INFO, TIP_("Proxy lost from  object %s lib <NONE>\n"), ob->id.name + 2);
+            reports, RPT_INFO, TIP_("Proxy lost from object %s lib <NONE>\n"), ob->id.name + 2);
       }
       reports->count.missing_obproxies++;
     }

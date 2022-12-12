@@ -8,13 +8,6 @@
  * Adapted from G3D Innovation Engine implementation.
  */
 
-uniform sampler2D velocityBuffer;
-uniform vec2 viewportSize;
-uniform vec2 viewportSizeInv;
-uniform ivec2 velocityBufferSize;
-
-out vec4 tileMaxVelocity;
-
 vec4 sample_velocity(ivec2 texel)
 {
   texel = clamp(texel, ivec2(0), velocityBufferSize - 1);
@@ -29,8 +22,6 @@ vec4 encode_velocity(vec4 velocity)
 }
 
 #ifdef TILE_GATHER
-
-uniform ivec2 gatherStep;
 
 void main()
 {

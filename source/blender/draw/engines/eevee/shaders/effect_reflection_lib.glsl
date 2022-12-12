@@ -11,8 +11,6 @@
  * https://media.contentapi.ea.com/content/dam/ea/seed/presentations/dd18-seed-raytracing-in-hybrid-real-time-rendering.pdf
  */
 
-uniform ivec2 halfresOffset;
-
 struct HitData {
   /** Hit direction scaled by intersection time. */
   vec3 hit_dir;

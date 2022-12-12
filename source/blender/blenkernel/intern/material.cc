@@ -58,6 +58,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_vfont.h"
@@ -587,7 +588,7 @@ void BKE_id_material_append(Main *bmain, ID *id, Material *ma)
 
 Material *BKE_id_material_pop(Main *bmain, ID *id, int index_i)
 {
-  short index = (short)index_i;
+  short index = short(index_i);
   Material *ret = nullptr;
   Material ***matar;
   if ((matar = BKE_id_material_array_p(id))) {
@@ -877,7 +878,7 @@ void BKE_object_materials_test(Main *bmain, Object *ob, ID *id)
      * use object's material slots amount as reference.
      * This avoids losing materials in a local object when its linked obdata goes missing.
      * See T92780. */
-    BKE_id_material_resize(bmain, id, (short)ob->totcol, false);
+    BKE_id_material_resize(bmain, id, short(ob->totcol), false);
   }
   else {
     /* Normal case: the use the obdata amount of materials slots to update the object's one. */
@@ -1387,7 +1388,7 @@ static bool ntree_foreach_texnode_recursive(bNodeTree *nodetree,
 {
   const bool do_image_nodes = (slot_filter & PAINT_SLOT_IMAGE) != 0;
   const bool do_color_attributes = (slot_filter & PAINT_SLOT_COLOR_ATTRIBUTE) != 0;
-  LISTBASE_FOREACH (bNode *, node, &nodetree->nodes) {
+  for (bNode *node : nodetree->all_nodes()) {
     if (do_image_nodes && node->typeinfo->nclass == NODE_CLASS_TEXTURE &&
         node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id) {
       if (!callback(node, userdata)) {

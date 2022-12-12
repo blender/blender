@@ -60,6 +60,7 @@ CCL_NAMESPACE_BEGIN
 #define __DENOISING_FEATURES__
 #define __DPDU__
 #define __HAIR__
+#define __LIGHT_TREE__
 #define __OBJECT_MOTION__
 #define __PASSES__
 #define __PATCH_EVAL__
@@ -73,6 +74,11 @@ CCL_NAMESPACE_BEGIN
 #define __TRANSPARENT_SHADOWS__
 #define __VISIBILITY_FLAG__
 #define __VOLUME__
+
+/* TODO: solve internal compiler errors and enable light tree on HIP. */
+#ifdef __KERNEL_HIP__
+#  undef __LIGHT_TREE__
+#endif
 
 /* Device specific features */
 #ifdef WITH_OSL
@@ -160,7 +166,8 @@ enum PathTraceDimension {
   PRNG_VOLUME_SCATTER_DISTANCE = 5,
   PRNG_VOLUME_OFFSET = 6,
   PRNG_VOLUME_SHADE_OFFSET = 7,
-  PRNG_VOLUME_PHASE_GUIDING = 8,
+  PRNG_VOLUME_PHASE_GUIDING_DISTANCE = 8,
+  PRNG_VOLUME_PHASE_GUIDING_EQUIANGULAR = 9,
 
   /* Subsurface random walk bounces */
   PRNG_SUBSURFACE_BSDF = 0,
@@ -208,20 +215,25 @@ enum PathRayFlag : uint32_t {
   PATH_RAY_SHADOW_TRANSPARENT = (1U << 9U),
   PATH_RAY_SHADOW = (PATH_RAY_SHADOW_OPAQUE | PATH_RAY_SHADOW_TRANSPARENT),
 
-  /* Special flag to tag unaligned BVH nodes.
-   * Only set and used in BVH nodes to distinguish how to interpret bounding box information stored
-   * in the node (either it should be intersected as AABB or as OBBU). */
-  PATH_RAY_NODE_UNALIGNED = (1U << 10U),
-
   /* Subset of flags used for ray visibility for intersection.
    *
    * NOTE: SHADOW_CATCHER macros below assume there are no more than
    * 16 visibility bits. */
-  PATH_RAY_ALL_VISIBILITY = ((1U << 11U) - 1U),
+  PATH_RAY_ALL_VISIBILITY = ((1U << 10U) - 1U),
+
+  /* Special flag to tag unaligned BVH nodes.
+   * Only set and used in BVH nodes to distinguish how to interpret bounding box information stored
+   * in the node (either it should be intersected as AABB or as OBBU).
+   * So this can overlap with path flags. */
+  PATH_RAY_NODE_UNALIGNED = (1U << 10U),
 
   /* --------------------------------------------------------------------
    * Path flags.
    */
+
+  /* Surface had transmission component at previous bounce. Used for light tree
+   * traversal and culling to be consistent with MIS PDF at the next bounce. */
+  PATH_RAY_MIS_HAD_TRANSMISSION = (1U << 10U),
 
   /* Don't apply multiple importance sampling weights to emission from
    * lamp or surface hits, because they were not direct light sampled. */
@@ -342,7 +354,6 @@ typedef enum PassType {
   PASS_EMISSION,
   PASS_BACKGROUND,
   PASS_AO,
-  PASS_SHADOW,
   PASS_DIFFUSE,
   PASS_DIFFUSE_DIRECT,
   PASS_DIFFUSE_INDIRECT,
@@ -460,6 +471,16 @@ typedef enum ShaderFlag {
   SHADER_MASK = ~(SHADER_SMOOTH_NORMAL | SHADER_CAST_SHADOW | SHADER_AREA_LIGHT | SHADER_USE_MIS |
                   SHADER_EXCLUDE_ANY)
 } ShaderFlag;
+
+enum EmissionSampling {
+  EMISSION_SAMPLING_NONE = 0,
+  EMISSION_SAMPLING_AUTO = 1,
+  EMISSION_SAMPLING_FRONT = 2,
+  EMISSION_SAMPLING_BACK = 3,
+  EMISSION_SAMPLING_FRONT_BACK = 4,
+
+  EMISSION_SAMPLING_NUM
+};
 
 /* Light Type */
 
@@ -774,14 +795,16 @@ enum ShaderDataFlag {
   SD_TRANSPARENT = (1 << 9),
   /* BSDF requires LCG for evaluation. */
   SD_BSDF_NEEDS_LCG = (1 << 10),
+  /* BSDF has a transmissive component. */
+  SD_BSDF_HAS_TRANSMISSION = (1 << 11),
 
   SD_CLOSURE_FLAGS = (SD_EMISSION | SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSSRDF | SD_HOLDOUT |
-                      SD_EXTINCTION | SD_SCATTER | SD_BSDF_NEEDS_LCG),
+                      SD_EXTINCTION | SD_SCATTER | SD_BSDF_NEEDS_LCG | SD_BSDF_HAS_TRANSMISSION),
 
   /* Shader flags. */
 
-  /* direct light sample */
-  SD_USE_MIS = (1 << 16),
+  /* Use front side for direct light sampling. */
+  SD_MIS_FRONT = (1 << 16),
   /* Has transparent shadow. */
   SD_HAS_TRANSPARENT_SHADOW = (1 << 17),
   /* Has volume shader. */
@@ -810,12 +833,14 @@ enum ShaderDataFlag {
   SD_HAS_EMISSION = (1 << 29),
   /* Shader has raytracing */
   SD_HAS_RAYTRACE = (1 << 30),
+  /* Use back side for direct light sampling. */
+  SD_MIS_BACK = (1 << 31),
 
-  SD_SHADER_FLAGS = (SD_USE_MIS | SD_HAS_TRANSPARENT_SHADOW | SD_HAS_VOLUME | SD_HAS_ONLY_VOLUME |
-                     SD_HETEROGENEOUS_VOLUME | SD_HAS_BSSRDF_BUMP | SD_VOLUME_EQUIANGULAR |
-                     SD_VOLUME_MIS | SD_VOLUME_CUBIC | SD_HAS_BUMP | SD_HAS_DISPLACEMENT |
-                     SD_HAS_CONSTANT_EMISSION | SD_NEED_VOLUME_ATTRIBUTES | SD_HAS_EMISSION |
-                     SD_HAS_RAYTRACE)
+  SD_SHADER_FLAGS = (SD_MIS_FRONT | SD_HAS_TRANSPARENT_SHADOW | SD_HAS_VOLUME |
+                     SD_HAS_ONLY_VOLUME | SD_HETEROGENEOUS_VOLUME | SD_HAS_BSSRDF_BUMP |
+                     SD_VOLUME_EQUIANGULAR | SD_VOLUME_MIS | SD_VOLUME_CUBIC | SD_HAS_BUMP |
+                     SD_HAS_DISPLACEMENT | SD_HAS_CONSTANT_EMISSION | SD_NEED_VOLUME_ATTRIBUTES |
+                     SD_HAS_EMISSION | SD_HAS_RAYTRACE | SD_MIS_BACK)
 };
 
 /* Object flags. */
@@ -1267,21 +1292,24 @@ static_assert_align(KernelCurveSegment, 8);
 typedef struct KernelSpotLight {
   float radius;
   float invarea;
-  float spot_angle;
+  float cos_half_spot_angle;
   float spot_smooth;
-  float dir[3];
+  packed_float3 dir;
   float pad;
 } KernelSpotLight;
 
 /* PointLight is SpotLight with only radius and invarea being used. */
 
 typedef struct KernelAreaLight {
-  float axisu[3];
+  packed_float3 axis_u;
+  float len_u;
+  packed_float3 axis_v;
+  float len_v;
+  packed_float3 dir;
   float invarea;
-  float axisv[3];
-  float tan_spread;
-  float dir[3];
+  float tan_half_spread;
   float normalize_spread;
+  float pad[2];
 } KernelAreaLight;
 
 typedef struct KernelDistantLight {
@@ -1293,7 +1321,7 @@ typedef struct KernelDistantLight {
 
 typedef struct KernelLight {
   int type;
-  float co[3];
+  packed_float3 co;
   int shader_id;
   float max_bounces;
   float random;
@@ -1313,18 +1341,69 @@ static_assert_align(KernelLight, 16);
 typedef struct KernelLightDistribution {
   float totarea;
   int prim;
-  union {
-    struct {
-      int shader_flag;
-      int object_id;
-    } mesh_light;
-    struct {
-      float pad;
-      float size;
-    } lamp;
-  };
+  struct {
+    int shader_flag;
+    int object_id;
+  } mesh_light;
 } KernelLightDistribution;
 static_assert_align(KernelLightDistribution, 16);
+
+/* Bounding box. */
+using BoundingBox = struct BoundingBox {
+  packed_float3 min;
+  packed_float3 max;
+};
+
+using BoundingCone = struct BoundingCone {
+  packed_float3 axis;
+  float theta_o;
+  float theta_e;
+};
+
+typedef struct KernelLightTreeNode {
+  /* Bounding box. */
+  BoundingBox bbox;
+
+  /* Bounding cone. */
+  BoundingCone bcone;
+
+  /* Energy. */
+  float energy;
+
+  /* If this is 0 or less, we're at a leaf node
+   * and the negative value indexes into the first child of the light array.
+   * Otherwise, it's an index to the node's second child. */
+  int child_index;
+  int num_prims; /* leaf nodes need to know the number of primitives stored. */
+
+  /* Bit trail. */
+  uint bit_trail;
+
+  /* Padding. */
+  int pad;
+} KernelLightTreeNode;
+static_assert_align(KernelLightTreeNode, 16);
+
+typedef struct KernelLightTreeEmitter {
+  /* Bounding cone. */
+  float theta_o;
+  float theta_e;
+
+  /* Energy. */
+  float energy;
+
+  /* prim_id denotes the location in the lights or triangles array. */
+  int prim_id;
+  struct {
+    int shader_flag;
+    int object_id;
+    EmissionSampling emission_sampling;
+  } mesh_light;
+
+  /* Parent. */
+  int parent_index;
+} KernelLightTreeEmitter;
+static_assert_align(KernelLightTreeEmitter, 16);
 
 typedef struct KernelParticle {
   int index;
@@ -1525,22 +1604,19 @@ enum KernelFeatureFlag : uint32_t {
   /* Light render passes. */
   KERNEL_FEATURE_LIGHT_PASSES = (1U << 21U),
 
-  /* Shadow render pass. */
-  KERNEL_FEATURE_SHADOW_PASS = (1U << 22U),
-
   /* AO. */
-  KERNEL_FEATURE_AO_PASS = (1U << 23U),
-  KERNEL_FEATURE_AO_ADDITIVE = (1U << 24U),
+  KERNEL_FEATURE_AO_PASS = (1U << 22U),
+  KERNEL_FEATURE_AO_ADDITIVE = (1U << 23U),
   KERNEL_FEATURE_AO = (KERNEL_FEATURE_AO_PASS | KERNEL_FEATURE_AO_ADDITIVE),
 
   /* MNEE. */
-  KERNEL_FEATURE_MNEE = (1U << 25U),
+  KERNEL_FEATURE_MNEE = (1U << 24U),
 
   /* Path guiding. */
-  KERNEL_FEATURE_PATH_GUIDING = (1U << 26U),
+  KERNEL_FEATURE_PATH_GUIDING = (1U << 25U),
 
   /* OSL. */
-  KERNEL_FEATURE_OSL = (1U << 27U),
+  KERNEL_FEATURE_OSL = (1U << 26U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */

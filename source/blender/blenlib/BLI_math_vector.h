@@ -133,6 +133,7 @@ MINLINE void add_v4_v4v4(float r[4], const float a[4], const float b[4]);
 MINLINE void add_v3fl_v3fl_v3i(float r[3], const float a[3], const int b[3]);
 
 MINLINE void sub_v2_v2(float r[2], const float a[2]);
+MINLINE void sub_v2_v2_db(double r[2], const double a[2]);
 MINLINE void sub_v2_v2v2(float r[2], const float a[2], const float b[2]);
 MINLINE void sub_v2_v2v2_db(double r[2], const double a[2], const double b[2]);
 MINLINE void sub_v2_v2v2_int(int r[2], const int a[2], const int b[2]);
@@ -193,6 +194,7 @@ MINLINE void madd_v2_v2fl(float r[2], const float a[2], float f);
 MINLINE void madd_v3_v3fl(float r[3], const float a[3], float f);
 MINLINE void madd_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE void madd_v2_v2v2fl(float r[2], const float a[2], const float b[2], float f);
+MINLINE void madd_v2_v2db_db(double r[2], const double a[2], const double b[2], double f);
 MINLINE void madd_v3_v3v3fl(float r[3], const float a[3], const float b[3], float f);
 MINLINE void madd_v3_v3v3db_db(double r[3], const double a[3], const double b[3], double f);
 MINLINE void madd_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float c[3]);

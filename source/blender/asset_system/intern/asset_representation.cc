@@ -9,6 +9,7 @@
 #include "DNA_ID.h"
 #include "DNA_asset_types.h"
 
+#include "AS_asset_identifier.hh"
 #include "AS_asset_representation.h"
 #include "AS_asset_representation.hh"
 
@@ -16,14 +17,17 @@
 
 namespace blender::asset_system {
 
-AssetRepresentation::AssetRepresentation(StringRef name, std::unique_ptr<AssetMetaData> metadata)
-    : is_local_id_(false), external_asset_()
+AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
+                                         StringRef name,
+                                         std::unique_ptr<AssetMetaData> metadata)
+    : identifier_(identifier), is_local_id_(false), external_asset_()
 {
   external_asset_.name = name;
   external_asset_.metadata_ = std::move(metadata);
 }
 
-AssetRepresentation::AssetRepresentation(ID &id) : is_local_id_(true), local_asset_id_(&id)
+AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier, ID &id)
+    : identifier_(identifier), is_local_id_(true), local_asset_id_(&id)
 {
   if (!id.asset_data) {
     throw std::invalid_argument("Passed ID is not an asset");
@@ -31,7 +35,7 @@ AssetRepresentation::AssetRepresentation(ID &id) : is_local_id_(true), local_ass
 }
 
 AssetRepresentation::AssetRepresentation(AssetRepresentation &&other)
-    : is_local_id_(other.is_local_id_)
+    : identifier_(std::move(other.identifier_)), is_local_id_(other.is_local_id_)
 {
   if (is_local_id_) {
     local_asset_id_ = other.local_asset_id_;
@@ -47,6 +51,11 @@ AssetRepresentation::~AssetRepresentation()
   if (!is_local_id_) {
     external_asset_.~ExternalAsset();
   }
+}
+
+const AssetIdentifier &AssetRepresentation::get_identifier() const
+{
+  return identifier_;
 }
 
 StringRefNull AssetRepresentation::get_name() const
@@ -70,11 +79,19 @@ bool AssetRepresentation::is_local_id() const
 
 }  // namespace blender::asset_system
 
+using namespace blender;
+
+const std::string AS_asset_representation_full_path_get(const AssetRepresentation *asset_handle)
+{
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
+  const asset_system::AssetIdentifier &identifier = asset->get_identifier();
+  return identifier.full_path();
+}
+
 /* ---------------------------------------------------------------------- */
 /** \name C-API
  * \{ */
-
-using namespace blender;
 
 const char *AS_asset_representation_name_get(const AssetRepresentation *asset_handle)
 {

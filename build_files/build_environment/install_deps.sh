@@ -3187,7 +3187,6 @@ compile_USD() {
     if [ -d $INST/tbb ]; then
       cmake_d="$cmake_d $cmake_d -D TBB_ROOT_DIR=$INST/tbb"
     fi
-    cmake_d="$cmake_d -DPXR_SET_INTERNAL_NAMESPACE=usdBlender"
     cmake_d="$cmake_d -DPXR_ENABLE_PYTHON_SUPPORT=OFF"
     cmake_d="$cmake_d -DPXR_BUILD_IMAGING=OFF"
     cmake_d="$cmake_d -DPXR_BUILD_TESTS=OFF"

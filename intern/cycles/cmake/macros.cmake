@@ -133,6 +133,7 @@ macro(cycles_external_libraries_append libraries)
     ${OPENEXR_LIBRARIES} # For circular dependencies between libs.
     ${PUGIXML_LIBRARIES}
     ${BOOST_LIBRARIES}
+    ${PYTHON_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${CMAKE_DL_LIBS}
     ${PTHREADS_LIBRARIES}

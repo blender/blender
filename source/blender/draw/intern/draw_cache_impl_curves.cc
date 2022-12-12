@@ -289,7 +289,11 @@ static void curves_batch_cache_ensure_data_edit_points(const Curves &curves_id,
   const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
 
   static GPUVertFormat format_data = {0};
-  uint data = GPU_vertformat_attr_add(&format_data, "data", GPU_COMP_U8, 1, GPU_FETCH_INT);
+  static uint data;
+  if (format_data.attr_len == 0) {
+    data = GPU_vertformat_attr_add(&format_data, "data", GPU_COMP_U8, 1, GPU_FETCH_INT);
+  }
+
   GPU_vertbuf_init_with_format(cache.data_edit_points, &format_data);
   GPU_vertbuf_data_alloc(cache.data_edit_points, curves.points_num());
 

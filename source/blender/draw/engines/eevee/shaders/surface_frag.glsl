@@ -11,23 +11,6 @@
 #pragma BLENDER_REQUIRE(volumetric_lib.glsl)
 #pragma BLENDER_REQUIRE(renderpass_lib.glsl)
 
-#ifdef USE_ALPHA_BLEND
-/* Use dual source blending to be able to make a whole range of effects. */
-layout(location = 0, index = 0) out vec4 outRadiance;
-layout(location = 0, index = 1) out vec4 outTransmittance;
-
-#else /* OPAQUE */
-layout(location = 0) out vec4 outRadiance;
-layout(location = 1) out vec2 ssrNormals;
-layout(location = 2) out vec4 ssrData;
-layout(location = 3) out vec3 sssIrradiance;
-layout(location = 4) out float sssRadius;
-layout(location = 5) out vec3 sssAlbedo;
-
-#endif
-
-uniform float backgroundAlpha;
-
 #ifdef EEVEE_DISPLACEMENT_BUMP
 
 #  ifndef GPU_METAL
@@ -68,7 +51,11 @@ void main()
 #endif
 
 #if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
+
+/* Skip attribute load for shaders which do not require this part of the path. E.g. Cryptomatte. */
+#  ifndef NO_ATTRIB_LOAD
   attrib_load();
+#  endif
 #endif
 
   out_ssr_color = vec3(0.0);

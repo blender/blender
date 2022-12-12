@@ -194,19 +194,21 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
 
   if (wpd->taa_sample_len > 0) {
     workbench_taa_jitter_init();
-
-    DRW_texture_ensure_fullscreen_2d(&txl->history_buffer_tx, GPU_RGBA16F, DRW_TEX_FILTER);
-    DRW_texture_ensure_fullscreen_2d(&txl->depth_buffer_tx, GPU_DEPTH24_STENCIL8, 0);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    DRW_texture_ensure_fullscreen_2d_ex(
+        &txl->history_buffer_tx, GPU_RGBA16F, usage, DRW_TEX_FILTER);
+    DRW_texture_ensure_fullscreen_2d_ex(&txl->depth_buffer_tx, GPU_DEPTH24_STENCIL8, usage, 0);
     const bool in_front_history = workbench_in_front_history_needed(vedata);
     if (in_front_history) {
-      DRW_texture_ensure_fullscreen_2d(&txl->depth_buffer_in_front_tx, GPU_DEPTH24_STENCIL8, 0);
+      DRW_texture_ensure_fullscreen_2d_ex(
+          &txl->depth_buffer_in_front_tx, GPU_DEPTH24_STENCIL8, usage, 0);
     }
     else {
       DRW_TEXTURE_FREE_SAFE(txl->depth_buffer_in_front_tx);
     }
 
-    wpd->smaa_edge_tx = DRW_texture_pool_query_fullscreen(GPU_RG8, owner);
-    wpd->smaa_weight_tx = DRW_texture_pool_query_fullscreen(GPU_RGBA8, owner);
+    wpd->smaa_edge_tx = DRW_texture_pool_query_fullscreen_ex(GPU_RG8, usage, owner);
+    wpd->smaa_weight_tx = DRW_texture_pool_query_fullscreen_ex(GPU_RGBA8, usage, owner);
 
     GPU_framebuffer_ensure_config(&fbl->antialiasing_fb,
                                   {
@@ -234,12 +236,12 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
 
     /* TODO: could be shared for all viewports. */
     if (txl->smaa_search_tx == NULL) {
-      txl->smaa_search_tx = GPU_texture_create_2d(
-          "smaa_search", SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, 1, GPU_R8, NULL);
+      txl->smaa_search_tx = GPU_texture_create_2d_ex(
+          "smaa_search", SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, 1, GPU_R8, usage, NULL);
       GPU_texture_update(txl->smaa_search_tx, GPU_DATA_UBYTE, searchTexBytes);
 
-      txl->smaa_area_tx = GPU_texture_create_2d(
-          "smaa_area", AREATEX_WIDTH, AREATEX_HEIGHT, 1, GPU_RG8, NULL);
+      txl->smaa_area_tx = GPU_texture_create_2d_ex(
+          "smaa_area", AREATEX_WIDTH, AREATEX_HEIGHT, 1, GPU_RG8, usage, NULL);
       GPU_texture_update(txl->smaa_area_tx, GPU_DATA_UBYTE, areaTexBytes);
 
       GPU_texture_filter_mode(txl->smaa_search_tx, true);

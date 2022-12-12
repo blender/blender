@@ -34,6 +34,8 @@
 #include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_query.h"
 
+#include "GPU_context.h"
+
 #include "RNA_access.h"
 
 #ifdef WITH_PYTHON
@@ -1285,45 +1287,69 @@ bool RE_engine_gpu_context_create(RenderEngine *engine)
   BLI_assert(BLI_thread_is_main());
 
   const bool drw_state = DRW_opengl_context_release();
-  engine->gpu_context = WM_opengl_context_create();
+  engine->wm_gpu_context = WM_opengl_context_create();
 
-  /* On Windows an old context is restored after creation, and subsequent release of context
-   * generates a Win32 error. Harmless for users, but annoying to have possible misleading
-   * error prints in the console. */
-#ifndef _WIN32
-  if (engine->gpu_context) {
-    WM_opengl_context_release(engine->gpu_context);
+  if (engine->wm_gpu_context) {
+    /* Activate new OpenGL Context for GPUContext creation. */
+    WM_opengl_context_activate(engine->wm_gpu_context);
+    /* Requires GPUContext for usage of GPU Module for displaying results. */
+    engine->gpu_context = GPU_context_create(nullptr, engine->wm_gpu_context);
+    GPU_context_active_set(nullptr);
+    /* Deactivate newly created OpenGL Context, as it is not needed until
+     * `RE_engine_gpu_context_enable` is called. */
+    WM_opengl_context_release(engine->wm_gpu_context);
   }
-#endif
+  else {
+    engine->gpu_context = nullptr;
+  }
 
   DRW_opengl_context_activate(drw_state);
 
-  return engine->gpu_context != nullptr;
+  return engine->wm_gpu_context != nullptr;
 }
 
 void RE_engine_gpu_context_destroy(RenderEngine *engine)
 {
-  if (!engine->gpu_context) {
+  if (!engine->wm_gpu_context) {
     return;
   }
 
   const bool drw_state = DRW_opengl_context_release();
 
-  WM_opengl_context_activate(engine->gpu_context);
-  WM_opengl_context_dispose(engine->gpu_context);
+  WM_opengl_context_activate(engine->wm_gpu_context);
+  if (engine->gpu_context) {
+    GPUContext *restore_context = GPU_context_active_get();
+    GPU_context_active_set(engine->gpu_context);
+    GPU_context_discard(engine->gpu_context);
+    if (restore_context != engine->gpu_context) {
+      GPU_context_active_set(restore_context);
+    }
+    engine->gpu_context = nullptr;
+  }
+  WM_opengl_context_dispose(engine->wm_gpu_context);
 
   DRW_opengl_context_activate(drw_state);
 }
 
 bool RE_engine_gpu_context_enable(RenderEngine *engine)
 {
+  engine->gpu_restore_context = false;
   if (engine->use_drw_render_context) {
     DRW_render_context_enable(engine->re);
     return true;
   }
-  if (engine->gpu_context) {
+  if (engine->wm_gpu_context) {
     BLI_mutex_lock(&engine->gpu_context_mutex);
-    WM_opengl_context_activate(engine->gpu_context);
+    /* If a previous OpenGL/GPUContext was active (DST.gpu_context), we should later restore this
+     * when disabling the RenderEngine context. */
+    engine->gpu_restore_context = DRW_opengl_context_release();
+
+    /* Activate RenderEngine OpenGL and GPU Context. */
+    WM_opengl_context_activate(engine->wm_gpu_context);
+    if (engine->gpu_context) {
+      GPU_context_active_set(engine->gpu_context);
+      GPU_render_begin();
+    }
     return true;
   }
   return false;
@@ -1335,8 +1361,14 @@ void RE_engine_gpu_context_disable(RenderEngine *engine)
     DRW_render_context_disable(engine->re);
   }
   else {
-    if (engine->gpu_context) {
-      WM_opengl_context_release(engine->gpu_context);
+    if (engine->wm_gpu_context) {
+      if (engine->gpu_context) {
+        GPU_render_end();
+        GPU_context_active_set(nullptr);
+      }
+      WM_opengl_context_release(engine->wm_gpu_context);
+      /* Restore DRW state context if previously active. */
+      DRW_opengl_context_activate(engine->gpu_restore_context);
       BLI_mutex_unlock(&engine->gpu_context_mutex);
     }
   }
@@ -1348,7 +1380,7 @@ void RE_engine_gpu_context_lock(RenderEngine *engine)
     /* Locking already handled by the draw manager. */
   }
   else {
-    if (engine->gpu_context) {
+    if (engine->wm_gpu_context) {
       BLI_mutex_lock(&engine->gpu_context_mutex);
     }
   }
@@ -1360,7 +1392,7 @@ void RE_engine_gpu_context_unlock(RenderEngine *engine)
     /* Locking already handled by the draw manager. */
   }
   else {
-    if (engine->gpu_context) {
+    if (engine->wm_gpu_context) {
       BLI_mutex_unlock(&engine->gpu_context_mutex);
     }
   }

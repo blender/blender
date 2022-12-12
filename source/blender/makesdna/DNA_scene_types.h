@@ -1199,6 +1199,8 @@ typedef enum eGP_Interpolate_SettingsFlag {
   GP_TOOLFLAG_INTERPOLATE_ALL_LAYERS = (1 << 0),
   /* apply interpolation to only selected */
   GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED = (1 << 1),
+  /* Exclude breakdown keyframe type as extreme */
+  GP_TOOLFLAG_INTERPOLATE_EXCLUDE_BREAKDOWNS = (1 << 2),
 } eGP_Interpolate_SettingsFlag;
 
 /** #GP_Interpolate_Settings.type */

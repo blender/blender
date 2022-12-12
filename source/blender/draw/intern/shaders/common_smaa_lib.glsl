@@ -569,7 +569,7 @@ SamplerState PointSampler
 #    define SMAAGather(tex, coord) tex.Gather(LinearSampler, coord, 0)
 #  endif
 #endif
-#if defined(SMAA_GLSL_3) || defined(SMAA_GLSL_4) || defined(GPU_METAL)
+#if defined(SMAA_GLSL_3) || defined(SMAA_GLSL_4) || defined(GPU_METAL) || defined(GPU_VULKAN)
 #  define SMAATexture2D(tex) sampler2D tex
 #  define SMAATexturePass2D(tex) tex
 #  define SMAASampleLevelZero(tex, coord) textureLod(tex, coord, 0.0)
@@ -583,8 +583,28 @@ SamplerState PointSampler
 #  define lerp(a, b, t) mix(a, b, t)
 #  define saturate(a) clamp(a, 0.0, 1.0)
 #  if defined(SMAA_GLSL_4)
-#    define mad(a, b, c) fma(a, b, c)
 #    define SMAAGather(tex, coord) textureGather(tex, coord)
+#  endif
+#  if defined(SMAA_GLSL_4)
+#    define mad(a, b, c) fma(a, b, c)
+#  elif defined(GPU_VULKAN)
+/* NOTE(Vulkan) mad macro doesn't work, define each override as work-around. */
+vec4 mad(vec4 a, vec4 b, vec4 c)
+{
+  return fma(a, b, c);
+}
+vec3 mad(vec3 a, vec3 b, vec3 c)
+{
+  return fma(a, b, c);
+}
+vec2 mad(vec2 a, vec2 b, vec2 c)
+{
+  return fma(a, b, c);
+}
+float mad(float a, float b, float c)
+{
+  return fma(a, b, c);
+}
 #  else
 #    define mad(a, b, c) (a * b + c)
 #  endif

@@ -16,7 +16,7 @@ const float diagonal_scale = sqrt(0.5);
 const float minmax_bias = 0.7;
 const float minmax_scale = sqrt(1.0 / (1.0 + 1.0 / minmax_bias));
 
-bool test(int bit)
+bool test(uint bit)
 {
   return (finalFlags & bit) != 0;
 }

@@ -1199,9 +1199,6 @@ int GHOST_XrGetControllerModelData(GHOST_XrContextHandle xr_contexthandle,
 
 #ifdef WITH_VULKAN_BACKEND
 
-/**
- * Return vulkan handles for the given context.
- */
 void GHOST_GetVulkanHandles(GHOST_ContextHandle contexthandle,
                             void *r_instance,
                             void *r_physical_device,
@@ -1212,9 +1209,6 @@ void GHOST_GetVulkanHandles(GHOST_ContextHandle contexthandle,
   context->getVulkanHandles(r_instance, r_physical_device, r_device, r_graphic_queue_familly);
 }
 
-/**
- * Return vulkan backbuffer resources handles for the given window.
- */
 void GHOST_GetVulkanBackbuffer(GHOST_WindowHandle windowhandle,
                                void *image,
                                void *framebuffer,
