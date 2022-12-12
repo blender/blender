@@ -251,8 +251,8 @@ static void split_vertex_per_fan(const int vertex,
 static int adjacent_edge(Span<MLoop> loops, const int loop_i, const MPoly &poly, const int vertex)
 {
   const int adjacent_loop_i = (loops[loop_i].v == vertex) ?
-                                  bke::mesh_topology::previous_poly_loop(poly, loop_i) :
-                                  bke::mesh_topology::next_poly_loop(poly, loop_i);
+                                  bke::mesh_topology::poly_loop_prev(poly, loop_i) :
+                                  bke::mesh_topology::poly_loop_next(poly, loop_i);
   return loops[adjacent_loop_i].e;
 }
 

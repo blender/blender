@@ -356,12 +356,12 @@ Array<Vector<int>> build_vert_to_loop_map(Span<MLoop> loops, int verts_num);
 Array<Vector<int>> build_edge_to_loop_map(Span<MLoop> loops, int edges_num);
 Vector<Vector<int>> build_edge_to_loop_map_resizable(Span<MLoop> loops, int edges_num);
 
-inline int previous_poly_loop(const MPoly &poly, int loop_i)
+inline int poly_loop_prev(const MPoly &poly, int loop_i)
 {
   return loop_i - 1 + (loop_i == poly.loopstart) * poly.totloop;
 }
 
-inline int next_poly_loop(const MPoly &poly, int loop_i)
+inline int poly_loop_next(const MPoly &poly, int loop_i)
 {
   if (loop_i == poly.loopstart + poly.totloop - 1) {
     return poly.loopstart;
