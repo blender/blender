@@ -5,7 +5,7 @@ if(WIN32)
   set(HARFBUZZ_PKG_ENV FREETYPE_DIR=${LIBDIR}/freetype)
 else()
   set(HARFBUZZ_CONFIGURE_ENV ${CONFIGURE_ENV})
-  set(HARFBUZZ_PKG_ENV PKG_CONFIG_PATH=${LIBDIR}/freetype/lib/pkgconfig:${LIBDIR}/brotli/lib/pkgconfig:$PKG_CONFIG_PATH)
+  set(HARFBUZZ_PKG_ENV PKG_CONFIG_PATH=${LIBDIR}/freetype/lib/pkgconfig:${LIBDIR}/brotli/lib/pkgconfig:${LIBDIR}/lib/python3.10/pkgconfig:$PKG_CONFIG_PATH)
 endif()
 
 set(HARFBUZZ_EXTRA_OPTIONS
@@ -13,6 +13,9 @@ set(HARFBUZZ_EXTRA_OPTIONS
   -Dfreetype=enabled
   -Dglib=disabled
   -Dgobject=disabled
+  # Only used for command line utilities,
+  # disable as this would add an addition & unnecessary build-dependency.
+  -Dcairo=disabled
 )
 
 ExternalProject_Add(external_harfbuzz
