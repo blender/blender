@@ -421,6 +421,11 @@ inline const bNode *bNodeTree::group_output_node() const
   return this->runtime->group_output_node;
 }
 
+inline blender::Span<const bNode *> bNodeTree::group_input_nodes() const
+{
+  return this->nodes_by_type("NodeGroupInput");
+}
+
 inline blender::Span<const bNodeSocket *> bNodeTree::all_input_sockets() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));

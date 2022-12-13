@@ -1401,7 +1401,7 @@ static void attribute_search_update_fn(
     }
   }
   else {
-    for (const bNode *node : nmd->node_group->nodes_by_type("NodeGroupInput")) {
+    for (const bNode *node : nmd->node_group->group_input_nodes()) {
       for (const bNodeSocket *socket : node->output_sockets()) {
         if (socket->type == SOCK_GEOMETRY) {
           sockets_to_check.append(socket);

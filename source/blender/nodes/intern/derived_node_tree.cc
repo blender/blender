@@ -115,7 +115,7 @@ Vector<DOutputSocket> DInputSocket::get_corresponding_group_input_sockets() cons
   BLI_assert(child_context != nullptr);
 
   const bNodeTree &child_tree = child_context->btree();
-  Span<const bNode *> group_input_nodes = child_tree.nodes_by_type("NodeGroupInput");
+  Span<const bNode *> group_input_nodes = child_tree.group_input_nodes();
   const int socket_index = bsocket_->index();
   Vector<DOutputSocket> sockets;
   for (const bNode *group_input_node : group_input_nodes) {
