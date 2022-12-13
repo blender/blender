@@ -6,7 +6,6 @@
 
 #include <string>
 
-#include "AS_asset_identifier.hh"
 #include "AS_asset_representation.h"
 #include "AS_asset_representation.hh"
 
@@ -15,7 +14,6 @@
 #include "BLO_readfile.h"
 
 #include "ED_asset_handle.h"
-#include "ED_asset_list.hh"
 
 #include "WM_api.h"
 

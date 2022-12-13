@@ -7,8 +7,6 @@
 #include "BKE_blender.h"
 #include "BKE_preferences.h"
 
-#include "BLI_fileops.h" /* For PATH_MAX (at least on Windows). */
-#include "BLI_path_util.h"
 #include "BLI_string_ref.hh"
 
 #include "DNA_asset_types.h"
