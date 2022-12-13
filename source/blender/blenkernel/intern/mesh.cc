@@ -1363,7 +1363,7 @@ void BKE_mesh_material_index_remove(Mesh *me, short index)
   }
   MutableVArraySpan<int> indices_span(material_indices.varray);
   for (const int i : indices_span.index_range()) {
-    if (indices_span[i] > 0 && indices_span[i] > index) {
+    if (indices_span[i] > 0 && indices_span[i] >= index) {
       indices_span[i]--;
     }
   }
