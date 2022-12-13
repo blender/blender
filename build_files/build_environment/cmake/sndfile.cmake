@@ -1,14 +1,25 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(SNDFILE_EXTRA_ARGS)
-set(SNDFILE_ENV PKG_CONFIG_PATH=${mingw_LIBDIR}/ogg/lib/pkgconfig:${mingw_LIBDIR}/vorbis/lib/pkgconfig:${mingw_LIBDIR}/flac/lib/pkgconfig:${mingw_LIBDIR}/opus/lib/pkgconfig:${mingw_LIBDIR})
+set(SNDFILE_ENV)
 
 if(WIN32)
+  set(SNDFILE_ENV PKG_CONFIG_PATH=${mingw_LIBDIR}/ogg/lib/pkgconfig:${mingw_LIBDIR}/vorbis/lib/pkgconfig:${mingw_LIBDIR}/flac/lib/pkgconfig:${mingw_LIBDIR}/opus/lib/pkgconfig:${mingw_LIBDIR})
   set(SNDFILE_ENV set ${SNDFILE_ENV} &&)
   # Shared for windows because static libs will drag in a libgcc dependency.
   set(SNDFILE_OPTIONS --disable-static --enable-shared )
 else()
   set(SNDFILE_OPTIONS --enable-static --disable-shared )
+endif()
+
+if(UNIX AND NOT APPLE)
+  # NOTE(@campbellbarton): For some reason OPUS is alone in referencing the sub-directory,
+  # manipulate the package-config file to prevent this from happening.
+  # There is no problem with applying this change multiple times.
+  #
+  # Replace: Cflags: -I${includedir}/opus
+  # With:    Cflags: -I${includedir}
+  set(SNDFILE_ENV sed -i s/{includedir}\\/opus/{includedir}/g ${LIBDIR}/opus/lib/pkgconfig/opus.pc && ${SNDFILE_ENV})
 endif()
 
 ExternalProject_Add(external_sndfile
