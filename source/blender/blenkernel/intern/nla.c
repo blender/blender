@@ -973,19 +973,17 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
   oEnd = ((NlaStrip *)mstrip->strips.last)->end;
   offset = mstrip->start - oStart;
 
+  /* check if scale changed */
+  oLen = oEnd - oStart;
+  nLen = mstrip->end - mstrip->start;
+  scaleChanged = !IS_EQF(oLen, nLen);
+
   /* optimization:
    * don't flush if nothing changed yet
    * TODO: maybe we need a flag to say always flush?
    */
-  if (IS_EQF(oStart, mstrip->start) && IS_EQF(oEnd, mstrip->end)) {
+  if (IS_EQF(oStart, mstrip->start) && IS_EQF(oEnd, mstrip->end) && !scaleChanged) {
     return;
-  }
-
-  /* check if scale changed */
-  oLen = oEnd - oStart;
-  nLen = mstrip->end - mstrip->start;
-  if (IS_EQF(nLen, oLen) == 0) {
-    scaleChanged = 1;
   }
 
   /* for each child-strip, calculate new start/end points based on this new info */
@@ -1001,6 +999,12 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
        * then wait for second pass to flush scale properly. */
       strip->start = (p1 * nLen) + mstrip->start;
       strip->end = (p2 * nLen) + mstrip->start;
+
+      // Recompute the playback scale, given the new start & end frame of the strip.
+      const double action_len = strip->actend - strip->actstart;
+      const double repeated_len = action_len * strip->repeat;
+      const double strip_len = strip->end - strip->start;
+      strip->scale = strip_len / repeated_len;
     }
     else {
       /* just apply the changes in offset to both ends of the strip */
