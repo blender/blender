@@ -362,9 +362,9 @@ static void update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
   }
 
   uv_islands::MeshData mesh_data({pbvh->looptri, pbvh->totprim},
-                                 {pbvh->mloop, pbvh->totprim},
+                                 {pbvh->mloop, mesh->totloop},
                                  pbvh->totvert,
-                                 {ldata_uv, pbvh->totprim});
+                                 {ldata_uv, mesh->totloop});
   uv_islands::UVIslands islands(mesh_data);
 
   uv_islands::UVIslandsMask uv_masks;
