@@ -280,6 +280,7 @@ set(SRC
   engines/image/image_buffer_cache.hh
   engines/image/image_drawing_mode.hh
   engines/image/image_engine.h
+  engines/image/image_enums.hh
   engines/image/image_instance_data.hh
   engines/image/image_partial_updater.hh
   engines/image/image_private.hh
@@ -534,6 +535,7 @@ set(GLSL_SRC
   intern/draw_command_shared.hh
   intern/draw_common_shader_shared.h
   intern/draw_defines.h
+  intern/draw_pointcloud_private.hh
   intern/draw_shader_shared.h
 
   engines/gpencil/shaders/gpencil_frag.glsl
