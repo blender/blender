@@ -26,7 +26,8 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_workspace.h"
 
-#include "ED_node.h" /* own include */
+#include "ED_node.h"  /* own include */
+#include "ED_node.hh" /* own include */
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_view3d.h"
