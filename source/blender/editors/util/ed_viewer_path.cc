@@ -64,6 +64,7 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
     NodeViewerPathElem *node_elem = BKE_viewer_path_elem_new_node();
     node_elem->node_id = node->identifier;
     node_elem->node_name = BLI_strdup(node->name);
+    BLI_addtail(&r_dst.path, node_elem);
   }
 
   NodeViewerPathElem *viewer_node_elem = BKE_viewer_path_elem_new_node();
@@ -111,7 +112,7 @@ void activate_geometry_node(Main &bmain, SpaceNode &snode, bNode &node)
       }
     }
 
-    /* Enable viewer in one viewport if it is disable in all of them. */
+    /* Enable viewer in one viewport if it is disabled in all of them. */
     if (!found_view3d_with_enabled_viewer && any_view3d_without_viewer != nullptr) {
       any_view3d_without_viewer->flag2 |= V3D_SHOW_VIEWER;
     }
