@@ -167,7 +167,7 @@ add_library(bli_lib
   "../../../source/blender/blenlib/intern/rct.c"
   "../../../source/blender/blenlib/intern/string.c"
   "../../../source/blender/blenlib/intern/string_utf8.c"
-  "../../../source/blender/blenlib/intern/listbase.c"
+  "../../../source/blender/blenlib/intern/listbase.cc"
   "../../../source/blender/blenlib/intern/math_color.c"
   "../../../source/blender/blenlib/intern/math_geom.c"
   "../../../source/blender/blenlib/intern/math_matrix.c"

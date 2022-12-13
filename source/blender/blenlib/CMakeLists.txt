@@ -89,7 +89,7 @@ set(SRC
   intern/lasso_2d.c
   intern/lazy_threading.cc
   intern/length_parameterize.cc
-  intern/listbase.c
+  intern/listbase.cc
   intern/math_base.c
   intern/math_base_inline.c
   intern/math_base_safe_inline.c

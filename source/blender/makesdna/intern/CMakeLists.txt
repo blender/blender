@@ -135,7 +135,7 @@ set(SRC
   ../../blenlib/intern/BLI_mempool.c
   ../../blenlib/intern/endian_switch.c
   ../../blenlib/intern/hash_mm2a.c
-  ../../blenlib/intern/listbase.c
+  ../../blenlib/intern/listbase.cc
 
   ${SRC_DNA_DEFAULTS_INC}
 )
