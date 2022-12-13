@@ -1368,6 +1368,8 @@ GPUBatch *DRW_pbvh_tris_get(PBVHBatches *batches,
                             int *r_prim_count,
                             bool do_coarse_grids)
 {
+  do_coarse_grids &= args->pbvh_type == PBVH_GRIDS;
+
   PBVHBatch &batch = batches->ensure_batch(attrs, attrs_num, args, do_coarse_grids);
 
   *r_prim_count = batch.tris_count;
@@ -1382,6 +1384,8 @@ GPUBatch *DRW_pbvh_lines_get(PBVHBatches *batches,
                              int *r_prim_count,
                              bool do_coarse_grids)
 {
+  do_coarse_grids &= args->pbvh_type == PBVH_GRIDS;
+
   PBVHBatch &batch = batches->ensure_batch(attrs, attrs_num, args, do_coarse_grids);
 
   *r_prim_count = batch.lines_count;

@@ -2454,7 +2454,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
       permanent = (out->params.permanent = false);
     }
 
-    simple_array = (out->params.simple_array = true);
+    simple_array = true;
   }
 
   BLI_assert(!(simple_array && permanent));
@@ -2466,8 +2466,8 @@ static bool sculpt_attribute_create(SculptSession *ss,
 
     out->data = MEM_calloc_arrayN(totelem, elemsize, __func__);
 
-    out->data_for_bmesh = false;
-    out->params.simple_array = true;
+    out->data_for_bmesh = ss->bm != nullptr;
+    out->simple_array = true;
     out->bmesh_cd_offset = -1;
     out->layer = nullptr;
     out->elem_size = elemsize;
@@ -2476,6 +2476,8 @@ static bool sculpt_attribute_create(SculptSession *ss,
 
     return true;
   }
+
+  out->simple_array = false;
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
@@ -2512,8 +2514,6 @@ static bool sculpt_attribute_create(SculptSession *ss,
     case PBVH_FACES: {
       CustomData *cdata = nullptr;
 
-      out->data_for_bmesh = false;
-
       switch (domain) {
         case ATTR_DOMAIN_POINT:
           cdata = &me->vdata;
@@ -2535,10 +2535,10 @@ static bool sculpt_attribute_create(SculptSession *ss,
         cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
       }
 
-      out->data = nullptr;
       out->layer = cdata->layers + index;
-      out->bmesh_cd_offset = -1;
       out->data = out->layer->data;
+      out->data_for_bmesh = false;
+      out->bmesh_cd_offset = -1;
       out->elem_size = CustomData_get_elem_size(out->layer);
 
       break;
@@ -2566,31 +2566,36 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
 
   bool bad = false;
 
-  if (attr->params.simple_array) {
+  if (attr->data) {
     bad = attr->elem_num != elem_num;
-
-    if (bad) {
-      MEM_SAFE_FREE(attr->data);
-    }
-    else {
-      attr->data_for_bmesh = false;
-    }
   }
-  else {
-    CustomData *cdata = sculpt_get_cdata(ob, attr->domain);
 
-    if (cdata) {
-      int layer_index = CustomData_get_named_layer_index(cdata, attr->proptype, attr->name);
+  /* Check if we are a coerced simple array and shouldn't be. */
+  bad |= attr->simple_array && !attr->params.simple_array &&
+         !ELEM(BKE_pbvh_type(ss->pbvh), PBVH_GRIDS, PBVH_BMESH);
 
-      bad |= (ss->bm != nullptr) != attr->data_for_bmesh;
+  CustomData *cdata = sculpt_get_cdata(ob, attr->domain);
+  if (cdata && !attr->simple_array) {
+    int layer_index = CustomData_get_named_layer_index(cdata, attr->proptype, attr->name);
 
+    bad |= layer_index == -1;
+    bad |= (ss->bm != nullptr) != attr->data_for_bmesh;
+
+    if (!bad) {
       if (attr->data_for_bmesh) {
         attr->bmesh_cd_offset = cdata->layers[layer_index].offset;
+      }
+      else {
+        attr->data = cdata->layers[layer_index].data;
       }
     }
   }
 
   if (bad) {
+    if (attr->simple_array) {
+      MEM_SAFE_FREE(attr->data);
+    }
+
     sculpt_attribute_create(ss,
                             ob,
                             attr->domain,
@@ -2725,6 +2730,8 @@ static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
   SculptAttribute *attr = BKE_sculpt_attribute_get(ob, domain, proptype, name);
 
   if (attr) {
+    sculpt_attr_update(ob, attr);
+
     return attr;
   }
 
@@ -2763,7 +2770,7 @@ static void sculptsession_bmesh_attr_update_internal(Object *ob)
   }
 }
 
-void sculptsession_bmesh_add_layers(Object *ob)
+static void sculptsession_bmesh_add_layers(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   SculptAttributeParams params = {0};
@@ -2870,7 +2877,7 @@ bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
 
   Mesh *me = BKE_object_get_original_mesh(ob);
 
-  if (attr->params.simple_array) {
+  if (attr->simple_array) {
     MEM_SAFE_FREE(attr->data);
   }
   else if (ss->bm) {
