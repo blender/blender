@@ -241,6 +241,12 @@ def do_versions(self):
                         layer.samples *= layer.samples
                     cscene["use_square_samples"] = False
 
+            # Disable light tree for existing scenes.
+            if version <= (3, 5, 3):
+                cscene = scene.cycles
+                if not cscene.is_property_set("use_light_tree"):
+                    cscene.use_light_tree = False
+
         # Lamps
         for light in bpy.data.lights:
             if light.library not in libraries:
