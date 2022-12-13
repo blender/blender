@@ -117,7 +117,7 @@ else()
   set(LIBEXT ".a")
   set(LIBPREFIX "lib")
   set(MESON ${LIBDIR}/python/bin/meson)
-if(APPLE)
+  if(APPLE)
     set(SHAREDLIBEXT ".dylib")
 
     # Use same Xcode detection as Blender itself.

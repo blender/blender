@@ -203,7 +203,7 @@ set(OSL_FILE OpenShadingLanguage-${OSL_VERSION}.tar.gz)
 
 # NOTE: When updating the python version, it's required to check the versions of
 # it wants to use in PCbuild/get_externals.bat for the following dependencies:
-# BZIP2, FFI, SQLITE and change the versions in this file as well. For compliance 
+# BZIP2, FFI, SQLITE and change the versions in this file as well. For compliance
 # reasons there can be no exceptions to this.
 
 set(PYTHON_VERSION 3.10.9)
@@ -229,20 +229,34 @@ set(OPENVDB_HASH 64301c737e16b26c8f3085a31e6397e9)
 set(OPENVDB_HASH_TYPE MD5)
 set(OPENVDB_FILE openvdb-${OPENVDB_VERSION}.tar.gz)
 
+# ------------------------------------------------------------------------------
+# Python Modules
+
+# Needed by: TODO.
 set(IDNA_VERSION 3.3)
+# Needed by: TODO.
 set(CHARSET_NORMALIZER_VERSION 2.0.10)
+# Needed by: TODO.
 set(URLLIB3_VERSION 1.26.8)
 set(URLLIB3_CPE "cpe:2.3:a:urllib3:urllib3:${URLLIB3_VERSION}:*:*:*:*:*:*:*")
+# Needed by: Python's `requests` module (so add-ons can authenticate against trusted certificates).
 set(CERTIFI_VERSION 2021.10.8)
+# Needed by: Some of Blender's add-ons (to support convenient interaction with online services).
 set(REQUESTS_VERSION 2.27.1)
+# Needed by: Python's `numpy` module (used by some add-ons).
 set(CYTHON_VERSION 0.29.30)
-# The version of the zstd library used to build the Python package should match ZSTD_VERSION
+# Needed by: Python scripts that read `.blend` files, as files may use Z-standard compression.
+# The version of the ZSTD library used to build the Python package should match ZSTD_VERSION
 # defined below. At this time of writing, 0.17.0 was already released,
-# but built against zstd 1.5.1, while we use 1.5.0.
+# but built against ZSTD 1.5.1, while we use 1.5.0.
 set(ZSTANDARD_VERSION 0.16.0)
+# Auto-format Python source (developer tool, not used by Blender at run-time).
 set(AUTOPEP8_VERSION 1.6.0)
+# Needed by: `autopep8` (so the version doesn't change on rebuild).
 set(PYCODESTYLE_VERSION 2.8.0)
+# Needed by: `autopep8` (so the version doesn't change on rebuild).
 set(TOML_VERSION 0.10.2)
+# Build system for other packages (not used by Blender at run-time).
 set(MESON_VERSION 0.63.0)
 
 set(NUMPY_VERSION 1.23.5)
