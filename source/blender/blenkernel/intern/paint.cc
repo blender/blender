@@ -2466,7 +2466,8 @@ static bool sculpt_attribute_create(SculptSession *ss,
 
     out->data = MEM_calloc_arrayN(totelem, elemsize, __func__);
 
-    out->data_for_bmesh = ss->bm != nullptr;
+    out->data_for_bmesh = false;
+    out->params.simple_array = true;
     out->bmesh_cd_offset = -1;
     out->layer = nullptr;
     out->elem_size = elemsize;
@@ -2598,7 +2599,7 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
                             attr,
                             &attr->params,
                             BKE_pbvh_type(ss->pbvh),
-                            true);
+                            attr->data_for_bmesh);
   }
 
   return bad;
