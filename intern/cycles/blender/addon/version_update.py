@@ -228,7 +228,7 @@ def do_versions(self):
                     cscene.use_preview_denoising = False
                 if not cscene.is_property_set("sampling_pattern") or \
                    cscene.get('sampling_pattern') >= 2:
-                    cscene.sampling_pattern = 'PROGRESSIVE_MULTI_JITTER'
+                    cscene.sampling_pattern = 'TABULATED_SOBOL'
 
                 # Removal of square samples.
                 cscene = scene.cycles

@@ -551,8 +551,9 @@ ccl_device bool get_left_probability(KernelGlobals kg,
 
 template<bool in_volume_segment>
 ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
-                                           float randu,
-                                           float randv,
+                                           float randn,
+                                           const float randu,
+                                           const float randv,
                                            const float time,
                                            const float3 P,
                                            const float3 N_or_D,
@@ -580,7 +581,7 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
     if (knode->child_index <= 0) {
       /* At a leaf node, we pick an emitter. */
       selected_emitter = light_tree_cluster_select_emitter<in_volume_segment>(
-          kg, randv, P, N_or_D, t, has_transmission, knode, &pdf_selection);
+          kg, randn, P, N_or_D, t, has_transmission, knode, &pdf_selection);
       break;
     }
 
@@ -598,7 +599,7 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
     float discard;
     float total_prob = left_prob;
     node_index = left_index;
-    sample_resevoir(right_index, 1.0f - left_prob, node_index, discard, total_prob, randu);
+    sample_resevoir(right_index, 1.0f - left_prob, node_index, discard, total_prob, randn);
     pdf_leaf *= (node_index == left_index) ? left_prob : (1.0f - left_prob);
   }
 

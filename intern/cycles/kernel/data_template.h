@@ -179,7 +179,7 @@ KERNEL_STRUCT_MEMBER(integrator, float, sample_clamp_indirect)
 KERNEL_STRUCT_MEMBER(integrator, int, use_caustics)
 /* Sampling pattern. */
 KERNEL_STRUCT_MEMBER(integrator, int, sampling_pattern)
-KERNEL_STRUCT_MEMBER(integrator, int, pmj_sequence_size)
+KERNEL_STRUCT_MEMBER(integrator, int, tabulated_sobol_sequence_size)
 KERNEL_STRUCT_MEMBER(integrator, float, scrambling_distance)
 /* Volume render. */
 KERNEL_STRUCT_MEMBER(integrator, int, use_volumes)

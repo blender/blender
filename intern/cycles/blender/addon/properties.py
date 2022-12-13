@@ -82,8 +82,8 @@ enum_use_layer_samples = (
 )
 
 enum_sampling_pattern = (
-    ('SOBOL', "Sobol-Burley", "Use Sobol-Burley random sampling pattern", 0),
-    ('PROGRESSIVE_MULTI_JITTER', "Progressive Multi-Jitter", "Use Progressive Multi-Jitter random sampling pattern", 1),
+    ('SOBOL_BURLEY', "Sobol-Burley", "Use on-the-fly computed Owen-scrambled Sobol for random sampling", 0),
+    ('TABULATED_SOBOL', "Tabulated Sobol", "Use precomputed tables of Owen-scrambled Sobol for random sampling", 1),
 )
 
 enum_emission_sampling = (
@@ -412,9 +412,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     sampling_pattern: EnumProperty(
         name="Sampling Pattern",
-        description="Random sampling pattern used by the integrator. When adaptive sampling is enabled, Progressive Multi-Jitter is always used instead of Sobol-Burley",
+        description="Random sampling pattern used by the integrator",
         items=enum_sampling_pattern,
-        default='PROGRESSIVE_MULTI_JITTER',
+        default='TABULATED_SOBOL',
     )
 
     scrambling_distance: FloatProperty(

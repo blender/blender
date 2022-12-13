@@ -148,8 +148,7 @@ CCL_NAMESPACE_BEGIN
 enum PathTraceDimension {
   /* Init bounce */
   PRNG_FILTER = 0,
-  PRNG_LENS = 1,
-  PRNG_TIME = 2,
+  PRNG_LENS_TIME = 1,
 
   /* Shade bounce */
   PRNG_TERMINATE = 0,
@@ -187,7 +186,7 @@ enum PathTraceDimension {
 
 enum SamplingPattern {
   SAMPLING_PATTERN_SOBOL_BURLEY = 0,
-  SAMPLING_PATTERN_PMJ = 1,
+  SAMPLING_PATTERN_TABULATED_SOBOL = 1,
 
   SAMPLING_NUM_PATTERNS,
 };
@@ -1032,13 +1031,28 @@ typedef struct LocalIntersection {
 typedef struct KernelCamera {
   /* type */
   int type;
+  int use_dof_or_motion_blur;
+
+  /* depth of field */
+  float aperturesize;
+  float blades;
+  float bladesrotation;
+  float focaldistance;
+
+  /* motion blur */
+  float shuttertime;
+  int num_motion_steps, have_perspective_motion;
+
+  int pad1;
+  int pad2;
+  int pad3;
 
   /* panorama */
   int panorama_type;
   float fisheye_fov;
   float fisheye_lens;
-  float4 equirectangular_range;
   float fisheye_lens_polynomial_bias;
+  float4 equirectangular_range;
   float4 fisheye_lens_polynomial_coefficients;
 
   /* stereo */
@@ -1055,16 +1069,6 @@ typedef struct KernelCamera {
   float4 dx;
   float4 dy;
 
-  /* depth of field */
-  float aperturesize;
-  float blades;
-  float bladesrotation;
-  float focaldistance;
-
-  /* motion blur */
-  float shuttertime;
-  int num_motion_steps, have_perspective_motion;
-
   /* clipping */
   float nearclip;
   float cliplength;
@@ -1075,7 +1079,6 @@ typedef struct KernelCamera {
 
   /* render size */
   float width, height;
-  int pad1;
 
   /* anamorphic lens bokeh */
   float inv_aperture_ratio;
@@ -1466,15 +1469,15 @@ typedef struct KernelShaderEvalInput {
 } KernelShaderEvalInput;
 static_assert_align(KernelShaderEvalInput, 16);
 
-/* Pre-computed sample table sizes for PMJ02 sampler.
+/* Pre-computed sample table sizes for the tabulated Sobol sampler.
  *
  * NOTE: min and max samples *must* be a power of two, and patterns
  * ideally should be as well.
  */
-#define MIN_PMJ_SAMPLES 256
-#define MAX_PMJ_SAMPLES 8192
-#define NUM_PMJ_DIMENSIONS 2
-#define NUM_PMJ_PATTERNS 256
+#define MIN_TAB_SOBOL_SAMPLES 256
+#define MAX_TAB_SOBOL_SAMPLES 8192
+#define NUM_TAB_SOBOL_DIMENSIONS 4
+#define NUM_TAB_SOBOL_PATTERNS 256
 
 /* Device kernels.
  *

@@ -299,12 +299,12 @@ set(SRC_KERNEL_LIGHT_HEADERS
 )
 
 set(SRC_KERNEL_SAMPLE_HEADERS
-  sample/jitter.h
   sample/lcg.h
   sample/mapping.h
   sample/mis.h
   sample/pattern.h
   sample/sobol_burley.h
+  sample/tabulated_sobol.h
   sample/util.h
 )
 

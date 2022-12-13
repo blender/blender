@@ -147,10 +147,11 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   {
     const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
     const uint bounce = INTEGRATOR_STATE(state, path, bounce);
-    const float2 rand_light = path_state_rng_2D(kg, rng_state, PRNG_LIGHT);
+    const float3 rand_light = path_state_rng_3D(kg, rng_state, PRNG_LIGHT);
 
     if (!light_sample_from_position(kg,
                                     rng_state,
+                                    rand_light.z,
                                     rand_light.x,
                                     rand_light.y,
                                     sd->time,
