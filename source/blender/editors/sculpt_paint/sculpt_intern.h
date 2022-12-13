@@ -752,7 +752,7 @@ typedef struct ExpandCache {
   /* Texture distortion data. */
   Brush *brush;
   struct Scene *scene;
-  struct MTex *mtex;
+  // struct MTex *mtex;
 
   /* Controls how much texture distortion will be applied to the current falloff */
   float texture_distortion_strength;
