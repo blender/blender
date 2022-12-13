@@ -8,7 +8,7 @@ namespace blender::io::ply {
 Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
 {
   // Add vertices to the mesh
-  mesh->totvert = (int)data.vertices.size(); // Explicit conversion from int64_t to int
+  mesh->totvert = (int)data.vertices.size();  // Explicit conversion from int64_t to int
   CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
   MutableSpan<MVert> verts = mesh->verts_for_write();
   for (int i = 0; i < mesh->totvert; i++) {
@@ -18,11 +18,11 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
 
   // Add faces and edges to the mesh
   if (!data.faces.is_empty()) {
-    mesh->totpoly = (int)data.faces.size(); // Explicit conversion from int64_t to int
-    mesh->totloop = 0; // TODO: Make this more dynamic using data.edges()
+    mesh->totpoly = (int)data.faces.size();  // Explicit conversion from int64_t to int
+    mesh->totloop = 0;                       // TODO: Make this more dynamic using data.edges()
     for (int i = 0; i < data.faces.size(); i++) {
-    	mesh->totloop += data.faces[i].size();
-	}
+      mesh->totloop += data.faces[i].size();
+    }
     CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
     CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
     MutableSpan<MPoly> polys = mesh->polys_for_write();
@@ -30,7 +30,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
 
     int offset = 0;
     for (int i = 0; i < mesh->totpoly; i++) {
-      int size = (int)data.faces[i].size(); // Explicit conversion from int64_t to int
+      int size = (int)data.faces[i].size();  // Explicit conversion from int64_t to int
       polys[i].loopstart = offset;
       polys[i].totloop = size;
 
@@ -57,4 +57,4 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
 
   return mesh;
 }
-} // namespace blender::io::ply
+}  // namespace blender::io::ply

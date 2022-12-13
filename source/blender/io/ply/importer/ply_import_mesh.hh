@@ -13,5 +13,5 @@ namespace blender::io::ply {
  */
 Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh);
 
-} // namespace blender::io::ply
+}  // namespace blender::io::ply
 #endif  // BLENDER_PLY_IMPORT_MESH_HH
