@@ -111,6 +111,7 @@ class AssetList : NonCopyable {
   void clear(bContext *C);
 
   bool needsRefetch() const;
+  bool isLoaded() const;
   void iterate(AssetListIterFn fn) const;
   bool listen(const wmNotifier &notifier) const;
   int size() const;
@@ -187,6 +188,11 @@ void AssetList::fetch(const bContext &C)
 bool AssetList::needsRefetch() const
 {
   return filelist_needs_force_reset(filelist_) || filelist_needs_reading(filelist_);
+}
+
+bool AssetList::isLoaded() const
+{
+  return filelist_is_ready(filelist_);
 }
 
 void AssetList::iterate(AssetListIterFn fn) const
@@ -422,7 +428,7 @@ bool ED_assetlist_is_loaded(const AssetLibraryReference *library_reference)
   if (list->needsRefetch()) {
     return false;
   }
-  return true;
+  return list->isLoaded();
 }
 
 void ED_assetlist_ensure_previews_job(const AssetLibraryReference *library_reference,
