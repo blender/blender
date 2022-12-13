@@ -19,7 +19,7 @@ template<typename T> T read(std::ifstream& file, bool isBigEndian){
   file.read((char *)&returnVal, sizeof(returnVal));
   check_file_errors(file);
   if (isBigEndian) {
-    returnVal = swap_bits<T>(returnVal);
+    returnVal = swap_bytes<T>(returnVal);
   }
   return returnVal;
 }
@@ -35,11 +35,11 @@ template double read<double>(std::ifstream& file, bool isBigEndian);
 
 void check_file_errors(std::ifstream& file) {
   if (file.bad()) {
-    printf("Read/Write error on io operation");
+    printf("Read/Write error on io operation\n");
   } else if (file.fail()) {
-    printf("Logical error on io operation");
+    printf("Logical error on io operation\n");
   } else if (file.eof()) {
-    printf("Reached end of the file");
+    printf("Reached end of the file\n");
   }
 }
 
@@ -129,24 +129,12 @@ PlyData load_ply_binary(std::ifstream &file, PlyHeader *header)
       file.read((char*)&index, sizeof(index));
       check_file_errors(file);
       if (header->type == PlyFormatType::BINARY_BE){
-        index = swap_bits<uint32_t>(index);
+        index = swap_bytes<uint32_t>(index);
       }
       vertex_indices.append(index);
     }
     data.faces.append(vertex_indices);
   }
-
-  std::cout << std::endl;
-
-  /*std::cout << "Vertex count: " << data.vertices.size() << std::endl;
-  std::cout << "\tFirst: " << data.vertices.first() << std::endl;
-  std::cout << "\tLast: " << data.vertices.last() << std::endl;
-  std::cout << "Normals count: " << data.vertex_normals.size() << std::endl;
-  std::cout << "\tFirst: " << data.vertex_normals.first() << std::endl;
-  std::cout << "\tLast: " << data.vertex_normals.last() << std::endl;
-  std::cout << "Colours count: " << data.vertex_colors.size() << std::endl;
-  std::cout << "\tFirst: " << data.vertex_colors.first() << std::endl;
-  std::cout << "\tLast: " << data.vertex_colors.last() << std::endl;*/
 
   return data;
 }

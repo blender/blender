@@ -24,7 +24,7 @@ PlyData load_ply_binary(std::ifstream &file, PlyHeader *header);
 
 void check_file_errors(std::ifstream& file);
 
-template<typename T> T swap_bits(T input)
+template<typename T> T swap_bytes(T input)
 {
   // In big endian, the most-significant byte is first
   // So, we need to swap the byte order
