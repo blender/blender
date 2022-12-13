@@ -2813,9 +2813,9 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
     BLF_wordwrap(fontid, line_width);
 
     LISTBASE_FOREACH (const TextLine *, line, &text->lines) {
-      ResultBLF info;
       if (line->line[0]) {
         BLF_position(fontid, x, y, 0);
+        ResultBLF info;
         BLF_draw_ex(fontid, line->line, line->len, &info);
         y -= line_spacing * info.lines;
       }
@@ -2890,10 +2890,8 @@ static void frame_node_draw(const bContext &C,
 static void reroute_node_draw(
     const bContext &C, ARegion &region, bNodeTree &ntree, bNode &node, uiBlock &block)
 {
-  char showname[128]; /* 128 used below */
-  const rctf &rct = node.runtime->totr;
-
   /* skip if out of view */
+  const rctf &rct = node.runtime->totr;
   if (rct.xmax < region.v2d.cur.xmin || rct.xmin > region.v2d.cur.xmax ||
       rct.ymax < region.v2d.cur.ymin || node.runtime->totr.ymin > region.v2d.cur.ymax) {
     UI_block_end(&C, &block);
@@ -2902,6 +2900,7 @@ static void reroute_node_draw(
 
   if (node.label[0] != '\0') {
     /* draw title (node label) */
+    char showname[128]; /* 128 used below */
     BLI_strncpy(showname, node.label, sizeof(showname));
     const short width = 512;
     const int x = BLI_rctf_cent_x(&node.runtime->totr) - (width / 2);
@@ -2987,7 +2986,7 @@ static void node_draw_nodetree(const bContext &C,
       continue;
     }
 
-    bNodeInstanceKey key = BKE_node_instance_key(parent_key, &ntree, nodes[i]);
+    const bNodeInstanceKey key = BKE_node_instance_key(parent_key, &ntree, nodes[i]);
     node_draw(C, tree_draw_ctx, region, snode, ntree, *nodes[i], *blocks[i], key);
   }
 
@@ -3017,7 +3016,7 @@ static void node_draw_nodetree(const bContext &C,
       continue;
     }
 
-    bNodeInstanceKey key = BKE_node_instance_key(parent_key, &ntree, nodes[i]);
+    const bNodeInstanceKey key = BKE_node_instance_key(parent_key, &ntree, nodes[i]);
     node_draw(C, tree_draw_ctx, region, snode, ntree, *nodes[i], *blocks[i], key);
   }
 }
@@ -3025,8 +3024,6 @@ static void node_draw_nodetree(const bContext &C,
 /* Draw the breadcrumb on the top of the editor. */
 static void draw_tree_path(const bContext &C, ARegion &region)
 {
-  using namespace blender;
-
   GPU_matrix_push_projection();
   wmOrtho2_region_pixelspace(&region);
 
@@ -3042,7 +3039,7 @@ static void draw_tree_path(const bContext &C, ARegion &region)
   uiLayout *layout = UI_block_layout(
       block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, width, 1, 0, style);
 
-  Vector<ui::ContextPathItem> context_path = ed::space_node::context_path_for_space_node(C);
+  const Vector<ui::ContextPathItem> context_path = ed::space_node::context_path_for_space_node(C);
   ui::template_breadcrumbs(*layout, context_path);
 
   UI_block_layout_resolve(block, nullptr, nullptr);
@@ -3115,7 +3112,7 @@ static void draw_nodetree(const bContext &C,
   SpaceNode *snode = CTX_wm_space_node(&C);
   ntree.ensure_topology_cache();
 
-  Span<bNode *> nodes = ntree.all_nodes();
+  const Span<bNode *> nodes = ntree.all_nodes();
 
   Array<uiBlock *> blocks = node_uiblocks_init(C, nodes);
 
@@ -3126,7 +3123,7 @@ static void draw_nodetree(const bContext &C,
       tree_draw_ctx.geo_tree_log->ensure_node_warnings();
       tree_draw_ctx.geo_tree_log->ensure_node_run_time();
     }
-    WorkSpace *workspace = CTX_wm_workspace(&C);
+    const WorkSpace *workspace = CTX_wm_workspace(&C);
     tree_draw_ctx.active_geometry_nodes_viewer = viewer_path::find_geometry_nodes_viewer(
         workspace->viewer_path, *snode);
   }
