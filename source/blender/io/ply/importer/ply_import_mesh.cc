@@ -8,17 +8,17 @@ namespace blender::io::ply {
 Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
 {
   // Add vertices to the mesh
-  mesh->totvert = data.vertices.size();
+  mesh->totvert = (int)data.vertices.size(); // Explicit conversion from int64_t to int
   CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
   MutableSpan<MVert> verts = mesh->verts_for_write();
   for (int i = 0; i < mesh->totvert; i++) {
-    float vert[3] = {data.vertices[i].x, data.vertices[i].y, data.vertices[i].z};
+    float3 vert = {data.vertices[i].x, data.vertices[i].y, data.vertices[i].z};
     copy_v3_v3(verts[i].co, vert);
   }
 
   // Add faces and edges to the mesh
-  if (data.faces.size() > 0) {
-    mesh->totpoly = data.faces.size();
+  if (!data.faces.is_empty()) {
+    mesh->totpoly = (int)data.faces.size(); // Explicit conversion from int64_t to int
     mesh->totloop = 0; // TODO: Make this more dynamic using data.edges()
     for (int i = 0; i < data.faces.size(); i++) {
     	mesh->totloop += data.faces[i].size();
@@ -30,7 +30,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
 
     int offset = 0;
     for (int i = 0; i < mesh->totpoly; i++) {
-      int size = data.faces[i].size();
+      int size = (int)data.faces[i].size(); // Explicit conversion from int64_t to int
       polys[i].loopstart = offset;
       polys[i].totloop = size;
 
@@ -42,7 +42,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
   }
 
   // Vertex colours
-  if (data.vertex_colors.size() > 0) {
+  if (!data.vertex_colors.is_empty()) {
     // Create a data layer for vertex colours and set them
     CustomDataLayer *color_layer = BKE_id_attribute_new(
         &mesh->id, "Col", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
