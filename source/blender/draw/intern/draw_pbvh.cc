@@ -66,6 +66,22 @@ using blender::Vector;
 
 using string = std::string;
 
+static bool valid_pbvh_attr(int type)
+{
+  switch (type) {
+    case CD_PBVH_CO_TYPE:
+    case CD_PBVH_NO_TYPE:
+    case CD_PBVH_FSET_TYPE:
+    case CD_PBVH_MASK_TYPE:
+    case CD_PROP_COLOR:
+    case CD_PROP_BYTE_COLOR:
+    case CD_MLOOPUV:
+      return true;
+  }
+
+  return false;
+}
+
 struct PBVHVbo {
   uint64_t type;
   eAttrDomain domain;
@@ -227,6 +243,10 @@ struct PBVHBatches {
 
     for (int i : IndexRange(attrs_num)) {
       PBVHAttrReq *attr = attrs + i;
+
+      if (!valid_pbvh_attr(attr->type)) {
+        continue;
+      }
 
       PBVHVbo vbo(attr->domain, attr->type, string(attr->name));
       vbo.build_key();
@@ -858,10 +878,10 @@ struct PBVHBatches {
         break;
       }
       default:
-        BLI_assert(0);
-        printf("%s: error\n", __func__);
+        printf("%s: Unsupported attribute type %d\n", __func__, type);
+        BLI_assert_unreachable();
 
-        break;
+        return;
     }
 
     if (need_aliases) {
@@ -1226,6 +1246,10 @@ struct PBVHBatches {
 
     for (int i : IndexRange(attrs_num)) {
       PBVHAttrReq *attr = attrs + i;
+
+      if (!valid_pbvh_attr(attr->type)) {
+        continue;
+      }
 
       if (!has_vbo(attr->domain, int(attr->type), attr->name)) {
         create_vbo(attr->domain, uint32_t(attr->type), attr->name, args);
