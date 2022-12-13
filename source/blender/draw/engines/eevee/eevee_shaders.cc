@@ -1158,7 +1158,7 @@ World *EEVEE_world_default_get(void)
  * Source is provided separately, rather than via create-info as source is manipulated
  * by `eevee_shader_material_create_info_amend`.
  *
- * We also retain the previous behaviour for ensuring library includes occur in the
+ * We also retain the previous behavior for ensuring library includes occur in the
  * correct order. */
 static const char *eevee_get_vert_info(int options, char **r_src)
 {
@@ -1288,7 +1288,7 @@ static char *eevee_get_defines(int options)
    * CreateInfo's for EEVEE materials are declared in:
    * `eevee/shaders/infos/eevee_legacy_material_info.hh`
    *
-   * This function should only contain defines which alter behaviour, but do not affect shader
+   * This function should only contain defines which alter behavior, but do not affect shader
    * resources. */
 
   if ((options & VAR_WORLD_BACKGROUND) != 0) {

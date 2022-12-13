@@ -995,7 +995,7 @@ static void ui_apply_but_funcs_after(bContext *C)
   BLI_listbase_clear(&UIAfterFuncs);
 
   LISTBASE_FOREACH_MUTABLE (uiAfterFunc *, afterf, &funcs) {
-    uiAfterFunc after = *afterf; /* copy to avoid memleak on exit() */
+    uiAfterFunc after = *afterf; /* Copy to avoid memory leak on exit(). */
     BLI_freelinkN(&funcs, afterf);
 
     if (after.context) {

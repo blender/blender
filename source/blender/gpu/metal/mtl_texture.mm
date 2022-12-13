@@ -223,7 +223,7 @@ id<MTLTexture> gpu::MTLTexture::get_metal_handle()
     if (mip_swizzle_view_ != nil || texture_view_dirty_flags_) {
       bake_mip_swizzle_view();
 
-      /* Optimisation: If texture view does not change mip parameters, no texture view will be
+      /* Optimization: If texture view does not change mip parameters, no texture view will be
        * baked. This is because texture views remove the ability to perform lossless compression.
        */
       if (mip_swizzle_view_ != nil) {
@@ -620,7 +620,7 @@ void gpu::MTLTexture::update_sub(
       BLI_assert(blit_encoder != nil);
 
       /* If we need to use a texture view to write texture data as the source
-       * format is unwritable, if our texture has not been initialised with
+       * format is unwritable, if our texture has not been initialized with
        * texture view support, use a staging texture. */
       if ((compatible_write_format != destination_format) &&
           !(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW)) {
@@ -646,7 +646,7 @@ void gpu::MTLTexture::update_sub(
 
     /* Allocate stating texture if needed. */
     if (use_staging_texture) {
-      /* Create staging texture to avoid shader-write limiting optimisation. */
+      /* Create staging texture to avoid shader-write limiting optimization. */
       BLI_assert(texture_descriptor_ != nullptr);
       MTLTextureUsage original_usage = texture_descriptor_.usage;
       texture_descriptor_.usage = original_usage | MTLTextureUsageShaderWrite |

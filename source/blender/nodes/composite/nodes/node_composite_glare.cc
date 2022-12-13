@@ -384,7 +384,7 @@ class GlareOperation : public NodeOperation {
     /* For the given number of iterations, accumulate four ghosts with different scales and color
      * modulators. The result of the previous iteration is used as the input of the current
      * iteration. We start from index 1 because we are not interested in the scales produced for
-     * the first iteration according to visual judgement, see the compute_ghost_scales method. */
+     * the first iteration according to visual judgment, see the compute_ghost_scales method. */
     Result &input_ghost_result = base_ghost_result;
     const IndexRange iterations_range = IndexRange(get_number_of_iterations()).drop_front(1);
     for (const int i : iterations_range) {
@@ -492,7 +492,7 @@ class GlareOperation : public NodeOperation {
    * have n number of iterations, that means the total number of accumulations is 4 * n. To get a
    * variety of scales, we generate an arithmetic progression that starts from 2.1 and ends at
    * zero exclusive, containing 4 * n elements. The start scale of 2.1 is chosen arbitrarily using
-   * visual judgement. To get more scale variations, every other scale is inverted with a slight
+   * visual judgment. To get more scale variations, every other scale is inverted with a slight
    * change in scale such that it alternates between scaling down and up, additionally every other
    * ghost is flipped across the image center by negating its scale. Finally, to get variations
    * across the number of iterations, a shift of 0.5 is introduced when the number of iterations is
@@ -524,7 +524,7 @@ class GlareOperation : public NodeOperation {
 
   /* The operation computes two base ghosts by blurring the highlights with two different radii,
    * this method computes the blur radius for the smaller one. The value is chosen using visual
-   * judgement. Make sure to take the quality factor into account, see the get_quality_factor
+   * judgment. Make sure to take the quality factor into account, see the get_quality_factor
    * method for more information. */
   float get_small_ghost_radius()
   {

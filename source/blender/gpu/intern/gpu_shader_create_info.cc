@@ -357,13 +357,13 @@ void gpu_shader_create_info_init()
     basic_depth_pointcloud_conservative_clipped =
         basic_depth_pointcloud_conservative_no_geom_clipped;
 
-    /* Overlay prepass wire. */
+    /* Overlay pre-pass wire. */
     overlay_outline_prepass_wire = overlay_outline_prepass_wire_no_geom;
 
     /* Edit UV Edges. */
     overlay_edit_uv_edges = overlay_edit_uv_edges_no_geom;
 
-    /* Downsample Cube/Proe rendering. */
+    /* Down-sample Cube/Probe rendering. */
     eevee_legacy_effect_downsample_cube = eevee_legacy_effect_downsample_cube_no_geom;
     eevee_legacy_probe_filter_glossy = eevee_legacy_probe_filter_glossy_no_geom;
     eevee_legacy_lightprobe_planar_downsample = eevee_legacy_lightprobe_planar_downsample_no_geom;

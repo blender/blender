@@ -2312,7 +2312,7 @@ int UI_icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, const b
     return rnaicon;
   }
 
-  /* try ID, material, texture or dynapaint slot */
+  /* Try ID, material, texture or dynamic-paint slot. */
   if (RNA_struct_is_ID(ptr->type)) {
     id = ptr->owner_id;
   }

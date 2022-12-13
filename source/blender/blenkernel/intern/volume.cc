@@ -320,11 +320,11 @@ struct VolumeGrid {
 
     openvdb::io::File file(filepath);
 
-    /* Isolate file loading since that's potentially multithreaded and we are
+    /* Isolate file loading since that's potentially multi-threaded and we are
      * holding a mutex lock. */
     blender::threading::isolate_task([&] {
       try {
-        /* Disably delay loading and file copying, this has poor performance
+        /* Disable delay loading and file copying, this has poor performance
          * on network drivers. */
         const bool delay_load = false;
         file.setCopyMaxBytes(0);
@@ -886,7 +886,7 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
   openvdb::GridPtrVec vdb_grids;
 
   try {
-    /* Disably delay loading and file copying, this has poor performance
+    /* Disable delay loading and file copying, this has poor performance
      * on network drivers. */
     const bool delay_load = false;
     file.setCopyMaxBytes(0);

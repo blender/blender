@@ -533,7 +533,7 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_first, uint v_count, uint i_fi
   }
 
   /* Ensure Context Render Pipeline State is fully setup and ready to execute the draw.
-   * This should happen after all other final rendeirng setup is complete. */
+   * This should happen after all other final rendering setup is complete. */
   MTLPrimitiveType mtl_prim_type = gpu_prim_type_to_metal(this->prim_type);
   if (!ctx->ensure_render_pipeline_state(mtl_prim_type)) {
     printf("FAILED TO ENSURE RENDER PIPELINE STATE");

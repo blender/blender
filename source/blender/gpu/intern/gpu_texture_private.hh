@@ -82,7 +82,7 @@ class Texture {
   eGPUTextureFormatFlag format_flag_;
   /** Texture type. */
   eGPUTextureType type_;
-  /** Texutre usage flags */
+  /** Texture usage flags. */
   eGPUTextureUsage gpu_image_usage_flags_;
 
   /** Number of mipmaps this texture has (Max miplvl). */

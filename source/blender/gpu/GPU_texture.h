@@ -187,7 +187,7 @@ typedef enum eGPUDataFormat {
 } eGPUDataFormat;
 
 /** Texture usage flags.
- * Texture usage flags allow backend implementations to contextually optimise texture resources.
+ * Texture usage flags allow backend implementations to contextually optimize texture resources.
  * Any texture with an explicit flag should not perform operations which are not explicitly
  * specified in the usage flags. If usage is unknown upfront, then GPU_TEXTURE_USAGE_GENERAL can be
  * used.
@@ -202,7 +202,7 @@ typedef enum eGPUTextureUsage {
   GPU_TEXTURE_USAGE_SHADER_READ = (1 << 0),
   /* Whether the texture is written to by a shader using imageStore. */
   GPU_TEXTURE_USAGE_SHADER_WRITE = (1 << 1),
-  /* Whether a texture is used as an attachment in a framebuffer. */
+  /* Whether a texture is used as an attachment in a frame-buffer. */
   GPU_TEXTURE_USAGE_ATTACHMENT = (1 << 2),
   /* Whether the texture is used as a texture view, uses mip-map layer adjustment,
    * OR, uses swizzle access masks. Mip-map base layer adjustment and texture channel swizzling
@@ -226,11 +226,11 @@ unsigned int GPU_texture_memory_usage_get(void);
  * \note \a data is expected to be float. If the \a format is not compatible with float data or if
  * the data is not in float format, use GPU_texture_update to upload the data with the right data
  * format.
- * NOTE: _ex variants of texure creation functions allow specification of explicit usage for
+ * NOTE: `_ex` variants of texture creation functions allow specification of explicit usage for
  * optimal performance. Using standard texture creation will use the `GPU_TEXTURE_USAGE_GENERAL`.
  *
  * Textures created via other means will either inherit usage from the source resource, or also
- * be initialised with `GPU_TEXTURE_USAGE_GENERAL`.
+ * be initialized with `GPU_TEXTURE_USAGE_GENERAL`.
  *
  * flag. \a mips is the number of mip level to allocate. It must be >= 1.
  */
