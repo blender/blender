@@ -673,136 +673,137 @@ void ED_node_set_active(
   }
 
   nodeSetActive(ntree, node);
+  if (node->type == NODE_GROUP) {
+    return;
+  }
 
-  if (node->type != NODE_GROUP) {
-    const bool was_output = (node->flag & NODE_DO_OUTPUT) != 0;
-    bool do_update = false;
+  const bool was_output = (node->flag & NODE_DO_OUTPUT) != 0;
+  bool do_update = false;
 
-    /* generic node group output: set node as active output */
-    if (node->type == NODE_GROUP_OUTPUT) {
+  /* generic node group output: set node as active output */
+  if (node->type == NODE_GROUP_OUTPUT) {
+    for (bNode *node_iter : ntree->all_nodes()) {
+      if (node_iter->type == NODE_GROUP_OUTPUT) {
+        node_iter->flag &= ~NODE_DO_OUTPUT;
+      }
+    }
+
+    node->flag |= NODE_DO_OUTPUT;
+    if (!was_output) {
+      do_update = true;
+      BKE_ntree_update_tag_active_output_changed(ntree);
+    }
+  }
+
+  /* tree specific activate calls */
+  if (ntree->type == NTREE_SHADER) {
+    if (ELEM(node->type,
+             SH_NODE_OUTPUT_MATERIAL,
+             SH_NODE_OUTPUT_WORLD,
+             SH_NODE_OUTPUT_LIGHT,
+             SH_NODE_OUTPUT_LINESTYLE)) {
       for (bNode *node_iter : ntree->all_nodes()) {
-        if (node_iter->type == NODE_GROUP_OUTPUT) {
+        if (node_iter->type == node->type) {
           node_iter->flag &= ~NODE_DO_OUTPUT;
         }
       }
 
       node->flag |= NODE_DO_OUTPUT;
-      if (!was_output) {
-        do_update = true;
-        BKE_ntree_update_tag_active_output_changed(ntree);
-      }
+      BKE_ntree_update_tag_active_output_changed(ntree);
     }
 
-    /* tree specific activate calls */
-    if (ntree->type == NTREE_SHADER) {
-      if (ELEM(node->type,
-               SH_NODE_OUTPUT_MATERIAL,
-               SH_NODE_OUTPUT_WORLD,
-               SH_NODE_OUTPUT_LIGHT,
-               SH_NODE_OUTPUT_LINESTYLE)) {
-        for (bNode *node_iter : ntree->all_nodes()) {
-          if (node_iter->type == node->type) {
-            node_iter->flag &= ~NODE_DO_OUTPUT;
-          }
-        }
+    ED_node_tree_propagate_change(nullptr, bmain, ntree);
 
-        node->flag |= NODE_DO_OUTPUT;
-        BKE_ntree_update_tag_active_output_changed(ntree);
-      }
+    if ((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
+      /* If active texture changed, free glsl materials. */
+      LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
+        if (ma->nodetree && ma->use_nodes && ntreeHasTree(ma->nodetree, ntree)) {
+          GPU_material_free(&ma->gpumaterial);
 
-      ED_node_tree_propagate_change(nullptr, bmain, ntree);
-
-      if ((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
-        /* If active texture changed, free glsl materials. */
-        LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
-          if (ma->nodetree && ma->use_nodes && ntreeHasTree(ma->nodetree, ntree)) {
-            GPU_material_free(&ma->gpumaterial);
-
-            /* Sync to active texpaint slot, otherwise we can end up painting on a different slot
-             * than we are looking at. */
-            if (ma->texpaintslot) {
-              if (node->id != nullptr && GS(node->id->name) == ID_IM) {
-                Image *image = (Image *)node->id;
-                for (int i = 0; i < ma->tot_slots; i++) {
-                  if (ma->texpaintslot[i].ima == image) {
-                    ma->paint_active_slot = i;
-                  }
+          /* Sync to active texpaint slot, otherwise we can end up painting on a different slot
+           * than we are looking at. */
+          if (ma->texpaintslot) {
+            if (node->id != nullptr && GS(node->id->name) == ID_IM) {
+              Image *image = (Image *)node->id;
+              for (int i = 0; i < ma->tot_slots; i++) {
+                if (ma->texpaintslot[i].ima == image) {
+                  ma->paint_active_slot = i;
                 }
               }
             }
           }
         }
-
-        LISTBASE_FOREACH (World *, wo, &bmain->worlds) {
-          if (wo->nodetree && wo->use_nodes && ntreeHasTree(wo->nodetree, ntree)) {
-            GPU_material_free(&wo->gpumaterial);
-          }
-        }
-
-        /* Sync to Image Editor under the following conditions:
-         * - current image is not pinned
-         * - current image is not a Render Result or ViewerNode (want to keep looking at these) */
-        if (node->id != nullptr && GS(node->id->name) == ID_IM) {
-          Image *image = (Image *)node->id;
-          ED_space_image_sync(bmain, image, true);
-        }
-
-        if (r_active_texture_changed) {
-          *r_active_texture_changed = true;
-        }
-        ED_node_tree_propagate_change(nullptr, bmain, ntree);
-        WM_main_add_notifier(NC_IMAGE, nullptr);
       }
 
-      WM_main_add_notifier(NC_MATERIAL | ND_NODES, node->id);
+      LISTBASE_FOREACH (World *, wo, &bmain->worlds) {
+        if (wo->nodetree && wo->use_nodes && ntreeHasTree(wo->nodetree, ntree)) {
+          GPU_material_free(&wo->gpumaterial);
+        }
+      }
+
+      /* Sync to Image Editor under the following conditions:
+       * - current image is not pinned
+       * - current image is not a Render Result or ViewerNode (want to keep looking at these) */
+      if (node->id != nullptr && GS(node->id->name) == ID_IM) {
+        Image *image = (Image *)node->id;
+        ED_space_image_sync(bmain, image, true);
+      }
+
+      if (r_active_texture_changed) {
+        *r_active_texture_changed = true;
+      }
+      ED_node_tree_propagate_change(nullptr, bmain, ntree);
+      WM_main_add_notifier(NC_IMAGE, nullptr);
     }
-    else if (ntree->type == NTREE_COMPOSIT) {
-      /* make active viewer, currently only 1 supported... */
-      if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+
+    WM_main_add_notifier(NC_MATERIAL | ND_NODES, node->id);
+  }
+  else if (ntree->type == NTREE_COMPOSIT) {
+    /* make active viewer, currently only 1 supported... */
+    if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+      for (bNode *node_iter : ntree->all_nodes()) {
+        if (ELEM(node_iter->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+          node_iter->flag &= ~NODE_DO_OUTPUT;
+        }
+      }
+
+      node->flag |= NODE_DO_OUTPUT;
+      if (was_output == 0) {
+        BKE_ntree_update_tag_active_output_changed(ntree);
+        ED_node_tree_propagate_change(nullptr, bmain, ntree);
+      }
+
+      /* Adding a node doesn't link this yet. */
+      node->id = (ID *)BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+    }
+    else if (node->type == CMP_NODE_COMPOSITE) {
+      if (was_output == 0) {
         for (bNode *node_iter : ntree->all_nodes()) {
-          if (ELEM(node_iter->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+          if (node_iter->type == CMP_NODE_COMPOSITE) {
             node_iter->flag &= ~NODE_DO_OUTPUT;
           }
         }
 
         node->flag |= NODE_DO_OUTPUT;
-        if (was_output == 0) {
-          BKE_ntree_update_tag_active_output_changed(ntree);
-          ED_node_tree_propagate_change(nullptr, bmain, ntree);
-        }
-
-        /* Adding a node doesn't link this yet. */
-        node->id = (ID *)BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-      }
-      else if (node->type == CMP_NODE_COMPOSITE) {
-        if (was_output == 0) {
-          for (bNode *node_iter : ntree->all_nodes()) {
-            if (node_iter->type == CMP_NODE_COMPOSITE) {
-              node_iter->flag &= ~NODE_DO_OUTPUT;
-            }
-          }
-
-          node->flag |= NODE_DO_OUTPUT;
-          BKE_ntree_update_tag_active_output_changed(ntree);
-          ED_node_tree_propagate_change(nullptr, bmain, ntree);
-        }
-      }
-      else if (do_update) {
+        BKE_ntree_update_tag_active_output_changed(ntree);
         ED_node_tree_propagate_change(nullptr, bmain, ntree);
       }
     }
-    else if (ntree->type == NTREE_GEOMETRY) {
-      if (node->type == GEO_NODE_VIEWER) {
-        if ((node->flag & NODE_DO_OUTPUT) == 0) {
-          for (bNode *node_iter : ntree->all_nodes()) {
-            if (node_iter->type == GEO_NODE_VIEWER) {
-              node_iter->flag &= ~NODE_DO_OUTPUT;
-            }
+    else if (do_update) {
+      ED_node_tree_propagate_change(nullptr, bmain, ntree);
+    }
+  }
+  else if (ntree->type == NTREE_GEOMETRY) {
+    if (node->type == GEO_NODE_VIEWER) {
+      if ((node->flag & NODE_DO_OUTPUT) == 0) {
+        for (bNode *node_iter : ntree->all_nodes()) {
+          if (node_iter->type == GEO_NODE_VIEWER) {
+            node_iter->flag &= ~NODE_DO_OUTPUT;
           }
-          node->flag |= NODE_DO_OUTPUT;
         }
-        blender::ed::viewer_path::activate_geometry_node(*bmain, *snode, *node);
+        node->flag |= NODE_DO_OUTPUT;
       }
+      blender::ed::viewer_path::activate_geometry_node(*bmain, *snode, *node);
     }
   }
 }
