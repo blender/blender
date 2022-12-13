@@ -75,7 +75,7 @@ static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
                                                    const SculptAttributeParams *params,
                                                    PBVHType pbvhtype,
                                                    bool flat_array_for_bmesh);
-void sculptsession_bmesh_add_layers(Object *ob);
+static void sculptsession_bmesh_add_layers(Object *ob);
 
 using blender::MutableSpan;
 using blender::Span;
