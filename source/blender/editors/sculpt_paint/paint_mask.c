@@ -1345,6 +1345,11 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
 static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgcontext)
 {
+  Object *object = sgcontext->vc.obact;
+  SculptSession *ss = object->sculpt;
+  Mesh *mesh = (Mesh *)object->data;
+  ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
+
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   sculpt_gesture_trim_calculate_depth(sgcontext);
   sculpt_gesture_trim_geometry_generate(sgcontext);
@@ -1369,9 +1374,9 @@ static void sculpt_gesture_trim_end(bContext *UNUSED(C), SculptGestureContext *s
 {
   Object *object = sgcontext->vc.obact;
   SculptSession *ss = object->sculpt;
+  Mesh *mesh = (Mesh *)object->data;
 
-  ss->face_sets = CustomData_get_layer_named(
-      &((Mesh *)object->data)->pdata, CD_PROP_INT32, ".sculpt_face_set");
+  ss->face_sets = CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_set");
   if (ss->face_sets) {
     /* Assign a new Face Set ID to the new faces created by the trim operation. */
     const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(object->data);
