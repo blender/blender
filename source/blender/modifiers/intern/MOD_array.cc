@@ -73,11 +73,11 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 {
   ArrayModifierData *amd = (ArrayModifierData *)md;
   bool need_transform_dependency = false;
-  if (amd->start_cap != NULL) {
+  if (amd->start_cap != nullptr) {
     DEG_add_object_relation(
         ctx->node, amd->start_cap, DEG_OB_COMP_GEOMETRY, "Array Modifier Start Cap");
   }
-  if (amd->end_cap != NULL) {
+  if (amd->end_cap != nullptr) {
     DEG_add_object_relation(
         ctx->node, amd->end_cap, DEG_OB_COMP_GEOMETRY, "Array Modifier End Cap");
   }
@@ -86,7 +86,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
         ctx->node, amd->curve_ob, DEG_OB_COMP_GEOMETRY, "Array Modifier Curve");
     DEG_add_special_eval_flag(ctx->node, &amd->curve_ob->id, DAG_EVAL_NEED_CURVE_PATH);
   }
-  if (amd->offset_ob != NULL) {
+  if (amd->offset_ob != nullptr) {
     DEG_add_object_relation(
         ctx->node, amd->offset_ob, DEG_OB_COMP_TRANSFORM, "Array Modifier Offset");
     need_transform_dependency = true;
@@ -103,16 +103,16 @@ BLI_INLINE float sum_v3(const float v[3])
 }
 
 /* Structure used for sorting vertices, when processing doubles */
-typedef struct SortVertsElem {
+struct SortVertsElem {
   int vertex_num; /* The original index of the vertex, prior to sorting */
   float co[3];    /* Its coordinates */
   float sum_co;   /* `sum_v3(co)`: just so we don't do the sum many times. */
-} SortVertsElem;
+};
 
 static int svert_sum_cmp(const void *e1, const void *e2)
 {
-  const SortVertsElem *sv1 = e1;
-  const SortVertsElem *sv2 = e2;
+  const SortVertsElem *sv1 = static_cast<const SortVertsElem *>(e1);
+  const SortVertsElem *sv2 = static_cast<const SortVertsElem *>(e2);
 
   if (sv1->sum_co > sv2->sum_co) {
     return 1;
@@ -152,9 +152,8 @@ static void dm_mvert_map_doubles(int *doubles_map,
                                  const int source_verts_num,
                                  const float dist)
 {
-  const float dist3 = ((float)M_SQRT3 + 0.00005f) * dist; /* Just above sqrt(3) */
+  const float dist3 = (float(M_SQRT3) + 0.00005f) * dist; /* Just above sqrt(3) */
   int i_source, i_target, i_target_low_bound, target_end, source_end;
-  SortVertsElem *sorted_verts_target, *sorted_verts_source;
   SortVertsElem *sve_source, *sve_target, *sve_target_low_bound;
   bool target_scan_completed;
 
@@ -162,8 +161,10 @@ static void dm_mvert_map_doubles(int *doubles_map,
   source_end = source_start + source_verts_num;
 
   /* build array of MVerts to be tested for merging */
-  sorted_verts_target = MEM_malloc_arrayN(target_verts_num, sizeof(SortVertsElem), __func__);
-  sorted_verts_source = MEM_malloc_arrayN(source_verts_num, sizeof(SortVertsElem), __func__);
+  SortVertsElem *sorted_verts_target = static_cast<SortVertsElem *>(
+      MEM_malloc_arrayN(target_verts_num, sizeof(SortVertsElem), __func__));
+  SortVertsElem *sorted_verts_source = static_cast<SortVertsElem *>(
+      MEM_malloc_arrayN(source_verts_num, sizeof(SortVertsElem), __func__));
 
   /* Copy target vertices index and cos into SortVertsElem array */
   svert_from_mvert(sorted_verts_target, mverts + target_start, target_start, target_end);
@@ -305,7 +306,7 @@ static void mesh_merge_transform(Mesh *result,
   }
 
   /* remap the vertex groups if necessary */
-  if (BKE_mesh_deform_verts(result) != NULL) {
+  if (BKE_mesh_deform_verts(result) != nullptr) {
     MDeformVert *dvert = BKE_mesh_deform_verts_for_write(result);
     BKE_object_defgroup_index_map_apply(&dvert[cap_verts_index], cap_nverts, remap, remap_len);
   }
@@ -331,22 +332,22 @@ static void mesh_merge_transform(Mesh *result,
   }
 
   /* Set #CD_ORIGINDEX. */
-  index_orig = CustomData_get_layer(&result->vdata, CD_ORIGINDEX);
+  index_orig = static_cast<int *>(CustomData_get_layer(&result->vdata, CD_ORIGINDEX));
   if (index_orig) {
     copy_vn_i(index_orig + cap_verts_index, cap_nverts, ORIGINDEX_NONE);
   }
 
-  index_orig = CustomData_get_layer(&result->edata, CD_ORIGINDEX);
+  index_orig = static_cast<int *>(CustomData_get_layer(&result->edata, CD_ORIGINDEX));
   if (index_orig) {
     copy_vn_i(index_orig + cap_edges_index, cap_nedges, ORIGINDEX_NONE);
   }
 
-  index_orig = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);
+  index_orig = static_cast<int *>(CustomData_get_layer(&result->pdata, CD_ORIGINDEX));
   if (index_orig) {
     copy_vn_i(index_orig + cap_polys_index, cap_npolys, ORIGINDEX_NONE);
   }
 
-  index_orig = CustomData_get_layer(&result->ldata, CD_ORIGINDEX);
+  index_orig = static_cast<int *>(CustomData_get_layer(&result->ldata, CD_ORIGINDEX));
   if (index_orig) {
     copy_vn_i(index_orig + cap_loops_index, cap_nloops, ORIGINDEX_NONE);
   }
@@ -367,12 +368,12 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   bool offset_has_scale;
   float current_offset[4][4];
   float final_offset[4][4];
-  int *full_doubles_map = NULL;
+  int *full_doubles_map = nullptr;
   int tot_doubles;
 
   const bool use_merge = (amd->flags & MOD_ARR_MERGE) != 0;
   const bool use_recalc_normals = BKE_mesh_vertex_normals_are_dirty(mesh) || use_merge;
-  const bool use_offset_ob = ((amd->offset_type & MOD_ARR_OFF_OBJ) && amd->offset_ob != NULL);
+  const bool use_offset_ob = ((amd->offset_type & MOD_ARR_OFF_OBJ) && amd->offset_ob != nullptr);
 
   int start_cap_nverts = 0, start_cap_nedges = 0, start_cap_npolys = 0, start_cap_nloops = 0;
   int end_cap_nverts = 0, end_cap_nedges = 0, end_cap_npolys = 0, end_cap_nloops = 0;
@@ -380,11 +381,11 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   int chunk_nverts, chunk_nedges, chunk_nloops, chunk_npolys;
   int first_chunk_start, first_chunk_nverts, last_chunk_start, last_chunk_nverts;
 
-  Mesh *result, *start_cap_mesh = NULL, *end_cap_mesh = NULL;
+  Mesh *result, *start_cap_mesh = nullptr, *end_cap_mesh = nullptr;
 
-  int *vgroup_start_cap_remap = NULL;
+  int *vgroup_start_cap_remap = nullptr;
   int vgroup_start_cap_remap_len = 0;
-  int *vgroup_end_cap_remap = NULL;
+  int *vgroup_end_cap_remap = nullptr;
   int vgroup_end_cap_remap_len = 0;
 
   chunk_nverts = mesh->totvert;
@@ -470,10 +471,10 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   mat4_to_size(scale, offset);
   offset_has_scale = !is_one_v3(scale);
 
-  if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob != NULL) {
+  if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob != nullptr) {
     Object *curve_ob = amd->curve_ob;
     CurveCache *curve_cache = curve_ob->runtime.curve_cache;
-    if (curve_cache != NULL && curve_cache->anim_path_accum_length != NULL) {
+    if (curve_cache != nullptr && curve_cache->anim_path_accum_length != nullptr) {
       float scale_fac = mat4_to_scale(curve_ob->object_to_world);
       length = scale_fac * BKE_anim_path_get_length(curve_cache);
     }
@@ -548,7 +549,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
   if (use_merge) {
     /* Will need full_doubles_map for handling merge */
-    full_doubles_map = MEM_malloc_arrayN(result_nverts, sizeof(int), "mod array doubles map");
+    full_doubles_map = static_cast<int *>(MEM_malloc_arrayN(result_nverts, sizeof(int), __func__));
     copy_vn_i(full_doubles_map, result_nverts, -1);
   }
 
@@ -576,8 +577,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   first_chunk_nverts = chunk_nverts;
 
   unit_m4(current_offset);
-  const float(*src_vert_normals)[3] = NULL;
-  float(*dst_vert_normals)[3] = NULL;
+  const float(*src_vert_normals)[3] = nullptr;
+  float(*dst_vert_normals)[3] = nullptr;
   if (!use_recalc_normals) {
     src_vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
     dst_vert_normals = BKE_mesh_vertex_normals_for_write(result);
@@ -672,12 +673,13 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   if (chunk_nloops > 0 && is_zero_v2(amd->uv_offset) == false) {
     const int totuv = CustomData_number_of_layers(&result->ldata, CD_MLOOPUV);
     for (i = 0; i < totuv; i++) {
-      MLoopUV *dmloopuv = CustomData_get_layer_n(&result->ldata, CD_MLOOPUV, i);
+      MLoopUV *dmloopuv = static_cast<MLoopUV *>(
+          CustomData_get_layer_n(&result->ldata, CD_MLOOPUV, i));
       dmloopuv += chunk_nloops;
       for (c = 1; c < count; c++) {
         const float uv_offset[2] = {
-            amd->uv_offset[0] * (float)c,
-            amd->uv_offset[1] * (float)c,
+            amd->uv_offset[0] * float(c),
+            amd->uv_offset[1] * float(c),
         };
         int l_index = chunk_nloops;
         for (; l_index-- != 0; dmloopuv++) {
@@ -810,9 +812,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return arrayModifier_doArray(amd, ctx, mesh);
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   ArrayModifierData *amd = (ArrayModifierData *)md;
 
@@ -835,7 +835,7 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return false;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -844,36 +844,36 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "fit_type", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "fit_type", 0, nullptr, ICON_NONE);
 
   int fit_type = RNA_enum_get(ptr, "fit_type");
   if (fit_type == MOD_ARR_FIXEDCOUNT) {
-    uiItemR(layout, ptr, "count", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "count", 0, nullptr, ICON_NONE);
   }
   else if (fit_type == MOD_ARR_FITLENGTH) {
-    uiItemR(layout, ptr, "fit_length", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "fit_length", 0, nullptr, ICON_NONE);
   }
   else if (fit_type == MOD_ARR_FITCURVE) {
-    uiItemR(layout, ptr, "curve", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "curve", 0, nullptr, ICON_NONE);
   }
 
   modifier_panel_end(layout, ptr);
 }
 
-static void relative_offset_header_draw(const bContext *UNUSED(C), Panel *panel)
+static void relative_offset_header_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_relative_offset", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_relative_offset", 0, nullptr, ICON_NONE);
 }
 
-static void relative_offset_draw(const bContext *UNUSED(C), Panel *panel)
+static void relative_offset_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -883,20 +883,20 @@ static void relative_offset_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(col, ptr, "relative_offset_displace", 0, IFACE_("Factor"), ICON_NONE);
 }
 
-static void constant_offset_header_draw(const bContext *UNUSED(C), Panel *panel)
+static void constant_offset_header_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_constant_offset", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_constant_offset", 0, nullptr, ICON_NONE);
 }
 
-static void constant_offset_draw(const bContext *UNUSED(C), Panel *panel)
+static void constant_offset_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -909,20 +909,20 @@ static void constant_offset_draw(const bContext *UNUSED(C), Panel *panel)
 /**
  * Object offset in a subpanel for consistency with the other offset types.
  */
-static void object_offset_header_draw(const bContext *UNUSED(C), Panel *panel)
+static void object_offset_header_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_object_offset", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_object_offset", 0, nullptr, ICON_NONE);
 }
 
-static void object_offset_draw(const bContext *UNUSED(C), Panel *panel)
+static void object_offset_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -932,20 +932,20 @@ static void object_offset_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(col, ptr, "offset_object", 0, IFACE_("Object"), ICON_NONE);
 }
 
-static void symmetry_panel_header_draw(const bContext *UNUSED(C), Panel *panel)
+static void symmetry_panel_header_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiItemR(layout, ptr, "use_merge_vertices", 0, IFACE_("Merge"), ICON_NONE);
 }
 
-static void symmetry_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void symmetry_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -955,12 +955,12 @@ static void symmetry_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(col, ptr, "use_merge_vertices_cap", 0, IFACE_("First and Last Copies"), ICON_NONE);
 }
 
-static void uv_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void uv_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -969,12 +969,12 @@ static void uv_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(col, ptr, "offset_v", UI_ITEM_R_EXPAND, IFACE_("V"), ICON_NONE);
 }
 
-static void caps_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void caps_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -1002,8 +1002,8 @@ static void panelRegister(ARegionType *region_type)
       region_type, "object_offset", "", object_offset_header_draw, object_offset_draw, panel_type);
   modifier_subpanel_register(
       region_type, "merge", "", symmetry_panel_header_draw, symmetry_panel_draw, panel_type);
-  modifier_subpanel_register(region_type, "uv", "UVs", NULL, uv_panel_draw, panel_type);
-  modifier_subpanel_register(region_type, "caps", "Caps", NULL, caps_panel_draw, panel_type);
+  modifier_subpanel_register(region_type, "uv", "UVs", nullptr, uv_panel_draw, panel_type);
+  modifier_subpanel_register(region_type, "caps", "Caps", nullptr, caps_panel_draw, panel_type);
 }
 
 ModifierTypeInfo modifierType_Array = {
@@ -1019,24 +1019,24 @@ ModifierTypeInfo modifierType_Array = {
 
     /* copyData */ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
+    /* deformVerts */ nullptr,
+    /* deformMatrices */ nullptr,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ NULL,
+    /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,
-    /* requiredDataMask */ NULL,
-    /* freeData */ NULL,
+    /* requiredDataMask */ nullptr,
+    /* freeData */ nullptr,
     /* isDisabled */ isDisabled,
     /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
+    /* dependsOnTime */ nullptr,
+    /* dependsOnNormals */ nullptr,
     /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
+    /* foreachTexLink */ nullptr,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ nullptr,
+    /* blendRead */ nullptr,
 };

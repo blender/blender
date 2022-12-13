@@ -6,11 +6,10 @@
  */
 
 /* Screw modifier: revolves the edges about an axis */
-#include <limits.h>
+#include <climits>
 
 #include "BLI_utildefines.h"
 
-#include "BLI_alloca.h"
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
 
@@ -53,7 +52,7 @@ static void initData(ModifierData *md)
 }
 
 /** Used for gathering edge connectivity. */
-typedef struct ScrewVertConnect {
+struct ScrewVertConnect {
   /** Distance from the center axis. */
   float dist_sq;
   /** Location relative to the transformed axis. */
@@ -63,14 +62,14 @@ typedef struct ScrewVertConnect {
   /** Edges on either side, a bit of a waste since each edge ref's 2 edges. */
   MEdge *e[2];
   char flag;
-} ScrewVertConnect;
+};
 
-typedef struct ScrewVertIter {
+struct ScrewVertIter {
   ScrewVertConnect *v_array;
   ScrewVertConnect *v_poin;
   uint v, v_other;
   MEdge *e;
-} ScrewVertIter;
+};
 
 #define SV_UNUSED (UINT_MAX)
 #define SV_INVALID ((UINT_MAX)-1)
@@ -90,8 +89,8 @@ static void screwvert_iter_init(ScrewVertIter *iter,
     iter->e = iter->v_poin->e[!dir];
   }
   else {
-    iter->v_poin = NULL;
-    iter->e = NULL;
+    iter->v_poin = nullptr;
+    iter->e = nullptr;
   }
 }
 
@@ -110,8 +109,8 @@ static void screwvert_iter_step(ScrewVertIter *iter)
     iter->e = iter->v_poin->e[(iter->v_poin->e[0] == iter->e)];
   }
   else {
-    iter->e = NULL;
-    iter->v_poin = NULL;
+    iter->e = nullptr;
+    iter->v_poin = nullptr;
   }
 }
 
@@ -126,7 +125,7 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
   BLI_bitmap *vert_tag = BLI_BITMAP_NEW(totvert, __func__);
 
   const float merge_threshold_sq = square_f(merge_threshold);
-  const bool use_offset = axis_offset != NULL;
+  const bool use_offset = axis_offset != nullptr;
   uint tot_doubles = 0;
   for (uint i = 0; i < totvert; i += 1) {
     float axis_co[3];
@@ -149,15 +148,15 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
 
   if (tot_doubles != 0) {
     uint tot = totvert * step_tot;
-    int *full_doubles_map = MEM_malloc_arrayN(tot, sizeof(int), __func__);
-    copy_vn_i(full_doubles_map, (int)tot, -1);
+    int *full_doubles_map = static_cast<int *>(MEM_malloc_arrayN(tot, sizeof(int), __func__));
+    copy_vn_i(full_doubles_map, int(tot), -1);
 
     uint tot_doubles_left = tot_doubles;
     for (uint i = 0; i < totvert; i += 1) {
       if (BLI_BITMAP_TEST(vert_tag, i)) {
         int *doubles_map = &full_doubles_map[totvert + i];
         for (uint step = 1; step < step_tot; step += 1) {
-          *doubles_map = (int)i;
+          *doubles_map = int(i);
           doubles_map += totvert;
         }
         tot_doubles_left -= 1;
@@ -168,7 +167,7 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
     }
     result = BKE_mesh_merge_verts(result,
                                   full_doubles_map,
-                                  (int)(tot_doubles * (step_tot - 1)),
+                                  int(tot_doubles * (step_tot - 1)),
                                   MESH_MERGE_VERTS_DUMP_IF_MAPPED);
     MEM_freeN(full_doubles_map);
   }
@@ -206,16 +205,16 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   };
 
   uint maxVerts = 0, maxEdges = 0, maxPolys = 0;
-  const uint totvert = (uint)mesh->totvert;
-  const uint totedge = (uint)mesh->totedge;
-  const uint totpoly = (uint)mesh->totpoly;
+  const uint totvert = uint(mesh->totvert);
+  const uint totedge = uint(mesh->totedge);
+  const uint totpoly = uint(mesh->totpoly);
 
-  uint *edge_poly_map = NULL; /* orig edge to orig poly */
-  uint *vert_loop_map = NULL; /* orig vert to orig loop */
+  uint *edge_poly_map = nullptr; /* orig edge to orig poly */
+  uint *vert_loop_map = nullptr; /* orig vert to orig loop */
 
   /* UV Coords */
-  const uint mloopuv_layers_tot = (uint)CustomData_number_of_layers(&mesh->ldata, CD_MLOOPUV);
-  MLoopUV **mloopuv_layers = BLI_array_alloca(mloopuv_layers, mloopuv_layers_tot);
+  const uint mloopuv_layers_tot = uint(CustomData_number_of_layers(&mesh->ldata, CD_MLOOPUV));
+  blender::Array<MLoopUV *> mloopuv_layers(mloopuv_layers_tot);
   float uv_u_scale;
   float uv_v_minmax[2] = {FLT_MAX, -FLT_MAX};
   float uv_v_range_inv;
@@ -246,7 +245,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   const MVert *mv_orig;
   Object *ob_axis = ltmd->ob_axis;
 
-  ScrewVertConnect *vc, *vc_tmp, *vert_connect = NULL;
+  ScrewVertConnect *vc, *vc_tmp, *vert_connect = nullptr;
 
   const char mpoly_flag = (ltmd->flag & MOD_SCREW_SMOOTH_SHADING) ? ME_SMOOTH : 0;
 
@@ -272,7 +271,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   axis_vec[ltmd->axis] = 1.0f;
 
-  if (ob_axis != NULL) {
+  if (ob_axis != nullptr) {
     /* Calculate the matrix relative to the axis object. */
     invert_m4_m4(mtx_tmp_a, ctx->object->object_to_world);
     copy_m4_m4(mtx_tx_inv, ob_axis->object_to_world);
@@ -331,7 +330,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #endif
   }
   else {
-    axis_char = (char)(axis_char + ltmd->axis); /* 'X' + axis */
+    axis_char = char(axis_char + ltmd->axis); /* 'X' + axis */
 
     /* Useful to be able to use the axis vector in some cases still. */
     zero_v3(axis_vec);
@@ -339,9 +338,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   /* apply the multiplier */
-  angle *= (float)ltmd->iter;
-  screw_ofs *= (float)ltmd->iter;
-  uv_u_scale = 1.0f / (float)(step_tot);
+  angle *= float(ltmd->iter);
+  screw_ofs *= float(ltmd->iter);
+  uv_u_scale = 1.0f / float(step_tot);
 
   /* multiplying the steps is a bit tricky, this works best */
   step_tot = ((step_tot + 1) * ltmd->iter) - (ltmd->iter - 1);
@@ -350,7 +349,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
    * NOTE: smaller than `FLT_EPSILON * 100`
    * gives problems with float precision so its never closed. */
   if (fabsf(screw_ofs) <= (FLT_EPSILON * 100.0f) &&
-      fabsf(fabsf(angle) - ((float)M_PI * 2.0f)) <= (FLT_EPSILON * 100.0f) && step_tot > 3) {
+      fabsf(fabsf(angle) - (float(M_PI) * 2.0f)) <= (FLT_EPSILON * 100.0f) && step_tot > 3) {
     close = 1;
     step_tot--;
 
@@ -374,14 +373,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   if ((ltmd->flag & MOD_SCREW_UV_STRETCH_U) == 0) {
-    uv_u_scale = (uv_u_scale / (float)ltmd->iter) * (angle / ((float)M_PI * 2.0f));
+    uv_u_scale = (uv_u_scale / float(ltmd->iter)) * (angle / (float(M_PI) * 2.0f));
   }
 
   /* The `screw_ofs` cannot change from now on. */
   const bool do_remove_doubles = (ltmd->flag & MOD_SCREW_MERGE) && (screw_ofs == 0.0f);
 
   result = BKE_mesh_new_nomain_from_template(
-      mesh, (int)maxVerts, (int)maxEdges, 0, (int)maxPolys * 4, (int)maxPolys);
+      mesh, int(maxVerts), int(maxEdges), 0, int(maxPolys) * 4, int(maxPolys));
 
   const MVert *mvert_orig = BKE_mesh_verts(mesh);
   const MEdge *medge_orig = BKE_mesh_edges(mesh);
@@ -394,12 +393,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MLoop *mloop_new = BKE_mesh_loops_for_write(result);
 
   if (!CustomData_has_layer(&result->pdata, CD_ORIGINDEX)) {
-    CustomData_add_layer(&result->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, NULL, (int)maxPolys);
+    CustomData_add_layer(&result->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, int(maxPolys));
   }
 
-  int *origindex = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);
+  int *origindex = static_cast<int *>(CustomData_get_layer(&result->pdata, CD_ORIGINDEX));
 
-  CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)totvert);
+  CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, int(totvert));
 
   if (mloopuv_layers_tot) {
     const float zero_co[3] = {0};
@@ -409,7 +408,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   if (mloopuv_layers_tot) {
     uint uv_lay;
     for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
-      mloopuv_layers[uv_lay] = CustomData_get_layer_n(&result->ldata, CD_MLOOPUV, (int)uv_lay);
+      mloopuv_layers[uv_lay] = static_cast<MLoopUV *>(
+          CustomData_get_layer_n(&result->ldata, CD_MLOOPUV, int(uv_lay)));
     }
 
     if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
@@ -444,15 +444,17 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   if (totpoly) {
     const MPoly *mp_orig;
 
-    edge_poly_map = MEM_malloc_arrayN(totedge, sizeof(*edge_poly_map), __func__);
+    edge_poly_map = static_cast<uint *>(
+        MEM_malloc_arrayN(totedge, sizeof(*edge_poly_map), __func__));
     memset(edge_poly_map, 0xff, sizeof(*edge_poly_map) * totedge);
 
-    vert_loop_map = MEM_malloc_arrayN(totvert, sizeof(*vert_loop_map), __func__);
+    vert_loop_map = static_cast<uint *>(
+        MEM_malloc_arrayN(totvert, sizeof(*vert_loop_map), __func__));
     memset(vert_loop_map, 0xff, sizeof(*vert_loop_map) * totvert);
 
     for (i = 0, mp_orig = mpoly_orig; i < totpoly; i++, mp_orig++) {
-      uint loopstart = (uint)mp_orig->loopstart;
-      uint loopend = loopstart + (uint)mp_orig->totloop;
+      uint loopstart = uint(mp_orig->loopstart);
+      uint loopend = loopstart + uint(mp_orig->totloop);
 
       const MLoop *ml_orig = &mloop_orig[loopstart];
       uint k;
@@ -490,7 +492,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
      * This makes the modifier faster with one less allocate.
      */
 
-    vert_connect = MEM_malloc_arrayN(totvert, sizeof(ScrewVertConnect), __func__);
+    vert_connect = static_cast<ScrewVertConnect *>(
+        MEM_malloc_arrayN(totvert, sizeof(ScrewVertConnect), __func__));
     /* skip the first slice of verts. */
     // vert_connect = (ScrewVertConnect *) &medge_new[totvert];
     vc = vert_connect;
@@ -502,7 +505,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       med_new = medge_new;
       mv_new = mvert_new;
 
-      if (ob_axis != NULL) {
+      if (ob_axis != nullptr) {
         /* `mtx_tx` is initialized early on. */
         for (i = 0; i < totvert; i++, mv_new++, mv_orig++, vc++) {
           vc->co[0] = mv_new->co[0] = mv_orig->co[0];
@@ -510,7 +513,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           vc->co[2] = mv_new->co[2] = mv_orig->co[2];
 
           vc->flag = 0;
-          vc->e[0] = vc->e[1] = NULL;
+          vc->e[0] = vc->e[1] = nullptr;
           vc->v[0] = vc->v[1] = SV_UNUSED;
 
           mul_m4_v3(mtx_tx, vc->co);
@@ -528,7 +531,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           vc->co[2] = mv_new->co[2] = mv_orig->co[2];
 
           vc->flag = 0;
-          vc->e[0] = vc->e[1] = NULL;
+          vc->e[0] = vc->e[1] = nullptr;
           vc->v[0] = vc->v[1] = SV_UNUSED;
 
           /* Length in 2D, don't sqrt because this is only for comparison. */
@@ -767,9 +770,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     float step_angle;
     float mat[4][4];
     /* Rotation Matrix */
-    step_angle = (angle / (float)(step_tot - (!close))) * (float)step;
+    step_angle = (angle / float(step_tot - (!close))) * float(step);
 
-    if (ob_axis != NULL) {
+    if (ob_axis != nullptr) {
       axis_angle_normalized_to_mat3(mat3, axis_vec, step_angle);
     }
     else {
@@ -778,11 +781,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     copy_m4_m3(mat, mat3);
 
     if (screw_ofs) {
-      madd_v3_v3fl(mat[3], axis_vec, screw_ofs * ((float)step / (float)(step_tot - 1)));
+      madd_v3_v3fl(mat[3], axis_vec, screw_ofs * (float(step) / float(step_tot - 1)));
     }
 
     /* copy a slice */
-    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, (int)varray_stride, (int)totvert);
+    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, int(varray_stride), int(totvert));
 
     mv_new_base = mvert_new;
     mv_new = &mvert_new[varray_stride]; /* advance to the next slice */
@@ -794,7 +797,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       /* only need to set these if using non cleared memory */
       // mv_new->mat_nr = mv_new->flag = 0;
 
-      if (ob_axis != NULL) {
+      if (ob_axis != nullptr) {
         sub_v3_v3(mv_new->co, mtx_tx[3]);
 
         mul_m4_v3(mat, mv_new->co);
@@ -816,7 +819,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* we can avoid if using vert alloc trick */
   if (vert_connect) {
     MEM_freeN(vert_connect);
-    vert_connect = NULL;
+    vert_connect = nullptr;
   }
 
   if (close) {
@@ -860,7 +863,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     i2 = med_new_firstloop->v2;
 
     if (has_mpoly_orig) {
-      mat_nr = src_material_index == NULL ? 0 : src_material_index[mpoly_index_orig];
+      mat_nr = src_material_index == nullptr ? 0 : src_material_index[mpoly_index_orig];
     }
     else {
       mat_nr = 0;
@@ -881,8 +884,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       /* Polygon */
       if (has_mpoly_orig) {
         CustomData_copy_data(
-            &mesh->pdata, &result->pdata, (int)mpoly_index_orig, (int)mpoly_index, 1);
-        origindex[mpoly_index] = (int)mpoly_index_orig;
+            &mesh->pdata, &result->pdata, int(mpoly_index_orig), int(mpoly_index), 1);
+        origindex[mpoly_index] = int(mpoly_index_orig);
       }
       else {
         origindex[mpoly_index] = ORIGINDEX_NONE;
@@ -894,21 +897,21 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
       /* Loop-Custom-Data */
       if (has_mloop_orig) {
-        int l_index = (int)(ml_new - mloop_new);
+        int l_index = int(ml_new - mloop_new);
 
         CustomData_copy_data(
-            &mesh->ldata, &result->ldata, (int)mloop_index_orig[0], l_index + 0, 1);
+            &mesh->ldata, &result->ldata, int(mloop_index_orig[0]), l_index + 0, 1);
         CustomData_copy_data(
-            &mesh->ldata, &result->ldata, (int)mloop_index_orig[1], l_index + 1, 1);
+            &mesh->ldata, &result->ldata, int(mloop_index_orig[1]), l_index + 1, 1);
         CustomData_copy_data(
-            &mesh->ldata, &result->ldata, (int)mloop_index_orig[1], l_index + 2, 1);
+            &mesh->ldata, &result->ldata, int(mloop_index_orig[1]), l_index + 2, 1);
         CustomData_copy_data(
-            &mesh->ldata, &result->ldata, (int)mloop_index_orig[0], l_index + 3, 1);
+            &mesh->ldata, &result->ldata, int(mloop_index_orig[0]), l_index + 3, 1);
 
         if (mloopuv_layers_tot) {
           uint uv_lay;
-          const float uv_u_offset_a = (float)(step)*uv_u_scale;
-          const float uv_u_offset_b = (float)(step + 1) * uv_u_scale;
+          const float uv_u_offset_a = float(step) * uv_u_scale;
+          const float uv_u_offset_b = float(step + 1) * uv_u_scale;
           for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
             MLoopUV *mluv = &mloopuv_layers[uv_lay][l_index];
 
@@ -921,11 +924,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       }
       else {
         if (mloopuv_layers_tot) {
-          int l_index = (int)(ml_new - mloop_new);
+          int l_index = int(ml_new - mloop_new);
 
           uint uv_lay;
-          const float uv_u_offset_a = (float)(step)*uv_u_scale;
-          const float uv_u_offset_b = (float)(step + 1) * uv_u_scale;
+          const float uv_u_offset_a = float(step) * uv_u_scale;
+          const float uv_u_offset_b = float(step + 1) * uv_u_scale;
           for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
             MLoopUV *mluv = &mloopuv_layers[uv_lay][l_index];
 
@@ -1027,7 +1030,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                                          totvert,
                                          step_tot,
                                          axis_vec,
-                                         ob_axis != NULL ? mtx_tx[3] : NULL,
+                                         ob_axis != nullptr ? mtx_tx[3] : nullptr,
                                          ltmd->merge_dist);
   }
 
@@ -1037,7 +1040,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
-  if (ltmd->ob_axis != NULL) {
+  if (ltmd->ob_axis != nullptr) {
     DEG_add_object_relation(ctx->node, ltmd->ob_axis, DEG_OB_COMP_TRANSFORM, "Screw Modifier");
     DEG_add_depends_on_transform_relation(ctx->node, "Screw Modifier");
   }
@@ -1050,35 +1053,35 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
   walk(userData, ob, (ID **)&ltmd->ob_axis, IDWALK_CB_NOP);
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *sub, *row, *col;
   uiLayout *layout = panel->layout;
   int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   PointerRNA screw_obj_ptr = RNA_pointer_get(ptr, "object");
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "angle", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "angle", 0, nullptr, ICON_NONE);
   row = uiLayoutRow(col, false);
   uiLayoutSetActive(row,
                     RNA_pointer_is_null(&screw_obj_ptr) ||
                         !RNA_boolean_get(ptr, "use_object_screw_offset"));
-  uiItemR(row, ptr, "screw_offset", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "iterations", 0, NULL, ICON_NONE);
+  uiItemR(row, ptr, "screw_offset", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "iterations", 0, nullptr, ICON_NONE);
 
   uiItemS(layout);
   col = uiLayoutColumn(layout, false);
   row = uiLayoutRow(col, false);
-  uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   uiItemR(col, ptr, "object", 0, IFACE_("Axis Object"), ICON_NONE);
   sub = uiLayoutColumn(col, false);
   uiLayoutSetActive(sub, !RNA_pointer_is_null(&screw_obj_ptr));
-  uiItemR(sub, ptr, "use_object_screw_offset", 0, NULL, ICON_NONE);
+  uiItemR(sub, ptr, "use_object_screw_offset", 0, nullptr, ICON_NONE);
 
   uiItemS(layout);
 
@@ -1103,26 +1106,26 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void normals_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void normals_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "use_smooth_shade", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "use_normal_calculate", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "use_normal_flip", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_smooth_shade", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_normal_calculate", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_normal_flip", 0, nullptr, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Screw, panel_draw);
   modifier_subpanel_register(
-      region_type, "normals", "Normals", NULL, normals_panel_draw, panel_type);
+      region_type, "normals", "Normals", nullptr, normals_panel_draw, panel_type);
 }
 
 ModifierTypeInfo modifierType_Screw = {
@@ -1138,24 +1141,24 @@ ModifierTypeInfo modifierType_Screw = {
 
     /* copyData */ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
+    /* deformVerts */ nullptr,
+    /* deformMatrices */ nullptr,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ NULL,
+    /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,
-    /* requiredDataMask */ NULL,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
+    /* requiredDataMask */ nullptr,
+    /* freeData */ nullptr,
+    /* isDisabled */ nullptr,
     /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
+    /* dependsOnTime */ nullptr,
+    /* dependsOnNormals */ nullptr,
     /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
+    /* foreachTexLink */ nullptr,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ nullptr,
+    /* blendRead */ nullptr,
 };

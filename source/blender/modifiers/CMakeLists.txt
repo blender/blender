@@ -34,7 +34,7 @@ set(INC_SYS
 
 set(SRC
   intern/MOD_armature.c
-  intern/MOD_array.c
+  intern/MOD_array.cc
   intern/MOD_bevel.c
   intern/MOD_boolean.cc
   intern/MOD_build.c
@@ -71,7 +71,7 @@ set(SRC
   intern/MOD_particleinstance.c
   intern/MOD_particlesystem.cc
   intern/MOD_remesh.c
-  intern/MOD_screw.c
+  intern/MOD_screw.cc
   intern/MOD_shapekey.c
   intern/MOD_shrinkwrap.c
   intern/MOD_simpledeform.c
