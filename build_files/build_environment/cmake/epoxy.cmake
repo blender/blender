@@ -26,5 +26,6 @@ endif()
 
 add_dependencies(
   external_epoxy
+  # Needed for `MESON`.
   external_python_site_packages
 )

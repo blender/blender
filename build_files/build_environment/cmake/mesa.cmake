@@ -53,4 +53,6 @@ add_dependencies(
   external_mesa
   ll
   external_zlib
+  # Needed for `MESON`.
+  external_python_site_packages
 )

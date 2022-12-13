@@ -24,4 +24,7 @@ add_dependencies(
   external_expat
   external_xml2
   external_ffi
+
+  # Needed for `MESON`.
+  external_python_site_packages
 )

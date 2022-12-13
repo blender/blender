@@ -18,6 +18,7 @@ ExternalProject_Add(external_fribidi
 add_dependencies(
   external_fribidi
   external_python
+  # Needed for `MESON`.
   external_python_site_packages
 )
 
