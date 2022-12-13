@@ -251,7 +251,8 @@ void *CustomData_get_layer(const struct CustomData * /*data*/, int /*type*/)
 int BKE_pbvh_count_grid_quads(BLI_bitmap ** /*grid_hidden*/,
                               const int * /*grid_indices*/,
                               int /*totgrid*/,
-                              int /*gridsize*/)
+                              int /*gridsize*/,
+                              int /*display_gridsize*/)
 {
   BLI_assert_unreachable();
   return 0;

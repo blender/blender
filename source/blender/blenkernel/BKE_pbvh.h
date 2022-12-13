@@ -414,7 +414,8 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, struct Mesh *me);
 int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
                               const int *grid_indices,
                               int totgrid,
-                              int gridsize);
+                              int gridsize,
+                              int display_gridsize);
 
 /**
  * Multi-res level, only valid for type == #PBVH_GRIDS.

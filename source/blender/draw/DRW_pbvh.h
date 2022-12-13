@@ -86,12 +86,14 @@ struct GPUBatch *DRW_pbvh_tris_get(PBVHBatches *batches,
                                    struct PBVHAttrReq *attrs,
                                    int attrs_num,
                                    PBVH_GPU_Args *args,
-                                   int *r_prim_count);
+                                   int *r_prim_count,
+                                   bool do_coarse_grids);
 struct GPUBatch *DRW_pbvh_lines_get(struct PBVHBatches *batches,
                                     struct PBVHAttrReq *attrs,
                                     int attrs_num,
                                     PBVH_GPU_Args *args,
-                                    int *r_prim_count);
+                                    int *r_prim_count,
+                                    bool do_coarse_grids);
 
 #ifdef __cplusplus
 }

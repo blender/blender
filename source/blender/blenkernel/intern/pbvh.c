@@ -383,7 +383,8 @@ static void update_vb(PBVH *pbvh, PBVHNode *node, BBC *prim_bbc, int offset, int
 int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
                               const int *grid_indices,
                               int totgrid,
-                              int gridsize)
+                              int gridsize,
+                              int display_gridsize)
 {
   const int gridarea = (gridsize - 1) * (gridsize - 1);
   int totquad = 0;
@@ -391,13 +392,18 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
   /* grid hidden layer is present, so have to check each grid for
    * visibility */
 
+  int depth1 = (int)(log2((double)gridsize - 1.0) + DBL_EPSILON);
+  int depth2 = (int)(log2((double)display_gridsize - 1.0) + DBL_EPSILON);
+
+  int skip = depth2 < depth1 ? 1 << (depth1 - depth2 - 1) : 1;
+
   for (int i = 0; i < totgrid; i++) {
     const BLI_bitmap *gh = grid_hidden[grid_indices[i]];
 
     if (gh) {
       /* grid hidden are present, have to check each element */
-      for (int y = 0; y < gridsize - 1; y++) {
-        for (int x = 0; x < gridsize - 1; x++) {
+      for (int y = 0; y < gridsize - skip; y += skip) {
+        for (int x = 0; x < gridsize - skip; x += skip) {
           if (!paint_is_grid_face_hidden(gh, gridsize, x, y)) {
             totquad++;
           }
@@ -414,8 +420,11 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
 
 static void build_grid_leaf_node(PBVH *pbvh, PBVHNode *node)
 {
-  int totquads = BKE_pbvh_count_grid_quads(
-      pbvh->grid_hidden, node->prim_indices, node->totprim, pbvh->gridkey.grid_size);
+  int totquads = BKE_pbvh_count_grid_quads(pbvh->grid_hidden,
+                                           node->prim_indices,
+                                           node->totprim,
+                                           pbvh->gridkey.grid_size,
+                                           pbvh->gridkey.grid_size);
   BKE_pbvh_node_fully_hidden_set(node, (totquads == 0));
   BKE_pbvh_node_mark_rebuild_draw(node);
 }

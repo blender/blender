@@ -115,6 +115,8 @@ struct PBVHBatch {
   string key;
   GPUBatch *tris = nullptr, *lines = nullptr;
   int tris_count = 0, lines_count = 0;
+  bool is_coarse =
+      false; /* Coarse multires, will use full-sized VBOs only index buffer changes. */
 
   void sort_vbos(Vector<PBVHVbo> &master_vbos)
   {
@@ -137,6 +139,10 @@ struct PBVHBatch {
   string build_key(Vector<PBVHVbo> &master_vbos)
   {
     key = "";
+
+    if (is_coarse) {
+      key += "c:";
+    }
 
     sort_vbos(master_vbos);
 
@@ -173,6 +179,12 @@ struct PBVHBatches {
 
   int material_index = 0;
 
+  /* Stuff for displaying coarse multires grids. */
+  GPUIndexBuf *tri_index_coarse = nullptr;
+  GPUIndexBuf *lines_index_coarse = nullptr;
+  int coarse_level = 0; /* Coarse multires depth. */
+  int tris_count_coarse = 0, lines_count_coarse = 0;
+
   int count_faces(PBVH_GPU_Args *args)
   {
     int count = 0;
@@ -194,6 +206,7 @@ struct PBVHBatches {
         count = BKE_pbvh_count_grid_quads((BLI_bitmap **)args->grid_hidden,
                                           args->grid_indices,
                                           args->totprim,
+                                          args->ccg_key.grid_size,
                                           args->ccg_key.grid_size);
 
         break;
@@ -233,9 +246,11 @@ struct PBVHBatches {
 
     GPU_INDEXBUF_DISCARD_SAFE(tri_index);
     GPU_INDEXBUF_DISCARD_SAFE(lines_index);
+    GPU_INDEXBUF_DISCARD_SAFE(tri_index_coarse);
+    GPU_INDEXBUF_DISCARD_SAFE(lines_index_coarse);
   }
 
-  string build_key(PBVHAttrReq *attrs, int attrs_num)
+  string build_key(PBVHAttrReq *attrs, int attrs_num, bool do_coarse_grids)
   {
     string key;
     PBVHBatch batch;
@@ -255,6 +270,7 @@ struct PBVHBatches {
       batch.vbos.append(i);
     }
 
+    batch.is_coarse = do_coarse_grids;
     batch.build_key(vbos);
     return batch.key;
   }
@@ -292,18 +308,21 @@ struct PBVHBatches {
     return nullptr;
   }
 
-  bool has_batch(PBVHAttrReq *attrs, int attrs_num)
+  bool has_batch(PBVHAttrReq *attrs, int attrs_num, bool do_coarse_grids)
   {
-    return batches.contains(build_key(attrs, attrs_num));
+    return batches.contains(build_key(attrs, attrs_num, do_coarse_grids));
   }
 
-  PBVHBatch &ensure_batch(PBVHAttrReq *attrs, int attrs_num, PBVH_GPU_Args *args)
+  PBVHBatch &ensure_batch(PBVHAttrReq *attrs,
+                          int attrs_num,
+                          PBVH_GPU_Args *args,
+                          bool do_coarse_grids)
   {
-    if (!has_batch(attrs, attrs_num)) {
-      create_batch(attrs, attrs_num, args);
+    if (!has_batch(attrs, attrs_num, do_coarse_grids)) {
+      create_batch(attrs, attrs_num, args, do_coarse_grids);
     }
 
-    return batches.lookup(build_key(attrs, attrs_num));
+    return batches.lookup(build_key(attrs, attrs_num, do_coarse_grids));
   }
 
   void fill_vbo_normal_faces(
@@ -504,9 +523,12 @@ struct PBVHBatches {
               for (int x = 0; x < gridsize; x++) {
                 CCGElem *elems[4] = {
                     CCG_grid_elem(&args->ccg_key, grid, x, y),
-                    CCG_grid_elem(&args->ccg_key, grid, x + 1, y),
-                    CCG_grid_elem(&args->ccg_key, grid, x + 1, y + 1),
-                    CCG_grid_elem(&args->ccg_key, grid, x, y + 1),
+                    CCG_grid_elem(&args->ccg_key, grid, min_ii(x + 1, gridsize - 1), y),
+                    CCG_grid_elem(&args->ccg_key,
+                                  grid,
+                                  min_ii(x + 1, gridsize - 1),
+                                  min_ii(y + 1, gridsize - 1)),
+                    CCG_grid_elem(&args->ccg_key, grid, x, min_ii(y + 1, gridsize - 1)),
                 };
 
                 func(x, y, grid_index, elems, 0);
@@ -964,8 +986,10 @@ struct PBVHBatches {
 
         GPU_INDEXBUF_DISCARD_SAFE(tri_index);
         GPU_INDEXBUF_DISCARD_SAFE(lines_index);
+        GPU_INDEXBUF_DISCARD_SAFE(tri_index_coarse);
+        GPU_INDEXBUF_DISCARD_SAFE(lines_index_coarse);
 
-        tri_index = lines_index = nullptr;
+        tri_index = lines_index = tri_index_coarse = lines_index_coarse = nullptr;
         faces_count = tris_count = count;
       }
     }
@@ -1061,7 +1085,7 @@ struct PBVHBatches {
     lines_index = GPU_indexbuf_build(&elb_lines);
   }
 
-  void create_index_grids(PBVH_GPU_Args *args)
+  void create_index_grids(PBVH_GPU_Args *args, bool do_coarse)
   {
     int *mat_index = static_cast<int *>(
         CustomData_get_layer_named(args->pdata, CD_PROP_INT32, "material_index"));
@@ -1073,15 +1097,24 @@ struct PBVHBatches {
 
     needs_tri_index = true;
     int gridsize = args->ccg_key.grid_size;
+    int display_gridsize = gridsize;
     int totgrid = args->totprim;
+    int skip = 1;
+
+    const int display_level = do_coarse ? coarse_level : args->ccg_key.level;
+
+    if (display_level < args->ccg_key.level) {
+      display_gridsize = (1 << display_level) + 1;
+      skip = 1 << (args->ccg_key.level - display_level - 1);
+    }
 
     for (int i : IndexRange(args->totprim)) {
       int grid_index = args->grid_indices[i];
       bool smooth = args->grid_flag_mats[grid_index].flag & ME_SMOOTH;
       BLI_bitmap *gh = args->grid_hidden[grid_index];
 
-      for (int y = 0; y < gridsize - 1; y++) {
-        for (int x = 0; x < gridsize - 1; x++) {
+      for (int y = 0; y < gridsize - 1; y += skip) {
+        for (int x = 0; x < gridsize - 1; x += skip) {
           if (gh && paint_is_grid_face_hidden(gh, gridsize, x, y)) {
             /* Skip hidden faces by just setting smooth to true. */
             smooth = true;
@@ -1102,12 +1135,17 @@ struct PBVHBatches {
 
     CCGKey *key = &args->ccg_key;
 
-    uint visible_quad_len = BKE_pbvh_count_grid_quads(
-        (BLI_bitmap **)args->grid_hidden, args->grid_indices, totgrid, key->grid_size);
+    uint visible_quad_len = BKE_pbvh_count_grid_quads((BLI_bitmap **)args->grid_hidden,
+                                                      args->grid_indices,
+                                                      totgrid,
+                                                      key->grid_size,
+                                                      display_gridsize);
 
     GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, 2 * visible_quad_len, INT_MAX);
-    GPU_indexbuf_init(
-        &elb_lines, GPU_PRIM_LINES, 2 * totgrid * gridsize * (gridsize - 1), INT_MAX);
+    GPU_indexbuf_init(&elb_lines,
+                      GPU_PRIM_LINES,
+                      2 * totgrid * display_gridsize * (display_gridsize - 1),
+                      INT_MAX);
 
     if (needs_tri_index) {
       uint offset = 0;
@@ -1118,17 +1156,17 @@ struct PBVHBatches {
 
         BLI_bitmap *gh = args->grid_hidden[args->grid_indices[i]];
 
-        for (int j = 0; j < gridsize - 1; j++) {
-          for (int k = 0; k < gridsize - 1; k++) {
+        for (int j = 0; j < gridsize - skip; j += skip) {
+          for (int k = 0; k < gridsize - skip; k += skip) {
             /* Skip hidden grid face */
             if (gh && paint_is_grid_face_hidden(gh, gridsize, k, j)) {
               continue;
             }
             /* Indices in a Clockwise QUAD disposition. */
             v0 = offset + j * gridsize + k;
-            v1 = v0 + 1;
-            v2 = v1 + gridsize;
-            v3 = v2 - 1;
+            v1 = offset + j * gridsize + k + skip;
+            v2 = offset + (j + skip) * gridsize + k + skip;
+            v3 = offset + (j + skip) * gridsize + k;
 
             GPU_indexbuf_add_tri_verts(&elb, v0, v2, v1);
             GPU_indexbuf_add_tri_verts(&elb, v0, v3, v2);
@@ -1136,7 +1174,7 @@ struct PBVHBatches {
             GPU_indexbuf_add_line_verts(&elb_lines, v0, v1);
             GPU_indexbuf_add_line_verts(&elb_lines, v0, v3);
 
-            if (j + 2 == gridsize) {
+            if (j / skip + 2 == display_gridsize) {
               GPU_indexbuf_add_line_verts(&elb_lines, v2, v3);
             }
             grid_visible = true;
@@ -1151,22 +1189,38 @@ struct PBVHBatches {
     else {
       uint offset = 0;
       const uint grid_vert_len = square_uint(gridsize - 1) * 4;
+
       for (int i = 0; i < totgrid; i++, offset += grid_vert_len) {
         bool grid_visible = false;
         BLI_bitmap *gh = args->grid_hidden[args->grid_indices[i]];
 
         uint v0, v1, v2, v3;
-        for (int j = 0; j < gridsize - 1; j++) {
-          for (int k = 0; k < gridsize - 1; k++) {
+        for (int j = 0; j < gridsize - skip; j += skip) {
+          for (int k = 0; k < gridsize - skip; k += skip) {
             /* Skip hidden grid face */
             if (gh && paint_is_grid_face_hidden(gh, gridsize, k, j)) {
               continue;
             }
-            /* VBO data are in a Clockwise QUAD disposition. */
-            v0 = offset + (j * (gridsize - 1) + k) * 4;
-            v1 = v0 + 1;
-            v2 = v0 + 2;
-            v3 = v0 + 3;
+
+            v0 = (j * (gridsize - 1) + k) * 4;
+
+            if (skip > 1) {
+              v1 = (j * (gridsize - 1) + k + skip - 1) * 4;
+              v2 = ((j + skip - 1) * (gridsize - 1) + k + skip - 1) * 4;
+              v3 = ((j + skip - 1) * (gridsize - 1) + k) * 4;
+            }
+            else {
+              v1 = v2 = v3 = v0;
+            }
+
+            /* VBO data are in a Clockwise QUAD disposition.  Note
+             * that vertices might be in different quads if we're
+             * building a coarse index buffer.
+             */
+            v0 += offset;
+            v1 += offset + 1;
+            v2 += offset + 2;
+            v3 += offset + 3;
 
             GPU_indexbuf_add_tri_verts(&elb, v0, v2, v1);
             GPU_indexbuf_add_tri_verts(&elb, v0, v3, v2);
@@ -1174,7 +1228,7 @@ struct PBVHBatches {
             GPU_indexbuf_add_line_verts(&elb_lines, v0, v1);
             GPU_indexbuf_add_line_verts(&elb_lines, v0, v3);
 
-            if (j + 2 == gridsize) {
+            if ((j / skip) + 2 == display_gridsize) {
               GPU_indexbuf_add_line_verts(&elb_lines, v2, v3);
             }
             grid_visible = true;
@@ -1187,8 +1241,16 @@ struct PBVHBatches {
       }
     }
 
-    tri_index = GPU_indexbuf_build(&elb);
-    lines_index = GPU_indexbuf_build(&elb_lines);
+    if (do_coarse) {
+      tri_index_coarse = GPU_indexbuf_build(&elb);
+      lines_index_coarse = GPU_indexbuf_build(&elb_lines);
+      tris_count_coarse = visible_quad_len;
+      lines_count_coarse = totgrid * display_gridsize * (display_gridsize - 1);
+    }
+    else {
+      tri_index = GPU_indexbuf_build(&elb);
+      lines_index = GPU_indexbuf_build(&elb_lines);
+    }
   }
 
   void create_index(PBVH_GPU_Args *args)
@@ -1201,7 +1263,12 @@ struct PBVHBatches {
         create_index_bmesh(args);
         break;
       case PBVH_GRIDS:
-        create_index_grids(args);
+        create_index_grids(args, false);
+
+        if (args->ccg_key.level > coarse_level) {
+          create_index_grids(args, true);
+        }
+
         break;
     }
 
@@ -1227,7 +1294,7 @@ struct PBVHBatches {
     }
   }
 
-  void create_batch(PBVHAttrReq *attrs, int attrs_num, PBVH_GPU_Args *args)
+  void create_batch(PBVHAttrReq *attrs, int attrs_num, PBVH_GPU_Args *args, bool do_coarse_grids)
   {
     check_index_buffers(args);
 
@@ -1236,12 +1303,14 @@ struct PBVHBatches {
     batch.tris = GPU_batch_create(GPU_PRIM_TRIS,
                                   nullptr,
                                   /* can be nullptr if buffer is empty */
-                                  tri_index);
-    batch.tris_count = tris_count;
+                                  do_coarse_grids ? tri_index_coarse : tri_index);
+    batch.tris_count = do_coarse_grids ? tris_count_coarse : tris_count;
+    batch.is_coarse = do_coarse_grids;
 
     if (lines_index) {
-      batch.lines = GPU_batch_create(GPU_PRIM_LINES, nullptr, lines_index);
-      batch.lines_count = lines_count;
+      batch.lines = GPU_batch_create(
+          GPU_PRIM_LINES, nullptr, do_coarse_grids ? lines_index_coarse : lines_index);
+      batch.lines_count = do_coarse_grids ? lines_count_coarse : lines_count;
     }
 
     for (int i : IndexRange(attrs_num)) {
@@ -1296,9 +1365,10 @@ GPUBatch *DRW_pbvh_tris_get(PBVHBatches *batches,
                             PBVHAttrReq *attrs,
                             int attrs_num,
                             PBVH_GPU_Args *args,
-                            int *r_prim_count)
+                            int *r_prim_count,
+                            bool do_coarse_grids)
 {
-  PBVHBatch &batch = batches->ensure_batch(attrs, attrs_num, args);
+  PBVHBatch &batch = batches->ensure_batch(attrs, attrs_num, args, do_coarse_grids);
 
   *r_prim_count = batch.tris_count;
 
@@ -1309,9 +1379,10 @@ GPUBatch *DRW_pbvh_lines_get(PBVHBatches *batches,
                              PBVHAttrReq *attrs,
                              int attrs_num,
                              PBVH_GPU_Args *args,
-                             int *r_prim_count)
+                             int *r_prim_count,
+                             bool do_coarse_grids)
 {
-  PBVHBatch &batch = batches->ensure_batch(attrs, attrs_num, args);
+  PBVHBatch &batch = batches->ensure_batch(attrs, attrs_num, args, do_coarse_grids);
 
   *r_prim_count = batch.lines_count;
 

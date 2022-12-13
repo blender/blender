@@ -1220,10 +1220,12 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd,
   GPUBatch *geom;
 
   if (!scd->use_wire) {
-    geom = DRW_pbvh_tris_get(batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount);
+    geom = DRW_pbvh_tris_get(
+        batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount, scd->fast_mode);
   }
   else {
-    geom = DRW_pbvh_lines_get(batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount);
+    geom = DRW_pbvh_lines_get(
+        batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount, scd->fast_mode);
   }
 
   short index = 0;
