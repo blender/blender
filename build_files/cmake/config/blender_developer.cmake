@@ -8,7 +8,11 @@
 
 set(WITH_ASSERT_ABORT                 ON  CACHE BOOL "" FORCE)
 set(WITH_BUILDINFO                    OFF CACHE BOOL "" FORCE)
-set(WITH_COMPILER_ASAN                ON  CACHE BOOL "" FORCE)
+# Sadly ASAN is more often broken than working with MSVC do not enable it in the
+# developer profile for now.
+if(NOT WIN32)
+  set(WITH_COMPILER_ASAN              ON  CACHE BOOL "" FORCE)
+endif()
 set(WITH_CYCLES_NATIVE_ONLY           ON  CACHE BOOL "" FORCE)
 set(WITH_DOC_MANPAGE                  OFF CACHE BOOL "" FORCE)
 set(WITH_GTESTS                       ON  CACHE BOOL "" FORCE)

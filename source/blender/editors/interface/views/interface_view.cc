@@ -27,7 +27,7 @@
 
 #include "ED_screen.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #include "UI_interface.hh"
 
@@ -81,7 +81,7 @@ void ui_block_free_views(uiBlock *block)
   }
 }
 
-void UI_block_views_listen(const uiBlock *block, const wmRegionListenerParams *listener_params)
+void ui_block_views_listen(const uiBlock *block, const wmRegionListenerParams *listener_params)
 {
   ARegion *region = listener_params->region;
 

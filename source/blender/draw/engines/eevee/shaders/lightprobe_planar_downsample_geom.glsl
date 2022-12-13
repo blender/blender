@@ -2,23 +2,18 @@
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
 
-in int instance[];
-in vec2 vPos[];
-
-flat out float layer;
-
 void main()
 {
-  gl_Layer = instance[0];
-  layer = float(instance[0]);
+  gl_Layer = lightprobe_vert_iface[0].instance;
+  lightprobe_geom_iface.layer = float(lightprobe_vert_iface[0].instance);
 
-  gl_Position = vec4(vPos[0], 0.0, 1.0);
+  gl_Position = vec4(lightprobe_vert_iface[0].vPos, 0.0, 1.0);
   EmitVertex();
 
-  gl_Position = vec4(vPos[1], 0.0, 1.0);
+  gl_Position = vec4(lightprobe_vert_iface[1].vPos, 0.0, 1.0);
   EmitVertex();
 
-  gl_Position = vec4(vPos[2], 0.0, 1.0);
+  gl_Position = vec4(lightprobe_vert_iface[2].vPos, 0.0, 1.0);
   EmitVertex();
 
   EndPrimitive();

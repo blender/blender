@@ -68,12 +68,12 @@ static const EnumPropertyItem rna_enum_keyframe_type_items[] = {
      "KEYFRAME",
      ICON_KEYTYPE_KEYFRAME_VEC,
      "Keyframe",
-     "Normal keyframe - e.g. for key poses"},
+     "Normal keyframe, e.g. for key poses"},
     {BEZT_KEYTYPE_BREAKDOWN,
      "BREAKDOWN",
      ICON_KEYTYPE_BREAKDOWN_VEC,
      "Breakdown",
-     "A breakdown pose - e.g. for transitions between key poses"},
+     "A breakdown pose, e.g. for transitions between key poses"},
     {BEZT_KEYTYPE_MOVEHOLD,
      "MOVING_HOLD",
      ICON_KEYTYPE_MOVING_HOLD_VEC,
@@ -98,12 +98,12 @@ static const EnumPropertyItem rna_enum_onion_keyframe_type_items[] = {
      "KEYFRAME",
      ICON_KEYTYPE_KEYFRAME_VEC,
      "Keyframe",
-     "Normal keyframe - e.g. for key poses"},
+     "Normal keyframe, e.g. for key poses"},
     {BEZT_KEYTYPE_BREAKDOWN,
      "BREAKDOWN",
      ICON_KEYTYPE_BREAKDOWN_VEC,
      "Breakdown",
-     "A breakdown pose - e.g. for transitions between key poses"},
+     "A breakdown pose, e.g. for transitions between key poses"},
     {BEZT_KEYTYPE_MOVEHOLD,
      "MOVING_HOLD",
      ICON_KEYTYPE_MOVING_HOLD_VEC,
@@ -334,13 +334,13 @@ static int rna_GPencilLayer_active_frame_editable(PointerRNA *ptr, const char **
 static void set_parent(bGPDlayer *gpl, Object *par, const int type, const char *substr)
 {
   if (type == PAROBJECT) {
-    invert_m4_m4(gpl->inverse, par->obmat);
+    invert_m4_m4(gpl->inverse, par->object_to_world);
     gpl->parent = par;
     gpl->partype |= PAROBJECT;
     gpl->parsubstr[0] = 0;
   }
   else if (type == PARSKEL) {
-    invert_m4_m4(gpl->inverse, par->obmat);
+    invert_m4_m4(gpl->inverse, par->object_to_world);
     gpl->parent = par;
     gpl->partype |= PARSKEL;
     gpl->parsubstr[0] = 0;
@@ -349,7 +349,7 @@ static void set_parent(bGPDlayer *gpl, Object *par, const int type, const char *
     bPoseChannel *pchan = BKE_pose_channel_find_name(par->pose, substr);
     if (pchan) {
       float tmp_mat[4][4];
-      mul_m4_m4m4(tmp_mat, par->obmat, pchan->pose_mat);
+      mul_m4_m4m4(tmp_mat, par->object_to_world, pchan->pose_mat);
 
       invert_m4_m4(gpl->inverse, tmp_mat);
       gpl->parent = par;
@@ -357,7 +357,7 @@ static void set_parent(bGPDlayer *gpl, Object *par, const int type, const char *
       BLI_strncpy(gpl->parsubstr, substr, sizeof(gpl->parsubstr));
     }
     else {
-      invert_m4_m4(gpl->inverse, par->obmat);
+      invert_m4_m4(gpl->inverse, par->object_to_world);
       gpl->parent = par;
       gpl->partype |= PAROBJECT;
       gpl->parsubstr[0] = 0;
@@ -2561,7 +2561,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "curve_edit_corner_angle");
   RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
   RNA_def_property_float_default(prop, DEG2RADF(90.0f));
-  RNA_def_property_ui_text(prop, "Corner Angle", "Angle threshold to be treated as corners");
+  RNA_def_property_ui_text(prop, "Corner Angle", "Angles above this are considered corners");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "use_multiedit", PROP_BOOLEAN, PROP_NONE);

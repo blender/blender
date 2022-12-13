@@ -57,6 +57,25 @@ macro(path_ensure_trailing_slash
   unset(_path_sep)
 endmacro()
 
+# Our own version of `cmake_path(IS_PREFIX ..)`.
+# This can be removed when 3.20 or greater is the minimum supported version.
+macro(path_is_prefix
+  path_prefix path result_var
+  )
+  # Remove when CMAKE version is bumped to "3.20" or greater.
+  # `cmake_path(IS_PREFIX ${path_prefix} ${path} NORMALIZE result_var)`
+  # Get the normalized paths (needed to remove `..`).
+  get_filename_component(_abs_prefix "${${path_prefix}}" ABSOLUTE)
+  get_filename_component(_abs_suffix "${${path}}" ABSOLUTE)
+  string(LENGTH "${_abs_prefix}" _len)
+  string(SUBSTRING "${_abs_suffix}" 0 "${_len}" _substr)
+  string(COMPARE EQUAL "${_abs_prefix}" "${_substr}" "${result_var}")
+  unset(_abs_prefix)
+  unset(_abs_suffix)
+  unset(_len)
+  unset(_substr)
+endmacro()
+
 # foo_bar.spam --> foo_barMySuffix.spam
 macro(file_suffix
   file_name_new file_name file_suffix
@@ -403,7 +422,9 @@ function(blender_add_test_suite)
       --test-assets-dir "${CMAKE_SOURCE_DIR}/../lib/tests"
       --test-release-dir "${_test_release_dir}"
   )
-
+  if(WIN32)
+    set_tests_properties(${ARGS_SUITE_NAME} PROPERTIES ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/blender.shared/;$ENV{PATH}")
+  endif()
   unset(_test_release_dir)
 endfunction()
 
@@ -995,7 +1016,8 @@ function(data_to_c_simple_icons
   add_custom_command(
     OUTPUT  ${_file_from} ${_file_to}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
-    # COMMAND python3 ${CMAKE_SOURCE_DIR}/source/blender/datatoc/datatoc_icon.py ${_path_from_abs} ${_file_from}
+    # COMMAND python3 ${CMAKE_SOURCE_DIR}/source/blender/datatoc/datatoc_icon.py
+    #         ${_path_from_abs} ${_file_from}
     COMMAND "$<TARGET_FILE:datatoc_icon>" ${_path_from_abs} ${_file_from}
     COMMAND "$<TARGET_FILE:datatoc>" ${_file_from} ${_file_to}
     DEPENDS
@@ -1073,23 +1095,27 @@ function(msgfmt_simple
 endfunction()
 
 function(find_python_package
-  package
-  relative_include_dir
+    package
+    relative_include_dir
   )
 
   string(TOUPPER ${package} _upper_package)
 
-  # set but invalid
+  # Set but invalid.
   if((NOT ${PYTHON_${_upper_package}_PATH} STREQUAL "") AND
      (NOT ${PYTHON_${_upper_package}_PATH} MATCHES NOTFOUND))
-#       if(NOT EXISTS "${PYTHON_${_upper_package}_PATH}/${package}")
-#           message(WARNING "PYTHON_${_upper_package}_PATH is invalid, ${package} not found in '${PYTHON_${_upper_package}_PATH}' "
-#                           "WITH_PYTHON_INSTALL_${_upper_package} option will be ignored when installing python")
-#           set(WITH_PYTHON_INSTALL${_upper_package} OFF)
-#       endif()
-  # not set, so initialize
+    # if(NOT EXISTS "${PYTHON_${_upper_package}_PATH}/${package}")
+    #   message(
+    #     WARNING
+    #     "PYTHON_${_upper_package}_PATH is invalid, ${package} not found in "
+    #     "'${PYTHON_${_upper_package}_PATH}' "
+    #     "WITH_PYTHON_INSTALL_${_upper_package} option will be ignored when installing Python"
+    #   )
+    #   set(WITH_PYTHON_INSTALL${_upper_package} OFF)
+    # endif()
+    # Not set, so initialize.
   else()
-    string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
+   string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
     list(GET _PY_VER_SPLIT 0 _PY_VER_MAJOR)
 
     # re-cache
@@ -1216,7 +1242,7 @@ endmacro()
 
 macro(set_and_warn_library_found
   _library_name _library_found _setting)
-  if(NOT ${${_library_found}} AND ${${_setting}})
+  if(((NOT ${_library_found}) OR (NOT ${${_library_found}})) AND ${${_setting}})
     if(WITH_STRICT_BUILD_OPTIONS)
       message(SEND_ERROR "${_library_name} required but not found")
     else()
@@ -1232,4 +1258,89 @@ endmacro()
 
 macro(without_system_libs_end)
   unset(CMAKE_IGNORE_PATH)
+endmacro()
+
+# Utility to gather and install precompiled shared libraries.
+macro(add_bundled_libraries library_dir)
+  if(EXISTS ${LIBDIR})
+    set(_library_dir ${LIBDIR}/${library_dir})
+    if(WIN32)
+      file(GLOB _all_library_versions ${_library_dir}/*\.dll)
+    elseif(APPLE)
+      file(GLOB _all_library_versions ${_library_dir}/*\.dylib*)
+    else()
+      file(GLOB _all_library_versions ${_library_dir}/*\.so*)
+    endif()
+    list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
+    list(APPEND PLATFORM_BUNDLED_LIBRARY_DIRS ${_library_dir})
+    unset(_all_library_versions)
+    unset(_library_dir)
+ endif()
+endmacro()
+
+macro(windows_install_shared_manifest)
+  set(options OPTIONAL DEBUG RELEASE ALL)
+  set(oneValueArgs)
+  set(multiValueArgs FILES)
+  cmake_parse_arguments(WINDOWS_INSTALL "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+  # If none of the options are set assume ALL.
+  unset(WINDOWS_CONFIGURATIONS)
+  if(NOT WINDOWS_INSTALL_ALL AND
+     NOT WINDOWS_INSTALL_DEBUG AND
+     NOT WINDOWS_INSTALL_RELEASE)
+    set(WINDOWS_INSTALL_ALL TRUE)
+  endif()
+  # If all is set, turn both DEBUG and RELEASE on.
+  if(WINDOWS_INSTALL_ALL)
+    set(WINDOWS_INSTALL_DEBUG TRUE)
+    set(WINDOWS_INSTALL_RELEASE TRUE)
+  endif()
+  if(WINDOWS_INSTALL_DEBUG)
+    set(WINDOWS_CONFIGURATIONS "${WINDOWS_CONFIGURATIONS};Debug")
+    list(APPEND WINDOWS_SHARED_MANIFEST_DEBUG ${WINDOWS_INSTALL_FILES})
+  endif()
+  if(WINDOWS_INSTALL_RELEASE)
+    list(APPEND WINDOWS_SHARED_MANIFEST_RELEASE ${WINDOWS_INSTALL_FILES})
+    set(WINDOWS_CONFIGURATIONS "${WINDOWS_CONFIGURATIONS};Release;RelWithDebInfo;MinSizeRel")
+  endif()
+  install(FILES ${WINDOWS_INSTALL_FILES}
+          CONFIGURATIONS ${WINDOWS_CONFIGURATIONS}
+          DESTINATION "./blender.shared"
+  )
+endmacro()
+
+macro(windows_generate_manifest)
+  set(options)
+  set(oneValueArgs OUTPUT NAME)
+  set(multiValueArgs FILES)
+  cmake_parse_arguments(WINDOWS_MANIFEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+  set(MANIFEST_LIBS "")
+  foreach(lib ${WINDOWS_MANIFEST_FILES})
+    get_filename_component(filename ${lib} NAME)
+    set(MANIFEST_LIBS "${MANIFEST_LIBS}    <file name=\"${filename}\"/>\n")
+  endforeach()
+  configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.manifest.in ${WINDOWS_MANIFEST_OUTPUT} @ONLY)
+endmacro()
+
+macro(windows_generate_shared_manifest)
+  windows_generate_manifest(
+    FILES "${WINDOWS_SHARED_MANIFEST_DEBUG}"
+    OUTPUT "${CMAKE_BINARY_DIR}/Debug/blender.shared.manifest"
+    NAME "blender.shared"
+  )
+  windows_generate_manifest(
+    FILES "${WINDOWS_SHARED_MANIFEST_RELEASE}"
+    OUTPUT "${CMAKE_BINARY_DIR}/Release/blender.shared.manifest"
+    NAME "blender.shared"
+  )
+  install(
+      FILES ${CMAKE_BINARY_DIR}/Release/blender.shared.manifest
+      DESTINATION "./blender.shared"
+      CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+  )
+  install(
+      FILES ${CMAKE_BINARY_DIR}/Debug/blender.shared.manifest
+      DESTINATION "./blender.shared"
+      CONFIGURATIONS Debug
+  )
 endmacro()

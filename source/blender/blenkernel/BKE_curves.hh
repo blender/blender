@@ -11,11 +11,14 @@
 
 #include <mutex>
 
+#include "BLI_bounds_types.hh"
+#include "BLI_cache_mutex.hh"
 #include "BLI_float3x3.hh"
 #include "BLI_float4x4.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_math_vec_types.hh"
+#include "BLI_shared_cache.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
@@ -62,9 +65,7 @@ struct BasisCache {
 }  // namespace curves::nurbs
 
 /**
- * Contains derived data, caches, and other information not saved in files, besides a few pointers
- * to arrays that are kept in the non-runtime struct to avoid dereferencing this whenever they are
- * accessed.
+ * Contains derived data, caches, and other information not saved in files.
  */
 class CurvesGeometryRuntime {
  public:
@@ -80,17 +81,14 @@ class CurvesGeometryRuntime {
    */
   mutable Vector<int> evaluated_offsets_cache;
   mutable Vector<int> bezier_evaluated_offsets;
-  mutable std::mutex offsets_cache_mutex;
-  mutable bool offsets_cache_dirty = true;
+  mutable CacheMutex offsets_cache_mutex;
 
   mutable Vector<curves::nurbs::BasisCache> nurbs_basis_cache;
-  mutable std::mutex nurbs_basis_cache_mutex;
-  mutable bool nurbs_basis_cache_dirty = true;
+  mutable CacheMutex nurbs_basis_cache_mutex;
 
   /** Cache of evaluated positions. */
   mutable Vector<float3> evaluated_position_cache;
-  mutable std::mutex position_cache_mutex;
-  mutable bool position_cache_dirty = true;
+  mutable CacheMutex position_cache_mutex;
   /**
    * The evaluated positions result, using a separate span in case all curves are poly curves,
    * in which case a separate array of evaluated positions is unnecessary.
@@ -98,23 +96,27 @@ class CurvesGeometryRuntime {
   mutable Span<float3> evaluated_positions_span;
 
   /**
+   * A cache of bounds shared between data-blocks with unchanged positions and radii.
+   * When data changes affect the bounds, the cache is "un-shared" with other geometries.
+   * See #SharedCache comments.
+   */
+  mutable SharedCache<Bounds<float3>> bounds_cache;
+
+  /**
    * Cache of lengths along each evaluated curve for each evaluated point. If a curve is
    * cyclic, it needs one more length value to correspond to the last segment, so in order to
    * make slicing this array for a curve fast, an extra float is stored for every curve.
    */
   mutable Vector<float> evaluated_length_cache;
-  mutable std::mutex length_cache_mutex;
-  mutable bool length_cache_dirty = true;
+  mutable CacheMutex length_cache_mutex;
 
   /** Direction of the curve at each evaluated point. */
   mutable Vector<float3> evaluated_tangent_cache;
-  mutable std::mutex tangent_cache_mutex;
-  mutable bool tangent_cache_dirty = true;
+  mutable CacheMutex tangent_cache_mutex;
 
   /** Normal direction vectors for each evaluated point. */
   mutable Vector<float3> evaluated_normal_cache;
-  mutable std::mutex normal_cache_mutex;
-  mutable bool normal_cache_dirty = true;
+  mutable CacheMutex normal_cache_mutex;
 };
 
 /**
@@ -396,6 +398,11 @@ class CurvesGeometry : public ::CurvesGeometry {
   void tag_topology_changed();
   /** Call after changing the "tilt" or "up" attributes. */
   void tag_normals_changed();
+  /**
+   * Call when making manual changes to the "radius" attribute. The attribute API will also call
+   * this in #finish() calls.
+   */
+  void tag_radii_changed();
 
   void translate(const float3 &translation);
   void transform(const float4x4 &matrix);
@@ -909,13 +916,13 @@ inline int CurvesGeometry::evaluated_points_num() const
 
 inline IndexRange CurvesGeometry::evaluated_points_for_curve(int index) const
 {
-  BLI_assert(!this->runtime->offsets_cache_dirty);
+  BLI_assert(this->runtime->offsets_cache_mutex.is_cached());
   return offsets_to_range(this->runtime->evaluated_offsets_cache.as_span(), index);
 }
 
 inline IndexRange CurvesGeometry::evaluated_points_for_curves(const IndexRange curves) const
 {
-  BLI_assert(!this->runtime->offsets_cache_dirty);
+  BLI_assert(this->runtime->offsets_cache_mutex.is_cached());
   BLI_assert(this->curve_num > 0);
   const int offset = this->runtime->evaluated_offsets_cache[curves.start()];
   const int offset_next = this->runtime->evaluated_offsets_cache[curves.one_after_last()];
@@ -940,7 +947,7 @@ inline IndexRange CurvesGeometry::lengths_range_for_curve(const int curve_index,
 inline Span<float> CurvesGeometry::evaluated_lengths_for_curve(const int curve_index,
                                                                const bool cyclic) const
 {
-  BLI_assert(!this->runtime->length_cache_dirty);
+  BLI_assert(this->runtime->length_cache_mutex.is_cached());
   const IndexRange range = this->lengths_range_for_curve(curve_index, cyclic);
   return this->runtime->evaluated_length_cache.as_span().slice(range);
 }

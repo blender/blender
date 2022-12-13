@@ -7322,7 +7322,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Clamp Glossy",
                            "Clamp pixel intensity to reduce noise inside glossy reflections "
-                           "from reflection cubemaps (0 to disabled)");
+                           "from reflection cubemaps (0 to disable)");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
@@ -7380,7 +7380,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "taa_render_samples", PROP_INT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Render Samples", "Number of samples per pixels for rendering");
+  RNA_def_property_ui_text(prop, "Render Samples", "Number of samples per pixel for rendering");
   RNA_def_property_range(prop, 1, INT_MAX);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
@@ -7454,7 +7454,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "ssr_firefly_fac", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Clamp", "Clamp pixel intensity to remove noise (0 to disabled)");
+  RNA_def_property_ui_text(prop, "Clamp", "Clamp pixel intensity to remove noise (0 to disable)");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
@@ -7664,7 +7664,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "bloom_clamp", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_ui_text(
-      prop, "Clamp", "Maximum intensity a bloom pixel can have (0 to disabled)");
+      prop, "Clamp", "Maximum intensity a bloom pixel can have (0 to disable)");
   RNA_def_property_range(prop, 0.0f, 100000.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1000.0f, 1, 3);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
@@ -7820,8 +7820,8 @@ void RNA_def_scene(BlenderRNA *brna)
       {2, "INVERSE_CLAMPED", 0, "Inverse Clamped", "Inverse distance model with clamping"},
       {3, "LINEAR", 0, "Linear", "Linear distance model"},
       {4, "LINEAR_CLAMPED", 0, "Linear Clamped", "Linear distance model with clamping"},
-      {5, "EXPONENT", 0, "Exponent", "Exponent distance model"},
-      {6, "EXPONENT_CLAMPED", 0, "Exponent Clamped", "Exponent distance model with clamping"},
+      {5, "EXPONENT", 0, "Exponential", "Exponential distance model"},
+      {6, "EXPONENT_CLAMPED", 0, "Exponential Clamped", "Exponential distance model with clamping"},
       {0, NULL, 0, NULL, NULL},
   };
 

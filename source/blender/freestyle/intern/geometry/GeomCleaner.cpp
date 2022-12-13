@@ -25,6 +25,8 @@
 
 #include "BKE_global.h"
 
+#include "BLI_sys_types.h"
+
 using namespace std;
 
 namespace Freestyle {

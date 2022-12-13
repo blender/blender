@@ -355,10 +355,10 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
       BKE_displist_free(&ltOb->runtime.curve_cache->disp);
     }
 
-    copy_m4_m4(mat, ltOb->obmat);
-    unit_m4(ltOb->obmat);
+    copy_m4_m4(mat, ltOb->object_to_world);
+    unit_m4(ltOb->object_to_world);
     BKE_lattice_deform_coords(ltOb, NULL, vert_coords, uNew * vNew * wNew, 0, NULL, 1.0f);
-    copy_m4_m4(ltOb->obmat, mat);
+    copy_m4_m4(ltOb->object_to_world, mat);
 
     lt->typeu = typeu;
     lt->typev = typev;

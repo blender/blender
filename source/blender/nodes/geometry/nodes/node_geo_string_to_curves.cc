@@ -9,6 +9,7 @@
 #include "BKE_instances.hh"
 #include "BKE_vfont.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_hash.h"
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"
@@ -109,12 +110,14 @@ static float3 get_pivot_point(GeoNodeExecParams &params, bke::CurvesGeometry &cu
   const GeometryNodeStringToCurvesPivotMode pivot_mode = (GeometryNodeStringToCurvesPivotMode)
                                                              storage.pivot_mode;
 
-  float3 min(FLT_MAX), max(FLT_MIN);
+  const std::optional<Bounds<float3>> bounds = bounds::min_max(curves.positions());
 
   /* Check if curve is empty. */
-  if (!curves.bounds_min_max(min, max)) {
+  if (!bounds.has_value()) {
     return {0.0f, 0.0f, 0.0f};
   }
+  const float3 min = bounds->min;
+  const float3 max = bounds->max;
 
   switch (pivot_mode) {
     case GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_MIDPOINT:
@@ -405,8 +408,8 @@ void register_node_type_geo_string_to_curves()
   geo_node_type_base(&ntype, GEO_NODE_STRING_TO_CURVES, "String to Curves", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   node_type_size(&ntype, 190, 120, 700);
   node_type_storage(&ntype,
                     "NodeGeometryStringToCurves",

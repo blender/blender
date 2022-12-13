@@ -24,11 +24,13 @@ static void set_resolution(bke::CurvesGeometry &curves,
   MutableAttributeAccessor attributes = curves.attributes_for_write();
   AttributeWriter<int> resolutions = attributes.lookup_or_add_for_write<int>("resolution",
                                                                              ATTR_DOMAIN_CURVE);
+  bke::AttributeValidator validator = attributes.lookup_validator("resolution");
 
   bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, curves.curves_num()};
   evaluator.set_selection(selection_field);
-  evaluator.add_with_destination(resolution_field, resolutions.varray);
+  evaluator.add_with_destination(validator.validate_field_if_necessary(resolution_field),
+                                 resolutions.varray);
   evaluator.evaluate();
 
   resolutions.finish();

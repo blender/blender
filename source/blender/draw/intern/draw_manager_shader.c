@@ -64,8 +64,8 @@ static void drw_deferred_shader_compilation_exec(
     void *custom_data,
     /* Cannot be const, this function implements wm_jobs_start_callback.
      * NOLINTNEXTLINE: readability-non-const-parameter. */
-    short *stop,
-    short *UNUSED(do_update),
+    bool *stop,
+    bool *UNUSED(do_update),
     float *UNUSED(progress))
 {
   GPU_render_begin();
@@ -301,6 +301,11 @@ void DRW_deferred_shader_remove(GPUMaterial *mat)
 /* -------------------------------------------------------------------- */
 
 /** \{ */
+
+GPUShader *DRW_shader_create_from_info_name(const char *info_name)
+{
+  return GPU_shader_create_from_info_name(info_name);
+}
 
 GPUShader *DRW_shader_create_ex(
     const char *vert, const char *geom, const char *frag, const char *defines, const char *name)

@@ -113,8 +113,8 @@ void ED_armature_origin_set(
   /* Find the center-point. */
   if (centermode == 2) {
     copy_v3_v3(cent, cursor);
-    invert_m4_m4(ob->imat, ob->obmat);
-    mul_m4_v3(ob->imat, cent);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
+    mul_m4_v3(ob->world_to_object, cent);
   }
   else {
     if (around == V3D_AROUND_CENTER_BOUNDS) {
@@ -154,7 +154,7 @@ void ED_armature_origin_set(
 
   /* Adjust object location for new center-point. */
   if (centermode && (is_editmode == false)) {
-    mul_mat3_m4_v3(ob->obmat, cent); /* omit translation part */
+    mul_mat3_m4_v3(ob->object_to_world, cent); /* omit translation part */
     add_v3_v3(ob->loc, cent);
   }
 }
@@ -282,16 +282,16 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
       axis_flip = true;
     }
 
-    copy_m3_m4(imat, ob->obmat);
+    copy_m3_m4(imat, ob->object_to_world);
     invert_m3(imat);
 
     if (type == CALC_ROLL_CURSOR) { /* Cursor */
       float cursor_local[3];
       const View3DCursor *cursor = &scene->cursor;
 
-      invert_m4_m4(ob->imat, ob->obmat);
+      invert_m4_m4(ob->world_to_object, ob->object_to_world);
       copy_v3_v3(cursor_local, cursor->location);
-      mul_m4_v3(ob->imat, cursor_local);
+      mul_m4_v3(ob->world_to_object, cursor_local);
 
       /* cursor */
       for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
@@ -730,8 +730,8 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
     ebp = points.first;
 
     /* Get points - cursor (tail) */
-    invert_m4_m4(obedit->imat, obedit->obmat);
-    mul_v3_m4v3(curs, obedit->imat, scene->cursor.location);
+    invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
+    mul_v3_m4v3(curs, obedit->world_to_object, scene->cursor.location);
 
     /* Create a bone */
     newbone = add_points_bone(obedit, ebp->vec, curs);
@@ -767,8 +767,8 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
         float dist_sq_a, dist_sq_b;
 
         /* get cursor location */
-        invert_m4_m4(obedit->imat, obedit->obmat);
-        mul_v3_m4v3(curs, obedit->imat, scene->cursor.location);
+        invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
+        mul_v3_m4v3(curs, obedit->world_to_object, scene->cursor.location);
 
         /* get distances */
         dist_sq_a = len_squared_v3v3(ebp_a->vec, curs);

@@ -4,6 +4,7 @@
 #include "scene/background.h"
 #include "device/device.h"
 #include "scene/integrator.h"
+#include "scene/light.h"
 #include "scene/scene.h"
 #include "scene/shader.h"
 #include "scene/shader_graph.h"

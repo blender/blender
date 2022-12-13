@@ -12,6 +12,7 @@
 #include "PIL_time.h"
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_function_ref.hh"
 #include "BLI_gsqueue.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -52,16 +53,9 @@ struct DepsgraphEvalState;
 
 void deg_task_run_func(TaskPool *pool, void *taskdata);
 
-template<typename ScheduleFunction, typename... ScheduleFunctionArgs>
 void schedule_children(DepsgraphEvalState *state,
                        OperationNode *node,
-                       ScheduleFunction *schedule_function,
-                       ScheduleFunctionArgs... schedule_function_args);
-
-void schedule_node_to_pool(OperationNode *node, const int /*thread_id*/, TaskPool *pool)
-{
-  BLI_task_pool_push(pool, deg_task_run_func, node, false, nullptr);
-}
+                       FunctionRef<void(OperationNode *node)> schedule_fn);
 
 /* Denotes which part of dependency graph is being evaluated. */
 enum class EvaluationStage {
@@ -125,7 +119,9 @@ void deg_task_run_func(TaskPool *pool, void *taskdata)
   evaluate_node(state, operation_node);
 
   /* Schedule children. */
-  schedule_children(state, operation_node, schedule_node_to_pool, pool);
+  schedule_children(state, operation_node, [&](OperationNode *node) {
+    BLI_task_pool_push(pool, deg_task_run_func, node, false, nullptr);
+  });
 }
 
 bool check_operation_node_visible(const DepsgraphEvalState *state, OperationNode *op_node)
@@ -241,12 +237,10 @@ bool need_evaluate_operation_at_stage(DepsgraphEvalState *state,
  *   dec_parents: Decrement pending parents count, true when child nodes are
  *                scheduled after a task has been completed.
  */
-template<typename ScheduleFunction, typename... ScheduleFunctionArgs>
 void schedule_node(DepsgraphEvalState *state,
                    OperationNode *node,
                    bool dec_parents,
-                   ScheduleFunction *schedule_function,
-                   ScheduleFunctionArgs... schedule_function_args)
+                   const FunctionRef<void(OperationNode *node)> schedule_fn)
 {
   /* No need to schedule nodes of invisible ID. */
   if (!check_operation_node_visible(state, node)) {
@@ -277,30 +271,26 @@ void schedule_node(DepsgraphEvalState *state,
   if (!is_scheduled) {
     if (node->is_noop()) {
       /* skip NOOP node, schedule children right away */
-      schedule_children(state, node, schedule_function, schedule_function_args...);
+      schedule_children(state, node, schedule_fn);
     }
     else {
       /* children are scheduled once this task is completed */
-      schedule_function(node, 0, schedule_function_args...);
+      schedule_fn(node);
     }
   }
 }
 
-template<typename ScheduleFunction, typename... ScheduleFunctionArgs>
 void schedule_graph(DepsgraphEvalState *state,
-                    ScheduleFunction *schedule_function,
-                    ScheduleFunctionArgs... schedule_function_args)
+                    const FunctionRef<void(OperationNode *node)> schedule_fn)
 {
   for (OperationNode *node : state->graph->operations) {
-    schedule_node(state, node, false, schedule_function, schedule_function_args...);
+    schedule_node(state, node, false, schedule_fn);
   }
 }
 
-template<typename ScheduleFunction, typename... ScheduleFunctionArgs>
 void schedule_children(DepsgraphEvalState *state,
                        OperationNode *node,
-                       ScheduleFunction *schedule_function,
-                       ScheduleFunctionArgs... schedule_function_args)
+                       const FunctionRef<void(OperationNode *node)> schedule_fn)
 {
   for (Relation *rel : node->outlinks) {
     OperationNode *child = (OperationNode *)rel->to;
@@ -309,19 +299,8 @@ void schedule_children(DepsgraphEvalState *state,
       /* Happens when having cyclic dependencies. */
       continue;
     }
-    schedule_node(state,
-                  child,
-                  (rel->flag & RELATION_FLAG_CYCLIC) == 0,
-                  schedule_function,
-                  schedule_function_args...);
+    schedule_node(state, child, (rel->flag & RELATION_FLAG_CYCLIC) == 0, schedule_fn);
   }
-}
-
-void schedule_node_to_queue(OperationNode *node,
-                            const int /*thread_id*/,
-                            GSQueue *evaluation_queue)
-{
-  BLI_gsqueue_push(evaluation_queue, &node);
 }
 
 /* Evaluate given stage of the dependency graph evaluation using multiple threads.
@@ -335,7 +314,9 @@ void evaluate_graph_threaded_stage(DepsgraphEvalState *state,
 
   calculate_pending_parents_if_needed(state);
 
-  schedule_graph(state, schedule_node_to_pool, task_pool);
+  schedule_graph(state, [&](OperationNode *node) {
+    BLI_task_pool_push(task_pool, deg_task_run_func, node, false, nullptr);
+  });
   BLI_task_pool_work_and_wait(task_pool);
 }
 
@@ -351,14 +332,17 @@ void evaluate_graph_single_threaded_if_needed(DepsgraphEvalState *state)
   state->stage = EvaluationStage::SINGLE_THREADED_WORKAROUND;
 
   GSQueue *evaluation_queue = BLI_gsqueue_new(sizeof(OperationNode *));
-  schedule_graph(state, schedule_node_to_queue, evaluation_queue);
+  auto schedule_node_to_queue = [&](OperationNode *node) {
+    BLI_gsqueue_push(evaluation_queue, &node);
+  };
+  schedule_graph(state, schedule_node_to_queue);
 
   while (!BLI_gsqueue_is_empty(evaluation_queue)) {
     OperationNode *operation_node;
     BLI_gsqueue_pop(evaluation_queue, &operation_node);
 
     evaluate_node(state, operation_node);
-    schedule_children(state, operation_node, schedule_node_to_queue, evaluation_queue);
+    schedule_children(state, operation_node, schedule_node_to_queue);
   }
 
   BLI_gsqueue_free(evaluation_queue);

@@ -102,11 +102,11 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    copy_v3_v3(nor, obedit->obmat[2]);
+    copy_v3_v3(nor, obedit->object_to_world[2]);
 
     /* calculate dvec */
-    mul_v3_m4v3(v1_co_global, obedit->obmat, v1->co);
-    mul_v3_m4v3(v2_co_global, obedit->obmat, v2->co);
+    mul_v3_m4v3(v1_co_global, obedit->object_to_world, v1->co);
+    mul_v3_m4v3(v2_co_global, obedit->object_to_world, v2->co);
     sub_v3_v3v3(dvec, v1_co_global, v2_co_global);
     mul_v3_fl(dvec, 1.0f / steps);
 
@@ -126,7 +126,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
             dvec,
             turns * steps,
             DEG2RADF(360.0f * turns),
-            obedit->obmat,
+            obedit->object_to_world,
             false)) {
       continue;
     }

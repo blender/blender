@@ -6,6 +6,8 @@
 
 #include "SceneHash.h"
 
+#include "BLI_sys_types.h"
+
 #include <sstream>
 
 namespace Freestyle {

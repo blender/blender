@@ -48,8 +48,12 @@ static void rna_ImagePackedFile_save(ImagePackedFile *imapf, Main *bmain, Report
   }
 }
 
-static void rna_Image_save_render(
-    Image *image, bContext *C, ReportList *reports, const char *path, Scene *scene)
+static void rna_Image_save_render(Image *image,
+                                  bContext *C,
+                                  ReportList *reports,
+                                  const char *path,
+                                  Scene *scene,
+                                  const int quality)
 {
   Main *bmain = CTX_data_main(C);
 
@@ -62,6 +66,9 @@ static void rna_Image_save_render(
   if (BKE_image_save_options_init(&opts, bmain, scene, image, NULL, false, true)) {
     opts.save_copy = true;
     STRNCPY(opts.filepath, path);
+    if (quality != 0) {
+      opts.im_format.quality = clamp_i(quality, 0, 100);
+    }
 
     if (!BKE_image_save(reports, bmain, image, NULL, &opts)) {
       BKE_reportf(
@@ -77,12 +84,23 @@ static void rna_Image_save_render(
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
 }
 
-static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *reports)
+static void rna_Image_save(Image *image,
+                           Main *bmain,
+                           bContext *C,
+                           ReportList *reports,
+                           const char *path,
+                           const int quality)
 {
   Scene *scene = CTX_data_scene(C);
   ImageSaveOptions opts;
 
   if (BKE_image_save_options_init(&opts, bmain, scene, image, NULL, false, false)) {
+    if (path && path[0]) {
+      STRNCPY(opts.filepath, path);
+    }
+    if (quality != 0) {
+      opts.im_format.quality = clamp_i(quality, 0, 100);
+    }
     if (!BKE_image_save(reports, bmain, image, NULL, &opts)) {
       BKE_reportf(reports,
                   RPT_ERROR,
@@ -245,13 +263,39 @@ void RNA_api_image(StructRNA *srna)
   RNA_def_function_ui_description(func,
                                   "Save image to a specific path using a scenes render settings");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-  parm = RNA_def_string_file_path(func, "filepath", NULL, 0, "", "Save path");
+  parm = RNA_def_string_file_path(func, "filepath", NULL, 0, "", "Output path");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_pointer(func, "scene", "Scene", "", "Scene to take image parameters from");
+  RNA_def_int(func,
+              "quality",
+              0,
+              0,
+              100,
+              "Quality",
+              "Quality for image formats that support lossy compression, uses default quality if "
+              "not specified",
+              0,
+              100);
 
   func = RNA_def_function(srna, "save", "rna_Image_save");
-  RNA_def_function_ui_description(func, "Save image to its source path");
+  RNA_def_function_ui_description(func, "Save image");
   RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+  RNA_def_string_file_path(func,
+                           "filepath",
+                           NULL,
+                           0,
+                           "",
+                           "Output path, uses image data-block filepath if not specified");
+  RNA_def_int(func,
+              "quality",
+              0,
+              0,
+              100,
+              "Quality",
+              "Quality for image formats that support lossy compression, uses default quality if "
+              "not specified",
+              0,
+              100);
 
   func = RNA_def_function(srna, "pack", "rna_Image_pack");
   RNA_def_function_ui_description(func, "Pack an image as embedded data into the .blend file");

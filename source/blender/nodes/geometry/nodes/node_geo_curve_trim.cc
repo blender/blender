@@ -19,6 +19,7 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveTrim)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
   b.add_input<decl::Float>(N_("Start"))
       .min(0.0f)
       .max(1.0f)
@@ -64,7 +65,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryCurveTrim &storage = node_storage(*node);
   const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
 
-  bNodeSocket *start_fac = static_cast<bNodeSocket *>(node->inputs.first)->next;
+  bNodeSocket *start_fac = static_cast<bNodeSocket *>(node->inputs.first)->next->next;
   bNodeSocket *end_fac = start_fac->next;
   bNodeSocket *start_len = end_fac->next;
   bNodeSocket *end_len = start_len->next;
@@ -109,6 +110,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void geometry_set_curve_trim(GeometrySet &geometry_set,
                                     const GeometryNodeCurveSampleMode mode,
+                                    Field<bool> &selection_field,
                                     Field<float> &start_field,
                                     Field<float> &end_field)
 {
@@ -123,41 +125,21 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
 
   bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
+  evaluator.add(selection_field);
   evaluator.add(start_field);
   evaluator.add(end_field);
   evaluator.evaluate();
-  const VArray<float> starts = evaluator.get_evaluated<float>(0);
-  const VArray<float> ends = evaluator.get_evaluated<float>(1);
 
-  const VArray<bool> cyclic = src_curves.cyclic();
+  const IndexMask selection = evaluator.get_evaluated_as_mask(0);
+  const VArray<float> starts = evaluator.get_evaluated<float>(1);
+  const VArray<float> ends = evaluator.get_evaluated<float>(2);
 
-  /* If node length input is on form [0, 1] instead of [0, length]*/
-  const bool normalized_length_lookup = mode == GEO_NODE_CURVE_SAMPLE_FACTOR;
-
-  /* Stack start + end field. */
-  Vector<float> length_factors(src_curves.curves_num() * 2);
-  Vector<int64_t> lookup_indices(src_curves.curves_num() * 2);
-  threading::parallel_for(src_curves.curves_range(), 512, [&](IndexRange curve_range) {
-    for (const int64_t curve_i : curve_range) {
-      const bool negative_trim = !cyclic[curve_i] && starts[curve_i] > ends[curve_i];
-      length_factors[curve_i] = starts[curve_i];
-      length_factors[curve_i + src_curves.curves_num()] = negative_trim ? starts[curve_i] :
-                                                                          ends[curve_i];
-      lookup_indices[curve_i] = curve_i;
-      lookup_indices[curve_i + src_curves.curves_num()] = curve_i;
-    }
-  });
-
-  /* Create curve trim lookup table. */
-  Array<bke::curves::CurvePoint, 12> point_lookups = geometry::lookup_curve_points(
-      src_curves, length_factors, lookup_indices, normalized_length_lookup);
+  if (selection.is_empty()) {
+    return;
+  }
 
   bke::CurvesGeometry dst_curves = geometry::trim_curves(
-      src_curves,
-      src_curves.curves_range().as_span(),
-      point_lookups.as_span().slice(0, src_curves.curves_num()),
-      point_lookups.as_span().slice(src_curves.curves_num(), src_curves.curves_num()));
-
+      src_curves, selection, starts, ends, mode);
   Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
   bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
   geometry_set.replace_curves(dst_curves_id);
@@ -171,18 +153,19 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
 
+  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   if (mode == GEO_NODE_CURVE_SAMPLE_FACTOR) {
     Field<float> start_field = params.extract_input<Field<float>>("Start");
     Field<float> end_field = params.extract_input<Field<float>>("End");
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-      geometry_set_curve_trim(geometry_set, mode, start_field, end_field);
+      geometry_set_curve_trim(geometry_set, mode, selection_field, start_field, end_field);
     });
   }
   else if (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
     Field<float> start_field = params.extract_input<Field<float>>("Start_001");
     Field<float> end_field = params.extract_input<Field<float>>("End_001");
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-      geometry_set_curve_trim(geometry_set, mode, start_field, end_field);
+      geometry_set_curve_trim(geometry_set, mode, selection_field, start_field, end_field);
     });
   }
 
@@ -202,8 +185,8 @@ void register_node_type_geo_curve_trim()
   ntype.declare = file_ns::node_declare;
   node_type_storage(
       &ntype, "NodeGeometryCurveTrim", node_free_standard_storage, node_copy_standard_storage);
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   nodeRegisterType(&ntype);
 }

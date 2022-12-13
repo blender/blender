@@ -65,11 +65,13 @@ if "%BUILD_UPDATE%" == "1" (
 	REM First see if the SVN libs are there and check them out if they are not.
 	call "%BLENDER_DIR%\build_files\windows\check_libraries.cmd"
 	if errorlevel 1 goto EOF
-	REM Then update SVN platform libraries, since updating python while python is
-	REM running tends to be problematic. The python script that update_sources
-	REM calls later on may still try to switch branches and run into trouble,
-	REM but for *most* people this will side step the problem. 
-	call "%BLENDER_DIR%\build_files\windows\svn_update.cmd"
+	if "%BUILD_UPDATE_SVN%" == "1" (
+		REM Then update SVN platform libraries, since updating python while python is
+		REM running tends to be problematic. The python script that update_sources
+		REM calls later on may still try to switch branches and run into trouble,
+		REM but for *most* people this will side step the problem. 
+		call "%BLENDER_DIR%\build_files\windows\svn_update.cmd"
+	)
 	REM Finally call the python script shared between all platforms that updates git
 	REM and does any other SVN work like update the tests or branch switches
 	REM if required.

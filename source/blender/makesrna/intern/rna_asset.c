@@ -17,8 +17,9 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "AS_asset_library.h"
+
 #  include "BKE_asset.h"
-#  include "BKE_asset_library.h"
 #  include "BKE_context.h"
 #  include "BKE_idprop.h"
 
@@ -251,7 +252,7 @@ void rna_AssetMetaData_catalog_id_update(struct bContext *C, struct PointerRNA *
   }
 
   AssetMetaData *asset_data = ptr->data;
-  BKE_asset_library_refresh_catalog_simplename(asset_library, asset_data);
+  AS_asset_library_refresh_catalog_simplename(asset_library, asset_data);
 }
 
 static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)
@@ -272,13 +273,12 @@ static void rna_AssetHandle_file_data_set(PointerRNA *ptr,
 
 static void rna_AssetHandle_get_full_library_path(
     // AssetHandle *asset,
-    bContext *C,
     FileDirEntry *asset_file,
-    AssetLibraryReference *library,
+    AssetLibraryReference *UNUSED(asset_library), /* Deprecated. */
     char r_result[/*FILE_MAX_LIBEXTRA*/])
 {
   AssetHandle asset = {.file_data = asset_file};
-  ED_asset_handle_get_full_library_path(C, library, &asset, r_result);
+  ED_asset_handle_get_full_library_path(&asset, r_result);
 }
 
 static PointerRNA rna_AssetHandle_local_id_get(PointerRNA *ptr)
@@ -423,19 +423,18 @@ static void rna_def_asset_handle_api(StructRNA *srna)
   PropertyRNA *parm;
 
   func = RNA_def_function(srna, "get_full_library_path", "rna_AssetHandle_get_full_library_path");
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   /* TODO temporarily static function, for until .py can receive the asset handle from context
    * properly. `asset_file_handle` should go away too then. */
   RNA_def_function_flag(func, FUNC_NO_SELF);
   parm = RNA_def_pointer(func, "asset_file_handle", "FileSelectEntry", "", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_pointer(func,
-                         "asset_library_ref",
-                         "AssetLibraryReference",
-                         "",
-                         "The asset library containing the given asset, only valid if the asset "
-                         "library is external (i.e. not the \"Current File\" one");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_pointer(
+      func,
+      "asset_library_ref",
+      "AssetLibraryReference",
+      "",
+      "The asset library containing the given asset. Deprecated and optional argument, will be "
+      "ignored. Kept for API compatibility only");
   parm = RNA_def_string(func, "result", NULL, FILE_MAX_LIBEXTRA, "result", "");
   RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
   RNA_def_function_output(func, parm);
@@ -472,6 +471,12 @@ static void rna_def_asset_handle(BlenderRNA *brna)
   rna_def_asset_handle_api(srna);
 }
 
+static void rna_def_asset_catalog_path(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "AssetCatalogPath", NULL);
+  RNA_def_struct_ui_text(srna, "Catalog Path", "");
+}
+
 static void rna_def_asset_library_reference(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "AssetLibraryReference", NULL);
@@ -498,6 +503,7 @@ void RNA_def_asset(BlenderRNA *brna)
   rna_def_asset_data(brna);
   rna_def_asset_library_reference(brna);
   rna_def_asset_handle(brna);
+  rna_def_asset_catalog_path(brna);
 
   RNA_define_animate_sdna(true);
 }

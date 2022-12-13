@@ -15,6 +15,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_node_tree_update.h"
+#include "BKE_node_runtime.hh"
 
 #include "IMB_colormanagement.h"
 
@@ -2115,7 +2116,7 @@ static bNode *traverse_channel(bNodeSocket *input, const short target_type)
  * material's node tree.  Returns null if no instance of either type was found. */
 static bNode *find_bsdf_node(Material *material)
 {
-  LISTBASE_FOREACH (bNode *, node, &material->nodetree->nodes) {
+  for (bNode *node : material->nodetree->all_nodes()) {
     if (ELEM(node->type, SH_NODE_BSDF_PRINCIPLED, SH_NODE_BSDF_DIFFUSE)) {
       return node;
     }

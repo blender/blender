@@ -223,9 +223,9 @@ static void get_vert2ob_distance(
 
   while (i-- > 0) {
     /* Get world-coordinates of the vertex (constraints and anim included). */
-    mul_v3_m4v3(v_wco, ob->obmat, v_cos[i]);
+    mul_v3_m4v3(v_wco, ob->object_to_world, v_cos[i]);
     /* Return distance between both coordinates. */
-    dist[i] = len_v3v3(v_wco, obr->obmat[3]);
+    dist[i] = len_v3v3(v_wco, obr->object_to_world[3]);
   }
 }
 
@@ -235,7 +235,7 @@ static void get_vert2ob_distance(
  */
 static float get_ob2ob_distance(const Object *ob, const Object *obr)
 {
-  return len_v3v3(ob->obmat[3], obr->obmat[3]);
+  return len_v3v3(ob->object_to_world[3], obr->object_to_world[3]);
 }
 
 /**

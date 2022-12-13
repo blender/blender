@@ -48,15 +48,11 @@
 /** \name Tracks Map
  * \{ */
 
-TracksMap *tracks_map_new(const char *object_name,
-                          bool is_camera,
-                          int num_tracks,
-                          int customdata_size)
+TracksMap *tracks_map_new(const char *object_name, int num_tracks, int customdata_size)
 {
   TracksMap *map = MEM_callocN(sizeof(TracksMap), "TrackingsMap");
 
   BLI_strncpy(map->object_name, object_name, sizeof(map->object_name));
-  map->is_camera = is_camera;
 
   map->num_tracks = num_tracks;
   map->customdata_size = customdata_size;
@@ -114,19 +110,13 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
   ListBase tracks = {NULL, NULL}, new_tracks = {NULL, NULL};
   ListBase *old_tracks;
 
-  if (map->is_camera) {
-    old_tracks = &tracking->tracks;
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_named(tracking, map->object_name);
+  if (!tracking_object) {
+    /* object was deleted by user, create new one */
+    tracking_object = BKE_tracking_object_add(tracking, map->object_name);
   }
-  else {
-    MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, map->object_name);
 
-    if (!object) {
-      /* object was deleted by user, create new one */
-      object = BKE_tracking_object_add(tracking, map->object_name);
-    }
-
-    old_tracks = &object->tracks;
-  }
+  old_tracks = &tracking_object->tracks;
 
   /* duplicate currently operating tracks to temporary list.
    * this is needed to keep names in unique state and it's faster to change names
@@ -383,6 +373,30 @@ void tracking_set_marker_coords_from_tracking(int frame_width,
   marker->pos[1] += marker_unified[1];
 }
 
+void tracking_principal_point_normalized_to_pixel(const float principal_point_normalized[2],
+                                                  const int frame_width,
+                                                  const int frame_height,
+                                                  float r_principal_point_pixel[2])
+{
+  const float frame_center_x = ((float)frame_width) / 2;
+  const float frame_center_y = ((float)frame_height) / 2;
+
+  r_principal_point_pixel[0] = frame_center_x + principal_point_normalized[0] * frame_center_x;
+  r_principal_point_pixel[1] = frame_center_y + principal_point_normalized[1] * frame_center_y;
+}
+
+void tracking_principal_point_pixel_to_normalized(const float principal_point_pixel[2],
+                                                  const int frame_width,
+                                                  const int frame_height,
+                                                  float r_principal_point_normalized[2])
+{
+  const float frame_center_x = ((float)frame_width) / 2;
+  const float frame_center_y = ((float)frame_height) / 2;
+
+  r_principal_point_normalized[0] = (principal_point_pixel[0] - frame_center_x) / frame_center_x;
+  r_principal_point_normalized[1] = (principal_point_pixel[1] - frame_center_y) / frame_center_y;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -497,19 +511,23 @@ static void distortion_model_parameters_from_options(
 
 void tracking_cameraIntrinscisOptionsFromTracking(
     MovieTracking *tracking,
-    int calibration_width,
-    int calibration_height,
+    const int calibration_width,
+    const int calibration_height,
     libmv_CameraIntrinsicsOptions *camera_intrinsics_options)
 {
   MovieTrackingCamera *camera = &tracking->camera;
-  float aspy = 1.0f / tracking->camera.pixel_aspect;
+  const float aspy = 1.0f / tracking->camera.pixel_aspect;
+
+  float principal_px[2];
+  tracking_principal_point_normalized_to_pixel(
+      camera->principal_point, calibration_width, calibration_height, principal_px);
 
   camera_intrinsics_options->num_threads = BLI_system_thread_count();
 
   camera_intrinsics_options->focal_length = camera->focal;
 
-  camera_intrinsics_options->principal_point_x = camera->principal[0];
-  camera_intrinsics_options->principal_point_y = camera->principal[1] * aspy;
+  camera_intrinsics_options->principal_point_x = principal_px[0];
+  camera_intrinsics_options->principal_point_y = principal_px[1] * aspy;
 
   distortion_model_parameters_from_tracking(camera, camera_intrinsics_options);
 
@@ -525,8 +543,13 @@ void tracking_trackingCameraFromIntrinscisOptions(
 
   camera->focal = camera_intrinsics_options->focal_length;
 
-  camera->principal[0] = camera_intrinsics_options->principal_point_x;
-  camera->principal[1] = camera_intrinsics_options->principal_point_y / (double)aspy;
+  const float principal_px[2] = {camera_intrinsics_options->principal_point_x,
+                                 camera_intrinsics_options->principal_point_y / (double)aspy};
+
+  tracking_principal_point_pixel_to_normalized(principal_px,
+                                               camera_intrinsics_options->image_width,
+                                               camera_intrinsics_options->image_height,
+                                               camera->principal_point);
 
   distortion_model_parameters_from_options(camera_intrinsics_options, camera);
 }

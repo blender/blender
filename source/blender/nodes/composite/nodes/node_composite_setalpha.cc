@@ -81,7 +81,7 @@ void register_node_type_cmp_setalpha()
   cmp_node_type_base(&ntype, CMP_NODE_SETALPHA, "Set Alpha", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_setalpha_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_set_alpha;
-  node_type_init(&ntype, file_ns::node_composit_init_setalpha);
+  ntype.initfunc = file_ns::node_composit_init_setalpha;
   node_type_storage(
       &ntype, "NodeSetAlpha", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

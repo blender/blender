@@ -124,19 +124,17 @@ VArray<float3> mesh_normals_varray(const Mesh &mesh,
 {
   switch (domain) {
     case ATTR_DOMAIN_FACE: {
-      return VArray<float3>::ForSpan(
-          {(float3 *)BKE_mesh_poly_normals_ensure(&mesh), mesh.totpoly});
+      return VArray<float3>::ForSpan(mesh.poly_normals());
     }
     case ATTR_DOMAIN_POINT: {
-      return VArray<float3>::ForSpan(
-          {(float3 *)BKE_mesh_vertex_normals_ensure(&mesh), mesh.totvert});
+      return VArray<float3>::ForSpan(mesh.vertex_normals());
     }
     case ATTR_DOMAIN_EDGE: {
       /* In this case, start with vertex normals and convert to the edge domain, since the
        * conversion from edges to vertices is very simple. Use "manual" domain interpolation
        * instead of the GeometryComponent API to avoid calculating unnecessary values and to
        * allow normalizing the result more simply. */
-      Span<float3> vert_normals{(float3 *)BKE_mesh_vertex_normals_ensure(&mesh), mesh.totvert};
+      Span<float3> vert_normals = mesh.vertex_normals();
       const Span<MEdge> edges = mesh.edges();
       Array<float3> edge_normals(mask.min_array_size());
       for (const int i : mask) {
@@ -153,9 +151,7 @@ VArray<float3> mesh_normals_varray(const Mesh &mesh,
        * component's generic domain interpolation is fine, the data will still be normalized,
        * since the face normal is just copied to every corner. */
       return mesh.attributes().adapt_domain(
-          VArray<float3>::ForSpan({(float3 *)BKE_mesh_poly_normals_ensure(&mesh), mesh.totpoly}),
-          ATTR_DOMAIN_FACE,
-          ATTR_DOMAIN_CORNER);
+          VArray<float3>::ForSpan(mesh.poly_normals()), ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER);
     }
     default:
       return {};
@@ -338,9 +334,6 @@ void adapt_mesh_domain_corner_to_edge_impl(const Mesh &mesh,
   const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
-  /* It may be possible to rely on the #ME_LOOSEEDGE flag, but that seems error-prone. */
-  Array<bool> loose_edges(mesh.totedge, true);
-
   r_values.fill(true);
   for (const int poly_index : polys.index_range()) {
     const MPoly &poly = polys[poly_index];
@@ -352,22 +345,23 @@ void adapt_mesh_domain_corner_to_edge_impl(const Mesh &mesh,
       const MLoop &loop = loops[loop_i];
       const int edge_index = loop.e;
 
-      loose_edges[edge_index] = false;
-
       if (!old_values[loop_i] || !old_values[next_loop_i]) {
         r_values[edge_index] = false;
       }
     }
   }
 
-  /* Deselect loose edges without corners that are still selected from the 'true' default. */
-  threading::parallel_for(IndexRange(mesh.totedge), 2048, [&](const IndexRange range) {
-    for (const int edge_index : range) {
-      if (loose_edges[edge_index]) {
-        r_values[edge_index] = false;
+  const bke::LooseEdgeCache &loose_edges = mesh.loose_edges();
+  if (loose_edges.count > 0) {
+    /* Deselect loose edges without corners that are still selected from the 'true' default. */
+    threading::parallel_for(IndexRange(mesh.totedge), 2048, [&](const IndexRange range) {
+      for (const int edge_index : range) {
+        if (loose_edges.is_loose_bits[edge_index]) {
+          r_values[edge_index] = false;
+        }
       }
-    }
-  });
+    });
+  }
 }
 
 static GVArray adapt_mesh_domain_corner_to_edge(const Mesh &mesh, const GVArray &varray)
@@ -624,7 +618,7 @@ void adapt_mesh_domain_edge_to_corner_impl(const Mesh &mesh,
 
     /* For every corner, mix the values from the adjacent edges on the face. */
     for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      const int loop_index_prev = mesh_topology::previous_poly_loop(poly, loop_index);
+      const int loop_index_prev = mesh_topology::poly_loop_prev(poly, loop_index);
       const MLoop &loop = loops[loop_index];
       const MLoop &loop_prev = loops[loop_index_prev];
       mixer.mix_in(loop_index, old_values[loop.e]);
@@ -651,7 +645,7 @@ void adapt_mesh_domain_edge_to_corner_impl(const Mesh &mesh,
     for (const int poly_index : range) {
       const MPoly &poly = polys[poly_index];
       for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-        const int loop_index_prev = mesh_topology::previous_poly_loop(poly, loop_index);
+        const int loop_index_prev = mesh_topology::poly_loop_prev(poly, loop_index);
         const MLoop &loop = loops[loop_index];
         const MLoop &loop_prev = loops[loop_index_prev];
         if (old_values[loop.e] && old_values[loop_prev.e]) {
@@ -776,7 +770,9 @@ static GVArray adapt_mesh_domain_edge_to_face(const Mesh &mesh, const GVArray &v
 
 }  // namespace blender::bke
 
-static bool can_simple_adapt_for_single(const eAttrDomain from_domain, const eAttrDomain to_domain)
+static bool can_simple_adapt_for_single(const Mesh &mesh,
+                                        const eAttrDomain from_domain,
+                                        const eAttrDomain to_domain)
 {
   /* For some domain combinations, a single value will always map directly. For others, there may
    * be loose elements on the result domain that should have the default value rather than the
@@ -790,9 +786,15 @@ static bool can_simple_adapt_for_single(const eAttrDomain from_domain, const eAt
       return ELEM(to_domain, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER);
     case ATTR_DOMAIN_FACE:
       /* There may be loose vertices or edges not connected to faces. */
+      if (to_domain == ATTR_DOMAIN_EDGE) {
+        return mesh.loose_edges().count == 0;
+      }
       return to_domain == ATTR_DOMAIN_CORNER;
     case ATTR_DOMAIN_CORNER:
       /* Only faces are always connected to corners. */
+      if (to_domain == ATTR_DOMAIN_EDGE) {
+        return mesh.loose_edges().count == 0;
+      }
       return to_domain == ATTR_DOMAIN_FACE;
     default:
       BLI_assert_unreachable();
@@ -815,7 +817,7 @@ static blender::GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
     return varray;
   }
   if (varray.is_single()) {
-    if (can_simple_adapt_for_single(from_domain, to_domain)) {
+    if (can_simple_adapt_for_single(mesh, from_domain, to_domain)) {
       BUFFER_FOR_CPP_TYPE_VALUE(varray.type(), value);
       varray.get_internal_single(value);
       return blender::GVArray::ForSingle(

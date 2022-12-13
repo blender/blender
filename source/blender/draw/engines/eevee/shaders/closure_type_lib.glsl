@@ -4,13 +4,6 @@
 /* #pragma (common_uniforms_lib.glsl) */
 /* #pragma (renderpass_lib.glsl) */
 
-#ifndef VOLUMETRICS
-
-uniform int outputSsrId; /* Default = 1; */
-uniform int outputSssId; /* Default = 1; */
-
-#endif
-
 struct Closure {
 #ifdef VOLUMETRICS
   vec3 absorption;

@@ -71,7 +71,7 @@ struct OutputOpenExrLayer {
   SocketReader *image_input;
 };
 
-/* Writes inputs into OpenEXR multilayer channels. */
+/* Writes inputs into OpenEXR multi-layer channels. */
 class OutputOpenExrMultiLayerOperation : public MultiThreadedOperation {
  protected:
   const Scene *scene_;

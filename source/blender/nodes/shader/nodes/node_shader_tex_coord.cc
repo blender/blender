@@ -38,7 +38,7 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat,
   /* Use special matrix to let the shader branch to using the render object's matrix. */
   float dummy_matrix[4][4];
   dummy_matrix[3][3] = 0.0f;
-  GPUNodeLink *inv_obmat = (ob != nullptr) ? GPU_uniform(&ob->imat[0][0]) :
+  GPUNodeLink *inv_obmat = (ob != nullptr) ? GPU_uniform(&ob->world_to_object[0][0]) :
                                              GPU_uniform(&dummy_matrix[0][0]);
 
   /* Optimization: don't request orco if not needed. */
@@ -82,7 +82,7 @@ void register_node_type_sh_tex_coord()
   sh_node_type_base(&ntype, SH_NODE_TEX_COORD, "Texture Coordinate", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_coord;
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_coord);
+  ntype.gpu_fn = file_ns::node_shader_gpu_tex_coord;
 
   nodeRegisterType(&ntype);
 }

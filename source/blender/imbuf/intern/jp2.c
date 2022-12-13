@@ -125,7 +125,7 @@ struct BufInfo {
 
 static void opj_read_from_buffer_free(void *UNUSED(p_user_data))
 {
-  /* nop */
+  /* NOP. */
 }
 
 static OPJ_SIZE_T opj_read_from_buffer(void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data)
@@ -885,7 +885,10 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
   memset(&cmptparm, 0, sizeof(opj_image_cmptparm_t[4]));
   for (i = 0; i < numcomps; i++) {
     cmptparm[i].prec = prec;
+    /* Deprecated in openjpeg 2.5. */
+#if (OPJ_VERSION_MAJOR < 2) || (OPJ_VERSION_MAJOR == 2 && OPJ_VERSION_MINOR < 5)
     cmptparm[i].bpp = prec;
+#endif
     cmptparm[i].sgnd = 0;
     cmptparm[i].dx = subsampling_dx;
     cmptparm[i].dy = subsampling_dy;

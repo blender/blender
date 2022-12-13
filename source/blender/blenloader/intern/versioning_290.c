@@ -365,7 +365,6 @@ static void seq_update_meta_disp_range(Scene *scene)
     /* Update meta strip endpoints. */
     SEQ_time_left_handle_frame_set(scene, ms->parseq, ms->disp_range[0]);
     SEQ_time_right_handle_frame_set(scene, ms->parseq, ms->disp_range[1]);
-    SEQ_transform_fix_single_image_seq_offsets(scene, ms->parseq);
 
     /* Recalculate effects using meta strip. */
     LISTBASE_FOREACH (Sequence *, seq, ms->oldbasep) {

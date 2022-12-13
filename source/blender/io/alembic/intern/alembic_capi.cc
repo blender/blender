@@ -87,6 +87,16 @@ BLI_INLINE CacheArchiveHandle *handle_from_archive(ArchiveReader *archive)
   return reinterpret_cast<CacheArchiveHandle *>(archive);
 }
 
+/* Add the object's path to list of object paths. No duplication is done, callers are
+ * responsible for ensuring that only unique paths are added to the list.
+ */
+static void add_object_path(ListBase *object_paths, const IObject &object)
+{
+  CacheObjectPath *abc_path = MEM_cnew<CacheObjectPath>("CacheObjectPath");
+  BLI_strncpy(abc_path->path, object.getFullName().c_str(), sizeof(abc_path->path));
+  BLI_addtail(object_paths, abc_path);
+}
+
 //#define USE_NURBS
 
 /* NOTE: this function is similar to visit_objects below, need to keep them in
@@ -134,11 +144,7 @@ static bool gather_objects_paths(const IObject &object, ListBase *object_paths)
   }
 
   if (get_path) {
-    void *abc_path_void = MEM_callocN(sizeof(CacheObjectPath), "CacheObjectPath");
-    CacheObjectPath *abc_path = static_cast<CacheObjectPath *>(abc_path_void);
-
-    BLI_strncpy(abc_path->path, object.getFullName().c_str(), sizeof(abc_path->path));
-    BLI_addtail(object_paths, abc_path);
+    add_object_path(object_paths, object);
   }
 
   return parent_is_part_of_this_object;
@@ -358,10 +364,7 @@ static std::pair<bool, AbcObjectReader *> visit_object(
     readers.push_back(reader);
     reader->incref();
 
-    CacheObjectPath *abc_path = static_cast<CacheObjectPath *>(
-        MEM_callocN(sizeof(CacheObjectPath), "CacheObjectPath"));
-    BLI_strncpy(abc_path->path, full_name.c_str(), sizeof(abc_path->path));
-    BLI_addtail(&settings.cache_file->object_paths, abc_path);
+    add_object_path(&settings.cache_file->object_paths, object);
 
     /* We can now assign this reader as parent for our children. */
     if (nonclaiming_child_readers.size() + assign_as_parent.size() > 0) {
@@ -427,8 +430,8 @@ struct ImportJobData {
   ArchiveReader *archive;
   std::vector<AbcObjectReader *> readers;
 
-  short *stop;
-  short *do_update;
+  bool *stop;
+  bool *do_update;
   float *progress;
 
   char error_code;
@@ -446,7 +449,7 @@ static void report_job_duration(const ImportJobData *data)
   std::cout << '\n';
 }
 
-static void import_startjob(void *user_data, short *stop, short *do_update, float *progress)
+static void import_startjob(void *user_data, bool *stop, bool *do_update, float *progress)
 {
   SCOPE_TIMER("Alembic import, objects reading and creation");
 
@@ -715,7 +718,7 @@ bool ABC_import(bContext *C,
   }
   else {
     /* Fake a job context, so that we don't need NULL pointer checks while importing. */
-    short stop = 0, do_update = 0;
+    bool stop = false, do_update = false;
     float progress = 0.0f;
 
     import_startjob(job, &stop, &do_update, &progress);

@@ -293,6 +293,7 @@ void BKE_ptcache_ids_from_object(struct ListBase *lb,
 bool BKE_ptcache_object_has(struct Scene *scene, struct Object *ob, int duplis);
 
 /************ ID specific functions ************************/
+
 void BKE_ptcache_id_clear(PTCacheID *id, int mode, unsigned int cfra);
 bool BKE_ptcache_id_exist(PTCacheID *id, int cfra);
 int BKE_ptcache_id_reset(struct Scene *scene, PTCacheID *id, int mode);

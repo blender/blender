@@ -37,6 +37,14 @@ set(SRC_KERNEL_DEVICE_OPTIX
   device/optix/kernel_shader_raytrace.cu
 )
 
+if(WITH_CYCLES_OSL AND (OSL_LIBRARY_VERSION_MINOR GREATER_EQUAL 13 OR OSL_LIBRARY_VERSION_MAJOR GREATER 1))
+  set(SRC_KERNEL_DEVICE_OPTIX
+    ${SRC_KERNEL_DEVICE_OPTIX}
+    osl/services_optix.cu
+    device/optix/kernel_osl.cu
+  )
+endif()
+
 set(SRC_KERNEL_DEVICE_ONEAPI
   device/oneapi/kernel.cpp
 )
@@ -181,6 +189,16 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/vertex_color.h
 )
 
+if(WITH_CYCLES_OSL)
+  set(SRC_KERNEL_OSL_HEADERS
+    osl/osl.h
+    osl/closures_setup.h
+    osl/closures_template.h
+    osl/services_gpu.h
+    osl/types.h
+  )
+endif()
+
 set(SRC_KERNEL_GEOM_HEADERS
   geom/geom.h
   geom/attribute.h
@@ -267,10 +285,17 @@ set(SRC_KERNEL_INTEGRATOR_HEADERS
 )
 
 set(SRC_KERNEL_LIGHT_HEADERS
-  light/light.h
+  light/area.h
   light/background.h
   light/common.h
+  light/distant.h
+  light/distribution.h
+  light/light.h
+  light/point.h
   light/sample.h
+  light/spot.h
+  light/tree.h
+  light/triangle.h
 )
 
 set(SRC_KERNEL_SAMPLE_HEADERS
@@ -306,6 +331,7 @@ set(SRC_KERNEL_HEADERS
   ${SRC_KERNEL_GEOM_HEADERS}
   ${SRC_KERNEL_INTEGRATOR_HEADERS}
   ${SRC_KERNEL_LIGHT_HEADERS}
+  ${SRC_KERNEL_OSL_HEADERS}
   ${SRC_KERNEL_SAMPLE_HEADERS}
   ${SRC_KERNEL_SVM_HEADERS}
   ${SRC_KERNEL_TYPES_HEADERS}
@@ -328,6 +354,7 @@ set(SRC_UTIL_HEADERS
   ../util/math_int2.h
   ../util/math_int3.h
   ../util/math_int4.h
+  ../util/math_int8.h
   ../util/math_matrix.h
   ../util/projection.h
   ../util/rect.h
@@ -350,6 +377,8 @@ set(SRC_UTIL_HEADERS
   ../util/types_int3_impl.h
   ../util/types_int4.h
   ../util/types_int4_impl.h
+  ../util/types_int8.h
+  ../util/types_int8_impl.h
   ../util/types_spectrum.h
   ../util/types_uchar2.h
   ../util/types_uchar2_impl.h
@@ -444,54 +473,29 @@ if(WITH_CYCLES_CUDA_BINARIES)
 
     if(WITH_CYCLES_DEBUG)
       set(cuda_flags ${cuda_flags} -D WITH_CYCLES_DEBUG)
+      set(cuda_flags ${cuda_flags} --ptxas-options="-v")
     endif()
 
-    if(WITH_CYCLES_CUBIN_COMPILER)
-      string(SUBSTRING ${arch} 3 -1 CUDA_ARCH)
+    set(_cuda_nvcc_args
+          -arch=${arch}
+          ${CUDA_NVCC_FLAGS}
+          --${format}
+          ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
+          ${cuda_flags})
 
-      # Needed to find libnvrtc-builtins.so. Can't do it from inside
-      # cycles_cubin_cc since the env variable is read before main()
-      if(APPLE)
-        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
-          -E env DYLD_LIBRARY_PATH="${cuda_toolkit_root_dir}/lib")
-      elseif(UNIX)
-        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
-          -E env LD_LIBRARY_PATH="${cuda_toolkit_root_dir}/lib64")
-      endif()
-
+    if(WITH_COMPILER_CCACHE AND CCACHE_PROGRAM)
       add_custom_command(
         OUTPUT ${cuda_file}
-        COMMAND ${CUBIN_CC_ENV}
-            "$<TARGET_FILE:cycles_cubin_cc>"
-            -target ${CUDA_ARCH}
-            -i ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
-            ${cuda_flags}
-            -v
-            -cuda-toolkit-dir "${cuda_toolkit_root_dir}"
-        DEPENDS ${kernel_sources} cycles_cubin_cc)
+        COMMAND ${CCACHE_PROGRAM} ${cuda_nvcc_executable} ${_cuda_nvcc_args}
+        DEPENDS ${kernel_sources})
     else()
-      set(_cuda_nvcc_args
-            -arch=${arch}
-            ${CUDA_NVCC_FLAGS}
-            --${format}
-            ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
-            --ptxas-options="-v"
-            ${cuda_flags})
-
-      if(WITH_COMPILER_CCACHE AND CCACHE_PROGRAM)
-        add_custom_command(
-          OUTPUT ${cuda_file}
-          COMMAND ${CCACHE_PROGRAM} ${cuda_nvcc_executable} ${_cuda_nvcc_args}
-          DEPENDS ${kernel_sources})
-      else()
-        add_custom_command(
-          OUTPUT ${cuda_file}
-          COMMAND ${cuda_nvcc_executable} ${_cuda_nvcc_args}
-          DEPENDS ${kernel_sources})
-      endif()
-
-      unset(_cuda_nvcc_args)
+      add_custom_command(
+        OUTPUT ${cuda_file}
+        COMMAND ${cuda_nvcc_executable} ${_cuda_nvcc_args}
+        DEPENDS ${kernel_sources})
     endif()
+
+    unset(_cuda_nvcc_args)
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_file}" ${CYCLES_INSTALL_PATH}/lib)
     list(APPEND cuda_cubins ${cuda_file})
 
@@ -567,11 +571,20 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
     if(WIN32)
       set(hip_command ${CMAKE_COMMAND})
       set(hip_flags
-        -E env "HIP_PATH=${HIP_ROOT_DIR}" "PATH=${HIP_PERL_DIR}"
+        -E env "HIP_PATH=${HIP_ROOT_DIR}"
         ${HIP_HIPCC_EXECUTABLE}.bat)
     else()
       set(hip_command ${HIP_HIPCC_EXECUTABLE})
       set(hip_flags)
+    endif()
+
+    # There's a bug in the compiler causing some scenes to fail to render on Vega cards
+    # A workaround currently is to set -O1 opt level during kernel compilation for these
+    # cards Remove this when a newer compiler is available with fixes.
+    if(WIN32 AND (${arch} MATCHES "gfx90[a-z0-9]+"))
+      set(hip_opt_flags "-O1")
+    else()
+      set(hip_opt_flags)
     endif()
 
     set(hip_flags
@@ -590,6 +603,7 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       -Wno-unused-value
       --hipcc-func-supp
       -ffast-math
+      ${hip_opt_flags}
       -o ${CMAKE_CURRENT_BINARY_DIR}/${hip_file})
 
     if(WITH_NANOVDB)
@@ -643,55 +657,25 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
       set(cuda_flags ${cuda_flags} -D WITH_CYCLES_DEBUG)
     endif()
 
-    if(WITH_CYCLES_CUBIN_COMPILER)
-      # Needed to find libnvrtc-builtins.so. Can't do it from inside
-      # cycles_cubin_cc since the env variable is read before main()
-      if(APPLE)
-        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
-          -E env DYLD_LIBRARY_PATH="${CUDA_TOOLKIT_ROOT_DIR}/lib")
-      elseif(UNIX)
-        set(CUBIN_CC_ENV ${CMAKE_COMMAND}
-          -E env LD_LIBRARY_PATH="${CUDA_TOOLKIT_ROOT_DIR}/lib64")
-      endif()
+    add_custom_command(
+      OUTPUT
+        ${output}
+      DEPENDS
+        ${input}
+        ${SRC_KERNEL_HEADERS}
+        ${SRC_KERNEL_DEVICE_GPU_HEADERS}
+        ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
+        ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
+        ${SRC_UTIL_HEADERS}
+      COMMAND
+        ${CUDA_NVCC_EXECUTABLE}
+        --ptx
+        -arch=sm_50
+        ${cuda_flags}
+        ${input}
+      WORKING_DIRECTORY
+        "${CMAKE_CURRENT_SOURCE_DIR}")
 
-      add_custom_command(
-        OUTPUT ${output}
-        DEPENDS
-          ${input}
-          ${SRC_KERNEL_HEADERS}
-          ${SRC_KERNEL_DEVICE_GPU_HEADERS}
-          ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
-          ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
-          ${SRC_UTIL_HEADERS}
-        COMMAND ${CUBIN_CC_ENV}
-            "$<TARGET_FILE:cycles_cubin_cc>"
-            -target 50
-            -ptx
-            -i ${CMAKE_CURRENT_SOURCE_DIR}/${input}
-            ${cuda_flags}
-            -v
-            -cuda-toolkit-dir "${CUDA_TOOLKIT_ROOT_DIR}"
-        DEPENDS ${kernel_sources} cycles_cubin_cc)
-    else()
-      add_custom_command(
-        OUTPUT
-          ${output}
-        DEPENDS
-          ${input}
-          ${SRC_KERNEL_HEADERS}
-          ${SRC_KERNEL_DEVICE_GPU_HEADERS}
-          ${SRC_KERNEL_DEVICE_CUDA_HEADERS}
-          ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
-          ${SRC_UTIL_HEADERS}
-        COMMAND
-          ${CUDA_NVCC_EXECUTABLE}
-          --ptx
-          -arch=sm_50
-          ${cuda_flags}
-          ${input}
-        WORKING_DIRECTORY
-          "${CMAKE_CURRENT_SOURCE_DIR}")
-    endif()
     list(APPEND optix_ptx ${output})
 
     delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${output}" ${CYCLES_INSTALL_PATH}/lib)
@@ -705,6 +689,16 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
     kernel_optix_shader_raytrace
     "device/optix/kernel_shader_raytrace.cu"
     "--keep-device-functions")
+  if(WITH_CYCLES_OSL AND (OSL_LIBRARY_VERSION_MINOR GREATER_EQUAL 13 OR OSL_LIBRARY_VERSION_MAJOR GREATER 1))
+    CYCLES_OPTIX_KERNEL_ADD(
+      kernel_optix_osl
+      "device/optix/kernel_osl.cu"
+      "--relocatable-device-code=true")
+    CYCLES_OPTIX_KERNEL_ADD(
+      kernel_optix_osl_services
+      "osl/services_optix.cu"
+      "--relocatable-device-code=true")
+  endif()
 
   add_custom_target(cycles_kernel_optix ALL DEPENDS ${optix_ptx})
   cycles_set_solution_folder(cycles_kernel_optix)
@@ -866,8 +860,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   else()
     list(APPEND sycl_compiler_flags -fPIC)
 
-    # We avoid getting __FAST_MATH__ to be defined when building on CentOS 7 until the compilation crash
-    # it triggers at either AoT or JIT stages gets fixed.
+    # We avoid getting __FAST_MATH__ to be defined when building on CentOS 7 until the compilation
+    # crash it triggers at either AoT or JIT stages gets fixed.
     list(APPEND sycl_compiler_flags -fhonor-nans)
 
     # add $ORIGIN to cycles_kernel_oneapi.so rpath so libsycl.so and
@@ -881,7 +875,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       OUTPUT ${cycles_kernel_oneapi_lib}
       COMMAND ${CMAKE_COMMAND} -E env
               "LD_LIBRARY_PATH=${sycl_compiler_root}/../lib:${OCLOC_INSTALL_DIR}/lib:${IGC_INSTALL_DIR}/lib"
-              "PATH=${OCLOC_INSTALL_DIR}/bin:${sycl_compiler_root}:$ENV{PATH}" # env PATH is for compiler to find ld
+              # `$ENV{PATH}` is for compiler to find `ld`.
+              "PATH=${OCLOC_INSTALL_DIR}/bin:${sycl_compiler_root}:$ENV{PATH}"
               ${SYCL_COMPILER} $<$<CONFIG:Debug>:-g>$<$<CONFIG:RelWithDebInfo>:-g> ${sycl_compiler_flags}
       DEPENDS ${cycles_oneapi_kernel_sources})
   endif()
@@ -991,6 +986,7 @@ source_group("geom" FILES ${SRC_KERNEL_GEOM_HEADERS})
 source_group("integrator" FILES ${SRC_KERNEL_INTEGRATOR_HEADERS})
 source_group("kernel" FILES ${SRC_KERNEL_TYPES_HEADERS})
 source_group("light" FILES ${SRC_KERNEL_LIGHT_HEADERS})
+source_group("osl" FILES ${SRC_KERNEL_OSL_HEADERS})
 source_group("sample" FILES ${SRC_KERNEL_SAMPLE_HEADERS})
 source_group("svm" FILES ${SRC_KERNEL_SVM_HEADERS})
 source_group("util" FILES ${SRC_KERNEL_UTIL_HEADERS})
@@ -1027,6 +1023,7 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_FILM_HEADERS}" ${CYCLE
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_GEOM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/geom)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_INTEGRATOR_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/integrator)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_LIGHT_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/light)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_OSL_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/osl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_SAMPLE_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/sample)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel/svm)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNEL_TYPES_HEADERS}" ${CYCLES_INSTALL_PATH}/source/kernel)

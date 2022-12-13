@@ -641,6 +641,34 @@ void GLStateManager::issue_barrier(eGPUBarrier barrier_bits)
   glMemoryBarrier(to_gl(barrier_bits));
 }
 
+GLFence::~GLFence()
+{
+  if (gl_sync_ != 0) {
+    glDeleteSync(gl_sync_);
+    gl_sync_ = 0;
+  }
+}
+
+void GLFence::signal()
+{
+  /* If fence is already signalled, create a newly signalled fence primitive. */
+  if (gl_sync_) {
+    glDeleteSync(gl_sync_);
+  }
+
+  gl_sync_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+  signalled_ = true;
+}
+
+void GLFence::wait()
+{
+  /* Do not wait if fence does not yet exist. */
+  if (gl_sync_ == 0) {
+    return;
+  }
+  glWaitSync(gl_sync_, 0, GL_TIMEOUT_IGNORED);
+  signalled_ = false;
+}
 /** \} */
 
 }  // namespace blender::gpu

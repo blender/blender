@@ -2,20 +2,36 @@
 
 #include "BLI_color.hh"
 #include "BLI_cpp_type_make.hh"
+#include "BLI_cpp_types_make.hh"
 #include "BLI_float4x4.hh"
 #include "BLI_math_vec_types.hh"
 
-#include "FN_field_cpp_type.hh"
+#include "FN_field_cpp_type_make.hh"
+#include "FN_init.h"
 
-MAKE_FIELD_CPP_TYPE(FloatField, float);
-MAKE_FIELD_CPP_TYPE(Float2Field, blender::float2);
-MAKE_FIELD_CPP_TYPE(Float3Field, blender::float3);
-MAKE_FIELD_CPP_TYPE(ColorGeometry4fField, blender::ColorGeometry4f);
-MAKE_FIELD_CPP_TYPE(ColorGeometry4bField, blender::ColorGeometry4b);
-MAKE_FIELD_CPP_TYPE(BoolField, bool);
-MAKE_FIELD_CPP_TYPE(Int8Field, int8_t);
-MAKE_FIELD_CPP_TYPE(Int32Field, int32_t);
-MAKE_FIELD_CPP_TYPE(StringField, std::string);
-BLI_CPP_TYPE_MAKE(StringValueOrFieldVector,
-                  blender::Vector<blender::fn::ValueOrField<std::string>>,
-                  CPPTypeFlags::None);
+FN_FIELD_CPP_TYPE_MAKE(float);
+FN_FIELD_CPP_TYPE_MAKE(blender::float2);
+FN_FIELD_CPP_TYPE_MAKE(blender::float3);
+FN_FIELD_CPP_TYPE_MAKE(blender::ColorGeometry4f);
+FN_FIELD_CPP_TYPE_MAKE(blender::ColorGeometry4b);
+FN_FIELD_CPP_TYPE_MAKE(bool);
+FN_FIELD_CPP_TYPE_MAKE(int8_t);
+FN_FIELD_CPP_TYPE_MAKE(int32_t);
+FN_FIELD_CPP_TYPE_MAKE(std::string);
+
+BLI_VECTOR_CPP_TYPE_MAKE(blender::fn::ValueOrField<std::string>);
+
+void FN_register_cpp_types()
+{
+  FN_FIELD_CPP_TYPE_REGISTER(float);
+  FN_FIELD_CPP_TYPE_REGISTER(blender::float2);
+  FN_FIELD_CPP_TYPE_REGISTER(blender::float3);
+  FN_FIELD_CPP_TYPE_REGISTER(blender::ColorGeometry4f);
+  FN_FIELD_CPP_TYPE_REGISTER(blender::ColorGeometry4b);
+  FN_FIELD_CPP_TYPE_REGISTER(bool);
+  FN_FIELD_CPP_TYPE_REGISTER(int8_t);
+  FN_FIELD_CPP_TYPE_REGISTER(int32_t);
+  FN_FIELD_CPP_TYPE_REGISTER(std::string);
+
+  BLI_VECTOR_CPP_TYPE_REGISTER(blender::fn::ValueOrField<std::string>);
+}

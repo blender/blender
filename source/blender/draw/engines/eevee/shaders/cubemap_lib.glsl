@@ -60,7 +60,14 @@ vec3 cubemap_adj_xy(float face)
   }
 }
 
+#  ifdef GPU_METAL
+template<typename T>
+vec4 cubemap_seamless(thread _mtl_combined_image_sampler_2d_array<T, access::sample> *tex,
+                      vec4 cubevec,
+                      float lod)
+#  else
 vec4 cubemap_seamless(sampler2DArray tex, vec4 cubevec, float lod)
+#  endif
 {
   /* Manual Cube map Layer indexing. */
   float face = cubemap_face_index(cubevec.xyz);
@@ -116,7 +123,14 @@ vec4 cubemap_seamless(sampler2DArray tex, vec4 cubevec, float lod)
   }
 }
 
+#  ifdef GPU_METAL
+template<typename T, access A>
+vec4 textureLod_cubemapArray(thread _mtl_combined_image_sampler_2d_array<T, A> tex,
+                             vec4 cubevec,
+                             float lod)
+#  else
 vec4 textureLod_cubemapArray(sampler2DArray tex, vec4 cubevec, float lod)
+#  endif
 {
   float lod1 = floor(lod);
   float lod2 = ceil(lod);

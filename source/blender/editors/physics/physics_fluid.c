@@ -61,7 +61,7 @@
 typedef struct FluidJob {
   /* from wmJob */
   void *owner;
-  short *stop, *do_update;
+  bool *stop, *do_update;
   float *progress;
   const char *type;
   const char *name;
@@ -349,7 +349,7 @@ static void fluid_bake_endjob(void *customdata)
   }
 }
 
-static void fluid_bake_startjob(void *customdata, short *stop, short *do_update, float *progress)
+static void fluid_bake_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   FluidJob *job = customdata;
   FluidDomainSettings *fds = job->fmd->domain;
@@ -428,7 +428,7 @@ static void fluid_bake_startjob(void *customdata, short *stop, short *do_update,
     *do_update = true;
   }
   if (stop) {
-    *stop = 0;
+    *stop = false;
   }
 }
 
@@ -461,7 +461,7 @@ static void fluid_free_endjob(void *customdata)
   }
 }
 
-static void fluid_free_startjob(void *customdata, short *stop, short *do_update, float *progress)
+static void fluid_free_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   FluidJob *job = customdata;
   FluidDomainSettings *fds = job->fmd->domain;
@@ -504,7 +504,7 @@ static void fluid_free_startjob(void *customdata, short *stop, short *do_update,
 #endif
 
   *do_update = true;
-  *stop = 0;
+  *stop = false;
 
   /* Update scene so that viewport shows freed up scene */
   ED_update_for_newframe(job->bmain, job->depsgraph);

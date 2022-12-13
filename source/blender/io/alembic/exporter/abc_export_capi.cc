@@ -72,8 +72,8 @@ static void report_job_duration(const ExportJobData *data)
 static void export_startjob(void *customdata,
                             /* Cannot be const, this function implements wm_jobs_start_callback.
                              * NOLINTNEXTLINE: readability-non-const-parameter. */
-                            short *stop,
-                            short *do_update,
+                            bool *stop,
+                            bool *do_update,
                             float *progress)
 {
   ExportJobData *data = static_cast<ExportJobData *>(customdata);
@@ -230,7 +230,7 @@ bool ABC_export(Scene *scene,
   }
   else {
     /* Fake a job context, so that we don't need NULL pointer checks while exporting. */
-    short stop = 0, do_update = 0;
+    bool stop = false, do_update = false;
     float progress = 0.0f;
 
     blender::io::alembic::export_startjob(job, &stop, &do_update, &progress);

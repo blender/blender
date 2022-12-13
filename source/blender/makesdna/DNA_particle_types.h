@@ -465,7 +465,7 @@ enum {
 #define PART_REACT_MULTIPLE 2
 
 //#define PART_LOOP         4   /* not used anymore */
-/* for dopesheet */
+/* For dope-sheet. */
 #define PART_DS_EXPAND 8
 
 #define PART_HAIR_REGROW 16 /* regrow hair for each frame */

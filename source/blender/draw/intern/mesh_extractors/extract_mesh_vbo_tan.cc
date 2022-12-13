@@ -303,7 +303,8 @@ static void extract_tan_init_subdiv(const DRWSubdivCache *subdiv_cache,
     GPU_vertbuf_tag_dirty(coarse_vbo);
     /* Include stride in offset. */
     const int dst_offset = int(subdiv_cache->num_subdiv_loops) * 4 * pack_layer_index++;
-    draw_subdiv_interp_custom_data(subdiv_cache, coarse_vbo, dst_buffer, 4, dst_offset, false);
+    draw_subdiv_interp_custom_data(
+        subdiv_cache, coarse_vbo, dst_buffer, GPU_COMP_F32, 4, dst_offset);
   }
   if (use_orco_tan) {
     float(*tan_data)[4] = (float(*)[4])GPU_vertbuf_get_data(coarse_vbo);
@@ -318,7 +319,8 @@ static void extract_tan_init_subdiv(const DRWSubdivCache *subdiv_cache,
     GPU_vertbuf_tag_dirty(coarse_vbo);
     /* Include stride in offset. */
     const int dst_offset = int(subdiv_cache->num_subdiv_loops) * 4 * pack_layer_index++;
-    draw_subdiv_interp_custom_data(subdiv_cache, coarse_vbo, dst_buffer, 4, dst_offset, false);
+    draw_subdiv_interp_custom_data(
+        subdiv_cache, coarse_vbo, dst_buffer, GPU_COMP_F32, 4, dst_offset);
   }
 
   CustomData_free(&loop_data, mr->loop_len);

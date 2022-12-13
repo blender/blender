@@ -6,15 +6,6 @@
  * Do a gaussian filter using 4 bilinear texture samples.
  */
 
-uniform sampler2D source;
-uniform float fireflyFactor;
-
-#ifndef COPY_SRC
-uniform vec2 texelSize;
-#endif
-
-out vec4 FragColor;
-
 void main()
 {
 #ifdef COPY_SRC

@@ -1053,7 +1053,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
     }
   }
 
-  BKE_mesh_calc_edges_loose(mesh_out);
   geometry_set.replace_mesh(mesh_out);
 }
 
@@ -1202,7 +1201,7 @@ void register_node_type_geo_delete_geometry()
                     node_free_standard_storage,
                     node_copy_standard_storage);
 
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
 
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;

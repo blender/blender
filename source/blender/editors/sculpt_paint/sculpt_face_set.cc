@@ -125,6 +125,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
   SCULPT_automasking_node_begin(
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
+  bool changed = false;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
@@ -156,6 +157,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
         if (fade > 0.05f) {
           ss->face_sets[vert_map->indices[j]] = ss->cache->paint_face_set;
+          changed = true;
         }
       }
     }
@@ -176,10 +178,15 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
       if (fade > 0.05f) {
         SCULPT_vertex_face_set_set(ss, vd.vertex, ss->cache->paint_face_set);
+        changed = true;
       }
     }
   }
   BKE_pbvh_vertex_iter_end;
+
+  if (changed) {
+    SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_FACE_SETS);
+  }
 }
 
 static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
@@ -344,7 +351,9 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   }
 
   SCULPT_undo_push_begin(ob, op);
-  SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+  for (const int i : blender::IndexRange(totnode)) {
+    SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_FACE_SETS);
+  }
 
   const int next_face_set = SCULPT_face_set_next_available_get(ss);
 
@@ -637,7 +646,9 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   }
 
   SCULPT_undo_push_begin(ob, op);
-  SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+  for (const int i : blender::IndexRange(totnode)) {
+    SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_FACE_SETS);
+  }
 
   const float threshold = RNA_float_get(op->ptr, "threshold");
 
@@ -917,7 +928,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
     UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
     float location[3];
     copy_v3_v3(location, SCULPT_active_vertex_co_get(ss));
-    mul_m4_v3(ob->obmat, location);
+    mul_m4_v3(ob->object_to_world, location);
     copy_v3_v3(ups->average_stroke_accum, location);
     ups->average_stroke_counter = 1;
     ups->last_stroke_valid = true;
@@ -1366,7 +1377,9 @@ static void sculpt_face_set_edit_modify_face_sets(Object *ob,
     return;
   }
   SCULPT_undo_push_begin(ob, op);
-  SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+  for (const int i : blender::IndexRange(totnode)) {
+    SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_FACE_SETS);
+  }
   sculpt_face_set_apply_edit(ob, abs(active_face_set), mode, modify_hidden);
   SCULPT_undo_push_end(ob);
   face_set_edit_do_post_visibility_updates(ob, nodes, totnode);

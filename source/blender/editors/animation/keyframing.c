@@ -1044,12 +1044,12 @@ static float *visualkey_get_values(
     Object *ob = ptr->data;
     /* Loc code is specific... */
     if (strstr(identifier, "location")) {
-      copy_v3_v3(buffer, ob->obmat[3]);
+      copy_v3_v3(buffer, ob->object_to_world[3]);
       *r_count = 3;
       return buffer;
     }
 
-    copy_m4_m4(tmat, ob->obmat);
+    copy_m4_m4(tmat, ob->object_to_world);
     rotmode = ob->rotmode;
   }
   else if (ptr->type == &RNA_PoseBone) {

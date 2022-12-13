@@ -19,6 +19,7 @@
 
 #include "BKE_colortools.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
 #include "RNA_access.h"
@@ -64,7 +65,7 @@ void *node_initexec_curves(bNodeExecContext *UNUSED(context),
                            bNodeInstanceKey UNUSED(key))
 {
   BKE_curvemapping_init(static_cast<CurveMapping *>(node->storage));
-  return NULL; /* unused return */
+  return nullptr; /* unused return */
 }
 
 /** \} */
@@ -307,7 +308,7 @@ static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree,
 {
   bNodeSocket *first = to_socket->in_out == SOCK_IN ?
                            static_cast<bNodeSocket *>(node->inputs.first) :
-                           static_cast<bNodeSocket *>((node->outputs.first));
+                           static_cast<bNodeSocket *>(node->outputs.first);
 
   /* Wrap around the list end. */
   bNodeSocket *socket_iter = to_socket->next ? to_socket->next : first;
@@ -322,7 +323,7 @@ static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree,
     socket_iter = socket_iter->next ? socket_iter->next : first; /* Wrap around the list end. */
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
@@ -336,7 +337,7 @@ void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
   /* If we're not at the link limit of the target socket, we can skip
    * trying to move existing links to another socket. */
   const int to_link_limit = nodeSocketLinkLimit(socket);
-  if (socket->total_inputs + 1 < to_link_limit) {
+  if (socket->runtime->total_inputs + 1 < to_link_limit) {
     return;
   }
 
@@ -349,7 +350,7 @@ void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
         return;
       }
 
-      if (new_socket == NULL) {
+      if (new_socket == nullptr) {
         /* No possible replacement, remove the existing link. */
         nodeRemLink(ntree, to_link);
         return;

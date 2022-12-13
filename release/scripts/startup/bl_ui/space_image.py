@@ -440,6 +440,11 @@ class IMAGE_MT_uvs(Menu):
 
         layout.separator()
 
+        layout.operator("uv.copy")
+        layout.operator("uv.paste")
+
+        layout.separator()
+
         layout.menu("IMAGE_MT_uvs_showhide")
 
         layout.separator()

@@ -3,7 +3,10 @@ import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import (
+    pgettext_tip as iface_,
+    pgettext_tip as tip_,
+)
 
 
 class MESH_MT_vertex_group_context_menu(Menu):
@@ -81,6 +84,7 @@ class MESH_MT_color_attribute_context_menu(Menu):
             "geometry.color_attribute_duplicate",
             icon='DUPLICATE',
         )
+        layout.operator("geometry.color_attribute_convert")
 
 
 class MESH_MT_attribute_context_menu(Menu):
@@ -533,8 +537,16 @@ class MESH_UL_attributes(UIList):
         flags = []
         indices = [i for i in range(len(attributes))]
 
-        for item in attributes:
-            flags.append(self.bitflag_filter_item if item.is_internal else 0)
+        # Filtering by name
+        if self.filter_name:
+            flags = bpy.types.UI_UL_list.filter_items_by_name(
+                self.filter_name, self.bitflag_filter_item, attributes, "name", reverse=self.use_filter_invert)
+        if not flags:
+            flags = [self.bitflag_filter_item] * len(attributes)
+
+        # Filtering internal attributes
+        for idx, item in enumerate(attributes):
+            flags[idx] = 0 if item.is_internal else flags[idx]
 
         return flags, indices
 
@@ -549,7 +561,8 @@ class MESH_UL_attributes(UIList):
         sub = split.row()
         sub.alignment = 'RIGHT'
         sub.active = False
-        sub.label(text="%s ▶ %s" % (domain_name, data_type.name))
+        sub.label(text="%s ▶ %s" % (iface_(domain_name), iface_(data_type.name)),
+                  translate=False)
 
 
 class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
@@ -586,7 +599,7 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
 
     def draw_attribute_warnings(self, context, layout):
         ob = context.object
-        mesh = ob.data
+        mesh = context.mesh
 
         unique_names = set()
         colliding_names = []
@@ -595,8 +608,11 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
                 {"position": None, "shade_smooth": None, "normal": None, "crease": None},
                 mesh.attributes,
                 mesh.uv_layers,
-                ob.vertex_groups,
+                None if ob is None else ob.vertex_groups,
         ):
+            if collection is None:
+                colliding_names.append("Cannot check for object vertex groups when pinning mesh")
+                continue
             for name in collection.keys():
                 unique_names_len = len(unique_names)
                 unique_names.add(name)
@@ -618,20 +634,26 @@ class ColorAttributesListBase():
     }
 
     def filter_items(self, _context, data, property):
-        attrs = getattr(data, property)
-        ret = []
-        idxs = []
+        attributes = getattr(data, property)
+        flags = []
+        indices = [i for i in range(len(attributes))]
 
-        for idx, item in enumerate(attrs):
+        # Filtering by name
+        if self.filter_name:
+            flags = bpy.types.UI_UL_list.filter_items_by_name(
+                self.filter_name, self.bitflag_filter_item, attributes, "name", reverse=self.use_filter_invert)
+        if not flags:
+            flags = [self.bitflag_filter_item] * len(attributes)
+
+        for idx, item in enumerate(attributes):
             skip = (
                 (item.domain not in {"POINT", "CORNER"}) or
                 (item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"}) or
-                (not item.is_internal)
+                item.is_internal
             )
-            ret.append(self.bitflag_filter_item if not skip else 0)
-            idxs.append(idx)
+            flags[idx] = 0 if skip else flags[idx]
 
-        return ret, idxs
+        return flags, indices
 
 
 class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
@@ -647,7 +669,8 @@ class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
         sub = split.row()
         sub.alignment = 'RIGHT'
         sub.active = False
-        sub.label(text="%s ▶ %s" % (domain_name, data_type.name))
+        sub.label(text="%s ▶ %s" % (iface_(domain_name), iface_(data_type.name)),
+                  translate=False)
 
         active_render = _index == data.color_attributes.render_color_index
 

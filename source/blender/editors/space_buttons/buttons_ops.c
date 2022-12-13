@@ -41,7 +41,7 @@
 /* -------------------------------------------------------------------- */
 /** \name Start / Clear Search Filter Operators
  *
- *  \note Almost a duplicate of the file browser operator #FILE_OT_start_filter.
+ * \note Almost a duplicate of the file browser operator #FILE_OT_start_filter.
  * \{ */
 
 static int buttons_start_filter_exec(bContext *C, wmOperator *UNUSED(op))
@@ -205,7 +205,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 
     if (BLI_is_dir(path)) {
       /* Do this first so '//' isn't converted to '//\' on windows. */
-      BLI_path_slash_ensure(path);
+      BLI_path_slash_ensure(path, sizeof(path));
       if (is_relative) {
         BLI_path_rel(path, BKE_main_blendfile_path(bmain));
         str_len = strlen(path);

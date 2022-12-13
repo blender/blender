@@ -80,7 +80,7 @@ void register_node_type_sh_eevee_specular()
 
   sh_node_type_base(&ntype, SH_NODE_EEVEE_SPECULAR, "Specular BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_eevee_specular);
+  ntype.gpu_fn = file_ns::node_shader_gpu_eevee_specular;
 
   nodeRegisterType(&ntype);
 }

@@ -248,7 +248,7 @@ static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexM
   const Span<MLoop> loops = mesh.loops();
 
   /* Use the disjoint set data structure to determine which vertices have to be scaled together. */
-  DisjointSet disjoint_set(mesh.totvert);
+  DisjointSet<int> disjoint_set(mesh.totvert);
   for (const int poly_index : face_selection) {
     const MPoly &poly = polys[poly_index];
     const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
@@ -344,7 +344,7 @@ static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh, const IndexM
   const Span<MEdge> edges = mesh.edges();
 
   /* Use the disjoint set data structure to determine which vertices have to be scaled together. */
-  DisjointSet disjoint_set(mesh.totvert);
+  DisjointSet<int> disjoint_set(mesh.totvert);
   for (const int edge_index : edge_selection) {
     const MEdge &edge = edges[edge_index];
     disjoint_set.join(edge.v1, edge.v2);

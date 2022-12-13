@@ -41,7 +41,7 @@ static void proxy_freejob(void *pjv)
 }
 
 /* Only this runs inside thread. */
-static void proxy_startjob(void *pjv, short *stop, short *do_update, float *progress)
+static void proxy_startjob(void *pjv, bool *stop, bool *do_update, float *progress)
 {
   ProxyJob *pj = pjv;
   LinkData *link;
@@ -52,7 +52,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
     SEQ_proxy_rebuild(context, stop, do_update, progress);
 
     if (*stop) {
-      pj->stop = 1;
+      pj->stop = true;
       fprintf(stderr, "Canceling proxy rebuild on users request...\n");
       break;
     }

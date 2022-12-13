@@ -161,7 +161,8 @@ const GeometryComponent *GeometrySet::get_component_for_read(
 
 bool GeometrySet::has(const GeometryComponentType component_type) const
 {
-  return components_[component_type].has_value();
+  const GeometryComponentPtr &component = components_[component_type];
+  return component.has_value() && !component->is_empty();
 }
 
 void GeometrySet::remove(const GeometryComponentType component_type)
@@ -217,7 +218,7 @@ bool GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_ma
   using namespace blender;
   bool have_minmax = false;
   if (const PointCloud *pointcloud = this->get_pointcloud_for_read()) {
-    have_minmax |= BKE_pointcloud_minmax(pointcloud, *r_min, *r_max);
+    have_minmax |= pointcloud->bounds_min_max(*r_min, *r_max);
   }
   if (const Mesh *mesh = this->get_mesh_for_read()) {
     have_minmax |= BKE_mesh_wrapper_minmax(mesh, *r_min, *r_max);
@@ -227,14 +228,7 @@ bool GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_ma
   }
   if (const Curves *curves_id = this->get_curves_for_read()) {
     const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
-    /* Using the evaluated positions is somewhat arbitrary, but it is probably expected. */
-    std::optional<bounds::MinMaxResult<float3>> min_max = bounds::min_max(
-        curves.evaluated_positions());
-    if (min_max) {
-      have_minmax = true;
-      *r_min = math::min(*r_min, min_max->min);
-      *r_max = math::max(*r_max, min_max->max);
-    }
+    have_minmax |= curves.bounds_min_max(*r_min, *r_max);
   }
   return have_minmax;
 }

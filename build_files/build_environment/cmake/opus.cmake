@@ -9,6 +9,7 @@ ExternalProject_Add(external_opus
     --disable-shared
     --enable-static
     --with-pic
+    --disable-maintainer-mode
   BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/opus/src/external_opus/ && make -j${MAKE_THREADS}
   INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/opus/src/external_opus/ && make install
   INSTALL_DIR ${LIBDIR}/opus

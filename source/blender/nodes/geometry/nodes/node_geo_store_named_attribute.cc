@@ -143,7 +143,9 @@ static void node_geo_exec(GeoNodeExecParams params)
       GeometryComponent &component = geometry_set.get_component_for_write(
           GEO_COMPONENT_TYPE_INSTANCES);
       if (!bke::try_capture_field_on_geometry(component, name, domain, field)) {
-        failure.store(true);
+        if (component.attribute_domain_size(domain) != 0) {
+          failure.store(true);
+        }
       }
     }
   }
@@ -154,7 +156,9 @@ static void node_geo_exec(GeoNodeExecParams params)
         if (geometry_set.has(type)) {
           GeometryComponent &component = geometry_set.get_component_for_write(type);
           if (!bke::try_capture_field_on_geometry(component, name, domain, field)) {
-            failure.store(true);
+            if (component.attribute_domain_size(domain) != 0) {
+              failure.store(true);
+            }
           }
         }
       }
@@ -192,7 +196,7 @@ void register_node_type_geo_store_named_attribute()
                     node_free_standard_storage,
                     node_copy_standard_storage);
   node_type_size(&ntype, 140, 100, 700);
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   ntype.updatefunc = file_ns::node_update;
   ntype.declare = file_ns::node_declare;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;

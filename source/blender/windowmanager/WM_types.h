@@ -359,7 +359,7 @@ typedef struct wmNotifier {
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA 0x00FF0000
 
-/* NC_WM windowmanager */
+/* NC_WM (window-manager). */
 #define ND_FILEREAD (1 << 16)
 #define ND_FILESAVE (2 << 16)
 #define ND_DATACHANGED (3 << 16)

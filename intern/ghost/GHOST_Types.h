@@ -156,6 +156,9 @@ typedef enum {
 #ifdef __APPLE__
   GHOST_kDrawingContextTypeMetal,
 #endif
+#ifdef WITH_VULKAN_BACKEND
+  GHOST_kDrawingContextTypeVulkan,
+#endif
 } GHOST_TDrawingContextType;
 
 typedef enum {

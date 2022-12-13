@@ -2969,12 +2969,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 280, 28)) {
-    for (Mesh *mesh = bmain->meshes.first; mesh; mesh = mesh->id.next) {
-      BKE_mesh_calc_edges_loose(mesh);
-    }
-  }
-
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 29)) {
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {

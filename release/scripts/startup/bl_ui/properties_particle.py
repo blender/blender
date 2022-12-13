@@ -400,9 +400,12 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
                 label = "ERROR"
                 icon = 'ERROR'
             box.label(text=label, icon=icon)
-            box.label(text="Iterations: %d .. %d (avg. %d)" %
-                      (result.min_iterations, result.max_iterations, result.avg_iterations))
-            box.label(text="Error: %.5f .. %.5f (avg. %.5f)" % (result.min_error, result.max_error, result.avg_error))
+            box.label(text=iface_("Iterations: %d .. %d (avg. %d)") %
+                      (result.min_iterations, result.max_iterations, result.avg_iterations),
+                      translate=False)
+            box.label(text=iface_("Error: %.5f .. %.5f (avg. %.5f)")
+                      % (result.min_error, result.max_error, result.avg_error),
+                      translate=False)
 
 
 class PARTICLE_PT_hair_dynamics_collision(ParticleButtonsPanel, Panel):
@@ -756,7 +759,7 @@ class PARTICLE_PT_physics_fluid_advanced(ParticleButtonsPanel, Panel):
             particle_volume = part.mass / fluid.rest_density
             spacing = pow(particle_volume, 1.0 / 3.0)
 
-            sub.label(text="Spacing: %g" % spacing)
+            sub.label(text=iface_("Spacing: %g") % spacing, translate=False)
 
 
 class PARTICLE_PT_physics_fluid_springs(ParticleButtonsPanel, Panel):

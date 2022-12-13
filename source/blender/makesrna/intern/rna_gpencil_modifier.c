@@ -1228,7 +1228,8 @@ static void rna_def_modifier_gpencilsubdiv(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "level", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "level");
-  RNA_def_property_range(prop, 0, 5);
+  RNA_def_property_range(prop, 0, 16);
+  RNA_def_property_ui_range(prop, 0.0, 5.0, 1, 0);
   RNA_def_property_ui_text(prop, "Level", "Number of subdivisions");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -2266,7 +2267,7 @@ static void rna_def_modifier_gpencilarray(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "object");
   RNA_def_property_ui_text(
       prop,
-      "Object Offset",
+      "Offset Object",
       "Use the location and rotation of another object to determine the distance and "
       "rotational change between arrayed items");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
@@ -2351,7 +2352,7 @@ static void rna_def_modifier_gpencilarray(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_object_offset", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_ARRAY_USE_OB_OFFSET);
-  RNA_def_property_ui_text(prop, "Object Offset", "Enable object offset");
+  RNA_def_property_ui_text(prop, "Use Object Offset", "Enable object offset");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_relative_offset", PROP_BOOLEAN, PROP_NONE);
@@ -3511,7 +3512,7 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Instanced Objects",
-      "Support particle objects and face/vertex instances to show in line art");
+      "Allow particle objects and face/vertex instances to show in line art");
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_edge_overlap", PROP_BOOLEAN, PROP_NONE);
@@ -3894,9 +3895,9 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   prop = RNA_def_property(srna, "shadow_camera_size", PROP_FLOAT, PROP_NONE);
   RNA_def_property_ui_text(prop,
                            "Shadow Camera Size",
-                           "This value represent the \"Orthographic Scale\" of an ortho camera."
-                           "If the camera is put at the lamps position with this scale, it will "
-                           "represent the coverage of the shadow \"camera\" ");
+                           "Represents the \"Orthographic Scale\" of an orthographic camera. "
+                           "If the camera is positioned at the light's location with this scale, it will "
+                           "represent the coverage of the shadow \"camera\"");
   RNA_def_property_ui_range(prop, 0.0f, 500.0f, 0.1f, 2);
   RNA_def_property_range(prop, 0.0f, 10000.0f);
 

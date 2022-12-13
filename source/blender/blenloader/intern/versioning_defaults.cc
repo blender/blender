@@ -51,6 +51,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
@@ -295,7 +296,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   if (scene->nodetree) {
     ntreeFreeEmbeddedTree(scene->nodetree);
     MEM_freeN(scene->nodetree);
-    scene->nodetree = NULL;
+    scene->nodetree = nullptr;
     scene->use_nodes = false;
   }
 
@@ -325,7 +326,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 
   /* Be sure `curfalloff` and primitive are initialized. */
   ToolSettings *ts = scene->toolsettings;
-  if (ts->gp_sculpt.cur_falloff == NULL) {
+  if (ts->gp_sculpt.cur_falloff == nullptr) {
     ts->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
     CurveMapping *gp_falloff_curve = ts->gp_sculpt.cur_falloff;
     BKE_curvemapping_init(gp_falloff_curve);
@@ -334,7 +335,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
                        CURVE_PRESET_GAUSS,
                        CURVEMAP_SLOPE_POSITIVE);
   }
-  if (ts->gp_sculpt.cur_primitive == NULL) {
+  if (ts->gp_sculpt.cur_primitive == nullptr) {
     ts->gp_sculpt.cur_primitive = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
     CurveMapping *gp_primitive_curve = ts->gp_sculpt.cur_primitive;
     BKE_curvemapping_init(gp_primitive_curve);
@@ -364,7 +365,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   }
 
   /* Make sure that the curve profile is initialized */
-  if (ts->custom_bevel_profile_preset == NULL) {
+  if (ts->custom_bevel_profile_preset == nullptr) {
     ts->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);
   }
 
@@ -421,7 +422,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
     /* Rename and fix materials and enable default object lights on. */
     if (app_template && STREQ(app_template, "2D_Animation")) {
-      Material *ma = NULL;
+      Material *ma = nullptr;
       do_versions_rename_id(bmain, ID_MA, "Black", "Solid Stroke");
       do_versions_rename_id(bmain, ID_MA, "Red", "Squares Stroke");
       do_versions_rename_id(bmain, ID_MA, "Grey", "Solid Fill");
@@ -430,7 +431,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       /* Dots Stroke. */
       ma = static_cast<Material *>(
           BLI_findstring(&bmain->materials, "Dots Stroke", offsetof(ID, name) + 2));
-      if (ma == NULL) {
+      if (ma == nullptr) {
         ma = BKE_gpencil_material_add(bmain, "Dots Stroke");
       }
       ma->gp_style->mode = GP_MATERIAL_MODE_DOT;
@@ -438,7 +439,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       /* Squares Stroke. */
       ma = static_cast<Material *>(
           BLI_findstring(&bmain->materials, "Squares Stroke", offsetof(ID, name) + 2));
-      if (ma == NULL) {
+      if (ma == nullptr) {
         ma = BKE_gpencil_material_add(bmain, "Squares Stroke");
       }
       ma->gp_style->mode = GP_MATERIAL_MODE_SQUARE;
@@ -446,7 +447,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       /* Change Solid Stroke settings. */
       ma = static_cast<Material *>(
           BLI_findstring(&bmain->materials, "Solid Stroke", offsetof(ID, name) + 2));
-      if (ma != NULL) {
+      if (ma != nullptr) {
         ma->gp_style->mix_rgba[3] = 1.0f;
         ma->gp_style->texture_offset[0] = -0.5f;
         ma->gp_style->mix_factor = 0.5f;
@@ -455,7 +456,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       /* Change Solid Fill settings. */
       ma = static_cast<Material *>(
           BLI_findstring(&bmain->materials, "Solid Fill", offsetof(ID, name) + 2));
-      if (ma != NULL) {
+      if (ma != nullptr) {
         ma->gp_style->flag &= ~GP_MATERIAL_STROKE_SHOW;
         ma->gp_style->mix_rgba[3] = 1.0f;
         ma->gp_style->texture_offset[0] = -0.5f;
@@ -598,7 +599,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     ma->roughness = 0.5f;
 
     if (ma->nodetree) {
-      LISTBASE_FOREACH (bNode *, node, &ma->nodetree->nodes) {
+      for (bNode *node : ma->nodetree->all_nodes()) {
         if (node->type == SH_NODE_BSDF_PRINCIPLED) {
           bNodeSocket *roughness_socket = nodeFindSocket(node, SOCK_IN, "Roughness");
           bNodeSocketValueFloat *roughness_data = static_cast<bNodeSocketValueFloat *>(

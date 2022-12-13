@@ -90,7 +90,7 @@ int BKE_id_attributes_length(const struct ID *id,
                              eCustomDataMask mask);
 
 struct CustomDataLayer *BKE_id_attributes_active_get(struct ID *id);
-void BKE_id_attributes_active_set(struct ID *id, struct CustomDataLayer *layer);
+void BKE_id_attributes_active_set(struct ID *id, const char *name);
 int *BKE_id_attributes_active_index_p(struct ID *id);
 
 CustomData *BKE_id_attributes_iterator_next_domain(struct ID *id, struct CustomDataLayer *layers);

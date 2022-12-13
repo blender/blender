@@ -586,9 +586,9 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
     float axis[3];
     float arc_angle;
 
-    const float inverse_average_scale = 1 /
-                                        (kcd->curr.ob->obmat[0][0] + kcd->curr.ob->obmat[1][1] +
-                                         kcd->curr.ob->obmat[2][2]);
+    const float inverse_average_scale = 1 / (kcd->curr.ob->object_to_world[0][0] +
+                                             kcd->curr.ob->object_to_world[1][1] +
+                                             kcd->curr.ob->object_to_world[2][2]);
 
     const float px_scale =
         3.0f * inverse_average_scale *
@@ -1194,7 +1194,7 @@ static void knife_bm_tri_cagecos_get_worldspace(const KnifeTool_OpData *kcd,
   knife_bm_tri_cagecos_get(kcd, ob_index, tri_index, cos);
   const Object *ob = kcd->objects[ob_index];
   for (int i = 0; i < 3; i++) {
-    mul_m4_v3(ob->obmat, cos[i]);
+    mul_m4_v3(ob->object_to_world, cos[i]);
   }
 }
 
@@ -1744,7 +1744,7 @@ static KnifeVert *get_bm_knife_vert(KnifeTool_OpData *kcd, BMVert *v, Object *ob
     }
 
     float cageco_ws[3];
-    mul_v3_m4v3(cageco_ws, ob->obmat, cageco);
+    mul_v3_m4v3(cageco_ws, ob->object_to_world, cageco);
 
     kfv = new_knife_vert(kcd, v->co, cageco_ws);
     kfv->v = v;
@@ -1897,17 +1897,9 @@ static void knife_start_cut(KnifeTool_OpData *kcd)
   kcd->mdata.is_stored = false;
 
   if (kcd->prev.vert == NULL && kcd->prev.edge == NULL) {
-    float origin[3], origin_ofs[3];
     float ofs_local[3];
-
     negate_v3_v3(ofs_local, kcd->vc.rv3d->ofs);
-
-    knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, origin, origin_ofs);
-
-    if (!isect_line_plane_v3(
-            kcd->prev.cage, origin, origin_ofs, ofs_local, kcd->vc.rv3d->viewinv[2])) {
-      zero_v3(kcd->prev.cage);
-    }
+    ED_view3d_win_to_3d(kcd->vc.v3d, kcd->region, ofs_local, kcd->curr.mval, kcd->prev.cage);
 
     copy_v3_v3(kcd->prev.co, kcd->prev.cage); /* TODO: do we need this? */
     copy_v3_v3(kcd->curr.cage, kcd->prev.cage);
@@ -2657,14 +2649,14 @@ static void calc_ortho_extent(KnifeTool_OpData *kcd)
     if (cagecos) {
       for (int i = 0; i < em->bm->totvert; i++) {
         copy_v3_v3(ws, cagecos[i]);
-        mul_m4_v3(ob->obmat, ws);
+        mul_m4_v3(ob->object_to_world, ws);
         minmax_v3v3_v3(min, max, ws);
       }
     }
     else {
       BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
         copy_v3_v3(ws, v->co);
-        mul_m4_v3(ob->obmat, ws);
+        mul_m4_v3(ob->object_to_world, ws);
         minmax_v3v3_v3(min, max, ws);
       }
     }
@@ -5072,7 +5064,7 @@ void EDBM_mesh_knife(ViewContext *vc,
           BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
             float cent[3], cent_ss[2];
             BM_face_calc_point_in_face(f, cent);
-            mul_m4_v3(ob->obmat, cent);
+            mul_m4_v3(ob->object_to_world, cent);
             knife_project_v2(kcd, cent, cent_ss);
             if (edbm_mesh_knife_point_isect(polys, cent_ss)) {
               BM_elem_flag_enable(f, BM_ELEM_TAG);
@@ -5113,7 +5105,7 @@ void EDBM_mesh_knife(ViewContext *vc,
             if (found) {
               float cent[3], cent_ss[2];
               BM_face_calc_point_in_face(f, cent);
-              mul_m4_v3(ob->obmat, cent);
+              mul_m4_v3(ob->object_to_world, cent);
               knife_project_v2(kcd, cent, cent_ss);
               if ((kcd->cut_through || point_is_visible(kcd, cent, cent_ss, (BMElem *)f)) &&
                   edbm_mesh_knife_point_isect(polys, cent_ss)) {

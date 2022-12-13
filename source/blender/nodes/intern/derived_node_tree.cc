@@ -236,7 +236,7 @@ void DOutputSocket::foreach_target_socket(ForeachTargetSocketFn target_fn,
       path_info.sockets.pop_last();
     }
     else if (linked_node->is_muted()) {
-      for (const bNodeLink *internal_link : linked_node->internal_links_span()) {
+      for (const bNodeLink *internal_link : linked_node->internal_links()) {
         if (internal_link->fromsock != linked_socket.bsocket()) {
           continue;
         }

@@ -37,16 +37,21 @@ static void calculate_result_offsets(const bke::CurvesGeometry &src_curves,
       const IndexRange src_segments = curve_dst_offsets(src_points, curve_i);
 
       MutableSpan<int> point_offsets = dst_point_offsets.slice(src_segments);
-
       MutableSpan<int> point_counts = point_offsets.drop_back(1);
-      cuts.materialize_compressed(src_points, point_counts);
-      for (int &count : point_counts) {
-        /* Make sure the number of cuts is greater than zero and add one for the existing point. */
-        count = std::max(count, 0) + 1;
+
+      if (src_points.size() == 1) {
+        point_counts.first() = 1;
       }
-      if (!cyclic[curve_i]) {
-        /* The last point only has a segment to be subdivided if the curve isn't cyclic. */
-        point_counts.last() = 1;
+      else {
+        cuts.materialize_compressed(src_points, point_counts);
+        for (int &count : point_counts) {
+          /* Make sure there at least one cut, and add one for the existing point. */
+          count = std::max(count, 0) + 1;
+        }
+        if (!cyclic[curve_i]) {
+          /* The last point only has a segment to be subdivided if the curve isn't cyclic. */
+          point_counts.last() = 1;
+        }
       }
 
       bke::curves::accumulate_counts_to_offsets(point_offsets);
@@ -167,7 +172,7 @@ static void subdivide_bezier_segment(const float3 &position_prev,
   auto fill_segment_handle_types = [&](const HandleType type) {
     /* Also change the left handle of the control point following the segment's points. And don't
      * change the left handle of the first point, since that is part of the previous segment. */
-    dst_types_l.slice(segment_points.shift(1)).fill(type);
+    dst_types_l.slice_safe(segment_points.shift(1)).fill(type);
     dst_types_r.slice(segment_points).fill(type);
   };
 

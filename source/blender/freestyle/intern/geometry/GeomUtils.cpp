@@ -7,6 +7,8 @@
 
 #include "GeomUtils.h"
 
+#include "BLI_sys_types.h"
+
 namespace Freestyle::GeomUtils {
 
 // This internal procedure is defined below.

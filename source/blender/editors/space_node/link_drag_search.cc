@@ -9,6 +9,7 @@
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_screen.h"
 
@@ -91,7 +92,7 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
   ED_node_tree_propagate_change(&params.C, CTX_data_main(&params.C), &params.node_tree);
 
   /* Hide the new input in all other group input nodes, to avoid making them taller. */
-  LISTBASE_FOREACH (bNode *, node, &params.node_tree.nodes) {
+  for (bNode *node : params.node_tree.all_nodes()) {
     if (node->type == NODE_GROUP_INPUT) {
       bNodeSocket *new_group_input_socket = (bNodeSocket *)BLI_findlink(&node->outputs,
                                                                         group_input_index);
@@ -141,7 +142,6 @@ static void add_existing_group_input_fn(nodes::LinkSearchOpParams &params,
  */
 static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
                                                const bNodeSocket &socket,
-                                               const AssetLibraryReference &library_ref,
                                                const AssetHandle asset,
                                                Vector<SocketLinkOperation> &search_link_ops)
 {
@@ -186,13 +186,13 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
 
     search_link_ops.append(
         {asset_name + " " + UI_MENU_ARROW_SEP + socket_name,
-         [library_ref, asset, socket_property, in_out](nodes::LinkSearchOpParams &params) {
+         [asset, socket_property, in_out](nodes::LinkSearchOpParams &params) {
            Main &bmain = *CTX_data_main(&params.C);
 
            bNode &node = params.add_node(params.node_tree.typeinfo->group_idname);
            node.flag &= ~NODE_OPTIONS;
 
-           node.id = asset::get_local_id_from_asset_or_append_and_reuse(bmain, library_ref, asset);
+           node.id = asset::get_local_id_from_asset_or_append_and_reuse(bmain, asset);
            id_us_plus(node.id);
            BKE_ntree_update_tag_node_property(&params.node_tree, &node);
            DEG_relations_tag_update(&bmain);
@@ -232,7 +232,7 @@ static void gather_search_link_ops_for_asset_library(const bContext &C,
     if (skip_local && ED_asset_handle_get_local_id(&asset) != nullptr) {
       return true;
     }
-    search_link_ops_for_asset_metadata(node_tree, socket, library_ref, asset, search_link_ops);
+    search_link_ops_for_asset_metadata(node_tree, socket, asset, search_link_ops);
     return true;
   });
 }

@@ -111,9 +111,6 @@ static bool component_is_available(const GeometrySet &geometry,
     return false;
   }
   const GeometryComponent &component = *geometry.get_component_for_read(type);
-  if (component.is_empty()) {
-    return false;
-  }
   return component.attribute_domain_size(domain) != 0;
 }
 
@@ -325,8 +322,8 @@ void register_node_type_geo_sample_index()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SAMPLE_INDEX, "Sample Index", NODE_CLASS_GEOMETRY);
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   ntype.declare = file_ns::node_declare;
   node_type_storage(
       &ntype, "NodeGeometrySampleIndex", node_free_standard_storage, node_copy_standard_storage);

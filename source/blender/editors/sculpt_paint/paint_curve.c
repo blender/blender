@@ -44,7 +44,7 @@ bool paint_curve_poll(bContext *C)
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   SpaceImage *sima;
 
-  if (rv3d && !(ob && ((ob->mode & OB_MODE_ALL_PAINT) != 0))) {
+  if (rv3d && !(ob && ((ob->mode & (OB_MODE_ALL_PAINT | OB_MODE_SCULPT_CURVES)) != 0))) {
     return false;
   }
 
@@ -675,6 +675,9 @@ static int paintcurve_draw_exec(bContext *C, wmOperator *UNUSED(op))
       break;
     case PAINT_MODE_SCULPT:
       name = "SCULPT_OT_brush_stroke";
+      break;
+    case PAINT_MODE_SCULPT_CURVES:
+      name = "SCULPT_CURVES_OT_brush_stroke";
       break;
     default:
       return OPERATOR_PASS_THROUGH;

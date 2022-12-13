@@ -38,8 +38,8 @@ void RealizeOnDomainOperation::execute()
   GPU_shader_bind(shader);
 
   /* Transform the input space into the domain space. */
-  const float3x3 local_transformation = input.domain().transformation *
-                                        domain_.transformation.inverted();
+  const float3x3 local_transformation = domain_.transformation.inverted() *
+                                        input.domain().transformation;
 
   /* Set the origin of the transformation to be the center of the domain. */
   const float3x3 transformation = float3x3::from_origin_transformation(

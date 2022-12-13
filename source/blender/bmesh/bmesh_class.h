@@ -11,6 +11,10 @@
 
 #include "BLI_assert.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* disable holes for now,
  * these are ifdef'd because they use more memory and can't be saved in DNA currently */
 // #define USE_BMESH_HOLES
@@ -654,4 +658,8 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 #  define BM_OMP_LIMIT 0
 #else
 #  define BM_OMP_LIMIT 10000
+#endif
+
+#ifdef __cplusplus
+}
 #endif

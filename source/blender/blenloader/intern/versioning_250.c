@@ -2001,6 +2001,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
              */
             link = MEM_callocN(sizeof(bNodeLink), "link");
             BLI_addtail(&ntree->links, link);
+            nodeUniqueID(ntree, node);
             link->fromnode = NULL;
             link->fromsock = gsock;
             link->tonode = node;
@@ -2024,6 +2025,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
              */
             link = MEM_callocN(sizeof(bNodeLink), "link");
             BLI_addtail(&ntree->links, link);
+            nodeUniqueID(ntree, node);
             link->fromnode = node;
             link->fromsock = sock;
             link->tonode = NULL;
@@ -2271,18 +2273,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
         BKE_ntree_update_tag_all(ntree);
       }
       FOREACH_NODETREE_END;
-    }
-
-    {
-      /* Initialize group tree nodetypes.
-       * These are used to distinguish tree types and
-       * associate them with specific node types for polling.
-       */
-      bNodeTree *ntree;
-      /* all node trees in bmain->nodetree are considered groups */
-      for (ntree = bmain->nodetrees.first; ntree; ntree = ntree->id.next) {
-        ntree->nodetype = NODE_GROUP;
-      }
     }
   }
 

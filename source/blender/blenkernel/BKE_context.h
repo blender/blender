@@ -285,7 +285,7 @@ bool CTX_data_dir(const char *member);
   CTX_DATA_BEGIN (C, Type, instance, member) \
     Type_id instance_id = (Type_id)ctx_link->ptr.owner_id;
 
-int ctx_data_list_count(const bContext *C, int (*func)(const bContext *, ListBase *));
+int ctx_data_list_count(const bContext *C, bool (*func)(const bContext *, ListBase *));
 
 #define CTX_DATA_COUNT(C, member) ctx_data_list_count(C, CTX_data_##member)
 
@@ -316,22 +316,22 @@ void CTX_data_main_set(bContext *C, struct Main *bmain);
 void CTX_data_scene_set(bContext *C, struct Scene *scene);
 
 /* Only Outliner currently! */
-int CTX_data_selected_ids(const bContext *C, ListBase *list);
+bool CTX_data_selected_ids(const bContext *C, ListBase *list);
 
-int CTX_data_selected_editable_objects(const bContext *C, ListBase *list);
-int CTX_data_selected_editable_bases(const bContext *C, ListBase *list);
+bool CTX_data_selected_editable_objects(const bContext *C, ListBase *list);
+bool CTX_data_selected_editable_bases(const bContext *C, ListBase *list);
 
-int CTX_data_editable_objects(const bContext *C, ListBase *list);
-int CTX_data_editable_bases(const bContext *C, ListBase *list);
+bool CTX_data_editable_objects(const bContext *C, ListBase *list);
+bool CTX_data_editable_bases(const bContext *C, ListBase *list);
 
-int CTX_data_selected_objects(const bContext *C, ListBase *list);
-int CTX_data_selected_bases(const bContext *C, ListBase *list);
+bool CTX_data_selected_objects(const bContext *C, ListBase *list);
+bool CTX_data_selected_bases(const bContext *C, ListBase *list);
 
-int CTX_data_visible_objects(const bContext *C, ListBase *list);
-int CTX_data_visible_bases(const bContext *C, ListBase *list);
+bool CTX_data_visible_objects(const bContext *C, ListBase *list);
+bool CTX_data_visible_bases(const bContext *C, ListBase *list);
 
-int CTX_data_selectable_objects(const bContext *C, ListBase *list);
-int CTX_data_selectable_bases(const bContext *C, ListBase *list);
+bool CTX_data_selectable_objects(const bContext *C, ListBase *list);
+bool CTX_data_selectable_bases(const bContext *C, ListBase *list);
 
 struct Object *CTX_data_active_object(const bContext *C);
 struct Base *CTX_data_active_base(const bContext *C);
@@ -345,25 +345,25 @@ struct Mask *CTX_data_edit_mask(const bContext *C);
 
 struct CacheFile *CTX_data_edit_cachefile(const bContext *C);
 
-int CTX_data_selected_nodes(const bContext *C, ListBase *list);
+bool CTX_data_selected_nodes(const bContext *C, ListBase *list);
 
 struct EditBone *CTX_data_active_bone(const bContext *C);
-int CTX_data_selected_bones(const bContext *C, ListBase *list);
-int CTX_data_selected_editable_bones(const bContext *C, ListBase *list);
-int CTX_data_visible_bones(const bContext *C, ListBase *list);
-int CTX_data_editable_bones(const bContext *C, ListBase *list);
+bool CTX_data_selected_bones(const bContext *C, ListBase *list);
+bool CTX_data_selected_editable_bones(const bContext *C, ListBase *list);
+bool CTX_data_visible_bones(const bContext *C, ListBase *list);
+bool CTX_data_editable_bones(const bContext *C, ListBase *list);
 
 struct bPoseChannel *CTX_data_active_pose_bone(const bContext *C);
-int CTX_data_selected_pose_bones(const bContext *C, ListBase *list);
-int CTX_data_selected_pose_bones_from_active_object(const bContext *C, ListBase *list);
-int CTX_data_visible_pose_bones(const bContext *C, ListBase *list);
+bool CTX_data_selected_pose_bones(const bContext *C, ListBase *list);
+bool CTX_data_selected_pose_bones_from_active_object(const bContext *C, ListBase *list);
+bool CTX_data_visible_pose_bones(const bContext *C, ListBase *list);
 
 struct bGPdata *CTX_data_gpencil_data(const bContext *C);
 struct bGPDlayer *CTX_data_active_gpencil_layer(const bContext *C);
 struct bGPDframe *CTX_data_active_gpencil_frame(const bContext *C);
-int CTX_data_visible_gpencil_layers(const bContext *C, ListBase *list);
-int CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list);
-int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
+bool CTX_data_visible_gpencil_layers(const bContext *C, ListBase *list);
+bool CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list);
+bool CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 
 const struct AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C);
 struct AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid);

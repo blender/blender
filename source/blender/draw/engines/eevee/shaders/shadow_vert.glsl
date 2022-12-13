@@ -4,9 +4,6 @@
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 #pragma BLENDER_REQUIRE(surface_lib.glsl)
 
-in vec3 pos;
-in vec3 nor;
-
 void main()
 {
   GPU_INTEL_VERTEX_SHADER_WORKAROUND
@@ -30,7 +27,7 @@ void main()
   vec3 world_pos = pos;
 #elif defined(POINTCLOUD_SHADER)
   pointcloud_get_pos_and_radius(pointPosition, pointRadius);
-  pointID = gl_VertexID;
+  pointID = pointcloud_get_point_id();
 #else
   vec3 world_pos = point_object_to_world(pos);
 #endif

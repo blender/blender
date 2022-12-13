@@ -56,6 +56,11 @@ class SplineCountFieldInput final : public bke::CurvesFieldInput {
   {
     return dynamic_cast<const SplineCountFieldInput *>(&other) != nullptr;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  {
+    return ATTR_DOMAIN_CURVE;
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

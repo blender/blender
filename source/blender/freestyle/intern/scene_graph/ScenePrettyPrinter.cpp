@@ -10,6 +10,8 @@
 #include "IndexedFaceSet.h"
 #include "ScenePrettyPrinter.h"
 
+#include "BLI_sys_types.h"
+
 namespace Freestyle {
 
 #define VISIT(CLASS) \

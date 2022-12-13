@@ -497,7 +497,7 @@ inline std::string get_stage_class_name(ShaderStage stage)
 inline bool is_builtin_type(std::string type)
 {
   /* Add Types as needed. */
-  /* TODO(Metal): Consider replacing this with a switch and constexpr hash and switch.
+  /* TODO(Metal): Consider replacing this with a switch and `constexpr` hash and switch.
    * Though most efficient and maintainable approach to be determined. */
   static std::map<std::string, eMTLDataType> glsl_builtin_types = {
       {"float", MTL_DATATYPE_FLOAT},
@@ -657,7 +657,7 @@ inline const char *to_string_msl(const shader::Interpolation &interp)
 {
   switch (interp) {
     case shader::Interpolation::SMOOTH:
-      return "[[smooth]]";
+      return "[[center_perspective]]";
     case shader::Interpolation::FLAT:
       return "[[flat]]";
     case shader::Interpolation::NO_PERSPECTIVE:

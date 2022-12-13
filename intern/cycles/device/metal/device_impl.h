@@ -117,6 +117,8 @@ class MetalDevice : public Device {
   /* ------------------------------------------------------------------ */
   /* low-level memory management */
 
+  bool max_working_set_exceeded(size_t safety_margin = 8 * 1024 * 1024) const;
+
   MetalMem *generic_alloc(device_memory &mem);
 
   void generic_copy_to(device_memory &mem);

@@ -3,6 +3,8 @@
 
 #include "node_shader_util.hh"
 
+#include "BKE_node_runtime.hh"
+
 namespace blender::nodes::node_shader_tex_image_cc {
 
 static void sh_node_tex_image_declare(NodeDeclarationBuilder &b)
@@ -34,7 +36,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
 
   /* We get the image user from the original node, since GPU image keeps
    * a pointer to it and the dependency refreshes the original. */
-  bNode *node_original = node->original ? node->original : node;
+  bNode *node_original = node->runtime->original ? node->runtime->original : node;
   NodeTexImage *tex_original = (NodeTexImage *)node_original->storage;
   ImageUser *iuser = &tex_original->iuser;
 
@@ -163,10 +165,10 @@ void register_node_type_sh_tex_image()
 
   sh_node_type_base(&ntype, SH_NODE_TEX_IMAGE, "Image Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_image_declare;
-  node_type_init(&ntype, file_ns::node_shader_init_tex_image);
+  ntype.initfunc = file_ns::node_shader_init_tex_image;
   node_type_storage(
       &ntype, "NodeTexImage", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_image);
+  ntype.gpu_fn = file_ns::node_shader_gpu_tex_image;
   ntype.labelfunc = node_image_label;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 

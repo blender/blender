@@ -193,7 +193,8 @@ static float sculpt_expand_max_vertex_falloff_get(ExpandCache *expand_cache)
     return expand_cache->max_vert_falloff;
   }
 
-  if (!expand_cache->brush->mtex.tex) {
+  const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache->brush, OB_MODE_SCULPT);
+  if (!mask_tex->tex) {
     return expand_cache->max_vert_falloff;
   }
 
@@ -1882,13 +1883,14 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
       }
       case SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_INCREASE: {
         if (expand_cache->texture_distortion_strength == 0.0f) {
-          if (expand_cache->brush->mtex.tex == NULL) {
+          const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache->brush, OB_MODE_SCULPT);
+          if (mask_tex->tex == NULL) {
             BKE_report(op->reports,
                        RPT_WARNING,
                        "Active brush does not contain any texture to distort the expand boundary");
             break;
           }
-          if (expand_cache->brush->mtex.brush_map_mode != MTEX_MAP_MODE_3D) {
+          if (mask_tex->brush_map_mode != MTEX_MAP_MODE_3D) {
             BKE_report(op->reports,
                        RPT_WARNING,
                        "Texture mapping not set to 3D, results may be unpredictable");
@@ -2052,7 +2054,6 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
   IMB_colormanagement_srgb_to_scene_linear_v3(expand_cache->fill_color, expand_cache->fill_color);
 
   expand_cache->scene = CTX_data_scene(C);
-  expand_cache->mtex = &expand_cache->brush->mtex;
   expand_cache->texture_distortion_strength = 0.0f;
   expand_cache->blend_mode = expand_cache->brush->blend;
 }
@@ -2074,7 +2075,9 @@ static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache)
       }
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
-      SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+      for (int i = 0; i < totnode; i++) {
+        SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_FACE_SETS);
+      }
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       for (int i = 0; i < totnode; i++) {

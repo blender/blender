@@ -332,8 +332,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 {
   SpaceClip *space_clip = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(space_clip);
-  const ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
-  const ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   const int framenr = ED_space_clip_get_clip_frame_number(space_clip);
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
@@ -347,11 +346,11 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 
   tc->data_len = 0;
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     trackToTransDataIfNeeded(&init_context, framenr, track, t->aspect);
   }
 
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
     planeTrackToTransDataIfNeeded(&init_context, framenr, plane_track, t->aspect);
   }
 
@@ -371,11 +370,11 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 
   /* Create actual transformation data. */
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     trackToTransDataIfNeeded(&init_context, framenr, track, t->aspect);
   }
 
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
     planeTrackToTransDataIfNeeded(&init_context, framenr, plane_track, t->aspect);
   }
 }
@@ -431,12 +430,10 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
   TransData2D *td2d;
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
-  MovieTrackingTrack *track;
-  MovieTrackingMarker *marker, *prev_marker;
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   TransDataTracking *tdt;
-  int i, width, height;
 
+  int width, height;
   BKE_movieclip_get_size(clip, &sc->user, &width, &height);
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
@@ -448,12 +445,11 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
     return;
   }
 
-  track = tracksbase->first;
-  while (track) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-      for (i = 1; i < track->markersnr; i++) {
-        marker = &track->markers[i];
-        prev_marker = &track->markers[i - 1];
+      for (int i = 1; i < track->markersnr; i++) {
+        const MovieTrackingMarker *marker = &track->markers[i];
+        const MovieTrackingMarker *prev_marker = &track->markers[i - 1];
 
         if ((marker->flag & MARKER_DISABLED) || (prev_marker->flag & MARKER_DISABLED)) {
           continue;
@@ -468,8 +464,6 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
         }
       }
     }
-
-    track = track->next;
   }
 
   if (tc->data_len == 0) {
@@ -484,12 +478,11 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
   tc->custom.type.free_cb = transDataTrackingFree;
 
   /* create actual data */
-  track = tracksbase->first;
-  while (track) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-      for (i = 1; i < track->markersnr; i++) {
-        marker = &track->markers[i];
-        prev_marker = &track->markers[i - 1];
+      for (int i = 1; i < track->markersnr; i++) {
+        MovieTrackingMarker *marker = &track->markers[i];
+        MovieTrackingMarker *prev_marker = &track->markers[i - 1];
 
         if ((marker->flag & MARKER_DISABLED) || (prev_marker->flag & MARKER_DISABLED)) {
           continue;
@@ -513,8 +506,6 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
         }
       }
     }
-
-    track = track->next;
   }
 }
 
@@ -700,14 +691,12 @@ static void recalcData_tracking(TransInfo *t)
 
   if (ED_space_clip_check_show_trackedit(sc)) {
     MovieClip *clip = ED_space_clip_get_clip(sc);
-    ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
-    MovieTrackingTrack *track;
-    int framenr = ED_space_clip_get_clip_frame_number(sc);
+    const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+    const int framenr = ED_space_clip_get_clip_frame_number(sc);
 
     flushTransTracking(t);
 
-    track = tracksbase->first;
-    while (track) {
+    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
       if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
         MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
@@ -733,8 +722,6 @@ static void recalcData_tracking(TransInfo *t)
           }
         }
       }
-
-      track = track->next;
     }
 
     DEG_id_tag_update(&clip->id, 0);
@@ -751,10 +738,10 @@ static void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
 {
   SpaceClip *sc = t->area->spacedata.first;
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
   /* Update coordinates of modified plane tracks. */
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
     bool do_update = false;
     if (plane_track->flag & PLANE_TRACK_HIDDEN) {
       continue;

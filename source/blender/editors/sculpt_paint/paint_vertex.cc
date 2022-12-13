@@ -1162,7 +1162,7 @@ static void do_weight_paint_vertex(
   }
 }
 
-/* Toggle operator for turning vertex paint mode on or off (copied from sculpt.c) */
+/* Toggle operator for turning vertex paint mode on or off (copied from sculpt.cc) */
 static void vertex_paint_init_session(Depsgraph *depsgraph,
                                       Scene *scene,
                                       Object *ob,
@@ -1175,6 +1175,8 @@ static void vertex_paint_init_session(Depsgraph *depsgraph,
   ob->sculpt = (SculptSession *)MEM_callocN(sizeof(SculptSession), "sculpt session");
   ob->sculpt->mode_type = object_mode;
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, true);
+
+  SCULPT_ensure_valid_pivot(ob, scene);
 }
 
 static void vwpaint_init_stroke(Depsgraph *depsgraph, Object *ob)
@@ -1647,10 +1649,10 @@ static void vwpaint_update_cache_invariants(
   /* cache projection matrix */
   ED_view3d_ob_project_mat_get(cache->vc->rv3d, ob, cache->projection_mat);
 
-  invert_m4_m4(ob->imat, ob->obmat);
+  invert_m4_m4(ob->world_to_object, ob->object_to_world);
   copy_m3_m4(mat, cache->vc->rv3d->viewinv);
   mul_m3_v3(mat, view_dir);
-  copy_m3_m4(mat, ob->imat);
+  copy_m3_m4(mat, ob->world_to_object);
   mul_m3_v3(mat, view_dir);
   normalize_v3_v3(cache->true_view_normal, view_dir);
 
@@ -2388,7 +2390,7 @@ static void wpaint_do_paint(bContext *C,
                             WeightPaintInfo *wpi,
                             Mesh *me,
                             Brush *brush,
-                            const char symm,
+                            const ePaintSymmetryFlags symm,
                             const int axis,
                             const int i,
                             const float angle)
@@ -2415,7 +2417,7 @@ static void wpaint_do_radial_symmetry(bContext *C,
                                       WeightPaintInfo *wpi,
                                       Mesh *me,
                                       Brush *brush,
-                                      const char symm,
+                                      const ePaintSymmetryFlags symm,
                                       const int axis)
 {
   for (int i = 1; i < wp->radial_symm[axis - 'X']; i++) {
@@ -2424,7 +2426,7 @@ static void wpaint_do_radial_symmetry(bContext *C,
   }
 }
 
-/* near duplicate of: sculpt.c's,
+/* near duplicate of: sculpt.cc's,
  * 'do_symmetrical_brush_actions' and 'vpaint_do_symmetrical_brush_actions'. */
 static void wpaint_do_symmetrical_brush_actions(
     bContext *C, Object *ob, VPaint *wp, Sculpt *sd, WPaintData *wpd, WeightPaintInfo *wpi)
@@ -2437,11 +2439,11 @@ static void wpaint_do_symmetrical_brush_actions(
   int i = 0;
 
   /* initial stroke */
-  cache->mirror_symmetry_pass = 0;
-  wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, 0, 'X', 0, 0);
-  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, 0, 'X');
-  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, 0, 'Y');
-  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, 0, 'Z');
+  cache->mirror_symmetry_pass = ePaintSymmetryFlags(0);
+  wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, ePaintSymmetryFlags(0), 'X', 0, 0);
+  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, ePaintSymmetryFlags(0), 'X');
+  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, ePaintSymmetryFlags(0), 'Y');
+  wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, ePaintSymmetryFlags(0), 'Z');
 
   cache->symmetry = symm;
 
@@ -2456,21 +2458,22 @@ static void wpaint_do_symmetrical_brush_actions(
    * X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
   for (i = 1; i <= symm; i++) {
     if (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5))) {
-      cache->mirror_symmetry_pass = i;
+      const ePaintSymmetryFlags symm = ePaintSymmetryFlags(i);
+      cache->mirror_symmetry_pass = symm;
       cache->radial_symmetry_pass = 0;
-      SCULPT_cache_calc_brushdata_symm(cache, i, 0, 0);
+      SCULPT_cache_calc_brushdata_symm(cache, symm, 0, 0);
 
       if (i & (1 << 0)) {
-        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, i, 'X', 0, 0);
-        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, i, 'X');
+        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, symm, 'X', 0, 0);
+        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, symm, 'X');
       }
       if (i & (1 << 1)) {
-        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, i, 'Y', 0, 0);
-        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, i, 'Y');
+        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, symm, 'Y', 0, 0);
+        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, symm, 'Y');
       }
       if (i & (1 << 2)) {
-        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, i, 'Z', 0, 0);
-        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, i, 'Z');
+        wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, symm, 'Z', 0, 0);
+        wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, symm, 'Z');
       }
     }
   }
@@ -2518,7 +2521,7 @@ static void wpaint_stroke_update_step(bContext *C,
   ED_view3d_init_mats_rv3d(ob, vc->rv3d);
 
   /* load projection matrix */
-  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
+  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world);
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
@@ -2556,7 +2559,7 @@ static void wpaint_stroke_update_step(bContext *C,
   /* Calculate pivot for rotation around selection if needed.
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
-  mul_v3_m4v3(loc_world, ob->obmat, ss->cache->true_location);
+  mul_v3_m4v3(loc_world, ob->object_to_world, ss->cache->true_location);
   paint_last_stroke_update(scene, loc_world);
 
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
@@ -3738,7 +3741,7 @@ static void vpaint_do_paint(bContext *C,
                             Object *ob,
                             Mesh *me,
                             Brush *brush,
-                            const char symm,
+                            const ePaintSymmetryFlags symm,
                             const int axis,
                             const int i,
                             const float angle)
@@ -3769,7 +3772,7 @@ static void vpaint_do_radial_symmetry(bContext *C,
                                       Object *ob,
                                       Mesh *me,
                                       Brush *brush,
-                                      const char symm,
+                                      const ePaintSymmetryFlags symm,
                                       const int axis)
 {
   for (int i = 1; i < vp->radial_symm[axis - 'X']; i++) {
@@ -3778,7 +3781,7 @@ static void vpaint_do_radial_symmetry(bContext *C,
   }
 }
 
-/* near duplicate of: sculpt.c's,
+/* near duplicate of: sculpt.cc's,
  * 'do_symmetrical_brush_actions' and 'wpaint_do_symmetrical_brush_actions'. */
 template<typename Color, typename Traits, eAttrDomain domain>
 static void vpaint_do_symmetrical_brush_actions(
@@ -3792,11 +3795,15 @@ static void vpaint_do_symmetrical_brush_actions(
   int i = 0;
 
   /* initial stroke */
-  cache->mirror_symmetry_pass = 0;
-  vpaint_do_paint<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'X', 0, 0);
-  vpaint_do_radial_symmetry<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'X');
-  vpaint_do_radial_symmetry<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'Y');
-  vpaint_do_radial_symmetry<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'Z');
+  const ePaintSymmetryFlags initial_symm = ePaintSymmetryFlags(0);
+  cache->mirror_symmetry_pass = ePaintSymmetryFlags(0);
+  vpaint_do_paint<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, initial_symm, 'X', 0, 0);
+  vpaint_do_radial_symmetry<Color, Traits, domain>(
+      C, sd, vp, vpd, ob, me, brush, initial_symm, 'X');
+  vpaint_do_radial_symmetry<Color, Traits, domain>(
+      C, sd, vp, vpd, ob, me, brush, initial_symm, 'Y');
+  vpaint_do_radial_symmetry<Color, Traits, domain>(
+      C, sd, vp, vpd, ob, me, brush, initial_symm, 'Z');
 
   cache->symmetry = symm;
 
@@ -3804,21 +3811,28 @@ static void vpaint_do_symmetrical_brush_actions(
    * X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
   for (i = 1; i <= symm; i++) {
     if (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5))) {
-      cache->mirror_symmetry_pass = i;
+      const ePaintSymmetryFlags symm_pass = ePaintSymmetryFlags(i);
+      cache->mirror_symmetry_pass = symm_pass;
       cache->radial_symmetry_pass = 0;
-      SCULPT_cache_calc_brushdata_symm(cache, i, 0, 0);
+      SCULPT_cache_calc_brushdata_symm(cache, symm_pass, 0, 0);
 
       if (i & (1 << 0)) {
-        vpaint_do_paint<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'X', 0, 0);
-        vpaint_do_radial_symmetry<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'X');
+        vpaint_do_paint<Color, Traits, domain>(
+            C, sd, vp, vpd, ob, me, brush, symm_pass, 'X', 0, 0);
+        vpaint_do_radial_symmetry<Color, Traits, domain>(
+            C, sd, vp, vpd, ob, me, brush, symm_pass, 'X');
       }
       if (i & (1 << 1)) {
-        vpaint_do_paint<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'Y', 0, 0);
-        vpaint_do_radial_symmetry<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'Y');
+        vpaint_do_paint<Color, Traits, domain>(
+            C, sd, vp, vpd, ob, me, brush, symm_pass, 'Y', 0, 0);
+        vpaint_do_radial_symmetry<Color, Traits, domain>(
+            C, sd, vp, vpd, ob, me, brush, symm_pass, 'Y');
       }
       if (i & (1 << 2)) {
-        vpaint_do_paint<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'Z', 0, 0);
-        vpaint_do_radial_symmetry<Color, Traits, domain>(C, sd, vp, vpd, ob, me, brush, i, 'Z');
+        vpaint_do_paint<Color, Traits, domain>(
+            C, sd, vp, vpd, ob, me, brush, symm_pass, 'Z', 0, 0);
+        vpaint_do_radial_symmetry<Color, Traits, domain>(
+            C, sd, vp, vpd, ob, me, brush, symm_pass, 'Z');
       }
     }
   }
@@ -3847,7 +3861,7 @@ static void vpaint_stroke_update_step_intern(bContext *C, PaintStroke *stroke, P
   ED_view3d_init_mats_rv3d(ob, vc->rv3d);
 
   /* load projection matrix */
-  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
+  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world);
 
   swap_m4m4(vc->rv3d->persmat, mat);
 
@@ -3870,7 +3884,7 @@ static void vpaint_stroke_update_step_intern(bContext *C, PaintStroke *stroke, P
   /* Calculate pivot for rotation around selection if needed.
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
-  mul_v3_m4v3(loc_world, ob->obmat, ss->cache->true_location);
+  mul_v3_m4v3(loc_world, ob->object_to_world, ss->cache->true_location);
   paint_last_stroke_update(scene, loc_world);
 
   ED_region_tag_redraw(vc->region);

@@ -59,6 +59,11 @@ class CornerNextEdgeFieldInput final : public bke::MeshFieldInput {
     }
     return false;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  {
+    return ATTR_DOMAIN_CORNER;
+  }
 };
 
 class CornerPreviousEdgeFieldInput final : public bke::MeshFieldInput {
@@ -83,7 +88,7 @@ class CornerPreviousEdgeFieldInput final : public bke::MeshFieldInput {
         [polys, loops, loop_to_poly_map = std::move(loop_to_poly_map)](const int corner_i) {
           const int poly_i = loop_to_poly_map[corner_i];
           const MPoly &poly = polys[poly_i];
-          const int corner_i_prev = bke::mesh_topology::previous_poly_loop(poly, corner_i);
+          const int corner_i_prev = bke::mesh_topology::poly_loop_prev(poly, corner_i);
           return loops[corner_i_prev].e;
         });
   }
@@ -99,6 +104,11 @@ class CornerPreviousEdgeFieldInput final : public bke::MeshFieldInput {
       return true;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  {
+    return ATTR_DOMAIN_CORNER;
   }
 };
 

@@ -28,20 +28,6 @@ const int NOT_FOUND = -1;
 /** Any negative number other than `NOT_FOUND` to initialize usually non-negative numbers. */
 const int NEGATIVE_INIT = -10;
 
-/**
- * #std::unique_ptr than handles freeing #BMesh.
- */
-struct CustomBMeshDeleter {
-  void operator()(BMesh *bmesh)
-  {
-    if (bmesh) {
-      BM_mesh_free(bmesh);
-    }
-  }
-};
-
-using unique_bmesh_ptr = std::unique_ptr<BMesh, CustomBMeshDeleter>;
-
 class OBJMesh : NonCopyable {
  private:
   /**
@@ -49,11 +35,15 @@ class OBJMesh : NonCopyable {
    * sometimes builds an Object in a temporary space that doesn't persist.
    */
   Object export_object_eval_;
-  Mesh *export_mesh_eval_;
-  /**
-   * For curves which are converted to mesh, and triangulated meshes, a new mesh is allocated.
-   */
-  bool mesh_eval_needs_free_ = false;
+  /** A pointer to #owned_export_mesh_ or the object'ed evaluated/original mesh. */
+  const Mesh *export_mesh_;
+  /** A mesh owned here, if created or modified for the export. May be null. */
+  Mesh *owned_export_mesh_ = nullptr;
+  Span<MVert> mesh_verts_;
+  Span<MEdge> mesh_edges_;
+  Span<MPoly> mesh_polys_;
+  Span<MLoop> mesh_loops_;
+
   /**
    * Final transform of an object obtained from export settings (up_axis, forward_axis) and the
    * object's world transform matrix.
@@ -132,7 +122,6 @@ class OBJMesh : NonCopyable {
   const Material *get_object_material(int16_t mat_nr) const;
 
   void ensure_mesh_normals() const;
-  void ensure_mesh_edges() const;
 
   /**
    * Calculate smooth groups of a smooth-shaded object.
@@ -216,11 +205,6 @@ class OBJMesh : NonCopyable {
   const char *get_poly_deform_group_name(int16_t def_group_index) const;
 
   /**
-   * Calculate vertex indices of an edge's corners if it is a loose edge.
-   */
-  std::optional<std::array<int, 2>> calc_loose_edge_vert_indices(int edge_index) const;
-
-  /**
    * Calculate the order in which the polygons should be written into the file (sorted by material
    * index).
    */
@@ -236,23 +220,19 @@ class OBJMesh : NonCopyable {
     return i < 0 || i >= poly_order_.size() ? i : poly_order_[i];
   }
 
-  Mesh *get_mesh() const
+  const Mesh *get_mesh() const
   {
-    return export_mesh_eval_;
+    return export_mesh_;
   }
 
  private:
+  /** Override the mesh from the export scene's object. Takes ownership of the mesh. */
+  void set_mesh(Mesh *mesh);
   /**
-   * Free the mesh if _the exporter_ created it.
+   * Triangulate the mesh pointed to by this object, potentially replacing it with a newly created
+   * mesh.
    */
-  void free_mesh_if_needed();
-  /**
-   * Allocate a new Mesh with triangulated polygons.
-   *
-   * The returned mesh can be the same as the old one.
-   * \return Owning pointer to the new Mesh, and whether a new Mesh was created.
-   */
-  std::pair<Mesh *, bool> triangulate_mesh_eval();
+  void triangulate_mesh_eval();
   /**
    * Set the final transform after applying axes settings and an Object's world transform.
    */

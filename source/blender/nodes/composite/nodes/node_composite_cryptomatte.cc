@@ -14,6 +14,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_cryptomatte.hh"
 #include "BKE_global.h"
@@ -311,6 +313,7 @@ class CryptoMatteOperation : public NodeOperation {
     get_input("Image").pass_through(get_result("Image"));
     get_result("Matte").allocate_invalid();
     get_result("Pick").allocate_invalid();
+    context().set_info_message("Viewport compositor setup not fully supported");
   }
 };
 
@@ -331,12 +334,14 @@ void register_node_type_cmp_cryptomatte()
   node_type_socket_templates(
       &ntype, file_ns::cmp_node_cryptomatte_in, file_ns::cmp_node_cryptomatte_out);
   node_type_size(&ntype, 240, 100, 700);
-  node_type_init(&ntype, file_ns::node_init_cryptomatte);
+  ntype.initfunc = file_ns::node_init_cryptomatte;
   ntype.initfunc_api = file_ns::node_init_api_cryptomatte;
   ntype.poll = file_ns::node_poll_cryptomatte;
   node_type_storage(
       &ntype, "NodeCryptomatte", file_ns::node_free_cryptomatte, file_ns::node_copy_cryptomatte);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }
@@ -398,6 +403,7 @@ class CryptoMatteOperation : public NodeOperation {
     get_input("image").pass_through(get_result("Image"));
     get_result("Matte").allocate_invalid();
     get_result("Pick").allocate_invalid();
+    context().set_info_message("Viewport compositor setup not fully supported");
   }
 };
 
@@ -418,11 +424,13 @@ void register_node_type_cmp_cryptomatte_legacy()
   cmp_node_type_base(
       &ntype, CMP_NODE_CRYPTOMATTE_LEGACY, "Cryptomatte (Legacy)", NODE_CLASS_MATTE);
   node_type_socket_templates(&ntype, nullptr, file_ns::cmp_node_cryptomatte_out);
-  node_type_init(&ntype, legacy_file_ns::node_init_cryptomatte_legacy);
+  ntype.initfunc = legacy_file_ns::node_init_cryptomatte_legacy;
   node_type_storage(
       &ntype, "NodeCryptomatte", file_ns::node_free_cryptomatte, file_ns::node_copy_cryptomatte);
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_operation = legacy_file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

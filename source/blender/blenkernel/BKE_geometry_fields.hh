@@ -306,6 +306,7 @@ class CurveLengthFieldInput final : public CurvesFieldInput {
                                  IndexMask mask) const final;
   uint64_t hash() const override;
   bool is_equal_to(const fn::FieldNode &other) const override;
+  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry &curves) const final;
 };
 
 bool try_capture_field_on_geometry(GeometryComponent &component,

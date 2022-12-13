@@ -668,7 +668,6 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
   if (lock_range) {
     SEQ_time_left_handle_frame_set(scene, seq, prev_startdisp);
     SEQ_time_right_handle_frame_set(scene, seq, prev_enddisp);
-    SEQ_transform_fix_single_image_seq_offsets(scene, seq);
   }
 
   SEQ_relations_invalidate_cache_raw(scene, seq);

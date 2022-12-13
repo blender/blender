@@ -80,7 +80,7 @@ eV3DProjStatus ED_view3d_project_base(const struct ARegion *region,
                                       float r_co[2])
 {
   eV3DProjStatus ret = ED_view3d_project_float_global(
-      region, base->object->obmat[3], r_co, V3D_PROJ_TEST_CLIP_DEFAULT);
+      region, base->object->object_to_world[3], r_co, V3D_PROJ_TEST_CLIP_DEFAULT);
 
   /* Prevent uninitialized values when projection fails,
    * although the callers should check the return value. */
@@ -687,7 +687,7 @@ void ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const Object *ob, fl
 {
   float vmat[4][4];
 
-  mul_m4_m4m4(vmat, rv3d->viewmat, ob->obmat);
+  mul_m4_m4m4(vmat, rv3d->viewmat, ob->object_to_world);
   mul_m4_m4m4(r_pmat, rv3d->winmat, vmat);
 }
 

@@ -283,7 +283,17 @@ void BKE_object_apply_parent_inverse(struct Object *ob);
 void BKE_object_matrix_local_get(struct Object *ob, float r_mat[4][4]);
 
 bool BKE_object_pose_context_check(const struct Object *ob);
+
 struct Object *BKE_object_pose_armature_get(struct Object *ob);
+/**
+ * A version of #BKE_object_pose_armature_get with an additional check.
+ * When `ob` isn't an armature: only return the referenced pose object
+ * when the active object is in weight paint mode.
+ *
+ * \note Some callers need to check that pose bones are selectable
+ * which isn't the case when the object using the armature isn't in weight-paint mode.
+ */
+struct Object *BKE_object_pose_armature_get_with_wpaint_check(struct Object *ob);
 struct Object *BKE_object_pose_armature_get_visible(struct Object *ob,
                                                     const struct Scene *scene,
                                                     struct ViewLayer *view_layer,
@@ -323,7 +333,7 @@ struct Base **BKE_object_pose_base_array_get(const struct Scene *scene,
 void BKE_object_get_parent_matrix(struct Object *ob, struct Object *par, float r_parentmat[4][4]);
 
 /**
- * Compute object world transform and store it in `ob->obmat`.
+ * Compute object world transform and store it in `ob->object_to_world`.
  */
 void BKE_object_where_is_calc(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 void BKE_object_where_is_calc_ex(struct Depsgraph *depsgraph,

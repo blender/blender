@@ -135,12 +135,12 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3], flo
   float delta[3], scale, loc[3];
   const float xy_delta[2] = {pixel_radius, 0.0f};
 
-  mul_v3_m4v3(loc, ob->obmat, center);
+  mul_v3_m4v3(loc, ob->object_to_world, center);
 
   const float zfac = ED_view3d_calc_zfac(vc->rv3d, loc);
   ED_view3d_win_to_delta(vc->region, xy_delta, zfac, delta);
 
-  scale = fabsf(mat4_to_scale(ob->obmat));
+  scale = fabsf(mat4_to_scale(ob->object_to_world));
   scale = (scale == 0.0f) ? 1.0f : scale;
 
   return len_v3(delta) / scale;
@@ -297,7 +297,7 @@ static void imapaint_pick_uv(
   GPU_matrix_model_view_get(matrix);
   GPU_matrix_projection_get(proj);
   view[0] = view[1] = 0;
-  mul_m4_m4m4(matrix, matrix, ob_eval->obmat);
+  mul_m4_m4m4(matrix, matrix, ob_eval->object_to_world);
   mul_m4_m4m4(matrix, proj, matrix);
 
   minabsw = 1e10;

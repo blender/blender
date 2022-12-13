@@ -132,7 +132,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       float cmat[4][4];
 
       /* Watch this: switch matrix multiplication order really goes wrong. */
-      mul_m4_m4m4(cmat, imat, ob_src->obmat);
+      mul_m4_m4m4(cmat, imat, ob_src->object_to_world);
 
       /* transform vertex coordinates into new space */
       for (a = 0; a < me->totvert; a++, mvert++) {
@@ -256,7 +256,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
         CustomData_get_layer_named(pdata, CD_PROP_INT32, "material_index"));
     if (!material_indices && totcol > 1) {
       material_indices = (int *)CustomData_add_layer_named(
-          pdata, CD_PROP_INT32, CD_SET_DEFAULT, NULL, totpoly, "material_index");
+          pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, totpoly, "material_index");
     }
     if (material_indices) {
       for (a = 0; a < me->totpoly; a++) {
@@ -386,7 +386,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
    * NOTE: This doesn't apply recursive parenting. */
   if (join_parent) {
     ob->parent = nullptr;
-    BKE_object_apply_mat4_ex(ob, ob->obmat, ob->parent, ob->parentinv, false);
+    BKE_object_apply_mat4_ex(ob, ob->object_to_world, ob->parent, ob->parentinv, false);
   }
 
   /* that way the active object is always selected */
@@ -421,7 +421,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
    * Even though this mesh wont typically have run-time data, the Python API can for e.g.
    * create loop-triangle cache here, which is confusing when left in the mesh, see: T90798. */
   BKE_mesh_runtime_clear_geometry(me);
-  BKE_mesh_clear_derived_normals(me);
 
   /* new material indices and material array */
   if (totmat) {
@@ -594,7 +593,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   /* Inverse transform for all selected meshes in this object,
    * See #object_join_exec for detailed comment on why the safe version is used. */
-  invert_m4_m4_safe_ortho(imat, ob->obmat);
+  invert_m4_m4_safe_ortho(imat, ob->object_to_world);
 
   /* Add back active mesh first.
    * This allows to keep things similar as they were, as much as possible
@@ -688,9 +687,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   me->edata = edata;
   me->ldata = ldata;
   me->pdata = pdata;
-
-  /* Tag normals dirty because vertex positions could be changed from the original. */
-  BKE_mesh_normals_tag_dirty(me);
 
   /* old material array */
   for (a = 1; a <= ob->totcol; a++) {

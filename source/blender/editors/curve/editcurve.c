@@ -4999,7 +4999,7 @@ bool ed_editnurb_spin(
   invert_m3_m3(persinv, persmat);
 
   /* imat and center and size */
-  copy_m3_m4(bmat, obedit->obmat);
+  copy_m3_m4(bmat, obedit->object_to_world);
   invert_m3_m3(imat, bmat);
 
   axis_angle_to_mat3(cmat, axis, M_PI_4);
@@ -5095,8 +5095,8 @@ static int spin_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    invert_m4_m4(obedit->imat, obedit->obmat);
-    mul_m4_v3(obedit->imat, cent);
+    invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
+    mul_m4_v3(obedit->world_to_object, cent);
 
     if (!ed_editnurb_spin(viewmat, v3d, obedit, axis, cent)) {
       count_failed += 1;
@@ -5574,7 +5574,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
   RNA_float_get_array(op->ptr, "location", location);
 
-  invert_m4_m4(imat, obedit->obmat);
+  invert_m4_m4(imat, obedit->object_to_world);
   mul_m4_v3(imat, location);
 
   if (ed_editcurve_addvert(cu, editnurb, v3d, location)) {
@@ -5614,10 +5614,10 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     ED_curve_nurb_vert_selected_find(cu, vc.v3d, &nu, &bezt, &bp);
 
     if (bezt) {
-      mul_v3_m4v3(location, vc.obedit->obmat, bezt->vec[1]);
+      mul_v3_m4v3(location, vc.obedit->object_to_world, bezt->vec[1]);
     }
     else if (bp) {
-      mul_v3_m4v3(location, vc.obedit->obmat, bp->vec);
+      mul_v3_m4v3(location, vc.obedit->object_to_world, bp->vec);
     }
     else {
       copy_v3_v3(location, vc.scene->cursor.location);
@@ -5662,8 +5662,8 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       /* get the plane */
       float plane[4];
       /* only normalize to avoid precision errors */
-      normalize_v3_v3(plane, vc.obedit->obmat[2]);
-      plane[3] = -dot_v3v3(plane, vc.obedit->obmat[3]);
+      normalize_v3_v3(plane, vc.obedit->object_to_world[2]);
+      plane[3] = -dot_v3v3(plane, vc.obedit->object_to_world[3]);
 
       if (fabsf(dot_v3v3(view_dir, plane)) < eps) {
         /* can't project on an aligned plane. */
@@ -6924,7 +6924,7 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
 
   /* Inverse transform for all selected curves in this object,
    * See #object_join_exec for detailed comment on why the safe version is used. */
-  invert_m4_m4_safe_ortho(imat, ob_active->obmat);
+  invert_m4_m4_safe_ortho(imat, ob_active->object_to_world);
 
   Curve *cu_active = ob_active->data;
 
@@ -6936,7 +6936,7 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
 
         if (cu->nurb.first) {
           /* watch it: switch order here really goes wrong */
-          mul_m4_m4m4(cmat, imat, ob_iter->obmat);
+          mul_m4_m4m4(cmat, imat, ob_iter->object_to_world);
 
           /* Compensate for different bevel depth. */
           bool do_radius = false;

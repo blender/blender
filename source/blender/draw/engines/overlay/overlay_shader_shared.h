@@ -57,14 +57,14 @@ BLI_STATIC_ASSERT_ALIGN(OVERLAY_GridData, 16)
 
 #ifdef GPU_SHADER
 /* Keep the same values as in `draw_cache_imp_curve.c` */
-#  define ACTIVE_NURB (1 << 2)
-#  define BEZIER_HANDLE (1 << 3)
-#  define EVEN_U_BIT (1 << 4)
-#  define COLOR_SHIFT 5
+#  define ACTIVE_NURB (1u << 2)
+#  define BEZIER_HANDLE (1u << 3)
+#  define EVEN_U_BIT (1u << 4)
+#  define COLOR_SHIFT 5u
 
 /* Keep the same value in `handle_display` in `DNA_view3d_types.h` */
-#  define CURVE_HANDLE_SELECTED 0
-#  define CURVE_HANDLE_ALL 1
+#  define CURVE_HANDLE_SELECTED 0u
+#  define CURVE_HANDLE_ALL 1u
 
 #  define GP_EDIT_POINT_SELECTED 1u  /* 1 << 0 */
 #  define GP_EDIT_STROKE_SELECTED 2u /* 1 << 1 */
@@ -73,15 +73,15 @@ BLI_STATIC_ASSERT_ALIGN(OVERLAY_GridData, 16)
 #  define GP_EDIT_STROKE_END 16u     /* 1 << 4 */
 #  define GP_EDIT_POINT_DIMMED 32u   /* 1 << 5 */
 
-#  define MOTIONPATH_VERT_SEL (1 << 0)
-#  define MOTIONPATH_VERT_KEY (1 << 1)
+#  define MOTIONPATH_VERT_SEL (1u << 0)
+#  define MOTIONPATH_VERT_KEY (1u << 1)
 
 #else
 /* TODO(fclem): Find a better way to share enums/defines from DNA files with GLSL. */
-BLI_STATIC_ASSERT(CURVE_HANDLE_SELECTED == 0, "Ensure value is sync");
-BLI_STATIC_ASSERT(CURVE_HANDLE_ALL == 1, "Ensure value is sync");
-BLI_STATIC_ASSERT(MOTIONPATH_VERT_SEL == (1 << 0), "Ensure value is sync");
-BLI_STATIC_ASSERT(MOTIONPATH_VERT_KEY == (1 << 1), "Ensure value is sync");
+BLI_STATIC_ASSERT(CURVE_HANDLE_SELECTED == 0u, "Ensure value is sync");
+BLI_STATIC_ASSERT(CURVE_HANDLE_ALL == 1u, "Ensure value is sync");
+BLI_STATIC_ASSERT(MOTIONPATH_VERT_SEL == (1u << 0), "Ensure value is sync");
+BLI_STATIC_ASSERT(MOTIONPATH_VERT_KEY == (1u << 1), "Ensure value is sync");
 #endif
 
 #ifndef GPU_SHADER

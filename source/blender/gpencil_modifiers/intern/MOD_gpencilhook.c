@@ -234,14 +234,14 @@ static void deformStroke(GpencilModifierData *md,
   /* get world-space matrix of target, corrected for the space the verts are in */
   if (mmd->subtarget[0] && pchan) {
     /* bone target if there's a matching pose-channel */
-    mul_m4_m4m4(dmat, mmd->object->obmat, pchan->pose_mat);
+    mul_m4_m4m4(dmat, mmd->object->object_to_world, pchan->pose_mat);
   }
   else {
     /* just object target */
-    copy_m4_m4(dmat, mmd->object->obmat);
+    copy_m4_m4(dmat, mmd->object->object_to_world);
   }
-  invert_m4_m4(ob->imat, ob->obmat);
-  mul_m4_series(tData.mat, ob->imat, dmat, mmd->parentinv);
+  invert_m4_m4(ob->world_to_object, ob->object_to_world);
+  mul_m4_series(tData.mat, ob->world_to_object, dmat, mmd->parentinv);
 
   /* loop points and apply deform */
   for (int i = 0; i < gps->totpoints; i++) {

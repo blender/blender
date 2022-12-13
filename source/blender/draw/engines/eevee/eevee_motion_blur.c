@@ -64,17 +64,17 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
         1 + ((int)fs_size[0] / EEVEE_VELOCITY_TILE_SIZE),
         1 + ((int)fs_size[1] / EEVEE_VELOCITY_TILE_SIZE),
     };
-
-    effects->velocity_tiles_x_tx = DRW_texture_pool_query_2d(
-        tx_size[0], fs_size[1], GPU_RGBA16, &draw_engine_eevee_type);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    effects->velocity_tiles_x_tx = DRW_texture_pool_query_2d_ex(
+        tx_size[0], fs_size[1], GPU_RGBA16, usage, &draw_engine_eevee_type);
     GPU_framebuffer_ensure_config(&fbl->velocity_tiles_fb[0],
                                   {
                                       GPU_ATTACHMENT_NONE,
                                       GPU_ATTACHMENT_TEXTURE(effects->velocity_tiles_x_tx),
                                   });
 
-    effects->velocity_tiles_tx = DRW_texture_pool_query_2d(
-        tx_size[0], tx_size[1], GPU_RGBA16, &draw_engine_eevee_type);
+    effects->velocity_tiles_tx = DRW_texture_pool_query_2d_ex(
+        tx_size[0], tx_size[1], GPU_RGBA16, usage, &draw_engine_eevee_type);
     GPU_framebuffer_ensure_config(&fbl->velocity_tiles_fb[1],
                                   {
                                       GPU_ATTACHMENT_NONE,
@@ -292,7 +292,7 @@ void EEVEE_motion_blur_curves_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata)
 
   int mb_step = effects->motion_blur_step;
   /* Store transform. */
-  copy_m4_m4(mb_data->obmat[mb_step], ob->obmat);
+  copy_m4_m4(mb_data->obmat[mb_step], ob->object_to_world);
 
   EEVEE_HairMotionData *mb_curves = EEVEE_motion_blur_curves_data_get(mb_data);
 
@@ -362,7 +362,7 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
   if (mb_data) {
     int mb_step = effects->motion_blur_step;
     /* Store transform. */
-    copy_m4_m4(mb_data->obmat[mb_step], ob->obmat);
+    copy_m4_m4(mb_data->obmat[mb_step], ob->object_to_world);
 
     EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_geometry_data_get(mb_data);
 

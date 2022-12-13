@@ -48,6 +48,7 @@ set(SRC
   intern/node_exec.cc
   intern/node_geometry_exec.cc
   intern/node_multi_function.cc
+  intern/node_register.cc
   intern/node_socket.cc
   intern/node_socket_declarations.cc
   intern/node_util.cc
@@ -56,7 +57,6 @@ set(SRC
   NOD_common.h
   NOD_composite.h
   NOD_derived_node_tree.hh
-  NOD_function.h
   NOD_geometry.h
   NOD_geometry_exec.hh
   NOD_geometry_nodes_lazy_function.hh
@@ -65,6 +65,7 @@ set(SRC
   NOD_multi_function.hh
   NOD_node_declaration.hh
   NOD_shader.h
+  NOD_register.hh
   NOD_socket.h
   NOD_socket_declarations.hh
   NOD_socket_declarations_geometry.hh

@@ -44,7 +44,8 @@ static void createTransMBallVerts(bContext *UNUSED(C), TransInfo *t)
       }
     }
 
-    /* Support other objects using PET to adjust these, unless connected is enabled. */
+    /* Support other objects using proportional editing to adjust these, unless connected is
+     * enabled. */
     if (((is_prop_edit && !is_prop_connected) ? count : countsel) == 0) {
       tc->data_len = 0;
       continue;
@@ -61,7 +62,7 @@ static void createTransMBallVerts(bContext *UNUSED(C), TransInfo *t)
     tx = tc->data_ext = MEM_callocN(tc->data_len * sizeof(TransDataExtension),
                                     "MetaElement_TransExtension");
 
-    copy_m3_m4(mtx, tc->obedit->obmat);
+    copy_m3_m4(mtx, tc->obedit->object_to_world);
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
     for (ml = mb->editelems->first; ml; ml = ml->next) {

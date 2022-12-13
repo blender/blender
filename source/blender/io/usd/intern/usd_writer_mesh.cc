@@ -270,7 +270,9 @@ void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh,
         .Set(std::string(layer->name), pxr::UsdTimeCode::Default());
   }
 
-  pxr::UsdGeomPrimvar uv_coords_primvar = usd_mesh.CreatePrimvar(
+  pxr::UsdGeomPrimvarsAPI primvarsAPI = pxr::UsdGeomPrimvarsAPI(usd_mesh);
+
+  pxr::UsdGeomPrimvar uv_coords_primvar = primvarsAPI.CreatePrimvar(
       primvar_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
 
   MLoopUV *mloopuv = static_cast<MLoopUV *>(layer->data);
@@ -345,12 +347,17 @@ void USDGenericMeshWriter::write_vertex_groups(const Object *ob,
 
   // Create vertex groups primvars
   for (def = (bDeformGroup *)ob->defbase.first, i = 0, j = 0; def; def = def->next, i++) {
-    if (!def)
+    if (!def) {
       continue;
+    }
+
     pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(def->name));
     pxr::TfToken primvar_interpolation = (as_point_groups) ? pxr::UsdGeomTokens->vertex :
                                                              pxr::UsdGeomTokens->faceVarying;
-    pv_groups.push_back(usd_mesh.CreatePrimvar(
+
+    pxr::UsdGeomPrimvarsAPI primvarsAPI(usd_mesh.GetPrim());
+
+    pv_groups.push_back(primvarsAPI.CreatePrimvar(
         primvar_name, pxr::SdfValueTypeNames->FloatArray, primvar_interpolation));
 
     size_t primvar_size = 0;
@@ -451,12 +458,14 @@ void USDGenericMeshWriter::write_face_maps(const Object *ob,
   int i;
   size_t mpoly_len = mesh->totpoly;
 
+  pxr::UsdGeomPrimvarsAPI primvarsAPI = pxr::UsdGeomPrimvarsAPI(usd_mesh);
+
   for (bFaceMap *fmap = (bFaceMap *)ob->fmaps.first; fmap; fmap = fmap->next) {
     if (!fmap)
       continue;
     pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(fmap->name));
     pxr::TfToken primvar_interpolation = pxr::UsdGeomTokens->uniform;
-    pv_groups.push_back(usd_mesh.CreatePrimvar(
+    pv_groups.push_back(primvarsAPI.CreatePrimvar(
         primvar_name, pxr::SdfValueTypeNames->FloatArray, primvar_interpolation));
 
     pv_data.push_back(pxr::VtArray<float>(mpoly_len));

@@ -703,11 +703,11 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     newBone->inherit_scale_mode = eBone->inherit_scale_mode;
 
     if (eBone == arm->act_edbone) {
-      /* don't change active selection, this messes up separate which uses
-       * editmode toggle and can separate active bone which is de-selected originally */
+      /* Don't change active selection, this messes up separate which uses
+       * edit-mode toggle and can separate active bone which is de-selected originally. */
 
-      /* important, editbones can be active with only 1 point selected */
-      /* newBone->flag |= BONE_SELECTED; */
+      /* important, edit-bones can be active with only 1 point selected */
+      /* `newBone->flag |= BONE_SELECTED;` */
       arm->act_bone = newBone;
     }
     newBone->roll = 0.0f;

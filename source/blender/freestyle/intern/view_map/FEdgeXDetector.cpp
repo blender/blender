@@ -12,6 +12,8 @@
 #include "../geometry/GeomUtils.h"
 #include "../geometry/normal_cycle.h"
 
+#include "BLI_sys_types.h"
+
 #include "BKE_global.h"
 
 namespace Freestyle {

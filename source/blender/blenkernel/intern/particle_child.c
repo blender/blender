@@ -187,7 +187,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
 
   zero_v3(kink_base);
   kink_base[part->kink_axis] = 1.0f;
-  mul_mat3_m4_v3(ctx->sim.ob->obmat, kink_base);
+  mul_mat3_m4_v3(ctx->sim.ob->object_to_world, kink_base);
 
   /* Fill in invariant part of modifier context. */
   ParticleChildModifierContext modifier_ctx = {NULL};
@@ -873,7 +873,7 @@ void do_child_modifiers(const ParticleChildModifierContext *modifier_ctx,
               part->kink_flat,
               part->kink,
               part->kink_axis,
-              sim->ob->obmat,
+              sim->ob->object_to_world,
               smooth_start);
     }
   }

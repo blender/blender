@@ -21,18 +21,6 @@ function(print_found_status
   endif()
 endfunction()
 
-# Utility to install precompiled shared libraries.
-macro(add_bundled_libraries library)
-  if(EXISTS ${LIBDIR})
-    set(_library_dir ${LIBDIR}/${library}/lib)
-    file(GLOB _all_library_versions ${_library_dir}/*\.dylib*)
-    list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
-    list(APPEND PLATFORM_BUNDLED_LIBRARY_DIRS ${_library_dir})
-    unset(_all_library_versions)
-    unset(_library_dir)
-  endif()
-endmacro()
-
 # ------------------------------------------------------------------------
 # Find system provided libraries.
 
@@ -98,10 +86,38 @@ endif()
 
 if(WITH_USD)
   find_package(USD REQUIRED)
+  add_bundled_libraries(usd/lib)
+endif()
+
+if(WITH_MATERIALX)
+  find_package(MaterialX)
+  set_and_warn_library_found("MaterialX" MaterialX_FOUND WITH_MATERIALX)
+  if(WITH_MATERIALX)
+    add_bundled_libraries(materialx/lib)
+  endif()
+endif()
+
+if(WITH_VULKAN_BACKEND)
+  find_package(MoltenVK REQUIRED)
+
+  if(EXISTS ${LIBDIR}/vulkan)
+    set(VULKAN_FOUND On)
+    set(VULKAN_ROOT_DIR ${LIBDIR}/vulkan/macOS)
+    set(VULKAN_INCLUDE_DIR ${VULKAN_ROOT_DIR}/include)
+    set(VULKAN_LIBRARY ${VULKAN_ROOT_DIR}/lib/libvulkan.1.dylib)
+    set(SHADERC_LIBRARY ${VULKAN_ROOT_DIR}/lib/libshaderc_combined.a)
+
+    set(VULKAN_INCLUDE_DIRS ${VULKAN_INCLUDE_DIR} ${MOLTENVK_INCLUDE_DIRS})
+    set(VULKAN_LIBRARIES ${VULKAN_LIBRARY} ${SHADERC_LIBRARY} ${MOLTENVK_LIBRARIES})
+  else()
+    message(WARNING "Vulkan SDK was not found, disabling WITH_VULKAN_BACKEND")
+    set(WITH_VULKAN_BACKEND OFF)
+  endif()
 endif()
 
 if(WITH_OPENSUBDIV)
   find_package(OpenSubdiv)
+  add_bundled_libraries(opensubdiv/lib)
 endif()
 
 if(WITH_CODEC_SNDFILE)
@@ -140,6 +156,8 @@ list(APPEND FREETYPE_LIBRARIES
 
 if(WITH_IMAGE_OPENEXR)
   find_package(OpenEXR)
+  add_bundled_libraries(openexr/lib)
+  add_bundled_libraries(imath/lib)
 endif()
 
 if(WITH_CODEC_FFMPEG)
@@ -238,11 +256,21 @@ if(WITH_BOOST)
   if(WITH_OPENVDB)
     list(APPEND _boost_FIND_COMPONENTS iostreams)
   endif()
+  if(WITH_USD AND USD_PYTHON_SUPPORT)
+    list(APPEND _boost_FIND_COMPONENTS python${PYTHON_VERSION_NO_DOTS})
+  endif()
   find_package(Boost COMPONENTS ${_boost_FIND_COMPONENTS})
 
+  # Boost Python is separate to avoid linking Python into tests that don't need it.
   set(BOOST_LIBRARIES ${Boost_LIBRARIES})
+  if(WITH_USD AND USD_PYTHON_SUPPORT)
+    set(BOOST_PYTHON_LIBRARIES ${Boost_PYTHON${PYTHON_VERSION_NO_DOTS}_LIBRARY})
+    list(REMOVE_ITEM BOOST_LIBRARIES ${BOOST_PYTHON_LIBRARIES})
+  endif()
   set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
   set(BOOST_DEFINITIONS)
+
+  add_bundled_libraries(boost/lib)
 
   mark_as_advanced(Boost_LIBRARIES)
   mark_as_advanced(Boost_INCLUDE_DIRS)
@@ -269,18 +297,24 @@ if(WITH_OPENIMAGEIO)
   )
   set(OPENIMAGEIO_DEFINITIONS "-DOIIO_STATIC_BUILD")
   set(OPENIMAGEIO_IDIFF "${LIBDIR}/openimageio/bin/idiff")
+  add_bundled_libraries(openimageio/lib)
 endif()
 
 if(WITH_OPENCOLORIO)
   find_package(OpenColorIO 2.0.0 REQUIRED)
+  add_bundled_libraries(opencolorio/lib)
 endif()
 
 if(WITH_OPENVDB)
   find_package(OpenVDB)
   find_library(BLOSC_LIBRARIES NAMES blosc HINTS ${LIBDIR}/openvdb/lib)
-  print_found_status("Blosc" "${BLOSC_LIBRARIES}")
-  list(APPEND OPENVDB_LIBRARIES ${BLOSC_LIBRARIES})
+  if(BLOSC_LIBRARIES)
+    list(APPEND OPENVDB_LIBRARIES ${BLOSC_LIBRARIES})
+  else()
+    unset(BLOSC_LIBRARIES CACHE)
+  endif()
   set(OPENVDB_DEFINITIONS)
+  add_bundled_libraries(openvdb/lib)
 endif()
 
 if(WITH_NANOVDB)
@@ -329,6 +363,7 @@ endif()
 
 if(WITH_TBB)
   find_package(TBB REQUIRED)
+  add_bundled_libraries(tbb/lib)
 endif()
 
 if(WITH_POTRACE)
@@ -347,7 +382,7 @@ if(WITH_OPENMP)
     set(OpenMP_LIBRARY_DIR "${LIBDIR}/openmp/lib/")
     set(OpenMP_LINKER_FLAGS "-L'${OpenMP_LIBRARY_DIR}' -lomp")
     set(OpenMP_LIBRARY "${OpenMP_LIBRARY_DIR}/libomp.dylib")
-    add_bundled_libraries(openmp)
+    add_bundled_libraries(openmp/lib)
   endif()
 endif()
 
@@ -463,6 +498,12 @@ if(PLATFORM_BUNDLED_LIBRARIES)
   # different.
   set(CMAKE_SKIP_BUILD_RPATH FALSE)
   list(APPEND CMAKE_BUILD_RPATH ${PLATFORM_BUNDLED_LIBRARY_DIRS})
+
+  # Environment variables to run precompiled executables that needed libraries.
+  list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ":" _library_paths)
+  set(PLATFORM_ENV_BUILD "DYLD_LIBRARY_PATH=\"${_library_paths};${DYLD_LIBRARY_PATH}\"")
+  set(PLATFORM_ENV_INSTALL "DYLD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/Blender.app/Contents/Resources/lib/;$DYLD_LIBRARY_PATH")
+  unset(_library_paths)
 endif()
 
 # Same as `CFBundleIdentifier` in Info.plist.

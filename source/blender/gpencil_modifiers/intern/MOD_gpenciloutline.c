@@ -116,7 +116,7 @@ static void convert_stroke(GpencilModifierData *md,
   /* Apply layer thickness change. */
   gps_duplicate->thickness += gpl->line_change;
   /* Apply object scale to thickness. */
-  gps_duplicate->thickness *= mat4_to_scale(ob->obmat);
+  gps_duplicate->thickness *= mat4_to_scale(ob->object_to_world);
   CLAMP_MIN(gps_duplicate->thickness, 1.0f);
 
   /* Stroke. */
@@ -197,7 +197,7 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   }
   Object *cam_ob = scene->camera;
   float viewmat[4][4];
-  invert_m4_m4(viewmat, cam_ob->obmat);
+  invert_m4_m4(viewmat, cam_ob->object_to_world);
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     bGPDframe *gpf = BKE_gpencil_frame_retime_get(depsgraph, scene, ob, gpl);
@@ -240,7 +240,7 @@ static void bakeModifier(Main *UNUSED(bmain),
       BKE_scene_graph_update_for_newframe(depsgraph);
       /* Ensure the camera is the right one. */
       BKE_scene_camera_switch_update(scene);
-      invert_m4_m4(viewmat, cam_ob->obmat);
+      invert_m4_m4(viewmat, cam_ob->object_to_world);
 
       /* Prepare transform matrix. */
       float diff_mat[4][4];
@@ -287,7 +287,7 @@ static void updateDepsgraph(GpencilModifierData *md,
   DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Outline Modifier");
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -301,6 +301,11 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "sample_length", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "outline_material", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
+
+  Scene *scene = CTX_data_scene(C);
+  if (scene->camera == NULL) {
+    uiItemL(layout, IFACE_("Outline requires an active camera"), ICON_ERROR);
+  }
 
   gpencil_modifier_panel_end(layout, ptr);
 }

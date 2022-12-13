@@ -73,7 +73,7 @@ set(SRC
   intern/bmesh_inline.h
   intern/bmesh_interp.c
   intern/bmesh_interp.h
-  intern/bmesh_iterators.c
+  intern/bmesh_iterators.cc
   intern/bmesh_iterators.h
   intern/bmesh_iterators_inline.h
   intern/bmesh_log.c
@@ -88,7 +88,7 @@ set(SRC
   intern/bmesh_mesh_debug.h
   intern/bmesh_mesh_duplicate.c
   intern/bmesh_mesh_duplicate.h
-  intern/bmesh_mesh_normals.c
+  intern/bmesh_mesh_normals.cc
   intern/bmesh_mesh_normals.h
   intern/bmesh_mesh_partial_update.c
   intern/bmesh_mesh_partial_update.h

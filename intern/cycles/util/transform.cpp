@@ -102,7 +102,7 @@ ProjectionTransform projection_inverse(const ProjectionTransform &tfm)
     return projection_identity();
   }
 
-  memcpy(&tfmR, R, sizeof(R));
+  memcpy(&tfmR.x[0], R, sizeof(R));
 
   return tfmR;
 }

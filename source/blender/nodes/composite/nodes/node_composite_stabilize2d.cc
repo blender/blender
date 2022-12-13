@@ -5,6 +5,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BLT_translation.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -69,6 +71,7 @@ class Stabilize2DOperation : public NodeOperation {
   void execute() override
   {
     get_input("Image").pass_through(get_result("Image"));
+    context().set_info_message("Viewport compositor setup not fully supported");
   }
 };
 
@@ -90,6 +93,8 @@ void register_node_type_cmp_stabilize2d()
   ntype.draw_buttons = file_ns::node_composit_buts_stabilize2d;
   ntype.initfunc_api = file_ns::init;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

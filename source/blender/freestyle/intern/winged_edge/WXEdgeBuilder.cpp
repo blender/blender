@@ -9,6 +9,8 @@
 #include "WXEdgeBuilder.h"
 #include "WXEdge.h"
 
+#include "BLI_sys_types.h"
+
 namespace Freestyle {
 
 void WXEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet &ifs)

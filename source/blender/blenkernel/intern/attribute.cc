@@ -495,29 +495,14 @@ CustomDataLayer *BKE_id_attributes_active_get(ID *id)
   return nullptr;
 }
 
-void BKE_id_attributes_active_set(ID *id, CustomDataLayer *active_layer)
+void BKE_id_attributes_active_set(ID *id, const char *name)
 {
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
+  const CustomDataLayer *layer = BKE_id_attribute_search(
+      id, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
+  BLI_assert(layer != nullptr);
 
-  int index = 0;
-
-  for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
-    const CustomData *customdata = info[domain].customdata;
-    if (customdata == nullptr) {
-      continue;
-    }
-    for (int i = 0; i < customdata->totlayer; i++) {
-      const CustomDataLayer *layer = &customdata->layers[i];
-      if (layer == active_layer) {
-        *BKE_id_attributes_active_index_p(id) = index;
-        return;
-      }
-      if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(layer->type)) {
-        index++;
-      }
-    }
-  }
+  const int index = BKE_id_attribute_to_index(id, layer, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
+  *BKE_id_attributes_active_index_p(id) = index;
 }
 
 int *BKE_id_attributes_active_index_p(ID *id)

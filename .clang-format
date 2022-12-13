@@ -162,6 +162,7 @@ PenaltyBreakString: 1000000
 ForEachMacros:
   - BEGIN_ANIMFILTER_SUBCHANNELS
   - BKE_pbvh_vertex_iter_begin
+  - BKE_pbvh_face_iter_begin
   - BLI_FOREACH_SPARSE_RANGE
   - BLI_SMALLSTACK_ITER_BEGIN
   - BMO_ITER

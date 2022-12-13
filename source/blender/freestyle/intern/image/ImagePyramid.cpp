@@ -11,6 +11,8 @@
 #include "Image.h"
 #include "ImagePyramid.h"
 
+#include "BLI_sys_types.h"
+
 using namespace std;
 
 namespace Freestyle {

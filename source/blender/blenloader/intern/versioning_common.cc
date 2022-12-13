@@ -21,6 +21,7 @@
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -115,7 +116,7 @@ void version_node_socket_name(bNodeTree *ntree,
                               const char *old_name,
                               const char *new_name)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->type == node_type) {
       change_node_socket_name(&node->inputs, old_name, new_name);
       change_node_socket_name(&node->outputs, old_name, new_name);
@@ -128,7 +129,7 @@ void version_node_input_socket_name(bNodeTree *ntree,
                                     const char *old_name,
                                     const char *new_name)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->type == node_type) {
       change_node_socket_name(&node->inputs, old_name, new_name);
     }
@@ -140,7 +141,7 @@ void version_node_output_socket_name(bNodeTree *ntree,
                                      const char *old_name,
                                      const char *new_name)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->type == node_type) {
       change_node_socket_name(&node->outputs, old_name, new_name);
     }
@@ -164,7 +165,7 @@ bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
 
 void version_node_id(bNodeTree *ntree, const int node_type, const char *new_name)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     if (node->type == node_type) {
       if (!STREQ(node->idname, new_name)) {
         strcpy(node->idname, new_name);
@@ -191,7 +192,7 @@ void version_node_socket_index_animdata(Main *bmain,
         continue;
       }
 
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      for (bNode *node : ntree->all_nodes()) {
         if (node->type != node_type) {
           continue;
         }
@@ -216,7 +217,7 @@ void version_node_socket_index_animdata(Main *bmain,
 
 void version_socket_update_is_used(bNodeTree *ntree)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (bNode *node : ntree->all_nodes()) {
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
       socket->flag &= ~SOCK_IN_USE;
     }

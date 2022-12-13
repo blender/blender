@@ -26,7 +26,8 @@ IF(NOT OPENEXR_ROOT_DIR AND NOT $ENV{OPENEXR_ROOT_DIR} STREQUAL "")
   SET(OPENEXR_ROOT_DIR $ENV{OPENEXR_ROOT_DIR})
 ENDIF()
 
-# Old versions (before 2.0?) do not have any version string, just assuming this should be fine though.
+# Old versions (before 2.0?) do not have any version string,
+# just assuming this should be fine though.
 SET(_openexr_libs_ver_init "2.0")
 
 SET(_openexr_SEARCH_DIRS

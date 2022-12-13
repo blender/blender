@@ -42,8 +42,8 @@ TEST_F(USDImagingTest, CapsuleAdapterTest)
   }
 
   pxr::UsdImagingCapsuleAdapter capsule_adapter;
-  pxr::VtValue points_value = pxr::UsdImagingCapsuleAdapter::GetMeshPoints(
-      capsule.GetPrim(), pxr::UsdTimeCode::Default());
+  pxr::VtValue points_value = capsule_adapter.GetPoints(capsule.GetPrim(),
+                                                        pxr::UsdTimeCode::Default());
   if (!points_value.IsHolding<pxr::VtArray<pxr::GfVec3f>>()) {
     FAIL() << "Mesh points value holding unexpected type.";
     return;
@@ -52,7 +52,8 @@ TEST_F(USDImagingTest, CapsuleAdapterTest)
   pxr::VtArray<pxr::GfVec3f> points = points_value.Get<pxr::VtArray<pxr::GfVec3f>>();
   EXPECT_FALSE(points.empty());
 
-  pxr::VtValue topology_value = pxr::UsdImagingCapsuleAdapter::GetMeshTopology();
+  pxr::VtValue topology_value = capsule_adapter.GetTopology(
+      capsule.GetPrim(), pxr::SdfPath(), pxr::UsdTimeCode::Default());
 
   if (!topology_value.IsHolding<pxr::HdMeshTopology>()) {
     FAIL() << "Mesh topology value holding unexpected type.";

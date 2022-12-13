@@ -232,7 +232,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
 
   /* Outer loop over all chunks. */
   for (int64_t chunk_start = 0; chunk_start < mask_size; chunk_start += MaxChunkSize) {
-    const IndexMask sliced_mask = mask.slice(chunk_start, MaxChunkSize);
+    const IndexMask sliced_mask = mask.slice_safe(chunk_start, MaxChunkSize);
     const int64_t chunk_size = sliced_mask.size();
     const bool sliced_mask_is_range = sliced_mask.is_range();
 

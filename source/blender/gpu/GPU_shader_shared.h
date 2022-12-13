@@ -48,13 +48,13 @@ struct GPencilStrokeData {
 BLI_STATIC_ASSERT_ALIGN(struct GPencilStrokeData, 16)
 
 struct GPUClipPlanes {
-  float4x4 ModelMatrix;
+  float4x4 ClipModelMatrix;
   float4 world[6];
 };
 BLI_STATIC_ASSERT_ALIGN(struct GPUClipPlanes, 16)
 
 struct SimpleLightingData {
-  float4 color;
+  float4 l_color;
   float3 light;
   float _pad;
 };

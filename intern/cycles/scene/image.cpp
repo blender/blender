@@ -261,7 +261,7 @@ void ImageMetaData::detect_colorspace()
 {
   /* Convert used specified color spaces to one we know how to handle. */
   colorspace = ColorSpaceManager::detect_known_colorspace(
-      colorspace, colorspace_file_format, is_float());
+      colorspace, colorspace_file_hint.c_str(), colorspace_file_format, is_float());
 
   if (colorspace == u_colorspace_raw) {
     /* Nothing to do. */

@@ -11,6 +11,8 @@
 #include "BLI_math_vec_types.hh"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -397,7 +399,7 @@ namespace blender::nodes::node_composite_image_cc {
 static void cmp_node_image_update(bNodeTree *ntree, bNode *node)
 {
   /* avoid unnecessary updates, only changes to the image/image user data are of interest */
-  if (node->update & NODE_UPDATE_ID) {
+  if (node->runtime->update & NODE_UPDATE_ID) {
     cmp_node_image_verify_outputs(ntree, node, false);
   }
 
@@ -660,10 +662,10 @@ void register_node_type_cmp_image()
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_IMAGE, "Image", NODE_CLASS_INPUT);
-  node_type_init(&ntype, file_ns::node_composit_init_image);
+  ntype.initfunc = file_ns::node_composit_init_image;
   node_type_storage(
       &ntype, "ImageUser", file_ns::node_composit_free_image, file_ns::node_composit_copy_image);
-  node_type_update(&ntype, file_ns::cmp_node_image_update);
+  ntype.updatefunc = file_ns::cmp_node_image_update;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.labelfunc = node_image_label;
   ntype.flag |= NODE_PREVIEW;
@@ -851,7 +853,11 @@ class RenderLayerOperation : public NodeOperation {
     /* Other output passes are not supported for now, so allocate them as invalid. */
     for (const bNodeSocket *output : this->node()->output_sockets()) {
       if (!STR_ELEM(output->identifier, "Image", "Alpha")) {
-        get_result(output->identifier).allocate_invalid();
+        Result &unsupported_result = get_result(output->identifier);
+        if (unsupported_result.should_compute()) {
+          unsupported_result.allocate_invalid();
+          context().set_info_message("Viewport compositor setup not fully supported");
+        }
       }
     }
   }
@@ -876,11 +882,13 @@ void register_node_type_cmp_rlayers()
   ntype.initfunc_api = file_ns::node_composit_init_rlayers;
   ntype.poll = file_ns::node_composit_poll_rlayers;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Render passes not supported in the Viewport compositor");
   ntype.flag |= NODE_PREVIEW;
   node_type_storage(
       &ntype, nullptr, file_ns::node_composit_free_rlayers, file_ns::node_composit_copy_rlayers);
-  node_type_update(&ntype, file_ns::cmp_node_rlayers_update);
-  node_type_init(&ntype, node_cmp_rlayers_outputs);
+  ntype.updatefunc = file_ns::cmp_node_rlayers_update;
+  ntype.initfunc = node_cmp_rlayers_outputs;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 
   nodeRegisterType(&ntype);

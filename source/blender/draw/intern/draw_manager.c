@@ -45,6 +45,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
 #include "ED_gpencil.h"
@@ -1247,7 +1248,7 @@ static bool is_compositor_enabled(void)
     return false;
   }
 
-  if (!(DST.draw_ctx.v3d->shading.flag & V3D_SHADING_COMPOSITOR)) {
+  if (DST.draw_ctx.v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
     return false;
   }
 
@@ -1260,6 +1261,11 @@ static bool is_compositor_enabled(void)
   }
 
   if (!DST.draw_ctx.scene->nodetree) {
+    return false;
+  }
+
+  if (DST.draw_ctx.v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_CAMERA &&
+      DST.draw_ctx.rv3d->persp != RV3D_CAMOB) {
     return false;
   }
 
@@ -1332,10 +1338,6 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
   }
 
   const bool gpencil_engine_needed = drw_gpencil_engine_needed(depsgraph, v3d);
-
-  if (G.is_rendering && U.experimental.use_draw_manager_acquire_lock) {
-    return;
-  }
 
   /* XXX Really nasty locking. But else this could
    * be executed by the material previews thread
@@ -1690,6 +1692,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   DRW_globals_update();
 
   drw_debug_init();
+  DRW_pointcloud_init();
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -2038,6 +2041,7 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
   DRW_smoke_exit(DST.vmempool);
 
   drw_manager_exit(&DST);
+  DRW_cache_free_old_subdiv();
 
   /* Reset state after drawing */
   DRW_state_reset();
@@ -2053,6 +2057,7 @@ void DRW_render_object_iter(
     void (*callback)(void *vedata, Object *ob, RenderEngine *engine, struct Depsgraph *depsgraph))
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
+  DRW_pointcloud_init();
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -2113,6 +2118,7 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
 
   drw_manager_init(&DST, NULL, NULL);
 
+  DRW_pointcloud_init();
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -2148,6 +2154,7 @@ void DRW_cache_restart(void)
 
   DST.buffer_finish_called = false;
 
+  DRW_pointcloud_init();
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -2330,8 +2337,9 @@ static void draw_select_framebuffer_depth_only_setup(const int size[2])
   }
 
   if (g_select_buffer.texture_depth == NULL) {
-    g_select_buffer.texture_depth = GPU_texture_create_2d(
-        "select_depth", size[0], size[1], 1, GPU_DEPTH_COMPONENT24, NULL);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    g_select_buffer.texture_depth = GPU_texture_create_2d_ex(
+        "select_depth", size[0], size[1], 1, GPU_DEPTH_COMPONENT24, usage, NULL);
 
     GPU_framebuffer_texture_attach(
         g_select_buffer.framebuffer_depth_only, g_select_buffer.texture_depth, 0, 0);
@@ -2473,6 +2481,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
 
   /* Init engines */
   drw_engines_init();
+  DRW_pointcloud_init();
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -2654,6 +2663,7 @@ void DRW_draw_depth_loop(struct Depsgraph *depsgraph,
 
   /* Init engines */
   drw_engines_init();
+  DRW_pointcloud_init();
   DRW_curves_init(DST.vmempool);
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
@@ -2795,7 +2805,7 @@ void DRW_draw_depth_object(
 
   GPU_matrix_projection_set(rv3d->winmat);
   GPU_matrix_set(rv3d->viewmat);
-  GPU_matrix_mul(object->obmat);
+  GPU_matrix_mul(object->object_to_world);
 
   /* Setup frame-buffer. */
   GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
@@ -2815,11 +2825,11 @@ void DRW_draw_depth_object(
   const bool use_clipping_planes = RV3D_CLIPPING_ENABLED(v3d, rv3d);
   if (use_clipping_planes) {
     GPU_clip_distances(6);
-    ED_view3d_clipping_local(rv3d, object->obmat);
+    ED_view3d_clipping_local(rv3d, object->object_to_world);
     for (int i = 0; i < 6; i++) {
       copy_v4_v4(planes.world[i], rv3d->clip_local[i]);
     }
-    copy_m4_m4(planes.ModelMatrix, object->obmat);
+    copy_m4_m4(planes.ClipModelMatrix, object->object_to_world);
   }
 
   drw_batch_cache_validate(object);
@@ -3068,6 +3078,7 @@ void DRW_engines_free(void)
   GPU_FRAMEBUFFER_FREE_SAFE(g_select_buffer.framebuffer_depth_only);
 
   DRW_shaders_free();
+  DRW_pointcloud_free();
   DRW_curves_free();
   DRW_volume_free();
   DRW_shape_cache_free();
@@ -3121,10 +3132,9 @@ void DRW_render_context_enable(Render *render)
 
 void DRW_render_context_disable(Render *render)
 {
-  GPU_render_end();
-
   if (GPU_use_main_context_workaround()) {
     DRW_opengl_context_disable();
+    GPU_render_end();
     GPU_context_main_unlock();
     return;
   }
@@ -3134,11 +3144,14 @@ void DRW_render_context_disable(Render *render)
   if (re_gl_context != NULL) {
     void *re_gpu_context = NULL;
     re_gpu_context = RE_gpu_context_get(render);
+    /* GPU rendering may occur during context disable. */
     DRW_gpu_render_context_disable(re_gpu_context);
+    GPU_render_end();
     DRW_opengl_render_context_disable(re_gl_context);
   }
   else {
     DRW_opengl_context_disable();
+    GPU_render_end();
   }
 }
 

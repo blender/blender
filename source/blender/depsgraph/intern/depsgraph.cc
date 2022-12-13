@@ -58,6 +58,7 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
       ctime(BKE_scene_ctime_get(scene)),
       scene_cow(nullptr),
       is_active(false),
+      use_visibility_optimization(true),
       is_evaluating(false),
       is_render_pipeline_depsgraph(false),
       use_editors_update(false)
@@ -333,4 +334,10 @@ void DEG_make_inactive(struct Depsgraph *depsgraph)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   deg_graph->is_active = false;
+}
+
+void DEG_disable_visibility_optimization(struct Depsgraph *depsgraph)
+{
+  deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
+  deg_graph->use_visibility_optimization = false;
 }

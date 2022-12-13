@@ -76,7 +76,7 @@ class GHOST_System : public GHOST_ISystem {
   GHOST_ITimerTask *installTimer(uint64_t delay,
                                  uint64_t interval,
                                  GHOST_TimerProcPtr timerProc,
-                                 GHOST_TUserDataPtr userData = NULL);
+                                 GHOST_TUserDataPtr userData = nullptr);
 
   /**
    * Removes a timer.

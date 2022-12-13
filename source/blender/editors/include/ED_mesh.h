@@ -142,12 +142,15 @@ struct UvElementMap *BM_uv_element_map_create(struct BMesh *bm,
                                               bool use_seams,
                                               bool do_islands);
 void BM_uv_element_map_free(struct UvElementMap *element_map);
-struct UvElement *BM_uv_element_get(const struct UvElementMap *map,
+struct UvElement *BM_uv_element_get(const struct UvElementMap *element_map,
                                     const struct BMFace *efa,
                                     const struct BMLoop *l);
-struct UvElement *BM_uv_element_get_head(struct UvElementMap *map, struct UvElement *child);
+struct UvElement *BM_uv_element_get_head(struct UvElementMap *element_map,
+                                         struct UvElement *child);
+int BM_uv_element_get_unique_index(struct UvElementMap *element_map, struct UvElement *child);
 
 struct UvElement **BM_uv_element_map_ensure_head_table(struct UvElementMap *element_map);
+int *BM_uv_element_map_ensure_unique_index(struct UvElementMap *element_map);
 
 /**
  * Can we edit UV's for this mesh?
@@ -548,6 +551,8 @@ void ED_mesh_polys_remove(struct Mesh *mesh, struct ReportList *reports, int cou
 void ED_mesh_geometry_clear(struct Mesh *mesh);
 
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, bool calc_edges, bool calc_edges_loose);
+
+bool ED_mesh_edge_is_loose(const struct Mesh *mesh, int index);
 
 void ED_mesh_uv_ensure(struct Mesh *me, const char *name);
 int ED_mesh_uv_add(

@@ -323,6 +323,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_deform.h"
 #  include "BKE_effect.h"
 #  include "BKE_global.h"
+#  include "BKE_gpencil_modifier.h"
 #  include "BKE_key.h"
 #  include "BKE_material.h"
 #  include "BKE_mesh.h"
@@ -356,7 +357,8 @@ static void rna_Object_internal_update_draw(Main *UNUSED(bmain),
 static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   /* don't use compat so we get predictable rotation */
-  BKE_object_apply_mat4((Object *)ptr->owner_id, ((Object *)ptr->owner_id)->obmat, false, true);
+  BKE_object_apply_mat4(
+      (Object *)ptr->owner_id, ((Object *)ptr->owner_id)->object_to_world, false, true);
   rna_Object_internal_update(bmain, scene, ptr);
 }
 
@@ -407,7 +409,7 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
   Object *ob = (Object *)ptr->owner_id;
   float local_mat[4][4];
 
-  /* Localspace matrix is truly relative to the parent,
+  /* Local-space matrix is truly relative to the parent,
    * but parameters stored in object are relative to parentinv matrix.
    * Undo the parent inverse part before applying it as local matrix. */
   if (ob->parent) {
@@ -782,7 +784,7 @@ static void rna_Object_dup_collection_set(PointerRNA *ptr,
   else {
     BKE_report(NULL,
                RPT_ERROR,
-               "Cannot set instance-collection as object belongs in group being instanced, thus "
+               "Cannot set instance-collection as object belongs in collection being instanced, thus "
                "causing a cycle");
   }
 }
@@ -1948,6 +1950,8 @@ bool rna_Object_greasepencil_modifiers_override_apply(Main *bmain,
   GpencilModifierData *mod_dst = ED_object_gpencil_modifier_add(
       NULL, bmain, NULL, ob_dst, mod_src->name, mod_src->type);
 
+  BKE_gpencil_modifier_copydata(mod_src, mod_dst);
+
   BLI_remlink(&ob_dst->greasepencil_modifiers, mod_dst);
   /* This handles NULL anchor as expected by adding at head of list. */
   BLI_insertlinkafter(&ob_dst->greasepencil_modifiers, mod_anchor, mod_dst);
@@ -2233,6 +2237,11 @@ static void rna_object_lineart_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 {
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->owner_id);
+}
+
+static char *rna_ObjectLineArt_path(const PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("lineart");
 }
 
 static bool mesh_symmetry_get_common(PointerRNA *ptr, const eMeshSymmetryType sym)
@@ -2933,6 +2942,7 @@ static void rna_def_object_lineart(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "ObjectLineArt", NULL);
   RNA_def_struct_ui_text(srna, "Object Line Art", "Object line art settings");
   RNA_def_struct_sdna(srna, "ObjectLineArt");
+  RNA_def_struct_path_func(srna, "rna_ObjectLineArt_path");
 
   prop = RNA_def_property(srna, "usage", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_feature_line_usage_items);
@@ -3235,6 +3245,7 @@ static void rna_def_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "active_material_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "actcol");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_int_funcs(prop,
                              "rna_Object_active_material_index_get",
@@ -3390,7 +3401,7 @@ static void rna_def_object(BlenderRNA *brna)
 
   /* matrix */
   prop = RNA_def_property(srna, "matrix_world", PROP_FLOAT, PROP_MATRIX);
-  RNA_def_property_float_sdna(prop, NULL, "obmat");
+  RNA_def_property_float_sdna(prop, NULL, "object_to_world");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
@@ -3739,15 +3750,6 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_GPencil_update");
 
   /* pose */
-  prop = RNA_def_property(srna, "pose_library", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, NULL, "poselib");
-  RNA_def_property_struct_type(prop, "Action");
-  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
-  RNA_def_property_ui_text(prop,
-                           "Pose Library",
-                           "Deprecated, will be removed in Blender 3.3. "
-                           "Action used as a pose library for armatures");
-
   prop = RNA_def_property(srna, "pose", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "pose");
   RNA_def_property_struct_type(prop, "Pose");

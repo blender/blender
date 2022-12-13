@@ -280,6 +280,7 @@ struct DensityAddOperationExecutor {
     add_inputs.transforms = &transforms_;
     add_inputs.surface = surface_orig_;
     add_inputs.corner_normals_su = corner_normals_su;
+    add_inputs.surface_looptris = surface_looptris_orig;
     add_inputs.reverse_uv_sampler = &reverse_uv_sampler;
     add_inputs.old_roots_kdtree = self_->original_curve_roots_kdtree_;
 

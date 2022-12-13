@@ -129,7 +129,7 @@ bool bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
   const bool keep_transform = false;
 
   if (par && is_parent_space) {
-    mul_m4_m4m4(ob->obmat, par->obmat, ob->obmat);
+    mul_m4_m4m4(ob->object_to_world, par->object_to_world, ob->object_to_world);
   }
 
   bool ok = ED_object_parent_set(
@@ -348,10 +348,10 @@ std::string bc_replace_string(std::string data,
 void bc_match_scale(Object *ob, UnitConverter &bc_unit, bool scale_to_scene)
 {
   if (scale_to_scene) {
-    mul_m4_m4m4(ob->obmat, bc_unit.get_scale(), ob->obmat);
+    mul_m4_m4m4(ob->object_to_world, bc_unit.get_scale(), ob->object_to_world);
   }
-  mul_m4_m4m4(ob->obmat, bc_unit.get_rotation(), ob->obmat);
-  BKE_object_apply_mat4(ob, ob->obmat, false, false);
+  mul_m4_m4m4(ob->object_to_world, bc_unit.get_rotation(), ob->object_to_world);
+  BKE_object_apply_mat4(ob, ob->object_to_world, false, false);
 }
 
 void bc_match_scale(std::vector<Object *> *objects_done,

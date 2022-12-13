@@ -56,7 +56,7 @@ void gpu_parallel_active_index_array_impl(const uint num_states,
   const uint is_active = (state_index < num_states) ? is_active_op(state_index) : 0;
 #else /* !__KERNEL__ONEAPI__ */
 #  ifndef __KERNEL_METAL__
-template<uint blocksize, typename IsActiveOp>
+template<typename IsActiveOp>
 __device__
 #  endif
     void
@@ -78,6 +78,10 @@ __device__
                                           IsActiveOp is_active_op)
 {
   extern ccl_gpu_shared int warp_offset[];
+
+#    ifndef __KERNEL_METAL__
+  const uint blocksize = ccl_gpu_block_dim_x;
+#    endif
 
   const uint thread_index = ccl_gpu_thread_idx_x;
   const uint thread_warp = thread_index % ccl_gpu_warp_size;
@@ -149,7 +153,7 @@ __device__
 
 #ifdef __KERNEL_METAL__
 
-#  define gpu_parallel_active_index_array(dummy, num_states, indices, num_indices, is_active_op) \
+#  define gpu_parallel_active_index_array(num_states, indices, num_indices, is_active_op) \
     const uint is_active = (ccl_gpu_global_id_x() < num_states) ? \
                                is_active_op(ccl_gpu_global_id_x()) : \
                                0; \
@@ -167,15 +171,13 @@ __device__
                                          simdgroup_offset)
 #elif defined(__KERNEL_ONEAPI__)
 
-#  define gpu_parallel_active_index_array( \
-      blocksize, num_states, indices, num_indices, is_active_op) \
+#  define gpu_parallel_active_index_array(num_states, indices, num_indices, is_active_op) \
     gpu_parallel_active_index_array_impl(num_states, indices, num_indices, is_active_op)
 
 #else
 
-#  define gpu_parallel_active_index_array( \
-      blocksize, num_states, indices, num_indices, is_active_op) \
-    gpu_parallel_active_index_array_impl<blocksize>(num_states, indices, num_indices, is_active_op)
+#  define gpu_parallel_active_index_array(num_states, indices, num_indices, is_active_op) \
+    gpu_parallel_active_index_array_impl(num_states, indices, num_indices, is_active_op)
 
 #endif
 

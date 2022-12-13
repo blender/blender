@@ -1235,52 +1235,55 @@ static PyMethodDef py_bvhtree_methods[] = {
 };
 
 PyTypeObject PyBVHTree_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "BVHTree", /* tp_name */
-    sizeof(PyBVHTree),                        /* tp_basicsize */
-    0,                                        /* tp_itemsize */
-    /* methods */
-    (destructor)py_bvhtree__tp_dealloc, /* tp_dealloc */
-    (printfunc)NULL,                    /* tp_print */
-    NULL,                               /* tp_getattr */
-    NULL,                               /* tp_setattr */
-    NULL,                               /* tp_compare */
-    NULL,                               /* tp_repr */
-    NULL,                               /* tp_as_number */
-    NULL,                               /* tp_as_sequence */
-    NULL,                               /* tp_as_mapping */
-    NULL,                               /* tp_hash */
-    NULL,                               /* tp_call */
-    NULL,                               /* tp_str */
-    NULL,                               /* tp_getattro */
-    NULL,                               /* tp_setattro */
-    NULL,                               /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                 /* tp_flags */
-    NULL,                               /* Documentation string */
-    NULL,                               /* tp_traverse */
-    NULL,                               /* tp_clear */
-    NULL,                               /* tp_richcompare */
-    0,                                  /* tp_weaklistoffset */
-    NULL,                               /* tp_iter */
-    NULL,                               /* tp_iternext */
-    py_bvhtree_methods,                 /* tp_methods */
-    NULL,                               /* tp_members */
-    NULL,                               /* tp_getset */
-    NULL,                               /* tp_base */
-    NULL,                               /* tp_dict */
-    NULL,                               /* tp_descr_get */
-    NULL,                               /* tp_descr_set */
-    0,                                  /* tp_dictoffset */
-    NULL,                               /* tp_init */
-    (allocfunc)PyType_GenericAlloc,     /* tp_alloc */
-    (newfunc)PyType_GenericNew,         /* tp_new */
-    (freefunc)0,                        /* tp_free */
-    NULL,                               /* tp_is_gc */
-    NULL,                               /* tp_bases */
-    NULL,                               /* tp_mro */
-    NULL,                               /* tp_cache */
-    NULL,                               /* tp_subclasses */
-    NULL,                               /* tp_weaklist */
-    (destructor)NULL,                   /* tp_del */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /*tp_name*/ "BVHTree",
+    /*tp_basicsize*/ sizeof(PyBVHTree),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)py_bvhtree__tp_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ NULL,
+    /*tp_setattr*/ NULL,
+    /*tp_as_async*/ NULL,
+    /*tp_repr*/ NULL,
+    /*tp_as_number*/ NULL,
+    /*tp_as_sequence*/ NULL,
+    /*tp_as_mapping*/ NULL,
+    /*tp_hash*/ NULL,
+    /*tp_call*/ NULL,
+    /*tp_str*/ NULL,
+    /*tp_getattro*/ NULL,
+    /*tp_setattro*/ NULL,
+    /*tp_as_buffer*/ NULL,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT,
+    /*tp_doc*/ NULL,
+    /*tp_traverse*/ NULL,
+    /*tp_clear*/ NULL,
+    /*tp_richcompare*/ NULL,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ NULL,
+    /*tp_iternext*/ NULL,
+    /*tp_methods*/ py_bvhtree_methods,
+    /*tp_members*/ NULL,
+    /*tp_getset*/ NULL,
+    /*tp_base*/ NULL,
+    /*tp_dict*/ NULL,
+    /*tp_descr_get*/ NULL,
+    /*tp_descr_set*/ NULL,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ NULL,
+    /*tp_alloc*/ (allocfunc)PyType_GenericAlloc,
+    /*tp_new*/ (newfunc)PyType_GenericNew,
+    /*tp_free*/ (freefunc)0,
+    /*tp_is_gc*/ NULL,
+    /*tp_bases*/ NULL,
+    /*tp_mro*/ NULL,
+    /*tp_cache*/ NULL,
+    /*tp_subclasses*/ NULL,
+    /*tp_weaklist*/ NULL,
+    /*tp_del*/ (destructor)NULL,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ NULL,
+    /*tp_vectorcall*/ NULL,
 };
 
 /* -------------------------------------------------------------------- */
@@ -1290,14 +1293,14 @@ PyDoc_STRVAR(py_bvhtree_doc,
              "BVH tree structures for proximity searches and ray casts on geometry.");
 static struct PyModuleDef bvhtree_moduledef = {
     PyModuleDef_HEAD_INIT,
-    "mathutils.bvhtree", /* m_name */
-    py_bvhtree_doc,      /* m_doc */
-    0,                   /* m_size */
-    NULL,                /* m_methods */
-    NULL,                /* m_slots */
-    NULL,                /* m_traverse */
-    NULL,                /* m_clear */
-    NULL,                /* m_free */
+    /*m_name*/ "mathutils.bvhtree",
+    /*m_doc*/ py_bvhtree_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ NULL,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyMODINIT_FUNC PyInit_mathutils_bvhtree(void)

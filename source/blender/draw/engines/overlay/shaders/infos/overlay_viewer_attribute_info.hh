@@ -27,7 +27,7 @@ GPU_SHADER_CREATE_INFO(overlay_viewer_attribute_pointcloud)
     .fragment_source("overlay_viewer_attribute_frag.glsl")
     .fragment_out(0, Type::VEC4, "out_color")
     .fragment_out(1, Type::VEC4, "lineOutput")
-    .vertex_in(3, Type::VEC4, "attribute_value")
+    .sampler(3, ImageType::FLOAT_BUFFER, "attribute_tx")
     .vertex_out(overlay_viewer_attribute_iface)
     .additional_info("overlay_viewer_attribute_common", "draw_pointcloud");
 

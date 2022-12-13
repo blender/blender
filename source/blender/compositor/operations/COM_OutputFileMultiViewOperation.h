@@ -31,7 +31,7 @@ class OutputOpenExrSingleLayerMultiViewOperation : public OutputSingleLayerOpera
   void deinit_execution() override;
 };
 
-/* Writes inputs into OpenEXR multilayer channels. */
+/** Writes inputs into OpenEXR multi-layer channels. */
 class OutputOpenExrMultiLayerMultiViewOperation : public OutputOpenExrMultiLayerOperation {
  private:
  public:

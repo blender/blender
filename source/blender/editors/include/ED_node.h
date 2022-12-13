@@ -32,6 +32,7 @@ typedef enum {
   NODE_LEFT = 4,
   NODE_RIGHT = 8,
 } NodeBorder;
+ENUM_OPERATORS(NodeBorder, NODE_RIGHT)
 
 #define NODE_GRID_STEP_SIZE U.widget_unit /* Based on the grid nodes snap to. */
 #define NODE_EDGE_PAN_INSIDE_PAD 2
@@ -174,21 +175,4 @@ bool ED_space_node_color_sample(struct Main *bmain,
 
 #ifdef __cplusplus
 }
-#endif
-
-#ifdef __cplusplus
-
-/* node_relationships.cc */
-
-namespace blender::ed::space_node {
-
-void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region);
-/**
- * Assumes link with #NODE_LINKFLAG_HILITE set.
- */
-void node_insert_on_link_flags(Main &bmain, SpaceNode &snode);
-void node_insert_on_link_flags_clear(bNodeTree &node_tree);
-
-}  // namespace blender::ed::space_node
-
 #endif

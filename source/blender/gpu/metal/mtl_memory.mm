@@ -162,7 +162,7 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
   new_buffer->flag_in_use(true);
 
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
-  this->per_frame_allocation_count++;
+  per_frame_allocation_count_++;
 #endif
 
   return new_buffer;
@@ -266,7 +266,7 @@ void MTLBufferPool::update_memory_pools()
   printf("--- Allocation Stats ---\n");
   printf("  Num buffers processed in pool (this frame): %u\n", num_buffers_added);
 
-  uint framealloc = (uint)this->per_frame_allocation_count;
+  uint framealloc = (uint)per_frame_allocation_count_;
   printf("  Allocations in frame: %u\n", framealloc);
   printf("  Total Buffers allocated: %u\n", (uint)allocations_.size());
   printf("  Total Memory allocated: %u MB\n", (uint)total_allocation_bytes_ / (1024 * 1024));
@@ -297,7 +297,7 @@ void MTLBufferPool::update_memory_pools()
     ++value_iterator;
   }
 
-  this->per_frame_allocation_count = 0;
+  per_frame_allocation_count_ = 0;
 #endif
 
   /* Clear safe pools list */
@@ -432,7 +432,7 @@ void MTLSafeFreeList::decrement_reference()
   int ref_count = --reference_count_;
 
   if (ref_count == 0) {
-    MTLContext::get_global_memory_manager().push_completed_safe_list(this);
+    MTLContext::get_global_memory_manager()->push_completed_safe_list(this);
   }
   lock_.unlock();
 }
@@ -462,7 +462,6 @@ MTLBuffer::MTLBuffer(id<MTLDevice> mtl_device,
 
   metal_buffer_ = [device_ newBufferWithLength:aligned_alloc_size options:options];
   BLI_assert(metal_buffer_);
-  [metal_buffer_ retain];
 
   size_ = aligned_alloc_size;
   this->set_usage_size(size_);
@@ -504,7 +503,7 @@ gpu::MTLBuffer::~MTLBuffer()
 void gpu::MTLBuffer::free()
 {
   if (!is_external_) {
-    MTLContext::get_global_memory_manager().free_buffer(this);
+    MTLContext::get_global_memory_manager()->free_buffer(this);
   }
   else {
     if (metal_buffer_ != nil) {

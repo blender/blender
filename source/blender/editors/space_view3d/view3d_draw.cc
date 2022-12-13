@@ -631,7 +631,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
 
     immUniform1i("colors_len", 0); /* "simple" mode */
     immUniform1f("dash_width", 6.0f);
-    immUniform1f("dash_factor", 0.5f);
+    immUniform1f("udash_factor", 0.5f);
 
     /* outer line not to confuse with object selection */
     if (v3d->flag2 & V3D_LOCK_CAMERA) {
@@ -812,7 +812,7 @@ static void drawrenderborder(ARegion *region, View3D *v3d)
   immUniform1i("colors_len", 0); /* "simple" mode */
   immUniform4f("color", 1.0f, 0.25f, 0.25f, 1.0f);
   immUniform1f("dash_width", 6.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   imm_draw_box_wire_2d(shdr_pos,
                        v3d->render_border.xmin * region->winx,
@@ -1306,15 +1306,15 @@ static void draw_selected_name(
   char info[300];
   char *s = info;
 
-  s += sprintf(s, "(%d)", cfra);
+  s += BLI_sprintf(s, "(%d)", cfra);
 
   if ((ob == nullptr) || (ob->mode == OB_MODE_OBJECT)) {
     BKE_view_layer_synced_ensure(scene, view_layer);
     LayerCollection *layer_collection = BKE_view_layer_active_collection_get(view_layer);
-    s += sprintf(s,
-                 " %s%s",
-                 BKE_collection_ui_name_get(layer_collection->collection),
-                 (ob == nullptr) ? "" : " |");
+    s += BLI_sprintf(s,
+                     " %s%s",
+                     BKE_collection_ui_name_get(layer_collection->collection),
+                     (ob == nullptr) ? "" : " |");
   }
 
   /* Info can contain:
@@ -1407,12 +1407,12 @@ static void draw_selected_name(
   }
 
   if (markern) {
-    s += sprintf(s, " <%s>", markern);
+    s += BLI_sprintf(s, " <%s>", markern);
   }
 
   if (v3d->flag2 & V3D_SHOW_VIEWER) {
     if (!BLI_listbase_is_empty(&v3d->viewer_path.path)) {
-      s += sprintf(s, "%s", IFACE_(" (Viewer)"));
+      s += BLI_sprintf(s, "%s", IFACE_(" (Viewer)"));
     }
   }
 
@@ -1717,6 +1717,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                                  do_color_management,
                                  ofs,
                                  viewport);
+  DRW_cache_free_old_subdiv();
   GPU_matrix_pop_projection();
   GPU_matrix_pop();
 
@@ -1760,7 +1761,7 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      GPUOffScreen *ofs,
                                      GPUViewport *viewport)
 {
-  View3D v3d = {nullptr};
+  View3D v3d = blender::dna::shallow_zero_initialize();
   ARegion ar = {nullptr};
   RegionView3D rv3d = {{{0}}};
 
@@ -2010,7 +2011,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                              GPUOffScreen *ofs,
                                              char err_out[256])
 {
-  View3D v3d = {nullptr};
+  View3D v3d = blender::dna::shallow_zero_initialize();
   ARegion region = {nullptr};
   RegionView3D rv3d = {{{0}}};
 
@@ -2066,7 +2067,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
 
   rv3d.persp = RV3D_CAMOB;
 
-  copy_m4_m4(rv3d.viewinv, v3d.camera->obmat);
+  copy_m4_m4(rv3d.viewinv, v3d.camera->object_to_world);
   normalize_m4(rv3d.viewinv);
   invert_m4_m4(rv3d.viewmat, rv3d.viewinv);
 

@@ -34,9 +34,11 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
+#include "DNA_tracking_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BKE_action.h"
@@ -58,6 +60,7 @@
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
@@ -650,6 +653,15 @@ static void seq_speed_factor_fix_rna_path(Sequence *seq, ListBase *fcurves)
   MEM_freeN(path);
 }
 
+static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
+{
+  Scene *scene = (Scene *)user_data;
+  if (seq->type == SEQ_TYPE_META) {
+    SEQ_time_update_meta_strip_range(scene, seq);
+  }
+  return true;
+}
+
 static bool seq_speed_factor_set(Sequence *seq, void *user_data)
 {
   const Scene *scene = static_cast<const Scene *>(user_data);
@@ -1043,6 +1055,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList * /*reports*/)
         continue;
       }
       SEQ_for_each_callback(&ed->seqbase, seq_speed_factor_set, scene);
+      SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
     }
   }
 
@@ -1481,15 +1494,6 @@ static void version_node_tree_socket_id_delim(bNodeTree *ntree)
       version_node_socket_id_delim(socket);
     }
   }
-}
-
-static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
-{
-  Scene *scene = (Scene *)user_data;
-  if (seq->type == SEQ_TYPE_META) {
-    SEQ_time_update_meta_strip_range(scene, seq);
-  }
-  return true;
 }
 
 static bool version_merge_still_offsets(Sequence *seq, void * /*user_data*/)
@@ -2813,17 +2817,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
-
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
-      /* Make sure range of meta strips is correct.
-       * It was possible to save .blend file with incorrect state of meta strip
-       * range. The root cause is expected to be fixed, but need to ensure files
-       * with invalid meta strip range are corrected. */
-      if (ed != nullptr) {
-        SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
-      }
-    }
   }
 
   /* Special case to handle older in-development 3.1 files, before change from 3.0 branch gets
@@ -2931,6 +2924,21 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
+    LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
+      LISTBASE_FOREACH (Nurb *, nurb, &curve->nurb) {
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagu & CU_NURB_CYCLIC) {
+          nurb->flagu = CU_NURB_CYCLIC;
+          BKE_nurb_knot_calc_u(nurb);
+        }
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagv & CU_NURB_CYCLIC) {
+          nurb->flagv = CU_NURB_CYCLIC;
+          BKE_nurb_knot_calc_v(nurb);
+        }
+      }
+    }
+
     /* Initialize the bone wireframe opacity setting. */
     if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "bone_wire_alpha")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
@@ -3006,32 +3014,35 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Alter NURBS knot mode flags to fit new modes. */
     LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
       LISTBASE_FOREACH (Nurb *, nurb, &curve->nurb) {
-        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
-        if (nurb->flagu & CU_NURB_CYCLIC) {
-          nurb->flagu = CU_NURB_CYCLIC;
-        }
         /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if combined. */
-        else if (nurb->flagu & CU_NURB_BEZIER && nurb->flagu & CU_NURB_ENDPOINT) {
+        if (nurb->flagu & CU_NURB_BEZIER && nurb->flagu & CU_NURB_ENDPOINT) {
           nurb->flagu &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
           BKE_nurb_knot_calc_u(nurb);
         }
+        else if (nurb->flagu & CU_NURB_CYCLIC) {
+          /* In 45d038181ae2 cyclic bezier support is added, but CU_NURB_ENDPOINT still ignored. */
+          nurb->flagu = CU_NURB_CYCLIC | (nurb->flagu & CU_NURB_BEZIER);
+          BKE_nurb_knot_calc_u(nurb);
+        }
         /* Bezier NURBS of order 3 were clamped to first control point. */
-        else if (nurb->orderu == 3 && (nurb->flagu & CU_NURB_BEZIER)) {
+        if (nurb->orderu == 3 && (nurb->flagu & CU_NURB_BEZIER)) {
           nurb->flagu |= CU_NURB_ENDPOINT;
+          BKE_nurb_knot_calc_u(nurb);
         }
-
-        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
-        if (nurb->flagv & CU_NURB_CYCLIC) {
-          nurb->flagv = CU_NURB_CYCLIC;
-        }
-        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if used together. */
-        else if (nurb->flagv & CU_NURB_BEZIER && nurb->flagv & CU_NURB_ENDPOINT) {
+        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if combined. */
+        if (nurb->flagv & CU_NURB_BEZIER && nurb->flagv & CU_NURB_ENDPOINT) {
           nurb->flagv &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
           BKE_nurb_knot_calc_v(nurb);
         }
+        else if (nurb->flagv & CU_NURB_CYCLIC) {
+          /* In 45d038181ae2 cyclic bezier support is added, but CU_NURB_ENDPOINT still ignored. */
+          nurb->flagv = CU_NURB_CYCLIC | (nurb->flagv & CU_NURB_BEZIER);
+          BKE_nurb_knot_calc_v(nurb);
+        }
         /* Bezier NURBS of order 3 were clamped to first control point. */
-        else if (nurb->orderv == 3 && (nurb->flagv & CU_NURB_BEZIER)) {
+        if (nurb->orderv == 3 && (nurb->flagv & CU_NURB_BEZIER)) {
           nurb->flagv |= CU_NURB_ENDPOINT;
+          BKE_nurb_knot_calc_v(nurb);
         }
       }
     }
@@ -3653,6 +3664,50 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 304, 6)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != GEO_NODE_SAMPLE_CURVE) {
+          continue;
+        }
+        static_cast<NodeGeometryCurveSample *>(node->storage)->use_all_curves = true;
+        static_cast<NodeGeometryCurveSample *>(node->storage)->data_type = CD_PROP_FLOAT;
+        bNodeSocket *curve_socket = nodeFindSocket(node, SOCK_IN, "Curve");
+        BLI_assert(curve_socket != nullptr);
+        STRNCPY(curve_socket->name, "Curves");
+        STRNCPY(curve_socket->identifier, "Curves");
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 1)) {
+    /* Reset edge visibility flag, since the base is meant to be "true" for original meshes. */
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      for (MEdge &edge : mesh->edges_for_write()) {
+        edge.flag |= ME_EDGEDRAW;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 2)) {
+    LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+      MovieTracking *tracking = &clip->tracking;
+
+      const float frame_center_x = (float(clip->lastsize[0])) / 2;
+      const float frame_center_y = float(clip->lastsize[1]) / 2;
+
+      tracking->camera.principal_point[0] = (tracking->camera.principal_legacy[0] -
+                                             frame_center_x) /
+                                            frame_center_x;
+      tracking->camera.principal_point[1] = (tracking->camera.principal_legacy[1] -
+                                             frame_center_y) /
+                                            frame_center_y;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -3664,5 +3719,18 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_socket_name(ntree, GEO_NODE_COLLECTION_INFO, "Geometry", "Instances");
+      }
+    }
+
+    /* UVSeam fixing distance. */
+    if (!DNA_struct_elem_find(fd->filesdna, "Image", "short", "seam_margin")) {
+      LISTBASE_FOREACH (Image *, image, &bmain->images) {
+        image->seam_margin = 8;
+      }
+    }
   }
 }

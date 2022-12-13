@@ -48,6 +48,11 @@ class CurveOfPointInput final : public bke::CurvesFieldInput {
     }
     return false;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  {
+    return ATTR_DOMAIN_POINT;
+  }
 };
 
 class PointIndexInCurveInput final : public bke::CurvesFieldInput {
@@ -85,6 +90,11 @@ class PointIndexInCurveInput final : public bke::CurvesFieldInput {
       return true;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/)
+  {
+    return ATTR_DOMAIN_POINT;
   }
 };
 

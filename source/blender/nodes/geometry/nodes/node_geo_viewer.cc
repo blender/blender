@@ -135,8 +135,8 @@ void register_node_type_geo_viewer()
   geo_node_type_base(&ntype, GEO_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT);
   node_type_storage(
       &ntype, "NodeGeometryViewer", node_free_standard_storage, node_copy_standard_storage);
-  node_type_update(&ntype, file_ns::node_update);
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.updatefunc = file_ns::node_update;
+  ntype.initfunc = file_ns::node_init;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_layout;
   ntype.draw_buttons_ex = file_ns::node_layout_ex;

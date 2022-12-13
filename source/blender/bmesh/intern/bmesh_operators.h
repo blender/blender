@@ -8,6 +8,10 @@
 
 /* See comments in `intern/bmesh_opdefines.c` for documentation of specific operators. */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*--------defines/enumerations for specific operators-------*/
 
 /* Quad `innervert` values. */
@@ -215,3 +219,7 @@ void BM_mesh_calc_uvs_cone(BMesh *bm,
 void BM_mesh_calc_uvs_cube(BMesh *bm, short oflag);
 
 #include "intern/bmesh_operator_api_inline.h"
+
+#ifdef __cplusplus
+}
+#endif

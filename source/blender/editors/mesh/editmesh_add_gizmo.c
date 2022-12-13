@@ -316,8 +316,8 @@ static int add_primitive_cube_gizmo_exec(bContext *C, wmOperator *op)
     PropertyRNA *prop_matrix = RNA_struct_find_property(op->ptr, "matrix");
     if (RNA_property_is_set(op->ptr, prop_matrix)) {
       RNA_property_float_get_array(op->ptr, prop_matrix, &matrix[0][0]);
-      invert_m4_m4(obedit->imat, obedit->obmat);
-      mul_m4_m4m4(matrix, obedit->imat, matrix);
+      invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
+      mul_m4_m4m4(matrix, obedit->world_to_object, matrix);
     }
     else {
       /* For the first update the widget may not set the matrix. */

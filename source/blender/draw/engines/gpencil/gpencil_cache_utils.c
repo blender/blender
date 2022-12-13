@@ -39,9 +39,9 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd, Object *ob)
 
   tgp_ob->layers.first = tgp_ob->layers.last = NULL;
   tgp_ob->vfx.first = tgp_ob->vfx.last = NULL;
-  tgp_ob->camera_z = dot_v3v3(pd->camera_z_axis, ob->obmat[3]);
+  tgp_ob->camera_z = dot_v3v3(pd->camera_z_axis, ob->object_to_world[3]);
   tgp_ob->is_drawmode3d = (gpd->draw_mode == GP_DRAWMODE_3D) || pd->draw_depth_only;
-  tgp_ob->object_scale = mat4_to_scale(ob->obmat);
+  tgp_ob->object_scale = mat4_to_scale(ob->object_to_world);
 
   /* Check if any material with holdout flag enabled. */
   tgp_ob->do_mat_holdout = false;
@@ -71,7 +71,7 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd, Object *ob)
   add_v3_fl(size, 1e-8f);
   rescale_m4(mat, size);
   /* BBox space to World. */
-  mul_m4_m4m4(mat, ob->obmat, mat);
+  mul_m4_m4m4(mat, ob->object_to_world, mat);
   if (DRW_view_is_persp_get(NULL)) {
     /* BBox center to camera vector. */
     sub_v3_v3v3(tgp_ob->plane_normal, pd->camera_pos, mat[3]);
@@ -96,9 +96,9 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd, Object *ob)
   unit_m4(tgp_ob->plane_mat);
   copy_v3_v3(tgp_ob->plane_mat[2], tgp_ob->plane_normal);
   orthogonalize_m4(tgp_ob->plane_mat, 2);
-  mul_mat3_m4_v3(ob->obmat, size);
+  mul_mat3_m4_v3(ob->object_to_world, size);
   float radius = len_v3(size);
-  mul_m4_v3(ob->obmat, center);
+  mul_m4_v3(ob->object_to_world, center);
   rescale_m4(tgp_ob->plane_mat, (float[3]){radius, radius, radius});
   copy_v3_v3(tgp_ob->plane_mat[3], center);
 

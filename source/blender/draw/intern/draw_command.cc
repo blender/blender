@@ -30,6 +30,11 @@ void ShaderBind::execute(RecordingState &state) const
   }
 }
 
+void FramebufferBind::execute() const
+{
+  GPU_framebuffer_bind(*framebuffer);
+}
+
 void ResourceBind::execute() const
 {
   if (slot == -1) {
@@ -39,6 +44,9 @@ void ResourceBind::execute() const
     case ResourceBind::Type::Sampler:
       GPU_texture_bind_ex(is_reference ? *texture_ref : texture, sampler, slot, false);
       break;
+    case ResourceBind::Type::BufferSampler:
+      GPU_vertbuf_bind_as_texture(is_reference ? *vertex_buf_ref : vertex_buf, slot);
+      break;
     case ResourceBind::Type::Image:
       GPU_texture_image_bind(is_reference ? *texture_ref : texture, slot);
       break;
@@ -47,6 +55,12 @@ void ResourceBind::execute() const
       break;
     case ResourceBind::Type::StorageBuf:
       GPU_storagebuf_bind(is_reference ? *storage_buf_ref : storage_buf, slot);
+      break;
+    case ResourceBind::Type::UniformAsStorageBuf:
+      GPU_uniformbuf_bind_as_ssbo(is_reference ? *uniform_buf_ref : uniform_buf, slot);
+      break;
+    case ResourceBind::Type::VertexAsStorageBuf:
+      GPU_vertbuf_bind_as_ssbo(is_reference ? *vertex_buf_ref : vertex_buf, slot);
       break;
   }
 }
@@ -153,6 +167,12 @@ void Clear::execute() const
   GPU_framebuffer_clear(fb, (eGPUFrameBufferBits)clear_channels, color, depth, stencil);
 }
 
+void ClearMulti::execute() const
+{
+  GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+  GPU_framebuffer_multi_clear(fb, (const float(*)[4])colors);
+}
+
 void StateSet::execute(RecordingState &recording_state) const
 {
   /**
@@ -161,7 +181,10 @@ void StateSet::execute(RecordingState &recording_state) const
    */
   BLI_assert(DST.state_lock == 0);
 
-  if (!assign_if_different(recording_state.pipeline_state, new_state)) {
+  bool state_changed = assign_if_different(recording_state.pipeline_state, new_state);
+  bool clip_changed = assign_if_different(recording_state.clip_plane_count, clip_plane_count);
+
+  if (!state_changed && !clip_changed) {
     return;
   }
 
@@ -185,12 +208,7 @@ void StateSet::execute(RecordingState &recording_state) const
   }
 
   /* TODO: this should be part of shader state. */
-  if (new_state & DRW_STATE_CLIP_PLANES) {
-    GPU_clip_distances(recording_state.view_clip_plane_count);
-  }
-  else {
-    GPU_clip_distances(0);
-  }
+  GPU_clip_distances(recording_state.clip_plane_count);
 
   if (new_state & DRW_STATE_IN_FRONT_SELECT) {
     /* XXX `GPU_depth_range` is not a perfect solution
@@ -229,6 +247,12 @@ std::string ShaderBind::serialize() const
   return std::string(".shader_bind(") + GPU_shader_get_name(shader) + ")";
 }
 
+std::string FramebufferBind::serialize() const
+{
+  return std::string(".framebuffer_bind(") +
+         (*framebuffer == nullptr ? "nullptr" : GPU_framebuffer_get_name(*framebuffer)) + ")";
+}
+
 std::string ResourceBind::serialize() const
 {
   switch (type) {
@@ -236,6 +260,9 @@ std::string ResourceBind::serialize() const
       return std::string(".bind_texture") + (is_reference ? "_ref" : "") + "(" +
              std::to_string(slot) +
              (sampler != GPU_SAMPLER_MAX ? ", sampler=" + std::to_string(sampler) : "") + ")";
+    case Type::BufferSampler:
+      return std::string(".bind_vertbuf_as_texture") + (is_reference ? "_ref" : "") + "(" +
+             std::to_string(slot) + ")";
     case Type::Image:
       return std::string(".bind_image") + (is_reference ? "_ref" : "") + "(" +
              std::to_string(slot) + ")";
@@ -244,6 +271,12 @@ std::string ResourceBind::serialize() const
              std::to_string(slot) + ")";
     case Type::StorageBuf:
       return std::string(".bind_storage_buf") + (is_reference ? "_ref" : "") + "(" +
+             std::to_string(slot) + ")";
+    case Type::UniformAsStorageBuf:
+      return std::string(".bind_uniform_as_ssbo") + (is_reference ? "_ref" : "") + "(" +
+             std::to_string(slot) + ")";
+    case Type::VertexAsStorageBuf:
+      return std::string(".bind_vertbuf_as_ssbo") + (is_reference ? "_ref" : "") + "(" +
              std::to_string(slot) + ")";
     default:
       BLI_assert_unreachable();
@@ -387,7 +420,7 @@ std::string DrawMulti::serialize(std::string line_prefix) const
     intptr_t offset = grp.start;
 
     if (grp.back_proto_len > 0) {
-      for (DrawPrototype &proto : prototypes.slice({offset, grp.back_proto_len})) {
+      for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.back_proto_len})) {
         BLI_assert(proto.group_id == group_index);
         ResourceHandle handle(proto.resource_handle);
         BLI_assert(handle.has_inverted_handedness());
@@ -399,7 +432,7 @@ std::string DrawMulti::serialize(std::string line_prefix) const
     }
 
     if (grp.front_proto_len > 0) {
-      for (DrawPrototype &proto : prototypes.slice({offset, grp.front_proto_len})) {
+      for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.front_proto_len})) {
         BLI_assert(proto.group_id == group_index);
         ResourceHandle handle(proto.resource_handle);
         BLI_assert(!handle.has_inverted_handedness());
@@ -460,6 +493,15 @@ std::string Clear::serialize() const
     ss << "stencil=0b" << std::bitset<8>(stencil) << ")";
   }
   return std::string(".clear(") + ss.str() + ")";
+}
+
+std::string ClearMulti::serialize() const
+{
+  std::stringstream ss;
+  for (float4 color : Span<float4>(colors, colors_len)) {
+    ss << color << ", ";
+  }
+  return std::string(".clear_multi(colors={") + ss.str() + "})";
 }
 
 std::string StateSet::serialize() const
@@ -537,7 +579,9 @@ void DrawCommandBuf::bind(RecordingState &state,
 void DrawMultiBuf::bind(RecordingState &state,
                         Vector<Header, 0> &headers,
                         Vector<Undetermined, 0> &commands,
-                        VisibilityBuf &visibility_buf)
+                        VisibilityBuf &visibility_buf,
+                        int visibility_word_per_draw,
+                        int view_len)
 {
   UNUSED_VARS(headers, commands);
 
@@ -577,6 +621,8 @@ void DrawMultiBuf::bind(RecordingState &state,
     GPUShader *shader = DRW_shader_draw_command_generate_get();
     GPU_shader_bind(shader);
     GPU_shader_uniform_1i(shader, "prototype_len", prototype_count_);
+    GPU_shader_uniform_1i(shader, "visibility_word_per_draw", visibility_word_per_draw);
+    GPU_shader_uniform_1i(shader, "view_shift", log2_ceil_u(view_len));
     GPU_storagebuf_bind(group_buf_, GPU_shader_get_ssbo(shader, "group_buf"));
     GPU_storagebuf_bind(visibility_buf, GPU_shader_get_ssbo(shader, "visibility_buf"));
     GPU_storagebuf_bind(prototype_buf_, GPU_shader_get_ssbo(shader, "prototype_buf"));

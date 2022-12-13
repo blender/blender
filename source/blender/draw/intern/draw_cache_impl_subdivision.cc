@@ -70,6 +70,7 @@ enum {
   SHADER_BUFFER_TRIS_MULTIPLE_MATERIALS,
   SHADER_BUFFER_NORMALS_ACCUMULATE,
   SHADER_BUFFER_NORMALS_FINALIZE,
+  SHADER_BUFFER_CUSTOM_NORMALS_FINALIZE,
   SHADER_PATCH_EVALUATION,
   SHADER_PATCH_EVALUATION_FVAR,
   SHADER_PATCH_EVALUATION_FACE_DOTS,
@@ -87,6 +88,10 @@ enum {
 };
 
 static GPUShader *g_subdiv_shaders[NUM_SHADERS];
+
+#define SHADER_CUSTOM_DATA_INTERP_MAX_DIMENSIONS 4
+static GPUShader
+    *g_subdiv_custom_data_shaders[SHADER_CUSTOM_DATA_INTERP_MAX_DIMENSIONS][GPU_COMP_MAX];
 
 static const char *get_shader_code(int shader_type)
 {
@@ -108,7 +113,8 @@ static const char *get_shader_code(int shader_type)
     case SHADER_BUFFER_NORMALS_ACCUMULATE: {
       return datatoc_common_subdiv_normals_accumulate_comp_glsl;
     }
-    case SHADER_BUFFER_NORMALS_FINALIZE: {
+    case SHADER_BUFFER_NORMALS_FINALIZE:
+    case SHADER_BUFFER_CUSTOM_NORMALS_FINALIZE: {
       return datatoc_common_subdiv_normals_finalize_comp_glsl;
     }
     case SHADER_PATCH_EVALUATION:
@@ -208,7 +214,12 @@ static GPUShader *get_patch_evaluation_shader(int shader_type)
     const char *compute_code = get_shader_code(shader_type);
 
     const char *defines = nullptr;
-    if (shader_type == SHADER_PATCH_EVALUATION_FVAR) {
+    if (shader_type == SHADER_PATCH_EVALUATION) {
+      defines =
+          "#define OSD_PATCH_BASIS_GLSL\n"
+          "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n";
+    }
+    else if (shader_type == SHADER_PATCH_EVALUATION_FVAR) {
       defines =
           "#define OSD_PATCH_BASIS_GLSL\n"
           "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n"
@@ -234,9 +245,7 @@ static GPUShader *get_patch_evaluation_shader(int shader_type)
           "#define ORCO_EVALUATION\n";
     }
     else {
-      defines =
-          "#define OSD_PATCH_BASIS_GLSL\n"
-          "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n";
+      BLI_assert_unreachable();
     }
 
     /* Merge OpenSubdiv library code with our own library code. */
@@ -258,7 +267,7 @@ static GPUShader *get_patch_evaluation_shader(int shader_type)
   return g_subdiv_shaders[shader_type];
 }
 
-static GPUShader *get_subdiv_shader(int shader_type, const char *defines)
+static GPUShader *get_subdiv_shader(int shader_type)
 {
   if (ELEM(shader_type,
            SHADER_PATCH_EVALUATION,
@@ -267,12 +276,84 @@ static GPUShader *get_subdiv_shader(int shader_type, const char *defines)
            SHADER_PATCH_EVALUATION_ORCO)) {
     return get_patch_evaluation_shader(shader_type);
   }
+
+  BLI_assert(!ELEM(shader_type,
+                   SHADER_COMP_CUSTOM_DATA_INTERP_1D,
+                   SHADER_COMP_CUSTOM_DATA_INTERP_2D,
+                   SHADER_COMP_CUSTOM_DATA_INTERP_3D,
+                   SHADER_COMP_CUSTOM_DATA_INTERP_4D));
+
   if (g_subdiv_shaders[shader_type] == nullptr) {
     const char *compute_code = get_shader_code(shader_type);
+    const char *defines = nullptr;
+
+    if (ELEM(shader_type,
+             SHADER_BUFFER_LINES,
+             SHADER_BUFFER_LNOR,
+             SHADER_BUFFER_TRIS_MULTIPLE_MATERIALS,
+             SHADER_BUFFER_UV_STRETCH_AREA)) {
+      defines = "#define SUBDIV_POLYGON_OFFSET\n";
+    }
+    else if (shader_type == SHADER_BUFFER_TRIS) {
+      defines =
+          "#define SUBDIV_POLYGON_OFFSET\n"
+          "#define SINGLE_MATERIAL\n";
+    }
+    else if (shader_type == SHADER_BUFFER_LINES_LOOSE) {
+      defines = "#define LINES_LOOSE\n";
+    }
+    else if (shader_type == SHADER_BUFFER_EDGE_FAC) {
+      /* No separate shader for the AMD driver case as we assume that the GPU will not change
+       * during the execution of the program. */
+      defines = GPU_crappy_amd_driver() ? "#define GPU_AMD_DRIVER_BYTE_BUG\n" : nullptr;
+    }
+    else if (shader_type == SHADER_BUFFER_CUSTOM_NORMALS_FINALIZE) {
+      defines = "#define CUSTOM_NORMALS\n";
+    }
+
     g_subdiv_shaders[shader_type] = GPU_shader_create_compute(
         compute_code, datatoc_common_subdiv_lib_glsl, defines, get_shader_name(shader_type));
   }
   return g_subdiv_shaders[shader_type];
+}
+
+static GPUShader *get_subdiv_custom_data_shader(int comp_type, int dimensions)
+{
+  BLI_assert(dimensions >= 1 && dimensions <= SHADER_CUSTOM_DATA_INTERP_MAX_DIMENSIONS);
+  if (comp_type == GPU_COMP_U16) {
+    BLI_assert(dimensions == 4);
+  }
+
+  GPUShader *&shader = g_subdiv_custom_data_shaders[dimensions - 1][comp_type];
+
+  if (shader == nullptr) {
+    const char *compute_code = get_shader_code(SHADER_COMP_CUSTOM_DATA_INTERP_1D + dimensions - 1);
+
+    int shader_type = SHADER_COMP_CUSTOM_DATA_INTERP_1D + dimensions - 1;
+
+    std::string defines = "#define SUBDIV_POLYGON_OFFSET\n";
+    defines += "#define DIMENSIONS " + std::to_string(dimensions) + "\n";
+    switch (comp_type) {
+      case GPU_COMP_U16:
+        defines += "#define GPU_COMP_U16\n";
+        break;
+      case GPU_COMP_I32:
+        defines += "#define GPU_COMP_I32\n";
+        break;
+      case GPU_COMP_F32:
+        /* float is the default */
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+
+    shader = GPU_shader_create_compute(compute_code,
+                                       datatoc_common_subdiv_lib_glsl,
+                                       defines.c_str(),
+                                       get_shader_name(shader_type));
+  }
+  return shader;
 }
 
 /* -------------------------------------------------------------------- */
@@ -1327,6 +1408,7 @@ static void drw_subdiv_compute_dispatch(const DRWSubdivCache *cache,
 }
 
 void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
+                                 GPUVertBuf *flags_buffer,
                                  GPUVertBuf *pos_nor,
                                  GPUVertBuf *orco)
 {
@@ -1379,6 +1461,10 @@ void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
   GPU_vertbuf_bind_as_ssbo(patch_arrays_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(patch_index_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(patch_param_buffer, binding_point++);
+  if (flags_buffer) {
+    GPU_vertbuf_bind_as_ssbo(flags_buffer, binding_point);
+  }
+  binding_point++;
   GPU_vertbuf_bind_as_ssbo(pos_nor, binding_point++);
   if (orco) {
     GPU_vertbuf_bind_as_ssbo(src_extra_buffer, binding_point++);
@@ -1475,49 +1561,16 @@ void draw_subdiv_extract_uvs(const DRWSubdivCache *cache,
 void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
                                     GPUVertBuf *src_data,
                                     GPUVertBuf *dst_data,
+                                    int comp_type, /*GPUVertCompType*/
                                     int dimensions,
-                                    int dst_offset,
-                                    bool compress_to_u16)
+                                    int dst_offset)
 {
-  GPUShader *shader = nullptr;
-
   if (!draw_subdiv_cache_need_polygon_data(cache)) {
     /* Happens on meshes with only loose geometry. */
     return;
   }
 
-  if (dimensions == 1) {
-    shader = get_subdiv_shader(SHADER_COMP_CUSTOM_DATA_INTERP_1D,
-                               "#define SUBDIV_POLYGON_OFFSET\n"
-                               "#define DIMENSIONS 1\n");
-  }
-  else if (dimensions == 2) {
-    shader = get_subdiv_shader(SHADER_COMP_CUSTOM_DATA_INTERP_2D,
-                               "#define SUBDIV_POLYGON_OFFSET\n"
-                               "#define DIMENSIONS 2\n");
-  }
-  else if (dimensions == 3) {
-    shader = get_subdiv_shader(SHADER_COMP_CUSTOM_DATA_INTERP_3D,
-                               "#define SUBDIV_POLYGON_OFFSET\n"
-                               "#define DIMENSIONS 3\n");
-  }
-  else if (dimensions == 4) {
-    if (compress_to_u16) {
-      shader = get_subdiv_shader(SHADER_COMP_CUSTOM_DATA_INTERP_4D,
-                                 "#define SUBDIV_POLYGON_OFFSET\n"
-                                 "#define DIMENSIONS 4\n"
-                                 "#define GPU_FETCH_U16_TO_FLOAT\n");
-    }
-    else {
-      shader = get_subdiv_shader(SHADER_COMP_CUSTOM_DATA_INTERP_4D,
-                                 "#define SUBDIV_POLYGON_OFFSET\n"
-                                 "#define DIMENSIONS 4\n");
-    }
-  }
-  else {
-    /* Crash if dimensions are not supported. */
-  }
-
+  GPUShader *shader = get_subdiv_custom_data_shader(comp_type, dimensions);
   GPU_shader_bind(shader);
 
   int binding_point = 0;
@@ -1545,7 +1598,7 @@ void draw_subdiv_build_sculpt_data_buffer(const DRWSubdivCache *cache,
                                           GPUVertBuf *face_set_vbo,
                                           GPUVertBuf *sculpt_data)
 {
-  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_SCULPT_DATA, nullptr);
+  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_SCULPT_DATA);
   GPU_shader_bind(shader);
 
   /* Mask VBO is always at binding point 0. */
@@ -1574,7 +1627,7 @@ void draw_subdiv_accumulate_normals(const DRWSubdivCache *cache,
                                     GPUVertBuf *vertex_loop_map,
                                     GPUVertBuf *vertex_normals)
 {
-  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_NORMALS_ACCUMULATE, nullptr);
+  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_NORMALS_ACCUMULATE);
   GPU_shader_bind(shader);
 
   int binding_point = 0;
@@ -1602,7 +1655,7 @@ void draw_subdiv_finalize_normals(const DRWSubdivCache *cache,
                                   GPUVertBuf *subdiv_loop_subdiv_vert_index,
                                   GPUVertBuf *pos_nor)
 {
-  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_NORMALS_FINALIZE, nullptr);
+  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_NORMALS_FINALIZE);
   GPU_shader_bind(shader);
 
   int binding_point = 0;
@@ -1626,7 +1679,7 @@ void draw_subdiv_finalize_custom_normals(const DRWSubdivCache *cache,
                                          GPUVertBuf *src_custom_normals,
                                          GPUVertBuf *pos_nor)
 {
-  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_NORMALS_FINALIZE, "#define CUSTOM_NORMALS");
+  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_CUSTOM_NORMALS_FINALIZE);
   GPU_shader_bind(shader);
 
   int binding_point = 0;
@@ -1658,15 +1711,8 @@ void draw_subdiv_build_tris_buffer(const DRWSubdivCache *cache,
 
   const bool do_single_material = material_count <= 1;
 
-  const char *defines = "#define SUBDIV_POLYGON_OFFSET\n";
-  if (do_single_material) {
-    defines =
-        "#define SUBDIV_POLYGON_OFFSET\n"
-        "#define SINGLE_MATERIAL\n";
-  }
-
   GPUShader *shader = get_subdiv_shader(
-      do_single_material ? SHADER_BUFFER_TRIS : SHADER_BUFFER_TRIS_MULTIPLE_MATERIALS, defines);
+      do_single_material ? SHADER_BUFFER_TRIS : SHADER_BUFFER_TRIS_MULTIPLE_MATERIALS);
   GPU_shader_bind(shader);
 
   int binding_point = 0;
@@ -1768,7 +1814,7 @@ void draw_subdiv_build_fdots_buffers(const DRWSubdivCache *cache,
 
 void draw_subdiv_build_lines_buffer(const DRWSubdivCache *cache, GPUIndexBuf *lines_indices)
 {
-  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_LINES, "#define SUBDIV_POLYGON_OFFSET\n");
+  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_LINES);
   GPU_shader_bind(shader);
 
   int binding_point = 0;
@@ -1792,7 +1838,7 @@ void draw_subdiv_build_lines_loose_buffer(const DRWSubdivCache *cache,
                                           GPUVertBuf *lines_flags,
                                           uint num_loose_edges)
 {
-  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_LINES_LOOSE, "#define LINES_LOOSE\n");
+  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_LINES_LOOSE);
   GPU_shader_bind(shader);
 
   GPU_indexbuf_bind_as_ssbo(lines_indices, 3);
@@ -1812,10 +1858,7 @@ void draw_subdiv_build_edge_fac_buffer(const DRWSubdivCache *cache,
                                        GPUVertBuf *edge_idx,
                                        GPUVertBuf *edge_fac)
 {
-  /* No separate shader for the AMD driver case as we assume that the GPU will not change during
-   * the execution of the program. */
-  const char *defines = GPU_crappy_amd_driver() ? "#define GPU_AMD_DRIVER_BYTE_BUG\n" : nullptr;
-  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_EDGE_FAC, defines);
+  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_EDGE_FAC);
   GPU_shader_bind(shader);
 
   int binding_point = 0;
@@ -1842,7 +1885,7 @@ void draw_subdiv_build_lnor_buffer(const DRWSubdivCache *cache,
     return;
   }
 
-  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_LNOR, "#define SUBDIV_POLYGON_OFFSET\n");
+  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_LNOR);
   GPU_shader_bind(shader);
 
   int binding_point = 0;
@@ -1870,8 +1913,7 @@ void draw_subdiv_build_edituv_stretch_area_buffer(const DRWSubdivCache *cache,
                                                   GPUVertBuf *coarse_data,
                                                   GPUVertBuf *subdiv_data)
 {
-  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_UV_STRETCH_AREA,
-                                        "#define SUBDIV_POLYGON_OFFSET\n");
+  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_UV_STRETCH_AREA);
   GPU_shader_bind(shader);
 
   int binding_point = 0;
@@ -1899,7 +1941,7 @@ void draw_subdiv_build_edituv_stretch_angle_buffer(const DRWSubdivCache *cache,
                                                    int uvs_offset,
                                                    GPUVertBuf *stretch_angles)
 {
-  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_UV_STRETCH_ANGLE, nullptr);
+  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_UV_STRETCH_ANGLE);
   GPU_shader_bind(shader);
 
   int binding_point = 0;

@@ -97,7 +97,7 @@ static void gizmo_preselect_elem_draw(const bContext *C, wmGizmo *gz)
   MeshElemGizmo3D *gz_ele = (MeshElemGizmo3D *)gz;
   if (gz_ele->base_index != -1) {
     Object *ob = gz_ele->bases[gz_ele->base_index]->object;
-    EDBM_preselect_elem_draw(gz_ele->psel, ob->obmat);
+    EDBM_preselect_elem_draw(gz_ele->psel, ob->object_to_world);
   }
 }
 
@@ -185,7 +185,7 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
         BMVert *vert = (BMVert *)eve_test;
         float vert_p_co[2], vert_co[3];
         const float mval_f[2] = {float(vc.mval[0]), float(vc.mval[1])};
-        mul_v3_m4v3(vert_co, gz_ele->bases[base_index_vert]->object->obmat, vert->co);
+        mul_v3_m4v3(vert_co, gz_ele->bases[base_index_vert]->object->object_to_world, vert->co);
         ED_view3d_project_v2(vc.region, vert_co, vert_p_co);
         float len = len_v2v2(vert_p_co, mval_f);
         if (len < 35) {
@@ -330,7 +330,7 @@ static void gizmo_preselect_edgering_draw(const bContext *C, wmGizmo *gz)
   MeshEdgeRingGizmo3D *gz_ring = (MeshEdgeRingGizmo3D *)gz;
   if (gz_ring->base_index != -1) {
     Object *ob = gz_ring->bases[gz_ring->base_index]->object;
-    EDBM_preselect_edgering_draw(gz_ring->psel, ob->obmat);
+    EDBM_preselect_edgering_draw(gz_ring->psel, ob->object_to_world);
   }
 }
 

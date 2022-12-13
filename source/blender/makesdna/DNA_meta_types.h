@@ -42,7 +42,7 @@ typedef struct MetaElem {
   float rad2;
   /** Stiffness, how much of the element to fill. */
   float s;
-  /** Old, only used for backwards compat. use dimensions now. */
+  /** Old, only used for backwards compatibility. use dimensions now. */
   float len;
 
   /** Matrix and inverted matrix. */
@@ -63,7 +63,7 @@ typedef struct MetaBall {
   /* material of the mother ball will define the material used of all others */
   struct Material **mat;
 
-  /** Flag is enum for updates, flag2 is bitflags for settings. */
+  /** Flag is enum for updates, flag2 is bit-flags for settings. */
   char flag, flag2;
   short totcol;
   /** Used to store MB_AUTOSPACE. */

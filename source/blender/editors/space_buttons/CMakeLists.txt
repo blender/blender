@@ -22,7 +22,7 @@ set(INC
 set(SRC
   buttons_context.c
   buttons_ops.c
-  buttons_texture.c
+  buttons_texture.cc
   space_buttons.c
 
   buttons_intern.h

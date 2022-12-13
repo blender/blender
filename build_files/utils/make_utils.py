@@ -80,7 +80,7 @@ def git_tag(git_command: str) -> Optional[str]:
     return tag.strip().decode('utf8')
 
 
-def git_branch_release_version(branch: str, tag: str) -> Optional[str]:
+def git_branch_release_version(branch: str, tag: Optional[str]) -> Optional[str]:
     re_match = re.search("^blender-v(.*)-release$", branch)
     release_version = None
     if re_match:

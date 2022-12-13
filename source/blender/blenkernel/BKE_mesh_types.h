@@ -11,11 +11,17 @@
 
 #  include <mutex>
 
+#  include "MEM_guardedalloc.h"
+
+#  include "BLI_array.hh"
+#  include "BLI_bit_vector.hh"
+#  include "BLI_bounds_types.hh"
+#  include "BLI_math_vec_types.hh"
+#  include "BLI_shared_cache.hh"
 #  include "BLI_span.hh"
 
 #  include "DNA_customdata_types.h"
-
-#  include "MEM_guardedalloc.h"
+#  include "DNA_meshdata_types.h"
 
 struct BVHCache;
 struct EditMeshData;
@@ -58,16 +64,20 @@ typedef enum eMeshWrapperType {
 namespace blender::bke {
 
 /**
- * \warning Typical access is done via #Mesh::looptris().
+ * Cache of a mesh's loose edges, accessed with #Mesh::loose_edges(). *
  */
-struct MLoopTri_Store {
-  /* WARNING! swapping between array (ready-to-be-used data) and array_wip
-   * (where data is actually computed)
-   * shall always be protected by same lock as one used for looptris computing. */
-  MLoopTri *array = nullptr;
-  MLoopTri *array_wip = nullptr;
-  int len = 0;
-  int len_alloc = 0;
+struct LooseEdgeCache {
+  /**
+   * A bitmap set to true for each loose edge, false if the edge is used by any face.
+   * Allocated only if there is at least one loose edge.
+   */
+  blender::BitVector<> is_loose_bits;
+  /**
+   * The number of loose edges. If zero, the #is_loose_bits shouldn't be accessed.
+   * If less than zero, the cache has been accessed in an invalid way
+   * (i.e.directly instead of through #Mesh::loose_edges()).
+   */
+  int count = -1;
 };
 
 struct MeshRuntime {
@@ -84,6 +94,12 @@ struct MeshRuntime {
   /** Needed to ensure some thread-safety during render data pre-processing. */
   std::mutex render_mutex;
 
+  /**
+   * A cache of bounds shared between data-blocks with unchanged positions. When changing positions
+   * affect the bounds, the cache is "un-shared" with other geometries. See #SharedCache comments.
+   */
+  SharedCache<Bounds<float3>> bounds_cache;
+
   /** Lazily initialized SoA data from the #edit_mesh field in #Mesh. */
   EditMeshData *edit_data = nullptr;
 
@@ -93,8 +109,8 @@ struct MeshRuntime {
    */
   void *batch_cache = nullptr;
 
-  /** Cache for derived triangulation of the mesh. */
-  MLoopTri_Store looptris;
+  /** Cache for derived triangulation of the mesh, accessed with #Mesh::looptris(). */
+  SharedCache<Array<MLoopTri>> looptris_cache;
 
   /** Cache for BVH trees generated for the mesh. Defined in 'BKE_bvhutil.c' */
   BVHCache *bvh_cache = nullptr;
@@ -139,10 +155,16 @@ struct MeshRuntime {
    * #CustomData because they can be calculated on a `const` mesh, and adding custom data layers on
    * a `const` mesh is not thread-safe.
    */
-  bool vert_normals_dirty = false;
-  bool poly_normals_dirty = false;
+  bool vert_normals_dirty = true;
+  bool poly_normals_dirty = true;
   float (*vert_normals)[3] = nullptr;
   float (*poly_normals)[3] = nullptr;
+
+  /**
+   * A cache of data about the loose edges. Can be shared with other data-blocks with unchanged
+   * topology. Accessed with #Mesh::loose_edges().
+   */
+  SharedCache<LooseEdgeCache> loose_edges_cache;
 
   /**
    * A #BLI_bitmap containing tags for the center vertices of subdivided polygons, set by the
@@ -151,8 +173,7 @@ struct MeshRuntime {
   uint32_t *subsurf_face_dot_tags = nullptr;
 
   MeshRuntime() = default;
-  /** \warning This does not free all data currently. See #BKE_mesh_runtime_free_data. */
-  ~MeshRuntime() = default;
+  ~MeshRuntime();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MeshRuntime")
 };

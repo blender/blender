@@ -32,7 +32,7 @@ void register_node_type_sh_add_shader()
 
   sh_node_type_base(&ntype, SH_NODE_ADD_SHADER, "Add Shader", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_add_shader);
+  ntype.gpu_fn = file_ns::node_shader_gpu_add_shader;
 
   nodeRegisterType(&ntype);
 }

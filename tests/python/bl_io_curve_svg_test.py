@@ -50,7 +50,10 @@ def main():
     from modules import render_report
     report = render_report.Report('IO Curve SVG', output_dir, idiff)
     report.set_pixelated(True)
-    print(test_dir)
+
+    test_dir_name = Path(test_dir).name
+    if test_dir_name == 'complex':
+        report.set_fail_percent(0.01)
 
     ok = report.run(test_dir, blender, get_arguments, batch=True)
 

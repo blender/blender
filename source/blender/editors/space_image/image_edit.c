@@ -67,6 +67,30 @@ void ED_space_image_set(Main *bmain, SpaceImage *sima, Image *ima, bool automati
   WM_main_add_notifier(NC_SPACE | ND_SPACE_IMAGE, NULL);
 }
 
+void ED_space_image_sync(struct Main *bmain, struct Image *image, bool ignore_render_viewer)
+{
+  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    const bScreen *screen = WM_window_get_active_screen(win);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        if (sl->spacetype != SPACE_IMAGE) {
+          continue;
+        }
+        SpaceImage *sima = (SpaceImage *)sl;
+        if (sima->pin) {
+          continue;
+        }
+        if (ignore_render_viewer && sima->image &&
+            ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+          continue;
+        }
+        ED_space_image_set(bmain, sima, image, true);
+      }
+    }
+  }
+}
+
 void ED_space_image_auto_set(const bContext *C, SpaceImage *sima)
 {
   if (sima->mode != SI_MODE_UV || sima->pin) {

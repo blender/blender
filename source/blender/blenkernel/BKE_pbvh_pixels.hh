@@ -18,8 +18,46 @@
 
 namespace blender::bke::pbvh::pixels {
 
-struct TrianglePaintInput {
-  int3 vert_indices;
+/**
+ * Data shared between pixels that belong to the same triangle.
+ *
+ * Data is stored as a list of structs, grouped by usage to improve performance (improves CPU
+ * cache prefetching).
+ */
+struct PaintGeometryPrimitives {
+  /** Data accessed by the inner loop of the painting brush. */
+  Vector<int3> vert_indices;
+
+ public:
+  void append(const int3 vert_indices)
+  {
+    this->vert_indices.append(vert_indices);
+  }
+
+  const int3 &get_vert_indices(const int index) const
+  {
+    return vert_indices[index];
+  }
+
+  void clear()
+  {
+    vert_indices.clear();
+  }
+
+  int64_t size() const
+  {
+    return vert_indices.size();
+  }
+
+  int64_t mem_size() const
+  {
+    return size() * sizeof(int3);
+  }
+};
+
+struct UVPrimitivePaintInput {
+  /** Corresponding index into PaintGeometryPrimitives */
+  int64_t geometry_primitive_index;
   /**
    * Delta barycentric coordinates between 2 neighboring UV's in the U direction.
    *
@@ -33,34 +71,27 @@ struct TrianglePaintInput {
    * delta_barycentric_coord_u is initialized in a later stage as it requires image tile
    * dimensions.
    */
-  TrianglePaintInput(const int3 vert_indices)
-      : vert_indices(vert_indices), delta_barycentric_coord_u(0.0f, 0.0f)
+  UVPrimitivePaintInput(int64_t geometry_primitive_index)
+      : geometry_primitive_index(geometry_primitive_index), delta_barycentric_coord_u(0.0f, 0.0f)
   {
   }
 };
 
-/**
- * Data shared between pixels that belong to the same triangle.
- *
- * Data is stored as a list of structs, grouped by usage to improve performance (improves CPU
- * cache prefetching).
- */
-struct Triangles {
+struct PaintUVPrimitives {
   /** Data accessed by the inner loop of the painting brush. */
-  Vector<TrianglePaintInput> paint_input;
+  Vector<UVPrimitivePaintInput> paint_input;
 
- public:
-  void append(const int3 vert_indices)
+  void append(int64_t geometry_primitive_index)
   {
-    this->paint_input.append(TrianglePaintInput(vert_indices));
+    this->paint_input.append(UVPrimitivePaintInput(geometry_primitive_index));
   }
 
-  TrianglePaintInput &get_paint_input(const int index)
+  UVPrimitivePaintInput &last()
   {
-    return paint_input[index];
+    return paint_input.last();
   }
 
-  const TrianglePaintInput &get_paint_input(const int index) const
+  const UVPrimitivePaintInput &get_paint_input(uint64_t index) const
   {
     return paint_input[index];
   }
@@ -70,14 +101,14 @@ struct Triangles {
     paint_input.clear();
   }
 
-  uint64_t size() const
+  int64_t size() const
   {
     return paint_input.size();
   }
 
-  uint64_t mem_size() const
+  int64_t mem_size() const
   {
-    return paint_input.size() * sizeof(TrianglePaintInput);
+    return size() * sizeof(UVPrimitivePaintInput);
   }
 };
 
@@ -92,7 +123,7 @@ struct PackedPixelRow {
   /** Number of sequential pixels encoded in this package. */
   ushort num_pixels;
   /** Reference to the pbvh triangle index. */
-  ushort triangle_index;
+  ushort uv_primitive_index;
 };
 
 /**
@@ -148,7 +179,7 @@ struct NodeData {
 
   Vector<UDIMTilePixels> tiles;
   Vector<UDIMTileUndo> undo_regions;
-  Triangles triangles;
+  PaintUVPrimitives uv_primitives;
 
   NodeData()
   {
@@ -201,7 +232,7 @@ struct NodeData {
   void clear_data()
   {
     tiles.clear();
-    triangles.clear();
+    uv_primitives.clear();
   }
 
   static void free_func(void *instance)
@@ -211,7 +242,18 @@ struct NodeData {
   }
 };
 
+struct PBVHData {
+  /* Per UVPRimitive contains the paint data. */
+  PaintGeometryPrimitives geom_primitives;
+
+  void clear_data()
+  {
+    geom_primitives.clear();
+  }
+};
+
 NodeData &BKE_pbvh_pixels_node_data_get(PBVHNode &node);
 void BKE_pbvh_pixels_mark_image_dirty(PBVHNode &node, Image &image, ImageUser &image_user);
+PBVHData &BKE_pbvh_pixels_data_get(PBVH &pbvh);
 
 }  // namespace blender::bke::pbvh::pixels

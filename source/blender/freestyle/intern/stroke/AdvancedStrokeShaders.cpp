@@ -11,6 +11,8 @@
 #include "../system/PseudoNoise.h"
 #include "../system/RandGen.h"
 
+#include "BLI_sys_types.h"
+
 namespace Freestyle {
 
 /////////////////////////////////////////

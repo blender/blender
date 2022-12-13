@@ -10,7 +10,12 @@
 CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_NATIVE_VECTOR_TYPES__
+#  ifdef __KERNEL_ONEAPI__
+/* Define float3 as packed for oneAPI. */
+struct float3
+#  else
 struct ccl_try_align(16) float3
+#  endif
 {
 #  ifdef __KERNEL_GPU__
   /* Compact structure for GPU. */

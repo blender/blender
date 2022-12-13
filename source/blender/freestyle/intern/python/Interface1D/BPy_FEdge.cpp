@@ -89,7 +89,7 @@ static Py_ssize_t FEdge_sq_length(BPy_FEdge * /*self*/)
   return 2;
 }
 
-static PyObject *FEdge_sq_item(BPy_FEdge *self, int keynum)
+static PyObject *FEdge_sq_item(BPy_FEdge *self, Py_ssize_t keynum)
 {
   if (keynum < 0) {
     keynum += FEdge_sq_length(self);
@@ -106,16 +106,16 @@ static PyObject *FEdge_sq_item(BPy_FEdge *self, int keynum)
 }
 
 static PySequenceMethods BPy_FEdge_as_sequence = {
-    (lenfunc)FEdge_sq_length,    /* sq_length */
-    nullptr,                     /* sq_concat */
-    nullptr,                     /* sq_repeat */
-    (ssizeargfunc)FEdge_sq_item, /* sq_item */
-    nullptr,                     /* sq_slice */
-    nullptr,                     /* sq_ass_item */
-    nullptr,                     /* *was* sq_ass_slice */
-    nullptr,                     /* sq_contains */
-    nullptr,                     /* sq_inplace_concat */
-    nullptr,                     /* sq_inplace_repeat */
+    /*sq_length*/ (lenfunc)FEdge_sq_length,
+    /*sq_concat*/ nullptr,
+    /*sq_repeat*/ nullptr,
+    /*sq_item*/ (ssizeargfunc)FEdge_sq_item,
+    /*was_sq_slice*/ nullptr, /* DEPRECATED. */
+    /*sq_ass_item*/ nullptr,
+    /*was_sq_ass_slice*/ nullptr, /* DEPRECATED. */
+    /*sq_contains*/ nullptr,
+    /*sq_inplace_concat*/ nullptr,
+    /*sq_inplace_repeat*/ nullptr,
 };
 
 /*----------------------FEdge get/setters ----------------------------*/
@@ -342,43 +342,44 @@ static PyGetSetDef BPy_FEdge_getseters[] = {
 /*-----------------------BPy_FEdge type definition ------------------------------*/
 
 PyTypeObject FEdge_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "FEdge", /* tp_name */
-    sizeof(BPy_FEdge),                         /* tp_basicsize */
-    0,                                         /* tp_itemsize */
-    nullptr,                                   /* tp_dealloc */
-    0,                                         /* tp_vectorcall_offset */
-    nullptr,                                   /* tp_getattr */
-    nullptr,                                   /* tp_setattr */
-    nullptr,                                   /* tp_reserved */
-    nullptr,                                   /* tp_repr */
-    nullptr,                                   /* tp_as_number */
-    &BPy_FEdge_as_sequence,                    /* tp_as_sequence */
-    nullptr,                                   /* tp_as_mapping */
-    nullptr,                                   /* tp_hash */
-    nullptr,                                   /* tp_call */
-    nullptr,                                   /* tp_str */
-    nullptr,                                   /* tp_getattro */
-    nullptr,                                   /* tp_setattro */
-    nullptr,                                   /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags */
-    FEdge_doc,                                 /* tp_doc */
-    nullptr,                                   /* tp_traverse */
-    nullptr,                                   /* tp_clear */
-    nullptr,                                   /* tp_richcompare */
-    0,                                         /* tp_weaklistoffset */
-    nullptr,                                   /* tp_iter */
-    nullptr,                                   /* tp_iternext */
-    nullptr,                                   /* tp_methods */
-    nullptr,                                   /* tp_members */
-    BPy_FEdge_getseters,                       /* tp_getset */
-    &Interface1D_Type,                         /* tp_base */
-    nullptr,                                   /* tp_dict */
-    nullptr,                                   /* tp_descr_get */
-    nullptr,                                   /* tp_descr_set */
-    0,                                         /* tp_dictoffset */
-    (initproc)FEdge_init,                      /* tp_init */
-    nullptr,                                   /* tp_alloc */
-    nullptr,                                   /* tp_new */
+    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "FEdge",
+    /*tp_basicsize*/ sizeof(BPy_FEdge),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ nullptr,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ nullptr,
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ &BPy_FEdge_as_sequence,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    /*tp_doc*/ FEdge_doc,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ nullptr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ nullptr,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ BPy_FEdge_getseters,
+    /*tp_base*/ &Interface1D_Type,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ (initproc)FEdge_init,
+    /*tp_alloc*/ nullptr,
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

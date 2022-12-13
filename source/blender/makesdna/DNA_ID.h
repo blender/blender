@@ -914,8 +914,9 @@ typedef enum IDRecalcFlag {
   ID_RECALC_EDITORS = (1 << 12),
 
   /* ** Update copy on write component. **
-   * This is most generic tag which should only be used when nothing else
-   * matches.
+   *
+   * This is most generic tag which should only be used when nothing else matches.
+   * It is not to explicitly mixed in with other recalculation flags.
    */
   ID_RECALC_COPY_ON_WRITE = (1 << 13),
 

@@ -55,6 +55,11 @@ DrawList *MTLBackend::drawlist_alloc(int list_length)
   return new MTLDrawList(list_length);
 };
 
+Fence *MTLBackend::fence_alloc()
+{
+  return new MTLFence();
+};
+
 FrameBuffer *MTLBackend::framebuffer_alloc(const char *name)
 {
   MTLContext *mtl_context = static_cast<MTLContext *>(
@@ -65,6 +70,11 @@ FrameBuffer *MTLBackend::framebuffer_alloc(const char *name)
 IndexBuf *MTLBackend::indexbuf_alloc()
 {
   return new MTLIndexBuf();
+};
+
+PixelBuffer *MTLBackend::pixelbuf_alloc(uint size)
+{
+  return new MTLPixelBuffer(size);
 };
 
 QueryPool *MTLBackend::querypool_alloc()
@@ -134,15 +144,15 @@ void MTLBackend::render_step()
    * is also thread-safe. */
 
   /* Flush any MTLSafeFreeLists which have previously been released by any MTLContext. */
-  MTLContext::get_global_memory_manager().update_memory_pools();
+  MTLContext::get_global_memory_manager()->update_memory_pools();
 
   /* End existing MTLSafeFreeList and begin new list --
    * Buffers wont `free` until all associated in-flight command buffers have completed.
    * Decrement final reference count for ensuring the previous list is certainly
    * released. */
   MTLSafeFreeList *cmd_free_buffer_list =
-      MTLContext::get_global_memory_manager().get_current_safe_list();
-  MTLContext::get_global_memory_manager().begin_new_safe_list();
+      MTLContext::get_global_memory_manager()->get_current_safe_list();
+  MTLContext::get_global_memory_manager()->begin_new_safe_list();
   cmd_free_buffer_list->decrement_reference();
 }
 
@@ -386,6 +396,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   /* TODO(Metal): Add support? */
   GCaps.shader_draw_parameters_support = false;
   GCaps.compute_shader_support = false; /* TODO(Metal): Add compute support. */
+  GCaps.geometry_shader_support = false;
   GCaps.shader_storage_buffer_objects_support =
       false; /* TODO(Metal): implement Storage Buffer support. */
 

@@ -14,7 +14,6 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_bounds.hh"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
@@ -94,6 +93,7 @@ static void curves_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, con
   dst.runtime = MEM_new<bke::CurvesGeometryRuntime>(__func__);
 
   dst.runtime->type_counts = src.runtime->type_counts;
+  dst.runtime->bounds_cache = src.runtime->bounds_cache;
 
   curves_dst->batch_cache = nullptr;
 }
@@ -412,11 +412,11 @@ void curves_copy_parameters(const Curves &src, Curves &dst)
 
 CurvesSurfaceTransforms::CurvesSurfaceTransforms(const Object &curves_ob, const Object *surface_ob)
 {
-  this->curves_to_world = curves_ob.obmat;
+  this->curves_to_world = curves_ob.object_to_world;
   this->world_to_curves = this->curves_to_world.inverted();
 
   if (surface_ob != nullptr) {
-    this->surface_to_world = surface_ob->obmat;
+    this->surface_to_world = surface_ob->object_to_world;
     this->world_to_surface = this->surface_to_world.inverted();
     this->surface_to_curves = this->world_to_curves * this->surface_to_world;
     this->curves_to_surface = this->world_to_surface * this->curves_to_world;

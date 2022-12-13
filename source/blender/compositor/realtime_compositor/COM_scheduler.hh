@@ -16,6 +16,6 @@ using Schedule = VectorSet<DNode>;
 /* Computes the execution schedule of the node tree. This is essentially a post-order depth first
  * traversal of the node tree from the output node to the leaf input nodes, with informed order of
  * traversal of dependencies based on a heuristic estimation of the number of needed buffers. */
-Schedule compute_schedule(DerivedNodeTree &tree);
+Schedule compute_schedule(const DerivedNodeTree &tree);
 
 }  // namespace blender::realtime_compositor

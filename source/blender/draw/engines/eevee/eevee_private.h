@@ -17,6 +17,8 @@
 
 #include "BKE_camera.h"
 
+#include "engine_eevee_shared_defines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,18 +29,6 @@ struct Object;
 struct RenderLayer;
 
 extern struct DrawEngineType draw_engine_eevee_type;
-
-/* Minimum UBO is 16384 bytes */
-#define MAX_PROBE 128 /* TODO: find size by dividing UBO max size by probe data size. */
-#define MAX_GRID 64   /* TODO: find size by dividing UBO max size by grid data size. */
-#define MAX_PLANAR 16 /* TODO: find size by dividing UBO max size by grid data size. */
-#define MAX_LIGHT 128 /* TODO: find size by dividing UBO max size by light data size. */
-#define MAX_CASCADE_NUM 4
-#define MAX_SHADOW 128 /* TODO: Make this depends on #GL_MAX_ARRAY_TEXTURE_LAYERS. */
-#define MAX_SHADOW_CASCADE 8
-#define MAX_SHADOW_CUBE (MAX_SHADOW - MAX_CASCADE_NUM * MAX_SHADOW_CASCADE)
-#define MAX_BLOOM_STEP 16
-#define MAX_AOVS 64
 
 /* Special value chosen to not be altered by depth of field sample count. */
 #define TAA_MAX_SAMPLE 10000926
@@ -55,23 +45,7 @@ extern struct DrawEngineType draw_engine_eevee_type;
 #  define SHADER_IRRADIANCE "#define IRRADIANCE_HL2\n"
 #endif
 
-/* Macro causes over indentation. */
-/* clang-format off */
-#define SHADER_DEFINES \
-  "#define EEVEE_ENGINE\n" \
-  "#define MAX_PROBE " STRINGIFY(MAX_PROBE) "\n" \
-  "#define MAX_GRID " STRINGIFY(MAX_GRID) "\n" \
-  "#define MAX_PLANAR " STRINGIFY(MAX_PLANAR) "\n" \
-  "#define MAX_LIGHT " STRINGIFY(MAX_LIGHT) "\n" \
-  "#define MAX_SHADOW " STRINGIFY(MAX_SHADOW) "\n" \
-  "#define MAX_SHADOW_CUBE " STRINGIFY(MAX_SHADOW_CUBE) "\n" \
-  "#define MAX_SHADOW_CASCADE " STRINGIFY(MAX_SHADOW_CASCADE) "\n" \
-  "#define MAX_CASCADE_NUM " STRINGIFY(MAX_CASCADE_NUM) "\n" \
-  SHADER_IRRADIANCE
-/* clang-format on */
-
 #define EEVEE_PROBE_MAX min_ii(MAX_PROBE, GPU_max_texture_layers() / 6)
-#define EEVEE_VELOCITY_TILE_SIZE 32
 #define USE_VOLUME_OPTI (GPU_shader_image_load_store_support())
 
 #define SWAP_DOUBLE_BUFFERS() \
@@ -193,19 +167,6 @@ typedef enum EEVEE_DofGatherPass {
 
   DOF_GATHER_MAX_PASS,
 } EEVEE_DofGatherPass;
-
-#define DOF_TILE_DIVISOR 16
-#define DOF_BOKEH_LUT_SIZE 32
-#define DOF_GATHER_RING_COUNT 5
-#define DOF_DILATE_RING_COUNT 3
-#define DOF_FAST_GATHER_COC_ERROR 0.05
-
-#define DOF_SHADER_DEFINES \
-  "#define DOF_TILE_DIVISOR " STRINGIFY(DOF_TILE_DIVISOR) "\n" \
-  "#define DOF_BOKEH_LUT_SIZE " STRINGIFY(DOF_BOKEH_LUT_SIZE) "\n" \
-  "#define DOF_GATHER_RING_COUNT " STRINGIFY(DOF_GATHER_RING_COUNT) "\n" \
-  "#define DOF_DILATE_RING_COUNT " STRINGIFY(DOF_DILATE_RING_COUNT) "\n" \
-  "#define DOF_FAST_GATHER_COC_ERROR " STRINGIFY(DOF_FAST_GATHER_COC_ERROR) "\n"
 
 /* ************ PROBE UBO ************* */
 
@@ -1295,13 +1256,14 @@ struct GPUMaterial *EEVEE_material_get(
     EEVEE_Data *vedata, struct Scene *scene, Material *ma, World *wo, int options);
 void EEVEE_shaders_free(void);
 
-void eevee_shader_extra_init(void);
-void eevee_shader_extra_exit(void);
 void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
-                                             GPUCodegenOutput *codegen,
-                                             char *frag,
+                                             GPUCodegenOutput *codegen_,
                                              char *vert,
                                              char *geom,
+                                             char *frag,
+                                             const char *vert_info_name,
+                                             const char *geom_info_name,
+                                             const char *frag_info_name,
                                              char *defines);
 GPUShader *eevee_shaders_sh_create_helper(const char *name,
                                           const char *vert_name,

@@ -76,7 +76,7 @@ struct FloatTraits {
 
   static inline BlendType max(BlendType a, BlendType b)
   {
-    return min_ff(a, b);
+    return max_ff(a, b);
   }
 
   /* Discretizes in steps of 1.0 / range */

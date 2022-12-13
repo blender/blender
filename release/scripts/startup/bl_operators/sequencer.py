@@ -8,6 +8,7 @@ from bpy.props import (
     FloatProperty,
     IntProperty,
 )
+from bpy.app.translations import pgettext_tip as tip_
 
 
 class SequencerCrossfadeSounds(Operator):
@@ -231,7 +232,7 @@ class SequencerFadesAdd(Operator):
             sequence.invalidate_cache('COMPOSITE')
 
         sequence_string = "sequence" if len(faded_sequences) == 1 else "sequences"
-        self.report({'INFO'}, "Added fade animation to %d %s" % (len(faded_sequences), sequence_string))
+        self.report({'INFO'}, tip_("Added fade animation to %d %s") % (len(faded_sequences), sequence_string))
         return {'FINISHED'}
 
     def calculate_fade_duration(self, context, sequence):

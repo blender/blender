@@ -9,7 +9,9 @@
  * dragging larger headers into the createInfo pipeline which would cause problems.
  */
 
-#pragma once
+#ifndef GPU_SHADER
+#  pragma once
+#endif
 
 /* Hierarchical Z down-sampling. */
 #define HIZ_MIP_COUNT 8

@@ -28,6 +28,7 @@
 /* Qualifier wrappers for different names on different devices */
 
 #define ccl_device
+#define ccl_device_extern extern "C"
 #define ccl_global
 #define ccl_always_inline __attribute__((always_inline))
 #define ccl_device_inline inline

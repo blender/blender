@@ -118,7 +118,7 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
     if (seq->flag & SELECT) {
       ListBase queue = {NULL, NULL};
       LinkData *link;
-      short stop = 0, do_update;
+      bool stop = false, do_update;
       float progress;
 
       SEQ_proxy_rebuild_context(bmain, depsgraph, scene, seq, file_list, &queue, false);
@@ -126,7 +126,7 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
       for (link = queue.first; link; link = link->next) {
         struct SeqIndexBuildContext *context = link->data;
         SEQ_proxy_rebuild(context, &stop, &do_update, &progress);
-        SEQ_proxy_rebuild_finish(context, 0);
+        SEQ_proxy_rebuild_finish(context, false);
       }
       SEQ_relations_free_imbuf(scene, &ed->seqbase, false);
     }

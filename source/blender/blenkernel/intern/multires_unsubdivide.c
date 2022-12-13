@@ -963,11 +963,9 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
  * Checks the orientation of the loops to flip the x and y axis when extracting the grid if
  * necessary.
  */
-static bool multires_unsubdivide_flip_grid_x_axis(Mesh *mesh, int poly, int loop, int v_x)
+static bool multires_unsubdivide_flip_grid_x_axis(
+    const MPoly *polys, const MLoop *loops, int poly, int loop, int v_x)
 {
-  const MPoly *polys = BKE_mesh_polys(mesh);
-  const MLoop *loops = BKE_mesh_loops(mesh);
-
   const MPoly *p = &polys[poly];
 
   const MLoop *l_first = &loops[p->loopstart];
@@ -1037,6 +1035,9 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   const int base_l_offset = CustomData_get_n_offset(
       &bm_base_mesh->ldata, CD_PROP_INT32, base_l_layer_index);
 
+  const MPoly *polys = BKE_mesh_polys(base_mesh);
+  const MLoop *loops = BKE_mesh_loops(base_mesh);
+
   /* Main loop for extracting the grids. Iterates over the base mesh vertices. */
   BM_ITER_MESH (v, &iter, bm_base_mesh, BM_VERTS_OF_MESH) {
 
@@ -1074,7 +1075,7 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
           /* Check the orientation of the loops in case that is needed to flip the x and y axis
            * when extracting the grid. */
           const bool flip_grid = multires_unsubdivide_flip_grid_x_axis(
-              base_mesh, base_mesh_face_index, base_mesh_loop_index, corner_x_index);
+              polys, loops, base_mesh_face_index, base_mesh_loop_index, corner_x_index);
 
           /* Extract the grid for that loop. */
           context->base_mesh_grids[base_mesh_loop_index].grid_index = base_mesh_loop_index;

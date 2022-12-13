@@ -156,6 +156,11 @@ def with_osl():
     return _cycles.with_osl
 
 
+def osl_version():
+    import _cycles
+    return _cycles.osl_version
+
+
 def with_path_guiding():
     import _cycles
     return _cycles.with_path_guiding
@@ -199,7 +204,6 @@ def list_render_passes(scene, srl):
     if crl.use_pass_volume_indirect:       yield ("VolumeInd",     "RGB",  'COLOR')
     if srl.use_pass_emit:                  yield ("Emit",          "RGB",  'COLOR')
     if srl.use_pass_environment:           yield ("Env",           "RGB",  'COLOR')
-    if srl.use_pass_shadow:                yield ("Shadow",        "RGB",  'COLOR')
     if srl.use_pass_ambient_occlusion:     yield ("AO",            "RGB",  'COLOR')
     if crl.use_pass_shadow_catcher:        yield ("Shadow Catcher",      "RGB",  'COLOR')
     # autopep8: on

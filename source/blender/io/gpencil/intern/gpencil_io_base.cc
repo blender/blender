@@ -79,7 +79,7 @@ void GpencilIO::prepare_camera_params(Scene *scene, const GpencilIOParams *ipara
     BKE_camera_params_compute_matrix(&params);
 
     float viewmat[4][4];
-    invert_m4_m4(viewmat, cam_ob->obmat);
+    invert_m4_m4(viewmat, cam_ob->object_to_world);
 
     mul_m4_m4m4(persmat_, params.winmat, viewmat);
   }
@@ -152,7 +152,7 @@ void GpencilIO::create_object_list()
 
     /* Save z-depth from view to sort from back to front. */
     if (is_camera_) {
-      float camera_z = dot_v3v3(camera_z_axis, object->obmat[3]);
+      float camera_z = dot_v3v3(camera_z_axis, object->object_to_world[3]);
       ObjectZ obz = {camera_z, object};
       ob_list_.append(obz);
     }
@@ -160,10 +160,10 @@ void GpencilIO::create_object_list()
       float zdepth = 0;
       if (rv3d_) {
         if (rv3d_->is_persp) {
-          zdepth = ED_view3d_calc_zfac(rv3d_, object->obmat[3]);
+          zdepth = ED_view3d_calc_zfac(rv3d_, object->object_to_world[3]);
         }
         else {
-          zdepth = -dot_v3v3(rv3d_->viewinv[2], object->obmat[3]);
+          zdepth = -dot_v3v3(rv3d_->viewinv[2], object->object_to_world[3]);
         }
         ObjectZ obz = {zdepth * -1.0f, object};
         ob_list_.append(obz);

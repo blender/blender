@@ -579,6 +579,8 @@ static void duplicate_faces(GeometrySet &geometry_set,
     }
   }
 
+  new_mesh->loose_edges_tag_none();
+
   copy_face_attributes_without_id(geometry_set,
                                   edge_mapping,
                                   vert_mapping,
@@ -745,7 +747,6 @@ static void duplicate_edges(GeometrySet &geometry_set,
         MEdge &new_edge = new_edges[edge_range[i_duplicate]];
         new_edge.v1 = vert_range[i_duplicate * 2];
         new_edge.v2 = vert_range[i_duplicate * 2] + 1;
-        new_edge.flag = ME_LOOSEEDGE;
       }
     }
   });
@@ -1149,7 +1150,7 @@ void register_node_type_geo_duplicate_elements()
                     node_free_standard_storage,
                     node_copy_standard_storage);
 
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   ntype.draw_buttons = file_ns::node_layout;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;

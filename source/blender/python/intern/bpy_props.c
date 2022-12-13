@@ -4621,21 +4621,25 @@ static int props_clear(PyObject *UNUSED(self))
   return 0;
 }
 
-static struct PyModuleDef props_module = {
-    PyModuleDef_HEAD_INIT,
-    "bpy.props",
+PyDoc_STRVAR(
+    props_module_doc,
     "This module defines properties to extend Blender's internal data. The result of these "
     "functions"
     " is used to assign properties to classes registered with Blender and can't be used "
     "directly.\n"
     "\n"
-    ".. note:: All parameters to these functions must be passed as keywords.\n",
-    -1, /* multiple "initialization" just copies the module dict. */
-    props_methods,
-    NULL,
-    props_visit,
-    props_clear,
-    NULL,
+    ".. note:: All parameters to these functions must be passed as keywords.\n");
+
+static struct PyModuleDef props_module = {
+    PyModuleDef_HEAD_INIT,
+    /*m_name*/ "bpy.props",
+    /*m_doc*/ props_module_doc,
+    /*m_size*/ -1, /* multiple "initialization" just copies the module dict. */
+    /*m_methods*/ props_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ props_visit,
+    /*m_clear*/ props_clear,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPY_rna_props(void)

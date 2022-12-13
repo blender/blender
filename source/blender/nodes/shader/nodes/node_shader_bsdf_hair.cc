@@ -58,7 +58,7 @@ void register_node_type_sh_bsdf_hair()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_hair;
   node_type_size(&ntype, 150, 60, 200);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_bsdf_hair);
+  ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_hair;
 
   nodeRegisterType(&ntype);
 }

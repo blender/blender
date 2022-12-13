@@ -45,7 +45,7 @@
 typedef struct TraceJob {
   /* from wmJob */
   struct Object *owner;
-  short *stop, *do_update;
+  bool *stop, *do_update;
   float *progress;
 
   bContext *C;
@@ -198,7 +198,7 @@ static void trace_initialize_job_data(TraceJob *trace_job)
   }
 }
 
-static void trace_start_job(void *customdata, short *stop, short *do_update, float *progress)
+static void trace_start_job(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   TraceJob *trace_job = customdata;
 
@@ -257,7 +257,7 @@ static void trace_start_job(void *customdata, short *stop, short *do_update, flo
 
   trace_job->success = !trace_job->was_canceled;
   *do_update = true;
-  *stop = 0;
+  *stop = false;
 }
 
 static void trace_end_job(void *customdata)
@@ -339,7 +339,7 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
   ED_object_base_activate(job->C, job->base_active);
 
   if ((job->image->source == IMA_SRC_FILE) || (job->frame_num > 0)) {
-    short stop = 0, do_update = true;
+    bool stop = false, do_update = true;
     float progress;
     trace_start_job(job, &stop, &do_update, &progress);
     trace_end_job(job);

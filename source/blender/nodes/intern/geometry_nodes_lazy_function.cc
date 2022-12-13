@@ -16,6 +16,7 @@
 #include "NOD_multi_function.hh"
 #include "NOD_node_declaration.hh"
 
+#include "BLI_cpp_types.hh"
 #include "BLI_lazy_threading.hh"
 #include "BLI_map.hh"
 
@@ -53,14 +54,11 @@ static const CPPType *get_socket_cpp_type(const bNodeSocket &socket)
 
 static const CPPType *get_vector_type(const CPPType &type)
 {
-  /* This could be generalized in the future. For now we only support a small set of vectors. */
-  if (type.is<GeometrySet>()) {
-    return &CPPType::get<Vector<GeometrySet>>();
+  const VectorCPPType *vector_type = VectorCPPType::get_from_value(type);
+  if (vector_type == nullptr) {
+    return nullptr;
   }
-  if (type.is<ValueOrField<std::string>>()) {
-    return &CPPType::get<Vector<ValueOrField<std::string>>>();
-  }
-  return nullptr;
+  return &vector_type->self;
 }
 
 /**
@@ -137,8 +135,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
     if (geo_eval_log::GeoModifierLog *modifier_log = user_data->modifier_data->eval_log) {
       geo_eval_log::GeoTreeLogger &tree_logger = modifier_log->get_local_tree_logger(
           *user_data->compute_context);
-      tree_logger.node_execution_times.append(
-          {tree_logger.allocator->copy_string(node_.name), start_time, end_time});
+      tree_logger.node_execution_times.append({node_.identifier, start_time, end_time});
     }
   }
 };
@@ -296,19 +293,17 @@ static void execute_multi_function_on_value_or_field(
 
     for (const int i : input_types.index_range()) {
       const ValueOrFieldCPPType &type = *input_types[i];
-      const CPPType &base_type = type.base_type();
       const void *value_or_field = input_values[i];
       const void *value = type.get_value_ptr(value_or_field);
-      params.add_readonly_single_input(GVArray::ForSingleRef(base_type, 1, value));
+      params.add_readonly_single_input(GVArray::ForSingleRef(type.value, 1, value));
     }
     for (const int i : output_types.index_range()) {
       const ValueOrFieldCPPType &type = *output_types[i];
-      const CPPType &base_type = type.base_type();
       void *value_or_field = output_values[i];
-      type.default_construct(value_or_field);
+      type.self.default_construct(value_or_field);
       void *value = type.get_value_ptr(value_or_field);
-      base_type.destruct(value);
-      params.add_uninitialized_single_output(GMutableSpan{base_type, value, 1});
+      type.value.destruct(value);
+      params.add_uninitialized_single_output(GMutableSpan{type.value, value, 1});
     }
     fn.call(IndexRange(1), params, context);
   }
@@ -341,7 +336,7 @@ class LazyFunctionForMutedNode : public LazyFunction {
 
     input_by_output_index_.reinitialize(outputs_.size());
     input_by_output_index_.fill(-1);
-    for (const bNodeLink *internal_link : node.internal_links_span()) {
+    for (const bNodeLink *internal_link : node.internal_links()) {
       const int input_i = r_used_inputs.first_index_of_try(internal_link->fromsock);
       const int output_i = r_used_outputs.first_index_of_try(internal_link->tosock);
       if (ELEM(-1, input_i, output_i)) {
@@ -380,16 +375,14 @@ class LazyFunctionForMutedNode : public LazyFunction {
       }
       /* Perform a type conversion and then format the value. */
       const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-      const auto *from_field_type = dynamic_cast<const ValueOrFieldCPPType *>(&input_type);
-      const auto *to_field_type = dynamic_cast<const ValueOrFieldCPPType *>(&output_type);
-      if (from_field_type != nullptr && to_field_type != nullptr) {
-        const CPPType &from_base_type = from_field_type->base_type();
-        const CPPType &to_base_type = to_field_type->base_type();
-        if (conversions.is_convertible(from_base_type, to_base_type)) {
+      const auto *from_type = ValueOrFieldCPPType::get_from_self(input_type);
+      const auto *to_type = ValueOrFieldCPPType::get_from_self(output_type);
+      if (from_type != nullptr && to_type != nullptr) {
+        if (conversions.is_convertible(from_type->value, to_type->value)) {
           const MultiFunction &multi_fn = *conversions.get_conversion_multi_function(
-              MFDataType::ForSingle(from_base_type), MFDataType::ForSingle(to_base_type));
+              MFDataType::ForSingle(from_type->value), MFDataType::ForSingle(to_type->value));
           execute_multi_function_on_value_or_field(
-              multi_fn, {}, {from_field_type}, {to_field_type}, {input_value}, {output_value});
+              multi_fn, {}, {from_type}, {to_type}, {input_value}, {output_value});
         }
         params.output_set(output_i);
         continue;
@@ -410,18 +403,16 @@ class LazyFunctionForMultiFunctionConversion : public LazyFunction {
   const MultiFunction &fn_;
   const ValueOrFieldCPPType &from_type_;
   const ValueOrFieldCPPType &to_type_;
-  const Vector<const bNodeSocket *> target_sockets_;
 
  public:
   LazyFunctionForMultiFunctionConversion(const MultiFunction &fn,
                                          const ValueOrFieldCPPType &from,
-                                         const ValueOrFieldCPPType &to,
-                                         Vector<const bNodeSocket *> &&target_sockets)
-      : fn_(fn), from_type_(from), to_type_(to), target_sockets_(std::move(target_sockets))
+                                         const ValueOrFieldCPPType &to)
+      : fn_(fn), from_type_(from), to_type_(to)
   {
     debug_name_ = "Convert";
-    inputs_.append({"From", from});
-    outputs_.append({"To", to});
+    inputs_.append({"From", from.self});
+    outputs_.append({"To", to.self});
   }
 
   void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
@@ -458,10 +449,10 @@ class LazyFunctionForMultiFunctionNode : public LazyFunction {
     debug_name_ = node.name;
     lazy_function_interface_from_node(node, r_used_inputs, r_used_outputs, inputs_, outputs_);
     for (const lf::Input &fn_input : inputs_) {
-      input_types_.append(dynamic_cast<const ValueOrFieldCPPType *>(fn_input.type));
+      input_types_.append(ValueOrFieldCPPType::get_from_self(*fn_input.type));
     }
     for (const lf::Output &fn_output : outputs_) {
-      output_types_.append(dynamic_cast<const ValueOrFieldCPPType *>(fn_output.type));
+      output_types_.append(ValueOrFieldCPPType::get_from_self(*fn_output.type));
     }
   }
 
@@ -527,7 +518,8 @@ class LazyFunctionForViewerNode : public LazyFunction {
     debug_name_ = "Viewer";
     Vector<const bNodeSocket *> dummy_used_outputs;
     lazy_function_interface_from_node(bnode, r_used_inputs, dummy_used_outputs, inputs_, outputs_);
-    if (!r_used_inputs[1]->is_directly_linked()) {
+    const Span<const bNodeLink *> links = r_used_inputs[1]->directly_linked_links();
+    if (links.is_empty() || nodeIsDanglingReroute(&bnode.owner_tree(), links.first()->fromnode)) {
       use_field_input_ = false;
       r_used_inputs.pop_last();
       inputs_.pop_last();
@@ -551,8 +543,7 @@ class LazyFunctionForViewerNode : public LazyFunction {
     if (use_field_input_) {
       const void *value_or_field = params.try_get_input_data_ptr(1);
       BLI_assert(value_or_field != nullptr);
-      const ValueOrFieldCPPType &value_or_field_type = static_cast<const ValueOrFieldCPPType &>(
-          *inputs_[1].type);
+      const auto &value_or_field_type = *ValueOrFieldCPPType::get_from_self(*inputs_[1].type);
       GField field = value_or_field_type.as_field(value_or_field);
       const eAttrDomain domain = eAttrDomain(storage->domain);
       const StringRefNull viewer_attribute_name = ".viewer";
@@ -578,8 +569,7 @@ class LazyFunctionForViewerNode : public LazyFunction {
                   used_domain = *detected_domain;
                 }
                 else {
-                  used_domain = type == GEO_COMPONENT_TYPE_MESH ? ATTR_DOMAIN_CORNER :
-                                                                  ATTR_DOMAIN_POINT;
+                  used_domain = ATTR_DOMAIN_POINT;
                 }
               }
               bke::try_capture_field_on_geometry(
@@ -671,7 +661,8 @@ class LazyFunctionForGroupNode : public LazyFunction {
     }
 
     /* The compute context changes when entering a node group. */
-    bke::NodeGroupComputeContext compute_context{user_data->compute_context, group_node_.name};
+    bke::NodeGroupComputeContext compute_context{user_data->compute_context,
+                                                 group_node_.identifier};
     GeoNodesLFUserData group_user_data = *user_data;
     group_user_data.compute_context = &compute_context;
 
@@ -1126,13 +1117,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       const CPPType &to_type = *type_with_links.type;
       const Span<const bNodeLink *> links = type_with_links.links;
 
-      Vector<const bNodeSocket *> target_bsockets;
-      for (const bNodeLink *link : links) {
-        target_bsockets.append(link->tosock);
-      }
-
       lf::OutputSocket *converted_from_lf_socket = this->insert_type_conversion_if_necessary(
-          from_lf_socket, to_type, std::move(target_bsockets));
+          from_lf_socket, to_type);
 
       auto make_input_link_or_set_default = [&](lf::InputSocket &to_lf_socket) {
         if (converted_from_lf_socket == nullptr) {
@@ -1183,25 +1169,22 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     }
   }
 
-  lf::OutputSocket *insert_type_conversion_if_necessary(
-      lf::OutputSocket &from_socket,
-      const CPPType &to_type,
-      Vector<const bNodeSocket *> &&target_sockets)
+  lf::OutputSocket *insert_type_conversion_if_necessary(lf::OutputSocket &from_socket,
+                                                        const CPPType &to_type)
   {
     const CPPType &from_type = from_socket.type();
     if (from_type == to_type) {
       return &from_socket;
     }
-    const auto *from_field_type = dynamic_cast<const ValueOrFieldCPPType *>(&from_type);
-    const auto *to_field_type = dynamic_cast<const ValueOrFieldCPPType *>(&to_type);
+    const auto *from_field_type = ValueOrFieldCPPType::get_from_self(from_type);
+    const auto *to_field_type = ValueOrFieldCPPType::get_from_self(to_type);
     if (from_field_type != nullptr && to_field_type != nullptr) {
-      const CPPType &from_base_type = from_field_type->base_type();
-      const CPPType &to_base_type = to_field_type->base_type();
-      if (conversions_->is_convertible(from_base_type, to_base_type)) {
+      if (conversions_->is_convertible(from_field_type->value, to_field_type->value)) {
         const MultiFunction &multi_fn = *conversions_->get_conversion_multi_function(
-            MFDataType::ForSingle(from_base_type), MFDataType::ForSingle(to_base_type));
+            MFDataType::ForSingle(from_field_type->value),
+            MFDataType::ForSingle(to_field_type->value));
         auto fn = std::make_unique<LazyFunctionForMultiFunctionConversion>(
-            multi_fn, *from_field_type, *to_field_type, std::move(target_sockets));
+            multi_fn, *from_field_type, *to_field_type);
         lf::Node &conversion_node = lf_graph_->add_function(*fn);
         lf_graph_info_->functions.append(std::move(fn));
         lf_graph_->add_link(from_socket, conversion_node.input(0));
@@ -1415,8 +1398,7 @@ GeometryNodesLazyFunctionGraphInfo::~GeometryNodesLazyFunctionGraphInfo()
       if (!bsockets.is_empty()) {
         const bNodeSocket &bsocket = *bsockets[0];
         const bNode &bnode = bsocket.owner_node();
-        tree_logger.debug_messages.append(
-            {tree_logger.allocator->copy_string(bnode.name), thread_id_str});
+        tree_logger.debug_messages.append({bnode.identifier, thread_id_str});
         return true;
       }
     }

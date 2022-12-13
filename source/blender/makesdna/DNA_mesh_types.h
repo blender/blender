@@ -15,6 +15,9 @@
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
+
+#  include "BLI_math_vec_types.hh"
+
 namespace blender {
 template<typename T> class Span;
 template<typename T> class MutableSpan;
@@ -22,6 +25,7 @@ namespace bke {
 struct MeshRuntime;
 class AttributeAccessor;
 class MutableAttributeAccessor;
+struct LooseEdgeCache;
 }  // namespace bke
 }  // namespace blender
 using MeshRuntimeHandle = blender::bke::MeshRuntime;
@@ -138,6 +142,15 @@ typedef struct Mesh {
    */
   float smoothresh;
 
+  /** Per-mesh settings for voxel remesh. */
+  float remesh_voxel_size;
+  float remesh_voxel_adaptivity;
+
+  int face_sets_color_seed;
+  /* Stores the initial Face Set to be rendered white. This way the overlay can be enabled by
+   * default and Face Sets can be used without affecting the color of the mesh. */
+  int face_sets_color_default;
+
   /**
    * User-defined symmetry flag (#eMeshSymmetryType) that causes editing operations to maintain
    * symmetrical geometry. Supported by operations such as transform and weight-painting.
@@ -190,20 +203,11 @@ typedef struct Mesh {
   /* Deprecated size of #fdata. */
   int totface;
 
-  /** Per-mesh settings for voxel remesh. */
-  float remesh_voxel_size;
-  float remesh_voxel_adaptivity;
-
-  int face_sets_color_seed;
-  /* Stores the initial Face Set to be rendered white. This way the overlay can be enabled by
-   * default and Face Sets can be used without affecting the color of the mesh. */
-  int face_sets_color_default;
-
   char _pad1[4];
 
   /**
    * Data that isn't saved in files, including caches of derived data, temporary data to improve
-   * the editing experience, etc. Runtime data is created when reading files and can be accessed
+   * the editing experience, etc. The struct is created when reading files and can be accessed
    * without null checks, with the exception of some temporary meshes which should allocate and
    * free the data if they are passed to functions that expect run-time data.
    */
@@ -253,6 +257,30 @@ typedef struct Mesh {
    * Cached triangulation of the mesh.
    */
   blender::Span<MLoopTri> looptris() const;
+
+  /**
+   * Cached information about loose edges, calculated lazily when necessary.
+   */
+  const blender::bke::LooseEdgeCache &loose_edges() const;
+  /**
+   * Explicitly set the cached number of loose edges to zero. This can improve performance
+   * later on, because finding loose edges lazily can be skipped entirely.
+   *
+   * \note To allow setting this status on meshes without changing them, this does not tag the
+   * cache dirty. If the mesh was changed first, the relevant dirty tags should be called first.
+   */
+  void loose_edges_tag_none() const;
+
+  /**
+   * Normal direction of every polygon, which is defined by the winding direction of its corners.
+   */
+  blender::Span<blender::float3> poly_normals() const;
+  /**
+   * Normal direction for each vertex, which is defined as the weighted average of the normals
+   * from a vertices surrounding faces, or the normalized position of vertices connected to no
+   * faces.
+   */
+  blender::Span<blender::float3> vertex_normals() const;
 #endif
 } Mesh;
 

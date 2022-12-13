@@ -25,6 +25,7 @@ set(SRC
   integrator.cpp
   jitter.cpp
   light.cpp
+  light_tree.cpp
   mesh.cpp
   mesh_displace.cpp
   mesh_subdivision.cpp
@@ -63,6 +64,7 @@ set(SRC_HEADERS
   image_vdb.h
   integrator.h
   light.h
+  light_tree.h
   jitter.h
   mesh.h
   object.h

@@ -77,7 +77,8 @@ static void createTransMeshVertCData(bContext *UNUSED(C), TransInfo *t)
     struct TransMirrorData mirror_data = {NULL};
     struct TransMeshDataCrazySpace crazyspace_data = {NULL};
 
-    /* Support other objects using PET to adjust these, unless connected is enabled. */
+    /* Support other objects using proportional editing to adjust these, unless connected is
+     * enabled. */
     if ((!prop_mode || (prop_mode & T_PROP_CONNECTED)) && (bm->totvertsel == 0)) {
       continue;
     }
@@ -131,7 +132,7 @@ static void createTransMeshVertCData(bContext *UNUSED(C), TransInfo *t)
           em, calc_single_islands, calc_island_center, calc_island_axismtx, &island_data);
     }
 
-    copy_m3_m4(mtx, tc->obedit->obmat);
+    copy_m3_m4(mtx, tc->obedit->object_to_world);
     /* we use a pseudo-inverse so that when one of the axes is scaled to 0,
      * matrix inversion still works and we can still moving along the other */
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);

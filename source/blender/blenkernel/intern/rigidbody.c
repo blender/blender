@@ -264,13 +264,13 @@ static RigidBodyCon *rigidbody_copy_constraint(const Object *ob, const int UNUSE
   RigidBodyCon *rbcN = NULL;
 
   if (ob->rigidbody_constraint) {
-    /* just duplicate the whole struct first (to catch all the settings) */
+    /* Just duplicate the whole struct first (to catch all the settings). */
     rbcN = MEM_dupallocN(ob->rigidbody_constraint);
 
-    /* tag object as needing to be verified */
+    /* Tag object as needing to be verified. */
     rbcN->flag |= RBC_FLAG_NEEDS_VALIDATE;
 
-    /* clear out all the fields which need to be revalidated later */
+    /* Clear out all the fields which need to be re-validated later. */
     rbcN->physics_constraint = NULL;
   }
 
@@ -684,7 +684,7 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 
         if (totvert > 0 && tottri > 0) {
           BKE_mesh_calc_volume(mvert, totvert, lt, tottri, mloop, &volume, NULL);
-          const float volume_scale = mat4_to_volume_scale(ob->obmat);
+          const float volume_scale = mat4_to_volume_scale(ob->object_to_world);
           volume *= fabsf(volume_scale);
         }
       }
@@ -809,7 +809,7 @@ static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool 
       return;
     }
 
-    mat4_to_loc_quat(loc, rot, ob->obmat);
+    mat4_to_loc_quat(loc, rot, ob->object_to_world);
 
     rbo->shared->physics_object = RB_body_new(rbo->shared->physics_shape, loc, rot);
 
@@ -974,7 +974,7 @@ static void rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, b
       rbc->physics_constraint = NULL;
     }
 
-    mat4_to_loc_quat(loc, rot, ob->obmat);
+    mat4_to_loc_quat(loc, rot, ob->object_to_world);
 
     if (rb1 && rb2) {
       switch (rbc->type) {
@@ -1266,7 +1266,7 @@ RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
   rbo->mesh_source = RBO_MESH_DEFORM;
 
   /* set initial transform */
-  mat4_to_loc_quat(rbo->pos, rbo->orn, ob->obmat);
+  mat4_to_loc_quat(rbo->pos, rbo->orn, ob->object_to_world);
 
   /* flag cache as outdated */
   BKE_rigidbody_cache_reset(rbw);
@@ -1689,7 +1689,7 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
   if (!(rbo->flag & RBO_FLAG_KINEMATIC)) {
     /* update scale for all non kinematic objects */
     float new_scale[3], old_scale[3];
-    mat4_to_size(new_scale, ob->obmat);
+    mat4_to_size(new_scale, ob->object_to_world);
     RB_body_get_scale(rbo->shared->physics_object, old_scale);
 
     /* Avoid updating collision shape AABBs if scale didn't change. */
@@ -1886,7 +1886,7 @@ static ListBase rigidbody_create_substep_data(RigidBodyWorld *rbw)
       copy_v4_v4(data->old_rot, rot);
       copy_v3_v3(data->old_scale, scale);
 
-      mat4_decompose(loc, rot, scale, ob->obmat);
+      mat4_decompose(loc, rot, scale, ob->object_to_world);
 
       copy_v3_v3(data->new_pos, loc);
       copy_v4_v4(data->new_rot, rot);
@@ -2055,15 +2055,15 @@ void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
     quat_to_mat4(mat, rbo->orn);
     copy_v3_v3(mat[3], rbo->pos);
 
-    mat4_to_size(size, ob->obmat);
+    mat4_to_size(size, ob->object_to_world);
     size_to_mat4(size_mat, size);
     mul_m4_m4m4(mat, mat, size_mat);
 
-    copy_m4_m4(ob->obmat, mat);
+    copy_m4_m4(ob->object_to_world, mat);
   }
   /* otherwise set rigid body transform to current obmat */
   else {
-    mat4_to_loc_quat(rbo->pos, rbo->orn, ob->obmat);
+    mat4_to_loc_quat(rbo->pos, rbo->orn, ob->object_to_world);
   }
 }
 

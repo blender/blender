@@ -100,8 +100,8 @@ void PathTraceWorkGPU::alloc_integrator_soa()
   integrator_state_soa_volume_stack_size_ = max(integrator_state_soa_volume_stack_size_,
                                                 requested_volume_stack_size);
 
-  /* Deterine the number of path states. Deferring this for as long as possible allows the backend
-   * to make better decisions about memory availability. */
+  /* Determine the number of path states. Deferring this for as long as possible allows the
+   * back-end to make better decisions about memory availability. */
   if (max_num_paths_ == 0) {
     size_t single_state_size = estimate_single_state_size(kernel_features);
 

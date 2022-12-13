@@ -11,6 +11,10 @@ struct Heap;
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * For tools that insist on using triangles, ideally we would cache this data.
  *
@@ -277,3 +281,7 @@ void BM_vert_tri_calc_tangent_edge(BMVert *verts[3], float r_tangent[3]);
  * \param r_tangent: Calculated unit length tangent (return value).
  */
 void BM_vert_tri_calc_tangent_edge_pair(BMVert *verts[3], float r_tangent[3]);
+
+#ifdef __cplusplus
+}
+#endif

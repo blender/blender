@@ -811,8 +811,11 @@ bool seq_cache_put_if_possible(
   return false;
 }
 
-void seq_cache_thumbnail_put(
-    const SeqRenderData *context, Sequence *seq, float timeline_frame, ImBuf *i, rctf *view_area)
+void seq_cache_thumbnail_put(const SeqRenderData *context,
+                             Sequence *seq,
+                             float timeline_frame,
+                             ImBuf *i,
+                             const rctf *view_area)
 {
   Scene *scene = context->scene;
 

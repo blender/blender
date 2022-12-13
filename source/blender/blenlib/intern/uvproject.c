@@ -129,7 +129,7 @@ ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float rotmat[4][4], float 
   uci.camsize = uci.do_persp ? tanf(uci.camangle) : camera->ortho_scale;
 
   /* account for scaled cameras */
-  copy_m4_m4(uci.caminv, ob->obmat);
+  copy_m4_m4(uci.caminv, ob->object_to_world);
   normalize_m4(uci.caminv);
 
   if (invert_m4(uci.caminv)) {

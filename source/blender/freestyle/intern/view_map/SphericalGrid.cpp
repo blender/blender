@@ -10,6 +10,8 @@
 
 #include "SphericalGrid.h"
 
+#include "BLI_sys_types.h"
+
 #include "BKE_global.h"
 
 using namespace std;

@@ -114,7 +114,7 @@ void ED_gizmo_draw_preset_facemap(
   }
 
   GPU_matrix_push();
-  GPU_matrix_mul(ob->obmat);
+  GPU_matrix_mul(ob->object_to_world);
   ED_draw_object_facemap(depsgraph, ob, color, facemap);
   GPU_matrix_pop();
 

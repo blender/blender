@@ -134,13 +134,13 @@ typedef struct ViewLayerAOV {
 typedef struct ViewLayerLightgroup {
   struct ViewLayerLightgroup *next, *prev;
 
-  /* Name of the Lightgroup */
+  /* Name of the Light-group. */
   char name[64];
 } ViewLayerLightgroup;
 
-/* Lightgroup membership information. */
+/* Light-group membership information. */
 typedef struct LightgroupMembership {
-  /* Name of the Lightgroup */
+  /* Name of the Light-group. */
   char name[64];
 } LightgroupMembership;
 

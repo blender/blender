@@ -105,9 +105,9 @@ static void drw_hair_particle_cache_shgrp_attach_resources(DRWShadingGroup *shgr
                                                            ParticleHairCache *cache,
                                                            const int subdiv)
 {
-  DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", cache->point_tex);
-  DRW_shgroup_uniform_texture(shgrp, "hairStrandBuffer", cache->strand_tex);
-  DRW_shgroup_uniform_texture(shgrp, "hairStrandSegBuffer", cache->strand_seg_tex);
+  DRW_shgroup_buffer_texture(shgrp, "hairPointBuffer", cache->proc_point_buf);
+  DRW_shgroup_buffer_texture(shgrp, "hairStrandBuffer", cache->proc_strand_buf);
+  DRW_shgroup_buffer_texture(shgrp, "hairStrandSegBuffer", cache->proc_strand_seg_buf);
   DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &cache->final[subdiv].strands_res, 1);
 }
 
@@ -216,12 +216,12 @@ void DRW_hair_duplimat_get(Object *object,
       if (collection != nullptr) {
         sub_v3_v3(dupli_mat[3], collection->instance_offset);
       }
-      mul_m4_m4m4(dupli_mat, dupli_parent->obmat, dupli_mat);
+      mul_m4_m4m4(dupli_mat, dupli_parent->object_to_world, dupli_mat);
     }
     else {
-      copy_m4_m4(dupli_mat, dupli_object->ob->obmat);
+      copy_m4_m4(dupli_mat, dupli_object->ob->object_to_world);
       invert_m4(dupli_mat);
-      mul_m4_m4m4(dupli_mat, object->obmat, dupli_mat);
+      mul_m4_m4m4(dupli_mat, object->object_to_world, dupli_mat);
     }
   }
   else {
@@ -280,9 +280,9 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   float hair_rad_tip = part->rad_tip * part->rad_scale * 0.5f;
   bool hair_close_tip = (part->shape_flag & PART_SHAPE_CLOSE_TIP) != 0;
 
-  DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", hair_cache->final[subdiv].proc_tex);
-  if (hair_cache->length_tex) {
-    DRW_shgroup_uniform_texture(shgrp, "l", hair_cache->length_tex);
+  DRW_shgroup_buffer_texture(shgrp, "hairPointBuffer", hair_cache->final[subdiv].proc_buf);
+  if (hair_cache->proc_length_buf) {
+    DRW_shgroup_buffer_texture(shgrp, "l", hair_cache->proc_length_buf);
   }
 
   DRW_shgroup_uniform_block(shgrp, "drw_curves", *g_dummy_curves_info);
@@ -334,8 +334,9 @@ void DRW_hair_update()
      * Do chunks of maximum 2048 * 2048 hair points. */
     int width = 2048;
     int height = min_ii(width, 1 + max_size / width);
-    GPUTexture *tex = DRW_texture_pool_query_2d(
-        width, height, GPU_RGBA32F, (DrawEngineType *)DRW_hair_update);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    GPUTexture *tex = DRW_texture_pool_query_2d_ex(
+        width, height, GPU_RGBA32F, usage, (DrawEngineType *)DRW_hair_update);
     g_tf_target_height = height;
     g_tf_target_width = width;
 
@@ -392,8 +393,10 @@ void DRW_hair_update()
         if (!GPU_framebuffer_check_valid(prev_fb, errorOut)) {
           int width = 64;
           int height = 64;
-          GPUTexture *tex = DRW_texture_pool_query_2d(
-              width, height, GPU_DEPTH_COMPONENT32F, (DrawEngineType *)DRW_hair_update);
+          eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
+                                   GPU_TEXTURE_USAGE_SHADER_WRITE;
+          GPUTexture *tex = DRW_texture_pool_query_2d_ex(
+              width, height, GPU_DEPTH_COMPONENT32F, usage, (DrawEngineType *)DRW_hair_update);
           g_tf_target_height = height;
           g_tf_target_width = width;
 

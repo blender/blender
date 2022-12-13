@@ -78,6 +78,7 @@ void node_operatortypes()
 
   WM_operatortype_append(NODE_OT_add_search);
   WM_operatortype_append(NODE_OT_add_group);
+  WM_operatortype_append(NODE_OT_add_group_asset);
   WM_operatortype_append(NODE_OT_add_object);
   WM_operatortype_append(NODE_OT_add_collection);
   WM_operatortype_append(NODE_OT_add_file);

@@ -262,7 +262,7 @@ RenderResult *render_result_new(Render *re,
 
   render_result_views_new(rr, &re->r);
 
-  /* check renderdata for amount of layers */
+  /* Check render-data for amount of layers. */
   FOREACH_VIEW_LAYER_TO_RENDER_BEGIN (re, view_layer) {
     if (layername && layername[0]) {
       if (!STREQ(view_layer->name, layername)) {
@@ -321,7 +321,7 @@ RenderResult *render_result_new(Render *re,
     rl->layflag = SCE_LAY_FLAG_DEFAULT;
     rl->passflag = SCE_PASS_COMBINED;
 
-    re->active_view_layer = 0;
+    re->single_view_layer[0] = '\0';
   }
 
   /* Border render; calculate offset for use in compositor. compo is centralized coords. */
@@ -768,8 +768,8 @@ void render_result_single_layer_end(Render *re)
 
     /* reconstruct render result layers */
     int nr = 0;
-    LISTBASE_FOREACH (ViewLayer *, view_layer, &re->view_layers) {
-      if (nr == re->active_view_layer) {
+    LISTBASE_FOREACH (ViewLayer *, view_layer, &re->scene->view_layers) {
+      if (STREQ(view_layer->name, re->single_view_layer)) {
         BLI_addtail(&re->result->layers, rl);
       }
       else {

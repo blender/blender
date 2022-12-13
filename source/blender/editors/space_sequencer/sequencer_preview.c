@@ -51,7 +51,7 @@ static void free_preview_job(void *data)
 }
 
 /* Only this runs inside thread. */
-static void preview_startjob(void *data, short *stop, short *do_update, float *progress)
+static void preview_startjob(void *data, bool *stop, bool *do_update, float *progress)
 {
   PreviewJob *pj = data;
   PreviewJobAudio *previewjb;

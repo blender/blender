@@ -168,6 +168,8 @@ static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *
 {
   ID *id = cb_data->user_data;
   if (*cb_data->id_pointer == id) {
+    /* Even though the ID itself remain the same after being made local, from depsgraph point of
+     * view this is a different ID. Hence we need to tag all of its users for COW update. */
     DEG_id_tag_update_ex(
         cb_data->bmain, cb_data->id_owner, ID_RECALC_TAG_FOR_UNDO | ID_RECALC_COPY_ON_WRITE);
     return IDWALK_RET_STOP_ITER;
@@ -232,6 +234,8 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
     BKE_lib_id_clear_library_data(bmain, &key->id, flags);
   }
 
+  /* Even though the ID itself remain the same after being made local, from depsgraph point of view
+   * this is a different ID. Hence we rebuild depsgraph relationships. */
   DEG_relations_tag_update(bmain);
 }
 
@@ -1612,7 +1616,7 @@ static void library_make_local_copying_check(ID *id,
     if (!BLI_gset_haskey(done_ids, from_id)) {
       if (BLI_gset_haskey(loop_tags, from_id)) {
         /* We are in a 'dependency loop' of IDs, this does not say us anything, skip it.
-         * Note that this is the situation that can lead to archipelagoes of linked data-blocks
+         * Note that this is the situation that can lead to archipelagos of linked data-blocks
          * (since all of them have non-local users, they would all be duplicated,
          * leading to a loop of unused linked data-blocks that cannot be freed since they all use
          * each other...). */

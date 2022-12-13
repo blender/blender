@@ -48,7 +48,7 @@
 
 #include "UI_interface.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1165,7 +1165,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
     if (RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
       bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
       bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
-      if (nodeFindNode(ntree, sock, &node, nullptr)) {
+      if (nodeFindNodeTry(ntree, sock, &node, nullptr)) {
         if ((path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Node)) != nullptr) {
           /* we're good! */
         }
@@ -1859,8 +1859,7 @@ static void edittranslation_find_po_file(const char *root,
 
   /* First, full lang code. */
   BLI_snprintf(tstr, sizeof(tstr), "%s.po", uilng);
-  BLI_path_join(path, maxlen, root, uilng);
-  BLI_path_append(path, maxlen, tstr);
+  BLI_path_join(path, maxlen, root, uilng, tstr);
   if (BLI_is_file(path)) {
     return;
   }

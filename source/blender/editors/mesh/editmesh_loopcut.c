@@ -88,7 +88,7 @@ typedef struct RingSelOpData {
 static void ringsel_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), void *arg)
 {
   RingSelOpData *lcd = arg;
-  EDBM_preselect_edgering_draw(lcd->presel_edgering, lcd->ob->obmat);
+  EDBM_preselect_edgering_draw(lcd->presel_edgering, lcd->ob->object_to_world);
 }
 
 static void edgering_select(RingSelOpData *lcd)

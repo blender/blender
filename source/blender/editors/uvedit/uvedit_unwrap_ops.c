@@ -30,7 +30,6 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
@@ -42,7 +41,9 @@
 #include "BKE_mesh.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_subsurf.h"
+#include "BKE_subdiv.h"
+#include "BKE_subdiv_mesh.h"
+#include "BKE_subdiv_modifier.h"
 
 #include "DEG_depsgraph.h"
 
@@ -133,54 +134,32 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
 /** \name UDIM Access
  * \{ */
 
-bool ED_uvedit_udim_params_from_image_space(const SpaceImage *sima,
-                                            bool use_active,
-                                            struct UVMapUDIM_Params *udim_params)
+static void ED_uvedit_udim_params_from_image_space(const SpaceImage *sima,
+                                                   struct UVPackIsland_Params *r_params)
 {
-  memset(udim_params, 0, sizeof(*udim_params));
-
-  udim_params->grid_shape[0] = 1;
-  udim_params->grid_shape[1] = 1;
-  udim_params->target_udim = 0;
-  udim_params->use_target_udim = false;
-
-  if (sima == NULL) {
-    return false;
+  if (!sima) {
+    return; /* Nothing to do. */
   }
 
-  udim_params->image = sima->image;
-  udim_params->grid_shape[0] = sima->tile_grid_shape[0];
-  udim_params->grid_shape[1] = sima->tile_grid_shape[1];
-
-  if (use_active) {
-    int active_udim = 1001;
-    /* NOTE: Presently, when UDIM grid and tiled image are present together, only active tile for
-     * the tiled image is considered. */
-    const Image *image = sima->image;
-    if (image && image->source == IMA_SRC_TILED) {
-      ImageTile *active_tile = BLI_findlink(&image->tiles, image->active_tile_index);
-      if (active_tile) {
-        active_udim = active_tile->tile_number;
-      }
+  /* NOTE: Presently, when UDIM grid and tiled image are present together, only active tile for
+   * the tiled image is considered. */
+  const Image *image = sima->image;
+  if (image && image->source == IMA_SRC_TILED) {
+    ImageTile *active_tile = BLI_findlink(&image->tiles, image->active_tile_index);
+    if (active_tile) {
+      r_params->udim_base_offset[0] = (active_tile->tile_number - 1001) % 10;
+      r_params->udim_base_offset[1] = (active_tile->tile_number - 1001) / 10;
     }
-    else {
-      /* TODO: Support storing an active UDIM when there are no tiles present.
-       * Until then, use 2D cursor to find the active tile index for the UDIM grid. */
-      if (uv_coords_isect_udim(sima->image, sima->tile_grid_shape, sima->cursor)) {
-        int tile_number = 1001;
-        tile_number += floorf(sima->cursor[1]) * 10;
-        tile_number += floorf(sima->cursor[0]);
-        active_udim = tile_number;
-      }
-    }
-
-    udim_params->target_udim = active_udim;
-    udim_params->use_target_udim = true;
+    return;
   }
 
-  return true;
+  /* TODO: Support storing an active UDIM when there are no tiles present.
+   * Until then, use 2D cursor to find the active tile index for the UDIM grid. */
+  if (uv_coords_isect_udim(sima->image, sima->tile_grid_shape, sima->cursor)) {
+    r_params->udim_base_offset[0] = floorf(sima->cursor[0]);
+    r_params->udim_base_offset[1] = floorf(sima->cursor[1]);
+  }
 }
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -569,6 +548,29 @@ static void texface_from_original_index(const Scene *scene,
   }
 }
 
+static Mesh *subdivide_edit_mesh(const Object *object,
+                                 const BMEditMesh *em,
+                                 const SubsurfModifierData *smd)
+{
+  Mesh *me_from_em = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL, object->data);
+  BKE_mesh_ensure_default_orig_index_customdata(me_from_em);
+
+  SubdivSettings settings = BKE_subsurf_modifier_settings_init(smd, false);
+  if (settings.level == 1) {
+    return me_from_em;
+  }
+
+  SubdivToMeshSettings mesh_settings;
+  mesh_settings.resolution = (1 << smd->levels) + 1;
+  mesh_settings.use_optimal_display = (smd->flags & eSubsurfModifierFlag_ControlEdges);
+
+  Subdiv *subdiv = BKE_subdiv_update_from_mesh(NULL, &settings, me_from_em);
+  Mesh *result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, me_from_em);
+  BKE_id_free(NULL, me_from_em);
+  BKE_subdiv_free(subdiv);
+  return result;
+}
+
 /**
  * Unwrap handle initialization for subsurf aware-unwrapper.
  * The many modifications required to make the original function(see above)
@@ -580,28 +582,11 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
                                                      const UnwrapOptions *options,
                                                      UnwrapResultInfo *result_info)
 {
-  /* index pointers */
-  MPoly *mpoly;
-  MLoop *mloop;
-  MEdge *edge;
-  int i;
-
   /* pointers to modifier data for unwrap control */
   ModifierData *md;
   SubsurfModifierData *smd_real;
   /* Modifier initialization data, will  control what type of subdivision will happen. */
   SubsurfModifierData smd = {{NULL}};
-  /* Used to hold subsurfed Mesh */
-  DerivedMesh *derivedMesh, *initialDerived;
-  /* holds original indices for subsurfed mesh */
-  const int *origVertIndices, *origEdgeIndices, *origPolyIndices;
-  /* Holds vertices of subsurfed mesh */
-  MVert *subsurfedVerts;
-  MEdge *subsurfedEdges;
-  MPoly *subsurfedPolys;
-  MLoop *subsurfedLoops;
-  /* Number of vertices and faces for subsurfed mesh. */
-  int numOfEdges, numOfFaces;
 
   /* holds a map to editfaces for every subsurfed MFace.
    * These will be used to get hidden/ selected flags etc. */
@@ -629,44 +614,34 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
   smd.levels = smd_real->levels;
   smd.subdivType = smd_real->subdivType;
+  smd.flags = smd_real->flags;
+  smd.quality = smd_real->quality;
 
-  {
-    Mesh *me_from_em = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL, ob->data);
-    initialDerived = CDDM_from_mesh(me_from_em);
-    derivedMesh = subsurf_make_derived_from_derived(
-        initialDerived, &smd, scene, NULL, SUBSURF_IN_EDIT_MODE);
+  Mesh *subdiv_mesh = subdivide_edit_mesh(ob, em, &smd);
 
-    initialDerived->release(initialDerived);
-    BKE_id_free(NULL, me_from_em);
-  }
+  const MVert *subsurfedVerts = BKE_mesh_verts(subdiv_mesh);
+  const MEdge *subsurfedEdges = BKE_mesh_edges(subdiv_mesh);
+  const MPoly *subsurfedPolys = BKE_mesh_polys(subdiv_mesh);
+  const MLoop *subsurfedLoops = BKE_mesh_loops(subdiv_mesh);
 
-  /* get the derived data */
-  subsurfedVerts = derivedMesh->getVertArray(derivedMesh);
-  subsurfedEdges = derivedMesh->getEdgeArray(derivedMesh);
-  subsurfedPolys = derivedMesh->getPolyArray(derivedMesh);
-  subsurfedLoops = derivedMesh->getLoopArray(derivedMesh);
+  const int *origVertIndices = CustomData_get_layer(&subdiv_mesh->vdata, CD_ORIGINDEX);
+  const int *origEdgeIndices = CustomData_get_layer(&subdiv_mesh->edata, CD_ORIGINDEX);
+  const int *origPolyIndices = CustomData_get_layer(&subdiv_mesh->pdata, CD_ORIGINDEX);
 
-  origVertIndices = derivedMesh->getVertDataArray(derivedMesh, CD_ORIGINDEX);
-  origEdgeIndices = derivedMesh->getEdgeDataArray(derivedMesh, CD_ORIGINDEX);
-  origPolyIndices = derivedMesh->getPolyDataArray(derivedMesh, CD_ORIGINDEX);
-
-  numOfEdges = derivedMesh->getNumEdges(derivedMesh);
-  numOfFaces = derivedMesh->getNumPolys(derivedMesh);
-
-  faceMap = MEM_mallocN(numOfFaces * sizeof(BMFace *), "unwrap_edit_face_map");
+  faceMap = MEM_mallocN(subdiv_mesh->totpoly * sizeof(BMFace *), "unwrap_edit_face_map");
 
   BM_mesh_elem_index_ensure(em->bm, BM_VERT);
   BM_mesh_elem_table_ensure(em->bm, BM_EDGE | BM_FACE);
 
   /* map subsurfed faces to original editFaces */
-  for (i = 0; i < numOfFaces; i++) {
+  for (int i = 0; i < subdiv_mesh->totpoly; i++) {
     faceMap[i] = BM_face_at_index(em->bm, origPolyIndices[i]);
   }
 
-  edgeMap = MEM_mallocN(numOfEdges * sizeof(BMEdge *), "unwrap_edit_edge_map");
+  edgeMap = MEM_mallocN(subdiv_mesh->totedge * sizeof(BMEdge *), "unwrap_edit_edge_map");
 
   /* map subsurfed edges to original editEdges */
-  for (i = 0; i < numOfEdges; i++) {
+  for (int i = 0; i < subdiv_mesh->totedge; i++) {
     /* not all edges correspond to an old edge */
     edgeMap[i] = (origEdgeIndices[i] != ORIGINDEX_NONE) ?
                      BM_edge_at_index(em->bm, origEdgeIndices[i]) :
@@ -674,7 +649,8 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   }
 
   /* Prepare and feed faces to the solver */
-  for (i = 0, mpoly = subsurfedPolys; i < numOfFaces; i++, mpoly++) {
+  for (int i = 0; i < subdiv_mesh->totpoly; i++) {
+    const MPoly *mpoly = &subsurfedPolys[i];
     ParamKey key, vkeys[4];
     bool pin[4], select[4];
     const float *co[4];
@@ -693,7 +669,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
       }
     }
 
-    mloop = &subsurfedLoops[mpoly->loopstart];
+    const MLoop *mloop = &subsurfedLoops[mpoly->loopstart];
 
     /* We will not check for v4 here. Sub-surface faces always have 4 vertices. */
     BLI_assert(mpoly->totloop == 4);
@@ -744,8 +720,9 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   }
 
   /* these are calculated from original mesh too */
-  for (edge = subsurfedEdges, i = 0; i < numOfEdges; i++, edge++) {
+  for (int i = 0; i < subdiv_mesh->totedge; i++) {
     if ((edgeMap[i] != NULL) && BM_elem_flag_test(edgeMap[i], BM_ELEM_SEAM)) {
+      const MEdge *edge = &subsurfedEdges[i];
       ParamKey vkeys[2];
       vkeys[0] = (ParamKey)edge->v1;
       vkeys[1] = (ParamKey)edge->v2;
@@ -761,7 +738,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   /* cleanup */
   MEM_freeN(faceMap);
   MEM_freeN(edgeMap);
-  derivedMesh->release(derivedMesh);
+  BKE_id_free(NULL, subdiv_mesh);
 
   return handle;
 }
@@ -1022,7 +999,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
                   "fill_holes",
                   1,
                   "Fill Holes",
-                  "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and "
+                  "Virtually fill holes in mesh before unwrapping, to better avoid overlaps and "
                   "preserve symmetry");
   RNA_def_float_factor(ot->srna,
                        "blend",
@@ -1089,27 +1066,33 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
     RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
   }
 
-  struct UVMapUDIM_Params udim_params;
-  const bool use_active = (udim_source == PACK_UDIM_SRC_ACTIVE);
-  const bool use_udim_params = ED_uvedit_udim_params_from_image_space(
-      sima, use_active, &udim_params);
-
-  const struct UVPackIsland_Params pack_island_params = {
+  struct UVPackIsland_Params pack_island_params = {
       .rotate = RNA_boolean_get(op->ptr, "rotate"),
       .only_selected_uvs = options.only_selected_uvs,
       .only_selected_faces = options.only_selected_faces,
       .use_seams = !options.topology_from_uvs || options.topology_from_uvs_use_seams,
       .correct_aspect = options.correct_aspect,
       .ignore_pinned = false,
+      .pin_unselected = options.pin_unselected,
       .margin_method = RNA_enum_get(op->ptr, "margin_method"),
       .margin = RNA_float_get(op->ptr, "margin"),
   };
-  ED_uvedit_pack_islands_multi(scene,
-                               objects,
-                               objects_len,
-                               NULL,
-                               use_udim_params ? &udim_params : NULL,
-                               &pack_island_params);
+
+  struct UVMapUDIM_Params closest_udim_buf;
+  struct UVMapUDIM_Params *closest_udim = NULL;
+  if (udim_source == PACK_UDIM_SRC_ACTIVE) {
+    ED_uvedit_udim_params_from_image_space(sima, &pack_island_params);
+  }
+  else if (sima) {
+    BLI_assert(udim_source == PACK_UDIM_SRC_CLOSEST);
+    closest_udim = &closest_udim_buf;
+    closest_udim->image = sima->image;
+    closest_udim->grid_shape[0] = sima->tile_grid_shape[0];
+    closest_udim->grid_shape[1] = sima->tile_grid_shape[1];
+  }
+
+  ED_uvedit_pack_islands_multi(
+      scene, objects, objects_len, NULL, closest_udim, &pack_island_params);
 
   MEM_freeN(objects);
   return OPERATOR_FINISHED;
@@ -1388,8 +1371,8 @@ static void uv_map_transform_center(const Scene *scene,
     }
     case V3D_AROUND_CURSOR: /* cursor center */
     {
-      invert_m4_m4(ob->imat, ob->obmat);
-      mul_v3_m4v3(r_center, ob->imat, scene->cursor.location);
+      invert_m4_m4(ob->world_to_object, ob->object_to_world);
+      mul_v3_m4v3(r_center, ob->world_to_object, scene->cursor.location);
       break;
     }
     case V3D_AROUND_ACTIVE: {
@@ -1439,7 +1422,7 @@ static void uv_map_rotation_matrix_ex(float result[4][4],
   zero_v3(viewmatrix[3]);
 
   /* get rotation of the current object matrix */
-  copy_m4_m4(rotobj, ob->obmat);
+  copy_m4_m4(rotobj, ob->object_to_world);
   zero_v3(rotobj[3]);
 
   /* but shifting */
@@ -1774,8 +1757,8 @@ static void uv_map_clip_correct(const Scene *scene,
       dy = 1.0f / dy;
     }
 
-    if (dx == 1.0f && dy == 1.0f) {
-      /* Scaling by 1.0 has no effect. */
+    if (dx == 1.0f && dy == 1.0f && min[0] == 0.0f && min[1] == 0.0f) {
+      /* Scaling by 1.0, without translating, has no effect. */
       return;
     }
 
@@ -1879,6 +1862,7 @@ void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len
         .use_seams = !options.topology_from_uvs || options.topology_from_uvs_use_seams,
         .correct_aspect = options.correct_aspect,
         .ignore_pinned = true,
+        .pin_unselected = options.pin_unselected,
         .margin_method = ED_UVPACK_MARGIN_SCALED,
         .margin = scene->toolsettings->uvcalc_margin,
     };
@@ -1948,7 +1932,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    mat4_to_size(obsize, obedit->obmat);
+    mat4_to_size(obsize, obedit->object_to_world);
     if (!(fabsf(obsize[0] - obsize[1]) < 1e-4f && fabsf(obsize[1] - obsize[2]) < 1e-4f)) {
       if ((reported_errors & UNWRAP_ERROR_NONUNIFORM) == 0) {
         BKE_report(op->reports,
@@ -1958,7 +1942,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
         reported_errors |= UNWRAP_ERROR_NONUNIFORM;
       }
     }
-    else if (is_negative_m4(obedit->obmat)) {
+    else if (is_negative_m4(obedit->object_to_world)) {
       if ((reported_errors & UNWRAP_ERROR_NEGATIVE) == 0) {
         BKE_report(
             op->reports,
@@ -2026,6 +2010,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
       .use_seams = !options.topology_from_uvs || options.topology_from_uvs_use_seams,
       .correct_aspect = options.correct_aspect,
       .ignore_pinned = true,
+      .pin_unselected = options.pin_unselected,
       .margin_method = RNA_enum_get(op->ptr, "margin_method"),
       .margin = RNA_float_get(op->ptr, "margin"),
   };
@@ -2079,7 +2064,7 @@ void UV_OT_unwrap(wmOperatorType *ot)
                   "fill_holes",
                   1,
                   "Fill Holes",
-                  "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and "
+                  "Virtually fill holes in mesh before unwrapping, to better avoid overlaps and "
                   "preserve symmetry");
   RNA_def_boolean(ot->srna,
                   "correct_aspect",
@@ -2538,7 +2523,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
     float objects_pos_avg[4] = {0};
 
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      add_v4_v4(objects_pos_avg, objects[ob_index]->obmat[3]);
+      add_v4_v4(objects_pos_avg, objects[ob_index]->object_to_world[3]);
     }
 
     mul_v4_fl(objects_pos_avg, 1.0f / objects_len);
@@ -2576,7 +2561,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
       const bool camera_bounds = RNA_boolean_get(op->ptr, "camera_bounds");
       struct ProjCameraInfo *uci = BLI_uvproject_camera_info(
           v3d->camera,
-          obedit->obmat,
+          obedit->object_to_world,
           camera_bounds ? (scene->r.xsch * scene->r.xasp) : 1.0f,
           camera_bounds ? (scene->r.ysch * scene->r.yasp) : 1.0f);
 
@@ -2597,7 +2582,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
       }
     }
     else {
-      copy_m4_m4(rotmat, obedit->obmat);
+      copy_m4_m4(rotmat, obedit->object_to_world);
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {

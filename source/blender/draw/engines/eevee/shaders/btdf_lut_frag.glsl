@@ -1,11 +1,6 @@
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
 #pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
 
-uniform float sampleCount;
-uniform float z;
-
-out vec4 FragColor;
-
 void main()
 {
   float x = floor(gl_FragCoord.x) / (LUT_SIZE - 1.0);
@@ -23,7 +18,7 @@ void main()
   y += critical_cos;
   float NV = clamp(y, 1e-4, 0.9999);
 
-  float a = z * z;
+  float a = z_factor * z_factor;
   float a2 = clamp(a * a, 1e-8, 0.9999);
 
   vec3 V = vec3(sqrt(1.0 - NV * NV), 0.0, NV);
@@ -72,7 +67,7 @@ void main()
   btdf_accum /= sampleCount * sampleCount;
   fresnel_accum /= sampleCount * sampleCount;
 
-  if (z == 0.0) {
+  if (z_factor == 0.0) {
     /* Perfect mirror. Increased precision because the roughness is clamped. */
     fresnel_accum = F_eta(ior, NV);
   }

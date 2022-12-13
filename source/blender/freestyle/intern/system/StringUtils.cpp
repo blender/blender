@@ -10,6 +10,8 @@
 #include "StringUtils.h"
 #include "FreestyleConfig.h"
 
+#include "BLI_sys_types.h"
+
 namespace Freestyle::StringUtils {
 
 void getPathName(const string &path, const string &base, vector<string> &pathnames)

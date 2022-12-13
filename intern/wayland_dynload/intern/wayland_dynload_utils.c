@@ -30,11 +30,16 @@ DynamicLibrary dynamic_library_open_array_with_error(const char **paths,
   return lib;
 }
 
-void *dynamic_library_find_with_error(DynamicLibrary lib, const char *symbol, const char *path_lib)
+void *dynamic_library_find_with_error(DynamicLibrary lib,
+                                      const char *symbol,
+                                      const char *path_lib,
+                                      const bool verbose)
 {
   void *symbol_var = dynamic_library_find(lib, symbol);
   if (symbol_var == NULL) {
-    fprintf(stderr, "Unable to find '%s' in '%s'.\n", symbol, path_lib);
+    if (verbose) {
+      fprintf(stderr, "Unable to find '%s' in '%s'.\n", symbol, path_lib);
+    }
   }
   return symbol_var;
 }

@@ -196,7 +196,7 @@ void register_node_type_cmp_viewer()
   ntype.draw_buttons = file_ns::node_composit_buts_viewer;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_viewer_ex;
   ntype.flag |= NODE_PREVIEW;
-  node_type_init(&ntype, file_ns::node_composit_init_viewer);
+  ntype.initfunc = file_ns::node_composit_init_viewer;
   node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

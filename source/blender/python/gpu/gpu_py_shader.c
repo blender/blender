@@ -95,8 +95,6 @@ static int pygpu_shader_uniform_location_get(GPUShader *shader,
 
 static PyObject *pygpu_shader__tp_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
   struct {
     const char *vertexcode;
     const char *fragcode;
@@ -835,8 +833,6 @@ PyDoc_STRVAR(
     "   :rtype: :class:`bpy.types.GPUShader`\n");
 static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
   struct PyC_StringEnum pygpu_bultinshader = {pygpu_shader_builtin_items};
   struct PyC_StringEnum pygpu_config = {pygpu_shader_config_items, GPU_SHADER_CFG_DEFAULT};
 
@@ -923,9 +919,14 @@ PyDoc_STRVAR(pygpu_shader_module__tp_doc,
              "\n" PYDOC_BUILTIN_SHADER_DESCRIPTION);
 static PyModuleDef pygpu_shader_module_def = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "gpu.shader",
-    .m_doc = pygpu_shader_module__tp_doc,
-    .m_methods = pygpu_shader_module__tp_methods,
+    /*m_name*/ "gpu.shader",
+    /*m_doc*/ pygpu_shader_module__tp_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ pygpu_shader_module__tp_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 /** \} */
@@ -949,7 +950,7 @@ PyObject *bpygpu_shader_init(void)
 {
   PyObject *submodule;
 
-  submodule = PyModule_Create(&pygpu_shader_module_def);
+  submodule = bpygpu_create_module(&pygpu_shader_module_def);
 
   return submodule;
 }

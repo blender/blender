@@ -45,6 +45,36 @@ bool kernel_has_intersection(DeviceKernel device_kernel)
 struct ShaderCache {
   ShaderCache(id<MTLDevice> _mtlDevice) : mtlDevice(_mtlDevice)
   {
+    /* Initialize occupancy tuning LUT. */
+    if (MetalInfo::get_device_vendor(mtlDevice) == METAL_GPU_APPLE) {
+      switch (MetalInfo::get_apple_gpu_architecture(mtlDevice)) {
+        default:
+        case APPLE_M2:
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES] = {32, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA] = {832, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST] = {64, 64};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW] = {64, 64};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE] = {704, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY] = {1024, 256};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND] = {64, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW] = {256, 256};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE] = {448, 384};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY] = {1024, 1024};
+          break;
+        case APPLE_M1:
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES] = {256, 128};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA] = {768, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST] = {512, 128};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW] = {384, 128};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE] = {512, 64};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY] = {512, 256};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND] = {512, 128};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW] = {384, 32};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE] = {576, 384};
+          occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY] = {832, 832};
+          break;
+      }
+    }
   }
   ~ShaderCache();
 
@@ -72,6 +102,11 @@ struct ShaderCache {
     MetalKernelPipeline *pipeline = nullptr;
     std::function<void(MetalKernelPipeline *)> completionHandler;
   };
+
+  struct OccupancyTuningParameters {
+    int threads_per_threadgroup = 0;
+    int num_threads_per_block = 0;
+  } occupancy_tuning[DEVICE_KERNEL_NUM];
 
   std::mutex cache_mutex;
 
@@ -230,14 +265,18 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
   request.pipeline->device_kernel = device_kernel;
   request.pipeline->threads_per_threadgroup = device->max_threads_per_threadgroup;
 
+  if (occupancy_tuning[device_kernel].threads_per_threadgroup) {
+    request.pipeline->threads_per_threadgroup =
+        occupancy_tuning[device_kernel].threads_per_threadgroup;
+    request.pipeline->num_threads_per_block =
+        occupancy_tuning[device_kernel].num_threads_per_block;
+  }
+
   /* metalrt options */
   request.pipeline->use_metalrt = device->use_metalrt;
-  request.pipeline->metalrt_hair = device->use_metalrt &&
-                                   (device->kernel_features & KERNEL_FEATURE_HAIR);
-  request.pipeline->metalrt_hair_thick = device->use_metalrt &&
-                                         (device->kernel_features & KERNEL_FEATURE_HAIR_THICK);
-  request.pipeline->metalrt_pointcloud = device->use_metalrt &&
-                                         (device->kernel_features & KERNEL_FEATURE_POINTCLOUD);
+  request.pipeline->metalrt_features = device->use_metalrt ?
+                                           (device->kernel_features & METALRT_FEATURE_MASK) :
+                                           0;
 
   {
     thread_scoped_lock lock(cache_mutex);
@@ -274,9 +313,13 @@ MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const M
 
   /* metalrt options */
   bool use_metalrt = device->use_metalrt;
-  bool metalrt_hair = use_metalrt && (device->kernel_features & KERNEL_FEATURE_HAIR);
-  bool metalrt_hair_thick = use_metalrt && (device->kernel_features & KERNEL_FEATURE_HAIR_THICK);
-  bool metalrt_pointcloud = use_metalrt && (device->kernel_features & KERNEL_FEATURE_POINTCLOUD);
+  bool device_metalrt_hair = use_metalrt && device->kernel_features & KERNEL_FEATURE_HAIR;
+  bool device_metalrt_hair_thick = use_metalrt &&
+                                   device->kernel_features & KERNEL_FEATURE_HAIR_THICK;
+  bool device_metalrt_pointcloud = use_metalrt &&
+                                   device->kernel_features & KERNEL_FEATURE_POINTCLOUD;
+  bool device_metalrt_motion = use_metalrt &&
+                               device->kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
 
   MetalKernelPipeline *best_pipeline = nullptr;
   for (auto &pipeline : collection) {
@@ -285,9 +328,16 @@ MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const M
       continue;
     }
 
-    if (pipeline->use_metalrt != use_metalrt || pipeline->metalrt_hair != metalrt_hair ||
-        pipeline->metalrt_hair_thick != metalrt_hair_thick ||
-        pipeline->metalrt_pointcloud != metalrt_pointcloud) {
+    bool pipeline_metalrt_hair = pipeline->metalrt_features & KERNEL_FEATURE_HAIR;
+    bool pipeline_metalrt_hair_thick = pipeline->metalrt_features & KERNEL_FEATURE_HAIR_THICK;
+    bool pipeline_metalrt_pointcloud = pipeline->metalrt_features & KERNEL_FEATURE_POINTCLOUD;
+    bool pipeline_metalrt_motion = use_metalrt &&
+                                   pipeline->metalrt_features & KERNEL_FEATURE_OBJECT_MOTION;
+
+    if (pipeline->use_metalrt != use_metalrt || pipeline_metalrt_hair != device_metalrt_hair ||
+        pipeline_metalrt_hair_thick != device_metalrt_hair_thick ||
+        pipeline_metalrt_pointcloud != device_metalrt_pointcloud ||
+        pipeline_metalrt_motion != device_metalrt_motion) {
       /* wrong combination of metalrt options */
       continue;
     }
@@ -358,6 +408,8 @@ static MTLFunctionConstantValues *GetConstantValues(KernelData const *data = nul
   if (!data) {
     data = &zero_data;
   }
+  int zero_int = 0;
+  [constant_values setConstantValue:&zero_int type:MTLDataType_int atIndex:Kernel_DummyConstant];
 
 #  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
     [constant_values setConstantValue:&data->parent.name \
@@ -374,13 +426,6 @@ void MetalKernelPipeline::compile()
   const std::string function_name = std::string("cycles_metal_") +
                                     device_kernel_as_string(device_kernel);
 
-  int threads_per_threadgroup = this->threads_per_threadgroup;
-  if (device_kernel > DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL &&
-      device_kernel < DEVICE_KERNEL_INTEGRATOR_RESET) {
-    /* Always use 512 for the sorting kernels */
-    threads_per_threadgroup = 512;
-  }
-
   NSString *entryPoint = [@(function_name.c_str()) copy];
 
   NSError *error = NULL;
@@ -388,10 +433,7 @@ void MetalKernelPipeline::compile()
     MTLFunctionDescriptor *func_desc = [MTLIntersectionFunctionDescriptor functionDescriptor];
     func_desc.name = entryPoint;
 
-    if (pso_type == PSO_SPECIALIZED_SHADE) {
-      func_desc.constantValues = GetConstantValues(&kernel_data_);
-    }
-    else if (pso_type == PSO_SPECIALIZED_INTERSECT) {
+    if (pso_type != PSO_GENERIC) {
       func_desc.constantValues = GetConstantValues(&kernel_data_);
     }
     else {
@@ -436,6 +478,13 @@ void MetalKernelPipeline::compile()
         const char *function_name = function_names[i];
         desc.name = [@(function_name) copy];
 
+        if (pso_type != PSO_GENERIC) {
+          desc.constantValues = GetConstantValues(&kernel_data_);
+        }
+        else {
+          desc.constantValues = GetConstantValues();
+        }
+
         NSError *error = NULL;
         rt_intersection_function[i] = [mtlLibrary newFunctionWithDescriptor:desc error:&error];
 
@@ -455,6 +504,10 @@ void MetalKernelPipeline::compile()
 
   NSArray *table_functions[METALRT_TABLE_NUM] = {nil};
   NSArray *linked_functions = nil;
+
+  bool metalrt_hair = use_metalrt && (metalrt_features & KERNEL_FEATURE_HAIR);
+  bool metalrt_hair_thick = use_metalrt && (metalrt_features & KERNEL_FEATURE_HAIR_THICK);
+  bool metalrt_pointcloud = use_metalrt && (metalrt_features & KERNEL_FEATURE_POINTCLOUD);
 
   if (use_metalrt) {
     id<MTLFunction> curve_intersect_default = nil;
@@ -583,7 +636,9 @@ void MetalKernelPipeline::compile()
     metalbin_path = path_cache_get(path_join("kernels", metalbin_name));
     path_create_directories(metalbin_path);
 
-    if (path_exists(metalbin_path) && use_binary_archive) {
+    /* Retrieve shader binary from disk, and update the file timestamp for LRU purging to work as
+     * intended. */
+    if (use_binary_archive && path_cache_kernel_exists_and_mark_used(metalbin_path)) {
       if (@available(macOS 11.0, *)) {
         MTLBinaryArchiveDescriptor *archiveDesc = [[MTLBinaryArchiveDescriptor alloc] init];
         archiveDesc.url = [NSURL fileURLWithPath:@(metalbin_path.c_str())];
@@ -644,12 +699,14 @@ void MetalKernelPipeline::compile()
       return;
     }
 
-    int num_threads_per_block = round_down(computePipelineState.maxTotalThreadsPerThreadgroup,
-                                           computePipelineState.threadExecutionWidth);
-    num_threads_per_block = std::max(num_threads_per_block,
-                                     (int)computePipelineState.threadExecutionWidth);
+    if (!num_threads_per_block) {
+      num_threads_per_block = round_down(computePipelineState.maxTotalThreadsPerThreadgroup,
+                                         computePipelineState.threadExecutionWidth);
+      num_threads_per_block = std::max(num_threads_per_block,
+                                       (int)computePipelineState.threadExecutionWidth);
+    }
+
     this->pipeline = computePipelineState;
-    this->num_threads_per_block = num_threads_per_block;
 
     if (@available(macOS 11.0, *)) {
       if (creating_new_archive || recreate_archive) {
@@ -657,6 +714,9 @@ void MetalKernelPipeline::compile()
                                error:&error]) {
           metal_printf("Failed to save binary archive, error:\n%s\n",
                        [[error localizedDescription] UTF8String]);
+        }
+        else {
+          path_cache_kernel_mark_added_and_clear_old(metalbin_path);
         }
       }
     }
@@ -693,7 +753,8 @@ void MetalKernelPipeline::compile()
             newIntersectionFunctionTableWithDescriptor:ift_desc];
 
         /* Finally write the function handles into this pipeline's table */
-        for (int i = 0; i < 2; i++) {
+        int size = (int)[table_functions[table] count];
+        for (int i = 0; i < size; i++) {
           id<MTLFunctionHandle> handle = [pipeline
               functionHandleWithFunction:table_functions[table][i]];
           [intersection_func_table[table] setFunction:handle atIndex:i];

@@ -6,49 +6,15 @@
  * \ingroup fn
  */
 
-#include "BLI_cpp_type_make.hh"
 #include "FN_field.hh"
 
 namespace blender::fn {
 
-template<typename T> struct FieldCPPTypeParam {
-};
-
-class FieldCPPType : public CPPType {
+/**
+ * Contains information about how to deal with a `ValueOrField<T>` generically.
+ */
+class ValueOrFieldCPPType {
  private:
-  const CPPType &base_type_;
-
- public:
-  template<typename T>
-  FieldCPPType(FieldCPPTypeParam<Field<T>> /* unused */, StringRef debug_name)
-      : CPPType(CPPTypeParam<Field<T>, CPPTypeFlags::None>(), debug_name),
-        base_type_(CPPType::get<T>())
-  {
-  }
-
-  const CPPType &base_type() const
-  {
-    return base_type_;
-  }
-
-  /* Ensure that #GField and #Field<T> have the same layout, to enable casting between the two. */
-  static_assert(sizeof(Field<int>) == sizeof(GField));
-  static_assert(sizeof(Field<int>) == sizeof(Field<std::string>));
-
-  const GField &get_gfield(const void *field) const
-  {
-    return *(const GField *)field;
-  }
-
-  void construct_from_gfield(void *r_value, const GField &gfield) const
-  {
-    new (r_value) GField(gfield);
-  }
-};
-
-class ValueOrFieldCPPType : public CPPType {
- private:
-  const CPPType &base_type_;
   void (*construct_from_value_)(void *dst, const void *value);
   void (*construct_from_field_)(void *dst, GField field);
   const void *(*get_value_ptr_)(const void *value_or_field);
@@ -57,35 +23,12 @@ class ValueOrFieldCPPType : public CPPType {
   GField (*as_field_)(const void *value_or_field);
 
  public:
-  template<typename T>
-  ValueOrFieldCPPType(FieldCPPTypeParam<ValueOrField<T>> /* unused */, StringRef debug_name)
-      : CPPType(CPPTypeParam<ValueOrField<T>, CPPTypeFlags::Printable>(), debug_name),
-        base_type_(CPPType::get<T>())
-  {
-    construct_from_value_ = [](void *dst, const void *value_or_field) {
-      new (dst) ValueOrField<T>(*(const T *)value_or_field);
-    };
-    construct_from_field_ = [](void *dst, GField field) {
-      new (dst) ValueOrField<T>(Field<T>(std::move(field)));
-    };
-    get_value_ptr_ = [](const void *value_or_field) {
-      return (const void *)&((ValueOrField<T> *)value_or_field)->value;
-    };
-    get_field_ptr_ = [](const void *value_or_field) -> const GField * {
-      return &((ValueOrField<T> *)value_or_field)->field;
-    };
-    is_field_ = [](const void *value_or_field) {
-      return ((ValueOrField<T> *)value_or_field)->is_field();
-    };
-    as_field_ = [](const void *value_or_field) -> GField {
-      return ((ValueOrField<T> *)value_or_field)->as_field();
-    };
-  }
+  /** The #ValueOrField<T> itself. */
+  const CPPType &self;
+  /** The type stored in the field. */
+  const CPPType &value;
 
-  const CPPType &base_type() const
-  {
-    return base_type_;
-  }
+  template<typename ValueType> ValueOrFieldCPPType(TypeTag<ValueType> /*value_type*/);
 
   void construct_from_value(void *dst, const void *value) const
   {
@@ -122,22 +65,29 @@ class ValueOrFieldCPPType : public CPPType {
   {
     return as_field_(value_or_field);
   }
+
+  /**
+   * Try to find the #ValueOrFieldCPPType that corresponds to a #CPPType.
+   */
+  static const ValueOrFieldCPPType *get_from_self(const CPPType &self);
+
+  /**
+   * Try to find the #ValueOrFieldCPPType that wraps a #ValueOrField containing the given value
+   * type. This only works when the type has been created with #FN_FIELD_CPP_TYPE_MAKE.
+   */
+  static const ValueOrFieldCPPType *get_from_value(const CPPType &value);
+
+  template<typename ValueType> static const ValueOrFieldCPPType &get()
+  {
+    static const ValueOrFieldCPPType &type =
+        ValueOrFieldCPPType::get_impl<std::decay_t<ValueType>>();
+    return type;
+  }
+
+ private:
+  template<typename ValueType> static const ValueOrFieldCPPType &get_impl();
+
+  void register_self();
 };
 
 }  // namespace blender::fn
-
-#define MAKE_FIELD_CPP_TYPE(DEBUG_NAME, FIELD_TYPE) \
-  template<> const blender::CPPType &blender::CPPType::get_impl<blender::fn::Field<FIELD_TYPE>>() \
-  { \
-    static blender::fn::FieldCPPType cpp_type{ \
-        blender::fn::FieldCPPTypeParam<blender::fn::Field<FIELD_TYPE>>(), STRINGIFY(DEBUG_NAME)}; \
-    return cpp_type; \
-  } \
-  template<> \
-  const blender::CPPType &blender::CPPType::get_impl<blender::fn::ValueOrField<FIELD_TYPE>>() \
-  { \
-    static blender::fn::ValueOrFieldCPPType cpp_type{ \
-        blender::fn::FieldCPPTypeParam<blender::fn::ValueOrField<FIELD_TYPE>>(), \
-        STRINGIFY(DEBUG_NAME##OrValue)}; \
-    return cpp_type; \
-  }

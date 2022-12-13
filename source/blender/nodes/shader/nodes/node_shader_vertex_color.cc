@@ -69,10 +69,10 @@ void register_node_type_sh_vertex_color()
   sh_node_type_base(&ntype, SH_NODE_VERTEX_COLOR, "Color Attribute", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_vertex_color;
-  node_type_init(&ntype, file_ns::node_shader_init_vertex_color);
+  ntype.initfunc = file_ns::node_shader_init_vertex_color;
   node_type_storage(
       &ntype, "NodeShaderVertexColor", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_vertex_color);
+  ntype.gpu_fn = file_ns::node_shader_gpu_vertex_color;
 
   nodeRegisterType(&ntype);
 }

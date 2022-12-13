@@ -183,7 +183,9 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
 
         if (clip) {
           if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
-            MovieTrackingTrack *track = BKE_tracking_track_get_active(&clip->tracking);
+            const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(
+                &clip->tracking);
+            MovieTrackingTrack *track = tracking_object->active_track;
 
             if (!track) {
               return NULL;
@@ -900,7 +902,7 @@ void ED_gpencil_drawing_reference_get(const Scene *scene,
       }
       else {
         /* use object location */
-        copy_v3_v3(r_vec, ob->obmat[3]);
+        copy_v3_v3(r_vec, ob->object_to_world[3]);
         /* Apply layer offset. */
         bGPdata *gpd = ob->data;
         bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
@@ -984,7 +986,7 @@ void ED_gpencil_project_stroke_to_plane(const Scene *scene,
     /* if object, apply object rotation */
     if (ob && (ob->type == OB_GPENCIL)) {
       float mat[4][4];
-      copy_m4_m4(mat, ob->obmat);
+      copy_m4_m4(mat, ob->object_to_world);
 
       /* move origin to cursor */
       if ((ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
@@ -1206,7 +1208,7 @@ void ED_gpencil_project_point_to_plane(const Scene *scene,
     /* if object, apply object rotation */
     if (ob && (ob->type == OB_GPENCIL)) {
       float mat[4][4];
-      copy_m4_m4(mat, ob->obmat);
+      copy_m4_m4(mat, ob->object_to_world);
       if ((ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
         if (gpl != NULL) {
           add_v3_v3(mat[3], gpl->location);
@@ -1233,7 +1235,7 @@ void ED_gpencil_project_point_to_plane(const Scene *scene,
 
     /* move origin to object */
     if ((ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
-      copy_v3_v3(mat[3], ob->obmat[3]);
+      copy_v3_v3(mat[3], ob->object_to_world[3]);
     }
 
     mul_mat3_m4_v3(mat, plane_normal);
@@ -1365,16 +1367,16 @@ void ED_gpencil_reset_layers_parent(Depsgraph *depsgraph, Object *obact, bGPdata
     if (gpl->parent != NULL) {
       /* calculate new matrix */
       if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
-        invert_m4_m4(cur_mat, gpl->parent->obmat);
-        copy_v3_v3(gpl_loc, obact->obmat[3]);
+        invert_m4_m4(cur_mat, gpl->parent->object_to_world);
+        copy_v3_v3(gpl_loc, obact->object_to_world[3]);
       }
       else if (gpl->partype == PARBONE) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(gpl->parent->pose, gpl->parsubstr);
         if (pchan) {
           float tmp_mat[4][4];
-          mul_m4_m4m4(tmp_mat, gpl->parent->obmat, pchan->pose_mat);
+          mul_m4_m4m4(tmp_mat, gpl->parent->object_to_world, pchan->pose_mat);
           invert_m4_m4(cur_mat, tmp_mat);
-          copy_v3_v3(gpl_loc, obact->obmat[3]);
+          copy_v3_v3(gpl_loc, obact->object_to_world[3]);
         }
       }
 
@@ -1662,11 +1664,7 @@ static bool gpencil_check_cursor_region(bContext *C, const int mval_i[2])
   ScrArea *area = CTX_wm_area(C);
   Object *ob = CTX_data_active_object(C);
 
-  if ((ob == NULL) || !ELEM(ob->mode,
-                            OB_MODE_PAINT_GPENCIL,
-                            OB_MODE_SCULPT_GPENCIL,
-                            OB_MODE_WEIGHT_GPENCIL,
-                            OB_MODE_VERTEX_GPENCIL)) {
+  if ((ob == NULL) || ((ob->mode & OB_MODE_ALL_PAINT_GPENCIL) == 0)) {
     return false;
   }
 
@@ -1708,7 +1706,7 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
   immUniformColor4f(1.0f, 0.39f, 0.39f, 0.78f);
   immUniform1i("colors_len", 0); /* "simple" mode */
   immUniform1f("dash_width", 12.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   imm_draw_circle_wire_2d(shdr_pos,
                           x,

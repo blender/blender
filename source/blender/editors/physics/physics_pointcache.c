@@ -86,7 +86,7 @@ static bool ptcache_add_remove_poll(bContext *C)
 typedef struct PointCacheJob {
   wmWindowManager *wm;
   void *owner;
-  short *stop, *do_update;
+  bool *stop, *do_update;
   float *progress;
 
   PTCacheBaker *baker;
@@ -126,7 +126,7 @@ static void ptcache_job_update(void *customdata, float progress, int *cancel)
   *(job->progress) = progress;
 }
 
-static void ptcache_job_startjob(void *customdata, short *stop, short *do_update, float *progress)
+static void ptcache_job_startjob(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   PointCacheJob *job = customdata;
 
@@ -144,7 +144,7 @@ static void ptcache_job_startjob(void *customdata, short *stop, short *do_update
   BKE_ptcache_bake(job->baker);
 
   *do_update = true;
-  *stop = 0;
+  *stop = false;
 }
 
 static void ptcache_job_endjob(void *customdata)

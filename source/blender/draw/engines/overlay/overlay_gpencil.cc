@@ -243,7 +243,7 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
     copy_v3_v3(col_grid, gpd->grid.color);
     col_grid[3] = max_ff(v3d->overlay.gpencil_grid_opacity, 0.01f);
 
-    copy_m4_m4(mat, ob->obmat);
+    copy_m4_m4(mat, ob->object_to_world);
 
     /* Rotate and scale except align to cursor. */
     bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
@@ -286,7 +286,7 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
       copy_v3_v3(mat[3], cursor->location);
     }
     else if (ts->gpencil_v3d_align & GP_PROJECT_VIEWSPACE) {
-      copy_v3_v3(mat[3], ob->obmat[3]);
+      copy_v3_v3(mat[3], ob->object_to_world[3]);
     }
 
     translate_m4(mat, gpd->grid.offset[0], gpd->grid.offset[1], 0.0f);
@@ -397,7 +397,7 @@ static void overlay_gpencil_draw_stroke_color_name(bGPDlayer * /*gpl*/,
         UI_GetThemeColor4ubv(theme_id, color);
 
         float fpt[3];
-        mul_v3_m4v3(fpt, ob->obmat, &pt->x);
+        mul_v3_m4v3(fpt, ob->object_to_world, &pt->x);
 
         struct DRWTextStore *dt = DRW_text_cache_ensure();
         DRW_text_cache_add(dt,

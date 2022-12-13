@@ -42,6 +42,8 @@
 #include "UnaryFunction1D/BPy_UnaryFunction1DVec3f.h"
 #include "UnaryFunction1D/BPy_UnaryFunction1DVectorViewShape.h"
 
+#include "BLI_sys_types.h"
+
 using namespace Freestyle;
 
 // BinaryPredicate0D: __call__

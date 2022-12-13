@@ -197,13 +197,12 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
         }
         else if (file->redirection_path) {
           BLI_strncpy(params->dir, file->redirection_path, sizeof(params->dir));
-          BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir);
-          BLI_path_slash_ensure(params->dir);
+          BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir, sizeof(params->dir));
+          BLI_path_slash_ensure(params->dir, sizeof(params->dir));
         }
         else {
-          BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir);
-          strcat(params->dir, file->relpath);
-          BLI_path_slash_ensure(params->dir);
+          BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir, sizeof(params->dir));
+          BLI_path_append_dir(params->dir, sizeof(params->dir), file->relpath);
         }
 
         ED_file_change_dir(C);
@@ -1095,7 +1094,7 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 
   RNA_property_string_get(op->ptr, prop, entry);
   BLI_strncpy(params->dir, entry, sizeof(params->dir));
-  BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir);
+  BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir, sizeof(params->dir));
   ED_file_change_dir(C);
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
@@ -1310,6 +1309,18 @@ static int bookmark_move_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static bool file_bookmark_move_poll(bContext *C)
+{
+  SpaceFile *sfile = CTX_wm_space_file(C);
+
+  /* Bookmarks are for file browsing only (not asset browsing). */
+  if (!ED_operator_file_browsing_active(C)) {
+    return false;
+  }
+
+  return sfile->bookmarknr != -1;
+}
+
 void FILE_OT_bookmark_move(wmOperatorType *ot)
 {
   static const EnumPropertyItem slot_move[] = {
@@ -1326,8 +1337,7 @@ void FILE_OT_bookmark_move(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bookmark_move_exec;
-  /* Bookmarks are for file browsing only (not asset browsing). */
-  ot->poll = ED_operator_file_browsing_active;
+  ot->poll = file_bookmark_move_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER; /* No undo! */
@@ -1564,7 +1574,13 @@ void file_sfile_to_operator_ex(
   PropertyRNA *prop;
 
   /* XXX, not real length */
-  BLI_path_join(filepath, FILE_MAX, params->dir, params->file);
+  if (params->file[0]) {
+    BLI_path_join(filepath, FILE_MAX, params->dir, params->file);
+  }
+  else {
+    BLI_strncpy(filepath, params->dir, FILE_MAX);
+    BLI_path_slash_ensure(filepath, FILE_MAX);
+  }
 
   if ((prop = RNA_struct_find_property(op->ptr, "relative_path"))) {
     if (RNA_property_boolean_get(op->ptr, prop)) {
@@ -1791,8 +1807,7 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
     }
     else {
       BLI_path_normalize(BKE_main_blendfile_path(bmain), params->dir);
-      BLI_path_append(params->dir, sizeof(params->dir) - 1, file->relpath);
-      BLI_path_slash_ensure(params->dir);
+      BLI_path_append_dir(params->dir, sizeof(params->dir), file->relpath);
     }
     ED_file_change_dir(C);
   }
@@ -1955,7 +1970,7 @@ static int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 
   if (params) {
     if (BLI_path_parent_dir(params->dir)) {
-      BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir);
+      BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir, sizeof(params->dir));
       ED_file_change_dir(C);
       if (params->recursion_level > 1) {
         /* Disable 'dirtree' recursion when going up in tree. */
@@ -2538,7 +2553,7 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
       }
     }
 
-    BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir);
+    BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir, sizeof(params->dir));
 
     if (filelist_is_dir(sfile->files, params->dir)) {
       if (!STREQ(params->dir, old_dir)) { /* Avoids flickering when nothing's changed. */
@@ -2625,7 +2640,7 @@ void file_filename_enter_handle(bContext *C, void *UNUSED(arg_unused), void *arg
 
       /* if directory, open it and empty filename field */
       if (filelist_is_dir(sfile->files, filepath)) {
-        BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), filepath);
+        BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), filepath, sizeof(filepath));
         BLI_strncpy(params->dir, filepath, sizeof(params->dir));
         params->file[0] = '\0';
         ED_file_change_dir(C);
@@ -2844,12 +2859,12 @@ static bool file_delete_poll(bContext *C)
   return false;
 }
 
-static bool file_delete_single(const FileSelectParams *params,
+static bool file_delete_single(const struct FileList *files,
                                FileDirEntry *file,
                                const char **r_error_message)
 {
-  char str[FILE_MAX];
-  BLI_path_join(str, sizeof(str), params->dir, file->relpath);
+  char str[FILE_MAX_LIBEXTRA];
+  filelist_file_get_full_path(files, file, str);
   if (BLI_delete_soft(str, r_error_message) != 0 || BLI_exists(str)) {
     return false;
   }
@@ -2861,7 +2876,6 @@ static int file_delete_exec(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   int numfiles = filelist_files_ensure(sfile->files);
 
   const char *error_message = NULL;
@@ -2870,7 +2884,7 @@ static int file_delete_exec(bContext *C, wmOperator *op)
   for (int i = 0; i < numfiles; i++) {
     if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
       FileDirEntry *file = filelist_file(sfile->files, i);
-      if (!file_delete_single(params, file, &error_message)) {
+      if (!file_delete_single(sfile->files, file, &error_message)) {
         report_error = true;
       }
     }

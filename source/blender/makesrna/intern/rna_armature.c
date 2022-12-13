@@ -1129,7 +1129,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   RNA_define_lib_overridable(false);
 }
 
-/* err... bones should not be directly edited (only editbones should be...) */
+/* Err... bones should not be directly edited (only edit-bones should be...). */
 static void rna_def_bone(BlenderRNA *brna)
 {
   StructRNA *srna;

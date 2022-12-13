@@ -3,6 +3,7 @@
 
 set(INC
   .
+  ../asset_system
   ../blenfont
   ../blenlib
   ../blenloader
@@ -71,10 +72,6 @@ set(SRC
   intern/armature_selection.cc
   intern/armature_update.c
   intern/asset.cc
-  intern/asset_catalog.cc
-  intern/asset_catalog_path.cc
-  intern/asset_library.cc
-  intern/asset_library_service.cc
   intern/attribute.cc
   intern/attribute_access.cc
   intern/attribute_math.cc
@@ -93,7 +90,7 @@ set(SRC
   intern/callbacks.c
   intern/camera.c
   intern/cdderivedmesh.c
-  intern/cloth.c
+  intern/cloth.cc
   intern/collection.c
   intern/collision.c
   intern/colorband.c
@@ -101,6 +98,7 @@ set(SRC
   intern/compute_contexts.cc
   intern/constraint.c
   intern/context.c
+  intern/cpp_types.cc
   intern/crazyspace.cc
   intern/cryptomatte.cc
   intern/curve.cc
@@ -120,7 +118,7 @@ set(SRC
   intern/curves_utils.cc
   intern/customdata.cc
   intern/customdata_file.c
-  intern/data_transfer.c
+  intern/data_transfer.cc
   intern/deform.c
   intern/displist.cc
   intern/dynamicpaint.c
@@ -166,11 +164,11 @@ set(SRC
   intern/instances.cc
   intern/ipo.c
   intern/kelvinlet.c
-  intern/key.c
+  intern/key.cc
   intern/keyconfig.c
   intern/lattice.c
   intern/lattice_deform.c
-  intern/layer.c
+  intern/layer.cc
   intern/layer_utils.c
   intern/lib_id.c
   intern/lib_id_delete.c
@@ -183,14 +181,14 @@ set(SRC
   intern/library.c
   intern/light.c
   intern/lightprobe.c
-  intern/linestyle.c
+  intern/linestyle.cc
   intern/main.c
   intern/main_idmap.c
   intern/main_namemap.cc
   intern/mask.c
   intern/mask_evaluate.c
   intern/mask_rasterize.c
-  intern/material.c
+  intern/material.cc
   intern/mball.cc
   intern/mball_tessellate.cc
   intern/mesh.cc
@@ -205,9 +203,9 @@ set(SRC
   intern/mesh_mapping.cc
   intern/mesh_merge.c
   intern/mesh_merge_customdata.cc
-  intern/mesh_mirror.c
+  intern/mesh_mirror.cc
   intern/mesh_normals.cc
-  intern/mesh_remap.c
+  intern/mesh_remap.cc
   intern/mesh_remesh_voxel.cc
   intern/mesh_runtime.cc
   intern/mesh_sample.cc
@@ -231,6 +229,7 @@ set(SRC
   intern/nla.c
   intern/node.cc
   intern/node_runtime.cc
+  intern/node_tree_field_inferencing.cc
   intern/node_tree_update.cc
   intern/object.cc
   intern/object_deform.c
@@ -252,6 +251,7 @@ set(SRC
   intern/pbvh.cc
   intern/pbvh_bmesh.c
   intern/pbvh_pixels.cc
+  intern/pbvh_uv_islands.cc
   intern/pointcache.c
   intern/pointcloud.cc
   intern/preferences.c
@@ -284,7 +284,7 @@ set(SRC
   intern/subsurf_ccg.c
   intern/text.c
   intern/text_suggestions.c
-  intern/texture.c
+  intern/texture.cc
   intern/tracking.c
   intern/tracking_auto.c
   intern/tracking_detect.c
@@ -320,10 +320,6 @@ set(SRC
   BKE_armature.h
   BKE_armature.hh
   BKE_asset.h
-  BKE_asset_catalog.hh
-  BKE_asset_catalog_path.hh
-  BKE_asset_library.h
-  BKE_asset_library.hh
   BKE_attribute.h
   BKE_attribute.hh
   BKE_attribute_math.hh
@@ -352,6 +348,7 @@ set(SRC
   BKE_compute_contexts.hh
   BKE_constraint.h
   BKE_context.h
+  BKE_cpp_types.h
   BKE_crazyspace.h
   BKE_crazyspace.hh
   BKE_cryptomatte.h
@@ -483,6 +480,7 @@ set(SRC
   BKE_type_conversions.hh
   BKE_undo_system.h
   BKE_unit.h
+  BKE_uv_islands.hh
   BKE_vfont.h
   BKE_vfontdata.h
   BKE_viewer_path.h
@@ -499,7 +497,6 @@ set(SRC
   intern/CCGSubSurf.h
   intern/CCGSubSurf_inline.h
   intern/CCGSubSurf_intern.h
-  intern/asset_library_service.hh
   intern/attribute_access_intern.hh
   intern/data_transfer_intern.h
   intern/lib_intern.h
@@ -508,11 +505,13 @@ set(SRC
   intern/multires_unsubdivide.h
   intern/ocean_intern.h
   intern/pbvh_intern.h
+  intern/pbvh_uv_islands.hh
   intern/subdiv_converter.h
   intern/subdiv_inline.h
 )
 
 set(LIB
+  bf_asset_system
   bf_blenfont
   bf_blenlib
   bf_blenloader
@@ -830,11 +829,7 @@ if(WITH_GTESTS)
   set(TEST_SRC
     intern/action_test.cc
     intern/armature_test.cc
-    intern/asset_catalog_path_test.cc
-    intern/asset_catalog_test.cc
-    intern/asset_library_service_test.cc
-    intern/asset_library_test.cc
-    intern/asset_test.cc
+    intern/asset_metadata_test.cc
     intern/bpath_test.cc
     intern/cryptomatte_test.cc
     intern/curves_geometry_test.cc

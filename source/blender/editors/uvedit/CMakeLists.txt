@@ -21,6 +21,8 @@ set(INC
 
 set(SRC
   uvedit_buttons.c
+  uvedit_clipboard.cc
+  uvedit_clipboard_graph_iso.cc
   uvedit_draw.c
   uvedit_islands.cc
   uvedit_ops.c
@@ -30,6 +32,7 @@ set(SRC
   uvedit_smart_stitch.c
   uvedit_unwrap_ops.c
 
+  uvedit_clipboard_graph_iso.hh
   uvedit_intern.h
 )
 

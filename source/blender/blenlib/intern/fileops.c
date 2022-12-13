@@ -401,7 +401,7 @@ static bool delete_recursive(const char *dir)
 
       /* dir listing produces dir path without trailing slash... */
       BLI_strncpy(path, fl->path, sizeof(path));
-      BLI_path_slash_ensure(path);
+      BLI_path_slash_ensure(path, sizeof(path));
 
       if (delete_recursive(path)) {
         err = true;

@@ -2303,7 +2303,7 @@ static Base *mouse_select_object_center(ViewContext *vc, Base *startbase, const 
     if (BASE_SELECTABLE(v3d, base)) {
       float screen_co[2];
       if (ED_view3d_project_float_global(
-              region, base->object->obmat[3], screen_co, V3D_PROJ_TEST_CLIP_DEFAULT) ==
+              region, base->object->object_to_world[3], screen_co, V3D_PROJ_TEST_CLIP_DEFAULT) ==
           V3D_PROJ_RET_OK) {
         float dist_test = len_manhattan_v2v2(mval_fl, screen_co);
         if (base == oldbasact) {
@@ -2394,20 +2394,10 @@ bool ED_view3d_is_object_under_cursor(bContext *C, const int mval[2])
 
 static void deselect_all_tracks(MovieTracking *tracking)
 {
-  MovieTrackingObject *object;
-
-  object = static_cast<MovieTrackingObject *>(tracking->objects.first);
-  while (object) {
-    ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
-    MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(tracksbase->first);
-
-    while (track) {
+  LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
+    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
       BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
-
-      track = track->next;
     }
-
-    object = object->next;
   }
 }
 
@@ -2440,7 +2430,8 @@ static bool ed_object_select_pick_camera_track(bContext *C,
       continue;
     }
 
-    track = BKE_tracking_track_get_indexed(&clip->tracking, hitresult >> 16, &tracksbase);
+    track = BKE_tracking_track_get_for_selection_index(
+        &clip->tracking, hitresult >> 16, &tracksbase);
     found = true;
     break;
   }
@@ -2616,6 +2607,12 @@ static bool ed_object_select_pick(bContext *C,
   Base *basact = nullptr;
   const eObjectMode object_mode = oldbasact ? static_cast<eObjectMode>(oldbasact->object->mode) :
                                               OB_MODE_OBJECT;
+  /* For the most part this is equivalent to `(object_mode & OB_MODE_POSE) != 0`
+   * however this logic should also run with weight-paint + pose selection.
+   * Without this, selection in weight-paint mode can de-select armatures which isn't useful,
+   * see: T101686. */
+  const bool has_pose_old = (oldbasact &&
+                             BKE_object_pose_armature_get_with_wpaint_check(oldbasact->object));
 
   /* When enabled, don't attempt any further selection. */
   bool handled = false;
@@ -2654,7 +2651,7 @@ static bool ed_object_select_pick(bContext *C,
        *
        * This way prioritizing based on pose-mode has a bias to stay in pose-mode
        * without having to enforce this through locking the object mode. */
-      bool do_bones_get_priotity = (object_mode & OB_MODE_POSE) != 0;
+      bool do_bones_get_priotity = has_pose_old;
 
       basact = (gpu->hits > 0) ? mouse_select_eval_buffer(&vc,
                                                           gpu->buffer,
@@ -2666,10 +2663,14 @@ static bool ed_object_select_pick(bContext *C,
                                  nullptr;
     }
 
+    /* See comment for `has_pose_old`, the same rationale applies here. */
+    const bool has_pose_new = (basact &&
+                               BKE_object_pose_armature_get_with_wpaint_check(basact->object));
+
     /* Select pose-bones or camera-tracks. */
     if (((gpu->hits > 0) && gpu->has_bones) ||
         /* Special case, even when there are no hits, pose logic may de-select all bones. */
-        ((gpu->hits == 0) && (object_mode & OB_MODE_POSE))) {
+        ((gpu->hits == 0) && has_pose_old)) {
 
       if (basact && (gpu->has_bones && (basact->object->type == OB_CAMERA))) {
         MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
@@ -2704,7 +2705,10 @@ static bool ed_object_select_pick(bContext *C,
         /* When there is no `baseact` this will have operated on `oldbasact`,
          * allowing #SelectPick_Params.deselect_all work in pose-mode.
          * In this case no object operations are needed. */
-        if (basact != nullptr) {
+        if (basact == nullptr) {
+          handled = true;
+        }
+        else {
           /* By convention the armature-object is selected when in pose-mode.
            * While leaving it unselected will work, leaving pose-mode would leave the object
            * active + unselected which isn't ideal when performing other actions on the object. */
@@ -2726,7 +2730,7 @@ static bool ed_object_select_pick(bContext *C,
 
               handled = true;
             }
-            else if ((object_mode & OB_MODE_POSE) && (basact->object->mode & OB_MODE_POSE)) {
+            else if (has_pose_old && has_pose_new) {
               /* Within pose-mode, keep the current selection when switching pose bones,
                * this is noticeable when in pose mode with multiple objects at once.
                * Where selecting the bone of a different object would de-select this one.
@@ -2952,6 +2956,9 @@ static bool ed_wpaint_vertex_select_pick(bContext *C,
 
     changed = true;
   }
+  else {
+    select_vert.finish();
+  }
 
   if (changed) {
     paintvert_tag_select_update(C, obact);
@@ -3120,7 +3127,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
                          "vert_without_handles",
                          false,
                          "Control Point Without Handles",
-                         "Only select the curve control point, not it's handles");
+                         "Only select the curve control point, not its handles");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_int_vector(ot->srna,
@@ -4725,9 +4732,10 @@ static bool object_circle_select(ViewContext *vc,
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     if (BASE_SELECTABLE(v3d, base) && ((base->flag & BASE_SELECTED) != select_flag)) {
       float screen_co[2];
-      if (ED_view3d_project_float_global(
-              vc->region, base->object->obmat[3], screen_co, V3D_PROJ_TEST_CLIP_DEFAULT) ==
-          V3D_PROJ_RET_OK) {
+      if (ED_view3d_project_float_global(vc->region,
+                                         base->object->object_to_world[3],
+                                         screen_co,
+                                         V3D_PROJ_TEST_CLIP_DEFAULT) == V3D_PROJ_RET_OK) {
         if (len_squared_v2v2(mval_fl, screen_co) <= radius_squared) {
           ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
           changed = true;

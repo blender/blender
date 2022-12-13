@@ -29,15 +29,22 @@ static void set_computed_position_and_offset(GeometryComponent &component,
                                              const IndexMask selection)
 {
   MutableAttributeAccessor attributes = *component.attributes_for_write();
-  AttributeWriter<float3> positions = attributes.lookup_for_write<float3>("position");
+  const VArray<float3> positions_read_only = attributes.lookup<float3>("position");
 
+  if (in_positions.is_same(positions_read_only)) {
+    if (const std::optional<float3> offset = in_offsets.get_if_single()) {
+      if (math::is_zero(offset.value())) {
+        return;
+      }
+    }
+  }
   const int grain_size = 10000;
 
   switch (component.type()) {
     case GEO_COMPONENT_TYPE_MESH: {
       Mesh *mesh = static_cast<MeshComponent &>(component).get_for_write();
       MutableSpan<MVert> verts = mesh->verts_for_write();
-      if (in_positions.is_same(positions.varray)) {
+      if (in_positions.is_same(positions_read_only)) {
         devirtualize_varray(in_offsets, [&](const auto in_offsets) {
           threading::parallel_for(
               selection.index_range(), grain_size, [&](const IndexRange range) {
@@ -63,15 +70,16 @@ static void set_computed_position_and_offset(GeometryComponent &component,
       break;
     }
     case GEO_COMPONENT_TYPE_CURVE: {
-      CurveComponent &curve_component = static_cast<CurveComponent &>(component);
-      Curves &curves_id = *curve_component.get_for_write();
-      bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
       if (attributes.contains("handle_right") && attributes.contains("handle_left")) {
+        CurveComponent &curve_component = static_cast<CurveComponent &>(component);
+        Curves &curves_id = *curve_component.get_for_write();
+        bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
         SpanAttributeWriter<float3> handle_right_attribute =
             attributes.lookup_or_add_for_write_span<float3>("handle_right", ATTR_DOMAIN_POINT);
         SpanAttributeWriter<float3> handle_left_attribute =
             attributes.lookup_or_add_for_write_span<float3>("handle_left", ATTR_DOMAIN_POINT);
 
+        AttributeWriter<float3> positions = attributes.lookup_for_write<float3>("position");
         MutableVArraySpan<float3> out_positions_span = positions.varray;
         devirtualize_varray2(
             in_positions, in_offsets, [&](const auto in_positions, const auto in_offsets) {
@@ -88,6 +96,7 @@ static void set_computed_position_and_offset(GeometryComponent &component,
             });
 
         out_positions_span.save();
+        positions.finish();
         handle_right_attribute.finish();
         handle_left_attribute.finish();
 
@@ -95,13 +104,12 @@ static void set_computed_position_and_offset(GeometryComponent &component,
         curves.calculate_bezier_auto_handles();
         break;
       }
-      else {
-        ATTR_FALLTHROUGH;
-      }
+      ATTR_FALLTHROUGH;
     }
     default: {
+      AttributeWriter<float3> positions = attributes.lookup_for_write<float3>("position");
       MutableVArraySpan<float3> out_positions_span = positions.varray;
-      if (in_positions.is_same(positions.varray)) {
+      if (in_positions.is_same(positions_read_only)) {
         devirtualize_varray(in_offsets, [&](const auto in_offsets) {
           threading::parallel_for(
               selection.index_range(), grain_size, [&](const IndexRange range) {
@@ -123,11 +131,10 @@ static void set_computed_position_and_offset(GeometryComponent &component,
             });
       }
       out_positions_span.save();
+      positions.finish();
       break;
     }
   }
-
-  positions.finish();
 }
 
 static void set_position_in_component(GeometryComponent &component,

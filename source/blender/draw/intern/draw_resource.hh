@@ -31,8 +31,8 @@
 
 inline void ObjectMatrices::sync(const Object &object)
 {
-  model = object.obmat;
-  model_inverse = object.imat;
+  model = object.object_to_world;
+  model_inverse = object.world_to_object;
 }
 
 inline void ObjectMatrices::sync(const float4x4 &model_matrix)
@@ -70,7 +70,7 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
   object_attrs_len = 0;
   object_attrs_offset = 0;
 
-  color = ref.object->color;
+  ob_color = ref.object->color;
   index = ref.object->index;
   SET_FLAG_FROM_TEST(flag, is_active_object, eObjectInfoFlag::OBJECT_ACTIVE);
   SET_FLAG_FROM_TEST(
@@ -140,7 +140,7 @@ inline std::ostream &operator<<(std::ostream &stream, const ObjectInfos &infos)
   }
   stream << "orco_add=" << infos.orco_add << ", ";
   stream << "orco_mul=" << infos.orco_mul << ", ";
-  stream << "color=" << infos.color << ", ";
+  stream << "ob_color=" << infos.ob_color << ", ";
   stream << "index=" << infos.index << ", ";
   stream << "random=" << infos.random << ", ";
   stream << "flag=" << infos.flag << ")" << std::endl;

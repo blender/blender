@@ -539,139 +539,6 @@ bool FrameOnMouseSide(char side, float frame, float cframe)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Animation Editor
- * \{ */
-
-/* Time + Average value */
-typedef struct tRetainedKeyframe {
-  struct tRetainedKeyframe *next, *prev;
-  float frame; /* frame to cluster around */
-  float val;   /* average value */
-
-  size_t tot_count; /* number of keyframes that have been averaged */
-  size_t del_count; /* number of keyframes of this sort that have been deleted so far */
-} tRetainedKeyframe;
-
-void posttrans_fcurve_clean(FCurve *fcu, const int sel_flag, const bool use_handle)
-{
-  /* NOTE: We assume that all keys are sorted */
-  ListBase retained_keys = {NULL, NULL};
-  const bool can_average_points = ((fcu->flag & (FCURVE_INT_VALUES | FCURVE_DISCRETE_VALUES)) ==
-                                   0);
-
-  /* sanity checks */
-  if ((fcu->totvert == 0) || (fcu->bezt == NULL)) {
-    return;
-  }
-
-  /* 1) Identify selected keyframes, and average the values on those
-   * in case there are collisions due to multiple keys getting scaled
-   * to all end up on the same frame
-   */
-  for (int i = 0; i < fcu->totvert; i++) {
-    BezTriple *bezt = &fcu->bezt[i];
-
-    if (BEZT_ISSEL_ANY(bezt)) {
-      bool found = false;
-
-      /* If there's another selected frame here, merge it */
-      for (tRetainedKeyframe *rk = retained_keys.last; rk; rk = rk->prev) {
-        if (IS_EQT(rk->frame, bezt->vec[1][0], BEZT_BINARYSEARCH_THRESH)) {
-          rk->val += bezt->vec[1][1];
-          rk->tot_count++;
-
-          found = true;
-          break;
-        }
-        if (rk->frame < bezt->vec[1][0]) {
-          /* Terminate early if have passed the supposed insertion point? */
-          break;
-        }
-      }
-
-      /* If nothing found yet, create a new one */
-      if (found == false) {
-        tRetainedKeyframe *rk = MEM_callocN(sizeof(tRetainedKeyframe), "tRetainedKeyframe");
-
-        rk->frame = bezt->vec[1][0];
-        rk->val = bezt->vec[1][1];
-        rk->tot_count = 1;
-
-        BLI_addtail(&retained_keys, rk);
-      }
-    }
-  }
-
-  if (BLI_listbase_is_empty(&retained_keys)) {
-    /* This may happen if none of the points were selected... */
-    if (G.debug & G_DEBUG) {
-      printf("%s: nothing to do for FCurve %p (rna_path = '%s')\n", __func__, fcu, fcu->rna_path);
-    }
-    return;
-  }
-
-  /* Compute the average values for each retained keyframe */
-  LISTBASE_FOREACH (tRetainedKeyframe *, rk, &retained_keys) {
-    rk->val = rk->val / (float)rk->tot_count;
-  }
-
-  /* 2) Delete all keyframes duplicating the "retained keys" found above
-   *   - Most of these will be unselected keyframes
-   *   - Some will be selected keyframes though. For those, we only keep the last one
-   *     (or else everything is gone), and replace its value with the averaged value.
-   */
-  for (int i = fcu->totvert - 1; i >= 0; i--) {
-    BezTriple *bezt = &fcu->bezt[i];
-
-    /* Is this keyframe a candidate for deletion? */
-    /* TODO: Replace loop with an O(1) lookup instead */
-    for (tRetainedKeyframe *rk = retained_keys.last; rk; rk = rk->prev) {
-      if (IS_EQT(bezt->vec[1][0], rk->frame, BEZT_BINARYSEARCH_THRESH)) {
-        /* Selected keys are treated with greater care than unselected ones... */
-        if (BEZT_ISSEL_ANY(bezt)) {
-          /* - If this is the last selected key left (based on rk->del_count) ==> UPDATE IT
-           *   (or else we wouldn't have any keyframe left here)
-           * - Otherwise, there are still other selected keyframes on this frame
-           *   to be merged down still ==> DELETE IT
-           */
-          if (rk->del_count == rk->tot_count - 1) {
-            /* Update keyframe... */
-            if (can_average_points) {
-              /* TODO: update handles too? */
-              bezt->vec[1][1] = rk->val;
-            }
-          }
-          else {
-            /* Delete Keyframe */
-            BKE_fcurve_delete_key(fcu, i);
-          }
-
-          /* Update count of how many we've deleted
-           * - It should only matter that we're doing this for all but the last one
-           */
-          rk->del_count++;
-        }
-        else {
-          /* Always delete - Unselected keys don't matter */
-          BKE_fcurve_delete_key(fcu, i);
-        }
-
-        /* Stop the RK search... we've found our match now */
-        break;
-      }
-    }
-  }
-
-  /* 3) Recalculate handles */
-  testhandles_fcurve(fcu, sel_flag, use_handle);
-
-  /* cleanup */
-  BLI_freelistN(&retained_keys);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Transform Utilities
  * \{ */
 
@@ -842,7 +709,7 @@ static int countAndCleanTransDataContainer(TransInfo *t)
 
 static void init_proportional_edit(TransInfo *t)
 {
-  /* NOTE: PET is not usable in pose mode yet T32444. */
+  /* NOTE: Proportional editing is not usable in pose mode yet T32444. */
   if (!ELEM(t->data_type,
             &TransConvertType_Action,
             &TransConvertType_Curve,
@@ -859,7 +726,7 @@ static void init_proportional_edit(TransInfo *t)
             &TransConvertType_Node,
             &TransConvertType_Object,
             &TransConvertType_Particle)) {
-    /* Disable PET */
+    /* Disable proportional editing */
     t->options |= CTX_NO_PET;
     t->flag &= ~T_PROP_EDIT_ALL;
     return;
@@ -981,7 +848,7 @@ static void init_TransDataContainers(TransInfo *t,
 
       if (tc->use_local_mat) {
         BLI_assert((t->flag & T_2D_EDIT) == 0);
-        copy_m4_m4(tc->mat, objects[i]->obmat);
+        copy_m4_m4(tc->mat, objects[i]->object_to_world);
         copy_m3_m4(tc->mat3, tc->mat);
         /* for non-invertible scale matrices, invert_m4_m4_fallback()
          * can still provide a valid pivot */
@@ -1109,17 +976,13 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
       PE_start_edit(PE_get_current(t->depsgraph, t->scene, ob))) {
     return &TransConvertType_Particle;
   }
-  if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
+  if (ob && ((ob->mode & OB_MODE_ALL_PAINT) || (ob->mode & OB_MODE_SCULPT_CURVES))) {
     if ((t->options & CTX_PAINT_CURVE) && !ELEM(t->mode, TFM_SHEAR, TFM_SHRINKFATTEN)) {
       return &TransConvertType_PaintCurve;
     }
     return NULL;
   }
-  if (ob && ELEM(ob->mode,
-                 OB_MODE_PAINT_GPENCIL,
-                 OB_MODE_SCULPT_GPENCIL,
-                 OB_MODE_WEIGHT_GPENCIL,
-                 OB_MODE_VERTEX_GPENCIL)) {
+  if (ob && (ob->mode & OB_MODE_ALL_PAINT_GPENCIL)) {
     /* In grease pencil all transformations must be canceled if not Object or Edit. */
     return NULL;
   }
@@ -1235,8 +1098,8 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc)
           if (mmd->mirror_ob) {
             float obinv[4][4];
 
-            invert_m4_m4(obinv, mmd->mirror_ob->obmat);
-            mul_m4_m4m4(mtx, obinv, ob->obmat);
+            invert_m4_m4(obinv, mmd->mirror_ob->object_to_world);
+            mul_m4_m4m4(mtx, obinv, ob->object_to_world);
             invert_m4_m4(imtx, mtx);
           }
 

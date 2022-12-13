@@ -214,12 +214,12 @@ void SkinInfo::link_armature(bContext *C,
   ob->partype = PAROBJECT;
 
   BKE_object_workob_calc_parent(scene, ob, &workob);
-  invert_m4_m4(ob->parentinv, workob.obmat);
+  invert_m4_m4(ob->parentinv, workob.object_to_world);
 
   DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 #endif
-  copy_m4_m4(ob->obmat, bind_shape_matrix);
-  BKE_object_apply_mat4(ob, ob->obmat, false, false);
+  copy_m4_m4(ob->object_to_world, bind_shape_matrix);
+  BKE_object_apply_mat4(ob, ob->object_to_world, false, false);
 
   amd->deformflag = ARM_DEF_VGROUP;
 

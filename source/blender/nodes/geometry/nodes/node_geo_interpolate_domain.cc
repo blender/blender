@@ -104,7 +104,7 @@ class InterpolateDomain final : public bke::GeometryFieldInput {
     const bke::GeometryFieldContext other_domain_context{
         context.geometry(), context.type(), src_domain_};
     const int64_t src_domain_size = attributes.domain_size(src_domain_);
-    GArray values(src_field_.cpp_type(), src_domain_size);
+    GArray<> values(src_field_.cpp_type(), src_domain_size);
     FieldEvaluator value_evaluator{other_domain_context, src_domain_size};
     value_evaluator.add_with_destination(src_field_, values.as_mutable_span());
     value_evaluator.evaluate();

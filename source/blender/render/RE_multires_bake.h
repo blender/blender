@@ -43,8 +43,8 @@ typedef struct MultiresBakeRender {
 
   float user_scale; /* User scale used to scale displacement when baking derivative map. */
 
-  short *stop;
-  short *do_update;
+  bool *stop;
+  bool *do_update;
   float *progress;
 } MultiresBakeRender;
 

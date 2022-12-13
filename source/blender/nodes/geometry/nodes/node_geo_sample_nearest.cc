@@ -211,9 +211,6 @@ static bool component_is_available(const GeometrySet &geometry,
     return false;
   }
   const GeometryComponent &component = *geometry.get_component_for_read(type);
-  if (component.is_empty()) {
-    return false;
-  }
   return component.attribute_domain_size(domain) != 0;
 }
 
@@ -256,7 +253,7 @@ class SampleNearestFunction : public fn::MultiFunction {
 
   fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Sample Nearest"};
+    fn::MFSignatureBuilder signature{"Sample Nearest"};
     signature.single_input<float3>("Position");
     signature.single_output<int>("Index");
     return signature.build();
@@ -334,7 +331,7 @@ void register_node_type_geo_sample_nearest()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SAMPLE_NEAREST, "Sample Nearest", NODE_CLASS_GEOMETRY);
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;

@@ -304,7 +304,7 @@ IDTypeInfo IDType_ID_SCR = {
 
 /* ************ Space-type/region-type handling ************** */
 
-/* keep global; this has to be accessible outside of windowmanager */
+/** Keep global; this has to be accessible outside of window-manager. */
 static ListBase spacetypes = {NULL, NULL};
 
 /* not SpaceType itself */

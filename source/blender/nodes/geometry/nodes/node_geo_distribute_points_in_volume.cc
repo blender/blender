@@ -278,8 +278,8 @@ void register_node_type_geo_distribute_points_in_volume()
                     "NodeGeometryDistributePointsInVolume",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  node_type_init(&ntype, blender::nodes::node_distribute_points_in_volume_init);
-  node_type_update(&ntype, blender::nodes::node_distribute_points_in_volume_update);
+  ntype.initfunc = blender::nodes::node_distribute_points_in_volume_init;
+  ntype.updatefunc = blender::nodes::node_distribute_points_in_volume_update;
   node_type_size(&ntype, 170, 100, 320);
   ntype.declare = blender::nodes::geo_node_distribute_points_in_volume_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_distribute_points_in_volume_exec;

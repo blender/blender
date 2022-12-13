@@ -50,14 +50,14 @@ static int detect_features_exec(bContext *C, wmOperator *op)
   int clip_flag = clip->flag & MCLIP_TIMECODE_FLAGS;
   ImBuf *ibuf = BKE_movieclip_get_ibuf_flag(clip, &sc->user, clip_flag, MOVIECLIP_CACHE_SKIP);
   MovieTracking *tracking = &clip->tracking;
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-  int placement = RNA_enum_get(op->ptr, "placement");
-  int margin = RNA_int_get(op->ptr, "margin");
-  int min_distance = RNA_int_get(op->ptr, "min_distance");
-  float threshold = RNA_float_get(op->ptr, "threshold");
-  int place_outside_layer = 0;
-  int framenr = ED_space_clip_get_clip_frame_number(sc);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+  const int placement = RNA_enum_get(op->ptr, "placement");
+  const int margin = RNA_int_get(op->ptr, "margin");
+  const int min_distance = RNA_int_get(op->ptr, "min_distance");
+  const float threshold = RNA_float_get(op->ptr, "threshold");
+  const int framenr = ED_space_clip_get_clip_frame_number(sc);
   bGPDlayer *layer = NULL;
+  int place_outside_layer = 0;
 
   if (!ibuf) {
     BKE_report(op->reports, RPT_ERROR, "Feature detection requires valid clip frame");
@@ -70,10 +70,11 @@ static int detect_features_exec(bContext *C, wmOperator *op)
   }
 
   /* Deselect existing tracks. */
-  ed_tracking_deselect_all_tracks(tracksbase);
+  ed_tracking_deselect_all_tracks(&tracking_object->tracks);
+
   /* Run detector. */
   BKE_tracking_detect_harris(tracking,
-                             tracksbase,
+                             &tracking_object->tracks,
                              ibuf,
                              framenr,
                              margin,

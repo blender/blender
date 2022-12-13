@@ -6,5 +6,5 @@ void main()
 {
   vec3 world_pos = pointcloud_get_pos();
   gl_Position = point_world_to_ndc(world_pos);
-  finalColor = attribute_value;
+  finalColor = pointcloud_get_customdata_vec4(attribute_tx);
 }

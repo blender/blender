@@ -1502,8 +1502,11 @@ static void offset_meet(BevelParams *bp,
 }
 
 /* This was changed from 0.25f to fix bug T86768.
- * Original bug T44961 remains fixed with this value. */
-#define BEVEL_GOOD_ANGLE 0.0001f
+ * Original bug T44961 remains fixed with this value.
+ * Update: changed again from 0.0001f to fix bug T95335.
+ * Original two bugs remained fixed.
+ */
+#define BEVEL_GOOD_ANGLE 0.001f
 
 /**
  * Calculate the meeting point between e1 and e2 (one of which should have zero offsets),
@@ -2058,7 +2061,7 @@ static void get_profile_point(BevelParams *bp, const Profile *pro, int i, int ns
     }
     else {
       BLI_assert(is_power_of_2_i(nseg) && nseg <= bp->pro_spacing.seg_2);
-      /* Find spacing between subsamples in prof_co_2. */
+      /* Find spacing between sub-samples in `prof_co_2`. */
       int subsample_spacing = bp->pro_spacing.seg_2 / nseg;
       copy_v3_v3(r_co, pro->prof_co_2 + 3 * i * subsample_spacing);
     }

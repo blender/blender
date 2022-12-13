@@ -12,6 +12,8 @@
 
 #include "../system/TimeStamp.h"
 
+#include "BLI_sys_types.h"
+
 namespace Freestyle::ContextFunctions {
 
 uint GetTimeStampCF()

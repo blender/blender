@@ -144,7 +144,7 @@ class ProximityFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Geometry Proximity"};
+    fn::MFSignatureBuilder signature{"Geometry Proximity"};
     signature.single_input<float3>("Source Position");
     signature.single_output<float3>("Position");
     signature.single_output<float>("Distance");
@@ -228,7 +228,7 @@ void register_node_type_geo_proximity()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_PROXIMITY, "Geometry Proximity", NODE_CLASS_GEOMETRY);
-  node_type_init(&ntype, file_ns::geo_proximity_init);
+  ntype.initfunc = file_ns::geo_proximity_init;
   node_type_storage(
       &ntype, "NodeGeometryProximity", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = file_ns::node_declare;

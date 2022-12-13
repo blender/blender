@@ -89,13 +89,13 @@ typedef struct Report {
 } Report;
 
 /**
- * \note Saved in the wm, don't remove.
+ * \note Saved in the #wmWindowManager, don't remove.
  */
 typedef struct ReportList {
   ListBase list;
-  /** eReportType. */
+  /** #eReportType. */
   int printlevel;
-  /** eReportType. */
+  /** #eReportType. */
   int storelevel;
   int flag;
   char _pad[4];

@@ -185,7 +185,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
       copy_v3_v3(lastofs, stroke);
     }
     else {
-      copy_v3_v3(lastofs, ob_act_eval->obmat[3]);
+      copy_v3_v3(lastofs, ob_act_eval->object_to_world[3]);
     }
     is_set = true;
   }
@@ -199,7 +199,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     }
     mul_v2_fl(lastofs, 1.0f / 4.0f);
 
-    mul_m4_v3(ob_act_eval->obmat, lastofs);
+    mul_m4_v3(ob_act_eval->object_to_world, lastofs);
 
     is_set = true;
   }
@@ -219,11 +219,11 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 
           BKE_boundbox_calc_center_aabb(ob_eval->runtime.bb, cent);
 
-          mul_m4_v3(ob_eval->obmat, cent);
+          mul_m4_v3(ob_eval->object_to_world, cent);
           add_v3_v3(select_center, cent);
         }
         else {
-          add_v3_v3(select_center, ob_eval->obmat[3]);
+          add_v3_v3(select_center, ob_eval->object_to_world[3]);
         }
         tot++;
       }
@@ -298,6 +298,7 @@ ViewOpsData *viewops_data_create(bContext *C, const wmEvent *event, enum eViewOp
   else {
     vod->use_dyn_ofs = false;
   }
+  vod->init.persp = rv3d->persp;
 
   if (viewops_flag & VIEWOPS_FLAG_PERSP_ENSURE) {
     if (ED_view3d_persp_ensure(depsgraph, vod->v3d, vod->region)) {
@@ -311,7 +312,9 @@ ViewOpsData *viewops_data_create(bContext *C, const wmEvent *event, enum eViewOp
    * we may want to make this optional but for now its needed always */
   ED_view3d_camera_lock_init(depsgraph, vod->v3d, vod->rv3d);
 
-  vod->init.persp = rv3d->persp;
+  vod->init.persp_with_auto_persp_applied = rv3d->persp;
+  vod->init.view = rv3d->view;
+  vod->init.view_axis_roll = rv3d->view_axis_roll;
   vod->init.dist = rv3d->dist;
   vod->init.camzoom = rv3d->camzoom;
   copy_qt_qt(vod->init.quat, rv3d->viewquat);
@@ -331,6 +334,10 @@ ViewOpsData *viewops_data_create(bContext *C, const wmEvent *event, enum eViewOp
   copy_v3_v3(vod->init.ofs, rv3d->ofs);
 
   copy_qt_qt(vod->curr.viewquat, rv3d->viewquat);
+
+  copy_v3_v3(vod->init.ofs_lock, rv3d->ofs_lock);
+  vod->init.camdx = rv3d->camdx;
+  vod->init.camdy = rv3d->camdy;
 
   if (viewops_flag & VIEWOPS_FLAG_ORBIT_SELECT) {
     float ofs[3];
@@ -585,6 +592,23 @@ void viewmove_apply(ViewOpsData *vod, int x, int y)
   ED_region_tag_redraw(vod->region);
 }
 
+void viewmove_apply_reset(ViewOpsData *vod)
+{
+  if ((vod->rv3d->persp == RV3D_CAMOB) && !ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
+    vod->rv3d->camdx = vod->init.camdx;
+    vod->rv3d->camdy = vod->init.camdy;
+  }
+  else if (ED_view3d_offset_lock_check(vod->v3d, vod->rv3d)) {
+    copy_v2_v2(vod->rv3d->ofs_lock, vod->init.ofs_lock);
+  }
+  else {
+    copy_v3_v3(vod->rv3d->ofs, vod->init.ofs);
+    if (RV3D_LOCK_FLAGS(vod->rv3d) & RV3D_BOXVIEW) {
+      view3d_boxview_sync(vod->area, vod->region);
+    }
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -626,7 +650,7 @@ static void view3d_object_calc_minmax(Depsgraph *depsgraph,
   if (BKE_object_minmax_dupli(depsgraph, scene, ob_eval, min, max, false) == 0) {
     /* Use if duplis aren't found. */
     if (only_center) {
-      minmax_v3v3_v3(min, max, ob_eval->obmat[3]);
+      minmax_v3v3_v3(min, max, ob_eval->object_to_world[3]);
     }
     else {
       BKE_object_minmax(ob_eval, min, max, false);
@@ -934,8 +958,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     CTX_DATA_END;
 
     if ((ob_eval) && (ok)) {
-      mul_m4_v3(ob_eval->obmat, min);
-      mul_m4_v3(ob_eval->obmat, max);
+      mul_m4_v3(ob_eval->object_to_world, min);
+      mul_m4_v3(ob_eval->object_to_world, max);
     }
   }
   else if (is_face_map) {

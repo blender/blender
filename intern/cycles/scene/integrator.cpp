@@ -102,7 +102,8 @@ NODE_DEFINE(Integrator)
   SOCKET_FLOAT(adaptive_threshold, "Adaptive Threshold", 0.01f);
   SOCKET_INT(adaptive_min_samples, "Adaptive Min Samples", 0);
 
-  SOCKET_FLOAT(light_sampling_threshold, "Light Sampling Threshold", 0.01f);
+  SOCKET_BOOLEAN(use_light_tree, "Use light tree to optimize many light sampling", true);
+  SOCKET_FLOAT(light_sampling_threshold, "Light Sampling Threshold", 0.0f);
 
   static NodeEnum sampling_pattern_enum;
   sampling_pattern_enum.insert("sobol_burley", SAMPLING_PATTERN_SOBOL_BURLEY);
@@ -250,19 +251,26 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   kintegrator->sampling_pattern = sampling_pattern;
   kintegrator->scrambling_distance = scrambling_distance;
 
+  kintegrator->use_light_tree = scene->integrator->use_light_tree;
   if (light_sampling_threshold > 0.0f) {
-    kintegrator->light_inv_rr_threshold = 1.0f / light_sampling_threshold;
+    kintegrator->light_inv_rr_threshold = scene->film->get_exposure() / light_sampling_threshold;
   }
   else {
     kintegrator->light_inv_rr_threshold = 0.0f;
   }
 
+  constexpr int num_sequences = NUM_PMJ_PATTERNS;
+  int sequence_size = clamp(next_power_of_two(aa_samples - 1), MIN_PMJ_SAMPLES, MAX_PMJ_SAMPLES);
   if (kintegrator->sampling_pattern == SAMPLING_PATTERN_PMJ &&
-      dscene->sample_pattern_lut.size() == 0) {
-    constexpr int sequence_size = NUM_PMJ_SAMPLES;
-    constexpr int num_sequences = NUM_PMJ_PATTERNS;
+      dscene->sample_pattern_lut.size() !=
+          (sequence_size * NUM_PMJ_DIMENSIONS * NUM_PMJ_PATTERNS)) {
+    kintegrator->pmj_sequence_size = sequence_size;
+
+    if (dscene->sample_pattern_lut.size() != 0) {
+      dscene->sample_pattern_lut.free();
+    }
     float2 *directions = (float2 *)dscene->sample_pattern_lut.alloc(sequence_size * num_sequences *
-                                                                    2);
+                                                                    NUM_PMJ_DIMENSIONS);
     TaskPool pool;
     for (int j = 0; j < num_sequences; ++j) {
       float2 *sequence = directions + j * sequence_size;

@@ -2790,7 +2790,7 @@ static bool dynamicPaint_symmetrizeAdjData(PaintAdjData *ed, int active_points)
 int dynamicPaint_createUVSurface(Scene *scene,
                                  DynamicPaintSurface *surface,
                                  float *progress,
-                                 short *do_update)
+                                 bool *do_update)
 {
   /* Antialias jitter point relative coords */
   const int aa_samples = (surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
@@ -3783,7 +3783,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
   numOfVerts_p = mesh_p->totvert;
 
   mvert_p = BKE_mesh_verts_for_write(mesh_p);
-  copy_m4_m4(prev_obmat, ob->obmat);
+  copy_m4_m4(prev_obmat, ob->object_to_world);
 
   /* current frame mesh */
   scene->r.cfra = cur_fra;
@@ -3816,7 +3816,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
       .brush_vel = *brushVel,
       .mvert_p = mvert_p,
       .mvert_c = mvert_c,
-      .obmat = ob->obmat,
+      .obmat = ob->object_to_world,
       .prev_obmat = prev_obmat,
       .timescale = timescale,
   };
@@ -3856,7 +3856,7 @@ static void dynamicPaint_brushObjectCalculateVelocity(
                                       SUBFRAME_RECURSION,
                                       BKE_scene_ctime_get(scene),
                                       eModifierType_DynamicPaint);
-  copy_m4_m4(prev_obmat, ob->obmat);
+  copy_m4_m4(prev_obmat, ob->object_to_world);
 
   /* current frame mesh */
   scene->r.cfra = cur_fra;
@@ -3871,7 +3871,7 @@ static void dynamicPaint_brushObjectCalculateVelocity(
 
   /* calculate speed */
   mul_m4_v3(prev_obmat, prev_loc);
-  mul_m4_v3(ob->obmat, cur_loc);
+  mul_m4_v3(ob->object_to_world, cur_loc);
 
   sub_v3_v3v3(brushVel->v, cur_loc, prev_loc);
   mul_v3_fl(brushVel->v, 1.0f / timescale);
@@ -4279,14 +4279,14 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
      * (Faster than transforming per surface point
      * coordinates and normals to object space) */
     for (ii = 0; ii < numOfVerts; ii++) {
-      mul_m4_v3(brushOb->obmat, mvert[ii].co);
+      mul_m4_v3(brushOb->object_to_world, mvert[ii].co);
       boundInsert(&mesh_bb, mvert[ii].co);
 
       /* for proximity project calculate average normal */
       if (brush->flags & MOD_DPAINT_PROX_PROJECT && brush->collision != MOD_DPAINT_COL_VOLUME) {
         float nor[3];
         copy_v3_v3(nor, vert_normals[ii]);
-        mul_mat3_m4_v3(brushOb->obmat, nor);
+        mul_mat3_m4_v3(brushOb->object_to_world, nor);
         normalize_v3(nor);
 
         add_v3_v3(avg_brushNor, nor);
@@ -5870,7 +5870,7 @@ static bool dynamicPaint_surfaceHasMoved(DynamicPaintSurface *surface, Object *o
   }
 
   /* matrix comparison */
-  if (!equals_m4m4(bData->prev_obmat, ob->obmat)) {
+  if (!equals_m4m4(bData->prev_obmat, ob->object_to_world)) {
     return true;
   }
 
@@ -5957,7 +5957,7 @@ static void dynamic_paint_generate_bake_data_cb(void *__restrict userdata,
       mul_v3_v3v3(scaled_nor, temp_nor, ob->scale);
       bData->bNormal[index].normal_scale = len_v3(scaled_nor);
     }
-    mul_mat3_m4_v3(ob->obmat, temp_nor);
+    mul_mat3_m4_v3(ob->object_to_world, temp_nor);
     normalize_v3(temp_nor);
     negate_v3_v3(bData->bNormal[index].invNorm, temp_nor);
   }
@@ -5995,7 +5995,7 @@ static void dynamic_paint_generate_bake_data_cb(void *__restrict userdata,
       mul_v3_v3v3(scaled_nor, temp_nor, ob->scale);
       bData->bNormal[index].normal_scale = len_v3(scaled_nor);
     }
-    mul_mat3_m4_v3(ob->obmat, temp_nor);
+    mul_mat3_m4_v3(ob->object_to_world, temp_nor);
     normalize_v3(temp_nor);
     negate_v3_v3(bData->bNormal[index].invNorm, temp_nor);
   }
@@ -6113,7 +6113,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
   bData->mesh_bounds.valid = false;
   for (index = 0; index < canvasNumOfVerts; index++) {
     copy_v3_v3(canvas_verts[index].v, mvert[index].co);
-    mul_m4_v3(ob->obmat, canvas_verts[index].v);
+    mul_m4_v3(ob->object_to_world, canvas_verts[index].v);
     boundInsert(&bData->mesh_bounds, canvas_verts[index].v);
   }
 
@@ -6143,7 +6143,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
   dynamicPaint_prepareAdjacencyData(surface, false);
 
   /* Copy current frame vertices to check against in next frame */
-  copy_m4_m4(bData->prev_obmat, ob->obmat);
+  copy_m4_m4(bData->prev_obmat, ob->object_to_world);
   memcpy(bData->prev_verts, mvert, canvasNumOfVerts * sizeof(MVert));
 
   bData->clear = 0;

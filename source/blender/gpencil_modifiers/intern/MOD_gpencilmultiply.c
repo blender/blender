@@ -109,7 +109,7 @@ static void duplicateStroke(Object *ob,
   float opacity_factor;
 
   /* Apply object scale to offset distance. */
-  offset *= mat4_to_scale(ob->obmat);
+  offset *= mat4_to_scale(ob->object_to_world);
 
   BKE_gpencil_stroke_normal(gps, stroke_normal);
   if (len_v3(stroke_normal) < FLT_EPSILON) {

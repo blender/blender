@@ -74,7 +74,7 @@ class GHOST_Window : public GHOST_IWindow {
    */
   virtual bool getValid() const override
   {
-    return m_context != NULL;
+    return m_context != nullptr;
   }
 
   /**
@@ -233,6 +233,12 @@ class GHOST_Window : public GHOST_IWindow {
   GHOST_TSuccess setDrawingContextType(GHOST_TDrawingContextType type) override;
 
   /**
+   * Returns the drawing context used in this window.
+   * \return The current drawing context.
+   */
+  virtual GHOST_IContext *getDrawingContext() override;
+
+  /**
    * Swaps front and back buffers of a window.
    * \return A boolean success indicator.
    */
@@ -264,6 +270,18 @@ class GHOST_Window : public GHOST_IWindow {
   virtual unsigned int getDefaultFramebuffer() override;
 
   /**
+   * Gets the Vulkan framebuffer related resource handles associated with the Vulkan context.
+   * Needs to be called after each swap events as the framebuffer will change.
+   * \return  A boolean success indicator.
+   */
+  virtual GHOST_TSuccess getVulkanBackbuffer(void *image,
+                                             void *framebuffer,
+                                             void *command_buffer,
+                                             void *render_pass,
+                                             void *extent,
+                                             uint32_t *fb_id) override;
+
+  /**
    * Returns the window user data.
    * \return The window user data.
    */
@@ -283,8 +301,9 @@ class GHOST_Window : public GHOST_IWindow {
 
   float getNativePixelSize(void) override
   {
-    if (m_nativePixelSize > 0.0f)
+    if (m_nativePixelSize > 0.0f) {
       return m_nativePixelSize;
+    }
     return 1.0f;
   }
 
@@ -298,7 +317,8 @@ class GHOST_Window : public GHOST_IWindow {
   }
 
 #ifdef WITH_INPUT_IME
-  virtual void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed) override
+  virtual void beginIME(
+      int32_t /*x*/, int32_t /*y*/, int32_t /*w*/, int32_t /*h*/, bool /*completed*/) override
   {
     /* do nothing temporarily if not in windows */
   }

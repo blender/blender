@@ -27,7 +27,7 @@ struct bNodeTree;
 
 /* Node execution data */
 typedef struct bNodeExec {
-  /** Backpointer to node. */
+  /** Back-pointer to node. */
   struct bNode *node;
   bNodeExecData data;
 
@@ -37,7 +37,7 @@ typedef struct bNodeExec {
 
 /* Execution Data for each instance of node tree execution */
 typedef struct bNodeTreeExec {
-  struct bNodeTree *nodetree; /* backpointer to node tree */
+  struct bNodeTree *nodetree; /* Back-pointer to node tree. */
 
   int totnodes;               /* total node count */
   struct bNodeExec *nodeexec; /* per-node execution data */

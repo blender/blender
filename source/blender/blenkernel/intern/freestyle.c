@@ -183,7 +183,7 @@ FreestyleLineSet *BKE_freestyle_lineset_add(struct Main *bmain,
     BLI_strncpy(lineset->name, name, sizeof(lineset->name));
   }
   else if (lineset_index > 0) {
-    sprintf(lineset->name, "LineSet %i", lineset_index + 1);
+    BLI_snprintf(lineset->name, sizeof(lineset->name), "LineSet %i", lineset_index + 1);
   }
   else {
     strcpy(lineset->name, "LineSet");

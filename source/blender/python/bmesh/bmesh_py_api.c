@@ -156,14 +156,14 @@ PyDoc_STRVAR(BPy_BM_doc,
              ".. include:: include__bmesh.rst\n");
 static struct PyModuleDef BPy_BM_module_def = {
     PyModuleDef_HEAD_INIT,
-    "bmesh",        /* m_name */
-    BPy_BM_doc,     /* m_doc */
-    0,              /* m_size */
-    BPy_BM_methods, /* m_methods */
-    NULL,           /* m_slots */
-    NULL,           /* m_traverse */
-    NULL,           /* m_clear */
-    NULL,           /* m_free */
+    /*m_name*/ "bmesh",
+    /*m_doc*/ BPy_BM_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ BPy_BM_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPyInit_bmesh(void)

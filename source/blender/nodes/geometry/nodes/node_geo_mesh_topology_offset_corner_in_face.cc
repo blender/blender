@@ -86,6 +86,11 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
     }
     return false;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  {
+    return ATTR_DOMAIN_CORNER;
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

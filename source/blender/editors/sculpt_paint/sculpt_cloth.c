@@ -667,15 +667,15 @@ static void cloth_brush_solve_collision(Object *object,
   BVHTreeRayHit hit;
 
   float obmat_inv[4][4];
-  invert_m4_m4(obmat_inv, object->obmat);
+  invert_m4_m4(obmat_inv, object->object_to_world);
 
   for (collider_cache = cloth_sim->collider_list->first; collider_cache;
        collider_cache = collider_cache->next) {
     float ray_start[3], ray_normal[3];
     float pos_world_space[3], prev_pos_world_space[3];
 
-    mul_v3_m4v3(pos_world_space, object->obmat, cloth_sim->pos[i]);
-    mul_v3_m4v3(prev_pos_world_space, object->obmat, cloth_sim->last_iteration_pos[i]);
+    mul_v3_m4v3(pos_world_space, object->object_to_world, cloth_sim->pos[i]);
+    mul_v3_m4v3(prev_pos_world_space, object->object_to_world, cloth_sim->last_iteration_pos[i]);
     sub_v3_v3v3(ray_normal, pos_world_space, prev_pos_world_space);
     copy_v3_v3(ray_start, prev_pos_world_space);
     hit.index = -1;
@@ -1419,7 +1419,7 @@ static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
 
   float sculpt_gravity[3] = {0.0f};
   if (sd->gravity_object) {
-    copy_v3_v3(sculpt_gravity, sd->gravity_object->obmat[2]);
+    copy_v3_v3(sculpt_gravity, sd->gravity_object->object_to_world[2]);
   }
   else {
     sculpt_gravity[2] = -1.0f;

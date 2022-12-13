@@ -182,7 +182,7 @@ PassMain::Sub *ForwardPipeline::prepass_transparent_add(const Object *ob,
   if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
-  float sorting_value = math::dot(float3(ob->obmat[3]), camera_forward_);
+  float sorting_value = math::dot(float3(ob->object_to_world[3]), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
   pass->material_set(*inst_.manager, gpumat);
@@ -197,7 +197,7 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
   if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
-  float sorting_value = math::dot(float3(ob->obmat[3]), camera_forward_);
+  float sorting_value = math::dot(float3(ob->object_to_world[3]), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
   pass->material_set(*inst_.manager, gpumat);

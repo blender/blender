@@ -46,14 +46,12 @@ static void fill_mesh_topology(const int vert_offset,
       MEdge &edge = edges[edge_offset + i];
       edge.v1 = vert_offset + i;
       edge.v2 = vert_offset + i + 1;
-      edge.flag = ME_LOOSEEDGE;
     }
 
     if (main_cyclic && main_segment_num > 1) {
       MEdge &edge = edges[edge_offset + main_segment_num - 1];
       edge.v1 = vert_offset + main_point_num - 1;
       edge.v2 = vert_offset;
-      edge.flag = ME_LOOSEEDGE;
     }
     return;
   }
@@ -71,7 +69,7 @@ static void fill_mesh_topology(const int vert_offset,
       MEdge &edge = edges[profile_edge_offset + i_ring];
       edge.v1 = ring_vert_offset + i_profile;
       edge.v2 = next_ring_vert_offset + i_profile;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = ME_EDGEDRAW;
     }
   }
 
@@ -87,7 +85,7 @@ static void fill_mesh_topology(const int vert_offset,
       MEdge &edge = edges[ring_edge_offset + i_profile];
       edge.v1 = ring_vert_offset + i_profile;
       edge.v2 = ring_vert_offset + i_next_profile;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = ME_EDGEDRAW;
     }
   }
 

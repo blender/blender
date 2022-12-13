@@ -45,11 +45,13 @@ GPU_SHADER_CREATE_INFO(draw_resource_handle)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(draw_view)
-    .uniform_buf(DRW_VIEW_UBO_SLOT, "ViewMatrices", "drw_view", Frequency::PASS)
+    .uniform_buf(DRW_VIEW_UBO_SLOT, "ViewMatrices", "drw_view_[DRW_VIEW_LEN]", Frequency::PASS)
+    .define("drw_view", "drw_view_[drw_view_id]")
     .typedef_source("draw_shader_shared.h");
 
 GPU_SHADER_CREATE_INFO(draw_view_culling)
-    .uniform_buf(DRW_VIEW_CULLING_UBO_SLOT, "ViewCullingData", "drw_view_culling")
+    .uniform_buf(DRW_VIEW_CULLING_UBO_SLOT, "ViewCullingData", "drw_view_culling_[DRW_VIEW_LEN]")
+    .define("drw_view_culling", "drw_view_culling_[drw_view_id]")
     .typedef_source("draw_shader_shared.h");
 
 GPU_SHADER_CREATE_INFO(draw_modelmat)
@@ -99,6 +101,8 @@ GPU_SHADER_CREATE_INFO(draw_globals)
 GPU_SHADER_CREATE_INFO(draw_mesh).additional_info("draw_modelmat", "draw_resource_id");
 
 GPU_SHADER_CREATE_INFO(draw_hair)
+    .define("HAIR_SHADER")
+    .define("DRW_HAIR_INFO")
     .sampler(15, ImageType::FLOAT_BUFFER, "hairPointBuffer")
     /* TODO(@fclem): Pack these into one UBO. */
     .push_constant(Type::INT, "hairStrandsRes")
@@ -112,6 +116,9 @@ GPU_SHADER_CREATE_INFO(draw_hair)
     .additional_info("draw_modelmat", "draw_resource_id");
 
 GPU_SHADER_CREATE_INFO(draw_pointcloud)
+    .sampler(0, ImageType::FLOAT_BUFFER, "ptcloud_pos_rad_tx", Frequency::BATCH)
+    .define("POINTCLOUD_SHADER")
+    .define("DRW_POINTCLOUD_INFO")
     .vertex_in(0, Type::VEC4, "pos")
     .vertex_in(1, Type::VEC3, "pos_inst")
     .vertex_in(2, Type::VEC3, "nor")
@@ -152,9 +159,12 @@ GPU_SHADER_CREATE_INFO(draw_resource_finalize)
 GPU_SHADER_CREATE_INFO(draw_visibility_compute)
     .do_static_compilation(true)
     .local_group_size(DRW_VISIBILITY_GROUP_SIZE)
+    .define("DRW_VIEW_LEN", "64")
     .storage_buf(0, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
     .storage_buf(1, Qualifier::READ_WRITE, "uint", "visibility_buf[]")
     .push_constant(Type::INT, "resource_len")
+    .push_constant(Type::INT, "view_len")
+    .push_constant(Type::INT, "visibility_word_per_draw")
     .compute_source("draw_visibility_comp.glsl")
     .additional_info("draw_view", "draw_view_culling");
 
@@ -169,6 +179,8 @@ GPU_SHADER_CREATE_INFO(draw_command_generate)
     .storage_buf(3, Qualifier::WRITE, "DrawCommand", "command_buf[]")
     .storage_buf(DRW_RESOURCE_ID_SLOT, Qualifier::WRITE, "uint", "resource_id_buf[]")
     .push_constant(Type::INT, "prototype_len")
+    .push_constant(Type::INT, "visibility_word_per_draw")
+    .push_constant(Type::INT, "view_shift")
     .compute_source("draw_command_generate_comp.glsl");
 
 /** \} */

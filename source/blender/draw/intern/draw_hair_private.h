@@ -29,7 +29,6 @@ struct ParticleSystem;
 typedef struct ParticleHairFinalCache {
   /* Output of the subdivision stage: vertex buff sized to subdiv level. */
   GPUVertBuf *proc_buf;
-  GPUTexture *proc_tex;
 
   /* Just contains a huge index buffer used to draw the final hair. */
   GPUBatch *proc_hairs[MAX_THICKRES];
@@ -44,18 +43,14 @@ typedef struct ParticleHairCache {
 
   /* Hair Procedural display: Interpolation is done on the GPU. */
   GPUVertBuf *proc_point_buf; /* Input control points */
-  GPUTexture *point_tex;
 
   /** Infos of control points strands (segment count and base index) */
   GPUVertBuf *proc_strand_buf;
-  GPUTexture *strand_tex;
 
   /* Hair Length */
   GPUVertBuf *proc_length_buf;
-  GPUTexture *length_tex;
 
   GPUVertBuf *proc_strand_seg_buf;
-  GPUTexture *strand_seg_tex;
 
   GPUVertBuf *proc_uv_buf[MAX_MTFACE];
   GPUTexture *uv_tex[MAX_MTFACE];

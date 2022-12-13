@@ -45,12 +45,12 @@ extern void wm_close_and_free_all(bContext *C, ListBase *);
 extern void wm_add_default(struct Main *bmain, bContext *C);
 extern void wm_clear_default_size(bContext *C);
 
-/* register to windowmanager for redo or macro */
+/* Register to window-manager for redo or macro. */
 
 /**
  * Called on event handling by `event_system.c`.
  *
- * All operations get registered in the windowmanager here.
+ * All operations get registered in the window-manager here.
  */
 void wm_operator_register(bContext *C, wmOperator *op);
 

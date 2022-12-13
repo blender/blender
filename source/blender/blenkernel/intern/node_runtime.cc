@@ -45,15 +45,16 @@ static void double_checked_lock_with_task_isolation(std::mutex &mutex,
 static void update_node_vector(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  tree_runtime.nodes.clear();
+  const Span<bNode *> nodes = tree_runtime.nodes_by_id;
   tree_runtime.group_nodes.clear();
   tree_runtime.has_undefined_nodes_or_sockets = false;
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    node->runtime->index_in_tree = tree_runtime.nodes.append_and_get_index(node);
-    node->runtime->owner_tree = const_cast<bNodeTree *>(&ntree);
-    tree_runtime.has_undefined_nodes_or_sockets |= node->typeinfo == &NodeTypeUndefined;
-    if (node->is_group()) {
-      tree_runtime.group_nodes.append(node);
+  for (const int i : nodes.index_range()) {
+    bNode &node = *nodes[i];
+    node.runtime->index_in_tree = i;
+    node.runtime->owner_tree = const_cast<bNodeTree *>(&ntree);
+    tree_runtime.has_undefined_nodes_or_sockets |= node.typeinfo == &NodeTypeUndefined;
+    if (node.is_group()) {
+      tree_runtime.group_nodes.append(&node);
     }
   }
 }
@@ -67,28 +68,13 @@ static void update_link_vector(const bNodeTree &ntree)
   }
 }
 
-static void update_internal_links(const bNodeTree &ntree)
-{
-  bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  for (bNode *node : tree_runtime.nodes) {
-    node->runtime->internal_links.clear();
-    for (bNodeSocket *socket : node->runtime->outputs) {
-      socket->runtime->internal_link_input = nullptr;
-    }
-    LISTBASE_FOREACH (bNodeLink *, link, &node->internal_links) {
-      node->runtime->internal_links.append(link);
-      link->tosock->runtime->internal_link_input = link->fromsock;
-    }
-  }
-}
-
 static void update_socket_vectors_and_owner_node(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
   tree_runtime.sockets.clear();
   tree_runtime.input_sockets.clear();
   tree_runtime.output_sockets.clear();
-  for (bNode *node : tree_runtime.nodes) {
+  for (bNode *node : tree_runtime.nodes_by_id) {
     bNodeRuntime &node_runtime = *node->runtime;
     node_runtime.inputs.clear();
     node_runtime.outputs.clear();
@@ -111,10 +97,23 @@ static void update_socket_vectors_and_owner_node(const bNodeTree &ntree)
   }
 }
 
+static void update_internal_link_inputs(const bNodeTree &ntree)
+{
+  bNodeTreeRuntime &tree_runtime = *ntree.runtime;
+  for (bNode *node : tree_runtime.nodes_by_id) {
+    for (bNodeSocket *socket : node->runtime->outputs) {
+      socket->runtime->internal_link_input = nullptr;
+    }
+    for (bNodeLink *link : node->runtime->internal_links) {
+      link->tosock->runtime->internal_link_input = link->fromsock;
+    }
+  }
+}
+
 static void update_directly_linked_links_and_sockets(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  for (bNode *node : tree_runtime.nodes) {
+  for (bNode *node : tree_runtime.nodes_by_id) {
     for (bNodeSocket *socket : node->runtime->inputs) {
       socket->runtime->directly_linked_links.clear();
       socket->runtime->directly_linked_sockets.clear();
@@ -209,9 +208,10 @@ static void find_logical_origins_for_socket_recursive(
 static void update_logical_origins(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  threading::parallel_for(tree_runtime.nodes.index_range(), 128, [&](const IndexRange range) {
+  Span<bNode *> nodes = tree_runtime.nodes_by_id;
+  threading::parallel_for(nodes.index_range(), 128, [&](const IndexRange range) {
     for (const int i : range) {
-      bNode &node = *tree_runtime.nodes[i];
+      bNode &node = *nodes[i];
       for (bNodeSocket *socket : node.runtime->inputs) {
         Vector<bNodeSocket *, 16> sockets_in_current_chain;
         socket->runtime->logically_linked_sockets.clear();
@@ -231,7 +231,7 @@ static void update_nodes_by_type(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
   tree_runtime.nodes_by_type.clear();
-  for (bNode *node : tree_runtime.nodes) {
+  for (bNode *node : tree_runtime.nodes_by_id) {
     tree_runtime.nodes_by_type.add(node->typeinfo, node);
   }
 }
@@ -239,8 +239,9 @@ static void update_nodes_by_type(const bNodeTree &ntree)
 static void update_sockets_by_identifier(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
-  threading::parallel_for(tree_runtime.nodes.index_range(), 128, [&](const IndexRange range) {
-    for (bNode *node : tree_runtime.nodes.as_span().slice(range)) {
+  Span<bNode *> nodes = tree_runtime.nodes_by_id;
+  threading::parallel_for(nodes.index_range(), 128, [&](const IndexRange range) {
+    for (bNode *node : nodes.slice(range)) {
       node->runtime->inputs_by_identifier.clear();
       node->runtime->outputs_by_identifier.clear();
       for (bNodeSocket *socket : node->runtime->inputs) {
@@ -277,7 +278,7 @@ static void toposort_from_start_node(const ToposortDirection direction,
 
   Stack<Item, 64> nodes_to_check;
   nodes_to_check.push({&start_node});
-  node_states[start_node.runtime->index_in_tree].is_in_stack = true;
+  node_states[start_node.index()].is_in_stack = true;
   while (!nodes_to_check.is_empty()) {
     Item &item = nodes_to_check.peek();
     bNode &node = *item.node;
@@ -305,7 +306,7 @@ static void toposort_from_start_node(const ToposortDirection direction,
       }
       bNodeSocket &linked_socket = *socket.runtime->directly_linked_sockets[item.link_index];
       bNode &linked_node = *linked_socket.runtime->owner_node;
-      ToposortNodeState &linked_node_state = node_states[linked_node.runtime->index_in_tree];
+      ToposortNodeState &linked_node_state = node_states[linked_node.index()];
       if (linked_node_state.is_done) {
         /* The linked node has already been visited. */
         item.link_index++;
@@ -323,7 +324,7 @@ static void toposort_from_start_node(const ToposortDirection direction,
 
     /* If no other element has been pushed, the current node can be pushed to the sorted list. */
     if (&item == &nodes_to_check.peek()) {
-      ToposortNodeState &node_state = node_states[node.runtime->index_in_tree];
+      ToposortNodeState &node_state = node_states[node.index()];
       node_state.is_done = true;
       node_state.is_in_stack = false;
       r_sorted_nodes.append(&node);
@@ -339,12 +340,12 @@ static void update_toposort(const bNodeTree &ntree,
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
   r_sorted_nodes.clear();
-  r_sorted_nodes.reserve(tree_runtime.nodes.size());
+  r_sorted_nodes.reserve(tree_runtime.nodes_by_id.size());
   r_cycle_detected = false;
 
-  Array<ToposortNodeState> node_states(tree_runtime.nodes.size());
-  for (bNode *node : tree_runtime.nodes) {
-    if (node_states[node->runtime->index_in_tree].is_done) {
+  Array<ToposortNodeState> node_states(tree_runtime.nodes_by_id.size());
+  for (bNode *node : tree_runtime.nodes_by_id) {
+    if (node_states[node->index()].is_done) {
       /* Ignore nodes that are done already. */
       continue;
     }
@@ -357,10 +358,10 @@ static void update_toposort(const bNodeTree &ntree,
     toposort_from_start_node(direction, *node, node_states, r_sorted_nodes, r_cycle_detected);
   }
 
-  if (r_sorted_nodes.size() < tree_runtime.nodes.size()) {
+  if (r_sorted_nodes.size() < tree_runtime.nodes_by_id.size()) {
     r_cycle_detected = true;
-    for (bNode *node : tree_runtime.nodes) {
-      if (node_states[node->runtime->index_in_tree].is_done) {
+    for (bNode *node : tree_runtime.nodes_by_id) {
+      if (node_states[node->index()].is_done) {
         /* Ignore nodes that are done already. */
         continue;
       }
@@ -369,7 +370,37 @@ static void update_toposort(const bNodeTree &ntree,
     }
   }
 
-  BLI_assert(tree_runtime.nodes.size() == r_sorted_nodes.size());
+  BLI_assert(tree_runtime.nodes_by_id.size() == r_sorted_nodes.size());
+}
+
+static void update_root_frames(const bNodeTree &ntree)
+{
+  bNodeTreeRuntime &tree_runtime = *ntree.runtime;
+  Span<bNode *> nodes = tree_runtime.nodes_by_id;
+
+  tree_runtime.root_frames.clear();
+
+  for (bNode *node : nodes) {
+    if (!node->parent && node->is_frame()) {
+      tree_runtime.root_frames.append(node);
+    }
+  }
+}
+
+static void update_direct_frames_childrens(const bNodeTree &ntree)
+{
+  bNodeTreeRuntime &tree_runtime = *ntree.runtime;
+  Span<bNode *> nodes = tree_runtime.nodes_by_id;
+
+  for (bNode *node : nodes) {
+    node->runtime->direct_children_in_frame.clear();
+  }
+
+  for (bNode *node : nodes) {
+    if (const bNode *frame = node->parent) {
+      frame->runtime->direct_children_in_frame.append(node);
+    }
+  }
 }
 
 static void update_group_output_node(const bNodeTree &ntree)
@@ -401,24 +432,28 @@ static void ensure_topology_cache(const bNodeTree &ntree)
         update_node_vector(ntree);
         update_link_vector(ntree);
         update_socket_vectors_and_owner_node(ntree);
-        update_internal_links(ntree);
+        update_internal_link_inputs(ntree);
         update_directly_linked_links_and_sockets(ntree);
-        threading::parallel_invoke([&]() { update_logical_origins(ntree); },
-                                   [&]() { update_nodes_by_type(ntree); },
-                                   [&]() { update_sockets_by_identifier(ntree); },
-                                   [&]() {
-                                     update_toposort(ntree,
-                                                     ToposortDirection::LeftToRight,
-                                                     tree_runtime.toposort_left_to_right,
-                                                     tree_runtime.has_available_link_cycle);
-                                   },
-                                   [&]() {
-                                     bool dummy;
-                                     update_toposort(ntree,
-                                                     ToposortDirection::RightToLeft,
-                                                     tree_runtime.toposort_right_to_left,
-                                                     dummy);
-                                   });
+        threading::parallel_invoke(
+            tree_runtime.nodes_by_id.size() > 32,
+            [&]() { update_logical_origins(ntree); },
+            [&]() { update_nodes_by_type(ntree); },
+            [&]() { update_sockets_by_identifier(ntree); },
+            [&]() {
+              update_toposort(ntree,
+                              ToposortDirection::LeftToRight,
+                              tree_runtime.toposort_left_to_right,
+                              tree_runtime.has_available_link_cycle);
+            },
+            [&]() {
+              bool dummy;
+              update_toposort(ntree,
+                              ToposortDirection::RightToLeft,
+                              tree_runtime.toposort_right_to_left,
+                              dummy);
+            },
+            [&]() { update_root_frames(ntree); },
+            [&]() { update_direct_frames_childrens(ntree); });
         update_group_output_node(ntree);
         tree_runtime.topology_cache_exists = true;
       });

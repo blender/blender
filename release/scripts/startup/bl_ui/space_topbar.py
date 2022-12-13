@@ -407,15 +407,20 @@ class TOPBAR_MT_file_defaults(Menu):
             app_template = None
 
         if app_template:
-            layout.label(text=bpy.path.display_name(
-                app_template, has_ext=False))
+            layout.label(
+                text=iface_(bpy.path.display_name(app_template, has_ext=False),
+                            i18n_contexts.id_workspace), translate=False)
 
         layout.operator("wm.save_homefile")
         if app_template:
             display_name = bpy.path.display_name(iface_(app_template))
-            props = layout.operator("wm.read_factory_settings", text="Load Factory Blender Settings")
+            props = layout.operator("wm.read_factory_settings",
+                                    text="Load Factory Blender Settings")
             props.app_template = app_template
-            props = layout.operator("wm.read_factory_settings", text="Load Factory %s Settings" % display_name)
+            props = layout.operator("wm.read_factory_settings",
+                                    text=iface_("Load Factory %s Settings",
+                                                i18n_contexts.operator_default) % display_name,
+                                    translate=False)
             props.app_template = app_template
             props.use_factory_startup_app_template_only = True
             del display_name

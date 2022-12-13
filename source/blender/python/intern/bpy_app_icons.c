@@ -162,14 +162,14 @@ static struct PyMethodDef M_AppIcons_methods[] = {
 
 static struct PyModuleDef M_AppIcons_module_def = {
     PyModuleDef_HEAD_INIT,
-    "bpy.app.icons",    /* m_name */
-    NULL,               /* m_doc */
-    0,                  /* m_size */
-    M_AppIcons_methods, /* m_methods */
-    NULL,               /* m_slots */
-    NULL,               /* m_traverse */
-    NULL,               /* m_clear */
-    NULL,               /* m_free */
+    /*m_name*/ "bpy.app.icons",
+    /*m_doc*/ NULL,
+    /*m_size*/ 0,
+    /*m_methods*/ M_AppIcons_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPY_app_icons_module(void)

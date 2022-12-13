@@ -106,16 +106,16 @@ bool VelocityModule::step_object_sync(Object *ob,
   vel.obj.ofs[step_] = object_steps_usage[step_]++;
   vel.obj.resource_id = resource_handle.resource_index();
   vel.id = (ID *)ob->data;
-  object_steps[step_]->get_or_resize(vel.obj.ofs[step_]) = ob->obmat;
+  object_steps[step_]->get_or_resize(vel.obj.ofs[step_]) = ob->object_to_world;
   if (step_ == STEP_CURRENT) {
     /* Replace invalid steps. Can happen if object was hidden in one of those steps. */
     if (vel.obj.ofs[STEP_PREVIOUS] == -1) {
       vel.obj.ofs[STEP_PREVIOUS] = object_steps_usage[STEP_PREVIOUS]++;
-      object_steps[STEP_PREVIOUS]->get_or_resize(vel.obj.ofs[STEP_PREVIOUS]) = ob->obmat;
+      object_steps[STEP_PREVIOUS]->get_or_resize(vel.obj.ofs[STEP_PREVIOUS]) = ob->object_to_world;
     }
     if (vel.obj.ofs[STEP_NEXT] == -1) {
       vel.obj.ofs[STEP_NEXT] = object_steps_usage[STEP_NEXT]++;
-      object_steps[STEP_NEXT]->get_or_resize(vel.obj.ofs[STEP_NEXT]) = ob->obmat;
+      object_steps[STEP_NEXT]->get_or_resize(vel.obj.ofs[STEP_NEXT]) = ob->object_to_world;
     }
   }
 

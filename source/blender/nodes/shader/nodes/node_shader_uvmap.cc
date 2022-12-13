@@ -70,10 +70,10 @@ void register_node_type_sh_uvmap()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_uvmap;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_shader_init_uvmap);
+  ntype.initfunc = file_ns::node_shader_init_uvmap;
   node_type_storage(
       &ntype, "NodeShaderUVMap", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_uvmap);
+  ntype.gpu_fn = file_ns::node_shader_gpu_uvmap;
 
   nodeRegisterType(&ntype);
 }
