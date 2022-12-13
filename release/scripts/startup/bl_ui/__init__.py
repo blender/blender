@@ -94,6 +94,16 @@ _namespace = globals()
 _modules_loaded = [_namespace[name] for name in _modules]
 del _namespace
 
+def _addon_support_items():
+    """Return the addon support levels suitable for this Blender build."""
+
+    items = [
+        ('OFFICIAL', "Official", "Officially supported"),
+        ('COMMUNITY', "Community", "Maintained by community developers"),
+    ]
+    if bpy.app.version_cycle == 'alpha':
+        items.append(('TESTING', "Testing", "Newly contributed scripts (excluded from release builds)"))
+    return items
 
 def register():
     from bpy.utils import register_class
@@ -141,11 +151,7 @@ def register():
     )
 
     WindowManager.addon_support = EnumProperty(
-        items=[
-            ('OFFICIAL', "Official", "Officially supported"),
-            ('COMMUNITY', "Community", "Maintained by community developers"),
-            ('TESTING', "Testing", "Newly contributed scripts (excluded from release builds)")
-        ],
+        items=_addon_support_items(),
         name="Support",
         description="Display support level",
         default={'OFFICIAL', 'COMMUNITY'},

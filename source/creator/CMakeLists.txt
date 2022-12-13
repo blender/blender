@@ -394,9 +394,10 @@ install(
 if(WITH_PYTHON)
   # install(CODE "message(\"copying blender scripts...\")")
 
-  # exclude addons_contrib if release
+  # exclude addons_contrib if release branch
   if("${BLENDER_VERSION_CYCLE}" STREQUAL "release" OR
-     "${BLENDER_VERSION_CYCLE}" STREQUAL "rc")
+     "${BLENDER_VERSION_CYCLE}" STREQUAL "rc" OR
+     "${BLENDER_VERSION_CYCLE}" STREQUAL "beta")
     set(ADDON_EXCLUDE_CONDITIONAL "addons_contrib/*")
   else()
     set(ADDON_EXCLUDE_CONDITIONAL "_addons_contrib/*")  # Dummy, won't do anything.
