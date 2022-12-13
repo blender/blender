@@ -791,16 +791,6 @@ void ED_node_set_active(
         ED_node_tree_propagate_change(nullptr, bmain, ntree);
       }
     }
-    else if (ntree->type == NTREE_TEXTURE) {
-      /* XXX */
-#if 0
-      if (node->id) {
-        BIF_preview_changed(-1);
-        allqueue(REDRAWBUTSSHADING, 1);
-        allqueue(REDRAWIPO, 0);
-      }
-#endif
-    }
     else if (ntree->type == NTREE_GEOMETRY) {
       if (node->type == GEO_NODE_VIEWER) {
         if ((node->flag & NODE_DO_OUTPUT) == 0) {

@@ -534,27 +534,6 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
     /* XXX(ton): temp, first hack to get auto-render in compositor work. */
     WM_event_add_notifier(C, NC_SCENE | ND_TRANSFORM_DONE, CTX_data_scene(C));
   }
-
-#if 0 /* TRANSFORM_FIX_ME */
-  if (t->spacetype == SPACE_VIEW3D) {
-    allqueue(REDRAWBUTSOBJECT, 0);
-    allqueue(REDRAWVIEW3D, 0);
-  }
-  else if (t->spacetype == SPACE_IMAGE) {
-    allqueue(REDRAWIMAGE, 0);
-    allqueue(REDRAWVIEW3D, 0);
-  }
-  else if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_GRAPH)) {
-    allqueue(REDRAWVIEW3D, 0);
-    allqueue(REDRAWACTION, 0);
-    allqueue(REDRAWNLA, 0);
-    allqueue(REDRAWIPO, 0);
-    allqueue(REDRAWTIME, 0);
-    allqueue(REDRAWBUTSOBJECT, 0);
-  }
-
-  scrarea_queue_headredraw(curarea);
-#endif
 }
 
 /* ************************************************* */
