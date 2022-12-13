@@ -1070,87 +1070,75 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc)
 {
   Object *ob = tc->obedit;
   ModifierData *md = ob->modifiers.first;
-  float tolerance[3] = {0.0f, 0.0f, 0.0f};
-  int axis = 0;
 
   for (; md; md = md->next) {
     if ((md->type == eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
       MirrorModifierData *mmd = (MirrorModifierData *)md;
 
-      if (mmd->flag & MOD_MIR_CLIPPING) {
-        axis = 0;
-        if (mmd->flag & MOD_MIR_AXIS_X) {
-          axis |= 1;
-          tolerance[0] = mmd->tolerance;
+      if ((mmd->flag & MOD_MIR_CLIPPING) == 0) {
+        continue;
+      }
+
+      if ((mmd->flag & (MOD_MIR_AXIS_X | MOD_MIR_AXIS_Y | MOD_MIR_AXIS_Y)) == 0) {
+        continue;
+      }
+
+      float mtx[4][4], imtx[4][4];
+
+      if (mmd->mirror_ob) {
+        float obinv[4][4];
+
+        invert_m4_m4(obinv, mmd->mirror_ob->object_to_world);
+        mul_m4_m4m4(mtx, obinv, ob->object_to_world);
+        invert_m4_m4(imtx, mtx);
+      }
+
+      TransData *td = tc->data;
+      for (int i = 0; i < tc->data_len; i++, td++) {
+        float loc[3], iloc[3];
+
+        if (td->loc == NULL) {
+          break;
         }
+
+        if (td->flag & TD_SKIP) {
+          continue;
+        }
+
+        copy_v3_v3(loc, td->loc);
+        copy_v3_v3(iloc, td->iloc);
+
+        if (mmd->mirror_ob) {
+          mul_m4_v3(mtx, loc);
+          mul_m4_v3(mtx, iloc);
+        }
+
+        bool is_clipping = false;
+        if (mmd->flag & MOD_MIR_AXIS_X) {
+          if (fabsf(iloc[0]) <= mmd->tolerance || loc[0] * iloc[0] < 0.0f) {
+            loc[0] = 0.0f;
+            is_clipping = true;
+          }
+        }
+
         if (mmd->flag & MOD_MIR_AXIS_Y) {
-          axis |= 2;
-          tolerance[1] = mmd->tolerance;
+          if (fabsf(iloc[1]) <= mmd->tolerance || loc[1] * iloc[1] < 0.0f) {
+            loc[1] = 0.0f;
+            is_clipping = true;
+          }
         }
         if (mmd->flag & MOD_MIR_AXIS_Z) {
-          axis |= 4;
-          tolerance[2] = mmd->tolerance;
+          if (fabsf(iloc[2]) <= mmd->tolerance || loc[2] * iloc[2] < 0.0f) {
+            loc[2] = 0.0f;
+            is_clipping = true;
+          }
         }
-        if (axis) {
-          float mtx[4][4], imtx[4][4];
-          int i;
 
+        if (is_clipping) {
           if (mmd->mirror_ob) {
-            float obinv[4][4];
-
-            invert_m4_m4(obinv, mmd->mirror_ob->object_to_world);
-            mul_m4_m4m4(mtx, obinv, ob->object_to_world);
-            invert_m4_m4(imtx, mtx);
+            mul_m4_v3(imtx, loc);
           }
-
-          TransData *td = tc->data;
-          for (i = 0; i < tc->data_len; i++, td++) {
-            int clip;
-            float loc[3], iloc[3];
-
-            if (td->loc == NULL) {
-              break;
-            }
-
-            if (td->flag & TD_SKIP) {
-              continue;
-            }
-
-            copy_v3_v3(loc, td->loc);
-            copy_v3_v3(iloc, td->iloc);
-
-            if (mmd->mirror_ob) {
-              mul_m4_v3(mtx, loc);
-              mul_m4_v3(mtx, iloc);
-            }
-
-            clip = 0;
-            if (axis & 1) {
-              if (fabsf(iloc[0]) <= tolerance[0] || loc[0] * iloc[0] < 0.0f) {
-                loc[0] = 0.0f;
-                clip = 1;
-              }
-            }
-
-            if (axis & 2) {
-              if (fabsf(iloc[1]) <= tolerance[1] || loc[1] * iloc[1] < 0.0f) {
-                loc[1] = 0.0f;
-                clip = 1;
-              }
-            }
-            if (axis & 4) {
-              if (fabsf(iloc[2]) <= tolerance[2] || loc[2] * iloc[2] < 0.0f) {
-                loc[2] = 0.0f;
-                clip = 1;
-              }
-            }
-            if (clip) {
-              if (mmd->mirror_ob) {
-                mul_m4_v3(imtx, loc);
-              }
-              copy_v3_v3(td->loc, loc);
-            }
-          }
+          copy_v3_v3(td->loc, loc);
         }
       }
     }
