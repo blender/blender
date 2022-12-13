@@ -692,7 +692,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
           CustomData_get_layer(&mesh->edata, CD_CREASE));
       sculpt_face_sets_init_flood_fill(
           ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
-            return creases[edge] < threshold;
+            return creases ? creases[edge] < threshold : true;
           });
       break;
     }
@@ -709,7 +709,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
           CustomData_get_layer(&mesh->edata, CD_BWEIGHT));
       sculpt_face_sets_init_flood_fill(
           ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
-            return bevel_weights ? bevel_weights[edge] / 255.0f < threshold : true;
+            return bevel_weights ? bevel_weights[edge] < threshold : true;
           });
       break;
     }
