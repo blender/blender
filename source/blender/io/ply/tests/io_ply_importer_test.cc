@@ -32,7 +32,7 @@ namespace blender::io::ply {
 struct Expectation {
   std::string name;
   PlyFormatType type;
-  int totvert, totface, totedge;
+  int totvert, totpoly, totedge;
   float3 vert_first, vert_last;
   // float3 normal_first;
   // float2 uv_first
@@ -88,7 +88,7 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
         // Test if mesh has expected amount of vertices, edges, and faces
         ASSERT_EQ(mesh->totvert, exp.totvert);
         ASSERT_EQ(mesh->totedge, exp.totedge);
-        ASSERT_EQ(mesh->totpoly, exp.totface);
+        ASSERT_EQ(mesh->totpoly, exp.totpoly);
 
         // Test if first and last vertices match
         const Span<MVert> verts = mesh->verts();
