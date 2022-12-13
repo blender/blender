@@ -2862,10 +2862,7 @@ static void calc_local_y(ViewContext *vc, const float center[3], float y[3])
   mul_m4_v3(ob->world_to_object, y);
 }
 
-static void calc_brush_local_mat(const Brush *brush,
-                                 const MTex *mtex,
-                                 Object *ob,
-                                 float local_mat[4][4])
+static void calc_brush_local_mat(const MTex *mtex, Object *ob, float local_mat[4][4])
 {
   const StrokeCache *cache = ob->sculpt->cache;
   float tmat[4][4];
@@ -2938,7 +2935,7 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0) {
     const Brush *brush = BKE_paint_brush(&sd->paint);
     const MTex *mask_tex = BKE_brush_mask_texture_get(brush, OB_MODE_SCULPT);
-    calc_brush_local_mat(brush, mask_tex, ob, cache->brush_local_mat);
+    calc_brush_local_mat(mask_tex, ob, cache->brush_local_mat);
   }
 }
 
