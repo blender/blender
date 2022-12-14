@@ -1,6 +1,3 @@
-//
-// Created by Arjan on 06/12/2022.
-//
 #include "ply_import_ascii.hh"
 #include "BLI_math_vector.h"
 #include "ply_functions.hh"
