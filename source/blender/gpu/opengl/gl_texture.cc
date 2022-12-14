@@ -548,12 +548,13 @@ GLuint GLTexture::samplers_[GPU_SAMPLER_MAX] = {0};
 void GLTexture::samplers_init()
 {
   glGenSamplers(GPU_SAMPLER_MAX, samplers_);
-  for (int i = 0; i <= GPU_SAMPLER_ICON - 1; i++) {
+  for (int i = 0; i < GPU_SAMPLER_ICON; i++) {
     eGPUSamplerState state = static_cast<eGPUSamplerState>(i);
     GLenum clamp_type = (state & GPU_SAMPLER_CLAMP_BORDER) ? GL_CLAMP_TO_BORDER : GL_CLAMP_TO_EDGE;
-    GLenum wrap_s = (state & GPU_SAMPLER_REPEAT_S) ? GL_REPEAT : clamp_type;
-    GLenum wrap_t = (state & GPU_SAMPLER_REPEAT_T) ? GL_REPEAT : clamp_type;
-    GLenum wrap_r = (state & GPU_SAMPLER_REPEAT_R) ? GL_REPEAT : clamp_type;
+    GLenum repeat_type = (state & GPU_SAMPLER_MIRROR_REPEAT) ? GL_MIRRORED_REPEAT : GL_REPEAT;
+    GLenum wrap_s = (state & GPU_SAMPLER_REPEAT_S) ? repeat_type : clamp_type;
+    GLenum wrap_t = (state & GPU_SAMPLER_REPEAT_T) ? repeat_type : clamp_type;
+    GLenum wrap_r = (state & GPU_SAMPLER_REPEAT_R) ? repeat_type : clamp_type;
     GLenum mag_filter = (state & GPU_SAMPLER_FILTER) ? GL_LINEAR : GL_NEAREST;
     GLenum min_filter = (state & GPU_SAMPLER_FILTER) ?
                             ((state & GPU_SAMPLER_MIPMAP) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR) :
@@ -577,7 +578,7 @@ void GLTexture::samplers_init()
 
     char sampler_name[128] = "\0\0";
     SNPRINTF(sampler_name,
-             "%s%s%s%s%s%s%s%s%s%s",
+             "%s%s%s%s%s%s%s%s%s%s%s",
              (state == GPU_SAMPLER_DEFAULT) ? "_default" : "",
              (state & GPU_SAMPLER_FILTER) ? "_filter" : "",
              (state & GPU_SAMPLER_MIPMAP) ? "_mipmap" : "",
@@ -585,6 +586,7 @@ void GLTexture::samplers_init()
              (state & GPU_SAMPLER_REPEAT_S) ? "S" : "",
              (state & GPU_SAMPLER_REPEAT_T) ? "T" : "",
              (state & GPU_SAMPLER_REPEAT_R) ? "R" : "",
+             (state & GPU_SAMPLER_MIRROR_REPEAT) ? "-mirror" : "",
              (state & GPU_SAMPLER_CLAMP_BORDER) ? "_clamp_border" : "",
              (state & GPU_SAMPLER_COMPARE) ? "_compare" : "",
              (state & GPU_SAMPLER_ANISO) ? "_aniso" : "");
@@ -612,7 +614,7 @@ void GLTexture::samplers_update()
 
   float aniso_filter = min_ff(max_anisotropy, U.anisotropic_filter);
 
-  for (int i = 0; i <= GPU_SAMPLER_ICON - 1; i++) {
+  for (int i = 0; i < GPU_SAMPLER_ICON; i++) {
     eGPUSamplerState state = static_cast<eGPUSamplerState>(i);
     if ((state & GPU_SAMPLER_ANISO) && (state & GPU_SAMPLER_MIPMAP)) {
       glSamplerParameterf(samplers_[i], GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso_filter);

@@ -114,6 +114,15 @@ class ImageFieldsFunction : public fn::MultiFunction {
     return std::clamp(x, 0, width - 1);
   }
 
+  static int wrap_mirror(const int x, const int width)
+  {
+    const int m = std::abs(x + (x < 0)) % (2 * width);
+    if (m >= width) {
+      return 2 * width - m - 1;
+    }
+    return m;
+  }
+
   static float4 image_pixel_lookup(const ImBuf &ibuf, const int px, const int py)
   {
     if (px < 0 || py < 0 || px >= ibuf.x || py >= ibuf.y) {
@@ -171,6 +180,17 @@ class ImageFieldsFunction : public fn::MultiFunction {
         nniy = wrap_clamp(piy + 2, height);
         pix = wrap_clamp(pix, width);
         piy = wrap_clamp(piy, height);
+        break;
+      }
+      case SHD_IMAGE_EXTENSION_MIRROR: {
+        ppix = wrap_mirror(pix - 1, width);
+        ppiy = wrap_mirror(piy - 1, height);
+        nix = wrap_mirror(pix + 1, width);
+        niy = wrap_mirror(piy + 1, height);
+        nnix = wrap_mirror(pix + 2, width);
+        nniy = wrap_mirror(piy + 2, height);
+        pix = wrap_mirror(pix, width);
+        piy = wrap_mirror(piy, height);
         break;
       }
       default:
@@ -233,6 +253,12 @@ class ImageFieldsFunction : public fn::MultiFunction {
         piy = wrap_clamp(piy, height);
         break;
       }
+      case SHD_IMAGE_EXTENSION_MIRROR:
+        nix = wrap_mirror(pix + 1, width);
+        niy = wrap_mirror(piy + 1, height);
+        pix = wrap_mirror(pix, width);
+        piy = wrap_mirror(piy, height);
+        break;
       default:
       case SHD_IMAGE_EXTENSION_REPEAT:
         pix = wrap_periodic(pix, width);
@@ -280,6 +306,11 @@ class ImageFieldsFunction : public fn::MultiFunction {
       case SHD_IMAGE_EXTENSION_EXTEND: {
         ix = wrap_clamp(ix, width);
         iy = wrap_clamp(iy, height);
+        return image_pixel_lookup(ibuf, ix, iy);
+      }
+      case SHD_IMAGE_EXTENSION_MIRROR: {
+        ix = wrap_mirror(ix, width);
+        iy = wrap_mirror(iy, height);
         return image_pixel_lookup(ibuf, ix, iy);
       }
       default:

@@ -4690,6 +4690,30 @@ static const EnumPropertyItem node_subsurface_method_items[] = {
      "automatically adjusted to match color textures"},
     {0, NULL, 0, NULL, NULL}};
 
+static const EnumPropertyItem prop_image_extension[] = {
+    {SHD_IMAGE_EXTENSION_REPEAT,
+     "REPEAT",
+     0,
+     "Repeat",
+     "Cause the image to repeat horizontally and vertically"},
+    {SHD_IMAGE_EXTENSION_EXTEND,
+     "EXTEND",
+     0,
+     "Extend",
+     "Extend by repeating edge pixels of the image"},
+    {SHD_IMAGE_EXTENSION_CLIP,
+     "CLIP",
+     0,
+     "Clip",
+     "Clip to image size and set exterior pixels as transparent"},
+    {SHD_IMAGE_EXTENSION_MIRROR,
+     "MIRROR",
+     0,
+     "Mirror",
+     "Repeatedly flip the image horizontally and vertically"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 /* -- Common nodes ---------------------------------------------------------- */
 
 static void def_group_input(StructRNA *UNUSED(srna))
@@ -5431,25 +5455,6 @@ static void def_sh_tex_image(StructRNA *srna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  static const EnumPropertyItem prop_image_extension[] = {
-      {SHD_IMAGE_EXTENSION_REPEAT,
-       "REPEAT",
-       0,
-       "Repeat",
-       "Cause the image to repeat horizontally and vertically"},
-      {SHD_IMAGE_EXTENSION_EXTEND,
-       "EXTEND",
-       0,
-       "Extend",
-       "Extend by repeating edge pixels of the image"},
-      {SHD_IMAGE_EXTENSION_CLIP,
-       "CLIP",
-       0,
-       "Clip",
-       "Clip to image size and set exterior pixels as transparent"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   PropertyRNA *prop;
 
   prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
@@ -5513,25 +5518,6 @@ static void def_geo_image_texture(StructRNA *srna)
       {SHD_INTERP_LINEAR, "Linear", 0, "Linear", "Linear interpolation"},
       {SHD_INTERP_CLOSEST, "Closest", 0, "Closest", "No interpolation (sample closest texel)"},
       {SHD_INTERP_CUBIC, "Cubic", 0, "Cubic", "Cubic interpolation"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
-  static const EnumPropertyItem prop_image_extension[] = {
-      {SHD_IMAGE_EXTENSION_REPEAT,
-       "REPEAT",
-       0,
-       "Repeat",
-       "Cause the image to repeat horizontally and vertically"},
-      {SHD_IMAGE_EXTENSION_EXTEND,
-       "EXTEND",
-       0,
-       "Extend",
-       "Extend by repeating edge pixels of the image"},
-      {SHD_IMAGE_EXTENSION_CLIP,
-       "CLIP",
-       0,
-       "Clip",
-       "Clip to image size and set exterior pixels as transparent"},
       {0, NULL, 0, NULL, NULL},
   };
 

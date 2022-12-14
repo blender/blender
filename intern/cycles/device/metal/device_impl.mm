@@ -856,7 +856,7 @@ void MetalDevice::tex_alloc(device_texture &mem)
   /* sampler_index maps into the GPU's constant 'metal_samplers' array */
   uint64_t sampler_index = mem.info.extension;
   if (mem.info.interpolation != INTERPOLATION_CLOSEST) {
-    sampler_index += 3;
+    sampler_index += 4;
   }
 
   /* Image Texture Storage */

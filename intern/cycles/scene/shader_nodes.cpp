@@ -226,6 +226,7 @@ NODE_DEFINE(ImageTextureNode)
   extension_enum.insert("periodic", EXTENSION_REPEAT);
   extension_enum.insert("clamp", EXTENSION_EXTEND);
   extension_enum.insert("black", EXTENSION_CLIP);
+  extension_enum.insert("mirror", EXTENSION_MIRROR);
   SOCKET_ENUM(extension, "Extension", extension_enum, EXTENSION_REPEAT);
 
   static NodeEnum projection_enum;
