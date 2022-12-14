@@ -369,9 +369,9 @@ set(WEBP_HASH_TYPE MD5)
 set(WEBP_FILE libwebp-${WEBP_VERSION}.tar.gz)
 set(WEBP_CPE "cpe:2.3:a:webmproject:libwebp:${WEBP_VERSION}:*:*:*:*:*:*:*")
 
-set(SPNAV_VERSION 0.2.3)
-set(SPNAV_URI http://downloads.sourceforge.net/project/spacenav/spacenav%20library%20%28SDK%29/libspnav%20${SPNAV_VERSION}/libspnav-${SPNAV_VERSION}.tar.gz)
-set(SPNAV_HASH 44d840540d53326d4a119c0f1aa7bf0a)
+set(SPNAV_VERSION 1.1)
+set(SPNAV_URI https://github.com/FreeSpacenav/libspnav/releases/download/v${SPNAV_VERSION}/libspnav-${SPNAV_VERSION}.tar.gz)
+set(SPNAV_HASH 7c0032034672dfba3c4bb9b49a440e70)
 set(SPNAV_HASH_TYPE MD5)
 set(SPNAV_FILE libspnav-${SPNAV_VERSION}.tar.gz)
 
