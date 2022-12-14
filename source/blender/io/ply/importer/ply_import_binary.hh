@@ -1,9 +1,9 @@
 #ifndef BLENDER_PLY_IMPORT_BINARY_HH
 #define BLENDER_PLY_IMPORT_BINARY_HH
 
+#include "BKE_mesh.h"
 #include "DNA_mesh_types.h"
 #include "ply_data.hh"
-#include "BKE_mesh.h"
 
 namespace blender::io::ply {
 /**
@@ -12,7 +12,7 @@ namespace blender::io::ply {
  * @param header The information in the PLY header
  * @return The mesh that can be used inside blender
  */
-Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh* mesh);
+Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh *mesh);
 
 /**
  * Loads the information from the PLY file in Big_Endian format to the PlyData datastructure
@@ -22,7 +22,7 @@ Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh* mesh);
  */
 PlyData load_ply_binary(std::ifstream &file, PlyHeader *header);
 
-void check_file_errors(std::ifstream& file);
+void check_file_errors(std::ifstream &file);
 
 template<typename T> T swap_bytes(T input)
 {
@@ -60,7 +60,7 @@ template<typename T> T swap_bytes(T input)
   }
 }
 
-template<typename T> T read(std::ifstream& file, bool isBigEndian);
+template<typename T> T read(std::ifstream &file, bool isBigEndian);
 
 }  // namespace blender::io::ply
 

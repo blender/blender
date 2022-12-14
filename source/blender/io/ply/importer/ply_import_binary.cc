@@ -5,7 +5,7 @@
 #include <fstream>
 
 namespace blender::io::ply {
-Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh* mesh)
+Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh *mesh)
 {
   PlyData data = load_ply_binary(file, header);
   if (data.vertices.size() != 0) {
@@ -14,7 +14,8 @@ Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh* mesh)
   return nullptr;
 }
 
-template<typename T> T read(std::ifstream& file, bool isBigEndian){
+template<typename T> T read(std::ifstream &file, bool isBigEndian)
+{
   T returnVal;
   file.read((char *)&returnVal, sizeof(returnVal));
   check_file_errors(file);
@@ -24,21 +25,24 @@ template<typename T> T read(std::ifstream& file, bool isBigEndian){
   return returnVal;
 }
 
-template uint8_t read<uint8_t>(std::ifstream& file, bool isBigEndian);
-template int8_t read<int8_t>(std::ifstream& file, bool isBigEndian);
-template uint16_t read<uint16_t>(std::ifstream& file, bool isBigEndian);
-template int16_t read<int16_t>(std::ifstream& file, bool isBigEndian);
-template uint32_t read<uint32_t>(std::ifstream& file, bool isBigEndian);
-template int32_t read<int32_t>(std::ifstream& file, bool isBigEndian);
-template float read<float>(std::ifstream& file, bool isBigEndian);
-template double read<double>(std::ifstream& file, bool isBigEndian);
+template uint8_t read<uint8_t>(std::ifstream &file, bool isBigEndian);
+template int8_t read<int8_t>(std::ifstream &file, bool isBigEndian);
+template uint16_t read<uint16_t>(std::ifstream &file, bool isBigEndian);
+template int16_t read<int16_t>(std::ifstream &file, bool isBigEndian);
+template uint32_t read<uint32_t>(std::ifstream &file, bool isBigEndian);
+template int32_t read<int32_t>(std::ifstream &file, bool isBigEndian);
+template float read<float>(std::ifstream &file, bool isBigEndian);
+template double read<double>(std::ifstream &file, bool isBigEndian);
 
-void check_file_errors(std::ifstream& file) {
+void check_file_errors(std::ifstream &file)
+{
   if (file.bad()) {
     printf("Read/Write error on io operation\n");
-  } else if (file.fail()) {
+  }
+  else if (file.fail()) {
     printf("Logical error on io operation\n");
-  } else if (file.eof()) {
+  }
+  else if (file.eof()) {
     printf("Reached end of the file\n");
   }
 }
@@ -51,34 +55,44 @@ PlyData load_ply_binary(std::ifstream &file, PlyHeader *header)
   bool hasNormal = false;
   bool hasColor = false;
   for (int i = 0; i < header->vertex_count; i++) {
-    float3 coord {0};
-    float3 normal {0};
-    float4 color {1};
+    float3 coord{0};
+    float3 normal{0};
+    float4 color{1};
 
     for (auto prop : header->properties) {
       if (prop.first == "x") {
         coord.x = read<float>(file, isBigEndian);
-      } else if (prop.first == "y") {
+      }
+      else if (prop.first == "y") {
         coord.y = read<float>(file, isBigEndian);
-      } else if (prop.first == "z") {
+      }
+      else if (prop.first == "z") {
         coord.z = read<float>(file, isBigEndian);
-      } else if (prop.first == "nx") {
+      }
+      else if (prop.first == "nx") {
         normal.x = read<float>(file, isBigEndian);
         hasNormal = true;
-      } else if (prop.first == "ny") {
+      }
+      else if (prop.first == "ny") {
         normal.y = read<float>(file, isBigEndian);
-      } else if (prop.first == "nz") {
+      }
+      else if (prop.first == "nz") {
         normal.z = read<float>(file, isBigEndian);
-      } else if (prop.first == "red") {
+      }
+      else if (prop.first == "red") {
         color.x = read<uint8_t>(file, isBigEndian) / 255.0f;
         hasColor = true;
-      } else if (prop.first == "green") {
+      }
+      else if (prop.first == "green") {
         color.y = read<uint8_t>(file, isBigEndian) / 255.0f;
-      } else if (prop.first == "blue") {
+      }
+      else if (prop.first == "blue") {
         color.z = read<uint8_t>(file, isBigEndian) / 255.0f;
-      } else if (prop.first == "alpha") {
+      }
+      else if (prop.first == "alpha") {
         color.w = read<uint8_t>(file, isBigEndian) / 255.0f;
-      } else {
+      }
+      else {
         // We don't support any other properties yet
         switch (prop.second) {
           case CHAR:
@@ -112,8 +126,8 @@ PlyData load_ply_binary(std::ifstream &file, PlyHeader *header)
     data.vertices.append(coord);
     if (hasNormal) {
       data.vertex_normals.append(normal);
-	}
-  	if (hasColor) {
+    }
+    if (hasColor) {
       data.vertex_colors.append(color);
     }
   }
@@ -122,13 +136,13 @@ PlyData load_ply_binary(std::ifstream &file, PlyHeader *header)
     // Assume vertex_index_count_type is uchar
     uchar count;
     Vector<uint> vertex_indices;
-    file.read((char*)&count, sizeof(count));
+    file.read((char *)&count, sizeof(count));
     check_file_errors(file);
     for (uchar j = 0; j < count; j++) {
       uint32_t index;
-      file.read((char*)&index, sizeof(index));
+      file.read((char *)&index, sizeof(index));
       check_file_errors(file);
-      if (header->type == PlyFormatType::BINARY_BE){
+      if (header->type == PlyFormatType::BINARY_BE) {
         index = swap_bytes<uint32_t>(index);
       }
       vertex_indices.append(index);

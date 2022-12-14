@@ -19,10 +19,10 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
   // Add faces and edges to the mesh
   if (data.faces.size() > 0) {
     mesh->totpoly = data.faces.size();
-    mesh->totloop = 0; // TODO: Make this more dynamic using data.edges()
+    mesh->totloop = 0;  // TODO: Make this more dynamic using data.edges()
     for (int i = 0; i < data.faces.size(); i++) {
-    	mesh->totloop += data.faces[i].size();
-	}
+      mesh->totloop += data.faces[i].size();
+    }
     CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
     CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
     MutableSpan<MPoly> polys = mesh->polys_for_write();
@@ -57,4 +57,4 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
 
   return mesh;
 }
-} // namespace blender::io::ply
+}  // namespace blender::io::ply

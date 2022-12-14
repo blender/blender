@@ -55,7 +55,8 @@ void splitstr(std::string str, std::vector<std::string> &words, std::string deli
   words.push_back(str.substr());
 }
 
-enum PlyDataTypes from_string(std::string input) {
+enum PlyDataTypes from_string(std::string input)
+{
   if (input == "uchar") {
     return PlyDataTypes::UCHAR;
   }
@@ -109,7 +110,7 @@ void importer_main(Main *bmain,
 
   PlyHeader header;
 
-  while (true) { // We break when end_header is encountered
+  while (true) {  // We break when end_header is encountered
     safe_getline(infile, line);
     header.header_size++;
     std::vector<std::string> words{};
