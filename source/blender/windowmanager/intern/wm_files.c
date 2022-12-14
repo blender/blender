@@ -891,14 +891,13 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
 
   if (bf_reports->count.proxies_to_lib_overrides_success != 0 ||
       bf_reports->count.proxies_to_lib_overrides_failures != 0) {
-    BKE_reportf(
-        bf_reports->reports,
-        RPT_WARNING,
-        "Proxies have been removed from Blender (%d proxies were automatically converted "
-        "to library overrides, %d proxies could not be converted and were cleared). "
-        "Consider re-saving any library .blend file with the newest Blender version",
-        bf_reports->count.proxies_to_lib_overrides_success,
-        bf_reports->count.proxies_to_lib_overrides_failures);
+    BKE_reportf(bf_reports->reports,
+                RPT_WARNING,
+                "Proxies have been removed from Blender (%d proxies were automatically converted "
+                "to library overrides, %d proxies could not be converted and were cleared). "
+                "Consider re-saving any library .blend file with the newest Blender version",
+                bf_reports->count.proxies_to_lib_overrides_success,
+                bf_reports->count.proxies_to_lib_overrides_failures);
   }
 
   if (bf_reports->count.sequence_strips_skipped != 0) {

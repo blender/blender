@@ -520,7 +520,7 @@ typedef struct SculptAttribute {
    * This will be true if simple_array is requested in
    * SculptAttributeParams, or the PBVH type is PBVH_GRIDS or PBVH_BMESH.
    */
-  bool simple_array; 
+  bool simple_array;
   /* Data stored per BMesh element. */
   int bmesh_cd_offset;
 

@@ -28,9 +28,9 @@ static void node_declare(NodeDeclarationBuilder &b)
                       "instancing the entire geometry"));
   b.add_input<decl::Int>(N_("Instance Index"))
       .implicit_field(implicit_field_inputs::id_or_index)
-      .description(N_(
-          "Index of the instance used for each point. This is only used when Pick Instances "
-          "is on. By default the point index is used"));
+      .description(
+          N_("Index of the instance used for each point. This is only used when Pick Instances "
+             "is on. By default the point index is used"));
   b.add_input<decl::Vector>(N_("Rotation"))
       .subtype(PROP_EULER)
       .supports_field()

@@ -97,9 +97,10 @@ void main()
 #endif
 
   if (!is_manifold || !backface) {
-    bool do_front = (output_triangle_id==0)?true:false;
-    emit_cap(do_front, invert, output_vertex_id%3);
-  } else {
+    bool do_front = (output_triangle_id == 0) ? true : false;
+    emit_cap(do_front, invert, output_vertex_id % 3);
+  }
+  else {
     DISCARD_VERTEX
   }
 }

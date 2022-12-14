@@ -3509,10 +3509,9 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_object_instances", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_ALLOW_DUPLI_OBJECTS);
-  RNA_def_property_ui_text(
-      prop,
-      "Instanced Objects",
-      "Allow particle objects and face/vertex instances to show in line art");
+  RNA_def_property_ui_text(prop,
+                           "Instanced Objects",
+                           "Allow particle objects and face/vertex instances to show in line art");
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_edge_overlap", PROP_BOOLEAN, PROP_NONE);
@@ -3893,11 +3892,12 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "shadow_camera_size", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_ui_text(prop,
-                           "Shadow Camera Size",
-                           "Represents the \"Orthographic Scale\" of an orthographic camera. "
-                           "If the camera is positioned at the light's location with this scale, it will "
-                           "represent the coverage of the shadow \"camera\"");
+  RNA_def_property_ui_text(
+      prop,
+      "Shadow Camera Size",
+      "Represents the \"Orthographic Scale\" of an orthographic camera. "
+      "If the camera is positioned at the light's location with this scale, it will "
+      "represent the coverage of the shadow \"camera\"");
   RNA_def_property_ui_range(prop, 0.0f, 500.0f, 0.1f, 2);
   RNA_def_property_range(prop, 0.0f, 10000.0f);
 

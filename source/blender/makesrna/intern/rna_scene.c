@@ -7821,7 +7821,11 @@ void RNA_def_scene(BlenderRNA *brna)
       {3, "LINEAR", 0, "Linear", "Linear distance model"},
       {4, "LINEAR_CLAMPED", 0, "Linear Clamped", "Linear distance model with clamping"},
       {5, "EXPONENT", 0, "Exponential", "Exponential distance model"},
-      {6, "EXPONENT_CLAMPED", 0, "Exponential Clamped", "Exponential distance model with clamping"},
+      {6,
+       "EXPONENT_CLAMPED",
+       0,
+       "Exponential Clamped",
+       "Exponential distance model with clamping"},
       {0, NULL, 0, NULL, NULL},
   };
 

@@ -34,7 +34,6 @@ struct IMAGE_Data {
   IMAGE_InstanceData *instance_data;
 };
 
-
 /**
  * Abstract class for a drawing mode of the image engine.
  *

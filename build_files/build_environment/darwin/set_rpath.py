@@ -6,6 +6,7 @@ import re
 import subprocess
 import sys
 
+
 # Strip version numbers from dependenciesm macOS notarizatiom fails
 # with version symlinks.
 def strip_lib_version(name):
@@ -13,6 +14,7 @@ def strip_lib_version(name):
     name = re.sub(r'(\.[0-9]+)+.so', '.so', name)
     name = re.sub(r'(\.[0-9]+)+.cpython', '.cpython', name)
     return name
+
 
 rpath = sys.argv[1]
 file = sys.argv[2]
