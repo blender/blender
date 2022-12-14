@@ -6951,7 +6951,7 @@ static void rna_def_modifier_weightednormal(BlenderRNA *brna)
       {MOD_WEIGHTEDNORMAL_MODE_FACE_ANGLE,
        "FACE_AREA_WITH_ANGLE",
        0,
-       "Face Area And Angle",
+       "Face Area & Angle",
        "Generated normals weighted by both face area and angle"},
       {0, NULL, 0, NULL, NULL},
   };
