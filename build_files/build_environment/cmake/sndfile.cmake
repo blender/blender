@@ -4,7 +4,12 @@ set(SNDFILE_EXTRA_ARGS)
 set(SNDFILE_ENV)
 
 if(WIN32)
-  set(SNDFILE_ENV PKG_CONFIG_PATH=${mingw_LIBDIR}/ogg/lib/pkgconfig:${mingw_LIBDIR}/vorbis/lib/pkgconfig:${mingw_LIBDIR}/flac/lib/pkgconfig:${mingw_LIBDIR}/opus/lib/pkgconfig:${mingw_LIBDIR})
+  set(SNDFILE_ENV "PKG_CONFIG_PATH=\
+${mingw_LIBDIR}/ogg/lib/pkgconfig:\
+${mingw_LIBDIR}/vorbis/lib/pkgconfig:\
+${mingw_LIBDIR}/flac/lib/pkgconfig:\
+${mingw_LIBDIR}/opus/lib/pkgconfig"
+)
   set(SNDFILE_ENV set ${SNDFILE_ENV} &&)
   # Shared for windows because static libs will drag in a libgcc dependency.
   set(SNDFILE_OPTIONS --disable-static --enable-shared )
@@ -19,7 +24,10 @@ if(UNIX AND NOT APPLE)
   #
   # Replace: Cflags: -I${includedir}/opus
   # With:    Cflags: -I${includedir}
-  set(SNDFILE_ENV sed -i s/{includedir}\\/opus/{includedir}/g ${LIBDIR}/opus/lib/pkgconfig/opus.pc && ${SNDFILE_ENV})
+  set(SNDFILE_ENV
+    sed -i s/{includedir}\\/opus/{includedir}/g ${LIBDIR}/opus/lib/pkgconfig/opus.pc &&
+    ${SNDFILE_ENV}
+  )
 endif()
 
 ExternalProject_Add(external_sndfile
