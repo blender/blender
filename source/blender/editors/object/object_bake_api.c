@@ -55,6 +55,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
@@ -670,7 +671,8 @@ static Mesh *bake_mesh_new_from_object(Depsgraph *depsgraph,
   Mesh *me = BKE_mesh_new_from_object(depsgraph, object, false, preserve_origindex);
 
   if (me->flag & ME_AUTOSMOOTH) {
-    BKE_mesh_split_faces(me, true);
+    ED_mesh_split_faces(me);
+    CustomData_free_layers(&me->ldata, CD_NORMAL, me->totloop);
   }
 
   return me;

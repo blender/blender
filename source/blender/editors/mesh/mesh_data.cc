@@ -14,6 +14,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_array.hh"
+#include "BLI_index_mask_ops.hh"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -41,6 +42,8 @@
 #include "ED_screen.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
+
+#include "GEO_mesh_split_edges.hh"
 
 #include "mesh_intern.h" /* own include */
 
@@ -1463,4 +1466,44 @@ Mesh *ED_mesh_context(bContext *C)
   }
 
   return (Mesh *)data;
+}
+
+void ED_mesh_split_faces(Mesh *mesh)
+{
+  using namespace blender;
+  Array<MEdge> edges(mesh->edges());
+  const Span<MPoly> polys = mesh->polys();
+  const Span<MLoop> loops = mesh->loops();
+  const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
+  BKE_edges_sharp_from_angle_set(edges.data(),
+                                 edges.size(),
+                                 loops.data(),
+                                 loops.size(),
+                                 polys.data(),
+                                 BKE_mesh_poly_normals_ensure(mesh),
+                                 polys.size(),
+                                 split_angle);
+
+  threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
+    for (const int poly_i : range) {
+      const MPoly &poly = polys[poly_i];
+      if (!(poly.flag & ME_SMOOTH)) {
+        for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
+          edges[loop.e].flag |= ME_SHARP;
+        }
+      }
+    }
+  });
+
+  Vector<int64_t> split_indices;
+  const IndexMask split_mask = index_mask_ops::find_indices_based_on_predicate(
+      edges.index_range(), 4096, split_indices, [&](const int64_t i) {
+        return edges[i].flag & ME_SHARP;
+      });
+
+  if (split_mask.is_empty()) {
+    return;
+  }
+
+  geometry::split_edges(*mesh, split_mask);
 }

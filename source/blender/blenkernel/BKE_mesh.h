@@ -255,14 +255,6 @@ void BKE_mesh_texspace_get_reference(struct Mesh *me,
 void BKE_mesh_texspace_copy_from_object(struct Mesh *me, struct Object *ob);
 
 /**
- * Split faces based on the edge angle and loop normals.
- * Matches behavior of face splitting in render engines.
- *
- * \note Will leave #CD_NORMAL loop data layer which is used by render engines to set shading up.
- */
-void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);
-
-/**
  * Create new mesh from the given object at its current state.
  * The owner of this mesh is unknown, it is up to the caller to decide.
  *
