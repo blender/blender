@@ -33,6 +33,7 @@ ExternalProject_Add(external_harfbuzz
 add_dependencies(
   external_harfbuzz
   external_python
+  external_freetype
   # Needed for `MESON`.
   external_python_site_packages
 )
