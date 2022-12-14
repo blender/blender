@@ -143,7 +143,7 @@ int get_index(PlyHeader *header, std::string property, PlyDataTypes datatype)
 {
   std::pair<std::string, PlyDataTypes> pair = {property, datatype};
   auto it = std::find(header->properties.begin(), header->properties.end(), pair);
-  return it - header->properties.begin();
+  return (int)(it - header->properties.begin());
 }
 
 std::vector<std::string> explode(const std::string_view &str, const char &ch)
