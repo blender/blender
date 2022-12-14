@@ -1079,7 +1079,7 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc)
         continue;
       }
 
-      if ((mmd->flag & (MOD_MIR_AXIS_X | MOD_MIR_AXIS_Y | MOD_MIR_AXIS_Y)) == 0) {
+      if ((mmd->flag & (MOD_MIR_AXIS_X | MOD_MIR_AXIS_Y | MOD_MIR_AXIS_Z)) == 0) {
         continue;
       }
 
