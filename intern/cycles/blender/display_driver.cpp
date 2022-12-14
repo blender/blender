@@ -57,7 +57,6 @@ int BlenderDisplayShader::get_tex_coord_attrib_location()
 
 /* TODO move shaders to standalone .glsl file. */
 static const char *FALLBACK_VERTEX_SHADER =
-    "#version 330\n"
     "uniform vec2 fullscreen;\n"
     "in vec2 texCoord;\n"
     "in vec2 pos;\n"
@@ -75,7 +74,6 @@ static const char *FALLBACK_VERTEX_SHADER =
     "}\n\0";
 
 static const char *FALLBACK_FRAGMENT_SHADER =
-    "#version 330\n"
     "uniform sampler2D image_texture;\n"
     "in vec2 texCoord_interp;\n"
     "out vec4 fragColor;\n"
