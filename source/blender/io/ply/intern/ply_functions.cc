@@ -35,7 +35,7 @@ line_ending safe_getline(std::ifstream &file, std::string& line)
         if (possible != UNSET) {
           return possible;
         }
-        line += (char)c;
+        line += c;
         break;
     }
     sb->sbumpc();
