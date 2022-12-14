@@ -39,6 +39,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_object.h"
+#include "BKE_type_conversions.hh"
 
 #include "DEG_depsgraph.h"
 
@@ -794,56 +795,76 @@ struct SocketTooltipData {
   const bNodeSocket *socket;
 };
 
-static void create_inspection_string_for_generic_value(const GPointer value, std::stringstream &ss)
+static void create_inspection_string_for_generic_value(const bNodeSocket &socket,
+                                                       const GPointer value,
+                                                       std::stringstream &ss)
 {
   auto id_to_inspection_string = [&](const ID *id, const short idcode) {
     ss << (id ? id->name + 2 : TIP_("None")) << " (" << TIP_(BKE_idtype_idcode_to_name(idcode))
        << ")";
   };
 
-  const CPPType &type = *value.type();
+  const CPPType &value_type = *value.type();
   const void *buffer = value.get();
-  if (type.is<Object *>()) {
+  if (value_type.is<Object *>()) {
     id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_OB);
+    return;
   }
-  else if (type.is<Material *>()) {
+  else if (value_type.is<Material *>()) {
     id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_MA);
+    return;
   }
-  else if (type.is<Tex *>()) {
+  else if (value_type.is<Tex *>()) {
     id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_TE);
+    return;
   }
-  else if (type.is<Image *>()) {
+  else if (value_type.is<Image *>()) {
     id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_IM);
+    return;
   }
-  else if (type.is<Collection *>()) {
+  else if (value_type.is<Collection *>()) {
     id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_GR);
+    return;
   }
-  else if (type.is<int>()) {
-    ss << *(int *)buffer << TIP_(" (Integer)");
+  else if (value_type.is<std::string>()) {
+    ss << *static_cast<const std::string *>(buffer) << TIP_(" (String)");
+    return;
   }
-  else if (type.is<float>()) {
-    ss << *(float *)buffer << TIP_(" (Float)");
+
+  const CPPType &socket_type = *socket.typeinfo->base_cpp_type;
+  const bke::DataTypeConversions &convert = bke::get_implicit_type_conversions();
+  if (!convert.is_convertible(value_type, socket_type)) {
+    return;
   }
-  else if (type.is<blender::float3>()) {
-    ss << *(blender::float3 *)buffer << TIP_(" (Vector)");
+  BUFFER_FOR_CPP_TYPE_VALUE(socket_type, socket_value);
+  convert.convert_to_uninitialized(value_type, socket_type, buffer, socket_value);
+  BLI_SCOPED_DEFER([&]() { socket_type.destruct(socket_value); });
+
+  if (socket_type.is<int>()) {
+    ss << *static_cast<int *>(socket_value) << TIP_(" (Integer)");
   }
-  else if (type.is<blender::ColorGeometry4f>()) {
-    const blender::ColorGeometry4f &color = *(blender::ColorGeometry4f *)buffer;
+  else if (socket_type.is<float>()) {
+    ss << *static_cast<float *>(socket_value) << TIP_(" (Float)");
+  }
+  else if (socket_type.is<blender::float3>()) {
+    ss << *static_cast<blender::float3 *>(socket_value) << TIP_(" (Vector)");
+  }
+  else if (socket_type.is<blender::ColorGeometry4f>()) {
+    const blender::ColorGeometry4f &color = *static_cast<blender::ColorGeometry4f *>(socket_value);
     ss << "(" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")"
        << TIP_(" (Color)");
   }
-  else if (type.is<bool>()) {
-    ss << ((*(bool *)buffer) ? TIP_("True") : TIP_("False")) << TIP_(" (Boolean)");
-  }
-  else if (type.is<std::string>()) {
-    ss << *(std::string *)buffer << TIP_(" (String)");
+  else if (socket_type.is<bool>()) {
+    ss << ((*static_cast<bool *>(socket_value)) ? TIP_("True") : TIP_("False"))
+       << TIP_(" (Boolean)");
   }
 }
 
-static void create_inspection_string_for_field_info(const geo_log::FieldInfoLog &value_log,
+static void create_inspection_string_for_field_info(const bNodeSocket &socket,
+                                                    const geo_log::FieldInfoLog &value_log,
                                                     std::stringstream &ss)
 {
-  const CPPType &type = value_log.type;
+  const CPPType &socket_type = *socket.typeinfo->base_cpp_type;
   const Span<std::string> input_tooltips = value_log.input_tooltips;
 
   if (input_tooltips.is_empty()) {
@@ -852,22 +873,22 @@ static void create_inspection_string_for_field_info(const geo_log::FieldInfoLog 
     ss << "Value has not been logged";
   }
   else {
-    if (type.is<int>()) {
+    if (socket_type.is<int>()) {
       ss << TIP_("Integer field");
     }
-    else if (type.is<float>()) {
+    else if (socket_type.is<float>()) {
       ss << TIP_("Float field");
     }
-    else if (type.is<blender::float3>()) {
+    else if (socket_type.is<blender::float3>()) {
       ss << TIP_("Vector field");
     }
-    else if (type.is<bool>()) {
+    else if (socket_type.is<bool>()) {
       ss << TIP_("Boolean field");
     }
-    else if (type.is<std::string>()) {
+    else if (socket_type.is<std::string>()) {
       ss << TIP_("String field");
     }
-    else if (type.is<blender::ColorGeometry4f>()) {
+    else if (socket_type.is<blender::ColorGeometry4f>()) {
       ss << TIP_("Color field");
     }
     ss << TIP_(" based on:\n");
@@ -1012,6 +1033,11 @@ static std::optional<std::string> create_socket_inspection_string(TreeDrawContex
                                                                   const bNodeSocket &socket)
 {
   using namespace blender::nodes::geo_eval_log;
+
+  if (socket.typeinfo->base_cpp_type == nullptr) {
+    return std::nullopt;
+  }
+
   tree_draw_ctx.geo_tree_log->ensure_socket_values();
   ValueLog *value_log = tree_draw_ctx.geo_tree_log->find_socket_value_log(socket);
   if (value_log == nullptr) {
@@ -1020,11 +1046,11 @@ static std::optional<std::string> create_socket_inspection_string(TreeDrawContex
   std::stringstream ss;
   if (const geo_log::GenericValueLog *generic_value_log =
           dynamic_cast<const geo_log::GenericValueLog *>(value_log)) {
-    create_inspection_string_for_generic_value(generic_value_log->value, ss);
+    create_inspection_string_for_generic_value(socket, generic_value_log->value, ss);
   }
   else if (const geo_log::FieldInfoLog *gfield_value_log =
                dynamic_cast<const geo_log::FieldInfoLog *>(value_log)) {
-    create_inspection_string_for_field_info(*gfield_value_log, ss);
+    create_inspection_string_for_field_info(socket, *gfield_value_log, ss);
   }
   else if (const geo_log::GeometryInfoLog *geo_value_log =
                dynamic_cast<const geo_log::GeometryInfoLog *>(value_log)) {
