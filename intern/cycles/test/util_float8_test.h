@@ -24,17 +24,17 @@ static bool validate_cpu_capabilities()
 
 /* These are not just static variables because we don't want to run the
  * constructor until we know the instructions are supported. */
-static vfloat8 float8_a()()
+static vfloat8 float8_a()
 {
   return make_vfloat8(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f)
 }
 
-static vfloat8 float8_b()()
+static vfloat8 float8_b()
 {
   return make_vfloat8(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 }
 
-static vfloat8 float8_c()()
+static vfloat8 float8_c()
 {
   return make_vfloat8(1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f);
 }
