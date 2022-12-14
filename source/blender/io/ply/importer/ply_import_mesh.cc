@@ -30,7 +30,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
 
     int offset = 0;
     for (int i = 0; i < mesh->totpoly; i++) {
-      int size = (int)data.faces[i].size();  // Explicit conversion from int64_t to int
+      auto size = (int)data.faces[i].size();  // Explicit conversion from int64_t to int
       polys[i].loopstart = offset;
       polys[i].totloop = size;
 

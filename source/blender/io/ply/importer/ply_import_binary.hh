@@ -12,7 +12,7 @@ namespace blender::io::ply {
  * @param header The information in the PLY header
  * @return The mesh that can be used inside blender
  */
-Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh *mesh);
+Mesh *import_ply_binary(std::ifstream &file, const PlyHeader *header, Mesh *mesh);
 
 /**
  * Loads the information from the PLY file in Big_Endian format to the PlyData datastructure
