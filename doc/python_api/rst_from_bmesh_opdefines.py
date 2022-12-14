@@ -370,7 +370,7 @@ def main():
 
         args_in_wash = get_args_wash(args_in, args_in_index, False)
 
-        fw(".. function:: %s(bm, %s)\n\n" % (b[0], ", ".join([print_arg_in(arg) for arg in args_in_wash])))
+        fw(".. function:: %s(bm, %s)\n\n" % (b[0], ", ".join([arg_name_with_default(arg) for arg in args_in_wash])))
 
         # -- wash the comment
         comment_washed = []
@@ -423,8 +423,8 @@ def main():
     print(OUT_RST)
 
 
-def print_arg_in(arg):
-    (name, default_value, _, _) = arg
+def arg_name_with_default(arg):
+    name, default_value, _, _ = arg
     if default_value is None:
         return name
     return name + '=' + default_value
