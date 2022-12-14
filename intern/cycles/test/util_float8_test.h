@@ -26,7 +26,7 @@ static bool validate_cpu_capabilities()
  * constructor until we know the instructions are supported. */
 static vfloat8 float8_a()
 {
-  return make_vfloat8(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f)
+  return make_vfloat8(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
 }
 
 static vfloat8 float8_b()
@@ -80,7 +80,7 @@ TEST(TEST_CATEGORY_NAME, float8_add_vv){
     basic_test_vf(float8_a(), float_b, *)} TEST(TEST_CATEGORY_NAME, float8_div_vf){
     basic_test_vf(float8_a(), float_b, /)}
 
-TEST(TEST_CATEGORY_NAME, float8_c() tor)
+TEST(TEST_CATEGORY_NAME, float8_ctor)
 {
   INIT_FLOAT8_TEST
   compare_vector_scalar(make_vfloat8(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f),
