@@ -25,10 +25,10 @@
 #include "DEG_depsgraph_query.h"
 
 #include "../intern/ply_data.hh"
-#include "ply_export_load_plydata.hh"
 #include "ply_export.hh"
-#include "ply_export_header.hh"
 #include "ply_export_data.hh"
+#include "ply_export_header.hh"
+#include "ply_export_load_plydata.hh"
 #include "ply_file_buffer_ascii.hh"
 #include "ply_file_buffer_binary.hh"
 
@@ -66,10 +66,10 @@ void exporter_main(Main *bmain,
   write_header(buffer, plyData, export_params);
 
   // Generate and write vertices
-  write_vertices(buffer, plyData, export_params);
+  write_vertices(buffer, plyData);
 
   // Generate and write faces
-  write_faces(buffer, plyData, export_params);
+  write_faces(buffer, plyData);
 
   // Clean up
   buffer->close_file();
