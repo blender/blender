@@ -2175,6 +2175,7 @@ static bool generic_attribute_type_supported(const EnumPropertyItem *item)
 {
   return ELEM(item->value,
               CD_PROP_FLOAT,
+              CD_PROP_FLOAT2,
               CD_PROP_FLOAT3,
               CD_PROP_COLOR,
               CD_PROP_BOOL,
@@ -2192,7 +2193,8 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeType_type_itemf(bContext
 
 static bool generic_attribute_type_supported_with_socket(const EnumPropertyItem *item)
 {
-  return generic_attribute_type_supported(item) && !ELEM(item->value, CD_PROP_BYTE_COLOR);
+  return generic_attribute_type_supported(item) &&
+         !ELEM(item->value, CD_PROP_BYTE_COLOR, CD_PROP_FLOAT2);
 }
 static const EnumPropertyItem *rna_GeometryNodeAttributeType_type_with_socket_itemf(
     bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
