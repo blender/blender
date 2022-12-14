@@ -7,7 +7,7 @@
 #include "BKE_blender_version.h"
 #include "BKE_customdata.h"
 
-#include "../intern/ply_data.hh"
+#include "ply_data.hh"
 #include "IO_ply.h"
 #include "ply_file_buffer.hh"
 

@@ -69,10 +69,6 @@ if (WITH_GTESTS)
           tests/io_ply_exporter_generate_test.cc
           tests/io_ply_exporter_mock_filebuffer.cc
 
-
-
-          tests/io_ply_exporter_generate_test.hh
-          tests/io_ply_exporter_test.hh
   )
   set(TEST_INC
     ../../blenloader
