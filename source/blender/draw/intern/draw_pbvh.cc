@@ -900,7 +900,7 @@ struct PBVHBatches {
         break;
       }
       default:
-        printf("%s: Unsupported attribute type %d\n", __func__, type);
+        printf("%s: Unsupported attribute type %u\n", __func__, type);
         BLI_assert_unreachable();
 
         return;
