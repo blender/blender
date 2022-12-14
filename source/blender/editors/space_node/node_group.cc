@@ -1114,6 +1114,24 @@ void NODE_OT_group_make(wmOperatorType *ot)
 /** \name Group Insert Operator
  * \{ */
 
+static bool node_tree_contains_tree_recursive(const bNodeTree &ntree_to_search_in,
+                                              const bNodeTree &ntree_to_search_for)
+{
+  if (&ntree_to_search_in == &ntree_to_search_for) {
+    return true;
+  }
+  ntree_to_search_in.ensure_topology_cache();
+  for (const bNode *node : ntree_to_search_in.group_nodes()) {
+    if (node->id) {
+      if (node_tree_contains_tree_recursive(*reinterpret_cast<bNodeTree *>(node->id),
+                                            ntree_to_search_for)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 static int node_group_insert_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -1128,8 +1146,21 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bNodeTree *ngroup = (bNodeTree *)gnode->id;
+  bNodeTree *ngroup = reinterpret_cast<bNodeTree *>(gnode->id);
   VectorSet<bNode *> nodes_to_group = get_nodes_to_group(*ntree, gnode);
+
+  /* Make sure that there won't be a node group containing itself afterwards. */
+  for (const bNode *group : nodes_to_group) {
+    if (!group->is_group() || group->id == nullptr) {
+      continue;
+    }
+    if (node_tree_contains_tree_recursive(*reinterpret_cast<bNodeTree *>(group->id), *ngroup)) {
+      BKE_reportf(
+          op->reports, RPT_WARNING, "Can not insert group '%s' in '%s'", group->name, gnode->name);
+      return OPERATOR_CANCELLED;
+    }
+  }
+
   if (!node_group_make_test_selected(*ntree, nodes_to_group, ngroup->idname, *op->reports)) {
     return OPERATOR_CANCELLED;
   }
