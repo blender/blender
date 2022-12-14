@@ -26,6 +26,7 @@
 #include "intern/ply_data.hh"
 #include "ply_functions.hh"
 #include "ply_import.hh"
+#include "ply_import_ascii.hh"
 #include "ply_import_binary.hh"
 
 namespace blender::io::ply {
@@ -160,6 +161,7 @@ void importer_main(Main *bmain,
 
   Mesh *mesh = BKE_mesh_add(bmain, ob_name);
   if (header.type == PlyFormatType::ASCII) {
+    mesh = import_ply_ascii(infile, &header, mesh);
     printf("ASCII PLY \n");
   }
   else if (header.type == PlyFormatType::BINARY_BE) {
