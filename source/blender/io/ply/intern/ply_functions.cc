@@ -12,7 +12,7 @@ line_ending safe_getline(std::ifstream &file, std::string& line)
   line_ending possible = UNSET;
   char c;
   while (sb->sgetc() != std::streambuf::traits_type::eof()) {
-    c = sb->sgetc();
+    c = (char)sb->sgetc();
     switch (c) {
       case '\n':
         if (possible == UNSET) {
@@ -38,7 +38,7 @@ line_ending safe_getline(std::ifstream &file, std::string& line)
         line += (char)c;
         break;
     }
-    c = sb->sbumpc();
+    sb->sbumpc();
   }
   return possible;
 }
