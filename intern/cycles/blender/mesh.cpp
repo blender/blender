@@ -367,13 +367,11 @@ static void attr_create_generic(Scene *scene,
 {
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
   static const ustring u_velocity("velocity");
-
-  int attribute_index = 0;
-  int render_color_index = b_mesh.attributes.render_color_index();
+  const ustring default_color_name{b_mesh.attributes.default_color_name().c_str()};
 
   for (BL::Attribute &b_attribute : b_mesh.attributes) {
     const ustring name{b_attribute.name().c_str()};
-    const bool is_render_color = (attribute_index++ == render_color_index);
+    const bool is_render_color = name == default_color_name;
 
     if (need_motion && name == u_velocity) {
       attr_create_motion(mesh, b_attribute, motion_scale);
