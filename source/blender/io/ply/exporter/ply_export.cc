@@ -49,7 +49,7 @@ void exporter_main(Main *bmain,
                    const PLYExportParams &export_params)
 {
   // Load bmesh data into PlyData struct
-  std::unique_ptr<PlyData> plyData(new PlyData());
+  std::unique_ptr<PlyData> plyData = std::make_unique<PlyData>();
   load_plydata(plyData, C);
 
   // Create file, get writer
