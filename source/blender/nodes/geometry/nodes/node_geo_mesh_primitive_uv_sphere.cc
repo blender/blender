@@ -33,6 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_DISTANCE)
       .description(N_("Distance from the generated points to the origin"));
   b.add_output<decl::Geometry>(N_("Mesh"));
+  b.add_output<decl::Vector>(N_("UV Map")).field_source();
 }
 
 static int sphere_vert_total(const int segments, const int rings)
@@ -255,12 +256,15 @@ BLI_NOINLINE static void calculate_sphere_corners(MutableSpan<MLoop> loops,
   }
 }
 
-BLI_NOINLINE static void calculate_sphere_uvs(Mesh *mesh, const float segments, const float rings)
+BLI_NOINLINE static void calculate_sphere_uvs(Mesh *mesh,
+                                              const float segments,
+                                              const float rings,
+                                              const AttributeIDRef &uv_map_id)
 {
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   SpanAttributeWriter<float2> uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(
-      "uv_map", ATTR_DOMAIN_CORNER);
+      uv_map_id, ATTR_DOMAIN_CORNER);
   MutableSpan<float2> uvs = uv_attribute.span;
 
   const float dy = 1.0f / rings;
@@ -301,7 +305,10 @@ BLI_NOINLINE static void calculate_sphere_uvs(Mesh *mesh, const float segments, 
   uv_attribute.finish();
 }
 
-static Mesh *create_uv_sphere_mesh(const float radius, const int segments, const int rings)
+static Mesh *create_uv_sphere_mesh(const float radius,
+                                   const int segments,
+                                   const int rings,
+                                   const AttributeIDRef &uv_map_id)
 {
   Mesh *mesh = BKE_mesh_new_nomain(sphere_vert_total(segments, rings),
                                    sphere_edge_total(segments, rings),
@@ -325,7 +332,11 @@ static Mesh *create_uv_sphere_mesh(const float radius, const int segments, const
       [&]() { calculate_sphere_edge_indices(edges, segments, rings); },
       [&]() { calculate_sphere_faces(polys, segments); },
       [&]() { calculate_sphere_corners(loops, segments, rings); },
-      [&]() { calculate_sphere_uvs(mesh, segments, rings); });
+      [&]() {
+        if (uv_map_id) {
+          calculate_sphere_uvs(mesh, segments, rings, uv_map_id);
+        }
+      });
 
   mesh->loose_edges_tag_none();
 
@@ -351,8 +362,18 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const float radius = params.extract_input<float>("Radius");
 
-  Mesh *mesh = create_uv_sphere_mesh(radius, segments_num, rings_num);
+  StrongAnonymousAttributeID uv_map_id;
+  if (params.output_is_required("UV Map")) {
+    uv_map_id = StrongAnonymousAttributeID("uv_map");
+  }
+
+  Mesh *mesh = create_uv_sphere_mesh(radius, segments_num, rings_num, uv_map_id.get());
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+  if (uv_map_id) {
+    params.set_output("UV Map",
+                      AnonymousAttributeFieldInput::Create<float3>(
+                          std::move(uv_map_id), params.attribute_producer_name()));
+  }
 }
 
 }  // namespace blender::nodes::node_geo_mesh_primitive_uv_sphere_cc

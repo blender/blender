@@ -15,13 +15,17 @@
 
 namespace blender::nodes {
 
-static void calculate_uvs(
-    Mesh *mesh, Span<MVert> verts, Span<MLoop> loops, const float size_x, const float size_y)
+static void calculate_uvs(Mesh *mesh,
+                          Span<MVert> verts,
+                          Span<MLoop> loops,
+                          const float size_x,
+                          const float size_y,
+                          const AttributeIDRef &uv_map_id)
 {
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   SpanAttributeWriter<float2> uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(
-      "uv_map", ATTR_DOMAIN_CORNER);
+      uv_map_id, ATTR_DOMAIN_CORNER);
 
   const float dx = (size_x == 0.0f) ? 0.0f : 1.0f / size_x;
   const float dy = (size_y == 0.0f) ? 0.0f : 1.0f / size_y;
@@ -39,7 +43,8 @@ static void calculate_uvs(
 Mesh *create_grid_mesh(const int verts_x,
                        const int verts_y,
                        const float size_x,
-                       const float size_y)
+                       const float size_y,
+                       const AttributeIDRef &uv_map_id)
 {
   BLI_assert(verts_x > 0 && verts_y > 0);
   const int edges_x = verts_x - 1;
@@ -139,8 +144,8 @@ Mesh *create_grid_mesh(const int verts_x,
     }
   });
 
-  if (mesh->totpoly != 0) {
-    calculate_uvs(mesh, verts, loops, size_x, size_y);
+  if (uv_map_id && mesh->totpoly != 0) {
+    calculate_uvs(mesh, verts, loops, size_x, size_y, uv_map_id);
   }
 
   mesh->loose_edges_tag_none();
@@ -175,6 +180,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1000)
       .description(N_("Number of vertices in the Y direction"));
   b.add_output<decl::Geometry>(N_("Mesh"));
+  b.add_output<decl::Vector>(N_("UV Map")).field_source();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -188,10 +194,21 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  Mesh *mesh = create_grid_mesh(verts_x, verts_y, size_x, size_y);
+  StrongAnonymousAttributeID uv_map_id;
+  if (params.output_is_required("UV Map")) {
+    uv_map_id = StrongAnonymousAttributeID("uv_map");
+  }
+
+  Mesh *mesh = create_grid_mesh(verts_x, verts_y, size_x, size_y, uv_map_id.get());
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+
+  if (uv_map_id) {
+    params.set_output("UV Map",
+                      AnonymousAttributeFieldInput::Create<float3>(
+                          std::move(uv_map_id), params.attribute_producer_name()));
+  }
 }
 
 }  // namespace blender::nodes::node_geo_mesh_primitive_grid_cc

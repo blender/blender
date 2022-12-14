@@ -46,12 +46,14 @@ void transform_geometry_set(GeoNodeExecParams &params,
 
 Mesh *create_line_mesh(const float3 start, const float3 delta, int count);
 
-Mesh *create_grid_mesh(int verts_x, int verts_y, float size_x, float size_y);
+Mesh *create_grid_mesh(
+    int verts_x, int verts_y, float size_x, float size_y, const AttributeIDRef &uv_map_id);
 
 struct ConeAttributeOutputs {
   StrongAnonymousAttributeID top_id;
   StrongAnonymousAttributeID bottom_id;
   StrongAnonymousAttributeID side_id;
+  StrongAnonymousAttributeID uv_map_id;
 };
 
 Mesh *create_cylinder_or_cone_mesh(float radius_top,
