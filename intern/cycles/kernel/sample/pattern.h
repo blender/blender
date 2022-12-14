@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "kernel/sample/tabulated_sobol.h"
 #include "kernel/sample/sobol_burley.h"
+#include "kernel/sample/tabulated_sobol.h"
 #include "util/hash.h"
 
 CCL_NAMESPACE_BEGIN
@@ -23,7 +23,8 @@ ccl_device_forceinline float path_rng_1D(KernelGlobals kg,
 #endif
 
   if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_SOBOL_BURLEY) {
-    return sobol_burley_sample_1D(sample, dimension, rng_hash);
+    const uint index_mask = kernel_data.integrator.sobol_index_mask;
+    return sobol_burley_sample_1D(sample, dimension, rng_hash, index_mask);
   }
   else {
     return tabulated_sobol_sample_1D(kg, sample, rng_hash, dimension);
@@ -40,7 +41,8 @@ ccl_device_forceinline float2 path_rng_2D(KernelGlobals kg,
 #endif
 
   if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_SOBOL_BURLEY) {
-    return sobol_burley_sample_2D(sample, dimension, rng_hash);
+    const uint index_mask = kernel_data.integrator.sobol_index_mask;
+    return sobol_burley_sample_2D(sample, dimension, rng_hash, index_mask);
   }
   else {
     return tabulated_sobol_sample_2D(kg, sample, rng_hash, dimension);
@@ -57,7 +59,8 @@ ccl_device_forceinline float3 path_rng_3D(KernelGlobals kg,
 #endif
 
   if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_SOBOL_BURLEY) {
-    return sobol_burley_sample_3D(sample, dimension, rng_hash);
+    const uint index_mask = kernel_data.integrator.sobol_index_mask;
+    return sobol_burley_sample_3D(sample, dimension, rng_hash, index_mask);
   }
   else {
     return tabulated_sobol_sample_3D(kg, sample, rng_hash, dimension);
@@ -74,7 +77,8 @@ ccl_device_forceinline float4 path_rng_4D(KernelGlobals kg,
 #endif
 
   if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_SOBOL_BURLEY) {
-    return sobol_burley_sample_4D(sample, dimension, rng_hash);
+    const uint index_mask = kernel_data.integrator.sobol_index_mask;
+    return sobol_burley_sample_4D(sample, dimension, rng_hash, index_mask);
   }
   else {
     return tabulated_sobol_sample_4D(kg, sample, rng_hash, dimension);
