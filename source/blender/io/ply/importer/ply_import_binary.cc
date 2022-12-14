@@ -5,7 +5,7 @@
 #include <fstream>
 
 namespace blender::io::ply {
-Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh *mesh)
+Mesh *import_ply_binary(std::ifstream &file, const PlyHeader *header, Mesh *mesh)
 {
   PlyData data = load_ply_binary(file, header);
   if (!data.vertices.is_empty()) {
