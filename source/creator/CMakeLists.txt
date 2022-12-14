@@ -562,19 +562,6 @@ endmacro()
 
 if(UNIX AND NOT APPLE)
 
-  if(NOT WITH_PYTHON_MODULE)
-    if(WITH_DOC_MANPAGE)
-      add_custom_target(
-        blender_man_page ALL
-        COMMAND
-          ${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py
-          --blender ${EXECUTABLE_OUTPUT_PATH}/blender
-          --output ${CMAKE_CURRENT_BINARY_DIR}/blender.1
-      )
-      add_dependencies(blender_man_page blender)
-    endif()
-  endif()
-
   if(PLATFORM_BUNDLED_LIBRARIES AND TARGETDIR_LIB)
     install(
       FILES ${PLATFORM_BUNDLED_LIBRARIES}
@@ -603,12 +590,6 @@ if(UNIX AND NOT APPLE)
       DESTINATION "."
     )
 
-    if(WITH_DOC_MANPAGE)
-      install(
-        FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
-        DESTINATION "."
-      )
-    endif()
     install(
       FILES
         ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
@@ -655,13 +636,6 @@ if(UNIX AND NOT APPLE)
       TARGETS blender
       DESTINATION bin
     )
-    if(WITH_DOC_MANPAGE)
-      # Manual page (only with `blender` binary).
-      install(
-        FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
-        DESTINATION share/man/man1
-      )
-    endif()
 
     # Misc files.
     install(
@@ -1675,6 +1649,42 @@ endif()
 # Windows shared library manifest
 if(WIN32)
   windows_generate_shared_manifest()
+endif()
+
+# -----------------------------------------------------------------------------
+# Steps that Run Blender
+#
+# As executing Blender is needed - it's important this operation runs after the shared
+# libraries have been installed to their destination.
+
+if(UNIX AND NOT APPLE)
+  if(NOT WITH_PYTHON_MODULE)
+    if(WITH_DOC_MANPAGE)
+      install(
+        CODE "\
+execute_process(\
+  COMMAND \
+  \"${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py\" \
+  --blender \"${EXECUTABLE_OUTPUT_PATH}/blender\" \
+  --output \"${CMAKE_CURRENT_BINARY_DIR}/blender.1\"\
+)"
+        DEPENDS blender
+      )
+
+      if(WITH_INSTALL_PORTABLE)
+        install(
+          FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
+          DESTINATION "."
+        )
+      else()
+        # Manual page (only with `blender` binary).
+        install(
+          FILES ${CMAKE_CURRENT_BINARY_DIR}/blender.1
+          DESTINATION share/man/man1
+        )
+      endif()
+    endif()
+  endif()
 endif()
 
 # -----------------------------------------------------------------------------
