@@ -539,7 +539,7 @@ class KeyframesCo:
 
             keyframe_points = fcurve.keyframe_points
 
-            co_buffer = [0] * 2 * len(keyframe_points)
+            co_buffer = [0] * (2 * len(keyframe_points))
             keyframe_points.foreach_get("co", co_buffer)
             co_buffer.extend(key_values)
 
