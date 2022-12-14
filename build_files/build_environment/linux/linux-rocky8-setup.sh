@@ -81,6 +81,7 @@ PACKAGES_FOR_LIBS=(
     # NOTE(@campbellbarton): while `python39` is available, the default Python version is 3.6.
     # This is used for the `python3-mako` package for e.g.
     # So use the "default" system Python since it means it's most compatible with other packages.
+    python3
 
     # Required by: `mesa`.
     expat-devel
@@ -89,8 +90,11 @@ PACKAGES_FOR_LIBS=(
     bison
     # Required by: `external_osl` as a build-time dependency.
     flex
+
     # Required by: `external_ispc`.
     ncurses-devel
+    # Required by: `external_ispc` (when building with CLANG).
+    libstdc++-static
 )
 
 # Additional packages needed for building Blender.
