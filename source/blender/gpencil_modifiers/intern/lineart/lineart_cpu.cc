@@ -2109,11 +2109,11 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
     loose_data.loose_array = static_cast<int *>(
         MEM_malloc_arrayN(loose_edges.count, sizeof(int), __func__));
     if (loose_edges.count > 0) {
-      int loose_i = 0;
+      loose_data.loose_count = 0;
       for (const int64_t edge_i : IndexRange(me->totedge)) {
         if (loose_edges.is_loose_bits[edge_i]) {
-          loose_data.loose_array[loose_i] = int(edge_i);
-          loose_i++;
+          loose_data.loose_array[loose_data.loose_count] = int(edge_i);
+          loose_data.loose_count++;
         }
       }
     }
