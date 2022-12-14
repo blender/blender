@@ -37,12 +37,12 @@ template<typename T> T swap_bytes(T input)
     return input;
   }
   if (sizeof(T) == 2) {
-    uint16_t newInput = (uint16_t)input;
+    uint16_t newInput = uint16_t(input);
     return (T)(((newInput & 0xFF) << 8) | ((newInput >> 8) & 0xFF));
   }
   if (sizeof(T) == 4) {
-    uint32_t newInput = *(
-        uint32_t *)&input;  // Reinterpret this data as uint32 for easy rearranging of bytes
+    // Reinterpret this data as uint32 for easy rearranging of bytes
+    uint32_t newInput = *(uint32_t *)&input; 
     uint32_t first = (newInput & 0xFF) << 24;
     uint32_t second = ((newInput >> 8) & 0xFF) << 16;
     uint32_t third = ((newInput >> 16) & 0xFF) << 8;
@@ -53,8 +53,8 @@ template<typename T> T swap_bytes(T input)
   }
 
   if (sizeof(T) == 8) {
-    uint64_t newInput = *(
-        uint64_t *)&input;  // Reinterpret this data as uint64 for easy rearranging of bytes
+    // Reinterpret this data as uint64 for easy rearranging of bytes
+    uint64_t newInput = *(int64_t *)&input;  
     uint64_t output = 0;
     for (int i = 0; i < 8; i++) {
       output |= ((newInput >> i * 8) & 0xFF) << (56 - i * 8);
