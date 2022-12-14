@@ -24,7 +24,9 @@
 #include "DEG_depsgraph_build.h"
 
 #include "intern/ply_data.hh"
+#include "ply_functions.hh"
 #include "ply_import.hh"
+#include "ply_import_ascii.hh"
 #include "ply_import_binary.hh"
 
 namespace blender::io::ply {
@@ -107,7 +109,8 @@ void importer_main(Main *bmain,
 
   PlyHeader header;
 
-  while (std::getline(infile, line)) {
+  while (true) { // We break when end_header is encountered
+    safe_getline(infile, line);
     header.header_size++;
     std::vector<std::string> words{};
     splitstr(line, words);
@@ -158,6 +161,7 @@ void importer_main(Main *bmain,
 
   Mesh *mesh = BKE_mesh_add(bmain, ob_name);
   if (header.type == PlyFormatType::ASCII) {
+    mesh = import_ply_ascii(infile, &header, mesh);
     printf("ASCII PLY \n");
   }
   else if (header.type == PlyFormatType::BINARY_BE) {
