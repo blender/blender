@@ -15,7 +15,12 @@ fi
 # See: https://wiki.rockylinux.org/rocky/repo/#notes-on-unlisted-repositories
 dnf config-manager --set-enabled powertools
 
-# yum-config-manager does not come in the default minimal install,
+# Required by: TODO.
+dnf install 'dnf-command(config-manager)'
+# Required by: TODO.
+dnf install epel-release
+
+# `yum-config-manager` does not come in the default minimal install,
 # so make sure it is installed and available.
 yum -y update
 yum -y install yum-utils
@@ -82,8 +87,10 @@ PACKAGES_FOR_LIBS=(
     # This is used for the `python3-mako` package for e.g.
     # So use the "default" system Python since it means it's most compatible with other packages.
     python3
+    # Required by: `external_mesa`.
+    python3-mako
 
-    # Required by: `mesa`.
+    # Required by: `external_mesa`.
     expat-devel
 
     # Required by: `external_igc` & `external_osl` as a build-time dependency.
@@ -114,7 +121,7 @@ PACKAGES_FOR_BLENDER=(
 
 yum -y install -y ${PACKAGES_FOR_LIBS[@]} ${PACKAGES_FOR_BLENDER[@]}
 
-# Dependencies for pip (needed for buildbot-worker), uses Python3.6.
+# Dependencies for pip (needed for `buildbot-worker`), uses Python3.6.
 yum -y install python3 python3-pip python3-devel
 
 # Dependencies for asound.
