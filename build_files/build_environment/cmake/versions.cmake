@@ -235,11 +235,11 @@ set(OPENVDB_FILE openvdb-${OPENVDB_VERSION}.tar.gz)
 # ------------------------------------------------------------------------------
 # Python Modules
 
-# Needed by: TODO.
+# Needed by: `requests` module (so the version doesn't change on rebuild).
 set(IDNA_VERSION 3.3)
-# Needed by: TODO.
+# Needed by: `requests` module (so the version doesn't change on rebuild).
 set(CHARSET_NORMALIZER_VERSION 2.0.10)
-# Needed by: TODO.
+# Needed by: `requests` module (so the version doesn't change on rebuild).
 set(URLLIB3_VERSION 1.26.8)
 set(URLLIB3_CPE "cpe:2.3:a:urllib3:urllib3:${URLLIB3_VERSION}:*:*:*:*:*:*:*")
 # Needed by: Python's `requests` module (so add-ons can authenticate against trusted certificates).
