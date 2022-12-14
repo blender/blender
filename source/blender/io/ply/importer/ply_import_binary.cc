@@ -5,10 +5,10 @@
 #include <fstream>
 
 namespace blender::io::ply {
-Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh *mesh)
+Mesh *import_ply_binary(std::ifstream &file, const PlyHeader *header, Mesh *mesh)
 {
   PlyData data = load_ply_binary(file, header);
-  if (data.vertices.size() != 0) {
+  if (!data.vertices.is_empty()) {
     return convert_ply_to_mesh(data, mesh);
   }
   return nullptr;
@@ -34,7 +34,7 @@ template int32_t read<int32_t>(std::ifstream &file, bool isBigEndian);
 template float read<float>(std::ifstream &file, bool isBigEndian);
 template double read<double>(std::ifstream &file, bool isBigEndian);
 
-void check_file_errors(std::ifstream &file)
+void check_file_errors(const std::ifstream &file)
 {
   if (file.bad()) {
     printf("Read/Write error on io operation\n");
@@ -47,7 +47,37 @@ void check_file_errors(std::ifstream &file)
   }
 }
 
-PlyData load_ply_binary(std::ifstream &file, PlyHeader *header)
+void discard_value(std::ifstream &file, const PlyDataTypes type)
+{
+  switch (type) {
+    case CHAR:
+      read<int8_t>(file, false);
+      break;
+    case UCHAR:
+      read<uint8_t>(file, false);
+      break;
+    case SHORT:
+      read<int16_t>(file, false);
+      break;
+    case USHORT:
+      read<uint16_t>(file, false);
+      break;
+    case INT:
+      read<int32_t>(file, false);
+      break;
+    case UINT:
+      read<uint32_t>(file, false);
+      break;
+    case FLOAT:
+      read<float>(file, false);
+      break;
+    case DOUBLE:
+      read<double>(file, false);
+      break;
+  }
+}
+
+PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header)
 {
   PlyData data;
 
@@ -59,67 +89,42 @@ PlyData load_ply_binary(std::ifstream &file, PlyHeader *header)
     float3 normal{0};
     float4 color{1};
 
-    for (auto prop : header->properties) {
-      if (prop.first == "x") {
+    for (auto [name, type] : header->properties) {
+      if (name == "x") {
         coord.x = read<float>(file, isBigEndian);
       }
-      else if (prop.first == "y") {
+      else if (name == "y") {
         coord.y = read<float>(file, isBigEndian);
       }
-      else if (prop.first == "z") {
+      else if (name == "z") {
         coord.z = read<float>(file, isBigEndian);
       }
-      else if (prop.first == "nx") {
+      else if (name == "nx") {
         normal.x = read<float>(file, isBigEndian);
         hasNormal = true;
       }
-      else if (prop.first == "ny") {
+      else if (name == "ny") {
         normal.y = read<float>(file, isBigEndian);
       }
-      else if (prop.first == "nz") {
+      else if (name == "nz") {
         normal.z = read<float>(file, isBigEndian);
       }
-      else if (prop.first == "red") {
+      else if (name == "red") {
         color.x = read<uint8_t>(file, isBigEndian) / 255.0f;
         hasColor = true;
       }
-      else if (prop.first == "green") {
+      else if (name == "green") {
         color.y = read<uint8_t>(file, isBigEndian) / 255.0f;
       }
-      else if (prop.first == "blue") {
+      else if (name == "blue") {
         color.z = read<uint8_t>(file, isBigEndian) / 255.0f;
       }
-      else if (prop.first == "alpha") {
+      else if (name == "alpha") {
         color.w = read<uint8_t>(file, isBigEndian) / 255.0f;
       }
       else {
         // We don't support any other properties yet
-        switch (prop.second) {
-          case CHAR:
-            read<int8_t>(file, isBigEndian);
-            break;
-          case UCHAR:
-            read<uint8_t>(file, isBigEndian);
-            break;
-          case SHORT:
-            read<int16_t>(file, isBigEndian);
-            break;
-          case USHORT:
-            read<uint16_t>(file, isBigEndian);
-            break;
-          case INT:
-            read<int32_t>(file, isBigEndian);
-            break;
-          case UINT:
-            read<uint32_t>(file, isBigEndian);
-            break;
-          case FLOAT:
-            read<float>(file, isBigEndian);
-            break;
-          case DOUBLE:
-            read<double>(file, isBigEndian);
-            break;
-        }
+        discard_value(file, type);
       }
     }
 
@@ -134,17 +139,12 @@ PlyData load_ply_binary(std::ifstream &file, PlyHeader *header)
 
   for (int i = 0; i < header->face_count; i++) {
     // Assume vertex_index_count_type is uchar
-    uchar count;
+    uint8_t count = read<uint8_t>(file, isBigEndian);
     Vector<uint> vertex_indices;
-    file.read((char *)&count, sizeof(count));
-    check_file_errors(file);
-    for (uchar j = 0; j < count; j++) {
-      uint32_t index;
-      file.read((char *)&index, sizeof(index));
-      check_file_errors(file);
-      if (header->type == PlyFormatType::BINARY_BE) {
-        index = swap_bytes<uint32_t>(index);
-      }
+
+    // Loop over the amount of vertex indices in this face
+    for (uint8_t j = 0; j < count; j++) {
+      uint32_t index = read<uint32_t>(file, isBigEndian);
       vertex_indices.append(index);
     }
     data.faces.append(vertex_indices);
