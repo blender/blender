@@ -79,6 +79,7 @@ static void add_new_edges(Mesh &mesh,
     }
     else {
       anonymous_ids.append(bke::WeakAnonymousAttributeID(&id.anonymous_id()));
+      BKE_anonymous_attribute_id_increment_weak(&id.anonymous_id());
     }
   }
   Vector<bke::AttributeIDRef> local_edge_ids;
@@ -98,8 +99,8 @@ static void add_new_edges(Mesh &mesh,
     void *array;
   };
   Vector<NewAttributeData> dst_attributes;
-  for (const bke::AttributeIDRef &id : local_edge_ids) {
-    bke::GAttributeReader attribute = attributes.lookup(id);
+  for (const bke::AttributeIDRef &local_id : local_edge_ids) {
+    bke::GAttributeReader attribute = attributes.lookup(local_id);
     if (!attribute) {
       continue;
     }
@@ -115,8 +116,8 @@ static void add_new_edges(Mesh &mesh,
     });
 
     /* Free the original attribute as soon as possible to lower peak memory usage. */
-    attributes.remove(id);
-    dst_attributes.append({id, type, new_data});
+    attributes.remove(local_id);
+    dst_attributes.append({local_id, type, new_data});
   }
 
   int *new_orig_indices = nullptr;
