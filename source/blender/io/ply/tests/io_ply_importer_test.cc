@@ -37,12 +37,10 @@ struct Expectation {
   // float3 normal_first;
   // float2 uv_first
   // float4 color_first = {-1, -1, -1, -1};
-
 };
 
 class PlyImportTest : public BlendfileLoadingBaseTest {
  public:
-
   void import_and_check(const char *path, const Expectation *expect, size_t expect_count)
   {
     if (!blendfile_load("io_tests/blend_geometry/all_quads.blend")) {
@@ -108,7 +106,7 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
         float2 uv_first = mloopuv ? float2(mloopuv->uv) : float2(0, 0);
         EXPECT_V2_NEAR(uv_first, exp.uv_first, 0.0001f); */
 
-        // Check if expected mesh has vertex colours, and if it does => fetch vertex colour data and test if it matches
+        // Check if expected mesh has vertex colours, and tests if it matches
         // Currently we don't support vertex colours yet.
         /* if (exp.color_first.x >= 0) {
           const float4 *colors = (const float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
@@ -129,30 +127,40 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
 
 TEST_F(PlyImportTest, PLYImportCube)
 {
-  Expectation expect[] = {
-      {"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
-      {"OBcube_ascii", ASCII, 24, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)}};
+  Expectation expect[] = {{"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
+                          {"OBcube_ascii", ASCII, 24, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)}};
 
   import_and_check("cube_ascii.ply", expect, 2);
 }
 
-TEST_F(PlyImportTest, PLYImportBunny) {
-  Expectation expect[] = {
-    {"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
-    {"OBbunny2", BINARY_LE, 1623, 1000, 1513, float3(0.0380425, 0.109755, 0.0161689), float3(-0.0722821, 0.143895, -0.0129091)}
-  };
+TEST_F(PlyImportTest, PLYImportBunny)
+{
+  Expectation expect[] = {{"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
+                          {"OBbunny2",
+                           BINARY_LE,
+                           1623,
+                           1000,
+                           1513,
+                           float3(0.0380425, 0.109755, 0.0161689),
+                           float3(-0.0722821, 0.143895, -0.0129091)}};
   import_and_check("bunny2.ply", expect, 2);
 }
 
-TEST_F(PlyImportTest, PlyImportManySmallHoles) {
-  Expectation expect[] = {
-      {"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
-      {"OBmany_small_holes", BINARY_LE, 2004, 3524, 5564, float3(-0.0131592, -0.0598382, 1.58958), float3(-0.0177622, 0.0105153, 1.61977)}
-  };
+TEST_F(PlyImportTest, PlyImportManySmallHoles)
+{
+  Expectation expect[] = {{"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
+                          {"OBmany_small_holes",
+                           BINARY_LE,
+                           2004,
+                           3524,
+                           5564,
+                           float3(-0.0131592, -0.0598382, 1.58958),
+                           float3(-0.0177622, 0.0105153, 1.61977)}};
   import_and_check("many_small_holes.ply", expect, 2);
 }
 
-TEST(PlyImportFunctionsTest, PlySwapBytes) {
+TEST(PlyImportFunctionsTest, PlySwapBytes)
+{
   // Individual bits shouldn't swap with each other
   uint8_t val8 = 0xA8;
   uint8_t exp8 = 0xA8;

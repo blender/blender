@@ -1,9 +1,9 @@
 #ifndef BLENDER_PLY_IMPORT_BINARY_HH
 #define BLENDER_PLY_IMPORT_BINARY_HH
 
+#include "BKE_mesh.h"
 #include "DNA_mesh_types.h"
 #include "ply_data.hh"
-#include "BKE_mesh.h"
 
 namespace blender::io::ply {
 /**
@@ -12,7 +12,7 @@ namespace blender::io::ply {
  * @param header The information in the PLY header
  * @return The mesh that can be used inside blender
  */
-Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh* mesh);
+Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh *mesh);
 
 /**
  * Loads the information from the PLY file in Big_Endian format to the PlyData datastructure
@@ -20,9 +20,11 @@ Mesh *import_ply_binary(std::ifstream &file, PlyHeader *header, Mesh* mesh);
  * @param header The information in the PLY header
  * @return The PlyData datastructure that can be used for conversion to a Mesh
  */
-PlyData load_ply_binary(std::ifstream &file, PlyHeader *header);
+PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header);
 
-void check_file_errors(std::ifstream& file);
+void check_file_errors(const std::ifstream &file);
+
+void discard_value(std::ifstream &file, const PlyDataTypes type);
 
 template<typename T> T swap_bytes(T input)
 {
@@ -39,7 +41,8 @@ template<typename T> T swap_bytes(T input)
     return (T)(((newInput & 0xFF) << 8) | ((newInput >> 8) & 0xFF));
   }
   if (sizeof(T) == 4) {
-    uint32_t newInput = *(uint32_t *)&input;  // Cursed pointer magic
+    uint32_t newInput = *(
+        uint32_t *)&input;  // Reinterpret this data as uint32 for easy rearranging of bytes
     uint32_t first = (newInput & 0xFF) << 24;
     uint32_t second = ((newInput >> 8) & 0xFF) << 16;
     uint32_t third = ((newInput >> 16) & 0xFF) << 8;
@@ -50,7 +53,8 @@ template<typename T> T swap_bytes(T input)
   }
 
   if (sizeof(T) == 8) {
-    uint64_t newInput = *(uint64_t *)&input;  // Cursed pointer magic
+    uint64_t newInput = *(
+        uint64_t *)&input;  // Reinterpret this data as uint64 for easy rearranging of bytes
     uint64_t output = 0;
     for (int i = 0; i < 8; i++) {
       output |= ((newInput >> i * 8) & 0xFF) << (56 - i * 8);
@@ -60,7 +64,7 @@ template<typename T> T swap_bytes(T input)
   }
 }
 
-template<typename T> T read(std::ifstream& file, bool isBigEndian);
+template<typename T> T read(std::ifstream &file, bool isBigEndian);
 
 }  // namespace blender::io::ply
 
