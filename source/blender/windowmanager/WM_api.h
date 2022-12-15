@@ -126,6 +126,15 @@ void WM_init_opengl(void);
  */
 const char *WM_ghost_backend(void);
 
+typedef enum eWM_CapabilitiesFlag {
+  /** Ability to warp the cursor (set it's location). */
+  WM_CAPABILITY_CURSOR_WARP = (1 << 0),
+  /** Ability to access window positions & move them. */
+  WM_CAPABILITY_WINDOW_POSITION = (1 << 1),
+} eWM_CapabilitiesFlag;
+
+eWM_CapabilitiesFlag WM_capabilities_flag(void);
+
 void WM_check(struct bContext *C);
 void WM_reinit_gizmomap_all(struct Main *bmain);
 
