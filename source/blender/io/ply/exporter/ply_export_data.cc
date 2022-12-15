@@ -23,7 +23,7 @@ void write_vertices(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData
 void write_faces(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData)
 {
   for (const auto &face : plyData->faces) {
-    buffer->write_face(face.size(), face);
+    buffer->write_face(int(face.size()), face);
   }
   buffer->write_to_file();
 }
