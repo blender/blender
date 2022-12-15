@@ -617,11 +617,12 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
     const int size[2] = {BLI_rcti_size_x(winrct), BLI_rcti_size_y(winrct)};
     const int div = 4; /* Where 2 is the region size. */
 
-    rcti wrap_region = {};
-    wrap_region.xmin = center[0] - (size[0] / div);
-    wrap_region.xmax = center[0] + (size[0] / div);
-    wrap_region.ymin = center[1] - (size[1] / div);
-    wrap_region.ymax = center[1] + (size[1] / div);
+    const rcti wrap_region = {
+        .xmin = center[0] - (size[0] / div),
+        .xmax = center[0] + (size[0] / div),
+        .ymin = center[1] - (size[1] / div),
+        .ymax = center[1] + (size[1] / div),
+    };
 
     WM_cursor_grab_enable(win, WM_CURSOR_WRAP_XY, &wrap_region, false);
 
