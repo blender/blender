@@ -386,7 +386,7 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
             'MKV',
             'OGG',
             'MPEG4',
-            'WEBM'
+            'WEBM',
         }
         if needs_codec:
             layout.prop(ffmpeg, "codec")
@@ -402,7 +402,7 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
             'H264',
             'MPEG4',
             'WEBM',
-            'AV1'
+            'AV1',
         }
         if use_crf:
             layout.prop(ffmpeg, "constant_rate_factor")

@@ -1028,7 +1028,7 @@ class CLIP_OT_track_settings_to_track(Operator):
         "use_red_channel",
         "use_green_channel",
         "use_blue_channel",
-        "weight"
+        "weight",
     )
 
     _attrs_marker = (

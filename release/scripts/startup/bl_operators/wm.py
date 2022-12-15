@@ -1377,7 +1377,8 @@ class WM_OT_properties_edit(Operator):
         name="Array Length",
         default=3,
         min=1,
-        max=32,  # 32 is the maximum size for RNA array properties.
+        # 32 is the maximum size for RNA array properties.
+        max=32,
     )
 
     # Integer properties.
@@ -1458,7 +1459,7 @@ class WM_OT_properties_edit(Operator):
     # Store the value converted to a string as a fallback for otherwise unsupported types.
     eval_string: StringProperty(
         name="Value",
-        description="Python value for unsupported custom property types"
+        description="Python value for unsupported custom property types",
     )
 
     type_items = rna_custom_property_type_items
@@ -1904,7 +1905,7 @@ class WM_OT_properties_edit_value(Operator):
     # Store the value converted to a string as a fallback for otherwise unsupported types.
     eval_string: StringProperty(
         name="Value",
-        description="Value for custom property types that can only be edited as a Python expression"
+        description="Value for custom property types that can only be edited as a Python expression",
     )
 
     def execute(self, context):
@@ -2470,11 +2471,11 @@ class BatchRenameAction(bpy.types.PropertyGroup):
     replace_match_case: BoolProperty(name="Case Sensitive")
     use_replace_regex_src: BoolProperty(
         name="Regular Expression Find",
-        description="Use regular expressions to match text in the 'Find' field"
+        description="Use regular expressions to match text in the 'Find' field",
     )
     use_replace_regex_dst: BoolProperty(
         name="Regular Expression Replace",
-        description="Use regular expression for the replacement text (supporting groups)"
+        description="Use regular expression for the replacement text (supporting groups)",
     )
 
     # type: 'CASE'.

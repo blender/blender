@@ -225,7 +225,7 @@ class ToolSelectPanelHelper:
         return next(
             (cls for cls in ToolSelectPanelHelper.__subclasses__()
              if cls.bl_space_type == space_type),
-            None
+            None,
         )
 
     @staticmethod
@@ -904,7 +904,8 @@ class ToolSelectPanelHelper:
             "workspace_tool_type",
             value='DEFAULT',
             text="Active Tool",
-            icon='TOOL_SETTINGS',  # Could use a less generic icon.
+            # Could use a less generic icon.
+            icon='TOOL_SETTINGS',
         )
         is_active_tool = (tool_settings.workspace_tool_type == 'DEFAULT')
 

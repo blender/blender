@@ -12,7 +12,7 @@ __all__ = (
     "path_reference",
     "path_reference_copy",
     "path_reference_mode",
-    "unique_name"
+    "unique_name",
 )
 
 import bpy

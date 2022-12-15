@@ -1166,7 +1166,7 @@ from bl_ui.properties_mask_common import (
     MASK_PT_point,
     MASK_PT_display,
     MASK_PT_transforms,
-    MASK_PT_tools
+    MASK_PT_tools,
 )
 
 

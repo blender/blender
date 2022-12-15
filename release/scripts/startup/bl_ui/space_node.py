@@ -14,7 +14,7 @@ from bl_ui.space_toolsystem_common import (
 )
 from bl_ui.properties_material import (
     EEVEE_MATERIAL_PT_settings,
-    MATERIAL_PT_viewport
+    MATERIAL_PT_viewport,
 )
 from bl_ui.properties_world import (
     WORLD_PT_viewport_display
@@ -496,18 +496,18 @@ class NODE_MT_context_menu(Menu):
         # If no nodes are selected.
         if selected_nodes_len == 0:
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.menu("NODE_MT_add", icon="ADD")
-            layout.operator("node.clipboard_paste", text="Paste", icon="PASTEDOWN")
+            layout.menu("NODE_MT_add", icon='ADD')
+            layout.operator("node.clipboard_paste", text="Paste", icon='PASTEDOWN')
 
             layout.separator()
 
-            layout.operator("node.find_node", text="Find...", icon="VIEWZOOM")
+            layout.operator("node.find_node", text="Find...", icon='VIEWZOOM')
 
             layout.separator()
 
             if is_geometrynodes:
                 layout.operator_context = 'INVOKE_DEFAULT'
-                layout.operator("node.select", text="Clear Viewer", icon="HIDE_ON").clear_viewer = True
+                layout.operator("node.select", text="Clear Viewer", icon='HIDE_ON').clear_viewer = True
 
             layout.operator("node.links_cut")
             layout.operator("node.links_mute")
@@ -521,19 +521,19 @@ class NODE_MT_context_menu(Menu):
 
         if is_geometrynodes:
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("node.link_viewer", text="Link to Viewer", icon="HIDE_OFF")
+            layout.operator("node.link_viewer", text="Link to Viewer", icon='HIDE_OFF')
 
             layout.separator()
 
-        layout.operator("node.clipboard_copy", text="Copy", icon="COPYDOWN")
-        layout.operator("node.clipboard_paste", text="Paste", icon="PASTEDOWN")
+        layout.operator("node.clipboard_copy", text="Copy", icon='COPYDOWN')
+        layout.operator("node.clipboard_paste", text="Paste", icon='PASTEDOWN')
 
         layout.operator_context = 'INVOKE_DEFAULT'
-        layout.operator("node.duplicate_move", icon="DUPLICATE")
+        layout.operator("node.duplicate_move", icon='DUPLICATE')
 
         layout.separator()
 
-        layout.operator("node.delete", icon="X")
+        layout.operator("node.delete", icon='X')
         layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("node.delete_reconnect", text="Dissolve")
 
@@ -546,7 +546,7 @@ class NODE_MT_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator("node.group_make", text="Make Group", icon="NODETREE")
+        layout.operator("node.group_make", text="Make Group", icon='NODETREE')
         layout.operator("node.group_insert", text="Insert Into Group")
 
         if active_node and active_node.type == 'GROUP':
@@ -878,7 +878,7 @@ class NodeTreeInterfacePanel(Panel):
             props = property_row.operator_menu_enum(
                 "node.tree_socket_change_type",
                 "socket_type",
-                text=active_socket.bl_label if active_socket.bl_label else active_socket.bl_idname
+                text=active_socket.bl_label if active_socket.bl_label else active_socket.bl_idname,
             )
             props.in_out = in_out
 

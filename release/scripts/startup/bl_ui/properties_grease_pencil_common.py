@@ -210,12 +210,12 @@ class GPENCIL_MT_snap_pie(Menu):
         pie.operator(
             "gpencil.snap_to_cursor",
             text="Selection to Cursor",
-            icon='RESTRICT_SELECT_OFF'
+            icon='RESTRICT_SELECT_OFF',
         ).use_offset = False
         pie.operator(
             "gpencil.snap_to_cursor",
             text="Selection to Cursor (Keep Offset)",
-            icon='RESTRICT_SELECT_OFF'
+            icon='RESTRICT_SELECT_OFF',
         ).use_offset = True
         pie.separator()
         pie.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin", icon='CURSOR')
