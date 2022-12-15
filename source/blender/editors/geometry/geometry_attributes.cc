@@ -572,11 +572,11 @@ static int geometry_attribute_convert_invoke(bContext *C,
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    RNA_enum_set(op->ptr, "domain", meta_data.domain);
+    RNA_property_enum_set(op->ptr, prop, meta_data.domain);
   }
   prop = RNA_struct_find_property(op->ptr, "data_type");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    RNA_enum_set(op->ptr, "data_type", meta_data.data_type);
+    RNA_property_enum_set(op->ptr, prop, meta_data.data_type);
   }
 
   return WM_operator_props_dialog_popup(C, op, 300);
@@ -642,11 +642,11 @@ static int geometry_color_attribute_convert_invoke(bContext *C,
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    RNA_enum_set(op->ptr, "domain", meta_data.domain);
+    RNA_property_enum_set(op->ptr, prop, meta_data.domain);
   }
   prop = RNA_struct_find_property(op->ptr, "data_type");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    RNA_enum_set(op->ptr, "data_type", meta_data.data_type);
+    RNA_property_enum_set(op->ptr, prop, meta_data.data_type);
   }
 
   return WM_operator_props_dialog_popup(C, op, 300);
