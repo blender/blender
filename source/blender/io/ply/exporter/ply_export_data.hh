@@ -14,11 +14,7 @@
 
 namespace blender::io::ply {
 
-void write_vertices(std::unique_ptr<FileBuffer> &buffer,
-                    std::unique_ptr<PlyData> &plyData,
-                    const PLYExportParams export_params);
+void write_vertices(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData);
 
-void write_faces(std::unique_ptr<FileBuffer> &buffer,
-                 std::unique_ptr<PlyData> &plyData,
-                 const PLYExportParams export_params);
-}
+void write_faces(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData);
+}  // namespace blender::io::ply

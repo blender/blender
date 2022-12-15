@@ -66,10 +66,10 @@ void exporter_main(Main *bmain,
   write_header(buffer, plyData, export_params);
 
   // Generate and write vertices
-  write_vertices(buffer, plyData, export_params);
+  write_vertices(buffer, plyData);
 
   // Generate and write faces
-  write_faces(buffer, plyData, export_params);
+  write_faces(buffer, plyData);
 
   // Clean up
   buffer->close_file();

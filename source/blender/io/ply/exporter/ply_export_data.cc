@@ -12,9 +12,7 @@
 
 namespace blender::io::ply {
 
-void write_vertices(std::unique_ptr<FileBuffer> &buffer,
-                    std::unique_ptr<PlyData> &plyData,
-                    const PLYExportParams export_params)
+void write_vertices(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData)
 {
   for (const auto &vertex : plyData->vertices) {
     buffer->write_vertex(vertex.x, vertex.y, vertex.z);
@@ -22,13 +20,11 @@ void write_vertices(std::unique_ptr<FileBuffer> &buffer,
   buffer->write_to_file();
 }
 
-void write_faces(std::unique_ptr<FileBuffer> &buffer,
-                 std::unique_ptr<PlyData> &plyData,
-                 const PLYExportParams export_params)
+void write_faces(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData)
 {
   for (const auto &face : plyData->faces) {
     buffer->write_face(face.size(), face);
   }
   buffer->write_to_file();
 }
-}
+}  // namespace blender::io::ply
