@@ -12,7 +12,7 @@ namespace blender::io::ply {
 
 enum PlyDataTypes { CHAR, UCHAR, SHORT, USHORT, INT, UINT, FLOAT, DOUBLE };
 
-//int typeSizes[8] = {1, 1, 2, 2, 4, 4, 4, 8};
+// int typeSizes[8] = {1, 1, 2, 2, 4, 4, 4, 8};
 
 struct PlyData {
   Vector<float3> vertices;
