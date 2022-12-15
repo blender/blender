@@ -152,8 +152,9 @@ typedef enum {
   MOD_SNAP = 1 << 2,
   MOD_SNAP_INVERT = 1 << 3,
   MOD_CONSTRAINT_SELECT_PLANE = 1 << 4,
+  MOD_NODE_ATTACH = 1 << 5,
 } eTModifier;
-ENUM_OPERATORS(eTModifier, MOD_CONSTRAINT_SELECT_PLANE)
+ENUM_OPERATORS(eTModifier, MOD_NODE_ATTACH)
 
 /** #TransSnap.status */
 typedef enum eTSnap {
@@ -244,8 +245,8 @@ enum {
   TFM_MODAL_AUTOIK_LEN_INC = 22,
   TFM_MODAL_AUTOIK_LEN_DEC = 23,
 
-  // TFM_MODAL_UNUSED_1 = 24,
-  // TFM_MODAL_UNUSED_2 = 25,
+  TFM_MODAL_NODE_ATTACH_ON = 24,
+  TFM_MODAL_NODE_ATTACH_OFF = 25,
 
   /** For analog input, like track-pad. */
   TFM_MODAL_PROPSIZE = 26,

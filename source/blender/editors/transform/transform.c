@@ -599,7 +599,9 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       }
       break;
     }
-    case TFM_MODAL_INSERTOFS_TOGGLE_DIR: {
+    case TFM_MODAL_INSERTOFS_TOGGLE_DIR:
+    case TFM_MODAL_NODE_ATTACH_ON:
+    case TFM_MODAL_NODE_ATTACH_OFF: {
       if (t->spacetype != SPACE_NODE) {
         return false;
       }
@@ -661,6 +663,8 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
        0,
        "Toggle Direction for Node Auto-Offset",
        ""},
+      {TFM_MODAL_NODE_ATTACH_ON, "NODE_ATTACH_ON", 0, "Node Attachment", ""},
+      {TFM_MODAL_NODE_ATTACH_OFF, "NODE_ATTACH_OFF", 0, "Node Attachment (Off)", ""},
       {TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Move", ""},
       {TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
       {TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
@@ -1112,6 +1116,17 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           t->redraw |= TREDRAW_SOFT;
         }
         break;
+      case TFM_MODAL_NODE_ATTACH_ON:
+        t->modifiers |= MOD_NODE_ATTACH;
+        t->redraw |= TREDRAW_HARD;
+        handled = true;
+        break;
+      case TFM_MODAL_NODE_ATTACH_OFF:
+        t->modifiers &= ~MOD_NODE_ATTACH;
+        t->redraw |= TREDRAW_HARD;
+        handled = true;
+        break;
+
       case TFM_MODAL_AUTOCONSTRAINT:
       case TFM_MODAL_AUTOCONSTRAINTPLANE:
         if ((t->flag & T_RELEASE_CONFIRM) && (event->prev_val == KM_RELEASE) &&
@@ -1854,6 +1869,27 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
           }
           break;
         }
+      }
+    }
+  }
+  if (t->data_type == &TransConvertType_Node) {
+    /* Set the initial auto-attach flag based on whether the chosen keymap key is pressed at the
+     * start of the operator. */
+    t->modifiers |= MOD_NODE_ATTACH;
+    LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &t->keymap->items) {
+      if (kmi->flag & KMI_INACTIVE) {
+        continue;
+      }
+
+      if (kmi->propvalue == TFM_MODAL_NODE_ATTACH_OFF && kmi->val == KM_PRESS) {
+        if ((ELEM(kmi->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) && (event->modifier & KM_CTRL)) ||
+            (ELEM(kmi->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) &&
+             (event->modifier & KM_SHIFT)) ||
+            (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event->modifier & KM_ALT)) ||
+            ((kmi->type == EVT_OSKEY) && (event->modifier & KM_OSKEY))) {
+          t->modifiers &= ~MOD_NODE_ATTACH;
+        }
+        break;
       }
     }
   }
