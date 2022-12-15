@@ -118,14 +118,12 @@ static void bakeModifier(Main *UNUSED(bmain),
                          GpencilModifierData *md,
                          Object *ob)
 {
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
   ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
-  GpencilModifierData *md_eval = BKE_gpencil_modifiers_findby_name(object_eval, md->name);
 
   if (mmd->object == NULL) {
     return;
   }
-  generic_bake_deform_stroke(depsgraph, md_eval, object_eval, true, deformStroke);
+  generic_bake_deform_stroke(depsgraph, md, ob, true, deformStroke);
 }
 
 static bool isDisabled(GpencilModifierData *md, int UNUSED(userRenderParams))
