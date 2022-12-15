@@ -654,39 +654,33 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
   return true;
 }
 
-static void add_shapekey_layers(Mesh *mesh_dest, Mesh *mesh_src)
+static void add_shapekey_layers(Mesh &mesh_dest, const Mesh &mesh_src)
 {
-  KeyBlock *kb;
-  Key *key = mesh_src->key;
-  int i;
-
-  if (!mesh_src->key) {
+  if (!mesh_src.key) {
     return;
   }
-
-  for (i = 0, kb = (KeyBlock *)key->block.first; kb; kb = kb->next, i++) {
-    int ci;
-    float *array;
-
-    if (mesh_src->totvert != kb->totelem) {
+  int i;
+  LISTBASE_FOREACH_INDEX (const KeyBlock *, kb, &mesh_src.key->block, i) {
+    void *array;
+    if (mesh_src.totvert != kb->totelem) {
       CLOG_ERROR(&LOG,
                  "vertex size mismatch (Mesh '%s':%d != KeyBlock '%s':%d)",
-                 mesh_src->id.name + 2,
-                 mesh_src->totvert,
+                 mesh_src.id.name + 2,
+                 mesh_src.totvert,
                  kb->name,
                  kb->totelem);
-      array = (float *)MEM_calloc_arrayN(size_t(mesh_src->totvert), sizeof(float[3]), __func__);
+      array = MEM_calloc_arrayN(size_t(mesh_src.totvert), sizeof(float[3]), __func__);
     }
     else {
-      array = (float *)MEM_malloc_arrayN(size_t(mesh_src->totvert), sizeof(float[3]), __func__);
-      memcpy(array, kb->data, sizeof(float[3]) * size_t(mesh_src->totvert));
+      array = MEM_malloc_arrayN(size_t(mesh_src.totvert), sizeof(float[3]), __func__);
+      memcpy(array, kb->data, sizeof(float[3]) * size_t(mesh_src.totvert));
     }
 
     CustomData_add_layer_named(
-        &mesh_dest->vdata, CD_SHAPEKEY, CD_ASSIGN, array, mesh_dest->totvert, kb->name);
-    ci = CustomData_get_layer_index_n(&mesh_dest->vdata, CD_SHAPEKEY, i);
+        &mesh_dest.vdata, CD_SHAPEKEY, CD_ASSIGN, array, mesh_dest.totvert, kb->name);
+    const int ci = CustomData_get_layer_index_n(&mesh_dest.vdata, CD_SHAPEKEY, i);
 
-    mesh_dest->vdata.layers[ci].uid = kb->uid;
+    mesh_dest.vdata.layers[ci].uid = kb->uid;
   }
 }
 
@@ -702,27 +696,28 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
                                               const bool use_virtual_modifiers,
                                               const bool build_shapekey_layers)
 {
-  Mesh *me = ob_eval->runtime.data_orig ? (Mesh *)ob_eval->runtime.data_orig :
-                                          (Mesh *)ob_eval->data;
-  const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md_eval->type);
-  Mesh *result = nullptr;
-  KeyBlock *kb;
-  ModifierEvalContext mectx = {depsgraph, ob_eval, MOD_APPLY_TO_BASE_MESH};
+  Mesh *me = ob_eval->runtime.data_orig ? reinterpret_cast<Mesh *>(ob_eval->runtime.data_orig) :
+                                          reinterpret_cast<Mesh *>(ob_eval->data);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_eval->type));
+  const ModifierEvalContext mectx = {depsgraph, ob_eval, MOD_APPLY_TO_BASE_MESH};
 
   if (!(md_eval->mode & eModifierMode_Realtime)) {
-    return result;
+    return nullptr;
   }
 
   if (mti->isDisabled && mti->isDisabled(scene, md_eval, false)) {
-    return result;
+    return nullptr;
   }
 
-  if (build_shapekey_layers && me->key &&
-      (kb = (KeyBlock *)BLI_findlink(&me->key->block, ob_eval->shapenr - 1))) {
-    BKE_keyblock_convert_to_mesh(kb, me->verts_for_write().data(), me->totvert);
+  if (build_shapekey_layers && me->key) {
+    if (KeyBlock *kb = static_cast<KeyBlock *>(
+            BLI_findlink(&me->key->block, ob_eval->shapenr - 1))) {
+      BKE_keyblock_convert_to_mesh(kb, me->verts_for_write().data(), me->totvert);
+    }
   }
 
-  Mesh *mesh_temp = (Mesh *)BKE_id_copy_ex(nullptr, &me->id, nullptr, LIB_ID_COPY_LOCALIZE);
+  Mesh *mesh_temp = reinterpret_cast<Mesh *>(
+      BKE_id_copy_ex(nullptr, &me->id, nullptr, LIB_ID_COPY_LOCALIZE));
   int numVerts = 0;
   float(*deformedVerts)[3] = nullptr;
 
@@ -736,7 +731,7 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
         continue;
       }
       /* All virtual modifiers are deform modifiers. */
-      const ModifierTypeInfo *mti_virt = BKE_modifier_get_info((ModifierType)md_eval_virt->type);
+      const ModifierTypeInfo *mti_virt = BKE_modifier_get_info(ModifierType(md_eval_virt->type));
       BLI_assert(mti_virt->type == eModifierTypeType_OnlyDeform);
       if (mti_virt->type != eModifierTypeType_OnlyDeform) {
         continue;
@@ -749,6 +744,7 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
     }
   }
 
+  Mesh *result = nullptr;
   if (mti->type == eModifierTypeType_OnlyDeform) {
     if (deformedVerts == nullptr) {
       deformedVerts = BKE_mesh_vert_coords_alloc(me, &numVerts);
@@ -758,7 +754,7 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
     BKE_mesh_vert_coords_apply(result, deformedVerts);
 
     if (build_shapekey_layers) {
-      add_shapekey_layers(result, me);
+      add_shapekey_layers(*result, *me);
     }
   }
   else {
@@ -767,11 +763,10 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
     }
 
     if (build_shapekey_layers) {
-      add_shapekey_layers(mesh_temp, me);
+      add_shapekey_layers(*mesh_temp, *me);
     }
 
     result = mti->modifyMesh(md_eval, &mectx, mesh_temp);
-
     if (mesh_temp != result) {
       BKE_id_free(nullptr, mesh_temp);
     }
