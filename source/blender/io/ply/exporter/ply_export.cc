@@ -25,10 +25,10 @@
 #include "DEG_depsgraph_query.h"
 
 #include "../intern/ply_data.hh"
-#include "ply_export.hh"
-#include "ply_export_data.hh"
-#include "ply_export_header.hh"
 #include "ply_export_load_plydata.hh"
+#include "ply_export.hh"
+#include "ply_export_header.hh"
+#include "ply_export_data.hh"
 #include "ply_file_buffer_ascii.hh"
 #include "ply_file_buffer_binary.hh"
 

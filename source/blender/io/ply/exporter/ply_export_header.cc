@@ -22,11 +22,11 @@ void write_header(std::unique_ptr<FileBuffer> &buffer,
   buffer->write_string("format " + format + " 1.0");
   StringRef version = BKE_blender_version_string();
   buffer->write_string("comment Created in Blender version " + version);
-  buffer->write_header_element("vertex", plyData->vertices.size());
+  buffer->write_header_element("vertex",int32_t(plyData->vertices.size()));
   buffer->write_header_scalar_property("float", "x");
   buffer->write_header_scalar_property("float", "y");
   buffer->write_header_scalar_property("float", "z");
-  buffer->write_header_element("face", plyData->faces.size());
+  buffer->write_header_element("face", int32_t(plyData->faces.size()));
   buffer->write_header_list_property("uchar", "uint", "vertex_indices");
   buffer->write_string("end_header");
   buffer->write_to_file();

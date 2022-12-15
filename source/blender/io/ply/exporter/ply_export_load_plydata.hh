@@ -20,7 +20,7 @@
 
 namespace blender::io::ply {
 
-void load_plydata(std::unique_ptr<PlyData> &plyData, bContext *C)
+void load_plydata(const std::unique_ptr<PlyData> &plyData, const bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
