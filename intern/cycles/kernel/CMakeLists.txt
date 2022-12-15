@@ -860,8 +860,9 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   else()
     list(APPEND sycl_compiler_flags -fPIC)
 
-    # We avoid getting __FAST_MATH__ to be defined when building on CentOS 7 until the compilation
+    # We avoid getting __FAST_MATH__ to be defined when building on CentOS-7 until the compilation
     # crash it triggers at either AoT or JIT stages gets fixed.
+    # TODO: check if this is still needed on Rocky-8.
     list(APPEND sycl_compiler_flags -fhonor-nans)
 
     # add $ORIGIN to cycles_kernel_oneapi.so rpath so libsycl.so and

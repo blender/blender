@@ -30,7 +30,7 @@ update-code:
             linux-x86_64:
                 branch: trunk
                 commit_id: HEAD
-                path: lib/linux_centos7_x86_64
+                path: lib/linux_x86_64_glibc_228
             windows-amd64:
                 branch: trunk
                 commit_id: HEAD

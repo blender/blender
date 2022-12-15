@@ -749,11 +749,6 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja")
   mark_as_advanced(WITH_NINJA_POOL_JOBS)
 endif()
 
-if(UNIX AND NOT APPLE)
-  option(WITH_CXX11_ABI "Use native C++11 ABI of compiler" ON)
-  mark_as_advanced(WITH_CXX11_ABI)
-endif()
-
 # Installation process.
 set(POSTINSTALL_SCRIPT "" CACHE FILEPATH "Run given CMake script after installation process")
 mark_as_advanced(POSTINSTALL_SCRIPT)
@@ -1719,12 +1714,6 @@ if(
 )
   # Use C11 + GNU extensions, works with GCC, Clang, ICC
   string(APPEND CMAKE_C_FLAGS " -std=gnu11")
-endif()
-
-if(UNIX AND NOT APPLE)
-  if(NOT WITH_CXX11_ABI)
-    string(APPEND PLATFORM_CFLAGS " -D_GLIBCXX_USE_CXX11_ABI=0")
-  endif()
 endif()
 
 if(WITH_COMPILER_SHORT_FILE_MACRO)
