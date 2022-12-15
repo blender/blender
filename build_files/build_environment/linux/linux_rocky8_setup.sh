@@ -11,13 +11,14 @@ if [ `id -u` -ne 0 ]; then
    exit 1
 fi
 
+# Required by: config manager command below to enable powertools.
+dnf install 'dnf-command(config-manager)'
+
 # Packages `ninja-build` and `meson` are not available unless CBR or PowerTools repositories are enabled.
 # See: https://wiki.rockylinux.org/rocky/repo/#notes-on-unlisted-repositories
 dnf config-manager --set-enabled powertools
 
-# Required by: TODO.
-dnf install 'dnf-command(config-manager)'
-# Required by: TODO.
+# Required by: epel-release has the patchelf and rubygem-asciidoctor packages
 dnf install epel-release
 
 # `yum-config-manager` does not come in the default minimal install,
