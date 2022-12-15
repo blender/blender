@@ -5830,8 +5830,36 @@ static GHOST_TSuccess getCursorPositionClientRelative_impl(
     int32_t &y)
 {
   const wl_fixed_t scale = win->scale();
-  x = wl_fixed_to_int(scale * seat_state_pointer->xy[0]);
-  y = wl_fixed_to_int(scale * seat_state_pointer->xy[1]);
+
+  if (win->getCursorGrabModeIsWarp()) {
+    /* As the cursor is restored at the warped location,
+     * apply warping when requesting the cursor location. */
+    GHOST_Rect wrap_bounds{};
+    if (win->getCursorGrabModeIsWarp()) {
+      if (win->getCursorGrabBounds(wrap_bounds) == GHOST_kFailure) {
+        win->getClientBounds(wrap_bounds);
+      }
+    }
+    int xy_wrap[2] = {
+        seat_state_pointer->xy[0],
+        seat_state_pointer->xy[1],
+    };
+
+    GHOST_Rect wrap_bounds_scale;
+    wrap_bounds_scale.m_l = wl_fixed_from_int(wrap_bounds.m_l) / scale;
+    wrap_bounds_scale.m_t = wl_fixed_from_int(wrap_bounds.m_t) / scale;
+    wrap_bounds_scale.m_r = wl_fixed_from_int(wrap_bounds.m_r) / scale;
+    wrap_bounds_scale.m_b = wl_fixed_from_int(wrap_bounds.m_b) / scale;
+    wrap_bounds_scale.wrapPoint(UNPACK2(xy_wrap), 0, win->getCursorGrabAxis());
+
+    x = wl_fixed_to_int(scale * xy_wrap[0]);
+    y = wl_fixed_to_int(scale * xy_wrap[1]);
+  }
+  else {
+    x = wl_fixed_to_int(scale * seat_state_pointer->xy[0]);
+    y = wl_fixed_to_int(scale * seat_state_pointer->xy[1]);
+  }
+
   return GHOST_kSuccess;
 }
 
