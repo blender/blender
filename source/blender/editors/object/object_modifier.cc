@@ -858,6 +858,28 @@ static bool modifier_apply_shape(Main *bmain,
   return true;
 }
 
+static void remove_invalid_attribute_strings(Mesh &mesh)
+{
+  using namespace blender;
+  bke::AttributeAccessor attributes = mesh.attributes();
+  if (mesh.active_color_attribute) {
+    const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(
+        mesh.active_color_attribute);
+    if (!meta_data || !(meta_data->domain & ATTR_DOMAIN_MASK_COLOR) ||
+        !(meta_data->data_type & CD_MASK_COLOR_ALL)) {
+      MEM_freeN(mesh.active_color_attribute);
+    }
+  }
+  if (mesh.default_color_attribute) {
+    const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(
+        mesh.default_color_attribute);
+    if (!meta_data || !(meta_data->domain & ATTR_DOMAIN_MASK_COLOR) ||
+        !(meta_data->data_type & CD_MASK_COLOR_ALL)) {
+      MEM_freeN(mesh.default_color_attribute);
+    }
+  }
+}
+
 static bool modifier_apply_obdata(
     ReportList *reports, Depsgraph *depsgraph, Scene *scene, Object *ob, ModifierData *md_eval)
 {
@@ -909,6 +931,9 @@ static bool modifier_apply_obdata(
 
       /* Anonymous attributes shouldn't be available on the applied geometry. */
       me->attributes_for_write().remove_anonymous();
+
+      /* Remove strings referring to attributes if they no longer exist. */
+      remove_invalid_attribute_strings(*me);
 
       if (md_eval->type == eModifierType_Multires) {
         multires_customdata_delete(me);

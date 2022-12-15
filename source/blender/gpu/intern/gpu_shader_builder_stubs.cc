@@ -111,26 +111,6 @@ void UI_GetThemeColorShadeAlpha4ubv(int /*colorid*/,
 /** \name Stubs of BKE_attribute.h
  * \{ */
 
-void BKE_id_attribute_copy_domains_temp(short /*id_type*/,
-                                        const struct CustomData * /*vdata*/,
-                                        const struct CustomData * /*edata*/,
-                                        const struct CustomData * /*ldata*/,
-                                        const struct CustomData * /*pdata*/,
-                                        const struct CustomData * /*cdata*/,
-                                        struct ID * /*r_id*/)
-{
-}
-
-struct CustomDataLayer *BKE_id_attributes_active_color_get(const struct ID * /*id*/)
-{
-  return nullptr;
-}
-
-struct CustomDataLayer *BKE_id_attributes_render_color_get(const struct ID * /*id*/)
-{
-  return nullptr;
-}
-
 eAttrDomain BKE_id_attribute_domain(const struct ID * /*id*/,
                                     const struct CustomDataLayer * /*layer*/)
 {

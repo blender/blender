@@ -1125,6 +1125,15 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
     }
   });
 
+  if (first_mesh.active_color_attribute) {
+    MEM_SAFE_FREE(dst_mesh->active_color_attribute);
+    dst_mesh->active_color_attribute = BLI_strdup(first_mesh.active_color_attribute);
+  }
+  if (first_mesh.default_color_attribute) {
+    MEM_SAFE_FREE(dst_mesh->default_color_attribute);
+    dst_mesh->default_color_attribute = BLI_strdup(first_mesh.default_color_attribute);
+  }
+
   /* Tag modified attributes. */
   for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
     dst_attribute.finish();

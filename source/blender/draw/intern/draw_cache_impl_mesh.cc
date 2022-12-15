@@ -282,19 +282,13 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
   const CustomData *cd_vdata = mesh_cd_vdata_get_from_mesh(me_final);
   const CustomData *cd_edata = mesh_cd_edata_get_from_mesh(me_final);
 
-  /* Create a mesh with final customdata domains
-   * we can query with attribute API. */
-  Mesh me_query = blender::dna::shallow_zero_initialize();
-
-  BKE_id_attribute_copy_domains_temp(
-      ID_ME, cd_vdata, cd_edata, cd_ldata, cd_pdata, nullptr, &me_query.id);
-
   /* See: DM_vertex_attributes_from_gpu for similar logic */
   DRW_MeshCDMask cd_used;
   mesh_cd_layers_type_clear(&cd_used);
 
-  const CustomDataLayer *default_color = BKE_id_attributes_render_color_get(&me_query.id);
-  const StringRefNull default_color_name = default_color ? default_color->name : "";
+  const StringRefNull default_color_name = me_final->default_color_attribute ?
+                                               me_final->default_color_attribute :
+                                               "";
 
   for (int i = 0; i < gpumat_array_len; i++) {
     GPUMaterial *gpumat = gpumat_array[i];
@@ -883,28 +877,21 @@ static void request_active_and_default_color_attributes(const Object &object,
   const CustomData *cd_vdata = mesh_cd_vdata_get_from_mesh(me_final);
   const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
 
-  /* Necessary because which attributes are active/default is stored in #CustomData. */
-  Mesh me_query = blender::dna::shallow_zero_initialize();
-  BKE_id_attribute_copy_domains_temp(
-      ID_ME, cd_vdata, nullptr, cd_ldata, nullptr, nullptr, &me_query.id);
-
   auto request_color_attribute = [&](const char *name) {
-    int layer_index;
-    eCustomDataType type;
-    if (drw_custom_data_match_attribute(cd_vdata, name, &layer_index, &type)) {
-      drw_attributes_add_request(&attributes, name, type, layer_index, ATTR_DOMAIN_POINT);
-    }
-    else if (drw_custom_data_match_attribute(cd_ldata, name, &layer_index, &type)) {
-      drw_attributes_add_request(&attributes, name, type, layer_index, ATTR_DOMAIN_CORNER);
+    if (name) {
+      int layer_index;
+      eCustomDataType type;
+      if (drw_custom_data_match_attribute(cd_vdata, name, &layer_index, &type)) {
+        drw_attributes_add_request(&attributes, name, type, layer_index, ATTR_DOMAIN_POINT);
+      }
+      else if (drw_custom_data_match_attribute(cd_ldata, name, &layer_index, &type)) {
+        drw_attributes_add_request(&attributes, name, type, layer_index, ATTR_DOMAIN_CORNER);
+      }
     }
   };
 
-  if (const CustomDataLayer *active = BKE_id_attributes_active_color_get(&me_query.id)) {
-    request_color_attribute(active->name);
-  }
-  if (const CustomDataLayer *render = BKE_id_attributes_render_color_get(&me_query.id)) {
-    request_color_attribute(render->name);
-  }
+  request_color_attribute(me_final->active_color_attribute);
+  request_color_attribute(me_final->default_color_attribute);
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_all_verts(Mesh *me)

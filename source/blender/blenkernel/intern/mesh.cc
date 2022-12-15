@@ -144,6 +144,10 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   mesh_dst->mat = (Material **)MEM_dupallocN(mesh_src->mat);
 
   BKE_defgroup_copy_list(&mesh_dst->vertex_group_names, &mesh_src->vertex_group_names);
+  mesh_dst->active_color_attribute = static_cast<char *>(
+      MEM_dupallocN(mesh_src->active_color_attribute));
+  mesh_dst->default_color_attribute = static_cast<char *>(
+      MEM_dupallocN(mesh_src->default_color_attribute));
 
   const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
   CustomData_copy(&mesh_src->vdata, &mesh_dst->vdata, mask.vmask, alloc_type, mesh_dst->totvert);
@@ -253,6 +257,9 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       BKE_mesh_legacy_bevel_weight_from_layers(mesh);
       BKE_mesh_legacy_face_set_from_generic(mesh, poly_layers);
       BKE_mesh_legacy_edge_crease_from_layers(mesh);
+      BKE_mesh_legacy_attribute_strings_to_flags(mesh);
+      mesh->active_color_attribute = nullptr;
+      mesh->default_color_attribute = nullptr;
       BKE_mesh_legacy_convert_loose_edges_to_flag(mesh);
       /* When converting to the old mesh format, don't save redundant attributes. */
       names_to_skip.add_multiple_new({".hide_vert",
@@ -288,6 +295,8 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   }
 
   BKE_defbase_blend_write(writer, &mesh->vertex_group_names);
+  BLO_write_string(writer, mesh->active_color_attribute);
+  BLO_write_string(writer, mesh->default_color_attribute);
 
   BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
   BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
@@ -337,6 +346,8 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
      * Don't read them again if they were read as part of #CustomData. */
     BKE_defvert_blend_read(reader, mesh->totvert, mesh->dvert);
   }
+  BLO_read_data_address(reader, &mesh->active_color_attribute);
+  BLO_read_data_address(reader, &mesh->default_color_attribute);
 
   mesh->texflag &= ~ME_AUTOSPACE_EVALUATED;
   mesh->edit_mesh = nullptr;
@@ -893,6 +904,8 @@ static void mesh_clear_geometry(Mesh *mesh)
   mesh->totselect = 0;
 
   BLI_freelistN(&mesh->vertex_group_names);
+  MEM_SAFE_FREE(mesh->active_color_attribute);
+  MEM_SAFE_FREE(mesh->default_color_attribute);
 }
 
 void BKE_mesh_clear_geometry(Mesh *mesh)

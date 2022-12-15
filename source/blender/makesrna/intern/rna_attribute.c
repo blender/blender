@@ -560,7 +560,10 @@ static void rna_AttributeGroup_update_active(Main *bmain, Scene *scene, PointerR
 static PointerRNA rna_AttributeGroup_active_color_get(PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
+  CustomDataLayer *layer = BKE_id_attribute_search(ptr->owner_id,
+                                                   BKE_id_attributes_active_color_name(id),
+                                                   CD_MASK_COLOR_ALL,
+                                                   ATTR_DOMAIN_MASK_COLOR);
 
   PointerRNA attribute_ptr;
   RNA_pointer_create(id, &RNA_Attribute, layer, &attribute_ptr);
@@ -573,13 +576,16 @@ static void rna_AttributeGroup_active_color_set(PointerRNA *ptr,
 {
   ID *id = ptr->owner_id;
   CustomDataLayer *layer = attribute_ptr.data;
-
-  BKE_id_attributes_active_color_set(id, layer);
+  BKE_id_attributes_active_color_set(id, layer->name);
 }
 
 static int rna_AttributeGroup_active_color_index_get(PointerRNA *ptr)
 {
-  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(ptr->owner_id);
+  const CustomDataLayer *layer = BKE_id_attribute_search(
+      ptr->owner_id,
+      BKE_id_attributes_active_color_name(ptr->owner_id),
+      CD_MASK_COLOR_ALL,
+      ATTR_DOMAIN_MASK_COLOR);
 
   return BKE_id_attribute_to_index(
       ptr->owner_id, layer, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
@@ -595,7 +601,7 @@ static void rna_AttributeGroup_active_color_index_set(PointerRNA *ptr, int value
     return;
   }
 
-  BKE_id_attributes_active_color_set(ptr->owner_id, layer);
+  BKE_id_attributes_active_color_set(ptr->owner_id, layer->name);
 }
 
 static void rna_AttributeGroup_active_color_index_range(
@@ -623,7 +629,8 @@ static void rna_AttributeGroup_update_active_color(Main *UNUSED(bmain),
 
 static int rna_AttributeGroup_render_color_index_get(PointerRNA *ptr)
 {
-  CustomDataLayer *layer = BKE_id_attributes_render_color_get(ptr->owner_id);
+  const CustomDataLayer *layer = BKE_id_attributes_color_find(
+      ptr->owner_id, BKE_id_attributes_default_color_name(ptr->owner_id));
 
   return BKE_id_attribute_to_index(
       ptr->owner_id, layer, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
@@ -639,7 +646,7 @@ static void rna_AttributeGroup_render_color_index_set(PointerRNA *ptr, int value
     return;
   }
 
-  BKE_id_attributes_render_color_set(ptr->owner_id, layer);
+  BKE_id_attributes_default_color_set(ptr->owner_id, layer->name);
 }
 
 static void rna_AttributeGroup_render_color_index_range(
@@ -655,43 +662,61 @@ static void rna_AttributeGroup_render_color_index_range(
 static void rna_AttributeGroup_default_color_name_get(PointerRNA *ptr, char *value)
 {
   const ID *id = ptr->owner_id;
-  const CustomDataLayer *layer = BKE_id_attributes_render_color_get(id);
-  if (!layer) {
+  const char *name = BKE_id_attributes_default_color_name(id);
+  if (!name) {
     value[0] = '\0';
     return;
   }
-  BLI_strncpy(value, layer->name, MAX_CUSTOMDATA_LAYER_NAME);
+  BLI_strncpy(value, name, MAX_CUSTOMDATA_LAYER_NAME);
 }
 
 static int rna_AttributeGroup_default_color_name_length(PointerRNA *ptr)
 {
   const ID *id = ptr->owner_id;
-  const CustomDataLayer *layer = BKE_id_attributes_render_color_get(id);
-  if (!layer) {
-    return 0;
+  const char *name = BKE_id_attributes_default_color_name(id);
+  return name ? strlen(name) : 0;
+}
+
+static void rna_AttributeGroup_default_color_name_set(PointerRNA *ptr, const char *value)
+{
+  ID *id = ptr->owner_id;
+  if (GS(id->name) == ID_ME) {
+    Mesh *mesh = (Mesh *)id;
+    MEM_SAFE_FREE(mesh->default_color_attribute);
+    if (value[0]) {
+      mesh->default_color_attribute = BLI_strdup(value);
+    }
   }
-  return strlen(layer->name);
 }
 
 static void rna_AttributeGroup_active_color_name_get(PointerRNA *ptr, char *value)
 {
   const ID *id = ptr->owner_id;
-  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
-  if (!layer) {
+  const char *name = BKE_id_attributes_active_color_name(id);
+  if (!name) {
     value[0] = '\0';
     return;
   }
-  BLI_strncpy(value, layer->name, MAX_CUSTOMDATA_LAYER_NAME);
+  BLI_strncpy(value, name, MAX_CUSTOMDATA_LAYER_NAME);
 }
 
 static int rna_AttributeGroup_active_color_name_length(PointerRNA *ptr)
 {
   const ID *id = ptr->owner_id;
-  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
-  if (!layer) {
-    return 0;
+  const char *name = BKE_id_attributes_active_color_name(id);
+  return name ? strlen(name) : 0;
+}
+
+static void rna_AttributeGroup_active_color_name_set(PointerRNA *ptr, const char *value)
+{
+  ID *id = ptr->owner_id;
+  if (GS(id->name) == ID_ME) {
+    Mesh *mesh = (Mesh *)id;
+    MEM_SAFE_FREE(mesh->default_color_attribute);
+    if (value[0]) {
+      mesh->default_color_attribute = BLI_strdup(value);
+    }
   }
-  return strlen(layer->name);
 }
 
 #else
@@ -1160,7 +1185,7 @@ static void rna_def_attribute_group(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop,
                                 "rna_AttributeGroup_default_color_name_get",
                                 "rna_AttributeGroup_default_color_name_length",
-                                NULL);
+                                "rna_AttributeGroup_default_color_name_set");
   RNA_def_property_ui_text(
       prop,
       "Default Color Attribute",
@@ -1172,7 +1197,7 @@ static void rna_def_attribute_group(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop,
                                 "rna_AttributeGroup_active_color_name_get",
                                 "rna_AttributeGroup_active_color_name_length",
-                                NULL);
+                                "rna_AttributeGroup_active_color_name_set");
   RNA_def_property_ui_text(prop,
                            "Active Color Attribute",
                            "The name of the active color attribute for display and editing");

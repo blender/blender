@@ -77,8 +77,7 @@ static bool vertex_paint_from_weight(Object *ob)
     return false;
   }
 
-  const CustomDataLayer *active_color_layer = BKE_id_attributes_active_color_get(&me->id);
-  if (active_color_layer == nullptr) {
+  if (!me->attributes().contains(me->active_color_attribute)) {
     BLI_assert_unreachable();
     return false;
   }
@@ -93,7 +92,7 @@ static bool vertex_paint_from_weight(Object *ob)
 
   bke::MutableAttributeAccessor attributes = me->attributes_for_write();
 
-  bke::GAttributeWriter color_attribute = attributes.lookup_for_write(active_color_layer->name);
+  bke::GAttributeWriter color_attribute = attributes.lookup_for_write(me->active_color_attribute);
   if (!color_attribute) {
     BLI_assert_unreachable();
     return false;
@@ -178,25 +177,22 @@ static IndexMask get_selected_indices(const Mesh &mesh,
 static void face_corner_color_equalize_verts(Mesh &mesh, const IndexMask selection)
 {
   using namespace blender;
-
-  const CustomDataLayer *active_color_layer = BKE_id_attributes_active_color_get(&mesh.id);
-  if (active_color_layer == nullptr) {
+  const StringRef name = mesh.active_color_attribute;
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(name);
+  if (!attribute) {
     BLI_assert_unreachable();
     return;
   }
-
-  bke::AttributeAccessor attributes = mesh.attributes();
-
-  if (attributes.lookup_meta_data(active_color_layer->name)->domain == ATTR_DOMAIN_POINT) {
+  if (attribute.domain == ATTR_DOMAIN_POINT) {
     return;
   }
 
-  GVArray color_attribute_point = attributes.lookup(active_color_layer->name, ATTR_DOMAIN_POINT);
-
+  GVArray color_attribute_point = attributes.lookup(name, ATTR_DOMAIN_POINT);
   GVArray color_attribute_corner = attributes.adapt_domain(
       color_attribute_point, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER);
-
-  color_attribute_corner.materialize(selection, active_color_layer->data);
+  color_attribute_corner.materialize(selection, attribute.span.data());
+  attribute.finish();
 }
 
 static bool vertex_color_smooth(Object *ob)
@@ -252,16 +248,14 @@ template<typename TransformFn>
 static bool transform_active_color(Mesh &mesh, const TransformFn &transform_fn)
 {
   using namespace blender;
-
-  const CustomDataLayer *active_color_layer = BKE_id_attributes_active_color_get(&mesh.id);
-  if (active_color_layer == nullptr) {
+  const StringRef name = mesh.active_color_attribute;
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  if (!attributes.contains(name)) {
     BLI_assert_unreachable();
     return false;
   }
 
-  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-
-  bke::GAttributeWriter color_attribute = attributes.lookup_for_write(active_color_layer->name);
+  bke::GAttributeWriter color_attribute = attributes.lookup_for_write(name);
   if (!color_attribute) {
     BLI_assert_unreachable();
     return false;

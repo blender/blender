@@ -85,6 +85,9 @@ void BKE_mesh_legacy_convert_mpoly_to_material_indices(struct Mesh *mesh);
 /** Convert from runtime loose edge cache to legacy edge flag. */
 void BKE_mesh_legacy_convert_loose_edges_to_flag(struct Mesh *mesh);
 
+void BKE_mesh_legacy_attribute_flags_to_strings(struct Mesh *mesh);
+void BKE_mesh_legacy_attribute_strings_to_flags(struct Mesh *mesh);
+
 #endif
 
 /**

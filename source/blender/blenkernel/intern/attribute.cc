@@ -145,6 +145,7 @@ bool BKE_id_attribute_rename(ID *id,
                              const char *new_name,
                              ReportList *reports)
 {
+  using namespace blender;
   if (BKE_id_attribute_required(id, old_name)) {
     BLI_assert_msg(0, "Required attribute name is not editable");
     return false;
@@ -166,6 +167,14 @@ bool BKE_id_attribute_rename(ID *id,
 
   char result_name[MAX_CUSTOMDATA_LAYER_NAME];
   BKE_id_attribute_calc_unique_name(id, new_name, result_name);
+
+  if (StringRef(old_name) == BKE_id_attributes_active_color_name(id)) {
+    BKE_id_attributes_active_color_set(id, result_name);
+  }
+  if (StringRef(old_name) == BKE_id_attributes_default_color_name(id)) {
+    BKE_id_attributes_default_color_set(id, result_name);
+  }
+
   BLI_strncpy_utf8(layer->name, result_name, sizeof(layer->name));
 
   return true;
@@ -287,6 +296,7 @@ CustomDataLayer *BKE_id_attribute_duplicate(ID *id, const char *name, ReportList
 
 bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
 {
+  using namespace blender;
   using namespace blender::bke;
   if (!name || name[0] == '\0') {
     BKE_report(reports, RPT_ERROR, "The attribute name must not be empty");
@@ -306,6 +316,12 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
       for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
         if (CustomData *data = info[domain].customdata) {
           if (BM_data_layer_free_named(em->bm, data, name)) {
+            if (name == StringRef(mesh->active_color_attribute)) {
+              MEM_SAFE_FREE(mesh->active_color_attribute);
+            }
+            else if (name == StringRef(mesh->default_color_attribute)) {
+              MEM_SAFE_FREE(mesh->default_color_attribute);
+            }
             return true;
           }
         }
@@ -327,6 +343,9 @@ CustomDataLayer *BKE_id_attribute_find(const ID *id,
                                        const int type,
                                        const eAttrDomain domain)
 {
+  if (!name) {
+    return nullptr;
+  }
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
 
@@ -350,6 +369,9 @@ CustomDataLayer *BKE_id_attribute_search(ID *id,
                                          const eCustomDataMask type_mask,
                                          const eAttrDomainMask domain_mask)
 {
+  if (!name) {
+    return nullptr;
+  }
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
 
@@ -633,104 +655,69 @@ int BKE_id_attribute_to_index(const ID *id,
   return -1;
 }
 
-CustomDataLayer *BKE_id_attribute_subset_active_get(const ID *id,
-                                                    int active_flag,
-                                                    eAttrDomainMask domain_mask,
-                                                    eCustomDataMask mask)
+const char *BKE_id_attributes_active_color_name(const ID *id)
 {
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  eAttrDomain domains[ATTR_DOMAIN_NUM];
-
-  get_domains_types(domains);
-  get_domains(id, info);
-
-  CustomDataLayer *candidate = nullptr;
-  for (int i = 0; i < ARRAY_SIZE(domains); i++) {
-    if (!((1 << domains[i]) & domain_mask) || !info[domains[i]].customdata) {
-      continue;
-    }
-
-    CustomData *cdata = info[domains[i]].customdata;
-
-    for (int j = 0; j < cdata->totlayer; j++) {
-      CustomDataLayer *layer = cdata->layers + j;
-
-      if (!(CD_TYPE_AS_MASK(layer->type) & mask) || (layer->flag & CD_FLAG_TEMPORARY)) {
-        continue;
-      }
-
-      if (layer->flag & active_flag) {
-        return layer;
-      }
-
-      candidate = layer;
-    }
+  if (GS(id->name) == ID_ME) {
+    return reinterpret_cast<const Mesh *>(id)->active_color_attribute;
   }
-
-  return candidate;
+  return nullptr;
 }
 
-void BKE_id_attribute_subset_active_set(ID *id,
-                                        CustomDataLayer *layer,
-                                        int active_flag,
-                                        eAttrDomainMask domain_mask,
-                                        eCustomDataMask mask)
+const char *BKE_id_attributes_default_color_name(const ID *id)
 {
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  eAttrDomain domains[ATTR_DOMAIN_NUM];
-
-  get_domains_types(domains);
-  get_domains(id, info);
-
-  for (int i = 0; i < ATTR_DOMAIN_NUM; i++) {
-    eAttrDomainMask domain_mask2 = (eAttrDomainMask)(1 << domains[i]);
-
-    if (!(domain_mask2 & domain_mask) || !info[domains[i]].customdata) {
-      continue;
-    }
-
-    CustomData *cdata = info[domains[i]].customdata;
-
-    for (int j = 0; j < cdata->totlayer; j++) {
-      CustomDataLayer *layer_iter = cdata->layers + j;
-
-      if (!(CD_TYPE_AS_MASK(layer_iter->type) & mask) || (layer_iter->flag & CD_FLAG_TEMPORARY)) {
-        continue;
-      }
-
-      layer_iter->flag &= ~active_flag;
-    }
+  if (GS(id->name) == ID_ME) {
+    return reinterpret_cast<const Mesh *>(id)->default_color_attribute;
   }
-
-  layer->flag |= active_flag;
+  return nullptr;
 }
 
 CustomDataLayer *BKE_id_attributes_active_color_get(const ID *id)
 {
-  return BKE_id_attribute_subset_active_get(
-      id, CD_FLAG_COLOR_ACTIVE, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+  return BKE_id_attributes_color_find(id, BKE_id_attributes_active_color_name(id));
 }
 
-void BKE_id_attributes_active_color_set(ID *id, CustomDataLayer *active_layer)
+void BKE_id_attributes_active_color_set(ID *id, const char *name)
 {
-  BKE_id_attribute_subset_active_set(
-      id, active_layer, CD_FLAG_COLOR_ACTIVE, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+  switch (GS(id->name)) {
+    case ID_ME: {
+      Mesh *mesh = reinterpret_cast<Mesh *>(id);
+      MEM_SAFE_FREE(mesh->active_color_attribute);
+      if (name) {
+        mesh->active_color_attribute = BLI_strdup(name);
+      }
+      break;
+    }
+    default:
+      break;
+  }
 }
 
-CustomDataLayer *BKE_id_attributes_render_color_get(const ID *id)
+CustomDataLayer *BKE_id_attributes_default_color_get(const ID *id)
 {
-  return BKE_id_attribute_subset_active_get(
-      id, CD_FLAG_COLOR_RENDER, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+  return BKE_id_attributes_color_find(id, BKE_id_attributes_default_color_name(id));
 }
 
-void BKE_id_attributes_render_color_set(ID *id, CustomDataLayer *active_layer)
+void BKE_id_attributes_default_color_set(ID *id, const char *name)
 {
-  BKE_id_attribute_subset_active_set(
-      id, active_layer, CD_FLAG_COLOR_RENDER, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+  switch (GS(id->name)) {
+    case ID_ME: {
+      Mesh *mesh = reinterpret_cast<Mesh *>(id);
+      MEM_SAFE_FREE(mesh->default_color_attribute);
+      if (name) {
+        mesh->default_color_attribute = BLI_strdup(name);
+      }
+      break;
+    }
+    default:
+      break;
+  }
 }
 
 CustomDataLayer *BKE_id_attributes_color_find(const ID *id, const char *name)
 {
+  if (!name) {
+    return nullptr;
+  }
   CustomDataLayer *layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_POINT);
   if (layer == nullptr) {
     layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_CORNER);

@@ -376,6 +376,7 @@ void MeshFromGeometry::create_colors(Mesh *mesh)
       /* This block is suitable, use colors from it. */
       CustomDataLayer *color_layer = BKE_id_attribute_new(
           &mesh->id, "Color", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
+      BKE_id_attributes_active_color_set(&mesh->id, color_layer->name);
       float4 *colors = (float4 *)color_layer->data;
       int offset = mesh_geometry_.vertex_index_min_ - block.start_vertex_index;
       for (int i = 0, n = mesh_geometry_.get_vertex_count(); i != n; ++i) {

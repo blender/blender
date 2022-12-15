@@ -33,6 +33,7 @@ static void version_mesh_legacy_to_struct_of_array_format(Mesh &mesh)
   BKE_mesh_legacy_bevel_weight_to_layers(&mesh);
   BKE_mesh_legacy_face_set_to_generic(&mesh);
   BKE_mesh_legacy_edge_crease_to_layers(&mesh);
+  BKE_mesh_legacy_attribute_flags_to_strings(&mesh);
 }
 
 static void version_motion_tracking_legacy_camera_object(MovieClip &movieclip)

@@ -26,6 +26,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_attribute.h"
 #include "BKE_collection.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -606,7 +607,8 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
       &mesh->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, nullptr, mesh->totloop, "Color");
   MLoopCol *transp = (MLoopCol *)CustomData_add_layer_named(
       &mesh->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, nullptr, mesh->totloop, "Alpha");
-  CustomData_set_layer_active(&mesh->ldata, CD_PROP_BYTE_COLOR, 0);
+  BKE_id_attributes_active_color_set(
+      &mesh->id, CustomData_get_layer_name(&mesh->ldata, CD_PROP_BYTE_COLOR, 0));
 
   mesh->mat = (Material **)MEM_mallocN(sizeof(Material *) * mesh->totcol, "MaterialList");
   for (const auto item : group->materials.items()) {

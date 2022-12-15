@@ -48,6 +48,9 @@ typedef struct PBVH_GPU_Args {
   struct CustomData *vdata, *ldata, *pdata;
   const float (*vert_normals)[3];
 
+  const char *active_color;
+  const char *render_color;
+
   int face_sets_color_seed, face_sets_color_default;
   int *face_sets; /* for PBVH_FACES and PBVH_GRIDS */
 

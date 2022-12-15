@@ -2347,8 +2347,7 @@ bool CustomData_merge(const CustomData *source,
       newlayer->active_rnd = lastrender;
       newlayer->active_clone = lastclone;
       newlayer->active_mask = lastmask;
-      newlayer->flag |= flag & (CD_FLAG_EXTERNAL | CD_FLAG_IN_MEMORY | CD_FLAG_COLOR_ACTIVE |
-                                CD_FLAG_COLOR_RENDER);
+      newlayer->flag |= flag & (CD_FLAG_EXTERNAL | CD_FLAG_IN_MEMORY);
       changed = true;
 
       if (layer->anonymous_id != nullptr) {

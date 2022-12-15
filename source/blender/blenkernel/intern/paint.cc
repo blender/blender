@@ -1919,32 +1919,24 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
 
 void BKE_sculpt_color_layer_create_if_needed(Object *object)
 {
+  using namespace blender;
+  using namespace blender::bke;
   Mesh *orig_me = BKE_object_get_original_mesh(object);
 
-  int types[] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
-  bool has_color = false;
-
-  for (int i = 0; i < ARRAY_SIZE(types); i++) {
-    has_color = CustomData_has_layer(&orig_me->vdata, types[i]) ||
-                CustomData_has_layer(&orig_me->ldata, types[i]);
-
-    if (has_color) {
-      break;
-    }
-  }
-
-  if (has_color) {
+  if (orig_me->attributes().contains(orig_me->active_color_attribute)) {
     return;
   }
 
-  CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_SET_DEFAULT, nullptr, orig_me->totvert);
-  CustomDataLayer *layer = orig_me->vdata.layers +
-                           CustomData_get_layer_index(&orig_me->vdata, CD_PROP_COLOR);
+  char unique_name[MAX_CUSTOMDATA_LAYER_NAME];
+  BKE_id_attribute_calc_unique_name(&orig_me->id, "Color", unique_name);
+  if (!orig_me->attributes_for_write().add(
+          unique_name, ATTR_DOMAIN_POINT, CD_PROP_COLOR, AttributeInitDefaultValue())) {
+    return;
+  }
 
-  BKE_mesh_tessface_clear(orig_me);
-
-  BKE_id_attributes_active_color_set(&orig_me->id, layer);
+  BKE_id_attributes_active_color_set(&orig_me->id, unique_name);
   DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
+  BKE_mesh_tessface_clear(orig_me);
 
   if (object->sculpt && object->sculpt->pbvh) {
     BKE_pbvh_update_active_vcol(object->sculpt->pbvh, orig_me);

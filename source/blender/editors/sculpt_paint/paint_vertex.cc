@@ -136,14 +136,14 @@ struct NormalAnglePrecalc {
 /* Returns number of elements. */
 static int get_vcol_elements(Mesh *me, size_t *r_elem_size)
 {
-  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
-  const eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
+  const std::optional<bke::AttributeMetaData> meta_data = me->attributes().lookup_meta_data(
+      me->active_color_attribute);
 
   if (r_elem_size) {
-    *r_elem_size = layer->type == CD_PROP_COLOR ? sizeof(float) * 4ULL : 4ULL;
+    *r_elem_size = meta_data->data_type == CD_PROP_COLOR ? sizeof(float[4]) : 4ULL;
   }
 
-  switch (domain) {
+  switch (meta_data->domain) {
     case ATTR_DOMAIN_POINT:
       return me->totvert;
     case ATTR_DOMAIN_CORNER:
@@ -234,15 +234,20 @@ static void paint_last_stroke_update(Scene *scene, const float location[3])
 bool vertex_paint_mode_poll(bContext *C)
 {
   const Object *ob = CTX_data_active_object(C);
+  if (!ob) {
+    return false;
+  }
+  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
 
-  if (!(ob && ob->mode == OB_MODE_VERTEX_PAINT && ((const Mesh *)ob->data)->totpoly)) {
+  if (!(ob->mode == OB_MODE_VERTEX_PAINT && mesh->totpoly)) {
     return false;
   }
 
-  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(
-      static_cast<const ID *>(ob->data));
+  if (!mesh->attributes().contains(mesh->active_color_attribute)) {
+    return false;
+  }
 
-  return layer != nullptr;
+  return true;
 }
 
 static bool vertex_paint_poll_ex(bContext *C, bool check_tool)
@@ -2845,8 +2850,6 @@ static void *vpaint_init_vpaint(bContext *C,
 {
   VPaintData<Color, Traits, domain> *vpd;
 
-  size_t elem_size;
-  int elem_num = get_vcol_elements(me, &elem_size);
   /* make mode data storage */
   vpd = MEM_new<VPaintData<Color, Traits, domain>>("VPaintData");
 
@@ -2870,12 +2873,11 @@ static void *vpaint_init_vpaint(bContext *C,
   vpd->is_texbrush = !(brush->vertexpaint_tool == VPAINT_TOOL_BLUR) && brush->mtex.tex;
 
   if (brush->vertexpaint_tool == VPAINT_TOOL_SMEAR) {
-    CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
+    const GVArray attribute = me->attributes().lookup(me->active_color_attribute, domain);
+    vpd->smear.color_prev = MEM_malloc_arrayN(attribute.size(), attribute.type().size(), __func__);
+    attribute.materialize(vpd->smear.color_prev);
 
-    vpd->smear.color_prev = MEM_malloc_arrayN(elem_num, elem_size, __func__);
-    memcpy(vpd->smear.color_prev, layer->data, elem_size * elem_num);
-
-    vpd->smear.color_curr = (uint *)MEM_dupallocN(vpd->smear.color_prev);
+    vpd->smear.color_curr = MEM_dupallocN(vpd->smear.color_prev);
   }
 
   /* Create projection handle */
@@ -2908,30 +2910,31 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 
   ED_mesh_color_ensure(me, nullptr);
 
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
-  if (!layer) {
+  const std::optional<bke::AttributeMetaData> meta_data = me->attributes().lookup_meta_data(
+      me->active_color_attribute);
+
+  if (!meta_data) {
     return false;
   }
 
-  eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
   void *vpd = nullptr;
 
-  if (domain == ATTR_DOMAIN_POINT) {
-    if (layer->type == CD_PROP_COLOR) {
+  if (meta_data->domain == ATTR_DOMAIN_POINT) {
+    if (meta_data->data_type == CD_PROP_COLOR) {
       vpd = vpaint_init_vpaint<ColorPaint4f, FloatTraits, ATTR_DOMAIN_POINT>(
           C, op, scene, depsgraph, vp, ob, me, brush);
     }
-    else if (layer->type == CD_PROP_BYTE_COLOR) {
+    else if (meta_data->data_type == CD_PROP_BYTE_COLOR) {
       vpd = vpaint_init_vpaint<ColorPaint4b, ByteTraits, ATTR_DOMAIN_POINT>(
           C, op, scene, depsgraph, vp, ob, me, brush);
     }
   }
-  else if (domain == ATTR_DOMAIN_CORNER) {
-    if (layer->type == CD_PROP_COLOR) {
+  else if (meta_data->domain == ATTR_DOMAIN_CORNER) {
+    if (meta_data->data_type == CD_PROP_COLOR) {
       vpd = vpaint_init_vpaint<ColorPaint4f, FloatTraits, ATTR_DOMAIN_CORNER>(
           C, op, scene, depsgraph, vp, ob, me, brush);
     }
-    else if (layer->type == CD_PROP_BYTE_COLOR) {
+    else if (meta_data->data_type == CD_PROP_BYTE_COLOR) {
       vpd = vpaint_init_vpaint<ColorPaint4b, ByteTraits, ATTR_DOMAIN_CORNER>(
           C, op, scene, depsgraph, vp, ob, me, brush);
     }
@@ -3753,12 +3756,16 @@ static void vpaint_do_paint(bContext *C,
   int totnode;
   PBVHNode **nodes = vwpaint_pbvh_gather_generic(ob, vp, sd, brush, &totnode);
 
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
-  Color *color_data = static_cast<Color *>(layer->data);
+  bke::GSpanAttributeWriter attribute = me->attributes_for_write().lookup_for_write_span(
+      me->active_color_attribute);
+  BLI_assert(attribute.domain == domain);
+
+  Color *color_data = static_cast<Color *>(attribute.span.data());
 
   /* Paint those leaves. */
   vpaint_paint_leaves<Color, Traits, domain>(C, sd, vp, vpd, ob, me, color_data, nodes, totnode);
 
+  attribute.finish();
   if (nodes) {
     MEM_freeN(nodes);
   }
@@ -4075,98 +4082,114 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 /** \name Set Vertex Colors Operator
  * \{ */
 
-template<typename Color, typename Traits, eAttrDomain domain>
-static bool vertex_color_set(Object *ob, ColorPaint4f paintcol_in, CustomDataLayer *layer)
+template<typename T>
+static void fill_bm_face_or_corner_attribute(BMesh &bm,
+                                             const T &value,
+                                             const eAttrDomain domain,
+                                             const int cd_offset,
+                                             const bool use_vert_sel)
 {
-  Mesh *me;
-  if (((me = BKE_mesh_from_object(ob)) == nullptr) ||
-      (ED_mesh_color_ensure(me, nullptr) == false)) {
-    return false;
+  BMFace *f;
+  BMIter iter;
+  BM_ITER_MESH (f, &iter, &bm, BM_FACES_OF_MESH) {
+    BMLoop *l = f->l_first;
+    do {
+      if (!(use_vert_sel && !BM_elem_flag_test(l->v, BM_ELEM_SELECT))) {
+        if (domain == ATTR_DOMAIN_CORNER) {
+          *static_cast<T *>(BM_ELEM_CD_GET_VOID_P(l, cd_offset)) = value;
+        }
+        else if (domain == ATTR_DOMAIN_POINT) {
+          *static_cast<T *>(BM_ELEM_CD_GET_VOID_P(l->v, cd_offset)) = value;
+        }
+      }
+    } while ((l = l->next) != f->l_first);
   }
+}
 
-  const blender::VArray<bool> select_vert = me->attributes().lookup_or_default<bool>(
+template<typename T>
+static void fill_mesh_face_or_corner_attribute(Mesh &mesh,
+                                               const T &value,
+                                               const eAttrDomain domain,
+                                               const MutableSpan<T> data,
+                                               const bool use_vert_sel,
+                                               const bool use_face_sel)
+{
+  const VArray<bool> select_vert = mesh.attributes().lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
-  const blender::VArray<bool> select_poly = me->attributes().lookup_or_default<bool>(
+  const VArray<bool> select_poly = mesh.attributes().lookup_or_default<bool>(
       ".select_poly", ATTR_DOMAIN_FACE, false);
 
-  Color paintcol = fromFloat<Color>(paintcol_in);
+  const Span<MPoly> polys = mesh.polys();
+  const Span<MLoop> loops = mesh.loops();
 
-  const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-  const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
-
-  if (me->edit_mesh) {
-    BMesh *bm = me->edit_mesh->bm;
-    BMFace *f;
-    BMIter iter;
-
-    int cd_offset = -1;
-
-    /* Find customdata offset inside of bmesh. */
-    CustomData *cdata = domain == ATTR_DOMAIN_POINT ? &bm->vdata : &bm->ldata;
-
-    for (int i = 0; i < cdata->totlayer; i++) {
-      if (STREQ(cdata->layers[i].name, layer->name)) {
-        cd_offset = layer->offset;
-      }
+  for (const int i : polys.index_range()) {
+    if (use_face_sel && !select_poly[i]) {
+      continue;
     }
+    const MPoly &poly = polys[i];
 
-    BLI_assert(cd_offset != -1);
+    int j = 0;
+    do {
+      uint vidx = loops[poly.loopstart + j].v;
 
-    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-      Color *color;
-      BMLoop *l = f->l_first;
-
-      do {
-        if (!(use_vert_sel && !BM_elem_flag_test(l->v, BM_ELEM_SELECT))) {
-          if constexpr (domain == ATTR_DOMAIN_CORNER) {
-            color = static_cast<Color *>(BM_ELEM_CD_GET_VOID_P(l, cd_offset));
-          }
-          else {
-            color = static_cast<Color *>(BM_ELEM_CD_GET_VOID_P(l->v, cd_offset));
-          }
-
-          *color = paintcol;
+      if (!(use_vert_sel && !(select_vert[vidx]))) {
+        if (domain == ATTR_DOMAIN_CORNER) {
+          data[poly.loopstart + j] = value;
         }
-      } while ((l = l->next) != f->l_first);
+        else {
+          data[vidx] = value;
+        }
+      }
+      j++;
+    } while (j < poly.totloop);
+  }
+
+  BKE_mesh_tessface_clear(&mesh);
+}
+
+static void fill_mesh_color(Mesh &mesh,
+                            const ColorPaint4f &color,
+                            const StringRef attribute_name,
+                            const bool use_vert_sel,
+                            const bool use_face_sel)
+{
+  if (mesh.edit_mesh) {
+    BMesh *bm = mesh.edit_mesh->bm;
+    const std::string name = attribute_name;
+    const CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh.id, name.c_str());
+    const eAttrDomain domain = BKE_id_attribute_domain(&mesh.id, layer);
+    if (layer->type == CD_PROP_COLOR) {
+      fill_bm_face_or_corner_attribute<ColorPaint4f>(
+          *bm, color, domain, layer->offset, use_vert_sel);
+    }
+    else if (layer->type == CD_PROP_BYTE_COLOR) {
+      fill_bm_face_or_corner_attribute<ColorPaint4b>(
+          *bm, color.encode(), domain, layer->offset, use_vert_sel);
     }
   }
   else {
-    Color *color_layer = static_cast<Color *>(layer->data);
-    const Span<MPoly> polys = me->polys();
-    const Span<MLoop> loops = me->loops();
-
-    for (const int i : polys.index_range()) {
-      if (use_face_sel && !select_poly[i]) {
-        continue;
-      }
-      const MPoly &poly = polys[i];
-
-      int j = 0;
-      do {
-        uint vidx = loops[poly.loopstart + j].v;
-
-        if (!(use_vert_sel && !(select_vert[vidx]))) {
-          if constexpr (domain == ATTR_DOMAIN_CORNER) {
-            color_layer[poly.loopstart + j] = paintcol;
-          }
-          else {
-            color_layer[vidx] = paintcol;
-          }
-        }
-        j++;
-      } while (j < poly.totloop);
+    bke::GSpanAttributeWriter attribute = mesh.attributes_for_write().lookup_for_write_span(
+        attribute_name);
+    if (attribute.span.type().is<ColorGeometry4f>()) {
+      fill_mesh_face_or_corner_attribute<ColorPaint4f>(
+          mesh,
+          color,
+          attribute.domain,
+          attribute.span.typed<ColorGeometry4f>().cast<ColorPaint4f>(),
+          use_vert_sel,
+          use_face_sel);
     }
-
-    /* remove stale me->mcol, will be added later */
-    BKE_mesh_tessface_clear(me);
+    else if (attribute.span.type().is<ColorGeometry4b>()) {
+      fill_mesh_face_or_corner_attribute<ColorPaint4b>(
+          mesh,
+          color.encode(),
+          attribute.domain,
+          attribute.span.typed<ColorGeometry4b>().cast<ColorPaint4b>(),
+          use_vert_sel,
+          use_face_sel);
+    }
+    attribute.finish();
   }
-
-  DEG_id_tag_update(&me->id, ID_RECALC_COPY_ON_WRITE);
-
-  /* NOTE: Original mesh is used for display, so tag it directly here. */
-  BKE_mesh_batch_cache_dirty_tag(me, BKE_MESH_BATCH_DIRTY_ALL);
-
-  return true;
 }
 
 /**
@@ -4176,46 +4199,26 @@ static bool paint_object_attributes_active_color_fill_ex(Object *ob,
                                                          ColorPaint4f fill_color,
                                                          bool only_selected = true)
 {
-  Mesh *me = BKE_object_get_original_mesh(ob);
+  Mesh *me = BKE_mesh_from_object(ob);
   if (!me) {
     return false;
   }
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
-  if (!layer) {
-    return false;
-  }
-  /* Store original #Mesh.editflag. */
-  const decltype(me->editflag) editflag = me->editflag;
-  if (!only_selected) {
-    me->editflag &= ~ME_EDIT_PAINT_FACE_SEL;
-    me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
-  }
-  eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
-  bool ok = false;
-  if (domain == ATTR_DOMAIN_POINT) {
-    if (layer->type == CD_PROP_COLOR) {
-      ok = vertex_color_set<ColorPaint4f, FloatTraits, ATTR_DOMAIN_POINT>(ob, fill_color, layer);
-    }
-    else if (layer->type == CD_PROP_BYTE_COLOR) {
-      ok = vertex_color_set<ColorPaint4b, ByteTraits, ATTR_DOMAIN_POINT>(ob, fill_color, layer);
-    }
-  }
-  else {
-    if (layer->type == CD_PROP_COLOR) {
-      ok = vertex_color_set<ColorPaint4f, FloatTraits, ATTR_DOMAIN_CORNER>(ob, fill_color, layer);
-    }
-    else if (layer->type == CD_PROP_BYTE_COLOR) {
-      ok = vertex_color_set<ColorPaint4b, ByteTraits, ATTR_DOMAIN_CORNER>(ob, fill_color, layer);
-    }
-  }
-  /* Restore #Mesh.editflag. */
-  me->editflag = editflag;
-  return ok;
+
+  const bool use_face_sel = only_selected ? (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0 : false;
+  const bool use_vert_sel = only_selected ? (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0 : false;
+  fill_mesh_color(*me, fill_color, me->active_color_attribute, use_vert_sel, use_face_sel);
+
+  DEG_id_tag_update(&me->id, ID_RECALC_COPY_ON_WRITE);
+
+  /* NOTE: Original mesh is used for display, so tag it directly here. */
+  BKE_mesh_batch_cache_dirty_tag(me, BKE_MESH_BATCH_DIRTY_ALL);
+
+  return true;
 }
 
-extern "C" bool BKE_object_attributes_active_color_fill(Object *ob,
-                                                        const float fill_color[4],
-                                                        bool only_selected)
+bool BKE_object_attributes_active_color_fill(Object *ob,
+                                             const float fill_color[4],
+                                             bool only_selected)
 {
   return paint_object_attributes_active_color_fill_ex(ob, ColorPaint4f(fill_color), only_selected);
 }

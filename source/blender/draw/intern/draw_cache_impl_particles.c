@@ -841,8 +841,16 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR)) {
       cache->num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata,
                                                           CD_PROP_BYTE_COLOR);
-      active_col = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR);
-      render_col = CustomData_get_render_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR);
+      if (psmd->mesh_final->active_color_attribute != NULL) {
+        active_col = CustomData_get_named_layer(&psmd->mesh_final->ldata,
+                                                CD_PROP_BYTE_COLOR,
+                                                psmd->mesh_final->active_color_attribute);
+      }
+      if (psmd->mesh_final->default_color_attribute != NULL) {
+        render_col = CustomData_get_named_layer(&psmd->mesh_final->ldata,
+                                                CD_PROP_BYTE_COLOR,
+                                                psmd->mesh_final->default_color_attribute);
+      }
     }
   }
 
@@ -1168,7 +1176,11 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     }
     if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR)) {
       num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR);
-      active_col = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR);
+      if (psmd->mesh_final->active_color_attribute != NULL) {
+        active_col = CustomData_get_named_layer(&psmd->mesh_final->ldata,
+                                                CD_PROP_BYTE_COLOR,
+                                                psmd->mesh_final->active_color_attribute);
+      }
     }
   }
 

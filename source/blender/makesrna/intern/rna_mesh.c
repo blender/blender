@@ -1037,12 +1037,16 @@ static int rna_MeshLoopColorLayer_data_length(PointerRNA *ptr)
 
 static bool rna_MeshLoopColorLayer_active_render_get(PointerRNA *ptr)
 {
-  return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_PROP_BYTE_COLOR, 1);
+  const Mesh *mesh = rna_mesh(ptr);
+  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
+  return mesh->default_color_attribute && STREQ(mesh->default_color_attribute, layer->name);
 }
 
 static bool rna_MeshLoopColorLayer_active_get(PointerRNA *ptr)
 {
-  return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_PROP_BYTE_COLOR, 0);
+  const Mesh *mesh = rna_mesh(ptr);
+  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
+  return mesh->active_color_attribute && STREQ(mesh->active_color_attribute, layer->name);
 }
 
 static void rna_MeshLoopColorLayer_active_render_set(PointerRNA *ptr, bool value)
@@ -1077,12 +1081,16 @@ static int rna_MeshVertColorLayer_data_length(PointerRNA *ptr)
 
 static bool rna_MeshVertColorLayer_active_render_get(PointerRNA *ptr)
 {
-  return rna_CustomDataLayer_active_get(ptr, rna_mesh_vdata(ptr), CD_PROP_COLOR, 1);
+  const Mesh *mesh = rna_mesh(ptr);
+  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
+  return mesh->default_color_attribute && STREQ(mesh->default_color_attribute, layer->name);
 }
 
 static bool rna_MeshVertColorLayer_active_get(PointerRNA *ptr)
 {
-  return rna_CustomDataLayer_active_get(ptr, rna_mesh_vdata(ptr), CD_PROP_COLOR, 0);
+  const Mesh *mesh = rna_mesh(ptr);
+  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
+  return mesh->active_color_attribute && STREQ(mesh->active_color_attribute, layer->name);
 }
 
 static void rna_MeshVertColorLayer_active_render_set(PointerRNA *ptr, bool value)

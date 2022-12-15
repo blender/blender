@@ -1860,7 +1860,7 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
   }
 
   if (layer) {
-    BKE_id_attributes_active_color_set(&me->id, layer);
+    BKE_id_attributes_active_color_set(&me->id, layer->name);
 
     if (ob->sculpt && ob->sculpt->pbvh) {
       BKE_pbvh_update_active_vcol(ob->sculpt->pbvh, me);

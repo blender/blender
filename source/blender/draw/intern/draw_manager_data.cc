@@ -1408,8 +1408,8 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   Mesh *me = BKE_object_get_original_mesh(ob);
 
   if (use_color) {
-    CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
-
+    const CustomDataLayer *layer = BKE_id_attributes_color_find(&me->id,
+                                                                me->active_color_attribute);
     if (layer) {
       eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
 

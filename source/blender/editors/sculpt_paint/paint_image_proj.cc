@@ -6553,10 +6553,10 @@ static CustomDataLayer *proj_paint_color_attribute_create(wmOperator *op, Object
     return nullptr;
   }
 
-  BKE_id_attributes_active_color_set(id, layer);
+  BKE_id_attributes_active_color_set(id, layer->name);
 
-  if (!BKE_id_attributes_render_color_get(id)) {
-    BKE_id_attributes_render_color_set(id, layer);
+  if (!BKE_id_attributes_default_color_get(id)) {
+    BKE_id_attributes_default_color_set(id, layer->name);
   }
 
   BKE_object_attributes_active_color_fill(ob, color, false);

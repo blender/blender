@@ -3197,10 +3197,10 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
         if (actlayer) {
           if (step) {
-            BKE_id_attributes_render_color_set(&me->id, actlayer);
+            BKE_id_attributes_default_color_set(&me->id, actlayer->name);
           }
           else {
-            BKE_id_attributes_active_color_set(&me->id, actlayer);
+            BKE_id_attributes_active_color_set(&me->id, actlayer->name);
           }
         }
       }
@@ -3362,10 +3362,10 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
         if (actlayer) {
           if (step) {
-            BKE_id_attributes_render_color_set(&me->id, actlayer);
+            BKE_id_attributes_default_color_set(&me->id, actlayer->name);
           }
           else {
-            BKE_id_attributes_active_color_set(&me->id, actlayer);
+            BKE_id_attributes_active_color_set(&me->id, actlayer->name);
           }
         }
       }

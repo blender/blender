@@ -171,7 +171,7 @@ static void rna_Material_active_paint_texture_index_update(bContext *C, PointerR
         Mesh *mesh = ob->data;
         CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh->id, slot->attribute_name);
         if (layer != NULL) {
-          BKE_id_attributes_active_color_set(&mesh->id, layer);
+          BKE_id_attributes_active_color_set(&mesh->id, layer->name);
         }
         DEG_id_tag_update(&ob->id, 0);
         WM_main_add_notifier(NC_GEOM | ND_DATA, &ob->id);

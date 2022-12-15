@@ -494,21 +494,6 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
   MEM_SAFE_FREE(target_lmap);
   MEM_SAFE_FREE(target_lmap_mem);
   free_bvhtree_from_mesh(&bvhtree);
-
-  /* Transfer active/render color attributes */
-
-  CustomDataLayer *active_layer = BKE_id_attributes_active_color_get(&source->id);
-  CustomDataLayer *render_layer = BKE_id_attributes_render_color_get(&source->id);
-
-  if (active_layer) {
-    BKE_id_attributes_active_color_set(
-        &target->id, BKE_id_attributes_color_find(&target->id, active_layer->name));
-  }
-
-  if (render_layer) {
-    BKE_id_attributes_render_color_set(
-        &target->id, BKE_id_attributes_color_find(&target->id, render_layer->name));
-  }
 }
 
 struct Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)

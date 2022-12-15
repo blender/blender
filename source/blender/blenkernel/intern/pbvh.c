@@ -696,6 +696,9 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->mpoly = pbvh->mpoly;
       args->vert_normals = pbvh->vert_normals;
 
+      args->active_color = pbvh->mesh->active_color_attribute;
+      args->render_color = pbvh->mesh->default_color_attribute;
+
       args->prim_indices = node->prim_indices;
       args->face_sets = pbvh->face_sets;
       break;
@@ -710,6 +713,9 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->subdiv_ccg = pbvh->subdiv_ccg;
       args->face_sets = pbvh->face_sets;
       args->mpoly = pbvh->mpoly;
+
+      args->active_color = pbvh->mesh->active_color_attribute;
+      args->render_color = pbvh->mesh->default_color_attribute;
 
       args->mesh_grids_num = pbvh->totgrid;
       args->grids = pbvh->grids;
@@ -1588,7 +1594,7 @@ void pbvh_update_BB_redraw(PBVH *pbvh, PBVHNode **nodes, int totnode, int flag)
 
 bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, eAttrDomain *r_attr)
 {
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get((ID *)me);
+  CustomDataLayer *layer = BKE_id_attributes_color_find(&me->id, me->active_color_attribute);
 
   if (!layer || !ELEM(layer->type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
     *r_layer = NULL;
@@ -1596,7 +1602,7 @@ bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, eAttrDo
     return false;
   }
 
-  eAttrDomain domain = BKE_id_attribute_domain((ID *)me, layer);
+  eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
 
   if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
     *r_layer = NULL;
