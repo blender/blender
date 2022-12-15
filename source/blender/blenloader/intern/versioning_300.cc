@@ -3858,6 +3858,48 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 8)) {
+    const int CV_SCULPT_SELECTION_ENABLED = (1 << 1);
+    LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
+      curves_id->flag &= ~CV_SCULPT_SELECTION_ENABLED;
+    }
+    LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
+      BKE_id_attribute_rename(&curves_id->id, ".selection_point_float", ".selection", nullptr);
+      BKE_id_attribute_rename(&curves_id->id, ".selection_curve_float", ".selection", nullptr);
+    }
+
+    /* Toggle the Invert Vertex Group flag on Armature modifiers in some cases. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      bool after_armature = false;
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Armature) {
+          ArmatureModifierData *amd = (ArmatureModifierData *)md;
+          if (amd->multi) {
+            /* Toggle the invert vertex group flag on operational Multi Modifier entries. */
+            if (after_armature && amd->defgrp_name[0]) {
+              amd->deformflag ^= ARM_DEF_INVERT_VGROUP;
+            }
+          }
+          else {
+            /* Disabled multi modifiers don't reset propagation, but non-multi ones do. */
+            after_armature = false;
+          }
+          /* Multi Modifier is only valid and operational after an active Armature modifier. */
+          if (md->mode & (eModifierMode_Realtime | eModifierMode_Render)) {
+            after_armature = true;
+          }
+        }
+        else if (ELEM(md->type, eModifierType_Lattice, eModifierType_MeshDeform)) {
+          /* These modifiers will also allow a following Multi Modifier to work. */
+          after_armature = (md->mode & (eModifierMode_Realtime | eModifierMode_Render)) != 0;
+        }
+        else {
+          after_armature = false;
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -3869,13 +3911,5 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-    const int CV_SCULPT_SELECTION_ENABLED = (1 << 1);
-    LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
-      curves_id->flag &= ~CV_SCULPT_SELECTION_ENABLED;
-    }
-    LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
-      BKE_id_attribute_rename(&curves_id->id, ".selection_point_float", ".selection", nullptr);
-      BKE_id_attribute_rename(&curves_id->id, ".selection_curve_float", ".selection", nullptr);
-    }
   }
 }
