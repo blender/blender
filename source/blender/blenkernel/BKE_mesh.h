@@ -280,18 +280,6 @@ struct Mesh *BKE_mesh_new_from_object_to_bmain(struct Main *bmain,
                                                bool preserve_all_data_layers);
 
 /**
- * \param use_virtual_modifiers: When enabled calculate virtual-modifiers before applying `md_eval`
- * support this since virtual-modifiers are not modifiers from a user perspective,
- * allowing shape keys to be included with the modifier being applied, see: T91923.
- */
-struct Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
-                                                  struct Scene *scene,
-                                                  struct Object *ob_eval,
-                                                  struct ModifierData *md_eval,
-                                                  bool use_virtual_modifiers,
-                                                  bool build_shapekey_layers);
-
-/**
  * Move data from a mesh outside of the main data-base into a mesh in the data-base.
  * Takes ownership of the source mesh.
  */
