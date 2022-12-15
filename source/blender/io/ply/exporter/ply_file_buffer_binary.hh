@@ -30,9 +30,10 @@ class FileBufferBinary : public FileBuffer {
 
   void write_vertex(float x, float y, float z) override
   {
-    char *xbits = reinterpret_cast<char *>(&x);
-    char *ybits = reinterpret_cast<char *>(&y);
-    char *zbits = reinterpret_cast<char *>(&z);
+
+    auto *xbits = reinterpret_cast<char *>(&x);
+    auto *ybits = reinterpret_cast<char *>(&y);
+    auto *zbits = reinterpret_cast<char *>(&z);
 
     std::vector<char> data(xbits, xbits + sizeof(float));
     data.insert(data.end(), ybits, ybits + sizeof(float));
