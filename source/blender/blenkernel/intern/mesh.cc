@@ -725,7 +725,7 @@ static int customdata_compare(
       }
     }
     if (!found_corresponding_layer) {
-      if ((1 << l1->type) & CD_MASK_PROP_ALL) {
+      if ((uint64_t(1) << l1->type) & CD_MASK_PROP_ALL) {
         return MESHCMP_CDLAYERS_MISMATCH;
       }
     }
