@@ -7,8 +7,8 @@
 #pragma once
 
 #include "IO_ply.h"
-#include <cstdio>
 #include "ply_data.hh"
+#include <cstdio>
 
 namespace blender::io::ply {
 

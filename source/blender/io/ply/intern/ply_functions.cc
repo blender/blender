@@ -3,7 +3,7 @@
 
 namespace blender::io::ply {
 
-line_ending safe_getline(std::ifstream &file, std::string& line)
+line_ending safe_getline(std::ifstream &file, std::string &line)
 {
   line.clear();
   std::streambuf *sb = file.rdbuf();
@@ -35,11 +35,11 @@ line_ending safe_getline(std::ifstream &file, std::string& line)
         if (possible != UNSET) {
           return possible;
         }
-        line += (char)c;
+        line += c;
         break;
     }
     sb->sbumpc();
   }
   return possible;
 }
-} // namespace blender::io::ply
+}  // namespace blender::io::ply

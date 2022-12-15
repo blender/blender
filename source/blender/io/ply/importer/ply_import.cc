@@ -54,7 +54,9 @@ void splitstr(std::string str, std::vector<std::string> &words, const std::strin
   words.push_back(str.substr());
 }
 
+
 enum PlyDataTypes from_string(const std::string input)
+
 {
   if (input == "uchar") {
     return PlyDataTypes::UCHAR;
