@@ -31,12 +31,12 @@ class FileBufferAscii : public FileBuffer {
   {
   }
 
-  void write_vertex(float x, float y, float z)
+  void write_vertex(float x, float y, float z) override
   {
     write_fstring("{} {} {}\n", x, y, z);
   }
 
-  void write_face(int count, Vector<int> vertices)
+  void write_face(int count, Vector<int> vertices) override
   {
     write_fstring("{}", count);
 

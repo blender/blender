@@ -16,7 +16,7 @@ void write_vertices(std::unique_ptr<FileBuffer> &buffer,
                     std::unique_ptr<PlyData> &plyData,
                     const PLYExportParams export_params)
 {
-  for (auto &&vertex : plyData->vertices) {
+  for (const auto &vertex : plyData->vertices) {
     buffer->write_vertex(vertex.x, vertex.y, vertex.z);
   }
   buffer->write_to_file();
@@ -26,7 +26,7 @@ void write_faces(std::unique_ptr<FileBuffer> &buffer,
                  std::unique_ptr<PlyData> &plyData,
                  const PLYExportParams export_params)
 {
-  for (auto &&face : plyData->faces) {
+  for (const auto &face : plyData->faces) {
     buffer->write_face(face.size(), face);
   }
   buffer->write_to_file();
