@@ -26,17 +26,14 @@
 namespace blender::io::ply {
 class FileBufferAscii : public FileBuffer {
  public:
-  FileBufferAscii(const char *filepath, size_t buffer_chunk_size = 64 * 1024)
-      : FileBuffer(filepath, buffer_chunk_size)
-  {
-  }
+  using FileBuffer::FileBuffer;
 
-  void write_vertex(float x, float y, float z)
+  void write_vertex(float x, float y, float z) override
   {
     write_fstring("{} {} {}\n", x, y, z);
   }
 
-  void write_face(int count, Vector<int> vertices)
+  void write_face(int count, Vector<int> const &vertices) override
   {
     write_fstring("{}", count);
 

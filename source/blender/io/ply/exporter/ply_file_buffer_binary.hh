@@ -26,12 +26,9 @@
 namespace blender::io::ply {
 class FileBufferBinary : public FileBuffer {
  public:
-  FileBufferBinary(const char *filepath, size_t buffer_chunk_size = 64 * 1024)
-      : FileBuffer(filepath, buffer_chunk_size)
-  {
-  }
+  using FileBuffer::FileBuffer;
 
-  void write_vertex(float x, float y, float z)
+  void write_vertex(float x, float y, float z) override
   {
     char *xbits = reinterpret_cast<char *>(&x);
     char *ybits = reinterpret_cast<char *>(&y);
@@ -44,14 +41,13 @@ class FileBufferBinary : public FileBuffer {
     write_bytes(data);
   }
 
-  void write_face(int size, Vector<int> vertices)
+  void write_face(int size, Vector<int> const &vertices) override
   {
     std::vector<char> data;
     data.push_back((char)size);
-    for (auto &&vertexIndex : vertices)
-    {
+    for (auto &&vertexIndex : vertices) {
       uint32_t x = vertexIndex;
-      char *vtxbits = static_cast<char*>(static_cast<void*>(&x));
+      char *vtxbits = static_cast<char *>(static_cast<void *>(&x));
       data.insert(data.end(), vtxbits, vtxbits + sizeof(uint32_t));
     }
 

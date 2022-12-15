@@ -31,25 +31,26 @@ namespace blender::io::ply {
  * Call write_fo_file once in a while to write the memory buffer(s)
  * into the given file.
  */
-class FileBuffer : NonMovable {
+class FileBuffer : private NonMovable {
  private:
-  typedef std::vector<char> VectorChar;
+  using VectorChar = std::vector<char>;
   std::vector<VectorChar> blocks_;
   size_t buffer_chunk_size_;
-  const char *filepath;
+  const char *filepath_;
   FILE *outfile_;
 
  public:
   FileBuffer(const char *filepath, size_t buffer_chunk_size = 64 * 1024)
-      : buffer_chunk_size_(buffer_chunk_size)
+      : buffer_chunk_size_(buffer_chunk_size), filepath_(filepath)
   {
-    this->filepath = filepath;
     outfile_ = BLI_fopen(filepath, "wb");
     if (!outfile_) {
       throw std::system_error(
           errno, std::system_category(), "Cannot open file " + std::string(filepath) + ".");
     }
   }
+
+  virtual ~FileBuffer() = default;
 
   /* Write contents to the buffer(s) into a file, and clear the buffers. */
   void write_to_file()
@@ -66,7 +67,7 @@ class FileBuffer : NonMovable {
       return;
     }
     if (outfile_ && close_status) {
-      std::cerr << "Error: could not close the file '" << this->filepath
+      std::cerr << "Error: could not close the file '" << this->filepath_
                 << "' properly, it may be corrupted." << std::endl;
     }
   }
@@ -91,11 +92,11 @@ class FileBuffer : NonMovable {
     v.blocks_.clear();
   }
 
-  virtual void write_vertex(float x, float y, float z) {}
+  virtual void write_vertex(float x, float y, float z) = 0;
 
-  virtual void write_vertex_color(float x, float y, float z, float r, float g, float b) {}
+  // virtual void write_vertex_color(float x, float y, float z, float r, float g, float b) = 0;
 
-  virtual void write_face(int count, Vector<int> vertices) {}
+  virtual void write_face(int count, Vector<int> const &vertices) = 0;
 
   void write_header_element(StringRef name, int count)
   {
