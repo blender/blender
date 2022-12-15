@@ -411,8 +411,8 @@ static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* If operator is blocking, grab cursor.
          * This may end up grabbing twice, but we don't care. */
         if (op->opm->type->flag & OPTYPE_BLOCKING) {
-          int bounds[4] = {-1, -1, -1, -1};
           int wrap = WM_CURSOR_WRAP_NONE;
+          const rcti *wrap_region = NULL;
 
           if ((op->opm->flag & OP_IS_MODAL_GRAB_CURSOR) ||
               (op->opm->type->flag & OPTYPE_GRAB_CURSOR_XY)) {
@@ -428,14 +428,11 @@ static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
           if (wrap) {
             ARegion *region = CTX_wm_region(C);
             if (region) {
-              bounds[0] = region->winrct.xmin;
-              bounds[1] = region->winrct.ymax;
-              bounds[2] = region->winrct.xmax;
-              bounds[3] = region->winrct.ymin;
+              wrap_region = &region->winrct;
             }
           }
 
-          WM_cursor_grab_enable(win, wrap, false, bounds);
+          WM_cursor_grab_enable(win, wrap, wrap_region, false);
         }
       }
     }

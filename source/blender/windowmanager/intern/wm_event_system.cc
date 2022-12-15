@@ -1517,8 +1517,8 @@ static int wm_operator_invoke(bContext *C,
       /* Grab cursor during blocking modal operators (X11)
        * Also check for macro. */
       if (ot->flag & OPTYPE_BLOCKING || (op->opm && op->opm->type->flag & OPTYPE_BLOCKING)) {
-        int bounds[4] = {-1, -1, -1, -1};
-        int wrap = WM_CURSOR_WRAP_NONE;
+        eWM_CursorWrapAxis wrap = WM_CURSOR_WRAP_NONE;
+        const rcti *wrap_region = nullptr;
 
         if (event && (U.uiflag & USER_CONTINUOUS_MOUSE)) {
           const wmOperator *op_test = op->opm ? op->opm : op;
@@ -1536,7 +1536,6 @@ static int wm_operator_invoke(bContext *C,
         }
 
         if (wrap) {
-          const rcti *winrect = nullptr;
           ARegion *region = CTX_wm_region(C);
           ScrArea *area = CTX_wm_area(C);
 
@@ -1547,21 +1546,14 @@ static int wm_operator_invoke(bContext *C,
 
           if (region && region->regiontype == RGN_TYPE_WINDOW &&
               BLI_rcti_isect_pt_v(&region->winrct, event->xy)) {
-            winrect = &region->winrct;
+            wrap_region = &region->winrct;
           }
           else if (area && BLI_rcti_isect_pt_v(&area->totrct, event->xy)) {
-            winrect = &area->totrct;
-          }
-
-          if (winrect) {
-            bounds[0] = winrect->xmin;
-            bounds[1] = winrect->ymax;
-            bounds[2] = winrect->xmax;
-            bounds[3] = winrect->ymin;
+            wrap_region = &area->totrct;
           }
         }
 
-        WM_cursor_grab_enable(CTX_wm_window(C), wrap, false, bounds);
+        WM_cursor_grab_enable(CTX_wm_window(C), wrap, wrap_region, false);
       }
 
       /* Cancel UI handlers, typically tool-tips that can hang around

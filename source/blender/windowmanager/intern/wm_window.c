@@ -2103,6 +2103,8 @@ void WM_init_input_devices(void)
 
 void WM_cursor_warp(wmWindow *win, int x, int y)
 {
+  /* This function requires access to the GHOST_SystemHandle (`g_system`). */
+
   if (!(win && win->ghostwin)) {
     return;
   }

@@ -321,9 +321,22 @@ void WM_cursor_modal_restore(struct wmWindow *win);
  */
 void WM_cursor_wait(bool val);
 /**
- * \param bounds: can be NULL
+ * Enable cursor grabbing, optionally hiding the cursor and wrapping cursor-motion
+ * within a sub-region of the window.
+ *
+ * \param wrap: an enum (#WM_CURSOR_WRAP_NONE, #WM_CURSOR_WRAP_XY... etc).
+ * \param wrap_region: Window-relative region for cursor wrapping (when `wrap` is
+ * #WM_CURSOR_WRAP_XY). When NULL, the window bounds are used for wrapping.
+ *
+ * \note The current grab state can be accessed by #wmWindowManager.grabcursor although.
  */
-void WM_cursor_grab_enable(struct wmWindow *win, int wrap, bool hide, int bounds[4]);
+void WM_cursor_grab_enable(struct wmWindow *win,
+                           eWM_CursorWrapAxis wrap,
+                           const struct rcti *wrap_region,
+                           bool hide);
+/**
+ *
+ */
 void WM_cursor_grab_disable(struct wmWindow *win, const int mouse_ungrab_xy[2]);
 /**
  * After this you can call restore too.
@@ -344,7 +357,10 @@ void WM_paint_cursor_remove_by_type(struct wmWindowManager *wm,
 void WM_paint_cursor_tag_redraw(struct wmWindow *win, struct ARegion *region);
 
 /**
- * This function requires access to the GHOST_SystemHandle (g_system).
+ * Set the cursor location in window coordinates (compatible with #wmEvent.xy).
+ *
+ * \note Some platforms don't support this, check: #WM_CAPABILITY_WINDOW_POSITION
+ * before relying on this functionality.
  */
 void WM_cursor_warp(struct wmWindow *win, int x, int y);
 

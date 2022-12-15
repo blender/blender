@@ -612,18 +612,18 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
 
 #ifdef USE_CURSOR_WARP_HACK
   if (WM_capabilities_flag() & WM_CAPABILITY_CURSOR_WARP) {
-    int bounds[4];
-    const rcti *rect = &walk->region->winrct;
-    const int center[2] = {BLI_rcti_cent_x(rect), BLI_rcti_cent_y(rect)};
-    const int size[2] = {BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)};
+    const rcti *winrct = &walk->region->winrct;
+    const int center[2] = {BLI_rcti_cent_x(winrct), BLI_rcti_cent_y(winrct)};
+    const int size[2] = {BLI_rcti_size_x(winrct), BLI_rcti_size_y(winrct)};
     const int div = 4; /* Where 2 is the region size. */
 
-    bounds[0] = center[0] - (size[0] / div); /* X-min. */
-    bounds[1] = center[1] + (size[1] / div); /* Y-max. */
-    bounds[2] = center[0] + (size[0] / div); /* X-max. */
-    bounds[3] = center[1] - (size[1] / div); /* Y-min. */
+    rcti wrap_region = {};
+    wrap_region.xmin = center[0] - (size[0] / div);
+    wrap_region.xmax = center[0] + (size[0] / div);
+    wrap_region.ymin = center[1] - (size[1] / div);
+    wrap_region.ymax = center[1] + (size[1] / div);
 
-    WM_cursor_grab_enable(win, WM_CURSOR_WRAP_XY, false, bounds);
+    WM_cursor_grab_enable(win, WM_CURSOR_WRAP_XY, &wrap_region, false);
 
     /* Important to hide afterwards (not part of grabbing),
      * since enabling cursor and hiding at the same time ignores bounds. */
@@ -633,7 +633,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
   else
 #endif /* USE_CURSOR_WARP_HACK */
   {
-    WM_cursor_grab_enable(win, 0, true, NULL);
+    WM_cursor_grab_enable(win, WM_CURSOR_WRAP_NONE, NULL, true);
   }
 
   return 1;

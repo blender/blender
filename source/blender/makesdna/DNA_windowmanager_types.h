@@ -277,7 +277,7 @@ typedef struct wmWindow {
   short lastcursor;
   /** The current modal cursor. */
   short modalcursor;
-  /** Cursor grab mode. */
+  /** Cursor grab mode #GHOST_TGrabCursorMode (run-time only) */
   short grabcursor;
   /** Internal: tag this for extra mouse-move event,
    * makes cursors/buttons active on UI switching. */

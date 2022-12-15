@@ -1062,7 +1062,7 @@ void wm_gizmomap_modal_set(
     gzmap->gzmap_context.modal = gz;
 
     if ((gz->flag & WM_GIZMO_MOVE_CURSOR) && (event->tablet.is_motion_absolute == false)) {
-      WM_cursor_grab_enable(win, WM_CURSOR_WRAP_XY, true, NULL);
+      WM_cursor_grab_enable(win, WM_CURSOR_WRAP_XY, NULL, true);
       copy_v2_v2_int(gzmap->gzmap_context.event_xy, event->xy);
       gzmap->gzmap_context.event_grabcursor = win->grabcursor;
     }
