@@ -395,9 +395,13 @@ class CYCLES_RENDER_PT_sampling_lights(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         scene = context.scene
         cscene = scene.cycles
 
+        col = layout.column(align=True)
         col.prop(cscene, "use_light_tree")
         sub = col.row()
         sub.prop(cscene, "light_sampling_threshold", text="Light Threshold")
