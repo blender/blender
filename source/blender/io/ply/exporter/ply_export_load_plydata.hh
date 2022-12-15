@@ -30,25 +30,31 @@ void load_plydata(std::unique_ptr<PlyData> &plyData, bContext *C)
                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
                             DEG_ITER_OBJECT_FLAG_DUPLI;
 
+  // When exporting multiple objects, vertex indices have to be offset
+  int vertex_offset = 0;
+
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
     if (object->type != OB_MESH)
       continue;
 
+    // Vertices
     auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
     for (auto &&vertex : mesh->verts()) {
       plyData->vertices.append(vertex.co);
     }
 
+    // Faces
     for (auto &&poly : mesh->polys()) {
-      // TODO: This seems a bit convoluted, try optimizing
-      auto loopVector = mesh->loops().slice(poly.loopstart, poly.totloop);
+      auto loopSpan = mesh->loops().slice(poly.loopstart, poly.totloop);
       Vector<int> polyVector;
-      for (auto &&loop : loopVector) {
-        polyVector.append(loop.v);
+      for (auto &&loop : loopSpan) {
+        polyVector.append(loop.v + vertex_offset);
       }
 
       plyData->faces.append(polyVector);
     }
+
+    vertex_offset = plyData->vertices.size();
   }
 
   DEG_OBJECT_ITER_END;
