@@ -42,12 +42,11 @@ void ply_import_report_error(FILE *file)
   }
 }
 
-void splitstr(std::string str, std::vector<std::string> &words, std::string deli)
+void splitstr(std::string str, std::vector<std::string> &words, const std::string deli)
 {
   int pos = 0;
-  int end = str.find(deli);
 
-  while ((pos = str.find(deli)) != std::string::npos) {
+  while ((pos = int(str.find(deli))) != std::string::npos) {
     words.push_back(str.substr(0, pos));
     str.erase(0, pos + deli.length());
   }
@@ -55,7 +54,8 @@ void splitstr(std::string str, std::vector<std::string> &words, std::string deli
   words.push_back(str.substr());
 }
 
-enum PlyDataTypes from_string(std::string input) {
+enum PlyDataTypes from_string(const std::string input)
+{
   if (input == "uchar") {
     return PlyDataTypes::UCHAR;
   }
@@ -109,7 +109,7 @@ void importer_main(Main *bmain,
 
   PlyHeader header;
 
-  while (true) { // We break when end_header is encountered
+  while (true) {  // We break when end_header is encountered
     safe_getline(infile, line);
     header.header_size++;
     std::vector<std::string> words{};
@@ -162,14 +162,11 @@ void importer_main(Main *bmain,
   Mesh *mesh = BKE_mesh_add(bmain, ob_name);
   if (header.type == PlyFormatType::ASCII) {
     mesh = import_ply_ascii(infile, &header, mesh);
-    printf("ASCII PLY \n");
   }
   else if (header.type == PlyFormatType::BINARY_BE) {
-    printf("Binary Big Endian \n");
     mesh = import_ply_binary(infile, &header, mesh);
   }
   else {
-    printf("Binary Little Endian \n");
     mesh = import_ply_binary(infile, &header, mesh);
   }
 

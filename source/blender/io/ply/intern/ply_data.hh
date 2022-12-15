@@ -12,8 +12,6 @@ namespace blender::io::ply {
 
 enum PlyDataTypes { CHAR, UCHAR, SHORT, USHORT, INT, UINT, FLOAT, DOUBLE };
 
-//int typeSizes[8] = {1, 1, 2, 2, 4, 4, 4, 8};
-
 struct PlyData {
   Vector<float3> vertices;
   Vector<float3> vertex_normals;
@@ -24,12 +22,16 @@ struct PlyData {
   Vector<Vector<uint32_t>> faces;
 };
 
-enum PlyFormatType { ASCII, BINARY_LE, BINARY_BE };
+enum class PlyFormatType { ASCII, BINARY_LE, BINARY_BE };
 
 struct PlyHeader {
-  int vertex_count = 0, edge_count = 0, face_count = 0, header_size = 0;
+  int vertex_count = 0;
+  int edge_count = 0;
+  int face_count = 0;
+  int header_size = 0;
   std::vector<std::pair<std::string, PlyDataTypes>> properties;
-  PlyDataTypes vertex_index_count_type, vertex_index_type;
+  PlyDataTypes vertex_index_count_type;
+  PlyDataTypes vertex_index_type;
   PlyFormatType type;
 };
 
