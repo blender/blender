@@ -6,7 +6,7 @@
 
 namespace blender::io::ply {
 
-enum class line_ending { CR_LF, LF, CR, LF_CR, UNSET };
+enum line_ending { CR_LF, LF, CR, LF_CR, UNSET };
 
 /**
  * Reads a line in the ply file in a line-ending safe manner. All different line endings are

@@ -42,7 +42,7 @@ void ply_import_report_error(FILE *file)
   }
 }
 
-void splitstr(std::string str, std::vector<std::string> &words, const std::string deli)
+void splitstr(std::string str, std::vector<std::string> &words, const std::string &deli)
 {
   int pos = 0;
 
@@ -50,13 +50,11 @@ void splitstr(std::string str, std::vector<std::string> &words, const std::strin
     words.push_back(str.substr(0, pos));
     str.erase(0, pos + deli.length());
   }
-  // adds the final word to the vector
+  /* We add the final word to the vector. */
   words.push_back(str.substr());
 }
 
-
-enum PlyDataTypes from_string(const std::string input)
-
+enum PlyDataTypes from_string(const std::string &input)
 {
   if (input == "uchar") {
     return PlyDataTypes::UCHAR;
@@ -115,7 +113,7 @@ void importer_main(Main *bmain,
     safe_getline(infile, line);
     header.header_size++;
     std::vector<std::string> words{};
-    splitstr(line, words);
+    splitstr(line, words, " ");
 
     if (strcmp(words[0].c_str(), "format") == 0) {
       if (strcmp(words[1].c_str(), "ascii") == 0) {

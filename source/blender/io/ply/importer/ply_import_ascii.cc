@@ -23,19 +23,16 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
   std::pair<std::string, PlyDataTypes> alpha = {"alpha", PlyDataTypes::UCHAR};
   bool hasAlpha = std::find(header->properties.begin(), header->properties.end(), alpha) !=
                   header->properties.end();
-  std::cout << "Has alpha: " << hasAlpha << std::endl;
 
   // check if header contains colours
   std::pair<std::string, PlyDataTypes> red = {"red", PlyDataTypes::UCHAR};
   bool hasColor = std::find(header->properties.begin(), header->properties.end(), red) !=
                   header->properties.end();
-  std::cout << "Has color: " << hasColor << std::endl;
 
   // check if header contains normals
   std::pair<std::string, PlyDataTypes> normalx = {"nx", PlyDataTypes::FLOAT};
   bool hasNormals = std::find(header->properties.begin(), header->properties.end(), normalx) !=
                     header->properties.end();
-  std::cout << "Has normals: " << hasNormals << std::endl;
 
   int3 vertexpos = get_vertex_pos(header);
   int alphapos;
