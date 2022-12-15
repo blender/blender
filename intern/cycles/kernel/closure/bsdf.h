@@ -580,11 +580,11 @@ ccl_device_inline
     case CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      eval = bsdf_microfacet_ggx_eval(sc, sd->I, omega_in, pdf);
+      eval = bsdf_microfacet_ggx_eval(sc, sd->N, sd->I, omega_in, pdf);
       break;
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:
-      eval = bsdf_microfacet_multi_ggx_eval(sc, sd->I, omega_in, pdf, &sd->lcg_state);
+      eval = bsdf_microfacet_multi_ggx_eval(sc, sd->N, sd->I, omega_in, pdf, &sd->lcg_state);
       break;
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID:
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID:
@@ -592,10 +592,10 @@ ccl_device_inline
       break;
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
-      eval = bsdf_microfacet_beckmann_eval(sc, sd->I, omega_in, pdf);
+      eval = bsdf_microfacet_beckmann_eval(sc, sd->N, sd->I, omega_in, pdf);
       break;
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
-      eval = bsdf_ashikhmin_shirley_eval(sc, sd->I, omega_in, pdf);
+      eval = bsdf_ashikhmin_shirley_eval(sc, sd->N, sd->I, omega_in, pdf);
       break;
     case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
       eval = bsdf_ashikhmin_velvet_eval(sc, sd->I, omega_in, pdf);
