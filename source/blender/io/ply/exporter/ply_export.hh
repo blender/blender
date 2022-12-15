@@ -8,8 +8,8 @@
 
 #include <cstdio>
 
-#include "IO_ply.h"
 #include "../intern/ply_data.hh"
+#include "IO_ply.h"
 #include "ply_file_buffer.hh"
 
 namespace blender::io::ply {

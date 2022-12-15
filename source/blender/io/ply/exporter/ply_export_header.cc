@@ -4,8 +4,8 @@
  * \ingroup ply
  */
 
-#include "BKE_customdata.h"
 #include "BKE_blender_version.h"
+#include "BKE_customdata.h"
 
 #include "../intern/ply_data.hh"
 #include "IO_ply.h"
@@ -14,15 +14,15 @@
 namespace blender::io::ply {
 
 void write_header(std::unique_ptr<FileBuffer> &buffer,
-                     std::unique_ptr<PlyData> &plyData,
-                     const PLYExportParams &export_params)
+                  std::unique_ptr<PlyData> &plyData,
+                  const PLYExportParams &export_params)
 {
   buffer->write_string("ply");
   StringRef format = export_params.ascii_format ? "ascii" : "binary_little_endian";
   buffer->write_string("format " + format + " 1.0");
   StringRef version = BKE_blender_version_string();
   buffer->write_string("comment Created in Blender version " + version);
-  buffer->write_header_element("vertex",int32_t(plyData->vertices.size()));
+  buffer->write_header_element("vertex", int32_t(plyData->vertices.size()));
   buffer->write_header_scalar_property("float", "x");
   buffer->write_header_scalar_property("float", "y");
   buffer->write_header_scalar_property("float", "z");

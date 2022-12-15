@@ -13,7 +13,7 @@
 namespace blender::io::ply {
 
 void write_header(std::unique_ptr<FileBuffer> &buffer,
-                     std::unique_ptr<PlyData> &plyData,
-                     const PLYExportParams &export_params);
+                  std::unique_ptr<PlyData> &plyData,
+                  const PLYExportParams &export_params);
 
 }  // namespace blender::io::ply
