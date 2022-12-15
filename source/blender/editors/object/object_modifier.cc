@@ -694,7 +694,8 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
                                               Object *ob_eval,
                                               ModifierData *md_eval,
                                               const bool use_virtual_modifiers,
-                                              const bool build_shapekey_layers)
+                                              const bool build_shapekey_layers,
+                                              ReportList *reports)
 {
   Mesh *me = ob_eval->runtime.data_orig ? reinterpret_cast<Mesh *>(ob_eval->runtime.data_orig) :
                                           reinterpret_cast<Mesh *>(ob_eval->data);
@@ -766,9 +767,21 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
       add_shapekey_layers(*mesh_temp, *me);
     }
 
-    result = mti->modifyMesh(md_eval, &mectx, mesh_temp);
-    if (mesh_temp != result) {
-      BKE_id_free(nullptr, mesh_temp);
+    if (mti->modifyGeometrySet) {
+      GeometrySet geometry_set = GeometrySet::create_with_mesh(mesh_temp,
+                                                               GeometryOwnershipType::Owned);
+      mti->modifyGeometrySet(md_eval, &mectx, &geometry_set);
+      if (!geometry_set.has_mesh()) {
+        BKE_report(reports, RPT_ERROR, "Evaluated geometry from modifier does not contain a mesh");
+        return nullptr;
+      }
+      result = geometry_set.get_component_for_write<MeshComponent>().release();
+    }
+    else {
+      result = mti->modifyMesh(md_eval, &mectx, mesh_temp);
+      if (mesh_temp != result) {
+        BKE_id_free(nullptr, mesh_temp);
+      }
     }
   }
 
@@ -817,7 +830,8 @@ static bool modifier_apply_shape(Main *bmain,
                                                           DEG_get_evaluated_object(depsgraph, ob),
                                                           md_eval,
                                                           true,
-                                                          false);
+                                                          false,
+                                                          reports);
     if (!mesh_applied) {
       BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
       return false;
@@ -883,9 +897,9 @@ static bool modifier_apply_obdata(
           /* It's important not to apply virtual modifiers (e.g. shape-keys) because they're kept,
            * causing them to be applied twice, see: T97758. */
           false,
-          true);
+          true,
+          reports);
       if (!mesh_applied) {
-        BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
         return false;
       }
 
