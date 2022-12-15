@@ -37,16 +37,17 @@ void load_plydata(std::unique_ptr<PlyData> &plyData, bContext *C)
     if (object->type != OB_MESH)
       continue;
 
+    // Vertices
     auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
     for (auto &&vertex : mesh->verts()) {
       plyData->vertices.append(vertex.co);
     }
 
+    // Faces
     for (auto &&poly : mesh->polys()) {
-      // TODO: This seems a bit convoluted, try optimizing
-      auto loopVector = mesh->loops().slice(poly.loopstart, poly.totloop);
+      auto loopSpan = mesh->loops().slice(poly.loopstart, poly.totloop);
       Vector<int> polyVector;
-      for (auto &&loop : loopVector) {
+      for (auto &&loop : loopSpan) {
         polyVector.append(loop.v + vertex_offset);
       }
 
