@@ -1141,10 +1141,11 @@ struct GeometryNodesLazyFunctionGraphBuilder {
             if (multi_input_link == link) {
               break;
             }
-            if (!(multi_input_link->is_muted() ||
-                  nodeIsDanglingReroute(&btree_, multi_input_link->fromnode))) {
-              link_index++;
+            if (multi_input_link->is_muted() || !multi_input_link->fromsock->is_available() ||
+                nodeIsDanglingReroute(&btree_, multi_input_link->fromnode)) {
+              continue;
             }
+            link_index++;
           }
           if (to_bsocket.owner_node().is_muted()) {
             if (link_index == 0) {
