@@ -359,7 +359,7 @@ set(SNDFILE_VERSION 1.1.0)
 set(SNDFILE_URI https://github.com/libsndfile/libsndfile/releases/download/1.1.0/libsndfile-${SNDFILE_VERSION}.tar.xz)
 set(SNDFILE_HASH e63dead2b4f0aaf323687619d007ee6a)
 set(SNDFILE_HASH_TYPE MD5)
-set(SNDFILE_FILE libsndfile-${SNDFILE_VERSION}.tar.gz)
+set(SNDFILE_FILE libsndfile-${SNDFILE_VERSION}.tar.xz)
 set(SNDFILE_CPE "cpe:2.3:a:libsndfile_project:libsndfile:${SNDFILE_VERSION}:*:*:*:*:*:*:*")
 
 set(WEBP_VERSION 1.2.2)
