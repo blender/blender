@@ -917,16 +917,47 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         int32_t x_new = xme.x_root;
         int32_t y_new = xme.y_root;
         int32_t x_accum, y_accum;
-        GHOST_Rect bounds;
 
-        /* fallback to window bounds */
-        if (window->getCursorGrabBounds(bounds) == GHOST_kFailure) {
-          window->getClientBounds(bounds);
+        /* Warp within bounds. */
+        {
+          GHOST_Rect bounds;
+          int32_t bounds_margin = 0;
+          GHOST_TAxisFlag bounds_axis = GHOST_kAxisNone;
+
+          if (window->getCursorGrabMode() == GHOST_kGrabHide) {
+            window->getClientBounds(bounds);
+
+            /* TODO(@campbellbarton): warp the cursor to `window->getCursorGrabInitPos`,
+             * on every motion event, see: D16557 (alternative fix for T102346). */
+            const int32_t subregion_div = 4; /* One quarter of the region. */
+            const int32_t size[2] = {bounds.getWidth(), bounds.getHeight()};
+            const int32_t center[2] = {
+                (bounds.m_l + bounds.m_r) / 2,
+                (bounds.m_t + bounds.m_b) / 2,
+            };
+            /* Shrink the box to prevent the cursor escaping. */
+            bounds.m_l = center[0] - (size[0] / (subregion_div * 2));
+            bounds.m_r = center[0] + (size[0] / (subregion_div * 2));
+            bounds.m_t = center[1] - (size[1] / (subregion_div * 2));
+            bounds.m_b = center[1] + (size[1] / (subregion_div * 2));
+            bounds_margin = 0;
+            bounds_axis = GHOST_TAxisFlag(GHOST_kAxisX | GHOST_kAxisY);
+          }
+          else {
+            /* Fallback to window bounds. */
+            if (window->getCursorGrabBounds(bounds) == GHOST_kFailure) {
+              window->getClientBounds(bounds);
+            }
+            /* Could also clamp to screen bounds wrap with a window outside the view will
+             * fail at the moment. Use offset of 8 in case the window is at screen bounds. */
+            bounds_margin = 8;
+            bounds_axis = window->getCursorGrabAxis();
+          }
+
+          /* Could also clamp to screen bounds wrap with a window outside the view will
+           * fail at the moment. Use inset in case the window is at screen bounds. */
+          bounds.wrapPoint(x_new, y_new, bounds_margin, bounds_axis);
         }
-
-        /* Could also clamp to screen bounds wrap with a window outside the view will
-         * fail at the moment. Use offset of 8 in case the window is at screen bounds. */
-        bounds.wrapPoint(x_new, y_new, 8, window->getCursorGrabAxis());
 
         window->getCursorGrabAccum(x_accum, y_accum);
 

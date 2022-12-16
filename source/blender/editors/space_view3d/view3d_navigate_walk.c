@@ -55,14 +55,6 @@
 
 #define USE_TABLET_SUPPORT
 
-/**
- * Use alternative behavior when cursor warp is supported
- * to prevent the cursor escaping the window bounds, see: T102346.
- *
- * \note this is not needed if cursor positioning is not supported.
- */
-#define USE_CURSOR_WARP_HACK
-
 /* -------------------------------------------------------------------- */
 /** \name Modal Key-map
  * \{ */
@@ -228,10 +220,6 @@ typedef struct WalkInfo {
   bool anim_playing;
   bool need_rotation_keyframe;
   bool need_translation_keyframe;
-
-#ifdef USE_CURSOR_WARP_HACK
-  bool need_modal_cursor_warp_hack;
-#endif
 
   /** Previous 2D mouse values. */
   int prev_mval[2];
@@ -591,10 +579,6 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
   walk->need_rotation_keyframe = false;
   walk->need_translation_keyframe = false;
 
-#ifdef USE_CURSOR_WARP_HACK
-  walk->need_modal_cursor_warp_hack = false;
-#endif
-
   walk->time_lastdraw = PIL_check_seconds_timer();
 
   walk->draw_handle_pixel = ED_region_draw_cb_activate(
@@ -610,32 +594,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
   copy_v2_v2_int(walk->init_mval, mval);
   copy_v2_v2_int(walk->prev_mval, mval);
 
-#ifdef USE_CURSOR_WARP_HACK
-  if (WM_capabilities_flag() & WM_CAPABILITY_CURSOR_WARP) {
-    const rcti *winrct = &walk->region->winrct;
-    const int center[2] = {BLI_rcti_cent_x(winrct), BLI_rcti_cent_y(winrct)};
-    const int size[2] = {BLI_rcti_size_x(winrct), BLI_rcti_size_y(winrct)};
-    const int div = 4; /* Where 2 is the region size. */
-
-    const rcti wrap_region = {
-        .xmin = center[0] - (size[0] / div),
-        .xmax = center[0] + (size[0] / div),
-        .ymin = center[1] - (size[1] / div),
-        .ymax = center[1] + (size[1] / div),
-    };
-
-    WM_cursor_grab_enable(win, WM_CURSOR_WRAP_XY, &wrap_region, false);
-
-    /* Important to hide afterwards (not part of grabbing),
-     * since enabling cursor and hiding at the same time ignores bounds. */
-    WM_cursor_modal_set(win, WM_CURSOR_NONE);
-    walk->need_modal_cursor_warp_hack = true;
-  }
-  else
-#endif /* USE_CURSOR_WARP_HACK */
-  {
-    WM_cursor_grab_enable(win, WM_CURSOR_WRAP_NONE, NULL, true);
-  }
+  WM_cursor_grab_enable(win, 0, NULL, true);
 
   return 1;
 }
@@ -685,15 +644,6 @@ static int walkEnd(bContext *C, WalkInfo *walk)
 #endif
 
   WM_cursor_grab_disable(win, NULL);
-
-#ifdef USE_CURSOR_WARP_HACK
-  if (walk->need_modal_cursor_warp_hack) {
-    WM_cursor_warp(win,
-                   walk->region->winrct.xmin + walk->init_mval[0],
-                   walk->region->winrct.ymin + walk->init_mval[1]);
-    WM_cursor_modal_restore(win);
-  }
-#endif
 
   if (walk->state == WALK_CONFIRM) {
     MEM_freeN(walk);
