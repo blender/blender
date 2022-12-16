@@ -167,15 +167,25 @@ class FunctionNode : public Node {
   const LazyFunction &function() const;
 };
 
+class DummyDebugInfo {
+ public:
+  virtual ~DummyDebugInfo() = default;
+  virtual std::string node_name() const;
+  virtual std::string input_name(const int i) const;
+  virtual std::string output_name(const int i) const;
+};
+
 /**
  * A #Node that does *not* correspond to a #LazyFunction. Instead it can be used to indicate inputs
  * and outputs of the entire graph. It can have an arbitrary number of inputs and outputs.
  */
 class DummyNode : public Node {
  private:
-  std::string name_;
+  const DummyDebugInfo *debug_info_ = nullptr;
 
   friend Node;
+  friend Socket;
+  friend Graph;
 };
 
 /**
@@ -208,7 +218,9 @@ class Graph : NonCopyable, NonMovable {
   /**
    * Add a new dummy node with the given socket types.
    */
-  DummyNode &add_dummy(Span<const CPPType *> input_types, Span<const CPPType *> output_types);
+  DummyNode &add_dummy(Span<const CPPType *> input_types,
+                       Span<const CPPType *> output_types,
+                       const DummyDebugInfo *debug_info = nullptr);
 
   /**
    * Add a link between the two given sockets.

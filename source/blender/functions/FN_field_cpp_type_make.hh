@@ -38,7 +38,7 @@ inline ValueOrFieldCPPType::ValueOrFieldCPPType(TypeTag<ValueType> /*value_type*
  * Create a new #ValueOrFieldCPPType that can be accessed through `ValueOrFieldCPPType::get<T>()`.
  */
 #define FN_FIELD_CPP_TYPE_MAKE(VALUE_TYPE) \
-  BLI_CPP_TYPE_MAKE(blender::fn::ValueOrField<VALUE_TYPE>, CPPTypeFlags::None) \
+  BLI_CPP_TYPE_MAKE(blender::fn::ValueOrField<VALUE_TYPE>, CPPTypeFlags::Printable) \
   template<> \
   const blender::fn::ValueOrFieldCPPType & \
   blender::fn::ValueOrFieldCPPType::get_impl<VALUE_TYPE>() \

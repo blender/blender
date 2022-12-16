@@ -698,6 +698,36 @@ static GMutablePointer get_socket_default_value(LinearAllocator<> &allocator,
   return {type, buffer};
 }
 
+class GroupInputDebugInfo : public lf::DummyDebugInfo {
+ public:
+  Vector<StringRef> socket_names;
+
+  std::string node_name() const override
+  {
+    return "Group Input";
+  }
+
+  std::string output_name(const int i) const override
+  {
+    return this->socket_names[i];
+  }
+};
+
+class GroupOutputDebugInfo : public lf::DummyDebugInfo {
+ public:
+  Vector<StringRef> socket_names;
+
+  std::string node_name() const
+  {
+    return "Group Output";
+  }
+
+  std::string input_name(const int i) const override
+  {
+    return this->socket_names[i];
+  }
+};
+
 /**
  * Utility class to build a lazy-function graph based on a geometry nodes tree.
  * This is mainly a separate class because it makes it easier to have variables that can be
@@ -794,15 +824,21 @@ struct GeometryNodesLazyFunctionGraphBuilder {
   void build_group_input_node()
   {
     /* Create a dummy node for the group inputs. */
-    group_input_lf_node_ = &lf_graph_->add_dummy({}, group_input_types_);
+    auto debug_info = std::make_unique<GroupInputDebugInfo>();
+    group_input_lf_node_ = &lf_graph_->add_dummy({}, group_input_types_, debug_info.get());
+
+    const bNodeSocket *interface_bsocket = static_cast<bNodeSocket *>(btree_.inputs.first);
     for (const int group_input_index : group_input_indices_) {
+      BLI_SCOPED_DEFER([&]() { interface_bsocket = interface_bsocket->next; });
       if (group_input_index == -1) {
         mapping_->group_input_sockets.append(nullptr);
       }
       else {
         mapping_->group_input_sockets.append(&group_input_lf_node_->output(group_input_index));
+        debug_info->socket_names.append(interface_bsocket->name);
       }
     }
+    lf_graph_info_->dummy_debug_infos_.append(std::move(debug_info));
   }
 
   void handle_nodes()
@@ -925,8 +961,13 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
   void handle_group_output_node(const bNode &bnode)
   {
-    lf::DummyNode &group_output_lf_node = lf_graph_->add_dummy(group_output_types_, {});
+    auto debug_info = std::make_unique<GroupOutputDebugInfo>();
+    lf::DummyNode &group_output_lf_node = lf_graph_->add_dummy(
+        group_output_types_, {}, debug_info.get());
+
+    const bNodeSocket *interface_bsocket = static_cast<bNodeSocket *>(btree_.outputs.first);
     for (const int btree_index : group_output_indices_.index_range()) {
+      BLI_SCOPED_DEFER([&]() { interface_bsocket = interface_bsocket->next; });
       const int lf_index = group_output_indices_[btree_index];
       if (lf_index == -1) {
         continue;
@@ -936,7 +977,10 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       input_socket_map_.add(&bsocket, &lf_socket);
       mapping_->dummy_socket_map.add(&bsocket, &lf_socket);
       mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+      debug_info->socket_names.append(interface_bsocket->name);
     }
+
+    lf_graph_info_->dummy_debug_infos_.append(std::move(debug_info));
   }
 
   void handle_group_node(const bNode &bnode)
