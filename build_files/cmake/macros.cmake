@@ -1209,6 +1209,43 @@ function(print_all_vars)
   endforeach()
 endfunction()
 
+# Print a list of all cached variables with values containing `contents`.
+function(print_cached_vars_containing_value
+  contents
+  msg_header
+  msg_footer
+  )
+  set(_list_info)
+  set(_found)
+  get_cmake_property(_vars VARIABLES)
+  foreach(_var ${_vars})
+    if (DEFINED CACHE{${_var}})
+      # Skip "_" prefixed variables, these are used for internal book-keeping,
+      # not under user control.
+      string(FIND "${_var}" "_" _found)
+      if(NOT (_found EQUAL 0))
+        string(FIND "${${_var}}" "${contents}" _found)
+        if(NOT (_found EQUAL -1))
+          if(_found)
+            list(APPEND _list_info "${_var}=${${_var}}")
+          endif()
+        endif()
+      endif()
+    endif()
+  endforeach()
+  unset(_var)
+  unset(_vars)
+  unset(_found)
+  if(_list_info)
+    message(${msg_header})
+    foreach(_var ${_list_info})
+      message(" * ${_var}")
+    endforeach()
+    message(${msg_footer})
+  endif()
+  unset(_list_info)
+endfunction()
+
 macro(openmp_delayload
   projectname
   )
