@@ -91,7 +91,6 @@ static bNodeLink *create_drag_link(bNode &node, bNodeSocket &sock)
     oplink->tosock = &sock;
   }
   oplink->flag |= NODE_LINK_VALID;
-  oplink->flag |= NODE_LINK_DRAGGED;
   return oplink;
 }
 
@@ -903,8 +902,6 @@ static void node_link_exit(bContext &C, wmOperator &op, const bool apply_links)
   bNodeLinkDrag *nldrag = (bNodeLinkDrag *)op.customdata;
 
   for (bNodeLink *link : nldrag->links) {
-    link->flag &= ~NODE_LINK_DRAGGED;
-
     if (apply_links && link->tosock && link->fromsock) {
       /* before actually adding the link,
        * let nodes perform special link insertion handling
@@ -1110,7 +1107,6 @@ static std::unique_ptr<bNodeLinkDrag> node_link_init(SpaceNode &snode,
           *oplink = *link;
           oplink->next = oplink->prev = nullptr;
           oplink->flag |= NODE_LINK_VALID;
-          oplink->flag |= NODE_LINK_DRAGGED;
 
           nldrag->links.append(oplink);
           nodeRemLink(snode.edittree, link);
@@ -1153,7 +1149,6 @@ static std::unique_ptr<bNodeLinkDrag> node_link_init(SpaceNode &snode,
         *oplink = *link_to_pick;
         oplink->next = oplink->prev = nullptr;
         oplink->flag |= NODE_LINK_VALID;
-        oplink->flag |= NODE_LINK_DRAGGED;
 
         nldrag->links.append(oplink);
         nodeRemLink(snode.edittree, link_to_pick);
