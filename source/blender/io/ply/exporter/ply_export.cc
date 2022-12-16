@@ -48,11 +48,11 @@ void exporter_main(Main *bmain,
                    bContext *C,
                    const PLYExportParams &export_params)
 {
-  // Load bmesh data into PlyData struct
+  // Load mesh data into PlyData struct.
   auto plyData = std::make_unique<PlyData>();
   load_plydata(*plyData, C);
 
-  // Create file, get writer
+  // Get filebuffer.
   std::unique_ptr<FileBuffer> buffer;
 
   if (export_params.ascii_format) {
@@ -62,16 +62,16 @@ void exporter_main(Main *bmain,
     buffer = std::make_unique<FileBufferBinary>(export_params.filepath);
   }
 
-  // Generate and write header
+  // Generate and write header.
   write_header(buffer, plyData, export_params);
 
-  // Generate and write vertices
+  // Generate and write vertices.
   write_vertices(buffer, plyData);
 
-  // Generate and write faces
+  // Generate and write faces.
   write_faces(buffer, plyData);
 
-  // Clean up
+  // Clean up.
   buffer->close_file();
 }
 }  // namespace blender::io::ply

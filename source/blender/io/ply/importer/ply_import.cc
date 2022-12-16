@@ -109,7 +109,7 @@ void importer_main(Main *bmain,
 
   PlyHeader header;
 
-  while (true) {  // We break when end_header is encountered
+  while (true) {  // We break when end_header is encountered.
     safe_getline(infile, line);
     header.header_size++;
     std::vector<std::string> words{};
