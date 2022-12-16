@@ -832,27 +832,22 @@ endif()
 # enable boost for cycles, audaspace or i18n
 # otherwise if the user disabled
 
-set_and_warn_dependency(WITH_BOOST WITH_CYCLES         OFF)
 set_and_warn_dependency(WITH_BOOST WITH_INTERNATIONAL  OFF)
 set_and_warn_dependency(WITH_BOOST WITH_OPENVDB        OFF)
-set_and_warn_dependency(WITH_BOOST WITH_OPENCOLORIO    OFF)
 set_and_warn_dependency(WITH_BOOST WITH_QUADRIFLOW     OFF)
 set_and_warn_dependency(WITH_BOOST WITH_USD            OFF)
-set_and_warn_dependency(WITH_BOOST WITH_ALEMBIC        OFF)
 if(WITH_CYCLES)
   set_and_warn_dependency(WITH_PUGIXML WITH_CYCLES_OSL   OFF)
 endif()
-set_and_warn_dependency(WITH_PUGIXML WITH_OPENIMAGEIO  OFF)
 
-if(WITH_BOOST AND NOT (WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_INTERNATIONAL OR
-  WITH_OPENVDB OR WITH_OPENCOLORIO OR WITH_USD OR WITH_ALEMBIC))
+if(WITH_BOOST AND NOT (WITH_INTERNATIONAL OR WITH_OPENVDB OR
+                       WITH_QUADRIFOLOW OR WITH_USD))
   message(STATUS "No dependencies need 'WITH_BOOST' forcing WITH_BOOST=OFF")
   set(WITH_BOOST OFF)
 endif()
 
 set_and_warn_dependency(WITH_TBB WITH_CYCLES            OFF)
 set_and_warn_dependency(WITH_TBB WITH_USD               OFF)
-set_and_warn_dependency(WITH_TBB WITH_OPENIMAGEDENOISE  OFF)
 set_and_warn_dependency(WITH_TBB WITH_OPENVDB           OFF)
 set_and_warn_dependency(WITH_TBB WITH_MOD_FLUID         OFF)
 
@@ -861,13 +856,9 @@ set_and_warn_dependency(WITH_OPENVDB WITH_NANOVDB       OFF)
 
 # OpenVDB and OpenColorIO uses 'half' type from OpenEXR
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_OPENVDB OFF)
-set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_OPENCOLORIO  OFF)
 
 # Haru needs `TIFFFaxBlackCodes` & `TIFFFaxWhiteCodes` symbols from TIFF.
 set_and_warn_dependency(WITH_IMAGE_TIFF WITH_HARU       OFF)
-
-# USD needs OpenSubDiv, since that is used by the Cycles Hydra render delegate.
-set_and_warn_dependency(WITH_OPENSUBDIV WITH_USD        OFF)
 
 # auto enable openimageio for cycles
 if(WITH_CYCLES)
@@ -880,17 +871,6 @@ if(WITH_CYCLES)
   endif()
 else()
   set(WITH_CYCLES_OSL OFF)
-endif()
-
-# auto enable openimageio linking dependencies
-if(WITH_OPENIMAGEIO)
-  set(WITH_IMAGE_OPENEXR ON)
-  set(WITH_IMAGE_TIFF ON)
-endif()
-
-# auto enable alembic linking dependencies
-if(WITH_ALEMBIC)
-  set(WITH_IMAGE_OPENEXR ON)
 endif()
 
 # don't store paths to libs for portable distribution

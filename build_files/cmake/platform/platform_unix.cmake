@@ -166,11 +166,9 @@ endif()
 if(WITH_IMAGE_OPENEXR)
   find_package_wrapper(OpenEXR)  # our own module
   set_and_warn_library_found("OpenEXR" OPENEXR_FOUND WITH_IMAGE_OPENEXR)
-  if(WITH_IMAGE_OPENEXR)
-    add_bundled_libraries(openexr/lib)
-    add_bundled_libraries(imath/lib)
-  endif()
 endif()
+add_bundled_libraries(openexr/lib)
+add_bundled_libraries(imath/lib)
 
 if(WITH_IMAGE_OPENJPEG)
   find_package_wrapper(OpenJPEG)
@@ -328,11 +326,8 @@ endif()
 if(WITH_OPENVDB)
   find_package(OpenVDB)
   set_and_warn_library_found("OpenVDB" OPENVDB_FOUND WITH_OPENVDB)
-
-  if(WITH_OPENVDB)
-    add_bundled_libraries(openvdb/lib)
-  endif()
 endif()
+add_bundled_libraries(openvdb/lib)
 
 if(WITH_NANOVDB)
   find_package_wrapper(NanoVDB)
@@ -351,18 +346,14 @@ endif()
 if(WITH_USD)
   find_package_wrapper(USD)
   set_and_warn_library_found("USD" USD_FOUND WITH_USD)
-  if(WITH_USD)
-    add_bundled_libraries(usd/lib)
-  endif()
 endif()
+add_bundled_libraries(usd/lib)
 
 if(WITH_MATERIALX)
   find_package_wrapper(MaterialX)
   set_and_warn_library_found("MaterialX" MaterialX_FOUND WITH_MATERIALX)
-  if(WITH_MATERIALX)
-    add_bundled_libraries(materialx/lib)
-  endif()
 endif()
+add_bundled_libraries(materialx/lib)
 
 if(WITH_BOOST)
   # uses in build instructions to override include and library variables
@@ -418,9 +409,8 @@ if(WITH_BOOST)
     find_package(IcuLinux)
     list(APPEND BOOST_LIBRARIES ${ICU_LIBRARIES})
   endif()
-
-  add_bundled_libraries(boost/lib)
 endif()
+add_bundled_libraries(boost/lib)
 
 if(WITH_PUGIXML)
   find_package_wrapper(PugiXML)
@@ -455,21 +445,16 @@ if(WITH_OPENIMAGEIO)
   endif()
 
   set_and_warn_library_found("OPENIMAGEIO" OPENIMAGEIO_FOUND WITH_OPENIMAGEIO)
-  if(WITH_OPENIMAGEIO)
-    add_bundled_libraries(openimageio/lib)
-  endif()
 endif()
+add_bundled_libraries(openimageio/lib)
 
 if(WITH_OPENCOLORIO)
   find_package_wrapper(OpenColorIO 2.0.0)
 
   set(OPENCOLORIO_DEFINITIONS)
   set_and_warn_library_found("OpenColorIO" OPENCOLORIO_FOUND WITH_OPENCOLORIO)
-
-  if(WITH_OPENCOLORIO)
-    add_bundled_libraries(opencolorio/lib)
-  endif()
 endif()
+add_bundled_libraries(opencolorio/lib)
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
@@ -510,18 +495,14 @@ if(WITH_OPENSUBDIV)
   set(OPENSUBDIV_LIBPATH)  # TODO, remove and reference the absolute path everywhere
 
   set_and_warn_library_found("OpenSubdiv" OPENSUBDIV_FOUND WITH_OPENSUBDIV)
-  if(WITH_OPENSUBDIV)
-    add_bundled_libraries(opensubdiv/lib)
-  endif()
 endif()
+add_bundled_libraries(opensubdiv/lib)
 
 if(WITH_TBB)
   find_package_wrapper(TBB)
   set_and_warn_library_found("TBB" TBB_FOUND WITH_TBB)
-  if(WITH_TBB)
-    add_bundled_libraries(tbb/lib)
-  endif()
 endif()
+add_bundled_libraries(tbb/lib)
 
 if(WITH_XR_OPENXR)
   find_package(XR_OpenXR_SDK)
@@ -1012,18 +993,6 @@ function(configure_atomic_lib_if_needed)
 endfunction()
 
 configure_atomic_lib_if_needed()
-
-# Handle library inter-dependencies.
-# FIXME: find a better place to handle inter-library dependencies.
-# This is done near the end of the file to ensure bundled libraries are not added multiple times.
-if(WITH_USD)
-  if(NOT WITH_OPENIMAGEIO)
-    add_bundled_libraries(openimageio/lib)
-  endif()
-  if(NOT WITH_OPENVDB)
-    add_bundled_libraries(openvdb/lib)
-  endif()
-endif()
 
 if(PLATFORM_BUNDLED_LIBRARIES)
   # For the installed Python module and installed Blender executable, we set the
