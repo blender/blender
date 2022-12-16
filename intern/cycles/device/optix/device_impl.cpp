@@ -866,6 +866,11 @@ bool OptiXDevice::load_osl_kernels()
       optix_assert(optixSbtRecordPackHeader(osl_groups[i], &sbt_data[NUM_PROGRAM_GROUPS + i]));
       optix_assert(optixProgramGroupGetStackSize(osl_groups[i], &osl_stack_size[i]));
     }
+    else {
+      /* Default to "__direct_callable__dummy_services", so that OSL evaluation for empty
+       * materials has direct callables to call and does not crash. */
+      optix_assert(optixSbtRecordPackHeader(osl_groups.back(), &sbt_data[NUM_PROGRAM_GROUPS + i]));
+    }
   }
   sbt_data.copy_to_device(); /* Upload updated SBT to device. */
 
