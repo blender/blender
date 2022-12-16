@@ -54,7 +54,7 @@ template<typename T> T swap_bytes(T input)
 
   if (sizeof(T) == 8) {
     // Reinterpret this data as uint64 for easy rearranging of bytes.
-    uint64_t newInput = *(int64_t *)&input;
+    uint64_t newInput = *(uint64_t *)&input;
     uint64_t output = 0;
     for (int i = 0; i < 8; i++) {
       output |= ((newInput >> i * 8) & 0xFF) << (56 - i * 8);
