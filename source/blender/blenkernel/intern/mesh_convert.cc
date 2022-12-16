@@ -26,6 +26,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_DerivedMesh.h"
 #include "BKE_curves.hh"
 #include "BKE_deform.h"
@@ -199,7 +201,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_only_span<int>(
       "material_index", ATTR_DOMAIN_FACE);
   MLoopUV *mloopuv = static_cast<MLoopUV *>(CustomData_add_layer_named(
-      &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop, "UVMap"));
+      &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop, DATA_("UVMap")));
 
   /* verts and faces */
   vertcount = 0;
