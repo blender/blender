@@ -6,7 +6,11 @@
 
 #pragma once
 
+#include <cstdio>
+
+#include "../intern/ply_data.hh"
 #include "IO_ply.h"
+#include "ply_file_buffer.hh"
 
 namespace blender::io::ply {
 
@@ -17,6 +21,7 @@ void exporter_main(bContext *C, const PLYExportParams &export_params);
 void exporter_main(Main *bmain,
                    Scene *scene,
                    ViewLayer *view_layer,
+                   bContext *C,
                    const PLYExportParams &export_params);
 
 }  // namespace blender::io::ply
