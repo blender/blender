@@ -141,6 +141,8 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   bool has_undefined_nodes_or_sockets = false;
   bNode *group_output_node = nullptr;
   Vector<bNode *> root_frames;
+  Vector<bNodeSocket *> interface_inputs;
+  Vector<bNodeSocket *> interface_outputs;
 };
 
 /**
@@ -424,6 +426,18 @@ inline const bNode *bNodeTree::group_output_node() const
 inline blender::Span<const bNode *> bNodeTree::group_input_nodes() const
 {
   return this->nodes_by_type("NodeGroupInput");
+}
+
+inline blender::Span<const bNodeSocket *> bNodeTree::interface_inputs() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return this->runtime->interface_inputs;
+}
+
+inline blender::Span<const bNodeSocket *> bNodeTree::interface_outputs() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return this->runtime->interface_outputs;
 }
 
 inline blender::Span<const bNodeSocket *> bNodeTree::all_input_sockets() const

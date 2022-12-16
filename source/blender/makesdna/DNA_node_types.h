@@ -636,6 +636,9 @@ typedef struct bNodeTree {
   const bNode *group_output_node() const;
   /** Get all input nodes of the node group. */
   blender::Span<const bNode *> group_input_nodes() const;
+  /** Inputs and outputs of the entire node group. */
+  blender::Span<const bNodeSocket *> interface_inputs() const;
+  blender::Span<const bNodeSocket *> interface_outputs() const;
 #endif
 } bNodeTree;
 

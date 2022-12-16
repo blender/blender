@@ -42,6 +42,13 @@ static void double_checked_lock_with_task_isolation(std::mutex &mutex,
   double_checked_lock(mutex, data_is_dirty, [&]() { threading::isolate_task(fn); });
 }
 
+static void update_interface_sockets(const bNodeTree &ntree)
+{
+  bNodeTreeRuntime &tree_runtime = *ntree.runtime;
+  tree_runtime.interface_inputs = ntree.inputs;
+  tree_runtime.interface_outputs = ntree.outputs;
+}
+
 static void update_node_vector(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
@@ -429,6 +436,7 @@ static void ensure_topology_cache(const bNodeTree &ntree)
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
   double_checked_lock_with_task_isolation(
       tree_runtime.topology_cache_mutex, tree_runtime.topology_cache_is_dirty, [&]() {
+        update_interface_sockets(ntree);
         update_node_vector(ntree);
         update_link_vector(ntree);
         update_socket_vectors_and_owner_node(ntree);
