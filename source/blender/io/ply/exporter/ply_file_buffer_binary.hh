@@ -42,7 +42,7 @@ class FileBufferBinary : public FileBuffer {
     write_bytes(data);
   }
 
-  void write_face(int size, Vector<int> const &vertex_indices) override
+  void write_face(int size, Vector<uint32_t> const &vertex_indices) override
   {
     std::vector<char> data;
     data.push_back((char)size);

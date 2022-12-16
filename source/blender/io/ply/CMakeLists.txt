@@ -4,6 +4,7 @@ set(INC
   .
   exporter
   importer
+  intern
   ../common
   ../../blenkernel
   ../../blenlib
@@ -28,6 +29,9 @@ set(SRC
     IO_ply.cc
     exporter/ply_export.cc
     importer/ply_import.cc
+    importer/ply_import_binary.cc
+    importer/ply_import_ascii.cc
+    importer/ply_import_mesh.cc
     exporter/ply_export_header.cc
     exporter/ply_export_data.cc
 
@@ -41,8 +45,13 @@ set(SRC
     exporter/ply_file_buffer_binary.hh
     exporter/ply_export_load_plydata.hh
     importer/ply_import.hh
+    importer/ply_import_binary.hh
+    importer/ply_import_ascii.hh
+    importer/ply_import_mesh.hh
 
     intern/ply_data.hh
+    intern/ply_functions.hh
+    intern/ply_functions.cc
 )
 
 set(LIB
@@ -54,9 +63,11 @@ blender_add_lib(bf_ply "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if (WITH_GTESTS)
   set(TEST_SRC
-          tests/io_ply_generic_test.cc
+          tests/io_ply_importer_test.cc
   )
   set(TEST_INC
+    ../../blenloader
+    ../../../../tests/gtests
   )
   set(TEST_LIB
     bf_ply
