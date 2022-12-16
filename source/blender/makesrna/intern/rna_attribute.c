@@ -677,6 +677,18 @@ static int rna_AttributeGroup_default_color_name_length(PointerRNA *ptr)
   return name ? strlen(name) : 0;
 }
 
+static void rna_AttributeGroup_default_color_name_set(PointerRNA *ptr, const char *value)
+{
+  ID *id = ptr->owner_id;
+  if (GS(id->name) == ID_ME) {
+    Mesh *mesh = (Mesh *)id;
+    MEM_SAFE_FREE(mesh->default_color_attribute);
+    if (value[0]) {
+      mesh->default_color_attribute = BLI_strdup(value);
+    }
+  }
+}
+
 static void rna_AttributeGroup_active_color_name_get(PointerRNA *ptr, char *value)
 {
   const ID *id = ptr->owner_id;
@@ -693,6 +705,18 @@ static int rna_AttributeGroup_active_color_name_length(PointerRNA *ptr)
   const ID *id = ptr->owner_id;
   const char *name = BKE_id_attributes_active_color_name(id);
   return name ? strlen(name) : 0;
+}
+
+static void rna_AttributeGroup_active_color_name_set(PointerRNA *ptr, const char *value)
+{
+  ID *id = ptr->owner_id;
+  if (GS(id->name) == ID_ME) {
+    Mesh *mesh = (Mesh *)id;
+    MEM_SAFE_FREE(mesh->default_color_attribute);
+    if (value[0]) {
+      mesh->default_color_attribute = BLI_strdup(value);
+    }
+  }
 }
 
 #else
@@ -1156,24 +1180,22 @@ static void rna_def_attribute_group(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_AttributeGroup_update_active_color");
 
   prop = RNA_def_property(srna, "default_color_name", PROP_STRING, PROP_NONE);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME);
   RNA_def_property_string_funcs(prop,
                                 "rna_AttributeGroup_default_color_name_get",
                                 "rna_AttributeGroup_default_color_name_length",
-                                NULL);
+                                "rna_AttributeGroup_default_color_name_set");
   RNA_def_property_ui_text(
       prop,
       "Default Color Attribute",
       "The name of the default color attribute used as a fallback for rendering");
 
   prop = RNA_def_property(srna, "active_color_name", PROP_STRING, PROP_NONE);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME);
   RNA_def_property_string_funcs(prop,
                                 "rna_AttributeGroup_active_color_name_get",
                                 "rna_AttributeGroup_active_color_name_length",
-                                NULL);
+                                "rna_AttributeGroup_active_color_name_set");
   RNA_def_property_ui_text(prop,
                            "Active Color Attribute",
                            "The name of the active color attribute for display and editing");
