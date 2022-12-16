@@ -47,8 +47,90 @@ class TestBlendFileSaveLoadBasic(TestHelper):
         assert orig_data == read_data
 
 
+# NOTE: Technically this should rather be in `bl_id_management.py` test, but that file uses `unittest` module,
+#       which makes mixing it with tests system used here and passing extra parameters complicated.
+#       Since the main effect of 'RUNTIME' ID tag is on file save, it can as well be here for now.
+class TestIdRuntimeTag(TestHelper):
+
+    def __init__(self, args):
+        self.args = args
+
+    def unique_blendfile_name(self, base_name):
+        return base_name + self.__class__.__name__ + ".blend"
+
+    def test_basics(self):
+        output_dir = self.args.output_dir
+        self.ensure_path(output_dir)
+        bpy.ops.wm.read_homefile(use_empty=False, use_factory_startup=True)
+
+        obj = bpy.data.objects['Cube']
+        assert obj.is_runtime_data == False
+        assert bpy.context.view_layer.depsgraph.ids['Cube'].is_runtime_data == True
+
+        output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile"))
+        bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
+
+        bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
+        obj = bpy.data.objects['Cube']
+        assert obj.is_runtime_data == False
+
+        obj.is_runtime_data = True
+        assert obj.is_runtime_data == True
+
+        bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
+        bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
+
+        assert 'Cube' not in bpy.data.objects
+        mesh = bpy.data.meshes['Cube']
+        assert mesh.is_runtime_data == False
+        assert mesh.users == 0
+
+    def test_linking(self):
+        output_dir = self.args.output_dir
+        self.ensure_path(output_dir)
+        bpy.ops.wm.read_homefile(use_empty=False, use_factory_startup=True)
+
+        material = bpy.data.materials.new("LibMaterial")
+        material.use_fake_user = True
+
+        output_lib_path = os.path.join(output_dir, self.unique_blendfile_name("blendlib_runtimetag_basic"))
+        bpy.ops.wm.save_as_mainfile(filepath=output_lib_path, check_existing=False, compress=False)
+
+        bpy.ops.wm.read_homefile(use_empty=False, use_factory_startup=True)
+
+        obj = bpy.data.objects['Cube']
+        assert obj.is_runtime_data == False
+        obj.is_runtime_data = True
+
+        link_dir = os.path.join(output_lib_path, "Material")
+        bpy.ops.wm.link(directory=link_dir, filename="LibMaterial")
+
+        linked_material = bpy.data.materials['LibMaterial']
+        assert linked_material.is_library_indirect == False
+
+        obj.material_slots[0].link = 'OBJECT'
+        obj.material_slots[0].material = linked_material
+
+        output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile"))
+        bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
+
+        # Only usage of this linked material is a runtime ID (object),
+        # so writing .blend file will have properly reset its tag to indirectly linked data.
+        assert linked_material.is_library_indirect == True
+
+        bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
+
+        assert 'Cube' not in bpy.data.objects
+        assert 'LibMaterial' not in bpy.data.materials
+        mesh = bpy.data.meshes['Cube']
+        assert mesh.is_runtime_data == False
+        assert mesh.users == 0
+
+
 TESTS = (
     TestBlendFileSaveLoadBasic,
+
+    TestIdRuntimeTag,
 )
 
 

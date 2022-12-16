@@ -2020,7 +2020,14 @@ static void direct_link_id_common(
     /* When actually reading a file, we do want to reset/re-generate session UUIDS.
      * In undo case, we want to re-use existing ones. */
     id->session_uuid = MAIN_ID_SESSION_UUID_UNSET;
+
+    /* Runtime IDs should never be written in .blend files (except memfiles from undo). */
+    BLI_assert((id->tag & LIB_TAG_RUNTIME) == 0);
   }
+
+  /* No-main and other types of special IDs should never be written in .blend files. */
+  BLI_assert((id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) ==
+             0);
 
   if ((tag & LIB_TAG_TEMP_MAIN) == 0) {
     BKE_lib_libblock_session_uuid_ensure(id);
