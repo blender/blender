@@ -33,7 +33,7 @@ static void set_computed_position_and_offset(GeometryComponent &component,
 
   if (in_positions.is_same(positions_read_only)) {
     if (const std::optional<float3> offset = in_offsets.get_if_single()) {
-      if (math::is_zero(offset.value())) {
+      if (math::is_zero(*offset)) {
         return;
       }
     }
