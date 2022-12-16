@@ -17,19 +17,6 @@ else()
   set(SNDFILE_OPTIONS --enable-static --disable-shared )
 endif()
 
-if(UNIX AND NOT APPLE)
-  # NOTE(@campbellbarton): For some reason OPUS is alone in referencing the sub-directory,
-  # manipulate the package-config file to prevent this from happening.
-  # There is no problem with applying this change multiple times.
-  #
-  # Replace: Cflags: -I${includedir}/opus
-  # With:    Cflags: -I${includedir}
-  set(SNDFILE_ENV
-    sed -i s/{includedir}\\/opus/{includedir}/g ${LIBDIR}/opus/lib/pkgconfig/opus.pc &&
-    ${SNDFILE_ENV}
-  )
-endif()
-
 ExternalProject_Add(external_sndfile
   URL file://${PACKAGE_DIR}/${SNDFILE_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
