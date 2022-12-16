@@ -106,8 +106,8 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
         float2 uv_first = mloopuv ? float2(mloopuv->uv) : float2(0, 0);
         EXPECT_V2_NEAR(uv_first, exp.uv_first, 0.0001f); */
 
-        // Check if expected mesh has vertex colours, and tests if it matches
-        // Currently we don't support vertex colours yet.
+        // Check if expected mesh has vertex colors, and tests if it matches
+        // Currently we don't support vertex colors yet.
         /* if (exp.color_first.x >= 0) {
           const float4 *colors = (const float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
           EXPECT_TRUE(colors != nullptr);

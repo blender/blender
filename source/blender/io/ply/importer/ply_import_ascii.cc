@@ -65,7 +65,7 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
 
     data.vertices.append(vertex3);
 
-    // Vertex colours
+    // Vertex colors
     if (hasColor) {
       float4 colors4;
       colors4.x = std::stof(value_arr.at(colorpos.x)) / 255.0f;
