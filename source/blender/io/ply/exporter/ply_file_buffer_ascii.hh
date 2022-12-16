@@ -33,11 +33,11 @@ class FileBufferAscii : public FileBuffer {
     write_fstring("{} {} {}\n", x, y, z);
   }
 
-  void write_face(int count, Vector<int> const &vertices) override
+  void write_face(int count, Vector<int> const &vertex_indices) override
   {
     write_fstring("{}", count);
 
-    for (auto &&v : vertices) {
+    for (auto &&v : vertex_indices) {
       write_fstring(" {}", v);
     }
     write_newline();
