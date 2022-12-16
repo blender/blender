@@ -1,7 +1,5 @@
 #ifndef BLENDER_PLY_IMPORT_ASCII_HH
-#  define BLENDER_PLY_IMPORT_ASCII_HH
-
-
+#define BLENDER_PLY_IMPORT_ASCII_HH
 
 #include "BKE_mesh.h"
 #include "DNA_mesh_types.h"
