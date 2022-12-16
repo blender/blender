@@ -44,7 +44,6 @@ struct AssetItemTree;
 struct bNodeLinkDrag {
   /** Links dragged by the operator. */
   Vector<bNodeLink *> links;
-  bool from_multi_input_socket;
   eNodeSocketInOut in_out;
 
   /** Draw handler for the "+" icon when dragging a link in empty space. */

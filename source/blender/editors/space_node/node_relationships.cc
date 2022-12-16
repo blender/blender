@@ -98,7 +98,6 @@ static void pick_link(
     wmOperator &op, bNodeLinkDrag &nldrag, SpaceNode &snode, bNode *node, bNodeLink &link_to_pick)
 {
   clear_picking_highlight(&snode.edittree->links);
-  RNA_boolean_set(op.ptr, "has_link_picked", true);
 
   bNodeLink *link = create_drag_link(*link_to_pick.fromnode, *link_to_pick.fromsock);
 
@@ -1032,7 +1031,7 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   switch (event->type) {
     case MOUSEMOVE:
-      if (nldrag->from_multi_input_socket && !RNA_boolean_get(op->ptr, "has_link_picked")) {
+      if (nldrag->start_socket->is_multi_input() && nldrag->links.is_empty()) {
         pick_input_link_by_link_intersect(*C, *op, *nldrag, cursor);
       }
       else {
@@ -1137,14 +1136,11 @@ static std::unique_ptr<bNodeLinkDrag> node_link_init(SpaceNode &snode,
       bNodeLink *link_to_pick;
       LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &snode.edittree->links) {
         if (link->tosock == sock) {
-          if (sock->flag & SOCK_MULTI_INPUT) {
-            nldrag->from_multi_input_socket = true;
-          }
           link_to_pick = link;
         }
       }
 
-      if (link_to_pick != nullptr && !nldrag->from_multi_input_socket) {
+      if (link_to_pick != nullptr && !nldrag->start_socket->is_multi_input()) {
         bNodeLink *oplink = MEM_cnew<bNodeLink>("drag link op link");
         *oplink = *link_to_pick;
         oplink->next = oplink->prev = nullptr;
@@ -1185,7 +1181,6 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   float2 cursor;
   UI_view2d_region_to_view(&region.v2d, mval[0], mval[1], &cursor[0], &cursor[1]);
   RNA_float_set_array(op->ptr, "drag_start", cursor);
-  RNA_boolean_set(op->ptr, "has_link_picked", false);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), &bmain);
 
@@ -1241,14 +1236,6 @@ void NODE_OT_link(wmOperatorType *ot)
   PropertyRNA *prop;
 
   RNA_def_boolean(ot->srna, "detach", false, "Detach", "Detach and redirect existing links");
-  prop = RNA_def_boolean(
-      ot->srna,
-      "has_link_picked",
-      false,
-      "Has Link Picked",
-      "The operation has placed a link. Only used for multi-input sockets, where the "
-      "link is picked later");
-  RNA_def_property_flag(prop, PROP_HIDDEN);
   RNA_def_float_array(ot->srna,
                       "drag_start",
                       2,
