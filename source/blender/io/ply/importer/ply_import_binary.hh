@@ -15,7 +15,7 @@ namespace blender::io::ply {
 Mesh *import_ply_binary(std::ifstream &file, const PlyHeader *header, Mesh *mesh);
 
 /**
- * Loads the information from the PLY file in Big_Endian format to the PlyData datastructure.
+ * Loads the information from the PLY file in binary format to the PlyData datastructure.
  * @param file The PLY file that was opened.
  * @param header The information in the PLY header.
  * @return The PlyData datastructure that can be used for conversion to a Mesh.
