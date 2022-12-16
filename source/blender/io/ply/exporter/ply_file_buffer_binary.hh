@@ -48,7 +48,7 @@ class FileBufferBinary : public FileBuffer {
     data.push_back((char)size);
     for (auto &&vertexIndex : vertices) {
       uint32_t x = vertexIndex;
-      char *vtxbits = static_cast<char *>(static_cast<void *>(&x));
+      auto *vtxbits = static_cast<char *>(static_cast<void *>(&x));
       data.insert(data.end(), vtxbits, vtxbits + sizeof(uint32_t));
     }
 

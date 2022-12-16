@@ -20,7 +20,7 @@
 
 namespace blender::io::ply {
 
-void load_plydata(const std::unique_ptr<PlyData> &plyData, const bContext *C)
+void load_plydata(PlyData &plyData, const bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -40,7 +40,7 @@ void load_plydata(const std::unique_ptr<PlyData> &plyData, const bContext *C)
     // Vertices
     auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
     for (auto &&vertex : mesh->verts()) {
-      plyData->vertices.append(vertex.co);
+      plyData.vertices.append(vertex.co);
     }
 
     // Faces
@@ -51,10 +51,10 @@ void load_plydata(const std::unique_ptr<PlyData> &plyData, const bContext *C)
         polyVector.append(loop.v + vertex_offset);
       }
 
-      plyData->faces.append(polyVector);
+      plyData.faces.append(polyVector);
     }
 
-    vertex_offset = plyData->vertices.size();
+    vertex_offset = (int)plyData.vertices.size();
   }
 
   DEG_OBJECT_ITER_END;

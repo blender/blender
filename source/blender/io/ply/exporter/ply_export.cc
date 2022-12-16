@@ -50,7 +50,7 @@ void exporter_main(Main *bmain,
 {
   // Load bmesh data into PlyData struct
   auto plyData = std::make_unique<PlyData>();
-  load_plydata(plyData, C);
+  load_plydata(*plyData, C);
 
   // Create file, get writer
   std::unique_ptr<FileBuffer> buffer;
