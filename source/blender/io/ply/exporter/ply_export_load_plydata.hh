@@ -31,7 +31,7 @@ void load_plydata(PlyData &plyData, const bContext *C)
                             DEG_ITER_OBJECT_FLAG_DUPLI;
 
   // When exporting multiple objects, vertex indices have to be offset.
-  int vertex_offset = 0;
+  uint32_t vertex_offset = 0;
 
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
     if (object->type != OB_MESH)
@@ -46,9 +46,9 @@ void load_plydata(PlyData &plyData, const bContext *C)
     // Faces
     for (auto &&poly : mesh->polys()) {
       auto loopSpan = mesh->loops().slice(poly.loopstart, poly.totloop);
-      Vector<int> polyVector;
+      Vector<uint32_t> polyVector;
       for (auto &&loop : loopSpan) {
-        polyVector.append(loop.v + vertex_offset);
+        polyVector.append(uint32_t(loop.v + vertex_offset));
       }
 
       plyData.faces.append(polyVector);
