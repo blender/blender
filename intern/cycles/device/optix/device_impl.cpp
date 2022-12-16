@@ -579,7 +579,11 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   link_options.maxTraceDepth = 1;
   link_options.debugLevel = module_options.debugLevel;
 
-  if (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE) && !use_osl) {
+  if (use_osl) {
+    /* Re-create OSL pipeline in case kernels are reloaded after it has been created before. */
+    load_osl_kernels();
+  }
+  else if (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) {
     /* Create shader raytracing and MNEE pipeline. */
     vector<OptixProgramGroup> pipeline_groups;
     pipeline_groups.reserve(NUM_PROGRAM_GROUPS);
@@ -741,6 +745,11 @@ bool OptiXDevice::load_osl_kernels()
       optixProgramGroupDestroy(group);
       group = NULL;
     }
+  }
+
+  if (osl_kernels.empty()) {
+    /* No OSL shader groups, so no need to create a pipeline. */
+    return true;
   }
 
   OptixProgramGroupOptions group_options = {}; /* There are no options currently. */
