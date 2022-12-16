@@ -1013,6 +1013,18 @@ endfunction()
 
 configure_atomic_lib_if_needed()
 
+# Handle library inter-dependencies.
+# FIXME: find a better place to handle inter-library dependencies.
+# This is done near the end of the file to ensure bundled libraries are not added multiple times.
+if(WITH_USD)
+  if(NOT WITH_OPENIMAGEIO)
+    add_bundled_libraries(openimageio/lib)
+  endif()
+  if(NOT WITH_OPENVDB)
+    add_bundled_libraries(openvdb/lib)
+  endif()
+endif()
+
 if(PLATFORM_BUNDLED_LIBRARIES)
   # For the installed Python module and installed Blender executable, we set the
   # rpath to the relative path where the install step will copy the shared libraries.
