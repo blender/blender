@@ -1104,7 +1104,6 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
   return mesh_in_bmain;
 }
 
-
 static KeyBlock *keyblock_ensure_from_uid(Key &key, const int uid, const StringRefNull name)
 {
   if (KeyBlock *kb = BKE_keyblock_find_uid(&key, uid)) {
