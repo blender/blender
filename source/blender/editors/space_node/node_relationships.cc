@@ -894,48 +894,60 @@ static void node_remove_extra_links(SpaceNode &snode, bNodeLink &link)
   }
 }
 
-static void node_link_exit(bContext &C, wmOperator &op, const bool apply_links)
+static void add_dragged_links_to_tree(bContext &C, bNodeLinkDrag &nldrag)
 {
   Main *bmain = CTX_data_main(&C);
   ARegion &region = *CTX_wm_region(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   bNodeTree &ntree = *snode.edittree;
-  bNodeLinkDrag *nldrag = (bNodeLinkDrag *)op.customdata;
 
-  for (bNodeLink *link : nldrag->links) {
-    if (apply_links && link->tosock && link->fromsock) {
-      /* before actually adding the link,
-       * let nodes perform special link insertion handling
-       */
-      if (link->fromnode->typeinfo->insert_link) {
-        link->fromnode->typeinfo->insert_link(&ntree, link->fromnode, link);
-      }
-      if (link->tonode->typeinfo->insert_link) {
-        link->tonode->typeinfo->insert_link(&ntree, link->tonode, link);
-      }
-
-      /* add link to the node tree */
-      BLI_addtail(&ntree.links, link);
-      BKE_ntree_update_tag_link_added(&ntree, link);
-
-      /* we might need to remove a link */
-      node_remove_extra_links(snode, *link);
+  for (bNodeLink *link : nldrag.links) {
+    if (!link->tosock || !link->fromsock) {
+      MEM_freeN(link);
+      continue;
     }
-    else {
-      nodeRemLink(&ntree, link);
+
+    /* before actually adding the link,
+     * let nodes perform special link insertion handling
+     */
+    if (link->fromnode->typeinfo->insert_link) {
+      link->fromnode->typeinfo->insert_link(&ntree, link->fromnode, link);
     }
+    if (link->tonode->typeinfo->insert_link) {
+      link->tonode->typeinfo->insert_link(&ntree, link->tonode, link);
+    }
+
+    /* add link to the node tree */
+    BLI_addtail(&ntree.links, link);
+    BKE_ntree_update_tag_link_added(&ntree, link);
+
+    /* we might need to remove a link */
+    node_remove_extra_links(snode, *link);
   }
 
   ED_node_tree_propagate_change(&C, bmain, &ntree);
 
   /* Ensure drag-link tool-tip is disabled. */
-  draw_draglink_tooltip_deactivate(*CTX_wm_region(&C), *nldrag);
+  draw_draglink_tooltip_deactivate(region, nldrag);
 
   ED_workspace_status_text(&C, nullptr);
   ED_region_tag_redraw(&region);
   clear_picking_highlight(&snode.edittree->links);
 
   snode.runtime->linkdrag.reset();
+}
+
+static void node_link_cancel(bContext *C, wmOperator *op)
+{
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNodeLinkDrag *nldrag = (bNodeLinkDrag *)op->customdata;
+  draw_draglink_tooltip_deactivate(*CTX_wm_region(C), *nldrag);
+  UI_view2d_edge_pan_cancel(C, &nldrag->pan_data);
+  for (bNodeLink *link : nldrag->links) {
+    MEM_freeN(link);
+  }
+  snode->runtime->linkdrag.reset();
+  clear_picking_highlight(&snode->edittree->links);
 }
 
 static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cursor)
@@ -1061,22 +1073,21 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
         }
 
-        /* Finish link. */
-        node_link_exit(*C, *op, true);
+        add_dragged_links_to_tree(*C, *nldrag);
         return OPERATOR_FINISHED;
       }
       break;
     case RIGHTMOUSE:
     case MIDDLEMOUSE: {
       if (event->val == KM_RELEASE) {
-        node_link_exit(*C, *op, true);
-        return OPERATOR_FINISHED;
+        node_link_cancel(C, op);
+        return OPERATOR_CANCELLED;
       }
       break;
     }
     case EVT_ESCKEY: {
-      node_link_exit(*C, *op, true);
-      return OPERATOR_FINISHED;
+      node_link_cancel(C, op);
+      return OPERATOR_CANCELLED;
     }
   }
 
@@ -1199,18 +1210,6 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   WM_event_add_modal_handler(C, op);
 
   return OPERATOR_RUNNING_MODAL;
-}
-
-static void node_link_cancel(bContext *C, wmOperator *op)
-{
-  SpaceNode *snode = CTX_wm_space_node(C);
-  bNodeLinkDrag *nldrag = (bNodeLinkDrag *)op->customdata;
-
-  UI_view2d_edge_pan_cancel(C, &nldrag->pan_data);
-
-  snode->runtime->linkdrag.reset();
-
-  clear_picking_highlight(&snode->edittree->links);
 }
 
 void NODE_OT_link(wmOperatorType *ot)
