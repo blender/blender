@@ -317,7 +317,6 @@ static void filelist_readjob_main_assets(FileListReadJob *job_params,
 
 /* helper, could probably go in BKE actually? */
 static int groupname_to_code(const char *group);
-static uint64_t groupname_to_filter_id(const char *group);
 
 static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size);
 static bool filelist_intern_entry_is_main_file(const FileListInternEntry *intern_entry);
@@ -745,7 +744,7 @@ static bool is_filtered_file(FileListInternEntry *file,
 }
 
 static bool is_filtered_id_file_type(const FileListInternEntry *file,
-                                     const char *id_group,
+                                     const short id_code,
                                      const char *name,
                                      const FileListFilter *filter)
 {
@@ -755,12 +754,12 @@ static bool is_filtered_id_file_type(const FileListInternEntry *file,
 
   /* We only check for types if some type are enabled in filtering. */
   if ((filter->filter || filter->filter_id) && (filter->flags & FLF_DO_FILTER)) {
-    if (id_group) {
+    if (id_code) {
       if (!name && (filter->flags & FLF_HIDE_LIB_DIR)) {
         return false;
       }
 
-      uint64_t filter_id = groupname_to_filter_id(id_group);
+      const uint64_t filter_id = BKE_idtype_idcode_to_idfilter(id_code);
       if (!(filter_id & filter->filter_id)) {
         return false;
       }
@@ -843,15 +842,11 @@ static bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
 }
 
 static bool is_filtered_lib_type(FileListInternEntry *file,
-                                 const char *root,
+                                 const char * /*root*/,
                                  FileListFilter *filter)
 {
-  char path[FILE_MAX_LIBEXTRA], dir[FILE_MAX_LIBEXTRA], *group, *name;
-
-  BLI_path_join(path, sizeof(path), root, file->relpath);
-
-  if (BLO_library_path_explode(path, dir, &group, &name)) {
-    return is_filtered_id_file_type(file, group, name, filter);
+  if (file->typeflag & FILE_TYPE_BLENDERLIB) {
+    return is_filtered_id_file_type(file, file->blentype, file->name, filter);
   }
   return is_filtered_file_type(file, filter);
 }
@@ -873,7 +868,7 @@ static bool is_filtered_main_assets(FileListInternEntry *file,
                                     FileListFilter *filter)
 {
   /* "Filtered" means *not* being filtered out... So return true if the file should be visible. */
-  return is_filtered_id_file_type(file, file->relpath, file->name, filter) &&
+  return is_filtered_id_file_type(file, file->blentype, file->name, filter) &&
          is_filtered_asset(file, filter);
 }
 
@@ -2857,13 +2852,6 @@ static int groupname_to_code(const char *group)
   }
 
   return buf[0] ? BKE_idtype_idcode_from_name(buf) : 0;
-}
-
-static uint64_t groupname_to_filter_id(const char *group)
-{
-  int id_code = groupname_to_code(group);
-
-  return BKE_idtype_idcode_to_idfilter(id_code);
 }
 
 /**
