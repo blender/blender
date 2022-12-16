@@ -1400,6 +1400,11 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
 
 static void paint_update_mouse_cursor(PaintCursorContext *pcontext)
 {
+  if (pcontext->win->grabcursor != 0) {
+    /* Don't set the cursor while it's grabbed, since this will show the cursor when interacting
+     * with the UI (dragging a number button for e.g.), see: T102792. */
+    return;
+  }
   WM_cursor_set(pcontext->win, WM_CURSOR_PAINT);
 }
 
