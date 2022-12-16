@@ -953,30 +953,30 @@ elseif(WIN32)
   endif()
 
   if(WITH_OPENVDB)
-      windows_install_shared_manifest(
-        FILES ${LIBDIR}/openvdb/bin/openvdb.dll
-        RELEASE
-      )
-      windows_install_shared_manifest(
-        FILES ${LIBDIR}/openvdb/bin/openvdb_d.dll
-        DEBUG
-      )
+    windows_install_shared_manifest(
+      FILES ${LIBDIR}/openvdb/bin/openvdb.dll
+      RELEASE
+    )
+    windows_install_shared_manifest(
+      FILES ${LIBDIR}/openvdb/bin/openvdb_d.dll
+      DEBUG
+    )
 
-      # This will not exist for 3.4 and earlier lib folders
-      # to ease the transition, support both 3.4 and 3.5 lib
-      # folders.
-      if(EXISTS ${LIBDIR}/openvdb/python/pyopenvdb_d.pyd)
-        install(
-          FILES ${LIBDIR}/openvdb/python/pyopenvdb_d.pyd
-          DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
-          CONFIGURATIONS Debug
-        )
-        install(
-          FILES ${LIBDIR}/openvdb/python/pyopenvdb.pyd
-          DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
-          CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-        )
-      endif()
+    # This will not exist for 3.4 and earlier lib folders
+    # to ease the transition, support both 3.4 and 3.5 lib
+    # folders.
+    if(EXISTS ${LIBDIR}/openvdb/python/pyopenvdb_d.pyd)
+      install(
+        FILES ${LIBDIR}/openvdb/python/pyopenvdb_d.pyd
+        DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+        CONFIGURATIONS Debug
+      )
+      install(
+        FILES ${LIBDIR}/openvdb/python/pyopenvdb.pyd
+        DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
+        CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+      )
+    endif()
   endif()
 
   if(WITH_MATERIALX)
@@ -1137,22 +1137,22 @@ elseif(WIN32)
         # MaterialX python bindings
 
         install(
-            DIRECTORY ${LIBDIR}/materialx/python/Release/MaterialX
-            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
-            CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-            PATTERN ".svn" EXCLUDE
-            PATTERN "__pycache__" EXCLUDE           # * any cache *
-            PATTERN "*.pyc" EXCLUDE                 # * any cache *
-            PATTERN "*.pyo" EXCLUDE                 # * any cache *
+          DIRECTORY ${LIBDIR}/materialx/python/Release/MaterialX
+          DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
+          CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+          PATTERN ".svn" EXCLUDE
+          PATTERN "__pycache__" EXCLUDE           # * any cache *
+          PATTERN "*.pyc" EXCLUDE                 # * any cache *
+          PATTERN "*.pyo" EXCLUDE                 # * any cache *
         )
         install(
-            DIRECTORY ${LIBDIR}/materialx/python/Debug/MaterialX
-            DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
-            CONFIGURATIONS Debug
-            PATTERN ".svn" EXCLUDE
-            PATTERN "__pycache__" EXCLUDE           # * any cache *
-            PATTERN "*.pyc" EXCLUDE                 # * any cache *
-            PATTERN "*.pyo" EXCLUDE                 # * any cache *
+          DIRECTORY ${LIBDIR}/materialx/python/Debug/MaterialX
+          DESTINATION ${TARGETDIR_VER}/python/lib/site-packages/
+          CONFIGURATIONS Debug
+          PATTERN ".svn" EXCLUDE
+          PATTERN "__pycache__" EXCLUDE           # * any cache *
+          PATTERN "*.pyc" EXCLUDE                 # * any cache *
+          PATTERN "*.pyo" EXCLUDE                 # * any cache *
         )
       endif()
 

@@ -1371,13 +1371,13 @@ macro(windows_generate_shared_manifest)
     NAME "blender.shared"
   )
   install(
-      FILES ${CMAKE_BINARY_DIR}/Release/blender.shared.manifest
-      DESTINATION "./blender.shared"
-      CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+    FILES ${CMAKE_BINARY_DIR}/Release/blender.shared.manifest
+    DESTINATION "./blender.shared"
+    CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
   )
   install(
-      FILES ${CMAKE_BINARY_DIR}/Debug/blender.shared.manifest
-      DESTINATION "./blender.shared"
-      CONFIGURATIONS Debug
+    FILES ${CMAKE_BINARY_DIR}/Debug/blender.shared.manifest
+    DESTINATION "./blender.shared"
+    CONFIGURATIONS Debug
   )
 endmacro()
