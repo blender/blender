@@ -30,7 +30,7 @@ void load_plydata(PlyData &plyData, const bContext *C)
                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
                             DEG_ITER_OBJECT_FLAG_DUPLI;
 
-  // When exporting multiple objects, vertex indices have to be offset
+  // When exporting multiple objects, vertex indices have to be offset.
   int vertex_offset = 0;
 
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
