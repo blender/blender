@@ -95,9 +95,14 @@ static void constrain_scale_to_boundary(const float numerator,
                                         const float denominator,
                                         float *scale)
 {
-  if (denominator == 0.0f) {
-    /* The origin of the scale is on the edge of the boundary. */
-    if (numerator < 0.0f) {
+  /* It's possible the numerator or denominator can be very close to zero due to so-called
+   * "catastrophic cancellation". See T102923 for an example. We use epsilon tests here to
+   * distinguish between genuine negative coordinates versus coordinates that should be rounded off
+   * to zero. */
+  const float epsilon = 0.25f / 65536.0f; /* i.e. Quarter of a texel on a 65536 x 65536 texture. */
+  if (fabsf(denominator) < epsilon) {
+    /* The origin of the scale is very near the edge of the boundary. */
+    if (numerator < -epsilon) {
       /* Negative scale will wrap around and put us outside the boundary. */
       *scale = 0.0f; /* Hold at the boundary instead. */
     }
