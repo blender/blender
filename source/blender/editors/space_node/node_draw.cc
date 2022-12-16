@@ -833,10 +833,13 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
 
   const CPPType &socket_type = *socket.typeinfo->base_cpp_type;
   const bke::DataTypeConversions &convert = bke::get_implicit_type_conversions();
-  if (!convert.is_convertible(value_type, socket_type)) {
-    return;
+  if (value_type != socket_type) {
+    if (!convert.is_convertible(value_type, socket_type)) {
+      return;
+    }
   }
   BUFFER_FOR_CPP_TYPE_VALUE(socket_type, socket_value);
+  /* This will just copy the value if the types are equal. */
   convert.convert_to_uninitialized(value_type, socket_type, buffer, socket_value);
   BLI_SCOPED_DEFER([&]() { socket_type.destruct(socket_value); });
 
