@@ -17,6 +17,7 @@ set(INC
   ../../nodes
   ../../windowmanager
   ../../../../extern/fast_float
+  ../../../../extern/fmtlib/include
   ../../../../intern/guardedalloc
 )
 
@@ -31,9 +32,18 @@ set(SRC
     importer/ply_import_binary.cc
     importer/ply_import_ascii.cc
     importer/ply_import_mesh.cc
+    exporter/ply_export_header.cc
+    exporter/ply_export_data.cc
+
+
 
     IO_ply.h
     exporter/ply_export.hh
+    exporter/ply_export_header.hh
+    exporter/ply_export_data.hh
+    exporter/ply_file_buffer_ascii.hh
+    exporter/ply_file_buffer_binary.hh
+    exporter/ply_export_load_plydata.hh
     importer/ply_import.hh
     importer/ply_import_binary.hh
     importer/ply_import_ascii.hh
