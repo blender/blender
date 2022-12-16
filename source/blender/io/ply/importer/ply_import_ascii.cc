@@ -19,17 +19,17 @@ Mesh *import_ply_ascii(std::ifstream &file, PlyHeader *header, Mesh *mesh)
 PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
 {
   PlyData data;
-  // check if header contains alpha
+  // Check if header contains alpha.
   std::pair<std::string, PlyDataTypes> alpha = {"alpha", PlyDataTypes::UCHAR};
   bool hasAlpha = std::find(header->properties.begin(), header->properties.end(), alpha) !=
                   header->properties.end();
 
-  // check if header contains colours
+  // Check if header contains colors.
   std::pair<std::string, PlyDataTypes> red = {"red", PlyDataTypes::UCHAR};
   bool hasColor = std::find(header->properties.begin(), header->properties.end(), red) !=
                   header->properties.end();
 
-  // check if header contains normals
+  // Check if header contains normals.
   std::pair<std::string, PlyDataTypes> normalx = {"nx", PlyDataTypes::FLOAT};
   bool hasNormals = std::find(header->properties.begin(), header->properties.end(), normalx) !=
                     header->properties.end();
@@ -44,7 +44,7 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
   }
 
   if (hasColor) {
-    // x=red,y=green,z=blue
+    // x=red, y=green, z=blue
     colorpos = get_color_pos(header);
   }
 
@@ -57,7 +57,7 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
     safe_getline(file, line);
     std::vector<std::string> value_arr = explode(line, ' ');
 
-    // vertex coords
+    // Vertex coords
     float3 vertex3;
     vertex3.x = std::stof(value_arr.at(vertexpos.x));
     vertex3.y = std::stof(value_arr.at(vertexpos.y));
@@ -65,7 +65,7 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
 
     data.vertices.append(vertex3);
 
-    // vertex colours
+    // Vertex colours
     if (hasColor) {
       float4 colors4;
       colors4.x = std::stof(value_arr.at(colorpos.x)) / 255.0f;
@@ -81,7 +81,7 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
       data.vertex_colors.append(colors4);
     }
 
-    // if normals
+    // If normals
     if (hasNormals) {
       float3 normals3;
       vertex3.x = std::stof(value_arr.at(normalpos.x));
@@ -148,19 +148,19 @@ std::vector<std::string> explode(const std::string_view &str, const char &ch)
   std::string next;
   std::vector<std::string> result;
 
-  // For each character in the string
+  // For each character in the string...
   for (auto c : str) {
-    // If we've hit the terminal character
+    // If we've hit the terminal character...
     if (c == ch) {
-      // If we have some characters accumulated
+      // If we have some characters accumulated...
       if (!next.empty()) {
-        // Add them to the result vector
+        // Add them to the result vector.
         result.push_back(next);
         next.clear();
       }
     }
     else {
-      // Accumulate the next character into the sequence
+      // Accumulate the next character into the sequence.
       next += c;
     }
   }

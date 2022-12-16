@@ -123,7 +123,7 @@ PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header)
         color.w = read<uint8_t>(file, isBigEndian) / 255.0f;
       }
       else {
-        // We don't support any other properties yet
+        // We don't support any other properties yet.
         discard_value(file, type);
       }
     }
@@ -138,11 +138,11 @@ PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header)
   }
 
   for (int i = 0; i < header->face_count; i++) {
-    // Assume vertex_index_count_type is uchar
+    // Assume vertex_index_count_type is uchar.
     uint8_t count = read<uint8_t>(file, isBigEndian);
     Vector<uint> vertex_indices;
 
-    // Loop over the amount of vertex indices in this face
+    // Loop over the amount of vertex indices in this face.
     for (uint8_t j = 0; j < count; j++) {
       uint32_t index = read<uint32_t>(file, isBigEndian);
       vertex_indices.append(index);

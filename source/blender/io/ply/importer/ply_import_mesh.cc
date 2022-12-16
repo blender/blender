@@ -7,8 +7,8 @@
 namespace blender::io::ply {
 Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
 {
-  // Add vertices to the mesh
-  mesh->totvert = int(data.vertices.size());  // Explicit conversion from int64_t to int
+  // Add vertices to the mesh.
+  mesh->totvert = int(data.vertices.size());  // Explicit conversion from int64_t to int.
   CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
   MutableSpan<MVert> verts = mesh->verts_for_write();
   for (int i = 0; i < mesh->totvert; i++) {
@@ -16,9 +16,9 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
     copy_v3_v3(verts[i].co, vert);
   }
 
-  // Add faces and edges to the mesh
+  // Add faces and edges to the mesh.
   if (!data.faces.is_empty()) {
-    mesh->totpoly = int(data.faces.size());  // Explicit conversion from int64_t to int
+    mesh->totpoly = int(data.faces.size());  // Explicit conversion from int64_t to int.
     mesh->totloop = 0;                       // TODO: Make this more dynamic using data.edges()
     for (int i = 0; i < data.faces.size(); i++) {
       mesh->totloop += data.faces[i].size();
@@ -30,7 +30,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
 
     int offset = 0;
     for (int i = 0; i < mesh->totpoly; i++) {
-      auto size = int(data.faces[i].size());  // Explicit conversion from int64_t to int
+      auto size = int(data.faces[i].size());  // Explicit conversion from int64_t to int.
       polys[i].loopstart = offset;
       polys[i].totloop = size;
 
@@ -41,9 +41,9 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
     }
   }
 
-  // Vertex colours
+  // Vertex colors
   if (!data.vertex_colors.is_empty()) {
-    // Create a data layer for vertex colours and set them
+    // Create a data layer for vertex colors and set them.
     CustomDataLayer *color_layer = BKE_id_attribute_new(
         &mesh->id, "Col", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
     float4 *colors = (float4 *)color_layer->data;
@@ -52,7 +52,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
     }
   }
 
-  // Calculate mesh from edges
+  // Calculate mesh from edges.
   BKE_mesh_calc_edges(mesh, false, false);
 
   return mesh;
