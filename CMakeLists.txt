@@ -117,7 +117,7 @@ enable_testing()
 # Keep in sync with: https://wiki.blender.org/wiki/Building_Blender
 
 if(CMAKE_COMPILER_IS_GNUCC)
-  if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "9.3.1")
+  if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "11.0.0")
     message(FATAL_ERROR "The minimum supported version of GCC is 9.3.1")
   endif()
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
