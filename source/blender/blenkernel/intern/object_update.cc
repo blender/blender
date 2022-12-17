@@ -142,7 +142,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       CustomData_MeshMasks_update(&cddata_masks, &CD_MASK_BAREMESH);
       /* Custom attributes should not be removed automatically. They might be used by the render
        * engine or scripts. They can still be removed explicitly using geometry nodes.
-       * Crease can be be used in generic situations with geometry nodes as well. */
+       * Crease can be used in generic situations with geometry nodes as well. */
       cddata_masks.vmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
       cddata_masks.emask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
       cddata_masks.fmask |= CD_MASK_PROP_ALL;

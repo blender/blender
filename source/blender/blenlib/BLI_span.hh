@@ -152,7 +152,7 @@ template<typename T> class Span {
 
   /**
    * Returns a contiguous part of the array. This invokes undefined behavior when the start or size
-   * is negative. Clamps the size of the new new span so it fits in the current one.
+   * is negative. Clamps the size of the new span so it fits in the current one.
    */
   constexpr Span slice_safe(const int64_t start, const int64_t size) const
   {
@@ -608,7 +608,7 @@ template<typename T> class MutableSpan {
 
   /**
    * Returns a contiguous part of the array. This invokes undefined behavior when the start or size
-   * is negative. Clamps the size of the new new span so it fits in the current one.
+   * is negative. Clamps the size of the new span so it fits in the current one.
    */
   constexpr MutableSpan slice_safe(const int64_t start, const int64_t size) const
   {
