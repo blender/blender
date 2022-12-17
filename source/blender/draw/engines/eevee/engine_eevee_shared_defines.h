@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifndef GPU_SHADER_EEVEE_LEGACY_DEFINES
 #define GPU_SHADER_EEVEE_LEGACY_DEFINES

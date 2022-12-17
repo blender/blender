@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "eevee_legacy_volume_info.hh"
 #include "gpu_shader_create_info.hh"
 

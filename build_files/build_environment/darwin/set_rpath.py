@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-# macOS utility to remove all rpaths and add a new one.
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# macOS utility to remove all `rpaths` and add a new one.
 
 import os
 import re
