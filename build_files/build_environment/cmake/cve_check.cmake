@@ -24,7 +24,7 @@
 
 set(SBOMCONTENTS)
 get_cmake_property(_variableNames VARIABLES)
-foreach (_variableName ${_variableNames})
+foreach(_variableName ${_variableNames})
   if(_variableName MATCHES "CPE$")
     string(REPLACE ":" ";" CPE_LIST ${${_variableName}})
     string(REPLACE "_CPE" "_ID" CPE_DEPNAME ${_variableName})

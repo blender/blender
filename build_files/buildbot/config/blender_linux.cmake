@@ -27,4 +27,4 @@ set(LIBDIR "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/${LIBDIR_NAME}" CACHE STRI
 # Platform specific configuration, to ensure static linking against everything.
 
 # Additional linking libraries
-set(CMAKE_EXE_LINKER_FLAGS   "-lrt -no-pie"  CACHE STRING "" FORCE)
+set(CMAKE_EXE_LINKER_FLAGS "-lrt -no-pie"  CACHE STRING "" FORCE)

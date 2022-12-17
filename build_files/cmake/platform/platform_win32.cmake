@@ -302,7 +302,7 @@ endif()
 file(GLOB children RELATIVE ${LIBDIR} ${LIBDIR}/*)
 foreach(child ${children})
   if(IS_DIRECTORY ${LIBDIR}/${child})
-    list(APPEND CMAKE_PREFIX_PATH  ${LIBDIR}/${child})
+    list(APPEND CMAKE_PREFIX_PATH ${LIBDIR}/${child})
   endif()
 endforeach()
 
@@ -555,7 +555,7 @@ if(WITH_BOOST)
     set(BOOST_PREFIX "")
     # This is file new in 3.4 if it does not exist, assume we are building against 3.3 libs
     set(BOOST_34_TRIGGER_FILE ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python310-${BOOST_DEBUG_POSTFIX}.lib)
-    if (NOT EXISTS ${BOOST_34_TRIGGER_FILE})
+    if(NOT EXISTS ${BOOST_34_TRIGGER_FILE})
       set(BOOST_DEBUG_POSTFIX "vc142-mt-gd-x64-${BOOST_VERSION}")
       set(BOOST_PREFIX "lib")
     endif()
@@ -573,7 +573,7 @@ if(WITH_BOOST)
       debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_thread-${BOOST_DEBUG_POSTFIX}.lib
       debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_chrono-${BOOST_DEBUG_POSTFIX}.lib
     )
-    if (EXISTS ${BOOST_34_TRIGGER_FILE})
+    if(EXISTS ${BOOST_34_TRIGGER_FILE})
       if(WITH_USD)
         set(BOOST_PYTHON_LIBRARIES
           debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python310-${BOOST_DEBUG_POSTFIX}.lib
@@ -624,7 +624,7 @@ endif()
 
 if(WITH_LLVM)
   set(LLVM_ROOT_DIR ${LIBDIR}/llvm CACHE PATH "Path to the LLVM installation")
-  set(LLVM_INCLUDE_DIRS ${LLVM_ROOT_DIR}/$<$<CONFIG:Debug>:Debug>/include CACHE PATH  "Path to the LLVM include directory")
+  set(LLVM_INCLUDE_DIRS ${LLVM_ROOT_DIR}/$<$<CONFIG:Debug>:Debug>/include CACHE PATH "Path to the LLVM include directory")
   file(GLOB LLVM_LIBRARY_OPTIMIZED ${LLVM_ROOT_DIR}/lib/*.lib)
 
   if(EXISTS ${LLVM_ROOT_DIR}/debug/lib)
@@ -1030,7 +1030,7 @@ if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
     ${SYCL_ROOT_DIR}/bin/pi_*.dll
   )
   list(REMOVE_ITEM _sycl_pi_runtime_libraries_glob "${SYCL_ROOT_DIR}/bin/pi_opencl.dll")
-  list (APPEND _sycl_runtime_libraries ${_sycl_pi_runtime_libraries_glob})
+  list(APPEND _sycl_runtime_libraries ${_sycl_pi_runtime_libraries_glob})
   unset(_sycl_pi_runtime_libraries_glob)
 
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})

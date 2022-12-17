@@ -326,8 +326,8 @@ function(blender_add_lib__impl
   # NOTE: If separated libraries for debug and release are needed every library is the list are
   # to be prefixed explicitly.
   #
-  #  Use: "optimized libfoo optimized libbar debug libfoo_d debug libbar_d"
-  #  NOT: "optimized libfoo libbar debug libfoo_d libbar_d"
+  # Use: "optimized libfoo optimized libbar debug libfoo_d debug libbar_d"
+  # NOT: "optimized libfoo libbar debug libfoo_d libbar_d"
   if(NOT "${library_deps}" STREQUAL "")
     set(next_library_mode "")
     foreach(library ${library_deps})
@@ -535,7 +535,7 @@ function(setup_platform_linker_flags
   set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_DEBUG " ${PLATFORM_LINKFLAGS_DEBUG}")
 
   get_target_property(target_type ${target} TYPE)
-  if (target_type STREQUAL "EXECUTABLE")
+  if(target_type STREQUAL "EXECUTABLE")
     set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " ${PLATFORM_LINKFLAGS_EXECUTABLE}")
   endif()
 endfunction()
@@ -1219,7 +1219,7 @@ function(print_cached_vars_containing_value
   set(_found)
   get_cmake_property(_vars VARIABLES)
   foreach(_var ${_vars})
-    if (DEFINED CACHE{${_var}})
+    if(DEFINED CACHE{${_var}})
       # Skip "_" prefixed variables, these are used for internal book-keeping,
       # not under user control.
       string(FIND "${_var}" "_" _found)
@@ -1256,10 +1256,10 @@ macro(openmp_delayload
       else()
         set(OPENMP_DLL_NAME "vcomp140")
       endif()
-      set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_RELEASE " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
-      set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_DEBUG " /DELAYLOAD:${OPENMP_DLL_NAME}d.dll delayimp.lib")
-      set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_RELWITHDEBINFO " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
-      set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_MINSIZEREL " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
+      set_property(TARGET ${projectname} APPEND_STRING PROPERTY LINK_FLAGS_RELEASE " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
+      set_property(TARGET ${projectname} APPEND_STRING PROPERTY LINK_FLAGS_DEBUG " /DELAYLOAD:${OPENMP_DLL_NAME}d.dll delayimp.lib")
+      set_property(TARGET ${projectname} APPEND_STRING PROPERTY LINK_FLAGS_RELWITHDEBINFO " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
+      set_property(TARGET ${projectname} APPEND_STRING PROPERTY LINK_FLAGS_MINSIZEREL " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
     endif()
   endif()
 endmacro()

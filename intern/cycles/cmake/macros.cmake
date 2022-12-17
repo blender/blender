@@ -45,8 +45,8 @@ macro(cycles_add_library target library_deps)
   # NOTE: If separated libraries for debug and release ar eneeded every library is the list are
   # to be prefixed explicitly.
   #
-  #  Use: "optimized libfoo optimized libbar debug libfoo_d debug libbar_d"
-  #  NOT: "optimized libfoo libbar debug libfoo_d libbar_d"
+  # Use: "optimized libfoo optimized libbar debug libfoo_d debug libbar_d"
+  # NOT: "optimized libfoo libbar debug libfoo_d libbar_d"
   #
   # TODO(sergey): This is the same as Blender's side CMake. Find a way to avoid duplication
   # somehow in a way which allows to have Cycles standalone.

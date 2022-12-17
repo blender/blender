@@ -5,7 +5,7 @@
 
 function(unset_cache_variables pattern)
   get_cmake_property(_cache_variables CACHE_VARIABLES)
-  foreach (_cache_variable ${_cache_variables})
+  foreach(_cache_variable ${_cache_variables})
     if("${_cache_variable}" MATCHES "${pattern}")
       unset(${_cache_variable} CACHE)
     endif()

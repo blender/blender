@@ -576,8 +576,8 @@ endif()
 
 # OpenGL
 
-option(WITH_OPENGL              "When off limits visibility of the opengl headers to just bf_gpu and gawain (temporary option for development purposes)" ON)
-option(WITH_GPU_BUILDTIME_SHADER_BUILDER  "Shader builder is a developer option enabling linting on GLSL during compilation"                                  OFF)
+option(WITH_OPENGL "When off limits visibility of the opengl headers to just bf_gpu and gawain (temporary option for development purposes)" ON)
+option(WITH_GPU_BUILDTIME_SHADER_BUILDER "Shader builder is a developer option enabling linting on GLSL during compilation" OFF)
 
 mark_as_advanced(
   WITH_OPENGL
@@ -2011,7 +2011,7 @@ set(LIBDIR_STALE)
 
 if(UNIX AND NOT APPLE)
   # Only search for the path if it's found on the system.
-  if (EXISTS "../lib/linux_centos7_x86_64")
+  if(EXISTS "../lib/linux_centos7_x86_64")
     set(LIBDIR_STALE "/lib/linux_centos7_x86_64/")
   endif()
 endif()

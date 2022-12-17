@@ -385,7 +385,7 @@ endif()
 # Install Targets (Generic, All Platforms)
 
 
-# important to make a clean  install each time, else old scripts get loaded.
+# Important to make a clean install each time, else old scripts get loaded.
 install(
   CODE
   "file(REMOVE_RECURSE ${TARGETDIR_VER})"

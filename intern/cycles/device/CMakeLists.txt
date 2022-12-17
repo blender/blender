@@ -162,7 +162,7 @@ if(WITH_CYCLES_DEVICE_METAL)
   )
 endif()
 
-if (WITH_CYCLES_DEVICE_ONEAPI)
+if(WITH_CYCLES_DEVICE_ONEAPI)
   if(WITH_CYCLES_ONEAPI_BINARIES)
     set(cycles_kernel_oneapi_lib_suffix "_aot")
   else()

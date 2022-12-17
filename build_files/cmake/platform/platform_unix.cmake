@@ -789,7 +789,7 @@ if(WITH_GHOST_X11)
   endif()
 
   if(WITH_X11_ALPHA)
-    find_library(X11_Xrender_LIB Xrender  ${X11_LIB_SEARCH_PATH})
+    find_library(X11_Xrender_LIB Xrender ${X11_LIB_SEARCH_PATH})
     mark_as_advanced(X11_Xrender_LIB)
     if(NOT X11_Xrender_LIB)
       message(FATAL_ERROR "libXrender not found. Disable WITH_X11_ALPHA if you

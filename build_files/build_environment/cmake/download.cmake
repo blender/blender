@@ -10,22 +10,22 @@ function(download_source dep)
   if(PACKAGE_USE_UPSTREAM_SOURCES)
     set(TARGET_URI  ${${dep}_URI})
   elseif(BLENDER_VERSION)
-    set(TARGET_URI  https://svn.blender.org/svnroot/bf-blender/tags/blender-${BLENDER_VERSION}-release/lib/packages/${TARGET_FILE})
+    set(TARGET_URI https://svn.blender.org/svnroot/bf-blender/tags/blender-${BLENDER_VERSION}-release/lib/packages/${TARGET_FILE})
   else()
-    set(TARGET_URI  https://svn.blender.org/svnroot/bf-blender/trunk/lib/packages/${TARGET_FILE})
+    set(TARGET_URI https://svn.blender.org/svnroot/bf-blender/trunk/lib/packages/${TARGET_FILE})
   endif()
   # Validate all required variables are set and give an explicit error message
   # rather than CMake erroring out later on with a more ambigious error.
-  if (NOT DEFINED TARGET_FILE)
+  if(NOT DEFINED TARGET_FILE)
     message(FATAL_ERROR "${dep}_FILE variable not set")
   endif()
-  if (NOT DEFINED TARGET_HASH)
+  if(NOT DEFINED TARGET_HASH)
     message(FATAL_ERROR "${dep}_HASH variable not set")
   endif()
-  if (NOT DEFINED TARGET_HASH_TYPE)
+  if(NOT DEFINED TARGET_HASH_TYPE)
     message(FATAL_ERROR "${dep}_HASH_TYPE variable not set")
   endif()
-  if (NOT DEFINED TARGET_URI)
+  if(NOT DEFINED TARGET_URI)
     message(FATAL_ERROR "${dep}_URI variable not set")
   endif()
   set(TARGET_FILE ${PACKAGE_DIR}/${TARGET_FILE})
@@ -43,11 +43,11 @@ function(download_source dep)
   if(EXISTS ${TARGET_FILE})
     # Sometimes the download fails, but that is not a
     # fail condition for "file(DOWNLOAD" it will warn about
-    # a crc mismatch and just carry on, we need to explicitly
+    # a CRC mismatch and just carry on, we need to explicitly
     # catch this and remove the bogus 0 byte file so we can
     # retry without having to go find the file and manually
     # delete it.
-    file (SIZE ${TARGET_FILE} TARGET_SIZE)
+    file(SIZE ${TARGET_FILE} TARGET_SIZE)
     if(${TARGET_SIZE} EQUAL 0)
       file(REMOVE ${TARGET_FILE})
       message(FATAL_ERROR "for ${TARGET_FILE} file size 0, download likely failed, deleted...")
