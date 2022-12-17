@@ -2240,11 +2240,11 @@ void BKE_keyblock_convert_to_mesh(const KeyBlock *kb, MVert *mvert, const int to
 
 void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
                                     const Mesh *mesh,
-                                    float (*r_vertnors)[3],
-                                    float (*r_polynors)[3],
-                                    float (*r_loopnors)[3])
+                                    float (*r_vert_normals)[3],
+                                    float (*r_poly_normals)[3],
+                                    float (*r_loop_normals)[3])
 {
-  if (r_vertnors == nullptr && r_polynors == nullptr && r_loopnors == nullptr) {
+  if (r_vert_normals == nullptr && r_poly_normals == nullptr && r_loop_normals == nullptr) {
     return;
   }
 
@@ -2254,21 +2254,21 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
 
-  const bool loop_normals_needed = r_loopnors != nullptr;
-  const bool vert_normals_needed = r_vertnors != nullptr || loop_normals_needed;
-  const bool poly_normals_needed = r_polynors != nullptr || vert_normals_needed ||
+  const bool loop_normals_needed = r_loop_normals != nullptr;
+  const bool vert_normals_needed = r_vert_normals != nullptr || loop_normals_needed;
+  const bool poly_normals_needed = r_poly_normals != nullptr || vert_normals_needed ||
                                    loop_normals_needed;
 
-  float(*vert_normals)[3] = r_vertnors;
-  float(*poly_normals)[3] = r_polynors;
+  float(*vert_normals)[3] = r_vert_normals;
+  float(*poly_normals)[3] = r_poly_normals;
   bool free_vert_normals = false;
   bool free_poly_normals = false;
-  if (vert_normals_needed && r_vertnors == nullptr) {
+  if (vert_normals_needed && r_vert_normals == nullptr) {
     vert_normals = static_cast<float(*)[3]>(
         MEM_malloc_arrayN(mesh->totvert, sizeof(float[3]), __func__));
     free_vert_normals = true;
   }
-  if (poly_normals_needed && r_polynors == nullptr) {
+  if (poly_normals_needed && r_poly_normals == nullptr) {
     poly_normals = static_cast<float(*)[3]>(
         MEM_malloc_arrayN(mesh->totpoly, sizeof(float[3]), __func__));
     free_poly_normals = true;
@@ -2297,7 +2297,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
                                 edges,
                                 mesh->totedge,
                                 loops,
-                                r_loopnors,
+                                r_loop_normals,
                                 mesh->totloop,
                                 polys,
                                 poly_normals,

@@ -299,17 +299,17 @@ static void process_vertex_normals(CDStreamConfig &config,
     return;
   }
 
-  float(*vnors)[3] = static_cast<float(*)[3]>(
+  float(*vert_normals)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(normals_count, sizeof(float[3]), "ABC::VertexNormals"));
 
   const N3fArraySample &vertex_normals = *vertex_normals_ptr;
   for (int index = 0; index < normals_count; index++) {
-    copy_zup_from_yup(vnors[index], vertex_normals[index].getValue());
+    copy_zup_from_yup(vert_normals[index], vertex_normals[index].getValue());
   }
 
   config.mesh->flag |= ME_AUTOSMOOTH;
-  BKE_mesh_set_custom_normals_from_verts(config.mesh, vnors);
-  MEM_freeN(vnors);
+  BKE_mesh_set_custom_normals_from_verts(config.mesh, vert_normals);
+  MEM_freeN(vert_normals);
 }
 
 static void process_normals(CDStreamConfig &config,

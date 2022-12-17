@@ -102,14 +102,14 @@ static void rna_Mesh_calc_smooth_groups(
 }
 
 static void rna_Mesh_normals_split_custom_do(Mesh *mesh,
-                                             float (*custom_loopnors)[3],
+                                             float (*custom_loop_or_vert_normals)[3],
                                              const bool use_verts)
 {
   if (use_verts) {
-    BKE_mesh_set_custom_normals_from_verts(mesh, custom_loopnors);
+    BKE_mesh_set_custom_normals_from_verts(mesh, custom_loop_or_vert_normals);
   }
   else {
-    BKE_mesh_set_custom_normals(mesh, custom_loopnors);
+    BKE_mesh_set_custom_normals(mesh, custom_loop_or_vert_normals);
   }
 }
 
@@ -118,7 +118,7 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
                                               int normals_len,
                                               float *normals)
 {
-  float(*loopnors)[3] = (float(*)[3])normals;
+  float(*loop_normals)[3] = (float(*)[3])normals;
   const int numloops = mesh->totloop;
 
   if (normals_len != numloops * 3) {
@@ -130,7 +130,7 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
     return;
   }
 
-  rna_Mesh_normals_split_custom_do(mesh, loopnors, false);
+  rna_Mesh_normals_split_custom_do(mesh, loop_normals, false);
 
   DEG_id_tag_update(&mesh->id, 0);
 }
@@ -140,7 +140,7 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
                                                             int normals_len,
                                                             float *normals)
 {
-  float(*vertnors)[3] = (float(*)[3])normals;
+  float(*vert_normals)[3] = (float(*)[3])normals;
   const int numverts = mesh->totvert;
 
   if (normals_len != numverts * 3) {
@@ -152,7 +152,7 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
     return;
   }
 
-  rna_Mesh_normals_split_custom_do(mesh, vertnors, true);
+  rna_Mesh_normals_split_custom_do(mesh, vert_normals, true);
 
   DEG_id_tag_update(&mesh->id, 0);
 }

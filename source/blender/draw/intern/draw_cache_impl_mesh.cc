@@ -1111,14 +1111,14 @@ GPUBatch *DRW_mesh_batch_cache_get_edit_vertices(Mesh *me)
   return DRW_batch_request(&cache->batch.edit_vertices);
 }
 
-GPUBatch *DRW_mesh_batch_cache_get_edit_vnors(Mesh *me)
+GPUBatch *DRW_mesh_batch_cache_get_edit_vert_normals(Mesh *me)
 {
   MeshBatchCache *cache = mesh_batch_cache_get(me);
   mesh_batch_cache_add_request(cache, MBC_EDIT_VNOR);
   return DRW_batch_request(&cache->batch.edit_vnor);
 }
 
-GPUBatch *DRW_mesh_batch_cache_get_edit_lnors(Mesh *me)
+GPUBatch *DRW_mesh_batch_cache_get_edit_loop_normals(Mesh *me)
 {
   MeshBatchCache *cache = mesh_batch_cache_get(me);
   mesh_batch_cache_add_request(cache, MBC_EDIT_LNOR);

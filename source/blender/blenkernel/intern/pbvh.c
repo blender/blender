@@ -1335,7 +1335,7 @@ typedef struct PBVHUpdateData {
   PBVHNode **nodes;
   int totnode;
 
-  float (*vnors)[3];
+  float (*vert_normals)[3];
   int flag;
   bool show_sculpt_face_sets;
   PBVHAttrReq *attrs;
@@ -1349,7 +1349,7 @@ static void pbvh_update_normals_clear_task_cb(void *__restrict userdata,
   PBVHUpdateData *data = userdata;
   PBVH *pbvh = data->pbvh;
   PBVHNode *node = data->nodes[n];
-  float(*vnors)[3] = data->vnors;
+  float(*vert_normals)[3] = data->vert_normals;
 
   if (node->flag & PBVH_UpdateNormals) {
     const int *verts = node->vert_indices;
@@ -1357,7 +1357,7 @@ static void pbvh_update_normals_clear_task_cb(void *__restrict userdata,
     for (int i = 0; i < totvert; i++) {
       const int v = verts[i];
       if (pbvh->vert_bitmap[v]) {
-        zero_v3(vnors[v]);
+        zero_v3(vert_normals[v]);
       }
     }
   }
@@ -1371,7 +1371,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
 
   PBVH *pbvh = data->pbvh;
   PBVHNode *node = data->nodes[n];
-  float(*vnors)[3] = data->vnors;
+  float(*vert_normals)[3] = data->vert_normals;
 
   if (node->flag & PBVH_UpdateNormals) {
     uint mpoly_prev = UINT_MAX;
@@ -1405,7 +1405,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
            * Not exact equivalent though, since atomicity is only ensured for one component
            * of the vector at a time, but here it shall not make any sensible difference. */
           for (int k = 3; k--;) {
-            atomic_add_and_fetch_fl(&vnors[v][k], fn[k]);
+            atomic_add_and_fetch_fl(&vert_normals[v][k], fn[k]);
           }
         }
       }
@@ -1420,7 +1420,7 @@ static void pbvh_update_normals_store_task_cb(void *__restrict userdata,
   PBVHUpdateData *data = userdata;
   PBVH *pbvh = data->pbvh;
   PBVHNode *node = data->nodes[n];
-  float(*vnors)[3] = data->vnors;
+  float(*vert_normals)[3] = data->vert_normals;
 
   if (node->flag & PBVH_UpdateNormals) {
     const int *verts = node->vert_indices;
@@ -1432,7 +1432,7 @@ static void pbvh_update_normals_store_task_cb(void *__restrict userdata,
       /* No atomics necessary because we are iterating over uniq_verts only,
        * so we know only this thread will handle this vertex. */
       if (pbvh->vert_bitmap[v]) {
-        normalize_v3(vnors[v]);
+        normalize_v3(vert_normals[v]);
         pbvh->vert_bitmap[v] = false;
       }
     }
@@ -1456,7 +1456,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, PBVHNode **nodes, int totnode)
   PBVHUpdateData data = {
       .pbvh = pbvh,
       .nodes = nodes,
-      .vnors = pbvh->vert_normals,
+      .vert_normals = pbvh->vert_normals,
   };
 
   TaskParallelSettings settings;

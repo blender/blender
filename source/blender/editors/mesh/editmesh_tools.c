@@ -9627,11 +9627,11 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
     BKE_editmesh_ensure_autosmooth(em, obedit->data);
     BKE_editmesh_lnorspace_update(em, obedit->data);
 
-    float(*vnors)[3] = MEM_mallocN(sizeof(*vnors) * bm->totvert, __func__);
+    float(*vert_normals)[3] = MEM_mallocN(sizeof(*vert_normals) * bm->totvert, __func__);
     {
       int v_index;
       BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, v_index) {
-        BM_vert_calc_normal_ex(v, BM_ELEM_SELECT, vnors[v_index]);
+        BM_vert_calc_normal_ex(v, BM_ELEM_SELECT, vert_normals[v_index]);
       }
     }
 
@@ -9647,10 +9647,10 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
             const int l_index = BM_elem_index_get(l);
             const int v_index = BM_elem_index_get(l->v);
 
-            if (!is_zero_v3(vnors[v_index])) {
+            if (!is_zero_v3(vert_normals[v_index])) {
               short *clnors = BM_ELEM_CD_GET_VOID_P(l, cd_clnors_offset);
               BKE_lnor_space_custom_normal_to_data(
-                  bm->lnor_spacearr->lspacearr[l_index], vnors[v_index], clnors);
+                  bm->lnor_spacearr->lspacearr[l_index], vert_normals[v_index], clnors);
 
               if (bm->lnor_spacearr->lspacearr[l_index]->flags & MLNOR_SPACE_IS_SINGLE) {
                 BLI_BITMAP_ENABLE(loop_set, l_index);
@@ -9674,13 +9674,13 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
           const int loop_index = BM_elem_index_get(l);
           short *clnors = BM_ELEM_CD_GET_VOID_P(l, cd_clnors_offset);
           BKE_lnor_space_custom_normal_to_data(
-              bm->lnor_spacearr->lspacearr[loop_index], vnors[v_index], clnors);
+              bm->lnor_spacearr->lspacearr[loop_index], vert_normals[v_index], clnors);
         }
       }
     }
 
     MEM_freeN(loop_set);
-    MEM_freeN(vnors);
+    MEM_freeN(vert_normals);
     EDBM_update(obedit->data,
                 &(const struct EDBMUpdate_Params){
                     .calc_looptri = true,

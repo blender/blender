@@ -176,7 +176,7 @@ static bool polygons_check_flip(MLoop *mloop,
                                 float (*nos)[3],
                                 CustomData *ldata,
                                 const MPoly *mpoly,
-                                float (*polynors)[3],
+                                float (*poly_normals)[3],
                                 const int polys_num)
 {
   const MPoly *mp;
@@ -198,9 +198,9 @@ static bool polygons_check_flip(MLoop *mloop,
     }
 
     /* If average of new loop normals is opposed to polygon normal, flip polygon. */
-    if (dot_v3v3(polynors[i], norsum) < 0.0f) {
+    if (dot_v3v3(poly_normals[i], norsum) < 0.0f) {
       BKE_mesh_polygon_flip_ex(mp, mloop, ldata, nos, mdisp, true);
-      negate_v3(polynors[i]);
+      negate_v3(poly_normals[i]);
       flipped = true;
     }
   }
@@ -213,8 +213,8 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                          Object *ob,
                                          Mesh *mesh,
                                          short (*clnors)[2],
-                                         float (*loopnors)[3],
-                                         const float (*polynors)[3],
+                                         float (*loop_normals)[3],
+                                         const float (*poly_normals)[3],
                                          const short mix_mode,
                                          const float mix_factor,
                                          const float mix_limit,
@@ -308,7 +308,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
     }
   }
 
-  if (loopnors) {
+  if (loop_normals) {
     mix_normals(mix_factor,
                 dvert,
                 defgrp_index,
@@ -317,7 +317,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                 mix_mode,
                 verts_num,
                 mloop,
-                loopnors,
+                loop_normals,
                 nos,
                 loops_num);
   }
@@ -338,7 +338,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                    nos,
                                    loops_num,
                                    mpoly,
-                                   polynors,
+                                   poly_normals,
                                    polys_num,
                                    clnors);
 
@@ -352,8 +352,8 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                               Object *ob,
                                               Mesh *mesh,
                                               short (*clnors)[2],
-                                              float (*loopnors)[3],
-                                              const float (*polynors)[3],
+                                              float (*loop_normals)[3],
+                                              const float (*poly_normals)[3],
                                               const short mix_mode,
                                               const float mix_factor,
                                               const float mix_limit,
@@ -425,7 +425,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
     MEM_freeN(cos);
   }
 
-  if (loopnors) {
+  if (loop_normals) {
     mix_normals(mix_factor,
                 dvert,
                 defgrp_index,
@@ -434,7 +434,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                 mix_mode,
                 verts_num,
                 mloop,
-                loopnors,
+                loop_normals,
                 nos,
                 loops_num);
   }
@@ -454,7 +454,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                    nos,
                                    loops_num,
                                    mpoly,
-                                   polynors,
+                                   poly_normals,
                                    polys_num,
                                    clnors);
 
@@ -535,7 +535,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   int defgrp_index;
   const MDeformVert *dvert;
 
-  float(*loopnors)[3] = nullptr;
+  float(*loop_normals)[3] = nullptr;
 
   CustomData *ldata = &result->ldata;
 
@@ -546,8 +546,8 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   if (use_current_clnors) {
     clnors = static_cast<short(*)[2]>(
         CustomData_duplicate_referenced_layer(ldata, CD_CUSTOMLOOPNORMAL, loops_num));
-    loopnors = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(size_t(loops_num), sizeof(*loopnors), __func__));
+    loop_normals = static_cast<float(*)[3]>(
+        MEM_malloc_arrayN(size_t(loops_num), sizeof(*loop_normals), __func__));
 
     BKE_mesh_normals_loop_split(verts,
                                 vert_normals,
@@ -555,7 +555,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                 edges,
                                 edges_num,
                                 loops,
-                                loopnors,
+                                loop_normals,
                                 loops_num,
                                 polys,
                                 poly_normals,
@@ -580,7 +580,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                  ob,
                                  result,
                                  clnors,
-                                 loopnors,
+                                 loop_normals,
                                  poly_normals,
                                  enmd->mix_mode,
                                  enmd->mix_factor,
@@ -603,7 +603,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       ob,
                                       result,
                                       clnors,
-                                      loopnors,
+                                      loop_normals,
                                       poly_normals,
                                       enmd->mix_mode,
                                       enmd->mix_factor,
@@ -621,7 +621,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       polys_num);
   }
 
-  MEM_SAFE_FREE(loopnors);
+  MEM_SAFE_FREE(loop_normals);
 
   result->runtime->is_original_bmesh = false;
 

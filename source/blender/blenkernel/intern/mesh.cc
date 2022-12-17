@@ -1792,17 +1792,17 @@ void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
 
 static float (*ensure_corner_normal_layer(Mesh &mesh))[3]
 {
-  float(*r_loopnors)[3];
+  float(*r_loop_normals)[3];
   if (CustomData_has_layer(&mesh.ldata, CD_NORMAL)) {
-    r_loopnors = (float(*)[3])CustomData_get_layer(&mesh.ldata, CD_NORMAL);
-    memset(r_loopnors, 0, sizeof(float[3]) * mesh.totloop);
+    r_loop_normals = (float(*)[3])CustomData_get_layer(&mesh.ldata, CD_NORMAL);
+    memset(r_loop_normals, 0, sizeof(float[3]) * mesh.totloop);
   }
   else {
-    r_loopnors = (float(*)[3])CustomData_add_layer(
+    r_loop_normals = (float(*)[3])CustomData_add_layer(
         &mesh.ldata, CD_NORMAL, CD_SET_DEFAULT, nullptr, mesh.totloop);
     CustomData_set_layer_flag(&mesh.ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
-  return r_loopnors;
+  return r_loop_normals;
 }
 
 void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
