@@ -45,7 +45,7 @@ out ShaderStageInterface{SURFACE_INTERFACE} dataOut;
         dataOut.worldNormal = dataIn[vert].worldNormal; \
         dataOut.viewNormal = dataIn[vert].viewNormal;
 
-#    else /* GPU_VERTEX_SHADER || GPU_FRAGMENT_SHADER*/
+#    else /* GPU_VERTEX_SHADER || GPU_FRAGMENT_SHADER */
 
 IN_OUT ShaderStageInterface{SURFACE_INTERFACE};
 

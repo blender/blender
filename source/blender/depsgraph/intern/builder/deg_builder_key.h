@@ -151,7 +151,7 @@ struct PersistentOperationKey : public OperationKey {
     const IDNode *id_node = component_node->owner;
 
     /* Copy names over to our object, so that the key stays valid even after the `operation_node`
-     * is destroyed.*/
+     * is destroyed. */
     component_name_storage_ = component_node->name;
     name_storage_ = operation_node->name;
 

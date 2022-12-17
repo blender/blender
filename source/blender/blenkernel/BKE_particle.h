@@ -665,7 +665,7 @@ float psys_get_current_display_percentage(struct ParticleSystem *psys, bool use_
 /* psys_reset */
 #define PSYS_RESET_ALL 1
 #define PSYS_RESET_DEPSGRAPH 2
-/* #define PSYS_RESET_CHILDREN  3 */ /*UNUSED*/
+// #define PSYS_RESET_CHILDREN  3 /*UNUSED*/
 #define PSYS_RESET_CACHE_MISS 4
 
 /* index_dmcache */

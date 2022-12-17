@@ -670,7 +670,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 
   if (mdisps && levels > 0) {
     if (lvl > 0) {
-      /* MLoop *ml = me->mloop; */ /*UNUSED*/
+      // MLoop *ml = me->mloop; /*UNUSED*/
       int nsize = multires_side_tot[lvl];
       int hsize = multires_side_tot[mmd->totlvl];
       int i, j;

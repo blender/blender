@@ -320,8 +320,9 @@ static void rna_NlaStrip_frame_end_ui_set(PointerRNA *ptr, float value)
     float action_length_delta = (old_strip_end - data->end) / data->scale;
     /* If no repeats are used, then modify the action end frame : */
     if (IS_EQF(data->repeat, 1.0f)) {
-      /* If they're equal, strip has been reduced by the same amount as the whole strip length, so
-       * clamp the action clip length to 1 frame, and add a frame to end so that len(strip)!=0 :*/
+      /* If they're equal, strip has been reduced by the same amount as the whole strip length,
+       * so clamp the action clip length to 1 frame, and add a frame to end so that
+       * `len(strip) != 0`. */
       if (IS_EQF(action_length_delta, actlen)) {
         data->actend = data->actstart + 1.0f;
         data->end += 1.0f;

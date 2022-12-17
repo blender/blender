@@ -984,7 +984,7 @@ struct PBVHBatches {
 
     const blender::Span<MEdge> edges = args->me->edges();
 
-    /* Calculate number of edges*/
+    /* Calculate number of edges. */
     int edge_count = 0;
     for (int i = 0; i < args->totprim; i++) {
       const MLoopTri *lt = args->mlooptri + args->prim_indices[i];

@@ -2,10 +2,10 @@
 #pragma USE_SSBO_VERTEX_FETCH(TriangleList, 6)
 
 #ifdef DOUBLE_MANIFOLD
-#  define vert_len 6 /* Triangle Strip with 6 verts = 4 triangles = 12 verts*/
+#  define vert_len 6 /* Triangle Strip with 6 verts = 4 triangles = 12 verts. */
 #  define emit_triangle_count 2
 #else
-#  define vert_len 6 /* Triangle Strip with 6 verts = 4 triangles = 12 verts*/
+#  define vert_len 6 /* Triangle Strip with 6 verts = 4 triangles = 12 verts. */
 #  define emit_triangle_count 2
 #endif
 

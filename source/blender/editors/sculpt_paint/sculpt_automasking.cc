@@ -774,7 +774,7 @@ static void sculpt_normal_occlusion_automasking_fill(AutomaskingCache *automaski
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  /* No need to build original data since this is only called at the beginning of strokes.*/
+  /* No need to build original data since this is only called at the beginning of strokes. */
   AutomaskingNodeData nodedata;
   nodedata.have_orig_data = false;
 

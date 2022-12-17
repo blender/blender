@@ -157,6 +157,7 @@ void BKE_keyblock_convert_from_vertcos(const struct Object *ob,
                                        const float (*vertCos)[3]);
 float (*BKE_keyblock_convert_to_vertcos(const struct Object *ob, const struct KeyBlock *kb))[3];
 
+/** RAW coordinates offsets. */
 void BKE_keyblock_update_from_offset(const struct Object *ob,
                                      struct KeyBlock *kb,
                                      const float (*ofs)[3]);

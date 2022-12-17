@@ -1030,7 +1030,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   const float3 initial_throughput = INTEGRATOR_STATE(state, path, throughput);
   /* The path throughput used to calculate the throughput for direct light. */
   float3 unlit_throughput = initial_throughput;
-  /* If a new path segment is generated at the direct scatter position.*/
+  /* If a new path segment is generated at the direct scatter position. */
   bool guiding_generated_new_segment = false;
   float rand_phase_guiding = 0.5f;
 #  endif

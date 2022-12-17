@@ -3029,7 +3029,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
 #if 0
         /* -----------------------------------------------------------------
          * For debug, write a dump of adjacency data to a file.
-         * -----------------------------------------------------------------*/
+         * ----------------------------------------------------------------- */
         FILE *dump_file = fopen("dynpaint-adj-data.txt", "w");
         int *tmp = MEM_callocN(sizeof(int) * active_points, "tmp");
         for (int ty = 0; ty < h; ty++) {
@@ -3140,7 +3140,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
 #if 0
     /* -----------------------------------------------------------------
      * For debug, output pixel statuses to the color map
-     * -----------------------------------------------------------------*/
+     * ----------------------------------------------------------------- */
     for (index = 0; index < sData->total_points; index++) {
       ImgSeqFormatData *f_data = (ImgSeqFormatData *)sData->format_data;
       PaintUVPoint *uvPoint = &((PaintUVPoint *)f_data->uv_p)[index];

@@ -2472,8 +2472,6 @@ float (*BKE_keyblock_convert_to_vertcos(const Object *ob, const KeyBlock *kb))[3
   return vertCos;
 }
 
-/************************* raw coord offsets ************************/
-
 void BKE_keyblock_update_from_offset(const Object *ob, KeyBlock *kb, const float (*ofs)[3])
 {
   int a;
@@ -2508,8 +2506,6 @@ void BKE_keyblock_update_from_offset(const Object *ob, KeyBlock *kb, const float
     }
   }
 }
-
-/* ==========================================================*/
 
 bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
 {

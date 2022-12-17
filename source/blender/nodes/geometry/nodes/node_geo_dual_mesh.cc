@@ -136,7 +136,7 @@ static void transfer_attributes(
     MutableAttributeAccessor dst_attributes)
 {
   /* Retrieve all attributes except for position which is handled manually.
-   * Remove anonymous attributes that don't need to be propagated.*/
+   * Remove anonymous attributes that don't need to be propagated. */
   Set<AttributeIDRef> attribute_ids = src_attributes.all_ids();
   attribute_ids.remove("position");
   attribute_ids.remove_if([](const AttributeIDRef &id) { return !id.should_be_kept(); });

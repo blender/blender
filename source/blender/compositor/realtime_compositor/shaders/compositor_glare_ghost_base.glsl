@@ -6,7 +6,7 @@ void main()
   ivec2 input_size = texture_size(small_ghost_tx);
 
   /* Add 0.5 to evaluate the input sampler at the center of the pixel and divide by the image size
-   * to get the coordinates into the sampler's expected [0, 1] range*/
+   * to get the coordinates into the sampler's expected [0, 1] range. */
   vec2 coordinates = (vec2(texel) + vec2(0.5)) / input_size;
 
   /* The small ghost is scaled down with the origin as the center of the image by a factor of 2.13,

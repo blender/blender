@@ -23,7 +23,7 @@ void VKStorageBuffer::unbind()
 {
 }
 
-void VKStorageBuffer::clear(eGPUTextureFormat /* internal_format*/,
+void VKStorageBuffer::clear(eGPUTextureFormat /*internal_format*/,
                             eGPUDataFormat /*data_format*/,
                             void * /*data*/)
 {

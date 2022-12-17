@@ -233,7 +233,7 @@ static float _final_mass(Object *ob, BodyPoint *bp)
   CLOG_ERROR(&LOG, "sb or bp == NULL");
   return 1.0f;
 }
-/* helper functions for everything is animateble jow_go_for2_5 ------*/
+/* Helper functions for everything is animateble jow_go_for2_5. */
 
 /* +++ collider caching and dicing +++ */
 

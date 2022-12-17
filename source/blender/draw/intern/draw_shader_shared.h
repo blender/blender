@@ -327,7 +327,7 @@ struct DRWDebugVert {
   uint pos0;
   uint pos1;
   uint pos2;
-  /* Named vert_color to avoid global namespace collision with uniform color.*/
+  /* Named vert_color to avoid global namespace collision with uniform color. */
   uint vert_color;
 };
 BLI_STATIC_ASSERT_ALIGN(DRWDebugVert, 16)

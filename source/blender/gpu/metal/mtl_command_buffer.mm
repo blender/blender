@@ -676,7 +676,7 @@ void MTLRenderPassState::bind_fragment_sampler(MTLSamplerBinding &sampler_bindin
   BLI_assert(slot < MTL_MAX_TEXTURE_SLOTS);
   UNUSED_VARS_NDEBUG(shader_interface);
 
-  /* If sampler state has not changed for the given slot, we do not need to fetch*/
+  /* If sampler state has not changed for the given slot, we do not need to fetch. */
   if (this->cached_fragment_sampler_state_bindings[slot].sampler_state == nil ||
       !(this->cached_fragment_sampler_state_bindings[slot].binding_state ==
         sampler_binding.state) ||

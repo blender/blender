@@ -3893,7 +3893,7 @@ void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
       int i1 = permute[(i + 1) % pm];
       int i2 = permute[(i + 2) % pm];
       if (!p_face_exists(phandle, vkeys, i0, i1, i2)) {
-        i--; /* ...All good...*/
+        i--; /* All good. */
         continue;
       }
 
