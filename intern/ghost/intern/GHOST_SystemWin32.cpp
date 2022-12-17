@@ -1063,7 +1063,7 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
   if (window->getCursorGrabModeIsWarp()) {
     static uint64_t last_warp_time = 0;
     {
-      /* WORKAROUND: Check the mouse event timestamp so we can ignore mousemove events that were
+      /* WORKAROUND: Check the mouse event timestamp so we can ignore mouse-move events that were
        * already in the queue before we changed the cursor position. */
       MOUSEMOVEPOINT mp = {x_screen, y_screen};
       ::GetMouseMovePointsEx(sizeof(MOUSEMOVEPOINT), &mp, &mp, 1, GMMP_USE_DISPLAY_POINTS);
@@ -1117,7 +1117,7 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
 
     window->getCursorGrabAccum(x_accum, y_accum);
     if (x_new != x_screen || y_new != y_screen) {
-      /* WORKAROUND: Store the current time so that we ignore outdated mousemove events. */
+      /* WORKAROUND: Store the current time so that we ignore outdated mouse-move events. */
       last_warp_time = ::GetTickCount64();
 
       /* For more control over which timestamp to store in the event, we use `SendInput` instead of

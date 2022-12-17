@@ -582,8 +582,8 @@ void ED_mesh_report_mirror_ex(struct wmOperator *op, int totmirr, int totfail, c
 struct Mesh *ED_mesh_context(struct bContext *C);
 
 /**
- * Split all edges that would appear sharp based onface and edge sharpness tags and the auto smooth
- * angle.
+ * Split all edges that would appear sharp based on face and edge sharpness tags and the
+ * auto smooth angle.
  */
 void ED_mesh_split_faces(struct Mesh *mesh);
 

@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* In order to perform anti-aliasing during baking, we jitter the input barycentric coordinates
  * (which are for the center of the texel) within the texel.
- * However, the baking code corrently doesn't support going to neighboring triangle, so if the
+ * However, the baking code currently doesn't support going to neighboring triangle, so if the
  * jittered location falls outside of the input triangle, we need to bring it back in somehow.
  * Clamping is a bad choice here since it can produce noticeable artifacts at triangle edges,
  * but properly uniformly sampling the intersection of triangle and texel would be very

@@ -31,7 +31,7 @@ GPU_SHADER_CREATE_INFO(basic_curves)
     .vertex_source("basic_depth_curves_vert.glsl")
     .additional_info("draw_hair");
 
-/* Geometry-shader alterantive paths. */
+/* Geometry-shader alternative paths. */
 GPU_SHADER_CREATE_INFO(basic_mesh_conservative_no_geom)
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_source("basic_depth_vert_conservative_no_geom.glsl")

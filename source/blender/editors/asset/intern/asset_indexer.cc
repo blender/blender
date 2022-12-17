@@ -324,7 +324,8 @@ static void init_value_from_file_indexer_entries(DictionaryValue &result,
 
   for (LinkNode *ln = indexer_entries.entries; ln; ln = ln->next) {
     const FileIndexerEntry *indexer_entry = static_cast<const FileIndexerEntry *>(ln->link);
-    /* We also get non asset types (brushes, workspaces), when browsing using the asset browser. */
+    /* We also get non asset types (brushes, work-spaces), when browsing using the asset browser.
+     */
     if (indexer_entry->datablock_info.asset_data == nullptr) {
       continue;
     }

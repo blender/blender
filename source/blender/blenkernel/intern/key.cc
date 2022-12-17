@@ -890,8 +890,8 @@ static void key_evaluate_relative(const int start,
     end = tot;
   }
 
-  /* in case of beztriple */
-  elemstr[0] = 1; /* nr of ipofloats */
+  /* In case of Bezier-triple. */
+  elemstr[0] = 1; /* Number of IPO-floats. */
   elemstr[1] = IPO_BEZTRIPLE;
   elemstr[2] = 0;
 
@@ -1132,8 +1132,8 @@ static void do_key(const int start,
     }
   }
 
-  /* in case of beztriple */
-  elemstr[0] = 1; /* nr of ipofloats */
+  /* In case of bezier-triples. */
+  elemstr[0] = 1; /* Number of IPO-floats. */
   elemstr[1] = IPO_BEZTRIPLE;
   elemstr[2] = 0;
 
