@@ -97,7 +97,7 @@ set(SRC
   intern/colortools.c
   intern/compute_contexts.cc
   intern/constraint.c
-  intern/context.c
+  intern/context.cc
   intern/cpp_types.cc
   intern/crazyspace.cc
   intern/cryptomatte.cc

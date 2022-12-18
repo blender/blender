@@ -4,9 +4,9 @@
  * \ingroup bke
  */
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -58,15 +58,15 @@ struct bContext {
 
   /* windowmanager context */
   struct {
-    struct wmWindowManager *manager;
-    struct wmWindow *window;
-    struct WorkSpace *workspace;
-    struct bScreen *screen;
-    struct ScrArea *area;
-    struct ARegion *region;
-    struct ARegion *menu;
-    struct wmGizmoGroup *gizmo_group;
-    struct bContextStore *store;
+    wmWindowManager *manager;
+    wmWindow *window;
+    WorkSpace *workspace;
+    bScreen *screen;
+    ScrArea *area;
+    ARegion *region;
+    ARegion *menu;
+    wmGizmoGroup *gizmo_group;
+    bContextStore *store;
 
     /* Operator poll. */
     /**
@@ -82,8 +82,8 @@ struct bContext {
 
   /* data context */
   struct {
-    struct Main *main;
-    struct Scene *scene;
+    Main *main;
+    Scene *scene;
 
     int recursion;
     /** True if python is initialized. */
@@ -101,14 +101,15 @@ struct bContext {
 
 bContext *CTX_create(void)
 {
-  bContext *C = MEM_callocN(sizeof(bContext), "bContext");
+  bContext *C = MEM_cnew<bContext>(__func__);
 
   return C;
 }
 
 bContext *CTX_copy(const bContext *C)
 {
-  bContext *newC = MEM_dupallocN((void *)C);
+  bContext *newC = MEM_new<bContext>(__func__);
+  *newC = *C;
 
   memset(&newC->wm.operator_poll_msg_dyn_params, 0, sizeof(newC->wm.operator_poll_msg_dyn_params));
 
@@ -129,22 +130,23 @@ bContextStore *CTX_store_add(ListBase *contexts, const char *name, const Pointer
 {
   /* ensure we have a context to put the entry in, if it was already used
    * we have to copy the context to ensure */
-  bContextStore *ctx = contexts->last;
+  bContextStore *ctx = static_cast<bContextStore *>(contexts->last);
 
   if (!ctx || ctx->used) {
     if (ctx) {
       bContextStore *lastctx = ctx;
-      ctx = MEM_dupallocN(lastctx);
+      ctx = MEM_new<bContextStore>(__func__);
+      *ctx = *lastctx;
       BLI_duplicatelist(&ctx->entries, &lastctx->entries);
     }
     else {
-      ctx = MEM_callocN(sizeof(bContextStore), "bContextStore");
+      ctx = MEM_cnew<bContextStore>(__func__);
     }
 
     BLI_addtail(contexts, ctx);
   }
 
-  bContextStoreEntry *entry = MEM_callocN(sizeof(bContextStoreEntry), "bContextStoreEntry");
+  bContextStoreEntry *entry = MEM_cnew<bContextStoreEntry>(__func__);
   BLI_strncpy(entry->name, name, sizeof(entry->name));
   entry->ptr = *ptr;
 
@@ -157,23 +159,25 @@ bContextStore *CTX_store_add_all(ListBase *contexts, bContextStore *context)
 {
   /* ensure we have a context to put the entries in, if it was already used
    * we have to copy the context to ensure */
-  bContextStore *ctx = contexts->last;
+  bContextStore *ctx = static_cast<bContextStore *>(contexts->last);
 
   if (!ctx || ctx->used) {
     if (ctx) {
       bContextStore *lastctx = ctx;
-      ctx = MEM_dupallocN(lastctx);
+      ctx = MEM_new<bContextStore>(__func__);
+      *ctx = *lastctx;
       BLI_duplicatelist(&ctx->entries, &lastctx->entries);
     }
     else {
-      ctx = MEM_callocN(sizeof(bContextStore), "bContextStore");
+      ctx = MEM_cnew<bContextStore>(__func__);
     }
 
     BLI_addtail(contexts, ctx);
   }
 
   LISTBASE_FOREACH (bContextStoreEntry *, tentry, &context->entries) {
-    bContextStoreEntry *entry = MEM_dupallocN(tentry);
+    bContextStoreEntry *entry = MEM_cnew<bContextStoreEntry>(__func__);
+    *entry = *tentry;
     BLI_addtail(&ctx->entries, entry);
   }
 
@@ -194,21 +198,22 @@ const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
                                        const char *name,
                                        const StructRNA *type)
 {
-  bContextStoreEntry *entry = BLI_rfindstring(
-      &store->entries, name, offsetof(bContextStoreEntry, name));
+  bContextStoreEntry *entry = static_cast<bContextStoreEntry *>(
+      BLI_rfindstring(&store->entries, name, offsetof(bContextStoreEntry, name)));
   if (!entry) {
-    return NULL;
+    return nullptr;
   }
 
   if (type && !RNA_struct_is_a(entry->ptr.type, type)) {
-    return NULL;
+    return nullptr;
   }
   return &entry->ptr;
 }
 
 bContextStore *CTX_store_copy(bContextStore *store)
 {
-  bContextStore *ctx = MEM_dupallocN(store);
+  bContextStore *ctx = MEM_cnew<bContextStore>(__func__);
+  *ctx = *store;
   BLI_duplicatelist(&ctx->entries, &store->entries);
 
   return ctx;
@@ -223,7 +228,7 @@ void CTX_store_free(bContextStore *store)
 void CTX_store_free_list(ListBase *contexts)
 {
   bContextStore *ctx;
-  while ((ctx = BLI_pophead(contexts))) {
+  while ((ctx = static_cast<bContextStore *>(BLI_pophead(contexts)))) {
     CTX_store_free(ctx);
   }
 }
@@ -248,7 +253,7 @@ void *CTX_py_dict_get_orig(const bContext *C)
   return C->data.py_context_orig;
 }
 
-void CTX_py_state_push(bContext *C, struct bContext_PyState *pystate, void *value)
+void CTX_py_state_push(bContext *C, bContext_PyState *pystate, void *value)
 {
   pystate->py_context = C->data.py_context;
   pystate->py_context_orig = C->data.py_context_orig;
@@ -256,7 +261,7 @@ void CTX_py_state_push(bContext *C, struct bContext_PyState *pystate, void *valu
   C->data.py_context = value;
   C->data.py_context_orig = value;
 }
-void CTX_py_state_pop(bContext *C, struct bContext_PyState *pystate)
+void CTX_py_state_pop(bContext *C, bContext_PyState *pystate)
 {
   C->data.py_context = pystate->py_context;
   C->data.py_context_orig = pystate->py_context_orig;
@@ -300,7 +305,7 @@ static void *ctx_wm_python_context_get(const bContext *C,
 
   /* don't allow UI context access from non-main threads */
   if (!BLI_thread_is_main()) {
-    return NULL;
+    return nullptr;
   }
 
   return fall_through;
@@ -318,14 +323,14 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
 #ifdef WITH_PYTHON
   if (CTX_py_dict_get(C)) {
     if (BPY_context_member_get(C, member, result)) {
-      return 1;
+      return CTX_RESULT_OK;
     }
   }
 #endif
 
   /* don't allow UI context access from non-main threads */
   if (!BLI_thread_is_main()) {
-    return done;
+    return CTX_RESULT_MEMBER_NOT_FOUND;
   }
 
   /* we check recursion to ensure that we do not get infinite
@@ -340,7 +345,7 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
   if (done != 1 && recursion < 1 && C->wm.store) {
     C->data.recursion = 1;
 
-    const PointerRNA *ptr = CTX_store_ptr_lookup(C->wm.store, member, NULL);
+    const PointerRNA *ptr = CTX_store_ptr_lookup(C->wm.store, member, nullptr);
 
     if (ptr) {
       result->ptr = *ptr;
@@ -367,7 +372,7 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
   }
 
   if (done != 1 && recursion < 4 && (screen = CTX_wm_screen(C))) {
-    bContextDataCallback cb = screen->context;
+    bContextDataCallback cb = reinterpret_cast<bContextDataCallback>(screen->context);
     C->data.recursion = 4;
     if (cb) {
       ret = cb(C, member, result);
@@ -379,7 +384,7 @@ static eContextResult ctx_data_get(bContext *C, const char *member, bContextData
 
   C->data.recursion = recursion;
 
-  return done;
+  return eContextResult(done);
 }
 
 static void *ctx_data_pointer_get(const bContext *C, const char *member)
@@ -390,14 +395,14 @@ static void *ctx_data_pointer_get(const bContext *C, const char *member)
     return result.ptr.data;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static bool ctx_data_pointer_verify(const bContext *C, const char *member, void **pointer)
 {
-  /* if context is NULL, pointer must be NULL too and that is a valid return */
-  if (C == NULL) {
-    *pointer = NULL;
+  /* if context is nullptr, pointer must be nullptr too and that is a valid return */
+  if (C == nullptr) {
+    *pointer = nullptr;
     return true;
   }
 
@@ -408,7 +413,7 @@ static bool ctx_data_pointer_verify(const bContext *C, const char *member, void 
     return true;
   }
 
-  *pointer = NULL;
+  *pointer = nullptr;
   return false;
 }
 
@@ -445,10 +450,11 @@ static int ctx_data_base_collection_get(const bContext *C, const char *member, L
   bool ok = false;
 
   CollectionPointerLink *ctx_object;
-  for (ctx_object = ctx_object_list.first; ctx_object; ctx_object = ctx_object->next) {
-    Object *ob = ctx_object->ptr.data;
+  for (ctx_object = static_cast<CollectionPointerLink *>(ctx_object_list.first); ctx_object;
+       ctx_object = ctx_object->next) {
+    Object *ob = static_cast<Object *>(ctx_object->ptr.data);
     Base *base = BKE_view_layer_base_find(view_layer, ob);
-    if (base != NULL) {
+    if (base != nullptr) {
       CTX_data_list_add(&result, &scene->id, &RNA_ObjectBase, base);
       ok = true;
     }
@@ -509,7 +515,7 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
     return result.list;
   }
 
-  ListBase list = {NULL, NULL};
+  ListBase list = {nullptr, nullptr};
   return list;
 }
 
@@ -545,7 +551,7 @@ static void data_dir_add(ListBase *lb, const char *member, const bool use_all)
     return;
   }
 
-  link = MEM_callocN(sizeof(LinkData), "LinkData");
+  link = MEM_cnew<LinkData>(__func__);
   link->data = (void *)member;
   BLI_addtail(lb, link);
 }
@@ -570,7 +576,7 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
 
     PropertyRNA *iterprop;
     PointerRNA ctx_ptr;
-    RNA_pointer_create(NULL, &RNA_Context, (void *)C, &ctx_ptr);
+    RNA_pointer_create(nullptr, &RNA_Context, (void *)C, &ctx_ptr);
 
     iterprop = RNA_struct_iterator_property(ctx_ptr.type);
 
@@ -588,7 +594,8 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
   if (use_store && C->wm.store) {
     bContextStoreEntry *entry;
 
-    for (entry = C->wm.store->entries.first; entry; entry = entry->next) {
+    for (entry = static_cast<bContextStoreEntry *>(C->wm.store->entries.first); entry;
+         entry = entry->next) {
       data_dir_add(&lb, entry->name, use_all);
     }
   }
@@ -613,7 +620,7 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
     }
   }
   if ((screen = CTX_wm_screen(C)) && screen->context) {
-    bContextDataCallback cb = screen->context;
+    bContextDataCallback cb = reinterpret_cast<bContextDataCallback>(screen->context);
     memset(&result, 0, sizeof(result));
     cb(C, "", &result);
 
@@ -659,7 +666,7 @@ void CTX_data_pointer_set_ptr(bContextDataResult *result, const PointerRNA *ptr)
 
 void CTX_data_id_list_add(bContextDataResult *result, ID *id)
 {
-  CollectionPointerLink *link = MEM_callocN(sizeof(CollectionPointerLink), "CTX_data_id_list_add");
+  CollectionPointerLink *link = MEM_cnew<CollectionPointerLink>(__func__);
   RNA_id_pointer_create(id, &link->ptr);
 
   BLI_addtail(&result->list, link);
@@ -667,7 +674,7 @@ void CTX_data_id_list_add(bContextDataResult *result, ID *id)
 
 void CTX_data_list_add(bContextDataResult *result, ID *id, StructRNA *type, void *data)
 {
-  CollectionPointerLink *link = MEM_callocN(sizeof(CollectionPointerLink), "CTX_data_list_add");
+  CollectionPointerLink *link = MEM_cnew<CollectionPointerLink>(__func__);
   RNA_pointer_create(id, type, data, &link->ptr);
 
   BLI_addtail(&result->list, link);
@@ -675,7 +682,7 @@ void CTX_data_list_add(bContextDataResult *result, ID *id, StructRNA *type, void
 
 void CTX_data_list_add_ptr(bContextDataResult *result, const PointerRNA *ptr)
 {
-  CollectionPointerLink *link = MEM_callocN(sizeof(CollectionPointerLink), "CTX_data_list_add");
+  CollectionPointerLink *link = MEM_cnew<CollectionPointerLink>(__func__);
   link->ptr = *ptr;
 
   BLI_addtail(&result->list, link);
@@ -718,77 +725,79 @@ wmWindowManager *CTX_wm_manager(const bContext *C)
 
 bool CTX_wm_interface_locked(const bContext *C)
 {
-  return (bool)C->wm.manager->is_interface_locked;
+  return bool(C->wm.manager->is_interface_locked);
 }
 
 wmWindow *CTX_wm_window(const bContext *C)
 {
-  return ctx_wm_python_context_get(C, "window", &RNA_Window, C->wm.window);
+  return static_cast<wmWindow *>(
+      ctx_wm_python_context_get(C, "window", &RNA_Window, C->wm.window));
 }
 
 WorkSpace *CTX_wm_workspace(const bContext *C)
 {
-  return ctx_wm_python_context_get(C, "workspace", &RNA_WorkSpace, C->wm.workspace);
+  return static_cast<WorkSpace *>(
+      ctx_wm_python_context_get(C, "workspace", &RNA_WorkSpace, C->wm.workspace));
 }
 
 bScreen *CTX_wm_screen(const bContext *C)
 {
-  return ctx_wm_python_context_get(C, "screen", &RNA_Screen, C->wm.screen);
+  return static_cast<bScreen *>(ctx_wm_python_context_get(C, "screen", &RNA_Screen, C->wm.screen));
 }
 
 ScrArea *CTX_wm_area(const bContext *C)
 {
-  return ctx_wm_python_context_get(C, "area", &RNA_Area, C->wm.area);
+  return static_cast<ScrArea *>(ctx_wm_python_context_get(C, "area", &RNA_Area, C->wm.area));
 }
 
 SpaceLink *CTX_wm_space_data(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
-  return (area) ? area->spacedata.first : NULL;
+  return (area) ? static_cast<SpaceLink *>(area->spacedata.first) : nullptr;
 }
 
 ARegion *CTX_wm_region(const bContext *C)
 {
-  return ctx_wm_python_context_get(C, "region", &RNA_Region, C->wm.region);
+  return static_cast<ARegion *>(ctx_wm_python_context_get(C, "region", &RNA_Region, C->wm.region));
 }
 
 void *CTX_wm_region_data(const bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
-  return (region) ? region->regiondata : NULL;
+  return (region) ? region->regiondata : nullptr;
 }
 
-struct ARegion *CTX_wm_menu(const bContext *C)
+ARegion *CTX_wm_menu(const bContext *C)
 {
   return C->wm.menu;
 }
 
-struct wmGizmoGroup *CTX_wm_gizmo_group(const bContext *C)
+wmGizmoGroup *CTX_wm_gizmo_group(const bContext *C)
 {
   return C->wm.gizmo_group;
 }
 
-struct wmMsgBus *CTX_wm_message_bus(const bContext *C)
+wmMsgBus *CTX_wm_message_bus(const bContext *C)
 {
-  return C->wm.manager ? C->wm.manager->message_bus : NULL;
+  return C->wm.manager ? C->wm.manager->message_bus : nullptr;
 }
 
-struct ReportList *CTX_wm_reports(const bContext *C)
+ReportList *CTX_wm_reports(const bContext *C)
 {
   if (C->wm.manager) {
     return &(C->wm.manager->reports);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 View3D *CTX_wm_view3d(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_VIEW3D) {
-    return area->spacedata.first;
+    return static_cast<View3D *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
 RegionView3D *CTX_wm_region_view3d(const bContext *C)
@@ -798,163 +807,163 @@ RegionView3D *CTX_wm_region_view3d(const bContext *C)
 
   if (area && area->spacetype == SPACE_VIEW3D) {
     if (region && region->regiontype == RGN_TYPE_WINDOW) {
-      return region->regiondata;
+      return static_cast<RegionView3D *>(region->regiondata);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceText *CTX_wm_space_text(const bContext *C)
+SpaceText *CTX_wm_space_text(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_TEXT) {
-    return area->spacedata.first;
+    return static_cast<SpaceText *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceConsole *CTX_wm_space_console(const bContext *C)
+SpaceConsole *CTX_wm_space_console(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_CONSOLE) {
-    return area->spacedata.first;
+    return static_cast<SpaceConsole *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceImage *CTX_wm_space_image(const bContext *C)
+SpaceImage *CTX_wm_space_image(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_IMAGE) {
-    return area->spacedata.first;
+    return static_cast<SpaceImage *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceProperties *CTX_wm_space_properties(const bContext *C)
+SpaceProperties *CTX_wm_space_properties(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_PROPERTIES) {
-    return area->spacedata.first;
+    return static_cast<SpaceProperties *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceFile *CTX_wm_space_file(const bContext *C)
+SpaceFile *CTX_wm_space_file(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_FILE) {
-    return area->spacedata.first;
+    return static_cast<SpaceFile *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceSeq *CTX_wm_space_seq(const bContext *C)
+SpaceSeq *CTX_wm_space_seq(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_SEQ) {
-    return area->spacedata.first;
+    return static_cast<SpaceSeq *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceOutliner *CTX_wm_space_outliner(const bContext *C)
+SpaceOutliner *CTX_wm_space_outliner(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_OUTLINER) {
-    return area->spacedata.first;
+    return static_cast<SpaceOutliner *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceNla *CTX_wm_space_nla(const bContext *C)
+SpaceNla *CTX_wm_space_nla(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_NLA) {
-    return area->spacedata.first;
+    return static_cast<SpaceNla *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceNode *CTX_wm_space_node(const bContext *C)
+SpaceNode *CTX_wm_space_node(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_NODE) {
-    return area->spacedata.first;
+    return static_cast<SpaceNode *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceGraph *CTX_wm_space_graph(const bContext *C)
+SpaceGraph *CTX_wm_space_graph(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_GRAPH) {
-    return area->spacedata.first;
+    return static_cast<SpaceGraph *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceAction *CTX_wm_space_action(const bContext *C)
+SpaceAction *CTX_wm_space_action(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_ACTION) {
-    return area->spacedata.first;
+    return static_cast<SpaceAction *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceInfo *CTX_wm_space_info(const bContext *C)
+SpaceInfo *CTX_wm_space_info(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_INFO) {
-    return area->spacedata.first;
+    return static_cast<SpaceInfo *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceUserPref *CTX_wm_space_userpref(const bContext *C)
+SpaceUserPref *CTX_wm_space_userpref(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_USERPREF) {
-    return area->spacedata.first;
+    return static_cast<SpaceUserPref *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceClip *CTX_wm_space_clip(const bContext *C)
+SpaceClip *CTX_wm_space_clip(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_CLIP) {
-    return area->spacedata.first;
+    return static_cast<SpaceClip *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceTopBar *CTX_wm_space_topbar(const bContext *C)
+SpaceTopBar *CTX_wm_space_topbar(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_TOPBAR) {
-    return area->spacedata.first;
+    return static_cast<SpaceTopBar *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
-struct SpaceSpreadsheet *CTX_wm_space_spreadsheet(const bContext *C)
+SpaceSpreadsheet *CTX_wm_space_spreadsheet(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_SPREADSHEET) {
-    return area->spacedata.first;
+    return static_cast<SpaceSpreadsheet *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
 void CTX_wm_manager_set(bContext *C, wmWindowManager *wm)
 {
   C->wm.manager = wm;
-  C->wm.window = NULL;
-  C->wm.screen = NULL;
-  C->wm.area = NULL;
-  C->wm.region = NULL;
+  C->wm.window = nullptr;
+  C->wm.screen = nullptr;
+  C->wm.area = nullptr;
+  C->wm.region = nullptr;
 }
 
 #ifdef WITH_PYTHON
@@ -970,14 +979,16 @@ void CTX_wm_window_set(bContext *C, wmWindow *win)
   if (win) {
     C->data.scene = win->scene;
   }
-  C->wm.workspace = (win) ? BKE_workspace_active_get(win->workspace_hook) : NULL;
-  C->wm.screen = (win) ? BKE_workspace_active_screen_get(win->workspace_hook) : NULL;
-  C->wm.area = NULL;
-  C->wm.region = NULL;
+  C->wm.workspace = (win) ? BKE_workspace_active_get(win->workspace_hook) : nullptr;
+  C->wm.screen = (win) ? BKE_workspace_active_screen_get(win->workspace_hook) : nullptr;
+  C->wm.area = nullptr;
+  C->wm.region = nullptr;
 
 #ifdef WITH_PYTHON
-  if (C->data.py_context != NULL) {
-    BPY_context_dict_clear_members(C, PYCTX_WINDOW_MEMBERS);
+  if (C->data.py_context != nullptr) {
+    const char *members[] = {PYCTX_WINDOW_MEMBERS};
+    BPY_context_dict_clear_members_array(
+        &C->data.py_context, C->data.py_context_orig, members, ARRAY_SIZE(members));
   }
 #endif
 }
@@ -985,12 +996,14 @@ void CTX_wm_window_set(bContext *C, wmWindow *win)
 void CTX_wm_screen_set(bContext *C, bScreen *screen)
 {
   C->wm.screen = screen;
-  C->wm.area = NULL;
-  C->wm.region = NULL;
+  C->wm.area = nullptr;
+  C->wm.region = nullptr;
 
 #ifdef WITH_PYTHON
-  if (C->data.py_context != NULL) {
-    BPY_context_dict_clear_members(C, PYCTX_SCREEN_MEMBERS);
+  if (C->data.py_context != nullptr) {
+    const char *members[] = {PYCTX_SCREEN_MEMBERS};
+    BPY_context_dict_clear_members_array(
+        &C->data.py_context, C->data.py_context_orig, members, ARRAY_SIZE(members));
   }
 #endif
 }
@@ -998,11 +1011,13 @@ void CTX_wm_screen_set(bContext *C, bScreen *screen)
 void CTX_wm_area_set(bContext *C, ScrArea *area)
 {
   C->wm.area = area;
-  C->wm.region = NULL;
+  C->wm.region = nullptr;
 
 #ifdef WITH_PYTHON
-  if (C->data.py_context != NULL) {
-    BPY_context_dict_clear_members(C, PYCTX_AREA_MEMBERS);
+  if (C->data.py_context != nullptr) {
+    const char *members[] = {PYCTX_AREA_MEMBERS};
+    BPY_context_dict_clear_members_array(
+        &C->data.py_context, C->data.py_context_orig, members, ARRAY_SIZE(members));
   }
 #endif
 }
@@ -1012,8 +1027,10 @@ void CTX_wm_region_set(bContext *C, ARegion *region)
   C->wm.region = region;
 
 #ifdef WITH_PYTHON
-  if (C->data.py_context != NULL) {
-    BPY_context_dict_clear_members(C, PYCTX_REGION_MEMBERS);
+  if (C->data.py_context != nullptr) {
+    const char *members[] = {PYCTX_REGION_MEMBERS};
+    BPY_context_dict_clear_members_array(
+        &C->data.py_context, C->data.py_context_orig, members, ARRAY_SIZE(members));
   }
 #endif
 }
@@ -1023,22 +1040,22 @@ void CTX_wm_menu_set(bContext *C, ARegion *menu)
   C->wm.menu = menu;
 }
 
-void CTX_wm_gizmo_group_set(bContext *C, struct wmGizmoGroup *gzgroup)
+void CTX_wm_gizmo_group_set(bContext *C, wmGizmoGroup *gzgroup)
 {
   C->wm.gizmo_group = gzgroup;
 }
 
 void CTX_wm_operator_poll_msg_clear(bContext *C)
 {
-  struct bContextPollMsgDyn_Params *params = &C->wm.operator_poll_msg_dyn_params;
-  if (params->free_fn != NULL) {
+  bContextPollMsgDyn_Params *params = &C->wm.operator_poll_msg_dyn_params;
+  if (params->free_fn != nullptr) {
     params->free_fn(C, params->user_data);
   }
-  params->get_fn = NULL;
-  params->free_fn = NULL;
-  params->user_data = NULL;
+  params->get_fn = nullptr;
+  params->free_fn = nullptr;
+  params->user_data = nullptr;
 
-  C->wm.operator_poll_msg = NULL;
+  C->wm.operator_poll_msg = nullptr;
 }
 void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)
 {
@@ -1047,8 +1064,7 @@ void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)
   C->wm.operator_poll_msg = msg;
 }
 
-void CTX_wm_operator_poll_msg_set_dynamic(bContext *C,
-                                          const struct bContextPollMsgDyn_Params *params)
+void CTX_wm_operator_poll_msg_set_dynamic(bContext *C, const bContextPollMsgDyn_Params *params)
 {
   CTX_wm_operator_poll_msg_clear(C);
 
@@ -1057,10 +1073,10 @@ void CTX_wm_operator_poll_msg_set_dynamic(bContext *C,
 
 const char *CTX_wm_operator_poll_msg_get(bContext *C, bool *r_free)
 {
-  struct bContextPollMsgDyn_Params *params = &C->wm.operator_poll_msg_dyn_params;
-  if (params->get_fn != NULL) {
+  bContextPollMsgDyn_Params *params = &C->wm.operator_poll_msg_dyn_params;
+  if (params->get_fn != nullptr) {
     char *msg = params->get_fn(C, params->user_data);
-    if (msg != NULL) {
+    if (msg != nullptr) {
       *r_free = true;
     }
     return msg;
@@ -1075,7 +1091,7 @@ const char *CTX_wm_operator_poll_msg_get(bContext *C, bool *r_free)
 Main *CTX_data_main(const bContext *C)
 {
   Main *bmain;
-  if (ctx_data_pointer_verify(C, "blend_data", (void *)&bmain)) {
+  if (ctx_data_pointer_verify(C, "blend_data", (void **)&bmain)) {
     return bmain;
   }
 
@@ -1091,7 +1107,7 @@ void CTX_data_main_set(bContext *C, Main *bmain)
 Scene *CTX_data_scene(const bContext *C)
 {
   Scene *scene;
-  if (ctx_data_pointer_verify(C, "scene", (void *)&scene)) {
+  if (ctx_data_pointer_verify(C, "scene", (void **)&scene)) {
     return scene;
   }
 
@@ -1102,7 +1118,7 @@ ViewLayer *CTX_data_view_layer(const bContext *C)
 {
   ViewLayer *view_layer;
 
-  if (ctx_data_pointer_verify(C, "view_layer", (void *)&view_layer)) {
+  if (ctx_data_pointer_verify(C, "view_layer", (void **)&view_layer)) {
     return view_layer;
   }
 
@@ -1129,7 +1145,7 @@ LayerCollection *CTX_data_layer_collection(const bContext *C)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   LayerCollection *layer_collection;
 
-  if (ctx_data_pointer_verify(C, "layer_collection", (void *)&layer_collection)) {
+  if (ctx_data_pointer_verify(C, "layer_collection", (void **)&layer_collection)) {
     if (BKE_view_layer_has_collection(view_layer, layer_collection->collection)) {
       return layer_collection;
     }
@@ -1142,7 +1158,7 @@ LayerCollection *CTX_data_layer_collection(const bContext *C)
 Collection *CTX_data_collection(const bContext *C)
 {
   Collection *collection;
-  if (ctx_data_pointer_verify(C, "collection", (void *)&collection)) {
+  if (ctx_data_pointer_verify(C, "collection", (void **)&collection)) {
     return collection;
   }
 
@@ -1229,8 +1245,8 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
 enum eContextObjectMode CTX_data_mode_enum(const bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
-  Object *obact = obedit ? NULL : CTX_data_active_object(C);
-  return CTX_data_mode_enum_ex(obedit, obact, obact ? obact->mode : OB_MODE_OBJECT);
+  Object *obact = obedit ? nullptr : CTX_data_active_object(C);
+  return CTX_data_mode_enum_ex(obedit, obact, obact ? eObjectMode(obact->mode) : OB_MODE_OBJECT);
 }
 
 /**
@@ -1260,7 +1276,7 @@ static const char *data_mode_strings[] = {
     "greasepencil_weight",
     "greasepencil_vertex",
     "curves_sculpt",
-    NULL,
+    nullptr,
 };
 BLI_STATIC_ASSERT(ARRAY_SIZE(data_mode_strings) == CTX_MODE_NUM + 1,
                   "Must have a string for each context mode")
@@ -1274,8 +1290,9 @@ void CTX_data_scene_set(bContext *C, Scene *scene)
   C->data.scene = scene;
 
 #ifdef WITH_PYTHON
-  if (C->data.py_context != NULL) {
-    BPY_context_dict_clear_members(C, "scene");
+  if (C->data.py_context != nullptr) {
+    const char *members[] = {"scene"};
+    BPY_context_dict_clear_members_array(&C->data.py_context, C->data.py_context_orig, members, 1);
   }
 #endif
 }
@@ -1288,7 +1305,7 @@ ToolSettings *CTX_data_tool_settings(const bContext *C)
     return scene->toolsettings;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 bool CTX_data_selected_ids(const bContext *C, ListBase *list)
@@ -1351,17 +1368,17 @@ bool CTX_data_selectable_bases(const bContext *C, ListBase *list)
   return ctx_data_base_collection_get(C, "selectable_objects", list);
 }
 
-struct Object *CTX_data_active_object(const bContext *C)
+Object *CTX_data_active_object(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "active_object");
+  return static_cast<Object *>(ctx_data_pointer_get(C, "active_object"));
 }
 
-struct Base *CTX_data_active_base(const bContext *C)
+Base *CTX_data_active_base(const bContext *C)
 {
-  Object *ob = ctx_data_pointer_get(C, "active_object");
+  Object *ob = CTX_data_active_object(C);
 
-  if (ob == NULL) {
-    return NULL;
+  if (ob == nullptr) {
+    return nullptr;
   }
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1369,39 +1386,39 @@ struct Base *CTX_data_active_base(const bContext *C)
   return BKE_view_layer_base_find(view_layer, ob);
 }
 
-struct Object *CTX_data_edit_object(const bContext *C)
+Object *CTX_data_edit_object(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "edit_object");
+  return static_cast<Object *>(ctx_data_pointer_get(C, "edit_object"));
 }
 
-struct Image *CTX_data_edit_image(const bContext *C)
+Image *CTX_data_edit_image(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "edit_image");
+  return static_cast<Image *>(ctx_data_pointer_get(C, "edit_image"));
 }
 
-struct Text *CTX_data_edit_text(const bContext *C)
+Text *CTX_data_edit_text(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "edit_text");
+  return static_cast<Text *>(ctx_data_pointer_get(C, "edit_text"));
 }
 
-struct MovieClip *CTX_data_edit_movieclip(const bContext *C)
+MovieClip *CTX_data_edit_movieclip(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "edit_movieclip");
+  return static_cast<MovieClip *>(ctx_data_pointer_get(C, "edit_movieclip"));
 }
 
-struct Mask *CTX_data_edit_mask(const bContext *C)
+Mask *CTX_data_edit_mask(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "edit_mask");
+  return static_cast<Mask *>(ctx_data_pointer_get(C, "edit_mask"));
 }
 
-struct EditBone *CTX_data_active_bone(const bContext *C)
+EditBone *CTX_data_active_bone(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "active_bone");
+  return static_cast<EditBone *>(ctx_data_pointer_get(C, "active_bone"));
 }
 
-struct CacheFile *CTX_data_edit_cachefile(const bContext *C)
+CacheFile *CTX_data_edit_cachefile(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "edit_cachefile");
+  return static_cast<CacheFile *>(ctx_data_pointer_get(C, "edit_cachefile"));
 }
 
 bool CTX_data_selected_bones(const bContext *C, ListBase *list)
@@ -1424,9 +1441,9 @@ bool CTX_data_editable_bones(const bContext *C, ListBase *list)
   return ctx_data_collection_get(C, "editable_bones", list);
 }
 
-struct bPoseChannel *CTX_data_active_pose_bone(const bContext *C)
+bPoseChannel *CTX_data_active_pose_bone(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "active_pose_bone");
+  return static_cast<bPoseChannel *>(ctx_data_pointer_get(C, "active_pose_bone"));
 }
 
 bool CTX_data_selected_pose_bones(const bContext *C, ListBase *list)
@@ -1446,17 +1463,17 @@ bool CTX_data_visible_pose_bones(const bContext *C, ListBase *list)
 
 bGPdata *CTX_data_gpencil_data(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "gpencil_data");
+  return static_cast<bGPdata *>(ctx_data_pointer_get(C, "gpencil_data"));
 }
 
 bGPDlayer *CTX_data_active_gpencil_layer(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "active_gpencil_layer");
+  return static_cast<bGPDlayer *>(ctx_data_pointer_get(C, "active_gpencil_layer"));
 }
 
 bGPDframe *CTX_data_active_gpencil_frame(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "active_gpencil_frame");
+  return static_cast<bGPDframe *>(ctx_data_pointer_get(C, "active_gpencil_frame"));
 }
 
 bool CTX_data_visible_gpencil_layers(const bContext *C, ListBase *list)
@@ -1476,7 +1493,7 @@ bool CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list)
 
 const AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "asset_library_ref");
+  return static_cast<AssetLibraryReference *>(ctx_data_pointer_get(C, "asset_library_ref"));
 }
 
 AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)
@@ -1497,11 +1514,11 @@ AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)
       (FileDirEntry *)CTX_data_pointer_get_type(C, "active_file", &RNA_FileSelectEntry).data;
   if (file && file->asset) {
     *r_is_valid = true;
-    return (AssetHandle){.file_data = file};
+    AssetHandle{file};
   }
 
   *r_is_valid = false;
-  return (AssetHandle){0};
+  return AssetHandle{nullptr};
 }
 
 Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)
