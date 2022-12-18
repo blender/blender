@@ -759,7 +759,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 
 /******************** texture paint toggle operator ********************/
 
-static void paint_init_pivot(Object *ob, Scene *scene)
+void paint_init_pivot(Object *ob, Scene *scene)
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 
