@@ -2326,6 +2326,10 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
     node_src.typeinfo->copyfunc(dst_tree, node_dst, &node_src);
   }
 
+  if (dst_tree) {
+    BKE_ntree_update_tag_node_new(dst_tree, node_dst);
+  }
+
   /* Only call copy function when a copy is made for the main database, not
    * for cases like the dependency graph and localization. */
   if (node_dst->typeinfo->copyfunc_api && !(flag & LIB_ID_CREATE_NO_MAIN)) {
@@ -2333,10 +2337,6 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
     RNA_pointer_create((ID *)dst_tree, &RNA_Node, node_dst, &ptr);
 
     node_dst->typeinfo->copyfunc_api(&ptr, &node_src);
-  }
-
-  if (dst_tree) {
-    BKE_ntree_update_tag_node_new(dst_tree, node_dst);
   }
 
   /* Reset the declaration of the new node. */
