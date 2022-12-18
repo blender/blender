@@ -545,10 +545,20 @@ static int project_paint_face_paint_tile(Image *ima, const float *uv)
   return 1001 + 10 * ty + tx;
 }
 
+static Material *tex_get_material(const ProjPaintState *ps, int poly_i)
+{
+  int mat_nr = ps->material_indices == nullptr ? 0 : ps->material_indices[poly_i];
+  if (mat_nr >= 0 && mat_nr <= ps->ob->totcol) {
+    return ps->mat_array[mat_nr];
+  }
+
+  return nullptr;
+}
+
 static TexPaintSlot *project_paint_face_paint_slot(const ProjPaintState *ps, int tri_index)
 {
   const int poly_i = ps->mlooptri_eval[tri_index].poly;
-  Material *ma = ps->mat_array[ps->material_indices == nullptr ? 0 : ps->material_indices[poly_i]];
+  Material *ma = tex_get_material(ps, poly_i);
   return ma ? ma->texpaintslot + ma->paint_active_slot : nullptr;
 }
 
@@ -559,7 +569,7 @@ static Image *project_paint_face_paint_image(const ProjPaintState *ps, int tri_i
   }
 
   const int poly_i = ps->mlooptri_eval[tri_index].poly;
-  Material *ma = ps->mat_array[ps->material_indices == nullptr ? 0 : ps->material_indices[poly_i]];
+  Material *ma = tex_get_material(ps, poly_i);
   TexPaintSlot *slot = ma ? ma->texpaintslot + ma->paint_active_slot : nullptr;
   return slot ? slot->ima : ps->canvas_ima;
 }
@@ -567,14 +577,14 @@ static Image *project_paint_face_paint_image(const ProjPaintState *ps, int tri_i
 static TexPaintSlot *project_paint_face_clone_slot(const ProjPaintState *ps, int tri_index)
 {
   const int poly_i = ps->mlooptri_eval[tri_index].poly;
-  Material *ma = ps->mat_array[ps->material_indices == nullptr ? 0 : ps->material_indices[poly_i]];
+  Material *ma = tex_get_material(ps, poly_i);
   return ma ? ma->texpaintslot + ma->paint_clone_slot : nullptr;
 }
 
 static Image *project_paint_face_clone_image(const ProjPaintState *ps, int tri_index)
 {
   const int poly_i = ps->mlooptri_eval[tri_index].poly;
-  Material *ma = ps->mat_array[ps->material_indices == nullptr ? 0 : ps->material_indices[poly_i]];
+  Material *ma = tex_get_material(ps, poly_i);
   TexPaintSlot *slot = ma ? ma->texpaintslot + ma->paint_clone_slot : nullptr;
   return slot ? slot->ima : ps->clone_ima;
 }
