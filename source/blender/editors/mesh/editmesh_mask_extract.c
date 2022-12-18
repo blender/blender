@@ -37,6 +37,7 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
+#include "ED_undo.h"
 #include "ED_view3d.h"
 
 #include "bmesh_tools.h"
@@ -287,6 +288,16 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   params.add_boundary_loop = RNA_boolean_get(op->ptr, "add_boundary_loop");
   params.apply_shrinkwrap = RNA_boolean_get(op->ptr, "apply_shrinkwrap");
   params.add_solidify = RNA_boolean_get(op->ptr, "add_solidify");
+
+  /* Push an undo step prior to extraction.
+   * Note: A second push happens after the operator due to
+   * the OPTYPE_UNDO flag; having an initial undo step here
+   * is just needed to preserve the active object pointer.
+   * 
+   * Fixes T103261.
+   */
+  ED_undo_push_op(C, op);
+
   return geometry_extract_apply(C, op, geometry_extract_tag_masked_faces, &params);
 }
 
