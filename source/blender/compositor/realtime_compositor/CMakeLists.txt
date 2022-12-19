@@ -106,6 +106,8 @@ set(GLSL_SRC
   shaders/compositor_glare_simple_star_diagonal_pass.glsl
   shaders/compositor_glare_simple_star_horizontal_pass.glsl
   shaders/compositor_glare_simple_star_vertical_pass.glsl
+  shaders/compositor_glare_streaks_accumulate.glsl
+  shaders/compositor_glare_streaks_filter.glsl
   shaders/compositor_image_crop.glsl
   shaders/compositor_morphological_distance.glsl
   shaders/compositor_morphological_distance_feather.glsl
