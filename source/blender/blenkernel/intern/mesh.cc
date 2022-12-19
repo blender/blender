@@ -979,6 +979,18 @@ Mesh *BKE_mesh_new_nomain(
   return mesh;
 }
 
+static void copy_attribute_names(const Mesh &mesh_src, Mesh &mesh_dst)
+{
+  if (mesh_src.active_color_attribute) {
+    MEM_SAFE_FREE(mesh_dst.active_color_attribute);
+    mesh_dst.active_color_attribute = BLI_strdup(mesh_src.active_color_attribute);
+  }
+  if (mesh_src.default_color_attribute) {
+    MEM_SAFE_FREE(mesh_dst.default_color_attribute);
+    mesh_dst.default_color_attribute = BLI_strdup(mesh_src.default_color_attribute);
+  }
+}
+
 void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
 {
   /* Copy general settings. */
@@ -1008,6 +1020,7 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
   BLI_assert(me_dst->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_WRITE));
 
   BKE_mesh_copy_parameters(me_dst, me_src);
+  copy_attribute_names(*me_src, *me_dst);
 
   /* Copy vertex group names. */
   BLI_assert(BLI_listbase_is_empty(&me_dst->vertex_group_names));
