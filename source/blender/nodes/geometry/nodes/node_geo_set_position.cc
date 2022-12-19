@@ -54,6 +54,12 @@ static void set_computed_position_and_offset(GeometryComponent &component,
                 }
               });
         });
+        if (in_offsets.is_single() && selection.size() == verts.size()) {
+          BKE_mesh_tag_coords_changed_uniformly(mesh);
+        }
+        else {
+          BKE_mesh_tag_coords_changed(mesh);
+        }
       }
       else {
         devirtualize_varray2(
@@ -66,6 +72,7 @@ static void set_computed_position_and_offset(GeometryComponent &component,
                     }
                   });
             });
+        BKE_mesh_tag_coords_changed(mesh);
       }
       break;
     }
