@@ -187,6 +187,13 @@ vec4 gpencil_vertex(vec4 viewport_size,
       is_squares = false;
     }
 
+    /* Endpoints, we discard the vertices. */
+    if (!is_dot && ma2.x == -1) {
+      /* We set the vertex at the camera origin to generate 0 fragments. */
+      out_ndc = vec4(0.0, 0.0, -3e36, 0.0);
+      return out_ndc;
+    }
+
     /* Avoid using a vertex attribute for quad positioning. */
     float x = float(gl_VertexID & 1) * 2.0 - 1.0; /* [-1..1] */
     float y = float(gl_VertexID & 2) - 1.0;       /* [-1..1] */
