@@ -588,7 +588,7 @@ static void lineart_shadow_edge_cut(LineartData *ld,
     new_seg_2->ratio = end;
   }
 
-  double r_fb_co_1[4], r_fb_co_2[4], r_gloc_1[3], r_gloc_2[3];
+  double r_fb_co_1[4]={0}, r_fb_co_2[4]={0}, r_gloc_1[3]={0}, r_gloc_2[3]={0};
   double r_new_in_the_middle[4], r_new_in_the_middle_global[3], r_new_at;
   double *s1_fb_co_1, *s1_fb_co_2, *s1_gloc_1, *s1_gloc_2;
 
