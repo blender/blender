@@ -902,11 +902,11 @@ class Vector {
 
   std::reverse_iterator<const T *> rbegin() const
   {
-    return std::reverse_iterator<T *>(this->end());
+    return std::reverse_iterator<const T *>(this->end());
   }
   std::reverse_iterator<const T *> rend() const
   {
-    return std::reverse_iterator<T *>(this->begin());
+    return std::reverse_iterator<const T *>(this->begin());
   }
 
   /**
