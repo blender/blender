@@ -5227,10 +5227,9 @@ static bool button_matches_search_filter(uiBut *but, const char *search_filter)
 /**
  * Test for a search result within a specific button group.
  */
-static bool button_group_has_search_match(uiButtonGroup *button_group, const char *search_filter)
+static bool button_group_has_search_match(const uiButtonGroup &group, const char *search_filter)
 {
-  LISTBASE_FOREACH (LinkData *, link, &button_group->buttons) {
-    uiBut *but = static_cast<uiBut *>(link->data);
+  for (uiBut *but : group.buttons) {
     if (button_matches_search_filter(but, search_filter)) {
       return true;
     }
@@ -5251,13 +5250,12 @@ static bool button_group_has_search_match(uiButtonGroup *button_group, const cha
 static bool block_search_filter_tag_buttons(uiBlock *block, const char *search_filter)
 {
   bool has_result = false;
-  LISTBASE_FOREACH (uiButtonGroup *, button_group, &block->button_groups) {
-    if (button_group_has_search_match(button_group, search_filter)) {
+  for (const uiButtonGroup &group : block->button_groups) {
+    if (button_group_has_search_match(group, search_filter)) {
       has_result = true;
     }
     else {
-      LISTBASE_FOREACH (LinkData *, link, &button_group->buttons) {
-        uiBut *but = static_cast<uiBut *>(link->data);
+      for (uiBut *but : group.buttons) {
         but->flag |= UI_SEARCH_FILTER_NO_MATCH;
       }
     }
