@@ -126,7 +126,9 @@ void CTX_free(bContext *C)
 
 /* store */
 
-bContextStore *CTX_store_add(ListBase *contexts, const char *name, const PointerRNA *ptr)
+bContextStore *CTX_store_add(ListBase *contexts,
+                             const blender::StringRefNull name,
+                             const PointerRNA *ptr)
 {
   /* ensure we have a context to put the entry in, if it was already used
    * we have to copy the context to ensure */
@@ -134,23 +136,16 @@ bContextStore *CTX_store_add(ListBase *contexts, const char *name, const Pointer
 
   if (!ctx || ctx->used) {
     if (ctx) {
-      bContextStore *lastctx = ctx;
-      ctx = MEM_new<bContextStore>(__func__);
-      *ctx = *lastctx;
-      BLI_duplicatelist(&ctx->entries, &lastctx->entries);
+      ctx = MEM_new<bContextStore>(__func__, *ctx);
     }
     else {
-      ctx = MEM_cnew<bContextStore>(__func__);
+      ctx = MEM_new<bContextStore>(__func__);
     }
 
     BLI_addtail(contexts, ctx);
   }
 
-  bContextStoreEntry *entry = MEM_cnew<bContextStoreEntry>(__func__);
-  BLI_strncpy(entry->name, name, sizeof(entry->name));
-  entry->ptr = *ptr;
-
-  BLI_addtail(&ctx->entries, entry);
+  ctx->entries.append(bContextStoreEntry{name, *ptr});
 
   return ctx;
 }
@@ -163,22 +158,17 @@ bContextStore *CTX_store_add_all(ListBase *contexts, bContextStore *context)
 
   if (!ctx || ctx->used) {
     if (ctx) {
-      bContextStore *lastctx = ctx;
-      ctx = MEM_new<bContextStore>(__func__);
-      *ctx = *lastctx;
-      BLI_duplicatelist(&ctx->entries, &lastctx->entries);
+      ctx = MEM_new<bContextStore>(__func__, *ctx);
     }
     else {
-      ctx = MEM_cnew<bContextStore>(__func__);
+      ctx = MEM_new<bContextStore>(__func__);
     }
 
     BLI_addtail(contexts, ctx);
   }
 
-  LISTBASE_FOREACH (bContextStoreEntry *, tentry, &context->entries) {
-    bContextStoreEntry *entry = MEM_cnew<bContextStoreEntry>(__func__);
-    *entry = *tentry;
-    BLI_addtail(&ctx->entries, entry);
+  for (const bContextStoreEntry &src_entry : context->entries) {
+    ctx->entries.append(src_entry);
   }
 
   return ctx;
@@ -195,42 +185,27 @@ void CTX_store_set(bContext *C, bContextStore *store)
 }
 
 const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
-                                       const char *name,
+                                       const blender::StringRefNull name,
                                        const StructRNA *type)
 {
-  bContextStoreEntry *entry = static_cast<bContextStoreEntry *>(
-      BLI_rfindstring(&store->entries, name, offsetof(bContextStoreEntry, name)));
-  if (!entry) {
-    return nullptr;
+  for (auto entry = store->entries.rbegin(); entry != store->entries.rend(); ++entry) {
+    if (entry->name == name) {
+      if (type && RNA_struct_is_a(entry->ptr.type, type)) {
+        return &entry->ptr;
+      }
+    }
   }
-
-  if (type && !RNA_struct_is_a(entry->ptr.type, type)) {
-    return nullptr;
-  }
-  return &entry->ptr;
+  return nullptr;
 }
 
-bContextStore *CTX_store_copy(bContextStore *store)
+bContextStore *CTX_store_copy(const bContextStore *store)
 {
-  bContextStore *ctx = MEM_cnew<bContextStore>(__func__);
-  *ctx = *store;
-  BLI_duplicatelist(&ctx->entries, &store->entries);
-
-  return ctx;
+  return MEM_new<bContextStore>(__func__, *store);
 }
 
 void CTX_store_free(bContextStore *store)
 {
-  BLI_freelistN(&store->entries);
-  MEM_freeN(store);
-}
-
-void CTX_store_free_list(ListBase *contexts)
-{
-  bContextStore *ctx;
-  while ((ctx = static_cast<bContextStore *>(BLI_pophead(contexts)))) {
-    CTX_store_free(ctx);
-  }
+  MEM_delete(store);
 }
 
 /* is python initialized? */
@@ -592,11 +567,8 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
     RNA_PROP_END;
   }
   if (use_store && C->wm.store) {
-    bContextStoreEntry *entry;
-
-    for (entry = static_cast<bContextStoreEntry *>(C->wm.store->entries.first); entry;
-         entry = entry->next) {
-      data_dir_add(&lb, entry->name, use_all);
+    for (const bContextStoreEntry &entry : C->wm.store->entries) {
+      data_dir_add(&lb, entry.name.c_str(), use_all);
     }
   }
   if ((region = CTX_wm_region(C)) && region->type && region->type->context) {
