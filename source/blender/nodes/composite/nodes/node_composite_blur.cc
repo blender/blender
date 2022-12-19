@@ -106,7 +106,10 @@ class BlurOperation : public NodeOperation {
       return;
     }
 
-    if (use_separable_filter()) {
+    if (!get_input("Size").is_single_value() && get_variable_size()) {
+      execute_variable_size();
+    }
+    else if (use_separable_filter()) {
       symmetric_separable_blur(context(),
                                get_input("Image"),
                                get_result("Image"),
@@ -116,11 +119,11 @@ class BlurOperation : public NodeOperation {
                                node_storage(bnode()).gamma);
     }
     else {
-      execute_blur();
+      execute_constant_size();
     }
   }
 
-  void execute_blur()
+  void execute_constant_size()
   {
     GPUShader *shader = shader_manager().get("compositor_symmetric_blur");
     GPU_shader_bind(shader);
@@ -153,6 +156,45 @@ class BlurOperation : public NodeOperation {
     output_image.unbind_as_image();
     input_image.unbind_as_texture();
     weights.unbind_as_texture();
+  }
+
+  void execute_variable_size()
+  {
+    GPUShader *shader = shader_manager().get("compositor_symmetric_blur_variable_size");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1b(shader, "extend_bounds", get_extend_bounds());
+    GPU_shader_uniform_1b(shader, "gamma_correct", node_storage(bnode()).gamma);
+
+    const Result &input_image = get_input("Image");
+    input_image.bind_as_texture(shader, "input_tx");
+
+    const float2 blur_radius = compute_blur_radius();
+
+    const SymmetricBlurWeights &weights = context().cache_manager().get_symmetric_blur_weights(
+        node_storage(bnode()).filtertype, blur_radius);
+    weights.bind_as_texture(shader, "weights_tx");
+
+    const Result &input_size = get_input("Size");
+    input_size.bind_as_texture(shader, "size_tx");
+
+    Domain domain = compute_domain();
+    if (get_extend_bounds()) {
+      /* Add a radius amount of pixels in both sides of the image, hence the multiply by 2. */
+      domain.size += int2(math::ceil(blur_radius)) * 2;
+    }
+
+    Result &output_image = get_result("Image");
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    GPU_shader_unbind();
+    output_image.unbind_as_image();
+    input_image.unbind_as_texture();
+    weights.unbind_as_texture();
+    input_size.unbind_as_texture();
   }
 
   float2 compute_blur_radius()
@@ -227,6 +269,11 @@ class BlurOperation : public NodeOperation {
   bool get_extend_bounds()
   {
     return bnode().custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS;
+  }
+
+  bool get_variable_size()
+  {
+    return bnode().custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE;
   }
 };
 
