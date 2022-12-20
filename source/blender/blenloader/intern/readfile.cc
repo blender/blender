@@ -2034,7 +2034,12 @@ static void direct_link_id_common(
   id->py_instance = nullptr;
 
   /* Initialize with provided tag. */
-  id->tag = tag | (id->tag & LIB_TAG_KEEP_ON_UNDO);
+  if (BLO_read_data_is_undo(reader)) {
+    id->tag = tag | (id->tag & LIB_TAG_KEEP_ON_UNDO);
+  }
+  else {
+    id->tag = tag;
+  }
 
   if (ID_IS_LINKED(id)) {
     id->library_weak_reference = nullptr;
