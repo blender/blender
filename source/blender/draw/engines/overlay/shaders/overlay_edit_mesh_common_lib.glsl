@@ -17,7 +17,7 @@ vec4 EDIT_MESH_edge_color_inner(uint edge_flag)
   color = ((edge_flag & EDGE_SELECTED) != 0u) ? color_select : color;
   color = ((edge_flag & EDGE_ACTIVE) != 0u) ? colorEditMeshActive : color;
 
-  color.a = (selectEdges || (edge_flag & (EDGE_SELECTED | EDGE_ACTIVE)) != 0) ? 1.0 : 0.7;
+  color.a = (selectEdges || (edge_flag & (EDGE_SELECTED | EDGE_ACTIVE)) != 0u) ? 1.0 : 0.7;
   return color;
 }
 
@@ -35,7 +35,7 @@ vec4 EDIT_MESH_edge_vertex_color(uint vertex_flag)
 
 vec4 EDIT_MESH_vertex_color(uint vertex_flag, float vertex_crease)
 {
-  if ((vertex_flag & VERT_ACTIVE) != 0) {
+  if ((vertex_flag & VERT_ACTIVE) != 0u) {
     return vec4(colorEditMeshActive.xyz, 1.0);
   }
   else if ((vertex_flag & VERT_SELECTED) != 0u) {
@@ -57,7 +57,7 @@ vec4 EDIT_MESH_face_color(uint face_flag)
   color = ((face_flag & FACE_FREESTYLE) != 0u) ? colorFaceFreestyle : color;
   color = ((face_flag & FACE_SELECTED) != 0u) ? colorFaceSelect : color;
   color = ((face_flag & FACE_ACTIVE) != 0u) ? color_active : color;
-  color.a *= ((face_flag & (FACE_FREESTYLE | FACE_SELECTED | FACE_ACTIVE)) == 0 || selectFaces) ?
+  color.a *= ((face_flag & (FACE_FREESTYLE | FACE_SELECTED | FACE_ACTIVE)) == 0u || selectFaces) ?
                  1.0 :
                  0.5;
   return color;

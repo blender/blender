@@ -153,6 +153,9 @@ struct SStruct {
 /* Texture-write functions. */
 #define imageStore(_tex, _coord, _value) _texture_write_internal(_tex, _coord, _value)
 
+/* Cubemap support always available when using Metal. */
+#define textureLod_cubemapArray(tex, co, lod) textureLod(tex, co, lod)
+
 /* Singular return values from texture functions of type DEPTH are often indexed with either .r or
  * .x. This is a lightweight wrapper type for handling this syntax. */
 union _msl_return_float {
