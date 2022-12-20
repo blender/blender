@@ -2034,7 +2034,7 @@ static void direct_link_id_common(
   id->py_instance = nullptr;
 
   /* Initialize with provided tag. */
-  id->tag = tag;
+  id->tag = tag | (id->tag & LIB_TAG_KEEP_ON_UNDO);
 
   if (ID_IS_LINKED(id)) {
     id->library_weak_reference = nullptr;
@@ -3105,7 +3105,7 @@ static void read_libblock_undo_restore_identical(
   BLI_assert(id_old != nullptr);
 
   /* Some tags need to be preserved here. */
-  id_old->tag = tag | (id_old->tag & LIB_TAG_EXTRAUSER);
+  id_old->tag = tag | (id_old->tag & LIB_TAG_KEEP_ON_UNDO);
   id_old->lib = main->curlib;
   id_old->us = ID_FAKE_USERS(id_old);
   /* Do not reset id->icon_id here, memory allocated for it remains valid. */

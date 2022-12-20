@@ -1253,7 +1253,7 @@ static bool write_file_handle(Main *mainvar,
         memcpy(id_buffer, id, idtype_struct_size);
 
         /* Clear runtime data to reduce false detection of changed data in undo/redo context. */
-        ((ID *)id_buffer)->tag = 0;
+        ((ID *)id_buffer)->tag &= LIB_TAG_KEEP_ON_UNDO;
         ((ID *)id_buffer)->us = 0;
         ((ID *)id_buffer)->icon_id = 0;
         /* Those listbase data change every time we add/remove an ID, and also often when
