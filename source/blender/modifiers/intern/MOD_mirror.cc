@@ -60,7 +60,7 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   MirrorModifierData *mmd = (MirrorModifierData *)md;
-  if (mmd->mirror_ob != NULL) {
+  if (mmd->mirror_ob != nullptr) {
     DEG_add_object_relation(ctx->node, mmd->mirror_ob, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
     DEG_add_depends_on_transform_relation(ctx->node, "Mirror Modifier");
   }
@@ -82,7 +82,7 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd, Object *ob, Mesh 
         mmd, ob, result, 1, use_correct_order_on_merge);
     if (tmp != mesh) {
       /* free intermediate results */
-      BKE_id_free(NULL, tmp);
+      BKE_id_free(nullptr, tmp);
     }
   }
   if (mmd->flag & MOD_MIR_AXIS_Z) {
@@ -91,7 +91,7 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd, Object *ob, Mesh 
         mmd, ob, result, 2, use_correct_order_on_merge);
     if (tmp != mesh) {
       /* free intermediate results */
-      BKE_id_free(NULL, tmp);
+      BKE_id_free(nullptr, tmp);
     }
   }
 
@@ -108,7 +108,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row, *col, *sub;
   uiLayout *layout = panel->layout;
@@ -141,7 +141,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiItemS(col);
 
-  uiItemR(col, ptr, "mirror_object", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "mirror_object", 0, nullptr, ICON_NONE);
 
   uiItemR(col, ptr, "use_clip", 0, IFACE_("Clipping"), ICON_NONE);
 
@@ -161,12 +161,12 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void data_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void data_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col, *row, *sub;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -200,7 +200,7 @@ static void data_panel_draw(const bContext *UNUSED(C), Panel *panel)
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Mirror, panel_draw);
-  modifier_subpanel_register(region_type, "data", "Data", NULL, data_panel_draw, panel_type);
+  modifier_subpanel_register(region_type, "data", "Data", nullptr, data_panel_draw, panel_type);
 }
 
 ModifierTypeInfo modifierType_Mirror = {
@@ -218,24 +218,24 @@ ModifierTypeInfo modifierType_Mirror = {
 
     /* copyData */ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
+    /* deformVerts */ nullptr,
+    /* deformMatrices */ nullptr,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ NULL,
+    /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,
-    /* requiredDataMask */ NULL,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
+    /* requiredDataMask */ nullptr,
+    /* freeData */ nullptr,
+    /* isDisabled */ nullptr,
     /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
+    /* dependsOnTime */ nullptr,
+    /* dependsOnNormals */ nullptr,
     /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
+    /* foreachTexLink */ nullptr,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /* blendWrite */ nullptr,
+    /* blendRead */ nullptr,
 };
