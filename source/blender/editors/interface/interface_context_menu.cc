@@ -115,7 +115,7 @@ static void shortcut_free_operator_property(IDProperty *prop)
   }
 }
 
-static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
+static void but_shortcut_name_func(bContext *C, void *arg1, int /*event*/)
 {
   uiBut *but = (uiBut *)arg1;
   char shortcut_str[128];
@@ -419,7 +419,7 @@ static void popup_user_menu_add_or_replace_func(bContext *C, void *arg1, void * 
   ui_but_user_menu_add(C, but, um);
 }
 
-static void popup_user_menu_remove_func(bContext *UNUSED(C), void *arg1, void *arg2)
+static void popup_user_menu_remove_func(bContext * /*C*/, void *arg1, void *arg2)
 {
   bUserMenu *um = static_cast<bUserMenu *>(arg1);
   bUserMenuItem *umi = static_cast<bUserMenuItem *>(arg2);

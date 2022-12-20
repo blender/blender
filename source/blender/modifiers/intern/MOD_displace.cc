@@ -78,7 +78,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
+static bool dependsOnTime(struct Scene * /*scene*/, ModifierData *md)
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 
@@ -108,9 +108,7 @@ static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void 
   walk(userData, ob, md, "texture");
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene),
-                       ModifierData *md,
-                       bool UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
   return ((!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) || dmd->strength == 0.0f);
@@ -164,7 +162,7 @@ typedef struct DisplaceUserdata {
 
 static void displaceModifier_do_task(void *__restrict userdata,
                                      const int iter,
-                                     const TaskParallelTLS *__restrict UNUSED(tls))
+                                     const TaskParallelTLS *__restrict /*tls*/)
 {
   DisplaceUserdata *data = (DisplaceUserdata *)userdata;
   DisplaceModifierData *dmd = data->dmd;

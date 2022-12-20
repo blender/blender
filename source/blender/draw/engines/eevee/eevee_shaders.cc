@@ -1319,9 +1319,7 @@ static char *eevee_get_defines(int options)
   return str;
 }
 
-static void eevee_material_post_eval(void *UNUSED(thunk),
-                                     GPUMaterial *mat,
-                                     GPUCodegenOutput *codegen)
+static void eevee_material_post_eval(void * /*thunk*/, GPUMaterial *mat, GPUCodegenOutput *codegen)
 {
   /* Fetch material-specific Create-info's and source. */
   uint64_t options = GPU_material_uuid_get(mat);
@@ -1344,7 +1342,7 @@ static void eevee_material_post_eval(void *UNUSED(thunk),
 }
 
 static struct GPUMaterial *eevee_material_get_ex(
-    struct Scene *UNUSED(scene), Material *ma, World *wo, int options, bool deferred)
+    struct Scene * /*scene*/, Material *ma, World *wo, int options, bool deferred)
 {
   BLI_assert(ma || wo);
   const bool is_volume = (options & VAR_MAT_VOLUME) != 0;

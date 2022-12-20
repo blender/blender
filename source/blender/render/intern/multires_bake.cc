@@ -831,7 +831,7 @@ static void apply_heights_callback(DerivedMesh *lores_dm,
                                    const int tri_index,
                                    const int lvl,
                                    const float st[2],
-                                   float UNUSED(tangmat[3][3]),
+                                   float /*tangmat*/[3][3],
                                    const int x,
                                    const int y)
 {
@@ -910,7 +910,7 @@ static void apply_heights_callback(DerivedMesh *lores_dm,
 
 /* **************** Normal Maps Baker **************** */
 
-static void *init_normal_data(MultiresBakeRender *bkr, ImBuf *UNUSED(ibuf))
+static void *init_normal_data(MultiresBakeRender *bkr, ImBuf * /*ibuf*/)
 {
   MNormalBakeData *normal_data;
   DerivedMesh *lodm = bkr->lores_dm;
@@ -940,7 +940,7 @@ static void free_normal_data(void *bake_data)
  */
 static void apply_tangmat_callback(DerivedMesh *lores_dm,
                                    DerivedMesh *hires_dm,
-                                   void *UNUSED(thread_data),
+                                   void * /*thread_data*/,
                                    void *bake_data,
                                    ImBuf *ibuf,
                                    const int tri_index,
@@ -1107,7 +1107,7 @@ static void create_ao_raytree(MultiresBakeRender *bkr, MAOBakeData *ao_data)
   RE_rayobject_done(raytree);
 }
 
-static void *init_ao_data(MultiresBakeRender *bkr, ImBuf *UNUSED(ibuf))
+static void *init_ao_data(MultiresBakeRender *bkr, ImBuf */*ibuf*/)
 {
   MAOBakeData *ao_data;
   DerivedMesh *lodm = bkr->lores_dm;
@@ -1201,13 +1201,13 @@ static int trace_ao_ray(MAOBakeData *ao_data, float ray_start[3], float ray_dire
 
 static void apply_ao_callback(DerivedMesh *lores_dm,
                               DerivedMesh *hires_dm,
-                              void *UNUSED(thread_data),
+                              void */*thread_data*/,
                               void *bake_data,
                               ImBuf *ibuf,
                               const int tri_index,
                               const int lvl,
                               const float st[2],
-                              float UNUSED(tangmat[3][3]),
+                              float /*tangmat[3][3]*/,
                               const int x,
                               const int y)
 {

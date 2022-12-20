@@ -973,12 +973,12 @@ static void engine_render_view_layer(Render *re,
 
 /* Callback function for engine_render_create_result to add all render passes to the result. */
 static void engine_render_add_result_pass_cb(void *user_data,
-                                             struct Scene *UNUSED(scene),
+                                             struct Scene * /*scene*/,
                                              struct ViewLayer *view_layer,
                                              const char *name,
                                              int channels,
                                              const char *chanid,
-                                             eNodeSocketDatatype UNUSED(type))
+                                             eNodeSocketDatatype /*type*/)
 {
   RenderResult *rr = (RenderResult *)user_data;
   RE_create_render_pass(rr, name, channels, chanid, view_layer->name, RR_ALL_VIEWS, false);

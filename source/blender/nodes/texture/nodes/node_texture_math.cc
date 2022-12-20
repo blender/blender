@@ -306,7 +306,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 }
 
 static void exec(void *data,
-                 int UNUSED(thread),
+                 int /*thread*/,
                  bNode *node,
                  bNodeExecData *execdata,
                  bNodeStack **in,

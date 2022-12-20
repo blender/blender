@@ -107,7 +107,7 @@ static void initData(ModifierData *md)
   md->mode |= eModifierMode_Editmode;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx), Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
   TriangulateModifierData *tmd = (TriangulateModifierData *)md;
   Mesh *result;
@@ -119,7 +119,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
   return result;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 

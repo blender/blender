@@ -422,7 +422,7 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
   }
 }
 
-static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg))
+static void template_texture_select(bContext *C, void *user_p, void * /*arg*/)
 {
   /* callback when selecting a texture user in the menu */
   SpaceProperties *sbuts = find_space_properties(C);
@@ -475,7 +475,7 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
   ct->index = user->index;
 }
 
-static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUSED(arg))
+static void template_texture_user_menu(bContext *C, uiLayout *layout, void * /*arg*/)
 {
   /* callback when opening texture user selection menu, to create buttons. */
   SpaceProperties *sbuts = CTX_wm_space_properties(C);

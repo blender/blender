@@ -489,7 +489,7 @@ static void layer_collections_copy_data(ViewLayer *view_layer_dst,
 }
 
 void BKE_view_layer_copy_data(Scene *scene_dst,
-                              const Scene *UNUSED(scene_src),
+                              const Scene * /*scene_src*/,
                               ViewLayer *view_layer_dst,
                               const ViewLayer *view_layer_src,
                               const int flag)
@@ -1257,8 +1257,8 @@ static bool view_layer_objects_base_cache_validate(ViewLayer *view_layer, LayerC
   return is_valid;
 }
 #else
-static bool view_layer_objects_base_cache_validate(ViewLayer *UNUSED(view_layer),
-                                                   LayerCollection *UNUSED(layer))
+static bool view_layer_objects_base_cache_validate(ViewLayer * /*view_layer*/,
+                                                   LayerCollection * /*layer*/)
 {
   return true;
 }
@@ -1650,7 +1650,7 @@ static void layer_collection_flag_unset_recursive(LayerCollection *lc, const int
   }
 }
 
-void BKE_layer_collection_isolate_global(Scene *UNUSED(scene),
+void BKE_layer_collection_isolate_global(Scene * /*scene*/,
                                          ViewLayer *view_layer,
                                          LayerCollection *lc,
                                          bool extend)
@@ -2266,7 +2266,7 @@ void BKE_view_layer_bases_in_mode_iterator_next(BLI_Iterator *iter)
   iter->valid = false;
 }
 
-void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
+void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator * /*iter*/)
 {
   /* do nothing */
 }
@@ -2535,12 +2535,12 @@ void BKE_view_layer_set_active_aov(ViewLayer *view_layer, ViewLayerAOV *aov)
 }
 
 static void bke_view_layer_verify_aov_cb(void *userdata,
-                                         Scene *UNUSED(scene),
-                                         ViewLayer *UNUSED(view_layer),
+                                         Scene * /*scene*/,
+                                         ViewLayer * /*view_layer*/,
                                          const char *name,
-                                         int UNUSED(channels),
-                                         const char *UNUSED(chanid),
-                                         eNodeSocketDatatype UNUSED(type))
+                                         int /*channels*/,
+                                         const char * /*chanid*/,
+                                         eNodeSocketDatatype /*type*/)
 {
   GHash *name_count = static_cast<GHash *>(userdata);
   void **value_p;

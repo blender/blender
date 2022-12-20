@@ -88,7 +88,7 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
   }
 
   void init_ss_to_texture_matrix(const ARegion *region,
-                                 const float UNUSED(image_resolution[2]),
+                                 const float /*image_resolution*/[2],
                                  float r_uv_to_texture[4][4]) const override
   {
     unit_m4(r_uv_to_texture);

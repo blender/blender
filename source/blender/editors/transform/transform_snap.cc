@@ -582,7 +582,7 @@ bool validSnappingNormal(const TransInfo *t)
   return false;
 }
 
-static bool bm_edge_is_snap_target(BMEdge *e, void *UNUSED(user_data))
+static bool bm_edge_is_snap_target(BMEdge *e, void * /*user_data*/)
 {
   if (BM_elem_flag_test(e, BM_ELEM_SELECT | BM_ELEM_HIDDEN) ||
       BM_elem_flag_test(e->v1, BM_ELEM_SELECT) || BM_elem_flag_test(e->v2, BM_ELEM_SELECT)) {
@@ -592,7 +592,7 @@ static bool bm_edge_is_snap_target(BMEdge *e, void *UNUSED(user_data))
   return true;
 }
 
-static bool bm_face_is_snap_target(BMFace *f, void *UNUSED(user_data))
+static bool bm_face_is_snap_target(BMFace *f, void * /*user_data*/)
 {
   if (BM_elem_flag_test(f, BM_ELEM_SELECT | BM_ELEM_HIDDEN)) {
     return false;
@@ -1043,7 +1043,7 @@ void getSnapPoint(const TransInfo *t, float vec[3])
 /** \name Calc Snap
  * \{ */
 
-static void snap_calc_view3d_fn(TransInfo *t, float *UNUSED(vec))
+static void snap_calc_view3d_fn(TransInfo *t, float * /*vec*/)
 {
   BLI_assert(t->spacetype == SPACE_VIEW3D);
   float loc[3];
@@ -1083,7 +1083,7 @@ static void snap_calc_view3d_fn(TransInfo *t, float *UNUSED(vec))
   t->tsnap.snapElem = snap_elem;
 }
 
-static void snap_calc_uv_fn(TransInfo *t, float *UNUSED(vec))
+static void snap_calc_uv_fn(TransInfo *t, float * /*vec*/)
 {
   BLI_assert(t->spacetype == SPACE_IMAGE);
   if (t->tsnap.mode & SCE_SNAP_MODE_VERTEX) {
@@ -1112,7 +1112,7 @@ static void snap_calc_uv_fn(TransInfo *t, float *UNUSED(vec))
   }
 }
 
-static void snap_calc_node_fn(TransInfo *t, float *UNUSED(vec))
+static void snap_calc_node_fn(TransInfo *t, float * /*vec*/)
 {
   BLI_assert(t->spacetype == SPACE_NODE);
   if (t->tsnap.mode & (SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y)) {
@@ -1132,7 +1132,7 @@ static void snap_calc_node_fn(TransInfo *t, float *UNUSED(vec))
   }
 }
 
-static void snap_calc_sequencer_fn(TransInfo *t, float *UNUSED(vec))
+static void snap_calc_sequencer_fn(TransInfo *t, float * /*vec*/)
 {
   BLI_assert(t->spacetype == SPACE_SEQ);
   if (transform_snap_sequencer_calc(t)) {
@@ -1477,7 +1477,7 @@ static NodeBorder snapNodeBorder(eSnapMode snap_node_mode)
 }
 
 static bool snapNode(ToolSettings *ts,
-                     SpaceNode *UNUSED(snode),
+                     SpaceNode * /*snode*/,
                      ARegion *region,
                      bNode *node,
                      const int mval[2],
@@ -1579,7 +1579,7 @@ bool snapNodesTransform(
 /** \name snap Grid
  * \{ */
 
-static void snap_increment_apply_ex(const TransInfo *UNUSED(t),
+static void snap_increment_apply_ex(const TransInfo * /*t*/,
                                     const int max_index,
                                     const float increment_val,
                                     const float aspect[3],
@@ -1678,7 +1678,7 @@ float transform_snap_increment_get(const TransInfo *t)
 /** \name Generic callbacks
  * \{ */
 
-float transform_snap_distance_len_squared_fn(TransInfo *UNUSED(t),
+float transform_snap_distance_len_squared_fn(TransInfo * /*t*/,
                                              const float p1[3],
                                              const float p2[3])
 {

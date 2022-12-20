@@ -626,7 +626,7 @@ PointDensity *BKE_texture_pointdensity_add(void)
   return pd;
 }
 
-PointDensity *BKE_texture_pointdensity_copy(const PointDensity *pd, const int UNUSED(flag))
+PointDensity *BKE_texture_pointdensity_copy(const PointDensity *pd, const int /*flag*/)
 {
   PointDensity *pdn;
 

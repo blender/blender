@@ -65,19 +65,19 @@ static void valuefn_b(float *out, TexParams *p, bNode *node, bNodeStack **in, sh
   *out = out[2];
 }
 
-static void valuefn_a(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
+static void valuefn_a(float *out, TexParams *p, bNode * /*node*/, bNodeStack **in, short thread)
 {
   tex_input_rgba(out, in[0], p, thread);
   *out = out[3];
 }
 
-static void update(bNodeTree *UNUSED(ntree), bNode *node)
+static void update(bNodeTree * /*ntree*/, bNode *node)
 {
   node_combsep_color_label(&node->outputs, (NodeCombSepColorMode)node->custom1);
 }
 
 static void exec(void *data,
-                 int UNUSED(thread),
+                 int /*thread*/,
                  bNode *node,
                  bNodeExecData *execdata,
                  bNodeStack **in,

@@ -139,9 +139,9 @@ static void bm_vert_calc_normals_impl(BMVert *v)
   normalize_v3_v3(v_no, v->co);
 }
 
-static void bm_vert_calc_normals_cb(void *UNUSED(userdata),
+static void bm_vert_calc_normals_cb(void * /*userdata*/,
                                     MempoolIterData *mp_v,
-                                    const TaskParallelTLS *__restrict UNUSED(tls))
+                                    const TaskParallelTLS *__restrict /*tls*/)
 {
   BMVert *v = (BMVert *)mp_v;
   bm_vert_calc_normals_impl(v);
@@ -192,7 +192,7 @@ static void bm_vert_calc_normals_with_coords(BMVert *v, BMVertsCalcNormalsWithCo
 
 static void bm_vert_calc_normals_with_coords_cb(void *userdata,
                                                 MempoolIterData *mp_v,
-                                                const TaskParallelTLS *__restrict UNUSED(tls))
+                                                const TaskParallelTLS *__restrict /*tls*/)
 {
   BMVertsCalcNormalsWithCoordsData *data = static_cast<BMVertsCalcNormalsWithCoordsData *>(
       userdata);
@@ -224,9 +224,9 @@ static void bm_mesh_verts_calc_normals(BMesh *bm,
   }
 }
 
-static void bm_face_calc_normals_cb(void *UNUSED(userdata),
+static void bm_face_calc_normals_cb(void * /*userdata*/,
                                     MempoolIterData *mp_f,
-                                    const TaskParallelTLS *__restrict UNUSED(tls))
+                                    const TaskParallelTLS *__restrict /*tls*/)
 {
   BMFace *f = (BMFace *)mp_f;
 
@@ -262,20 +262,20 @@ void BM_mesh_normals_update(BMesh *bm)
  * \{ */
 
 static void bm_partial_faces_parallel_range_calc_normals_cb(
-    void *userdata, const int iter, const TaskParallelTLS *__restrict UNUSED(tls))
+    void *userdata, const int iter, const TaskParallelTLS *__restrict /*tls*/)
 {
   BMFace *f = ((BMFace **)userdata)[iter];
   BM_face_calc_normal(f, f->no);
 }
 
 static void bm_partial_verts_parallel_range_calc_normal_cb(
-    void *userdata, const int iter, const TaskParallelTLS *__restrict UNUSED(tls))
+    void *userdata, const int iter, const TaskParallelTLS *__restrict /*tls*/)
 {
   BMVert *v = ((BMVert **)userdata)[iter];
   bm_vert_calc_normals_impl(v);
 }
 
-void BM_mesh_normals_update_with_partial_ex(BMesh *UNUSED(bm),
+void BM_mesh_normals_update_with_partial_ex(BMesh * /*bm*/,
                                             const BMPartialUpdate *bmpinfo,
                                             const struct BMeshNormalsUpdate_Params *params)
 {
@@ -1192,7 +1192,7 @@ static void bm_mesh_loops_calc_normals_for_vert_init_fn(const void *__restrict u
 }
 
 static void bm_mesh_loops_calc_normals_for_vert_reduce_fn(const void *__restrict userdata,
-                                                          void *__restrict UNUSED(chunk_join),
+                                                          void *__restrict /*chunk_join*/,
                                                           void *__restrict chunk)
 {
   auto *data = static_cast<const BMLoopsCalcNormalsWithCoordsData *>(userdata);

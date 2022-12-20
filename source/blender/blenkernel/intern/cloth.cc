@@ -713,7 +713,7 @@ static float cloth_shrink_factor(ClothModifierData *clmd, ClothVertex *verts, in
 }
 
 static bool cloth_from_object(
-    Object *ob, ClothModifierData *clmd, Mesh *mesh, float UNUSED(framenr), int first)
+    Object *ob, ClothModifierData *clmd, Mesh *mesh, float /*framenr*/, int first)
 {
   int i = 0;
   ClothVertex *verts = nullptr;

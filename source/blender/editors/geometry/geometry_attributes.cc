@@ -646,7 +646,7 @@ static int geometry_color_attribute_convert_invoke(bContext *C,
   return WM_operator_props_dialog_popup(C, op, 300);
 }
 
-static void geometry_color_attribute_convert_ui(bContext *UNUSED(C), wmOperator *op)
+static void geometry_color_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   uiLayoutSetPropSep(layout, true);

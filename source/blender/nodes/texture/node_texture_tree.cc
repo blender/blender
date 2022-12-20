@@ -38,11 +38,8 @@
 
 #include "UI_resources.h"
 
-static void texture_get_from_context(const bContext *C,
-                                     bNodeTreeType *UNUSED(treetype),
-                                     bNodeTree **r_ntree,
-                                     ID **r_id,
-                                     ID **r_from)
+static void texture_get_from_context(
+    const bContext *C, bNodeTreeType * /*treetype*/, bNodeTree **r_ntree, ID **r_id, ID **r_from)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   Scene *scene = CTX_data_scene(C);
@@ -83,7 +80,7 @@ static void texture_get_from_context(const bContext *C,
   }
 }
 
-static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCallback func)
+static void foreach_nodeclass(Scene * /*scene*/, void *calldata, bNodeClassCallback func)
 {
   func(calldata, NODE_CLASS_INPUT, N_("Input"));
   func(calldata, NODE_CLASS_OUTPUT, N_("Output"));
@@ -101,7 +98,7 @@ static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCa
  * it works here, but disabled for consistency
  */
 #if 1
-static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
+static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
 {
   bNode *node, *node_next;
 
@@ -116,7 +113,7 @@ static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
   }
 }
 #else
-static void localize(bNodeTree *UNUSED(localtree), bNodeTree *UNUSED(ntree))
+static void localize(bNodeTree * /*localtree*/, bNodeTree * /*ntree*/)
 {
 }
 #endif
@@ -126,7 +123,7 @@ static void update(bNodeTree *ntree)
   ntree_update_reroute_nodes(ntree);
 }
 
-static bool texture_node_tree_socket_type_valid(bNodeTreeType *UNUSED(ntreetype),
+static bool texture_node_tree_socket_type_valid(bNodeTreeType * /*ntreetype*/,
                                                 bNodeSocketType *socket_type)
 {
   return nodeIsStaticSocketType(socket_type) &&
@@ -322,7 +319,7 @@ int ntreeTexExecTree(bNodeTree *ntree,
                      float dyt[3],
                      int osatex,
                      const short thread,
-                     const Tex *UNUSED(tex),
+                     const Tex * /*tex*/,
                      short which_output,
                      int cfra,
                      int preview,

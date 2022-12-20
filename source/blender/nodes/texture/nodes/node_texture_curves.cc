@@ -14,7 +14,7 @@
 static bNodeSocketTemplate time_outputs[] = {{SOCK_FLOAT, N_("Value")}, {-1, ""}};
 
 static void time_colorfn(
-    float *out, TexParams *p, bNode *node, bNodeStack **UNUSED(in), short UNUSED(thread))
+    float *out, TexParams *p, bNode *node, bNodeStack ** /*in*/, short /*thread*/)
 {
   /* stack order output: fac */
   float fac = 0.0f;
@@ -30,7 +30,7 @@ static void time_colorfn(
 }
 
 static void time_exec(void *data,
-                      int UNUSED(thread),
+                      int /*thread*/,
                       bNode *node,
                       bNodeExecData *execdata,
                       bNodeStack **in,
@@ -39,7 +39,7 @@ static void time_exec(void *data,
   tex_output(node, execdata, in, out[0], &time_colorfn, static_cast<TexCallData *>(data));
 }
 
-static void time_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void time_init(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = 1;
   node->custom2 = 250;
@@ -82,7 +82,7 @@ static void rgb_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, 
 }
 
 static void rgb_exec(void *data,
-                     int UNUSED(thread),
+                     int /*thread*/,
                      bNode *node,
                      bNodeExecData *execdata,
                      bNodeStack **in,
@@ -91,7 +91,7 @@ static void rgb_exec(void *data,
   tex_output(node, execdata, in, out[0], &rgb_colorfn, static_cast<TexCallData *>(data));
 }
 
-static void rgb_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void rgb_init(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }

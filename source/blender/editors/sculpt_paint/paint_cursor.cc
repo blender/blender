@@ -363,7 +363,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
 static void load_tex_cursor_task_cb(void *__restrict userdata,
                                     const int j,
-                                    const TaskParallelTLS *__restrict UNUSED(tls))
+                                    const TaskParallelTLS *__restrict /*tls*/)
 {
   LoadTexData *data = static_cast<LoadTexData *>(userdata);
   Brush *br = data->br;
@@ -1900,7 +1900,7 @@ static void paint_cursor_restore_drawing_state(void)
   GPU_line_smooth(false);
 }
 
-static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
+static void paint_draw_cursor(bContext *C, int x, int y, void * /*unused*/)
 {
   PaintCursorContext pcontext;
   if (!paint_cursor_context_init(C, x, y, &pcontext)) {

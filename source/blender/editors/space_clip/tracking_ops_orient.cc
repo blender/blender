@@ -679,7 +679,7 @@ static int set_scale_exec(bContext *C, wmOperator *op)
   return do_set_scale(C, op, false, false);
 }
 
-static int set_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int set_scale_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -739,7 +739,7 @@ static int set_solution_scale_exec(bContext *C, wmOperator *op)
   return do_set_scale(C, op, true, false);
 }
 
-static int set_solution_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int set_solution_scale_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -801,7 +801,7 @@ static int apply_solution_scale_exec(bContext *C, wmOperator *op)
   return do_set_scale(C, op, false, true);
 }
 
-static int apply_solution_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int apply_solution_scale_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);

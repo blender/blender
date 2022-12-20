@@ -51,10 +51,7 @@
 
 #include "BLO_read_write.h"
 
-static void shapekey_copy_data(Main *UNUSED(bmain),
-                               ID *id_dst,
-                               const ID *id_src,
-                               const int UNUSED(flag))
+static void shapekey_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
 {
   Key *key_dst = (Key *)id_dst;
   const Key *key_src = (const Key *)id_src;
@@ -2064,7 +2061,7 @@ int BKE_keyblock_curve_element_count(const ListBase *nurb)
   return tot;
 }
 
-void BKE_keyblock_update_from_curve(const Curve *UNUSED(cu), KeyBlock *kb, const ListBase *nurb)
+void BKE_keyblock_update_from_curve(const Curve * /*cu*/, KeyBlock *kb, const ListBase *nurb)
 {
   Nurb *nu;
   BezTriple *bezt;
@@ -2178,7 +2175,7 @@ static void keyblock_data_convert_to_curve(const float *fp, ListBase *nurb, int 
   }
 }
 
-void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
+void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve * /*cu*/, ListBase *nurb)
 {
   const float *fp = static_cast<const float *>(kb->data);
   const int tot = min_ii(kb->totelem, BKE_keyblock_curve_element_count(nurb));

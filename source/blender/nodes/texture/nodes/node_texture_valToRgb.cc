@@ -29,7 +29,7 @@ static void valtorgb_colorfn(float *out, TexParams *p, bNode *node, bNodeStack *
 }
 
 static void valtorgb_exec(void *data,
-                          int UNUSED(thread),
+                          int /*thread*/,
                           bNode *node,
                           bNodeExecData *execdata,
                           bNodeStack **in,
@@ -38,7 +38,7 @@ static void valtorgb_exec(void *data,
   tex_output(node, execdata, in, out[0], &valtorgb_colorfn, static_cast<TexCallData *>(data));
 }
 
-static void valtorgb_init(bNodeTree *UNUSED(ntree), bNode *node)
+static void valtorgb_init(bNodeTree * /*ntree*/, bNode *node)
 {
   node->storage = BKE_colorband_add(true);
 }
@@ -68,7 +68,7 @@ static bNodeSocketTemplate rgbtobw_out[] = {
 };
 
 static void rgbtobw_valuefn(
-    float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
+    float *out, TexParams *p, bNode * /*node*/, bNodeStack **in, short thread)
 {
   float cin[4];
   tex_input_rgba(cin, in[0], p, thread);
@@ -76,7 +76,7 @@ static void rgbtobw_valuefn(
 }
 
 static void rgbtobw_exec(void *data,
-                         int UNUSED(thread),
+                         int /*thread*/,
                          bNode *node,
                          bNodeExecData *execdata,
                          bNodeStack **in,

@@ -5169,7 +5169,7 @@ static void copy_original_alpha_channel(ProjPixel *pixel, bool is_floatbuf)
 }
 
 /* Run this for single and multi-threaded painting. */
-static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v)
+static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
 {
   /* First unpack args from the struct */
   ProjPaintState *ps = ((ProjectHandle *)ph_v)->ps;
@@ -5733,7 +5733,7 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
   return touch_any;
 }
 
-static void paint_proj_stroke_ps(const bContext *UNUSED(C),
+static void paint_proj_stroke_ps(const bContext * /*C*/,
                                  void *ps_handle_p,
                                  const float prev_pos[2],
                                  const float pos[2],
@@ -6805,7 +6805,7 @@ static void get_default_texture_layer_name_for_object(Object *ob,
 
 static int texture_paint_add_texture_paint_slot_invoke(bContext *C,
                                                        wmOperator *op,
-                                                       const wmEvent *UNUSED(event))
+                                                       const wmEvent * /*event*/)
 {
   Object *ob = ED_object_active_context(C);
   Material *ma = BKE_object_material_get(ob, ob->actcol);
@@ -6958,7 +6958,7 @@ void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
                "Type of data stored in attribute");
 }
 
-static int add_simple_uvs_exec(bContext *C, wmOperator *UNUSED(op))
+static int add_simple_uvs_exec(bContext *C, wmOperator * /*op*/)
 {
   /* no checks here, poll function does them for us */
   Main *bmain = CTX_data_main(C);

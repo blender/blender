@@ -386,8 +386,8 @@ static void gpencil_buffer_add_fill(GPUIndexBufBuilder *ibo, const bGPDstroke *g
   }
 }
 
-static void gpencil_stroke_iter_cb(bGPDlayer *UNUSED(gpl),
-                                   bGPDframe *UNUSED(gpf),
+static void gpencil_stroke_iter_cb(bGPDlayer * /*gpl*/,
+                                   bGPDframe * /*gpf*/,
                                    bGPDstroke *gps,
                                    void *thunk)
 {
@@ -398,8 +398,8 @@ static void gpencil_stroke_iter_cb(bGPDlayer *UNUSED(gpl),
   gpencil_buffer_add_stroke(&iter->ibo, iter->verts, iter->cols, gps);
 }
 
-static void gpencil_object_verts_count_cb(bGPDlayer *UNUSED(gpl),
-                                          bGPDframe *UNUSED(gpf),
+static void gpencil_object_verts_count_cb(bGPDlayer * /*gpl*/,
+                                          bGPDframe * /*gpf*/,
                                           bGPDstroke *gps,
                                           void *thunk)
 {
@@ -503,8 +503,8 @@ GPUVertBuf *DRW_cache_gpencil_color_buffer_get(Object *ob, int cfra)
   return cache->vbo_col;
 }
 
-static void gpencil_lines_indices_cb(bGPDlayer *UNUSED(gpl),
-                                     bGPDframe *UNUSED(gpf),
+static void gpencil_lines_indices_cb(bGPDlayer * /*gpl*/,
+                                     bGPDframe * /*gpf*/,
                                      bGPDstroke *gps,
                                      void *thunk)
 {
@@ -785,7 +785,7 @@ static void gpencil_edit_stroke_iter_cb(bGPDlayer *gpl,
 }
 
 static void gpencil_edit_curve_stroke_count_cb(bGPDlayer *gpl,
-                                               bGPDframe *UNUSED(gpf),
+                                               bGPDframe * /*gpf*/,
                                                bGPDstroke *gps,
                                                void *thunk)
 {
@@ -821,7 +821,7 @@ static uint32_t gpencil_beztriple_vflag_get(char flag,
 }
 
 static void gpencil_edit_curve_stroke_iter_cb(bGPDlayer *gpl,
-                                              bGPDframe *UNUSED(gpf),
+                                              bGPDframe * /*gpf*/,
                                               bGPDstroke *gps,
                                               void *thunk)
 {

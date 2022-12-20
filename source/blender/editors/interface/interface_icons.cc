@@ -344,7 +344,7 @@ static void vicon_handletype_auto_clamp_draw(int x, int y, int w, int h, float a
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_AUTO_CLAMP);
 }
 
-static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNUSED(alpha))
+static void vicon_colorset_draw(int index, int x, int y, int w, int h, float /*alpha*/)
 {
   bTheme *btheme = UI_GetTheme();
   const ThemeWireColor *cs = &btheme->tarm[index];
@@ -408,7 +408,7 @@ DEF_ICON_VECTOR_COLORSET_DRAW_NTH(20, 19)
 #  undef DEF_ICON_VECTOR_COLORSET_DRAW_NTH
 
 static void vicon_collection_color_draw(
-    short color_tag, int x, int y, int w, int UNUSED(h), float UNUSED(alpha))
+    short color_tag, int x, int y, int w, int /*h*/, float /*alpha*/)
 {
   bTheme *btheme = UI_GetTheme();
   const ThemeCollectionColor *collection_color = &btheme->collection_color[color_tag];
@@ -444,7 +444,7 @@ DEF_ICON_COLLECTION_COLOR_DRAW(08, COLLECTION_COLOR_08);
 #  undef DEF_ICON_COLLECTION_COLOR_DRAW
 
 static void vicon_strip_color_draw(
-    short color_tag, int x, int y, int w, int UNUSED(h), float UNUSED(alpha))
+    short color_tag, int x, int y, int w, int /*h*/, float /*alpha*/)
 {
   bTheme *btheme = UI_GetTheme();
   const ThemeStripColor *strip_color = &btheme->strip_color[color_tag];
@@ -476,7 +476,7 @@ DEF_ICON_STRIP_COLOR_DRAW(09, SEQUENCE_COLOR_09);
 #  define ICON_INDIRECT_DATA_ALPHA 0.6f
 
 static void vicon_strip_color_draw_library_data_indirect(
-    int x, int y, int w, int UNUSED(h), float alpha)
+    int x, int y, int w, int /*h*/, float alpha)
 {
   const float aspect = float(ICON_DEFAULT_WIDTH) / float(w);
 
@@ -492,7 +492,7 @@ static void vicon_strip_color_draw_library_data_indirect(
 }
 
 static void vicon_strip_color_draw_library_data_override_noneditable(
-    int x, int y, int w, int UNUSED(h), float alpha)
+    int x, int y, int w, int /*h*/, float alpha)
 {
   const float aspect = float(ICON_DEFAULT_WIDTH) / float(w);
 
@@ -1310,9 +1310,9 @@ static void ui_id_preview_image_render_size(
     const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job);
 
 static void ui_studiolight_icon_job_exec(void *customdata,
-                                         bool *UNUSED(stop),
-                                         bool *UNUSED(do_update),
-                                         float *UNUSED(progress))
+                                         bool * /*stop*/,
+                                         bool * /*do_update*/,
+                                         float * /*progress*/)
 {
   Icon **tmp = (Icon **)customdata;
   Icon *icon = *tmp;
@@ -1520,7 +1520,7 @@ static void icon_draw_rect(float x,
                            float y,
                            int w,
                            int h,
-                           float UNUSED(aspect),
+                           float /*aspect*/,
                            int rw,
                            int rh,
                            uint *rect,
@@ -1689,7 +1689,7 @@ static void icon_draw_texture_cached(float x,
                                      float h,
                                      int ix,
                                      int iy,
-                                     int UNUSED(iw),
+                                     int /*iw*/,
                                      int ih,
                                      float alpha,
                                      const float rgb[3],

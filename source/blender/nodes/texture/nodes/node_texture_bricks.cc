@@ -25,7 +25,7 @@ static bNodeSocketTemplate outputs[] = {
     {-1, ""},
 };
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node)
+static void init(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom3 = 0.5; /* offset */
   node->custom4 = 1.0; /* squash */
@@ -90,7 +90,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 }
 
 static void exec(void *data,
-                 int UNUSED(thread),
+                 int /*thread*/,
                  bNode *node,
                  bNodeExecData *execdata,
                  bNodeStack **in,
