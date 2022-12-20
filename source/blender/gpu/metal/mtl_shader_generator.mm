@@ -336,7 +336,8 @@ static bool extract_ssbo_pragma_info(const MTLShader *shader,
   /* SSBO Vertex-fetch parameter extraction. */
   static std::regex use_ssbo_fetch_mode_find(
       "#pragma "
-      "USE_SSBO_VERTEX_FETCH\\(\\s*(TriangleList|LineList|\\w+)\\s*,\\s*([0-9]+)\\s*\\)");
+      "USE_SSBO_VERTEX_FETCH\\(\\s*(TriangleList|LineList|TriangleStrip|\\w+)\\s*,\\s*([0-9]+)\\s*"
+      "\\)");
 
   /* Perform regex search if pragma string found. */
   std::smatch vertex_shader_ssbo_flags;
@@ -352,6 +353,7 @@ static bool extract_ssbo_pragma_info(const MTLShader *shader,
      * Supported Primitive Types (Others can be added if needed, but List types for efficiency):
      * - TriangleList
      * - LineList
+     * - TriangleStrip (To be used with caution).
      *
      * Output vertex count is determined by calculating the number of input primitives, and
      * multiplying that by the number of output vertices specified. */
@@ -364,6 +366,9 @@ static bool extract_ssbo_pragma_info(const MTLShader *shader,
     }
     else if (str_output_primitive_type == "LineList") {
       out_prim_tye = MTLPrimitiveTypeLine;
+    }
+    else if (str_output_primitive_type == "TriangleStrip") {
+      out_prim_tye = MTLPrimitiveTypeTriangleStrip;
     }
     else {
       MTL_LOG_ERROR("Unsupported output primitive type for SSBO VERTEX FETCH MODE. Shader: %s",
@@ -555,8 +560,6 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
     BLI_assert(shd_builder_->glsl_fragment_source_.size() > 0);
   }
 
-  /** Determine use of Transform Feedback. **/
-  msl_iface.uses_transform_feedback = false;
   if (transform_feedback_type_ != GPU_SHADER_TFB_NONE) {
     /* Ensure #TransformFeedback is configured correctly. */
     BLI_assert(tf_output_name_list_.size() > 0);
@@ -1270,8 +1273,10 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
             access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READ;
           }
           BLI_assert(used_slot >= 0 && used_slot < MTL_MAX_TEXTURE_SLOTS);
+
+          /* Writeable image targets only assigned to Fragment shader. */
           MSLTextureSampler msl_tex(
-              ShaderStage::BOTH, res.image.type, res.image.name, access, used_slot);
+              ShaderStage::FRAGMENT, res.image.type, res.image.name, access, used_slot);
           texture_samplers.append(msl_tex);
         } break;
 
@@ -1344,6 +1349,10 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
 
     fragment_outputs.append(mtl_frag_out);
   }
+
+  /* Transform feedback. */
+  uses_transform_feedback = (create_info_->tf_type_ != GPU_SHADER_TFB_NONE) &&
+                            (create_info_->tf_names_.size() > 0);
 }
 
 bool MSLGeneratorInterface::use_argument_buffer_for_samplers() const
@@ -1514,7 +1523,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_entry_stub()
   if (this->uses_barycentrics) {
 
     /* Main barycentrics. */
-    out << "fragment_shader_instance.gpu_BaryCoord = mtl_barycentric_coord.xyz;";
+    out << "fragment_shader_instance.gpu_BaryCoord = mtl_barycentric_coord.xyz;" << std::endl;
 
     /* barycentricDist represents the world-space distance from the current world-space position
      * to the opposite edge of the vertex. */
@@ -2381,8 +2390,8 @@ std::string MSLGeneratorInterface::generate_msl_texture_vars(ShaderStage shader_
         out << "\t"
             << ((shader_stage == ShaderStage::VERTEX) ? "vertex_shader_instance." :
                                                         "fragment_shader_instance.")
-            << this->texture_samplers[i].name << ".samp = &samplers.sampler_args[" << i << "];"
-            << std::endl;
+            << this->texture_samplers[i].name << ".samp = &samplers.sampler_args["
+            << this->texture_samplers[i].location << "];" << std::endl;
       }
       else {
         out << "\t"
@@ -2613,6 +2622,7 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(const char *nam
                                                name_buffer_offset),
                            texture_sampler.location,
                            texture_sampler.get_texture_binding_type(),
+                           texture_sampler.get_sampler_format(),
                            texture_sampler.stage);
   }
 
@@ -3009,6 +3019,51 @@ eGPUTextureType MSLTextureSampler::get_texture_binding_type() const
       return GPU_TEXTURE_2D;
     }
   };
+}
+
+eGPUSamplerFormat MSLTextureSampler::get_sampler_format() const
+{
+  switch (this->type) {
+    case ImageType::FLOAT_BUFFER:
+    case ImageType::FLOAT_1D:
+    case ImageType::FLOAT_1D_ARRAY:
+    case ImageType::FLOAT_2D:
+    case ImageType::FLOAT_2D_ARRAY:
+    case ImageType::FLOAT_3D:
+    case ImageType::FLOAT_CUBE:
+    case ImageType::FLOAT_CUBE_ARRAY:
+      return GPU_SAMPLER_TYPE_FLOAT;
+    case ImageType::INT_BUFFER:
+    case ImageType::INT_1D:
+    case ImageType::INT_1D_ARRAY:
+    case ImageType::INT_2D:
+    case ImageType::INT_2D_ARRAY:
+    case ImageType::INT_3D:
+    case ImageType::INT_CUBE:
+    case ImageType::INT_CUBE_ARRAY:
+      return GPU_SAMPLER_TYPE_INT;
+    case ImageType::UINT_BUFFER:
+    case ImageType::UINT_1D:
+    case ImageType::UINT_1D_ARRAY:
+    case ImageType::UINT_2D:
+    case ImageType::UINT_2D_ARRAY:
+    case ImageType::UINT_3D:
+    case ImageType::UINT_CUBE:
+    case ImageType::UINT_CUBE_ARRAY:
+      return GPU_SAMPLER_TYPE_UINT;
+    case ImageType::SHADOW_2D:
+    case ImageType::SHADOW_2D_ARRAY:
+    case ImageType::SHADOW_CUBE:
+    case ImageType::SHADOW_CUBE_ARRAY:
+    case ImageType::DEPTH_2D:
+    case ImageType::DEPTH_2D_ARRAY:
+    case ImageType::DEPTH_CUBE:
+    case ImageType::DEPTH_CUBE_ARRAY:
+      return GPU_SAMPLER_TYPE_DEPTH;
+    default:
+      BLI_assert_unreachable();
+  }
+  return GPU_SAMPLER_TYPE_FLOAT;
 }
 
 /** \} */

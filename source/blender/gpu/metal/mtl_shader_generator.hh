@@ -228,6 +228,7 @@ struct MSLTextureSampler {
   uint location;
 
   eGPUTextureType get_texture_binding_type() const;
+  eGPUSamplerFormat get_sampler_format() const;
 
   void resolve_binding_indices();
 

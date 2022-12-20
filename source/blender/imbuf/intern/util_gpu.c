@@ -351,13 +351,23 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
   bool freebuf = false;
 
   /* Create Texture. */
-  tex = GPU_texture_create_2d_ex(
-      name, UNPACK2(size), 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
+  tex = GPU_texture_create_2d_ex(name,
+                                 UNPACK2(size),
+                                 9999,
+                                 tex_format,
+                                 GPU_TEXTURE_USAGE_SHADER_READ |
+                                     GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
+                                 NULL);
   if (tex == NULL) {
     size[0] = max_ii(1, size[0] / 2);
     size[1] = max_ii(1, size[1] / 2);
-    tex = GPU_texture_create_2d_ex(
-        name, UNPACK2(size), 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
+    tex = GPU_texture_create_2d_ex(name,
+                                   UNPACK2(size),
+                                   9999,
+                                   tex_format,
+                                   GPU_TEXTURE_USAGE_SHADER_READ |
+                                       GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
+                                   NULL);
     do_rescale = true;
   }
   BLI_assert(tex != NULL);

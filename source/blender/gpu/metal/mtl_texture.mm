@@ -1668,9 +1668,6 @@ bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
   /* Track Status. */
   vert_buffer_ = mtl_vbo;
   vert_buffer_mtl_ = source_buffer;
-  /* Cleanup. */
-  [texture_descriptor_ release];
-  texture_descriptor_ = nullptr;
 
   return true;
 }
@@ -1882,8 +1879,6 @@ void gpu::MTLTexture::ensure_baked()
     /* Standard texture allocation. */
     texture_ = [ctx->device newTextureWithDescriptor:texture_descriptor_];
 
-    [texture_descriptor_ release];
-    texture_descriptor_ = nullptr;
     texture_.label = [NSString stringWithUTF8String:this->get_name()];
     BLI_assert(texture_);
     is_baked_ = true;

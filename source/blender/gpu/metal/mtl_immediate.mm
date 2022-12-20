@@ -101,11 +101,11 @@ void MTLImmediate::end()
 
     /* Reset vertex descriptor to default state. */
     desc.reset_vertex_descriptor();
-
-    desc.vertex_descriptor.num_attributes = interface->get_total_attributes();
+    desc.vertex_descriptor.total_attributes = interface->get_total_attributes();
+    desc.vertex_descriptor.max_attribute_value = interface->get_total_attributes() - 1;
     desc.vertex_descriptor.num_vert_buffers = 1;
 
-    for (int i = 0; i < desc.vertex_descriptor.num_attributes; i++) {
+    for (int i = 0; i < desc.vertex_descriptor.total_attributes; i++) {
       desc.vertex_descriptor.attributes[i].format = MTLVertexFormatInvalid;
     }
     desc.vertex_descriptor.uses_ssbo_vertex_fetch =

@@ -84,7 +84,8 @@ struct MTLVertexDescriptor {
   MTLVertexAttributeDescriptorPSO attributes[GPU_VERT_ATTR_MAX_LEN];
   MTLVertexBufferLayoutDescriptorPSO
       buffer_layouts[GPU_BATCH_VBO_MAX_LEN + GPU_BATCH_INST_VBO_MAX_LEN];
-  int num_attributes;
+  int max_attribute_value;
+  int total_attributes;
   int num_vert_buffers;
   MTLPrimitiveTopologyClass prim_topology_class;
 
@@ -97,7 +98,8 @@ struct MTLVertexDescriptor {
 
   bool operator==(const MTLVertexDescriptor &other) const
   {
-    if ((this->num_attributes != other.num_attributes) ||
+    if ((this->max_attribute_value != other.max_attribute_value) ||
+        (this->total_attributes != other.total_attributes) ||
         (this->num_vert_buffers != other.num_vert_buffers)) {
       return false;
     }
@@ -105,7 +107,7 @@ struct MTLVertexDescriptor {
       return false;
     };
 
-    for (const int a : IndexRange(this->num_attributes)) {
+    for (const int a : IndexRange(this->max_attribute_value + 1)) {
       if (!(this->attributes[a] == other.attributes[a])) {
         return false;
       }
@@ -125,8 +127,8 @@ struct MTLVertexDescriptor {
 
   uint64_t hash() const
   {
-    uint64_t hash = (uint64_t)(this->num_attributes ^ this->num_vert_buffers);
-    for (const int a : IndexRange(this->num_attributes)) {
+    uint64_t hash = (uint64_t)(this->max_attribute_value ^ this->num_vert_buffers);
+    for (const int a : IndexRange(this->max_attribute_value + 1)) {
       hash ^= this->attributes[a].hash() << a;
     }
 
@@ -247,7 +249,8 @@ struct MTLRenderPipelineStateDescriptor {
   /* Reset the Vertex Descriptor to default. */
   void reset_vertex_descriptor()
   {
-    vertex_descriptor.num_attributes = 0;
+    vertex_descriptor.total_attributes = 0;
+    vertex_descriptor.max_attribute_value = 0;
     vertex_descriptor.num_vert_buffers = 0;
     for (int i = 0; i < GPU_VERT_ATTR_MAX_LEN; i++) {
       vertex_descriptor.attributes[i].format = MTLVertexFormatInvalid;

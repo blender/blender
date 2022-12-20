@@ -13,6 +13,7 @@
 #include "mtl_shader_interface.hh"
 #include "mtl_state.hh"
 #include "mtl_uniform_buffer.hh"
+#include "mtl_vertex_buffer.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -512,53 +513,98 @@ id<MTLBuffer> MTLContext::get_null_attribute_buffer()
   return null_attribute_buffer_;
 }
 
-gpu::MTLTexture *MTLContext::get_dummy_texture(eGPUTextureType type)
+gpu::MTLTexture *MTLContext::get_dummy_texture(eGPUTextureType type,
+                                               eGPUSamplerFormat sampler_format)
 {
   /* Decrement 1 from texture type as they start from 1 and go to 32 (inclusive). Remap to 0..31 */
-  gpu::MTLTexture *dummy_tex = dummy_textures_[type - 1];
+  gpu::MTLTexture *dummy_tex = dummy_textures_[sampler_format][type - 1];
   if (dummy_tex != nullptr) {
     return dummy_tex;
   }
   else {
+    /* Determine format for dummy texture. */
+    eGPUTextureFormat format = GPU_RGBA8;
+    switch (sampler_format) {
+      case GPU_SAMPLER_TYPE_FLOAT:
+        format = GPU_RGBA8;
+        break;
+      case GPU_SAMPLER_TYPE_INT:
+        format = GPU_RGBA8I;
+        break;
+      case GPU_SAMPLER_TYPE_UINT:
+        format = GPU_RGBA8UI;
+        break;
+      case GPU_SAMPLER_TYPE_DEPTH:
+        format = GPU_DEPTH32F_STENCIL8;
+        break;
+      default:
+        BLI_assert_unreachable();
+    }
+
+    /* Create dummy texture based on desired type. */
     GPUTexture *tex = nullptr;
     switch (type) {
       case GPU_TEXTURE_1D:
-        tex = GPU_texture_create_1d("Dummy 1D", 128, 1, GPU_RGBA8, nullptr);
+        tex = GPU_texture_create_1d("Dummy 1D", 128, 1, format, nullptr);
         break;
       case GPU_TEXTURE_1D_ARRAY:
-        tex = GPU_texture_create_1d_array("Dummy 1DArray", 128, 1, 1, GPU_RGBA8, nullptr);
+        tex = GPU_texture_create_1d_array("Dummy 1DArray", 128, 1, 1, format, nullptr);
         break;
       case GPU_TEXTURE_2D:
-        tex = GPU_texture_create_2d("Dummy 2D", 128, 128, 1, GPU_RGBA8, nullptr);
+        tex = GPU_texture_create_2d("Dummy 2D", 128, 128, 1, format, nullptr);
         break;
       case GPU_TEXTURE_2D_ARRAY:
-        tex = GPU_texture_create_2d_array("Dummy 2DArray", 128, 128, 1, 1, GPU_RGBA8, nullptr);
+        tex = GPU_texture_create_2d_array("Dummy 2DArray", 128, 128, 1, 1, format, nullptr);
         break;
       case GPU_TEXTURE_3D:
-        tex = GPU_texture_create_3d(
-            "Dummy 3D", 128, 128, 1, 1, GPU_RGBA8, GPU_DATA_UBYTE, nullptr);
+        tex = GPU_texture_create_3d("Dummy 3D", 128, 128, 1, 1, format, GPU_DATA_UBYTE, nullptr);
         break;
       case GPU_TEXTURE_CUBE:
-        tex = GPU_texture_create_cube("Dummy Cube", 128, 1, GPU_RGBA8, nullptr);
+        tex = GPU_texture_create_cube("Dummy Cube", 128, 1, format, nullptr);
         break;
       case GPU_TEXTURE_CUBE_ARRAY:
-        tex = GPU_texture_create_cube_array("Dummy CubeArray", 128, 1, 1, GPU_RGBA8, nullptr);
+        tex = GPU_texture_create_cube_array("Dummy CubeArray", 128, 1, 1, format, nullptr);
         break;
       case GPU_TEXTURE_BUFFER:
-        if (!dummy_verts_) {
-          GPU_vertformat_clear(&dummy_vertformat_);
-          GPU_vertformat_attr_add(&dummy_vertformat_, "dummy", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-          dummy_verts_ = GPU_vertbuf_create_with_format_ex(&dummy_vertformat_, GPU_USAGE_STATIC);
-          GPU_vertbuf_data_alloc(dummy_verts_, 64);
+        if (!dummy_verts_[sampler_format]) {
+          GPU_vertformat_clear(&dummy_vertformat_[sampler_format]);
+
+          GPUVertCompType comp_type = GPU_COMP_F32;
+          GPUVertFetchMode fetch_mode = GPU_FETCH_FLOAT;
+
+          switch (sampler_format) {
+            case GPU_SAMPLER_TYPE_FLOAT:
+            case GPU_SAMPLER_TYPE_DEPTH:
+              comp_type = GPU_COMP_F32;
+              fetch_mode = GPU_FETCH_FLOAT;
+              break;
+            case GPU_SAMPLER_TYPE_INT:
+              comp_type = GPU_COMP_I32;
+              fetch_mode = GPU_FETCH_INT;
+              break;
+            case GPU_SAMPLER_TYPE_UINT:
+              comp_type = GPU_COMP_U32;
+              fetch_mode = GPU_FETCH_INT;
+              break;
+            default:
+              BLI_assert_unreachable();
+          }
+
+          GPU_vertformat_attr_add(
+              &dummy_vertformat_[sampler_format], "dummy", comp_type, 4, fetch_mode);
+          dummy_verts_[sampler_format] = GPU_vertbuf_create_with_format_ex(
+              &dummy_vertformat_[sampler_format],
+              GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
+          GPU_vertbuf_data_alloc(dummy_verts_[sampler_format], 64);
         }
-        tex = GPU_texture_create_from_vertbuf("Dummy TextureBuffer", dummy_verts_);
+        tex = GPU_texture_create_from_vertbuf("Dummy TextureBuffer", dummy_verts_[sampler_format]);
         break;
       default:
         BLI_assert_msg(false, "Unrecognised texture type");
         return nullptr;
     }
     gpu::MTLTexture *metal_tex = static_cast<gpu::MTLTexture *>(reinterpret_cast<Texture *>(tex));
-    dummy_textures_[type - 1] = metal_tex;
+    dummy_textures_[sampler_format][type - 1] = metal_tex;
     return metal_tex;
   }
   return nullptr;
@@ -566,15 +612,17 @@ gpu::MTLTexture *MTLContext::get_dummy_texture(eGPUTextureType type)
 
 void MTLContext::free_dummy_resources()
 {
-  for (int tex = 0; tex < GPU_TEXTURE_BUFFER; tex++) {
-    if (dummy_textures_[tex]) {
-      GPU_texture_free(
-          reinterpret_cast<GPUTexture *>(static_cast<Texture *>(dummy_textures_[tex])));
-      dummy_textures_[tex] = nullptr;
+  for (int format = 0; format < GPU_SAMPLER_TYPE_MAX; format++) {
+    for (int tex = 0; tex < GPU_TEXTURE_BUFFER; tex++) {
+      if (dummy_textures_[format][tex]) {
+        GPU_texture_free(
+            reinterpret_cast<GPUTexture *>(static_cast<Texture *>(dummy_textures_[format][tex])));
+        dummy_textures_[format][tex] = nullptr;
+      }
     }
-  }
-  if (dummy_verts_) {
-    GPU_vertbuf_discard(dummy_verts_);
+    if (dummy_verts_[format]) {
+      GPU_vertbuf_discard(dummy_verts_[format]);
+    }
   }
 }
 
@@ -809,31 +857,31 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
     }
 
     /* Transform feedback buffer binding. */
-    /* TOOD(Metal): Include this code once MTLVertBuf is merged. We bind the vertex buffer to which
-     * transform feedback data will be written. */
-    // GPUVertBuf *tf_vbo =
-    //     this->pipeline_state.active_shader->get_transform_feedback_active_buffer();
-    // if (tf_vbo != nullptr && pipeline_state_instance->transform_feedback_buffer_index >= 0) {
+    GPUVertBuf *tf_vbo =
+        this->pipeline_state.active_shader->get_transform_feedback_active_buffer();
+    if (tf_vbo != nullptr && pipeline_state_instance->transform_feedback_buffer_index >= 0) {
 
-    //   /* Ensure primitive type is either GPU_LINES, GPU_TRIANGLES or GPU_POINT */
-    //   BLI_assert(mtl_prim_type == MTLPrimitiveTypeLine ||
-    //              mtl_prim_type == MTLPrimitiveTypeTriangle ||
-    //              mtl_prim_type == MTLPrimitiveTypePoint);
+      /* Ensure primitive type is either GPU_LINES, GPU_TRIANGLES or GPU_POINT */
+      BLI_assert(mtl_prim_type == MTLPrimitiveTypeLine ||
+                 mtl_prim_type == MTLPrimitiveTypeTriangle ||
+                 mtl_prim_type == MTLPrimitiveTypePoint);
 
-    //   /* Fetch active transform feedback buffer from vertbuf */
-    //   MTLVertBuf *tf_vbo_mtl = static_cast<MTLVertBuf *>(reinterpret_cast<VertBuf *>(tf_vbo));
-    //   int tf_buffer_offset = 0;
-    //   id<MTLBuffer> tf_buffer_mtl = tf_vbo_mtl->get_metal_buffer(&tf_buffer_offset);
+      /* Fetch active transform feedback buffer from vertbuf */
+      MTLVertBuf *tf_vbo_mtl = static_cast<MTLVertBuf *>(reinterpret_cast<VertBuf *>(tf_vbo));
+      /* Ensure TF buffer is ready. */
+      tf_vbo_mtl->bind();
+      id<MTLBuffer> tf_buffer_mtl = tf_vbo_mtl->get_metal_buffer();
+      BLI_assert(tf_buffer_mtl != nil);
 
-    //   if (tf_buffer_mtl != nil && tf_buffer_offset >= 0) {
-    //     [rec setVertexBuffer:tf_buffer_mtl
-    //                   offset:tf_buffer_offset
-    //                  atIndex:pipeline_state_instance->transform_feedback_buffer_index];
-    //     printf("Successfully bound VBO: %p for transform feedback (MTL Buffer: %p)\n",
-    //            tf_vbo_mtl,
-    //            tf_buffer_mtl);
-    //   }
-    // }
+      if (tf_buffer_mtl != nil) {
+        [rec setVertexBuffer:tf_buffer_mtl
+                      offset:0
+                     atIndex:pipeline_state_instance->transform_feedback_buffer_index];
+        MTL_LOG_INFO("Successfully bound VBO: %p for transform feedback (MTL Buffer: %p)\n",
+                     tf_vbo_mtl,
+                     tf_buffer_mtl);
+      }
+    }
 
     /* Matrix Bindings. */
     /* This is now called upon shader bind. We may need to re-evaluate this though,
@@ -1221,7 +1269,9 @@ void MTLContext::ensure_texture_bindings(
         if (bind_dummy_texture) {
           if (bool(shader_texture_info.stage_mask & ShaderStage::VERTEX)) {
             rps.bind_vertex_texture(
-                get_dummy_texture(shader_texture_info.type)->get_metal_handle(), slot);
+                get_dummy_texture(shader_texture_info.type, shader_texture_info.sampler_format)
+                    ->get_metal_handle(),
+                slot);
 
             /* Bind default sampler state. */
             MTLSamplerBinding default_binding = {true, DEFAULT_SAMPLER_STATE};
@@ -1229,7 +1279,9 @@ void MTLContext::ensure_texture_bindings(
           }
           if (bool(shader_texture_info.stage_mask & ShaderStage::FRAGMENT)) {
             rps.bind_fragment_texture(
-                get_dummy_texture(shader_texture_info.type)->get_metal_handle(), slot);
+                get_dummy_texture(shader_texture_info.type, shader_texture_info.sampler_format)
+                    ->get_metal_handle(),
+                slot);
 
             /* Bind default sampler state. */
             MTLSamplerBinding default_binding = {true, DEFAULT_SAMPLER_STATE};
