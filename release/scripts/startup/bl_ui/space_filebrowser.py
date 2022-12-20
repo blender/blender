@@ -644,7 +644,7 @@ class ASSETBROWSER_MT_editor_menus(AssetBrowserMenu, Menu):
 
         layout.menu("ASSETBROWSER_MT_view")
         layout.menu("ASSETBROWSER_MT_select")
-        layout.menu("ASSETBROWSER_MT_edit")
+        layout.menu("ASSETBROWSER_MT_catalog")
 
 
 class ASSETBROWSER_MT_view(AssetBrowserMenu, Menu):
@@ -683,14 +683,18 @@ class ASSETBROWSER_MT_select(AssetBrowserMenu, Menu):
         layout.operator("file.select_box")
 
 
-class ASSETBROWSER_MT_edit(AssetBrowserMenu, Menu):
-    bl_label = "Edit"
+class ASSETBROWSER_MT_catalog(AssetBrowserMenu, Menu):
+    bl_label = "Catalog"
 
     def draw(self, _context):
         layout = self.layout
 
         layout.operator("asset.catalog_undo", text="Undo")
         layout.operator("asset.catalog_redo", text="Redo")
+
+        layout.separator()
+        layout.operator("asset.catalogs_save")
+        layout.operator("asset.catalog_new").parent_path = ""
 
 
 class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
@@ -844,7 +848,7 @@ classes = (
     ASSETBROWSER_MT_editor_menus,
     ASSETBROWSER_MT_view,
     ASSETBROWSER_MT_select,
-    ASSETBROWSER_MT_edit,
+    ASSETBROWSER_MT_catalog,
     ASSETBROWSER_MT_metadata_preview_menu,
     ASSETBROWSER_PT_metadata,
     ASSETBROWSER_PT_metadata_preview,
