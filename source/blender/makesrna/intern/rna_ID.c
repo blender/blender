@@ -821,7 +821,7 @@ static void rna_ID_override_library_operations_update(ID *id,
     return;
   }
 
-  BKE_lib_override_library_operations_create(bmain, id);
+  BKE_lib_override_library_operations_create(bmain, id, NULL);
 
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }

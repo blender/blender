@@ -435,7 +435,7 @@ static void setup_app_data(bContext *C,
                                              reports->duration.lib_overrides_resync;
 
     /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
-    BKE_lib_override_library_main_operations_create(bmain, true);
+    BKE_lib_override_library_main_operations_create(bmain, true, NULL);
   }
 }
 

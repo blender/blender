@@ -1424,7 +1424,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
   /* All override rules need to be up to date, since there will be no do_version here, otherwise
    * older, now-invalid rules might be applied and likely fail, or some changes might be missing,
    * etc. See T93353. */
-  BKE_lib_override_library_main_operations_create(bmain, true);
+  BKE_lib_override_library_main_operations_create(bmain, true, NULL);
 
   /* Remove all IDs to be reloaded from Main. */
   lba_idx = set_listbasepointers(bmain, lbarray);
@@ -1634,7 +1634,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
                                              .reports = reports,
                                          });
     /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
-    BKE_lib_override_library_main_operations_create(bmain, true);
+    BKE_lib_override_library_main_operations_create(bmain, true, NULL);
   }
 
   BKE_main_collection_sync(bmain);

@@ -1786,7 +1786,7 @@ static bool wm_file_write(bContext *C,
   ED_assets_pre_save(bmain);
 
   /* Enforce full override check/generation on file save. */
-  BKE_lib_override_library_main_operations_create(bmain, true);
+  BKE_lib_override_library_main_operations_create(bmain, true, NULL);
 
   /* NOTE: Ideally we would call `WM_redraw_windows` here to remove any open menus.
    * But we can crash if saving from a script, see T92704 & T97627.

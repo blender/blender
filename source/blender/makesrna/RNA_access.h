@@ -803,6 +803,8 @@ typedef enum eRNAOverrideMatch {
 } eRNAOverrideMatch;
 
 typedef enum eRNAOverrideMatchResult {
+  RNA_OVERRIDE_MATCH_RESULT_INIT = 0,
+
   /**
    * Some new property overrides were created to take into account
    * differences between local and reference.

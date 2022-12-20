@@ -401,6 +401,8 @@ bool BKE_lib_override_library_status_check_reference(struct Main *bmain, struct 
  * Compare local and reference data-blocks and create new override operations as needed,
  * or reset to reference values if overriding is not allowed.
  *
+ * \param r_report_flags #eRNAOverrideMatchResult flags giving info about the result of this call.
+ *
  * \note Defining override operations is only mandatory before saving a `.blend` file on disk
  * (not for undo!).
  * Knowing that info at runtime is only useful for UI/UX feedback.
@@ -411,11 +413,17 @@ bool BKE_lib_override_library_status_check_reference(struct Main *bmain, struct 
  *
  * \return true if any library operation was created.
  */
-bool BKE_lib_override_library_operations_create(struct Main *bmain, struct ID *local);
+void BKE_lib_override_library_operations_create(struct Main *bmain,
+                                                struct ID *local,
+                                                int *r_report_flags);
 /**
  * Check all overrides from given \a bmain and create/update overriding operations as needed.
+ *
+ * \param r_report_flags #eRNAOverrideMatchResult flags giving info about the result of this call.
  */
-bool BKE_lib_override_library_main_operations_create(struct Main *bmain, bool force_auto);
+void BKE_lib_override_library_main_operations_create(struct Main *bmain,
+                                                     bool force_auto,
+                                                     int *r_report_flags);
 
 /**
  * Reset all overrides in given \a id_root, while preserving ID relations.
