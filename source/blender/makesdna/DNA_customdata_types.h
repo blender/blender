@@ -92,7 +92,7 @@ typedef enum eCustomDataType {
 #ifdef DNA_DEPRECATED_ALLOW
   CD_MSTICKY = 1, /* DEPRECATED */
 #endif
-  CD_MDEFORMVERT = 2,
+  CD_MDEFORMVERT = 2, /* Array of `MDeformVert`. */
   CD_MEDGE = 3,
   CD_MFACE = 4,
   CD_MTFACE = 5,
