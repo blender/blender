@@ -90,7 +90,7 @@ class Engine {
  public:
   Engine(char *info_message)
       : context_(texture_pool_, info_message),
-        evaluator_(context_, node_tree()),
+        evaluator_(context_),
         last_viewport_size_(context_.get_output_size())
   {
   }
@@ -123,12 +123,6 @@ class Engine {
     if (DEG_id_type_updated(depsgraph, ID_NT)) {
       evaluator_.reset();
     }
-  }
-
-  /* Get a reference to the compositor node tree. */
-  static bNodeTree &node_tree()
-  {
-    return *DRW_context_state_get()->scene->nodetree;
   }
 };
 
