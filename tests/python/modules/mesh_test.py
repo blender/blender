@@ -238,6 +238,7 @@ class MeshTest(ABC):
         """
         Runs a single test, runs it again if test file is updated.
         """
+        print("\nSTART {} test.".format(self.test_name))
 
         self.create_evaluated_object()
         self.apply_operations(self.evaluated_object.name)
@@ -289,14 +290,14 @@ class MeshTest(ABC):
         """
         Print results for failed test.
         """
-        print("\nFAILED {} test with the following: ".format(self.test_name))
+        print("FAILED {} test with the following: ".format(self.test_name))
         self._print_result(result)
 
     def print_passed_test_result(self, result):
         """
         Print results for passing test.
         """
-        print("\nPASSED {} test successfully.".format(self.test_name))
+        print("PASSED {} test successfully.".format(self.test_name))
         self._print_result(result)
 
     def do_selection(self, mesh: bpy.types.Mesh, select_mode: str, selection, select_history: bool):
