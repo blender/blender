@@ -833,7 +833,7 @@ static void node_group_make_insert_selected(const bContext &C,
     if (node->parent == nullptr) {
       continue;
     }
-    if (nodes_to_move.contains(node->parent) && nodes_to_move.contains(node)) {
+    if (nodes_to_move.contains(node->parent) && !nodes_to_move.contains(node)) {
       nodeDetachNode(&ntree, node);
     }
   }
