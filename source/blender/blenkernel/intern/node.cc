@@ -2010,7 +2010,7 @@ bNode *nodeFindNodebyName(bNodeTree *ntree, const char *name)
 void nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex)
 {
   *r_node = nullptr;
-  if (!ntree->runtime->topology_cache_is_dirty) {
+  if (ntree->runtime->topology_cache_mutex.is_cached()) {
     bNode *node = &sock->owner_node();
     *r_node = node;
     if (r_sockindex) {

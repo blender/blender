@@ -51,7 +51,7 @@ enum eNodeTreeChangedFlag {
 static void add_tree_tag(bNodeTree *ntree, const eNodeTreeChangedFlag flag)
 {
   ntree->runtime->changed_flag |= flag;
-  ntree->runtime->topology_cache_is_dirty = true;
+  ntree->runtime->topology_cache_mutex.tag_dirty();
 }
 
 static void add_node_tag(bNodeTree *ntree, bNode *node, const eNodeTreeChangedFlag flag)
