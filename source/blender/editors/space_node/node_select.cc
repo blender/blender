@@ -246,21 +246,21 @@ static void node_socket_toggle(bNode *node, bNodeSocket &sock, bool deselect_nod
   }
 }
 
-void node_deselect_all(SpaceNode &snode)
+void node_deselect_all(bNodeTree &node_tree)
 {
-  for (bNode *node : snode.edittree->all_nodes()) {
+  for (bNode *node : node_tree.all_nodes()) {
     nodeSetSelected(node, false);
   }
 }
 
-void node_deselect_all_input_sockets(SpaceNode &snode, const bool deselect_nodes)
+void node_deselect_all_input_sockets(bNodeTree &node_tree, const bool deselect_nodes)
 {
   /* XXX not calling node_socket_deselect here each time, because this does iteration
    * over all node sockets internally to check if the node stays selected.
    * We can do that more efficiently here.
    */
 
-  for (bNode *node : snode.edittree->all_nodes()) {
+  for (bNode *node : node_tree.all_nodes()) {
     bool sel = false;
 
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
@@ -283,14 +283,14 @@ void node_deselect_all_input_sockets(SpaceNode &snode, const bool deselect_nodes
   }
 }
 
-void node_deselect_all_output_sockets(SpaceNode &snode, const bool deselect_nodes)
+void node_deselect_all_output_sockets(bNodeTree &node_tree, const bool deselect_nodes)
 {
   /* XXX not calling node_socket_deselect here each time, because this does iteration
    * over all node sockets internally to check if the node stays selected.
    * We can do that more efficiently here.
    */
 
-  for (bNode *node : snode.edittree->all_nodes()) {
+  for (bNode *node : node_tree.all_nodes()) {
     bool sel = false;
 
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
@@ -422,7 +422,7 @@ static int node_select_grouped_exec(bContext *C, wmOperator *op)
   const int type = RNA_enum_get(op->ptr, "type");
 
   if (!extend) {
-    node_deselect_all(snode);
+    node_deselect_all(node_tree);
   }
   nodeSetSelected(node_act, true);
 
@@ -527,11 +527,12 @@ static bool node_mouse_select(bContext *C,
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
+  bNodeTree &node_tree = *snode.edittree;
   ARegion &region = *CTX_wm_region(C);
   const Object *ob = CTX_data_active_object(C);
   const Scene *scene = CTX_data_scene(C);
   const wmWindowManager *wm = CTX_wm_manager(C);
-  bNode *node, *tnode;
+  bNode *node;
   bNodeSocket *sock = nullptr;
   bNodeSocket *tsock;
 
@@ -582,7 +583,7 @@ static bool node_mouse_select(bContext *C,
           }
         }
         if (!extend) {
-          for (tnode = (bNode *)snode.edittree->nodes.first; tnode; tnode = tnode->next) {
+          for (bNode *tnode : node_tree.all_nodes()) {
             if (tnode == node) {
               continue;
             }
@@ -601,7 +602,7 @@ static bool node_mouse_select(bContext *C,
   if (!sock) {
 
     /* find the closest visible node */
-    node = node_under_mouse_select(*snode.edittree, cursor);
+    node = node_under_mouse_select(node_tree, cursor);
     found = (node != nullptr);
     node_was_selected = node && (node->flag & SELECT);
 
@@ -611,7 +612,7 @@ static bool node_mouse_select(bContext *C,
       }
       else if (found || params->deselect_all) {
         /* Deselect everything. */
-        node_deselect_all(snode);
+        node_deselect_all(node_tree);
         changed = true;
       }
     }
@@ -669,7 +670,7 @@ static bool node_mouse_select(bContext *C,
     viewer_path::activate_geometry_node(bmain, snode, *node);
   }
   ED_node_set_active_viewer_key(&snode);
-  node_sort(*snode.edittree);
+  node_sort(node_tree);
   if ((active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) ||
       viewer_node_changed) {
     DEG_id_tag_update(&snode.edittree->id, ID_RECALC_COPY_ON_WRITE);
@@ -769,7 +770,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = (eSelectOp)RNA_enum_get(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    node_deselect_all(snode);
+    node_deselect_all(node_tree);
   }
 
   for (bNode *node : node_tree.all_nodes()) {
@@ -855,7 +856,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
-  bNode *node;
+  bNodeTree &node_tree = *snode->edittree;
 
   int x, y, radius;
   float2 offset;
@@ -867,7 +868,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
       WM_gesture_is_modal_first((const wmGesture *)op->customdata));
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    node_deselect_all(*snode);
+    node_deselect_all(node_tree);
   }
 
   /* get operator properties */
@@ -877,7 +878,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
 
   UI_view2d_region_to_view(&region->v2d, x, y, &offset.x, &offset.y);
 
-  for (node = (bNode *)snode->edittree->nodes.first; node; node = node->next) {
+  for (bNode *node : node_tree.all_nodes()) {
     switch (node->type) {
       case NODE_FRAME: {
         /* Frame nodes are selectable by their borders (including their whole rect - as for other
@@ -950,7 +951,7 @@ static bool do_lasso_select_node(bContext *C,
                                  eSelectOp sel_op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  bNode *node;
+  bNodeTree &node_tree = *snode->edittree;
 
   ARegion *region = CTX_wm_region(C);
 
@@ -959,7 +960,7 @@ static bool do_lasso_select_node(bContext *C,
 
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    node_deselect_all(*snode);
+    node_deselect_all(node_tree);
     changed = true;
   }
 
@@ -967,8 +968,7 @@ static bool do_lasso_select_node(bContext *C,
   BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
   /* do actual selection */
-  for (node = (bNode *)snode->edittree->nodes.first; node; node = node->next) {
-
+  for (bNode *node : node_tree.all_nodes()) {
     if (select && (node->flag & NODE_SELECT)) {
       continue;
     }
@@ -1098,7 +1098,7 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
       }
       break;
     case SEL_DESELECT:
-      node_deselect_all(snode);
+      node_deselect_all(node_tree);
       break;
     case SEL_INVERT:
       for (bNode *node : node_tree.all_nodes()) {
@@ -1107,7 +1107,7 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  node_sort(*snode.edittree);
+  node_sort(node_tree);
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
   return OPERATOR_FINISHED;

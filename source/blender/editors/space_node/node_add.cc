@@ -63,20 +63,21 @@ bNode *add_node(const bContext &C, const StringRef idname, const float2 &locatio
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
   Main &bmain = *CTX_data_main(&C);
+  bNodeTree &node_tree = *snode.edittree;
 
-  node_deselect_all(snode);
+  node_deselect_all(node_tree);
 
   const std::string idname_str = idname;
 
-  bNode *node = nodeAddNode(&C, snode.edittree, idname_str.c_str());
+  bNode *node = nodeAddNode(&C, &node_tree, idname_str.c_str());
   BLI_assert(node && node->typeinfo);
 
   position_node_based_on_mouse(*node, location);
 
   nodeSetSelected(node, true);
-  ED_node_set_active(&bmain, &snode, snode.edittree, node, nullptr);
+  ED_node_set_active(&bmain, &snode, &node_tree, node, nullptr);
 
-  ED_node_tree_propagate_change(&C, &bmain, snode.edittree);
+  ED_node_tree_propagate_change(&C, &bmain, &node_tree);
   return node;
 }
 
@@ -84,18 +85,19 @@ bNode *add_static_node(const bContext &C, int type, const float2 &location)
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
   Main &bmain = *CTX_data_main(&C);
+  bNodeTree &node_tree = *snode.edittree;
 
-  node_deselect_all(snode);
+  node_deselect_all(node_tree);
 
-  bNode *node = nodeAddStaticNode(&C, snode.edittree, type);
+  bNode *node = nodeAddStaticNode(&C, &node_tree, type);
   BLI_assert(node && node->typeinfo);
 
   position_node_based_on_mouse(*node, location);
 
   nodeSetSelected(node, true);
-  ED_node_set_active(&bmain, &snode, snode.edittree, node, nullptr);
+  ED_node_set_active(&bmain, &snode, &node_tree, node, nullptr);
 
-  ED_node_tree_propagate_change(&C, &bmain, snode.edittree);
+  ED_node_tree_propagate_change(&C, &bmain, &node_tree);
   return node;
 }
 
@@ -152,11 +154,12 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
+  node_deselect_all(ntree);
+
   ntree.ensure_topology_cache();
   const Vector<bNode *> frame_nodes = ntree.nodes_by_type("NodeFrame");
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
-  node_deselect_all(snode);
 
   /* All link "cuts" that start at a particular output socket. Deduplicating new reroutes per
    * output socket is useful because it allows reusing reroutes for connected intersections.

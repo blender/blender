@@ -2335,7 +2335,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
   /* deselect old nodes */
-  node_deselect_all(*snode);
+  node_deselect_all(*ntree);
 
   /* calculate "barycenter" for placing on mouse cursor */
   float2 center = {0.0f, 0.0f};

@@ -441,10 +441,7 @@ void NODE_OT_group_ungroup(wmOperatorType *ot)
 static bool node_group_separate_selected(
     Main &bmain, bNodeTree &ntree, bNodeTree &ngroup, const float2 &offset, const bool make_copy)
 {
-  /* deselect all nodes in the target tree */
-  for (bNode *node : ntree.all_nodes()) {
-    nodeSetSelected(node, false);
-  }
+  node_deselect_all(ntree);
 
   ListBase anim_basepaths = {nullptr, nullptr};
 
@@ -809,10 +806,7 @@ static void node_group_make_insert_selected(const bContext &C,
   static const float offsetx = 200;
   static const float offsety = 0.0f;
 
-  /* deselect all nodes in the target tree */
-  for (bNode *node : ngroup->all_nodes()) {
-    nodeSetSelected(node, false);
-  }
+  node_deselect_all(*ngroup);
 
   /* auto-add interface for "solo" nodes */
   const bool expose_visible = nodes_to_move.size() == 1;

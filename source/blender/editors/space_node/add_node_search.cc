@@ -247,7 +247,7 @@ static void add_node_search_exec_fn(bContext *C, void *arg1, void *arg2)
     return;
   }
 
-  node_deselect_all(snode);
+  node_deselect_all(node_tree);
   bNode *new_node = nodeAddNode(C, &node_tree, item->identifier.c_str());
   BLI_assert(new_node != nullptr);
 
