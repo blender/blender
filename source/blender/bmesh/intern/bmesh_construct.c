@@ -277,17 +277,22 @@ void bm_alloc_id(BMesh *bm, BMElem *elem)
     return;
   }
 
-#ifdef WITH_BM_ID_FREELIST
   uint id;
 
-  if (bm->idmap.freelist_len > 0) {
+#ifdef WITH_BM_ID_FREELIST
+  if (bm->idmap.freelist_len > 0 && !(bm->idmap.flag & BM_NO_REUSE_IDS)) {
     id = bm_id_freelist_pop(bm);
   }
   else {
     id = bm->idmap.maxid + 1;
   }
 #else
-  uint id = range_tree_uint_take_any(bm->idmap.idtree);
+  if (!(bm->idmap.flag & BM_NO_REUSE_IDS)) {
+    id = range_tree_uint_take_any(bm->idmap.idtree);
+  }
+  else {
+    id = bm->idmap.maxid + 1;
+  }
 #endif
 
   bm_assign_id_intern(bm, elem, id);
@@ -307,7 +312,9 @@ void bm_free_id(BMesh *bm, BMElem *elem)
     range_tree_uint_release(bm->idmap.idtree, id);
   }
 #else
+  if (!(bm->idmap.flag & BM_NO_REUSE_IDS)) {
   bm_id_freelist_push(bm, id);
+  }
 #endif
 
   if ((bm->idmap.flag & BM_HAS_ID_MAP)) {

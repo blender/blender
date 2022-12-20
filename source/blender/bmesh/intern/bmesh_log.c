@@ -57,8 +57,9 @@
 void CustomData_bmesh_asan_unpoison(const CustomData *data, void *block);
 void CustomData_bmesh_asan_poison(const CustomData *data, void *block);
 
-//#define DEBUG_LOG_TO_FILE
 //#define DO_LOG_PRINT
+
+//#define DEBUG_LOG_TO_FILE
 
 #define BM_LOG_USE_SMALLHASH
 
@@ -140,7 +141,10 @@ static void *my_popkey(SmallHash *sh, const void *key)
 #    undef BM_ELEM_FROM_ID
 #  endif
 
-#  define BM_ELEM_FROM_ID(bm, id) bm->idmap.map[id]
+#  define BM_ELEM_FROM_ID(bm, id) \
+    ((bm->idmap.flag & BM_NO_REUSE_IDS) ? \
+         BLI_ghash_lookup(bm->idmap.ghash, POINTER_FROM_UINT(id)) : \
+         bm->idmap.map[id])
 
 #endif
 //#define DEBUG_LOG_REFCOUNTNG
@@ -274,7 +278,7 @@ static int msg_idgen = 1;
 static char msg_buffer[256] = {0};
 
 #  define SET_MSG(le) memcpy(le->msg, msg_buffer, sizeof(le->msg))
-#  define GET_MSG(le) le->msg
+#  define GET_MSG(le) (le)->msg
 #  ifdef DEBUG_LOG_CALL_STACKS
 #    define LOGPRINT(entry, ...) \
       fprintf(DEBUG_FILE, "%d: %s: ", entry->id, bm_logstack_head()); \
@@ -719,6 +723,8 @@ static uint bm_log_vert_id_get(BMLog *log, BMVert *v)
   return (uint)BM_ELEM_GET_ID(log->bm, v);
 }
 
+#  undef BLI_ghash_lookup
+
 /*Get a vertex from its unique ID */
 static BMElem *bm_log_elem_from_id(BMLog *log, uint id)
 {
@@ -781,6 +787,7 @@ static BMFace *bm_log_face_from_id(BMLog *log, uint id)
 
   return (BMFace *)BM_ELEM_FROM_ID(log->bm, id);
 }
+#  define BLI_ghash_lookup(sh, key) BLI_smallhash_lookup((sh), (uintptr_t)(key))
 
 #endif
 
@@ -951,7 +958,7 @@ static BMLogEdge *bm_log_edge_alloc(BMLog *log, BMEdge *e, bool log_customdata)
   SET_TRACE(le);
 
 #ifdef DO_LOG_PRINT
-  le->msg[0] = 0;
+  le->head.msg[0] = 0;
 #endif
 
   bm_log_edge_bmedge_copy(log, entry, le, e, log_customdata);
@@ -1137,7 +1144,7 @@ static void bm_log_edges_unmake_pre(
               "%s: missing edge; id: %d [%s]\n",
               GET_TRACE(le, entry),
               le->head.id,
-              GET_MSG(le));
+              GET_MSG(&le->head));
       continue;
     }
 
@@ -1147,7 +1154,7 @@ static void bm_log_edges_unmake_pre(
               GET_TRACE(le, entry),
               le->head.id,
               e->head.htype,
-              GET_MSG(le));
+              GET_MSG(&le->head));
       continue;
     }
 
@@ -1210,7 +1217,7 @@ static void bm_log_edges_unmake(
               "%s: missing edge; edge id: %d [%s]\n",
               GET_TRACE(le, entry),
               le->head.id,
-              GET_MSG(le));
+              GET_MSG(&le->head));
       continue;
     }
 
@@ -1220,7 +1227,7 @@ static void bm_log_edges_unmake(
               GET_TRACE(le, entry),
               le->head.id,
               e->head.htype,
-              GET_MSG(le));
+              GET_MSG(&le->head));
       continue;
     }
 
@@ -2526,7 +2533,7 @@ static void log_idmap_save(BMesh *bm, BMLog *log, BMLogEntry *entry)
     BM_ITER_MESH_INDEX (elem, &iter, bm, iters[i], j) {
       int id = BM_ELEM_CD_GET_INT(elem, cd_off);
 
-      if (!reported && (BMElem *)BM_ELEM_FROM_ID(bm, id) != elem) {
+      if (!reported && (BMElem *)bm_log_elem_from_id(log, id) != elem) {
         fprintf(DEBUG_FILE, "IDMap error for elem type %d\n", elem->head.htype);
         fprintf(DEBUG_FILE, "  further errors suppressed\n");
         reported = true;
@@ -2774,6 +2781,9 @@ static void bm_log_undo_intern(BMesh *bm, BMLog *log, BMLogEntry *entry, BMLogCa
     BM_idmap_check_attributes(log->idmap);
     return;
   }
+
+  // XXX
+  bm_update_idmap_cdlayers(bm);
 
   /* Delete added faces and verts */
   bm_log_faces_unmake_pre(bm, log, entry->topo_modified_faces_post, entry, callbacks);
@@ -3231,7 +3241,6 @@ void _BM_log_face_pre(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS)
     *val = (void *)lf;
   }
 
-  VALIDATE_LOG(log->bm, log->current_entry);
   bm_logstack_pop();
 }
 
@@ -3273,7 +3282,6 @@ void _BM_log_face_post(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS)
     }
   }
 
-  VALIDATE_LOG(log->bm, log->current_entry);
   bm_logstack_pop();
 }
 
@@ -3321,7 +3329,6 @@ void _BM_log_edge_pre(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS)
     *val = (void *)le;
   }
 
-  VALIDATE_LOG(log->bm, log->current_entry);
   bm_logstack_pop();
 }
 
@@ -3362,7 +3369,6 @@ void _BM_log_edge_post(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS)
     *val = (void *)le;
   }
 
-  VALIDATE_LOG(log->bm, log->current_entry);
   bm_logstack_pop();
 }
 
@@ -3405,7 +3411,6 @@ void _BM_log_vert_pre(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS)
     *val = (void *)lv;
   }
 
-  VALIDATE_LOG(log->bm, log->current_entry);
   bm_logstack_pop();
 }
 
@@ -3455,8 +3460,6 @@ void _BM_log_vert_post(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS)
 #endif
     }
   }
-
-  VALIDATE_LOG(log->bm, log->current_entry);
 
   bm_logstack_pop();
 }
@@ -4001,11 +4004,12 @@ static bool check_log_elem(BMesh *bm, BMLog *newlog, int id, int type, bool expe
   BMElem *elem = bm_log_elem_from_id(newlog, id);
 
   if (!!elem != expected) {
-    debuglog("Missing %s %d\n", elem_type_to_str(type), id);
+    debuglog("%s: Missing %s %d\n", __func__, elem_type_to_str(type), id);
     return false;
   }
   else if (elem && (elem->head.htype == type) != expected) {
-    debuglog("Expected %s at id %d; got %s instead\n",
+    debuglog("%s: Expected %s at id %d; got %s instead\n",
+             __func__,
              elem_type_to_str(type),
              id,
              elem_type_to_str(elem->head.htype));
@@ -4015,7 +4019,7 @@ static bool check_log_elem(BMesh *bm, BMLog *newlog, int id, int type, bool expe
   return true;
 }
 
-static bool bm_check_ghash_set(
+ATTR_NO_OPT static bool bm_check_ghash_set(
     GHash *ghashes[4], BMesh *bm, BMLog *newlog, BMLogEntry *entry, bool shouldExist)
 {
   bool ok = true;
@@ -4055,7 +4059,7 @@ static bool bm_check_ghash_set(
   return ok;
 }
 
-static bool bm_log_validate_intern(
+ATTR_NO_OPT static bool bm_log_validate_intern(
     BMesh *bm, BMLog *newlog, BMLogEntry *srcEntry, bool is_applied, bool do_apply)
 {
   bool precopy = do_apply;
@@ -4120,16 +4124,18 @@ static bool bm_log_validate_intern(
         }
       }
 
-      if (is_applied) {
-      }
-      else {
-        /*element should exist in post but not in pre, or in neither*/
-        if (exist1 && !exist2) {
-          debuglog("element %u:%s should not exist\n", id, elem_type_to_str(1 << i));
+      bool exist_bad = exist1 && !exist2;
 
-          // debuglog("%s %u existes in both pre and post log sets!\n", elem_type_to_str(type),
-          // id); ok = false;
-        }
+      if (is_applied) {
+        exist_bad = !exist_bad;
+      }
+
+      /*element should exist in post but not in pre, or in neither*/
+      if (exist_bad) {
+        debuglog("element %u:%s should not exist\n", id, elem_type_to_str(1 << i));
+
+        // debuglog("%s %u existes in both pre and post log sets!\n", elem_type_to_str(type),
+        // id); ok = false;
       }
     }
   }
@@ -4265,7 +4271,9 @@ void BM_log_get_changed(BMesh *bm, BMIdMap *idmap, BMLogEntry *_entry, SmallHash
         }
 #endif
 
+#undef BLI_ghash_lookup
         BMElem *elem = BM_ELEM_FROM_ID(bm, id);
+#define BLI_ghash_lookup(sh, key) BLI_smallhash_lookup((sh), (uintptr_t)(key))
 
         if (!elem) {
           continue;

@@ -2263,6 +2263,8 @@ static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 
 ATTR_NO_OPT static bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
 {
+  return false;
+
   bm_logstack_push();
 
   static int max_faces = 64;
@@ -2270,8 +2272,7 @@ ATTR_NO_OPT static bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
 
   BMLoop *l = e_root->l;
   Vector<BMLoop *, 5> ls;
-  Vector<BMFace *, 32> fs;
-  int minfs = INT_MAX;
+  Vector<BMFace *, 32> minfs;
 
   if (!l) {
     bm_logstack_pop();
@@ -2309,7 +2310,7 @@ ATTR_NO_OPT static bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
         void **val = nullptr;
         BMFace *f2 = l->radial_next->f;
 
-        if (!visit.lookup_key_or_add(f2)) {
+        if (visit.add(f2)) {
           if (fs2.size() > max_faces) {
             bad = true;
             break;
@@ -2325,17 +2326,8 @@ ATTR_NO_OPT static bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
       }
     }
 
-    if (!bad && fs2.size() < minfs) {
-#if 0
-      if (fs2.size() > 0) {
-        fs.resize(fs2.size());
-        memcpy((void *)&fs[0], (void *)&fs2[0], sizeof(void *) * fs2.size());
-      } else {
-        fs.clear();
-      }
-#endif
-      fs = fs2;
-      minfs = fs.size();
+    if (!bad && fs2.size() && (minfs.size() == 0 || fs2.size() < minfs.size())) {
+      minfs = fs2;
     }
   }
 
@@ -2343,19 +2335,28 @@ ATTR_NO_OPT static bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
                     PBVH_UpdateTriAreas;
   nupdateflag = nupdateflag | PBVH_UpdateNormals | PBVH_UpdateTris | PBVH_RebuildDrawBuffers;
 
-  if (!fs.size()) {
+  if (!minfs.size()) {
     bm_logstack_pop();
     return false;
   }
 
-  printf("manifold fin size: %d\n", fs.size());
+  printf("manifold fin size: %d\n", minfs.size());
   const int tag = BM_ELEM_TAG_ALT;
 
-  for (int i = 0; i < fs.size(); i++) {
-    BMFace *f = fs[i];
+  for (int i = 0; i < minfs.size(); i++) {
+    BMFace *f = minfs[i];
 
     BMLoop *l = f->l_first;
     do {
+      BMLoop *l2 = l;
+      do {
+        BMLoop *l3 = l2;
+        do {
+          l3->v->head.hflag &= ~tag;
+          l3->e->head.hflag &= ~tag;
+        } while ((l3 = l3->next) != l2);
+      } while ((l2 = l2->radial_next) != l);
+
       l->v->head.hflag &= ~tag;
       l->e->head.hflag &= ~tag;
     } while ((l = l->next) != f->l_first);
@@ -2364,8 +2365,8 @@ ATTR_NO_OPT static bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
   Vector<BMVert *, 32> vs;
   Vector<BMEdge *, 32> es;
 
-  for (int i = 0; i < fs.size(); i++) {
-    BMFace *f = fs[i];
+  for (int i = 0; i < minfs.size(); i++) {
+    BMFace *f = minfs[i];
 
     BMLoop *l = f->l_first;
     do {
@@ -2381,17 +2382,17 @@ ATTR_NO_OPT static bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     } while ((l = l->next) != f->l_first);
   }
 
-  for (int i = 0; i < minfs; i++) {
-    for (int j = 0; j < minfs; j++) {
-      if (i != j && fs[i] == fs[j]) {
+  for (int i = 0; i < minfs.size(); i++) {
+    for (int j = 0; j < minfs.size(); j++) {
+      if (i != j && minfs[i] == minfs[j]) {
         printf("%s: duplicate faces\n", __func__);
         continue;
       }
     }
   }
 
-  for (int i = 0; i < minfs; i++) {
-    BMFace *f = fs[i];
+  for (int i = 0; i < minfs.size(); i++) {
+    BMFace *f = minfs[i];
 
     if (f->head.htype != BM_FACE) {
       printf("%s: corruption!\n", __func__);
@@ -3167,6 +3168,7 @@ static bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
 typedef struct TraceData {
   PBVH *pbvh;
   SmallHash visit;
+  blender::Set<void *> visit2;
   BMEdge *e;
 } TraceData;
 
@@ -3240,6 +3242,10 @@ ATTR_NO_OPT void col_on_vert_add(BMesh *bm, BMVert *v, void *userdata)
   TraceData *data = (TraceData *)userdata;
   PBVH *pbvh = data->pbvh;
 
+  if (!data->visit2.add(static_cast<void *>(v))) {
+    // return;
+  }
+
   pbvh_boundary_update_bmesh(pbvh, v);
 
   MSculptVert *mv = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, data->pbvh->cd_sculpt_vert);
@@ -3254,6 +3260,10 @@ ATTR_NO_OPT void col_on_edge_add(BMesh *bm, BMEdge *e, void *userdata)
   TraceData *data = (TraceData *)userdata;
   PBVH *pbvh = data->pbvh;
 
+  if (!data->visit2.add(static_cast<void *>(e))) {
+    // return;
+  }
+
   collapse_restore_id(pbvh->bm_idmap, (BMElem *)e);
   BM_log_edge_post(pbvh->bm_log, e);
 }
@@ -3262,6 +3272,10 @@ ATTR_NO_OPT void col_on_face_add(BMesh *bm, BMFace *f, void *userdata)
 {
   TraceData *data = (TraceData *)userdata;
   PBVH *pbvh = data->pbvh;
+
+  if (!data->visit2.add(static_cast<void *>(f))) {
+    // return;
+  }
 
   if (bm_elem_is_free((BMElem *)f, BM_FACE)) {
     printf("%s: error, f was freed!\n", __func__);
@@ -3864,7 +3878,6 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   const int facetag = COLLAPSE_FACE_TAG;
   const int log_rings = 1;
 
-  edge_ring_do(e, collapse_ring_callback_pre2, &tdata, tag, facetag, log_rings - 1);
   // edge_ring_do(e, collapse_ring_callback_pre, &tdata, tag, facetag, log_rings - 1);
 
   pbvh_bmesh_vert_remove(pbvh, v_del);
@@ -3880,6 +3893,8 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 #ifdef USE_NEW_IDMAP
   BM_idmap_release(pbvh->bm_idmap, (BMElem *)v_del, true);
 #endif
+
+  // edge_ring_do(e, collapse_ring_callback_pre2, &tdata, tag, facetag, log_rings - 1);
 
   if (deleted_verts) {
     BLI_ghash_insert(deleted_verts, (void *)v_del, nullptr);
@@ -3957,7 +3972,7 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   MV_ADD_FLAG(mv_conn, mupdateflag);
 
-#if 1
+#if 0
   e2 = v_conn->e;
   BMEdge *enext;
   do {
@@ -3976,9 +3991,7 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   } while (v_conn->e && (e2 = enext) != v_conn->e);
 #endif
 
-  // vert_ring_do(v_conn, collapse_ring_callback_post, &tdata, tag, facetag, log_rings - 1);
-
-  {
+  if (0) {
     BMElem *elem = nullptr;
     SmallHashIter siter;
     void **val = BLI_smallhash_iternew_p(&tdata.visit, &siter, (uintptr_t *)&elem);
@@ -4020,7 +4033,10 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
       pbvh_bmesh_vert_remove(pbvh, v_conn);
     }
 
+    // if (!BLI_smallhash_lookup(&tdata.visit, (intptr_t)v_conn)) {
     BM_log_vert_removed(pbvh->bm_log, v_conn, 0);
+    //}
+
 #ifdef USE_NEW_IDMAP
     BM_idmap_release(pbvh->bm_idmap, (BMElem *)v_conn, true);
 #endif
@@ -4858,10 +4874,14 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
           break;
         }
 
+        printf("\n");
         modified = true;
         pbvh_bmesh_collapse_edge(pbvh, e, e->v1, e->v2, nullptr, nullptr, &eq_ctx);
         VALIDATE_LOG(pbvh->bm_log);
+        printf("\n");
 
+        // XXX
+        BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
         break;
       }
       default:

@@ -3217,7 +3217,8 @@ BMesh *BKE_sculptsession_empty_bmesh_create()
   params.id_elem_mask = BM_VERT | BM_EDGE | BM_FACE;
   params.id_map = true;
   params.temporary_ids = false;
-  params.no_reuse_ids = false;
+
+  params.no_reuse_ids = true; //XXX
 
   BMesh *bm = BM_mesh_create(&allocsize, &params);
 
@@ -3464,15 +3465,23 @@ ATTR_NO_OPT static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
     }
   }
 
+  PBVHType pbvhtype;
+  if (ss->pbvh) {
+    pbvhtype = BKE_pbvh_type(ss->pbvh);
+  }
+  else if (ss->bm) {
+    pbvhtype = PBVH_BMESH;
+  }
+  else if (ss->subdiv_ccg) {
+    pbvhtype = PBVH_GRIDS;
+  }
+  else {
+    pbvhtype = PBVH_FACES;
+  }
+
   if (bad) {
-    sculpt_attribute_create(ss,
-                            ob,
-                            attr->domain,
-                            attr->proptype,
-                            attr->name,
-                            attr,
-                            &attr->params,
-                            BKE_pbvh_type(ss->pbvh));
+    sculpt_attribute_create(
+        ss, ob, attr->domain, attr->proptype, attr->name, attr, &attr->params, pbvhtype);
   }
 
   return bad;

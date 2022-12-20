@@ -602,14 +602,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 #if 1
 
   if (!ss->bm) {
-    ss->bm = BM_mesh_create(
-        &allocsize,
-        &((struct BMeshCreateParams){.use_toolflags = false,
-                                     .create_unique_ids = true,
-                                     .id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
-                                     .id_map = true,
-                                     .temporary_ids = false,
-                                     .no_reuse_ids = false}));
+    ss->bm = BKE_sculptsession_empty_bmesh_create();
 
     BM_mesh_bm_from_me(NULL,
                        ss->bm,
