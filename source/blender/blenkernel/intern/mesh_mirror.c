@@ -445,28 +445,28 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   /* handle vgroup stuff */
-  if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&result->vdata, CD_MDEFORMVERT)) {
-    MDeformVert *dvert = (MDeformVert *)CustomData_get_layer(&result->vdata, CD_MDEFORMVERT) +
-                         maxVerts;
-    int *flip_map = NULL, flip_map_len = 0;
+  if (BKE_object_supports_vertex_groups(ob)) {
+    if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&result->vdata, CD_MDEFORMVERT)) {
+      MDeformVert *dvert = (MDeformVert *)CustomData_get_layer(&result->vdata, CD_MDEFORMVERT) +
+                           maxVerts;
+      int flip_map_len = 0;
+      int *flip_map = BKE_object_defgroup_flip_map(ob, &flip_map_len, false);
+      if (flip_map) {
+        for (i = 0; i < maxVerts; dvert++, i++) {
+          /* merged vertices get both groups, others get flipped */
+          if (use_correct_order_on_merge && do_vtargetmap && (vtargetmap[i + maxVerts] != -1)) {
+            BKE_defvert_flip_merged(dvert - maxVerts, flip_map, flip_map_len);
+          }
+          else if (!use_correct_order_on_merge && do_vtargetmap && (vtargetmap[i] != -1)) {
+            BKE_defvert_flip_merged(dvert, flip_map, flip_map_len);
+          }
+          else {
+            BKE_defvert_flip(dvert, flip_map, flip_map_len);
+          }
+        }
 
-    flip_map = BKE_object_defgroup_flip_map(ob, &flip_map_len, false);
-
-    if (flip_map) {
-      for (i = 0; i < maxVerts; dvert++, i++) {
-        /* merged vertices get both groups, others get flipped */
-        if (use_correct_order_on_merge && do_vtargetmap && (vtargetmap[i + maxVerts] != -1)) {
-          BKE_defvert_flip_merged(dvert - maxVerts, flip_map, flip_map_len);
-        }
-        else if (!use_correct_order_on_merge && do_vtargetmap && (vtargetmap[i] != -1)) {
-          BKE_defvert_flip_merged(dvert, flip_map, flip_map_len);
-        }
-        else {
-          BKE_defvert_flip(dvert, flip_map, flip_map_len);
-        }
+        MEM_freeN(flip_map);
       }
-
-      MEM_freeN(flip_map);
     }
   }
 
