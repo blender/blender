@@ -40,7 +40,8 @@
 #include "RE_pipeline.h"
 
 #include "ED_image.h"
-#include "ED_node.h" /* own include */
+#include "ED_node.h"  /* own include */
+#include "ED_node.hh" /* own include */
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
@@ -1313,7 +1314,7 @@ bool node_link_is_hidden_or_dimmed(const View2D &v2d, const bNodeLink &link)
  * \{ */
 
 static void node_duplicate_reparent_recursive(bNodeTree *ntree,
-                                              const Map<const bNode *, bNode *> &node_map,
+                                              const Map<bNode *, bNode *> &node_map,
                                               bNode *node)
 {
   bNode *parent;
@@ -1344,42 +1345,32 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   const bool keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
   bool linked = RNA_boolean_get(op->ptr, "linked") || ((U.dupflag & USER_DUP_NTREE) == 0);
   const bool dupli_node_tree = !linked;
-  bool changed = false;
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
-  Map<const bNode *, bNode *> node_map;
+  Map<bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
   Map<const ID *, ID *> duplicated_node_groups;
 
-  bNode *lastnode = (bNode *)ntree->nodes.last;
-  for (bNode *node : ntree->all_nodes()) {
-    if (node->flag & SELECT) {
-      bNode *new_node = bke::node_copy_with_mapping(
-          ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
-      node_map.add_new(node, new_node);
+  for (bNode *node : get_selected_nodes(*ntree)) {
+    bNode *new_node = bke::node_copy_with_mapping(
+        ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
+    node_map.add_new(node, new_node);
 
-      if (node->id && dupli_node_tree) {
-        ID *new_group = duplicated_node_groups.lookup_or_add_cb(node->id, [&]() {
-          ID *new_group = BKE_id_copy(bmain, node->id);
-          /* Remove user added by copying. */
-          id_us_min(new_group);
-          return new_group;
-        });
-        id_us_plus(new_group);
-        id_us_min(new_node->id);
-        new_node->id = new_group;
-      }
-      changed = true;
-    }
-
-    /* make sure we don't copy new nodes again! */
-    if (node == lastnode) {
-      break;
+    if (node->id && dupli_node_tree) {
+      ID *new_group = duplicated_node_groups.lookup_or_add_cb(node->id, [&]() {
+        ID *new_group = BKE_id_copy(bmain, node->id);
+        /* Remove user added by copying. */
+        id_us_min(new_group);
+        return new_group;
+      });
+      id_us_plus(new_group);
+      id_us_min(new_node->id);
+      new_node->id = new_group;
     }
   }
 
-  if (!changed) {
+  if (node_map.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1424,32 +1415,20 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
     node->flag &= ~NODE_TEST;
   }
   /* reparent copied nodes */
-  for (bNode *node : ntree->all_nodes()) {
-    if ((node->flag & SELECT) && !(node->flag & NODE_TEST)) {
+  for (bNode *node : node_map.keys()) {
+    if (!(node->flag & NODE_TEST)) {
       node_duplicate_reparent_recursive(ntree, node_map, node);
-    }
-
-    /* only has to check old nodes */
-    if (node == lastnode) {
-      break;
     }
   }
 
   /* deselect old nodes, select the copies instead */
-  for (bNode *node : ntree->all_nodes()) {
-    if (node->flag & SELECT) {
-      /* has been set during copy above */
-      bNode *newnode = node_map.lookup(node);
+  for (const auto item : node_map.items()) {
+    bNode *src_node = item.key;
+    bNode *dst_node = item.value;
 
-      nodeSetSelected(node, false);
-      node->flag &= ~(NODE_ACTIVE | NODE_ACTIVE_TEXTURE);
-      nodeSetSelected(newnode, true);
-    }
-
-    /* make sure we don't copy new nodes again! */
-    if (node == lastnode) {
-      break;
-    }
+    nodeSetSelected(src_node, false);
+    src_node->flag &= ~(NODE_ACTIVE | NODE_ACTIVE_TEXTURE);
+    nodeSetSelected(dst_node, true);
   }
 
   ED_node_tree_propagate_change(C, bmain, snode->edittree);
