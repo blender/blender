@@ -654,6 +654,14 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
   pipeline_descriptor.src_rgb_blend_factor = ctx->pipeline_state.src_rgb_blend_factor;
   pipeline_descriptor.point_size = ctx->pipeline_state.point_size;
 
+  /* Resolve clipping plane enablement. */
+  pipeline_descriptor.clipping_plane_enable_mask = 0;
+  for (const int plane : IndexRange(6)) {
+    pipeline_descriptor.clipping_plane_enable_mask =
+        pipeline_descriptor.clipping_plane_enable_mask |
+        ((ctx->pipeline_state.clip_distance_enabled[plane]) ? (1 << plane) : 0);
+  }
+
   /* Primitive Type -- Primitive topology class needs to be specified for layered rendering. */
   bool requires_specific_topology_class = uses_mtl_array_index_ ||
                                           prim_type == MTLPrimitiveTopologyClassPoint;
@@ -854,6 +862,29 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
       [values setConstantValue:&MTL_transform_feedback_buffer_index
                           type:MTLDataTypeInt
                       withName:@"MTL_transform_feedback_buffer_index"];
+    }
+
+    /* Clipping planes. */
+    int MTL_clip_distances_enabled = (pipeline_descriptor.clipping_plane_enable_mask > 0) ? 1 : 0;
+
+    /* Only define specialization constant if planes are required.
+     * We guard clip_planes usage on this flag. */
+    [values setConstantValue:&MTL_clip_distances_enabled
+                        type:MTLDataTypeInt
+                    withName:@"MTL_clip_distances_enabled"];
+
+    if (MTL_clip_distances_enabled > 0) {
+      /* Assign individual enablement flags. Only define a flag function constant
+       * if it is used. */
+      for (const int plane : IndexRange(6)) {
+        int plane_enabled = ctx->pipeline_state.clip_distance_enabled[plane] ? 1 : 0;
+        if (plane_enabled) {
+          [values
+              setConstantValue:&plane_enabled
+                          type:MTLDataTypeInt
+                      withName:[NSString stringWithFormat:@"MTL_clip_distance_enabled%d", plane]];
+        }
+      }
     }
 
     /* gl_PointSize constant. */

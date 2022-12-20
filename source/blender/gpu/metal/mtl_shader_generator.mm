@@ -1876,11 +1876,14 @@ std::string MSLGeneratorInterface::generate_msl_vertex_out_struct(ShaderStage sh
     out << "#if defined(USE_CLIP_PLANES) || defined(USE_WORLD_CLIP_PLANES)" << std::endl;
     if (this->clip_distances.size() > 1) {
       /* Output array of clip distances if specified. */
-      out << "\tfloat clipdistance [[clip_distance]] [" << this->clip_distances.size() << "];"
-          << std::endl;
+      out << "\tfloat clipdistance [[clip_distance, "
+             "function_constant(MTL_clip_distances_enabled)]] ["
+          << this->clip_distances.size() << "];" << std::endl;
     }
     else if (this->clip_distances.size() > 0) {
-      out << "\tfloat clipdistance [[clip_distance]];" << std::endl;
+      out << "\tfloat clipdistance [[clip_distance, "
+             "function_constant(MTL_clip_distances_enabled)]];"
+          << std::endl;
     }
     out << "#endif" << std::endl;
   }
@@ -2157,18 +2160,24 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
         << std::endl;
   }
 
-  /* Output clip-distances. */
-  out << "#if defined(USE_CLIP_PLANES) || defined(USE_WORLD_CLIP_PLANES)" << std::endl;
+  /* Output clip-distances.
+   * Clip distances are only written to if both clipping planes are turned on for the shader,
+   * and the clipping planes are enabled. Enablement is controlled on a per-plane basis
+   * via function constants in the shader pipeline state object (PSO). */
+  out << "#if defined(USE_CLIP_PLANES) || defined(USE_WORLD_CLIP_PLANES)" << std::endl
+      << "if(MTL_clip_distances_enabled) {" << std::endl;
   if (this->clip_distances.size() > 1) {
     for (int cd = 0; cd < this->clip_distances.size(); cd++) {
-      out << "\toutput.clipdistance[" << cd << "] = vertex_shader_instance.gl_ClipDistance_" << cd
-          << ";" << std::endl;
+      /* Default value when clipping is disabled >= 0.0 to ensure primitive is not clipped. */
+      out << "\toutput.clipdistance[" << cd
+          << "] = (is_function_constant_defined(MTL_clip_distance_enabled" << cd
+          << "))?vertex_shader_instance.gl_ClipDistance_" << cd << ":1.0;" << std::endl;
     }
   }
   else if (this->clip_distances.size() > 0) {
     out << "\toutput.clipdistance = vertex_shader_instance.gl_ClipDistance_0;" << std::endl;
   }
-  out << "#endif" << std::endl;
+  out << "}" << std::endl << "#endif" << std::endl;
 
   /* Populate output vertex variables. */
   int output_id = 0;

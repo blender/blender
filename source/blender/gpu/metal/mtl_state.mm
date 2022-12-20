@@ -35,6 +35,12 @@ MTLStateManager::MTLStateManager(MTLContext *ctx) : StateManager()
   /* Force update using default state. */
   current_ = ~state;
   current_mutable_ = ~mutable_state;
+
+  /* Clip distances initial mask forces to 0x111, which exceeds
+   * max clip plane count of 6, so limit to ensure all clipping
+   * planes get disabled. */
+  current_.clip_distances = 6;
+
   set_state(state);
   set_mutable_state(mutable_state);
 }
@@ -52,6 +58,7 @@ void MTLStateManager::force_state()
 {
   /* Little exception for clip distances since they need to keep the old count correct. */
   uint32_t clip_distances = current_.clip_distances;
+  BLI_assert(clip_distances <= 6);
   current_ = ~this->state;
   current_.clip_distances = clip_distances;
   current_mutable_ = ~this->mutable_state;
@@ -329,11 +336,32 @@ void MTLStateManager::set_stencil_mask(const eGPUStencilTest test, const GPUStat
   }
 }
 
+void MTLStateManager::mtl_clip_plane_enable(uint i)
+{
+  BLI_assert(context_);
+  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
+  pipeline_state.clip_distance_enabled[i] = true;
+  pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_PSO_FLAG;
+}
+
+void MTLStateManager::mtl_clip_plane_disable(uint i)
+{
+  BLI_assert(context_);
+  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
+  pipeline_state.clip_distance_enabled[i] = false;
+  pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_PSO_FLAG;
+}
+
 void MTLStateManager::set_clip_distances(const int new_dist_len, const int old_dist_len)
 {
-  /* TODO(Metal): Support Clip distances in METAL. Clip distance
-   * assignment via shader is supported, but global clip-states require
-   * support. */
+  BLI_assert(new_dist_len <= 6);
+  BLI_assert(old_dist_len <= 6);
+  for (uint i = 0; i < new_dist_len; i++) {
+    mtl_clip_plane_enable(i);
+  }
+  for (uint i = new_dist_len; i < old_dist_len; i++) {
+    mtl_clip_plane_disable(i);
+  }
 }
 
 void MTLStateManager::set_logic_op(const bool enable)

@@ -460,6 +460,9 @@ struct MTLContextGlobalShaderPipelineState {
   /* Render parameters. */
   float point_size = 1.0f;
   float line_width = 1.0f;
+
+  /* Clipping plane enablement. */
+  bool clip_distance_enabled[6] = {false};
 };
 
 /* Command Buffer Manager - Owned by MTLContext.

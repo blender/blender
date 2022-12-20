@@ -174,6 +174,9 @@ struct MTLRenderPipelineStateDescriptor {
   /* Global color write mask as this cannot be specified per attachment. */
   MTLColorWriteMask color_write_mask;
 
+  /* Clip distance enablement. */
+  uchar clipping_plane_enable_mask = 0;
+
   /* Point size required by point primitives. */
   float point_size = 0.0f;
 
@@ -181,6 +184,10 @@ struct MTLRenderPipelineStateDescriptor {
   bool operator==(const MTLRenderPipelineStateDescriptor &other) const
   {
     if (!(vertex_descriptor == other.vertex_descriptor)) {
+      return false;
+    }
+
+    if (clipping_plane_enable_mask != other.clipping_plane_enable_mask) {
       return false;
     }
 
@@ -242,6 +249,9 @@ struct MTLRenderPipelineStateDescriptor {
 
     hash |= uint64_t((this->blending_enabled && (this->num_color_attachments > 0)) ? 1 : 0) << 62;
     hash ^= uint64_t(this->point_size);
+
+    /* Clipping plane enablement. */
+    hash ^= uint64_t(clipping_plane_enable_mask) << 20;
 
     return hash;
   }
