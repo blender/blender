@@ -1,12 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2021-2022 Blender Foundation */
 
-#include "blender/display_driver.h"
-
-#include "device/device.h"
-#include "util/log.h"
-#include "util/math.h"
-
 #include "GPU_context.h"
 #include "GPU_immediate.h"
 #include "GPU_shader.h"
@@ -14,6 +8,12 @@
 #include "GPU_texture.h"
 
 #include "RE_engine.h"
+
+#include "blender/display_driver.h"
+
+#include "device/device.h"
+#include "util/log.h"
+#include "util/math.h"
 
 CCL_NAMESPACE_BEGIN
 
