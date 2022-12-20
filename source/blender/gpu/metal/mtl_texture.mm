@@ -1621,6 +1621,7 @@ bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
   }
 
   /* Verify Texture and vertex buffer alignment. */
+  const GPUVertFormat *format = GPU_vertbuf_get_format(vbo);
   int bytes_per_pixel = get_mtl_format_bytesize(mtl_format);
   int bytes_per_row = bytes_per_pixel * w_;
 
@@ -1628,12 +1629,40 @@ bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
   uint32_t align_requirement = static_cast<uint32_t>(
       [mtl_ctx->device minimumLinearTextureAlignmentForPixelFormat:mtl_format]);
 
-  /* Verify per-vertex size aligns with texture size. */
-  const GPUVertFormat *format = GPU_vertbuf_get_format(vbo);
-  BLI_assert(bytes_per_pixel == format->stride &&
-             "Pixel format stride MUST match the texture format stride -- These being different "
-             "is likely caused by Metal's VBO padding to a minimum of 4-bytes per-vertex");
-  UNUSED_VARS_NDEBUG(format);
+  /* If stride is larger than bytes per pixel, but format has multiple attributes,
+   * split attributes across several pixels. */
+  if (format->stride > bytes_per_pixel && format->attr_len > 1) {
+
+    /* We need to increase the number of pixels available to store additional attributes.
+     * First ensure that the total stride of the vertex format fits uniformly into
+     * multiple pixels. If these sizes are different, then attributes are of differing
+     * sizes and this operation is unsupported. */
+    if (bytes_per_pixel * format->attr_len != format->stride) {
+      BLI_assert_msg(false,
+                     "Cannot split attributes across multiple pixels as attribute format sizes do "
+                     "not match.");
+      return false;
+    }
+
+    /* Provide a single pixel per attribute. */
+    /* Increase bytes per row to ensure there are enough bytes for all vertex attribute data. */
+    bytes_per_row *= format->attr_len;
+    BLI_assert(bytes_per_row == format->stride * w_);
+
+    /* Multiply width of image to provide one attribute per pixel. */
+    w_ *= format->attr_len;
+    BLI_assert(bytes_per_row == bytes_per_pixel * w_);
+    BLI_assert_msg(w_ == mtl_vbo->vertex_len * format->attr_len,
+                   "Image should contain one pixel for each attribute in every vertex.");
+  }
+  else {
+    /* Verify per-vertex size aligns with texture size. */
+    BLI_assert(bytes_per_pixel == format->stride &&
+               "Pixel format stride MUST match the texture format stride -- These being different "
+               "is likely caused by Metal's VBO padding to a minimum of 4-bytes per-vertex."
+               " If multiple attributes are used. Each attribute is to be packed into its own "
+               "individual pixel when stride length is exceeded. ");
+  }
 
   /* Create texture descriptor. */
   BLI_assert(type_ == GPU_TEXTURE_BUFFER);
