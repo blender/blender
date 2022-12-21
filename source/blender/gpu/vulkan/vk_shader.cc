@@ -610,7 +610,7 @@ void VKShader::build_shader_module(MutableSpan<const char *> sources,
                  "Only forced ShaderC shader kinds are supported.");
   sources[0] = glsl_patch_get();
   Vector<uint32_t> spirv_module = compile_glsl_to_spirv(sources, stage);
-  build_shader_module(spirv_module, &compute_module_);
+  build_shader_module(spirv_module, r_shader_module);
 }
 
 void VKShader::vertex_shader_from_glsl(MutableSpan<const char *> sources)
@@ -674,7 +674,7 @@ bool VKShader::finalize(const shader::ShaderCreateInfo * /*info*/)
     VkPipelineShaderStageCreateInfo compute_stage_info = {};
     compute_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     compute_stage_info.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
-    compute_stage_info.module = geometry_module_;
+    compute_stage_info.module = compute_module_;
     compute_stage_info.pName = "main";
     pipeline_infos_.append(compute_stage_info);
   }
