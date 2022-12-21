@@ -140,8 +140,8 @@ if(WITH_WINDOWS_BUNDLE_CRT)
 
   install(FILES ${CMAKE_BINARY_DIR}/blender.crt.manifest DESTINATION ./blender.crt)
   set(BUNDLECRT "<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.crt\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
-  set(BUNDLECRT "${BUNDLECRT}<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.shared\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
 endif()
+set(BUNDLECRT "${BUNDLECRT}<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.shared\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
 configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/blender.exe.manifest @ONLY)
 
 
