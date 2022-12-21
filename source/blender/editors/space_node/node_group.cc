@@ -16,6 +16,7 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_vec_types.hh"
+#include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_vector.hh"
 
@@ -726,71 +727,53 @@ static void get_min_max_of_nodes(const Span<bNode *> nodes,
 }
 
 /**
- * Redirect a link that are connecting a non-selected node to selected one.
- * Create new socket or reuse an existing one that was connected from the same input.
+ * Skip reroute nodes when finding the the socket to use as an example for a new group interface
+ * item. This moves "inward" into nodes selected for grouping to find properties like whether a
+ * connected socket has a hidden value. It only works in trivial situations-- a single line of
+ * connected reroutes with no branching.
+ */
+static const bNodeSocket &find_socket_to_use_for_interface(const bNodeTree &node_tree,
+                                                           const bNodeSocket &socket)
+{
+  if (node_tree.has_available_link_cycle()) {
+    return socket;
+  }
+  const bNode &node = socket.owner_node();
+  if (!node.is_reroute()) {
+    return socket;
+  }
+  const bNodeSocket &other_socket = socket.in_out == SOCK_IN ? node.output_socket(0) :
+                                                               node.input_socket(0);
+  if (!other_socket.is_logically_linked()) {
+    return socket;
+  }
+  return *other_socket.logically_linked_sockets().first();
+}
+
+/**
  * The output sockets of group nodes usually have consciously given names so they have
  * precedence over socket names the link points to.
- *
- * \param ntree: The node tree that the node group is being created from.
- * \param ngroup: The node tree of the new node group.
- * \param gnode: The new group node in the original tree.
- * \param input_node: The input node of the new node group.
- * \param link: The incoming link that needs to be altered.
- * \param reusable_sockets: Map for input socket interface lookup.
  */
-static void node_group_make_redirect_incoming_link(
-    bNodeTree &ntree,
-    bNodeTree *ngroup,
-    bNode *gnode,
-    bNode *input_node,
-    bNodeLink *link,
-    Map<bNodeSocket *, bNodeSocket *> &reusable_sockets)
+static bool prefer_node_for_interface_name(const bNode &node)
 {
-  bNodeSocket *input_socket = reusable_sockets.lookup_default(link->fromsock, nullptr);
-  if (input_socket) {
-    /* The incoming link is from a socket that has already been linked to
-     * a socket interface of the input node.
-     * Change the source of the link to the previously created socket interface.
-     * Move the link into the node tree of the new group. */
-    link->fromnode = input_node;
-    link->fromsock = input_socket;
-    BLI_remlink(&ntree.links, link);
-    BLI_addtail(&ngroup->links, link);
-  }
-  else {
-    bNode *node_for_typeinfo = nullptr;
-    bNodeSocket *socket_for_typeinfo = nullptr;
-    /* Find a socket where typeinfo and name may come from. */
-    node_socket_skip_reroutes(
-        &ntree.links, link->tonode, link->tosock, &node_for_typeinfo, &socket_for_typeinfo);
-    bNodeSocket *socket_for_naming = socket_for_typeinfo;
+  return node.is_group() || node.is_group_input() || node.is_group_output();
+}
 
-    /* Use the name of group node output sockets. */
-    if (ELEM(link->fromnode->type, NODE_GROUP_INPUT, NODE_GROUP, NODE_CUSTOM_GROUP)) {
-      socket_for_naming = link->fromsock;
-    }
-
-    bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocketWithName(ngroup,
-                                                                    node_for_typeinfo,
-                                                                    socket_for_typeinfo,
-                                                                    socket_for_naming->idname,
-                                                                    socket_for_naming->name);
-
-    /* Update the group node and interface sockets so the new interface socket can be linked. */
-    node_group_update(&ntree, gnode);
-    node_group_input_update(ngroup, input_node);
-
-    /* Create new internal link. */
-    bNodeSocket *input_sock = node_group_input_find_socket(input_node, iosock->identifier);
-    nodeAddLink(ngroup, input_node, input_sock, link->tonode, link->tosock);
-
-    /* Redirect external link. */
-    link->tonode = gnode;
-    link->tosock = node_group_find_input_socket(gnode, iosock->identifier);
-
-    /* Remember which interface socket the link has been redirected to. */
-    reusable_sockets.add_new(link->fromsock, input_sock);
-  }
+static bNodeSocket *add_interface_from_socket(const bNodeTree &original_tree,
+                                              bNodeTree &tree_for_interface,
+                                              const bNodeSocket &socket)
+{
+  /* The "example socket" has to have the same `in_out` status as the new interface socket. */
+  const bNodeSocket &socket_for_io = find_socket_to_use_for_interface(original_tree, socket);
+  const bNode &node_for_io = socket_for_io.owner_node();
+  const bNodeSocket &socket_for_name = prefer_node_for_interface_name(socket.owner_node()) ?
+                                           socket :
+                                           socket_for_io;
+  return ntreeAddSocketInterfaceFromSocketWithName(&tree_for_interface,
+                                                   &node_for_io,
+                                                   &socket_for_io,
+                                                   socket_for_io.idname,
+                                                   socket_for_name.name);
 }
 
 static void node_group_make_insert_selected(const bContext &C,
@@ -799,170 +782,160 @@ static void node_group_make_insert_selected(const bContext &C,
                                             const VectorSet<bNode *> &nodes_to_move)
 {
   Main *bmain = CTX_data_main(&C);
-  bNodeTree *ngroup = (bNodeTree *)gnode->id;
+  bNodeTree &group = *reinterpret_cast<bNodeTree *>(gnode->id);
   BLI_assert(!nodes_to_move.contains(gnode));
 
-  /* XXX rough guess, not nice but we don't have access to UI constants here ... */
-  static const float offsetx = 200;
-  static const float offsety = 0.0f;
+  node_deselect_all(group);
 
-  node_deselect_all(*ngroup);
-
-  /* auto-add interface for "solo" nodes */
-  const bool expose_visible = nodes_to_move.size() == 1;
-
-  float2 center, min, max;
+  float2 min, max;
   get_min_max_of_nodes(nodes_to_move, false, min, max);
-  add_v2_v2v2(center, min, max);
-  mul_v2_fl(center, 0.5f);
+  const float2 center = math::midpoint(min, max);
 
   float2 real_min, real_max;
   get_min_max_of_nodes(nodes_to_move, true, real_min, real_max);
 
-  ListBase anim_basepaths = {nullptr, nullptr};
-
-  /* Detach unselected nodes inside frames when the frame is put into the group. Otherwise the
-   * `parent` pointer becomes dangling. */
-  for (bNode *node : ntree.all_nodes()) {
-    if (node->parent == nullptr) {
-      continue;
+  /* Reuse an existing output node or create a new one. */
+  group.ensure_topology_cache();
+  bNode *output_node = [&]() {
+    if (bNode *node = group.group_output_node()) {
+      return node;
     }
-    if (nodes_to_move.contains(node->parent) && !nodes_to_move.contains(node)) {
+    bNode *output_node = nodeAddStaticNode(&C, &group, NODE_GROUP_OUTPUT);
+    output_node->locx = real_max[0] - center[0] + 50.0f;
+    return output_node;
+  }();
+
+  /* Create new group input node for easier organization of the new nodes inside the group. */
+  bNode *input_node = nodeAddStaticNode(&C, &group, NODE_GROUP_INPUT);
+  input_node->locx = real_min[0] - center[0] - 200.0f;
+
+  struct InputSocketInfo {
+    /* The unselected node the original link came from. */
+    bNode *from_node;
+    /* All the links that came from the socket on the unselected node. */
+    Vector<bNodeLink *> links;
+    const bNodeSocket *interface_socket;
+  };
+
+  struct OutputLinkInfo {
+    bNodeLink *link;
+    const bNodeSocket *interface_socket;
+  };
+
+  /* Map from single non-selected output sockets to potentially many selected input sockets. */
+  Map<bNodeSocket *, InputSocketInfo> input_links;
+  Vector<OutputLinkInfo> output_links;
+  Set<bNodeLink *> internal_links_to_move;
+  Set<bNodeLink *> links_to_remove;
+
+  ntree.ensure_topology_cache();
+  for (bNode *node : nodes_to_move) {
+    for (bNodeSocket *input_socket : node->input_sockets()) {
+      for (bNodeLink *link : input_socket->directly_linked_links()) {
+        if (nodeLinkIsHidden(link)) {
+          links_to_remove.add(link);
+          continue;
+        }
+        if (nodes_to_move.contains(link->fromnode)) {
+          internal_links_to_move.add(link);
+        }
+        else {
+          InputSocketInfo &info = input_links.lookup_or_add_default(link->fromsock);
+          info.from_node = link->fromnode;
+          info.links.append(link);
+          if (!info.interface_socket) {
+            info.interface_socket = add_interface_from_socket(ntree, group, *link->tosock);
+          }
+        }
+      }
+    }
+    for (bNodeSocket *output_socket : node->output_sockets()) {
+      for (bNodeLink *link : output_socket->directly_linked_links()) {
+        if (nodeLinkIsHidden(link)) {
+          links_to_remove.add(link);
+          continue;
+        }
+        if (nodes_to_move.contains(link->tonode)) {
+          internal_links_to_move.add(link);
+        }
+        else {
+          output_links.append({link, add_interface_from_socket(ntree, group, *link->fromsock)});
+        }
+      }
+    }
+  }
+
+  struct NewInternalLinkInfo {
+    bNode *node;
+    bNodeSocket *socket;
+    const bNodeSocket *interface_socket;
+  };
+
+  const bool expose_visible = nodes_to_move.size() == 1;
+  Vector<NewInternalLinkInfo> new_internal_links;
+  if (expose_visible) {
+    for (bNode *node : nodes_to_move) {
+      auto expose_sockets = [&](const Span<bNodeSocket *> sockets) {
+        for (bNodeSocket *socket : sockets) {
+          if (!socket->is_available() || socket->is_hidden()) {
+            continue;
+          }
+          if (socket->is_directly_linked()) {
+            continue;
+          }
+          const bNodeSocket *io_socket = ntreeAddSocketInterfaceFromSocket(&group, node, socket);
+          new_internal_links.append({node, socket, io_socket});
+        }
+      };
+      expose_sockets(node->input_sockets());
+      expose_sockets(node->output_sockets());
+    }
+  }
+
+  /* Un-parent nodes when only the parent or child moves into the group. */
+  for (bNode *node : ntree.all_nodes()) {
+    if (node->parent && nodes_to_move.contains(node->parent) && !nodes_to_move.contains(node)) {
+      nodeDetachNode(&ntree, node);
+    }
+  }
+  for (bNode *node : nodes_to_move) {
+    if (node->parent && !nodes_to_move.contains(node->parent)) {
       nodeDetachNode(&ntree, node);
     }
   }
 
-  /* move nodes over */
-  for (bNode *node : nodes_to_move) {
-    /* Keep track of this node's RNA "base" path (the part of the pat identifying the node)
-     * if the old node-tree has animation data which potentially covers this node. */
-    if (ntree.adt) {
+  /* Move animation data from the parent tree to the group. */
+  if (ntree.adt) {
+    ListBase anim_basepaths = {nullptr, nullptr};
+    for (bNode *node : nodes_to_move) {
       PointerRNA ptr;
-      char *path;
-
       RNA_pointer_create(&ntree.id, &RNA_Node, node, &ptr);
-      path = RNA_path_from_ID_to_struct(&ptr);
-
-      if (path) {
+      if (char *path = RNA_path_from_ID_to_struct(&ptr)) {
         BLI_addtail(&anim_basepaths, animation_basepath_change_new(path, path));
       }
     }
+    BKE_animdata_transfer_by_basepath(bmain, &ntree.id, &group.id, &anim_basepaths);
 
-    /* ensure valid parent pointers, detach if parent stays outside the group */
-    if (node->parent && !(node->parent->flag & NODE_SELECT)) {
-      nodeDetachNode(&ntree, node);
-    }
-
-    /* change node-collection membership */
-    BLI_remlink(&ntree.nodes, node);
-    BLI_addtail(&ngroup->nodes, node);
-    nodeUniqueID(ngroup, node);
-    nodeUniqueName(ngroup, node);
-
-    BKE_ntree_update_tag_node_removed(&ntree);
-    BKE_ntree_update_tag_node_new(ngroup, node);
-  }
-  nodeRebuildIDVector(&ntree);
-
-  /* move animation data over */
-  if (ntree.adt) {
-    BKE_animdata_transfer_by_basepath(bmain, &ntree.id, &ngroup->id, &anim_basepaths);
-
-    /* paths + their wrappers need to be freed */
     LISTBASE_FOREACH_MUTABLE (AnimationBasePathChange *, basepath_change, &anim_basepaths) {
       animation_basepath_change_free(basepath_change);
     }
   }
 
-  /* create input node */
-  bNode *input_node = nodeAddStaticNode(&C, ngroup, NODE_GROUP_INPUT);
-  input_node->locx = real_min[0] - center[0] - offsetx;
-  input_node->locy = -offsety;
+  /* Move nodes into the group. */
+  for (bNode *node : nodes_to_move) {
+    BLI_remlink(&ntree.nodes, node);
+    BLI_addtail(&group.nodes, node);
+    nodeUniqueID(&group, node);
+    nodeUniqueName(&group, node);
 
-  /* create output node */
-  bNode *output_node = nodeAddStaticNode(&C, ngroup, NODE_GROUP_OUTPUT);
-  output_node->locx = real_max[0] - center[0] + offsetx * 0.25f;
-  output_node->locy = -offsety;
-
-  /* relink external sockets */
-
-  /* A map from link sources to input sockets already connected. */
-  Map<bNodeSocket *, bNodeSocket *> reusable_sockets;
-
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    const bool fromselect = nodes_to_move.contains(link->fromnode);
-    const bool toselect = nodes_to_move.contains(link->tonode);
-
-    if ((fromselect && link->tonode == gnode) || (toselect && link->fromnode == gnode)) {
-      /* remove all links to/from the gnode.
-       * this can remove link information, but there's no general way to preserve it.
-       */
-      nodeRemLink(&ntree, link);
-    }
-    else if (toselect && !fromselect) {
-      /* Remove hidden links to not create unconnected sockets in the interface. */
-      if (nodeLinkIsHidden(link)) {
-        nodeRemLink(&ntree, link);
-        continue;
-      }
-
-      node_group_make_redirect_incoming_link(
-          ntree, ngroup, gnode, input_node, link, reusable_sockets);
-    }
-    else if (fromselect && !toselect) {
-      /* Remove hidden links to not create unconnected sockets in the interface. */
-      if (nodeLinkIsHidden(link)) {
-        nodeRemLink(&ntree, link);
-        continue;
-      }
-
-      /* First check whether the source of this link is already connected to an output.
-       * If yes, reuse that output instead of duplicating it. */
-      bool connected = false;
-      LISTBASE_FOREACH (bNodeLink *, olink, &ngroup->links) {
-        if (olink->fromsock == link->fromsock && olink->tonode == output_node) {
-          bNodeSocket *output_sock = node_group_find_output_socket(gnode,
-                                                                   olink->tosock->identifier);
-          link->fromnode = gnode;
-          link->fromsock = output_sock;
-          connected = true;
-        }
-      }
-
-      if (!connected) {
-        bNodeSocket *link_sock;
-        bNode *link_node;
-        node_socket_skip_reroutes(
-            &ntree.links, link->fromnode, link->fromsock, &link_node, &link_sock);
-        bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(ngroup, link_node, link_sock);
-
-        /* update the group node and interface node sockets,
-         * so the new interface socket can be linked.
-         */
-        node_group_update(&ntree, gnode);
-        node_group_output_update(ngroup, output_node);
-
-        /* create new internal link */
-        bNodeSocket *output_sock = node_group_output_find_socket(output_node, iosock->identifier);
-        nodeAddLink(ngroup, link->fromnode, link->fromsock, output_node, output_sock);
-
-        /* redirect external link */
-        link->fromnode = gnode;
-        link->fromsock = node_group_find_output_socket(gnode, iosock->identifier);
-      }
-    }
+    BKE_ntree_update_tag_node_removed(&ntree);
+    BKE_ntree_update_tag_node_new(&group, node);
   }
+  nodeRebuildIDVector(&ntree);
 
-  /* move internal links */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    const bool fromselect = nodes_to_move.contains(link->fromnode);
-    const bool toselect = nodes_to_move.contains(link->tonode);
-
-    if (fromselect && toselect) {
-      BLI_remlink(&ntree.links, link);
-      BLI_addtail(&ngroup->links, link);
-    }
-  }
+  node_group_update(&ntree, gnode);
+  node_group_input_update(&group, input_node);
+  node_group_output_update(&group, output_node);
 
   /* move nodes in the group to the center */
   for (bNode *node : nodes_to_move) {
@@ -972,55 +945,56 @@ static void node_group_make_insert_selected(const bContext &C,
     }
   }
 
-  /* Expose all unlinked sockets too but only the visible ones. */
-  if (expose_visible) {
-    for (bNode *node : nodes_to_move) {
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        bool skip = false;
-        LISTBASE_FOREACH (bNodeLink *, link, &ngroup->links) {
-          if (link->tosock == sock) {
-            skip = true;
-            break;
-          }
-        }
-        if (sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) {
-          skip = true;
-        }
-        if (skip) {
-          continue;
-        }
+  for (bNodeLink *link : internal_links_to_move) {
+    BLI_remlink(&ntree.links, link);
+    BLI_addtail(&group.links, link);
+    BKE_ntree_update_tag_link_removed(&ntree);
+    BKE_ntree_update_tag_link_added(&group, link);
+  }
 
-        bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(ngroup, node, sock);
+  for (bNodeLink *link : links_to_remove) {
+    nodeRemLink(&ntree, link);
+  }
 
-        node_group_input_update(ngroup, input_node);
+  for (const auto item : input_links.items()) {
+    const char *interface_identifier = item.value.interface_socket->identifier;
+    bNodeSocket *input_socket = node_group_input_find_socket(input_node, interface_identifier);
 
-        /* create new internal link */
-        bNodeSocket *input_sock = node_group_input_find_socket(input_node, iosock->identifier);
-        nodeAddLink(ngroup, input_node, input_sock, node, sock);
-      }
+    for (bNodeLink *link : item.value.links) {
+      /* Move the link into the new group, connected from the input node to the original socket. */
+      BLI_remlink(&ntree.links, link);
+      BLI_addtail(&group.links, link);
+      BKE_ntree_update_tag_link_removed(&ntree);
+      BKE_ntree_update_tag_link_added(&group, link);
+      link->fromnode = input_node;
+      link->fromsock = input_socket;
+    }
 
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-        bool skip = false;
-        LISTBASE_FOREACH (bNodeLink *, link, &ngroup->links) {
-          if (link->fromsock == sock) {
-            skip = true;
-          }
-        }
-        if (sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) {
-          skip = true;
-        }
-        if (skip) {
-          continue;
-        }
+    /* Add a new link outside of the group. */
+    bNodeSocket *group_node_socket = node_group_find_input_socket(gnode, interface_identifier);
+    nodeAddLink(&ntree, item.value.from_node, item.key, gnode, group_node_socket);
+  }
 
-        bNodeSocket *iosock = ntreeAddSocketInterfaceFromSocket(ngroup, node, sock);
+  for (const OutputLinkInfo &info : output_links) {
+    /* Create a new link inside of the group. */
+    const char *io_identifier = info.interface_socket->identifier;
+    bNodeSocket *output_sock = node_group_output_find_socket(output_node, io_identifier);
+    nodeAddLink(&group, info.link->fromnode, info.link->fromsock, output_node, output_sock);
 
-        node_group_output_update(ngroup, output_node);
+    /* Reconnect the link to the group node instead of the node now inside the group. */
+    info.link->fromnode = gnode;
+    info.link->fromsock = node_group_find_output_socket(gnode, io_identifier);
+  }
 
-        /* create new internal link */
-        bNodeSocket *output_sock = node_group_output_find_socket(output_node, iosock->identifier);
-        nodeAddLink(ngroup, node, sock, output_node, output_sock);
-      }
+  for (const NewInternalLinkInfo &info : new_internal_links) {
+    const char *io_identifier = info.interface_socket->identifier;
+    if (info.socket->in_out == SOCK_IN) {
+      bNodeSocket *input_socket = node_group_input_find_socket(input_node, io_identifier);
+      nodeAddLink(&group, input_node, input_socket, info.node, info.socket);
+    }
+    else {
+      bNodeSocket *output_socket = node_group_output_find_socket(output_node, io_identifier);
+      nodeAddLink(&group, info.node, info.socket, output_node, output_socket);
     }
   }
 }
