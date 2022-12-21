@@ -632,6 +632,7 @@ typedef struct bNodeTree {
    */
   bool has_undefined_nodes_or_sockets() const;
   /** Get the active group output node. */
+  bNode *group_output_node();
   const bNode *group_output_node() const;
   /** Get all input nodes of the node group. */
   blender::Span<const bNode *> group_input_nodes() const;
