@@ -2300,7 +2300,8 @@ static void radial_control_set_tex(RadialControl *rc)
                                                ibuf->y,
                                                1,
                                                GPU_R8,
-                                               GPU_TEXTURE_USAGE_SHADER_READ,
+                                               GPU_TEXTURE_USAGE_SHADER_READ |
+                                                   GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
                                                ibuf->rect_float);
 
         GPU_texture_filter_mode(rc->texture, true);
