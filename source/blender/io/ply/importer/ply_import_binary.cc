@@ -80,16 +80,69 @@ void discard_value(std::ifstream &file, const PlyDataTypes type)
 PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header)
 {
   PlyData data;
-
   bool isBigEndian = header->type == PlyFormatType::BINARY_BE;
+
+  for (int i = 0; i < header->elements.size(); i++) {
+    if (header->elements[i].first == "vertex") {
+      // Import vertices
+      load_vertex_data(file, header, &data, i);
+
+    } else if (header->elements[i].first == "edge") {
+      // import edges
+      for (int j = 0; j < header->elements[i].second; j++) {
+        std::pair<int, int> vertex_indices;
+        for (auto [name, type] : header->properties[i]) {
+          if (name == "vertex1") {
+            vertex_indices.first = read<int>(file, isBigEndian);
+          } else if (name == "vertex2") {
+            vertex_indices.second = read<int>(file, isBigEndian);
+          } else {
+            discard_value(file, type);
+          }
+        }
+        data.edges.append(vertex_indices);
+      }
+
+    } else if (header->elements[i].first == "face") {
+
+      // Import faces
+      for (int j = 0; j < header->elements[i].second; j++) {
+        // Assume vertex_index_count_type is uchar.
+        uint8_t count = read<uint8_t>(file, isBigEndian);
+        Vector<uint> vertex_indices;
+
+        // Loop over the amount of vertex indices in this face.
+        for (uint8_t k = 0; k < count; k++) {
+          uint32_t index = read<uint32_t>(file, isBigEndian);
+          vertex_indices.append(index);
+        }
+        data.faces.append(vertex_indices);
+      }
+
+    } else {
+      // Nothing else is supported.
+      for (int j = 0; j < header->elements[i].second; j++) {
+        for (auto [name, type] : header->properties[i]) {
+          discard_value(file, type);
+        }
+      }
+    }
+  }
+
+  return data;
+}
+
+void load_vertex_data(std::ifstream &file, const PlyHeader *header, PlyData* r_data, int index) {
   bool hasNormal = false;
   bool hasColor = false;
+  bool isBigEndian = header->type == PlyFormatType::BINARY_BE;
+
   for (int i = 0; i < header->vertex_count; i++) {
     float3 coord{0};
     float3 normal{0};
     float4 color{1};
 
-    for (auto [name, type] : header->properties) {
+    for (auto [name, type] : header->properties[index]) {
       if (name == "x") {
         coord.x = read<float>(file, isBigEndian);
       }
@@ -128,29 +181,14 @@ PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header)
       }
     }
 
-    data.vertices.append(coord);
+    data->vertices.append(coord);
     if (hasNormal) {
-      data.vertex_normals.append(normal);
+      data->vertex_normals.append(normal);
     }
     if (hasColor) {
-      data.vertex_colors.append(color);
+      data->vertex_colors.append(color);
     }
   }
-
-  for (int i = 0; i < header->face_count; i++) {
-    // Assume vertex_index_count_type is uchar.
-    uint8_t count = read<uint8_t>(file, isBigEndian);
-    Vector<uint> vertex_indices;
-
-    // Loop over the amount of vertex indices in this face.
-    for (uint8_t j = 0; j < count; j++) {
-      uint32_t index = read<uint32_t>(file, isBigEndian);
-      vertex_indices.append(index);
-    }
-    data.faces.append(vertex_indices);
-  }
-
-  return data;
 }
 
 }  // namespace blender::io::ply
