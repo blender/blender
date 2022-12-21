@@ -10,9 +10,8 @@ namespace blender::io::ply {
  * The function that gets called from the importer.
  * @param file The PLY file that was opened.
  * @param header The information in the PLY header.
- * @return The mesh that can be used inside blender.
  */
-Mesh *import_ply_ascii(std::ifstream &file, PlyHeader *header, Mesh *mesh);
+void r_import_ply_ascii(std::ifstream &file, PlyHeader *header, Mesh *mesh);
 
 /**
  * Loads the information from the PLY file in ASCII format to the PlyData datastructure.

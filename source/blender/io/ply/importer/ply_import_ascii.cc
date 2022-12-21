@@ -7,29 +7,28 @@
 
 namespace blender::io::ply {
 
-Mesh *import_ply_ascii(std::ifstream &file, PlyHeader *header, Mesh *mesh)
+void r_import_ply_ascii(std::ifstream &file, PlyHeader *header, Mesh *mesh)
 {
   PlyData data = load_ply_ascii(file, header);
   if (!data.vertices.is_empty()) {
-    return convert_ply_to_mesh(data, mesh);
+    convert_ply_to_mesh(data, mesh);
   }
-  return nullptr;
 }
 
 PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
 {
   PlyData data;
-  // Check if header contains alpha.
+  /* Check if header contains alpha. */
   std::pair<std::string, PlyDataTypes> alpha = {"alpha", PlyDataTypes::UCHAR};
   bool hasAlpha = std::find(header->properties.begin(), header->properties.end(), alpha) !=
                   header->properties.end();
 
-  // Check if header contains colors.
+  /* Check if header contains colors. */
   std::pair<std::string, PlyDataTypes> red = {"red", PlyDataTypes::UCHAR};
   bool hasColor = std::find(header->properties.begin(), header->properties.end(), red) !=
                   header->properties.end();
 
-  // Check if header contains normals.
+  /* Check if header contains normals. */
   std::pair<std::string, PlyDataTypes> normalx = {"nx", PlyDataTypes::FLOAT};
   bool hasNormals = std::find(header->properties.begin(), header->properties.end(), normalx) !=
                     header->properties.end();
@@ -44,7 +43,7 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
   }
 
   if (hasColor) {
-    // x=red, y=green, z=blue
+    /* x=red, y=green, z=blue */
     colorpos = get_color_pos(header);
   }
 
@@ -55,24 +54,24 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
   for (int i = 0; i < header->vertex_count; i++) {
     std::string line;
     safe_getline(file, line);
-    std::vector<std::string> value_arr = explode(line, ' ');
+    std::vector<std::string> value_vec = explode(line, ' ');
 
-    // Vertex coords
+    /* Vertex coords */
     float3 vertex3;
-    vertex3.x = std::stof(value_arr.at(vertexpos.x));
-    vertex3.y = std::stof(value_arr.at(vertexpos.y));
-    vertex3.z = std::stof(value_arr.at(vertexpos.z));
+    vertex3.x = std::stof(value_vec.at(vertexpos.x));
+    vertex3.y = std::stof(value_vec.at(vertexpos.y));
+    vertex3.z = std::stof(value_vec.at(vertexpos.z));
 
     data.vertices.append(vertex3);
 
-    // Vertex colors
+    /* Vertex colors */
     if (hasColor) {
       float4 colors4;
-      colors4.x = std::stof(value_arr.at(colorpos.x)) / 255.0f;
-      colors4.y = std::stof(value_arr.at(colorpos.y)) / 255.0f;
-      colors4.z = std::stof(value_arr.at(colorpos.z)) / 255.0f;
+      colors4.x = std::stof(value_vec.at(colorpos.x)) / 255.0f;
+      colors4.y = std::stof(value_vec.at(colorpos.y)) / 255.0f;
+      colors4.z = std::stof(value_vec.at(colorpos.z)) / 255.0f;
       if (hasAlpha) {
-        colors4.w = std::stof(value_arr.at(alphapos)) / 255.0f;
+        colors4.w = std::stof(value_vec.at(alphapos)) / 255.0f;
       }
       else {
         colors4.w = 1.0f;
@@ -81,12 +80,12 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
       data.vertex_colors.append(colors4);
     }
 
-    // If normals
+    /* If normals */
     if (hasNormals) {
       float3 normals3;
-      vertex3.x = std::stof(value_arr.at(normalpos.x));
-      normals3.y = std::stof(value_arr.at(normalpos.y));
-      normals3.z = std::stof(value_arr.at(normalpos.z));
+      vertex3.x = std::stof(value_vec.at(normalpos.x));
+      normals3.y = std::stof(value_vec.at(normalpos.y));
+      normals3.z = std::stof(value_vec.at(normalpos.z));
 
       data.vertex_normals.append(normals3);
     }
@@ -94,14 +93,27 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
   for (int i = 0; i < header->face_count; i++) {
     std::string line;
     getline(file, line);
-    std::vector<std::string> value_arr = explode(line, ' ');
+    std::vector<std::string> value_vec = explode(line, ' ');
     Vector<uint> vertex_indices;
 
-    for (int j = 1; j <= std::stoi(value_arr.at(0)); j++) {
-      vertex_indices.append(std::stoi(value_arr.at(j)));
+    for (int j = 1; j <= std::stoi(value_vec.at(0)); j++) {
+      vertex_indices.append(std::stoi(value_vec.at(j)));
     }
     data.faces.append(vertex_indices);
   }
+
+  for (int i = 0; i < header->edge_count; i++) {
+    std::string line;
+    getline(file, line);
+    std::vector<std::string> value_vec = explode(line, ' ');
+
+    std::pair<int, int> edge = std::make_pair(stoi(value_vec.at(0)), stoi(value_vec.at(1)));
+    data.edges.append(edge);
+  }
+
+  std::cout << "Edge count: " << data.edges.size() << std::endl;
+  std::cout << "\tFirst: " << data.edges.first().first << std::endl;
+  std::cout << "\tLast: " << data.edges.last().second << std::endl;
 
   return data;
 }
@@ -148,19 +160,19 @@ std::vector<std::string> explode(const std::string_view &str, const char &ch)
   std::string next;
   std::vector<std::string> result;
 
-  // For each character in the string...
+  /* For each character in the string. */
   for (auto c : str) {
-    // If we've hit the terminal character...
+    /* If we've hit the terminal character. */
     if (c == ch) {
-      // If we have some characters accumulated...
+      /* If we have some characters accumulated. */
       if (!next.empty()) {
-        // Add them to the result vector.
+        /* Add them to the result vector. */
         result.push_back(next);
         next.clear();
       }
     }
     else {
-      // Accumulate the next character into the sequence.
+      /* Accumulate the next character into the sequence. */
       next += c;
     }
   }
