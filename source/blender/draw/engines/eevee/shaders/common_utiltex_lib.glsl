@@ -23,8 +23,8 @@ uniform sampler2DArray utilTex;
 #define LTC_DISK_LAYER 3 /* UNUSED */
 
 /* Layers 4 to 20 are for BTDF Lut. */
-const float lut_btdf_layer_first = 4.0;
-const float lut_btdf_layer_count = 16.0;
+#define lut_btdf_layer_first 4.0
+#define lut_btdf_layer_count 16.0
 
 /**
  * Reminder: The 4 noise values are based of 3 uncorrelated blue noises:

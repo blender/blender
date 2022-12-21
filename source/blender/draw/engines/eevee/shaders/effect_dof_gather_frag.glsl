@@ -18,9 +18,9 @@ vec2 outOcclusion;
 #endif
 
 #ifdef DOF_FOREGROUND_PASS
-const bool is_foreground = true;
+#  define is_foreground true
 #else /* DOF_BACKGROUND_PASS */
-const bool is_foreground = false;
+#  define is_foreground false
 #endif
 
 const float unit_ring_radius = 1.0 / float(gather_ring_count);

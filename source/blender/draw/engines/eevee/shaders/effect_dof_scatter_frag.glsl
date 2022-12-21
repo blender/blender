@@ -29,6 +29,7 @@ float bokeh_shape(vec2 center)
 
 void main(void)
 {
+  DEFINE_DOF_QUAD_OFFSETS
   vec4 shapes;
   for (int i = 0; i < 4; i++) {
     shapes[i] = bokeh_shape(spritepos + quad_offsets[i]);

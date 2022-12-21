@@ -11,6 +11,7 @@
 /* NOTE: Do not compare alpha as it is not scattered by the scatter pass. */
 float dof_scatter_neighborhood_rejection(vec3 color)
 {
+  DEFINE_DOF_QUAD_OFFSETS;
   color = min(vec3(scatterColorNeighborMax), color);
 
   float validity = 0.0;
@@ -132,6 +133,7 @@ void main()
 /* Downsample pass done for each mip starting from mip1. */
 void main()
 {
+  DEFINE_DOF_QUAD_OFFSETS
   vec2 input_texel_size = 1.0 / vec2(textureSize(colorBuffer, 0).xy);
   /* Center uv around the 4 pixels of the previous mip. */
   vec2 quad_center = (floor(gl_FragCoord.xy) * 2.0 + 1.0) * input_texel_size;
