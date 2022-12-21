@@ -27,8 +27,8 @@ CCL_NAMESPACE_BEGIN
  * For triangles that are smaller than a texel, this might take too many attempts, so eventually
  * we just give up and don't jitter in that case.
  * This is not a particularly elegant solution, but it's probably the best we can do. */
-ccl_device_inline void bake_jitter_barycentric(float &u,
-                                               float &v,
+ccl_device_inline void bake_jitter_barycentric(ccl_private float &u,
+                                               ccl_private float &v,
                                                float2 rand_filter,
                                                const float dudx,
                                                const float dudy,
