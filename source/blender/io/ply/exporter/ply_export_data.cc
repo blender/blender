@@ -20,6 +20,14 @@ void write_vertices(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData
   buffer->write_to_file();
 }
 
+void write_edges(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData)
+{
+  for (const auto &edge : plyData->edges) {
+    buffer->write_edge(edge.first, edge.second);
+  }
+  buffer->write_to_file();
+}
+
 void write_faces(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData)
 {
   for (const auto &face : plyData->faces) {

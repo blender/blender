@@ -43,6 +43,13 @@ void load_plydata(PlyData &plyData, const bContext *C)
       plyData.vertices.append(vertex.co);
     }
 
+    //Edges
+    for (auto &&edge : mesh->edges())
+    {
+      std::pair<uint32_t, uint32_t> edge_pair = std::make_pair(uint32_t(edge.v1), uint32_t(edge.v2));
+      plyData.edges.append(edge_pair);
+    }
+
     // Faces
     for (auto &&poly : mesh->polys()) {
       auto loopSpan = mesh->loops().slice(poly.loopstart, poly.totloop);

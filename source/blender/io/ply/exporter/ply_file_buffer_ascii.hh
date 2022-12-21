@@ -42,5 +42,10 @@ class FileBufferAscii : public FileBuffer {
     }
     write_newline();
   }
+
+  void write_edge(int first, int second) override
+  {
+    write_fstring("{} {}\n", first, second);
+  }
 };
 }  // namespace blender::io::ply
