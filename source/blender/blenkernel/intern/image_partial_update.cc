@@ -125,7 +125,6 @@ static PartialUpdateRegisterImpl *unwrap(struct PartialUpdateRegister *partial_u
   return static_cast<PartialUpdateRegisterImpl *>(static_cast<void *>(partial_update_register));
 }
 
-using TileNumber = int32_t;
 using ChangesetID = int64_t;
 constexpr ChangesetID UnknownChangesetID = -1;
 

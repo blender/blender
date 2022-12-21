@@ -13,13 +13,16 @@
 
 namespace blender::bke::image {
 
+/** Type to use for UDIM tile numbers (1001). */
+using TileNumber = int32_t;
+
 struct ImageTileWrapper {
   ImageTile *image_tile;
   ImageTileWrapper(ImageTile *image_tile) : image_tile(image_tile)
   {
   }
 
-  int get_tile_number() const
+  TileNumber get_tile_number() const
   {
     return image_tile->tile_number;
   }
@@ -31,13 +34,13 @@ struct ImageTileWrapper {
 
   int get_tile_x_offset() const
   {
-    int tile_number = get_tile_number();
+    TileNumber tile_number = get_tile_number();
     return (tile_number - 1001) % 10;
   }
 
   int get_tile_y_offset() const
   {
-    int tile_number = get_tile_number();
+    TileNumber tile_number = get_tile_number();
     return (tile_number - 1001) / 10;
   }
 };
