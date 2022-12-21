@@ -15,7 +15,7 @@ enum PlyDataTypes { CHAR, UCHAR, SHORT, USHORT, INT, UINT, FLOAT, DOUBLE };
 struct PlyData {
   Vector<float3> vertices;
   Vector<float3> vertex_normals;
-  // value between 0 and 1
+  // Value between 0 and 1.
   Vector<float4> vertex_colors;
   Vector<std::pair<int, int>> edges;
   Vector<float3> edge_colors;
