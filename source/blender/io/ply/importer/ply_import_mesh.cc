@@ -16,29 +16,37 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
     copy_v3_v3(verts[i].co, vert);
   }
 
+  mesh->totloop = int(data.edges.size()) * 2;
   // Add faces and edges to the mesh.
   if (!data.faces.is_empty()) {
     mesh->totpoly = int(data.faces.size());  // Explicit conversion from int64_t to int.
-    mesh->totloop = 0;                       // TODO: Make this more dynamic using data.edges()
     for (int i = 0; i < data.faces.size(); i++) {
       mesh->totloop += data.faces[i].size();
     }
-    CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
-    CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
-    MutableSpan<MPoly> polys = mesh->polys_for_write();
-    MutableSpan<MLoop> loops = mesh->loops_for_write();
+  }
+  CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
 
-    int offset = 0;
-    for (int i = 0; i < mesh->totpoly; i++) {
-      auto size = int(data.faces[i].size());  // Explicit conversion from int64_t to int.
-      polys[i].loopstart = offset;
-      polys[i].totloop = size;
+  CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
 
-      for (int j = 0; j < size; j++) {
-        loops[offset + j].v = data.faces[i][j];
-      }
-      offset += size;
+  // TODO: Check if this works
+  int edge_offset = 0;
+  for (int i = 0; i < data.edges.size(); i++) {
+    loops[edge_offset].v = data.edges[i].first;
+    loops[edge_offset + 1].v = data.edges[i].second;
+    edge_offset += 2;
+  }
+  int offset = data.edges.size();
+  for (int i = 0; i < mesh->totpoly; i++) {
+    auto size = int(data.faces[i].size());  // Explicit conversion from int64_t to int.
+    polys[i].loopstart = offset;
+    polys[i].totloop = size;
+
+    for (int j = 0; j < size; j++) {
+      loops[offset + j].v = data.faces[i][j];
     }
+    offset += size;
   }
 
   // Vertex colors

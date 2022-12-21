@@ -22,14 +22,15 @@ struct PlyData {
   Vector<Vector<uint32_t>> faces;
 };
 
-enum class PlyFormatType { ASCII, BINARY_LE, BINARY_BE };
+enum PlyFormatType { ASCII, BINARY_LE, BINARY_BE };
 
 struct PlyHeader {
   int vertex_count = 0;
   int edge_count = 0;
   int face_count = 0;
   int header_size = 0;
-  std::vector<std::pair<std::string, PlyDataTypes>> properties;
+  Vector<std::pair<std::string, int>> elements; // List of elements in ply file with their count
+  Vector<Vector<std::pair<std::string, PlyDataTypes>>> properties; // List of properties (Name, type) per element
   PlyDataTypes vertex_index_count_type;
   PlyDataTypes vertex_index_type;
   PlyFormatType type;
