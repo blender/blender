@@ -2983,8 +2983,8 @@ static void rna_NodeSocketInterface_init_socket(bNodeTree *ntree,
 
 static void rna_NodeSocketInterface_from_socket(bNodeTree *ntree,
                                                 bNodeSocket *interface_socket,
-                                                bNode *node,
-                                                bNodeSocket *sock)
+                                                const bNode *node,
+                                                const bNodeSocket *sock)
 {
   extern FunctionRNA rna_NodeSocketInterface_from_socket_func;
 
@@ -2997,8 +2997,8 @@ static void rna_NodeSocketInterface_from_socket(bNodeTree *ntree,
   }
 
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, interface_socket, &ptr);
-  RNA_pointer_create((ID *)ntree, &RNA_Node, node, &node_ptr);
-  RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &sock_ptr);
+  RNA_pointer_create((ID *)ntree, &RNA_Node, (bNode *)node, &node_ptr);
+  RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, (bNodeSocket *)sock, &sock_ptr);
   // RNA_struct_find_function(&ptr, "from_socket");
   func = &rna_NodeSocketInterface_from_socket_func;
 

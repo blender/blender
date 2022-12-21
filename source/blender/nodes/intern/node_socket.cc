@@ -595,8 +595,8 @@ static void standard_node_socket_interface_verify_socket(bNodeTree * /*ntree*/,
 
 static void standard_node_socket_interface_from_socket(bNodeTree * /*ntree*/,
                                                        bNodeSocket *stemp,
-                                                       bNode * /*node*/,
-                                                       bNodeSocket *sock)
+                                                       const bNode * /*node*/,
+                                                       const bNodeSocket *sock)
 {
   /* initialize settings */
   stemp->type = stemp->typeinfo->type;

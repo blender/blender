@@ -183,8 +183,8 @@ typedef struct bNodeSocketType {
                                   const char *data_path);
   void (*interface_from_socket)(struct bNodeTree *ntree,
                                 struct bNodeSocket *interface_socket,
-                                struct bNode *node,
-                                struct bNodeSocket *sock);
+                                const struct bNode *node,
+                                const struct bNodeSocket *sock);
 
   /* RNA integration */
   ExtensionRNA ext_socket;
@@ -563,17 +563,17 @@ struct bNodeSocket *ntreeInsertSocketInterface(struct bNodeTree *ntree,
                                                struct bNodeSocket *next_sock,
                                                const char *name);
 struct bNodeSocket *ntreeAddSocketInterfaceFromSocket(struct bNodeTree *ntree,
-                                                      struct bNode *from_node,
-                                                      struct bNodeSocket *from_sock);
+                                                      const struct bNode *from_node,
+                                                      const struct bNodeSocket *from_sock);
 struct bNodeSocket *ntreeAddSocketInterfaceFromSocketWithName(struct bNodeTree *ntree,
-                                                              struct bNode *from_node,
-                                                              struct bNodeSocket *from_sock,
+                                                              const struct bNode *from_node,
+                                                              const struct bNodeSocket *from_sock,
                                                               const char *idname,
                                                               const char *name);
 struct bNodeSocket *ntreeInsertSocketInterfaceFromSocket(struct bNodeTree *ntree,
                                                          struct bNodeSocket *next_sock,
-                                                         struct bNode *from_node,
-                                                         struct bNodeSocket *from_sock);
+                                                         const struct bNode *from_node,
+                                                         const struct bNodeSocket *from_sock);
 void ntreeRemoveSocketInterface(struct bNodeTree *ntree, struct bNodeSocket *sock);
 
 /** \} */
