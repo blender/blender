@@ -12,9 +12,6 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
-#include "bmesh.h"
-#include "bmesh_tools.h"
-
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

@@ -5,21 +5,16 @@
  * \ingroup modifiers
  */
 
-#include "BLI_math.h"
-
 #include "BLT_translation.h"
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
-#include "BKE_deform.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
 #include "BKE_mesh_mirror.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
@@ -29,9 +24,6 @@
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
-
-#include "bmesh.h"
-#include "bmesh_tools.h"
 
 #include "MEM_guardedalloc.h"
 

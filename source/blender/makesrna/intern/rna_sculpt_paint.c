@@ -32,8 +32,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "bmesh.h"
-
 extern const EnumPropertyItem RNA_automasking_flags[];
 
 const EnumPropertyItem rna_enum_particle_edit_hair_brush_items[] = {

@@ -27,6 +27,9 @@
 
 #include "obj_export_mesh.hh"
 
+#include "bmesh.h"
+#include "bmesh_tools.h"
+
 namespace blender::io::obj {
 OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Object *mesh_object)
 {

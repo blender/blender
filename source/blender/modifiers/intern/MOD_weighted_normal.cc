@@ -8,7 +8,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_linklist.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 
 #include "BLT_translation.h"
 
