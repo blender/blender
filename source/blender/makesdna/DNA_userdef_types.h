@@ -828,7 +828,10 @@ typedef struct UserDef {
   /** Seconds to zoom around current frame. */
   float view_frame_seconds;
 
-  char _pad7[6];
+  /** #eGPUBackendType */
+  short gpu_backend;
+
+  char _pad7[4];
 
   /** Private, defaults to 20 for 72 DPI setting. */
   short widget_unit;

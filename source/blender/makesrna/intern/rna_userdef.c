@@ -29,6 +29,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "GPU_platform.h"
+
 #include "UI_interface_icons.h"
 
 #include "rna_internal.h"
@@ -135,6 +137,13 @@ static const EnumPropertyItem rna_enum_userdef_viewport_aa_items[] = {
      0,
      "32 Samples",
      "Scene will be rendered using 32 anti-aliasing samples"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
+    {GPU_BACKEND_OPENGL, "OPENGL", 0, "OpenGL", "Use OpenGL backend"},
+    {GPU_BACKEND_METAL, "METAL", 0, "Metal", "Use Metal backend"},
+    {GPU_BACKEND_VULKAN, "VULKAN", 0, "Vulkan", "Use Vulkan backend"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1029,6 +1038,33 @@ static void rna_UserDef_studiolight_light_ambient_get(PointerRNA *ptr, float *va
 int rna_show_statusbar_vram_editable(struct PointerRNA *UNUSED(ptr), const char **UNUSED(r_info))
 {
   return GPU_mem_stats_supported() ? PROP_EDITABLE : 0;
+}
+
+static const EnumPropertyItem *rna_preference_gpu_backend_itemf(struct bContext *UNUSED(C),
+                                                                PointerRNA *UNUSED(ptr),
+                                                                PropertyRNA *UNUSED(prop),
+                                                                bool *r_free)
+{
+  int totitem = 0;
+  EnumPropertyItem *result = NULL;
+  for (int i = 0; rna_enum_preference_gpu_backend_items[i].identifier != NULL; i++) {
+    const EnumPropertyItem *item = &rna_enum_preference_gpu_backend_items[i];
+#  ifndef WITH_METAL_BACKEND
+    if (item->value == GPU_BACKEND_METAL) {
+      continue;
+    }
+#  endif
+#  ifndef WITH_VULKAN_BACKEND
+    if (item->value == GPU_BACKEND_VULKAN) {
+      continue;
+    }
+#  endif
+    RNA_enum_item_add(&result, &totitem, item);
+  }
+
+  RNA_enum_item_end(&result, &totitem);
+  *r_free = true;
+  return result;
 }
 
 #else
@@ -5603,6 +5639,16 @@ static void rna_def_userdef_system(BlenderRNA *brna)
                            "Enable GPU acceleration for evaluating the last subdivision surface "
                            "modifiers in the stack");
   RNA_def_property_update(prop, 0, "rna_UserDef_subdivision_update");
+
+  /* GPU backend selection */
+  prop = RNA_def_property(srna, "gpu_backend", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "gpu_backend");
+  RNA_def_property_enum_items(prop, rna_enum_preference_gpu_backend_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_preference_gpu_backend_itemf");
+  RNA_def_property_ui_text(
+      prop,
+      "GPU Backend",
+      "GPU backend to use. (Requires restarting Blender for changes to take effect)");
 
   /* Audio */
 
