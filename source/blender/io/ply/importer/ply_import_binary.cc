@@ -181,12 +181,12 @@ void load_vertex_data(std::ifstream &file, const PlyHeader *header, PlyData* r_d
       }
     }
 
-    data->vertices.append(coord);
+    r_data->vertices.append(coord);
     if (hasNormal) {
-      data->vertex_normals.append(normal);
+      r_data->vertex_normals.append(normal);
     }
     if (hasColor) {
-      data->vertex_colors.append(color);
+      r_data->vertex_colors.append(color);
     }
   }
 }
