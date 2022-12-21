@@ -2243,7 +2243,7 @@ compile_OIIO() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=18
+  oiio_magic=19
   _init_oiio
 
   # Force having own builds for the dependencies.
@@ -2323,7 +2323,7 @@ compile_OIIO() {
     cmake_d="$cmake_d -D USE_OPENVDB=OFF"
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
     cmake_d="$cmake_d -D OIIO_BUILD_TESTS=OFF"
-    cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=OFF"
+    cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=ON"
     cmake_d="$cmake_d -D TXT2MAN="
     #cmake_d="$cmake_d -D CMAKE_EXPORT_COMPILE_COMMANDS=ON"
     #cmake_d="$cmake_d -D CMAKE_VERBOSE_MAKEFILE=ON"
