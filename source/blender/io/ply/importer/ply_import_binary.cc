@@ -93,9 +93,9 @@ PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header)
         std::pair<int, int> vertex_indices;
         for (auto [name, type] : header->properties[i]) {
           if (name == "vertex1") {
-            vertex_indices.first = read<int>(file, isBigEndian);
+            vertex_indices.first = int(read<uint8_t>(file, isBigEndian));
           } else if (name == "vertex2") {
-            vertex_indices.second = read<int>(file, isBigEndian);
+            vertex_indices.second = int(read<uint8_t>(file, isBigEndian));
           } else {
             discard_value(file, type);
           }

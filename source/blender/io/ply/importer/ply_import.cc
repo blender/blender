@@ -149,7 +149,7 @@ void importer_main(Main *bmain,
       property.first = words[2];
       property.second = from_string(words[1]);
 
-      if (header.properties.size() < header.elements.size()) {
+      while (header.properties.size() < header.elements.size()) {
         Vector<std::pair<std::string, PlyDataTypes>> temp;
         header.properties.append(temp);
       }
