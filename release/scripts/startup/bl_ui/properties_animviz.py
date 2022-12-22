@@ -18,13 +18,15 @@ class MotionPathButtonsPanel:
 
         mps = avs.motion_path
 
-        # Display Range
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        # Display Range
         col = layout.column(align=True)
         col.prop(mps, "type")
+        range_group = col.column(align=True)
+        range_group.active = mps.type == 'RANGE'
+        range_group.prop(mps, "range", text="Calculation Range")
+
         if mps.type == 'CURRENT_FRAME':
             col = layout.column(align=True)
             col.prop(mps, "frame_before", text="Frame Range Before")
@@ -37,10 +39,6 @@ class MotionPathButtonsPanel:
             start_end_group.prop(mps, "frame_start", text="Frame Range Start")
             start_end_group.prop(mps, "frame_end", text="End")
             col.prop(mps, "frame_step", text="Step")
-
-        # Calculation Range
-        col = layout.column(align=True)
-        col.prop(mps, "range", text="Calculation Range")
 
         if mpath:
             col = layout.column(align=True)
