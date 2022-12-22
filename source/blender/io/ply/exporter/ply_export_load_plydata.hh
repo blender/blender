@@ -16,7 +16,7 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "../intern/ply_data.hh"
+#include "ply_data.hh"
 
 namespace blender::io::ply {
 
