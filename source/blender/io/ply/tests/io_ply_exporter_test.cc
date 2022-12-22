@@ -99,7 +99,8 @@ static std::vector<char> read_temp_file_in_vectorchar(const std::string &file_pa
     auto c = read(infile);
     if (!infile.eof()) {
       res.push_back(c);
-    } else {
+    }
+    else {
       break;
     }
   }

@@ -25,7 +25,6 @@
 #include "DEG_depsgraph_query.h"
 
 #include "ply_data.hh"
-#include "ply_export_load_plydata.hh"
 #include "ply_export.hh"
 #include "ply_export_data.hh"
 #include "ply_export_header.hh"
