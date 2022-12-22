@@ -56,7 +56,9 @@ class MotionPathButtonsPanel:
 
             # Update Selected.
             col = layout.column(align=True)
-            col.operator(f"{op_category}.paths_update", text="Update Path", icon=icon)
+            row = col.row(align=True)
+            row.operator(f"{op_category}.paths_update", text="Update Path", icon=icon)
+            row.operator(f"{op_category}.paths_clear", text="", icon='X').only_selected = True
         else:
             # Calculate.
             col = layout.column(align=True)
@@ -67,7 +69,7 @@ class MotionPathButtonsPanel:
         # Note that 'col' is from inside the preceeding `if` or `else` block.
         row = col.row(align=True)
         row.operator("object.paths_update_visible", text="Update All Paths", icon='WORLD')
-        row.operator(f"{op_category}.paths_clear", text="", icon='X')
+        row.operator(f"{op_category}.paths_clear", text="", icon='X').only_selected = False
 
 
 class MotionPathButtonsPanel_display:
