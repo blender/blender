@@ -1453,7 +1453,7 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear Object Paths";
   ot->idname = "OBJECT_OT_paths_clear";
-  ot->description = "Clear path caches for all objects, hold Shift key for selected objects only";
+  ot->description = "Clear motion paths for all objects, hold Shift key for selected objects only";
 
   /* api callbacks */
   ot->invoke = object_clear_paths_invoke;
@@ -1464,8 +1464,11 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  ot->prop = RNA_def_boolean(
-      ot->srna, "only_selected", false, "Only Selected", "Only clear paths from selected objects");
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "only_selected",
+                             false,
+                             "Only Selected",
+                             "Only clear motion paths of selected objects");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
