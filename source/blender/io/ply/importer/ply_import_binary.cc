@@ -142,9 +142,7 @@ void load_vertex_data(std::ifstream &file, const PlyHeader *header, PlyData* r_d
     float3 normal{0};
     float4 color{1};
 
-    for (std::pair<std::string, PlyDataTypes> prop : header->properties[index]) {
-      std::string name = prop.first;
-      PlyDataTypes type = prop.second;
+    for (auto [name, type] : header->properties[index]) {
       if (name == "x") {
         coord.x = read<float>(file, isBigEndian);
       }
