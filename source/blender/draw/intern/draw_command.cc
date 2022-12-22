@@ -62,6 +62,9 @@ void ResourceBind::execute() const
     case ResourceBind::Type::VertexAsStorageBuf:
       GPU_vertbuf_bind_as_ssbo(is_reference ? *vertex_buf_ref : vertex_buf, slot);
       break;
+    case ResourceBind::Type::IndexAsStorageBuf:
+      GPU_indexbuf_bind_as_ssbo(is_reference ? *index_buf_ref : index_buf, slot);
+      break;
   }
 }
 
@@ -277,6 +280,9 @@ std::string ResourceBind::serialize() const
              std::to_string(slot) + ")";
     case Type::VertexAsStorageBuf:
       return std::string(".bind_vertbuf_as_ssbo") + (is_reference ? "_ref" : "") + "(" +
+             std::to_string(slot) + ")";
+    case Type::IndexAsStorageBuf:
+      return std::string(".bind_indexbuf_as_ssbo") + (is_reference ? "_ref" : "") + "(" +
              std::to_string(slot) + ")";
     default:
       BLI_assert_unreachable();
@@ -513,8 +519,8 @@ std::string StateSet::serialize() const
 std::string StencilSet::serialize() const
 {
   std::stringstream ss;
-  ss << ".stencil_set(write_mask=0b" << std::bitset<8>(write_mask) << ", compare_mask=0b"
-     << std::bitset<8>(compare_mask) << ", reference=0b" << std::bitset<8>(reference);
+  ss << ".stencil_set(write_mask=0b" << std::bitset<8>(write_mask) << ", reference=0b"
+     << std::bitset<8>(reference) << ", compare_mask=0b" << std::bitset<8>(compare_mask) << ")";
   return ss.str();
 }
 
