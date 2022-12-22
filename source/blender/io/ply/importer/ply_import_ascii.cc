@@ -111,10 +111,6 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
     data.edges.append(edge);
   }
 
-  std::cout << "Edge count: " << data.edges.size() << std::endl;
-  std::cout << "\tFirst: " << data.edges.first().first << std::endl;
-  std::cout << "\tLast: " << data.edges.last().second << std::endl;
-
   return data;
 }
 
