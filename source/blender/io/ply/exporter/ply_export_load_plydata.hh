@@ -38,7 +38,7 @@ void load_plydata(PlyData &plyData, const bContext *C)
       continue;
 
     // Vertices
-    auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
+    Mesh* mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
     for (auto &&vertex : mesh->verts()) {
       plyData.vertices.append(vertex.co);
     }

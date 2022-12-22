@@ -49,7 +49,7 @@ void exporter_main(Main *bmain,
                    const PLYExportParams &export_params)
 {
   // Load mesh data into PlyData struct.
-  auto plyData = std::make_unique<PlyData>();
+  std::unique_ptr<PlyData> plyData = std::make_unique<PlyData>();
   load_plydata(*plyData, C);
 
   // Get filebuffer.
