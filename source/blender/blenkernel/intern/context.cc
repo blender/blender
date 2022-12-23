@@ -190,7 +190,7 @@ const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
 {
   for (auto entry = store->entries.rbegin(); entry != store->entries.rend(); ++entry) {
     if (entry->name == name) {
-      if (!type ||(type && RNA_struct_is_a(entry->ptr.type, type))) {
+      if (!type || (type && RNA_struct_is_a(entry->ptr.type, type))) {
         return &entry->ptr;
       }
     }
