@@ -117,11 +117,13 @@ class GreasePencilDisplayPanel:
                 row = layout.row(align=True)
                 row.prop(settings, "show_brush", text="Display Cursor")
 
-            col = layout.column(align=True)
-            col.active = settings.show_brush
-
             if brush.gpencil_tool == 'DRAW':
-                col.prop(gp_settings, "show_lasso", text="Show Fill Color While Drawing")
+                row = layout.row(align=True)
+                row.active = settings.show_brush
+                row.prop(gp_settings, "show_brush_size", text="Show Brush Size")
+                row = layout.row(align=True)
+                row.active = settings.show_brush
+                row.prop(gp_settings, "show_lasso", text="Show Fill Color While Drawing")
 
         elif ob.mode == 'SCULPT_GPENCIL':
             col = layout.column(align=True)

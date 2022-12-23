@@ -2005,6 +2005,12 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
       prop, "Show Lasso", "Do not display fill color while drawing the stroke");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
+  prop = RNA_def_property(srna, "show_brush_size", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_SHOW_DRAW_SIZE);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(prop, "Show Brush Size", "Show the real size of the draw brush");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
   prop = RNA_def_property(srna, "use_occlude_eraser", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_OCCLUDE_ERASER);
   RNA_def_property_ui_text(prop, "Occlude Eraser", "Erase only strokes visible and not occluded");
