@@ -867,7 +867,7 @@ static void remove_invalid_attribute_strings(Mesh &mesh)
         mesh.active_color_attribute);
     if (!meta_data || !(meta_data->domain & ATTR_DOMAIN_MASK_COLOR) ||
         !(meta_data->data_type & CD_MASK_COLOR_ALL)) {
-      MEM_freeN(mesh.active_color_attribute);
+      MEM_SAFE_FREE(mesh.active_color_attribute);
     }
   }
   if (mesh.default_color_attribute) {
@@ -875,7 +875,7 @@ static void remove_invalid_attribute_strings(Mesh &mesh)
         mesh.default_color_attribute);
     if (!meta_data || !(meta_data->domain & ATTR_DOMAIN_MASK_COLOR) ||
         !(meta_data->data_type & CD_MASK_COLOR_ALL)) {
-      MEM_freeN(mesh.default_color_attribute);
+      MEM_SAFE_FREE(mesh.default_color_attribute);
     }
   }
 }
