@@ -14,8 +14,15 @@ namespace blender::io::ply {
 
 void write_vertices(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData)
 {
-  for (const auto &vertex : plyData->vertices) {
-    buffer->write_vertex(vertex.x, vertex.y, vertex.z);
+  for (int i = 0; i < plyData->vertices.size(); i++) {
+    buffer->write_vertex(plyData->vertices[i].x, plyData->vertices[i].y, plyData->vertices[i].z);
+
+    if (plyData->vertex_normals.size() > 0)
+      buffer->write_vertex_normals(plyData->vertex_normals[i].x,
+                                   plyData->vertex_normals[i].y,
+                                   plyData->vertex_normals[i].z);
+
+    buffer->write_vertex_end();
   }
   buffer->write_to_file();
 }

@@ -30,7 +30,17 @@ class FileBufferAscii : public FileBuffer {
 
   void write_vertex(float x, float y, float z) override
   {
-    write_fstring("{} {} {}\n", x, y, z);
+    write_fstring("{} {} {}", x, y, z);
+  }
+
+  void write_vertex_normals(float nx, float ny, float nz) override
+  {
+    write_fstring(" {} {} {}", nx, ny, nz);
+  }
+
+  void write_vertex_end() override
+  {
+    write_fstring("\n");
   }
 
   void write_face(int count, Vector<uint32_t> const &vertex_indices) override

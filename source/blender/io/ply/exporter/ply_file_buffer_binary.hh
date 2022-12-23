@@ -30,16 +30,37 @@ class FileBufferBinary : public FileBuffer {
 
   void write_vertex(float x, float y, float z) override
   {
-
     auto *xbits = reinterpret_cast<char *>(&x);
     auto *ybits = reinterpret_cast<char *>(&y);
     auto *zbits = reinterpret_cast<char *>(&z);
 
-    std::vector<char> data(xbits, xbits + sizeof(float));
+    std::vector<char> data{};
+    data.reserve(12); // resize vector for 3 floats
+    data.insert(data.end(), xbits, xbits + sizeof(float));
     data.insert(data.end(), ybits, ybits + sizeof(float));
     data.insert(data.end(), zbits, zbits + sizeof(float));
 
     write_bytes(data);
+  }
+
+  void write_vertex_normals(float nx, float ny, float nz) override
+  {
+    auto *xbits = reinterpret_cast<char *>(&nx);
+    auto *ybits = reinterpret_cast<char *>(&ny);
+    auto *zbits = reinterpret_cast<char *>(&nz);
+
+    std::vector<char> data{};
+    data.reserve(12); // resize vector for 3 floats
+    data.insert(data.end(), xbits, xbits + sizeof(float));
+    data.insert(data.end(), ybits, ybits + sizeof(float));
+    data.insert(data.end(), zbits, zbits + sizeof(float));
+
+    write_bytes(data);
+  }
+
+  void write_vertex_end() override
+  {
+    // In binary, there is no end to a vertex.
   }
 
   void write_face(int size, Vector<uint32_t> const &vertex_indices) override

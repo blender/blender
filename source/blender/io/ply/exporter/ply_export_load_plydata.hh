@@ -16,6 +16,8 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
+#include "IO_ply.h"
+
 #include "ply_data.hh"
 
 namespace blender::io::ply {
@@ -40,7 +42,7 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     // Vertices
     auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
 
-    if (mesh->totvert = 0)
+    if (mesh->totvert == 0)
       continue;
 
     for (auto &&vertex : mesh->verts()) {
