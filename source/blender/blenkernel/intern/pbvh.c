@@ -3419,16 +3419,6 @@ bool pbvh_has_face_sets(PBVH *pbvh)
   return false;
 }
 
-void pbvh_show_mask_set(PBVH *pbvh, bool show_mask)
-{
-  pbvh->show_mask = show_mask;
-}
-
-void pbvh_show_face_sets_set(PBVH *pbvh, bool show_face_sets)
-{
-  pbvh->show_face_sets = show_face_sets;
-}
-
 void BKE_pbvh_set_frustum_planes(PBVH *pbvh, PBVHFrustumPlanes *planes)
 {
   pbvh->num_planes = planes->num_planes;

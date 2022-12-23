@@ -546,6 +546,8 @@ enum {
   V3D_OVERLAY_STATS = (1 << 11),
   V3D_OVERLAY_FADE_INACTIVE = (1 << 12),
   V3D_OVERLAY_VIEWER_ATTRIBUTE = (1 << 13),
+  V3D_OVERLAY_SCULPT_SHOW_MASK = (1 << 14),
+  V3D_OVERLAY_SCULPT_SHOW_FACE_SETS = (1 << 15),
 };
 
 /** #View3DOverlay.edit_flag */
