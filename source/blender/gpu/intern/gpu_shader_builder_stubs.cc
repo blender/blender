@@ -61,17 +61,17 @@ struct ImBuf *IMB_allocImBuf(unsigned int /*x*/,
 /** \name Stubs of UI_resources.h
  * \{ */
 
-void UI_GetThemeColor4fv(int /*colorid*/, float UNUSED(col[4]))
+void UI_GetThemeColor4fv(int /*colorid*/, float[4] /*col*/)
 {
   BLI_assert_unreachable();
 }
 
-void UI_GetThemeColor3fv(int /*colorid*/, float UNUSED(col[3]))
+void UI_GetThemeColor3fv(int /*colorid*/, float[3] /*col*/)
 {
   BLI_assert_unreachable();
 }
 
-void UI_GetThemeColorShade4fv(int /*colorid*/, int /*offset*/, float UNUSED(col[4]))
+void UI_GetThemeColorShade4fv(int /*colorid*/, int /*offset*/, float[4] /*col*/)
 {
   BLI_assert_unreachable();
 }
@@ -79,20 +79,17 @@ void UI_GetThemeColorShade4fv(int /*colorid*/, int /*offset*/, float UNUSED(col[
 void UI_GetThemeColorShadeAlpha4fv(int /*colorid*/,
                                    int /*coloffset*/,
                                    int /*alphaoffset*/,
-                                   float UNUSED(col[4]))
+                                   float[4] /*col*/)
 {
   BLI_assert_unreachable();
 }
 void UI_GetThemeColorBlendShade4fv(
-    int /*colorid1*/, int /*colorid2*/, float /*fac*/, int /*offset*/, float UNUSED(col[4]))
+    int /*colorid1*/, int /*colorid2*/, float /*fac*/, int /*offset*/, float[4] /*col*/)
 {
   BLI_assert_unreachable();
 }
 
-void UI_GetThemeColorBlend3ubv(int /*colorid1*/,
-                               int /*colorid2*/,
-                               float /*fac*/,
-                               uchar UNUSED(col[3]))
+void UI_GetThemeColorBlend3ubv(int /*colorid1*/, int /*colorid2*/, float /*fac*/, uchar[3] /*col*/)
 {
   BLI_assert_unreachable();
 }
@@ -100,7 +97,7 @@ void UI_GetThemeColorBlend3ubv(int /*colorid1*/,
 void UI_GetThemeColorShadeAlpha4ubv(int /*colorid*/,
                                     int /*coloffset*/,
                                     int /*alphaoffset*/,
-                                    uchar UNUSED(col[4]))
+                                    uchar[4] /*col*/)
 {
   BLI_assert_unreachable();
 }
@@ -130,7 +127,7 @@ bool paint_is_face_hidden(const struct MLoopTri * /*lt*/, const bool * /*hide_po
 
 void BKE_paint_face_set_overlay_color_get(const int /*face_set*/,
                                           const int /*seed*/,
-                                          uchar UNUSED(r_color[4]))
+                                          uchar[4] /*col*/)
 {
   BLI_assert_unreachable();
 }
@@ -152,7 +149,7 @@ bool paint_is_grid_face_hidden(const uint * /*grid_hidden*/,
 void BKE_mesh_calc_poly_normal(const struct MPoly * /*mpoly*/,
                                const struct MLoop * /*loopstart*/,
                                const struct MVert * /*mvarray*/,
-                               float UNUSED(r_no[3]))
+                               float[3] /*col*/)
 {
   BLI_assert_unreachable();
 }
@@ -160,7 +157,7 @@ void BKE_mesh_calc_poly_normal(const struct MPoly * /*mpoly*/,
 void BKE_mesh_looptri_get_real_edges(const struct MEdge * /*edges*/,
                                      const struct MLoop * /*loops*/,
                                      const struct MLoopTri * /*looptri*/,
-                                     int UNUSED(r_edges[3]))
+                                     int[3] /*col*/)
 {
   BLI_assert_unreachable();
 }
@@ -275,7 +272,7 @@ void ntreeFreeLocalTree(struct bNodeTree * /*ntree*/)
 /* -------------------------------------------------------------------- */
 /** \name Stubs of bmesh.h
  * \{ */
-void BM_face_as_array_vert_tri(BMFace * /*f*/, BMVert *UNUSED(r_verts[3]))
+void BM_face_as_array_vert_tri(BMFace * /*f*/, BMVert *[3] /*r_verts*/)
 {
   BLI_assert_unreachable();
 }
