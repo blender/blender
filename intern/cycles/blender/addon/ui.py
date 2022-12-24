@@ -2360,7 +2360,6 @@ def draw_pause(self, context):
 
 def get_panels():
     exclude_panels = {
-        'DATA_PT_area',
         'DATA_PT_camera_dof',
         'DATA_PT_falloff_curve',
         'DATA_PT_light',
