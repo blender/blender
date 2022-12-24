@@ -1736,6 +1736,7 @@ static bool gpencil_brush_cursor_poll(bContext *C)
 static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 {
   Scene *scene = CTX_data_scene(C);
+  ToolSettings *ts = scene->toolsettings;
   Object *ob = CTX_data_active_object(C);
   ARegion *region = CTX_wm_region(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -1800,10 +1801,16 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
         /* Check user setting for cursor size. */
         fixed_radius = ((brush->gpencil_settings->flag & GP_BRUSH_SHOW_DRAW_SIZE) == 0);
 
+        const bool is_vertex_stroke =
+            (GPENCIL_USE_VERTEX_COLOR_STROKE(ts, brush) &&
+             (brush->gpencil_settings->brush_draw_mode != GP_BRUSH_MODE_MATERIAL)) ||
+            (!GPENCIL_USE_VERTEX_COLOR_STROKE(ts, brush) &&
+             (brush->gpencil_settings->brush_draw_mode == GP_BRUSH_MODE_VERTEXCOLOR));
+
         if (fixed_radius) {
           /* Show fixed radius. */
           radius = 2.0f;
-          copy_v3_v3(color, gp_style->stroke_rgba);
+          copy_v3_v3(color, is_vertex_stroke ? brush->rgb : gp_style->stroke_rgba);
         }
         else {
           /* Show brush size. */
@@ -1841,7 +1848,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
             radius = (1 / distance) * 2.0f * gpd->pixfactor * (brush_size / 64);
           }
 
-          copy_v3_v3(color, brush->rgb);
+          copy_v3_v3(color, is_vertex_stroke ? brush->rgb : gp_style->stroke_rgba);
         }
       }
       else {
