@@ -744,13 +744,12 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
   const eAttrDomain domain = eAttrDomain(RNA_enum_get(op->ptr, "domain"));
 
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
-    if (curves_id->selection_domain == domain && (curves_id->flag & CV_SCULPT_SELECTION_ENABLED)) {
+    if (curves_id->selection_domain == domain) {
       continue;
     }
 
     const eAttrDomain old_domain = eAttrDomain(curves_id->selection_domain);
     curves_id->selection_domain = domain;
-    curves_id->flag |= CV_SCULPT_SELECTION_ENABLED;
 
     CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
@@ -800,38 +799,6 @@ static void CURVES_OT_set_selection_domain(wmOperatorType *ot)
   ot->prop = prop = RNA_def_enum(
       ot->srna, "domain", rna_enum_attribute_curves_domain_items, 0, "Domain", "");
   RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
-}
-
-namespace disable_selection {
-
-static int curves_disable_selection_exec(bContext *C, wmOperator * /*op*/)
-{
-  for (Curves *curves_id : get_unique_editable_curves(*C)) {
-    curves_id->flag &= ~CV_SCULPT_SELECTION_ENABLED;
-
-    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
-     * attribute for now. */
-    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
-  }
-
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, nullptr);
-
-  return OPERATOR_FINISHED;
-}
-
-}  // namespace disable_selection
-
-static void CURVES_OT_disable_selection(wmOperatorType *ot)
-{
-  ot->name = "Disable Selection";
-  ot->idname = __func__;
-  ot->description = "Disable the drawing of influence of selection in sculpt mode";
-
-  ot->exec = disable_selection::curves_disable_selection_exec;
-  ot->poll = editable_curves_poll;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static bool varray_contains_nonzero(const VArray<float> &data)
@@ -1035,6 +1002,5 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_snap_curves_to_surface);
   WM_operatortype_append(CURVES_OT_set_selection_domain);
   WM_operatortype_append(SCULPT_CURVES_OT_select_all);
-  WM_operatortype_append(CURVES_OT_disable_selection);
   WM_operatortype_append(CURVES_OT_surface_set);
 }

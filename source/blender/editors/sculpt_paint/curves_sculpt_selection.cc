@@ -26,9 +26,6 @@ static VArray<float> get_curves_selection(const CurvesGeometry &curves, const eA
 
 VArray<float> get_curves_selection(const Curves &curves_id)
 {
-  if (!(curves_id.flag & CV_SCULPT_SELECTION_ENABLED)) {
-    return VArray<float>::ForSingle(1.0f, CurvesGeometry::wrap(curves_id.geometry).curves_num());
-  }
   return get_curves_selection(CurvesGeometry::wrap(curves_id.geometry),
                               eAttrDomain(curves_id.selection_domain));
 }
@@ -49,9 +46,6 @@ static VArray<float> get_point_selection(const CurvesGeometry &curves, const eAt
 
 VArray<float> get_point_selection(const Curves &curves_id)
 {
-  if (!(curves_id.flag & CV_SCULPT_SELECTION_ENABLED)) {
-    return VArray<float>::ForSingle(1.0f, CurvesGeometry::wrap(curves_id.geometry).points_num());
-  }
   return get_point_selection(CurvesGeometry::wrap(curves_id.geometry),
                              eAttrDomain(curves_id.selection_domain));
 }
@@ -97,9 +91,6 @@ static IndexMask retrieve_selected_curves(const CurvesGeometry &curves,
 
 IndexMask retrieve_selected_curves(const Curves &curves_id, Vector<int64_t> &r_indices)
 {
-  if (!(curves_id.flag & CV_SCULPT_SELECTION_ENABLED)) {
-    return CurvesGeometry::wrap(curves_id.geometry).curves_range();
-  }
   return retrieve_selected_curves(CurvesGeometry::wrap(curves_id.geometry),
                                   eAttrDomain(curves_id.selection_domain),
                                   r_indices);
@@ -142,9 +133,6 @@ static IndexMask retrieve_selected_points(const CurvesGeometry &curves,
 
 IndexMask retrieve_selected_points(const Curves &curves_id, Vector<int64_t> &r_indices)
 {
-  if (!(curves_id.flag & CV_SCULPT_SELECTION_ENABLED)) {
-    return CurvesGeometry::wrap(curves_id.geometry).points_range();
-  }
   return retrieve_selected_points(CurvesGeometry::wrap(curves_id.geometry),
                                   eAttrDomain(curves_id.selection_domain),
                                   r_indices);

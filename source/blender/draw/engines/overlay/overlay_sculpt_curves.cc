@@ -31,10 +31,6 @@ void OVERLAY_sculpt_curves_cache_init(OVERLAY_Data *vedata)
 
 static bool everything_selected(const Curves &curves_id)
 {
-  if (!(curves_id.flag & CV_SCULPT_SELECTION_ENABLED)) {
-    /* When the selection is disabled, conceptually everything is selected. */
-    return true;
-  }
   const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
       curves_id.geometry);
   blender::VArray<float> selection;

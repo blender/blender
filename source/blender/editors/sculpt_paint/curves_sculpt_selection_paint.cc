@@ -81,7 +81,6 @@ struct SelectionPaintOperationExecutor {
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
-    curves_id_->flag |= CV_SCULPT_SELECTION_ENABLED;
     if (curves_->curves_num() == 0) {
       return;
     }

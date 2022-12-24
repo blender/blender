@@ -3846,5 +3846,9 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+    const int CV_SCULPT_SELECTION_ENABLED = (1 << 1);
+    LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
+      curves_id->flag &= ~CV_SCULPT_SELECTION_ENABLED;
+    }
   }
 }

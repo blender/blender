@@ -721,18 +721,9 @@ class VIEW3D_HT_header(Header):
                 curves = obj.data
 
                 row = layout.row(align=True)
-
-                # Combine the "use selection" toggle with the "set domain" operators
-                # to allow turning selection off directly.
                 domain = curves.selection_domain
-                if domain == 'POINT':
-                    row.prop(curves, "use_sculpt_selection", text="", icon='CURVE_BEZCIRCLE')
-                else:
-                    row.operator("curves.set_selection_domain", text="", icon='CURVE_BEZCIRCLE').domain = 'POINT'
-                if domain == 'CURVE':
-                    row.prop(curves, "use_sculpt_selection", text="", icon='CURVE_PATH')
-                else:
-                    row.operator("curves.set_selection_domain", text="", icon='CURVE_PATH').domain = 'CURVE'
+                row.operator("curves.set_selection_domain", text="", icon='CURVE_BEZCIRCLE', depress=(domain == 'POINT')).domain = 'POINT'
+                row.operator("curves.set_selection_domain", text="", icon='CURVE_PATH', depress=(domain == 'CURVE')).domain = 'CURVE'
 
         # Grease Pencil
         if obj and obj.type == 'GPENCIL' and context.gpencil_data:
