@@ -1168,7 +1168,7 @@ static Mesh *cloth_make_rest_mesh(ClothModifierData *clmd, Mesh *mesh)
 {
   Mesh *new_mesh = BKE_mesh_copy_for_eval(mesh, false);
   ClothVertex *verts = clmd->clothObject->verts;
-  MVert *mvert = BKE_mesh_verts_for_write(mesh);
+  MVert *mvert = BKE_mesh_verts_for_write(new_mesh);
 
   /* vertex count is already ensured to match */
   for (uint i = 0; i < mesh->totvert; i++, verts++) {
