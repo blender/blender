@@ -413,25 +413,14 @@ static int rna_property_override_diff(Main *bmain,
     return 1;
   }
 
-  bool override_changed = false;
   eRNAOverrideMatch diff_flags = flags;
   if (!RNA_property_overridable_get(&prop_a->ptr, prop_a->rawprop) ||
       (!ELEM(RNA_property_type(prop_a->rawprop), PROP_POINTER, PROP_COLLECTION) &&
        !RNA_property_editable_flag(&prop_a->ptr, prop_a->rawprop))) {
     diff_flags &= ~RNA_OVERRIDE_COMPARE_CREATE;
   }
-  const int diff = override_diff(bmain,
-                                 prop_a,
-                                 prop_b,
-                                 mode,
-                                 override,
-                                 rna_path,
-                                 rna_path_len,
-                                 diff_flags,
-                                 &override_changed);
-  if (override_changed && r_report_flags) {
-    *r_report_flags |= RNA_OVERRIDE_MATCH_RESULT_CREATED;
-  }
+  const int diff = override_diff(
+      bmain, prop_a, prop_b, mode, override, rna_path, rna_path_len, diff_flags, r_report_flags);
 
   return diff;
 }
