@@ -9,8 +9,8 @@ DEFINE_string(test_assets_dir, "", "lib/tests directory from SVN containing the 
 DEFINE_string(test_release_dir, "", "bin/{blender version} directory of the current build.");
 
 namespace blender::tests {
-
-const std::string &flags_test_asset_dir()
+// better to usecontexpr, cause constexp better use for string literals that are known at compile time. This allows the compiler to perform optimizations and can improve the performance of the code.
+constexpr std::string &flags_test_asset_dir()
 {
   if (FLAGS_test_assets_dir.empty()) {
     ADD_FAILURE()
@@ -19,7 +19,7 @@ const std::string &flags_test_asset_dir()
   return FLAGS_test_assets_dir;
 }
 
-const std::string &flags_test_release_dir()
+constexpr std::string &flags_test_release_dir()
 {
   if (FLAGS_test_release_dir.empty()) {
     ADD_FAILURE()
