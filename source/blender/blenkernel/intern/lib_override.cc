@@ -3297,7 +3297,10 @@ bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
   return true;
 }
 
-void BKE_lib_override_library_operations_create(Main *bmain, ID *local, int *r_report_flags)
+static void lib_override_library_operations_create(Main *bmain,
+                                                   ID *local,
+                                                   const eRNAOverrideMatch override_match_flags,
+                                                   eRNAOverrideMatchResult *r_report_flags)
 {
   BLI_assert(!ID_IS_LINKED(local));
   BLI_assert(local->override_library != nullptr);
@@ -3330,18 +3333,23 @@ void BKE_lib_override_library_operations_create(Main *bmain, ID *local, int *r_r
     RNA_id_pointer_create(local->override_library->reference, &rnaptr_reference);
 
     eRNAOverrideMatchResult local_report_flags = RNA_OVERRIDE_MATCH_RESULT_INIT;
-    RNA_struct_override_matches(
-        bmain,
-        &rnaptr_local,
-        &rnaptr_reference,
-        nullptr,
-        0,
-        local->override_library,
-        (eRNAOverrideMatch)(RNA_OVERRIDE_COMPARE_CREATE | RNA_OVERRIDE_COMPARE_RESTORE),
-        &local_report_flags);
+    RNA_struct_override_matches(bmain,
+                                &rnaptr_local,
+                                &rnaptr_reference,
+                                nullptr,
+                                0,
+                                local->override_library,
+                                override_match_flags,
+                                &local_report_flags);
 
     if (local_report_flags & RNA_OVERRIDE_MATCH_RESULT_RESTORED) {
       CLOG_INFO(&LOG, 2, "We did restore some properties of %s from its reference", local->name);
+    }
+    if (local_report_flags & RNA_OVERRIDE_MATCH_RESULT_RESTORE_TAGGED) {
+      CLOG_INFO(&LOG,
+                2,
+                "We did tag some properties of %s for restoration from its reference",
+                local->name);
     }
     if (local_report_flags & RNA_OVERRIDE_MATCH_RESULT_CREATED) {
       CLOG_INFO(&LOG, 2, "We did generate library override rules for %s", local->name);
@@ -3351,8 +3359,48 @@ void BKE_lib_override_library_operations_create(Main *bmain, ID *local, int *r_r
     }
 
     if (r_report_flags != nullptr) {
-      *r_report_flags |= local_report_flags;
+      *r_report_flags = static_cast<eRNAOverrideMatchResult>(*r_report_flags | local_report_flags);
     }
+  }
+}
+void BKE_lib_override_library_operations_create(Main *bmain, ID *local, int *r_report_flags)
+{
+  lib_override_library_operations_create(
+      bmain,
+      local,
+      static_cast<eRNAOverrideMatch>(RNA_OVERRIDE_COMPARE_CREATE | RNA_OVERRIDE_COMPARE_RESTORE),
+      reinterpret_cast<eRNAOverrideMatchResult *>(r_report_flags));
+}
+
+void BKE_lib_override_library_operations_restore(Main *bmain, ID *local, int *r_report_flags)
+{
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(local) || (local->override_library->runtime->tag &
+                                              IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RESTORE) == 0) {
+    return;
+  }
+
+  PointerRNA rnaptr_src, rnaptr_dst;
+  RNA_id_pointer_create(local, &rnaptr_dst);
+  RNA_id_pointer_create(local->override_library->reference, &rnaptr_src);
+  RNA_struct_override_apply(
+      bmain,
+      &rnaptr_dst,
+      &rnaptr_src,
+      nullptr,
+      local->override_library,
+      static_cast<eRNAOverrideApplyFlag>(RNA_OVERRIDE_APPLY_FLAG_SKIP_RESYNC_CHECK |
+                                         RNA_OVERRIDE_APPLY_FLAG_RESTORE_ONLY));
+
+  LISTBASE_FOREACH_MUTABLE (
+      IDOverrideLibraryProperty *, op, &local->override_library->properties) {
+    if (op->tag & IDOVERRIDE_LIBRARY_PROPERTY_TAG_NEEDS_RETORE) {
+      BKE_lib_override_library_property_delete(local->override_library, op);
+    }
+  }
+  local->override_library->runtime->tag &= ~IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RESTORE;
+
+  if (r_report_flags != nullptr) {
+    *r_report_flags |= RNA_OVERRIDE_MATCH_RESULT_RESTORED;
   }
 }
 
@@ -3368,8 +3416,12 @@ static void lib_override_library_operations_create_cb(TaskPool *__restrict pool,
   ID *id = static_cast<ID *>(taskdata);
 
   eRNAOverrideMatchResult report_flags = RNA_OVERRIDE_MATCH_RESULT_INIT;
-  BKE_lib_override_library_operations_create(
-      create_data->bmain, id, reinterpret_cast<int *>(&report_flags));
+  lib_override_library_operations_create(
+      create_data->bmain,
+      id,
+      static_cast<eRNAOverrideMatch>(RNA_OVERRIDE_COMPARE_CREATE |
+                                     RNA_OVERRIDE_COMPARE_TAG_FOR_RESTORE),
+      &report_flags);
   atomic_fetch_and_or_uint32(reinterpret_cast<uint32_t *>(&create_data->report_flags),
                              report_flags);
 }
@@ -3443,6 +3495,13 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
 
   BLI_task_pool_free(task_pool);
 
+  if (create_pool_data.report_flags & RNA_OVERRIDE_MATCH_RESULT_RESTORE_TAGGED) {
+    BKE_lib_override_library_main_operations_restore(
+        bmain, reinterpret_cast<int *>(&create_pool_data.report_flags));
+    create_pool_data.report_flags = static_cast<eRNAOverrideMatchResult>(
+        (create_pool_data.report_flags & ~RNA_OVERRIDE_MATCH_RESULT_RESTORE_TAGGED));
+  }
+
   if (r_report_flags != nullptr) {
     *r_report_flags |= create_pool_data.report_flags;
   }
@@ -3454,6 +3513,28 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
 #ifdef DEBUG_OVERRIDE_TIMEIT
   TIMEIT_END_AVERAGED(BKE_lib_override_library_main_operations_create);
 #endif
+}
+
+void BKE_lib_override_library_main_operations_restore(Main *bmain, int *r_report_flags)
+{
+  ID *id;
+
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (!(!ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
+          (id->override_library->runtime->tag & IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RESTORE) !=
+              0)) {
+      continue;
+    }
+
+    /* Only restore overrides if we do have the real reference data available, and not some empty
+     * 'placeholder' for missing data (broken links). */
+    if (id->override_library->reference->tag & LIB_TAG_MISSING) {
+      continue;
+    }
+
+    BKE_lib_override_library_operations_restore(bmain, id, r_report_flags);
+  }
+  FOREACH_MAIN_ID_END;
 }
 
 static bool lib_override_library_id_reset_do(Main *bmain,

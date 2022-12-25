@@ -274,6 +274,9 @@ typedef struct IDOverrideLibraryProperty {
 enum {
   /** This override property (operation) is unused and should be removed by cleanup process. */
   IDOVERRIDE_LIBRARY_TAG_UNUSED = 1 << 0,
+
+  /** This override property is forbidden and should be restored to its linked reference value. */
+  IDOVERRIDE_LIBRARY_PROPERTY_TAG_NEEDS_RETORE = 1 << 1,
 };
 
 #
@@ -287,6 +290,12 @@ typedef struct IDOverrideLibraryRuntime {
 enum {
   /** This override needs to be reloaded. */
   IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RELOAD = 1 << 0,
+
+  /**
+   * This override contains properties with forbidden changes, which should be restored to their
+   * linked reference value.
+   */
+  IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RESTORE = 1 << 1,
 };
 
 /* Main container for all overriding data info of a data-block. */
