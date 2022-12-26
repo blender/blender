@@ -10,8 +10,9 @@ Only keyword arguments can be used to pass operator properties.
 Operators don't have return values as you might expect,
 instead they return a set() which is made up of:
 ``{'RUNNING_MODAL', 'CANCELLED', 'FINISHED', 'PASS_THROUGH'}``.
-Common return values are ``{'FINISHED'}`` and ``{'CANCELLED'}``.
-
+Common return values are ``{'FINISHED'}`` and ``{'CANCELLED'}``, the latter
+meaning that the operator execution was aborted without making any changes or
+saving an undo history entry.
 
 Calling an operator in the wrong context will raise a ``RuntimeError``,
 there is a poll() method to avoid this problem.
