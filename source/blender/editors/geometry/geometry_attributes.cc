@@ -599,15 +599,22 @@ static bool geometry_color_attribute_convert_poll(bContext *C)
     return false;
   }
 
+  if (CTX_data_edit_object(C) != nullptr) {
+    CTX_wm_operator_poll_msg_set(C, "Operation is not allowed in edit mode");
+    return false;
+  }
+
   Object *ob = ED_object_context(C);
   ID *id = static_cast<ID *>(ob->data);
   if (GS(id->name) != ID_ME) {
     return false;
   }
+
   CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
   if (layer == nullptr) {
     return false;
   }
+
   return true;
 }
 
