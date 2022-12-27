@@ -795,6 +795,9 @@ typedef struct ExpandCache {
    * after finishing the operation. */
   bool reposition_pivot;
 
+  /* If nothing is masked set mask of every vertex to 0. */
+  bool auto_mask;
+
   /* Color target data type related data. */
   float fill_color[4];
   short blend_mode;
