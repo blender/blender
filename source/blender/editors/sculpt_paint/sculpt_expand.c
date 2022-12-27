@@ -2383,5 +2383,5 @@ void SCULPT_OT_expand(wmOperatorType *ot)
                              "use_auto_mask",
                              false,
                              "Auto Create",
-                             "Fill in mask if nothing is already masked.");
+                             "Fill in mask if nothing is already masked");
 }
