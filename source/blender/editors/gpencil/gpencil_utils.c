@@ -1801,7 +1801,6 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
   float color[3] = {1.0f, 1.0f, 1.0f};
   float darkcolor[3];
   float radius = 3.0f;
-  bool fixed_radius = true;
 
   const int mval_i[2] = {x, y};
   /* Check if cursor is in drawing region and has valid data-block. */
@@ -1848,32 +1847,22 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
           ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
           (brush->gpencil_tool == GPAINT_TOOL_DRAW)) {
 
-        /* Check user setting for cursor size. */
-        fixed_radius = ((brush->gpencil_settings->flag & GP_BRUSH_SHOW_DRAW_SIZE) == 0);
-
         const bool is_vertex_stroke =
             (GPENCIL_USE_VERTEX_COLOR_STROKE(ts, brush) &&
              (brush->gpencil_settings->brush_draw_mode != GP_BRUSH_MODE_MATERIAL)) ||
             (!GPENCIL_USE_VERTEX_COLOR_STROKE(ts, brush) &&
              (brush->gpencil_settings->brush_draw_mode == GP_BRUSH_MODE_VERTEXCOLOR));
 
-        if (fixed_radius) {
-          /* Show fixed radius. */
-          radius = 2.0f;
-          copy_v3_v3(color, is_vertex_stroke ? brush->rgb : gp_style->stroke_rgba);
+        /* Strokes in screen space or world space? */
+        if ((gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS) != 0) {
+          /* In screen space the cursor radius matches the brush size. */
+          radius = (float)brush->size * 0.5f;
         }
         else {
-          /* Strokes in screen space or world space? */
-          if ((gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS) != 0) {
-            /* In screen space the cursor radius matches the brush size. */
-            radius = (float)brush->size * 0.5f;
-          }
-          else {
-            radius = ED_gpencil_cursor_radius(C, x, y);
-          }
-
-          copy_v3_v3(color, is_vertex_stroke ? brush->rgb : gp_style->stroke_rgba);
+          radius = ED_gpencil_cursor_radius(C, x, y);
         }
+
+        copy_v3_v3(color, is_vertex_stroke ? brush->rgb : gp_style->stroke_rgba);
       }
       else {
         /* Only Tint tool must show big cursor. */
@@ -1953,15 +1942,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
 
   /* Inner Ring: Color from UI panel */
   immUniformColor4f(color[0], color[1], color[2], 0.8f);
-  if ((gp_style) && GPENCIL_PAINT_MODE(gpd) && (fixed_radius) &&
-      ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
-      ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
-      (brush->gpencil_tool == GPAINT_TOOL_DRAW)) {
-    imm_draw_circle_fill_2d(pos, x, y, radius, 40);
-  }
-  else {
-    imm_draw_circle_wire_2d(pos, x, y, radius, 40);
-  }
+  imm_draw_circle_wire_2d(pos, x, y, radius, 40);
 
   /* Outer Ring: Dark color for contrast on light backgrounds (e.g. gray on white) */
   mul_v3_v3fl(darkcolor, color, 0.40f);
