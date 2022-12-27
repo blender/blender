@@ -2908,8 +2908,15 @@ static void calc_brush_local_mat(const MTex *mtex, Object *ob, float local_mat[4
   copy_v3_v3(mat[3], cache->location);
 
   /* Scale by brush radius. */
+  float radius = cache->radius;
+
+  /* Square tips should scale by square root of 2. */
+  if (sculpt_tool_has_cube_tip(cache->brush->sculpt_tool)) {
+    radius += (radius * M_SQRT2 - radius) * (1.0f - cache->brush->tip_roundness);
+  }
+
   normalize_m4(mat);
-  scale_m4_fl(scale, cache->radius);
+  scale_m4_fl(scale, radius);
   mul_m4_m4m4(tmat, mat, scale);
 
   /* Return inverse (for converting from model-space coords to local area coords). */
