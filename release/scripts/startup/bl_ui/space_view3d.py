@@ -99,12 +99,13 @@ class VIEW3D_HT_tool_header(Header):
         elif tool_mode == 'PAINT_GPENCIL':
             if is_valid_context:
                 brush = context.tool_settings.gpencil_paint.brush
-                if brush and brush.gpencil_tool != 'ERASE':
-                    if brush.gpencil_tool != 'TINT':
-                        layout.popover("VIEW3D_PT_tools_grease_pencil_brush_advanced")
+                if brush:
+                    if brush.gpencil_tool != 'ERASE':
+                        if brush.gpencil_tool != 'TINT':
+                            layout.popover("VIEW3D_PT_tools_grease_pencil_brush_advanced")
 
-                    if brush.gpencil_tool not in {'FILL', 'TINT'}:
-                        layout.popover("VIEW3D_PT_tools_grease_pencil_brush_stroke")
+                        if brush.gpencil_tool not in {'FILL', 'TINT'}:
+                            layout.popover("VIEW3D_PT_tools_grease_pencil_brush_stroke")
 
                     layout.popover("VIEW3D_PT_tools_grease_pencil_paint_appearance")
         elif tool_mode == 'SCULPT_GPENCIL':
