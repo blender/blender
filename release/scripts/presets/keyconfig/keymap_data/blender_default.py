@@ -5049,20 +5049,31 @@ def km_sculpt(params):
          {"properties": [("mode", 'SMOOTH')]}),
         # Expand
         ("sculpt.expand", {"type": 'A', "value": 'PRESS', "shift": True},
-         {"properties": [("target", "MASK"), ("falloff_type", "GEODESIC"), ("invert", True)]}),
+         {"properties": [
+            ("target", "MASK"),
+            ("falloff_type", "GEODESIC"),
+            ("invert", True),
+            ("use_auto_mask", True),
+            ("use_mask_preserve" , True)]}),
         ("sculpt.expand", {"type": 'A', "value": 'PRESS', "shift": True, "alt": True},
-         {"properties": [("target", "MASK"), ("falloff_type", "NORMALS"), ("invert", False)]}),
+         {"properties": [
+            ("target", "MASK"),
+            ("falloff_type", "NORMALS"),
+            ("invert", False),
+            ("use_mask_preserve" , True)]}),
         ("sculpt.expand", {"type": 'W', "value": 'PRESS', "shift": True},
          {"properties": [
              ("target", "FACE_SETS"),
              ("falloff_type", "GEODESIC"),
              ("invert", False),
+             ("use_mask_preserve" , False),
              ("use_modify_active", False)]}),
         ("sculpt.expand", {"type": 'W', "value": 'PRESS', "shift": True, "alt": True},
          {"properties": [
              ("target", "FACE_SETS"),
              ("falloff_type", "BOUNDARY_FACE_SET"),
              ("invert", False),
+             ("use_mask_preserve" , False),
              ("use_modify_active", True),
          ]}),
         # Partial Visibility Show/hide
