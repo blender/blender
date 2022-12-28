@@ -572,6 +572,7 @@ static void export_endjob(void *customdata)
   MEM_freeN(data->params.default_prim_path);
   MEM_freeN(data->params.root_prim_path);
   MEM_freeN(data->params.material_prim_path);
+  MEM_freeN(data->params.default_prim_custom_kind);
 
   if (data->was_canceled && BLI_exists(data->filepath)) {
     BLI_delete(data->filepath, false, false);
