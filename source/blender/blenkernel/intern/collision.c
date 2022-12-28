@@ -1559,6 +1559,7 @@ int cloth_bvh_collision(
   BVHTreeOverlap **overlap_obj = NULL;
   uint coll_count_self = 0;
   BVHTreeOverlap *overlap_self = NULL;
+  bool bvh_updated = false;
 
   if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ) || cloth_bvh == NULL) {
     return 0;
@@ -1569,6 +1570,7 @@ int cloth_bvh_collision(
 
   if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
     bvhtree_update_from_cloth(clmd, false, false);
+    bvh_updated = true;
 
     /* Enable self collision if this is a hair sim */
     const bool is_hair = (clmd->hairdata != NULL);
@@ -1605,7 +1607,9 @@ int cloth_bvh_collision(
   }
 
   if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF) {
-    bvhtree_update_from_cloth(clmd, false, true);
+    if (cloth->bvhselftree != cloth->bvhtree || !bvh_updated) {
+      bvhtree_update_from_cloth(clmd, false, true);
+    }
 
     overlap_self = BLI_bvhtree_overlap_self(
         cloth->bvhselftree, &coll_count_self, cloth_bvh_self_overlap_cb, clmd);

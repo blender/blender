@@ -461,7 +461,7 @@ void cloth_free_modifier(ClothModifierData *clmd)
       BLI_bvhtree_free(cloth->bvhtree);
     }
 
-    if (cloth->bvhselftree) {
+    if (cloth->bvhselftree && cloth->bvhselftree != cloth->bvhtree) {
       BLI_bvhtree_free(cloth->bvhselftree);
     }
 
@@ -538,7 +538,7 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
       BLI_bvhtree_free(cloth->bvhtree);
     }
 
-    if (cloth->bvhselftree) {
+    if (cloth->bvhselftree && cloth->bvhselftree != cloth->bvhtree) {
       BLI_bvhtree_free(cloth->bvhselftree);
     }
 
@@ -820,7 +820,14 @@ static bool cloth_from_object(
   }
 
   clmd->clothObject->bvhtree = bvhtree_build_from_cloth(clmd, clmd->coll_parms->epsilon);
-  clmd->clothObject->bvhselftree = bvhtree_build_from_cloth(clmd, clmd->coll_parms->selfepsilon);
+
+  if (compare_ff(clmd->coll_parms->selfepsilon, clmd->coll_parms->epsilon, 1e-6f)) {
+    /* Share the BVH tree if the epsilon is the same. */
+    clmd->clothObject->bvhselftree = clmd->clothObject->bvhtree;
+  }
+  else {
+    clmd->clothObject->bvhselftree = bvhtree_build_from_cloth(clmd, clmd->coll_parms->selfepsilon);
+  }
 
   return true;
 }
