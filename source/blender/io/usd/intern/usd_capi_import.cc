@@ -284,7 +284,24 @@ struct ImportJobData {
   bool was_canceled;
   bool import_ok;
   timeit::TimePoint start_time;
+
+  wmJob *wm_job;
 };
+
+static void main_thread_lock_acquire(ImportJobData *data)
+{
+  if (data->wm_job) {
+    WM_job_main_thread_lock_acquire(data->wm_job);
+  }
+}
+
+static void main_thread_lock_release(ImportJobData *data)
+{
+  if (data->wm_job) {
+    WM_job_main_thread_lock_release(data->wm_job);
+  }
+}
+
 
 static CacheFile *create_cache_file(const ImportJobData *data)
 {
@@ -505,6 +522,17 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
     }
   }
 
+  *data->do_update = true;
+  *data->progress = 0.5f;
+
+  /* Reading materials may trigger adding event notifiers, which
+   * isn't thread safe when the importer is invoked in a background
+   * job.  We therefore acquire the main thread lock before reading
+   * object data, to avoid possible crashes when events are added
+   * in job timers for progress updates in the main thread.
+   * (See wm_jobs_timer()). */
+  main_thread_lock_acquire(data);
+
   /* Setup parenthood and read actual object data. */
   i = 0;
   for (USDPrimReader *reader : archive->readers()) {
@@ -528,14 +556,21 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
       ob->parent = parent->object();
     }
 
-    *data->progress = 0.5f + 0.5f * (++i / size);
-    *data->do_update = true;
+    if ((++i & 255) == 0) {
+      main_thread_lock_release(data);
+      *data->progress = 0.5f + 0.5f * (i / size);
+      *data->do_update = true;
+      main_thread_lock_acquire(data);
+    }
 
     if (G.is_break) {
       data->was_canceled = true;
+      main_thread_lock_release(data);
       return;
     }
   }
+
+  main_thread_lock_release(data);
 
   if (data->params.import_skeletons) {
     archive->process_armature_modifiers();
@@ -707,6 +742,8 @@ bool USD_import(struct bContext *C,
                                 "USD Import",
                                 WM_JOB_PROGRESS,
                                 WM_JOB_TYPE_ALEMBIC);
+
+    job->wm_job = wm_job;
 
     /* setup job */
     WM_jobs_customdata_set(wm_job, job, import_freejob);
