@@ -73,9 +73,11 @@ typedef struct BVHTreeRayHit {
 } BVHTreeRayHit;
 
 enum {
-  /* Use a priority queue to process nodes in the optimal order (for slow callbacks) */
   BVH_OVERLAP_USE_THREADING = (1 << 0),
   BVH_OVERLAP_RETURN_PAIRS = (1 << 1),
+  /* Use a specialized self-overlap traversal to only test and output every
+   * pair once, rather than twice in different order as usual. */
+  BVH_OVERLAP_SELF = (1 << 2),
 };
 enum {
   /* Use a priority queue to process nodes in the optimal order (for slow callbacks) */
@@ -163,6 +165,9 @@ bool BLI_bvhtree_update_node(
     BVHTree *tree, int index, const float co[3], const float co_moving[3], int numpoints);
 /**
  * Call #BLI_bvhtree_update_node() first for every node/point/triangle.
+ *
+ * Note that this does not rebalance the tree, so if the shape of the mesh changes
+ * too much, operations on the tree may become suboptimal.
  */
 void BLI_bvhtree_update_tree(BVHTree *tree);
 
@@ -191,6 +196,12 @@ BVHTreeOverlap *BLI_bvhtree_overlap(const BVHTree *tree1,
                                     unsigned int *r_overlap_num,
                                     BVHTree_OverlapCallback callback,
                                     void *userdata);
+/** Compute overlaps of the tree with itself. This is faster than BLI_bvhtree_overlap
+ *  because it only tests and returns each symmetrical pair once. */
+BVHTreeOverlap *BLI_bvhtree_overlap_self(const BVHTree *tree,
+                                         unsigned int *r_overlap_num,
+                                         BVHTree_OverlapCallback callback,
+                                         void *userdata);
 
 int *BLI_bvhtree_intersect_plane(BVHTree *tree, float plane[4], uint *r_intersect_num);
 
