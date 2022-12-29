@@ -1324,8 +1324,9 @@ void GeometryNodesLazyFunctionLogger::log_socket_value(
     const GPointer value,
     const fn::lazy_function::Context &context) const
 {
-  GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
-  BLI_assert(user_data != nullptr);
+  /* In this context we expect only a single kind of user data, so use `static_cast`. */
+  GeoNodesLFUserData *user_data = static_cast<GeoNodesLFUserData *>(context.user_data);
+  BLI_assert(dynamic_cast<GeoNodesLFUserData *>(context.user_data) != nullptr);
   if (!user_data->log_socket_values) {
     return;
   }
