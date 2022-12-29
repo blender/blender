@@ -597,7 +597,7 @@ void DrawMultiBuf::bind(RecordingState &state,
   for (DrawGroup &group : MutableSpan<DrawGroup>(group_buf_.data(), group_count_)) {
     /* Compute prefix sum of all instance of previous group. */
     group.start = resource_id_count_;
-    resource_id_count_ += group.len;
+    resource_id_count_ += group.len * view_len;
 
     int batch_inst_len;
     /* Now that GPUBatches are guaranteed to be finished, extract their parameters. */
