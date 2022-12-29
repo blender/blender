@@ -41,7 +41,9 @@ std::optional<eCustomDataType> node_socket_to_custom_data_type(const bNodeSocket
 
 }  // namespace blender::nodes
 
-bool geo_node_poll_default(bNodeType * /*ntype*/, bNodeTree *ntree, const char **r_disabled_hint)
+bool geo_node_poll_default(const bNodeType * /*ntype*/,
+                           const bNodeTree *ntree,
+                           const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "GeometryNodeTree")) {
     *r_disabled_hint = TIP_("Not a geometry node tree");

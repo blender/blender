@@ -5,8 +5,8 @@
 
 #include "NOD_socket_search_link.hh"
 
-static bool fn_node_poll_default(bNodeType * /*ntype*/,
-                                 bNodeTree *ntree,
+static bool fn_node_poll_default(const bNodeType * /*ntype*/,
+                                 const bNodeTree *ntree,
                                  const char **r_disabled_hint)
 {
   /* Function nodes are only supported in simulation node trees so far. */

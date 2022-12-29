@@ -277,8 +277,8 @@ static void node_copy_cryptomatte(bNodeTree * /*dst_ntree*/,
   dest_node->storage = dest_nc;
 }
 
-static bool node_poll_cryptomatte(bNodeType * /*ntype*/,
-                                  bNodeTree *ntree,
+static bool node_poll_cryptomatte(const bNodeType * /*ntype*/,
+                                  const bNodeTree *ntree,
                                   const char **r_disabled_hint)
 {
   if (STREQ(ntree->idname, "CompositorNodeTree")) {

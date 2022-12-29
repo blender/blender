@@ -712,8 +712,8 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
   }
 }
 
-static bool node_composit_poll_rlayers(bNodeType * /*ntype*/,
-                                       bNodeTree *ntree,
+static bool node_composit_poll_rlayers(const bNodeType * /*ntype*/,
+                                       const bNodeTree *ntree,
                                        const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "CompositorNodeTree")) {
