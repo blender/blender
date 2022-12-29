@@ -601,6 +601,12 @@ class LazyFunctionForGroupNode : public LazyFunction {
   std::optional<GeometryNodesLazyFunctionSideEffectProvider> lf_side_effect_provider_;
   std::optional<lf::GraphExecutor> graph_executor_;
 
+  struct Storage {
+    void *graph_executor_storage = nullptr;
+    /* To avoid computing the hash more than once. */
+    std::optional<ComputeContextHash> context_hash_cache;
+  };
+
  public:
   LazyFunctionForGroupNode(const bNode &group_node,
                            const GeometryNodesLazyFunctionGraphInfo &lf_graph_info,
@@ -662,9 +668,13 @@ class LazyFunctionForGroupNode : public LazyFunction {
       params.set_default_remaining_outputs();
     }
 
+    Storage *storage = static_cast<Storage *>(context.storage);
+
     /* The compute context changes when entering a node group. */
-    bke::NodeGroupComputeContext compute_context{user_data->compute_context,
-                                                 group_node_.identifier};
+    bke::NodeGroupComputeContext compute_context{
+        user_data->compute_context, group_node_.identifier, storage->context_hash_cache};
+    storage->context_hash_cache = compute_context.hash();
+
     GeoNodesLFUserData group_user_data = *user_data;
     group_user_data.compute_context = &compute_context;
     if (user_data->modifier_data->socket_log_contexts) {
@@ -674,18 +684,23 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
     lf::Context group_context = context;
     group_context.user_data = &group_user_data;
+    group_context.storage = storage->graph_executor_storage;
 
     graph_executor_->execute(params, group_context);
   }
 
   void *init_storage(LinearAllocator<> &allocator) const override
   {
-    return graph_executor_->init_storage(allocator);
+    Storage *s = allocator.construct<Storage>().release();
+    s->graph_executor_storage = graph_executor_->init_storage(allocator);
+    return s;
   }
 
   void destruct_storage(void *storage) const override
   {
-    graph_executor_->destruct_storage(storage);
+    Storage *s = static_cast<Storage *>(storage);
+    graph_executor_->destruct_storage(s->graph_executor_storage);
+    std::destroy_at(s);
   }
 };
 
