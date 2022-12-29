@@ -161,13 +161,13 @@ static IndexMask get_selected_indices(const Mesh &mesh,
 
   if (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) {
     const VArray<bool> selection = attributes.lookup_or_default<bool>(
-        ".select_poly", ATTR_DOMAIN_FACE, false);
+        ".select_poly", domain, false);
     return index_mask_ops::find_indices_from_virtual_array(
         selection.index_range(), selection, 4096, indices);
   }
   if (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) {
     const VArray<bool> selection = attributes.lookup_or_default<bool>(
-        ".select_vert", ATTR_DOMAIN_POINT, false);
+        ".select_vert", domain, false);
     return index_mask_ops::find_indices_from_virtual_array(
         selection.index_range(), selection, 4096, indices);
   }
