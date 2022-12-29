@@ -344,27 +344,26 @@ std::string DerivedNodeTree::to_dot() const
     dot_node.set_parent_cluster(cluster);
     dot_node.set_background_color("white");
 
-    Vector<std::string> input_names;
-    Vector<std::string> output_names;
+    dot::NodeWithSockets dot_node_with_sockets;
     for (const bNodeSocket *socket : node->input_sockets()) {
       if (socket->is_available()) {
-        input_names.append(socket->name);
+        dot_node_with_sockets.add_input(socket->name);
       }
     }
     for (const bNodeSocket *socket : node->output_sockets()) {
       if (socket->is_available()) {
-        output_names.append(socket->name);
+        dot_node_with_sockets.add_output(socket->name);
       }
     }
 
-    dot::NodeWithSocketsRef dot_node_with_sockets = dot::NodeWithSocketsRef(
-        dot_node, node->name, input_names, output_names);
+    dot::NodeWithSocketsRef dot_node_with_sockets_ref = dot::NodeWithSocketsRef(
+        dot_node, dot_node_with_sockets);
 
     int input_index = 0;
     for (const bNodeSocket *socket : node->input_sockets()) {
       if (socket->is_available()) {
         dot_input_sockets.add_new(DInputSocket{node.context(), socket},
-                                  dot_node_with_sockets.input(input_index));
+                                  dot_node_with_sockets_ref.input(input_index));
         input_index++;
       }
     }
@@ -372,7 +371,7 @@ std::string DerivedNodeTree::to_dot() const
     for (const bNodeSocket *socket : node->output_sockets()) {
       if (socket->is_available()) {
         dot_output_sockets.add_new(DOutputSocket{node.context(), socket},
-                                   dot_node_with_sockets.output(output_index));
+                                   dot_node_with_sockets_ref.output(output_index));
         output_index++;
       }
     }

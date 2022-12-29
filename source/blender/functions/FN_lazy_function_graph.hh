@@ -19,6 +19,10 @@
 
 #include "FN_lazy_function.hh"
 
+namespace blender::dot {
+class DirectedEdge;
+}
+
 namespace blender::fn::lazy_function {
 
 class Socket;
@@ -239,9 +243,22 @@ class Graph : NonCopyable, NonMovable {
   bool node_indices_are_valid() const;
 
   /**
+   * Optional configuration options for the dot graph generation. This allows creating
+   * visualizations for specific purposes.
+   */
+  class ToDotOptions {
+   public:
+    virtual std::string socket_name(const Socket &socket) const;
+    virtual std::optional<std::string> socket_font_color(const Socket &socket) const;
+    virtual void add_edge_attributes(const OutputSocket &from,
+                                     const InputSocket &to,
+                                     dot::DirectedEdge &dot_edge) const;
+  };
+
+  /**
    * Utility to generate a dot graph string for the graph. This can be used for debugging.
    */
-  std::string to_dot() const;
+  std::string to_dot(const ToDotOptions &options = {}) const;
 };
 
 /* -------------------------------------------------------------------- */
