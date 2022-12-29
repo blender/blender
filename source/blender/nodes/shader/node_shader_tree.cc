@@ -588,6 +588,7 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
       nodeUniqueID(ntree, nodes_copy[id]);
 
       nodes_copy[id]->runtime->tmp_flag = -2; /* Copy */
+      nodes_copy[id]->runtime->original = node->runtime->original;
       /* Make sure to clear all sockets links as they are invalid. */
       LISTBASE_FOREACH (bNodeSocket *, sock, &nodes_copy[id]->inputs) {
         sock->link = nullptr;
