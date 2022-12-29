@@ -479,8 +479,8 @@ TBB_FORCE_BUILD=false
 TBB_FORCE_REBUILD=false
 TBB_SKIP=false
 
-OCIO_VERSION="2.1.1"
-OCIO_VERSION_SHORT="2.1"
+OCIO_VERSION="2.2.0"
+OCIO_VERSION_SHORT="2.2"
 OCIO_VERSION_MIN="2.0"
 OCIO_VERSION_MEX="3.0"
 OCIO_FORCE_BUILD=false
@@ -505,10 +505,10 @@ OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
 
-OIIO_VERSION="2.3.20.0"
-OIIO_VERSION_SHORT="2.3"
-OIIO_VERSION_MIN="2.1.12"
-OIIO_VERSION_MEX="2.4.0"
+OIIO_VERSION="2.4.6.0"
+OIIO_VERSION_SHORT="2.4"
+OIIO_VERSION_MIN="2.2.0"
+OIIO_VERSION_MEX="2.5.0"
 OIIO_FORCE_BUILD=false
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
@@ -532,9 +532,9 @@ OSL_FORCE_REBUILD=false
 OSL_SKIP=false
 
 # OpenSubdiv needs to be compiled for now
-OSD_VERSION="3.4.4"
-OSD_VERSION_SHORT="3.4"
-OSD_VERSION_MIN="3.4"
+OSD_VERSION="3.5.0"
+OSD_VERSION_SHORT="3.5"
+OSD_VERSION_MIN="3.5"
 OSD_VERSION_MEX="4.0"
 OSD_FORCE_BUILD=false
 OSD_FORCE_REBUILD=false
@@ -543,10 +543,10 @@ OSD_SKIP=false
 # OpenVDB needs to be compiled for now
 OPENVDB_BLOSC_VERSION="1.21.1"
 
-OPENVDB_VERSION="9.0.0"
-OPENVDB_VERSION_SHORT="9.0"
-OPENVDB_VERSION_MIN="9.0"
-OPENVDB_VERSION_MEX="9.1"
+OPENVDB_VERSION="10.0.0"
+OPENVDB_VERSION_SHORT="10.0"
+OPENVDB_VERSION_MIN="10.0"
+OPENVDB_VERSION_MEX="11.0"
 OPENVDB_FORCE_BUILD=false
 OPENVDB_FORCE_REBUILD=false
 OPENVDB_SKIP=false
@@ -2969,6 +2969,9 @@ compile_OPENVDB() {
     fi
     if [ -d $INST/tbb ]; then
       cmake_d="$cmake_d -D TBB_ROOT=$INST/tbb"
+      # Work around until we use oneTBB, otherwise OpenVDB forcefully
+      # uses oneTBB if it can find it on the system.
+      cmake_d="$cmake_d -D Tbb_INCLUDE_DIR=$INST/tbb/include"
     fi
 
     if [ "$_with_built_imath" = true ]; then
