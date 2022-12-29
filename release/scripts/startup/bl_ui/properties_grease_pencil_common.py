@@ -252,7 +252,7 @@ class GPENCIL_MT_layer_active(Menu):
 
         gpd = context.gpencil_data
         if gpd:
-            layout.operator("gpencil.layer_add", text="New Layer", icon='ADD')
+            layout.operator("gpencil.layer_add", text="New Layer", icon='ADD').layer = -1
 
             layout.separator()
 

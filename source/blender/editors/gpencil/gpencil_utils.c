@@ -3355,3 +3355,38 @@ void ED_gpencil_layer_merge(bGPdata *gpd,
     BKE_gpencil_layer_mask_sort(gpd, gpl_dst);
   }
 }
+
+void layer_new_name_get(bGPdata *gpd, char *rname)
+{
+  int index = 0;
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    if (strstr(gpl->info, "GP_Layer")) {
+      index++;
+    }
+  }
+
+  if (index == 0) {
+    BLI_strncpy(rname, "GP_Layer", 128);
+    return;
+  }
+  char *name = BLI_sprintfN("%.*s.%03d", 128, "GP_Layer", index);
+  BLI_strncpy(rname, name, 128);
+  MEM_freeN(name);
+}
+
+int create_new_layer_dialog(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  PropertyRNA *prop;
+  if (RNA_int_get(op->ptr, "layer") == -1) {
+    prop = RNA_struct_find_property(op->ptr, "new_layer_name");
+    if (!RNA_property_is_set(op->ptr, prop)) {
+      char name[MAX_NAME];
+      bGPdata *gpd = ob->data;
+      layer_new_name_get(gpd, name);
+      RNA_property_string_set(op->ptr, prop, name);
+      return WM_operator_props_dialog_popup(C, op, 200);
+    }
+  }
+  return 0;
+}

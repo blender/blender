@@ -223,7 +223,17 @@ static int gpencil_layer_add_exec(bContext *C, wmOperator *op)
     Object *ob = CTX_data_active_object(C);
     if ((ob != NULL) && (ob->type == OB_GPENCIL)) {
       gpd = (bGPdata *)ob->data;
-      bGPDlayer *gpl = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true, false);
+      PropertyRNA *prop;
+      char name[128];
+      prop = RNA_struct_find_property(op->ptr, "new_layer_name");
+      if (RNA_property_is_set(op->ptr, prop)) {
+        RNA_property_string_get(op->ptr, prop, name);
+      }
+      else {
+        strcpy(name, "GP_Layer");
+      }
+      bGPDlayer *gpl = BKE_gpencil_layer_addnew(gpd, name, true, false);
+
       /* Add a new frame to make it visible in Dopesheet. */
       if (gpl != NULL) {
         gpl->actframe = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_ADD_NEW);
@@ -240,19 +250,37 @@ static int gpencil_layer_add_exec(bContext *C, wmOperator *op)
 
   return OPERATOR_FINISHED;
 }
-
+static int gpencil_layer_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  int tmp = create_new_layer_dialog(C, op);
+  if (tmp != 0) {
+    return tmp;
+  }
+  else {
+    return gpencil_layer_add_exec(C, op);
+  }
+}
 void GPENCIL_OT_layer_add(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
   /* identifiers */
   ot->name = "Add New Layer";
   ot->idname = "GPENCIL_OT_layer_add";
   ot->description = "Add new layer or note for the active data-block";
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
   /* callbacks */
   ot->exec = gpencil_layer_add_exec;
+  ot->invoke = gpencil_layer_add_invoke;
   ot->poll = gpencil_add_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  prop = RNA_def_int(ot->srna, "layer", 0, -1, INT_MAX, "Grease Pencil Layer", "", -1, INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+  prop = RNA_def_string(
+      ot->srna, "new_layer_name", NULL, MAX_NAME, "Name", "Name of the newly added layer");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  ot->prop = prop;
 }
 
 static bool gpencil_add_annotation_poll(bContext *C)
