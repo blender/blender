@@ -59,7 +59,7 @@ bNodeSocket &SocketDeclaration::update_or_build(bNodeTree &ntree,
                                                 bNodeSocket &socket) const
 {
   /* By default just rebuild. */
-  BLI_assert(socket.in_out == in_out_);
+  BLI_assert(socket.in_out == this->in_out);
   UNUSED_VARS_NDEBUG(socket);
   return this->build(ntree, node);
 }
