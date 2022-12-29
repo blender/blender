@@ -219,15 +219,15 @@ void version_socket_update_is_used(bNodeTree *ntree)
 {
   for (bNode *node : ntree->all_nodes()) {
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-      socket->flag &= ~SOCK_IN_USE;
+      socket->flag &= ~SOCK_IS_LINKED;
     }
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-      socket->flag &= ~SOCK_IN_USE;
+      socket->flag &= ~SOCK_IS_LINKED;
     }
   }
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    link->fromsock->flag |= SOCK_IN_USE;
-    link->tosock->flag |= SOCK_IN_USE;
+    link->fromsock->flag |= SOCK_IS_LINKED;
+    link->tosock->flag |= SOCK_IS_LINKED;
   }
 }
 

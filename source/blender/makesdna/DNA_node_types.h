@@ -256,7 +256,7 @@ typedef enum eNodeSocketFlag {
   /** Hidden is user defined, to hide unused sockets. */
   SOCK_HIDDEN = (1 << 1),
   /** For quick check if socket is linked. */
-  SOCK_IN_USE = (1 << 2),
+  SOCK_IS_LINKED = (1 << 2),
   /** Unavailable is for dynamic sockets. */
   SOCK_UNAVAIL = (1 << 3),
   // /** DEPRECATED  dynamic socket (can be modified by user) */

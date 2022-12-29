@@ -176,7 +176,7 @@ static bool socket_is_available(bNodeTree * /*ntree*/, bNodeSocket *sock, const 
     return false;
   }
 
-  if (!allow_used && (sock->flag & SOCK_IN_USE)) {
+  if (!allow_used && (sock->flag & SOCK_IS_LINKED)) {
     /* Multi input sockets are available (even if used). */
     if (!(sock->flag & SOCK_MULTI_INPUT)) {
       return false;

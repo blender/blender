@@ -523,10 +523,10 @@ class NodeTreeMainUpdater {
   {
     tree.ensure_topology_cache();
     for (bNodeSocket *socket : tree.all_sockets()) {
-      socket->flag &= ~SOCK_IN_USE;
+      socket->flag &= ~SOCK_IS_LINKED;
       for (const bNodeLink *link : socket->directly_linked_links()) {
         if (!link->is_muted()) {
-          socket->flag |= SOCK_IN_USE;
+          socket->flag |= SOCK_IS_LINKED;
           break;
         }
       }
