@@ -7,8 +7,8 @@
  * Intermediate node graph for generating GLSL shaders.
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -27,7 +27,7 @@
 
 /* Node Link Functions */
 
-static GPUNodeLink *gpu_node_link_create(void)
+static GPUNodeLink *gpu_node_link_create()
 {
   GPUNodeLink *link = MEM_cnew<GPUNodeLink>("GPUNodeLink");
   link->users++;

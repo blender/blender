@@ -39,7 +39,7 @@
 /** \name Internal Types
  * \{ */
 
-typedef struct GpencilBatchCache {
+struct GpencilBatchCache {
   /** Instancing Data */
   GPUVertBuf *vbo;
   GPUVertBuf *vbo_col;
@@ -65,7 +65,7 @@ typedef struct GpencilBatchCache {
   bool is_dirty;
   /** Last cache frame */
   int cache_frame;
-} GpencilBatchCache;
+};
 
 /** \} */
 
@@ -175,16 +175,16 @@ void DRW_gpencil_batch_cache_free(bGPdata *gpd)
  * \{ */
 
 /* MUST match the format below. */
-typedef struct gpStrokeVert {
+struct gpStrokeVert {
   /** Position and thickness packed in the same attribute. */
   float pos[3], thickness;
   /** Material Index, Stroke Index, Point Index, Packed aspect + hardness + rotation. */
   int32_t mat, stroke_id, point_id, packed_asp_hard_rot;
   /** UV and strength packed in the same attribute. */
   float uv_fill[2], u_stroke, strength;
-} gpStrokeVert;
+};
 
-static GPUVertFormat *gpencil_stroke_format(void)
+static GPUVertFormat *gpencil_stroke_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -196,12 +196,12 @@ static GPUVertFormat *gpencil_stroke_format(void)
 }
 
 /* MUST match the format below. */
-typedef struct gpEditVert {
+struct gpEditVert {
   uint vflag;
   float weight;
-} gpEditVert;
+};
 
-static GPUVertFormat *gpencil_edit_stroke_format(void)
+static GPUVertFormat *gpencil_edit_stroke_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -212,12 +212,12 @@ static GPUVertFormat *gpencil_edit_stroke_format(void)
 }
 
 /* MUST match the format below. */
-typedef struct gpEditCurveVert {
+struct gpEditCurveVert {
   float pos[3];
   uint32_t data;
-} gpEditCurveVert;
+};
 
-static GPUVertFormat *gpencil_edit_curve_format(void)
+static GPUVertFormat *gpencil_edit_curve_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -229,12 +229,12 @@ static GPUVertFormat *gpencil_edit_curve_format(void)
 }
 
 /* MUST match the format below. */
-typedef struct gpColorVert {
+struct gpColorVert {
   float vcol[4]; /* Vertex color */
   float fcol[4]; /* Fill color */
-} gpColorVert;
+};
 
-static GPUVertFormat *gpencil_color_format(void)
+static GPUVertFormat *gpencil_color_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -250,7 +250,7 @@ static GPUVertFormat *gpencil_color_format(void)
 /** \name Vertex Buffers
  * \{ */
 
-typedef struct gpIterData {
+struct gpIterData {
   bGPdata *gpd;
   gpStrokeVert *verts;
   gpColorVert *cols;
@@ -258,9 +258,9 @@ typedef struct gpIterData {
   int vert_len;
   int tri_len;
   int curve_len;
-} gpIterData;
+};
 
-static GPUVertBuf *gpencil_dummy_buffer_get(void)
+static GPUVertBuf *gpencil_dummy_buffer_get()
 {
   GPUBatch *batch = DRW_gpencil_dummy_buffer_get();
   return batch->verts[0];
@@ -726,15 +726,15 @@ void DRW_cache_gpencil_sbuffer_clear(Object *ob)
 #define GP_EDIT_STROKE_END (1 << 4)
 #define GP_EDIT_POINT_DIMMED (1 << 5)
 
-typedef struct gpEditIterData {
+struct gpEditIterData {
   gpEditVert *verts;
   int vgindex;
-} gpEditIterData;
+};
 
-typedef struct gpEditCurveIterData {
+struct gpEditCurveIterData {
   gpEditCurveVert *verts;
   int vgindex;
-} gpEditCurveIterData;
+};
 
 static uint32_t gpencil_point_edit_flag(const bool layer_lock,
                                         const bGPDspoint *pt,

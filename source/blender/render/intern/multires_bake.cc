@@ -5,7 +5,7 @@
  * \ingroup render
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -40,26 +40,26 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-typedef void (*MPassKnownData)(DerivedMesh *lores_dm,
-                               DerivedMesh *hires_dm,
-                               void *thread_data,
-                               void *bake_data,
-                               ImBuf *ibuf,
-                               const int face_index,
-                               const int lvl,
-                               const float st[2],
-                               float tangmat[3][3],
-                               const int x,
-                               const int y);
+using MPassKnownData = void (*)(DerivedMesh *lores_dm,
+                                DerivedMesh *hires_dm,
+                                void *thread_data,
+                                void *bake_data,
+                                ImBuf *ibuf,
+                                const int face_index,
+                                const int lvl,
+                                const float st[2],
+                                float tangmat[3][3],
+                                const int x,
+                                const int y);
 
-typedef void *(*MInitBakeData)(MultiresBakeRender *bkr, ImBuf *ibuf);
-typedef void (*MFreeBakeData)(void *bake_data);
+using MInitBakeData = void *(*)(MultiresBakeRender *bkr, ImBuf *ibuf);
+using MFreeBakeData = void (*)(void *bake_data);
 
-typedef struct MultiresBakeResult {
+struct MultiresBakeResult {
   float height_min, height_max;
-} MultiresBakeResult;
+};
 
-typedef struct {
+struct MResolvePixelData {
   MVert *mvert;
   const float (*vert_normals)[3];
   MPoly *mpoly;
@@ -80,32 +80,32 @@ typedef struct {
   MPassKnownData pass_data;
   /* material aligned UV array */
   Image **image_array;
-} MResolvePixelData;
+};
 
-typedef void (*MFlushPixel)(const MResolvePixelData *data, const int x, const int y);
+using MFlushPixel = void (*)(const MResolvePixelData *data, const int x, const int y);
 
-typedef struct {
+struct MBakeRast {
   int w, h;
   char *texels;
   const MResolvePixelData *data;
   MFlushPixel flush_pixel;
   bool *do_update;
-} MBakeRast;
+};
 
-typedef struct {
+struct MHeightBakeData {
   float *heights;
   DerivedMesh *ssdm;
   const int *orig_index_mp_to_orig;
-} MHeightBakeData;
+};
 
-typedef struct {
+struct MNormalBakeData {
   const int *orig_index_mp_to_orig;
-} MNormalBakeData;
+};
 
-typedef struct BakeImBufuserData {
+struct BakeImBufuserData {
   float *displacement_buffer;
   char *mask_buffer;
-} BakeImBufuserData;
+};
 
 static void multiresbake_get_normal(const MResolvePixelData *data,
                                     const int tri_num,
@@ -334,13 +334,13 @@ static int multiresbake_test_break(MultiresBakeRender *bkr)
 
 /* **** Threading routines **** */
 
-typedef struct MultiresBakeQueue {
+struct MultiresBakeQueue {
   int cur_tri;
   int tot_tri;
   SpinLock spin;
-} MultiresBakeQueue;
+};
 
-typedef struct MultiresBakeThread {
+struct MultiresBakeThread {
   /* this data is actually shared between all the threads */
   MultiresBakeQueue *queue;
   MultiresBakeRender *bkr;
@@ -353,7 +353,7 @@ typedef struct MultiresBakeThread {
 
   /* displacement-specific data */
   float height_min, height_max;
-} MultiresBakeThread;
+};
 
 static int multires_bake_queue_next_tri(MultiresBakeQueue *queue)
 {

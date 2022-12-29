@@ -46,7 +46,7 @@ static void time_init(bNodeTree * /*ntree*/, bNode *node)
   node->storage = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-void register_node_type_tex_curve_time(void)
+void register_node_type_tex_curve_time()
 {
   static bNodeType ntype;
 
@@ -96,7 +96,7 @@ static void rgb_init(bNodeTree * /*ntree*/, bNode *node)
   node->storage = BKE_curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-void register_node_type_tex_curve_rgb(void)
+void register_node_type_tex_curve_rgb()
 {
   static bNodeType ntype;
 

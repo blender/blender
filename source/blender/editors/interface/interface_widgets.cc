@@ -403,9 +403,9 @@ static struct {
   /* TODO: remove. */
   GPUVertFormat format;
   uint vflag_id;
-} g_ui_batch_cache = {0};
+} g_ui_batch_cache = {nullptr};
 
-static GPUVertFormat *vflag_format(void)
+static GPUVertFormat *vflag_format()
 {
   if (g_ui_batch_cache.format.attr_len == 0) {
     GPUVertFormat *format = &g_ui_batch_cache.format;
@@ -444,7 +444,7 @@ static uint32_t set_roundbox_vertex(GPUVertBufRaw *vflag_step,
   return *data;
 }
 
-GPUBatch *ui_batch_roundbox_widget_get(void)
+GPUBatch *ui_batch_roundbox_widget_get()
 {
   if (g_ui_batch_cache.roundbox_widget == nullptr) {
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
@@ -470,7 +470,7 @@ GPUBatch *ui_batch_roundbox_widget_get(void)
   return g_ui_batch_cache.roundbox_widget;
 }
 
-GPUBatch *ui_batch_roundbox_shadow_get(void)
+GPUBatch *ui_batch_roundbox_shadow_get()
 {
   if (g_ui_batch_cache.roundbox_shadow == nullptr) {
     uint32_t last_data;
@@ -1132,7 +1132,7 @@ static struct {
   bool enabled;
 } g_widget_base_batch = {{{{0}}}};
 
-void UI_widgetbase_draw_cache_flush(void)
+void UI_widgetbase_draw_cache_flush()
 {
   const float checker_params[3] = {
       UI_ALPHA_CHECKER_DARK / 255.0f, UI_ALPHA_CHECKER_LIGHT / 255.0f, 8.0f};
@@ -1162,13 +1162,13 @@ void UI_widgetbase_draw_cache_flush(void)
   g_widget_base_batch.count = 0;
 }
 
-void UI_widgetbase_draw_cache_begin(void)
+void UI_widgetbase_draw_cache_begin()
 {
   BLI_assert(g_widget_base_batch.enabled == false);
   g_widget_base_batch.enabled = true;
 }
 
-void UI_widgetbase_draw_cache_end(void)
+void UI_widgetbase_draw_cache_end()
 {
   BLI_assert(g_widget_base_batch.enabled == true);
   g_widget_base_batch.enabled = false;
@@ -1183,7 +1183,7 @@ void UI_widgetbase_draw_cache_end(void)
 /* Disable cached/instanced drawing and enforce single widget drawing pipeline.
  * Works around interface artifacts happening on certain driver and hardware
  * configurations. */
-static bool draw_widgetbase_batch_skip_draw_cache(void)
+static bool draw_widgetbase_batch_skip_draw_cache()
 {
   /* MacOS is known to have issues on Mac Mini and MacBook Pro with Intel Iris GPU.
    * For example, T78307. */
@@ -5257,7 +5257,7 @@ void ui_draw_pie_center(uiBlock *block)
   GPU_matrix_pop();
 }
 
-const uiWidgetColors *ui_tooltip_get_theme(void)
+const uiWidgetColors *ui_tooltip_get_theme()
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_TOOLTIP);
   return wt->wcol_theme;

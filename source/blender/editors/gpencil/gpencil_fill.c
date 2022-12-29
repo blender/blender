@@ -932,7 +932,7 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
     /* Help strokes are for display only and shouldn't render. */
     return;
   }
-  else if (is_help) {
+  if (is_help) {
     /* Color help strokes that won't affect fill or render separately from
      * extended strokes, as they will affect them. */
     copy_v4_v4(col, help_col);

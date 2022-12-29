@@ -8,7 +8,7 @@
 #include "BLI_listbase.h"
 #include "NOD_texture.h"
 #include "node_texture_util.hh"
-#include <math.h>
+#include <cmath>
 
 static bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
@@ -90,7 +90,7 @@ static void exec(void *data,
   tex_output(node, execdata, in, out[3], &valuefn_a, tex_call_data);
 }
 
-void register_node_type_tex_separate_color(void)
+void register_node_type_tex_separate_color()
 {
   static bNodeType ntype;
 

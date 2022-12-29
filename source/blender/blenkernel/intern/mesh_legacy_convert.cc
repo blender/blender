@@ -545,12 +545,12 @@ static void update_active_fdata_layers(Mesh &mesh, CustomData *fdata, CustomData
   }
 
   if (CustomData_has_layer(ldata, CD_PROP_BYTE_COLOR)) {
-    if (mesh.active_color_attribute != NULL) {
+    if (mesh.active_color_attribute != nullptr) {
       act = CustomData_get_named_layer(ldata, CD_PROP_BYTE_COLOR, mesh.active_color_attribute);
       CustomData_set_layer_active(fdata, CD_MCOL, act);
     }
 
-    if (mesh.default_color_attribute != NULL) {
+    if (mesh.default_color_attribute != nullptr) {
       act = CustomData_get_named_layer(ldata, CD_PROP_BYTE_COLOR, mesh.default_color_attribute);
       CustomData_set_layer_render(fdata, CD_MCOL, act);
     }

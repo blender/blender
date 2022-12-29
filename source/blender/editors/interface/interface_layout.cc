@@ -489,7 +489,7 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
 
     for (int i = 0; i < len; i++) {
       if (i != index) {
-        RNA_property_boolean_set_index(ptr, prop, i, 0);
+        RNA_property_boolean_set_index(ptr, prop, i, false);
       }
     }
 
@@ -526,7 +526,7 @@ static void ui_item_array(uiLayout *layout,
   const PropertyType type = RNA_property_type(prop);
   const PropertySubType subtype = RNA_property_subtype(prop);
 
-  uiLayout *sub = ui_item_local_sublayout(layout, layout, 1);
+  uiLayout *sub = ui_item_local_sublayout(layout, layout, true);
   UI_block_layout_set_current(block, sub);
 
   /* create label */
@@ -773,7 +773,7 @@ static void ui_item_enum_expand_elem_exec(uiLayout *layout,
   const char *name = (!uiname || uiname[0]) ? item->name : "";
   const int icon = item->icon;
   const int value = item->value;
-  const int itemw = ui_text_icon_width(block->curlayout, icon_only ? "" : name, icon, 0);
+  const int itemw = ui_text_icon_width(block->curlayout, icon_only ? "" : name, icon, false);
 
   uiBut *but;
   if (icon && name[0] && !icon_only) {
@@ -863,7 +863,7 @@ static void ui_item_enum_expand_exec(uiLayout *layout,
     UI_block_layout_set_current(block, layout);
   }
   else {
-    UI_block_layout_set_current(block, ui_item_local_sublayout(layout, layout, 1));
+    UI_block_layout_set_current(block, ui_item_local_sublayout(layout, layout, true));
   }
 
   for (const EnumPropertyItem *item = item_array; item->identifier; item++) {
@@ -1186,7 +1186,7 @@ static void ui_item_disabled(uiLayout *layout, const char *name)
     name = "";
   }
 
-  const int w = ui_text_icon_width(layout, name, 0, 0);
+  const int w = ui_text_icon_width(layout, name, 0, false);
 
   uiBut *but = uiDefBut(
       block, UI_BTYPE_LABEL, 0, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, 0, 0, "");
@@ -1226,7 +1226,7 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
   UI_block_layout_set_current(block, layout);
   ui_block_new_button_group(block, uiButtonGroupFlag(0));
 
-  const int w = ui_text_icon_width(layout, name, icon, 0);
+  const int w = ui_text_icon_width(layout, name, icon, false);
 
   const eUIEmbossType prev_emboss = layout->emboss;
   if (flag & UI_ITEM_R_NO_BG) {
@@ -1365,7 +1365,7 @@ void uiItemFullO(uiLayout *layout,
                  int flag,
                  PointerRNA *r_opptr)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
+  wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
 
   UI_OPERATOR_ERROR_RET(ot, opname, {
     if (r_opptr) {
@@ -1440,7 +1440,7 @@ void uiItemEnumO(uiLayout *layout,
                  const char *propname,
                  int value)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
+  wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
 
   if (ot) {
     uiItemEnumO_ptr(layout, ot, name, icon, propname, value);
@@ -1620,7 +1620,7 @@ void uiItemsFullEnumO(uiLayout *layout,
                       wmOperatorCallContext context,
                       int flag)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
+  wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
 
   if (!ot || !ot->srna) {
     ui_item_disabled(layout, opname);
@@ -1694,7 +1694,7 @@ void uiItemEnumO_value(uiLayout *layout,
                        const char *propname,
                        int value)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
+  wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
   UI_OPERATOR_ERROR_RET(ot, opname, return );
 
   PointerRNA ptr;
@@ -1731,7 +1731,7 @@ void uiItemEnumO_string(uiLayout *layout,
                         const char *propname,
                         const char *value_str)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
+  wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
   UI_OPERATOR_ERROR_RET(ot, opname, return );
 
   PointerRNA ptr;
@@ -1787,7 +1787,7 @@ void uiItemBooleanO(uiLayout *layout,
                     const char *propname,
                     int value)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
+  wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
   UI_OPERATOR_ERROR_RET(ot, opname, return );
 
   PointerRNA ptr;
@@ -1811,7 +1811,7 @@ void uiItemIntO(uiLayout *layout,
                 const char *propname,
                 int value)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
+  wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
   UI_OPERATOR_ERROR_RET(ot, opname, return );
 
   PointerRNA ptr;
@@ -1835,7 +1835,7 @@ void uiItemFloatO(uiLayout *layout,
                   const char *propname,
                   float value)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
+  wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
 
   UI_OPERATOR_ERROR_RET(ot, opname, return );
 
@@ -1860,7 +1860,7 @@ void uiItemStringO(uiLayout *layout,
                    const char *propname,
                    const char *value)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
+  wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
 
   UI_OPERATOR_ERROR_RET(ot, opname, return );
 
@@ -2922,7 +2922,7 @@ void uiItemPointerR_prop(uiLayout *layout,
   uiBlock *block = uiLayoutGetBlock(layout);
 
   int w, h;
-  ui_item_rna_size(layout, name, icon, ptr, prop, 0, 0, false, &w, &h);
+  ui_item_rna_size(layout, name, icon, ptr, prop, 0, false, false, &w, &h);
   w += UI_UNIT_X; /* X icon needs more space */
   uiBut *but = ui_item_with_label(layout, block, name, icon, ptr, prop, 0, 0, 0, w, h, 0);
 
@@ -3401,7 +3401,7 @@ void uiItemV(uiLayout *layout, const char *name, int icon, int argval)
     icon = ICON_BLANK1;
   }
 
-  const int w = ui_text_icon_width(layout, name, icon, 0);
+  const int w = ui_text_icon_width(layout, name, icon, false);
 
   if (icon && name[0]) {
     uiDefIconTextButI(block,
@@ -3592,7 +3592,7 @@ void uiItemMenuEnumFullO(uiLayout *layout,
                          int icon,
                          PointerRNA *r_opptr)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
+  wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
 
   UI_OPERATOR_ERROR_RET(ot, opname, return );
 
@@ -4891,7 +4891,7 @@ uiLayout *uiLayoutRadial(uiLayout *layout)
 {
   /* radial layouts are only valid for radial menus */
   if (layout->root->type != UI_LAYOUT_PIEMENU) {
-    return ui_item_local_sublayout(layout, layout, 0);
+    return ui_item_local_sublayout(layout, layout, false);
   }
 
   /* only one radial wheel per root layout is allowed, so check and return that, if it exists */

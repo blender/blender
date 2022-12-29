@@ -38,7 +38,7 @@ static void exec(void *data,
   tex_output(node, execdata, in, out[0], &colorfn, static_cast<TexCallData *>(data));
 }
 
-void register_node_type_tex_at(void)
+void register_node_type_tex_at()
 {
   static bNodeType ntype;
 

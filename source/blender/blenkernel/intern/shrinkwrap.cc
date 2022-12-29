@@ -1525,7 +1525,7 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(bContext *C, Object *ob_source, 
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *sce = CTX_data_scene(C);
-  ShrinkwrapModifierData ssmd = {{0}};
+  ShrinkwrapModifierData ssmd = {{nullptr}};
   ModifierEvalContext ctx = {depsgraph, ob_source, ModifierApplyFlag(0)};
   int totvert;
 
@@ -1546,7 +1546,7 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(bContext *C, Object *ob_source, 
 
 void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object *ob_target)
 {
-  ShrinkwrapModifierData ssmd = {{0}};
+  ShrinkwrapModifierData ssmd = {{nullptr}};
   int totvert;
 
   ssmd.target = ob_target;

@@ -13,7 +13,7 @@
 
 #include "overlay_private.hh"
 
-typedef struct OVERLAY_Shaders {
+struct OVERLAY_Shaders {
   GPUShader *antialiasing;
   GPUShader *armature_dof_wire;
   GPUShader *armature_dof_solid;
@@ -107,7 +107,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *wireframe_select;
   GPUShader *wireframe[2];
   GPUShader *xray_fade;
-} OVERLAY_Shaders;
+};
 
 static struct {
   OVERLAY_Shaders sh_data[GPU_SHADER_CFG_LEN];
@@ -555,7 +555,7 @@ GPUShader *OVERLAY_shader_gpencil_canvas(void)
     /* TODO(fclem): Support Clipping? Everything is already setup but don't want to change behavior
      * without agreement of all gpencil module. */
     sh_data->gpencil_canvas = GPU_shader_create_from_info_name(
-        0 ? "overlay_gpencil_canvas_clipped" : "overlay_gpencil_canvas");
+        false ? "overlay_gpencil_canvas_clipped" : "overlay_gpencil_canvas");
   }
   return sh_data->gpencil_canvas;
 }
@@ -612,8 +612,8 @@ GPUShader *OVERLAY_shader_image(void)
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->image) {
     /* TODO(fclem): Do we want to allow clipping reference images? */
-    sh_data->image = GPU_shader_create_from_info_name(0 ? "overlay_image_clipped" :
-                                                          "overlay_image");
+    sh_data->image = GPU_shader_create_from_info_name(false ? "overlay_image_clipped" :
+                                                              "overlay_image");
   }
   return sh_data->image;
 }

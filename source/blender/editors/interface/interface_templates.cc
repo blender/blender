@@ -137,7 +137,7 @@ static int template_search_textbut_width(PointerRNA *ptr, PropertyRNA *name_prop
       estimated_width, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH * 3);
 }
 
-static int template_search_textbut_height(void)
+static int template_search_textbut_height()
 {
   return TEMPLATE_SEARCH_TEXTBUT_HEIGHT;
 }
@@ -6681,7 +6681,7 @@ static uiBlock *component_menu(bContext *C, ARegion *region, void *args_v)
                                                     UI_UNIT_Y,
                                                     0,
                                                     UI_style_get()),
-                                    0);
+                                    false);
 
   uiItemR(layout, &args->ptr, args->propname, UI_ITEM_R_EXPAND, "", ICON_NONE);
 

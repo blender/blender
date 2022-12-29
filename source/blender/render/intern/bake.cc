@@ -47,7 +47,7 @@
  * For a complete implementation example look at the Cycles Bake commit.
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "MEM_guardedalloc.h"
 
@@ -74,31 +74,31 @@
 /* local include */
 #include "zbuf.h"
 
-typedef struct BakeDataZSpan {
+struct BakeDataZSpan {
   BakePixel *pixel_array;
   int primitive_id;
   BakeImage *bk_image;
   ZSpan *zspan;
   float du_dx, du_dy;
   float dv_dx, dv_dy;
-} BakeDataZSpan;
+};
 
 /**
  * struct wrapping up tangent space data
  */
-typedef struct TSpace {
+struct TSpace {
   float tangent[3];
   float sign;
-} TSpace;
+};
 
-typedef struct TriTessFace {
+struct TriTessFace {
   const MVert *mverts[3];
   const float *vert_normals[3];
   const TSpace *tspace[3];
   const float *loop_normal[3];
   float normal[3]; /* for flat faces */
   bool is_smooth;
-} TriTessFace;
+};
 
 static void store_bake_pixel(void *handle, int x, int y, float u, float v)
 {
@@ -536,7 +536,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
   return triangles;
 }
 
-bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
+bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
                                           BakePixel pixel_array_from[],
                                           BakePixel pixel_array_to[],
                                           BakeHighPolyData highpoly[],
@@ -547,7 +547,7 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
                                           const float max_ray_distance,
                                           float mat_low[4][4],
                                           float mat_cage[4][4],
-                                          struct Mesh *me_cage)
+                                          Mesh *me_cage)
 {
   size_t i;
   int primitive_id;
@@ -968,7 +968,7 @@ void RE_bake_normal_world_to_object(const BakePixel pixel_array[],
                                     const size_t pixels_num,
                                     const int depth,
                                     float result[],
-                                    struct Object *ob,
+                                    Object *ob,
                                     const eBakeNormalSwizzle normal_swizzle[3])
 {
   size_t i;

@@ -186,7 +186,7 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
                                     &mesh_prior_modifiers->id,
                                     nullptr,
                                     (LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_CD_REFERENCE));
-      mesh->runtime->deformed_only = 1;
+      mesh->runtime->deformed_only = true;
     }
 
     if (em != nullptr) {

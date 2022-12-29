@@ -717,7 +717,7 @@ class GroupOutputDebugInfo : public lf::DummyDebugInfo {
  public:
   Vector<StringRef> socket_names;
 
-  std::string node_name() const
+  std::string node_name() const override
   {
     return "Group Output";
   }

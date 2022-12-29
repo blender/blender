@@ -326,13 +326,13 @@ void GLTexture::update_sub(int offset[3],
   switch (dimensions) {
     default:
     case 1:
-      glTexSubImage1D(target_, 0, offset[0], extent[0], gl_format, gl_type, 0);
+      glTexSubImage1D(target_, 0, offset[0], extent[0], gl_format, gl_type, nullptr);
       break;
     case 2:
-      glTexSubImage2D(target_, 0, UNPACK2(offset), UNPACK2(extent), gl_format, gl_type, 0);
+      glTexSubImage2D(target_, 0, UNPACK2(offset), UNPACK2(extent), gl_format, gl_type, nullptr);
       break;
     case 3:
-      glTexSubImage3D(target_, 0, UNPACK3(offset), UNPACK3(extent), gl_format, gl_type, 0);
+      glTexSubImage3D(target_, 0, UNPACK3(offset), UNPACK3(extent), gl_format, gl_type, nullptr);
       break;
   }
 
@@ -794,7 +794,7 @@ GLPixelBuffer::GLPixelBuffer(uint size) : PixelBuffer(size)
   size = max_ii(size, 32);
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, gl_id_);
-  glBufferData(GL_PIXEL_UNPACK_BUFFER, size, 0, GL_DYNAMIC_DRAW);
+  glBufferData(GL_PIXEL_UNPACK_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 

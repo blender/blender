@@ -5,9 +5,9 @@
  * \ingroup bke
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -231,10 +231,10 @@ IDTypeInfo IDType_ID_KE = {
 #define KEY_MODE_BEZTRIPLE 2
 
 /* Internal use only. */
-typedef struct WeightsArrayCache {
+struct WeightsArrayCache {
   int num_defgroup_weights;
   float **defgroup_weights;
-} WeightsArrayCache;
+};
 
 void BKE_key_free_data(Key *key)
 {

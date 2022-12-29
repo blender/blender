@@ -5,7 +5,7 @@
  * \ingroup nodes
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
@@ -132,7 +132,7 @@ static bool texture_node_tree_socket_type_valid(bNodeTreeType * /*ntreetype*/,
 
 bNodeTreeType *ntreeType_Texture;
 
-void register_node_tree_type_tex(void)
+void register_node_tree_type_tex()
 {
   bNodeTreeType *tt = ntreeType_Texture = MEM_cnew<bNodeTreeType>("texture node tree type");
 

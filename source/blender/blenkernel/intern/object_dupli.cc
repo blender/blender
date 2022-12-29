@@ -1784,10 +1784,8 @@ ListBase *object_duplilist_preview(Depsgraph *depsgraph,
     if (nmd_orig->runtime_eval_log == nullptr) {
       continue;
     }
-    geo_log::GeoModifierLog *log = static_cast<geo_log::GeoModifierLog *>(
-        nmd_orig->runtime_eval_log);
-    if (const geo_log::ViewerNodeLog *viewer_log = log->find_viewer_node_log_for_path(
-            *viewer_path)) {
+    if (const geo_log::ViewerNodeLog *viewer_log =
+            geo_log::GeoModifierLog::find_viewer_node_log_for_path(*viewer_path)) {
       ctx.preview_base_geometry = &viewer_log->geometry;
       make_duplis_geometry_set_impl(
           &ctx, viewer_log->geometry, ob_eval->object_to_world, true, ob_eval->type == OB_CURVES);

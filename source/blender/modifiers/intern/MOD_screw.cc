@@ -350,7 +350,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
    * gives problems with float precision so its never closed. */
   if (fabsf(screw_ofs) <= (FLT_EPSILON * 100.0f) &&
       fabsf(fabsf(angle) - (float(M_PI) * 2.0f)) <= (FLT_EPSILON * 100.0f) && step_tot > 3) {
-    close = 1;
+    close = true;
     step_tot--;
 
     maxVerts = totvert * step_tot;    /* -1 because we're joining back up */
@@ -361,7 +361,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     screw_ofs = 0.0f;
   }
   else {
-    close = 0;
+    close = false;
     if (step_tot < 2) {
       step_tot = 2;
     }
@@ -644,10 +644,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
               vf_best = vc_tmp->co[ltmd->axis];
 
               if (vf_1 < vf_best && vf_best < vf_2) {
-                ed_loop_flip = 0;
+                ed_loop_flip = false;
               }
               else if (vf_1 > vf_best && vf_best > vf_2) {
-                ed_loop_flip = 1;
+                ed_loop_flip = true;
               }
               else {
                 /* not so simple to work out which edge is higher */
@@ -657,20 +657,20 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                 normalize_v3(tmp_vec2);
 
                 if (tmp_vec1[ltmd->axis] < tmp_vec2[ltmd->axis]) {
-                  ed_loop_flip = 1;
+                  ed_loop_flip = true;
                 }
                 else {
-                  ed_loop_flip = 0;
+                  ed_loop_flip = false;
                 }
               }
             }
             else if (SV_IS_VALID(vc_tmp->v[0])) { /* Vertex only connected on 1 side. */
               // printf("Verts on ONE side (%i %i)\n", vc_tmp->v[0], vc_tmp->v[1]);
               if (tmpf1[ltmd->axis] < vc_tmp->co[ltmd->axis]) { /* best is above */
-                ed_loop_flip = 1;
+                ed_loop_flip = true;
               }
               else { /* best is below or even... in even case we can't know what to do. */
-                ed_loop_flip = 0;
+                ed_loop_flip = false;
               }
             }
 #if 0

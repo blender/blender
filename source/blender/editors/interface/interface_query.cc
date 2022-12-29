@@ -815,7 +815,7 @@ ARegion *ui_screen_region_find_mouse_over(bScreen *screen, const wmEvent *event)
 /** \name Manage Internal State
  * \{ */
 
-void ui_interface_tag_script_reload_queries(void)
+void ui_interface_tag_script_reload_queries()
 {
   g_ot_tool_set_by_id = nullptr;
 }

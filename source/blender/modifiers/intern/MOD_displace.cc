@@ -78,7 +78,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool dependsOnTime(struct Scene * /*scene*/, ModifierData *md)
+static bool dependsOnTime(Scene * /*scene*/, ModifierData *md)
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 
@@ -108,7 +108,7 @@ static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void 
   walk(userData, ob, md, "texture");
 }
 
-static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
   return ((!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) || dmd->strength == 0.0f);
@@ -142,10 +142,10 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-typedef struct DisplaceUserdata {
+struct DisplaceUserdata {
   /*const*/ DisplaceModifierData *dmd;
-  struct Scene *scene;
-  struct ImagePool *pool;
+  Scene *scene;
+  ImagePool *pool;
   const MDeformVert *dvert;
   float weight;
   int defgrp_index;
@@ -158,7 +158,7 @@ typedef struct DisplaceUserdata {
   MVert *mvert;
   const float (*vert_normals)[3];
   float (*vert_clnors)[3];
-} DisplaceUserdata;
+};
 
 static void displaceModifier_do_task(void *__restrict userdata,
                                      const int iter,
@@ -381,7 +381,7 @@ static void deformVerts(ModifierData *md,
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          struct BMEditMesh *editData,
+                          BMEditMesh *editData,
                           Mesh *mesh,
                           float (*vertexCos)[3],
                           int verts_num)
@@ -444,7 +444,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemS(layout);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "direction", 0, 0, ICON_NONE);
+  uiItemR(col, ptr, "direction", 0, nullptr, ICON_NONE);
   if (ELEM(RNA_enum_get(ptr, "direction"),
            MOD_DISP_DIR_X,
            MOD_DISP_DIR_Y,

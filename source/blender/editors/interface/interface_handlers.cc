@@ -739,7 +739,7 @@ static void ui_color_snap_hue(const enum eSnapType snap, float *r_hue)
 
 static ListBase UIAfterFuncs = {nullptr, nullptr};
 
-static uiAfterFunc *ui_afterfunc_new(void)
+static uiAfterFunc *ui_afterfunc_new()
 {
   uiAfterFunc *after = MEM_cnew<uiAfterFunc>(__func__);
 
@@ -2795,7 +2795,7 @@ static void ui_but_copy(bContext *C, uiBut *but, const bool copy_array)
   }
 
   if (is_buf_set) {
-    WM_clipboard_text_set(buf, 0);
+    WM_clipboard_text_set(buf, false);
   }
 }
 
@@ -2864,7 +2864,7 @@ static void ui_but_paste(bContext *C, uiBut *but, uiHandleButtonData *data, cons
   MEM_freeN((void *)buf_paste);
 }
 
-void ui_but_clipboard_free(void)
+void ui_but_clipboard_free()
 {
   BKE_curvemapping_free_data(&but_copypaste_curve);
   BKE_curveprofile_free_data(&but_copypaste_profile);
@@ -3301,7 +3301,7 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
         MEM_mallocN(sizeof(char) * (sellen + 1), "ui_textedit_copypaste"));
 
     BLI_strncpy(buf, data->str + but->selsta, sellen + 1);
-    WM_clipboard_text_set(buf, 0);
+    WM_clipboard_text_set(buf, false);
     MEM_freeN(buf);
 
     /* for cut only, delete the selection afterwards */

@@ -42,7 +42,7 @@ Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mm
   BMIter viter;
   BMVert *v, *v_next;
 
-  BMeshCreateParams bmesh_create_params{0};
+  BMeshCreateParams bmesh_create_params{false};
 
   BMeshFromMeshParams bmesh_from_mesh_params{};
   bmesh_from_mesh_params.calc_face_normal = true;
@@ -89,7 +89,7 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
                                           const float dist)
 {
   BMeshCreateParams bmesh_create_params{};
-  bmesh_create_params.use_toolflags = 1;
+  bmesh_create_params.use_toolflags = true;
 
   BMeshFromMeshParams bmesh_from_mesh_params{};
   bmesh_from_mesh_params.calc_face_normal = true;

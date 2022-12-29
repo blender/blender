@@ -87,7 +87,7 @@ static void init(bNodeTree * /*ntree*/, bNode *node)
   iuser->flag |= IMA_ANIM_ALWAYS;
 }
 
-void register_node_type_tex_image(void)
+void register_node_type_tex_image()
 {
   static bNodeType ntype;
 

@@ -48,7 +48,6 @@
 
 #include "DRW_engine.h"
 
-#include "GPU_context.h"
 #include "WM_api.h"
 
 #include "pipeline.h"

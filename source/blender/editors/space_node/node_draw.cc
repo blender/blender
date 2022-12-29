@@ -810,23 +810,23 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
     id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_OB);
     return;
   }
-  else if (value_type.is<Material *>()) {
+  if (value_type.is<Material *>()) {
     id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_MA);
     return;
   }
-  else if (value_type.is<Tex *>()) {
+  if (value_type.is<Tex *>()) {
     id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_TE);
     return;
   }
-  else if (value_type.is<Image *>()) {
+  if (value_type.is<Image *>()) {
     id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_IM);
     return;
   }
-  else if (value_type.is<Collection *>()) {
+  if (value_type.is<Collection *>()) {
     id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_GR);
     return;
   }
-  else if (value_type.is<std::string>()) {
+  if (value_type.is<std::string>()) {
     ss << *static_cast<const std::string *>(buffer) << TIP_(" (String)");
     return;
   }
@@ -1738,7 +1738,7 @@ static std::optional<std::chrono::nanoseconds> node_get_execution_time(
   if (node.type == NODE_GROUP_OUTPUT) {
     return tree_log->run_time_sum;
   }
-  else if (node.is_frame()) {
+  if (node.is_frame()) {
     /* Could be cached in the future if this recursive code turns out to be slow. */
     std::chrono::nanoseconds run_time{0};
     bool found_node = false;

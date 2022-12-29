@@ -5,7 +5,7 @@
  * \ingroup edtransform
  */
 
-#include <float.h>
+#include <cfloat>
 
 #include "PIL_time.h"
 
@@ -398,7 +398,7 @@ static bool applyFaceProject(TransInfo *t, TransDataContainer *tc, TransData *td
                                                           nullptr,
                                                           mval_fl,
                                                           nullptr,
-                                                          0,
+                                                          nullptr,
                                                           loc,
                                                           no);
   if (hit != SCE_SNAP_MODE_FACE_RAYCAST) {
@@ -467,7 +467,7 @@ static void applyFaceNearest(TransInfo *t, TransDataContainer *tc, TransData *td
                                                           init_loc,
                                                           nullptr,
                                                           prev_loc,
-                                                          0,
+                                                          nullptr,
                                                           snap_loc,
                                                           snap_no);
 
@@ -1382,7 +1382,7 @@ bool peelObjectsTransform(TransInfo *t,
   snap_object_params.snap_target_select = t->tsnap.target_select;
   snap_object_params.edit_mode_type = (t->flag & T_EDIT) != 0 ? SNAP_GEOM_EDIT : SNAP_GEOM_FINAL;
 
-  ListBase depths_peel = {0};
+  ListBase depths_peel = {nullptr};
   ED_transform_snap_object_project_all_view3d_ex(t->tsnap.object_context,
                                                  t->depsgraph,
                                                  t->region,

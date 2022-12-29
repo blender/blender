@@ -984,7 +984,7 @@ const wmKeyMapItem *WM_modalkeymap_find_propvalue(const wmKeyMap *km, const int 
 
 void WM_modalkeymap_assign(wmKeyMap *km, const char *opname)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname, 0);
+  wmOperatorType *ot = WM_operatortype_find(opname, false);
 
   if (ot) {
     ot->modalkeymap = km;

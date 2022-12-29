@@ -7,7 +7,7 @@
 
 #include "NOD_texture.h"
 #include "node_texture_util.hh"
-#include <math.h>
+#include <cmath>
 
 static bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color1"), 1.0f, 0.0f, 0.0f, 1.0f},
@@ -50,7 +50,7 @@ static void exec(void *data,
   tex_output(node, execdata, in, out[0], &colorfn, static_cast<TexCallData *>(data));
 }
 
-void register_node_type_tex_checker(void)
+void register_node_type_tex_checker()
 {
   static bNodeType ntype;
 

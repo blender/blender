@@ -8,7 +8,7 @@
 #include "NOD_texture.h"
 #include "node_texture_util.hh"
 
-#include <math.h>
+#include <cmath>
 
 static bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Bricks 1"), 0.596f, 0.282f, 0.0f, 1.0f},
@@ -99,7 +99,7 @@ static void exec(void *data,
   tex_output(node, execdata, in, out[0], &colorfn, static_cast<TexCallData *>(data));
 }
 
-void register_node_type_tex_bricks(void)
+void register_node_type_tex_bricks()
 {
   static bNodeType ntype;
 

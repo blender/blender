@@ -500,7 +500,7 @@ static int get_levels_from_disps(Object *ob)
         continue;
       }
 
-      while (1) {
+      while (true) {
         int side = (1 << (totlvl - 1)) + 1;
         int lvl_totdisp = side * side;
         if (md->totdisp == lvl_totdisp) {
@@ -1079,7 +1079,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
                                        cddm,
                                        totlvl,
                                        false,
-                                       0,
+                                       false,
                                        mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
                                        has_mask,
                                        false,
@@ -1156,7 +1156,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
                                       cddm,
                                       mmd->totlvl,
                                       false,
-                                      0,
+                                      false,
                                       mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
                                       has_mask,
                                       false,

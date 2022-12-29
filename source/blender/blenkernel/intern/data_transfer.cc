@@ -1258,7 +1258,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   float *weights[DATAMAX] = {nullptr};
 
   MeshPairRemap geom_map[DATAMAX] = {{0}};
-  bool geom_map_init[DATAMAX] = {0};
+  bool geom_map_init[DATAMAX] = {false};
   ListBase lay_map = {nullptr};
   bool changed = false;
   bool is_modifier = false;
