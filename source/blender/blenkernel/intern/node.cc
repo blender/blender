@@ -118,7 +118,6 @@ static CLG_LogRef LOG = {"bke.node"};
 static void ntree_set_typeinfo(bNodeTree *ntree, bNodeTreeType *typeinfo);
 static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src, const int flag);
 static void free_localized_node_groups(bNodeTree *ntree);
-static void node_free_node(bNodeTree *ntree, bNode *node);
 static void node_socket_interface_free(bNodeTree * /*ntree*/,
                                        bNodeSocket *sock,
                                        const bool do_id_user);
@@ -243,7 +242,7 @@ static void ntree_free_data(ID *id)
   BLI_freelistN(&ntree->links);
 
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
-    node_free_node(ntree, node);
+    blender::bke::node_free_node(ntree, node);
   }
 
   /* free interface sockets */
@@ -2951,12 +2950,14 @@ void nodeRebuildIDVector(bNodeTree *node_tree)
   }
 }
 
+namespace blender::bke {
+
 /**
  * Free the node itself.
  *
  * \note: ID user refcounting and changing the `nodes_by_id` vector are up to the caller.
  */
-static void node_free_node(bNodeTree *ntree, bNode *node)
+void node_free_node(bNodeTree *ntree, bNode *node)
 {
   /* since it is called while free database, node->id is undefined */
 
@@ -3011,6 +3012,8 @@ static void node_free_node(bNodeTree *ntree, bNode *node)
   }
 }
 
+}  // namespace blender::bke
+
 void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node)
 {
   /* For removing nodes while editing localized node trees. */
@@ -3021,7 +3024,7 @@ void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node)
   nodeUnlinkNode(ntree, node);
   node_unlink_attached(ntree, node);
 
-  node_free_node(ntree, node);
+  blender::bke::node_free_node(ntree, node);
   nodeRebuildIDVector(ntree);
 }
 
@@ -3081,7 +3084,7 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
   node_unlink_attached(ntree, node);
 
   /* Free node itself. */
-  node_free_node(ntree, node);
+  blender::bke::node_free_node(ntree, node);
   nodeRebuildIDVector(ntree);
 }
 
@@ -3647,149 +3650,6 @@ void nodeInternalLinks(bNode *node, bNodeLink ***r_links, int *r_len)
 {
   *r_links = node->runtime->internal_links.data();
   *r_len = node->runtime->internal_links.size();
-}
-
-/* ************** Node Clipboard *********** */
-
-#define USE_NODE_CB_VALIDATE
-
-#ifdef USE_NODE_CB_VALIDATE
-/**
- * This data structure is to validate the node on creation,
- * otherwise we may reference missing data.
- *
- * Currently its only used for ID's, but nodes may one day
- * reference other pointers which need validation.
- */
-struct bNodeClipboardExtraInfo {
-  struct bNodeClipboardExtraInfo *next, *prev;
-  ID *id;
-  char id_name[MAX_ID_NAME];
-  char library_name[FILE_MAX];
-};
-#endif /* USE_NODE_CB_VALIDATE */
-
-struct bNodeClipboard {
-  ListBase nodes;
-
-#ifdef USE_NODE_CB_VALIDATE
-  ListBase nodes_extra_info;
-#endif
-
-  ListBase links;
-};
-
-static bNodeClipboard node_clipboard = {{nullptr}};
-
-void BKE_node_clipboard_clear()
-{
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &node_clipboard.links) {
-    nodeRemLink(nullptr, link);
-  }
-  BLI_listbase_clear(&node_clipboard.links);
-
-  LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_clipboard.nodes) {
-    node_free_node(nullptr, node);
-  }
-  BLI_listbase_clear(&node_clipboard.nodes);
-
-#ifdef USE_NODE_CB_VALIDATE
-  BLI_freelistN(&node_clipboard.nodes_extra_info);
-#endif
-}
-
-bool BKE_node_clipboard_validate()
-{
-  bool ok = true;
-
-#ifdef USE_NODE_CB_VALIDATE
-  bNodeClipboardExtraInfo *node_info;
-  bNode *node;
-
-  /* lists must be aligned */
-  BLI_assert(BLI_listbase_count(&node_clipboard.nodes) ==
-             BLI_listbase_count(&node_clipboard.nodes_extra_info));
-
-  for (node = (bNode *)node_clipboard.nodes.first,
-      node_info = (bNodeClipboardExtraInfo *)node_clipboard.nodes_extra_info.first;
-       node;
-       node = (bNode *)node->next, node_info = (bNodeClipboardExtraInfo *)node_info->next) {
-    /* validate the node against the stored node info */
-
-    /* re-assign each loop since we may clear,
-     * open a new file where the ID is valid, and paste again */
-    node->id = node_info->id;
-
-    /* currently only validate the ID */
-    if (node->id) {
-      /* We want to search into current blend file, so using G_MAIN is valid here too. */
-      ListBase *lb = which_libbase(G_MAIN, GS(node_info->id_name));
-      BLI_assert(lb != nullptr);
-
-      if (BLI_findindex(lb, node_info->id) == -1) {
-        /* May assign null. */
-        node->id = (ID *)BLI_findstring(lb, node_info->id_name + 2, offsetof(ID, name) + 2);
-
-        if (node->id == nullptr) {
-          ok = false;
-        }
-      }
-    }
-  }
-#endif /* USE_NODE_CB_VALIDATE */
-
-  return ok;
-}
-
-void BKE_node_clipboard_add_node(bNode *node)
-{
-#ifdef USE_NODE_CB_VALIDATE
-  /* add extra info */
-  bNodeClipboardExtraInfo *node_info = (bNodeClipboardExtraInfo *)MEM_mallocN(
-      sizeof(bNodeClipboardExtraInfo), __func__);
-
-  node_info->id = node->id;
-  if (node->id) {
-    BLI_strncpy(node_info->id_name, node->id->name, sizeof(node_info->id_name));
-    if (ID_IS_LINKED(node->id)) {
-      BLI_strncpy(
-          node_info->library_name, node->id->lib->filepath_abs, sizeof(node_info->library_name));
-    }
-    else {
-      node_info->library_name[0] = '\0';
-    }
-  }
-  else {
-    node_info->id_name[0] = '\0';
-    node_info->library_name[0] = '\0';
-  }
-  BLI_addtail(&node_clipboard.nodes_extra_info, node_info);
-  /* end extra info */
-#endif /* USE_NODE_CB_VALIDATE */
-
-  /* add node */
-  BLI_addtail(&node_clipboard.nodes, node);
-}
-
-void BKE_node_clipboard_add_link(bNodeLink *link)
-{
-  BLI_addtail(&node_clipboard.links, link);
-}
-
-const ListBase *BKE_node_clipboard_get_nodes()
-{
-  return &node_clipboard.nodes;
-}
-
-const ListBase *BKE_node_clipboard_get_links()
-{
-  return &node_clipboard.links;
-}
-
-void BKE_node_clipboard_free()
-{
-  BKE_node_clipboard_validate();
-  BKE_node_clipboard_clear();
 }
 
 /* Node Instance Hash */

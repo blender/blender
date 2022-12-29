@@ -537,7 +537,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   BKE_tracking_clipboard_free();
   BKE_mask_clipboard_free();
   BKE_vfont_clipboard_free();
-  BKE_node_clipboard_free();
+  ED_node_clipboard_free();
   UV_clipboard_free();
 
 #ifdef WITH_COMPOSITOR_CPU

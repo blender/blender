@@ -42,6 +42,10 @@ ENUM_OPERATORS(NodeBorder, NODE_RIGHT)
 #define NODE_EDGE_PAN_DELAY 0.5f
 #define NODE_EDGE_PAN_ZOOM_INFLUENCE 0.5f
 
+/* clipboard.cc */
+
+void ED_node_clipboard_free(void);
+
 /* space_node.cc */
 
 void ED_node_cursor_location_get(const struct SpaceNode *snode, float value[2]);
