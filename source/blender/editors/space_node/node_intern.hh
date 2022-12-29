@@ -43,7 +43,7 @@ struct AssetItemTree;
 /** Temporary data used in node link drag modal operator. */
 struct bNodeLinkDrag {
   /** Links dragged by the operator. */
-  Vector<bNodeLink *> links;
+  Vector<bNodeLink> links;
   eNodeSocketInOut in_out;
 
   /** Draw handler for the "+" icon when dragging a link in empty space. */

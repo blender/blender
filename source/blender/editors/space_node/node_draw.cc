@@ -2645,9 +2645,9 @@ static void count_multi_input_socket_links(bNodeTree &ntree, SpaceNode &snode)
   }
   /* Count temporary links going into this socket. */
   if (snode.runtime->linkdrag) {
-    for (const bNodeLink *link : snode.runtime->linkdrag->links) {
-      if (link->tosock && (link->tosock->flag & SOCK_MULTI_INPUT)) {
-        int &count = counts.lookup_or_add(link->tosock, 0);
+    for (const bNodeLink &link : snode.runtime->linkdrag->links) {
+      if (link.tosock && (link.tosock->flag & SOCK_MULTI_INPUT)) {
+        int &count = counts.lookup_or_add(link.tosock, 0);
         count++;
       }
     }
@@ -3277,8 +3277,8 @@ void node_draw_space(const bContext &C, ARegion &region)
     GPU_blend(GPU_BLEND_ALPHA);
     GPU_line_smooth(true);
     if (snode.runtime->linkdrag) {
-      for (const bNodeLink *link : snode.runtime->linkdrag->links) {
-        node_draw_link_dragged(C, v2d, snode, *link);
+      for (const bNodeLink &link : snode.runtime->linkdrag->links) {
+        node_draw_link_dragged(C, v2d, snode, link);
       }
     }
     GPU_line_smooth(false);
