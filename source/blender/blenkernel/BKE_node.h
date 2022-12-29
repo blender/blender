@@ -843,7 +843,6 @@ struct bNode *nodeGetActivePaintCanvas(struct bNodeTree *ntree);
  */
 bool nodeSupportsActiveFlag(const struct bNode *node, int sub_active);
 
-int nodeSocketIsHidden(const struct bNodeSocket *sock);
 void nodeSetSocketAvailability(struct bNodeTree *ntree,
                                struct bNodeSocket *sock,
                                bool is_available);

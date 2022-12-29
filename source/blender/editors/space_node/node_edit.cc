@@ -1236,7 +1236,7 @@ bool node_find_indicated_socket(SpaceNode &snode,
 
     if (in_out & SOCK_IN) {
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        if (!nodeSocketIsHidden(sock)) {
+        if (sock->is_visible()) {
           const float2 location(sock->runtime->locx, sock->runtime->locy);
           if (sock->flag & SOCK_MULTI_INPUT && !(node->flag & NODE_HIDDEN)) {
             if (cursor_isect_multi_input_socket(cursor, *sock)) {
@@ -1259,7 +1259,7 @@ bool node_find_indicated_socket(SpaceNode &snode,
     }
     if (in_out & SOCK_OUT) {
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-        if (!nodeSocketIsHidden(sock)) {
+        if (sock->is_visible()) {
           const float2 location(sock->runtime->locx, sock->runtime->locy);
           if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
             if (!socket_is_occluded(location, *node, snode)) {

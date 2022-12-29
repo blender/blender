@@ -1987,7 +1987,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       /* add ntree->inputs/ntree->outputs sockets for all unlinked sockets in the group tree. */
       for (node = ntree->nodes.first; node; node = node->next) {
         for (sock = node->inputs.first; sock; sock = sock->next) {
-          if (!sock->link && !nodeSocketIsHidden(sock)) {
+          if (!sock->link && !((sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0)) {
 
             gsock = do_versions_node_group_add_socket_2_56_2(
                 ntree, sock->name, sock->type, SOCK_IN);
@@ -2012,7 +2012,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
           }
         }
         for (sock = node->outputs.first; sock; sock = sock->next) {
-          if (nodeCountSocketLinks(ntree, sock) == 0 && !nodeSocketIsHidden(sock)) {
+          if (nodeCountSocketLinks(ntree, sock) == 0 &&
+              !((sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0)) {
             gsock = do_versions_node_group_add_socket_2_56_2(
                 ntree, sock->name, sock->type, SOCK_OUT);
 

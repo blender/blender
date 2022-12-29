@@ -311,7 +311,7 @@ static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree,
   /* Wrap around the list end. */
   bNodeSocket *socket_iter = to_socket->next ? to_socket->next : first;
   while (socket_iter != to_socket) {
-    if (!nodeSocketIsHidden(socket_iter) && node_link_socket_match(socket_iter, to_socket)) {
+    if (socket_iter->is_visible() && node_link_socket_match(socket_iter, to_socket)) {
       const int link_count = node_count_links(ntree, socket_iter);
       /* Add one to account for the new link being added. */
       if (link_count + 1 <= nodeSocketLinkLimit(socket_iter)) {

@@ -2443,7 +2443,7 @@ void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 
 bool nodeLinkIsHidden(const bNodeLink *link)
 {
-  return nodeSocketIsHidden(link->fromsock) || nodeSocketIsHidden(link->tosock);
+  return !(link->fromsock->is_visible() && link->tosock->is_visible());
 }
 
 bool nodeLinkIsSelected(const bNodeLink *link)
@@ -3555,10 +3555,7 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
   node->flag |= flags_to_set;
 }
 
-int nodeSocketIsHidden(const bNodeSocket *sock)
-{
-  return ((sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0);
-}
+
 
 void nodeSetSocketAvailability(bNodeTree *ntree, bNodeSocket *sock, bool is_available)
 {

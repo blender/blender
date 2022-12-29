@@ -680,6 +680,11 @@ inline bool bNodeSocket::is_available() const
   return (this->flag & SOCK_UNAVAIL) == 0;
 }
 
+inline bool bNodeSocket::is_visible() const
+{
+  return !this->is_hidden() && this->is_available();
+}
+
 inline bNode &bNodeSocket::owner_node()
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));

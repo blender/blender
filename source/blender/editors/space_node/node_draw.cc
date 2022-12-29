@@ -351,7 +351,7 @@ static void node_update_basis(const bContext &C,
 
   int buty;
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
-    if (nodeSocketIsHidden(socket)) {
+    if (!socket->is_visible()) {
       continue;
     }
 
@@ -474,7 +474,7 @@ static void node_update_basis(const bContext &C,
 
   /* Input sockets. */
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
-    if (nodeSocketIsHidden(socket)) {
+    if (!socket->is_visible()) {
       continue;
     }
 
@@ -567,12 +567,12 @@ static void node_update_hidden(bNode &node, uiBlock &block)
 
   /* Calculate minimal radius. */
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
-    if (!nodeSocketIsHidden(socket)) {
+    if (socket->is_visible()) {
       totin++;
     }
   }
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
-    if (!nodeSocketIsHidden(socket)) {
+    if (socket->is_visible()) {
       totout++;
     }
   }
@@ -593,7 +593,7 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   float drad = rad;
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
-    if (!nodeSocketIsHidden(socket)) {
+    if (socket->is_visible()) {
       /* Round the socket location to stop it from jiggling. */
       socket->runtime->locx = round(node.runtime->totr.xmax - hiddenrad + sinf(rad) * hiddenrad);
       socket->runtime->locy = round(node.runtime->totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
@@ -605,7 +605,7 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   rad = drad = -float(M_PI) / (1.0f + float(totin));
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
-    if (!nodeSocketIsHidden(socket)) {
+    if (socket->is_visible()) {
       /* Round the socket location to stop it from jiggling. */
       socket->runtime->locx = round(node.runtime->totr.xmin + hiddenrad + sinf(rad) * hiddenrad);
       socket->runtime->locy = round(node.runtime->totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
@@ -1429,7 +1429,7 @@ static void node_draw_sockets(const View2D &v2d,
   /* Socket inputs. */
   short selected_input_len = 0;
   LISTBASE_FOREACH (bNodeSocket *, sock, &node.inputs) {
-    if (nodeSocketIsHidden(sock)) {
+    if (!sock->is_visible()) {
       continue;
     }
     if (select_all || (sock->flag & SELECT)) {
@@ -1462,7 +1462,7 @@ static void node_draw_sockets(const View2D &v2d,
   short selected_output_len = 0;
   if (draw_outputs) {
     LISTBASE_FOREACH (bNodeSocket *, sock, &node.outputs) {
-      if (nodeSocketIsHidden(sock)) {
+      if (!sock->is_visible()) {
         continue;
       }
       if (select_all || (sock->flag & SELECT)) {
@@ -1500,7 +1500,7 @@ static void node_draw_sockets(const View2D &v2d,
     if (selected_input_len) {
       /* Socket inputs. */
       LISTBASE_FOREACH (bNodeSocket *, sock, &node.inputs) {
-        if (nodeSocketIsHidden(sock)) {
+        if (!sock->is_visible()) {
           continue;
         }
         /* Don't draw multi-input sockets here since they are drawn in a different batch. */
@@ -1530,7 +1530,7 @@ static void node_draw_sockets(const View2D &v2d,
     if (selected_output_len) {
       /* Socket outputs. */
       LISTBASE_FOREACH (bNodeSocket *, sock, &node.outputs) {
-        if (nodeSocketIsHidden(sock)) {
+        if (!sock->is_visible()) {
           continue;
         }
         if (select_all || (sock->flag & SELECT)) {
@@ -1564,7 +1564,7 @@ static void node_draw_sockets(const View2D &v2d,
   /* Draw multi-input sockets after the others because they are drawn with `UI_draw_roundbox`
    * rather than with `GL_POINT`. */
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
-    if (nodeSocketIsHidden(socket)) {
+    if (!socket->is_visible()) {
       continue;
     }
     if (!(socket->flag & SOCK_MULTI_INPUT)) {
