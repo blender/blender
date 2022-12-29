@@ -66,6 +66,8 @@
 
 namespace blender {
 
+template<typename T> uint64_t get_default_hash(const T &v);
+
 /**
  * References an array of type T that is owned by someone else. The data in the array cannot be
  * modified.
@@ -416,6 +418,15 @@ template<typename T> class Span {
   constexpr IndexRange index_range() const
   {
     return IndexRange(size_);
+  }
+
+  constexpr uint64_t hash() const
+  {
+    uint64_t hash = 0;
+    for (const T &value : *this) {
+      hash = hash * 33 ^ get_default_hash(value);
+    }
+    return hash;
   }
 
   /**
