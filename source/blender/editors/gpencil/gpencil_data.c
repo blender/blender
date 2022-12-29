@@ -252,13 +252,11 @@ static int gpencil_layer_add_exec(bContext *C, wmOperator *op)
 }
 static int gpencil_layer_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  int tmp = create_new_layer_dialog(C, op);
+  const int tmp = ED_gpencil_new_layer_dialog(C, op);
   if (tmp != 0) {
     return tmp;
   }
-  else {
-    return gpencil_layer_add_exec(C, op);
-  }
+  return gpencil_layer_add_exec(C, op);
 }
 void GPENCIL_OT_layer_add(wmOperatorType *ot)
 {

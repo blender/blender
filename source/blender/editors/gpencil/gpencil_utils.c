@@ -3356,7 +3356,7 @@ void ED_gpencil_layer_merge(bGPdata *gpd,
   }
 }
 
-void layer_new_name_get(bGPdata *gpd, char *rname)
+void gpencil_layer_new_name_get(bGPdata *gpd, char *rname)
 {
   int index = 0;
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
@@ -3374,7 +3374,7 @@ void layer_new_name_get(bGPdata *gpd, char *rname)
   MEM_freeN(name);
 }
 
-int create_new_layer_dialog(bContext *C, wmOperator *op)
+int ED_gpencil_new_layer_dialog(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   PropertyRNA *prop;
@@ -3383,7 +3383,7 @@ int create_new_layer_dialog(bContext *C, wmOperator *op)
     if (!RNA_property_is_set(op->ptr, prop)) {
       char name[MAX_NAME];
       bGPdata *gpd = ob->data;
-      layer_new_name_get(gpd, name);
+      gpencil_layer_new_name_get(gpd, name);
       RNA_property_string_set(op->ptr, prop, name);
       return WM_operator_props_dialog_popup(C, op, 200);
     }
