@@ -762,8 +762,10 @@ class Executor {
           input_state.was_ready_for_execution = true;
           continue;
         }
-        if (input_state.usage == ValueUsage::Used) {
-          return;
+        if (!fn.allow_missing_requested_inputs()) {
+          if (input_state.usage == ValueUsage::Used) {
+            return;
+          }
         }
       }
 
@@ -1031,7 +1033,10 @@ class Executor {
 
     if (input_state.usage == ValueUsage::Used) {
       node_state.missing_required_inputs -= 1;
-      if (node_state.missing_required_inputs == 0) {
+      if (node_state.missing_required_inputs == 0 ||
+          (locked_node.node.is_function() && static_cast<const FunctionNode &>(locked_node.node)
+                                                 .function()
+                                                 .allow_missing_requested_inputs())) {
         this->schedule_node(locked_node, current_task);
       }
     }
@@ -1248,6 +1253,9 @@ GraphExecutor::GraphExecutor(const Graph &graph,
       logger_(logger),
       side_effect_provider_(side_effect_provider)
 {
+  /* The graph executor can handle partial execution when there are still missing inputs. */
+  allow_missing_requested_inputs_ = true;
+
   for (const OutputSocket *socket : graph_inputs_) {
     BLI_assert(socket->node().is_dummy());
     inputs_.append({"In", socket->type(), ValueUsage::Maybe});
