@@ -17,13 +17,13 @@ void build_node_declaration(const bNodeType &typeinfo, NodeDeclaration &r_declar
 void NodeDeclarationBuilder::finalize()
 {
   if (is_function_node_) {
-    for (SocketDeclarationPtr &socket_decl : declaration_.inputs_) {
-      if (socket_decl->input_field_type_ != InputSocketFieldType::Implicit) {
-        socket_decl->input_field_type_ = InputSocketFieldType::IsSupported;
+    for (SocketDeclarationPtr &socket_decl : declaration_.inputs) {
+      if (socket_decl->input_field_type != InputSocketFieldType::Implicit) {
+        socket_decl->input_field_type = InputSocketFieldType::IsSupported;
       }
     }
-    for (SocketDeclarationPtr &socket_decl : declaration_.outputs_) {
-      socket_decl->output_field_dependency_ = OutputFieldDependency::ForDependentField();
+    for (SocketDeclarationPtr &socket_decl : declaration_.outputs) {
+      socket_decl->output_field_dependency = OutputFieldDependency::ForDependentField();
     }
   }
 }
@@ -45,10 +45,10 @@ bool NodeDeclaration::matches(const bNode &node) const
     return true;
   };
 
-  if (!check_sockets(node.inputs, inputs_)) {
+  if (!check_sockets(node.inputs, inputs)) {
     return false;
   }
-  if (!check_sockets(node.outputs, outputs_)) {
+  if (!check_sockets(node.outputs, outputs)) {
     return false;
   }
   return true;
@@ -66,38 +66,38 @@ bNodeSocket &SocketDeclaration::update_or_build(bNodeTree &ntree,
 
 void SocketDeclaration::set_common_flags(bNodeSocket &socket) const
 {
-  SET_FLAG_FROM_TEST(socket.flag, compact_, SOCK_COMPACT);
-  SET_FLAG_FROM_TEST(socket.flag, hide_value_, SOCK_HIDE_VALUE);
-  SET_FLAG_FROM_TEST(socket.flag, hide_label_, SOCK_HIDE_LABEL);
-  SET_FLAG_FROM_TEST(socket.flag, is_multi_input_, SOCK_MULTI_INPUT);
-  SET_FLAG_FROM_TEST(socket.flag, no_mute_links_, SOCK_NO_INTERNAL_LINK);
-  SET_FLAG_FROM_TEST(socket.flag, is_unavailable_, SOCK_UNAVAIL);
+  SET_FLAG_FROM_TEST(socket.flag, compact, SOCK_COMPACT);
+  SET_FLAG_FROM_TEST(socket.flag, hide_value, SOCK_HIDE_VALUE);
+  SET_FLAG_FROM_TEST(socket.flag, hide_label, SOCK_HIDE_LABEL);
+  SET_FLAG_FROM_TEST(socket.flag, is_multi_input, SOCK_MULTI_INPUT);
+  SET_FLAG_FROM_TEST(socket.flag, no_mute_links, SOCK_NO_INTERNAL_LINK);
+  SET_FLAG_FROM_TEST(socket.flag, is_unavailable, SOCK_UNAVAIL);
 }
 
 bool SocketDeclaration::matches_common_data(const bNodeSocket &socket) const
 {
-  if (socket.name != name_) {
+  if (socket.name != this->name) {
     return false;
   }
-  if (socket.identifier != identifier_) {
+  if (socket.identifier != this->identifier) {
     return false;
   }
-  if (((socket.flag & SOCK_COMPACT) != 0) != compact_) {
+  if (((socket.flag & SOCK_COMPACT) != 0) != this->compact) {
     return false;
   }
-  if (((socket.flag & SOCK_HIDE_VALUE) != 0) != hide_value_) {
+  if (((socket.flag & SOCK_HIDE_VALUE) != 0) != this->hide_value) {
     return false;
   }
-  if (((socket.flag & SOCK_HIDE_LABEL) != 0) != hide_label_) {
+  if (((socket.flag & SOCK_HIDE_LABEL) != 0) != this->hide_label) {
     return false;
   }
-  if (((socket.flag & SOCK_MULTI_INPUT) != 0) != is_multi_input_) {
+  if (((socket.flag & SOCK_MULTI_INPUT) != 0) != this->is_multi_input) {
     return false;
   }
-  if (((socket.flag & SOCK_NO_INTERNAL_LINK) != 0) != no_mute_links_) {
+  if (((socket.flag & SOCK_NO_INTERNAL_LINK) != 0) != this->no_mute_links) {
     return false;
   }
-  if (((socket.flag & SOCK_UNAVAIL) != 0) != is_unavailable_) {
+  if (((socket.flag & SOCK_UNAVAIL) != 0) != this->is_unavailable) {
     return false;
   }
   return true;

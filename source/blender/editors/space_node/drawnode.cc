@@ -1276,7 +1276,7 @@ static bool socket_needs_attribute_search(bNode &node, bNodeSocket &socket)
     return false;
   }
   const int socket_index = BLI_findindex(&node.inputs, &socket);
-  return node.runtime->declaration->inputs()[socket_index]->is_attribute_name();
+  return node.declaration()->inputs[socket_index]->is_attribute_name;
 }
 
 static void std_node_socket_draw(

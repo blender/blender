@@ -55,8 +55,8 @@ static InputSocketFieldType get_interface_input_field_type(const bNode &node,
   BLI_assert(node_decl != nullptr);
 
   /* Get the field type from the declaration. */
-  const SocketDeclaration &socket_decl = *node_decl->inputs()[socket.index()];
-  const InputSocketFieldType field_type = socket_decl.input_field_type();
+  const SocketDeclaration &socket_decl = *node_decl->inputs[socket.index()];
+  const InputSocketFieldType field_type = socket_decl.input_field_type;
   return field_type;
 }
 
@@ -88,8 +88,8 @@ static OutputFieldDependency get_interface_output_field_dependency(const bNode &
   BLI_assert(node_decl != nullptr);
 
   /* Use the socket declaration. */
-  const SocketDeclaration &socket_decl = *node_decl->outputs()[socket.index()];
-  return socket_decl.output_field_dependency();
+  const SocketDeclaration &socket_decl = *node_decl->outputs[socket.index()];
+  return socket_decl.output_field_dependency;
 }
 
 static const FieldInferencingInterface &get_dummy_field_inferencing_interface(const bNode &node,

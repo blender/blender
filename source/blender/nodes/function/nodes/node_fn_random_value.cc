@@ -123,7 +123,7 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
         params.update_and_connect_available_socket(node, "Max");
       });
     }
-    search_link_ops_for_declarations(params, declaration.inputs().take_back(3));
+    search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(3));
   }
   else {
     params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {

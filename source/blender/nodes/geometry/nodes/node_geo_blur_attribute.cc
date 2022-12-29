@@ -77,7 +77,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs().take_back(2));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(2));
 
   const bNodeType &node_type = params.node_type();
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(

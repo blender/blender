@@ -991,7 +991,7 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
 
   /* If the geometry declaration is null, as is the case for input to group output,
    * or it is an output socket don't show supported types. */
-  if (socket_decl == nullptr || socket_decl->in_out() == SOCK_OUT) {
+  if (socket_decl == nullptr || socket_decl->in_out == SOCK_OUT) {
     return;
   }
 
@@ -1078,7 +1078,7 @@ static bool node_socket_has_tooltip(const bNodeTree &ntree, const bNodeSocket &s
 
   if (socket.runtime->declaration != nullptr) {
     const nodes::SocketDeclaration &socket_decl = *socket.runtime->declaration;
-    return !socket_decl.description().is_empty();
+    return !socket_decl.description.empty();
   }
 
   return false;
@@ -1100,7 +1100,7 @@ static char *node_socket_get_tooltip(const bContext *C,
   std::stringstream output;
   if (socket->runtime->declaration != nullptr) {
     const blender::nodes::SocketDeclaration &socket_decl = *socket->runtime->declaration;
-    blender::StringRef description = socket_decl.description();
+    blender::StringRef description = socket_decl.description;
     if (!description.is_empty()) {
       output << TIP_(description.data());
     }

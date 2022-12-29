@@ -92,8 +92,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
 
-  search_link_ops_for_declarations(params, declaration.outputs());
-  search_link_ops_for_declarations(params, declaration.inputs().take_front(1));
+  search_link_ops_for_declarations(params, declaration.outputs);
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
 
   if (params.in_out() == SOCK_IN) {
     if (params.node_tree().typeinfo->validate_link(eNodeSocketDatatype(params.other_socket().type),

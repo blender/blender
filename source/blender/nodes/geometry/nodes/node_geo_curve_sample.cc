@@ -113,8 +113,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs().take_front(4));
-  search_link_ops_for_declarations(params, declaration.outputs().take_front(3));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(4));
+  search_link_ops_for_declarations(params, declaration.outputs.as_span().take_front(3));
 
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       eNodeSocketDatatype(params.other_socket().type));

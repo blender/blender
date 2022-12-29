@@ -2065,15 +2065,15 @@ bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_
   nodeDeclarationEnsure(&ntree, &node);
   const nodes::NodeDeclaration *node_decl = node.declaration();
   if (node_decl != nullptr) {
-    Span<nodes::SocketDeclarationPtr> socket_decls = (in_out == SOCK_IN) ? node_decl->inputs() :
-                                                                           node_decl->outputs();
+    Span<nodes::SocketDeclarationPtr> socket_decls = (in_out == SOCK_IN) ? node_decl->inputs :
+                                                                           node_decl->outputs;
     int index;
     LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, index) {
       const nodes::SocketDeclaration &socket_decl = *socket_decls[index];
       if (!socket->is_visible()) {
         continue;
       }
-      if (socket_decl.is_default_link_socket()) {
+      if (socket_decl.is_default_link_socket) {
         return socket;
       }
     }

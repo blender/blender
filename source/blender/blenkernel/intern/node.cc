@@ -3599,8 +3599,8 @@ static void update_socket_declarations(ListBase *sockets,
 void nodeSocketDeclarationsUpdate(bNode *node)
 {
   BLI_assert(node->runtime->declaration != nullptr);
-  update_socket_declarations(&node->inputs, node->runtime->declaration->inputs());
-  update_socket_declarations(&node->outputs, node->runtime->declaration->outputs());
+  update_socket_declarations(&node->inputs, node->runtime->declaration->inputs);
+  update_socket_declarations(&node->outputs, node->runtime->declaration->outputs);
 }
 
 bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree * /*ntree*/, bNode *node)

@@ -306,7 +306,7 @@ inline VectorBuilder &VectorBuilder::max(const float max)
 
 inline VectorBuilder &VectorBuilder::compact()
 {
-  decl_->compact_ = true;
+  decl_->compact = true;
   return *this;
 }
 
