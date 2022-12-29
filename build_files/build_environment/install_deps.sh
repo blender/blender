@@ -523,8 +523,8 @@ LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
-OSL_VERSION="1.12.6.2"
-OSL_VERSION_SHORT="1.12"
+OSL_VERSION="1.13.0.2"
+OSL_VERSION_SHORT="1.13"
 OSL_VERSION_MIN="1.11"
 OSL_VERSION_MEX="2.0"
 OSL_FORCE_BUILD=false
@@ -560,8 +560,8 @@ ALEMBIC_FORCE_BUILD=false
 ALEMBIC_FORCE_REBUILD=false
 ALEMBIC_SKIP=false
 
-USD_VERSION="22.03"
-USD_VERSION_SHORT="22.03"
+USD_VERSION="22.11"
+USD_VERSION_SHORT="22.11"
 USD_VERSION_MIN="20.05"
 USD_VERSION_MEX="23.00"
 USD_FORCE_BUILD=false
@@ -1138,17 +1138,11 @@ _LLVM_SOURCE_ROOT="https://github.com/llvm/llvm-project/releases/download/llvmor
 LLVM_SOURCE=( "$_LLVM_SOURCE_ROOT/llvm-$LLVM_VERSION.src.tar.xz" )
 LLVM_CLANG_SOURCE=( "$_LLVM_SOURCE_ROOT/clang-$LLVM_VERSION.src.tar.xz" "$_LLVM_SOURCE_ROOT/cfe-$LLVM_VERSION.src.tar.xz" )
 
-OSL_USE_REPO=false
+OSL_USE_REPO=true
 OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage/archive/v$OSL_VERSION.tar.gz" )
-#~ OSL_SOURCE_REPO=( "https://github.com/imageworks/OpenShadingLanguage.git" )
-#~ OSL_SOURCE_REPO_BRANCH="master"
-#~ OSL_SOURCE_REPO_UID="85179714e1bc69cd25ecb6bb711c1a156685d395"
-#~ OSL_SOURCE=( "https://github.com/Nazg-Gul/OpenShadingLanguage/archive/Release-1.5.11.tar.gz" )
-#~ OSL_SOURCE_REPO=( "https://github.com/mont29/OpenShadingLanguage.git" )
-#~ OSL_SOURCE_REPO_UID="85179714e1bc69cd25ecb6bb711c1a156685d395"
-#~ OSL_SOURCE_REPO=( "https://github.com/Nazg-Gul/OpenShadingLanguage.git" )
-#~ OSL_SOURCE_REPO_UID="7d40ff5fe8e47b030042afb92d0e955f5aa96f48"
-#~ OSL_SOURCE_REPO_BRANCH="blender-fixes"
+OSL_SOURCE_REPO=( "https://github.com/AcademySoftwareFoundation/OpenShadingLanguage.git" )
+OSL_SOURCE_REPO_BRANCH="main"
+OSL_SOURCE_REPO_UID="1a7670600c8b08c2443a78d03c8c27e9a1149140"
 
 OSD_USE_REPO=false
 # Script foo to make the version string compliant with the archive name:
