@@ -230,7 +230,7 @@ class GeoNodeLog {
   /** Warnings generated for that node. */
   Vector<NodeWarning> warnings;
   /**
-   * Time spend in that node. For node groups this is the sum of the run times of the nodes
+   * Time spent in this node. For node groups this is the sum of the run times of the nodes
    * inside.
    */
   std::chrono::nanoseconds run_time{0};
