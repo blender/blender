@@ -40,7 +40,6 @@
 
 #include "MEM_guardedalloc.h"
 
-
 void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *ctx)
 {
   Tex *tex = dmd->texture;

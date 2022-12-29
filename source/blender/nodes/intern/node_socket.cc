@@ -482,7 +482,6 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
   to->flag |= (from->flag & SOCK_HIDE_VALUE);
 }
 
-
 static void standard_node_socket_interface_init_socket(bNodeTree * /*ntree*/,
                                                        const bNodeSocket *interface_socket,
                                                        bNode * /*node*/,

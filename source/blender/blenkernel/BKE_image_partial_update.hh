@@ -29,7 +29,6 @@ struct PartialUpdateUser;
 
 namespace blender::bke::image {
 
-
 namespace partial_update {
 
 /* --- image_partial_update.cc --- */

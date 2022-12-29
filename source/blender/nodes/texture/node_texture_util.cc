@@ -23,7 +23,9 @@
 
 #include "node_texture_util.hh"
 
-bool tex_node_poll_default(const bNodeType * /*ntype*/, const bNodeTree *ntree, const char **r_disabled_hint)
+bool tex_node_poll_default(const bNodeType * /*ntype*/,
+                           const bNodeTree *ntree,
+                           const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "TextureNodeTree")) {
     *r_disabled_hint = TIP_("Not a texture node tree");

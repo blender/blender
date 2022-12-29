@@ -30,6 +30,7 @@ def cube_mask_first_modifier_list():
     ]
     return generate_modifiers
 
+
 def cube_random_modifier_list():
     generate_modifiers = [
         ModifierSpec('edge split', 'EDGE_SPLIT', {}),
@@ -45,6 +46,7 @@ def cube_random_modifier_list():
         ModifierSpec('triangulate', 'TRIANGULATE', {}),
     ]
     return generate_modifiers
+
 
 def main():
 

@@ -293,7 +293,7 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
    * Note: A second push happens after the operator due to
    * the OPTYPE_UNDO flag; having an initial undo step here
    * is just needed to preserve the active object pointer.
-   * 
+   *
    * Fixes T103261.
    */
   ED_undo_push_op(C, op);

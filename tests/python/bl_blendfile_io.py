@@ -65,7 +65,7 @@ class TestIdRuntimeTag(TestHelper):
 
         obj = bpy.data.objects['Cube']
         assert obj.is_runtime_data == False
-        assert bpy.context.view_layer.depsgraph.ids['Cube'].is_runtime_data == True
+        assert bpy.context.view_layer.depsgraph.ids['Cube'].is_runtime_data
 
         output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile"))
         bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
@@ -75,7 +75,7 @@ class TestIdRuntimeTag(TestHelper):
         assert obj.is_runtime_data == False
 
         obj.is_runtime_data = True
-        assert obj.is_runtime_data == True
+        assert obj.is_runtime_data
 
         bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
         bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
@@ -116,7 +116,7 @@ class TestIdRuntimeTag(TestHelper):
 
         # Only usage of this linked material is a runtime ID (object),
         # so writing .blend file will have properly reset its tag to indirectly linked data.
-        assert linked_material.is_library_indirect == True
+        assert linked_material.is_library_indirect
 
         bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
 
