@@ -180,7 +180,7 @@ class GeoTreeLogger {
   };
   struct SocketValueLog {
     int32_t node_id;
-    StringRefNull socket_identifier;
+    int socket_index;
     destruct_ptr<ValueLog> value;
   };
   struct NodeExecutionTime {
@@ -234,9 +234,9 @@ class GeoNodeLog {
    * inside.
    */
   std::chrono::nanoseconds run_time{0};
-  /** Maps from socket identifiers to their values. */
-  Map<StringRefNull, ValueLog *> input_values_;
-  Map<StringRefNull, ValueLog *> output_values_;
+  /** Maps from socket indices to their values. */
+  Map<int, ValueLog *> input_values_;
+  Map<int, ValueLog *> output_values_;
   /** Maps from attribute name to their usage flags. */
   Map<StringRefNull, NamedAttributeUsage> used_named_attributes;
   /** Messages that are used for debugging purposes during development. */

@@ -151,8 +151,7 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
   auto store_logged_value = [&](destruct_ptr<ValueLog> value_log) {
     auto &socket_values = socket.in_out == SOCK_IN ? this->input_socket_values :
                                                      this->output_socket_values;
-    socket_values.append(
-        {node.identifier, this->allocator->copy_string(socket.identifier), std::move(value_log)});
+    socket_values.append({node.identifier, socket.index(), std::move(value_log)});
   };
 
   auto log_generic_value = [&](const CPPType &type, const void *value) {
@@ -252,11 +251,11 @@ void GeoTreeLog::ensure_socket_values()
   for (GeoTreeLogger *tree_logger : tree_loggers_) {
     for (const GeoTreeLogger::SocketValueLog &value_log_data : tree_logger->input_socket_values) {
       this->nodes.lookup_or_add_as(value_log_data.node_id)
-          .input_values_.add(value_log_data.socket_identifier, value_log_data.value.get());
+          .input_values_.add(value_log_data.socket_index, value_log_data.value.get());
     }
     for (const GeoTreeLogger::SocketValueLog &value_log_data : tree_logger->output_socket_values) {
       this->nodes.lookup_or_add_as(value_log_data.node_id)
-          .output_values_.add(value_log_data.socket_identifier, value_log_data.value.get());
+          .output_values_.add(value_log_data.socket_index, value_log_data.value.get());
     }
   }
   reduced_socket_values_ = true;
@@ -376,10 +375,8 @@ ValueLog *GeoTreeLog::find_socket_value_log(const bNodeSocket &query_socket)
     const bNode &node = socket.owner_node();
     if (GeoNodeLog *node_log = this->nodes.lookup_ptr(node.identifier)) {
       ValueLog *value_log = socket.is_input() ?
-                                node_log->input_values_.lookup_default(socket.identifier,
-                                                                       nullptr) :
-                                node_log->output_values_.lookup_default(socket.identifier,
-                                                                        nullptr);
+                                node_log->input_values_.lookup_default(socket.index(), nullptr) :
+                                node_log->output_values_.lookup_default(socket.index(), nullptr);
       if (value_log != nullptr) {
         return value_log;
       }
