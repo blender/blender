@@ -667,6 +667,10 @@ class LazyFunctionForGroupNode : public LazyFunction {
                                                  group_node_.identifier};
     GeoNodesLFUserData group_user_data = *user_data;
     group_user_data.compute_context = &compute_context;
+    if (user_data->modifier_data->socket_log_contexts) {
+      group_user_data.log_socket_values = user_data->modifier_data->socket_log_contexts->contains(
+          compute_context.hash());
+    }
 
     lf::Context group_context = context;
     group_context.user_data = &group_user_data;
@@ -1305,17 +1309,21 @@ void GeometryNodesLazyFunctionLogger::log_socket_value(
     const GPointer value,
     const fn::lazy_function::Context &context) const
 {
+  GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
+  BLI_assert(user_data != nullptr);
+  if (!user_data->log_socket_values) {
+    return;
+  }
+  if (user_data->modifier_data->eval_log == nullptr) {
+    return;
+  }
+
   const Span<const bNodeSocket *> bsockets =
       lf_graph_info_.mapping.bsockets_by_lf_socket_map.lookup(&lf_socket);
   if (bsockets.is_empty()) {
     return;
   }
 
-  GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
-  BLI_assert(user_data != nullptr);
-  if (user_data->modifier_data->eval_log == nullptr) {
-    return;
-  }
   geo_eval_log::GeoTreeLogger &tree_logger =
       user_data->modifier_data->eval_log->get_local_tree_logger(*user_data->compute_context);
   for (const bNodeSocket *bsocket : bsockets) {

@@ -332,6 +332,8 @@ class GeoModifierLog {
   /**
    * Utility accessor to logged data.
    */
+  static std::optional<ComputeContextHash> get_compute_context_hash_for_node_editor(
+      const SpaceNode &snode, StringRefNull modifier_name);
   static GeoTreeLog *get_tree_log_for_node_editor(const SpaceNode &snode);
   static const ViewerNodeLog *find_viewer_node_log_for_path(const ViewerPath &viewer_path);
 };

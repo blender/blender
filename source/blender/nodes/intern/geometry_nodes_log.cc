@@ -513,6 +513,23 @@ static std::optional<ObjectAndModifier> get_modifier_for_node_editor(const Space
   return ObjectAndModifier{object, used_modifier};
 }
 
+std::optional<ComputeContextHash> GeoModifierLog::get_compute_context_hash_for_node_editor(
+    const SpaceNode &snode, const StringRefNull modifier_name)
+{
+  Vector<const bNodeTreePath *> tree_path = snode.treepath;
+  if (tree_path.is_empty()) {
+    return std::nullopt;
+  }
+  ComputeContextBuilder compute_context_builder;
+  compute_context_builder.push<bke::ModifierComputeContext>(modifier_name);
+  for (const int i : tree_path.index_range().drop_back(1)) {
+    /* The tree path contains the name of the node but not its ID. */
+    const bNode *node = nodeFindNodebyName(tree_path[i]->nodetree, tree_path[i + 1]->node_name);
+    compute_context_builder.push<bke::NodeGroupComputeContext>(*node);
+  }
+  return compute_context_builder.hash();
+}
+
 GeoTreeLog *GeoModifierLog::get_tree_log_for_node_editor(const SpaceNode &snode)
 {
   std::optional<ObjectAndModifier> object_and_modifier = get_modifier_for_node_editor(snode);
@@ -524,19 +541,12 @@ GeoTreeLog *GeoModifierLog::get_tree_log_for_node_editor(const SpaceNode &snode)
   if (modifier_log == nullptr) {
     return nullptr;
   }
-  Vector<const bNodeTreePath *> tree_path = snode.treepath;
-  if (tree_path.is_empty()) {
-    return nullptr;
+  if (const std::optional<ComputeContextHash> hash =
+          GeoModifierLog::get_compute_context_hash_for_node_editor(
+              snode, object_and_modifier->nmd->modifier.name)) {
+    return &modifier_log->get_tree_log(*hash);
   }
-  ComputeContextBuilder compute_context_builder;
-  compute_context_builder.push<bke::ModifierComputeContext>(
-      object_and_modifier->nmd->modifier.name);
-  for (const int i : tree_path.index_range().drop_back(1)) {
-    /* The tree path contains the name of the node but not its ID. */
-    const bNode *node = nodeFindNodebyName(tree_path[i]->nodetree, tree_path[i + 1]->node_name);
-    compute_context_builder.push<bke::NodeGroupComputeContext>(*node);
-  }
-  return &modifier_log->get_tree_log(compute_context_builder.hash());
+  return nullptr;
 }
 
 const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerPath &viewer_path)

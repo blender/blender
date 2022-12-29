@@ -1117,7 +1117,9 @@ static char *node_socket_get_tooltip(const bContext *C,
       output << *socket_inspection_str;
     }
     else {
-      output << TIP_("The socket value has not been computed yet");
+      output << TIP_(
+          "Unknown socket value. Either the socket was not used or its value was not logged "
+          "during the last evaluation");
     }
   }
 

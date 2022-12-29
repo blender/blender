@@ -923,6 +923,31 @@ static void find_side_effect_nodes(
   }
 }
 
+static void find_socket_log_contexts(const NodesModifierData &nmd,
+                                     const ModifierEvalContext &ctx,
+                                     Set<blender::ComputeContextHash> &r_socket_log_contexts)
+{
+  Main *bmain = DEG_get_bmain(ctx.depsgraph);
+  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  if (wm == nullptr) {
+    return;
+  }
+  LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
+    const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
+    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
+      const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+      if (sl->spacetype == SPACE_NODE) {
+        const SpaceNode &snode = *reinterpret_cast<const SpaceNode *>(sl);
+        if (const std::optional<blender::ComputeContextHash> hash = blender::nodes::geo_eval_log::
+                GeoModifierLog::get_compute_context_hash_for_node_editor(snode,
+                                                                         nmd.modifier.name)) {
+          r_socket_log_contexts.add(*hash);
+        }
+      }
+    }
+  }
+}
+
 static void clear_runtime_data(NodesModifierData *nmd)
 {
   if (nmd->runtime_eval_log != nullptr) {
@@ -1122,8 +1147,13 @@ static GeometrySet compute_geometry(
   geo_nodes_modifier_data.depsgraph = ctx->depsgraph;
   geo_nodes_modifier_data.self_object = ctx->object;
   auto eval_log = std::make_unique<GeoModifierLog>();
+
+  Set<blender::ComputeContextHash> socket_log_contexts;
   if (logging_enabled(ctx)) {
     geo_nodes_modifier_data.eval_log = eval_log.get();
+
+    find_socket_log_contexts(*nmd, *ctx, socket_log_contexts);
+    geo_nodes_modifier_data.socket_log_contexts = &socket_log_contexts;
   }
   MultiValueMap<blender::ComputeContextHash, const lf::FunctionNode *> r_side_effect_nodes;
   find_side_effect_nodes(*nmd, *ctx, r_side_effect_nodes);
