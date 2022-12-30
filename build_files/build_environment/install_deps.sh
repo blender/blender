@@ -2398,7 +2398,7 @@ compile_LLVM() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  llvm_magic=3
+  llvm_magic=4
   _init_llvm
 
   # Force having own builds for the dependencies.
@@ -2447,9 +2447,9 @@ compile_LLVM() {
     mkdir build
     cd build
 
-    LLVM_TARGETS="X86"
+    LLVM_TARGETS="X86;NVPTX"
     if [ $(uname -m) == "aarch64" ]; then
-      LLVM_TARGETS="AArch64"
+      LLVM_TARGETS="AArch64;NVPTX"
     fi
 
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
@@ -2516,7 +2516,7 @@ compile_OSL() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=21
+  osl_magic=22
   _init_osl
 
   # Force having own builds for the dependencies.
@@ -2547,8 +2547,9 @@ compile_OSL() {
         INFO "Unpacking OpenShadingLanguage-$OSL_VERSION"
         tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OSL_VERSION\2,x" \
             -xf $_src.tar.gz
+
+        patch -d $_src -p1 < $SCRIPT_DIR/patches/osl.diff
       fi
-      patch -d $_src -p1 < $SCRIPT_DIR/patches/osl.diff
     fi
 
     cd $_src
@@ -2560,6 +2561,8 @@ compile_OSL() {
       # Stick to same rev as windows' libs...
       git checkout $OSL_SOURCE_REPO_UID
       git reset --hard
+
+      patch -d $_src -p1 < $SCRIPT_DIR/patches/osl.diff
     fi
 
     # Always refresh the whole build!
