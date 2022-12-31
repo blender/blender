@@ -238,8 +238,7 @@ class DOPESHEET_HT_editor_buttons:
         # Layer management
         if st.mode == 'GPENCIL':
             ob = context.active_object
-            selected = st.dopesheet.show_only_selected
-            enable_but = selected and ob is not None and ob.type == 'GPENCIL'
+            enable_but = ob is not None and ob.type == 'GPENCIL'
 
             row = layout.row(align=True)
             row.enabled = enable_but
