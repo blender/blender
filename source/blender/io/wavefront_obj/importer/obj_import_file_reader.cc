@@ -222,7 +222,8 @@ static void geom_add_polygon(Geometry *geom,
     else {
       geom->track_vertex_index(corner.vert_index);
     }
-    if (got_uv) {
+    /* Ignore UV index, if the geometry does not have any UVs (T103212). */
+    if (got_uv && !global_vertices.uv_vertices.is_empty()) {
       corner.uv_vert_index += corner.uv_vert_index < 0 ? global_vertices.uv_vertices.size() : -1;
       if (corner.uv_vert_index < 0 || corner.uv_vert_index >= global_vertices.uv_vertices.size()) {
         fprintf(stderr,
