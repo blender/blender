@@ -3558,8 +3558,6 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
   node->flag |= flags_to_set;
 }
 
-
-
 void nodeSetSocketAvailability(bNodeTree *ntree, bNodeSocket *sock, bool is_available)
 {
   const bool was_available = (sock->flag & SOCK_UNAVAIL) == 0;
