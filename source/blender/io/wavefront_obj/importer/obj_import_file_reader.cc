@@ -252,6 +252,8 @@ static void geom_add_polygon(Geometry *geom,
     geom->face_corners_.append(corner);
     curr_face.corner_count_++;
 
+    /* Some files contain extra stuff per face (e.g. 4 indices); skip any remainder (T103441). */
+    p = drop_non_whitespace(p, end);
     /* Skip whitespace to get to the next face corner. */
     p = drop_whitespace(p, end);
   }
