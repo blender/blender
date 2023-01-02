@@ -51,7 +51,7 @@ void load_plydata(PlyData &plyData, const bContext *C)
         polyVector.append(uint32_t(loop.v + vertex_offset));
       }
 
-      plyData.faces.append(polyVector);
+      plyData.faces.append(std::move(polyVector));
     }
 
     vertex_offset = (int)plyData.vertices.size();
