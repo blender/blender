@@ -348,7 +348,7 @@ static void node_update_basis(const bContext &C,
   bool add_output_space = false;
 
   int buty;
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
+  for (bNodeSocket *socket : node.output_sockets()) {
     if (!socket->is_visible()) {
       continue;
     }
@@ -471,7 +471,7 @@ static void node_update_basis(const bContext &C,
   }
 
   /* Input sockets. */
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+  for (bNodeSocket *socket : node.input_sockets()) {
     if (!socket->is_visible()) {
       continue;
     }
@@ -564,12 +564,12 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   loc.y = round(loc.y);
 
   /* Calculate minimal radius. */
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+  for (const bNodeSocket *socket : node.input_sockets()) {
     if (socket->is_visible()) {
       totin++;
     }
   }
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
+  for (const bNodeSocket *socket : node.output_sockets()) {
     if (socket->is_visible()) {
       totout++;
     }
@@ -590,7 +590,7 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   float rad = float(M_PI) / (1.0f + float(totout));
   float drad = rad;
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
+  for (bNodeSocket *socket : node.output_sockets()) {
     if (socket->is_visible()) {
       /* Round the socket location to stop it from jiggling. */
       socket->runtime->locx = round(node.runtime->totr.xmax - hiddenrad + sinf(rad) * hiddenrad);
@@ -602,7 +602,7 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   /* Input sockets. */
   rad = drad = -float(M_PI) / (1.0f + float(totin));
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+  for (bNodeSocket *socket : node.input_sockets()) {
     if (socket->is_visible()) {
       /* Round the socket location to stop it from jiggling. */
       socket->runtime->locx = round(node.runtime->totr.xmin + hiddenrad + sinf(rad) * hiddenrad);
@@ -1397,10 +1397,7 @@ static void node_draw_sockets(const View2D &v2d,
                               const bool draw_outputs,
                               const bool select_all)
 {
-  const uint total_input_len = BLI_listbase_count(&node.inputs);
-  const uint total_output_len = BLI_listbase_count(&node.outputs);
-
-  if (total_input_len + total_output_len == 0) {
+  if (node.input_sockets().is_empty() && node.output_sockets().is_empty()) {
     return;
   }
 
@@ -1431,12 +1428,12 @@ static void node_draw_sockets(const View2D &v2d,
   scale *= socket_draw_size;
 
   if (!select_all) {
-    immBeginAtMost(GPU_PRIM_POINTS, total_input_len + total_output_len);
+    immBeginAtMost(GPU_PRIM_POINTS, node.input_sockets().size() + node.output_sockets().size());
   }
 
   /* Socket inputs. */
-  short selected_input_len = 0;
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node.inputs) {
+  int selected_input_len = 0;
+  for (const bNodeSocket *sock : node.input_sockets()) {
     if (!sock->is_visible()) {
       continue;
     }
@@ -1467,9 +1464,9 @@ static void node_draw_sockets(const View2D &v2d,
   }
 
   /* Socket outputs. */
-  short selected_output_len = 0;
+  int selected_output_len = 0;
   if (draw_outputs) {
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node.outputs) {
+    for (const bNodeSocket *sock : node.output_sockets()) {
       if (!sock->is_visible()) {
         continue;
       }
@@ -1507,7 +1504,7 @@ static void node_draw_sockets(const View2D &v2d,
 
     if (selected_input_len) {
       /* Socket inputs. */
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node.inputs) {
+      for (const bNodeSocket *sock : node.input_sockets()) {
         if (!sock->is_visible()) {
           continue;
         }
@@ -1537,7 +1534,7 @@ static void node_draw_sockets(const View2D &v2d,
 
     if (selected_output_len) {
       /* Socket outputs. */
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node.outputs) {
+      for (const bNodeSocket *sock : node.output_sockets()) {
         if (!sock->is_visible()) {
           continue;
         }
@@ -1571,7 +1568,7 @@ static void node_draw_sockets(const View2D &v2d,
 
   /* Draw multi-input sockets after the others because they are drawn with `UI_draw_roundbox`
    * rather than with `GL_POINT`. */
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+  for (const bNodeSocket *socket : node.input_sockets()) {
     if (!socket->is_visible()) {
       continue;
     }
@@ -1905,7 +1902,7 @@ static std::optional<NodeExtraInfoRow> node_get_accessed_attributes_row(
            GEO_NODE_REMOVE_ATTRIBUTE,
            GEO_NODE_INPUT_NAMED_ATTRIBUTE)) {
     /* Only show the overlay when the name is passed in from somewhere else. */
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+    for (const bNodeSocket *socket : node.input_sockets()) {
       if (STREQ(socket->name, "Name")) {
         if (!socket->is_directly_linked()) {
           return std::nullopt;
@@ -2037,7 +2034,6 @@ static void node_draw_extra_info_panel(TreeDrawContext &tree_draw_ctx,
                                        uiBlock &block)
 {
   Vector<NodeExtraInfoRow> extra_info_rows = node_get_extra_info(tree_draw_ctx, snode, node);
-
   if (extra_info_rows.size() == 0) {
     return;
   }
@@ -2048,7 +2044,7 @@ static void node_draw_extra_info_panel(TreeDrawContext &tree_draw_ctx,
 
   const float width = (node.width - 6.0f) * U.dpi_fac;
 
-  if (node.type == NODE_FRAME) {
+  if (node.is_frame()) {
     extra_info_rect.xmin = rct.xmin;
     extra_info_rect.xmax = rct.xmin + 95.0f * U.dpi_fac;
     extra_info_rect.ymin = rct.ymin + 2.0f * U.dpi_fac;
@@ -2655,27 +2651,18 @@ void node_set_cursor(wmWindow &win, SpaceNode &snode, const float2 &cursor)
 
 static void count_multi_input_socket_links(bNodeTree &ntree, SpaceNode &snode)
 {
-  Map<bNodeSocket *, int> counts;
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-    if (link->tosock->flag & SOCK_MULTI_INPUT) {
-      int &count = counts.lookup_or_add(link->tosock, 0);
-      count++;
+  for (bNode *node : ntree.all_nodes()) {
+    for (bNodeSocket *socket : node->input_sockets()) {
+      if (socket->is_multi_input()) {
+        socket->runtime->total_inputs = socket->directly_linked_links().size();
+      }
     }
   }
   /* Count temporary links going into this socket. */
   if (snode.runtime->linkdrag) {
     for (const bNodeLink &link : snode.runtime->linkdrag->links) {
       if (link.tosock && (link.tosock->flag & SOCK_MULTI_INPUT)) {
-        int &count = counts.lookup_or_add(link.tosock, 0);
-        count++;
-      }
-    }
-  }
-
-  for (bNode *node : ntree.all_nodes()) {
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-      if (socket->flag & SOCK_MULTI_INPUT) {
-        socket->runtime->total_inputs = counts.lookup_default(socket, 0);
+        link.tosock->runtime->total_inputs++;
       }
     }
   }
@@ -2768,12 +2755,12 @@ static void node_update_nodetree(const bContext &C,
   for (const int i : nodes.index_range()) {
     bNode &node = *nodes[i];
     uiBlock &block = *blocks[i];
-    if (node.type == NODE_FRAME) {
+    if (node.is_frame()) {
       /* Frame sizes are calculated after all other nodes have calculating their #totr. */
       continue;
     }
 
-    if (node.type == NODE_REROUTE) {
+    if (node.is_reroute()) {
       reroute_node_prepare_for_draw(node);
     }
     else {
@@ -2789,7 +2776,7 @@ static void node_update_nodetree(const bContext &C,
   /* Now calculate the size of frame nodes, which can depend on the size of other nodes.
    * Update nodes in reverse, so children sizes get updated before parents. */
   for (int i = nodes.size() - 1; i >= 0; i--) {
-    if (nodes[i]->type == NODE_FRAME) {
+    if (nodes[i]->is_frame()) {
       frame_node_prepare_for_draw(*nodes[i], nodes);
     }
   }
@@ -2992,10 +2979,10 @@ static void node_draw(const bContext &C,
                       uiBlock &block,
                       bNodeInstanceKey key)
 {
-  if (node.type == NODE_FRAME) {
+  if (node.is_frame()) {
     frame_node_draw(C, tree_draw_ctx, region, snode, ntree, node, block);
   }
-  else if (node.type == NODE_REROUTE) {
+  else if (node.is_reroute()) {
     reroute_node_draw(C, region, ntree, node, block);
   }
   else {

@@ -169,7 +169,10 @@ class bNodeSocketRuntime : NonCopyable, NonMovable {
   float locx = 0;
   float locy = 0;
 
-  /* Runtime-only cache of the number of input links, for multi-input sockets. */
+  /**
+   * Runtime-only cache of the number of input links, for multi-input sockets,
+   * including dragged node links that aren't actually in the tree.
+   */
   short total_inputs = 0;
 
   /** Only valid when #topology_cache_is_dirty is false. */
