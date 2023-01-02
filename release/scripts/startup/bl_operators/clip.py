@@ -540,7 +540,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         sc = context.space_data
         if sc and sc.type == 'CLIP_EDITOR':
             clip = sc.clip
-            if clip and clip.tracking.reconstruction.is_valid:
+            if clip and clip.tracking.objects.active.reconstruction.is_valid:
                 return True
         return False
 

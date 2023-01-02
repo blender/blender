@@ -101,6 +101,15 @@ static void rna_trackingPlaneTracks_begin(CollectionPropertyIterator *iter, Poin
   rna_iterator_listbase_begin(iter, &tracking_camera_object->plane_tracks, NULL);
 }
 
+static PointerRNA rna_trackingReconstruction_get(PointerRNA *ptr)
+{
+  MovieClip *clip = (MovieClip *)ptr->owner_id;
+  MovieTrackingObject *tracking_camera_object = BKE_tracking_object_get_camera(&clip->tracking);
+
+  return rna_pointer_inherit_refine(
+      ptr, &RNA_MovieTrackingReconstruction, &tracking_camera_object->reconstruction);
+}
+
 static void rna_trackingObjects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
@@ -2609,6 +2618,7 @@ static void rna_def_tracking(BlenderRNA *brna)
   /* reconstruction */
   prop = RNA_def_property(srna, "reconstruction", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "reconstruction_legacy");
+  RNA_def_property_pointer_funcs(prop, "rna_trackingReconstruction_get", NULL, NULL, NULL);
   RNA_def_property_struct_type(prop, "MovieTrackingReconstruction");
 
   /* objects */
