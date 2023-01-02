@@ -135,3 +135,29 @@ void BKE_pose_backup_free(PoseBackup *pbd)
   }
   MEM_freeN(pbd);
 }
+
+void BKE_pose_backup_create_on_object(Object *ob, const bAction *action)
+{
+  BKE_pose_backup_clear(ob);
+  PoseBackup *pose_backup = BKE_pose_backup_create_all_bones(ob, action);
+  ob->runtime.pose_backup = pose_backup;
+}
+
+bool BKE_pose_backup_restore_on_object(struct Object *ob)
+{
+  if (ob->runtime.pose_backup == nullptr) {
+    return false;
+  }
+  BKE_pose_backup_restore(ob->runtime.pose_backup);
+  return true;
+}
+
+void BKE_pose_backup_clear(Object *ob)
+{
+  if (ob->runtime.pose_backup == nullptr) {
+    return;
+  }
+
+  BKE_pose_backup_free(ob->runtime.pose_backup);
+  ob->runtime.pose_backup = nullptr;
+}
