@@ -271,7 +271,7 @@ void node_sort(bNodeTree &ntree)
   }
 }
 
-static Array<uiBlock *> node_uiblocks_init(const bContext &C, Span<bNode *> nodes)
+static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *> nodes)
 {
   Array<uiBlock *> blocks(nodes.size());
   /* Add node uiBlocks in drawing order - prevents events going to overlapping nodes. */
@@ -316,7 +316,7 @@ float2 node_from_view(const bNode &node, const float2 &co)
  * Based on settings and sockets in node, set drawing rect info.
  */
 static void node_update_basis(const bContext &C,
-                              TreeDrawContext & /*tree_draw_ctx*/,
+                              const TreeDrawContext & /*tree_draw_ctx*/,
                               bNodeTree &ntree,
                               bNode &node,
                               uiBlock &block)
@@ -782,7 +782,8 @@ void node_socket_color_get(const bContext &C,
 {
   PointerRNA ptr;
   BLI_assert(RNA_struct_is_a(node_ptr.type, &RNA_Node));
-  RNA_pointer_create((ID *)&ntree, &RNA_NodeSocket, &const_cast<bNodeSocket &>(sock), &ptr);
+  RNA_pointer_create(
+      &const_cast<ID &>(ntree.id), &RNA_NodeSocket, &const_cast<bNodeSocket &>(sock), &ptr);
 
   sock.typeinfo->draw_color((bContext *)&C, &ptr, &node_ptr, r_color);
 }
@@ -1169,10 +1170,10 @@ void node_socket_add_tooltip(const bNodeTree &ntree, const bNodeSocket &sock, ui
 }
 
 static void node_socket_draw_nested(const bContext &C,
-                                    bNodeTree &ntree,
+                                    const bNodeTree &ntree,
                                     PointerRNA &node_ptr,
                                     uiBlock &block,
-                                    bNodeSocket &sock,
+                                    const bNodeSocket &sock,
                                     const uint pos_id,
                                     const uint col_id,
                                     const uint shape_id,
@@ -1367,11 +1368,13 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 /* Common handle function for operator buttons that need to select the node first. */
 static void node_toggle_button_cb(bContext *C, void *node_argv, void *op_argv)
 {
-  bNode *node = (bNode *)node_argv;
+  SpaceNode &snode = *CTX_wm_space_node(C);
+  bNodeTree &node_tree = *snode.edittree;
+  bNode &node = *node_tree.node_by_id(POINTER_AS_INT(node_argv));
   const char *opname = (const char *)op_argv;
 
   /* Select & activate only the button's node. */
-  node_select_single(*C, *node);
+  node_select_single(*C, node);
 
   WM_operator_name_call(C, opname, WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
 }
@@ -1388,8 +1391,8 @@ static void node_draw_shadow(const SpaceNode &snode,
 
 static void node_draw_sockets(const View2D &v2d,
                               const bContext &C,
-                              bNodeTree &ntree,
-                              bNode &node,
+                              const bNodeTree &ntree,
+                              const bNode &node,
                               uiBlock &block,
                               const bool draw_outputs,
                               const bool select_all)
@@ -1402,7 +1405,8 @@ static void node_draw_sockets(const View2D &v2d,
   }
 
   PointerRNA node_ptr;
-  RNA_pointer_create((ID *)&ntree, &RNA_Node, &node, &node_ptr);
+  RNA_pointer_create(
+      &const_cast<ID &>(ntree.id), &RNA_Node, &const_cast<bNode &>(node), &node_ptr);
 
   bool selected = false;
 
@@ -1659,7 +1663,7 @@ static char *node_errors_tooltip_fn(bContext * /*C*/, void *argN, const char * /
 
 #define NODE_HEADER_ICON_SIZE (0.8f * U.widget_unit)
 
-static void node_add_unsupported_compositor_operation_error_message_button(bNode &node,
+static void node_add_unsupported_compositor_operation_error_message_button(const bNode &node,
                                                                            uiBlock &block,
                                                                            const rctf &rect,
                                                                            float &icon_offset)
@@ -1683,8 +1687,8 @@ static void node_add_unsupported_compositor_operation_error_message_button(bNode
   UI_block_emboss_set(&block, UI_EMBOSS);
 }
 
-static void node_add_error_message_button(TreeDrawContext &tree_draw_ctx,
-                                          bNode &node,
+static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
+                                          const bNode &node,
                                           uiBlock &block,
                                           const rctf &rect,
                                           float &icon_offset)
@@ -1733,7 +1737,7 @@ static void node_add_error_message_button(TreeDrawContext &tree_draw_ctx,
 }
 
 static std::optional<std::chrono::nanoseconds> node_get_execution_time(
-    TreeDrawContext &tree_draw_ctx, const bNodeTree &ntree, const bNode &node)
+    const TreeDrawContext &tree_draw_ctx, const bNodeTree &ntree, const bNode &node)
 {
   const geo_log::GeoTreeLog *tree_log = tree_draw_ctx.geo_tree_log;
   if (tree_log == nullptr) {
@@ -2092,7 +2096,7 @@ static void node_draw_basis(const bContext &C,
                             const View2D &v2d,
                             const SpaceNode &snode,
                             bNodeTree &ntree,
-                            bNode &node,
+                            const bNode &node,
                             uiBlock &block,
                             bNodeInstanceKey key)
 {
@@ -2159,7 +2163,10 @@ static void node_draw_basis(const bContext &C,
                               0,
                               0,
                               "");
-    UI_but_func_set(but, node_toggle_button_cb, &node, (void *)"NODE_OT_preview_toggle");
+    UI_but_func_set(but,
+                    node_toggle_button_cb,
+                    POINTER_FROM_INT(node.identifier),
+                    (void *)"NODE_OT_preview_toggle");
     /* XXX this does not work when node is activated and the operator called right afterwards,
      * since active ID is not updated yet (needs to process the notifier).
      * This can only work as visual indicator! */
@@ -2185,7 +2192,10 @@ static void node_draw_basis(const bContext &C,
                               0,
                               0,
                               "");
-    UI_but_func_set(but, node_toggle_button_cb, &node, (void *)"NODE_OT_group_edit");
+    UI_but_func_set(but,
+                    node_toggle_button_cb,
+                    POINTER_FROM_INT(node.identifier),
+                    (void *)"NODE_OT_group_edit");
     if (node.id) {
       UI_but_icon_indicator_number_set(but, ID_REAL_USERS(node.id));
     }
@@ -2230,7 +2240,8 @@ static void node_draw_basis(const bContext &C,
                               "");
     /* Selection implicitly activates the node. */
     const char *operator_idname = is_active ? "NODE_OT_deactivate_viewer" : "NODE_OT_select";
-    UI_but_func_set(but, node_toggle_button_cb, &node, (void *)operator_idname);
+    UI_but_func_set(
+        but, node_toggle_button_cb, POINTER_FROM_INT(node.identifier), (void *)operator_idname);
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
 
@@ -2264,7 +2275,10 @@ static void node_draw_basis(const bContext &C,
                               0.0f,
                               "");
 
-    UI_but_func_set(but, node_toggle_button_cb, &node, (void *)"NODE_OT_hide_toggle");
+    UI_but_func_set(but,
+                    node_toggle_button_cb,
+                    POINTER_FROM_INT(node.identifier),
+                    (void *)"NODE_OT_hide_toggle");
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
 
@@ -2492,7 +2506,10 @@ static void node_draw_hidden(const bContext &C,
                               0.0f,
                               "");
 
-    UI_but_func_set(but, node_toggle_button_cb, &node, (void *)"NODE_OT_hide_toggle");
+    UI_but_func_set(but,
+                    node_toggle_button_cb,
+                    POINTER_FROM_INT(node.identifier),
+                    (void *)"NODE_OT_hide_toggle");
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
 
@@ -3027,14 +3044,14 @@ static void node_draw_nodetree(const bContext &C,
   GPU_blend(GPU_BLEND_ALPHA);
   nodelink_batch_start(snode);
 
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+  LISTBASE_FOREACH (const bNodeLink *, link, &ntree.links) {
     if (!nodeLinkIsHidden(link) && !nodeLinkIsSelected(link)) {
       node_draw_link(C, region.v2d, snode, *link, false);
     }
   }
 
   /* Draw selected node links after the unselected ones, so they are shown on top. */
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+  LISTBASE_FOREACH (const bNodeLink *, link, &ntree.links) {
     if (!nodeLinkIsHidden(link) && nodeLinkIsSelected(link)) {
       node_draw_link(C, region.v2d, snode, *link, true);
     }
@@ -3112,9 +3129,9 @@ static bool realtime_compositor_is_in_use(const bContext &context)
   }
 
   const Main *main = CTX_data_main(&context);
-  LISTBASE_FOREACH (bScreen *, screen, &main->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+  LISTBASE_FOREACH (const bScreen *, screen, &main->screens) {
+    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (const SpaceLink *, space, &area->spacedata) {
         if (space->spacetype != SPACE_VIEW3D) {
           continue;
         }
