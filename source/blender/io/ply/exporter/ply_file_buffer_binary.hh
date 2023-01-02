@@ -9,12 +9,12 @@
 #include <cstdio>
 #include <string>
 #include <type_traits>
-#include <vector>
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_fileops.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
+#include "BLI_vector.hh"
 #include "ply_file_buffer.hh"
 
 /* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */
@@ -35,7 +35,7 @@ class FileBufferBinary : public FileBuffer {
     auto *ybits = reinterpret_cast<char *>(&y);
     auto *zbits = reinterpret_cast<char *>(&z);
 
-    std::vector<char> data(xbits, xbits + sizeof(float));
+    Vector<char, sizeof(float) * 3> data(xbits, xbits + sizeof(float));
     data.insert(data.end(), ybits, ybits + sizeof(float));
     data.insert(data.end(), zbits, zbits + sizeof(float));
 
@@ -44,8 +44,8 @@ class FileBufferBinary : public FileBuffer {
 
   void write_face(int size, Vector<uint32_t> const &vertex_indices) override
   {
-    std::vector<char> data;
-    data.push_back((char)size);
+    Vector<char, 128> data;
+    data.append((char)size);
     for (auto &&vertexIndex : vertex_indices) {
       uint32_t x = vertexIndex;
       auto *vtxbits = static_cast<char *>(static_cast<void *>(&x));

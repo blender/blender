@@ -142,7 +142,7 @@ class FileBuffer : private NonMovable {
     bb.insert(bb.end(), buf.begin(), buf.end());
   }
 
-  void write_bytes(std::vector<char> bytes)
+  void write_bytes(Vector<char> bytes)
   {
     ensure_space(bytes.size());
     VectorChar &bb = blocks_.back();
