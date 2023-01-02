@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup edarmature
+ * \ingroup bke
  */
 
-#include "ED_armature.h"
+#include "BKE_pose_backup.h"
 
 #include <cstring>
 
@@ -86,24 +86,24 @@ static PoseBackup *pose_backup_create(const Object *ob,
   return pose_backup;
 }
 
-PoseBackup *ED_pose_backup_create_all_bones(const Object *ob, const bAction *action)
+PoseBackup *BKE_pose_backup_create_all_bones(const Object *ob, const bAction *action)
 {
   return pose_backup_create(ob, action, BoneNameSet());
 }
 
-PoseBackup *ED_pose_backup_create_selected_bones(const Object *ob, const bAction *action)
+PoseBackup *BKE_pose_backup_create_selected_bones(const Object *ob, const bAction *action)
 {
   const bArmature *armature = static_cast<const bArmature *>(ob->data);
   const BoneNameSet selected_bone_names = BKE_armature_find_selected_bone_names(armature);
   return pose_backup_create(ob, action, selected_bone_names);
 }
 
-bool ED_pose_backup_is_selection_relevant(const struct PoseBackup *pose_backup)
+bool BKE_pose_backup_is_selection_relevant(const struct PoseBackup *pose_backup)
 {
   return pose_backup->is_bone_selection_relevant;
 }
 
-void ED_pose_backup_restore(const PoseBackup *pbd)
+void BKE_pose_backup_restore(const PoseBackup *pbd)
 {
   LISTBASE_FOREACH (PoseChannelBackup *, chan_bak, &pbd->backups) {
     memcpy(chan_bak->pchan, &chan_bak->olddata, sizeof(chan_bak->olddata));
@@ -117,7 +117,7 @@ void ED_pose_backup_restore(const PoseBackup *pbd)
   }
 }
 
-void ED_pose_backup_free(PoseBackup *pbd)
+void BKE_pose_backup_free(PoseBackup *pbd)
 {
   LISTBASE_FOREACH_MUTABLE (PoseChannelBackup *, chan_bak, &pbd->backups) {
     if (chan_bak->oldprops) {
