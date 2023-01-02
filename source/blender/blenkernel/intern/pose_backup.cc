@@ -38,6 +38,14 @@ struct PoseBackup {
   ListBase /* PoseChannelBackup* */ backups;
 };
 
+/**
+ * Create a backup of the pose, for only those bones that are animated in the
+ * given Action. If `selected_bone_names` is not empty, the set of bones to back
+ * up is intersected with these bone names such that only the selected subset is
+ * backed up.
+ *
+ * The returned pointer is owned by the caller.
+ */
 static PoseBackup *pose_backup_create(const Object *ob,
                                       const bAction *action,
                                       const BoneNameSet &selected_bone_names)
