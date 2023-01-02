@@ -14,8 +14,16 @@ namespace blender::io::ply {
 
 void write_vertices(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData)
 {
-  for (const auto &vertex : plyData->vertices) {
-    buffer->write_vertex(vertex.x, vertex.y, vertex.z);
+  // not clean yet, but will do for now
+  // hey blender, change your vertex color name to something logical <3
+  for (int i = 0; i< plyData->vertices.size(); i++) { // change to for-loop for index
+    auto &vertex = plyData->vertices[i];
+    auto &vertex_color = plyData->vertex_colors[i];
+
+    // same for normals later...
+    buffer->write_float_3(vertex.x, vertex.y, vertex.z);
+    buffer->write_uchar_4(uchar(vertex_color.x * 255), uchar(vertex_color.y * 255), uchar(vertex_color.z * 255), uchar(vertex_color.w * 255));
+    buffer->write_ASCII_new_line();
   }
   buffer->write_to_file();
 }

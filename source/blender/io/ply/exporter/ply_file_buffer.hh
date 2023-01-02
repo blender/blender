@@ -92,11 +92,15 @@ class FileBuffer : private NonMovable {
     v.blocks_.clear();
   }
 
-  virtual void write_vertex(float x, float y, float z) = 0;
+  virtual void write_float_3(float x, float y, float z) = 0;
+
+  virtual void write_uchar_4(uchar r, uchar g, uchar b, uchar a) = 0;
 
   virtual void write_face(int count, Vector<uint32_t> const &vertex_indices) = 0;
   
   virtual void write_edge(int first, int second) = 0;
+  
+  virtual void write_ASCII_new_line() = 0;
 
   void write_header_element(StringRef name, int count)
   {

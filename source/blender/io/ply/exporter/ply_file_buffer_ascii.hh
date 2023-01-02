@@ -28,9 +28,14 @@ class FileBufferAscii : public FileBuffer {
  public:
   using FileBuffer::FileBuffer;
 
-  void write_vertex(float x, float y, float z) override
+  void write_float_3(float x, float y, float z) override // change vectors to params 
   {
-    write_fstring("{} {} {}\n", x, y, z);
+    write_fstring("{} {} {} ", x, y, z);
+  }
+
+  void write_uchar_4(uchar r, uchar g, uchar b, uchar a) override // change vectors to params 
+  {
+    write_fstring("{} {} {} {} ", r, g, b,a);
   }
 
   void write_face(int count, Vector<uint32_t> const &vertex_indices) override
@@ -40,12 +45,17 @@ class FileBufferAscii : public FileBuffer {
     for (auto &&v : vertex_indices) {
       write_fstring(" {}", v);
     }
-    write_newline();
+    write_newline(); // make a ascii specific newline 
   }
 
   void write_edge(int first, int second) override
   {
     write_fstring("{} {}\n", first, second);
+  }
+
+  void write_ASCII_new_line()
+  {
+    write_newline();
   }
 };
 }  // namespace blender::io::ply

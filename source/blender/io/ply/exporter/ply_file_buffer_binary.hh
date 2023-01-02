@@ -28,7 +28,7 @@ class FileBufferBinary : public FileBuffer {
  public:
   using FileBuffer::FileBuffer;
 
-  void write_vertex(float x, float y, float z) override
+  void write_float_3(float x, float y, float z) override
   {
 
     auto *xbits = reinterpret_cast<char *>(&x);
@@ -40,6 +40,11 @@ class FileBufferBinary : public FileBuffer {
     data.insert(data.end(), zbits, zbits + sizeof(float));
 
     write_bytes(data);
+  }
+
+  void write_uchar_4(uchar r, uchar g, uchar b, uchar a) override
+  {
+
   }
 
   void write_face(int size, Vector<uint32_t> const &vertex_indices) override
@@ -66,6 +71,11 @@ class FileBufferBinary : public FileBuffer {
     write_bytes(first_char);
     write_bytes(second_char);
 
+  }
+
+  void write_ASCII_new_line()
+  {
+    
   }
 };
 }  // namespace blender::io::ply

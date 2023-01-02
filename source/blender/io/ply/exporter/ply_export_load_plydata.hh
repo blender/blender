@@ -38,16 +38,26 @@ void load_plydata(PlyData &plyData, const bContext *C)
       continue;
 
     // Vertices
+
     auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
     for (auto &&vertex : mesh->verts()) {
       plyData.vertices.append(vertex.co);
     }
 
-    //Edges
-    for (auto &&edge : mesh->edges())
-    {
-      std::pair<uint32_t, uint32_t> edge_pair = std::make_pair(uint32_t(edge.v1), uint32_t(edge.v2));
+    // Edges
+    for (auto &&edge : mesh->edges()) {
+      std::pair<uint32_t, uint32_t> edge_pair = std::make_pair(uint32_t(edge.v1),
+                                                               uint32_t(edge.v2));
       plyData.edges.append(edge_pair);
+    }
+
+    // colors
+    if (CustomData_has_layer(&mesh->vdata, CD_PROP_COLOR)) {
+      float4 *colors = (float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
+      for (int i = 0; i < mesh->totvert; i++) {
+        std::cout << colors[i] << std::endl;
+        // plyData.vertex_colors.append(colors[i]);
+      }
     }
 
     // Faces
