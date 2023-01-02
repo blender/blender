@@ -37,8 +37,9 @@ void load_plydata(PlyData &plyData, const bContext *C)
     if (object->type != OB_MESH)
       continue;
 
+    Mesh *mesh = static_cast<Mesh *>(object->data);
+
     // Vertices
-    auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
     for (auto &&vertex : mesh->verts()) {
       plyData.vertices.append(vertex.co);
     }
