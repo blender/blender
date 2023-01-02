@@ -2144,11 +2144,9 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
         BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &nodes_num);
         for (int i = 0; i < nodes_num; i++) {
           PBVHVertexIter vd;
-          bool update = false;
 
           BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
             *vd.mask = 1.0f;
-            update = true;
           }
           BKE_pbvh_vertex_iter_end;
 
