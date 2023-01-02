@@ -392,7 +392,7 @@ void OBJWriter::write_poly_elements(FormatHandler &fh,
           if (export_params_.export_material_groups) {
             std::string object_name = obj_mesh_data.get_object_name();
             spaces_to_underscores(object_name);
-            fh.write_obj_group(object_name + "_" + mat_name);
+            buf.write_obj_group(object_name + "_" + mat_name);
           }
           buf.write_obj_usemtl(mat_name);
         }
