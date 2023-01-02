@@ -287,6 +287,11 @@ static void poselib_blend_flip_pose(bContext *C, wmOperator *op)
   bAction *old_action = pbd->act;
   bAction *new_action = flip_pose(C, pbd->ob, old_action);
 
+  /* Before flipping over to the other side, this side needs to be restored. */
+  BKE_pose_backup_restore(pbd->pose_backup);
+  BKE_pose_backup_free(pbd->pose_backup);
+  pbd->pose_backup = NULL;
+
   if (pbd->free_action) {
     BKE_id_free(NULL, old_action);
   }
@@ -294,6 +299,9 @@ static void poselib_blend_flip_pose(bContext *C, wmOperator *op)
   pbd->free_action = true;
   pbd->act = new_action;
   pbd->needs_redraw = true;
+
+  /* Refresh the pose backup to use the flipped bones. */
+  poselib_backup_posecopy(pbd);
 }
 
 /* Return true on success, false if the context isn't suitable. */
