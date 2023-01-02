@@ -355,7 +355,7 @@ class Executor {
       this->ensure_thread_locals();
       /* Construct all node states in parallel. */
       threading::parallel_for(nodes.index_range(), 256, [&](const IndexRange range) {
-        LinearAllocator<> &allocator = this->get_main_or_local_allocator();
+        LinearAllocator<> &allocator = thread_locals_->local().allocator;
         construct_node_range(range, allocator);
       });
     }
