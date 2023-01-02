@@ -155,10 +155,7 @@ void node_socket_color_get(const bContext &C,
 
 void node_draw_space(const bContext &C, ARegion &region);
 
-void node_socket_add_tooltip(const bNodeTree &ntree,
-                             const bNode &node,
-                             const bNodeSocket &sock,
-                             uiLayout &layout);
+void node_socket_add_tooltip(const bNodeTree &ntree, const bNodeSocket &sock, uiLayout &layout);
 
 /**
  * Sort nodes by selection: unselected nodes first, then selected,

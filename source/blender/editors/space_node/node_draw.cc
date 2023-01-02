@@ -182,11 +182,9 @@ void ED_node_tag_update_id(ID *id)
 
 namespace blender::ed::space_node {
 
-static void node_socket_add_tooltip_in_node_editor(TreeDrawContext * /*tree_draw_ctx*/,
-                                                   const bNodeTree *ntree,
-                                                   const bNode *node,
-                                                   const bNodeSocket *sock,
-                                                   uiLayout *layout);
+static void node_socket_add_tooltip_in_node_editor(const bNodeTree &ntree,
+                                                   const bNodeSocket &sock,
+                                                   uiLayout &layout);
 
 /** Return true when \a a should be behind \a b and false otherwise. */
 static bool compare_node_depth(const bNode *a, const bNode *b)
@@ -318,7 +316,7 @@ float2 node_from_view(const bNode &node, const float2 &co)
  * Based on settings and sockets in node, set drawing rect info.
  */
 static void node_update_basis(const bContext &C,
-                              TreeDrawContext &tree_draw_ctx,
+                              TreeDrawContext & /*tree_draw_ctx*/,
                               bNodeTree &ntree,
                               bNode &node,
                               uiBlock &block)
@@ -382,7 +380,7 @@ static void node_update_basis(const bContext &C,
     const char *socket_label = nodeSocketLabel(socket);
     socket->typeinfo->draw((bContext *)&C, row, &sockptr, &nodeptr, IFACE_(socket_label));
 
-    node_socket_add_tooltip_in_node_editor(&tree_draw_ctx, &ntree, &node, socket, row);
+    node_socket_add_tooltip_in_node_editor(ntree, *socket, *row);
 
     UI_block_align_end(&block);
     UI_block_layout_resolve(&block, nullptr, &buty);
@@ -515,7 +513,7 @@ static void node_update_basis(const bContext &C,
     const char *socket_label = nodeSocketLabel(socket);
     socket->typeinfo->draw((bContext *)&C, row, &sockptr, &nodeptr, IFACE_(socket_label));
 
-    node_socket_add_tooltip_in_node_editor(&tree_draw_ctx, &ntree, &node, socket, row);
+    node_socket_add_tooltip_in_node_editor(ntree, *socket, *row);
 
     UI_block_align_end(&block);
     UI_block_layout_resolve(&block, nullptr, &buty);
@@ -788,12 +786,6 @@ void node_socket_color_get(const bContext &C,
 
   sock.typeinfo->draw_color((bContext *)&C, &ptr, &node_ptr, r_color);
 }
-
-struct SocketTooltipData {
-  const bNodeTree *ntree;
-  const bNode *node;
-  const bNodeSocket *socket;
-};
 
 static void create_inspection_string_for_generic_value(const bNodeSocket &socket,
                                                        const GPointer value,
@@ -1084,35 +1076,33 @@ static bool node_socket_has_tooltip(const bNodeTree &ntree, const bNodeSocket &s
   return false;
 }
 
-static char *node_socket_get_tooltip(const bContext *C,
-                                     const bNodeTree *ntree,
-                                     const bNode * /*node*/,
-                                     const bNodeSocket *socket)
+static char *node_socket_get_tooltip(const SpaceNode *snode,
+                                     const bNodeTree &ntree,
+                                     const bNodeSocket &socket)
 {
-  SpaceNode *snode = CTX_wm_space_node(C);
   TreeDrawContext tree_draw_ctx;
   if (snode != nullptr) {
-    if (ntree->type == NTREE_GEOMETRY) {
+    if (ntree.type == NTREE_GEOMETRY) {
       tree_draw_ctx.geo_tree_log = geo_log::GeoModifierLog::get_tree_log_for_node_editor(*snode);
     }
   }
 
   std::stringstream output;
-  if (socket->runtime->declaration != nullptr) {
-    const blender::nodes::SocketDeclaration &socket_decl = *socket->runtime->declaration;
+  if (socket.runtime->declaration != nullptr) {
+    const blender::nodes::SocketDeclaration &socket_decl = *socket.runtime->declaration;
     blender::StringRef description = socket_decl.description;
     if (!description.is_empty()) {
       output << TIP_(description.data());
     }
   }
 
-  if (ntree->type == NTREE_GEOMETRY && tree_draw_ctx.geo_tree_log != nullptr) {
+  if (ntree.type == NTREE_GEOMETRY && tree_draw_ctx.geo_tree_log != nullptr) {
     if (!output.str().empty()) {
       output << ".\n\n";
     }
 
     std::optional<std::string> socket_inspection_str = create_socket_inspection_string(
-        tree_draw_ctx, *socket);
+        tree_draw_ctx, socket);
     if (socket_inspection_str.has_value()) {
       output << *socket_inspection_str;
     }
@@ -1124,44 +1114,58 @@ static char *node_socket_get_tooltip(const bContext *C,
   }
 
   if (output.str().empty()) {
-    output << nodeSocketLabel(socket);
+    output << nodeSocketLabel(&socket);
   }
 
   return BLI_strdup(output.str().c_str());
 }
 
-static void node_socket_add_tooltip_in_node_editor(TreeDrawContext * /*tree_draw_ctx*/,
-                                                   const bNodeTree *ntree,
-                                                   const bNode *node,
-                                                   const bNodeSocket *sock,
-                                                   uiLayout *layout)
+static void node_socket_add_tooltip_in_node_editor(const bNodeTree &ntree,
+                                                   const bNodeSocket &sock,
+                                                   uiLayout &layout)
 {
-  if (!node_socket_has_tooltip(*ntree, *sock)) {
+  if (!node_socket_has_tooltip(ntree, sock)) {
+    return;
+  }
+  uiLayoutSetTooltipFunc(
+      &layout,
+      [](bContext *C, void *argN, const char * /*tip*/) {
+        const SpaceNode &snode = *CTX_wm_space_node(C);
+        const bNodeTree &ntree = *snode.edittree;
+        const int index_in_tree = POINTER_AS_INT(argN);
+        ntree.ensure_topology_cache();
+        return node_socket_get_tooltip(&snode, ntree, *ntree.all_sockets()[index_in_tree]);
+      },
+      POINTER_FROM_INT(sock.index_in_tree()),
+      nullptr,
+      nullptr);
+}
+
+void node_socket_add_tooltip(const bNodeTree &ntree, const bNodeSocket &sock, uiLayout &layout)
+{
+  if (!node_socket_has_tooltip(ntree, sock)) {
     return;
   }
 
+  struct SocketTooltipData {
+    const bNodeTree *ntree;
+    const bNodeSocket *socket;
+  };
+
   SocketTooltipData *data = MEM_cnew<SocketTooltipData>(__func__);
-  data->ntree = ntree;
-  data->node = node;
-  data->socket = sock;
+  data->ntree = &ntree;
+  data->socket = &sock;
 
   uiLayoutSetTooltipFunc(
-      layout,
+      &layout,
       [](bContext *C, void *argN, const char * /*tip*/) {
         SocketTooltipData *data = static_cast<SocketTooltipData *>(argN);
-        return node_socket_get_tooltip(C, data->ntree, data->node, data->socket);
+        const SpaceNode *snode = CTX_wm_space_node(C);
+        return node_socket_get_tooltip(snode, *data->ntree, *data->socket);
       },
       data,
       MEM_dupallocN,
       MEM_freeN);
-}
-
-void node_socket_add_tooltip(const bNodeTree &ntree,
-                             const bNode &node,
-                             const bNodeSocket &sock,
-                             uiLayout &layout)
-{
-  node_socket_add_tooltip_in_node_editor(nullptr, &ntree, &node, &sock, &layout);
 }
 
 static void node_socket_draw_nested(const bContext &C,
@@ -1219,19 +1223,17 @@ static void node_socket_draw_nested(const bContext &C,
                             0,
                             nullptr);
 
-  SocketTooltipData *data = MEM_new<SocketTooltipData>(__func__);
-  data->ntree = &ntree;
-  data->node = static_cast<const bNode *>(node_ptr.data);
-  data->socket = &sock;
-
   UI_but_func_tooltip_set(
       but,
       [](bContext *C, void *argN, const char * /*tip*/) {
-        SocketTooltipData *data = (SocketTooltipData *)argN;
-        return node_socket_get_tooltip(C, data->ntree, data->node, data->socket);
+        const SpaceNode &snode = *CTX_wm_space_node(C);
+        const bNodeTree &ntree = *snode.edittree;
+        const int index_in_tree = POINTER_AS_INT(argN);
+        ntree.ensure_topology_cache();
+        return node_socket_get_tooltip(&snode, ntree, *ntree.all_sockets()[index_in_tree]);
       },
-      data,
-      MEM_freeN);
+      POINTER_FROM_INT(sock.index_in_tree()),
+      nullptr);
   /* Disable the button so that clicks on it are ignored the link operator still works. */
   UI_but_flag_enable(but, UI_BUT_DISABLED);
   UI_block_emboss_set(&block, old_emboss);

@@ -897,7 +897,7 @@ static void ui_node_draw_input(
     uiItemDecoratorR(split_wrapper.decorate_column, nullptr, nullptr, 0);
   }
 
-  node_socket_add_tooltip(ntree, node, input, *row);
+  node_socket_add_tooltip(ntree, input, *row);
 
   /* clear */
   node.flag &= ~NODE_TEST;
