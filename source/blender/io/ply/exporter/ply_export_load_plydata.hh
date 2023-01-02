@@ -40,7 +40,10 @@ void load_plydata(PlyData &plyData, const bContext *C)
     // Vertices
     auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
     for (auto &&vertex : mesh->verts()) {
-      plyData.vertices.append(vertex.co);
+      float3 r_coords;
+      copy_v3_v3(r_coords, vertex.co);
+      mul_m4_v3(object->object_to_world, r_coords);
+      plyData.vertices.append(r_coords);
     }
 
     // Faces
