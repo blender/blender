@@ -459,29 +459,29 @@ class GlareOperation : public NodeOperation {
     return 1.0f - std::pow(get_color_modulation_factor(), iteration + 1);
   }
 
-  /* Streaks are computed by iteratively applying a filter that samples 3 neighbouring pixels in
-   * the direction of the streak. Those neighbouring pixels are then combined using a weighted sum.
-   * The weights of the neighbours are the fade factors computed by this method. Farther neighbours
+  /* Streaks are computed by iteratively applying a filter that samples 3 neighboring pixels in
+   * the direction of the streak. Those neighboring pixels are then combined using a weighted sum.
+   * The weights of the neighbors are the fade factors computed by this method. Farther neighbors
    * are expected to have lower weights because they contribute less to the combined result. Since
-   * the iteration magnitude represents how far the neighbours are, as noted in the description of
-   * the compute_streak_iteration_magnitude method, the fade factor for the closest neighbour is
+   * the iteration magnitude represents how far the neighbors are, as noted in the description of
+   * the compute_streak_iteration_magnitude method, the fade factor for the closest neighbor is
    * computed as the user supplied fade parameter raised to the power of the magnitude, noting that
    * the fade value is in the [0, 1] range while the magnitude is larger than or equal one, so the
-   * higher the power the lower the resulting fade factor. Furthermore, the other two neighbours
-   * are just squared and cubed versions of the fade factor for the closest neighbour to get even
-   * lower fade factors for those farther neighbours. */
+   * higher the power the lower the resulting fade factor. Furthermore, the other two neighbors
+   * are just squared and cubed versions of the fade factor for the closest neighbor to get even
+   * lower fade factors for those farther neighbors. */
   float3 compute_streak_fade_factors(float iteration_magnitude)
   {
     const float fade_factor = std::pow(node_storage(bnode()).fade, iteration_magnitude);
     return float3(fade_factor, std::pow(fade_factor, 2.0f), std::pow(fade_factor, 3.0f));
   }
 
-  /* Streaks are computed by iteratively applying a filter that samples the neighbouring pixels in
+  /* Streaks are computed by iteratively applying a filter that samples the neighboring pixels in
    * the direction of the streak. Each higher iteration samples pixels that are farther away, the
-   * magnitude computed by this method describes how farther away the neighbours are sampled. The
+   * magnitude computed by this method describes how farther away the neighbors are sampled. The
    * magnitude exponentially increase with the iteration. A base of 4, was chosen as compromise
    * between better quality and performance, since a lower base corresponds to more tightly spaced
-   * neighbours but would require more iterations to produce a streak of the same length. */
+   * neighbors but would require more iterations to produce a streak of the same length. */
   float compute_streak_iteration_magnitude(int iteration)
   {
     return std::pow(4.0f, iteration);

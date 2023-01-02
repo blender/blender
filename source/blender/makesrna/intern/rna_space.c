@@ -1966,7 +1966,7 @@ static void rna_SpaceTextEditor_updateEdited(Main *UNUSED(bmain),
 
 /* Space Properties */
 
-/* NOTE: this function exists only to avoid id refcounting. */
+/* NOTE: this function exists only to avoid id reference-counting. */
 static void rna_SpaceProperties_pin_id_set(PointerRNA *ptr,
                                            PointerRNA value,
                                            struct ReportList *UNUSED(reports))

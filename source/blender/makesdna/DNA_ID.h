@@ -812,7 +812,7 @@ enum {
    * ID is considered as runtime, and should not be saved when writing .blend file, nor influence
    * (in)direct status of linked data.
    *
-   * Only meaningful for IDs belonging to regular Main database, all other cases are implicitely
+   * Only meaningful for IDs belonging to regular Main database, all other cases are implicitly
    * considered runtime-only.
    *
    * RESET_NEVER
@@ -860,10 +860,10 @@ enum {
 
 /**
  * Most of ID tags are cleared on file write (i.e. also when storing undo steps), since they
- * either have of very short lifetime (not expected to exist accross undo steps), or are info that
+ * either have of very short lifetime (not expected to exist across undo steps), or are info that
  * will be re-generated when reading undo steps.
  *
- * However a few of these need to be explicitely preserved accross undo steps.
+ * However a few of these need to be explicitly preserved across undo steps.
  */
 #define LIB_TAG_KEEP_ON_UNDO (LIB_TAG_EXTRAUSER | LIB_TAG_MISSING | LIB_TAG_RUNTIME)
 

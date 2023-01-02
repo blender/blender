@@ -2955,7 +2955,7 @@ namespace blender::bke {
 /**
  * Free the node itself.
  *
- * \note: ID user refcounting and changing the `nodes_by_id` vector are up to the caller.
+ * \note: ID user reference-counting and changing the `nodes_by_id` vector are up to the caller.
  */
 void node_free_node(bNodeTree *ntree, bNode *node)
 {
@@ -3031,7 +3031,7 @@ void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node)
 void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
 {
   /* This function is not for localized node trees, we do not want
-   * do to ID user refcounting and removal of animdation data then. */
+   * do to ID user reference-counting and removal of animdation data then. */
   BLI_assert((ntree->id.tag & LIB_TAG_LOCALIZED) == 0);
 
   bool node_has_id = false;

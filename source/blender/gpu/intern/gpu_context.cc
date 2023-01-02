@@ -262,7 +262,7 @@ bool GPU_backend_type_selection_detect(void)
     backends_to_check.append(GPU_BACKEND_OPENGL);
   }
 
-  /* Add fallback to OpenGL when Metal backend is requested on a platform that doens't support
+  /* Add fallback to OpenGL when Metal backend is requested on a platform that doesn't support
    * metal. */
   if (backends_to_check[0] == GPU_BACKEND_METAL) {
     backends_to_check.append(GPU_BACKEND_OPENGL);

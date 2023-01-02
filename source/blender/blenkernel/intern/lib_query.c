@@ -261,7 +261,7 @@ static bool library_foreach_ID_link(Main *bmain,
      * (the node tree), but re-use those generated for the 'owner' ID (the material). */
     if (inherit_data == NULL) {
       data.cb_flag = ID_IS_LINKED(id) ? IDWALK_CB_INDIRECT_USAGE : 0;
-      /* When an ID is defined as not refcounting its ID usages, it should never do it. */
+      /* When an ID is defined as not reference-counting its ID usages, it should never do it. */
       data.cb_flag_clear = (id->tag & LIB_TAG_NO_USER_REFCOUNT) ?
                                IDWALK_CB_USER | IDWALK_CB_USER_ONE :
                                0;

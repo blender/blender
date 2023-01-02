@@ -517,7 +517,7 @@ enum eBlurKernelType;
 BlurKernel *paint_new_blur_kernel(struct Brush *br, bool proj);
 void paint_delete_blur_kernel(BlurKernel *);
 
-/* Initialize viewport pivot from evaulated bounding box center of ob. */
+/** Initialize viewport pivot from evaluated bounding box center of `ob`. */
 void paint_init_pivot(struct Object *ob, struct Scene *scene);
 
 /* paint curve defines */

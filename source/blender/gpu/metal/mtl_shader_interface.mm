@@ -286,7 +286,7 @@ void MTLShaderInterface::prepare_common_shader_inputs()
     MTLShaderInputAttribute &shd_attr = attributes_[attr_index];
     current_input->name_offset = shd_attr.name_offset;
     current_input->name_hash = BLI_hash_string(this->get_name_at_offset(shd_attr.name_offset));
-    /* For Metal, we flatten the vertex attribute indices within the shader in order to minimise
+    /* For Metal, we flatten the vertex attribute indices within the shader in order to minimize
      * complexity.  ShaderInput "Location" contains the original attribute location, as can be
      * fetched using `GPU_shader_get_attribute_info`. ShaderInput binding contains the array index
      * into the MTLShaderInterface `attributes_` array. */

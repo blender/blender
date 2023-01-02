@@ -416,9 +416,9 @@ static void setup_app_data(bContext *C,
      * means that we do not reset their user count, however we do increase that one when doing
      * lib_link on local IDs using linked ones.
      * There is no real way to predict amount of changes here, so we have to fully redo
-     * refcounting.
-     * Now that we re-use (and do not liblink in readfile.c) most local datablocks as well, we have
-     * to recompute refcount for all local IDs too. */
+     * reference-counting.
+     * Now that we re-use (and do not liblink in readfile.c) most local data-blocks as well,
+     * we have to recompute reference-counts for all local IDs too. */
     BKE_main_id_refcount_recompute(bmain, false);
   }
 
