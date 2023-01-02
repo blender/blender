@@ -75,10 +75,13 @@ typedef struct tSlider {
   /** Last mouse cursor position used for mouse movement delta calculation. */
   float last_cursor[2];
 
-  /** Enable range beyond 0-100%. */
+  /** Enable range beyond 0-100%.
+   * This is set by the code that uses the slider, as not all operations support
+   * extrapolation. */
   bool allow_overshoot;
 
-  /** Allow overshoot or clamp between 0% and 100%. */
+  /** Allow overshoot or clamp between 0% and 100%.
+   * This is set by the artist while using the slider. */
   bool overshoot;
 
   /** Move factor in 10% steps. */
