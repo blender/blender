@@ -224,8 +224,6 @@ static int poselib_blend_handle_event(bContext *UNUSED(C), wmOperator *op, const
       pbd->state = pbd->state == POSE_BLEND_BLENDING ? POSE_BLEND_ORIGINAL : POSE_BLEND_BLENDING;
       pbd->needs_redraw = true;
       break;
-
-      /* TODO(Sybren): use better UI for slider. */
   }
 
   return OPERATOR_RUNNING_MODAL;
