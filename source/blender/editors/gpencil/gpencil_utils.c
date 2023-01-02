@@ -3356,7 +3356,7 @@ void ED_gpencil_layer_merge(bGPdata *gpd,
   }
 }
 
-void gpencil_layer_new_name_get(bGPdata *gpd, char *rname)
+static void gpencil_layer_new_name_get(bGPdata *gpd, char *rname)
 {
   int index = 0;
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
