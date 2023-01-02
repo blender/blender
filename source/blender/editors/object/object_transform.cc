@@ -19,6 +19,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_array.hh"
@@ -44,6 +45,7 @@
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_object.h"
+#include "BKE_pointcloud.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
@@ -639,6 +641,17 @@ static bool apply_objects_internal_need_single_user(bContext *C)
   return (ID_REAL_USERS(ob->data) > CTX_DATA_COUNT(C, selected_editable_objects));
 }
 
+static void transform_positions(blender::MutableSpan<blender::float3> positions,
+                                const blender::float4x4 &matrix)
+{
+  using namespace blender;
+  threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
+    for (float3 &position : positions.slice(range)) {
+      position = matrix * position;
+    }
+  });
+}
+
 static int apply_objects_internal(bContext *C,
                                   ReportList *reports,
                                   bool apply_loc,
@@ -647,6 +660,7 @@ static int apply_objects_internal(bContext *C,
                                   bool do_props,
                                   bool do_single_user)
 {
+  using namespace blender;
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -696,7 +710,8 @@ static int apply_objects_internal(bContext *C,
              OB_SURF,
              OB_FONT,
              OB_GPENCIL,
-             OB_CURVES)) {
+             OB_CURVES,
+             OB_POINTCLOUD)) {
       ID *obdata = static_cast<ID *>(ob->data);
       if (!do_multi_user && ID_REAL_USERS(obdata) > 1) {
         BKE_reportf(reports,
@@ -931,6 +946,14 @@ static int apply_objects_internal(bContext *C,
       Curves &curves = *static_cast<Curves *>(ob->data);
       blender::bke::CurvesGeometry::wrap(curves.geometry).transform(mat);
       blender::bke::CurvesGeometry::wrap(curves.geometry).calculate_bezier_auto_handles();
+    }
+    else if (ob->type == OB_POINTCLOUD) {
+      PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
+      bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
+      bke::SpanAttributeWriter position = attributes.lookup_or_add_for_write_span<float3>(
+          "position", ATTR_DOMAIN_POINT);
+      transform_positions(position.span, float4x4(mat));
+      position.finish();
     }
     else if (ob->type == OB_CAMERA) {
       MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
@@ -1230,8 +1253,29 @@ enum {
   ORIGIN_TO_CENTER_OF_MASS_VOLUME,
 };
 
+static float3 calculate_mean(const blender::Span<blender::float3> values)
+{
+  if (values.is_empty()) {
+    return float3(0);
+  }
+  /* TODO: Use a method that avoids overflow. */
+  return std::accumulate(values.begin(), values.end(), float3(0)) / values.size();
+}
+
+static void translate_positions(blender::MutableSpan<blender::float3> positions,
+                                const blender::float3 &translation)
+{
+  using namespace blender;
+  threading::parallel_for(positions.index_range(), 2048, [&](const IndexRange range) {
+    for (float3 &position : positions.slice(range)) {
+      position += translation;
+    }
+  });
+}
+
 static int object_origin_set_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *obact = CTX_data_active_object(C);
@@ -1653,14 +1697,45 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         }
       }
       else if (around == V3D_AROUND_CENTER_MEDIAN) {
-        Span<float3> positions = curves.positions();
-        cent = std::accumulate(positions.begin(), positions.end(), float3(0)) /
-               curves.points_num();
+        cent = calculate_mean(curves.positions());
       }
 
       tot_change++;
       curves.translate(-cent);
       curves_id.id.tag |= LIB_TAG_DOIT;
+      do_inverse_offset = true;
+    }
+    else if (ob->type == OB_POINTCLOUD) {
+      PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
+      bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
+      bke::SpanAttributeWriter positions = attributes.lookup_or_add_for_write_span<float3>(
+          "position", ATTR_DOMAIN_POINT);
+      if (ELEM(centermode, ORIGIN_TO_CENTER_OF_MASS_SURFACE, ORIGIN_TO_CENTER_OF_MASS_VOLUME) ||
+          !ELEM(around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN)) {
+        BKE_report(op->reports,
+                   RPT_WARNING,
+                   "Point cloud object does not support this set origin operation");
+        continue;
+      }
+
+      if (centermode == ORIGIN_TO_CURSOR) {
+        /* Done. */
+      }
+      else if (around == V3D_AROUND_CENTER_BOUNDS) {
+        float3 min(std::numeric_limits<float>::max());
+        float3 max(-std::numeric_limits<float>::max());
+        if (pointcloud.bounds_min_max(min, max)) {
+          cent = math::midpoint(min, max);
+        }
+      }
+      else if (around == V3D_AROUND_CENTER_MEDIAN) {
+        cent = calculate_mean(positions.span);
+      }
+
+      tot_change++;
+      translate_positions(positions.span, -cent);
+      positions.finish();
+      pointcloud.id.tag |= LIB_TAG_DOIT;
       do_inverse_offset = true;
     }
 
