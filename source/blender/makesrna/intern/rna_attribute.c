@@ -712,9 +712,9 @@ static void rna_AttributeGroup_active_color_name_set(PointerRNA *ptr, const char
   ID *id = ptr->owner_id;
   if (GS(id->name) == ID_ME) {
     Mesh *mesh = (Mesh *)id;
-    MEM_SAFE_FREE(mesh->default_color_attribute);
+    MEM_SAFE_FREE(mesh->active_color_attribute);
     if (value[0]) {
-      mesh->default_color_attribute = BLI_strdup(value);
+      mesh->active_color_attribute = BLI_strdup(value);
     }
   }
 }
