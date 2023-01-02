@@ -337,6 +337,9 @@ void OBJWriter::write_poly_elements(FormatHandler &fh,
   const int tot_polygons = obj_mesh_data.tot_polygons();
   const int tot_deform_groups = obj_mesh_data.tot_deform_groups();
   threading::EnumerableThreadSpecific<Vector<float>> group_weights;
+  const bke::AttributeAccessor attributes = obj_mesh_data.get_mesh()->attributes();
+  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
 
   obj_parallel_chunked_output(fh, tot_polygons, [&](FormatHandler &buf, int idx) {
     /* Polygon order for writing into the file is not necessarily the same
@@ -371,10 +374,6 @@ void OBJWriter::write_poly_elements(FormatHandler &fh,
                                                  obj_mesh_data.get_poly_deform_group_name(group));
       }
     }
-
-    const bke::AttributeAccessor attributes = obj_mesh_data.get_mesh()->attributes();
-    const VArray<int> material_indices = attributes.lookup_or_default<int>(
-        "material_index", ATTR_DOMAIN_FACE, 0);
 
     /* Write material name and material group if different from previous. */
     if (export_params_.export_materials && obj_mesh_data.tot_materials() > 0) {
