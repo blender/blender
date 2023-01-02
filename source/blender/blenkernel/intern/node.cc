@@ -2952,11 +2952,6 @@ void nodeRebuildIDVector(bNodeTree *node_tree)
 
 namespace blender::bke {
 
-/**
- * Free the node itself.
- *
- * \note: ID user reference-counting and changing the `nodes_by_id` vector are up to the caller.
- */
 void node_free_node(bNodeTree *ntree, bNode *node)
 {
   /* since it is called while free database, node->id is undefined */
