@@ -75,6 +75,11 @@ typedef struct tSlider {
   /** Last mouse cursor position used for mouse movement delta calculation. */
   float last_cursor[2];
 
+  /** Allow negative values as well.
+   * This is set by the code that uses the slider, as not all operations support
+   * negative values. */
+  bool is_bidirectional;
+
   /** Enable range beyond 0-100%.
    * This is set by the code that uses the slider, as not all operations support
    * extrapolation. */
@@ -89,6 +94,7 @@ typedef struct tSlider {
 
   /** Reduces factor delta from mouse movement. */
   bool precision;
+
 } tSlider;
 
 static void draw_overshoot_triangle(const uint8_t color[4],
@@ -279,13 +285,18 @@ static void slider_draw(const struct bContext *UNUSED(C), ARegion *region, void 
       .ymax = line_y + line_width / 2,
   };
   float line_start_factor = 0;
-  int handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * slider->factor;
-
+  int handle_pos_x;
   if (slider->overshoot) {
     main_line_rect.xmin = main_line_rect.xmin - SLIDE_PIXEL_DISTANCE * OVERSHOOT_RANGE_DELTA;
     main_line_rect.xmax = main_line_rect.xmax + SLIDE_PIXEL_DISTANCE * OVERSHOOT_RANGE_DELTA;
     line_start_factor = slider->factor - 0.5f - OVERSHOOT_RANGE_DELTA;
     handle_pos_x = region->winx / 2;
+  }
+  else if (slider->is_bidirectional) {
+    handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * (slider->factor / 2 + 0.5f);
+  }
+  else {
+    handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * slider->factor;
   }
 
   draw_backdrop(fontid, &main_line_rect, color_bg, slider->region_header->winy, base_tick_height);
@@ -350,7 +361,10 @@ static void slider_update_factor(tSlider *slider, const wmEvent *event)
   copy_v2fl_v2i(slider->last_cursor, event->xy);
 
   if (!slider->overshoot) {
-    slider->factor = clamp_f(slider->factor, 0, 1);
+    slider->factor = clamp_f(slider->factor, -1, 1);
+  }
+  if (!slider->is_bidirectional) {
+    slider->factor = max_ff(slider->factor, 0);
   }
 
   if (slider->increments) {
@@ -502,6 +516,16 @@ bool ED_slider_allow_overshoot_get(struct tSlider *slider)
 void ED_slider_allow_overshoot_set(struct tSlider *slider, const bool value)
 {
   slider->allow_overshoot = value;
+}
+
+bool ED_slider_is_bidirectional_get(struct tSlider *slider)
+{
+  return slider->is_bidirectional;
+}
+
+void ED_slider_is_bidirectional_set(struct tSlider *slider, const bool value)
+{
+  slider->is_bidirectional = value;
 }
 
 /** \} */
