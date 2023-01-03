@@ -36,7 +36,7 @@ MeshUVVert *MeshPrimitive::get_other_uv_vertex(const MeshVertex *v1, const MeshV
   BLI_assert(vertices[0].vertex == v1 || vertices[1].vertex == v1 || vertices[2].vertex == v1);
   BLI_assert(vertices[0].vertex == v2 || vertices[1].vertex == v2 || vertices[2].vertex == v2);
   for (MeshUVVert &uv_vertex : vertices) {
-    if (uv_vertex.vertex != v1 && uv_vertex.vertex != v2) {
+    if (!ELEM(uv_vertex.vertex, v1, v2)) {
       return &uv_vertex;
     }
   }

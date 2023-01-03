@@ -372,7 +372,7 @@ static void custom_range_header_draw(const bContext *UNUSED(C), Panel *panel)
 
   int mode = RNA_enum_get(ptr, "mode");
 
-  uiLayoutSetActive(layout, (mode != GP_TIME_MODE_FIX && mode != GP_TIME_MODE_CHAIN));
+  uiLayoutSetActive(layout, !ELEM(mode, GP_TIME_MODE_FIX, GP_TIME_MODE_CHAIN));
 
   uiItemR(layout, ptr, "use_custom_frame_range", 0, NULL, ICON_NONE);
 }
@@ -388,7 +388,7 @@ static void custom_range_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetActive(layout,
-                    (mode != GP_TIME_MODE_FIX && mode != GP_TIME_MODE_CHAIN) &&
+                    (!ELEM(mode, GP_TIME_MODE_FIX, GP_TIME_MODE_CHAIN)) &&
                         RNA_boolean_get(ptr, "use_custom_frame_range"));
 
   col = uiLayoutColumn(layout, true);
