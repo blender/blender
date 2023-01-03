@@ -54,7 +54,8 @@ template<typename T, int Size> [[nodiscard]] T determinant(const MatBase<T, Size
 /**
  * Returns the adjoint of the matrix (also known as adjugate matrix).
  */
-template<typename T, int Size> MatBase<T, Size, Size> adjoint(const MatBase<T, Size, Size> &mat);
+template<typename T, int Size>
+[[nodiscard]] MatBase<T, Size, Size> adjoint(const MatBase<T, Size, Size> &mat);
 
 /**
  * Equivalent to `mat * from_location(translation)` but with fewer operation.

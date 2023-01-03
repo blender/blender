@@ -17,7 +17,7 @@
 
 namespace blender::math {
 
-template<typename T, int Size> inline bool is_zero(const vec_base<T, Size> &a)
+template<typename T, int Size> [[nodiscard]] inline bool is_zero(const vec_base<T, Size> &a)
 {
   for (int i = 0; i < Size; i++) {
     if (a[i] != T(0)) {
@@ -27,7 +27,7 @@ template<typename T, int Size> inline bool is_zero(const vec_base<T, Size> &a)
   return true;
 }
 
-template<typename T, int Size> inline bool is_any_zero(const vec_base<T, Size> &a)
+template<typename T, int Size> [[nodiscard]] inline bool is_any_zero(const vec_base<T, Size> &a)
 {
   for (int i = 0; i < Size; i++) {
     if (a[i] == T(0)) {
@@ -38,9 +38,9 @@ template<typename T, int Size> inline bool is_any_zero(const vec_base<T, Size> &
 }
 
 template<typename T, int Size>
-inline bool almost_equal_relative(const vec_base<T, Size> &a,
-                                  const vec_base<T, Size> &b,
-                                  const T &epsilon_factor)
+[[nodiscard]] inline bool almost_equal_relative(const vec_base<T, Size> &a,
+                                                const vec_base<T, Size> &b,
+                                                const T &epsilon_factor)
 {
   for (int i = 0; i < Size; i++) {
     const float epsilon = epsilon_factor * math::abs(a[i]);
@@ -51,7 +51,8 @@ inline bool almost_equal_relative(const vec_base<T, Size> &a,
   return true;
 }
 
-template<typename T, int Size> inline vec_base<T, Size> abs(const vec_base<T, Size> &a)
+template<typename T, int Size>
+[[nodiscard]] inline vec_base<T, Size> abs(const vec_base<T, Size> &a)
 {
   vec_base<T, Size> result;
   for (int i = 0; i < Size; i++) {
@@ -61,7 +62,7 @@ template<typename T, int Size> inline vec_base<T, Size> abs(const vec_base<T, Si
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> min(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+[[nodiscard]] inline vec_base<T, Size> min(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
 {
   vec_base<T, Size> result;
   for (int i = 0; i < Size; i++) {
@@ -71,7 +72,7 @@ inline vec_base<T, Size> min(const vec_base<T, Size> &a, const vec_base<T, Size>
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> max(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+[[nodiscard]] inline vec_base<T, Size> max(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
 {
   vec_base<T, Size> result;
   for (int i = 0; i < Size; i++) {
@@ -81,9 +82,9 @@ inline vec_base<T, Size> max(const vec_base<T, Size> &a, const vec_base<T, Size>
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> clamp(const vec_base<T, Size> &a,
-                               const vec_base<T, Size> &min,
-                               const vec_base<T, Size> &max)
+[[nodiscard]] inline vec_base<T, Size> clamp(const vec_base<T, Size> &a,
+                                             const vec_base<T, Size> &min,
+                                             const vec_base<T, Size> &max)
 {
   vec_base<T, Size> result = a;
   for (int i = 0; i < Size; i++) {
@@ -93,7 +94,9 @@ inline vec_base<T, Size> clamp(const vec_base<T, Size> &a,
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> clamp(const vec_base<T, Size> &a, const T &min, const T &max)
+[[nodiscard]] inline vec_base<T, Size> clamp(const vec_base<T, Size> &a,
+                                             const T &min,
+                                             const T &max)
 {
   vec_base<T, Size> result = a;
   for (int i = 0; i < Size; i++) {
@@ -103,7 +106,7 @@ inline vec_base<T, Size> clamp(const vec_base<T, Size> &a, const T &min, const T
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> mod(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+[[nodiscard]] inline vec_base<T, Size> mod(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
 {
   vec_base<T, Size> result;
   for (int i = 0; i < Size; i++) {
@@ -113,7 +116,8 @@ inline vec_base<T, Size> mod(const vec_base<T, Size> &a, const vec_base<T, Size>
   return result;
 }
 
-template<typename T, int Size> inline vec_base<T, Size> mod(const vec_base<T, Size> &a, const T &b)
+template<typename T, int Size>
+[[nodiscard]] inline vec_base<T, Size> mod(const vec_base<T, Size> &a, const T &b)
 {
   BLI_assert(b != 0);
   vec_base<T, Size> result;
@@ -124,7 +128,8 @@ template<typename T, int Size> inline vec_base<T, Size> mod(const vec_base<T, Si
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> safe_mod(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+[[nodiscard]] inline vec_base<T, Size> safe_mod(const vec_base<T, Size> &a,
+                                                const vec_base<T, Size> &b)
 {
   vec_base<T, Size> result;
   for (int i = 0; i < Size; i++) {
@@ -134,7 +139,7 @@ inline vec_base<T, Size> safe_mod(const vec_base<T, Size> &a, const vec_base<T, 
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> safe_mod(const vec_base<T, Size> &a, const T &b)
+[[nodiscard]] inline vec_base<T, Size> safe_mod(const vec_base<T, Size> &a, const T &b)
 {
   if (b == 0) {
     return vec_base<T, Size>(0);
@@ -152,7 +157,8 @@ inline vec_base<T, Size> safe_mod(const vec_base<T, Size> &a, const T &b)
  * It is undefined if \a a is negative or \b b is not strictly positive.
  */
 template<typename T, int Size>
-inline vec_base<T, Size> ceil_to_multiple(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+[[nodiscard]] inline vec_base<T, Size> ceil_to_multiple(const vec_base<T, Size> &a,
+                                                        const vec_base<T, Size> &b)
 {
   vec_base<T, Size> result;
   for (int i = 0; i < Size; i++) {
@@ -168,7 +174,8 @@ inline vec_base<T, Size> ceil_to_multiple(const vec_base<T, Size> &a, const vec_
  * It is undefined if \a a is negative or \b b is not strictly positive.
  */
 template<typename T, int Size>
-inline vec_base<T, Size> divide_ceil(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+[[nodiscard]] inline vec_base<T, Size> divide_ceil(const vec_base<T, Size> &a,
+                                                   const vec_base<T, Size> &b)
 {
   vec_base<T, Size> result;
   for (int i = 0; i < Size; i++) {
@@ -180,16 +187,15 @@ inline vec_base<T, Size> divide_ceil(const vec_base<T, Size> &a, const vec_base<
 }
 
 template<typename T, int Size>
-inline void min_max(const vec_base<T, Size> &vector,
-                    vec_base<T, Size> &min,
-                    vec_base<T, Size> &max)
+void min_max(const vec_base<T, Size> &vector, vec_base<T, Size> &min, vec_base<T, Size> &max)
 {
   min = math::min(vector, min);
   max = math::max(vector, max);
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> safe_divide(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+[[nodiscard]] inline vec_base<T, Size> safe_divide(const vec_base<T, Size> &a,
+                                                   const vec_base<T, Size> &b)
 {
   vec_base<T, Size> result;
   for (int i = 0; i < Size; i++) {
@@ -199,12 +205,13 @@ inline vec_base<T, Size> safe_divide(const vec_base<T, Size> &a, const vec_base<
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> safe_divide(const vec_base<T, Size> &a, const T &b)
+[[nodiscard]] inline vec_base<T, Size> safe_divide(const vec_base<T, Size> &a, const T &b)
 {
   return (b != 0) ? a / b : vec_base<T, Size>(0.0f);
 }
 
-template<typename T, int Size> inline vec_base<T, Size> floor(const vec_base<T, Size> &a)
+template<typename T, int Size>
+[[nodiscard]] inline vec_base<T, Size> floor(const vec_base<T, Size> &a)
 {
   vec_base<T, Size> result;
   for (int i = 0; i < Size; i++) {
@@ -213,7 +220,8 @@ template<typename T, int Size> inline vec_base<T, Size> floor(const vec_base<T, 
   return result;
 }
 
-template<typename T, int Size> inline vec_base<T, Size> ceil(const vec_base<T, Size> &a)
+template<typename T, int Size>
+[[nodiscard]] inline vec_base<T, Size> ceil(const vec_base<T, Size> &a)
 {
   vec_base<T, Size> result;
   for (int i = 0; i < Size; i++) {
@@ -222,7 +230,8 @@ template<typename T, int Size> inline vec_base<T, Size> ceil(const vec_base<T, S
   return result;
 }
 
-template<typename T, int Size> inline vec_base<T, Size> fract(const vec_base<T, Size> &a)
+template<typename T, int Size>
+[[nodiscard]] inline vec_base<T, Size> fract(const vec_base<T, Size> &a)
 {
   vec_base<T, Size> result;
   for (int i = 0; i < Size; i++) {
@@ -231,7 +240,8 @@ template<typename T, int Size> inline vec_base<T, Size> fract(const vec_base<T, 
   return result;
 }
 
-template<typename T, int Size> inline T dot(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+template<typename T, int Size>
+[[nodiscard]] inline T dot(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
 {
   T result = a[0] * b[0];
   for (int i = 1; i < Size; i++) {
@@ -240,7 +250,7 @@ template<typename T, int Size> inline T dot(const vec_base<T, Size> &a, const ve
   return result;
 }
 
-template<typename T, int Size> inline T length_manhattan(const vec_base<T, Size> &a)
+template<typename T, int Size> [[nodiscard]] inline T length_manhattan(const vec_base<T, Size> &a)
 {
   T result = std::abs(a[0]);
   for (int i = 1; i < Size; i++) {
@@ -249,17 +259,17 @@ template<typename T, int Size> inline T length_manhattan(const vec_base<T, Size>
   return result;
 }
 
-template<typename T, int Size> inline T length_squared(const vec_base<T, Size> &a)
+template<typename T, int Size> [[nodiscard]] inline T length_squared(const vec_base<T, Size> &a)
 {
   return dot(a, a);
 }
 
-template<typename T, int Size> inline T length(const vec_base<T, Size> &a)
+template<typename T, int Size> [[nodiscard]] inline T length(const vec_base<T, Size> &a)
 {
   return std::sqrt(length_squared(a));
 }
 
-template<typename T, int Size> inline bool is_unit_scale(const vec_base<T, Size> &v)
+template<typename T, int Size> [[nodiscard]] inline bool is_unit_scale(const vec_base<T, Size> &v)
 {
   /* Checks are flipped so NAN doesn't assert because we're making sure the value was
    * normalized and in the case we don't want NAN to be raising asserts since there
@@ -270,35 +280,35 @@ template<typename T, int Size> inline bool is_unit_scale(const vec_base<T, Size>
 }
 
 template<typename T, int Size>
-inline T distance_manhattan(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+[[nodiscard]] inline T distance_manhattan(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
 {
   return length_manhattan(a - b);
 }
 
 template<typename T, int Size>
-inline T distance_squared(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+[[nodiscard]] inline T distance_squared(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
 {
   return length_squared(a - b);
 }
 
 template<typename T, int Size>
-inline T distance(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+[[nodiscard]] inline T distance(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
 {
   return length(a - b);
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> reflect(const vec_base<T, Size> &incident,
-                                 const vec_base<T, Size> &normal)
+[[nodiscard]] inline vec_base<T, Size> reflect(const vec_base<T, Size> &incident,
+                                               const vec_base<T, Size> &normal)
 {
   BLI_assert(is_unit_scale(normal));
   return incident - 2.0 * dot(normal, incident) * normal;
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> refract(const vec_base<T, Size> &incident,
-                                 const vec_base<T, Size> &normal,
-                                 const T &eta)
+[[nodiscard]] inline vec_base<T, Size> refract(const vec_base<T, Size> &incident,
+                                               const vec_base<T, Size> &normal,
+                                               const T &eta)
 {
   float dot_ni = dot(normal, incident);
   float k = 1.0f - eta * eta * (1.0f - dot_ni * dot_ni);
@@ -309,7 +319,8 @@ inline vec_base<T, Size> refract(const vec_base<T, Size> &incident,
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> project(const vec_base<T, Size> &p, const vec_base<T, Size> &v_proj)
+[[nodiscard]] inline vec_base<T, Size> project(const vec_base<T, Size> &p,
+                                               const vec_base<T, Size> &v_proj)
 {
   if (UNLIKELY(is_zero(v_proj))) {
     return vec_base<T, Size>(0.0f);
@@ -318,7 +329,8 @@ inline vec_base<T, Size> project(const vec_base<T, Size> &p, const vec_base<T, S
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> normalize_and_get_length(const vec_base<T, Size> &v, T &out_length)
+[[nodiscard]] inline vec_base<T, Size> normalize_and_get_length(const vec_base<T, Size> &v,
+                                                                T &out_length)
 {
   out_length = length_squared(v);
   /* A larger value causes normalize errors in a scaled down models with camera extreme close. */
@@ -332,26 +344,28 @@ inline vec_base<T, Size> normalize_and_get_length(const vec_base<T, Size> &v, T 
   return vec_base<T, Size>(0.0);
 }
 
-template<typename T, int Size> inline vec_base<T, Size> normalize(const vec_base<T, Size> &v)
+template<typename T, int Size>
+[[nodiscard]] inline vec_base<T, Size> normalize(const vec_base<T, Size> &v)
 {
   T len;
   return normalize_and_get_length(v, len);
 }
 
-template<typename T> inline vec_base<T, 3> cross(const vec_base<T, 3> &a, const vec_base<T, 3> &b)
+template<typename T>
+[[nodiscard]] inline vec_base<T, 3> cross(const vec_base<T, 3> &a, const vec_base<T, 3> &b)
 {
   return {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
 }
 
-inline vec_base<float, 3> cross_high_precision(const vec_base<float, 3> &a,
-                                               const vec_base<float, 3> &b)
+[[nodiscard]] inline vec_base<float, 3> cross_high_precision(const vec_base<float, 3> &a,
+                                                             const vec_base<float, 3> &b)
 {
   return {float(double(a.y) * double(b.z) - double(a.z) * double(b.y)),
           float(double(a.z) * double(b.x) - double(a.x) * double(b.z)),
           float(double(a.x) * double(b.y) - double(a.y) * double(b.x))};
 }
 
-template<typename T> inline vec_base<T, 3> cross_poly(Span<vec_base<T, 3>> poly)
+template<typename T> [[nodiscard]] inline vec_base<T, 3> cross_poly(Span<vec_base<T, 3>> poly)
 {
   /* Newell's Method. */
   int nv = int(poly.size());
@@ -375,15 +389,16 @@ template<typename T> inline vec_base<T, 3> cross_poly(Span<vec_base<T, 3>> poly)
 }
 
 template<typename T, typename FactorT, int Size>
-inline vec_base<T, Size> interpolate(const vec_base<T, Size> &a,
-                                     const vec_base<T, Size> &b,
-                                     const FactorT &t)
+[[nodiscard]] inline vec_base<T, Size> interpolate(const vec_base<T, Size> &a,
+                                                   const vec_base<T, Size> &b,
+                                                   const FactorT &t)
 {
   return a * (1 - t) + b * t;
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> midpoint(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+[[nodiscard]] inline vec_base<T, Size> midpoint(const vec_base<T, Size> &a,
+                                                const vec_base<T, Size> &b)
 {
   return (a + b) * 0.5;
 }
@@ -392,14 +407,14 @@ inline vec_base<T, Size> midpoint(const vec_base<T, Size> &a, const vec_base<T, 
  * Return `vector` if `incident` and `reference` are pointing in the same direction.
  */
 template<typename T, int Size>
-inline vec_base<T, Size> faceforward(const vec_base<T, Size> &vector,
-                                     const vec_base<T, Size> &incident,
-                                     const vec_base<T, Size> &reference)
+[[nodiscard]] inline vec_base<T, Size> faceforward(const vec_base<T, Size> &vector,
+                                                   const vec_base<T, Size> &incident,
+                                                   const vec_base<T, Size> &reference)
 {
   return (dot(reference, incident) < 0) ? vector : -vector;
 }
 
-template<typename T> inline int dominant_axis(const vec_base<T, 3> &a)
+template<typename T> [[nodiscard]] inline int dominant_axis(const vec_base<T, 3> &a)
 {
   vec_base<T, 3> b = abs(a);
   return ((b.x > b.y) ? ((b.x > b.z) ? 0 : 2) : ((b.y > b.z) ? 1 : 2));
@@ -410,7 +425,7 @@ template<typename T> inline int dominant_axis(const vec_base<T, 3> &a)
  * \note Returned vector can be in any perpendicular direction.
  * \note Returned vector might not the same length as \a v.
  */
-template<typename T> inline vec_base<T, 3> orthogonal(const vec_base<T, 3> &v)
+template<typename T> [[nodiscard]] inline vec_base<T, 3> orthogonal(const vec_base<T, 3> &v)
 {
   const int axis = dominant_axis(v);
   switch (axis) {
@@ -428,15 +443,15 @@ template<typename T> inline vec_base<T, 3> orthogonal(const vec_base<T, 3> &v)
  * Calculates a perpendicular vector to \a v.
  * \note Returned vector can be in any perpendicular direction.
  */
-template<typename T> inline vec_base<T, 2> orthogonal(const vec_base<T, 2> &v)
+template<typename T> [[nodiscard]] inline vec_base<T, 2> orthogonal(const vec_base<T, 2> &v)
 {
   return {-v.y, v.x};
 }
 
 template<typename T, int Size>
-inline bool is_equal(const vec_base<T, Size> &a,
-                     const vec_base<T, Size> &b,
-                     const T epsilon = T(0))
+[[nodiscard]] inline bool is_equal(const vec_base<T, Size> &a,
+                                   const vec_base<T, Size> &b,
+                                   const T epsilon = T(0))
 {
   for (int i = 0; i < Size; i++) {
     if (std::abs(a[i] - b[i]) > epsilon) {
@@ -459,9 +474,9 @@ template<typename T> struct isect_result {
 };
 
 template<typename T, int Size>
-isect_result<vec_base<T, Size>> isect_seg_seg(const vec_base<T, Size> &v1,
-                                              const vec_base<T, Size> &v2,
-                                              const vec_base<T, Size> &v3,
-                                              const vec_base<T, Size> &v4);
+[[nodiscard]] isect_result<vec_base<T, Size>> isect_seg_seg(const vec_base<T, Size> &v1,
+                                                            const vec_base<T, Size> &v2,
+                                                            const vec_base<T, Size> &v3,
+                                                            const vec_base<T, Size> &v4);
 
 }  // namespace blender::math
