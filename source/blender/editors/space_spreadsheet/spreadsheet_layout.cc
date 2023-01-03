@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"

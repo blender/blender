@@ -9,7 +9,7 @@
 
 #include "DNA_image_types.h"
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 namespace blender::bke::image {
 

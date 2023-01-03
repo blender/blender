@@ -12,7 +12,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "BLI_float4x4.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "image_batches.hh"
 #include "image_private.hh"

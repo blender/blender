@@ -278,8 +278,8 @@ set(SRC
   BLI_math_solvers.h
   BLI_math_statistics.h
   BLI_math_time.h
-  BLI_math_vec_mpq_types.hh
-  BLI_math_vec_types.hh
+  BLI_math_vector_mpq_types.hh
+  BLI_math_vector_types.hh
   BLI_math_vector.h
   BLI_math_vector.hh
   BLI_memarena.h
@@ -492,7 +492,7 @@ if(WITH_GTESTS)
     tests/BLI_math_rotation_test.cc
     tests/BLI_math_solvers_test.cc
     tests/BLI_math_time_test.cc
-    tests/BLI_math_vec_types_test.cc
+    tests/BLI_math_vector_types_test.cc
     tests/BLI_math_vector_test.cc
     tests/BLI_memiter_test.cc
     tests/BLI_memory_utils_test.cc

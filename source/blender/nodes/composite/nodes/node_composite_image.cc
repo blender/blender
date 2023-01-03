@@ -8,7 +8,7 @@
 #include "node_composite_util.hh"
 
 #include "BLI_linklist.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 

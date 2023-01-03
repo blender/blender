@@ -15,7 +15,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_ghash.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 

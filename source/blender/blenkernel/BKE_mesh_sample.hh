@@ -8,7 +8,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_generic_virtual_array.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "DNA_meshdata_types.h"
 

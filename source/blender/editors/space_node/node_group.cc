@@ -15,7 +15,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_vector.hh"

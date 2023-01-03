@@ -8,7 +8,7 @@
 
 #include <optional>
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 

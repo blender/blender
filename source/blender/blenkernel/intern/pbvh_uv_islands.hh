@@ -27,7 +27,7 @@
 #include "BLI_float3x3.hh"
 #include "BLI_map.hh"
 #include "BLI_math.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
 #include "BLI_vector_list.hh"

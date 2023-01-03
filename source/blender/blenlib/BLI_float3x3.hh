@@ -8,8 +8,8 @@
 #include "BLI_assert.h"
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.h"
-#include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 
 namespace blender {
 
