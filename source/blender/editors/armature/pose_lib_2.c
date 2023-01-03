@@ -550,6 +550,8 @@ static bool poselib_blend_poll(bContext *C)
 
 void POSELIB_OT_apply_pose_asset(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* Identifiers: */
   ot->name = "Apply Pose Asset";
   ot->idname = "POSELIB_OT_apply_pose_asset";
@@ -573,12 +575,14 @@ void POSELIB_OT_apply_pose_asset(wmOperatorType *ot)
                        "value will apply the pose flipped over the X-axis",
                        -1.0f,
                        1.0f);
-  RNA_def_boolean(ot->srna,
-                  "flipped",
-                  false,
-                  "Apply Flipped",
-                  "When enabled, applies the pose flipped over the X-axis. This is the same as "
-                  "passing a negative `blend_factor`");
+  prop = RNA_def_boolean(
+      ot->srna,
+      "flipped",
+      false,
+      "Apply Flipped",
+      "When enabled, applies the pose flipped over the X-axis. This is the same as "
+      "passing a negative `blend_factor`");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 void POSELIB_OT_blend_pose_asset(wmOperatorType *ot)
