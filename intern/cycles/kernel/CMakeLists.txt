@@ -752,6 +752,10 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       ${SYCL_CPP_FLAGS}
       )
 
+  if (WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
+    list(APPEND sycl_compiler_flags -DWITH_ONEAPI_SYCL_HOST_TASK)
+  endif()
+
   # Set defaults for spir64 and spir64_gen options
   if(NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64)
     set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64 "-options '-ze-opt-large-register-file -ze-opt-regular-grf-kernel integrator_intersect'")
@@ -763,7 +767,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "--format zebin ")
   string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "-device ${CYCLES_ONEAPI_SPIR64_GEN_DEVICES} ")
 
-  if(WITH_CYCLES_ONEAPI_BINARIES)
+  # Host execution won't use GPU binaries, no need to compile them.
+  if(WITH_CYCLES_ONEAPI_BINARIES AND NOT WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
     # AoT binaries aren't currently reused when calling sycl::build.
     list(APPEND sycl_compiler_flags -DSYCL_SKIP_KERNELS_PRELOAD)
     # Iterate over all targest and their options

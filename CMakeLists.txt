@@ -501,12 +501,14 @@ endif()
 if(NOT APPLE)
   option(WITH_CYCLES_DEVICE_ONEAPI "Enable Cycles oneAPI compute support" OFF)
   option(WITH_CYCLES_ONEAPI_BINARIES "Enable Ahead-Of-Time compilation for Cycles oneAPI device" OFF)
+  option(WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION "Switch target of oneAPI implementation from SYCL devices to Host Task (single thread on CPU). This option is only for debugging purposes." OFF)
 
   # https://www.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html
   # acm-g10 is the target for the first Intel Arc Alchemist GPUs.
   set(CYCLES_ONEAPI_SPIR64_GEN_DEVICES "acm-g10" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
   set(CYCLES_ONEAPI_SYCL_TARGETS spir64 spir64_gen CACHE STRING "oneAPI targets to build AOT binaries for")
 
+  mark_as_advanced(WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
   mark_as_advanced(CYCLES_ONEAPI_SPIR64_GEN_DEVICES)
   mark_as_advanced(CYCLES_ONEAPI_SYCL_TARGETS)
 endif()
