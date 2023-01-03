@@ -76,6 +76,11 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
         VArray<bool>::ForFunc(polys.size(), planar_fn), ATTR_DOMAIN_FACE, domain);
   }
 
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  {
+    threshold_.node().for_each_field_input_recursive(fn);
+  }
+
   uint64_t hash() const override
   {
     /* Some random constant hash. */

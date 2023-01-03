@@ -89,6 +89,12 @@ class ControlPointNeighborFieldInput final : public bke::CurvesFieldInput {
 
     return VArray<int>::ForContainer(std::move(output));
   }
+
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  {
+    index_.node().for_each_field_input_recursive(fn);
+    offset_.node().for_each_field_input_recursive(fn);
+  }
 };
 
 class OffsetValidFieldInput final : public bke::CurvesFieldInput {
@@ -137,6 +143,12 @@ class OffsetValidFieldInput final : public bke::CurvesFieldInput {
       output[i_selection] = curve_points.contains(i_point + offsets[i_selection]);
     };
     return VArray<bool>::ForContainer(std::move(output));
+  }
+
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  {
+    index_.node().for_each_field_input_recursive(fn);
+    offset_.node().for_each_field_input_recursive(fn);
   }
 };
 

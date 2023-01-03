@@ -73,6 +73,12 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
     return VArray<int>::ForContainer(std::move(offset_corners));
   }
 
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  {
+    corner_index_.node().for_each_field_input_recursive(fn);
+    offset_.node().for_each_field_input_recursive(fn);
+  }
+
   uint64_t hash() const final
   {
     return get_default_hash(offset_);

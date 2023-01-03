@@ -126,6 +126,13 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
     return VArray<int>::ForContainer(std::move(edge_of_vertex));
   }
 
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  {
+    vert_index_.node().for_each_field_input_recursive(fn);
+    sort_index_.node().for_each_field_input_recursive(fn);
+    sort_weight_.node().for_each_field_input_recursive(fn);
+  }
+
   uint64_t hash() const final
   {
     return 98762349875636;

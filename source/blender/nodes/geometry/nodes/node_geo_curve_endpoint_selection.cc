@@ -77,6 +77,12 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
     return VArray<bool>::ForContainer(std::move(selection));
   };
 
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  {
+    start_size_.node().for_each_field_input_recursive(fn);
+    end_size_.node().for_each_field_input_recursive(fn);
+  }
+
   uint64_t hash() const override
   {
     return get_default_hash_2(start_size_, end_size_);

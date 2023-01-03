@@ -440,6 +440,12 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
     return GVArray::ForGArray(std::move(main_buffer));
   }
 
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  {
+    weight_field_.node().for_each_field_input_recursive(fn);
+    value_field_.node().for_each_field_input_recursive(fn);
+  }
+
   uint64_t hash() const override
   {
     return get_default_hash_3(iterations_, weight_field_, value_field_);

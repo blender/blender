@@ -92,6 +92,12 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
         VArray<bool>::ForContainer(std::move(selection)), ATTR_DOMAIN_EDGE, domain);
   }
 
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  {
+    start_vertices_.node().for_each_field_input_recursive(fn);
+    next_vertex_.node().for_each_field_input_recursive(fn);
+  }
+
   uint64_t hash() const override
   {
     return get_default_hash_2(start_vertices_, next_vertex_);

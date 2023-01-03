@@ -112,6 +112,11 @@ class InterpolateDomain final : public bke::GeometryFieldInput {
         GVArray::ForGArray(std::move(values)), src_domain_, context.domain());
   }
 
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  {
+    src_field_.node().for_each_field_input_recursive(fn);
+  }
+
   std::optional<eAttrDomain> preferred_domain(
       const GeometryComponent & /*component*/) const override
   {

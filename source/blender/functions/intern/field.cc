@@ -579,6 +579,18 @@ bool IndexFieldInput::is_equal_to(const fn::FieldNode &other) const
 /* Avoid generating the destructor in every translation unit. */
 FieldNode::~FieldNode() = default;
 
+void FieldNode::for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+{
+  if (field_inputs_) {
+    for (const FieldInput &field_input : field_inputs_->deduplicated_nodes) {
+      fn(field_input);
+      if (&field_input != this) {
+        field_input.for_each_field_input_recursive(fn);
+      }
+    }
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
