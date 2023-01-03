@@ -175,8 +175,8 @@ static bool eyedropper_cryptomatte_sample_renderlayer_fl(RenderLayer *render_lay
     if (STRPREFIX(render_pass->name, render_pass_name_prefix) &&
         !STREQLEN(render_pass->name, render_pass_name_prefix, sizeof(render_pass->name))) {
       BLI_assert(render_pass->channels == 4);
-      const int x = (int)(fpos[0] * render_pass->rectx);
-      const int y = (int)(fpos[1] * render_pass->recty);
+      const int x = int(fpos[0] * render_pass->rectx);
+      const int y = int(fpos[1] * render_pass->recty);
       const int offset = 4 * (y * render_pass->rectx + x);
       zero_v3(r_col);
       r_col[0] = render_pass->rect[offset];

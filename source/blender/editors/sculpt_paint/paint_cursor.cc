@@ -217,7 +217,7 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
 
         /* Clamp to avoid precision overflow. */
         CLAMP(avg, 0.0f, 1.0f);
-        buffer[index] = 255 - (uchar)(255 * avg);
+        buffer[index] = 255 - uchar(255 * avg);
       }
     }
     else {
@@ -386,7 +386,7 @@ static void load_tex_cursor_task_cb(void *__restrict userdata,
       /* Falloff curve. */
       float avg = BKE_brush_curve_strength_clamped(br, len, 1.0f);
 
-      buffer[index] = (uchar)(255 * avg);
+      buffer[index] = uchar(255 * avg);
     }
     else {
       buffer[index] = 0;

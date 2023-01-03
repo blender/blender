@@ -276,7 +276,7 @@ BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float har
   int32_t packed = 0;
   /* Aspect uses 9 bits */
   float asp_normalized = (asp > 1.0f) ? (1.0f / asp) : asp;
-  packed |= (int32_t)unit_float_to_uchar_clamp(asp_normalized);
+  packed |= int32_t(unit_float_to_uchar_clamp(asp_normalized));
   /* Store if inversed in the 9th bit. */
   if (asp > 1.0f) {
     packed |= 1 << 8;
@@ -284,13 +284,13 @@ BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float har
   /* Rotation uses 9 bits */
   /* Rotation are in [-90°..90°] range, so we can encode the sign of the angle + the cosine
    * because the cosine will always be positive. */
-  packed |= (int32_t)unit_float_to_uchar_clamp(cosf(rot)) << 9;
+  packed |= int32_t(unit_float_to_uchar_clamp(cosf(rot))) << 9;
   /* Store sine sign in 9th bit. */
   if (rot < 0.0f) {
     packed |= 1 << 17;
   }
   /* Hardness uses 8 bits */
-  packed |= (int32_t)unit_float_to_uchar_clamp(hard) << 18;
+  packed |= int32_t(unit_float_to_uchar_clamp(hard)) << 18;
   return packed;
 }
 
@@ -315,7 +315,7 @@ static void gpencil_buffer_add_point(GPUIndexBufBuilder *ibo,
   /* Encode fill opacity defined by opacity modifier in vertex color alpha. If
    * no opacity modifier, the value will be always 1.0f. The opacity factor can be any
    * value between 0.0f and 2.0f */
-  col->fcol[3] = ((int)(col->fcol[3] * 10000.0f) * 10.0f) + gps->fill_opacity_fac;
+  col->fcol[3] = (int(col->fcol[3] * 10000.0f) * 10.0f) + gps->fill_opacity_fac;
 
   vert->strength = (round_cap0) ? pt->strength : -pt->strength;
   vert->u_stroke = pt->uv_fac;
@@ -579,7 +579,7 @@ bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(Object *ob)
     gps->runtime.stroke_start = 0;
     copy_v4_v4(gps->vert_color_fill, gpd->runtime.vert_color_fill);
     /* Caps. */
-    gps->caps[0] = gps->caps[1] = (short)brush->gpencil_settings->caps_type;
+    gps->caps[0] = gps->caps[1] = short(brush->gpencil_settings->caps_type);
 
     gpd->runtime.sbuffer_gps = gps;
   }

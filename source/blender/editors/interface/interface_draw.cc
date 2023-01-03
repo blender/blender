@@ -115,10 +115,10 @@ void UI_draw_roundbox_3ub_alpha(
     const rctf *rect, bool filled, float rad, const uchar col[3], uchar alpha)
 {
   const float colv[4] = {
-      (float(col[0])) / 255.0f,
-      (float(col[1])) / 255.0f,
-      (float(col[2])) / 255.0f,
-      (float(alpha)) / 255.0f,
+      float(col[0]) / 255.0f,
+      float(col[1]) / 255.0f,
+      float(col[2]) / 255.0f,
+      float(alpha) / 255.0f,
   };
   UI_draw_roundbox_4fv_ex(rect, (filled) ? colv : nullptr, nullptr, 1.0f, colv, U.pixelsize, rad);
 }
@@ -1791,7 +1791,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   /* Create array of the positions of the table's points. */
   float(*table_coords)[2] = static_cast<float(*)[2]>(
       MEM_mallocN(sizeof(*table_coords) * tot_points, __func__));
-  for (uint i = 0; i < (uint)BKE_curveprofile_table_size(profile); i++) {
+  for (uint i = 0; i < uint(BKE_curveprofile_table_size(profile)); i++) {
     /* Only add the points from the table here. */
     table_coords[i][0] = pts[i].x;
     table_coords[i][1] = pts[i].y;

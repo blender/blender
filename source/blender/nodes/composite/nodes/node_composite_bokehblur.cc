@@ -195,7 +195,7 @@ class BokehBlurOperation : public NodeOperation {
 
   int get_max_size()
   {
-    return static_cast<int>(bnode().custom4);
+    return int(bnode().custom4);
   }
 };
 

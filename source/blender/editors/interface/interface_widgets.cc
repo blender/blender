@@ -133,9 +133,9 @@ static const uiWidgetStateInfo STATE_INFO_NULL = {0};
 static void color_blend_v3_v3(uchar cp[3], const uchar cpstate[3], const float fac)
 {
   if (fac != 0.0f) {
-    cp[0] = (int)((1.0f - fac) * cp[0] + fac * cpstate[0]);
-    cp[1] = (int)((1.0f - fac) * cp[1] + fac * cpstate[1]);
-    cp[2] = (int)((1.0f - fac) * cp[2] + fac * cpstate[2]);
+    cp[0] = int((1.0f - fac) * cp[0] + fac * cpstate[0]);
+    cp[1] = int((1.0f - fac) * cp[1] + fac * cpstate[1]);
+    cp[2] = int((1.0f - fac) * cp[2] + fac * cpstate[2]);
   }
 }
 
@@ -880,7 +880,7 @@ static void shape_preset_init_trias_ex(uiWidgetTrias *tria,
   const float minsize = ELEM(where, 'r', 'l') ? BLI_rcti_size_y(rect) : BLI_rcti_size_x(rect);
 
   /* center position and size */
-  float centx = (float)rect->xmin + 0.4f * minsize;
+  float centx = float(rect->xmin) + 0.4f * minsize;
   float centy = float(rect->ymin) + 0.5f * minsize;
   tria->size = sizex = sizey = -0.5f * triasize * minsize;
 
@@ -1448,8 +1448,8 @@ static void widget_draw_submenu_tria(const uiBut *but,
                                      const uiWidgetColors *wcol)
 {
   const float aspect = but->block->aspect * U.inv_dpi_fac;
-  const int tria_height = (int)(ICON_DEFAULT_HEIGHT / aspect);
-  const int tria_width = (int)(ICON_DEFAULT_WIDTH / aspect) - 2 * U.pixelsize;
+  const int tria_height = int(ICON_DEFAULT_HEIGHT / aspect);
+  const int tria_width = int(ICON_DEFAULT_WIDTH / aspect) - 2 * U.pixelsize;
   const int xs = rect->xmax - tria_width;
   const int ys = (rect->ymin + rect->ymax - tria_height) / 2.0f;
 
@@ -1507,7 +1507,7 @@ static void ui_text_clip_right_ex(const uiFontStyle *fstyle,
     /* At least one character, so clip and add the ellipsis. */
     memcpy(str + l_end, sep, sep_len + 1); /* +1 for trailing '\0'. */
     if (r_final_len) {
-      *r_final_len = (size_t)(l_end) + sep_len;
+      *r_final_len = size_t(l_end) + sep_len;
     }
   }
   else {
@@ -1602,7 +1602,7 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
         memmove(str + l_end + sep_len, str + r_offset, r_len);
         memcpy(str + l_end, sep, sep_len);
         /* -1 to remove trailing '\0'! */
-        final_lpart_len = (size_t)(l_end + sep_len + r_len - 1);
+        final_lpart_len = size_t(l_end + sep_len + r_len - 1);
 
         while (BLF_width(fstyle->uifont_id, str, max_len) > okwidth) {
           /* This will happen because a lot of string width processing is done in integer pixels,
@@ -1638,10 +1638,10 @@ static void ui_text_clip_middle(const uiFontStyle *fstyle, uiBut *but, const rct
   /* No margin for labels! */
   const int border = ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_MENU, UI_BTYPE_POPOVER) ?
                          0 :
-                         (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
-  const float okwidth = (float)max_ii(BLI_rcti_size_x(rect) - border, 0);
+                         int(UI_TEXT_CLIP_MARGIN + 0.5f);
+  const float okwidth = float(max_ii(BLI_rcti_size_x(rect) - border, 0));
   const size_t max_len = sizeof(but->drawstr);
-  const float minwidth = (float)(UI_DPI_ICON_SIZE) / but->block->aspect * 2.0f;
+  const float minwidth = float(UI_DPI_ICON_SIZE) / but->block->aspect * 2.0f;
 
   but->ofs = 0;
   but->strwidth = UI_text_clip_middle_ex(fstyle, but->drawstr, okwidth, minwidth, max_len, '\0');
@@ -1661,10 +1661,10 @@ static void ui_text_clip_middle_protect_right(const uiFontStyle *fstyle,
   /* No margin for labels! */
   const int border = ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_MENU, UI_BTYPE_POPOVER) ?
                          0 :
-                         (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
-  const float okwidth = (float)max_ii(BLI_rcti_size_x(rect) - border, 0);
+                         int(UI_TEXT_CLIP_MARGIN + 0.5f);
+  const float okwidth = float(max_ii(BLI_rcti_size_x(rect) - border, 0));
   const size_t max_len = sizeof(but->drawstr);
-  const float minwidth = (float)(UI_DPI_ICON_SIZE) / but->block->aspect * 2.0f;
+  const float minwidth = float(UI_DPI_ICON_SIZE) / but->block->aspect * 2.0f;
 
   but->ofs = 0;
   but->strwidth = UI_text_clip_middle_ex(fstyle, but->drawstr, okwidth, minwidth, max_len, rsep);
@@ -1675,7 +1675,7 @@ static void ui_text_clip_middle_protect_right(const uiFontStyle *fstyle,
  */
 static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 {
-  const int border = (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
+  const int border = int(UI_TEXT_CLIP_MARGIN + 0.5f);
   const int okwidth = max_ii(BLI_rcti_size_x(rect) - border, 0);
 
   BLI_assert(but->editstr && but->pos >= 0);
@@ -2119,7 +2119,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
           for (int i = 0; i < ARRAY_SIZE(keys); i++) {
             const char *drawstr_menu = strchr(drawstr_ofs, keys[i]);
             if (drawstr_menu != nullptr && drawstr_menu < drawstr_end) {
-              ul_index = (int)(drawstr_menu - drawstr_ofs);
+              ul_index = int(drawstr_menu - drawstr_ofs);
               break;
             }
           }
@@ -2814,7 +2814,7 @@ void ui_hsvcircle_vals_from_pos(
   /* duplication of code... well, simple is better now */
   const float centx = BLI_rcti_cent_x_fl(rect);
   const float centy = BLI_rcti_cent_y_fl(rect);
-  const float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
+  const float radius = float(min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect))) / 2.0f;
   const float m_delta[2] = {mx - centx, my - centy};
   const float dist_sq = len_squared_v2(m_delta);
 
@@ -2828,7 +2828,7 @@ void ui_hsvcircle_pos_from_vals(
   /* duplication of code... well, simple is better now */
   const float centx = BLI_rcti_cent_x_fl(rect);
   const float centy = BLI_rcti_cent_y_fl(rect);
-  const float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
+  const float radius = float(min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect))) / 2.0f;
 
   const float ang = 2.0f * float(M_PI) * hsv[0] + float(M_PI_2);
 
@@ -2853,7 +2853,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   const float radstep = 2.0f * float(M_PI) / float(tot);
   const float centx = BLI_rcti_cent_x_fl(rect);
   const float centy = BLI_rcti_cent_y_fl(rect);
-  const float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
+  const float radius = float(min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect))) / 2.0f;
 
   ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
   float rgb[3], hsv[3], rgb_center[3];
@@ -3086,7 +3086,7 @@ void ui_draw_gradient(const rcti *rect,
     sx1 = rect->xmin + dx * BLI_rcti_size_x(rect);
     sx2 = rect->xmin + dx_next * BLI_rcti_size_x(rect);
     sy = rect->ymin;
-    dy = (float)BLI_rcti_size_y(rect) / 3.0f;
+    dy = float(BLI_rcti_size_y(rect)) / 3.0f;
 
     for (a = 0; a < 3; a++, sy += dy) {
       immAttr4f(col, col0[a][0], col0[a][1], col0[a][2], alpha);
@@ -3551,7 +3551,7 @@ static void widget_scroll(uiBut *but,
                           const float /*zoom*/)
 {
   /* calculate slider part */
-  const float value = (float)ui_but_value_get(but);
+  const float value = float(ui_but_value_get(but));
 
   const float size = max_ff((but->softmax + but->a1 - but->softmin), 2.0f);
 
@@ -3726,7 +3726,7 @@ static void widget_numslider(uiBut *but,
     rcti rect1 = *rect;
     float factor, factor_ui;
     float factor_discard = 1.0f; /* No discard. */
-    const float value = (float)ui_but_value_get(but);
+    const float value = float(ui_but_value_get(but));
     const float softmin = but->softmin;
     const float softmax = but->softmax;
     const float softrange = softmax - softmin;
@@ -3758,7 +3758,7 @@ static void widget_numslider(uiBut *but,
       }
     }
 
-    const float width = (float)BLI_rcti_size_x(rect);
+    const float width = float(BLI_rcti_size_x(rect));
     factor_ui = factor * width;
     /* The rectangle width needs to be at least twice the corner radius for the round corners
      * to be drawn properly. */
@@ -4979,9 +4979,9 @@ static void ui_draw_clip_tri(uiBlock *block, rcti *rect, uiWidgetType *wt)
     float draw_color[4];
     const uchar *color = wt->wcol.text;
 
-    draw_color[0] = (float(color[0])) / 255.0f;
-    draw_color[1] = (float(color[1])) / 255.0f;
-    draw_color[2] = (float(color[2])) / 255.0f;
+    draw_color[0] = float(color[0]) / 255.0f;
+    draw_color[1] = float(color[1]) / 255.0f;
+    draw_color[2] = float(color[2]) / 255.0f;
     draw_color[3] = 1.0f;
 
     if (block->flag & UI_BLOCK_CLIPTOP) {
@@ -5129,7 +5129,7 @@ static void draw_disk_shaded(float start,
 
   immBegin(GPU_PRIM_TRI_STRIP, subd * 2);
   for (int i = 0; i < subd; i++) {
-    const float a = start + ((i) / (float)(subd - 1)) * angle;
+    const float a = start + ((i) / float(subd - 1)) * angle;
     const float s = sinf(a);
     const float c = cosf(a);
     const float y1 = s * radius_int;
@@ -5380,9 +5380,9 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
 
   {
     char drawstr[UI_MAX_DRAW_STR];
-    const float okwidth = (float)BLI_rcti_size_x(rect);
+    const float okwidth = float(BLI_rcti_size_x(rect));
     const size_t max_len = sizeof(drawstr);
-    const float minwidth = (float)(UI_DPI_ICON_SIZE);
+    const float minwidth = float(UI_DPI_ICON_SIZE);
 
     BLI_strncpy(drawstr, name, sizeof(drawstr));
     if (drawstr[0]) {
@@ -5431,7 +5431,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
       char hint_drawstr[UI_MAX_DRAW_STR];
       {
         const size_t max_len = sizeof(hint_drawstr);
-        const float minwidth = (float)(UI_DPI_ICON_SIZE);
+        const float minwidth = float(UI_DPI_ICON_SIZE);
 
         BLI_strncpy(hint_drawstr, cpoin + 1, sizeof(hint_drawstr));
         if (hint_drawstr[0] && (max_hint_width < INT_MAX)) {
@@ -5484,7 +5484,7 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
 
   {
     char drawstr[UI_MAX_DRAW_STR];
-    const float okwidth = (float)BLI_rcti_size_x(&trect);
+    const float okwidth = float(BLI_rcti_size_x(&trect));
     const size_t max_len = sizeof(drawstr);
     const float minwidth = float(UI_DPI_ICON_SIZE);
 

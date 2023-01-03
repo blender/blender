@@ -20,7 +20,7 @@ static void time_colorfn(
   float fac = 0.0f;
 
   if (node->custom1 < node->custom2) {
-    fac = (p->cfra - node->custom1) / (float)(node->custom2 - node->custom1);
+    fac = (p->cfra - node->custom1) / float(node->custom2 - node->custom1);
   }
 
   CurveMapping *mapping = static_cast<CurveMapping *>(node->storage);

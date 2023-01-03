@@ -732,7 +732,7 @@ static void cp_key(const int start,
 
     if (flagflo) {
       ktot += start * kd;
-      a = (int)floor(ktot);
+      a = int(floor(ktot));
       if (a) {
         ktot -= a;
         k1 += a * key->elemsize;
@@ -1078,7 +1078,7 @@ static void do_key(const int start,
     if (flagdo & 1) {
       if (flagflo & 1) {
         k1tot += start * k1d;
-        a = (int)floor(k1tot);
+        a = int(floor(k1tot));
         if (a) {
           k1tot -= a;
           k1 += a * key->elemsize;
@@ -1091,7 +1091,7 @@ static void do_key(const int start,
     if (flagdo & 2) {
       if (flagflo & 2) {
         k2tot += start * k2d;
-        a = (int)floor(k2tot);
+        a = int(floor(k2tot));
         if (a) {
           k2tot -= a;
           k2 += a * key->elemsize;
@@ -1104,7 +1104,7 @@ static void do_key(const int start,
     if (flagdo & 4) {
       if (flagflo & 4) {
         k3tot += start * k3d;
-        a = (int)floor(k3tot);
+        a = int(floor(k3tot));
         if (a) {
           k3tot -= a;
           k3 += a * key->elemsize;
@@ -1117,7 +1117,7 @@ static void do_key(const int start,
     if (flagdo & 8) {
       if (flagflo & 8) {
         k4tot += start * k4d;
-        a = (int)floor(k4tot);
+        a = int(floor(k4tot));
         if (a) {
           k4tot -= a;
           k4 += a * key->elemsize;
@@ -1661,7 +1661,7 @@ int BKE_keyblock_element_count(const Key *key)
 
 size_t BKE_keyblock_element_calc_size_from_shape(const Key *key, const int shape_index)
 {
-  return (size_t)BKE_keyblock_element_count_from_shape(key, shape_index) * key->elemsize;
+  return size_t(BKE_keyblock_element_count_from_shape(key, shape_index)) * key->elemsize;
 }
 
 size_t BKE_keyblock_element_calc_size(const Key *key)

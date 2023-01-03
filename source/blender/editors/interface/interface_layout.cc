@@ -335,7 +335,7 @@ static int ui_text_icon_width_ex(uiLayout *layout,
     const float aspect = layout->root->block->aspect;
     const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
     return UI_fontstyle_string_width_with_block_aspect(fstyle, name, aspect) +
-           (int)ceilf(unit_x * margin);
+           int(ceilf(unit_x * margin));
   }
   return unit_x * 10;
 }
@@ -4315,7 +4315,7 @@ static void ui_litem_grid_flow_compute(ListBase *items,
     int item_w, item_h;
     ui_item_size(item, &item_w, &item_h);
 
-    global_avg_w += (float)(item_w * item_w);
+    global_avg_w += float(item_w * item_w);
     global_totweight_w += float(item_w);
     global_max_h = max_ii(global_max_h, item_h);
 
@@ -4361,8 +4361,8 @@ static void ui_litem_grid_flow_compute(ListBase *items,
   /* Compute positions and sizes of all cells. */
   if (results->cos_x_array != nullptr && results->widths_array != nullptr) {
     /* We enlarge/narrow columns evenly to match available width. */
-    const float wfac = (float)(parameters->litem_w -
-                               (parameters->tot_columns - 1) * parameters->space_x) /
+    const float wfac = float(parameters->litem_w -
+                             (parameters->tot_columns - 1) * parameters->space_x) /
                        tot_w;
 
     for (int col = 0; col < parameters->tot_columns; col++) {
@@ -4382,7 +4382,7 @@ static void ui_litem_grid_flow_compute(ListBase *items,
                                      (results->cos_x_array[col] - parameters->litem_x);
       }
       else {
-        results->widths_array[col] = (int)(avg_w[col] * wfac);
+        results->widths_array[col] = int(avg_w[col] * wfac);
       }
     }
   }
@@ -4460,10 +4460,10 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
         gflow->tot_columns = 1;
       }
       else {
-        gflow->tot_columns = min_ii(max_ii((int)(litem->w / avg_w), 1), gflow->tot_items);
+        gflow->tot_columns = min_ii(max_ii(int(litem->w / avg_w), 1), gflow->tot_items);
       }
     }
-    gflow->tot_rows = (int)ceilf(float(gflow->tot_items) / gflow->tot_columns);
+    gflow->tot_rows = int(ceilf(float(gflow->tot_items) / gflow->tot_columns));
 
     /* Try to tweak number of columns and rows to get better filling of last column or row,
      * and apply 'modulo' value to number of columns or rows.
@@ -4479,9 +4479,9 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
           gflow->tot_columns = gflow->tot_columns - (gflow->tot_columns % modulo);
         }
         /* Find smallest number of columns conserving computed optimal number of rows. */
-        for (gflow->tot_rows = (int)ceilf(float(gflow->tot_items) / gflow->tot_columns);
+        for (gflow->tot_rows = int(ceilf(float(gflow->tot_items) / gflow->tot_columns));
              (gflow->tot_columns - step) > 0 &&
-             (int)ceilf(float(gflow->tot_items) / (gflow->tot_columns - step)) <= gflow->tot_rows;
+             int(ceilf(float(gflow->tot_items) / (gflow->tot_columns - step))) <= gflow->tot_rows;
              gflow->tot_columns -= step) {
           /* pass */
         }
@@ -4493,9 +4493,9 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
                                    gflow->tot_items);
         }
         /* Find smallest number of rows conserving computed optimal number of columns. */
-        for (gflow->tot_columns = (int)ceilf(float(gflow->tot_items) / gflow->tot_rows);
+        for (gflow->tot_columns = int(ceilf(float(gflow->tot_items) / gflow->tot_rows));
              (gflow->tot_rows - step) > 0 &&
-             (int)ceilf(float(gflow->tot_items) / (gflow->tot_rows - step)) <= gflow->tot_columns;
+             int(ceilf(float(gflow->tot_items) / (gflow->tot_rows - step))) <= gflow->tot_columns;
              gflow->tot_rows -= step) {
           /* pass */
         }
@@ -4505,8 +4505,8 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
     /* Set evenly-spaced axes size
      * (quick optimization in case we have even columns and rows). */
     if (gflow->even_columns && gflow->even_rows) {
-      litem->w = (int)(gflow->tot_columns * avg_w) + space_x * (gflow->tot_columns - 1);
-      litem->h = (int)(gflow->tot_rows * max_h) + space_y * (gflow->tot_rows - 1);
+      litem->w = int(gflow->tot_columns * avg_w) + space_x * (gflow->tot_columns - 1);
+      litem->h = int(gflow->tot_rows * max_h) + space_y * (gflow->tot_rows - 1);
       return;
     }
   }
@@ -4714,7 +4714,7 @@ static void ui_litem_layout_split(uiLayout *litem)
     x += colw;
 
     if (item->next) {
-      const float width = extra_pixel + (w - (int)(w * percentage)) / (float(tot) - 1);
+      const float width = extra_pixel + (w - int(w * percentage)) / (float(tot) - 1);
       extra_pixel = width - int(width);
       colw = int(width);
       colw = MAX2(colw, 0);
@@ -6135,7 +6135,7 @@ uiLayout *uiItemsAlertBox(uiBlock *block, const int size, const eAlertIcon icon)
   const float icon_padding = 5.0f * U.dpi_fac;
   /* Calculate the factor of the fixed icon column depending on the block width. */
   const float split_factor = (float(icon_size) + icon_padding) /
-                             (float)(dialog_width - style->columnspace);
+                             float(dialog_width - style->columnspace);
 
   uiLayout *block_layout = UI_block_layout(
       block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, dialog_width, 0, 0, style);

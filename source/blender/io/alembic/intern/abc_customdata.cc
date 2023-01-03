@@ -596,7 +596,7 @@ AbcUvScope get_uv_scope(const Alembic::AbcGeom::GeometryScope scope,
   /* kVaryingScope is sometimes used for vertex scopes as the values vary across the vertices. To
    * be sure, one has to check the size of the data against the number of vertices, as it could
    * also be a varying attribute across the faces (i.e. one value per face). */
-  if ((ELEM(scope, kVaryingScope, kVertexScope)) && indices->size() == config.totvert) {
+  if (ELEM(scope, kVaryingScope, kVertexScope) && indices->size() == config.totvert) {
     return ABC_UV_SCOPE_VERTEX;
   }
 

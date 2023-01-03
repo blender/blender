@@ -178,7 +178,7 @@ static void gather_add_node_operations(const bContext &C,
     if (!(node_type->poll && node_type->poll(node_type, &node_tree, &disabled_hint))) {
       continue;
     }
-    if ((StringRefNull(node_tree.typeinfo->group_idname) == node_type->idname)) {
+    if (StringRefNull(node_tree.typeinfo->group_idname) == node_type->idname) {
       /* Skip the empty group type. */
       continue;
     }

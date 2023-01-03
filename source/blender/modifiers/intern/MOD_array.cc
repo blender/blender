@@ -498,8 +498,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
       /* Ensure we keep things to a reasonable level, in terms of rough total amount of generated
        * vertices.
        */
-      if (((size_t)count * (size_t)chunk_nverts + (size_t)start_cap_nverts +
-           (size_t)end_cap_nverts) > max_verts_num) {
+      if ((size_t(count) * size_t(chunk_nverts) + size_t(start_cap_nverts) +
+           size_t(end_cap_nverts)) > max_verts_num) {
         count = 1;
         offset_is_too_small = true;
       }
@@ -520,8 +520,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   /* Ensure we keep things to a reasonable level, in terms of rough total amount of generated
    * vertices.
    */
-  else if (((size_t)count * (size_t)chunk_nverts + (size_t)start_cap_nverts +
-            (size_t)end_cap_nverts) > max_verts_num) {
+  else if ((size_t(count) * size_t(chunk_nverts) + size_t(start_cap_nverts) +
+            size_t(end_cap_nverts)) > max_verts_num) {
     count = 1;
     BKE_modifier_set_error(ctx->object,
                            &amd->modifier,

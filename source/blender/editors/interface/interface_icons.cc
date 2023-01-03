@@ -837,7 +837,7 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
           blend_color_interpolate_float(dest_rgba, orig_rgba, border_rgba, 1.0 - orig_rgba[3]);
           linearrgb_to_srgb_v4(dest_srgb, dest_rgba);
 
-          const uint alpha_mask = (uint)(dest_srgb[3] * 255) << 24;
+          const uint alpha_mask = uint(dest_srgb[3] * 255) << 24;
           const uint cpack = rgb_to_cpack(dest_srgb[0], dest_srgb[1], dest_srgb[2]) | alpha_mask;
           result->rect[offset_write] = cpack;
         }
@@ -1549,11 +1549,11 @@ static void icon_draw_rect(float x,
     /* preserve aspect ratio and center */
     if (rw > rh) {
       draw_w = w;
-      draw_h = (int)((float(rh) / float(rw)) * float(w));
+      draw_h = int((float(rh) / float(rw)) * float(w));
       draw_y += (h - draw_h) / 2;
     }
     else if (rw < rh) {
-      draw_w = (int)((float(rw) / float(rh)) * float(h));
+      draw_w = int((float(rw) / float(rh)) * float(h));
       draw_h = h;
       draw_x += (w - draw_w) / 2;
     }
@@ -1772,7 +1772,7 @@ static void icon_draw_texture(float x,
                       sizeof(text_overlay->text),
                       text_color,
                       &params);
-    text_width = (float)UI_fontstyle_string_width(&fstyle_small, text_overlay->text) / UI_UNIT_X /
+    text_width = float(UI_fontstyle_string_width(&fstyle_small, text_overlay->text)) / UI_UNIT_X /
                  zoom_factor;
   }
 
@@ -1868,7 +1868,7 @@ static void icon_draw_size(float x,
   }
 
   /* scale width and height according to aspect */
-  int w = (int)(fdraw_size / aspect + 0.5f);
+  int w = int(fdraw_size / aspect + 0.5f);
   int h = int(fdraw_size / aspect + 0.5f);
 
   DrawInfo *di = icon_ensure_drawinfo(icon);

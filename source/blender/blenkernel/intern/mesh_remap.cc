@@ -1592,7 +1592,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
         }
       }
 
-      if ((size_t)mp_dst->totloop > islands_res_buff_size) {
+      if (size_t(mp_dst->totloop) > islands_res_buff_size) {
         islands_res_buff_size = size_t(mp_dst->totloop) + MREMAP_DEFAULT_BUFSIZE;
         for (tindex = 0; tindex < num_trees; tindex++) {
           islands_res[tindex] = static_cast<IslandResult *>(
@@ -2257,7 +2257,7 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
        */
       RNG *rng = BLI_rng_new(0);
 
-      const size_t numpolys_src = (size_t)me_src->totpoly;
+      const size_t numpolys_src = size_t(me_src->totpoly);
 
       /* Here it's simpler to just allocate for all polys :/ */
       int *indices = static_cast<int *>(MEM_mallocN(sizeof(*indices) * numpolys_src, __func__));

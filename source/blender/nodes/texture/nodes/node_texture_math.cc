@@ -140,7 +140,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
       break;
     }
     case NODE_MATH_ROUND: {
-      *out = (in0 < 0) ? (int)(in0 - 0.5f) : (int)(in0 + 0.5f);
+      *out = (in0 < 0) ? int(in0 - 0.5f) : int(in0 + 0.5f);
       break;
     }
 

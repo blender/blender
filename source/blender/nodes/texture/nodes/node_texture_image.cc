@@ -33,8 +33,8 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack ** /*in*/,
       ysize = ibuf->y / 2;
       xoff = yoff = -1;
 
-      px = (int)((x - xoff) * xsize);
-      py = (int)((y - yoff) * ysize);
+      px = int((x - xoff) * xsize);
+      py = int((y - yoff) * ysize);
 
       if ((!xsize) || (!ysize)) {
         return;

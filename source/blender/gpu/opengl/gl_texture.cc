@@ -827,7 +827,7 @@ void GLPixelBuffer::unmap()
 
 int64_t GLPixelBuffer::get_native_handle()
 {
-  return (int64_t)gl_id_;
+  return int64_t(gl_id_);
 }
 
 uint GLPixelBuffer::get_size()
