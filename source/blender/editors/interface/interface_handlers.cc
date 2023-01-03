@@ -9684,11 +9684,15 @@ static int ui_handle_view_items_hover(const wmEvent *event, const ARegion *regio
 
 static int ui_handle_view_item_event(bContext *C,
                                      const wmEvent *event,
-                                     ARegion *region,
-                                     uiBut *view_but)
+                                     uiBut *active_but,
+                                     ARegion *region)
 {
-  BLI_assert(view_but->type == UI_BTYPE_VIEW_ITEM);
   if (event->type == LEFTMOUSE) {
+    /* Only bother finding the active view item button if the active button isn't already a view
+     * item. */
+    uiBut *view_but = active_but->type == UI_BTYPE_VIEW_ITEM ?
+                          active_but :
+                          ui_view_item_find_mouse_over(region, event->xy);
     /* Will free active button if there already is one. */
     ui_handle_button_activate(C, region, view_but, BUTTON_ACTIVATE_OVER);
     return ui_do_button(C, view_but->block, view_but, event);
@@ -11302,10 +11306,7 @@ static int ui_region_handler(bContext *C, const wmEvent *event, void * /*userdat
    * nested in the item (it's an overlapping layout). */
   ui_handle_view_items_hover(event, region);
   if (retval == WM_UI_HANDLER_CONTINUE) {
-    uiBut *view_item = ui_view_item_find_mouse_over(region, event->xy);
-    if (view_item) {
-      retval = ui_handle_view_item_event(C, event, region, view_item);
-    }
+    retval = ui_handle_view_item_event(C, event, but, region);
   }
 
   /* delayed apply callbacks */

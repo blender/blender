@@ -3199,6 +3199,7 @@ static void draw_background_color(const SpaceNode &snode)
 
 void node_draw_space(const bContext &C, ARegion &region)
 {
+  SCOPED_TIMER_AVERAGED(__func__);
   wmWindow *win = CTX_wm_window(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   View2D &v2d = region.v2d;
