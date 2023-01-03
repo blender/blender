@@ -491,18 +491,28 @@ inline bool validate_data_format(eGPUTextureFormat tex_format, eGPUDataFormat da
     case GPU_DEPTH24_STENCIL8:
     case GPU_DEPTH32F_STENCIL8:
       return ELEM(data_format, GPU_DATA_UINT_24_8, GPU_DATA_UINT);
-    case GPU_R8UI:
     case GPU_R16UI:
     case GPU_RG16UI:
+    case GPU_RGBA16UI:
     case GPU_R32UI:
+    case GPU_RG32UI:
+    case GPU_RGBA32UI:
       return data_format == GPU_DATA_UINT;
-    case GPU_R32I:
-    case GPU_RG16I:
+    case GPU_R8I:
+    case GPU_RG8I:
+    case GPU_RGBA8I:
     case GPU_R16I:
+    case GPU_RG16I:
+    case GPU_RGBA16I:
+    case GPU_R32I:
+    case GPU_RG32I:
+    case GPU_RGBA32I:
       return data_format == GPU_DATA_INT;
     case GPU_R8:
     case GPU_RG8:
     case GPU_RGBA8:
+    case GPU_R8UI:
+    case GPU_RG8UI:
     case GPU_RGBA8UI:
     case GPU_SRGB8_A8:
       return ELEM(data_format, GPU_DATA_UBYTE, GPU_DATA_FLOAT);
