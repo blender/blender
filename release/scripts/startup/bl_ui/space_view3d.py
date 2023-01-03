@@ -723,8 +723,18 @@ class VIEW3D_HT_header(Header):
 
                 row = layout.row(align=True)
                 domain = curves.selection_domain
-                row.operator("curves.set_selection_domain", text="", icon='CURVE_BEZCIRCLE', depress=(domain == 'POINT')).domain = 'POINT'
-                row.operator("curves.set_selection_domain", text="", icon='CURVE_PATH', depress=(domain == 'CURVE')).domain = 'CURVE'
+                row.operator(
+                    "curves.set_selection_domain",
+                    text="",
+                    icon='CURVE_BEZCIRCLE',
+                    depress=(domain == 'POINT'),
+                ).domain = 'POINT'
+                row.operator(
+                    "curves.set_selection_domain",
+                    text="",
+                    icon='CURVE_PATH',
+                    depress=(domain == 'CURVE'),
+                ).domain = 'CURVE'
 
         # Grease Pencil
         if obj and obj.type == 'GPENCIL' and context.gpencil_data:
