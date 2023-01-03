@@ -738,7 +738,7 @@ ModifierTypeInfo modifierType_WeightedNormal = {
     /* type */ eModifierTypeType_Constructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
-    /* icon */ ICON_MOD_VERTEX_WEIGHT,
+    /* icon */ ICON_MOD_NORMALEDIT,
 
     /* copyData */ BKE_modifier_copydata_generic,
 
