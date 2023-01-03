@@ -397,6 +397,9 @@ tSlider *ED_slider_create(struct bContext *C)
     }
   }
 
+  /* Hide the area menu bar contents, as the slider will be drawn on top. */
+  ED_area_status_text(slider->area, "");
+
   return slider;
 }
 
