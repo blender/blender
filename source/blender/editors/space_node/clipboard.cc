@@ -16,6 +16,9 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "DEG_depsgraph_build.h"
 
 #include "node_intern.hh"
@@ -24,6 +27,11 @@ namespace blender::ed::space_node {
 
 struct NodeClipboardItem {
   bNode *node;
+  /**
+   * The offset and size of the node from when it was drawn. Stored here since it doesn't remain
+   * valid for the nodes in the clipboard.
+   */
+  rctf draw_rect;
 
   /* Extra info to validate the node on creation. Otherwise we may reference missing data. */
   ID *id;
@@ -74,15 +82,24 @@ struct NodeClipboard {
     return ok;
   }
 
-  void add_node(bNode *node)
+  void add_node(const bNode &node,
+                Map<const bNode *, bNode *> &node_map,
+                Map<const bNodeSocket *, bNodeSocket *> &socket_map)
   {
+    /* No ID refcounting, this node is virtual,
+     * detached from any actual Blender data currently. */
+    bNode *new_node = bke::node_copy_with_mapping(
+        nullptr, node, LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_MAIN, false, socket_map);
+    node_map.add_new(&node, new_node);
+
     NodeClipboardItem item;
-    item.node = node;
-    item.id = node->id;
+    item.draw_rect = node.runtime->totr;
+    item.node = new_node;
+    item.id = new_node->id;
     if (item.id) {
-      item.id_name = node->id->name;
-      if (ID_IS_LINKED(node->id)) {
-        item.library_name = node->id->lib->filepath_abs;
+      item.id_name = new_node->id->name;
+      if (ID_IS_LINKED(new_node->id)) {
+        item.library_name = new_node->id->lib->filepath_abs;
       }
     }
     this->nodes.append(std::move(item));
@@ -110,22 +127,13 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
 
-  for (bNode *node : tree.all_nodes()) {
+  for (const bNode *node : tree.all_nodes()) {
     if (node->flag & SELECT) {
-      /* No ID reference counting, this node is virtual, detached from any actual Blender data. */
-      bNode *new_node = bke::node_copy_with_mapping(nullptr,
-                                                    *node,
-                                                    LIB_ID_CREATE_NO_USER_REFCOUNT |
-                                                        LIB_ID_CREATE_NO_MAIN,
-                                                    false,
-                                                    socket_map);
-      node_map.add_new(node, new_node);
+      clipboard.add_node(*node, node_map, socket_map);
     }
   }
 
   for (bNode *new_node : node_map.values()) {
-    clipboard.add_node(new_node);
-
     /* Parent pointer must be redirected to new node or detached if parent is not copied. */
     if (new_node->parent) {
       if (node_map.contains(new_node->parent)) {
@@ -197,14 +205,6 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 
   node_deselect_all(tree);
 
-  /* calculate "barycenter" for placing on mouse cursor */
-  float2 center = {0.0f, 0.0f};
-  for (const NodeClipboardItem &item : clipboard.nodes) {
-    center.x += BLI_rctf_cent_x(&item.node->runtime->totr);
-    center.y += BLI_rctf_cent_y(&item.node->runtime->totr);
-  }
-  center /= clipboard.nodes.size();
-
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
 
@@ -248,6 +248,27 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     }
   }
 
+  PropertyRNA *offset_prop = RNA_struct_find_property(op->ptr, "offset");
+  if (RNA_property_is_set(op->ptr, offset_prop)) {
+    float2 center(0);
+    for (NodeClipboardItem &item : clipboard.nodes) {
+      center.x += BLI_rctf_cent_x(&item.draw_rect);
+      center.y += BLI_rctf_cent_y(&item.draw_rect);
+    }
+    /* DPI factor needs to be removed when computing a View2D offset from drawing rects. */
+    center /= clipboard.nodes.size();
+    center /= UI_DPI_FAC;
+
+    float2 mouse_location;
+    RNA_property_float_get_array(op->ptr, offset_prop, mouse_location);
+    const float2 offset = mouse_location - center;
+
+    for (bNode *new_node : node_map.values()) {
+      new_node->locx += offset.x;
+      new_node->locy += offset.y;
+    }
+  }
+
   /* Add links between existing nodes. */
   for (const bNodeLink &link : clipboard.links) {
     const bNode *fromnode = link.fromnode;
@@ -276,16 +297,40 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int node_clipboard_paste_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const ARegion *region = CTX_wm_region(C);
+  float2 cursor;
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
+  RNA_float_set_array(op->ptr, "offset", cursor);
+  return node_clipboard_paste_exec(C, op);
+}
+
 void NODE_OT_clipboard_paste(wmOperatorType *ot)
 {
   ot->name = "Paste from Clipboard";
   ot->description = "Pastes nodes from the clipboard to the active node tree";
   ot->idname = "NODE_OT_clipboard_paste";
 
+  ot->invoke = node_clipboard_paste_invoke;
   ot->exec = node_clipboard_paste_exec;
   ot->poll = ED_operator_node_editable;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop = RNA_def_float_array(
+      ot->srna,
+      "offset",
+      2,
+      nullptr,
+      -FLT_MAX,
+      FLT_MAX,
+      "Location",
+      "The 2D view location for the center of the new nodes, or unchanged if not set",
+      -FLT_MAX,
+      FLT_MAX);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */
