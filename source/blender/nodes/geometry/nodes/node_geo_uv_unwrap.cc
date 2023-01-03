@@ -132,11 +132,11 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
 
 class UnwrapFieldInput final : public bke::MeshFieldInput {
  private:
-  const Field<bool> selection;
-  const Field<bool> seam;
-  const bool fill_holes;
-  const float margin;
-  const GeometryNodeUVUnwrapMethod method;
+  const Field<bool> selection_;
+  const Field<bool> seam_;
+  const bool fill_holes_;
+  const float margin_;
+  const GeometryNodeUVUnwrapMethod method_;
 
  public:
   UnwrapFieldInput(const Field<bool> selection,
@@ -145,11 +145,11 @@ class UnwrapFieldInput final : public bke::MeshFieldInput {
                    const float margin,
                    const GeometryNodeUVUnwrapMethod method)
       : bke::MeshFieldInput(CPPType::get<float3>(), "UV Unwrap Field"),
-        selection(selection),
-        seam(seam),
-        fill_holes(fill_holes),
-        margin(margin),
-        method(method)
+        selection_(selection),
+        seam_(seam),
+        fill_holes_(fill_holes),
+        margin_(margin),
+        method_(method)
   {
     category_ = Category::Generated;
   }
@@ -158,13 +158,13 @@ class UnwrapFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask /*mask*/) const final
   {
-    return construct_uv_gvarray(mesh, selection, seam, fill_holes, margin, method, domain);
+    return construct_uv_gvarray(mesh, selection_, seam_, fill_holes_, margin_, method_, domain);
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
   {
-    selection.node().for_each_field_input_recursive(fn);
-    seam.node().for_each_field_input_recursive(fn);
+    selection_.node().for_each_field_input_recursive(fn);
+    seam_.node().for_each_field_input_recursive(fn);
   }
 
   std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
