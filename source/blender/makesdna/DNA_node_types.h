@@ -187,6 +187,10 @@ typedef struct bNodeSocket {
   int index() const;
   /** Socket index in the entire node tree. Inputs and outputs share the same index space. */
   int index_in_tree() const;
+  /** Socket index in the entire node tree. All inputs share the same index space. */
+  int index_in_all_inputs() const;
+  /** Socket index in the entire node tree. All outputs share the same index space. */
+  int index_in_all_outputs() const;
   /** Node this socket belongs to. */
   bNode &owner_node();
   const bNode &owner_node() const;
@@ -490,6 +494,8 @@ typedef struct bNodeLink {
 #ifdef __cplusplus
   bool is_muted() const;
   bool is_available() const;
+  /** Both linked sockets are available and the link is not muted. */
+  bool is_used() const;
 #endif
 
 } bNodeLink;

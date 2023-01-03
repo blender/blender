@@ -655,6 +655,11 @@ inline bool bNodeLink::is_available() const
   return this->fromsock->is_available() && this->tosock->is_available();
 }
 
+inline bool bNodeLink::is_used() const
+{
+  return !this->is_muted() && this->is_available();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -671,6 +676,20 @@ inline int bNodeSocket::index_in_tree() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
   return this->runtime->index_in_all_sockets;
+}
+
+inline int bNodeSocket::index_in_all_inputs() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  BLI_assert(this->is_input());
+  return this->runtime->index_in_inout_sockets;
+}
+
+inline int bNodeSocket::index_in_all_outputs() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  BLI_assert(this->is_output());
+  return this->runtime->index_in_inout_sockets;
 }
 
 inline bool bNodeSocket::is_hidden() const
