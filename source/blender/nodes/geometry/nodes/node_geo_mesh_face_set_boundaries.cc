@@ -18,7 +18,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("An identifier for the group of each face. All contiguous faces with the "
                       "same value are in the same region"));
   b.add_output<decl::Bool>(N_("Boundary Edges"))
-      .field_source()
+      .field_source_reference_all()
       .description(N_("The edges that lie on the boundaries between the different face sets"));
 }
 

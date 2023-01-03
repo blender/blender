@@ -17,9 +17,9 @@ namespace blender::nodes::node_geo_attribute_statistic_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
-  b.add_input<decl::Float>(N_("Attribute")).hide_value().supports_field();
-  b.add_input<decl::Vector>(N_("Attribute"), "Attribute_001").hide_value().supports_field();
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).field_on_all().hide_value();
+  b.add_input<decl::Float>(N_("Attribute")).hide_value().field_on_all();
+  b.add_input<decl::Vector>(N_("Attribute"), "Attribute_001").hide_value().field_on_all();
 
   b.add_output<decl::Float>(N_("Mean"));
   b.add_output<decl::Float>(N_("Median"));

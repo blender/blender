@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(7)
       .description(N_("Number of subdivisions on top of the basic icosahedron"));
   b.add_output<decl::Geometry>(N_("Mesh"));
-  b.add_output<decl::Vector>(N_("UV Map")).field_source();
+  b.add_output<decl::Vector>(N_("UV Map")).field_on_all();
 }
 
 static Mesh *create_ico_sphere_mesh(const int subdivisions,

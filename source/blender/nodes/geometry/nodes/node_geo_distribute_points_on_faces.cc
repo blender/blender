@@ -34,7 +34,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   };
 
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
   b.add_input<decl::Float>(N_("Distance Min"))
       .min(0.0f)
       .subtype(PROP_DISTANCE)
@@ -46,20 +46,20 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Density"))
       .default_value(10.0f)
       .min(0.0f)
-      .supports_field()
+      .field_on_all()
       .make_available(enable_random);
   b.add_input<decl::Float>(N_("Density Factor"))
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .supports_field()
+      .field_on_all()
       .make_available(enable_poisson);
   b.add_input<decl::Int>(N_("Seed"));
 
-  b.add_output<decl::Geometry>(N_("Points"));
-  b.add_output<decl::Vector>(N_("Normal")).field_source();
-  b.add_output<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).field_source();
+  b.add_output<decl::Geometry>(N_("Points")).propagate_all();
+  b.add_output<decl::Vector>(N_("Normal")).field_on_all();
+  b.add_output<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).field_on_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

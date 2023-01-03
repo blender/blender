@@ -58,10 +58,16 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supports_field()
       .description(N_("Relative mix weight of neighboring elements"));
 
-  b.add_output<decl::Float>(N_("Value"), "Value_Float").field_source().dependent_field();
-  b.add_output<decl::Int>(N_("Value"), "Value_Int").field_source().dependent_field();
-  b.add_output<decl::Vector>(N_("Value"), "Value_Vector").field_source().dependent_field();
-  b.add_output<decl::Color>(N_("Value"), "Value_Color").field_source().dependent_field();
+  b.add_output<decl::Float>(N_("Value"), "Value_Float")
+      .field_source_reference_all()
+      .dependent_field();
+  b.add_output<decl::Int>(N_("Value"), "Value_Int").field_source_reference_all().dependent_field();
+  b.add_output<decl::Vector>(N_("Value"), "Value_Vector")
+      .field_source_reference_all()
+      .dependent_field();
+  b.add_output<decl::Color>(N_("Value"), "Value_Color")
+      .field_source_reference_all()
+      .dependent_field();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

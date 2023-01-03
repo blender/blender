@@ -256,7 +256,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Translation")).subtype(PROP_TRANSLATION);
   b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER);
   b.add_input<decl::Vector>(N_("Scale")).default_value({1, 1, 1}).subtype(PROP_XYZ);
-  b.add_output<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

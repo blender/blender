@@ -28,17 +28,18 @@ NODE_STORAGE_FUNCS(NodeGeometryDuplicateElements);
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::Bool>(N_("Selection")).hide_value().default_value(true).supports_field();
+  b.add_input<decl::Bool>(N_("Selection")).hide_value().default_value(true).field_on_all();
   b.add_input<decl::Int>(N_("Amount"))
       .min(0)
       .default_value(1)
-      .supports_field()
+      .field_on_all()
       .description(N_("The number of duplicates to create for each element"));
 
   b.add_output<decl::Geometry>(N_("Geometry"))
+      .propagate_all()
       .description(N_("The duplicated geometry, not including the original geometry"));
   b.add_output<decl::Int>(N_("Duplicate Index"))
-      .field_source()
+      .field_on_all()
       .description(N_("The indices of the duplicates for each element"));
 }
 

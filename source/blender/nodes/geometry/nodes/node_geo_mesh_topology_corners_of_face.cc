@@ -22,10 +22,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supports_field()
       .description(N_("Which of the sorted corners to output"));
   b.add_output<decl::Int>(N_("Corner Index"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(N_("A corner of the face, chosen by the sort index"));
   b.add_output<decl::Int>(N_("Total"))
-      .dependent_field()
+      .field_source()
+      .reference_pass({0})
       .description(N_("The number of corners in the face"));
 }
 

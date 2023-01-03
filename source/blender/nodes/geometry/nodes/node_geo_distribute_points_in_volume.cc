@@ -46,7 +46,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(FLT_MAX)
       .description(N_("Minimum density of a volume cell to contain a grid point"));
-  b.add_output<decl::Geometry>(N_("Points"));
+  b.add_output<decl::Geometry>(N_("Points")).propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

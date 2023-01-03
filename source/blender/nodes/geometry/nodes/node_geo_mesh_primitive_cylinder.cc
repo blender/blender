@@ -43,10 +43,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_DISTANCE)
       .description(N_("The height of the cylinder"));
   b.add_output<decl::Geometry>(N_("Mesh"));
-  b.add_output<decl::Bool>(N_("Top")).field_source();
-  b.add_output<decl::Bool>(N_("Side")).field_source();
-  b.add_output<decl::Bool>(N_("Bottom")).field_source();
-  b.add_output<decl::Vector>(N_("UV Map")).field_source();
+  b.add_output<decl::Bool>(N_("Top")).field_on_all();
+  b.add_output<decl::Bool>(N_("Side")).field_on_all();
+  b.add_output<decl::Bool>(N_("Bottom")).field_on_all();
+  b.add_output<decl::Vector>(N_("UV Map")).field_on_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

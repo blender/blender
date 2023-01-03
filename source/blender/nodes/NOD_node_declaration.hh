@@ -65,6 +65,76 @@ struct FieldInferencingInterface {
   Vector<OutputFieldDependency> outputs;
 };
 
+namespace anonymous_attribute_lifetime {
+
+/**
+ * Attributes can be propagated from an input geometry to an output geometry.
+ */
+struct PropagateRelation {
+  int from_geometry_input;
+  int to_geometry_output;
+
+  friend bool operator==(const PropagateRelation &a, const PropagateRelation &b)
+  {
+    return a.from_geometry_input == b.from_geometry_input &&
+           a.to_geometry_output == b.to_geometry_output;
+  }
+};
+
+/**
+ * References to attributes can be propagated from an input field to an output field.
+ */
+struct ReferenceRelation {
+  int from_field_input;
+  int to_field_output;
+
+  friend bool operator==(const ReferenceRelation &a, const ReferenceRelation &b)
+  {
+    return a.from_field_input == b.from_field_input && a.to_field_output == b.to_field_output;
+  }
+};
+
+/**
+ * An input field is evaluated on an input geometry.
+ */
+struct EvalRelation {
+  int field_input;
+  int geometry_input;
+
+  friend bool operator==(const EvalRelation &a, const EvalRelation &b)
+  {
+    return a.field_input == b.field_input && a.geometry_input == b.geometry_input;
+  }
+};
+
+/**
+ * An output field is available on an output geometry.
+ */
+struct AvailableRelation {
+  int field_output;
+  int geometry_output;
+
+  friend bool operator==(const AvailableRelation &a, const AvailableRelation &b)
+  {
+    return a.field_output == b.field_output && a.geometry_output == b.geometry_output;
+  }
+};
+
+struct RelationsInNode {
+  Vector<PropagateRelation> propagate_relations;
+  Vector<ReferenceRelation> reference_relations;
+  Vector<EvalRelation> eval_relations;
+  Vector<AvailableRelation> available_relations;
+  Vector<int> available_on_none;
+};
+
+bool operator==(const RelationsInNode &a, const RelationsInNode &b);
+bool operator!=(const RelationsInNode &a, const RelationsInNode &b);
+std::ostream &operator<<(std::ostream &stream, const RelationsInNode &relations);
+
+}  // namespace anonymous_attribute_lifetime
+namespace aal = anonymous_attribute_lifetime;
+
 using ImplicitInputValueFn = std::function<void(const bNode &node, void *r_value)>;
 
 /**
@@ -146,9 +216,23 @@ class SocketDeclaration {
   bool matches_common_data(const bNodeSocket &socket) const;
 };
 
+class NodeDeclarationBuilder;
+
 class BaseSocketDeclarationBuilder {
+ protected:
+  int index_ = -1;
+  bool reference_pass_all_ = false;
+  bool field_on_all_ = false;
+  bool propagate_from_all_ = false;
+  NodeDeclarationBuilder *node_decl_builder_ = nullptr;
+
+  friend class NodeDeclarationBuilder;
+
  public:
   virtual ~BaseSocketDeclarationBuilder() = default;
+
+ protected:
+  virtual SocketDeclaration *declaration() = 0;
 };
 
 /**
@@ -225,12 +309,48 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
     return *(Self *)this;
   }
 
+  /**
+   * For inputs this means that the input field is evaluated on all geometry inputs. For outputs
+   * it means that this contains an anonymous attribute reference that is available on all geometry
+   * outputs.
+   */
+  Self &field_on_all()
+  {
+    if (decl_->in_out == SOCK_IN) {
+      this->supports_field();
+    }
+    else {
+      this->field_source();
+    }
+    field_on_all_ = true;
+    return *(Self *)this;
+  }
+
+  /** For inputs that are evaluated or available on a subset of the geometry sockets. */
+  Self &field_on(Span<int> indices);
+
   /** The input supports a field and is a field by default when nothing is connected. */
   Self &implicit_field(ImplicitInputValueFn fn)
   {
     this->hide_value();
     decl_->input_field_type = InputSocketFieldType::Implicit;
     decl_->implicit_input_fn_ = std::make_unique<ImplicitInputValueFn>(std::move(fn));
+    return *(Self *)this;
+  }
+
+  /** The input is an implicit field that is evaluated on all geometry inputs. */
+  Self &implicit_field_on_all(ImplicitInputValueFn fn)
+  {
+    this->implicit_field(fn);
+    field_on_all_ = true;
+    return *(Self *)this;
+  }
+
+  /** The input is evaluated on a subset of the geometry inputs. */
+  Self &implicit_field_on(ImplicitInputValueFn fn, const Span<int> input_indices)
+  {
+    this->implicit_field(fn);
+    this->field_on(input_indices);
     return *(Self *)this;
   }
 
@@ -241,18 +361,52 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
     return *(Self *)this;
   }
 
-  /** The output is a field if any of the inputs is a field. */
+  /** The output is a field if any of the inputs are a field. */
   Self &dependent_field()
   {
     decl_->output_field_dependency = OutputFieldDependency::ForDependentField();
+    this->reference_pass_all();
     return *(Self *)this;
   }
 
   /** The output is a field if any of the inputs with indices in the given list is a field. */
   Self &dependent_field(Vector<int> input_dependencies)
   {
+    this->reference_pass(input_dependencies);
     decl_->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
         std::move(input_dependencies));
+    return *(Self *)this;
+  }
+
+  /**
+   * For outputs that combine all input fields into a new field. The output is a field even if none
+   * of the inputs is a field.
+   */
+  Self &field_source_reference_all()
+  {
+    this->field_source();
+    this->reference_pass_all();
+    return *(Self *)this;
+  }
+
+  /**
+   * For outputs that combine a subset of input fields into a new field.
+   */
+  Self &reference_pass(Span<int> input_indices);
+
+  /**
+   * For outputs that combine all input fields into a new field.
+   */
+  Self &reference_pass_all()
+  {
+    reference_pass_all_ = true;
+    return *(Self *)this;
+  }
+
+  /** Attributes from the all geometry inputs can be propagated. */
+  Self &propagate_all()
+  {
+    propagate_from_all_ = true;
     return *(Self *)this;
   }
 
@@ -291,6 +445,12 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
     decl_->make_available_fn_ = std::move(fn);
     return *(Self *)this;
   }
+
+ protected:
+  SocketDeclaration *declaration() override
+  {
+    return decl_;
+  }
 };
 
 using SocketDeclarationPtr = std::unique_ptr<SocketDeclaration>;
@@ -299,11 +459,17 @@ class NodeDeclaration {
  public:
   Vector<SocketDeclarationPtr> inputs;
   Vector<SocketDeclarationPtr> outputs;
+  std::unique_ptr<aal::RelationsInNode> anonymous_attribute_relations_;
 
   friend NodeDeclarationBuilder;
 
   bool matches(const bNode &node) const;
   Span<SocketDeclarationPtr> sockets(eNodeSocketInOut in_out) const;
+
+  const aal::RelationsInNode *anonymous_attribute_relations() const
+  {
+    return anonymous_attribute_relations_.get();
+  }
 
   MEM_CXX_CLASS_ALLOC_FUNCS("NodeDeclaration")
 };
@@ -311,7 +477,8 @@ class NodeDeclaration {
 class NodeDeclarationBuilder {
  private:
   NodeDeclaration &declaration_;
-  Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> builders_;
+  Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> input_builders_;
+  Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> output_builders_;
   bool is_function_node_ = false;
 
  public:
@@ -333,6 +500,14 @@ class NodeDeclarationBuilder {
   template<typename DeclType>
   typename DeclType::Builder &add_output(StringRef name, StringRef identifier = "");
 
+  aal::RelationsInNode &get_anonymous_attribute_relations()
+  {
+    if (!declaration_.anonymous_attribute_relations_) {
+      declaration_.anonymous_attribute_relations_ = std::make_unique<aal::RelationsInNode>();
+    }
+    return *declaration_.anonymous_attribute_relations_;
+  }
+
  private:
   template<typename DeclType>
   typename DeclType::Builder &add_socket(StringRef name,
@@ -348,6 +523,44 @@ void id_or_index(const bNode &node, void *r_value);
 }  // namespace implicit_field_inputs
 
 void build_node_declaration(const bNodeType &typeinfo, NodeDeclaration &r_declaration);
+
+template<typename SocketDecl>
+typename SocketDeclarationBuilder<SocketDecl>::Self &SocketDeclarationBuilder<
+    SocketDecl>::reference_pass(const Span<int> input_indices)
+{
+  aal::RelationsInNode &relations = node_decl_builder_->get_anonymous_attribute_relations();
+  for (const int from_input : input_indices) {
+    aal::ReferenceRelation relation;
+    relation.from_field_input = from_input;
+    relation.to_field_output = index_;
+    relations.reference_relations.append(relation);
+  }
+  return *(Self *)this;
+}
+
+template<typename SocketDecl>
+typename SocketDeclarationBuilder<SocketDecl>::Self &SocketDeclarationBuilder<
+    SocketDecl>::field_on(const Span<int> indices)
+{
+  aal::RelationsInNode &relations = node_decl_builder_->get_anonymous_attribute_relations();
+  if (decl_->in_out == SOCK_IN) {
+    for (const int input_index : indices) {
+      aal::EvalRelation relation;
+      relation.field_input = index_;
+      relation.geometry_input = input_index;
+      relations.eval_relations.append(relation);
+    }
+  }
+  else {
+    for (const int output_index : indices) {
+      aal::AvailableRelation relation;
+      relation.field_output = index_;
+      relation.geometry_output = output_index;
+      relations.available_relations.append(relation);
+    }
+  }
+  return *(Self *)this;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name #OutputFieldDependency Inline Methods
@@ -490,12 +703,15 @@ inline typename DeclType::Builder &NodeDeclarationBuilder::add_socket(StringRef 
   std::unique_ptr<DeclType> socket_decl = std::make_unique<DeclType>();
   std::unique_ptr<Builder> socket_decl_builder = std::make_unique<Builder>();
   socket_decl_builder->decl_ = &*socket_decl;
+
+  socket_decl_builder->node_decl_builder_ = this;
   socket_decl->name = name;
   socket_decl->identifier = identifier.is_empty() ? name : identifier;
   socket_decl->in_out = in_out;
-  declarations.append(std::move(socket_decl));
+  socket_decl_builder->index_ = declarations.append_and_get_index(std::move(socket_decl));
   Builder &socket_decl_builder_ref = *socket_decl_builder;
-  builders_.append(std::move(socket_decl_builder));
+  ((in_out == SOCK_IN) ? input_builders_ : output_builders_)
+      .append(std::move(socket_decl_builder));
   return socket_decl_builder_ref;
 }
 

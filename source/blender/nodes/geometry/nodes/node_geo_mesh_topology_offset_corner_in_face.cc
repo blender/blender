@@ -20,7 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("The number of corners to move around the face before finding the result, "
                       "circling around the start of the face if necessary"));
   b.add_output<decl::Int>(N_("Corner Index"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(N_("The index of the offset corner"));
 }
 

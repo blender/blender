@@ -25,11 +25,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .only_realized_data()
       .supported_type(GEO_COMPONENT_TYPE_MESH);
 
-  b.add_input<decl::Vector>(N_("Attribute")).hide_value().supports_field();
-  b.add_input<decl::Float>(N_("Attribute"), "Attribute_001").hide_value().supports_field();
-  b.add_input<decl::Color>(N_("Attribute"), "Attribute_002").hide_value().supports_field();
-  b.add_input<decl::Bool>(N_("Attribute"), "Attribute_003").hide_value().supports_field();
-  b.add_input<decl::Int>(N_("Attribute"), "Attribute_004").hide_value().supports_field();
+  b.add_input<decl::Vector>(N_("Attribute")).hide_value().field_on_all();
+  b.add_input<decl::Float>(N_("Attribute"), "Attribute_001").hide_value().field_on_all();
+  b.add_input<decl::Color>(N_("Attribute"), "Attribute_002").hide_value().field_on_all();
+  b.add_input<decl::Bool>(N_("Attribute"), "Attribute_003").hide_value().field_on_all();
+  b.add_input<decl::Int>(N_("Attribute"), "Attribute_004").hide_value().field_on_all();
 
   b.add_input<decl::Vector>(N_("Source Position")).implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Vector>(N_("Ray Direction"))

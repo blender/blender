@@ -27,7 +27,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>(N_("Rotate"))
       .default_value(true)
       .description(N_("Rotate islands for best fit"));
-  b.add_output<decl::Vector>(N_("UV")).field_source();
+  b.add_output<decl::Vector>(N_("UV")).field_source_reference_all();
 }
 
 static VArray<float3> construct_uv_gvarray(const Mesh &mesh,

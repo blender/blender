@@ -18,18 +18,18 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1)
       .min(1)
       .max(1000)
-      .supports_field()
+      .field_on_all()
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_FILLET_POLY; });
   b.add_input<decl::Float>(N_("Radius"))
       .min(0.0f)
       .max(FLT_MAX)
       .subtype(PropertySubType::PROP_DISTANCE)
       .default_value(0.25f)
-      .supports_field();
+      .field_on_all();
   b.add_input<decl::Bool>(N_("Limit Radius"))
       .description(
           N_("Limit the maximum value of the radius in order to avoid overlapping fillets"));
-  b.add_output<decl::Geometry>(N_("Curve"));
+  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

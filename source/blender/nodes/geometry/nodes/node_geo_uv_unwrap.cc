@@ -36,7 +36,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(true)
       .description(N_("Virtually fill holes in mesh before unwrapping, to better avoid overlaps "
                       "and preserve symmetry"));
-  b.add_output<decl::Vector>(N_("UV")).field_source().description(
+  b.add_output<decl::Vector>(N_("UV")).field_source_reference_all().description(
       N_("UV coordinates between 0 and 1 for each face corner in the selected faces"));
 }
 

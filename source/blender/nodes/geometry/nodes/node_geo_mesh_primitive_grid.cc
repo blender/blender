@@ -180,7 +180,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1000)
       .description(N_("Number of vertices in the Y direction"));
   b.add_output<decl::Geometry>(N_("Mesh"));
-  b.add_output<decl::Vector>(N_("UV Map")).field_source();
+  b.add_output<decl::Vector>(N_("UV Map")).field_on_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

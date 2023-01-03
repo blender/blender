@@ -22,7 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Keep non-manifold boundaries of the input mesh in place by avoiding the dual "
           "transformation there");
-  b.add_output<decl::Geometry>("Dual Mesh");
+  b.add_output<decl::Geometry>("Dual Mesh").propagate_all();
 }
 
 enum class EdgeType : int8_t {

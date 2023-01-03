@@ -41,7 +41,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(0.5f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .supports_field();
+      .field_on_all();
   b.add_output<decl::Geometry>(N_("Volume"));
 }
 

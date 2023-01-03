@@ -18,10 +18,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1)
       .min(0)
       .max(1000)
-      .supports_field()
+      .field_on_all()
       .description(
           N_("The number of control points to create on the segment following each point"));
-  b.add_output<decl::Geometry>(N_("Curve"));
+  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

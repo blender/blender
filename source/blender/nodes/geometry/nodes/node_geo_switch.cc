@@ -59,13 +59,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Image>(N_("False"), "False_011");
   b.add_input<decl::Image>(N_("True"), "True_011");
 
-  b.add_output<decl::Float>(N_("Output")).dependent_field();
-  b.add_output<decl::Int>(N_("Output"), "Output_001").dependent_field();
-  b.add_output<decl::Bool>(N_("Output"), "Output_002").dependent_field();
-  b.add_output<decl::Vector>(N_("Output"), "Output_003").dependent_field();
-  b.add_output<decl::Color>(N_("Output"), "Output_004").dependent_field();
-  b.add_output<decl::String>(N_("Output"), "Output_005").dependent_field();
-  b.add_output<decl::Geometry>(N_("Output"), "Output_006");
+  b.add_output<decl::Float>(N_("Output")).dependent_field().reference_pass_all();
+  b.add_output<decl::Int>(N_("Output"), "Output_001").dependent_field().reference_pass_all();
+  b.add_output<decl::Bool>(N_("Output"), "Output_002").dependent_field().reference_pass_all();
+  b.add_output<decl::Vector>(N_("Output"), "Output_003").dependent_field().reference_pass_all();
+  b.add_output<decl::Color>(N_("Output"), "Output_004").dependent_field().reference_pass_all();
+  b.add_output<decl::String>(N_("Output"), "Output_005").dependent_field().reference_pass_all();
+  b.add_output<decl::Geometry>(N_("Output"), "Output_006").propagate_all();
   b.add_output<decl::Object>(N_("Output"), "Output_007");
   b.add_output<decl::Collection>(N_("Output"), "Output_008");
   b.add_output<decl::Texture>(N_("Output"), "Output_009");

@@ -54,8 +54,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::String>(N_("Remainder")).make_available([](bNode &node) {
     node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE;
   });
-  b.add_output<decl::Int>(N_("Line")).field_source();
-  b.add_output<decl::Vector>(N_("Pivot Point")).field_source();
+  b.add_output<decl::Int>(N_("Line")).field_on_all();
+  b.add_output<decl::Vector>(N_("Pivot Point")).field_on_all();
 }
 
 static void node_layout(uiLayout *layout, struct bContext *C, PointerRNA *ptr)

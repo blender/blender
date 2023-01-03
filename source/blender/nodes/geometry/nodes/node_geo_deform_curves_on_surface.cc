@@ -38,7 +38,7 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveTrim)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curves")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_output<decl::Geometry>(N_("Curves"));
+  b.add_output<decl::Geometry>(N_("Curves")).propagate_all();
 }
 
 static void deform_curves(const CurvesGeometry &curves,

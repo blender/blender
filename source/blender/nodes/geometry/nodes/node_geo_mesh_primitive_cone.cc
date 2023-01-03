@@ -748,10 +748,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_DISTANCE)
       .description(N_("Height of the generated cone"));
   b.add_output<decl::Geometry>(N_("Mesh"));
-  b.add_output<decl::Bool>(N_("Top")).field_source();
-  b.add_output<decl::Bool>(N_("Bottom")).field_source();
-  b.add_output<decl::Bool>(N_("Side")).field_source();
-  b.add_output<decl::Vector>(N_("UV Map")).field_source();
+  b.add_output<decl::Bool>(N_("Top")).field_on_all();
+  b.add_output<decl::Bool>(N_("Bottom")).field_on_all();
+  b.add_output<decl::Bool>(N_("Side")).field_on_all();
+  b.add_output<decl::Vector>(N_("UV Map")).field_on_all();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

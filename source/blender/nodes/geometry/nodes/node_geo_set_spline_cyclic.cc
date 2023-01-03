@@ -9,9 +9,9 @@ namespace blender::nodes::node_geo_set_spline_cyclic_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Bool>(N_("Cyclic")).supports_field();
-  b.add_output<decl::Geometry>(N_("Geometry"));
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Bool>(N_("Cyclic")).field_on_all();
+  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
 }
 
 static void set_cyclic(bke::CurvesGeometry &curves,

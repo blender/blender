@@ -20,7 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>(N_("Fill Caps"))
       .description(
           N_("If the profile spline is cyclic, fill the ends of the generated mesh with N-gons"));
-  b.add_output<decl::Geometry>(N_("Mesh"));
+  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
 }
 
 static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,

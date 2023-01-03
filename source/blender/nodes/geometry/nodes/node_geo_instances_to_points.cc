@@ -13,14 +13,14 @@ namespace blender::nodes::node_geo_instances_to_points_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Instances")).only_instances();
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Vector>(N_("Position")).implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Vector>(N_("Position")).implicit_field_on_all(implicit_field_inputs::position);
   b.add_input<decl::Float>(N_("Radius"))
       .default_value(0.05f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .supports_field();
-  b.add_output<decl::Geometry>(N_("Points"));
+      .field_on_all();
+  b.add_output<decl::Geometry>(N_("Points")).propagate_all();
 }
 
 static void convert_instances_to_points(GeometrySet &geometry_set,

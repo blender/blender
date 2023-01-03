@@ -29,7 +29,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("The counterclockwise rotation of the inner set of points"));
   b.add_output<decl::Geometry>(N_("Curve"));
   b.add_output<decl::Bool>(N_("Outer Points"))
-      .field_source()
+      .field_on_all()
       .description(N_("An attribute field with a selection of the outer points"));
 }
 
