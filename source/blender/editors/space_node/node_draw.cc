@@ -2610,6 +2610,18 @@ int node_get_resize_cursor(NodeResizeDirection directions)
   return WM_CURSOR_EDIT;
 }
 
+static const bNode *find_node_under_cursor(SpaceNode &snode, const float2 &cursor)
+{
+  /* Check nodes front to back. */
+  const Span<bNode *> nodes = snode.edittree->all_nodes();
+  for (int i = nodes.index_range().last(); i > 0; i--) {
+    if (BLI_rctf_isect_pt(&nodes[i]->runtime->totr, cursor[0], cursor[1])) {
+      return nodes[i];
+    }
+  }
+  return nullptr;
+}
+
 void node_set_cursor(wmWindow &win, SpaceNode &snode, const float2 &cursor)
 {
   const bNodeTree *ntree = snode.edittree;
@@ -2617,36 +2629,28 @@ void node_set_cursor(wmWindow &win, SpaceNode &snode, const float2 &cursor)
     WM_cursor_set(&win, WM_CURSOR_DEFAULT);
     return;
   }
-
-  bNode *node;
-  bNodeSocket *sock;
-  int wmcursor = WM_CURSOR_DEFAULT;
-
-  if (node_find_indicated_socket(
-          snode, &node, &sock, cursor, (eNodeSocketInOut)(SOCK_IN | SOCK_OUT))) {
+  if (node_find_indicated_socket(snode, cursor, SOCK_IN | SOCK_OUT)) {
+    WM_cursor_set(&win, WM_CURSOR_DEFAULT);
+    return;
+  }
+  const bNode *node = find_node_under_cursor(snode, cursor);
+  if (!node) {
+    WM_cursor_set(&win, WM_CURSOR_DEFAULT);
+    return;
+  }
+  const NodeResizeDirection dir = node_get_resize_direction(node, cursor[0], cursor[1]);
+  if (node->is_frame() && dir == NODE_RESIZE_NONE) {
+    /* Indicate that frame nodes can be moved/selected on their borders. */
+    const rctf frame_inside = node_frame_rect_inside(*node);
+    if (!BLI_rctf_isect_pt(&frame_inside, cursor[0], cursor[1])) {
+      WM_cursor_set(&win, WM_CURSOR_NSEW_SCROLL);
+      return;
+    }
     WM_cursor_set(&win, WM_CURSOR_DEFAULT);
     return;
   }
 
-  /* Check nodes front to back. */
-  for (node = (bNode *)ntree->nodes.last; node; node = node->prev) {
-    if (BLI_rctf_isect_pt(&node->runtime->totr, cursor[0], cursor[1])) {
-      break; /* First hit on node stops. */
-    }
-  }
-  if (node) {
-    NodeResizeDirection dir = node_get_resize_direction(node, cursor[0], cursor[1]);
-    wmcursor = node_get_resize_cursor(dir);
-    /* We want to indicate that Frame nodes can be moved/selected on their borders. */
-    if (node->type == NODE_FRAME && dir == NODE_RESIZE_NONE) {
-      const rctf frame_inside = node_frame_rect_inside(*node);
-      if (!BLI_rctf_isect_pt(&frame_inside, cursor[0], cursor[1])) {
-        wmcursor = WM_CURSOR_NSEW_SCROLL;
-      }
-    }
-  }
-
-  WM_cursor_set(&win, wmcursor);
+  WM_cursor_set(&win, node_get_resize_cursor(dir));
 }
 
 static void count_multi_input_socket_links(bNodeTree &ntree, SpaceNode &snode)

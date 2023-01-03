@@ -124,27 +124,24 @@ static void pick_input_link_by_link_intersect(const bContext &C,
 
   float2 drag_start;
   RNA_float_get_array(op.ptr, "drag_start", drag_start);
-  bNode *node;
-  bNodeSocket *socket;
-  node_find_indicated_socket(*snode, &node, &socket, drag_start, SOCK_IN);
+  bNodeSocket *socket = node_find_indicated_socket(*snode, drag_start, SOCK_IN);
+  bNode &node = socket->owner_node();
 
   /* Distance to test overlapping of cursor on link. */
   const float cursor_link_touch_distance = 12.5f * UI_DPI_FAC;
 
   bNodeLink *link_to_pick = nullptr;
   clear_picking_highlight(&snode->edittree->links);
-  LISTBASE_FOREACH (bNodeLink *, link, &snode->edittree->links) {
-    if (link->tosock == socket) {
-      /* Test if the cursor is near a link. */
-      std::array<float2, NODE_LINK_RESOL + 1> coords;
-      node_link_bezier_points_evaluated(*link, coords);
+  for (bNodeLink *link : socket->directly_linked_links()) {
+    /* Test if the cursor is near a link. */
+    std::array<float2, NODE_LINK_RESOL + 1> coords;
+    node_link_bezier_points_evaluated(*link, coords);
 
-      for (const int i : IndexRange(coords.size() - 1)) {
-        const float distance = dist_squared_to_line_segment_v2(cursor, coords[i], coords[i + 1]);
-        if (distance < cursor_link_touch_distance) {
-          link_to_pick = link;
-          nldrag.last_picked_multi_input_socket_link = link_to_pick;
-        }
+    for (const int i : IndexRange(coords.size() - 1)) {
+      const float distance = dist_squared_to_line_segment_v2(cursor, coords[i], coords[i + 1]);
+      if (distance < cursor_link_touch_distance) {
+        link_to_pick = link;
+        nldrag.last_picked_multi_input_socket_link = link_to_pick;
       }
     }
   }
@@ -164,8 +161,8 @@ static void pick_input_link_by_link_intersect(const bContext &C,
     link_to_pick->flag |= NODE_LINK_TEMP_HIGHLIGHT;
     ED_area_tag_redraw(CTX_wm_area(&C));
 
-    if (!node_find_indicated_socket(*snode, &node, &socket, cursor, SOCK_IN)) {
-      pick_link(nldrag, *snode, node, *link_to_pick);
+    if (!node_find_indicated_socket(*snode, cursor, SOCK_IN)) {
+      pick_link(nldrag, *snode, &node, *link_to_pick);
     }
   }
 }
@@ -952,13 +949,11 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
   bNodeLinkDrag &nldrag = *static_cast<bNodeLinkDrag *>(op.customdata);
 
   if (nldrag.in_out == SOCK_OUT) {
-    bNode *tnode;
-    bNodeSocket *tsock = nullptr;
-    snode.edittree->ensure_topology_cache();
-    if (node_find_indicated_socket(snode, &tnode, &tsock, cursor, SOCK_IN)) {
+    if (bNodeSocket *tsock = node_find_indicated_socket(snode, cursor, SOCK_IN)) {
+      bNode &tnode = tsock->owner_node();
       for (bNodeLink &link : nldrag.links) {
         /* skip if socket is on the same node as the fromsock */
-        if (tnode && link.fromnode == tnode) {
+        if (link.fromnode == &tnode) {
           continue;
         }
 
@@ -972,16 +967,16 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
         }
 
         /* attach links to the socket */
-        link.tonode = tnode;
+        link.tonode = &tnode;
         link.tosock = tsock;
-        nldrag.last_node_hovered_while_dragging_a_link = tnode;
+        nldrag.last_node_hovered_while_dragging_a_link = &tnode;
         if (existing_link_connected_to_fromsock) {
           link.multi_input_socket_index =
               existing_link_connected_to_fromsock->multi_input_socket_index;
           continue;
         }
         if (link.tosock && link.tosock->flag & SOCK_MULTI_INPUT) {
-          sort_multi_input_socket_links_with_drag(*tnode, link, cursor);
+          sort_multi_input_socket_links_with_drag(tnode, link, cursor);
         }
       }
     }
@@ -997,21 +992,20 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
     }
   }
   else {
-    bNode *tnode;
-    bNodeSocket *tsock = nullptr;
-    if (node_find_indicated_socket(snode, &tnode, &tsock, cursor, SOCK_OUT)) {
+    if (bNodeSocket *tsock = node_find_indicated_socket(snode, cursor, SOCK_OUT)) {
+      bNode &node = tsock->owner_node();
       for (bNodeLink &link : nldrag.links) {
         /* skip if this is already the target socket */
         if (link.fromsock == tsock) {
           continue;
         }
         /* skip if socket is on the same node as the fromsock */
-        if (tnode && link.tonode == tnode) {
+        if (link.tonode == &node) {
           continue;
         }
 
         /* attach links to the socket */
-        link.fromnode = tnode;
+        link.fromnode = &node;
         link.fromsock = tsock;
       }
     }
@@ -1094,12 +1088,11 @@ static std::unique_ptr<bNodeLinkDrag> node_link_init(SpaceNode &snode,
                                                      const float2 cursor,
                                                      const bool detach)
 {
-  /* output indicated? */
-  bNode *node;
-  bNodeSocket *sock;
-  if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_OUT)) {
+  if (bNodeSocket *sock = node_find_indicated_socket(snode, cursor, SOCK_OUT)) {
+    bNode &node = sock->owner_node();
+
     std::unique_ptr<bNodeLinkDrag> nldrag = std::make_unique<bNodeLinkDrag>();
-    nldrag->start_node = node;
+    nldrag->start_node = &node;
     nldrag->start_socket = sock;
     nldrag->start_link_count = nodeCountSocketLinks(snode.edittree, sock);
     int link_limit = nodeSocketLinkLimit(sock);
@@ -1121,16 +1114,16 @@ static std::unique_ptr<bNodeLinkDrag> node_link_init(SpaceNode &snode,
     else {
       /* dragged links are fixed on output side */
       nldrag->in_out = SOCK_OUT;
-      nldrag->links.append(create_drag_link(*node, *sock));
+      nldrag->links.append(create_drag_link(node, *sock));
     }
     return nldrag;
   }
 
-  /* or an input? */
-  if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_IN)) {
+  if (bNodeSocket *sock = node_find_indicated_socket(snode, cursor, SOCK_IN)) {
+    bNode &node = sock->owner_node();
     std::unique_ptr<bNodeLinkDrag> nldrag = std::make_unique<bNodeLinkDrag>();
-    nldrag->last_node_hovered_while_dragging_a_link = node;
-    nldrag->start_node = node;
+    nldrag->last_node_hovered_while_dragging_a_link = &node;
+    nldrag->start_node = &node;
     nldrag->start_socket = sock;
 
     nldrag->start_link_count = nodeCountSocketLinks(snode.edittree, sock);
@@ -1154,15 +1147,13 @@ static std::unique_ptr<bNodeLinkDrag> node_link_init(SpaceNode &snode,
         nodeRemLink(snode.edittree, link_to_pick);
 
         /* send changed event to original link->tonode */
-        if (node) {
-          BKE_ntree_update_tag_node_property(snode.edittree, node);
-        }
+        BKE_ntree_update_tag_node_property(snode.edittree, &node);
       }
     }
     else {
       /* dragged links are fixed on input side */
       nldrag->in_out = SOCK_IN;
-      nldrag->links.append(create_drag_link(*node, *sock));
+      nldrag->links.append(create_drag_link(node, *sock));
     }
     return nldrag;
   }

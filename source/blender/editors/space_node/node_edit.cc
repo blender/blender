@@ -1205,24 +1205,21 @@ static bool cursor_isect_multi_input_socket(const float2 &cursor, const bNodeSoc
   return false;
 }
 
-bool node_find_indicated_socket(SpaceNode &snode,
-                                bNode **nodep,
-                                bNodeSocket **sockp,
-                                const float2 &cursor,
-                                const eNodeSocketInOut in_out)
+bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
+                                        const float2 &cursor,
+                                        const eNodeSocketInOut in_out)
 {
   rctf rect;
-
   const float size_sock_padded = NODE_SOCKSIZE + 4;
 
-  *nodep = nullptr;
-  *sockp = nullptr;
+  snode.edittree->ensure_topology_cache();
 
-  /* check if we click in a socket */
-  LISTBASE_FOREACH_BACKWARD (bNode *, node, &snode.edittree->nodes) {
+  const Span<bNode *> nodes = snode.edittree->all_nodes();
+  for (int i = nodes.index_range().last(); i > 0; i--) {
+    bNode &node = *nodes[i];
+
     BLI_rctf_init_pt_radius(&rect, cursor, size_sock_padded);
-
-    if (!(node->flag & NODE_HIDDEN)) {
+    if (!(node.flag & NODE_HIDDEN)) {
       /* extra padding inside and out - allow dragging on the text areas too */
       if (in_out == SOCK_IN) {
         rect.xmax += NODE_SOCKSIZE;
@@ -1235,37 +1232,31 @@ bool node_find_indicated_socket(SpaceNode &snode,
     }
 
     if (in_out & SOCK_IN) {
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+      for (bNodeSocket *sock : node.input_sockets()) {
         if (sock->is_visible()) {
           const float2 location(sock->runtime->locx, sock->runtime->locy);
-          if (sock->flag & SOCK_MULTI_INPUT && !(node->flag & NODE_HIDDEN)) {
+          if (sock->flag & SOCK_MULTI_INPUT && !(node.flag & NODE_HIDDEN)) {
             if (cursor_isect_multi_input_socket(cursor, *sock)) {
-              if (!socket_is_occluded(location, *node, snode)) {
-                *nodep = node;
-                *sockp = sock;
-                return true;
+              if (!socket_is_occluded(location, node, snode)) {
+                return sock;
               }
             }
           }
           else if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
-            if (!socket_is_occluded(location, *node, snode)) {
-              *nodep = node;
-              *sockp = sock;
-              return true;
+            if (!socket_is_occluded(location, node, snode)) {
+              return sock;
             }
           }
         }
       }
     }
     if (in_out & SOCK_OUT) {
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+      for (bNodeSocket *sock : node.output_sockets()) {
         if (sock->is_visible()) {
           const float2 location(sock->runtime->locx, sock->runtime->locy);
           if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
-            if (!socket_is_occluded(location, *node, snode)) {
-              *nodep = node;
-              *sockp = sock;
-              return true;
+            if (!socket_is_occluded(location, node, snode)) {
+              return sock;
             }
           }
         }
@@ -1273,7 +1264,7 @@ bool node_find_indicated_socket(SpaceNode &snode,
     }
   }
 
-  return false;
+  return nullptr;
 }
 
 /** \} */

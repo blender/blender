@@ -175,14 +175,9 @@ static bool is_position_over_node_or_socket(SpaceNode &snode, const float2 &mous
   if (node_under_mouse_tweak(*snode.edittree, mouse)) {
     return true;
   }
-
-  bNode *node;
-  bNodeSocket *sock;
-  if (node_find_indicated_socket(
-          snode, &node, &sock, mouse, (eNodeSocketInOut)(SOCK_IN | SOCK_OUT))) {
+  if (node_find_indicated_socket(snode, mouse, SOCK_IN | SOCK_OUT)) {
     return true;
   }
-
   return false;
 }
 
@@ -532,9 +527,8 @@ static bool node_mouse_select(bContext *C,
   const Object *ob = CTX_data_active_object(C);
   const Scene *scene = CTX_data_scene(C);
   const wmWindowManager *wm = CTX_wm_manager(C);
-  bNode *node;
+  bNode *node = nullptr;
   bNodeSocket *sock = nullptr;
-  bNodeSocket *tsock;
 
   /* always do socket_select when extending selection. */
   const bool socket_select = (params->sel_op == SEL_OP_XOR) ||
@@ -551,7 +545,9 @@ static bool node_mouse_select(bContext *C,
   if (socket_select) {
     /* NOTE: unlike nodes #SelectPick_Params isn't fully supported. */
     const bool extend = (params->sel_op == SEL_OP_XOR);
-    if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_IN)) {
+    sock = node_find_indicated_socket(snode, cursor, SOCK_IN);
+    if (sock) {
+      node = &sock->owner_node();
       found = true;
       node_was_selected = node->flag & SELECT;
 
@@ -560,41 +556,43 @@ static bool node_mouse_select(bContext *C,
       node_socket_toggle(node, *sock, true);
       changed = true;
     }
-    else if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_OUT)) {
-      found = true;
-      node_was_selected = node->flag & SELECT;
+    if (!changed) {
+      sock = node_find_indicated_socket(snode, cursor, SOCK_OUT);
+      if (sock) {
+        node = &sock->owner_node();
+        found = true;
+        node_was_selected = node->flag & SELECT;
 
-      if (sock->flag & SELECT) {
-        if (extend) {
-          node_socket_deselect(node, *sock, true);
-          changed = true;
+        if (sock->flag & SELECT) {
+          if (extend) {
+            node_socket_deselect(node, *sock, true);
+            changed = true;
+          }
         }
-      }
-      else {
-        /* Only allow one selected output per node, for sensible linking.
-         * Allow selecting outputs from different nodes though, if extend is true. */
-        if (node) {
-          for (tsock = (bNodeSocket *)node->outputs.first; tsock; tsock = tsock->next) {
+        else {
+          /* Only allow one selected output per node, for sensible linking.
+           * Allow selecting outputs from different nodes though, if extend is true. */
+          for (bNodeSocket *tsock : node->output_sockets()) {
             if (tsock == sock) {
               continue;
             }
             node_socket_deselect(node, *tsock, true);
             changed = true;
           }
-        }
-        if (!extend) {
-          for (bNode *tnode : node_tree.all_nodes()) {
-            if (tnode == node) {
-              continue;
-            }
-            for (tsock = (bNodeSocket *)tnode->outputs.first; tsock; tsock = tsock->next) {
-              node_socket_deselect(tnode, *tsock, true);
-              changed = true;
+          if (!extend) {
+            for (bNode *tnode : node_tree.all_nodes()) {
+              if (tnode == node) {
+                continue;
+              }
+              for (bNodeSocket *tsock : tnode->output_sockets()) {
+                node_socket_deselect(tnode, *tsock, true);
+                changed = true;
+              }
             }
           }
+          node_socket_select(node, *sock);
+          changed = true;
         }
-        node_socket_select(node, *sock);
-        changed = true;
       }
     }
   }
