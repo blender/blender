@@ -434,10 +434,12 @@ template<typename T> inline vec_base<T, 2> orthogonal(const vec_base<T, 2> &v)
 }
 
 template<typename T, int Size>
-inline bool compare(const vec_base<T, Size> &a, const vec_base<T, Size> &b, const T limit)
+inline bool is_equal(const vec_base<T, Size> &a,
+                     const vec_base<T, Size> &b,
+                     const T epsilon = T(0))
 {
   for (int i = 0; i < Size; i++) {
-    if (std::abs(a[i] - b[i]) > limit) {
+    if (std::abs(a[i] - b[i]) > epsilon) {
       return false;
     }
   }

@@ -378,7 +378,7 @@ template<typename T> [[nodiscard]] bool is_negative(const MatBase<T, 4, 4> &mat)
 template<typename T, int NumCol, int NumRow>
 [[nodiscard]] inline bool is_equal(const MatBase<T, NumCol, NumRow> &a,
                                    const MatBase<T, NumCol, NumRow> &b,
-                                   const T epsilon)
+                                   const T epsilon = T(0))
 {
   for (int i = 0; i < NumCol; i++) {
     for (int j = 0; j < NumRow; j++) {
