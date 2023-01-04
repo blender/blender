@@ -95,7 +95,7 @@ inline void execute_lazy_function_eagerly_impl(
   fn.destruct_storage(context.storage);
 
   /* Make sure all outputs have been computed.  */
-  BLI_assert(!Span(set_outputs).contains(false));
+  BLI_assert(!Span<bool>(set_outputs).contains(false));
 }
 
 }  // namespace detail
