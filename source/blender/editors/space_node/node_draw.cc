@@ -2601,7 +2601,7 @@ static const bNode *find_node_under_cursor(SpaceNode &snode, const float2 &curso
 {
   /* Check nodes front to back. */
   const Span<bNode *> nodes = snode.edittree->all_nodes();
-  for (int i = nodes.index_range().last(); i > 0; i--) {
+  for (int i = nodes.index_range().last(); i >= 0; i--) {
     if (BLI_rctf_isect_pt(&nodes[i]->runtime->totr, cursor[0], cursor[1])) {
       return nodes[i];
     }

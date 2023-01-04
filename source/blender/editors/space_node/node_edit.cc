@@ -1130,7 +1130,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
   snode.edittree->ensure_topology_cache();
 
   const Span<bNode *> nodes = snode.edittree->all_nodes();
-  for (int i = nodes.index_range().last(); i > 0; i--) {
+  for (int i = nodes.index_range().last(); i >= 0; i--) {
     bNode &node = *nodes[i];
 
     BLI_rctf_init_pt_radius(&rect, cursor, size_sock_padded);
