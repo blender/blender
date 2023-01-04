@@ -194,6 +194,8 @@ class GHOST_SystemWayland : public GHOST_System {
   /** Set this seat to be active. */
   void seat_active_set(const struct GWL_Seat *seat);
 
+  void output_scale_update_maybe_leave(GWL_Output *output, bool leave);
+
   /** Clear all references to this surface to prevent accessing NULL pointers. */
   void window_surface_unref(const wl_surface *wl_surface);
 
