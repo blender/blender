@@ -288,32 +288,27 @@ struct LinkAndPosition {
   float2 multi_socket_position;
 };
 
-static void sort_multi_input_socket_links_with_drag(bNode &node,
+static void sort_multi_input_socket_links_with_drag(bNodeSocket &socket,
                                                     bNodeLink &drag_link,
                                                     const float2 &cursor)
 {
-  for (bNodeSocket *socket : node.input_sockets()) {
-    if (!socket->is_multi_input()) {
-      continue;
-    }
-    const float2 &socket_location = {socket->runtime->locx, socket->runtime->locy};
+  const float2 &socket_location = {socket.runtime->locx, socket.runtime->locy};
 
-    Vector<LinkAndPosition, 8> links;
-    for (bNodeLink *link : socket->directly_linked_links()) {
-      const float2 location = node_link_calculate_multi_input_position(
-          socket_location, link->multi_input_socket_index, link->tosock->runtime->total_inputs);
-      links.append({link, location});
-    };
+  Vector<LinkAndPosition, 8> links;
+  for (bNodeLink *link : socket.directly_linked_links()) {
+    const float2 location = node_link_calculate_multi_input_position(
+        socket_location, link->multi_input_socket_index, link->tosock->runtime->total_inputs);
+    links.append({link, location});
+  };
 
-    links.append({&drag_link, cursor});
+  links.append({&drag_link, cursor});
 
-    std::sort(links.begin(), links.end(), [](const LinkAndPosition a, const LinkAndPosition b) {
-      return a.multi_socket_position.y < b.multi_socket_position.y;
-    });
+  std::sort(links.begin(), links.end(), [](const LinkAndPosition a, const LinkAndPosition b) {
+    return a.multi_socket_position.y < b.multi_socket_position.y;
+  });
 
-    for (const int i : links.index_range()) {
-      links[i].link->multi_input_socket_index = i;
-    }
+  for (const int i : links.index_range()) {
+    links[i].link->multi_input_socket_index = i;
   }
 }
 
@@ -972,8 +967,8 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
               existing_link_connected_to_fromsock->multi_input_socket_index;
           continue;
         }
-        if (link.tosock && link.tosock->flag & SOCK_MULTI_INPUT) {
-          sort_multi_input_socket_links_with_drag(tnode, link, cursor);
+        if (tsock && tsock->is_multi_input()) {
+          sort_multi_input_socket_links_with_drag(*tsock, link, cursor);
         }
       }
     }
