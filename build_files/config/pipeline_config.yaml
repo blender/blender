@@ -49,7 +49,7 @@ update-code:
 #
 buildbot:
     gcc:
-        version: '9.0.0'
+        version: '11.0.0'
     cuda10:
         version: '10.1.243'
     cuda11:
