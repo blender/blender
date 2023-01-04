@@ -702,6 +702,10 @@ bool MetalDeviceQueue::synchronize()
 
 void MetalDeviceQueue::zero_to_device(device_memory &mem)
 {
+  if (metal_device_->have_error()) {
+    return;
+  }
+
   assert(mem.type != MEM_GLOBAL && mem.type != MEM_TEXTURE);
 
   if (mem.memory_size() == 0) {
@@ -729,6 +733,10 @@ void MetalDeviceQueue::zero_to_device(device_memory &mem)
 
 void MetalDeviceQueue::copy_to_device(device_memory &mem)
 {
+  if (metal_device_->have_error()) {
+    return;
+  }
+
   if (mem.memory_size() == 0) {
     return;
   }
@@ -771,6 +779,10 @@ void MetalDeviceQueue::copy_to_device(device_memory &mem)
 
 void MetalDeviceQueue::copy_from_device(device_memory &mem)
 {
+  if (metal_device_->have_error()) {
+    return;
+  }
+
   assert(mem.type != MEM_GLOBAL && mem.type != MEM_TEXTURE);
 
   if (mem.memory_size() == 0) {

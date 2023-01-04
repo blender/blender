@@ -13,9 +13,31 @@
 #  include "util/path.h"
 #  include "util/time.h"
 
+#  include <crt_externs.h>
+
 CCL_NAMESPACE_BEGIN
 
 class MetalDevice;
+
+thread_mutex MetalDevice::existing_devices_mutex;
+std::map<int, MetalDevice *> MetalDevice::active_device_ids;
+
+/* Thread-safe device access for async work. Calling code must pass an appropriatelty scoped lock
+ * to existing_devices_mutex to safeguard against destruction of the returned instance. */
+MetalDevice *MetalDevice::get_device_by_ID(int ID, thread_scoped_lock &existing_devices_mutex_lock)
+{
+  auto it = active_device_ids.find(ID);
+  if (it != active_device_ids.end()) {
+    return it->second;
+  }
+  return nullptr;
+}
+
+bool MetalDevice::is_device_cancelled(int ID)
+{
+  thread_scoped_lock lock(existing_devices_mutex);
+  return get_device_by_ID(ID, lock) == nullptr;
+}
 
 BVHLayoutMask MetalDevice::get_bvh_layout_mask() const
 {
@@ -40,6 +62,15 @@ void MetalDevice::set_error(const string &error)
 MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
     : Device(info, stats, profiler), texture_info(this, "texture_info", MEM_GLOBAL)
 {
+  {
+    /* Assign an ID for this device which we can use to query whether async shader compilation
+     * requests are still relevant. */
+    thread_scoped_lock lock(existing_devices_mutex);
+    static int existing_devices_counter = 1;
+    device_id = existing_devices_counter++;
+    active_device_ids[device_id] = this;
+  }
+
   mtlDevId = info.num;
 
   /* select chosen device */
@@ -57,7 +88,6 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   if (@available(macos 11.0, *)) {
     if ([mtlDevice hasUnifiedMemory]) {
       default_storage_mode = MTLResourceStorageModeShared;
-      init_host_memory();
     }
   }
 
@@ -181,6 +211,13 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
 
 MetalDevice::~MetalDevice()
 {
+  /* Cancel any async shader compilations that are in flight. */
+  cancel();
+
+  /* This lock safeguards against destruction during use (see other uses of
+   * existing_devices_mutex). */
+  thread_scoped_lock lock(existing_devices_mutex);
+
   for (auto &tex : texture_slot_map) {
     if (tex) {
       [tex release];
@@ -326,21 +363,66 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
    * active, but may still need to be rendered without motion blur if that isn't active as well. */
   motion_blur = kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
 
-  bool result = compile_and_load(PSO_GENERIC);
+  /* Only request generic kernels if they aren't cached in memory. */
+  if (make_source_and_check_if_compile_needed(PSO_GENERIC)) {
+    /* If needed, load them asynchronously in order to responsively message progess to the user. */
+    int this_device_id = this->device_id;
+    auto compile_kernels_fn = ^() {
+      compile_and_load(this_device_id, PSO_GENERIC);
+    };
 
-  reserve_local_memory(kernel_features);
-  return result;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
+                   compile_kernels_fn);
+  }
+
+  return true;
 }
 
-bool MetalDevice::compile_and_load(MetalPipelineType pso_type)
+bool MetalDevice::make_source_and_check_if_compile_needed(MetalPipelineType pso_type)
 {
-  make_source(pso_type, kernel_features);
-
-  if (!MetalDeviceKernels::should_load_kernels(this, pso_type)) {
-    /* We already have a full set of matching pipelines which are cached or queued. */
-    metal_printf("%s kernels already requested\n", kernel_type_as_string(pso_type));
-    return true;
+  if (this->source[pso_type].empty()) {
+    make_source(pso_type, kernel_features);
   }
+  return MetalDeviceKernels::should_load_kernels(this, pso_type);
+}
+
+void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
+{
+  /* Thread-safe front-end compilation. Typically the MSL->AIR compilation can take a few seconds,
+   * so we avoid blocking device teardown if the user cancels a render immediately.
+   */
+
+  id<MTLDevice> mtlDevice;
+  string source;
+  MetalGPUVendor device_vendor;
+
+  /* Safely gather any state required for the MSL->AIR compilation. */
+  {
+    thread_scoped_lock lock(existing_devices_mutex);
+
+    /* Check whether the device still exists. */
+    MetalDevice *instance = get_device_by_ID(device_id, lock);
+    if (!instance) {
+      metal_printf("Ignoring %s compilation request - device no longer exists\n",
+                   kernel_type_as_string(pso_type));
+      return;
+    }
+
+    if (!instance->make_source_and_check_if_compile_needed(pso_type)) {
+      /* We already have a full set of matching pipelines which are cached or queued. Return early
+       * to avoid redundant MTLLibrary compilation. */
+      metal_printf("Ignoreing %s compilation request - kernels already requested\n",
+                   kernel_type_as_string(pso_type));
+      return;
+    }
+
+    mtlDevice = instance->mtlDevice;
+    device_vendor = instance->device_vendor;
+    source = instance->source[pso_type];
+  }
+
+  /* Perform the actual compilation using our cached context. The MetalDevice can safely destruct
+   * in this time. */
 
   MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
 
@@ -359,20 +441,15 @@ bool MetalDevice::compile_and_load(MetalPipelineType pso_type)
 
   if (getenv("CYCLES_METAL_PROFILING") || getenv("CYCLES_METAL_DEBUG")) {
     path_write_text(path_cache_get(string_printf("%s.metal", kernel_type_as_string(pso_type))),
-                    source[pso_type]);
+                    source);
   }
 
   const double starttime = time_dt();
 
   NSError *error = NULL;
-  mtlLibrary[pso_type] = [mtlDevice newLibraryWithSource:@(source[pso_type].c_str())
-                                                 options:options
-                                                   error:&error];
-
-  if (!mtlLibrary[pso_type]) {
-    NSString *err = [error localizedDescription];
-    set_error(string_printf("Failed to compile library:\n%s", [err UTF8String]));
-  }
+  id<MTLLibrary> mtlLibrary = [mtlDevice newLibraryWithSource:@(source.c_str())
+                                                      options:options
+                                                        error:&error];
 
   metal_printf("Front-end compilation finished in %.1f seconds (%s)\n",
                time_dt() - starttime,
@@ -380,17 +457,21 @@ bool MetalDevice::compile_and_load(MetalPipelineType pso_type)
 
   [options release];
 
-  return MetalDeviceKernels::load(this, pso_type);
-}
-
-void MetalDevice::reserve_local_memory(const uint kernel_features)
-{
-  /* METAL_WIP - implement this */
-}
-
-void MetalDevice::init_host_memory()
-{
-  /* METAL_WIP - implement this */
+  /* Save the compiled MTLLibrary and trigger the AIR->PSO builds (if the MetalDevice still
+   * exists). */
+  {
+    thread_scoped_lock lock(existing_devices_mutex);
+    if (MetalDevice *instance = get_device_by_ID(device_id, lock)) {
+      if (mtlLibrary) {
+        instance->mtlLibrary[pso_type] = mtlLibrary;
+        MetalDeviceKernels::load(instance, pso_type);
+      }
+      else {
+        NSString *err = [error localizedDescription];
+        instance->set_error(string_printf("Failed to compile library:\n%s", [err UTF8String]));
+      }
+    }
+  }
 }
 
 void MetalDevice::load_texture_info()
@@ -700,55 +781,74 @@ device_ptr MetalDevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, siz
   return 0;
 }
 
+void MetalDevice::cancel()
+{
+  /* Remove this device's ID from the list of active devices. Any pending compilation requests
+   * originating from this session will be cancelled. */
+  thread_scoped_lock lock(existing_devices_mutex);
+  if (device_id) {
+    active_device_ids.erase(device_id);
+    device_id = 0;
+  }
+}
+
+bool MetalDevice::is_ready(string &status) const
+{
+  int num_loaded = MetalDeviceKernels::get_loaded_kernel_count(this, PSO_GENERIC);
+  if (num_loaded < DEVICE_KERNEL_NUM) {
+    status = string_printf("%d / %d render kernels loaded (may take a few minutes the first time)",
+                           num_loaded,
+                           DEVICE_KERNEL_NUM);
+    return false;
+  }
+  metal_printf("MetalDevice::is_ready(...) --> true\n");
+  return true;
+}
+
 void MetalDevice::optimize_for_scene(Scene *scene)
 {
   MetalPipelineType specialization_level = kernel_specialization_level;
 
-  if (specialization_level < PSO_SPECIALIZED_INTERSECT) {
-    return;
-  }
-
-  /* PSO_SPECIALIZED_INTERSECT kernels are fast to specialize, so we always load them
-   * synchronously. */
-  compile_and_load(PSO_SPECIALIZED_INTERSECT);
-
-  if (specialization_level < PSO_SPECIALIZED_SHADE) {
-    return;
-  }
   if (!scene->params.background) {
-    /* Don't load PSO_SPECIALIZED_SHADE kernels during viewport rendering as they are slower to
-     * build. */
-    return;
+    /* In live viewport, don't specialize beyond intersection kernels for responsiveness. */
+    specialization_level = (MetalPipelineType)min(specialization_level, PSO_SPECIALIZED_INTERSECT);
   }
 
-  /* PSO_SPECIALIZED_SHADE kernels are slower to specialize, so we load them asynchronously, and
-   * only if there isn't an existing load in flight.
-   */
-  auto specialize_shade_fn = ^() {
-    compile_and_load(PSO_SPECIALIZED_SHADE);
-    async_compile_and_load = false;
+  /* For responsive rendering, specialize the kernels in the background, and only if there isn't an
+   * existing "optimize_for_scene" request in flight. */
+  int this_device_id = this->device_id;
+  auto specialize_kernels_fn = ^() {
+    for (int level = 1; level <= int(specialization_level); level++) {
+      compile_and_load(this_device_id, MetalPipelineType(level));
+    }
   };
 
-  bool async_specialize_shade = true;
+  /* In normal use, we always compile the specialized kernels in the background. */
+  bool specialize_in_background = true;
 
   /* Block if a per-kernel profiling is enabled (ensure steady rendering rate). */
   if (getenv("CYCLES_METAL_PROFILING") != nullptr) {
-    async_specialize_shade = false;
+    specialize_in_background = false;
   }
 
-  if (async_specialize_shade) {
-    if (!async_compile_and_load) {
-      async_compile_and_load = true;
+  /* Block during benchmark warm-up to ensure kernels are cached prior to the observed run. */
+  for (int i = 0; i < *_NSGetArgc(); i++) {
+    if (!strcmp((*_NSGetArgv())[i], "--warm-up")) {
+      specialize_in_background = false;
+    }
+  }
+
+  if (specialize_in_background) {
+    if (!MetalDeviceKernels::any_specialization_happening_now()) {
       dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
-                     specialize_shade_fn);
+                     specialize_kernels_fn);
     }
     else {
-      metal_printf(
-          "Async PSO_SPECIALIZED_SHADE load request already in progress - dropping request\n");
+      metal_printf("\"optimize_for_scene\" request already in flight - dropping request\n");
     }
   }
   else {
-    specialize_shade_fn();
+    specialize_kernels_fn();
   }
 }
 

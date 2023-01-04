@@ -167,6 +167,17 @@ class Device {
     return true;
   }
 
+  /* Request cancellation of any long-running work. */
+  virtual void cancel()
+  {
+  }
+
+  /* Return true if device is ready for rendering, or report status if not. */
+  virtual bool is_ready(string &status) const
+  {
+    return true;
+  }
+
   /* GPU device only functions.
    * These may not be used on CPU or multi-devices. */
 

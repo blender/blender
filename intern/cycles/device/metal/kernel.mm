@@ -86,22 +86,16 @@ struct ShaderCache {
   void load_kernel(DeviceKernel kernel, MetalDevice *device, MetalPipelineType pso_type);
 
   bool should_load_kernel(DeviceKernel device_kernel,
-                          MetalDevice *device,
+                          MetalDevice const *device,
                           MetalPipelineType pso_type);
 
   void wait_for_all();
 
- private:
   friend ShaderCache *get_shader_cache(id<MTLDevice> mtlDevice);
 
   void compile_thread_func(int thread_index);
 
   using PipelineCollection = std::vector<unique_ptr<MetalKernelPipeline>>;
-
-  struct PipelineRequest {
-    MetalKernelPipeline *pipeline = nullptr;
-    std::function<void(MetalKernelPipeline *)> completionHandler;
-  };
 
   struct OccupancyTuningParameters {
     int threads_per_threadgroup = 0;
@@ -113,13 +107,15 @@ struct ShaderCache {
   PipelineCollection pipelines[DEVICE_KERNEL_NUM];
   id<MTLDevice> mtlDevice;
 
-  bool running = false;
+  static bool running;
   std::condition_variable cond_var;
-  std::deque<PipelineRequest> request_queue;
+  std::deque<MetalKernelPipeline *> request_queue;
   std::vector<std::thread> compile_threads;
   std::atomic_int incomplete_requests = 0;
+  std::atomic_int incomplete_specialization_requests = 0;
 };
 
+bool ShaderCache::running = true;
 std::mutex g_shaderCacheMutex;
 std::map<id<MTLDevice>, unique_ptr<ShaderCache>> g_shaderCache;
 
@@ -137,11 +133,25 @@ ShaderCache *get_shader_cache(id<MTLDevice> mtlDevice)
 
 ShaderCache::~ShaderCache()
 {
-  metal_printf("ShaderCache shutting down with incomplete_requests = %d\n",
-               int(incomplete_requests));
-
   running = false;
   cond_var.notify_all();
+
+  int num_incomplete = int(incomplete_requests);
+  if (num_incomplete) {
+    /* Shutting down the app with incomplete shader compilation requests. Give 1 second's grace for
+     * clean shutdown. */
+    metal_printf("ShaderCache busy (incomplete_requests = %d)...\n", num_incomplete);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    num_incomplete = int(incomplete_requests);
+  }
+
+  if (num_incomplete) {
+    metal_printf("ShaderCache still busy (incomplete_requests = %d). Terminating...\n",
+                 num_incomplete);
+    std::terminate();
+  }
+
+  metal_printf("ShaderCache idle. Shutting down.\n");
   for (auto &thread : compile_threads) {
     thread.join();
   }
@@ -156,35 +166,69 @@ void ShaderCache::wait_for_all()
 
 void ShaderCache::compile_thread_func(int thread_index)
 {
-  while (1) {
+  while (running) {
 
     /* wait for / acquire next request */
-    PipelineRequest request;
+    MetalKernelPipeline *pipeline;
     {
       thread_scoped_lock lock(cache_mutex);
       cond_var.wait(lock, [&] { return !running || !request_queue.empty(); });
-      if (!running) {
-        break;
+      if (!running || request_queue.empty()) {
+        continue;
       }
 
-      if (!request_queue.empty()) {
-        request = request_queue.front();
-        request_queue.pop_front();
-      }
+      pipeline = request_queue.front();
+      request_queue.pop_front();
     }
 
-    /* service request */
-    if (request.pipeline) {
-      request.pipeline->compile();
-      incomplete_requests--;
+    /* Service the request. */
+    DeviceKernel device_kernel = pipeline->device_kernel;
+    MetalPipelineType pso_type = pipeline->pso_type;
+
+    if (MetalDevice::is_device_cancelled(pipeline->originating_device_id)) {
+      /* The originating MetalDevice is no longer active, so this request is obsolete. */
+      metal_printf("Cancelling compilation of %s (%s)\n",
+                   device_kernel_as_string(device_kernel),
+                   kernel_type_as_string(pso_type));
+    }
+    else {
+      /* Do the actual compilation. */
+      pipeline->compile();
+
+      thread_scoped_lock lock(cache_mutex);
+      auto &collection = pipelines[device_kernel];
+
+      /* Cache up to 3 kernel variants with the same pso_type in memory, purging oldest first. */
+      int max_entries_of_same_pso_type = 3;
+      for (int i = (int)collection.size() - 1; i >= 0; i--) {
+        if (collection[i]->pso_type == pso_type) {
+          max_entries_of_same_pso_type -= 1;
+          if (max_entries_of_same_pso_type == 0) {
+            metal_printf("Purging oldest %s:%s kernel from ShaderCache\n",
+                         kernel_type_as_string(pso_type),
+                         device_kernel_as_string(device_kernel));
+            collection.erase(collection.begin() + i);
+            break;
+          }
+        }
+      }
+      collection.push_back(unique_ptr<MetalKernelPipeline>(pipeline));
+    }
+    incomplete_requests--;
+    if (pso_type != PSO_GENERIC) {
+      incomplete_specialization_requests--;
     }
   }
 }
 
 bool ShaderCache::should_load_kernel(DeviceKernel device_kernel,
-                                     MetalDevice *device,
+                                     MetalDevice const *device,
                                      MetalPipelineType pso_type)
 {
+  if (!running) {
+    return false;
+  }
+
   if (device_kernel == DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL) {
     /* Skip megakernel. */
     return false;
@@ -240,7 +284,6 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
     /* create compiler threads on first run */
     thread_scoped_lock lock(cache_mutex);
     if (compile_threads.empty()) {
-      running = true;
       for (int i = 0; i < max_mtlcompiler_threads; i++) {
         compile_threads.push_back(std::thread([&] { compile_thread_func(i); }));
       }
@@ -252,53 +295,39 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
   }
 
   incomplete_requests++;
+  if (pso_type != PSO_GENERIC) {
+    incomplete_specialization_requests++;
+  }
 
-  PipelineRequest request;
-  request.pipeline = new MetalKernelPipeline;
-  memcpy(&request.pipeline->kernel_data_,
-         &device->launch_params.data,
-         sizeof(request.pipeline->kernel_data_));
-  request.pipeline->pso_type = pso_type;
-  request.pipeline->mtlDevice = mtlDevice;
-  request.pipeline->source_md5 = device->source_md5[pso_type];
-  request.pipeline->mtlLibrary = device->mtlLibrary[pso_type];
-  request.pipeline->device_kernel = device_kernel;
-  request.pipeline->threads_per_threadgroup = device->max_threads_per_threadgroup;
+  MetalKernelPipeline *pipeline = new MetalKernelPipeline;
+
+  /* Keep track of the originating device's ID so that we can cancel requests if the device ceases
+   * to be active. */
+  pipeline->originating_device_id = device->device_id;
+  memcpy(&pipeline->kernel_data_, &device->launch_params.data, sizeof(pipeline->kernel_data_));
+  pipeline->pso_type = pso_type;
+  pipeline->mtlDevice = mtlDevice;
+  pipeline->source_md5 = device->source_md5[pso_type];
+  pipeline->mtlLibrary = device->mtlLibrary[pso_type];
+  pipeline->device_kernel = device_kernel;
+  pipeline->threads_per_threadgroup = device->max_threads_per_threadgroup;
 
   if (occupancy_tuning[device_kernel].threads_per_threadgroup) {
-    request.pipeline->threads_per_threadgroup =
+    pipeline->threads_per_threadgroup =
         occupancy_tuning[device_kernel].threads_per_threadgroup;
-    request.pipeline->num_threads_per_block =
+    pipeline->num_threads_per_block =
         occupancy_tuning[device_kernel].num_threads_per_block;
   }
 
   /* metalrt options */
-  request.pipeline->use_metalrt = device->use_metalrt;
-  request.pipeline->metalrt_features = device->use_metalrt ?
-                                           (device->kernel_features & METALRT_FEATURE_MASK) :
-                                           0;
+  pipeline->use_metalrt = device->use_metalrt;
+  pipeline->metalrt_features = device->use_metalrt ?
+                               (device->kernel_features & METALRT_FEATURE_MASK) :
+                               0;
 
   {
     thread_scoped_lock lock(cache_mutex);
-    auto &collection = pipelines[device_kernel];
-
-    /* Cache up to 3 kernel variants with the same pso_type, purging oldest first. */
-    int max_entries_of_same_pso_type = 3;
-    for (int i = (int)collection.size() - 1; i >= 0; i--) {
-      if (collection[i]->pso_type == pso_type) {
-        max_entries_of_same_pso_type -= 1;
-        if (max_entries_of_same_pso_type == 0) {
-          metal_printf("Purging oldest %s:%s kernel from ShaderCache\n",
-                       kernel_type_as_string(pso_type),
-                       device_kernel_as_string(device_kernel));
-          collection.erase(collection.begin() + i);
-          break;
-        }
-      }
-    }
-
-    collection.push_back(unique_ptr<MetalKernelPipeline>(request.pipeline));
-    request_queue.push_back(request);
+    request_queue.push_back(pipeline);
   }
   cond_var.notify_one();
 }
@@ -664,51 +693,61 @@ void MetalKernelPipeline::compile()
 
   double starttime = time_dt();
 
-  MTLNewComputePipelineStateWithReflectionCompletionHandler completionHandler = ^(
-      id<MTLComputePipelineState> computePipelineState,
-      MTLComputePipelineReflection *reflection,
-      NSError *error) {
-    bool recreate_archive = false;
-    if (computePipelineState == nil && archive) {
+  /* Block on load to ensure we continue with a valid kernel function */
+  if (creating_new_archive) {
+    starttime = time_dt();
+    NSError *error;
+    if (![archive addComputePipelineFunctionsWithDescriptor:computePipelineStateDescriptor
+                                                      error:&error]) {
       NSString *errStr = [error localizedDescription];
-      metal_printf(
-          "Failed to create compute pipeline state \"%s\" from archive - attempting recreation... "
-          "(error: %s)\n",
-          device_kernel_as_string((DeviceKernel)device_kernel),
-          errStr ? [errStr UTF8String] : "nil");
-      computePipelineState = [mtlDevice
-          newComputePipelineStateWithDescriptor:computePipelineStateDescriptor
-                                        options:MTLPipelineOptionNone
-                                     reflection:nullptr
-                                          error:&error];
-      recreate_archive = true;
+      metal_printf("Failed to add PSO to archive:\n%s\n", errStr ? [errStr UTF8String] : "nil");
     }
+  }
 
-    double duration = time_dt() - starttime;
+  pipeline = [mtlDevice newComputePipelineStateWithDescriptor:computePipelineStateDescriptor
+                                                      options:pipelineOptions
+                                                   reflection:nullptr
+                                                        error:&error];
 
-    if (computePipelineState == nil) {
-      NSString *errStr = [error localizedDescription];
-      error_str = string_printf("Failed to create compute pipeline state \"%s\", error: \n",
-                                device_kernel_as_string((DeviceKernel)device_kernel));
-      error_str += (errStr ? [errStr UTF8String] : "nil");
-      metal_printf("%16s | %2d | %-55s | %7.2fs | FAILED!\n",
-                   kernel_type_as_string(pso_type),
-                   device_kernel,
-                   device_kernel_as_string((DeviceKernel)device_kernel),
-                   duration);
-      return;
-    }
+  bool recreate_archive = false;
+  if (pipeline == nil && archive) {
+    NSString *errStr = [error localizedDescription];
+    metal_printf(
+        "Failed to create compute pipeline state \"%s\" from archive - attempting recreation... "
+        "(error: %s)\n",
+        device_kernel_as_string((DeviceKernel)device_kernel),
+        errStr ? [errStr UTF8String] : "nil");
+    pipeline = [mtlDevice newComputePipelineStateWithDescriptor:computePipelineStateDescriptor
+                                                        options:MTLPipelineOptionNone
+                                                     reflection:nullptr
+                                                          error:&error];
+    recreate_archive = true;
+  }
 
-    if (!num_threads_per_block) {
-      num_threads_per_block = round_down(computePipelineState.maxTotalThreadsPerThreadgroup,
-                                         computePipelineState.threadExecutionWidth);
-      num_threads_per_block = std::max(num_threads_per_block,
-                                       (int)computePipelineState.threadExecutionWidth);
-    }
+  double duration = time_dt() - starttime;
 
-    this->pipeline = computePipelineState;
+  if (pipeline == nil) {
+    NSString *errStr = [error localizedDescription];
+    error_str = string_printf("Failed to create compute pipeline state \"%s\", error: \n",
+                              device_kernel_as_string((DeviceKernel)device_kernel));
+    error_str += (errStr ? [errStr UTF8String] : "nil");
+    metal_printf("%16s | %2d | %-55s | %7.2fs | FAILED!\n",
+                 kernel_type_as_string(pso_type),
+                 device_kernel,
+                 device_kernel_as_string((DeviceKernel)device_kernel),
+                 duration);
+    return;
+  }
 
-    if (@available(macOS 11.0, *)) {
+  if (!num_threads_per_block) {
+    num_threads_per_block = round_down(pipeline.maxTotalThreadsPerThreadgroup,
+                                       pipeline.threadExecutionWidth);
+    num_threads_per_block = std::max(num_threads_per_block,
+                                     (int)pipeline.threadExecutionWidth);
+  }
+
+  if (@available(macOS 11.0, *)) {
+    if (ShaderCache::running) {
       if (creating_new_archive || recreate_archive) {
         if (![archive serializeToURL:[NSURL fileURLWithPath:@(metalbin_path.c_str())]
                                error:&error]) {
@@ -720,24 +759,7 @@ void MetalKernelPipeline::compile()
         }
       }
     }
-  };
-
-  /* Block on load to ensure we continue with a valid kernel function */
-  if (creating_new_archive) {
-    starttime = time_dt();
-    NSError *error;
-    if (![archive addComputePipelineFunctionsWithDescriptor:computePipelineStateDescriptor
-                                                      error:&error]) {
-      NSString *errStr = [error localizedDescription];
-      metal_printf("Failed to add PSO to archive:\n%s\n", errStr ? [errStr UTF8String] : "nil");
-    }
   }
-  id<MTLComputePipelineState> pipeline = [mtlDevice
-      newComputePipelineStateWithDescriptor:computePipelineStateDescriptor
-                                    options:pipelineOptions
-                                 reflection:nullptr
-                                      error:&error];
-  completionHandler(pipeline, nullptr, error);
 
   this->loaded = true;
   [computePipelineStateDescriptor release];
@@ -762,8 +784,6 @@ void MetalKernelPipeline::compile()
       }
     }
   }
-
-  double duration = time_dt() - starttime;
 
   if (!use_binary_archive) {
     metal_printf("%16s | %2d | %-55s | %7.2fs\n",
@@ -791,22 +811,44 @@ bool MetalDeviceKernels::load(MetalDevice *device, MetalPipelineType pso_type)
     shader_cache->load_kernel((DeviceKernel)i, device, pso_type);
   }
 
-  shader_cache->wait_for_all();
-  metal_printf("Back-end compilation finished in %.1f seconds (%s)\n",
-               time_dt() - starttime,
-               kernel_type_as_string(pso_type));
+  if (getenv("CYCLES_METAL_PROFILING")) {
+    shader_cache->wait_for_all();
+    metal_printf("Back-end compilation finished in %.1f seconds (%s)\n",
+                 time_dt() - starttime,
+                 kernel_type_as_string(pso_type));
+  }
   return true;
 }
 
-bool MetalDeviceKernels::should_load_kernels(MetalDevice *device, MetalPipelineType pso_type)
+bool MetalDeviceKernels::any_specialization_happening_now()
 {
-  auto shader_cache = get_shader_cache(device->mtlDevice);
-  for (int i = 0; i < DEVICE_KERNEL_NUM; i++) {
-    if (shader_cache->should_load_kernel((DeviceKernel)i, device, pso_type)) {
+  /* Return true if any ShaderCaches have ongoing specialization requests (typically there will be
+   * only 1). */
+  thread_scoped_lock lock(g_shaderCacheMutex);
+  for (auto &it : g_shaderCache) {
+    if (it.second->incomplete_specialization_requests > 0) {
       return true;
     }
   }
   return false;
+}
+
+int MetalDeviceKernels::get_loaded_kernel_count(MetalDevice const *device,
+                                                MetalPipelineType pso_type)
+{
+  auto shader_cache = get_shader_cache(device->mtlDevice);
+  int loaded_count = DEVICE_KERNEL_NUM;
+  for (int i = 0; i < DEVICE_KERNEL_NUM; i++) {
+    if (shader_cache->should_load_kernel((DeviceKernel)i, device, pso_type)) {
+      loaded_count -= 1;
+    }
+  }
+  return loaded_count;
+}
+
+bool MetalDeviceKernels::should_load_kernels(MetalDevice const *device, MetalPipelineType pso_type)
+{
+  return get_loaded_kernel_count(device, pso_type) != DEVICE_KERNEL_NUM;
 }
 
 const MetalKernelPipeline *MetalDeviceKernels::get_best_pipeline(const MetalDevice *device,

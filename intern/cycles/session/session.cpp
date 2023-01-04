@@ -113,6 +113,9 @@ void Session::start()
 
 void Session::cancel(bool quick)
 {
+  /* Cancel any long running device operations (e.g. shader compilations). */
+  device->cancel();
+
   /* Check if session thread is rendering. */
   const bool rendering = is_session_thread_rendering();
 
@@ -400,6 +403,16 @@ RenderWork Session::run_update_for_next_iteration()
 
     path_trace_->load_kernels();
     path_trace_->alloc_work_memory();
+
+    /* Wait for device to be ready (e.g. finish any background compilations). */
+    string device_status;
+    while (!device->is_ready(device_status)) {
+      progress.set_status(device_status);
+      if (progress.get_cancel()) {
+        break;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
 
     progress.add_skip_time(update_timer, params.background);
   }
