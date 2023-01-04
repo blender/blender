@@ -57,6 +57,14 @@ enum DeviceTypeMask {
 
 #define DEVICE_MASK(type) (DeviceTypeMask)(1 << type)
 
+enum KernelOptimizationLevel {
+  KERNEL_OPTIMIZATION_LEVEL_OFF = 0,
+  KERNEL_OPTIMIZATION_LEVEL_INTERSECT = 1,
+  KERNEL_OPTIMIZATION_LEVEL_FULL = 2,
+
+  KERNEL_OPTIMIZATION_NUM_LEVELS
+};
+
 class DeviceInfo {
  public:
   DeviceType type;
@@ -66,13 +74,15 @@ class DeviceInfo {
   bool display_device;        /* GPU is used as a display device. */
   bool has_nanovdb;           /* Support NanoVDB volumes. */
   bool has_light_tree;        /* Support light tree. */
-  bool has_osl;               /* Support Open Shading Language. */
-  bool has_guiding;           /* Support path guiding. */
-  bool has_profiling;         /* Supports runtime collection of profiling info. */
-  bool has_peer_memory;       /* GPU has P2P access to memory of another GPU. */
-  bool has_gpu_queue;         /* Device supports GPU queue. */
-  bool use_metalrt;           /* Use MetalRT to accelerate ray queries (Metal only). */
-  DenoiserTypeMask denoisers; /* Supported denoiser types. */
+  bool has_osl;         /* Support Open Shading Language. */
+  bool has_guiding;     /* Support path guiding. */
+  bool has_profiling;   /* Supports runtime collection of profiling info. */
+  bool has_peer_memory; /* GPU has P2P access to memory of another GPU. */
+  bool has_gpu_queue;   /* Device supports GPU queue. */
+  bool use_metalrt;     /* Use MetalRT to accelerate ray queries (Metal only). */
+  KernelOptimizationLevel kernel_optimization_level; /* Optimization level applied to path tracing
+                                                        kernels (Metal only). */
+  DenoiserTypeMask denoisers;                        /* Supported denoiser types. */
   int cpu_threads;
   vector<DeviceInfo> multi_devices;
   string error_msg;

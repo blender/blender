@@ -116,19 +116,29 @@ struct ShaderCache {
 };
 
 bool ShaderCache::running = true;
-std::mutex g_shaderCacheMutex;
-std::map<id<MTLDevice>, unique_ptr<ShaderCache>> g_shaderCache;
+
+const int MAX_POSSIBLE_GPUS_ON_SYSTEM = 8;
+using DeviceShaderCache = std::pair<id<MTLDevice>, unique_ptr<ShaderCache>>;
+int g_shaderCacheCount = 0;
+DeviceShaderCache g_shaderCache[MAX_POSSIBLE_GPUS_ON_SYSTEM];
 
 ShaderCache *get_shader_cache(id<MTLDevice> mtlDevice)
 {
-  thread_scoped_lock lock(g_shaderCacheMutex);
-  auto it = g_shaderCache.find(mtlDevice);
-  if (it != g_shaderCache.end()) {
-    return it->second.get();
+  for (int i=0; i<g_shaderCacheCount; i++) {
+    if (g_shaderCache[i].first == mtlDevice) {
+      return g_shaderCache[i].second.get();
+    }
   }
 
-  g_shaderCache[mtlDevice] = make_unique<ShaderCache>(mtlDevice);
-  return g_shaderCache[mtlDevice].get();
+  static thread_mutex g_shaderCacheCountMutex;
+  g_shaderCacheCountMutex.lock();
+  int index = g_shaderCacheCount++;
+  g_shaderCacheCountMutex.unlock();
+
+  assert(index < MAX_POSSIBLE_GPUS_ON_SYSTEM);
+  g_shaderCache[index].first = mtlDevice;
+  g_shaderCache[index].second = make_unique<ShaderCache>(mtlDevice);
+  return g_shaderCache[index].second.get();
 }
 
 ShaderCache::~ShaderCache()
@@ -145,7 +155,7 @@ ShaderCache::~ShaderCache()
     num_incomplete = int(incomplete_requests);
   }
 
-  if (num_incomplete) {
+  if (num_incomplete && !MetalDeviceKernels::is_benchmark_warmup()) {
     metal_printf("ShaderCache still busy (incomplete_requests = %d). Terminating...\n",
                  num_incomplete);
     std::terminate();
@@ -332,12 +342,6 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
 
 MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const MetalDevice *device)
 {
-  thread_scoped_lock lock(cache_mutex);
-  auto &collection = pipelines[kernel];
-  if (collection.empty()) {
-    return nullptr;
-  }
-
   /* metalrt options */
   bool use_metalrt = device->use_metalrt;
   bool device_metalrt_hair = use_metalrt && device->kernel_features & KERNEL_FEATURE_HAIR;
@@ -349,34 +353,43 @@ MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const M
                                device->kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
 
   MetalKernelPipeline *best_pipeline = nullptr;
-  for (auto &pipeline : collection) {
-    if (!pipeline->loaded) {
-      /* still loading - ignore */
-      continue;
-    }
+  while(!best_pipeline) {
+    {
+      thread_scoped_lock lock(cache_mutex);
+      for (auto &pipeline : pipelines[kernel]) {
+        if (!pipeline->loaded) {
+          /* still loading - ignore */
+          continue;
+        }
 
-    bool pipeline_metalrt_hair = pipeline->metalrt_features & KERNEL_FEATURE_HAIR;
-    bool pipeline_metalrt_hair_thick = pipeline->metalrt_features & KERNEL_FEATURE_HAIR_THICK;
-    bool pipeline_metalrt_pointcloud = pipeline->metalrt_features & KERNEL_FEATURE_POINTCLOUD;
-    bool pipeline_metalrt_motion = use_metalrt &&
-                                   pipeline->metalrt_features & KERNEL_FEATURE_OBJECT_MOTION;
+        bool pipeline_metalrt_hair = pipeline->metalrt_features & KERNEL_FEATURE_HAIR;
+        bool pipeline_metalrt_hair_thick = pipeline->metalrt_features & KERNEL_FEATURE_HAIR_THICK;
+        bool pipeline_metalrt_pointcloud = pipeline->metalrt_features & KERNEL_FEATURE_POINTCLOUD;
+        bool pipeline_metalrt_motion = use_metalrt &&
+                                      pipeline->metalrt_features & KERNEL_FEATURE_OBJECT_MOTION;
 
-    if (pipeline->use_metalrt != use_metalrt || pipeline_metalrt_hair != device_metalrt_hair ||
-        pipeline_metalrt_hair_thick != device_metalrt_hair_thick ||
-        pipeline_metalrt_pointcloud != device_metalrt_pointcloud ||
-        pipeline_metalrt_motion != device_metalrt_motion) {
-      /* wrong combination of metalrt options */
-      continue;
-    }
+        if (pipeline->use_metalrt != use_metalrt || pipeline_metalrt_hair != device_metalrt_hair ||
+            pipeline_metalrt_hair_thick != device_metalrt_hair_thick ||
+            pipeline_metalrt_pointcloud != device_metalrt_pointcloud ||
+            pipeline_metalrt_motion != device_metalrt_motion) {
+          /* wrong combination of metalrt options */
+          continue;
+        }
 
-    if (pipeline->pso_type != PSO_GENERIC) {
-      if (pipeline->source_md5 == device->source_md5[PSO_SPECIALIZED_INTERSECT] ||
-          pipeline->source_md5 == device->source_md5[PSO_SPECIALIZED_SHADE]) {
-        best_pipeline = pipeline.get();
+        if (pipeline->pso_type != PSO_GENERIC) {
+          if (pipeline->source_md5 == device->source_md5[PSO_SPECIALIZED_INTERSECT] ||
+              pipeline->source_md5 == device->source_md5[PSO_SPECIALIZED_SHADE]) {
+            best_pipeline = pipeline.get();
+          }
+        }
+        else if (!best_pipeline) {
+          best_pipeline = pipeline.get();
+        }
       }
     }
-    else if (!best_pipeline) {
-      best_pipeline = pipeline.get();
+
+    if (!best_pipeline) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
   }
 
@@ -802,28 +815,26 @@ void MetalKernelPipeline::compile()
 
 bool MetalDeviceKernels::load(MetalDevice *device, MetalPipelineType pso_type)
 {
-  const double starttime = time_dt();
   auto shader_cache = get_shader_cache(device->mtlDevice);
   for (int i = 0; i < DEVICE_KERNEL_NUM; i++) {
     shader_cache->load_kernel((DeviceKernel)i, device, pso_type);
   }
-
-  if (getenv("CYCLES_METAL_PROFILING")) {
-    shader_cache->wait_for_all();
-    metal_printf("Back-end compilation finished in %.1f seconds (%s)\n",
-                 time_dt() - starttime,
-                 kernel_type_as_string(pso_type));
-  }
   return true;
+}
+
+void MetalDeviceKernels::wait_for_all()
+{
+  for (int i=0; i<g_shaderCacheCount; i++) {
+    g_shaderCache[i].second->wait_for_all();
+  }
 }
 
 bool MetalDeviceKernels::any_specialization_happening_now()
 {
   /* Return true if any ShaderCaches have ongoing specialization requests (typically there will be
    * only 1). */
-  thread_scoped_lock lock(g_shaderCacheMutex);
-  for (auto &it : g_shaderCache) {
-    if (it.second->incomplete_specialization_requests > 0) {
+  for (int i=0; i<g_shaderCacheCount; i++) {
+    if (g_shaderCache[i].second->incomplete_specialization_requests > 0) {
       return true;
     }
   }
@@ -852,6 +863,19 @@ const MetalKernelPipeline *MetalDeviceKernels::get_best_pipeline(const MetalDevi
                                                                  DeviceKernel kernel)
 {
   return get_shader_cache(device->mtlDevice)->get_best_pipeline(kernel, device);
+}
+
+bool MetalDeviceKernels::is_benchmark_warmup()
+{
+  NSArray *args = [[NSProcessInfo processInfo] arguments];
+  for (int i = 0; i<args.count; i++) {
+    if (const char* arg = [[args objectAtIndex:i] cStringUsingEncoding:NSASCIIStringEncoding]) {
+      if (!strcmp(arg, "--warm-up")) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 CCL_NAMESPACE_END

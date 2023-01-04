@@ -1543,6 +1543,17 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         default=False,
     )
 
+    kernel_optimization_level: EnumProperty(
+        name="Kernel Optimization",
+        description="Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds).",
+        default='FULL',
+        items=(
+            ('OFF', "Off", "Disable kernel optimization. Slowest rendering, no extra background CPU usage"),
+            ('INTERSECT', "Intersection only", "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"),
+            ('FULL', "Full", "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"),
+        ),
+    )
+
     def find_existing_device_entry(self, device):
         for device_entry in self.devices:
             if device_entry.id == device[2] and device_entry.type == device[1]:
@@ -1711,10 +1722,12 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         if compute_device_type == 'METAL':
             import platform
             # MetalRT only works on Apple Silicon at present, pending argument encoding fixes on AMD
+            # Kernel specialization is only viable on Apple Silicon at present due to relative compilation speed
             if platform.machine() == 'arm64':
-                row = layout.row()
-                row.use_property_split = True
-                row.prop(self, "use_metalrt")
+                col = layout.column()
+                col.use_property_split = True
+                col.prop(self, "kernel_optimization_level")
+                col.prop(self, "use_metalrt")
 
     def draw(self, context):
         self.draw_impl(self.layout, context)

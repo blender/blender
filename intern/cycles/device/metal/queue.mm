@@ -202,6 +202,9 @@ MetalDeviceQueue::~MetalDeviceQueue()
   assert(mtlCommandBuffer_ == nil);
   assert(command_buffers_submitted_ == command_buffers_completed_);
 
+  close_compute_encoder();
+  close_blit_encoder();
+
   if (@available(macos 10.14, *)) {
     [shared_event_listener_ release];
     [shared_event_ release];
@@ -637,9 +640,7 @@ bool MetalDeviceQueue::synchronize()
     return false;
   }
 
-  if (mtlComputeEncoder_) {
-    close_compute_encoder();
-  }
+  close_compute_encoder();
   close_blit_encoder();
 
   if (mtlCommandBuffer_) {
@@ -855,9 +856,7 @@ id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel 
   if (@available(macos 10.14, *)) {
     if (timing_shared_event_) {
       /* Close the current encoder to ensure we're able to capture per-encoder timing data. */
-      if (mtlComputeEncoder_) {
-        close_compute_encoder();
-      }
+      close_compute_encoder();
     }
 
     if (mtlComputeEncoder_) {
@@ -897,9 +896,7 @@ id<MTLBlitCommandEncoder> MetalDeviceQueue::get_blit_encoder()
     return mtlBlitEncoder_;
   }
 
-  if (mtlComputeEncoder_) {
-    close_compute_encoder();
-  }
+  close_compute_encoder();
 
   if (!mtlCommandBuffer_) {
     mtlCommandBuffer_ = [mtlCommandQueue_ commandBuffer];
@@ -913,12 +910,14 @@ id<MTLBlitCommandEncoder> MetalDeviceQueue::get_blit_encoder()
 
 void MetalDeviceQueue::close_compute_encoder()
 {
-  [mtlComputeEncoder_ endEncoding];
-  mtlComputeEncoder_ = nil;
+  if (mtlComputeEncoder_) {
+    [mtlComputeEncoder_ endEncoding];
+    mtlComputeEncoder_ = nil;
 
-  if (@available(macos 10.14, *)) {
-    if (timing_shared_event_) {
-      [mtlCommandBuffer_ encodeSignalEvent:timing_shared_event_ value:timing_shared_event_id_++];
+    if (@available(macos 10.14, *)) {
+      if (timing_shared_event_) {
+        [mtlCommandBuffer_ encodeSignalEvent:timing_shared_event_ value:timing_shared_event_id_++];
+      }
     }
   }
 }

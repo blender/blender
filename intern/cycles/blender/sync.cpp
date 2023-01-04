@@ -866,7 +866,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
 
   /* Device */
   params.threads = blender_device_threads(b_scene);
-  params.device = blender_device_info(b_preferences, b_scene, params.background);
+  params.device = blender_device_info(b_preferences, b_scene, params.background, b_engine.is_preview());
 
   /* samples */
   int samples = get_int(cscene, "samples");

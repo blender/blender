@@ -110,10 +110,6 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     case METAL_GPU_APPLE: {
       max_threads_per_threadgroup = 512;
       use_metalrt = info.use_metalrt;
-
-      /* Specialize the intersection kernels on Apple GPUs by default as these can be built very
-       * quickly. */
-      kernel_specialization_level = PSO_SPECIALIZED_INTERSECT;
       break;
     }
   }
@@ -124,6 +120,22 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
 
   if (getenv("CYCLES_DEBUG_METAL_CAPTURE_KERNEL")) {
     capture_enabled = true;
+  }
+
+  if (device_vendor == METAL_GPU_APPLE) {
+    /* Set kernel_specialization_level based on user prefs. */
+    switch (info.kernel_optimization_level) {
+      case KERNEL_OPTIMIZATION_LEVEL_OFF:
+        kernel_specialization_level = PSO_GENERIC;
+        break;
+      default:
+      case KERNEL_OPTIMIZATION_LEVEL_INTERSECT:
+        kernel_specialization_level = PSO_SPECIALIZED_INTERSECT;
+        break;
+      case KERNEL_OPTIMIZATION_LEVEL_FULL:
+        kernel_specialization_level = PSO_SPECIALIZED_SHADE;
+        break;
+    }
   }
 
   if (auto envstr = getenv("CYCLES_METAL_SPECIALIZATION_LEVEL")) {
@@ -444,7 +456,7 @@ void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
                     source);
   }
 
-  const double starttime = time_dt();
+  double starttime = time_dt();
 
   NSError *error = NULL;
   id<MTLLibrary> mtlLibrary = [mtlDevice newLibraryWithSource:@(source.c_str())
@@ -457,6 +469,12 @@ void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
 
   [options release];
 
+  bool blocking_pso_build = (getenv("CYCLES_METAL_PROFILING") || MetalDeviceKernels::is_benchmark_warmup());
+  if (blocking_pso_build) {
+    MetalDeviceKernels::wait_for_all();
+    starttime = 0.0;
+  }
+
   /* Save the compiled MTLLibrary and trigger the AIR->PSO builds (if the MetalDevice still
    * exists). */
   {
@@ -464,6 +482,8 @@ void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
     if (MetalDevice *instance = get_device_by_ID(device_id, lock)) {
       if (mtlLibrary) {
         instance->mtlLibrary[pso_type] = mtlLibrary;
+
+        starttime = time_dt();
         MetalDeviceKernels::load(instance, pso_type);
       }
       else {
@@ -471,6 +491,14 @@ void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
         instance->set_error(string_printf("Failed to compile library:\n%s", [err UTF8String]));
       }
     }
+  }
+
+  if (starttime && blocking_pso_build) {
+    MetalDeviceKernels::wait_for_all();
+
+    metal_printf("Back-end compilation finished in %.1f seconds (%s)\n",
+                 time_dt() - starttime,
+                 kernel_type_as_string(pso_type));
   }
 }
 
@@ -832,10 +860,8 @@ void MetalDevice::optimize_for_scene(Scene *scene)
   }
 
   /* Block during benchmark warm-up to ensure kernels are cached prior to the observed run. */
-  for (int i = 0; i < *_NSGetArgc(); i++) {
-    if (!strcmp((*_NSGetArgv())[i], "--warm-up")) {
-      specialize_in_background = false;
-    }
+  if (MetalDeviceKernels::is_benchmark_warmup()) {
+    specialize_in_background = false;
   }
 
   if (specialize_in_background) {

@@ -101,6 +101,8 @@ int get_loaded_kernel_count(MetalDevice const *device, MetalPipelineType pso_typ
 bool should_load_kernels(MetalDevice const *device, MetalPipelineType pso_type);
 bool load(MetalDevice *device, MetalPipelineType pso_type);
 const MetalKernelPipeline *get_best_pipeline(const MetalDevice *device, DeviceKernel kernel);
+void wait_for_all();
+bool is_benchmark_warmup();
 
 } /* namespace MetalDeviceKernels */
 
