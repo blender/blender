@@ -26,7 +26,7 @@
 
 #include "BLF_api.h"
 
-#include "ED_node.h"
+#include "ED_node.hh"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -2213,7 +2213,8 @@ static void widget_draw_node_link_socket(const uiWidgetColors *wcol,
     UI_widgetbase_draw_cache_flush();
     GPU_blend(GPU_BLEND_NONE);
 
-    ED_node_socket_draw(static_cast<bNodeSocket *>(but->custom_data), rect, col, scale);
+    blender::ed::space_node::node_socket_draw(
+        static_cast<bNodeSocket *>(but->custom_data), rect, col, scale);
   }
   else {
     widget_draw_icon(but, ICON_LAYER_USED, alpha, rect, wcol->text);

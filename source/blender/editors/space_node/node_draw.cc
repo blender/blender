@@ -59,6 +59,7 @@
 
 #include "ED_gpencil.h"
 #include "ED_node.h"
+#include "ED_node.hh"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_viewer_path.hh"
@@ -83,9 +84,6 @@
 #include "node_intern.hh" /* own include */
 
 namespace geo_log = blender::nodes::geo_eval_log;
-
-using blender::GPointer;
-using blender::Vector;
 
 /**
  * This is passed to many functions which draw the node editor.
@@ -278,7 +276,7 @@ static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *
   for (const int i : nodes.index_range()) {
     const std::string block_name = "node_" + std::string(nodes[i]->name);
     blocks[i] = UI_block_begin(&C, CTX_wm_region(&C), block_name.c_str(), UI_EMBOSS);
-    /* this cancels events for background nodes */
+    /* This cancels events for background nodes. */
     UI_block_flag_enable(blocks[i], UI_BLOCK_CLIP_EVENTS);
   }
 
@@ -1240,12 +1238,8 @@ static void node_socket_draw_nested(const bContext &C,
   UI_block_emboss_set(&block, old_emboss);
 }
 
-}  // namespace blender::ed::space_node
-
-void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[4], float scale)
+void node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[4], float scale)
 {
-  using namespace blender::ed::space_node;
-
   const float size = NODE_SOCKSIZE_DRAW_MULIPLIER * NODE_SOCKSIZE * scale;
   rcti draw_rect = *rect;
   float outline_color[4] = {0};
@@ -1291,10 +1285,6 @@ void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[
   /* Restore. */
   GPU_blend(state);
 }
-
-namespace blender::ed::space_node {
-
-/* **************  Socket callbacks *********** */
 
 static void node_draw_preview_background(rctf *rect)
 {
@@ -1526,7 +1516,8 @@ static void node_draw_sockets(const View2D &v2d,
                                   scale,
                                   selected);
           if (--selected_input_len == 0) {
-            break; /* Stop as soon as last one is drawn. */
+            /* Stop as soon as last one is drawn. */
+            break;
           }
         }
       }
@@ -1552,7 +1543,8 @@ static void node_draw_sockets(const View2D &v2d,
                                   scale,
                                   selected);
           if (--selected_output_len == 0) {
-            break; /* Stop as soon as last one is drawn. */
+            /* Stop as soon as last one is drawn. */
+            break;
           }
         }
       }
@@ -2163,11 +2155,6 @@ static void node_draw_basis(const bContext &C,
                     node_toggle_button_cb,
                     POINTER_FROM_INT(node.identifier),
                     (void *)"NODE_OT_preview_toggle");
-    /* XXX this does not work when node is activated and the operator called right afterwards,
-     * since active ID is not updated yet (needs to process the notifier).
-     * This can only work as visual indicator! */
-    //      if (!(node.flag & (NODE_ACTIVE_ID|NODE_DO_OUTPUT)))
-    //          UI_but_flag_enable(but, UI_BUT_DISABLED);
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
   /* Group edit. */
@@ -2680,28 +2667,28 @@ static void frame_node_prepare_for_draw(bNode &node, Span<bNode *> nodes)
   const float margin = 1.5f * U.widget_unit;
   NodeFrame *data = (NodeFrame *)node.storage;
 
-  /* init rect from current frame size */
+  /* Initialize rect from current frame size. */
   rctf rect;
   node_to_updated_rect(node, rect);
 
-  /* frame can be resized manually only if shrinking is disabled or no children are attached */
+  /* Frame can be resized manually only if shrinking is disabled or no children are attached. */
   data->flag |= NODE_FRAME_RESIZEABLE;
-  /* for shrinking bbox, initialize the rect from first child node */
+  /* For shrinking bounding box, initialize the rect from first child node. */
   bool bbinit = (data->flag & NODE_FRAME_SHRINK);
-  /* fit bounding box to all children */
+  /* Fit bounding box to all children. */
   for (const bNode *tnode : nodes) {
     if (tnode->parent != &node) {
       continue;
     }
 
-    /* add margin to node rect */
+    /* Add margin to node rect. */
     rctf noderect = tnode->runtime->totr;
     noderect.xmin -= margin;
     noderect.xmax += margin;
     noderect.ymin -= margin;
     noderect.ymax += margin;
 
-    /* first child initializes frame */
+    /* First child initializes frame. */
     if (bbinit) {
       bbinit = false;
       rect = noderect;
@@ -2712,7 +2699,7 @@ static void frame_node_prepare_for_draw(bNode &node, Span<bNode *> nodes)
     }
   }
 
-  /* now adjust the frame size from view-space bounding box */
+  /* Now adjust the frame size from view-space bounding box. */
   const float2 offset = node_from_view(node, {rect.xmin, rect.ymax});
   node.offsetx = offset.x;
   node.offsety = offset.y;
@@ -2725,10 +2712,9 @@ static void frame_node_prepare_for_draw(bNode &node, Span<bNode *> nodes)
 
 static void reroute_node_prepare_for_draw(bNode &node)
 {
-  /* get "global" coords */
   const float2 loc = node_to_view(node, float2(0));
 
-  /* reroute node has exactly one input and one output, both in the same place */
+  /* Reroute node has exactly one input and one output, both in the same place. */
   bNodeSocket *socket = (bNodeSocket *)node.outputs.first;
   socket->runtime->locx = loc.x;
   socket->runtime->locy = loc.y;
@@ -2802,10 +2788,10 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
 
   BLF_enable(fontid, BLF_ASPECT);
   BLF_aspect(fontid, aspect, aspect, 1.0f);
-  /* clamp otherwise it can suck up a LOT of memory */
+  /* Clamp. Otherwise it can suck up a LOT of memory. */
   BLF_size(fontid, MIN2(24.0f, font_size) * U.dpi_fac);
 
-  /* title color */
+  /* Title color. */
   int color_id = node_get_colorid(tree_draw_ctx, node);
   uchar color[3];
   UI_GetThemeColorBlendShade3ubv(TH_TEXT, color_id, 0.4f, 10, color);
@@ -2818,7 +2804,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
 
   /* 'x' doesn't need aspect correction */
   const rctf &rct = node.runtime->totr;
-  /* XXX a bit hacky, should use separate align values for x and y */
+  /* XXX a bit hacky, should use separate align values for x and y. */
   float x = BLI_rctf_cent_x(&rct) - (0.5f * width);
   float y = rct.ymax - label_height;
 
@@ -2829,24 +2815,23 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
     BLF_draw(fontid, label, sizeof(label));
   }
 
-  /* draw text body */
+  /* Draw text body. */
   if (node.id) {
     const Text *text = (const Text *)node.id;
     const int line_height_max = BLF_height_max(fontid);
     const float line_spacing = (line_height_max * aspect);
     const float line_width = (BLI_rctf_size_x(&rct) - margin) / aspect;
 
-    /* 'x' doesn't need aspect correction */
+    /* 'x' doesn't need aspect correction. */
     x = rct.xmin + margin;
     y = rct.ymax - label_height - (has_label ? line_spacing : 0);
 
-    /* early exit */
     int y_min = y + ((margin * 2) - (y - rct.ymin));
 
     BLF_enable(fontid, BLF_CLIPPING | BLF_WORD_WRAP);
     BLF_clipping(fontid,
                  rct.xmin,
-                 /* round to avoid clipping half-way through a line */
+                 /* Round to avoid clipping half-way through a line. */
                  y - (floorf(((y - rct.ymin) - (margin * 2)) / line_spacing) * line_spacing),
                  rct.xmin + line_width,
                  rct.ymax);
@@ -2882,7 +2867,7 @@ static void frame_node_draw(const bContext &C,
                             bNode &node,
                             uiBlock &block)
 {
-  /* skip if out of view */
+  /* Skip if out of view. */
   if (BLI_rctf_isect(&node.runtime->totr, &region.v2d.cur, nullptr) == false) {
     UI_block_end(&C, &block);
     return;
@@ -2892,10 +2877,8 @@ static void frame_node_draw(const bContext &C,
   UI_GetThemeColor4fv(TH_NODE_FRAME, color);
   const float alpha = color[3];
 
-  /* shadow */
   node_draw_shadow(snode, node, BASIS_RAD, alpha);
 
-  /* body */
   if (node.flag & NODE_CUSTOM_COLOR) {
     rgba_float_args_set(color, node.color[0], node.color[1], node.color[2], alpha);
   }
@@ -2907,7 +2890,7 @@ static void frame_node_draw(const bContext &C,
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_4fv(&rct, true, BASIS_RAD, color);
 
-  /* outline active and selected emphasis */
+  /* Outline active and selected emphasis. */
   if (node.flag & SELECT) {
     if (node.flag & NODE_ACTIVE) {
       UI_GetThemeColorShadeAlpha4fv(TH_ACTIVE, 0, -40, color);
@@ -2919,7 +2902,7 @@ static void frame_node_draw(const bContext &C,
     UI_draw_roundbox_aa(&rct, false, BASIS_RAD, color);
   }
 
-  /* label and text */
+  /* Label and text. */
   frame_node_draw_label(tree_draw_ctx, ntree, node, snode);
 
   node_draw_extra_info_panel(tree_draw_ctx, snode, node, block);
@@ -2931,7 +2914,7 @@ static void frame_node_draw(const bContext &C,
 static void reroute_node_draw(
     const bContext &C, ARegion &region, bNodeTree &ntree, bNode &node, uiBlock &block)
 {
-  /* skip if out of view */
+  /* Skip if out of view. */
   const rctf &rct = node.runtime->totr;
   if (rct.xmax < region.v2d.cur.xmin || rct.xmin > region.v2d.cur.xmax ||
       rct.ymax < region.v2d.cur.ymin || node.runtime->totr.ymin > region.v2d.cur.ymax) {
@@ -2940,7 +2923,7 @@ static void reroute_node_draw(
   }
 
   if (node.label[0] != '\0') {
-    /* draw title (node label) */
+    /* Draw title (node label). */
     char showname[128]; /* 128 used below */
     BLI_strncpy(showname, node.label, sizeof(showname));
     const short width = 512;
@@ -2965,9 +2948,8 @@ static void reroute_node_draw(
     UI_but_drawflag_disable(label_but, UI_BUT_TEXT_LEFT);
   }
 
-  /* only draw input socket. as they all are placed on the same position.
-   * highlight also if node itself is selected, since we don't display the node body separately!
-   */
+  /* Only draw input socket as they all are placed on the same position highlight
+   * if node itself is selected, since we don't display the node body separately. */
   node_draw_sockets(region.v2d, C, ntree, node, block, false, node.flag & SELECT);
 
   UI_block_end(&C, &block);
@@ -3098,9 +3080,7 @@ static void snode_setup_v2d(SpaceNode &snode, ARegion &region, const float2 &cen
   UI_view2d_center_set(&v2d, center[0], center[1]);
   UI_view2d_view_ortho(&v2d);
 
-  /* Aspect + font, set each time. */
   snode.runtime->aspect = BLI_rctf_size_x(&v2d.cur) / float(region.winx);
-  // XXX snode->curfont = uiSetCurFont_ext(snode->aspect);
 }
 
 /* Similar to is_compositor_enabled() in draw_manager.c but checks all 3D views. */
@@ -3199,7 +3179,6 @@ static void draw_background_color(const SpaceNode &snode)
 
 void node_draw_space(const bContext &C, ARegion &region)
 {
-  SCOPED_TIMER_AVERAGED(__func__);
   wmWindow *win = CTX_wm_window(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   View2D &v2d = region.v2d;

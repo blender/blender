@@ -262,7 +262,7 @@ void node_deselect_all_input_sockets(bNodeTree &node_tree, const bool deselect_n
       socket->flag &= ~SELECT;
     }
 
-    /* if no selected sockets remain, also deselect the node */
+    /* If no selected sockets remain, also deselect the node. */
     if (deselect_nodes) {
       LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
         if (socket->flag & SELECT) {
@@ -530,18 +530,18 @@ static bool node_mouse_select(bContext *C,
   bNode *node = nullptr;
   bNodeSocket *sock = nullptr;
 
-  /* always do socket_select when extending selection. */
+  /* Always do socket_select when extending selection. */
   const bool socket_select = (params->sel_op == SEL_OP_XOR) ||
                              RNA_boolean_get(op->ptr, "socket_select");
   bool changed = false;
   bool found = false;
   bool node_was_selected = false;
 
-  /* get mouse coordinates in view2d space */
+  /* Get mouse coordinates in view2d space. */
   float2 cursor;
   UI_view2d_region_to_view(&region.v2d, mval.x, mval.y, &cursor.x, &cursor.y);
 
-  /* first do socket selection, these generally overlap with nodes. */
+  /* First do socket selection, these generally overlap with nodes. */
   if (socket_select) {
     /* NOTE: unlike nodes #SelectPick_Params isn't fully supported. */
     const bool extend = (params->sel_op == SEL_OP_XOR);
@@ -599,7 +599,7 @@ static bool node_mouse_select(bContext *C,
 
   if (!sock) {
 
-    /* find the closest visible node */
+    /* Find the closest visible node. */
     node = node_under_mouse_select(node_tree, cursor);
     found = (node != nullptr);
     node_was_selected = node && (node->flag & SELECT);
@@ -617,28 +617,25 @@ static bool node_mouse_select(bContext *C,
 
     if (found) {
       switch (params->sel_op) {
-        case SEL_OP_ADD: {
+        case SEL_OP_ADD:
           nodeSetSelected(node, true);
           break;
-        }
-        case SEL_OP_SUB: {
+        case SEL_OP_SUB:
           nodeSetSelected(node, false);
           break;
-        }
         case SEL_OP_XOR: {
           /* Check active so clicking on an inactive node activates it. */
           bool is_selected = (node->flag & NODE_SELECT) && (node->flag & NODE_ACTIVE);
           nodeSetSelected(node, !is_selected);
           break;
         }
-        case SEL_OP_SET: {
+        case SEL_OP_SET:
           nodeSetSelected(node, true);
           break;
-        }
-        case SEL_OP_AND: {
-          BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+        case SEL_OP_AND:
+          /* Doesn't make sense for picking. */
+          BLI_assert_unreachable();
           break;
-        }
       }
 
       changed = true;
@@ -681,20 +678,20 @@ static bool node_mouse_select(bContext *C,
 
 static int node_select_exec(bContext *C, wmOperator *op)
 {
-  /* get settings from RNA properties for operator */
+  /* Get settings from RNA properties for operator. */
   int2 mval;
   RNA_int_get_array(op->ptr, "location", mval);
 
   SelectPick_Params params = {};
   ED_select_pick_params_from_operator(op->ptr, &params);
 
-  /* perform the select */
+  /* Perform the selection. */
   const bool changed = node_mouse_select(C, op, mval, &params);
 
   if (changed) {
     return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
   }
-  /* Nothing selected, just passthrough. */
+  /* Nothing selected, just pass through. */
   return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
 }
 
@@ -962,10 +959,9 @@ static bool do_lasso_select_node(bContext *C,
     changed = true;
   }
 
-  /* get rectangle from operator */
+  /* Get rectangle from operator. */
   BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
-  /* do actual selection */
   for (bNode *node : node_tree.all_nodes()) {
     if (select && (node->flag & NODE_SELECT)) {
       continue;
@@ -1389,7 +1385,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_op)
       but, nullptr, node_find_update_fn, op->type, false, nullptr, node_find_exec_fn, nullptr);
   UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
 
-  /* fake button, it holds space for search items */
+  /* Fake button holds space for search items. */
   uiDefBut(block,
            UI_BTYPE_LABEL,
            0,

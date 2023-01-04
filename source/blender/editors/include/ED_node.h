@@ -78,15 +78,6 @@ void ED_node_draw_snap(
 
 /* node_draw.cc */
 
-/**
- * Draw a single node socket at default size.
- * \note this is only called from external code, internally #node_socket_draw_nested() is used for
- *       optimized drawing of multiple/all sockets of a node.
- */
-void ED_node_socket_draw(struct bNodeSocket *sock,
-                         const struct rcti *rect,
-                         const float color[4],
-                         float scale);
 void ED_node_tree_update(const struct bContext *C);
 void ED_node_tag_update_id(struct ID *id);
 
