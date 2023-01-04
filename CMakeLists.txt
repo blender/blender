@@ -2009,24 +2009,6 @@ if(0)
   print_all_vars()
 endif()
 
-set(LIBDIR_STALE)
-
-if(UNIX AND NOT APPLE)
-  # Only search for the path if it's found on the system.
-  if(EXISTS "../lib/linux_centos7_x86_64")
-    set(LIBDIR_STALE "/lib/linux_centos7_x86_64/")
-  endif()
-endif()
-
-if(LIBDIR_STALE)
-  print_cached_vars_containing_value(
-    "${LIBDIR_STALE}"
-    "\nWARNING: found cached references to old library paths!\n"
-    "\nIt is *strongly* recommended to reference updated library paths!\n"
-  )
-endif()
-unset(LIBDIR_STALE)
-
 # Should be the last step of configuration.
 if(POSTCONFIGURE_SCRIPT)
   include(${POSTCONFIGURE_SCRIPT})

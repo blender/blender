@@ -3,6 +3,7 @@
 
 # Auto update existing CMake caches for new libraries
 
+# Clear cached variables whose name matches `pattern`.
 function(unset_cache_variables pattern)
   get_cmake_property(_cache_variables CACHE_VARIABLES)
   foreach(_cache_variable ${_cache_variables})
@@ -10,6 +11,30 @@ function(unset_cache_variables pattern)
       unset(${_cache_variable} CACHE)
     endif()
   endforeach()
+endfunction()
+
+# Clear cached variables with values containing `contents`.
+function(unset_cached_varables_containting contents msg)
+  get_cmake_property(_cache_variables CACHE_VARIABLES)
+  set(_found)
+  set(_print_msg)
+  foreach(_cache_variable ${_cache_variables})
+    # Skip "_" prefixed variables, these are used for internal book-keeping,
+    # not under user control.
+    string(FIND "${_cache_variable}" "_" _found)
+    if(NOT (_found EQUAL 0))
+      string(FIND "${${_cache_variable}}" "${contents}" _found)
+      if(NOT (_found EQUAL -1))
+        if(_found)
+          unset(${_cache_variable} CACHE)
+          set(_print_msg ON)
+        endif()
+      endif()
+    endif()
+  endforeach()
+  if(_print_msg)
+    message(STATUS ${msg})
+  endif()
 endfunction()
 
 # Detect update from 3.1 to 3.2 libs.
@@ -62,4 +87,13 @@ if(UNIX AND
   unset_cache_variables("^OPENVDB")
   unset_cache_variables("^TBB")
   unset_cache_variables("^USD")
+endif()
+
+if(UNIX AND (NOT APPLE) AND LIBDIR AND (EXISTS ${LIBDIR}))
+  # Only search for the path if it's found on the system.
+  set(LIBDIR_STALE "/lib/linux_centos7_x86_64/")
+  unset_cached_varables_containting(
+    "${LIBDIR_STALE}"
+    "Auto clearing old ${LIBDIR_STALE} paths from CMake configuration"
+  )
 endif()
