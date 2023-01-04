@@ -1223,13 +1223,12 @@ static void gwl_registry_entry_update_all(GWL_Display *display, const int interf
       continue;
     }
 
-    GWL_RegisteryUpdate_Params params = {
-        .name = reg->name,
-        .interface_slot = reg->interface_slot,
-        .version = reg->version,
+    GWL_RegisteryUpdate_Params params{};
+    params.name = reg->name;
+    params.interface_slot = reg->interface_slot;
+    params.version = reg->version;
+    params.user_data = reg->user_data;
 
-        .user_data = reg->user_data,
-    };
     handler->update_fn(display, &params);
   }
 }
@@ -5178,11 +5177,10 @@ static void global_handle_add(void *data,
     const GWL_RegistryEntry *registry_entry_prev = display->registry_entry;
 
     /* The interface name that is ensured not to be freed. */
-    GWL_RegisteryAdd_Params params = {
-        .name = name,
-        .interface_slot = interface_slot,
-        .version = version,
-    };
+    GWL_RegisteryAdd_Params params{};
+    params.name = name;
+    params.interface_slot = interface_slot;
+    params.version = version;
 
     handler->add_fn(display, &params);
 
