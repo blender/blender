@@ -4741,6 +4741,9 @@ static void gwl_registry_wl_output_remove(GWL_Display *display,
   /* While windows & cursors hold references to outputs, there is no need to manually remove
    * these references as the compositor will remove references via #wl_surface_listener.leave. */
   GWL_Output *output = static_cast<GWL_Output *>(user_data);
+  if (output->xdg_output) {
+    zxdg_output_v1_destroy(output->xdg_output);
+  }
   wl_output_destroy(output->wl_output);
   std::vector<GWL_Output *>::iterator iter = std::find(
       display->outputs.begin(), display->outputs.end(), output);
