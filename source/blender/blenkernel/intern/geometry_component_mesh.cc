@@ -997,9 +997,11 @@ class VArrayImpl_For_VertexWeights final : public VMutableArrayImpl<float> {
 
   void set_all(Span<float> src) override
   {
-    for (const int64_t index : src.index_range()) {
-      this->set(index, src[index]);
-    }
+    threading::parallel_for(src.index_range(), 4096, [&](const IndexRange range) {
+      for (const int64_t i : range) {
+        this->set(i, src[i]);
+      }
+    });
   }
 
   void materialize(IndexMask mask, MutableSpan<float> r_span) const override
@@ -1007,14 +1009,16 @@ class VArrayImpl_For_VertexWeights final : public VMutableArrayImpl<float> {
     if (dverts_ == nullptr) {
       return r_span.fill_indices(mask, 0.0f);
     }
-    for (const int64_t index : mask) {
-      if (const MDeformWeight *weight = this->find_weight_at_index(index)) {
-        r_span[index] = weight->weight;
+    threading::parallel_for(mask.index_range(), 4096, [&](const IndexRange range) {
+      for (const int64_t i : mask.slice(range)) {
+        if (const MDeformWeight *weight = this->find_weight_at_index(i)) {
+          r_span[i] = weight->weight;
+        }
+        else {
+          r_span[i] = 0.0f;
+        }
       }
-      else {
-        r_span[index] = 0.0f;
-      }
-    }
+    });
   }
 
   void materialize_to_uninitialized(IndexMask mask, MutableSpan<float> r_span) const override
