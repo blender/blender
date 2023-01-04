@@ -129,7 +129,6 @@ bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Light *la)
   cla.addExtraTechniqueParameter("blender", "clipsta", la->clipsta);
   cla.addExtraTechniqueParameter("blender", "clipend", la->clipend);
   cla.addExtraTechniqueParameter("blender", "bias", la->bias);
-  cla.addExtraTechniqueParameter("blender", "soft", la->soft);
   cla.addExtraTechniqueParameter("blender", "bufsize", la->bufsize);
   cla.addExtraTechniqueParameter("blender", "samp", la->samp);
   cla.addExtraTechniqueParameter("blender", "buffers", la->buffers);
