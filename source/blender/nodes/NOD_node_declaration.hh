@@ -544,6 +544,7 @@ typename SocketDeclarationBuilder<SocketDecl>::Self &SocketDeclarationBuilder<
 {
   aal::RelationsInNode &relations = node_decl_builder_->get_anonymous_attribute_relations();
   if (decl_->in_out == SOCK_IN) {
+    this->supports_field();
     for (const int input_index : indices) {
       aal::EvalRelation relation;
       relation.field_input = index_;
@@ -552,6 +553,7 @@ typename SocketDeclarationBuilder<SocketDecl>::Self &SocketDeclarationBuilder<
     }
   }
   else {
+    this->field_source();
     for (const int output_index : indices) {
       aal::AvailableRelation relation;
       relation.field_output = index_;
