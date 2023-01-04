@@ -105,7 +105,7 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
     return VArray<int>::ForContainer(std::move(corner_of_face));
   }
 
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
   {
     face_index_.node().for_each_field_input_recursive(fn);
     sort_index_.node().for_each_field_input_recursive(fn);

@@ -91,9 +91,10 @@ endif()
 
 if(UNIX AND (NOT APPLE) AND LIBDIR AND (EXISTS ${LIBDIR}))
   # Only search for the path if it's found on the system.
-  set(LIBDIR_STALE "/lib/linux_centos7_x86_64/")
+  set(_libdir_stale "/lib/linux_centos7_x86_64/")
   unset_cached_varables_containting(
-    "${LIBDIR_STALE}"
-    "Auto clearing old ${LIBDIR_STALE} paths from CMake configuration"
+    "${_libdir_stale}"
+    "Auto clearing old ${_libdir_stale} paths from CMake configuration"
   )
+  unset(_libdir_stale)
 endif()

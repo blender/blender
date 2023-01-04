@@ -119,7 +119,7 @@ class PackIslandsFieldInput final : public bke::MeshFieldInput {
     return construct_uv_gvarray(mesh, selection_field_, uv_field_, rotate_, margin_, domain);
   }
 
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
   {
     selection_field_.node().for_each_field_input_recursive(fn);
     uv_field_.node().for_each_field_input_recursive(fn);

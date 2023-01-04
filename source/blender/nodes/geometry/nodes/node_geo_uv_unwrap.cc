@@ -161,7 +161,7 @@ class UnwrapFieldInput final : public bke::MeshFieldInput {
     return construct_uv_gvarray(mesh, selection_, seam_, fill_holes_, margin_, method_, domain);
   }
 
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
   {
     selection_.node().for_each_field_input_recursive(fn);
     seam_.node().for_each_field_input_recursive(fn);

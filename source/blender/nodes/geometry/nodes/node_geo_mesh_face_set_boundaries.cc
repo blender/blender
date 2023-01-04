@@ -66,7 +66,7 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
         VArray<bool>::ForContainer(std::move(boundary)), ATTR_DOMAIN_EDGE, domain);
   }
 
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
   {
     face_set_.node().for_each_field_input_recursive(fn);
   }

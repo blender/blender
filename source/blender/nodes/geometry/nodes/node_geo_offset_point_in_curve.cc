@@ -90,7 +90,7 @@ class ControlPointNeighborFieldInput final : public bke::CurvesFieldInput {
     return VArray<int>::ForContainer(std::move(output));
   }
 
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
   {
     index_.node().for_each_field_input_recursive(fn);
     offset_.node().for_each_field_input_recursive(fn);
@@ -145,7 +145,7 @@ class OffsetValidFieldInput final : public bke::CurvesFieldInput {
     return VArray<bool>::ForContainer(std::move(output));
   }
 
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
   {
     index_.node().for_each_field_input_recursive(fn);
     offset_.node().for_each_field_input_recursive(fn);

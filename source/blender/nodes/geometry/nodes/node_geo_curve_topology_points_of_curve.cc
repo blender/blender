@@ -101,7 +101,7 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
     return VArray<int>::ForContainer(std::move(point_of_curve));
   }
 
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
   {
     curve_index_.node().for_each_field_input_recursive(fn);
     sort_index_.node().for_each_field_input_recursive(fn);

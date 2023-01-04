@@ -71,7 +71,7 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
         VArray<float3>::ForContainer(std::move(output)), ATTR_DOMAIN_POINT, domain);
   }
 
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
   {
     relative_.node().for_each_field_input_recursive(fn);
   }

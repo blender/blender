@@ -129,7 +129,7 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
         VArray<int>::ForContainer(std::move(next_index)), ATTR_DOMAIN_POINT, domain);
   }
 
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
   {
     end_selection_.node().for_each_field_input_recursive(fn);
     cost_.node().for_each_field_input_recursive(fn);
