@@ -151,9 +151,15 @@ struct NodeState {
    */
   bool node_has_finished = false;
   /**
-   * Set to true once the node is done running for the first time.
+   * Set to true once the always required inputs have been requested.
+   * This happens the first time the node is run.
    */
-  bool had_initialization = false;
+  bool always_used_inputs_requested = false;
+  /**
+   * Set to true when the storage and defaults have been initialized.
+   * This happens the first time the node function is executed.
+   */
+  bool storage_and_defaults_initialized = false;
   /**
    * Nodes with side effects should always be executed when their required inputs have been
    * computed.
@@ -729,39 +735,20 @@ class Executor {
         return;
       }
 
-      if (!node_state.had_initialization) {
-        /* Initialize storage. */
-        node_state.storage = fn.init_storage(allocator);
-
-        /* Load unlinked inputs. */
-        for (const int input_index : node.inputs().index_range()) {
-          const InputSocket &input_socket = node.input(input_index);
-          if (input_socket.origin() != nullptr) {
-            continue;
-          }
-          InputState &input_state = node_state.inputs[input_index];
-          const CPPType &type = input_socket.type();
-          const void *default_value = input_socket.default_value();
-          BLI_assert(default_value != nullptr);
-          if (self_.logger_ != nullptr) {
-            self_.logger_->log_socket_value(input_socket, {type, default_value}, *context_);
-          }
-          void *buffer = allocator.allocate(type.size(), type.alignment());
-          type.copy_construct(default_value, buffer);
-          this->forward_value_to_input(locked_node, input_state, {type, buffer}, current_task);
-        }
-
+      if (!node_state.always_used_inputs_requested) {
         /* Request linked inputs that are always needed. */
         const Span<Input> fn_inputs = fn.inputs();
         for (const int input_index : fn_inputs.index_range()) {
           const Input &fn_input = fn_inputs[input_index];
           if (fn_input.usage == ValueUsage::Used) {
             const InputSocket &input_socket = node.input(input_index);
-            this->set_input_required(locked_node, input_socket);
+            if (input_socket.origin() != nullptr) {
+              this->set_input_required(locked_node, input_socket);
+            }
           }
         }
 
-        node_state.had_initialization = true;
+        node_state.always_used_inputs_requested = true;
       }
 
       for (const int input_index : node_state.inputs.index_range()) {
@@ -784,6 +771,32 @@ class Executor {
     });
 
     if (node_needs_execution) {
+      if (!node_state.storage_and_defaults_initialized) {
+        /* Initialize storage. */
+        node_state.storage = fn.init_storage(allocator);
+
+        /* Load unlinked inputs. */
+        for (const int input_index : node.inputs().index_range()) {
+          const InputSocket &input_socket = node.input(input_index);
+          if (input_socket.origin() != nullptr) {
+            continue;
+          }
+          InputState &input_state = node_state.inputs[input_index];
+          const CPPType &type = input_socket.type();
+          const void *default_value = input_socket.default_value();
+          BLI_assert(default_value != nullptr);
+          if (self_.logger_ != nullptr) {
+            self_.logger_->log_socket_value(input_socket, {type, default_value}, *context_);
+          }
+          BLI_assert(input_state.value == nullptr);
+          input_state.value = allocator.allocate(type.size(), type.alignment());
+          type.copy_construct(default_value, input_state.value);
+          input_state.was_ready_for_execution = true;
+        }
+
+        node_state.storage_and_defaults_initialized = true;
+      }
+
       /* Importantly, the node must not be locked when it is executed. That would result in locks
        * being hold very long in some cases and results in multiple locks being hold by the same
        * thread in the same graph which can lead to deadlocks. */
