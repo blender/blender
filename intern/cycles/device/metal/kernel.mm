@@ -313,17 +313,15 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
   pipeline->threads_per_threadgroup = device->max_threads_per_threadgroup;
 
   if (occupancy_tuning[device_kernel].threads_per_threadgroup) {
-    pipeline->threads_per_threadgroup =
-        occupancy_tuning[device_kernel].threads_per_threadgroup;
-    pipeline->num_threads_per_block =
-        occupancy_tuning[device_kernel].num_threads_per_block;
+    pipeline->threads_per_threadgroup = occupancy_tuning[device_kernel].threads_per_threadgroup;
+    pipeline->num_threads_per_block = occupancy_tuning[device_kernel].num_threads_per_block;
   }
 
   /* metalrt options */
   pipeline->use_metalrt = device->use_metalrt;
   pipeline->metalrt_features = device->use_metalrt ?
-                               (device->kernel_features & METALRT_FEATURE_MASK) :
-                               0;
+                                   (device->kernel_features & METALRT_FEATURE_MASK) :
+                                   0;
 
   {
     thread_scoped_lock lock(cache_mutex);
@@ -742,8 +740,7 @@ void MetalKernelPipeline::compile()
   if (!num_threads_per_block) {
     num_threads_per_block = round_down(pipeline.maxTotalThreadsPerThreadgroup,
                                        pipeline.threadExecutionWidth);
-    num_threads_per_block = std::max(num_threads_per_block,
-                                     (int)pipeline.threadExecutionWidth);
+    num_threads_per_block = std::max(num_threads_per_block, (int)pipeline.threadExecutionWidth);
   }
 
   if (@available(macOS 11.0, *)) {
