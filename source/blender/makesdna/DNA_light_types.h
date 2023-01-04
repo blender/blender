@@ -48,7 +48,7 @@ typedef struct Light {
 
   float clipsta, clipend;
   float bias;
-  char _pad1[4];
+  float radius;
   short bufsize, samp, buffers, filtertype;
   char bufflag, buftype;
 

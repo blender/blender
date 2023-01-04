@@ -637,7 +637,7 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
   DRW_buffer_add_entry(cb->groundline, instdata.pos);
 
   if (la->type == LA_LOCAL) {
-    instdata.area_size_x = instdata.area_size_y = la->area_size;
+    instdata.area_size_x = instdata.area_size_y = la->radius;
     DRW_buffer_add_entry(cb->light_point, color, &instdata);
   }
   else if (la->type == LA_SUN) {
@@ -661,7 +661,7 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
     instdata.spot_blend = sqrtf((-a - c * a) / (c - c * a));
     instdata.spot_cosine = a;
     /* HACK: We pack the area size in alpha color. This is decoded by the shader. */
-    color[3] = -max_ff(la->area_size, FLT_MIN);
+    color[3] = -max_ff(la->radius, FLT_MIN);
     DRW_buffer_add_entry(cb->light_spot, color, &instdata);
 
     if ((la->mode & LA_SHOW_CONE) && !DRW_state_is_select()) {

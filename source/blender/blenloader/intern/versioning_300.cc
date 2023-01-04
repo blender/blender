@@ -28,6 +28,7 @@
 #include "DNA_curves_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_light_types.h"
 #include "DNA_lineart_types.h"
 #include "DNA_listBase.h"
 #include "DNA_mask_types.h"
@@ -3836,6 +3837,13 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
   }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 7)) {
+    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+      light->radius = light->area_size;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
