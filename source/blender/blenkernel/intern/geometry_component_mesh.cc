@@ -1117,15 +1117,18 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
       return true;
     }
 
-    for (MDeformVert &dvert : mesh->deform_verts_for_write()) {
-      MDeformWeight *weight = BKE_defvert_find_index(&dvert, index);
-      BKE_defvert_remove_group(&dvert, weight);
-      for (MDeformWeight &weight : MutableSpan(dvert.dw, dvert.totweight)) {
-        if (weight.def_nr > index) {
-          weight.def_nr--;
+    MutableSpan<MDeformVert> dverts = mesh->deform_verts_for_write();
+    threading::parallel_for(dverts.index_range(), 1024, [&](IndexRange range) {
+      for (MDeformVert &dvert : dverts.slice(range)) {
+        MDeformWeight *weight = BKE_defvert_find_index(&dvert, index);
+        BKE_defvert_remove_group(&dvert, weight);
+        for (MDeformWeight &weight : MutableSpan(dvert.dw, dvert.totweight)) {
+          if (weight.def_nr > index) {
+            weight.def_nr--;
+          }
         }
       }
-    }
+    });
     return true;
   }
 
