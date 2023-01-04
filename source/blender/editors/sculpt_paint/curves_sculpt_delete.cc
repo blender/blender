@@ -97,7 +97,7 @@ struct DeleteOperationExecutor {
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
 
     selected_curve_indices_.clear();
-    curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 
     curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);

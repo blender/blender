@@ -280,8 +280,9 @@ struct CurvesEffectOperationExecutor {
       return;
     }
 
-    curve_selection_factors_ = get_curves_selection(*curves_id_);
-    curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
+    curve_selection_factors_ = curves_->attributes().lookup_or_default(
+        ".selection", ATTR_DOMAIN_CURVE, 1.0f);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 
     const CurvesSculpt &curves_sculpt = *ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt.paint);

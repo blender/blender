@@ -287,11 +287,6 @@ class CurvesGeometry : public ::CurvesGeometry {
   Span<float2> surface_uv_coords() const;
   MutableSpan<float2> surface_uv_coords_for_write();
 
-  VArray<float> selection_point_float() const;
-  MutableSpan<float> selection_point_float_for_write();
-  VArray<float> selection_curve_float() const;
-  MutableSpan<float> selection_curve_float_for_write();
-
   /**
    * Calculate the largest and smallest position values, only including control points
    * (rather than evaluated points). The existing values of `min` and `max` are taken into account.

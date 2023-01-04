@@ -241,6 +241,13 @@ struct AddOperationExecutor {
 
     const geometry::AddCurvesOnMeshOutputs add_outputs = geometry::add_curves_on_mesh(
         *curves_orig_, add_inputs);
+    bke::MutableAttributeAccessor attributes = curves_orig_->attributes_for_write();
+    if (bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection")) {
+      curves::fill_selection_true(selection.span.slice(selection.domain == ATTR_DOMAIN_POINT ?
+                                                           add_outputs.new_points_range :
+                                                           add_outputs.new_curves_range));
+      selection.finish();
+    }
 
     if (add_outputs.uv_error) {
       report_invalid_uv_map(stroke_extension.reports);

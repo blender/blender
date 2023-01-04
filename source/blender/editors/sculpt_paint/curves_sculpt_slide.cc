@@ -157,8 +157,9 @@ struct SlideOperationExecutor {
     brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
     brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
 
-    curve_factors_ = get_curves_selection(*curves_id_orig_);
-    curve_selection_ = retrieve_selected_curves(*curves_id_orig_, selected_curve_indices_);
+    curve_factors_ = curves_orig_->attributes().lookup_or_default(
+        ".selection", ATTR_DOMAIN_CURVE, 1.0f);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_orig_, selected_curve_indices_);
 
     brush_pos_re_ = stroke_extension.mouse_position;
 

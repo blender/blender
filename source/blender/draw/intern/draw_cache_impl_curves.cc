@@ -11,6 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_devirtualize_parameters.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vec_types.hh"
@@ -334,17 +335,16 @@ static void curves_batch_cache_ensure_edit_points_data(const Curves &curves_id,
   GPU_vertbuf_init_with_format(cache.edit_points_data, &format_data);
   GPU_vertbuf_data_alloc(cache.edit_points_data, curves.points_num());
 
-  VArray<float> selection;
+  const VArray<bool> selection = curves.attributes().lookup_or_default<bool>(
+      ".selection", eAttrDomain(curves_id.selection_domain), true);
   switch (curves_id.selection_domain) {
     case ATTR_DOMAIN_POINT:
-      selection = curves.selection_point_float();
       for (const int point_i : selection.index_range()) {
         const float point_selection = (selection[point_i] > 0.0f) ? 1.0f : 0.0f;
         GPU_vertbuf_attr_set(cache.edit_points_data, color, point_i, &point_selection);
       }
       break;
     case ATTR_DOMAIN_CURVE:
-      selection = curves.selection_curve_float();
       for (const int curve_i : curves.curves_range()) {
         const float curve_selection = (selection[curve_i] > 0.0f) ? 1.0f : 0.0f;
         const IndexRange points = curves.points_for_curve(curve_i);

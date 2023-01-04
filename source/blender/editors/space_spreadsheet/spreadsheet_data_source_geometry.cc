@@ -25,7 +25,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_curves_sculpt.h"
+#include "ED_curves.h"
 #include "ED_spreadsheet.h"
 
 #include "NOD_geometry_nodes_lazy_function.hh"
@@ -265,7 +265,7 @@ bool GeometryDataSource::has_selection_filter() const
       if (object_orig->type != OB_CURVES) {
         return false;
       }
-      if (object_orig->mode != OB_MODE_SCULPT_CURVES) {
+      if (!ELEM(object_orig->mode, OB_MODE_SCULPT_CURVES, OB_MODE_EDIT)) {
         return false;
       }
       return true;
@@ -339,9 +339,9 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
       const Curves &curves_id = *component.get_for_read();
       switch (domain_) {
         case ATTR_DOMAIN_POINT:
-          return sculpt_paint::retrieve_selected_points(curves_id, indices);
+          return curves::retrieve_selected_points(curves_id, indices);
         case ATTR_DOMAIN_CURVE:
-          return sculpt_paint::retrieve_selected_curves(curves_id, indices);
+          return curves::retrieve_selected_curves(curves_id, indices);
         default:
           BLI_assert_unreachable();
       }

@@ -38,8 +38,6 @@ static const std::string ATTR_HANDLE_POSITION_RIGHT = "handle_right";
 static const std::string ATTR_NURBS_ORDER = "nurbs_order";
 static const std::string ATTR_NURBS_WEIGHT = "nurbs_weight";
 static const std::string ATTR_NURBS_KNOTS_MODE = "knots_mode";
-static const std::string ATTR_SELECTION_POINT_FLOAT = ".selection_point_float";
-static const std::string ATTR_SELECTION_CURVE_FLOAT = ".selection_curve_float";
 static const std::string ATTR_SURFACE_UV_COORDINATE = "surface_uv_coordinate";
 
 /* -------------------------------------------------------------------- */
@@ -431,26 +429,6 @@ Span<float2> CurvesGeometry::surface_uv_coords() const
 MutableSpan<float2> CurvesGeometry::surface_uv_coords_for_write()
 {
   return get_mutable_attribute<float2>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_UV_COORDINATE);
-}
-
-VArray<float> CurvesGeometry::selection_point_float() const
-{
-  return get_varray_attribute<float>(*this, ATTR_DOMAIN_POINT, ATTR_SELECTION_POINT_FLOAT, 1.0f);
-}
-
-MutableSpan<float> CurvesGeometry::selection_point_float_for_write()
-{
-  return get_mutable_attribute<float>(*this, ATTR_DOMAIN_POINT, ATTR_SELECTION_POINT_FLOAT, 1.0f);
-}
-
-VArray<float> CurvesGeometry::selection_curve_float() const
-{
-  return get_varray_attribute<float>(*this, ATTR_DOMAIN_CURVE, ATTR_SELECTION_CURVE_FLOAT, 1.0f);
-}
-
-MutableSpan<float> CurvesGeometry::selection_curve_float_for_write()
-{
-  return get_mutable_attribute<float>(*this, ATTR_DOMAIN_CURVE, ATTR_SELECTION_CURVE_FLOAT, 1.0f);
 }
 
 /** \} */

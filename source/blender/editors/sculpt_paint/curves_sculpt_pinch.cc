@@ -105,8 +105,9 @@ struct PinchOperationExecutor {
 
     transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
-    point_factors_ = get_point_selection(*curves_id_);
-    curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
+    point_factors_ = curves_->attributes().lookup_or_default<float>(
+        ".selection", ATTR_DOMAIN_POINT, 1.0f);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 
     brush_pos_re_ = stroke_extension.mouse_position;
     const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
