@@ -138,6 +138,8 @@ NODE_DEFINE(Light)
 
   SOCKET_STRING(lightgroup, "Light Group", ustring());
 
+  SOCKET_BOOLEAN(normalize, "Normalize", true);
+
   return type;
 }
 
@@ -975,7 +977,8 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       shader_id &= ~SHADER_AREA_LIGHT;
 
       float radius = light->size;
-      float invarea = (radius > 0.0f) ? 1.0f / (M_PI_F * radius * radius) : 1.0f;
+      float invarea = (light->normalize && radius > 0.0f) ? 1.0f / (M_PI_F * radius * radius) :
+                                                            1.0f;
 
       if (light->use_mis && radius > 0.0f)
         shader_id |= SHADER_USE_MIS;
@@ -991,7 +994,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       float radius = tanf(angle);
       float cosangle = cosf(angle);
       float area = M_PI_F * radius * radius;
-      float invarea = (area > 0.0f) ? 1.0f / area : 1.0f;
+      float invarea = (light->normalize && area > 0.0f) ? 1.0f / area : 1.0f;
       float3 dir = light->dir;
 
       dir = safe_normalize(dir);
@@ -1036,7 +1039,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       if (light->ellipse) {
         area *= -M_PI_4_F;
       }
-      float invarea = (area != 0.0f) ? 1.0f / area : 1.0f;
+      float invarea = (light->normalize && area != 0.0f) ? 1.0f / area : 1.0f;
       float3 dir = light->dir;
 
       /* Clamp angles in (0, 0.1) to 0.1 to prevent zero intensity due to floating-point precision
@@ -1076,7 +1079,8 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       }
 
       float radius = light->size;
-      float invarea = (radius > 0.0f) ? 1.0f / (M_PI_F * radius * radius) : 1.0f;
+      float invarea = (light->normalize && radius > 0.0f) ? 1.0f / (M_PI_F * radius * radius) :
+                                                            1.0f;
       float cos_half_spot_angle = cosf(light->spot_angle * 0.5f);
       float spot_smooth = (1.0f - cos_half_spot_angle) * light->spot_smooth;
 

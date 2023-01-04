@@ -73,6 +73,8 @@ class Light : public Node {
 
   NODE_SOCKET_API(ustring, lightgroup)
 
+  NODE_SOCKET_API(bool, normalize)
+
   void tag_update(Scene *scene);
 
   /* Check whether the light has contribution the scene. */
