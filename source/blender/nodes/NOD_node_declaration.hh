@@ -349,8 +349,8 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   /** The input is evaluated on a subset of the geometry inputs. */
   Self &implicit_field_on(ImplicitInputValueFn fn, const Span<int> input_indices)
   {
-    this->implicit_field(fn);
     this->field_on(input_indices);
+    this->implicit_field(fn);
     return *(Self *)this;
   }
 
