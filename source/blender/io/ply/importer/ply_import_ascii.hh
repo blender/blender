@@ -1,5 +1,4 @@
-#ifndef BLENDER_PLY_IMPORT_ASCII_HH
-#define BLENDER_PLY_IMPORT_ASCII_HH
+#pragma once
 
 #include "BKE_mesh.h"
 #include "DNA_mesh_types.h"
@@ -28,4 +27,3 @@ int3 get_normal_pos(PlyHeader *header);
 int get_index(PlyHeader *header, std::string property, PlyDataTypes datatype);
 std::vector<std::string> explode(const std::string_view &str, const char &ch);
 }  // namespace blender::io::ply
-#endif  // BLENDER_PLY_IMPORT_ASCII_HH
