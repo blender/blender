@@ -173,7 +173,7 @@ class Device {
   }
 
   /* Return true if device is ready for rendering, or report status if not. */
-  virtual bool is_ready(string &status) const
+  virtual bool is_ready(string & /*status*/) const
   {
     return true;
   }
