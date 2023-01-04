@@ -1,3 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
 #include "ply_import_ascii.hh"
 #include "BLI_math_vector.h"
 #include "ply_functions.hh"

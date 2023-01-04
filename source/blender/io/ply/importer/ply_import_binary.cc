@@ -1,3 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
 #include "ply_import_binary.hh"
 #include "BKE_customdata.h"
 #include "BLI_math_vector.h"

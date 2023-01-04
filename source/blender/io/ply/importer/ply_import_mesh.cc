@@ -1,3 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
 #include "ply_import_mesh.hh"
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
