@@ -73,6 +73,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "ED_fileselect.h"
+#include "ED_gpencil.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
@@ -2191,6 +2192,7 @@ typedef struct {
   int initial_co[2];
   int slow_mouse[2];
   bool slow_mode;
+  float scale_fac;
   Dial *dial;
   GPUTexture *texture;
   ListBase orig_paintcursors;
@@ -2244,7 +2246,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
   ED_area_status_text(area, msg);
 }
 
-static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *event)
+static void radial_control_set_initial_mouse(bContext *C, RadialControl *rc, const wmEvent *event)
 {
   float d[2] = {0, 0};
   float zoom[2] = {1, 1};
@@ -2278,6 +2280,15 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
     RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
     d[0] *= zoom[0];
     d[1] *= zoom[1];
+  }
+  /* Grease pencil draw tool needs to rescale the cursor size. If we don't do that
+   * the size of the radial is not equals to the actual stroke size. */
+  if (rc->ptr.owner_id && GS(rc->ptr.owner_id->name) == ID_BR && rc->prop == &rna_Brush_size) {
+    rc->scale_fac = ED_gpencil_radial_control_scale(
+        C, (Brush *)rc->ptr.owner_id, rc->initial_value, event->mval);
+  }
+  else {
+    rc->scale_fac = 1.0f;
   }
 
   rc->initial_mouse[0] -= d[0];
@@ -2482,6 +2493,9 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
     RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
     GPU_matrix_scale_2fv(zoom);
   }
+
+  /* Apply scale correction (used by grease pencil brushes). */
+  GPU_matrix_scale_2f(rc->scale_fac, rc->scale_fac);
 
   /* draw rotated texture */
   radial_control_paint_tex(rc, tex_radius, alpha);
@@ -2816,7 +2830,7 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   }
 
   rc->current_value = rc->initial_value;
-  radial_control_set_initial_mouse(rc, event);
+  radial_control_set_initial_mouse(C, rc, event);
   radial_control_set_tex(rc);
 
   rc->init_event = WM_userdef_event_type_from_keymap_type(event->type);
@@ -3331,7 +3345,8 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
   const int cfra = scene->r.cfra;
   const char *infostr = "";
 
-  /* NOTE: Depsgraph is used to update scene for a new state, so no need to ensure evaluation here.
+  /* NOTE: Depsgraph is used to update scene for a new state, so no need to ensure evaluation
+   * here.
    */
   struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 

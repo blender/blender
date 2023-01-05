@@ -1780,6 +1780,20 @@ float ED_gpencil_cursor_radius(bContext *C, int x, int y)
   return radius;
 }
 
+float ED_gpencil_radial_control_scale(struct bContext *C,
+                                      struct Brush *brush,
+                                      float initial_value,
+                                      const int mval[2])
+{
+  float scale_fac = 1.0f;
+  if ((brush && brush->gpencil_settings) && (brush->gpencil_tool == GPAINT_TOOL_DRAW)) {
+    float cursor_radius = ED_gpencil_cursor_radius(C, mval[0], mval[1]);
+    scale_fac = max_ff(cursor_radius, 1.0f) / max_ff(initial_value, 1.0f);
+  }
+
+  return scale_fac;
+}
+
 /**
  * Helper callback for drawing the cursor itself.
  */
