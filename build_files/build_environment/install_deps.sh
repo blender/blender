@@ -1223,7 +1223,9 @@ Those libraries should be available as packages in all recent distributions (opt
     * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
     * libwayland-client0, libdecor, libwayland-cursor0, libwayland-egl1, libxkbcommon0, libdbus-1-3, libegl1 (Wayland)
     * libsqlite3, libzstd, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp, flex, pybind11.
-    * libsdl2, libepoxy, libpugixml, libpotrace, [libgmp], fontconfig, [libharu/libhpdf].\""
+    * libsdl2, libepoxy, libpugixml, libpotrace, [libgmp], fontconfig, [libharu/libhpdf].
+    * [libvulkan/vulkan-loader].
+    * [libfribidi], [libharfbuzz].\""
 
 DEPS_SPECIFIC_INFO="\"BUILDABLE DEPENDENCIES:
 
@@ -4296,11 +4298,12 @@ install_DEB() {
              git libfreetype6-dev libfontconfig-dev libx11-dev flex bison libxxf86vm-dev \
              libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
              libwayland-dev libdecor-0-dev wayland-protocols libegl-dev libxkbcommon-dev libdbus-1-dev linux-libc-dev \
+             libvulkan-dev libshaderc-dev \
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev \
              libopenal-dev libepoxy-dev yasm pybind11-dev \
              libsdl2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev \
              libgmp-dev libpugixml-dev libpotrace-dev libhpdf-dev libzstd-dev libpystring-dev \
-             libglfw3-dev"
+             libglfw3-dev libfribidi-dev libharfbuzz-dev"
 
   VORBIS_USE=true
   OGG_USE=true
@@ -5019,10 +5022,12 @@ install_RPM() {
              libtiff-devel libjpeg-devel libpng-devel sqlite-devel fftw-devel SDL2-devel \
              libX11-devel libXi-devel libXcursor-devel libXrandr-devel libXinerama-devel \
              wayland-devel libdecor-devel wayland-protocols-devel mesa-libEGL-devel libxkbcommon-devel dbus-devel kernel-headers \
+             vulkan-loader-devel libshaderc-devel \
              wget ncurses-devel readline-devel $OPENJPEG_DEV openal-soft-devel \
              libepoxy-devel yasm patch pybind11-devel \
              libxml2-devel yaml-cpp-devel tinyxml-devel jemalloc-devel \
-             gmp-devel pugixml-devel potrace-devel libharu-devel libzstd-devel pystring-devel"
+             gmp-devel pugixml-devel potrace-devel libharu-devel libzstd-devel pystring-devel \
+             fribidi-devel harfbuzz-devel"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
@@ -5673,9 +5678,10 @@ install_ARCH() {
 
   _packages="$BASE_DEVEL git cmake fontconfig flex \
              libxi libxcursor libxrandr libxinerama libepoxy libdecor libpng libtiff wget openal \
+             vulkan-icd-loader vulkan-headers shaderc \
              $OPENJPEG_DEV yasm sdl2 fftw pybind11 \
              libxml2 yaml-cpp tinyxml python-requests jemalloc gmp potrace pugixml libharu \
-             zstd pystring"
+             zstd pystring fribidi harfbuzz"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
