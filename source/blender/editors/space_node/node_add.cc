@@ -844,17 +844,18 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (!ntreeTypeFind(idname)) {
+    BKE_reportf(op->reports, RPT_ERROR, "Node tree type %s undefined", idname);
+    return OPERATOR_CANCELLED;
+  }
+
   if (RNA_struct_property_is_set(op->ptr, "name")) {
     RNA_string_get(op->ptr, "name", treename_buf);
     treename = treename_buf;
   }
   else {
-    treename = DATA_("NodeTree");
-  }
-
-  if (!ntreeTypeFind(idname)) {
-    BKE_reportf(op->reports, RPT_ERROR, "Node tree type %s undefined", idname);
-    return OPERATOR_CANCELLED;
+    const bNodeTreeType *type = ntreeTypeFind(idname);
+    treename = type->ui_name;
   }
 
   ntree = ntreeAddTree(bmain, treename, idname);
