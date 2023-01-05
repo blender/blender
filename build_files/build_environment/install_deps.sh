@@ -402,6 +402,7 @@ PYTHON_VERSION_INSTALLED=$PYTHON_VERSION_SHORT
 PYTHON_FORCE_BUILD=false
 PYTHON_FORCE_REBUILD=false
 PYTHON_SKIP=false
+_with_built_python=false
 
 # Additional Python modules.
 PYTHON_IDNA_VERSION="3.3"
@@ -466,7 +467,9 @@ BOOST_VERSION="1.80.0"
 BOOST_VERSION_SHORT="1.80"
 BOOST_VERSION_MIN="1.49"
 BOOST_VERSION_MEX="2.0"
-BOOST_FORCE_BUILD=false
+# XXX Boost currently has an issue with python/tbb, see rB019b930 for details and patch used to fix it.
+# So for now it has to be built, system packages are not usable. :(
+BOOST_FORCE_BUILD=true
 BOOST_FORCE_REBUILD=false
 BOOST_SKIP=false
 
@@ -1108,7 +1111,9 @@ PYTHON_SOURCE=( "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHO
 
 _boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
 BOOST_SOURCE=( "https://boostorg.jfrog.io/artifactory/main/release/$BOOST_VERSION/source/boost_$_boost_version_nodots.tar.bz2" )
-BOOST_BUILD_MODULES="--with-system --with-filesystem --with-thread --with-regex --with-locale --with-date_time --with-wave --with-iostreams --with-python --with-program_options --with-serialization --with-atomic"
+BOOST_BUILD_MODULES="--with-filesystem --with-locale --with-thread --with-regex --with-system --with-date_time --with-wave --with-atomic --with-serialization --with-program_options --with-iostreams --with-python"
+# Used by debian distros.
+BOOST_DEB_PACKAGE_MODULES=( "libboost-filesystem" "libboost-locale" "libboost-thread" "libboost-regex" "libboost-system" "libboost-date-time" "libboost-wave" "libboost-atomic" "libboost-serialization" "libboost-program-options" "libboost-iostreams" "libboost-python" "libboost-numpy" )
 
 TBB_SOURCE=( "https://github.com/oneapi-src/oneTBB/archive/$TBB_VERSION$TBB_VERSION_UPDATE.tar.gz" )
 TBB_SOURCE_CMAKE=( "https://raw.githubusercontent.com/wjakob/tbb/master/CMakeLists.txt" )
@@ -1217,7 +1222,7 @@ Those libraries should be available as packages in all recent distributions (opt
     * libjpeg, libpng, libtiff, [openjpeg2], [libopenal].
     * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
     * libwayland-client0, libdecor, libwayland-cursor0, libwayland-egl1, libxkbcommon0, libdbus-1-3, libegl1 (Wayland)
-    * libsqlite3, libzstd, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp, flex.
+    * libsqlite3, libzstd, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp, flex, pybind11.
     * libsdl2, libepoxy, libpugixml, libpotrace, [libgmp], fontconfig, [libharu/libhpdf].\""
 
 DEPS_SPECIFIC_INFO="\"BUILDABLE DEPENDENCIES:
@@ -1479,9 +1484,17 @@ _init_python() {
 _update_deps_python() {
   if [ "$1" = true ]; then
     BOOST_FORCE_BUILD=true
+    OCIO_FORCE_BUILD=true
+    OIIO_FORCE_BUILD=true
+    OPENVDB_FORCE_BUILD=true
+    USD_FORCE_BUILD=true
   fi
   if [ "$2" = true ]; then
     BOOST_FORCE_REBUILD=true
+    OCIO_FORCE_REBUILD=true
+    OIIO_FORCE_REBUILD=true
+    OPENVDB_FORCE_REBUILD=true
+    USD_FORCE_REBUILD=true
   fi
 }
 
@@ -1567,6 +1580,9 @@ compile_Python() {
     PRINT ""
     $_python -m pip install $module --no-binary :all:
   done
+
+  _with_built_python=true
+  _with_built_python_execpath="$INST/python-$PYTHON_VERSION_SHORT/bin/python3"
 }
 
 # ----------------------------------------------------------------------------
@@ -1585,12 +1601,14 @@ _update_deps_boost() {
     OSL_FORCE_BUILD=true
     OPENVDB_FORCE_BUILD=true
     ALEMBIC_FORCE_BUILD=true
+    USD_FORCE_BUILD=true
   fi
   if [ "$2" = true ]; then
     OIIO_FORCE_REBUILD=true
     OSL_FORCE_REBUILD=true
     OPENVDB_FORCE_REBUILD=true
     ALEMBIC_FORCE_REBUILD=true
+    USD_FORCE_REBUILD=true
   fi
 }
 
@@ -1610,7 +1628,7 @@ compile_Boost() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  boost_magic=14
+  boost_magic=15
 
   _init_boost
 
@@ -1636,11 +1654,13 @@ compile_Boost() {
       mkdir -p $SRC
       download BOOST_SOURCE[@] $_src.tar.bz2
       tar -C $SRC --transform "s,\w*,boost-$BOOST_VERSION,x" -xf $_src.tar.bz2
+
+      patch -d $_src -p1 < $SCRIPT_DIR/patches/boost.diff
     fi
 
     cd $_src
     if [ ! -f $_src/b2 ]; then
-      if [ -d $INST/python-$PYTHON_VERSION_INSTALLED ]; then
+      if [ -d $_with_built_python ]; then
         ./bootstrap.sh --with-python-root="$INST/python-$PYTHON_VERSION_INSTALLED"
       else
         ./bootstrap.sh
@@ -1835,7 +1855,7 @@ compile_OCIO() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  ocio_magic=3
+  ocio_magic=5
   _init_ocio
 
   # Force having own builds for the dependencies.
@@ -1890,8 +1910,12 @@ compile_OCIO() {
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D OCIO_BUILD_APPS=OFF"
-    cmake_d="$cmake_d -D OCIO_BUILD_PYTHON=OFF"
+    cmake_d="$cmake_d -D OCIO_BUILD_PYTHON=ON"
     cmake_d="$cmake_d -D OCIO_BUILD_GPU_TESTS=OFF"
+
+    if [ "$_with_built_python" = true ]; then
+      cmake_d="$cmake_d -D Python_EXECUTABLE=$_with_built_python_execpath"
+    fi
 
     if [ $(uname -m) == "aarch64" ]; then
       cmake_d="$cmake_d -D OCIO_USE_SSE=OFF"
@@ -2082,11 +2106,13 @@ _update_deps_openexr() {
     OIIO_FORCE_BUILD=true
     OPENVDB_FORCE_BUILD=true
     ALEMBIC_FORCE_BUILD=true
+    USD_FORCE_BUILD=true
   fi
   if [ "$2" = true ]; then
     OIIO_FORCE_REBUILD=true
     OPENVDB_FORCE_REBUILD=true
     ALEMBIC_FORCE_REBUILD=true
+    USD_FORCE_REBUILD=true
   fi
 }
 
@@ -2215,9 +2241,11 @@ _init_oiio() {
 _update_deps_oiio() {
   if [ "$1" = true ]; then
     OSL_FORCE_BUILD=true
+    USD_FORCE_BUILD=true
   fi
   if [ "$2" = true ]; then
     OSL_FORCE_REBUILD=true
+    USD_FORCE_REBUILD=true
   fi
 }
 
@@ -2237,7 +2265,7 @@ compile_OIIO() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=19
+  oiio_magic=20
   _init_oiio
 
   # Force having own builds for the dependencies.
@@ -2291,6 +2319,7 @@ compile_OIIO() {
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
     cmake_d="$cmake_d -D LINKSTATIC=OFF"
+    cmake_d="$cmake_d -D BUILD_SHARED_LIBS=ON"
 
     if [ $(uname -m) != "aarch64" ]; then
       cmake_d="$cmake_d -D USE_SIMD=sse2"
@@ -2306,21 +2335,37 @@ compile_OIIO() {
       cmake_d="$cmake_d -D OpenEXR_ROOT=$INST/openexr"
     fi
 
-    # ptex is only needed when nicholas bishop is ready
-    cmake_d="$cmake_d -D USE_PTEX=OFF"
+    cmake_d="$cmake_d -D USE_PYTHON=ON"
+    if [ "$_with_built_python" = true ]; then
+      cmake_d="$cmake_d -D Python_EXECUTABLE=$_with_built_python_execpath"
+    fi
 
     # Optional tests and cmd tools
     cmake_d="$cmake_d -D USE_QT=OFF"
-    cmake_d="$cmake_d -D USE_PYTHON=OFF"
+    cmake_d="$cmake_d -D USE_QT5=OFF"
+    cmake_d="$cmake_d -D USE_OPENGL=OFF"
+    cmake_d="$cmake_d -D USE_TBB=OFF"
+    cmake_d="$cmake_d -D USE_BZIP2=OFF"
+    cmake_d="$cmake_d -D USE_FREETYPE=OFF"
+    cmake_d="$cmake_d -D USE_OPENCOLORIO=OFF"
+
+    cmake_d="$cmake_d -D USE_WEBP=ON"
+    cmake_d="$cmake_d -D USE_OPENJPEG=ON"
+
     cmake_d="$cmake_d -D USE_FFMPEG=OFF"
     cmake_d="$cmake_d -D USE_OPENCV=OFF"
     cmake_d="$cmake_d -D USE_OPENVDB=OFF"
+    cmake_d="$cmake_d -D USE_NUKE=OFF"
+    cmake_d="$cmake_d -D USE_DCMTK=OFF"
+    cmake_d="$cmake_d -D USE_LIBHEIF=OFF"
+    cmake_d="$cmake_d -D USE_GIF=OFF"
+    cmake_d="$cmake_d -D USE_LIBRAW=OFF"
+    cmake_d="$cmake_d -D USE_LIBSQUISH=OFF"
+
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
     cmake_d="$cmake_d -D OIIO_BUILD_TESTS=OFF"
     cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=ON"
     cmake_d="$cmake_d -D TXT2MAN="
-    #cmake_d="$cmake_d -D CMAKE_EXPORT_COMPILE_COMMANDS=ON"
-    #cmake_d="$cmake_d -D CMAKE_VERBOSE_MAKEFILE=ON"
 
     if [ -d $INST/boost ]; then
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON -D Boost_NO_BOOST_CMAKE=ON"
@@ -2878,7 +2923,12 @@ _init_openvdb() {
 }
 
 _update_deps_openvdb() {
-  :
+  if [ "$1" = true ]; then
+    USD_FORCE_BUILD=true
+  fi
+  if [ "$2" = true ]; then
+    USD_FORCE_REBUILD=true
+  fi
 }
 
 clean_OPENVDB() {
@@ -2900,7 +2950,7 @@ compile_OPENVDB() {
   PRINT ""
 
   # To be changed each time we make edits that would modify the compiled result!
-  openvdb_magic=4
+  openvdb_magic=5
   _init_openvdb
 
   # Force having own builds for the dependencies.
@@ -2949,12 +2999,18 @@ compile_OPENVDB() {
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D USE_STATIC_DEPENDENCIES=OFF"
+    cmake_d="$cmake_d -D OPENVDB_CORE_SHARED=ON"
+    cmake_d="$cmake_d -D OPENVDB_CORE_STATIC=OFF"
     cmake_d="$cmake_d -D OPENVDB_BUILD_BINARIES=OFF"
 
     if [ "$WITH_NANOVDB" = true ]; then
       cmake_d="$cmake_d -D USE_NANOVDB=ON"
+      cmake_d="$cmake_d -D OPENVDB_BUILD_NANOVDB=ON"
+      cmake_d="$cmake_d -D NANOVDB_BUILD_TOOLS=OFF"
     else
       cmake_d="$cmake_d -D USE_NANOVDB=OFF"
+      cmake_d="$cmake_d -D OPENVDB_BUILD_NANOVDB=OFF"
+      cmake_d="$cmake_d -D NANOVDB_BUILD_TOOLS=OFF"
     fi
 
     if [ -d $INST/boost ]; then
@@ -2980,6 +3036,13 @@ compile_OPENVDB() {
 
     if [ -d $INST/blosc ]; then
       cmake_d="$cmake_d -D Blosc_ROOT=$INST/blosc"
+    fi
+
+    cmake_d="$cmake_d -D OPENVDB_BUILD_PYTHON_MODULE=ON"
+    cmake_d="$cmake_d -D OPENVDB_PYTHON_WRAP_ALL_GRID_TYPES=ON"
+    cmake_d="$cmake_d -D USE_NUMPY=ON"
+    if [ "$_with_built_python" = true ]; then
+      cmake_d="$cmake_d -D Python_EXECUTABLE=$_with_built_python_execpath"
     fi
 
     cmake $cmake_d ..
@@ -3147,7 +3210,7 @@ compile_USD() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  usd_magic=1
+  usd_magic=2
   _init_usd
 
   # Force having own builds for the dependencies.
@@ -3181,18 +3244,46 @@ compile_USD() {
     cmake_d="-D CMAKE_INSTALL_PREFIX=$_inst"
     # For the reasoning behind these options, please see usd.cmake.
     if [ -d $INST/boost ]; then
-      cmake_d="$cmake_d $cmake_d -D BOOST_ROOT=$INST/boost"
+      cmake_d="$cmake_d -DBOOST_ROOT=$INST/boost"
     fi
 
     if [ -d $INST/tbb ]; then
-      cmake_d="$cmake_d $cmake_d -D TBB_ROOT_DIR=$INST/tbb"
+      cmake_d="$cmake_d -DTBB_ROOT_DIR=$INST/tbb"
     fi
-    cmake_d="$cmake_d -DPXR_ENABLE_PYTHON_SUPPORT=OFF"
-    cmake_d="$cmake_d -DPXR_BUILD_IMAGING=OFF"
+
+    cmake_d="$cmake_d -DPXR_ENABLE_PYTHON_SUPPORT=ON"
+    cmake_d="$cmake_d -DPXR_USE_PYTHON_3=ON"
+    if [ "$_with_built_python" = true ]; then
+      cmake_d="$cmake_d -D PYTHON_EXECUTABLE=$_with_built_python_execpath"
+    fi
+
+    cmake_d="$cmake_d -DPXR_BUILD_IMAGING=ON"
+    cmake_d="$cmake_d -DPXR_BUILD_OPENIMAGEIO_PLUGIN=ON"
+    if [ -d $INST/openexr ]; then
+      cmake_d="$cmake_d -DOPENEXR_LOCATION=$INST/openexr"
+    fi
+    if [ -d $INST/oiio ]; then
+      cmake_d="$cmake_d -DOpenImageIO_ROOT=$INST/oiio"
+    fi
+
+    cmake_d="$cmake_d -DPXR_ENABLE_OPENVDB_SUPPORT=ON"
+    if [ -d $INST/openvdb ]; then
+      cmake_d="$cmake_d -DOPENVDB_LOCATION=$INST/openvdb"
+    fi
+
+    cmake_d="$cmake_d -DPXR_ENABLE_GL_SUPPORT=ON"
+
     cmake_d="$cmake_d -DPXR_BUILD_TESTS=OFF"
-    cmake_d="$cmake_d -DBUILD_SHARED_LIBS=ON"
-    cmake_d="$cmake_d -DPXR_BUILD_MONOLITHIC=ON"
+    cmake_d="$cmake_d -DPXR_BUILD_EXAMPLES=OFF"
+    cmake_d="$cmake_d -DPXR_BUILD_TUTORIALS=OFF"
+
     cmake_d="$cmake_d -DPXR_BUILD_USD_TOOLS=OFF"
+    cmake_d="$cmake_d -DPXR_ENABLE_HDF5_SUPPORT=OFF"
+    cmake_d="$cmake_d -DPXR_ENABLE_MATERIALX_SUPPORT=OFF"
+    cmake_d="$cmake_d -DPXR_BUILD_USDVIEW=OFF"
+
+    cmake_d="$cmake_d -DPXR_BUILD_MONOLITHIC=ON"
+    cmake_d="$cmake_d -DBUILD_SHARED_LIBS=ON"
     cmake_d="$cmake_d -DCMAKE_DEBUG_POSTFIX=_d"
 
     cmake $cmake_d ./
@@ -4206,7 +4297,7 @@ install_DEB() {
              libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
              libwayland-dev libdecor-0-dev wayland-protocols libegl-dev libxkbcommon-dev libdbus-1-dev linux-libc-dev \
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev \
-             libopenal-dev libepoxy-dev yasm \
+             libopenal-dev libepoxy-dev yasm pybind11-dev \
              libsdl2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev \
              libgmp-dev libpugixml-dev libpotrace-dev libhpdf-dev libzstd-dev libpystring-dev \
              libglfw3-dev"
@@ -4393,7 +4484,7 @@ install_DEB() {
 
       boost_version=$(echo `get_package_version_DEB libboost-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
 
-      install_packages_DEB libboost-{filesystem,iostreams,locale,regex,system,thread,wave,program-options}$boost_version-dev
+      install_packages_DEB ${BOOST_DEB_PACKAGE_MODULES[@]/%/$boost_version-dev}
       clean_Boost
     else
       compile_Boost
@@ -4929,7 +5020,7 @@ install_RPM() {
              libX11-devel libXi-devel libXcursor-devel libXrandr-devel libXinerama-devel \
              wayland-devel libdecor-devel wayland-protocols-devel mesa-libEGL-devel libxkbcommon-devel dbus-devel kernel-headers \
              wget ncurses-devel readline-devel $OPENJPEG_DEV openal-soft-devel \
-             libepoxy-devel yasm patch \
+             libepoxy-devel yasm patch pybind11-devel \
              libxml2-devel yaml-cpp-devel tinyxml-devel jemalloc-devel \
              gmp-devel pugixml-devel potrace-devel libharu-devel libzstd-devel pystring-devel"
 
@@ -5582,7 +5673,7 @@ install_ARCH() {
 
   _packages="$BASE_DEVEL git cmake fontconfig flex \
              libxi libxcursor libxrandr libxinerama libepoxy libdecor libpng libtiff wget openal \
-             $OPENJPEG_DEV yasm sdl2 fftw \
+             $OPENJPEG_DEV yasm sdl2 fftw pybind11 \
              libxml2 yaml-cpp tinyxml python-requests jemalloc gmp potrace pugixml libharu \
              zstd pystring"
 
