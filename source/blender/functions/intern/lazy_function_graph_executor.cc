@@ -1073,6 +1073,12 @@ class Executor {
 
   bool try_enable_multi_threading()
   {
+#ifndef WITH_TBB
+    /* The non-tbb task pool has the property that it immediately executes tasks under some
+     * circumstances. This is not supported here because tasks might be scheduled while another
+     * node is in the middle of being executed on the same thread. */
+    return false;
+#endif
     if (this->use_multi_threading()) {
       return true;
     }
