@@ -207,6 +207,11 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
     dst_runtime.field_inferencing_interface = std::make_unique<FieldInferencingInterface>(
         *ntree_src->runtime->field_inferencing_interface);
   }
+  if (ntree_src->runtime->anonymous_attribute_relations) {
+    dst_runtime.anonymous_attribute_relations =
+        std::make_unique<blender::nodes::anonymous_attribute_lifetime::RelationsInNode>(
+            *ntree_src->runtime->anonymous_attribute_relations);
+  }
 
   if (flag & LIB_ID_COPY_NO_PREVIEW) {
     ntree_dst->preview = nullptr;

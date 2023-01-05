@@ -320,8 +320,8 @@ BLI_NOINLINE static void propagate_existing_attributes(
 
 namespace {
 struct AttributeOutputs {
-  StrongAnonymousAttributeID normal_id;
-  StrongAnonymousAttributeID rotation_id;
+  AutoAnonymousAttributeID normal_id;
+  AutoAnonymousAttributeID rotation_id;
 };
 }  // namespace
 
@@ -496,8 +496,11 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
   geometry_set.replace_pointcloud(pointcloud);
 
   Map<AttributeIDRef, AttributeKind> attributes;
-  geometry_set.gather_attributes_for_propagation(
-      {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_POINT_CLOUD, false, attributes);
+  geometry_set.gather_attributes_for_propagation({GEO_COMPONENT_TYPE_MESH},
+                                                 GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                                 false,
+                                                 params.get_output_propagation_info("Points"),
+                                                 attributes);
 
   /* Position is set separately. */
   attributes.remove("position");
@@ -518,12 +521,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
   AttributeOutputs attribute_outputs;
-  if (params.output_is_required("Normal")) {
-    attribute_outputs.normal_id = StrongAnonymousAttributeID("Normal");
-  }
-  if (params.output_is_required("Rotation")) {
-    attribute_outputs.rotation_id = StrongAnonymousAttributeID("Rotation");
-  }
+  attribute_outputs.normal_id = params.get_output_anonymous_attribute_id_if_needed("Normal");
+  attribute_outputs.rotation_id = params.get_output_anonymous_attribute_id_if_needed("Rotation");
 
   lazy_threading::send_hint();
 

@@ -19,7 +19,7 @@
 #include "BLI_user_counter.hh"
 #include "BLI_vector_set.hh"
 
-#include "BKE_anonymous_attribute.hh"
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_geometry_set.h"
 
@@ -213,6 +213,7 @@ struct GeometrySet {
       blender::Span<GeometryComponentType> component_types,
       GeometryComponentType dst_component_type,
       bool include_instances,
+      const blender::bke::AnonymousAttributePropagationInfo &propagation_info,
       blender::Map<blender::bke::AttributeIDRef, blender::bke::AttributeKind> &r_attributes) const;
 
   blender::Vector<GeometryComponentType> gather_component_types(bool include_instances,

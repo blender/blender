@@ -404,8 +404,10 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   void calculate_bezier_auto_handles();
 
-  void remove_points(IndexMask points_to_delete);
-  void remove_curves(IndexMask curves_to_delete);
+  void remove_points(IndexMask points_to_delete,
+                     const AnonymousAttributePropagationInfo &propagation_info = {});
+  void remove_curves(IndexMask curves_to_delete,
+                     const AnonymousAttributePropagationInfo &propagation_info = {});
 
   /**
    * Change the direction of selected curves (switch the start and end) without changing their

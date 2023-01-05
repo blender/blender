@@ -33,7 +33,8 @@ static void node_geo_exec(GeoNodeExecParams params)
         return;
       }
 
-      geometry::split_edges(*geometry_set.get_mesh_for_write(), mask);
+      geometry::split_edges(
+          *geometry_set.get_mesh_for_write(), mask, params.get_output_propagation_info("Mesh"));
     }
   });
 

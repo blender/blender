@@ -7,6 +7,7 @@
 
 #include "BLI_cache_mutex.hh"
 #include "BLI_multi_value_map.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
@@ -24,6 +25,10 @@ namespace blender::nodes {
 struct FieldInferencingInterface;
 class NodeDeclaration;
 struct GeometryNodesLazyFunctionGraphInfo;
+namespace anonymous_attribute_lifetime {
+struct RelationsInNode;
+}
+namespace aal = anonymous_attribute_lifetime;
 }  // namespace blender::nodes
 
 namespace blender {
@@ -106,6 +111,8 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
 
   /** Information about how inputs and outputs of the node group interact with fields. */
   std::unique_ptr<nodes::FieldInferencingInterface> field_inferencing_interface;
+  /** Information about usage of anonymous attributes within the group. */
+  std::unique_ptr<nodes::aal::RelationsInNode> anonymous_attribute_relations;
 
   /**
    * For geometry nodes, a lazy function graph with some additional info is cached. This is used to
@@ -330,7 +337,11 @@ inline bool topology_cache_is_available(const bNodeSocket &socket)
 namespace node_field_inferencing {
 bool update_field_inferencing(const bNodeTree &tree);
 }
-
+namespace anonymous_attribute_inferencing {
+Array<const nodes::aal::RelationsInNode *> get_relations_by_node(const bNodeTree &tree,
+                                                                 ResourceScope &scope);
+bool update_anonymous_attribute_relations(bNodeTree &tree);
+}  // namespace anonymous_attribute_inferencing
 }  // namespace blender::bke
 
 /* -------------------------------------------------------------------- */

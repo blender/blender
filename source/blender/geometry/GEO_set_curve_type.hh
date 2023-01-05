@@ -27,6 +27,7 @@ bool try_curves_conversion_in_place(IndexMask selection,
  */
 bke::CurvesGeometry convert_curves(const bke::CurvesGeometry &src_curves,
                                    IndexMask selection,
-                                   CurveType dst_type);
+                                   CurveType dst_type,
+                                   const bke::AnonymousAttributePropagationInfo &propagation_info);
 
 }  // namespace blender::geometry

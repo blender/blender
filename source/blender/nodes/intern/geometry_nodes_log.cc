@@ -70,7 +70,7 @@ GeometryInfoLog::GeometryInfoLog(const GeometrySet &geometry_set)
       [&](const bke::AttributeIDRef &attribute_id,
           const bke::AttributeMetaData &meta_data,
           const GeometryComponent & /*component*/) {
-        if (attribute_id.is_named() && names.add(attribute_id.name())) {
+        if (!attribute_id.is_anonymous() && names.add(attribute_id.name())) {
           this->attributes.append({attribute_id.name(), meta_data.domain, meta_data.data_type});
         }
       });

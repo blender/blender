@@ -49,7 +49,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
 
     bke::CurvesGeometry dst_curves = geometry::subdivide_curves(
-        src_curves, src_curves.curves_range(), cuts);
+        src_curves, src_curves.curves_range(), cuts, params.get_output_propagation_info("Curve"));
 
     Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
     bke::curves_copy_parameters(src_curves_id, *dst_curves_id);

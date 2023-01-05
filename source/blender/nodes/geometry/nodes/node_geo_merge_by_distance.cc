@@ -38,9 +38,11 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = data;
 }
 
-static PointCloud *pointcloud_merge_by_distance(const PointCloud &src_points,
-                                                const float merge_distance,
-                                                const Field<bool> &selection_field)
+static PointCloud *pointcloud_merge_by_distance(
+    const PointCloud &src_points,
+    const float merge_distance,
+    const Field<bool> &selection_field,
+    const AnonymousAttributePropagationInfo &propagation_info)
 {
   bke::PointCloudFieldContext context{src_points};
   FieldEvaluator evaluator{context, src_points.totpoint};
@@ -52,7 +54,8 @@ static PointCloud *pointcloud_merge_by_distance(const PointCloud &src_points,
     return nullptr;
   }
 
-  return geometry::point_merge_by_distance(src_points, merge_distance, selection);
+  return geometry::point_merge_by_distance(
+      src_points, merge_distance, selection, propagation_info);
 }
 
 static std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
@@ -97,7 +100,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (const PointCloud *pointcloud = geometry_set.get_pointcloud_for_read()) {
-      PointCloud *result = pointcloud_merge_by_distance(*pointcloud, merge_distance, selection);
+      PointCloud *result = pointcloud_merge_by_distance(
+          *pointcloud, merge_distance, selection, params.get_output_propagation_info("Geometry"));
       if (result) {
         geometry_set.replace_pointcloud(result);
       }

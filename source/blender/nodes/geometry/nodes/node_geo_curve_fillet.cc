@@ -67,6 +67,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     count_field.emplace(params.extract_input<Field<int>>("Count"));
   }
 
+  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
+      "Curve");
+
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (!geometry_set.has_curves()) {
       return;
@@ -82,7 +85,11 @@ static void node_geo_exec(GeoNodeExecParams params)
       case GEO_NODE_CURVE_FILLET_BEZIER: {
         evaluator.evaluate();
         bke::CurvesGeometry dst_curves = geometry::fillet_curves_bezier(
-            curves, curves.curves_range(), evaluator.get_evaluated<float>(0), limit_radius);
+            curves,
+            curves.curves_range(),
+            evaluator.get_evaluated<float>(0),
+            limit_radius,
+            propagation_info);
         Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
         bke::curves_copy_parameters(curves_id, *dst_curves_id);
         geometry_set.replace_curves(dst_curves_id);
@@ -96,7 +103,8 @@ static void node_geo_exec(GeoNodeExecParams params)
             curves.curves_range(),
             evaluator.get_evaluated<float>(0),
             evaluator.get_evaluated<int>(1),
-            limit_radius);
+            limit_radius,
+            propagation_info);
         Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
         bke::curves_copy_parameters(curves_id, *dst_curves_id);
         geometry_set.replace_curves(dst_curves_id);

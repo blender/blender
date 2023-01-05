@@ -79,6 +79,28 @@ struct GeoNodesLFUserData : public lf::UserData {
 };
 
 /**
+ * In the general case, this is #DynamicSocket. That means that to determine if a node group will
+ * use a particular input, it has to be partially executed.
+ *
+ * In other cases, it's not necessary to look into the node group to determine if an input is
+ * necessary.
+ */
+enum class InputUsageHintType {
+  /** The input socket is never used. */
+  Never,
+  /** The input socket is used when a subset of the outputs is used. */
+  DependsOnOutput,
+  /** Can't determine statically if the input is used, check the corresponding output socket. */
+  DynamicSocket,
+};
+
+struct InputUsageHint {
+  InputUsageHintType type = InputUsageHintType::DependsOnOutput;
+  /** Used in depends-on-output mode. */
+  Vector<int> output_dependencies;
+};
+
+/**
  * Contains the mapping between the #bNodeTree and the corresponding lazy-function graph.
  * This is *not* a one-to-one mapping.
  */
@@ -91,7 +113,32 @@ struct GeometryNodeLazyFunctionGraphMapping {
    * The inputs sockets in the graph. Multiple group input nodes are combined into one in the
    * lazy-function graph.
    */
-  Vector<lf::OutputSocket *> group_input_sockets;
+  Vector<const lf::OutputSocket *> group_input_sockets;
+  /**
+   * Dummy output sockets that correspond to the active group output node. If there is no such
+   * node, defaulted fallback outputs are created.
+   */
+  Vector<const lf::InputSocket *> standard_group_output_sockets;
+  /**
+   * Dummy boolean sockets that have to be passed in from the outside and indicate whether a
+   * specific output will be used.
+   */
+  Vector<const lf::OutputSocket *> group_output_used_sockets;
+  /**
+   * Dummy boolean sockets that can be used as group output that indicate whether a specific input
+   * will be used (this may depend on the used outputs as well as other inputs).
+   */
+  Vector<const lf::InputSocket *> group_input_usage_sockets;
+  /**
+   * This is an optimization to avoid partially evaluating a node group just to figure out which
+   * inputs are needed.
+   */
+  Vector<InputUsageHint> group_input_usage_hints;
+  /**
+   * If the node group propagates attributes from an input geometry to the output, it has to know
+   * which attributes should be propagated and which can be removed (for optimization purposes).
+   */
+  Map<int, const lf::OutputSocket *> attribute_set_by_geometry_output;
   /**
    * A mapping used for logging intermediate values.
    */

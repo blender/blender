@@ -473,6 +473,9 @@ class NodeTreeMainUpdater {
       if (node_field_inferencing::update_field_inferencing(ntree)) {
         result.interface_changed = true;
       }
+      if (anonymous_attribute_inferencing::update_anonymous_attribute_relations(ntree)) {
+        result.interface_changed = true;
+      }
     }
 
     result.output_changed = this->check_if_output_changed(ntree);

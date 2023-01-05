@@ -39,7 +39,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_anonymous_attribute.h"
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_customdata.h"
 #include "BKE_customdata_file.h"
 #include "BKE_deform.h"
@@ -2356,7 +2356,7 @@ bool CustomData_merge(const CustomData *source,
           layer->anonymous_id = nullptr;
         }
         else {
-          BKE_anonymous_attribute_id_increment_weak(layer->anonymous_id);
+          layer->anonymous_id->user_add();
         }
       }
       if (alloctype == CD_ASSIGN) {
@@ -2460,7 +2460,7 @@ static void customData_free_layer__internal(CustomDataLayer *layer, const int to
   const LayerTypeInfo *typeInfo;
 
   if (layer->anonymous_id != nullptr) {
-    BKE_anonymous_attribute_id_decrement_weak(layer->anonymous_id);
+    layer->anonymous_id->user_remove();
     layer->anonymous_id = nullptr;
   }
   if (!(layer->flag & CD_FLAG_NOFREE) && layer->data) {
@@ -2957,9 +2957,9 @@ void *CustomData_add_layer_anonymous(CustomData *data,
                                      const eCDAllocType alloctype,
                                      void *layerdata,
                                      const int totelem,
-                                     const AnonymousAttributeID *anonymous_id)
+                                     const AnonymousAttributeIDHandle *anonymous_id)
 {
-  const char *name = BKE_anonymous_attribute_id_internal_name(anonymous_id);
+  const char *name = anonymous_id->name().c_str();
   CustomDataLayer *layer = customData_add_layer__internal(
       data, type, alloctype, layerdata, totelem, name);
   CustomData_update_typemap(data);
@@ -2968,7 +2968,7 @@ void *CustomData_add_layer_anonymous(CustomData *data,
     return nullptr;
   }
 
-  BKE_anonymous_attribute_id_increment_weak(anonymous_id);
+  anonymous_id->user_add();
   layer->anonymous_id = anonymous_id;
   return layer->data;
 }
@@ -3145,20 +3145,6 @@ void *CustomData_duplicate_referenced_layer_named(CustomData *data,
   int layer_index = CustomData_get_named_layer_index(data, type, name);
 
   return customData_duplicate_referenced_layer_index(data, layer_index, totelem);
-}
-
-void *CustomData_duplicate_referenced_layer_anonymous(CustomData *data,
-                                                      const int /*type*/,
-                                                      const AnonymousAttributeID *anonymous_id,
-                                                      const int totelem)
-{
-  for (int i = 0; i < data->totlayer; i++) {
-    if (data->layers[i].anonymous_id == anonymous_id) {
-      return customData_duplicate_referenced_layer_index(data, i, totelem);
-    }
-  }
-  BLI_assert_unreachable();
-  return nullptr;
 }
 
 void CustomData_duplicate_referenced_layers(CustomData *data, const int totelem)

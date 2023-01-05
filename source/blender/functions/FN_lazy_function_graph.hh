@@ -53,6 +53,10 @@ class Socket : NonCopyable, NonMovable {
    * Index of the socket. E.g. 0 for the first input and the first output socket.
    */
   int index_in_node_;
+  /**
+   * Index of the socket in the entire graph. Every socket has a different index.
+   */
+  int index_in_graph_;
 
   friend Graph;
 
@@ -61,6 +65,7 @@ class Socket : NonCopyable, NonMovable {
   bool is_output() const;
 
   int index() const;
+  int index_in_graph() const;
 
   InputSocket &as_input();
   OutputSocket &as_output();
@@ -180,6 +185,20 @@ class DummyDebugInfo {
 };
 
 /**
+ * Just stores a string per socket in a dummy node.
+ */
+class SimpleDummyDebugInfo : public DummyDebugInfo {
+ public:
+  std::string name;
+  Vector<std::string> input_names;
+  Vector<std::string> output_names;
+
+  std::string node_name() const override;
+  std::string input_name(const int i) const override;
+  std::string output_name(const int i) const override;
+};
+
+/**
  * A #Node that does *not* correspond to a #LazyFunction. Instead it can be used to indicate inputs
  * and outputs of the entire graph. It can have an arbitrary number of inputs and outputs.
  */
@@ -205,6 +224,11 @@ class Graph : NonCopyable, NonMovable {
    * Contains all nodes in the graph so that it is efficient to iterate over them.
    */
   Vector<Node *> nodes_;
+  /**
+   * Number of sockets in the graph. Can be used as array size when indexing using
+   * `Socket::index_in_graph`.
+   */
+  int socket_num_ = 0;
 
  public:
   ~Graph();
@@ -213,6 +237,7 @@ class Graph : NonCopyable, NonMovable {
    * Get all nodes in the graph. The index in the span corresponds to #Node::index_in_graph.
    */
   Span<const Node *> nodes() const;
+  Span<Node *> nodes();
 
   /**
    * Add a new function node with sockets that match the passed in #LazyFunction.
@@ -233,9 +258,23 @@ class Graph : NonCopyable, NonMovable {
   void add_link(OutputSocket &from, InputSocket &to);
 
   /**
+   * If the socket is linked, remove the link.
+   */
+  void clear_origin(InputSocket &socket);
+
+  /**
    * Make sure that #Node::index_in_graph is up to date.
    */
   void update_node_indices();
+  /**
+   * Make sure that #Socket::index_in_graph is up to date.
+   */
+  void update_socket_indices();
+
+  /**
+   * Number of sockets in the graph.
+   */
+  int socket_num() const;
 
   /**
    * Can be used to assert that #update_node_indices has been called.
@@ -278,6 +317,11 @@ inline bool Socket::is_output() const
 inline int Socket::index() const
 {
   return index_in_node_;
+}
+
+inline int Socket::index_in_graph() const
+{
+  return index_in_graph_;
 }
 
 inline InputSocket &Socket::as_input()
@@ -443,6 +487,16 @@ inline const LazyFunction &FunctionNode::function() const
 inline Span<const Node *> Graph::nodes() const
 {
   return nodes_;
+}
+
+inline Span<Node *> Graph::nodes()
+{
+  return nodes_;
+}
+
+inline int Graph::socket_num() const
+{
+  return socket_num_;
 }
 
 /** \} */

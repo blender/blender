@@ -372,7 +372,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   Set<std::string> attributes_to_skip{{"position", "curve_type", "surface_uv_coordinate"}};
   attributes.for_all(
       [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
-        if (id.is_named() && attributes_to_skip.contains(id.name())) {
+        if (attributes_to_skip.contains(id.name())) {
           return true;
         }
         bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);

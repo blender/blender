@@ -50,10 +50,10 @@ Mesh *create_grid_mesh(
     int verts_x, int verts_y, float size_x, float size_y, const AttributeIDRef &uv_map_id);
 
 struct ConeAttributeOutputs {
-  StrongAnonymousAttributeID top_id;
-  StrongAnonymousAttributeID bottom_id;
-  StrongAnonymousAttributeID side_id;
-  StrongAnonymousAttributeID uv_map_id;
+  AutoAnonymousAttributeID top_id;
+  AutoAnonymousAttributeID bottom_id;
+  AutoAnonymousAttributeID side_id;
+  AutoAnonymousAttributeID uv_map_id;
 };
 
 Mesh *create_cylinder_or_cone_mesh(float radius_top,
@@ -81,6 +81,7 @@ void separate_geometry(GeometrySet &geometry_set,
                        eAttrDomain domain,
                        GeometryNodeDeleteGeometryMode mode,
                        const Field<bool> &selection_field,
+                       const AnonymousAttributePropagationInfo &propagation_info,
                        bool &r_is_error);
 
 void get_closest_in_bvhtree(BVHTreeFromMesh &tree_data,

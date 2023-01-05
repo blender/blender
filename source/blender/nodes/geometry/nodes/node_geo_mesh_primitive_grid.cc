@@ -194,10 +194,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  StrongAnonymousAttributeID uv_map_id;
-  if (params.output_is_required("UV Map")) {
-    uv_map_id = StrongAnonymousAttributeID("uv_map");
-  }
+  AutoAnonymousAttributeID uv_map_id = params.get_output_anonymous_attribute_id_if_needed(
+      "UV Map");
 
   Mesh *mesh = create_grid_mesh(verts_x, verts_y, size_x, size_y, uv_map_id.get());
   BKE_id_material_eval_ensure_default_slot(&mesh->id);

@@ -112,7 +112,8 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
                                     const GeometryNodeCurveSampleMode mode,
                                     Field<bool> &selection_field,
                                     Field<float> &start_field,
-                                    Field<float> &end_field)
+                                    Field<float> &end_field,
+                                    const AnonymousAttributePropagationInfo &propagation_info)
 {
   if (!geometry_set.has_curves()) {
     return;
@@ -139,7 +140,7 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
   }
 
   bke::CurvesGeometry dst_curves = geometry::trim_curves(
-      src_curves, selection, starts, ends, mode);
+      src_curves, selection, starts, ends, mode, propagation_info);
   Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
   bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
   geometry_set.replace_curves(dst_curves_id);
@@ -153,19 +154,24 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
 
+  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
+      "Curve");
+
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   if (mode == GEO_NODE_CURVE_SAMPLE_FACTOR) {
     Field<float> start_field = params.extract_input<Field<float>>("Start");
     Field<float> end_field = params.extract_input<Field<float>>("End");
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-      geometry_set_curve_trim(geometry_set, mode, selection_field, start_field, end_field);
+      geometry_set_curve_trim(
+          geometry_set, mode, selection_field, start_field, end_field, propagation_info);
     });
   }
   else if (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
     Field<float> start_field = params.extract_input<Field<float>>("Start_001");
     Field<float> end_field = params.extract_input<Field<float>>("End_001");
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-      geometry_set_curve_trim(geometry_set, mode, selection_field, start_field, end_field);
+      geometry_set_curve_trim(
+          geometry_set, mode, selection_field, start_field, end_field, propagation_info);
     });
   }
 

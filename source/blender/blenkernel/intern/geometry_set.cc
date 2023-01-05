@@ -581,6 +581,7 @@ void GeometrySet::gather_attributes_for_propagation(
     const Span<GeometryComponentType> component_types,
     const GeometryComponentType dst_component_type,
     bool include_instances,
+    const blender::bke::AnonymousAttributePropagationInfo &propagation_info,
     blender::Map<blender::bke::AttributeIDRef, blender::bke::AttributeKind> &r_attributes) const
 {
   using namespace blender;
@@ -605,7 +606,8 @@ void GeometrySet::gather_attributes_for_propagation(
           /* Propagating string attributes is not supported yet. */
           return;
         }
-        if (!attribute_id.should_be_kept()) {
+        if (attribute_id.is_anonymous() &&
+            !propagation_info.propagate(attribute_id.anonymous_id())) {
           return;
         }
 

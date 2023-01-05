@@ -37,6 +37,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry::RealizeInstancesOptions options;
   options.keep_original_ids = legacy_behavior;
   options.realize_instance_attributes = !legacy_behavior;
+  options.propagation_info = params.get_output_propagation_info("Geometry");
   geometry_set = geometry::realize_instances(geometry_set, options);
   params.set_output("Geometry", std::move(geometry_set));
 }

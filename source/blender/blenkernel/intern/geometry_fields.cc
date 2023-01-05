@@ -332,7 +332,7 @@ GVArray AnonymousAttributeFieldInput::get_varray_for_context(const GeometryField
                                                              const IndexMask /*mask*/) const
 {
   const eCustomDataType data_type = cpp_type_to_custom_data_type(*type_);
-  return context.attributes()->lookup(anonymous_id_.get(), context.domain(), data_type);
+  return context.attributes()->lookup(*anonymous_id_, context.domain(), data_type);
 }
 
 std::string AnonymousAttributeFieldInput::socket_inspection_name() const
@@ -363,8 +363,7 @@ std::optional<eAttrDomain> AnonymousAttributeFieldInput::preferred_domain(
   if (!attributes.has_value()) {
     return std::nullopt;
   }
-  const std::optional<AttributeMetaData> meta_data = attributes->lookup_meta_data(
-      anonymous_id_.get());
+  const std::optional<AttributeMetaData> meta_data = attributes->lookup_meta_data(*anonymous_id_);
   if (!meta_data.has_value()) {
     return std::nullopt;
   }

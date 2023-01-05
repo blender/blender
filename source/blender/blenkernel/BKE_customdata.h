@@ -23,7 +23,6 @@
 extern "C" {
 #endif
 
-struct AnonymousAttributeID;
 struct BMesh;
 struct BlendDataReader;
 struct BlendWriter;
@@ -227,7 +226,7 @@ void *CustomData_add_layer_anonymous(struct CustomData *data,
                                      eCDAllocType alloctype,
                                      void *layer,
                                      int totelem,
-                                     const struct AnonymousAttributeID *anonymous_id);
+                                     const AnonymousAttributeIDHandle *anonymous_id);
 
 /**
  * Frees the active or first data layer with the give type.
@@ -275,8 +274,6 @@ void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
                                                   int type,
                                                   const char *name,
                                                   int totelem);
-void *CustomData_duplicate_referenced_layer_anonymous(
-    CustomData *data, int type, const struct AnonymousAttributeID *anonymous_id, int totelem);
 bool CustomData_is_referenced_layer(struct CustomData *data, int type);
 
 /**

@@ -336,7 +336,7 @@ namespace attribute_accessor_functions {
 template<const ComponentAttributeProviders &providers>
 inline bool is_builtin(const void * /*owner*/, const AttributeIDRef &attribute_id)
 {
-  if (!attribute_id.is_named()) {
+  if (attribute_id.is_anonymous()) {
     return false;
   }
   const StringRef name = attribute_id.name();
@@ -346,7 +346,7 @@ inline bool is_builtin(const void * /*owner*/, const AttributeIDRef &attribute_i
 template<const ComponentAttributeProviders &providers>
 inline GAttributeReader lookup(const void *owner, const AttributeIDRef &attribute_id)
 {
-  if (attribute_id.is_named()) {
+  if (!attribute_id.is_anonymous()) {
     const StringRef name = attribute_id.name();
     if (const BuiltinAttributeProvider *provider =
             providers.builtin_attribute_providers().lookup_default_as(name, nullptr)) {
@@ -396,7 +396,7 @@ template<const ComponentAttributeProviders &providers>
 inline AttributeValidator lookup_validator(const void * /*owner*/,
                                            const blender::bke::AttributeIDRef &attribute_id)
 {
-  if (!attribute_id.is_named()) {
+  if (attribute_id.is_anonymous()) {
     return {};
   }
   const BuiltinAttributeProvider *provider =
@@ -443,7 +443,7 @@ inline std::optional<AttributeMetaData> lookup_meta_data(const void *owner,
 template<const ComponentAttributeProviders &providers>
 inline GAttributeWriter lookup_for_write(void *owner, const AttributeIDRef &attribute_id)
 {
-  if (attribute_id.is_named()) {
+  if (!attribute_id.is_anonymous()) {
     const StringRef name = attribute_id.name();
     if (const BuiltinAttributeProvider *provider =
             providers.builtin_attribute_providers().lookup_default_as(name, nullptr)) {
@@ -462,7 +462,7 @@ inline GAttributeWriter lookup_for_write(void *owner, const AttributeIDRef &attr
 template<const ComponentAttributeProviders &providers>
 inline bool remove(void *owner, const AttributeIDRef &attribute_id)
 {
-  if (attribute_id.is_named()) {
+  if (!attribute_id.is_anonymous()) {
     const StringRef name = attribute_id.name();
     if (const BuiltinAttributeProvider *provider =
             providers.builtin_attribute_providers().lookup_default_as(name, nullptr)) {
@@ -487,7 +487,7 @@ inline bool add(void *owner,
   if (contains<providers>(owner, attribute_id)) {
     return false;
   }
-  if (attribute_id.is_named()) {
+  if (!attribute_id.is_anonymous()) {
     const StringRef name = attribute_id.name();
     if (const BuiltinAttributeProvider *provider =
             providers.builtin_attribute_providers().lookup_default_as(name, nullptr)) {

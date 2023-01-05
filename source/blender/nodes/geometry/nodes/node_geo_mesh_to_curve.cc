@@ -36,7 +36,8 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    bke::CurvesGeometry curves = geometry::mesh_to_curve_convert(*mesh, selection);
+    bke::CurvesGeometry curves = geometry::mesh_to_curve_convert(
+        *mesh, selection, params.get_output_propagation_info("Curve"));
     geometry_set.replace_curves(bke::curves_new_nomain(std::move(curves)));
     geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_CURVE});
   });

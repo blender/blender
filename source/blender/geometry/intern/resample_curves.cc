@@ -53,7 +53,7 @@ static fn::Field<int> get_count_input_from_length(const fn::Field<float> &length
 static bool interpolate_attribute_to_curves(const bke::AttributeIDRef &attribute_id,
                                             const std::array<int, CURVE_TYPES_NUM> &type_counts)
 {
-  if (!attribute_id.is_named()) {
+  if (attribute_id.is_anonymous()) {
     return true;
   }
   if (ELEM(attribute_id.name(),
@@ -81,7 +81,7 @@ static bool interpolate_attribute_to_poly_curve(const bke::AttributeIDRef &attri
       "handle_left",
       "nurbs_weight",
   }};
-  return !(attribute_id.is_named() && no_interpolation.contains(attribute_id.name()));
+  return !no_interpolation.contains(attribute_id.name());
 }
 
 /**

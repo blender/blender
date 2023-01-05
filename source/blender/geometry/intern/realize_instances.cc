@@ -636,8 +636,11 @@ static OrderedAttributes gather_generic_pointcloud_attributes_to_propagate(
   }
 
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
-  in_geometry_set.gather_attributes_for_propagation(
-      src_component_types, GEO_COMPONENT_TYPE_POINT_CLOUD, true, attributes_to_propagate);
+  in_geometry_set.gather_attributes_for_propagation(src_component_types,
+                                                    GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                                    true,
+                                                    options.propagation_info,
+                                                    attributes_to_propagate);
   attributes_to_propagate.remove("position");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
   r_create_radii = attributes_to_propagate.pop_try("radius").has_value();
@@ -829,8 +832,11 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
   }
 
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
-  in_geometry_set.gather_attributes_for_propagation(
-      src_component_types, GEO_COMPONENT_TYPE_MESH, true, attributes_to_propagate);
+  in_geometry_set.gather_attributes_for_propagation(src_component_types,
+                                                    GEO_COMPONENT_TYPE_MESH,
+                                                    true,
+                                                    options.propagation_info,
+                                                    attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("normal");
   attributes_to_propagate.remove("shade_smooth");
@@ -1149,8 +1155,11 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
   }
 
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
-  in_geometry_set.gather_attributes_for_propagation(
-      src_component_types, GEO_COMPONENT_TYPE_CURVE, true, attributes_to_propagate);
+  in_geometry_set.gather_attributes_for_propagation(src_component_types,
+                                                    GEO_COMPONENT_TYPE_CURVE,
+                                                    true,
+                                                    options.propagation_info,
+                                                    attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("radius");
   attributes_to_propagate.remove("resolution");

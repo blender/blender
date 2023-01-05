@@ -306,7 +306,8 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
 
 static void delete_curves_selection(GeometrySet &geometry_set,
                                     const Field<bool> &selection_field,
-                                    const eAttrDomain selection_domain)
+                                    const eAttrDomain selection_domain,
+                                    const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const Curves &src_curves_id = *geometry_set.get_curves_for_read();
   const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
@@ -330,15 +331,17 @@ static void delete_curves_selection(GeometrySet &geometry_set,
   bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
 
   if (selection_domain == ATTR_DOMAIN_POINT) {
-    curves.remove_points(selection);
+    curves.remove_points(selection, propagation_info);
   }
   else if (selection_domain == ATTR_DOMAIN_CURVE) {
-    curves.remove_curves(selection);
+    curves.remove_curves(selection, propagation_info);
   }
 }
 
-static void separate_point_cloud_selection(GeometrySet &geometry_set,
-                                           const Field<bool> &selection_field)
+static void separate_point_cloud_selection(
+    GeometrySet &geometry_set,
+    const Field<bool> &selection_field,
+    const AnonymousAttributePropagationInfo &propagation_info)
 {
   const PointCloud &src_pointcloud = *geometry_set.get_pointcloud_for_read();
 
@@ -355,8 +358,11 @@ static void separate_point_cloud_selection(GeometrySet &geometry_set,
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
 
   Map<AttributeIDRef, AttributeKind> attributes;
-  geometry_set.gather_attributes_for_propagation(
-      {GEO_COMPONENT_TYPE_POINT_CLOUD}, GEO_COMPONENT_TYPE_POINT_CLOUD, false, attributes);
+  geometry_set.gather_attributes_for_propagation({GEO_COMPONENT_TYPE_POINT_CLOUD},
+                                                 GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                                 false,
+                                                 propagation_info,
+                                                 attributes);
 
   copy_attributes_based_on_mask(attributes,
                                 src_pointcloud.attributes(),
@@ -367,7 +373,8 @@ static void separate_point_cloud_selection(GeometrySet &geometry_set,
 }
 
 static void delete_selected_instances(GeometrySet &geometry_set,
-                                      const Field<bool> &selection_field)
+                                      const Field<bool> &selection_field,
+                                      const AnonymousAttributePropagationInfo &propagation_info)
 {
   bke::Instances &instances = *geometry_set.get_instances_for_write();
   bke::InstancesFieldContext field_context{instances};
@@ -381,7 +388,7 @@ static void delete_selected_instances(GeometrySet &geometry_set,
     return;
   }
 
-  instances.remove(selection);
+  instances.remove(selection, propagation_info);
 }
 
 static void compute_selected_verts_from_vertex_selection(const Span<bool> vertex_selection,
@@ -819,7 +826,8 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                const Mesh &mesh_in,
                                const Span<bool> selection,
                                const eAttrDomain domain,
-                               const GeometryNodeDeleteGeometryMode mode)
+                               const GeometryNodeDeleteGeometryMode mode,
+                               const AnonymousAttributePropagationInfo &propagation_info)
 {
   /* Needed in all cases. */
   Vector<int> selected_poly_indices;
@@ -831,7 +839,7 @@ static void do_mesh_separation(GeometrySet &geometry_set,
 
   Map<AttributeIDRef, AttributeKind> attributes;
   geometry_set.gather_attributes_for_propagation(
-      {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_MESH, false, attributes);
+      {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_MESH, false, propagation_info, attributes);
 
   switch (mode) {
     case GEO_NODE_DELETE_GEOMETRY_MODE_ALL: {
@@ -1059,7 +1067,8 @@ static void do_mesh_separation(GeometrySet &geometry_set,
 static void separate_mesh_selection(GeometrySet &geometry_set,
                                     const Field<bool> &selection_field,
                                     const eAttrDomain selection_domain,
-                                    const GeometryNodeDeleteGeometryMode mode)
+                                    const GeometryNodeDeleteGeometryMode mode,
+                                    const AnonymousAttributePropagationInfo &propagation_info)
 {
   const Mesh &src_mesh = *geometry_set.get_mesh_for_read();
   bke::MeshFieldContext field_context{src_mesh, selection_domain};
@@ -1074,7 +1083,8 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
 
   const VArraySpan<bool> selection_span{selection};
 
-  do_mesh_separation(geometry_set, src_mesh, selection_span, selection_domain, mode);
+  do_mesh_separation(
+      geometry_set, src_mesh, selection_span, selection_domain, mode, propagation_info);
 }
 
 }  // namespace blender::nodes::node_geo_delete_geometry_cc
@@ -1085,6 +1095,7 @@ void separate_geometry(GeometrySet &geometry_set,
                        const eAttrDomain domain,
                        const GeometryNodeDeleteGeometryMode mode,
                        const Field<bool> &selection_field,
+                       const AnonymousAttributePropagationInfo &propagation_info,
                        bool &r_is_error)
 {
   namespace file_ns = blender::nodes::node_geo_delete_geometry_cc;
@@ -1092,26 +1103,27 @@ void separate_geometry(GeometrySet &geometry_set,
   bool some_valid_domain = false;
   if (geometry_set.has_pointcloud()) {
     if (domain == ATTR_DOMAIN_POINT) {
-      file_ns::separate_point_cloud_selection(geometry_set, selection_field);
+      file_ns::separate_point_cloud_selection(geometry_set, selection_field, propagation_info);
       some_valid_domain = true;
     }
   }
   if (geometry_set.has_mesh()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER)) {
-      file_ns::separate_mesh_selection(geometry_set, selection_field, domain, mode);
+      file_ns::separate_mesh_selection(
+          geometry_set, selection_field, domain, mode, propagation_info);
       some_valid_domain = true;
     }
   }
   if (geometry_set.has_curves()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
       file_ns::delete_curves_selection(
-          geometry_set, fn::invert_boolean_field(selection_field), domain);
+          geometry_set, fn::invert_boolean_field(selection_field), domain, propagation_info);
       some_valid_domain = true;
     }
   }
   if (geometry_set.has_instances()) {
     if (domain == ATTR_DOMAIN_INSTANCE) {
-      file_ns::delete_selected_instances(geometry_set, selection_field);
+      file_ns::delete_selected_instances(geometry_set, selection_field, propagation_info);
       some_valid_domain = true;
     }
   }
@@ -1171,15 +1183,18 @@ static void node_geo_exec(GeoNodeExecParams params)
   const eAttrDomain domain = eAttrDomain(storage.domain);
   const GeometryNodeDeleteGeometryMode mode = (GeometryNodeDeleteGeometryMode)storage.mode;
 
+  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
+      "Geometry");
+
   if (domain == ATTR_DOMAIN_INSTANCE) {
     bool is_error;
-    separate_geometry(geometry_set, domain, mode, selection, is_error);
+    separate_geometry(geometry_set, domain, mode, selection, propagation_info, is_error);
   }
   else {
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
       bool is_error;
       /* Invert here because we want to keep the things not in the selection. */
-      separate_geometry(geometry_set, domain, mode, selection, is_error);
+      separate_geometry(geometry_set, domain, mode, selection, propagation_info, is_error);
     });
   }
 

@@ -30,7 +30,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 }
 
 struct AttributeOutputs {
-  StrongAnonymousAttributeID intersecting_edges_id;
+  AutoAnonymousAttributeID intersecting_edges_id;
 };
 
 static void node_update(bNodeTree *ntree, bNode *node)
@@ -125,9 +125,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   AttributeOutputs attribute_outputs;
-  if (params.output_is_required("Intersecting Edges")) {
-    attribute_outputs.intersecting_edges_id = StrongAnonymousAttributeID("Intersecting Edges");
-  }
+  attribute_outputs.intersecting_edges_id = params.get_output_anonymous_attribute_id_if_needed(
+      "Intersecting Edges");
 
   Vector<int> intersecting_edges;
   Mesh *result = blender::meshintersect::direct_mesh_boolean(

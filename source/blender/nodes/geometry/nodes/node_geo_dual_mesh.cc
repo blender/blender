@@ -132,6 +132,7 @@ static void transfer_attributes(
     const Span<int> new_to_old_edges_map,
     const Span<int> new_to_old_face_corners_map,
     const Span<std::pair<int, int>> boundary_vertex_to_relevant_face_map,
+    const AnonymousAttributePropagationInfo &propagation_info,
     const AttributeAccessor src_attributes,
     MutableAttributeAccessor dst_attributes)
 {
@@ -139,7 +140,9 @@ static void transfer_attributes(
    * Remove anonymous attributes that don't need to be propagated. */
   Set<AttributeIDRef> attribute_ids = src_attributes.all_ids();
   attribute_ids.remove("position");
-  attribute_ids.remove_if([](const AttributeIDRef &id) { return !id.should_be_kept(); });
+  attribute_ids.remove_if([&](const AttributeIDRef &id) {
+    return id.is_anonymous() && !propagation_info.propagate(id.anonymous_id());
+  });
 
   for (const AttributeIDRef &id : attribute_ids) {
     GAttributeReader src_attribute = src_attributes.lookup(id);
@@ -606,7 +609,9 @@ static void dissolve_redundant_verts(const Span<MEdge> edges,
  *
  * Some special cases are needed for boundaries and non-manifold geometry.
  */
-static Mesh *calc_dual_mesh(const Mesh &src_mesh, const bool keep_boundaries)
+static Mesh *calc_dual_mesh(const Mesh &src_mesh,
+                            const bool keep_boundaries,
+                            const AnonymousAttributePropagationInfo &propagation_info)
 {
   const Span<MVert> src_verts = src_mesh.verts();
   const Span<MEdge> src_edges = src_mesh.edges();
@@ -887,6 +892,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh, const bool keep_boundaries)
                       new_to_old_edges_map,
                       new_to_old_face_corners_map,
                       boundary_vertex_to_relevant_face_map,
+                      propagation_info,
                       src_mesh.attributes(),
                       mesh_out->attributes_for_write());
 
@@ -918,7 +924,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bool keep_boundaries = params.extract_input<bool>("Keep Boundaries");
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
-      Mesh *new_mesh = calc_dual_mesh(*mesh, keep_boundaries);
+      Mesh *new_mesh = calc_dual_mesh(
+          *mesh, keep_boundaries, params.get_output_propagation_info("Dual Mesh"));
       geometry_set.replace_mesh(new_mesh);
     }
   });

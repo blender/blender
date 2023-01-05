@@ -86,11 +86,33 @@ void Graph::add_link(OutputSocket &from, InputSocket &to)
   from.targets_.append(&to);
 }
 
+void Graph::clear_origin(InputSocket &socket)
+{
+  if (socket.origin_ != nullptr) {
+    socket.origin_->targets_.remove_first_occurrence_and_reorder(&socket);
+    socket.origin_ = nullptr;
+  }
+}
+
 void Graph::update_node_indices()
 {
   for (const int i : nodes_.index_range()) {
     nodes_[i]->index_in_graph_ = i;
   }
+}
+
+void Graph::update_socket_indices()
+{
+  int socket_counter = 0;
+  for (const int i : nodes_.index_range()) {
+    for (InputSocket *socket : nodes_[i]->inputs()) {
+      socket->index_in_graph_ = socket_counter++;
+    }
+    for (OutputSocket *socket : nodes_[i]->outputs()) {
+      socket->index_in_graph_ = socket_counter++;
+    }
+  }
+  socket_num_ = socket_counter;
 }
 
 bool Graph::node_indices_are_valid() const
@@ -150,6 +172,21 @@ std::string DummyDebugInfo::input_name(const int /*i*/) const
 std::string DummyDebugInfo::output_name(const int /*i*/) const
 {
   return fallback_name;
+}
+
+std::string SimpleDummyDebugInfo::node_name() const
+{
+  return this->name;
+}
+
+std::string SimpleDummyDebugInfo::input_name(const int i) const
+{
+  return this->input_names[i];
+}
+
+std::string SimpleDummyDebugInfo::output_name(const int i) const
+{
+  return this->output_names[i];
 }
 
 std::string Graph::ToDotOptions::socket_name(const Socket &socket) const

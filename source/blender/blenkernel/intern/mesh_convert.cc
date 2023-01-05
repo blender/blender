@@ -839,7 +839,9 @@ static Mesh *mesh_new_from_evaluated_curve_type_object(const Object *evaluated_o
     return BKE_mesh_copy_for_eval(mesh, false);
   }
   if (const Curves *curves = get_evaluated_curves_from_object(evaluated_object)) {
-    return blender::bke::curve_to_wire_mesh(blender::bke::CurvesGeometry::wrap(curves->geometry));
+    const blender::bke::AnonymousAttributePropagationInfo propagation_info;
+    return blender::bke::curve_to_wire_mesh(blender::bke::CurvesGeometry::wrap(curves->geometry),
+                                            propagation_info);
   }
   return nullptr;
 }

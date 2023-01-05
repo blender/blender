@@ -40,12 +40,8 @@ namespace blender::bke {
 
 std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_id)
 {
-  if (attribute_id.is_named()) {
+  if (attribute_id) {
     stream << attribute_id.name();
-  }
-  else if (attribute_id.is_anonymous()) {
-    const AnonymousAttributeID &anonymous_id = attribute_id.anonymous_id();
-    stream << "<" << BKE_anonymous_attribute_id_debug_name(&anonymous_id) << ">";
   }
   else {
     stream << "<none>";
@@ -153,7 +149,7 @@ eAttrDomain attribute_domain_highest_priority(Span<eAttrDomain> domains)
 static AttributeIDRef attribute_id_from_custom_data_layer(const CustomDataLayer &layer)
 {
   if (layer.anonymous_id != nullptr) {
-    return layer.anonymous_id;
+    return *layer.anonymous_id;
   }
   return layer.name;
 }
@@ -207,7 +203,7 @@ static void *add_generic_custom_data_layer(CustomData &custom_data,
                                            const int domain_num,
                                            const AttributeIDRef &attribute_id)
 {
-  if (attribute_id.is_named()) {
+  if (!attribute_id.is_anonymous()) {
     char attribute_name_c[MAX_NAME];
     attribute_id.name().copy(attribute_name_c);
     return CustomData_add_layer_named(
@@ -260,9 +256,6 @@ static bool custom_data_layer_matches_attribute_id(const CustomDataLayer &layer,
 {
   if (!attribute_id) {
     return false;
-  }
-  if (attribute_id.is_anonymous()) {
-    return layer.anonymous_id == &attribute_id.anonymous_id();
   }
   return layer.name == attribute_id.name();
 }
@@ -451,14 +444,8 @@ GAttributeWriter CustomDataAttributeProvider::try_get_for_write(
     if (!custom_data_layer_matches_attribute_id(layer, attribute_id)) {
       continue;
     }
-    if (attribute_id.is_named()) {
-      CustomData_duplicate_referenced_layer_named(
-          custom_data, layer.type, layer.name, element_num);
-    }
-    else {
-      CustomData_duplicate_referenced_layer_anonymous(
-          custom_data, layer.type, &attribute_id.anonymous_id(), element_num);
-    }
+    CustomData_duplicate_referenced_layer_named(custom_data, layer.type, layer.name, element_num);
+
     const CPPType *type = custom_data_type_to_cpp_type((eCustomDataType)layer.type);
     if (type == nullptr) {
       continue;
@@ -854,7 +841,7 @@ void MutableAttributeAccessor::remove_anonymous()
   }
 
   while (!anonymous_ids.is_empty()) {
-    this->remove(anonymous_ids.pop_last());
+    this->remove(*anonymous_ids.pop_last());
   }
 }
 
@@ -883,12 +870,7 @@ GAttributeWriter MutableAttributeAccessor::lookup_for_write(const AttributeIDRef
 #ifdef DEBUG
   if (attribute) {
     auto checker = std::make_shared<FinishCallChecker>();
-    if (attribute_id.is_named()) {
-      checker->name = attribute_id.name();
-    }
-    else {
-      checker->name = BKE_anonymous_attribute_id_debug_name(&attribute_id.anonymous_id());
-    }
+    checker->name = attribute_id.name();
     checker->real_finish_fn = attribute.tag_modified_fn;
     attribute.tag_modified_fn = [checker]() {
       if (checker->real_finish_fn) {
@@ -968,6 +950,7 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
     const bke::AttributeAccessor src_attributes,
     bke::MutableAttributeAccessor dst_attributes,
     const eAttrDomainMask domain_mask,
+    const AnonymousAttributePropagationInfo &propagation_info,
     const Set<std::string> &skip)
 {
   Vector<AttributeTransferData> attributes;
@@ -976,10 +959,10 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
         if (!(ATTR_DOMAIN_AS_MASK(meta_data.domain) & domain_mask)) {
           return true;
         }
-        if (id.is_named() && skip.contains(id.name())) {
+        if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
           return true;
         }
-        if (!id.should_be_kept()) {
+        if (skip.contains(id.name())) {
           return true;
         }
 
@@ -999,6 +982,7 @@ void copy_attribute_domain(const AttributeAccessor src_attributes,
                            MutableAttributeAccessor dst_attributes,
                            const IndexMask selection,
                            const eAttrDomain domain,
+                           const AnonymousAttributePropagationInfo &propagation_info,
                            const Set<std::string> &skip)
 {
   src_attributes.for_all(
@@ -1006,10 +990,10 @@ void copy_attribute_domain(const AttributeAccessor src_attributes,
         if (meta_data.domain != domain) {
           return true;
         }
-        if (id.is_named() && skip.contains(id.name())) {
+        if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
           return true;
         }
-        if (!id.should_be_kept()) {
+        if (skip.contains(id.name())) {
           return true;
         }
 
