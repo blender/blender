@@ -35,7 +35,7 @@ class FileBufferBinary : public FileBuffer {
     auto *ybits = reinterpret_cast<char *>(&y);
     auto *zbits = reinterpret_cast<char *>(&z);
 
-    std::vector<char> data(xbits, xbits + sizeof(float));
+    Vector<char> data(xbits, xbits + sizeof(float));
     data.insert(data.end(), ybits, ybits + sizeof(float));
     data.insert(data.end(), zbits, zbits + sizeof(float));
 
@@ -44,8 +44,8 @@ class FileBufferBinary : public FileBuffer {
 
   void write_face(int size, Vector<uint32_t> const &vertex_indices) override
   {
-    std::vector<char> data;
-    data.push_back((char)size);
+    Vector<char> data;
+    data.append((char)size);
     for (auto &&vertexIndex : vertex_indices) {
       uint32_t x = vertexIndex;
       auto *vtxbits = static_cast<char *>(static_cast<void *>(&x));

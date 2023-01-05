@@ -42,16 +42,16 @@ void ply_import_report_error(FILE *file)
   }
 }
 
-void splitstr(std::string str, std::vector<std::string> &words, const std::string &deli)
+void splitstr(std::string str, Vector<std::string> &words, const std::string &deli)
 {
   int pos = 0;
 
   while ((pos = int(str.find(deli))) != std::string::npos) {
-    words.push_back(str.substr(0, pos));
+    words.append(str.substr(0, pos));
     str.erase(0, pos + deli.length());
   }
   /* We add the final word to the vector. */
-  words.push_back(str.substr());
+  words.append(str.substr());
 }
 
 enum PlyDataTypes from_string(const std::string &input)
@@ -112,7 +112,7 @@ void importer_main(Main *bmain,
   while (true) {  // We break when end_header is encountered.
     safe_getline(infile, line);
     header.header_size++;
-    std::vector<std::string> words{};
+    Vector<std::string> words{};
     splitstr(line, words, " ");
 
     if (strcmp(words[0].c_str(), "format") == 0) {
@@ -147,7 +147,7 @@ void importer_main(Main *bmain,
       property.first = words[2];
       property.second = from_string(words[1]);
 
-      header.properties.push_back(property);
+      header.properties.append(property);
     }
     else if (words[0] == "end_header") {
       break;
