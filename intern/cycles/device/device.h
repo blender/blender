@@ -71,9 +71,9 @@ class DeviceInfo {
   string description;
   string id; /* used for user preferences, should stay fixed with changing hardware config */
   int num;
-  bool display_device;        /* GPU is used as a display device. */
-  bool has_nanovdb;           /* Support NanoVDB volumes. */
-  bool has_light_tree;        /* Support light tree. */
+  bool display_device;  /* GPU is used as a display device. */
+  bool has_nanovdb;     /* Support NanoVDB volumes. */
+  bool has_light_tree;  /* Support light tree. */
   bool has_osl;         /* Support Open Shading Language. */
   bool has_guiding;     /* Support path guiding. */
   bool has_profiling;   /* Supports runtime collection of profiling info. */

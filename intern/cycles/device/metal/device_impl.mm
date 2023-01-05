@@ -469,7 +469,8 @@ void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
 
   [options release];
 
-  bool blocking_pso_build = (getenv("CYCLES_METAL_PROFILING") || MetalDeviceKernels::is_benchmark_warmup());
+  bool blocking_pso_build = (getenv("CYCLES_METAL_PROFILING") ||
+                             MetalDeviceKernels::is_benchmark_warmup());
   if (blocking_pso_build) {
     MetalDeviceKernels::wait_for_all();
     starttime = 0.0;

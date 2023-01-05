@@ -30,7 +30,10 @@ int blender_device_threads(BL::Scene &b_scene)
     return 0;
 }
 
-DeviceInfo blender_device_info(BL::Preferences &b_preferences, BL::Scene &b_scene, bool background, bool preview)
+DeviceInfo blender_device_info(BL::Preferences &b_preferences,
+                               BL::Scene &b_scene,
+                               bool background,
+                               bool preview)
 {
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 

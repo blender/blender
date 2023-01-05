@@ -124,7 +124,7 @@ DeviceShaderCache g_shaderCache[MAX_POSSIBLE_GPUS_ON_SYSTEM];
 
 ShaderCache *get_shader_cache(id<MTLDevice> mtlDevice)
 {
-  for (int i=0; i<g_shaderCacheCount; i++) {
+  for (int i = 0; i < g_shaderCacheCount; i++) {
     if (g_shaderCache[i].first == mtlDevice) {
       return g_shaderCache[i].second.get();
     }
@@ -353,7 +353,7 @@ MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const M
                                device->kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
 
   MetalKernelPipeline *best_pipeline = nullptr;
-  while(!best_pipeline) {
+  while (!best_pipeline) {
     {
       thread_scoped_lock lock(cache_mutex);
       for (auto &pipeline : pipelines[kernel]) {
@@ -366,7 +366,7 @@ MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const M
         bool pipeline_metalrt_hair_thick = pipeline->metalrt_features & KERNEL_FEATURE_HAIR_THICK;
         bool pipeline_metalrt_pointcloud = pipeline->metalrt_features & KERNEL_FEATURE_POINTCLOUD;
         bool pipeline_metalrt_motion = use_metalrt &&
-                                      pipeline->metalrt_features & KERNEL_FEATURE_OBJECT_MOTION;
+                                       pipeline->metalrt_features & KERNEL_FEATURE_OBJECT_MOTION;
 
         if (pipeline->use_metalrt != use_metalrt || pipeline_metalrt_hair != device_metalrt_hair ||
             pipeline_metalrt_hair_thick != device_metalrt_hair_thick ||
@@ -824,7 +824,7 @@ bool MetalDeviceKernels::load(MetalDevice *device, MetalPipelineType pso_type)
 
 void MetalDeviceKernels::wait_for_all()
 {
-  for (int i=0; i<g_shaderCacheCount; i++) {
+  for (int i = 0; i < g_shaderCacheCount; i++) {
     g_shaderCache[i].second->wait_for_all();
   }
 }
@@ -833,7 +833,7 @@ bool MetalDeviceKernels::any_specialization_happening_now()
 {
   /* Return true if any ShaderCaches have ongoing specialization requests (typically there will be
    * only 1). */
-  for (int i=0; i<g_shaderCacheCount; i++) {
+  for (int i = 0; i < g_shaderCacheCount; i++) {
     if (g_shaderCache[i].second->incomplete_specialization_requests > 0) {
       return true;
     }
@@ -868,8 +868,8 @@ const MetalKernelPipeline *MetalDeviceKernels::get_best_pipeline(const MetalDevi
 bool MetalDeviceKernels::is_benchmark_warmup()
 {
   NSArray *args = [[NSProcessInfo processInfo] arguments];
-  for (int i = 0; i<args.count; i++) {
-    if (const char* arg = [[args objectAtIndex:i] cStringUsingEncoding:NSASCIIStringEncoding]) {
+  for (int i = 0; i < args.count; i++) {
+    if (const char *arg = [[args objectAtIndex:i] cStringUsingEncoding:NSASCIIStringEncoding]) {
       if (!strcmp(arg, "--warm-up")) {
         return true;
       }
