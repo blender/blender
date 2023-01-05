@@ -1497,8 +1497,6 @@ static int gpencil_strokes_copy_exec(bContext *C, wmOperator *op)
      * once all done
      */
     CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-      bGPDframe *gpf = gpl->actframe;
-      bGPDstroke *gps;
       bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
 
       for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
@@ -1508,7 +1506,7 @@ static int gpencil_strokes_copy_exec(bContext *C, wmOperator *op)
           }
 
           /* make copies of selected strokes, and deselect these once we're done */
-          for (gps = gpf->strokes.first; gps; gps = gps->next) {
+          for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
             /* skip strokes that are invalid for current view */
             if (ED_gpencil_stroke_can_use(C, gps) == false) {
               continue;
@@ -1633,7 +1631,6 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
 
   bGPDframe *gpf = gpl->actframe;
-  bGPDstroke *gps;
   bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
 
   eGP_PasteMode type = RNA_enum_get(op->ptr, "type");
