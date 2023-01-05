@@ -1098,7 +1098,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-const EnumPropertyItem pack_margin_method[] = {
+static const EnumPropertyItem pack_margin_method_items[] = {
     {ED_UVPACK_MARGIN_SCALED,
      "SCALED",
      0,
@@ -1139,8 +1139,12 @@ void UV_OT_pack_islands(wmOperatorType *ot)
   /* properties */
   RNA_def_enum(ot->srna, "udim_source", pack_target, PACK_UDIM_SRC_CLOSEST, "Pack to", "");
   RNA_def_boolean(ot->srna, "rotate", true, "Rotate", "Rotate islands for best fit");
-  RNA_def_enum(
-      ot->srna, "margin_method", pack_margin_method, ED_UVPACK_MARGIN_SCALED, "Margin Method", "");
+  RNA_def_enum(ot->srna,
+               "margin_method",
+               pack_margin_method_items,
+               ED_UVPACK_MARGIN_SCALED,
+               "Margin Method",
+               "");
   RNA_def_float_factor(
       ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
@@ -2077,8 +2081,12 @@ void UV_OT_unwrap(wmOperatorType *ot)
       0,
       "Use Subdivision Surface",
       "Map UVs taking vertex position after Subdivision Surface modifier has been applied");
-  RNA_def_enum(
-      ot->srna, "margin_method", pack_margin_method, ED_UVPACK_MARGIN_SCALED, "Margin Method", "");
+  RNA_def_enum(ot->srna,
+               "margin_method",
+               pack_margin_method_items,
+               ED_UVPACK_MARGIN_SCALED,
+               "Margin Method",
+               "");
   RNA_def_float_factor(
       ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
@@ -2444,8 +2452,12 @@ void UV_OT_smart_project(wmOperatorType *ot)
                                 DEG2RADF(89.0f));
   RNA_def_property_float_default(prop, DEG2RADF(66.0f));
 
-  RNA_def_enum(
-      ot->srna, "margin_method", pack_margin_method, ED_UVPACK_MARGIN_SCALED, "Margin Method", "");
+  RNA_def_enum(ot->srna,
+               "margin_method",
+               pack_margin_method_items,
+               ED_UVPACK_MARGIN_SCALED,
+               "Margin Method",
+               "");
   RNA_def_float(ot->srna,
                 "island_margin",
                 0.0f,

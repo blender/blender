@@ -476,7 +476,7 @@ const EnumPropertyItem rna_enum_bake_save_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-const EnumPropertyItem rna_enum_bake_view_from_items[] = {
+static const EnumPropertyItem rna_enum_bake_view_from_items[] = {
     {R_BAKE_VIEW_FROM_ABOVE_SURFACE,
      "ABOVE_SURFACE",
      0,

@@ -94,7 +94,7 @@ static const EnumPropertyItem rna_enum_brush_texture_slot_map_texture_mode_items
 /* clang-format off */
 /* Note: we don't actually turn these into a single enum bit-mask property,
  * instead we construct individual boolean properties. */
-const EnumPropertyItem RNA_automasking_flags[] = {
+const EnumPropertyItem rna_enum_brush_automasking_flag_items[] = {
   {BRUSH_AUTOMASKING_TOPOLOGY, "use_automasking_topology", 0,"Topology", "Affect only vertices connected to the active vertex under the brush"},
   {BRUSH_AUTOMASKING_FACE_SETS, "use_automasking_face_sets", 0,"Face Sets", "Affect only vertices that share Face Sets with the active vertex"},
   {BRUSH_AUTOMASKING_BOUNDARY_EDGES, "use_automasking_boundary_edges", 0,"Mesh Boundary Auto-Masking", "Do not affect non manifold boundary edges"},
@@ -3204,7 +3204,7 @@ static void rna_def_brush(BlenderRNA *brna)
       "When locked keep using the plane origin of surface where stroke was initiated");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  const EnumPropertyItem *entry = RNA_automasking_flags;
+  const EnumPropertyItem *entry = rna_enum_brush_automasking_flag_items;
   do {
     prop = RNA_def_property(srna, entry->identifier, PROP_BOOLEAN, PROP_NONE);
     RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", entry->value);
