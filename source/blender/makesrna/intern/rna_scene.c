@@ -7378,12 +7378,14 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, INT_MAX);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+  RNA_def_property_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "taa_render_samples", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(prop, "Render Samples", "Number of samples per pixel for rendering");
   RNA_def_property_range(prop, 1, INT_MAX);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+  RNA_def_property_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "use_taa_reprojection", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_TAA_REPROJECTION);
@@ -7393,6 +7395,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
                            "(can leave some ghosting)");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+  RNA_def_property_flag(prop, PROP_ANIMATABLE);
 
   /* Screen Space Subsurface Scattering */
   prop = RNA_def_property(srna, "sss_samples", PROP_INT, PROP_NONE);
