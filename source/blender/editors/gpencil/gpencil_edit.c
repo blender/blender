@@ -916,11 +916,6 @@ static int gpencil_duplicate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (GPENCIL_MULTIEDIT_SESSIONS_ON(gpd)) {
-    BKE_report(op->reports, RPT_ERROR, "Operator not supported in multiframe edition");
-    return OPERATOR_CANCELLED;
-  }
-
   bool changed = false;
   if (is_curve_edit) {
     BKE_report(op->reports, RPT_ERROR, "Not implemented!");
@@ -1483,14 +1478,10 @@ static int gpencil_strokes_copy_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
   if (gpd == NULL) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
-    return OPERATOR_CANCELLED;
-  }
-
-  if (GPENCIL_MULTIEDIT_SESSIONS_ON(gpd)) {
-    BKE_report(op->reports, RPT_ERROR, "Operator not supported in multiframe edition");
     return OPERATOR_CANCELLED;
   }
 
@@ -1508,45 +1499,51 @@ static int gpencil_strokes_copy_exec(bContext *C, wmOperator *op)
     CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
       bGPDframe *gpf = gpl->actframe;
       bGPDstroke *gps;
+      bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
 
-      if (gpf == NULL) {
-        continue;
-      }
+      for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+        if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+          if (gpf == NULL) {
+            continue;
+          }
 
-      /* make copies of selected strokes, and deselect these once we're done */
-      for (gps = gpf->strokes.first; gps; gps = gps->next) {
-        /* skip strokes that are invalid for current view */
-        if (ED_gpencil_stroke_can_use(C, gps) == false) {
-          continue;
-        }
-
-        if (gps->flag & GP_STROKE_SELECT) {
-          if (gps->totpoints == 1) {
-            /* Special Case: If there's just a single point in this stroke... */
-            bGPDstroke *gpsd;
-
-            /* make direct copies of the stroke and its points */
-            gpsd = BKE_gpencil_stroke_duplicate(gps, false, true);
-
-            /* saves original layer name */
-            BLI_strncpy(
-                gpsd->runtime.tmp_layerinfo, gpl->info, sizeof(gpsd->runtime.tmp_layerinfo));
-            gpsd->points = MEM_dupallocN(gps->points);
-            if (gps->dvert != NULL) {
-              gpsd->dvert = MEM_dupallocN(gps->dvert);
-              BKE_gpencil_stroke_weights_duplicate(gps, gpsd);
+          /* make copies of selected strokes, and deselect these once we're done */
+          for (gps = gpf->strokes.first; gps; gps = gps->next) {
+            /* skip strokes that are invalid for current view */
+            if (ED_gpencil_stroke_can_use(C, gps) == false) {
+              continue;
             }
 
-            /* Calc geometry data. */
-            BKE_gpencil_stroke_geometry_update(gpd, gpsd);
+            if (gps->flag & GP_STROKE_SELECT) {
+              if (gps->totpoints == 1) {
+                /* Special Case: If there's just a single point in this stroke... */
+                bGPDstroke *gpsd;
 
-            /* add to temp buffer */
-            gpsd->next = gpsd->prev = NULL;
-            BLI_addtail(&gpencil_strokes_copypastebuf, gpsd);
-          }
-          else {
-            /* delegate to a helper, as there's too much to fit in here (for copying subsets)... */
-            gpencil_duplicate_points(gpd, gps, &gpencil_strokes_copypastebuf, gpl->info);
+                /* make direct copies of the stroke and its points */
+                gpsd = BKE_gpencil_stroke_duplicate(gps, false, true);
+
+                /* saves original layer name */
+                BLI_strncpy(
+                    gpsd->runtime.tmp_layerinfo, gpl->info, sizeof(gpsd->runtime.tmp_layerinfo));
+                gpsd->points = MEM_dupallocN(gps->points);
+                if (gps->dvert != NULL) {
+                  gpsd->dvert = MEM_dupallocN(gps->dvert);
+                  BKE_gpencil_stroke_weights_duplicate(gps, gpsd);
+                }
+
+                /* Calc geometry data. */
+                BKE_gpencil_stroke_geometry_update(gpd, gpsd);
+
+                /* add to temp buffer */
+                gpsd->next = gpsd->prev = NULL;
+                BLI_addtail(&gpencil_strokes_copypastebuf, gpsd);
+              }
+              else {
+                /* delegate to a helper, as there's too much to fit in here (for copying
+                 * subsets)... */
+                gpencil_duplicate_points(gpd, gps, &gpencil_strokes_copypastebuf, gpl->info);
+              }
+            }
           }
         }
       }
@@ -1631,19 +1628,19 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd); /* only use active for copy merge */
   Scene *scene = CTX_data_scene(C);
-  bGPDframe *gpf;
+
+  bGPDframe *gpf = gpl->actframe;
+  bGPDstroke *gps;
+  bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
 
   eGP_PasteMode type = RNA_enum_get(op->ptr, "type");
   const bool on_back = RNA_boolean_get(op->ptr, "paste_back");
   GHash *new_colors;
 
   /* Check for various error conditions. */
-  if (GPENCIL_MULTIEDIT_SESSIONS_ON(gpd)) {
-    BKE_report(op->reports, RPT_ERROR, "Operator not supported in multiframe edition");
-    return OPERATOR_CANCELLED;
-  }
 
   if (BLI_listbase_is_empty(&gpencil_strokes_copypastebuf)) {
     BKE_report(op->reports,
@@ -1702,6 +1699,7 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
     /* Copy over the strokes from the buffer (and adjust the colors) */
     bGPDstroke *gps_init = (!on_back) ? gpencil_strokes_copypastebuf.first :
                                         gpencil_strokes_copypastebuf.last;
+
     for (bGPDstroke *gps = gps_init; gps; gps = (!on_back) ? gps->next : gps->prev) {
       if (ED_gpencil_stroke_can_use(C, gps)) {
         /* Need to verify if layer exists */
@@ -1719,6 +1717,36 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
          *       we reuse active frame or add a new frame if one
          *       doesn't exist already depending on REC button status.
          */
+
+        for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+          if (gpf->flag & GP_FRAME_SELECT) {
+            if (gpf) {
+              /* Create new stroke */
+              bGPDstroke *new_stroke = BKE_gpencil_stroke_duplicate(gps, true, true);
+              new_stroke->runtime.tmp_layerinfo[0] = '\0';
+              new_stroke->next = new_stroke->prev = NULL;
+
+              /* Calc geometry data. */
+              BKE_gpencil_stroke_geometry_update(gpd, new_stroke);
+
+              if (on_back) {
+                BLI_addhead(&gpf->strokes, new_stroke);
+              }
+              else {
+                BLI_addtail(&gpf->strokes, new_stroke);
+              }
+
+              /* Remap material */
+              Material *ma = BLI_ghash_lookup(new_colors, POINTER_FROM_INT(new_stroke->mat_nr));
+              new_stroke->mat_nr = BKE_gpencil_object_material_index_get(ob, ma);
+              CLAMP_MIN(new_stroke->mat_nr, 0);
+            }
+          }
+          /* If not multi-edit, exit loop. */
+          if (!is_multiedit) {
+            break;
+          }
+        }
         if (IS_AUTOKEY_ON(scene) || (gpl->actframe == NULL)) {
           gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_ADD_NEW);
         }
