@@ -4,6 +4,7 @@
 #include <atomic>
 #include <cassert>
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <vector>
 
@@ -14,10 +15,18 @@
 
 namespace {
 
+struct Local;
+struct Global;
+
 /**
  * This is stored per thread. Align to cache line size to avoid false sharing.
  */
 struct alignas(64) Local {
+  /**
+   * Retain shared ownership of #Global to make sure that it is not destructed.
+   */
+  std::shared_ptr<Global> global;
+
   /** Helps to find bugs during program shutdown. */
   bool destructed = false;
   /**
@@ -49,7 +58,8 @@ struct alignas(64) Local {
 };
 
 /**
- * This is a singleton that stores global data.
+ * This is a singleton that stores global data. It's owned by a `std::shared_ptr` which is owned by
+ * the static variable in #get_global_ptr and all #Local objects.
  */
 struct Global {
   /**
@@ -98,10 +108,15 @@ static std::atomic<bool> use_local_counters = true;
  */
 static constexpr int64_t peak_update_threshold = 1024 * 1024;
 
+static std::shared_ptr<Global> &get_global_ptr()
+{
+  static std::shared_ptr<Global> global = std::make_shared<Global>();
+  return global;
+}
+
 static Global &get_global()
 {
-  static Global global;
-  return global;
+  return *get_global_ptr();
 }
 
 static Local &get_local_data()
@@ -113,28 +128,28 @@ static Local &get_local_data()
 
 Local::Local()
 {
-  Global &global = get_global();
-  std::lock_guard lock{global.locals_mutex};
+  this->global = get_global_ptr();
 
-  if (global.locals.empty()) {
+  std::lock_guard lock{this->global->locals_mutex};
+  if (this->global->locals.empty()) {
     /* This is the first thread creating #Local, it is therefore the main thread because it's
      * created through #memory_usage_init. */
     this->is_main = true;
   }
   /* Register self in the global list. */
-  global.locals.push_back(this);
+  this->global->locals.push_back(this);
 }
 
 Local::~Local()
 {
-  Global &global = get_global();
-  std::lock_guard lock{global.locals_mutex};
+  std::lock_guard lock{this->global->locals_mutex};
 
   /* Unregister self from the global list. */
-  global.locals.erase(std::find(global.locals.begin(), global.locals.end(), this));
+  this->global->locals.erase(
+      std::find(this->global->locals.begin(), this->global->locals.end(), this));
   /* Don't forget the memory counts stored locally. */
-  global.blocks_num_outside_locals.fetch_add(this->blocks_num, std::memory_order_relaxed);
-  global.mem_in_use_outside_locals.fetch_add(this->mem_in_use, std::memory_order_relaxed);
+  this->global->blocks_num_outside_locals.fetch_add(this->blocks_num, std::memory_order_relaxed);
+  this->global->mem_in_use_outside_locals.fetch_add(this->mem_in_use, std::memory_order_relaxed);
 
   if (this->is_main) {
     /* The main thread started shutting down. Use global counters from now on to avoid accessing
