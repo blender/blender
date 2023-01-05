@@ -48,6 +48,7 @@
 #include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
@@ -64,6 +65,7 @@
 
 #include "ED_armature.h"
 #include "ED_keyframes_keylist.h"
+#include "ED_keyframing.h"
 #include "ED_markers.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
@@ -1768,18 +1770,6 @@ typedef enum ePosePropagate_Termination {
   POSE_PROPAGATE_SELECTED_MARKERS,
 } ePosePropagate_Termination;
 
-/**
- * Termination data needed for some modes -
- * assumes only one of these entries will be needed at a time.
- */
-typedef union tPosePropagate_ModeData {
-  /** Smart holds + before frame: frame number to stop on. */
-  float end_frame;
-
-  /** Selected markers: listbase for CfraElem's marking these frames. */
-  ListBase sel_markers;
-} tPosePropagate_ModeData;
-
 /* --------------------------------- */
 
 /**
@@ -1863,79 +1853,10 @@ static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float st
 }
 
 /**
- * Get reference value from F-Curve using RNA.
- */
-static bool pose_propagate_get_refVal(Object *ob, FCurve *fcu, float *value)
-{
-  PointerRNA id_ptr, ptr;
-  PropertyRNA *prop;
-  bool found = false;
-
-  /* Base pointer is always the `object -> id_ptr`. */
-  RNA_id_pointer_create(&ob->id, &id_ptr);
-
-  /* Resolve the property. */
-  if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
-    if (RNA_property_array_check(prop)) {
-      /* Array. */
-      if (fcu->array_index < RNA_property_array_length(&ptr, prop)) {
-        found = true;
-        switch (RNA_property_type(prop)) {
-          case PROP_BOOLEAN:
-            *value = (float)RNA_property_boolean_get_index(&ptr, prop, fcu->array_index);
-            break;
-          case PROP_INT:
-            *value = (float)RNA_property_int_get_index(&ptr, prop, fcu->array_index);
-            break;
-          case PROP_FLOAT:
-            *value = RNA_property_float_get_index(&ptr, prop, fcu->array_index);
-            break;
-          default:
-            found = false;
-            break;
-        }
-      }
-    }
-    else {
-      /* Not an array. */
-      found = true;
-      switch (RNA_property_type(prop)) {
-        case PROP_BOOLEAN:
-          *value = (float)RNA_property_boolean_get(&ptr, prop);
-          break;
-        case PROP_INT:
-          *value = (float)RNA_property_int_get(&ptr, prop);
-          break;
-        case PROP_ENUM:
-          *value = (float)RNA_property_enum_get(&ptr, prop);
-          break;
-        case PROP_FLOAT:
-          *value = RNA_property_float_get(&ptr, prop);
-          break;
-        default:
-          found = false;
-          break;
-      }
-    }
-  }
-
-  return found;
-}
-
-/**
  * Propagate just works along each F-Curve in turn.
  */
-static void pose_propagate_fcurve(
-    wmOperator *op, Object *ob, FCurve *fcu, float startFrame, tPosePropagate_ModeData modeData)
+static void pose_propagate_fcurve(FCurve *fcu, float start_frame, const float end_frame)
 {
-  const int mode = RNA_enum_get(op->ptr, "mode");
-
-  BezTriple *bezt;
-  float refVal = 0.0f;
-  bool keyExists;
-  int i;
-  bool first = true;
-
   /* Skip if no keyframes to edit. */
   if ((fcu->bezt == NULL) || (fcu->totvert < 2)) {
     return;
@@ -1944,74 +1865,32 @@ static void pose_propagate_fcurve(
   /* Find the reference value from bones directly, which means that the user
    * doesn't need to firstly keyframe the pose (though this doesn't mean that
    * they can't either). */
-  if (!pose_propagate_get_refVal(ob, fcu, &refVal)) {
-    return;
-  }
+  float refVal = evaluate_fcurve(fcu, start_frame);
 
   /* Find the first keyframe to start propagating from:
    * - if there's a keyframe on the current frame, we probably want to save this value there too
    *   since it may be as of yet un-keyed
    * - if starting before the starting frame, don't touch the key, as it may have had some valid
    *   values
-   * - if only doing selected keyframes, start from the first one
    */
-  if (mode != POSE_PROPAGATE_SELECTED_KEYS) {
-    const int match = BKE_fcurve_bezt_binarysearch_index(
-        fcu->bezt, startFrame, fcu->totvert, &keyExists);
+  bool keyExists;
+  const int match = BKE_fcurve_bezt_binarysearch_index(
+      fcu->bezt, start_frame, fcu->totvert, &keyExists);
 
-    if (fcu->bezt[match].vec[1][0] < startFrame) {
-      i = match + 1;
-    }
-    else {
-      i = match;
-    }
+  int i;
+  if (fcu->bezt[match].vec[1][0] < start_frame) {
+    i = match + 1;
   }
   else {
-    /* Selected - start from first keyframe. */
-    i = 0;
+    i = match;
   }
 
+  BezTriple *bezt;
   for (bezt = &fcu->bezt[i]; i < fcu->totvert; i++, bezt++) {
     /* Additional termination conditions based on the operator 'mode' property go here. */
-    if (ELEM(mode, POSE_PROPAGATE_BEFORE_FRAME, POSE_PROPAGATE_SMART_HOLDS)) {
-      /* Stop if keyframe is outside the accepted range. */
-      if (bezt->vec[1][0] > modeData.end_frame) {
-        break;
-      }
-    }
-    else if (mode == POSE_PROPAGATE_NEXT_KEY) {
-      /* Stop after the first keyframe has been processed. */
-      if (first == false) {
-        break;
-      }
-    }
-    else if (mode == POSE_PROPAGATE_LAST_KEY) {
-      /* Only affect this frame if it will be the last one. */
-      if (i != (fcu->totvert - 1)) {
-        continue;
-      }
-    }
-    else if (mode == POSE_PROPAGATE_SELECTED_MARKERS) {
-      /* Only allow if there's a marker on this frame. */
-      CfraElem *ce = NULL;
-
-      /* Stop on matching marker if there is one. */
-      for (ce = modeData.sel_markers.first; ce; ce = ce->next) {
-        if (ce->cfra == round_fl_to_int(bezt->vec[1][0])) {
-          break;
-        }
-      }
-
-      /* Skip this keyframe if no marker. */
-      if (ce == NULL) {
-        continue;
-      }
-    }
-    else if (mode == POSE_PROPAGATE_SELECTED_KEYS) {
-      /* Only allow if this keyframe is already selected - skip otherwise. */
-      if (BEZT_ISSEL_ANY(bezt) == 0) {
-        continue;
-      }
+    /* Stop if keyframe is outside the accepted range. */
+    if (bezt->vec[1][0] > end_frame) {
+      break;
     }
 
     /* Just flatten handles, since values will now be the same either side. */
@@ -2020,8 +1899,121 @@ static void pose_propagate_fcurve(
 
     /* Select keyframe to indicate that it's been changed. */
     bezt->f2 |= SELECT;
-    first = false;
   }
+}
+
+typedef struct FrameLink {
+  struct FrameLink *next, *prev;
+  float frame;
+} FrameLink;
+
+static void propagate_curve_values(ListBase /*tPChanFCurveLink*/ *pflinks,
+                                   const float source_frame,
+                                   ListBase /*FrameLink*/ *target_frames)
+{
+  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
+    LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
+      FCurve *fcu = (FCurve *)ld->data;
+      const float current_fcu_value = evaluate_fcurve(fcu, source_frame);
+      LISTBASE_FOREACH (FrameLink *, target_frame, target_frames) {
+        insert_vert_fcurve(
+            fcu, target_frame->frame, current_fcu_value, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NEEDED);
+      }
+    }
+  }
+}
+
+static float find_next_key(ListBase *pflinks, const float start_frame)
+{
+  float target_frame = FLT_MAX;
+  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
+    LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
+      FCurve *fcu = (FCurve *)ld->data;
+      bool replace;
+      int current_frame_index = BKE_fcurve_bezt_binarysearch_index(
+          fcu->bezt, start_frame, fcu->totvert, &replace);
+      if (replace) {
+        const int bezt_index = min_ii(current_frame_index + 1, fcu->totvert - 1);
+        target_frame = min_ff(target_frame, fcu->bezt[bezt_index].vec[1][0]);
+      }
+      else {
+        target_frame = min_ff(target_frame, fcu->bezt[current_frame_index].vec[1][0]);
+      }
+    }
+  }
+
+  return target_frame;
+}
+
+static float find_last_key(ListBase *pflinks)
+{
+  float target_frame = FLT_MIN;
+  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
+    LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
+      FCurve *fcu = (FCurve *)ld->data;
+      target_frame = max_ff(target_frame, fcu->bezt[fcu->totvert - 1].vec[1][0]);
+    }
+  }
+
+  return target_frame;
+}
+
+static void get_selected_marker_positions(Scene *scene, ListBase /*FrameLink*/ *target_frames)
+{
+  ListBase selected_markers = {NULL, NULL};
+  ED_markers_make_cfra_list(&scene->markers, &selected_markers, SELECT);
+  LISTBASE_FOREACH (CfraElem *, marker, &selected_markers) {
+    FrameLink *link = MEM_callocN(sizeof(FrameLink), "Marker Key Link");
+    link->frame = marker->cfra;
+    BLI_addtail(target_frames, link);
+  }
+  BLI_freelistN(&selected_markers);
+}
+
+static void get_keyed_frames_in_range(ListBase *pflinks,
+                                      const float start_frame,
+                                      const float end_frame,
+                                      ListBase /*FrameLink*/ *target_frames)
+{
+  struct AnimKeylist *keylist = ED_keylist_create();
+  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
+    LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
+      FCurve *fcu = (FCurve *)ld->data;
+      fcurve_to_keylist(NULL, fcu, keylist, 0);
+    }
+  }
+  LISTBASE_FOREACH (ActKeyColumn *, column, ED_keylist_listbase(keylist)) {
+    if (column->cfra <= start_frame) {
+      continue;
+    }
+    if (column->cfra > end_frame) {
+      break;
+    }
+    FrameLink *link = MEM_callocN(sizeof(FrameLink), "Marker Key Link");
+    link->frame = column->cfra;
+    BLI_addtail(target_frames, link);
+  }
+  ED_keylist_free(keylist);
+}
+
+static void get_selected_frames(ListBase *pflinks, ListBase /*FrameLink*/ *target_frames)
+{
+  struct AnimKeylist *keylist = ED_keylist_create();
+  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
+    LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
+      FCurve *fcu = (FCurve *)ld->data;
+      fcurve_to_keylist(NULL, fcu, keylist, 0);
+    }
+  }
+  LISTBASE_FOREACH (ActKeyColumn *, column, ED_keylist_listbase(keylist)) {
+    if (!column->sel) {
+      continue;
+    }
+    FrameLink *link = MEM_callocN(sizeof(FrameLink), "Marker Key Link");
+    link->frame = column->cfra;
+    BLI_addtail(target_frames, link);
+  }
+  ED_keylist_free(keylist);
 }
 
 /* --------------------------------- */
@@ -2033,9 +2025,7 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
 
   ListBase pflinks = {NULL, NULL};
-  tPChanFCurveLink *pfl;
 
-  tPosePropagate_ModeData modeData;
   const int mode = RNA_enum_get(op->ptr, "mode");
 
   /* Isolate F-Curves related to the selected bones. */
@@ -2049,39 +2039,72 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* Mode-specific data preprocessing (requiring no access to curves). */
-  if (mode == POSE_PROPAGATE_SELECTED_MARKERS) {
-    /* Get a list of selected markers. */
-    ED_markers_make_cfra_list(&scene->markers, &modeData.sel_markers, SELECT);
-  }
-  else {
-    /* Assume everything else wants endFrame. */
-    modeData.end_frame = RNA_float_get(op->ptr, "end_frame");
-  }
+  const float end_frame = RNA_float_get(op->ptr, "end_frame");
+  const float current_frame = BKE_scene_frame_get(scene);
 
-  /* For each bone, perform the copying required. */
-  for (pfl = pflinks.first; pfl; pfl = pfl->next) {
-    LinkData *ld;
+  ListBase target_frames = {NULL, NULL};
 
-    /* Mode-specific data preprocessing (requiring access to all curves). */
-    if (mode == POSE_PROPAGATE_SMART_HOLDS) {
-      /* We store in endFrame the end frame of the "long keyframe" (i.e. a held value) starting
-       * from the keyframe that occurs after the current frame. */
-      modeData.end_frame = pose_propagate_get_boneHoldEndFrame(pfl, (float)scene->r.cfra);
+  switch (mode) {
+    case POSE_PROPAGATE_NEXT_KEY: {
+      float target_frame = find_next_key(&pflinks, current_frame);
+      FrameLink *link = MEM_callocN(sizeof(FrameLink), "Next Key Link");
+      link->frame = target_frame;
+      BLI_addtail(&target_frames, link);
+      propagate_curve_values(&pflinks, current_frame, &target_frames);
+      break;
     }
 
-    /* Go through propagating pose to keyframes, curve by curve. */
-    for (ld = pfl->fcurves.first; ld; ld = ld->next) {
-      pose_propagate_fcurve(op, pfl->ob, (FCurve *)ld->data, (float)scene->r.cfra, modeData);
+    case POSE_PROPAGATE_LAST_KEY: {
+      float target_frame = find_last_key(&pflinks);
+      FrameLink *link = MEM_callocN(sizeof(FrameLink), "Last Key Link");
+      link->frame = target_frame;
+      BLI_addtail(&target_frames, link);
+      propagate_curve_values(&pflinks, current_frame, &target_frames);
+      break;
+    }
+
+    case POSE_PROPAGATE_SELECTED_MARKERS: {
+      get_selected_marker_positions(scene, &target_frames);
+      propagate_curve_values(&pflinks, current_frame, &target_frames);
+      break;
+    }
+
+    case POSE_PROPAGATE_BEFORE_END: {
+      get_keyed_frames_in_range(&pflinks, current_frame, FLT_MAX, &target_frames);
+      propagate_curve_values(&pflinks, current_frame, &target_frames);
+      break;
+    }
+    case POSE_PROPAGATE_BEFORE_FRAME: {
+      get_keyed_frames_in_range(&pflinks, current_frame, end_frame, &target_frames);
+      propagate_curve_values(&pflinks, current_frame, &target_frames);
+      break;
+    }
+    case POSE_PROPAGATE_SELECTED_KEYS: {
+      get_selected_frames(&pflinks, &target_frames);
+      propagate_curve_values(&pflinks, current_frame, &target_frames);
+      break;
+    }
+    case POSE_PROPAGATE_SMART_HOLDS: {
+      /* For each bone, perform the copying required. */
+      LISTBASE_FOREACH (tPChanFCurveLink *, pfl, &pflinks) {
+        /* Mode-specific data preprocessing (requiring access to all curves). */
+        /* We store in endFrame the end frame of the "long keyframe" (i.e. a held value)
+         * starting from the keyframe that occurs after the current frame. */
+        const int smart_end_frame = pose_propagate_get_boneHoldEndFrame(pfl, current_frame);
+
+        /* Go through propagating pose to keyframes, curve by curve. */
+        LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
+          pose_propagate_fcurve((FCurve *)ld->data, current_frame, smart_end_frame);
+        }
+      }
+      break;
     }
   }
+
+  BLI_freelistN(&target_frames);
 
   /* Free temp data. */
   poseAnim_mapping_free(&pflinks);
-
-  if (mode == POSE_PROPAGATE_SELECTED_MARKERS) {
-    BLI_freelistN(&modeData.sel_markers);
-  }
 
   /* Updates + notifiers. */
   FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
