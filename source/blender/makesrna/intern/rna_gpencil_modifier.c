@@ -434,6 +434,7 @@ RNA_GP_MOD_OBJECT_SET(WeightProx, object, OB_EMPTY);
 RNA_GP_MOD_OBJECT_SET(Shrinkwrap, target, OB_MESH);
 RNA_GP_MOD_OBJECT_SET(Shrinkwrap, aux_target, OB_MESH);
 RNA_GP_MOD_OBJECT_SET(Build, object, OB_EMPTY);
+RNA_GP_MOD_OBJECT_SET(Offset, object, OB_EMPTY);
 
 #  undef RNA_GP_MOD_OBJECT_SET
 
@@ -1515,10 +1516,29 @@ static void rna_def_modifier_gpenciloffset(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  RNA_define_lib_overridable(true);
+  static EnumPropertyItem rna_enum_offset_mode_items[] = {
+      {GP_OFFSET_RANDOM, "RANDOM", 0, "Random", "Randomize stroke offset"},
+      {GP_OFFSET_LAYER, "LAYER", 0, "Layer", "Offset layers by the same factor"},
+      {GP_OFFSET_STROKE,
+       "STROKE",
+       0,
+       "Stroke",
+       "Offset strokes by the same factor based on stroke draw order"},
+      {GP_OFFSET_MATERIAL, "MATERIAL", 0, "Material", "Offset materials by the same factor"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "OffsetGpencilModifier", "GpencilModifier");
   RNA_def_struct_ui_text(srna, "Offset Modifier", "Offset Stroke modifier");
   RNA_def_struct_sdna(srna, "OffsetGpencilModifierData");
   RNA_def_struct_ui_icon(srna, ICON_MOD_OFFSET);
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "mode");
+  RNA_def_property_enum_items(prop, rna_enum_offset_mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   RNA_define_lib_overridable(true);
 
@@ -1620,12 +1640,20 @@ static void rna_def_modifier_gpenciloffset(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Seed", "Random seed");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+  prop = RNA_def_property(srna, "stroke_step", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_ui_text(prop, "Step", "Number of elements that will be grouped");
+  RNA_def_property_range(prop, 1, 500);
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "stroke_start_offset", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_ui_text(prop, "Start Offset", "Offset starting point");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
   prop = RNA_def_property(srna, "use_uniform_random_scale", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_OFFSET_UNIFORM_RANDOM_SCALE);
   RNA_def_property_ui_text(
       prop, "Uniform Scale", "Use the same random seed for each scale axis for a uniform scale");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
-
   RNA_define_lib_overridable(false);
 }
 
