@@ -42,19 +42,19 @@ void ply_import_report_error(FILE *file)
   }
 }
 
-void splitstr(std::string str, std::vector<std::string> &words, const std::string &deli)
+void splitstr(std::string str, std::vector<std::string> &words, const StringRef &deli)
 {
   int pos = 0;
 
   while ((pos = int(str.find(deli))) != std::string::npos) {
     words.push_back(str.substr(0, pos));
-    str.erase(0, pos + deli.length());
+    str.erase(0, pos + deli.size());
   }
   /* We add the final word to the vector. */
   words.push_back(str.substr());
 }
 
-enum PlyDataTypes from_string(const std::string &input)
+enum PlyDataTypes from_string(const StringRef &input)
 {
   if (input == "uchar") {
     return PlyDataTypes::UCHAR;
