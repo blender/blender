@@ -39,15 +39,15 @@ with-all,with-opencollada,with-jack,with-pulseaudio,with-embree,with-oidn,with-n
 ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,ver-xr-openxr:,ver-level-zero:\
 force-all,force-python,force-boost,force-tbb,\
 force-ocio,force-imath,force-openexr,force-oiio,force-llvm,force-osl,force-osd,force-openvdb,\
-force-ffmpeg,force-opencollada,force-alembic,force-embree,force-oidn,force-usd,\
+force-ffmpeg,force-opencollada,force-alembic,force-embree,force-oidn,force-materialx,force-usd,\
 force-xr-openxr,force-level-zero,force-openpgl,\
 build-all,build-python,build-boost,build-tbb,\
 build-ocio,build-imath,build-openexr,build-oiio,build-llvm,build-osl,build-osd,build-openvdb,\
-build-ffmpeg,build-opencollada,build-alembic,build-embree,build-oidn,build-usd,\
+build-ffmpeg,build-opencollada,build-alembic,build-embree,build-oidn,build-materialx,build-usd,\
 build-xr-openxr,build-level-zero,build-openpgl,\
 skip-python,skip-boost,skip-tbb,\
 skip-ocio,skip-imath,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-osd,skip-openvdb,\
-skip-ffmpeg,skip-opencollada,skip-alembic,skip-embree,skip-oidn,skip-usd,\
+skip-ffmpeg,skip-opencollada,skip-alembic,skip-embree,skip-oidn,skip-materialx,skip-usd,\
 skip-xr-openxr,skip-level-zero,skip-openpgl \
 -- "$@" \
 )
@@ -223,6 +223,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --build-ffmpeg
         Force the build of FFMpeg.
 
+    --build-materialx
+        Force the build of MaterialX.
+
     --build-usd
         Force the build of Universal Scene Description.
 
@@ -296,6 +299,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --force-ffmpeg
         Force the rebuild of FFMpeg.
 
+    --force-materialx
+        Force the rebuild of MaterialX.
+
     --force-usd
         Force the rebuild of Universal Scene Description.
 
@@ -361,6 +367,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --skip-ffmpeg
         Unconditionally skip FFMpeg installation/building.
+
+    --skip-materialx
+        Unconditionally skip MaterialX installation/building.
 
     --skip-usd
         Unconditionally skip Universal Scene Description installation/building.
@@ -562,6 +571,14 @@ ALEMBIC_VERSION_MEX="2.0"
 ALEMBIC_FORCE_BUILD=false
 ALEMBIC_FORCE_REBUILD=false
 ALEMBIC_SKIP=false
+
+MATERIALX_VERSION="1.38.6"
+MATERIALX_VERSION_SHORT="1.38"
+MATERIALX_VERSION_MIN="1.38"
+MATERIALX_VERSION_MEX="1.40"
+MATERIALX_FORCE_BUILD=false
+MATERIALX_FORCE_REBUILD=false
+MATERIALX_SKIP=false
 
 USD_VERSION="22.11"
 USD_VERSION_SHORT="22.11"
@@ -899,6 +916,9 @@ while true; do
     --build-alembic)
       ALEMBIC_FORCE_BUILD=true; shift; continue
     ;;
+    --build-materialx)
+      MATERIALX_FORCE_BUILD=true; shift; continue
+    ;;
     --build-usd)
       USD_FORCE_BUILD=true; shift; continue
     ;;
@@ -928,6 +948,7 @@ while true; do
       OIDN_FORCE_REBUILD=true
       FFMPEG_FORCE_REBUILD=true
       ALEMBIC_FORCE_REBUILD=true
+      MATERIALX_FORCE_REBUILD=true
       USD_FORCE_REBUILD=true
       XR_OPENXR_FORCE_REBUILD=true
       LEVEL_ZERO_FORCE_REBUILD=true
@@ -982,6 +1003,9 @@ while true; do
     ;;
     --force-alembic)
       ALEMBIC_FORCE_REBUILD=true; shift; continue
+    ;;
+    --force-materialx)
+      MATERIALX_FORCE_REBUILD=true; shift; continue
     ;;
     --force-usd)
       USD_FORCE_REBUILD=true; shift; continue
@@ -1045,6 +1069,9 @@ while true; do
     ;;
     --skip-usd)
       USD_SKIP=true; shift; continue
+    ;;
+    --skip-materialx)
+      MATERIALX_SKIP=true; shift; continue
     ;;
     --skip-xr-openxr)
       XR_OPENXR_SKIP=true; shift; continue
@@ -1169,6 +1196,8 @@ ALEMBIC_SOURCE=( "https://github.com/alembic/alembic/archive/${ALEMBIC_VERSION}.
 # ALEMBIC_SOURCE_REPO=( "https://github.com/alembic/alembic.git" )
 # ALEMBIC_SOURCE_REPO_UID="e6c90d4faa32c4550adeaaf3f556dad4b73a92bb"
 # ALEMBIC_SOURCE_REPO_BRANCH="master"
+
+MATERIALX_SOURCE=( "https://github.com/AcademySoftwareFoundation/MaterialX/archive/refs/tags/v${MATERIALX_VERSION}.tar.gz" )
 
 USD_SOURCE=( "https://github.com/PixarAnimationStudios/USD/archive/v${USD_VERSION}.tar.gz" )
 
@@ -3184,6 +3213,103 @@ compile_ALEMBIC() {
   run_ldconfig "alembic"
 }
 
+#### Build materialX ####
+_init_materialx() {
+  _src=$SRC/MaterialX-$MATERIALX_VERSION
+  _git=false
+  _inst=$INST/materialx-$MATERIALX_VERSION_SHORT
+  _inst_shortcut=$INST/materialx
+}
+
+_update_deps_materialx() {
+  :
+}
+
+clean_MATERIALX() {
+  _init_materialx
+  if [ -d $_inst ]; then
+    # Force rebuilding the dependencies if needed.
+    _update_deps_materialx false true
+  fi
+  _clean
+}
+
+compile_MATERIALX() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, MaterialX will not be compiled!"
+    return
+  fi
+
+  # To be changed each time we make edits that would modify the compiled result!
+  materialx_magic=1
+  _init_materialx
+
+  # Force having own builds for the dependencies.
+  _update_deps_materialx true false
+
+  # Clean install if needed!
+  magic_compile_check materialx-$MATERIALX_VERSION $materialx_magic
+  if [ $? -eq 1 -o "$MATERIALX_FORCE_REBUILD" = true ]; then
+    clean_MATERIALX
+  fi
+
+  if [ ! -d $_inst ]; then
+    INFO "Building MaterialX-$MATERIALX_VERSION"
+
+    # Force rebuilding the dependencies.
+    _update_deps_materialx true true
+
+    prepare_inst
+
+    if [ ! -d $_src ]; then
+      mkdir -p $SRC
+      download MATERIALX_SOURCE[@] "$_src.tar.gz"
+
+      INFO "Unpacking MaterialX-$MATERIALX_VERSION"
+      tar -C $SRC -xf $_src.tar.gz
+
+      patch -d $_src -p1 < $SCRIPT_DIR/patches/materialx.diff
+    fi
+
+    cd $_src
+
+    cmake_d="-D CMAKE_INSTALL_PREFIX=$_inst"
+
+    cmake_d="$cmake_d -DMATERIALX_BUILD_SHARED_LIBS=ON"
+    cmake_d="$cmake_d -DCMAKE_DEBUG_POSTFIX=_d"
+
+    cmake_d="$cmake_d -DMATERIALX_BUILD_RENDER=OFF"
+
+    cmake_d="$cmake_d -DMATERIALX_BUILD_PYTHON=ON"
+    cmake_d="$cmake_d -DMATERIALX_INSTALL_PYTHON=OFF"
+    if [ "$_with_built_python" = true ]; then
+      cmake_d="$cmake_d -D Python_EXECUTABLE=$_with_built_python_execpath"
+    fi
+
+    cmake $cmake_d ./
+    make -j$THREADS install
+    make clean
+
+    if [ ! -d $_inst ]; then
+      ERROR "MaterialX-$MATERIALX_VERSION failed to compile, exiting"
+      exit 1
+    fi
+
+    magic_compile_set materialx-$MATERIALX_VERSION $materialx_magic
+
+    cd $CWD
+    INFO "Done compiling MaterialX-$MATERIALX_VERSION!"
+  else
+    INFO "Own MaterialX-$MATERIALX_VERSION is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib, use the --force-materialx option."
+  fi
+
+  if [ -d $_inst ]; then
+    _create_inst_shortcut
+  fi
+  run_ldconfig "materialx"
+}
+
 #### Build USD ####
 _init_usd() {
   _src=$SRC/USD-$USD_VERSION
@@ -4680,6 +4806,16 @@ install_DEB() {
   fi
 
   PRINT ""
+  if [ "$MATERIALX_SKIP" = true ]; then
+    WARNING "Skipping MaterialX installation, as requested..."
+  elif [ "$MATERIALX_FORCE_BUILD" = true ]; then
+    INFO "Forced MaterialX building, as requested..."
+    compile_MATERIALX
+  else
+    compile_MATERIALX
+  fi
+
+  PRINT ""
   if [ "$USD_SKIP" = true ]; then
     WARNING "Skipping USD installation, as requested..."
   elif [ "$USD_FORCE_BUILD" = true ]; then
@@ -5409,6 +5545,16 @@ install_RPM() {
   fi
 
   PRINT ""
+  if [ "$MATERIALX_SKIP" = true ]; then
+    WARNING "Skipping MaterialX installation, as requested..."
+  elif [ "$MATERIALX_FORCE_BUILD" = true ]; then
+    INFO "Forced MaterialX building, as requested..."
+    compile_MATERIALX
+  else
+    compile_MATERIALX
+  fi
+
+  PRINT ""
   if [ "$USD_SKIP" = true ]; then
     WARNING "Skipping USD installation, as requested..."
   elif [ "$USD_FORCE_BUILD" = true ]; then
@@ -6014,6 +6160,16 @@ install_ARCH() {
   fi
 
   PRINT ""
+  if [ "$MATERIALX_SKIP" = true ]; then
+    WARNING "Skipping MaterialX installation, as requested..."
+  elif [ "$MATERIALX_FORCE_BUILD" = true ]; then
+    INFO "Forced MaterialX building, as requested..."
+    compile_MATERIALX
+  else
+    compile_MATERIALX
+  fi
+
+  PRINT ""
   if [ "$USD_SKIP" = true ]; then
     WARNING "Skipping USD installation, as requested..."
   elif [ "$USD_FORCE_BUILD" = true ]; then
@@ -6304,6 +6460,27 @@ install_OTHER() {
   fi
 
 
+  PRINT ""
+  if [ "$MATERIALX_SKIP" = true ]; then
+    WARNING "Skipping MaterialX installation, as requested..."
+  elif [ "$MATERIALX_FORCE_BUILD" = true ]; then
+    INFO "Forced MaterialX building, as requested..."
+    compile_MATERIALX
+  else
+    compile_MATERIALX
+  fi
+
+  PRINT ""
+  if [ "$USD_SKIP" = true ]; then
+    WARNING "Skipping USD installation, as requested..."
+  elif [ "$USD_FORCE_BUILD" = true ]; then
+    INFO "Forced USD building, as requested..."
+    compile_USD
+  else
+    compile_USD
+  fi
+
+
   if [ "$WITH_OPENCOLLADA" = true ]; then
     PRINT ""
     if [ "$OPENCOLLADA_SKIP" = true ]; then
@@ -6381,7 +6558,8 @@ print_info() {
 
   _buildargs="-U *SNDFILE* -U PYTHON* -U *BOOST* -U *Boost* -U *TBB*"
   _buildargs="$_buildargs -U *OPENCOLORIO* -U *OPENEXR* -U *OPENIMAGEIO* -U *LLVM* -U *CLANG* -U *CYCLES*"
-  _buildargs="$_buildargs -U *OPENSUBDIV* -U *OPENVDB*  -U *BLOSC* -U *COLLADA* -U *FFMPEG* -U *ALEMBIC* -U *USD*"
+  _buildargs="$_buildargs -U *OPENSUBDIV* -U *OPENVDB*  -U *BLOSC* -U *COLLADA* -U *FFMPEG* -U *ALEMBIC*"
+  _buildargs="$_buildargs -U *MATERIALX* -U *USD*"
   _buildargs="$_buildargs -U *EMBREE* -U *OPENIMAGEDENOISE* -U *OPENXR* -U *OPENPGL*"
 
   _1="-D WITH_CODEC_SNDFILE=ON"
@@ -6563,6 +6741,17 @@ print_info() {
     _buildargs="$_buildargs $_1"
     if [ -d $INST/alembic ]; then
       _1="-D ALEMBIC_ROOT_DIR=$INST/alembic"
+      PRINT "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
+  fi
+
+  if [ "$MATERIALX_SKIP" = false ]; then
+    _1="-D WITH_MATERIALX=ON"
+    PRINT "  $_1"
+    _buildargs="$_buildargs $_1"
+    if [ -d $INST/materialx ]; then
+      _1="-D MaterialX_DIR=$INST/materialx/lib/cmake/MaterialX"
       PRINT "  $_1"
       _buildargs="$_buildargs $_1"
     fi
