@@ -568,8 +568,8 @@ void POSELIB_OT_apply_pose_asset(wmOperatorType *ot)
   RNA_def_float_factor(ot->srna,
                        "blend_factor",
                        1.0f,
-                       -1.0f,
-                       1.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
                        "Blend Factor",
                        "Amount that the pose is applied on top of the existing poses. A negative "
                        "value will apply the pose flipped over the X-axis",
@@ -608,8 +608,8 @@ void POSELIB_OT_blend_pose_asset(wmOperatorType *ot)
   prop = RNA_def_float_factor(ot->srna,
                               "blend_factor",
                               0.0f,
-                              -1.0f,
-                              1.0f,
+                              -FLT_MAX,
+                              FLT_MAX,
                               "Blend Factor",
                               "Amount that the pose is applied on top of the existing poses. A "
                               "negative value will apply the pose flipped over the X-axis",
