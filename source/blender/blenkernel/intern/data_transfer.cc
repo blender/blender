@@ -237,9 +237,11 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type)
       return DT_MULTILAYER_INDEX_UV;
     case DT_TYPE_MPROPCOL_VERT:
     case DT_TYPE_MLOOPCOL_VERT:
+    case DT_TYPE_MPROPCOL_VERT | DT_TYPE_MLOOPCOL_VERT:
       return DT_MULTILAYER_INDEX_VCOL_VERT;
     case DT_TYPE_MPROPCOL_LOOP:
     case DT_TYPE_MLOOPCOL_LOOP:
+    case DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP:
       return DT_MULTILAYER_INDEX_VCOL_LOOP;
     default:
       return DT_MULTILAYER_INDEX_INVALID;

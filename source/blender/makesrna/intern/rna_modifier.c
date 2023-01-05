@@ -6391,7 +6391,7 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
 #  endif
     {DT_TYPE_BWEIGHT_VERT, "BEVEL_WEIGHT_VERT", 0, "Bevel Weight", "Transfer bevel weights"},
     {DT_TYPE_MPROPCOL_VERT | DT_TYPE_MLOOPCOL_VERT,
-     "VCOL",
+     "COLOR_VERTEX",
      0,
      "Colors",
      "Transfer color attributes"},
@@ -6410,7 +6410,7 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
   static const EnumPropertyItem DT_layer_loop_items[] = {
       {DT_TYPE_LNOR, "CUSTOM_NORMAL", 0, "Custom Normals", "Transfer custom normals"},
       {DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP,
-       "VCOL",
+       "COLOR_CORNER",
        0,
        "Colors",
        "Transfer color attributes"},
