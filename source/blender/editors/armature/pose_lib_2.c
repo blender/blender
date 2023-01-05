@@ -192,7 +192,7 @@ static void poselib_blend_set_factor(PoseBlendData *pbd, const float new_factor)
     BKE_pose_backup_free(pbd->pose_backup);
   }
 
-  pbd->blend_factor = CLAMPIS(new_factor, -1.0f, 1.0f);
+  pbd->blend_factor = new_factor;
   pbd->needs_redraw = true;
 
   if (sign_changed) {
@@ -351,7 +351,7 @@ static bool poselib_blend_init_data(bContext *C, wmOperator *op, const wmEvent *
     pbd->slider = ED_slider_create(C);
     ED_slider_init(pbd->slider, event);
     ED_slider_factor_set(pbd->slider, pbd->blend_factor);
-    ED_slider_allow_overshoot_set(pbd->slider, false);
+    ED_slider_allow_overshoot_set(pbd->slider, true);
     ED_slider_is_bidirectional_set(pbd->slider, true);
   }
 
