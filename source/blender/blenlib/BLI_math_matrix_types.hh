@@ -30,6 +30,8 @@
  * defined outside of the class in the `blender::math` namespace.
  */
 
+#define __BLI_MATH_MATRIX_TYPES_HH__
+
 #include <array>
 #include <cmath>
 #include <iostream>
