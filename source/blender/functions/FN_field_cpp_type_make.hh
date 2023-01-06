@@ -17,9 +17,6 @@ inline ValueOrFieldCPPType::ValueOrFieldCPPType(TypeTag<ValueType> /*value_type*
   construct_from_field_ = [](void *dst, GField field) {
     new (dst) ValueOrField<T>(Field<T>(std::move(field)));
   };
-  get_value_ptr_ = [](const void *value_or_field) {
-    return (const void *)&((ValueOrField<T> *)value_or_field)->value;
-  };
   get_field_ptr_ = [](const void *value_or_field) -> const GField * {
     return &((ValueOrField<T> *)value_or_field)->field;
   };
