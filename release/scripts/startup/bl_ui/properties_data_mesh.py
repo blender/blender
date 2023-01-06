@@ -551,7 +551,7 @@ class MESH_UL_attributes(UIList):
         return flags, indices
 
     def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
-        data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
+        data_type = attribute.bl_rna.properties["data_type"].enum_items[attribute.data_type]
 
         domain_name = self.display_domain_names.get(attribute.domain, "")
 
@@ -658,7 +658,7 @@ class ColorAttributesListBase():
 
 class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
     def draw_item(self, _context, layout, data, attribute, _icon, _active_data, _active_propname, _index):
-        data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
+        data_type = attribute.bl_rna.properties["data_type"].enum_items[attribute.data_type]
 
         domain_name = self.display_domain_names.get(attribute.domain, "")
 

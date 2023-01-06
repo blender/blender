@@ -51,8 +51,8 @@ ToolDef = namedtuple(
         "idname",
         # The name to display in the interface.
         "label",
-        # Description (for tool-tip), when not set, use the description of 'operator',
-        # may be a string or a 'function(context, item, key-map) -> string'.
+        # Description (for tool-tip), when not set, use the description of `operator`,
+        # may be a string or a `function(context, item, key-map) -> string`.
         "description",
         # The name of the icon to use (found in `release/datafiles/icons`) or None for no icon.
         "icon",
@@ -88,7 +88,7 @@ ToolDef = namedtuple(
         #   Note that this isn't used for Blender's built in tools which use the built-in key-map.
         #   Keep this functionality since it's likely useful for add-on key-maps.
         #
-        # Warning: currently 'from_dict' this is a list of one item,
+        # Warning: currently `from_dict` this is a list of one item,
         # so internally we can swap the key-map function for the key-map itself.
         # This isn't very nice and may change, tool definitions shouldn't care about this.
         "keymap",
@@ -256,7 +256,7 @@ class ToolSelectPanelHelper:
 
     # tool flattening
     #
-    # usually 'tools' is already expanded into ToolDef
+    # usually 'tools' is already expanded into `ToolDef`
     # but when registering a tool, this can still be a function
     # (_tools_flatten is usually called with cls.tools_from_context(context)
     # [that already yields from the function])
@@ -792,7 +792,7 @@ class ToolSelectPanelHelper:
         item, tool, icon_value = cls._tool_get_active(context, space_type, mode, with_icon=True)
         if item is None:
             return None
-        # Note: we could show 'item.text' here but it makes the layout jitter when switching tools.
+        # NOTE: we could show `item.text` here but it makes the layout jitter when switching tools.
         # Add some spacing since the icon is currently assuming regular small icon size.
         if show_tool_icon_always:
             layout.label(text="    " + iface_(item.label, "Operator"), icon_value=icon_value)

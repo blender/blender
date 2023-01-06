@@ -66,7 +66,7 @@ class MotionPathButtonsPanel:
             col.operator(op_category + ".paths_calculate", text="Calculate...", icon=icon)
 
         # Update All & Clear All.
-        # Note that 'col' is from inside the preceeding `if` or `else` block.
+        # Note that `col` is from inside the preceding `if` or `else` block.
         row = col.row(align=True)
         row.operator("object.paths_update_visible", text="Update All Paths", icon='WORLD')
         row.operator(op_category + ".paths_clear", text="", icon='X').only_selected = False

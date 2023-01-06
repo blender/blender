@@ -324,7 +324,7 @@ class RENDER_PT_output_color_management(RenderOutputButtonsPanel, Panel):
         col = flow.column()
 
         if image_settings.has_linear_colorspace:
-            if hasattr(owner, 'linear_colorspace_settings'):
+            if hasattr(owner, "linear_colorspace_settings"):
                 col.prop(owner.linear_colorspace_settings, "name", text="Color Space")
         else:
             col.prop(owner.display_settings, "display_device")

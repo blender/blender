@@ -742,7 +742,7 @@ class IMAGE_HT_header(Header):
 
             # Snap.
             snap_uv_element = tool_settings.snap_uv_element
-            act_snap_uv_element = tool_settings.bl_rna.properties['snap_uv_element'].enum_items[snap_uv_element]
+            act_snap_uv_element = tool_settings.bl_rna.properties["snap_uv_element"].enum_items[snap_uv_element]
 
             row = layout.row(align=True)
             row.prop(tool_settings, "use_snap_uv", text="")

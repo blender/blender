@@ -620,7 +620,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         if not view_layers.get("Foreground"):
             if len(view_layers) == 1:
                 fg = view_layers[0]
-                fg.name = 'Foreground'
+                fg.name = "Foreground"
             else:
                 fg = view_layers.new("Foreground")
 

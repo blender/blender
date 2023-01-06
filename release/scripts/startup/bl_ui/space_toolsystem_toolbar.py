@@ -2706,7 +2706,7 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     )
 
     # Private tools dictionary, store data to implement `tools_all` & `tools_from_context`.
-    # The keys match image spaces modes: 'context.space_data.mode'.
+    # The keys match image spaces modes: `context.space_data.mode`.
     # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [
@@ -2892,7 +2892,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     )
 
     # Private tools dictionary, store data to implement `tools_all` & `tools_from_context`.
-    # The keys match object-modes from: 'context.mode'.
+    # The keys match object-modes from: `context.mode`.
     # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [
@@ -3230,7 +3230,7 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
     )
 
     # Private tools dictionary, store data to implement `tools_all` & `tools_from_context`.
-    # The keys match sequence editors view type: 'context.space_data.view_type'.
+    # The keys match sequence editors view type: `context.space_data.view_type`.
     # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [

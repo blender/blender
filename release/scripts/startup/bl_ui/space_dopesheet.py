@@ -550,7 +550,7 @@ class DOPESHEET_PT_custom_props_action(PropertyPanel, Panel):
     bl_space_type = 'DOPESHEET_EDITOR'
     bl_category = "Action"
     bl_region_type = 'UI'
-    bl_context = 'data'
+    bl_context = "data"
     _context_path = "active_action"
     _property_type = bpy.types.Action
 
