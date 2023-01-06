@@ -453,7 +453,6 @@ static void gpu_shader_lib_test(const char *test_src_name)
 
   GPUShader *shader = GPU_shader_create_from_info(
       reinterpret_cast<GPUShaderCreateInfo *>(&create_info));
-  GPU_shader_bind(shader);
 
   int test_count = 0;
   /* Count tests. */
@@ -473,7 +472,17 @@ static void gpu_shader_lib_test(const char *test_src_name)
   GPU_framebuffer_ensure_config(&fb, {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(tex)});
   GPU_framebuffer_bind(fb);
 
-  GPU_batch_draw_advanced(GPU_batch_preset_quad(), 0, 3, 0, 1);
+  /* TODO(fclem): remove this boilerplate. */
+  GPUVertFormat format{};
+  GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT);
+  GPUVertBuf *verts = GPU_vertbuf_create_with_format(&format);
+  GPU_vertbuf_data_alloc(verts, 3);
+  GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
+
+  GPU_batch_set_shader(batch, shader);
+  GPU_batch_draw_advanced(batch, 0, 3, 0, 1);
+
+  GPU_batch_discard(batch);
 
   GPU_finish();
 
