@@ -17,6 +17,9 @@
 
 namespace blender::math {
 
+/**
+ * Returns true if all components are exactly equal to 0.
+ */
 template<typename T, int Size> [[nodiscard]] inline bool is_zero(const VecBase<T, Size> &a)
 {
   for (int i = 0; i < Size; i++) {
@@ -27,6 +30,9 @@ template<typename T, int Size> [[nodiscard]] inline bool is_zero(const VecBase<T
   return true;
 }
 
+/**
+ * Returns true if at least one component is exactly equal to 0.
+ */
 template<typename T, int Size> [[nodiscard]] inline bool is_any_zero(const VecBase<T, Size> &a)
 {
   for (int i = 0; i < Size; i++) {
@@ -37,6 +43,10 @@ template<typename T, int Size> [[nodiscard]] inline bool is_any_zero(const VecBa
   return false;
 }
 
+/**
+ * Returns true if the given vectors are equal within the given epsilon.
+ * The epsilon is scaled for each component by magnitude of the matching component of `a`.
+ */
 template<typename T, int Size>
 [[nodiscard]] inline bool almost_equal_relative(const VecBase<T, Size> &a,
                                                 const VecBase<T, Size> &b,
@@ -124,6 +134,9 @@ template<typename T, int Size>
   return result;
 }
 
+/**
+ * Safe version of mod(a, b) that returns 0 if b is equal to 0.
+ */
 template<typename T, int Size>
 [[nodiscard]] inline VecBase<T, Size> safe_mod(const VecBase<T, Size> &a,
                                                const VecBase<T, Size> &b)
@@ -135,6 +148,9 @@ template<typename T, int Size>
   return result;
 }
 
+/**
+ * Safe version of mod(a, b) that returns 0 if b is equal to 0.
+ */
 template<typename T, int Size>
 [[nodiscard]] inline VecBase<T, Size> safe_mod(const VecBase<T, Size> &a, const T &b)
 {
@@ -190,6 +206,9 @@ void min_max(const VecBase<T, Size> &vector, VecBase<T, Size> &min, VecBase<T, S
   max = math::max(vector, max);
 }
 
+/**
+ * Returns 0 if denominator is exactly equal to 0.
+ */
 template<typename T, int Size>
 [[nodiscard]] inline VecBase<T, Size> safe_divide(const VecBase<T, Size> &a,
                                                   const VecBase<T, Size> &b)
@@ -201,6 +220,9 @@ template<typename T, int Size>
   return result;
 }
 
+/**
+ * Returns 0 if denominator is exactly equal to 0.
+ */
 template<typename T, int Size>
 [[nodiscard]] inline VecBase<T, Size> safe_divide(const VecBase<T, Size> &a, const T &b)
 {
@@ -237,6 +259,12 @@ template<typename T, int Size>
   return result;
 }
 
+/**
+ * Dot product between two vectors.
+ * Equivalent to component wise multiplication followed by summation of the result.
+ * Equivalent to the cosine of the angle between the two vectors if the vectors are normalized.
+ * /note prefer using `length_manhattan(a)` than `dot(a, vec(1))` to get the sum of all components.
+ */
 template<typename T, int Size>
 [[nodiscard]] inline T dot(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
 {
@@ -247,6 +275,9 @@ template<typename T, int Size>
   return result;
 }
 
+/**
+ * Returns summation of all components.
+ */
 template<typename T, int Size> [[nodiscard]] inline T length_manhattan(const VecBase<T, Size> &a)
 {
   T result = std::abs(a[0]);
@@ -266,6 +297,7 @@ template<typename T, int Size> [[nodiscard]] inline T length(const VecBase<T, Si
   return std::sqrt(length_squared(a));
 }
 
+/* Returns true if each individual columns are unit scaled. Mainly for assert usage. */
 template<typename T, int Size> [[nodiscard]] inline bool is_unit_scale(const VecBase<T, Size> &v)
 {
   /* Checks are flipped so NAN doesn't assert because we're making sure the value was
@@ -315,6 +347,10 @@ template<typename T, int Size>
   return eta * incident - (eta * dot_ni + sqrt(k)) * normal;
 }
 
+/**
+ * Project \a p onto \a v_proj .
+ * Returns zero vector if \a v_proj is degenerate (zero length).
+ */
 template<typename T, int Size>
 [[nodiscard]] inline VecBase<T, Size> project(const VecBase<T, Size> &p,
                                               const VecBase<T, Size> &v_proj)
@@ -348,12 +384,23 @@ template<typename T, int Size>
   return normalize_and_get_length(v, len);
 }
 
+/**
+ * \return cross perpendicular vector to \a a and \a b.
+ * \note Return zero vector if \a a and \a b are collinear.
+ * \note The length of the resulting vector is equal to twice the area of the triangle between \a a
+ * and \a b ; and it is equal to the sine of the angle between \a a and \a b if they are
+ * normalized.
+ * \note Blender 3D space uses right handedness: \a a = thumb, \a b = index, return = middle.
+ */
 template<typename T>
 [[nodiscard]] inline VecBase<T, 3> cross(const VecBase<T, 3> &a, const VecBase<T, 3> &b)
 {
   return {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
 }
 
+/**
+ * Same as `cross(a, b)` but use double float precision for the computation.
+ */
 [[nodiscard]] inline VecBase<float, 3> cross_high_precision(const VecBase<float, 3> &a,
                                                             const VecBase<float, 3> &b)
 {
@@ -362,6 +409,11 @@ template<typename T>
           float(double(a.x) * double(b.y) - double(a.y) * double(b.x))};
 }
 
+/**
+ * @param poly List of points around a polygon. They don't have to be co-planar.
+ * @return Best fit plane normal for the given polygon loop or, zero vector if point
+ * loop is too short. Not normalized.
+ */
 template<typename T> [[nodiscard]] inline VecBase<T, 3> cross_poly(Span<VecBase<T, 3>> poly)
 {
   /* Newell's Method. */
@@ -385,6 +437,11 @@ template<typename T> [[nodiscard]] inline VecBase<T, 3> cross_poly(Span<VecBase<
   return n;
 }
 
+/**
+ * Per component linear interpolation.
+ * @param t interpolation factor. Return \a a if equal 0. Return \a b if equal 1.
+ * Outside of [0..1] range, it transform the function into linear extrapolation.
+ */
 template<typename T, typename FactorT, int Size>
 [[nodiscard]] inline VecBase<T, Size> interpolate(const VecBase<T, Size> &a,
                                                   const VecBase<T, Size> &b,
@@ -393,6 +450,9 @@ template<typename T, typename FactorT, int Size>
   return a * (1 - t) + b * t;
 }
 
+/**
+ * @return Point halfway between \a a and \a b.
+ */
 template<typename T, int Size>
 [[nodiscard]] inline VecBase<T, Size> midpoint(const VecBase<T, Size> &a,
                                                const VecBase<T, Size> &b)
@@ -411,6 +471,9 @@ template<typename T, int Size>
   return (dot(reference, incident) < 0) ? vector : -vector;
 }
 
+/**
+ * @return Index of the component with the greatest magnitude.
+ */
 template<typename T> [[nodiscard]] inline int dominant_axis(const VecBase<T, 3> &a)
 {
   VecBase<T, 3> b = abs(a);
@@ -445,6 +508,9 @@ template<typename T> [[nodiscard]] inline VecBase<T, 2> orthogonal(const VecBase
   return {-v.y, v.x};
 }
 
+/**
+ * Returns true if vectors are equal within the given epsilon.
+ */
 template<typename T, int Size>
 [[nodiscard]] inline bool is_equal(const VecBase<T, Size> &a,
                                    const VecBase<T, Size> &b,
