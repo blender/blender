@@ -626,6 +626,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
     Image *ima = (Image *)id;
 
     DEG_id_tag_update(&ima->id, 0);
+    DEG_id_tag_update(&ima->id, ID_RECALC_SOURCE);
 
     BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_COLORMANAGE);
 
