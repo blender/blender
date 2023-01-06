@@ -670,7 +670,6 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
   const bool is_hair = (clmd->hairdata != NULL);
   for (int i = 0; i < collision_count; i++, collpair++) {
     float i1[3], i2[3], i3[3];
-    float w1, w2, w3, u1, u2, u3;
     float v1[3], v2[3], relativeVelocity[3];
     zero_v3(i1);
     zero_v3(i2);
@@ -682,23 +681,13 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
     }
 
     /* Compute barycentric coordinates and relative "velocity" for both collision points. */
+    float w1 = collpair->aw1, w2 = collpair->aw2, w3 = collpair->aw3;
+    float u1 = collpair->bw1, u2 = collpair->bw2, u3 = collpair->bw3;
+
     if (is_hair) {
-      w2 = line_point_factor_v3(
-          collpair->pa, cloth->verts[collpair->ap1].tx, cloth->verts[collpair->ap2].tx);
-
-      w1 = 1.0f - w2;
-
       interp_v3_v3v3(v1, cloth->verts[collpair->ap1].tv, cloth->verts[collpair->ap2].tv, w2);
     }
     else {
-      collision_compute_barycentric(collpair->pa,
-                                    cloth->verts[collpair->ap1].tx,
-                                    cloth->verts[collpair->ap2].tx,
-                                    cloth->verts[collpair->ap3].tx,
-                                    &w1,
-                                    &w2,
-                                    &w3);
-
       collision_interpolateOnTriangle(v1,
                                       cloth->verts[collpair->ap1].tv,
                                       cloth->verts[collpair->ap2].tv,
@@ -707,14 +696,6 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
                                       w2,
                                       w3);
     }
-
-    collision_compute_barycentric(collpair->pb,
-                                  collmd->current_xnew[collpair->bp1].co,
-                                  collmd->current_xnew[collpair->bp2].co,
-                                  collmd->current_xnew[collpair->bp3].co,
-                                  &u1,
-                                  &u2,
-                                  &u3);
 
     collision_interpolateOnTriangle(v2,
                                     collmd->current_v[collpair->bp1].co,
@@ -834,7 +815,6 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
   for (int i = 0; i < collision_count; i++, collpair++) {
     float ia[3][3] = {{0.0f}};
     float ib[3][3] = {{0.0f}};
-    float w1, w2, w3, u1, u2, u3;
     float v1[3], v2[3], relativeVelocity[3];
 
     /* Only handle static collisions here. */
@@ -842,22 +822,9 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
       continue;
     }
 
-    /* Compute barycentric coordinates for both collision points. */
-    collision_compute_barycentric(collpair->pa,
-                                  cloth->verts[collpair->ap1].tx,
-                                  cloth->verts[collpair->ap2].tx,
-                                  cloth->verts[collpair->ap3].tx,
-                                  &w1,
-                                  &w2,
-                                  &w3);
-
-    collision_compute_barycentric(collpair->pb,
-                                  cloth->verts[collpair->bp1].tx,
-                                  cloth->verts[collpair->bp2].tx,
-                                  cloth->verts[collpair->bp3].tx,
-                                  &u1,
-                                  &u2,
-                                  &u3);
+    /* Retrieve barycentric coordinates for both collision points. */
+    float w1 = collpair->aw1, w2 = collpair->aw2, w3 = collpair->aw3;
+    float u1 = collpair->bw1, u2 = collpair->bw2, u3 = collpair->bw3;
 
     /* Calculate relative "velocity". */
     collision_interpolateOnTriangle(v1,
@@ -1053,6 +1020,23 @@ static void cloth_collision(void *__restrict userdata,
     collpair[index].flag = 0;
 
     data->collided = true;
+
+    /* Compute barycentric coordinates for both collision points. */
+    collision_compute_barycentric(pa,
+                                  verts1[tri_a->tri[0]].tx,
+                                  verts1[tri_a->tri[1]].tx,
+                                  verts1[tri_a->tri[2]].tx,
+                                  &collpair[index].aw1,
+                                  &collpair[index].aw2,
+                                  &collpair[index].aw3);
+
+    collision_compute_barycentric(pb,
+                                  collmd->current_xnew[tri_b->tri[0]].co,
+                                  collmd->current_xnew[tri_b->tri[1]].co,
+                                  collmd->current_xnew[tri_b->tri[2]].co,
+                                  &collpair[index].bw1,
+                                  &collpair[index].bw2,
+                                  &collpair[index].bw3);
   }
   else {
     collpair[index].flag = COLLISION_INACTIVE;
@@ -1159,6 +1143,23 @@ static void cloth_selfcollision(void *__restrict userdata,
     collpair[index].flag = 0;
 
     data->collided = true;
+
+    /* Compute barycentric coordinates for both collision points. */
+    collision_compute_barycentric(pa,
+                                  verts1[tri_a->tri[0]].tx,
+                                  verts1[tri_a->tri[1]].tx,
+                                  verts1[tri_a->tri[2]].tx,
+                                  &collpair[index].aw1,
+                                  &collpair[index].aw2,
+                                  &collpair[index].aw3);
+
+    collision_compute_barycentric(pb,
+                                  verts1[tri_b->tri[0]].tx,
+                                  verts1[tri_b->tri[1]].tx,
+                                  verts1[tri_b->tri[2]].tx,
+                                  &collpair[index].bw1,
+                                  &collpair[index].bw2,
+                                  &collpair[index].bw3);
   }
   else {
     collpair[index].flag = COLLISION_INACTIVE;
@@ -1217,6 +1218,20 @@ static void hair_collision(void *__restrict userdata,
     collpair[index].flag = 0;
 
     data->collided = true;
+
+    /* Compute barycentric coordinates for the collision points. */
+    collpair[index].aw2 = line_point_factor_v3(
+        pa, verts1[edge_coll->v1].tx, verts1[edge_coll->v2].tx);
+
+    collpair[index].aw1 = 1.0f - collpair[index].aw2;
+
+    collision_compute_barycentric(pb,
+                                  collmd->current_xnew[tri_coll->tri[0]].co,
+                                  collmd->current_xnew[tri_coll->tri[1]].co,
+                                  collmd->current_xnew[tri_coll->tri[2]].co,
+                                  &collpair[index].bw1,
+                                  &collpair[index].bw2,
+                                  &collpair[index].bw3);
   }
   else {
     collpair[index].flag = COLLISION_INACTIVE;

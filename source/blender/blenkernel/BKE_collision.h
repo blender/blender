@@ -55,6 +55,8 @@ typedef struct CollPair {
 #else
   int ap1, ap2, ap3, bp1, bp2, bp3;
 #endif
+  /* Barycentric weights of the collision point. */
+  float aw1, aw2, aw3, bw1, bw2, bw3;
   int pointsb[4];
 } CollPair;
 
