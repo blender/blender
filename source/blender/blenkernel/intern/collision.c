@@ -1115,8 +1115,15 @@ static void cloth_selfcollision(void *__restrict userdata,
   float epsilon = clmd->coll_parms->selfepsilon;
   float pa[3], pb[3], vect[3];
 
-  tri_a = &clmd->clothObject->tri[data->overlap[index].indexA];
-  tri_b = &clmd->clothObject->tri[data->overlap[index].indexB];
+  /* Collision math is currently not symmetric, so ensure a stable order for each pair. */
+  int indexA = data->overlap[index].indexA, indexB = data->overlap[index].indexB;
+
+  if (indexA > indexB) {
+    SWAP(int, indexA, indexB);
+  }
+
+  tri_a = &clmd->clothObject->tri[indexA];
+  tri_b = &clmd->clothObject->tri[indexB];
 
   BLI_assert(cloth_bvh_selfcollision_is_active(clmd, clmd->clothObject, tri_a, tri_b));
 

@@ -1335,7 +1335,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
   /* 'RETURN_PAIRS' was not implemented without 'max_interactions'. */
   BLI_assert(overlap_pairs || max_interactions);
   /* Self-overlap does not support max interactions (it's not symmetrical). */
-  BLI_assert(!use_self || tree1 == tree2 && !max_interactions);
+  BLI_assert(!use_self || (tree1 == tree2 && !max_interactions));
 
   const int root_node_len = BLI_bvhtree_overlap_thread_num(tree1);
   const int thread_num = use_threading ? root_node_len : 1;
