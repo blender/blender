@@ -170,13 +170,6 @@ class bNodeSocketRuntime : NonCopyable, NonMovable {
   uint32_t changed_flag = 0;
 
   /**
-   * The location of the sockets, in the view-space of the node editor.
-   * \note Only calculated when drawing.
-   */
-  float locx = 0;
-  float locy = 0;
-
-  /**
    * Runtime-only cache of the number of input links, for multi-input sockets,
    * including dragged node links that aren't actually in the tree.
    */

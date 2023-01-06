@@ -317,7 +317,8 @@ static void node_update_basis(const bContext &C,
                               const TreeDrawContext & /*tree_draw_ctx*/,
                               bNodeTree &ntree,
                               bNode &node,
-                              uiBlock &block)
+                              uiBlock &block,
+                              MutableSpan<float2> socket_locations)
 {
   PointerRNA nodeptr;
   RNA_pointer_create(&ntree.id, &RNA_Node, &node, &nodeptr);
@@ -387,8 +388,8 @@ static void node_update_basis(const bContext &C,
     buty = min_ii(buty, dy - NODE_DY);
 
     /* Round the socket location to stop it from jiggling. */
-    socket->runtime->locx = round(loc.x + NODE_WIDTH(node));
-    socket->runtime->locy = round(dy - NODE_DYS);
+    socket_locations[socket->index_in_tree()] = float2(round(loc.x + NODE_WIDTH(node)),
+                                                       round(dy - NODE_DYS));
 
     dy = buty;
     if (socket->next) {
@@ -519,9 +520,8 @@ static void node_update_basis(const bContext &C,
     /* Ensure minimum socket height in case layout is empty. */
     buty = min_ii(buty, dy - NODE_DY);
 
-    socket->runtime->locx = loc.x;
     /* Round the socket vertical position to stop it from jiggling. */
-    socket->runtime->locy = round(dy - NODE_DYS);
+    socket_locations[socket->index_in_tree()] = float2(loc.x, round(dy - NODE_DYS));
 
     dy = buty - multi_input_socket_offset * 0.5;
     if (socket->next) {
@@ -551,7 +551,7 @@ static void node_update_basis(const bContext &C,
 /**
  * Based on settings in node, sets drawing rect info.
  */
-static void node_update_hidden(bNode &node, uiBlock &block)
+static void node_update_hidden(bNode &node, uiBlock &block, MutableSpan<float2> socket_locations)
 {
   int totin = 0, totout = 0;
 
@@ -591,8 +591,9 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   for (bNodeSocket *socket : node.output_sockets()) {
     if (socket->is_visible()) {
       /* Round the socket location to stop it from jiggling. */
-      socket->runtime->locx = round(node.runtime->totr.xmax - hiddenrad + sinf(rad) * hiddenrad);
-      socket->runtime->locy = round(node.runtime->totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
+      socket_locations[socket->index_in_tree()] = {
+          round(node.runtime->totr.xmax - hiddenrad + sinf(rad) * hiddenrad),
+          round(node.runtime->totr.ymin + hiddenrad + cosf(rad) * hiddenrad)};
       rad += drad;
     }
   }
@@ -603,8 +604,9 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   for (bNodeSocket *socket : node.input_sockets()) {
     if (socket->is_visible()) {
       /* Round the socket location to stop it from jiggling. */
-      socket->runtime->locx = round(node.runtime->totr.xmin + hiddenrad + sinf(rad) * hiddenrad);
-      socket->runtime->locy = round(node.runtime->totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
+      socket_locations[socket->index_in_tree()] = {
+          round(node.runtime->totr.xmin + hiddenrad + sinf(rad) * hiddenrad),
+          round(node.runtime->totr.ymin + hiddenrad + cosf(rad) * hiddenrad)};
       rad += drad;
     }
   }
@@ -1169,6 +1171,7 @@ void node_socket_add_tooltip(const bNodeTree &ntree, const bNodeSocket &sock, ui
 
 static void node_socket_draw_nested(const bContext &C,
                                     const bNodeTree &ntree,
+                                    const Span<float2> socket_locations,
                                     PointerRNA &node_ptr,
                                     uiBlock &block,
                                     const bNodeSocket &sock,
@@ -1180,7 +1183,7 @@ static void node_socket_draw_nested(const bContext &C,
                                     const float size,
                                     const bool selected)
 {
-  const float2 location(sock.runtime->locx, sock.runtime->locy);
+  const float2 location = socket_locations[sock.index_in_tree()];
 
   float color[4];
   float outline_color[4];
@@ -1382,6 +1385,7 @@ static void node_draw_shadow(const SpaceNode &snode,
 static void node_draw_sockets(const View2D &v2d,
                               const bContext &C,
                               const bNodeTree &ntree,
+                              const Span<float2> socket_locations,
                               const bNode &node,
                               uiBlock &block,
                               const bool draw_outputs,
@@ -1441,6 +1445,7 @@ static void node_draw_sockets(const View2D &v2d,
 
     node_socket_draw_nested(C,
                             ntree,
+                            socket_locations,
                             node_ptr,
                             block,
                             *sock,
@@ -1467,6 +1472,7 @@ static void node_draw_sockets(const View2D &v2d,
 
       node_socket_draw_nested(C,
                               ntree,
+                              socket_locations,
                               node_ptr,
                               block,
                               *sock,
@@ -1505,6 +1511,7 @@ static void node_draw_sockets(const View2D &v2d,
         if (select_all || (sock->flag & SELECT)) {
           node_socket_draw_nested(C,
                                   ntree,
+                                  socket_locations,
                                   node_ptr,
                                   block,
                                   *sock,
@@ -1532,6 +1539,7 @@ static void node_draw_sockets(const View2D &v2d,
         if (select_all || (sock->flag & SELECT)) {
           node_socket_draw_nested(C,
                                   ntree,
+                                  socket_locations,
                                   node_ptr,
                                   block,
                                   *sock,
@@ -1577,7 +1585,7 @@ static void node_draw_sockets(const View2D &v2d,
     node_socket_color_get(C, ntree, node_ptr, *socket, color);
     node_socket_outline_color_get(socket->flag & SELECT, socket->type, outline_color);
 
-    const float2 location(socket->runtime->locx, socket->runtime->locy);
+    const float2 location = socket_locations[socket->index_in_tree()];
     node_socket_draw_multi_input(color, outline_color, width, height, location);
   }
 }
@@ -2084,6 +2092,7 @@ static void node_draw_basis(const bContext &C,
                             const View2D &v2d,
                             const SpaceNode &snode,
                             bNodeTree &ntree,
+                            const Span<float2> socket_locations,
                             const bNode &node,
                             uiBlock &block,
                             bNodeInstanceKey key)
@@ -2384,7 +2393,7 @@ static void node_draw_basis(const bContext &C,
 
   /* Skip slow socket drawing if zoom is small. */
   if (scale > 0.2f) {
-    node_draw_sockets(v2d, C, ntree, node, block, true, false);
+    node_draw_sockets(v2d, C, ntree, socket_locations, node, block, true, false);
   }
 
   /* Preview. */
@@ -2408,6 +2417,7 @@ static void node_draw_hidden(const bContext &C,
                              const View2D &v2d,
                              const SpaceNode &snode,
                              bNodeTree &ntree,
+                             const Span<float2> socket_locations,
                              bNode &node,
                              uiBlock &block)
 {
@@ -2577,7 +2587,7 @@ static void node_draw_hidden(const bContext &C,
   immUnbindProgram();
   GPU_blend(GPU_BLEND_NONE);
 
-  node_draw_sockets(v2d, C, ntree, node, block, true, false);
+  node_draw_sockets(v2d, C, ntree, socket_locations, node, block, true, false);
 
   UI_block_end(&C, &block);
   UI_block_draw(&C, &block);
@@ -2710,18 +2720,13 @@ static void frame_node_prepare_for_draw(bNode &node, Span<bNode *> nodes)
   node.runtime->totr = rect;
 }
 
-static void reroute_node_prepare_for_draw(bNode &node)
+static void reroute_node_prepare_for_draw(bNode &node, MutableSpan<float2> socket_locations)
 {
   const float2 loc = node_to_view(node, float2(0));
 
   /* Reroute node has exactly one input and one output, both in the same place. */
-  bNodeSocket *socket = (bNodeSocket *)node.outputs.first;
-  socket->runtime->locx = loc.x;
-  socket->runtime->locy = loc.y;
-
-  socket = (bNodeSocket *)node.inputs.first;
-  socket->runtime->locx = loc.x;
-  socket->runtime->locy = loc.y;
+  socket_locations[node.input_socket(0).index_in_tree()] = loc;
+  socket_locations[node.output_socket(0).index_in_tree()] = loc;
 
   const float size = 8.0f;
   node.width = size * 2;
@@ -2735,7 +2740,8 @@ static void node_update_nodetree(const bContext &C,
                                  TreeDrawContext &tree_draw_ctx,
                                  bNodeTree &ntree,
                                  Span<bNode *> nodes,
-                                 Span<uiBlock *> blocks)
+                                 Span<uiBlock *> blocks,
+                                 MutableSpan<float2> socket_locations)
 {
   /* Make sure socket "used" tags are correct, for displaying value buttons. */
   SpaceNode *snode = CTX_wm_space_node(&C);
@@ -2751,14 +2757,14 @@ static void node_update_nodetree(const bContext &C,
     }
 
     if (node.is_reroute()) {
-      reroute_node_prepare_for_draw(node);
+      reroute_node_prepare_for_draw(node, socket_locations);
     }
     else {
       if (node.flag & NODE_HIDDEN) {
-        node_update_hidden(node, block);
+        node_update_hidden(node, block, socket_locations);
       }
       else {
-        node_update_basis(C, tree_draw_ctx, ntree, node, block);
+        node_update_basis(C, tree_draw_ctx, ntree, node, block, socket_locations);
       }
     }
   }
@@ -2911,8 +2917,12 @@ static void frame_node_draw(const bContext &C,
   UI_block_draw(&C, &block);
 }
 
-static void reroute_node_draw(
-    const bContext &C, ARegion &region, bNodeTree &ntree, bNode &node, uiBlock &block)
+static void reroute_node_draw(const bContext &C,
+                              ARegion &region,
+                              bNodeTree &ntree,
+                              const Span<float2> socket_locations,
+                              const bNode &node,
+                              uiBlock &block)
 {
   /* Skip if out of view. */
   const rctf &rct = node.runtime->totr;
@@ -2950,7 +2960,8 @@ static void reroute_node_draw(
 
   /* Only draw input socket as they all are placed on the same position highlight
    * if node itself is selected, since we don't display the node body separately. */
-  node_draw_sockets(region.v2d, C, ntree, node, block, false, node.flag & SELECT);
+  node_draw_sockets(
+      region.v2d, C, ntree, socket_locations, node, block, false, node.flag & SELECT);
 
   UI_block_end(&C, &block);
   UI_block_draw(&C, &block);
@@ -2961,6 +2972,7 @@ static void node_draw(const bContext &C,
                       ARegion &region,
                       const SpaceNode &snode,
                       bNodeTree &ntree,
+                      const Span<float2> socket_locations,
                       bNode &node,
                       uiBlock &block,
                       bNodeInstanceKey key)
@@ -2969,15 +2981,15 @@ static void node_draw(const bContext &C,
     frame_node_draw(C, tree_draw_ctx, region, snode, ntree, node, block);
   }
   else if (node.is_reroute()) {
-    reroute_node_draw(C, region, ntree, node, block);
+    reroute_node_draw(C, region, ntree, socket_locations, node, block);
   }
   else {
     const View2D &v2d = region.v2d;
     if (node.flag & NODE_HIDDEN) {
-      node_draw_hidden(C, tree_draw_ctx, v2d, snode, ntree, node, block);
+      node_draw_hidden(C, tree_draw_ctx, v2d, snode, ntree, socket_locations, node, block);
     }
     else {
-      node_draw_basis(C, tree_draw_ctx, v2d, snode, ntree, node, block, key);
+      node_draw_basis(C, tree_draw_ctx, v2d, snode, ntree, socket_locations, node, block, key);
     }
   }
 }
@@ -2989,6 +3001,7 @@ static void node_draw_nodetree(const bContext &C,
                                ARegion &region,
                                SpaceNode &snode,
                                bNodeTree &ntree,
+                               const Span<float2> socket_locations,
                                Span<bNode *> nodes,
                                Span<uiBlock *> blocks,
                                bNodeInstanceKey parent_key)
@@ -3010,7 +3023,8 @@ static void node_draw_nodetree(const bContext &C,
     }
 
     const bNodeInstanceKey key = BKE_node_instance_key(parent_key, &ntree, nodes[i]);
-    node_draw(C, tree_draw_ctx, region, snode, ntree, *nodes[i], *blocks[i], key);
+    node_draw(
+        C, tree_draw_ctx, region, snode, ntree, socket_locations, *nodes[i], *blocks[i], key);
   }
 
   /* Node lines. */
@@ -3040,7 +3054,8 @@ static void node_draw_nodetree(const bContext &C,
     }
 
     const bNodeInstanceKey key = BKE_node_instance_key(parent_key, &ntree, nodes[i]);
-    node_draw(C, tree_draw_ctx, region, snode, ntree, *nodes[i], *blocks[i], key);
+    node_draw(
+        C, tree_draw_ctx, region, snode, ntree, socket_locations, *nodes[i], *blocks[i], key);
   }
 }
 
@@ -3147,9 +3162,19 @@ static void draw_nodetree(const bContext &C,
   else if (ntree.type == NTREE_COMPOSIT) {
     tree_draw_ctx.used_by_realtime_compositor = realtime_compositor_is_in_use(C);
   }
+  snode->runtime->all_socket_locations.reinitialize(ntree.all_sockets().size());
 
-  node_update_nodetree(C, tree_draw_ctx, ntree, nodes, blocks);
-  node_draw_nodetree(C, tree_draw_ctx, region, *snode, ntree, nodes, blocks, parent_key);
+  node_update_nodetree(
+      C, tree_draw_ctx, ntree, nodes, blocks, snode->runtime->all_socket_locations);
+  node_draw_nodetree(C,
+                     tree_draw_ctx,
+                     region,
+                     *snode,
+                     ntree,
+                     snode->runtime->all_socket_locations,
+                     nodes,
+                     blocks,
+                     parent_key);
 }
 
 /**
