@@ -508,7 +508,7 @@ template<typename T, int NumCol, int NumRow, typename VectorT>
   using MatT = MatBase<T, NumCol, NumRow>;
   BLI_STATIC_ASSERT(VectorT::type_length <= MatT::col_len - 1,
                     "Translation should be at least 1 column less than the matrix.");
-  static constexpr int location_col = MatT::col_len - 1;
+  constexpr int location_col = MatT::col_len - 1;
   /* Avoid multiplying the last row if it exists.
    * Allows using non square matrices like float3x2 and saves computation. */
   using IntermediateVecT =
