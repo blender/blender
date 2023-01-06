@@ -434,7 +434,6 @@ RNA_GP_MOD_OBJECT_SET(WeightProx, object, OB_EMPTY);
 RNA_GP_MOD_OBJECT_SET(Shrinkwrap, target, OB_MESH);
 RNA_GP_MOD_OBJECT_SET(Shrinkwrap, aux_target, OB_MESH);
 RNA_GP_MOD_OBJECT_SET(Build, object, OB_EMPTY);
-RNA_GP_MOD_OBJECT_SET(Offset, object, OB_EMPTY);
 
 #  undef RNA_GP_MOD_OBJECT_SET
 

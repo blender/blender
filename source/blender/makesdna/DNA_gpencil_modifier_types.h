@@ -770,7 +770,6 @@ typedef enum eOffsetGpencil_Mode {
 
 typedef struct OffsetGpencilModifierData {
   GpencilModifierData modifier;
-  struct Object *object;
   /** Material for filtering. */
   struct Material *material;
   /** Layer name. */
