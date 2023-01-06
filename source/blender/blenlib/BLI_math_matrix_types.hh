@@ -70,7 +70,7 @@ template<
     int NumRow,
     /* Alignment in bytes. Do not align matrices whose size is not a multiple of 4 component.
      * This is in order to avoid padding when using arrays of matrices. */
-    int Alignment = (((NumCol * NumRow) % 4) ? 4 : 0) * sizeof(T)>
+    int Alignment = (((NumCol * NumRow) % 4 == 0) ? 4 : 1) * alignof(T)>
 struct alignas(Alignment) MatBase : public vec_struct_base<vec_base<T, NumRow>, NumCol> {
 
   using base_type = T;
@@ -923,8 +923,8 @@ using float4x4 = MatBase<float, 4, 4>;
 
 /* These types are reserved to wrap C matrices without copy. Note the un-alignment. */
 /* TODO: It would be preferable to align all C matrices inside DNA structs. */
-using float4x4_view = MatView<float, 4, 4, 4, 4, 0, 0, /* Alignment */ 0>;
-using float4x4_mutableview = MutableMatView<float, 4, 4, 4, 4, 0, 0, /* Alignment */ 0>;
+using float4x4_view = MatView<float, 4, 4, 4, 4, 0, 0, alignof(float)>;
+using float4x4_mutableview = MutableMatView<float, 4, 4, 4, 4, 0, 0, alignof(float)>;
 
 using double2x2 = MatBase<double, 2, 2>;
 using double2x3 = MatBase<double, 2, 3>;
