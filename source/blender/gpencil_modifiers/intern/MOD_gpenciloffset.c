@@ -218,7 +218,7 @@ static void bakeModifier(struct Main *UNUSED(bmain),
   generic_bake_deform_stroke(depsgraph, md, ob, false, deformStroke);
 }
 
-static void updateDepsgraph(GpencilModifierData *md,
+static void updateDepsgraph(GpencilModifierData *UNUSED(md),
                             const ModifierUpdateDepsgraphContext *ctx,
                             const int UNUSED(mode))
 {

@@ -1630,7 +1630,6 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd); /* only use active for copy merge */
   Scene *scene = CTX_data_scene(C);
 
-  bGPDframe *gpf = gpl->actframe;
   bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
 
   eGP_PasteMode type = RNA_enum_get(op->ptr, "type");
@@ -1744,6 +1743,8 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
             break;
           }
         }
+
+        bGPDframe *gpf;
         if (IS_AUTOKEY_ON(scene) || (gpl->actframe == NULL)) {
           gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_ADD_NEW);
         }
