@@ -89,6 +89,10 @@ typedef struct tSlider {
    * This is set by the artist while using the slider. */
   bool overshoot;
 
+  /** Whether keeping CTRL pressed will snap to 10% increments.
+   * Default is true. Set to false if the CTRL key is needed for other means. */
+  bool allow_increments;
+
   /** Move factor in 10% steps. */
   bool increments;
 
@@ -381,6 +385,7 @@ tSlider *ED_slider_create(struct bContext *C)
 
   /* Default is true, caller needs to manually set to false. */
   slider->allow_overshoot = true;
+  slider->allow_increments = true;
 
   /* Set initial factor. */
   slider->raw_factor = 0.5f;
@@ -425,7 +430,7 @@ bool ED_slider_modal(tSlider *slider, const wmEvent *event)
       break;
     case EVT_LEFTCTRLKEY:
     case EVT_RIGHTCTRLKEY:
-      slider->increments = event->val == KM_PRESS;
+      slider->increments = slider->allow_increments && event->val == KM_PRESS;
       break;
     case MOUSEMOVE:;
       /* Update factor. */
@@ -469,16 +474,21 @@ void ED_slider_status_string_get(const struct tSlider *slider,
     STRNCPY(precision_str, TIP_("Shift - Hold for precision"));
   }
 
-  if (slider->increments) {
-    STRNCPY(increments_str, TIP_("[Ctrl] - Increments active"));
+  if (slider->allow_increments) {
+    if (slider->increments) {
+      STRNCPY(increments_str, TIP_(" | [Ctrl] - Increments active"));
+    }
+    else {
+      STRNCPY(increments_str, TIP_(" | Ctrl - Hold for 10% increments"));
+    }
   }
   else {
-    STRNCPY(increments_str, TIP_("Ctrl - Hold for 10% increments"));
+    increments_str[0] = '\0';
   }
 
   BLI_snprintf(status_string,
                size_of_status_string,
-               "%s | %s | %s",
+               "%s | %s%s",
                overshoot_str,
                precision_str,
                increments_str);
@@ -519,6 +529,16 @@ bool ED_slider_allow_overshoot_get(struct tSlider *slider)
 void ED_slider_allow_overshoot_set(struct tSlider *slider, const bool value)
 {
   slider->allow_overshoot = value;
+}
+
+bool ED_slider_allow_increments_get(struct tSlider *slider)
+{
+  return slider->allow_increments;
+}
+
+void ED_slider_allow_increments_set(struct tSlider *slider, const bool value)
+{
+  slider->allow_increments = value;
 }
 
 bool ED_slider_is_bidirectional_get(struct tSlider *slider)
