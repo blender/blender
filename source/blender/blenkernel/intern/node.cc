@@ -3561,16 +3561,16 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
 void nodeSetSocketAvailability(bNodeTree *ntree, bNodeSocket *sock, bool is_available)
 {
   const bool was_available = (sock->flag & SOCK_UNAVAIL) == 0;
-  if (is_available != was_available) {
-    BKE_ntree_update_tag_socket_availability(ntree, sock);
+  if (is_available == was_available) {
+    return;
   }
-
   if (is_available) {
     sock->flag &= ~SOCK_UNAVAIL;
   }
   else {
     sock->flag |= SOCK_UNAVAIL;
   }
+  BKE_ntree_update_tag_socket_availability(ntree, sock);
 }
 
 int nodeSocketLinkLimit(const bNodeSocket *sock)
