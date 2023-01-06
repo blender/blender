@@ -360,7 +360,7 @@ static void execute_multi_function_on_value_or_field(
       const ValueOrFieldCPPType &type = *input_types[i];
       const void *value_or_field = input_values[i];
       const void *value = type.get_value_ptr(value_or_field);
-      params.add_readonly_single_input(GVArray::ForSingleRef(type.value, 1, value));
+      params.add_readonly_single_input(GPointer{type.value, value});
     }
     for (const int i : output_types.index_range()) {
       const ValueOrFieldCPPType &type = *output_types[i];
