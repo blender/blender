@@ -71,12 +71,12 @@ template<
     /* Alignment in bytes. Do not align matrices whose size is not a multiple of 4 component.
      * This is in order to avoid padding when using arrays of matrices. */
     int Alignment = (((NumCol * NumRow) % 4 == 0) ? 4 : 1) * sizeof(T)>
-struct alignas(Alignment) MatBase : public vec_struct_base<vec_base<T, NumRow>, NumCol> {
+struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, NumCol> {
 
   using base_type = T;
-  using vec3_type = vec_base<T, 3>;
-  using col_type = vec_base<T, NumRow>;
-  using row_type = vec_base<T, NumCol>;
+  using vec3_type = VecBase<T, 3>;
+  using col_type = VecBase<T, NumRow>;
+  using row_type = VecBase<T, NumCol>;
   static constexpr int min_dim = (NumRow < NumCol) ? NumRow : NumCol;
   static constexpr int col_len = NumCol;
   static constexpr int row_len = NumRow;
@@ -523,8 +523,8 @@ template<typename T,
 struct MatView : NonCopyable, NonMovable {
   using MatT = MatBase<T, NumCol, NumRow>;
   using SrcMatT = MatBase<T, SrcNumCol, SrcNumRow, SrcAlignment>;
-  using col_type = vec_base<T, NumRow>;
-  using row_type = vec_base<T, NumCol>;
+  using col_type = VecBase<T, NumRow>;
+  using row_type = VecBase<T, NumCol>;
 
   const SrcMatT &mat;
 
@@ -759,8 +759,8 @@ struct MutableMatView
   using MatViewT =
       MatView<T, NumCol, NumRow, SrcNumCol, SrcNumRow, SrcStartCol, SrcStartRow, SrcAlignment>;
   using SrcMatT = MatBase<T, SrcNumCol, SrcNumRow, SrcAlignment>;
-  using col_type = vec_base<T, NumRow>;
-  using row_type = vec_base<T, NumCol>;
+  using col_type = VecBase<T, NumRow>;
+  using row_type = VecBase<T, NumCol>;
 
  public:
   MutableMatView() = delete;

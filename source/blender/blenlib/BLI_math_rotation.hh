@@ -20,13 +20,13 @@ namespace blender::math {
  * \param cosom: dot product from normalized vectors/quats.
  * \param r_w: calculated weights.
  */
-template<typename T> inline vec_base<T, 2> interpolate_dot_slerp(const T t, const T cosom)
+template<typename T> inline VecBase<T, 2> interpolate_dot_slerp(const T t, const T cosom)
 {
   const T eps = T(1e-4);
 
   BLI_assert(IN_RANGE_INCL(cosom, T(-1.0001), T(1.0001)));
 
-  vec_base<T, 2> w;
+  VecBase<T, 2> w;
   /* Within [-1..1] range, avoid aligned axis. */
   if (LIKELY(math::abs(cosom) < (T(1) - eps))) {
     const T omega = math::acos(cosom);
@@ -48,7 +48,7 @@ inline detail::Quaternion<T> interpolate(const detail::Quaternion<T> &a,
                                          const detail::Quaternion<T> &b,
                                          T t)
 {
-  using Vec4T = vec_base<T, 4>;
+  using Vec4T = VecBase<T, 4>;
   BLI_assert(is_unit_scale(Vec4T(a)));
   BLI_assert(is_unit_scale(Vec4T(b)));
 
@@ -60,7 +60,7 @@ inline detail::Quaternion<T> interpolate(const detail::Quaternion<T> &a,
     quat = -quat;
   }
 
-  vec_base<T, 2> w = interpolate_dot_slerp(t, cosom);
+  VecBase<T, 2> w = interpolate_dot_slerp(t, cosom);
 
   return detail::Quaternion<T>(w[0] * quat + w[1] * Vec4T(b));
 }
@@ -76,7 +76,7 @@ namespace blender::math::detail {
 #ifdef DEBUG
 #  define BLI_ASSERT_UNIT_QUATERNION(_q) \
     { \
-      auto rot_vec = static_cast<vec_base<T, 4>>(_q); \
+      auto rot_vec = static_cast<VecBase<T, 4>>(_q); \
       T quat_length = math::length_squared(rot_vec); \
       if (!(quat_length == 0 || (math::abs(quat_length - 1) < 0.0001))) { \
         std::cout << "Warning! " << __func__ << " called with non-normalized quaternion: size " \
@@ -87,7 +87,7 @@ namespace blender::math::detail {
 #  define BLI_ASSERT_UNIT_QUATERNION(_q)
 #endif
 
-template<typename T> AxisAngle<T>::AxisAngle(const vec_base<T, 3> &axis, T angle)
+template<typename T> AxisAngle<T>::AxisAngle(const VecBase<T, 3> &axis, T angle)
 {
   T length;
   axis_ = math::normalize_and_get_length(axis, length);
@@ -101,7 +101,7 @@ template<typename T> AxisAngle<T>::AxisAngle(const vec_base<T, 3> &axis, T angle
   }
 }
 
-template<typename T> AxisAngle<T>::AxisAngle(const vec_base<T, 3> &from, const vec_base<T, 3> &to)
+template<typename T> AxisAngle<T>::AxisAngle(const VecBase<T, 3> &from, const VecBase<T, 3> &to)
 {
   BLI_assert(is_unit_scale(from));
   BLI_assert(is_unit_scale(to));
@@ -124,7 +124,7 @@ template<typename T> AxisAngle<T>::AxisAngle(const vec_base<T, 3> &from, const v
   }
 }
 template<typename T>
-AxisAngleNormalized<T>::AxisAngleNormalized(const vec_base<T, 3> &axis, T angle) : AxisAngle<T>()
+AxisAngleNormalized<T>::AxisAngleNormalized(const VecBase<T, 3> &axis, T angle) : AxisAngle<T>()
 {
   BLI_assert(is_unit_scale(axis));
   this->axis_ = axis;
@@ -183,7 +183,7 @@ template<typename T> Quaternion<T>::operator AxisAngle<T>() const
     si = 1.0f;
   }
 
-  vec_base<T, 3> axis = vec_base<T, 3>(quat.y, quat.z, quat.w) / si;
+  VecBase<T, 3> axis = VecBase<T, 3>(quat.y, quat.z, quat.w) / si;
   if (math::is_zero(axis)) {
     axis[1] = 1.0f;
   }

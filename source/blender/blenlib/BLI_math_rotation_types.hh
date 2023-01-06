@@ -36,7 +36,7 @@ template<typename T> struct EulerXYZ {
     this->z = z;
   }
 
-  EulerXYZ(const vec_base<T, 3> &vec) : EulerXYZ(UNPACK3(vec)){};
+  EulerXYZ(const VecBase<T, 3> &vec) : EulerXYZ(UNPACK3(vec)){};
 
   /** Static functions. */
 
@@ -47,7 +47,7 @@ template<typename T> struct EulerXYZ {
 
   /** Conversions. */
 
-  explicit operator vec_base<T, 3>() const
+  explicit operator VecBase<T, 3>() const
   {
     return {this->x, this->y, this->z};
   }
@@ -60,7 +60,7 @@ template<typename T> struct EulerXYZ {
 
   friend std::ostream &operator<<(std::ostream &stream, const EulerXYZ &rot)
   {
-    return stream << "EulerXYZ" << static_cast<vec_base<T, 3>>(rot);
+    return stream << "EulerXYZ" << static_cast<VecBase<T, 3>>(rot);
   }
 };
 
@@ -77,7 +77,7 @@ template<typename T = float> struct Quaternion {
     this->w = w;
   }
 
-  Quaternion(const vec_base<T, 4> &vec) : Quaternion(UNPACK4(vec)){};
+  Quaternion(const VecBase<T, 4> &vec) : Quaternion(UNPACK4(vec)){};
 
   /** Static functions. */
 
@@ -88,7 +88,7 @@ template<typename T = float> struct Quaternion {
 
   /** Conversions. */
 
-  explicit operator vec_base<T, 4>() const
+  explicit operator VecBase<T, 4>() const
   {
     return {this->x, this->y, this->z, this->w};
   }
@@ -107,12 +107,12 @@ template<typename T = float> struct Quaternion {
 
   friend std::ostream &operator<<(std::ostream &stream, const Quaternion &rot)
   {
-    return stream << "Quaternion" << static_cast<vec_base<T, 4>>(rot);
+    return stream << "Quaternion" << static_cast<VecBase<T, 4>>(rot);
   }
 };
 
 template<typename T> struct AxisAngle {
-  using vec3_type = vec_base<T, 3>;
+  using vec3_type = VecBase<T, 3>;
 
  protected:
   vec3_type axis_ = {0, 1, 0};
@@ -207,7 +207,7 @@ template<typename T> struct AxisAngle {
  * Implicitly cast back to AxisAngle.
  */
 template<typename T> struct AxisAngleNormalized : public AxisAngle<T> {
-  AxisAngleNormalized(const vec_base<T, 3> &axis, T angle);
+  AxisAngleNormalized(const VecBase<T, 3> &axis, T angle);
 
   operator AxisAngle<T>() const
   {

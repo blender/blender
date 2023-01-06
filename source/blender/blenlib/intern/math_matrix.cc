@@ -214,7 +214,7 @@ MatBase<T, Size, Size> pseudo_invert(const MatBase<T, Size, Size> &mat, T epsilo
    * of `A` as `Ainv = V.Winv.transpose(U)`.
    */
   MatBase<T, Size, Size> U, W, V;
-  vec_base<T, Size> S_val;
+  VecBase<T, Size> S_val;
 
   {
     using namespace Eigen;
@@ -274,7 +274,7 @@ static void polar_decompose(const MatBase<T, 3, 3> &mat3,
    *     P = VSV*
    */
   MatBase<T, 3, 3> W, V;
-  vec_base<T, 3> S_val;
+  VecBase<T, 3> S_val;
 
   {
     using namespace Eigen;

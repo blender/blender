@@ -183,7 +183,7 @@ template<typename MatT> [[nodiscard]] MatT from_location(const typename MatT::ve
  * If vector dimension is lower than matrix diagonal, the missing terms are filled with ones.
  */
 template<typename MatT, int ScaleDim>
-[[nodiscard]] MatT from_scale(const vec_base<typename MatT::base_type, ScaleDim> &scale);
+[[nodiscard]] MatT from_scale(const VecBase<typename MatT::base_type, ScaleDim> &scale);
 
 /**
  * Create a rotation only matrix.
@@ -210,7 +210,7 @@ template<typename MatT, typename RotationT>
 template<typename MatT, typename RotationT, int ScaleDim>
 [[nodiscard]] MatT from_loc_rot_scale(const typename MatT::vec3_type &location,
                                       const RotationT &rotation,
-                                      const vec_base<typename MatT::base_type, ScaleDim> &scale);
+                                      const VecBase<typename MatT::base_type, ScaleDim> &scale);
 
 /**
  * Create a rotation matrix from 2 basis vectors.
@@ -258,7 +258,7 @@ template<typename T, bool Normalized = false>
  * This is a costly operation so it is disabled by default.
  */
 template<bool AllowNegativeScale = false, typename T, int NumCol, int NumRow>
-[[nodiscard]] inline vec_base<T, 3> to_scale(const MatBase<T, NumCol, NumRow> &mat);
+[[nodiscard]] inline VecBase<T, 3> to_scale(const MatBase<T, NumCol, NumRow> &mat);
 
 /**
  * Decompose a matrix into location, rotation, and scale components.
@@ -269,12 +269,12 @@ template<bool AllowNegativeScale = false, typename T, int NumCol, int NumRow>
 template<bool AllowNegativeScale = false, typename T, typename RotationT>
 inline void to_rot_scale(const MatBase<T, 3, 3> &mat,
                          RotationT &r_rotation,
-                         vec_base<T, 3> &r_scale);
+                         VecBase<T, 3> &r_scale);
 template<bool AllowNegativeScale = false, typename T, typename RotationT>
 inline void to_loc_rot_scale(const MatBase<T, 4, 4> &mat,
-                             vec_base<T, 3> &r_location,
+                             VecBase<T, 3> &r_location,
                              RotationT &r_rotation,
-                             vec_base<T, 3> &r_scale);
+                             VecBase<T, 3> &r_scale);
 
 /** \} */
 
@@ -286,29 +286,29 @@ inline void to_loc_rot_scale(const MatBase<T, 4, 4> &mat,
  * Transform a 3d point using a 3x3 matrix (rotation & scale).
  */
 template<typename T>
-[[nodiscard]] vec_base<T, 3> transform_point(const MatBase<T, 3, 3> &mat,
-                                             const vec_base<T, 3> &point);
+[[nodiscard]] VecBase<T, 3> transform_point(const MatBase<T, 3, 3> &mat,
+                                            const VecBase<T, 3> &point);
 
 /**
  * Transform a 3d point using a 4x4 matrix (location & rotation & scale).
  */
 template<typename T>
-[[nodiscard]] vec_base<T, 3> transform_point(const MatBase<T, 4, 4> &mat,
-                                             const vec_base<T, 3> &point);
+[[nodiscard]] VecBase<T, 3> transform_point(const MatBase<T, 4, 4> &mat,
+                                            const VecBase<T, 3> &point);
 
 /**
  * Transform a 3d direction vector using a 3x3 matrix (rotation & scale).
  */
 template<typename T>
-[[nodiscard]] vec_base<T, 3> transform_direction(const MatBase<T, 3, 3> &mat,
-                                                 const vec_base<T, 3> &direction);
+[[nodiscard]] VecBase<T, 3> transform_direction(const MatBase<T, 3, 3> &mat,
+                                                const VecBase<T, 3> &direction);
 
 /**
  * Transform a 3d direction vector using a 4x4 matrix (rotation & scale).
  */
 template<typename T>
-[[nodiscard]] vec_base<T, 3> transform_direction(const MatBase<T, 4, 4> &mat,
-                                                 const vec_base<T, 3> &direction);
+[[nodiscard]] VecBase<T, 3> transform_direction(const MatBase<T, 4, 4> &mat,
+                                                const VecBase<T, 3> &direction);
 
 /**
  * Project a point using a matrix (location & rotation & scale & perspective divide).
@@ -513,8 +513,8 @@ template<typename T, int NumCol, int NumRow, typename VectorT>
   /* Avoid multiplying the last row if it exists.
    * Allows using non square matrices like float3x2 and saves computation. */
   using IntermediateVecT =
-      vec_base<typename MatT::base_type,
-               (MatT::row_len > MatT::col_len - 1) ? (MatT::col_len - 1) : MatT::row_len>;
+      VecBase<typename MatT::base_type,
+              (MatT::row_len > MatT::col_len - 1) ? (MatT::col_len - 1) : MatT::row_len>;
 
   MatT result = mat;
   unroll<VectorT::type_length>([&](auto c) {
@@ -761,7 +761,7 @@ template<typename T> detail::Quaternion<T> normalized_to_quat_fast(const MatBase
   }
 
   BLI_assert(!(q.x < 0.0f));
-  BLI_assert(math::is_unit_scale(vec_base<T, 4>(q)));
+  BLI_assert(math::is_unit_scale(VecBase<T, 4>(q)));
   return q;
 }
 
@@ -898,8 +898,8 @@ template<typename T, bool Normalized>
     detail::normalized_to_eul2(normalize(mat), eul1, eul2);
   }
   /* Return best, which is just the one with lowest values it in. */
-  return (length_manhattan(vec_base<T, 3>(eul1)) > length_manhattan(vec_base<T, 3>(eul2))) ? eul2 :
-                                                                                             eul1;
+  return (length_manhattan(VecBase<T, 3>(eul1)) > length_manhattan(VecBase<T, 3>(eul2))) ? eul2 :
+                                                                                           eul1;
 }
 
 template<typename T, bool Normalized>
@@ -929,9 +929,9 @@ template<typename T, bool Normalized>
 }
 
 template<bool AllowNegativeScale, typename T, int NumCol, int NumRow>
-[[nodiscard]] inline vec_base<T, 3> to_scale(const MatBase<T, NumCol, NumRow> &mat)
+[[nodiscard]] inline VecBase<T, 3> to_scale(const MatBase<T, NumCol, NumRow> &mat)
 {
-  vec_base<T, 3> result = {length(mat.x_axis()), length(mat.y_axis()), length(mat.z_axis())};
+  VecBase<T, 3> result = {length(mat.x_axis()), length(mat.y_axis()), length(mat.z_axis())};
   if constexpr (AllowNegativeScale) {
     if (UNLIKELY(is_negative(mat))) {
       result = -result;
@@ -960,7 +960,7 @@ inline void to_rotation(const MatBase<T, 3, 3> &mat, detail::EulerXYZ<T> &r_rota
 template<bool AllowNegativeScale, typename T, typename RotationT>
 inline void to_rot_scale(const MatBase<T, 3, 3> &mat,
                          RotationT &r_rotation,
-                         vec_base<T, 3> &r_scale)
+                         VecBase<T, 3> &r_scale)
 {
   MatBase<T, 3, 3> normalized_mat = normalize_and_get_size(mat, r_scale);
   if constexpr (AllowNegativeScale) {
@@ -974,9 +974,9 @@ inline void to_rot_scale(const MatBase<T, 3, 3> &mat,
 
 template<bool AllowNegativeScale, typename T, typename RotationT>
 inline void to_loc_rot_scale(const MatBase<T, 4, 4> &mat,
-                             vec_base<T, 3> &r_location,
+                             VecBase<T, 3> &r_location,
                              RotationT &r_rotation,
-                             vec_base<T, 3> &r_scale)
+                             VecBase<T, 3> &r_scale)
 {
   r_location = mat.location();
   to_rot_scale<AllowNegativeScale>(MatBase<T, 3, 3>(mat), r_rotation, r_scale);
@@ -990,7 +990,7 @@ template<typename MatT> [[nodiscard]] MatT from_location(const typename MatT::ve
 }
 
 template<typename MatT, int ScaleDim>
-[[nodiscard]] MatT from_scale(const vec_base<typename MatT::base_type, ScaleDim> &scale)
+[[nodiscard]] MatT from_scale(const VecBase<typename MatT::base_type, ScaleDim> &scale)
 {
   BLI_STATIC_ASSERT(ScaleDim <= MatT::min_dim,
                     "Scale dimension should fit the matrix diagonal length.");
@@ -1015,7 +1015,7 @@ template<typename MatT, typename RotationT, typename VectorT>
 template<typename MatT, typename RotationT, int ScaleDim>
 [[nodiscard]] MatT from_loc_rot_scale(const typename MatT::vec3_type &location,
                                       const RotationT &rotation,
-                                      const vec_base<typename MatT::base_type, ScaleDim> &scale)
+                                      const VecBase<typename MatT::base_type, ScaleDim> &scale)
 {
   using Mat3x3 = MatBase<typename MatT::base_type, 3, 3>;
   MatT mat = MatT(from_rot_scale<Mat3x3>(rotation, scale));
@@ -1060,36 +1060,36 @@ template<typename MatT, typename VectorT>
 }
 
 template<typename T>
-vec_base<T, 3> transform_point(const MatBase<T, 3, 3> &mat, const vec_base<T, 3> &point)
+VecBase<T, 3> transform_point(const MatBase<T, 3, 3> &mat, const VecBase<T, 3> &point)
 {
   return mat * point;
 }
 
 template<typename T>
-vec_base<T, 3> transform_point(const MatBase<T, 4, 4> &mat, const vec_base<T, 3> &point)
+VecBase<T, 3> transform_point(const MatBase<T, 4, 4> &mat, const VecBase<T, 3> &point)
 {
   return mat.template view<3, 3>() * point + mat.location();
 }
 
 template<typename T>
-vec_base<T, 3> transform_direction(const MatBase<T, 3, 3> &mat, const vec_base<T, 3> &direction)
+VecBase<T, 3> transform_direction(const MatBase<T, 3, 3> &mat, const VecBase<T, 3> &direction)
 {
   return mat * direction;
 }
 
 template<typename T>
-vec_base<T, 3> transform_direction(const MatBase<T, 4, 4> &mat, const vec_base<T, 3> &direction)
+VecBase<T, 3> transform_direction(const MatBase<T, 4, 4> &mat, const VecBase<T, 3> &direction)
 {
   return mat.template view<3, 3>() * direction;
 }
 
 template<typename T, int N, int NumRow>
-vec_base<T, N> project_point(const MatBase<T, N + 1, NumRow> &mat, const vec_base<T, N> &point)
+VecBase<T, N> project_point(const MatBase<T, N + 1, NumRow> &mat, const VecBase<T, N> &point)
 {
-  vec_base<T, N + 1> tmp(point, T(1));
+  VecBase<T, N + 1> tmp(point, T(1));
   tmp = mat * tmp;
   /* Absolute value to not flip the frustum upside down behind the camera. */
-  return vec_base<T, N>(tmp) / math::abs(tmp[N]);
+  return VecBase<T, N>(tmp) / math::abs(tmp[N]);
 }
 
 extern template float3 transform_point(const float3x3 &mat, const float3 &point);
