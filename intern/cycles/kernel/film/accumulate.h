@@ -348,7 +348,9 @@ ccl_device_inline void kernel_accum_emission_or_background_pass(
   }
 #  endif /* __DENOISING_FEATURES__ */
 
-  if (lightgroup != LIGHTGROUP_NONE && kernel_data.film.pass_lightgroup != PASS_UNUSED) {
+  const bool is_shadowcatcher = (path_flag & PATH_RAY_SHADOW_CATCHER_HIT) != 0;
+  if (!is_shadowcatcher && lightgroup != LIGHTGROUP_NONE &&
+      kernel_data.film.pass_lightgroup != PASS_UNUSED) {
     kernel_write_pass_float3(buffer + kernel_data.film.pass_lightgroup + 3 * lightgroup,
                              contribution);
   }
@@ -357,13 +359,12 @@ ccl_device_inline void kernel_accum_emission_or_background_pass(
     /* Directly visible, write to emission or background pass. */
     pass_offset = pass;
   }
-  else if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
+  else if (is_shadowcatcher) {
     /* Don't write any light passes for shadow catcher, for easier
      * compositing back together of the combined pass. */
-    if (path_flag & PATH_RAY_SHADOW_CATCHER_HIT) {
-      return;
-    }
-
+    return;
+  }
+  else if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
     if (path_flag & PATH_RAY_SURFACE_PASS) {
       /* Indirectly visible through reflection. */
       const float3 diffuse_weight = INTEGRATOR_STATE(state, path, pass_diffuse_weight);
