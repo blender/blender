@@ -240,8 +240,8 @@ static void deformStroke(GpencilModifierData *md,
     /* just object target */
     copy_m4_m4(dmat, mmd->object->object_to_world);
   }
-  invert_m4_m4(ob->imat, ob->object_to_world);
-  mul_m4_series(tData.mat, ob->imat, dmat, mmd->parentinv);
+  invert_m4_m4(ob->world_to_object, ob->object_to_world);
+  mul_m4_series(tData.mat, ob->world_to_object, dmat, mmd->parentinv);
 
   /* loop points and apply deform */
   for (int i = 0; i < gps->totpoints; i++) {

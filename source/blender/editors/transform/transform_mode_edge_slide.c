@@ -1105,18 +1105,6 @@ static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEven
             return TREDRAW_HARD;
           }
           break;
-        case EVT_MODAL_MAP:
-#if 0
-          switch (event->val) {
-            case TFM_MODAL_EDGESLIDE_DOWN:
-              sld->curr_sv_index = ((sld->curr_sv_index - 1) + sld->totsv) % sld->totsv;
-              return TREDRAW_HARD;
-            case TFM_MODAL_EDGESLIDE_UP:
-              sld->curr_sv_index = (sld->curr_sv_index + 1) % sld->totsv;
-              return TREDRAW_HARD;
-          }
-#endif
-          break;
         case MOUSEMOVE:
           calcEdgeSlideCustomPoints(t);
           break;

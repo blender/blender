@@ -320,8 +320,9 @@ static void rna_NlaStrip_frame_end_ui_set(PointerRNA *ptr, float value)
     float action_length_delta = (old_strip_end - data->end) / data->scale;
     /* If no repeats are used, then modify the action end frame : */
     if (IS_EQF(data->repeat, 1.0f)) {
-      /* If they're equal, strip has been reduced by the same amount as the whole strip length, so
-       * clamp the action clip length to 1 frame, and add a frame to end so that len(strip)!=0 :*/
+      /* If they're equal, strip has been reduced by the same amount as the whole strip length,
+       * so clamp the action clip length to 1 frame, and add a frame to end so that
+       * `len(strip) != 0`. */
       if (IS_EQF(action_length_delta, actlen)) {
         data->actend = data->actstart + 1.0f;
         data->end += 1.0f;
@@ -822,6 +823,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_repeat_set", NULL);
   /* these limits have currently be chosen arbitrarily, but could be extended
    * (minimum should still be > 0 though) if needed... */
+  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0.1f, 1000.0f);
   RNA_def_property_ui_text(prop, "Repeat", "Number of times to repeat the action range");
   RNA_def_property_update(
@@ -832,6 +834,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_scale_set", NULL);
   /* these limits can be extended, but beyond this, we can get some crazy+annoying bugs
    * due to numeric errors */
+  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0.0001f, 1000.0f);
   RNA_def_property_ui_text(prop, "Scale", "Scaling factor for action");
   RNA_def_property_update(

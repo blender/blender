@@ -28,15 +28,15 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
-      .supports_field()
+      .field_on_all()
       .subtype(PROP_FACTOR);
   b.add_input<decl::Float>(N_("Vertex Crease"))
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
-      .supports_field()
+      .field_on_all()
       .subtype(PROP_FACTOR);
-  b.add_output<decl::Geometry>(N_("Mesh"));
+  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -170,6 +170,13 @@ static void node_geo_exec(GeoNodeExecParams params)
 
     Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, &mesh);
 
+    if (use_creases) {
+      /* Remove the layer in case it was created by the node from the field input. The fact
+       * that this node uses #CD_CREASE to input creases to the subdivision code is meant to be
+       * an implementation detail ideally. */
+      CustomData_free_layers(&mesh_out->edata, CD_CREASE, mesh_out->totedge);
+    }
+
     geometry_set.replace_mesh(mesh_out);
 
     BKE_subdiv_free(subdiv);
@@ -191,7 +198,7 @@ void register_node_type_geo_subdivision_surface()
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_storage(&ntype,
                     "NodeGeometrySubdivisionSurface",

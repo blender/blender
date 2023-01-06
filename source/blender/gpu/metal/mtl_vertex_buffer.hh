@@ -42,6 +42,7 @@ class MTLVertBuf : public VertBuf {
    * Access limited to friend classes. */
   id<MTLBuffer> get_metal_buffer()
   {
+    BLI_assert(vbo_ != nullptr);
     vbo_->debug_ensure_used();
     return vbo_->get_metal_buffer();
   }

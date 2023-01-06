@@ -9,16 +9,6 @@
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 
-uniform float bokehSides;
-uniform float bokehRotation;
-uniform vec2 bokehAnisotropyInv;
-
-in vec4 uvcoordsvar;
-
-layout(location = 0) out vec2 outGatherLut;
-layout(location = 1) out float outScatterLut;
-layout(location = 2) out float outResolveLut;
-
 float polygon_sides_length(float sides_count)
 {
   return 2.0 * sin(M_PI / sides_count);

@@ -1987,7 +1987,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       /* add ntree->inputs/ntree->outputs sockets for all unlinked sockets in the group tree. */
       for (node = ntree->nodes.first; node; node = node->next) {
         for (sock = node->inputs.first; sock; sock = sock->next) {
-          if (!sock->link && !nodeSocketIsHidden(sock)) {
+          if (!sock->link && !((sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0)) {
 
             gsock = do_versions_node_group_add_socket_2_56_2(
                 ntree, sock->name, sock->type, SOCK_IN);
@@ -2001,6 +2001,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
              */
             link = MEM_callocN(sizeof(bNodeLink), "link");
             BLI_addtail(&ntree->links, link);
+            nodeUniqueID(ntree, node);
             link->fromnode = NULL;
             link->fromsock = gsock;
             link->tonode = node;
@@ -2011,7 +2012,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
           }
         }
         for (sock = node->outputs.first; sock; sock = sock->next) {
-          if (nodeCountSocketLinks(ntree, sock) == 0 && !nodeSocketIsHidden(sock)) {
+          if (nodeCountSocketLinks(ntree, sock) == 0 &&
+              !((sock->flag & (SOCK_HIDDEN | SOCK_UNAVAIL)) != 0)) {
             gsock = do_versions_node_group_add_socket_2_56_2(
                 ntree, sock->name, sock->type, SOCK_OUT);
 
@@ -2024,6 +2026,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
              */
             link = MEM_callocN(sizeof(bNodeLink), "link");
             BLI_addtail(&ntree->links, link);
+            nodeUniqueID(ntree, node);
             link->fromnode = node;
             link->fromsock = sock;
             link->tonode = NULL;
@@ -2271,18 +2274,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
         BKE_ntree_update_tag_all(ntree);
       }
       FOREACH_NODETREE_END;
-    }
-
-    {
-      /* Initialize group tree nodetypes.
-       * These are used to distinguish tree types and
-       * associate them with specific node types for polling.
-       */
-      bNodeTree *ntree;
-      /* all node trees in bmain->nodetree are considered groups */
-      for (ntree = bmain->nodetrees.first; ntree; ntree = ntree->id.next) {
-        ntree->nodetype = NODE_GROUP;
-      }
     }
   }
 

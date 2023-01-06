@@ -172,7 +172,7 @@ TEST(path_util, ParentDir_Complex)
     const char *expect = str_expect; \
     int index_output, len_output; \
     const bool ret = BLI_path_name_at_index(path, index_input, &index_output, &len_output); \
-    if (expect == NULL) { \
+    if (expect == nullptr) { \
       EXPECT_FALSE(ret); \
     } \
     else { \
@@ -257,6 +257,64 @@ TEST(path_util, NameAtIndex_MiscNeg)
   AT_INDEX("/how/now/brown/cow", 3, "cow");
   AT_INDEX("/how/now/brown/cow", 4, nullptr);
   AT_INDEX("/how/now/brown/cow/", 4, nullptr);
+}
+
+#define TEST_STR "./a/./b/./c/."
+
+TEST(path_util, NameAtIndex_SingleDot)
+{
+  AT_INDEX(TEST_STR, 0, ".");
+  AT_INDEX(TEST_STR, 1, "a");
+  AT_INDEX(TEST_STR, 2, "b");
+  AT_INDEX(TEST_STR, 3, "c");
+  AT_INDEX(TEST_STR, 4, nullptr);
+}
+
+TEST(path_util, NameAtIndex_SingleDotNeg)
+{
+  AT_INDEX(TEST_STR, -5, nullptr);
+  AT_INDEX(TEST_STR, -4, ".");
+  AT_INDEX(TEST_STR, -3, "a");
+  AT_INDEX(TEST_STR, -2, "b");
+  AT_INDEX(TEST_STR, -1, "c");
+}
+
+#undef TEST_STR
+
+#define TEST_STR ".//a//.//b//.//c//.//"
+
+TEST(path_util, NameAtIndex_SingleDotDoubleSlash)
+{
+  AT_INDEX(TEST_STR, 0, ".");
+  AT_INDEX(TEST_STR, 1, "a");
+  AT_INDEX(TEST_STR, 2, "b");
+  AT_INDEX(TEST_STR, 3, "c");
+  AT_INDEX(TEST_STR, 4, nullptr);
+}
+
+TEST(path_util, NameAtIndex_SingleDotDoubleSlashNeg)
+{
+  AT_INDEX(TEST_STR, -5, nullptr);
+  AT_INDEX(TEST_STR, -4, ".");
+  AT_INDEX(TEST_STR, -3, "a");
+  AT_INDEX(TEST_STR, -2, "b");
+  AT_INDEX(TEST_STR, -1, "c");
+}
+
+#undef TEST_STR
+
+TEST(path_util, NameAtIndex_SingleDotSeries)
+{
+  AT_INDEX("abc/././/././xyz", 0, "abc");
+  AT_INDEX("abc/././/././xyz", 1, "xyz");
+  AT_INDEX("abc/././/././xyz", 2, nullptr);
+}
+
+TEST(path_util, NameAtIndex_SingleDotSeriesNeg)
+{
+  AT_INDEX("abc/././/././xyz", -3, nullptr);
+  AT_INDEX("abc/././/././xyz", -2, "abc");
+  AT_INDEX("abc/././/././xyz", -1, "xyz");
 }
 
 TEST(path_util, NameAtIndex_MiscComplex)
@@ -706,7 +764,7 @@ TEST(path_util, PathFrameCheckChars)
     bool ret; \
     BLI_strncpy(path, input_path, FILE_MAX); \
     ret = BLI_path_frame_range(path, sta, end, digits); \
-    if (expect_outpath == NULL) { \
+    if (expect_outpath == nullptr) { \
       EXPECT_FALSE(ret); \
     } \
     else { \

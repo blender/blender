@@ -157,8 +157,9 @@ struct SlideOperationExecutor {
     brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
     brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
 
-    curve_factors_ = get_curves_selection(*curves_id_orig_);
-    curve_selection_ = retrieve_selected_curves(*curves_id_orig_, selected_curve_indices_);
+    curve_factors_ = curves_orig_->attributes().lookup_or_default(
+        ".selection", ATTR_DOMAIN_CURVE, 1.0f);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_orig_, selected_curve_indices_);
 
     brush_pos_re_ = stroke_extension.mouse_position;
 
@@ -292,8 +293,9 @@ struct SlideOperationExecutor {
       /* Compute the normal at the initial surface position. */
       const float3 normal_cu = math::normalize(
           transforms_.surface_to_curves_normal *
-          geometry::compute_surface_point_normal(
-              *result.looptri, result.bary_weights, corner_normals_orig_su_));
+          geometry::compute_surface_point_normal(surface_looptris_orig_[result.looptri_index],
+                                                 result.bary_weights,
+                                                 corner_normals_orig_su_));
 
       r_curves_to_slide.append({curve_i, radius_falloff, normal_cu});
     }
@@ -389,7 +391,7 @@ struct SlideOperationExecutor {
           found_invalid_uv_mapping_.store(true);
           continue;
         }
-        const MLoopTri &looptri_orig = *result.looptri;
+        const MLoopTri &looptri_orig = surface_looptris_orig_[result.looptri_index];
         const float3 &bary_weights_orig = result.bary_weights;
 
         /* Gather old and new surface normal. */
@@ -397,7 +399,7 @@ struct SlideOperationExecutor {
         const float3 new_normal_cu = math::normalize(
             transforms_.surface_to_curves_normal *
             geometry::compute_surface_point_normal(
-                *result.looptri, result.bary_weights, corner_normals_orig_su_));
+                looptri_orig, result.bary_weights, corner_normals_orig_su_));
 
         /* Gather old and new surface position. */
         const float3 old_first_pos_orig_cu = self_->initial_positions_cu_[first_point_i];

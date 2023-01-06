@@ -42,7 +42,7 @@ void DRW_curve_batch_cache_free(struct Curve *cu);
 
 void DRW_mesh_batch_cache_dirty_tag(struct Mesh *me, eMeshBatchDirtyMode mode);
 void DRW_mesh_batch_cache_validate(struct Object *object, struct Mesh *me);
-void DRW_mesh_batch_cache_free(struct Mesh *me);
+void DRW_mesh_batch_cache_free(void *batch_cache);
 
 void DRW_lattice_batch_cache_dirty_tag(struct Lattice *lt, int mode);
 void DRW_lattice_batch_cache_validate(struct Lattice *lt);
@@ -137,6 +137,7 @@ struct GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(struct Curves *cu
                                                                bool *r_is_point_domain);
 
 struct GPUBatch *DRW_curves_batch_cache_get_edit_points(struct Curves *curves);
+struct GPUBatch *DRW_curves_batch_cache_get_edit_lines(struct Curves *curves);
 
 void DRW_curves_batch_cache_create_requested(struct Object *ob);
 
@@ -212,8 +213,8 @@ struct GPUBatch *DRW_mesh_batch_cache_get_surface_viewer_attribute(struct Mesh *
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_triangles(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_vertices(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_edges(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_edit_vnors(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_edit_lnors(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_vert_normals(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_loop_normals(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_facedots(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_skin_roots(struct Mesh *me);
 

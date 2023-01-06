@@ -191,7 +191,8 @@ void SCULPT_filter_cache_init(bContext *C,
 
     BKE_pbvh_search_gather(pbvh, SCULPT_search_sphere_cb, &search_data2, &nodes, &totnode);
 
-    if (SCULPT_pbvh_calc_area_normal(
+    if (BKE_paint_brush(&sd->paint) &&
+        SCULPT_pbvh_calc_area_normal(
             brush, ob, nodes, totnode, true, ss->filter_cache->initial_normal)) {
       copy_v3_v3(ss->last_normal, ss->filter_cache->initial_normal);
     }
@@ -221,10 +222,10 @@ void SCULPT_filter_cache_init(bContext *C,
 
   ED_view3d_ob_project_mat_get(vc.rv3d, ob, projection_mat);
 
-  invert_m4_m4(ob->imat, ob->object_to_world);
+  invert_m4_m4(ob->world_to_object, ob->object_to_world);
   copy_m3_m4(mat, vc.rv3d->viewinv);
   mul_m3_v3(mat, viewDir);
-  copy_m3_m4(mat, ob->imat);
+  copy_m3_m4(mat, ob->world_to_object);
   mul_m3_v3(mat, viewDir);
   normalize_v3_v3(ss->filter_cache->view_normal, viewDir);
 }

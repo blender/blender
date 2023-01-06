@@ -1309,6 +1309,18 @@ static int bookmark_move_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static bool file_bookmark_move_poll(bContext *C)
+{
+  SpaceFile *sfile = CTX_wm_space_file(C);
+
+  /* Bookmarks are for file browsing only (not asset browsing). */
+  if (!ED_operator_file_browsing_active(C)) {
+    return false;
+  }
+
+  return sfile->bookmarknr != -1;
+}
+
 void FILE_OT_bookmark_move(wmOperatorType *ot)
 {
   static const EnumPropertyItem slot_move[] = {
@@ -1325,8 +1337,7 @@ void FILE_OT_bookmark_move(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bookmark_move_exec;
-  /* Bookmarks are for file browsing only (not asset browsing). */
-  ot->poll = ED_operator_file_browsing_active;
+  ot->poll = file_bookmark_move_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER; /* No undo! */
@@ -2848,12 +2859,12 @@ static bool file_delete_poll(bContext *C)
   return false;
 }
 
-static bool file_delete_single(const FileSelectParams *params,
+static bool file_delete_single(const struct FileList *files,
                                FileDirEntry *file,
                                const char **r_error_message)
 {
-  char str[FILE_MAX];
-  BLI_path_join(str, sizeof(str), params->dir, file->relpath);
+  char str[FILE_MAX_LIBEXTRA];
+  filelist_file_get_full_path(files, file, str);
   if (BLI_delete_soft(str, r_error_message) != 0 || BLI_exists(str)) {
     return false;
   }
@@ -2865,7 +2876,6 @@ static int file_delete_exec(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   int numfiles = filelist_files_ensure(sfile->files);
 
   const char *error_message = NULL;
@@ -2874,7 +2884,7 @@ static int file_delete_exec(bContext *C, wmOperator *op)
   for (int i = 0; i < numfiles; i++) {
     if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
       FileDirEntry *file = filelist_file(sfile->files, i);
-      if (!file_delete_single(params, file, &error_message)) {
+      if (!file_delete_single(sfile->files, file, &error_message)) {
         report_error = true;
       }
     }

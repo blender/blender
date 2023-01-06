@@ -15,7 +15,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Text Field Undo Stack
@@ -95,7 +95,7 @@ void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor
   BLI_addtail(&stack->states, stack->current);
 }
 
-uiUndoStack_Text *ui_textedit_undo_stack_create(void)
+uiUndoStack_Text *ui_textedit_undo_stack_create()
 {
   uiUndoStack_Text *stack = MEM_new<uiUndoStack_Text>(__func__);
   stack->current = nullptr;

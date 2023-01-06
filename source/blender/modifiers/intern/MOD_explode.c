@@ -987,7 +987,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   /* getting back to object space */
   invert_m4_m4(imat, ctx->object->object_to_world);
 
-  psmd->psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
+  psys_sim_data_init(&sim);
 
   const MVert *mesh_verts = BKE_mesh_verts(mesh);
   MVert *explode_verts = BKE_mesh_verts_for_write(explode);
@@ -1112,10 +1112,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   BKE_mesh_calc_edges_tessface(explode);
   BKE_mesh_convert_mfaces_to_mpolys(explode);
 
-  if (psmd->psys->lattice_deform_data) {
-    BKE_lattice_deform_data_destroy(psmd->psys->lattice_deform_data);
-    psmd->psys->lattice_deform_data = NULL;
-  }
+  psys_sim_data_free(&sim);
 
   return explode;
 }

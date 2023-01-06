@@ -2569,7 +2569,7 @@ void BKE_pose_where_is(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
     }
   }
   else {
-    invert_m4_m4(ob->imat, ob->object_to_world); /* imat is needed */
+    invert_m4_m4(ob->world_to_object, ob->object_to_world); /* world_to_object is needed */
 
     /* 1. clear flags */
     for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {

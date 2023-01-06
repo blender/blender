@@ -1,25 +1,6 @@
 #define EEVEE_AOV_HASH_COLOR_TYPE_MASK 1u
 
 /* ---------------------------------------------------------------------- */
-/** \name Resources
- * \{ */
-
-layout(std140) uniform renderpass_block
-{
-  bool renderPassDiffuse;
-  bool renderPassDiffuseLight;
-  bool renderPassGlossy;
-  bool renderPassGlossyLight;
-  bool renderPassEmit;
-  bool renderPassSSSColor;
-  bool renderPassEnvironment;
-  bool renderPassAOV;
-  uint renderPassAOVActive;
-};
-
-/** \} */
-
-/* ---------------------------------------------------------------------- */
 /** \name Functions
  * \{ */
 

@@ -14,7 +14,9 @@
 namespace blender::realtime_compositor {
 
 /* Possible data types that operations can operate on. They either represent the base type of the
- * result texture or a single value result. */
+ * result texture or a single value result. The color type represents an RGBA color. And the vector
+ * type represents a generic 4-component vector, which can encode two 2D vectors, one 3D vector
+ * with the last component ignored, or other dimensional data. */
 enum class ResultType : uint8_t {
   Float,
   Vector,
@@ -85,7 +87,7 @@ class Result {
    * is a texture. */
   union {
     float float_value_;
-    float3 vector_value_;
+    float4 vector_value_;
     float4 color_value_;
   };
   /* The domain of the result. This only matters if the result was a texture. See the discussion in
@@ -102,6 +104,11 @@ class Result {
   /* Construct a result of the given type with the given texture pool that will be used to allocate
    * and release the result's texture. */
   Result(ResultType type, TexturePool &texture_pool);
+
+  /* Identical to the standard constructor but initializes the reference count to 1. This is useful
+   * to construct temporary results that are created and released by the developer manually, which
+   * are typically used in operations that need temporary intermediate results. */
+  static Result Temporary(ResultType type, TexturePool &texture_pool);
 
   /* Declare the result to be a texture result, allocate a texture of an appropriate type with
    * the size of the given domain from the result's texture pool, and set the domain of the result
@@ -123,8 +130,9 @@ class Result {
   void bind_as_texture(GPUShader *shader, const char *texture_name) const;
 
   /* Bind the texture of the result to the image unit with the given name in the currently bound
-   * given shader. */
-  void bind_as_image(GPUShader *shader, const char *image_name) const;
+   * given shader. If read is true, a memory barrier will be inserted for image reads to ensure any
+   * prior writes to the images are reflected before reading from it. */
+  void bind_as_image(GPUShader *shader, const char *image_name, bool read = false) const;
 
   /* Unbind the texture which was previously bound using bind_as_texture. */
   void unbind_as_texture() const;
@@ -157,7 +165,7 @@ class Result {
 
   /* If the result is a single value result of type vector, return its vector value. Otherwise, an
    * uninitialized value is returned. */
-  float3 get_vector_value() const;
+  float4 get_vector_value() const;
 
   /* If the result is a single value result of type color, return its color value. Otherwise, an
    * uninitialized value is returned. */
@@ -167,7 +175,7 @@ class Result {
   float get_float_value_default(float default_value) const;
 
   /* Same as get_vector_value but returns a default value if the result is not a single value. */
-  float3 get_vector_value_default(const float3 &default_value) const;
+  float4 get_vector_value_default(const float4 &default_value) const;
 
   /* Same as get_color_value but returns a default value if the result is not a single value. */
   float4 get_color_value_default(const float4 &default_value) const;
@@ -178,7 +186,7 @@ class Result {
 
   /* If the result is a single value result of type vector, set its vector value and upload it to
    * the texture. Otherwise, an undefined behavior is invoked. */
-  void set_vector_value(const float3 &value);
+  void set_vector_value(const float4 &value);
 
   /* If the result is a single value result of type color, set its color value and upload it to the
    * texture. Otherwise, an undefined behavior is invoked. */

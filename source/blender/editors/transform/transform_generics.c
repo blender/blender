@@ -309,7 +309,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       t->flag |= T_V3D_ALIGN;
     }
 
-    if (object_mode & OB_MODE_ALL_PAINT) {
+    if ((object_mode & OB_MODE_ALL_PAINT) || (object_mode & OB_MODE_SCULPT_CURVES)) {
       Paint *p = BKE_paint_get_active_from_context(C);
       if (p && p->brush && (p->brush->flag & BRUSH_CURVE)) {
         t->options |= CTX_PAINT_CURVE;
@@ -578,7 +578,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->flag |= T_NO_MIRROR;
   }
 
-  /* setting PET flag only if property exist in operator. Otherwise, assume it's not supported */
+  /* Setting proportional editing flag only if property exist in operator. Otherwise, assume it's
+   * not supported. */
   if (op && (prop = RNA_struct_find_property(op->ptr, "use_proportional_edit"))) {
     if (RNA_property_is_set(op->ptr, prop)) {
       if (RNA_property_boolean_get(op->ptr, prop)) {
@@ -669,7 +670,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
 
-  /* Mirror is not supported with PET, turn it off. */
+  /* Mirror is not supported with proportional editing, turn it off. */
 #if 0
   if (t->flag & T_PROP_EDIT) {
     t->flag &= ~T_MIRROR;

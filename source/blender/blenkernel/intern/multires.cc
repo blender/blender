@@ -426,6 +426,28 @@ void multires_flush_sculpt_updates(Object *object)
   }
 
   Mesh *mesh = static_cast<Mesh *>(object->data);
+
+  /* Check that the multires modifier still exists.
+   * Fixes crash when deleting multires modifier
+   * from within sculpt mode.
+   */
+  ModifierData *md;
+  MultiresModifierData *mmd = nullptr;
+  VirtualModifierData virtualModifierData;
+
+  for (md = BKE_modifiers_get_virtual_modifierlist(object, &virtualModifierData); md;
+       md = md->next) {
+    if (md->type == eModifierType_Multires) {
+      if (BKE_modifier_is_enabled(nullptr, md, eModifierMode_Realtime)) {
+        mmd = (MultiresModifierData *)md;
+      }
+    }
+  }
+
+  if (!mmd) {
+    return;
+  }
+
   multiresModifier_reshapeFromCCG(
       sculpt_session->multires.modifier->totlvl, mesh, sculpt_session->subdiv_ccg);
 
@@ -478,7 +500,7 @@ static int get_levels_from_disps(Object *ob)
         continue;
       }
 
-      while (1) {
+      while (true) {
         int side = (1 << (totlvl - 1)) + 1;
         int lvl_totdisp = side * side;
         if (md->totdisp == lvl_totdisp) {
@@ -648,7 +670,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 
   if (mdisps && levels > 0) {
     if (lvl > 0) {
-      /* MLoop *ml = me->mloop; */ /*UNUSED*/
+      // MLoop *ml = me->mloop; /*UNUSED*/
       int nsize = multires_side_tot[lvl];
       int hsize = multires_side_tot[mmd->totlvl];
       int i, j;
@@ -1057,7 +1079,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
                                        cddm,
                                        totlvl,
                                        false,
-                                       0,
+                                       false,
                                        mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
                                        has_mask,
                                        false,
@@ -1134,7 +1156,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
                                       cddm,
                                       mmd->totlvl,
                                       false,
-                                      0,
+                                      false,
                                       mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
                                       has_mask,
                                       false,
@@ -1522,15 +1544,8 @@ void multiresModifier_ensure_external_read(struct Mesh *mesh, const MultiresModi
 
 /***************** Multires interpolation stuff *****************/
 
-int mdisp_rot_face_to_crn(struct MVert * /*mvert*/,
-                          struct MPoly *mpoly,
-                          struct MLoop * /*mloop*/,
-                          const struct MLoopTri * /*lt*/,
-                          const int face_side,
-                          const float u,
-                          const float v,
-                          float *x,
-                          float *y)
+int mdisp_rot_face_to_crn(
+    MPoly *mpoly, const int face_side, const float u, const float v, float *x, float *y)
 {
   const float offset = face_side * 0.5f - 0.5f;
   int S = 0;

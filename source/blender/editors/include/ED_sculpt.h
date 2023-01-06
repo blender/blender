@@ -22,7 +22,7 @@ struct wmMsgSubscribeValue;
 struct wmRegionMessageSubscribeParams;
 struct wmOperator;
 
-/* sculpt.c */
+/* sculpt.cc */
 
 void ED_operatortypes_sculpt(void);
 void ED_sculpt_redraw_planes_get(float planes[4][4], struct ARegion *region, struct Object *ob);

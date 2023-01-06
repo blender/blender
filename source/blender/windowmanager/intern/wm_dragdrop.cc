@@ -206,12 +206,11 @@ wmDrag *WM_drag_data_create(bContext *C, int icon, int type, void *poin, double 
       /* The asset-list case is special: We get multiple assets from context and attach them to the
        * drag item. */
     case WM_DRAG_ASSET_LIST: {
-      const AssetLibraryReference *asset_library = CTX_wm_asset_library_ref(C);
       ListBase asset_file_links = CTX_data_collection_get(C, "selected_asset_files");
       LISTBASE_FOREACH (const CollectionPointerLink *, link, &asset_file_links) {
         const FileDirEntry *asset_file = static_cast<const FileDirEntry *>(link->ptr.data);
         const AssetHandle asset_handle = {asset_file};
-        WM_drag_add_asset_list_item(drag, C, asset_library, &asset_handle);
+        WM_drag_add_asset_list_item(drag, &asset_handle);
       }
       BLI_freelistN(&asset_file_links);
       break;
@@ -556,15 +555,12 @@ bool WM_drag_is_ID_type(const wmDrag *drag, int idcode)
   return WM_drag_get_local_ID(drag, idcode) || WM_drag_get_asset_data(drag, idcode);
 }
 
-wmDragAsset *WM_drag_create_asset_data(const AssetHandle *asset,
-                                       AssetMetaData *metadata,
-                                       const char *path,
-                                       int import_type)
+wmDragAsset *WM_drag_create_asset_data(const AssetHandle *asset, const char *path, int import_type)
 {
   wmDragAsset *asset_drag = MEM_new<wmDragAsset>(__func__);
 
   BLI_strncpy(asset_drag->name, ED_asset_handle_get_name(asset), sizeof(asset_drag->name));
-  asset_drag->metadata = metadata;
+  asset_drag->metadata = ED_asset_handle_get_metadata(asset);
   asset_drag->path = path;
   asset_drag->id_type = ED_asset_handle_get_id_type(asset);
   asset_drag->import_type = import_type;
@@ -714,12 +710,7 @@ wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const wmDrag *drag)
   return static_cast<wmDragAssetCatalog *>(drag->poin);
 }
 
-void WM_drag_add_asset_list_item(
-    wmDrag *drag,
-    /* Context only needed for the hack in #ED_asset_handle_get_full_library_path(). */
-    const bContext *C,
-    const AssetLibraryReference *asset_library_ref,
-    const AssetHandle *asset)
+void WM_drag_add_asset_list_item(wmDrag *drag, const AssetHandle *asset)
 {
   BLI_assert(drag->type == WM_DRAG_ASSET_LIST);
 
@@ -733,12 +724,11 @@ void WM_drag_add_asset_list_item(
     drag_asset->asset_data.local_id = local_id;
   }
   else {
-    AssetMetaData *metadata = ED_asset_handle_get_metadata(asset);
     char asset_blend_path[FILE_MAX_LIBEXTRA];
-    ED_asset_handle_get_full_library_path(C, asset_library_ref, asset, asset_blend_path);
+    ED_asset_handle_get_full_library_path(asset, asset_blend_path);
     drag_asset->is_external = true;
     drag_asset->asset_data.external_info = WM_drag_create_asset_data(
-        asset, metadata, BLI_strdup(asset_blend_path), FILE_ASSET_IMPORT_APPEND);
+        asset, BLI_strdup(asset_blend_path), FILE_ASSET_IMPORT_APPEND);
   }
   BLI_addtail(&drag->asset_items, drag_asset);
 }

@@ -15,8 +15,8 @@ if((WIN32 AND BUILD_MODE STREQUAL Release) OR UNIX)
   )
   if(WIN32)
     ExternalProject_Add_Step(external_potrace after_install
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/potrace ${HARVEST_TARGET}/potrace
-        DEPENDEES install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/potrace ${HARVEST_TARGET}/potrace
+      DEPENDEES install
     )
   endif()
 endif()

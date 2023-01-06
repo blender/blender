@@ -13,6 +13,7 @@
 
 #include "GPU_capabilities.h"
 
+#include "gpu_py.h"
 #include "gpu_py_capabilities.h" /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -301,16 +302,21 @@ static struct PyMethodDef pygpu_capabilities__tp_methods[] = {
 PyDoc_STRVAR(pygpu_capabilities__tp_doc, "This module provides access to the GPU capabilities.");
 static PyModuleDef pygpu_capabilities_module_def = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "gpu.capabilities",
-    .m_doc = pygpu_capabilities__tp_doc,
-    .m_methods = pygpu_capabilities__tp_methods,
+    /*m_name*/ "gpu.capabilities",
+    /*m_doc*/ pygpu_capabilities__tp_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ pygpu_capabilities__tp_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *bpygpu_capabilities_init(void)
 {
   PyObject *submodule;
 
-  submodule = PyModule_Create(&pygpu_capabilities_module_def);
+  submodule = bpygpu_create_module(&pygpu_capabilities_module_def);
 
   return submodule;
 }

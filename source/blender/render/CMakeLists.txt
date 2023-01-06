@@ -26,10 +26,10 @@ set(INC
 
 
 set(SRC
-  intern/bake.c
+  intern/bake.cc
   intern/engine.cc
   intern/initrender.cc
-  intern/multires_bake.c
+  intern/multires_bake.cc
   intern/pipeline.cc
   intern/render_result.cc
   intern/texture_image.c

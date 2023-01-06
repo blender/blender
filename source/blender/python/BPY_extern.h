@@ -106,11 +106,6 @@ void BPY_context_set(struct bContext *C);
  */
 void BPY_context_update(struct bContext *C);
 
-#define BPY_context_dict_clear_members(C, ...) \
-  BPY_context_dict_clear_members_array(&((C)->data.py_context), \
-                                       (C)->data.py_context_orig, \
-                                       ((const char *[]){__VA_ARGS__}), \
-                                       VA_NARGS_COUNT(__VA_ARGS__))
 /**
  * Use for `CTX_*_set(..)` functions need to set values which are later read back as expected.
  * In this case we don't want the Python context to override the values as it causes problems
@@ -118,8 +113,6 @@ void BPY_context_update(struct bContext *C);
  *
  * \param dict_p: A pointer to #bContext.data.py_context so we can assign a new value.
  * \param dict_orig: The value of #bContext.data.py_context_orig to check if we need to copy.
- *
- * \note Typically accessed via #BPY_context_dict_clear_members macro.
  */
 void BPY_context_dict_clear_members_array(void **dict_p,
                                           void *dict_orig,

@@ -571,7 +571,7 @@ void BKE_crazyspace_api_displacement_to_original(struct Object *object,
   if (vertex_index < 0 || vertex_index >= object->runtime.crazyspace_verts_num) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Invalid vertex index %d (expected to be within 0 to %d range))",
+                "Invalid vertex index %d (expected to be within 0 to %d range)",
                 vertex_index,
                 object->runtime.crazyspace_verts_num);
     return;

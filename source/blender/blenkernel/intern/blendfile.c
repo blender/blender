@@ -43,6 +43,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_preferences.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -213,6 +214,12 @@ static void setup_app_data(bContext *C,
     SWAP(ListBase, bmain->wm, bfd->main->wm);
     SWAP(ListBase, bmain->workspaces, bfd->main->workspaces);
     SWAP(ListBase, bmain->screens, bfd->main->screens);
+    if (bmain->name_map != NULL) {
+      BKE_main_namemap_destroy(&bmain->name_map);
+    }
+    if (bfd->main->name_map != NULL) {
+      BKE_main_namemap_destroy(&bfd->main->name_map);
+    }
 
     /* In case of actual new file reading without loading UI, we need to regenerate the session
      * uuid of the UI-related datablocks we are keeping from previous session, otherwise their uuid
@@ -410,9 +417,9 @@ static void setup_app_data(bContext *C,
      * means that we do not reset their user count, however we do increase that one when doing
      * lib_link on local IDs using linked ones.
      * There is no real way to predict amount of changes here, so we have to fully redo
-     * refcounting.
-     * Now that we re-use (and do not liblink in readfile.c) most local datablocks as well, we have
-     * to recompute refcount for all local IDs too. */
+     * reference-counting.
+     * Now that we re-use (and do not liblink in readfile.c) most local data-blocks as well,
+     * we have to recompute reference-counts for all local IDs too. */
     BKE_main_id_refcount_recompute(bmain, false);
   }
 
@@ -429,7 +436,7 @@ static void setup_app_data(bContext *C,
                                              reports->duration.lib_overrides_resync;
 
     /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
-    BKE_lib_override_library_main_operations_create(bmain, true);
+    BKE_lib_override_library_main_operations_create(bmain, true, NULL);
   }
 }
 

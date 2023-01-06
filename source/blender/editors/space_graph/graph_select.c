@@ -1061,6 +1061,12 @@ static int graph_circle_select_exec(bContext *C, wmOperator *op)
   /* Apply box_select action. */
   const bool any_key_selection_changed = box_select_graphkeys(
       &ac, &rect_fl, BEZT_OK_REGION_CIRCLE, selectmode, incl_handles, &data);
+  if (any_key_selection_changed) {
+    /* If any key was selected at any time during this process, the entire-curve selection should
+     * be disabled. Otherwise, sliding over any keyless part of the curve will immediately cause
+     * the entire curve to be selected. */
+    RNA_boolean_set(op->ptr, "use_curve_selection", false);
+  }
   const bool use_curve_selection = RNA_boolean_get(op->ptr, "use_curve_selection");
   if (use_curve_selection && !any_key_selection_changed) {
     box_select_graphcurves(&ac, &rect_fl, BEZT_OK_REGION_CIRCLE, selectmode, incl_handles, &data);

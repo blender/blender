@@ -39,7 +39,7 @@
 
 #include "ED_screen.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 
 /* -------------------------------------------------------------------- */
@@ -189,7 +189,7 @@ static void ui_popup_menu_create_block(bContext *C,
 
   pup->block = UI_block_begin(C, nullptr, block_name, UI_EMBOSS_PULLDOWN);
   if (!pup->but) {
-    pup->block->flag |= UI_BLOCK_IS_FLIP | UI_BLOCK_NO_FLIP;
+    pup->block->flag |= UI_BLOCK_NO_FLIP;
   }
   if (title && title[0]) {
     pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
@@ -286,13 +286,13 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
   int width, height;
   UI_block_layout_resolve(block, &width, &height);
 
-  UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
+  UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_NUMSELECT);
 
   if (pup->popup) {
     int offset[2] = {0, 0};
 
     uiBut *but_activate = nullptr;
-    UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_NUMSELECT);
+    UI_block_flag_enable(block, UI_BLOCK_LOOP);
     UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
     UI_block_direction_set(block, direction);
 
@@ -486,6 +486,8 @@ uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
   pup->title = title;
 
   ui_popup_menu_create_block(C, pup, title, block_name);
+  /* Further buttons will be laid out top to bottom by default. */
+  pup->block->flag |= UI_BLOCK_IS_FLIP;
 
   /* create in advance so we can let buttons point to retval already */
   pup->block->handle = MEM_cnew<uiPopupBlockHandle>(__func__);
@@ -613,7 +615,9 @@ static void ui_popup_menu_create_from_menutype(bContext *C,
 {
   uiPopupBlockHandle *handle = ui_popup_menu_create(
       C, nullptr, nullptr, title, [mt, title, icon](bContext *C, uiLayout *layout) -> void {
-        create_title_button(layout, title, icon);
+        if (title && title[0]) {
+          create_title_button(layout, title, icon);
+        }
         ui_item_menutype_func(C, layout, mt);
       });
 

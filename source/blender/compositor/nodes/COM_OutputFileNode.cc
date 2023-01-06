@@ -65,7 +65,7 @@ void OutputFileNode::convert_to_operations(NodeConverter &converter,
 
   if (storage->format.imtype == R_IMF_IMTYPE_MULTILAYER) {
     const bool use_half_float = (storage->format.depth == R_IMF_CHAN_DEPTH_16);
-    /* single output operation for the multilayer file */
+    /* Single output operation for the multi-layer file. */
     OutputOpenExrMultiLayerOperation *output_operation;
 
     if (is_multiview && storage->format.views_format == R_IMF_VIEWS_MULTIVIEW) {
@@ -104,7 +104,13 @@ void OutputFileNode::convert_to_operations(NodeConverter &converter,
         char path[FILE_MAX];
 
         /* combine file path for the input */
-        BLI_path_join(path, FILE_MAX, storage->base_path, sockdata->path);
+        if (sockdata->path[0]) {
+          BLI_path_join(path, FILE_MAX, storage->base_path, sockdata->path);
+        }
+        else {
+          BLI_strncpy(path, storage->base_path, FILE_MAX);
+          BLI_path_slash_ensure(path, FILE_MAX);
+        }
 
         NodeOperation *output_operation = nullptr;
 

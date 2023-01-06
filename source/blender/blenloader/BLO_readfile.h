@@ -182,12 +182,22 @@ void BLO_blendfiledata_free(BlendFileData *bfd);
 typedef struct BLODataBlockInfo {
   char name[64]; /* MAX_NAME */
   struct AssetMetaData *asset_data;
+  bool free_asset_data;
   /* Optimization: Tag data-blocks for which we know there is no preview.
    * Knowing this can be used to skip the (potentially expensive) preview loading process. If this
    * is set to true it means we looked for a preview and couldn't find one. False may mean that
    * either no preview was found, or that it wasn't looked for in the first place. */
   bool no_preview_found;
 } BLODataBlockInfo;
+
+/**
+ * Frees contained data, not \a datablock_info itself.
+ */
+void BLO_datablock_info_free(BLODataBlockInfo *datablock_info);
+/**
+ * Can be used to free the list returned by #BLO_blendhandle_get_datablock_info().
+ */
+void BLO_datablock_info_linklist_free(struct LinkNode * /*BLODataBlockInfo*/ datablock_infos);
 
 /**
  * Open a blendhandle from a file path.
@@ -231,8 +241,11 @@ struct LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
  * \param ofblocktype: The type of names to get.
  * \param use_assets_only: Limit the result to assets only.
  * \param r_tot_info_items: The length of the returned list.
+ *
  * \return A BLI_linklist of `BLODataBlockInfo *`.
- * The links and #BLODataBlockInfo.asset_data should be freed with MEM_freeN.
+ *
+ * \note The links should be freed using #BLO_datablock_info_free() or the entire list using
+ *       #BLO_datablock_info_linklist_free().
  */
 struct LinkNode * /*BLODataBlockInfo*/ BLO_blendhandle_get_datablock_info(BlendHandle *bh,
                                                                           int ofblocktype,

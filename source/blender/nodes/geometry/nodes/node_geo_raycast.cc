@@ -25,11 +25,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .only_realized_data()
       .supported_type(GEO_COMPONENT_TYPE_MESH);
 
-  b.add_input<decl::Vector>(N_("Attribute")).hide_value().supports_field();
-  b.add_input<decl::Float>(N_("Attribute"), "Attribute_001").hide_value().supports_field();
-  b.add_input<decl::Color>(N_("Attribute"), "Attribute_002").hide_value().supports_field();
-  b.add_input<decl::Bool>(N_("Attribute"), "Attribute_003").hide_value().supports_field();
-  b.add_input<decl::Int>(N_("Attribute"), "Attribute_004").hide_value().supports_field();
+  b.add_input<decl::Vector>(N_("Attribute")).hide_value().field_on_all();
+  b.add_input<decl::Float>(N_("Attribute"), "Attribute_001").hide_value().field_on_all();
+  b.add_input<decl::Color>(N_("Attribute"), "Attribute_002").hide_value().field_on_all();
+  b.add_input<decl::Bool>(N_("Attribute"), "Attribute_003").hide_value().field_on_all();
+  b.add_input<decl::Int>(N_("Attribute"), "Attribute_004").hide_value().field_on_all();
 
   b.add_input<decl::Vector>(N_("Source Position")).implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Vector>(N_("Ray Direction"))
@@ -41,16 +41,16 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_DISTANCE)
       .supports_field();
 
-  b.add_output<decl::Bool>(N_("Is Hit")).dependent_field();
-  b.add_output<decl::Vector>(N_("Hit Position")).dependent_field();
-  b.add_output<decl::Vector>(N_("Hit Normal")).dependent_field();
-  b.add_output<decl::Float>(N_("Hit Distance")).dependent_field();
+  b.add_output<decl::Bool>(N_("Is Hit")).dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>(N_("Hit Position")).dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>(N_("Hit Normal")).dependent_field({6, 7, 8});
+  b.add_output<decl::Float>(N_("Hit Distance")).dependent_field({6, 7, 8});
 
-  b.add_output<decl::Vector>(N_("Attribute")).dependent_field({1, 2, 3, 4, 5, 6});
-  b.add_output<decl::Float>(N_("Attribute"), "Attribute_001").dependent_field({1, 2, 3, 4, 5, 6});
-  b.add_output<decl::Color>(N_("Attribute"), "Attribute_002").dependent_field({1, 2, 3, 4, 5, 6});
-  b.add_output<decl::Bool>(N_("Attribute"), "Attribute_003").dependent_field({1, 2, 3, 4, 5, 6});
-  b.add_output<decl::Int>(N_("Attribute"), "Attribute_004").dependent_field({1, 2, 3, 4, 5, 6});
+  b.add_output<decl::Vector>(N_("Attribute")).dependent_field({6, 7, 8});
+  b.add_output<decl::Float>(N_("Attribute"), "Attribute_001").dependent_field({6, 7, 8});
+  b.add_output<decl::Color>(N_("Attribute"), "Attribute_002").dependent_field({6, 7, 8});
+  b.add_output<decl::Bool>(N_("Attribute"), "Attribute_003").dependent_field({6, 7, 8});
+  b.add_output<decl::Int>(N_("Attribute"), "Attribute_004").dependent_field({6, 7, 8});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -100,9 +100,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs().take_front(1));
-  search_link_ops_for_declarations(params, declaration.inputs().take_back(3));
-  search_link_ops_for_declarations(params, declaration.outputs().take_front(4));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(3));
+  search_link_ops_for_declarations(params, declaration.outputs.as_span().take_front(4));
 
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       (eNodeSocketDatatype)params.other_socket().type);
@@ -231,7 +231,7 @@ class RaycastFunction : public fn::MultiFunction {
 
   fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Geometry Proximity"};
+    fn::MFSignatureBuilder signature{"Geometry Proximity"};
     signature.single_input<float3>("Source Position");
     signature.single_input<float3>("Ray Direction");
     signature.single_input<float>("Ray Length");
@@ -435,8 +435,8 @@ void register_node_type_geo_raycast()
 
   geo_node_type_base(&ntype, GEO_NODE_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   node_type_storage(
       &ntype, "NodeGeometryRaycast", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = file_ns::node_declare;

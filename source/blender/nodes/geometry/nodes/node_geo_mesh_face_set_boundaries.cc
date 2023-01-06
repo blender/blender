@@ -18,17 +18,17 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("An identifier for the group of each face. All contiguous faces with the "
                       "same value are in the same region"));
   b.add_output<decl::Bool>(N_("Boundary Edges"))
-      .field_source()
+      .field_source_reference_all()
       .description(N_("The edges that lie on the boundaries between the different face sets"));
 }
 
 class BoundaryFieldInput final : public bke::MeshFieldInput {
  private:
-  const Field<int> face_set;
+  const Field<int> face_set_;
 
  public:
   BoundaryFieldInput(const Field<int> face_set)
-      : bke::MeshFieldInput(CPPType::get<bool>(), "Boundary Field"), face_set(face_set)
+      : bke::MeshFieldInput(CPPType::get<bool>(), "Boundary Field"), face_set_(face_set)
   {
     category_ = Category::Generated;
   }
@@ -39,7 +39,7 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
   {
     const bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
     FieldEvaluator face_evaluator{face_context, mesh.totpoly};
-    face_evaluator.add(face_set);
+    face_evaluator.add(face_set_);
     face_evaluator.evaluate();
     const VArray<int> face_set = face_evaluator.get_evaluated<int>(0);
 
@@ -64,6 +64,11 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
     }
     return mesh.attributes().adapt_domain<bool>(
         VArray<bool>::ForContainer(std::move(boundary)), ATTR_DOMAIN_EDGE, domain);
+  }
+
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
+  {
+    face_set_.node().for_each_field_input_recursive(fn);
   }
 
   std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override

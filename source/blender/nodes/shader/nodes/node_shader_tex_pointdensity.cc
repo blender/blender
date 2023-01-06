@@ -103,7 +103,7 @@ void register_node_type_sh_tex_pointdensity()
   sh_node_type_base(&ntype, SH_NODE_TEX_POINTDENSITY, "Point Density", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_pointdensity;
-  node_type_init(&ntype, file_ns::node_shader_init_tex_pointdensity);
+  ntype.initfunc = file_ns::node_shader_init_tex_pointdensity;
   node_type_storage(&ntype,
                     "NodeShaderTexPointDensity",
                     file_ns::node_shader_free_tex_pointdensity,

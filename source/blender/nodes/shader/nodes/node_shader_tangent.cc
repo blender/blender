@@ -89,8 +89,8 @@ void register_node_type_sh_tangent()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tangent;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_shader_init_tangent);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_tangent);
+  ntype.initfunc = file_ns::node_shader_init_tangent;
+  ntype.gpu_fn = file_ns::node_shader_gpu_tangent;
   node_type_storage(
       &ntype, "NodeShaderTangent", node_free_standard_storage, node_copy_standard_storage);
 

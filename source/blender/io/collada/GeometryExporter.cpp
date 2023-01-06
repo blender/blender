@@ -200,21 +200,23 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 
 void GeometryExporter::createLooseEdgeList(Object *ob, Mesh *me, std::string &geom_id)
 {
+  using namespace blender;
   const Span<MEdge> edges = me->edges();
-  int totedges = me->totedge;
   int edges_in_linelist = 0;
   std::vector<uint> edge_list;
   int index;
 
   /* Find all loose edges in Mesh
    * and save vertex indices in edge_list */
-  for (index = 0; index < totedges; index++) {
-    const MEdge *edge = &edges[index];
-
-    if (edge->flag & ME_LOOSEEDGE) {
-      edges_in_linelist += 1;
-      edge_list.push_back(edge->v1);
-      edge_list.push_back(edge->v2);
+  const bke::LooseEdgeCache &loose_edges = me->loose_edges();
+  if (loose_edges.count > 0) {
+    for (const int64_t i : edges.index_range()) {
+      if (loose_edges.is_loose_bits[i]) {
+        const MEdge *edge = &edges[i];
+        edges_in_linelist += 1;
+        edge_list.push_back(edge->v1);
+        edge_list.push_back(edge->v2);
+      }
     }
   }
 
@@ -522,7 +524,7 @@ std::string GeometryExporter::makeTexcoordSourceId(std::string &geom_id,
     suffix[0] = '\0';
   }
   else {
-    sprintf(suffix, "-%d", layer_index);
+    BLI_snprintf(suffix, sizeof(suffix), "-%d", layer_index);
   }
   return getIdBySemantics(geom_id, COLLADASW::InputSemantic::TEXCOORD) + suffix;
 }

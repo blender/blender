@@ -129,6 +129,7 @@ void parallel_invoke(const bool use_threading, Functions &&...functions)
 template<typename Function> void isolate_task(const Function &function)
 {
 #ifdef WITH_TBB
+  lazy_threading::ReceiverIsolation isolation;
   tbb::this_task_arena::isolate(function);
 #else
   function();

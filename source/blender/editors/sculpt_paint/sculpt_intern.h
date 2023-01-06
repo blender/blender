@@ -98,6 +98,13 @@ typedef struct {
   const float *col;
 } SculptOrigVertData;
 
+typedef struct SculptOrigFaceData {
+  struct SculptUndoNode *unode;
+  struct BMLog *bm_log;
+  const int *face_sets;
+  int face_set;
+} SculptOrigFaceData;
+
 /* Flood Fill. */
 typedef struct {
   GSQueue *queue;
@@ -200,6 +207,9 @@ typedef struct SculptUndoNode {
 
   /* Sculpt Face Sets */
   int *face_sets;
+
+  PBVHFaceRef *faces;
+  int faces_num;
 
   size_t undo_size;
 } SculptUndoNode;
@@ -341,7 +351,7 @@ typedef struct SculptBrushTest {
   float radius;
   float location[3];
   float dist;
-  int mirror_symmetry_pass;
+  ePaintSymmetryFlags mirror_symmetry_pass;
 
   int radial_symmetry_pass;
   float symm_rot_mat_inv[4][4];
@@ -556,7 +566,8 @@ typedef struct StrokeCache {
   /* Symmetry index between 0 and 7 bit combo 0 is Brush only;
    * 1 is X mirror; 2 is Y mirror; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
   int symmetry;
-  int mirror_symmetry_pass; /* The symmetry pass we are currently on between 0 and 7. */
+  ePaintSymmetryFlags
+      mirror_symmetry_pass; /* The symmetry pass we are currently on between 0 and 7. */
   float true_view_normal[3];
   float view_normal[3];
 
@@ -741,7 +752,7 @@ typedef struct ExpandCache {
   /* Texture distortion data. */
   Brush *brush;
   struct Scene *scene;
-  struct MTex *mtex;
+  // struct MTex *mtex;
 
   /* Controls how much texture distortion will be applied to the current falloff */
   float texture_distortion_strength;
@@ -783,6 +794,9 @@ typedef struct ExpandCache {
   /* When set to true, Expand will reposition the sculpt pivot to the boundary of the expand result
    * after finishing the operation. */
   bool reposition_pivot;
+
+  /* If nothing is masked set mask of every vertex to 0. */
+  bool auto_mask;
 
   /* Color target data type related data. */
   float fill_color[4];
@@ -1034,6 +1048,9 @@ int SCULPT_active_face_set_get(SculptSession *ss);
 int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 
+int SCULPT_face_set_get(const SculptSession *ss, PBVHFaceRef face);
+void SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset);
+
 bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
 bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex);
 
@@ -1064,6 +1081,25 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
  * handles #BMesh, #Mesh, and multi-resolution.
  */
 void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data,
+                                      Object *ob,
+                                      struct SculptUndoNode *unode);
+/**
+ * Initialize a #SculptOrigFaceData for accessing original face data;
+ * handles #BMesh, #Mesh, and multi-resolution.
+ */
+void SCULPT_orig_face_data_init(SculptOrigFaceData *data,
+                                Object *ob,
+                                PBVHNode *node,
+                                SculptUndoType type);
+/**
+ * Update a #SculptOrigFaceData for a particular vertex from the PBVH iterator.
+ */
+void SCULPT_orig_face_data_update(SculptOrigFaceData *orig_data, PBVHFaceIter *iter);
+/**
+ * Initialize a #SculptOrigVertData for accessing original vertex data;
+ * handles #BMesh, #Mesh, and multi-resolution.
+ */
+void SCULPT_orig_face_data_unode_init(SculptOrigFaceData *data,
                                       Object *ob,
                                       struct SculptUndoNode *unode);
 /** \} */
@@ -1324,6 +1360,7 @@ float SCULPT_automasking_factor_get(struct AutomaskingCache *automasking,
  * brushes and filter. */
 struct AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss);
 
+/* Brush can be null. */
 struct AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object *ob);
 void SCULPT_automasking_cache_free(struct AutomaskingCache *automasking);
 
@@ -1526,7 +1563,10 @@ bool SCULPT_pbvh_calc_area_normal(const struct Brush *brush,
  * Flip all the edit-data across the axis/axes specified by \a symm.
  * Used to calculate multiple modifications to the mesh when symmetry is enabled.
  */
-void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache, char symm, char axis, float angle);
+void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
+                                      ePaintSymmetryFlags symm,
+                                      char axis,
+                                      float angle);
 void SCULPT_cache_free(StrokeCache *cache);
 
 /* -------------------------------------------------------------------- */
@@ -1893,6 +1933,8 @@ BLI_INLINE bool SCULPT_tool_is_face_sets(int tool)
 void SCULPT_stroke_id_ensure(struct Object *ob);
 void SCULPT_stroke_id_next(struct Object *ob);
 bool SCULPT_tool_can_reuse_automask(int sculpt_tool);
+
+void SCULPT_ensure_valid_pivot(const struct Object *ob, struct Scene *scene);
 
 #ifdef __cplusplus
 }

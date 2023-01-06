@@ -1009,11 +1009,11 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
       if ((sipo->flag & SIPO_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
         if (adt) {
           ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
-          posttrans_fcurve_clean(fcu, BEZT_FLAG_TEMP_TAG, use_handle);
+          BKE_fcurve_merge_duplicate_keys(fcu, BEZT_FLAG_TEMP_TAG, use_handle);
           ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 0);
         }
         else {
-          posttrans_fcurve_clean(fcu, BEZT_FLAG_TEMP_TAG, use_handle);
+          BKE_fcurve_merge_duplicate_keys(fcu, BEZT_FLAG_TEMP_TAG, use_handle);
         }
       }
     }

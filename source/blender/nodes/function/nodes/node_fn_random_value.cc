@@ -14,7 +14,7 @@ namespace blender::nodes::node_fn_random_value_cc {
 
 NODE_STORAGE_FUNCS(NodeRandomValue)
 
-static void fn_node_random_value_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Vector>(N_("Min")).supports_field();
   b.add_input<decl::Vector>(N_("Max")).default_value({1.0f, 1.0f, 1.0f}).supports_field();
@@ -42,7 +42,7 @@ static void fn_node_random_value_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Value"), "Value_003").dependent_field();
 }
 
-static void fn_node_random_value_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
 }
@@ -103,7 +103,7 @@ static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSoc
   }
 }
 
-static void fn_node_random_value_gather_link_search(GatherLinkSearchOpParams &params)
+static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   const std::optional<eCustomDataType> type = node_type_from_other_socket(params.other_socket());
@@ -123,7 +123,7 @@ static void fn_node_random_value_gather_link_search(GatherLinkSearchOpParams &pa
         params.update_and_connect_available_socket(node, "Max");
       });
     }
-    search_link_ops_for_declarations(params, declaration.inputs().take_back(3));
+    search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(3));
   }
   else {
     params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
@@ -134,7 +134,7 @@ static void fn_node_random_value_gather_link_search(GatherLinkSearchOpParams &pa
   }
 }
 
-static void fn_node_random_value_build_multi_function(NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const NodeRandomValue &storage = node_storage(builder.node());
   const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
@@ -218,12 +218,12 @@ void register_node_type_fn_random_value()
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_RANDOM_VALUE, "Random Value", NODE_CLASS_CONVERTER);
-  node_type_init(&ntype, file_ns::fn_node_random_value_init);
-  node_type_update(&ntype, file_ns::fn_node_random_value_update);
-  ntype.draw_buttons = file_ns::fn_node_random_value_layout;
-  ntype.declare = file_ns::fn_node_random_value_declare;
-  ntype.build_multi_function = file_ns::fn_node_random_value_build_multi_function;
-  ntype.gather_link_search_ops = file_ns::fn_node_random_value_gather_link_search;
+  ntype.initfunc = file_ns::fn_node_random_value_init;
+  ntype.updatefunc = file_ns::fn_node_random_value_update;
+  ntype.draw_buttons = file_ns::node_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.gather_link_search_ops = file_ns::node_gather_link_search_ops;
   node_type_storage(
       &ntype, "NodeRandomValue", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);

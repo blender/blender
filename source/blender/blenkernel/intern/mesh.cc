@@ -91,10 +91,6 @@ static void mesh_init_data(ID *id)
 
   mesh->runtime = new blender::bke::MeshRuntime();
 
-  /* A newly created mesh does not have normals, so tag them dirty. This will be cleared
-   * by #BKE_mesh_vertex_normals_clear_dirty or #BKE_mesh_poly_normals_ensure. */
-  BKE_mesh_normals_tag_dirty(mesh);
-
   mesh->face_sets_color_seed = BLI_hash_int(PIL_check_seconds_timer_i() & UINT_MAX);
 }
 
@@ -128,6 +124,13 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
    * highly unlikely we want to create a duplicate and not use it for drawing. */
   mesh_dst->runtime->is_original_bmesh = false;
 
+  /* Share various derived caches between the source and destination mesh for improved performance
+   * when the source is persistent and edits to the destination mesh don't affect the caches.
+   * Caches will be "un-shared" as necessary later on. */
+  mesh_dst->runtime->bounds_cache = mesh_src->runtime->bounds_cache;
+  mesh_dst->runtime->loose_edges_cache = mesh_src->runtime->loose_edges_cache;
+  mesh_dst->runtime->looptris_cache = mesh_src->runtime->looptris_cache;
+
   /* Only do tessface if we have no polys. */
   const bool do_tessface = ((mesh_src->totface != 0) && (mesh_src->totpoly == 0));
 
@@ -141,6 +144,10 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   mesh_dst->mat = (Material **)MEM_dupallocN(mesh_src->mat);
 
   BKE_defgroup_copy_list(&mesh_dst->vertex_group_names, &mesh_src->vertex_group_names);
+  mesh_dst->active_color_attribute = static_cast<char *>(
+      MEM_dupallocN(mesh_src->active_color_attribute));
+  mesh_dst->default_color_attribute = static_cast<char *>(
+      MEM_dupallocN(mesh_src->default_color_attribute));
 
   const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
   CustomData_copy(&mesh_src->vdata, &mesh_dst->vdata, mask.vmask, alloc_type, mesh_dst->totvert);
@@ -158,21 +165,12 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
 
   mesh_dst->mselect = (MSelect *)MEM_dupallocN(mesh_dst->mselect);
 
-  /* Set normal layers dirty. They should be dirty by default on new meshes anyway, but being
-   * explicit about it is safer. Alternatively normal layers could be copied if they aren't dirty,
-   * avoiding recomputation in some cases. However, a copied mesh is often changed anyway, so that
-   * idea is not clearly better. With proper reference counting, all custom data layers could be
-   * copied as the cost would be much lower. */
-  BKE_mesh_normals_tag_dirty(mesh_dst);
-
   /* TODO: Do we want to add flag to prevent this? */
   if (mesh_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
     BKE_id_copy_ex(bmain, &mesh_src->key->id, (ID **)&mesh_dst->key, flag);
     /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
     mesh_dst->key->from = &mesh_dst->id;
   }
-
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh_dst);
 }
 
 void BKE_mesh_free_editmesh(struct Mesh *mesh)
@@ -196,7 +194,6 @@ static void mesh_free_data(ID *id)
 
   BKE_mesh_free_editmesh(mesh);
 
-  BKE_mesh_runtime_free_data(mesh);
   mesh_clear_geometry(mesh);
   MEM_SAFE_FREE(mesh->mat);
 
@@ -236,7 +233,6 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   mesh->mface = nullptr;
   mesh->totface = 0;
   memset(&mesh->fdata, 0, sizeof(mesh->fdata));
-  mesh->runtime = nullptr;
 
   /* Do not store actual geometry data in case this is a library override ID. */
   if (ID_IS_OVERRIDE_LIBRARY(mesh) && !is_undo) {
@@ -261,6 +257,10 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       BKE_mesh_legacy_bevel_weight_from_layers(mesh);
       BKE_mesh_legacy_face_set_from_generic(mesh, poly_layers);
       BKE_mesh_legacy_edge_crease_from_layers(mesh);
+      BKE_mesh_legacy_attribute_strings_to_flags(mesh);
+      mesh->active_color_attribute = nullptr;
+      mesh->default_color_attribute = nullptr;
+      BKE_mesh_legacy_convert_loose_edges_to_flag(mesh);
       /* When converting to the old mesh format, don't save redundant attributes. */
       names_to_skip.add_multiple_new({".hide_vert",
                                       ".hide_edge",
@@ -284,6 +284,8 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     CustomData_blend_write_prepare(mesh->pdata, poly_layers, names_to_skip);
   }
 
+  mesh->runtime = nullptr;
+
   BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
   BKE_id_blend_write(writer, &mesh->id);
 
@@ -293,6 +295,8 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   }
 
   BKE_defbase_blend_write(writer, &mesh->vertex_group_names);
+  BLO_write_string(writer, mesh->active_color_attribute);
+  BLO_write_string(writer, mesh->default_color_attribute);
 
   BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
   BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
@@ -342,6 +346,8 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
      * Don't read them again if they were read as part of #CustomData. */
     BKE_defvert_blend_read(reader, mesh->totvert, mesh->dvert);
   }
+  BLO_read_data_address(reader, &mesh->active_color_attribute);
+  BLO_read_data_address(reader, &mesh->default_color_attribute);
 
   mesh->texflag &= ~ME_AUTOSPACE_EVALUATED;
   mesh->edit_mesh = nullptr;
@@ -359,10 +365,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
       BLI_endian_switch_uint32_array(tf->col, 4);
     }
   }
-
-  /* We don't expect to load normals from files, since they are derived data. */
-  BKE_mesh_normals_tag_dirty(mesh);
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
 }
 
 static void mesh_blend_read_lib(BlendLibReader *reader, ID *id)
@@ -509,13 +511,18 @@ static int customdata_compare(
 
   for (int i1 = 0; i1 < c1->totlayer; i1++) {
     l1 = c1->layers + i1;
+    if (l1->anonymous_id != nullptr) {
+      continue;
+    }
+    bool found_corresponding_layer = false;
     for (int i2 = 0; i2 < c2->totlayer; i2++) {
       l2 = c2->layers + i2;
-      if (l1->type != l2->type || !STREQ(l1->name, l2->name) || l1->anonymous_id != nullptr ||
-          l2->anonymous_id != nullptr) {
+      if (l1->type != l2->type || !STREQ(l1->name, l2->name) || l2->anonymous_id != nullptr) {
         continue;
       }
       /* At this point `l1` and `l2` have the same name and type, so they should be compared. */
+
+      found_corresponding_layer = true;
 
       switch (l1->type) {
 
@@ -728,6 +735,11 @@ static int customdata_compare(
         }
       }
     }
+    if (!found_corresponding_layer) {
+      if ((uint64_t(1) << l1->type) & CD_MASK_PROP_ALL) {
+        return MESHCMP_CDLAYERS_MISMATCH;
+      }
+    }
   }
 
   return 0;
@@ -892,6 +904,8 @@ static void mesh_clear_geometry(Mesh *mesh)
   mesh->totselect = 0;
 
   BLI_freelistN(&mesh->vertex_group_names);
+  MEM_SAFE_FREE(mesh->active_color_attribute);
+  MEM_SAFE_FREE(mesh->default_color_attribute);
 }
 
 void BKE_mesh_clear_geometry(Mesh *mesh)
@@ -965,6 +979,18 @@ Mesh *BKE_mesh_new_nomain(
   return mesh;
 }
 
+static void copy_attribute_names(const Mesh &mesh_src, Mesh &mesh_dst)
+{
+  if (mesh_src.active_color_attribute) {
+    MEM_SAFE_FREE(mesh_dst.active_color_attribute);
+    mesh_dst.active_color_attribute = BLI_strdup(mesh_src.active_color_attribute);
+  }
+  if (mesh_src.default_color_attribute) {
+    MEM_SAFE_FREE(mesh_dst.default_color_attribute);
+    mesh_dst.default_color_attribute = BLI_strdup(mesh_src.default_color_attribute);
+  }
+}
+
 void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
 {
   /* Copy general settings. */
@@ -994,8 +1020,7 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
   BLI_assert(me_dst->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_WRITE));
 
   BKE_mesh_copy_parameters(me_dst, me_src);
-
-  BKE_mesh_assert_normals_dirty_or_calculated(me_dst);
+  copy_attribute_names(*me_src, *me_dst);
 
   /* Copy vertex group names. */
   BLI_assert(BLI_listbase_is_empty(&me_dst->vertex_group_names));
@@ -1364,7 +1389,7 @@ void BKE_mesh_material_index_remove(Mesh *me, short index)
   }
   MutableVArraySpan<int> indices_span(material_indices.varray);
   for (const int i : indices_span.index_range()) {
-    if (indices_span[i] > 0 && indices_span[i] > index) {
+    if (indices_span[i] > 0 && indices_span[i] >= index) {
       indices_span[i]--;
     }
   }
@@ -1501,13 +1526,13 @@ int BKE_mesh_edge_other_vert(const MEdge *e, int v)
   return -1;
 }
 
-void BKE_mesh_looptri_get_real_edges(const Mesh *mesh, const MLoopTri *looptri, int r_edges[3])
+void BKE_mesh_looptri_get_real_edges(const MEdge *edges,
+                                     const MLoop *loops,
+                                     const MLoopTri *tri,
+                                     int r_edges[3])
 {
-  const Span<MEdge> edges = mesh->edges();
-  const Span<MLoop> loops = mesh->loops();
-
   for (int i = 2, i_next = 0; i_next < 3; i = i_next++) {
-    const MLoop *l1 = &loops[looptri->tri[i]], *l2 = &loops[looptri->tri[i_next]];
+    const MLoop *l1 = &loops[tri->tri[i]], *l2 = &loops[tri->tri[i_next]];
     const MEdge *e = &edges[l1->e];
 
     bool is_real = (l1->v == e->v1 && l2->v == e->v2) || (l1->v == e->v2 && l2->v == e->v1);
@@ -1523,29 +1548,27 @@ bool BKE_mesh_minmax(const Mesh *me, float r_min[3], float r_max[3])
     return false;
   }
 
-  struct Result {
-    float3 min;
-    float3 max;
-  };
-  const Span<MVert> verts = me->verts();
+  me->runtime->bounds_cache.ensure([me](Bounds<float3> &r_bounds) {
+    const Span<MVert> verts = me->verts();
+    r_bounds = threading::parallel_reduce(
+        verts.index_range(),
+        1024,
+        Bounds<float3>{float3(FLT_MAX), float3(-FLT_MAX)},
+        [verts](IndexRange range, const Bounds<float3> &init) {
+          Bounds<float3> result = init;
+          for (const int i : range) {
+            math::min_max(float3(verts[i].co), result.min, result.max);
+          }
+          return result;
+        },
+        [](const Bounds<float3> &a, const Bounds<float3> &b) {
+          return Bounds<float3>{math::min(a.min, b.min), math::max(a.max, b.max)};
+        });
+  });
 
-  const Result minmax = threading::parallel_reduce(
-      verts.index_range(),
-      1024,
-      Result{float3(FLT_MAX), float3(-FLT_MAX)},
-      [verts](IndexRange range, const Result &init) {
-        Result result = init;
-        for (const int i : range) {
-          math::min_max(float3(verts[i].co), result.min, result.max);
-        }
-        return result;
-      },
-      [](const Result &a, const Result &b) {
-        return Result{math::min(a.min, b.min), math::max(a.max, b.max)};
-      });
-
-  copy_v3_v3(r_min, math::min(minmax.min, float3(r_min)));
-  copy_v3_v3(r_max, math::max(minmax.max, float3(r_max)));
+  const Bounds<float3> &bounds = me->runtime->bounds_cache.data();
+  copy_v3_v3(r_min, math::min(bounds.min, float3(r_min)));
+  copy_v3_v3(r_max, math::max(bounds.max, float3(r_max)));
 
   return true;
 }
@@ -1606,38 +1629,6 @@ void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
 void BKE_mesh_tessface_clear(Mesh *mesh)
 {
   mesh_tessface_clear_intern(mesh, true);
-}
-
-void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
-{
-  if (UNLIKELY(mesh->cd_flag)) {
-    return;
-  }
-
-  const Span<MVert> verts = mesh->verts();
-  const Span<MEdge> edges = mesh->edges();
-
-  for (const MVert &vert : verts) {
-    if (vert.bweight_legacy != 0) {
-      mesh->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
-      break;
-    }
-  }
-
-  for (const MEdge &edge : edges) {
-    if (edge.bweight_legacy != 0) {
-      mesh->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
-      if (mesh->cd_flag & ME_CDFLAG_EDGE_CREASE) {
-        break;
-      }
-    }
-    if (edge.crease_legacy != 0) {
-      mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
-      if (mesh->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
-        break;
-      }
-    }
-  }
 }
 
 /* -------------------------------------------------------------------- */
@@ -1814,17 +1805,17 @@ void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
 
 static float (*ensure_corner_normal_layer(Mesh &mesh))[3]
 {
-  float(*r_loopnors)[3];
+  float(*r_loop_normals)[3];
   if (CustomData_has_layer(&mesh.ldata, CD_NORMAL)) {
-    r_loopnors = (float(*)[3])CustomData_get_layer(&mesh.ldata, CD_NORMAL);
-    memset(r_loopnors, 0, sizeof(float[3]) * mesh.totloop);
+    r_loop_normals = (float(*)[3])CustomData_get_layer(&mesh.ldata, CD_NORMAL);
+    memset(r_loop_normals, 0, sizeof(float[3]) * mesh.totloop);
   }
   else {
-    r_loopnors = (float(*)[3])CustomData_add_layer(
+    r_loop_normals = (float(*)[3])CustomData_add_layer(
         &mesh.ldata, CD_NORMAL, CD_SET_DEFAULT, nullptr, mesh.totloop);
     CustomData_set_layer_flag(&mesh.ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
-  return r_loopnors;
+  return r_loop_normals;
 }
 
 void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
@@ -1861,281 +1852,14 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
                               polys.size(),
                               use_split_normals,
                               split_angle,
+                              nullptr,
                               r_lnors_spacearr,
-                              clnors,
-                              nullptr);
-
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
+                              clnors);
 }
 
 void BKE_mesh_calc_normals_split(Mesh *mesh)
 {
   BKE_mesh_calc_normals_split_ex(mesh, nullptr, ensure_corner_normal_layer(*mesh));
-}
-
-/* Split faces helper functions. */
-
-struct SplitFaceNewVert {
-  struct SplitFaceNewVert *next;
-  int new_index;
-  int orig_index;
-  float *vnor;
-};
-
-struct SplitFaceNewEdge {
-  struct SplitFaceNewEdge *next;
-  int new_index;
-  int orig_index;
-  int v1;
-  int v2;
-};
-
-/* Detect needed new vertices, and update accordingly loops' vertex indices.
- * WARNING! Leaves mesh in invalid state. */
-static int split_faces_prepare_new_verts(Mesh *mesh,
-                                         MLoopNorSpaceArray *lnors_spacearr,
-                                         SplitFaceNewVert **new_verts,
-                                         MemArena *memarena)
-{
-  /* This is now mandatory, trying to do the job in simple way without that data is doomed to fail,
-   * even when only dealing with smooth/flat faces one can find cases that no simple algorithm
-   * can handle properly. */
-  BLI_assert(lnors_spacearr != nullptr);
-
-  const int loops_len = mesh->totloop;
-  int verts_len = mesh->totvert;
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
-  BKE_mesh_vertex_normals_ensure(mesh);
-  float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(mesh);
-
-  BitVector<> verts_used(verts_len, false);
-  BitVector<> done_loops(loops_len, false);
-
-  MLoop *ml = loops.data();
-  MLoopNorSpace **lnor_space = lnors_spacearr->lspacearr;
-
-  BLI_assert(lnors_spacearr->data_type == MLNOR_SPACEARR_LOOP_INDEX);
-
-  for (int loop_idx = 0; loop_idx < loops_len; loop_idx++, ml++, lnor_space++) {
-    if (!done_loops[loop_idx]) {
-      const int vert_idx = ml->v;
-      const bool vert_used = verts_used[vert_idx];
-      /* If vert is already used by another smooth fan, we need a new vert for this one. */
-      const int new_vert_idx = vert_used ? verts_len++ : vert_idx;
-
-      BLI_assert(*lnor_space);
-
-      if ((*lnor_space)->flags & MLNOR_SPACE_IS_SINGLE) {
-        /* Single loop in this fan... */
-        BLI_assert(POINTER_AS_INT((*lnor_space)->loops) == loop_idx);
-        done_loops[loop_idx].set();
-        if (vert_used) {
-          ml->v = new_vert_idx;
-        }
-      }
-      else {
-        for (LinkNode *lnode = (*lnor_space)->loops; lnode; lnode = lnode->next) {
-          const int ml_fan_idx = POINTER_AS_INT(lnode->link);
-          done_loops[ml_fan_idx].set();
-          if (vert_used) {
-            loops[ml_fan_idx].v = new_vert_idx;
-          }
-        }
-      }
-
-      if (!vert_used) {
-        verts_used[vert_idx].set();
-        /* We need to update that vertex's normal here, we won't go over it again. */
-        /* This is important! *DO NOT* set vnor to final computed lnor,
-         * vnor should always be defined to 'automatic normal' value computed from its polys,
-         * not some custom normal.
-         * Fortunately, that's the loop normal space's 'lnor' reference vector. ;) */
-        copy_v3_v3(vert_normals[vert_idx], (*lnor_space)->vec_lnor);
-      }
-      else {
-        /* Add new vert to list. */
-        SplitFaceNewVert *new_vert = (SplitFaceNewVert *)BLI_memarena_alloc(memarena,
-                                                                            sizeof(*new_vert));
-        new_vert->orig_index = vert_idx;
-        new_vert->new_index = new_vert_idx;
-        new_vert->vnor = (*lnor_space)->vec_lnor; /* See note above. */
-        new_vert->next = *new_verts;
-        *new_verts = new_vert;
-      }
-    }
-  }
-
-  return verts_len - mesh->totvert;
-}
-
-/* Detect needed new edges, and update accordingly loops' edge indices.
- * WARNING! Leaves mesh in invalid state. */
-static int split_faces_prepare_new_edges(Mesh *mesh,
-                                         SplitFaceNewEdge **new_edges,
-                                         MemArena *memarena)
-{
-  const int num_polys = mesh->totpoly;
-  int num_edges = mesh->totedge;
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
-  const Span<MPoly> polys = mesh->polys();
-
-  BitVector<> edges_used(num_edges, false);
-  EdgeHash *edges_hash = BLI_edgehash_new_ex(__func__, num_edges);
-
-  const MPoly *mp = polys.data();
-  for (int poly_idx = 0; poly_idx < num_polys; poly_idx++, mp++) {
-    MLoop *ml_prev = &loops[mp->loopstart + mp->totloop - 1];
-    MLoop *ml = &loops[mp->loopstart];
-    for (int loop_idx = 0; loop_idx < mp->totloop; loop_idx++, ml++) {
-      void **eval;
-      if (!BLI_edgehash_ensure_p(edges_hash, ml_prev->v, ml->v, &eval)) {
-        const int edge_idx = ml_prev->e;
-
-        /* That edge has not been encountered yet, define it. */
-        if (edges_used[edge_idx]) {
-          /* Original edge has already been used, we need to define a new one. */
-          const int new_edge_idx = num_edges++;
-          *eval = POINTER_FROM_INT(new_edge_idx);
-          ml_prev->e = new_edge_idx;
-
-          SplitFaceNewEdge *new_edge = (SplitFaceNewEdge *)BLI_memarena_alloc(memarena,
-                                                                              sizeof(*new_edge));
-          new_edge->orig_index = edge_idx;
-          new_edge->new_index = new_edge_idx;
-          new_edge->v1 = ml_prev->v;
-          new_edge->v2 = ml->v;
-          new_edge->next = *new_edges;
-          *new_edges = new_edge;
-        }
-        else {
-          /* We can re-use original edge. */
-          edges[edge_idx].v1 = ml_prev->v;
-          edges[edge_idx].v2 = ml->v;
-          *eval = POINTER_FROM_INT(edge_idx);
-          edges_used[edge_idx].set();
-        }
-      }
-      else {
-        /* Edge already known, just update loop's edge index. */
-        ml_prev->e = POINTER_AS_INT(*eval);
-      }
-
-      ml_prev = ml;
-    }
-  }
-
-  BLI_edgehash_free(edges_hash, nullptr);
-
-  return num_edges - mesh->totedge;
-}
-
-/* Perform actual split of vertices. */
-static void split_faces_split_new_verts(Mesh *mesh,
-                                        SplitFaceNewVert *new_verts,
-                                        const int num_new_verts)
-{
-  const int verts_len = mesh->totvert - num_new_verts;
-  float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(mesh);
-
-  /* Normals were already calculated at the beginning of this operation, we rely on that to update
-   * them partially here. */
-  BLI_assert(!BKE_mesh_vertex_normals_are_dirty(mesh));
-
-  /* Remember new_verts is a single linklist, so its items are in reversed order... */
-  for (int i = mesh->totvert - 1; i >= verts_len; i--, new_verts = new_verts->next) {
-    BLI_assert(new_verts->new_index == i);
-    BLI_assert(new_verts->new_index != new_verts->orig_index);
-    CustomData_copy_data(&mesh->vdata, &mesh->vdata, new_verts->orig_index, i, 1);
-    if (new_verts->vnor) {
-      copy_v3_v3(vert_normals[i], new_verts->vnor);
-    }
-  }
-}
-
-/* Perform actual split of edges. */
-static void split_faces_split_new_edges(Mesh *mesh,
-                                        SplitFaceNewEdge *new_edges,
-                                        const int num_new_edges)
-{
-  const int num_edges = mesh->totedge - num_new_edges;
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
-
-  /* Remember new_edges is a single linklist, so its items are in reversed order... */
-  MEdge *new_med = &edges[mesh->totedge - 1];
-  for (int i = mesh->totedge - 1; i >= num_edges; i--, new_med--, new_edges = new_edges->next) {
-    BLI_assert(new_edges->new_index == i);
-    BLI_assert(new_edges->new_index != new_edges->orig_index);
-    CustomData_copy_data(&mesh->edata, &mesh->edata, new_edges->orig_index, i, 1);
-    new_med->v1 = new_edges->v1;
-    new_med->v2 = new_edges->v2;
-  }
-}
-
-void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
-{
-  const int num_polys = mesh->totpoly;
-
-  if (num_polys == 0) {
-    return;
-  }
-  BKE_mesh_tessface_clear(mesh);
-
-  MLoopNorSpaceArray lnors_spacearr = {nullptr};
-  /* Compute loop normals and loop normal spaces (a.k.a. smooth fans of faces around vertices). */
-  BKE_mesh_calc_normals_split_ex(mesh, &lnors_spacearr, ensure_corner_normal_layer(*mesh));
-  /* Stealing memarena from loop normals space array. */
-  MemArena *memarena = lnors_spacearr.mem;
-
-  SplitFaceNewVert *new_verts = nullptr;
-  SplitFaceNewEdge *new_edges = nullptr;
-
-  /* Detect loop normal spaces (a.k.a. smooth fans) that will need a new vert. */
-  const int num_new_verts = split_faces_prepare_new_verts(
-      mesh, &lnors_spacearr, &new_verts, memarena);
-
-  if (num_new_verts > 0) {
-    /* Reminder: beyond this point, there is no way out, mesh is in invalid state
-     * (due to early-reassignment of loops' vertex and edge indices to new,
-     * to-be-created split ones). */
-
-    const int num_new_edges = split_faces_prepare_new_edges(mesh, &new_edges, memarena);
-    /* We can have to split a vertex without having to add a single new edge... */
-    const bool do_edges = (num_new_edges > 0);
-
-    /* Reallocate all vert and edge related data. */
-    CustomData_realloc(&mesh->vdata, mesh->totvert, mesh->totvert + num_new_verts);
-    mesh->totvert += num_new_verts;
-    if (do_edges) {
-      CustomData_realloc(&mesh->edata, mesh->totedge, mesh->totedge + num_new_edges);
-      mesh->totedge += num_new_edges;
-    }
-
-    /* Update normals manually to avoid recalculation after this operation. */
-    mesh->runtime->vert_normals = (float(*)[3])MEM_reallocN(mesh->runtime->vert_normals,
-                                                            sizeof(float[3]) * mesh->totvert);
-
-    /* Perform actual split of vertices and edges. */
-    split_faces_split_new_verts(mesh, new_verts, num_new_verts);
-    if (do_edges) {
-      split_faces_split_new_edges(mesh, new_edges, num_new_edges);
-    }
-  }
-
-  /* NOTE: after this point mesh is expected to be valid again. */
-
-  /* CD_NORMAL is expected to be temporary only. */
-  if (free_loop_normals) {
-    CustomData_free_layers(&mesh->ldata, CD_NORMAL, mesh->totloop);
-  }
-
-  /* Also frees new_verts/edges temp data, since we used its memarena to allocate them. */
-  BKE_lnor_spacearr_free(&lnors_spacearr);
-
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh);
-#ifdef VALIDATE_MESH
-  BKE_mesh_validate(mesh, true, true);
-#endif
 }
 
 /* **** Depsgraph evaluation **** */

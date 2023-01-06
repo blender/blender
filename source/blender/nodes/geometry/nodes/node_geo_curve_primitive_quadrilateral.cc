@@ -136,7 +136,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   if (params.in_out() == SOCK_OUT) {
-    search_link_ops_for_declarations(params, declaration.outputs());
+    search_link_ops_for_declarations(params, declaration.outputs);
   }
   else if (params.node_tree().typeinfo->validate_link(
                eNodeSocketDatatype(params.other_socket().type), SOCK_FLOAT)) {
@@ -274,8 +274,8 @@ void register_node_type_geo_curve_primitive_quadrilateral()
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
-  node_type_update(&ntype, file_ns::node_update);
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.updatefunc = file_ns::node_update;
+  ntype.initfunc = file_ns::node_init;
   node_type_storage(&ntype,
                     "NodeGeometryCurvePrimitiveQuad",
                     node_free_standard_storage,

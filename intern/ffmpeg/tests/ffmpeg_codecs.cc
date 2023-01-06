@@ -3,6 +3,8 @@
 #include "testing/testing.h"
 
 extern "C" {
+#include "ffmpeg_compat.h"
+
 #include <libavcodec/avcodec.h>
 #include <libavutil/channel_layout.h>
 #include <libavutil/log.h>
@@ -40,7 +42,11 @@ bool test_acodec(const AVCodec *codec, AVSampleFormat fmt)
     if (ctx) {
       ctx->sample_fmt = fmt;
       ctx->sample_rate = 48000;
+#ifdef FFMPEG_USE_OLD_CHANNEL_VARS
       ctx->channel_layout = AV_CH_LAYOUT_MONO;
+#else
+      av_channel_layout_from_mask(&ctx->ch_layout, AV_CH_LAYOUT_MONO);
+#endif
       ctx->bit_rate = 128000;
       int open = avcodec_open2(ctx, codec, NULL);
       if (open >= 0) {

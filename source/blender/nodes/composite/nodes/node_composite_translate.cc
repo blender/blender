@@ -110,7 +110,7 @@ void register_node_type_cmp_translate()
   cmp_node_type_base(&ntype, CMP_NODE_TRANSLATE, "Translate", NODE_CLASS_DISTORT);
   ntype.declare = file_ns::cmp_node_translate_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_translate;
-  node_type_init(&ntype, file_ns::node_composit_init_translate);
+  ntype.initfunc = file_ns::node_composit_init_translate;
   node_type_storage(
       &ntype, "NodeTranslateData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

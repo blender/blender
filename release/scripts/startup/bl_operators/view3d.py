@@ -32,7 +32,7 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
                 TRANSFORM_OT_translate={
                     "orient_type": 'NORMAL',
                     "constraint_axis": (False, False, True),
-                }
+                },
             )
         elif select_mode[2] and totface > 1:
             bpy.ops.mesh.extrude_faces_move('INVOKE_REGION_WIN')
@@ -57,7 +57,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
     dissolve_and_intersect: BoolProperty(
         name="dissolve_and_intersect",
         default=False,
-        description="Dissolves adjacent faces and intersects new geometry"
+        description="Dissolves adjacent faces and intersects new geometry",
     )
 
     @classmethod

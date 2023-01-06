@@ -242,7 +242,7 @@ TEST_NUMBER_AT_CHUNK_SIZE(256)
 
 #define STRINGS_TEST(chunk_size, ...) \
   { \
-    const char *data[] = {__VA_ARGS__, NULL}; \
+    const char *data[] = {__VA_ARGS__, nullptr}; \
     memiter_string_test(data, chunk_size); \
   }
 

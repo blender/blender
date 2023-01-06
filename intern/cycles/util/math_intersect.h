@@ -133,7 +133,9 @@ ccl_device_forceinline float ray_triangle_rcp(const float x)
 ccl_device_inline float ray_triangle_dot(const float3 a, const float3 b)
 {
 #if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
-  return madd(ssef(a.x), ssef(b.x), madd(ssef(a.y), ssef(b.y), ssef(a.z) * ssef(b.z)))[0];
+  return madd(make_float4(a.x),
+              make_float4(b.x),
+              madd(make_float4(a.y), make_float4(b.y), make_float4(a.z) * make_float4(b.z)))[0];
 #else
   return a.x * b.x + a.y * b.y + a.z * b.z;
 #endif
@@ -142,9 +144,10 @@ ccl_device_inline float ray_triangle_dot(const float3 a, const float3 b)
 ccl_device_inline float3 ray_triangle_cross(const float3 a, const float3 b)
 {
 #if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
-  return make_float3(msub(ssef(a.y), ssef(b.z), ssef(a.z) * ssef(b.y))[0],
-                     msub(ssef(a.z), ssef(b.x), ssef(a.x) * ssef(b.z))[0],
-                     msub(ssef(a.x), ssef(b.y), ssef(a.y) * ssef(b.x))[0]);
+  return make_float3(
+      msub(make_float4(a.y), make_float4(b.z), make_float4(a.z) * make_float4(b.y))[0],
+      msub(make_float4(a.z), make_float4(b.x), make_float4(a.x) * make_float4(b.z))[0],
+      msub(make_float4(a.x), make_float4(b.y), make_float4(a.y) * make_float4(b.x))[0]);
 #else
   return make_float3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
 #endif
@@ -254,8 +257,8 @@ ccl_device bool ray_quad_intersect(float3 ray_P,
                                    float ray_tmin,
                                    float ray_tmax,
                                    float3 quad_P,
-                                   float3 quad_u,
-                                   float3 quad_v,
+                                   float3 inv_quad_u,
+                                   float3 inv_quad_v,
                                    float3 quad_n,
                                    ccl_private float3 *isect_P,
                                    ccl_private float *isect_t,
@@ -270,11 +273,11 @@ ccl_device bool ray_quad_intersect(float3 ray_P,
   }
   const float3 hit = ray_P + t * ray_D;
   const float3 inplane = hit - quad_P;
-  const float u = dot(inplane, quad_u) / dot(quad_u, quad_u);
+  const float u = dot(inplane, inv_quad_u);
   if (u < -0.5f || u > 0.5f) {
     return false;
   }
-  const float v = dot(inplane, quad_v) / dot(quad_v, quad_v);
+  const float v = dot(inplane, inv_quad_v);
   if (v < -0.5f || v > 0.5f) {
     return false;
   }

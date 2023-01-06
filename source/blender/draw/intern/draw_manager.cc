@@ -171,7 +171,12 @@ void Manager::submit(PassMain &pass, View &view)
   command::RecordingState state;
   state.inverted_view = view.is_inverted();
 
-  pass.draw_commands_buf_.bind(state, pass.headers_, pass.commands_, view.visibility_buf_);
+  pass.draw_commands_buf_.bind(state,
+                               pass.headers_,
+                               pass.commands_,
+                               view.visibility_buf_,
+                               view.visibility_word_per_draw(),
+                               view.view_len_);
 
   resource_bind();
 

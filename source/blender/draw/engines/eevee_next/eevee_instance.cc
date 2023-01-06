@@ -337,7 +337,7 @@ void Instance::draw_viewport(DefaultFramebufferList *dfbl)
 
   if (materials.queued_shaders_count > 0) {
     std::stringstream ss;
-    ss << "Compiling Shaders " << materials.queued_shaders_count;
+    ss << "Compiling Shaders (" << materials.queued_shaders_count << " remaining)";
     info = ss.str();
   }
 }

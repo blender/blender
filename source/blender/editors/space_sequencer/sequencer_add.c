@@ -587,7 +587,7 @@ void SEQUENCER_OT_scene_strip_add_new(struct wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Add Strip with a new Scene";
   ot->idname = "SEQUENCER_OT_scene_strip_add_new";
-  ot->description = "Create a new Strip and add a assign a new Scene as source";
+  ot->description = "Create a new Strip and assign a new Scene as source";
 
   /* Api callbacks. */
   ot->invoke = sequencer_add_scene_strip_new_invoke;

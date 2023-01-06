@@ -78,34 +78,41 @@ void MovieDistortionOperation::execute_pixel_sampled(float output[4],
                                                      float y,
                                                      PixelSampler /*sampler*/)
 {
-  if (distortion_ != nullptr) {
-    /* float overscan = 0.0f; */
-    const float pixel_aspect = pixel_aspect_;
-    const float w = float(this->get_width()) /* / (1 + overscan) */;
-    const float h = float(this->get_height()) /* / (1 + overscan) */;
-    const float aspx = w / float(calibration_width_);
-    const float aspy = h / float(calibration_height_);
-    float in[2];
-    float out[2];
+  const int width = this->get_width();
+  const int height = this->get_height();
+  if (distortion_ == nullptr || width == 0 || height == 0) {
+    /* When there is no precomputed distortion pass-through the coordinate as-is to the input
+     * samples.
+     * If the frame size is zero do the same and bypass any math. In theory it is probably more
+     * correct to zero the output but it is easier and safe to let the input to do so than to deal
+     * with possible different number of channels here. */
+    input_operation_->read_sampled(output, x, y, PixelSampler::Bilinear);
+    return;
+  }
 
-    in[0] = (x /* - 0.5 * overscan * w */) / aspx;
-    in[1] = (y /* - 0.5 * overscan * h */) / aspy / pixel_aspect;
+  /* float overscan = 0.0f; */
+  const float w = float(width) /* / (1 + overscan) */;
+  const float h = float(height) /* / (1 + overscan) */;
+  const float pixel_aspect = pixel_aspect_;
+  const float aspx = w / float(calibration_width_);
+  const float aspy = h / float(calibration_height_);
+  float in[2];
+  float out[2];
 
-    if (apply_) {
-      BKE_tracking_distortion_undistort_v2(distortion_, in, out);
-    }
-    else {
-      BKE_tracking_distortion_distort_v2(distortion_, in, out);
-    }
+  in[0] = (x /* - 0.5 * overscan * w */) / aspx;
+  in[1] = (y /* - 0.5 * overscan * h */) / aspy / pixel_aspect;
 
-    float u = out[0] * aspx /* + 0.5 * overscan * w */,
-          v = (out[1] * aspy /* + 0.5 * overscan * h */) * pixel_aspect;
-
-    input_operation_->read_sampled(output, u, v, PixelSampler::Bilinear);
+  if (apply_) {
+    BKE_tracking_distortion_undistort_v2(distortion_, in, out);
   }
   else {
-    input_operation_->read_sampled(output, x, y, PixelSampler::Bilinear);
+    BKE_tracking_distortion_distort_v2(distortion_, in, out);
   }
+
+  float u = out[0] * aspx /* + 0.5 * overscan * w */,
+        v = (out[1] * aspy /* + 0.5 * overscan * h */) * pixel_aspect;
+
+  input_operation_->read_sampled(output, u, v, PixelSampler::Bilinear);
 }
 
 bool MovieDistortionOperation::determine_depending_area_of_interest(

@@ -14,6 +14,10 @@
 
 #include <math.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct LineartStaticMemPoolNode {
   Link item;
   size_t size;
@@ -74,6 +78,7 @@ typedef enum eLineArtElementNodeFlag {
   LRT_ELEMENT_NO_INTERSECTION = (1 << 2),
   LRT_ELEMENT_INTERSECTION_DATA = (1 << 3),
 } eLineArtElementNodeFlag;
+ENUM_OPERATORS(eLineArtElementNodeFlag, LRT_ELEMENT_INTERSECTION_DATA);
 
 typedef struct LineartElementLinkNode {
   struct LineartElementLinkNode *next, *prev;
@@ -843,6 +848,8 @@ BLI_INLINE int lineart_line_isec_2d_ignore_line2pos(const double a1[2],
 #endif
 }
 
+struct bGPDframe;
+struct bGPDlayer;
 struct Depsgraph;
 struct LineartGpencilModifierData;
 struct LineartData;
@@ -881,9 +888,7 @@ void MOD_lineart_finalize_chains(LineartData *ld);
 bool MOD_lineart_compute_feature_lines(struct Depsgraph *depsgraph,
                                        struct LineartGpencilModifierData *lmd,
                                        struct LineartCache **cached_result,
-                                       bool enable_stroke_offset);
-
-struct Scene;
+                                       bool enable_stroke_depth_offset);
 
 /**
  * This only gets initial "biggest" tile.
@@ -894,9 +899,6 @@ LineartBoundingArea *MOD_lineart_get_parent_bounding_area(LineartData *ld, doubl
  * Wrapper for more convenience.
  */
 LineartBoundingArea *MOD_lineart_get_bounding_area(LineartData *ld, double x, double y);
-
-struct bGPDframe;
-struct bGPDlayer;
 
 /**
  * Wrapper for external calls.
@@ -929,3 +931,7 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
 float MOD_lineart_chain_compute_length(LineartEdgeChain *ec);
 
 void ED_operatortypes_lineart(void);
+
+#ifdef __cplusplus
+}
+#endif

@@ -117,6 +117,7 @@
 #include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.h"
+#include "BKE_pose_backup.h"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #include "BKE_shader_fx.h"
@@ -851,6 +852,8 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
 
   BLO_read_id_address(reader, ob->id.lib, &ob->parent);
   BLO_read_id_address(reader, ob->id.lib, &ob->track);
+
+  /* XXX deprecated - old pose library, deprecated in Blender 3.5. */
   BLO_read_id_address(reader, ob->id.lib, &ob->poselib);
 
   /* 2.8x drops support for non-empty dupli instances. */
@@ -881,13 +884,13 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
       if (ob->id.lib) {
         BLO_reportf_wrap(reports,
                          RPT_INFO,
-                         TIP_("Proxy lost from  object %s lib %s\n"),
+                         TIP_("Proxy lost from object %s lib %s\n"),
                          ob->id.name + 2,
                          ob->id.lib->filepath);
       }
       else {
         BLO_reportf_wrap(
-            reports, RPT_INFO, TIP_("Proxy lost from  object %s lib <NONE>\n"), ob->id.name + 2);
+            reports, RPT_INFO, TIP_("Proxy lost from object %s lib <NONE>\n"), ob->id.name + 2);
       }
       reports->count.missing_obproxies++;
     }
@@ -1336,8 +1339,8 @@ void BKE_object_modifier_hook_reset(Object *ob, HookModifierData *hmd)
       mul_m4_m4m4(hmd->parentinv, imat, ob->object_to_world);
     }
     else {
-      invert_m4_m4(hmd->object->imat, hmd->object->object_to_world);
-      mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->object_to_world);
+      invert_m4_m4(hmd->object->world_to_object, hmd->object->object_to_world);
+      mul_m4_m4m4(hmd->parentinv, hmd->object->world_to_object, ob->object_to_world);
     }
   }
 }
@@ -1361,8 +1364,8 @@ void BKE_object_modifier_gpencil_hook_reset(Object *ob, HookGpencilModifierData 
     mul_m4_m4m4(hmd->parentinv, imat, ob->object_to_world);
   }
   else {
-    invert_m4_m4(hmd->object->imat, hmd->object->object_to_world);
-    mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->object_to_world);
+    invert_m4_m4(hmd->object->world_to_object, hmd->object->object_to_world);
+    mul_m4_m4m4(hmd->parentinv, hmd->object->world_to_object, ob->object_to_world);
   }
 }
 
@@ -1812,6 +1815,7 @@ void BKE_object_free_derived_caches(Object *ob)
   }
 
   BKE_object_to_mesh_clear(ob);
+  BKE_pose_backup_clear(ob);
   BKE_object_to_curve_clear(ob);
   BKE_object_free_curve_cache(ob);
 
@@ -2541,6 +2545,28 @@ Object *BKE_object_pose_armature_get(Object *ob)
   return nullptr;
 }
 
+Object *BKE_object_pose_armature_get_with_wpaint_check(Object *ob)
+{
+  /* When not in weight paint mode. */
+  if (ob) {
+    switch (ob->type) {
+      case OB_MESH: {
+        if ((ob->mode & OB_MODE_WEIGHT_PAINT) == 0) {
+          return nullptr;
+        }
+        break;
+      }
+      case OB_GPENCIL: {
+        if ((ob->mode & OB_MODE_WEIGHT_GPENCIL) == 0) {
+          return nullptr;
+        }
+        break;
+      }
+    }
+  }
+  return BKE_object_pose_armature_get(ob);
+}
+
 Object *BKE_object_pose_armature_get_visible(Object *ob,
                                              const Scene *scene,
                                              ViewLayer *view_layer,
@@ -2865,6 +2891,7 @@ void BKE_object_obdata_size_init(struct Object *ob, const float size)
     case OB_LAMP: {
       Light *lamp = (Light *)ob->data;
       lamp->dist *= size;
+      lamp->radius *= size;
       lamp->area_size *= size;
       lamp->area_sizey *= size;
       lamp->area_sizez *= size;
@@ -4241,7 +4268,7 @@ void *BKE_object_tfm_backup(Object *ob)
   copy_m4_m4(obtfm->obmat, ob->object_to_world);
   copy_m4_m4(obtfm->parentinv, ob->parentinv);
   copy_m4_m4(obtfm->constinv, ob->constinv);
-  copy_m4_m4(obtfm->imat, ob->imat);
+  copy_m4_m4(obtfm->imat, ob->world_to_object);
 
   return (void *)obtfm;
 }
@@ -4264,7 +4291,7 @@ void BKE_object_tfm_restore(Object *ob, void *obtfm_pt)
   copy_m4_m4(ob->object_to_world, obtfm->obmat);
   copy_m4_m4(ob->parentinv, obtfm->parentinv);
   copy_m4_m4(ob->constinv, obtfm->constinv);
-  copy_m4_m4(ob->imat, obtfm->imat);
+  copy_m4_m4(ob->world_to_object, obtfm->imat);
 }
 
 /** \} */
@@ -5108,6 +5135,7 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int /*flag*/)
   runtime->mesh_deform_eval = nullptr;
   runtime->curve_cache = nullptr;
   runtime->object_as_temp_mesh = nullptr;
+  runtime->pose_backup = nullptr;
   runtime->object_as_temp_curve = nullptr;
   runtime->geometry_set_eval = nullptr;
 

@@ -69,11 +69,11 @@ set(SRC_HEADERS
   math_int2.h
   math_int3.h
   math_int4.h
+  math_int8.h
   math_matrix.h
   md5.h
   murmurhash.h
   openimagedenoise.h
-  opengl.h
   openvdb.h
   optimization.h
   param.h
@@ -85,13 +85,7 @@ set(SRC_HEADERS
   rect.h
   set.h
   simd.h
-  avxf.h
-  avxb.h
-  avxi.h
   semaphore.h
-  sseb.h
-  ssef.h
-  ssei.h
   stack_allocator.h
   static_assert.h
   stats.h
@@ -118,6 +112,8 @@ set(SRC_HEADERS
   types_int3_impl.h
   types_int4.h
   types_int4_impl.h
+  types_int8.h
+  types_int8_impl.h
   types_spectrum.h
   types_uchar2.h
   types_uchar2_impl.h

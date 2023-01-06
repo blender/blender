@@ -147,7 +147,11 @@ typedef struct View3DShading {
   char background_type;
   char cavity_type;
   char wire_color_type;
-  char _pad[2];
+
+  /** When to preview the compositor output in the viewport. View3DShadingUseCompositor. */
+  char use_compositor;
+
+  char _pad;
 
   /** FILE_MAXFILE. */
   char studio_light[256];
@@ -254,6 +258,8 @@ typedef struct View3D_Runtime {
 
 /** 3D ViewPort Struct. */
 typedef struct View3D {
+  DNA_DEFINE_CXX_METHODS(View3D)
+
   struct SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */
   ListBase regionbase;
@@ -491,7 +497,6 @@ enum {
   V3D_SHADING_SCENE_LIGHTS_RENDER = (1 << 12),
   V3D_SHADING_SCENE_WORLD_RENDER = (1 << 13),
   V3D_SHADING_STUDIOLIGHT_VIEW_ROTATION = (1 << 14),
-  V3D_SHADING_COMPOSITOR = (1 << 15),
 };
 
 /** #View3D.debug_flag */
@@ -516,6 +521,15 @@ enum {
   V3D_SHADING_CAVITY_BOTH = 2,
 };
 
+/** #View3DShading.use_compositor */
+typedef enum View3DShadingUseCompositor {
+  V3D_SHADING_USE_COMPOSITOR_DISABLED = 0,
+  /** The compositor is enabled only in camera view. */
+  V3D_SHADING_USE_COMPOSITOR_CAMERA = 1,
+  /** The compositor is always enabled regardless of the view. */
+  V3D_SHADING_USE_COMPOSITOR_ALWAYS = 2,
+} View3DShadingUseCompositor;
+
 /** #View3DOverlay.flag */
 enum {
   V3D_OVERLAY_FACE_ORIENTATION = (1 << 0),
@@ -532,6 +546,8 @@ enum {
   V3D_OVERLAY_STATS = (1 << 11),
   V3D_OVERLAY_FADE_INACTIVE = (1 << 12),
   V3D_OVERLAY_VIEWER_ATTRIBUTE = (1 << 13),
+  V3D_OVERLAY_SCULPT_SHOW_MASK = (1 << 14),
+  V3D_OVERLAY_SCULPT_SHOW_FACE_SETS = (1 << 15),
 };
 
 /** #View3DOverlay.edit_flag */

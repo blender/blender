@@ -67,7 +67,7 @@ set(SRC
   # Lineart code
   intern/lineart/lineart_chain.c
   intern/lineart/lineart_cpp_bridge.cc
-  intern/lineart/lineart_cpu.c
+  intern/lineart/lineart_cpu.cc
   intern/lineart/lineart_ops.c
   intern/lineart/lineart_shadow.c
   intern/lineart/lineart_util.c

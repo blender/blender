@@ -221,6 +221,14 @@ bool DEG_is_active(const struct Depsgraph *depsgraph);
 void DEG_make_active(struct Depsgraph *depsgraph);
 void DEG_make_inactive(struct Depsgraph *depsgraph);
 
+/**
+ * Disable the visibility optimization making it so IDs which affect hidden objects or disabled
+ * modifiers are still evaluated.
+ *
+ * For example, this ensures that an object which is needed by a modifier is ignoring checks about
+ * whether the object is hidden or the modifier is disabled. */
+void DEG_disable_visibility_optimization(struct Depsgraph *depsgraph);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

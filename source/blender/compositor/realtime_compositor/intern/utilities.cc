@@ -109,12 +109,12 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
   InputDescriptor input_descriptor;
   input_descriptor.type = get_node_socket_result_type(socket);
   const NodeDeclaration *node_declaration = socket->owner_node().declaration();
-  /* Not every node have a declaration, in which case, we assume the default values for the rest of
+  /* Not every node has a declaration, in which case we assume the default values for the rest of
    * the properties. */
   if (!node_declaration) {
     return input_descriptor;
   }
-  const SocketDeclarationPtr &socket_declaration = node_declaration->inputs()[socket->index()];
+  const SocketDeclarationPtr &socket_declaration = node_declaration->inputs[socket->index()];
   input_descriptor.domain_priority = socket_declaration->compositor_domain_priority();
   input_descriptor.skip_realization = socket_declaration->compositor_skip_realization();
   input_descriptor.expects_single_value = socket_declaration->compositor_expects_single_value();

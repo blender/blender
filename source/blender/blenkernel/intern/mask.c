@@ -1298,8 +1298,8 @@ void BKE_mask_point_parent_matrix_get(MaskSplinePoint *point,
         BKE_movieclip_user_set_frame(&user, ctime);
 
         if (parent->type == MASK_PARENT_POINT_TRACK) {
-          MovieTrackingTrack *track = BKE_tracking_track_get_named(
-              tracking, ob, parent->sub_parent);
+          MovieTrackingTrack *track = BKE_tracking_object_find_track_with_name(ob,
+                                                                               parent->sub_parent);
 
           if (track) {
             float marker_position[2], parent_co[2];
@@ -1309,8 +1309,8 @@ void BKE_mask_point_parent_matrix_get(MaskSplinePoint *point,
           }
         }
         else /* if (parent->type == MASK_PARENT_PLANE_TRACK) */ {
-          MovieTrackingPlaneTrack *plane_track = BKE_tracking_plane_track_get_named(
-              tracking, ob, parent->sub_parent);
+          MovieTrackingPlaneTrack *plane_track = BKE_tracking_object_find_plane_track_with_name(
+              ob, parent->sub_parent);
 
           if (plane_track) {
             float corners[4][2];

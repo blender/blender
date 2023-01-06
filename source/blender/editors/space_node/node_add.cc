@@ -63,20 +63,21 @@ bNode *add_node(const bContext &C, const StringRef idname, const float2 &locatio
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
   Main &bmain = *CTX_data_main(&C);
+  bNodeTree &node_tree = *snode.edittree;
 
-  node_deselect_all(snode);
+  node_deselect_all(node_tree);
 
   const std::string idname_str = idname;
 
-  bNode *node = nodeAddNode(&C, snode.edittree, idname_str.c_str());
+  bNode *node = nodeAddNode(&C, &node_tree, idname_str.c_str());
   BLI_assert(node && node->typeinfo);
 
   position_node_based_on_mouse(*node, location);
 
   nodeSetSelected(node, true);
-  ED_node_set_active(&bmain, &snode, snode.edittree, node, nullptr);
+  ED_node_set_active(&bmain, &snode, &node_tree, node, nullptr);
 
-  ED_node_tree_propagate_change(&C, &bmain, snode.edittree);
+  ED_node_tree_propagate_change(&C, &bmain, &node_tree);
   return node;
 }
 
@@ -84,18 +85,19 @@ bNode *add_static_node(const bContext &C, int type, const float2 &location)
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
   Main &bmain = *CTX_data_main(&C);
+  bNodeTree &node_tree = *snode.edittree;
 
-  node_deselect_all(snode);
+  node_deselect_all(node_tree);
 
-  bNode *node = nodeAddStaticNode(&C, snode.edittree, type);
+  bNode *node = nodeAddStaticNode(&C, &node_tree, type);
   BLI_assert(node && node->typeinfo);
 
   position_node_based_on_mouse(*node, location);
 
   nodeSetSelected(node, true);
-  ED_node_set_active(&bmain, &snode, snode.edittree, node, nullptr);
+  ED_node_set_active(&bmain, &snode, &node_tree, node, nullptr);
 
-  ED_node_tree_propagate_change(&C, &bmain, snode.edittree);
+  ED_node_tree_propagate_change(&C, &bmain, &node_tree);
   return node;
 }
 
@@ -152,11 +154,12 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
+  node_deselect_all(ntree);
+
   ntree.ensure_topology_cache();
   const Vector<bNode *> frame_nodes = ntree.nodes_by_type("NodeFrame");
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
-  node_deselect_all(snode);
 
   /* All link "cuts" that start at a particular output socket. Deduplicating new reroutes per
    * output socket is useful because it allows reusing reroutes for connected intersections.
@@ -204,8 +207,8 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     /* Attach the reroute node to frame nodes behind it. */
     for (const int i : frame_nodes.index_range()) {
       bNode *frame_node = frame_nodes.last(i);
-      if (BLI_rctf_isect_pt_v(&frame_node->totr, insert_point)) {
-        nodeAttachNode(reroute, frame_node);
+      if (BLI_rctf_isect_pt_v(&frame_node->runtime->totr, insert_point)) {
+        nodeAttachNode(&ntree, reroute, frame_node);
         break;
       }
     }
@@ -372,17 +375,14 @@ void NODE_OT_add_group(wmOperatorType *ot)
 /** \name Add Node Group Asset Operator
  * \{ */
 
-static bool add_node_group_asset(const bContext &C,
-                                 const AssetLibraryReference &library_ref,
-                                 const AssetHandle asset,
-                                 ReportList &reports)
+static bool add_node_group_asset(const bContext &C, const AssetHandle asset, ReportList &reports)
 {
   Main &bmain = *CTX_data_main(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   bNodeTree &edit_tree = *snode.edittree;
 
   bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
-      asset::get_local_id_from_asset_or_append_and_reuse(bmain, library_ref, asset));
+      asset::get_local_id_from_asset_or_append_and_reuse(bmain, asset));
   if (!node_group) {
     return false;
   }
@@ -439,7 +439,7 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
 
   snode.runtime->cursor /= UI_DPI_FAC;
 
-  if (!add_node_group_asset(*C, *library_ref, handle, *op->reports)) {
+  if (!add_node_group_asset(*C, handle, *op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -625,7 +625,7 @@ void NODE_OT_add_collection(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Node Collection";
-  ot->description = "Add an collection info node to the current node editor";
+  ot->description = "Add a collection info node to the current node editor";
   ot->idname = "NODE_OT_add_collection";
 
   /* callbacks */
@@ -699,8 +699,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
   }
 
   /* When adding new image file via drag-drop we need to load imbuf in order
-   * to get proper image source.
-   */
+   * to get proper image source. */
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_RELOAD);
     WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
@@ -717,7 +716,7 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *even
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  /* convert mouse coordinates to v2d space */
+  /* Convert mouse coordinates to `v2d` space. */
   UI_view2d_region_to_view(&region->v2d,
                            event->mval[0],
                            event->mval[1],
@@ -845,28 +844,28 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (RNA_struct_property_is_set(op->ptr, "name")) {
-    RNA_string_get(op->ptr, "name", treename_buf);
-    treename = treename_buf;
-  }
-  else {
-    treename = DATA_("NodeTree");
-  }
-
   if (!ntreeTypeFind(idname)) {
     BKE_reportf(op->reports, RPT_ERROR, "Node tree type %s undefined", idname);
     return OPERATOR_CANCELLED;
   }
 
+  if (RNA_struct_property_is_set(op->ptr, "name")) {
+    RNA_string_get(op->ptr, "name", treename_buf);
+    treename = treename_buf;
+  }
+  else {
+    const bNodeTreeType *type = ntreeTypeFind(idname);
+    treename = type->ui_name;
+  }
+
   ntree = ntreeAddTree(bmain, treename, idname);
 
-  /* hook into UI */
+  /* Hook into UI. */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   if (prop) {
-    /* RNA_property_pointer_set increases the user count,
-     * fixed here as the editor is the initial user.
-     */
+    /* #RNA_property_pointer_set increases the user count, fixed here as the editor is the initial
+     * user. */
     id_us_min(&ntree->id);
 
     RNA_id_pointer_create(&ntree->id, &idptr);

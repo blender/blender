@@ -146,82 +146,54 @@ static PyGetSetDef bpy_bmesh_op_getseters[] = {
  * ===== */
 
 static PyTypeObject bmesh_op_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "BMeshOpFunc", /* tp_name */
-    sizeof(BPy_BMeshOpFunc),                      /* tp_basicsize */
-    0,                                            /* tp_itemsize */
-    /* methods */
-    NULL, /* tp_dealloc */
-    0,    /* tp_vectorcall_offset */
-    NULL, /* getattrfunc tp_getattr; */
-    NULL, /* setattrfunc tp_setattr; */
-    NULL,
-    /* tp_compare */             /* DEPRECATED in python 3.0! */
-    (reprfunc)bpy_bmesh_op_repr, /* tp_repr */
-
-    /* Method suites for standard classes */
-
-    NULL, /* PyNumberMethods *tp_as_number; */
-    NULL, /* PySequenceMethods *tp_as_sequence; */
-    NULL, /* PyMappingMethods *tp_as_mapping; */
-
-    /* More standard operations (here for binary compatibility) */
-
-    NULL,                      /* hashfunc tp_hash; */
-    (ternaryfunc)BPy_BMO_call, /* ternaryfunc tp_call; */
-    NULL,                      /* reprfunc tp_str; */
-
-    /* will only use these if this is a subtype of a py class */
-    NULL, /* getattrofunc tp_getattro; */
-    NULL, /* setattrofunc tp_setattro; */
-
-    /* Functions to access object as input/output buffer */
-    NULL, /* PyBufferProcs *tp_as_buffer; */
-
-    /*** Flags to define presence of optional/expanded features ***/
-    Py_TPFLAGS_DEFAULT, /* long tp_flags; */
-
-    NULL, /*  char *tp_doc;  Documentation string */
-    /*** Assigned meaning in release 2.0 ***/
-    /* call function for all accessible objects */
-    NULL, /* traverseproc tp_traverse; */
-
-    /* delete references to contained objects */
-    NULL, /* inquiry tp_clear; */
-
-    /***  Assigned meaning in release 2.1 ***/
-    /*** rich comparisons ***/
-    NULL, /* richcmpfunc tp_richcompare; */
-
-    /***  weak reference enabler ***/
-    0,
-    /*** Added in release 2.2 ***/
-    /*   Iterators */
-    NULL, /* getiterfunc tp_iter; */
-    NULL, /* iternextfunc tp_iternext; */
-
-    /*** Attribute descriptor and subclassing stuff ***/
-    NULL,                   /* struct PyMethodDef *tp_methods; */
-    NULL,                   /* struct PyMemberDef *tp_members; */
-    bpy_bmesh_op_getseters, /* struct PyGetSetDef *tp_getset; */
-    NULL,                   /* struct _typeobject *tp_base; */
-    NULL,                   /* PyObject *tp_dict; */
-    NULL,                   /* descrgetfunc tp_descr_get; */
-    NULL,                   /* descrsetfunc tp_descr_set; */
-    0,                      /* long tp_dictoffset; */
-    NULL,                   /* initproc tp_init; */
-    NULL,                   /* allocfunc tp_alloc; */
-    NULL,                   /* newfunc tp_new; */
-    /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free; */
-    /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc; */
-    NULL, /* PyObject *tp_bases; */
-    /* method resolution order */
-    NULL, /* PyObject *tp_mro; */
-    NULL, /* PyObject *tp_cache; */
-    NULL, /* PyObject *tp_subclasses; */
-    NULL, /* PyObject *tp_weaklist; */
-    NULL,
+    /*tp_name*/ PyVarObject_HEAD_INIT(NULL, 0) "BMeshOpFunc",
+    /*tp_basicsize*/ sizeof(BPy_BMeshOpFunc),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ NULL,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ NULL,
+    /*tp_setattr*/ NULL,
+    /*tp_as_async*/ NULL,
+    /*tp_repr*/ (reprfunc)bpy_bmesh_op_repr,
+    /*tp_as_number*/ NULL,
+    /*tp_as_sequence*/ NULL,
+    /*tp_as_mapping*/ NULL,
+    /*tp_hash*/ NULL,
+    /*tp_call*/ (ternaryfunc)BPy_BMO_call,
+    /*tp_str*/ NULL,
+    /*tp_getattro*/ NULL,
+    /*tp_setattro*/ NULL,
+    /*tp_as_buffer*/ NULL,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT,
+    /*tp_doc*/ NULL,
+    /*tp_traverse*/ NULL,
+    /*tp_clear*/ NULL,
+    /*tp_richcompare*/ NULL,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ NULL,
+    /*tp_iternext*/ NULL,
+    /*tp_methods*/ NULL,
+    /*tp_members*/ NULL,
+    /*tp_getset*/ bpy_bmesh_op_getseters,
+    /*tp_base*/ NULL,
+    /*tp_dict*/ NULL,
+    /*tp_descr_get*/ NULL,
+    /*tp_descr_set*/ NULL,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ NULL,
+    /*tp_alloc*/ NULL,
+    /*tp_new*/ NULL,
+    /*tp_free*/ NULL,
+    /*tp_is_gc*/ NULL,
+    /*tp_bases*/ NULL,
+    /*tp_mro*/ NULL,
+    /*tp_cache*/ NULL,
+    /*tp_subclasses*/ NULL,
+    /*tp_weaklist*/ NULL,
+    /*tp_del*/ NULL,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ NULL,
+    /*tp_vectorcall*/ NULL,
 };
 
 /* bmesh module 'bmesh.ops'
@@ -263,14 +235,14 @@ static struct PyMethodDef BPy_BM_ops_methods[] = {
 PyDoc_STRVAR(BPy_BM_ops_doc, "Access to BMesh operators");
 static struct PyModuleDef BPy_BM_ops_module_def = {
     PyModuleDef_HEAD_INIT,
-    "bmesh.ops",        /* m_name */
-    BPy_BM_ops_doc,     /* m_doc */
-    0,                  /* m_size */
-    BPy_BM_ops_methods, /* m_methods */
-    NULL,               /* m_slots */
-    NULL,               /* m_traverse */
-    NULL,               /* m_clear */
-    NULL,               /* m_free */
+    /*m_name*/ "bmesh.ops",
+    /*m_doc*/ BPy_BM_ops_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ BPy_BM_ops_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPyInit_bmesh_ops(void)

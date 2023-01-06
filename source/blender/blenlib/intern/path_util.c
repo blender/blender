@@ -51,6 +51,23 @@ static bool BLI_path_is_abs(const char *name);
 
 // #define DEBUG_STRSIZE
 
+/**
+ * On UNIX it only makes sense to treat `/` as a path separator.
+ * On WIN32 either may be used.
+ */
+static bool is_sep_native_compat(const char ch)
+{
+  if (ch == SEP) {
+    return true;
+  }
+#ifdef WIN32
+  if (ch == ALTSEP) {
+    return true;
+  }
+#endif
+  return false;
+}
+
 /* implementation */
 
 int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort *r_digits_len)
@@ -123,7 +140,7 @@ int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort 
 void BLI_path_sequence_encode(
     char *string, const char *head, const char *tail, ushort numlen, int pic)
 {
-  sprintf(string, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
+  BLI_sprintf(string, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
 }
 
 static int BLI_path_unc_prefix_len(const char *path); /* defined below in same file */
@@ -620,23 +637,12 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
   }
 
   BLI_strncpy(extension, string + a, sizeof(extension));
-  sprintf(string + a, "%s%s%s", sep, suffix, extension);
+  BLI_sprintf(string + a, "%s%s%s", sep, suffix, extension);
   return true;
 }
 
 bool BLI_path_parent_dir(char *path)
 {
-  char tmp[FILE_MAX];
-
-  STRNCPY(tmp, path);
-  /* Does all the work of normalizing the path for us.
-   *
-   * NOTE(@campbellbarton): While it's possible strip text after the second last slash,
-   * this would have to be clever and skip cases like "/./" & multiple slashes.
-   * Since this ends up solving some of the same problems as #BLI_path_normalize,
-   * call this function instead of attempting to handle them separately. */
-  BLI_path_normalize(NULL, tmp);
-
   /* Use #BLI_path_name_at_index instead of checking if the strings ends with `parent_dir`
    * to ensure the logic isn't confused by:
    * - Directory names that happen to end with `..`.
@@ -644,18 +650,19 @@ bool BLI_path_parent_dir(char *path)
    *   which would cause checking for a tailing `/../` fail.
    * Extracting the span of the final directory avoids both these issues. */
   int tail_ofs = 0, tail_len = 0;
-  if (!BLI_path_name_at_index(tmp, -1, &tail_ofs, &tail_len)) {
+  if (!BLI_path_name_at_index(path, -1, &tail_ofs, &tail_len)) {
     return false;
   }
   if (tail_len == 1) {
     /* Last path is ".", as normalize should remove this, it's safe to assume failure.
      * This happens when the input a single period (possibly with slashes before or after). */
-    if (tmp[tail_ofs] == '.') {
+    if (path[tail_ofs] == '.') {
       return false;
     }
   }
 
-  memcpy(path, tmp, tail_ofs);
+  /* Input paths should already be normalized if `..` is part of the path. */
+  BLI_assert(!((tail_len == 2) && (path[tail_ofs] == '.') && (path[tail_ofs + 1] == '.')));
   path[tail_ofs] = '\0';
   return true;
 }
@@ -1460,7 +1467,7 @@ size_t BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__
   size_t dirlen = BLI_strnlen(dst, maxlen);
 
   /* Inline #BLI_path_slash_ensure. */
-  if ((dirlen > 0) && (dst[dirlen - 1] != SEP)) {
+  if ((dirlen > 0) && !is_sep_native_compat(dst[dirlen - 1])) {
     dst[dirlen++] = SEP;
     dst[dirlen] = '\0';
   }
@@ -1477,7 +1484,7 @@ size_t BLI_path_append_dir(char *__restrict dst, const size_t maxlen, const char
   size_t dirlen = BLI_path_append(dst, maxlen, dir);
   if (dirlen + 1 < maxlen) {
     /* Inline #BLI_path_slash_ensure. */
-    if ((dirlen > 0) && (dst[dirlen - 1] != SEP)) {
+    if ((dirlen > 0) && !is_sep_native_compat(dst[dirlen - 1])) {
       dst[dirlen++] = SEP;
       dst[dirlen] = '\0';
     }
@@ -1532,7 +1539,7 @@ size_t BLI_path_join_array(char *__restrict dst,
   bool has_trailing_slash = false;
   if (ofs != 0) {
     size_t len = ofs;
-    while ((len != 0) && (path[len - 1] == SEP)) {
+    while ((len != 0) && is_sep_native_compat(path[len - 1])) {
       len -= 1;
     }
 
@@ -1546,18 +1553,18 @@ size_t BLI_path_join_array(char *__restrict dst,
     path = path_array[path_index];
     has_trailing_slash = false;
     const char *path_init = path;
-    while (path[0] == SEP) {
+    while (is_sep_native_compat(path[0])) {
       path++;
     }
     size_t len = strlen(path);
     if (len != 0) {
-      while ((len != 0) && (path[len - 1] == SEP)) {
+      while ((len != 0) && is_sep_native_compat(path[len - 1])) {
         len -= 1;
       }
 
       if (len != 0) {
         /* the very first path may have a slash at the end */
-        if (ofs && (dst[ofs - 1] != SEP)) {
+        if (ofs && !is_sep_native_compat(dst[ofs - 1])) {
           dst[ofs++] = SEP;
           if (ofs == dst_last) {
             break;
@@ -1580,7 +1587,7 @@ size_t BLI_path_join_array(char *__restrict dst,
   }
 
   if (has_trailing_slash) {
-    if ((ofs != dst_last) && (ofs != 0) && (dst[ofs - 1] != SEP)) {
+    if ((ofs != dst_last) && (ofs != 0) && !is_sep_native_compat(dst[ofs - 1])) {
       dst[ofs++] = SEP;
     }
   }
@@ -1597,53 +1604,64 @@ const char *BLI_path_basename(const char *path)
   return filename ? filename + 1 : path;
 }
 
-bool BLI_path_name_at_index(const char *__restrict path,
-                            const int index,
-                            int *__restrict r_offset,
-                            int *__restrict r_len)
+static bool path_name_at_index_forward(const char *__restrict path,
+                                       const int index,
+                                       int *__restrict r_offset,
+                                       int *__restrict r_len)
 {
-  if (index >= 0) {
-    int index_step = 0;
-    int prev = -1;
-    int i = 0;
-    while (true) {
-      const char c = path[i];
-      if (ELEM(c, SEP, '\0')) {
-        if (prev + 1 != i) {
-          prev += 1;
+  BLI_assert(index >= 0);
+  int index_step = 0;
+  int prev = -1;
+  int i = 0;
+  while (true) {
+    const char c = path[i];
+    if ((c == '\0') || is_sep_native_compat(c)) {
+      if (prev + 1 != i) {
+        prev += 1;
+        /* Skip '/./' (behave as if they don't exist). */
+        if (!((i - prev == 1) && (prev != 0) && (path[prev] == '.'))) {
           if (index_step == index) {
             *r_offset = prev;
             *r_len = i - prev;
-            // printf("!!! %d %d\n", start, end);
             return true;
           }
           index_step += 1;
         }
-        if (c == '\0') {
-          break;
-        }
-        prev = i;
       }
-      i += 1;
+      if (c == '\0') {
+        break;
+      }
+      prev = i;
     }
-    return false;
+    i += 1;
   }
+  return false;
+}
 
-  /* negative number, reverse where -1 is the last element */
+static bool path_name_at_index_backward(const char *__restrict path,
+                                        const int index,
+                                        int *__restrict r_offset,
+                                        int *__restrict r_len)
+{
+  /* Negative number, reverse where -1 is the last element. */
+  BLI_assert(index < 0);
   int index_step = -1;
   int prev = strlen(path);
   int i = prev - 1;
   while (true) {
     const char c = i >= 0 ? path[i] : '\0';
-    if (ELEM(c, SEP, '\0')) {
+    if ((c == '\0') || is_sep_native_compat(c)) {
       if (prev - 1 != i) {
         i += 1;
-        if (index_step == index) {
-          *r_offset = i;
-          *r_len = prev - i;
-          return true;
+        /* Skip '/./' (behave as if they don't exist). */
+        if (!((prev - i == 1) && (i != 0) && (path[i] == '.'))) {
+          if (index_step == index) {
+            *r_offset = i;
+            *r_len = prev - i;
+            return true;
+          }
+          index_step -= 1;
         }
-        index_step -= 1;
       }
       if (c == '\0') {
         break;
@@ -1653,6 +1671,15 @@ bool BLI_path_name_at_index(const char *__restrict path,
     i -= 1;
   }
   return false;
+}
+
+bool BLI_path_name_at_index(const char *__restrict path,
+                            const int index,
+                            int *__restrict r_offset,
+                            int *__restrict r_len)
+{
+  return (index >= 0) ? path_name_at_index_forward(path, index, r_offset, r_len) :
+                        path_name_at_index_backward(path, index, r_offset, r_len);
 }
 
 bool BLI_path_contains(const char *container_path, const char *containee_path)
@@ -1722,7 +1749,7 @@ int BLI_path_slash_ensure(char *string, size_t string_maxlen)
 {
   int len = strlen(string);
   BLI_assert(len < string_maxlen);
-  if (len == 0 || string[len - 1] != SEP) {
+  if (len == 0 || !is_sep_native_compat(string[len - 1])) {
     /* Avoid unlikely buffer overflow. */
     if (len + 1 < string_maxlen) {
       string[len] = SEP;
@@ -1737,7 +1764,7 @@ void BLI_path_slash_rstrip(char *string)
 {
   int len = strlen(string);
   while (len) {
-    if (string[len - 1] == SEP) {
+    if (is_sep_native_compat(string[len - 1])) {
       string[len - 1] = '\0';
       len--;
     }

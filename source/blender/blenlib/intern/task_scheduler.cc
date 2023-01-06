@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_lazy_threading.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 
@@ -67,6 +68,7 @@ int BLI_task_scheduler_num_threads()
 void BLI_task_isolate(void (*func)(void *userdata), void *userdata)
 {
 #ifdef WITH_TBB
+  blender::lazy_threading::ReceiverIsolation isolation;
   tbb::this_task_arena::isolate([&] { func(userdata); });
 #else
   func(userdata);

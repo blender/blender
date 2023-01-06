@@ -7,11 +7,12 @@
 
 namespace blender::realtime_compositor {
 
-Domain::Domain(int2 size) : size(size), transformation(float3x3::identity())
+Domain::Domain(const int2 &size) : size(size), transformation(float3x3::identity())
 {
 }
 
-Domain::Domain(int2 size, float3x3 transformation) : size(size), transformation(transformation)
+Domain::Domain(const int2 &size, const float3x3 &transformation)
+    : size(size), transformation(transformation)
 {
 }
 

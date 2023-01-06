@@ -9,10 +9,15 @@
 
 shared uint shared_result;
 
-void mask_visibility_bit()
+void mask_visibility_bit(uint view_id)
 {
-  uint bit = 1u << gl_LocalInvocationID.x;
-  atomicAnd(visibility_buf[gl_WorkGroupID.x], ~bit);
+  if (view_len > 1) {
+    uint index = gl_GlobalInvocationID.x * uint(visibility_word_per_draw) + (view_id / 32u);
+    visibility_buf[index] &= ~(1u << view_id);
+  }
+  else {
+    atomicAnd(visibility_buf[gl_WorkGroupID.x], ~(1u << gl_LocalInvocationID.x));
+  }
 }
 
 void main()
@@ -31,16 +36,18 @@ void main()
     Sphere bounding_sphere = Sphere(bounds.bounding_sphere.xyz, bounds.bounding_sphere.w);
     Sphere inscribed_sphere = Sphere(bounds.bounding_sphere.xyz, bounds._inner_sphere_radius);
 
-    if (intersect_view(inscribed_sphere) == true) {
-      /* Visible. */
-    }
-    else if (intersect_view(bounding_sphere) == false) {
-      /* Not visible. */
-      mask_visibility_bit();
-    }
-    else if (intersect_view(box) == false) {
-      /* Not visible. */
-      mask_visibility_bit();
+    for (drw_view_id = 0; drw_view_id < view_len; drw_view_id++) {
+      if (intersect_view(inscribed_sphere) == true) {
+        /* Visible. */
+      }
+      else if (intersect_view(bounding_sphere) == false) {
+        /* Not visible. */
+        mask_visibility_bit(drw_view_id);
+      }
+      else if (intersect_view(box) == false) {
+        /* Not visible. */
+        mask_visibility_bit(drw_view_id);
+      }
     }
   }
 }

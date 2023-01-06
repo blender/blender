@@ -117,9 +117,8 @@ static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry 
 
     threading::parallel_for(curves.curves_range(), 1024, [&](IndexRange range) {
       for (const int i_curve : range) {
-        const float total_length = curves.evaluated_length_total_for_curve(i_curve,
-                                                                           cyclic[i_curve]);
         MutableSpan<float> curve_lengths = lengths.slice(curves.points_for_curve(i_curve));
+        const float total_length = curve_lengths.last();
         if (total_length > 0.0f) {
           const float factor = 1.0f / total_length;
           for (float &value : curve_lengths) {

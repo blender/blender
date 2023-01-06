@@ -19,11 +19,11 @@ NODE_STORAGE_FUNCS(NodeGeometryViewer)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::Float>(N_("Value")).supports_field().hide_value();
-  b.add_input<decl::Vector>(N_("Value"), "Value_001").supports_field().hide_value();
-  b.add_input<decl::Color>(N_("Value"), "Value_002").supports_field().hide_value();
-  b.add_input<decl::Int>(N_("Value"), "Value_003").supports_field().hide_value();
-  b.add_input<decl::Bool>(N_("Value"), "Value_004").supports_field().hide_value();
+  b.add_input<decl::Float>(N_("Value")).field_on_all().hide_value();
+  b.add_input<decl::Vector>(N_("Value"), "Value_001").field_on_all().hide_value();
+  b.add_input<decl::Color>(N_("Value"), "Value_002").field_on_all().hide_value();
+  b.add_input<decl::Int>(N_("Value"), "Value_003").field_on_all().hide_value();
+  b.add_input<decl::Bool>(N_("Value"), "Value_004").field_on_all().hide_value();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -135,8 +135,8 @@ void register_node_type_geo_viewer()
   geo_node_type_base(&ntype, GEO_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT);
   node_type_storage(
       &ntype, "NodeGeometryViewer", node_free_standard_storage, node_copy_standard_storage);
-  node_type_update(&ntype, file_ns::node_update);
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.updatefunc = file_ns::node_update;
+  ntype.initfunc = file_ns::node_init;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_layout;
   ntype.draw_buttons_ex = file_ns::node_layout_ex;

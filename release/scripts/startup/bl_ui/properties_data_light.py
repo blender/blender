@@ -227,32 +227,6 @@ class DATA_PT_EEVEE_shadow_contact(DataButtonsPanel, Panel):
         col.prop(light, "contact_shadow_thickness", text="Thickness")
 
 
-class DATA_PT_area(DataButtonsPanel, Panel):
-    bl_label = "Area Shape"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_WORKBENCH'}
-
-    @classmethod
-    def poll(cls, context):
-        light = context.light
-        engine = context.engine
-        return (light and light.type == 'AREA') and (engine in cls.COMPAT_ENGINES)
-
-    def draw(self, context):
-        layout = self.layout
-
-        light = context.light
-
-        col = layout.column()
-        col.row().prop(light, "shape", expand=True)
-        sub = col.row(align=True)
-
-        if light.shape in {'SQUARE', 'DISK'}:
-            sub.prop(light, "size")
-        elif light.shape in {'RECTANGLE', 'ELLIPSE'}:
-            sub.prop(light, "size", text="Size X")
-            sub.prop(light, "size_y", text="Size Y")
-
-
 class DATA_PT_spot(DataButtonsPanel, Panel):
     bl_label = "Spot Shape"
     bl_parent_id = "DATA_PT_EEVEE_light"
@@ -315,7 +289,6 @@ classes = (
     DATA_PT_EEVEE_shadow,
     DATA_PT_EEVEE_shadow_cascaded_shadow_map,
     DATA_PT_EEVEE_shadow_contact,
-    DATA_PT_area,
     DATA_PT_spot,
     DATA_PT_falloff_curve,
     DATA_PT_custom_props_light,

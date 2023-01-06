@@ -32,7 +32,7 @@ void register_node_type_cmp_group()
 
   node_type_size(&ntype, 140, 60, 400);
   ntype.labelfunc = node_group_label;
-  node_type_group_update(&ntype, node_group_update);
+  ntype.group_update_func = node_group_update;
 
   nodeRegisterType(&ntype);
 }

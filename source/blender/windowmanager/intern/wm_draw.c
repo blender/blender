@@ -64,6 +64,31 @@
 #endif
 
 /* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
+
+/**
+ * Return true when the cursor is grabbed and wrapped within a region.
+ */
+static bool wm_window_grab_warp_region_is_set(const wmWindow *win)
+{
+  if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
+    GHOST_TGrabCursorMode mode_dummy;
+    GHOST_TAxisFlag wrap_axis_dummy;
+    int bounds[4] = {0};
+    bool use_software_cursor_dummy = false;
+    GHOST_GetCursorGrabState(
+        win->ghostwin, &mode_dummy, &wrap_axis_dummy, bounds, &use_software_cursor_dummy);
+    if ((bounds[0] != bounds[2]) || (bounds[1] != bounds[3])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Draw Paint Cursor
  * \{ */
 
@@ -102,8 +127,14 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
                   region->winrct.ymin,
                   BLI_rcti_size_x(&region->winrct) + 1,
                   BLI_rcti_size_y(&region->winrct) + 1);
-
-      if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
+      /* Reading the cursor location from the operating-system while the cursor is grabbed
+       * conflicts with grabbing logic that hides the cursor, then keeps it centered to accumulate
+       * deltas without it escaping from the window. In this case we never want to show the actual
+       * cursor coordinates so limit reading the cursor location to when the cursor is grabbed and
+       * wrapping in a region since this is the case when it would otherwise attempt to draw the
+       * cursor outside the view/window. See: T102792. */
+      if ((WM_capabilities_flag() & WM_CAPABILITY_CURSOR_WARP) &&
+          wm_window_grab_warp_region_is_set(win)) {
         int x = 0, y = 0;
         wm_cursor_position_get(win, &x, &y);
         pc->draw(C, x, y, pc->customdata);
@@ -671,24 +702,13 @@ static void wm_draw_region_buffer_create(ARegion *region, bool stereo, bool use_
   }
 }
 
-static bool wm_draw_region_bind(bContext *C, ARegion *region, int view)
+static void wm_draw_region_bind(ARegion *region, int view)
 {
   if (!region->draw_buffer) {
-    return true;
+    return;
   }
 
   if (region->draw_buffer->viewport) {
-    if (G.is_rendering && C != NULL && U.experimental.use_draw_manager_acquire_lock) {
-      Scene *scene = CTX_data_scene(C);
-      RenderEngineType *render_engine_type = RE_engines_find(scene->r.engine);
-      if (RE_engine_is_opengl(render_engine_type)) {
-        /* Do not try to acquire the viewport as this would be locking at the moment.
-         * But tag the viewport to update after the rendering finishes. */
-        GPU_viewport_tag_update(region->draw_buffer->viewport);
-        return false;
-      }
-    }
-
     GPU_viewport_bind(region->draw_buffer->viewport, view, &region->winrct);
   }
   else {
@@ -701,7 +721,6 @@ static bool wm_draw_region_bind(bContext *C, ARegion *region, int view)
   }
 
   region->draw_buffer->bound_view = view;
-  return true;
 }
 
 static void wm_draw_region_unbind(ARegion *region)
@@ -914,7 +933,6 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 
       if (stereo && wm_draw_region_stereo_set(bmain, area, region, STEREO_LEFT_ID)) {
         wm_draw_region_buffer_create(region, true, use_viewport);
-        bool views_valid = true;
 
         for (int view = 0; view < 2; view++) {
           eStereoViews sview;
@@ -926,25 +944,21 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
             wm_draw_region_stereo_set(bmain, area, region, sview);
           }
 
-          if (wm_draw_region_bind(C, region, view)) {
-            ED_region_do_draw(C, region);
-            wm_draw_region_unbind(region);
-          }
-          else {
-            views_valid = false;
-          }
+          wm_draw_region_bind(region, view);
+          ED_region_do_draw(C, region);
+          wm_draw_region_unbind(region);
         }
-        if (use_viewport && views_valid) {
+        if (use_viewport) {
           GPUViewport *viewport = region->draw_buffer->viewport;
           GPU_viewport_stereo_composite(viewport, win->stereo3d_format);
         }
       }
       else {
+        wm_draw_region_stereo_set(bmain, area, region, STEREO_LEFT_ID);
         wm_draw_region_buffer_create(region, false, use_viewport);
-        if (wm_draw_region_bind(C, region, 0)) {
-          ED_region_do_draw(C, region);
-          wm_draw_region_unbind(region);
-        }
+        wm_draw_region_bind(region, 0);
+        ED_region_do_draw(C, region);
+        wm_draw_region_unbind(region);
       }
 
       GPU_debug_group_end();
@@ -975,11 +989,10 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
     }
 
     wm_draw_region_buffer_create(region, false, false);
-    if (wm_draw_region_bind(C, region, 0)) {
-      GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
-      ED_region_do_draw(C, region);
-      wm_draw_region_unbind(region);
-    }
+    wm_draw_region_bind(region, 0);
+    GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+    ED_region_do_draw(C, region);
+    wm_draw_region_unbind(region);
 
     GPU_debug_group_end();
 
@@ -1407,11 +1420,10 @@ void wm_draw_region_test(bContext *C, ScrArea *area, ARegion *region)
   /* Function for redraw timer benchmark. */
   bool use_viewport = WM_region_use_viewport(area, region);
   wm_draw_region_buffer_create(region, false, use_viewport);
-  if (wm_draw_region_bind(C, region, 0)) {
-    ED_region_do_draw(C, region);
-    wm_draw_region_unbind(region);
-    region->do_draw = false;
-  }
+  wm_draw_region_bind(region, 0);
+  ED_region_do_draw(C, region);
+  wm_draw_region_unbind(region);
+  region->do_draw = false;
 }
 
 void WM_redraw_windows(bContext *C)
@@ -1447,7 +1459,7 @@ void WM_draw_region_viewport_ensure(ARegion *region, short space_type)
 
 void WM_draw_region_viewport_bind(ARegion *region)
 {
-  wm_draw_region_bind(NULL, region, 0);
+  wm_draw_region_bind(region, 0);
 }
 
 void WM_draw_region_viewport_unbind(ARegion *region)

@@ -29,6 +29,7 @@
 #include "mtl_shader_generator.hh"
 #include "mtl_shader_interface.hh"
 #include "mtl_texture.hh"
+#include "mtl_vertex_buffer.hh"
 
 extern char datatoc_mtl_shader_common_msl[];
 
@@ -347,9 +348,8 @@ bool MTLShader::transform_feedback_enable(GPUVertBuf *buf)
   BLI_assert(buf);
   transform_feedback_active_ = true;
   transform_feedback_vertbuf_ = buf;
-  /* TODO(Metal): Enable this assertion once #MTLVertBuf lands. */
-  // BLI_assert(static_cast<MTLVertBuf *>(unwrap(transform_feedback_vertbuf_))->get_usage_type() ==
-  //            GPU_USAGE_DEVICE_ONLY);
+  BLI_assert(static_cast<MTLVertBuf *>(unwrap(transform_feedback_vertbuf_))->get_usage_type() ==
+             GPU_USAGE_DEVICE_ONLY);
   return true;
 }
 
@@ -568,6 +568,7 @@ void MTLShader::shader_source_from_msl(NSString *input_vertex_source,
 void MTLShader::set_interface(MTLShaderInterface *interface)
 {
   /* Assign gpu::Shader super-class interface. */
+  BLI_assert(Shader::interface == nullptr);
   Shader::interface = interface;
 }
 
@@ -653,6 +654,14 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
   pipeline_descriptor.src_rgb_blend_factor = ctx->pipeline_state.src_rgb_blend_factor;
   pipeline_descriptor.point_size = ctx->pipeline_state.point_size;
 
+  /* Resolve clipping plane enablement. */
+  pipeline_descriptor.clipping_plane_enable_mask = 0;
+  for (const int plane : IndexRange(6)) {
+    pipeline_descriptor.clipping_plane_enable_mask =
+        pipeline_descriptor.clipping_plane_enable_mask |
+        ((ctx->pipeline_state.clip_distance_enabled[plane]) ? (1 << plane) : 0);
+  }
+
   /* Primitive Type -- Primitive topology class needs to be specified for layered rendering. */
   bool requires_specific_topology_class = uses_mtl_array_index_ ||
                                           prim_type == MTLPrimitiveTopologyClassPoint;
@@ -709,7 +718,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
       MTL_uniform_buffer_base_index = MTL_SSBO_VERTEX_FETCH_IBO_INDEX + 1;
     }
     else {
-      for (const uint i : IndexRange(current_state.vertex_descriptor.num_attributes)) {
+      for (const uint i : IndexRange(current_state.vertex_descriptor.max_attribute_value + 1)) {
 
         /* Metal back-end attribute descriptor state. */
         MTLVertexAttributeDescriptorPSO &attribute_desc =
@@ -727,8 +736,9 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
          * https://developer.apple.com/documentation/metal/mtlvertexattributedescriptor/1516081-format?language=objc
          */
         if (attribute_desc.format == MTLVertexFormatInvalid) {
+          /* If attributes are non-contiguous, we can skip over gaps. */
           MTL_LOG_WARNING(
-              "MTLShader: baking pipeline state for '%s'- expected input attribute at "
+              "MTLShader: baking pipeline state for '%s'- skipping input attribute at "
               "index '%d' but none was specified in the current vertex state\n",
               mtl_interface->get_name(),
               i);
@@ -777,7 +787,8 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
       }
 
       /* Mark empty attribute conversion. */
-      for (int i = current_state.vertex_descriptor.num_attributes; i < GPU_VERT_ATTR_MAX_LEN;
+      for (int i = current_state.vertex_descriptor.max_attribute_value + 1;
+           i < GPU_VERT_ATTR_MAX_LEN;
            i++) {
         int MTL_attribute_conversion_mode = 0;
         [values setConstantValue:&MTL_attribute_conversion_mode
@@ -790,13 +801,15 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
        * #GPUVertFormat, however, if attributes have not been set, we can sort them out here. */
       for (const uint i : IndexRange(mtl_interface->get_total_attributes())) {
         const MTLShaderInputAttribute &attribute = mtl_interface->get_attribute(i);
-        MTLVertexAttributeDescriptor *current_attribute = desc.vertexDescriptor.attributes[i];
+        MTLVertexAttributeDescriptor *current_attribute =
+            desc.vertexDescriptor.attributes[attribute.location];
 
         if (current_attribute.format == MTLVertexFormatInvalid) {
 #if MTL_DEBUG_SHADER_ATTRIBUTES == 1
-          MTL_LOG_INFO("-> Filling in unbound attribute '%s' for shader PSO '%s' \n",
-                       attribute.name,
-                       mtl_interface->name);
+          printf("-> Filling in unbound attribute '%s' for shader PSO '%s' with location: %u\n",
+                 mtl_interface->get_name_at_offset(attribute.name_offset),
+                 mtl_interface->get_name(),
+                 attribute.location);
 #endif
           current_attribute.format = attribute.format;
           current_attribute.offset = 0;
@@ -828,28 +841,53 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
         }
       }
 
-      /* Primitive Topology */
+      /* Primitive Topology. */
       desc.inputPrimitiveTopology = pipeline_descriptor.vertex_descriptor.prim_topology_class;
     }
 
-    /* Update constant value for 'MTL_uniform_buffer_base_index' */
+    /* Update constant value for 'MTL_uniform_buffer_base_index'. */
     [values setConstantValue:&MTL_uniform_buffer_base_index
                         type:MTLDataTypeInt
                     withName:@"MTL_uniform_buffer_base_index"];
 
-    /* Transform feedback constant */
+    /* Transform feedback constant.
+     * Ensure buffer is placed after existing buffers, including default buffers. */
     int MTL_transform_feedback_buffer_index = (this->transform_feedback_type_ !=
                                                GPU_SHADER_TFB_NONE) ?
                                                   MTL_uniform_buffer_base_index +
-                                                      mtl_interface->get_total_uniform_blocks() :
+                                                      mtl_interface->get_max_ubo_index() + 2 :
                                                   -1;
+
     if (this->transform_feedback_type_ != GPU_SHADER_TFB_NONE) {
       [values setConstantValue:&MTL_transform_feedback_buffer_index
                           type:MTLDataTypeInt
                       withName:@"MTL_transform_feedback_buffer_index"];
     }
 
-    /* gl_PointSize constant */
+    /* Clipping planes. */
+    int MTL_clip_distances_enabled = (pipeline_descriptor.clipping_plane_enable_mask > 0) ? 1 : 0;
+
+    /* Only define specialization constant if planes are required.
+     * We guard clip_planes usage on this flag. */
+    [values setConstantValue:&MTL_clip_distances_enabled
+                        type:MTLDataTypeInt
+                    withName:@"MTL_clip_distances_enabled"];
+
+    if (MTL_clip_distances_enabled > 0) {
+      /* Assign individual enablement flags. Only define a flag function constant
+       * if it is used. */
+      for (const int plane : IndexRange(6)) {
+        int plane_enabled = ctx->pipeline_state.clip_distance_enabled[plane] ? 1 : 0;
+        if (plane_enabled) {
+          [values
+              setConstantValue:&plane_enabled
+                          type:MTLDataTypeInt
+                      withName:[NSString stringWithFormat:@"MTL_clip_distance_enabled%d", plane]];
+        }
+      }
+    }
+
+    /* gl_PointSize constant. */
     bool null_pointsize = true;
     float MTL_pointsize = pipeline_descriptor.point_size;
     if (pipeline_descriptor.vertex_descriptor.prim_topology_class ==

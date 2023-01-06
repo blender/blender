@@ -444,7 +444,7 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
       GPU_viewport_size_get_f(viewport_size);
       immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
       immUniform1f("dash_width", 6.0f * U.pixelsize);
-      immUniform1f("dash_factor", 1.0f / 4.0f);
+      immUniform1f("udash_factor", 1.0f / 4.0f);
       immUniformColor4ubv(color_line);
 
       immBegin(GPU_PRIM_LINES, 2);
@@ -524,7 +524,7 @@ static bool v3d_cursor_is_snap_invert(SnapCursorDataIntern *data_intern, const w
   const int snap_on = data_intern->snap_on;
 
   wmKeyMap *keymap = WM_keymap_active(wm, data_intern->keymap);
-  for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+  LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &keymap->items) {
     if (kmi->flag & KMI_INACTIVE) {
       continue;
     }

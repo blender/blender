@@ -740,7 +740,8 @@ static PyObject *bpy_bmlayercollection_subscript_str(BPy_BMLayerCollection *self
   return NULL;
 }
 
-static PyObject *bpy_bmlayercollection_subscript_int(BPy_BMLayerCollection *self, int keynum)
+static PyObject *bpy_bmlayercollection_subscript_int(BPy_BMLayerCollection *self,
+                                                     Py_ssize_t keynum)
 {
   Py_ssize_t len;
   BPY_BM_CHECK_OBJ(self);
@@ -871,23 +872,23 @@ static int bpy_bmlayercollection_contains(BPy_BMLayerCollection *self, PyObject 
 }
 
 static PySequenceMethods bpy_bmlayercollection_as_sequence = {
-    (lenfunc)bpy_bmlayercollection_length, /* sq_length */
-    NULL,                                  /* sq_concat */
-    NULL,                                  /* sq_repeat */
-    (ssizeargfunc)bpy_bmlayercollection_subscript_int,
-    /* sq_item */          /* Only set this so PySequence_Check() returns True */
-    NULL,                  /* sq_slice */
-    (ssizeobjargproc)NULL, /* sq_ass_item */
-    NULL,                  /* *was* sq_ass_slice */
-    (objobjproc)bpy_bmlayercollection_contains, /* sq_contains */
-    (binaryfunc)NULL,                           /* sq_inplace_concat */
-    (ssizeargfunc)NULL,                         /* sq_inplace_repeat */
+    /*sq_length*/ (lenfunc)bpy_bmlayercollection_length,
+    /*sq_concat*/ NULL,
+    /*sq_repeat*/ NULL,
+    /* Only set this so `PySequence_Check()` returns True. */
+    /*sq_item*/ (ssizeargfunc)bpy_bmlayercollection_subscript_int,
+    /*was_sq_slice*/ NULL, /* DEPRECATED. */
+    /*sq_ass_item*/ NULL,
+    /*was_sq_ass_slice*/ NULL, /* DEPRECATED. */
+    /*sq_contains*/ (objobjproc)bpy_bmlayercollection_contains,
+    /*sq_inplace_concat*/ NULL,
+    /*sq_inplace_repeat*/ NULL,
 };
 
 static PyMappingMethods bpy_bmlayercollection_as_mapping = {
-    (lenfunc)bpy_bmlayercollection_length,       /* mp_length */
-    (binaryfunc)bpy_bmlayercollection_subscript, /* mp_subscript */
-    (objobjargproc)NULL,                         /* mp_ass_subscript */
+    /*mp_len*/ (lenfunc)bpy_bmlayercollection_length,
+    /*mp_subscript*/ (binaryfunc)bpy_bmlayercollection_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)NULL,
 };
 
 /* Iterator

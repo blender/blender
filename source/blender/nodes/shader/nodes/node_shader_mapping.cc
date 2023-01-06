@@ -87,8 +87,8 @@ void register_node_type_sh_mapping()
   sh_node_type_base(&ntype, SH_NODE_MAPPING, "Mapping", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_mapping;
-  node_type_gpu(&ntype, file_ns::gpu_shader_mapping);
-  node_type_update(&ntype, file_ns::node_shader_update_mapping);
+  ntype.gpu_fn = file_ns::gpu_shader_mapping;
+  ntype.updatefunc = file_ns::node_shader_update_mapping;
 
   nodeRegisterType(&ntype);
 }

@@ -1340,7 +1340,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
                                               const int rna_itemindex_a,
                                               const int rna_itemindex_b,
                                               const int flags,
-                                              bool *r_override_changed)
+                                              eRNAOverrideMatchResult *r_report_flag)
 {
   BLI_assert(ELEM(property_type, PROP_POINTER, PROP_COLLECTION));
 
@@ -1418,8 +1418,8 @@ static int rna_property_override_diff_propptr(Main *bmain,
              * as used all of its operations. */
             op->tag &= ~IDOVERRIDE_LIBRARY_TAG_UNUSED;
             opop->tag &= ~IDOVERRIDE_LIBRARY_TAG_UNUSED;
-            if (r_override_changed) {
-              *r_override_changed = created;
+            if (r_report_flag && created) {
+              *r_report_flag |= RNA_OVERRIDE_MATCH_RESULT_CREATED;
             }
           }
           else {
@@ -1547,7 +1547,6 @@ static int rna_property_override_diff_propptr(Main *bmain,
         }
       }
 
-      eRNAOverrideMatchResult report_flags = 0;
       const bool match = RNA_struct_override_matches(bmain,
                                                      propptr_a,
                                                      propptr_b,
@@ -1555,10 +1554,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
                                                      extended_rna_path_len,
                                                      override,
                                                      flags,
-                                                     &report_flags);
-      if (r_override_changed && (report_flags & RNA_OVERRIDE_MATCH_RESULT_CREATED) != 0) {
-        *r_override_changed = true;
-      }
+                                                     r_report_flag);
 
       if (!ELEM(extended_rna_path, extended_rna_path_buffer, rna_path)) {
         MEM_freeN(extended_rna_path);
@@ -1596,7 +1592,7 @@ int rna_property_override_diff_default(Main *bmain,
                                        const char *rna_path,
                                        const size_t rna_path_len,
                                        const int flags,
-                                       bool *r_override_changed)
+                                       eRNAOverrideMatchResult *r_report_flag)
 {
   PointerRNA *ptr_a = &prop_a->ptr;
   PointerRNA *ptr_b = &prop_b->ptr;
@@ -1648,8 +1644,8 @@ int rna_property_override_diff_default(Main *bmain,
           if (op != NULL && created) {
             BKE_lib_override_library_property_operation_get(
                 op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
-            if (r_override_changed) {
-              *r_override_changed = created;
+            if (*r_report_flag) {
+              *r_report_flag |= RNA_OVERRIDE_MATCH_RESULT_CREATED;
             }
           }
           else {
@@ -1677,8 +1673,8 @@ int rna_property_override_diff_default(Main *bmain,
           if (op != NULL && created) { /* If not yet overridden... */
             BKE_lib_override_library_property_operation_get(
                 op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
-            if (r_override_changed) {
-              *r_override_changed = created;
+            if (r_report_flag) {
+              *r_report_flag |= RNA_OVERRIDE_MATCH_RESULT_CREATED;
             }
           }
         }
@@ -1709,8 +1705,8 @@ int rna_property_override_diff_default(Main *bmain,
           if (op != NULL && created) {
             BKE_lib_override_library_property_operation_get(
                 op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
-            if (r_override_changed) {
-              *r_override_changed = created;
+            if (r_report_flag && created) {
+              *r_report_flag |= RNA_OVERRIDE_MATCH_RESULT_CREATED;
             }
           }
           else {
@@ -1738,8 +1734,8 @@ int rna_property_override_diff_default(Main *bmain,
           if (op != NULL && created) { /* If not yet overridden... */
             BKE_lib_override_library_property_operation_get(
                 op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
-            if (r_override_changed) {
-              *r_override_changed = created;
+            if (r_report_flag) {
+              *r_report_flag |= RNA_OVERRIDE_MATCH_RESULT_CREATED;
             }
           }
         }
@@ -1770,8 +1766,8 @@ int rna_property_override_diff_default(Main *bmain,
           if (op != NULL && created) {
             BKE_lib_override_library_property_operation_get(
                 op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
-            if (r_override_changed) {
-              *r_override_changed = created;
+            if (r_report_flag) {
+              *r_report_flag |= RNA_OVERRIDE_MATCH_RESULT_CREATED;
             }
           }
           else {
@@ -1799,8 +1795,8 @@ int rna_property_override_diff_default(Main *bmain,
           if (op != NULL && created) { /* If not yet overridden... */
             BKE_lib_override_library_property_operation_get(
                 op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
-            if (r_override_changed) {
-              *r_override_changed = created;
+            if (r_report_flag) {
+              *r_report_flag |= RNA_OVERRIDE_MATCH_RESULT_CREATED;
             }
           }
         }
@@ -1820,8 +1816,8 @@ int rna_property_override_diff_default(Main *bmain,
         if (op != NULL && created) { /* If not yet overridden... */
           BKE_lib_override_library_property_operation_get(
               op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
-          if (r_override_changed) {
-            *r_override_changed = created;
+          if (r_report_flag) {
+            *r_report_flag |= RNA_OVERRIDE_MATCH_RESULT_CREATED;
           }
         }
       }
@@ -1852,8 +1848,8 @@ int rna_property_override_diff_default(Main *bmain,
         if (op != NULL && created) { /* If not yet overridden... */
           BKE_lib_override_library_property_operation_get(
               op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
-          if (r_override_changed) {
-            *r_override_changed = created;
+          if (r_report_flag) {
+            *r_report_flag |= RNA_OVERRIDE_MATCH_RESULT_CREATED;
           }
         }
       }
@@ -1898,7 +1894,7 @@ int rna_property_override_diff_default(Main *bmain,
                                                   -1,
                                                   -1,
                                                   flags,
-                                                  r_override_changed);
+                                                  r_report_flag);
       }
       break;
     }
@@ -2063,7 +2059,7 @@ int rna_property_override_diff_default(Main *bmain,
                                                                   idx_a,
                                                                   idx_b,
                                                                   flags,
-                                                                  r_override_changed);
+                                                                  r_report_flag);
               equals = equals && (comp == 0);
             }
           }

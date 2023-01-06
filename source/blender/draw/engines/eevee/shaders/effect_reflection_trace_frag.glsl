@@ -17,16 +17,6 @@
  * https://media.contentapi.ea.com/content/dam/ea/seed/presentations/dd18-seed-raytracing-in-hybrid-real-time-rendering.pdf
  */
 
-uniform sampler2D normalBuffer;
-uniform sampler2D specroughBuffer;
-uniform vec2 targetSize;
-uniform float randomScale;
-
-in vec4 uvcoordsvar;
-
-layout(location = 0) out vec4 hitData;
-layout(location = 1) out float hitDepth;
-
 void main()
 {
   vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);

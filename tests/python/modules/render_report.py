@@ -166,6 +166,9 @@ class Report:
     def set_fail_threshold(self, threshold):
         self.fail_threshold = threshold
 
+    def set_fail_percent(self, percent):
+        self.fail_percent = percent
+
     def set_reference_dir(self, reference_dir):
         self.reference_dir = reference_dir
 

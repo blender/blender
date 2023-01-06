@@ -27,6 +27,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_fluid_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -636,7 +637,7 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
   DRW_buffer_add_entry(cb->groundline, instdata.pos);
 
   if (la->type == LA_LOCAL) {
-    instdata.area_size_x = instdata.area_size_y = la->area_size;
+    instdata.area_size_x = instdata.area_size_y = la->radius;
     DRW_buffer_add_entry(cb->light_point, color, &instdata);
   }
   else if (la->type == LA_SUN) {
@@ -660,7 +661,7 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
     instdata.spot_blend = sqrtf((-a - c * a) / (c - c * a));
     instdata.spot_cosine = a;
     /* HACK: We pack the area size in alpha color. This is decoded by the shader. */
-    color[3] = -max_ff(la->area_size, FLT_MIN);
+    color[3] = -max_ff(la->radius, FLT_MIN);
     DRW_buffer_add_entry(cb->light_spot, color, &instdata);
 
     if ((la->mode & LA_SHOW_CONE) && !DRW_state_is_select()) {
@@ -859,7 +860,7 @@ static void camera_view3d_reconstruction(
                                ((v3d->shading.type != OB_SOLID) || !XRAY_FLAG_ENABLED(v3d));
 
   MovieTracking *tracking = &clip->tracking;
-  /* Index must start in 1, to mimic BKE_tracking_track_get_indexed. */
+  /* Index must start in 1, to mimic BKE_tracking_track_get_for_selection_index. */
   int track_index = 1;
 
   float bundle_color_custom[3];
@@ -893,8 +894,7 @@ static void camera_view3d_reconstruction(
       mul_m4_m4m4(tracking_object_mat, ob->object_to_world, object_imat);
     }
 
-    ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
-    LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
       if ((track->flag & TRACK_HAS_BUNDLE) == 0) {
         continue;
       }
@@ -961,11 +961,10 @@ static void camera_view3d_reconstruction(
 
     if ((v3d->flag2 & V3D_SHOW_CAMERAPATH) && (tracking_object->flag & TRACKING_OBJECT_CAMERA) &&
         !is_select) {
-      MovieTrackingReconstruction *reconstruction;
-      reconstruction = BKE_tracking_object_get_reconstruction(tracking, tracking_object);
+      const MovieTrackingReconstruction *reconstruction = &tracking_object->reconstruction;
 
       if (reconstruction->camnr) {
-        MovieReconstructedCamera *camera = reconstruction->cameras;
+        const MovieReconstructedCamera *camera = reconstruction->cameras;
         float v0[3], v1[3];
         for (int a = 0; a < reconstruction->camnr; a++, camera++) {
           copy_v3_v3(v0, v1);
@@ -1273,6 +1272,20 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
       OVERLAY_extra_point(cb, center, relation_color);
     }
   }
+  for (GpencilModifierData *md =
+           static_cast<GpencilModifierData *>(ob->greasepencil_modifiers.first);
+       md;
+       md = md->next) {
+    if (md->type == eGpencilModifierType_Hook) {
+      HookGpencilModifierData *hmd = (HookGpencilModifierData *)md;
+      float center[3];
+      mul_v3_m4v3(center, ob->object_to_world, hmd->cent);
+      if (hmd->object) {
+        OVERLAY_extra_line_dashed(cb, hmd->object->object_to_world[3], center, relation_color);
+      }
+      OVERLAY_extra_point(cb, center, relation_color);
+    }
+  }
 
   if (ob->rigidbody_constraint) {
     Object *rbc_ob1 = ob->rigidbody_constraint->ob1;
@@ -1539,7 +1552,8 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   const bool is_select_mode = DRW_state_is_select();
   const bool is_paint_mode = (draw_ctx->object_mode &
-                              (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL)) != 0;
+                              (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL |
+                               OB_MODE_SCULPT_CURVES)) != 0;
   const bool from_dupli = (ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) != 0;
   const bool has_bounds = !ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_EMPTY, OB_SPEAKER, OB_LIGHTPROBE);
   const bool has_texspace = has_bounds &&

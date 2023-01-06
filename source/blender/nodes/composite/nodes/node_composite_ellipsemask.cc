@@ -98,7 +98,7 @@ class EllipseMaskOperation : public NodeOperation {
   Domain compute_domain() override
   {
     if (get_input("Mask").is_single_value()) {
-      return Domain(context().get_output_size());
+      return Domain(context().get_compositing_region_size());
     }
     return get_input("Mask").domain();
   }
@@ -156,7 +156,7 @@ void register_node_type_cmp_ellipsemask()
   ntype.declare = file_ns::cmp_node_ellipsemask_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_ellipsemask;
   node_type_size(&ntype, 260, 110, 320);
-  node_type_init(&ntype, file_ns::node_composit_init_ellipsemask);
+  ntype.initfunc = file_ns::node_composit_init_ellipsemask;
   node_type_storage(
       &ntype, "NodeEllipseMask", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

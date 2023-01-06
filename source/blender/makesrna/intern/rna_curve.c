@@ -997,7 +997,7 @@ static void rna_def_path(BlenderRNA *UNUSED(brna), StructRNA *srna)
   RNA_def_property_int_sdna(prop, NULL, "pathlen");
   RNA_def_property_range(prop, 1, MAXFRAME);
   RNA_def_property_ui_text(prop,
-                           "Path Length",
+                           "Path Duration",
                            "The number of frames that are needed to traverse the path, "
                            "defining the maximum value for the 'Evaluation Time' setting");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");

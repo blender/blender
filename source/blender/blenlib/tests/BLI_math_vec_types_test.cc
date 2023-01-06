@@ -146,6 +146,94 @@ TEST(math_vec_types, VectorTypeConversion)
   EXPECT_EQ(d[1], -1.0);
 }
 
+TEST(math_vec_types, Add)
+{
+  float2 result = float2(1.0f, 2.0f) + float2(0.5f, 2.0f);
+  EXPECT_FLOAT_EQ(result.x, 1.5f);
+  EXPECT_FLOAT_EQ(result.y, 4.0f);
+
+  float2 result2 = float2(1.0f, 2.0f);
+  result2 += float2(0.5f, 2.0f);
+  EXPECT_FLOAT_EQ(result2.x, 1.5f);
+  EXPECT_FLOAT_EQ(result2.y, 4.0f);
+}
+
+TEST(math_vec_types, AddFloatByVector)
+{
+  float2 result = float2(0.5f, 2.0f) + 2.0f;
+  EXPECT_FLOAT_EQ(result.x, 2.5f);
+  EXPECT_FLOAT_EQ(result.y, 4.0f);
+
+  float2 result2 = 2.0f + float2(0.5f, 2.0f);
+  EXPECT_FLOAT_EQ(result2.x, 2.5f);
+  EXPECT_FLOAT_EQ(result2.y, 4.0f);
+
+  float2 result3 = float2(0.5f, 2.0f);
+  result3 += 2.0f;
+  EXPECT_FLOAT_EQ(result3.x, 2.5f);
+  EXPECT_FLOAT_EQ(result3.y, 4.0f);
+}
+
+TEST(math_vec_types, Sub)
+{
+  float2 result = float2(1.0f, 2.0f) - float2(0.5f, 2.0f);
+  EXPECT_FLOAT_EQ(result.x, 0.5f);
+  EXPECT_FLOAT_EQ(result.y, 0.0f);
+
+  float2 result2 = float2(1.0f, 2.0f);
+  result2 -= float2(0.5f, 2.0f);
+  EXPECT_FLOAT_EQ(result2.x, 0.5f);
+  EXPECT_FLOAT_EQ(result2.y, 0.0f);
+
+  float2 result3 = -float2(1.0f, 2.0f);
+  EXPECT_FLOAT_EQ(result3.x, -1.0f);
+  EXPECT_FLOAT_EQ(result3.y, -2.0f);
+}
+
+TEST(math_vec_types, SubFloatByVector)
+{
+  float2 result = float2(0.5f, 2.0f) - 2.0f;
+  EXPECT_FLOAT_EQ(result.x, -1.5f);
+  EXPECT_FLOAT_EQ(result.y, 0.0f);
+
+  float2 result2 = 2.0f - float2(0.5f, 2.0f);
+  EXPECT_FLOAT_EQ(result2.x, 1.5f);
+  EXPECT_FLOAT_EQ(result2.y, 0.0f);
+
+  float2 result3 = float2(0.5f, 2.0f);
+  result3 -= 2.0f;
+  EXPECT_FLOAT_EQ(result3.x, -1.5f);
+  EXPECT_FLOAT_EQ(result3.y, 0.0f);
+}
+
+TEST(math_vec_types, Mul)
+{
+  float2 result = float2(1.0f, 2.0f) * float2(0.5f, 2.0f);
+  EXPECT_FLOAT_EQ(result.x, 0.5f);
+  EXPECT_FLOAT_EQ(result.y, 4.0f);
+
+  float2 result2 = float2(1.0f, 2.0f);
+  result2 *= float2(0.5f, 2.0f);
+  EXPECT_FLOAT_EQ(result2.x, 0.5f);
+  EXPECT_FLOAT_EQ(result2.y, 4.0f);
+}
+
+TEST(math_vec_types, MulFloatByVector)
+{
+  float2 result = float2(0.5f, 2.0f) * 2.0f;
+  EXPECT_FLOAT_EQ(result.x, 1.0f);
+  EXPECT_FLOAT_EQ(result.y, 4.0f);
+
+  float2 result2 = 2.0f * float2(0.5f, 2.0f);
+  EXPECT_FLOAT_EQ(result2.x, 1.0f);
+  EXPECT_FLOAT_EQ(result2.y, 4.0f);
+
+  float2 result3 = float2(0.5f, 2.0f);
+  result3 *= 2.0f;
+  EXPECT_FLOAT_EQ(result3.x, 1.0f);
+  EXPECT_FLOAT_EQ(result3.y, 4.0f);
+}
+
 TEST(math_vec_types, Divide)
 {
   float2 a(1.0f, 2.0f);

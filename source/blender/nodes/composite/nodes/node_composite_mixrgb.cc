@@ -93,6 +93,8 @@ class MixRGBShaderNode : public ShaderNode {
         return "mix_div";
       case MA_RAMP_DIFF:
         return "mix_diff";
+      case MA_RAMP_EXCLUSION:
+        return "mix_exclusion";
       case MA_RAMP_DARK:
         return "mix_dark";
       case MA_RAMP_LIGHT:

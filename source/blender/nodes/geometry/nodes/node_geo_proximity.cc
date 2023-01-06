@@ -23,8 +23,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .only_realized_data()
       .supported_type({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
   b.add_input<decl::Vector>(N_("Source Position")).implicit_field(implicit_field_inputs::position);
-  b.add_output<decl::Vector>(N_("Position")).dependent_field();
-  b.add_output<decl::Float>(N_("Distance")).dependent_field();
+  b.add_output<decl::Vector>(N_("Position")).dependent_field().reference_pass_all();
+  b.add_output<decl::Float>(N_("Distance")).dependent_field().reference_pass_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -144,7 +144,7 @@ class ProximityFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Geometry Proximity"};
+    fn::MFSignatureBuilder signature{"Geometry Proximity"};
     signature.single_input<float3>("Source Position");
     signature.single_output<float3>("Position");
     signature.single_output<float>("Distance");
@@ -228,7 +228,7 @@ void register_node_type_geo_proximity()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_PROXIMITY, "Geometry Proximity", NODE_CLASS_GEOMETRY);
-  node_type_init(&ntype, file_ns::geo_proximity_init);
+  ntype.initfunc = file_ns::geo_proximity_init;
   node_type_storage(
       &ntype, "NodeGeometryProximity", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = file_ns::node_declare;

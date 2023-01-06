@@ -1115,8 +1115,15 @@ static void cloth_selfcollision(void *__restrict userdata,
   float epsilon = clmd->coll_parms->selfepsilon;
   float pa[3], pb[3], vect[3];
 
-  tri_a = &clmd->clothObject->tri[data->overlap[index].indexA];
-  tri_b = &clmd->clothObject->tri[data->overlap[index].indexB];
+  /* Collision math is currently not symmetric, so ensure a stable order for each pair. */
+  int indexA = data->overlap[index].indexA, indexB = data->overlap[index].indexB;
+
+  if (indexA > indexB) {
+    SWAP(int, indexA, indexB);
+  }
+
+  tri_a = &clmd->clothObject->tri[indexA];
+  tri_b = &clmd->clothObject->tri[indexB];
 
   BLI_assert(cloth_bvh_selfcollision_is_active(clmd, clmd->clothObject, tri_a, tri_b));
 
@@ -1521,8 +1528,9 @@ static bool cloth_bvh_obj_overlap_cb(void *userdata,
 
 static bool cloth_bvh_self_overlap_cb(void *userdata, int index_a, int index_b, int UNUSED(thread))
 {
-  /* No need for equal combinations (eg. (0,1) & (1,0)). */
-  if (index_a < index_b) {
+  /* This shouldn't happen, but just in case. Note that equal combinations
+   * (eg. (0,1) & (1,0)) would be filtered out by BLI_bvhtree_overlap_self. */
+  if (index_a != index_b) {
     ClothModifierData *clmd = (ClothModifierData *)userdata;
     struct Cloth *clothObject = clmd->clothObject;
     const MVertTri *tri_a, *tri_b;
@@ -1599,8 +1607,8 @@ int cloth_bvh_collision(
   if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF) {
     bvhtree_update_from_cloth(clmd, false, true);
 
-    overlap_self = BLI_bvhtree_overlap(
-        cloth->bvhselftree, cloth->bvhselftree, &coll_count_self, cloth_bvh_self_overlap_cb, clmd);
+    overlap_self = BLI_bvhtree_overlap_self(
+        cloth->bvhselftree, &coll_count_self, cloth_bvh_self_overlap_cb, clmd);
   }
 
   do {

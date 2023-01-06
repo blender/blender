@@ -377,6 +377,40 @@ void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, const float factor
 
 /* ---------------- */
 
+void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
+{
+  const BezTriple left_key = fcurve_segment_start_get(fcu, segment->start_index);
+  const float left_x = left_key.vec[1][0];
+  const float left_y = left_key.vec[1][1];
+
+  const BezTriple right_key = fcurve_segment_end_get(fcu, segment->start_index + segment->length);
+
+  const float key_x_range = right_key.vec[1][0] - left_x;
+  const float key_y_range = right_key.vec[1][1] - left_y;
+
+  /* In order to have a curve that favors the right key, the curve needs to be mirrored in x and y.
+   * Having an exponent that is a fraction of 1 would produce a similar but inferior result. */
+  const bool inverted = factor > 0.5;
+  const float exponent = 1 + fabs(factor * 2 - 1) * 4;
+
+  for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
+    /* For easy calculation of the curve, the  values are normalized. */
+    const float normalized_x = (fcu->bezt[i].vec[1][0] - left_x) / key_x_range;
+
+    float normalized_y = 0;
+    if (inverted) {
+      normalized_y = 1 - pow(1 - normalized_x, exponent);
+    }
+    else {
+      normalized_y = pow(normalized_x, exponent);
+    }
+
+    fcu->bezt[i].vec[1][1] = left_y + normalized_y * key_y_range;
+  }
+}
+
+/* ---------------- */
+
 void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
 {
   BezTriple left_bezt = fcurve_segment_start_get(fcu, segment->start_index);

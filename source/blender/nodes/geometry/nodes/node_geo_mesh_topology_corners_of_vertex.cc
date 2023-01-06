@@ -25,10 +25,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supports_field()
       .description(N_("Which of the sorted corners to output"));
   b.add_output<decl::Int>(N_("Corner Index"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(N_("A corner connected to the face, chosen by the sort index"));
   b.add_output<decl::Int>(N_("Total"))
-      .dependent_field()
+      .field_source()
+      .reference_pass({0})
       .description(N_("The number of faces or corners connected to each vertex"));
 }
 
@@ -125,6 +126,13 @@ class CornersOfVertInput final : public bke::MeshFieldInput {
     return VArray<int>::ForContainer(std::move(corner_of_vertex));
   }
 
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
+  {
+    vert_index_.node().for_each_field_input_recursive(fn);
+    sort_index_.node().for_each_field_input_recursive(fn);
+    sort_weight_.node().for_each_field_input_recursive(fn);
+  }
+
   uint64_t hash() const final
   {
     return 3541871368173645;
@@ -137,6 +145,11 @@ class CornersOfVertInput final : public bke::MeshFieldInput {
              typed->sort_weight_ == sort_weight_;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  {
+    return ATTR_DOMAIN_POINT;
   }
 };
 
@@ -173,6 +186,11 @@ class CornersOfVertCountInput final : public bke::MeshFieldInput {
       return true;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  {
+    return ATTR_DOMAIN_POINT;
   }
 };
 

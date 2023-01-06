@@ -7,6 +7,8 @@
 
 #include "node_composite_util.hh"
 
+#include "BLT_translation.h"
+
 #include "RNA_access.h"
 
 #include "UI_interface.h"
@@ -58,6 +60,7 @@ class ConvertColorSpaceOperation : public NodeOperation {
   void execute() override
   {
     get_input("Image").pass_through(get_result("Image"));
+    context().set_info_message("Viewport compositor setup not fully supported");
   }
 };
 
@@ -78,10 +81,12 @@ void register_node_type_cmp_convert_color_space(void)
   ntype.declare = file_ns::CMP_NODE_CONVERT_COLOR_SPACE_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_convert_colorspace;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_composit_init_convert_colorspace);
+  ntype.initfunc = file_ns::node_composit_init_convert_colorspace;
   node_type_storage(
       &ntype, "NodeConvertColorSpace", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

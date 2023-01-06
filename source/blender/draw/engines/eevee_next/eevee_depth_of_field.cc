@@ -44,7 +44,7 @@ void DepthOfField::init()
 {
   const SceneEEVEE &sce_eevee = inst_.scene->eevee;
   const Object *camera_object_eval = inst_.camera_eval_object;
-  const ::Camera *camera = (camera_object_eval) ?
+  const ::Camera *camera = (camera_object_eval && camera_object_eval->type == OB_CAMERA) ?
                                reinterpret_cast<const ::Camera *>(camera_object_eval->data) :
                                nullptr;
   if (camera == nullptr) {
@@ -70,7 +70,7 @@ void DepthOfField::sync()
 {
   const Camera &camera = inst_.camera;
   const Object *camera_object_eval = inst_.camera_eval_object;
-  const ::Camera *camera_data = (camera_object_eval) ?
+  const ::Camera *camera_data = (camera_object_eval && camera_object_eval->type == OB_CAMERA) ?
                                     reinterpret_cast<const ::Camera *>(camera_object_eval->data) :
                                     nullptr;
 
@@ -166,8 +166,9 @@ void DepthOfField::sync()
   /* Now that we know the maximum render resolution of every view, using depth of field, allocate
    * the reduced buffers. Color needs to be signed format here. See note in shader for
    * explanation. Do not use texture pool because of needs mipmaps. */
-  reduced_color_tx_.ensure_2d(GPU_RGBA16F, reduce_size, nullptr, DOF_MIP_COUNT);
-  reduced_coc_tx_.ensure_2d(GPU_R16F, reduce_size, nullptr, DOF_MIP_COUNT);
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+  reduced_color_tx_.ensure_2d(GPU_RGBA16F, reduce_size, usage, nullptr, DOF_MIP_COUNT);
+  reduced_coc_tx_.ensure_2d(GPU_R16F, reduce_size, usage, nullptr, DOF_MIP_COUNT);
   reduced_color_tx_.ensure_mip_views();
   reduced_coc_tx_.ensure_mip_views();
 

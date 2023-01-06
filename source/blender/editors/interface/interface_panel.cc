@@ -48,7 +48,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Defines & Structs
@@ -754,18 +754,16 @@ void UI_panel_header_buttons_end(Panel *panel)
   uiBlock *block = panel->runtime.block;
 
   /* A button group should always be created in #UI_panel_header_buttons_begin. */
-  BLI_assert(!BLI_listbase_is_empty(&block->button_groups));
+  BLI_assert(!block->button_groups.is_empty());
 
-  uiButtonGroup *button_group = static_cast<uiButtonGroup *>(block->button_groups.last);
-
-  button_group->flag &= ~UI_BUTTON_GROUP_LOCK;
+  uiButtonGroup &button_group = block->button_groups.last();
+  button_group.flag &= ~UI_BUTTON_GROUP_LOCK;
 
   /* Repurpose the first header button group if it is empty, in case the first button added to
    * the panel doesn't add a new group (if the button is created directly rather than through an
    * interface layout call). */
-  if (BLI_listbase_is_single(&block->button_groups) &&
-      BLI_listbase_is_empty(&button_group->buttons)) {
-    button_group->flag &= ~UI_BUTTON_GROUP_PANEL_HEADER;
+  if (block->button_groups.size() > 0) {
+    button_group.flag &= ~UI_BUTTON_GROUP_PANEL_HEADER;
   }
   else {
     /* Always add a new button group. Although this may result in many empty groups, without it,
@@ -940,12 +938,11 @@ static void panel_remove_invisible_layouts_recursive(Panel *panel, const Panel *
     /* If sub-panels have no search results but the parent panel does, then the parent panel open
      * and the sub-panels will close. In that case there must be a way to hide the buttons in the
      * panel but keep the header buttons. */
-    LISTBASE_FOREACH (uiButtonGroup *, button_group, &block->button_groups) {
-      if (button_group->flag & UI_BUTTON_GROUP_PANEL_HEADER) {
+    for (const uiButtonGroup &button_group : block->button_groups) {
+      if (button_group.flag & UI_BUTTON_GROUP_PANEL_HEADER) {
         continue;
       }
-      LISTBASE_FOREACH (LinkData *, link, &button_group->buttons) {
-        uiBut *but = static_cast<uiBut *>(link->data);
+      for (uiBut *but : button_group.buttons) {
         but->flag |= UI_HIDDEN;
       }
     }
@@ -2026,7 +2023,7 @@ static void ui_panel_drag_collapse_handler_add(const bContext *C, const bool was
                           ui_panel_drag_collapse_handler,
                           ui_panel_drag_collapse_handler_remove,
                           dragcol_data,
-                          0);
+                          eWM_EventHandlerFlag(0));
 }
 
 /**
@@ -2510,8 +2507,12 @@ static void panel_handle_data_ensure(const bContext *C,
 {
   if (panel->activedata == nullptr) {
     panel->activedata = MEM_callocN(sizeof(uiHandlePanelData), __func__);
-    WM_event_add_ui_handler(
-        C, &win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, panel, 0);
+    WM_event_add_ui_handler(C,
+                            &win->modalhandlers,
+                            ui_handler_panel,
+                            ui_handler_remove_panel,
+                            panel,
+                            eWM_EventHandlerFlag(0));
   }
 
   uiHandlePanelData *data = static_cast<uiHandlePanelData *>(panel->activedata);

@@ -5,7 +5,7 @@
  */
 
 #include "BLI_math_base.h"
-#include "BLI_math_rotation.hh"
+#include "BLI_math_rotation_legacy.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 

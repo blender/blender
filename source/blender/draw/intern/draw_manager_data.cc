@@ -678,7 +678,7 @@ BLI_INLINE void drw_call_matrix_init(DRWObjectMatrix *ob_mats, Object *ob, float
 {
   copy_m4_m4(ob_mats->model, obmat);
   if (ob) {
-    copy_m4_m4(ob_mats->modelinverse, ob->imat);
+    copy_m4_m4(ob_mats->modelinverse, ob->world_to_object);
   }
   else {
     /* WATCH: Can be costly. */
@@ -1220,10 +1220,12 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd,
   GPUBatch *geom;
 
   if (!scd->use_wire) {
-    geom = DRW_pbvh_tris_get(batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount);
+    geom = DRW_pbvh_tris_get(
+        batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount, scd->fast_mode);
   }
   else {
-    geom = DRW_pbvh_lines_get(batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount);
+    geom = DRW_pbvh_lines_get(
+        batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount, scd->fast_mode);
   }
 
   short index = 0;
@@ -1406,8 +1408,8 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   Mesh *me = BKE_object_get_original_mesh(ob);
 
   if (use_color) {
-    CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
-
+    const CustomDataLayer *layer = BKE_id_attributes_color_find(&me->id,
+                                                                me->active_color_attribute);
     if (layer) {
       eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
 
@@ -1850,7 +1852,7 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, GPUMaterial *mater
     grp->uniform_attrs = uattrs;
   }
 
-  if (GPU_material_layer_attributes(material) != NULL) {
+  if (GPU_material_layer_attributes(material) != nullptr) {
     int loc = GPU_shader_get_uniform_block_binding(grp->shader,
                                                    GPU_LAYER_ATTRIBUTE_UBO_BLOCK_NAME);
     drw_shgroup_uniform_create_ex(

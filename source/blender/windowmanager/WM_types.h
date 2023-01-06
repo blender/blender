@@ -185,12 +185,12 @@ enum {
 };
 
 /** For #WM_cursor_grab_enable wrap axis. */
-enum {
+typedef enum eWM_CursorWrapAxis {
   WM_CURSOR_WRAP_NONE = 0,
   WM_CURSOR_WRAP_X,
   WM_CURSOR_WRAP_Y,
   WM_CURSOR_WRAP_XY,
-};
+} eWM_CursorWrapAxis;
 
 /**
  * Context to call operator in for #WM_operator_name_call.

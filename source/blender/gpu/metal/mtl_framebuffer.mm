@@ -95,7 +95,7 @@ void MTLFrameBuffer::bind(bool enabled_srgb)
 
   /* Verify Context is valid. */
   if (context_ != static_cast<MTLContext *>(unwrap(GPU_context_active_get()))) {
-    BLI_assert(false && "Trying to use the same frame-buffer in multiple context's.");
+    BLI_assert_msg(false, "Trying to use the same frame-buffer in multiple context's.");
     return;
   }
 
@@ -986,7 +986,7 @@ bool MTLFrameBuffer::add_depth_attachment(gpu::MTLTexture *texture, int miplevel
         if (layer == -1) {
           mtl_depth_attachment_.slice = 0;
           mtl_depth_attachment_.depth_plane = 0;
-          mtl_depth_attachment_.render_target_array_length = 1;
+          mtl_depth_attachment_.render_target_array_length = 6;
           use_multilayered_rendering_ = true;
         }
         break;
@@ -1007,7 +1007,7 @@ bool MTLFrameBuffer::add_depth_attachment(gpu::MTLTexture *texture, int miplevel
         mtl_depth_attachment_.depth_plane = 0;
         break;
       default:
-        BLI_assert(false && "Unrecognized texture type");
+        BLI_assert_msg(false, "Unrecognized texture type");
         break;
     }
 
@@ -1108,7 +1108,7 @@ bool MTLFrameBuffer::add_stencil_attachment(gpu::MTLTexture *texture, int miplev
         if (layer == -1) {
           mtl_stencil_attachment_.slice = 0;
           mtl_stencil_attachment_.depth_plane = 0;
-          mtl_stencil_attachment_.render_target_array_length = 1;
+          mtl_stencil_attachment_.render_target_array_length = 6;
           use_multilayered_rendering_ = true;
         }
         break;
@@ -1129,7 +1129,7 @@ bool MTLFrameBuffer::add_stencil_attachment(gpu::MTLTexture *texture, int miplev
         mtl_stencil_attachment_.depth_plane = 0;
         break;
       default:
-        BLI_assert(false && "Unrecognized texture type");
+        BLI_assert_msg(false, "Unrecognized texture type");
         break;
     }
 

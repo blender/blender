@@ -241,6 +241,17 @@ char *BLI_sprintfN(const char *__restrict format, ...)
   return n;
 }
 
+int BLI_sprintf(char *__restrict str, const char *__restrict format, ...)
+{
+  va_list arg;
+
+  va_start(arg, format);
+  const int result = vsprintf(str, format, arg);
+  va_end(arg);
+
+  return result;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1114,7 +1125,7 @@ static size_t BLI_str_format_int_grouped_ex(char src[16], char dst[16], int num_
 size_t BLI_str_format_int_grouped(char dst[16], int num)
 {
   char src[16];
-  int num_len = sprintf(src, "%d", num);
+  const int num_len = BLI_snprintf(src, sizeof(src), "%d", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
@@ -1124,7 +1135,7 @@ size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num)
   /* NOTE: Buffer to hold maximum `uint64`, which is 1.8e+19. but
    * we also need space for commas and null-terminator. */
   char src[27];
-  int num_len = sprintf(src, "%" PRIu64 "", num);
+  const int num_len = BLI_snprintf(src, sizeof(src), "%" PRIu64 "", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }

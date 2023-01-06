@@ -9,6 +9,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -131,13 +132,6 @@ static void compute_vertex_mask__vertex_group_mode(const MDeformVert *dvert,
   for (int i : r_vertex_mask.index_range()) {
     const bool found = BKE_defvert_find_weight(&dvert[i], defgrp_index) > threshold;
     r_vertex_mask[i] = found;
-  }
-}
-
-static void invert_boolean_array(MutableSpan<bool> array)
-{
-  for (bool &value : array) {
-    value = !value;
   }
 }
 
@@ -607,7 +601,7 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
         cut_edge.v1 = dst_loops[mp_dst.loopstart].v;
         cut_edge.v2 = cut_dst_loop.v;
         BLI_assert(cut_edge.v1 != cut_edge.v2);
-        cut_edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+        cut_edge.flag = ME_EDGEDRAW;
         edge_index++;
 
         /* Only handle one of the cuts per iteration. */
@@ -685,7 +679,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
   }
 
   if (invert_mask) {
-    invert_boolean_array(vertex_mask);
+    blender::array_utils::invert_booleans(vertex_mask);
   }
 
   Array<int> vertex_map(mesh->totvert);
@@ -773,8 +767,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
                                        polys_masked_num,
                                        edges_add_num);
   }
-
-  BKE_mesh_calc_edges_loose(result);
 
   return result;
 }

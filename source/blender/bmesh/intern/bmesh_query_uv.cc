@@ -113,17 +113,6 @@ void BM_face_uv_minmax(const BMFace *f, float min[2], float max[2], const int cd
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-void BM_face_uv_transform(BMFace *f, const float matrix[2][2], const int cd_loop_uv_offset)
-{
-  BMLoop *l_iter;
-  BMLoop *l_first;
-  l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  do {
-    MLoopUV *luv = (MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
-    mul_m2_v2(matrix, luv->uv);
-  } while ((l_iter = l_iter->next) != l_first);
-}
-
 bool BM_loop_uv_share_edge_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
 {
   BLI_assert(l_a->e == l_b->e);

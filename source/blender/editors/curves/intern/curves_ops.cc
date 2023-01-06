@@ -6,7 +6,9 @@
 
 #include <atomic>
 
+#include "BLI_array_utils.hh"
 #include "BLI_devirtualize_parameters.hh"
+#include "BLI_index_mask_ops.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
@@ -635,7 +637,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
             continue;
           }
 
-          const MLoopTri &looptri = *lookup_result.looptri;
+          const MLoopTri &looptri = surface_looptris[lookup_result.looptri_index];
           const float3 &bary_coords = lookup_result.bary_weights;
 
           const float3 &p0_su = verts[loops[looptri.tri[0]].v].co;
@@ -744,31 +746,32 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
   const eAttrDomain domain = eAttrDomain(RNA_enum_get(op->ptr, "domain"));
 
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
-    if (curves_id->selection_domain == domain && (curves_id->flag & CV_SCULPT_SELECTION_ENABLED)) {
+    if (curves_id->selection_domain == domain) {
       continue;
     }
 
-    const eAttrDomain old_domain = eAttrDomain(curves_id->selection_domain);
     curves_id->selection_domain = domain;
-    curves_id->flag |= CV_SCULPT_SELECTION_ENABLED;
 
     CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
     if (curves.points_num() == 0) {
       continue;
     }
-
-    if (old_domain == ATTR_DOMAIN_POINT && domain == ATTR_DOMAIN_CURVE) {
-      VArray<float> curve_selection = curves.adapt_domain(
-          curves.selection_point_float(), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
-      curve_selection.materialize(curves.selection_curve_float_for_write());
-      attributes.remove(".selection_point_float");
+    const GVArray src = attributes.lookup(".selection", domain);
+    if (src.is_empty()) {
+      continue;
     }
-    else if (old_domain == ATTR_DOMAIN_CURVE && domain == ATTR_DOMAIN_POINT) {
-      VArray<float> point_selection = curves.adapt_domain(
-          curves.selection_curve_float(), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
-      point_selection.materialize(curves.selection_point_float_for_write());
-      attributes.remove(".selection_curve_float");
+
+    const CPPType &type = src.type();
+    void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size(), __func__);
+    src.materialize(dst);
+
+    attributes.remove(".selection");
+    if (!attributes.add(".selection",
+                        domain,
+                        bke::cpp_type_to_custom_data_type(type),
+                        bke::AttributeInitMoveArray(dst))) {
+      MEM_freeN(dst);
     }
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -802,78 +805,54 @@ static void CURVES_OT_set_selection_domain(wmOperatorType *ot)
   RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
-namespace disable_selection {
-
-static int curves_disable_selection_exec(bContext *C, wmOperator * /*op*/)
+static bool contains(const VArray<bool> &varray, const bool value)
 {
-  for (Curves *curves_id : get_unique_editable_curves(*C)) {
-    curves_id->flag &= ~CV_SCULPT_SELECTION_ENABLED;
-
-    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
-     * attribute for now. */
-    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  const CommonVArrayInfo info = varray.common_info();
+  if (info.type == CommonVArrayInfo::Type::Single) {
+    return *static_cast<const bool *>(info.data) == value;
   }
-
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, nullptr);
-
-  return OPERATOR_FINISHED;
-}
-
-}  // namespace disable_selection
-
-static void CURVES_OT_disable_selection(wmOperatorType *ot)
-{
-  ot->name = "Disable Selection";
-  ot->idname = __func__;
-  ot->description = "Disable the drawing of influence of selection in sculpt mode";
-
-  ot->exec = disable_selection::curves_disable_selection_exec;
-  ot->poll = editable_curves_poll;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-static bool varray_contains_nonzero(const VArray<float> &data)
-{
-  bool contains_nonzero = false;
-  devirtualize_varray(data, [&](const auto array) {
-    for (const int i : data.index_range()) {
-      if (array[i] != 0.0f) {
-        contains_nonzero = true;
-        break;
-      }
-    }
-  });
-  return contains_nonzero;
+  if (info.type == CommonVArrayInfo::Type::Span) {
+    const Span<bool> span(static_cast<const bool *>(info.data), varray.size());
+    return threading::parallel_reduce(
+        span.index_range(),
+        4096,
+        false,
+        [&](const IndexRange range, const bool init) {
+          return init || span.slice(range).contains(value);
+        },
+        [&](const bool a, const bool b) { return a || b; });
+  }
+  return threading::parallel_reduce(
+      varray.index_range(),
+      2048,
+      false,
+      [&](const IndexRange range, const bool init) {
+        if (init) {
+          return init;
+        }
+        /* Alternatively, this could use #materialize to retrieve many values at once. */
+        for (const int64_t i : range) {
+          if (varray[i] == value) {
+            return true;
+          }
+        }
+        return false;
+      },
+      [&](const bool a, const bool b) { return a || b; });
 }
 
 bool has_anything_selected(const Curves &curves_id)
 {
   const CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
-  switch (curves_id.selection_domain) {
-    case ATTR_DOMAIN_POINT:
-      return varray_contains_nonzero(curves.selection_point_float());
-    case ATTR_DOMAIN_CURVE:
-      return varray_contains_nonzero(curves.selection_curve_float());
-  }
-  BLI_assert_unreachable();
-  return false;
+  const VArray<bool> selection = curves.attributes().lookup<bool>(".selection");
+  return !selection || contains(selection, true);
 }
 
-static bool any_point_selected(const CurvesGeometry &curves)
+static bool has_anything_selected(const Span<Curves *> curves_ids)
 {
-  return varray_contains_nonzero(curves.selection_point_float());
-}
-
-static bool any_point_selected(const Span<Curves *> curves_ids)
-{
-  for (const Curves *curves_id : curves_ids) {
-    if (any_point_selected(CurvesGeometry::wrap(curves_id->geometry))) {
-      return true;
-    }
-  }
-  return false;
+  return std::any_of(curves_ids.begin(), curves_ids.end(), [](const Curves *curves_id) {
+    return has_anything_selected(*curves_id);
+  });
 }
 
 namespace select_all {
@@ -887,6 +866,16 @@ static void invert_selection(MutableSpan<float> selection)
   });
 }
 
+static void invert_selection(GMutableSpan selection)
+{
+  if (selection.type().is<bool>()) {
+    array_utils::invert_booleans(selection.typed<bool>());
+  }
+  else if (selection.type().is<float>()) {
+    invert_selection(selection.typed<float>());
+  }
+}
+
 static int select_all_exec(bContext *C, wmOperator *op)
 {
   int action = RNA_enum_get(op->ptr, "action");
@@ -894,27 +883,34 @@ static int select_all_exec(bContext *C, wmOperator *op)
   VectorSet<Curves *> unique_curves = get_unique_editable_curves(*C);
 
   if (action == SEL_TOGGLE) {
-    action = any_point_selected(unique_curves) ? SEL_DESELECT : SEL_SELECT;
+    action = has_anything_selected(unique_curves) ? SEL_DESELECT : SEL_SELECT;
   }
 
   for (Curves *curves_id : unique_curves) {
     CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
     if (action == SEL_SELECT) {
       /* As an optimization, just remove the selection attributes when everything is selected. */
-      bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-      attributes.remove(".selection_point_float");
-      attributes.remove(".selection_curve_float");
+      attributes.remove(".selection");
+    }
+    else if (!attributes.contains(".selection")) {
+      BLI_assert(ELEM(action, SEL_INVERT, SEL_DESELECT));
+      /* If the attribute doesn't exist and it's either deleted or inverted, create
+       * it with nothing selected, since that means everything was selected before. */
+      attributes.add(".selection",
+                     eAttrDomain(curves_id->selection_domain),
+                     CD_PROP_BOOL,
+                     bke::AttributeInitDefaultValue());
     }
     else {
-      MutableSpan<float> selection = curves_id->selection_domain == ATTR_DOMAIN_POINT ?
-                                         curves.selection_point_float_for_write() :
-                                         curves.selection_curve_float_for_write();
+      bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection");
       if (action == SEL_DESELECT) {
-        selection.fill(0.0f);
+        fill_selection_false(selection.span);
       }
       else if (action == SEL_INVERT) {
-        invert_selection(selection);
+        invert_selection(selection.span);
       }
+      selection.finish();
     }
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -997,7 +993,7 @@ static int surface_set_exec(bContext *C, wmOperator *op)
 
     DEG_id_tag_update(&curves_ob.id, ID_RECALC_TRANSFORM);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, &curves_id);
-    WM_event_add_notifier(C, NC_NODE | NA_ADDED, NULL);
+    WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
 
     /* Required for deformation. */
     new_surface_ob.modifier_flag |= OB_MODIFIER_FLAG_ADD_REST_POSITION;
@@ -1035,6 +1031,5 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_snap_curves_to_surface);
   WM_operatortype_append(CURVES_OT_set_selection_domain);
   WM_operatortype_append(SCULPT_CURVES_OT_select_all);
-  WM_operatortype_append(CURVES_OT_disable_selection);
   WM_operatortype_append(CURVES_OT_surface_set);
 }

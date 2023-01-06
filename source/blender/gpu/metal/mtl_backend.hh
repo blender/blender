@@ -66,8 +66,10 @@ class MTLBackend : public GPUBackend {
   Context *context_alloc(void *ghost_window, void *ghost_context) override;
   Batch *batch_alloc() override;
   DrawList *drawlist_alloc(int list_length) override;
+  Fence *fence_alloc() override;
   FrameBuffer *framebuffer_alloc(const char *name) override;
   IndexBuf *indexbuf_alloc() override;
+  PixelBuffer *pixelbuf_alloc(uint size) override;
   QueryPool *querypool_alloc() override;
   Shader *shader_alloc(const char *name) override;
   Texture *texture_alloc(const char *name) override;

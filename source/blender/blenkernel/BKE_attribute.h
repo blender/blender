@@ -90,7 +90,7 @@ int BKE_id_attributes_length(const struct ID *id,
                              eCustomDataMask mask);
 
 struct CustomDataLayer *BKE_id_attributes_active_get(struct ID *id);
-void BKE_id_attributes_active_set(struct ID *id, struct CustomDataLayer *layer);
+void BKE_id_attributes_active_set(struct ID *id, const char *name);
 int *BKE_id_attributes_active_index_p(struct ID *id);
 
 CustomData *BKE_id_attributes_iterator_next_domain(struct ID *id, struct CustomDataLayer *layers);
@@ -104,16 +104,6 @@ int BKE_id_attribute_to_index(const struct ID *id,
                               const CustomDataLayer *layer,
                               eAttrDomainMask domain_mask,
                               eCustomDataMask layer_mask);
-
-struct CustomDataLayer *BKE_id_attribute_subset_active_get(const struct ID *id,
-                                                           int active_flag,
-                                                           eAttrDomainMask domain_mask,
-                                                           eCustomDataMask mask);
-void BKE_id_attribute_subset_active_set(struct ID *id,
-                                        struct CustomDataLayer *layer,
-                                        int active_flag,
-                                        eAttrDomainMask domain_mask,
-                                        eCustomDataMask mask);
 
 /**
  * Sets up a temporary ID with arbitrary CustomData domains. `r_id` will
@@ -130,10 +120,13 @@ void BKE_id_attribute_copy_domains_temp(short id_type,
                                         const struct CustomData *cdata,
                                         struct ID *r_id);
 
+const char *BKE_id_attributes_active_color_name(const struct ID *id);
+const char *BKE_id_attributes_default_color_name(const struct ID *id);
+
 struct CustomDataLayer *BKE_id_attributes_active_color_get(const struct ID *id);
-void BKE_id_attributes_active_color_set(struct ID *id, struct CustomDataLayer *active_layer);
-struct CustomDataLayer *BKE_id_attributes_render_color_get(const struct ID *id);
-void BKE_id_attributes_render_color_set(struct ID *id, struct CustomDataLayer *active_layer);
+void BKE_id_attributes_active_color_set(struct ID *id, const char *name);
+struct CustomDataLayer *BKE_id_attributes_default_color_get(const struct ID *id);
+void BKE_id_attributes_default_color_set(struct ID *id, const char *name);
 struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const char *name);
 
 bool BKE_id_attribute_calc_unique_name(struct ID *id, const char *name, char *outname);

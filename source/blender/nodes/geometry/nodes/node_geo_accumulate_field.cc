@@ -40,33 +40,33 @@ static void node_declare(NodeDeclarationBuilder &b)
           N_("An index used to group values together for multiple separate accumulations"));
 
   b.add_output<decl::Vector>(N_("Leading"), "Leading Vector")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(leading_out_description));
   b.add_output<decl::Float>(N_("Leading"), "Leading Float")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(leading_out_description));
   b.add_output<decl::Int>(N_("Leading"), "Leading Int")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(leading_out_description));
 
   b.add_output<decl::Vector>(N_("Trailing"), "Trailing Vector")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(trailing_out_description));
   b.add_output<decl::Float>(N_("Trailing"), "Trailing Float")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(trailing_out_description));
   b.add_output<decl::Int>(N_("Trailing"), "Trailing Int")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(trailing_out_description));
 
   b.add_output<decl::Vector>(N_("Total"), "Total Vector")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(total_out_description));
   b.add_output<decl::Float>(N_("Total"), "Total Float")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(total_out_description));
   b.add_output<decl::Int>(N_("Total"), "Total Int")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(total_out_description));
 }
 
@@ -425,8 +425,8 @@ void register_node_type_geo_accumulate_field()
 
   geo_node_type_base(&ntype, GEO_NODE_ACCUMULATE_FIELD, "Accumulate Field", NODE_CLASS_CONVERTER);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   ntype.draw_buttons = file_ns::node_layout;
   ntype.declare = file_ns::node_declare;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;

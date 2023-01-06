@@ -254,13 +254,11 @@ void MeshFromGeometry::create_edges(Mesh *mesh)
     dst_edge.v1 = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge.v1, 0);
     dst_edge.v2 = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge.v2, 0);
     BLI_assert(dst_edge.v1 < total_verts && dst_edge.v2 < total_verts);
-    dst_edge.flag = ME_LOOSEEDGE;
   }
 
   /* Set argument `update` to true so that existing, explicitly imported edges can be merged
    * with the new ones created from polygons. */
   BKE_mesh_calc_edges(mesh, true, false);
-  BKE_mesh_calc_edges_loose(mesh);
 }
 
 void MeshFromGeometry::create_uv_verts(Mesh *mesh)
@@ -378,6 +376,7 @@ void MeshFromGeometry::create_colors(Mesh *mesh)
       /* This block is suitable, use colors from it. */
       CustomDataLayer *color_layer = BKE_id_attribute_new(
           &mesh->id, "Color", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
+      BKE_id_attributes_active_color_set(&mesh->id, color_layer->name);
       float4 *colors = (float4 *)color_layer->data;
       int offset = mesh_geometry_.vertex_index_min_ - block.start_vertex_index;
       for (int i = 0, n = mesh_geometry_.get_vertex_count(); i != n; ++i) {

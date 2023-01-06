@@ -67,86 +67,228 @@ struct CurvePoint : public CurveSegment {
 };
 
 /**
- * Cyclical index range. Iterates the interval [start, end).
+ * Cyclical index range. Allows iteration over a plain 'IndexRange' interval on form [start, end)
+ * while also supporting treating the underlying array as a cyclic array where the last index is
+ * followed by the first index in the 'cyclical' range. The cyclical index range can then be
+ * considered a combination of the intervals separated by the last index of the underlying array,
+ * namely [start, range_size) and [0, end) where start/end is the indices iterated between and
+ * range_size is the size of the underlying array. To cycle the underlying array the interval
+ * [0, range_size) can be iterated over an arbitrary amount of times in between.
  */
 class IndexRangeCyclic {
   /* Index to the start and end of the iterated range.
    */
-  int64_t start_ = 0;
-  int64_t end_ = 0;
-  /* Index for the start and end of the entire iterable range which contains the iterated range
-   * (e.g. the point range for an individual spline/curve within the entire Curves point domain).
+  int start_ = 0;
+  int end_ = 0;
+  /* Size of the underlying iterable range.
    */
-  int64_t range_start_ = 0;
-  int64_t range_end_ = 0;
+  int range_size_ = 0;
   /* Number of times the range end is passed when the range is iterated.
    */
-  int64_t cycles_ = 0;
-
-  constexpr IndexRangeCyclic(int64_t begin,
-                             int64_t end,
-                             int64_t iterable_range_start,
-                             int64_t iterable_range_end,
-                             int64_t cycles)
-      : start_(begin),
-        end_(end),
-        range_start_(iterable_range_start),
-        range_end_(iterable_range_end),
-        cycles_(cycles)
-  {
-  }
+  int cycles_ = 0;
 
  public:
   constexpr IndexRangeCyclic() = default;
   ~IndexRangeCyclic() = default;
 
-  constexpr IndexRangeCyclic(int64_t start, int64_t end, IndexRange iterable_range, int64_t cycles)
-      : start_(start),
-        end_(end),
-        range_start_(iterable_range.first()),
-        range_end_(iterable_range.one_after_last()),
-        cycles_(cycles)
+  constexpr IndexRangeCyclic(const int start,
+                             const int end,
+                             const int iterable_range_size,
+                             const int cycles)
+      : start_(start), end_(end), range_size_(iterable_range_size), cycles_(cycles)
   {
   }
 
   /**
    * Create an iterator over the cyclical interval [start_index, end_index).
    */
-  constexpr IndexRangeCyclic(int64_t start, int64_t end, IndexRange iterable_range)
+  constexpr IndexRangeCyclic(const int start, const int end, const int iterable_range_size)
       : start_(start),
-        end_(end == iterable_range.one_after_last() ? iterable_range.first() : end),
-        range_start_(iterable_range.first()),
-        range_end_(iterable_range.one_after_last()),
+        end_(end == iterable_range_size ? 0 : end),
+        range_size_(iterable_range_size),
         cycles_(end < start)
   {
   }
 
   /**
-   * Increment the range by adding the given number of indices to the beginning of the range.
+   * Create a cyclical iterator of the specified size.
+   *
+   * \param start_point: Point on the curve that define the starting point of the interval.
+   * \param iterator_size: Number of elements to iterate (size of the iterated cyclical range).
+   * \param iterable_range_size: Size of the underlying range (superset to the cyclical range).
    */
-  constexpr IndexRangeCyclic push_forward(int n)
+  static IndexRangeCyclic get_range_from_size(const int start_index,
+                                              const int iterator_size,
+                                              const int iterable_range_size)
   {
-    BLI_assert(n >= 0);
-    int64_t nstart = start_ - n;
-    int64_t cycles = cycles_;
-    if (nstart < range_start_) {
+    BLI_assert(start_index >= 0);
+    BLI_assert(iterator_size >= 0);
+    BLI_assert(iterable_range_size > 0);
+    const int num_until_loop = iterable_range_size - start_index;
+    if (iterator_size < num_until_loop) {
+      return IndexRangeCyclic(start_index, start_index + iterator_size, iterable_range_size, 0);
+    }
 
-      cycles += (int64_t)(n / (range_end_ - range_start_)) + (end_ < nstart) - (end_ < start_);
-    }
-    return {nstart, end_, range_start_, range_end_, cycles};
+    const int num_remaining = iterator_size - num_until_loop;
+    const int num_full_cycles = num_remaining /
+                                iterable_range_size; /* Integer division (rounded down). */
+    const int end_index = num_remaining - num_full_cycles * iterable_range_size;
+    return IndexRangeCyclic(start_index, end_index, iterable_range_size, num_full_cycles + 1);
   }
+
   /**
-   * Increment the range by adding the given number of indices to the end of the range.
+   * Create a cyclical iterator for all control points within the interval [start_point, end_point]
+   * including any control point at the start or end point.
+   *
+   * \param start_point: Point on the curve that define the starting point of the interval.
+   * \param end_point: Point on the curve that define the end point of the interval (included).
+   * \param iterable_range_size: Size of the underlying range (superset to the cyclical range).
    */
-  constexpr IndexRangeCyclic push_backward(int n)
+  static IndexRangeCyclic get_range_between_endpoints(const CurvePoint start_point,
+                                                      const CurvePoint end_point,
+                                                      const int iterable_range_size)
+  {
+    BLI_assert(iterable_range_size > 0);
+    const int start_index = start_point.parameter == 0.0 ? start_point.index :
+                                                           start_point.next_index;
+    int end_index = end_point.parameter == 0.0 ? end_point.index : end_point.next_index;
+    int cycles;
+
+    if (end_point.is_controlpoint()) {
+      BLI_assert(end_index < iterable_range_size);
+      ++end_index;
+      if (end_index == iterable_range_size) {
+        end_index = 0;
+      }
+      /* end_point < start_point but parameter is irrelevant (end_point is controlpoint), and loop
+       * when equal due to increment. */
+      cycles = end_index <= start_index;
+    }
+    else {
+      cycles = end_point < start_point || end_index < start_index;
+    }
+    return IndexRangeCyclic(start_index, end_index, iterable_range_size, cycles);
+  }
+
+  /**
+   * Next index within the iterable range.
+   */
+  template<typename IndexT> constexpr IndexT next_index(const IndexT index, const bool cyclic)
+  {
+    static_assert((is_same_any_v<IndexT, int, int>), "Expected signed integer type.");
+    const IndexT next_index = index + 1;
+    if (next_index == this->size_range()) {
+      return cyclic ? 0 : index;
+    }
+    return next_index;
+  }
+
+  /**
+   * Previous index within the iterable range.
+   */
+  template<typename IndexT> constexpr IndexT previous_index(const IndexT index, const bool cyclic)
+  {
+    static_assert((is_same_any_v<IndexT, int, int64_t>), "Expected signed integer type.");
+    const IndexT prev_index = index - 1;
+    if (prev_index < 0) {
+      return cyclic ? this->size_range() - 1 : 0;
+    }
+    return prev_index;
+  }
+
+  /**
+   * Increment the range by adding `n` loops to the range. This invokes undefined behavior when n
+   * is negative.
+   */
+  constexpr IndexRangeCyclic push_loop(const int n = 1) const
+  {
+    return {this->start_, this->end_, this->range_size_, this->cycles_ + n};
+  }
+
+  /**
+   * Increment the range by adding the given number of indices to the beginning of the iterated
+   * range. This invokes undefined behavior when n is negative.
+   */
+  constexpr IndexRangeCyclic push_front(const int n = 1) const
   {
     BLI_assert(n >= 0);
-    int64_t new_end = end_ + n;
-    int64_t cycles = cycles_;
-    if (range_end_ <= new_end) {
-      cycles += (int64_t)(n / (range_end_ - range_start_)) + (new_end < start_) - (end_ < start_);
+    int new_start = this->start_ - n;
+    int num_cycles = this->cycles_;
+    if (new_start < 0) {
+      const int new_cycles = n / this->size_range(); /* Integer division (floor) */
+      const int remainder = new_start + this->size_range() * new_cycles;
+      const bool underflow = remainder < 0;
+      new_start = remainder + (underflow ? this->size_range() : 0);
+      num_cycles += new_cycles + int(underflow);
     }
-    return {start_, new_end, range_start_, range_end_, cycles};
+    BLI_assert(num_cycles >= 0);
+    BLI_assert(num_cycles > 0 ||
+               (new_start <= this->end_ || (this->end_ == 0 && new_start < this->size_range())));
+    return {new_start, this->end_, this->range_size_, num_cycles};
+  }
+
+  /**
+   * Increment the range by adding the given number of indices to the end of the iterated range.
+   * This invokes undefined behavior when n is negative.
+   */
+  constexpr IndexRangeCyclic push_back(const int n = 1) const
+  {
+    BLI_assert(n >= 0);
+    int new_end = this->end_ + n;
+    int num_cycles = this->cycles_;
+    if (this->size_range() <= new_end) {
+      const int new_cycles = n / this->size_range(); /* Integer division (floor) */
+      const int remainder = new_end - this->size_range() * new_cycles;
+      const bool overflow = remainder >= this->size_range();
+      new_end = remainder - (overflow ? this->size_range() : 0);
+      num_cycles += new_cycles + int(overflow);
+    }
+    BLI_assert(num_cycles >= 0);
+    BLI_assert(num_cycles > 0 || (this->start_ <= new_end || new_end == 0));
+    return {this->start_, new_end, this->range_size_, num_cycles};
+  }
+
+  /**
+   * Returns a new range with n indices removed from the beginning of the range.
+   * This invokes undefined behavior.
+   */
+  constexpr IndexRangeCyclic drop_front(const int n = 1) const
+  {
+    BLI_assert(n >= 0);
+    int new_start = this->start_ + n;
+    int num_cycles = this->cycles_;
+    if (this->size_range() <= new_start) {
+      const int dropped_cycles = n / this->size_range(); /* Integer division (floor) */
+      const int remainder = new_start - this->size_range() * dropped_cycles;
+      const bool overflow = remainder >= this->size_range();
+      new_start = remainder - (overflow ? this->size_range() : 0);
+      num_cycles -= dropped_cycles + int(overflow);
+    }
+    BLI_assert(num_cycles >= 0);
+    BLI_assert(num_cycles > 0 ||
+               (new_start <= this->end_ || (this->end_ == 0 && new_start < this->size_range())));
+    return {new_start, this->end_, this->range_size_, num_cycles};
+  }
+
+  /**
+   * Returns a new range with n indices removed from the end of the range.
+   * This invokes undefined behavior when n is negative or n is larger then the underlying range.
+   */
+  constexpr IndexRangeCyclic drop_back(const int n = 1) const
+  {
+    BLI_assert(n >= 0);
+    int new_end = this->end_ - n;
+    int num_cycles = this->cycles_;
+    if (0 >= new_end) {
+      const int dropped_cycles = n / this->size_range(); /* Integer division (floor) */
+      const int remainder = new_end + this->size_range() * dropped_cycles;
+      const bool underflow = remainder < 0;
+      new_end = remainder + (underflow ? this->size_range() : 0);
+      num_cycles -= dropped_cycles + int(underflow);
+    }
+    BLI_assert(num_cycles >= 0);
+    BLI_assert(num_cycles > 0 || (this->start_ <= new_end || new_end == 0));
+    return {this->start_, new_end, this->range_size_, num_cycles};
   }
 
   /**
@@ -154,7 +296,7 @@ class IndexRangeCyclic {
    */
   constexpr IndexRange curve_range() const
   {
-    return IndexRange(range_start_, total_size());
+    return IndexRange(0, this->size_range());
   }
 
   /**
@@ -162,7 +304,7 @@ class IndexRangeCyclic {
    */
   constexpr IndexRange range_before_loop() const
   {
-    return IndexRange(start_, size_before_loop());
+    return IndexRange(this->start_, this->size_before_loop());
   }
 
   /**
@@ -170,88 +312,104 @@ class IndexRangeCyclic {
    */
   constexpr IndexRange range_after_loop() const
   {
-    return IndexRange(range_start_, size_after_loop());
+    return IndexRange(0, this->size_after_loop());
   }
 
   /**
-   * Size of the entire iterable range.
+   * Number of elements in the underlying iterable range.
    */
-  constexpr int64_t total_size() const
+  constexpr int size_range() const
   {
-    return range_end_ - range_start_;
+    return this->range_size_;
   }
 
   /**
    * Number of elements between the first element in the range up to the last element in the curve.
    */
-  constexpr int64_t size_before_loop() const
+  constexpr int size_before_loop() const
   {
-    return range_end_ - start_;
+    return this->range_size_ - this->start_;
   }
 
   /**
    * Number of elements between the first element in the iterable range up to the last element in
    * the range.
    */
-  constexpr int64_t size_after_loop() const
+  constexpr int size_after_loop() const
   {
-    return end_ - range_start_;
+    return this->end_;
   }
 
   /**
-   * Get number of elements iterated by the cyclical index range.
+   * Number of elements iterated by the cyclical index range.
    */
-  constexpr int64_t size() const
+  constexpr int size() const
   {
-    if (cycles_ > 0) {
-      return size_before_loop() + end_ + (cycles_ - 1) * (range_end_ - range_start_);
+    if (this->cycles_ > 0) {
+      return this->size_before_loop() + this->end_ + (this->cycles_ - 1) * this->range_size_;
     }
     else {
-      return end_ - start_;
+      return int(this->end_ - this->start_);
     }
   }
 
   /**
    * Return the number of times the iterator will cycle before ending.
    */
-  constexpr int64_t cycles() const
+  constexpr int cycles() const
   {
-    return cycles_;
+    return this->cycles_;
   }
 
-  constexpr int64_t first() const
+  constexpr int first() const
   {
-    return start_;
+    return this->start_;
   }
 
-  constexpr int64_t one_after_last() const
+  constexpr int last() const
   {
-    return end_;
+    BLI_assert(this->size() > 0);
+    return int(this->end_ - 1);
+  }
+
+  constexpr int one_after_last() const
+  {
+    return this->end_;
+  }
+
+  constexpr bool operator==(const IndexRangeCyclic &other) const
+  {
+    return this->start_ == other.start_ && this->end_ == other.end_ &&
+           this->cycles_ == other.cycles_ && this->range_size_ == other.range_size_;
+  }
+  constexpr bool operator!=(const IndexRangeCyclic &other) const
+  {
+    return !this->operator==(other);
   }
 
   struct CyclicIterator; /* Forward declaration */
 
   constexpr CyclicIterator begin() const
   {
-    return CyclicIterator(range_start_, range_end_, start_, 0);
+    return CyclicIterator(this->range_size_, this->start_, 0);
   }
 
   constexpr CyclicIterator end() const
   {
-    return CyclicIterator(range_start_, range_end_, end_, cycles_);
+    return CyclicIterator(this->range_size_, this->end_, this->cycles_);
   }
 
   struct CyclicIterator {
-    int64_t index_, begin_, end_, cycles_;
+    int index_, range_end_, cycles_;
 
-    constexpr CyclicIterator(int64_t range_begin, int64_t range_end, int64_t index, int64_t cycles)
-        : index_(index), begin_(range_begin), end_(range_end), cycles_(cycles)
+    constexpr CyclicIterator(const int range_end, const int index, const int cycles)
+        : index_(index), range_end_(range_end), cycles_(cycles)
     {
-      BLI_assert(range_begin <= index && index <= range_end);
+      BLI_assert(0 <= index && index <= range_end);
     }
 
     constexpr CyclicIterator(const CyclicIterator &copy)
-        : index_(copy.index_), begin_(copy.begin_), end_(copy.end_), cycles_(copy.cycles_)
+        : index_(copy.index_), range_end_(copy.range_end_), cycles_(copy.cycles_)
     {
     }
     ~CyclicIterator() = default;
@@ -261,37 +419,36 @@ class IndexRangeCyclic {
       if (this == &copy) {
         return *this;
       }
-      index_ = copy.index_;
-      begin_ = copy.begin_;
-      end_ = copy.end_;
-      cycles_ = copy.cycles_;
+      this->index_ = copy.index_;
+      this->range_end_ = copy.range_end_;
+      this->cycles_ = copy.cycles_;
       return *this;
     }
     constexpr CyclicIterator &operator++()
     {
-      index_++;
-      if (index_ == end_) {
-        index_ = begin_;
-        cycles_++;
+      this->index_++;
+      if (this->index_ == this->range_end_) {
+        this->index_ = 0;
+        this->cycles_++;
       }
       return *this;
     }
 
-    void increment(int64_t n)
+    void increment(const int n)
     {
       for (int i = 0; i < n; i++) {
         ++*this;
       }
     }
 
-    constexpr const int64_t &operator*() const
+    constexpr const int &operator*() const
     {
-      return index_;
+      return this->index_;
     }
 
     constexpr bool operator==(const CyclicIterator &other) const
     {
-      return index_ == other.index_ && cycles_ == other.cycles_;
+      return this->index_ == other.index_ && this->cycles_ == other.cycles_;
     }
     constexpr bool operator!=(const CyclicIterator &other) const
     {

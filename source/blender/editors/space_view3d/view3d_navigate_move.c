@@ -4,6 +4,8 @@
  * \ingroup spview3d
  */
 
+#include "BLI_math_vector.h"
+
 #include "BKE_context.h"
 
 #include "WM_api.h"
@@ -101,11 +103,8 @@ static int viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
   bool use_autokey = false;
   int ret = OPERATOR_RUNNING_MODAL;
 
-  /* execute the events */
-  if (event->type == MOUSEMOVE) {
-    event_code = VIEW_APPLY;
-  }
-  else if (event->type == EVT_MODAL_MAP) {
+  /* Execute the events. */
+  if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
       case VIEW_MODAL_CONFIRM:
         event_code = VIEW_CONFIRM;
@@ -120,27 +119,51 @@ static int viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
         break;
     }
   }
-  else if (event->type == vod->init.event_type && event->val == KM_RELEASE) {
-    event_code = VIEW_CONFIRM;
-  }
-
-  if (event_code == VIEW_APPLY) {
-    viewmove_apply(vod, event->xy[0], event->xy[1]);
-    if (ED_screen_animation_playing(CTX_wm_manager(C))) {
-      use_autokey = true;
+  else {
+    if (event->type == MOUSEMOVE) {
+      event_code = VIEW_APPLY;
+    }
+    else if (event->type == vod->init.event_type) {
+      if (event->val == KM_RELEASE) {
+        event_code = VIEW_CONFIRM;
+      }
+    }
+    else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
+      if (event->val == KM_PRESS) {
+        event_code = VIEW_CANCEL;
+      }
     }
   }
-  else if (event_code == VIEW_CONFIRM) {
-    use_autokey = true;
-    ret = OPERATOR_FINISHED;
+
+  switch (event_code) {
+    case VIEW_APPLY: {
+      viewmove_apply(vod, event->xy[0], event->xy[1]);
+      if (ED_screen_animation_playing(CTX_wm_manager(C))) {
+        use_autokey = true;
+      }
+      break;
+    }
+    case VIEW_CONFIRM: {
+      use_autokey = true;
+      ret = OPERATOR_FINISHED;
+      break;
+    }
+    case VIEW_CANCEL: {
+      viewmove_apply_reset(vod);
+      ED_view3d_camera_lock_sync(vod->depsgraph, vod->v3d, vod->rv3d);
+      ret = OPERATOR_CANCELLED;
+      break;
+    }
   }
 
   if (use_autokey) {
     ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, false, true);
   }
 
-  if (ret & OPERATOR_FINISHED) {
-    ED_view3d_camera_lock_undo_push(op->type->name, vod->v3d, vod->rv3d, C);
+  if ((ret & OPERATOR_RUNNING_MODAL) == 0) {
+    if (ret & OPERATOR_FINISHED) {
+      ED_view3d_camera_lock_undo_push(op->type->name, vod->v3d, vod->rv3d, C);
+    }
     viewops_data_free(C, op->customdata);
     op->customdata = NULL;
   }

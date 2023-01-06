@@ -1,15 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
-#include "BLI_cpp_type_make.hh"
 #include "BLI_rand.hh"
 #include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
-
-BLI_CPP_TYPE_MAKE(InstanceReference, blender::bke::InstanceReference, CPPTypeFlags::None)
 
 namespace blender::bke {
 
@@ -108,7 +105,8 @@ blender::Span<InstanceReference> Instances::references() const
   return references_;
 }
 
-void Instances::remove(const IndexMask mask)
+void Instances::remove(const IndexMask mask,
+                       const AnonymousAttributePropagationInfo &propagation_info)
 {
   using namespace blender;
   if (mask.is_range() && mask.as_range().start() == 0) {
@@ -135,7 +133,7 @@ void Instances::remove(const IndexMask mask)
 
   src_attributes.foreach_attribute(
       [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData &meta_data) {
-        if (!id.should_be_kept()) {
+        if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
           return true;
         }
 

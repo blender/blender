@@ -32,7 +32,7 @@ void register_node_type_sh_point_info()
 
   sh_node_type_base(&ntype, SH_NODE_POINT_INFO, "Point Info", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_point_info);
+  ntype.gpu_fn = file_ns::node_shader_gpu_point_info;
 
   nodeRegisterType(&ntype);
 }

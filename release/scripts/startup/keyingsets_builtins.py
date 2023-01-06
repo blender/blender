@@ -597,7 +597,7 @@ class BUILTIN_KSI_DeltaRotation(KeyingSetInfo):
             path = keyingsets_utils.path_add_property(base_path, "delta_rotation_quaternion")
         elif data.rotation_mode == 'AXIS_ANGLE':
             # XXX: for now, this is not available yet
-            #path = path_add_property(base_path, "delta_rotation_axis_angle")
+            # path = path_add_property(base_path, "delta_rotation_axis_angle")
             return
         else:
             path = keyingsets_utils.path_add_property(base_path, "delta_rotation_euler")
@@ -637,7 +637,7 @@ class BUILTIN_KSI_DeltaScale(KeyingSetInfo):
 ###############################
 
 
-# Note that this controls order of options in 'insert keyframe' menu.
+# Note that this controls order of options in `insert keyframe` menu.
 # Better try to keep some logical order here beyond mere alphabetical one, also because of menu entries shortcut.
 # See also T51867.
 classes = (

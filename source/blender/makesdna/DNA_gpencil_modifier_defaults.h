@@ -152,6 +152,9 @@
     .vgname = "", \
     .pass_index = 0, \
     .flag = 0, \
+    .stroke_step = 1, \
+    .mode = GP_OFFSET_RANDOM, \
+    .stroke_start_offset = 0, \
     .loc = {0.0f, 0.0f, 0.0f}, \
     .rot = {0.0f, 0.0f, 0.0f}, \
     .scale = {0.0f, 0.0f, 0.0f}, \

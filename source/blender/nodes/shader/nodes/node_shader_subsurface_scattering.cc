@@ -6,6 +6,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "BKE_node_runtime.hh"
+
 namespace blender::nodes::node_shader_subsurface_scattering_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -50,7 +52,7 @@ static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat,
     GPU_link(mat, "world_normals_get", &in[5].link);
   }
 
-  bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->original->inputs, 2);
+  bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->runtime->original->inputs, 2);
   bNodeSocketValueRGBA *socket_data = (bNodeSocketValueRGBA *)socket->default_value;
   /* For some reason it seems that the socket value is in ARGB format. */
   bool use_subsurf = GPU_material_sss_profile_create(mat, &socket_data->value[1]);
@@ -87,9 +89,9 @@ void register_node_type_sh_subsurface_scattering()
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_subsurface;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, file_ns::node_shader_init_subsurface_scattering);
-  node_type_gpu(&ntype, file_ns::node_shader_gpu_subsurface_scattering);
-  node_type_update(&ntype, file_ns::node_shader_update_subsurface_scattering);
+  ntype.initfunc = file_ns::node_shader_init_subsurface_scattering;
+  ntype.gpu_fn = file_ns::node_shader_gpu_subsurface_scattering;
+  ntype.updatefunc = file_ns::node_shader_update_subsurface_scattering;
 
   nodeRegisterType(&ntype);
 }

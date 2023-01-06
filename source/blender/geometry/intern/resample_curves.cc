@@ -53,7 +53,7 @@ static fn::Field<int> get_count_input_from_length(const fn::Field<float> &length
 static bool interpolate_attribute_to_curves(const bke::AttributeIDRef &attribute_id,
                                             const std::array<int, CURVE_TYPES_NUM> &type_counts)
 {
-  if (!attribute_id.is_named()) {
+  if (attribute_id.is_anonymous()) {
     return true;
   }
   if (ELEM(attribute_id.name(),
@@ -81,7 +81,7 @@ static bool interpolate_attribute_to_poly_curve(const bke::AttributeIDRef &attri
       "handle_left",
       "nurbs_weight",
   }};
-  return !(attribute_id.is_named() && no_interpolation.contains(attribute_id.name()));
+  return !no_interpolation.contains(attribute_id.name());
 }
 
 /**
@@ -254,7 +254,7 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
   bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
   evaluator.set_selection(selection_field);
-  evaluator.add_with_destination(count_field, dst_offsets);
+  evaluator.add_with_destination(count_field, dst_offsets.drop_back(1));
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
   const Vector<IndexRange> unselected_ranges = selection.extract_ranges_invert(

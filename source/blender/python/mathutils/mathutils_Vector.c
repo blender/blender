@@ -1667,7 +1667,7 @@ static Py_hash_t Vector_hash(VectorObject *self)
  * \{ */
 
 /** Sequence length: `len(object)`. */
-static int Vector_len(VectorObject *self)
+static Py_ssize_t Vector_len(VectorObject *self)
 {
   return self->vec_num;
 }
@@ -1699,7 +1699,7 @@ static PyObject *vector_item_internal(VectorObject *self, int i, const bool is_a
 }
 
 /** Sequence accessor (get): `x = object[i]`. */
-static PyObject *Vector_item(VectorObject *self, int i)
+static PyObject *Vector_item(VectorObject *self, Py_ssize_t i)
 {
   return vector_item_internal(self, i, false);
 }
@@ -1747,7 +1747,7 @@ static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, 
 }
 
 /** Sequence accessor (set): `object[i] = x`. */
-static int Vector_ass_item(VectorObject *self, int i, PyObject *value)
+static int Vector_ass_item(VectorObject *self, Py_ssize_t i, PyObject *value)
 {
   return vector_ass_item_internal(self, i, value, false);
 }
@@ -2387,61 +2387,61 @@ static PyObject *Vector_neg(VectorObject *self)
  * \{ */
 
 static PySequenceMethods Vector_SeqMethods = {
-    (lenfunc)Vector_len,              /*sq_length*/
-    (binaryfunc)NULL,                 /*sq_concat*/
-    (ssizeargfunc)NULL,               /*sq_repeat*/
-    (ssizeargfunc)Vector_item,        /*sq_item*/
-    NULL,                             /*sq_slice(DEPRECATED)*/
-    (ssizeobjargproc)Vector_ass_item, /*sq_ass_item*/
-    NULL,                             /*sq_ass_slice(DEPRECATED)*/
-    (objobjproc)NULL,                 /*sq_contains*/
-    (binaryfunc)NULL,                 /*sq_inplace_concat */
-    (ssizeargfunc)NULL,               /*sq_inplace_repeat */
+    /*sq_length*/ (lenfunc)Vector_len,
+    /*sq_concat*/ NULL,
+    /*sq_repeat*/ NULL,
+    /*sq_item*/ (ssizeargfunc)Vector_item,
+    /*was_sq_slice*/ NULL, /* DEPRECATED. */
+    /*sq_ass_item*/ (ssizeobjargproc)Vector_ass_item,
+    /*was_sq_ass_slice*/ NULL, /* DEPRECATED. */
+    /*sq_contains*/ NULL,
+    /*sq_inplace_concat */ NULL,
+    /*sq_inplace_repeat */ NULL,
 };
 
 static PyMappingMethods Vector_AsMapping = {
-    (lenfunc)Vector_len,
-    (binaryfunc)Vector_subscript,
-    (objobjargproc)Vector_ass_subscript,
+    /*mp_len*/ (lenfunc)Vector_len,
+    /*mp_subscript*/ (binaryfunc)Vector_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)Vector_ass_subscript,
 };
 
 static PyNumberMethods Vector_NumMethods = {
-    (binaryfunc)Vector_add,     /*nb_add*/
-    (binaryfunc)Vector_sub,     /*nb_subtract*/
-    (binaryfunc)Vector_mul,     /*nb_multiply*/
-    NULL,                       /*nb_remainder*/
-    NULL,                       /*nb_divmod*/
-    NULL,                       /*nb_power*/
-    (unaryfunc)Vector_neg,      /*nb_negative*/
-    (unaryfunc)Vector_copy,     /*tp_positive*/
-    (unaryfunc)NULL,            /*tp_absolute*/
-    (inquiry)NULL,              /*tp_bool*/
-    (unaryfunc)NULL,            /*nb_invert*/
-    NULL,                       /*nb_lshift*/
-    (binaryfunc)NULL,           /*nb_rshift*/
-    NULL,                       /*nb_and*/
-    NULL,                       /*nb_xor*/
-    NULL,                       /*nb_or*/
-    NULL,                       /*nb_int*/
-    NULL,                       /*nb_reserved*/
-    NULL,                       /*nb_float*/
-    Vector_iadd,                /*nb_inplace_add*/
-    Vector_isub,                /*nb_inplace_subtract*/
-    Vector_imul,                /*nb_inplace_multiply*/
-    NULL,                       /*nb_inplace_remainder*/
-    NULL,                       /*nb_inplace_power*/
-    NULL,                       /*nb_inplace_lshift*/
-    NULL,                       /*nb_inplace_rshift*/
-    NULL,                       /*nb_inplace_and*/
-    NULL,                       /*nb_inplace_xor*/
-    NULL,                       /*nb_inplace_or*/
-    NULL,                       /*nb_floor_divide*/
-    Vector_div,                 /*nb_true_divide*/
-    NULL,                       /*nb_inplace_floor_divide*/
-    Vector_idiv,                /*nb_inplace_true_divide*/
-    NULL,                       /*nb_index*/
-    (binaryfunc)Vector_matmul,  /*nb_matrix_multiply*/
-    (binaryfunc)Vector_imatmul, /*nb_inplace_matrix_multiply*/
+    /*nb_add*/ (binaryfunc)Vector_add,
+    /*nb_subtract*/ (binaryfunc)Vector_sub,
+    /*nb_multiply*/ (binaryfunc)Vector_mul,
+    /*nb_remainder*/ NULL,
+    /*nb_divmod*/ NULL,
+    /*nb_power*/ NULL,
+    /*nb_negative*/ (unaryfunc)Vector_neg,
+    /*tp_positive*/ (unaryfunc)Vector_copy,
+    /*tp_absolute*/ NULL,
+    /*tp_bool*/ NULL,
+    /*nb_invert*/ NULL,
+    /*nb_lshift*/ NULL,
+    /*nb_rshift*/ NULL,
+    /*nb_and*/ NULL,
+    /*nb_xor*/ NULL,
+    /*nb_or*/ NULL,
+    /*nb_int*/ NULL,
+    /*nb_reserved*/ NULL,
+    /*nb_float*/ NULL,
+    /*nb_inplace_add*/ Vector_iadd,
+    /*nb_inplace_subtract*/ Vector_isub,
+    /*nb_inplace_multiply*/ Vector_imul,
+    /*nb_inplace_remainder*/ NULL,
+    /*nb_inplace_power*/ NULL,
+    /*nb_inplace_lshift*/ NULL,
+    /*nb_inplace_rshift*/ NULL,
+    /*nb_inplace_and*/ NULL,
+    /*nb_inplace_xor*/ NULL,
+    /*nb_inplace_or*/ NULL,
+    /*nb_floor_divide*/ NULL,
+    /*nb_true_divide*/ Vector_div,
+    /*nb_inplace_floor_divide*/ NULL,
+    /*nb_inplace_true_divide*/ Vector_idiv,
+    /*nb_index*/ NULL,
+    /*nb_matrix_multiply*/ (binaryfunc)Vector_matmul,
+    /*nb_inplace_matrix_multiply*/ (binaryfunc)Vector_imatmul,
 };
 
 /** \} */
@@ -3183,6 +3183,10 @@ static struct PyMethodDef Vector_methods[] = {
  * both get sent to Vector_mul and it needs to sort out the order
  * \{ */
 
+#ifdef MATH_STANDALONE
+#  define Vector_str NULL
+#endif
+
 PyDoc_STRVAR(vector_doc,
              ".. class:: Vector(seq)\n"
              "\n"
@@ -3192,88 +3196,59 @@ PyDoc_STRVAR(vector_doc,
              "   :type seq: sequence of numbers\n");
 PyTypeObject vector_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    /*  For printing, in format "<module>.<name>" */
-    "Vector",             /* char *tp_name; */
-    sizeof(VectorObject), /* int tp_basicsize; */
-    0,                    /* tp_itemsize;  For allocation */
-
-    /* Methods to implement standard operations */
-
-    (destructor)BaseMathObject_dealloc, /* destructor tp_dealloc; */
-    0,                                  /* tp_vectorcall_offset */
-    NULL,                               /* getattrfunc tp_getattr; */
-    NULL,                               /* setattrfunc tp_setattr; */
-    NULL,                               /* cmpfunc tp_compare; */
-    (reprfunc)Vector_repr,              /* reprfunc tp_repr; */
-
-    /* Method suites for standard classes */
-
-    &Vector_NumMethods, /* PyNumberMethods *tp_as_number; */
-    &Vector_SeqMethods, /* PySequenceMethods *tp_as_sequence; */
-    &Vector_AsMapping,  /* PyMappingMethods *tp_as_mapping; */
-
-    /* More standard operations (here for binary compatibility) */
-
-    (hashfunc)Vector_hash, /* hashfunc tp_hash; */
-    NULL,                  /* ternaryfunc tp_call; */
-#ifndef MATH_STANDALONE
-    (reprfunc)Vector_str, /* reprfunc tp_str; */
-#else
-    NULL, /* reprfunc tp_str; */
-#endif
-    NULL, /* getattrofunc tp_getattro; */
-    NULL, /* setattrofunc tp_setattro; */
-
-    /* Functions to access object as input/output buffer */
-    NULL, /* PyBufferProcs *tp_as_buffer; */
-
-    /*** Flags to define presence of optional/expanded features ***/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-    vector_doc, /*  char *tp_doc;  Documentation string */
-    /*** Assigned meaning in release 2.0 ***/
-
-    /* call function for all accessible objects */
-    (traverseproc)BaseMathObject_traverse, /* tp_traverse */
-
-    /* delete references to contained objects */
-    (inquiry)BaseMathObject_clear, /* tp_clear */
-
-    /***  Assigned meaning in release 2.1 ***/
-    /*** rich comparisons ***/
-    (richcmpfunc)Vector_richcmpr, /* richcmpfunc tp_richcompare; */
-
-    /***  weak reference enabler ***/
-    0, /* long tp_weaklistoffset; */
-
-    /*** Added in release 2.2 ***/
-    /*   Iterators */
-    NULL, /* getiterfunc tp_iter; */
-    NULL, /* iternextfunc tp_iternext; */
-
-    /*** Attribute descriptor and subclassing stuff ***/
-    Vector_methods,   /* struct PyMethodDef *tp_methods; */
-    NULL,             /* struct PyMemberDef *tp_members; */
-    Vector_getseters, /* struct PyGetSetDef *tp_getset; */
-    NULL,             /* struct _typeobject *tp_base; */
-    NULL,             /* PyObject *tp_dict; */
-    NULL,             /* descrgetfunc tp_descr_get; */
-    NULL,             /* descrsetfunc tp_descr_set; */
-    0,                /* long tp_dictoffset; */
-    NULL,             /* initproc tp_init; */
-    NULL,             /* allocfunc tp_alloc; */
-    Vector_new,       /* newfunc tp_new; */
-    /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free; */
-    /* For PyObject_IS_GC */
-    (inquiry)BaseMathObject_is_gc, /* inquiry tp_is_gc; */
-    NULL,                          /* PyObject *tp_bases; */
-    /* method resolution order */
-    NULL, /* PyObject *tp_mro; */
-    NULL, /* PyObject *tp_cache; */
-    NULL, /* PyObject *tp_subclasses; */
-    NULL, /* PyObject *tp_weaklist; */
-    NULL,
+    /*tp_name*/ "Vector",
+    /*tp_basicsize*/ sizeof(VectorObject),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)BaseMathObject_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ NULL,
+    /*tp_setattr*/ NULL,
+    /*tp_as_async*/ NULL,
+    /*tp_repr*/ (reprfunc)Vector_repr,
+    /*tp_as_number*/ &Vector_NumMethods,
+    /*tp_as_sequence*/ &Vector_SeqMethods,
+    /*tp_as_mapping*/ &Vector_AsMapping,
+    /*tp_hash*/ (hashfunc)Vector_hash,
+    /*tp_call*/ NULL,
+    /*tp_str*/ (reprfunc)Vector_str,
+    /*tp_getattro*/ NULL,
+    /*tp_setattro*/ NULL,
+    /*tp_as_buffer*/ NULL,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+    /*tp_doc*/ vector_doc,
+    /*tp_traverse*/ (traverseproc)BaseMathObject_traverse,
+    /*tp_clear*/ (inquiry)BaseMathObject_clear,
+    /*tp_richcompare*/ (richcmpfunc)Vector_richcmpr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ NULL,
+    /*tp_iternext*/ NULL,
+    /*tp_methods*/ Vector_methods,
+    /*tp_members*/ NULL,
+    /*tp_getset*/ Vector_getseters,
+    /*tp_base*/ NULL,
+    /*tp_dict*/ NULL,
+    /*tp_descr_get*/ NULL,
+    /*tp_descr_set*/ NULL,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ NULL,
+    /*tp_alloc*/ NULL,
+    /*tp_new*/ Vector_new,
+    /*tp_free*/ NULL,
+    /*tp_is_gc*/ (inquiry)BaseMathObject_is_gc,
+    /*tp_bases*/ NULL,
+    /*tp_mro*/ NULL,
+    /*tp_cache*/ NULL,
+    /*tp_subclasses*/ NULL,
+    /*tp_weaklist*/ NULL,
+    /*tp_del*/ NULL,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ NULL,
+    /*tp_vectorcall*/ NULL,
 };
+
+#ifdef MATH_STANDALONE
+#  undef Vector_str NULL
+#endif
 
 /** \} */
 

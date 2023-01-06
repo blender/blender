@@ -20,7 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("The number of corners to move around the face before finding the result, "
                       "circling around the start of the face if necessary"));
   b.add_output<decl::Int>(N_("Corner Index"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(N_("The index of the offset corner"));
 }
 
@@ -73,6 +73,12 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
     return VArray<int>::ForContainer(std::move(offset_corners));
   }
 
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
+  {
+    corner_index_.node().for_each_field_input_recursive(fn);
+    offset_.node().for_each_field_input_recursive(fn);
+  }
+
   uint64_t hash() const final
   {
     return get_default_hash(offset_);
@@ -85,6 +91,11 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
       return other_field->corner_index_ == corner_index_ && other_field->offset_ == offset_;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
+  {
+    return ATTR_DOMAIN_CORNER;
   }
 };
 

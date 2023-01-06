@@ -154,17 +154,17 @@ ccl_device_inline half float_to_half_display(const float f)
 
 ccl_device_inline half4 float4_to_half4_display(const float4 f)
 {
-#ifdef __KERNEL_SSE2__
+#ifdef __KERNEL_SSE__
   /* CPU: SSE and AVX. */
-  ssef x = min(max(load4f(f), 0.0f), 65504.0f);
+  float4 x = min(max(f, make_float4(0.0f)), make_float4(65504.0f));
 #  ifdef __KERNEL_AVX2__
-  ssei rpack = _mm_cvtps_ph(x, 0);
+  int4 rpack = int4(_mm_cvtps_ph(x, 0));
 #  else
-  ssei absolute = cast(x) & 0x7FFFFFFF;
-  ssei Z = absolute + 0xC8000000;
-  ssei result = andnot(absolute < 0x38800000, Z);
-  ssei rshift = (result >> 13) & 0x7FFF;
-  ssei rpack = _mm_packs_epi32(rshift, rshift);
+  int4 absolute = cast(x) & make_int4(0x7FFFFFFF);
+  int4 Z = absolute + make_int4(0xC8000000);
+  int4 result = andnot(absolute < make_int4(0x38800000), Z);
+  int4 rshift = (result >> 13) & make_int4(0x7FFF);
+  int4 rpack = int4(_mm_packs_epi32(rshift, rshift));
 #  endif
   half4 h;
   _mm_storel_pi((__m64 *)&h, _mm_castsi128_ps(rpack));

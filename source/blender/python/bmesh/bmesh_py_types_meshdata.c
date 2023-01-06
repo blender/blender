@@ -375,7 +375,7 @@ PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *mloopcol)
  * its only that BMesh is the only part of blender that uses a hand written api like this.
  * This type could eventually be used to access lattice weights.
  *
- * \note Many of blender-api's dict-like-wrappers act like ordered dicts,
+ * \note Many of Blender-API's dictionary-like-wrappers act like ordered dictionaries,
  * This is intentionally _not_ ordered, the weights can be in any order and it won't matter,
  * the order should not be used in the api in any meaningful way (as with a python dict)
  * only expose as mapping, not a sequence.
@@ -391,7 +391,7 @@ typedef struct BPy_BMDeformVert {
 /* Mapping Protocols
  * ================= */
 
-static int bpy_bmdeformvert_len(BPy_BMDeformVert *self)
+static Py_ssize_t bpy_bmdeformvert_len(BPy_BMDeformVert *self)
 {
   return self->data->totweight;
 }
@@ -486,26 +486,24 @@ static int bpy_bmdeformvert_contains(BPy_BMDeformVert *self, PyObject *value)
 
 /* only defined for __contains__ */
 static PySequenceMethods bpy_bmdeformvert_as_sequence = {
-    (lenfunc)bpy_bmdeformvert_len, /* sq_length */
-    NULL,                          /* sq_concat */
-    NULL,                          /* sq_repeat */
-
+    /*sq_length*/ (lenfunc)bpy_bmdeformvert_len,
+    /*sq_concat*/ NULL,
+    /*sq_repeat*/ NULL,
     /* NOTE: if this is set #PySequence_Check() returns True,
      * but in this case we don't want to be treated as a seq. */
-    NULL, /* sq_item */
-
-    NULL,                                  /* sq_slice */
-    NULL,                                  /* sq_ass_item */
-    NULL,                                  /* *was* sq_ass_slice */
-    (objobjproc)bpy_bmdeformvert_contains, /* sq_contains */
-    (binaryfunc)NULL,                      /* sq_inplace_concat */
-    (ssizeargfunc)NULL,                    /* sq_inplace_repeat */
+    /*sq_item*/ NULL,
+    /*was_sq_slice*/ NULL, /* DEPRECATED. */
+    /*sq_ass_item*/ NULL,
+    /*was_sq_ass_slice*/ NULL, /* DEPRECATED. */
+    /*sq_contains*/ (objobjproc)bpy_bmdeformvert_contains,
+    /*sq_inplace_concat*/ NULL,
+    /*sq_inplace_repeat*/ NULL,
 };
 
 static PyMappingMethods bpy_bmdeformvert_as_mapping = {
-    (lenfunc)bpy_bmdeformvert_len,
-    (binaryfunc)bpy_bmdeformvert_subscript,
-    (objobjargproc)bpy_bmdeformvert_ass_subscript,
+    /*mp_len*/ (lenfunc)bpy_bmdeformvert_len,
+    /*mp_subscript*/ (binaryfunc)bpy_bmdeformvert_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)bpy_bmdeformvert_ass_subscript,
 };
 
 /* Methods

@@ -881,13 +881,13 @@ static Py_hash_t Quaternion_hash(QuaternionObject *self)
  * \{ */
 
 /** Sequence length: `len(object)`. */
-static int Quaternion_len(QuaternionObject *UNUSED(self))
+static Py_ssize_t Quaternion_len(QuaternionObject *UNUSED(self))
 {
   return QUAT_SIZE;
 }
 
 /** Sequence accessor (get): `x = object[i]`. */
-static PyObject *Quaternion_item(QuaternionObject *self, int i)
+static PyObject *Quaternion_item(QuaternionObject *self, Py_ssize_t i)
 {
   if (i < 0) {
     i = QUAT_SIZE - i;
@@ -908,7 +908,7 @@ static PyObject *Quaternion_item(QuaternionObject *self, int i)
 }
 
 /** Sequence accessor (set): `object[i] = x`. */
-static int Quaternion_ass_item(QuaternionObject *self, int i, PyObject *ob)
+static int Quaternion_ass_item(QuaternionObject *self, Py_ssize_t i, PyObject *ob)
 {
   float f;
 
@@ -1342,61 +1342,61 @@ static PyObject *Quaternion_neg(QuaternionObject *self)
  * \{ */
 
 static PySequenceMethods Quaternion_SeqMethods = {
-    (lenfunc)Quaternion_len,              /*sq_length*/
-    (binaryfunc)NULL,                     /*sq_concat*/
-    (ssizeargfunc)NULL,                   /*sq_repeat*/
-    (ssizeargfunc)Quaternion_item,        /*sq_item*/
-    (ssizessizeargfunc)NULL,              /*sq_slice(deprecated)*/
-    (ssizeobjargproc)Quaternion_ass_item, /*sq_ass_item*/
-    (ssizessizeobjargproc)NULL,           /*sq_ass_slice(deprecated)*/
-    (objobjproc)NULL,                     /*sq_contains*/
-    (binaryfunc)NULL,                     /*sq_inplace_concat*/
-    (ssizeargfunc)NULL,                   /*sq_inplace_repeat*/
+    /*sq_length*/ (lenfunc)Quaternion_len,
+    /*sq_concat*/ NULL,
+    /*sq_repeat*/ NULL,
+    /*sq_item*/ (ssizeargfunc)Quaternion_item,
+    /*was_sq_slice*/ NULL, /* DEPRECATED. */
+    /*sq_ass_item*/ (ssizeobjargproc)Quaternion_ass_item,
+    /*was_sq_ass_slice*/ NULL, /* DEPRECATED. */
+    /*sq_contains*/ NULL,
+    /*sq_inplace_concat*/ NULL,
+    /*sq_inplace_repeat*/ NULL,
 };
 
 static PyMappingMethods Quaternion_AsMapping = {
-    (lenfunc)Quaternion_len,
-    (binaryfunc)Quaternion_subscript,
-    (objobjargproc)Quaternion_ass_subscript,
+    /*mp_len*/ (lenfunc)Quaternion_len,
+    /*mp_subscript*/ (binaryfunc)Quaternion_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)Quaternion_ass_subscript,
 };
 
 static PyNumberMethods Quaternion_NumMethods = {
-    (binaryfunc)Quaternion_add,     /*nb_add*/
-    (binaryfunc)Quaternion_sub,     /*nb_subtract*/
-    (binaryfunc)Quaternion_mul,     /*nb_multiply*/
-    NULL,                           /*nb_remainder*/
-    NULL,                           /*nb_divmod*/
-    NULL,                           /*nb_power*/
-    (unaryfunc)Quaternion_neg,      /*nb_negative*/
-    (unaryfunc)Quaternion_copy,     /*tp_positive*/
-    (unaryfunc)0,                   /*tp_absolute*/
-    (inquiry)0,                     /*tp_bool*/
-    (unaryfunc)0,                   /*nb_invert*/
-    NULL,                           /*nb_lshift*/
-    (binaryfunc)0,                  /*nb_rshift*/
-    NULL,                           /*nb_and*/
-    NULL,                           /*nb_xor*/
-    NULL,                           /*nb_or*/
-    NULL,                           /*nb_int*/
-    NULL,                           /*nb_reserved*/
-    NULL,                           /*nb_float*/
-    NULL,                           /*nb_inplace_add*/
-    NULL,                           /*nb_inplace_subtract*/
-    (binaryfunc)Quaternion_imul,    /*nb_inplace_multiply*/
-    NULL,                           /*nb_inplace_remainder*/
-    NULL,                           /*nb_inplace_power*/
-    NULL,                           /*nb_inplace_lshift*/
-    NULL,                           /*nb_inplace_rshift*/
-    NULL,                           /*nb_inplace_and*/
-    NULL,                           /*nb_inplace_xor*/
-    NULL,                           /*nb_inplace_or*/
-    NULL,                           /*nb_floor_divide*/
-    NULL,                           /*nb_true_divide*/
-    NULL,                           /*nb_inplace_floor_divide*/
-    NULL,                           /*nb_inplace_true_divide*/
-    NULL,                           /*nb_index*/
-    (binaryfunc)Quaternion_matmul,  /*nb_matrix_multiply*/
-    (binaryfunc)Quaternion_imatmul, /*nb_inplace_matrix_multiply*/
+    /*nb_add*/ (binaryfunc)Quaternion_add,
+    /*nb_subtract*/ (binaryfunc)Quaternion_sub,
+    /*nb_multiply*/ (binaryfunc)Quaternion_mul,
+    /*nb_remainder*/ NULL,
+    /*nb_divmod*/ NULL,
+    /*nb_power*/ NULL,
+    /*nb_negative*/ (unaryfunc)Quaternion_neg,
+    /*tp_positive*/ (unaryfunc)Quaternion_copy,
+    /*tp_absolute*/ NULL,
+    /*tp_bool*/ NULL,
+    /*nb_invert*/ NULL,
+    /*nb_lshift*/ NULL,
+    /*nb_rshift*/ NULL,
+    /*nb_and*/ NULL,
+    /*nb_xor*/ NULL,
+    /*nb_or*/ NULL,
+    /*nb_int*/ NULL,
+    /*nb_reserved*/ NULL,
+    /*nb_float*/ NULL,
+    /*nb_inplace_add*/ NULL,
+    /*nb_inplace_subtract*/ NULL,
+    /*nb_inplace_multiply*/ (binaryfunc)Quaternion_imul,
+    /*nb_inplace_remainder*/ NULL,
+    /*nb_inplace_power*/ NULL,
+    /*nb_inplace_lshift*/ NULL,
+    /*nb_inplace_rshift*/ NULL,
+    /*nb_inplace_and*/ NULL,
+    /*nb_inplace_xor*/ NULL,
+    /*nb_inplace_or*/ NULL,
+    /*nb_floor_divide*/ NULL,
+    /*nb_true_divide*/ NULL,
+    /*nb_inplace_floor_divide*/ NULL,
+    /*nb_inplace_true_divide*/ NULL,
+    /*nb_index*/ NULL,
+    /*nb_matrix_multiply*/ (binaryfunc)Quaternion_matmul,
+    /*nb_inplace_matrix_multiply*/ (binaryfunc)Quaternion_imatmul,
 };
 
 /** \} */
@@ -1657,6 +1657,10 @@ static struct PyMethodDef Quaternion_methods[] = {
 /** \name Quaternion Type: Python Object Definition
  * \{ */
 
+#ifdef MATH_STANDALONE
+#  define Quaternion_str NULL
+#endif
+
 PyDoc_STRVAR(quaternion_doc,
              ".. class:: Quaternion([seq, [angle]])\n"
              "\n"
@@ -1682,56 +1686,60 @@ PyDoc_STRVAR(quaternion_doc,
              "\n"
              "      .. seealso:: :meth:`to_axis_angle`\n");
 PyTypeObject quaternion_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "Quaternion", /* tp_name */
-    sizeof(QuaternionObject),                    /* tp_basicsize */
-    0,                                           /* tp_itemsize */
-    (destructor)BaseMathObject_dealloc,          /* tp_dealloc */
-    (printfunc)NULL,                             /* tp_print */
-    NULL,                                        /* tp_getattr */
-    NULL,                                        /* tp_setattr */
-    NULL,                                        /* tp_compare */
-    (reprfunc)Quaternion_repr,                   /* tp_repr */
-    &Quaternion_NumMethods,                      /* tp_as_number */
-    &Quaternion_SeqMethods,                      /* tp_as_sequence */
-    &Quaternion_AsMapping,                       /* tp_as_mapping */
-    (hashfunc)Quaternion_hash,                   /* tp_hash */
-    NULL,                                        /* tp_call */
-#ifndef MATH_STANDALONE
-    (reprfunc)Quaternion_str, /* tp_str */
-#else
-    NULL, /* tp_str */
-#endif
-    NULL,                                                          /* tp_getattro */
-    NULL,                                                          /* tp_setattro */
-    NULL,                                                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /* tp_flags */
-    quaternion_doc,                                                /* tp_doc */
-    (traverseproc)BaseMathObject_traverse,                         /* tp_traverse */
-    (inquiry)BaseMathObject_clear,                                 /* tp_clear */
-    (richcmpfunc)Quaternion_richcmpr,                              /* tp_richcompare */
-    0,                                                             /* tp_weaklistoffset */
-    NULL,                                                          /* tp_iter */
-    NULL,                                                          /* tp_iternext */
-    Quaternion_methods,                                            /* tp_methods */
-    NULL,                                                          /* tp_members */
-    Quaternion_getseters,                                          /* tp_getset */
-    NULL,                                                          /* tp_base */
-    NULL,                                                          /* tp_dict */
-    NULL,                                                          /* tp_descr_get */
-    NULL,                                                          /* tp_descr_set */
-    0,                                                             /* tp_dictoffset */
-    NULL,                                                          /* tp_init */
-    NULL,                                                          /* tp_alloc */
-    Quaternion_new,                                                /* tp_new */
-    NULL,                                                          /* tp_free */
-    (inquiry)BaseMathObject_is_gc,                                 /* tp_is_gc */
-    NULL,                                                          /* tp_bases */
-    NULL,                                                          /* tp_mro */
-    NULL,                                                          /* tp_cache */
-    NULL,                                                          /* tp_subclasses */
-    NULL,                                                          /* tp_weaklist */
-    NULL,                                                          /* tp_del */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /*tp_name*/ "Quaternion",
+    /*tp_basicsize*/ sizeof(QuaternionObject),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)BaseMathObject_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ NULL,
+    /*tp_setattr*/ NULL,
+    /*tp_as_async*/ NULL,
+    /*tp_repr*/ (reprfunc)Quaternion_repr,
+    /*tp_as_number*/ &Quaternion_NumMethods,
+    /*tp_as_sequence*/ &Quaternion_SeqMethods,
+    /*tp_as_mapping*/ &Quaternion_AsMapping,
+    /*tp_hash*/ (hashfunc)Quaternion_hash,
+    /*tp_call*/ NULL,
+    /*tp_str*/ (reprfunc)Quaternion_str,
+    /*tp_getattro*/ NULL,
+    /*tp_setattro*/ NULL,
+    /*tp_as_buffer*/ NULL,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+    /*tp_doc*/ quaternion_doc,
+    /*tp_traverse*/ (traverseproc)BaseMathObject_traverse,
+    /*tp_clear*/ (inquiry)BaseMathObject_clear,
+    /*tp_richcompare*/ (richcmpfunc)Quaternion_richcmpr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ NULL,
+    /*tp_iternext*/ NULL,
+    /*tp_methods*/ Quaternion_methods,
+    /*tp_members*/ NULL,
+    /*tp_getset*/ Quaternion_getseters,
+    /*tp_base*/ NULL,
+    /*tp_dict*/ NULL,
+    /*tp_descr_get*/ NULL,
+    /*tp_descr_set*/ NULL,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ NULL,
+    /*tp_alloc*/ NULL,
+    /*tp_new*/ Quaternion_new,
+    /*tp_free*/ NULL,
+    /*tp_is_gc*/ (inquiry)BaseMathObject_is_gc,
+    /*tp_bases*/ NULL,
+    /*tp_mro*/ NULL,
+    /*tp_cache*/ NULL,
+    /*tp_subclasses*/ NULL,
+    /*tp_weaklist*/ NULL,
+    /*tp_del*/ NULL,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ NULL,
+    /*tp_vectorcall*/ NULL,
 };
+
+#ifdef MATH_STANDALONE
+#  undef Quaternion_str
+#endif
 
 /** \} */
 

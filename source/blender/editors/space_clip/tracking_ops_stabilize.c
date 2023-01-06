@@ -40,14 +40,14 @@ static int stabilize_2d_add_exec(bContext *C, wmOperator *UNUSED(op))
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-  MovieTrackingStabilization *stab = &tracking->stabilization;
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+  MovieTrackingStabilization *stabilization = &tracking->stabilization;
 
   bool update = false;
-  for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_USE_2D_STAB) == 0) {
       track->flag |= TRACK_USE_2D_STAB;
-      stab->tot_track++;
+      stabilization->tot_track++;
       update = true;
     }
   }
@@ -82,19 +82,19 @@ static int stabilize_2d_remove_exec(bContext *C, wmOperator *UNUSED(op))
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingStabilization *stab = &tracking->stabilization;
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  MovieTrackingStabilization *stabilization = &tracking->stabilization;
   int a = 0;
   bool update = false;
 
-  for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (track->flag & TRACK_USE_2D_STAB) {
-      if (a == stab->act_track) {
+      if (a == stabilization->act_track) {
         track->flag &= ~TRACK_USE_2D_STAB;
-        stab->act_track--;
-        stab->tot_track--;
-        if (stab->act_track < 0) {
-          stab->act_track = 0;
+        stabilization->act_track--;
+        stabilization->tot_track--;
+        if (stabilization->act_track < 0) {
+          stabilization->act_track = 0;
         }
         update = true;
         break;
@@ -132,11 +132,10 @@ static int stabilize_2d_select_exec(bContext *C, wmOperator *UNUSED(op))
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTracking *tracking = &clip->tracking;
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   bool update = false;
 
-  for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (track->flag & TRACK_USE_2D_STAB) {
       BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
       update = true;
@@ -172,14 +171,14 @@ static int stabilize_2d_rotation_add_exec(bContext *C, wmOperator *UNUSED(op))
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-  MovieTrackingStabilization *stab = &tracking->stabilization;
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+  MovieTrackingStabilization *stabilization = &tracking->stabilization;
 
   bool update = false;
-  for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_USE_2D_STAB_ROT) == 0) {
       track->flag |= TRACK_USE_2D_STAB_ROT;
-      stab->tot_rot_track++;
+      stabilization->tot_rot_track++;
       update = true;
     }
   }
@@ -214,19 +213,19 @@ static int stabilize_2d_rotation_remove_exec(bContext *C, wmOperator *UNUSED(op)
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
-  MovieTrackingStabilization *stab = &tracking->stabilization;
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+  MovieTrackingStabilization *stabilization = &tracking->stabilization;
   int a = 0;
   bool update = false;
 
-  for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (track->flag & TRACK_USE_2D_STAB_ROT) {
-      if (a == stab->act_rot_track) {
+      if (a == stabilization->act_rot_track) {
         track->flag &= ~TRACK_USE_2D_STAB_ROT;
-        stab->act_rot_track--;
-        stab->tot_rot_track--;
-        if (stab->act_rot_track < 0) {
-          stab->act_rot_track = 0;
+        stabilization->act_rot_track--;
+        stabilization->tot_rot_track--;
+        if (stabilization->act_rot_track < 0) {
+          stabilization->act_rot_track = 0;
         }
         update = true;
         break;
@@ -264,11 +263,10 @@ static int stabilize_2d_rotation_select_exec(bContext *C, wmOperator *UNUSED(op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTracking *tracking = &clip->tracking;
-  ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   bool update = false;
 
-  for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (track->flag & TRACK_USE_2D_STAB_ROT) {
       BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
       update = true;

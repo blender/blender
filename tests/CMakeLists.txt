@@ -20,9 +20,9 @@ else()
   endif()
 endif()
 
-# The installation directory's Python is the best one to use. However, it can only be there after the install step,
-# which means that Python will never be there on a fresh system. To suit different needs, the user can pass
-# -DTEST_PYTHON_EXE=/path/to/python to CMake.
+# The installation directory's Python is the best one to use. However, it can only be there
+# after the install step, # which means that Python will never be there on a fresh system.
+# To suit different needs, the user can pass `-DTEST_PYTHON_EXE=/path/to/python` to CMake.
 if(NOT TEST_PYTHON_EXE)
   set(TEST_PYTHON_EXE ${PYTHON_EXECUTABLE})
   message(STATUS "Tests: Using Python executable: ${TEST_PYTHON_EXE}")
@@ -30,6 +30,19 @@ elseif(NOT EXISTS ${TEST_PYTHON_EXE})
   message(FATAL_ERROR "Tests: TEST_PYTHON_EXE ${TEST_PYTHON_EXE} does not exist")
 endif()
 
+
+# Include these arguments before all others, they must not interfere with Python execution.
+set(TEST_PYTHON_EXE_EXTRA_ARGS)
+
+# Check if this a Blender managed Python installation, if so, don't add `*.pyc` files.
+if(LIBDIR)
+  path_is_prefix(LIBDIR TEST_PYTHON_EXE _is_prefix)
+  if(_is_prefix)
+    # Keep the Python in Blender's SVN LIBDIR pristine, to avoid conflicts on updating.
+    set(TEST_PYTHON_EXE_EXTRA_ARGS "-B")
+  endif()
+  unset(_is_prefix)
+endif()
 
 # For testing with Valgrind
 # set(TEST_BLENDER_EXE valgrind --track-origins=yes --error-limit=no ${TEST_BLENDER_EXE})

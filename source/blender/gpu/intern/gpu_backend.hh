@@ -18,8 +18,10 @@ class Context;
 
 class Batch;
 class DrawList;
+class Fence;
 class FrameBuffer;
 class IndexBuf;
+class PixelBuffer;
 class QueryPool;
 class Shader;
 class Texture;
@@ -42,8 +44,10 @@ class GPUBackend {
 
   virtual Batch *batch_alloc() = 0;
   virtual DrawList *drawlist_alloc(int list_length) = 0;
+  virtual Fence *fence_alloc() = 0;
   virtual FrameBuffer *framebuffer_alloc(const char *name) = 0;
   virtual IndexBuf *indexbuf_alloc() = 0;
+  virtual PixelBuffer *pixelbuf_alloc(uint size) = 0;
   virtual QueryPool *querypool_alloc() = 0;
   virtual Shader *shader_alloc(const char *name) = 0;
   virtual Texture *texture_alloc(const char *name) = 0;

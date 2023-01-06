@@ -175,7 +175,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         if (pxr::UsdAttribute radius_attr = sphere_light.GetRadiusAttr()) {
           float radius = 0.0f;
           if (radius_attr.Get(&radius, motionSampleTime)) {
-            blight->area_size = radius;
+            blight->radius = radius;
           }
         }
       }
@@ -192,7 +192,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         if (pxr::UsdAttribute radius_attr = sphere_light.GetRadiusAttr()) {
           float radius = 0.0f;
           if (radius_attr.Get(&radius, motionSampleTime)) {
-            blight->area_size = radius;
+            blight->radius = radius;
           }
         }
 

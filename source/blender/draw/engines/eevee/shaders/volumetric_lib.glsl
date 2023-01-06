@@ -186,9 +186,6 @@ vec3 irradiance_volumetric(vec3 wpos)
 #endif
 }
 
-uniform sampler3D inScattering;
-uniform sampler3D inTransmittance;
-
 void volumetric_resolve(vec2 frag_uvs,
                         float frag_depth,
                         out vec3 transmittance,

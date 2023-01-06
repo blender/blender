@@ -190,8 +190,8 @@ void register_node_type_sh_math()
   sh_fn_node_type_base(&ntype, SH_NODE_MATH, "Math", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_math_declare;
   ntype.labelfunc = node_math_label;
-  node_type_gpu(&ntype, file_ns::gpu_shader_math);
-  node_type_update(&ntype, node_math_update);
+  ntype.gpu_fn = file_ns::gpu_shader_math;
+  ntype.updatefunc = node_math_update;
   ntype.build_multi_function = file_ns::sh_node_math_build_multi_function;
   ntype.gather_link_search_ops = file_ns::sh_node_math_gather_link_searches;
 

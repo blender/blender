@@ -1831,7 +1831,7 @@ static BMesh *build_skin(SkinNode *skin_nodes,
                          }));
   so.mat_nr = 0;
 
-  /* BMESH_TODO: bumping up the stack level (see MOD_array.c) */
+  /* BMESH_TODO: bumping up the stack level (see MOD_array.cc) */
   BM_mesh_elem_toolflags_ensure(so.bm);
   BMO_push(so.bm, NULL);
   bmesh_edit_begin(so.bm, 0);

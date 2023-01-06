@@ -751,7 +751,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
 #define FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) \
   { \
-    invert_m4_m4(obedit->imat, obedit->object_to_world); \
+    invert_m4_m4(obedit->world_to_object, obedit->object_to_world); \
     uint objects_len = 0; \
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode( \
         scene, view_layer, CTX_wm_view3d(C), &objects_len); \
@@ -780,7 +780,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->imat, ob_iter->object_to_world);
+          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
         }
 
         BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
@@ -800,7 +800,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->imat, ob_iter->object_to_world);
+          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
         }
         LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
           if (EBONE_VISIBLE(arm, ebo)) {
@@ -833,7 +833,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->imat, ob_iter->object_to_world);
+          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
         }
 
         nu = nurbs->first;
@@ -893,7 +893,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->imat, ob_iter->object_to_world);
+          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
         }
 
         LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
@@ -913,7 +913,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->imat, ob_iter->object_to_world);
+          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
         }
 
         while (a--) {
@@ -939,7 +939,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     }
   }
   else if (ob && (ob->mode & OB_MODE_POSE)) {
-    invert_m4_m4(ob->imat, ob->object_to_world);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
     uint objects_len = 0;
     Object **objects = BKE_object_pose_array_get(scene, view_layer, v3d, &objects_len);
@@ -954,7 +954,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
       float mat_local[4][4];
       if (use_mat_local) {
-        mul_m4_m4m4(mat_local, ob->imat, ob_iter->object_to_world);
+        mul_m4_m4m4(mat_local, ob->world_to_object, ob_iter->object_to_world);
       }
 
       /* Use channels to get stats. */

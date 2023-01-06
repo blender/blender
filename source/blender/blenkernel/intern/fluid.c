@@ -1532,18 +1532,8 @@ static void emit_from_particles(Object *flow_ob,
     sim.scene = scene;
     sim.ob = flow_ob;
     sim.psys = psys;
-    sim.psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
-    /* prepare curvemapping tables */
-    if ((psys->part->child_flag & PART_CHILD_USE_CLUMP_CURVE) && psys->part->clumpcurve) {
-      BKE_curvemapping_changed_all(psys->part->clumpcurve);
-    }
-    if ((psys->part->child_flag & PART_CHILD_USE_ROUGH_CURVE) && psys->part->roughcurve) {
-      BKE_curvemapping_changed_all(psys->part->roughcurve);
-    }
-    if ((psys->part->child_flag & PART_CHILD_USE_TWIST_CURVE) && psys->part->twistcurve) {
-      BKE_curvemapping_changed_all(psys->part->twistcurve);
-    }
+    psys_sim_data_init(&sim);
 
     /* initialize particle cache */
     if (psys->part->type == PART_HAIR) {
@@ -1684,6 +1674,8 @@ static void emit_from_particles(Object *flow_ob,
     if (particle_vel) {
       MEM_freeN(particle_vel);
     }
+
+    psys_sim_data_free(&sim);
   }
 }
 
@@ -3495,12 +3487,12 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
 
     /* Calculate required shift to match domain's global position
      * it was originally simulated at (if object moves without manta step). */
-    invert_m4_m4(ob->imat, ob->object_to_world);
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
     mul_m4_v3(ob->object_to_world, ob_loc);
     mul_m4_v3(fds->obmat, ob_cache_loc);
     sub_v3_v3v3(fds->obj_shift_f, ob_cache_loc, ob_loc);
     /* Convert shift to local space and apply to vertices. */
-    mul_mat3_m4_v3(ob->imat, fds->obj_shift_f);
+    mul_mat3_m4_v3(ob->world_to_object, fds->obj_shift_f);
     /* Apply shift to vertices. */
     for (int i = 0; i < num_verts; i++) {
       add_v3_v3(mverts[i].co, fds->obj_shift_f);

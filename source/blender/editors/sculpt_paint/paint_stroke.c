@@ -179,7 +179,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
   immUniform4f("color", 0.0f, 0.0f, 0.0f, alpha);
   immUniform4f("color2", 1.0f, 1.0f, 1.0f, alpha);
   immUniform1f("dash_width", 6.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   immBegin(GPU_PRIM_LINES, 2);
 
@@ -249,7 +249,7 @@ static bool paint_stroke_use_scene_spacing(Brush *brush, ePaintMode mode)
 
 static bool paint_tool_raycast_original(Brush *brush, ePaintMode UNUSED(mode))
 {
-  return brush->flag & BRUSH_ANCHORED;
+  return brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT);
 }
 
 static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode mode)
@@ -681,8 +681,9 @@ static float paint_space_stroke_spacing(bContext *C,
   if (paint_stroke_use_scene_spacing(brush, mode)) {
     if (!BKE_brush_use_locked_size(scene, brush)) {
       float last_object_space_position[3];
-      mul_v3_m4v3(
-          last_object_space_position, stroke->vc.obact->imat, stroke->last_world_space_position);
+      mul_v3_m4v3(last_object_space_position,
+                  stroke->vc.obact->world_to_object,
+                  stroke->last_world_space_position);
       size_clamp = paint_calc_object_space_radius(&stroke->vc, last_object_space_position, size);
     }
     else {

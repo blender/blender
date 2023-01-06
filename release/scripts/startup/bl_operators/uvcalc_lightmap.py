@@ -228,8 +228,8 @@ def lightmap_uvpack(
     """
     BOX_DIV if the maximum division of the UV map that
     a box may be consolidated into.
-    Basically, a lower value will be slower but waist less space
-    and a higher value will have more clumpy boxes but more wasted space
+    A lower value will create more clumpy boxes and more wasted space,
+    and a higher value will be slower but waste less space
     """
     import time
     from math import sqrt
@@ -623,7 +623,10 @@ class LightMapPack(Operator):
     # UV Packing...
     PREF_BOX_DIV: IntProperty(
         name="Pack Quality",
-        description="Pre-packing before the complex boxpack",
+        description=(
+            "Quality of the packing. "
+            "Higher values will be slower but waste less space"
+        ),
         min=1, max=48,
         default=12,
     )

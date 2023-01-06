@@ -3,13 +3,12 @@
 
 #include "stdcycles.h"
 
-shader node_normal_map(normal NormalIn = N,
-                       float Strength = 1.0,
+shader node_normal_map(float Strength = 1.0,
                        color Color = color(0.5, 0.5, 1.0),
                        string space = "tangent",
                        string attr_name = "geom:tangent",
                        string attr_sign_name = "geom:tangent_sign",
-                       output normal Normal = NormalIn)
+                       output normal Normal = N)
 {
   color mcolor = 2.0 * color(Color[0] - 0.5, Color[1] - 0.5, Color[2] - 0.5);
   int is_backfacing = backfacing();
@@ -71,5 +70,5 @@ shader node_normal_map(normal NormalIn = N,
   }
 
   if (Strength != 1.0)
-    Normal = normalize(NormalIn + (Normal - NormalIn) * max(Strength, 0.0));
+    Normal = normalize(N + (Normal - N) * max(Strength, 0.0));
 }

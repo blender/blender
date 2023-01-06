@@ -434,13 +434,13 @@ static Py_hash_t Euler_hash(EulerObject *self)
  * \{ */
 
 /** Sequence length: `len(object)`. */
-static int Euler_len(EulerObject *UNUSED(self))
+static Py_ssize_t Euler_len(EulerObject *UNUSED(self))
 {
   return EULER_SIZE;
 }
 
 /** Sequence accessor (get): `x = object[i]`. */
-static PyObject *Euler_item(EulerObject *self, int i)
+static PyObject *Euler_item(EulerObject *self, Py_ssize_t i)
 {
   if (i < 0) {
     i = EULER_SIZE - i;
@@ -461,7 +461,7 @@ static PyObject *Euler_item(EulerObject *self, int i)
 }
 
 /** Sequence accessor (set): `object[i] = x`. */
-static int Euler_ass_item(EulerObject *self, int i, PyObject *value)
+static int Euler_ass_item(EulerObject *self, Py_ssize_t i, PyObject *value)
 {
   float f;
 
@@ -636,22 +636,22 @@ static int Euler_ass_subscript(EulerObject *self, PyObject *item, PyObject *valu
  * \{ */
 
 static PySequenceMethods Euler_SeqMethods = {
-    (lenfunc)Euler_len,              /*sq_length*/
-    (binaryfunc)NULL,                /*sq_concat*/
-    (ssizeargfunc)NULL,              /*sq_repeat*/
-    (ssizeargfunc)Euler_item,        /*sq_item*/
-    (ssizessizeargfunc)NULL,         /*sq_slice(DEPRECATED)*/
-    (ssizeobjargproc)Euler_ass_item, /*sq_ass_item*/
-    (ssizessizeobjargproc)NULL,      /*sq_ass_slice(DEPRECATED)*/
-    (objobjproc)NULL,                /*sq_contains*/
-    (binaryfunc)NULL,                /*sq_inplace_concat*/
-    (ssizeargfunc)NULL,              /*sq_inplace_repeat*/
+    /*sq_length*/ (lenfunc)Euler_len,
+    /*sq_concat*/ NULL,
+    /*sq_repeat*/ NULL,
+    /*sq_item*/ (ssizeargfunc)Euler_item,
+    /*was_sq_slice*/ NULL, /* DEPRECATED. */
+    /*sq_ass_item*/ (ssizeobjargproc)Euler_ass_item,
+    /*was_sq_ass_slice*/ NULL, /* DEPRECATED. */
+    /*sq_contains*/ NULL,
+    /*sq_inplace_concat*/ NULL,
+    /*sq_inplace_repeat*/ NULL,
 };
 
 static PyMappingMethods Euler_AsMapping = {
-    (lenfunc)Euler_len,
-    (binaryfunc)Euler_subscript,
-    (objobjargproc)Euler_ass_subscript,
+    /*mp_len*/ (lenfunc)Euler_len,
+    /*mp_subscript*/ (binaryfunc)Euler_subscript,
+    /*mp_ass_subscript*/ (objobjargproc)Euler_ass_subscript,
 };
 
 /** \} */
@@ -766,6 +766,10 @@ static struct PyMethodDef Euler_methods[] = {
 /** \name Euler Type: Python Object Definition
  * \{ */
 
+#ifdef MATH_STANDALONE
+#  define Euler_str NULL
+#endif
+
 PyDoc_STRVAR(
     euler_doc,
     ".. class:: Euler(angles, order='XYZ')\n"
@@ -779,56 +783,60 @@ PyDoc_STRVAR(
     "   :arg order: Optional order of the angles, a permutation of ``XYZ``.\n"
     "   :type order: str\n");
 PyTypeObject euler_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "Euler", /* tp_name */
-    sizeof(EulerObject),                    /* tp_basicsize */
-    0,                                      /* tp_itemsize */
-    (destructor)BaseMathObject_dealloc,     /* tp_dealloc */
-    (printfunc)NULL,                        /* tp_print */
-    NULL,                                   /* tp_getattr */
-    NULL,                                   /* tp_setattr */
-    NULL,                                   /* tp_compare */
-    (reprfunc)Euler_repr,                   /* tp_repr */
-    NULL,                                   /* tp_as_number */
-    &Euler_SeqMethods,                      /* tp_as_sequence */
-    &Euler_AsMapping,                       /* tp_as_mapping */
-    (hashfunc)Euler_hash,                   /* tp_hash */
-    NULL,                                   /* tp_call */
-#ifndef MATH_STANDALONE
-    (reprfunc)Euler_str, /* tp_str */
-#else
-    NULL, /* tp_str */
-#endif
-    NULL,                                                          /* tp_getattro */
-    NULL,                                                          /* tp_setattro */
-    NULL,                                                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /* tp_flags */
-    euler_doc,                                                     /* tp_doc */
-    (traverseproc)BaseMathObject_traverse,                         /* tp_traverse */
-    (inquiry)BaseMathObject_clear,                                 /* tp_clear */
-    (richcmpfunc)Euler_richcmpr,                                   /* tp_richcompare */
-    0,                                                             /* tp_weaklistoffset */
-    NULL,                                                          /* tp_iter */
-    NULL,                                                          /* tp_iternext */
-    Euler_methods,                                                 /* tp_methods */
-    NULL,                                                          /* tp_members */
-    Euler_getseters,                                               /* tp_getset */
-    NULL,                                                          /* tp_base */
-    NULL,                                                          /* tp_dict */
-    NULL,                                                          /* tp_descr_get */
-    NULL,                                                          /* tp_descr_set */
-    0,                                                             /* tp_dictoffset */
-    NULL,                                                          /* tp_init */
-    NULL,                                                          /* tp_alloc */
-    Euler_new,                                                     /* tp_new */
-    NULL,                                                          /* tp_free */
-    (inquiry)BaseMathObject_is_gc,                                 /* tp_is_gc */
-    NULL,                                                          /* tp_bases */
-    NULL,                                                          /* tp_mro */
-    NULL,                                                          /* tp_cache */
-    NULL,                                                          /* tp_subclasses */
-    NULL,                                                          /* tp_weaklist */
-    NULL,                                                          /* tp_del */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /*tp_name*/ "Euler",
+    /*tp_basicsize*/ sizeof(EulerObject),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)BaseMathObject_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ NULL,
+    /*tp_setattr*/ NULL,
+    /*tp_as_async*/ NULL,
+    /*tp_repr*/ (reprfunc)Euler_repr,
+    /*tp_as_number*/ NULL,
+    /*tp_as_sequence*/ &Euler_SeqMethods,
+    /*tp_as_mapping*/ &Euler_AsMapping,
+    /*tp_hash*/ (hashfunc)Euler_hash,
+    /*tp_call*/ NULL,
+    /*tp_str*/ (reprfunc)Euler_str,
+    /*tp_getattro*/ NULL,
+    /*tp_setattro*/ NULL,
+    /*tp_as_buffer*/ NULL,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+    /*tp_doc*/ euler_doc,
+    /*tp_traverse*/ (traverseproc)BaseMathObject_traverse,
+    /*tp_clear*/ (inquiry)BaseMathObject_clear,
+    /*tp_richcompare*/ (richcmpfunc)Euler_richcmpr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ NULL,
+    /*tp_iternext*/ NULL,
+    /*tp_methods*/ Euler_methods,
+    /*tp_members*/ NULL,
+    /*tp_getset*/ Euler_getseters,
+    /*tp_base*/ NULL,
+    /*tp_dict*/ NULL,
+    /*tp_descr_get*/ NULL,
+    /*tp_descr_set*/ NULL,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ NULL,
+    /*tp_alloc*/ NULL,
+    /*tp_new*/ Euler_new,
+    /*tp_free*/ NULL,
+    /*tp_is_gc*/ (inquiry)BaseMathObject_is_gc,
+    /*tp_bases*/ NULL,
+    /*tp_mro*/ NULL,
+    /*tp_cache*/ NULL,
+    /*tp_subclasses*/ NULL,
+    /*tp_weaklist*/ NULL,
+    /*tp_del*/ NULL,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ NULL,
+    /*tp_vectorcall*/ NULL,
 };
+
+#ifdef MATH_STANDALONE
+#  undef Euler_str
+#endif
 
 /** \} */
 

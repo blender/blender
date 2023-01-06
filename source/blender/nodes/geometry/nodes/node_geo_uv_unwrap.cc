@@ -36,7 +36,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(true)
       .description(N_("Virtually fill holes in mesh before unwrapping, to better avoid overlaps "
                       "and preserve symmetry"));
-  b.add_output<decl::Vector>(N_("UV")).field_source().description(
+  b.add_output<decl::Vector>(N_("UV")).field_source_reference_all().description(
       N_("UV coordinates between 0 and 1 for each face corner in the selected faces"));
 }
 
@@ -132,11 +132,11 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
 
 class UnwrapFieldInput final : public bke::MeshFieldInput {
  private:
-  const Field<bool> selection;
-  const Field<bool> seam;
-  const bool fill_holes;
-  const float margin;
-  const GeometryNodeUVUnwrapMethod method;
+  const Field<bool> selection_;
+  const Field<bool> seam_;
+  const bool fill_holes_;
+  const float margin_;
+  const GeometryNodeUVUnwrapMethod method_;
 
  public:
   UnwrapFieldInput(const Field<bool> selection,
@@ -145,11 +145,11 @@ class UnwrapFieldInput final : public bke::MeshFieldInput {
                    const float margin,
                    const GeometryNodeUVUnwrapMethod method)
       : bke::MeshFieldInput(CPPType::get<float3>(), "UV Unwrap Field"),
-        selection(selection),
-        seam(seam),
-        fill_holes(fill_holes),
-        margin(margin),
-        method(method)
+        selection_(selection),
+        seam_(seam),
+        fill_holes_(fill_holes),
+        margin_(margin),
+        method_(method)
   {
     category_ = Category::Generated;
   }
@@ -158,7 +158,13 @@ class UnwrapFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask /*mask*/) const final
   {
-    return construct_uv_gvarray(mesh, selection, seam, fill_holes, margin, method, domain);
+    return construct_uv_gvarray(mesh, selection_, seam_, fill_holes_, margin_, method_, domain);
+  }
+
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
+  {
+    selection_.node().for_each_field_input_recursive(fn);
+    seam_.node().for_each_field_input_recursive(fn);
   }
 
   std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
@@ -189,7 +195,7 @@ void register_node_type_geo_uv_unwrap()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_UV_UNWRAP, "UV Unwrap", NODE_CLASS_CONVERTER);
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   node_type_storage(
       &ntype, "NodeGeometryUVUnwrap", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = file_ns::node_declare;

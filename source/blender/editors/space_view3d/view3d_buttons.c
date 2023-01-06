@@ -954,9 +954,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     memcpy(&ve_median_basis, &tfp->ve_median, sizeof(tfp->ve_median));
 
     if (v3d->flag & V3D_GLOBAL_STATS) {
-      invert_m4_m4(ob->imat, ob->object_to_world);
-      mul_m4_v3(ob->imat, median_basis.generic.location);
-      mul_m4_v3(ob->imat, ve_median_basis.generic.location);
+      invert_m4_m4(ob->world_to_object, ob->object_to_world);
+      mul_m4_v3(ob->world_to_object, median_basis.generic.location);
+      mul_m4_v3(ob->world_to_object, ve_median_basis.generic.location);
     }
     sub_vn_vnvn((float *)&median_basis,
                 (float *)&ve_median_basis,

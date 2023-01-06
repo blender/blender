@@ -27,8 +27,17 @@ const EnumPropertyItem rna_enum_curves_types[] = {
 };
 
 const EnumPropertyItem rna_enum_curve_normal_modes[] = {
-    {NORMAL_MODE_MINIMUM_TWIST, "MINIMUM_TWIST", ICON_NONE, "Minimum Twist", ""},
-    {NORMAL_MODE_Z_UP, "Z_UP", ICON_NONE, "Z Up", ""},
+    {NORMAL_MODE_MINIMUM_TWIST,
+     "MINIMUM_TWIST",
+     ICON_NONE,
+     "Minimum Twist",
+     "Calculate normals with the smallest twist around the curve tangent across the whole curve"},
+    {NORMAL_MODE_Z_UP,
+     "Z_UP",
+     ICON_NONE,
+     "Z Up",
+     "Calculate normals perpendicular to the Z axis and the curve tangent. If a series of points "
+     "is vertical, the X axis is used"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -404,12 +413,6 @@ static void rna_def_curves(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Selection Domain", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
-
-  prop = RNA_def_property(srna, "use_sculpt_selection", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", CV_SCULPT_SELECTION_ENABLED);
-  RNA_def_property_ui_text(prop, "Use Sculpt Selection", "");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
   /* attributes */
   rna_def_attributes_common(srna);

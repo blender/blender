@@ -58,7 +58,7 @@ struct BKEMeshToTangent {
 
   mikk::float3 GetNormal(const uint face_num, const uint vert_num)
   {
-    return mikk::float3(lnors[uint(mpolys[face_num].loopstart) + vert_num]);
+    return mikk::float3(loop_normals[uint(mpolys[face_num].loopstart) + vert_num]);
   }
 
   void SetTangentSpace(const uint face_num, const uint vert_num, mikk::float3 T, bool orientation)
@@ -67,20 +67,20 @@ struct BKEMeshToTangent {
     copy_v4_fl4(p_res, T.x, T.y, T.z, orientation ? 1.0f : -1.0f);
   }
 
-  const MPoly *mpolys;     /* faces */
-  const MLoop *mloops;     /* faces vertices */
-  const MVert *mverts;     /* vertices */
-  const MLoopUV *luvs;     /* texture coordinates */
-  const float (*lnors)[3]; /* loops' normals */
-  float (*tangents)[4];    /* output tangents */
-  int num_polys;           /* number of polygons */
+  const MPoly *mpolys;            /* faces */
+  const MLoop *mloops;            /* faces vertices */
+  const MVert *mverts;            /* vertices */
+  const MLoopUV *luvs;            /* texture coordinates */
+  const float (*loop_normals)[3]; /* loops' normals */
+  float (*tangents)[4];           /* output tangents */
+  int num_polys;                  /* number of polygons */
 };
 
 void BKE_mesh_calc_loop_tangent_single_ex(const MVert *mverts,
                                           const int /*numVerts*/,
                                           const MLoop *mloops,
                                           float (*r_looptangent)[4],
-                                          const float (*loopnors)[3],
+                                          const float (*loop_normals)[3],
                                           const MLoopUV *loopuvs,
                                           const int /*numLoops*/,
                                           const MPoly *mpolys,
@@ -93,7 +93,7 @@ void BKE_mesh_calc_loop_tangent_single_ex(const MVert *mverts,
   mesh_to_tangent.mloops = mloops;
   mesh_to_tangent.mverts = mverts;
   mesh_to_tangent.luvs = loopuvs;
-  mesh_to_tangent.lnors = loopnors;
+  mesh_to_tangent.loop_normals = loop_normals;
   mesh_to_tangent.tangents = r_looptangent;
   mesh_to_tangent.num_polys = numPolys;
 
@@ -133,9 +133,9 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
     return;
   }
 
-  const float(*loopnors)[3] = static_cast<const float(*)[3]>(
+  const float(*loop_normals)[3] = static_cast<const float(*)[3]>(
       CustomData_get_layer(&mesh->ldata, CD_NORMAL));
-  if (!loopnors) {
+  if (!loop_normals) {
     BKE_report(
         reports, RPT_ERROR, "Tangent space computation needs loop normals, none found, aborting");
     return;
@@ -145,7 +145,7 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
                                        mesh->totvert,
                                        BKE_mesh_loops(mesh),
                                        r_looptangents,
-                                       loopnors,
+                                       loop_normals,
                                        loopuvs,
                                        mesh->totloop,
                                        BKE_mesh_polys(mesh),

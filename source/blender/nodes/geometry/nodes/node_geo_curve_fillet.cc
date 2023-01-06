@@ -18,18 +18,18 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1)
       .min(1)
       .max(1000)
-      .supports_field()
+      .field_on_all()
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_FILLET_POLY; });
   b.add_input<decl::Float>(N_("Radius"))
       .min(0.0f)
       .max(FLT_MAX)
       .subtype(PropertySubType::PROP_DISTANCE)
       .default_value(0.25f)
-      .supports_field();
+      .field_on_all();
   b.add_input<decl::Bool>(N_("Limit Radius"))
       .description(
           N_("Limit the maximum value of the radius in order to avoid overlapping fillets"));
-  b.add_output<decl::Geometry>(N_("Curve"));
+  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -67,6 +67,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     count_field.emplace(params.extract_input<Field<int>>("Count"));
   }
 
+  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
+      "Curve");
+
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (!geometry_set.has_curves()) {
       return;
@@ -82,7 +85,11 @@ static void node_geo_exec(GeoNodeExecParams params)
       case GEO_NODE_CURVE_FILLET_BEZIER: {
         evaluator.evaluate();
         bke::CurvesGeometry dst_curves = geometry::fillet_curves_bezier(
-            curves, curves.curves_range(), evaluator.get_evaluated<float>(0), limit_radius);
+            curves,
+            curves.curves_range(),
+            evaluator.get_evaluated<float>(0),
+            limit_radius,
+            propagation_info);
         Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
         bke::curves_copy_parameters(curves_id, *dst_curves_id);
         geometry_set.replace_curves(dst_curves_id);
@@ -96,7 +103,8 @@ static void node_geo_exec(GeoNodeExecParams params)
             curves.curves_range(),
             evaluator.get_evaluated<float>(0),
             evaluator.get_evaluated<int>(1),
-            limit_radius);
+            limit_radius,
+            propagation_info);
         Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
         bke::curves_copy_parameters(curves_id, *dst_curves_id);
         geometry_set.replace_curves(dst_curves_id);
@@ -121,8 +129,8 @@ void register_node_type_geo_curve_fillet()
   node_type_storage(
       &ntype, "NodeGeometryCurveFillet", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = file_ns::node_declare;
-  node_type_init(&ntype, file_ns::node_init);
-  node_type_update(&ntype, file_ns::node_update);
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

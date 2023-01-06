@@ -3531,6 +3531,9 @@ void ED_region_info_draw_multiline(ARegion *region,
   /* background box */
   rcti rect = *ED_region_visible_rect(region);
 
+  /* Needed in case scripts leave the font size at an unexpected value, see: T102213. */
+  BLF_size(fontid, style->widget.points * U.dpi_fac);
+
   /* Box fill entire width or just around text. */
   if (!full_redraw) {
     const char **text = &text_array[0];

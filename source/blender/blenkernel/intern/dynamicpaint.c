@@ -2790,7 +2790,7 @@ static bool dynamicPaint_symmetrizeAdjData(PaintAdjData *ed, int active_points)
 int dynamicPaint_createUVSurface(Scene *scene,
                                  DynamicPaintSurface *surface,
                                  float *progress,
-                                 short *do_update)
+                                 bool *do_update)
 {
   /* Antialias jitter point relative coords */
   const int aa_samples = (surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
@@ -3029,7 +3029,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
 #if 0
         /* -----------------------------------------------------------------
          * For debug, write a dump of adjacency data to a file.
-         * -----------------------------------------------------------------*/
+         * ----------------------------------------------------------------- */
         FILE *dump_file = fopen("dynpaint-adj-data.txt", "w");
         int *tmp = MEM_callocN(sizeof(int) * active_points, "tmp");
         for (int ty = 0; ty < h; ty++) {
@@ -3140,7 +3140,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
 #if 0
     /* -----------------------------------------------------------------
      * For debug, output pixel statuses to the color map
-     * -----------------------------------------------------------------*/
+     * ----------------------------------------------------------------- */
     for (index = 0; index < sData->total_points; index++) {
       ImgSeqFormatData *f_data = (ImgSeqFormatData *)sData->format_data;
       PaintUVPoint *uvPoint = &((PaintUVPoint *)f_data->uv_p)[index];

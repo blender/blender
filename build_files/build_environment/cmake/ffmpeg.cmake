@@ -1,9 +1,55 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(FFMPEG_CFLAGS "-I${mingw_LIBDIR}/lame/include -I${mingw_LIBDIR}/openjpeg/include/ -I${mingw_LIBDIR}/ogg/include -I${mingw_LIBDIR}/vorbis/include -I${mingw_LIBDIR}/theora/include -I${mingw_LIBDIR}/opus/include -I${mingw_LIBDIR}/vpx/include -I${mingw_LIBDIR}/x264/include -I${mingw_LIBDIR}/xvidcore/include -I${mingw_LIBDIR}/zlib/include -I${mingw_LIBDIR}/aom/include")
-set(FFMPEG_LDFLAGS "-L${mingw_LIBDIR}/lame/lib -L${mingw_LIBDIR}/openjpeg/lib -L${mingw_LIBDIR}/ogg/lib -L${mingw_LIBDIR}/vorbis/lib -L${mingw_LIBDIR}/theora/lib -L${mingw_LIBDIR}/opus/lib -L${mingw_LIBDIR}/vpx/lib -L${mingw_LIBDIR}/x264/lib -L${mingw_LIBDIR}/xvidcore/lib -L${mingw_LIBDIR}/zlib/lib -L${mingw_LIBDIR}/aom/lib")
-set(FFMPEG_EXTRA_FLAGS --pkg-config-flags=--static --extra-cflags=${FFMPEG_CFLAGS} --extra-ldflags=${FFMPEG_LDFLAGS})
-set(FFMPEG_ENV PKG_CONFIG_PATH=${mingw_LIBDIR}/openjpeg/lib/pkgconfig:${mingw_LIBDIR}/x264/lib/pkgconfig:${mingw_LIBDIR}/vorbis/lib/pkgconfig:${mingw_LIBDIR}/ogg/lib/pkgconfig:${mingw_LIBDIR}:${mingw_LIBDIR}/vpx/lib/pkgconfig:${mingw_LIBDIR}/theora/lib/pkgconfig:${mingw_LIBDIR}/openjpeg/lib/pkgconfig:${mingw_LIBDIR}/opus/lib/pkgconfig:${mingw_LIBDIR}/aom/lib/pkgconfig:)
+if(WIN32)
+  set(temp_LIBDIR ${mingw_LIBDIR})
+else()
+  set(temp_LIBDIR ${LIBDIR})
+endif()
+
+set(FFMPEG_CFLAGS "\
+-I${temp_LIBDIR}/lame/include \
+-I${temp_LIBDIR}/openjpeg/include/ \
+-I${temp_LIBDIR}/ogg/include \
+-I${temp_LIBDIR}/vorbis/include \
+-I${temp_LIBDIR}/theora/include \
+-I${temp_LIBDIR}/opus/include \
+-I${temp_LIBDIR}/vpx/include \
+-I${temp_LIBDIR}/x264/include \
+-I${temp_LIBDIR}/xvidcore/include \
+-I${temp_LIBDIR}/zlib/include \
+-I${temp_LIBDIR}/aom/include"
+)
+set(FFMPEG_LDFLAGS "\
+-L${temp_LIBDIR}/lame/lib \
+-L${temp_LIBDIR}/openjpeg/lib \
+-L${temp_LIBDIR}/ogg/lib \
+-L${temp_LIBDIR}/vorbis/lib \
+-L${temp_LIBDIR}/theora/lib \
+-L${temp_LIBDIR}/opus/lib \
+-L${temp_LIBDIR}/vpx/lib \
+-L${temp_LIBDIR}/x264/lib \
+-L${temp_LIBDIR}/xvidcore/lib \
+-L${temp_LIBDIR}/zlib/lib \
+-L${temp_LIBDIR}/aom/lib"
+)
+set(FFMPEG_EXTRA_FLAGS
+  --pkg-config-flags=--static
+  --extra-cflags=${FFMPEG_CFLAGS}
+  --extra-ldflags=${FFMPEG_LDFLAGS}
+)
+set(FFMPEG_ENV "PKG_CONFIG_PATH=\
+${temp_LIBDIR}/openjpeg/lib/pkgconfig:\
+${temp_LIBDIR}/x264/lib/pkgconfig:\
+${temp_LIBDIR}/vorbis/lib/pkgconfig:\
+${temp_LIBDIR}/ogg/lib/pkgconfig:\
+${temp_LIBDIR}/vpx/lib/pkgconfig:\
+${temp_LIBDIR}/theora/lib/pkgconfig:\
+${temp_LIBDIR}/openjpeg/lib/pkgconfig:\
+${temp_LIBDIR}/opus/lib/pkgconfig:\
+${temp_LIBDIR}/aom/lib/pkgconfig"
+)
+
+unset(temp_LIBDIR)
 
 if(WIN32)
   set(FFMPEG_ENV set ${FFMPEG_ENV} &&)

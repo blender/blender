@@ -2,10 +2,6 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(surface_lib.glsl)
 
-in vec2 pos;
-
-RESOURCE_ID_VARYING
-
 void main()
 {
   GPU_INTEL_VERTEX_SHADER_WORKAROUND

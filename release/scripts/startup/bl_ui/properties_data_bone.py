@@ -87,7 +87,7 @@ class BONE_PT_transform(BoneButtonsPanel, Panel):
                 row.use_property_decorate = False
                 row.prop(pchan, "lock_rotation", text="", emboss=False, icon='DECORATE_UNLOCKED')
             row = layout.row(align=True)
-            row.prop(pchan, "rotation_mode", text='Mode')
+            row.prop(pchan, "rotation_mode", text="Mode")
             row.label(text="", icon='BLANK1')
 
             col = layout.column()
@@ -403,9 +403,9 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
             col.prop(pchan, "ik_rotation_weight", text="IK Rotation Weight", slider=True)
             col.active = active
             # not supported yet
-            #row = layout.row()
-            #row.prop(pchan, "use_ik_linear_control", text="Joint Size")
-            #row.prop(pchan, "ik_linear_weight", text="Weight", slider=True)
+            # row = layout.row()
+            # row.prop(pchan, "use_ik_linear_control", text="Joint Size")
+            # row.prop(pchan, "ik_linear_weight", text="Weight", slider=True)
 
 
 class BONE_PT_deform(BoneButtonsPanel, Panel):

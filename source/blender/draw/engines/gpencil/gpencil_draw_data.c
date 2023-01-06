@@ -380,7 +380,7 @@ void gpencil_light_pool_populate(GPENCIL_LightPool *lightpool, Object *ob)
   float(*mat)[4] = (float(*)[4])gp_light->right;
 
   if (la->type == LA_SPOT) {
-    copy_m4_m4(mat, ob->imat);
+    copy_m4_m4(mat, ob->world_to_object);
     gp_light->type = GP_LIGHT_TYPE_SPOT;
     gp_light->spot_size = cosf(la->spotsize * 0.5f);
     gp_light->spot_blend = (1.0f - gp_light->spot_size) * la->spotblend;

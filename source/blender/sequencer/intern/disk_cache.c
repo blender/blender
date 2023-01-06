@@ -303,7 +303,8 @@ static void seq_disk_cache_get_dir(
   char project_dir[FILE_MAX];
 
   seq_disk_cache_get_project_dir(disk_cache, project_dir, sizeof(project_dir));
-  sprintf(scene_name, "%s-%" PRId64, scene->id.name, disk_cache->timestamp);
+  BLI_snprintf(
+      scene_name, sizeof(scene_name), "%s-%" PRId64, scene->id.name, disk_cache->timestamp);
   BLI_strncpy(seq_name, seq->name, sizeof(seq_name));
   BLI_filename_make_safe(scene_name);
   BLI_filename_make_safe(seq_name);
@@ -319,14 +320,15 @@ static void seq_disk_cache_get_file_path(SeqDiskCache *disk_cache,
   seq_disk_cache_get_dir(disk_cache, key->context.scene, key->seq, path, path_len);
   int frameno = (int)key->frame_index / DCACHE_IMAGES_PER_FILE;
   char cache_filename[FILE_MAXFILE];
-  sprintf(cache_filename,
-          DCACHE_FNAME_FORMAT,
-          key->type,
-          key->context.rectx,
-          key->context.recty,
-          key->context.preview_render_size,
-          key->context.view_id,
-          frameno);
+  BLI_snprintf(cache_filename,
+               sizeof(cache_filename),
+               DCACHE_FNAME_FORMAT,
+               key->type,
+               key->context.rectx,
+               key->context.recty,
+               key->context.preview_render_size,
+               key->context.view_id,
+               frameno);
 
   BLI_path_append(path, path_len, cache_filename);
 }

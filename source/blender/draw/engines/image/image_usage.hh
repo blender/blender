@@ -7,6 +7,8 @@
 
 #pragma once
 
+namespace blender::draw::image_engine {
+
 /**
  * ImageUsage contains data of the image and image user to identify changes that require a rebuild
  * the texture slots.
@@ -47,3 +49,5 @@ struct ImageUsage {
     return !(*this == other);
   }
 };
+
+}  // namespace blender::draw::image_engine

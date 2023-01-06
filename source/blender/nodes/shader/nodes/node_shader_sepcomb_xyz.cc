@@ -97,7 +97,7 @@ void register_node_type_sh_sepxyz()
 
   sh_fn_node_type_base(&ntype, SH_NODE_SEPXYZ, "Separate XYZ", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_sepxyz_declare;
-  node_type_gpu(&ntype, file_ns::gpu_shader_sepxyz);
+  ntype.gpu_fn = file_ns::gpu_shader_sepxyz;
   ntype.build_multi_function = file_ns::sh_node_sepxyz_build_multi_function;
 
   nodeRegisterType(&ntype);
@@ -142,7 +142,7 @@ void register_node_type_sh_combxyz()
 
   sh_fn_node_type_base(&ntype, SH_NODE_COMBXYZ, "Combine XYZ", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_combxyz_declare;
-  node_type_gpu(&ntype, file_ns::gpu_shader_combxyz);
+  ntype.gpu_fn = file_ns::gpu_shader_combxyz;
   ntype.build_multi_function = file_ns::sh_node_combxyz_build_multi_function;
 
   nodeRegisterType(&ntype);

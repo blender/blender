@@ -393,8 +393,14 @@ static struct PyMethodDef BPy_msgbus_methods[] = {
 
 static struct PyModuleDef _bpy_msgbus_def = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "msgbus",
-    .m_methods = BPy_msgbus_methods,
+    /*m_name*/ "msgbus",
+    /*m_doc*/ NULL,
+    /*m_size*/ 0,
+    /*m_methods*/ BPy_msgbus_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyObject *BPY_msgbus_module(void)

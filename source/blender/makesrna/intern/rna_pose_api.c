@@ -25,6 +25,7 @@
 #  include "BKE_animsys.h"
 #  include "BKE_armature.h"
 #  include "BKE_context.h"
+#  include "BKE_pose_backup.h"
 
 #  include "DNA_action_types.h"
 #  include "DNA_anim_types.h"
@@ -108,6 +109,56 @@ static void rna_Pose_apply_pose_from_action(ID *pose_owner,
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, pose_owner);
 }
 
+static void rna_Pose_blend_pose_from_action(ID *pose_owner,
+                                            bContext *C,
+                                            bAction *action,
+                                            const float blend_factor,
+                                            const float evaluation_time)
+{
+  BLI_assert(GS(pose_owner->name) == ID_OB);
+  Object *pose_owner_ob = (Object *)pose_owner;
+
+  AnimationEvalContext anim_eval_context = {CTX_data_depsgraph_pointer(C), evaluation_time};
+  BKE_pose_apply_action_blend(pose_owner_ob, action, &anim_eval_context, blend_factor);
+
+  /* Do NOT tag with ID_RECALC_ANIMATION, as that would overwrite the just-applied pose. */
+  DEG_id_tag_update(pose_owner, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, pose_owner);
+}
+
+static void rna_Pose_backup_create(ID *pose_owner, bAction *action)
+{
+  BLI_assert(GS(pose_owner->name) == ID_OB);
+  Object *pose_owner_ob = (Object *)pose_owner;
+
+  BKE_pose_backup_create_on_object(pose_owner_ob, action);
+}
+
+static bool rna_Pose_backup_restore(ID *pose_owner, bContext *C)
+{
+  BLI_assert(GS(pose_owner->name) == ID_OB);
+  Object *pose_owner_ob = (Object *)pose_owner;
+
+  const bool success = BKE_pose_backup_restore_on_object(pose_owner_ob);
+  if (!success) {
+    return false;
+  }
+
+  /* Do NOT tag with ID_RECALC_ANIMATION, as that would overwrite the just-applied pose. */
+  DEG_id_tag_update(pose_owner, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, pose_owner);
+
+  return true;
+}
+
+static void rna_Pose_backup_clear(ID *pose_owner)
+{
+  BLI_assert(GS(pose_owner->name) == ID_OB);
+  Object *pose_owner_ob = (Object *)pose_owner;
+
+  BKE_pose_backup_clear(pose_owner_ob);
+}
+
 #else
 
 void RNA_api_pose(StructRNA *srna)
@@ -121,10 +172,8 @@ void RNA_api_pose(StructRNA *srna)
       func,
       "Apply the given action to this pose by evaluating it at a specific time. Only updates the "
       "pose of selected bones, or all bones if none are selected.");
-
   parm = RNA_def_pointer(func, "action", "Action", "Action", "The Action containing the pose");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-
   parm = RNA_def_float(func,
                        "evaluation_time",
                        0.0f,
@@ -134,6 +183,68 @@ void RNA_api_pose(StructRNA *srna)
                        "Time at which the given action is evaluated to obtain the pose",
                        -FLT_MAX,
                        FLT_MAX);
+
+  func = RNA_def_function(srna, "blend_pose_from_action", "rna_Pose_blend_pose_from_action");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  RNA_def_function_ui_description(func,
+                                  "Blend the given action into this pose by evaluating it at a "
+                                  "specific time. Only updates the "
+                                  "pose of selected bones, or all bones if none are selected.");
+  parm = RNA_def_pointer(func, "action", "Action", "Action", "The Action containing the pose");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_float(func,
+                       "blend_factor",
+                       1.0f,
+                       0.0f,
+                       1.0f,
+                       "Blend Factor",
+                       "How much the given Action affects the final pose",
+                       0.0f,
+                       1.0f);
+  parm = RNA_def_float(func,
+                       "evaluation_time",
+                       0.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Evaluation Time",
+                       "Time at which the given action is evaluated to obtain the pose",
+                       -FLT_MAX,
+                       FLT_MAX);
+
+  func = RNA_def_function(srna, "backup_create", "rna_Pose_backup_create");
+  RNA_def_function_ui_description(
+      func,
+      "Create a backup of the current pose. Only those bones that are animated in the Action are "
+      "backed up. The object owns the backup, and each object can have only one backup at a time. "
+      "When you no longer need it, it must be freed use `backup_clear()`");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF);
+  parm = RNA_def_pointer(func,
+                         "action",
+                         "Action",
+                         "Action",
+                         "An Action with animation data for the bones. "
+                         "Only the animated bones will be included in the backup");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "backup_restore", "rna_Pose_backup_restore");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  RNA_def_function_ui_description(
+      func,
+      "Restore the previously made pose backup. "
+      "This can be called multiple times. See `Pose.backup_create()` for more info");
+  /* return value */
+  parm = RNA_def_boolean(
+      func,
+      "success",
+      false,
+      "",
+      "`True` when the backup was restored, `False` if there was no backup to restore");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "backup_clear", "rna_Pose_backup_clear");
+  RNA_def_function_ui_description(
+      func, "Free a previously made pose backup. See `Pose.backup_create()` for more info.");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF);
 }
 
 void RNA_api_pose_channel(StructRNA *srna)

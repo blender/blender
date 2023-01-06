@@ -9,16 +9,39 @@
 
 #include "NOD_geometry_exec.hh"
 
+#include "BLI_hash_md5.h"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes {
+
+NodeAnonymousAttributeID::NodeAnonymousAttributeID(const Object &object,
+                                                   const ComputeContext &compute_context,
+                                                   const bNode &bnode,
+                                                   const StringRef identifier)
+{
+  const ComputeContextHash &hash = compute_context.hash();
+  {
+    std::stringstream ss;
+    ss << hash << "_" << object.id.name << "_" << bnode.identifier << "_" << identifier;
+    long_name_ = ss.str();
+  }
+  {
+    uint64_t hash_result[2];
+    BLI_hash_md5_buffer(long_name_.data(), long_name_.size(), hash_result);
+    std::stringstream ss;
+    ss << ".a_" << std::hex << hash_result[0] << hash_result[1];
+    name_ = ss.str();
+    BLI_assert(name_.size() < MAX_CUSTOMDATA_LAYER_NAME);
+  }
+}
 
 void GeoNodeExecParams::error_message_add(const NodeWarningType type,
                                           const StringRef message) const
 {
   if (geo_eval_log::GeoTreeLogger *tree_logger = this->get_local_tree_logger()) {
-    tree_logger->node_warnings.append({tree_logger->allocator->copy_string(node_.name),
-                                       {type, tree_logger->allocator->copy_string(message)}});
+    tree_logger->node_warnings.append(
+        {node_.identifier, {type, tree_logger->allocator->copy_string(message)}});
   }
 }
 
@@ -26,9 +49,8 @@ void GeoNodeExecParams::used_named_attribute(const StringRef attribute_name,
                                              const NamedAttributeUsage usage)
 {
   if (geo_eval_log::GeoTreeLogger *tree_logger = this->get_local_tree_logger()) {
-    tree_logger->used_named_attributes.append({tree_logger->allocator->copy_string(node_.name),
-                                               tree_logger->allocator->copy_string(attribute_name),
-                                               usage});
+    tree_logger->used_named_attributes.append(
+        {node_.identifier, tree_logger->allocator->copy_string(attribute_name), usage});
   }
 }
 

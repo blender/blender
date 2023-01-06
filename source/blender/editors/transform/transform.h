@@ -23,11 +23,6 @@
 extern "C" {
 #endif
 
-/* use node center for transform instead of upper-left corner.
- * disabled since it makes absolute snapping not work so nicely
- */
-// #define USE_NODE_CENTER
-
 /* -------------------------------------------------------------------- */
 /** \name Types/
  * \{ */
@@ -157,7 +152,9 @@ typedef enum {
   MOD_SNAP = 1 << 2,
   MOD_SNAP_INVERT = 1 << 3,
   MOD_CONSTRAINT_SELECT_PLANE = 1 << 4,
+  MOD_NODE_ATTACH = 1 << 5,
 } eTModifier;
+ENUM_OPERATORS(eTModifier, MOD_NODE_ATTACH)
 
 /** #TransSnap.status */
 typedef enum eTSnap {
@@ -169,6 +166,7 @@ typedef enum eTSnap {
   POINT_INIT = 1 << 3,
   MULTI_POINTS = 1 << 4,
 } eTSnap;
+ENUM_OPERATORS(eTSnap, MULTI_POINTS)
 
 /** #TransCon.mode, #TransInfo.con.mode */
 typedef enum {
@@ -198,6 +196,7 @@ typedef enum {
   TREDRAW_SOFT = (1 << 0),
   TREDRAW_HARD = (1 << 1) | TREDRAW_SOFT,
 } eRedrawFlag;
+ENUM_OPERATORS(eRedrawFlag, TREDRAW_HARD)
 
 /** #TransInfo.helpline */
 typedef enum {
@@ -246,8 +245,8 @@ enum {
   TFM_MODAL_AUTOIK_LEN_INC = 22,
   TFM_MODAL_AUTOIK_LEN_DEC = 23,
 
-  TFM_MODAL_EDGESLIDE_UP = 24,
-  TFM_MODAL_EDGESLIDE_DOWN = 25,
+  TFM_MODAL_NODE_ATTACH_ON = 24,
+  TFM_MODAL_NODE_ATTACH_OFF = 25,
 
   /** For analog input, like track-pad. */
   TFM_MODAL_PROPSIZE = 26,

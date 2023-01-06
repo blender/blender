@@ -99,7 +99,7 @@ def do_versions(self):
         library_versions.setdefault(library.version, []).append(library)
 
     # Do versioning per library, since they might have different versions.
-    max_need_versioning = (3, 0, 25)
+    max_need_versioning = (3, 5, 2)
     for version, libraries in library_versions.items():
         if version > max_need_versioning:
             continue
@@ -228,7 +228,7 @@ def do_versions(self):
                     cscene.use_preview_denoising = False
                 if not cscene.is_property_set("sampling_pattern") or \
                    cscene.get('sampling_pattern') >= 2:
-                    cscene.sampling_pattern = 'PROGRESSIVE_MULTI_JITTER'
+                    cscene.sampling_pattern = 'TABULATED_SOBOL'
 
                 # Removal of square samples.
                 cscene = scene.cycles
@@ -240,6 +240,12 @@ def do_versions(self):
                     for layer in scene.view_layers:
                         layer.samples *= layer.samples
                     cscene["use_square_samples"] = False
+
+            # Disable light tree for existing scenes.
+            if version <= (3, 5, 3):
+                cscene = scene.cycles
+                if not cscene.is_property_set("use_light_tree"):
+                    cscene.use_light_tree = False
 
         # Lamps
         for light in bpy.data.lights:
@@ -297,3 +303,8 @@ def do_versions(self):
                 cmat = mat.cycles
                 if not cmat.is_property_set("displacement_method"):
                     cmat.displacement_method = 'DISPLACEMENT'
+
+            if version <= (3, 5, 3):
+                cmat = mat.cycles
+                if not cmat.get("sample_as_light", True):
+                    cmat.emission_sampling = 'NONE'

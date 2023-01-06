@@ -280,6 +280,11 @@ void BKE_nlastrip_set_active(struct AnimData *adt, struct NlaStrip *strip);
  */
 bool BKE_nlastrip_within_bounds(struct NlaStrip *strip, float min, float max);
 /**
+ * Return the distance from the given frame to the NLA strip, measured in frames.
+ * If the given frame intersects the NLA strip, the distance is zero.
+ */
+float BKE_nlastrip_distance_to_frame(const struct NlaStrip *strip, float timeline_frame);
+/**
  * Recalculate the start and end frames for the current strip, after changing
  * the extents of the action or the mapping (repeats or scale factor) info.
  */

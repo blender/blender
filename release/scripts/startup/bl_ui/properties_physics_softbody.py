@@ -214,8 +214,12 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(softbody, "spring_length", text="Length")
-        col.prop(softbody, "use_edge_collision", text="Collision Edge")
-        col.prop(softbody, "use_face_collision", text="Face")
+
+        col.separator()
+
+        col = flow.column(align=True, heading="Collision")
+        col.prop(softbody, "use_edge_collision", text="Edge", toggle=False)
+        col.prop(softbody, "use_face_collision", text="Face", toggle=False)
 
 
 class PHYSICS_PT_softbody_edge_aerodynamics(PhysicButtonsPanel, Panel):

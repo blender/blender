@@ -84,6 +84,12 @@ class FieldNode {
 
   virtual uint64_t hash() const;
   virtual bool is_equal_to(const FieldNode &other) const;
+
+  /**
+   * Calls the callback for every field input that the current field depends on. This is recursive,
+   * so if a field input depends on other field inputs, those are taken into account as well.
+   */
+  virtual void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const;
 };
 
 /**

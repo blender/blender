@@ -9,26 +9,33 @@ CCL_NAMESPACE_BEGIN
  * Normally we don't use SSE41/AVX outside the kernel, but for this it's
  * important to match exactly for ray tracing precision. */
 
-ccl_device_forceinline float3 transform_inverse_cross(const float3 a, const float3 b)
+ccl_device_forceinline float3 transform_inverse_cross(const float3 a_, const float3 b_)
 {
 #if defined(__AVX2__) && defined(__KERNEL_SSE2__)
-  const ssef sse_a = (const __m128 &)a;
-  const ssef sse_b = (const __m128 &)b;
-  const ssef r = shuffle<1, 2, 0, 3>(
-      ssef(_mm_fmsub_ps(sse_a, shuffle<1, 2, 0, 3>(sse_b), shuffle<1, 2, 0, 3>(sse_a) * sse_b)));
+  const __m128 a = (const __m128 &)a_;
+  const __m128 b = (const __m128 &)b_;
+  const __m128 a_shuffle = _mm_castsi128_ps(
+      _mm_shuffle_epi32(_mm_castps_si128(a), _MM_SHUFFLE(3, 0, 2, 1)));
+  const __m128 b_shuffle = _mm_castsi128_ps(
+      _mm_shuffle_epi32(_mm_castps_si128(b), _MM_SHUFFLE(3, 0, 2, 1)));
+  const __m128 r = _mm_castsi128_ps(
+      _mm_shuffle_epi32(_mm_castps_si128(_mm_fmsub_ps(a, b_shuffle, _mm_mul_ps(a_shuffle, b))),
+                        _MM_SHUFFLE(3, 0, 2, 1)));
   return (const float3 &)r;
 #endif
 
-  return cross(a, b);
+  return cross(a_, b_);
 }
 
-ccl_device_forceinline float transform_inverse_dot(const float3 a, const float3 b)
+ccl_device_forceinline float transform_inverse_dot(const float3 a_, const float3 b_)
 {
-#ifdef __SSE4_1__
-  return _mm_cvtss_f32(_mm_dp_ps((const __m128 &)a, (const __m128 &)b, 0x7F));
+#if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE41__)
+  const __m128 a = (const __m128 &)a_;
+  const __m128 b = (const __m128 &)b_;
+  return _mm_cvtss_f32(_mm_dp_ps(a, b, 0x7F));
 #endif
 
-  return dot(a, b);
+  return dot(a_, b_);
 }
 
 ccl_device_forceinline Transform transform_inverse_impl(const Transform tfm)

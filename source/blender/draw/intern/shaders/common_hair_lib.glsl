@@ -5,10 +5,15 @@
  * of data the CPU has to precompute and transfer for each update.
  */
 
-#define COMMON_HAIR_LIB
+/* Avoid including hair functionality for shaders and materials which do not require hair.
+ * Required to prevent compilation failure for missing shader inputs and uniforms when hair library
+ * is included via other libraries. These are only specified in the ShaderCreateInfo when needed.
+ */
+#ifdef HAIR_SHADER
+#  define COMMON_HAIR_LIB
 
 /* TODO(fclem): Keep documentation but remove the uniform declaration. */
-#ifndef USE_GPU_SHADER_CREATE_INFO
+#  ifndef USE_GPU_SHADER_CREATE_INFO
 
 /**
  * hairStrandsRes: Number of points per hair strand.
@@ -46,10 +51,14 @@ uniform usamplerBuffer hairStrandSegBuffer; /* R16UI */
 /* Not used, use one buffer per uv layer */
 // uniform samplerBuffer hairUVBuffer; /* RG32F */
 // uniform samplerBuffer hairColBuffer; /* RGBA16 linear color */
-#endif
+#  else
+#    ifndef DRW_HAIR_INFO
+#      error Ensure createInfo includes `draw_hair` for general use or `eevee_legacy_hair_lib` for EEVEE.
+#    endif
+#  endif /* !USE_GPU_SHADER_CREATE_INFO */
 
-#define point_position xyz
-#define point_time w /* Position along the hair length */
+#  define point_position xyz
+#  define point_time w /* Position along the hair length */
 
 /* -- Subdivision stage -- */
 /**
@@ -60,7 +69,7 @@ uniform usamplerBuffer hairStrandSegBuffer; /* R16UI */
  * If no more subdivision is needed, we can skip this step.
  */
 
-#ifdef GPU_VERTEX_SHADER
+#  ifdef GPU_VERTEX_SHADER
 float hair_get_local_time()
 {
   return float(gl_VertexID % hairStrandsRes) / float(hairStrandsRes - 1);
@@ -70,9 +79,9 @@ int hair_get_id()
 {
   return gl_VertexID / hairStrandsRes;
 }
-#endif
+#  endif
 
-#ifdef GPU_COMPUTE_SHADER
+#  ifdef GPU_COMPUTE_SHADER
 float hair_get_local_time()
 {
   return float(gl_GlobalInvocationID.y) / float(hairStrandsRes - 1);
@@ -82,9 +91,9 @@ int hair_get_id()
 {
   return int(gl_GlobalInvocationID.x) + hairStrandOffset;
 }
-#endif
+#  endif
 
-#ifdef HAIR_PHASE_SUBDIV
+#  ifdef HAIR_PHASE_SUBDIV
 int hair_get_base_id(float local_time, int strand_segments, out float interp_time)
 {
   float time_per_strand_seg = 1.0 / float(strand_segments);
@@ -122,14 +131,14 @@ void hair_get_interp_attrs(
     data3 = data2 * 2.0 - data1;
   }
 }
-#endif
+#  endif
 
 /* -- Drawing stage -- */
 /**
  * For final drawing, the vertex index and the number of vertex per segment
  */
 
-#if !defined(HAIR_PHASE_SUBDIV) && defined(GPU_VERTEX_SHADER)
+#  if !defined(HAIR_PHASE_SUBDIV) && defined(GPU_VERTEX_SHADER)
 
 int hair_get_strand_id(void)
 {
@@ -160,9 +169,9 @@ float hair_shaperadius(float shape, float root, float tip, float time)
   return (radius * (root - tip)) + tip;
 }
 
-#  if defined(OS_MAC) && defined(GPU_OPENGL)
+#    if defined(OS_MAC) && defined(GPU_OPENGL)
 in float dummy;
-#  endif
+#    endif
 
 void hair_get_center_pos_tan_binor_time(bool is_persp,
                                         mat4 invmodel_mat,
@@ -179,11 +188,11 @@ void hair_get_center_pos_tan_binor_time(bool is_persp,
   wpos = data.point_position;
   time = data.point_time;
 
-#  if defined(OS_MAC) && defined(GPU_OPENGL)
+#    if defined(OS_MAC) && defined(GPU_OPENGL)
   /* Generate a dummy read to avoid the driver bug with shaders having no
    * vertex reads on macOS (T60171) */
   wpos.y += dummy * 0.0;
-#  endif
+#    endif
 
   if (time == 0.0) {
     /* Hair root */
@@ -270,7 +279,7 @@ vec2 hair_get_barycentric(void)
   return vec2(float((id % 2) == 1), float(((id % 4) % 3) > 0));
 }
 
-#endif
+#  endif
 
 /* To be fed the result of hair_get_barycentric from vertex shader. */
 vec2 hair_resolve_barycentric(vec2 vert_barycentric)
@@ -288,11 +297,11 @@ vec4 hair_get_weights_cardinal(float t)
 {
   float t2 = t * t;
   float t3 = t2 * t;
-#if defined(CARDINAL)
+#  if defined(CARDINAL)
   float fc = 0.71;
-#else /* defined(CATMULL_ROM) */
+#  else /* defined(CATMULL_ROM) */
   float fc = 0.5;
-#endif
+#  endif
 
   vec4 weights;
   /* GLSL Optimized version of key_curve_position_weights() */
@@ -324,3 +333,4 @@ vec4 hair_interp_data(vec4 v0, vec4 v1, vec4 v2, vec4 v3, vec4 w)
 {
   return v0 * w.x + v1 * w.y + v2 * w.z + v3 * w.w;
 }
+#endif

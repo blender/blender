@@ -20,6 +20,9 @@ struct wmNotifier;
 /**
  * Invoke asset list reading, potentially in a parallel job. Won't wait until the job is done,
  * and may return earlier.
+ *
+ * \warning: Asset list reading involves an #AS_asset_library_load() call which may reload asset
+ *           library data like catalogs (invalidating pointers). Refer to its warning for details.
  */
 void ED_assetlist_storage_fetch(const struct AssetLibraryReference *library_reference,
                                 const struct bContext *C);
@@ -48,7 +51,6 @@ void ED_assetlist_storage_id_remap(struct ID *id_old, struct ID *id_new);
 void ED_assetlist_storage_exit(void);
 
 struct ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle);
-const char *ED_assetlist_library_path(const struct AssetLibraryReference *library_reference);
 
 /**
  * \return True if the region needs a UI redraw.

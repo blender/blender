@@ -232,7 +232,7 @@ NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, co
 
     NodeResizeDirection dir = NODE_RESIZE_NONE;
 
-    const rctf &totr = node->totr;
+    const rctf &totr = node->runtime->totr;
     const float size = NODE_RESIZE_MARGIN;
 
     if (x > totr.xmax - size && x <= totr.xmax && y >= totr.ymin && y < totr.ymax) {
@@ -253,8 +253,8 @@ NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, co
 
   if (node->flag & NODE_HIDDEN) {
     /* right part of node */
-    rctf totr = node->totr;
-    totr.xmin = node->totr.xmax - 1.0f * U.widget_unit;
+    rctf totr = node->runtime->totr;
+    totr.xmin = node->runtime->totr.xmax - 1.0f * U.widget_unit;
     if (BLI_rctf_isect_pt(&totr, x, y)) {
       return NODE_RESIZE_RIGHT;
     }
@@ -263,7 +263,7 @@ NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, co
   }
 
   const float size = NODE_RESIZE_MARGIN;
-  const rctf &totr = node->totr;
+  const rctf &totr = node->runtime->totr;
   NodeResizeDirection dir = NODE_RESIZE_NONE;
 
   if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
@@ -1276,7 +1276,7 @@ static bool socket_needs_attribute_search(bNode &node, bNodeSocket &socket)
     return false;
   }
   const int socket_index = BLI_findindex(&node.inputs, &socket);
-  return node.runtime->declaration->inputs()[socket_index]->is_attribute_name();
+  return node.declaration()->inputs[socket_index]->is_attribute_name;
 }
 
 static void std_node_socket_draw(
@@ -1293,7 +1293,8 @@ static void std_node_socket_draw(
     return;
   }
 
-  if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_IN_USE) || (sock->flag & SOCK_HIDE_VALUE)) {
+  if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_IS_LINKED) ||
+      (sock->flag & SOCK_HIDE_VALUE)) {
     node_socket_button_label(C, layout, ptr, node_ptr, text);
     return;
   }
@@ -1581,12 +1582,14 @@ void draw_nodespace_back_pix(const bContext &C,
   GPU_matrix_pop();
 }
 
-static float2 socket_link_connection_location(const bNodeSocket &socket, const bNodeLink &link)
+static float2 socket_link_connection_location(const bNode &node,
+                                              const bNodeSocket &socket,
+                                              const bNodeLink &link)
 {
-  const float2 socket_location(socket.locx, socket.locy);
-  if (socket.is_multi_input() && socket.is_input() && !(socket.owner_node().flag & NODE_HIDDEN)) {
+  const float2 socket_location(socket.runtime->locx, socket.runtime->locy);
+  if (socket.is_multi_input() && socket.is_input() && !(node.flag & NODE_HIDDEN)) {
     return node_link_calculate_multi_input_position(
-        socket_location, link.multi_input_socket_index, socket.total_inputs);
+        socket_location, link.multi_input_socket_index, socket.runtime->total_inputs);
   }
   return socket_location;
 }
@@ -1620,8 +1623,8 @@ static void calculate_inner_link_bezier_points(std::array<float2, 4> &points)
 static std::array<float2, 4> node_link_bezier_points(const bNodeLink &link)
 {
   std::array<float2, 4> points;
-  points[0] = socket_link_connection_location(*link.fromsock, link);
-  points[3] = socket_link_connection_location(*link.tosock, link);
+  points[0] = socket_link_connection_location(*link.fromnode, *link.fromsock, link);
+  points[3] = socket_link_connection_location(*link.tonode, *link.tosock, link);
   calculate_inner_link_bezier_points(points);
   return points;
 }
@@ -2197,7 +2200,7 @@ void node_draw_link(const bContext &C,
   }
 
   /* Links from field to non-field sockets are not allowed. */
-  if (snode.edittree->type == NTREE_GEOMETRY && !(link.flag & NODE_LINK_DRAGGED)) {
+  if (snode.edittree->type == NTREE_GEOMETRY) {
     if ((link.fromsock && link.fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) &&
         (link.tosock && link.tosock->display_shape == SOCK_DISPLAY_SHAPE_CIRCLE)) {
       th_col1 = th_col2 = th_col3 = TH_REDALERT;
@@ -2212,8 +2215,11 @@ static std::array<float2, 4> node_link_bezier_points_dragged(const SpaceNode &sn
 {
   const float2 cursor = snode.runtime->cursor * UI_DPI_FAC;
   std::array<float2, 4> points;
-  points[0] = link.fromsock ? socket_link_connection_location(*link.fromsock, link) : cursor;
-  points[3] = link.tosock ? socket_link_connection_location(*link.tosock, link) : cursor;
+  points[0] = link.fromsock ?
+                  socket_link_connection_location(*link.fromnode, *link.fromsock, link) :
+                  cursor;
+  points[3] = link.tosock ? socket_link_connection_location(*link.tonode, *link.tosock, link) :
+                            cursor;
   calculate_inner_link_bezier_points(points);
   return points;
 }

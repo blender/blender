@@ -77,7 +77,8 @@ static void createTransMeshVertCData(bContext *UNUSED(C), TransInfo *t)
     struct TransMirrorData mirror_data = {NULL};
     struct TransMeshDataCrazySpace crazyspace_data = {NULL};
 
-    /* Support other objects using PET to adjust these, unless connected is enabled. */
+    /* Support other objects using proportional editing to adjust these, unless connected is
+     * enabled. */
     if ((!prop_mode || (prop_mode & T_PROP_CONNECTED)) && (bm->totvertsel == 0)) {
       continue;
     }

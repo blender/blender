@@ -134,8 +134,8 @@ void create_transform_matrix(Object *obj,
   if (mode == ABC_MATRIX_LOCAL && obj->parent) {
     /* Note that this produces another matrix than the local matrix, due to
      * constraints and modifiers as well as the obj->parentinv matrix. */
-    invert_m4_m4(obj->parent->imat, obj->parent->object_to_world);
-    mul_m4_m4m4(zup_mat, obj->parent->imat, obj->object_to_world);
+    invert_m4_m4(obj->parent->world_to_object, obj->parent->object_to_world);
+    mul_m4_m4m4(zup_mat, obj->parent->world_to_object, obj->object_to_world);
   }
   else {
     copy_m4_m4(zup_mat, obj->object_to_world);

@@ -71,7 +71,7 @@ static void applyCurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
           *td->val = td->ival * ratio;
         }
 
-        /* apply PET */
+        /* Apply proportional editing. */
         *td->val = interpf(*td->val, td->ival, td->factor);
         CLAMP_MIN(*td->val, 0.0f);
       }

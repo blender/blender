@@ -477,7 +477,8 @@ static void draw_display_buffer(PlayState *ps, ImBuf *ibuf)
   void *buffer_cache_handle = NULL;
   display_buffer = ocio_transform_ibuf(ps, ibuf, &glsl_used, &format, &data, &buffer_cache_handle);
 
-  GPUTexture *texture = GPU_texture_create_2d("display_buf", ibuf->x, ibuf->y, 1, format, NULL);
+  GPUTexture *texture = GPU_texture_create_2d_ex(
+      "display_buf", ibuf->x, ibuf->y, 1, format, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
   GPU_texture_update(texture, data, display_buffer);
   GPU_texture_filter_mode(texture, false);
 

@@ -37,7 +37,8 @@ void deg_evaluate_object_node_visibility(::Depsgraph *depsgraph, IDNode *id_node
   const int required_flags = (graph->mode == DAG_EVAL_VIEWPORT) ? BASE_ENABLED_VIEWPORT :
                                                                   BASE_ENABLED_RENDER;
 
-  const bool is_enabled = object->base_flag & required_flags;
+  const bool is_enabled = !graph->use_visibility_optimization ||
+                          object->base_flag & required_flags;
 
   if (id_node->is_enabled_on_eval != is_enabled) {
     id_node->is_enabled_on_eval = is_enabled;
@@ -73,7 +74,8 @@ void deg_evaluate_object_modifiers_mode_node_visibility(::Depsgraph *depsgraph, 
                    "Modifier node in depsgraph is not found. Likely due to missing "
                    "DEG_relations_tag_update().");
 
-    const bool modifier_enabled = modifier->mode & modifier_mode;
+    const bool modifier_enabled = !graph->use_visibility_optimization ||
+                                  (modifier->mode & modifier_mode);
     const int mute_flag = modifier_enabled ? 0 : DEPSOP_FLAG_MUTE;
     if ((modifier_node->flag & DEPSOP_FLAG_MUTE) != mute_flag) {
       modifier_node->flag &= ~DEPSOP_FLAG_MUTE;

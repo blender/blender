@@ -899,9 +899,17 @@ typedef struct BooleanModifierData {
   float double_threshold;
   char operation;
   char solver;
+  /** #BooleanModifierMaterialMode. */
+  char material_mode;
   char flag;
   char bm_flag;
+  char _pad[7];
 } BooleanModifierData;
+
+typedef enum BooleanModifierMaterialMode {
+  eBooleanModifierMaterialMode_Index = 0,
+  eBooleanModifierMaterialMode_Transfer = 1,
+} BooleanModifierMaterialMode;
 
 /** #BooleanModifierData.operation */
 typedef enum {

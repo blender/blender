@@ -10,14 +10,17 @@ from bpy.props import (
     BoolProperty,
     StringProperty,
 )
+from bpy.app.translations import (
+    pgettext_tip as tip_,
+    pgettext_data as data_,
+)
 
-from bpy.app.translations import pgettext_data as data_
 
 # For preset popover menu
 WindowManager.preset_name = StringProperty(
     name="Preset Name",
     description="Name for new preset",
-    default=data_("New Preset")
+    default=data_("New Preset"),
 )
 
 
@@ -186,7 +189,7 @@ class AddPresetBase:
                 else:
                     os.remove(filepath)
             except Exception as e:
-                self.report({'ERROR'}, "Unable to remove preset: %r" % e)
+                self.report({'ERROR'}, tip_("Unable to remove preset: %r") % e)
                 import traceback
                 traceback.print_exc()
                 return {'CANCELLED'}
@@ -211,7 +214,7 @@ class AddPresetBase:
 
 
 class ExecutePreset(Operator):
-    """Execute a preset"""
+    """Load a preset"""
     bl_idname = "script.execute_preset"
     bl_label = "Execute a Python Preset"
 
@@ -236,7 +239,7 @@ class ExecutePreset(Operator):
         ext = splitext(filepath)[1].lower()
 
         if ext not in {".py", ".xml"}:
-            self.report({'ERROR'}, "Unknown file type: %r" % ext)
+            self.report({'ERROR'}, tip_("Unknown file type: %r") % ext)
             return {'CANCELLED'}
 
         if hasattr(preset_class, "reset_cb"):
@@ -306,7 +309,7 @@ class AddPresetCamera(AddPresetBase, Operator):
         preset_values = [
             "cam.sensor_width",
             "cam.sensor_height",
-            "cam.sensor_fit"
+            "cam.sensor_fit",
         ]
         if self.use_focal_length:
             preset_values.append("cam.lens")
@@ -436,7 +439,7 @@ class AddPresetTrackingCamera(AddPresetBase, Operator):
             "camera.pixel_aspect",
             "camera.k1",
             "camera.k2",
-            "camera.k3"
+            "camera.k3",
         ]
         if self.use_focal_length:
             preset_values.append("camera.units")
@@ -456,7 +459,7 @@ class AddPresetTrackingTrackColor(AddPresetBase, Operator):
 
     preset_values = [
         "track.color",
-        "track.use_custom_color"
+        "track.use_custom_color",
     ]
 
     preset_subdir = "tracking_track_color"
@@ -486,7 +489,7 @@ class AddPresetTrackingSettings(AddPresetBase, Operator):
         "settings.use_default_red_channel",
         "settings.use_default_green_channel",
         "settings.use_default_blue_channel",
-        "settings.default_weight"
+        "settings.default_weight",
     ]
 
     preset_subdir = "tracking_settings"
@@ -504,7 +507,7 @@ class AddPresetNodeColor(AddPresetBase, Operator):
 
     preset_values = [
         "node.color",
-        "node.use_custom_color"
+        "node.use_custom_color",
     ]
 
     preset_subdir = "node_color"
@@ -613,7 +616,7 @@ class AddPresetGpencilBrush(AddPresetBase, Operator):
 
     preset_defines = [
         "brush = bpy.context.tool_settings.gpencil_paint.brush",
-        "settings = brush.gpencil_settings"
+        "settings = brush.gpencil_settings",
     ]
 
     preset_values = [
@@ -647,7 +650,7 @@ class AddPresetGpencilMaterial(AddPresetBase, Operator):
 
     preset_defines = [
         "material = bpy.context.object.active_material",
-        "gpcolor = material.grease_pencil"
+        "gpcolor = material.grease_pencil",
     ]
 
     preset_values = [

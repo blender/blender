@@ -61,6 +61,12 @@ static DisplacementMethod get_displacement_method(PointerRNA &ptr)
       ptr, "displacement_method", DISPLACE_NUM_METHODS, DISPLACE_BUMP);
 }
 
+static EmissionSampling get_emission_sampling(PointerRNA &ptr)
+{
+  return (EmissionSampling)get_enum(
+      ptr, "emission_sampling", EMISSION_SAMPLING_NUM, EMISSION_SAMPLING_AUTO);
+}
+
 static int validate_enum_value(int value, int num_values, int default_value)
 {
   if (value >= num_values) {
@@ -1559,7 +1565,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
 
       /* settings */
       PointerRNA cmat = RNA_pointer_get(&b_mat.ptr, "cycles");
-      shader->set_use_mis(get_boolean(cmat, "sample_as_light"));
+      shader->set_emission_sampling_method(get_emission_sampling(cmat));
       shader->set_use_transparent_shadow(get_boolean(cmat, "use_transparent_shadow"));
       shader->set_heterogeneous_volume(!get_boolean(cmat, "homogeneous_volume"));
       shader->set_volume_sampling_method(get_volume_sampling(cmat));

@@ -1348,7 +1348,9 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
 
       if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
         int framenr = ED_space_clip_get_clip_frame_number(sc);
-        MovieTrackingTrack *track = BKE_tracking_track_get_active(&clip->tracking);
+        const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(
+            &clip->tracking);
+        MovieTrackingTrack *track = tracking_object->active_track;
         MovieTrackingMarker *marker = track ? BKE_tracking_marker_get(track, framenr) : NULL;
 
         if (marker) {
@@ -1731,7 +1733,7 @@ static void annotation_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_pt
     immUniformColor4f(1.0f, 0.39f, 0.39f, 0.78f);
     immUniform1i("colors_len", 0); /* "simple" mode */
     immUniform1f("dash_width", 12.0f);
-    immUniform1f("dash_factor", 0.5f);
+    immUniform1f("udash_factor", 0.5f);
 
     imm_draw_circle_wire_2d(shdr_pos,
                             x,

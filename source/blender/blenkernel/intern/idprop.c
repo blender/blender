@@ -58,8 +58,6 @@ static size_t idp_size_table[] = {
 
 #define GETPROP(prop, i) &(IDP_IDPArray(prop)[i])
 
-/* --------- property array type -------------*/
-
 IDProperty *IDP_NewIDPArray(const char *name)
 {
   IDProperty *prop = MEM_callocN(sizeof(IDProperty), "IDProperty prop array");

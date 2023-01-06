@@ -212,8 +212,8 @@ static void rna_ParticleHairKey_location_object_get(PointerRNA *ptr, float *valu
 
   if (pa) {
     Mesh *hair_mesh = (psmd->psys->flag & PSYS_HAIR_DYNAMICS) ? psmd->psys->hair_out_mesh : NULL;
-    const MVert *verts = BKE_mesh_verts(hair_mesh);
     if (hair_mesh) {
+      const MVert *verts = BKE_mesh_verts(hair_mesh);
       const MVert *mv = &verts[pa->hair_index + (hkey - pa->hair)];
       copy_v3_v3(values, mv->co);
     }
@@ -1188,7 +1188,7 @@ static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *str)
 
     if (psys) {
       if (pt->ob) {
-        sprintf(str, "%s: %s", pt->ob->id.name + 2, psys->name);
+        BLI_sprintf(str, "%s: %s", pt->ob->id.name + 2, psys->name);
       }
       else {
         strcpy(str, psys->name);
@@ -1315,7 +1315,7 @@ static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *str)
   ParticleDupliWeight *dw = ptr->data;
 
   if (dw->ob) {
-    sprintf(str, "%s: %i", dw->ob->id.name + 2, dw->count);
+    BLI_sprintf(str, "%s: %i", dw->ob->id.name + 2, dw->count);
   }
   else {
     strcpy(str, "No object");

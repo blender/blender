@@ -126,6 +126,15 @@ void WM_init_opengl(void);
  */
 const char *WM_ghost_backend(void);
 
+typedef enum eWM_CapabilitiesFlag {
+  /** Ability to warp the cursor (set it's location). */
+  WM_CAPABILITY_CURSOR_WARP = (1 << 0),
+  /** Ability to access window positions & move them. */
+  WM_CAPABILITY_WINDOW_POSITION = (1 << 1),
+} eWM_CapabilitiesFlag;
+
+eWM_CapabilitiesFlag WM_capabilities_flag(void);
+
 void WM_check(struct bContext *C);
 void WM_reinit_gizmomap_all(struct Main *bmain);
 
@@ -312,9 +321,22 @@ void WM_cursor_modal_restore(struct wmWindow *win);
  */
 void WM_cursor_wait(bool val);
 /**
- * \param bounds: can be NULL
+ * Enable cursor grabbing, optionally hiding the cursor and wrapping cursor-motion
+ * within a sub-region of the window.
+ *
+ * \param wrap: an enum (#WM_CURSOR_WRAP_NONE, #WM_CURSOR_WRAP_XY... etc).
+ * \param wrap_region: Window-relative region for cursor wrapping (when `wrap` is
+ * #WM_CURSOR_WRAP_XY). When NULL, the window bounds are used for wrapping.
+ *
+ * \note The current grab state can be accessed by #wmWindowManager.grabcursor although.
  */
-void WM_cursor_grab_enable(struct wmWindow *win, int wrap, bool hide, int bounds[4]);
+void WM_cursor_grab_enable(struct wmWindow *win,
+                           eWM_CursorWrapAxis wrap,
+                           const struct rcti *wrap_region,
+                           bool hide);
+/**
+ *
+ */
 void WM_cursor_grab_disable(struct wmWindow *win, const int mouse_ungrab_xy[2]);
 /**
  * After this you can call restore too.
@@ -335,11 +357,26 @@ void WM_paint_cursor_remove_by_type(struct wmWindowManager *wm,
 void WM_paint_cursor_tag_redraw(struct wmWindow *win, struct ARegion *region);
 
 /**
- * This function requires access to the GHOST_SystemHandle (g_system).
+ * Set the cursor location in window coordinates (compatible with #wmEvent.xy).
+ *
+ * \note Some platforms don't support this, check: #WM_CAPABILITY_WINDOW_POSITION
+ * before relying on this functionality.
  */
 void WM_cursor_warp(struct wmWindow *win, int x, int y);
 
 /* Handlers. */
+
+typedef enum eWM_EventHandlerFlag {
+  /** After this handler all others are ignored. */
+  WM_HANDLER_BLOCKING = (1 << 0),
+  /** Handler accepts double key press events. */
+  WM_HANDLER_ACCEPT_DBL_CLICK = (1 << 1),
+
+  /* Internal. */
+  /** Handler tagged to be freed in #wm_handlers_do(). */
+  WM_HANDLER_DO_FREE = (1 << 7),
+} eWM_EventHandlerFlag;
+ENUM_OPERATORS(eWM_EventHandlerFlag, WM_HANDLER_DO_FREE)
 
 typedef bool (*EventHandlerPoll)(const ARegion *region, const struct wmEvent *event);
 struct wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap);
@@ -407,7 +444,7 @@ struct wmEventHandler_UI *WM_event_add_ui_handler(const struct bContext *C,
                                                   wmUIHandlerFunc handle_fn,
                                                   wmUIHandlerRemoveFunc remove_fn,
                                                   void *user_data,
-                                                  char flag);
+                                                  eWM_EventHandlerFlag flag);
 
 /**
  * Return the first modal operator of type \a ot or NULL.
@@ -449,15 +486,6 @@ void WM_event_modal_handler_region_replace(wmWindow *win,
  * Called on exit or remove area, only here call cancel callback.
  */
 void WM_event_remove_handlers(struct bContext *C, ListBase *handlers);
-
-/* handler flag */
-enum {
-  WM_HANDLER_BLOCKING = (1 << 0),         /* after this handler all others are ignored */
-  WM_HANDLER_ACCEPT_DBL_CLICK = (1 << 1), /* handler accepts double key press events */
-
-  /* internal */
-  WM_HANDLER_DO_FREE = (1 << 7), /* handler tagged to be freed in wm_handlers_do() */
-};
 
 struct wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers,
                                                             ListBase *dropboxes);
@@ -1299,7 +1327,6 @@ bool WM_drag_is_ID_type(const struct wmDrag *drag, int idcode);
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
 wmDragAsset *WM_drag_create_asset_data(const struct AssetHandle *asset,
-                                       struct AssetMetaData *metadata,
                                        const char *path,
                                        int import_type);
 struct wmDragAsset *WM_drag_get_asset_data(const struct wmDrag *drag, int idcode);
@@ -1330,10 +1357,7 @@ struct wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const struct wmDrag *d
 /**
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
-void WM_drag_add_asset_list_item(wmDrag *drag,
-                                 const struct bContext *C,
-                                 const struct AssetLibraryReference *asset_library_ref,
-                                 const struct AssetHandle *asset);
+void WM_drag_add_asset_list_item(wmDrag *drag, const struct AssetHandle *asset);
 const ListBase *WM_drag_asset_list_get(const wmDrag *drag);
 
 const char *WM_drag_get_item_name(struct wmDrag *drag);
@@ -1355,17 +1379,18 @@ void wmOrtho2_pixelspace(float x, float y);
 void wmGetProjectionMatrix(float mat[4][4], const struct rcti *winrct);
 
 /* threaded Jobs Manager */
-enum {
+typedef enum eWM_JobFlag {
   WM_JOB_PRIORITY = (1 << 0),
   WM_JOB_EXCL_RENDER = (1 << 1),
   WM_JOB_PROGRESS = (1 << 2),
-};
+} eWM_JobFlag;
+ENUM_OPERATORS(enum eWM_JobFlag, WM_JOB_PROGRESS);
 
 /**
  * Identifying jobs by owner alone is unreliable, this isn't saved,
  * order can change (keep 0 for 'any').
  */
-enum {
+typedef enum eWM_JobType {
   WM_JOB_TYPE_ANY = 0,
   WM_JOB_TYPE_COMPOSITE,
   WM_JOB_TYPE_RENDER,
@@ -1397,7 +1422,7 @@ enum {
   WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW,
   /* add as needed, bake, seq proxy build
    * if having hard coded values is a problem */
-};
+} eWM_JobType;
 
 /**
  * \return current job or adds new job, but doesn't run it.
@@ -1409,8 +1434,8 @@ struct wmJob *WM_jobs_get(struct wmWindowManager *wm,
                           struct wmWindow *win,
                           const void *owner,
                           const char *name,
-                          int flag,
-                          int job_type);
+                          eWM_JobFlag flag,
+                          eWM_JobType job_type);
 
 /**
  * Returns true if job runs, for UI (progress) indicators.
@@ -1432,8 +1457,8 @@ void WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned 
 void WM_jobs_delay_start(struct wmJob *, double delay_time);
 
 typedef void (*wm_jobs_start_callback)(void *custom_data,
-                                       short *stop,
-                                       short *do_update,
+                                       bool *stop,
+                                       bool *do_update,
                                        float *progress);
 void WM_jobs_callbacks(struct wmJob *,
                        wm_jobs_start_callback startjob,
@@ -1463,7 +1488,7 @@ void WM_jobs_stop(struct wmWindowManager *wm, const void *owner, void *startjob)
  */
 void WM_jobs_kill(struct wmWindowManager *wm,
                   void *owner,
-                  void (*)(void *, short int *, short int *, float *));
+                  void (*)(void *, bool *, bool *, float *));
 /**
  * Wait until every job ended.
  */

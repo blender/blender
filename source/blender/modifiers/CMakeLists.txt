@@ -34,7 +34,7 @@ set(INC_SYS
 
 set(SRC
   intern/MOD_armature.c
-  intern/MOD_array.c
+  intern/MOD_array.cc
   intern/MOD_bevel.c
   intern/MOD_boolean.cc
   intern/MOD_build.c
@@ -45,7 +45,7 @@ set(SRC
   intern/MOD_curve.c
   intern/MOD_datatransfer.cc
   intern/MOD_decimate.c
-  intern/MOD_displace.c
+  intern/MOD_displace.cc
   intern/MOD_dynamicpaint.c
   intern/MOD_edgesplit.c
   intern/MOD_explode.c
@@ -62,7 +62,7 @@ set(SRC
   intern/MOD_meshcache_util.c
   intern/MOD_meshdeform.c
   intern/MOD_meshsequencecache.cc
-  intern/MOD_mirror.c
+  intern/MOD_mirror.cc
   intern/MOD_multires.cc
   intern/MOD_nodes.cc
   intern/MOD_none.c
@@ -71,7 +71,7 @@ set(SRC
   intern/MOD_particleinstance.c
   intern/MOD_particlesystem.cc
   intern/MOD_remesh.c
-  intern/MOD_screw.c
+  intern/MOD_screw.cc
   intern/MOD_shapekey.c
   intern/MOD_shrinkwrap.c
   intern/MOD_simpledeform.c
@@ -84,7 +84,7 @@ set(SRC
   intern/MOD_subsurf.cc
   intern/MOD_surface.c
   intern/MOD_surfacedeform.c
-  intern/MOD_triangulate.c
+  intern/MOD_triangulate.cc
   intern/MOD_ui_common.c
   intern/MOD_util.cc
   intern/MOD_uvproject.cc

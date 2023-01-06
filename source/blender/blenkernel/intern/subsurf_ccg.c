@@ -962,7 +962,7 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
   int edgeSize = ccgSubSurf_getEdgeSize(ss);
   uint i = 0;
   short *edgeFlags = ccgdm->edgeFlags;
-  const short ed_interior_flag = ccgdm->drawInteriorEdges ? (ME_EDGEDRAW | ME_EDGERENDER) : 0;
+  const short ed_interior_flag = ccgdm->drawInteriorEdges ? ME_EDGEDRAW : 0;
 
   totface = ccgSubSurf_getNumFaces(ss);
   for (index = 0; index < totface; index++) {
@@ -999,17 +999,13 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
     int x;
     int edgeIdx = POINTER_AS_INT(ccgSubSurf_getEdgeEdgeHandle(e));
 
-    if (!ccgSubSurf_getEdgeNumFaces(e)) {
-      ed_flag |= ME_LOOSEEDGE;
-    }
-
     if (edgeFlags) {
       if (edgeIdx != -1) {
-        ed_flag |= ((edgeFlags[index] & (ME_SEAM | ME_SHARP)) | ME_EDGEDRAW | ME_EDGERENDER);
+        ed_flag |= ((edgeFlags[index] & (ME_SEAM | ME_SHARP)) | ME_EDGEDRAW);
       }
     }
     else {
-      ed_flag |= ME_EDGEDRAW | ME_EDGERENDER;
+      ed_flag |= ME_EDGEDRAW;
     }
 
     for (x = 0; x < edgeSize - 1; x++) {

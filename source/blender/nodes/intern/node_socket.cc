@@ -10,7 +10,6 @@
 #include "DNA_node_types.h"
 
 #include "BLI_color.hh"
-#include "BLI_cpp_type_make.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vec_types.hh"
 #include "BLI_string.h"
@@ -185,7 +184,7 @@ static void refresh_socket_list(bNodeTree &ntree,
     bNodeSocket *old_socket_with_same_identifier = nullptr;
     for (const int i : old_sockets.index_range()) {
       bNodeSocket &old_socket = *old_sockets[i];
-      if (old_socket.identifier == socket_decl->identifier()) {
+      if (old_socket.identifier == socket_decl->identifier) {
         old_sockets.remove_and_reorder(i);
         old_socket_with_same_identifier = &old_socket;
         break;
@@ -197,7 +196,7 @@ static void refresh_socket_list(bNodeTree &ntree,
       new_socket = &socket_decl->build(ntree, node);
     }
     else {
-      STRNCPY(old_socket_with_same_identifier->name, socket_decl->name().c_str());
+      STRNCPY(old_socket_with_same_identifier->name, socket_decl->name.c_str());
       if (socket_decl->matches(*old_socket_with_same_identifier)) {
         /* The existing socket matches exactly, just use it. */
         new_socket = old_socket_with_same_identifier;
@@ -209,7 +208,7 @@ static void refresh_socket_list(bNodeTree &ntree,
 
         if (new_socket == old_socket_with_same_identifier) {
           /* The existing socket has been updated, set the correct identifier again. */
-          STRNCPY(new_socket->identifier, socket_decl->identifier().c_str());
+          STRNCPY(new_socket->identifier, socket_decl->identifier.c_str());
         }
         else {
           /* Move links to new socket with same identifier. */
@@ -221,7 +220,7 @@ static void refresh_socket_list(bNodeTree &ntree,
               link->tosock = new_socket;
             }
           }
-          LISTBASE_FOREACH (bNodeLink *, internal_link, &node.internal_links) {
+          for (bNodeLink *internal_link : node.runtime->internal_links) {
             if (internal_link->fromsock == old_socket_with_same_identifier) {
               internal_link->fromsock = new_socket;
             }
@@ -250,8 +249,8 @@ static void refresh_node(bNodeTree &ntree,
                          blender::nodes::NodeDeclaration &node_decl,
                          bool do_id_user)
 {
-  refresh_socket_list(ntree, node, node.inputs, node_decl.inputs(), do_id_user);
-  refresh_socket_list(ntree, node, node.outputs, node_decl.outputs(), do_id_user);
+  refresh_socket_list(ntree, node, node.inputs, node_decl.inputs, do_id_user);
+  refresh_socket_list(ntree, node, node.outputs, node_decl.outputs, do_id_user);
 }
 
 void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)
@@ -483,54 +482,6 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
   to->flag |= (from->flag & SOCK_HIDE_VALUE);
 }
 
-void node_socket_skip_reroutes(
-    ListBase *links, bNode *node, bNodeSocket *socket, bNode **r_node, bNodeSocket **r_socket)
-{
-  const int loop_limit = 100; /* Limit in case there is a connection cycle. */
-
-  if (socket->in_out == SOCK_IN) {
-    bNodeLink *first_link = (bNodeLink *)links->first;
-
-    for (int i = 0; node->type == NODE_REROUTE && i < loop_limit; i++) {
-      bNodeLink *link = first_link;
-
-      for (; link; link = link->next) {
-        if (link->fromnode == node && link->tonode != node) {
-          break;
-        }
-      }
-
-      if (link) {
-        node = link->tonode;
-        socket = link->tosock;
-      }
-      else {
-        break;
-      }
-    }
-  }
-  else {
-    for (int i = 0; node->type == NODE_REROUTE && i < loop_limit; i++) {
-      bNodeSocket *input = (bNodeSocket *)node->inputs.first;
-
-      if (input && input->link) {
-        node = input->link->fromnode;
-        socket = input->link->fromsock;
-      }
-      else {
-        break;
-      }
-    }
-  }
-
-  if (r_node) {
-    *r_node = node;
-  }
-  if (r_socket) {
-    *r_socket = socket;
-  }
-}
-
 static void standard_node_socket_interface_init_socket(bNodeTree * /*ntree*/,
                                                        const bNodeSocket *interface_socket,
                                                        bNode * /*node*/,
@@ -596,8 +547,8 @@ static void standard_node_socket_interface_verify_socket(bNodeTree * /*ntree*/,
 
 static void standard_node_socket_interface_from_socket(bNodeTree * /*ntree*/,
                                                        bNodeSocket *stemp,
-                                                       bNode * /*node*/,
-                                                       bNodeSocket *sock)
+                                                       const bNode * /*node*/,
+                                                       const bNodeSocket *sock)
 {
   /* initialize settings */
   stemp->type = stemp->typeinfo->type;
@@ -778,12 +729,6 @@ static bNodeSocketType *make_socket_type_string()
   };
   return socktype;
 }
-
-BLI_CPP_TYPE_MAKE(Object, Object *, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(Collection, Collection *, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(Texture, Tex *, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(Image, Image *, CPPTypeFlags::BasicType)
-BLI_CPP_TYPE_MAKE(Material, Material *, CPPTypeFlags::BasicType)
 
 static bNodeSocketType *make_socket_type_object()
 {

@@ -26,7 +26,6 @@ struct libmv_CameraIntrinsicsOptions;
 
 typedef struct TracksMap {
   char object_name[MAX_NAME];
-  bool is_camera;
 
   int num_tracks;
   int customdata_size;
@@ -42,10 +41,7 @@ typedef struct TracksMap {
   SpinLock spin_lock;
 } TracksMap;
 
-struct TracksMap *tracks_map_new(const char *object_name,
-                                 bool is_camera,
-                                 int num_tracks,
-                                 int customdata_size);
+struct TracksMap *tracks_map_new(const char *object_name, int num_tracks, int customdata_size);
 int tracks_map_get_size(struct TracksMap *map);
 void tracks_map_get_indexed_element(struct TracksMap *map,
                                     int index,
@@ -82,6 +78,26 @@ void tracking_set_marker_coords_from_tracking(int frame_width,
                                               struct MovieTrackingMarker *marker,
                                               const double search_pixel_x[5],
                                               const double search_pixel_y[5]);
+
+/**
+ * Convert the lens principal point (optical center) between normalized and pixel spaces.
+ *
+ * The normalized space stores principal point relative to the frame center which has normalized
+ * principal coordinate of (0, 0). The right top corner of the frame corresponds to a normalized
+ * principal coordinate of (1, 1), and the left bottom corner corresponds to coordinate of
+ * (-1, -1).
+ *
+ * The pixel space is measured in pixels, with the reference being the left bottom corner of
+ * the frame.
+ */
+void tracking_principal_point_normalized_to_pixel(const float principal_point_normalized[2],
+                                                  int frame_width,
+                                                  int frame_height,
+                                                  float r_principal_point_pixel[2]);
+void tracking_principal_point_pixel_to_normalized(const float principal_point_pixel[2],
+                                                  int frame_width,
+                                                  int frame_height,
+                                                  float r_principal_point_normalized[2]);
 
 /*********************** General purpose utility functions *************************/
 
@@ -134,11 +150,11 @@ struct MovieTrackingMarker *tracking_get_keyframed_marker(struct MovieTrackingTr
 /**
  * Region is in pixel space, relative to marker's center.
  */
-float *tracking_track_get_mask_for_region(int frame_width,
-                                          int frame_height,
+float *tracking_track_get_mask_for_region(const int frame_width,
+                                          const int frame_height,
                                           const float region_min[2],
                                           const float region_max[2],
-                                          MovieTrackingTrack *track);
+                                          const MovieTrackingTrack *track);
 
 /*********************** Frame Accessor *************************/
 

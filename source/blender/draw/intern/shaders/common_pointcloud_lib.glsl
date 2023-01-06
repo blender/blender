@@ -1,6 +1,25 @@
 
 /* NOTE: To be used with UNIFORM_RESOURCE_ID and INSTANCED_ATTR as define. */
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#ifdef POINTCLOUD_SHADER
+#  define COMMON_POINTCLOUD_LIB
+
+#  ifndef USE_GPU_SHADER_CREATE_INFO
+#    ifndef DRW_SHADER_SHARED_H
+
+in vec4 pos; /* Position and radius. */
+
+/* ---- Instanced attribs ---- */
+
+in vec3 pos_inst;
+in vec3 nor;
+
+#    endif
+#  else
+#    ifndef DRW_POINTCLOUD_INFO
+#      error Ensure createInfo includes `draw_pointcloud`.
+#    endif
+#  endif /* !USE_GPU_SHADER_CREATE_INFO */
 
 int pointcloud_get_point_id()
 {
@@ -26,7 +45,7 @@ void pointcloud_get_pos_and_radius(out vec3 outpos, out float outradius)
 }
 
 /* Return world position and normal. */
-void pointcloud_get_pos_and_nor(out vec3 outpos, out vec3 outnor)
+void pointcloud_get_pos_nor_radius(out vec3 outpos, out vec3 outnor, out float outradius)
 {
   vec3 p;
   float radius;
@@ -60,6 +79,17 @@ void pointcloud_get_pos_and_nor(out vec3 outpos, out vec3 outnor)
   radius *= 0.01;
   outnor = facing_mat * pos_inst;
   outpos = p + outnor * radius;
+  outradius = radius;
+}
+
+/* Return world position and normal. */
+void pointcloud_get_pos_and_nor(out vec3 outpos, out vec3 outnor)
+{
+  vec3 nor, pos;
+  float radius;
+  pointcloud_get_pos_nor_radius(pos, nor, radius);
+  outpos = pos;
+  outnor = nor;
 }
 
 vec3 pointcloud_get_pos()
@@ -98,3 +128,4 @@ vec2 pointcloud_get_barycentric(void)
   /* TODO: To be implemented. */
   return vec2(0.0);
 }
+#endif

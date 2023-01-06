@@ -174,7 +174,7 @@ static void eevee_cache_finish(void *vedata)
   }
 
   if (g_data->queued_shaders_count > 0) {
-    SNPRINTF(ved->info, "Compiling Shaders %d", g_data->queued_shaders_count);
+    SNPRINTF(ved->info, "Compiling Shaders (%d remaining)", g_data->queued_shaders_count);
   }
 }
 

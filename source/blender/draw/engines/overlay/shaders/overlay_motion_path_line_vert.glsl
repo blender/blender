@@ -13,8 +13,12 @@ vec2 proj(vec4 pos)
   return (0.5 * (pos.xy / pos.w) + 0.5) * sizeViewport.xy;
 }
 
-#define SET_INTENSITY(A, B, C, min, max) \
-  (((1.0 - (float(C - B) / float(C - A))) * (max - min)) + min)
+float calc_intensity(int segment_start, int segment_current, int segment_end, float min, float max)
+{
+  return ((1.0 - (float(segment_end - segment_current) / float(segment_end - segment_start))) *
+          (max - min)) +
+         min;
+}
 
 void main()
 {
@@ -39,10 +43,10 @@ void main()
     else {
       /* black - before frameCurrent */
       if (selected) {
-        intensity = SET_INTENSITY(frameStart, frame, frameCurrent, 0.25, 0.75);
+        intensity = calc_intensity(frameStart, frame, frameCurrent, 0.25, 0.75);
       }
       else {
-        intensity = SET_INTENSITY(frameStart, frame, frameCurrent, 0.68, 0.92);
+        intensity = calc_intensity(frameStart, frame, frameCurrent, 0.68, 0.92);
       }
       interp.color.rgb = mix(colorWire.rgb, blend_base, intensity);
     }
@@ -55,10 +59,10 @@ void main()
     else {
       /* blue - after frameCurrent */
       if (selected) {
-        intensity = SET_INTENSITY(frameCurrent, frame, frameEnd, 0.25, 0.75);
+        intensity = calc_intensity(frameCurrent, frame, frameEnd, 0.25, 0.75);
       }
       else {
-        intensity = SET_INTENSITY(frameCurrent, frame, frameEnd, 0.68, 0.92);
+        intensity = calc_intensity(frameCurrent, frame, frameEnd, 0.68, 0.92);
       }
 
       interp.color.rgb = mix(colorBonePose.rgb, blend_base, intensity);

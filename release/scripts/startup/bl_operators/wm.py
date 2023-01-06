@@ -17,8 +17,11 @@ from bpy.props import (
     IntVectorProperty,
     FloatVectorProperty,
 )
-from bpy.app.translations import pgettext_iface as iface_
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    pgettext_tip as tip_,
+    contexts as i18n_contexts,
+)
 
 
 def _rna_path_prop_search_for_context_impl(context, edit_text, unique_attrs):
@@ -200,9 +203,9 @@ def description_from_data_path(base, data_path, *, prefix, value=Ellipsis):
 
     if (
             (rna_prop := context_path_to_rna_property(base, data_path)) and
-            (description := rna_prop.description)
+            (description := iface_(rna_prop.description))
     ):
-        description = "%s: %s" % (prefix, description)
+        description = iface_("%s: %s") % (prefix, description)
         if value != Ellipsis:
             description = "%s\n%s: %s" % (description, iface_("Value"), str(value))
         return description
@@ -302,7 +305,7 @@ class WM_OT_context_set_int(Operator):  # same as enum
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix="Assign", value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -403,7 +406,7 @@ class WM_OT_context_set_float(Operator):  # same as enum
 
     @classmethod
     def description(cls, context, props):
-        return description_from_data_path(context, props.data_path, prefix="Assign", value=props.value)
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -769,7 +772,7 @@ class WM_OT_operator_pie_enum(Operator):
         try:
             op_rna = op.get_rna_type()
         except KeyError:
-            self.report({'ERROR'}, "Operator not found: bpy.ops.%s" % data_path)
+            self.report({'ERROR'}, tip_("Operator not found: bpy.ops.%s") % data_path)
             return {'CANCELLED'}
 
         def draw_cb(self, context):
@@ -869,7 +872,7 @@ class WM_OT_context_collection_boolean_set(Operator):
             elif value_orig is False:
                 pass
             else:
-                self.report({'WARNING'}, "Non boolean value found: %s[ ].%s" %
+                self.report({'WARNING'}, tip_("Non boolean value found: %s[ ].%s") %
                             (data_path_iter, data_path_item))
                 return {'CANCELLED'}
 
@@ -972,7 +975,7 @@ class WM_OT_context_modal_mouse(Operator):
                     (item, ) = self._values.keys()
                     header_text = header_text % eval("item.%s" % self.data_path_item)
                 else:
-                    header_text = (self.header_text % delta) + " (delta)"
+                    header_text = (self.header_text % delta) + tip_(" (delta)")
                 context.area.header_text_set(header_text)
 
         elif 'LEFTMOUSE' == event_type:
@@ -992,7 +995,7 @@ class WM_OT_context_modal_mouse(Operator):
         self._values_store(context)
 
         if not self._values:
-            self.report({'WARNING'}, "Nothing to operate on: %s[ ].%s" %
+            self.report({'WARNING'}, tip_("Nothing to operate on: %s[ ].%s") %
                         (self.data_path_iter, self.data_path_item))
 
             return {'CANCELLED'}
@@ -1130,7 +1133,7 @@ class WM_OT_path_open(Operator):
         filepath = os.path.normpath(filepath)
 
         if not os.path.exists(filepath):
-            self.report({'ERROR'}, "File '%s' not found" % filepath)
+            self.report({'ERROR'}, tip_("File '%s' not found") % filepath)
             return {'CANCELLED'}
 
         if sys.platform[:3] == "win":
@@ -1201,7 +1204,7 @@ def _wm_doc_get_id(doc_id, *, do_url=True, url_prefix="", report=None):
 
             if rna_class is None:
                 if report is not None:
-                    report({'ERROR'}, iface_("Type \"%s\" can not be found") % class_name)
+                    report({'ERROR'}, tip_("Type \"%s\" can not be found") % class_name)
                 return None
 
             # Detect if this is a inherited member and use that name instead.
@@ -1272,9 +1275,9 @@ class WM_OT_doc_view_manual(Operator):
         if url is None:
             self.report(
                 {'WARNING'},
-                "No reference available %r, "
-                "Update info in 'rna_manual_reference.py' "
-                "or callback to bpy.utils.manual_map()" %
+                tip_("No reference available %r, "
+                     "Update info in 'rna_manual_reference.py' "
+                     "or callback to bpy.utils.manual_map()") %
                 self.doc_id
             )
             return {'CANCELLED'}
@@ -1374,7 +1377,8 @@ class WM_OT_properties_edit(Operator):
         name="Array Length",
         default=3,
         min=1,
-        max=32,  # 32 is the maximum size for RNA array properties.
+        # 32 is the maximum size for RNA array properties.
+        max=32,
     )
 
     # Integer properties.
@@ -1455,7 +1459,7 @@ class WM_OT_properties_edit(Operator):
     # Store the value converted to a string as a fallback for otherwise unsupported types.
     eval_string: StringProperty(
         name="Value",
-        description="Python value for unsupported custom property types"
+        description="Python value for unsupported custom property types",
     )
 
     type_items = rna_custom_property_type_items
@@ -1901,7 +1905,7 @@ class WM_OT_properties_edit_value(Operator):
     # Store the value converted to a string as a fallback for otherwise unsupported types.
     eval_string: StringProperty(
         name="Value",
-        description="Value for custom property types that can only be edited as a Python expression"
+        description="Value for custom property types that can only be edited as a Python expression",
     )
 
     def execute(self, context):
@@ -2081,7 +2085,7 @@ class WM_OT_operator_cheat_sheet(Operator):
 # Add-on Operators
 
 class WM_OT_owner_enable(Operator):
-    """Enable workspace owner ID"""
+    """Enable add-on for workspace"""
     bl_idname = "wm.owner_enable"
     bl_label = "Enable Add-on"
 
@@ -2096,9 +2100,9 @@ class WM_OT_owner_enable(Operator):
 
 
 class WM_OT_owner_disable(Operator):
-    """Enable workspace owner ID"""
+    """Disable add-on for workspace"""
     bl_idname = "wm.owner_disable"
-    bl_label = "Disable UI Tag"
+    bl_label = "Disable Add-on"
 
     owner_id: StringProperty(
         name="UI Tag",
@@ -2153,7 +2157,7 @@ class WM_OT_tool_set_by_id(Operator):
                 tool_settings.workspace_tool_type = 'FALLBACK'
             return {'FINISHED'}
         else:
-            self.report({'WARNING'}, "Tool %r not found for space %r" % (self.name, space_type))
+            self.report({'WARNING'}, tip_("Tool %r not found for space %r") % (self.name, space_type))
             return {'CANCELLED'}
 
 
@@ -2286,7 +2290,7 @@ class WM_OT_toolbar_fallback_pie(Operator):
             ToolSelectPanelHelper.draw_fallback_tool_items_for_pie_menu(self.layout, context)
 
         wm = context.window_manager
-        wm.popup_menu_pie(draw_func=draw_cb, title="Fallback Tool", event=event)
+        wm.popup_menu_pie(draw_func=draw_cb, title=iface_("Fallback Tool"), event=event)
         return {'FINISHED'}
 
 
@@ -2402,7 +2406,9 @@ class WM_OT_toolbar_prompt(Operator):
             flow = layout.grid_flow(columns=len(status_items), align=True, row_major=True)
             for _, name, item in status_items:
                 row = flow.row(align=True)
-                row.template_event_from_keymap_item(item, text=name)
+                row.template_event_from_keymap_item(
+                    item, text=name, text_ctxt=i18n_contexts.operator_default
+                )
 
         self._keymap = keymap
 
@@ -2465,11 +2471,11 @@ class BatchRenameAction(bpy.types.PropertyGroup):
     replace_match_case: BoolProperty(name="Case Sensitive")
     use_replace_regex_src: BoolProperty(
         name="Regular Expression Find",
-        description="Use regular expressions to match text in the 'Find' field"
+        description="Use regular expressions to match text in the 'Find' field",
     )
     use_replace_regex_dst: BoolProperty(
         name="Regular Expression Replace",
-        description="Use regular expression for the replacement text (supporting groups)"
+        description="Use regular expression for the replacement text (supporting groups)",
     )
 
     # type: 'CASE'.
@@ -2501,7 +2507,7 @@ class WM_OT_batch_rename(Operator):
             ('COLLECTION', "Collections", ""),
             ('MATERIAL', "Materials", ""),
             None,
-            # Enum identifiers are compared with 'object.type'.
+            # Enum identifiers are compared with `object.type`.
             # Follow order in "Add" menu.
             ('MESH', "Meshes", ""),
             ('CURVE', "Curves", ""),
@@ -2938,7 +2944,7 @@ class WM_OT_batch_rename(Operator):
             row.prop(action, "op_remove", text="", icon='REMOVE')
             row.prop(action, "op_add", text="", icon='ADD')
 
-        layout.label(text=iface_("Rename %d %s") % (len(self._data[0]), self._data[2]))
+        layout.label(text=iface_("Rename %d %s") % (len(self._data[0]), self._data[2]), translate=False)
 
     def check(self, context):
         changed = False
@@ -3078,7 +3084,13 @@ class WM_MT_splash_quick_setup(Menu):
 
         old_version = bpy.types.PREFERENCES_OT_copy_prev.previous_version()
         if bpy.types.PREFERENCES_OT_copy_prev.poll(context) and old_version:
-            sub.operator("preferences.copy_prev", text=iface_("Load %d.%d Settings", "Operator") % old_version)
+            sub.operator(
+                "preferences.copy_prev",
+                text=iface_(
+                    "Load %d.%d Settings",
+                    "Operator") %
+                old_version,
+                translate=False)
             sub.operator("wm.save_userpref", text="Save New Settings")
         else:
             sub.label()

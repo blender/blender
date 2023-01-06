@@ -613,14 +613,12 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
 void USDMeshReader::process_normals_face_varying(Mesh *mesh)
 {
   if (normals_.empty()) {
-    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->totloop) {
     std::cerr << "WARNING: loop normal count mismatch for mesh " << mesh->id.name << std::endl;
-    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
@@ -658,14 +656,12 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh)
 void USDMeshReader::process_normals_uniform(Mesh *mesh)
 {
   if (normals_.empty()) {
-    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->totpoly) {
     std::cerr << "WARNING: uniform normal count mismatch for mesh " << mesh->id.name << std::endl;
-    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
@@ -706,6 +702,7 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
       mvert.co[1] = positions_[i][1];
       mvert.co[2] = positions_[i][2];
     }
+    BKE_mesh_tag_coords_changed(mesh);
 
     read_vertex_creases(mesh, motionSampleTime);
   }
@@ -717,10 +714,6 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
     }
     else if (normal_interpolation_ == pxr::UsdGeomTokens->uniform) {
       process_normals_uniform(mesh);
-    }
-    else {
-      /* Default */
-      BKE_mesh_normals_tag_dirty(mesh);
     }
   }
 

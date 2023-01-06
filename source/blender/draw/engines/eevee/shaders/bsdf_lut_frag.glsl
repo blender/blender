@@ -1,10 +1,6 @@
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
 #pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
 
-uniform float sampleCount;
-
-out vec2 FragColor;
-
 void main()
 {
   /* Make sure coordinates are covering the whole [0..1] range at texel center. */

@@ -71,6 +71,9 @@ void filelist_setlibrary(struct FileList *filelist,
 
 void filelist_init_icons(void);
 void filelist_free_icons(void);
+void filelist_file_get_full_path(const struct FileList *filelist,
+                                 const FileDirEntry *file,
+                                 char r_path[/*FILE_MAX_LIBEXTRA*/]);
 struct ImBuf *filelist_getimage(struct FileList *filelist, int index);
 struct ImBuf *filelist_file_getimage(const FileDirEntry *file);
 struct ImBuf *filelist_geticon_image_ex(const FileDirEntry *file);
@@ -91,7 +94,11 @@ void filelist_clear_ex(struct FileList *filelist,
 void filelist_clear_from_reset_tag(struct FileList *filelist);
 void filelist_free(struct FileList *filelist);
 
-const char *filelist_dir(struct FileList *filelist);
+/**
+ * Get the root path of the file list. To get the full path for a file, use
+ * #filelist_file_get_full_path().
+ */
+const char *filelist_dir(const struct FileList *filelist);
 bool filelist_is_dir(struct FileList *filelist, const char *path);
 /**
  * May modify in place given r_dir, which is expected to be FILE_MAX_LIBEXTRA length.

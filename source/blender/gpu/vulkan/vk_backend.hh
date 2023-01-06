@@ -9,10 +9,32 @@
 
 #include "gpu_backend.hh"
 
+#ifdef __APPLE__
+#  include <MoltenVK/vk_mvk_moltenvk.h>
+#else
+#  include <vulkan/vulkan.h>
+#endif
+#include "shaderc/shaderc.hpp"
+
 namespace blender::gpu {
 
+class VKContext;
+
 class VKBackend : public GPUBackend {
+ private:
+  shaderc::Compiler shaderc_compiler_;
+
  public:
+  VKBackend()
+  {
+    VKBackend::init_platform();
+  }
+
+  virtual ~VKBackend()
+  {
+    VKBackend::platform_exit();
+  }
+
   void delete_resources() override;
 
   void samplers_update() override;
@@ -23,8 +45,10 @@ class VKBackend : public GPUBackend {
 
   Batch *batch_alloc() override;
   DrawList *drawlist_alloc(int list_length) override;
+  Fence *fence_alloc() override;
   FrameBuffer *framebuffer_alloc(const char *name) override;
   IndexBuf *indexbuf_alloc() override;
+  PixelBuffer *pixelbuf_alloc(uint size) override;
   QueryPool *querypool_alloc() override;
   Shader *shader_alloc(const char *name) override;
   Texture *texture_alloc(const char *name) override;
@@ -37,6 +61,14 @@ class VKBackend : public GPUBackend {
   void render_begin() override;
   void render_end() override;
   void render_step() override;
+
+  shaderc::Compiler &get_shaderc_compiler();
+
+  static void capabilities_init(VKContext &context);
+
+ private:
+  static void init_platform();
+  static void platform_exit();
 };
 
 }  // namespace blender::gpu

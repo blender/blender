@@ -21,13 +21,13 @@ namespace blender::realtime_compositor {
 
 using namespace nodes::derived_node_tree_types;
 
-Evaluator::Evaluator(Context &context, bNodeTree &node_tree)
-    : context_(context), node_tree_(node_tree)
+Evaluator::Evaluator(Context &context) : context_(context)
 {
 }
 
 void Evaluator::evaluate()
 {
+  context_.cache_manager().reset();
   context_.texture_pool().reset();
 
   if (!is_compiled_) {
@@ -66,7 +66,7 @@ bool Evaluator::validate_node_tree()
 
 void Evaluator::compile_and_evaluate()
 {
-  derived_node_tree_ = std::make_unique<DerivedNodeTree>(node_tree_);
+  derived_node_tree_ = std::make_unique<DerivedNodeTree>(*context_.get_scene()->nodetree);
 
   if (!validate_node_tree()) {
     return;

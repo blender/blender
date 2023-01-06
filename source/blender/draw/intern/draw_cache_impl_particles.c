@@ -841,8 +841,16 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR)) {
       cache->num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata,
                                                           CD_PROP_BYTE_COLOR);
-      active_col = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR);
-      render_col = CustomData_get_render_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR);
+      if (psmd->mesh_final->active_color_attribute != NULL) {
+        active_col = CustomData_get_named_layer(&psmd->mesh_final->ldata,
+                                                CD_PROP_BYTE_COLOR,
+                                                psmd->mesh_final->active_color_attribute);
+      }
+      if (psmd->mesh_final->default_color_attribute != NULL) {
+        render_col = CustomData_get_named_layer(&psmd->mesh_final->ldata,
+                                                CD_PROP_BYTE_COLOR,
+                                                psmd->mesh_final->default_color_attribute);
+      }
     }
   }
 
@@ -1168,7 +1176,11 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     }
     if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR)) {
       num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR);
-      active_col = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR);
+      if (psmd->mesh_final->active_color_attribute != NULL) {
+        active_col = CustomData_get_named_layer(&psmd->mesh_final->ldata,
+                                                CD_PROP_BYTE_COLOR,
+                                                psmd->mesh_final->active_color_attribute);
+      }
     }
   }
 
@@ -1346,7 +1358,7 @@ static void particle_batch_cache_ensure_pos(Object *object,
   sim.ob = object;
   sim.psys = psys;
   sim.psmd = psys_get_modifier(object, psys);
-  sim.psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
+  psys_sim_data_init(&sim);
 
   GPU_VERTBUF_DISCARD_SAFE(point_cache->pos);
 
@@ -1392,6 +1404,8 @@ static void particle_batch_cache_ensure_pos(Object *object,
   if (curr_point != psys->totpart) {
     GPU_vertbuf_data_resize(point_cache->pos, curr_point);
   }
+
+  psys_sim_data_free(&sim);
 }
 
 static void drw_particle_update_ptcache_edit(Object *object_eval,

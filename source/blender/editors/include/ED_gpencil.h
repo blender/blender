@@ -641,6 +641,15 @@ struct bGPDstroke *ED_gpencil_stroke_join_and_trim(struct bGPdata *gpd,
  */
 void ED_gpencil_stroke_close_by_distance(struct bGPDstroke *gps, float threshold);
 
+/**
+ * Calculate the brush cursor size in world space.
+ */
+float ED_gpencil_cursor_radius(struct bContext *C, int x, int y);
+float ED_gpencil_radial_control_scale(struct bContext *C,
+                                      struct Brush *brush,
+                                      float initial_value,
+                                      const int mval[2]);
+
 #ifdef __cplusplus
 }
 #endif

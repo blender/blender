@@ -51,6 +51,7 @@ void ED_space_image_set(struct Main *bmain,
                         struct SpaceImage *sima,
                         struct Image *ima,
                         bool automatic);
+void ED_space_image_sync(struct Main *bmain, Image *image, bool ignore_render_viewer);
 void ED_space_image_auto_set(const struct bContext *C, struct SpaceImage *sima);
 struct Mask *ED_space_image_get_mask(const struct SpaceImage *sima);
 void ED_space_image_set_mask(struct bContext *C, struct SpaceImage *sima, struct Mask *mask);

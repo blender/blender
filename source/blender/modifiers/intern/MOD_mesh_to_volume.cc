@@ -134,7 +134,7 @@ static Volume *mesh_to_volume(ModifierData *md,
   }
   BKE_mesh_wrapper_ensure_mdata(mesh);
 
-  const float4x4 mesh_to_own_object_space_transform = float4x4(ctx->object->imat) *
+  const float4x4 mesh_to_own_object_space_transform = float4x4(ctx->object->world_to_object) *
                                                       float4x4(object_to_convert->object_to_world);
   geometry::MeshToVolumeResolution resolution;
   resolution.mode = (MeshToVolumeModifierResolutionMode)mvmd->resolution_mode;

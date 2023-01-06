@@ -140,10 +140,10 @@ void register_node_type_sh_valtorgb()
 
   sh_fn_node_type_base(&ntype, SH_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::sh_node_valtorgb_declare;
-  node_type_init(&ntype, file_ns::node_shader_init_valtorgb);
+  ntype.initfunc = file_ns::node_shader_init_valtorgb;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, file_ns::gpu_shader_valtorgb);
+  ntype.gpu_fn = file_ns::gpu_shader_valtorgb;
   ntype.build_multi_function = file_ns::sh_node_valtorgb_build_multi_function;
 
   nodeRegisterType(&ntype);

@@ -193,7 +193,8 @@ static float sculpt_expand_max_vertex_falloff_get(ExpandCache *expand_cache)
     return expand_cache->max_vert_falloff;
   }
 
-  if (!expand_cache->brush->mtex.tex) {
+  const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache->brush, OB_MODE_SCULPT);
+  if (!mask_tex->tex) {
     return expand_cache->max_vert_falloff;
   }
 
@@ -1259,7 +1260,12 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
     }
 
     if (expand_cache->preserve) {
-      new_mask = max_ff(new_mask, expand_cache->original_mask[vd.index]);
+      if (expand_cache->invert) {
+        new_mask = min_ff(new_mask, expand_cache->original_mask[vd.index]);
+      }
+      else {
+        new_mask = max_ff(new_mask, expand_cache->original_mask[vd.index]);
+      }
     }
 
     if (new_mask == initial_mask) {
@@ -1882,13 +1888,14 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
       }
       case SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_INCREASE: {
         if (expand_cache->texture_distortion_strength == 0.0f) {
-          if (expand_cache->brush->mtex.tex == NULL) {
+          const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache->brush, OB_MODE_SCULPT);
+          if (mask_tex->tex == NULL) {
             BKE_report(op->reports,
                        RPT_WARNING,
                        "Active brush does not contain any texture to distort the expand boundary");
             break;
           }
-          if (expand_cache->brush->mtex.brush_map_mode != MTEX_MAP_MODE_3D) {
+          if (mask_tex->brush_map_mode != MTEX_MAP_MODE_3D) {
             BKE_report(op->reports,
                        RPT_WARNING,
                        "Texture mapping not set to 3D, results may be unpredictable");
@@ -2031,6 +2038,7 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
   /* RNA properties. */
   expand_cache->invert = RNA_boolean_get(op->ptr, "invert");
   expand_cache->preserve = RNA_boolean_get(op->ptr, "use_mask_preserve");
+  expand_cache->auto_mask = RNA_boolean_get(op->ptr, "use_auto_mask");
   expand_cache->falloff_gradient = RNA_boolean_get(op->ptr, "use_falloff_gradient");
   expand_cache->target = RNA_enum_get(op->ptr, "target");
   expand_cache->modify_active_face_set = RNA_boolean_get(op->ptr, "use_modify_active");
@@ -2052,7 +2060,6 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
   IMB_colormanagement_srgb_to_scene_linear_v3(expand_cache->fill_color, expand_cache->fill_color);
 
   expand_cache->scene = CTX_data_scene(C);
-  expand_cache->mtex = &expand_cache->brush->mtex;
   expand_cache->texture_distortion_strength = 0.0f;
   expand_cache->blend_mode = expand_cache->brush->blend;
 }
@@ -2074,7 +2081,9 @@ static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache)
       }
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
-      SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
+      for (int i = 0; i < totnode; i++) {
+        SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_FACE_SETS);
+      }
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       for (int i = 0; i < totnode; i++) {
@@ -2112,6 +2121,39 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
     MultiresModifierData *mmd = BKE_sculpt_multires_active(ss->scene, ob);
     BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
+
+    if (RNA_boolean_get(op->ptr, "use_auto_mask")) {
+      int verts_num = SCULPT_vertex_count_get(ss);
+      bool ok = true;
+
+      for (int i = 0; i < verts_num; i++) {
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+        if (SCULPT_vertex_mask_get(ss, vertex) != 0.0f) {
+          ok = false;
+          break;
+        }
+      }
+
+      if (ok) {
+        int nodes_num;
+        PBVHNode **nodes;
+
+        /* TODO: implement SCULPT_vertex_mask_set and use it here. */
+
+        BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &nodes_num);
+        for (int i = 0; i < nodes_num; i++) {
+          PBVHVertexIter vd;
+
+          BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[i], vd, PBVH_ITER_UNIQUE) {
+            *vd.mask = 1.0f;
+          }
+          BKE_pbvh_vertex_iter_end;
+
+          BKE_pbvh_node_mark_update_mask(nodes[i]);
+        }
+      }
+    }
   }
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, needs_colors);
@@ -2335,4 +2377,9 @@ void SCULPT_OT_expand(wmOperatorType *ot)
                          "than this value, the falloff will be set to spherical when moving",
                          0,
                          1000000);
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "use_auto_mask",
+                             false,
+                             "Auto Create",
+                             "Fill in mask if nothing is already masked");
 }

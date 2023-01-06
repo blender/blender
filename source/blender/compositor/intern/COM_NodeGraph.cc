@@ -6,6 +6,7 @@
 #include "DNA_node_types.h"
 
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 
 #include "COM_Converter.h"
 #include "COM_Debug.h"
@@ -180,8 +181,7 @@ void NodeGraph::add_proxies_mute(bNodeTree *b_ntree,
                                  bNodeInstanceKey key,
                                  bool is_active_group)
 {
-  for (bNodeLink *b_link = (bNodeLink *)b_node->internal_links.first; b_link;
-       b_link = b_link->next) {
+  for (const bNodeLink *b_link : b_node->internal_links()) {
     SocketProxyNode *proxy = new SocketProxyNode(b_node, b_link->fromsock, b_link->tosock, false);
     add_node(proxy, b_ntree, key, is_active_group);
   }

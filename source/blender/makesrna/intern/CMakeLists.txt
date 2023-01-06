@@ -179,6 +179,7 @@ set(SRC
   ../../../../intern/guardedalloc/intern/mallocn.c
   ../../../../intern/guardedalloc/intern/mallocn_guarded_impl.c
   ../../../../intern/guardedalloc/intern/mallocn_lockfree_impl.c
+  ../../../../intern/guardedalloc/intern/memory_usage.cc
 
   # Needed for defaults.
   ../../../../release/datafiles/userdef/userdef_default.c
@@ -188,6 +189,7 @@ set(SRC
 set(INC
   .
   ..
+  ../../asset_system
   ../../blenfont
   ../../blenkernel
   ../../blenlib
@@ -407,11 +409,12 @@ if(WIN32 AND NOT UNIX)
   target_link_libraries(makesrna ${PTHREADS_LIBRARIES})
 endif()
 
-# Output rna_*_gen.c
-# note (linux only): with crashes try add this after COMMAND: valgrind --leak-check=full --track-origins=yes
+# Output `rna_*_gen.c`.
+# NOTE: (Linux only): with crashes try add this after COMMAND:
+# `valgrind --leak-check=full --track-origins=yes`
 add_custom_command(
   OUTPUT ${GENSRC}
-  COMMAND "$<TARGET_FILE:makesrna>" ${CMAKE_CURRENT_BINARY_DIR}/  ${CMAKE_CURRENT_BINARY_DIR}/../
+  COMMAND "$<TARGET_FILE:makesrna>" ${CMAKE_CURRENT_BINARY_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/../
   DEPENDS makesrna
 )
 

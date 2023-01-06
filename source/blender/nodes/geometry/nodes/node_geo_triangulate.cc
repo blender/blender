@@ -18,9 +18,9 @@ namespace blender::nodes::node_geo_triangulate_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).field_on_all().hide_value();
   b.add_input<decl::Int>(N_("Minimum Vertices")).default_value(4).min(4).max(10000);
-  b.add_output<decl::Geometry>(N_("Mesh"));
+  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -100,7 +100,7 @@ void register_node_type_geo_triangulate()
 
   geo_node_type_base(&ntype, GEO_NODE_TRIANGULATE, "Triangulate", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
-  node_type_init(&ntype, file_ns::geo_triangulate_init);
+  ntype.initfunc = file_ns::geo_triangulate_init;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);

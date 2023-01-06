@@ -111,8 +111,6 @@ static int pygpu_texture_valid_check(BPyGPUTexture *bpygpu_tex)
 
 static PyObject *pygpu_texture__tp_new(PyTypeObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
   PyObject *py_size;
   int size[3] = {1, 1, 1};
   int layers = 0;
@@ -565,9 +563,14 @@ static struct PyMethodDef pygpu_texture__m_methods[] = {
 PyDoc_STRVAR(pygpu_texture__m_doc, "This module provides utils for textures.");
 static PyModuleDef pygpu_texture_module_def = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "gpu.texture",
-    .m_doc = pygpu_texture__m_doc,
-    .m_methods = pygpu_texture__m_methods,
+    /*m_name*/ "gpu.texture",
+    /*m_doc*/ pygpu_texture__m_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ pygpu_texture__m_methods,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 /** \} */
@@ -600,7 +603,7 @@ int bpygpu_ParseTexture(PyObject *o, void *p)
 PyObject *bpygpu_texture_init(void)
 {
   PyObject *submodule;
-  submodule = PyModule_Create(&pygpu_texture_module_def);
+  submodule = bpygpu_create_module(&pygpu_texture_module_def);
 
   return submodule;
 }

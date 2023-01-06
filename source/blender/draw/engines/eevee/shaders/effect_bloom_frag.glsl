@@ -28,26 +28,6 @@
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
-uniform sampler2D sourceBuffer; /* Buffer to filter */
-uniform vec2 sourceBufferTexelSize;
-
-/* Step Blit */
-uniform vec4 curveThreshold;
-uniform float clampIntensity;
-
-/* Step Upsample */
-uniform sampler2D baseBuffer; /* Previous accumulation buffer */
-uniform vec2 baseBufferTexelSize;
-uniform float sampleScale;
-
-/* Step Resolve */
-uniform vec3 bloomColor;
-uniform bool bloomAddBase;
-
-in vec4 uvcoordsvar;
-
-out vec4 FragColor;
-
 /* -------------- Utils ------------- */
 
 /* 3-tap median filter */

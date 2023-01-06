@@ -92,7 +92,7 @@ static bool object_remesh_poll(bContext *C)
   }
 
   if (ID_IS_LINKED(ob) || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
-    CTX_wm_operator_poll_msg_set(C, "The remesher cannot worked on linked or override data");
+    CTX_wm_operator_poll_msg_set(C, "The remesher cannot work on linked or override data");
     return false;
   }
 
@@ -157,11 +157,6 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     new_mesh = mesh_fixed_poles;
   }
 
-  if (mesh->flag & ME_REMESH_REPROJECT_VOLUME || mesh->flag & ME_REMESH_REPROJECT_PAINT_MASK ||
-      mesh->flag & ME_REMESH_REPROJECT_SCULPT_FACE_SETS) {
-    BKE_mesh_runtime_clear_geometry(mesh);
-  }
-
   if (mesh->flag & ME_REMESH_REPROJECT_VOLUME) {
     BKE_shrinkwrap_remesh_target_project(new_mesh, mesh, ob);
   }
@@ -175,7 +170,6 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   if (mesh->flag & ME_REMESH_REPROJECT_VERTEX_COLORS) {
-    BKE_mesh_runtime_clear_geometry(mesh);
     BKE_remesh_reproject_vertex_paint(new_mesh, mesh);
   }
 
@@ -286,7 +280,7 @@ static void voxel_size_parallel_lines_draw(uint pos3d,
   immEnd();
 }
 
-static void voxel_size_edit_draw(const bContext *C, ARegion * /*ar*/, void *arg)
+static void voxel_size_edit_draw(const bContext *C, ARegion * /*region*/, void *arg)
 {
   VoxelSizeEditCustomData *cd = static_cast<VoxelSizeEditCustomData *>(arg);
 
@@ -494,10 +488,10 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   float view_normal[3] = {0.0f, 0.0f, 1.0f};
 
   /* Calculate the view normal. */
-  invert_m4_m4(active_object->imat, active_object->object_to_world);
+  invert_m4_m4(active_object->world_to_object, active_object->object_to_world);
   copy_m3_m4(mat, rv3d->viewinv);
   mul_m3_v3(mat, view_normal);
-  copy_m3_m4(mat, active_object->imat);
+  copy_m3_m4(mat, active_object->world_to_object);
   mul_m3_v3(mat, view_normal);
   normalize_v3(view_normal);
 
@@ -654,7 +648,7 @@ enum eSymmetryAxes {
 struct QuadriFlowJob {
   /* from wmJob */
   struct Object *owner;
-  short *stop, *do_update;
+  bool *stop, *do_update;
   float *progress;
 
   const struct wmOperator *op;
@@ -836,7 +830,7 @@ static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmet
   return mesh_mirror;
 }
 
-static void quadriflow_start_job(void *customdata, short *stop, short *do_update, float *progress)
+static void quadriflow_start_job(void *customdata, bool *stop, bool *do_update, float *progress)
 {
   QuadriFlowJob *qj = static_cast<QuadriFlowJob *>(customdata);
 
@@ -884,7 +878,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
 
   if (new_mesh == nullptr) {
     *do_update = true;
-    *stop = 0;
+    *stop = false;
     if (qj->success == 1) {
       /* This is not a user cancellation event. */
       qj->success = 0;
@@ -900,7 +894,6 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   }
 
   if (qj->preserve_paint_mask) {
-    BKE_mesh_runtime_clear_geometry(mesh);
     BKE_mesh_remesh_reproject_paint_mask(new_mesh, mesh);
   }
 
@@ -917,7 +910,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
 
   *do_update = true;
-  *stop = 0;
+  *stop = false;
 }
 
 static void quadriflow_end_job(void *customdata)
@@ -992,7 +985,7 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
   if (op->flag == 0) {
     /* This is called directly from the exec operator, this operation is now blocking */
     job->is_nonblocking_job = false;
-    short stop = 0, do_update = true;
+    bool stop = false, do_update = true;
     float progress;
     quadriflow_start_job(job, &stop, &do_update, &progress);
     quadriflow_end_job(job);

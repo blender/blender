@@ -502,11 +502,11 @@ void register_node_type_sh_map_range()
   ntype.declare = file_ns::sh_node_map_range_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_map_range;
   ntype.ui_class = file_ns::node_shader_map_range_ui_class;
-  node_type_init(&ntype, file_ns::node_shader_init_map_range);
+  ntype.initfunc = file_ns::node_shader_init_map_range;
   node_type_storage(
       &ntype, "NodeMapRange", node_free_standard_storage, node_copy_standard_storage);
-  node_type_update(&ntype, file_ns::node_shader_update_map_range);
-  node_type_gpu(&ntype, file_ns::gpu_shader_map_range);
+  ntype.updatefunc = file_ns::node_shader_update_map_range;
+  ntype.gpu_fn = file_ns::gpu_shader_map_range;
   ntype.build_multi_function = file_ns::sh_node_map_range_build_multi_function;
   ntype.gather_link_search_ops = file_ns::node_map_range_gather_link_searches;
   nodeRegisterType(&ntype);

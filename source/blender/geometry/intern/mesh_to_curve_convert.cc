@@ -19,10 +19,12 @@
 
 namespace blender::geometry {
 
-bke::CurvesGeometry create_curve_from_vert_indices(const Mesh &mesh,
-                                                   const Span<int> vert_indices,
-                                                   const Span<int> curve_offsets,
-                                                   const IndexRange cyclic_curves)
+bke::CurvesGeometry create_curve_from_vert_indices(
+    const Mesh &mesh,
+    const Span<int> vert_indices,
+    const Span<int> curve_offsets,
+    const IndexRange cyclic_curves,
+    const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   bke::CurvesGeometry curves(vert_indices.size(), curve_offsets.size());
   curves.offsets_for_write().drop_back(1).copy_from(curve_offsets);
@@ -43,7 +45,7 @@ bke::CurvesGeometry create_curve_from_vert_indices(const Mesh &mesh,
       continue;
     }
 
-    if (!attribute_id.should_be_kept()) {
+    if (attribute_id.is_anonymous() && !propagation_info.propagate(attribute_id.anonymous_id())) {
       continue;
     }
 
@@ -209,14 +211,17 @@ static Vector<std::pair<int, int>> get_selected_edges(const Mesh &mesh, const In
   return selected_edges;
 }
 
-bke::CurvesGeometry mesh_to_curve_convert(const Mesh &mesh, const IndexMask selection)
+bke::CurvesGeometry mesh_to_curve_convert(
+    const Mesh &mesh,
+    const IndexMask selection,
+    const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   Vector<std::pair<int, int>> selected_edges = get_selected_edges(mesh, selection);
   const Span<MVert> verts = mesh.verts();
   CurveFromEdgesOutput output = edges_to_curve_point_indices(verts, selected_edges);
 
   return create_curve_from_vert_indices(
-      mesh, output.vert_indices, output.curve_offsets, output.cyclic_curves);
+      mesh, output.vert_indices, output.curve_offsets, output.cyclic_curves, propagation_info);
 }
 
 }  // namespace blender::geometry

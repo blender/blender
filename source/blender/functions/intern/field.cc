@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_array_utils.hh"
 #include "BLI_index_mask_ops.hh"
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"
@@ -468,11 +469,9 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
       }
       /* Still have to copy over the data in the destination provided by the caller. */
       if (dst_varray.is_span()) {
-        /* Materialize into a span. */
-        threading::parallel_for(mask.index_range(), 2048, [&](const IndexRange range) {
-          computed_varray.materialize_to_uninitialized(mask.slice(range),
-                                                       dst_varray.get_internal_span().data());
-        });
+        array_utils::copy(computed_varray,
+                          mask,
+                          dst_varray.get_internal_span().take_front(mask.min_array_size()));
       }
       else {
         /* Slower materialize into a different structure. */
@@ -579,6 +578,18 @@ bool IndexFieldInput::is_equal_to(const fn::FieldNode &other) const
 
 /* Avoid generating the destructor in every translation unit. */
 FieldNode::~FieldNode() = default;
+
+void FieldNode::for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const
+{
+  if (field_inputs_) {
+    for (const FieldInput &field_input : field_inputs_->deduplicated_nodes) {
+      fn(field_input);
+      if (&field_input != this) {
+        field_input.for_each_field_input_recursive(fn);
+      }
+    }
+  }
+}
 
 /** \} */
 

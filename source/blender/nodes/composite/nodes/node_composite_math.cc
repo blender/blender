@@ -96,7 +96,7 @@ void register_node_type_cmp_math()
   cmp_node_type_base(&ntype, CMP_NODE_MATH, "Math", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_math_declare;
   ntype.labelfunc = node_math_label;
-  node_type_update(&ntype, node_math_update);
+  ntype.updatefunc = node_math_update;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   nodeRegisterType(&ntype);

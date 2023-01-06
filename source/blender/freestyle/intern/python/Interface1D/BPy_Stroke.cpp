@@ -74,7 +74,7 @@ static Py_ssize_t Stroke_sq_length(BPy_Stroke *self)
   return self->s->strokeVerticesSize();
 }
 
-static PyObject *Stroke_sq_item(BPy_Stroke *self, int keynum)
+static PyObject *Stroke_sq_item(BPy_Stroke *self, Py_ssize_t keynum)
 {
   if (keynum < 0) {
     keynum += Stroke_sq_length(self);
@@ -474,56 +474,57 @@ static PyGetSetDef BPy_Stroke_getseters[] = {
 /*-----------------------BPy_Stroke type definition ------------------------------*/
 
 static PySequenceMethods BPy_Stroke_as_sequence = {
-    (lenfunc)Stroke_sq_length,    /* sq_length */
-    nullptr,                      /* sq_concat */
-    nullptr,                      /* sq_repeat */
-    (ssizeargfunc)Stroke_sq_item, /* sq_item */
-    nullptr,                      /* sq_slice */
-    nullptr,                      /* sq_ass_item */
-    nullptr,                      /* *was* sq_ass_slice */
-    nullptr,                      /* sq_contains */
-    nullptr,                      /* sq_inplace_concat */
-    nullptr,                      /* sq_inplace_repeat */
+    /*sq_length*/ (lenfunc)Stroke_sq_length,
+    /*sq_concat*/ nullptr,
+    /*sq_repeat*/ nullptr,
+    /*sq_item*/ (ssizeargfunc)Stroke_sq_item,
+    /*was_sq_slice*/ nullptr, /* DEPRECATED. */
+    /*sq_ass_item*/ nullptr,
+    /*was_sq_ass_slice*/ nullptr, /* DEPRECATED. */
+    /*sq_contains*/ nullptr,
+    /*sq_inplace_concat*/ nullptr,
+    /*sq_inplace_repeat*/ nullptr,
 };
 
 PyTypeObject Stroke_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "Stroke", /* tp_name */
-    sizeof(BPy_Stroke),                         /* tp_basicsize */
-    0,                                          /* tp_itemsize */
-    nullptr,                                    /* tp_dealloc */
-    0,                                          /* tp_vectorcall_offset */
-    nullptr,                                    /* tp_getattr */
-    nullptr,                                    /* tp_setattr */
-    nullptr,                                    /* tp_reserved */
-    nullptr,                                    /* tp_repr */
-    nullptr,                                    /* tp_as_number */
-    &BPy_Stroke_as_sequence,                    /* tp_as_sequence */
-    nullptr,                                    /* tp_as_mapping */
-    nullptr,                                    /* tp_hash */
-    nullptr,                                    /* tp_call */
-    nullptr,                                    /* tp_str */
-    nullptr,                                    /* tp_getattro */
-    nullptr,                                    /* tp_setattro */
-    nullptr,                                    /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,   /* tp_flags */
-    Stroke_doc,                                 /* tp_doc */
-    nullptr,                                    /* tp_traverse */
-    nullptr,                                    /* tp_clear */
-    nullptr,                                    /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
-    (getiterfunc)Stroke_iter,                   /* tp_iter */
-    nullptr,                                    /* tp_iternext */
-    BPy_Stroke_methods,                         /* tp_methods */
-    nullptr,                                    /* tp_members */
-    BPy_Stroke_getseters,                       /* tp_getset */
-    &Interface1D_Type,                          /* tp_base */
-    nullptr,                                    /* tp_dict */
-    nullptr,                                    /* tp_descr_get */
-    nullptr,                                    /* tp_descr_set */
-    0,                                          /* tp_dictoffset */
-    (initproc)Stroke_init,                      /* tp_init */
-    nullptr,                                    /* tp_alloc */
-    nullptr,                                    /* tp_new */
+    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "Stroke",
+    /*tp_basicsize*/ sizeof(BPy_Stroke),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ nullptr,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ nullptr,
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ &BPy_Stroke_as_sequence,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    /*tp_doc*/ Stroke_doc,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ nullptr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ (getiterfunc)Stroke_iter,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ BPy_Stroke_methods,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ BPy_Stroke_getseters,
+    /*tp_base*/ &Interface1D_Type,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ (initproc)Stroke_init,
+    /*tp_alloc*/ nullptr,
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

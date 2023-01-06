@@ -15,14 +15,21 @@ extern "C" {
 #endif
 
 struct Mesh;
+struct ReportList;
 
 void ED_operatortypes_geometry(void);
+
+/**
+ * Convert an attribute with the given name to a new type and domain.
+ * The attribute must already exist.
+ *
+ * \note Does not support meshes in edit mode.
+ */
 bool ED_geometry_attribute_convert(struct Mesh *mesh,
-                                   const char *layer_name,
-                                   eCustomDataType old_type,
-                                   eAttrDomain old_domain,
-                                   eCustomDataType new_type,
-                                   eAttrDomain new_domain);
+                                   const char *name,
+                                   eCustomDataType dst_type,
+                                   eAttrDomain dst_domain,
+                                   ReportList *reports);
 #ifdef __cplusplus
 }
 #endif

@@ -64,7 +64,7 @@ GPUTexture *TexturePool::acquire_color(int2 size)
 
 GPUTexture *TexturePool::acquire_vector(int2 size)
 {
-  /* Vectors are stored in RGBA textures because RGB textures have limited support. */
+  /* Vectors are 4D, and are thus stored in RGBA textures. */
   return acquire(size, GPU_RGBA16F);
 }
 

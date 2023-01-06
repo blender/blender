@@ -1782,12 +1782,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 1)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "bleedexp")) {
-      for (Light *la = bmain->lights.first; la; la = la->id.next) {
-        la->bleedexp = 2.5f;
-      }
-    }
-
     if (!DNA_struct_elem_find(fd->filesdna, "GPUDOFSettings", "float", "ratio")) {
       for (Camera *ca = bmain->cameras.first; ca; ca = ca->id.next) {
         ca->gpu_dof.ratio = 1.0f;
@@ -1820,7 +1814,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       for (Light *la = bmain->lights.first; la; la = la->id.next) {
         la->contact_dist = 0.2f;
         la->contact_bias = 0.03f;
-        la->contact_spread = 0.2f;
         la->contact_thickness = 0.2f;
       }
     }
@@ -2966,12 +2959,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       ARRAY_SET_ITEMS(gpd->grid.color, 0.5f, 0.5f, 0.5f); /* Color */
       ARRAY_SET_ITEMS(gpd->grid.scale, 1.0f, 1.0f);       /* Scale */
       gpd->grid.lines = GP_DEFAULT_GRID_LINES;            /* Number of lines */
-    }
-  }
-
-  if (!MAIN_VERSION_ATLEAST(bmain, 280, 28)) {
-    for (Mesh *mesh = bmain->meshes.first; mesh; mesh = mesh->id.next) {
-      BKE_mesh_calc_edges_loose(mesh);
     }
   }
 

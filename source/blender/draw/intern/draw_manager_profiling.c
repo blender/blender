@@ -225,15 +225,15 @@ void DRW_stats_draw(const rcti *rect)
   /* ------------------------------------------ */
   /* Label row */
   char col_label[32];
-  sprintf(col_label, "Engine");
+  BLI_snprintf(col_label, sizeof(col_label), "Engine");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  sprintf(col_label, "Init");
+  BLI_snprintf(col_label, sizeof(col_label), "Init");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  sprintf(col_label, "Background");
+  BLI_snprintf(col_label, sizeof(col_label), "Background");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  sprintf(col_label, "Render");
+  BLI_snprintf(col_label, sizeof(col_label), "Render");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  sprintf(col_label, "Total (w/o cache)");
+  BLI_snprintf(col_label, sizeof(col_label), "Total (w/o cache)");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
   v++;
 
@@ -245,42 +245,45 @@ void DRW_stats_draw(const rcti *rect)
     draw_stat_5row(rect, u++, v, engine->idname, sizeof(engine->idname));
 
     init_tot_time += data->init_time;
-    sprintf(time_to_txt, "%.2fms", data->init_time);
+    BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", data->init_time);
     draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
 
     background_tot_time += data->background_time;
-    sprintf(time_to_txt, "%.2fms", data->background_time);
+    BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", data->background_time);
     draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
 
     render_tot_time += data->render_time;
-    sprintf(time_to_txt, "%.2fms", data->render_time);
+    BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", data->render_time);
     draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
 
     tot_time += data->init_time + data->background_time + data->render_time;
-    sprintf(time_to_txt, "%.2fms", data->init_time + data->background_time + data->render_time);
+    BLI_snprintf(time_to_txt,
+                 sizeof(time_to_txt),
+                 "%.2fms",
+                 data->init_time + data->background_time + data->render_time);
     draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
     v++;
   }
 
   /* Totals row */
   u = 0;
-  sprintf(col_label, "Sub Total");
+  BLI_snprintf(col_label, sizeof(col_label), "Sub Total");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  sprintf(time_to_txt, "%.2fms", init_tot_time);
+  BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", init_tot_time);
   draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
-  sprintf(time_to_txt, "%.2fms", background_tot_time);
+  BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", background_tot_time);
   draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
-  sprintf(time_to_txt, "%.2fms", render_tot_time);
+  BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", render_tot_time);
   draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
-  sprintf(time_to_txt, "%.2fms", tot_time);
+  BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", tot_time);
   draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
   v += 2;
 
   u = 0;
   double *cache_time = DRW_view_data_cache_time_get(DST.view_data_active);
-  sprintf(col_label, "Cache Time");
+  BLI_snprintf(col_label, sizeof(col_label), "Cache Time");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  sprintf(time_to_txt, "%.2fms", *cache_time);
+  BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", *cache_time);
   draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
   v += 2;
 
@@ -292,17 +295,18 @@ void DRW_stats_draw(const rcti *rect)
   uint tex_mem = GPU_texture_memory_usage_get();
   uint vbo_mem = GPU_vertbuf_get_memory_usage();
 
-  sprintf(stat_string, "GPU Memory");
+  BLI_snprintf(stat_string, sizeof(stat_string), "GPU Memory");
   draw_stat(rect, 0, v, stat_string, sizeof(stat_string));
-  sprintf(stat_string, "%.2fMB", (double)(tex_mem + vbo_mem) / 1000000.0);
+  BLI_snprintf(
+      stat_string, sizeof(stat_string), "%.2fMB", (double)(tex_mem + vbo_mem) / 1000000.0);
   draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
-  sprintf(stat_string, "Textures");
+  BLI_snprintf(stat_string, sizeof(stat_string), "Textures");
   draw_stat(rect, 1, v, stat_string, sizeof(stat_string));
-  sprintf(stat_string, "%.2fMB", (double)tex_mem / 1000000.0);
+  BLI_snprintf(stat_string, sizeof(stat_string), "%.2fMB", (double)tex_mem / 1000000.0);
   draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
-  sprintf(stat_string, "Meshes");
+  BLI_snprintf(stat_string, sizeof(stat_string), "Meshes");
   draw_stat(rect, 1, v, stat_string, sizeof(stat_string));
-  sprintf(stat_string, "%.2fMB", (double)vbo_mem / 1000000.0);
+  BLI_snprintf(stat_string, sizeof(stat_string), "%.2fMB", (double)vbo_mem / 1000000.0);
   draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
   v += 1;
 

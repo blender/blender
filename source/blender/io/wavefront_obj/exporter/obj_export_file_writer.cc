@@ -7,8 +7,9 @@
 #include <algorithm>
 #include <cstdio>
 
+#include "BKE_attribute.hh"
 #include "BKE_blender_version.h"
-#include "BKE_geometry_set.hh"
+#include "BKE_mesh.h"
 
 #include "BLI_color.hh"
 #include "BLI_enumerable_thread_specific.hh"
@@ -249,15 +250,12 @@ void OBJWriter::write_vertex_coords(FormatHandler &fh,
 {
   const int tot_count = obj_mesh_data.tot_vertices();
 
-  Mesh *mesh = obj_mesh_data.get_mesh();
-  const CustomDataLayer *colors_layer = nullptr;
-  if (write_colors) {
-    colors_layer = BKE_id_attributes_active_color_get(&mesh->id);
-  }
-  if (write_colors && (colors_layer != nullptr)) {
+  const Mesh *mesh = obj_mesh_data.get_mesh();
+  const StringRef name = mesh->active_color_attribute;
+  if (write_colors && !name.is_empty()) {
     const bke::AttributeAccessor attributes = mesh->attributes();
     const VArray<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
-        colors_layer->name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
+        name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
 
     BLI_assert(tot_count == attribute.size());
     obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler &buf, int i) {
@@ -339,6 +337,9 @@ void OBJWriter::write_poly_elements(FormatHandler &fh,
   const int tot_polygons = obj_mesh_data.tot_polygons();
   const int tot_deform_groups = obj_mesh_data.tot_deform_groups();
   threading::EnumerableThreadSpecific<Vector<float>> group_weights;
+  const bke::AttributeAccessor attributes = obj_mesh_data.get_mesh()->attributes();
+  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
 
   obj_parallel_chunked_output(fh, tot_polygons, [&](FormatHandler &buf, int idx) {
     /* Polygon order for writing into the file is not necessarily the same
@@ -374,10 +375,6 @@ void OBJWriter::write_poly_elements(FormatHandler &fh,
       }
     }
 
-    const bke::AttributeAccessor attributes = obj_mesh_data.get_mesh()->attributes();
-    const VArray<int> material_indices = attributes.lookup_or_default<int>(
-        "material_index", ATTR_DOMAIN_FACE, 0);
-
     /* Write material name and material group if different from previous. */
     if (export_params_.export_materials && obj_mesh_data.tot_materials() > 0) {
       const int16_t prev_mat = idx == 0 ? NEGATIVE_INIT : std::max(0, material_indices[prev_i]);
@@ -394,7 +391,7 @@ void OBJWriter::write_poly_elements(FormatHandler &fh,
           if (export_params_.export_material_groups) {
             std::string object_name = obj_mesh_data.get_object_name();
             spaces_to_underscores(object_name);
-            fh.write_obj_group(object_name + "_" + mat_name);
+            buf.write_obj_group(object_name + "_" + mat_name);
           }
           buf.write_obj_usemtl(mat_name);
         }
@@ -415,16 +412,18 @@ void OBJWriter::write_edges_indices(FormatHandler &fh,
                                     const IndexOffsets &offsets,
                                     const OBJMesh &obj_mesh_data) const
 {
-  /* NOTE: ensure_mesh_edges should be called before. */
-  const int tot_edges = obj_mesh_data.tot_edges();
-  for (int edge_index = 0; edge_index < tot_edges; edge_index++) {
-    const std::optional<std::array<int, 2>> vertex_indices =
-        obj_mesh_data.calc_loose_edge_vert_indices(edge_index);
-    if (!vertex_indices) {
-      continue;
+  const Mesh &mesh = *obj_mesh_data.get_mesh();
+  const bke::LooseEdgeCache &loose_edges = mesh.loose_edges();
+  if (loose_edges.count == 0) {
+    return;
+  }
+
+  const Span<MEdge> edges = mesh.edges();
+  for (const int64_t i : edges.index_range()) {
+    if (loose_edges.is_loose_bits[i]) {
+      const MEdge &edge = edges[i];
+      fh.write_obj_edge(edge.v1 + offsets.vertex_offset + 1, edge.v2 + offsets.vertex_offset + 1);
     }
-    fh.write_obj_edge((*vertex_indices)[0] + offsets.vertex_offset + 1,
-                      (*vertex_indices)[1] + offsets.vertex_offset + 1);
   }
 }
 

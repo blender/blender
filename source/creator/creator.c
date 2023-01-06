@@ -37,6 +37,7 @@
 #include "BKE_cachefile.h"
 #include "BKE_callbacks.h"
 #include "BKE_context.h"
+#include "BKE_cpp_types.h"
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_idtype.h"
@@ -92,6 +93,10 @@
 
 #ifdef WITH_SDL_DYNLOAD
 #  include "sdlew.h"
+#endif
+
+#ifdef WITH_USD
+#  include "usd.h"
 #endif
 
 #include "creator_intern.h" /* Own include. */
@@ -425,6 +430,7 @@ int main(int argc,
 
   BKE_blender_globals_init(); /* blender.c */
 
+  BKE_cpp_types_init();
   BKE_idtype_init();
   BKE_cachefiles_init();
   BKE_modifier_init();
@@ -468,6 +474,10 @@ int main(int argc,
 
   /* Initialize sub-systems that use `BKE_appdir.h`. */
   IMB_init();
+
+#ifdef WITH_USD
+  USD_ensure_plugin_path_registered();
+#endif
 
 #ifndef WITH_PYTHON_MODULE
   /* First test for background-mode (#Global.background) */

@@ -96,7 +96,7 @@ void register_node_type_cmp_invert()
   cmp_node_type_base(&ntype, CMP_NODE_INVERT, "Invert", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::cmp_node_invert_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_invert;
-  node_type_init(&ntype, file_ns::node_composit_init_invert);
+  ntype.initfunc = file_ns::node_composit_init_invert;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   nodeRegisterType(&ntype);

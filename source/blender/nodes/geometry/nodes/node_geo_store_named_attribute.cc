@@ -21,13 +21,13 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_input<decl::String>(N_("Name")).is_attribute_name();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").supports_field();
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").supports_field();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").supports_field();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").supports_field();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").supports_field();
+  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").field_on_all();
+  b.add_input<decl::Float>(N_("Value"), "Value_Float").field_on_all();
+  b.add_input<decl::Color>(N_("Value"), "Value_Color").field_on_all();
+  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").field_on_all();
+  b.add_input<decl::Int>(N_("Value"), "Value_Int").field_on_all();
 
-  b.add_output<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -59,7 +59,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *socket_boolean = socket_color4f->next;
   bNodeSocket *socket_int32 = socket_boolean->next;
 
-  nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
+  nodeSetSocketAvailability(ntree, socket_vector, ELEM(data_type, CD_PROP_FLOAT2, CD_PROP_FLOAT3));
   nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
   nodeSetSocketAvailability(
       ntree, socket_color4f, ELEM(data_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR));
@@ -70,8 +70,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs().take_front(2));
-  search_link_ops_for_declarations(params, declaration.outputs().take_front(1));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(2));
+  search_link_ops_for_declarations(params, declaration.outputs.as_span().take_front(1));
 
   if (params.in_out() == SOCK_IN) {
     const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
@@ -113,6 +113,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     case CD_PROP_FLOAT:
       field = params.get_input<Field<float>>("Value_Float");
       break;
+    case CD_PROP_FLOAT2: {
+      field = params.get_input<Field<float3>>("Value_Vector");
+      field = bke::get_implicit_type_conversions().try_convert(field, CPPType::get<float2>());
+      break;
+    }
     case CD_PROP_FLOAT3:
       field = params.get_input<Field<float3>>("Value_Vector");
       break;
@@ -143,7 +148,9 @@ static void node_geo_exec(GeoNodeExecParams params)
       GeometryComponent &component = geometry_set.get_component_for_write(
           GEO_COMPONENT_TYPE_INSTANCES);
       if (!bke::try_capture_field_on_geometry(component, name, domain, field)) {
-        failure.store(true);
+        if (component.attribute_domain_size(domain) != 0) {
+          failure.store(true);
+        }
       }
     }
   }
@@ -154,7 +161,9 @@ static void node_geo_exec(GeoNodeExecParams params)
         if (geometry_set.has(type)) {
           GeometryComponent &component = geometry_set.get_component_for_write(type);
           if (!bke::try_capture_field_on_geometry(component, name, domain, field)) {
-            failure.store(true);
+            if (component.attribute_domain_size(domain) != 0) {
+              failure.store(true);
+            }
           }
         }
       }
@@ -192,7 +201,7 @@ void register_node_type_geo_store_named_attribute()
                     node_free_standard_storage,
                     node_copy_standard_storage);
   node_type_size(&ntype, 140, 100, 700);
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   ntype.updatefunc = file_ns::node_update;
   ntype.declare = file_ns::node_declare;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;

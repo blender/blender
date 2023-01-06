@@ -39,6 +39,11 @@
 
 #define LEAF_LIMIT 10000
 
+/* Uncomment to test if triangles of the same face are
+ * properly clustered into single nodes.
+ */
+//#define TEST_PBVH_FACE_SPLIT
+
 /* Uncomment to test that faces are only assigned to one PBVHNode */
 //#define VALIDATE_UNIQUE_NODE_FACES
 
@@ -164,24 +169,64 @@ static bool grid_materials_match(const DMFlagMat *f1, const DMFlagMat *f2)
 
 /* Adapted from BLI_kdopbvh.c */
 /* Returns the index of the first element on the right of the partition */
-static int partition_indices(int *prim_indices, int lo, int hi, int axis, float mid, BBC *prim_bbc)
+static int partition_indices_faces(int *prim_indices,
+                                   int *prim_scratch,
+                                   int lo,
+                                   int hi,
+                                   int axis,
+                                   float mid,
+                                   BBC *prim_bbc,
+                                   const MLoopTri *looptri)
 {
-  int i = lo, j = hi;
-  for (;;) {
-    for (; prim_bbc[prim_indices[i]].bcentroid[axis] < mid; i++) {
-      /* pass */
-    }
-    for (; mid < prim_bbc[prim_indices[j]].bcentroid[axis]; j--) {
-      /* pass */
-    }
-
-    if (!(i < j)) {
-      return i;
-    }
-
-    SWAP(int, prim_indices[i], prim_indices[j]);
-    i++;
+  for (int i = lo; i < hi; i++) {
+    prim_scratch[i - lo] = prim_indices[i];
   }
+
+  int lo2 = lo, hi2 = hi - 1;
+  int i1 = lo, i2 = 0;
+
+  while (i1 < hi) {
+    int poly = looptri[prim_scratch[i2]].poly;
+    bool side = prim_bbc[prim_scratch[i2]].bcentroid[axis] >= mid;
+
+    while (i1 < hi && looptri[prim_scratch[i2]].poly == poly) {
+      prim_indices[side ? hi2-- : lo2++] = prim_scratch[i2];
+      i1++;
+      i2++;
+    }
+  }
+
+  return lo2;
+}
+
+static int partition_indices_grids(int *prim_indices,
+                                   int *prim_scratch,
+                                   int lo,
+                                   int hi,
+                                   int axis,
+                                   float mid,
+                                   BBC *prim_bbc,
+                                   SubdivCCG *subdiv_ccg)
+{
+  for (int i = lo; i < hi; i++) {
+    prim_scratch[i - lo] = prim_indices[i];
+  }
+
+  int lo2 = lo, hi2 = hi - 1;
+  int i1 = lo, i2 = 0;
+
+  while (i1 < hi) {
+    int poly = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, prim_scratch[i2]);
+    bool side = prim_bbc[prim_scratch[i2]].bcentroid[axis] >= mid;
+
+    while (i1 < hi && BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, prim_scratch[i2]) == poly) {
+      prim_indices[side ? hi2-- : lo2++] = prim_scratch[i2];
+      i1++;
+      i2++;
+    }
+  }
+
+  return lo2;
 }
 
 /* Returns the index of the first element on the right of the partition */
@@ -338,7 +383,8 @@ static void update_vb(PBVH *pbvh, PBVHNode *node, BBC *prim_bbc, int offset, int
 int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
                               const int *grid_indices,
                               int totgrid,
-                              int gridsize)
+                              int gridsize,
+                              int display_gridsize)
 {
   const int gridarea = (gridsize - 1) * (gridsize - 1);
   int totquad = 0;
@@ -346,13 +392,18 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
   /* grid hidden layer is present, so have to check each grid for
    * visibility */
 
+  int depth1 = (int)(log2((double)gridsize - 1.0) + DBL_EPSILON);
+  int depth2 = (int)(log2((double)display_gridsize - 1.0) + DBL_EPSILON);
+
+  int skip = depth2 < depth1 ? 1 << (depth1 - depth2 - 1) : 1;
+
   for (int i = 0; i < totgrid; i++) {
     const BLI_bitmap *gh = grid_hidden[grid_indices[i]];
 
     if (gh) {
       /* grid hidden are present, have to check each element */
-      for (int y = 0; y < gridsize - 1; y++) {
-        for (int x = 0; x < gridsize - 1; x++) {
+      for (int y = 0; y < gridsize - skip; y += skip) {
+        for (int x = 0; x < gridsize - skip; x += skip) {
           if (!paint_is_grid_face_hidden(gh, gridsize, x, y)) {
             totquad++;
           }
@@ -369,8 +420,11 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
 
 static void build_grid_leaf_node(PBVH *pbvh, PBVHNode *node)
 {
-  int totquads = BKE_pbvh_count_grid_quads(
-      pbvh->grid_hidden, node->prim_indices, node->totprim, pbvh->gridkey.grid_size);
+  int totquads = BKE_pbvh_count_grid_quads(pbvh->grid_hidden,
+                                           node->prim_indices,
+                                           node->totprim,
+                                           pbvh->gridkey.grid_size,
+                                           pbvh->gridkey.grid_size);
   BKE_pbvh_node_fully_hidden_set(node, (totquads == 0));
   BKE_pbvh_node_mark_rebuild_draw(node);
 }
@@ -424,55 +478,53 @@ static bool leaf_needs_material_split(PBVH *pbvh, int offset, int count)
   return false;
 }
 
-static int adjust_partition_faces(PBVH *pbvh, int offset, int mid, int count)
+#ifdef TEST_PBVH_FACE_SPLIT
+static void test_face_boundaries(PBVH *pbvh)
 {
-  int poly = pbvh->looptri[pbvh->prim_indices[mid]].poly;
-
-  /* Scan backwards. */
-  while (mid > offset + 2) { /* First node should have at least 1 primitive */
-    if (pbvh->looptri[pbvh->prim_indices[mid - 1]].poly != poly) {
-      return mid;
-    }
-
-    mid--;
+  int faces_num = BKE_pbvh_num_faces(pbvh);
+  int *node_map = MEM_calloc_arrayN(faces_num, sizeof(int), __func__);
+  for (int i = 0; i < faces_num; i++) {
+    node_map[i] = -1;
   }
 
-  /* If that didn't work try scanning forward. */
-  while (mid < pbvh->totprim + count) {
-    if (pbvh->looptri[pbvh->prim_indices[mid]].poly != poly) {
-      break;
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
     }
 
-    mid++;
+    switch (BKE_pbvh_type(pbvh)) {
+      case PBVH_FACES: {
+        for (int j = 0; j < node->totprim; j++) {
+          int poly = pbvh->looptri[node->prim_indices[j]].poly;
+
+          if (node_map[poly] >= 0 && node_map[poly] != i) {
+            int old_i = node_map[poly];
+            int prim_i = node->prim_indices - pbvh->prim_indices + j;
+
+            printf("PBVH split error; poly: %d, prim_i: %d, node1: %d, node2: %d, totprim: %d\n",
+                   poly,
+                   prim_i,
+                   old_i,
+                   i,
+                   node->totprim);
+          }
+
+          node_map[poly] = i;
+        }
+        break;
+      }
+      case PBVH_GRIDS:
+        break;
+      case PBVH_BMESH:
+        break;
+    }
   }
 
-  return mid;
+  MEM_SAFE_FREE(node_map);
 }
-
-static int adjust_partition_grids(PBVH *pbvh, int offset, int mid, int count)
-{
-  int poly = BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, pbvh->prim_indices[mid]);
-
-  /* Scan backwards. */
-  while (mid > offset + 2) { /* First node should have at least 1 primitive */
-    if (BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, pbvh->prim_indices[mid - 1]) != poly) {
-      return mid;
-    }
-
-    mid--;
-  }
-
-  /* If that didn't work try scanning forward. */
-  while (mid < pbvh->totprim + count) {
-    if (BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, pbvh->prim_indices[mid]) != poly) {
-      break;
-    }
-
-    mid++;
-  }
-
-  return mid;
-}
+#endif
 
 /* Recursively build a node in the tree
  *
@@ -485,16 +537,32 @@ static int adjust_partition_grids(PBVH *pbvh, int offset, int mid, int count)
  * offset and start indicate a range in the array of primitive indices
  */
 
-static void build_sub(PBVH *pbvh, int node_index, BB *cb, BBC *prim_bbc, int offset, int count)
+static void build_sub(PBVH *pbvh,
+                      int node_index,
+                      BB *cb,
+                      BBC *prim_bbc,
+                      int offset,
+                      int count,
+                      int *prim_scratch,
+                      int depth)
 {
   int end;
   BB cb_backing;
 
+  if (!prim_scratch) {
+    prim_scratch = MEM_malloc_arrayN(pbvh->totprim, sizeof(int), __func__);
+  }
+
   /* Decide whether this is a leaf or not */
-  const bool below_leaf_limit = count <= pbvh->leaf_limit;
+  const bool below_leaf_limit = count <= pbvh->leaf_limit || depth == STACK_FIXED_DEPTH - 1;
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(pbvh, offset, count)) {
       build_leaf(pbvh, node_index, prim_bbc, offset, count);
+
+      if (node_index == 0) {
+        MEM_SAFE_FREE(prim_scratch);
+      }
+
       return;
     }
   }
@@ -518,33 +586,53 @@ static void build_sub(PBVH *pbvh, int node_index, BB *cb, BBC *prim_bbc, int off
     const int axis = BB_widest_axis(cb);
 
     /* Partition primitives along that axis */
-    end = partition_indices(pbvh->prim_indices,
-                            offset,
-                            offset + count - 1,
-                            axis,
-                            (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
-                            prim_bbc);
+    if (pbvh->header.type == PBVH_FACES) {
+      end = partition_indices_faces(pbvh->prim_indices,
+                                    prim_scratch,
+                                    offset,
+                                    offset + count,
+                                    axis,
+                                    (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
+                                    prim_bbc,
+                                    pbvh->looptri);
+    }
+    else {
+      end = partition_indices_grids(pbvh->prim_indices,
+                                    prim_scratch,
+                                    offset,
+                                    offset + count,
+                                    axis,
+                                    (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
+                                    prim_bbc,
+                                    pbvh->subdiv_ccg);
+    }
   }
   else {
     /* Partition primitives by material */
     end = partition_indices_material(pbvh, offset, offset + count - 1);
   }
 
-  if (pbvh->header.type == PBVH_FACES) {
-    end = adjust_partition_faces(pbvh, offset, end, count);
-  }
-  else {
-    end = adjust_partition_grids(pbvh, offset, end, count);
-  }
-
   /* Build children */
-  build_sub(pbvh, pbvh->nodes[node_index].children_offset, NULL, prim_bbc, offset, end - offset);
+  build_sub(pbvh,
+            pbvh->nodes[node_index].children_offset,
+            NULL,
+            prim_bbc,
+            offset,
+            end - offset,
+            prim_scratch,
+            depth + 1);
   build_sub(pbvh,
             pbvh->nodes[node_index].children_offset + 1,
             NULL,
             prim_bbc,
             end,
-            offset + count - end);
+            offset + count - end,
+            prim_scratch,
+            depth + 1);
+
+  if (node_index == 0) {
+    MEM_SAFE_FREE(prim_scratch);
+  }
 }
 
 static void pbvh_build(PBVH *pbvh, BB *cb, BBC *prim_bbc, int totprim)
@@ -569,7 +657,7 @@ static void pbvh_build(PBVH *pbvh, BB *cb, BBC *prim_bbc, int totprim)
   }
 
   pbvh->totnode = 1;
-  build_sub(pbvh, 0, cb, prim_bbc, 0, totprim);
+  build_sub(pbvh, 0, cb, prim_bbc, 0, totprim, NULL, 0);
 }
 
 static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
@@ -608,6 +696,9 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->mpoly = pbvh->mpoly;
       args->vert_normals = pbvh->vert_normals;
 
+      args->active_color = pbvh->mesh->active_color_attribute;
+      args->render_color = pbvh->mesh->default_color_attribute;
+
       args->prim_indices = node->prim_indices;
       args->face_sets = pbvh->face_sets;
       break;
@@ -622,6 +713,9 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->subdiv_ccg = pbvh->subdiv_ccg;
       args->face_sets = pbvh->face_sets;
       args->mpoly = pbvh->mpoly;
+
+      args->active_color = pbvh->mesh->active_color_attribute;
+      args->render_color = pbvh->mesh->default_color_attribute;
 
       args->mesh_grids_num = pbvh->totgrid;
       args->grids = pbvh->grids;
@@ -742,10 +836,20 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   pbvh->hide_vert = (bool *)CustomData_get_layer_named(&mesh->vdata, CD_PROP_BOOL, ".hide_vert");
   pbvh->vert_bitmap = MEM_calloc_arrayN(totvert, sizeof(bool), "bvh->vert_bitmap");
   pbvh->totvert = totvert;
+
+#ifdef TEST_PBVH_FACE_SPLIT
+  /* Use lower limit to increase probability of
+   * edge cases.
+   */
+  pbvh->leaf_limit = 100;
+#else
   pbvh->leaf_limit = LEAF_LIMIT;
+#endif
+
   pbvh->vdata = vdata;
   pbvh->ldata = ldata;
   pbvh->pdata = pdata;
+  pbvh->faces_num = mesh->totpoly;
 
   pbvh->face_sets_color_seed = mesh->face_sets_color_seed;
   pbvh->face_sets_color_default = mesh->face_sets_color_default;
@@ -771,34 +875,12 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
     BB_expand(&cb, bbc->bcentroid);
   }
 
-  /* Ensure all primitives belonging to the same base face
-   * have the same bounds. This is needed to prevent them
-   * from being swapped away from each other inside the partition
-   * array.
-   */
-  for (int i = 0; i < looptri_num; i++) {
-    const MLoopTri *lt = &looptri[i];
-    int poly = lt->poly;
-    BBC *bbc = prim_bbc + i;
-    int j = i + 1;
-
-    while (j < looptri_num && looptri[j].poly == poly) {
-      BBC *bbc2 = prim_bbc + j;
-
-      BB_expand((BB *)bbc, bbc2->bmin);
-      BB_expand((BB *)bbc, bbc2->bmax);
-      j++;
-    }
-
-    j = i + 1;
-    while (j < looptri_num && looptri[j].poly == poly) {
-      prim_bbc[j] = prim_bbc[i];
-      j++;
-    }
-  }
-
   if (looptri_num) {
     pbvh_build(pbvh, &cb, prim_bbc, looptri_num);
+
+#ifdef TEST_PBVH_FACE_SPLIT
+    test_face_boundaries(pbvh);
+#endif
   }
 
   MEM_freeN(prim_bbc);
@@ -833,12 +915,29 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->gridkey = *key;
   pbvh->grid_hidden = grid_hidden;
   pbvh->subdiv_ccg = subdiv_ccg;
-  pbvh->leaf_limit = max_ii(LEAF_LIMIT / (gridsize * gridsize), 1);
+  pbvh->faces_num = me->totpoly;
+
+  /* Find maximum number of grids per face. */
+  int max_grids = 1;
+  const MPoly *mpoly = BKE_mesh_polys(me);
+
+  for (int i = 0; i < me->totpoly; i++) {
+    max_grids = max_ii(max_grids, mpoly[i].totloop);
+  }
+
+  /* Ensure leaf limit is at least 4 so there's room
+   * to split at original face boundaries.
+   * Fixes T102209.
+   */
+  pbvh->leaf_limit = max_ii(LEAF_LIMIT / (gridsize * gridsize), max_grids);
 
   /* We need the base mesh attribute layout for PBVH draw. */
   pbvh->vdata = &me->vdata;
   pbvh->ldata = &me->ldata;
   pbvh->pdata = &me->pdata;
+
+  pbvh->mpoly = BKE_mesh_polys(me);
+  pbvh->mloop = BKE_mesh_loops(me);
 
   /* We also need the base mesh for PBVH draw. */
   pbvh->mesh = me;
@@ -864,34 +963,12 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
     BB_expand(&cb, bbc->bcentroid);
   }
 
-  /* Ensure all primitives belonging to the same base face
-   * have the same bounds.  This is needed to prevent them
-   * from being swapped away from each other inside the partition
-   * array.
-   */
-  for (int i = 0; i < totgrid; i++) {
-    int poly = BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, i);
-
-    BBC *bbc = prim_bbc + i;
-    int j = i + 1;
-
-    while (j < totgrid && BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, j) == poly) {
-      BBC *bbc2 = prim_bbc + j;
-
-      BB_expand((BB *)bbc, bbc2->bmin);
-      BB_expand((BB *)bbc, bbc2->bmax);
-      j++;
-    }
-
-    j = i + 1;
-    while (j < totgrid && BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, j) == poly) {
-      prim_bbc[j] = prim_bbc[i];
-      j++;
-    }
-  }
-
   if (totgrid) {
     pbvh_build(pbvh, &cb, prim_bbc, totgrid);
+
+#ifdef TEST_PBVH_FACE_SPLIT
+    test_face_boundaries(pbvh);
+#endif
   }
 
   MEM_freeN(prim_bbc);
@@ -942,7 +1019,7 @@ void BKE_pbvh_free(PBVH *pbvh)
         BLI_gset_free(node->bm_other_verts, NULL);
       }
 
-      pbvh_pixels_free(node);
+      pbvh_node_pixels_free(node);
     }
   }
 
@@ -967,6 +1044,8 @@ void BKE_pbvh_free(PBVH *pbvh)
   }
 
   MEM_SAFE_FREE(pbvh->vert_bitmap);
+
+  pbvh_pixels_free(pbvh);
 
   MEM_freeN(pbvh);
 }
@@ -1256,7 +1335,7 @@ typedef struct PBVHUpdateData {
   PBVHNode **nodes;
   int totnode;
 
-  float (*vnors)[3];
+  float (*vert_normals)[3];
   int flag;
   bool show_sculpt_face_sets;
   PBVHAttrReq *attrs;
@@ -1270,7 +1349,7 @@ static void pbvh_update_normals_clear_task_cb(void *__restrict userdata,
   PBVHUpdateData *data = userdata;
   PBVH *pbvh = data->pbvh;
   PBVHNode *node = data->nodes[n];
-  float(*vnors)[3] = data->vnors;
+  float(*vert_normals)[3] = data->vert_normals;
 
   if (node->flag & PBVH_UpdateNormals) {
     const int *verts = node->vert_indices;
@@ -1278,7 +1357,7 @@ static void pbvh_update_normals_clear_task_cb(void *__restrict userdata,
     for (int i = 0; i < totvert; i++) {
       const int v = verts[i];
       if (pbvh->vert_bitmap[v]) {
-        zero_v3(vnors[v]);
+        zero_v3(vert_normals[v]);
       }
     }
   }
@@ -1292,7 +1371,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
 
   PBVH *pbvh = data->pbvh;
   PBVHNode *node = data->nodes[n];
-  float(*vnors)[3] = data->vnors;
+  float(*vert_normals)[3] = data->vert_normals;
 
   if (node->flag & PBVH_UpdateNormals) {
     uint mpoly_prev = UINT_MAX;
@@ -1326,7 +1405,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
            * Not exact equivalent though, since atomicity is only ensured for one component
            * of the vector at a time, but here it shall not make any sensible difference. */
           for (int k = 3; k--;) {
-            atomic_add_and_fetch_fl(&vnors[v][k], fn[k]);
+            atomic_add_and_fetch_fl(&vert_normals[v][k], fn[k]);
           }
         }
       }
@@ -1341,7 +1420,7 @@ static void pbvh_update_normals_store_task_cb(void *__restrict userdata,
   PBVHUpdateData *data = userdata;
   PBVH *pbvh = data->pbvh;
   PBVHNode *node = data->nodes[n];
-  float(*vnors)[3] = data->vnors;
+  float(*vert_normals)[3] = data->vert_normals;
 
   if (node->flag & PBVH_UpdateNormals) {
     const int *verts = node->vert_indices;
@@ -1353,7 +1432,7 @@ static void pbvh_update_normals_store_task_cb(void *__restrict userdata,
       /* No atomics necessary because we are iterating over uniq_verts only,
        * so we know only this thread will handle this vertex. */
       if (pbvh->vert_bitmap[v]) {
-        normalize_v3(vnors[v]);
+        normalize_v3(vert_normals[v]);
         pbvh->vert_bitmap[v] = false;
       }
     }
@@ -1377,7 +1456,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, PBVHNode **nodes, int totnode)
   PBVHUpdateData data = {
       .pbvh = pbvh,
       .nodes = nodes,
-      .vnors = pbvh->vert_normals,
+      .vert_normals = pbvh->vert_normals,
   };
 
   TaskParallelSettings settings;
@@ -1515,7 +1594,7 @@ void pbvh_update_BB_redraw(PBVH *pbvh, PBVHNode **nodes, int totnode, int flag)
 
 bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, eAttrDomain *r_attr)
 {
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get((ID *)me);
+  CustomDataLayer *layer = BKE_id_attributes_color_find(&me->id, me->active_color_attribute);
 
   if (!layer || !ELEM(layer->type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
     *r_layer = NULL;
@@ -1523,7 +1602,7 @@ bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, eAttrDo
     return false;
   }
 
-  eAttrDomain domain = BKE_id_attribute_domain((ID *)me, layer);
+  eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
 
   if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
     *r_layer = NULL;
@@ -2002,6 +2081,11 @@ void BKE_pbvh_node_mark_update_color(PBVHNode *node)
   node->flag |= PBVH_UpdateColor | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
+void BKE_pbvh_node_mark_update_face_sets(PBVHNode *node)
+{
+  node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+}
+
 void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh)
 {
   for (int n = 0; n < pbvh->totnode; n++) {
@@ -2104,6 +2188,20 @@ void BKE_pbvh_node_get_loops(PBVH *pbvh,
   if (r_loops) {
     *r_loops = pbvh->mloop;
   }
+}
+
+int BKE_pbvh_num_faces(const PBVH *pbvh)
+{
+  switch (pbvh->header.type) {
+    case PBVH_GRIDS:
+    case PBVH_FACES:
+      return pbvh->faces_num;
+    case PBVH_BMESH:
+      return pbvh->header.bm->totface;
+  }
+
+  BLI_assert_unreachable();
+  return 0;
 }
 
 void BKE_pbvh_node_get_verts(PBVH *pbvh,
@@ -3135,10 +3233,6 @@ void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int
       }
     }
 
-    /* coordinates are new -- normals should also be updated */
-    BKE_mesh_calc_normals_looptri(
-        pbvh->verts, pbvh->totvert, pbvh->mloop, pbvh->looptri, pbvh->totprim, NULL);
-
     for (int a = 0; a < pbvh->totnode; a++) {
       BKE_pbvh_node_mark_update(&pbvh->nodes[a]);
     }
@@ -3325,16 +3419,6 @@ bool pbvh_has_face_sets(PBVH *pbvh)
   return false;
 }
 
-void pbvh_show_mask_set(PBVH *pbvh, bool show_mask)
-{
-  pbvh->show_mask = show_mask;
-}
-
-void pbvh_show_face_sets_set(PBVH *pbvh, bool show_face_sets)
-{
-  pbvh->show_face_sets = show_face_sets;
-}
-
 void BKE_pbvh_set_frustum_planes(PBVH *pbvh, PBVHFrustumPlanes *planes)
 {
   pbvh->num_planes = planes->num_planes;
@@ -3508,4 +3592,273 @@ void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
 int BKE_pbvh_debug_draw_gen_get(PBVHNode *node)
 {
   return node->debug_draw_gen;
+}
+
+static void pbvh_face_iter_verts_reserve(PBVHFaceIter *fd, int verts_num)
+{
+  if (verts_num >= fd->verts_size_) {
+    fd->verts_size_ = (verts_num + 1) << 2;
+
+    if (fd->verts != fd->verts_reserved_) {
+      MEM_SAFE_FREE(fd->verts);
+    }
+
+    fd->verts = MEM_malloc_arrayN(fd->verts_size_, sizeof(void *), __func__);
+  }
+
+  fd->verts_num = verts_num;
+}
+
+BLI_INLINE int face_iter_prim_to_face(PBVHFaceIter *fd, int prim_index)
+{
+  if (fd->subdiv_ccg_) {
+    return BKE_subdiv_ccg_grid_to_face_index(fd->subdiv_ccg_, prim_index);
+  }
+
+  return fd->looptri_[prim_index].poly;
+}
+
+static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
+{
+  if (do_step) {
+    fd->i++;
+  }
+
+  switch (fd->pbvh_type_) {
+    case PBVH_BMESH: {
+      if (do_step) {
+        BLI_gsetIterator_step(&fd->bm_faces_iter_);
+        if (BLI_gsetIterator_done(&fd->bm_faces_iter_)) {
+          return;
+        }
+      }
+
+      BMFace *f = (BMFace *)BLI_gsetIterator_getKey(&fd->bm_faces_iter_);
+      fd->face.i = (intptr_t)f;
+      fd->index = f->head.index;
+
+      if (fd->cd_face_set_ != -1) {
+        fd->face_set = (int *)BM_ELEM_CD_GET_VOID_P(f, fd->cd_face_set_);
+      }
+
+      if (fd->cd_hide_poly_ != -1) {
+        fd->hide = (bool *)BM_ELEM_CD_GET_VOID_P(f, fd->cd_hide_poly_);
+      }
+
+      pbvh_face_iter_verts_reserve(fd, f->len);
+      int vertex_i = 0;
+
+      BMLoop *l = f->l_first;
+      do {
+        fd->verts[vertex_i++].i = (intptr_t)l->v;
+      } while ((l = l->next) != f->l_first);
+
+      break;
+    }
+    case PBVH_GRIDS:
+    case PBVH_FACES: {
+      int face_index = 0;
+
+      if (do_step) {
+        fd->prim_index_++;
+
+        while (fd->prim_index_ < fd->node_->totprim) {
+          face_index = face_iter_prim_to_face(fd, fd->node_->prim_indices[fd->prim_index_]);
+
+          if (face_index != fd->last_face_index_) {
+            break;
+          }
+
+          fd->prim_index_++;
+        }
+      }
+      else if (fd->prim_index_ < fd->node_->totprim) {
+        face_index = face_iter_prim_to_face(fd, fd->node_->prim_indices[fd->prim_index_]);
+      }
+
+      if (fd->prim_index_ >= fd->node_->totprim) {
+        return;
+      }
+
+      fd->last_face_index_ = face_index;
+      const MPoly *mp = fd->mpoly_ + face_index;
+
+      fd->face.i = fd->index = face_index;
+
+      if (fd->face_sets_) {
+        fd->face_set = fd->face_sets_ + face_index;
+      }
+      if (fd->hide_poly_) {
+        fd->hide = fd->hide_poly_ + face_index;
+      }
+
+      pbvh_face_iter_verts_reserve(fd, mp->totloop);
+
+      const MLoop *ml = fd->mloop_ + mp->loopstart;
+      const int grid_area = fd->subdiv_key_.grid_area;
+
+      for (int i = 0; i < mp->totloop; i++, ml++) {
+        if (fd->pbvh_type_ == PBVH_GRIDS) {
+          /* Grid corners. */
+          fd->verts[i].i = (mp->loopstart + i) * grid_area + grid_area - 1;
+        }
+        else {
+          fd->verts[i].i = ml->v;
+        }
+      }
+      break;
+    }
+  }
+}
+
+void BKE_pbvh_face_iter_step(PBVHFaceIter *fd)
+{
+  pbvh_face_iter_step(fd, true);
+}
+
+void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd)
+{
+  memset(fd, 0, sizeof(*fd));
+
+  fd->node_ = node;
+  fd->pbvh_type_ = BKE_pbvh_type(pbvh);
+  fd->verts = fd->verts_reserved_;
+  fd->verts_size_ = PBVH_FACE_ITER_VERTS_RESERVED;
+
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_GRIDS:
+      fd->subdiv_ccg_ = pbvh->subdiv_ccg;
+      fd->subdiv_key_ = pbvh->gridkey;
+      ATTR_FALLTHROUGH;
+    case PBVH_FACES:
+      fd->mpoly_ = pbvh->mpoly;
+      fd->mloop_ = pbvh->mloop;
+      fd->looptri_ = pbvh->looptri;
+      fd->hide_poly_ = pbvh->hide_poly;
+      fd->face_sets_ = pbvh->face_sets;
+      fd->last_face_index_ = -1;
+
+      break;
+    case PBVH_BMESH:
+      fd->bm = pbvh->header.bm;
+      fd->cd_face_set_ = CustomData_get_offset_named(
+          &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
+      fd->cd_hide_poly_ = CustomData_get_offset_named(
+          &pbvh->header.bm->pdata, CD_PROP_INT32, ".hide_poly");
+
+      BLI_gsetIterator_init(&fd->bm_faces_iter_, node->bm_faces);
+      break;
+  }
+
+  if (!BKE_pbvh_face_iter_done(fd)) {
+    pbvh_face_iter_step(fd, false);
+  }
+}
+
+void BKE_pbvh_face_iter_finish(PBVHFaceIter *fd)
+{
+  if (fd->verts != fd->verts_reserved_) {
+    MEM_SAFE_FREE(fd->verts);
+  }
+}
+
+bool BKE_pbvh_face_iter_done(PBVHFaceIter *fd)
+{
+  switch (fd->pbvh_type_) {
+    case PBVH_FACES:
+    case PBVH_GRIDS:
+      return fd->prim_index_ >= fd->node_->totprim;
+    case PBVH_BMESH:
+      return BLI_gsetIterator_done(&fd->bm_faces_iter_);
+    default:
+      BLI_assert_unreachable();
+      return true;
+  }
+}
+
+void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
+{
+  switch (pbvh->header.type) {
+    case PBVH_FACES: {
+      BKE_mesh_flush_hidden_from_verts(mesh);
+      BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
+      break;
+    }
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMVert *v;
+      BMEdge *e;
+      BMFace *f;
+
+      BM_ITER_MESH (f, &iter, pbvh->header.bm, BM_FACES_OF_MESH) {
+        BM_elem_flag_disable(f, BM_ELEM_HIDDEN);
+      }
+
+      BM_ITER_MESH (e, &iter, pbvh->header.bm, BM_EDGES_OF_MESH) {
+        BM_elem_flag_disable(e, BM_ELEM_HIDDEN);
+      }
+
+      BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
+        if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+          continue;
+        }
+        BMIter iter_l;
+        BMLoop *l;
+
+        BM_ITER_ELEM (l, &iter_l, v, BM_LOOPS_OF_VERT) {
+          BM_elem_flag_enable(l->e, BM_ELEM_HIDDEN);
+          BM_elem_flag_enable(l->f, BM_ELEM_HIDDEN);
+        }
+      }
+      break;
+    }
+    case PBVH_GRIDS: {
+      const MPoly *mp = BKE_mesh_polys(mesh);
+      CCGKey key = pbvh->gridkey;
+
+      bool *hide_poly = (bool *)CustomData_get_layer_named(
+          &mesh->pdata, CD_PROP_BOOL, ".hide_poly");
+
+      bool delete_hide_poly = true;
+      for (int face_index = 0; face_index < mesh->totpoly; face_index++, mp++) {
+        bool hidden = false;
+
+        for (int loop_index = 0; !hidden && loop_index < mp->totloop; loop_index++) {
+          int grid_index = mp->loopstart + loop_index;
+
+          if (pbvh->grid_hidden[grid_index] &&
+              BLI_BITMAP_TEST(pbvh->grid_hidden[grid_index], key.grid_area - 1)) {
+            hidden = true;
+
+            break;
+          }
+        }
+
+        if (hidden && !hide_poly) {
+          hide_poly = (bool *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, ".hide_poly");
+
+          if (!hide_poly) {
+            CustomData_add_layer_named(
+                &mesh->pdata, CD_PROP_BOOL, CD_CONSTRUCT, NULL, mesh->totpoly, ".hide_poly");
+
+            hide_poly = (bool *)CustomData_get_layer_named(
+                &mesh->pdata, CD_PROP_BOOL, ".hide_poly");
+          }
+        }
+
+        if (hide_poly) {
+          delete_hide_poly = delete_hide_poly && !hidden;
+          hide_poly[face_index] = hidden;
+        }
+      }
+
+      if (delete_hide_poly) {
+        CustomData_free_layer_named(&mesh->pdata, ".hide_poly", mesh->totpoly);
+      }
+
+      BKE_mesh_flush_hidden_from_polys(mesh);
+      BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
+      break;
+    }
+  }
 }

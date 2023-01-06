@@ -9,9 +9,9 @@ if(UNIX AND NOT APPLE)
   add_definitions(-D_GLIBCXX_PERMIT_BACKWARD_HASH)
 endif()
 if(WIN32)
-  add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN)
+  add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN -DBOOST_DEBUG_PYTHON)
 endif()
-add_definitions(-DPXR_STATIC)
+add_definitions(-DBOOST_ALL_NO_LIB)
 
 # USD headers use deprecated TBB headers, silence warning.
 add_definitions(-DTBB_SUPPRESS_DEPRECATED_MESSAGES=1)
@@ -56,6 +56,7 @@ set(INC_SYS
   ${USD_INCLUDE_DIRS}
   ${BOOST_INCLUDE_DIR}
   ${TBB_INCLUDE_DIR}
+  ${PYTHON_INCLUDE_DIR}
 )
 
 set(SRC
@@ -122,6 +123,8 @@ set(LIB
 
 list(APPEND LIB
   ${BOOST_LIBRARIES}
+  ${BOOST_PYTHON_LIBRARIES}
+  ${PYTHON_LIBRARIES}
 )
 
 if(WITH_OPENVDB)
@@ -143,7 +146,8 @@ if(WIN32)
   set_property(TARGET bf_usd APPEND_STRING PROPERTY INTERFACE_LINK_OPTIONS "$<$<CONFIG:MinSizeRel>:/WHOLEARCHIVE:${USD_RELEASE_LIB}>")
 endif()
 
-# Source: https://github.com/PixarAnimationStudios/USD/blob/master/BUILDING.md#linking-whole-archives
+# Source:
+# https://github.com/PixarAnimationStudios/USD/blob/master/BUILDING.md#linking-whole-archives
 if(WIN32)
   target_link_libraries(bf_usd INTERFACE ${USD_LIBRARIES})
 elseif(APPLE)
@@ -174,6 +178,6 @@ if(WITH_GTESTS)
   blender_add_test_lib(bf_io_usd_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 endif()
 
-# In cmake version 3.21 and up, we can instead use the NO_CACHE option for
-# find_file so we don't need to clear it from the cache here.
+# In CMAKE version 3.21 and up, we can instead use the `NO_CACHE` option for
+# `find_file` so we don't need to clear it from the cache here.
 unset(USD_IMAGING_HEADERS CACHE)

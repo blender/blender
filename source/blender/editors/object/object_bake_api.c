@@ -55,6 +55,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
@@ -106,7 +107,7 @@ typedef struct BakeAPIRender {
 
   /* Progress Callbacks. */
   float *progress;
-  short *do_update;
+  bool *do_update;
 
   /* Operator state. */
   ReportList *reports;
@@ -150,12 +151,12 @@ static int bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
  * for exec() when there is no render job
  * NOTE: this won't check for the escape key being pressed, but doing so isn't thread-safe.
  */
-static int bake_break(void *UNUSED(rjv))
+static bool bake_break(void *UNUSED(rjv))
 {
   if (G.is_break) {
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
 static void bake_update_image(ScrArea *area, Image *image)
@@ -451,7 +452,7 @@ static bool bake_object_check(const Scene *scene,
   }
 
   if (target == R_BAKE_TARGET_VERTEX_COLORS) {
-    if (BKE_id_attributes_active_color_get(&me->id) == NULL) {
+    if (!BKE_id_attributes_color_find(&me->id, me->active_color_attribute)) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Mesh does not have an active color attribute \"%s\"",
@@ -467,8 +468,8 @@ static bool bake_object_check(const Scene *scene,
     }
 
     for (int i = 0; i < ob->totcol; i++) {
-      bNodeTree *ntree = NULL;
-      bNode *node = NULL;
+      const bNodeTree *ntree = NULL;
+      const bNode *node = NULL;
       const int mat_nr = i + 1;
       Image *image;
       ED_object_get_active_image(ob, mat_nr, &image, NULL, &node, &ntree);
@@ -670,7 +671,8 @@ static Mesh *bake_mesh_new_from_object(Depsgraph *depsgraph,
   Mesh *me = BKE_mesh_new_from_object(depsgraph, object, false, preserve_origindex);
 
   if (me->flag & ME_AUTOSMOOTH) {
-    BKE_mesh_split_faces(me, true);
+    ED_mesh_split_faces(me);
+    CustomData_free_layers(&me->ldata, CD_NORMAL, me->totloop);
   }
 
   return me;
@@ -893,7 +895,7 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
       else {
         /* if everything else fails, use the material index */
         char tmp[5];
-        sprintf(tmp, "%d", i % 1000);
+        BLI_snprintf(tmp, sizeof(tmp), "%d", i % 1000);
         BLI_path_suffix(name, FILE_MAX, tmp, "_");
       }
     }
@@ -948,7 +950,7 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
   }
 
   Mesh *me = ob->data;
-  if (BKE_id_attributes_active_color_get(&me->id) == NULL) {
+  if (!BKE_id_attributes_color_find(&me->id, me->active_color_attribute)) {
     BKE_report(reports, RPT_ERROR, "No active color attribute to bake to");
     return false;
   }
@@ -1129,7 +1131,8 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
 {
   Mesh *me = ob->data;
   BMEditMesh *em = me->edit_mesh;
-  CustomDataLayer *active_color_layer = BKE_id_attributes_active_color_get(&me->id);
+  CustomDataLayer *active_color_layer = BKE_id_attributes_color_find(&me->id,
+                                                                     me->active_color_attribute);
   BLI_assert(active_color_layer != NULL);
   const eAttrDomain domain = BKE_id_attribute_domain(&me->id, active_color_layer);
 
@@ -1854,7 +1857,7 @@ finally:
   return result;
 }
 
-static void bake_startjob(void *bkv, short *UNUSED(stop), short *do_update, float *progress)
+static void bake_startjob(void *bkv, bool *UNUSED(stop), bool *do_update, float *progress)
 {
   BakeAPIRender *bkr = (BakeAPIRender *)bkv;
 

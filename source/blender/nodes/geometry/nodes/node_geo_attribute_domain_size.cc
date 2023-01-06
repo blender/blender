@@ -132,7 +132,7 @@ void register_node_type_geo_attribute_domain_size()
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_layout;
-  node_type_init(&ntype, file_ns::node_init);
+  ntype.initfunc = file_ns::node_init;
   ntype.updatefunc = file_ns::node_update;
 
   nodeRegisterType(&ntype);

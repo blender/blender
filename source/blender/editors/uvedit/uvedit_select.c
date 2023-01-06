@@ -4427,7 +4427,7 @@ static int uv_select_overlap(bContext *C, const bool extend)
   BLI_bvhtree_balance(uv_tree);
 
   uint tree_overlap_len;
-  BVHTreeOverlap *overlap = BLI_bvhtree_overlap(uv_tree, uv_tree, &tree_overlap_len, NULL, NULL);
+  BVHTreeOverlap *overlap = BLI_bvhtree_overlap_self(uv_tree, &tree_overlap_len, NULL, NULL);
 
   if (overlap != NULL) {
     GSet *overlap_set = BLI_gset_new_ex(overlap_hash, overlap_cmp, __func__, tree_overlap_len);

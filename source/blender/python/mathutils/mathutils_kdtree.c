@@ -372,66 +372,70 @@ PyDoc_STRVAR(py_KDtree_doc,
              "\n"
              "   :class:`KDTree.balance` must have been called before using any of the ``find`` "
              "methods.\n");
+
 PyTypeObject PyKDTree_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "KDTree", /* tp_name */
-    sizeof(PyKDTree),                        /* tp_basicsize */
-    0,                                       /* tp_itemsize */
-    /* methods */
-    (destructor)PyKDTree__tp_dealloc,       /* tp_dealloc */
-    (printfunc)NULL,                        /* tp_print */
-    NULL,                                   /* tp_getattr */
-    NULL,                                   /* tp_setattr */
-    NULL,                                   /* tp_compare */
-    NULL,                                   /* tp_repr */
-    NULL,                                   /* tp_as_number */
-    NULL,                                   /* tp_as_sequence */
-    NULL,                                   /* tp_as_mapping */
-    NULL,                                   /* tp_hash */
-    NULL,                                   /* tp_call */
-    NULL,                                   /* tp_str */
-    NULL,                                   /* tp_getattro */
-    NULL,                                   /* tp_setattro */
-    NULL,                                   /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                     /* tp_flags */
-    py_KDtree_doc,                          /* Documentation string */
-    NULL,                                   /* tp_traverse */
-    NULL,                                   /* tp_clear */
-    NULL,                                   /* tp_richcompare */
-    0,                                      /* tp_weaklistoffset */
-    NULL,                                   /* tp_iter */
-    NULL,                                   /* tp_iternext */
-    (struct PyMethodDef *)PyKDTree_methods, /* tp_methods */
-    NULL,                                   /* tp_members */
-    NULL,                                   /* tp_getset */
-    NULL,                                   /* tp_base */
-    NULL,                                   /* tp_dict */
-    NULL,                                   /* tp_descr_get */
-    NULL,                                   /* tp_descr_set */
-    0,                                      /* tp_dictoffset */
-    (initproc)PyKDTree__tp_init,            /* tp_init */
-    (allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-    (newfunc)PyType_GenericNew,             /* tp_new */
-    (freefunc)0,                            /* tp_free */
-    NULL,                                   /* tp_is_gc */
-    NULL,                                   /* tp_bases */
-    NULL,                                   /* tp_mro */
-    NULL,                                   /* tp_cache */
-    NULL,                                   /* tp_subclasses */
-    NULL,                                   /* tp_weaklist */
-    (destructor)NULL,                       /* tp_del */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /*tp_name*/ "KDTree",
+    /*tp_basicsize*/ sizeof(PyKDTree),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)PyKDTree__tp_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ NULL,
+    /*tp_setattr*/ NULL,
+    /*tp_as_async*/ NULL,
+    /*tp_repr*/ NULL,
+    /*tp_as_number*/ NULL,
+    /*tp_as_sequence*/ NULL,
+    /*tp_as_mapping*/ NULL,
+    /*tp_hash*/ NULL,
+    /*tp_call*/ NULL,
+    /*tp_str*/ NULL,
+    /*tp_getattro*/ NULL,
+    /*tp_setattro*/ NULL,
+    /*tp_as_buffer*/ NULL,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT,
+    /*Documentation string*/ py_KDtree_doc,
+    /*tp_traverse*/ NULL,
+    /*tp_clear*/ NULL,
+    /*tp_richcompare*/ NULL,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ NULL,
+    /*tp_iternext*/ NULL,
+    /*tp_methods*/ (struct PyMethodDef *)PyKDTree_methods,
+    /*tp_members*/ NULL,
+    /*tp_getset*/ NULL,
+    /*tp_base*/ NULL,
+    /*tp_dict*/ NULL,
+    /*tp_descr_get*/ NULL,
+    /*tp_descr_set*/ NULL,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ (initproc)PyKDTree__tp_init,
+    /*tp_alloc*/ (allocfunc)PyType_GenericAlloc,
+    /*tp_new*/ (newfunc)PyType_GenericNew,
+    /*tp_free*/ (freefunc)0,
+    /*tp_is_gc*/ NULL,
+    /*tp_bases*/ NULL,
+    /*tp_mro*/ NULL,
+    /*tp_cache*/ NULL,
+    /*tp_subclasses*/ NULL,
+    /*tp_weaklist*/ NULL,
+    /*tp_del*/ (destructor)NULL,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ NULL,
+    /*tp_vectorcall*/ NULL,
 };
 
 PyDoc_STRVAR(py_kdtree_doc, "Generic 3-dimensional kd-tree to perform spatial searches.");
 static struct PyModuleDef kdtree_moduledef = {
     PyModuleDef_HEAD_INIT,
-    "mathutils.kdtree", /* m_name */
-    py_kdtree_doc,      /* m_doc */
-    0,                  /* m_size */
-    NULL,               /* m_methods */
-    NULL,               /* m_slots */
-    NULL,               /* m_traverse */
-    NULL,               /* m_clear */
-    NULL,               /* m_free */
+    /*m_name*/ "mathutils.kdtree",
+    /*m_doc*/ py_kdtree_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ NULL,
+    /*m_slots*/ NULL,
+    /*m_traverse*/ NULL,
+    /*m_clear*/ NULL,
+    /*m_free*/ NULL,
 };
 
 PyMODINIT_FUNC PyInit_mathutils_kdtree(void)

@@ -7,6 +7,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMFace;
 struct BMLoop;
 struct Object;
@@ -146,6 +150,10 @@ void UV_OT_rip(struct wmOperatorType *ot);
 void UV_OT_stitch(struct wmOperatorType *ot);
 void UV_OT_smart_project(struct wmOperatorType *ot);
 
+/* uvedit_copy_paste.cc */
+void UV_OT_copy(wmOperatorType *ot);
+void UV_OT_paste(wmOperatorType *ot);
+
 /* uvedit_path.c */
 
 void UV_OT_shortest_path_pick(struct wmOperatorType *ot);
@@ -182,3 +190,7 @@ void UV_OT_select_overlap(struct wmOperatorType *ot);
 void UV_OT_select_similar(struct wmOperatorType *ot);
 /* Used only when UV sync select is disabled. */
 void UV_OT_select_mode(struct wmOperatorType *ot);
+
+#ifdef __cplusplus
+}
+#endif

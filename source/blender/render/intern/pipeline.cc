@@ -53,6 +53,7 @@
 #include "BKE_mask.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
@@ -177,7 +178,7 @@ static void stats_nothing(void * /*arg*/, RenderStats * /*rs*/)
 static void float_nothing(void * /*arg*/, float /*val*/)
 {
 }
-static int default_break(void * /*arg*/)
+static bool default_break(void * /*arg*/)
 {
   return G.is_break == true;
 }
@@ -261,13 +262,10 @@ RenderResult *RE_MultilayerConvert(
   return render_result_new_from_exr(exrhandle, colorspace, predivide, rectx, recty);
 }
 
-RenderLayer *render_get_active_layer(Render *re, RenderResult *rr)
+RenderLayer *render_get_single_layer(Render *re, RenderResult *rr)
 {
-  ViewLayer *view_layer = static_cast<ViewLayer *>(
-      BLI_findlink(&re->view_layers, re->active_view_layer));
-
-  if (view_layer) {
-    RenderLayer *rl = RE_GetRenderLayer(rr, view_layer->name);
+  if (re->single_view_layer[0]) {
+    RenderLayer *rl = RE_GetRenderLayer(rr, re->single_view_layer);
 
     if (rl) {
       return rl;
@@ -385,8 +383,8 @@ void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
       RenderView *rv = static_cast<RenderView *>(rr->views.first);
       rr->have_combined = (rv->rectf != nullptr);
 
-      /* active layer */
-      RenderLayer *rl = render_get_active_layer(re, re->result);
+      /* single layer */
+      RenderLayer *rl = render_get_single_layer(re, re->result);
 
       if (rl) {
         if (rv->rectf == nullptr) {
@@ -443,7 +441,7 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
       rr->rect32 = rv->rect32;
 
       /* active layer */
-      rl = render_get_active_layer(re, re->result);
+      rl = render_get_single_layer(re, re->result);
 
       if (rl) {
         if (rv->rectf == nullptr) {
@@ -583,9 +581,6 @@ void RE_FreeRender(Render *re)
   BLI_mutex_end(&re->engine_draw_mutex);
   BLI_mutex_end(&re->highlighted_tiles_mutex);
 
-  BLI_freelistN(&re->view_layers);
-  BLI_freelistN(&re->r.views);
-
   BKE_curvemapping_free_data(&re->r.mblur_shutter_curve);
 
   if (re->highlighted_tiles != nullptr) {
@@ -705,19 +700,18 @@ static void re_init_resolution(Render *re, Render *source, int winx, int winy, r
 
 void render_copy_renderdata(RenderData *to, RenderData *from)
 {
-  BLI_freelistN(&to->views);
+  /* Mostly shallow copy referencing pointers in scene renderdata. */
   BKE_curvemapping_free_data(&to->mblur_shutter_curve);
 
   memcpy(to, from, sizeof(*to));
 
-  BLI_duplicatelist(&to->views, &from->views);
   BKE_curvemapping_copy_data(&to->mblur_shutter_curve, &from->mblur_shutter_curve);
 }
 
 void RE_InitState(Render *re,
                   Render *source,
                   RenderData *rd,
-                  ListBase *render_layers,
+                  ListBase * /*render_layers*/,
                   ViewLayer *single_layer,
                   int winx,
                   int winy,
@@ -731,9 +725,7 @@ void RE_InitState(Render *re,
 
   /* copy render data and render layers for thread safety */
   render_copy_renderdata(&re->r, rd);
-  BLI_freelistN(&re->view_layers);
-  BLI_duplicatelist(&re->view_layers, render_layers);
-  re->active_view_layer = 0;
+  re->single_view_layer[0] = '\0';
 
   if (source) {
     /* reuse border flags from source renderer */
@@ -757,16 +749,13 @@ void RE_InitState(Render *re,
   if (re->rectx < 1 || re->recty < 1 ||
       (BKE_imtype_is_movie(rd->im_format.imtype) && (re->rectx < 16 || re->recty < 16))) {
     BKE_report(re->reports, RPT_ERROR, "Image too small");
-    re->ok = 0;
+    re->ok = false;
     return;
   }
 
   if (single_layer) {
-    int index = BLI_findindex(render_layers, single_layer);
-    if (index != -1) {
-      re->active_view_layer = index;
-      re->r.scemode |= R_SINGLE_LAYER;
-    }
+    STRNCPY(re->single_view_layer, single_layer->name);
+    re->r.scemode |= R_SINGLE_LAYER;
   }
 
   /* if preview render, we try to keep old result */
@@ -779,13 +768,16 @@ void RE_InitState(Render *re,
       re->result = nullptr;
     }
     else if (re->result) {
-      ViewLayer *active_render_layer = static_cast<ViewLayer *>(
-          BLI_findlink(&re->view_layers, re->active_view_layer));
       bool have_layer = false;
 
-      LISTBASE_FOREACH (RenderLayer *, rl, &re->result->layers) {
-        if (STREQ(rl->name, active_render_layer->name)) {
-          have_layer = true;
+      if (re->single_view_layer[0] == '\0' && re->result->layers.first) {
+        have_layer = true;
+      }
+      else {
+        LISTBASE_FOREACH (RenderLayer *, rl, &re->result->layers) {
+          if (STREQ(rl->name, re->single_view_layer)) {
+            have_layer = true;
+          }
         }
       }
 
@@ -815,27 +807,6 @@ void RE_InitState(Render *re,
   RE_init_threadcount(re);
 
   RE_point_density_fix_linking();
-}
-
-void render_update_anim_renderdata(Render *re, RenderData *rd, ListBase *render_layers)
-{
-  /* filter */
-  re->r.gauss = rd->gauss;
-
-  /* motion blur */
-  re->r.blurfac = rd->blurfac;
-
-  /* freestyle */
-  re->r.line_thickness_mode = rd->line_thickness_mode;
-  re->r.unit_line_thickness = rd->unit_line_thickness;
-
-  /* render layers */
-  BLI_freelistN(&re->view_layers);
-  BLI_duplicatelist(&re->view_layers, render_layers);
-
-  /* render views */
-  BLI_freelistN(&re->r.views);
-  BLI_duplicatelist(&re->r.views, &rd->views);
 }
 
 void RE_display_init_cb(Render *re, void *handle, void (*f)(void *handle, RenderResult *rr))
@@ -877,7 +848,7 @@ void RE_draw_lock_cb(Render *re, void *handle, void (*f)(void *handle, bool lock
   re->dlh = handle;
 }
 
-void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
+void RE_test_break_cb(Render *re, void *handle, bool (*f)(void *handle))
 {
   re->test_break = f;
   re->tbh = handle;
@@ -979,7 +950,7 @@ static void render_result_uncrop(Render *re)
       re->result = rres;
 
       /* Weak, the display callback wants an active render-layer pointer. */
-      re->result->renlay = render_get_active_layer(re, re->result);
+      re->result->renlay = render_get_single_layer(re, re->result);
 
       BLI_rw_mutex_unlock(&re->resultmutex);
 
@@ -1075,7 +1046,7 @@ static int compositor_needs_render(Scene *sce, int this_scene)
     return 1;
   }
 
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (const bNode *node : ntree->all_nodes()) {
     if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
       if (this_scene == 0 || node->id == nullptr || node->id == &sce->id) {
         return 1;
@@ -1100,7 +1071,7 @@ static void do_render_compositor_scenes(Render *re)
   /* now foreach render-result node we do a full render */
   /* results are stored in a way compositor will find it */
   GSet *scenes_rendered = BLI_gset_ptr_new(__func__);
-  LISTBASE_FOREACH (bNode *, node, &re->scene->nodetree->nodes) {
+  for (bNode *node : re->scene->nodetree->all_nodes()) {
     if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
       if (node->id && node->id != (ID *)re->scene) {
         Scene *scene = (Scene *)node->id;
@@ -1144,9 +1115,6 @@ static void do_render_compositor(Render *re)
   int update_newframe = 0;
 
   if (compositor_needs_render(re->pipeline_scene_eval, 1)) {
-    /* save memory... free all cached images */
-    ntreeFreeCache(ntree);
-
     /* render the frames
      * it could be optimized to render only the needed view
      * but what if a scene has a different number of views
@@ -1191,12 +1159,12 @@ static void do_render_compositor(Render *re)
       }
 
       if (!re->test_break(re->tbh)) {
-        ntree->stats_draw = render_compositor_stats;
-        ntree->test_break = re->test_break;
-        ntree->progress = re->progress;
-        ntree->sdh = re;
-        ntree->tbh = re->tbh;
-        ntree->prh = re->prh;
+        ntree->runtime->stats_draw = render_compositor_stats;
+        ntree->runtime->test_break = re->test_break;
+        ntree->runtime->progress = re->progress;
+        ntree->runtime->sdh = re;
+        ntree->runtime->tbh = re->tbh;
+        ntree->runtime->prh = re->prh;
 
         if (update_newframe) {
           /* If we have consistent depsgraph now would be a time to update them. */
@@ -1207,17 +1175,17 @@ static void do_render_compositor(Render *re)
               re->pipeline_scene_eval, ntree, &re->r, true, G.background == 0, rv->name);
         }
 
-        ntree->stats_draw = nullptr;
-        ntree->test_break = nullptr;
-        ntree->progress = nullptr;
-        ntree->tbh = ntree->sdh = ntree->prh = nullptr;
+        ntree->runtime->stats_draw = nullptr;
+        ntree->runtime->test_break = nullptr;
+        ntree->runtime->progress = nullptr;
+        ntree->runtime->tbh = ntree->runtime->sdh = ntree->runtime->prh = nullptr;
       }
     }
   }
 
   /* Weak: the display callback wants an active render-layer pointer. */
   if (re->result != nullptr) {
-    re->result->renlay = render_get_active_layer(re, re->result);
+    re->result->renlay = render_get_single_layer(re, re->result);
     re->display_update(re->duh, re->result, nullptr);
   }
 }
@@ -1427,10 +1395,12 @@ static void do_render_full_pipeline(Render *re)
   }
 }
 
-static bool check_valid_compositing_camera(Scene *scene, Object *camera_override)
+static bool check_valid_compositing_camera(Scene *scene,
+                                           Object *camera_override,
+                                           ReportList *reports)
 {
   if (scene->r.scemode & R_DOCOMP && scene->use_nodes) {
-    LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
+    for (bNode *node : scene->nodetree->all_nodes()) {
       if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
         Scene *sce = node->id ? (Scene *)node->id : scene;
         if (sce->camera == nullptr) {
@@ -1438,6 +1408,11 @@ static bool check_valid_compositing_camera(Scene *scene, Object *camera_override
         }
         if (sce->camera == nullptr) {
           /* all render layers nodes need camera */
+          BKE_reportf(reports,
+                      RPT_ERROR,
+                      "No camera found in scene \"%s\" (used in compositing of scene \"%s\")",
+                      sce->id.name + 2,
+                      scene->id.name + 2);
           return false;
         }
       }
@@ -1446,7 +1421,12 @@ static bool check_valid_compositing_camera(Scene *scene, Object *camera_override
     return true;
   }
 
-  return (camera_override != nullptr || scene->camera != nullptr);
+  const bool ok = (camera_override != nullptr || scene->camera != nullptr);
+  if (!ok) {
+    BKE_reportf(reports, RPT_ERROR, "No camera found in scene \"%s\"", scene->id.name + 2);
+  }
+
+  return ok;
 }
 
 static bool check_valid_camera_multiview(Scene *scene, Object *camera, ReportList *reports)
@@ -1489,8 +1469,6 @@ static bool check_valid_camera_multiview(Scene *scene, Object *camera, ReportLis
 
 static int check_valid_camera(Scene *scene, Object *camera_override, ReportList *reports)
 {
-  const char *err_msg = "No camera found in scene \"%s\"";
-
   if (camera_override == nullptr && scene->camera == nullptr) {
     scene->camera = BKE_view_layer_camera_find(scene, BKE_view_layer_default_render(scene));
   }
@@ -1511,8 +1489,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
               /* camera could be unneeded due to composite nodes */
               Object *override = (seq->scene == scene) ? camera_override : nullptr;
 
-              if (!check_valid_compositing_camera(seq->scene, override)) {
-                BKE_reportf(reports, RPT_ERROR, err_msg, seq->scene->id.name + 2);
+              if (!check_valid_compositing_camera(seq->scene, override, reports)) {
                 return false;
               }
             }
@@ -1524,23 +1501,22 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
       }
     }
   }
-  else if (!check_valid_compositing_camera(scene, camera_override)) {
-    BKE_reportf(reports, RPT_ERROR, err_msg, scene->id.name + 2);
+  else if (!check_valid_compositing_camera(scene, camera_override, reports)) {
     return false;
   }
 
   return true;
 }
 
-static bool node_tree_has_compositor_output(bNodeTree *ntree)
+static bool node_tree_has_compositor_output(const bNodeTree *ntree)
 {
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+  for (const bNode *node : ntree->all_nodes()) {
     if (ELEM(node->type, CMP_NODE_COMPOSITE, CMP_NODE_OUTPUT_FILE)) {
       return true;
     }
     if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       if (node->id) {
-        if (node_tree_has_compositor_output((bNodeTree *)node->id)) {
+        if (node_tree_has_compositor_output((const bNodeTree *)node->id)) {
           return true;
         }
       }
@@ -1635,15 +1611,15 @@ const char *RE_GetActiveRenderView(Render *re)
   return re->viewname;
 }
 
-/* evaluating scene options for general Blender render */
-static int render_init_from_main(Render *re,
-                                 const RenderData *rd,
-                                 Main *bmain,
-                                 Scene *scene,
-                                 ViewLayer *single_layer,
-                                 Object *camera_override,
-                                 int anim,
-                                 int anim_init)
+/** Evaluating scene options for general Blender render. */
+static bool render_init_from_main(Render *re,
+                                  const RenderData *rd,
+                                  Main *bmain,
+                                  Scene *scene,
+                                  ViewLayer *single_layer,
+                                  Object *camera_override,
+                                  int anim,
+                                  int anim_init)
 {
   int winx, winy;
   rcti disprect;
@@ -1676,9 +1652,8 @@ static int render_init_from_main(Render *re,
 
   /* not too nice, but it survives anim-border render */
   if (anim) {
-    render_update_anim_renderdata(re, &scene->r, &scene->view_layers);
     re->disprect = disprect;
-    return 1;
+    return true;
   }
 
   /*
@@ -1700,7 +1675,7 @@ static int render_init_from_main(Render *re,
 
   RE_InitState(re, nullptr, &scene->r, &scene->view_layers, single_layer, winx, winy, &disprect);
   if (!re->ok) { /* if an error was printed, abort */
-    return 0;
+    return false;
   }
 
   /* initstate makes new result, have to send changed tags around */
@@ -1709,7 +1684,7 @@ static int render_init_from_main(Render *re,
   re->display_init(re->dih, re->result);
   re->display_clear(re->dch, re->result);
 
-  return 1;
+  return true;
 }
 
 void RE_SetReports(Render *re, ReportList *reports)
@@ -1862,7 +1837,7 @@ static bool use_eevee_for_freestyle_render(Render *re)
 
 void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render)
 {
-  re->result_ok = 0;
+  re->result_ok = false;
   if (render_init_from_main(re, &scene->r, bmain, scene, nullptr, nullptr, 0, 0)) {
     if (render) {
       char scene_engine[32];
@@ -1876,7 +1851,7 @@ void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render
       change_renderdata_engine(re, scene_engine);
     }
   }
-  re->result_ok = 1;
+  re->result_ok = true;
 }
 
 void RE_RenderFreestyleExternal(Render *re)
@@ -1890,12 +1865,10 @@ void RE_RenderFreestyleExternal(Render *re)
   LISTBASE_FOREACH (RenderView *, rv, &re->result->views) {
     RE_SetActiveRenderView(re, rv->name);
 
-    ViewLayer *active_view_layer = static_cast<ViewLayer *>(
-        BLI_findlink(&re->view_layers, re->active_view_layer));
     FRS_begin_stroke_rendering(re);
 
-    LISTBASE_FOREACH (ViewLayer *, view_layer, &re->view_layers) {
-      if ((re->r.scemode & R_SINGLE_LAYER) && view_layer != active_view_layer) {
+    LISTBASE_FOREACH (ViewLayer *, view_layer, &re->scene->view_layers) {
+      if ((re->r.scemode & R_SINGLE_LAYER) && !STREQ(view_layer->name, re->single_view_layer)) {
         continue;
       }
 
@@ -2153,6 +2126,7 @@ void RE_RenderAnim(Render *re,
 
     mh = BKE_movie_handle_get(rd.im_format.imtype);
     if (mh == nullptr) {
+      render_pipeline_free(re);
       BKE_report(re->reports, RPT_ERROR, "Movie format unsupported");
       return;
     }

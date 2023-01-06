@@ -827,13 +827,8 @@ ccl_device void surface_shader_eval(KernelGlobals kg,
   sd->num_closure_left = max_closures;
 
 #ifdef __OSL__
-  if (kg->osl) {
-    if (sd->object == OBJECT_NONE && sd->lamp == LAMP_NONE) {
-      OSLShader::eval_background(kg, state, sd, path_flag);
-    }
-    else {
-      OSLShader::eval_surface(kg, state, sd, path_flag);
-    }
+  if (kernel_data.kernel_features & KERNEL_FEATURE_OSL) {
+    osl_eval_nodes<SHADER_TYPE_SURFACE>(kg, state, sd, path_flag);
   }
   else
 #endif

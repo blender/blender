@@ -187,7 +187,7 @@ static void nla_actionclip_draw_markers(
 
     immUniform1i("colors_len", 0); /* "simple" mode */
     immUniform1f("dash_width", 6.0f);
-    immUniform1f("dash_factor", 0.5f);
+    immUniform1f("udash_factor", 0.5f);
   }
   else {
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -391,12 +391,12 @@ static uint nla_draw_use_dashed_outlines(const float color[4], bool muted)
   if (muted) {
     /* dotted - and slightly thicker for readability of the dashes */
     immUniform1f("dash_width", 5.0f);
-    immUniform1f("dash_factor", 0.4f);
+    immUniform1f("udash_factor", 0.4f);
     GPU_line_width(1.5f);
   }
   else {
     /* solid line */
-    immUniform1f("dash_factor", 2.0f);
+    immUniform1f("udash_factor", 2.0f);
     GPU_line_width(1.0f);
   }
 

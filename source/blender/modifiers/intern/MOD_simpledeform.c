@@ -5,7 +5,7 @@
  * \ingroup modifiers
  */
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 #include "BLT_translation.h"
@@ -36,8 +36,6 @@
 
 #include "MOD_ui_common.h"
 #include "MOD_util.h"
-
-#include "bmesh.h"
 
 #define BEND_EPS 0.000001f
 

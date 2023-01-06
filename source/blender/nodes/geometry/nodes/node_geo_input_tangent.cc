@@ -110,6 +110,11 @@ class TangentFieldInput final : public bke::CurvesFieldInput {
   {
     return dynamic_cast<const TangentFieldInput *>(&other) != nullptr;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  {
+    return ATTR_DOMAIN_POINT;
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

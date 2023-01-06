@@ -6,6 +6,15 @@
  * \ingroup bke
  * \brief General operations for point clouds.
  */
+
+#ifdef __cplusplus
+#  include <mutex>
+
+#  include "BLI_bounds_types.hh"
+#  include "BLI_math_vec_types.hh"
+#  include "BLI_shared_cache.hh"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,6 +31,23 @@ struct Scene;
 extern const char *POINTCLOUD_ATTR_POSITION;
 extern const char *POINTCLOUD_ATTR_RADIUS;
 
+#ifdef __cplusplus
+namespace blender::bke {
+
+struct PointCloudRuntime {
+  /**
+   * A cache of bounds shared between data-blocks with unchanged positions and radii.
+   * When data changes affect the bounds, the cache is "un-shared" with other geometries.
+   * See #SharedCache comments.
+   */
+  mutable SharedCache<Bounds<float3>> bounds_cache;
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("PointCloudRuntime");
+};
+
+}  // namespace blender::bke
+#endif
+
 void *BKE_pointcloud_add(struct Main *bmain, const char *name);
 void *BKE_pointcloud_add_default(struct Main *bmain, const char *name);
 struct PointCloud *BKE_pointcloud_new_nomain(int totpoint);
@@ -30,7 +56,6 @@ void BKE_pointcloud_nomain_to_pointcloud(struct PointCloud *pointcloud_src,
                                          bool take_ownership);
 
 struct BoundBox *BKE_pointcloud_boundbox_get(struct Object *ob);
-bool BKE_pointcloud_minmax(const struct PointCloud *pointcloud, float r_min[3], float r_max[3]);
 
 bool BKE_pointcloud_attribute_required(const struct PointCloud *pointcloud, const char *name);
 

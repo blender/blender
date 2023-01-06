@@ -159,7 +159,7 @@ static void wm_keymap_item_properties_update_ot_from_list(ListBase *km_lb)
 static bool wm_keymap_item_equals_result(wmKeyMapItem *a, wmKeyMapItem *b)
 {
   return (STREQ(a->idname, b->idname) &&
-          /* We do not really care about which Main we pass here, tbh. */
+          /* We do not really care about which Main we pass here, TBH. */
           RNA_struct_equals(G_MAIN, a->ptr, b->ptr, RNA_EQ_UNSET_MATCH_NONE) &&
           (a->flag & KMI_INACTIVE) == (b->flag & KMI_INACTIVE) && a->propvalue == b->propvalue);
 }
@@ -984,7 +984,7 @@ const wmKeyMapItem *WM_modalkeymap_find_propvalue(const wmKeyMap *km, const int 
 
 void WM_modalkeymap_assign(wmKeyMap *km, const char *opname)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname, 0);
+  wmOperatorType *ot = WM_operatortype_find(opname, false);
 
   if (ot) {
     ot->modalkeymap = km;

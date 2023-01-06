@@ -388,6 +388,7 @@ typedef struct ArrayGpencilModifierData {
   float rnd_rot[3];
   /** Random Scales. */
   float rnd_scale[3];
+
   char _pad[4];
   /** (first element is the index) random values. */
   int seed;
@@ -759,6 +760,14 @@ typedef enum eSimplifyGpencil_Mode {
   GP_SIMPLIFY_MERGE = 3,
 } eSimplifyGpencil_Mode;
 
+typedef enum eOffsetGpencil_Mode {
+  GP_OFFSET_RANDOM = 0,
+  GP_OFFSET_LAYER = 1,
+  GP_OFFSET_MATERIAL = 2,
+  GP_OFFSET_STROKE = 3
+
+} eOffsetGpencil_Mode;
+
 typedef struct OffsetGpencilModifierData {
   GpencilModifierData modifier;
   /** Material for filtering. */
@@ -784,8 +793,12 @@ typedef struct OffsetGpencilModifierData {
   float rnd_scale[3];
   /** (first element is the index) random values. */
   int seed;
-  /** Custom index for passes. */
+  int mode;
+  int stroke_step;
+  int stroke_start_offset;
   int layer_pass;
+  char _pad[4];
+
 } OffsetGpencilModifierData;
 
 typedef enum eOffsetGpencil_Flag {

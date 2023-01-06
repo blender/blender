@@ -334,8 +334,9 @@ void DRW_hair_update()
      * Do chunks of maximum 2048 * 2048 hair points. */
     int width = 2048;
     int height = min_ii(width, 1 + max_size / width);
-    GPUTexture *tex = DRW_texture_pool_query_2d(
-        width, height, GPU_RGBA32F, (DrawEngineType *)DRW_hair_update);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    GPUTexture *tex = DRW_texture_pool_query_2d_ex(
+        width, height, GPU_RGBA32F, usage, (DrawEngineType *)DRW_hair_update);
     g_tf_target_height = height;
     g_tf_target_width = width;
 
@@ -392,8 +393,10 @@ void DRW_hair_update()
         if (!GPU_framebuffer_check_valid(prev_fb, errorOut)) {
           int width = 64;
           int height = 64;
-          GPUTexture *tex = DRW_texture_pool_query_2d(
-              width, height, GPU_DEPTH_COMPONENT32F, (DrawEngineType *)DRW_hair_update);
+          eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
+                                   GPU_TEXTURE_USAGE_SHADER_WRITE;
+          GPUTexture *tex = DRW_texture_pool_query_2d_ex(
+              width, height, GPU_DEPTH_COMPONENT32F, usage, (DrawEngineType *)DRW_hair_update);
           g_tf_target_height = height;
           g_tf_target_width = width;
 

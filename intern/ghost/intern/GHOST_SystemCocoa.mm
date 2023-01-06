@@ -18,6 +18,10 @@
 
 #include "GHOST_ContextCGL.h"
 
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_ContextVK.h"
+#endif
+
 #ifdef WITH_INPUT_NDOF
 #  include "GHOST_NDOFManagerCocoa.h"
 #endif
@@ -750,6 +754,18 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
  */
 GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GLSettings glSettings)
 {
+#ifdef WITH_VULKAN_BACKEND
+  if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
+    const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
+    GHOST_Context *context = new GHOST_ContextVK(false, NULL, 1, 0, debug_context);
+    if (!context->initializeDrawingContext()) {
+      delete context;
+      return NULL;
+    }
+    return context;
+  }
+#endif
+
   GHOST_Context *context = new GHOST_ContextCGL(false, NULL, NULL, NULL, glSettings.context_type);
   if (context->initializeDrawingContext())
     return context;

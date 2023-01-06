@@ -102,14 +102,14 @@ static void rna_Mesh_calc_smooth_groups(
 }
 
 static void rna_Mesh_normals_split_custom_do(Mesh *mesh,
-                                             float (*custom_loopnors)[3],
+                                             float (*custom_loop_or_vert_normals)[3],
                                              const bool use_verts)
 {
   if (use_verts) {
-    BKE_mesh_set_custom_normals_from_verts(mesh, custom_loopnors);
+    BKE_mesh_set_custom_normals_from_verts(mesh, custom_loop_or_vert_normals);
   }
   else {
-    BKE_mesh_set_custom_normals(mesh, custom_loopnors);
+    BKE_mesh_set_custom_normals(mesh, custom_loop_or_vert_normals);
   }
 }
 
@@ -118,7 +118,7 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
                                               int normals_len,
                                               float *normals)
 {
-  float(*loopnors)[3] = (float(*)[3])normals;
+  float(*loop_normals)[3] = (float(*)[3])normals;
   const int numloops = mesh->totloop;
 
   if (normals_len != numloops * 3) {
@@ -130,7 +130,7 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
     return;
   }
 
-  rna_Mesh_normals_split_custom_do(mesh, loopnors, false);
+  rna_Mesh_normals_split_custom_do(mesh, loop_normals, false);
 
   DEG_id_tag_update(&mesh->id, 0);
 }
@@ -140,7 +140,7 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
                                                             int normals_len,
                                                             float *normals)
 {
-  float(*vertnors)[3] = (float(*)[3])normals;
+  float(*vert_normals)[3] = (float(*)[3])normals;
   const int numverts = mesh->totvert;
 
   if (normals_len != numverts * 3) {
@@ -152,7 +152,7 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
     return;
   }
 
-  rna_Mesh_normals_split_custom_do(mesh, vertnors, true);
+  rna_Mesh_normals_split_custom_do(mesh, vert_normals, true);
 
   DEG_id_tag_update(&mesh->id, 0);
 }
@@ -169,15 +169,14 @@ static void rna_Mesh_flip_normals(Mesh *mesh)
   BKE_mesh_polys_flip(
       BKE_mesh_polys(mesh), BKE_mesh_loops_for_write(mesh), &mesh->ldata, mesh->totpoly);
   BKE_mesh_tessface_clear(mesh);
-  BKE_mesh_normals_tag_dirty(mesh);
   BKE_mesh_runtime_clear_geometry(mesh);
 
   DEG_id_tag_update(&mesh->id, 0);
 }
 
-static void rna_Mesh_split_faces(Mesh *mesh, bool free_loop_normals)
+static void rna_Mesh_split_faces(Mesh *mesh, bool UNUSED(free_loop_normals))
 {
-  BKE_mesh_split_faces(mesh, free_loop_normals != 0);
+  ED_mesh_split_faces(mesh);
 }
 
 static void rna_Mesh_update_gpu_tag(Mesh *mesh)
@@ -235,8 +234,9 @@ void RNA_api_mesh(StructRNA *srna)
 
   func = RNA_def_function(srna, "split_faces", "rna_Mesh_split_faces");
   RNA_def_function_ui_description(func, "Split faces based on the edge angle");
-  RNA_def_boolean(
-      func, "free_loop_normals", 1, "Free Loop Normals", "Free loop normals custom data layer");
+  /* TODO: This parameter has no effect anymore, since the internal code does not need to
+   * compute temporary CD_NORMAL loop data. It should be removed for next major release (4.0).  */
+  RNA_def_boolean(func, "free_loop_normals", 1, "Free Loop Normals", "Deprecated, has no effect");
 
   func = RNA_def_function(srna, "calc_tangents", "rna_Mesh_calc_tangents");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);

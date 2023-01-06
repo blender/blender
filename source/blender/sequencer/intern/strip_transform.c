@@ -82,24 +82,6 @@ bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
   return true;
 }
 
-void SEQ_transform_fix_single_image_seq_offsets(const Scene *scene, Sequence *seq)
-{
-  int left, start;
-  if (!SEQ_transform_single_image_check(seq)) {
-    return;
-  }
-
-  /* make sure the image is always at the start since there is only one,
-   * adjusting its start should be ok */
-  left = SEQ_time_left_handle_frame_get(scene, seq);
-  start = seq->start;
-  if (start != left) {
-    const int offset = left - start;
-    seq_time_translate_handles(scene, seq, -offset);
-    seq->start += offset;
-  }
-}
-
 bool SEQ_transform_sequence_can_be_translated(Sequence *seq)
 {
   return !(seq->type & SEQ_TYPE_EFFECT) || (SEQ_effect_get_num_inputs(seq->type) == 0);
@@ -135,9 +117,10 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
     return;
   }
 
-  /* Meta strips requires special handling: their content is to be translated, and then frame range
-   * of the meta is to be updated for the updated content. */
-  if (seq->type == SEQ_TYPE_META) {
+  /* Meta strips requires their content is to be translated, and then frame range of the meta is
+   * updated based on nested strips. This won't work for empty meta-strips,
+   * so they can be treated as normal strip. */
+  if (seq->type == SEQ_TYPE_META && !BLI_listbase_is_empty(&seq->seqbase)) {
     Sequence *seq_child;
     for (seq_child = seq->seqbase.first; seq_child; seq_child = seq_child->next) {
       SEQ_transform_translate_sequence(evil_scene, seq_child, delta);
@@ -145,7 +128,7 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
     /* Move meta start/end points. */
     seq_time_translate_handles(evil_scene, seq, delta);
   }
-  else { /* All other strip types. */
+  else if (seq->seq1 == NULL && seq->seq2 == NULL) { /* All other strip types. */
     seq->start += delta;
     /* Only to make files usable in older versions. */
     seq->startdisp = SEQ_time_left_handle_frame_get(evil_scene, seq);

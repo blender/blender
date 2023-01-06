@@ -222,7 +222,8 @@ static void geom_add_polygon(Geometry *geom,
     else {
       geom->track_vertex_index(corner.vert_index);
     }
-    if (got_uv) {
+    /* Ignore UV index, if the geometry does not have any UVs (T103212). */
+    if (got_uv && !global_vertices.uv_vertices.is_empty()) {
       corner.uv_vert_index += corner.uv_vert_index < 0 ? global_vertices.uv_vertices.size() : -1;
       if (corner.uv_vert_index < 0 || corner.uv_vert_index >= global_vertices.uv_vertices.size()) {
         fprintf(stderr,
@@ -251,6 +252,8 @@ static void geom_add_polygon(Geometry *geom,
     geom->face_corners_.append(corner);
     curr_face.corner_count_++;
 
+    /* Some files contain extra stuff per face (e.g. 4 indices); skip any remainder (T103441). */
+    p = drop_non_whitespace(p, end);
     /* Skip whitespace to get to the next face corner. */
     p = drop_whitespace(p, end);
   }
