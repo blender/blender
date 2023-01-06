@@ -10,7 +10,7 @@ struct Mesh;
 
 namespace blender::bke {
 
-struct CurvesGeometry;
+class CurvesGeometry;
 class AnonymousAttributePropagationInfo;
 
 /**
