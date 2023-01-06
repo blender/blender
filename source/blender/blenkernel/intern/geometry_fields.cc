@@ -433,8 +433,10 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
                                  GMutableSpan{type, buffer, domain_size});
   evaluator.evaluate();
 
-  if (GAttributeWriter attribute = attributes.lookup_for_write(attribute_id)) {
-    if (attribute.domain == domain && attribute.varray.type() == type) {
+  const std::optional<AttributeMetaData> meta_data = attributes.lookup_meta_data(attribute_id);
+
+  if (meta_data && meta_data->domain == domain && meta_data->data_type == data_type) {
+    if (GAttributeWriter attribute = attributes.lookup_for_write(attribute_id)) {
       attribute.varray.set_all(buffer);
       attribute.finish();
       type.destruct_n(buffer, domain_size);
@@ -442,6 +444,7 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
       return true;
     }
   }
+
   attributes.remove(attribute_id);
   if (attributes.add(attribute_id, domain, data_type, bke::AttributeInitMoveArray{buffer})) {
     return true;
