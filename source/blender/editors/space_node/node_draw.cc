@@ -3086,10 +3086,6 @@ static void snode_setup_v2d(SpaceNode &snode, ARegion &region, const float2 &cen
 /* Similar to is_compositor_enabled() in draw_manager.c but checks all 3D views. */
 static bool realtime_compositor_is_in_use(const bContext &context)
 {
-  if (!U.experimental.use_realtime_compositor) {
-    return false;
-  }
-
   const Scene *scene = CTX_data_scene(&context);
   if (!scene->use_nodes) {
     return false;

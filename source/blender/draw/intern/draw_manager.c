@@ -1244,10 +1244,6 @@ static void drw_engines_enable_editors(void)
 
 static bool is_compositor_enabled(void)
 {
-  if (!U.experimental.use_realtime_compositor) {
-    return false;
-  }
-
   if (DST.draw_ctx.v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
     return false;
   }
