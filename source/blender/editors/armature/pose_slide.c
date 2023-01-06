@@ -1753,10 +1753,8 @@ void POSE_OT_blend_to_neighbors(wmOperatorType *ot)
 
 /* "termination conditions" - i.e. when we stop */
 typedef enum ePosePropagate_Termination {
-  /** Stop after the current hold ends. */
-  POSE_PROPAGATE_SMART_HOLDS = 0,
   /** Only do on the last keyframe. */
-  POSE_PROPAGATE_LAST_KEY,
+  POSE_PROPAGATE_LAST_KEY = 0,
   /** Stop after the next keyframe. */
   POSE_PROPAGATE_NEXT_KEY,
   /** Stop after the specified frame. */
@@ -1772,84 +1770,25 @@ typedef enum ePosePropagate_Termination {
 
 /* --------------------------------- */
 
-/**
- * Get frame on which the "hold" for the bone ends.
- * XXX: this may not really work that well if a bone moves on some channels and not others
- *      if this happens to be a major issue, scrap this, and just make this happen
- *      independently per F-Curve
- */
-static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float startFrame)
+typedef struct FrameLink {
+  struct FrameLink *next, *prev;
+  float frame;
+} FrameLink;
+
+static void propagate_curve_values(ListBase /*tPChanFCurveLink*/ *pflinks,
+                                   const float source_frame,
+                                   ListBase /*FrameLink*/ *target_frames)
 {
-  struct AnimKeylist *keylist = ED_keylist_create();
-
-  Object *ob = pfl->ob;
-  AnimData *adt = ob->adt;
-  LinkData *ld;
-  float endFrame = startFrame;
-
-  for (ld = pfl->fcurves.first; ld; ld = ld->next) {
-    FCurve *fcu = (FCurve *)ld->data;
-    fcurve_to_keylist(adt, fcu, keylist, 0);
-  }
-  ED_keylist_prepare_for_direct_access(keylist);
-
-  /* Find the long keyframe (i.e. hold), and hence obtain the endFrame value
-   * - the best case would be one that starts on the frame itself
-   */
-  const ActKeyColumn *ab = ED_keylist_find_exact(keylist, startFrame);
-
-  /* There are only two cases for no-exact match:
-   *  1) the current frame is just before another key but not on a key itself
-   *  2) the current frame is on a key, but that key doesn't link to the next
-   *
-   * If we've got the first case, then we can search for another block,
-   * otherwise forget it, as we'd be overwriting some valid data.
-   */
-  if (ab == NULL) {
-    /* We've got case 1, so try the one after. */
-    ab = ED_keylist_find_next(keylist, startFrame);
-
-    if ((actkeyblock_get_valid_hold(ab) & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
-      /* Try the block before this frame then as last resort. */
-      ab = ED_keylist_find_prev(keylist, startFrame);
+  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
+    LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
+      FCurve *fcu = (FCurve *)ld->data;
+      const float current_fcu_value = evaluate_fcurve(fcu, source_frame);
+      LISTBASE_FOREACH (FrameLink *, target_frame, target_frames) {
+        insert_vert_fcurve(
+            fcu, target_frame->frame, current_fcu_value, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NEEDED);
+      }
     }
   }
-
-  /* Whatever happens, stop searching now.... */
-  if ((actkeyblock_get_valid_hold(ab) & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
-    /* Restrict range to just the frame itself
-     * i.e. everything is in motion, so no holds to safely overwrite. */
-    ab = NULL;
-  }
-
-  /* Check if we can go any further than we've already gone. */
-  if (ab) {
-    /* Go to next if it is also valid and meets "extension" criteria. */
-    while (ab->next) {
-      const ActKeyColumn *abn = ab->next;
-
-      /* Must be valid. */
-      if ((actkeyblock_get_valid_hold(abn) & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
-        break;
-      }
-      /* Should have the same number of curves. */
-      if (ab->totblock != abn->totblock) {
-        break;
-      }
-
-      /* We can extend the bounds to the end of this "next" block now. */
-      ab = abn;
-    }
-
-    /* End frame can now take the value of the end of the block. */
-    endFrame = ab->next->cfra;
-  }
-
-  /* Free temp memory. */
-  ED_keylist_free(keylist);
-
-  /* Return the end frame we've found. */
-  return endFrame;
 }
 
 /**
@@ -1899,27 +1838,6 @@ static void pose_propagate_fcurve(FCurve *fcu, float start_frame, const float en
 
     /* Select keyframe to indicate that it's been changed. */
     bezt->f2 |= SELECT;
-  }
-}
-
-typedef struct FrameLink {
-  struct FrameLink *next, *prev;
-  float frame;
-} FrameLink;
-
-static void propagate_curve_values(ListBase /*tPChanFCurveLink*/ *pflinks,
-                                   const float source_frame,
-                                   ListBase /*FrameLink*/ *target_frames)
-{
-  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
-    LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      FCurve *fcu = (FCurve *)ld->data;
-      const float current_fcu_value = evaluate_fcurve(fcu, source_frame);
-      LISTBASE_FOREACH (FrameLink *, target_frame, target_frames) {
-        insert_vert_fcurve(
-            fcu, target_frame->frame, current_fcu_value, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NEEDED);
-      }
-    }
   }
 }
 
@@ -2084,21 +2002,6 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
       propagate_curve_values(&pflinks, current_frame, &target_frames);
       break;
     }
-    case POSE_PROPAGATE_SMART_HOLDS: {
-      /* For each bone, perform the copying required. */
-      LISTBASE_FOREACH (tPChanFCurveLink *, pfl, &pflinks) {
-        /* Mode-specific data preprocessing (requiring access to all curves). */
-        /* We store in endFrame the end frame of the "long keyframe" (i.e. a held value)
-         * starting from the keyframe that occurs after the current frame. */
-        const int smart_end_frame = pose_propagate_get_boneHoldEndFrame(pfl, current_frame);
-
-        /* Go through propagating pose to keyframes, curve by curve. */
-        LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-          pose_propagate_fcurve((FCurve *)ld->data, current_frame, smart_end_frame);
-        }
-      }
-      break;
-    }
   }
 
   BLI_freelistN(&target_frames);
@@ -2120,11 +2023,6 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
 void POSE_OT_propagate(wmOperatorType *ot)
 {
   static const EnumPropertyItem terminate_items[] = {
-      {POSE_PROPAGATE_SMART_HOLDS,
-       "WHILE_HELD",
-       0,
-       "While Held",
-       "Propagate pose to all keyframes after current frame that don't change (Default behavior)"},
       {POSE_PROPAGATE_NEXT_KEY,
        "NEXT_KEY",
        0,
@@ -2177,7 +2075,7 @@ void POSE_OT_propagate(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna,
                           "mode",
                           terminate_items,
-                          POSE_PROPAGATE_SMART_HOLDS,
+                          POSE_PROPAGATE_NEXT_KEY,
                           "Terminate Mode",
                           "Method used to determine when to stop propagating pose to keyframes");
   RNA_def_float(ot->srna,

@@ -3660,10 +3660,6 @@ class VIEW3D_MT_pose_propagate(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("pose.propagate").mode = 'WHILE_HELD'
-
-        layout.separator()
-
         layout.operator("pose.propagate", text="To Next Keyframe").mode = 'NEXT_KEY'
         layout.operator("pose.propagate", text="To Last Keyframe (Make Cyclic)").mode = 'LAST_KEY'
 
