@@ -671,17 +671,7 @@ void colormanagement_init(void)
     if (configdir) {
       BLI_path_join(configfile, sizeof(configfile), configdir, BCM_CONFIG_FILE);
 
-#ifdef WIN32
-      {
-        /* Quite a hack to support loading configuration from path with non-ACII symbols. */
-
-        char short_name[256];
-        BLI_get_short_name(short_name, configfile);
-        config = OCIO_configCreateFromFile(short_name);
-      }
-#else
       config = OCIO_configCreateFromFile(configfile);
-#endif
     }
   }
 
