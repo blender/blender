@@ -116,15 +116,16 @@ set(GLSL_SRC
   shaders/compositor_normalize.glsl
   shaders/compositor_parallel_reduction.glsl
   shaders/compositor_projector_lens_distortion.glsl
+  shaders/compositor_read_pass.glsl
   shaders/compositor_realize_on_domain.glsl
   shaders/compositor_screen_lens_distortion.glsl
-  shaders/compositor_set_alpha.glsl
   shaders/compositor_split_viewer.glsl
   shaders/compositor_symmetric_blur.glsl
   shaders/compositor_symmetric_blur_variable_size.glsl
   shaders/compositor_symmetric_separable_blur.glsl
   shaders/compositor_tone_map_photoreceptor.glsl
   shaders/compositor_tone_map_simple.glsl
+  shaders/compositor_write_output.glsl
 
   shaders/library/gpu_shader_compositor_alpha_over.glsl
   shaders/library/gpu_shader_compositor_blur_common.glsl
@@ -204,15 +205,16 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_normalize_info.hh
   shaders/infos/compositor_parallel_reduction_info.hh
   shaders/infos/compositor_projector_lens_distortion_info.hh
+  shaders/infos/compositor_read_pass_info.hh
   shaders/infos/compositor_realize_on_domain_info.hh
   shaders/infos/compositor_screen_lens_distortion_info.hh
-  shaders/infos/compositor_set_alpha_info.hh
   shaders/infos/compositor_split_viewer_info.hh
   shaders/infos/compositor_symmetric_blur_info.hh
   shaders/infos/compositor_symmetric_blur_variable_size_info.hh
   shaders/infos/compositor_symmetric_separable_blur_info.hh
   shaders/infos/compositor_tone_map_photoreceptor_info.hh
   shaders/infos/compositor_tone_map_simple_info.hh
+  shaders/infos/compositor_write_output_info.hh
 )
 
 set(SHADER_CREATE_INFOS_CONTENT "")

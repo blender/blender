@@ -98,7 +98,7 @@ class EllipseMaskOperation : public NodeOperation {
   Domain compute_domain() override
   {
     if (get_input("Mask").is_single_value()) {
-      return Domain(context().get_output_size());
+      return Domain(context().get_compositing_region_size());
     }
     return get_input("Mask").domain();
   }
