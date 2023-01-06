@@ -70,7 +70,7 @@ template<
     int NumRow,
     /* Alignment in bytes. Do not align matrices whose size is not a multiple of 4 component.
      * This is in order to avoid padding when using arrays of matrices. */
-    int Alignment = (((NumCol * NumRow) % 4 == 0) ? 4 : 1) * alignof(T)>
+    int Alignment = (((NumCol * NumRow) % 4 == 0) ? 4 : 1) * sizeof(T)>
 struct alignas(Alignment) MatBase : public vec_struct_base<vec_base<T, NumRow>, NumCol> {
 
   using base_type = T;
@@ -605,7 +605,7 @@ struct MatView : NonCopyable, NonMovable {
 
   friend MatT operator-(const MatView &a, const MatT &b)
   {
-    return a - b.template view();
+    return a - b.view();
   }
 
   template<int OtherSrcNumCol,
@@ -630,7 +630,7 @@ struct MatView : NonCopyable, NonMovable {
 
   friend MatT operator-(const MatT &a, const MatView &b)
   {
-    return a.template view() - b;
+    return a.view() - b;
   }
 
   friend MatT operator-(const MatView &a, T b)
@@ -677,7 +677,7 @@ struct MatView : NonCopyable, NonMovable {
 
   MatT operator*(const MatT &b) const
   {
-    return *this * b.template view();
+    return *this * b.view();
   }
 
   /** Multiply each component by a scalar. */
@@ -755,7 +755,7 @@ template<typename T,
 struct MutableMatView
     : MatView<T, NumCol, NumRow, SrcNumCol, SrcNumRow, SrcStartCol, SrcStartRow, SrcAlignment> {
 
-  using MatT = MatBase<T, NumCol, NumRow, SrcAlignment>;
+  using MatT = MatBase<T, NumCol, NumRow>;
   using MatViewT =
       MatView<T, NumCol, NumRow, SrcNumCol, SrcNumRow, SrcStartCol, SrcStartRow, SrcAlignment>;
   using SrcMatT = MatBase<T, SrcNumCol, SrcNumRow, SrcAlignment>;
@@ -815,7 +815,7 @@ struct MutableMatView
 
   MutableMatView &operator=(const MatT &other)
   {
-    *this = other.template view();
+    *this = other.view();
     return *this;
   }
 
@@ -841,7 +841,7 @@ struct MutableMatView
 
   MutableMatView &operator+=(const MatT &b)
   {
-    return *this += b.template view();
+    return *this += b.view();
   }
 
   MutableMatView &operator+=(T b)
@@ -870,7 +870,7 @@ struct MutableMatView
 
   MutableMatView &operator-=(const MatT &b)
   {
-    return *this -= b.template view();
+    return *this -= b.view();
   }
 
   MutableMatView &operator-=(T b)
@@ -900,7 +900,7 @@ struct MutableMatView
 
   MutableMatView &operator*=(const MatT &b)
   {
-    return *this *= b.template view();
+    return *this *= b.view();
   }
 
   /** Multiply each component by a scalar. */

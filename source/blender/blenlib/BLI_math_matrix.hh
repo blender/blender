@@ -590,11 +590,11 @@ template<typename T,
          int SrcStartCol,
          int SrcStartRow,
          int SrcAlignment>
-[[nodiscard]] MatBase<T, NumCol, NumRow, SrcAlignment> normalize(
+[[nodiscard]] MatBase<T, NumCol, NumRow> normalize(
     const MatView<T, NumCol, NumRow, SrcNumCol, SrcNumRow, SrcStartCol, SrcStartRow, SrcAlignment>
         &a)
 {
-  MatBase<T, NumCol, NumRow, SrcAlignment> result;
+  MatBase<T, NumCol, NumRow> result;
   unroll<NumCol>([&](auto i) { result[i] = math::normalize(a[i]); });
   return result;
 }
