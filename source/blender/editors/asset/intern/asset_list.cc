@@ -12,11 +12,11 @@
 #include <optional>
 #include <string>
 
-#include "BKE_asset_library_custom.h"
 #include "BKE_blender_project.h"
 #include "BKE_context.h"
 
 #include "BLI_map.hh"
+#include "BLI_path_util.h"
 #include "BLI_utility_mixins.hh"
 
 #include "DNA_space_types.h"

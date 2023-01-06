@@ -7,7 +7,7 @@
 #include "AS_asset_library.h"
 #include "AS_asset_library.hh"
 
-#include "BKE_blender_project.hh"
+#include "BKE_asset_library_custom.h"
 #include "BKE_bpath.h"
 #include "BKE_context.h"
 #include "BKE_lib_id.h"

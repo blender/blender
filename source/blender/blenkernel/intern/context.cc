@@ -939,9 +939,9 @@ SpaceProjectSettings *CTX_wm_space_project_settings(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_PROJECT_SETTINGS) {
-    return area->spacedata.first;
+    return static_cast<SpaceProjectSettings *>(area->spacedata.first);
   }
-  return NULL;
+  return nullptr;
 }
 
 void CTX_wm_manager_set(bContext *C, wmWindowManager *wm)

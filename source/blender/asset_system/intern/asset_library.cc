@@ -12,8 +12,8 @@
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
+#include "BKE_asset_library_custom.h"
 #include "BKE_main.h"
-#include "BKE_preferences.h"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
@@ -68,8 +68,8 @@ bool AS_asset_library_has_any_unsaved_catalogs()
 std::string AS_asset_library_find_suitable_root_path_from_path(
     const blender::StringRefNull input_path)
 {
-  if (bUserAssetLibrary *preferences_lib = BKE_preferences_asset_library_containing_path(
-          &U, input_path.c_str())) {
+  if (CustomAssetLibraryDefinition *preferences_lib = BKE_asset_library_custom_containing_path(
+          &U.asset_libraries, input_path.c_str())) {
     return preferences_lib->path;
   }
 
@@ -243,15 +243,17 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
 {
   Vector<AssetLibraryReference> result;
   int i;
-  LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
+  LISTBASE_FOREACH_INDEX (
+      const CustomAssetLibraryDefinition *, asset_library, &U.asset_libraries, i) {
     if (!BLI_is_dir(asset_library->path)) {
       continue;
     }
     AssetLibraryReference library_ref{};
     library_ref.custom_library_index = i;
-    library_ref.type = ASSET_LIBRARY_CUSTOM;
+    library_ref.type = ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES;
     result.append(library_ref);
   }
+  /* TODO project libraries */
 
   AssetLibraryReference library_ref{};
   library_ref.custom_library_index = -1;

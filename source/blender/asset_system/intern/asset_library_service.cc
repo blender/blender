@@ -4,8 +4,8 @@
  * \ingroup asset_system
  */
 
+#include "BKE_asset_library_custom.h"
 #include "BKE_blender.h"
-#include "BKE_preferences.h"
 
 #include "BLI_string_ref.hh"
 
@@ -67,14 +67,15 @@ AssetLibrary *AssetLibraryService::get_asset_library(
 
     return get_asset_library_on_disk(root_path);
   }
-  if (library_reference.type == ASSET_LIBRARY_CUSTOM) {
-    bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
-        &U, library_reference.custom_library_index);
+  if (library_reference.type == ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES) {
+    CustomAssetLibraryDefinition *user_library = BKE_asset_library_custom_find_from_index(
+        &U.asset_libraries, library_reference.custom_library_index);
 
     if (user_library) {
       return get_asset_library_on_disk(user_library->path);
     }
   }
+  /* TODO project libraries */
 
   return nullptr;
 }

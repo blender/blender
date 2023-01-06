@@ -22,7 +22,7 @@
 
 using namespace blender;
 
-static SpaceLink *project_settings_create(const ScrArea *area, const Scene *UNUSED(scene))
+static SpaceLink *project_settings_create(const ScrArea *area, const Scene * /*scene*/)
 {
   SpaceProjectSettings *project_settings_space = MEM_cnew<SpaceProjectSettings>(
       "project settings space");
@@ -68,11 +68,11 @@ static SpaceLink *project_settings_create(const ScrArea *area, const Scene *UNUS
   return reinterpret_cast<SpaceLink *>(project_settings_space);
 }
 
-static void project_settings_free(SpaceLink *UNUSED(sl))
+static void project_settings_free(SpaceLink * /*sl*/)
 {
 }
 
-static void project_settings_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
+static void project_settings_init(wmWindowManager * /*wm*/, ScrArea * /*area*/)
 {
 }
 
@@ -101,7 +101,7 @@ static void project_settings_operatortypes(void)
 {
 }
 
-static void project_settings_keymap(struct wmKeyConfig *UNUSED(keyconf))
+static void project_settings_keymap(struct wmKeyConfig * /*keyconf*/)
 {
 }
 
@@ -150,16 +150,16 @@ static void project_settings_main_region_layout(const bContext *C, ARegion *regi
   ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, NULL);
 }
 
-static void project_settings_main_region_listener(const wmRegionListenerParams *UNUSED(params))
+static void project_settings_main_region_listener(const wmRegionListenerParams * /*params*/)
 {
 }
 
-static void project_settings_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
+static void project_settings_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   ED_region_header_init(region);
 }
 
-static void project_settings_header_region_listener(const wmRegionListenerParams *UNUSED(params))
+static void project_settings_header_region_listener(const wmRegionListenerParams * /*params*/)
 {
 }
 
@@ -176,8 +176,7 @@ static void project_settings_navigation_region_draw(const bContext *C, ARegion *
   ED_region_panels(C, region);
 }
 
-static void project_settings_navigation_region_listener(
-    const wmRegionListenerParams *UNUSED(params))
+static void project_settings_navigation_region_listener(const wmRegionListenerParams * /*params*/)
 {
 }
 
@@ -188,7 +187,7 @@ static void project_settings_execute_region_init(wmWindowManager *wm, ARegion *r
   region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 }
 
-static void project_settings_execute_region_listener(const wmRegionListenerParams *UNUSED(params))
+static void project_settings_execute_region_listener(const wmRegionListenerParams * /*params*/)
 {
 }
 

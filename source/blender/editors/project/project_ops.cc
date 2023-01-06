@@ -13,6 +13,7 @@
 #include "BKE_report.h"
 
 #include "BLI_path_util.h"
+
 #include "BLT_translation.h"
 
 #include "DNA_space_types.h"
@@ -76,7 +77,7 @@ static int new_project_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int new_project_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int new_project_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   const Main *bmain = CTX_data_main(C);
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
@@ -123,7 +124,7 @@ static void PROJECT_OT_new(wmOperatorType *ot)
 /** \name Write Project Settings Operator
  * \{ */
 
-static int save_settings_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+static int save_settings_exec(bContext * /*C*/, wmOperator * /*op*/)
 {
   BlenderProject *active_project = CTX_wm_project();
 
@@ -187,7 +188,7 @@ static void PROJECT_OT_delete_setup(wmOperatorType *ot)
 /** \name Add Custom Asset Library
  * \{ */
 
-static int custom_asset_library_add_exec(bContext *UNUSED(C), wmOperator *op)
+static int custom_asset_library_add_exec(bContext * /*C*/, wmOperator *op)
 {
   BlenderProject *project = CTX_wm_project();
 
@@ -213,9 +214,7 @@ static int custom_asset_library_add_exec(bContext *UNUSED(C), wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int custom_asset_library_add_invoke(bContext *C,
-                                           wmOperator *op,
-                                           const wmEvent *UNUSED(event))
+static int custom_asset_library_add_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   if (!RNA_struct_property_is_set(op->ptr, "directory")) {
     WM_event_add_fileselect(C, op);
@@ -253,7 +252,7 @@ static void PROJECT_OT_custom_asset_library_add(wmOperatorType *ot)
 /** \name Remove Custom Asset Library
  * \{ */
 
-static int custom_asset_library_remove_exec(bContext *UNUSED(C), wmOperator *op)
+static int custom_asset_library_remove_exec(bContext * /*C*/, wmOperator *op)
 {
   const int index = RNA_int_get(op->ptr, "index");
 
