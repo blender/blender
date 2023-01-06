@@ -2845,7 +2845,7 @@ static bool rename_anim_channels(bAnimContext *ac, int channel_index)
   int filter;
   bool success = false;
 
-  /* Filter relevant channels (note that greasepencil/annotations are not displayed in Graph
+  /* Filter relevant channels (note that grease-pencil/annotations are not displayed in Graph
    * Editor). */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
   if (ELEM(ac->datatype, ANIMCONT_FCURVES, ANIMCONT_NLA)) {

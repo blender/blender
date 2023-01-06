@@ -22,7 +22,7 @@ class MetalDevice;
 thread_mutex MetalDevice::existing_devices_mutex;
 std::map<int, MetalDevice *> MetalDevice::active_device_ids;
 
-/* Thread-safe device access for async work. Calling code must pass an appropriatelty scoped lock
+/* Thread-safe device access for async work. Calling code must pass an appropriately scoped lock
  * to existing_devices_mutex to safeguard against destruction of the returned instance. */
 MetalDevice *MetalDevice::get_device_by_ID(int ID, thread_scoped_lock &existing_devices_mutex_lock)
 {
@@ -377,7 +377,7 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
 
   /* Only request generic kernels if they aren't cached in memory. */
   if (make_source_and_check_if_compile_needed(PSO_GENERIC)) {
-    /* If needed, load them asynchronously in order to responsively message progess to the user. */
+    /* If needed, load them asynchronously in order to responsively message progress to the user. */
     int this_device_id = this->device_id;
     auto compile_kernels_fn = ^() {
       compile_and_load(this_device_id, PSO_GENERIC);
@@ -401,8 +401,7 @@ bool MetalDevice::make_source_and_check_if_compile_needed(MetalPipelineType pso_
 void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
 {
   /* Thread-safe front-end compilation. Typically the MSL->AIR compilation can take a few seconds,
-   * so we avoid blocking device teardown if the user cancels a render immediately.
-   */
+   * so we avoid blocking device tear-down if the user cancels a render immediately. */
 
   id<MTLDevice> mtlDevice;
   string source;

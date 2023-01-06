@@ -1013,7 +1013,7 @@ class LazyFunctionForAnonymousAttributeSetExtract : public lf::LazyFunction {
 };
 
 /**
- * Conditionally joines multiple attribute sets. Each input attribute set can be disabled with a
+ * Conditionally joins multiple attribute sets. Each input attribute set can be disabled with a
  * corresponding boolean input.
  */
 class LazyFunctionForAnonymousAttributeSetJoin : public lf::LazyFunction {

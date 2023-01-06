@@ -56,7 +56,7 @@
 struct NodeInsertOfsData {
   bNodeTree *ntree;
   bNode *insert;      /* Inserted node. */
-  bNode *prev, *next; /* Prev/next node in the chain. */
+  bNode *prev, *next; /* Previous/next node in the chain. */
   bNode *insert_parent;
 
   wmTimer *anim_timer;

@@ -27,7 +27,7 @@ namespace blender::bke {
  *   additional information for anonymous attributes on disk (like which node created it). This
  *   information can then be used to map stored attributes to their run-time counterpart.
  *
- * Once created, #AnonymousAttributeID is immutable. Also it is intrinsicly reference counted so
+ * Once created, #AnonymousAttributeID is immutable. Also it is intrinsically reference counted so
  * that it can have shared ownership. `std::shared_ptr` can't be used for that purpose here,
  * because that is not available in C code. If possible, the #AutoAnonymousAttributeID wrapper
  * should be used to avoid manual reference counting in C++ code.

@@ -81,7 +81,7 @@ struct Global {
    * To solve this, the memory counts are added to these global counters when the thread
    * exists. The global counters are also used when the entire process starts to exit, because the
    * #Local data of the main thread is already destructed when the leak detection happens (during
-   * destruction of static variables which happens after destruction of threadlocals).
+   * destruction of static variables which happens after destruction of thread-locals).
    */
   std::atomic<int64_t> mem_in_use_outside_locals = 0;
   /**
@@ -153,7 +153,7 @@ Local::~Local()
 
   if (this->is_main) {
     /* The main thread started shutting down. Use global counters from now on to avoid accessing
-     * threadlocals after they have been destructed. */
+     * thread-locals after they have been destructed. */
     use_local_counters.store(false, std::memory_order_relaxed);
   }
   /* Helps to detect when thread locals are accidentally accessed after destruction. */
@@ -179,7 +179,7 @@ static void update_global_peak()
 
 void memory_usage_init()
 {
-  /* Makes sure that the static and threadlocal variables on the main thread are initialized. */
+  /* Makes sure that the static and thread-local variables on the main thread are initialized. */
   get_local_data();
 }
 
