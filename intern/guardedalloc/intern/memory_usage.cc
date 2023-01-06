@@ -21,7 +21,7 @@ struct Global;
 /**
  * This is stored per thread. Align to cache line size to avoid false sharing.
  */
-struct alignas(64) Local {
+struct alignas(128) Local {
   /**
    * Retain shared ownership of #Global to make sure that it is not destructed.
    */
