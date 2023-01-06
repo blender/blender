@@ -4,6 +4,7 @@
  * \ingroup edasset
  */
 
+#include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <optional>
@@ -413,17 +414,24 @@ static int init_indexer_entries_from_value(FileIndexerEntries &indexer_entries,
 /**
  * \brief References the asset library directory.
  *
- * The #AssetLibraryIndex instance is used to keep track of unused file indices. When reading any
- * used indices are removed from the list and when reading is finished the unused
- * indices are removed.
+ * The #AssetLibraryIndex instance collects file indices that are existing before the actual
+ * reading/updating starts. This way, the reading/updating can tag pre-existing files as used when
+ * they are still needed. Remaining ones (indices that are not tagged as used) can be removed once
+ * reading finishes.
  */
 struct AssetLibraryIndex {
+  struct PreexistingFileIndexInfo {
+    bool is_used = false;
+  };
+
   /**
-   * Tracks indices that haven't been used yet.
+   * File indices that are existing already before reading/updating performs changes. The key is
+   * the absolute path. The value can store information like if the index is known to be used.
    *
-   * Contains absolute paths to the indices.
+   * Note that when deleting a file index (#delete_index_file()), it's also removed from here,
+   * since it doesn't exist and isn't relevant to keep track of anymore.
    */
-  Set<std::string> unused_file_indices;
+  Map<std::string /*path*/, PreexistingFileIndexInfo> preexisting_file_indices;
 
   /**
    * \brief Absolute path where the indices of `library` are stored.
@@ -485,9 +493,10 @@ struct AssetLibraryIndex {
   }
 
   /**
-   * Initialize to keep track of unused file indices.
+   * Check for pre-existing index files to be able to track what is still used and what can be
+   * removed. See #AssetLibraryIndex::preexisting_file_indices.
    */
-  void init_unused_index_files()
+  void collect_preexisting_file_indices()
   {
     const char *index_path = indices_base_path.c_str();
     if (!BLI_is_dir(index_path)) {
@@ -498,7 +507,7 @@ struct AssetLibraryIndex {
     for (int i = 0; i < dir_entries_num; i++) {
       struct direntry *entry = &dir_entries[i];
       if (BLI_str_endswith(entry->relname, ".index.json")) {
-        unused_file_indices.add_as(std::string(entry->path));
+        preexisting_file_indices.add_as(std::string(entry->path));
       }
     }
 
@@ -507,17 +516,53 @@ struct AssetLibraryIndex {
 
   void mark_as_used(const std::string &filename)
   {
-    unused_file_indices.remove(filename);
+    PreexistingFileIndexInfo *preexisting = preexisting_file_indices.lookup_ptr(filename);
+    if (preexisting) {
+      preexisting->is_used = true;
+    }
   }
 
-  int remove_unused_index_files() const
+  /**
+   * Removes the file index from disk and #preexisting_file_indices (invalidating its iterators, so
+   * don't call while iterating).
+   * \return true if deletion was successful.
+   */
+  bool delete_file_index(const std::string &filename)
+  {
+    if (BLI_delete(filename.c_str(), false, false) == 0) {
+      preexisting_file_indices.remove(filename);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * A bug was creating empty index files for a while (see D16665). Remove empty index files from
+   * this period, so they are regenerated.
+   */
+  /* Implemented further below. */
+  int remove_broken_index_files();
+
+  int remove_unused_index_files()
   {
     int num_files_deleted = 0;
-    for (const std::string &unused_index : unused_file_indices) {
-      const char *file_path = unused_index.c_str();
-      CLOG_INFO(&LOG, 2, "Remove unused index file [%s].", file_path);
-      BLI_delete(file_path, false, false);
-      num_files_deleted++;
+
+    Set<StringRef> files_to_remove;
+
+    for (auto preexisting_index : preexisting_file_indices.items()) {
+      if (preexisting_index.value.is_used) {
+        continue;
+      }
+
+      const std::string &file_path = preexisting_index.key;
+      CLOG_INFO(&LOG, 2, "Remove unused index file [%s].", file_path.c_str());
+      files_to_remove.add(preexisting_index.key);
+    }
+
+    for (StringRef file_to_remove : files_to_remove) {
+      if (delete_file_index(file_to_remove)) {
+        num_files_deleted++;
+      }
     }
 
     return num_files_deleted;
@@ -622,8 +667,13 @@ class AssetIndexFile : public AbstractFile {
   const size_t MIN_FILE_SIZE_WITH_ENTRIES = 32;
   std::string filename;
 
+  AssetIndexFile(AssetLibraryIndex &library_index, StringRef index_file_path)
+      : library_index(library_index), filename(index_file_path)
+  {
+  }
+
   AssetIndexFile(AssetLibraryIndex &library_index, BlendFile &asset_filename)
-      : library_index(library_index), filename(library_index.index_file_path(asset_filename))
+      : AssetIndexFile(library_index, library_index.index_file_path(asset_filename))
   {
   }
 
@@ -686,6 +736,56 @@ class AssetIndexFile : public AbstractFile {
     os.close();
   }
 };
+
+/* TODO(Julian): remove this after a short while. Just necessary for people who've been using alpha
+ * builds from a certain period. */
+int AssetLibraryIndex::remove_broken_index_files()
+{
+  Set<StringRef> files_to_remove;
+
+  preexisting_file_indices.foreach_item(
+      [&](const std::string &index_path, const PreexistingFileIndexInfo &) {
+        AssetIndexFile index_file(*this, index_path);
+
+        /* Bug was causing empty index files, so non-empty ones can be skipped. */
+        if (index_file.constains_entries()) {
+          return;
+        }
+
+        /* Use the file modification time stamp to attempt to remove empty index files from a
+         * certain period (when the bug was in there). Starting from a day before the bug was
+         * introduced until a day after the fix should be enough to mitigate possible local time
+         * zone issues. */
+
+        std::tm tm_from{};
+        tm_from.tm_year = 2022 - 1900; /* 2022 */
+        tm_from.tm_mon = 11 - 1;       /* November */
+        tm_from.tm_mday = 8;           /* Day before bug was introduced. */
+        std::tm tm_to{};
+        tm_from.tm_year = 2022 - 1900; /* 2022 */
+        tm_from.tm_mon = 12 - 1;       /* December */
+        tm_from.tm_mday = 3;           /* Day after fix. */
+        std::time_t timestamp_from = std::mktime(&tm_from);
+        std::time_t timestamp_to = std::mktime(&tm_to);
+        BLI_stat_t stat = {};
+        if (BLI_stat(index_file.get_file_path(), &stat) == -1) {
+          return;
+        }
+        if (IN_RANGE(stat.st_mtime, timestamp_from, timestamp_to)) {
+          CLOG_INFO(&LOG, 2, "Remove potentially broken index file [%s].", index_path.c_str());
+          files_to_remove.add(index_path);
+        }
+      });
+
+  int num_files_deleted = 0;
+  for (StringRef files_to_remove : files_to_remove) {
+    if (delete_file_index(files_to_remove)) {
+      num_files_deleted++;
+    }
+  }
+
+  return num_files_deleted;
+}
 
 static eFileIndexerResult read_index(const char *filename,
                                      FileIndexerEntries *entries,
@@ -762,7 +862,8 @@ static void *init_user_data(const char *root_directory, size_t root_directory_ma
 {
   AssetLibraryIndex *library_index = MEM_new<AssetLibraryIndex>(
       __func__, StringRef(root_directory, BLI_strnlen(root_directory, root_directory_maxlen)));
-  library_index->init_unused_index_files();
+  library_index->collect_preexisting_file_indices();
+  library_index->remove_broken_index_files();
   return library_index;
 }
 
