@@ -142,6 +142,11 @@ template<typename T> inline T atan2(const T &y, const T &x)
   return std::atan2(y, x);
 }
 
+template<typename T> inline T hypot(const T &y, const T &x)
+{
+  return std::hypot(y, x);
+}
+
 template<typename T,
          typename FactorT,
          BLI_ENABLE_IF((std::is_arithmetic_v<T>)),

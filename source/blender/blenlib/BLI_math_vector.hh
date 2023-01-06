@@ -17,18 +17,6 @@
 
 namespace blender::math {
 
-#ifndef NDEBUG
-#  define BLI_ASSERT_UNIT(v) \
-    { \
-      const float _test_unit = length_squared(v); \
-      BLI_assert(!(std::abs(_test_unit - 1.0f) >= BLI_ASSERT_UNIT_EPSILON) || \
-                 !(std::abs(_test_unit) >= BLI_ASSERT_UNIT_EPSILON)); \
-    } \
-    (void)0
-#else
-#  define BLI_ASSERT_UNIT(v) (void)(v)
-#endif
-
 template<typename T, int Size> inline bool is_zero(const vec_base<T, Size> &a)
 {
   for (int i = 0; i < Size; i++) {
@@ -137,7 +125,7 @@ inline vec_base<T, Size> mod(const vec_base<T, Size> &a, const T &b)
 }
 
 template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T safe_mod(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+inline vec_base<T, Size> safe_mod(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
 {
   vec_base<T, Size> result;
   for (int i = 0; i < Size; i++) {
@@ -147,7 +135,7 @@ inline T safe_mod(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
 }
 
 template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T safe_mod(const vec_base<T, Size> &a, const T &b)
+inline vec_base<T, Size> safe_mod(const vec_base<T, Size> &a, const T &b)
 {
   if (b == 0) {
     return vec_base<T, Size>(0);
@@ -278,6 +266,16 @@ inline T length(const vec_base<T, Size> &a)
   return std::sqrt(length_squared(a));
 }
 
+template<typename T, int Size> inline bool is_unit_scale(const vec_base<T, Size> &v)
+{
+  /* Checks are flipped so NAN doesn't assert because we're making sure the value was
+   * normalized and in the case we don't want NAN to be raising asserts since there
+   * is nothing to be done in that case. */
+  const T test_unit = math::length_squared(v);
+  return (!(std::abs(test_unit - T(1)) >= AssertUnitEpsilon<T>::value) ||
+          !(std::abs(test_unit) >= AssertUnitEpsilon<T>::value));
+}
+
 template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
 inline T distance_manhattan(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
 {
@@ -300,7 +298,7 @@ template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
 inline vec_base<T, Size> reflect(const vec_base<T, Size> &incident,
                                  const vec_base<T, Size> &normal)
 {
-  BLI_ASSERT_UNIT(normal);
+  BLI_assert(is_unit_scale(normal));
   return incident - 2.0 * dot(normal, incident) * normal;
 }
 
@@ -400,6 +398,9 @@ inline vec_base<T, Size> midpoint(const vec_base<T, Size> &a, const vec_base<T, 
   return (a + b) * 0.5;
 }
 
+/**
+ * Return `vector` if `incident` and `reference` are pointing in the same direction.
+ */
 template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
 inline vec_base<T, Size> faceforward(const vec_base<T, Size> &vector,
                                      const vec_base<T, Size> &incident,

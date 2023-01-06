@@ -602,6 +602,15 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
   }
 };
 
+namespace math {
+
+template<typename T> struct AssertUnitEpsilon {
+  /** \note Copy of BLI_ASSERT_UNIT_EPSILON_DB to avoid dragging the entire header. */
+  static constexpr T value = T(0.0002);
+};
+
+}  // namespace math
+
 using char3 = blender::vec_base<int8_t, 3>;
 
 using uchar3 = blender::vec_base<uint8_t, 3>;

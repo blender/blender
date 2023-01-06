@@ -18,6 +18,7 @@ set(INC
 )
 
 set(INC_SYS
+  ${EIGEN3_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   ${ZSTD_INCLUDE_DIRS}
   ${GMP_INCLUDE_DIRS}
@@ -102,6 +103,7 @@ set(SRC
   intern/math_geom_inline.c
   intern/math_interp.c
   intern/math_matrix.c
+  intern/math_matrix.cc
   intern/math_rotation.c
   intern/math_rotation.cc
   intern/math_solvers.c
@@ -485,6 +487,7 @@ if(WITH_GTESTS)
     tests/BLI_math_bits_test.cc
     tests/BLI_math_color_test.cc
     tests/BLI_math_geom_test.cc
+    tests/BLI_math_matrix_types_test.cc
     tests/BLI_math_matrix_test.cc
     tests/BLI_math_rotation_test.cc
     tests/BLI_math_solvers_test.cc
