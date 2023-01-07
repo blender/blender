@@ -315,6 +315,12 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
                                    const eAttrDomain domain,
                                    const fn::GField &field);
 
+bool try_capture_field_on_geometry(GeometryComponent &component,
+                                   const AttributeIDRef &attribute_id,
+                                   const eAttrDomain domain,
+                                   const fn::Field<bool> &selection,
+                                   const fn::GField &field);
+
 /**
  * Try to find the geometry domain that the field should be evaluated on. If it is not obvious
  * which domain is correct, none is returned.
