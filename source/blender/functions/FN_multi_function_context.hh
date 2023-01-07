@@ -21,18 +21,11 @@ namespace blender::fn {
 class MFContext;
 
 class MFContextBuilder {
- private:
-  friend MFContext;
-
- public:
 };
 
 class MFContext {
- private:
-  MFContextBuilder &builder_;
-
  public:
-  MFContext(MFContextBuilder &builder) : builder_(builder)
+  MFContext(MFContextBuilder & /*builder*/)
   {
   }
 };
