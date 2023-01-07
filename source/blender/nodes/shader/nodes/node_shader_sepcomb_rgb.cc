@@ -31,19 +31,16 @@ class SeparateRGBFunction : public mf::MultiFunction {
  public:
   SeparateRGBFunction()
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Separate RGB", signature};
+      builder.single_input<ColorGeometry4f>("Color");
+      builder.single_output<float>("R");
+      builder.single_output<float>("G");
+      builder.single_output<float>("B");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Separate RGB", signature};
-    builder.single_input<ColorGeometry4f>("Color");
-    builder.single_output<float>("R");
-    builder.single_output<float>("G");
-    builder.single_output<float>("B");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

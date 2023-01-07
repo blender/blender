@@ -8,17 +8,14 @@ class AddPrefixFunction : public MultiFunction {
  public:
   AddPrefixFunction()
   {
-    static Signature signature = create_signature();
+    static const Signature signature = []() {
+      Signature signature;
+      SignatureBuilder builder{"Add Prefix", signature};
+      builder.single_input<std::string>("Prefix");
+      builder.single_mutable<std::string>("Strings");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static Signature create_signature()
-  {
-    Signature signature;
-    SignatureBuilder builder{"Add Prefix", signature};
-    builder.single_input<std::string>("Prefix");
-    builder.single_mutable<std::string>("Strings");
-    return signature;
   }
 
   void call(IndexMask mask, MFParams params, Context /*context*/) const override
@@ -36,17 +33,14 @@ class CreateRangeFunction : public MultiFunction {
  public:
   CreateRangeFunction()
   {
-    static Signature signature = create_signature();
+    static const Signature signature = []() {
+      Signature signature;
+      SignatureBuilder builder{"Create Range", signature};
+      builder.single_input<int>("Size");
+      builder.vector_output<int>("Range");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static Signature create_signature()
-  {
-    Signature signature;
-    SignatureBuilder builder{"Create Range", signature};
-    builder.single_input<int>("Size");
-    builder.vector_output<int>("Range");
-    return signature;
   }
 
   void call(IndexMask mask, MFParams params, Context /*context*/) const override
@@ -94,17 +88,14 @@ class ConcatVectorsFunction : public MultiFunction {
  public:
   ConcatVectorsFunction()
   {
-    static Signature signature = create_signature();
+    static const Signature signature = []() {
+      Signature signature;
+      SignatureBuilder builder{"Concat Vectors", signature};
+      builder.vector_mutable<int>("A");
+      builder.vector_input<int>("B");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static Signature create_signature()
-  {
-    Signature signature;
-    SignatureBuilder builder{"Concat Vectors", signature};
-    builder.vector_mutable<int>("A");
-    builder.vector_input<int>("B");
-    return signature;
   }
 
   void call(IndexMask mask, MFParams params, Context /*context*/) const override
@@ -119,17 +110,14 @@ class AppendFunction : public MultiFunction {
  public:
   AppendFunction()
   {
-    static Signature signature = create_signature();
+    static const Signature signature = []() {
+      Signature signature;
+      SignatureBuilder builder{"Append", signature};
+      builder.vector_mutable<int>("Vector");
+      builder.single_input<int>("Value");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static Signature create_signature()
-  {
-    Signature signature;
-    SignatureBuilder builder{"Append", signature};
-    builder.vector_mutable<int>("Vector");
-    builder.single_input<int>("Value");
-    return signature;
   }
 
   void call(IndexMask mask, MFParams params, Context /*context*/) const override
@@ -147,17 +135,14 @@ class SumVectorFunction : public MultiFunction {
  public:
   SumVectorFunction()
   {
-    static Signature signature = create_signature();
+    static const Signature signature = []() {
+      Signature signature;
+      SignatureBuilder builder{"Sum Vectors", signature};
+      builder.vector_input<int>("Vector");
+      builder.single_output<int>("Sum");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static Signature create_signature()
-  {
-    Signature signature;
-    SignatureBuilder builder{"Sum Vectors", signature};
-    builder.vector_input<int>("Vector");
-    builder.single_output<int>("Sum");
-    return signature;
   }
 
   void call(IndexMask mask, MFParams params, Context /*context*/) const override
@@ -179,17 +164,14 @@ class OptionalOutputsFunction : public MultiFunction {
  public:
   OptionalOutputsFunction()
   {
-    static Signature signature = create_signature();
+    static const Signature signature = []() {
+      Signature signature;
+      SignatureBuilder builder{"Optional Outputs", signature};
+      builder.single_output<int>("Out 1");
+      builder.single_output<std::string>("Out 2");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static Signature create_signature()
-  {
-    Signature signature;
-    SignatureBuilder builder{"Optional Outputs", signature};
-    builder.single_output<int>("Out 1");
-    builder.single_output<std::string>("Out 2");
-    return signature;
   }
 
   void call(IndexMask mask, MFParams params, Context /*context*/) const override

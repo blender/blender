@@ -200,19 +200,12 @@ class SampleIndexFunction : public mf::MultiFunction {
   {
     src_geometry_.ensure_owns_direct_data();
 
-    signature_ = this->create_signature();
+    mf::SignatureBuilder builder{"Sample Index", signature_};
+    builder.single_input<int>("Index");
+    builder.single_output("Value", src_field_.cpp_type());
     this->set_signature(&signature_);
 
     this->evaluate_field();
-  }
-
-  mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Sample Index", signature};
-    builder.single_input<int>("Index");
-    builder.single_output("Value", src_field_.cpp_type());
-    return signature;
   }
 
   void evaluate_field()

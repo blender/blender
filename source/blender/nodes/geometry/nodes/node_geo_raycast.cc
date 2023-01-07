@@ -225,14 +225,8 @@ class RaycastFunction : public mf::MultiFunction {
   {
     target_.ensure_owns_direct_data();
     this->evaluate_target_field(std::move(src_field));
-    signature_ = create_signature();
-    this->set_signature(&signature_);
-  }
 
-  mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Geometry Proximity", signature};
+    mf::SignatureBuilder builder{"Geometry Proximity", signature_};
     builder.single_input<float3>("Source Position");
     builder.single_input<float3>("Ray Direction");
     builder.single_input<float>("Ray Length");
@@ -243,7 +237,7 @@ class RaycastFunction : public mf::MultiFunction {
     if (target_data_) {
       builder.single_output("Attribute", target_data_->type());
     }
-    return signature;
+    this->set_signature(&signature_);
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

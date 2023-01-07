@@ -138,18 +138,15 @@ class ProximityFunction : public mf::MultiFunction {
   ProximityFunction(GeometrySet target, GeometryNodeProximityTargetType type)
       : target_(std::move(target)), type_(type)
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Geometry Proximity", signature};
+      builder.single_input<float3>("Source Position");
+      builder.single_output<float3>("Position");
+      builder.single_output<float>("Distance");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Geometry Proximity", signature};
-    builder.single_input<float3>("Source Position");
-    builder.single_output<float3>("Position");
-    builder.single_output<float>("Distance");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

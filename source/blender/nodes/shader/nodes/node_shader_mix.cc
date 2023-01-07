@@ -361,19 +361,16 @@ class MixColorFunction : public mf::MultiFunction {
   MixColorFunction(const bool clamp_factor, const bool clamp_result, const int blend_type)
       : clamp_factor_(clamp_factor), clamp_result_(clamp_result), blend_type_(blend_type)
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"MixColor", signature};
+      builder.single_input<float>("Factor");
+      builder.single_input<ColorGeometry4f>("A");
+      builder.single_input<ColorGeometry4f>("B");
+      builder.single_output<ColorGeometry4f>("Result");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"MixColor", signature};
-    builder.single_input<float>("Factor");
-    builder.single_input<ColorGeometry4f>("A");
-    builder.single_input<ColorGeometry4f>("B");
-    builder.single_output<ColorGeometry4f>("Result");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

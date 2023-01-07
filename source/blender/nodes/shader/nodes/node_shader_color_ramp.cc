@@ -94,18 +94,15 @@ class ColorBandFunction : public mf::MultiFunction {
  public:
   ColorBandFunction(const ColorBand &color_band) : color_band_(color_band)
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Color Band", signature};
+      builder.single_input<float>("Value");
+      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<float>("Alpha");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Color Band", signature};
-    builder.single_input<float>("Value");
-    builder.single_output<ColorGeometry4f>("Color");
-    builder.single_output<float>("Alpha");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

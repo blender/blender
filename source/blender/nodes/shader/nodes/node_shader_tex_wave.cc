@@ -94,24 +94,21 @@ class WaveFunction : public mf::MultiFunction {
         rings_direction_(rings_direction),
         wave_profile_(wave_profile)
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"MagicFunction", signature};
+      builder.single_input<float3>("Vector");
+      builder.single_input<float>("Scale");
+      builder.single_input<float>("Distortion");
+      builder.single_input<float>("Detail");
+      builder.single_input<float>("Detail Scale");
+      builder.single_input<float>("Detail Roughness");
+      builder.single_input<float>("Phase Offset");
+      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<float>("Fac");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"MagicFunction", signature};
-    builder.single_input<float3>("Vector");
-    builder.single_input<float>("Scale");
-    builder.single_input<float>("Distortion");
-    builder.single_input<float>("Detail");
-    builder.single_input<float>("Detail Scale");
-    builder.single_input<float>("Detail Roughness");
-    builder.single_input<float>("Phase Offset");
-    builder.single_output<ColorGeometry4f>("Color");
-    builder.single_output<float>("Fac");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

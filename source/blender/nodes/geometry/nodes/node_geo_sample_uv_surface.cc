@@ -129,19 +129,13 @@ class SampleMeshBarycentricFunction : public mf::MultiFunction {
       : source_(std::move(geometry)), src_field_(std::move(src_field))
   {
     source_.ensure_owns_direct_data();
-    this->set_signature(&signature_);
-    signature_ = this->create_signature();
     this->evaluate_source();
-  }
 
-  mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Sample Barycentric Triangles", signature};
+    mf::SignatureBuilder builder{"Sample Barycentric Triangles", signature_};
     builder.single_input<int>("Triangle Index");
     builder.single_input<float3>("Barycentric Weight");
     builder.single_output("Value", src_field_.cpp_type());
-    return signature;
+    this->set_signature(&signature_);
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
@@ -200,20 +194,18 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
       : source_(std::move(geometry)), src_uv_map_field_(std::move(src_uv_map_field))
   {
     source_.ensure_owns_direct_data();
-    static mf::Signature signature = create_signature();
-    this->set_signature(&signature);
     this->evaluate_source();
-  }
 
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Sample UV Surface", signature};
-    builder.single_input<float2>("Sample UV");
-    builder.single_output<bool>("Is Valid");
-    builder.single_output<int>("Triangle Index");
-    builder.single_output<float3>("Barycentric Weights");
-    return signature;
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Sample UV Surface", signature};
+      builder.single_input<float2>("Sample UV");
+      builder.single_output<bool>("Is Valid");
+      builder.single_output<int>("Triangle Index");
+      builder.single_output<float3>("Barycentric Weights");
+      return signature;
+    }();
+    this->set_signature(&signature);
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

@@ -31,19 +31,16 @@ class MF_SeparateXYZ : public mf::MultiFunction {
  public:
   MF_SeparateXYZ()
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Separate XYZ", signature};
+      builder.single_input<float3>("XYZ");
+      builder.single_output<float>("X");
+      builder.single_output<float>("Y");
+      builder.single_output<float>("Z");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Separate XYZ", signature};
-    builder.single_input<float3>("XYZ");
-    builder.single_output<float>("X");
-    builder.single_output<float>("Y");
-    builder.single_output<float>("Z");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

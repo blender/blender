@@ -48,21 +48,18 @@ class NodeTexChecker : public mf::MultiFunction {
  public:
   NodeTexChecker()
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Checker", signature};
+      builder.single_input<float3>("Vector");
+      builder.single_input<ColorGeometry4f>("Color1");
+      builder.single_input<ColorGeometry4f>("Color2");
+      builder.single_input<float>("Scale");
+      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<float>("Fac");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Checker", signature};
-    builder.single_input<float3>("Vector");
-    builder.single_input<ColorGeometry4f>("Color1");
-    builder.single_input<ColorGeometry4f>("Color2");
-    builder.single_input<float>("Scale");
-    builder.single_output<ColorGeometry4f>("Color");
-    builder.single_output<float>("Fac");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

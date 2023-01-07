@@ -64,7 +64,14 @@ class ImageFieldsFunction : public mf::MultiFunction {
         image_(image),
         image_user_(image_user)
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"ImageFunction", signature};
+      builder.single_input<float3>("Vector");
+      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<float>("Alpha");
+      return signature;
+    }();
     this->set_signature(&signature);
 
     image_buffer_ = BKE_image_acquire_ibuf(&image_, &image_user_, &image_lock_);
@@ -89,16 +96,6 @@ class ImageFieldsFunction : public mf::MultiFunction {
   ~ImageFieldsFunction() override
   {
     BKE_image_release_ibuf(&image_, image_buffer_, image_lock_);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"ImageFunction", signature};
-    builder.single_input<float3>("Vector");
-    builder.single_output<ColorGeometry4f>("Color");
-    builder.single_output<float>("Alpha");
-    return signature;
   }
 
   static int wrap_periodic(int x, const int width)

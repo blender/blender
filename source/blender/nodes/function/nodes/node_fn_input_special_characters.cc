@@ -14,17 +14,14 @@ class MF_SpecialCharacters : public mf::MultiFunction {
  public:
   MF_SpecialCharacters()
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Special Characters", signature};
+      builder.single_output<std::string>("Line Break");
+      builder.single_output<std::string>("Tab");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Special Characters", signature};
-    builder.single_output<std::string>("Line Break");
-    builder.single_output<std::string>("Tab");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

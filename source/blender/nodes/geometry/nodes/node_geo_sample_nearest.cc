@@ -245,19 +245,12 @@ class SampleNearestFunction : public mf::MultiFunction {
       : source_(std::move(geometry)), domain_(domain)
   {
     source_.ensure_owns_direct_data();
-    signature_ = this->create_signature();
-    this->set_signature(&signature_);
-
     this->src_component_ = find_source_component(source_, domain_);
-  }
 
-  mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Sample Nearest", signature};
+    mf::SignatureBuilder builder{"Sample Nearest", signature_};
     builder.single_input<float3>("Position");
     builder.single_output<int>("Index");
-    return signature;
+    this->set_signature(&signature_);
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

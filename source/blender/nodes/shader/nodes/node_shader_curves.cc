@@ -70,18 +70,15 @@ class CurveVecFunction : public mf::MultiFunction {
  public:
   CurveVecFunction(const CurveMapping &cumap) : cumap_(cumap)
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Curve Vec", signature};
+      builder.single_input<float>("Fac");
+      builder.single_input<float3>("Vector");
+      builder.single_output<float3>("Vector");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Curve Vec", signature};
-    builder.single_input<float>("Fac");
-    builder.single_input<float3>("Vector");
-    builder.single_output<float3>("Vector");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
@@ -216,18 +213,15 @@ class CurveRGBFunction : public mf::MultiFunction {
  public:
   CurveRGBFunction(const CurveMapping &cumap) : cumap_(cumap)
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Curve RGB", signature};
+      builder.single_input<float>("Fac");
+      builder.single_input<ColorGeometry4f>("Color");
+      builder.single_output<ColorGeometry4f>("Color");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Curve RGB", signature};
-    builder.single_input<float>("Fac");
-    builder.single_input<ColorGeometry4f>("Color");
-    builder.single_output<ColorGeometry4f>("Color");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
@@ -339,18 +333,15 @@ class CurveFloatFunction : public mf::MultiFunction {
  public:
   CurveFloatFunction(const CurveMapping &cumap) : cumap_(cumap)
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Curve Float", signature};
+      builder.single_input<float>("Factor");
+      builder.single_input<float>("Value");
+      builder.single_output<float>("Value");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Curve Float", signature};
-    builder.single_input<float>("Factor");
-    builder.single_input<float>("Value");
-    builder.single_output<float>("Value");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

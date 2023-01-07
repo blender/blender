@@ -41,20 +41,17 @@ class SeparateRGBAFunction : public mf::MultiFunction {
  public:
   SeparateRGBAFunction()
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Separate Color", signature};
+      builder.single_input<ColorGeometry4f>("Color");
+      builder.single_output<float>("Red");
+      builder.single_output<float>("Green");
+      builder.single_output<float>("Blue");
+      builder.single_output<float>("Alpha");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Separate Color", signature};
-    builder.single_input<ColorGeometry4f>("Color");
-    builder.single_output<float>("Red");
-    builder.single_output<float>("Green");
-    builder.single_output<float>("Blue");
-    builder.single_output<float>("Alpha");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
@@ -103,20 +100,17 @@ class SeparateHSVAFunction : public mf::MultiFunction {
  public:
   SeparateHSVAFunction()
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Separate Color", signature};
+      builder.single_input<ColorGeometry4f>("Color");
+      builder.single_output<float>("Hue");
+      builder.single_output<float>("Saturation");
+      builder.single_output<float>("Value");
+      builder.single_output<float>("Alpha");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Separate Color", signature};
-    builder.single_input<ColorGeometry4f>("Color");
-    builder.single_output<float>("Hue");
-    builder.single_output<float>("Saturation");
-    builder.single_output<float>("Value");
-    builder.single_output<float>("Alpha");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
@@ -144,20 +138,17 @@ class SeparateHSLAFunction : public mf::MultiFunction {
  public:
   SeparateHSLAFunction()
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Separate Color", signature};
+      builder.single_input<ColorGeometry4f>("Color");
+      builder.single_output<float>("Hue");
+      builder.single_output<float>("Saturation");
+      builder.single_output<float>("Lightness");
+      builder.single_output<float>("Alpha");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Separate Color", signature};
-    builder.single_input<ColorGeometry4f>("Color");
-    builder.single_output<float>("Hue");
-    builder.single_output<float>("Saturation");
-    builder.single_output<float>("Lightness");
-    builder.single_output<float>("Alpha");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

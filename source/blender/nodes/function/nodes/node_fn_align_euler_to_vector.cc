@@ -142,20 +142,16 @@ class MF_AlignEulerToVector : public mf::MultiFunction {
   MF_AlignEulerToVector(int main_axis_mode, int pivot_axis_mode)
       : main_axis_mode_(main_axis_mode), pivot_axis_mode_(pivot_axis_mode)
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Align Euler to Vector", signature};
+      builder.single_input<float3>("Rotation");
+      builder.single_input<float>("Factor");
+      builder.single_input<float3>("Vector");
+      builder.single_output<float3>("Rotation");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Align Euler to Vector", signature};
-    builder.single_input<float3>("Rotation");
-    builder.single_input<float>("Factor");
-    builder.single_input<float3>("Vector");
-
-    builder.single_output<float3>("Rotation");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

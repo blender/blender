@@ -139,18 +139,12 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
       : source_(std::move(geometry)), src_field_(std::move(src_field))
   {
     source_.ensure_owns_direct_data();
-    signature_ = this->create_signature();
-    this->set_signature(&signature_);
     this->evaluate_source_field();
-  }
 
-  mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Sample Nearest Surface", signature};
+    mf::SignatureBuilder builder{"Sample Nearest Surface", signature_};
     builder.single_input<float3>("Position");
     builder.single_output("Value", src_field_.cpp_type());
-    return signature;
+    this->set_signature(&signature_);
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

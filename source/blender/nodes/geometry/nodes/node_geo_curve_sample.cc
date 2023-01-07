@@ -211,19 +211,16 @@ class SampleFloatSegmentsFunction : public mf::MultiFunction {
                               const GeometryNodeCurveSampleMode length_mode)
       : accumulated_lengths_(std::move(accumulated_lengths)), length_mode_(length_mode)
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Sample Curve Index", signature};
+      builder.single_input<float>("Length");
+
+      builder.single_output<int>("Curve Index");
+      builder.single_output<float>("Length in Curve");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Sample Curve Index", signature};
-    builder.single_input<float>("Length");
-
-    builder.single_output<int>("Curve Index");
-    builder.single_output<float>("Length in Curve");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
@@ -261,22 +258,16 @@ class SampleCurveFunction : public mf::MultiFunction {
                       const GField &src_field)
       : geometry_set_(std::move(geometry_set)), src_field_(src_field), length_mode_(length_mode)
   {
-    signature_ = create_signature();
-    this->set_signature(&signature_);
-    this->evaluate_source();
-  }
-
-  mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"Sample Curve", signature};
+    mf::SignatureBuilder builder{"Sample Curve", signature_};
     builder.single_input<int>("Curve Index");
     builder.single_input<float>("Length");
     builder.single_output<float3>("Position");
     builder.single_output<float3>("Tangent");
     builder.single_output<float3>("Normal");
     builder.single_output("Value", src_field_.cpp_type());
-    return signature;
+    this->set_signature(&signature_);
+
+    this->evaluate_source();
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

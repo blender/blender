@@ -55,20 +55,17 @@ class MagicFunction : public mf::MultiFunction {
  public:
   MagicFunction(int depth) : depth_(depth)
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"MagicFunction", signature};
+      builder.single_input<float3>("Vector");
+      builder.single_input<float>("Scale");
+      builder.single_input<float>("Distortion");
+      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<float>("Fac");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"MagicFunction", signature};
-    builder.single_input<float3>("Vector");
-    builder.single_input<float>("Scale");
-    builder.single_input<float>("Distortion");
-    builder.single_output<ColorGeometry4f>("Color");
-    builder.single_output<float>("Fac");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

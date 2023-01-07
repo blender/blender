@@ -13,18 +13,15 @@ class AddFunction : public MultiFunction {
  public:
   AddFunction()
   {
-    static Signature signature = create_signature();
+    static Signature signature = []() {
+      Signature signature;
+      SignatureBuilder builder("Add", signature);
+      builder.single_input<int>("A");
+      builder.single_input<int>("B");
+      builder.single_output<int>("Result");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static Signature create_signature()
-  {
-    Signature signature;
-    SignatureBuilder builder("Add", signature);
-    builder.single_input<int>("A");
-    builder.single_input<int>("B");
-    builder.single_output<int>("Result");
-    return signature;
   }
 
   void call(IndexMask mask, MFParams params, Context /*context*/) const override

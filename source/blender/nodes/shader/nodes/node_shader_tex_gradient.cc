@@ -54,18 +54,15 @@ class GradientFunction : public mf::MultiFunction {
  public:
   GradientFunction(int gradient_type) : gradient_type_(gradient_type)
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"GradientFunction", signature};
+      builder.single_input<float3>("Vector");
+      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<float>("Fac");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"GradientFunction", signature};
-    builder.single_input<float3>("Vector");
-    builder.single_output<ColorGeometry4f>("Color");
-    builder.single_output<float>("Fac");
-    return signature;
   }
 
   void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override

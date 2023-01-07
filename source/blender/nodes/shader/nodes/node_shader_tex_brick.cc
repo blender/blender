@@ -122,27 +122,24 @@ class BrickFunction : public mf::MultiFunction {
                 const int squash_freq)
       : offset_(offset), offset_freq_(offset_freq), squash_(squash), squash_freq_(squash_freq)
   {
-    static mf::Signature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"BrickTexture", signature};
+      builder.single_input<float3>("Vector");
+      builder.single_input<ColorGeometry4f>("Color1");
+      builder.single_input<ColorGeometry4f>("Color2");
+      builder.single_input<ColorGeometry4f>("Mortar");
+      builder.single_input<float>("Scale");
+      builder.single_input<float>("Mortar Size");
+      builder.single_input<float>("Mortar Smooth");
+      builder.single_input<float>("Bias");
+      builder.single_input<float>("Brick Width");
+      builder.single_input<float>("Row Height");
+      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<float>("Fac");
+      return signature;
+    }();
     this->set_signature(&signature);
-  }
-
-  static mf::Signature create_signature()
-  {
-    mf::Signature signature;
-    mf::SignatureBuilder builder{"BrickTexture", signature};
-    builder.single_input<float3>("Vector");
-    builder.single_input<ColorGeometry4f>("Color1");
-    builder.single_input<ColorGeometry4f>("Color2");
-    builder.single_input<ColorGeometry4f>("Mortar");
-    builder.single_input<float>("Scale");
-    builder.single_input<float>("Mortar Size");
-    builder.single_input<float>("Mortar Smooth");
-    builder.single_input<float>("Bias");
-    builder.single_input<float>("Brick Width");
-    builder.single_input<float>("Row Height");
-    builder.single_output<ColorGeometry4f>("Color");
-    builder.single_output<float>("Fac");
-    return signature;
   }
 
   /* Fast integer noise. */
