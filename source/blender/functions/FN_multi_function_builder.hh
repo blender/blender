@@ -129,14 +129,14 @@ template<typename MaskT, typename... Args, typename... ParamTags, size_t... I, t
 #if (defined(__GNUC__) && !defined(__clang__))
 [[gnu::optimize("-funroll-loops")]] [[gnu::optimize("O3")]]
 #endif
-void execute_array(
-    TypeSequence<ParamTags...> /*param_tags*/,
-    std::index_sequence<I...> /*indices*/,
-    ElementFn element_fn,
-    MaskT mask,
-    /* Use restrict to tell the compiler that pointer inputs do not alias each
-     * other. This is important for some compiler optimizations. */
-    Args &&__restrict... args)
+inline void
+execute_array(TypeSequence<ParamTags...> /*param_tags*/,
+              std::index_sequence<I...> /*indices*/,
+              ElementFn element_fn,
+              MaskT mask,
+              /* Use restrict to tell the compiler that pointer inputs do not alias each
+               * other. This is important for some compiler optimizations. */
+              Args &&__restrict... args)
 {
   for (const int64_t i : mask) {
     element_fn([&]() -> decltype(auto) {
@@ -174,11 +174,11 @@ template<typename ParamTag> struct MaterializeArgInfo {
  * Similar to #execute_array but accepts two mask inputs, one for inputs and one for outputs.
  */
 template<typename... ParamTags, typename ElementFn, typename... Chunks>
-void execute_materialized_impl(TypeSequence<ParamTags...> /*param_tags*/,
-                               const ElementFn element_fn,
-                               const IndexRange in_mask,
-                               const IndexMask out_mask,
-                               Chunks &&__restrict... chunks)
+inline void execute_materialized_impl(TypeSequence<ParamTags...> /*param_tags*/,
+                                      const ElementFn element_fn,
+                                      const IndexRange in_mask,
+                                      const IndexMask out_mask,
+                                      Chunks &&__restrict... chunks)
 {
   BLI_assert(in_mask.size() == out_mask.size());
   for (const int64_t i : IndexRange(in_mask.size())) {
@@ -205,11 +205,11 @@ void execute_materialized_impl(TypeSequence<ParamTags...> /*param_tags*/,
  * chunks, which reduces virtual function call overhead.
  */
 template<typename... ParamTags, size_t... I, typename ElementFn, typename... LoadedParams>
-void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
-                          std::index_sequence<I...> /* indices */,
-                          const ElementFn element_fn,
-                          const IndexMask mask,
-                          const std::tuple<LoadedParams...> &loaded_params)
+inline void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
+                                 std::index_sequence<I...> /* indices */,
+                                 const ElementFn element_fn,
+                                 const IndexMask mask,
+                                 const std::tuple<LoadedParams...> &loaded_params)
 {
 
   /* In theory, all elements could be processed in one chunk. However, that has the disadvantage
