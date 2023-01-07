@@ -54,7 +54,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static const fn::MultiFunction *get_multi_function(const bNode &bnode)
 {
-  static fn::CustomMF_SI_SI_SO<float3, float3, float3> obj_euler_rot{
+  static auto obj_euler_rot = fn::build_mf::SI2_SO<float3, float3, float3>(
       "Rotate Euler by Euler/Object", [](const float3 &input, const float3 &rotation) {
         float input_mat[3][3];
         eul_to_mat3(input_mat, input);
@@ -65,8 +65,8 @@ static const fn::MultiFunction *get_multi_function(const bNode &bnode)
         float3 result;
         mat3_to_eul(result, mat_res);
         return result;
-      }};
-  static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> obj_AA_rot{
+      });
+  static auto obj_AA_rot = fn::build_mf::SI3_SO<float3, float3, float, float3>(
       "Rotate Euler by AxisAngle/Object",
       [](const float3 &input, const float3 &axis, float angle) {
         float input_mat[3][3];
@@ -78,8 +78,8 @@ static const fn::MultiFunction *get_multi_function(const bNode &bnode)
         float3 result;
         mat3_to_eul(result, mat_res);
         return result;
-      }};
-  static fn::CustomMF_SI_SI_SO<float3, float3, float3> local_euler_rot{
+      });
+  static auto local_euler_rot = fn::build_mf::SI2_SO<float3, float3, float3>(
       "Rotate Euler by Euler/Local", [](const float3 &input, const float3 &rotation) {
         float input_mat[3][3];
         eul_to_mat3(input_mat, input);
@@ -90,8 +90,8 @@ static const fn::MultiFunction *get_multi_function(const bNode &bnode)
         float3 result;
         mat3_to_eul(result, mat_res);
         return result;
-      }};
-  static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> local_AA_rot{
+      });
+  static auto local_AA_rot = fn::build_mf::SI3_SO<float3, float3, float, float3>(
       "Rotate Euler by AxisAngle/Local", [](const float3 &input, const float3 &axis, float angle) {
         float input_mat[3][3];
         eul_to_mat3(input_mat, input);
@@ -102,14 +102,18 @@ static const fn::MultiFunction *get_multi_function(const bNode &bnode)
         float3 result;
         mat3_to_eul(result, mat_res);
         return result;
-      }};
+      });
   short type = bnode.custom1;
   short space = bnode.custom2;
   if (type == FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE) {
-    return space == FN_NODE_ROTATE_EULER_SPACE_OBJECT ? &obj_AA_rot : &local_AA_rot;
+    return space == FN_NODE_ROTATE_EULER_SPACE_OBJECT ?
+               static_cast<const MultiFunction *>(&obj_AA_rot) :
+               &local_AA_rot;
   }
   if (type == FN_NODE_ROTATE_EULER_TYPE_EULER) {
-    return space == FN_NODE_ROTATE_EULER_SPACE_OBJECT ? &obj_euler_rot : &local_euler_rot;
+    return space == FN_NODE_ROTATE_EULER_SPACE_OBJECT ?
+               static_cast<const MultiFunction *>(&obj_euler_rot) :
+               &local_euler_rot;
   }
   BLI_assert_unreachable();
   return nullptr;

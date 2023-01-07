@@ -233,8 +233,8 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
 
   try_dispatch_float_math_fl3_fl3_to_fl3(
       operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
-            info.title_case_name.c_str(), function, exec_preset};
+        static auto fn = fn::build_mf::SI2_SO<float3, float3, float3>(
+            info.title_case_name.c_str(), function, exec_preset);
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
@@ -243,8 +243,8 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
 
   try_dispatch_float_math_fl3_fl3_fl3_to_fl3(
       operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
-            info.title_case_name.c_str(), function, exec_preset};
+        static auto fn = fn::build_mf::SI3_SO<float3, float3, float3, float3>(
+            info.title_case_name.c_str(), function, exec_preset);
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
@@ -253,8 +253,8 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
 
   try_dispatch_float_math_fl3_fl3_fl_to_fl3(
       operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
-            info.title_case_name.c_str(), function, exec_preset};
+        static auto fn = fn::build_mf::SI3_SO<float3, float3, float, float3>(
+            info.title_case_name.c_str(), function, exec_preset);
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
@@ -263,8 +263,8 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
 
   try_dispatch_float_math_fl3_fl3_to_fl(
       operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static fn::CustomMF_SI_SI_SO<float3, float3, float> fn{
-            info.title_case_name.c_str(), function, exec_preset};
+        static auto fn = fn::build_mf::SI2_SO<float3, float3, float>(
+            info.title_case_name.c_str(), function, exec_preset);
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
@@ -273,8 +273,8 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
 
   try_dispatch_float_math_fl3_fl_to_fl3(
       operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static fn::CustomMF_SI_SI_SO<float3, float, float3> fn{
-            info.title_case_name.c_str(), function, exec_preset};
+        static auto fn = fn::build_mf::SI2_SO<float3, float, float3>(
+            info.title_case_name.c_str(), function, exec_preset);
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
@@ -283,8 +283,8 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
 
   try_dispatch_float_math_fl3_to_fl3(
       operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static fn::CustomMF_SI_SO<float3, float3> fn{
-            info.title_case_name.c_str(), function, exec_preset};
+        static auto fn = fn::build_mf::SI1_SO<float3, float3>(
+            info.title_case_name.c_str(), function, exec_preset);
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
@@ -293,8 +293,8 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
 
   try_dispatch_float_math_fl3_to_fl(
       operation, [&](auto exec_preset, auto function, const FloatMathOperationInfo &info) {
-        static fn::CustomMF_SI_SO<float3, float> fn{
-            info.title_case_name.c_str(), function, exec_preset};
+        static auto fn = fn::build_mf::SI1_SO<float3, float>(
+            info.title_case_name.c_str(), function, exec_preset);
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {

@@ -104,11 +104,9 @@ TEST(field, InputAndFunction)
 {
   GField index_field{std::make_shared<IndexFieldInput>()};
 
-  std::unique_ptr<MultiFunction> add_fn = std::make_unique<CustomMF_SI_SI_SO<int, int, int>>(
-      "add", [](int a, int b) { return a + b; });
-  GField output_field{std::make_shared<FieldOperation>(
-                          FieldOperation(std::move(add_fn), {index_field, index_field})),
-                      0};
+  auto add_fn = build_mf::SI2_SO<int, int, int>("add", [](int a, int b) { return a + b; });
+  GField output_field{
+      std::make_shared<FieldOperation>(FieldOperation(add_fn, {index_field, index_field})), 0};
 
   Array<int> result(10);
 
@@ -129,16 +127,12 @@ TEST(field, TwoFunctions)
 {
   GField index_field{std::make_shared<IndexFieldInput>()};
 
-  std::unique_ptr<MultiFunction> add_fn = std::make_unique<CustomMF_SI_SI_SO<int, int, int>>(
-      "add", [](int a, int b) { return a + b; });
-  GField add_field{std::make_shared<FieldOperation>(
-                       FieldOperation(std::move(add_fn), {index_field, index_field})),
-                   0};
+  auto add_fn = build_mf::SI2_SO<int, int, int>("add", [](int a, int b) { return a + b; });
+  GField add_field{
+      std::make_shared<FieldOperation>(FieldOperation(add_fn, {index_field, index_field})), 0};
 
-  std::unique_ptr<MultiFunction> add_10_fn = std::make_unique<CustomMF_SI_SO<int, int>>(
-      "add_10", [](int a) { return a + 10; });
-  GField result_field{
-      std::make_shared<FieldOperation>(FieldOperation(std::move(add_10_fn), {add_field})), 0};
+  auto add_10_fn = build_mf::SI1_SO<int, int>("add_10", [](int a) { return a + 10; });
+  GField result_field{std::make_shared<FieldOperation>(FieldOperation(add_10_fn, {add_field})), 0};
 
   Array<int> result(10);
 
@@ -230,11 +224,9 @@ TEST(field, TwoFunctionsTwoOutputs)
   Field<int> result_field_1{fn, 0};
   Field<int> intermediate_field{fn, 1};
 
-  std::unique_ptr<MultiFunction> add_10_fn = std::make_unique<CustomMF_SI_SO<int, int>>(
-      "add_10", [](int a) { return a + 10; });
+  auto add_10_fn = build_mf::SI1_SO<int, int>("add_10", [](int a) { return a + 10; });
   Field<int> result_field_2{
-      std::make_shared<FieldOperation>(FieldOperation(std::move(add_10_fn), {intermediate_field})),
-      0};
+      std::make_shared<FieldOperation>(FieldOperation(add_10_fn, {intermediate_field})), 0};
 
   FieldContext field_context;
   FieldEvaluator field_evaluator{field_context, &mask};

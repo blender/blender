@@ -412,51 +412,51 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
   switch (data->data_type) {
     case SOCK_FLOAT: {
       if (clamp_factor) {
-        static fn::CustomMF_SI_SI_SI_SO<float, float, float, float> fn{
+        static auto fn = fn::build_mf::SI3_SO<float, float, float, float>(
             "Clamp Mix Float", [](float t, const float a, const float b) {
               return math::interpolate(a, b, std::clamp(t, 0.0f, 1.0f));
-            }};
+            });
         return &fn;
       }
       else {
-        static fn::CustomMF_SI_SI_SI_SO<float, float, float, float> fn{
+        static auto fn = fn::build_mf::SI3_SO<float, float, float, float>(
             "Mix Float", [](const float t, const float a, const float b) {
               return math::interpolate(a, b, t);
-            }};
+            });
         return &fn;
       }
     }
     case SOCK_VECTOR: {
       if (clamp_factor) {
         if (uniform_factor) {
-          static fn::CustomMF_SI_SI_SI_SO<float, float3, float3, float3> fn{
+          static auto fn = fn::build_mf::SI3_SO<float, float3, float3, float3>(
               "Clamp Mix Vector", [](const float t, const float3 a, const float3 b) {
                 return math::interpolate(a, b, std::clamp(t, 0.0f, 1.0f));
-              }};
+              });
           return &fn;
         }
         else {
-          static fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
+          static auto fn = fn::build_mf::SI3_SO<float3, float3, float3, float3>(
               "Clamp Mix Vector Non Uniform", [](float3 t, const float3 a, const float3 b) {
                 t = math::clamp(t, 0.0f, 1.0f);
                 return a * (float3(1.0f) - t) + b * t;
-              }};
+              });
           return &fn;
         }
       }
       else {
         if (uniform_factor) {
-          static fn::CustomMF_SI_SI_SI_SO<float, float3, float3, float3> fn{
+          static auto fn = fn::build_mf::SI3_SO<float, float3, float3, float3>(
               "Mix Vector", [](const float t, const float3 a, const float3 b) {
                 return math::interpolate(a, b, t);
-              }};
+              });
           return &fn;
         }
         else {
-          static fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
+          static auto fn = fn::build_mf::SI3_SO<float3, float3, float3, float3>(
               "Mix Vector Non Uniform", [](const float3 t, const float3 a, const float3 b) {
                 return a * (float3(1.0f) - t) + b * t;
-              }};
+              });
           return &fn;
         }
       }

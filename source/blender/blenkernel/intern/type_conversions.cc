@@ -20,12 +20,12 @@ static void add_implicit_conversion(DataTypeConversions &conversions)
   static const CPPType &to_type = CPPType::get<To>();
   static const std::string conversion_name = from_type.name() + " to " + to_type.name();
 
-  static fn::CustomMF_SI_SO<From, To> multi_function{
+  static auto multi_function = fn::build_mf::SI1_SO<From, To>(
       conversion_name.c_str(),
       /* Use lambda instead of passing #ConversionF directly, because otherwise the compiler won't
        * inline the function. */
       [](const From &a) { return ConversionF(a); },
-      fn::CustomMF_presets::AllSpanOrSingle()};
+      fn::build_mf::exec_presets::AllSpanOrSingle());
   static auto convert_single_to_initialized = [](const void *src, void *dst) {
     *(To *)dst = ConversionF(*(const From *)src);
   };

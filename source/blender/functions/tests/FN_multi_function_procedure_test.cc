@@ -19,7 +19,7 @@ TEST(multi_function_procedure, ConstantOutput)
    */
 
   CustomMF_Constant<int> constant_fn{5};
-  CustomMF_SI_SI_SO<int, int, int> add_fn{"Add", [](int a, int b) { return a + b; }};
+  auto add_fn = build_mf::SI2_SO<int, int, int>("Add", [](int a, int b) { return a + b; });
 
   MFProcedure procedure;
   MFProcedureBuilder builder{procedure};
@@ -56,8 +56,8 @@ TEST(multi_function_procedure, SimpleTest)
    * }
    */
 
-  CustomMF_SI_SI_SO<int, int, int> add_fn{"add", [](int a, int b) { return a + b; }};
-  CustomMF_SM<int> add_10_fn{"add_10", [](int &a) { a += 10; }};
+  auto add_fn = fn::build_mf::SI2_SO<int, int, int>("add", [](int a, int b) { return a + b; });
+  auto add_10_fn = fn::build_mf::SM<int>("add_10", [](int &a) { a += 10; });
 
   MFProcedure procedure;
   MFProcedureBuilder builder{procedure};
@@ -106,8 +106,8 @@ TEST(multi_function_procedure, BranchTest)
    * }
    */
 
-  CustomMF_SM<int> add_10_fn{"add_10", [](int &a) { a += 10; }};
-  CustomMF_SM<int> add_100_fn{"add_100", [](int &a) { a += 100; }};
+  auto add_10_fn = build_mf::SM<int>("add_10", [](int &a) { a += 10; });
+  auto add_100_fn = build_mf::SM<int>("add_100", [](int &a) { a += 100; });
 
   MFProcedure procedure;
   MFProcedureBuilder builder{procedure};
@@ -153,10 +153,10 @@ TEST(multi_function_procedure, EvaluateOne)
    */
 
   int tot_evaluations = 0;
-  CustomMF_SI_SO<int, int> add_10_fn{"add_10", [&](int a) {
-                                       tot_evaluations++;
-                                       return a + 10;
-                                     }};
+  const auto add_10_fn = fn::build_mf::SI1_SO<int, int>("add_10", [&](int a) {
+    tot_evaluations++;
+    return a + 10;
+  });
 
   MFProcedure procedure;
   MFProcedureBuilder builder{procedure};
@@ -205,11 +205,11 @@ TEST(multi_function_procedure, SimpleLoop)
 
   CustomMF_Constant<int> const_1_fn{1};
   CustomMF_Constant<int> const_0_fn{0};
-  CustomMF_SI_SI_SO<int, int, bool> greater_or_equal_fn{"greater or equal",
-                                                        [](int a, int b) { return a >= b; }};
-  CustomMF_SM<int> double_fn{"double", [](int &a) { a *= 2; }};
-  CustomMF_SM<int> add_1000_fn{"add 1000", [](int &a) { a += 1000; }};
-  CustomMF_SM<int> add_1_fn{"add 1", [](int &a) { a += 1; }};
+  auto greater_or_equal_fn = fn::build_mf::SI2_SO<int, int, bool>(
+      "greater or equal", [](int a, int b) { return a >= b; });
+  auto double_fn = build_mf::SM<int>("double", [](int &a) { a *= 2; });
+  auto add_1000_fn = build_mf::SM<int>("add 1000", [](int &a) { a += 1000; });
+  auto add_1_fn = build_mf::SM<int>("add 1", [](int &a) { a += 1; });
 
   MFProcedure procedure;
   MFProcedureBuilder builder{procedure};
@@ -338,7 +338,7 @@ TEST(multi_function_procedure, BufferReuse)
    * }
    */
 
-  CustomMF_SI_SO<int, int> add_10_fn{"add 10", [](int a) { return a + 10; }};
+  auto add_10_fn = build_mf::SI1_SO<int, int>("add 10", [](int a) { return a + 10; });
 
   MFProcedure procedure;
   MFProcedureBuilder builder{procedure};

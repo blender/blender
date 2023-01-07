@@ -108,8 +108,8 @@ static int gpu_shader_combrgb(GPUMaterial *mat,
 
 static void sh_node_combrgb_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static fn::CustomMF_SI_SI_SI_SO<float, float, float, ColorGeometry4f> fn{
-      "Combine RGB", [](float r, float g, float b) { return ColorGeometry4f(r, g, b, 1.0f); }};
+  static auto fn = fn::build_mf::SI3_SO<float, float, float, ColorGeometry4f>(
+      "Combine RGB", [](float r, float g, float b) { return ColorGeometry4f(r, g, b, 1.0f); });
   builder.set_matching_fn(fn);
 }
 

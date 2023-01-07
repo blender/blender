@@ -8,17 +8,15 @@
  * This file contains several utilities to create multi-functions with less redundant code.
  */
 
-#include <functional>
-
 #include "FN_multi_function.hh"
 
-namespace blender::fn {
+namespace blender::fn::build_mf {
 
 /**
  * These presets determine what code is generated for a #CustomMF. Different presets make different
  * trade-offs between run-time performance and compile-time/binary size.
  */
-namespace CustomMF_presets {
+namespace exec_presets {
 
 /** Method to execute a function in case devirtualization was not possible. */
 enum class FallbackMode {
@@ -63,7 +61,7 @@ struct AllSpanOrSingle {
   auto create_devirtualizers(TypeSequence<ParamTags...> /*param_tags*/,
                              std::index_sequence<I...> /*indices*/,
                              const IndexMask &mask,
-                             const std::tuple<LoadedParams...> &loaded_params)
+                             const std::tuple<LoadedParams...> &loaded_params) const
   {
     return std::make_tuple(IndexMaskDevirtualizer<true, true>{mask}, [&]() {
       typedef ParamTags ParamTag;
@@ -72,7 +70,9 @@ struct AllSpanOrSingle {
         const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
         return GVArrayDevirtualizer<T, true, true>{varray_impl};
       }
-      else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
+      else if constexpr (ELEM(ParamTag::category,
+                              MFParamCategory::SingleOutput,
+                              MFParamCategory::SingleMutable)) {
         T *ptr = std::get<I>(loaded_params);
         return BasicDevirtualizer<T *>{ptr};
       }
@@ -93,7 +93,7 @@ template<size_t... Indices> struct SomeSpanOrSingle {
   auto create_devirtualizers(TypeSequence<ParamTags...> /*param_tags*/,
                              std::index_sequence<I...> /*indices*/,
                              const IndexMask &mask,
-                             const std::tuple<LoadedParams...> &loaded_params)
+                             const std::tuple<LoadedParams...> &loaded_params) const
   {
     return std::make_tuple(IndexMaskDevirtualizer<true, true>{mask}, [&]() {
       typedef ParamTags ParamTag;
@@ -104,7 +104,9 @@ template<size_t... Indices> struct SomeSpanOrSingle {
         const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
         return GVArrayDevirtualizer<T, true, UseSpan>{varray_impl};
       }
-      else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
+      else if constexpr (ELEM(ParamTag::category,
+                              MFParamCategory::SingleOutput,
+                              MFParamCategory::SingleMutable)) {
         T *ptr = std::get<I>(loaded_params);
         return BasicDevirtualizer<T *>{ptr};
       }
@@ -112,7 +114,7 @@ template<size_t... Indices> struct SomeSpanOrSingle {
   }
 };
 
-}  // namespace CustomMF_presets
+}  // namespace exec_presets
 
 namespace detail {
 
@@ -142,23 +144,23 @@ void execute_array(TypeSequence<ParamTags...> /*param_tags*/,
          * reference, because the pointer points to uninitialized memory. */
         return args + i;
       }
+      else if constexpr (ParamTag::category == MFParamCategory::SingleMutable) {
+        /* For mutables, pass a mutable reference to the function. */
+        return args[i];
+      }
     }()...);
   }
 }
 
-}  // namespace detail
-
-namespace materialize_detail {
-
-enum class ArgMode {
+enum class MaterializeArgMode {
   Unknown,
   Single,
   Span,
   Materialized,
 };
 
-template<typename ParamTag> struct ArgInfo {
-  ArgMode mode = ArgMode::Unknown;
+template<typename ParamTag> struct MaterializeArgInfo {
+  MaterializeArgMode mode = MaterializeArgMode::Unknown;
   Span<typename ParamTag::base_type> internal_span;
 };
 
@@ -182,8 +184,10 @@ void execute_materialized_impl(TypeSequence<ParamTags...> /*param_tags*/,
         return chunks[in_i];
       }
       else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
-        /* For outputs, a pointer is passed, because the memory is uninitialized. */
         return chunks + out_i;
+      }
+      else if constexpr (ParamTag::category == MFParamCategory::SingleMutable) {
+        return chunks[out_i];
       }
     }()...);
   }
@@ -217,7 +221,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
   std::tuple<MutableSpan<typename ParamTags::base_type>...> buffers;
 
   /* Information about every parameter. */
-  std::tuple<ArgInfo<ParamTags>...> args_info;
+  std::tuple<MaterializeArgInfo<ParamTags>...> args_info;
 
   (
       /* Setup information for all parameters. */
@@ -225,7 +229,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
         /* Use `typedef` instead of `using` to work around a compiler bug. */
         typedef ParamTags ParamTag;
         typedef typename ParamTag::base_type T;
-        [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
+        [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
         if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
           const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
           const CommonVArrayInfo common_info = varray_impl.common_info();
@@ -236,7 +240,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
             const T &in_single = *static_cast<const T *>(common_info.data);
             uninitialized_fill_n(in_chunk.data(), in_chunk.size(), in_single);
             std::get<I>(buffers) = in_chunk;
-            arg_info.mode = ArgMode::Single;
+            arg_info.mode = MaterializeArgMode::Single;
           }
           else if (common_info.type == CommonVArrayInfo::Type::Span) {
             /* Remember the span so that it doesn't have to be retrieved in every iteration. */
@@ -264,9 +268,9 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
         [&] {
           using ParamTag = ParamTags;
           using T = typename ParamTag::base_type;
-          [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
+          [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
           if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
-            if (arg_info.mode == ArgMode::Single) {
+            if (arg_info.mode == MaterializeArgMode::Single) {
               /* The single value has been filled into a buffer already reused for every chunk. */
               return Span<T>(std::get<I>(buffers));
             }
@@ -276,7 +280,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
                   /* In this case we can just use an existing span instead of "compressing" it into
                    * a new temporary buffer. */
                   const IndexRange sliced_mask_range = sliced_mask.as_range();
-                  arg_info.mode = ArgMode::Span;
+                  arg_info.mode = MaterializeArgMode::Span;
                   return arg_info.internal_span.slice(sliced_mask_range);
                 }
               }
@@ -287,11 +291,13 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
               varray_impl.materialize_compressed_to_uninitialized(sliced_mask, in_chunk.data());
               /* Remember that this parameter has been materialized, so that the values are
                * destructed properly when the chunk is done. */
-              arg_info.mode = ArgMode::Materialized;
+              arg_info.mode = MaterializeArgMode::Materialized;
               return Span<T>(in_chunk);
             }
           }
-          else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
+          else if constexpr (ELEM(ParamTag::category,
+                                  MFParamCategory::SingleOutput,
+                                  MFParamCategory::SingleMutable)) {
             /* For outputs, just pass a pointer. This is important so that `__restrict` works. */
             return std::get<I>(loaded_params);
           }
@@ -303,9 +309,9 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
           /* Use `typedef` instead of `using` to work around a compiler bug. */
           typedef ParamTags ParamTag;
           typedef typename ParamTag::base_type T;
-          [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
+          [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
           if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
-            if (arg_info.mode == ArgMode::Materialized) {
+            if (arg_info.mode == MaterializeArgMode::Materialized) {
               T *in_chunk = std::get<I>(buffers_owner).ptr();
               destruct_n(in_chunk, chunk_size);
             }
@@ -320,9 +326,9 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
         /* Use `typedef` instead of `using` to work around a compiler bug. */
         typedef ParamTags ParamTag;
         typedef typename ParamTag::base_type T;
-        [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
+        [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
         if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
-          if (arg_info.mode == ArgMode::Single) {
+          if (arg_info.mode == MaterializeArgMode::Single) {
             MutableSpan<T> in_chunk = std::get<I>(buffers);
             destruct_n(in_chunk.data(), in_chunk.size());
           }
@@ -330,271 +336,253 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
       }(),
       ...);
 }
-}  // namespace materialize_detail
 
-template<typename... ParamTags> class CustomMF : public MultiFunction {
- private:
-  std::function<void(IndexMask mask, MFParams params)> fn_;
-  MFSignature signature_;
+template<typename ElementFn, typename ExecPreset, typename... ParamTags, size_t... I>
+inline void execute_element_fn_as_multi_function(const ElementFn element_fn,
+                                                 const ExecPreset exec_preset,
+                                                 const IndexMask mask,
+                                                 MFParams params,
+                                                 TypeSequence<ParamTags...> /*param_tags*/,
+                                                 std::index_sequence<I...> /*indices*/)
+{
 
-  using TagsSequence = TypeSequence<ParamTags...>;
+  /* Load parameters from #MFParams. */
+  /* Contains `const GVArrayImpl *` for inputs and `T *` for outputs. */
+  const auto loaded_params = std::make_tuple([&]() {
+    /* Use `typedef` instead of `using` to work around a compiler bug. */
+    typedef ParamTags ParamTag;
+    typedef typename ParamTag::base_type T;
 
- public:
-  template<typename ElementFn, typename ExecPreset = CustomMF_presets::Materialized>
-  CustomMF(const char *name,
-           ElementFn element_fn,
-           ExecPreset exec_preset = CustomMF_presets::Materialized())
-  {
-    MFSignatureBuilder signature{name};
-    add_signature_parameters(signature, std::make_index_sequence<TagsSequence::size()>());
-    signature_ = signature.build();
-    this->set_signature(&signature_);
+    if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+      return params.readonly_single_input(I).get_implementation();
+    }
+    else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
+      return static_cast<T *>(params.uninitialized_single_output(I).data());
+    }
+    else if constexpr (ParamTag::category == MFParamCategory::SingleMutable) {
+      return static_cast<T *>(params.single_mutable(I).data());
+    }
+  }()...);
 
-    fn_ = [element_fn, exec_preset](IndexMask mask, MFParams params) {
-      execute(
-          element_fn, exec_preset, mask, params, std::make_index_sequence<TagsSequence::size()>());
-    };
+  /* Try execute devirtualized if enabled and the input types allow it. */
+  bool executed_devirtualized = false;
+  if constexpr (ExecPreset::use_devirtualization) {
+    const auto devirtualizers = exec_preset.create_devirtualizers(
+        TypeSequence<ParamTags...>(), std::index_sequence<I...>(), mask, loaded_params);
+    executed_devirtualized = call_with_devirtualized_parameters(
+        devirtualizers, [&](auto &&...args) {
+          execute_array(TypeSequence<ParamTags...>(),
+                        std::index_sequence<I...>(),
+                        element_fn,
+                        std::forward<decltype(args)>(args)...);
+        });
   }
 
-  template<typename ElementFn, typename ExecPreset, size_t... I>
-  static void execute(ElementFn element_fn,
-                      ExecPreset exec_preset,
-                      IndexMask mask,
-                      MFParams params,
-                      std::index_sequence<I...> /*indices*/)
-  {
-    /* Contains `const GVArrayImpl *` for inputs and `T *` for outputs. */
-    const auto loaded_params = std::make_tuple([&]() {
-      /* Use `typedef` instead of `using` to work around a compiler bug. */
-      typedef typename TagsSequence::template at_index<I> ParamTag;
-      typedef typename ParamTag::base_type T;
-
-      if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
-        return params.readonly_single_input(I).get_implementation();
-      }
-      else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
-        return static_cast<T *>(params.uninitialized_single_output(I).data());
-      }
-    }()...);
-
-    /* First try devirtualized execution, since this is the most efficient. */
-    bool executed_devirtualized = false;
-    if constexpr (ExecPreset::use_devirtualization) {
-      const auto devirtualizers = exec_preset.create_devirtualizers(
-          TagsSequence(), std::index_sequence<I...>(), mask, loaded_params);
-      executed_devirtualized = call_with_devirtualized_parameters(
-          devirtualizers, [&](auto &&...args) {
-            detail::execute_array(TagsSequence(),
-                                  std::index_sequence<I...>(),
-                                  element_fn,
-                                  std::forward<decltype(args)>(args)...);
-          });
+  /* If devirtualized execution was disabled or not possible, use a fallback method which is
+   * slower but always works. */
+  if (!executed_devirtualized) {
+    /* The materialized method is most common because it avoids most virtual function overhead but
+     * still instantiates the function only once. */
+    if constexpr (ExecPreset::fallback_mode == exec_presets::FallbackMode::Materialized) {
+      execute_materialized(TypeSequence<ParamTags...>(),
+                           std::index_sequence<I...>(),
+                           element_fn,
+                           mask,
+                           loaded_params);
     }
-
-    /* If devirtualized execution was disabled or not possible, use a fallback method which is
-     * slower but always works. */
-    if (!executed_devirtualized) {
-      if constexpr (ExecPreset::fallback_mode == CustomMF_presets::FallbackMode::Materialized) {
-        materialize_detail::execute_materialized(
-            TagsSequence(), std::index_sequence<I...>(), element_fn, mask, loaded_params);
-      }
-      else {
-        detail::execute_array(
-            TagsSequence(), std::index_sequence<I...>(), element_fn, mask, [&]() {
-              /* Use `typedef` instead of `using` to work around a compiler bug. */
-              typedef typename TagsSequence::template at_index<I> ParamTag;
-              typedef typename ParamTag::base_type T;
-              if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
-                const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
-                return GVArray(&varray_impl).typed<T>();
-              }
-              else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
-                T *ptr = std::get<I>(loaded_params);
-                return ptr;
-              }
-            }()...);
-      }
+    else {
+      /* This fallback is slower because it uses virtual method calls for every element. */
+      execute_array(
+          TypeSequence<ParamTags...>(), std::index_sequence<I...>(), element_fn, mask, [&]() {
+            /* Use `typedef` instead of `using` to work around a compiler bug. */
+            typedef ParamTags ParamTag;
+            typedef typename ParamTag::base_type T;
+            if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+              const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
+              return GVArray(&varray_impl).typed<T>();
+            }
+            else if constexpr (ELEM(ParamTag::category,
+                                    MFParamCategory::SingleOutput,
+                                    MFParamCategory::SingleMutable)) {
+              T *ptr = std::get<I>(loaded_params);
+              return ptr;
+            }
+          }()...);
     }
   }
-
-  template<size_t... I>
-  static void add_signature_parameters(MFSignatureBuilder &signature,
-                                       std::index_sequence<I...> /* indices */)
-  {
-    (
-        /* Loop over all parameter types and add an entry for each in the signature. */
-        [&] {
-          /* Use `typedef` instead of `using` to work around a compiler bug. */
-          typedef typename TagsSequence::template at_index<I> ParamTag;
-          signature.add(ParamTag(), "");
-        }(),
-        ...);
-  }
-
-  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
-  {
-    fn_(mask, params);
-  }
-};
+}
 
 /**
- * Generates a multi-function with the following parameters:
- * 1. single input (SI) of type In1
- * 2. single output (SO) of type Out1
- *
- * This example creates a function that adds 10 to the incoming values:
- * `CustomMF_SI_SO<int, int> fn("add 10", [](int value) { return value + 10; });`
+ * `element_fn` is expected to return nothing and to have the following parameters:
+ * - For single-inputs: const value or reference.
+ * - For single-mutables: non-const reference.
+ * - For single-outputs: non-const pointer.
  */
-template<typename In1, typename Out1>
-class CustomMF_SI_SO : public CustomMF<MFParamTag<MFParamCategory::SingleInput, In1>,
-                                       MFParamTag<MFParamCategory::SingleOutput, Out1>> {
- public:
-  template<typename ElementFn, typename ExecPreset = CustomMF_presets::Materialized>
-  CustomMF_SI_SO(const char *name,
-                 ElementFn element_fn,
-                 ExecPreset exec_preset = CustomMF_presets::Materialized())
-      : CustomMF<MFParamTag<MFParamCategory::SingleInput, In1>,
-                 MFParamTag<MFParamCategory::SingleOutput, Out1>>(
-            name,
-            [element_fn](const In1 &in1, Out1 *out1) { new (out1) Out1(element_fn(in1)); },
-            exec_preset)
-  {
-  }
-};
+template<typename ElementFn, typename ExecPreset, typename... ParamTags>
+inline auto build_multi_function_call_from_element_fn(const ElementFn element_fn,
+                                                      const ExecPreset exec_preset,
+                                                      TypeSequence<ParamTags...> /*param_tags*/)
+{
+  return [element_fn, exec_preset](const IndexMask mask, MFParams params) {
+    execute_element_fn_as_multi_function(element_fn,
+                                         exec_preset,
+                                         mask,
+                                         params,
+                                         TypeSequence<ParamTags...>(),
+                                         std::make_index_sequence<sizeof...(ParamTags)>());
+  };
+}
 
 /**
- * Generates a multi-function with the following parameters:
- * 1. single input (SI) of type In1
- * 2. single input (SI) of type In2
- * 3. single output (SO) of type Out1
+ * A multi function that just invokes the provided function in its #call method.
  */
-template<typename In1, typename In2, typename Out1>
-class CustomMF_SI_SI_SO : public CustomMF<MFParamTag<MFParamCategory::SingleInput, In1>,
-                                          MFParamTag<MFParamCategory::SingleInput, In2>,
-                                          MFParamTag<MFParamCategory::SingleOutput, Out1>> {
- public:
-  template<typename ElementFn, typename ExecPreset = CustomMF_presets::Materialized>
-  CustomMF_SI_SI_SO(const char *name,
-                    ElementFn element_fn,
-                    ExecPreset exec_preset = CustomMF_presets::Materialized())
-      : CustomMF<MFParamTag<MFParamCategory::SingleInput, In1>,
-                 MFParamTag<MFParamCategory::SingleInput, In2>,
-                 MFParamTag<MFParamCategory::SingleOutput, Out1>>(
-            name,
-            [element_fn](const In1 &in1, const In2 &in2, Out1 *out1) {
-              new (out1) Out1(element_fn(in1, in2));
-            },
-            exec_preset)
-  {
-  }
-};
-
-/**
- * Generates a multi-function with the following parameters:
- * 1. single input (SI) of type In1
- * 2. single input (SI) of type In2
- * 3. single input (SI) of type In3
- * 4. single output (SO) of type Out1
- */
-template<typename In1, typename In2, typename In3, typename Out1>
-class CustomMF_SI_SI_SI_SO : public CustomMF<MFParamTag<MFParamCategory::SingleInput, In1>,
-                                             MFParamTag<MFParamCategory::SingleInput, In2>,
-                                             MFParamTag<MFParamCategory::SingleInput, In3>,
-                                             MFParamTag<MFParamCategory::SingleOutput, Out1>> {
- public:
-  template<typename ElementFn, typename ExecPreset = CustomMF_presets::Materialized>
-  CustomMF_SI_SI_SI_SO(const char *name,
-                       ElementFn element_fn,
-                       ExecPreset exec_preset = CustomMF_presets::Materialized())
-      : CustomMF<MFParamTag<MFParamCategory::SingleInput, In1>,
-                 MFParamTag<MFParamCategory::SingleInput, In2>,
-                 MFParamTag<MFParamCategory::SingleInput, In3>,
-                 MFParamTag<MFParamCategory::SingleOutput, Out1>>(
-            name,
-            [element_fn](const In1 &in1, const In2 &in2, const In3 &in3, Out1 *out1) {
-              new (out1) Out1(element_fn(in1, in2, in3));
-            },
-            exec_preset)
-  {
-  }
-};
-
-/**
- * Generates a multi-function with the following parameters:
- * 1. single input (SI) of type In1
- * 2. single input (SI) of type In2
- * 3. single input (SI) of type In3
- * 4. single input (SI) of type In4
- * 5. single output (SO) of type Out1
- */
-template<typename In1, typename In2, typename In3, typename In4, typename Out1>
-class CustomMF_SI_SI_SI_SI_SO : public CustomMF<MFParamTag<MFParamCategory::SingleInput, In1>,
-                                                MFParamTag<MFParamCategory::SingleInput, In2>,
-                                                MFParamTag<MFParamCategory::SingleInput, In3>,
-                                                MFParamTag<MFParamCategory::SingleInput, In4>,
-                                                MFParamTag<MFParamCategory::SingleOutput, Out1>> {
- public:
-  template<typename ElementFn, typename ExecPreset = CustomMF_presets::Materialized>
-  CustomMF_SI_SI_SI_SI_SO(const char *name,
-                          ElementFn element_fn,
-                          ExecPreset exec_preset = CustomMF_presets::Materialized())
-      : CustomMF<MFParamTag<MFParamCategory::SingleInput, In1>,
-                 MFParamTag<MFParamCategory::SingleInput, In2>,
-                 MFParamTag<MFParamCategory::SingleInput, In3>,
-                 MFParamTag<MFParamCategory::SingleInput, In4>,
-                 MFParamTag<MFParamCategory::SingleOutput, Out1>>(
-            name,
-            [element_fn](
-                const In1 &in1, const In2 &in2, const In3 &in3, const In4 &in4, Out1 *out1) {
-              new (out1) Out1(element_fn(in1, in2, in3, in4));
-            },
-            exec_preset)
-  {
-  }
-};
-
-/**
- * Generates a multi-function with the following parameters:
- * 1. single mutable (SM) of type Mut1
- */
-template<typename Mut1> class CustomMF_SM : public MultiFunction {
+template<typename CallFn, typename... ParamTags> class CustomMF : public MultiFunction {
  private:
-  using FunctionT = std::function<void(IndexMask, MutableSpan<Mut1>)>;
-  FunctionT function_;
   MFSignature signature_;
+  CallFn call_fn_;
 
  public:
-  CustomMF_SM(const char *name, FunctionT function) : function_(std::move(function))
+  CustomMF(const char *name, CallFn call_fn, TypeSequence<ParamTags...> /*param_tags*/)
+      : call_fn_(std::move(call_fn))
   {
     MFSignatureBuilder signature{name};
-    signature.single_mutable<Mut1>("Mut1");
+    /* Loop over all parameter types and add an entry for each in the signature. */
+    ([&] { signature.add(ParamTags(), ""); }(), ...);
     signature_ = signature.build();
     this->set_signature(&signature_);
   }
 
-  template<typename ElementFuncT>
-  CustomMF_SM(const char *name, ElementFuncT element_fn)
-      : CustomMF_SM(name, CustomMF_SM::create_function(element_fn))
-  {
-  }
-
-  template<typename ElementFuncT> static FunctionT create_function(ElementFuncT element_fn)
-  {
-    return [=](IndexMask mask, MutableSpan<Mut1> mut1) {
-      mask.to_best_mask_type([&](const auto &mask) {
-        for (const int64_t i : mask) {
-          element_fn(mut1[i]);
-        }
-      });
-    };
-  }
-
   void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
   {
-    MutableSpan<Mut1> mut1 = params.single_mutable<Mut1>(0);
-    function_(mask, mut1);
+    call_fn_(mask, params);
   }
 };
+
+template<typename Out, typename... In, typename ElementFn, typename ExecPreset>
+inline auto build_multi_function_with_n_inputs_one_output(const char *name,
+                                                          const ElementFn element_fn,
+                                                          const ExecPreset exec_preset,
+                                                          TypeSequence<In...> /*in_types*/)
+{
+  constexpr auto param_tags = TypeSequence<MFParamTag<MFParamCategory::SingleInput, In>...,
+                                           MFParamTag<MFParamCategory::SingleOutput, Out>>();
+  auto call_fn = build_multi_function_call_from_element_fn(
+      [element_fn](const In &...in, Out *out) { new (out) Out(element_fn(in...)); },
+      exec_preset,
+      param_tags);
+  return CustomMF(name, call_fn, param_tags);
+}
+
+}  // namespace detail
+
+/** Build multi-function with 1 single-input and 1 single-output parameter. */
+template<typename In1,
+         typename Out1,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI1_SO(const char *name,
+                   const ElementFn element_fn,
+                   const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  return detail::build_multi_function_with_n_inputs_one_output<Out1>(
+      name, element_fn, exec_preset, TypeSequence<In1>());
+}
+
+/** Build multi-function with 2 single-input and 1 single-output parameter. */
+template<typename In1,
+         typename In2,
+         typename Out1,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI2_SO(const char *name,
+                   const ElementFn element_fn,
+                   const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  return detail::build_multi_function_with_n_inputs_one_output<Out1>(
+      name, element_fn, exec_preset, TypeSequence<In1, In2>());
+}
+
+/** Build multi-function with 3 single-input and 1 single-output parameter. */
+template<typename In1,
+         typename In2,
+         typename In3,
+         typename Out1,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI3_SO(const char *name,
+                   const ElementFn element_fn,
+                   const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  return detail::build_multi_function_with_n_inputs_one_output<Out1>(
+      name, element_fn, exec_preset, TypeSequence<In1, In2, In3>());
+}
+
+/** Build multi-function with 4 single-input and 1 single-output parameter. */
+template<typename In1,
+         typename In2,
+         typename In3,
+         typename In4,
+         typename Out1,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI4_SO(const char *name,
+                   const ElementFn element_fn,
+                   const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  return detail::build_multi_function_with_n_inputs_one_output<Out1>(
+      name, element_fn, exec_preset, TypeSequence<In1, In2, In3, In4>());
+}
+
+/** Build multi-function with 5 single-input and 1 single-output parameter. */
+template<typename In1,
+         typename In2,
+         typename In3,
+         typename In4,
+         typename In5,
+         typename Out1,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI5_SO(const char *name,
+                   const ElementFn element_fn,
+                   const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  return detail::build_multi_function_with_n_inputs_one_output<Out1>(
+      name, element_fn, exec_preset, TypeSequence<In1, In2, In3, In4, In5>());
+}
+
+/** Build multi-function with 6 single-input and 1 single-output parameter. */
+template<typename In1,
+         typename In2,
+         typename In3,
+         typename In4,
+         typename In5,
+         typename In6,
+         typename Out1,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI6_SO(const char *name,
+                   const ElementFn element_fn,
+                   const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  return detail::build_multi_function_with_n_inputs_one_output<Out1>(
+      name, element_fn, exec_preset, TypeSequence<In1, In2, In3, In4, In5, In6>());
+}
+
+/** Build multi-function with 1 single-mutable parameter. */
+template<typename Mut1, typename ElementFn, typename ExecPreset = exec_presets::AllSpanOrSingle>
+inline auto SM(const char *name,
+               const ElementFn element_fn,
+               const ExecPreset exec_preset = exec_presets::AllSpanOrSingle())
+{
+  constexpr auto param_tags = TypeSequence<MFParamTag<MFParamCategory::SingleMutable, Mut1>>();
+  auto call_fn = detail::build_multi_function_call_from_element_fn(
+      element_fn, exec_preset, param_tags);
+  return detail::CustomMF(name, call_fn, param_tags);
+}
+
+}  // namespace blender::fn::build_mf
+
+namespace blender::fn {
 
 /**
  * A multi-function that outputs the same value every time. The value is not owned by an instance

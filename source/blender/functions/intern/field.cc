@@ -519,8 +519,8 @@ GField make_field_constant_if_possible(GField field)
 
 Field<bool> invert_boolean_field(const Field<bool> &field)
 {
-  static CustomMF_SI_SO<bool, bool> not_fn{
-      "Not", [](bool a) { return !a; }, CustomMF_presets::AllSpanOrSingle()};
+  static auto not_fn = build_mf::SI1_SO<bool, bool>(
+      "Not", [](bool a) { return !a; }, build_mf::exec_presets::AllSpanOrSingle());
   auto not_op = std::make_shared<FieldOperation>(FieldOperation(not_fn, {field}));
   return Field<bool>(not_op);
 }

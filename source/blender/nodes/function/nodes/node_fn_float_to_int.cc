@@ -38,15 +38,15 @@ static void node_label(const bNodeTree * /*tree*/, const bNode *node, char *labe
 
 static const fn::MultiFunction *get_multi_function(const bNode &bnode)
 {
-  static auto exec_preset = fn::CustomMF_presets::AllSpanOrSingle();
-  static fn::CustomMF_SI_SO<float, int> round_fn{
-      "Round", [](float a) { return int(round(a)); }, exec_preset};
-  static fn::CustomMF_SI_SO<float, int> floor_fn{
-      "Floor", [](float a) { return int(floor(a)); }, exec_preset};
-  static fn::CustomMF_SI_SO<float, int> ceil_fn{
-      "Ceiling", [](float a) { return int(ceil(a)); }, exec_preset};
-  static fn::CustomMF_SI_SO<float, int> trunc_fn{
-      "Truncate", [](float a) { return int(trunc(a)); }, exec_preset};
+  static auto exec_preset = fn::build_mf::exec_presets::AllSpanOrSingle();
+  static auto round_fn = fn::build_mf::SI1_SO<float, int>(
+      "Round", [](float a) { return int(round(a)); }, exec_preset);
+  static auto floor_fn = fn::build_mf::SI1_SO<float, int>(
+      "Floor", [](float a) { return int(floor(a)); }, exec_preset);
+  static auto ceil_fn = fn::build_mf::SI1_SO<float, int>(
+      "Ceiling", [](float a) { return int(ceil(a)); }, exec_preset);
+  static auto trunc_fn = fn::build_mf::SI1_SO<float, int>(
+      "Truncate", [](float a) { return int(trunc(a)); }, exec_preset);
 
   switch (static_cast<FloatToIntRoundingMode>(bnode.custom1)) {
     case FN_NODE_FLOAT_TO_INT_ROUND:
