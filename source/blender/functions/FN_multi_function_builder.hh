@@ -124,13 +124,19 @@ namespace detail {
  * instead of a `VArray<int>`).
  */
 template<typename MaskT, typename... Args, typename... ParamTags, size_t... I, typename ElementFn>
-void execute_array(TypeSequence<ParamTags...> /*param_tags*/,
-                   std::index_sequence<I...> /*indices*/,
-                   ElementFn element_fn,
-                   MaskT mask,
-                   /* Use restrict to tell the compiler that pointer inputs do not alias each
-                    * other. This is important for some compiler optimizations. */
-                   Args &&__restrict... args)
+/* Perform additional optimizations on this loop because it is a very hot loop. For example, the
+ * math node in geometry nodes is processed here.  */
+#if (defined(__GNUC__) && !defined(__clang__))
+[[gnu::optimize("-funroll-loops")]] [[gnu::optimize("O3")]]
+#endif
+void execute_array(
+    TypeSequence<ParamTags...> /*param_tags*/,
+    std::index_sequence<I...> /*indices*/,
+    ElementFn element_fn,
+    MaskT mask,
+    /* Use restrict to tell the compiler that pointer inputs do not alias each
+     * other. This is important for some compiler optimizations. */
+    Args &&__restrict... args)
 {
   for (const int64_t i : mask) {
     element_fn([&]() -> decltype(auto) {
