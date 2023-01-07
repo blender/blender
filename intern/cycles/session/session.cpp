@@ -289,19 +289,24 @@ RenderWork Session::run_update_for_next_iteration()
   RenderWork render_work;
 
   thread_scoped_lock scene_lock(scene->mutex);
-  thread_scoped_lock reset_lock(delayed_reset_.mutex);
 
   bool have_tiles = true;
   bool switched_to_new_tile = false;
+  bool did_reset = false;
 
-  const bool did_reset = delayed_reset_.do_reset;
-  if (delayed_reset_.do_reset) {
-    thread_scoped_lock buffers_lock(buffers_mutex_);
-    do_delayed_reset();
+  /* Perform delayed reset if requested. */
+  {
+    thread_scoped_lock reset_lock(delayed_reset_.mutex);
+    if (delayed_reset_.do_reset) {
+      did_reset = true;
 
-    /* After reset make sure the tile manager is at the first big tile. */
-    have_tiles = tile_manager_.next();
-    switched_to_new_tile = true;
+      thread_scoped_lock buffers_lock(buffers_mutex_);
+      do_delayed_reset();
+
+      /* After reset make sure the tile manager is at the first big tile. */
+      have_tiles = tile_manager_.next();
+      switched_to_new_tile = true;
+    }
   }
 
   /* Update number of samples in the integrator.
