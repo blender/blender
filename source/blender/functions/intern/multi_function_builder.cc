@@ -4,7 +4,7 @@
 
 #include "BLI_hash.hh"
 
-namespace blender::fn {
+namespace blender::fn::multi_function {
 
 CustomMF_GenericConstant::CustomMF_GenericConstant(const CPPType &type,
                                                    const void *value,
@@ -18,7 +18,7 @@ CustomMF_GenericConstant::CustomMF_GenericConstant(const CPPType &type,
   }
   value_ = value;
 
-  MFSignatureBuilder builder{"Constant", signature_};
+  SignatureBuilder builder{"Constant", signature_};
   builder.single_output("Value", type);
   this->set_signature(&signature_);
 }
@@ -31,7 +31,7 @@ CustomMF_GenericConstant::~CustomMF_GenericConstant()
   }
 }
 
-void CustomMF_GenericConstant::call(IndexMask mask, MFParams params, MFContext /*context*/) const
+void CustomMF_GenericConstant::call(IndexMask mask, MFParams params, Context /*context*/) const
 {
   GMutableSpan output = params.uninitialized_single_output(0);
   type_.fill_construct_indices(value_, output.data(), mask);
@@ -57,14 +57,14 @@ bool CustomMF_GenericConstant::equals(const MultiFunction &other) const
 CustomMF_GenericConstantArray::CustomMF_GenericConstantArray(GSpan array) : array_(array)
 {
   const CPPType &type = array.type();
-  MFSignatureBuilder builder{"Constant Vector", signature_};
+  SignatureBuilder builder{"Constant Vector", signature_};
   builder.vector_output("Value", type);
   this->set_signature(&signature_);
 }
 
 void CustomMF_GenericConstantArray::call(IndexMask mask,
                                          MFParams params,
-                                         MFContext /*context*/) const
+                                         Context /*context*/) const
 {
   GVectorArray &vectors = params.vector_output(0);
   for (int64_t i : mask) {
@@ -72,23 +72,23 @@ void CustomMF_GenericConstantArray::call(IndexMask mask,
   }
 }
 
-CustomMF_DefaultOutput::CustomMF_DefaultOutput(Span<MFDataType> input_types,
-                                               Span<MFDataType> output_types)
+CustomMF_DefaultOutput::CustomMF_DefaultOutput(Span<DataType> input_types,
+                                               Span<DataType> output_types)
     : output_amount_(output_types.size())
 {
-  MFSignatureBuilder builder{"Default Output", signature_};
-  for (MFDataType data_type : input_types) {
+  SignatureBuilder builder{"Default Output", signature_};
+  for (DataType data_type : input_types) {
     builder.input("Input", data_type);
   }
-  for (MFDataType data_type : output_types) {
+  for (DataType data_type : output_types) {
     builder.output("Output", data_type);
   }
   this->set_signature(&signature_);
 }
-void CustomMF_DefaultOutput::call(IndexMask mask, MFParams params, MFContext /*context*/) const
+void CustomMF_DefaultOutput::call(IndexMask mask, MFParams params, Context /*context*/) const
 {
   for (int param_index : this->param_indices()) {
-    MFParamType param_type = this->param_type(param_index);
+    ParamType param_type = this->param_type(param_index);
     if (!param_type.is_output()) {
       continue;
     }
@@ -101,25 +101,25 @@ void CustomMF_DefaultOutput::call(IndexMask mask, MFParams params, MFContext /*c
   }
 }
 
-CustomMF_GenericCopy::CustomMF_GenericCopy(MFDataType data_type)
+CustomMF_GenericCopy::CustomMF_GenericCopy(DataType data_type)
 {
-  MFSignatureBuilder builder{"Copy", signature_};
+  SignatureBuilder builder{"Copy", signature_};
   builder.input("Input", data_type);
   builder.output("Output", data_type);
   this->set_signature(&signature_);
 }
 
-void CustomMF_GenericCopy::call(IndexMask mask, MFParams params, MFContext /*context*/) const
+void CustomMF_GenericCopy::call(IndexMask mask, MFParams params, Context /*context*/) const
 {
-  const MFDataType data_type = this->param_type(0).data_type();
+  const DataType data_type = this->param_type(0).data_type();
   switch (data_type.category()) {
-    case MFDataType::Single: {
+    case DataType::Single: {
       const GVArray &inputs = params.readonly_single_input(0, "Input");
       GMutableSpan outputs = params.uninitialized_single_output(1, "Output");
       inputs.materialize_to_uninitialized(mask, outputs.data());
       break;
     }
-    case MFDataType::Vector: {
+    case DataType::Vector: {
       const GVVectorArray &inputs = params.readonly_vector_input(0, "Input");
       GVectorArray &outputs = params.vector_output(1, "Output");
       outputs.extend(mask, inputs);
@@ -128,4 +128,4 @@ void CustomMF_GenericCopy::call(IndexMask mask, MFParams params, MFContext /*con
   }
 }
 
-}  // namespace blender::fn
+}  // namespace blender::fn::multi_function

@@ -108,7 +108,7 @@ static int node_shader_gpu_tex_brick(GPUMaterial *mat,
                         GPU_constant(&squash_freq));
 }
 
-class BrickFunction : public fn::MultiFunction {
+class BrickFunction : public mf::MultiFunction {
  private:
   const float offset_;
   const int offset_freq_;
@@ -122,14 +122,14 @@ class BrickFunction : public fn::MultiFunction {
                 const int squash_freq)
       : offset_(offset), offset_freq_(offset_freq), squash_(squash), squash_freq_(squash_freq)
   {
-    static fn::MFSignature signature = create_signature();
+    static mf::Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
+  static mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"BrickTexture", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"BrickTexture", signature};
     builder.single_input<float3>("Vector");
     builder.single_input<ColorGeometry4f>("Color1");
     builder.single_input<ColorGeometry4f>("Color2");
@@ -204,7 +204,7 @@ class BrickFunction : public fn::MultiFunction {
     return float2(tint, mortar);
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1_values = params.readonly_single_input<ColorGeometry4f>(

@@ -10,7 +10,7 @@
 
 #include "FN_multi_function.hh"
 
-namespace blender::fn::build_mf {
+namespace blender::fn::multi_function::build {
 
 /**
  * These presets determine what code is generated for a #CustomMF. Different presets make different
@@ -66,13 +66,13 @@ struct AllSpanOrSingle {
     return std::make_tuple(IndexMaskDevirtualizer<true, true>{mask}, [&]() {
       typedef ParamTags ParamTag;
       typedef typename ParamTag::base_type T;
-      if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+      if constexpr (ParamTag::category == ParamCategory::SingleInput) {
         const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
         return GVArrayDevirtualizer<T, true, true>{varray_impl};
       }
       else if constexpr (ELEM(ParamTag::category,
-                              MFParamCategory::SingleOutput,
-                              MFParamCategory::SingleMutable)) {
+                              ParamCategory::SingleOutput,
+                              ParamCategory::SingleMutable)) {
         T *ptr = std::get<I>(loaded_params);
         return BasicDevirtualizer<T *>{ptr};
       }
@@ -99,14 +99,14 @@ template<size_t... Indices> struct SomeSpanOrSingle {
       typedef ParamTags ParamTag;
       typedef typename ParamTag::base_type T;
 
-      if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+      if constexpr (ParamTag::category == ParamCategory::SingleInput) {
         constexpr bool UseSpan = ValueSequence<size_t, Indices...>::template contains<I>();
         const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
         return GVArrayDevirtualizer<T, true, UseSpan>{varray_impl};
       }
       else if constexpr (ELEM(ParamTag::category,
-                              MFParamCategory::SingleOutput,
-                              MFParamCategory::SingleMutable)) {
+                              ParamCategory::SingleOutput,
+                              ParamCategory::SingleMutable)) {
         T *ptr = std::get<I>(loaded_params);
         return BasicDevirtualizer<T *>{ptr};
       }
@@ -135,16 +135,16 @@ void execute_array(TypeSequence<ParamTags...> /*param_tags*/,
   for (const int64_t i : mask) {
     element_fn([&]() -> decltype(auto) {
       using ParamTag = typename TypeSequence<ParamTags...>::template at_index<I>;
-      if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+      if constexpr (ParamTag::category == ParamCategory::SingleInput) {
         /* For inputs, pass the value (or a reference to it) to the function. */
         return args[i];
       }
-      else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
+      else if constexpr (ParamTag::category == ParamCategory::SingleOutput) {
         /* For outputs, pass a pointer to the function. This is done instead of passing a
          * reference, because the pointer points to uninitialized memory. */
         return args + i;
       }
-      else if constexpr (ParamTag::category == MFParamCategory::SingleMutable) {
+      else if constexpr (ParamTag::category == ParamCategory::SingleMutable) {
         /* For mutables, pass a mutable reference to the function. */
         return args[i];
       }
@@ -180,13 +180,13 @@ void execute_materialized_impl(TypeSequence<ParamTags...> /*param_tags*/,
     const int64_t out_i = out_mask[i];
     element_fn([&]() -> decltype(auto) {
       using ParamTag = ParamTags;
-      if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+      if constexpr (ParamTag::category == ParamCategory::SingleInput) {
         return chunks[in_i];
       }
-      else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
+      else if constexpr (ParamTag::category == ParamCategory::SingleOutput) {
         return chunks + out_i;
       }
-      else if constexpr (ParamTag::category == MFParamCategory::SingleMutable) {
+      else if constexpr (ParamTag::category == ParamCategory::SingleMutable) {
         return chunks[out_i];
       }
     }()...);
@@ -230,7 +230,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
         typedef ParamTags ParamTag;
         typedef typename ParamTag::base_type T;
         [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
-        if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+        if constexpr (ParamTag::category == ParamCategory::SingleInput) {
           const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
           const CommonVArrayInfo common_info = varray_impl.common_info();
           if (common_info.type == CommonVArrayInfo::Type::Single) {
@@ -269,7 +269,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
           using ParamTag = ParamTags;
           using T = typename ParamTag::base_type;
           [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
-          if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+          if constexpr (ParamTag::category == ParamCategory::SingleInput) {
             if (arg_info.mode == MaterializeArgMode::Single) {
               /* The single value has been filled into a buffer already reused for every chunk. */
               return Span<T>(std::get<I>(buffers));
@@ -296,8 +296,8 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
             }
           }
           else if constexpr (ELEM(ParamTag::category,
-                                  MFParamCategory::SingleOutput,
-                                  MFParamCategory::SingleMutable)) {
+                                  ParamCategory::SingleOutput,
+                                  ParamCategory::SingleMutable)) {
             /* For outputs, just pass a pointer. This is important so that `__restrict` works. */
             return std::get<I>(loaded_params);
           }
@@ -310,7 +310,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
           typedef ParamTags ParamTag;
           typedef typename ParamTag::base_type T;
           [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
-          if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+          if constexpr (ParamTag::category == ParamCategory::SingleInput) {
             if (arg_info.mode == MaterializeArgMode::Materialized) {
               T *in_chunk = std::get<I>(buffers_owner).ptr();
               destruct_n(in_chunk, chunk_size);
@@ -327,7 +327,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
         typedef ParamTags ParamTag;
         typedef typename ParamTag::base_type T;
         [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
-        if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+        if constexpr (ParamTag::category == ParamCategory::SingleInput) {
           if (arg_info.mode == MaterializeArgMode::Single) {
             MutableSpan<T> in_chunk = std::get<I>(buffers);
             destruct_n(in_chunk.data(), in_chunk.size());
@@ -353,13 +353,13 @@ inline void execute_element_fn_as_multi_function(const ElementFn element_fn,
     typedef ParamTags ParamTag;
     typedef typename ParamTag::base_type T;
 
-    if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+    if constexpr (ParamTag::category == ParamCategory::SingleInput) {
       return params.readonly_single_input(I).get_implementation();
     }
-    else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
+    else if constexpr (ParamTag::category == ParamCategory::SingleOutput) {
       return static_cast<T *>(params.uninitialized_single_output(I).data());
     }
-    else if constexpr (ParamTag::category == MFParamCategory::SingleMutable) {
+    else if constexpr (ParamTag::category == ParamCategory::SingleMutable) {
       return static_cast<T *>(params.single_mutable(I).data());
     }
   }()...);
@@ -397,13 +397,13 @@ inline void execute_element_fn_as_multi_function(const ElementFn element_fn,
             /* Use `typedef` instead of `using` to work around a compiler bug. */
             typedef ParamTags ParamTag;
             typedef typename ParamTag::base_type T;
-            if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+            if constexpr (ParamTag::category == ParamCategory::SingleInput) {
               const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
               return GVArray(&varray_impl).typed<T>();
             }
             else if constexpr (ELEM(ParamTag::category,
-                                    MFParamCategory::SingleOutput,
-                                    MFParamCategory::SingleMutable)) {
+                                    ParamCategory::SingleOutput,
+                                    ParamCategory::SingleMutable)) {
               T *ptr = std::get<I>(loaded_params);
               return ptr;
             }
@@ -438,20 +438,20 @@ inline auto build_multi_function_call_from_element_fn(const ElementFn element_fn
  */
 template<typename CallFn, typename... ParamTags> class CustomMF : public MultiFunction {
  private:
-  MFSignature signature_;
+  Signature signature_;
   CallFn call_fn_;
 
  public:
   CustomMF(const char *name, CallFn call_fn, TypeSequence<ParamTags...> /*param_tags*/)
       : call_fn_(std::move(call_fn))
   {
-    MFSignatureBuilder builder{name, signature_};
+    SignatureBuilder builder{name, signature_};
     /* Loop over all parameter types and add an entry for each in the signature. */
     ([&] { builder.add(ParamTags(), ""); }(), ...);
     this->set_signature(&signature_);
   }
 
-  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
+  void call(IndexMask mask, MFParams params, Context /*context*/) const override
   {
     call_fn_(mask, params);
   }
@@ -463,8 +463,8 @@ inline auto build_multi_function_with_n_inputs_one_output(const char *name,
                                                           const ExecPreset exec_preset,
                                                           TypeSequence<In...> /*in_types*/)
 {
-  constexpr auto param_tags = TypeSequence<MFParamTag<MFParamCategory::SingleInput, In>...,
-                                           MFParamTag<MFParamCategory::SingleOutput, Out>>();
+  constexpr auto param_tags = TypeSequence<MFParamTag<ParamCategory::SingleInput, In>...,
+                                           MFParamTag<ParamCategory::SingleOutput, Out>>();
   auto call_fn = build_multi_function_call_from_element_fn(
       [element_fn](const In &...in, Out *out) { new (out) Out(element_fn(in...)); },
       exec_preset,
@@ -573,15 +573,15 @@ inline auto SM(const char *name,
                const ElementFn element_fn,
                const ExecPreset exec_preset = exec_presets::AllSpanOrSingle())
 {
-  constexpr auto param_tags = TypeSequence<MFParamTag<MFParamCategory::SingleMutable, Mut1>>();
+  constexpr auto param_tags = TypeSequence<MFParamTag<ParamCategory::SingleMutable, Mut1>>();
   auto call_fn = detail::build_multi_function_call_from_element_fn(
       element_fn, exec_preset, param_tags);
   return detail::CustomMF(name, call_fn, param_tags);
 }
 
-}  // namespace blender::fn::build_mf
+}  // namespace blender::fn::multi_function::build
 
-namespace blender::fn {
+namespace blender::fn::multi_function {
 
 /**
  * A multi-function that outputs the same value every time. The value is not owned by an instance
@@ -592,7 +592,7 @@ class CustomMF_GenericConstant : public MultiFunction {
  private:
   const CPPType &type_;
   const void *value_;
-  MFSignature signature_;
+  Signature signature_;
   bool owns_value_;
 
   template<typename T> friend class CustomMF_Constant;
@@ -600,7 +600,7 @@ class CustomMF_GenericConstant : public MultiFunction {
  public:
   CustomMF_GenericConstant(const CPPType &type, const void *value, bool make_value_copy);
   ~CustomMF_GenericConstant();
-  void call(IndexMask mask, MFParams params, MFContext context) const override;
+  void call(IndexMask mask, MFParams params, Context context) const override;
   uint64_t hash() const override;
   bool equals(const MultiFunction &other) const override;
 };
@@ -612,11 +612,11 @@ class CustomMF_GenericConstant : public MultiFunction {
 class CustomMF_GenericConstantArray : public MultiFunction {
  private:
   GSpan array_;
-  MFSignature signature_;
+  Signature signature_;
 
  public:
   CustomMF_GenericConstantArray(GSpan array);
-  void call(IndexMask mask, MFParams params, MFContext context) const override;
+  void call(IndexMask mask, MFParams params, Context context) const override;
 };
 
 /**
@@ -625,17 +625,17 @@ class CustomMF_GenericConstantArray : public MultiFunction {
 template<typename T> class CustomMF_Constant : public MultiFunction {
  private:
   T value_;
-  MFSignature signature_;
+  Signature signature_;
 
  public:
   template<typename U> CustomMF_Constant(U &&value) : value_(std::forward<U>(value))
   {
-    MFSignatureBuilder builder{"Constant", signature_};
+    SignatureBuilder builder{"Constant", signature_};
     builder.single_output<T>("Value");
     this->set_signature(&signature_);
   }
 
-  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
+  void call(IndexMask mask, MFParams params, Context /*context*/) const override
   {
     MutableSpan<T> output = params.uninitialized_single_output<T>(0);
     mask.to_best_mask_type([&](const auto &mask) {
@@ -671,20 +671,20 @@ template<typename T> class CustomMF_Constant : public MultiFunction {
 class CustomMF_DefaultOutput : public MultiFunction {
  private:
   int output_amount_;
-  MFSignature signature_;
+  Signature signature_;
 
  public:
-  CustomMF_DefaultOutput(Span<MFDataType> input_types, Span<MFDataType> output_types);
-  void call(IndexMask mask, MFParams params, MFContext context) const override;
+  CustomMF_DefaultOutput(Span<DataType> input_types, Span<DataType> output_types);
+  void call(IndexMask mask, MFParams params, Context context) const override;
 };
 
 class CustomMF_GenericCopy : public MultiFunction {
  private:
-  MFSignature signature_;
+  Signature signature_;
 
  public:
-  CustomMF_GenericCopy(MFDataType data_type);
-  void call(IndexMask mask, MFParams params, MFContext context) const override;
+  CustomMF_GenericCopy(DataType data_type);
+  void call(IndexMask mask, MFParams params, Context context) const override;
 };
 
-}  // namespace blender::fn
+}  // namespace blender::fn::multi_function

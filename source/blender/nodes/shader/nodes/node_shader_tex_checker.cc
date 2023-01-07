@@ -44,18 +44,18 @@ static int node_shader_gpu_tex_checker(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_tex_checker", in, out);
 }
 
-class NodeTexChecker : public fn::MultiFunction {
+class NodeTexChecker : public mf::MultiFunction {
  public:
   NodeTexChecker()
   {
-    static fn::MFSignature signature = create_signature();
+    static mf::Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
+  static mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"Checker", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"Checker", signature};
     builder.single_input<float3>("Vector");
     builder.single_input<ColorGeometry4f>("Color1");
     builder.single_input<ColorGeometry4f>("Color2");
@@ -65,7 +65,7 @@ class NodeTexChecker : public fn::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1 = params.readonly_single_input<ColorGeometry4f>(

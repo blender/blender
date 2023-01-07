@@ -44,10 +44,10 @@ static int gpu_shader_clamp(GPUMaterial *mat,
 
 static void sh_node_clamp_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static auto minmax_fn = fn::build_mf::SI3_SO<float, float, float, float>(
+  static auto minmax_fn = mf::build::SI3_SO<float, float, float, float>(
       "Clamp (Min Max)",
       [](float value, float min, float max) { return std::min(std::max(value, min), max); });
-  static auto range_fn = fn::build_mf::SI3_SO<float, float, float, float>(
+  static auto range_fn = mf::build::SI3_SO<float, float, float, float>(
       "Clamp (Range)", [](float value, float a, float b) {
         if (a < b) {
           return clamp_f(value, a, b);

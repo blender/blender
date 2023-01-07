@@ -233,7 +233,7 @@ static float3 clamp_range(const float3 value, const float3 min, const float3 max
 
 template<bool Clamp> static auto build_float_linear()
 {
-  return fn::build_mf::SI5_SO<float, float, float, float, float, float>(
+  return mf::build::SI5_SO<float, float, float, float, float, float>(
       Clamp ? "Map Range (clamped)" : "Map Range (unclamped)",
       [](float value, float from_min, float from_max, float to_min, float to_max) -> float {
         const float factor = safe_divide(value - from_min, from_max - from_min);
@@ -243,12 +243,12 @@ template<bool Clamp> static auto build_float_linear()
         }
         return result;
       },
-      fn::build_mf::exec_presets::SomeSpanOrSingle<0>());
+      mf::build::exec_presets::SomeSpanOrSingle<0>());
 }
 
 template<bool Clamp> static auto build_float_stepped()
 {
-  return fn::build_mf::SI6_SO<float, float, float, float, float, float, float>(
+  return mf::build::SI6_SO<float, float, float, float, float, float, float>(
       Clamp ? "Map Range Stepped (clamped)" : "Map Range Stepped (unclamped)",
       [](float value, float from_min, float from_max, float to_min, float to_max, float steps)
           -> float {
@@ -260,12 +260,12 @@ template<bool Clamp> static auto build_float_stepped()
         }
         return result;
       },
-      fn::build_mf::exec_presets::SomeSpanOrSingle<0>());
+      mf::build::exec_presets::SomeSpanOrSingle<0>());
 }
 
 template<bool Clamp> static auto build_vector_linear()
 {
-  return fn::build_mf::SI5_SO<float3, float3, float3, float3, float3, float3>(
+  return mf::build::SI5_SO<float3, float3, float3, float3, float3, float3>(
       Clamp ? "Vector Map Range (clamped)" : "Vector Map Range (unclamped)",
       [](const float3 &value,
          const float3 &from_min,
@@ -279,12 +279,12 @@ template<bool Clamp> static auto build_vector_linear()
         }
         return result;
       },
-      fn::build_mf::exec_presets::SomeSpanOrSingle<0>());
+      mf::build::exec_presets::SomeSpanOrSingle<0>());
 }
 
 template<bool Clamp> static auto build_vector_stepped()
 {
-  return fn::build_mf::SI6_SO<float3, float3, float3, float3, float3, float3, float3>(
+  return mf::build::SI6_SO<float3, float3, float3, float3, float3, float3, float3>(
       Clamp ? "Vector Map Range Stepped (clamped)" : "Vector Map Range Stepped (unclamped)",
       [](const float3 &value,
          const float3 &from_min,
@@ -300,7 +300,7 @@ template<bool Clamp> static auto build_vector_stepped()
         }
         return result;
       },
-      fn::build_mf::exec_presets::SomeSpanOrSingle<0>());
+      mf::build::exec_presets::SomeSpanOrSingle<0>());
 }
 
 static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &builder)
@@ -335,7 +335,7 @@ static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &bui
           break;
         }
         case NODE_MAP_RANGE_SMOOTHSTEP: {
-          static auto fn = fn::build_mf::SI5_SO<float3, float3, float3, float3, float3, float3>(
+          static auto fn = mf::build::SI5_SO<float3, float3, float3, float3, float3, float3>(
               "Vector Map Range Smoothstep",
               [](const float3 &value,
                  const float3 &from_min,
@@ -347,12 +347,12 @@ static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &bui
                 factor = (float3(3.0f) - 2.0f * factor) * (factor * factor);
                 return factor * (to_max - to_min) + to_min;
               },
-              fn::build_mf::exec_presets::SomeSpanOrSingle<0>());
+              mf::build::exec_presets::SomeSpanOrSingle<0>());
           builder.set_matching_fn(fn);
           break;
         }
         case NODE_MAP_RANGE_SMOOTHERSTEP: {
-          static auto fn = fn::build_mf::SI5_SO<float3, float3, float3, float3, float3, float3>(
+          static auto fn = mf::build::SI5_SO<float3, float3, float3, float3, float3, float3>(
               "Vector Map Range Smootherstep",
               [](const float3 &value,
                  const float3 &from_min,
@@ -364,7 +364,7 @@ static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &bui
                 factor = factor * factor * factor * (factor * (factor * 6.0f - 15.0f) + 10.0f);
                 return factor * (to_max - to_min) + to_min;
               },
-              fn::build_mf::exec_presets::SomeSpanOrSingle<0>());
+              mf::build::exec_presets::SomeSpanOrSingle<0>());
           builder.set_matching_fn(fn);
           break;
         }
@@ -397,7 +397,7 @@ static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &bui
           break;
         }
         case NODE_MAP_RANGE_SMOOTHSTEP: {
-          static auto fn = fn::build_mf::SI5_SO<float, float, float, float, float, float>(
+          static auto fn = mf::build::SI5_SO<float, float, float, float, float, float>(
               "Map Range Smoothstep",
               [](float value, float from_min, float from_max, float to_min, float to_max)
                   -> float {
@@ -406,12 +406,12 @@ static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &bui
                 factor = (3.0f - 2.0f * factor) * (factor * factor);
                 return to_min + factor * (to_max - to_min);
               },
-              fn::build_mf::exec_presets::SomeSpanOrSingle<0>());
+              mf::build::exec_presets::SomeSpanOrSingle<0>());
           builder.set_matching_fn(fn);
           break;
         }
         case NODE_MAP_RANGE_SMOOTHERSTEP: {
-          static auto fn = fn::build_mf::SI5_SO<float, float, float, float, float, float>(
+          static auto fn = mf::build::SI5_SO<float, float, float, float, float, float>(
               "Map Range Smoothstep",
               [](float value, float from_min, float from_max, float to_min, float to_max)
                   -> float {
@@ -420,7 +420,7 @@ static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &bui
                 factor = factor * factor * factor * (factor * (factor * 6.0f - 15.0f) + 10.0f);
                 return to_min + factor * (to_max - to_min);
               },
-              fn::build_mf::exec_presets::SomeSpanOrSingle<0>());
+              mf::build::exec_presets::SomeSpanOrSingle<0>());
           builder.set_matching_fn(fn);
           break;
         }

@@ -81,7 +81,7 @@ static void node_shader_update_tex_noise(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, sockW, storage.dimensions == 1 || storage.dimensions == 4);
 }
 
-class NoiseFunction : public fn::MultiFunction {
+class NoiseFunction : public mf::MultiFunction {
  private:
   int dimensions_;
 
@@ -89,7 +89,7 @@ class NoiseFunction : public fn::MultiFunction {
   NoiseFunction(int dimensions) : dimensions_(dimensions)
   {
     BLI_assert(dimensions >= 1 && dimensions <= 4);
-    static std::array<fn::MFSignature, 4> signatures{
+    static std::array<mf::Signature, 4> signatures{
         create_signature(1),
         create_signature(2),
         create_signature(3),
@@ -98,10 +98,10 @@ class NoiseFunction : public fn::MultiFunction {
     this->set_signature(&signatures[dimensions - 1]);
   }
 
-  static fn::MFSignature create_signature(int dimensions)
+  static mf::Signature create_signature(int dimensions)
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"Noise", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"Noise", signature};
 
     if (ELEM(dimensions, 2, 3, 4)) {
       builder.single_input<float3>("Vector");
@@ -121,7 +121,7 @@ class NoiseFunction : public fn::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     int param = ELEM(dimensions_, 2, 3, 4) + ELEM(dimensions_, 1, 4);
     const VArray<float> &scale = params.readonly_single_input<float>(param++, "Scale");

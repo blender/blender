@@ -133,7 +133,7 @@ static void align_rotations_fixed_pivot(IndexMask mask,
   });
 }
 
-class MF_AlignEulerToVector : public fn::MultiFunction {
+class MF_AlignEulerToVector : public mf::MultiFunction {
  private:
   int main_axis_mode_;
   int pivot_axis_mode_;
@@ -142,14 +142,14 @@ class MF_AlignEulerToVector : public fn::MultiFunction {
   MF_AlignEulerToVector(int main_axis_mode, int pivot_axis_mode)
       : main_axis_mode_(main_axis_mode), pivot_axis_mode_(pivot_axis_mode)
   {
-    static fn::MFSignature signature = create_signature();
+    static mf::Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
+  static mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"Align Euler to Vector", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"Align Euler to Vector", signature};
     builder.single_input<float3>("Rotation");
     builder.single_input<float>("Factor");
     builder.single_input<float3>("Vector");
@@ -158,7 +158,7 @@ class MF_AlignEulerToVector : public fn::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float3> &input_rotations = params.readonly_single_input<float3>(0, "Rotation");
     const VArray<float> &factors = params.readonly_single_input<float>(1, "Factor");

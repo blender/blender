@@ -80,7 +80,7 @@ static int node_shader_gpu_tex_wave(GPUMaterial *mat,
                         GPU_constant(&wave_profile));
 }
 
-class WaveFunction : public fn::MultiFunction {
+class WaveFunction : public mf::MultiFunction {
  private:
   int wave_type_;
   int bands_direction_;
@@ -94,14 +94,14 @@ class WaveFunction : public fn::MultiFunction {
         rings_direction_(rings_direction),
         wave_profile_(wave_profile)
   {
-    static fn::MFSignature signature = create_signature();
+    static mf::Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
+  static mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"MagicFunction", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"MagicFunction", signature};
     builder.single_input<float3>("Vector");
     builder.single_input<float>("Scale");
     builder.single_input<float>("Distortion");
@@ -114,7 +114,7 @@ class WaveFunction : public fn::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<float> &scale = params.readonly_single_input<float>(1, "Scale");

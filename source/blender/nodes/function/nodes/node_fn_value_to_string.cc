@@ -14,7 +14,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static auto to_str_fn = fn::build_mf::SI2_SO<float, int, std::string>(
+  static auto to_str_fn = mf::build::SI2_SO<float, int, std::string>(
       "Value To String", [](float a, int b) {
         std::stringstream stream;
         stream << std::fixed << std::setprecision(std::max(0, b)) << a;

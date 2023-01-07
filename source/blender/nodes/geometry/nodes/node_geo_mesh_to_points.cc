@@ -121,10 +121,10 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* Use another multi-function operation to make sure the input radius is greater than zero.
    * TODO: Use mutable multi-function once that is supported. */
-  static auto max_zero_fn = fn::build_mf::SI1_SO<float, float>(
+  static auto max_zero_fn = mf::build::SI1_SO<float, float>(
       __func__,
       [](float value) { return std::max(0.0f, value); },
-      fn::build_mf::exec_presets::AllSpanOrSingle());
+      mf::build::exec_presets::AllSpanOrSingle());
   auto max_zero_op = std::make_shared<FieldOperation>(
       FieldOperation(max_zero_fn, {std::move(radius)}));
   Field<float> positive_radius(std::move(max_zero_op), 0);

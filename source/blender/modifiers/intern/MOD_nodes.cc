@@ -125,17 +125,16 @@ using blender::fn::ValueOrFieldCPPType;
 using blender::nodes::FieldInferencingInterface;
 using blender::nodes::GeoNodeExecParams;
 using blender::nodes::InputSocketFieldType;
-using blender::nodes::geo_eval_log::GeoModifierLog;
-using blender::threading::EnumerableThreadSpecific;
-using namespace blender::fn::multi_function_types;
 using blender::nodes::geo_eval_log::GeometryAttributeInfo;
 using blender::nodes::geo_eval_log::GeometryInfoLog;
+using blender::nodes::geo_eval_log::GeoModifierLog;
 using blender::nodes::geo_eval_log::GeoNodeLog;
 using blender::nodes::geo_eval_log::GeoTreeLog;
 using blender::nodes::geo_eval_log::NamedAttributeUsage;
 using blender::nodes::geo_eval_log::NodeWarning;
 using blender::nodes::geo_eval_log::NodeWarningType;
 using blender::nodes::geo_eval_log::ValueLog;
+using blender::threading::EnumerableThreadSpecific;
 
 static void initData(ModifierData *md)
 {

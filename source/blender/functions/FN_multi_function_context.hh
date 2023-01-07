@@ -5,7 +5,7 @@
 /** \file
  * \ingroup fn
  *
- * An #MFContext is passed along with every call to a multi-function. Right now it does nothing,
+ * An #Context is passed along with every call to a multi-function. Right now it does nothing,
  * but it can be used for the following purposes:
  * - Pass debug information up and down the function call stack.
  * - Pass reusable memory buffers to sub-functions to increase performance.
@@ -16,18 +16,18 @@
 
 #include "BLI_map.hh"
 
-namespace blender::fn {
+namespace blender::fn::multi_function {
 
-class MFContext;
+class Context;
 
-class MFContextBuilder {
+class ContextBuilder {
 };
 
-class MFContext {
+class Context {
  public:
-  MFContext(MFContextBuilder & /*builder*/)
+  Context(ContextBuilder & /*builder*/)
   {
   }
 };
 
-}  // namespace blender::fn
+}  // namespace blender::fn::multi_function

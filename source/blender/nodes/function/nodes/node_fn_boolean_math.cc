@@ -65,26 +65,26 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static const fn::MultiFunction *get_multi_function(const bNode &bnode)
+static const mf::MultiFunction *get_multi_function(const bNode &bnode)
 {
-  static auto exec_preset = fn::build_mf::exec_presets::AllSpanOrSingle();
-  static auto and_fn = fn::build_mf::SI2_SO<bool, bool, bool>(
+  static auto exec_preset = mf::build::exec_presets::AllSpanOrSingle();
+  static auto and_fn = mf::build::SI2_SO<bool, bool, bool>(
       "And", [](bool a, bool b) { return a && b; }, exec_preset);
-  static auto or_fn = fn::build_mf::SI2_SO<bool, bool, bool>(
+  static auto or_fn = mf::build::SI2_SO<bool, bool, bool>(
       "Or", [](bool a, bool b) { return a || b; }, exec_preset);
-  static auto not_fn = fn::build_mf::SI1_SO<bool, bool>(
+  static auto not_fn = mf::build::SI1_SO<bool, bool>(
       "Not", [](bool a) { return !a; }, exec_preset);
-  static auto nand_fn = fn::build_mf::SI2_SO<bool, bool, bool>(
+  static auto nand_fn = mf::build::SI2_SO<bool, bool, bool>(
       "Not And", [](bool a, bool b) { return !(a && b); }, exec_preset);
-  static auto nor_fn = fn::build_mf::SI2_SO<bool, bool, bool>(
+  static auto nor_fn = mf::build::SI2_SO<bool, bool, bool>(
       "Nor", [](bool a, bool b) { return !(a || b); }, exec_preset);
-  static auto xnor_fn = fn::build_mf::SI2_SO<bool, bool, bool>(
+  static auto xnor_fn = mf::build::SI2_SO<bool, bool, bool>(
       "Equal", [](bool a, bool b) { return a == b; }, exec_preset);
-  static auto xor_fn = fn::build_mf::SI2_SO<bool, bool, bool>(
+  static auto xor_fn = mf::build::SI2_SO<bool, bool, bool>(
       "Not Equal", [](bool a, bool b) { return a != b; }, exec_preset);
-  static auto imply_fn = fn::build_mf::SI2_SO<bool, bool, bool>(
+  static auto imply_fn = mf::build::SI2_SO<bool, bool, bool>(
       "Imply", [](bool a, bool b) { return !a || b; }, exec_preset);
-  static auto nimply_fn = fn::build_mf::SI2_SO<bool, bool, bool>(
+  static auto nimply_fn = mf::build::SI2_SO<bool, bool, bool>(
       "Subtract", [](bool a, bool b) { return a && !b; }, exec_preset);
 
   switch (bnode.custom1) {
@@ -114,7 +114,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &bnode)
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  const fn::MultiFunction *fn = get_multi_function(builder.node());
+  const mf::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
 }
 

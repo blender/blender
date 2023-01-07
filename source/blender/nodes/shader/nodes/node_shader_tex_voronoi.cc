@@ -179,9 +179,9 @@ static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, outRadiusSock, storage.feature == SHD_VORONOI_N_SPHERE_RADIUS);
 }
 
-static MultiFunction::ExecutionHints voronoi_execution_hints{50, false};
+static mf::MultiFunction::ExecutionHints voronoi_execution_hints{50, false};
 
-class VoronoiMinowskiFunction : public fn::MultiFunction {
+class VoronoiMinowskiFunction : public mf::MultiFunction {
  private:
   int dimensions_;
   int feature_;
@@ -191,7 +191,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
   {
     BLI_assert(dimensions >= 2 && dimensions <= 4);
     BLI_assert(feature >= 0 && feature <= 2);
-    static std::array<fn::MFSignature, 9> signatures{
+    static std::array<mf::Signature, 9> signatures{
         create_signature(2, SHD_VORONOI_F1),
         create_signature(3, SHD_VORONOI_F1),
         create_signature(4, SHD_VORONOI_F1),
@@ -207,10 +207,10 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
     this->set_signature(&signatures[(dimensions - 1) + feature * 3 - 1]);
   }
 
-  static fn::MFSignature create_signature(int dimensions, int feature)
+  static mf::Signature create_signature(int dimensions, int feature)
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"voronoi_minowski", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"voronoi_minowski", signature};
 
     if (ELEM(dimensions, 2, 3, 4)) {
       builder.single_input<float3>("Vector");
@@ -237,7 +237,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -614,7 +614,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
   }
 };
 
-class VoronoiMetricFunction : public fn::MultiFunction {
+class VoronoiMetricFunction : public mf::MultiFunction {
  private:
   int dimensions_;
   int feature_;
@@ -626,7 +626,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
   {
     BLI_assert(dimensions >= 1 && dimensions <= 4);
     BLI_assert(feature >= 0 && feature <= 4);
-    static std::array<fn::MFSignature, 12> signatures{
+    static std::array<mf::Signature, 12> signatures{
         create_signature(1, SHD_VORONOI_F1),
         create_signature(2, SHD_VORONOI_F1),
         create_signature(3, SHD_VORONOI_F1),
@@ -645,10 +645,10 @@ class VoronoiMetricFunction : public fn::MultiFunction {
     this->set_signature(&signatures[dimensions + feature * 4 - 1]);
   }
 
-  static fn::MFSignature create_signature(int dimensions, int feature)
+  static mf::Signature create_signature(int dimensions, int feature)
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"voronoi_metric", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"voronoi_metric", signature};
 
     if (ELEM(dimensions, 2, 3, 4)) {
       builder.single_input<float3>("Vector");
@@ -674,7 +674,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -1134,7 +1134,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
   }
 };
 
-class VoronoiEdgeFunction : public fn::MultiFunction {
+class VoronoiEdgeFunction : public mf::MultiFunction {
  private:
   int dimensions_;
   int feature_;
@@ -1144,7 +1144,7 @@ class VoronoiEdgeFunction : public fn::MultiFunction {
   {
     BLI_assert(dimensions >= 1 && dimensions <= 4);
     BLI_assert(feature >= 3 && feature <= 4);
-    static std::array<fn::MFSignature, 8> signatures{
+    static std::array<mf::Signature, 8> signatures{
         create_signature(1, SHD_VORONOI_DISTANCE_TO_EDGE),
         create_signature(2, SHD_VORONOI_DISTANCE_TO_EDGE),
         create_signature(3, SHD_VORONOI_DISTANCE_TO_EDGE),
@@ -1158,10 +1158,10 @@ class VoronoiEdgeFunction : public fn::MultiFunction {
     this->set_signature(&signatures[dimensions + (feature - 3) * 4 - 1]);
   }
 
-  static fn::MFSignature create_signature(int dimensions, int feature)
+  static mf::Signature create_signature(int dimensions, int feature)
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"voronoi_edge", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"voronoi_edge", signature};
 
     if (ELEM(dimensions, 2, 3, 4)) {
       builder.single_input<float3>("Vector");
@@ -1182,7 +1182,7 @@ class VoronoiEdgeFunction : public fn::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");

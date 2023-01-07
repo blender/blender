@@ -27,18 +27,18 @@ static int gpu_shader_sepxyz(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "separate_xyz", in, out);
 }
 
-class MF_SeparateXYZ : public fn::MultiFunction {
+class MF_SeparateXYZ : public mf::MultiFunction {
  public:
   MF_SeparateXYZ()
   {
-    static fn::MFSignature signature = create_signature();
+    static mf::Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
+  static mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"Separate XYZ", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"Separate XYZ", signature};
     builder.single_input<float3>("XYZ");
     builder.single_output<float>("X");
     builder.single_output<float>("Y");
@@ -46,7 +46,7 @@ class MF_SeparateXYZ : public fn::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vectors = params.readonly_single_input<float3>(0, "XYZ");
     MutableSpan<float> xs = params.uninitialized_single_output_if_required<float>(1, "X");
@@ -126,10 +126,10 @@ static int gpu_shader_combxyz(GPUMaterial *mat,
 
 static void sh_node_combxyz_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static auto fn = fn::build_mf::SI3_SO<float, float, float, float3>(
+  static auto fn = mf::build::SI3_SO<float, float, float, float3>(
       "Combine Vector",
       [](float x, float y, float z) { return float3(x, y, z); },
-      fn::build_mf::exec_presets::AllSpanOrSingle());
+      mf::build::exec_presets::AllSpanOrSingle());
   builder.set_matching_fn(fn);
 }
 

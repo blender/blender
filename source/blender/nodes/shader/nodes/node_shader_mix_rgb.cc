@@ -91,7 +91,7 @@ static int gpu_shader_mix_rgb(GPUMaterial *mat,
   return ret;
 }
 
-class MixRGBFunction : public fn::MultiFunction {
+class MixRGBFunction : public mf::MultiFunction {
  private:
   bool clamp_;
   int type_;
@@ -99,14 +99,14 @@ class MixRGBFunction : public fn::MultiFunction {
  public:
   MixRGBFunction(bool clamp, int type) : clamp_(clamp), type_(type)
   {
-    static fn::MFSignature signature = create_signature();
+    static mf::Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
+  static mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"MixRGB", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"MixRGB", signature};
     builder.single_input<float>("Fac");
     builder.single_input<ColorGeometry4f>("Color1");
     builder.single_input<ColorGeometry4f>("Color2");
@@ -114,7 +114,7 @@ class MixRGBFunction : public fn::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
     const VArray<ColorGeometry4f> &col1 = params.readonly_single_input<ColorGeometry4f>(1,

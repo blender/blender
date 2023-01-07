@@ -164,45 +164,45 @@ static float component_average(float3 a)
   return (a.x + a.y + a.z) / 3.0f;
 }
 
-static const fn::MultiFunction *get_multi_function(const bNode &node)
+static const mf::MultiFunction *get_multi_function(const bNode &node)
 {
   const NodeFunctionCompare *data = (NodeFunctionCompare *)node.storage;
 
-  static auto exec_preset_all = fn::build_mf::exec_presets::AllSpanOrSingle();
-  static auto exec_preset_first_two = fn::build_mf::exec_presets::SomeSpanOrSingle<0, 1>();
+  static auto exec_preset_all = mf::build::exec_presets::AllSpanOrSingle();
+  static auto exec_preset_first_two = mf::build::exec_presets::SomeSpanOrSingle<0, 1>();
 
   switch (data->data_type) {
     case SOCK_FLOAT:
       switch (data->operation) {
         case NODE_COMPARE_LESS_THAN: {
-          static auto fn = fn::build_mf::SI2_SO<float, float, bool>(
+          static auto fn = mf::build::SI2_SO<float, float, bool>(
               "Less Than", [](float a, float b) { return a < b; }, exec_preset_all);
           return &fn;
         }
         case NODE_COMPARE_LESS_EQUAL: {
-          static auto fn = fn::build_mf::SI2_SO<float, float, bool>(
+          static auto fn = mf::build::SI2_SO<float, float, bool>(
               "Less Equal", [](float a, float b) { return a <= b; }, exec_preset_all);
           return &fn;
         }
         case NODE_COMPARE_GREATER_THAN: {
-          static auto fn = fn::build_mf::SI2_SO<float, float, bool>(
+          static auto fn = mf::build::SI2_SO<float, float, bool>(
               "Greater Than", [](float a, float b) { return a > b; }, exec_preset_all);
           return &fn;
         }
         case NODE_COMPARE_GREATER_EQUAL: {
-          static auto fn = fn::build_mf::SI2_SO<float, float, bool>(
+          static auto fn = mf::build::SI2_SO<float, float, bool>(
               "Greater Equal", [](float a, float b) { return a >= b; }, exec_preset_all);
           return &fn;
         }
         case NODE_COMPARE_EQUAL: {
-          static auto fn = fn::build_mf::SI3_SO<float, float, float, bool>(
+          static auto fn = mf::build::SI3_SO<float, float, float, bool>(
               "Equal",
               [](float a, float b, float epsilon) { return std::abs(a - b) <= epsilon; },
               exec_preset_first_two);
           return &fn;
         }
         case NODE_COMPARE_NOT_EQUAL:
-          static auto fn = fn::build_mf::SI3_SO<float, float, float, bool>(
+          static auto fn = mf::build::SI3_SO<float, float, float, bool>(
               "Not Equal",
               [](float a, float b, float epsilon) { return std::abs(a - b) > epsilon; },
               exec_preset_first_two);
@@ -212,32 +212,32 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
     case SOCK_INT:
       switch (data->operation) {
         case NODE_COMPARE_LESS_THAN: {
-          static auto fn = fn::build_mf::SI2_SO<int, int, bool>(
+          static auto fn = mf::build::SI2_SO<int, int, bool>(
               "Less Than", [](int a, int b) { return a < b; }, exec_preset_all);
           return &fn;
         }
         case NODE_COMPARE_LESS_EQUAL: {
-          static auto fn = fn::build_mf::SI2_SO<int, int, bool>(
+          static auto fn = mf::build::SI2_SO<int, int, bool>(
               "Less Equal", [](int a, int b) { return a <= b; }, exec_preset_all);
           return &fn;
         }
         case NODE_COMPARE_GREATER_THAN: {
-          static auto fn = fn::build_mf::SI2_SO<int, int, bool>(
+          static auto fn = mf::build::SI2_SO<int, int, bool>(
               "Greater Than", [](int a, int b) { return a > b; }, exec_preset_all);
           return &fn;
         }
         case NODE_COMPARE_GREATER_EQUAL: {
-          static auto fn = fn::build_mf::SI2_SO<int, int, bool>(
+          static auto fn = mf::build::SI2_SO<int, int, bool>(
               "Greater Equal", [](int a, int b) { return a >= b; }, exec_preset_all);
           return &fn;
         }
         case NODE_COMPARE_EQUAL: {
-          static auto fn = fn::build_mf::SI2_SO<int, int, bool>(
+          static auto fn = mf::build::SI2_SO<int, int, bool>(
               "Equal", [](int a, int b) { return a == b; }, exec_preset_all);
           return &fn;
         }
         case NODE_COMPARE_NOT_EQUAL: {
-          static auto fn = fn::build_mf::SI2_SO<int, int, bool>(
+          static auto fn = mf::build::SI2_SO<int, int, bool>(
               "Not Equal", [](int a, int b) { return a != b; }, exec_preset_all);
           return &fn;
         }
@@ -248,35 +248,35 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
         case NODE_COMPARE_LESS_THAN:
           switch (data->mode) {
             case NODE_COMPARE_MODE_AVERAGE: {
-              static auto fn = fn::build_mf::SI2_SO<float3, float3, bool>(
+              static auto fn = mf::build::SI2_SO<float3, float3, bool>(
                   "Less Than - Average",
                   [](float3 a, float3 b) { return component_average(a) < component_average(b); },
                   exec_preset_all);
               return &fn;
             }
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Less Than - Dot Product",
                   [](float3 a, float3 b, float comp) { return math::dot(a, b) < comp; },
                   exec_preset_first_two);
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Less Than - Direction",
                   [](float3 a, float3 b, float angle) { return angle_v3v3(a, b) < angle; },
                   exec_preset_first_two);
               return &fn;
             }
             case NODE_COMPARE_MODE_ELEMENT: {
-              static auto fn = fn::build_mf::SI2_SO<float3, float3, bool>(
+              static auto fn = mf::build::SI2_SO<float3, float3, bool>(
                   "Less Than - Element-wise",
                   [](float3 a, float3 b) { return a.x < b.x && a.y < b.y && a.z < b.z; },
                   exec_preset_all);
               return &fn;
             }
             case NODE_COMPARE_MODE_LENGTH: {
-              static auto fn = fn::build_mf::SI2_SO<float3, float3, bool>(
+              static auto fn = mf::build::SI2_SO<float3, float3, bool>(
                   "Less Than - Length",
                   [](float3 a, float3 b) { return math::length(a) < math::length(b); },
                   exec_preset_all);
@@ -287,35 +287,35 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
         case NODE_COMPARE_LESS_EQUAL:
           switch (data->mode) {
             case NODE_COMPARE_MODE_AVERAGE: {
-              static auto fn = fn::build_mf::SI2_SO<float3, float3, bool>(
+              static auto fn = mf::build::SI2_SO<float3, float3, bool>(
                   "Less Equal - Average",
                   [](float3 a, float3 b) { return component_average(a) <= component_average(b); },
                   exec_preset_all);
               return &fn;
             }
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Less Equal - Dot Product",
                   [](float3 a, float3 b, float comp) { return math::dot(a, b) <= comp; },
                   exec_preset_first_two);
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Less Equal - Direction",
                   [](float3 a, float3 b, float angle) { return angle_v3v3(a, b) <= angle; },
                   exec_preset_first_two);
               return &fn;
             }
             case NODE_COMPARE_MODE_ELEMENT: {
-              static auto fn = fn::build_mf::SI2_SO<float3, float3, bool>(
+              static auto fn = mf::build::SI2_SO<float3, float3, bool>(
                   "Less Equal - Element-wise",
                   [](float3 a, float3 b) { return a.x <= b.x && a.y <= b.y && a.z <= b.z; },
                   exec_preset_all);
               return &fn;
             }
             case NODE_COMPARE_MODE_LENGTH: {
-              static auto fn = fn::build_mf::SI2_SO<float3, float3, bool>(
+              static auto fn = mf::build::SI2_SO<float3, float3, bool>(
                   "Less Equal - Length",
                   [](float3 a, float3 b) { return math::length(a) <= math::length(b); },
                   exec_preset_all);
@@ -326,35 +326,35 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
         case NODE_COMPARE_GREATER_THAN:
           switch (data->mode) {
             case NODE_COMPARE_MODE_AVERAGE: {
-              static auto fn = fn::build_mf::SI2_SO<float3, float3, bool>(
+              static auto fn = mf::build::SI2_SO<float3, float3, bool>(
                   "Greater Than - Average",
                   [](float3 a, float3 b) { return component_average(a) > component_average(b); },
                   exec_preset_all);
               return &fn;
             }
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Greater Than - Dot Product",
                   [](float3 a, float3 b, float comp) { return math::dot(a, b) > comp; },
                   exec_preset_first_two);
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Greater Than - Direction",
                   [](float3 a, float3 b, float angle) { return angle_v3v3(a, b) > angle; },
                   exec_preset_first_two);
               return &fn;
             }
             case NODE_COMPARE_MODE_ELEMENT: {
-              static auto fn = fn::build_mf::SI2_SO<float3, float3, bool>(
+              static auto fn = mf::build::SI2_SO<float3, float3, bool>(
                   "Greater Than - Element-wise",
                   [](float3 a, float3 b) { return a.x > b.x && a.y > b.y && a.z > b.z; },
                   exec_preset_all);
               return &fn;
             }
             case NODE_COMPARE_MODE_LENGTH: {
-              static auto fn = fn::build_mf::SI2_SO<float3, float3, bool>(
+              static auto fn = mf::build::SI2_SO<float3, float3, bool>(
                   "Greater Than - Length",
                   [](float3 a, float3 b) { return math::length(a) > math::length(b); },
                   exec_preset_all);
@@ -365,35 +365,35 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
         case NODE_COMPARE_GREATER_EQUAL:
           switch (data->mode) {
             case NODE_COMPARE_MODE_AVERAGE: {
-              static auto fn = fn::build_mf::SI2_SO<float3, float3, bool>(
+              static auto fn = mf::build::SI2_SO<float3, float3, bool>(
                   "Greater Equal - Average",
                   [](float3 a, float3 b) { return component_average(a) >= component_average(b); },
                   exec_preset_all);
               return &fn;
             }
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Greater Equal - Dot Product",
                   [](float3 a, float3 b, float comp) { return math::dot(a, b) >= comp; },
                   exec_preset_first_two);
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Greater Equal - Direction",
                   [](float3 a, float3 b, float angle) { return angle_v3v3(a, b) >= angle; },
                   exec_preset_first_two);
               return &fn;
             }
             case NODE_COMPARE_MODE_ELEMENT: {
-              static auto fn = fn::build_mf::SI2_SO<float3, float3, bool>(
+              static auto fn = mf::build::SI2_SO<float3, float3, bool>(
                   "Greater Equal - Element-wise",
                   [](float3 a, float3 b) { return a.x >= b.x && a.y >= b.y && a.z >= b.z; },
                   exec_preset_all);
               return &fn;
             }
             case NODE_COMPARE_MODE_LENGTH: {
-              static auto fn = fn::build_mf::SI2_SO<float3, float3, bool>(
+              static auto fn = mf::build::SI2_SO<float3, float3, bool>(
                   "Greater Equal - Length",
                   [](float3 a, float3 b) { return math::length(a) >= math::length(b); },
                   exec_preset_all);
@@ -404,7 +404,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
         case NODE_COMPARE_EQUAL:
           switch (data->mode) {
             case NODE_COMPARE_MODE_AVERAGE: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Equal - Average",
                   [](float3 a, float3 b, float epsilon) {
                     return abs(component_average(a) - component_average(b)) <= epsilon;
@@ -413,7 +413,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
               return &fn;
             }
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
-              static auto fn = fn::build_mf::SI4_SO<float3, float3, float, float, bool>(
+              static auto fn = mf::build::SI4_SO<float3, float3, float, float, bool>(
                   "Equal - Dot Product",
                   [](float3 a, float3 b, float comp, float epsilon) {
                     return abs(math::dot(a, b) - comp) <= epsilon;
@@ -422,7 +422,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
-              static auto fn = fn::build_mf::SI4_SO<float3, float3, float, float, bool>(
+              static auto fn = mf::build::SI4_SO<float3, float3, float, float, bool>(
                   "Equal - Direction",
                   [](float3 a, float3 b, float angle, float epsilon) {
                     return abs(angle_v3v3(a, b) - angle) <= epsilon;
@@ -431,7 +431,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
               return &fn;
             }
             case NODE_COMPARE_MODE_ELEMENT: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Equal - Element-wise",
                   [](float3 a, float3 b, float epsilon) {
                     return abs(a.x - b.x) <= epsilon && abs(a.y - b.y) <= epsilon &&
@@ -441,7 +441,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
               return &fn;
             }
             case NODE_COMPARE_MODE_LENGTH: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Equal - Length",
                   [](float3 a, float3 b, float epsilon) {
                     return abs(math::length(a) - math::length(b)) <= epsilon;
@@ -454,7 +454,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
         case NODE_COMPARE_NOT_EQUAL:
           switch (data->mode) {
             case NODE_COMPARE_MODE_AVERAGE: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Not Equal - Average",
                   [](float3 a, float3 b, float epsilon) {
                     return abs(component_average(a) - component_average(b)) > epsilon;
@@ -463,7 +463,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
               return &fn;
             }
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
-              static auto fn = fn::build_mf::SI4_SO<float3, float3, float, float, bool>(
+              static auto fn = mf::build::SI4_SO<float3, float3, float, float, bool>(
                   "Not Equal - Dot Product",
                   [](float3 a, float3 b, float comp, float epsilon) {
                     return abs(math::dot(a, b) - comp) >= epsilon;
@@ -472,7 +472,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
-              static auto fn = fn::build_mf::SI4_SO<float3, float3, float, float, bool>(
+              static auto fn = mf::build::SI4_SO<float3, float3, float, float, bool>(
                   "Not Equal - Direction",
                   [](float3 a, float3 b, float angle, float epsilon) {
                     return abs(angle_v3v3(a, b) - angle) > epsilon;
@@ -481,7 +481,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
               return &fn;
             }
             case NODE_COMPARE_MODE_ELEMENT: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Not Equal - Element-wise",
                   [](float3 a, float3 b, float epsilon) {
                     return abs(a.x - b.x) > epsilon || abs(a.y - b.y) > epsilon ||
@@ -491,7 +491,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
               return &fn;
             }
             case NODE_COMPARE_MODE_LENGTH: {
-              static auto fn = fn::build_mf::SI3_SO<float3, float3, float, bool>(
+              static auto fn = mf::build::SI3_SO<float3, float3, float, bool>(
                   "Not Equal - Length",
                   [](float3 a, float3 b, float epsilon) {
                     return abs(math::length(a) - math::length(b)) > epsilon;
@@ -506,7 +506,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
     case SOCK_RGBA:
       switch (data->operation) {
         case NODE_COMPARE_EQUAL: {
-          static auto fn = fn::build_mf::SI3_SO<ColorGeometry4f, ColorGeometry4f, float, bool>(
+          static auto fn = mf::build::SI3_SO<ColorGeometry4f, ColorGeometry4f, float, bool>(
               "Equal",
               [](ColorGeometry4f a, ColorGeometry4f b, float epsilon) {
                 return abs(a.r - b.r) <= epsilon && abs(a.g - b.g) <= epsilon &&
@@ -516,7 +516,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
           return &fn;
         }
         case NODE_COMPARE_NOT_EQUAL: {
-          static auto fn = fn::build_mf::SI3_SO<ColorGeometry4f, ColorGeometry4f, float, bool>(
+          static auto fn = mf::build::SI3_SO<ColorGeometry4f, ColorGeometry4f, float, bool>(
               "Not Equal",
               [](ColorGeometry4f a, ColorGeometry4f b, float epsilon) {
                 return abs(a.r - b.r) > epsilon || abs(a.g - b.g) > epsilon ||
@@ -526,7 +526,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
           return &fn;
         }
         case NODE_COMPARE_COLOR_BRIGHTER: {
-          static auto fn = fn::build_mf::SI2_SO<ColorGeometry4f, ColorGeometry4f, bool>(
+          static auto fn = mf::build::SI2_SO<ColorGeometry4f, ColorGeometry4f, bool>(
               "Brighter",
               [](ColorGeometry4f a, ColorGeometry4f b) {
                 return rgb_to_grayscale(a) > rgb_to_grayscale(b);
@@ -535,7 +535,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
           return &fn;
         }
         case NODE_COMPARE_COLOR_DARKER: {
-          static auto fn = fn::build_mf::SI2_SO<ColorGeometry4f, ColorGeometry4f, bool>(
+          static auto fn = mf::build::SI2_SO<ColorGeometry4f, ColorGeometry4f, bool>(
               "Darker",
               [](ColorGeometry4f a, ColorGeometry4f b) {
                 return rgb_to_grayscale(a) < rgb_to_grayscale(b);
@@ -548,12 +548,12 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
     case SOCK_STRING:
       switch (data->operation) {
         case NODE_COMPARE_EQUAL: {
-          static auto fn = fn::build_mf::SI2_SO<std::string, std::string, bool>(
+          static auto fn = mf::build::SI2_SO<std::string, std::string, bool>(
               "Equal", [](std::string a, std::string b) { return a == b; });
           return &fn;
         }
         case NODE_COMPARE_NOT_EQUAL: {
-          static auto fn = fn::build_mf::SI2_SO<std::string, std::string, bool>(
+          static auto fn = mf::build::SI2_SO<std::string, std::string, bool>(
               "Not Equal", [](std::string a, std::string b) { return a != b; });
           return &fn;
         }
@@ -565,7 +565,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  const fn::MultiFunction *fn = get_multi_function(builder.node());
+  const mf::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
 }
 

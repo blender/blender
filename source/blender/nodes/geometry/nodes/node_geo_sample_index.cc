@@ -176,13 +176,13 @@ void copy_with_clamped_indices(const VArray<T> &src,
  * instance geometry set in the source. A future optimization could be removing that limitation
  * internally.
  */
-class SampleIndexFunction : public fn::MultiFunction {
+class SampleIndexFunction : public mf::MultiFunction {
   GeometrySet src_geometry_;
   GField src_field_;
   eAttrDomain domain_;
   bool clamp_;
 
-  fn::MFSignature signature_;
+  mf::Signature signature_;
 
   std::optional<bke::GeometryFieldContext> geometry_context_;
   std::unique_ptr<FieldEvaluator> evaluator_;
@@ -206,10 +206,10 @@ class SampleIndexFunction : public fn::MultiFunction {
     this->evaluate_field();
   }
 
-  fn::MFSignature create_signature()
+  mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"Sample Index", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"Sample Index", signature};
     builder.single_input<int>("Index");
     builder.single_output("Value", src_field_.cpp_type());
     return signature;
@@ -229,7 +229,7 @@ class SampleIndexFunction : public fn::MultiFunction {
     src_data_ = &evaluator_->get_evaluated(0);
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<int> &indices = params.readonly_single_input<int>(0, "Index");
     GMutableSpan dst = params.uninitialized_single_output(1, "Value");

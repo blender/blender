@@ -63,28 +63,28 @@ static int gpu_shader_curve_vec(GPUMaterial *mat,
                         GPU_uniform(end_slopes));
 }
 
-class CurveVecFunction : public fn::MultiFunction {
+class CurveVecFunction : public mf::MultiFunction {
  private:
   const CurveMapping &cumap_;
 
  public:
   CurveVecFunction(const CurveMapping &cumap) : cumap_(cumap)
   {
-    static fn::MFSignature signature = create_signature();
+    static mf::Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
+  static mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"Curve Vec", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"Curve Vec", signature};
     builder.single_input<float>("Fac");
     builder.single_input<float3>("Vector");
     builder.single_output<float3>("Vector");
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
     const VArray<float3> &vec_in = params.readonly_single_input<float3>(1, "Vector");
@@ -209,28 +209,28 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat,
                         GPU_uniform(end_slopes));
 }
 
-class CurveRGBFunction : public fn::MultiFunction {
+class CurveRGBFunction : public mf::MultiFunction {
  private:
   const CurveMapping &cumap_;
 
  public:
   CurveRGBFunction(const CurveMapping &cumap) : cumap_(cumap)
   {
-    static fn::MFSignature signature = create_signature();
+    static mf::Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
+  static mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"Curve RGB", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"Curve RGB", signature};
     builder.single_input<float>("Fac");
     builder.single_input<ColorGeometry4f>("Color");
     builder.single_output<ColorGeometry4f>("Color");
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
     const VArray<ColorGeometry4f> &col_in = params.readonly_single_input<ColorGeometry4f>(1,
@@ -332,28 +332,28 @@ static int gpu_shader_curve_float(GPUMaterial *mat,
                         GPU_uniform(end_slopes));
 }
 
-class CurveFloatFunction : public fn::MultiFunction {
+class CurveFloatFunction : public mf::MultiFunction {
  private:
   const CurveMapping &cumap_;
 
  public:
   CurveFloatFunction(const CurveMapping &cumap) : cumap_(cumap)
   {
-    static fn::MFSignature signature = create_signature();
+    static mf::Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
+  static mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"Curve Float", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"Curve Float", signature};
     builder.single_input<float>("Factor");
     builder.single_input<float>("Value");
     builder.single_output<float>("Value");
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Factor");
     const VArray<float> &val_in = params.readonly_single_input<float>(1, "Value");

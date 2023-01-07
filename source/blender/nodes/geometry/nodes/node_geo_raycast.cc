@@ -202,7 +202,7 @@ static void raycast_to_mesh(IndexMask mask,
   }
 }
 
-class RaycastFunction : public fn::MultiFunction {
+class RaycastFunction : public mf::MultiFunction {
  private:
   GeometrySet target_;
   GeometryNodeRaycastMapMode mapping_;
@@ -217,7 +217,7 @@ class RaycastFunction : public fn::MultiFunction {
    * the field inputs for better performance. */
   const eAttrDomain domain_ = ATTR_DOMAIN_CORNER;
 
-  fn::MFSignature signature_;
+  mf::Signature signature_;
 
  public:
   RaycastFunction(GeometrySet target, GField src_field, GeometryNodeRaycastMapMode mapping)
@@ -229,10 +229,10 @@ class RaycastFunction : public fn::MultiFunction {
     this->set_signature(&signature_);
   }
 
-  fn::MFSignature create_signature()
+  mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"Geometry Proximity", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"Geometry Proximity", signature};
     builder.single_input<float3>("Source Position");
     builder.single_input<float3>("Ray Direction");
     builder.single_input<float>("Ray Length");
@@ -246,7 +246,7 @@ class RaycastFunction : public fn::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     /* Hit positions are always necessary for retrieving the attribute from the target if that
      * output is required, so always retrieve a span from the evaluator in that case (it's

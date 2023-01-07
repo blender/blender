@@ -6,28 +6,28 @@
 #include "FN_multi_function_builder.hh"
 #include "FN_multi_function_test_common.hh"
 
-namespace blender::fn::tests {
+namespace blender::fn::multi_function::tests {
 namespace {
 
 class AddFunction : public MultiFunction {
  public:
   AddFunction()
   {
-    static MFSignature signature = create_signature();
+    static Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static MFSignature create_signature()
+  static Signature create_signature()
   {
-    MFSignature signature;
-    MFSignatureBuilder builder("Add", signature);
+    Signature signature;
+    SignatureBuilder builder("Add", signature);
     builder.single_input<int>("A");
     builder.single_input<int>("B");
     builder.single_output<int>("Result");
     return signature;
   }
 
-  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
+  void call(IndexMask mask, MFParams params, Context /*context*/) const override
   {
     const VArray<int> &a = params.readonly_single_input<int>(0, "A");
     const VArray<int> &b = params.readonly_single_input<int>(1, "B");
@@ -47,12 +47,12 @@ TEST(multi_function, AddFunction)
   Array<int> input2 = {10, 20, 30};
   Array<int> output(3, -1);
 
-  MFParamsBuilder params(fn, 3);
+  ParamsBuilder params(fn, 3);
   params.add_readonly_single_input(input1.as_span());
   params.add_readonly_single_input(input2.as_span());
   params.add_uninitialized_single_output(output.as_mutable_span());
 
-  MFContextBuilder context;
+  ContextBuilder context;
 
   fn.call({0, 2}, params, context);
 
@@ -74,11 +74,11 @@ TEST(multi_function, AddPrefixFunction)
 
   std::string prefix = "AB";
 
-  MFParamsBuilder params(fn, strings.size());
+  ParamsBuilder params(fn, strings.size());
   params.add_readonly_single_input(&prefix);
   params.add_single_mutable(strings.as_mutable_span());
 
-  MFContextBuilder context;
+  ContextBuilder context;
 
   fn.call({0, 2, 3}, params, context);
 
@@ -96,11 +96,11 @@ TEST(multi_function, CreateRangeFunction)
   GVectorArray_TypedMutableRef<int> ranges_ref{ranges};
   Array<int> sizes = {3, 0, 6, 1, 4};
 
-  MFParamsBuilder params(fn, ranges.size());
+  ParamsBuilder params(fn, ranges.size());
   params.add_readonly_single_input(sizes.as_span());
   params.add_vector_output(ranges);
 
-  MFContextBuilder context;
+  ContextBuilder context;
 
   fn.call({0, 1, 2, 3}, params, context);
 
@@ -128,11 +128,11 @@ TEST(multi_function, GenericAppendFunction)
   vectors_ref.append(2, 6);
   Array<int> values = {5, 7, 3, 1};
 
-  MFParamsBuilder params(fn, vectors.size());
+  ParamsBuilder params(fn, vectors.size());
   params.add_vector_mutable(vectors);
   params.add_readonly_single_input(values.as_span());
 
-  MFContextBuilder context;
+  ContextBuilder context;
 
   fn.call(IndexRange(vectors.size()), params, context);
 
@@ -156,10 +156,10 @@ TEST(multi_function, CustomMF_Constant)
 
   Array<int> outputs(4, 0);
 
-  MFParamsBuilder params(fn, outputs.size());
+  ParamsBuilder params(fn, outputs.size());
   params.add_uninitialized_single_output(outputs.as_mutable_span());
 
-  MFContextBuilder context;
+  ContextBuilder context;
 
   fn.call({0, 2, 3}, params, context);
 
@@ -176,10 +176,10 @@ TEST(multi_function, CustomMF_GenericConstant)
 
   Array<int> outputs(4, 0);
 
-  MFParamsBuilder params(fn, outputs.size());
+  ParamsBuilder params(fn, outputs.size());
   params.add_uninitialized_single_output(outputs.as_mutable_span());
 
-  MFContextBuilder context;
+  ContextBuilder context;
 
   fn.call({0, 1, 2}, params, context);
 
@@ -197,10 +197,10 @@ TEST(multi_function, CustomMF_GenericConstantArray)
   GVectorArray vector_array{CPPType::get<int32_t>(), 4};
   GVectorArray_TypedMutableRef<int> vector_array_ref{vector_array};
 
-  MFParamsBuilder params(fn, vector_array.size());
+  ParamsBuilder params(fn, vector_array.size());
   params.add_vector_output(vector_array);
 
-  MFContextBuilder context;
+  ContextBuilder context;
 
   fn.call({1, 2, 3}, params, context);
 
@@ -220,20 +220,20 @@ TEST(multi_function, IgnoredOutputs)
 {
   OptionalOutputsFunction fn;
   {
-    MFParamsBuilder params(fn, 10);
+    ParamsBuilder params(fn, 10);
     params.add_ignored_single_output("Out 1");
     params.add_ignored_single_output("Out 2");
-    MFContextBuilder context;
+    ContextBuilder context;
     fn.call(IndexRange(10), params, context);
   }
   {
     Array<int> results_1(10);
     Array<std::string> results_2(10, NoInitialization());
 
-    MFParamsBuilder params(fn, 10);
+    ParamsBuilder params(fn, 10);
     params.add_uninitialized_single_output(results_1.as_mutable_span(), "Out 1");
     params.add_uninitialized_single_output(results_2.as_mutable_span(), "Out 2");
-    MFContextBuilder context;
+    ContextBuilder context;
     fn.call(IndexRange(10), params, context);
 
     EXPECT_EQ(results_1[0], 5);
@@ -244,4 +244,4 @@ TEST(multi_function, IgnoredOutputs)
 }
 
 }  // namespace
-}  // namespace blender::fn::tests
+}  // namespace blender::fn::multi_function::tests

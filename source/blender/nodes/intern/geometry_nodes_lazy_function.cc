@@ -37,7 +37,6 @@ namespace blender::nodes {
 
 using fn::ValueOrField;
 using fn::ValueOrFieldCPPType;
-using namespace fn::multi_function_types;
 
 static const CPPType *get_socket_cpp_type(const bNodeSocketType &typeinfo)
 {
@@ -353,8 +352,8 @@ static void execute_multi_function_on_value_or_field(
   }
   else {
     /* In this case, the multi-function is evaluated directly. */
-    MFParamsBuilder params{fn, 1};
-    MFContextBuilder context;
+    mf::ParamsBuilder params{fn, 1};
+    mf::ContextBuilder context;
 
     for (const int i : input_types.index_range()) {
       const ValueOrFieldCPPType &type = *input_types[i];
@@ -445,7 +444,7 @@ class LazyFunctionForMutedNode : public LazyFunction {
       if (from_type != nullptr && to_type != nullptr) {
         if (conversions.is_convertible(from_type->value, to_type->value)) {
           const MultiFunction &multi_fn = *conversions.get_conversion_multi_function(
-              MFDataType::ForSingle(from_type->value), MFDataType::ForSingle(to_type->value));
+              mf::DataType::ForSingle(from_type->value), mf::DataType::ForSingle(to_type->value));
           execute_multi_function_on_value_or_field(
               multi_fn, {}, {from_type}, {to_type}, {input_value}, {output_value});
         }
@@ -1676,8 +1675,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     if (from_field_type != nullptr && to_field_type != nullptr) {
       if (conversions_->is_convertible(from_field_type->value, to_field_type->value)) {
         const MultiFunction &multi_fn = *conversions_->get_conversion_multi_function(
-            MFDataType::ForSingle(from_field_type->value),
-            MFDataType::ForSingle(to_field_type->value));
+            mf::DataType::ForSingle(from_field_type->value),
+            mf::DataType::ForSingle(to_field_type->value));
         auto fn = std::make_unique<LazyFunctionForMultiFunctionConversion>(
             multi_fn, *from_field_type, *to_field_type);
         lf::Node &conversion_node = lf_graph_->add_function(*fn);

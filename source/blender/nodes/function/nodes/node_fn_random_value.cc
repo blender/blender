@@ -141,7 +141,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
   switch (data_type) {
     case CD_PROP_FLOAT3: {
-      static auto fn = fn::build_mf::SI4_SO<float3, float3, int, int, float3>(
+      static auto fn = mf::build::SI4_SO<float3, float3, int, int, float3>(
           "Random Vector",
           [](float3 min_value, float3 max_value, int id, int seed) -> float3 {
             const float x = noise::hash_to_float(seed, id, 0);
@@ -149,23 +149,23 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
             const float z = noise::hash_to_float(seed, id, 2);
             return float3(x, y, z) * (max_value - min_value) + min_value;
           },
-          fn::build_mf::exec_presets::SomeSpanOrSingle<2>());
+          mf::build::exec_presets::SomeSpanOrSingle<2>());
       builder.set_matching_fn(fn);
       break;
     }
     case CD_PROP_FLOAT: {
-      static auto fn = fn::build_mf::SI4_SO<float, float, int, int, float>(
+      static auto fn = mf::build::SI4_SO<float, float, int, int, float>(
           "Random Float",
           [](float min_value, float max_value, int id, int seed) -> float {
             const float value = noise::hash_to_float(seed, id);
             return value * (max_value - min_value) + min_value;
           },
-          fn::build_mf::exec_presets::SomeSpanOrSingle<2>());
+          mf::build::exec_presets::SomeSpanOrSingle<2>());
       builder.set_matching_fn(fn);
       break;
     }
     case CD_PROP_INT32: {
-      static auto fn = fn::build_mf::SI4_SO<int, int, int, int, int>(
+      static auto fn = mf::build::SI4_SO<int, int, int, int, int>(
           "Random Int",
           [](int min_value, int max_value, int id, int seed) -> int {
             const float value = noise::hash_to_float(id, seed);
@@ -173,17 +173,17 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
              * distribution for the first and last values (See T93591). */
             return floor(value * (max_value + 1 - min_value) + min_value);
           },
-          fn::build_mf::exec_presets::SomeSpanOrSingle<2>());
+          mf::build::exec_presets::SomeSpanOrSingle<2>());
       builder.set_matching_fn(fn);
       break;
     }
     case CD_PROP_BOOL: {
-      static auto fn = fn::build_mf::SI3_SO<float, int, int, bool>(
+      static auto fn = mf::build::SI3_SO<float, int, int, bool>(
           "Random Bool",
           [](float probability, int id, int seed) -> bool {
             return noise::hash_to_float(id, seed) <= probability;
           },
-          fn::build_mf::exec_presets::SomeSpanOrSingle<1>());
+          mf::build::exec_presets::SomeSpanOrSingle<1>());
       builder.set_matching_fn(fn);
       break;
     }

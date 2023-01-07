@@ -13,7 +13,7 @@ TEST(field, ConstantFunction)
 {
   /* TODO: Figure out how to not use another "FieldOperation(" inside of std::make_shared. */
   GField constant_field{std::make_shared<FieldOperation>(
-                            FieldOperation(std::make_unique<CustomMF_Constant<int>>(10), {})),
+                            FieldOperation(std::make_unique<mf::CustomMF_Constant<int>>(10), {})),
                         0};
 
   Array<int> result(4);
@@ -104,7 +104,7 @@ TEST(field, InputAndFunction)
 {
   GField index_field{std::make_shared<IndexFieldInput>()};
 
-  auto add_fn = build_mf::SI2_SO<int, int, int>("add", [](int a, int b) { return a + b; });
+  auto add_fn = mf::build::SI2_SO<int, int, int>("add", [](int a, int b) { return a + b; });
   GField output_field{
       std::make_shared<FieldOperation>(FieldOperation(add_fn, {index_field, index_field})), 0};
 
@@ -127,11 +127,11 @@ TEST(field, TwoFunctions)
 {
   GField index_field{std::make_shared<IndexFieldInput>()};
 
-  auto add_fn = build_mf::SI2_SO<int, int, int>("add", [](int a, int b) { return a + b; });
+  auto add_fn = mf::build::SI2_SO<int, int, int>("add", [](int a, int b) { return a + b; });
   GField add_field{
       std::make_shared<FieldOperation>(FieldOperation(add_fn, {index_field, index_field})), 0};
 
-  auto add_10_fn = build_mf::SI1_SO<int, int>("add_10", [](int a) { return a + 10; });
+  auto add_10_fn = mf::build::SI1_SO<int, int>("add_10", [](int a) { return a + 10; });
   GField result_field{std::make_shared<FieldOperation>(FieldOperation(add_10_fn, {add_field})), 0};
 
   Array<int> result(10);
@@ -149,14 +149,14 @@ TEST(field, TwoFunctions)
   EXPECT_EQ(result[8], 26);
 }
 
-class TwoOutputFunction : public MultiFunction {
+class TwoOutputFunction : public mf::MultiFunction {
  private:
-  MFSignature signature_;
+  mf::Signature signature_;
 
  public:
   TwoOutputFunction()
   {
-    MFSignatureBuilder builder{"Two Outputs", signature_};
+    mf::SignatureBuilder builder{"Two Outputs", signature_};
     builder.single_input<int>("In1");
     builder.single_input<int>("In2");
     builder.single_output<int>("Add");
@@ -164,7 +164,7 @@ class TwoOutputFunction : public MultiFunction {
     this->set_signature(&signature_);
   }
 
-  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<int> &in1 = params.readonly_single_input<int>(0, "In1");
     const VArray<int> &in2 = params.readonly_single_input<int>(1, "In2");
@@ -223,7 +223,7 @@ TEST(field, TwoFunctionsTwoOutputs)
   Field<int> result_field_1{fn, 0};
   Field<int> intermediate_field{fn, 1};
 
-  auto add_10_fn = build_mf::SI1_SO<int, int>("add_10", [](int a) { return a + 10; });
+  auto add_10_fn = mf::build::SI1_SO<int, int>("add_10", [](int a) { return a + 10; });
   Field<int> result_field_2{
       std::make_shared<FieldOperation>(FieldOperation(add_10_fn, {intermediate_field})), 0};
 
@@ -248,7 +248,7 @@ TEST(field, TwoFunctionsTwoOutputs)
 TEST(field, SameFieldTwice)
 {
   GField constant_field{
-      std::make_shared<FieldOperation>(std::make_unique<CustomMF_Constant<int>>(10)), 0};
+      std::make_shared<FieldOperation>(std::make_unique<mf::CustomMF_Constant<int>>(10)), 0};
 
   FieldContext field_context;
   IndexMask mask{IndexRange(2)};
@@ -267,7 +267,7 @@ TEST(field, SameFieldTwice)
 
 TEST(field, IgnoredOutput)
 {
-  static OptionalOutputsFunction fn;
+  static mf::tests::OptionalOutputsFunction fn;
   Field<int> field{std::make_shared<FieldOperation>(fn), 0};
 
   FieldContext field_context;

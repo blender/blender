@@ -2,26 +2,26 @@
 
 #include "FN_multi_function.hh"
 
-namespace blender::fn::tests {
+namespace blender::fn::multi_function::tests {
 
 class AddPrefixFunction : public MultiFunction {
  public:
   AddPrefixFunction()
   {
-    static MFSignature signature = create_signature();
+    static Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static MFSignature create_signature()
+  static Signature create_signature()
   {
-    MFSignature signature;
-    MFSignatureBuilder builder{"Add Prefix", signature};
+    Signature signature;
+    SignatureBuilder builder{"Add Prefix", signature};
     builder.single_input<std::string>("Prefix");
     builder.single_mutable<std::string>("Strings");
     return signature;
   }
 
-  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
+  void call(IndexMask mask, MFParams params, Context /*context*/) const override
   {
     const VArray<std::string> &prefixes = params.readonly_single_input<std::string>(0, "Prefix");
     MutableSpan<std::string> strings = params.single_mutable<std::string>(1, "Strings");
@@ -36,20 +36,20 @@ class CreateRangeFunction : public MultiFunction {
  public:
   CreateRangeFunction()
   {
-    static MFSignature signature = create_signature();
+    static Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static MFSignature create_signature()
+  static Signature create_signature()
   {
-    MFSignature signature;
-    MFSignatureBuilder builder{"Create Range", signature};
+    Signature signature;
+    SignatureBuilder builder{"Create Range", signature};
     builder.single_input<int>("Size");
     builder.vector_output<int>("Range");
     return signature;
   }
 
-  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
+  void call(IndexMask mask, MFParams params, Context /*context*/) const override
   {
     const VArray<int> &sizes = params.readonly_single_input<int>(0, "Size");
     GVectorArray &ranges = params.vector_output(1, "Range");
@@ -65,18 +65,18 @@ class CreateRangeFunction : public MultiFunction {
 
 class GenericAppendFunction : public MultiFunction {
  private:
-  MFSignature signature_;
+  Signature signature_;
 
  public:
   GenericAppendFunction(const CPPType &type)
   {
-    MFSignatureBuilder builder{"Append", signature_};
+    SignatureBuilder builder{"Append", signature_};
     builder.vector_mutable("Vector", type);
     builder.single_input("Value", type);
     this->set_signature(&signature_);
   }
 
-  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
+  void call(IndexMask mask, MFParams params, Context /*context*/) const override
   {
     GVectorArray &vectors = params.vector_mutable(0, "Vector");
     const GVArray &values = params.readonly_single_input(1, "Value");
@@ -94,20 +94,20 @@ class ConcatVectorsFunction : public MultiFunction {
  public:
   ConcatVectorsFunction()
   {
-    static MFSignature signature = create_signature();
+    static Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static MFSignature create_signature()
+  static Signature create_signature()
   {
-    MFSignature signature;
-    MFSignatureBuilder builder{"Concat Vectors", signature};
+    Signature signature;
+    SignatureBuilder builder{"Concat Vectors", signature};
     builder.vector_mutable<int>("A");
     builder.vector_input<int>("B");
     return signature;
   }
 
-  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
+  void call(IndexMask mask, MFParams params, Context /*context*/) const override
   {
     GVectorArray &a = params.vector_mutable(0);
     const GVVectorArray &b = params.readonly_vector_input(1);
@@ -119,20 +119,20 @@ class AppendFunction : public MultiFunction {
  public:
   AppendFunction()
   {
-    static MFSignature signature = create_signature();
+    static Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static MFSignature create_signature()
+  static Signature create_signature()
   {
-    MFSignature signature;
-    MFSignatureBuilder builder{"Append", signature};
+    Signature signature;
+    SignatureBuilder builder{"Append", signature};
     builder.vector_mutable<int>("Vector");
     builder.single_input<int>("Value");
     return signature;
   }
 
-  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
+  void call(IndexMask mask, MFParams params, Context /*context*/) const override
   {
     GVectorArray_TypedMutableRef<int> vectors = params.vector_mutable<int>(0);
     const VArray<int> &values = params.readonly_single_input<int>(1);
@@ -147,20 +147,20 @@ class SumVectorFunction : public MultiFunction {
  public:
   SumVectorFunction()
   {
-    static MFSignature signature = create_signature();
+    static Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static MFSignature create_signature()
+  static Signature create_signature()
   {
-    MFSignature signature;
-    MFSignatureBuilder builder{"Sum Vectors", signature};
+    Signature signature;
+    SignatureBuilder builder{"Sum Vectors", signature};
     builder.vector_input<int>("Vector");
     builder.single_output<int>("Sum");
     return signature;
   }
 
-  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
+  void call(IndexMask mask, MFParams params, Context /*context*/) const override
   {
     const VVectorArray<int> &vectors = params.readonly_vector_input<int>(0);
     MutableSpan<int> sums = params.uninitialized_single_output<int>(1);
@@ -179,20 +179,20 @@ class OptionalOutputsFunction : public MultiFunction {
  public:
   OptionalOutputsFunction()
   {
-    static MFSignature signature = create_signature();
+    static Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static MFSignature create_signature()
+  static Signature create_signature()
   {
-    MFSignature signature;
-    MFSignatureBuilder builder{"Optional Outputs", signature};
+    Signature signature;
+    SignatureBuilder builder{"Optional Outputs", signature};
     builder.single_output<int>("Out 1");
     builder.single_output<std::string>("Out 2");
     return signature;
   }
 
-  void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
+  void call(IndexMask mask, MFParams params, Context /*context*/) const override
   {
     if (params.single_output_is_required(0, "Out 1")) {
       MutableSpan<int> values = params.uninitialized_single_output<int>(0, "Out 1");
@@ -205,4 +205,4 @@ class OptionalOutputsFunction : public MultiFunction {
   }
 };
 
-}  // namespace blender::fn::tests
+}  // namespace blender::fn::multi_function::tests

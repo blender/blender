@@ -27,18 +27,18 @@ static int gpu_shader_seprgb(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "separate_rgb", in, out);
 }
 
-class SeparateRGBFunction : public fn::MultiFunction {
+class SeparateRGBFunction : public mf::MultiFunction {
  public:
   SeparateRGBFunction()
   {
-    static fn::MFSignature signature = create_signature();
+    static mf::Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
+  static mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"Separate RGB", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"Separate RGB", signature};
     builder.single_input<ColorGeometry4f>("Color");
     builder.single_output<float>("R");
     builder.single_output<float>("G");
@@ -46,7 +46,7 @@ class SeparateRGBFunction : public fn::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<ColorGeometry4f> &colors = params.readonly_single_input<ColorGeometry4f>(0,
                                                                                           "Color");
@@ -109,7 +109,7 @@ static int gpu_shader_combrgb(GPUMaterial *mat,
 
 static void sh_node_combrgb_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static auto fn = fn::build_mf::SI3_SO<float, float, float, ColorGeometry4f>(
+  static auto fn = mf::build::SI3_SO<float, float, float, ColorGeometry4f>(
       "Combine RGB", [](float r, float g, float b) { return ColorGeometry4f(r, g, b, 1.0f); });
   builder.set_matching_fn(fn);
 }

@@ -2,7 +2,7 @@
 
 #include "FN_multi_function_params.hh"
 
-namespace blender::fn {
+namespace blender::fn::multi_function {
 
 GMutableSpan MFParams::ensure_dummy_single_output(int param_index)
 {
@@ -27,4 +27,4 @@ GMutableSpan MFParams::ensure_dummy_single_output(int param_index)
   return span;
 }
 
-}  // namespace blender::fn
+}  // namespace blender::fn::multi_function

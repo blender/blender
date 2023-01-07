@@ -201,7 +201,7 @@ static void sample_indices_and_factors_to_compressed(const Span<float> accumulat
  * Given an array of accumulated lengths, find the segment indices that
  * sample lengths lie on, and how far along the segment they are.
  */
-class SampleFloatSegmentsFunction : public fn::MultiFunction {
+class SampleFloatSegmentsFunction : public mf::MultiFunction {
  private:
   Array<float> accumulated_lengths_;
   GeometryNodeCurveSampleMode length_mode_;
@@ -211,14 +211,14 @@ class SampleFloatSegmentsFunction : public fn::MultiFunction {
                               const GeometryNodeCurveSampleMode length_mode)
       : accumulated_lengths_(std::move(accumulated_lengths)), length_mode_(length_mode)
   {
-    static fn::MFSignature signature = create_signature();
+    static mf::Signature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
+  static mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"Sample Curve Index", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"Sample Curve Index", signature};
     builder.single_input<float>("Length");
 
     builder.single_output<int>("Curve Index");
@@ -226,7 +226,7 @@ class SampleFloatSegmentsFunction : public fn::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArraySpan<float> lengths = params.readonly_single_input<float>(0, "Length");
     MutableSpan<int> indices = params.uninitialized_single_output<int>(1, "Curve Index");
@@ -238,7 +238,7 @@ class SampleFloatSegmentsFunction : public fn::MultiFunction {
   }
 };
 
-class SampleCurveFunction : public fn::MultiFunction {
+class SampleCurveFunction : public mf::MultiFunction {
  private:
   /**
    * The function holds a geometry set instead of curves or a curve component reference in order
@@ -249,7 +249,7 @@ class SampleCurveFunction : public fn::MultiFunction {
   GField src_field_;
   GeometryNodeCurveSampleMode length_mode_;
 
-  fn::MFSignature signature_;
+  mf::Signature signature_;
 
   std::optional<bke::CurvesFieldContext> source_context_;
   std::unique_ptr<FieldEvaluator> source_evaluator_;
@@ -266,10 +266,10 @@ class SampleCurveFunction : public fn::MultiFunction {
     this->evaluate_source();
   }
 
-  fn::MFSignature create_signature()
+  mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"Sample Curve", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"Sample Curve", signature};
     builder.single_input<int>("Curve Index");
     builder.single_input<float>("Length");
     builder.single_output<float3>("Position");
@@ -279,7 +279,7 @@ class SampleCurveFunction : public fn::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     MutableSpan<float3> sampled_positions = params.uninitialized_single_output_if_required<float3>(
         2, "Position");

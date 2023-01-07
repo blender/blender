@@ -232,13 +232,13 @@ static const GeometryComponent *find_source_component(const GeometrySet &geometr
   return nullptr;
 }
 
-class SampleNearestFunction : public fn::MultiFunction {
+class SampleNearestFunction : public mf::MultiFunction {
   GeometrySet source_;
   eAttrDomain domain_;
 
   const GeometryComponent *src_component_;
 
-  fn::MFSignature signature_;
+  mf::Signature signature_;
 
  public:
   SampleNearestFunction(GeometrySet geometry, eAttrDomain domain)
@@ -251,16 +251,16 @@ class SampleNearestFunction : public fn::MultiFunction {
     this->src_component_ = find_source_component(source_, domain_);
   }
 
-  fn::MFSignature create_signature()
+  mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"Sample Nearest", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"Sample Nearest", signature};
     builder.single_input<float3>("Position");
     builder.single_output<int>("Index");
     return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float3> &positions = params.readonly_single_input<float3>(0, "Position");
     MutableSpan<int> indices = params.uninitialized_single_output<int>(1, "Index");

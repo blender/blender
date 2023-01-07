@@ -36,16 +36,16 @@ static void node_label(const bNodeTree * /*tree*/, const bNode *node, char *labe
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-static const fn::MultiFunction *get_multi_function(const bNode &bnode)
+static const mf::MultiFunction *get_multi_function(const bNode &bnode)
 {
-  static auto exec_preset = fn::build_mf::exec_presets::AllSpanOrSingle();
-  static auto round_fn = fn::build_mf::SI1_SO<float, int>(
+  static auto exec_preset = mf::build::exec_presets::AllSpanOrSingle();
+  static auto round_fn = mf::build::SI1_SO<float, int>(
       "Round", [](float a) { return int(round(a)); }, exec_preset);
-  static auto floor_fn = fn::build_mf::SI1_SO<float, int>(
+  static auto floor_fn = mf::build::SI1_SO<float, int>(
       "Floor", [](float a) { return int(floor(a)); }, exec_preset);
-  static auto ceil_fn = fn::build_mf::SI1_SO<float, int>(
+  static auto ceil_fn = mf::build::SI1_SO<float, int>(
       "Ceiling", [](float a) { return int(ceil(a)); }, exec_preset);
-  static auto trunc_fn = fn::build_mf::SI1_SO<float, int>(
+  static auto trunc_fn = mf::build::SI1_SO<float, int>(
       "Truncate", [](float a) { return int(trunc(a)); }, exec_preset);
 
   switch (static_cast<FloatToIntRoundingMode>(bnode.custom1)) {
@@ -65,7 +65,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &bnode)
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  const fn::MultiFunction *fn = get_multi_function(builder.node());
+  const mf::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
 }
 

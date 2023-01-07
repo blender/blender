@@ -45,7 +45,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = tex;
 }
 
-class ImageFieldsFunction : public fn::MultiFunction {
+class ImageFieldsFunction : public mf::MultiFunction {
  private:
   const int8_t interpolation_;
   const int8_t extension_;
@@ -64,7 +64,7 @@ class ImageFieldsFunction : public fn::MultiFunction {
         image_(image),
         image_user_(image_user)
   {
-    static fn::MFSignature signature = create_signature();
+    static mf::Signature signature = create_signature();
     this->set_signature(&signature);
 
     image_buffer_ = BKE_image_acquire_ibuf(&image_, &image_user_, &image_lock_);
@@ -91,10 +91,10 @@ class ImageFieldsFunction : public fn::MultiFunction {
     BKE_image_release_ibuf(&image_, image_buffer_, image_lock_);
   }
 
-  static fn::MFSignature create_signature()
+  static mf::Signature create_signature()
   {
-    fn::MFSignature signature;
-    fn::MFSignatureBuilder builder{"ImageFunction", signature};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"ImageFunction", signature};
     builder.single_input<float3>("Vector");
     builder.single_output<ColorGeometry4f>("Color");
     builder.single_output<float>("Alpha");
@@ -319,7 +319,7 @@ class ImageFieldsFunction : public fn::MultiFunction {
     }
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vectors = params.readonly_single_input<float3>(0, "Vector");
     MutableSpan<ColorGeometry4f> r_color = params.uninitialized_single_output<ColorGeometry4f>(
