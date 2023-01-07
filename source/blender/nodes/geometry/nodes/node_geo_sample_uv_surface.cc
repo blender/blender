@@ -136,11 +136,12 @@ class SampleMeshBarycentricFunction : public fn::MultiFunction {
 
   fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Sample Barycentric Triangles"};
-    signature.single_input<int>("Triangle Index");
-    signature.single_input<float3>("Barycentric Weight");
-    signature.single_output("Value", src_field_.cpp_type());
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Sample Barycentric Triangles", signature};
+    builder.single_input<int>("Triangle Index");
+    builder.single_input<float3>("Barycentric Weight");
+    builder.single_output("Value", src_field_.cpp_type());
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
@@ -206,12 +207,13 @@ class ReverseUVSampleFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Sample UV Surface"};
-    signature.single_input<float2>("Sample UV");
-    signature.single_output<bool>("Is Valid");
-    signature.single_output<int>("Triangle Index");
-    signature.single_output<float3>("Barycentric Weights");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Sample UV Surface", signature};
+    builder.single_input<float2>("Sample UV");
+    builder.single_output<bool>("Is Valid");
+    builder.single_output<int>("Triangle Index");
+    builder.single_output<float3>("Barycentric Weights");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

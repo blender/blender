@@ -100,11 +100,12 @@ class ColorBandFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Color Band"};
-    signature.single_input<float>("Value");
-    signature.single_output<ColorGeometry4f>("Color");
-    signature.single_output<float>("Alpha");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Color Band", signature};
+    builder.single_input<float>("Value");
+    builder.single_output<ColorGeometry4f>("Color");
+    builder.single_output<float>("Alpha");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

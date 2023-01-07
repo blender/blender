@@ -144,11 +144,12 @@ class ProximityFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Geometry Proximity"};
-    signature.single_input<float3>("Source Position");
-    signature.single_output<float3>("Position");
-    signature.single_output<float>("Distance");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Geometry Proximity", signature};
+    builder.single_input<float3>("Source Position");
+    builder.single_output<float3>("Position");
+    builder.single_output<float>("Distance");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

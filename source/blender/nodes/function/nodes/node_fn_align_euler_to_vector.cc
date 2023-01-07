@@ -148,13 +148,14 @@ class MF_AlignEulerToVector : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Align Euler to Vector"};
-    signature.single_input<float3>("Rotation");
-    signature.single_input<float>("Factor");
-    signature.single_input<float3>("Vector");
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Align Euler to Vector", signature};
+    builder.single_input<float3>("Rotation");
+    builder.single_input<float>("Factor");
+    builder.single_input<float3>("Vector");
 
-    signature.single_output<float3>("Rotation");
-    return signature.build();
+    builder.single_output<float3>("Rotation");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

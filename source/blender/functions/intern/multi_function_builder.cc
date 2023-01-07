@@ -18,9 +18,8 @@ CustomMF_GenericConstant::CustomMF_GenericConstant(const CPPType &type,
   }
   value_ = value;
 
-  MFSignatureBuilder signature{"Constant"};
-  signature.single_output("Value", type);
-  signature_ = signature.build();
+  MFSignatureBuilder builder{"Constant", signature_};
+  builder.single_output("Value", type);
   this->set_signature(&signature_);
 }
 
@@ -58,9 +57,8 @@ bool CustomMF_GenericConstant::equals(const MultiFunction &other) const
 CustomMF_GenericConstantArray::CustomMF_GenericConstantArray(GSpan array) : array_(array)
 {
   const CPPType &type = array.type();
-  MFSignatureBuilder signature{"Constant Vector"};
-  signature.vector_output("Value", type);
-  signature_ = signature.build();
+  MFSignatureBuilder builder{"Constant Vector", signature_};
+  builder.vector_output("Value", type);
   this->set_signature(&signature_);
 }
 
@@ -78,14 +76,13 @@ CustomMF_DefaultOutput::CustomMF_DefaultOutput(Span<MFDataType> input_types,
                                                Span<MFDataType> output_types)
     : output_amount_(output_types.size())
 {
-  MFSignatureBuilder signature{"Default Output"};
+  MFSignatureBuilder builder{"Default Output", signature_};
   for (MFDataType data_type : input_types) {
-    signature.input("Input", data_type);
+    builder.input("Input", data_type);
   }
   for (MFDataType data_type : output_types) {
-    signature.output("Output", data_type);
+    builder.output("Output", data_type);
   }
-  signature_ = signature.build();
   this->set_signature(&signature_);
 }
 void CustomMF_DefaultOutput::call(IndexMask mask, MFParams params, MFContext /*context*/) const
@@ -106,10 +103,9 @@ void CustomMF_DefaultOutput::call(IndexMask mask, MFParams params, MFContext /*c
 
 CustomMF_GenericCopy::CustomMF_GenericCopy(MFDataType data_type)
 {
-  MFSignatureBuilder signature{"Copy"};
-  signature.input("Input", data_type);
-  signature.output("Output", data_type);
-  signature_ = signature.build();
+  MFSignatureBuilder builder{"Copy", signature_};
+  builder.input("Input", data_type);
+  builder.output("Output", data_type);
   this->set_signature(&signature_);
 }
 

@@ -32,17 +32,13 @@ struct MFSignature {
 
 class MFSignatureBuilder {
  private:
-  MFSignature signature_;
+  MFSignature &signature_;
 
  public:
-  MFSignatureBuilder(const char *function_name)
+  MFSignatureBuilder(const char *function_name, MFSignature &signature_to_build)
+      : signature_(signature_to_build)
   {
     signature_.function_name = function_name;
-  }
-
-  MFSignature build() const
-  {
-    return std::move(signature_);
   }
 
   /* Input Parameter Types */

@@ -60,11 +60,12 @@ class GradientFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"GradientFunction"};
-    signature.single_input<float3>("Vector");
-    signature.single_output<ColorGeometry4f>("Color");
-    signature.single_output<float>("Fac");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"GradientFunction", signature};
+    builder.single_input<float3>("Vector");
+    builder.single_output<ColorGeometry4f>("Color");
+    builder.single_output<float>("Fac");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

@@ -8,13 +8,12 @@ namespace blender::fn {
 
 MFProcedureExecutor::MFProcedureExecutor(const MFProcedure &procedure) : procedure_(procedure)
 {
-  MFSignatureBuilder signature("Procedure Executor");
+  MFSignatureBuilder builder("Procedure Executor", signature_);
 
   for (const ConstMFParameter &param : procedure.params()) {
-    signature.add("Parameter", MFParamType(param.type, param.variable->data_type()));
+    builder.add("Parameter", MFParamType(param.type, param.variable->data_type()));
   }
 
-  signature_ = signature.build();
   this->set_signature(&signature_);
 }
 

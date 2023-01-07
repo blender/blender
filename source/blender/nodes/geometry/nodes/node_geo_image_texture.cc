@@ -93,11 +93,12 @@ class ImageFieldsFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"ImageFunction"};
-    signature.single_input<float3>("Vector");
-    signature.single_output<ColorGeometry4f>("Color");
-    signature.single_output<float>("Alpha");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"ImageFunction", signature};
+    builder.single_input<float3>("Vector");
+    builder.single_output<ColorGeometry4f>("Color");
+    builder.single_output<float>("Alpha");
+    return signature;
   }
 
   static int wrap_periodic(int x, const int width)

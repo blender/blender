@@ -105,12 +105,13 @@ class MixRGBFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"MixRGB"};
-    signature.single_input<float>("Fac");
-    signature.single_input<ColorGeometry4f>("Color1");
-    signature.single_input<ColorGeometry4f>("Color2");
-    signature.single_output<ColorGeometry4f>("Color");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"MixRGB", signature};
+    builder.single_input<float>("Fac");
+    builder.single_input<ColorGeometry4f>("Color1");
+    builder.single_input<ColorGeometry4f>("Color2");
+    builder.single_output<ColorGeometry4f>("Color");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

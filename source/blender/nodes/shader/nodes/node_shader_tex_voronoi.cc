@@ -209,31 +209,32 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature(int dimensions, int feature)
   {
-    fn::MFSignatureBuilder signature{"voronoi_minowski"};
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"voronoi_minowski", signature};
 
     if (ELEM(dimensions, 2, 3, 4)) {
-      signature.single_input<float3>("Vector");
+      builder.single_input<float3>("Vector");
     }
     if (ELEM(dimensions, 1, 4)) {
-      signature.single_input<float>("W");
+      builder.single_input<float>("W");
     }
-    signature.single_input<float>("Scale");
+    builder.single_input<float>("Scale");
     if (feature == SHD_VORONOI_SMOOTH_F1) {
-      signature.single_input<float>("Smoothness");
+      builder.single_input<float>("Smoothness");
     }
-    signature.single_input<float>("Exponent");
-    signature.single_input<float>("Randomness");
-    signature.single_output<float>("Distance");
-    signature.single_output<ColorGeometry4f>("Color");
+    builder.single_input<float>("Exponent");
+    builder.single_input<float>("Randomness");
+    builder.single_output<float>("Distance");
+    builder.single_output<ColorGeometry4f>("Color");
 
     if (dimensions != 1) {
-      signature.single_output<float3>("Position");
+      builder.single_output<float3>("Position");
     }
     if (ELEM(dimensions, 1, 4)) {
-      signature.single_output<float>("W");
+      builder.single_output<float>("W");
     }
 
-    return signature.build();
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
@@ -646,30 +647,31 @@ class VoronoiMetricFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature(int dimensions, int feature)
   {
-    fn::MFSignatureBuilder signature{"voronoi_metric"};
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"voronoi_metric", signature};
 
     if (ELEM(dimensions, 2, 3, 4)) {
-      signature.single_input<float3>("Vector");
+      builder.single_input<float3>("Vector");
     }
     if (ELEM(dimensions, 1, 4)) {
-      signature.single_input<float>("W");
+      builder.single_input<float>("W");
     }
-    signature.single_input<float>("Scale");
+    builder.single_input<float>("Scale");
     if (feature == SHD_VORONOI_SMOOTH_F1) {
-      signature.single_input<float>("Smoothness");
+      builder.single_input<float>("Smoothness");
     }
-    signature.single_input<float>("Randomness");
-    signature.single_output<float>("Distance");
-    signature.single_output<ColorGeometry4f>("Color");
+    builder.single_input<float>("Randomness");
+    builder.single_output<float>("Distance");
+    builder.single_output<ColorGeometry4f>("Color");
 
     if (dimensions != 1) {
-      signature.single_output<float3>("Position");
+      builder.single_output<float3>("Position");
     }
     if (ELEM(dimensions, 1, 4)) {
-      signature.single_output<float>("W");
+      builder.single_output<float>("W");
     }
 
-    return signature.build();
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
@@ -1158,25 +1160,26 @@ class VoronoiEdgeFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature(int dimensions, int feature)
   {
-    fn::MFSignatureBuilder signature{"voronoi_edge"};
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"voronoi_edge", signature};
 
     if (ELEM(dimensions, 2, 3, 4)) {
-      signature.single_input<float3>("Vector");
+      builder.single_input<float3>("Vector");
     }
     if (ELEM(dimensions, 1, 4)) {
-      signature.single_input<float>("W");
+      builder.single_input<float>("W");
     }
-    signature.single_input<float>("Scale");
-    signature.single_input<float>("Randomness");
+    builder.single_input<float>("Scale");
+    builder.single_input<float>("Randomness");
 
     if (feature == SHD_VORONOI_DISTANCE_TO_EDGE) {
-      signature.single_output<float>("Distance");
+      builder.single_output<float>("Distance");
     }
     if (feature == SHD_VORONOI_N_SPHERE_RADIUS) {
-      signature.single_output<float>("Radius");
+      builder.single_output<float>("Radius");
     }
 
-    return signature.build();
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

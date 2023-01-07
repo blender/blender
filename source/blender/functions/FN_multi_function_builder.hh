@@ -445,10 +445,9 @@ template<typename CallFn, typename... ParamTags> class CustomMF : public MultiFu
   CustomMF(const char *name, CallFn call_fn, TypeSequence<ParamTags...> /*param_tags*/)
       : call_fn_(std::move(call_fn))
   {
-    MFSignatureBuilder signature{name};
+    MFSignatureBuilder builder{name, signature_};
     /* Loop over all parameter types and add an entry for each in the signature. */
-    ([&] { signature.add(ParamTags(), ""); }(), ...);
-    signature_ = signature.build();
+    ([&] { builder.add(ParamTags(), ""); }(), ...);
     this->set_signature(&signature_);
   }
 
@@ -631,9 +630,8 @@ template<typename T> class CustomMF_Constant : public MultiFunction {
  public:
   template<typename U> CustomMF_Constant(U &&value) : value_(std::forward<U>(value))
   {
-    MFSignatureBuilder signature{"Constant"};
-    signature.single_output<T>("Value");
-    signature_ = signature.build();
+    MFSignatureBuilder builder{"Constant", signature_};
+    builder.single_output<T>("Value");
     this->set_signature(&signature_);
   }
 

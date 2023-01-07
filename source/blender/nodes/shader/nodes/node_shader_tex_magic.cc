@@ -61,13 +61,14 @@ class MagicFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"MagicFunction"};
-    signature.single_input<float3>("Vector");
-    signature.single_input<float>("Scale");
-    signature.single_input<float>("Distortion");
-    signature.single_output<ColorGeometry4f>("Color");
-    signature.single_output<float>("Fac");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"MagicFunction", signature};
+    builder.single_input<float3>("Vector");
+    builder.single_input<float>("Scale");
+    builder.single_input<float>("Distortion");
+    builder.single_output<ColorGeometry4f>("Color");
+    builder.single_output<float>("Fac");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

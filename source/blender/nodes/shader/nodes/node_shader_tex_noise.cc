@@ -100,24 +100,25 @@ class NoiseFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature(int dimensions)
   {
-    fn::MFSignatureBuilder signature{"Noise"};
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Noise", signature};
 
     if (ELEM(dimensions, 2, 3, 4)) {
-      signature.single_input<float3>("Vector");
+      builder.single_input<float3>("Vector");
     }
     if (ELEM(dimensions, 1, 4)) {
-      signature.single_input<float>("W");
+      builder.single_input<float>("W");
     }
 
-    signature.single_input<float>("Scale");
-    signature.single_input<float>("Detail");
-    signature.single_input<float>("Roughness");
-    signature.single_input<float>("Distortion");
+    builder.single_input<float>("Scale");
+    builder.single_input<float>("Detail");
+    builder.single_input<float>("Roughness");
+    builder.single_input<float>("Distortion");
 
-    signature.single_output<float>("Fac");
-    signature.single_output<ColorGeometry4f>("Color");
+    builder.single_output<float>("Fac");
+    builder.single_output<ColorGeometry4f>("Color");
 
-    return signature.build();
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

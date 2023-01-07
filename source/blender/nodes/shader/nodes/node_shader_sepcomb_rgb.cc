@@ -37,12 +37,13 @@ class SeparateRGBFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Separate RGB"};
-    signature.single_input<ColorGeometry4f>("Color");
-    signature.single_output<float>("R");
-    signature.single_output<float>("G");
-    signature.single_output<float>("B");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Separate RGB", signature};
+    builder.single_input<ColorGeometry4f>("Color");
+    builder.single_output<float>("R");
+    builder.single_output<float>("G");
+    builder.single_output<float>("B");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

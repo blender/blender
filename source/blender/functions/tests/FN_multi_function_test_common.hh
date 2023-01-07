@@ -14,10 +14,11 @@ class AddPrefixFunction : public MultiFunction {
 
   static MFSignature create_signature()
   {
-    MFSignatureBuilder signature{"Add Prefix"};
-    signature.single_input<std::string>("Prefix");
-    signature.single_mutable<std::string>("Strings");
-    return signature.build();
+    MFSignature signature;
+    MFSignatureBuilder builder{"Add Prefix", signature};
+    builder.single_input<std::string>("Prefix");
+    builder.single_mutable<std::string>("Strings");
+    return signature;
   }
 
   void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
@@ -41,10 +42,11 @@ class CreateRangeFunction : public MultiFunction {
 
   static MFSignature create_signature()
   {
-    MFSignatureBuilder signature{"Create Range"};
-    signature.single_input<int>("Size");
-    signature.vector_output<int>("Range");
-    return signature.build();
+    MFSignature signature;
+    MFSignatureBuilder builder{"Create Range", signature};
+    builder.single_input<int>("Size");
+    builder.vector_output<int>("Range");
+    return signature;
   }
 
   void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
@@ -68,10 +70,9 @@ class GenericAppendFunction : public MultiFunction {
  public:
   GenericAppendFunction(const CPPType &type)
   {
-    MFSignatureBuilder signature{"Append"};
-    signature.vector_mutable("Vector", type);
-    signature.single_input("Value", type);
-    signature_ = signature.build();
+    MFSignatureBuilder builder{"Append", signature_};
+    builder.vector_mutable("Vector", type);
+    builder.single_input("Value", type);
     this->set_signature(&signature_);
   }
 
@@ -99,10 +100,11 @@ class ConcatVectorsFunction : public MultiFunction {
 
   static MFSignature create_signature()
   {
-    MFSignatureBuilder signature{"Concat Vectors"};
-    signature.vector_mutable<int>("A");
-    signature.vector_input<int>("B");
-    return signature.build();
+    MFSignature signature;
+    MFSignatureBuilder builder{"Concat Vectors", signature};
+    builder.vector_mutable<int>("A");
+    builder.vector_input<int>("B");
+    return signature;
   }
 
   void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
@@ -123,10 +125,11 @@ class AppendFunction : public MultiFunction {
 
   static MFSignature create_signature()
   {
-    MFSignatureBuilder signature{"Append"};
-    signature.vector_mutable<int>("Vector");
-    signature.single_input<int>("Value");
-    return signature.build();
+    MFSignature signature;
+    MFSignatureBuilder builder{"Append", signature};
+    builder.vector_mutable<int>("Vector");
+    builder.single_input<int>("Value");
+    return signature;
   }
 
   void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
@@ -150,10 +153,11 @@ class SumVectorFunction : public MultiFunction {
 
   static MFSignature create_signature()
   {
-    MFSignatureBuilder signature{"Sum Vectors"};
-    signature.vector_input<int>("Vector");
-    signature.single_output<int>("Sum");
-    return signature.build();
+    MFSignature signature;
+    MFSignatureBuilder builder{"Sum Vectors", signature};
+    builder.vector_input<int>("Vector");
+    builder.single_output<int>("Sum");
+    return signature;
   }
 
   void call(IndexMask mask, MFParams params, MFContext /*context*/) const override
@@ -181,10 +185,11 @@ class OptionalOutputsFunction : public MultiFunction {
 
   static MFSignature create_signature()
   {
-    MFSignatureBuilder signature{"Optional Outputs"};
-    signature.single_output<int>("Out 1");
-    signature.single_output<std::string>("Out 2");
-    return signature.build();
+    MFSignature signature;
+    MFSignatureBuilder builder{"Optional Outputs", signature};
+    builder.single_output<int>("Out 1");
+    builder.single_output<std::string>("Out 2");
+    return signature;
   }
 
   void call(IndexMask mask, MFParams params, MFContext /*context*/) const override

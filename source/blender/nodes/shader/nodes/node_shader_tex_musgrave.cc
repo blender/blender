@@ -167,31 +167,32 @@ class MusgraveFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature(const int dimensions, const int musgrave_type)
   {
-    fn::MFSignatureBuilder signature{"Musgrave"};
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Musgrave", signature};
 
     if (ELEM(dimensions, 2, 3, 4)) {
-      signature.single_input<float3>("Vector");
+      builder.single_input<float3>("Vector");
     }
     if (ELEM(dimensions, 1, 4)) {
-      signature.single_input<float>("W");
+      builder.single_input<float>("W");
     }
-    signature.single_input<float>("Scale");
-    signature.single_input<float>("Detail");
-    signature.single_input<float>("Dimension");
-    signature.single_input<float>("Lacunarity");
+    builder.single_input<float>("Scale");
+    builder.single_input<float>("Detail");
+    builder.single_input<float>("Dimension");
+    builder.single_input<float>("Lacunarity");
     if (ELEM(musgrave_type,
              SHD_MUSGRAVE_RIDGED_MULTIFRACTAL,
              SHD_MUSGRAVE_HYBRID_MULTIFRACTAL,
              SHD_MUSGRAVE_HETERO_TERRAIN)) {
-      signature.single_input<float>("Offset");
+      builder.single_input<float>("Offset");
     }
     if (ELEM(musgrave_type, SHD_MUSGRAVE_RIDGED_MULTIFRACTAL, SHD_MUSGRAVE_HYBRID_MULTIFRACTAL)) {
-      signature.single_input<float>("Gain");
+      builder.single_input<float>("Gain");
     }
 
-    signature.single_output<float>("Fac");
+    builder.single_output<float>("Fac");
 
-    return signature.build();
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

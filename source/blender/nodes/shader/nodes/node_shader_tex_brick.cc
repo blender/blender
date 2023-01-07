@@ -128,20 +128,21 @@ class BrickFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"BrickTexture"};
-    signature.single_input<float3>("Vector");
-    signature.single_input<ColorGeometry4f>("Color1");
-    signature.single_input<ColorGeometry4f>("Color2");
-    signature.single_input<ColorGeometry4f>("Mortar");
-    signature.single_input<float>("Scale");
-    signature.single_input<float>("Mortar Size");
-    signature.single_input<float>("Mortar Smooth");
-    signature.single_input<float>("Bias");
-    signature.single_input<float>("Brick Width");
-    signature.single_input<float>("Row Height");
-    signature.single_output<ColorGeometry4f>("Color");
-    signature.single_output<float>("Fac");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"BrickTexture", signature};
+    builder.single_input<float3>("Vector");
+    builder.single_input<ColorGeometry4f>("Color1");
+    builder.single_input<ColorGeometry4f>("Color2");
+    builder.single_input<ColorGeometry4f>("Mortar");
+    builder.single_input<float>("Scale");
+    builder.single_input<float>("Mortar Size");
+    builder.single_input<float>("Mortar Smooth");
+    builder.single_input<float>("Bias");
+    builder.single_input<float>("Brick Width");
+    builder.single_input<float>("Row Height");
+    builder.single_output<ColorGeometry4f>("Color");
+    builder.single_output<float>("Fac");
+    return signature;
   }
 
   /* Fast integer noise. */

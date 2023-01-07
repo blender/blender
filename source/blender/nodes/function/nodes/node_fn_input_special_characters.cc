@@ -20,10 +20,11 @@ class MF_SpecialCharacters : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Special Characters"};
-    signature.single_output<std::string>("Line Break");
-    signature.single_output<std::string>("Tab");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Special Characters", signature};
+    builder.single_output<std::string>("Line Break");
+    builder.single_output<std::string>("Tab");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

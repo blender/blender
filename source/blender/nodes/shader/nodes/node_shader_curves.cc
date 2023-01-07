@@ -76,11 +76,12 @@ class CurveVecFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Curve Vec"};
-    signature.single_input<float>("Fac");
-    signature.single_input<float3>("Vector");
-    signature.single_output<float3>("Vector");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Curve Vec", signature};
+    builder.single_input<float>("Fac");
+    builder.single_input<float3>("Vector");
+    builder.single_output<float3>("Vector");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
@@ -221,11 +222,12 @@ class CurveRGBFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Curve RGB"};
-    signature.single_input<float>("Fac");
-    signature.single_input<ColorGeometry4f>("Color");
-    signature.single_output<ColorGeometry4f>("Color");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Curve RGB", signature};
+    builder.single_input<float>("Fac");
+    builder.single_input<ColorGeometry4f>("Color");
+    builder.single_output<ColorGeometry4f>("Color");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
@@ -343,11 +345,12 @@ class CurveFloatFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Curve Float"};
-    signature.single_input<float>("Factor");
-    signature.single_input<float>("Value");
-    signature.single_output<float>("Value");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Curve Float", signature};
+    builder.single_input<float>("Factor");
+    builder.single_input<float>("Value");
+    builder.single_output<float>("Value");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

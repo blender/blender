@@ -19,11 +19,12 @@ class AddFunction : public MultiFunction {
 
   static MFSignature create_signature()
   {
-    MFSignatureBuilder signature("Add");
-    signature.single_input<int>("A");
-    signature.single_input<int>("B");
-    signature.single_output<int>("Result");
-    return signature.build();
+    MFSignature signature;
+    MFSignatureBuilder builder("Add", signature);
+    builder.single_input<int>("A");
+    builder.single_input<int>("B");
+    builder.single_output<int>("Result");
+    return signature;
   }
 
   void call(IndexMask mask, MFParams params, MFContext /*context*/) const override

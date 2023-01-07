@@ -217,12 +217,13 @@ class SampleFloatSegmentsFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Sample Curve Index"};
-    signature.single_input<float>("Length");
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Sample Curve Index", signature};
+    builder.single_input<float>("Length");
 
-    signature.single_output<int>("Curve Index");
-    signature.single_output<float>("Length in Curve");
-    return signature.build();
+    builder.single_output<int>("Curve Index");
+    builder.single_output<float>("Length in Curve");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
@@ -267,14 +268,15 @@ class SampleCurveFunction : public fn::MultiFunction {
 
   fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Sample Curve"};
-    signature.single_input<int>("Curve Index");
-    signature.single_input<float>("Length");
-    signature.single_output<float3>("Position");
-    signature.single_output<float3>("Tangent");
-    signature.single_output<float3>("Normal");
-    signature.single_output("Value", src_field_.cpp_type());
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Sample Curve", signature};
+    builder.single_input<int>("Curve Index");
+    builder.single_input<float>("Length");
+    builder.single_output<float3>("Position");
+    builder.single_output<float3>("Tangent");
+    builder.single_output<float3>("Normal");
+    builder.single_output("Value", src_field_.cpp_type());
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

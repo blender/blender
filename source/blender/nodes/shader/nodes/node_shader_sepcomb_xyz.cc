@@ -37,12 +37,13 @@ class MF_SeparateXYZ : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Separate XYZ"};
-    signature.single_input<float3>("XYZ");
-    signature.single_output<float>("X");
-    signature.single_output<float>("Y");
-    signature.single_output<float>("Z");
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Separate XYZ", signature};
+    builder.single_input<float3>("XYZ");
+    builder.single_output<float>("X");
+    builder.single_output<float>("Y");
+    builder.single_output<float>("Z");
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

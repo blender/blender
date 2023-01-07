@@ -231,18 +231,19 @@ class RaycastFunction : public fn::MultiFunction {
 
   fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Geometry Proximity"};
-    signature.single_input<float3>("Source Position");
-    signature.single_input<float3>("Ray Direction");
-    signature.single_input<float>("Ray Length");
-    signature.single_output<bool>("Is Hit");
-    signature.single_output<float3>("Hit Position");
-    signature.single_output<float3>("Hit Normal");
-    signature.single_output<float>("Distance");
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Geometry Proximity", signature};
+    builder.single_input<float3>("Source Position");
+    builder.single_input<float3>("Ray Direction");
+    builder.single_input<float>("Ray Length");
+    builder.single_output<bool>("Is Hit");
+    builder.single_output<float3>("Hit Position");
+    builder.single_output<float3>("Hit Normal");
+    builder.single_output<float>("Distance");
     if (target_data_) {
-      signature.single_output("Attribute", target_data_->type());
+      builder.single_output("Attribute", target_data_->type());
     }
-    return signature.build();
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

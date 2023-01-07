@@ -208,10 +208,11 @@ class SampleIndexFunction : public fn::MultiFunction {
 
   fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Sample Index"};
-    signature.single_input<int>("Index");
-    signature.single_output("Value", src_field_.cpp_type());
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Sample Index", signature};
+    builder.single_input<int>("Index");
+    builder.single_output("Value", src_field_.cpp_type());
+    return signature;
   }
 
   void evaluate_field()

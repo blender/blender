@@ -146,10 +146,11 @@ class SampleNearestSurfaceFunction : public fn::MultiFunction {
 
   fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Sample Nearest Surface"};
-    signature.single_input<float3>("Position");
-    signature.single_output("Value", src_field_.cpp_type());
-    return signature.build();
+    fn::MFSignature signature;
+    fn::MFSignatureBuilder builder{"Sample Nearest Surface", signature};
+    builder.single_input<float3>("Position");
+    builder.single_output("Value", src_field_.cpp_type());
+    return signature;
   }
 
   void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override

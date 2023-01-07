@@ -156,12 +156,11 @@ class TwoOutputFunction : public MultiFunction {
  public:
   TwoOutputFunction()
   {
-    MFSignatureBuilder signature{"Two Outputs"};
-    signature.single_input<int>("In1");
-    signature.single_input<int>("In2");
-    signature.single_output<int>("Add");
-    signature.single_output<int>("Add10");
-    signature_ = signature.build();
+    MFSignatureBuilder builder{"Two Outputs", signature_};
+    builder.single_input<int>("In1");
+    builder.single_input<int>("In2");
+    builder.single_output<int>("Add");
+    builder.single_output<int>("Add10");
     this->set_signature(&signature_);
   }
 
