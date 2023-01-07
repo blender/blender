@@ -11,7 +11,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_devirtualize_parameters.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.hh"

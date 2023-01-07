@@ -10,13 +10,9 @@
 
 #include <functional>
 
-#include "BLI_devirtualize_parameters.hh"
-
 #include "FN_multi_function.hh"
 
 namespace blender::fn {
-
-namespace devi = devirtualize_parameters;
 
 /**
  * These presets determine what code is generated for a #CustomMF. Different presets make different
@@ -63,14 +59,24 @@ struct AllSpanOrSingle {
   static constexpr bool use_devirtualization = true;
   static constexpr FallbackMode fallback_mode = FallbackMode::Materialized;
 
-  template<typename Fn, typename... ParamTypes>
-  void try_devirtualize(devi::Devirtualizer<Fn, ParamTypes...> &devirtualizer)
+  template<typename... ParamTags, typename... LoadedParams, size_t... I>
+  auto create_devirtualizers(TypeSequence<ParamTags...> /*param_tags*/,
+                             std::index_sequence<I...> /*indices*/,
+                             const IndexMask &mask,
+                             const std::tuple<LoadedParams...> &loaded_params)
   {
-    using devi::DeviMode;
-    devirtualizer.try_execute_devirtualized(
-        make_value_sequence<DeviMode,
-                            DeviMode::Span | DeviMode::Single | DeviMode::Range,
-                            sizeof...(ParamTypes)>());
+    return std::make_tuple(IndexMaskDevirtualizer<true, true>{mask}, [&]() {
+      typedef ParamTags ParamTag;
+      typedef typename ParamTag::base_type T;
+      if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+        const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
+        return GVArrayDevirtualizer<T, true, true>{varray_impl};
+      }
+      else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
+        T *ptr = std::get<I>(loaded_params);
+        return BasicDevirtualizer<T *>{ptr};
+      }
+    }()...);
   }
 };
 
@@ -83,17 +89,26 @@ template<size_t... Indices> struct SomeSpanOrSingle {
   static constexpr bool use_devirtualization = true;
   static constexpr FallbackMode fallback_mode = FallbackMode::Materialized;
 
-  template<typename Fn, typename... ParamTypes>
-  void try_devirtualize(devi::Devirtualizer<Fn, ParamTypes...> &devirtualizer)
+  template<typename... ParamTags, typename... LoadedParams, size_t... I>
+  auto create_devirtualizers(TypeSequence<ParamTags...> /*param_tags*/,
+                             std::index_sequence<I...> /*indices*/,
+                             const IndexMask &mask,
+                             const std::tuple<LoadedParams...> &loaded_params)
   {
-    using devi::DeviMode;
-    devirtualizer.try_execute_devirtualized(
-        make_two_value_sequence<DeviMode,
-                                DeviMode::Span | DeviMode::Single | DeviMode::Range,
-                                DeviMode::Single,
-                                sizeof...(ParamTypes),
-                                0,
-                                (Indices + 1)...>());
+    return std::make_tuple(IndexMaskDevirtualizer<true, true>{mask}, [&]() {
+      typedef ParamTags ParamTag;
+      typedef typename ParamTag::base_type T;
+
+      if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+        constexpr bool UseSpan = ValueSequence<size_t, Indices...>::template contains<I>();
+        const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
+        return GVArrayDevirtualizer<T, true, UseSpan>{varray_impl};
+      }
+      else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
+        T *ptr = std::get<I>(loaded_params);
+        return BasicDevirtualizer<T *>{ptr};
+      }
+    }()...);
   }
 };
 
@@ -107,8 +122,8 @@ namespace detail {
  * instead of a `VArray<int>`).
  */
 template<typename MaskT, typename... Args, typename... ParamTags, size_t... I, typename ElementFn>
-void execute_array(TypeSequence<ParamTags...> /* param_tags */,
-                   std::index_sequence<I...> /* indices */,
+void execute_array(TypeSequence<ParamTags...> /*param_tags*/,
+                   std::index_sequence<I...> /*indices*/,
                    ElementFn element_fn,
                    MaskT mask,
                    /* Use restrict to tell the compiler that pointer inputs do not alias each
@@ -125,7 +140,7 @@ void execute_array(TypeSequence<ParamTags...> /* param_tags */,
       else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
         /* For outputs, pass a pointer to the function. This is done instead of passing a
          * reference, because the pointer points to uninitialized memory. */
-        return &args[i];
+        return args + i;
       }
     }()...);
   }
@@ -151,7 +166,7 @@ template<typename ParamTag> struct ArgInfo {
  * Similar to #execute_array but accepts two mask inputs, one for inputs and one for outputs.
  */
 template<typename... ParamTags, typename ElementFn, typename... Chunks>
-void execute_materialized_impl(TypeSequence<ParamTags...> /* param_tags */,
+void execute_materialized_impl(TypeSequence<ParamTags...> /*param_tags*/,
                                const ElementFn element_fn,
                                const IndexRange in_mask,
                                const IndexMask out_mask,
@@ -168,7 +183,7 @@ void execute_materialized_impl(TypeSequence<ParamTags...> /* param_tags */,
       }
       else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
         /* For outputs, a pointer is passed, because the memory is uninitialized. */
-        return &chunks[out_i];
+        return chunks + out_i;
       }
     }()...);
   }
@@ -179,12 +194,12 @@ void execute_materialized_impl(TypeSequence<ParamTags...> /* param_tags */,
  * separately, processing happens in chunks. This allows retrieving from input virtual arrays in
  * chunks, which reduces virtual function call overhead.
  */
-template<typename... ParamTags, size_t... I, typename ElementFn, typename... Args>
+template<typename... ParamTags, size_t... I, typename ElementFn, typename... LoadedParams>
 void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
                           std::index_sequence<I...> /* indices */,
                           const ElementFn element_fn,
                           const IndexMask mask,
-                          Args &&...args)
+                          const std::tuple<LoadedParams...> &loaded_params)
 {
 
   /* In theory, all elements could be processed in one chunk. However, that has the disadvantage
@@ -212,19 +227,21 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
         typedef typename ParamTag::base_type T;
         [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
         if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
-          VArray<T> &varray = *args;
-          if (varray.is_single()) {
+          const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
+          const CommonVArrayInfo common_info = varray_impl.common_info();
+          if (common_info.type == CommonVArrayInfo::Type::Single) {
             /* If an input #VArray is a single value, we have to fill the buffer with that value
              * only once. The same unchanged buffer can then be reused in every chunk. */
             MutableSpan<T> in_chunk{std::get<I>(buffers_owner).ptr(), buffer_size};
-            const T in_single = varray.get_internal_single();
+            const T &in_single = *static_cast<const T *>(common_info.data);
             uninitialized_fill_n(in_chunk.data(), in_chunk.size(), in_single);
             std::get<I>(buffers) = in_chunk;
             arg_info.mode = ArgMode::Single;
           }
-          else if (varray.is_span()) {
+          else if (common_info.type == CommonVArrayInfo::Type::Span) {
             /* Remember the span so that it doesn't have to be retrieved in every iteration. */
-            arg_info.internal_span = varray.get_internal_span();
+            const T *ptr = static_cast<const T *>(common_info.data);
+            arg_info.internal_span = Span<T>(ptr, varray_impl.size());
           }
         }
       }(),
@@ -254,7 +271,6 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
               return Span<T>(std::get<I>(buffers));
             }
             else {
-              const VArray<T> &varray = *args;
               if (sliced_mask_is_range) {
                 if (!arg_info.internal_span.is_empty()) {
                   /* In this case we can just use an existing span instead of "compressing" it into
@@ -264,10 +280,11 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
                   return arg_info.internal_span.slice(sliced_mask_range);
                 }
               }
+              const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
               /* As a fallback, do a virtual function call to retrieve all elements in the current
                * chunk. The elements are stored in a temporary buffer reused for every chunk. */
               MutableSpan<T> in_chunk{std::get<I>(buffers_owner).ptr(), chunk_size};
-              varray.materialize_compressed_to_uninitialized(sliced_mask, in_chunk);
+              varray_impl.materialize_compressed_to_uninitialized(sliced_mask, in_chunk.data());
               /* Remember that this parameter has been materialized, so that the values are
                * destructed properly when the chunk is done. */
               arg_info.mode = ArgMode::Materialized;
@@ -276,7 +293,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
           }
           else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
             /* For outputs, just pass a pointer. This is important so that `__restrict` works. */
-            return args->data();
+            return std::get<I>(loaded_params);
           }
         }()...);
 
@@ -344,40 +361,34 @@ template<typename... ParamTags> class CustomMF : public MultiFunction {
                       ExecPreset exec_preset,
                       IndexMask mask,
                       MFParams params,
-                      std::index_sequence<I...> /* indices */)
+                      std::index_sequence<I...> /*indices*/)
   {
-    std::tuple<typename ParamTags::array_type...> retrieved_params;
-    (
-        /* Get all parameters from #params and store them in #retrieved_params. */
-        [&]() {
-          /* Use `typedef` instead of `using` to work around a compiler bug. */
-          typedef typename TagsSequence::template at_index<I> ParamTag;
-          typedef typename ParamTag::base_type T;
+    /* Contains `const GVArrayImpl *` for inputs and `T *` for outputs. */
+    const auto loaded_params = std::make_tuple([&]() {
+      /* Use `typedef` instead of `using` to work around a compiler bug. */
+      typedef typename TagsSequence::template at_index<I> ParamTag;
+      typedef typename ParamTag::base_type T;
 
-          if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
-            std::get<I>(retrieved_params) = params.readonly_single_input<T>(I);
-          }
-          if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
-            std::get<I>(retrieved_params) = params.uninitialized_single_output<T>(I);
-          }
-        }(),
-        ...);
-
-    auto array_executor = [&](auto &&...args) {
-      detail::execute_array(TagsSequence(),
-                            std::make_index_sequence<TagsSequence::size()>(),
-                            element_fn,
-                            std::forward<decltype(args)>(args)...);
-    };
+      if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+        return params.readonly_single_input(I).get_implementation();
+      }
+      else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
+        return static_cast<T *>(params.uninitialized_single_output(I).data());
+      }
+    }()...);
 
     /* First try devirtualized execution, since this is the most efficient. */
     bool executed_devirtualized = false;
     if constexpr (ExecPreset::use_devirtualization) {
-      devi::Devirtualizer<decltype(array_executor), IndexMask, typename ParamTags::array_type...>
-          devirtualizer{
-              array_executor, &mask, [&] { return &std::get<I>(retrieved_params); }()...};
-      exec_preset.try_devirtualize(devirtualizer);
-      executed_devirtualized = devirtualizer.executed();
+      const auto devirtualizers = exec_preset.create_devirtualizers(
+          TagsSequence(), std::index_sequence<I...>(), mask, loaded_params);
+      executed_devirtualized = call_with_devirtualized_parameters(
+          devirtualizers, [&](auto &&...args) {
+            detail::execute_array(TagsSequence(),
+                                  std::index_sequence<I...>(),
+                                  element_fn,
+                                  std::forward<decltype(args)>(args)...);
+          });
     }
 
     /* If devirtualized execution was disabled or not possible, use a fallback method which is
@@ -385,16 +396,23 @@ template<typename... ParamTags> class CustomMF : public MultiFunction {
     if (!executed_devirtualized) {
       if constexpr (ExecPreset::fallback_mode == CustomMF_presets::FallbackMode::Materialized) {
         materialize_detail::execute_materialized(
-            TypeSequence<ParamTags...>(), std::index_sequence<I...>(), element_fn, mask, [&] {
-              return &std::get<I>(retrieved_params);
-            }()...);
+            TagsSequence(), std::index_sequence<I...>(), element_fn, mask, loaded_params);
       }
       else {
-        detail::execute_array(TagsSequence(),
-                              std::make_index_sequence<TagsSequence::size()>(),
-                              element_fn,
-                              mask,
-                              std::get<I>(retrieved_params)...);
+        detail::execute_array(
+            TagsSequence(), std::index_sequence<I...>(), element_fn, mask, [&]() {
+              /* Use `typedef` instead of `using` to work around a compiler bug. */
+              typedef typename TagsSequence::template at_index<I> ParamTag;
+              typedef typename ParamTag::base_type T;
+              if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
+                const GVArrayImpl &varray_impl = *std::get<I>(loaded_params);
+                return GVArray(&varray_impl).typed<T>();
+              }
+              else if constexpr (ParamTag::category == MFParamCategory::SingleOutput) {
+                T *ptr = std::get<I>(loaded_params);
+                return ptr;
+              }
+            }()...);
       }
     }
   }

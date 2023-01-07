@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_devirtualize_parameters.hh"
 #include "BLI_generic_array.hh"
 #include "BLI_length_parameterize.hh"
 

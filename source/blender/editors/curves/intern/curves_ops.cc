@@ -7,7 +7,6 @@
 #include <atomic>
 
 #include "BLI_array_utils.hh"
-#include "BLI_devirtualize_parameters.hh"
 #include "BLI_index_mask_ops.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
