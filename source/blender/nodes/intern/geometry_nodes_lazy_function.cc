@@ -2708,7 +2708,7 @@ class UsedSocketVisualizeOptions : public lf::Graph::ToDotOptions {
 
   void add_edge_attributes(const lf::OutputSocket & /*from*/,
                            const lf::InputSocket &to,
-                           dot::DirectedEdge &dot_edge) const
+                           dot::DirectedEdge &dot_edge) const override
   {
     if (builder_.socket_usage_inputs_.contains_as(&to)) {
       // dot_edge.attributes.set("constraint", "false");
