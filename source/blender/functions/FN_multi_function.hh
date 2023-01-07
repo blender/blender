@@ -67,22 +67,22 @@ class MultiFunction {
 
   int param_amount() const
   {
-    return signature_ref_->param_types.size();
+    return signature_ref_->params.size();
   }
 
   IndexRange param_indices() const
   {
-    return signature_ref_->param_types.index_range();
+    return signature_ref_->params.index_range();
   }
 
   MFParamType param_type(int param_index) const
   {
-    return signature_ref_->param_types[param_index];
+    return signature_ref_->params[param_index].type;
   }
 
   StringRefNull param_name(int param_index) const
   {
-    return signature_ref_->param_names[param_index];
+    return signature_ref_->params[param_index].name;
   }
 
   StringRefNull name() const
@@ -91,11 +91,6 @@ class MultiFunction {
   }
 
   virtual std::string debug_name() const;
-
-  bool depends_on_context() const
-  {
-    return signature_ref_->depends_on_context;
-  }
 
   const MFSignature &signature() const
   {

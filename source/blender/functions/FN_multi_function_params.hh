@@ -40,7 +40,7 @@ class MFParamsBuilder {
   MFParamsBuilder(const MFSignature &signature, const IndexMask mask)
       : signature_(&signature), mask_(mask), min_array_size_(mask.min_array_size())
   {
-    actual_params_.reserve(signature.param_types.size());
+    actual_params_.reserve(signature.params.size());
   }
 
  public:
@@ -124,7 +124,7 @@ class MFParamsBuilder {
   {
     this->assert_current_param_name(expected_name);
     const int param_index = this->current_param_index();
-    const MFParamType &param_type = signature_->param_types[param_index];
+    const MFParamType &param_type = signature_->params[param_index].type;
     BLI_assert(param_type.category() == MFParamCategory::SingleOutput);
     const CPPType &type = param_type.data_type().single_type();
     /* An empty span indicates that this is ignored. */
@@ -157,7 +157,7 @@ class MFParamsBuilder {
 
   GMutableSpan computed_array(int param_index)
   {
-    BLI_assert(ELEM(signature_->param_types[param_index].category(),
+    BLI_assert(ELEM(signature_->params[param_index].type.category(),
                     MFParamCategory::SingleOutput,
                     MFParamCategory::SingleMutable));
     return *std::get_if<GMutableSpan>(&actual_params_[param_index]);
@@ -165,7 +165,7 @@ class MFParamsBuilder {
 
   GVectorArray &computed_vector_array(int param_index)
   {
-    BLI_assert(ELEM(signature_->param_types[param_index].category(),
+    BLI_assert(ELEM(signature_->params[param_index].type.category(),
                     MFParamCategory::VectorOutput,
                     MFParamCategory::VectorMutable));
     return **std::get_if<GVectorArray *>(&actual_params_[param_index]);
@@ -184,11 +184,11 @@ class MFParamsBuilder {
     int param_index = this->current_param_index();
 
     if (expected_name != "") {
-      StringRef actual_name = signature_->param_names[param_index];
+      StringRef actual_name = signature_->params[param_index].name;
       BLI_assert(actual_name == expected_name);
     }
 
-    MFParamType expected_type = signature_->param_types[param_index];
+    MFParamType expected_type = signature_->params[param_index].type;
     BLI_assert(expected_type == param_type);
 #endif
   }
@@ -201,7 +201,7 @@ class MFParamsBuilder {
       return;
     }
     const int param_index = this->current_param_index();
-    StringRef actual_name = signature_->param_names[param_index];
+    StringRef actual_name = signature_->params[param_index].name;
     BLI_assert(actual_name == expected_name);
 #endif
   }
@@ -325,9 +325,9 @@ class MFParams {
   {
     UNUSED_VARS_NDEBUG(param_index, name, param_type);
 #ifdef DEBUG
-    BLI_assert(builder_->signature_->param_types[param_index] == param_type);
+    BLI_assert(builder_->signature_->params[param_index].type == param_type);
     if (name.size() > 0) {
-      BLI_assert(builder_->signature_->param_names[param_index] == name);
+      BLI_assert(builder_->signature_->params[param_index].name == name);
     }
 #endif
   }
@@ -336,9 +336,9 @@ class MFParams {
   {
     UNUSED_VARS_NDEBUG(param_index, name, category);
 #ifdef DEBUG
-    BLI_assert(builder_->signature_->param_types[param_index].category() == category);
+    BLI_assert(builder_->signature_->params[param_index].type.category() == category);
     if (name.size() > 0) {
-      BLI_assert(builder_->signature_->param_names[param_index] == name);
+      BLI_assert(builder_->signature_->params[param_index].name == name);
     }
 #endif
   }

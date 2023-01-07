@@ -26,7 +26,7 @@ CustomMF_GenericConstant::CustomMF_GenericConstant(const CPPType &type,
 CustomMF_GenericConstant::~CustomMF_GenericConstant()
 {
   if (owns_value_) {
-    signature_.param_types[0].data_type().single_type().destruct(const_cast<void *>(value_));
+    signature_.params[0].type.data_type().single_type().destruct(const_cast<void *>(value_));
     MEM_freeN(const_cast<void *>(value_));
   }
 }

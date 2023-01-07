@@ -16,6 +16,11 @@
 namespace blender::fn {
 
 struct MFSignature {
+  struct ParamInfo {
+    MFParamType type;
+    const char *name;
+  };
+
   /**
    * The name should be statically allocated so that it lives longer than this signature. This is
    * used instead of an #std::string because of the overhead when many functions are created.
@@ -24,10 +29,7 @@ struct MFSignature {
    * actually needed.
    */
   const char *function_name;
-  Vector<const char *> param_names;
-  Vector<MFParamType> param_types;
-  Vector<int> param_data_indices;
-  bool depends_on_context = false;
+  Vector<ParamInfo> params;
 };
 
 class MFSignatureBuilder {
@@ -61,8 +63,7 @@ class MFSignatureBuilder {
   }
   void input(const char *name, MFDataType data_type)
   {
-    signature_.param_names.append(name);
-    signature_.param_types.append(MFParamType(MFParamType::Input, data_type));
+    signature_.params.append({MFParamType(MFParamType::Input, data_type), name});
   }
 
   /* Output Parameter Types */
@@ -85,8 +86,7 @@ class MFSignatureBuilder {
   }
   void output(const char *name, MFDataType data_type)
   {
-    signature_.param_names.append(name);
-    signature_.param_types.append(MFParamType(MFParamType::Output, data_type));
+    signature_.params.append({MFParamType(MFParamType::Output, data_type), name});
   }
 
   /* Mutable Parameter Types */
@@ -109,8 +109,7 @@ class MFSignatureBuilder {
   }
   void mutable_(const char *name, MFDataType data_type)
   {
-    signature_.param_names.append(name);
-    signature_.param_types.append(MFParamType(MFParamType::Mutable, data_type));
+    signature_.params.append({MFParamType(MFParamType::Mutable, data_type), name});
   }
 
   void add(const char *name, const MFParamType &param_type)
@@ -152,15 +151,6 @@ class MFSignatureBuilder {
         return;
     }
     BLI_assert_unreachable();
-  }
-
-  /* Context */
-
-  /** This indicates that the function accesses the context. This disables optimizations that
-   * depend on the fact that the function always performers the same operation. */
-  void depends_on_context()
-  {
-    signature_.depends_on_context = true;
   }
 };
 

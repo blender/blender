@@ -974,14 +974,10 @@ class VariableStates {
   }
 };
 
-static bool evaluate_as_one(const MultiFunction &fn,
-                            Span<VariableState *> param_variable_states,
+static bool evaluate_as_one(Span<VariableState *> param_variable_states,
                             const IndexMask &mask,
                             const IndexMask &full_mask)
 {
-  if (fn.depends_on_context()) {
-    return false;
-  }
   if (mask.size() < full_mask.size()) {
     return false;
   }
@@ -1059,7 +1055,7 @@ static void execute_call_instruction(const MFCallInstruction &instruction,
 
   /* If all inputs to the function are constant, it's enough to call the function only once instead
    * of for every index. */
-  if (evaluate_as_one(fn, param_variable_states, mask, variable_states.full_mask())) {
+  if (evaluate_as_one(param_variable_states, mask, variable_states.full_mask())) {
     MFParamsBuilder params(fn, 1);
     fill_params__one(fn, mask, params, variable_states, param_variable_states);
 
