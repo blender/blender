@@ -391,6 +391,7 @@ class MSLGeneratorInterface {
   bool uses_gl_InstanceID;
   bool uses_gl_BaseInstanceARB;
   bool uses_gl_FrontFacing;
+  bool uses_gl_PrimitiveID;
   /* Sets the output render target array index when using multilayered rendering. */
   bool uses_gl_FragDepth;
   bool uses_mtl_array_index_;
