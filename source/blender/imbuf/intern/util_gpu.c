@@ -252,11 +252,11 @@ GPUTexture *IMB_touch_gpu_texture(const char *name,
   GPUTexture *tex;
   if (layers > 0) {
     tex = GPU_texture_create_2d_array_ex(
-        name, w, h, layers, 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
+        name, w, h, layers, 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW, NULL);
   }
   else {
     tex = GPU_texture_create_2d_ex(
-        name, w, h, 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
+        name, w, h, 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW, NULL);
   }
 
   GPU_texture_swizzle_set(tex, imb_gpu_get_swizzle(ibuf));

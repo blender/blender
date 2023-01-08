@@ -473,7 +473,7 @@ void gpu::MTLTexture::update_sub(
   @autoreleasepool {
     /* Determine totalsize of INPUT Data. */
     int num_channels = to_component_len(format_);
-    int input_bytes_per_pixel = num_channels * to_bytesize(type);
+    int input_bytes_per_pixel = to_bytesize(format_, type);
     int totalsize = 0;
 
     /* If unpack row length is used, size of input data uses the unpack row length, rather than the
