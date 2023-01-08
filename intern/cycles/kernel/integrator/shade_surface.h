@@ -502,8 +502,15 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
                                                      rng_state,
                                                  ccl_global float *ccl_restrict render_buffer)
 {
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+
   if (!(kernel_data.kernel_features & KERNEL_FEATURE_AO_ADDITIVE) &&
-      !(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_CAMERA)) {
+      !(path_flag & PATH_RAY_CAMERA)) {
+    return;
+  }
+
+  /* Skip AO for paths that were split off for shadow catchers to avoid double-counting. */
+  if (path_flag & PATH_RAY_SHADOW_CATCHER_PASS) {
     return;
   }
 
