@@ -138,23 +138,18 @@ execute_array(TypeSequence<ParamTags...> /*param_tags*/,
                * other. This is important for some compiler optimizations. */
               Args &&__restrict... args)
 {
-  for (const int64_t i : mask) {
-    element_fn([&]() -> decltype(auto) {
-      using ParamTag = typename TypeSequence<ParamTags...>::template at_index<I>;
-      if constexpr (ParamTag::category == ParamCategory::SingleInput) {
-        /* For inputs, pass the value (or a reference to it) to the function. */
-        return args[i];
-      }
-      else if constexpr (ParamTag::category == ParamCategory::SingleOutput) {
-        /* For outputs, pass a pointer to the function. This is done instead of passing a
-         * reference, because the pointer points to uninitialized memory. */
-        return args + i;
-      }
-      else if constexpr (ParamTag::category == ParamCategory::SingleMutable) {
-        /* For mutables, pass a mutable reference to the function. */
-        return args[i];
-      }
-    }()...);
+  if constexpr (std::is_same_v<std::decay_t<MaskT>, IndexRange>) {
+    /* Having this explicit loop is necessary for msvc to be able to vectorize this. */
+    const int64_t start = mask.start();
+    const int64_t end = mask.one_after_last();
+    for (int64_t i = start; i < end; i++) {
+      element_fn(args[i]...);
+    }
+  }
+  else {
+    for (const int32_t i : mask) {
+      element_fn(args[i]...);
+    }
   }
 }
 
@@ -190,7 +185,7 @@ inline void execute_materialized_impl(TypeSequence<ParamTags...> /*param_tags*/,
         return chunks[in_i];
       }
       else if constexpr (ParamTag::category == ParamCategory::SingleOutput) {
-        return chunks + out_i;
+        return chunks[out_i];
       }
       else if constexpr (ParamTag::category == ParamCategory::SingleMutable) {
         return chunks[out_i];
@@ -472,7 +467,7 @@ inline auto build_multi_function_with_n_inputs_one_output(const char *name,
   constexpr auto param_tags = TypeSequence<MFParamTag<ParamCategory::SingleInput, In>...,
                                            MFParamTag<ParamCategory::SingleOutput, Out>>();
   auto call_fn = build_multi_function_call_from_element_fn(
-      [element_fn](const In &...in, Out *out) { new (out) Out(element_fn(in...)); },
+      [element_fn](const In &...in, Out &out) { new (&out) Out(element_fn(in...)); },
       exec_preset,
       param_tags);
   return CustomMF(name, call_fn, param_tags);
