@@ -1131,7 +1131,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
 
   snode.edittree->ensure_topology_cache();
   const Span<float2> socket_locations = snode.runtime->all_socket_locations;
-  if (socket_locations.is_empty()) {
+  if (socket_locations.size() != snode.edittree->all_sockets().size()) {
     /* Sockets haven't been drawn yet, e.g. when the file is currently opening. */
     return nullptr;
   }
