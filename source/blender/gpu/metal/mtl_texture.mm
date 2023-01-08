@@ -1933,6 +1933,11 @@ void gpu::MTLTexture::reset()
     is_dirty_ = true;
   }
 
+  if (texture_no_srgb_ != nil) {
+    [texture_no_srgb_ release];
+    texture_no_srgb_ = nil;
+  }
+
   if (mip_swizzle_view_ != nil) {
     [mip_swizzle_view_ release];
     mip_swizzle_view_ = nil;
@@ -1963,6 +1968,25 @@ void gpu::MTLTexture::reset()
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name SRGB Handling.
+ * \{ */
+bool MTLTexture::is_format_srgb()
+{
+  return (format_ == GPU_SRGB8_A8);
+}
+
+id<MTLTexture> MTLTexture::get_non_srgb_handle()
+{
+  id<MTLTexture> base_tex = get_metal_handle_base();
+  BLI_assert(base_tex != nil);
+  if (texture_no_srgb_ == nil) {
+    texture_no_srgb_ = [base_tex newTextureViewWithPixelFormat:MTLPixelFormatRGBA8Unorm];
+  }
+  return texture_no_srgb_;
+}
+
+/** \} */
 /* -------------------------------------------------------------------- */
 /** \name Pixel Buffer
  * \{ */
