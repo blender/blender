@@ -16,6 +16,7 @@ void util_cdf_invert(const int resolution,
                      const bool make_symmetric,
                      vector<float> &inv_cdf)
 {
+  assert(cdf[0] == 0.0f && cdf[resolution] == 1.0f);
   const float inv_resolution = 1.0f / (float)resolution;
   const float range = to - from;
   inv_cdf.resize(resolution);
@@ -39,8 +40,8 @@ void util_cdf_invert(const int resolution,
   }
   else {
     for (int i = 0; i < resolution; i++) {
-      float x = from + range * (float)i * inv_resolution;
-      int index = upper_bound(cdf.begin(), cdf.end(), x) - cdf.begin();
+      float x = (i + 0.5f) * inv_resolution;
+      int index = upper_bound(cdf.begin(), cdf.end(), x) - cdf.begin() - 1;
       float t;
       if (index < cdf.size() - 1) {
         t = (x - cdf[index]) / (cdf[index + 1] - cdf[index]);
@@ -49,7 +50,7 @@ void util_cdf_invert(const int resolution,
         t = 0.0f;
         index = resolution;
       }
-      inv_cdf[i] = (index + t) * inv_resolution;
+      inv_cdf[i] = from + range * (index + t) * inv_resolution;
     }
   }
 }
