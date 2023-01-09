@@ -283,9 +283,9 @@ class GeoNodeExecParams {
    * attribute is not needed.
    */
   AutoAnonymousAttributeID get_output_anonymous_attribute_id_if_needed(
-      const StringRef output_identifier)
+      const StringRef output_identifier, const bool force_create = false)
   {
-    if (!this->anonymous_attribute_output_is_required(output_identifier)) {
+    if (!this->anonymous_attribute_output_is_required(output_identifier) && !force_create) {
       return {};
     }
     const GeoNodesLFUserData &user_data = *this->user_data();
