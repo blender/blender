@@ -3897,9 +3897,10 @@ void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
         continue;
       }
 
-      /* An existing triangle has already been inserted. As a heuristic, attempt to add the
-       * *previous* triangle. \note: Should probably call `GEO_uv_parametrizer_face_add` instead of
-       * `p_face_add_construct`. */
+      /* An existing triangle has already been inserted.
+       * As a heuristic, attempt to add the *previous* triangle.
+       * NOTE: Should probably call `GEO_uv_parametrizer_face_add`
+       * instead of `p_face_add_construct`. */
       int iprev = permute[(i + pm - 1) % pm];
       p_face_add_construct(phandle, key, vkeys, co, uv, iprev, i0, i1, pin, select);
 

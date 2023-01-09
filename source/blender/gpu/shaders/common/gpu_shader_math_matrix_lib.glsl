@@ -277,7 +277,7 @@ vec3 to_scale(mat4x4 mat, const bool allow_negative_scale);
 
 /**
  * Decompose a matrix into location, rotation, and scale components.
- * \tparam allow_negative_scale if true, will compute determinant to know if matrix is negative.
+ * \tparam allow_negative_scale: if true, will compute determinant to know if matrix is negative.
  * Rotation and scale values will be flipped if it is negative.
  * This is a costly operation so it is disabled by default.
  */
@@ -907,7 +907,7 @@ mat3x3 from_rotation(EulerXYZ rotation)
 
 mat3x3 from_rotation(Quaternion rotation)
 {
-  /** \note: Should be double but support isn't native on most GPUs. */
+  /* NOTE: Should be double but support isn't native on most GPUs. */
   float q0 = M_SQRT2 * float(rotation.x);
   float q1 = M_SQRT2 * float(rotation.y);
   float q2 = M_SQRT2 * float(rotation.z);
