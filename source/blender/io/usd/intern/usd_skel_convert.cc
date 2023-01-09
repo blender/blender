@@ -260,6 +260,11 @@ void import_blendshapes(Main *bmain, Object *obj, pxr::UsdPrim prim)
       continue;
     }
 
+    if (offsets.empty()) {
+      std::cout << "No offsets for blendshape " << path << std::endl;
+      continue;
+    }
+
     shapekey_names.insert(blendshapes[i]);
 
     kb = BKE_keyblock_add(key, blendshapes[i].GetString().c_str());
@@ -274,6 +279,11 @@ void import_blendshapes(Main *bmain, Object *obj, pxr::UsdPrim prim)
 
     if (point_indices.empty()) {
       for (int a = 0; a < kb->totelem; ++a, fp += 3) {
+        if (a >= offsets.size()) {
+          std::cout << "Number of offsets greater than number of mesh vertices for blendshape "
+                    << path << std::endl;
+          break;
+        }
         add_v3_v3(fp, offsets[a].data());
       }
     }
@@ -281,9 +291,13 @@ void import_blendshapes(Main *bmain, Object *obj, pxr::UsdPrim prim)
       int a = 0;
       for (int i : point_indices) {
         if (i < 0 || i > kb->totelem) {
-          std::cout << "out of bounds point index " << i << std::endl;
+          std::cout << "Out of bounds point index " << i << " for blendshape " << path << std::endl;
           ++a;
           continue;
+        }
+        if (a >= offsets.size()) {
+          std::cout << "Number of offsets greater than number of mesh vertices for blendshape " << path << std::endl;
+          break;
         }
         add_v3_v3(&fp[3 * i], offsets[a].data());
         ++a;
