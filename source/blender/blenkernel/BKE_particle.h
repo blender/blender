@@ -267,7 +267,7 @@ BLI_INLINE void psys_frand_vec(ParticleSystem *psys, unsigned int seed, float ve
 }
 
 /* ----------- functions needed outside particlesystem ---------------- */
-/* particle.c */
+/* particle.cc */
 
 /* Few helpers for count-all etc. */
 
@@ -540,7 +540,7 @@ void BKE_particlesystem_reset_all(struct Object *object);
 
 /* ----------- functions needed only inside particlesystem ------------ */
 
-/* particle.c */
+/* particle.cc */
 
 void psys_disable_all(struct Object *ob);
 void psys_enable_all(struct Object *ob);

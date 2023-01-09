@@ -244,7 +244,7 @@ set(SRC
   intern/paint.cc
   intern/paint_canvas.cc
   intern/paint_toolslots.c
-  intern/particle.c
+  intern/particle.cc
   intern/particle_child.c
   intern/particle_distribute.c
   intern/particle_system.c
