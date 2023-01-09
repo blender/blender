@@ -4,6 +4,11 @@
 
 namespace blender::bke {
 
+std::string AnonymousAttributeID::user_name() const
+{
+  return this->name();
+}
+
 bool AnonymousAttributePropagationInfo::propagate(const AnonymousAttributeID &anonymous_id) const
 {
   if (this->propagate_all) {
