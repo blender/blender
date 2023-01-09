@@ -263,7 +263,7 @@ template<typename T, int Size>
  * Dot product between two vectors.
  * Equivalent to component wise multiplication followed by summation of the result.
  * Equivalent to the cosine of the angle between the two vectors if the vectors are normalized.
- * /note prefer using `length_manhattan(a)` than `dot(a, vec(1))` to get the sum of all components.
+ * \note prefer using `length_manhattan(a)` than `dot(a, vec(1))` to get the sum of all components.
  */
 template<typename T, int Size>
 [[nodiscard]] inline T dot(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
@@ -297,7 +297,7 @@ template<typename T, int Size> [[nodiscard]] inline T length(const VecBase<T, Si
   return std::sqrt(length_squared(a));
 }
 
-/* Returns true if each individual columns are unit scaled. Mainly for assert usage. */
+/** Return true if each individual column is unit scaled. Mainly for assert usage. */
 template<typename T, int Size> [[nodiscard]] inline bool is_unit_scale(const VecBase<T, Size> &v)
 {
   /* Checks are flipped so NAN doesn't assert because we're making sure the value was
@@ -410,9 +410,9 @@ template<typename T>
 }
 
 /**
- * @param poly List of points around a polygon. They don't have to be co-planar.
- * @return Best fit plane normal for the given polygon loop or, zero vector if point
- * loop is too short. Not normalized.
+ * \param poly: Array of points around a polygon. They don't have to be co-planar.
+ * \return Best fit plane normal for the given polygon loop or zero vector if point
+ * array is too short. Not normalized.
  */
 template<typename T> [[nodiscard]] inline VecBase<T, 3> cross_poly(Span<VecBase<T, 3>> poly)
 {
@@ -439,8 +439,8 @@ template<typename T> [[nodiscard]] inline VecBase<T, 3> cross_poly(Span<VecBase<
 
 /**
  * Per component linear interpolation.
- * @param t interpolation factor. Return \a a if equal 0. Return \a b if equal 1.
- * Outside of [0..1] range, it transform the function into linear extrapolation.
+ * \param t: interpolation factor. Return \a a if equal 0. Return \a b if equal 1.
+ * Outside of [0..1] range, use linear extrapolation.
  */
 template<typename T, typename FactorT, int Size>
 [[nodiscard]] inline VecBase<T, Size> interpolate(const VecBase<T, Size> &a,
@@ -451,7 +451,7 @@ template<typename T, typename FactorT, int Size>
 }
 
 /**
- * @return Point halfway between \a a and \a b.
+ * \return Point halfway between \a a and \a b.
  */
 template<typename T, int Size>
 [[nodiscard]] inline VecBase<T, Size> midpoint(const VecBase<T, Size> &a,
@@ -472,7 +472,7 @@ template<typename T, int Size>
 }
 
 /**
- * @return Index of the component with the greatest magnitude.
+ * \return Index of the component with the greatest magnitude.
  */
 template<typename T> [[nodiscard]] inline int dominant_axis(const VecBase<T, 3> &a)
 {
