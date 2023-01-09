@@ -377,7 +377,8 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
 
   /* Only request generic kernels if they aren't cached in memory. */
   if (make_source_and_check_if_compile_needed(PSO_GENERIC)) {
-    /* If needed, load them asynchronously in order to responsively message progress to the user. */
+    /* If needed, load them asynchronously in order to responsively message progress to the user.
+     */
     int this_device_id = this->device_id;
     auto compile_kernels_fn = ^() {
       compile_and_load(this_device_id, PSO_GENERIC);
