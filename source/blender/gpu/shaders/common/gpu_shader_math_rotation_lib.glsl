@@ -29,7 +29,7 @@ struct AxisAngle {
 #  endif
 };
 
-AxisAngle AxisAngle__identity()
+AxisAngle AxisAngle_identity()
 {
   return AxisAngle(vec3(0, 1, 0), 0);
 }
@@ -47,7 +47,7 @@ vec4 as_vec4(Quaternion quat)
   return vec4(quat.x, quat.y, quat.z, quat.w);
 }
 
-Quaternion Quaternion__identity()
+Quaternion Quaternion_identity()
 {
   return Quaternion(1, 0, 0, 0);
 }
@@ -65,7 +65,7 @@ vec3 as_vec3(EulerXYZ eul)
   return vec3(eul.x, eul.y, eul.z);
 }
 
-EulerXYZ EulerXYZ__identity()
+EulerXYZ EulerXYZ_identity()
 {
   return EulerXYZ(0, 0, 0);
 }

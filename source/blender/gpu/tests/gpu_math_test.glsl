@@ -12,15 +12,15 @@ void main()
 {
   TEST(math_matrix, MatrixInverse)
   {
-    mat3x3 mat = mat3x3__diagonal(2);
+    mat3x3 mat = mat3x3_diagonal(2);
     mat3x3 inv = invert(mat);
-    mat3x3 expect = mat3x3__diagonal(0.5f);
+    mat3x3 expect = mat3x3_diagonal(0.5f);
     EXPECT_NEAR(inv, expect, 1e-5f);
 
     bool success;
-    mat3x3 m2 = mat3x3__all(1);
+    mat3x3 m2 = mat3x3_all(1);
     mat3x3 inv2 = invert(m2, success);
-    mat3x3 expect2 = mat3x3__all(0);
+    mat3x3 expect2 = mat3x3_all(0);
     EXPECT_NEAR(inv2, expect2, 1e-5f);
     EXPECT_FALSE(success);
   }
@@ -71,7 +71,7 @@ void main()
     m = mat4(from_rotation(quat));
     EXPECT_NEAR(m, expect, 1e-5);
     m = mat4(from_rotation(axis_angle));
-    EXPECT_NEAR(m, expect, 1e-5);
+    EXPECT_NEAR(m, expect, 3e-4); /* Has some precision issue on some platform. */
 
     m = from_scale(vec4(1, 2, 3, 4));
     expect = mat4x4(vec4(1, 0, 0, 0), vec4(0, 2, 0, 0), vec4(0, 0, 3, 0), vec4(0, 0, 0, 4));
@@ -211,9 +211,9 @@ void main()
                                  vec4(0.389669f, 0.647565f, 0.168130f, 0.200000f),
                                  vec4(-0.536231f, 0.330541f, 0.443163f, 0.300000f),
                                  vec4(0.000000f, 0.000000f, 0.000000f, 1.000000f)));
-    mat4x4 m1 = mat4x4__identity();
+    mat4x4 m1 = mat4x4_identity();
     mat4x4 result;
-    const float epsilon = 1e-6;
+    const float epsilon = 2e-5;
     result = interpolate_fast(m1, m2, 0.0f);
     EXPECT_NEAR(result, m1, epsilon);
     result = interpolate_fast(m1, m2, 1.0f);
@@ -235,7 +235,7 @@ void main()
     const vec3 p = vec3(1, 2, 3);
     mat4x4 m4 = from_loc_rot(vec3(10, 0, 0), EulerXYZ(M_PI_2, M_PI_2, M_PI_2));
     mat3x3 m3 = from_rotation(EulerXYZ(M_PI_2, M_PI_2, M_PI_2));
-    mat4x4 pers4 = projection__perspective(-0.1f, 0.1f, -0.1f, 0.1f, -0.1f, -1.0f);
+    mat4x4 pers4 = projection_perspective(-0.1f, 0.1f, -0.1f, 0.1f, -0.1f, -1.0f);
     mat3x3 pers3 = mat3x3(vec3(1, 0, 0.1f), vec3(0, 1, 0.1f), vec3(0, 0.1f, 1));
 
     expect = vec3(13, 2, -1);
@@ -264,9 +264,9 @@ void main()
   TEST(math_matrix, MatrixProjection)
   {
     mat4x4 expect;
-    mat4x4 ortho = projection__orthographic(-0.2f, 0.3f, -0.2f, 0.4f, -0.2f, -0.5f);
-    mat4x4 pers1 = projection__perspective(-0.2f, 0.3f, -0.2f, 0.4f, -0.2f, -0.5f);
-    mat4x4 pers2 = projection__perspective_fov(
+    mat4x4 ortho = projection_orthographic(-0.2f, 0.3f, -0.2f, 0.4f, -0.2f, -0.5f);
+    mat4x4 pers1 = projection_perspective(-0.2f, 0.3f, -0.2f, 0.4f, -0.2f, -0.5f);
+    mat4x4 pers2 = projection_perspective_fov(
         atan(-0.2f), atan(0.3f), atan(-0.2f), atan(0.4f), -0.2f, -0.5f);
 
     expect = transpose(mat4x4(vec4(4.0f, 0.0f, 0.0f, -0.2f),

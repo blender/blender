@@ -10,15 +10,15 @@
 /** \name Static constructors
  * \{ */
 
-mat2x2 mat2x2__diagonal(float v)
+mat2x2 mat2x2_diagonal(float v)
 {
   return mat2x2(vec2(v, 0.0), vec2(0.0, v));
 }
-mat3x3 mat3x3__diagonal(float v)
+mat3x3 mat3x3_diagonal(float v)
 {
   return mat3x3(vec3(v, 0.0, 0.0), vec3(0.0, v, 0.0), vec3(0.0, 0.0, v));
 }
-mat4x4 mat4x4__diagonal(float v)
+mat4x4 mat4x4_diagonal(float v)
 {
   return mat4x4(vec4(v, 0.0, 0.0, 0.0),
                 vec4(0.0, v, 0.0, 0.0),
@@ -26,43 +26,43 @@ mat4x4 mat4x4__diagonal(float v)
                 vec4(0.0, 0.0, 0.0, v));
 }
 
-mat2x2 mat2x2__all(float v)
+mat2x2 mat2x2_all(float v)
 {
   return mat2x2(vec2(v), vec2(v));
 }
-mat3x3 mat3x3__all(float v)
+mat3x3 mat3x3_all(float v)
 {
   return mat3x3(vec3(v), vec3(v), vec3(v));
 }
-mat4x4 mat4x4__all(float v)
+mat4x4 mat4x4_all(float v)
 {
   return mat4x4(vec4(v), vec4(v), vec4(v), vec4(v));
 }
 
-mat2x2 mat2x2__zero(float v)
+mat2x2 mat2x2_zero(float v)
 {
-  return mat2x2__all(0.0);
+  return mat2x2_all(0.0);
 }
-mat3x3 mat3x3__zero(float v)
+mat3x3 mat3x3_zero(float v)
 {
-  return mat3x3__all(0.0);
+  return mat3x3_all(0.0);
 }
-mat4x4 mat4x4__zero(float v)
+mat4x4 mat4x4_zero(float v)
 {
-  return mat4x4__all(0.0);
+  return mat4x4_all(0.0);
 }
 
-mat2x2 mat2x2__identity()
+mat2x2 mat2x2_identity()
 {
-  return mat2x2__diagonal(1.0);
+  return mat2x2_diagonal(1.0);
 }
-mat3x3 mat3x3__identity()
+mat3x3 mat3x3_identity()
 {
-  return mat3x3__diagonal(1.0);
+  return mat3x3_diagonal(1.0);
 }
-mat4x4 mat4x4__identity()
+mat4x4 mat4x4_identity()
 {
-  return mat4x4__diagonal(1.0);
+  return mat4x4_diagonal(1.0);
 }
 
 /** \} */
@@ -362,7 +362,7 @@ vec3 project_point(mat4x4 mat, vec3 point);
  * Maps each axis range to [-1..1] range for all axes.
  * The resulting matrix can be used with either #project_point or #transform_point.
  */
-mat4x4 projection__orthographic(
+mat4x4 projection_orthographic(
     float left, float right, float bottom, float top, float near_clip, float far_clip);
 
 /**
@@ -371,7 +371,7 @@ mat4x4 projection__orthographic(
  * `left`, `right`, `bottom`, `top` are frustum side distances at `z=near_clip`.
  * The resulting matrix can be used with #project_point.
  */
-mat4x4 projection__perspective(
+mat4x4 projection_perspective(
     float left, float right, float bottom, float top, float near_clip, float far_clip);
 
 /**
@@ -380,12 +380,12 @@ mat4x4 projection__perspective(
  * Uses field of view angles instead of plane distances.
  * The resulting matrix can be used with #project_point.
  */
-mat4x4 projection__perspective_fov(float angle_left,
-                                   float angle_right,
-                                   float angle_bottom,
-                                   float angle_top,
-                                   float near_clip,
-                                   float far_clip);
+mat4x4 projection_perspective_fov(float angle_left,
+                                  float angle_right,
+                                  float angle_bottom,
+                                  float angle_top,
+                                  float near_clip,
+                                  float far_clip);
 
 /** \} */
 
@@ -469,20 +469,18 @@ mat4x4 invert(mat4x4 mat, out bool r_success)
   return r_success ? inverse(mat) : mat4x4(0.0);
 }
 
-#  ifdef GPU_METAL
-float2 normalize(float2 a)
+vec2 normalize(vec2 a)
 {
-  return a * rsqrt(length_squared(a));
+  return a * inversesqrt(length_squared(a));
 }
-float3 normalize(float3 a)
+vec3 normalize(vec3 a)
 {
-  return a * rsqrt(length_squared(a));
+  return a * inversesqrt(length_squared(a));
 }
-float4 normalize(float4 a)
+vec4 normalize(vec4 a)
 {
-  return a * rsqrt(length_squared(a));
+  return a * inversesqrt(length_squared(a));
 }
-#  endif
 
 mat2x2 normalize(mat2x2 mat)
 {
@@ -1013,7 +1011,7 @@ mat4x4 from_loc_rot_scale(vec3 location, AxisAngle rotation, vec3 scale)
   return ret;
 }
 
-void detail__normalized_to_eul2(mat3 mat, out EulerXYZ eul1, out EulerXYZ eul2)
+void detail_normalized_to_eul2(mat3 mat, out EulerXYZ eul1, out EulerXYZ eul2)
 {
   float cy = hypot(mat[0][0], mat[0][1]);
   if (cy > 16.0f * FLT_EPSILON) {
@@ -1044,7 +1042,7 @@ EulerXYZ to_euler(mat3x3 mat, const bool normalized)
     mat = normalize(mat);
   }
   EulerXYZ eul1, eul2;
-  detail__normalized_to_eul2(mat, eul1, eul2);
+  detail_normalized_to_eul2(mat, eul1, eul2);
   /* Return best, which is just the one with lowest values it in. */
   return (length_manhattan(as_vec3(eul1)) > length_manhattan(as_vec3(eul2))) ? eul2 : eul1;
 }
@@ -1140,11 +1138,11 @@ Quaternion normalized_to_quat_fast(mat3 mat)
   return q;
 }
 
-Quaternion detail__normalized_to_quat_with_checks(mat3x3 mat)
+Quaternion detail_normalized_to_quat_with_checks(mat3x3 mat)
 {
   float det = determinant(mat);
   if (!isfinite(det)) {
-    return Quaternion__identity();
+    return Quaternion_identity();
   }
   else if (det < 0.0) {
     return normalized_to_quat_fast(-mat);
@@ -1154,7 +1152,7 @@ Quaternion detail__normalized_to_quat_with_checks(mat3x3 mat)
 
 Quaternion to_quaternion(mat3x3 mat)
 {
-  return detail__normalized_to_quat_with_checks(normalize(mat));
+  return detail_normalized_to_quat_with_checks(normalize(mat));
 }
 Quaternion to_quaternion(mat3x3 mat, const bool normalized)
 {
@@ -1310,7 +1308,7 @@ mat4x4 interpolate_fast(mat4x4 a, mat4x4 b, float t)
   return from_loc_rot_scale(location, rotation, scale);
 }
 
-mat4x4 projection__orthographic(
+mat4x4 projection_orthographic(
     float left, float right, float bottom, float top, float near_clip, float far_clip)
 {
   float x_delta = right - left;
@@ -1329,7 +1327,7 @@ mat4x4 projection__orthographic(
   return mat;
 }
 
-mat4x4 projection__perspective(
+mat4x4 projection_perspective(
     float left, float right, float bottom, float top, float near_clip, float far_clip)
 {
   float x_delta = right - left;
@@ -1349,14 +1347,14 @@ mat4x4 projection__perspective(
   return mat;
 }
 
-mat4x4 projection__perspective_fov(float angle_left,
-                                   float angle_right,
-                                   float angle_bottom,
-                                   float angle_top,
-                                   float near_clip,
-                                   float far_clip)
+mat4x4 projection_perspective_fov(float angle_left,
+                                  float angle_right,
+                                  float angle_bottom,
+                                  float angle_top,
+                                  float near_clip,
+                                  float far_clip)
 {
-  mat4x4 mat = projection__perspective(
+  mat4x4 mat = projection_perspective(
       tan(angle_left), tan(angle_right), tan(angle_bottom), tan(angle_top), near_clip, far_clip);
   mat[0][0] /= near_clip;
   mat[1][1] /= near_clip;
