@@ -1744,7 +1744,7 @@ void NODE_OT_mute_toggle(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Toggle Node Mute";
-  ot->description = "Toggle muting of the nodes";
+  ot->description = "Toggle muting of selected nodes";
   ot->idname = "NODE_OT_mute_toggle";
 
   /* callbacks */
@@ -1783,7 +1783,7 @@ void NODE_OT_delete(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Delete";
-  ot->description = "Delete selected nodes";
+  ot->description = "Remove selected nodes";
   ot->idname = "NODE_OT_delete";
 
   /* api callbacks */
@@ -1871,7 +1871,7 @@ void NODE_OT_delete_reconnect(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Delete with Reconnect";
-  ot->description = "Delete nodes; will reconnect nodes as if deletion was muted";
+  ot->description = "Remove nodes and reconnect nodes as if deletion was muted";
   ot->idname = "NODE_OT_delete_reconnect";
 
   /* api callbacks */
@@ -1975,7 +1975,7 @@ void NODE_OT_output_file_remove_active_socket(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove File Node Socket";
-  ot->description = "Remove active input from a file output node";
+  ot->description = "Remove the active input from a file output node";
   ot->idname = "NODE_OT_output_file_remove_active_socket";
 
   /* callbacks */
@@ -2171,7 +2171,7 @@ void NODE_OT_tree_socket_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Node Tree Interface Socket";
-  ot->description = "Add an input or output socket to the current node tree";
+  ot->description = "Add an input or output to the active node tree";
   ot->idname = "NODE_OT_tree_socket_add";
 
   /* api callbacks */
@@ -2222,7 +2222,7 @@ void NODE_OT_tree_socket_remove(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove Node Tree Interface Socket";
-  ot->description = "Remove an input or output socket to the current node tree";
+  ot->description = "Remove an input or output from the active node tree";
   ot->idname = "NODE_OT_tree_socket_remove";
 
   /* api callbacks */
@@ -2321,7 +2321,7 @@ void NODE_OT_tree_socket_change_type(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Change Node Tree Interface Socket Type";
-  ot->description = "Change the type of a socket of the current node tree";
+  ot->description = "Change the type of an input or output of the active node tree";
   ot->idname = "NODE_OT_tree_socket_change_type";
 
   /* api callbacks */
@@ -2402,7 +2402,7 @@ void NODE_OT_tree_socket_move(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Move Node Tree Socket";
-  ot->description = "Move a socket up or down in the current node tree's sockets stack";
+  ot->description = "Move a socket up or down in the active node tree's interface";
   ot->idname = "NODE_OT_tree_socket_move";
 
   /* api callbacks */
