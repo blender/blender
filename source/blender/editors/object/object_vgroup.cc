@@ -1465,10 +1465,10 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
       }
       /* switch with k */
       if (bestIndex != k) {
-        SWAP(bool, upDown[k], upDown[bestIndex]);
-        SWAP(int, dwIndices[k], dwIndices[bestIndex]);
+        std::swap(upDown[k], upDown[bestIndex]);
+        std::swap(dwIndices[k], dwIndices[bestIndex]);
         swap_v2_v2(changes[k], changes[bestIndex]);
-        SWAP(float, dists[k], dists[bestIndex]);
+        std::swap(dists[k], dists[bestIndex]);
       }
     }
     bestIndex = -1;
@@ -2092,7 +2092,7 @@ static void vgroup_smooth_subset(Object *ob,
         }
       }
 
-      SWAP(float *, weight_accum_curr, weight_accum_prev);
+      std::swap(weight_accum_curr, weight_accum_prev);
     }
 
     ED_vgroup_parray_from_weight_array(dvert_array, dvert_tot, weight_accum_prev, def_nr, true);
@@ -2319,14 +2319,14 @@ static void dvert_mirror_op(MDeformVert *dvert,
     /* swap */
     if (mirror_weights) {
       if (all_vgroups) {
-        SWAP(MDeformVert, *dvert, *dvert_mirr);
+        std::swap(*dvert, *dvert_mirr);
       }
       else {
         MDeformWeight *dw = BKE_defvert_find_index(dvert, act_vgroup);
         MDeformWeight *dw_mirr = BKE_defvert_find_index(dvert_mirr, act_vgroup);
 
         if (dw && dw_mirr) {
-          SWAP(float, dw->weight, dw_mirr->weight);
+          std::swap(dw->weight, dw_mirr->weight);
         }
         else if (dw) {
           dw_mirr = BKE_defvert_ensure_index(dvert_mirr, act_vgroup);
@@ -2349,7 +2349,7 @@ static void dvert_mirror_op(MDeformVert *dvert,
   else {
     /* dvert should always be the target, only swaps pointer */
     if (sel_mirr) {
-      SWAP(MDeformVert *, dvert, dvert_mirr);
+      std::swap(dvert, dvert_mirr);
     }
 
     if (mirror_weights) {

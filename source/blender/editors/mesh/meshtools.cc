@@ -1158,8 +1158,8 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 
     /* make sure v4 is not 0 if a quad */
     if (mf->v4 && mirrormf.v4 == 0) {
-      SWAP(uint, mirrormf.v1, mirrormf.v3);
-      SWAP(uint, mirrormf.v2, mirrormf.v4);
+      std::swap(mirrormf.v1, mirrormf.v3);
+      std::swap(mirrormf.v2, mirrormf.v4);
     }
 
     hashmf = static_cast<MFace *>(BLI_ghash_lookup(fhash, &mirrormf));

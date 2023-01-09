@@ -158,7 +158,7 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
       /* order is swapped so extruding this edge as a surface won't flip face normals
        * with cyclic curves */
       if (ed->v1 + 1 != ed->v2) {
-        SWAP(uint, med->v1, med->v2);
+        std::swap(med->v1, med->v2);
       }
       med++;
     }
@@ -912,8 +912,8 @@ int BKE_mesh_mface_index_validate(MFace *mface, CustomData *fdata, int mfindex, 
     if (mface->v3 == 0) {
       static int corner_indices[4] = {1, 2, 0, 3};
 
-      SWAP(uint, mface->v1, mface->v2);
-      SWAP(uint, mface->v2, mface->v3);
+      std::swap(mface->v1, mface->v2);
+      std::swap(mface->v2, mface->v3);
 
       if (fdata) {
         CustomData_swap_corners(fdata, mfindex, corner_indices);
@@ -924,8 +924,8 @@ int BKE_mesh_mface_index_validate(MFace *mface, CustomData *fdata, int mfindex, 
     if (mface->v3 == 0 || mface->v4 == 0) {
       static int corner_indices[4] = {2, 3, 0, 1};
 
-      SWAP(uint, mface->v1, mface->v3);
-      SWAP(uint, mface->v2, mface->v4);
+      std::swap(mface->v1, mface->v3);
+      std::swap(mface->v2, mface->v4);
 
       if (fdata) {
         CustomData_swap_corners(fdata, mfindex, corner_indices);

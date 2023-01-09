@@ -2547,7 +2547,7 @@ bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
       BLI_listbase_swaplinks(&key->block, kb, other_kb);
 
       /* Swap absolute positions. */
-      SWAP(float, kb->pos, other_kb->pos);
+      std::swap(kb->pos, other_kb->pos);
 
       kb = other_kb;
     }

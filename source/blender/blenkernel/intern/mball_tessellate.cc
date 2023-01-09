@@ -181,7 +181,7 @@ static uint partition_mainb(MetaElem **mainb, uint start, uint end, uint s, floa
       break;
     }
 
-    SWAP(MetaElem *, mainb[i], mainb[j]);
+    std::swap(mainb[i], mainb[j]);
     i++;
     j--;
   }

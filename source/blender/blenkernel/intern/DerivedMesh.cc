@@ -286,7 +286,7 @@ void DM_ensure_looptri_data(DerivedMesh *dm)
 
   BLI_assert(dm->looptris.array_wip == nullptr);
 
-  SWAP(MLoopTri *, dm->looptris.array, dm->looptris.array_wip);
+  std::swap(dm->looptris.array, dm->looptris.array_wip);
 
   if ((looptris_num > dm->looptris.num_alloc) || (looptris_num < dm->looptris.num_alloc * 2) ||
       (totpoly == 0)) {

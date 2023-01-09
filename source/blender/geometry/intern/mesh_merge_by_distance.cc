@@ -1654,7 +1654,7 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
       continue;
     }
     if (v1 > v2) {
-      SWAP(int, v1, v2);
+    std::swap( v1, v2);
     }
     WeldVertexCluster *v1_cluster = &vert_clusters[v1];
     WeldVertexCluster *v2_cluster = &vert_clusters[v2];

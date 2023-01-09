@@ -464,7 +464,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
         /* also order edges based on faces */
         if (medge_new[ml_orig->e].v1 != ml_orig->v) {
-          SWAP(uint, medge_new[ml_orig->e].v1, medge_new[ml_orig->e].v2);
+          std::swap(medge_new[ml_orig->e].v1, medge_new[ml_orig->e].v2);
         }
       }
     }
@@ -716,7 +716,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                   if (lt_iter.v == lt_iter.e->v1) {
                     if (ed_loop_flip == 0) {
                       // printf("\t\t\tFlipping 0\n");
-                      SWAP(uint, lt_iter.e->v1, lt_iter.e->v2);
+                      std::swap(lt_iter.e->v1, lt_iter.e->v2);
                     }
 #if 0
                     else {
@@ -727,7 +727,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                   else if (lt_iter.v == lt_iter.e->v2) {
                     if (ed_loop_flip == 1) {
                       // printf("\t\t\tFlipping 1\n");
-                      SWAP(uint, lt_iter.e->v1, lt_iter.e->v2);
+                      std::swap(lt_iter.e->v1, lt_iter.e->v2);
                     }
 #if 0
                     else {

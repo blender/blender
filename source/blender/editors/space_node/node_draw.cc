@@ -434,10 +434,10 @@ static void node_update_basis(const bContext &C,
 
     /* Make sure that maximums are bigger or equal to minimums. */
     if (node.runtime->prvr.xmax < node.runtime->prvr.xmin) {
-      SWAP(float, node.runtime->prvr.xmax, node.runtime->prvr.xmin);
+      std::swap(node.runtime->prvr.xmax, node.runtime->prvr.xmin);
     }
     if (node.runtime->prvr.ymax < node.runtime->prvr.ymin) {
-      SWAP(float, node.runtime->prvr.ymax, node.runtime->prvr.ymin);
+      std::swap(node.runtime->prvr.ymax, node.runtime->prvr.ymin);
     }
   }
 

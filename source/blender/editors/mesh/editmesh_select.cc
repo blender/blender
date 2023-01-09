@@ -3048,7 +3048,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
             /* Only for predictable results that don't depend on the order of radial loops,
              * not essential. */
             if (i_a > i_b) {
-              SWAP(int, i_a, i_b);
+              std::swap(i_a, i_b);
             }
 
             /* Merge the groups. */

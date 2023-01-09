@@ -221,7 +221,7 @@ static void test_sin_cos_from_fraction_symmetry(const int range)
         sin_cos_fl[0] = fabsf(sin_cos_fl[0]);
         sin_cos_fl[1] = fabsf(sin_cos_fl[1]);
         if (sin_cos_fl[0] > sin_cos_fl[1]) {
-          SWAP(float, sin_cos_fl[0], sin_cos_fl[1]);
+          std::swap(sin_cos_fl[0], sin_cos_fl[1]);
         }
         break;
       }

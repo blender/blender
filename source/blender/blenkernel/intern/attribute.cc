@@ -612,7 +612,7 @@ static void get_domains_types(eAttrDomain domains[ATTR_DOMAIN_NUM])
   }
 
   /* Swap corner and face. */
-  SWAP(eAttrDomain, domains[ATTR_DOMAIN_FACE], domains[ATTR_DOMAIN_CORNER]);
+  std::swap(domains[ATTR_DOMAIN_FACE], domains[ATTR_DOMAIN_CORNER]);
 }
 
 int BKE_id_attribute_to_index(const ID *id,

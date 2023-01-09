@@ -355,7 +355,7 @@ static void snode_autoconnect(SpaceNode &snode, const bool allow_multiple, const
     bNode *node_to = sorted_nodes[i + 1];
     /* Corner case: input/output node aligned the wrong way around (T47729). */
     if (BLI_listbase_is_empty(&node_to->inputs) || BLI_listbase_is_empty(&node_fr->outputs)) {
-      SWAP(bNode *, node_fr, node_to);
+      std::swap(node_fr, node_to);
     }
 
     /* If there are selected sockets, connect those. */

@@ -1746,7 +1746,7 @@ void BKE_mesh_mselect_active_set(Mesh *me, int index, int type)
   }
   else if (msel_index != me->totselect - 1) {
     /* move to the end */
-    SWAP(MSelect, me->mselect[msel_index], me->mselect[me->totselect - 1]);
+    std::swap(me->mselect[msel_index], me->mselect[me->totselect - 1]);
   }
 
   BLI_assert((me->mselect[me->totselect - 1].index == index) &&

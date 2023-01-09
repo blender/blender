@@ -542,8 +542,8 @@ void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
       co_b = co[x * sides + y];
 
       swap_v3_v3(co_a, co_b);
-      SWAP(float, co_a[0], co_a[1]);
-      SWAP(float, co_b[0], co_b[1]);
+      std::swap(co_a[0], co_a[1]);
+      std::swap(co_b[0], co_b[1]);
 
       if (use_loop_mdisp_flip) {
         co_a[2] *= -1.0f;
@@ -553,7 +553,7 @@ void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
 
     co_a = co[x * sides + x];
 
-    SWAP(float, co_a[0], co_a[1]);
+    std::swap(co_a[0], co_a[1]);
 
     if (use_loop_mdisp_flip) {
       co_a[2] *= -1.0f;
@@ -588,10 +588,10 @@ void BKE_mesh_polygon_flip_ex(const MPoly *mpoly,
 
   for (loopstart++; loopend > loopstart; loopstart++, loopend--) {
     mloop[loopend].e = mloop[loopend - 1].e;
-    SWAP(uint, mloop[loopstart].e, prev_edge_index);
+    std::swap(mloop[loopstart].e, prev_edge_index);
 
     if (!loops_in_ldata) {
-      SWAP(MLoop, mloop[loopstart], mloop[loopend]);
+      std::swap(mloop[loopstart], mloop[loopend]);
     }
     if (lnors) {
       swap_v3_v3(lnors[loopstart], lnors[loopend]);

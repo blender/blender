@@ -493,7 +493,7 @@ static void drawviewborder_triangle(
       ofs = h * (h / w);
     }
     if (dir == 'B') {
-      SWAP(float, y1, y2);
+      std::swap(y1, y2);
     }
 
     immVertex2f(shdr_pos, x1, y1);
@@ -513,7 +513,7 @@ static void drawviewborder_triangle(
       ofs = w * (w / h);
     }
     if (dir == 'B') {
-      SWAP(float, x1, x2);
+      std::swap(x1, x2);
     }
 
     immVertex2f(shdr_pos, x1, y1);

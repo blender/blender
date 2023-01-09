@@ -2168,7 +2168,7 @@ static void p_chart_simplify_compute(PChart *chart)
     if (edge->vert->u.heaplink != link) {
       edge->flag |= (PEDGE_COLLAPSE_EDGE | PEDGE_COLLAPSE_PAIR);
       edge->next->vert->u.heaplink = nullptr;
-      SWAP(PEdge *, edge, pair);
+     std::swap( edge, pair);
     }
     else {
       edge->flag |= PEDGE_COLLAPSE_EDGE;
@@ -2237,7 +2237,7 @@ static void p_chart_complexify(PChart *chart)
     pair = e->pair;
 
     if (edge->flag & PEDGE_COLLAPSE_PAIR) {
-      SWAP(PEdge *, edge, pair);
+     std::swap( edge, pair);
     }
 
     p_split_vertex(edge, pair);
@@ -3142,9 +3142,9 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
     }
 
     if (flip_faces) {
-      SWAP(float, a2, a3);
-      SWAP(PEdge *, e2, e3);
-      SWAP(PVert *, v2, v3);
+      std::swap(a2, a3);
+      std::swap(e2, e3);
+      std::swap(v2, v3);
     }
 
     float sina1 = sinf(a1);

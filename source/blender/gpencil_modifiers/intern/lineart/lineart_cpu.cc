@@ -1878,7 +1878,7 @@ static void lineart_edge_neighbor_init_task(void *__restrict userdata,
   adj_e->v1 = mloop[looptri->tri[i % 3]].v;
   adj_e->v2 = mloop[looptri->tri[(i + 1) % 3]].v;
   if (adj_e->v1 > adj_e->v2) {
-    SWAP(uint32_t, adj_e->v1, adj_e->v2);
+   std::swap( adj_e->v1, adj_e->v2);
   }
   edge_nabr->e = -1;
 
@@ -3267,7 +3267,7 @@ static void lineart_add_isec_thread(LineartIsecThread *th,
   isec_single->tri1 = tri1;
   isec_single->tri2 = tri2;
   if (tri1->target_reference > tri2->target_reference) {
-    SWAP(LineartTriangle *, isec_single->tri1, isec_single->tri2);
+   std::swap( isec_single->tri1, isec_single->tri2);
   }
   th->current++;
 }
