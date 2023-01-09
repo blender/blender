@@ -139,7 +139,7 @@ execute_array(TypeSequence<ParamTags...> /*param_tags*/,
               Args &&__restrict... args)
 {
   if constexpr (std::is_same_v<std::decay_t<MaskT>, IndexRange>) {
-    /* Having this explicit loop is necessary for msvc to be able to vectorize this. */
+    /* Having this explicit loop is necessary for MSVC to be able to vectorize this. */
     const int64_t start = mask.start();
     const int64_t end = mask.one_after_last();
     for (int64_t i = start; i < end; i++) {

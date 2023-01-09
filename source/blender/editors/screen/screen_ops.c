@@ -2951,8 +2951,8 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 
   int delta = RNA_int_get(op->ptr, "delta");
 
-  /* In order to jump from e.g. 1.5 to 1 the delta needs to be incremented by 1 since the subframe
-   * is always zeroed. Otherwise it would jump to 0.*/
+  /* In order to jump from e.g. 1.5 to 1 the delta needs to be incremented by 1 since the sub-frame
+   * is always zeroed. Otherwise it would jump to 0. */
   if (delta < 0 && scene->r.subframe > 0) {
     delta += 1;
   }

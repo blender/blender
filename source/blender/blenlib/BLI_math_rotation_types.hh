@@ -16,8 +16,8 @@ namespace detail {
 /**
  * Rotation Types
  *
- * It gives more semantic informations allowing overloaded functions based on the rotation
- * type. It also prevent implicit cast from rotation to vector types.
+ * It gives more semantic information allowing overloaded functions based on the rotation type.
+ * It also prevent implicit cast from rotation to vector types.
  */
 
 /* Forward declaration. */

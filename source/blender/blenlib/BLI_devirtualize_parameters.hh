@@ -51,7 +51,7 @@ inline bool call_with_devirtualized_parameters(const std::tuple<Devirtualizers..
                                                const Fn &fn)
 {
   /* In theory the code below could be generalized to avoid code duplication. However, the maximum
-   * number of parameters is expected to be relatively low. Explicitely implementing the different
+   * number of parameters is expected to be relatively low. Explicitly implementing the different
    * cases makes it more obvious to see what is going on and also makes inlining everything easier
    * for the compiler. */
   constexpr size_t DeviNum = sizeof...(Devirtualizers);
