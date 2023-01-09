@@ -355,9 +355,9 @@ Mesh *USDBlendShapeMeshWriter::get_export_mesh(Object *object_eval, bool &r_need
     return nullptr;
   }
 
-  Mesh *src_mesh = static_cast<Mesh *>(object_eval->data);
+  Mesh *src_mesh = BKE_object_get_pre_modified_mesh(object_eval);
 
-  if (!src_mesh->key || !src_mesh->key->block.first) {
+  if (!src_mesh || !src_mesh->key || !src_mesh->key->block.first) {
     return nullptr;
   }
 
