@@ -6224,7 +6224,7 @@ class VIEW3D_PT_shading_compositor(Panel):
         row.active = not is_macos
         row.prop(shading, "use_compositor", expand=True)
         if is_macos and shading.use_compositor != "DISABLED":
-            self.layout.label(text="Compositor not supported on MacOS.", icon='ERROR')
+            self.layout.label(text="Compositor not supported on MacOS", icon='ERROR')
 
 
 class VIEW3D_PT_gizmo_display(Panel):
