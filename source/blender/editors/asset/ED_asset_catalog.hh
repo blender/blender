@@ -6,6 +6,10 @@
  * UI/Editor level API for catalog operations, creating richer functionality than the asset system
  * catalog API provides (which this uses internally).
  *
+ * Functions can be expected to not perform any change when #ED_asset_catalogs_read_only() returns
+ * true. Generally UI code should disable such functionality in this case, so these functions are
+ * not called at all.
+ *
  * Note that `ED_asset_catalog.h` is part of this API.
  */
 
@@ -18,6 +22,12 @@
 #include "BLI_string_ref.hh"
 
 struct AssetLibrary;
+
+/**
+ * Returns if the catalogs of \a library are allowed to be editable, or if the UI should forbid
+ * edits.
+ */
+[[nodiscard]] bool ED_asset_catalogs_read_only(const AssetLibrary &library);
 
 blender::asset_system::AssetCatalog *ED_asset_catalog_add(
     AssetLibrary *library, blender::StringRefNull name, blender::StringRef parent_path = nullptr);

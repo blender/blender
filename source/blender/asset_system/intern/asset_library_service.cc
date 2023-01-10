@@ -14,6 +14,7 @@
 
 #include "CLG_log.h"
 
+#include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 #include "asset_library_service.hh"
 #include "utils.hh"
@@ -56,23 +57,29 @@ void AssetLibraryService::destroy()
 AssetLibrary *AssetLibraryService::get_asset_library(
     const Main *bmain, const AssetLibraryReference &library_reference)
 {
-  if (library_reference.type == ASSET_LIBRARY_LOCAL) {
-    /* For the "Current File" library  we get the asset library root path based on main. */
-    std::string root_path = bmain ? AS_asset_library_find_suitable_root_path_from_main(bmain) : "";
+  const eAssetLibraryType type = eAssetLibraryType(library_reference.type);
 
-    if (root_path.empty()) {
-      /* File wasn't saved yet. */
-      return get_asset_library_current_file();
+  switch (type) {
+    case ASSET_LIBRARY_LOCAL: {
+      /* For the "Current File" library  we get the asset library root path based on main. */
+      std::string root_path = bmain ? AS_asset_library_find_suitable_root_path_from_main(bmain) :
+                                      "";
+
+      if (root_path.empty()) {
+        /* File wasn't saved yet. */
+        return get_asset_library_current_file();
+      }
+      return get_asset_library_on_disk(root_path);
     }
+    case ASSET_LIBRARY_ALL:
+      return get_asset_library_all(bmain);
+    case ASSET_LIBRARY_CUSTOM: {
+      std::string root_path = root_path_from_library_ref(library_reference);
 
-    return get_asset_library_on_disk(root_path);
-  }
-  if (library_reference.type == ASSET_LIBRARY_CUSTOM) {
-    bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
-        &U, library_reference.custom_library_index);
-
-    if (user_library) {
-      return get_asset_library_on_disk(user_library->path);
+      if (!root_path.empty()) {
+        return get_asset_library_on_disk(root_path);
+      }
+      break;
     }
   }
 
@@ -100,6 +107,8 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull root_
 
   lib->on_blend_save_handler_register();
   lib->load_catalogs();
+  /* Reload catalogs on refresh. */
+  lib->on_refresh_ = [](AssetLibrary &self) { self.catalog_service->reload_catalogs(); };
 
   on_disk_libraries_.add_new(normalized_root_path, std::move(lib_uptr));
   CLOG_INFO(&LOG, 2, "get \"%s\" (loaded)", normalized_root_path.c_str());
@@ -110,6 +119,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file()
 {
   if (current_file_library_) {
     CLOG_INFO(&LOG, 2, "get current file lib (cached)");
+    current_file_library_->refresh();
   }
   else {
     CLOG_INFO(&LOG, 2, "get current file lib (loaded)");
@@ -119,6 +129,74 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file()
 
   AssetLibrary *lib = current_file_library_.get();
   return lib;
+}
+
+static void rebuild_all_library(AssetLibrary &all_library, const bool reload_catalogs)
+{
+  /* Start with empty catalog storage. */
+  all_library.catalog_service = std::make_unique<AssetCatalogService>(
+      AssetCatalogService::read_only_tag());
+
+  AssetLibrary::foreach_loaded(
+      [&](AssetLibrary &nested) {
+        if (reload_catalogs) {
+          nested.catalog_service->reload_catalogs();
+        }
+        all_library.catalog_service->add_from_existing(*nested.catalog_service);
+      },
+      false);
+  all_library.catalog_service->rebuild_tree();
+}
+
+AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
+{
+  /* (Re-)load all other asset libraries. */
+  for (AssetLibraryReference &library_ref : all_valid_asset_library_refs()) {
+    /* Skip self :) */
+    if (library_ref.type == ASSET_LIBRARY_ALL) {
+      continue;
+    }
+
+    /* Ensure all asset libraries are loaded. */
+    get_asset_library(bmain, library_ref);
+  }
+
+  if (all_library_) {
+    CLOG_INFO(&LOG, 2, "get all lib (cached)");
+    all_library_->refresh();
+    return all_library_.get();
+  }
+
+  CLOG_INFO(&LOG, 2, "get all lib (loaded)");
+  all_library_ = std::make_unique<AssetLibrary>();
+
+  /* Don't reload catalogs on this initial read, they've just been loaded above. */
+  rebuild_all_library(*all_library_, /*reload_catlogs=*/false);
+
+  all_library_->on_refresh_ = [](AssetLibrary &all_library) {
+    rebuild_all_library(all_library, /*reload_catalogs=*/true);
+  };
+
+  return all_library_.get();
+}
+
+std::string AssetLibraryService::root_path_from_library_ref(
+    const AssetLibraryReference &library_reference)
+{
+  if (ELEM(library_reference.type, ASSET_LIBRARY_ALL, ASSET_LIBRARY_LOCAL)) {
+    return "";
+  }
+
+  BLI_assert(library_reference.type == ASSET_LIBRARY_CUSTOM);
+  BLI_assert(library_reference.custom_library_index >= 0);
+
+  bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
+      &U, library_reference.custom_library_index);
+  if (!user_library || !user_library->path[0]) {
+    return "";
+  }
+
+  return user_library->path;
 }
 
 void AssetLibraryService::allocate_service_instance()
@@ -164,21 +242,25 @@ void AssetLibraryService::app_handler_unregister()
 
 bool AssetLibraryService::has_any_unsaved_catalogs() const
 {
-  if (current_file_library_ && current_file_library_->catalog_service->has_unsaved_changes()) {
-    return true;
-  }
+  bool has_unsaved_changes = false;
 
-  for (const auto &asset_lib_uptr : on_disk_libraries_.values()) {
-    if (asset_lib_uptr->catalog_service->has_unsaved_changes()) {
-      return true;
-    }
-  }
-
-  return false;
+  foreach_loaded_asset_library(
+      [&has_unsaved_changes](AssetLibrary &library) {
+        if (library.catalog_service->has_unsaved_changes()) {
+          has_unsaved_changes = true;
+        }
+      },
+      true);
+  return has_unsaved_changes;
 }
 
-void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLibrary &)> fn) const
+void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLibrary &)> fn,
+                                                       const bool include_all_library) const
 {
+  if (include_all_library && all_library_) {
+    fn(*all_library_);
+  }
+
   if (current_file_library_) {
     fn(*current_file_library_);
   }
