@@ -87,7 +87,7 @@ static void applySeqSlide(TransInfo *t, const int UNUSED(mval[2]))
   }
   else {
     copy_v2_v2(values_final, t->values);
-    applySnappingAsGroup(t, values_final);
+    transform_snap_mixed_apply(t, values_final);
     transform_convert_sequencer_channel_clamp(t, values_final);
 
     if (t->con.mode & CON_APPLY) {

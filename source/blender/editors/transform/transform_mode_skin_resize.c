@@ -99,7 +99,7 @@ static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
       constraintNumInput(t, t->values_final);
     }
 
-    applySnappingAsGroup(t, t->values_final);
+    transform_snap_mixed_apply(t, t->values_final);
   }
 
   size_to_mat3(mat_final, t->values_final);

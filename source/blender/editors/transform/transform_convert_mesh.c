@@ -1895,7 +1895,7 @@ static void tc_mesh_partial_types_calc(TransInfo *t, struct PartialTypeState *r_
       partial_for_looptri = PARTIAL_TYPE_GROUP;
       partial_for_normals = PARTIAL_TYPE_GROUP;
       /* Translation can rotate when snapping to normal. */
-      if (activeSnap(t) && usingSnappingNormal(t) && validSnappingNormal(t)) {
+      if (transform_snap_is_active(t) && usingSnappingNormal(t) && validSnappingNormal(t)) {
         partial_for_normals = PARTIAL_TYPE_ALL;
       }
       break;
@@ -1926,7 +1926,7 @@ static void tc_mesh_partial_types_calc(TransInfo *t, struct PartialTypeState *r_
   }
 
   /* With projection, transform isn't affine. */
-  if (activeSnap_SnappingIndividual(t)) {
+  if (transform_snap_project_individual_is_active(t)) {
     if (partial_for_looptri == PARTIAL_TYPE_GROUP) {
       partial_for_looptri = PARTIAL_TYPE_ALL;
     }
@@ -2042,7 +2042,7 @@ static void recalcData_mesh(TransInfo *t)
   bool is_canceling = t->state == TRANS_CANCEL;
   /* Apply corrections. */
   if (!is_canceling) {
-    applySnappingIndividual(t);
+    transform_snap_project_individual_apply(t);
 
     bool do_mirror = !(t->flag & T_NO_MIRROR);
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {

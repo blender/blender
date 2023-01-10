@@ -393,7 +393,7 @@ static void applyAxisConstraintVec(const TransInfo *t,
   if (!td && t->con.mode & CON_APPLY) {
     bool is_snap_to_point = false, is_snap_to_edge = false, is_snap_to_face = false;
 
-    if (activeSnap(t)) {
+    if (transform_snap_is_active(t)) {
       if (validSnap(t)) {
         is_snap_to_edge = (t->tsnap.snapElem & SCE_SNAP_MODE_EDGE) != 0;
         is_snap_to_face = (t->tsnap.snapElem & SCE_SNAP_MODE_FACE_RAYCAST) != 0;

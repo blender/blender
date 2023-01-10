@@ -398,7 +398,7 @@ static void translate_snap_grid_apply(TransInfo *t,
 
 static bool translate_snap_grid(TransInfo *t, float *val)
 {
-  if (!activeSnap(t)) {
+  if (!transform_snap_is_active(t)) {
     return false;
   }
 
@@ -475,7 +475,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 
   enum eTranslateRotateMode rotate_mode = TRANSLATE_ROTATE_OFF;
 
-  if (activeSnap(t) && usingSnappingNormal(t) && validSnappingNormal(t)) {
+  if (transform_snap_is_active(t) && usingSnappingNormal(t) && validSnappingNormal(t)) {
     rotate_mode = TRANSLATE_ROTATE_ON;
   }
 
@@ -610,7 +610,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
     }
 
     t->tsnap.snapElem = SCE_SNAP_MODE_NONE;
-    applySnappingAsGroup(t, global_dir);
+    transform_snap_mixed_apply(t, global_dir);
     translate_snap_grid(t, global_dir);
 
     if (t->con.mode & CON_APPLY) {
@@ -621,7 +621,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 
     float incr_dir[3];
     copy_v3_v3(incr_dir, global_dir);
-    if (!(activeSnap(t) && validSnap(t)) &&
+    if (!(transform_snap_is_active(t) && validSnap(t)) &&
         transform_snap_increment_ex(t, (t->con.mode & CON_APPLY) != 0, incr_dir)) {
 
       /* Test for mixed snap with grid. */

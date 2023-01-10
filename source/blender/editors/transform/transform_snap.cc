@@ -119,48 +119,10 @@ bool validSnap(const TransInfo *t)
          (t->tsnap.status & (MULTI_POINTS | TARGET_INIT)) == (MULTI_POINTS | TARGET_INIT);
 }
 
-bool activeSnap(const TransInfo *t)
+bool transform_snap_is_active(const TransInfo *t)
 {
   return ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP) ||
          ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP_INVERT);
-}
-
-bool activeSnap_SnappingIndividual(const TransInfo *t)
-{
-  if (!activeSnap(t) || (t->flag & T_NO_PROJECT)) {
-    return false;
-  }
-
-  if (!(t->tsnap.project || (t->tsnap.mode & SCE_SNAP_MODE_FACE_NEAREST))) {
-    return false;
-  }
-
-  if (doForceIncrementSnap(t)) {
-    return false;
-  }
-
-  return true;
-}
-
-bool activeSnap_SnappingAsGroup(const TransInfo *t)
-{
-  if (!activeSnap(t)) {
-    return false;
-  }
-
-  if (t->tsnap.mode == SCE_SNAP_MODE_FACE_RAYCAST && t->tsnap.project) {
-    return false;
-  }
-
-  if (t->tsnap.mode == SCE_SNAP_MODE_FACE_NEAREST) {
-    return false;
-  }
-
-  if (doForceIncrementSnap(t)) {
-    return false;
-  }
-
-  return true;
 }
 
 bool transformModeUseSnap(const TransInfo *t)
@@ -190,7 +152,7 @@ static bool doForceIncrementSnap(const TransInfo *t)
 void drawSnapping(const struct bContext *C, TransInfo *t)
 {
   uchar col[4], selectedCol[4], activeCol[4];
-  if (!activeSnap(t)) {
+  if (!transform_snap_is_active(t)) {
     return;
   }
 
@@ -483,9 +445,30 @@ static void applyFaceNearest(TransInfo *t, TransDataContainer *tc, TransData *td
   /* TODO: support snap alignment similar to #SCE_SNAP_MODE_FACE_RAYCAST? */
 }
 
-void applySnappingIndividual(TransInfo *t)
+bool transform_snap_project_individual_is_active(const TransInfo *t)
 {
-  if (!activeSnap_SnappingIndividual(t)) {
+  if (!transform_snap_is_active(t) || (t->flag & T_NO_PROJECT)) {
+    return false;
+  }
+
+  if (!transform_snap_is_active(t) || (t->flag & T_NO_PROJECT)) {
+    return false;
+  }
+
+  if (!(t->tsnap.project || (t->tsnap.mode & SCE_SNAP_MODE_FACE_NEAREST))) {
+    return false;
+  }
+
+  if (doForceIncrementSnap(t)) {
+    return false;
+  }
+
+  return true;
+}
+
+void transform_snap_project_individual_apply(TransInfo *t)
+{
+  if (!transform_snap_project_individual_is_active(t)) {
     return;
   }
 
@@ -514,9 +497,30 @@ void applySnappingIndividual(TransInfo *t)
   }
 }
 
-void applySnappingAsGroup(TransInfo *t, float *vec)
+static bool transform_snap_mixed_is_active(const TransInfo *t)
 {
-  if (!activeSnap_SnappingAsGroup(t)) {
+  if (!transform_snap_is_active(t)) {
+    return false;
+  }
+
+  if (t->tsnap.mode == SCE_SNAP_MODE_FACE_RAYCAST && t->tsnap.project) {
+    return false;
+  }
+
+  if (t->tsnap.mode == SCE_SNAP_MODE_FACE_NEAREST) {
+    return false;
+  }
+
+  if (doForceIncrementSnap(t)) {
+    return false;
+  }
+
+  return true;
+}
+
+void transform_snap_mixed_apply(TransInfo *t, float *vec)
+{
+  if (!transform_snap_mixed_is_active(t)) {
     return;
   }
 
@@ -526,7 +530,7 @@ void applySnappingAsGroup(TransInfo *t, float *vec)
     t->tsnap.applySnap(t, vec);
   }
   else if (((t->tsnap.mode & ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) != 0) &&
-           activeSnap(t)) {
+           transform_snap_is_active(t)) {
     double current = PIL_check_seconds_timer();
 
     /* Time base quirky code to go around find-nearest slowness. */
@@ -1628,7 +1632,7 @@ static void snap_increment_apply(const TransInfo *t,
 
 bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float *r_val)
 {
-  if (!activeSnap(t)) {
+  if (!transform_snap_is_active(t)) {
     return false;
   }
 
@@ -1664,8 +1668,9 @@ bool transform_snap_increment(const TransInfo *t, float *r_val)
 
 float transform_snap_increment_get(const TransInfo *t)
 {
-  if (activeSnap(t) && (!transformModeUseSnap(t) ||
-                        (t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)))) {
+  if (transform_snap_is_active(t) &&
+      (!transformModeUseSnap(t) ||
+       (t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)))) {
     return (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
   }
 

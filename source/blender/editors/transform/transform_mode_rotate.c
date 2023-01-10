@@ -368,8 +368,8 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
     final = large_rotation_limit(final);
   }
   else {
-    applySnappingAsGroup(t, &final);
-    if (!(activeSnap(t) && validSnap(t))) {
+    transform_snap_mixed_apply(t, &final);
+    if (!(transform_snap_is_active(t) && validSnap(t))) {
       transform_snap_increment(t, &final);
     }
   }

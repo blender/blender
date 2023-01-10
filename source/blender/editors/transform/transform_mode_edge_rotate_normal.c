@@ -84,7 +84,7 @@ static void applyNormalRotation(TransInfo *t, const int UNUSED(mval[2]))
 
     transform_snap_increment(t, &angle);
 
-    applySnappingAsGroup(t, &angle);
+    transform_snap_mixed_apply(t, &angle);
 
     applyNumInput(&t->num, &angle);
 

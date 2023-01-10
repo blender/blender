@@ -102,7 +102,7 @@ static void createTransLatticeVerts(bContext *UNUSED(C), TransInfo *t)
 static void recalcData_lattice(TransInfo *t)
 {
   if (t->state != TRANS_CANCEL) {
-    applySnappingIndividual(t);
+    transform_snap_project_individual_apply(t);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
