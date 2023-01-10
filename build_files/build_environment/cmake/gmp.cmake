@@ -22,6 +22,14 @@ elseif(UNIX AND NOT APPLE)
   )
 endif()
 
+# Boolean crashes with Arm assembly, see T103423.
+if(BLENDER_PLATFORM_ARM)
+  set(GMP_OPTIONS
+    ${GMP_OPTIONS}
+    --disable-assembly
+  )
+endif()
+
 ExternalProject_Add(external_gmp
   URL file://${PACKAGE_DIR}/${GMP_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}

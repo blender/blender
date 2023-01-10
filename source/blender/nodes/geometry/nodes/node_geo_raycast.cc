@@ -202,7 +202,7 @@ static void raycast_to_mesh(IndexMask mask,
   }
 }
 
-class RaycastFunction : public fn::MultiFunction {
+class RaycastFunction : public mf::MultiFunction {
  private:
   GeometrySet target_;
   GeometryNodeRaycastMapMode mapping_;
@@ -217,7 +217,7 @@ class RaycastFunction : public fn::MultiFunction {
    * the field inputs for better performance. */
   const eAttrDomain domain_ = ATTR_DOMAIN_CORNER;
 
-  fn::MFSignature signature_;
+  mf::Signature signature_;
 
  public:
   RaycastFunction(GeometrySet target, GField src_field, GeometryNodeRaycastMapMode mapping)
@@ -225,27 +225,22 @@ class RaycastFunction : public fn::MultiFunction {
   {
     target_.ensure_owns_direct_data();
     this->evaluate_target_field(std::move(src_field));
-    signature_ = create_signature();
+
+    mf::SignatureBuilder builder{"Geometry Proximity", signature_};
+    builder.single_input<float3>("Source Position");
+    builder.single_input<float3>("Ray Direction");
+    builder.single_input<float>("Ray Length");
+    builder.single_output<bool>("Is Hit");
+    builder.single_output<float3>("Hit Position");
+    builder.single_output<float3>("Hit Normal");
+    builder.single_output<float>("Distance");
+    if (target_data_) {
+      builder.single_output("Attribute", target_data_->type());
+    }
     this->set_signature(&signature_);
   }
 
-  fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Geometry Proximity"};
-    signature.single_input<float3>("Source Position");
-    signature.single_input<float3>("Ray Direction");
-    signature.single_input<float>("Ray Length");
-    signature.single_output<bool>("Is Hit");
-    signature.single_output<float3>("Hit Position");
-    signature.single_output<float3>("Hit Normal");
-    signature.single_output<float>("Distance");
-    if (target_data_) {
-      signature.single_output("Attribute", target_data_->type());
-    }
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     /* Hit positions are always necessary for retrieving the attribute from the target if that
      * output is required, so always retrieve a span from the evaluator in that case (it's

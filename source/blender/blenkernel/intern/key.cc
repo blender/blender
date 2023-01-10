@@ -1508,7 +1508,6 @@ static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
   }
 }
 
-static void keyblock_data_convert_to_mesh(const float (*fp)[3], MVert *mvert, const int totvert);
 static void keyblock_data_convert_to_lattice(const float (*fp)[3],
                                              BPoint *bpoint,
                                              const int totpoint);
@@ -1608,9 +1607,9 @@ float *BKE_key_evaluate_object_ex(
     switch (GS(obdata->name)) {
       case ID_ME: {
         Mesh *mesh = (Mesh *)obdata;
-        MVert *verts = BKE_mesh_verts_for_write(mesh);
+        const float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
         const int totvert = min_ii(tot, mesh->totvert);
-        keyblock_data_convert_to_mesh((const float(*)[3])out, verts, totvert);
+        memcpy(out, positions, sizeof(float[3]) * totvert);
         break;
       }
       case ID_LT: {
@@ -2187,21 +2186,15 @@ void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve * /*cu*/, ListBase *nurb)
 
 void BKE_keyblock_update_from_mesh(const Mesh *me, KeyBlock *kb)
 {
-  float(*fp)[3];
-  int a, tot;
-
   BLI_assert(me->totvert == kb->totelem);
 
-  tot = me->totvert;
+  const int tot = me->totvert;
   if (tot == 0) {
     return;
   }
 
-  const MVert *mvert = BKE_mesh_verts(me);
-  fp = static_cast<float(*)[3]>(kb->data);
-  for (a = 0; a < tot; a++, fp++, mvert++) {
-    copy_v3_v3(*fp, mvert->co);
-  }
+  const float(*positions)[3] = BKE_mesh_vert_positions(me);
+  memcpy(kb->data, positions, sizeof(float[3]) * tot);
 }
 
 void BKE_keyblock_convert_from_mesh(const Mesh *me, const Key *key, KeyBlock *kb)
@@ -2220,19 +2213,12 @@ void BKE_keyblock_convert_from_mesh(const Mesh *me, const Key *key, KeyBlock *kb
   BKE_keyblock_update_from_mesh(me, kb);
 }
 
-static void keyblock_data_convert_to_mesh(const float (*fp)[3], MVert *mvert, const int totvert)
+void BKE_keyblock_convert_to_mesh(const KeyBlock *kb,
+                                  float (*vert_positions)[3],
+                                  const int totvert)
 {
-  for (int i = 0; i < totvert; i++, fp++, mvert++) {
-    copy_v3_v3(mvert->co, *fp);
-  }
-}
-
-void BKE_keyblock_convert_to_mesh(const KeyBlock *kb, MVert *mvert, const int totvert)
-{
-  const float(*fp)[3] = static_cast<const float(*)[3]>(kb->data);
   const int tot = min_ii(kb->totelem, totvert);
-
-  keyblock_data_convert_to_mesh(fp, mvert, tot);
+  memcpy(kb->data, vert_positions, sizeof(float[3]) * tot);
 }
 
 void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
@@ -2245,8 +2231,8 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
     return;
   }
 
-  MVert *verts = static_cast<MVert *>(MEM_dupallocN(BKE_mesh_verts(mesh)));
-  BKE_keyblock_convert_to_mesh(kb, verts, mesh->totvert);
+  float(*positions)[3] = static_cast<float(*)[3]>(MEM_dupallocN(BKE_mesh_vert_positions(mesh)));
+  BKE_keyblock_convert_to_mesh(kb, positions, mesh->totvert);
   const MEdge *edges = BKE_mesh_edges(mesh);
   const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
@@ -2273,10 +2259,10 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
 
   if (poly_normals_needed) {
     BKE_mesh_calc_normals_poly(
-        verts, mesh->totvert, loops, mesh->totloop, polys, mesh->totpoly, poly_normals);
+        positions, mesh->totvert, loops, mesh->totloop, polys, mesh->totpoly, poly_normals);
   }
   if (vert_normals_needed) {
-    BKE_mesh_calc_normals_poly_and_vertex(verts,
+    BKE_mesh_calc_normals_poly_and_vertex(positions,
                                           mesh->totvert,
                                           loops,
                                           mesh->totloop,
@@ -2288,7 +2274,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   if (loop_normals_needed) {
     short(*clnors)[2] = static_cast<short(*)[2]>(
         CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL)); /* May be nullptr. */
-    BKE_mesh_normals_loop_split(verts,
+    BKE_mesh_normals_loop_split(positions,
                                 vert_normals,
                                 mesh->totvert,
                                 edges,
@@ -2312,7 +2298,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   if (free_poly_normals) {
     MEM_freeN(poly_normals);
   }
-  MEM_freeN(verts);
+  MEM_freeN(positions);
 }
 
 /************************* raw coords ************************/
@@ -2547,7 +2533,7 @@ bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
       BLI_listbase_swaplinks(&key->block, kb, other_kb);
 
       /* Swap absolute positions. */
-      SWAP(float, kb->pos, other_kb->pos);
+      std::swap(kb->pos, other_kb->pos);
 
       kb = other_kb;
     }

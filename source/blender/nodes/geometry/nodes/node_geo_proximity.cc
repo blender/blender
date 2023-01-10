@@ -129,7 +129,7 @@ static bool calculate_pointcloud_proximity(const VArray<float3> &positions,
   return true;
 }
 
-class ProximityFunction : public fn::MultiFunction {
+class ProximityFunction : public mf::MultiFunction {
  private:
   GeometrySet target_;
   GeometryNodeProximityTargetType type_;
@@ -138,20 +138,18 @@ class ProximityFunction : public fn::MultiFunction {
   ProximityFunction(GeometrySet target, GeometryNodeProximityTargetType type)
       : target_(std::move(target)), type_(type)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Geometry Proximity", signature};
+      builder.single_input<float3>("Source Position");
+      builder.single_output<float3>("Position");
+      builder.single_output<float>("Distance");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Geometry Proximity"};
-    signature.single_input<float3>("Source Position");
-    signature.single_output<float3>("Position");
-    signature.single_output<float>("Distance");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float3> &src_positions = params.readonly_single_input<float3>(0,
                                                                                "Source Position");

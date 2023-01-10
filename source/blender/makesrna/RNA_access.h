@@ -813,7 +813,7 @@ typedef enum eRNAOverrideMatchResult {
    */
   RNA_OVERRIDE_MATCH_RESULT_CREATED = 1 << 0,
   /**
-   * Some properties are illegaly different from their reference values and have been tagged for
+   * Some properties are illegally different from their reference values and have been tagged for
    * restoration.
    */
   RNA_OVERRIDE_MATCH_RESULT_RESTORE_TAGGED = 1 << 1,

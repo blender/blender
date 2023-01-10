@@ -14,6 +14,7 @@
 
 #include <sstream>
 
+using blender::float3;
 using blender::Span;
 
 namespace Freestyle {
@@ -401,15 +402,19 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 {
   char *name = ob->id.name + 2;
 
-  const Span<MVert> mesh_verts = me->verts();
+  const Span<float3> vert_positions = me->vert_positions();
   const Span<MPoly> mesh_polys = me->polys();
   const Span<MLoop> mesh_loops = me->loops();
 
   // Compute loop triangles
   int tottri = poly_to_tri_count(me->totpoly, me->totloop);
   MLoopTri *mlooptri = (MLoopTri *)MEM_malloc_arrayN(tottri, sizeof(*mlooptri), __func__);
-  BKE_mesh_recalc_looptri(
-      mesh_loops.data(), mesh_polys.data(), mesh_verts.data(), me->totloop, me->totpoly, mlooptri);
+  BKE_mesh_recalc_looptri(mesh_loops.data(),
+                          mesh_polys.data(),
+                          reinterpret_cast<const float(*)[3]>(vert_positions.data()),
+                          me->totloop,
+                          me->totpoly,
+                          mlooptri);
 
   // Compute loop normals
   BKE_mesh_calc_normals_split(me);
@@ -444,9 +449,9 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   for (int a = 0; a < tottri; a++) {
     const MLoopTri *lt = &mlooptri[a];
 
-    copy_v3_v3(v1, mesh_verts[mesh_loops[lt->tri[0]].v].co);
-    copy_v3_v3(v2, mesh_verts[mesh_loops[lt->tri[1]].v].co);
-    copy_v3_v3(v3, mesh_verts[mesh_loops[lt->tri[2]].v].co);
+    copy_v3_v3(v1, vert_positions[mesh_loops[lt->tri[0]].v]);
+    copy_v3_v3(v2, vert_positions[mesh_loops[lt->tri[1]].v]);
+    copy_v3_v3(v3, vert_positions[mesh_loops[lt->tri[2]].v]);
 
     mul_m4_v3(obmat, v1);
     mul_m4_v3(obmat, v2);
@@ -517,9 +522,9 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     const MPoly *mp = &mesh_polys[lt->poly];
     Material *mat = BKE_object_material_get(ob, material_indices[lt->poly] + 1);
 
-    copy_v3_v3(v1, mesh_verts[mesh_loops[lt->tri[0]].v].co);
-    copy_v3_v3(v2, mesh_verts[mesh_loops[lt->tri[1]].v].co);
-    copy_v3_v3(v3, mesh_verts[mesh_loops[lt->tri[2]].v].co);
+    copy_v3_v3(v1, vert_positions[mesh_loops[lt->tri[0]].v]);
+    copy_v3_v3(v2, vert_positions[mesh_loops[lt->tri[1]].v]);
+    copy_v3_v3(v3, vert_positions[mesh_loops[lt->tri[2]].v]);
 
     mul_m4_v3(obmat, v1);
     mul_m4_v3(obmat, v2);

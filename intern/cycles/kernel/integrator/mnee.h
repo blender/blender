@@ -176,8 +176,9 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
 
   /* Geometric normal. */
   vtx->ng = normalize(cross(dp_du, dp_dv));
-  if (sd_vtx->object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED)
+  if (sd_vtx->object_flag & SD_OBJECT_NEGATIVE_SCALE) {
     vtx->ng = -vtx->ng;
+  }
 
   /* Shading normals: Interpolate normals between vertices. */
   float n_len;

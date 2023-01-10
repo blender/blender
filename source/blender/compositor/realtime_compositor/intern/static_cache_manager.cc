@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "COM_morphological_distance_feather_weights.hh"
 #include "COM_symmetric_blur_weights.hh"

@@ -49,12 +49,16 @@ using geo_eval_log::NodeWarningType;
  */
 class NodeAnonymousAttributeID : public AnonymousAttributeID {
   std::string long_name_;
+  std::string socket_name_;
 
  public:
   NodeAnonymousAttributeID(const Object &object,
                            const ComputeContext &compute_context,
                            const bNode &bnode,
-                           const StringRef identifier);
+                           const StringRef identifier,
+                           const StringRef name);
+
+  std::string user_name() const override;
 };
 
 class GeoNodeExecParams {
@@ -283,18 +287,20 @@ class GeoNodeExecParams {
    * attribute is not needed.
    */
   AutoAnonymousAttributeID get_output_anonymous_attribute_id_if_needed(
-      const StringRef output_identifier)
+      const StringRef output_identifier, const bool force_create = false)
   {
-    if (!this->anonymous_attribute_output_is_required(output_identifier)) {
+    if (!this->anonymous_attribute_output_is_required(output_identifier) && !force_create) {
       return {};
     }
+    const bNodeSocket &output_socket = node_.output_by_identifier(output_identifier);
     const GeoNodesLFUserData &user_data = *this->user_data();
     const ComputeContext &compute_context = *user_data.compute_context;
     return MEM_new<NodeAnonymousAttributeID>(__func__,
                                              *user_data.modifier_data->self_object,
                                              compute_context,
                                              node_,
-                                             output_identifier);
+                                             output_identifier,
+                                             output_socket.name);
   }
 
   /**

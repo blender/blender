@@ -213,9 +213,8 @@ static void rna_ParticleHairKey_location_object_get(PointerRNA *ptr, float *valu
   if (pa) {
     Mesh *hair_mesh = (psmd->psys->flag & PSYS_HAIR_DYNAMICS) ? psmd->psys->hair_out_mesh : NULL;
     if (hair_mesh) {
-      const MVert *verts = BKE_mesh_verts(hair_mesh);
-      const MVert *mv = &verts[pa->hair_index + (hkey - pa->hair)];
-      copy_v3_v3(values, mv->co);
+      const float(*positions)[3] = BKE_mesh_vert_positions(hair_mesh);
+      copy_v3_v3(values, positions[pa->hair_index + (hkey - pa->hair)]);
     }
     else {
       float hairmat[4][4];
@@ -279,9 +278,8 @@ static void hair_key_location_object_set(HairKey *hair_key,
     if (hair_key_index == -1) {
       return;
     }
-    MVert *verts = BKE_mesh_verts_for_write(hair_mesh);
-    MVert *mv = &verts[particle->hair_index + (hair_key_index)];
-    copy_v3_v3(mv->co, src_co);
+    float(*positions)[3] = BKE_mesh_vert_positions_for_write(hair_mesh);
+    copy_v3_v3(positions[particle->hair_index + (hair_key_index)], src_co);
     return;
   }
 
@@ -324,9 +322,8 @@ static void rna_ParticleHairKey_co_object(HairKey *hairkey,
                                                                   NULL;
   if (particle) {
     if (hair_mesh) {
-      const MVert *verts = BKE_mesh_verts(hair_mesh);
-      const MVert *mv = &verts[particle->hair_index + (hairkey - particle->hair)];
-      copy_v3_v3(n_co, mv->co);
+      const float(*positions)[3] = BKE_mesh_vert_positions(hair_mesh);
+      copy_v3_v3(n_co, positions[particle->hair_index + (hairkey - particle->hair)]);
     }
     else {
       float hairmat[4][4];
@@ -385,7 +382,7 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
   int num = particle->num_dmcache;
   int from = modifier->psys->part->from;
 
-  if (!CustomData_has_layer(&modifier->mesh_final->ldata, CD_MLOOPUV)) {
+  if (!CustomData_has_layer(&modifier->mesh_final->ldata, CD_PROP_FLOAT2)) {
     BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
     return;
   }
@@ -644,7 +641,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem,
     zero_v2(r_uv);
     return;
   }
-  if (!CustomData_has_layer(&modifier->mesh_final->ldata, CD_MLOOPUV)) {
+  if (!CustomData_has_layer(&modifier->mesh_final->ldata, CD_PROP_FLOAT2)) {
     BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
     zero_v2(r_uv);
     return;

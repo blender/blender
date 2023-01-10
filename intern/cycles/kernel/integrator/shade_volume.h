@@ -979,8 +979,10 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   INTEGRATOR_STATE_WRITE(state, path, throughput) = throughput_phase;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
-    INTEGRATOR_STATE_WRITE(state, path, pass_diffuse_weight) = one_spectrum();
-    INTEGRATOR_STATE_WRITE(state, path, pass_glossy_weight) = zero_spectrum();
+    if (INTEGRATOR_STATE(state, path, bounce) == 0) {
+      INTEGRATOR_STATE_WRITE(state, path, pass_diffuse_weight) = one_spectrum();
+      INTEGRATOR_STATE_WRITE(state, path, pass_glossy_weight) = zero_spectrum();
+    }
   }
 
   /* Update path state */

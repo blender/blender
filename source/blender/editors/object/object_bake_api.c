@@ -461,7 +461,7 @@ static bool bake_object_check(const Scene *scene,
     }
   }
   else if (target == R_BAKE_TARGET_IMAGE_TEXTURES) {
-    if (CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV) == -1) {
+    if (CustomData_get_active_layer_index(&me->ldata, CD_PROP_FLOAT2) == -1) {
       BKE_reportf(
           reports, RPT_ERROR, "No active UV layer found in the object \"%s\"", ob->id.name + 2);
       return false;
@@ -1034,7 +1034,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   const MLoop *loops = BKE_mesh_loops(me_eval);
   BKE_mesh_recalc_looptri(loops,
                           BKE_mesh_polys(me_eval),
-                          BKE_mesh_verts(me_eval),
+                          BKE_mesh_vert_positions(me_eval),
                           me_eval->totloop,
                           me_eval->totpoly,
                           looptri);
@@ -1381,7 +1381,7 @@ static int bake(const BakeAPIRender *bkr,
 
   if (bkr->uv_layer[0] != '\0') {
     Mesh *me = (Mesh *)ob_low->data;
-    if (CustomData_get_named_layer(&me->ldata, CD_MLOOPUV, bkr->uv_layer) == -1) {
+    if (CustomData_get_named_layer(&me->ldata, CD_PROP_FLOAT2, bkr->uv_layer) == -1) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "No UV layer named \"%s\" found in the object \"%s\"",
@@ -2246,7 +2246,7 @@ void OBJECT_OT_bake(wmOperatorType *ot)
   RNA_def_string(ot->srna,
                  "uv_layer",
                  NULL,
-                 MAX_CUSTOMDATA_LAYER_NAME,
+                 MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX,
                  "UV Layer",
                  "UV layer to override active");
 }

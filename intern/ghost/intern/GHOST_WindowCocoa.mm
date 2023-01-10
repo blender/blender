@@ -6,6 +6,12 @@
 #include "GHOST_Debug.h"
 #include "GHOST_SystemCocoa.h"
 
+/* Don't generate OpenGL deprecation warning. This is a known thing, and is not something easily
+ * solvable in a short term. */
+#ifdef __clang__
+#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 #include "GHOST_ContextCGL.h"
 
 #ifdef WITH_VULKAN_BACKEND

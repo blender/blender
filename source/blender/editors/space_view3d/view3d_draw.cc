@@ -493,7 +493,7 @@ static void drawviewborder_triangle(
       ofs = h * (h / w);
     }
     if (dir == 'B') {
-      SWAP(float, y1, y2);
+      std::swap(y1, y2);
     }
 
     immVertex2f(shdr_pos, x1, y1);
@@ -513,7 +513,7 @@ static void drawviewborder_triangle(
       ofs = w * (w / h);
     }
     if (dir == 'B') {
-      SWAP(float, x1, x2);
+      std::swap(x1, x2);
     }
 
     immVertex2f(shdr_pos, x1, y1);
@@ -2413,12 +2413,12 @@ void ED_view3d_datamask(const bContext *C,
                         CustomData_MeshMasks *r_cddata_masks)
 {
   if (ELEM(v3d->shading.type, OB_TEXTURE, OB_MATERIAL, OB_RENDER)) {
-    r_cddata_masks->lmask |= CD_MASK_MLOOPUV | CD_MASK_PROP_BYTE_COLOR;
+    r_cddata_masks->lmask |= CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_BYTE_COLOR;
     r_cddata_masks->vmask |= CD_MASK_ORCO | CD_MASK_PROP_COLOR;
   }
   else if (v3d->shading.type == OB_SOLID) {
     if (v3d->shading.color_type == V3D_SHADING_TEXTURE_COLOR) {
-      r_cddata_masks->lmask |= CD_MASK_MLOOPUV;
+      r_cddata_masks->lmask |= CD_MASK_PROP_FLOAT2;
     }
     if (v3d->shading.color_type == V3D_SHADING_VERTEX_COLOR) {
       r_cddata_masks->lmask |= CD_MASK_PROP_BYTE_COLOR;

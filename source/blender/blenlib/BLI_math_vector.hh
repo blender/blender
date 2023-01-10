@@ -11,25 +11,16 @@
 #include <type_traits>
 
 #include "BLI_math_base.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 namespace blender::math {
 
-#ifndef NDEBUG
-#  define BLI_ASSERT_UNIT(v) \
-    { \
-      const float _test_unit = length_squared(v); \
-      BLI_assert(!(std::abs(_test_unit - 1.0f) >= BLI_ASSERT_UNIT_EPSILON) || \
-                 !(std::abs(_test_unit) >= BLI_ASSERT_UNIT_EPSILON)); \
-    } \
-    (void)0
-#else
-#  define BLI_ASSERT_UNIT(v) (void)(v)
-#endif
-
-template<typename T, int Size> inline bool is_zero(const vec_base<T, Size> &a)
+/**
+ * Returns true if all components are exactly equal to 0.
+ */
+template<typename T, int Size> [[nodiscard]] inline bool is_zero(const VecBase<T, Size> &a)
 {
   for (int i = 0; i < Size; i++) {
     if (a[i] != T(0)) {
@@ -39,7 +30,10 @@ template<typename T, int Size> inline bool is_zero(const vec_base<T, Size> &a)
   return true;
 }
 
-template<typename T, int Size> inline bool is_any_zero(const vec_base<T, Size> &a)
+/**
+ * Returns true if at least one component is exactly equal to 0.
+ */
+template<typename T, int Size> [[nodiscard]] inline bool is_any_zero(const VecBase<T, Size> &a)
 {
   for (int i = 0; i < Size; i++) {
     if (a[i] == T(0)) {
@@ -49,10 +43,14 @@ template<typename T, int Size> inline bool is_any_zero(const vec_base<T, Size> &
   return false;
 }
 
+/**
+ * Returns true if the given vectors are equal within the given epsilon.
+ * The epsilon is scaled for each component by magnitude of the matching component of `a`.
+ */
 template<typename T, int Size>
-inline bool almost_equal_relative(const vec_base<T, Size> &a,
-                                  const vec_base<T, Size> &b,
-                                  const T &epsilon_factor)
+[[nodiscard]] inline bool almost_equal_relative(const VecBase<T, Size> &a,
+                                                const VecBase<T, Size> &b,
+                                                const T &epsilon_factor)
 {
   for (int i = 0; i < Size; i++) {
     const float epsilon = epsilon_factor * math::abs(a[i]);
@@ -63,9 +61,9 @@ inline bool almost_equal_relative(const vec_base<T, Size> &a,
   return true;
 }
 
-template<typename T, int Size> inline vec_base<T, Size> abs(const vec_base<T, Size> &a)
+template<typename T, int Size> [[nodiscard]] inline VecBase<T, Size> abs(const VecBase<T, Size> &a)
 {
-  vec_base<T, Size> result;
+  VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     result[i] = a[i] >= 0 ? a[i] : -a[i];
   }
@@ -73,9 +71,9 @@ template<typename T, int Size> inline vec_base<T, Size> abs(const vec_base<T, Si
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> min(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+[[nodiscard]] inline VecBase<T, Size> min(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
 {
-  vec_base<T, Size> result;
+  VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     result[i] = a[i] < b[i] ? a[i] : b[i];
   }
@@ -83,9 +81,9 @@ inline vec_base<T, Size> min(const vec_base<T, Size> &a, const vec_base<T, Size>
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> max(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+[[nodiscard]] inline VecBase<T, Size> max(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
 {
-  vec_base<T, Size> result;
+  VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     result[i] = a[i] > b[i] ? a[i] : b[i];
   }
@@ -93,11 +91,11 @@ inline vec_base<T, Size> max(const vec_base<T, Size> &a, const vec_base<T, Size>
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> clamp(const vec_base<T, Size> &a,
-                               const vec_base<T, Size> &min,
-                               const vec_base<T, Size> &max)
+[[nodiscard]] inline VecBase<T, Size> clamp(const VecBase<T, Size> &a,
+                                            const VecBase<T, Size> &min,
+                                            const VecBase<T, Size> &max)
 {
-  vec_base<T, Size> result = a;
+  VecBase<T, Size> result = a;
   for (int i = 0; i < Size; i++) {
     result[i] = std::clamp(result[i], min[i], max[i]);
   }
@@ -105,19 +103,19 @@ inline vec_base<T, Size> clamp(const vec_base<T, Size> &a,
 }
 
 template<typename T, int Size>
-inline vec_base<T, Size> clamp(const vec_base<T, Size> &a, const T &min, const T &max)
+[[nodiscard]] inline VecBase<T, Size> clamp(const VecBase<T, Size> &a, const T &min, const T &max)
 {
-  vec_base<T, Size> result = a;
+  VecBase<T, Size> result = a;
   for (int i = 0; i < Size; i++) {
     result[i] = std::clamp(result[i], min, max);
   }
   return result;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> mod(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> mod(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
 {
-  vec_base<T, Size> result;
+  VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     BLI_assert(b[i] != 0);
     result[i] = std::fmod(a[i], b[i]);
@@ -125,34 +123,41 @@ inline vec_base<T, Size> mod(const vec_base<T, Size> &a, const vec_base<T, Size>
   return result;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> mod(const vec_base<T, Size> &a, const T &b)
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> mod(const VecBase<T, Size> &a, const T &b)
 {
   BLI_assert(b != 0);
-  vec_base<T, Size> result;
+  VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     result[i] = std::fmod(a[i], b);
   }
   return result;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T safe_mod(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+/**
+ * Safe version of mod(a, b) that returns 0 if b is equal to 0.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> safe_mod(const VecBase<T, Size> &a,
+                                               const VecBase<T, Size> &b)
 {
-  vec_base<T, Size> result;
+  VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     result[i] = (b[i] != 0) ? std::fmod(a[i], b[i]) : 0;
   }
   return result;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T safe_mod(const vec_base<T, Size> &a, const T &b)
+/**
+ * Safe version of mod(a, b) that returns 0 if b is equal to 0.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> safe_mod(const VecBase<T, Size> &a, const T &b)
 {
   if (b == 0) {
-    return vec_base<T, Size>(0);
+    return VecBase<T, Size>(0);
   }
-  vec_base<T, Size> result;
+  VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     result[i] = std::fmod(a[i], b);
   }
@@ -164,10 +169,11 @@ inline T safe_mod(const vec_base<T, Size> &a, const T &b)
  * In other words, it is equivalent to `divide_ceil(a, b) * b`.
  * It is undefined if \a a is negative or \b b is not strictly positive.
  */
-template<typename T, int Size, BLI_ENABLE_IF((is_math_integral_type<T>))>
-inline vec_base<T, Size> ceil_to_multiple(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> ceil_to_multiple(const VecBase<T, Size> &a,
+                                                       const VecBase<T, Size> &b)
 {
-  vec_base<T, Size> result;
+  VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     BLI_assert(a[i] >= 0);
     BLI_assert(b[i] > 0);
@@ -180,10 +186,11 @@ inline vec_base<T, Size> ceil_to_multiple(const vec_base<T, Size> &a, const vec_
  * Integer division that returns the ceiling, instead of flooring like normal C division.
  * It is undefined if \a a is negative or \b b is not strictly positive.
  */
-template<typename T, int Size, BLI_ENABLE_IF((is_math_integral_type<T>))>
-inline vec_base<T, Size> divide_ceil(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> divide_ceil(const VecBase<T, Size> &a,
+                                                  const VecBase<T, Size> &b)
 {
-  vec_base<T, Size> result;
+  VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     BLI_assert(a[i] >= 0);
     BLI_assert(b[i] > 0);
@@ -193,62 +200,73 @@ inline vec_base<T, Size> divide_ceil(const vec_base<T, Size> &a, const vec_base<
 }
 
 template<typename T, int Size>
-inline void min_max(const vec_base<T, Size> &vector,
-                    vec_base<T, Size> &min,
-                    vec_base<T, Size> &max)
+void min_max(const VecBase<T, Size> &vector, VecBase<T, Size> &min, VecBase<T, Size> &max)
 {
   min = math::min(vector, min);
   max = math::max(vector, max);
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> safe_divide(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+/**
+ * Returns 0 if denominator is exactly equal to 0.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> safe_divide(const VecBase<T, Size> &a,
+                                                  const VecBase<T, Size> &b)
 {
-  vec_base<T, Size> result;
+  VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     result[i] = (b[i] == 0) ? 0 : a[i] / b[i];
   }
   return result;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> safe_divide(const vec_base<T, Size> &a, const T &b)
+/**
+ * Returns 0 if denominator is exactly equal to 0.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> safe_divide(const VecBase<T, Size> &a, const T &b)
 {
-  return (b != 0) ? a / b : vec_base<T, Size>(0.0f);
+  return (b != 0) ? a / b : VecBase<T, Size>(0.0f);
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> floor(const vec_base<T, Size> &a)
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> floor(const VecBase<T, Size> &a)
 {
-  vec_base<T, Size> result;
+  VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     result[i] = std::floor(a[i]);
   }
   return result;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> ceil(const vec_base<T, Size> &a)
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> ceil(const VecBase<T, Size> &a)
 {
-  vec_base<T, Size> result;
+  VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     result[i] = std::ceil(a[i]);
   }
   return result;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> fract(const vec_base<T, Size> &a)
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> fract(const VecBase<T, Size> &a)
 {
-  vec_base<T, Size> result;
+  VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     result[i] = a[i] - std::floor(a[i]);
   }
   return result;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T dot(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+/**
+ * Dot product between two vectors.
+ * Equivalent to component wise multiplication followed by summation of the result.
+ * Equivalent to the cosine of the angle between the two vectors if the vectors are normalized.
+ * \note prefer using `length_manhattan(a)` than `dot(a, vec(1))` to get the sum of all components.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline T dot(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
 {
   T result = a[0] * b[0];
   for (int i = 1; i < Size; i++) {
@@ -257,7 +275,10 @@ inline T dot(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
   return result;
 }
 
-template<typename T, int Size> inline T length_manhattan(const vec_base<T, Size> &a)
+/**
+ * Returns summation of all components.
+ */
+template<typename T, int Size> [[nodiscard]] inline T length_manhattan(const VecBase<T, Size> &a)
 {
   T result = std::abs(a[0]);
   for (int i = 1; i < Size; i++) {
@@ -266,68 +287,83 @@ template<typename T, int Size> inline T length_manhattan(const vec_base<T, Size>
   return result;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T length_squared(const vec_base<T, Size> &a)
+template<typename T, int Size> [[nodiscard]] inline T length_squared(const VecBase<T, Size> &a)
 {
   return dot(a, a);
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T length(const vec_base<T, Size> &a)
+template<typename T, int Size> [[nodiscard]] inline T length(const VecBase<T, Size> &a)
 {
   return std::sqrt(length_squared(a));
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T distance_manhattan(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+/** Return true if each individual column is unit scaled. Mainly for assert usage. */
+template<typename T, int Size> [[nodiscard]] inline bool is_unit_scale(const VecBase<T, Size> &v)
+{
+  /* Checks are flipped so NAN doesn't assert because we're making sure the value was
+   * normalized and in the case we don't want NAN to be raising asserts since there
+   * is nothing to be done in that case. */
+  const T test_unit = math::length_squared(v);
+  return (!(std::abs(test_unit - T(1)) >= AssertUnitEpsilon<T>::value) ||
+          !(std::abs(test_unit) >= AssertUnitEpsilon<T>::value));
+}
+
+template<typename T, int Size>
+[[nodiscard]] inline T distance_manhattan(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
 {
   return length_manhattan(a - b);
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T distance_squared(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+template<typename T, int Size>
+[[nodiscard]] inline T distance_squared(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
 {
   return length_squared(a - b);
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T distance(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+template<typename T, int Size>
+[[nodiscard]] inline T distance(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
 {
   return length(a - b);
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> reflect(const vec_base<T, Size> &incident,
-                                 const vec_base<T, Size> &normal)
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> reflect(const VecBase<T, Size> &incident,
+                                              const VecBase<T, Size> &normal)
 {
-  BLI_ASSERT_UNIT(normal);
+  BLI_assert(is_unit_scale(normal));
   return incident - 2.0 * dot(normal, incident) * normal;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> refract(const vec_base<T, Size> &incident,
-                                 const vec_base<T, Size> &normal,
-                                 const T &eta)
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> refract(const VecBase<T, Size> &incident,
+                                              const VecBase<T, Size> &normal,
+                                              const T &eta)
 {
   float dot_ni = dot(normal, incident);
   float k = 1.0f - eta * eta * (1.0f - dot_ni * dot_ni);
   if (k < 0.0f) {
-    return vec_base<T, Size>(0.0f);
+    return VecBase<T, Size>(0.0f);
   }
   return eta * incident - (eta * dot_ni + sqrt(k)) * normal;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> project(const vec_base<T, Size> &p, const vec_base<T, Size> &v_proj)
+/**
+ * Project \a p onto \a v_proj .
+ * Returns zero vector if \a v_proj is degenerate (zero length).
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> project(const VecBase<T, Size> &p,
+                                              const VecBase<T, Size> &v_proj)
 {
   if (UNLIKELY(is_zero(v_proj))) {
-    return vec_base<T, Size>(0.0f);
+    return VecBase<T, Size>(0.0f);
   }
   return v_proj * (dot(p, v_proj) / dot(v_proj, v_proj));
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> normalize_and_get_length(const vec_base<T, Size> &v, T &out_length)
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> normalize_and_get_length(const VecBase<T, Size> &v,
+                                                               T &out_length)
 {
   out_length = length_squared(v);
   /* A larger value causes normalize errors in a scaled down models with camera extreme close. */
@@ -338,41 +374,56 @@ inline vec_base<T, Size> normalize_and_get_length(const vec_base<T, Size> &v, T 
   }
   /* Either the vector is small or one of it's values contained `nan`. */
   out_length = 0.0;
-  return vec_base<T, Size>(0.0);
+  return VecBase<T, Size>(0.0);
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> normalize(const vec_base<T, Size> &v)
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> normalize(const VecBase<T, Size> &v)
 {
   T len;
   return normalize_and_get_length(v, len);
 }
 
-template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, 3> cross(const vec_base<T, 3> &a, const vec_base<T, 3> &b)
+/**
+ * \return cross perpendicular vector to \a a and \a b.
+ * \note Return zero vector if \a a and \a b are collinear.
+ * \note The length of the resulting vector is equal to twice the area of the triangle between \a a
+ * and \a b ; and it is equal to the sine of the angle between \a a and \a b if they are
+ * normalized.
+ * \note Blender 3D space uses right handedness: \a a = thumb, \a b = index, return = middle.
+ */
+template<typename T>
+[[nodiscard]] inline VecBase<T, 3> cross(const VecBase<T, 3> &a, const VecBase<T, 3> &b)
 {
   return {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
 }
 
-inline vec_base<float, 3> cross_high_precision(const vec_base<float, 3> &a,
-                                               const vec_base<float, 3> &b)
+/**
+ * Same as `cross(a, b)` but use double float precision for the computation.
+ */
+[[nodiscard]] inline VecBase<float, 3> cross_high_precision(const VecBase<float, 3> &a,
+                                                            const VecBase<float, 3> &b)
 {
   return {float(double(a.y) * double(b.z) - double(a.z) * double(b.y)),
           float(double(a.z) * double(b.x) - double(a.x) * double(b.z)),
           float(double(a.x) * double(b.y) - double(a.y) * double(b.x))};
 }
 
-template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, 3> cross_poly(Span<vec_base<T, 3>> poly)
+/**
+ * \param poly: Array of points around a polygon. They don't have to be co-planar.
+ * \return Best fit plane normal for the given polygon loop or zero vector if point
+ * array is too short. Not normalized.
+ */
+template<typename T> [[nodiscard]] inline VecBase<T, 3> cross_poly(Span<VecBase<T, 3>> poly)
 {
   /* Newell's Method. */
   int nv = int(poly.size());
   if (nv < 3) {
-    return vec_base<T, 3>(0, 0, 0);
+    return VecBase<T, 3>(0, 0, 0);
   }
-  const vec_base<T, 3> *v_prev = &poly[nv - 1];
-  const vec_base<T, 3> *v_curr = &poly[0];
-  vec_base<T, 3> n(0, 0, 0);
+  const VecBase<T, 3> *v_prev = &poly[nv - 1];
+  const VecBase<T, 3> *v_curr = &poly[0];
+  VecBase<T, 3> n(0, 0, 0);
   for (int i = 0; i < nv;) {
     n[0] = n[0] + ((*v_prev)[1] - (*v_curr)[1]) * ((*v_prev)[2] + (*v_curr)[2]);
     n[1] = n[1] + ((*v_prev)[2] - (*v_curr)[2]) * ((*v_prev)[0] + (*v_curr)[0]);
@@ -386,31 +437,46 @@ inline vec_base<T, 3> cross_poly(Span<vec_base<T, 3>> poly)
   return n;
 }
 
-template<typename T, typename FactorT, int Size, BLI_ENABLE_IF((is_math_float_type<FactorT>))>
-inline vec_base<T, Size> interpolate(const vec_base<T, Size> &a,
-                                     const vec_base<T, Size> &b,
-                                     const FactorT &t)
+/**
+ * Per component linear interpolation.
+ * \param t: interpolation factor. Return \a a if equal 0. Return \a b if equal 1.
+ * Outside of [0..1] range, use linear extrapolation.
+ */
+template<typename T, typename FactorT, int Size>
+[[nodiscard]] inline VecBase<T, Size> interpolate(const VecBase<T, Size> &a,
+                                                  const VecBase<T, Size> &b,
+                                                  const FactorT &t)
 {
   return a * (1 - t) + b * t;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> midpoint(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+/**
+ * \return Point halfway between \a a and \a b.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> midpoint(const VecBase<T, Size> &a,
+                                               const VecBase<T, Size> &b)
 {
   return (a + b) * 0.5;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline vec_base<T, Size> faceforward(const vec_base<T, Size> &vector,
-                                     const vec_base<T, Size> &incident,
-                                     const vec_base<T, Size> &reference)
+/**
+ * Return `vector` if `incident` and `reference` are pointing in the same direction.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> faceforward(const VecBase<T, Size> &vector,
+                                                  const VecBase<T, Size> &incident,
+                                                  const VecBase<T, Size> &reference)
 {
   return (dot(reference, incident) < 0) ? vector : -vector;
 }
 
-template<typename T> inline int dominant_axis(const vec_base<T, 3> &a)
+/**
+ * \return Index of the component with the greatest magnitude.
+ */
+template<typename T> [[nodiscard]] inline int dominant_axis(const VecBase<T, 3> &a)
 {
-  vec_base<T, 3> b = abs(a);
+  VecBase<T, 3> b = abs(a);
   return ((b.x > b.y) ? ((b.x > b.z) ? 0 : 2) : ((b.y > b.z) ? 1 : 2));
 }
 
@@ -419,7 +485,7 @@ template<typename T> inline int dominant_axis(const vec_base<T, 3> &a)
  * \note Returned vector can be in any perpendicular direction.
  * \note Returned vector might not the same length as \a v.
  */
-template<typename T> inline vec_base<T, 3> orthogonal(const vec_base<T, 3> &v)
+template<typename T> [[nodiscard]] inline VecBase<T, 3> orthogonal(const VecBase<T, 3> &v)
 {
   const int axis = dominant_axis(v);
   switch (axis) {
@@ -437,16 +503,21 @@ template<typename T> inline vec_base<T, 3> orthogonal(const vec_base<T, 3> &v)
  * Calculates a perpendicular vector to \a v.
  * \note Returned vector can be in any perpendicular direction.
  */
-template<typename T> inline vec_base<T, 2> orthogonal(const vec_base<T, 2> &v)
+template<typename T> [[nodiscard]] inline VecBase<T, 2> orthogonal(const VecBase<T, 2> &v)
 {
   return {-v.y, v.x};
 }
 
+/**
+ * Returns true if vectors are equal within the given epsilon.
+ */
 template<typename T, int Size>
-inline bool compare(const vec_base<T, Size> &a, const vec_base<T, Size> &b, const T limit)
+[[nodiscard]] inline bool is_equal(const VecBase<T, Size> &a,
+                                   const VecBase<T, Size> &b,
+                                   const T epsilon = T(0))
 {
   for (int i = 0; i < Size; i++) {
-    if (std::abs(a[i] - b[i]) > limit) {
+    if (std::abs(a[i] - b[i]) > epsilon) {
       return false;
     }
   }
@@ -465,10 +536,10 @@ template<typename T> struct isect_result {
   typename T::base_type lambda;
 };
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
-isect_result<vec_base<T, Size>> isect_seg_seg(const vec_base<T, Size> &v1,
-                                              const vec_base<T, Size> &v2,
-                                              const vec_base<T, Size> &v3,
-                                              const vec_base<T, Size> &v4);
+template<typename T, int Size>
+[[nodiscard]] isect_result<VecBase<T, Size>> isect_seg_seg(const VecBase<T, Size> &v1,
+                                                           const VecBase<T, Size> &v2,
+                                                           const VecBase<T, Size> &v3,
+                                                           const VecBase<T, Size> &v4);
 
 }  // namespace blender::math

@@ -3087,7 +3087,7 @@ static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, 
   but->selsta = but->pos;
   but->selend = data->sel_pos_init;
   if (but->selend < but->selsta) {
-    SWAP(short, but->selsta, but->selend);
+    std::swap(but->selsta, but->selend);
   }
 
   ui_but_update(but);
@@ -3190,7 +3190,7 @@ static void ui_textedit_move(uiBut *but,
       but->selend = data->sel_pos_init;
     }
     if (but->selend < but->selsta) {
-      SWAP(short, but->selsta, but->selend);
+      std::swap(but->selsta, but->selend);
     }
   }
 }

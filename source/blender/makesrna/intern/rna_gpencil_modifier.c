@@ -158,6 +158,25 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem gpencil_build_time_mode_items[] = {
+    {GP_BUILD_TIMEMODE_DRAWSPEED,
+     "DRAWSPEED",
+     0,
+     "Natural Drawing Speed",
+     "Use recorded speed multiplied by a factor"},
+    {GP_BUILD_TIMEMODE_FRAMES,
+     "FRAMES",
+     0,
+     "Number of Frames",
+     "Set a fixed number of frames for all build animations"},
+    {GP_BUILD_TIMEMODE_PERCENTAGE,
+     "PERCENTAGE",
+     0,
+     "Percentage Factor",
+     "Set a manual percentage to build"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem modifier_modify_color_items[] = {
     {GP_MODIFY_COLOR_BOTH, "BOTH", 0, "Stroke & Fill", "Modify fill and stroke colors"},
@@ -923,6 +942,33 @@ static void rna_EnvelopeGpencilModifier_material_set(PointerRNA *ptr,
   Material **ma_target = &emd->material;
 
   rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+const EnumPropertyItem *gpencil_build_time_mode_filter(bContext *UNUSED(C),
+                                                       PointerRNA *ptr,
+                                                       PropertyRNA *prop,
+                                                       bool *r_free)
+{
+
+  GpencilModifierData *md = ptr->data;
+  BuildGpencilModifierData *mmd = (BuildGpencilModifierData *)md;
+  const bool is_concurrent = (mmd->mode == GP_BUILD_MODE_CONCURRENT);
+
+  EnumPropertyItem *item_list = NULL;
+  int totitem = 0;
+
+  for (const EnumPropertyItem *item = gpencil_build_time_mode_items; item->identifier != NULL;
+       item++) {
+    if (is_concurrent && item->identifier == "DRAWSPEED") {
+      continue;
+    }
+    RNA_enum_item_add(&item_list, &totitem, item);
+  }
+
+  RNA_enum_item_end(&item_list, &totitem);
+  *r_free = true;
+
+  return item_list;
 }
 
 #else
@@ -2466,7 +2512,7 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
   /* Mode */
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_gpencil_build_mode_items);
-  RNA_def_property_ui_text(prop, "Mode", "How many strokes are being animated at a time");
+  RNA_def_property_ui_text(prop, "Mode", "How strokes are being built");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   /* Direction */
@@ -2480,9 +2526,7 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
   prop = RNA_def_property(srna, "start_delay", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "start_delay");
   RNA_def_property_ui_text(
-      prop,
-      "Start Delay",
-      "Number of frames after each GP keyframe before the modifier has any effect");
+      prop, "Delay", "Number of frames after each GP keyframe before the modifier has any effect");
   RNA_def_property_range(prop, 0, MAXFRAMEF);
   RNA_def_property_ui_range(prop, 0, 200, 1, -1);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
@@ -2501,8 +2545,35 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
   prop = RNA_def_property(srna, "concurrent_time_alignment", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "time_alignment");
   RNA_def_property_enum_items(prop, prop_gpencil_build_time_align_items);
+  RNA_def_property_ui_text(prop, "Time Alignment", "How should strokes start to appear/disappear");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  /* Which time mode to use: Current frames, manual percentage, or drawspeed.  */
+  prop = RNA_def_property(srna, "time_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "time_mode");
+  RNA_def_property_enum_items(prop, gpencil_build_time_mode_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "gpencil_build_time_mode_filter");
   RNA_def_property_ui_text(
-      prop, "Time Alignment", "When should strokes start to appear/disappear");
+      prop,
+      "Timing",
+      "Use drawing speed, a number of frames, or a manual factor to build strokes");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  /* Speed factor for GP_BUILD_TIMEMODE_DRAWSPEED. */
+  /* Todo: Does it work? */
+  prop = RNA_def_property(srna, "speed_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "speed_fac");
+  RNA_def_property_ui_text(prop, "Speed Factor", "Multiply recorded drawing speed by a factor");
+  RNA_def_property_range(prop, 0.0f, 100.0f);
+  RNA_def_property_ui_range(prop, 0, 5, 0.001, -1);
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  /* Max gap in seconds between strokes for GP_BUILD_TIMEMODE_DRAWSPEED. */
+  prop = RNA_def_property(srna, "speed_maxgap", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "speed_maxgap");
+  RNA_def_property_ui_text(prop, "Maximum Gap", "The maximum gap between strokes in seconds");
+  RNA_def_property_range(prop, 0.0f, 100.0f);
+  RNA_def_property_ui_range(prop, 0, 4, 0.01, -1);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   /* Time Limits */
@@ -2512,9 +2583,9 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
       prop, "Restrict Frame Range", "Only modify strokes during the specified frame range");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  /* Use percentage */
+  /* Use percentage bool (used by sequential & concurrent modes) */
   prop = RNA_def_property(srna, "use_percentage", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BUILD_PERCENTAGE);
+  RNA_def_property_boolean_sdna(prop, NULL, "time_mode", GP_BUILD_TIMEMODE_PERCENTAGE);
   RNA_def_property_ui_text(
       prop, "Restrict Visible Points", "Use a percentage factor to determine the visible points");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");

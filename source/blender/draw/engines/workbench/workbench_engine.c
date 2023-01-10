@@ -297,7 +297,7 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
     if (ob->dt < OB_TEXTURE) {
       color_type = V3D_SHADING_MATERIAL_COLOR;
     }
-    else if ((me == NULL) || !CustomData_has_layer(ldata, CD_MLOOPUV)) {
+    else if ((me == NULL) || !CustomData_has_layer(ldata, CD_PROP_FLOAT2)) {
       /* Disable color mode if data layer is unavailable. */
       color_type = V3D_SHADING_MATERIAL_COLOR;
     }
@@ -322,7 +322,7 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
 
   if (!is_sculpt_pbvh && !is_render) {
     /* Force texture or vertex mode if object is in paint mode. */
-    if (is_texpaint_mode && me && CustomData_has_layer(ldata, CD_MLOOPUV)) {
+    if (is_texpaint_mode && me && CustomData_has_layer(ldata, CD_PROP_FLOAT2)) {
       color_type = V3D_SHADING_TEXTURE_COLOR;
       if (r_texpaint_mode) {
         *r_texpaint_mode = true;

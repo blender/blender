@@ -45,11 +45,17 @@ class AssetCatalogService {
   Vector<std::unique_ptr<AssetCatalogCollection>> undo_snapshots_;
   Vector<std::unique_ptr<AssetCatalogCollection>> redo_snapshots_;
 
+  const bool is_read_only_ = false;
+
  public:
   static const CatalogFilePath DEFAULT_CATALOG_FILENAME;
 
+  struct read_only_tag {
+  };
+
  public:
   AssetCatalogService();
+  explicit AssetCatalogService(read_only_tag);
   explicit AssetCatalogService(const CatalogFilePath &asset_library_root);
 
   /**
@@ -62,10 +68,23 @@ class AssetCatalogService {
   void tag_has_unsaved_changes(AssetCatalog *edited_catalog);
   bool has_unsaved_changes() const;
 
+  /**
+   * Check if this is a read-only service meaning the user shouldn't be able to do edits. This is
+   * not enforced by internal catalog code, the catalog service user is responsible for it. For
+   * example the UI should disallow edits.
+   */
+  bool is_read_only() const;
+
   /** Load asset catalog definitions from the files found in the asset library. */
   void load_from_disk();
   /** Load asset catalog definitions from the given file or directory. */
   void load_from_disk(const CatalogFilePath &file_or_directory_path);
+
+  /**
+   * Duplicate the catalogs from \a other_service into this one. Does not rebuild the tree, this
+   * needs to be done by the caller (call #rebuild_tree()!).
+   */
+  void add_from_existing(const AssetCatalogService &other_service);
 
   /**
    * Write the catalog definitions to disk.
@@ -104,6 +123,15 @@ class AssetCatalogService {
    *   data). This includes in-memory marked-as-deleted catalogs.
    */
   void reload_catalogs();
+
+  /**
+   * Make sure the tree is updated to the latest collection of catalogs stored in this service.
+   * Does not depend on a CDF file being available so this can be called on a service that stores
+   * catalogs that are not stored in a CDF.
+   * Most API functions that modify catalog data will trigger this, unless otherwise specified (for
+   * batch operations).
+   */
+  void rebuild_tree();
 
   /** Return catalog with the given ID. Return nullptr if not found. */
   AssetCatalog *find_catalog(CatalogID catalog_id) const;
@@ -222,7 +250,6 @@ class AssetCatalogService {
       const CatalogFilePath &blend_file_path);
 
   std::unique_ptr<AssetCatalogTree> read_into_tree();
-  void rebuild_tree();
 
   /**
    * For every catalog, ensure that its parent path also has a known catalog.
@@ -270,6 +297,11 @@ class AssetCatalogCollection {
   AssetCatalogCollection(AssetCatalogCollection &&other) noexcept = default;
 
   std::unique_ptr<AssetCatalogCollection> deep_copy() const;
+  /**
+   * Copy the catalogs from \a other and append them to this collection. Copies no other data
+   * otherwise.
+   */
+  void add_catalogs_from_existing(const AssetCatalogCollection &other);
 
  protected:
   static OwningAssetCatalogMap copy_catalog_map(const OwningAssetCatalogMap &orig);

@@ -29,7 +29,7 @@ static void sh_node_value_build_multi_function(NodeMultiFunctionBuilder &builder
 {
   const bNodeSocket *bsocket = (bNodeSocket *)builder.node().outputs.first;
   const bNodeSocketValueFloat *value = (const bNodeSocketValueFloat *)bsocket->default_value;
-  builder.construct_and_set_matching_fn<fn::CustomMF_Constant<float>>(value->value);
+  builder.construct_and_set_matching_fn<mf::CustomMF_Constant<float>>(value->value);
 }
 
 }  // namespace blender::nodes::node_shader_value_cc

@@ -7,7 +7,7 @@
 #include <string>
 
 #include "BLI_map.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_sort.hh"
 #include "BLI_string_ref.hh"

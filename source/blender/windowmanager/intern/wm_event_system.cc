@@ -4426,7 +4426,7 @@ static void wm_event_get_keymap_from_toolsystem_ex(wmWindowManager *wm,
 
   if (is_gizmo_visible && !is_gizmo_highlight) {
     if (keymap_id_list_len == 2) {
-      SWAP(const char *, keymap_id_list[0], keymap_id_list[1]);
+      std::swap(keymap_id_list[0], keymap_id_list[1]);
     }
   }
 

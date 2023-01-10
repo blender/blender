@@ -5,6 +5,8 @@
  * \ingroup draw
  */
 
+#include "BLI_math_vector_types.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "BKE_mesh.h"
@@ -57,7 +59,7 @@ static void compute_area_ratio(const MeshRenderData *mr,
 
   if (mr->extract_type == MR_EXTRACT_BMESH) {
     CustomData *cd_ldata = &mr->bm->ldata;
-    int uv_ofs = CustomData_get_offset(cd_ldata, CD_MLOOPUV);
+    int uv_ofs = CustomData_get_offset(cd_ldata, CD_PROP_FLOAT2);
 
     BMFace *efa;
     BMIter f_iter;
@@ -72,11 +74,13 @@ static void compute_area_ratio(const MeshRenderData *mr,
   }
   else {
     BLI_assert(mr->extract_type == MR_EXTRACT_MESH);
-    const MLoopUV *uv_data = (const MLoopUV *)CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
+    const float2 *uv_data = (const float2 *)CustomData_get_layer(&mr->me->ldata, CD_PROP_FLOAT2);
     const MPoly *mp = mr->mpoly;
     for (int mp_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
-      float area = BKE_mesh_calc_poly_area(mp, &mr->mloop[mp->loopstart], mr->mvert);
-      float uvarea = BKE_mesh_calc_poly_uv_area(mp, uv_data);
+      float area = BKE_mesh_calc_poly_area(
+          mp, &mr->mloop[mp->loopstart], reinterpret_cast<const float(*)[3]>(mr->vert_positions));
+      float uvarea = area_poly_v2(reinterpret_cast<const float(*)[2]>(&uv_data[mp->loopstart]),
+                                  mp->totloop);
       tot_area += area;
       tot_uv_area += uvarea;
       r_area_ratio[mp_index] = area_ratio_get(area, uvarea);

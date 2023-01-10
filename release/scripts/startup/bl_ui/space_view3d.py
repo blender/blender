@@ -2696,14 +2696,14 @@ class VIEW3D_MT_object_context_menu(Menu):
                 if selected_objects_len > 1:
                     layout.operator("object.join")
 
-            if obj.type in {'MESH', 'CURVE', 'SURFACE', 'POINTCLOUD', 'META', 'FONT'}:
+            if obj.type in {'MESH', 'CURVE', 'CURVES', 'SURFACE', 'POINTCLOUD', 'META', 'FONT'}:
                 layout.operator_menu_enum("object.convert", "target")
 
             if obj.type == 'GPENCIL':
                 layout.operator_menu_enum("gpencil.convert", "type", text="Convert To")
 
             if (
-                    obj.type in {'MESH', 'CURVE', 'SURFACE', 'GPENCIL', 'LATTICE', 'ARMATURE', 'META', 'FONT'} or
+                    obj.type in {'MESH', 'CURVE', 'CURVES', 'SURFACE', 'GPENCIL', 'LATTICE', 'ARMATURE', 'META', 'FONT', 'POINTCLOUD'} or
                     (obj.type == 'EMPTY' and obj.instance_collection is not None)
             ):
                 layout.operator_context = 'INVOKE_REGION_WIN'
@@ -6224,7 +6224,7 @@ class VIEW3D_PT_shading_compositor(Panel):
         row.active = not is_macos
         row.prop(shading, "use_compositor", expand=True)
         if is_macos and shading.use_compositor != "DISABLED":
-            self.layout.label(text="Compositor not supported on MacOS.", icon='ERROR')
+            self.layout.label(text="Compositor not supported on MacOS", icon='ERROR')
 
 
 class VIEW3D_PT_gizmo_display(Panel):

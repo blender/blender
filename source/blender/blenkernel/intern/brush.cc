@@ -407,7 +407,7 @@ static void brush_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
 
   /* NOTE: We do not swap IDProperties, as dealing with potential ID pointers in those would be
    *       fairly delicate. */
-  SWAP(IDProperty *, id_new->properties, id_old->properties);
+  std::swap(id_new->properties, id_old->properties);
 }
 
 IDTypeInfo IDType_ID_BR = {

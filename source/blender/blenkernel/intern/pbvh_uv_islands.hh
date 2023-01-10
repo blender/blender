@@ -27,7 +27,7 @@
 #include "BLI_float3x3.hh"
 #include "BLI_map.hh"
 #include "BLI_math.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
 #include "BLI_vector_list.hh"
@@ -95,7 +95,7 @@ struct MeshData {
   const Span<MLoopTri> looptris;
   const int64_t verts_num;
   const Span<MLoop> loops;
-  const Span<MLoopUV> mloopuv;
+  const Span<float2> mloopuv;
 
   Vector<MeshPrimitive> primitives;
   Vector<MeshEdge> edges;
@@ -107,7 +107,7 @@ struct MeshData {
   explicit MeshData(const Span<MLoopTri> looptris,
                     const Span<MLoop> loops,
                     const int verts_num,
-                    const Span<MLoopUV> mloopuv);
+                    const Span<float2> mloopuv);
 };
 
 struct UVVertex {

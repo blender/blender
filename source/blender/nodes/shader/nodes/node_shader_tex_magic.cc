@@ -48,29 +48,27 @@ static int node_shader_gpu_tex_magic(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_tex_magic", in, out, GPU_constant(&depth));
 }
 
-class MagicFunction : public fn::MultiFunction {
+class MagicFunction : public mf::MultiFunction {
  private:
   int depth_;
 
  public:
   MagicFunction(int depth) : depth_(depth)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"MagicFunction", signature};
+      builder.single_input<float3>("Vector");
+      builder.single_input<float>("Scale");
+      builder.single_input<float>("Distortion");
+      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<float>("Fac");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"MagicFunction"};
-    signature.single_input<float3>("Vector");
-    signature.single_input<float>("Scale");
-    signature.single_input<float>("Distortion");
-    signature.single_output<ColorGeometry4f>("Color");
-    signature.single_output<float>("Fac");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<float> &scale = params.readonly_single_input<float>(1, "Scale");

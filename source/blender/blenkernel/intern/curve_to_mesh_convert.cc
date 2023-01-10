@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
-#include "BLI_devirtualize_parameters.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 
@@ -189,7 +188,7 @@ static void fill_mesh_positions(const int main_point_num,
                                 const Span<float3> tangents,
                                 const Span<float3> normals,
                                 const Span<float> radii,
-                                MutableSpan<MVert> mesh_positions)
+                                MutableSpan<float3> mesh_positions)
 {
   if (profile_point_num == 1) {
     for (const int i_ring : IndexRange(main_point_num)) {
@@ -198,9 +197,7 @@ static void fill_mesh_positions(const int main_point_num,
       if (!radii.is_empty()) {
         point_matrix.apply_scale(radii[i_ring]);
       }
-
-      MVert &vert = mesh_positions[i_ring];
-      copy_v3_v3(vert.co, point_matrix * profile_positions.first());
+      mesh_positions[i_ring] = point_matrix * profile_positions.first();
     }
   }
   else {
@@ -213,8 +210,7 @@ static void fill_mesh_positions(const int main_point_num,
 
       const int ring_vert_start = i_ring * profile_point_num;
       for (const int i_profile : IndexRange(profile_point_num)) {
-        MVert &vert = mesh_positions[ring_vert_start + i_profile];
-        copy_v3_v3(vert.co, point_matrix * profile_positions[i_profile]);
+        mesh_positions[ring_vert_start + i_profile] = point_matrix * profile_positions[i_profile];
       }
     }
   }
@@ -644,7 +640,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
       offsets.vert.last(), offsets.edge.last(), 0, offsets.loop.last(), offsets.poly.last());
   mesh->flag |= ME_AUTOSMOOTH;
   mesh->smoothresh = DEG2RADF(180.0f);
-  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
@@ -692,7 +688,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
                         tangents.slice(info.main_points),
                         normals.slice(info.main_points),
                         radii.is_empty() ? radii : radii.slice(info.main_points),
-                        verts.slice(info.vert_range));
+                        positions.slice(info.vert_range));
   });
 
   if (profile.curve_type_counts()[CURVE_TYPE_BEZIER] > 0) {

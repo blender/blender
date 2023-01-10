@@ -1099,10 +1099,12 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
   }
 }
 
-static bool cursor_isect_multi_input_socket(const float2 &cursor, const bNodeSocket &socket)
+static bool cursor_isect_multi_input_socket(const Span<float2> socket_locations,
+                                            const float2 &cursor,
+                                            const bNodeSocket &socket)
 {
   const float node_socket_height = node_socket_calculate_height(socket);
-  const float2 location(socket.runtime->locx, socket.runtime->locy);
+  const float2 location = socket_locations[socket.index_in_tree()];
   /* `.xmax = socket->locx + NODE_SOCKSIZE * 5.5f`
    * would be the same behavior as for regular sockets.
    * But keep it smaller because for multi-input socket you
@@ -1128,6 +1130,11 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
   const float size_sock_padded = NODE_SOCKSIZE + 4;
 
   snode.edittree->ensure_topology_cache();
+  const Span<float2> socket_locations = snode.runtime->all_socket_locations;
+  if (socket_locations.size() != snode.edittree->all_sockets().size()) {
+    /* Sockets haven't been drawn yet, e.g. when the file is currently opening. */
+    return nullptr;
+  }
 
   const Span<bNode *> nodes = snode.edittree->all_nodes();
   for (int i = nodes.index_range().last(); i >= 0; i--) {
@@ -1149,9 +1156,9 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
     if (in_out & SOCK_IN) {
       for (bNodeSocket *sock : node.input_sockets()) {
         if (sock->is_visible()) {
-          const float2 location(sock->runtime->locx, sock->runtime->locy);
+          const float2 location = socket_locations[sock->index_in_tree()];
           if (sock->flag & SOCK_MULTI_INPUT && !(node.flag & NODE_HIDDEN)) {
-            if (cursor_isect_multi_input_socket(cursor, *sock)) {
+            if (cursor_isect_multi_input_socket(socket_locations, cursor, *sock)) {
               if (!socket_is_occluded(location, node, snode)) {
                 return sock;
               }
@@ -1168,7 +1175,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
     if (in_out & SOCK_OUT) {
       for (bNodeSocket *sock : node.output_sockets()) {
         if (sock->is_visible()) {
-          const float2 location(sock->runtime->locx, sock->runtime->locy);
+          const float2 location = socket_locations[sock->index_in_tree()];
           if (BLI_rctf_isect_pt(&rect, location.x, location.y)) {
             if (!socket_is_occluded(location, node, snode)) {
               return sock;
@@ -1188,14 +1195,16 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
 /** \name Node Link Dimming
  * \{ */
 
-float node_link_dim_factor(const View2D &v2d, const bNodeLink &link)
+float node_link_dim_factor(const Span<float2> socket_locations,
+                           const View2D &v2d,
+                           const bNodeLink &link)
 {
   if (link.fromsock == nullptr || link.tosock == nullptr) {
     return 1.0f;
   }
 
-  const float2 from(link.fromsock->runtime->locx, link.fromsock->runtime->locy);
-  const float2 to(link.tosock->runtime->locx, link.tosock->runtime->locy);
+  const float2 from = socket_locations[link.fromsock->index_in_tree()];
+  const float2 to = socket_locations[link.tosock->index_in_tree()];
 
   const float min_endpoint_distance = std::min(
       std::max(BLI_rctf_length_x(&v2d.cur, from.x), BLI_rctf_length_y(&v2d.cur, from.y)),
@@ -1208,9 +1217,11 @@ float node_link_dim_factor(const View2D &v2d, const bNodeLink &link)
   return std::clamp(1.0f - min_endpoint_distance / viewport_width * 10.0f, 0.05f, 1.0f);
 }
 
-bool node_link_is_hidden_or_dimmed(const View2D &v2d, const bNodeLink &link)
+bool node_link_is_hidden_or_dimmed(const Span<float2> socket_locations,
+                                   const View2D &v2d,
+                                   const bNodeLink &link)
 {
-  return nodeLinkIsHidden(&link) || node_link_dim_factor(v2d, link) < 0.5f;
+  return nodeLinkIsHidden(&link) || node_link_dim_factor(socket_locations, v2d, link) < 0.5f;
 }
 
 /** \} */
@@ -1733,7 +1744,7 @@ void NODE_OT_mute_toggle(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Toggle Node Mute";
-  ot->description = "Toggle muting of the nodes";
+  ot->description = "Toggle muting of selected nodes";
   ot->idname = "NODE_OT_mute_toggle";
 
   /* callbacks */
@@ -1772,7 +1783,7 @@ void NODE_OT_delete(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Delete";
-  ot->description = "Delete selected nodes";
+  ot->description = "Remove selected nodes";
   ot->idname = "NODE_OT_delete";
 
   /* api callbacks */
@@ -1860,7 +1871,7 @@ void NODE_OT_delete_reconnect(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Delete with Reconnect";
-  ot->description = "Delete nodes; will reconnect nodes as if deletion was muted";
+  ot->description = "Remove nodes and reconnect nodes as if deletion was muted";
   ot->idname = "NODE_OT_delete_reconnect";
 
   /* api callbacks */
@@ -1964,7 +1975,7 @@ void NODE_OT_output_file_remove_active_socket(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove File Node Socket";
-  ot->description = "Remove active input from a file output node";
+  ot->description = "Remove the active input from a file output node";
   ot->idname = "NODE_OT_output_file_remove_active_socket";
 
   /* callbacks */
@@ -2160,7 +2171,7 @@ void NODE_OT_tree_socket_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Node Tree Interface Socket";
-  ot->description = "Add an input or output socket to the current node tree";
+  ot->description = "Add an input or output to the active node tree";
   ot->idname = "NODE_OT_tree_socket_add";
 
   /* api callbacks */
@@ -2211,7 +2222,7 @@ void NODE_OT_tree_socket_remove(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove Node Tree Interface Socket";
-  ot->description = "Remove an input or output socket to the current node tree";
+  ot->description = "Remove an input or output from the active node tree";
   ot->idname = "NODE_OT_tree_socket_remove";
 
   /* api callbacks */
@@ -2310,7 +2321,7 @@ void NODE_OT_tree_socket_change_type(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Change Node Tree Interface Socket Type";
-  ot->description = "Change the type of a socket of the current node tree";
+  ot->description = "Change the type of an input or output of the active node tree";
   ot->idname = "NODE_OT_tree_socket_change_type";
 
   /* api callbacks */
@@ -2391,7 +2402,7 @@ void NODE_OT_tree_socket_move(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Move Node Tree Socket";
-  ot->description = "Move a socket up or down in the current node tree's sockets stack";
+  ot->description = "Move a socket up or down in the active node tree's interface";
   ot->idname = "NODE_OT_tree_socket_move";
 
   /* api callbacks */

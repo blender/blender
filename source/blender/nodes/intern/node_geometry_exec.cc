@@ -18,7 +18,9 @@ namespace blender::nodes {
 NodeAnonymousAttributeID::NodeAnonymousAttributeID(const Object &object,
                                                    const ComputeContext &compute_context,
                                                    const bNode &bnode,
-                                                   const StringRef identifier)
+                                                   const StringRef identifier,
+                                                   const StringRef name)
+    : socket_name_(name)
 {
   const ComputeContextHash &hash = compute_context.hash();
   {
@@ -34,6 +36,11 @@ NodeAnonymousAttributeID::NodeAnonymousAttributeID(const Object &object,
     name_ = ss.str();
     BLI_assert(name_.size() < MAX_CUSTOMDATA_LAYER_NAME);
   }
+}
+
+std::string NodeAnonymousAttributeID::user_name() const
+{
+  return socket_name_;
 }
 
 void GeoNodeExecParams::error_message_add(const NodeWarningType type,

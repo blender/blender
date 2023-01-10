@@ -5,6 +5,7 @@
  * \ingroup draw
  */
 
+#include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 
 #include "draw_subdivision.h"
@@ -29,7 +30,7 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
   uint32_t uv_layers = cache->cd_used.uv;
   /* HACK to fix T68857 */
   if (extract_type == MR_EXTRACT_BMESH && cache->cd_used.edit_uv == 1) {
-    int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+    int layer = CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2);
     if (layer != -1) {
       uv_layers |= (1 << layer);
     }
@@ -40,24 +41,24 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (uv_layers & (1 << i)) {
       char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-      const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, i);
+      const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_PROP_FLOAT2, i);
 
       GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
       /* UV layer name. */
       BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
       GPU_vertformat_attr_add(format, attr_name, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       /* Active render layer name. */
-      if (i == CustomData_get_render_layer(cd_ldata, CD_MLOOPUV)) {
+      if (i == CustomData_get_render_layer(cd_ldata, CD_PROP_FLOAT2)) {
         GPU_vertformat_alias_add(format, "a");
       }
       /* Active display layer name. */
-      if (i == CustomData_get_active_layer(cd_ldata, CD_MLOOPUV)) {
+      if (i == CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2)) {
         GPU_vertformat_alias_add(format, "au");
         /* Alias to `pos` for edit uvs. */
         GPU_vertformat_alias_add(format, "pos");
       }
       /* Stencil mask uv layer name. */
-      if (i == CustomData_get_stencil_layer(cd_ldata, CD_MLOOPUV)) {
+      if (i == CustomData_get_stencil_layer(cd_ldata, CD_PROP_FLOAT2)) {
         GPU_vertformat_alias_add(format, "mu");
       }
     }
@@ -90,28 +91,28 @@ static void extract_uv_init(const MeshRenderData *mr,
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, v_len);
 
-  float(*uv_data)[2] = (float(*)[2])GPU_vertbuf_get_data(vbo);
+  float2 *uv_data = static_cast<float2 *>(GPU_vertbuf_get_data(vbo));
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (uv_layers & (1 << i)) {
       if (mr->extract_type == MR_EXTRACT_BMESH) {
-        int cd_ofs = CustomData_get_n_offset(cd_ldata, CD_MLOOPUV, i);
+        int cd_ofs = CustomData_get_n_offset(cd_ldata, CD_PROP_FLOAT2, i);
         BMIter f_iter;
         BMFace *efa;
         BM_ITER_MESH (efa, &f_iter, mr->bm, BM_FACES_OF_MESH) {
           BMLoop *l_iter, *l_first;
           l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
           do {
-            MLoopUV *luv = (MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_iter, cd_ofs);
-            memcpy(uv_data, luv->uv, sizeof(*uv_data));
+            float *luv = BM_ELEM_CD_GET_FLOAT_P(l_iter, cd_ofs);
+            memcpy(uv_data, luv, sizeof(*uv_data));
             uv_data++;
           } while ((l_iter = l_iter->next) != l_first);
         }
       }
       else {
-        const MLoopUV *layer_data = (const MLoopUV *)CustomData_get_layer_n(
-            cd_ldata, CD_MLOOPUV, i);
+        const float2 *layer_data = static_cast<float2 *>(
+            CustomData_get_layer_n(cd_ldata, CD_PROP_FLOAT2, i));
         for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, uv_data++, layer_data++) {
-          memcpy(uv_data, layer_data->uv, sizeof(*uv_data));
+          memcpy(uv_data, layer_data, sizeof(*uv_data));
         }
       }
     }

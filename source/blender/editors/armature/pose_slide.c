@@ -1794,7 +1794,9 @@ static void propagate_curve_values(ListBase /*tPChanFCurveLink*/ *pflinks,
 /**
  * Propagate just works along each F-Curve in turn.
  */
-static void pose_propagate_fcurve(FCurve *fcu, float start_frame, const float end_frame)
+static void UNUSED_FUNCTION(pose_propagate_fcurve)(FCurve *fcu,
+                                                   float start_frame,
+                                                   const float end_frame)
 {
   /* Skip if no keyframes to edit. */
   if ((fcu->bezt == NULL) || (fcu->totvert < 2)) {

@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
-#include "BLI_devirtualize_parameters.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_user_counter.hh"
 

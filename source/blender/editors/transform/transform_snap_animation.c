@@ -34,7 +34,7 @@ short getAnimEdit_SnapMode(TransInfo *t)
     }
   }
   else if (t->spacetype == SPACE_GRAPH) {
-    if ((t->mode == TFM_TRANSLATION) && activeSnap(t)) {
+    if ((t->mode == TFM_TRANSLATION) && transform_snap_is_active(t)) {
       return autosnap;
     }
     SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;

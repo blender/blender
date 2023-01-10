@@ -635,8 +635,8 @@ class NodeTreeMainUpdater {
           const bNodeSocket *from_socket = item.first;
           const bNodeSocket *to_socket = item.second;
           bool found = false;
-          for (const bNodeLink *internal_link : node->runtime->internal_links) {
-            if (from_socket == internal_link->fromsock && to_socket == internal_link->tosock) {
+          for (const bNodeLink &internal_link : node->runtime->internal_links) {
+            if (from_socket == internal_link.fromsock && to_socket == internal_link.tosock) {
               found = true;
             }
           }
@@ -682,19 +682,17 @@ class NodeTreeMainUpdater {
                                      bNode &node,
                                      Span<std::pair<bNodeSocket *, bNodeSocket *>> links)
   {
-    for (bNodeLink *link : node.runtime->internal_links) {
-      MEM_freeN(link);
-    }
     node.runtime->internal_links.clear();
+    node.runtime->internal_links.reserve(links.size());
     for (const auto &item : links) {
       bNodeSocket *from_socket = item.first;
       bNodeSocket *to_socket = item.second;
-      bNodeLink *link = MEM_cnew<bNodeLink>(__func__);
-      link->fromnode = &node;
-      link->fromsock = from_socket;
-      link->tonode = &node;
-      link->tosock = to_socket;
-      link->flag |= NODE_LINK_VALID;
+      bNodeLink link{};
+      link.fromnode = &node;
+      link.fromsock = from_socket;
+      link.tonode = &node;
+      link.tosock = to_socket;
+      link.flag |= NODE_LINK_VALID;
       node.runtime->internal_links.append(link);
     }
     BKE_ntree_update_tag_node_internal_link(&ntree, &node);

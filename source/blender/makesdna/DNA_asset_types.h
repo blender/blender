@@ -92,8 +92,7 @@ typedef enum eAssetLibraryType {
   // ASSET_LIBRARY_BUNDLED = 0,
   /** Display assets from the current session (current "Main"). */
   ASSET_LIBRARY_LOCAL = 1,
-  /* For the future. Display assets for the current project. */
-  // ASSET_LIBRARY_PROJECT = 2,
+  ASSET_LIBRARY_ALL = 2,
 
   /** Display assets from custom asset libraries, as defined in the preferences
    * (#CustomAssetLibraryDefinition). In RNA, we add the index of the custom library to this to

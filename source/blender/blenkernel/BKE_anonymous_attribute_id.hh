@@ -47,6 +47,8 @@ class AnonymousAttributeID {
     return name_;
   }
 
+  virtual std::string user_name() const;
+
   void user_add() const
   {
     users_.fetch_add(1);

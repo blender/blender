@@ -3048,7 +3048,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
             /* Only for predictable results that don't depend on the order of radial loops,
              * not essential. */
             if (i_a > i_b) {
-              SWAP(int, i_a, i_b);
+              std::swap(i_a, i_b);
             }
 
             /* Merge the groups. */
@@ -3211,7 +3211,7 @@ static int select_linked_delimit_default_from_op(wmOperator *op, const int selec
 static void select_linked_delimit_validate(BMesh *bm, int *delimit)
 {
   if ((*delimit) & BMO_DELIM_UV) {
-    if (!CustomData_has_layer(&bm->ldata, CD_MLOOPUV)) {
+    if (!CustomData_has_layer(&bm->ldata, CD_PROP_FLOAT2)) {
       (*delimit) &= ~BMO_DELIM_UV;
     }
   }
@@ -3222,7 +3222,7 @@ static void select_linked_delimit_begin(BMesh *bm, int delimit)
   DelimitData delimit_data = {0};
 
   if (delimit & BMO_DELIM_UV) {
-    delimit_data.cd_loop_type = CD_MLOOPUV;
+    delimit_data.cd_loop_type = CD_PROP_FLOAT2;
     delimit_data.cd_loop_offset = CustomData_get_offset(&bm->ldata, delimit_data.cd_loop_type);
     if (delimit_data.cd_loop_offset == -1) {
       delimit &= ~BMO_DELIM_UV;

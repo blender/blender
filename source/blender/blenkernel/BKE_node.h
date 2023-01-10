@@ -107,9 +107,6 @@ class GeoNodeExecParams;
 class NodeDeclarationBuilder;
 class GatherLinkSearchOpParams;
 }  // namespace nodes
-namespace fn {
-class MFDataType;
-}  // namespace fn
 namespace realtime_compositor {
 class Context;
 class NodeOperation;
@@ -693,7 +690,7 @@ void nodeRemoveNode(struct Main *bmain,
 
 void nodeDimensionsGet(const struct bNode *node, float *r_width, float *r_height);
 void nodeTagUpdateID(struct bNode *node);
-void nodeInternalLinks(struct bNode *node, struct bNodeLink ***r_links, int *r_len);
+void nodeInternalLinks(struct bNode *node, struct bNodeLink **r_links, int *r_len);
 
 #ifdef __cplusplus
 

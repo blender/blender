@@ -326,7 +326,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
   }
 
   /* FIXME(@campbellbarton): swapping active pointer is weak. */
-  SWAP(struct uiHandleButtonData *, but_anim->active, but_decorate->but.active);
+  std::swap(but_anim->active, but_decorate->but.active);
   wm->op_undo_depth++;
 
   if (but_anim->flag & UI_BUT_DRIVEN) {
@@ -350,6 +350,6 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
     WM_operator_properties_free(&props_ptr);
   }
 
-  SWAP(struct uiHandleButtonData *, but_anim->active, but_decorate->but.active);
+  std::swap(but_anim->active, but_decorate->but.active);
   wm->op_undo_depth--;
 }

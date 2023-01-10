@@ -47,27 +47,25 @@ static int node_shader_gpu_tex_gradient(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "node_tex_gradient", in, out, GPU_constant(&gradient_type));
 }
 
-class GradientFunction : public fn::MultiFunction {
+class GradientFunction : public mf::MultiFunction {
  private:
   int gradient_type_;
 
  public:
   GradientFunction(int gradient_type) : gradient_type_(gradient_type)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"GradientFunction", signature};
+      builder.single_input<float3>("Vector");
+      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<float>("Fac");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"GradientFunction"};
-    signature.single_input<float3>("Vector");
-    signature.single_output<ColorGeometry4f>("Color");
-    signature.single_output<float>("Fac");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
 

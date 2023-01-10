@@ -31,8 +31,8 @@ struct Depsgraph;
 
 namespace blender::nodes {
 
-namespace lf = fn::lazy_function;
 using lf::LazyFunction;
+using mf::MultiFunction;
 
 /**
  * Data that is passed into geometry nodes evaluation from the modifier.

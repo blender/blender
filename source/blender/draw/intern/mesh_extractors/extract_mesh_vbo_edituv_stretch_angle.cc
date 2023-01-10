@@ -9,6 +9,8 @@
 
 #include "BKE_mesh.h"
 
+#include "BLI_math_vector_types.hh"
+
 #include "extract_mesh.hh"
 
 #include "draw_subdivision.h"
@@ -26,7 +28,7 @@ struct UVStretchAngle {
 
 struct MeshExtract_StretchAngle_Data {
   UVStretchAngle *vbo_data;
-  const MLoopUV *luv;
+  const float2 *uv;
   float auv[2][2], last_auv[2];
   float av[2][3], last_av[3];
   int cd_ofs;
@@ -94,11 +96,11 @@ static void extract_edituv_stretch_angle_init(const MeshRenderData *mr,
 
   /* Special iterator needed to save about half of the computing cost. */
   if (mr->extract_type == MR_EXTRACT_BMESH) {
-    data->cd_ofs = CustomData_get_offset(&mr->bm->ldata, CD_MLOOPUV);
+    data->cd_ofs = CustomData_get_offset(&mr->bm->ldata, CD_PROP_FLOAT2);
   }
   else {
     BLI_assert(mr->extract_type == MR_EXTRACT_MESH);
-    data->luv = (const MLoopUV *)CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
+    data->uv = (const float2 *)CustomData_get_layer(&mr->me->ldata, CD_PROP_FLOAT2);
   }
 }
 
@@ -115,18 +117,18 @@ static void extract_edituv_stretch_angle_iter_poly_bm(const MeshRenderData *mr,
   do {
     const int l_index = BM_elem_index_get(l_iter);
 
-    const MLoopUV *luv, *luv_next;
+    const float(*luv)[2], (*luv_next)[2];
     BMLoop *l_next = l_iter->next;
     if (l_iter == BM_FACE_FIRST_LOOP(f)) {
       /* First loop in face. */
       BMLoop *l_tmp = l_iter->prev;
       BMLoop *l_next_tmp = l_iter;
-      luv = (const MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_tmp, data->cd_ofs);
-      luv_next = (const MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_next_tmp, data->cd_ofs);
+      luv = BM_ELEM_CD_GET_FLOAT2_P(l_tmp, data->cd_ofs);
+      luv_next = BM_ELEM_CD_GET_FLOAT2_P(l_next_tmp, data->cd_ofs);
       compute_normalize_edge_vectors(auv,
                                      av,
-                                     luv->uv,
-                                     luv_next->uv,
+                                     *luv,
+                                     *luv_next,
                                      bm_vert_co_get(mr, l_tmp->v),
                                      bm_vert_co_get(mr, l_next_tmp->v));
       /* Save last edge. */
@@ -142,14 +144,10 @@ static void extract_edituv_stretch_angle_iter_poly_bm(const MeshRenderData *mr,
       copy_v3_v3(av[1], last_av);
     }
     else {
-      luv = (const MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_iter, data->cd_ofs);
-      luv_next = (const MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_next, data->cd_ofs);
-      compute_normalize_edge_vectors(auv,
-                                     av,
-                                     luv->uv,
-                                     luv_next->uv,
-                                     bm_vert_co_get(mr, l_iter->v),
-                                     bm_vert_co_get(mr, l_next->v));
+      luv = BM_ELEM_CD_GET_FLOAT2_P(l_iter, data->cd_ofs);
+      luv_next = BM_ELEM_CD_GET_FLOAT2_P(l_next, data->cd_ofs);
+      compute_normalize_edge_vectors(
+          auv, av, *luv, *luv_next, bm_vert_co_get(mr, l_iter->v), bm_vert_co_get(mr, l_next->v));
     }
     edituv_get_edituv_stretch_angle(auv, av, &data->vbo_data[l_index]);
   } while ((l_iter = l_iter->next) != l_first);
@@ -167,15 +165,16 @@ static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr
     float(*auv)[2] = data->auv, *last_auv = data->last_auv;
     float(*av)[3] = data->av, *last_av = data->last_av;
     int l_next = ml_index + 1;
-    const MVert *v, *v_next;
     if (ml_index == mp->loopstart) {
       /* First loop in face. */
       const int ml_index_last = ml_index_end - 1;
       const int l_next_tmp = mp->loopstart;
-      v = &mr->mvert[mr->mloop[ml_index_last].v];
-      v_next = &mr->mvert[mr->mloop[l_next_tmp].v];
-      compute_normalize_edge_vectors(
-          auv, av, data->luv[ml_index_last].uv, data->luv[l_next_tmp].uv, v->co, v_next->co);
+      compute_normalize_edge_vectors(auv,
+                                     av,
+                                     data->uv[ml_index_last],
+                                     data->uv[l_next_tmp],
+                                     mr->vert_positions[mr->mloop[ml_index_last].v],
+                                     mr->vert_positions[mr->mloop[l_next_tmp].v]);
       /* Save last edge. */
       copy_v2_v2(last_auv, auv[1]);
       copy_v3_v3(last_av, av[1]);
@@ -190,10 +189,12 @@ static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr
       copy_v3_v3(av[1], last_av);
     }
     else {
-      v = &mr->mvert[mr->mloop[ml_index].v];
-      v_next = &mr->mvert[mr->mloop[l_next].v];
-      compute_normalize_edge_vectors(
-          auv, av, data->luv[ml_index].uv, data->luv[l_next].uv, v->co, v_next->co);
+      compute_normalize_edge_vectors(auv,
+                                     av,
+                                     data->uv[ml_index],
+                                     data->uv[l_next],
+                                     mr->vert_positions[mr->mloop[ml_index].v],
+                                     mr->vert_positions[mr->mloop[l_next].v]);
     }
     edituv_get_edituv_stretch_angle(auv, av, &data->vbo_data[ml_index]);
   }
@@ -246,7 +247,7 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache *subdi
   uint32_t uv_layers = cache->cd_used.uv;
   /* HACK to fix T68857 */
   if (mr->extract_type == MR_EXTRACT_BMESH && cache->cd_used.edit_uv == 1) {
-    int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+    int layer = CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2);
     if (layer != -1) {
       uv_layers |= (1 << layer);
     }
@@ -255,7 +256,7 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache *subdi
   int uvs_offset = 0;
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (uv_layers & (1 << i)) {
-      if (i == CustomData_get_active_layer(cd_ldata, CD_MLOOPUV)) {
+      if (i == CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2)) {
         break;
       }
 

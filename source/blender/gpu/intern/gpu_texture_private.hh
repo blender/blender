@@ -44,7 +44,7 @@ typedef enum eGPUTextureType {
 ENUM_OPERATORS(eGPUTextureType, GPU_TEXTURE_CUBE_ARRAY)
 
 /* Format types for samplers within the shader.
- * This covers the sampler format type permutations within GLSL/MSL.*/
+ * This covers the sampler format type permutations within GLSL/MSL. */
 typedef enum eGPUSamplerFormat {
   GPU_SAMPLER_TYPE_FLOAT = 0,
   GPU_SAMPLER_TYPE_INT = 1,
@@ -477,6 +477,14 @@ inline size_t to_bytesize(eGPUDataFormat data_format)
 
 inline size_t to_bytesize(eGPUTextureFormat tex_format, eGPUDataFormat data_format)
 {
+  /* Special case for compacted types.
+   * Standard component len calculation does not apply, as the texture formats contain multiple
+   * channels, but associated data format contains several compacted components. */
+  if ((tex_format == GPU_R11F_G11F_B10F && data_format == GPU_DATA_10_11_11_REV) ||
+      (tex_format == GPU_RGB10_A2 && data_format == GPU_DATA_2_10_10_10_REV)) {
+    return 4;
+  }
+
   return to_component_len(tex_format) * to_bytesize(data_format);
 }
 

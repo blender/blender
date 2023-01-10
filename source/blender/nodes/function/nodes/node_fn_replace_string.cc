@@ -30,10 +30,10 @@ static std::string replace_all(const StringRefNull str,
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static fn::CustomMF_SI_SI_SI_SO<std::string, std::string, std::string, std::string> substring_fn{
+  static auto substring_fn = mf::build::SI3_SO<std::string, std::string, std::string, std::string>(
       "Replace", [](const std::string &str, const std::string &find, const std::string &replace) {
         return replace_all(str, find, replace);
-      }};
+      });
   builder.set_matching_fn(&substring_fn);
 }
 

@@ -2,7 +2,6 @@
 
 #pragma once
 
-struct CurvesGeometry;
 struct Mesh;
 
 /** \file
@@ -11,6 +10,7 @@ struct Mesh;
 
 namespace blender::bke {
 
+class CurvesGeometry;
 class AnonymousAttributePropagationInfo;
 
 /**

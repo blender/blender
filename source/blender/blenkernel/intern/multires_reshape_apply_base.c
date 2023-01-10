@@ -30,14 +30,13 @@
 void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *reshape_context)
 {
   Mesh *base_mesh = reshape_context->base_mesh;
-  MVert *base_verts = BKE_mesh_verts_for_write(base_mesh);
+  float(*base_positions)[3] = BKE_mesh_vert_positions_for_write(base_mesh);
   /* Update the context in case the vertices were duplicated. */
-  reshape_context->base_verts = base_verts;
+  reshape_context->base_positions = base_positions;
 
   const MLoop *mloop = reshape_context->base_loops;
   for (int loop_index = 0; loop_index < base_mesh->totloop; ++loop_index) {
     const MLoop *loop = &mloop[loop_index];
-    MVert *vert = &base_verts[loop->v];
 
     GridCoord grid_coord;
     grid_coord.grid_index = loop_index;
@@ -53,7 +52,7 @@ void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *resh
     float D[3];
     mul_v3_m3v3(D, tangent_matrix, grid_element.displacement);
 
-    add_v3_v3v3(vert->co, P, D);
+    add_v3_v3v3(base_positions[loop->v], P, D);
   }
 }
 
@@ -69,9 +68,9 @@ static float v3_dist_from_plane(const float v[3], const float center[3], const f
 void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape_context)
 {
   Mesh *base_mesh = reshape_context->base_mesh;
-  MVert *base_verts = BKE_mesh_verts_for_write(base_mesh);
+  float(*base_positions)[3] = BKE_mesh_vert_positions_for_write(base_mesh);
   /* Update the context in case the vertices were duplicated. */
-  reshape_context->base_verts = base_verts;
+  reshape_context->base_positions = base_positions;
   MeshElemMap *pmap;
   int *pmap_mem;
   BKE_mesh_vert_poly_map_create(&pmap,
@@ -85,7 +84,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   float(*origco)[3] = MEM_calloc_arrayN(
       base_mesh->totvert, sizeof(float[3]), "multires apply base origco");
   for (int i = 0; i < base_mesh->totvert; i++) {
-    copy_v3_v3(origco[i], base_verts[i].co);
+    copy_v3_v3(origco[i], base_positions[i]);
   }
 
   for (int i = 0; i < base_mesh->totvert; i++) {
@@ -120,7 +119,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
       float(*fake_co)[3];
       float no[3];
 
-      /* Set up poly, loops, and coords in order to call BKE_mesh_calc_poly_normal_coords(). */
+      /* Set up poly, loops, and coords in order to call BKE_mesh_calc_poly_normal(). */
       fake_poly.totloop = p->totloop;
       fake_poly.loopstart = 0;
       fake_loops = MEM_malloc_arrayN(p->totloop, sizeof(MLoop), "fake_loops");
@@ -139,7 +138,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
         }
       }
 
-      BKE_mesh_calc_poly_normal_coords(&fake_poly, fake_loops, (const float(*)[3])fake_co, no);
+      BKE_mesh_calc_poly_normal(&fake_poly, fake_loops, (const float(*)[3])fake_co, no);
       MEM_freeN(fake_loops);
       MEM_freeN(fake_co);
 
@@ -148,10 +147,10 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
     normalize_v3(avg_no);
 
     /* Push vertex away from the plane. */
-    const float dist = v3_dist_from_plane(base_verts[i].co, center, avg_no);
+    const float dist = v3_dist_from_plane(base_positions[i], center, avg_no);
     copy_v3_v3(push, avg_no);
     mul_v3_fl(push, dist);
-    add_v3_v3(base_verts[i].co, push);
+    add_v3_v3(base_positions[i], push);
   }
 
   MEM_freeN(origco);

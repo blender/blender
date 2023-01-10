@@ -53,7 +53,7 @@ void pointcloud_get_pos_nor_radius(out vec3 outpos, out vec3 outnor, out float o
 
   mat3 facing_mat = pointcloud_get_facing_matrix(p);
 
-  /** \note: Avoid modulo by non-power-of-two in shader. See Index buffer setup. */
+  /* NOTE: Avoid modulo by non-power-of-two in shader. See Index buffer setup. */
   int vert_id = gl_VertexID % 32;
   vec3 pos_inst = vec3(0.0);
 

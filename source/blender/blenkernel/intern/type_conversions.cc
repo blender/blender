@@ -11,7 +11,7 @@
 
 namespace blender::bke {
 
-using fn::MFDataType;
+using mf::DataType;
 
 template<typename From, typename To, To (*ConversionF)(const From &)>
 static void add_implicit_conversion(DataTypeConversions &conversions)
@@ -20,20 +20,20 @@ static void add_implicit_conversion(DataTypeConversions &conversions)
   static const CPPType &to_type = CPPType::get<To>();
   static const std::string conversion_name = from_type.name() + " to " + to_type.name();
 
-  static fn::CustomMF_SI_SO<From, To> multi_function{
+  static auto multi_function = mf::build::SI1_SO<From, To>(
       conversion_name.c_str(),
       /* Use lambda instead of passing #ConversionF directly, because otherwise the compiler won't
        * inline the function. */
       [](const From &a) { return ConversionF(a); },
-      fn::CustomMF_presets::AllSpanOrSingle()};
+      mf::build::exec_presets::AllSpanOrSingle());
   static auto convert_single_to_initialized = [](const void *src, void *dst) {
     *(To *)dst = ConversionF(*(const From *)src);
   };
   static auto convert_single_to_uninitialized = [](const void *src, void *dst) {
     new (dst) To(ConversionF(*(const From *)src));
   };
-  conversions.add(fn::MFDataType::ForSingle<From>(),
-                  fn::MFDataType::ForSingle<To>(),
+  conversions.add(mf::DataType::ForSingle<From>(),
+                  mf::DataType::ForSingle<To>(),
                   multi_function,
                   convert_single_to_initialized,
                   convert_single_to_uninitialized);
@@ -361,26 +361,26 @@ void DataTypeConversions::convert_to_uninitialized(const CPPType &from_type,
   }
 
   const ConversionFunctions *functions = this->get_conversion_functions(
-      MFDataType::ForSingle(from_type), MFDataType::ForSingle(to_type));
+      DataType::ForSingle(from_type), DataType::ForSingle(to_type));
   BLI_assert(functions != nullptr);
 
   functions->convert_single_to_uninitialized(from_value, to_value);
 }
 
 static void call_convert_to_uninitialized_fn(const GVArray &from,
-                                             const fn::MultiFunction &fn,
+                                             const mf::MultiFunction &fn,
                                              const IndexMask mask,
                                              GMutableSpan to)
 {
-  fn::MFParamsBuilder params{fn, mask.min_array_size()};
+  mf::ParamsBuilder params{fn, mask.min_array_size()};
   params.add_readonly_single_input(from);
   params.add_uninitialized_single_output(to);
-  fn::MFContextBuilder context;
+  mf::ContextBuilder context;
   fn.call_auto(mask, params, context);
 }
 
 static void call_convert_to_uninitialized_fn(const GVArray &from,
-                                             const fn::MultiFunction &fn,
+                                             const mf::MultiFunction &fn,
                                              GMutableSpan to)
 {
   call_convert_to_uninitialized_fn(from, fn, IndexMask(from.size()), to);
@@ -394,8 +394,8 @@ void DataTypeConversions::convert_to_initialized_n(GSpan from_span, GMutableSpan
   BLI_assert(from_span.size() == to_span.size());
   BLI_assert(this->is_convertible(from_type, to_type));
 
-  const fn::MultiFunction *fn = this->get_conversion_multi_function(
-      MFDataType::ForSingle(from_type), MFDataType::ForSingle(to_type));
+  const mf::MultiFunction *fn = this->get_conversion_multi_function(DataType::ForSingle(from_type),
+                                                                    DataType::ForSingle(to_type));
 
   to_type.destruct_n(to_span.data(), to_span.size());
   call_convert_to_uninitialized_fn(GVArray::ForSpan(from_span), *fn, to_span);
@@ -541,8 +541,8 @@ fn::GField DataTypeConversions::try_convert(fn::GField field, const CPPType &to_
   if (!this->is_convertible(from_type, to_type)) {
     return {};
   }
-  const fn::MultiFunction &fn = *this->get_conversion_multi_function(
-      fn::MFDataType::ForSingle(from_type), fn::MFDataType::ForSingle(to_type));
+  const mf::MultiFunction &fn = *this->get_conversion_multi_function(
+      mf::DataType::ForSingle(from_type), mf::DataType::ForSingle(to_type));
   return {std::make_shared<fn::FieldOperation>(fn, Vector<fn::GField>{std::move(field)})};
 }
 

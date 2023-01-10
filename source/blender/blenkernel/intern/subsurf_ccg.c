@@ -262,7 +262,7 @@ static void get_face_uv_map_vert(
 static int ss_sync_from_uv(CCGSubSurf *ss,
                            CCGSubSurf *origss,
                            DerivedMesh *dm,
-                           const MLoopUV *mloopuv)
+                           const float (*mloopuv)[2])
 {
   MPoly *mpoly = dm->getPolyArray(dm);
   MLoop *mloop = dm->getLoopArray(dm);
@@ -312,7 +312,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
         int loopid = mpoly[v->poly_index].loopstart + v->loop_of_poly_index;
         CCGVertHDL vhdl = POINTER_FROM_INT(loopid);
 
-        copy_v2_v2(uv, mloopuv[loopid].uv);
+        copy_v2_v2(uv, mloopuv[loopid]);
 
         ccgSubSurf_syncVert(ss, vhdl, uv, seam, &ssv);
       }
@@ -387,11 +387,11 @@ static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *
 {
   CCGFaceIterator fi;
   int index, gridSize, gridFaces, /*edgeSize,*/ totface, x, y, S;
-  const MLoopUV *dmloopuv = CustomData_get_layer_n(&dm->loopData, CD_MLOOPUV, n);
-  /* need to update both CD_MTFACE & CD_MLOOPUV, hrmf, we could get away with
+  const float(*dmloopuv)[2] = CustomData_get_layer_n(&dm->loopData, CD_PROP_FLOAT2, n);
+  /* need to update both CD_MTFACE & CD_PROP_FLOAT2, hrmf, we could get away with
    * just tface except applying the modifier then looses subsurf UV */
   MTFace *tface = CustomData_get_layer_n(&result->faceData, CD_MTFACE, n);
-  MLoopUV *mloopuv = CustomData_get_layer_n(&result->loopData, CD_MLOOPUV, n);
+  float(*mloopuv)[2] = CustomData_get_layer_n(&result->loopData, CD_PROP_FLOAT2, n);
 
   if (!dmloopuv || (!tface && !mloopuv)) {
     return;
@@ -421,7 +421,7 @@ static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *
 
   /* load coordinates from uvss into tface */
   MTFace *tf = tface;
-  MLoopUV *mluv = mloopuv;
+  float(*mluv)[2] = mloopuv;
 
   for (index = 0; index < totface; index++) {
     CCGFace *f = faceMap[index];
@@ -446,10 +446,10 @@ static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *
           }
 
           if (mluv) {
-            copy_v2_v2(mluv[0].uv, a);
-            copy_v2_v2(mluv[1].uv, d);
-            copy_v2_v2(mluv[2].uv, c);
-            copy_v2_v2(mluv[3].uv, b);
+            copy_v2_v2(mluv[0], a);
+            copy_v2_v2(mluv[1], d);
+            copy_v2_v2(mluv[2], c);
+            copy_v2_v2(mluv[3], b);
             mluv += 4;
           }
         }
@@ -562,9 +562,8 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
   CCGVertHDL *fVerts = NULL;
   BLI_array_declare(fVerts);
 #endif
-  MVert *mvert = dm->getVertArray(dm);
+  float(*positions)[3] = (float(*)[3])dm->getVertArray(dm);
   MEdge *medge = dm->getEdgeArray(dm);
-  MVert *mv;
   MEdge *me;
   MLoop *mloop = dm->getLoopArray(dm), *ml;
   MPoly *mpoly = dm->getPolyArray(dm), *mp;
@@ -575,16 +574,15 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
 
   ccgSubSurf_initFullSync(ss);
 
-  mv = mvert;
   index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
-  for (i = 0; i < totvert; i++, mv++) {
+  for (i = 0; i < totvert; i++) {
     CCGVert *v;
 
     if (vertexCos) {
       ccgSubSurf_syncVert(ss, POINTER_FROM_INT(i), vertexCos[i], 0, &v);
     }
     else {
-      ccgSubSurf_syncVert(ss, POINTER_FROM_INT(i), mv->co, 0, &v);
+      ccgSubSurf_syncVert(ss, POINTER_FROM_INT(i), positions[i], 0, &v);
     }
 
     ((int *)ccgSubSurf_getVertUserData(ss, v))[1] = (index) ? *index++ : i;
@@ -877,12 +875,12 @@ static void ccgDM_getFinalVertNo(DerivedMesh *dm, int vertNum, float r_no[3])
 }
 
 /* utility function */
-BLI_INLINE void ccgDM_to_MVert(MVert *mv, const CCGKey *key, CCGElem *elem)
+BLI_INLINE void ccgDM_to_MVert(float mv[3], const CCGKey *key, CCGElem *elem)
 {
-  copy_v3_v3(mv->co, CCG_elem_co(key, elem));
+  copy_v3_v3(mv, CCG_elem_co(key, elem));
 }
 
-static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
+static void ccgDM_copyFinalVertArray(DerivedMesh *dm, float (*r_positions)[3])
 {
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   CCGSubSurf *ss = ccgdm->ss;
@@ -902,12 +900,12 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
     int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
 
     vd = ccgSubSurf_getFaceCenterData(f);
-    ccgDM_to_MVert(&mvert[i++], &key, vd);
+    ccgDM_to_MVert(r_positions[i++], &key, vd);
 
     for (S = 0; S < numVerts; S++) {
       for (x = 1; x < gridSize - 1; x++) {
         vd = ccgSubSurf_getFaceGridEdgeData(ss, f, S, x);
-        ccgDM_to_MVert(&mvert[i++], &key, vd);
+        ccgDM_to_MVert(r_positions[i++], &key, vd);
       }
     }
 
@@ -915,7 +913,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
       for (y = 1; y < gridSize - 1; y++) {
         for (x = 1; x < gridSize - 1; x++) {
           vd = ccgSubSurf_getFaceGridData(ss, f, S, x, y);
-          ccgDM_to_MVert(&mvert[i++], &key, vd);
+          ccgDM_to_MVert(r_positions[i++], &key, vd);
         }
       }
     }
@@ -931,7 +929,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
        * unit length. This is most likely caused by edges with no faces which are now zeroed out,
        * see comment in: `ccgSubSurf__calcVertNormals()`. */
       vd = ccgSubSurf_getEdgeData(ss, e, x);
-      ccgDM_to_MVert(&mvert[i++], &key, vd);
+      ccgDM_to_MVert(r_positions[i++], &key, vd);
     }
   }
 
@@ -940,7 +938,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
     CCGVert *v = ccgdm->vertMap[index].vert;
 
     vd = ccgSubSurf_getVertData(ss, v);
-    ccgDM_to_MVert(&mvert[i++], &key, vd);
+    ccgDM_to_MVert(r_positions[i++], &key, vd);
   }
 }
 
@@ -1803,8 +1801,8 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   if (useSubsurfUv) {
     CustomData *ldata = &ccgdm->dm.loopData;
     CustomData *dmldata = &dm->loopData;
-    int numlayer = CustomData_number_of_layers(ldata, CD_MLOOPUV);
-    int dmnumlayer = CustomData_number_of_layers(dmldata, CD_MLOOPUV);
+    int numlayer = CustomData_number_of_layers(ldata, CD_PROP_FLOAT2);
+    int dmnumlayer = CustomData_number_of_layers(dmldata, CD_PROP_FLOAT2);
 
     for (i = 0; i < numlayer && i < dmnumlayer; i++) {
       set_subsurf_uv(ss, dm, &ccgdm->dm, i);

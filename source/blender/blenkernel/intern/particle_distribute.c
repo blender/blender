@@ -98,18 +98,15 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
 {
   ParticleData *pa = NULL;
   float min[3], max[3], delta[3], d;
-  MVert *mv, *mvert = BKE_mesh_verts_for_write(mesh);
+  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
   int totvert = mesh->totvert, from = psys->part->from;
   int i, j, k, p, res = psys->part->grid_res, size[3], axis;
 
   /* find bounding box of dm */
   if (totvert > 0) {
-    mv = mvert;
-    copy_v3_v3(min, mv->co);
-    copy_v3_v3(max, mv->co);
-    mv++;
-    for (i = 1; i < totvert; i++, mv++) {
-      minmax_v3v3_v3(min, max, mv->co);
+    INIT_MINMAX(min, max);
+    for (i = 1; i < totvert; i++) {
+      minmax_v3v3_v3(min, max, positions[i]);
     }
   }
   else {
@@ -163,8 +160,8 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
     min[1] -= d / 2.0f;
     min[2] -= d / 2.0f;
 
-    for (i = 0, mv = mvert; i < totvert; i++, mv++) {
-      sub_v3_v3v3(vec, mv->co, min);
+    for (i = 0; i < totvert; i++) {
+      sub_v3_v3v3(vec, positions[i], min);
       vec[0] /= delta[0];
       vec[1] /= delta[1];
       vec[2] /= delta[2];
@@ -221,9 +218,9 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
           for (i = 0; i < totface; i++, mface++) {
             ParticleData *pa1 = NULL, *pa2 = NULL;
 
-            copy_v3_v3(v1, mvert[mface->v1].co);
-            copy_v3_v3(v2, mvert[mface->v2].co);
-            copy_v3_v3(v3, mvert[mface->v3].co);
+            copy_v3_v3(v1, positions[mface->v1]);
+            copy_v3_v3(v2, positions[mface->v2]);
+            copy_v3_v3(v3, positions[mface->v3]);
 
             bool intersects_tri = isect_ray_tri_watertight_v3(
                 co1, &isect_precalc, v1, v2, v3, &lambda, NULL);
@@ -232,7 +229,7 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
             }
 
             if (mface->v4 && (!intersects_tri || from == PART_FROM_VOLUME)) {
-              copy_v3_v3(v4, mvert[mface->v4].co);
+              copy_v3_v3(v4, positions[mface->v4]);
 
               if (isect_ray_tri_watertight_v3(co1, &isect_precalc, v1, v3, v4, &lambda, NULL)) {
                 pa2 = (pa + (int)(lambda * size[a]) * a0mul);
@@ -570,14 +567,15 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 {
   ParticleThreadContext *ctx = thread->ctx;
   Mesh *mesh = ctx->mesh;
-  float *v1, *v2, *v3, *v4, nor[3], co[3];
+  const float *v1, *v2, *v3, *v4;
+  float nor[3], co[3];
   float cur_d, min_d, randu, randv;
   int distr = ctx->distr;
   int i, intersect, tot;
   int rng_skip_tot = PSYS_RND_DIST_SKIP; /* count how many rng_* calls won't need skipping */
 
   MFace *mface;
-  MVert *mvert = BKE_mesh_verts_for_write(mesh);
+  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
 
   pa->num = i = ctx->index[p];
   MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
@@ -614,8 +612,18 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   /* experimental */
   tot = mesh->totface;
 
-  psys_interpolate_face(
-      mesh, mvert, BKE_mesh_vertex_normals_ensure(mesh), mface, 0, 0, pa->fuv, co, nor, 0, 0, 0);
+  psys_interpolate_face(mesh,
+                        positions,
+                        BKE_mesh_vertex_normals_ensure(mesh),
+                        mface,
+                        0,
+                        0,
+                        pa->fuv,
+                        co,
+                        nor,
+                        0,
+                        0,
+                        0);
 
   normalize_v3(nor);
   negate_v3(nor);
@@ -628,9 +636,9 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
       continue;
     }
 
-    v1 = mvert[mface->v1].co;
-    v2 = mvert[mface->v2].co;
-    v3 = mvert[mface->v3].co;
+    v1 = positions[mface->v1];
+    v2 = positions[mface->v2];
+    v3 = positions[mface->v3];
 
     if (isect_ray_tri_v3(co, nor, v2, v3, v1, &cur_d, NULL)) {
       if (cur_d < min_d) {
@@ -640,7 +648,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
       }
     }
     if (mface->v4) {
-      v4 = mvert[mface->v4].co;
+      v4 = positions[mface->v4];
 
       if (isect_ray_tri_v3(co, nor, v4, v1, v3, &cur_d, NULL)) {
         if (cur_d < min_d) {
@@ -993,7 +1001,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     BKE_mesh_orco_ensure(ob, mesh);
 
     if (from == PART_FROM_VERT) {
-      MVert *mv = BKE_mesh_verts_for_write(mesh);
+      const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
       const float(*orcodata)[3] = CustomData_get_layer(&mesh->vdata, CD_ORCO);
       int totvert = mesh->totvert;
 
@@ -1005,7 +1013,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
           BKE_mesh_orco_verts_transform(ob->data, &co, 1, 1);
         }
         else {
-          copy_v3_v3(co, mv[p].co);
+          copy_v3_v3(co, positions[p]);
         }
         BLI_kdtree_3d_insert(tree, p, co);
       }
@@ -1040,7 +1048,6 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
   /* Calculate weights from face areas */
   if ((part->flag & PART_EDISTR || children) && from != PART_FROM_VERT) {
-    MVert *v1, *v2, *v3, *v4;
     float totarea = 0.0f, co1[3], co2[3], co3[3], co4[3];
     const float(*orcodata)[3];
 
@@ -1064,16 +1071,12 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
         }
       }
       else {
-        MVert *verts = BKE_mesh_verts_for_write(mesh);
-        v1 = &verts[mf->v1];
-        v2 = &verts[mf->v2];
-        v3 = &verts[mf->v3];
-        copy_v3_v3(co1, v1->co);
-        copy_v3_v3(co2, v2->co);
-        copy_v3_v3(co3, v3->co);
+        const float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
+        copy_v3_v3(co1, positions[mf->v1]);
+        copy_v3_v3(co2, positions[mf->v2]);
+        copy_v3_v3(co3, positions[mf->v3]);
         if (mf->v4) {
-          v4 = &verts[mf->v4];
-          copy_v3_v3(co4, v4->co);
+          copy_v3_v3(co4, positions[mf->v4]);
         }
       }
 

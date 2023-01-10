@@ -25,6 +25,7 @@
 #include "BKE_shrinkwrap.h"
 #include "BKE_subdiv_ccg.h"
 
+using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
 
@@ -143,20 +144,24 @@ void Mesh::loose_edges_tag_none() const
 blender::Span<MLoopTri> Mesh::looptris() const
 {
   this->runtime->looptris_cache.ensure([&](blender::Array<MLoopTri> &r_data) {
-    const Span<MVert> verts = this->verts();
+    const Span<float3> positions = this->vert_positions();
     const Span<MPoly> polys = this->polys();
     const Span<MLoop> loops = this->loops();
 
     r_data.reinitialize(poly_to_tri_count(polys.size(), loops.size()));
 
     if (BKE_mesh_poly_normals_are_dirty(this)) {
-      BKE_mesh_recalc_looptri(
-          loops.data(), polys.data(), verts.data(), loops.size(), polys.size(), r_data.data());
+      BKE_mesh_recalc_looptri(loops.data(),
+                              polys.data(),
+                              reinterpret_cast<const float(*)[3]>(positions.data()),
+                              loops.size(),
+                              polys.size(),
+                              r_data.data());
     }
     else {
       BKE_mesh_recalc_looptri_with_normals(loops.data(),
                                            polys.data(),
-                                           verts.data(),
+                                           reinterpret_cast<const float(*)[3]>(positions.data()),
                                            loops.size(),
                                            polys.size(),
                                            r_data.data(),
@@ -317,7 +322,7 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
     printf("MESH: %s\n", me_eval->id.name + 2);
   }
 
-  MutableSpan<MVert> verts = me_eval->verts_for_write();
+  MutableSpan<float3> positions = me_eval->vert_positions_for_write();
   MutableSpan<MEdge> edges = me_eval->edges_for_write();
   MutableSpan<MPoly> polys = me_eval->polys_for_write();
   MutableSpan<MLoop> loops = me_eval->loops_for_write();
@@ -338,8 +343,8 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
 
   is_valid &= BKE_mesh_validate_arrays(
       me_eval,
-      verts.data(),
-      verts.size(),
+      reinterpret_cast<float(*)[3]>(positions.data()),
+      positions.size(),
       edges.data(),
       edges.size(),
       static_cast<MFace *>(CustomData_get_layer(&me_eval->fdata, CD_MFACE)),

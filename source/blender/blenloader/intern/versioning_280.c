@@ -1792,7 +1792,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     if (DNA_struct_find(fd->filesdna, "MTexPoly")) {
       for (Mesh *me = bmain->meshes.first; me; me = me->id.next) {
         /* If we have UV's, so this file will have MTexPoly layers too! */
-        if (CustomData_has_layer(&me->ldata, CD_MLOOPUV)) {
+        if (CustomData_has_layer(&me->ldata, CD_MLOOPUV) ||
+            CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2)) {
           CustomData_update_typemap(&me->pdata);
           CustomData_free_layers(&me->pdata, CD_MTEXPOLY, me->totpoly);
         }

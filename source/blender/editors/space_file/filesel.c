@@ -420,12 +420,18 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
   }
 
   switch (library->type) {
+    case ASSET_LIBRARY_ALL:
+      base_params->dir[0] = '\0';
+      base_params->type = FILE_ASSET_LIBRARY_ALL;
+      break;
     case ASSET_LIBRARY_LOCAL:
       base_params->dir[0] = '\0';
+      base_params->type = FILE_MAIN_ASSET;
       break;
     case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES:
       BLI_assert(custom_library);
       BLI_strncpy(base_params->dir, custom_library->path, sizeof(base_params->dir));
+      base_params->type = FILE_ASSET_LIBRARY;
       break;
       /* Project asset libraries typically use relative paths (relative to project root directory).
        */
@@ -445,8 +451,6 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
       break;
     }
   }
-  base_params->type = (library->type == ASSET_LIBRARY_LOCAL) ? FILE_MAIN_ASSET :
-                                                               FILE_ASSET_LIBRARY;
 }
 
 void fileselect_refresh_params(SpaceFile *sfile)

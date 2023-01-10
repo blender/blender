@@ -14,12 +14,36 @@ namespace blender::bke::anonymous_attribute_inferencing {
 namespace aal = nodes::aal;
 using nodes::NodeDeclaration;
 
+static bool socket_is_field(const bNodeSocket &socket)
+{
+  return socket.display_shape == SOCK_DISPLAY_SHAPE_DIAMOND;
+}
+
 static const aal::RelationsInNode &get_relations_in_node(const bNode &node, ResourceScope &scope)
 {
   if (node.is_group()) {
     if (const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node.id)) {
       BLI_assert(group->runtime->anonymous_attribute_relations);
       return *group->runtime->anonymous_attribute_relations;
+    }
+  }
+  if (node.is_reroute()) {
+    const bNodeSocket &socket = node.input_socket(0);
+    if (socket_is_field(socket)) {
+      static const aal::RelationsInNode field_relations = []() {
+        aal::RelationsInNode relations;
+        relations.reference_relations.append({0, 0});
+        return relations;
+      }();
+      return field_relations;
+    }
+    if (socket.type == SOCK_GEOMETRY) {
+      static const aal::RelationsInNode geometry_relations = []() {
+        aal::RelationsInNode relations;
+        relations.propagate_relations.append({0, 0});
+        return relations;
+      }();
+      return geometry_relations;
     }
   }
   if (const NodeDeclaration *node_decl = node.declaration()) {
@@ -39,11 +63,6 @@ Array<const aal::RelationsInNode *> get_relations_by_node(const bNodeTree &tree,
     relations_by_node[i] = &get_relations_in_node(*nodes[i], scope);
   }
   return relations_by_node;
-}
-
-static bool socket_is_field(const bNodeSocket &socket)
-{
-  return socket.display_shape == SOCK_DISPLAY_SHAPE_DIAMOND;
 }
 
 /**

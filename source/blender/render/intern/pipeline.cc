@@ -340,7 +340,7 @@ void RE_SwapResult(Render *re, RenderResult **rr)
 {
   /* for keeping render buffers */
   if (re) {
-    SWAP(RenderResult *, re->result, *rr);
+    std::swap(re->result, *rr);
   }
 }
 

@@ -170,13 +170,6 @@ class bNodeSocketRuntime : NonCopyable, NonMovable {
   uint32_t changed_flag = 0;
 
   /**
-   * The location of the sockets, in the view-space of the node editor.
-   * \note Only calculated when drawing.
-   */
-  float locx = 0;
-  float locy = 0;
-
-  /**
    * Runtime-only cache of the number of input links, for multi-input sockets,
    * including dragged node links that aren't actually in the tree.
    */
@@ -261,7 +254,7 @@ class bNodeRuntime : NonCopyable, NonMovable {
   float anim_ofsx;
 
   /** List of cached internal links (input to output), for muted nodes and operators. */
-  Vector<bNodeLink *> internal_links;
+  Vector<bNodeLink> internal_links;
 
   /** Eagerly maintained cache of the node's index in the tree. */
   int index_in_tree = -1;
@@ -633,7 +626,7 @@ inline bool bNode::is_group_output() const
   return this->type == NODE_GROUP_OUTPUT;
 }
 
-inline blender::Span<const bNodeLink *> bNode::internal_links() const
+inline blender::Span<bNodeLink> bNode::internal_links() const
 {
   return this->runtime->internal_links;
 }

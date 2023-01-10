@@ -5,7 +5,6 @@
 #include "BKE_curves_utils.hh"
 #include "BKE_geometry_set.hh"
 
-#include "BLI_devirtualize_parameters.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_task.hh"

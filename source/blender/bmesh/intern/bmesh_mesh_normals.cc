@@ -935,7 +935,7 @@ static void bm_mesh_loops_calc_normals_for_vert_with_clnors(BMesh *bm,
      * The order doesn't matter, so swap the links as it's simpler than tracking
      * reference to `link_best`. */
     if (link_best != loops_of_vert) {
-      SWAP(void *, link_best->link, loops_of_vert->link);
+      std::swap(link_best->link, loops_of_vert->link);
     }
   }
 

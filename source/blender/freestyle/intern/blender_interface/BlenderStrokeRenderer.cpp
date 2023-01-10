@@ -44,6 +44,7 @@
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
@@ -55,6 +56,8 @@
 #include "render_types.h"
 
 #include <climits>
+
+using blender::float3;
 
 namespace Freestyle {
 
@@ -578,8 +581,8 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   mesh->totloop = group->totloop;
   mesh->totcol = group->materials.size();
 
-  MVert *verts = (MVert *)CustomData_add_layer(
-      &mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
+  float3 *vert_positions = (float3 *)CustomData_add_layer_named(
+      &mesh->vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, nullptr, mesh->totvert, "position");
   MEdge *edges = (MEdge *)CustomData_add_layer(
       &mesh->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, mesh->totedge);
   MPoly *polys = (MPoly *)CustomData_add_layer(
@@ -588,18 +591,18 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
       &mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
   int *material_indices = (int *)CustomData_add_layer_named(
       &mesh->pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, mesh->totpoly, "material_index");
-  MLoopUV *loopsuv[2] = {nullptr};
+  blender::float2 *loopsuv[2] = {nullptr};
 
   if (hasTex) {
     // First UV layer
-    loopsuv[0] = static_cast<MLoopUV *>(CustomData_add_layer_named(
-        &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop, uvNames[0]));
-    CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 0);
+    loopsuv[0] = static_cast<blender::float2 *>(CustomData_add_layer_named(
+        &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, nullptr, mesh->totloop, uvNames[0]));
+    CustomData_set_layer_active(&mesh->ldata, CD_PROP_FLOAT2, 0);
 
     // Second UV layer
-    loopsuv[1] = static_cast<MLoopUV *>(CustomData_add_layer_named(
-        &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop, uvNames[1]));
-    CustomData_set_layer_active(&mesh->ldata, CD_MLOOPUV, 1);
+    loopsuv[1] = static_cast<blender::float2 *>(CustomData_add_layer_named(
+        &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, nullptr, mesh->totloop, uvNames[1]));
+    CustomData_set_layer_active(&mesh->ldata, CD_PROP_FLOAT2, 1);
   }
 
   // colors and transparency (the latter represented by grayscale colors)
@@ -666,19 +669,17 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
         else {
           if (!visible) {
             // first vertex
-            verts->co[0] = svRep[0]->point2d()[0];
-            verts->co[1] = svRep[0]->point2d()[1];
-            verts->co[2] = get_stroke_vertex_z();
+            vert_positions[vertex_index][0] = svRep[0]->point2d()[0];
+            vert_positions[vertex_index][1] = svRep[0]->point2d()[1];
+            vert_positions[vertex_index][2] = get_stroke_vertex_z();
 
-            ++verts;
             ++vertex_index;
 
             // second vertex
-            verts->co[0] = svRep[1]->point2d()[0];
-            verts->co[1] = svRep[1]->point2d()[1];
-            verts->co[2] = get_stroke_vertex_z();
+            vert_positions[vertex_index][0] = svRep[1]->point2d()[0];
+            vert_positions[vertex_index][1] = svRep[1]->point2d()[1];
+            vert_positions[vertex_index][2] = get_stroke_vertex_z();
 
-            ++verts;
             ++vertex_index;
 
             // first edge
@@ -690,10 +691,9 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
           visible = true;
 
           // vertex
-          verts->co[0] = svRep[2]->point2d()[0];
-          verts->co[1] = svRep[2]->point2d()[1];
-          verts->co[2] = get_stroke_vertex_z();
-          ++verts;
+          vert_positions[vertex_index][0] = svRep[2]->point2d()[0];
+          vert_positions[vertex_index][1] = svRep[2]->point2d()[1];
+          vert_positions[vertex_index][2] = get_stroke_vertex_z();
           ++vertex_index;
 
           // edges
@@ -746,24 +746,24 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
             // Second UV layer (loopsuv[1]) has tips:  (texCoord(1)).
             for (int L = 0; L < 2; L++) {
               if (is_odd) {
-                loopsuv[L][0].uv[0] = svRep[2]->texCoord(L).x();
-                loopsuv[L][0].uv[1] = svRep[2]->texCoord(L).y();
+                loopsuv[L][0][0] = svRep[2]->texCoord(L).x();
+                loopsuv[L][0][1] = svRep[2]->texCoord(L).y();
 
-                loopsuv[L][1].uv[0] = svRep[0]->texCoord(L).x();
-                loopsuv[L][1].uv[1] = svRep[0]->texCoord(L).y();
+                loopsuv[L][1][0] = svRep[0]->texCoord(L).x();
+                loopsuv[L][1][1] = svRep[0]->texCoord(L).y();
 
-                loopsuv[L][2].uv[0] = svRep[1]->texCoord(L).x();
-                loopsuv[L][2].uv[1] = svRep[1]->texCoord(L).y();
+                loopsuv[L][2][0] = svRep[1]->texCoord(L).x();
+                loopsuv[L][2][1] = svRep[1]->texCoord(L).y();
               }
               else {
-                loopsuv[L][0].uv[0] = svRep[2]->texCoord(L).x();
-                loopsuv[L][0].uv[1] = svRep[2]->texCoord(L).y();
+                loopsuv[L][0][0] = svRep[2]->texCoord(L).x();
+                loopsuv[L][0][1] = svRep[2]->texCoord(L).y();
 
-                loopsuv[L][1].uv[0] = svRep[1]->texCoord(L).x();
-                loopsuv[L][1].uv[1] = svRep[1]->texCoord(L).y();
+                loopsuv[L][1][0] = svRep[1]->texCoord(L).x();
+                loopsuv[L][1][1] = svRep[1]->texCoord(L).y();
 
-                loopsuv[L][2].uv[0] = svRep[0]->texCoord(L).x();
-                loopsuv[L][2].uv[1] = svRep[0]->texCoord(L).y();
+                loopsuv[L][2][0] = svRep[0]->texCoord(L).x();
+                loopsuv[L][2][1] = svRep[0]->texCoord(L).y();
               }
               loopsuv[L] += 3;
             }

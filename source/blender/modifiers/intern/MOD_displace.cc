@@ -155,7 +155,6 @@ struct DisplaceUserdata {
   float (*tex_co)[3];
   float (*vertexCos)[3];
   float local_mat[4][4];
-  MVert *mvert;
   const float (*vert_normals)[3];
   float (*vert_clnors)[3];
 };
@@ -265,7 +264,6 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
                                 const int verts_num)
 {
   Object *ob = ctx->object;
-  MVert *mvert;
   const MDeformVert *dvert;
   int direction = dmd->direction;
   int defgrp_index;
@@ -282,7 +280,6 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
     return;
   }
 
-  mvert = BKE_mesh_verts_for_write(mesh);
   MOD_get_vgroup(ob, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
 
   if (defgrp_index >= 0 && dvert == nullptr) {
@@ -337,7 +334,6 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   data.tex_co = tex_co;
   data.vertexCos = vertexCos;
   copy_m4_m4(data.local_mat, local_mat);
-  data.mvert = mvert;
   if (direction == MOD_DISP_DIR_NOR) {
     data.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   }

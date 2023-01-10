@@ -1447,7 +1447,7 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 
   final = t->values[0] + t->values_modal_offset[0];
 
-  applySnappingAsGroup(t, &final);
+  transform_snap_mixed_apply(t, &final);
   if (!validSnap(t)) {
     transform_snap_increment(t, &final);
   }

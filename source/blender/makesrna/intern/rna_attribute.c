@@ -1191,7 +1191,7 @@ static void rna_def_attribute_group(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_AttributeGroup_update_active_color");
 
   prop = RNA_def_property(srna, "default_color_name", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME);
+  RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX);
   RNA_def_property_string_funcs(prop,
                                 "rna_AttributeGroup_default_color_name_get",
                                 "rna_AttributeGroup_default_color_name_length",
@@ -1202,7 +1202,7 @@ static void rna_def_attribute_group(BlenderRNA *brna)
       "The name of the default color attribute used as a fallback for rendering");
 
   prop = RNA_def_property(srna, "active_color_name", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME);
+  RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX);
   RNA_def_property_string_funcs(prop,
                                 "rna_AttributeGroup_active_color_name_get",
                                 "rna_AttributeGroup_active_color_name_length",

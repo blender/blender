@@ -459,10 +459,10 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool us
   /* vars from original func */
   UvVertMap *vmap;
   UvMapVert *buf;
-  const MLoopUV *luv;
+  const float(*luv)[2];
   uint a;
   int totverts, i, totuv, totfaces;
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
   bool *winding = NULL;
   BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
 
@@ -516,8 +516,8 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool us
         buf++;
 
         if (use_winding) {
-          luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-          copy_v2_v2(tf_uv[i], luv->uv);
+          luv = BM_ELEM_CD_GET_FLOAT2_P(l, cd_loop_uv_offset);
+          copy_v2_v2(tf_uv[i], *luv);
         }
       }
 
@@ -542,8 +542,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool us
       efa = BM_face_at_index(bm, v->poly_index);
 
       l = BM_iter_at_index(bm, BM_LOOPS_OF_FACE, efa, v->loop_of_poly_index);
-      luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-      uv = luv->uv;
+      uv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
 
       lastv = NULL;
       iterv = vlist;
@@ -552,8 +551,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool us
         next = iterv->next;
         efa = BM_face_at_index(bm, iterv->poly_index);
         l = BM_iter_at_index(bm, BM_LOOPS_OF_FACE, efa, iterv->loop_of_poly_index);
-        luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        uv2 = luv->uv;
+        uv2 = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
 
         if (compare_v2v2(uv2, uv, STD_UV_CONNECT_LIMIT) &&
             (!use_winding || winding[iterv->poly_index] == winding[v->poly_index])) {
@@ -682,7 +680,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
                                            UvElement *islandbuf,
                                            uint *map,
                                            bool uv_selected,
-                                           const int cd_loop_uv_offset)
+                                           const BMUVOffsets offsets)
 {
   BM_uv_element_map_ensure_head_table(element_map);
 
@@ -723,7 +721,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
       while (element) {
 
         /* Scan forwards around the BMFace that contains element->l. */
-        if (!uv_selected || uvedit_edge_select_test(scene, element->l, cd_loop_uv_offset)) {
+        if (!uv_selected || uvedit_edge_select_test(scene, element->l, offsets)) {
           UvElement *next = BM_uv_element_get(element_map, element->l->next->f, element->l->next);
           if (next->island == INVALID_ISLAND) {
             UvElement *tail = element_map->head_table[next - element_map->storage];
@@ -739,7 +737,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
         }
 
         /* Scan backwards around the BMFace that contains element->l. */
-        if (!uv_selected || uvedit_edge_select_test(scene, element->l->prev, cd_loop_uv_offset)) {
+        if (!uv_selected || uvedit_edge_select_test(scene, element->l->prev, offsets)) {
           UvElement *prev = BM_uv_element_get(element_map, element->l->prev->f, element->l->prev);
           if (prev->island == INVALID_ISLAND) {
             UvElement *tail = element_map->head_table[prev - element_map->storage];
@@ -788,14 +786,14 @@ static void bm_uv_build_islands(UvElementMap *element_map,
   int *island_number = MEM_callocN(sizeof(*island_number) * bm->totface, "uv_island_number_face");
   copy_vn_i(island_number, bm->totface, INVALID_ISLAND);
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const BMUVOffsets uv_offsets = BM_uv_map_get_offsets(bm);
 
   const bool use_uv_edge_connectivity = scene->toolsettings->uv_flag & UV_SYNC_SELECTION ?
                                             scene->toolsettings->selectmode & SCE_SELECT_EDGE :
                                             scene->toolsettings->uv_selectmode & UV_SELECT_EDGE;
   if (use_uv_edge_connectivity) {
     nislands = bm_uv_edge_select_build_islands(
-        element_map, scene, islandbuf, map, uv_selected, cd_loop_uv_offset);
+        element_map, scene, islandbuf, map, uv_selected, uv_offsets);
     islandbufsize = totuv;
   }
 
@@ -813,7 +811,7 @@ static void bm_uv_build_islands(UvElementMap *element_map,
         BMLoop *l;
         BMIter liter;
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          if (uv_selected && !uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+          if (uv_selected && !uvedit_uv_select_test(scene, l, uv_offsets)) {
             continue;
           }
 
@@ -890,20 +888,23 @@ static void bm_uv_build_islands(UvElementMap *element_map,
 }
 
 /* return true if `loop` has UV co-ordinates which match `luv_a` and `luv_b` */
-static bool loop_uv_match(BMLoop *loop, MLoopUV *luv_a, MLoopUV *luv_b, int cd_loop_uv_offset)
+static bool loop_uv_match(BMLoop *loop,
+                          const float luv_a[2],
+                          const float luv_b[2],
+                          int cd_loop_uv_offset)
 {
-  MLoopUV *luv_c = BM_ELEM_CD_GET_VOID_P(loop, cd_loop_uv_offset);
-  MLoopUV *luv_d = BM_ELEM_CD_GET_VOID_P(loop->next, cd_loop_uv_offset);
-  return compare_v2v2(luv_a->uv, luv_c->uv, STD_UV_CONNECT_LIMIT) &&
-         compare_v2v2(luv_b->uv, luv_d->uv, STD_UV_CONNECT_LIMIT);
+  const float *luv_c = BM_ELEM_CD_GET_FLOAT_P(loop, cd_loop_uv_offset);
+  const float *luv_d = BM_ELEM_CD_GET_FLOAT_P(loop->next, cd_loop_uv_offset);
+  return compare_v2v2(luv_a, luv_c, STD_UV_CONNECT_LIMIT) &&
+         compare_v2v2(luv_b, luv_d, STD_UV_CONNECT_LIMIT);
 }
 
 /* Given `anchor` and `edge`, return true if there are edges that fan between them that are
  * seam-free. */
 static bool seam_connected_recursive(BMVert *anchor,
                                      BMEdge *edge,
-                                     MLoopUV *luv_anchor,
-                                     MLoopUV *luv_fan,
+                                     float luv_anchor[2],
+                                     float luv_fan[2],
                                      BMLoop *needle,
                                      GSet *visited,
                                      int cd_loop_uv_offset)
@@ -931,7 +932,7 @@ static bool seam_connected_recursive(BMVert *anchor,
         return true; /* Success. */
       }
 
-      MLoopUV *luv_far = BM_ELEM_CD_GET_VOID_P(loop->prev, cd_loop_uv_offset);
+      float *luv_far = BM_ELEM_CD_GET_FLOAT_P(loop->prev, cd_loop_uv_offset);
       if (seam_connected_recursive(
               anchor, loop->prev->e, luv_anchor, luv_far, needle, visited, cd_loop_uv_offset)) {
         return true;
@@ -947,7 +948,7 @@ static bool seam_connected_recursive(BMVert *anchor,
         return true; /* Success. */
       }
 
-      MLoopUV *luv_far = BM_ELEM_CD_GET_VOID_P(loop->next->next, cd_loop_uv_offset);
+      float *luv_far = BM_ELEM_CD_GET_FLOAT_P(loop->next->next, cd_loop_uv_offset);
       if (seam_connected_recursive(
               anchor, loop->next->e, luv_anchor, luv_far, needle, visited, cd_loop_uv_offset)) {
         return true;
@@ -970,8 +971,8 @@ static bool seam_connected(BMLoop *loop_a, BMLoop *loop_b, GSet *visited, int cd
 
   BLI_gset_clear(visited, NULL);
 
-  MLoopUV *luv_anchor = BM_ELEM_CD_GET_VOID_P(loop_a, cd_loop_uv_offset);
-  MLoopUV *luv_fan = BM_ELEM_CD_GET_VOID_P(loop_a->next, cd_loop_uv_offset);
+  float *luv_anchor = BM_ELEM_CD_GET_FLOAT_P(loop_a, cd_loop_uv_offset);
+  float *luv_fan = BM_ELEM_CD_GET_FLOAT_P(loop_a->next, cd_loop_uv_offset);
   const bool result = seam_connected_recursive(
       loop_a->v, loop_a->e, luv_anchor, luv_fan, loop_b, visited, cd_loop_uv_offset);
   return result;
@@ -991,9 +992,9 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   BMFace *efa;
   BMIter iter, liter;
   BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
-  MLoopUV *luv;
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
-  if (cd_loop_uv_offset < 0) {
+
+  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  if (offsets.uv < 0) {
     return NULL;
   }
 
@@ -1016,7 +1017,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     else {
       BMLoop *l;
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+        if (uvedit_uv_select_test(scene, l, offsets)) {
           totuv++;
         }
       }
@@ -1057,7 +1058,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     int i;
     BMLoop *l;
     BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-      if (uv_selected && !uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+      if (uv_selected && !uvedit_uv_select_test(scene, l, offsets)) {
         continue;
       }
 
@@ -1070,8 +1071,8 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       element_map->vertex[BM_elem_index_get(l->v)] = buf;
 
       if (use_winding) {
-        luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        copy_v2_v2(tf_uv[i], luv->uv);
+        const float *uv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
+        copy_v2_v2(tf_uv[i], uv);
       }
 
       buf++;
@@ -1098,9 +1099,8 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       v->next = newvlist;
       newvlist = v;
 
-      luv = BM_ELEM_CD_GET_VOID_P(v->l, cd_loop_uv_offset);
-      const float *uv = luv->uv;
-      bool uv_vert_sel = uvedit_uv_select_test(scene, v->l, cd_loop_uv_offset);
+      const float *uv = BM_ELEM_CD_GET_VOID_P(v->l, offsets.uv);
+      bool uv_vert_sel = uvedit_uv_select_test(scene, v->l, offsets);
 
       UvElement *lastv = NULL;
       UvElement *iterv = vlist;
@@ -1108,20 +1108,19 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       /* Scan through unsorted list, finding UvElements which are connected to `v`. */
       while (iterv) {
         UvElement *next = iterv->next;
-        luv = BM_ELEM_CD_GET_VOID_P(iterv->l, cd_loop_uv_offset);
 
         bool connected = true; /* Assume connected unless we can prove otherwise. */
 
         if (connected) {
           /* Are the two UVs close together? */
-          const float *uv2 = luv->uv;
+          const float *uv2 = BM_ELEM_CD_GET_FLOAT_P(iterv->l, offsets.uv);
           connected = compare_v2v2(uv2, uv, STD_UV_CONNECT_LIMIT);
         }
 
         if (connected) {
           /* Check if the uv loops share the same selection state (if not, they are not connected
            * as they have been ripped or other edit commands have separated them). */
-          const bool uv2_vert_sel = uvedit_uv_select_test(scene, iterv->l, cd_loop_uv_offset);
+          const bool uv2_vert_sel = uvedit_uv_select_test(scene, iterv->l, offsets);
           connected = (uv_vert_sel == uv2_vert_sel);
         }
 
@@ -1131,7 +1130,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
         }
 
         if (connected && use_seams) {
-          connected = seam_connected(iterv->l, v->l, seam_visited_gset, cd_loop_uv_offset);
+          connected = seam_connected(iterv->l, v->l, seam_visited_gset, offsets.uv);
         }
 
         if (connected) {
@@ -1257,7 +1256,7 @@ BMFace *EDBM_uv_active_face_get(BMEditMesh *em, const bool sloppy, const bool se
 bool EDBM_uv_check(BMEditMesh *em)
 {
   /* some of these checks could be a touch overkill */
-  return em && em->bm->totface && CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV);
+  return em && em->bm->totface && CustomData_has_layer(&em->bm->ldata, CD_PROP_FLOAT2);
 }
 
 bool EDBM_vert_color_check(BMEditMesh *em)

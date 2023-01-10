@@ -12,6 +12,12 @@
 #include "GPU_common_types.h"
 #include "GPU_context.h"
 
+/* Don't generate OpenGL deprecation warning. This is a known thing, and is not something easily
+ * solvable in a short term. */
+#ifdef __clang__
+#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 #include "intern/GHOST_Context.h"
 #include "intern/GHOST_ContextCGL.h"
 #include "intern/GHOST_Window.h"

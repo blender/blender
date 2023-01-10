@@ -754,7 +754,7 @@ void DepthOfField::render(View &view,
   DRW_stats_group_end();
 
   /* Swap buffers so that next effect has the right input. */
-  SWAP(GPUTexture *, *input_tx, *output_tx);
+  std::swap(*input_tx, *output_tx);
 }
 
 /** \} */

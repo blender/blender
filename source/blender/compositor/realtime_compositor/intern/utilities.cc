@@ -2,8 +2,8 @@
 
 #include "BLI_assert.h"
 #include "BLI_function_ref.hh"
-#include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_node_types.h"

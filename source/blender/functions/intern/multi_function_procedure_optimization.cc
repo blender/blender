@@ -2,20 +2,19 @@
 
 #include "FN_multi_function_procedure_optimization.hh"
 
-namespace blender::fn::procedure_optimization {
+namespace blender::fn::multi_function::procedure_optimization {
 
-void move_destructs_up(MFProcedure &procedure, MFInstruction &block_end_instr)
+void move_destructs_up(Procedure &procedure, Instruction &block_end_instr)
 {
   /* A mapping from a variable to its destruct instruction. */
-  Map<MFVariable *, MFDestructInstruction *> destruct_instructions;
-  MFInstruction *current_instr = &block_end_instr;
+  Map<Variable *, DestructInstruction *> destruct_instructions;
+  Instruction *current_instr = &block_end_instr;
   while (true) {
-    MFInstructionType instr_type = current_instr->type();
+    InstructionType instr_type = current_instr->type();
     switch (instr_type) {
-      case MFInstructionType::Destruct: {
-        MFDestructInstruction &destruct_instr = static_cast<MFDestructInstruction &>(
-            *current_instr);
-        MFVariable *variable = destruct_instr.variable();
+      case InstructionType::Destruct: {
+        DestructInstruction &destruct_instr = static_cast<DestructInstruction &>(*current_instr);
+        Variable *variable = destruct_instr.variable();
         if (variable == nullptr) {
           continue;
         }
@@ -24,31 +23,31 @@ void move_destructs_up(MFProcedure &procedure, MFInstruction &block_end_instr)
         destruct_instructions.add(variable, &destruct_instr);
         break;
       }
-      case MFInstructionType::Call: {
-        MFCallInstruction &call_instr = static_cast<MFCallInstruction &>(*current_instr);
+      case InstructionType::Call: {
+        CallInstruction &call_instr = static_cast<CallInstruction &>(*current_instr);
         /* For each variable, place the corresponding remembered destruct instruction right after
          * this call instruction. */
-        for (MFVariable *variable : call_instr.params()) {
+        for (Variable *variable : call_instr.params()) {
           if (variable == nullptr) {
             continue;
           }
-          MFDestructInstruction *destruct_instr = destruct_instructions.pop_default(variable,
-                                                                                    nullptr);
+          DestructInstruction *destruct_instr = destruct_instructions.pop_default(variable,
+                                                                                  nullptr);
           if (destruct_instr == nullptr) {
             continue;
           }
 
           /* Unlink destruct instruction from previous position. */
-          MFInstruction *after_destruct_instr = destruct_instr->next();
+          Instruction *after_destruct_instr = destruct_instr->next();
           while (!destruct_instr->prev().is_empty()) {
             /* Do a copy of the cursor here, because `destruct_instr->prev()` changes when
              * #set_next is called below. */
-            const MFInstructionCursor cursor = destruct_instr->prev()[0];
+            const InstructionCursor cursor = destruct_instr->prev()[0];
             cursor.set_next(procedure, after_destruct_instr);
           }
 
           /* Insert destruct instruction in new position. */
-          MFInstruction *next_instr = call_instr.next();
+          Instruction *next_instr = call_instr.next();
           call_instr.set_next(destruct_instr);
           destruct_instr->set_next(next_instr);
         }
@@ -59,12 +58,12 @@ void move_destructs_up(MFProcedure &procedure, MFInstruction &block_end_instr)
       }
     }
 
-    const Span<MFInstructionCursor> prev_cursors = current_instr->prev();
+    const Span<InstructionCursor> prev_cursors = current_instr->prev();
     if (prev_cursors.size() != 1) {
       /* Stop when there is some branching before this instruction. */
       break;
     }
-    const MFInstructionCursor &prev_cursor = prev_cursors[0];
+    const InstructionCursor &prev_cursor = prev_cursors[0];
     current_instr = prev_cursor.instruction();
     if (current_instr == nullptr) {
       /* Stop when there is no previous instruction. E.g. when this is the first instruction. */
@@ -73,4 +72,4 @@ void move_destructs_up(MFProcedure &procedure, MFInstruction &block_end_instr)
   }
 }
 
-}  // namespace blender::fn::procedure_optimization
+}  // namespace blender::fn::multi_function::procedure_optimization

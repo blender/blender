@@ -904,16 +904,6 @@ static GVMutableArray make_derived_write_attribute(void *data, const int domain_
       MutableSpan<StructT>((StructT *)data, domain_num));
 }
 
-static float3 get_vertex_position(const MVert &vert)
-{
-  return float3(vert.co);
-}
-
-static void set_vertex_position(MVert &vert, float3 position)
-{
-  copy_v3_v3(vert.co, position);
-}
-
 static void tag_component_positions_changed(void *owner)
 {
   Mesh *mesh = static_cast<Mesh *>(owner);
@@ -930,16 +920,6 @@ static bool get_shade_smooth(const MPoly &mpoly)
 static void set_shade_smooth(MPoly &mpoly, bool value)
 {
   SET_FLAG_FROM_TEST(mpoly.flag, value, ME_SMOOTH);
-}
-
-static float2 get_loop_uv(const MLoopUV &uv)
-{
-  return float2(uv.uv);
-}
-
-static void set_loop_uv(MLoopUV &uv, float2 co)
-{
-  copy_v2_v2(uv.uv, co);
 }
 
 static float get_crease(const float &crease)
@@ -1237,18 +1217,17 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
 #undef MAKE_CONST_CUSTOM_DATA_GETTER
 #undef MAKE_MUTABLE_CUSTOM_DATA_GETTER
 
-  static BuiltinCustomDataLayerProvider position(
-      "position",
-      ATTR_DOMAIN_POINT,
-      CD_PROP_FLOAT3,
-      CD_MVERT,
-      BuiltinAttributeProvider::NonCreatable,
-      BuiltinAttributeProvider::Writable,
-      BuiltinAttributeProvider::NonDeletable,
-      point_access,
-      make_derived_read_attribute<MVert, float3, get_vertex_position>,
-      make_derived_write_attribute<MVert, float3, get_vertex_position, set_vertex_position>,
-      tag_component_positions_changed);
+  static BuiltinCustomDataLayerProvider position("position",
+                                                 ATTR_DOMAIN_POINT,
+                                                 CD_PROP_FLOAT3,
+                                                 CD_PROP_FLOAT3,
+                                                 BuiltinAttributeProvider::NonCreatable,
+                                                 BuiltinAttributeProvider::Writable,
+                                                 BuiltinAttributeProvider::NonDeletable,
+                                                 point_access,
+                                                 make_array_read_attribute<float3>,
+                                                 make_array_write_attribute<float3>,
+                                                 tag_component_positions_changed);
 
   static NormalAttributeProvider normal;
 
@@ -1264,13 +1243,13 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                            make_array_write_attribute<int>,
                                            nullptr);
 
-  static const fn::CustomMF_SI_SO<int, int> material_index_clamp{
+  static const auto material_index_clamp = mf::build::SI1_SO<int, int>(
       "Material Index Validate",
       [](int value) {
         /* Use #short for the maximum since many areas still use that type for indices. */
         return std::clamp<int>(value, 0, std::numeric_limits<short>::max());
       },
-      fn::CustomMF_presets::AllSpanOrSingle()};
+      mf::build::exec_presets::AllSpanOrSingle());
   static BuiltinCustomDataLayerProvider material_index("material_index",
                                                        ATTR_DOMAIN_FACE,
                                                        CD_PROP_INT32,
@@ -1310,14 +1289,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
       make_derived_write_attribute<float, float, get_crease, set_crease>,
       nullptr);
 
-  static NamedLegacyCustomDataProvider uvs(
-      ATTR_DOMAIN_CORNER,
-      CD_PROP_FLOAT2,
-      CD_MLOOPUV,
-      corner_access,
-      make_derived_read_attribute<MLoopUV, float2, get_loop_uv>,
-      make_derived_write_attribute<MLoopUV, float2, get_loop_uv, set_loop_uv>);
-
   static VertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(ATTR_DOMAIN_CORNER, corner_access);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
@@ -1326,8 +1297,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
 
   return ComponentAttributeProviders(
       {&position, &id, &material_index, &shade_smooth, &normal, &crease},
-      {&uvs,
-       &corner_custom_data,
+      {&corner_custom_data,
        &vertex_groups,
        &point_custom_data,
        &edge_custom_data,

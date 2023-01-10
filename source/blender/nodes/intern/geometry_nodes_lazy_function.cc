@@ -37,7 +37,6 @@ namespace blender::nodes {
 
 using fn::ValueOrField;
 using fn::ValueOrFieldCPPType;
-using namespace fn::multi_function_types;
 
 static const CPPType *get_socket_cpp_type(const bNodeSocketType &typeinfo)
 {
@@ -353,14 +352,14 @@ static void execute_multi_function_on_value_or_field(
   }
   else {
     /* In this case, the multi-function is evaluated directly. */
-    MFParamsBuilder params{fn, 1};
-    MFContextBuilder context;
+    mf::ParamsBuilder params{fn, 1};
+    mf::ContextBuilder context;
 
     for (const int i : input_types.index_range()) {
       const ValueOrFieldCPPType &type = *input_types[i];
       const void *value_or_field = input_values[i];
       const void *value = type.get_value_ptr(value_or_field);
-      params.add_readonly_single_input(GVArray::ForSingleRef(type.value, 1, value));
+      params.add_readonly_single_input(GPointer{type.value, value});
     }
     for (const int i : output_types.index_range()) {
       const ValueOrFieldCPPType &type = *output_types[i];
@@ -401,9 +400,9 @@ class LazyFunctionForMutedNode : public LazyFunction {
 
     input_by_output_index_.reinitialize(outputs_.size());
     input_by_output_index_.fill(-1);
-    for (const bNodeLink *internal_link : node.internal_links()) {
-      const int input_i = r_used_inputs.first_index_of_try(internal_link->fromsock);
-      const int output_i = r_used_outputs.first_index_of_try(internal_link->tosock);
+    for (const bNodeLink &internal_link : node.internal_links()) {
+      const int input_i = r_used_inputs.first_index_of_try(internal_link.fromsock);
+      const int output_i = r_used_outputs.first_index_of_try(internal_link.tosock);
       if (ELEM(-1, input_i, output_i)) {
         continue;
       }
@@ -445,7 +444,7 @@ class LazyFunctionForMutedNode : public LazyFunction {
       if (from_type != nullptr && to_type != nullptr) {
         if (conversions.is_convertible(from_type->value, to_type->value)) {
           const MultiFunction &multi_fn = *conversions.get_conversion_multi_function(
-              MFDataType::ForSingle(from_type->value), MFDataType::ForSingle(to_type->value));
+              mf::DataType::ForSingle(from_type->value), mf::DataType::ForSingle(to_type->value));
           execute_multi_function_on_value_or_field(
               multi_fn, {}, {from_type}, {to_type}, {input_value}, {output_value});
         }
@@ -1676,8 +1675,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     if (from_field_type != nullptr && to_field_type != nullptr) {
       if (conversions_->is_convertible(from_field_type->value, to_field_type->value)) {
         const MultiFunction &multi_fn = *conversions_->get_conversion_multi_function(
-            MFDataType::ForSingle(from_field_type->value),
-            MFDataType::ForSingle(to_field_type->value));
+            mf::DataType::ForSingle(from_field_type->value),
+            mf::DataType::ForSingle(to_field_type->value));
         auto fn = std::make_unique<LazyFunctionForMultiFunctionConversion>(
             multi_fn, *from_field_type, *to_field_type);
         lf::Node &conversion_node = lf_graph_->add_function(*fn);
@@ -1946,8 +1945,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
   {
     /* Find all outputs that use a specific input. */
     MultiValueMap<const bNodeSocket *, const bNodeSocket *> outputs_by_input;
-    for (const bNodeLink *blink : bnode.internal_links()) {
-      outputs_by_input.add(blink->fromsock, blink->tosock);
+    for (const bNodeLink &blink : bnode.internal_links()) {
+      outputs_by_input.add(blink.fromsock, blink.tosock);
     }
     for (const auto item : outputs_by_input.items()) {
       const bNodeSocket &input_bsocket = *item.key;
@@ -2708,7 +2707,7 @@ class UsedSocketVisualizeOptions : public lf::Graph::ToDotOptions {
 
   void add_edge_attributes(const lf::OutputSocket & /*from*/,
                            const lf::InputSocket &to,
-                           dot::DirectedEdge &dot_edge) const
+                           dot::DirectedEdge &dot_edge) const override
   {
     if (builder_.socket_usage_inputs_.contains_as(&to)) {
       // dot_edge.attributes.set("constraint", "false");

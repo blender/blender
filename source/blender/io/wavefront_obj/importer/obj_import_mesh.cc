@@ -154,7 +154,7 @@ void MeshFromGeometry::fixup_invalid_faces()
 
 void MeshFromGeometry::create_vertices(Mesh *mesh)
 {
-  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
   /* Go through all the global vertex indices from min to max,
    * checking which ones are actually and building a global->local
    * index mapping. Write out the used vertex positions into the Mesh
@@ -168,7 +168,7 @@ void MeshFromGeometry::create_vertices(Mesh *mesh)
     }
     int local_vi = int(mesh_geometry_.global_to_local_vertices_.size());
     BLI_assert(local_vi >= 0 && local_vi < mesh->totvert);
-    copy_v3_v3(verts[local_vi].co, global_vertices_.vertices[vi]);
+    copy_v3_v3(positions[local_vi], global_vertices_.vertices[vi]);
     mesh_geometry_.global_to_local_vertices_.add_new(vi, local_vi);
   }
 }
@@ -266,21 +266,40 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
   if (global_vertices_.uv_vertices.size() <= 0) {
     return;
   }
-  MLoopUV *mluv_dst = static_cast<MLoopUV *>(CustomData_add_layer(
-      &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh_geometry_.total_loops_));
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<float2> uv_map = attributes.lookup_or_add_for_write_only_span<float2>(
+      "UVMap", ATTR_DOMAIN_CORNER);
+
   int tot_loop_idx = 0;
+  bool added_uv = false;
 
   for (const PolyElem &curr_face : mesh_geometry_.face_elements_) {
     for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
       const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
-      const int uv_index = curr_corner.uv_vert_index;
-      float2 uv(0, 0);
-      if (uv_index >= 0 && uv_index < global_vertices_.uv_vertices.size()) {
-        uv = global_vertices_.uv_vertices[uv_index];
+      if (curr_corner.uv_vert_index >= 0 &&
+          curr_corner.uv_vert_index < global_vertices_.uv_vertices.size()) {
+        uv_map.span[tot_loop_idx] = global_vertices_.uv_vertices[curr_corner.uv_vert_index];
+        added_uv = true;
       }
-      copy_v2_v2(mluv_dst[tot_loop_idx].uv, uv);
+      else {
+        uv_map.span[tot_loop_idx] = {0.f, 0.f};
+      }
       tot_loop_idx++;
     }
+  }
+
+  uv_map.finish();
+
+  /* If we have an object without UVs which resides in the same .obj file
+   * as an object which *does* have UVs we can end up adding a UV layer
+   * filled with zeroes.
+   * We could maybe check before creating this layer but that would need
+   * iterating over the whole mesh to check for UVs and as this is probably
+   * the exception rather than the rule, just delete it afterwards.
+   */
+  if (!added_uv) {
+    attributes.remove("UVMap");
   }
 }
 

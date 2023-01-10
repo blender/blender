@@ -442,10 +442,11 @@ static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_edit_object = DRW_object_is_in_edit_mode(ob);
   Mesh *me = (Mesh *)ob->data;
-  const bool has_active_object_uvmap = CustomData_get_active_layer(&me->ldata, CD_MLOOPUV) != -1;
+  const bool has_active_object_uvmap = CustomData_get_active_layer(&me->ldata, CD_PROP_FLOAT2) !=
+                                       -1;
   const bool has_active_edit_uvmap = is_edit_object &&
                                      (CustomData_get_active_layer(&me->edit_mesh->bm->ldata,
-                                                                  CD_MLOOPUV) != -1);
+                                                                  CD_PROP_FLOAT2) != -1);
   const bool draw_shadows = (draw_ctx->object_mode != OB_MODE_OBJECT) &&
                             (ob->mode == draw_ctx->object_mode);
 

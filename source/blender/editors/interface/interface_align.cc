@@ -156,7 +156,7 @@ static void block_align_proximity_compute(ButAlign *butal, ButAlign *butal_other
       delta_side_opp = max_ff(fabsf(*butal->borders[side_opp] - *butal_other->borders[side]),
                               FLT_MIN);
       if (delta_side_opp < delta) {
-        SWAP(int, side, side_opp);
+        std::swap(side, side_opp);
         delta = delta_side_opp;
       }
 

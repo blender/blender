@@ -314,7 +314,7 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
   UNUSED_VARS_NDEBUG(ss);
 
   for (int i = 0; i < CD_NUMTYPES; i++) {
-    if (!ELEM(i, CD_MVERT, CD_MEDGE, CD_MFACE, CD_MLOOP, CD_MPOLY, CD_PAINT_MASK, CD_ORIGINDEX)) {
+    if (!ELEM(i, CD_MEDGE, CD_MFACE, CD_MLOOP, CD_MPOLY, CD_PAINT_MASK, CD_ORIGINDEX)) {
       if (CustomData_has_layer(&me->vdata, i)) {
         flag |= DYNTOPO_WARN_VDATA;
       }

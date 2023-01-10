@@ -257,11 +257,10 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     }
     /* DPI factor needs to be removed when computing a View2D offset from drawing rects. */
     center /= clipboard.nodes.size();
-    center /= UI_DPI_FAC;
 
     float2 mouse_location;
     RNA_property_float_get_array(op->ptr, offset_prop, mouse_location);
-    const float2 offset = mouse_location - center;
+    const float2 offset = (mouse_location - center) / UI_DPI_FAC;
 
     for (bNode *new_node : node_map.values()) {
       new_node->locx += offset.x;

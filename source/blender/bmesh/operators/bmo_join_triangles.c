@@ -277,7 +277,8 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   }
 
   if (BMO_slot_bool_get(op->slots_in, "cmp_uvs") &&
-      bm_edge_delimit_cdata(&bm->ldata, CD_MLOOPUV, &delimit_data.cdata[delimit_data.cdata_len])) {
+      bm_edge_delimit_cdata(
+          &bm->ldata, CD_PROP_FLOAT2, &delimit_data.cdata[delimit_data.cdata_len])) {
     delimit_data.cdata_len += 1;
   }
 

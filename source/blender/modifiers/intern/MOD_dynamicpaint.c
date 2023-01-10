@@ -81,10 +81,10 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   if (pmd->canvas) {
     DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
     for (; surface; surface = surface->next) {
-      /* UV's: #CD_MLOOPUV. */
+      /* UV's: #CD_PROP_FLOAT2. */
       if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ ||
           surface->init_color_type == MOD_DPAINT_INITIAL_TEXTURE) {
-        r_cddata_masks->lmask |= CD_MASK_MLOOPUV;
+        r_cddata_masks->lmask |= CD_MASK_PROP_FLOAT2;
       }
       /* Vertex Colors: #CD_PROP_BYTE_COLOR. */
       if (surface->type == MOD_DPAINT_SURFACE_T_PAINT ||

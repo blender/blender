@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
 
@@ -206,7 +207,7 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
 
 /* NOLINTNEXTLINE: readability-function-size */
 bool BKE_mesh_validate_arrays(Mesh *mesh,
-                              MVert *mverts,
+                              float (*vert_positions)[3],
                               uint totvert,
                               MEdge *medges,
                               uint totedge,
@@ -246,7 +247,6 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       mesh->attributes_for_write().lookup_for_write<int>("material_index");
   blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
 
-  MVert *mv = mverts;
   MEdge *me;
   MLoop *ml;
   MPoly *mp;
@@ -302,15 +302,15 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   }
 
-  for (i = 0; i < totvert; i++, mv++) {
+  for (i = 0; i < totvert; i++) {
     bool fix_normal = true;
 
     for (j = 0; j < 3; j++) {
-      if (!isfinite(mv->co[j])) {
+      if (!isfinite(vert_positions[i][j])) {
         PRINT_ERR("\tVertex %u: has invalid coordinate", i);
 
         if (do_fixes) {
-          zero_v3(mv->co);
+          zero_v3(vert_positions[i]);
 
           fix_flag.verts = true;
         }
@@ -332,7 +332,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
        * although it's also possible degenerate/opposite faces accumulate to a zero vector.
        * To detect this a full normal recalculation would be needed, which is out of scope
        * for a basic validity check (see "Vertex Normal" in the doc-string). */
-      if (!is_zero_v3(mv->co)) {
+      if (!is_zero_v3(vert_positions[i])) {
         PRINT_ERR("\tVertex %u: has zero normal, assuming Z-up normal", i);
         if (do_fixes) {
           float *normal = (float *)vert_normals[i];
@@ -1022,7 +1022,7 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
   is_valid &= mesh_validate_customdata(
       pdata, mask.pmask, totpoly, do_verbose, do_fixes, &is_change_p);
 
-  const int tot_uvloop = CustomData_number_of_layers(ldata, CD_MLOOPUV);
+  const int tot_uvloop = CustomData_number_of_layers(ldata, CD_PROP_FLOAT2);
   if (tot_uvloop > MAX_MTFACE) {
     PRINT_ERR(
         "\tMore UV layers than %d allowed, %d last ones won't be available for render, shaders, "
@@ -1032,12 +1032,12 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
   }
 
   /* check indices of clone/stencil */
-  if (do_fixes && CustomData_get_clone_layer(ldata, CD_MLOOPUV) >= tot_uvloop) {
-    CustomData_set_layer_clone(ldata, CD_MLOOPUV, 0);
+  if (do_fixes && CustomData_get_clone_layer(ldata, CD_PROP_FLOAT2) >= tot_uvloop) {
+    CustomData_set_layer_clone(ldata, CD_PROP_FLOAT2, 0);
     is_change_l = true;
   }
-  if (do_fixes && CustomData_get_stencil_layer(ldata, CD_MLOOPUV) >= tot_uvloop) {
-    CustomData_set_layer_stencil(ldata, CD_MLOOPUV, 0);
+  if (do_fixes && CustomData_get_stencil_layer(ldata, CD_PROP_FLOAT2) >= tot_uvloop) {
+    CustomData_set_layer_stencil(ldata, CD_PROP_FLOAT2, 0);
     is_change_l = true;
   }
 
@@ -1066,14 +1066,14 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
                                    do_verbose,
                                    true,
                                    &changed);
-  MutableSpan<MVert> verts = me->verts_for_write();
+  MutableSpan<float3> positions = me->vert_positions_for_write();
   MutableSpan<MEdge> edges = me->edges_for_write();
   MutableSpan<MPoly> polys = me->polys_for_write();
   MutableSpan<MLoop> loops = me->loops_for_write();
 
   BKE_mesh_validate_arrays(me,
-                           verts.data(),
-                           verts.size(),
+                           reinterpret_cast<float(*)[3]>(positions.data()),
+                           positions.size(),
                            edges.data(),
                            edges.size(),
                            (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE),
@@ -1117,14 +1117,14 @@ bool BKE_mesh_is_valid(Mesh *me)
       do_fixes,
       &changed);
 
-  MutableSpan<MVert> verts = me->verts_for_write();
+  MutableSpan<float3> positions = me->vert_positions_for_write();
   MutableSpan<MEdge> edges = me->edges_for_write();
   MutableSpan<MPoly> polys = me->polys_for_write();
   MutableSpan<MLoop> loops = me->loops_for_write();
 
   is_valid &= BKE_mesh_validate_arrays(me,
-                                       verts.data(),
-                                       verts.size(),
+                                       reinterpret_cast<float(*)[3]>(positions.data()),
+                                       positions.size(),
                                        edges.data(),
                                        edges.size(),
                                        (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE),

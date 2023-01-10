@@ -409,10 +409,10 @@ static void add_verts_to_dgroups(ReportList *reports,
   }
 
   /* transform verts to global space */
-  const MVert *mesh_verts = BKE_mesh_verts(mesh);
+  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
   for (int i = 0; i < mesh->totvert; i++) {
     if (!vertsfilled) {
-      copy_v3_v3(verts[i], mesh_verts[i].co);
+      copy_v3_v3(verts[i], positions[i]);
     }
     mul_m4_v3(ob->object_to_world, verts[i]);
   }

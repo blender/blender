@@ -171,10 +171,10 @@ template<typename T> void switch_fields(GeoNodeExecParams &params, const StringR
     Field<T> falses_field = params.extract_input<Field<T>>(name_false);
     Field<T> trues_field = params.extract_input<Field<T>>(name_true);
 
-    static fn::CustomMF_SI_SI_SI_SO<bool, T, T, T> switch_fn{
+    static auto switch_fn = mf::build::SI3_SO<bool, T, T, T>(
         "Switch", [](bool condition, const T &false_value, const T &true_value) {
           return condition ? true_value : false_value;
-        }};
+        });
 
     auto switch_op = std::make_shared<FieldOperation>(FieldOperation(
         std::move(switch_fn),

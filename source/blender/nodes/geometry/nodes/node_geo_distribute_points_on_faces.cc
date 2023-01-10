@@ -105,7 +105,7 @@ static void sample_mesh_surface(const Mesh &mesh,
                                 Vector<float3> &r_bary_coords,
                                 Vector<int> &r_looptri_indices)
 {
-  const Span<MVert> verts = mesh.verts();
+  const Span<float3> positions = mesh.vert_positions();
   const Span<MLoop> loops = mesh.loops();
   const Span<MLoopTri> looptris = mesh.looptris();
 
@@ -117,9 +117,9 @@ static void sample_mesh_surface(const Mesh &mesh,
     const int v0_index = loops[v0_loop].v;
     const int v1_index = loops[v1_loop].v;
     const int v2_index = loops[v2_loop].v;
-    const float3 v0_pos = verts[v0_index].co;
-    const float3 v1_pos = verts[v1_index].co;
-    const float3 v2_pos = verts[v2_index].co;
+    const float3 v0_pos = positions[v0_index];
+    const float3 v1_pos = positions[v1_index];
+    const float3 v2_pos = positions[v2_index];
 
     float looptri_density_factor = 1.0f;
     if (!density_factors.is_empty()) {
@@ -348,7 +348,7 @@ BLI_NOINLINE static void compute_attribute_outputs(const Mesh &mesh,
         attribute_outputs.rotation_id.get(), ATTR_DOMAIN_POINT);
   }
 
-  const Span<MVert> verts = mesh.verts();
+  const Span<float3> positions = mesh.vert_positions();
   const Span<MLoop> loops = mesh.loops();
   const Span<MLoopTri> looptris = mesh.looptris();
 
@@ -360,9 +360,9 @@ BLI_NOINLINE static void compute_attribute_outputs(const Mesh &mesh,
     const int v0_index = loops[looptri.tri[0]].v;
     const int v1_index = loops[looptri.tri[1]].v;
     const int v2_index = loops[looptri.tri[2]].v;
-    const float3 v0_pos = verts[v0_index].co;
-    const float3 v1_pos = verts[v1_index].co;
-    const float3 v2_pos = verts[v2_index].co;
+    const float3 v0_pos = positions[v0_index];
+    const float3 v1_pos = positions[v1_index];
+    const float3 v2_pos = positions[v2_index];
 
     ids.span[i] = noise::hash(noise::hash_float(bary_coord), looptri_index);
 

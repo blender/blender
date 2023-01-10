@@ -510,12 +510,12 @@ static void scene_foreach_toolsettings_id_pointer_process(
       }
       /* We failed to find a new valid pointer for the previous ID, just keep the current one as
        * if we had been under SCENE_FOREACH_UNDO_NO_RESTORE case. */
-      SWAP(ID *, *id_p, *id_old_p);
+      std::swap(*id_p, *id_old_p);
       break;
     }
     case SCENE_FOREACH_UNDO_NO_RESTORE:
       /* Counteract the swap of the whole ToolSettings container struct. */
-      SWAP(ID *, *id_p, *id_old_p);
+      std::swap(*id_p, *id_old_p);
       break;
   }
 }
@@ -1686,14 +1686,14 @@ static void scene_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
   Scene *scene_new = (Scene *)id_new;
   Scene *scene_old = (Scene *)id_old;
 
-  SWAP(View3DCursor, scene_old->cursor, scene_new->cursor);
+  std::swap(scene_old->cursor, scene_new->cursor);
   if (scene_new->toolsettings != nullptr && scene_old->toolsettings != nullptr) {
     /* First try to restore ID pointers that can be and should be preserved (like brushes or
      * palettes), and counteract the swap of the whole ToolSettings structs below for the others
      * (like object ones). */
     scene_foreach_toolsettings(
         nullptr, scene_new->toolsettings, true, reader, scene_old->toolsettings);
-    SWAP(ToolSettings, *scene_old->toolsettings, *scene_new->toolsettings);
+    std::swap(*scene_old->toolsettings, *scene_new->toolsettings);
   }
 }
 

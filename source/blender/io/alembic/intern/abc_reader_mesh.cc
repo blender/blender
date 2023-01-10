@@ -122,31 +122,30 @@ struct AbcMeshData {
   UInt32ArraySamplePtr uvs_indices;
 };
 
-static void read_mverts_interp(MVert *mverts,
+static void read_mverts_interp(float3 *vert_positions,
                                const P3fArraySamplePtr &positions,
                                const P3fArraySamplePtr &ceil_positions,
                                const double weight)
 {
   float tmp[3];
   for (int i = 0; i < positions->size(); i++) {
-    MVert &mvert = mverts[i];
     const Imath::V3f &floor_pos = (*positions)[i];
     const Imath::V3f &ceil_pos = (*ceil_positions)[i];
 
     interp_v3_v3v3(tmp, floor_pos.getValue(), ceil_pos.getValue(), float(weight));
-    copy_zup_from_yup(mvert.co, tmp);
+    copy_zup_from_yup(vert_positions[i], tmp);
   }
 }
 
 static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
 {
-  MVert *mverts = config.mvert;
+  float3 *vert_positions = config.positions;
   const P3fArraySamplePtr &positions = mesh_data.positions;
 
   if (config.use_vertex_interpolation && config.weight != 0.0f &&
       mesh_data.ceil_positions != nullptr &&
       mesh_data.ceil_positions->size() == positions->size()) {
-    read_mverts_interp(mverts, positions, mesh_data.ceil_positions, config.weight);
+    read_mverts_interp(vert_positions, positions, mesh_data.ceil_positions, config.weight);
     BKE_mesh_tag_coords_changed(config.mesh);
     return;
   }
@@ -156,12 +155,11 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
 
 void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySamplePtr normals)
 {
-  MutableSpan<MVert> verts = mesh.verts_for_write();
+  MutableSpan<float3> vert_positions = mesh.vert_positions_for_write();
   for (int i = 0; i < positions->size(); i++) {
-    MVert &mvert = verts[i];
     Imath::V3f pos_in = (*positions)[i];
 
-    copy_zup_from_yup(mvert.co, pos_in.getValue());
+    copy_zup_from_yup(vert_positions[i], pos_in.getValue());
   }
   BKE_mesh_tag_coords_changed(&mesh);
 
@@ -179,7 +177,7 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
 {
   MPoly *mpolys = config.mpoly;
   MLoop *mloops = config.mloop;
-  MLoopUV *mloopuvs = config.mloopuv;
+  float2 *mloopuvs = config.mloopuv;
 
   const Int32ArraySamplePtr &face_indices = mesh_data.face_indices;
   const Int32ArraySamplePtr &face_counts = mesh_data.face_counts;
@@ -223,7 +221,6 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
       last_vertex_index = loop.v;
 
       if (do_uvs) {
-        MLoopUV &loopuv = mloopuvs[rev_loop_index];
         uv_index = (*uvs_indices)[do_uvs_per_loop ? loop_index : loop.v];
 
         /* Some Alembic files are broken (or at least export UVs in a way we don't expect). */
@@ -231,8 +228,8 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
           continue;
         }
 
-        loopuv.uv[0] = (*uvs)[uv_index][0];
-        loopuv.uv[1] = (*uvs)[uv_index][1];
+        mloopuvs[rev_loop_index][0] = (*uvs)[uv_index][0];
+        mloopuvs[rev_loop_index][1] = (*uvs)[uv_index][1];
       }
     }
   }
@@ -373,8 +370,8 @@ BLI_INLINE void read_uvs_params(CDStreamConfig &config,
     name = uv.getName();
   }
 
-  void *cd_ptr = config.add_customdata_cb(config.mesh, name.c_str(), CD_MLOOPUV);
-  config.mloopuv = static_cast<MLoopUV *>(cd_ptr);
+  void *cd_ptr = config.add_customdata_cb(config.mesh, name.c_str(), CD_PROP_FLOAT2);
+  config.mloopuv = static_cast<float2 *>(cd_ptr);
 }
 
 static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
@@ -382,7 +379,7 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
   eCustomDataType cd_data_type = static_cast<eCustomDataType>(data_type);
 
   /* unsupported custom data type -- don't do anything. */
-  if (!ELEM(cd_data_type, CD_MLOOPUV, CD_PROP_BYTE_COLOR)) {
+  if (!ELEM(cd_data_type, CD_PROP_FLOAT2, CD_PROP_BYTE_COLOR)) {
     return nullptr;
   }
 
@@ -519,7 +516,7 @@ CDStreamConfig get_config(Mesh *mesh, const bool use_vertex_interpolation)
 {
   CDStreamConfig config;
   config.mesh = mesh;
-  config.mvert = mesh->verts_for_write().data();
+  config.positions = mesh->vert_positions_for_write().data();
   config.mloop = mesh->loops_for_write().data();
   config.mpoly = mesh->polys_for_write().data();
   config.totvert = mesh->totvert;

@@ -268,7 +268,7 @@ class AnonymousAttributeFieldInput : public GeometryFieldInput {
   AnonymousAttributeFieldInput(AutoAnonymousAttributeID anonymous_id,
                                const CPPType &type,
                                std::string producer_name)
-      : GeometryFieldInput(type, anonymous_id->name()),
+      : GeometryFieldInput(type, anonymous_id->user_name()),
         anonymous_id_(std::move(anonymous_id)),
         producer_name_(producer_name)
   {

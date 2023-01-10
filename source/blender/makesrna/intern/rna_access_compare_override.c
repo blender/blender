@@ -821,7 +821,7 @@ bool RNA_struct_override_matches(Main *bmain,
             /* This property should be restored to its reference value. This should not be done
              * here, since this code may be called from non-main thread (modifying data through RNA
              * is not thread safe). */
-            BLI_assert(op == NULL); /* Forbidden orverride prop should not exist currently. */
+            BLI_assert(op == NULL); /* Forbidden override prop should not exist currently. */
 
             if (do_restore) {
               IDOverrideLibraryPropertyOperation opop_tmp = {

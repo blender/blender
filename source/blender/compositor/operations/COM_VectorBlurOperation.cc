@@ -655,7 +655,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
         }
       }
     }
-    SWAP(float *, minvecbufrect, vecbufrect);
+    std::swap(minvecbufrect, vecbufrect);
   }
 
   /* Make vertex buffer with averaged speed and Z-values. */

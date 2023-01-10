@@ -17,12 +17,12 @@ struct ReportList;
  * split normals can be used to recreate the full tangent space.
  * NOTE: * The mesh should be made of only tris and quads!
  */
-void BKE_mesh_calc_loop_tangent_single_ex(const struct MVert *mverts,
+void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
                                           int numVerts,
                                           const struct MLoop *mloops,
                                           float (*r_looptangent)[4],
                                           const float (*loop_normals)[3],
-                                          const struct MLoopUV *loopuv,
+                                          const float (*loopuv)[2],
                                           int numLoops,
                                           const struct MPoly *mpolys,
                                           int numPolys,
@@ -41,7 +41,7 @@ void BKE_mesh_calc_loop_tangent_single(struct Mesh *mesh,
 /**
  * See: #BKE_editmesh_loop_tangent_calc (matching logic).
  */
-void BKE_mesh_calc_loop_tangent_ex(const struct MVert *mvert,
+void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    const struct MPoly *mpoly,
                                    uint mpoly_len,
                                    const struct MLoop *mloop,
@@ -50,7 +50,7 @@ void BKE_mesh_calc_loop_tangent_ex(const struct MVert *mvert,
 
                                    struct CustomData *loopdata,
                                    bool calc_active_tangent,
-                                   const char (*tangent_names)[64],
+                                   const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                    int tangent_names_len,
                                    const float (*vert_normals)[3],
                                    const float (*poly_normals)[3],
@@ -63,7 +63,7 @@ void BKE_mesh_calc_loop_tangent_ex(const struct MVert *mvert,
 
 void BKE_mesh_calc_loop_tangents(struct Mesh *me_eval,
                                  bool calc_active_tangent,
-                                 const char (*tangent_names)[MAX_NAME],
+                                 const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                  int tangent_names_len);
 
 /* Helpers */
@@ -81,7 +81,7 @@ void BKE_mesh_add_loop_tangent_named_layer_for_uv(struct CustomData *uv_data,
  */
 void BKE_mesh_calc_loop_tangent_step_0(const struct CustomData *loopData,
                                        bool calc_active_tangent,
-                                       const char (*tangent_names)[64],
+                                       const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                        int tangent_names_count,
                                        bool *rcalc_act,
                                        bool *rcalc_ren,

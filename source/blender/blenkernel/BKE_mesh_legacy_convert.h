@@ -10,7 +10,9 @@
 #include "BLI_utildefines.h"
 
 #ifdef __cplusplus
+#  include "BLI_resource_scope.hh"
 #  include "BLI_span.hh"
+#  include "BLI_vector.hh"
 #  include "DNA_customdata_types.h"
 #endif
 
@@ -23,6 +25,11 @@ struct Mesh;
 struct MFace;
 
 #ifdef __cplusplus
+
+void BKE_mesh_legacy_convert_uvs_to_struct(Mesh *mesh,
+                                           blender::ResourceScope &temp_mloopuv_for_convert,
+                                           blender::Vector<CustomDataLayer, 16> &layers_to_write);
+void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh);
 
 /**
  * Move face sets to the legacy type from a generic type.
@@ -87,6 +94,13 @@ void BKE_mesh_legacy_convert_loose_edges_to_flag(struct Mesh *mesh);
 
 void BKE_mesh_legacy_attribute_flags_to_strings(struct Mesh *mesh);
 void BKE_mesh_legacy_attribute_strings_to_flags(struct Mesh *mesh);
+
+struct MVert *BKE_mesh_legacy_convert_positions_to_verts(
+    Mesh *mesh,
+    blender::ResourceScope &temp_arrays_for_convert,
+    blender::Vector<CustomDataLayer, 16> &vert_layers_to_write);
+
+void BKE_mesh_legacy_convert_verts_to_positions(Mesh *mesh);
 
 #endif
 

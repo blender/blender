@@ -833,10 +833,10 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
   if (psmd != NULL && psmd->mesh_final != NULL) {
-    if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_MLOOPUV)) {
-      cache->num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_MLOOPUV);
-      active_uv = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_MLOOPUV);
-      render_uv = CustomData_get_render_layer(&psmd->mesh_final->ldata, CD_MLOOPUV);
+    if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_PROP_FLOAT2)) {
+      cache->num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_PROP_FLOAT2);
+      active_uv = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_PROP_FLOAT2);
+      render_uv = CustomData_get_render_layer(&psmd->mesh_final->ldata, CD_PROP_FLOAT2);
     }
     if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR)) {
       cache->num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata,
@@ -897,7 +897,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     GPU_vertbuf_attr_get_raw_data(cache->proc_uv_buf[i], uv_id, &uv_step[i]);
 
     char attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-    const char *name = CustomData_get_layer_name(&psmd->mesh_final->ldata, CD_MLOOPUV, i);
+    const char *name = CustomData_get_layer_name(&psmd->mesh_final->ldata, CD_PROP_FLOAT2, i);
     GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
     int n = 0;
@@ -1170,9 +1170,9 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   MCol **parent_mcol = NULL;
 
   if (psmd != NULL) {
-    if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_MLOOPUV)) {
-      num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_MLOOPUV);
-      active_uv = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_MLOOPUV);
+    if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_PROP_FLOAT2)) {
+      num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_PROP_FLOAT2);
+      active_uv = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_PROP_FLOAT2);
     }
     if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR)) {
       num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR);
@@ -1198,7 +1198,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     for (int i = 0; i < num_uv_layers; i++) {
 
       char uuid[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-      const char *name = CustomData_get_layer_name(&psmd->mesh_final->ldata, CD_MLOOPUV, i);
+      const char *name = CustomData_get_layer_name(&psmd->mesh_final->ldata, CD_PROP_FLOAT2, i);
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
       BLI_snprintf(uuid, sizeof(uuid), "a%s", attr_safe_name);

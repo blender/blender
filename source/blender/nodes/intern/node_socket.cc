@@ -11,7 +11,7 @@
 
 #include "BLI_color.hh"
 #include "BLI_listbase.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -220,12 +220,12 @@ static void refresh_socket_list(bNodeTree &ntree,
               link->tosock = new_socket;
             }
           }
-          for (bNodeLink *internal_link : node.runtime->internal_links) {
-            if (internal_link->fromsock == old_socket_with_same_identifier) {
-              internal_link->fromsock = new_socket;
+          for (bNodeLink &internal_link : node.runtime->internal_links) {
+            if (internal_link.fromsock == old_socket_with_same_identifier) {
+              internal_link.fromsock = new_socket;
             }
-            else if (internal_link->tosock == old_socket_with_same_identifier) {
-              internal_link->tosock = new_socket;
+            else if (internal_link.tosock == old_socket_with_same_identifier) {
+              internal_link.tosock = new_socket;
             }
           }
         }

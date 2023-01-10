@@ -36,7 +36,6 @@ struct LinkNode;
 struct MCol;
 struct MFace;
 struct MTFace;
-struct MVert;
 struct Main;
 struct ModifierData;
 struct Object;
@@ -267,7 +266,7 @@ BLI_INLINE void psys_frand_vec(ParticleSystem *psys, unsigned int seed, float ve
 }
 
 /* ----------- functions needed outside particlesystem ---------------- */
-/* particle.c */
+/* particle.cc */
 
 /* Few helpers for count-all etc. */
 
@@ -540,7 +539,7 @@ void BKE_particlesystem_reset_all(struct Object *object);
 
 /* ----------- functions needed only inside particlesystem ------------ */
 
-/* particle.c */
+/* particle.cc */
 
 void psys_disable_all(struct Object *ob);
 void psys_enable_all(struct Object *ob);
@@ -583,7 +582,7 @@ void psys_get_texture(struct ParticleSimulationData *sim,
  * Interpolate a location on a face based on face coordinates.
  */
 void psys_interpolate_face(struct Mesh *mesh,
-                           const struct MVert *mvert,
+                           const float (*vert_positions)[3],
                            const float (*vert_normals)[3],
                            struct MFace *mface,
                            struct MTFace *tface,

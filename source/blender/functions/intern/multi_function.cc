@@ -5,7 +5,7 @@
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 
-namespace blender::fn {
+namespace blender::fn::multi_function {
 
 using ExecutionHints = MultiFunction::ExecutionHints;
 
@@ -22,10 +22,10 @@ ExecutionHints MultiFunction::get_execution_hints() const
 static bool supports_threading_by_slicing_params(const MultiFunction &fn)
 {
   for (const int i : fn.param_indices()) {
-    const MFParamType param_type = fn.param_type(i);
+    const ParamType param_type = fn.param_type(i);
     if (ELEM(param_type.interface_type(),
-             MFParamType::InterfaceType::Mutable,
-             MFParamType::InterfaceType::Output)) {
+             ParamType::InterfaceType::Mutable,
+             ParamType::InterfaceType::Output)) {
       if (param_type.data_type().is_vector()) {
         return false;
       }
@@ -52,7 +52,7 @@ static int64_t compute_grain_size(const ExecutionHints &hints, const IndexMask m
   return grain_size;
 }
 
-void MultiFunction::call_auto(IndexMask mask, MFParams params, MFContext context) const
+void MultiFunction::call_auto(IndexMask mask, MFParams params, Context context) const
 {
   if (mask.is_empty()) {
     return;
@@ -90,24 +90,24 @@ void MultiFunction::call_auto(IndexMask mask, MFParams params, MFContext context
     Vector<int64_t> offset_mask_indices;
     const IndexMask offset_mask = mask.slice_and_offset(sub_range, offset_mask_indices);
 
-    MFParamsBuilder offset_params{*this, offset_mask.min_array_size()};
+    ParamsBuilder offset_params{*this, offset_mask.min_array_size()};
 
     /* Slice all parameters so that for the actual function call. */
     for (const int param_index : this->param_indices()) {
-      const MFParamType param_type = this->param_type(param_index);
+      const ParamType param_type = this->param_type(param_index);
       switch (param_type.category()) {
-        case MFParamCategory::SingleInput: {
+        case ParamCategory::SingleInput: {
           const GVArray &varray = params.readonly_single_input(param_index);
           offset_params.add_readonly_single_input(varray.slice(input_slice_range));
           break;
         }
-        case MFParamCategory::SingleMutable: {
+        case ParamCategory::SingleMutable: {
           const GMutableSpan span = params.single_mutable(param_index);
           const GMutableSpan sliced_span = span.slice(input_slice_range);
           offset_params.add_single_mutable(sliced_span);
           break;
         }
-        case MFParamCategory::SingleOutput: {
+        case ParamCategory::SingleOutput: {
           const GMutableSpan span = params.uninitialized_single_output_if_required(param_index);
           if (span.is_empty()) {
             offset_params.add_ignored_single_output();
@@ -118,9 +118,9 @@ void MultiFunction::call_auto(IndexMask mask, MFParams params, MFContext context
           }
           break;
         }
-        case MFParamCategory::VectorInput:
-        case MFParamCategory::VectorMutable:
-        case MFParamCategory::VectorOutput: {
+        case ParamCategory::VectorInput:
+        case ParamCategory::VectorMutable:
+        case ParamCategory::VectorOutput: {
           BLI_assert_unreachable();
           break;
         }
@@ -136,4 +136,4 @@ std::string MultiFunction::debug_name() const
   return signature_ref_->function_name;
 }
 
-}  // namespace blender::fn
+}  // namespace blender::fn::multi_function

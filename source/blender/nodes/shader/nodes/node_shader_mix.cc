@@ -108,22 +108,23 @@ static void sh_node_mix_update(bNodeTree *ntree, bNode *node)
   const NodeShaderMix &storage = node_storage(*node);
   const eNodeSocketDatatype data_type = static_cast<eNodeSocketDatatype>(storage.data_type);
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+  bNodeSocket *sock_factor = static_cast<bNodeSocket *>(node->inputs.first);
+  bNodeSocket *sock_factor_vec = static_cast<bNodeSocket *>(sock_factor->next);
+
+  bool use_vector_factor = data_type == SOCK_VECTOR &&
+                           storage.factor_mode != NODE_MIX_MODE_UNIFORM;
+
+  nodeSetSocketAvailability(ntree, sock_factor, !use_vector_factor);
+
+  nodeSetSocketAvailability(ntree, sock_factor_vec, use_vector_factor);
+
+  for (bNodeSocket *socket = sock_factor_vec->next; socket != nullptr; socket = socket->next) {
     nodeSetSocketAvailability(ntree, socket, socket->type == data_type);
   }
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
     nodeSetSocketAvailability(ntree, socket, socket->type == data_type);
   }
-
-  bool use_vector_factor = data_type == SOCK_VECTOR &&
-                           storage.factor_mode != NODE_MIX_MODE_UNIFORM;
-
-  bNodeSocket *sock_factor = (bNodeSocket *)BLI_findlink(&node->inputs, 0);
-  nodeSetSocketAvailability(ntree, sock_factor, !use_vector_factor);
-
-  bNodeSocket *sock_factor_vec = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
-  nodeSetSocketAvailability(ntree, sock_factor_vec, use_vector_factor);
 }
 
 class SocketSearchOp {
@@ -350,7 +351,7 @@ static int gpu_shader_mix(GPUMaterial *mat,
   return ret;
 }
 
-class MixColorFunction : public fn::MultiFunction {
+class MixColorFunction : public mf::MultiFunction {
  private:
   const bool clamp_factor_;
   const bool clamp_result_;
@@ -360,21 +361,19 @@ class MixColorFunction : public fn::MultiFunction {
   MixColorFunction(const bool clamp_factor, const bool clamp_result, const int blend_type)
       : clamp_factor_(clamp_factor), clamp_result_(clamp_result), blend_type_(blend_type)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"MixColor", signature};
+      builder.single_input<float>("Factor");
+      builder.single_input<ColorGeometry4f>("A");
+      builder.single_input<ColorGeometry4f>("B");
+      builder.single_output<ColorGeometry4f>("Result");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"MixColor"};
-    signature.single_input<float>("Factor");
-    signature.single_input<ColorGeometry4f>("A");
-    signature.single_input<ColorGeometry4f>("B");
-    signature.single_output<ColorGeometry4f>("Result");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Factor");
     const VArray<ColorGeometry4f> &col1 = params.readonly_single_input<ColorGeometry4f>(1, "A");
@@ -403,7 +402,7 @@ class MixColorFunction : public fn::MultiFunction {
   }
 };
 
-static const fn::MultiFunction *get_multi_function(const bNode &node)
+static const mf::MultiFunction *get_multi_function(const bNode &node)
 {
   const NodeShaderMix *data = (NodeShaderMix *)node.storage;
   bool uniform_factor = data->factor_mode == NODE_MIX_MODE_UNIFORM;
@@ -411,51 +410,51 @@ static const fn::MultiFunction *get_multi_function(const bNode &node)
   switch (data->data_type) {
     case SOCK_FLOAT: {
       if (clamp_factor) {
-        static fn::CustomMF_SI_SI_SI_SO<float, float, float, float> fn{
+        static auto fn = mf::build::SI3_SO<float, float, float, float>(
             "Clamp Mix Float", [](float t, const float a, const float b) {
               return math::interpolate(a, b, std::clamp(t, 0.0f, 1.0f));
-            }};
+            });
         return &fn;
       }
       else {
-        static fn::CustomMF_SI_SI_SI_SO<float, float, float, float> fn{
+        static auto fn = mf::build::SI3_SO<float, float, float, float>(
             "Mix Float", [](const float t, const float a, const float b) {
               return math::interpolate(a, b, t);
-            }};
+            });
         return &fn;
       }
     }
     case SOCK_VECTOR: {
       if (clamp_factor) {
         if (uniform_factor) {
-          static fn::CustomMF_SI_SI_SI_SO<float, float3, float3, float3> fn{
+          static auto fn = mf::build::SI3_SO<float, float3, float3, float3>(
               "Clamp Mix Vector", [](const float t, const float3 a, const float3 b) {
                 return math::interpolate(a, b, std::clamp(t, 0.0f, 1.0f));
-              }};
+              });
           return &fn;
         }
         else {
-          static fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
+          static auto fn = mf::build::SI3_SO<float3, float3, float3, float3>(
               "Clamp Mix Vector Non Uniform", [](float3 t, const float3 a, const float3 b) {
                 t = math::clamp(t, 0.0f, 1.0f);
                 return a * (float3(1.0f) - t) + b * t;
-              }};
+              });
           return &fn;
         }
       }
       else {
         if (uniform_factor) {
-          static fn::CustomMF_SI_SI_SI_SO<float, float3, float3, float3> fn{
+          static auto fn = mf::build::SI3_SO<float, float3, float3, float3>(
               "Mix Vector", [](const float t, const float3 a, const float3 b) {
                 return math::interpolate(a, b, t);
-              }};
+              });
           return &fn;
         }
         else {
-          static fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
+          static auto fn = mf::build::SI3_SO<float3, float3, float3, float3>(
               "Mix Vector Non Uniform", [](const float3 t, const float3 a, const float3 b) {
                 return a * (float3(1.0f) - t) + b * t;
-              }};
+              });
           return &fn;
         }
       }
@@ -474,7 +473,7 @@ static void sh_node_mix_build_multi_function(NodeMultiFunctionBuilder &builder)
         storage.clamp_factor, storage.clamp_result, storage.blend_type);
   }
   else {
-    const fn::MultiFunction *fn = get_multi_function(builder.node());
+    const mf::MultiFunction *fn = get_multi_function(builder.node());
     builder.set_matching_fn(fn);
   }
 }

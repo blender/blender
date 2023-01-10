@@ -140,7 +140,7 @@ void BLI_listbase_swaplinks(ListBase *listbase, void *vlinka, void *vlinkb)
   }
 
   if (linkb->next == linka) {
-    SWAP(Link *, linka, linkb);
+    std::swap(linka, linkb);
   }
 
   if (linka->next == linkb) {
@@ -150,8 +150,8 @@ void BLI_listbase_swaplinks(ListBase *listbase, void *vlinka, void *vlinkb)
     linkb->next = linka;
   }
   else { /* Non-contiguous items, we can safely swap. */
-    SWAP(Link *, linka->prev, linkb->prev);
-    SWAP(Link *, linka->next, linkb->next);
+    std::swap(linka->prev, linkb->prev);
+    std::swap(linka->next, linkb->next);
   }
 
   /* Update neighbors of linka and linkb. */

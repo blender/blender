@@ -8,7 +8,7 @@
 #include "BLI_function_ref.hh"
 #include "BLI_generic_span.hh"
 #include "BLI_generic_virtual_array.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 
 #include "BKE_anonymous_attribute_id.hh"
@@ -17,7 +17,9 @@
 struct Mesh;
 struct PointCloud;
 namespace blender::fn {
+namespace multi_function {
 class MultiFunction;
+}
 class GField;
 }  // namespace blender::fn
 
@@ -174,7 +176,7 @@ struct AttributeValidator {
   /**
    * Single input, single output function that corrects attribute values if necessary.
    */
-  const fn::MultiFunction *function;
+  const fn::multi_function::MultiFunction *function;
 
   operator bool() const
   {

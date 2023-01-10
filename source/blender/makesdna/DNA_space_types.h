@@ -1001,6 +1001,8 @@ typedef enum eFileSelectType {
   FILE_MAIN_ASSET = 3,
   /** Load assets of an asset library containing external files. */
   FILE_ASSET_LIBRARY = 4,
+  /** Load all asset libraries. */
+  FILE_ASSET_LIBRARY_ALL = 5,
 
   FILE_UNIX = 8,
   FILE_BLENDER = 8, /* don't display relative paths */

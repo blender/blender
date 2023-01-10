@@ -679,7 +679,7 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
   if (num_verts == 0) {
     return;
   }
-  const MVert *verts = static_cast<const MVert *>(b_mesh.vertices[0].ptr.data);
+  const float(*positions)[3] = static_cast<const float(*)[3]>(b_mesh.vertices[0].ptr.data);
 
   /* STEP 1: Find out duplicated vertices and point duplicates to a single
    *         original vertex.
@@ -765,10 +765,8 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
       continue;
     }
     visited_edges.insert(v0, v1);
-    const MVert &b_vert_0 = verts[v0];
-    const MVert &b_vert_1 = verts[v1];
-    float3 co0 = make_float3(b_vert_0.co[0], b_vert_0.co[1], b_vert_0.co[2]);
-    float3 co1 = make_float3(b_vert_1.co[0], b_vert_1.co[1], b_vert_1.co[2]);
+    float3 co0 = make_float3(positions[v0][0], positions[v0][1], positions[v0][2]);
+    float3 co1 = make_float3(positions[v1][0], positions[v1][1], positions[v1][2]);
     float3 edge = normalize(co1 - co0);
     edge_accum[v0] += edge;
     edge_accum[v1] += -edge;
@@ -919,7 +917,7 @@ static void create_mesh(Scene *scene,
     return;
   }
 
-  const MVert *verts = static_cast<const MVert *>(b_mesh.vertices[0].ptr.data);
+  const float(*positions)[3] = static_cast<const float(*)[3]>(b_mesh.vertices[0].ptr.data);
 
   if (!subdivision) {
     numtris = numfaces;
@@ -942,8 +940,7 @@ static void create_mesh(Scene *scene,
 
   /* create vertex coordinates and normals */
   for (int i = 0; i < numverts; i++) {
-    const MVert &b_vert = verts[i];
-    mesh->add_vertex(make_float3(b_vert.co[0], b_vert.co[1], b_vert.co[2]));
+    mesh->add_vertex(make_float3(positions[i][0], positions[i][1], positions[i][2]));
   }
 
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
@@ -1252,14 +1249,13 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
     float3 *mP = attr_mP->data_float3() + motion_step * numverts;
     float3 *mN = (attr_mN) ? attr_mN->data_float3() + motion_step * numverts : NULL;
 
-    const MVert *verts = static_cast<const MVert *>(b_mesh.vertices[0].ptr.data);
+    const float(*positions)[3] = static_cast<const float(*)[3]>(b_mesh.vertices[0].ptr.data);
 
     /* NOTE: We don't copy more that existing amount of vertices to prevent
      * possible memory corruption.
      */
     for (int i = 0; i < std::min<size_t>(b_verts_num, numverts); i++) {
-      const MVert &b_vert = verts[i];
-      mP[i] = make_float3(b_vert.co[0], b_vert.co[1], b_vert.co[2]);
+      mP[i] = make_float3(positions[i][0], positions[i][1], positions[i][2]);
     }
     if (mN) {
       const float(*b_vert_normals)[3] = static_cast<const float(*)[3]>(

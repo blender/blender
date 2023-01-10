@@ -295,7 +295,7 @@ static bke::curves::bezier::Insertion knot_insert_bezier(
  * Sample source curve data in the interval defined by the points [start_point, end_point].
  * Uses linear interpolation to compute the endpoints.
  *
- * \tparam include_start_point If False, the 'start_point' point sample will not be copied
+ * \tparam include_start_point: If False, the 'start_point' point sample will not be copied
  * and not accounted for in the destination range.
  * \param src_data: Source to sample from.
  * \param dst_data: Destination to write samples to.

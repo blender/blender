@@ -170,44 +170,6 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
   }
 };
 
-/**
- * This attribute provider is used for uv maps and vertex colors.
- */
-class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
- private:
-  using AsReadAttribute = GVArray (*)(const void *data, int domain_num);
-  using AsWriteAttribute = GVMutableArray (*)(void *data, int domain_num);
-  const eAttrDomain domain_;
-  const eCustomDataType attribute_type_;
-  const eCustomDataType stored_type_;
-  const CustomDataAccessInfo custom_data_access_;
-  const AsReadAttribute as_read_attribute_;
-  const AsWriteAttribute as_write_attribute_;
-
- public:
-  NamedLegacyCustomDataProvider(const eAttrDomain domain,
-                                const eCustomDataType attribute_type,
-                                const eCustomDataType stored_type,
-                                const CustomDataAccessInfo custom_data_access,
-                                const AsReadAttribute as_read_attribute,
-                                const AsWriteAttribute as_write_attribute)
-      : domain_(domain),
-        attribute_type_(attribute_type),
-        stored_type_(stored_type),
-        custom_data_access_(custom_data_access),
-        as_read_attribute_(as_read_attribute),
-        as_write_attribute_(as_write_attribute)
-  {
-  }
-
-  GAttributeReader try_get_for_read(const void *owner,
-                                    const AttributeIDRef &attribute_id) const final;
-  GAttributeWriter try_get_for_write(void *owner, const AttributeIDRef &attribute_id) const final;
-  bool try_delete(void *owner, const AttributeIDRef &attribute_id) const final;
-  bool foreach_attribute(const void *owner, const AttributeForeachCallback callback) const final;
-  void foreach_domain(const FunctionRef<void(eAttrDomain)> callback) const final;
-};
-
 template<typename T> GVArray make_array_read_attribute(const void *data, const int domain_num)
 {
   return VArray<T>::ForSpan(Span<T>((const T *)data, domain_num));
@@ -220,8 +182,7 @@ template<typename T> GVMutableArray make_array_write_attribute(void *data, const
 
 /**
  * This provider is used to provide access to builtin attributes. It supports making internal types
- * available as different types. For example, the vertex position attribute is stored as part of
- * the #MVert struct, but is exposed as float3 attribute.
+ * available as different types.
  *
  * It also supports named builtin attributes, and will look up attributes in #CustomData by name
  * if the stored type is the same as the attribute type.

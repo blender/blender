@@ -105,7 +105,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-class SampleMeshBarycentricFunction : public fn::MultiFunction {
+class SampleMeshBarycentricFunction : public mf::MultiFunction {
   GeometrySet source_;
   GField src_field_;
 
@@ -116,7 +116,7 @@ class SampleMeshBarycentricFunction : public fn::MultiFunction {
    */
   eAttrDomain domain_ = ATTR_DOMAIN_CORNER;
 
-  fn::MFSignature signature_;
+  mf::Signature signature_;
 
   std::optional<bke::MeshFieldContext> source_context_;
   std::unique_ptr<FieldEvaluator> source_evaluator_;
@@ -129,21 +129,16 @@ class SampleMeshBarycentricFunction : public fn::MultiFunction {
       : source_(std::move(geometry)), src_field_(std::move(src_field))
   {
     source_.ensure_owns_direct_data();
-    this->set_signature(&signature_);
-    signature_ = this->create_signature();
     this->evaluate_source();
+
+    mf::SignatureBuilder builder{"Sample Barycentric Triangles", signature_};
+    builder.single_input<int>("Triangle Index");
+    builder.single_input<float3>("Barycentric Weight");
+    builder.single_output("Value", src_field_.cpp_type());
+    this->set_signature(&signature_);
   }
 
-  fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Sample Barycentric Triangles"};
-    signature.single_input<int>("Triangle Index");
-    signature.single_input<float3>("Barycentric Weight");
-    signature.single_output("Value", src_field_.cpp_type());
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArraySpan<int> triangle_indices = params.readonly_single_input<int>(0,
                                                                                "Triangle Index");
@@ -184,7 +179,7 @@ class SampleMeshBarycentricFunction : public fn::MultiFunction {
   }
 };
 
-class ReverseUVSampleFunction : public fn::MultiFunction {
+class ReverseUVSampleFunction : public mf::MultiFunction {
   GeometrySet source_;
   Field<float2> src_uv_map_field_;
 
@@ -199,22 +194,21 @@ class ReverseUVSampleFunction : public fn::MultiFunction {
       : source_(std::move(geometry)), src_uv_map_field_(std::move(src_uv_map_field))
   {
     source_.ensure_owns_direct_data();
-    static fn::MFSignature signature = create_signature();
-    this->set_signature(&signature);
     this->evaluate_source();
+
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Sample UV Surface", signature};
+      builder.single_input<float2>("Sample UV");
+      builder.single_output<bool>("Is Valid");
+      builder.single_output<int>("Triangle Index");
+      builder.single_output<float3>("Barycentric Weights");
+      return signature;
+    }();
+    this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Sample UV Surface"};
-    signature.single_input<float2>("Sample UV");
-    signature.single_output<bool>("Is Valid");
-    signature.single_output<int>("Triangle Index");
-    signature.single_output<float3>("Barycentric Weights");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArraySpan<float2> sample_uvs = params.readonly_single_input<float2>(0, "Sample UV");
     MutableSpan<bool> is_valid = params.uninitialized_single_output_if_required<bool>(1,

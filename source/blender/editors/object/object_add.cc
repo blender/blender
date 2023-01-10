@@ -49,6 +49,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_curve_to_mesh.hh"
 #include "BKE_curves.h"
 #include "BKE_displist.h"
 #include "BKE_duplilist.h"
@@ -2096,7 +2097,7 @@ static int object_curves_empty_hair_add_exec(bContext *C, wmOperator *op)
 
   /* Decide which UV map to use for attachment. */
   Mesh *surface_mesh = static_cast<Mesh *>(surface_ob->data);
-  const char *uv_name = CustomData_get_active_layer_name(&surface_mesh->ldata, CD_MLOOPUV);
+  const char *uv_name = CustomData_get_active_layer_name(&surface_mesh->ldata, CD_PROP_FLOAT2);
   if (uv_name != nullptr) {
     curves_id->surface_uv_map = BLI_strdup(uv_name);
   }
@@ -2877,6 +2878,7 @@ static Base *duplibase_for_convert(
 
 static int object_convert_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -3358,6 +3360,55 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
         ED_rigidbody_object_remove(bmain, scene, newob);
       }
+    }
+    else if (ob->type == OB_CURVES && target == OB_MESH) {
+      ob->flag |= OB_DONE;
+
+      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      GeometrySet geometry;
+      if (ob_eval->runtime.geometry_set_eval != nullptr) {
+        geometry = *ob_eval->runtime.geometry_set_eval;
+      }
+
+      if (keep_original) {
+        basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, nullptr);
+        newob = basen->object;
+
+        Curves *curves = static_cast<Curves *>(newob->data);
+        id_us_min(&curves->id);
+
+        newob->data = BKE_id_copy(bmain, &curves->id);
+      }
+      else {
+        newob = ob;
+      }
+
+      Mesh *new_mesh = static_cast<Mesh *>(BKE_id_new(bmain, ID_ME, newob->id.name + 2));
+      if (const Mesh *mesh_eval = geometry.get_mesh_for_read()) {
+        BKE_mesh_nomain_to_mesh(BKE_mesh_copy_for_eval(mesh_eval, false), new_mesh, newob);
+        BKE_object_material_from_eval_data(bmain, newob, &mesh_eval->id);
+        new_mesh->attributes_for_write().remove_anonymous();
+      }
+      else if (const Curves *curves_eval = geometry.get_curves_for_read()) {
+        bke::AnonymousAttributePropagationInfo propagation_info;
+        propagation_info.propagate_all = false;
+        Mesh *mesh = bke::curve_to_wire_mesh(bke::CurvesGeometry::wrap(curves_eval->geometry),
+                                             propagation_info);
+        BKE_mesh_nomain_to_mesh(mesh, new_mesh, newob);
+        BKE_object_material_from_eval_data(bmain, newob, &curves_eval->id);
+      }
+      else {
+        BKE_reportf(op->reports,
+                    RPT_WARNING,
+                    "Object '%s' has no evaluated mesh or curves data",
+                    ob->id.name + 2);
+      }
+
+      newob->data = new_mesh;
+      newob->type = OB_MESH;
+
+      BKE_object_free_derived_caches(newob);
+      BKE_object_free_modifiers(newob, 0);
     }
     else {
       continue;

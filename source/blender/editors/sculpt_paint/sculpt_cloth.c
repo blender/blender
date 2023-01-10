@@ -635,12 +635,12 @@ static void cloth_brush_collision_cb(void *userdata,
   ClothBrushCollision *col = (ClothBrushCollision *)userdata;
   CollisionModifierData *col_data = col->col_data;
   MVertTri *verttri = &col_data->tri[index];
-  MVert *mverts = col_data->x;
+  float(*positions)[3] = col_data->x;
   float *tri[3], no[3], co[3];
 
-  tri[0] = mverts[verttri->tri[0]].co;
-  tri[1] = mverts[verttri->tri[1]].co;
-  tri[2] = mverts[verttri->tri[2]].co;
+  tri[0] = positions[verttri->tri[0]];
+  tri[1] = positions[verttri->tri[1]];
+  tri[2] = positions[verttri->tri[2]];
   float dist = 0.0f;
 
   bool tri_hit = isect_ray_tri_watertight_v3(
@@ -783,7 +783,7 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
 
     copy_v3_v3(vd.co, cloth_sim->pos[vd.index]);
 
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }

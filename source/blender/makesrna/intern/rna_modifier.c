@@ -1355,16 +1355,16 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
       Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
 
       CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
-      cddata_masks.lmask |= CD_MASK_MLOOPUV;
+      cddata_masks.lmask |= CD_MASK_PROP_FLOAT2;
       me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
-      num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPUV);
+      num_data = CustomData_number_of_layers(&me_eval->ldata, CD_PROP_FLOAT2);
 
       RNA_enum_item_add_separator(&item, &totitem);
 
       for (i = 0; i < num_data; i++) {
         tmp_item.value = i;
         tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
-            &me_eval->ldata, CD_MLOOPUV, i);
+            &me_eval->ldata, CD_PROP_FLOAT2, i);
         RNA_enum_item_add(&item, &totitem, &tmp_item);
       }
     }
@@ -1473,13 +1473,14 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
 
         me_dst = ob_dst->data;
         ldata = &me_dst->ldata;
-        num_data = CustomData_number_of_layers(ldata, CD_MLOOPUV);
+        num_data = CustomData_number_of_layers(ldata, CD_PROP_FLOAT2);
 
         RNA_enum_item_add_separator(&item, &totitem);
 
         for (i = 0; i < num_data; i++) {
           tmp_item.value = i;
-          tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(ldata, CD_MLOOPUV, i);
+          tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
+              ldata, CD_PROP_FLOAT2, i);
           RNA_enum_item_add(&item, &totitem, &tmp_item);
         }
       }
@@ -3861,7 +3862,7 @@ static void rna_def_modifier_explode(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "particle_uv", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "uvname");
-  RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME);
+  RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX);
   RNA_def_property_ui_text(prop, "Particle UV", "UV map to change with particle age");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 

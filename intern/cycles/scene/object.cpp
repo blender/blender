@@ -435,6 +435,10 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
     state->have_motion = true;
   }
 
+  if (transform_negative_scale(tfm)) {
+    flag |= SD_OBJECT_NEGATIVE_SCALE;
+  }
+
   if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::POINTCLOUD) {
     /* TODO: why only mesh? */
     Mesh *mesh = static_cast<Mesh *>(geom);
@@ -970,8 +974,6 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
         }
 
         object_flag[i] |= SD_OBJECT_TRANSFORM_APPLIED;
-        if (geom->transform_negative_scaled)
-          object_flag[i] |= SD_OBJECT_NEGATIVE_SCALE_APPLIED;
       }
     }
 

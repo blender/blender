@@ -211,6 +211,11 @@ bool OIIOImageLoader::load_pixels(const ImageMetaData &metadata,
       if (strcmp(in->format_name(), "dds") == 0) {
         do_associate_alpha = true;
       }
+      /* Workaround OIIO bug that sets oiio:UnassociatedAlpha on the last layer
+       * but not composite image that we read. */
+      if (strcmp(in->format_name(), "psd") == 0) {
+        do_associate_alpha = true;
+      }
     }
   }
 

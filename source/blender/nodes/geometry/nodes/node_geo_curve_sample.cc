@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_devirtualize_parameters.hh"
 #include "BLI_generic_array.hh"
 #include "BLI_length_parameterize.hh"
 
@@ -202,7 +201,7 @@ static void sample_indices_and_factors_to_compressed(const Span<float> accumulat
  * Given an array of accumulated lengths, find the segment indices that
  * sample lengths lie on, and how far along the segment they are.
  */
-class SampleFloatSegmentsFunction : public fn::MultiFunction {
+class SampleFloatSegmentsFunction : public mf::MultiFunction {
  private:
   Array<float> accumulated_lengths_;
   GeometryNodeCurveSampleMode length_mode_;
@@ -212,21 +211,19 @@ class SampleFloatSegmentsFunction : public fn::MultiFunction {
                               const GeometryNodeCurveSampleMode length_mode)
       : accumulated_lengths_(std::move(accumulated_lengths)), length_mode_(length_mode)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Sample Curve Index", signature};
+      builder.single_input<float>("Length");
+
+      builder.single_output<int>("Curve Index");
+      builder.single_output<float>("Length in Curve");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Sample Curve Index"};
-    signature.single_input<float>("Length");
-
-    signature.single_output<int>("Curve Index");
-    signature.single_output<float>("Length in Curve");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArraySpan<float> lengths = params.readonly_single_input<float>(0, "Length");
     MutableSpan<int> indices = params.uninitialized_single_output<int>(1, "Curve Index");
@@ -238,7 +235,7 @@ class SampleFloatSegmentsFunction : public fn::MultiFunction {
   }
 };
 
-class SampleCurveFunction : public fn::MultiFunction {
+class SampleCurveFunction : public mf::MultiFunction {
  private:
   /**
    * The function holds a geometry set instead of curves or a curve component reference in order
@@ -249,7 +246,7 @@ class SampleCurveFunction : public fn::MultiFunction {
   GField src_field_;
   GeometryNodeCurveSampleMode length_mode_;
 
-  fn::MFSignature signature_;
+  mf::Signature signature_;
 
   std::optional<bke::CurvesFieldContext> source_context_;
   std::unique_ptr<FieldEvaluator> source_evaluator_;
@@ -261,24 +258,19 @@ class SampleCurveFunction : public fn::MultiFunction {
                       const GField &src_field)
       : geometry_set_(std::move(geometry_set)), src_field_(src_field), length_mode_(length_mode)
   {
-    signature_ = create_signature();
+    mf::SignatureBuilder builder{"Sample Curve", signature_};
+    builder.single_input<int>("Curve Index");
+    builder.single_input<float>("Length");
+    builder.single_output<float3>("Position");
+    builder.single_output<float3>("Tangent");
+    builder.single_output<float3>("Normal");
+    builder.single_output("Value", src_field_.cpp_type());
     this->set_signature(&signature_);
+
     this->evaluate_source();
   }
 
-  fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Sample Curve"};
-    signature.single_input<int>("Curve Index");
-    signature.single_input<float>("Length");
-    signature.single_output<float3>("Position");
-    signature.single_output<float3>("Tangent");
-    signature.single_output<float3>("Normal");
-    signature.single_output("Value", src_field_.cpp_type());
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     MutableSpan<float3> sampled_positions = params.uninitialized_single_output_if_required<float3>(
         2, "Position");

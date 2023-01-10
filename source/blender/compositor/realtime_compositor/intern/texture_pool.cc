@@ -4,7 +4,7 @@
 
 #include "BLI_hash.hh"
 #include "BLI_map.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
 #include "GPU_texture.h"

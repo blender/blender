@@ -73,6 +73,12 @@ struct bNodeLinkDrag {
 };
 
 struct SpaceNode_Runtime {
+  /**
+   * The location of all sockets in the tree, calculated while drawing the nodes.
+   * To be indexed with #bNodeSocket::index_in_tree().
+   */
+  Vector<float2> all_socket_locations;
+
   float aspect;
 
   /** Mouse position for drawing socket-less links and adding nodes. */
@@ -241,10 +247,13 @@ void node_draw_link_bezier(const bContext &C,
                            int th_col3,
                            bool selected);
 
-void node_link_bezier_points_evaluated(const bNodeLink &link,
+void node_link_bezier_points_evaluated(Span<float2> all_socket_locations,
+                                       const bNodeLink &link,
                                        std::array<float2, NODE_LINK_RESOL + 1> &coords);
 
-std::optional<float2> link_path_intersection(const bNodeLink &link, Span<float2> path);
+std::optional<float2> link_path_intersection(Span<float2> socket_locations,
+                                             const bNodeLink &link,
+                                             Span<float2> path);
 
 void draw_nodespace_back_pix(const bContext &C,
                              ARegion &region,
@@ -314,8 +323,12 @@ int node_render_changed_exec(bContext *, wmOperator *);
 bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
                                         const float2 &cursor,
                                         eNodeSocketInOut in_out);
-float node_link_dim_factor(const View2D &v2d, const bNodeLink &link);
-bool node_link_is_hidden_or_dimmed(const View2D &v2d, const bNodeLink &link);
+float node_link_dim_factor(Span<float2> socket_locations,
+                           const View2D &v2d,
+                           const bNodeLink &link);
+bool node_link_is_hidden_or_dimmed(Span<float2> socket_locations,
+                                   const View2D &v2d,
+                                   const bNodeLink &link);
 
 void NODE_OT_duplicate(wmOperatorType *ot);
 void NODE_OT_delete(wmOperatorType *ot);

@@ -1049,7 +1049,7 @@ bool RE_engine_render(Render *re, bool do_all)
    * inversion as this calls python to get the render passes, while python UI
    * code can also hold a lock on the render result. */
   const bool create_new_result = (re->result == nullptr || !(re->r.scemode & R_BUTS_PREVIEW));
-  RenderResult *new_result = engine_render_create_result(re);
+  RenderResult *new_result = (create_new_result) ? engine_render_create_result(re) : nullptr;
 
   BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
   if (create_new_result) {

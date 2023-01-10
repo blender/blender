@@ -2500,7 +2500,7 @@ static void widget_state(uiWidgetType *wt, const uiWidgetStateInfo *state, eUIEm
     copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
 
     if (state->but_flag & UI_SELECT) {
-      SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
+      std::swap(wt->wcol.shadetop, wt->wcol.shadedown);
     }
   }
   else {
@@ -2534,7 +2534,7 @@ static void widget_state(uiWidgetType *wt, const uiWidgetStateInfo *state, eUIEm
   if (state->but_flag & UI_BUT_DRAG_MULTI) {
     /* the button isn't SELECT but we're editing this so draw with sel color */
     copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
-    SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
+    std::swap(wt->wcol.shadetop, wt->wcol.shadedown);
     color_blend_v3_v3(wt->wcol.text, wt->wcol.text_sel, 0.85f);
   }
 
@@ -2592,7 +2592,7 @@ static void widget_state_numslider(uiWidgetType *wt,
   }
 
   if (state->but_flag & UI_SELECT) {
-    SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
+    std::swap(wt->wcol.shadetop, wt->wcol.shadedown);
   }
 }
 
@@ -3306,7 +3306,7 @@ static void widget_numbut_draw(uiWidgetColors *wcol,
   const int handle_width = min_ii(BLI_rcti_size_x(rect) / 3, BLI_rcti_size_y(rect) * 0.7f);
 
   if (state->but_flag & UI_SELECT) {
-    SWAP(short, wcol->shadetop, wcol->shadedown);
+    std::swap(wcol->shadetop, wcol->shadedown);
   }
 
   uiWidgetBase wtb;
@@ -3483,7 +3483,7 @@ void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *s
 
   /* draw back part, colors swapped and shading inverted */
   if (horizontal) {
-    SWAP(short, wcol->shadetop, wcol->shadedown);
+    std::swap(wcol->shadetop, wcol->shadedown);
   }
 
   round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
@@ -3494,7 +3494,7 @@ void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *s
     /* pass */
   }
   else {
-    SWAP(short, wcol->shadetop, wcol->shadedown);
+    std::swap(wcol->shadetop, wcol->shadedown);
 
     copy_v4_v4_uchar(wcol->inner, wcol->item);
 
@@ -3721,7 +3721,7 @@ static void widget_numslider(uiBut *but,
     copy_v3_v3_uchar(wcol->inner, wcol->item);
 
     if (!(state->but_flag & UI_SELECT)) {
-      SWAP(short, wcol->shadetop, wcol->shadedown);
+      std::swap(wcol->shadetop, wcol->shadedown);
     }
 
     rcti rect1 = *rect;
@@ -3789,7 +3789,7 @@ static void widget_numslider(uiBut *but,
     copy_v3_v3_uchar(wcol->outline, outline);
 
     if (!(state->but_flag & UI_SELECT)) {
-      SWAP(short, wcol->shadetop, wcol->shadedown);
+      std::swap(wcol->shadetop, wcol->shadedown);
     }
   }
 
@@ -3946,7 +3946,7 @@ static void widget_textbut(uiWidgetColors *wcol,
                            const float zoom)
 {
   if (state->but_flag & UI_SELECT) {
-    SWAP(short, wcol->shadetop, wcol->shadedown);
+    std::swap(wcol->shadetop, wcol->shadedown);
   }
 
   uiWidgetBase wtb;

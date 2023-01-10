@@ -457,15 +457,13 @@ void gpu::MTLTexture::update_sub(
   if (is_depth_format) {
     switch (type_) {
 
-      case GPU_TEXTURE_2D: {
+      case GPU_TEXTURE_2D:
         update_sub_depth_2d(mip, offset, extent, type, data);
         return;
-      }
       default:
         MTL_LOG_ERROR(
             "[Error] gpu::MTLTexture::update_sub not yet supported for other depth "
             "configurations\n");
-        return;
         return;
     }
   }
@@ -473,7 +471,7 @@ void gpu::MTLTexture::update_sub(
   @autoreleasepool {
     /* Determine totalsize of INPUT Data. */
     int num_channels = to_component_len(format_);
-    int input_bytes_per_pixel = num_channels * to_bytesize(type);
+    int input_bytes_per_pixel = to_bytesize(format_, type);
     int totalsize = 0;
 
     /* If unpack row length is used, size of input data uses the unpack row length, rather than the
@@ -488,15 +486,27 @@ void gpu::MTLTexture::update_sub(
         totalsize = input_bytes_per_pixel * max_ii(expected_update_w, 1);
         break;
       case 2:
-        totalsize = input_bytes_per_pixel * max_ii(expected_update_w, 1) * max_ii(extent[1], 1);
+        totalsize = input_bytes_per_pixel * max_ii(expected_update_w, 1) * extent[1];
         break;
       case 3:
-        totalsize = input_bytes_per_pixel * max_ii(expected_update_w, 1) * max_ii(extent[1], 1) *
-                    max_ii(extent[2], 1);
+        totalsize = input_bytes_per_pixel * max_ii(expected_update_w, 1) * extent[1] * extent[2];
         break;
       default:
         BLI_assert(false);
         break;
+    }
+
+    /* Early exit if update size is zero. update_sub sometimes has a zero-sized
+     * extent when called from texture painting.  */
+    if (totalsize <= 0 || extent[0] <= 0) {
+      MTL_LOG_WARNING(
+          "MTLTexture::update_sub called with extent size of zero for one or more dimensions. "
+          "(%d, %d, %d) - DimCount: %u\n",
+          extent[0],
+          extent[1],
+          extent[2],
+          this->dimensions_count());
+      return;
     }
 
     /* When unpack row length is used, provided data does not necessarily contain padding for last
@@ -942,7 +952,75 @@ void gpu::MTLTexture::update_sub(
       /* When using staging texture, copy results into existing texture. */
       BLI_assert(staging_texture != nil);
       blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
-      [blit_encoder copyFromTexture:staging_texture toTexture:texture_];
+
+      /* Copy modified staging texture region back to original texture.
+       * Differing blit dimensions based on type. */
+      switch (type_) {
+        case GPU_TEXTURE_1D:
+        case GPU_TEXTURE_1D_ARRAY: {
+          int base_slice = (type_ == GPU_TEXTURE_1D_ARRAY) ? offset[1] : 0;
+          int final_slice = base_slice + ((type_ == GPU_TEXTURE_1D_ARRAY) ? extent[1] : 1);
+          for (int array_index = base_slice; array_index < final_slice; array_index++) {
+            [blit_encoder copyFromTexture:staging_texture
+                              sourceSlice:array_index
+                              sourceLevel:mip
+                             sourceOrigin:MTLOriginMake(offset[0], 0, 0)
+                               sourceSize:MTLSizeMake(extent[0], 1, 1)
+                                toTexture:texture_
+                         destinationSlice:array_index
+                         destinationLevel:mip
+                        destinationOrigin:MTLOriginMake(offset[0], 0, 0)];
+          }
+        } break;
+        case GPU_TEXTURE_2D:
+        case GPU_TEXTURE_2D_ARRAY: {
+          int base_slice = (type_ == GPU_TEXTURE_2D_ARRAY) ? offset[2] : 0;
+          int final_slice = base_slice + ((type_ == GPU_TEXTURE_2D_ARRAY) ? extent[2] : 1);
+          for (int array_index = base_slice; array_index < final_slice; array_index++) {
+            [blit_encoder copyFromTexture:staging_texture
+                              sourceSlice:array_index
+                              sourceLevel:mip
+                             sourceOrigin:MTLOriginMake(offset[0], offset[1], 0)
+                               sourceSize:MTLSizeMake(extent[0], extent[1], 1)
+                                toTexture:texture_
+                         destinationSlice:array_index
+                         destinationLevel:mip
+                        destinationOrigin:MTLOriginMake(offset[0], offset[1], 0)];
+          }
+        } break;
+        case GPU_TEXTURE_3D: {
+          [blit_encoder copyFromTexture:staging_texture
+                            sourceSlice:0
+                            sourceLevel:mip
+                           sourceOrigin:MTLOriginMake(offset[0], offset[1], offset[2])
+                             sourceSize:MTLSizeMake(extent[0], extent[1], extent[2])
+                              toTexture:texture_
+                       destinationSlice:0
+                       destinationLevel:mip
+                      destinationOrigin:MTLOriginMake(offset[0], offset[1], offset[2])];
+        } break;
+        case GPU_TEXTURE_CUBE:
+        case GPU_TEXTURE_CUBE_ARRAY: {
+          /* Iterate over all cube faces in range (offset[2], offset[2] + extent[2]). */
+          for (int i = 0; i < extent[2]; i++) {
+            int face_index = offset[2] + i;
+            [blit_encoder copyFromTexture:staging_texture
+                              sourceSlice:face_index
+                              sourceLevel:mip
+                             sourceOrigin:MTLOriginMake(offset[0], offset[1], 0)
+                               sourceSize:MTLSizeMake(extent[0], extent[1], 1)
+                                toTexture:texture_
+                         destinationSlice:face_index
+                         destinationLevel:mip
+                        destinationOrigin:MTLOriginMake(offset[0], offset[1], 0)];
+          }
+        } break;
+        case GPU_TEXTURE_ARRAY:
+        case GPU_TEXTURE_BUFFER:
+          BLI_assert_unreachable();
+          break;
+      }
+
       [staging_texture release];
     }
 
@@ -1933,6 +2011,11 @@ void gpu::MTLTexture::reset()
     is_dirty_ = true;
   }
 
+  if (texture_no_srgb_ != nil) {
+    [texture_no_srgb_ release];
+    texture_no_srgb_ = nil;
+  }
+
   if (mip_swizzle_view_ != nil) {
     [mip_swizzle_view_ release];
     mip_swizzle_view_ = nil;
@@ -1963,6 +2046,25 @@ void gpu::MTLTexture::reset()
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name SRGB Handling.
+ * \{ */
+bool MTLTexture::is_format_srgb()
+{
+  return (format_ == GPU_SRGB8_A8);
+}
+
+id<MTLTexture> MTLTexture::get_non_srgb_handle()
+{
+  id<MTLTexture> base_tex = get_metal_handle_base();
+  BLI_assert(base_tex != nil);
+  if (texture_no_srgb_ == nil) {
+    texture_no_srgb_ = [base_tex newTextureViewWithPixelFormat:MTLPixelFormatRGBA8Unorm];
+  }
+  return texture_no_srgb_;
+}
+
+/** \} */
 /* -------------------------------------------------------------------- */
 /** \name Pixel Buffer
  * \{ */

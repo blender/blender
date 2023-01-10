@@ -1148,7 +1148,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   const float(*ob_imat)[4] = vc->obact->world_to_object;
 
   /* Write vertices coordinates for the front face. */
-  MVert *verts = BKE_mesh_verts_for_write(trim_operation->mesh);
+  float(*positions)[3] = BKE_mesh_vert_positions_for_write(trim_operation->mesh);
   float depth_point[3];
   madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_front);
   for (int i = 0; i < tot_screen_points; i++) {
@@ -1160,7 +1160,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
       ED_view3d_win_to_3d_on_plane(region, shape_plane, screen_points[i], false, new_point);
       madd_v3_v3fl(new_point, shape_normal, depth_front);
     }
-    mul_v3_m4v3(verts[i].co, ob_imat, new_point);
+    mul_v3_m4v3(positions[i], ob_imat, new_point);
     mul_v3_m4v3(trim_operation->true_mesh_co[i], ob_imat, new_point);
   }
 
@@ -1175,7 +1175,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
       ED_view3d_win_to_3d_on_plane(region, shape_plane, screen_points[i], false, new_point);
       madd_v3_v3fl(new_point, shape_normal, depth_back);
     }
-    mul_v3_m4v3(verts[i + tot_screen_points].co, ob_imat, new_point);
+    mul_v3_m4v3(positions[i + tot_screen_points], ob_imat, new_point);
     mul_v3_m4v3(trim_operation->true_mesh_co[i + tot_screen_points], ob_imat, new_point);
   }
 
@@ -1362,9 +1362,9 @@ static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext *UNUSED(C),
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
   Mesh *trim_mesh = trim_operation->mesh;
-  MVert *verts = BKE_mesh_verts_for_write(trim_mesh);
+  float(*positions)[3] = BKE_mesh_vert_positions_for_write(trim_mesh);
   for (int i = 0; i < trim_mesh->totvert; i++) {
-    flip_v3_v3(verts[i].co, trim_operation->true_mesh_co[i], sgcontext->symmpass);
+    flip_v3_v3(positions[i], trim_operation->true_mesh_co[i], sgcontext->symmpass);
   }
   sculpt_gesture_trim_normals_update(sgcontext);
   sculpt_gesture_apply_trim(sgcontext);
@@ -1473,7 +1473,7 @@ static void project_line_gesture_apply_task_cb(void *__restrict userdata,
       continue;
     }
     add_v3_v3(vd.co, disp);
-    if (vd.mvert) {
+    if (vd.vert_positions) {
       BKE_pbvh_vert_tag_update_normal(sgcontext->ss->pbvh, vd.vertex);
     }
     any_updated = true;

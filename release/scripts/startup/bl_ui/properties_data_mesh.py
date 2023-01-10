@@ -605,9 +605,8 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         colliding_names = []
         for collection in (
                 # Built-in names.
-                {"position": None, "shade_smooth": None, "normal": None, "crease": None},
+                {"shade_smooth": None, "normal": None, "crease": None},
                 mesh.attributes,
-                mesh.uv_layers,
                 None if ob is None else ob.vertex_groups,
         ):
             if collection is None:

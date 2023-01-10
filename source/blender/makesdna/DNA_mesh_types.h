@@ -16,7 +16,7 @@
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
 
-#  include "BLI_math_vec_types.hh"
+#  include "BLI_math_vector_types.hh"
 
 namespace blender {
 template<typename T> class Span;
@@ -44,7 +44,6 @@ struct MCol;
 struct MEdge;
 struct MFace;
 struct MLoopTri;
-struct MVert;
 struct Material;
 
 typedef struct Mesh {
@@ -65,7 +64,7 @@ typedef struct Mesh {
    */
   struct Material **mat;
 
-  /** The number of vertices (#MVert) in the mesh, and the size of #vdata. */
+  /** The number of vertices in the mesh, and the size of #vdata. */
   int totvert;
   /** The number of edges (#MEdge) in the mesh, and the size of #edata. */
   int totedge;
@@ -219,12 +218,11 @@ typedef struct Mesh {
   MeshRuntimeHandle *runtime;
 #ifdef __cplusplus
   /**
-   * Array of vertex positions (and various other data). Edges and faces are defined by indices
-   * into this array.
+   * Array of vertex positions. Edges and faces are defined by indices into this array.
    */
-  blender::Span<MVert> verts() const;
+  blender::Span<blender::float3> vert_positions() const;
   /** Write access to vertex data. */
-  blender::MutableSpan<MVert> verts_for_write();
+  blender::MutableSpan<blender::float3> vert_positions_for_write();
   /**
    * Array of edges, containing vertex indices. For simple triangle or quad meshes, edges could be
    * calculated from the #MPoly and #MLoop arrays, however, edges need to be stored explicitly to

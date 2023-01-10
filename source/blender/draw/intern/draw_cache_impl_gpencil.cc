@@ -23,7 +23,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "BLI_hash.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_polyfill_2d.h"
 
 #include "draw_cache.h"

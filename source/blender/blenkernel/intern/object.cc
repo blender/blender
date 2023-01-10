@@ -54,7 +54,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -3242,7 +3242,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
                            BKE_object_get_evaluated_mesh(par);
 
     if (me_eval) {
-      const MVert *verts = BKE_mesh_verts(me_eval);
+      const Span<float3> positions = me_eval->vert_positions();
       int count = 0;
       int numVerts = me_eval->totvert;
 
@@ -3276,14 +3276,14 @@ static void give_parvert(Object *par, int nr, float vec[3])
         /* Get the average of all verts with (original index == nr). */
         for (int i = 0; i < numVerts; i++) {
           if (index[i] == nr) {
-            add_v3_v3(vec, verts[i].co);
+            add_v3_v3(vec, positions[i]);
             count++;
           }
         }
       }
       else {
         if (nr < numVerts) {
-          add_v3_v3(vec, verts[nr].co);
+          add_v3_v3(vec, positions[nr]);
           count++;
         }
       }
@@ -3297,7 +3297,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
       else {
         /* use first index if its out of range */
         if (me_eval->totvert) {
-          copy_v3_v3(vec, verts[0].co);
+          copy_v3_v3(vec, positions[0]);
         }
       }
     }
@@ -4182,10 +4182,9 @@ void BKE_object_foreach_display_point(Object *ob,
   float3 co;
 
   if (mesh_eval != nullptr) {
-    const MVert *verts = BKE_mesh_verts(mesh_eval);
-    const int totvert = mesh_eval->totvert;
-    for (int i = 0; i < totvert; i++) {
-      mul_v3_m4v3(co, obmat, verts[i].co);
+    const Span<float3> positions = mesh_eval->vert_positions();
+    for (const int i : positions.index_range()) {
+      mul_v3_m4v3(co, obmat, positions[i]);
       func_cb(co, user_data);
     }
   }
@@ -4810,8 +4809,9 @@ bool BKE_object_shapekey_remove(Main *bmain, Object *ob, KeyBlock *kb)
       switch (ob->type) {
         case OB_MESH: {
           Mesh *mesh = (Mesh *)ob->data;
-          MutableSpan<MVert> verts = mesh->verts_for_write();
-          BKE_keyblock_convert_to_mesh(key->refkey, verts.data(), mesh->totvert);
+          MutableSpan<float3> positions = mesh->vert_positions_for_write();
+          BKE_keyblock_convert_to_mesh(
+              key->refkey, reinterpret_cast<float(*)[3]>(positions.data()), mesh->totvert);
           break;
         }
         case OB_CURVES_LEGACY:
@@ -5310,31 +5310,31 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
       const int *index;
 
       if (me_eval && (index = (const int *)CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX))) {
-        const Span<MVert> verts = me->verts();
+        const Span<float3> positions = me->vert_positions();
 
         /* Tree over-allocates in case where some verts have #ORIGINDEX_NONE. */
         tot = 0;
-        tree = BLI_kdtree_3d_new(verts.size());
+        tree = BLI_kdtree_3d_new(positions.size());
 
         /* We don't how many verts from the DM we can use. */
-        for (i = 0; i < verts.size(); i++) {
+        for (i = 0; i < positions.size(); i++) {
           if (index[i] != ORIGINDEX_NONE) {
             float co[3];
-            mul_v3_m4v3(co, ob->object_to_world, verts[i].co);
+            mul_v3_m4v3(co, ob->object_to_world, positions[i]);
             BLI_kdtree_3d_insert(tree, index[i], co);
             tot++;
           }
         }
       }
       else {
-        const Span<MVert> verts = me->verts();
+        const Span<float3> positions = me->vert_positions();
 
-        tot = verts.size();
+        tot = positions.size();
         tree = BLI_kdtree_3d_new(tot);
 
         for (i = 0; i < tot; i++) {
           float co[3];
-          mul_v3_m4v3(co, ob->object_to_world, verts[i].co);
+          mul_v3_m4v3(co, ob->object_to_world, positions[i]);
           BLI_kdtree_3d_insert(tree, i, co);
         }
       }

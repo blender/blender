@@ -62,7 +62,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
                                            const GeometryNodeUVUnwrapMethod method,
                                            const eAttrDomain domain)
 {
-  const Span<MVert> verts = mesh.verts();
+  const Span<float3> positions = mesh.vert_positions();
   const Span<MEdge> edges = mesh.edges();
   const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
@@ -95,7 +95,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
     for (const int i : IndexRange(mp.totloop)) {
       const MLoop &ml = loops[mp.loopstart + i];
       mp_vkeys[i] = ml.v;
-      mp_co[i] = verts[ml.v].co;
+      mp_co[i] = positions[ml.v];
       mp_uv[i] = uv[mp.loopstart + i];
       mp_pin[i] = false;
       mp_select[i] = false;

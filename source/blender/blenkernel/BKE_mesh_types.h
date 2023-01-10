@@ -16,7 +16,7 @@
 #  include "BLI_array.hh"
 #  include "BLI_bit_vector.hh"
 #  include "BLI_bounds_types.hh"
-#  include "BLI_math_vec_types.hh"
+#  include "BLI_math_vector_types.hh"
 #  include "BLI_shared_cache.hh"
 #  include "BLI_span.hh"
 
@@ -47,7 +47,7 @@ typedef enum eMeshBatchDirtyMode {
 
 /** #MeshRuntime.wrapper_type */
 typedef enum eMeshWrapperType {
-  /** Use mesh data (#Mesh.mvert, #Mesh.medge, #Mesh.mloop, #Mesh.mpoly). */
+  /** Use mesh data (#Mesh.vert_positions(), #Mesh.medge, #Mesh.mloop, #Mesh.mpoly). */
   ME_WRAPPER_TYPE_MDATA = 0,
   /** Use edit-mesh data (#Mesh.edit_mesh, #MeshRuntime.edit_data). */
   ME_WRAPPER_TYPE_BMESH = 1,

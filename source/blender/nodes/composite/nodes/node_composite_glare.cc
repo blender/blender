@@ -11,7 +11,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_math_base.h"
 #include "BLI_math_base.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "DNA_scene_types.h"
 

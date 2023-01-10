@@ -188,7 +188,7 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
   BLI_bitmap *vert_tag = BLI_BITMAP_NEW(me->totvert, __func__);
 
   /* first store two sets of tangent vectors in vertices, we derive it just from the face-edges */
-  const Span<MVert> verts = me->verts();
+  const Span<float3> positions = me->vert_positions();
   const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
 
@@ -214,9 +214,9 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
           co_next = origcos[ml_next->v];
         }
         else {
-          co_prev = verts[ml_prev->v].co;
-          co_curr = verts[ml_curr->v].co;
-          co_next = verts[ml_next->v].co;
+          co_prev = positions[ml_prev->v];
+          co_curr = positions[ml_curr->v];
+          co_next = positions[ml_next->v];
         }
 
         set_crazy_vertex_quat(

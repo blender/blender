@@ -670,6 +670,9 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
     msl_iface.uses_gl_FrontFacing = bool(info->builtins_ & BuiltinBits::FRONT_FACING) ||
                                     shd_builder_->glsl_fragment_source_.find("gl_FrontFacing") !=
                                         std::string::npos;
+    msl_iface.uses_gl_PrimitiveID = bool(info->builtins_ & BuiltinBits::PRIMITIVE_ID) ||
+                                    shd_builder_->glsl_fragment_source_.find("gl_PrimitiveID") !=
+                                        std::string::npos;
 
     /* NOTE(Metal): If FragColor is not used, then we treat the first fragment output attachment
      * as the primary output. */
@@ -989,6 +992,9 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
     }
     if (msl_iface.uses_gl_FrontFacing) {
       ss_fragment << "MTLBOOL gl_FrontFacing;" << std::endl;
+    }
+    if (msl_iface.uses_gl_PrimitiveID) {
+      ss_fragment << "uint gl_PrimitiveID;" << std::endl;
     }
 
     /* Add Texture members. */
@@ -1515,6 +1521,9 @@ std::string MSLGeneratorInterface::generate_msl_fragment_entry_stub()
   if (this->uses_gl_FrontFacing) {
     out << "fragment_shader_instance.gl_FrontFacing = gl_FrontFacing;" << std::endl;
   }
+  if (this->uses_gl_PrimitiveID) {
+    out << "fragment_shader_instance.gl_PrimitiveID = gl_PrimitiveID;" << std::endl;
+  }
 
   /* Copy vertex attributes into local variable.s */
   out << this->generate_msl_fragment_input_population();
@@ -1689,6 +1698,9 @@ std::string MSLGeneratorInterface::generate_msl_fragment_inputs_string()
   }
   if (this->uses_gl_FrontFacing) {
     out << ",\n\tconst MTLBOOL gl_FrontFacing [[front_facing]]";
+  }
+  if (this->uses_gl_PrimitiveID) {
+    out << ",\n\tconst uint gl_PrimitiveID [[primitive_id]]";
   }
 
   /* Barycentrics. */

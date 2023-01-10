@@ -480,7 +480,12 @@ id<MTLBuffer> MTLContext::get_null_buffer()
     return null_buffer_;
   }
 
-  static const int null_buffer_size = 4096;
+  /* TODO(mpw_apple_gpusw): Null buffer size temporarily increased to cover
+   * maximum possible UBO size. There are a number of cases which need to be
+   * resolved in the high level where an expected UBO does not have a bound
+   * buffer. The null buffer needs to at least cover the size of these
+   * UBOs to avoid any GPU memory issues. */
+  static const int null_buffer_size = 20480;
   null_buffer_ = [this->device newBufferWithLength:null_buffer_size
                                            options:MTLResourceStorageModeManaged];
   [null_buffer_ retain];

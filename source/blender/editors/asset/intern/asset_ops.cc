@@ -435,7 +435,18 @@ static void ASSET_OT_library_refresh(struct wmOperatorType *ot)
 static bool asset_catalog_operator_poll(bContext *C)
 {
   const SpaceFile *sfile = CTX_wm_space_file(C);
-  return sfile && ED_fileselect_active_asset_library_get(sfile);
+  if (!sfile) {
+    return false;
+  }
+  const AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  if (!asset_library) {
+    return false;
+  }
+  if (ED_asset_catalogs_read_only(*asset_library)) {
+    CTX_wm_operator_poll_msg_set(C, "Asset catalogs cannot be edited in this asset library");
+    return false;
+  }
+  return true;
 }
 
 static int asset_catalog_new_exec(bContext *C, wmOperator *op)

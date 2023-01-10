@@ -797,11 +797,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   window_->ghost_window = this;
   window_->ghost_system = system;
 
-  window_->frame.size[0] = int32_t(width);
-  window_->frame.size[1] = int32_t(height);
-
-  window_->is_dialog = is_dialog;
-
   /* NOTE(@campbellbarton): The scale set here to avoid flickering on startup.
    * When all monitors use the same scale (which is quite common) there aren't any problems.
    *
@@ -812,6 +807,16 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    * Using the maximum scale is best as it results in the window first being smaller,
    * avoiding a large window flashing before it's made smaller. */
   window_->scale = outputs_max_scale_or_default(system_->outputs(), 1, &window_->scale_fractional);
+
+  window_->frame.size[0] = int32_t(width);
+  window_->frame.size[1] = int32_t(height);
+
+  /* The window surface must be rounded to the scale,
+   * failing to do so causes the WAYLAND-server to close the window immediately. */
+  window_->frame.size[0] = (window_->frame.size[0] / window_->scale) * window_->scale;
+  window_->frame.size[1] = (window_->frame.size[1] / window_->scale) * window_->scale;
+
+  window_->is_dialog = is_dialog;
 
   /* Window surfaces. */
   window_->wl_surface = wl_compositor_create_surface(system_->wl_compositor());

@@ -388,6 +388,13 @@ set(GLSL_SRC
   shaders/common/gpu_shader_common_math.glsl
   shaders/common/gpu_shader_common_math_utils.glsl
   shaders/common/gpu_shader_common_mix_rgb.glsl
+  shaders/common/gpu_shader_math_base_lib.glsl
+  shaders/common/gpu_shader_math_fast_lib.glsl
+  shaders/common/gpu_shader_math_matrix_lib.glsl
+  shaders/common/gpu_shader_math_rotation_lib.glsl
+  shaders/common/gpu_shader_math_vector_lib.glsl
+  shaders/common/gpu_shader_test_lib.glsl
+  shaders/common/gpu_shader_utildefines_lib.glsl
 
   shaders/material/gpu_shader_material_add_shader.glsl
   shaders/material/gpu_shader_material_ambient_occlusion.glsl
@@ -483,6 +490,8 @@ set(GLSL_SRC
 
   shaders/gpu_shader_cfg_world_clip_lib.glsl
   shaders/gpu_shader_colorspace_lib.glsl
+
+  tests/gpu_math_test.glsl
 
   GPU_shader_shared_utils.h
 )
@@ -625,6 +634,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_keyframe_shape_info.hh
   shaders/infos/gpu_shader_line_dashed_uniform_color_info.hh
   shaders/infos/gpu_shader_simple_lighting_info.hh
+  shaders/infos/gpu_shader_test_info.hh
   shaders/infos/gpu_shader_text_info.hh
   shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
 )

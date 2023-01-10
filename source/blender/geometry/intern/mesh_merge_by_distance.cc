@@ -1274,7 +1274,6 @@ static void customdata_weld(
   int src_i, dest_i;
   int j;
 
-  float co[3] = {0.0f, 0.0f, 0.0f};
   short flag = 0;
 
   /* interpolates a layer at a time */
@@ -1297,14 +1296,7 @@ static void customdata_weld(
     /* if we found a matching layer, add the data */
     if (dest->layers[dest_i].type == type) {
       void *src_data = source->layers[src_i].data;
-
-      if (type == CD_MVERT) {
-        for (j = 0; j < count; j++) {
-          MVert *mv_src = &((MVert *)src_data)[src_indices[j]];
-          add_v3_v3(co, mv_src->co);
-        }
-      }
-      else if (type == CD_MEDGE) {
+      if (type == CD_MEDGE) {
         for (j = 0; j < count; j++) {
           MEdge *me_src = &((MEdge *)src_data)[src_indices[j]];
           flag |= me_src->flag;
@@ -1340,13 +1332,7 @@ static void customdata_weld(
   for (dest_i = 0; dest_i < dest->totlayer; dest_i++) {
     CustomDataLayer *layer_dst = &dest->layers[dest_i];
     const int type = layer_dst->type;
-    if (type == CD_MVERT) {
-      MVert *mv = &((MVert *)layer_dst->data)[dest_index];
-      mul_v3_fl(co, fac);
-
-      copy_v3_v3(mv->co, co);
-    }
-    else if (type == CD_MEDGE) {
+    if (type == CD_MEDGE) {
       MEdge *me = &((MEdge *)layer_dst->data)[dest_index];
       me->flag = flag;
     }
@@ -1578,9 +1564,9 @@ std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
 
   KDTree_3d *tree = BLI_kdtree_3d_new(selection.size());
 
-  const Span<MVert> verts = mesh.verts();
+  const Span<float3> positions = mesh.vert_positions();
   for (const int i : selection) {
-    BLI_kdtree_3d_insert(tree, i, verts[i].co);
+    BLI_kdtree_3d_insert(tree, i, positions[i]);
   }
 
   BLI_kdtree_3d_balance(tree);
@@ -1605,7 +1591,7 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
                                                        const float merge_distance,
                                                        const bool only_loose_edges)
 {
-  const Span<MVert> verts = mesh.verts();
+  const Span<float3> positions = mesh.vert_positions();
   const Span<MEdge> edges = mesh.edges();
 
   int vert_kill_len = 0;
@@ -1616,9 +1602,9 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
 
   Array<WeldVertexCluster> vert_clusters(mesh.totvert);
 
-  for (const int i : verts.index_range()) {
+  for (const int i : positions.index_range()) {
     WeldVertexCluster &vc = vert_clusters[i];
-    copy_v3_v3(vc.co, verts[i].co);
+    copy_v3_v3(vc.co, positions[i]);
     vc.merged_verts = 0;
   }
   const float merge_dist_sq = square_f(merge_distance);
@@ -1654,7 +1640,7 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
       continue;
     }
     if (v1 > v2) {
-      SWAP(int, v1, v2);
+      std::swap(v1, v2);
     }
     WeldVertexCluster *v1_cluster = &vert_clusters[v1];
     WeldVertexCluster *v2_cluster = &vert_clusters[v2];

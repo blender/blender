@@ -1452,28 +1452,23 @@ void recalc_emitter_field(Depsgraph *UNUSED(depsgraph), Object *UNUSED(ob), Part
   vec = edit->emitter_cosnos;
   nor = vec + 3;
 
-  const MVert *verts = BKE_mesh_verts(mesh);
+  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
   MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
   for (i = 0; i < totface; i++, vec += 6, nor += 6) {
     MFace *mface = &mfaces[i];
-    const MVert *mvert;
 
-    mvert = &verts[mface->v1];
-    copy_v3_v3(vec, mvert->co);
+    copy_v3_v3(vec, positions[mface->v1]);
     copy_v3_v3(nor, vert_normals[mface->v1]);
 
-    mvert = &verts[mface->v2];
-    add_v3_v3v3(vec, vec, mvert->co);
+    add_v3_v3v3(vec, vec, positions[mface->v2]);
     add_v3_v3(nor, vert_normals[mface->v2]);
 
-    mvert = &verts[mface->v3];
-    add_v3_v3v3(vec, vec, mvert->co);
+    add_v3_v3v3(vec, vec, positions[mface->v3]);
     add_v3_v3(nor, vert_normals[mface->v3]);
 
     if (mface->v4) {
-      mvert = &verts[mface->v4];
-      add_v3_v3v3(vec, vec, mvert->co);
+      add_v3_v3v3(vec, vec, positions[mface->v4]);
       add_v3_v3(nor, vert_normals[mface->v4]);
 
       mul_v3_fl(vec, 0.25);
@@ -4142,7 +4137,6 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
                                    float *ipoint)
 {
   MFace *mface = NULL;
-  MVert *mvert = NULL;
   int i, totface, intersect = 0;
   float cur_d, cur_uv[2], v1[3], v2[3], v3[3], v4[3], min[3], max[3], p_min[3], p_max[3];
   float cur_ipoint[3];
@@ -4180,7 +4174,7 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
 
   totface = mesh->totface;
   mface = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
-  mvert = BKE_mesh_verts_for_write(mesh);
+  float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
 
   /* lets intersect the faces */
   for (i = 0; i < totface; i++, mface++) {
@@ -4193,11 +4187,11 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
       }
     }
     else {
-      copy_v3_v3(v1, mvert[mface->v1].co);
-      copy_v3_v3(v2, mvert[mface->v2].co);
-      copy_v3_v3(v3, mvert[mface->v3].co);
+      copy_v3_v3(v1, positions[mface->v1]);
+      copy_v3_v3(v2, positions[mface->v2]);
+      copy_v3_v3(v3, positions[mface->v3]);
       if (mface->v4) {
-        copy_v3_v3(v4, mvert[mface->v4].co);
+        copy_v3_v3(v4, positions[mface->v4]);
       }
     }
 

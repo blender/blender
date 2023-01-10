@@ -63,27 +63,25 @@ static int gpu_shader_curve_vec(GPUMaterial *mat,
                         GPU_uniform(end_slopes));
 }
 
-class CurveVecFunction : public fn::MultiFunction {
+class CurveVecFunction : public mf::MultiFunction {
  private:
   const CurveMapping &cumap_;
 
  public:
   CurveVecFunction(const CurveMapping &cumap) : cumap_(cumap)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Curve Vec", signature};
+      builder.single_input<float>("Fac");
+      builder.single_input<float3>("Vector");
+      builder.single_output<float3>("Vector");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Curve Vec"};
-    signature.single_input<float>("Fac");
-    signature.single_input<float3>("Vector");
-    signature.single_output<float3>("Vector");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
     const VArray<float3> &vec_in = params.readonly_single_input<float3>(1, "Vector");
@@ -208,27 +206,25 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat,
                         GPU_uniform(end_slopes));
 }
 
-class CurveRGBFunction : public fn::MultiFunction {
+class CurveRGBFunction : public mf::MultiFunction {
  private:
   const CurveMapping &cumap_;
 
  public:
   CurveRGBFunction(const CurveMapping &cumap) : cumap_(cumap)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Curve RGB", signature};
+      builder.single_input<float>("Fac");
+      builder.single_input<ColorGeometry4f>("Color");
+      builder.single_output<ColorGeometry4f>("Color");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Curve RGB"};
-    signature.single_input<float>("Fac");
-    signature.single_input<ColorGeometry4f>("Color");
-    signature.single_output<ColorGeometry4f>("Color");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
     const VArray<ColorGeometry4f> &col_in = params.readonly_single_input<ColorGeometry4f>(1,
@@ -330,27 +326,25 @@ static int gpu_shader_curve_float(GPUMaterial *mat,
                         GPU_uniform(end_slopes));
 }
 
-class CurveFloatFunction : public fn::MultiFunction {
+class CurveFloatFunction : public mf::MultiFunction {
  private:
   const CurveMapping &cumap_;
 
  public:
   CurveFloatFunction(const CurveMapping &cumap) : cumap_(cumap)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Curve Float", signature};
+      builder.single_input<float>("Factor");
+      builder.single_input<float>("Value");
+      builder.single_output<float>("Value");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Curve Float"};
-    signature.single_input<float>("Factor");
-    signature.single_input<float>("Value");
-    signature.single_output<float>("Value");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Factor");
     const VArray<float> &val_in = params.readonly_single_input<float>(1, "Value");

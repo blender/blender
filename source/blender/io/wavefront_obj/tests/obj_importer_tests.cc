@@ -15,7 +15,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_base.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "BLO_readfile.h"
 
@@ -101,15 +101,15 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
         EXPECT_EQ(mesh->totedge, exp.mesh_totedge_or_curve_endp);
         EXPECT_EQ(mesh->totpoly, exp.mesh_totpoly_or_curve_order);
         EXPECT_EQ(mesh->totloop, exp.mesh_totloop_or_curve_cyclic);
-        const Span<MVert> verts = mesh->verts();
-        EXPECT_V3_NEAR(verts.first().co, exp.vert_first, 0.0001f);
-        EXPECT_V3_NEAR(verts.last().co, exp.vert_last, 0.0001f);
+        const Span<float3> positions = mesh->vert_positions();
+        EXPECT_V3_NEAR(positions.first(), exp.vert_first, 0.0001f);
+        EXPECT_V3_NEAR(positions.last(), exp.vert_last, 0.0001f);
         const float3 *lnors = (const float3 *)CustomData_get_layer(&mesh->ldata, CD_NORMAL);
         float3 normal_first = lnors != nullptr ? lnors[0] : float3(0, 0, 0);
         EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);
-        const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
-            CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
-        float2 uv_first = mloopuv ? float2(mloopuv->uv) : float2(0, 0);
+        const float2 *mloopuv = static_cast<const float2 *>(
+            CustomData_get_layer(&mesh->ldata, CD_PROP_FLOAT2));
+        float2 uv_first = mloopuv ? *mloopuv : float2(0, 0);
         EXPECT_V2_NEAR(uv_first, exp.uv_first, 0.0001f);
         if (exp.color_first.x >= 0) {
           const float4 *colors = (const float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
