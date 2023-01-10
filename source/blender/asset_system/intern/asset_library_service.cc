@@ -4,9 +4,14 @@
  * \ingroup asset_system
  */
 
+#include <memory>
+#include <string>
+
 #include "BKE_asset_library_custom.h"
 #include "BKE_blender.h"
+#include "BKE_blender_project.h"
 
+#include "BLI_path_util.h"
 #include "BLI_string_ref.hh"
 
 #include "DNA_asset_types.h"
@@ -188,16 +193,49 @@ std::string AssetLibraryService::root_path_from_library_ref(
     return "";
   }
 
-  BLI_assert(library_reference.type == ASSET_LIBRARY_CUSTOM);
   BLI_assert(library_reference.custom_library_index >= 0);
 
-  bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
-      &U, library_reference.custom_library_index);
-  if (!user_library || !user_library->path[0]) {
-    return "";
+  switch (library_reference.type) {
+    case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES: {
+      CustomAssetLibraryDefinition *user_library = BKE_asset_library_custom_find_from_index(
+          &U.asset_libraries, library_reference.custom_library_index);
+      if (user_library && user_library->path[0]) {
+        return user_library->path;
+      }
+      break;
+    }
+    case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
+      BlenderProject *project = BKE_project_active_get();
+      if (!project) {
+        return "";
+      }
+
+      ListBase *project_libraries = BKE_project_custom_asset_libraries_get(project);
+      CustomAssetLibraryDefinition *project_library_ = BKE_asset_library_custom_find_from_index(
+          project_libraries, library_reference.custom_library_index);
+      if (!project_library_) {
+        return "";
+      }
+
+      /* Project asset libraries typically use relative paths (relative to project root directory).
+       */
+      if (BLI_path_is_rel(project_library_->path)) {
+        const char *project_root_path = BKE_project_root_path_get(project);
+        char path[1024]; /* FILE_MAX */
+        BLI_path_join(path, sizeof(path), project_root_path, project_library_->path);
+        return path;
+      }
+      else {
+        return project_library_->path;
+      }
+      break;
+    }
+    default:
+      BLI_assert_unreachable();
+      break;
   }
 
-  return user_library->path;
+  return "";
 }
 
 void AssetLibraryService::allocate_service_instance()

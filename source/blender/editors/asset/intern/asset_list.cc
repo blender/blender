@@ -153,16 +153,6 @@ void AssetList::setup()
   filelist_setindexer(files, use_asset_indexer ? &file_indexer_asset : &file_indexer_noop);
 
   char path[FILE_MAXDIR] = "";
-#if 0
-   /* Project asset libraries typically use relative paths (relative to project root directory).
-   */
-  if ((library_ref_.type == ASSET_LIBRARY_CUSTOM_FROM_PROJECT) &&
-      BLI_path_is_rel(custom_library->path)) {
-    BlenderProject *project = CTX_wm_project();
-    const char *project_root_path = BKE_project_root_path_get(project);
-    BLI_path_join(path, sizeof(path), project_root_path, custom_library->path);
-  }
-#endif
   if (!asset_lib_path.empty()) {
     BLI_strncpy(path, asset_lib_path.c_str(), sizeof(path));
   }

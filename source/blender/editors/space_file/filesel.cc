@@ -23,6 +23,8 @@
 #  include <unistd.h>
 #endif
 
+#include "AS_asset_library.hh"
+
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -412,45 +414,26 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
 {
   AssetLibraryReference *library = &asset_params->asset_library_ref;
   FileSelectParams *base_params = &asset_params->base_params;
-  CustomAssetLibraryDefinition *custom_library =
-      ED_asset_library_find_custom_library_from_reference(library);
 
   /* Ensure valid asset library, or fall-back to local one. */
-  if (!custom_library) {
+  if (!ED_asset_library_find_custom_library_from_reference(library)) {
     library->type = ASSET_LIBRARY_LOCAL;
   }
 
+  std::string root_path = AS_asset_library_root_path_from_library_ref(*library);
+  BLI_strncpy(base_params->dir, root_path.c_str(), sizeof(base_params->dir));
+
   switch (library->type) {
     case ASSET_LIBRARY_ALL:
-      base_params->dir[0] = '\0';
       base_params->type = FILE_ASSET_LIBRARY_ALL;
       break;
     case ASSET_LIBRARY_LOCAL:
-      base_params->dir[0] = '\0';
       base_params->type = FILE_MAIN_ASSET;
       break;
     case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES:
-      BLI_assert(custom_library);
-      BLI_strncpy(base_params->dir, custom_library->path, sizeof(base_params->dir));
+    case ASSET_LIBRARY_CUSTOM_FROM_PROJECT:
       base_params->type = FILE_ASSET_LIBRARY;
       break;
-      /* Project asset libraries typically use relative paths (relative to project root directory).
-       */
-    case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
-      BlenderProject *project = CTX_wm_project();
-      BLI_assert(custom_library);
-      BLI_assert(project);
-
-      if (BLI_path_is_rel(custom_library->path)) {
-        const char *project_root_path = BKE_project_root_path_get(project);
-        BLI_path_join(
-            base_params->dir, sizeof(base_params->dir), project_root_path, custom_library->path);
-      }
-      else {
-        BLI_strncpy(base_params->dir, custom_library->path, sizeof(base_params->dir));
-      }
-      break;
-    }
   }
 }
 
