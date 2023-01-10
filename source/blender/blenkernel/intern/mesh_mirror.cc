@@ -357,34 +357,34 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     /* If set, flip around center of each tile. */
     const bool do_mirr_udim = (mmd->flag & MOD_MIR_MIRROR_UDIM) != 0;
 
-    const int totuv = CustomData_number_of_layers(&result->ldata, CD_MLOOPUV);
+    const int totuv = CustomData_number_of_layers(&result->ldata, CD_PROP_FLOAT2);
 
     for (a = 0; a < totuv; a++) {
-      MLoopUV *dmloopuv = static_cast<MLoopUV *>(
-          CustomData_get_layer_n(&result->ldata, CD_MLOOPUV, a));
+      float(*dmloopuv)[2] = static_cast<float(*)[2]>(
+          CustomData_get_layer_n(&result->ldata, CD_PROP_FLOAT2, a));
       int j = maxLoops;
       dmloopuv += j; /* second set of loops only */
       for (; j-- > 0; dmloopuv++) {
         if (do_mirr_u) {
-          float u = dmloopuv->uv[0];
+          float u = (*dmloopuv)[0];
           if (do_mirr_udim) {
-            dmloopuv->uv[0] = ceilf(u) - fmodf(u, 1.0f) + mmd->uv_offset[0];
+            (*dmloopuv)[0] = ceilf(u) - fmodf(u, 1.0f) + mmd->uv_offset[0];
           }
           else {
-            dmloopuv->uv[0] = 1.0f - u + mmd->uv_offset[0];
+            (*dmloopuv)[0] = 1.0f - u + mmd->uv_offset[0];
           }
         }
         if (do_mirr_v) {
-          float v = dmloopuv->uv[1];
+          float v = (*dmloopuv)[1];
           if (do_mirr_udim) {
-            dmloopuv->uv[1] = ceilf(v) - fmodf(v, 1.0f) + mmd->uv_offset[1];
+            (*dmloopuv)[1] = ceilf(v) - fmodf(v, 1.0f) + mmd->uv_offset[1];
           }
           else {
-            dmloopuv->uv[1] = 1.0f - v + mmd->uv_offset[1];
+            (*dmloopuv)[1] = 1.0f - v + mmd->uv_offset[1];
           }
         }
-        dmloopuv->uv[0] += mmd->uv_offset_copy[0];
-        dmloopuv->uv[1] += mmd->uv_offset_copy[1];
+        (*dmloopuv)[0] += mmd->uv_offset_copy[0];
+        (*dmloopuv)[1] += mmd->uv_offset_copy[1];
       }
     }
   }

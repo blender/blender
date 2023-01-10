@@ -199,7 +199,7 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, const int data_type
   int numloops;
 
   /* unsupported custom data type -- don't do anything. */
-  if (!ELEM(cd_data_type, CD_MLOOPUV, CD_PROP_BYTE_COLOR)) {
+  if (!ELEM(cd_data_type, CD_PROP_FLOAT2, CD_PROP_BYTE_COLOR)) {
     return nullptr;
   }
 
@@ -364,7 +364,7 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
     for (int layer_idx = 0; layer_idx < ldata->totlayer; layer_idx++) {
       const CustomDataLayer *layer = &ldata->layers[layer_idx];
       std::string layer_name = std::string(layer->name);
-      if (layer->type != CD_MLOOPUV) {
+      if (layer->type != CD_PROP_FLOAT2) {
         continue;
       }
 
@@ -411,7 +411,7 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
 
       for (int layer_idx = 0; layer_idx < ldata->totlayer; layer_idx++) {
         const CustomDataLayer *layer = &ldata->layers[layer_idx];
-        if (layer->type != CD_MLOOPUV) {
+        if (layer->type != CD_PROP_FLOAT2) {
           continue;
         }
 
@@ -446,15 +446,15 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
           continue;
         }
 
-        MLoopUV *mloopuv = static_cast<MLoopUV *>(layer->data);
+        float2 *mloopuv = static_cast<float2 *>(layer->data);
         if (is_left_handed_) {
           uv_index = rev_loop_index;
         }
         else {
           uv_index = loop_index;
         }
-        mloopuv[uv_index].uv[0] = sample.uvs[usd_uv_index][0];
-        mloopuv[uv_index].uv[1] = sample.uvs[usd_uv_index][1];
+        mloopuv[uv_index][0] = sample.uvs[usd_uv_index][0];
+        mloopuv[uv_index][1] = sample.uvs[usd_uv_index][1];
       }
     }
   }
@@ -896,7 +896,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
         existing_mesh, positions_.size(), 0, 0, face_indices_.size(), face_counts_.size());
 
     for (pxr::TfToken token : uv_tokens) {
-      add_customdata_cb(active_mesh, token.GetText(), CD_MLOOPUV);
+      add_customdata_cb(active_mesh, token.GetText(), CD_PROP_FLOAT2);
     }
   }
 

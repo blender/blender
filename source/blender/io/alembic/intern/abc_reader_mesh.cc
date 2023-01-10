@@ -177,7 +177,7 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
 {
   MPoly *mpolys = config.mpoly;
   MLoop *mloops = config.mloop;
-  MLoopUV *mloopuvs = config.mloopuv;
+  float2 *mloopuvs = config.mloopuv;
 
   const Int32ArraySamplePtr &face_indices = mesh_data.face_indices;
   const Int32ArraySamplePtr &face_counts = mesh_data.face_counts;
@@ -221,7 +221,6 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
       last_vertex_index = loop.v;
 
       if (do_uvs) {
-        MLoopUV &loopuv = mloopuvs[rev_loop_index];
         uv_index = (*uvs_indices)[do_uvs_per_loop ? loop_index : loop.v];
 
         /* Some Alembic files are broken (or at least export UVs in a way we don't expect). */
@@ -229,8 +228,8 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
           continue;
         }
 
-        loopuv.uv[0] = (*uvs)[uv_index][0];
-        loopuv.uv[1] = (*uvs)[uv_index][1];
+        mloopuvs[rev_loop_index][0] = (*uvs)[uv_index][0];
+        mloopuvs[rev_loop_index][1] = (*uvs)[uv_index][1];
       }
     }
   }
@@ -371,8 +370,8 @@ BLI_INLINE void read_uvs_params(CDStreamConfig &config,
     name = uv.getName();
   }
 
-  void *cd_ptr = config.add_customdata_cb(config.mesh, name.c_str(), CD_MLOOPUV);
-  config.mloopuv = static_cast<MLoopUV *>(cd_ptr);
+  void *cd_ptr = config.add_customdata_cb(config.mesh, name.c_str(), CD_PROP_FLOAT2);
+  config.mloopuv = static_cast<float2 *>(cd_ptr);
 }
 
 static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
@@ -380,7 +379,7 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
   eCustomDataType cd_data_type = static_cast<eCustomDataType>(data_type);
 
   /* unsupported custom data type -- don't do anything. */
-  if (!ELEM(cd_data_type, CD_MLOOPUV, CD_PROP_BYTE_COLOR)) {
+  if (!ELEM(cd_data_type, CD_PROP_FLOAT2, CD_PROP_BYTE_COLOR)) {
     return nullptr;
   }
 

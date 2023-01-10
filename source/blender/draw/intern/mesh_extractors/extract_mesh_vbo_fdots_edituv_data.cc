@@ -17,7 +17,7 @@ namespace blender::draw {
 
 struct MeshExtract_EditUVFdotData_Data {
   EditLoopData *vbo_data;
-  int cd_ofs;
+  BMUVOffsets offsets;
 };
 
 static void extract_fdots_edituv_data_init(const MeshRenderData *mr,
@@ -36,7 +36,7 @@ static void extract_fdots_edituv_data_init(const MeshRenderData *mr,
 
   MeshExtract_EditUVFdotData_Data *data = static_cast<MeshExtract_EditUVFdotData_Data *>(tls_data);
   data->vbo_data = (EditLoopData *)GPU_vertbuf_get_data(vbo);
-  data->cd_ofs = CustomData_get_offset(&mr->bm->ldata, CD_MLOOPUV);
+  data->offsets = BM_uv_map_get_offsets(mr->bm);
 }
 
 static void extract_fdots_edituv_data_iter_poly_bm(const MeshRenderData *mr,
@@ -47,7 +47,7 @@ static void extract_fdots_edituv_data_iter_poly_bm(const MeshRenderData *mr,
   MeshExtract_EditUVFdotData_Data *data = static_cast<MeshExtract_EditUVFdotData_Data *>(_data);
   EditLoopData *eldata = &data->vbo_data[BM_elem_index_get(f)];
   memset(eldata, 0x0, sizeof(*eldata));
-  mesh_render_data_face_flag(mr, f, data->cd_ofs, eldata);
+  mesh_render_data_face_flag(mr, f, data->offsets, eldata);
 }
 
 static void extract_fdots_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
@@ -60,7 +60,7 @@ static void extract_fdots_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
   memset(eldata, 0x0, sizeof(*eldata));
   BMFace *efa = bm_original_face_get(mr, mp_index);
   if (efa) {
-    mesh_render_data_face_flag(mr, efa, data->cd_ofs, eldata);
+    mesh_render_data_face_flag(mr, efa, data->offsets, eldata);
   }
 }
 

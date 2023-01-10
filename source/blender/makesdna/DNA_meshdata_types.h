@@ -159,9 +159,9 @@ enum {
  *
  * // access UV coordinates (works for all loop data, vertex colors... etc).
  * float *uvtri_co[3] = {
- *     mloopuv[lt->tri[0]].uv,
- *     mloopuv[lt->tri[1]].uv,
- *     mloopuv[lt->tri[2]].uv,
+ *     mloopuv[lt->tri[0]],
+ *     mloopuv[lt->tri[1]],
+ *     mloopuv[lt->tri[2]],
  * };
  * \endcode
  *
@@ -313,21 +313,6 @@ typedef enum eMVertSkinFlag {
  * \{ */
 
 /**
- * UV coordinate for a polygon face & flag for selection & other options.
- */
-typedef struct MLoopUV {
-  float uv[2];
-  int flag;
-} MLoopUV;
-
-/** #MLoopUV.flag */
-enum {
-  MLOOPUV_EDGESEL = (1 << 0),
-  MLOOPUV_VERTSEL = (1 << 1),
-  MLOOPUV_PINNED = (1 << 2),
-};
-
-/**
  * \note While alpha is not currently in the 3D Viewport,
  * this may eventually be added back, keep this value set to 255.
  */
@@ -446,6 +431,26 @@ enum {
 /* -------------------------------------------------------------------- */
 /** \name Deprecated Structs
  * \{ */
+
+#ifdef DNA_DEPRECATED_ALLOW
+
+/**
+ * UV coordinate for a polygon face & flag for selection & other options.
+ * Deprecated, but kept to read old files. UV coordinates are now stored as #CD_PROP_FLOAT2 layers.
+ */
+typedef struct MLoopUV {
+  float uv[2];
+  int flag;
+} MLoopUV;
+
+/** #MLoopUV.flag */
+enum {
+  MLOOPUV_EDGESEL = (1 << 0),
+  MLOOPUV_VERTSEL = (1 << 1),
+  MLOOPUV_PINNED = (1 << 2),
+};
+
+#endif
 
 /**
  * Deprecated mesh vertex data structure. Now stored with generic attributes.

@@ -1136,12 +1136,11 @@ typedef struct NodeShaderTexPointDensity {
   short interpolation;
   short color_source;
   short ob_color_source;
-  /** Vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME. */
-  char vertex_attribute_name[64];
   /* Used at runtime only by sampling RNA API. */
   PointDensity pd;
   int cached_resolution;
-  char _pad2[4];
+  /** Vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME. */
+  char vertex_attribute_name[68];
 } NodeShaderTexPointDensity;
 
 typedef struct NodeShaderPrincipled {

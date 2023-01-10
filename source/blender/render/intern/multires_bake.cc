@@ -65,7 +65,7 @@ struct MResolvePixelData {
   MPoly *mpoly;
   const int *material_indices;
   MLoop *mloop;
-  MLoopUV *mloopuv;
+  float (*mloopuv)[2];
   float uv_offset[2];
   const MLoopTri *mlooptri;
   float *pvtangent;
@@ -159,9 +159,9 @@ static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
   float u, v, w, sign;
   int r;
 
-  st0 = data->mloopuv[data->mlooptri[data->tri_index].tri[0]].uv;
-  st1 = data->mloopuv[data->mlooptri[data->tri_index].tri[1]].uv;
-  st2 = data->mloopuv[data->mlooptri[data->tri_index].tri[2]].uv;
+  st0 = data->mloopuv[data->mlooptri[data->tri_index].tri[0]];
+  st1 = data->mloopuv[data->mlooptri[data->tri_index].tri[1]];
+  st2 = data->mloopuv[data->mlooptri[data->tri_index].tri[2]];
 
   multiresbake_get_normal(data, data->tri_index, 0, no0); /* can optimize these 3 into one call */
   multiresbake_get_normal(data, data->tri_index, 1, no1);
@@ -384,7 +384,7 @@ static void *do_multires_bake_thread(void *data_v)
   while ((tri_index = multires_bake_queue_next_tri(handle->queue)) >= 0) {
     const MLoopTri *lt = &data->mlooptri[tri_index];
     const short mat_nr = data->material_indices == nullptr ? 0 : data->material_indices[lt->poly];
-    const MLoopUV *mloopuv = data->mloopuv;
+    const float(*mloopuv)[2] = data->mloopuv;
 
     if (multiresbake_test_break(bkr)) {
       break;
@@ -398,9 +398,9 @@ static void *do_multires_bake_thread(void *data_v)
     data->tri_index = tri_index;
 
     float uv[3][2];
-    sub_v2_v2v2(uv[0], mloopuv[lt->tri[0]].uv, data->uv_offset);
-    sub_v2_v2v2(uv[1], mloopuv[lt->tri[1]].uv, data->uv_offset);
-    sub_v2_v2v2(uv[2], mloopuv[lt->tri[2]].uv, data->uv_offset);
+    sub_v2_v2v2(uv[0], mloopuv[lt->tri[0]], data->uv_offset);
+    sub_v2_v2v2(uv[1], mloopuv[lt->tri[1]], data->uv_offset);
+    sub_v2_v2v2(uv[2], mloopuv[lt->tri[2]], data->uv_offset);
 
     bake_rasterize(bake_rast, uv[0], uv[1], uv[2]);
 
@@ -475,7 +475,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
   const float(*positions)[3] = (float(*)[3])dm->getVertArray(dm);
   MPoly *mpoly = dm->getPolyArray(dm);
   MLoop *mloop = dm->getLoopArray(dm);
-  MLoopUV *mloopuv = static_cast<MLoopUV *>(dm->getLoopDataArray(dm, CD_MLOOPUV));
+  float(*mloopuv)[2] = static_cast<float(*)[2]>(dm->getLoopDataArray(dm, CD_PROP_FLOAT2));
   float *pvtangent = nullptr;
 
   ListBase threads;
@@ -838,7 +838,8 @@ static void apply_heights_callback(DerivedMesh *lores_dm,
   const MLoopTri *lt = lores_dm->getLoopTriArray(lores_dm) + tri_index;
   MLoop *mloop = lores_dm->getLoopArray(lores_dm);
   MPoly *mpoly = lores_dm->getPolyArray(lores_dm) + lt->poly;
-  MLoopUV *mloopuv = static_cast<MLoopUV *>(lores_dm->getLoopDataArray(lores_dm, CD_MLOOPUV));
+  float(*mloopuv)[2] = static_cast<float(*)[2]>(
+      lores_dm->getLoopDataArray(lores_dm, CD_PROP_FLOAT2));
   MHeightBakeData *height_data = (MHeightBakeData *)bake_data;
   MultiresBakeThread *thread_data = (MultiresBakeThread *)thread_data_v;
   float uv[2], *st0, *st1, *st2, *st3;
@@ -848,16 +849,16 @@ static void apply_heights_callback(DerivedMesh *lores_dm,
   /* ideally we would work on triangles only, however, we rely on quads to get orthogonal
    * coordinates for use in grid space (triangle barycentric is not orthogonal) */
   if (mpoly->totloop == 4) {
-    st0 = mloopuv[mpoly->loopstart].uv;
-    st1 = mloopuv[mpoly->loopstart + 1].uv;
-    st2 = mloopuv[mpoly->loopstart + 2].uv;
-    st3 = mloopuv[mpoly->loopstart + 3].uv;
+    st0 = mloopuv[mpoly->loopstart];
+    st1 = mloopuv[mpoly->loopstart + 1];
+    st2 = mloopuv[mpoly->loopstart + 2];
+    st3 = mloopuv[mpoly->loopstart + 3];
     resolve_quad_uv_v2(uv, st, st0, st1, st2, st3);
   }
   else {
-    st0 = mloopuv[lt->tri[0]].uv;
-    st1 = mloopuv[lt->tri[1]].uv;
-    st2 = mloopuv[lt->tri[2]].uv;
+    st0 = mloopuv[lt->tri[0]];
+    st1 = mloopuv[lt->tri[1]];
+    st2 = mloopuv[lt->tri[2]];
     resolve_tri_uv_v2(uv, st, st0, st1, st2);
   }
 
@@ -952,7 +953,8 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm,
 {
   const MLoopTri *lt = lores_dm->getLoopTriArray(lores_dm) + tri_index;
   MPoly *mpoly = lores_dm->getPolyArray(lores_dm) + lt->poly;
-  MLoopUV *mloopuv = static_cast<MLoopUV *>(lores_dm->getLoopDataArray(lores_dm, CD_MLOOPUV));
+  float(*mloopuv)[2] = static_cast<float(*)[2]>(
+      lores_dm->getLoopDataArray(lores_dm, CD_PROP_FLOAT2));
   MNormalBakeData *normal_data = (MNormalBakeData *)bake_data;
   float uv[2], *st0, *st1, *st2, *st3;
   int pixel = ibuf->x * y + x;
@@ -961,16 +963,16 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm,
   /* ideally we would work on triangles only, however, we rely on quads to get orthogonal
    * coordinates for use in grid space (triangle barycentric is not orthogonal) */
   if (mpoly->totloop == 4) {
-    st0 = mloopuv[mpoly->loopstart].uv;
-    st1 = mloopuv[mpoly->loopstart + 1].uv;
-    st2 = mloopuv[mpoly->loopstart + 2].uv;
-    st3 = mloopuv[mpoly->loopstart + 3].uv;
+    st0 = mloopuv[mpoly->loopstart];
+    st1 = mloopuv[mpoly->loopstart + 1];
+    st2 = mloopuv[mpoly->loopstart + 2];
+    st3 = mloopuv[mpoly->loopstart + 3];
     resolve_quad_uv_v2(uv, st, st0, st1, st2, st3);
   }
   else {
-    st0 = mloopuv[lt->tri[0]].uv;
-    st1 = mloopuv[lt->tri[1]].uv;
-    st2 = mloopuv[lt->tri[2]].uv;
+    st0 = mloopuv[lt->tri[0]];
+    st1 = mloopuv[lt->tri[1]];
+    st2 = mloopuv[lt->tri[2]];
     resolve_tri_uv_v2(uv, st, st0, st1, st2);
   }
 
@@ -1213,7 +1215,7 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
 {
   const MLoopTri *lt = lores_dm->getLoopTriArray(lores_dm) + tri_index;
   MPoly *mpoly = lores_dm->getPolyArray(lores_dm) + lt->poly;
-  MLoopUV *mloopuv = lores_dm->getLoopDataArray(lores_dm, CD_MLOOPUV);
+  float (*mloopuv)[2] = lores_dm->getLoopDataArray(lores_dm, CD_PROP_FLOAT2);
   MAOBakeData *ao_data = (MAOBakeData *)bake_data;
 
   int i, k, perm_ofs;
@@ -1228,16 +1230,16 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
   /* ideally we would work on triangles only, however, we rely on quads to get orthogonal
    * coordinates for use in grid space (triangle barycentric is not orthogonal) */
   if (mpoly->totloop == 4) {
-    st0 = mloopuv[mpoly->loopstart].uv;
-    st1 = mloopuv[mpoly->loopstart + 1].uv;
-    st2 = mloopuv[mpoly->loopstart + 2].uv;
-    st3 = mloopuv[mpoly->loopstart + 3].uv;
+    st0 = mloopuv[mpoly->loopstart];
+    st1 = mloopuv[mpoly->loopstart + 1];
+    st2 = mloopuv[mpoly->loopstart + 2];
+    st3 = mloopuv[mpoly->loopstart + 3];
     resolve_quad_uv_v2(uv, st, st0, st1, st2, st3);
   }
   else {
-    st0 = mloopuv[lt->tri[0]].uv;
-    st1 = mloopuv[lt->tri[1]].uv;
-    st2 = mloopuv[lt->tri[2]].uv;
+    st0 = mloopuv[lt->tri[0]];
+    st1 = mloopuv[lt->tri[1]];
+    st2 = mloopuv[lt->tri[2]];
     resolve_tri_uv_v2(uv, st, st0, st1, st2);
   }
 

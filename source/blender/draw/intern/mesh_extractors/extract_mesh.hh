@@ -389,15 +389,15 @@ const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor,
                                              bool do_single_mat);
 void mesh_render_data_face_flag(const MeshRenderData *mr,
                                 const BMFace *efa,
-                                int cd_ofs,
+                                BMUVOffsets offsets,
                                 EditLoopData *eattr);
 void mesh_render_data_loop_flag(const MeshRenderData *mr,
                                 BMLoop *l,
-                                int cd_ofs,
+                                BMUVOffsets offsets,
                                 EditLoopData *eattr);
 void mesh_render_data_loop_edge_flag(const MeshRenderData *mr,
                                      BMLoop *l,
-                                     int cd_ofs,
+                                     BMUVOffsets offsets,
                                      EditLoopData *eattr);
 
 extern const MeshExtract extract_tris;

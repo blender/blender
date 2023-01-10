@@ -31,6 +31,28 @@ struct CustomData_MeshMasks;
 struct ID;
 typedef uint64_t eCustomDataMask;
 
+/* These names are used as prefixes for UV layer names to find the associated boolean
+ * layers. They should never be longer than 2 chars, as MAX_CUSTOMDATA_LAYER_NAME
+ * has 4 extra bytes above what can be used for the base layer name, and these
+ * prefixes are placed between 2 '.'s at the start of the layer name.
+ * For example The uv vert selection layer of a layer named 'UVMap.001'
+ * will be called '.vs.UVMap.001' . */
+#define UV_VERTSEL_NAME "vs"
+#define UV_EDGESEL_NAME "es"
+#define UV_PINNED_NAME "pn"
+
+/**
+ * UV map related customdata offsets into BMesh attribute blocks. See #BM_uv_map_get_offsets.
+ * Defined in #BKE_customdata.h to avoid including bmesh.h in many unrelated areas.
+ * An offset of -1 means that the corresponding layer does not exist.
+ */
+typedef struct BMUVOffsets {
+  int uv;
+  int select_vert;
+  int select_edge;
+  int pin;
+} BMUVOffsets;
+
 /* A data type large enough to hold 1 element from any custom-data layer type. */
 typedef struct {
   unsigned char data[64];
@@ -125,7 +147,7 @@ void CustomData_data_mix_value(
 
 /**
  * Compares if data1 is equal to data2.  type is a valid CustomData type
- * enum (e.g. #CD_MLOOPUV). the layer type's equal function is used to compare
+ * enum (e.g. #CD_PROP_FLOAT). the layer type's equal function is used to compare
  * the data, if it exists, otherwise #memcmp is used.
  */
 bool CustomData_data_equals(int type, const void *data1, const void *data2);
@@ -422,6 +444,7 @@ int CustomData_get_n_offset(const struct CustomData *data, int type, int n);
 int CustomData_get_layer_index(const struct CustomData *data, int type);
 int CustomData_get_layer_index_n(const struct CustomData *data, int type, int n);
 int CustomData_get_named_layer_index(const struct CustomData *data, int type, const char *name);
+int CustomData_get_named_layer_index_notype(const struct CustomData *data, const char *name);
 int CustomData_get_active_layer_index(const struct CustomData *data, int type);
 int CustomData_get_render_layer_index(const struct CustomData *data, int type);
 int CustomData_get_clone_layer_index(const struct CustomData *data, int type);
@@ -531,6 +554,13 @@ bool CustomData_layertype_is_dynamic(int type);
  */
 int CustomData_layertype_layers_max(int type);
 
+#ifdef __cplusplus
+
+/** \return The maximum length for a layer name with the given prefix. */
+int CustomData_name_max_length_calc(blender::StringRef name);
+
+#endif
+
 /**
  * Make sure the name of layer at index is unique.
  */
@@ -604,8 +634,9 @@ enum {
   CD_FAKE_SEAM = CD_FAKE | 100, /* UV seam flag for edges. */
 
   /* Multiple types of mesh elements... */
-  CD_FAKE_UV = CD_FAKE |
-               CD_MLOOPUV, /* UV flag, because we handle both loop's UVs and poly's textures. */
+  CD_FAKE_UV =
+      CD_FAKE |
+      CD_PROP_FLOAT2, /* UV flag, because we handle both loop's UVs and poly's textures. */
 
   CD_FAKE_LNOR = CD_FAKE |
                  CD_CUSTOMLOOPNORMAL, /* Because we play with clnor and temp lnor layers here. */

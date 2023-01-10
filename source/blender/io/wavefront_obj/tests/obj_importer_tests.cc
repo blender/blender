@@ -107,9 +107,9 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
         const float3 *lnors = (const float3 *)CustomData_get_layer(&mesh->ldata, CD_NORMAL);
         float3 normal_first = lnors != nullptr ? lnors[0] : float3(0, 0, 0);
         EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);
-        const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
-            CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
-        float2 uv_first = mloopuv ? float2(mloopuv->uv) : float2(0, 0);
+        const float2 *mloopuv = static_cast<const float2 *>(
+            CustomData_get_layer(&mesh->ldata, CD_PROP_FLOAT2));
+        float2 uv_first = mloopuv ? *mloopuv : float2(0, 0);
         EXPECT_V2_NEAR(uv_first, exp.uv_first, 0.0001f);
         if (exp.color_first.x >= 0) {
           const float4 *colors = (const float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);

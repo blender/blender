@@ -16,6 +16,7 @@
 #include "BLI_array.hh"
 #include "BLI_bitmap.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 
 #include "BKE_customdata.h"
 #include "BKE_key.h"
@@ -28,6 +29,7 @@
 
 #include "MEM_guardedalloc.h"
 
+using blender::float2;
 using blender::float3;
 using blender::Span;
 
@@ -57,7 +59,8 @@ struct SubdivMeshContext {
   int *poly_origindex;
   /* UV layers interpolation. */
   int num_uv_layers;
-  MLoopUV *uv_layers[MAX_MTFACE];
+  float2 *uv_layers[MAX_MTFACE];
+
   /* Original coordinates (ORCO) interpolation. */
   float (*orco)[3];
   float (*cloth_orco)[3];
@@ -74,10 +77,10 @@ struct SubdivMeshContext {
 static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
 {
   Mesh *subdiv_mesh = ctx->subdiv_mesh;
-  ctx->num_uv_layers = CustomData_number_of_layers(&subdiv_mesh->ldata, CD_MLOOPUV);
+  ctx->num_uv_layers = CustomData_number_of_layers(&subdiv_mesh->ldata, CD_PROP_FLOAT2);
   for (int layer_index = 0; layer_index < ctx->num_uv_layers; layer_index++) {
-    ctx->uv_layers[layer_index] = static_cast<MLoopUV *>(
-        CustomData_get_layer_n(&subdiv_mesh->ldata, CD_MLOOPUV, layer_index));
+    ctx->uv_layers[layer_index] = static_cast<float2 *>(
+        CustomData_get_layer_n(&subdiv_mesh->ldata, CD_PROP_FLOAT2, layer_index));
   }
 }
 
@@ -858,8 +861,8 @@ static void subdiv_eval_uv_layer(SubdivMeshContext *ctx,
   Subdiv *subdiv = ctx->subdiv;
   const int mloop_index = subdiv_loop - ctx->subdiv_loops;
   for (int layer_index = 0; layer_index < ctx->num_uv_layers; layer_index++) {
-    MLoopUV *subdiv_loopuv = &ctx->uv_layers[layer_index][mloop_index];
-    BKE_subdiv_eval_face_varying(subdiv, layer_index, ptex_face_index, u, v, subdiv_loopuv->uv);
+    BKE_subdiv_eval_face_varying(
+        subdiv, layer_index, ptex_face_index, u, v, ctx->uv_layers[layer_index][mloop_index]);
   }
 }
 

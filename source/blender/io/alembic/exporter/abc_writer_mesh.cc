@@ -240,8 +240,10 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
       mesh_sample.setUVs(uv_sample);
     }
 
-    write_custom_data(
-        abc_poly_mesh_schema_.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_MLOOPUV);
+    write_custom_data(abc_poly_mesh_schema_.getArbGeomParams(),
+                      m_custom_data_config,
+                      &mesh->ldata,
+                      CD_PROP_FLOAT2);
   }
 
   if (args_.export_params->normals) {
@@ -307,7 +309,7 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, struct Mesh *me
     }
 
     write_custom_data(
-        abc_subdiv_schema_.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_MLOOPUV);
+        abc_subdiv_schema_.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_PROP_FLOAT2);
   }
 
   if (args_.export_params->orcos) {

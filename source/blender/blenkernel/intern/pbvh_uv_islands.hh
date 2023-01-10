@@ -95,7 +95,7 @@ struct MeshData {
   const Span<MLoopTri> looptris;
   const int64_t verts_num;
   const Span<MLoop> loops;
-  const Span<MLoopUV> mloopuv;
+  const Span<float2> mloopuv;
 
   Vector<MeshPrimitive> primitives;
   Vector<MeshEdge> edges;
@@ -107,7 +107,7 @@ struct MeshData {
   explicit MeshData(const Span<MLoopTri> looptris,
                     const Span<MLoop> loops,
                     const int verts_num,
-                    const Span<MLoopUV> mloopuv);
+                    const Span<float2> mloopuv);
 };
 
 struct UVVertex {

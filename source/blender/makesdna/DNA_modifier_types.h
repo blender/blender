@@ -143,7 +143,8 @@ typedef struct MappingInfoModifierData {
   struct Object *map_object;
   char map_bone[64];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char uvlayer_name[64];
+  char uvlayer_name[68];
+  char _pad1[4];
   int uvlayer_tmp;
   int texmapping;
 } MappingInfoModifierData;
@@ -558,7 +559,8 @@ typedef struct DisplaceModifierData {
   struct Object *map_object;
   char map_bone[64];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char uvlayer_name[64];
+  char uvlayer_name[68];
+  char _pad1[4];
   int uvlayer_tmp;
   int texmapping;
   /* end MappingInfoModifierData */
@@ -570,7 +572,7 @@ typedef struct DisplaceModifierData {
   float midlevel;
   int space;
   short flag;
-  char _pad[6];
+  char _pad2[6];
 } DisplaceModifierData;
 
 /** #DisplaceModifierData.flag */
@@ -614,9 +616,8 @@ typedef struct UVProjectModifierData {
   float aspectx, aspecty;
   float scalex, scaley;
   /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char uvlayer_name[64];
+  char uvlayer_name[68];
   int uvlayer_tmp;
-  char _pad[4];
 } UVProjectModifierData;
 
 #define MOD_UVPROJECT_MAXPROJECTORS 10
@@ -719,7 +720,8 @@ typedef struct WaveModifierData {
   struct Object *map_object;
   char map_bone[64];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char uvlayer_name[64];
+  char uvlayer_name[68];
+  char _pad1[4];
   int uvlayer_tmp;
   int texmapping;
   /* End MappingInfoModifierData. */
@@ -729,14 +731,14 @@ typedef struct WaveModifierData {
   char defgrp_name[64];
 
   short flag;
-  char _pad[2];
+  char _pad2[2];
 
   float startx, starty, height, width;
   float narrow, speed, damp, falloff;
 
   float timeoffs, lifetime;
-  char _pad1[4];
-  void *_pad2;
+  char _pad3[4];
+  void *_pad4;
 } WaveModifierData;
 
 /** #WaveModifierData.flag */
@@ -1059,9 +1061,9 @@ typedef struct ParticleInstanceModifierData {
   float rotation, random_rotation;
   float particle_amount, particle_offset;
   /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char index_layer_name[64];
+  char index_layer_name[68];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char value_layer_name[64];
+  char value_layer_name[68];
   void *_pad1;
 } ParticleInstanceModifierData;
 
@@ -1082,8 +1084,9 @@ typedef struct ExplodeModifierData {
   short flag, vgroup;
   float protect;
   /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char uvname[64];
-  void *_pad1;
+  char uvname[68];
+  char _pad1[4];
+  void *_pad2;
 } ExplodeModifierData;
 
 typedef struct MultiresModifierData {
@@ -1397,8 +1400,8 @@ typedef struct OceanModifierData {
   /** FILE_MAX. */
   char cachepath[1024];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char foamlayername[64];
-  char spraylayername[64];
+  char foamlayername[68];
+  char spraylayername[68];
   char cached;
   char geometry_mode;
 
@@ -1446,7 +1449,8 @@ typedef struct WarpModifierData {
   struct Object *map_object;
   char map_bone[64];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char uvlayer_name[64];
+  char uvlayer_name[68];
+  char _pad1[4];
   int uvlayer_tmp;
   int texmapping;
   /* End #MappingInfoModifierData. */
@@ -1465,8 +1469,8 @@ typedef struct WarpModifierData {
   float falloff_radius;
   char flag;
   char falloff_type;
-  char _pad[6];
-  void *_pad1;
+  char _pad2[6];
+  void *_pad3;
 } WarpModifierData;
 
 /** #WarpModifierData.flag */
@@ -1527,10 +1531,9 @@ typedef struct WeightVGEditModifierData {
   /** How to map the texture (using MOD_DISP_MAP_* enums). */
   int mask_tex_mapping;
   /** Name of the UV map. MAX_CUSTOMDATA_LAYER_NAME. */
-  char mask_tex_uvlayer_name[64];
+  char mask_tex_uvlayer_name[68];
 
   /* Padding... */
-  char _pad0[4];
   void *_pad1;
 } WeightVGEditModifierData;
 
@@ -1581,12 +1584,13 @@ typedef struct WeightVGMixModifierData {
   /** How to map the texture. */
   int mask_tex_mapping;
   /** Name of the UV map. MAX_CUSTOMDATA_LAYER_NAME. */
-  char mask_tex_uvlayer_name[64];
+  char mask_tex_uvlayer_name[68];
+  char _pad1[4];
 
   char flag;
 
   /* Padding... */
-  char _pad1[3];
+  char _pad2[3];
 } WeightVGMixModifierData;
 
 /** #WeightVGMixModifierData.mix_mode (how second vgroup's weights affect first ones). */
@@ -1669,7 +1673,8 @@ typedef struct WeightVGProximityModifierData {
   /** How to map the texture. */
   int mask_tex_mapping;
   /** Name of the UV Map. MAX_CUSTOMDATA_LAYER_NAME. */
-  char mask_tex_uvlayer_name[64];
+  char mask_tex_uvlayer_name[68];
+  char _pad1[4];
 
   /** Distances mapping to 0.0/1.0 weights. */
   float min_dist, max_dist;
@@ -1943,7 +1948,8 @@ typedef struct UVWarpModifierData {
   /** Optional vertex-group name, #MAX_VGROUP_NAME. */
   char vgroup_name[64];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char uvlayer_name[64];
+  char uvlayer_name[68];
+  char _pad[4];
 } UVWarpModifierData;
 
 /** #UVWarpModifierData.flag */

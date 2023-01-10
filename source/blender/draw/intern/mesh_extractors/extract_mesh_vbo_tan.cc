@@ -48,7 +48,8 @@ static void extract_tan_init_common(const MeshRenderData *mr,
 
   /* FIXME(T91838): This is to avoid a crash when orco tangent was requested but there are valid
    * uv layers. It would be better to fix the root cause. */
-  if (tan_layers == 0 && use_orco_tan && CustomData_get_layer_index(cd_ldata, CD_MLOOPUV) != -1) {
+  if (tan_layers == 0 && use_orco_tan &&
+      CustomData_get_layer_index(cd_ldata, CD_PROP_FLOAT2) != -1) {
     tan_layers = 1;
     use_orco_tan = false;
   }
@@ -56,17 +57,17 @@ static void extract_tan_init_common(const MeshRenderData *mr,
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (tan_layers & (1 << i)) {
       char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-      const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, i);
+      const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_PROP_FLOAT2, i);
       GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
       /* Tangent layer name. */
       BLI_snprintf(attr_name, sizeof(attr_name), "t%s", attr_safe_name);
       GPU_vertformat_attr_add(format, attr_name, comp_type, 4, fetch_mode);
       /* Active render layer name. */
-      if (i == CustomData_get_render_layer(cd_ldata, CD_MLOOPUV)) {
+      if (i == CustomData_get_render_layer(cd_ldata, CD_PROP_FLOAT2)) {
         GPU_vertformat_alias_add(format, "t");
       }
       /* Active display layer name. */
-      if (i == CustomData_get_active_layer(cd_ldata, CD_MLOOPUV)) {
+      if (i == CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2)) {
         GPU_vertformat_alias_add(format, "at");
       }
 

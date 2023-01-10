@@ -379,7 +379,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
   float vec[3], bmat[3][3];
 
   const Mesh *me = BKE_mesh_from_object(ob);
-  if (!me || !CustomData_has_layer(&me->ldata, CD_MLOOPUV)) {
+  if (!me || !CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2)) {
     return ok;
   }
 

@@ -176,16 +176,16 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
     Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
 
     CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
-    cddata_masks.lmask |= CD_MASK_MLOOPUV;
+    cddata_masks.lmask |= CD_MASK_PROP_FLOAT2;
     Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
-    int num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPUV);
+    int num_data = CustomData_number_of_layers(&me_eval->ldata, CD_PROP_FLOAT2);
 
     RNA_enum_item_add_separator(&item, &totitem);
 
     for (int i = 0; i < num_data; i++) {
       tmp_item.value = i;
       tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
-          &me_eval->ldata, CD_MLOOPUV, i);
+          &me_eval->ldata, CD_PROP_FLOAT2, i);
       RNA_enum_item_add(&item, &totitem, &tmp_item);
     }
   }

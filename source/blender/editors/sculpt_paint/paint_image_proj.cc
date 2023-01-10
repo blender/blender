@@ -421,16 +421,16 @@ struct ProjPaintState {
   const MLoop *mloop_eval;
   const MLoopTri *mlooptri_eval;
 
-  const MLoopUV *mloopuv_stencil_eval;
+  const float (*mloopuv_stencil_eval)[2];
 
   /**
    * \note These UV layers are aligned to \a mpoly_eval
    * but each pointer references the start of the layer,
    * so a loop indirection is needed as well.
    */
-  const MLoopUV **poly_to_loop_uv;
+  const float (**poly_to_loop_uv)[2];
   /** other UV map, use for cloning between layers. */
-  const MLoopUV **poly_to_loop_uv_clone;
+  const float (**poly_to_loop_uv_clone)[2];
 
   /* Actual material for each index, either from object or Mesh datablock... */
   Material **mat_array;
@@ -518,14 +518,13 @@ BLI_INLINE const MPoly *ps_tri_index_to_mpoly(const ProjPaintState *ps, int tri_
       int(ps->mloop_eval[lt->tri[2]].v),
 
 #define PS_LOOPTRI_AS_UV_3(uvlayer, lt) \
-  uvlayer[lt->poly][lt->tri[0]].uv, uvlayer[lt->poly][lt->tri[1]].uv, \
-      uvlayer[lt->poly][lt->tri[2]].uv,
+  uvlayer[lt->poly][lt->tri[0]], uvlayer[lt->poly][lt->tri[1]], uvlayer[lt->poly][lt->tri[2]],
 
 #define PS_LOOPTRI_ASSIGN_UV_3(uv_tri, uvlayer, lt) \
   { \
-    (uv_tri)[0] = uvlayer[lt->poly][lt->tri[0]].uv; \
-    (uv_tri)[1] = uvlayer[lt->poly][lt->tri[1]].uv; \
-    (uv_tri)[2] = uvlayer[lt->poly][lt->tri[2]].uv; \
+    (uv_tri)[0] = uvlayer[lt->poly][lt->tri[0]]; \
+    (uv_tri)[1] = uvlayer[lt->poly][lt->tri[1]]; \
+    (uv_tri)[2] = uvlayer[lt->poly][lt->tri[2]]; \
   } \
   ((void)0)
 
@@ -1672,9 +1671,9 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
 
     if (other_tpage && (ibuf_other = BKE_image_acquire_ibuf(other_tpage, nullptr, nullptr))) {
       const MLoopTri *lt_other = &ps->mlooptri_eval[tri_index];
-      const float *lt_other_tri_uv[3] = {ps->mloopuv_stencil_eval[lt_other->tri[0]].uv,
-                                         ps->mloopuv_stencil_eval[lt_other->tri[1]].uv,
-                                         ps->mloopuv_stencil_eval[lt_other->tri[2]].uv};
+      const float *lt_other_tri_uv[3] = {ps->mloopuv_stencil_eval[lt_other->tri[0]],
+                                         ps->mloopuv_stencil_eval[lt_other->tri[1]],
+                                         ps->mloopuv_stencil_eval[lt_other->tri[2]]};
 
       /* #BKE_image_acquire_ibuf - TODO: this may be slow. */
       uchar rgba_ub[4];
@@ -4048,7 +4047,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
 
   CustomData_MeshMasks cddata_masks = scene_eval->customdata_mask;
   cddata_masks.fmask |= CD_MASK_MTFACE;
-  cddata_masks.lmask |= CD_MASK_MLOOPUV;
+  cddata_masks.lmask |= CD_MASK_PROP_FLOAT2;
   if (ps->do_face_sel) {
     cddata_masks.vmask |= CD_MASK_ORIGINDEX;
     cddata_masks.emask |= CD_MASK_ORIGINDEX;
@@ -4056,7 +4055,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   }
   ps->me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
 
-  if (!CustomData_has_layer(&ps->me_eval->ldata, CD_MLOOPUV)) {
+  if (!CustomData_has_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2)) {
     ps->me_eval = nullptr;
     return false;
   }
@@ -4094,38 +4093,39 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   ps->mlooptri_eval = BKE_mesh_runtime_looptri_ensure(ps->me_eval);
   ps->totlooptri_eval = BKE_mesh_runtime_looptri_len(ps->me_eval);
 
-  ps->poly_to_loop_uv = static_cast<const MLoopUV **>(
-      MEM_mallocN(ps->totpoly_eval * sizeof(MLoopUV *), "proj_paint_mtfaces"));
+  ps->poly_to_loop_uv = static_cast<const float(**)[2]>(
+      MEM_mallocN(ps->totpoly_eval * sizeof(float(*)[2]), "proj_paint_mtfaces"));
 
   return true;
 }
 
 struct ProjPaintLayerClone {
-  const MLoopUV *mloopuv_clone_base;
+  const float (*mloopuv_clone_base)[2];
   const TexPaintSlot *slot_last_clone;
   const TexPaintSlot *slot_clone;
 };
 
 static void proj_paint_layer_clone_init(ProjPaintState *ps, ProjPaintLayerClone *layer_clone)
 {
-  const MLoopUV *mloopuv_clone_base = nullptr;
+  const float(*mloopuv_clone_base)[2] = nullptr;
 
   /* use clone mtface? */
   if (ps->do_layer_clone) {
-    const int layer_num = CustomData_get_clone_layer(&((Mesh *)ps->ob->data)->ldata, CD_MLOOPUV);
+    const int layer_num = CustomData_get_clone_layer(&((Mesh *)ps->ob->data)->ldata,
+                                                     CD_PROP_FLOAT2);
 
-    ps->poly_to_loop_uv_clone = static_cast<const MLoopUV **>(
-        MEM_mallocN(ps->totpoly_eval * sizeof(MLoopUV *), "proj_paint_mtfaces"));
+    ps->poly_to_loop_uv_clone = static_cast<const float(**)[2]>(
+        MEM_mallocN(ps->totpoly_eval * sizeof(float(*)[2]), "proj_paint_mtfaces"));
 
     if (layer_num != -1) {
-      mloopuv_clone_base = static_cast<const MLoopUV *>(
-          CustomData_get_layer_n(&ps->me_eval->ldata, CD_MLOOPUV, layer_num));
+      mloopuv_clone_base = static_cast<const float(*)[2]>(
+          CustomData_get_layer_n(&ps->me_eval->ldata, CD_PROP_FLOAT2, layer_num));
     }
 
     if (mloopuv_clone_base == nullptr) {
       /* get active instead */
-      mloopuv_clone_base = static_cast<const MLoopUV *>(
-          CustomData_get_layer(&ps->me_eval->ldata, CD_MLOOPUV));
+      mloopuv_clone_base = static_cast<const float(*)[2]>(
+          CustomData_get_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2));
     }
   }
 
@@ -4154,10 +4154,10 @@ static bool project_paint_clone_face_skip(ProjPaintState *ps,
     if (ps->do_material_slots) {
       if (lc->slot_clone != lc->slot_last_clone) {
         if (!lc->slot_clone->uvname ||
-            !(lc->mloopuv_clone_base = static_cast<const MLoopUV *>(CustomData_get_layer_named(
-                  &ps->me_eval->ldata, CD_MLOOPUV, lc->slot_clone->uvname)))) {
-          lc->mloopuv_clone_base = static_cast<const MLoopUV *>(
-              CustomData_get_layer(&ps->me_eval->ldata, CD_MLOOPUV));
+            !(lc->mloopuv_clone_base = static_cast<const float(*)[2]>(CustomData_get_layer_named(
+                  &ps->me_eval->ldata, CD_PROP_FLOAT2, lc->slot_clone->uvname)))) {
+          lc->mloopuv_clone_base = static_cast<const float(*)[2]>(
+              CustomData_get_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2));
         }
         lc->slot_last_clone = lc->slot_clone;
       }
@@ -4299,7 +4299,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
                                             MemArena *arena,
                                             const ProjPaintFaceLookup *face_lookup,
                                             ProjPaintLayerClone *layer_clone,
-                                            const MLoopUV *mloopuv_base,
+                                            const float (*mloopuv_base)[2],
                                             const bool is_multi_view)
 {
   /* Image Vars - keep track of images we have used */
@@ -4325,17 +4325,17 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
       slot = project_paint_face_paint_slot(ps, tri_index);
       /* all faces should have a valid slot, reassert here */
       if (slot == nullptr) {
-        mloopuv_base = static_cast<const MLoopUV *>(
-            CustomData_get_layer(&ps->me_eval->ldata, CD_MLOOPUV));
+        mloopuv_base = static_cast<const float(*)[2]>(
+            CustomData_get_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2));
         tpage = ps->canvas_ima;
       }
       else {
         if (slot != slot_last) {
           if (!slot->uvname ||
-              !(mloopuv_base = static_cast<const MLoopUV *>(
-                    CustomData_get_layer_named(&ps->me_eval->ldata, CD_MLOOPUV, slot->uvname)))) {
-            mloopuv_base = static_cast<const MLoopUV *>(
-                CustomData_get_layer(&ps->me_eval->ldata, CD_MLOOPUV));
+              !(mloopuv_base = static_cast<const float(*)[2]>(CustomData_get_layer_named(
+                    &ps->me_eval->ldata, CD_PROP_FLOAT2, slot->uvname)))) {
+            mloopuv_base = static_cast<const float(*)[2]>(
+                CustomData_get_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2));
           }
           slot_last = slot;
         }
@@ -4360,7 +4360,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
 
     ps->poly_to_loop_uv[lt->poly] = mloopuv_base;
 
-    tile = project_paint_face_paint_tile(tpage, mloopuv_base[lt->tri[0]].uv);
+    tile = project_paint_face_paint_tile(tpage, mloopuv_base[lt->tri[0]]);
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
     project_paint_bleed_add_face_user(ps, arena, lt, tri_index);
@@ -4478,7 +4478,7 @@ static void project_paint_begin(const bContext *C,
 {
   ProjPaintLayerClone layer_clone;
   ProjPaintFaceLookup face_lookup;
-  const MLoopUV *mloopuv_base = nullptr;
+  const float(*mloopuv_base)[2] = nullptr;
 
   /* At the moment this is just ps->arena_mt[0], but use this to show were not multi-threading. */
   MemArena *arena;
@@ -4508,17 +4508,17 @@ static void project_paint_begin(const bContext *C,
   proj_paint_layer_clone_init(ps, &layer_clone);
 
   if (ps->do_layer_stencil || ps->do_stencil_brush) {
-    // int layer_num = CustomData_get_stencil_layer(&ps->me_eval->ldata, CD_MLOOPUV);
-    int layer_num = CustomData_get_stencil_layer(&((Mesh *)ps->ob->data)->ldata, CD_MLOOPUV);
+    // int layer_num = CustomData_get_stencil_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2);
+    int layer_num = CustomData_get_stencil_layer(&((Mesh *)ps->ob->data)->ldata, CD_PROP_FLOAT2);
     if (layer_num != -1) {
-      ps->mloopuv_stencil_eval = static_cast<const MLoopUV *>(
-          CustomData_get_layer_n(&ps->me_eval->ldata, CD_MLOOPUV, layer_num));
+      ps->mloopuv_stencil_eval = static_cast<const float(*)[2]>(
+          CustomData_get_layer_n(&ps->me_eval->ldata, CD_PROP_FLOAT2, layer_num));
     }
 
     if (ps->mloopuv_stencil_eval == nullptr) {
       /* get active instead */
-      ps->mloopuv_stencil_eval = static_cast<const MLoopUV *>(
-          CustomData_get_layer(&ps->me_eval->ldata, CD_MLOOPUV));
+      ps->mloopuv_stencil_eval = static_cast<const float(*)[2]>(
+          CustomData_get_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2));
     }
 
     if (ps->do_stencil_brush) {
@@ -6424,7 +6424,7 @@ bool ED_paint_proj_mesh_data_check(
   }
 
   me = BKE_mesh_from_object(ob);
-  layernum = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
+  layernum = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
 
   if (layernum == 0) {
     hasuvs = false;

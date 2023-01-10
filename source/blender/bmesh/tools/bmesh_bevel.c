@@ -811,7 +811,7 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
   bp->math_layer_info.has_math_layers = false;
   bp->math_layer_info.face_component = NULL;
   for (int i = 0; i < bm->ldata.totlayer; i++) {
-    if (CustomData_has_layer(&bm->ldata, CD_MLOOPUV)) {
+    if (CustomData_has_layer(&bm->ldata, CD_PROP_FLOAT2)) {
       bp->math_layer_info.has_math_layers = true;
       break;
     }
@@ -1009,10 +1009,10 @@ static BMFace *choose_rep_face(BevelParams *bp, BMFace **face, int nfaces)
  * Caller should ensure that no seams are violated by doing this. */
 static void bev_merge_uvs(BMesh *bm, BMVert *v)
 {
-  int num_of_uv_layers = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
+  int num_of_uv_layers = CustomData_number_of_layers(&bm->ldata, CD_PROP_FLOAT2);
 
   for (int i = 0; i < num_of_uv_layers; i++) {
-    int cd_loop_uv_offset = CustomData_get_n_offset(&bm->ldata, CD_MLOOPUV, i);
+    int cd_loop_uv_offset = CustomData_get_n_offset(&bm->ldata, CD_PROP_FLOAT2, i);
 
     if (cd_loop_uv_offset == -1) {
       return;
@@ -1023,15 +1023,15 @@ static void bev_merge_uvs(BMesh *bm, BMVert *v)
     BMIter iter;
     BMLoop *l;
     BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-      add_v2_v2(uv, luv->uv);
+      float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+      add_v2_v2(uv, luv);
       n++;
     }
     if (n > 1) {
       mul_v2_fl(uv, 1.0f / (float)n);
       BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        copy_v2_v2(luv->uv, uv);
+        float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+        copy_v2_v2(luv, uv);
       }
     }
   }
@@ -1041,7 +1041,7 @@ static void bev_merge_uvs(BMesh *bm, BMVert *v)
  * and part of faces that share edge bme. */
 static void bev_merge_edge_uvs(BMesh *bm, BMEdge *bme, BMVert *v)
 {
-  int num_of_uv_layers = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
+  int num_of_uv_layers = CustomData_number_of_layers(&bm->ldata, CD_PROP_FLOAT2);
 
   BMLoop *l1 = NULL;
   BMLoop *l2 = NULL;
@@ -1060,22 +1060,22 @@ static void bev_merge_edge_uvs(BMesh *bm, BMEdge *bme, BMVert *v)
   }
 
   for (int i = 0; i < num_of_uv_layers; i++) {
-    int cd_loop_uv_offset = CustomData_get_n_offset(&bm->ldata, CD_MLOOPUV, i);
+    int cd_loop_uv_offset = CustomData_get_n_offset(&bm->ldata, CD_PROP_FLOAT2, i);
 
     if (cd_loop_uv_offset == -1) {
       return;
     }
 
     float uv[2] = {0.0f, 0.0f};
-    MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l1, cd_loop_uv_offset);
-    add_v2_v2(uv, luv->uv);
-    luv = BM_ELEM_CD_GET_VOID_P(l2, cd_loop_uv_offset);
-    add_v2_v2(uv, luv->uv);
+    float *luv = BM_ELEM_CD_GET_FLOAT_P(l1, cd_loop_uv_offset);
+    add_v2_v2(uv, luv);
+    luv = BM_ELEM_CD_GET_FLOAT_P(l2, cd_loop_uv_offset);
+    add_v2_v2(uv, luv);
     mul_v2_fl(uv, 0.5f);
-    luv = BM_ELEM_CD_GET_VOID_P(l1, cd_loop_uv_offset);
-    copy_v2_v2(luv->uv, uv);
-    luv = BM_ELEM_CD_GET_VOID_P(l2, cd_loop_uv_offset);
-    copy_v2_v2(luv->uv, uv);
+    luv = BM_ELEM_CD_GET_FLOAT_P(l1, cd_loop_uv_offset);
+    copy_v2_v2(luv, uv);
+    luv = BM_ELEM_CD_GET_FLOAT_P(l2, cd_loop_uv_offset);
+    copy_v2_v2(luv, uv);
   }
 }
 

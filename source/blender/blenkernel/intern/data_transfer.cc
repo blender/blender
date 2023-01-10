@@ -67,7 +67,7 @@ void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
       r_data_masks->vmask |= CD_MASK_MDEFORMVERT; /* Exception for vgroups :/ */
     }
     else if (cddata_type == CD_FAKE_UV) {
-      r_data_masks->lmask |= CD_MASK_MLOOPUV;
+      r_data_masks->lmask |= CD_MASK_PROP_FLOAT2;
     }
     else if (cddata_type == CD_FAKE_LNOR) {
       r_data_masks->lmask |= CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL;
@@ -989,7 +989,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
   }
   else if (elem_type == ME_LOOP) {
     if (cddata_type == CD_FAKE_UV) {
-      cddata_type = CD_MLOOPUV;
+      cddata_type = CD_PROP_FLOAT2;
     }
     else if (cddata_type == CD_FAKE_LNOR) {
       /* Pre-process should have generated it,
@@ -1028,7 +1028,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
   }
   else if (elem_type == ME_POLY) {
     if (cddata_type == CD_FAKE_UV) {
-      cddata_type = CD_MLOOPUV;
+      cddata_type = CD_PROP_FLOAT2;
     }
 
     if (!(cddata_type & CD_FAKE)) {

@@ -248,7 +248,7 @@ void RNA_api_mesh(StructRNA *srna)
   parm = RNA_def_string(func,
                         "uvmap",
                         NULL,
-                        MAX_CUSTOMDATA_LAYER_NAME,
+                        MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX,
                         "",
                         "Name of the UV map to use for tangent space computation");
 

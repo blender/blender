@@ -116,7 +116,7 @@ static void mesh_data_init_primitives(MeshData &mesh_data)
       MeshUVVert uv_vert;
       uv_vert.loop = tri.tri[j];
       uv_vert.vertex = &mesh_data.vertices[mesh_data.loops[uv_vert.loop].v];
-      uv_vert.uv = mesh_data.mloopuv[uv_vert.loop].uv;
+      uv_vert.uv = mesh_data.mloopuv[uv_vert.loop];
       primitive.vertices.append(uv_vert);
     }
     mesh_data.primitives.append(primitive);
@@ -218,7 +218,7 @@ static void mesh_data_init(MeshData &mesh_data)
 MeshData::MeshData(const Span<MLoopTri> looptris,
                    const Span<MLoop> loops,
                    const int verts_num,
-                   const Span<MLoopUV> mloopuv)
+                   const Span<float2> mloopuv)
     : looptris(looptris), verts_num(verts_num), loops(loops), mloopuv(mloopuv)
 {
   mesh_data_init(*this);

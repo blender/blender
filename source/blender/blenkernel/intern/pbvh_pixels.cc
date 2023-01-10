@@ -147,7 +147,7 @@ struct EncodePixelsUserData {
   ImageUser *image_user;
   PBVH *pbvh;
   Vector<PBVHNode *> *nodes;
-  const MLoopUV *ldata_uv;
+  const float2 *ldata_uv;
   const uv_islands::UVIslandsMask *uv_masks;
   /** Lookup to retrieve the UV primitives based on the primitive index. */
   const UVPrimitiveLookup *uv_primitive_lookup;
@@ -355,8 +355,8 @@ static void update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
     return;
   }
 
-  const MLoopUV *ldata_uv = static_cast<const MLoopUV *>(
-      CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
+  const float2 *ldata_uv = static_cast<const float2 *>(
+      CustomData_get_layer(&mesh->ldata, CD_PROP_FLOAT2));
   if (ldata_uv == nullptr) {
     return;
   }

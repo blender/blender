@@ -322,16 +322,14 @@ static bool stitch_check_uvs_stitchable(UvElement *element,
   limit = ssc->limit_dist;
 
   if (ssc->use_limit) {
-    MLoopUV *luv, *luv_iter;
     BMLoop *l;
 
     l = element->l;
-    luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+    float *luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
     l = element_iter->l;
-    luv_iter = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+    float *luv_iter = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
 
-    if (fabsf(luv->uv[0] - luv_iter->uv[0]) < limit &&
-        fabsf(luv->uv[1] - luv_iter->uv[1]) < limit) {
+    if (fabsf(luv[0] - luv_iter[0]) < limit && fabsf(luv[1] - luv_iter[1]) < limit) {
       return 1;
     }
     return 0;
@@ -355,23 +353,19 @@ static bool stitch_check_edges_stitchable(UvEdge *edge,
 
   if (ssc->use_limit) {
     BMLoop *l;
-    MLoopUV *luv_orig1, *luv_iter1;
-    MLoopUV *luv_orig2, *luv_iter2;
 
     l = state->uvs[edge->uv1]->l;
-    luv_orig1 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+    float *luv_orig1 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
     l = state->uvs[edge_iter->uv1]->l;
-    luv_iter1 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+    float *luv_iter1 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
 
     l = state->uvs[edge->uv2]->l;
-    luv_orig2 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+    float *luv_orig2 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
     l = state->uvs[edge_iter->uv2]->l;
-    luv_iter2 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+    float *luv_iter2 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
 
-    if (fabsf(luv_orig1->uv[0] - luv_iter1->uv[0]) < limit &&
-        fabsf(luv_orig1->uv[1] - luv_iter1->uv[1]) < limit &&
-        fabsf(luv_orig2->uv[0] - luv_iter2->uv[0]) < limit &&
-        fabsf(luv_orig2->uv[1] - luv_iter2->uv[1]) < limit) {
+    if (fabsf(luv_orig1[0] - luv_iter1[0]) < limit && fabsf(luv_orig1[1] - luv_iter1[1]) < limit &&
+        fabsf(luv_orig2[0] - luv_iter2[0]) < limit && fabsf(luv_orig2[1] - luv_iter2[1]) < limit) {
       return 1;
     }
     return 0;
@@ -462,18 +456,16 @@ static void stitch_calculate_island_snapping(StitchState *state,
       for (j = 0; j < numOfIslandUVs; j++, element++) {
         /* stitchable uvs have already been processed, don't process */
         if (!(element->flag & STITCH_PROCESSED)) {
-          MLoopUV *luv;
           BMLoop *l;
 
           l = element->l;
-          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+          float *luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
 
           if (final) {
 
-            stitch_uv_rotate(
-                rotation_mat, island_stitch_data[i].medianPoint, luv->uv, state->aspect);
+            stitch_uv_rotate(rotation_mat, island_stitch_data[i].medianPoint, luv, state->aspect);
 
-            add_v2_v2(luv->uv, island_stitch_data[i].translation);
+            add_v2_v2(luv, island_stitch_data[i].translation);
           }
 
           else {
@@ -511,13 +503,12 @@ static void stitch_island_calculate_edge_rotation(UvEdge *edge,
   float edgecos, edgesin;
   int index1, index2;
   float rotation;
-  MLoopUV *luv1, *luv2;
 
   element1 = state->uvs[edge->uv1];
   element2 = state->uvs[edge->uv2];
 
-  luv1 = CustomData_bmesh_get(&bm->ldata, element1->l->head.data, CD_MLOOPUV);
-  luv2 = CustomData_bmesh_get(&bm->ldata, element2->l->head.data, CD_MLOOPUV);
+  float *luv1 = CustomData_bmesh_get(&bm->ldata, element1->l->head.data, CD_PROP_FLOAT2);
+  float *luv2 = CustomData_bmesh_get(&bm->ldata, element2->l->head.data, CD_PROP_FLOAT2);
 
   if (ssc->mode == STITCH_VERT) {
     index1 = uvfinal_map[element1 - state->element_map->storage];
@@ -530,8 +521,8 @@ static void stitch_island_calculate_edge_rotation(UvEdge *edge,
   /* the idea here is to take the directions of the edges and find the rotation between
    * final and initial direction. This, using inner and outer vector products,
    * gives the angle. Directions are differences so... */
-  uv1[0] = luv2->uv[0] - luv1->uv[0];
-  uv1[1] = luv2->uv[1] - luv1->uv[1];
+  uv1[0] = luv2[0] - luv1[0];
+  uv1[1] = luv2[1] - luv1[1];
 
   uv1[1] /= state->aspect;
 
@@ -901,24 +892,23 @@ static void stitch_propagate_uv_final_position(Scene *scene,
   BMesh *bm = state->em->bm;
   StitchPreviewer *preview = state->stitch_preview;
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
 
   if (element->flag & STITCH_STITCHABLE) {
     UvElement *element_iter = element;
     /* propagate to coincident uvs */
     do {
       BMLoop *l;
-      MLoopUV *luv;
 
       l = element_iter->l;
-      luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+      float *luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
 
       element_iter->flag |= STITCH_PROCESSED;
       /* either flush to preview or to the MTFace, if final */
       if (final) {
-        copy_v2_v2(luv->uv, final_position[index].uv);
+        copy_v2_v2(luv, final_position[index].uv);
 
-        uvedit_uv_select_enable(scene, state->em->bm, l, false, cd_loop_uv_offset);
+        uvedit_uv_select_enable(scene, state->em->bm, l, false, offsets);
       }
       else {
         int face_preview_pos =
@@ -1053,7 +1043,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
    *********************************************************************/
   if (!final) {
     BMLoop *l;
-    MLoopUV *luv;
+    float *luv;
     int stitchBufferIndex = 0, unstitchBufferIndex = 0;
     int preview_size = (ssc->mode == STITCH_VERT) ? 2 : 4;
     /* initialize the preview buffers */
@@ -1074,17 +1064,17 @@ static int stitch_process_data(StitchStateContainer *ssc,
         UvElement *element = (UvElement *)state->uvs[i];
         if (element->flag & STITCH_STITCHABLE) {
           l = element->l;
-          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
 
-          copy_v2_v2(&preview->preview_stitchable[stitchBufferIndex * 2], luv->uv);
+          copy_v2_v2(&preview->preview_stitchable[stitchBufferIndex * 2], luv);
 
           stitchBufferIndex++;
         }
         else if (element->flag & STITCH_SELECTED) {
           l = element->l;
-          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
 
-          copy_v2_v2(&preview->preview_unstitchable[unstitchBufferIndex * 2], luv->uv);
+          copy_v2_v2(&preview->preview_unstitchable[unstitchBufferIndex * 2], luv);
           unstitchBufferIndex++;
         }
       }
@@ -1097,24 +1087,24 @@ static int stitch_process_data(StitchStateContainer *ssc,
 
         if (edge->flag & STITCH_STITCHABLE) {
           l = element1->l;
-          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
-          copy_v2_v2(&preview->preview_stitchable[stitchBufferIndex * 4], luv->uv);
+          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
+          copy_v2_v2(&preview->preview_stitchable[stitchBufferIndex * 4], luv);
 
           l = element2->l;
-          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
-          copy_v2_v2(&preview->preview_stitchable[stitchBufferIndex * 4 + 2], luv->uv);
+          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
+          copy_v2_v2(&preview->preview_stitchable[stitchBufferIndex * 4 + 2], luv);
 
           stitchBufferIndex++;
           BLI_assert(stitchBufferIndex <= preview->num_stitchable);
         }
         else if (edge->flag & STITCH_SELECTED) {
           l = element1->l;
-          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
-          copy_v2_v2(&preview->preview_unstitchable[unstitchBufferIndex * 4], luv->uv);
+          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
+          copy_v2_v2(&preview->preview_unstitchable[unstitchBufferIndex * 4], luv);
 
           l = element2->l;
-          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
-          copy_v2_v2(&preview->preview_unstitchable[unstitchBufferIndex * 4 + 2], luv->uv);
+          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
+          copy_v2_v2(&preview->preview_unstitchable[unstitchBufferIndex * 4 + 2], luv);
 
           unstitchBufferIndex++;
           BLI_assert(unstitchBufferIndex <= preview->num_unstitchable);
@@ -1152,7 +1142,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
   if (!final) {
     BMIter liter;
     BMLoop *l;
-    MLoopUV *luv;
+    float *luv;
     uint buffer_index = 0;
 
     /* initialize the preview buffers */
@@ -1171,7 +1161,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
       return 0;
     }
 
-    /* copy data from MLoopUVs to the preview display buffers */
+    /* copy data from UVs to the preview display buffers */
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       /* just to test if face was added for processing.
        * uvs of unselected vertices will return NULL */
@@ -1184,27 +1174,27 @@ static int stitch_process_data(StitchStateContainer *ssc,
         if (face_preview_pos != STITCH_NO_PREVIEW) {
           preview->uvs_per_polygon[preview_position[index].polycount_position] = efa->len;
           BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-            luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
-            copy_v2_v2(preview->preview_polys + face_preview_pos + i * 2, luv->uv);
+            luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
+            copy_v2_v2(preview->preview_polys + face_preview_pos + i * 2, luv);
           }
         }
 
         /* if this is the static_island on the active object */
         if (element->island == ssc->static_island) {
           BMLoop *fl = BM_FACE_FIRST_LOOP(efa);
-          MLoopUV *fuv = CustomData_bmesh_get(&bm->ldata, fl->head.data, CD_MLOOPUV);
+          float *fuv = CustomData_bmesh_get(&bm->ldata, fl->head.data, CD_PROP_FLOAT2);
 
           BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
             if (i < numoftris) {
               /* using next since the first uv is already accounted for */
               BMLoop *lnext = l->next;
-              MLoopUV *luvnext = CustomData_bmesh_get(
-                  &bm->ldata, lnext->next->head.data, CD_MLOOPUV);
-              luv = CustomData_bmesh_get(&bm->ldata, lnext->head.data, CD_MLOOPUV);
+              float *luvnext = CustomData_bmesh_get(
+                  &bm->ldata, lnext->next->head.data, CD_PROP_FLOAT2);
+              luv = CustomData_bmesh_get(&bm->ldata, lnext->head.data, CD_PROP_FLOAT2);
 
-              memcpy(preview->static_tris + buffer_index, fuv->uv, sizeof(float[2]));
-              memcpy(preview->static_tris + buffer_index + 2, luv->uv, sizeof(float[2]));
-              memcpy(preview->static_tris + buffer_index + 4, luvnext->uv, sizeof(float[2]));
+              memcpy(preview->static_tris + buffer_index, fuv, sizeof(float[2]));
+              memcpy(preview->static_tris + buffer_index + 2, luv, sizeof(float[2]));
+              memcpy(preview->static_tris + buffer_index + 4, luvnext, sizeof(float[2]));
               buffer_index += 6;
             }
             else {
@@ -1238,14 +1228,14 @@ static int stitch_process_data(StitchStateContainer *ssc,
 
       if (element->flag & STITCH_STITCHABLE) {
         BMLoop *l;
-        MLoopUV *luv;
+        float *luv;
 
         l = element->l;
-        luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+        luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
 
         uvfinal_map[element - state->element_map->storage] = i;
 
-        copy_v2_v2(final_position[i].uv, luv->uv);
+        copy_v2_v2(final_position[i].uv, luv);
         final_position[i].count = 1;
 
         if (ssc->snap_islands && element->island == ssc->static_island && !stitch_midpoints) {
@@ -1257,16 +1247,16 @@ static int stitch_process_data(StitchStateContainer *ssc,
           if (element_iter->separate) {
             if (stitch_check_uvs_state_stitchable(element, element_iter, ssc, state)) {
               l = element_iter->l;
-              luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+              luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
               if (stitch_midpoints) {
-                add_v2_v2(final_position[i].uv, luv->uv);
+                add_v2_v2(final_position[i].uv, luv);
                 final_position[i].count++;
               }
               else if (element_iter->island == ssc->static_island) {
                 /* if multiple uvs on the static island exist,
                  * last checked remains. to disambiguate we need to limit or use
                  * edge stitch */
-                copy_v2_v2(final_position[i].uv, luv->uv);
+                copy_v2_v2(final_position[i].uv, luv);
               }
             }
           }
@@ -1281,17 +1271,17 @@ static int stitch_process_data(StitchStateContainer *ssc,
       UvEdge *edge = state->selection_stack[i];
 
       if (edge->flag & STITCH_STITCHABLE) {
-        MLoopUV *luv2, *luv1;
+        float *luv2, *luv1;
         BMLoop *l;
         UvEdge *edge_iter;
 
         l = state->uvs[edge->uv1]->l;
-        luv1 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+        luv1 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
         l = state->uvs[edge->uv2]->l;
-        luv2 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+        luv2 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
 
-        copy_v2_v2(final_position[edge->uv1].uv, luv1->uv);
-        copy_v2_v2(final_position[edge->uv2].uv, luv2->uv);
+        copy_v2_v2(final_position[edge->uv1].uv, luv1);
+        copy_v2_v2(final_position[edge->uv2].uv, luv2);
         final_position[edge->uv1].count = 1;
         final_position[edge->uv2].count = 1;
 
@@ -1306,19 +1296,19 @@ static int stitch_process_data(StitchStateContainer *ssc,
         for (edge_iter = edge->first; edge_iter; edge_iter = edge_iter->next) {
           if (stitch_check_edges_state_stitchable(edge, edge_iter, ssc, state)) {
             l = state->uvs[edge_iter->uv1]->l;
-            luv1 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+            luv1 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
             l = state->uvs[edge_iter->uv2]->l;
-            luv2 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+            luv2 = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
 
             if (stitch_midpoints) {
-              add_v2_v2(final_position[edge->uv1].uv, luv1->uv);
+              add_v2_v2(final_position[edge->uv1].uv, luv1);
               final_position[edge->uv1].count++;
-              add_v2_v2(final_position[edge->uv2].uv, luv2->uv);
+              add_v2_v2(final_position[edge->uv2].uv, luv2);
               final_position[edge->uv2].count++;
             }
             else if (edge_iter->element->island == ssc->static_island) {
-              copy_v2_v2(final_position[edge->uv1].uv, luv1->uv);
-              copy_v2_v2(final_position[edge->uv2].uv, luv2->uv);
+              copy_v2_v2(final_position[edge->uv1].uv, luv1);
+              copy_v2_v2(final_position[edge->uv2].uv, luv2);
             }
           }
         }
@@ -1343,20 +1333,18 @@ static int stitch_process_data(StitchStateContainer *ssc,
 
         if (element->flag & STITCH_STITCHABLE) {
           BMLoop *l;
-          MLoopUV *luv;
+          float *luv;
 
           l = element->l;
-          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
 
           /* accumulate each islands' translation from stitchable elements.
            * It is important to do here because in final pass MTFaces
            * get modified and result is zero. */
-          island_stitch_data[element->island].translation[0] += final_position[i].uv[0] -
-                                                                luv->uv[0];
-          island_stitch_data[element->island].translation[1] += final_position[i].uv[1] -
-                                                                luv->uv[1];
-          island_stitch_data[element->island].medianPoint[0] += luv->uv[0];
-          island_stitch_data[element->island].medianPoint[1] += luv->uv[1];
+          island_stitch_data[element->island].translation[0] += final_position[i].uv[0] - luv[0];
+          island_stitch_data[element->island].translation[1] += final_position[i].uv[1] - luv[1];
+          island_stitch_data[element->island].medianPoint[0] += luv[0];
+          island_stitch_data[element->island].medianPoint[1] += luv[1];
           island_stitch_data[element->island].numOfElements++;
         }
       }
@@ -1398,20 +1386,18 @@ static int stitch_process_data(StitchStateContainer *ssc,
 
         if (element->flag & STITCH_STITCHABLE) {
           BMLoop *l;
-          MLoopUV *luv;
+          float *luv;
 
           l = element->l;
-          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+          luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_PROP_FLOAT2);
 
           /* accumulate each islands' translation from stitchable elements.
            * it is important to do here because in final pass MTFaces
            * get modified and result is zero. */
-          island_stitch_data[element->island].translation[0] += final_position[i].uv[0] -
-                                                                luv->uv[0];
-          island_stitch_data[element->island].translation[1] += final_position[i].uv[1] -
-                                                                luv->uv[1];
-          island_stitch_data[element->island].medianPoint[0] += luv->uv[0];
-          island_stitch_data[element->island].medianPoint[1] += luv->uv[1];
+          island_stitch_data[element->island].translation[0] += final_position[i].uv[0] - luv[0];
+          island_stitch_data[element->island].translation[1] += final_position[i].uv[1] - luv[1];
+          island_stitch_data[element->island].medianPoint[0] += luv[0];
+          island_stitch_data[element->island].medianPoint[1] += luv[1];
           island_stitch_data[element->island].numOfElements++;
         }
       }
@@ -1645,13 +1631,12 @@ static void stitch_switch_selection_mode_all(StitchStateContainer *ssc)
 static void stitch_calculate_edge_normal(BMEditMesh *em, UvEdge *edge, float *normal, float aspect)
 {
   BMLoop *l1 = edge->element->l;
-  MLoopUV *luv1, *luv2;
   float tangent[2];
 
-  luv1 = CustomData_bmesh_get(&em->bm->ldata, l1->head.data, CD_MLOOPUV);
-  luv2 = CustomData_bmesh_get(&em->bm->ldata, l1->next->head.data, CD_MLOOPUV);
+  float *luv1 = CustomData_bmesh_get(&em->bm->ldata, l1->head.data, CD_PROP_FLOAT2);
+  float *luv2 = CustomData_bmesh_get(&em->bm->ldata, l1->next->head.data, CD_PROP_FLOAT2);
 
-  sub_v2_v2v2(tangent, luv2->uv, luv1->uv);
+  sub_v2_v2v2(tangent, luv2, luv1);
 
   tangent[1] /= aspect;
 
@@ -1845,7 +1830,7 @@ static StitchState *stitch_init(bContext *C,
   float aspx, aspy;
 
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
 
   state = MEM_callocN(sizeof(StitchState), "stitch state obj");
 
@@ -2076,7 +2061,7 @@ static StitchState *stitch_init(bContext *C,
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-          if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+          if (uvedit_uv_select_test(scene, l, offsets)) {
             UvElement *element = BM_uv_element_get(state->element_map, efa, l);
             if (element) {
               stitch_select_uv(element, state, 1);
@@ -2097,7 +2082,7 @@ static StitchState *stitch_init(bContext *C,
         }
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          if (uvedit_edge_select_test(scene, l, cd_loop_uv_offset)) {
+          if (uvedit_edge_select_test(scene, l, offsets)) {
             UvEdge *edge = uv_edge_get(l, state);
             if (edge) {
               stitch_select_edge(edge, state, true);

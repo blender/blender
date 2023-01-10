@@ -302,17 +302,18 @@ static void bm_corners_to_loops_ex(ID *id,
   for (int i = 0; i < numTex; i++) {
     const MTFace *texface = (const MTFace *)CustomData_get_n(fdata, CD_MTFACE, findex, i);
 
-    MLoopUV *mloopuv = (MLoopUV *)CustomData_get_n(ldata, CD_MLOOPUV, loopstart, i);
-    copy_v2_v2(mloopuv->uv, texface->uv[0]);
-    mloopuv++;
-    copy_v2_v2(mloopuv->uv, texface->uv[1]);
-    mloopuv++;
-    copy_v2_v2(mloopuv->uv, texface->uv[2]);
-    mloopuv++;
+    blender::float2 *uv = static_cast<blender::float2 *>(
+        CustomData_get_n(ldata, CD_PROP_FLOAT2, loopstart, i));
+    copy_v2_v2(*uv, texface->uv[0]);
+    uv++;
+    copy_v2_v2(*uv, texface->uv[1]);
+    uv++;
+    copy_v2_v2(*uv, texface->uv[2]);
+    uv++;
 
     if (mf->v4) {
-      copy_v2_v2(mloopuv->uv, texface->uv[3]);
-      mloopuv++;
+      copy_v2_v2(*uv, texface->uv[3]);
+      uv++;
     }
   }
 
@@ -394,7 +395,7 @@ static void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *ldata, int to
   for (int i = 0; i < fdata->totlayer; i++) {
     if (fdata->layers[i].type == CD_MTFACE) {
       CustomData_add_layer_named(
-          ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, totloop, fdata->layers[i].name);
+          ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, nullptr, totloop, fdata->layers[i].name);
     }
     else if (fdata->layers[i].type == CD_MCOL) {
       CustomData_add_layer_named(
@@ -537,17 +538,17 @@ static void update_active_fdata_layers(Mesh &mesh, CustomData *fdata, CustomData
 {
   int act;
 
-  if (CustomData_has_layer(ldata, CD_MLOOPUV)) {
-    act = CustomData_get_active_layer(ldata, CD_MLOOPUV);
+  if (CustomData_has_layer(ldata, CD_PROP_FLOAT2)) {
+    act = CustomData_get_active_layer(ldata, CD_PROP_FLOAT2);
     CustomData_set_layer_active(fdata, CD_MTFACE, act);
 
-    act = CustomData_get_render_layer(ldata, CD_MLOOPUV);
+    act = CustomData_get_render_layer(ldata, CD_PROP_FLOAT2);
     CustomData_set_layer_render(fdata, CD_MTFACE, act);
 
-    act = CustomData_get_clone_layer(ldata, CD_MLOOPUV);
+    act = CustomData_get_clone_layer(ldata, CD_PROP_FLOAT2);
     CustomData_set_layer_clone(fdata, CD_MTFACE, act);
 
-    act = CustomData_get_stencil_layer(ldata, CD_MLOOPUV);
+    act = CustomData_get_stencil_layer(ldata, CD_PROP_FLOAT2);
     CustomData_set_layer_stencil(fdata, CD_MTFACE, act);
   }
 
@@ -584,7 +585,7 @@ static bool check_matching_legacy_layer_counts(CustomData *fdata, CustomData *ld
     ((a_num += CustomData_number_of_layers(l_a, t_a)) == \
      (b_num += CustomData_number_of_layers(l_b, t_b)))
 
-  if (!LAYER_CMP(ldata, CD_MLOOPUV, fdata, CD_MTFACE)) {
+  if (!LAYER_CMP(ldata, CD_PROP_FLOAT2, fdata, CD_MTFACE)) {
     return false;
   }
   if (!LAYER_CMP(ldata, CD_PROP_BYTE_COLOR, fdata, CD_MCOL)) {
@@ -617,7 +618,7 @@ static void add_mface_layers(Mesh &mesh, CustomData *fdata, CustomData *ldata, i
   BLI_assert(!check_matching_legacy_layer_counts(fdata, ldata, false));
 
   for (int i = 0; i < ldata->totlayer; i++) {
-    if (ldata->layers[i].type == CD_MLOOPUV) {
+    if (ldata->layers[i].type == CD_PROP_FLOAT2) {
       CustomData_add_layer_named(
           fdata, CD_MTFACE, CD_SET_DEFAULT, nullptr, total, ldata->layers[i].name);
     }
@@ -655,7 +656,7 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
      * Callers could also check but safer to do here - campbell */
   }
   else {
-    const int tottex_original = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
+    const int tottex_original = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
     const int totcol_original = CustomData_number_of_layers(&me->ldata, CD_PROP_BYTE_COLOR);
 
     const int tottex_tessface = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
@@ -674,7 +675,7 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
          * some info to help troubleshoot what's going on. */
         printf(
             "%s: warning! Tessellation uvs or vcol data got out of sync, "
-            "had to reset!\n    CD_MTFACE: %d != CD_MLOOPUV: %d || CD_MCOL: %d != "
+            "had to reset!\n    CD_MTFACE: %d != CD_PROP_FLOAT2: %d || CD_MCOL: %d != "
             "CD_PROP_BYTE_COLOR: "
             "%d\n",
             __func__,
@@ -717,16 +718,16 @@ static void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata,
 
   if (CustomData_has_layer(fdata, CD_MTFACE)) {
     act = CustomData_get_active_layer(fdata, CD_MTFACE);
-    CustomData_set_layer_active(ldata, CD_MLOOPUV, act);
+    CustomData_set_layer_active(ldata, CD_PROP_FLOAT2, act);
 
     act = CustomData_get_render_layer(fdata, CD_MTFACE);
-    CustomData_set_layer_render(ldata, CD_MLOOPUV, act);
+    CustomData_set_layer_render(ldata, CD_PROP_FLOAT2, act);
 
     act = CustomData_get_clone_layer(fdata, CD_MTFACE);
-    CustomData_set_layer_clone(ldata, CD_MLOOPUV, act);
+    CustomData_set_layer_clone(ldata, CD_PROP_FLOAT2, act);
 
     act = CustomData_get_stencil_layer(fdata, CD_MTFACE);
-    CustomData_set_layer_stencil(ldata, CD_MLOOPUV, act);
+    CustomData_set_layer_stencil(ldata, CD_PROP_FLOAT2, act);
   }
 
   if (CustomData_has_layer(fdata, CD_MCOL)) {
@@ -792,7 +793,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata,
    * we could be ~25% quicker with dedicated code.
    * The issue is, unless having two different functions with nearly the same code,
    * there's not much ways to solve this. Better IMHO to live with it for now (sigh). */
-  const int numUV = CustomData_number_of_layers(ldata, CD_MLOOPUV);
+  const int numUV = CustomData_number_of_layers(ldata, CD_PROP_FLOAT2);
   const int numCol = CustomData_number_of_layers(ldata, CD_PROP_BYTE_COLOR);
   const bool hasPCol = CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL);
   const bool hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
@@ -804,12 +805,13 @@ static void mesh_loops_to_tessdata(CustomData *fdata,
 
   for (i = 0; i < numUV; i++) {
     MTFace *texface = (MTFace *)CustomData_get_layer_n(fdata, CD_MTFACE, i);
-    const MLoopUV *mloopuv = (const MLoopUV *)CustomData_get_layer_n(ldata, CD_MLOOPUV, i);
+    const blender::float2 *uv = static_cast<const blender::float2 *>(
+        CustomData_get_layer_n(ldata, CD_PROP_FLOAT2, i));
 
     for (findex = 0, pidx = polyindices, lidx = loopindices; findex < num_faces;
          pidx++, lidx++, findex++, texface++) {
       for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
-        copy_v2_v2(texface->uv[j], mloopuv[(*lidx)[j]].uv);
+        copy_v2_v2(texface->uv[j], uv[(*lidx)[j]]);
       }
     }
   }
@@ -1469,6 +1471,179 @@ void BKE_mesh_legacy_convert_mpoly_to_material_indices(Mesh *mesh)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Generic UV Map Conversion
+ * \{ */
+
+void BKE_mesh_legacy_convert_uvs_to_struct(
+    Mesh *mesh,
+    blender::ResourceScope &temp_mloopuv_for_convert,
+    blender::Vector<CustomDataLayer, 16> &face_corner_layers_to_write)
+{
+  using namespace blender;
+  using namespace blender::bke;
+  const AttributeAccessor attributes = mesh->attributes();
+  Vector<CustomDataLayer, 16> new_layer_to_write;
+
+  /* Don't write the boolean UV map sublayers which will be written in the legacy #MLoopUV type. */
+  Set<std::string> uv_sublayers_to_skip;
+  char vert_name[MAX_CUSTOMDATA_LAYER_NAME];
+  char edge_name[MAX_CUSTOMDATA_LAYER_NAME];
+  char pin_name[MAX_CUSTOMDATA_LAYER_NAME];
+  for (const CustomDataLayer &layer : face_corner_layers_to_write) {
+    uv_sublayers_to_skip.add_multiple_new({BKE_uv_map_vert_select_name_get(layer.name, vert_name),
+                                           BKE_uv_map_edge_select_name_get(layer.name, edge_name),
+                                           BKE_uv_map_pin_name_get(layer.name, pin_name)});
+  }
+
+  for (const CustomDataLayer &layer : face_corner_layers_to_write) {
+    if (uv_sublayers_to_skip.contains_as(layer.name)) {
+      continue;
+    }
+    if (layer.type != CD_PROP_FLOAT2) {
+      new_layer_to_write.append(layer);
+      continue;
+    }
+    const Span<float2> coords{static_cast<const float2 *>(layer.data), mesh->totloop};
+    CustomDataLayer mloopuv_layer = layer;
+    mloopuv_layer.type = CD_MLOOPUV;
+    MutableSpan<MLoopUV> mloopuv = temp_mloopuv_for_convert.construct<Array<MLoopUV>>(
+        mesh->totloop);
+    mloopuv_layer.data = mloopuv.data();
+
+    char buffer[MAX_CUSTOMDATA_LAYER_NAME];
+    const VArray<bool> vert_selection = attributes.lookup_or_default<bool>(
+        BKE_uv_map_vert_select_name_get(layer.name, buffer), ATTR_DOMAIN_CORNER, false);
+    const VArray<bool> edge_selection = attributes.lookup_or_default<bool>(
+        BKE_uv_map_edge_select_name_get(layer.name, buffer), ATTR_DOMAIN_CORNER, false);
+    const VArray<bool> pin = attributes.lookup_or_default<bool>(
+        BKE_uv_map_pin_name_get(layer.name, buffer), ATTR_DOMAIN_CORNER, false);
+
+    threading::parallel_for(mloopuv.index_range(), 2048, [&](IndexRange range) {
+      for (const int i : range) {
+        copy_v2_v2(mloopuv[i].uv, coords[i]);
+        SET_FLAG_FROM_TEST(mloopuv[i].flag, vert_selection[i], MLOOPUV_VERTSEL);
+        SET_FLAG_FROM_TEST(mloopuv[i].flag, edge_selection[i], MLOOPUV_EDGESEL);
+        SET_FLAG_FROM_TEST(mloopuv[i].flag, pin[i], MLOOPUV_PINNED);
+      }
+    });
+    new_layer_to_write.append(mloopuv_layer);
+  }
+
+  face_corner_layers_to_write = new_layer_to_write;
+  mesh->ldata.totlayer = new_layer_to_write.size();
+  mesh->ldata.maxlayer = mesh->ldata.totlayer;
+}
+
+void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
+{
+  using namespace blender;
+  using namespace blender::bke;
+
+  /* Store layer names since they will be removed, used to set the active status of new layers.
+   * Use intermediate #StringRef because the names can be null. */
+  const std::string active_uv = StringRef(
+      CustomData_get_active_layer_name(&mesh->ldata, CD_MLOOPUV));
+  const std::string default_uv = StringRef(
+      CustomData_get_render_layer_name(&mesh->ldata, CD_MLOOPUV));
+
+  Set<std::string> uv_layers_to_convert;
+  for (const int uv_layer_i : IndexRange(CustomData_number_of_layers(&mesh->ldata, CD_MLOOPUV))) {
+    uv_layers_to_convert.add_as(CustomData_get_layer_name(&mesh->ldata, CD_MLOOPUV, uv_layer_i));
+  }
+
+  for (const StringRefNull name : uv_layers_to_convert) {
+    const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
+        CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, name.c_str()));
+    const uint32_t needed_boolean_attributes = threading::parallel_reduce(
+        IndexRange(mesh->totloop),
+        4096,
+        0,
+        [&](const IndexRange range, uint32_t init) {
+          for (const int i : range) {
+            init |= mloopuv[i].flag;
+          }
+          return init;
+        },
+        [](const uint32_t a, const uint32_t b) { return a | b; });
+
+    float2 *coords = static_cast<float2 *>(
+        MEM_malloc_arrayN(mesh->totloop, sizeof(float2), __func__));
+    bool *vert_selection = nullptr;
+    bool *edge_selection = nullptr;
+    bool *pin = nullptr;
+    if (needed_boolean_attributes & MLOOPUV_VERTSEL) {
+      vert_selection = static_cast<bool *>(
+          MEM_malloc_arrayN(mesh->totloop, sizeof(bool), __func__));
+    }
+    if (needed_boolean_attributes & MLOOPUV_EDGESEL) {
+      edge_selection = static_cast<bool *>(
+          MEM_malloc_arrayN(mesh->totloop, sizeof(bool), __func__));
+    }
+    if (needed_boolean_attributes & MLOOPUV_PINNED) {
+      pin = static_cast<bool *>(MEM_malloc_arrayN(mesh->totloop, sizeof(bool), __func__));
+    }
+
+    threading::parallel_for(IndexRange(mesh->totloop), 4096, [&](IndexRange range) {
+      for (const int i : range) {
+        coords[i] = mloopuv[i].uv;
+      }
+      if (vert_selection) {
+        for (const int i : range) {
+          vert_selection[i] = mloopuv[i].flag & MLOOPUV_VERTSEL;
+        }
+      }
+      if (edge_selection) {
+        for (const int i : range) {
+          edge_selection[i] = mloopuv[i].flag & MLOOPUV_EDGESEL;
+        }
+      }
+      if (pin) {
+        for (const int i : range) {
+          pin[i] = mloopuv[i].flag & MLOOPUV_PINNED;
+        }
+      }
+    });
+
+    CustomData_free_layer_named(&mesh->ldata, name.c_str(), mesh->totloop);
+    CustomData_add_layer_named(
+        &mesh->ldata, CD_PROP_FLOAT2, CD_ASSIGN, coords, mesh->totloop, name.c_str());
+    char buffer[MAX_CUSTOMDATA_LAYER_NAME];
+    if (vert_selection) {
+      CustomData_add_layer_named(&mesh->ldata,
+                                 CD_PROP_BOOL,
+                                 CD_ASSIGN,
+                                 vert_selection,
+                                 mesh->totloop,
+                                 BKE_uv_map_vert_select_name_get(name.c_str(), buffer));
+    }
+    if (edge_selection) {
+      CustomData_add_layer_named(&mesh->ldata,
+                                 CD_PROP_BOOL,
+                                 CD_ASSIGN,
+                                 edge_selection,
+                                 mesh->totloop,
+                                 BKE_uv_map_edge_select_name_get(name.c_str(), buffer));
+    }
+    if (pin) {
+      CustomData_add_layer_named(&mesh->ldata,
+                                 CD_PROP_BOOL,
+                                 CD_ASSIGN,
+                                 pin,
+                                 mesh->totloop,
+                                 BKE_uv_map_pin_name_get(name.c_str(), buffer));
+    }
+  }
+
+  CustomData_set_layer_active_index(
+      &mesh->ldata,
+      CD_PROP_FLOAT2,
+      CustomData_get_named_layer_index(&mesh->ldata, CD_PROP_FLOAT2, active_uv.c_str()));
+  CustomData_set_layer_render_index(
+      &mesh->ldata,
+      CD_PROP_FLOAT2,
+      CustomData_get_named_layer_index(&mesh->ldata, CD_PROP_FLOAT2, default_uv.c_str()));
+}
+
 /** \name Selection Attribute and Legacy Flag Conversion
  * \{ */
 

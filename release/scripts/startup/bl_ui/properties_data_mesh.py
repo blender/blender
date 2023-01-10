@@ -607,7 +607,6 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
                 # Built-in names.
                 {"shade_smooth": None, "normal": None, "crease": None},
                 mesh.attributes,
-                mesh.uv_layers,
                 None if ob is None else ob.vertex_groups,
         ):
             if collection is None:

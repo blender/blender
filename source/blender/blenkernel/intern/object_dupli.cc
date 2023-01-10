@@ -67,6 +67,7 @@
 #include "RNA_types.h"
 
 using blender::Array;
+using blender::float2;
 using blender::float3;
 using blender::float4x4;
 using blender::Span;
@@ -1062,7 +1063,7 @@ struct FaceDupliData_Mesh {
   const MLoop *mloop;
   Span<float3> vert_positions;
   const float (*orco)[3];
-  const MLoopUV *mloopuv;
+  const float2 *mloopuv;
 };
 
 struct FaceDupliData_EditMesh {
@@ -1211,7 +1212,7 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
   const MPoly *mpoly = fdd->mpoly, *mp;
   const MLoop *mloop = fdd->mloop;
   const float(*orco)[3] = fdd->orco;
-  const MLoopUV *mloopuv = fdd->mloopuv;
+  const float2 *mloopuv = fdd->mloopuv;
   const int totface = fdd->totface;
   const bool use_scale = fdd->params.use_scale;
   int a;
@@ -1243,7 +1244,7 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
     }
     if (mloopuv) {
       for (int j = 0; j < mp->totloop; j++) {
-        madd_v2_v2fl(dob->uv, mloopuv[mp->loopstart + j].uv, w);
+        madd_v2_v2fl(dob->uv, mloopuv[mp->loopstart + j], w);
       }
     }
   }
@@ -1304,7 +1305,7 @@ static void make_duplis_faces(const DupliContext *ctx)
   FaceDupliData_Params fdd_params = {ctx, (parent->transflag & OB_DUPLIFACES_SCALE) != 0};
 
   if (em != nullptr) {
-    const int uv_idx = CustomData_get_render_layer(&em->bm->ldata, CD_MLOOPUV);
+    const int uv_idx = CustomData_get_render_layer(&em->bm->ldata, CD_PROP_FLOAT2);
     FaceDupliData_EditMesh fdd{};
     fdd.params = fdd_params;
     fdd.em = em;
@@ -1312,20 +1313,20 @@ static void make_duplis_faces(const DupliContext *ctx)
     fdd.has_orco = (vert_positions_deform != nullptr);
     fdd.has_uvs = (uv_idx != -1);
     fdd.cd_loop_uv_offset = (uv_idx != -1) ?
-                                CustomData_get_n_offset(&em->bm->ldata, CD_MLOOPUV, uv_idx) :
+                                CustomData_get_n_offset(&em->bm->ldata, CD_PROP_FLOAT2, uv_idx) :
                                 -1;
     make_child_duplis(ctx, &fdd, make_child_duplis_faces_from_editmesh);
   }
   else {
-    const int uv_idx = CustomData_get_render_layer(&me_eval->ldata, CD_MLOOPUV);
+    const int uv_idx = CustomData_get_render_layer(&me_eval->ldata, CD_PROP_FLOAT2);
     FaceDupliData_Mesh fdd{};
     fdd.params = fdd_params;
     fdd.totface = me_eval->totpoly;
     fdd.mpoly = me_eval->polys().data();
     fdd.mloop = me_eval->loops().data();
     fdd.vert_positions = me_eval->vert_positions();
-    fdd.mloopuv = (uv_idx != -1) ? (const MLoopUV *)CustomData_get_layer_n(
-                                       &me_eval->ldata, CD_MLOOPUV, uv_idx) :
+    fdd.mloopuv = (uv_idx != -1) ? (const float2 *)CustomData_get_layer_n(
+                                       &me_eval->ldata, CD_PROP_FLOAT2, uv_idx) :
                                    nullptr;
     fdd.orco = (const float(*)[3])CustomData_get_layer(&me_eval->vdata, CD_ORCO);
 

@@ -262,7 +262,7 @@ static void get_face_uv_map_vert(
 static int ss_sync_from_uv(CCGSubSurf *ss,
                            CCGSubSurf *origss,
                            DerivedMesh *dm,
-                           const MLoopUV *mloopuv)
+                           const float (*mloopuv)[2])
 {
   MPoly *mpoly = dm->getPolyArray(dm);
   MLoop *mloop = dm->getLoopArray(dm);
@@ -312,7 +312,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
         int loopid = mpoly[v->poly_index].loopstart + v->loop_of_poly_index;
         CCGVertHDL vhdl = POINTER_FROM_INT(loopid);
 
-        copy_v2_v2(uv, mloopuv[loopid].uv);
+        copy_v2_v2(uv, mloopuv[loopid]);
 
         ccgSubSurf_syncVert(ss, vhdl, uv, seam, &ssv);
       }
@@ -387,11 +387,11 @@ static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *
 {
   CCGFaceIterator fi;
   int index, gridSize, gridFaces, /*edgeSize,*/ totface, x, y, S;
-  const MLoopUV *dmloopuv = CustomData_get_layer_n(&dm->loopData, CD_MLOOPUV, n);
-  /* need to update both CD_MTFACE & CD_MLOOPUV, hrmf, we could get away with
+  const float(*dmloopuv)[2] = CustomData_get_layer_n(&dm->loopData, CD_PROP_FLOAT2, n);
+  /* need to update both CD_MTFACE & CD_PROP_FLOAT2, hrmf, we could get away with
    * just tface except applying the modifier then looses subsurf UV */
   MTFace *tface = CustomData_get_layer_n(&result->faceData, CD_MTFACE, n);
-  MLoopUV *mloopuv = CustomData_get_layer_n(&result->loopData, CD_MLOOPUV, n);
+  float(*mloopuv)[2] = CustomData_get_layer_n(&result->loopData, CD_PROP_FLOAT2, n);
 
   if (!dmloopuv || (!tface && !mloopuv)) {
     return;
@@ -421,7 +421,7 @@ static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *
 
   /* load coordinates from uvss into tface */
   MTFace *tf = tface;
-  MLoopUV *mluv = mloopuv;
+  float(*mluv)[2] = mloopuv;
 
   for (index = 0; index < totface; index++) {
     CCGFace *f = faceMap[index];
@@ -446,10 +446,10 @@ static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *
           }
 
           if (mluv) {
-            copy_v2_v2(mluv[0].uv, a);
-            copy_v2_v2(mluv[1].uv, d);
-            copy_v2_v2(mluv[2].uv, c);
-            copy_v2_v2(mluv[3].uv, b);
+            copy_v2_v2(mluv[0], a);
+            copy_v2_v2(mluv[1], d);
+            copy_v2_v2(mluv[2], c);
+            copy_v2_v2(mluv[3], b);
             mluv += 4;
           }
         }
@@ -1801,8 +1801,8 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   if (useSubsurfUv) {
     CustomData *ldata = &ccgdm->dm.loopData;
     CustomData *dmldata = &dm->loopData;
-    int numlayer = CustomData_number_of_layers(ldata, CD_MLOOPUV);
-    int dmnumlayer = CustomData_number_of_layers(dmldata, CD_MLOOPUV);
+    int numlayer = CustomData_number_of_layers(ldata, CD_PROP_FLOAT2);
+    int dmnumlayer = CustomData_number_of_layers(dmldata, CD_PROP_FLOAT2);
 
     for (i = 0; i < numlayer && i < dmnumlayer; i++) {
       set_subsurf_uv(ss, dm, &ccgdm->dm, i);

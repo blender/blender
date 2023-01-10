@@ -1789,7 +1789,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
                         const float (*vert_normals)[3],
                         const MLoop *mloop,
                         const MLoopTri *mlooptri,
-                        const MLoopUV *mloopuv,
+                        const float (*mloopuv)[2],
                         float *influence_map,
                         float *velocity_map,
                         int index,
@@ -1909,9 +1909,9 @@ static void sample_mesh(FluidFlowSettings *ffs,
         }
         else if (mloopuv) {
           const float *uv[3];
-          uv[0] = mloopuv[mlooptri[f_index].tri[0]].uv;
-          uv[1] = mloopuv[mlooptri[f_index].tri[1]].uv;
-          uv[2] = mloopuv[mlooptri[f_index].tri[2]].uv;
+          uv[0] = mloopuv[mlooptri[f_index].tri[0]];
+          uv[1] = mloopuv[mlooptri[f_index].tri[1]];
+          uv[2] = mloopuv[mlooptri[f_index].tri[2]];
 
           interp_v2_v2v2v2(tex_co, UNPACK3(uv), weights);
 
@@ -1984,7 +1984,7 @@ typedef struct EmitFromDMData {
   const float (*vert_normals)[3];
   const MLoop *mloop;
   const MLoopTri *mlooptri;
-  const MLoopUV *mloopuv;
+  const float (*mloopuv)[2];
   const MDeformVert *dvert;
   int defgrp_index;
 
@@ -2070,7 +2070,8 @@ static void emit_from_mesh(
     const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(me);
     const int numverts = me->totvert;
     const MDeformVert *dvert = BKE_mesh_deform_verts(me);
-    const MLoopUV *mloopuv = CustomData_get_layer_named(&me->ldata, CD_MLOOPUV, ffs->uvlayer_name);
+    const float(*mloopuv)[2] = CustomData_get_layer_named(
+        &me->ldata, CD_PROP_FLOAT2, ffs->uvlayer_name);
 
     if (ffs->flags & FLUID_FLOW_INITVELOCITY) {
       vert_vel = MEM_callocN(sizeof(float[3]) * numverts, "manta_flow_velocity");

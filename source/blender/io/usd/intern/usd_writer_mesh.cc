@@ -9,6 +9,7 @@
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
 #include "BLI_assert.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_math_vector.h"
 
 #include "BKE_attribute.h"
@@ -113,7 +114,7 @@ void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_
   const CustomData *ldata = &mesh->ldata;
   for (int layer_idx = 0; layer_idx < ldata->totlayer; layer_idx++) {
     const CustomDataLayer *layer = &ldata->layers[layer_idx];
-    if (layer->type != CD_MLOOPUV) {
+    if (layer->type != CD_PROP_FLOAT2) {
       continue;
     }
 
@@ -125,10 +126,10 @@ void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_
     pxr::UsdGeomPrimvar uv_coords_primvar = primvarsAPI.CreatePrimvar(
         primvar_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
 
-    MLoopUV *mloopuv = static_cast<MLoopUV *>(layer->data);
+    const float2 *mloopuv = static_cast<const float2 *>(layer->data);
     pxr::VtArray<pxr::GfVec2f> uv_coords;
     for (int loop_idx = 0; loop_idx < mesh->totloop; loop_idx++) {
-      uv_coords.push_back(pxr::GfVec2f(mloopuv[loop_idx].uv));
+      uv_coords.push_back(pxr::GfVec2f(mloopuv[loop_idx].x, mloopuv[loop_idx].y));
     }
 
     if (!uv_coords_primvar.HasValue()) {

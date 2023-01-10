@@ -288,24 +288,28 @@ Vector<int> OBJMesh::calc_poly_vertex_indices(const int poly_index) const
 void OBJMesh::store_uv_coords_and_indices()
 {
   const int totvert = export_mesh_->totvert;
-  const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
-      CustomData_get_layer(&export_mesh_->ldata, CD_MLOOPUV));
-  if (!mloopuv) {
+  const StringRef active_uv_name = CustomData_get_active_layer_name(&export_mesh_->ldata,
+                                                                    CD_PROP_FLOAT2);
+  if (active_uv_name.is_empty()) {
     tot_uv_vertices_ = 0;
     return;
   }
+  const bke::AttributeAccessor attributes = export_mesh_->attributes();
+  const VArraySpan<float2> uv_map = attributes.lookup<float2>(active_uv_name, ATTR_DOMAIN_CORNER);
+
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
 
-  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(mesh_polys_.data(),
-                                                       nullptr,
-                                                       nullptr,
-                                                       mesh_loops_.data(),
-                                                       mloopuv,
-                                                       mesh_polys_.size(),
-                                                       totvert,
-                                                       limit,
-                                                       false,
-                                                       false);
+  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
+      mesh_polys_.data(),
+      nullptr,
+      nullptr,
+      mesh_loops_.data(),
+      reinterpret_cast<const float(*)[2]>(uv_map.data()),
+      mesh_polys_.size(),
+      totvert,
+      limit,
+      false,
+      false);
 
   uv_indices_.resize(mesh_polys_.size());
   /* At least total vertices of a mesh will be present in its texture map. So
@@ -324,7 +328,7 @@ void OBJMesh::store_uv_coords_and_indices()
       /* Store UV vertex coordinates. */
       uv_coords_.resize(tot_uv_vertices_);
       const int loopstart = mesh_polys_[uv_vert->poly_index].loopstart;
-      Span<float> vert_uv_coords(mloopuv[loopstart + uv_vert->loop_of_poly_index].uv, 2);
+      Span<float> vert_uv_coords(uv_map[loopstart + uv_vert->loop_of_poly_index], 2);
       uv_coords_[tot_uv_vertices_ - 1] = float2(vert_uv_coords[0], vert_uv_coords[1]);
 
       /* Store UV vertex indices. */

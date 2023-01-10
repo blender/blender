@@ -288,6 +288,10 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     CustomData_blend_write_prepare(mesh->edata, edge_layers, names_to_skip);
     CustomData_blend_write_prepare(mesh->ldata, loop_layers, names_to_skip);
     CustomData_blend_write_prepare(mesh->pdata, poly_layers, names_to_skip);
+
+    if (!BLO_write_is_undo(writer)) {
+      BKE_mesh_legacy_convert_uvs_to_struct(mesh, temp_arrays_for_legacy_format, loop_layers);
+    }
   }
 
   mesh->runtime = nullptr;
@@ -479,35 +483,71 @@ static const char *cmpcode_to_str(int code)
   }
 }
 
+static bool is_sublayer_name(char const *sublayer_name, char const *name)
+{
+  BLI_assert(strlen(sublayer_name) == 2);
+  if (name[1] != sublayer_name[0]) {
+    return false;
+  }
+  if (name[2] != sublayer_name[1]) {
+    return false;
+  }
+  if (name[3] != '.') {
+    return false;
+  }
+  return true;
+}
+
+static bool is_uv_bool_sublayer(CustomDataLayer const *l)
+{
+  char const *name = l->name;
+
+  if (name[0] != '.') {
+    return false;
+  }
+
+  return is_sublayer_name(UV_VERTSEL_NAME, name) || is_sublayer_name(UV_EDGESEL_NAME, name) ||
+         is_sublayer_name(UV_PINNED_NAME, name);
+}
+
 /** Thresh is threshold for comparing vertices, UV's, vertex colors, weights, etc. */
 static int customdata_compare(
     CustomData *c1, CustomData *c2, const int total_length, Mesh *m1, Mesh *m2, const float thresh)
 {
-  const float thresh_sq = thresh * thresh;
   CustomDataLayer *l1, *l2;
   int layer_count1 = 0, layer_count2 = 0, j;
-  const uint64_t cd_mask_non_generic = CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_MLOOPUV |
-                                       CD_MASK_PROP_BYTE_COLOR | CD_MASK_MDEFORMVERT;
+  const uint64_t cd_mask_non_generic = CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_PROP_BYTE_COLOR |
+                                       CD_MASK_MDEFORMVERT;
   const uint64_t cd_mask_all_attr = CD_MASK_PROP_ALL | cd_mask_non_generic;
   const Span<MLoop> loops_1 = m1->loops();
   const Span<MLoop> loops_2 = m2->loops();
 
+  /* The uv selection / pin layers are ignored in the comparisons because
+   * the original flags they replace were ignored as well. Because of the
+   * lazy creation of these layers it would need careful handling of the
+   * test files to compare these layers. For now it has been decided to
+   * skip them.
+   */
+
   for (int i = 0; i < c1->totlayer; i++) {
     l1 = &c1->layers[i];
-    if ((CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr) && l1->anonymous_id == nullptr) {
+    if ((CD_TYPE_AS_MASK(l1->type) & cd_mask_all_attr) && l1->anonymous_id == nullptr &&
+        !is_uv_bool_sublayer(l1)) {
       layer_count1++;
     }
   }
 
   for (int i = 0; i < c2->totlayer; i++) {
     l2 = &c2->layers[i];
-    if ((CD_TYPE_AS_MASK(l2->type) & cd_mask_all_attr) && l2->anonymous_id == nullptr) {
+    if ((CD_TYPE_AS_MASK(l2->type) & cd_mask_all_attr) && l2->anonymous_id == nullptr &&
+        !is_uv_bool_sublayer(l2)) {
       layer_count2++;
     }
   }
 
   if (layer_count1 != layer_count2) {
-    /* TODO(@HooglyBoogly): Re-enable after tests are updated for material index refactor. */
+    /* TODO(@HooglyBoogly): Re-enable after tests are updated for material index refactor and UV as
+     * generic attribute refactor. */
     // return MESHCMP_CDLAYERS_MISMATCH;
   }
 
@@ -516,7 +556,7 @@ static int customdata_compare(
 
   for (int i1 = 0; i1 < c1->totlayer; i1++) {
     l1 = c1->layers + i1;
-    if (l1->anonymous_id != nullptr) {
+    if (l1->anonymous_id != nullptr || is_uv_bool_sublayer(l1)) {
       continue;
     }
     bool found_corresponding_layer = false;
@@ -580,18 +620,6 @@ static int customdata_compare(
           for (j = 0; j < ltot; j++, lp1++, lp2++) {
             if (lp1->v != lp2->v) {
               return MESHCMP_LOOPMISMATCH;
-            }
-          }
-          break;
-        }
-        case CD_MLOOPUV: {
-          MLoopUV *lp1 = (MLoopUV *)l1->data;
-          MLoopUV *lp2 = (MLoopUV *)l2->data;
-          int ltot = m1->totloop;
-
-          for (j = 0; j < ltot; j++, lp1++, lp2++) {
-            if (len_squared_v2v2(lp1->uv, lp2->uv) > thresh_sq) {
-              return MESHCMP_LOOPUVMISMATCH;
             }
           }
           break;

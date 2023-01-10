@@ -114,24 +114,6 @@ float BKE_mesh_calc_area(const Mesh *me)
   return total_area;
 }
 
-float BKE_mesh_calc_poly_uv_area(const MPoly *mpoly, const MLoopUV *uv_array)
-{
-
-  int i, l_iter = mpoly->loopstart;
-  float area;
-  float(*vertexcos)[2] = (float(*)[2])BLI_array_alloca(vertexcos, size_t(mpoly->totloop));
-
-  /* pack vertex cos into an array for area_poly_v2 */
-  for (i = 0; i < mpoly->totloop; i++, l_iter++) {
-    copy_v2_v2(vertexcos[i], uv_array[l_iter].uv);
-  }
-
-  /* finally calculate the area */
-  area = area_poly_v2(vertexcos, uint(mpoly->totloop));
-
-  return area;
-}
-
 static float UNUSED_FUNCTION(mesh_calc_poly_volume_centroid)(const MPoly *mpoly,
                                                              const MLoop *loopstart,
                                                              const float (*positions)[3],

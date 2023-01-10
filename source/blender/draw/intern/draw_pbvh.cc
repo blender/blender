@@ -76,7 +76,7 @@ static bool valid_pbvh_attr(int type)
     case CD_PBVH_MASK_TYPE:
     case CD_PROP_COLOR:
     case CD_PROP_BYTE_COLOR:
-    case CD_MLOOPUV:
+    case CD_PROP_FLOAT2:
       return true;
   }
 
@@ -651,15 +651,6 @@ struct PBVHBatches {
 
         break;
       }
-      case CD_MLOOPUV: {
-        MLoopUV *mloopuv = static_cast<MLoopUV *>(
-            CustomData_get_layer_named(args->ldata, CD_MLOOPUV, vbo.name.c_str()));
-
-        foreach_faces([&](int /*buffer_i*/, int tri_i, int /*vertex_i*/, const MLoopTri *tri) {
-          *static_cast<float2 *>(GPU_vertbuf_raw_step(&access)) = mloopuv[tri->tri[tri_i]].uv;
-        });
-        break;
-      }
       case CD_PROP_COLOR:
         if (vbo.domain == ATTR_DOMAIN_POINT) {
           MPropCol *mpropcol = static_cast<MPropCol *>(
@@ -881,10 +872,6 @@ struct PBVHBatches {
         GPU_vertformat_attr_add(&format, "a", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
         need_aliases = true;
         break;
-      case CD_MLOOPUV:
-        GPU_vertformat_attr_add(&format, "uvs", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-        need_aliases = true;
-        break;
       case CD_PBVH_FSET_TYPE:
         GPU_vertformat_attr_add(&format, "fset", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
         break;
@@ -924,7 +911,7 @@ struct PBVHBatches {
         }
         else {
           switch (type) {
-            case CD_MLOOPUV:
+            case CD_PROP_FLOAT2:
               prefix = "u";
               break;
             default:

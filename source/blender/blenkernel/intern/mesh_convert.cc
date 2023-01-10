@@ -198,8 +198,8 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_only_span<int>(
       "material_index", ATTR_DOMAIN_FACE);
-  MLoopUV *mloopuv = static_cast<MLoopUV *>(CustomData_add_layer_named(
-      &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop, DATA_("UVMap")));
+  blender::float2 *mloopuv = static_cast<blender::float2 *>(CustomData_add_layer_named(
+      &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, nullptr, mesh->totloop, DATA_("UVMap")));
 
   int dst_vert = 0;
   int dst_edge = 0;
@@ -278,8 +278,8 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
 
         if (mloopuv) {
           for (int i = 0; i < 3; i++, mloopuv++) {
-            mloopuv->uv[0] = (loops[dst_loop + i].v - startvert) / float(dl->nr - 1);
-            mloopuv->uv[1] = 0.0f;
+            (*mloopuv)[0] = (loops[dst_loop + i].v - startvert) / float(dl->nr - 1);
+            (*mloopuv)[1] = 0.0f;
           }
         }
 
@@ -355,15 +355,15 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
               /* find uv based on vertex index into grid array */
               int v = loops[dst_loop + i].v - startvert;
 
-              mloopuv->uv[0] = (v / dl->nr) / float(orco_sizev);
-              mloopuv->uv[1] = (v % dl->nr) / float(orco_sizeu);
+              (*mloopuv)[0] = (v / dl->nr) / float(orco_sizev);
+              (*mloopuv)[1] = (v % dl->nr) / float(orco_sizeu);
 
               /* cyclic correction */
-              if (ELEM(i, 1, 2) && mloopuv->uv[0] == 0.0f) {
-                mloopuv->uv[0] = 1.0f;
+              if ((ELEM(i, 1, 2)) && (*mloopuv)[0] == 0.0f) {
+                (*mloopuv)[0] = 1.0f;
               }
-              if (ELEM(i, 0, 1) && mloopuv->uv[1] == 0.0f) {
-                mloopuv->uv[1] = 1.0f;
+              if ((ELEM(i, 0, 1)) && (*mloopuv)[1] == 0.0f) {
+                (*mloopuv)[1] = 1.0f;
               }
             }
           }

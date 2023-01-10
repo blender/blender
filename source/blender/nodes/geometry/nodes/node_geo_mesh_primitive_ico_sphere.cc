@@ -40,7 +40,11 @@ static Mesh *create_ico_sphere_mesh(const int subdivisions,
   bmesh_create_params.use_toolflags = true;
   const BMAllocTemplate allocsize = {0, 0, 0, 0};
   BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
-  BM_data_layer_add_named(bm, &bm->ldata, CD_MLOOPUV, nullptr);
+  BM_data_layer_add_named(bm, &bm->ldata, CD_PROP_FLOAT2, "UVMap");
+  /* Make sure the associated boolean layers exists as well. Normally this would be done when
+   * adding a UV layer via python or when copying from Mesh, but when we 'manually' create the UV
+   * layer we need to make sure the boolean layers exist as well. */
+  BM_uv_map_ensure_select_and_pin_attrs(bm);
 
   BMO_op_callf(bm,
                BMO_FLAG_DEFAULTS,

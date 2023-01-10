@@ -960,7 +960,7 @@ static int surface_set_exec(bContext *C, wmOperator *op)
 
   Mesh &new_surface_mesh = *static_cast<Mesh *>(new_surface_ob.data);
   const char *new_uv_map_name = CustomData_get_active_layer_name(&new_surface_mesh.ldata,
-                                                                 CD_MLOOPUV);
+                                                                 CD_PROP_FLOAT2);
 
   CTX_DATA_BEGIN (C, Object *, selected_ob, selected_objects) {
     if (selected_ob->type != OB_CURVES) {

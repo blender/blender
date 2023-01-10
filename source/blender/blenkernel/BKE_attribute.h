@@ -131,6 +131,10 @@ struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const 
 
 bool BKE_id_attribute_calc_unique_name(struct ID *id, const char *name, char *outname);
 
+const char *BKE_uv_map_vert_select_name_get(const char *uv_map_name, char *buffer);
+const char *BKE_uv_map_edge_select_name_get(const char *uv_map_name, char *buffer);
+const char *BKE_uv_map_pin_name_get(const char *uv_map_name, char *buffer);
+
 #ifdef __cplusplus
 }
 #endif

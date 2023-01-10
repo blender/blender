@@ -213,8 +213,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   uint *vert_loop_map = nullptr; /* orig vert to orig loop */
 
   /* UV Coords */
-  const uint mloopuv_layers_tot = uint(CustomData_number_of_layers(&mesh->ldata, CD_MLOOPUV));
-  blender::Array<MLoopUV *> mloopuv_layers(mloopuv_layers_tot);
+  const uint mloopuv_layers_tot = uint(CustomData_number_of_layers(&mesh->ldata, CD_PROP_FLOAT2));
+  blender::Array<blender::float2 *> mloopuv_layers(mloopuv_layers_tot);
   float uv_u_scale;
   float uv_v_minmax[2] = {FLT_MAX, -FLT_MAX};
   float uv_v_range_inv;
@@ -406,8 +406,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   if (mloopuv_layers_tot) {
     uint uv_lay;
     for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
-      mloopuv_layers[uv_lay] = static_cast<MLoopUV *>(
-          CustomData_get_layer_n(&result->ldata, CD_MLOOPUV, int(uv_lay)));
+      mloopuv_layers[uv_lay] = static_cast<blender::float2 *>(
+          CustomData_get_layer_n(&result->ldata, CD_PROP_FLOAT2, int(uv_lay)));
     }
 
     if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
@@ -887,12 +887,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           const float uv_u_offset_a = float(step) * uv_u_scale;
           const float uv_u_offset_b = float(step + 1) * uv_u_scale;
           for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
-            MLoopUV *mluv = &mloopuv_layers[uv_lay][l_index];
+            blender::float2 *mluv = &mloopuv_layers[uv_lay][l_index];
 
-            mluv[quad_ord[0]].uv[0] += uv_u_offset_a;
-            mluv[quad_ord[1]].uv[0] += uv_u_offset_a;
-            mluv[quad_ord[2]].uv[0] += uv_u_offset_b;
-            mluv[quad_ord[3]].uv[0] += uv_u_offset_b;
+            mluv[quad_ord[0]][0] += uv_u_offset_a;
+            mluv[quad_ord[1]][0] += uv_u_offset_a;
+            mluv[quad_ord[2]][0] += uv_u_offset_b;
+            mluv[quad_ord[3]][0] += uv_u_offset_b;
           }
         }
       }
@@ -904,12 +904,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           const float uv_u_offset_a = float(step) * uv_u_scale;
           const float uv_u_offset_b = float(step + 1) * uv_u_scale;
           for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
-            MLoopUV *mluv = &mloopuv_layers[uv_lay][l_index];
+            blender::float2 *mluv = &mloopuv_layers[uv_lay][l_index];
 
-            copy_v2_fl2(mluv[quad_ord[0]].uv, uv_u_offset_a, uv_v_offset_a);
-            copy_v2_fl2(mluv[quad_ord[1]].uv, uv_u_offset_a, uv_v_offset_b);
-            copy_v2_fl2(mluv[quad_ord[2]].uv, uv_u_offset_b, uv_v_offset_b);
-            copy_v2_fl2(mluv[quad_ord[3]].uv, uv_u_offset_b, uv_v_offset_a);
+            copy_v2_fl2(mluv[quad_ord[0]], uv_u_offset_a, uv_v_offset_a);
+            copy_v2_fl2(mluv[quad_ord[1]], uv_u_offset_a, uv_v_offset_b);
+            copy_v2_fl2(mluv[quad_ord[2]], uv_u_offset_b, uv_v_offset_b);
+            copy_v2_fl2(mluv[quad_ord[3]], uv_u_offset_b, uv_v_offset_a);
           }
         }
       }

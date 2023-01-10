@@ -922,16 +922,6 @@ static void set_shade_smooth(MPoly &mpoly, bool value)
   SET_FLAG_FROM_TEST(mpoly.flag, value, ME_SMOOTH);
 }
 
-static float2 get_loop_uv(const MLoopUV &uv)
-{
-  return float2(uv.uv);
-}
-
-static void set_loop_uv(MLoopUV &uv, float2 co)
-{
-  copy_v2_v2(uv.uv, co);
-}
-
 static float get_crease(const float &crease)
 {
   return crease;
@@ -1299,14 +1289,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
       make_derived_write_attribute<float, float, get_crease, set_crease>,
       nullptr);
 
-  static NamedLegacyCustomDataProvider uvs(
-      ATTR_DOMAIN_CORNER,
-      CD_PROP_FLOAT2,
-      CD_MLOOPUV,
-      corner_access,
-      make_derived_read_attribute<MLoopUV, float2, get_loop_uv>,
-      make_derived_write_attribute<MLoopUV, float2, get_loop_uv, set_loop_uv>);
-
   static VertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(ATTR_DOMAIN_CORNER, corner_access);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
@@ -1315,8 +1297,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
 
   return ComponentAttributeProviders(
       {&position, &id, &material_index, &shade_smooth, &normal, &crease},
-      {&uvs,
-       &corner_custom_data,
+      {&corner_custom_data,
        &vertex_groups,
        &point_custom_data,
        &edge_custom_data,

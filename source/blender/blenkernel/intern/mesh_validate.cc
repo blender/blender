@@ -1022,7 +1022,7 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
   is_valid &= mesh_validate_customdata(
       pdata, mask.pmask, totpoly, do_verbose, do_fixes, &is_change_p);
 
-  const int tot_uvloop = CustomData_number_of_layers(ldata, CD_MLOOPUV);
+  const int tot_uvloop = CustomData_number_of_layers(ldata, CD_PROP_FLOAT2);
   if (tot_uvloop > MAX_MTFACE) {
     PRINT_ERR(
         "\tMore UV layers than %d allowed, %d last ones won't be available for render, shaders, "
@@ -1032,12 +1032,12 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
   }
 
   /* check indices of clone/stencil */
-  if (do_fixes && CustomData_get_clone_layer(ldata, CD_MLOOPUV) >= tot_uvloop) {
-    CustomData_set_layer_clone(ldata, CD_MLOOPUV, 0);
+  if (do_fixes && CustomData_get_clone_layer(ldata, CD_PROP_FLOAT2) >= tot_uvloop) {
+    CustomData_set_layer_clone(ldata, CD_PROP_FLOAT2, 0);
     is_change_l = true;
   }
-  if (do_fixes && CustomData_get_stencil_layer(ldata, CD_MLOOPUV) >= tot_uvloop) {
-    CustomData_set_layer_stencil(ldata, CD_MLOOPUV, 0);
+  if (do_fixes && CustomData_get_stencil_layer(ldata, CD_PROP_FLOAT2) >= tot_uvloop) {
+    CustomData_set_layer_stencil(ldata, CD_PROP_FLOAT2, 0);
     is_change_l = true;
   }
 
