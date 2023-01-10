@@ -2,6 +2,7 @@
 #define BLENDER_PLY_IMPORT_MESH_HH
 
 #include "DNA_mesh_types.h"
+
 #include "ply_data.hh"
 
 namespace blender::io::ply {

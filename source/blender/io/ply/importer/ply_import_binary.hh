@@ -2,7 +2,9 @@
 #define BLENDER_PLY_IMPORT_BINARY_HH
 
 #include "BKE_mesh.h"
+
 #include "DNA_mesh_types.h"
+
 #include "ply_data.hh"
 
 namespace blender::io::ply {

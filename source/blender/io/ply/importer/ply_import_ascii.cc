@@ -1,9 +1,12 @@
-#include "ply_import_ascii.hh"
-#include "BLI_math_vector.h"
-#include "ply_functions.hh"
-#include "ply_import_mesh.hh"
 #include <algorithm>
 #include <fstream>
+
+#include "BLI_math_vector.h"
+
+#include "ply_import_ascii.hh"
+#include "ply_functions.hh"
+#include "ply_import_mesh.hh"
+
 
 namespace blender::io::ply {
 
