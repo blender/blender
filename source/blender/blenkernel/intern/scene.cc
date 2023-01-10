@@ -1686,14 +1686,14 @@ static void scene_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
   Scene *scene_new = (Scene *)id_new;
   Scene *scene_old = (Scene *)id_old;
 
-  std::swap( scene_old->cursor, scene_new->cursor);
+  std::swap(scene_old->cursor, scene_new->cursor);
   if (scene_new->toolsettings != nullptr && scene_old->toolsettings != nullptr) {
     /* First try to restore ID pointers that can be and should be preserved (like brushes or
      * palettes), and counteract the swap of the whole ToolSettings structs below for the others
      * (like object ones). */
     scene_foreach_toolsettings(
         nullptr, scene_new->toolsettings, true, reader, scene_old->toolsettings);
-    std::swap( *scene_old->toolsettings, *scene_new->toolsettings);
+    std::swap(*scene_old->toolsettings, *scene_new->toolsettings);
   }
 }
 

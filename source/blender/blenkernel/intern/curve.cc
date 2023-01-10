@@ -3048,7 +3048,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
           bevp2 = bevp1 + (bl->nr - 1);
           nr = bl->nr / 2;
           while (nr--) {
-            std::swap( *bevp1, *bevp2);
+            std::swap(*bevp1, *bevp2);
             bevp1++;
             bevp2--;
           }
@@ -4446,12 +4446,12 @@ void BKE_nurb_direction_switch(Nurb *nu)
         swap_v3_v3(bezt2->vec[0], bezt2->vec[2]);
       }
 
-      std::swap( bezt1->h1, bezt1->h2);
-      std::swap( bezt1->f1, bezt1->f3);
+      std::swap(bezt1->h1, bezt1->h2);
+      std::swap(bezt1->f1, bezt1->f3);
 
       if (bezt1 != bezt2) {
-        std::swap( bezt2->h1, bezt2->h2);
-        std::swap( bezt2->f1, bezt2->f3);
+        std::swap(bezt2->h1, bezt2->h2);
+        std::swap(bezt2->f1, bezt2->f3);
         bezt1->tilt = -bezt1->tilt;
         bezt2->tilt = -bezt2->tilt;
       }
@@ -4469,7 +4469,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
     bp2 = bp1 + (a - 1);
     a /= 2;
     while (bp1 != bp2 && a > 0) {
-      std::swap( *bp1, *bp2);
+      std::swap(*bp1, *bp2);
       a--;
       bp1->tilt = -bp1->tilt;
       bp2->tilt = -bp2->tilt;
@@ -4491,7 +4491,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
         fp2 = fp1 + (a - 1);
         a /= 2;
         while (fp1 != fp2 && a > 0) {
-          std::swap( *fp1, *fp2);
+          std::swap(*fp1, *fp2);
           a--;
           fp1++;
           fp2--;
@@ -4530,7 +4530,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
       a /= 2;
 
       while (bp1 != bp2 && a > 0) {
-        std::swap( *bp1, *bp2);
+        std::swap(*bp1, *bp2);
         a--;
         bp1++;
         bp2--;
