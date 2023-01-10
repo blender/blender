@@ -10,6 +10,7 @@
 #include "BLI_compiler_attrs.h"
 #include "DNA_object_enums.h"
 #include "DNA_userdef_enums.h"
+#include "DNA_windowmanager_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -558,15 +559,19 @@ bool ED_object_modifier_remove(struct ReportList *reports,
                                struct ModifierData *md);
 void ED_object_modifier_clear(struct Main *bmain, struct Scene *scene, struct Object *ob);
 bool ED_object_modifier_move_down(struct ReportList *reports,
+                                  eReportType error_type,
                                   struct Object *ob,
                                   struct ModifierData *md);
 bool ED_object_modifier_move_up(struct ReportList *reports,
+                                eReportType error_type,
                                 struct Object *ob,
                                 struct ModifierData *md);
 bool ED_object_modifier_move_to_index(struct ReportList *reports,
+                                      eReportType error_type,
                                       struct Object *ob,
                                       struct ModifierData *md,
-                                      int index);
+                                      int index,
+                                      bool allow_partial);
 
 bool ED_object_modifier_convert_psys_to_mesh(struct ReportList *reports,
                                              struct Main *bmain,
