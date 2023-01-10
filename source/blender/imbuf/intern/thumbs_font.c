@@ -17,7 +17,7 @@
 #include "../../blenfont/BLF_api.h"
 
 /* Only change if we need to update the previews in the on-disk cache. */
-#define FONT_THUMB_VERSION "1.0.0"
+#define FONT_THUMB_VERSION "1.0.1"
 
 struct ImBuf *IMB_thumb_load_font(const char *filename, uint x, uint y)
 {
