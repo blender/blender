@@ -41,17 +41,6 @@ typedef struct SnapGizmo3D {
   V3DSnapCursorState *snap_state;
 } SnapGizmo3D;
 
-static void snap_gizmo_snap_elements_update(SnapGizmo3D *snap_gizmo)
-{
-  wmGizmoProperty *gz_prop_snap;
-  gz_prop_snap = WM_gizmo_target_property_find(&snap_gizmo->gizmo, "snap_elements");
-
-  if (gz_prop_snap->prop) {
-    V3DSnapCursorState *snap_state = snap_gizmo->snap_state;
-    snap_state->snap_elem_force |= RNA_property_enum_get(&gz_prop_snap->ptr, gz_prop_snap->prop);
-  }
-}
-
 /* -------------------------------------------------------------------- */
 /** \name ED_gizmo_library specific API
  * \{ */
@@ -262,9 +251,6 @@ static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
 
-  /* Snap Elements can change while the gizmo is active. Need to be updated somewhere. */
-  snap_gizmo_snap_elements_update(snap_gizmo);
-
   /* Snap values are updated too late at the cursor. Be sure to update ahead of time. */
   int x, y;
   {
@@ -404,9 +390,6 @@ static void GIZMO_GT_snap_3d(wmGizmoType *gzt)
                             INT_MAX);
   RNA_def_property_int_array_funcs_runtime(
       prop, gizmo_snap_rna_snap_elem_index_get_fn, NULL, NULL);
-
-  /* Read/Write. */
-  WM_gizmotype_target_property_def(gzt, "snap_elements", PROP_ENUM, 1);
 }
 
 void ED_gizmotypes_snap_3d(void)
