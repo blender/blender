@@ -37,13 +37,13 @@ template double read<double>(std::ifstream &file, bool isBigEndian);
 void check_file_errors(const std::ifstream &file)
 {
   if (file.bad()) {
-    printf("Read/Write error on io operation\n");
+    throw std::ios_base::failure("Read/Write error on io operation");
   }
-  else if (file.fail()) {
-    printf("Logical error on io operation\n");
+  if (file.fail()) {
+    throw std::ios_base::failure("Logical error on io operation");
   }
-  else if (file.eof()) {
-    printf("Reached end of the file\n");
+  if (file.eof()) {
+    throw std::ios_base::failure("Reached end of the file");
   }
 }
 
