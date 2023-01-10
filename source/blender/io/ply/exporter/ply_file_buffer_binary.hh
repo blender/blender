@@ -44,6 +44,7 @@ class FileBufferBinary : public FileBuffer {
 
   void write_face(int size, Vector<uint32_t> const &vertex_indices) override
   {
+    /* Pre allocate memory so no further allocation has to be done for typical faces. */
     Vector<char, 128> data;
     data.append((char)size);
     for (auto &&vertexIndex : vertex_indices) {
