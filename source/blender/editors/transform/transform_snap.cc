@@ -447,11 +447,11 @@ static void applyFaceNearest(TransInfo *t, TransDataContainer *tc, TransData *td
 
 bool transform_snap_project_individual_is_active(const TransInfo *t)
 {
-  if (!transform_snap_is_active(t) || (t->flag & T_NO_PROJECT)) {
+  if (!transform_snap_is_active(t)) {
     return false;
   }
 
-  if (!transform_snap_is_active(t) || (t->flag & T_NO_PROJECT)) {
+  if (t->flag & T_NO_PROJECT) {
     return false;
   }
 
