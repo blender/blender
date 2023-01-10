@@ -616,7 +616,7 @@
 
 #define _DNA_DEFAULT_SurfaceModifierData \
   { \
-    /* Intentionally empty (all run-time data). */ \
+   .runtime = {NULL}, /* Include to avoid empty an struct (for MSVC). */ \
   }
 
 #define _DNA_DEFAULT_SurfaceDeformModifierData \
