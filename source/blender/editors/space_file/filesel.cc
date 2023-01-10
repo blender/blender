@@ -5,9 +5,9 @@
  * \ingroup spfile
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -99,8 +99,8 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
   FileAssetSelectParams *asset_params = sfile->asset_params;
 
   if (!asset_params) {
-    asset_params = sfile->asset_params = MEM_callocN(sizeof(*asset_params),
-                                                     "FileAssetSelectParams");
+    asset_params = sfile->asset_params = static_cast<FileAssetSelectParams *>(
+        MEM_callocN(sizeof(*asset_params), "FileAssetSelectParams"));
     asset_params->base_params.details_flags = U_default.file_space_data.details_flags;
     asset_params->asset_library_ref.type = ASSET_LIBRARY_LOCAL;
     asset_params->asset_library_ref.custom_library_index = -1;
@@ -139,7 +139,8 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
 
   /* create new parameters if necessary */
   if (!sfile->params) {
-    sfile->params = MEM_callocN(sizeof(FileSelectParams), "fileselparams");
+    sfile->params = static_cast<FileSelectParams *>(
+        MEM_callocN(sizeof(FileSelectParams), "fileselparams"));
     /* set path to most recently opened .blend */
     BLI_split_dirfile(blendfile_path,
                       sfile->params->dir,
@@ -534,7 +535,7 @@ void ED_fileselect_activate_by_id(SpaceFile *sfile, ID *asset_id, const bool def
 
 static void on_reload_select_by_relpath(SpaceFile *sfile, onReloadFnData custom_data)
 {
-  const char *relative_path = custom_data;
+  const char *relative_path = static_cast<const char *>(custom_data);
   ED_fileselect_activate_by_relpath(sfile, relative_path);
 }
 
@@ -879,7 +880,9 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
     /* Column header drawing doesn't use left tile border, so subtract it. */
     rel_x = mx - (tile_x - layout->tile_border_x);
 
-    for (FileAttributeColumnType column = 0; column < ATTRIBUTE_COLUMN_MAX; column++) {
+    for (FileAttributeColumnType column = FileAttributeColumnType(0);
+         column < ATTRIBUTE_COLUMN_MAX;
+         column = FileAttributeColumnType(int(column) + 1)) {
       if (!file_attribute_column_type_enabled(params, column)) {
         continue;
       }
@@ -940,8 +943,10 @@ static void file_attribute_columns_widths(const FileSelectParams *params, FileLa
   /* Name column uses remaining width */
   else {
     int remwidth = layout->tile_w;
-    for (FileAttributeColumnType column_type = ATTRIBUTE_COLUMN_MAX - 1; column_type >= 0;
-         column_type--) {
+    for (FileAttributeColumnType column_type =
+             FileAttributeColumnType(int(ATTRIBUTE_COLUMN_MAX) - 1);
+         column_type >= 0;
+         column_type = FileAttributeColumnType(int(column_type) - 1)) {
       if ((column_type == COLUMN_NAME) ||
           !file_attribute_column_type_enabled(params, column_type)) {
         continue;
@@ -978,7 +983,8 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
   int textheight;
 
   if (sfile->layout == NULL) {
-    sfile->layout = MEM_callocN(sizeof(struct FileLayout), "file_layout");
+    sfile->layout = static_cast<struct FileLayout *>(
+        MEM_callocN(sizeof(struct FileLayout), "file_layout"));
     sfile->layout->dirty = true;
   }
   else if (sfile->layout->dirty == false) {
@@ -1084,7 +1090,7 @@ void ED_file_change_dir_ex(bContext *C, ScrArea *area)
   if (UNLIKELY(area->spacetype != SPACE_FILE)) {
     return;
   }
-  SpaceFile *sfile = area->spacedata.first;
+  SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   if (params) {
     wmWindowManager *wm = CTX_wm_manager(C);
@@ -1151,7 +1157,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matche
   return match;
 }
 
-int autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
+int autocomplete_directory(struct bContext *C, char *str, void * /*arg_v*/)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   int match = AUTOCOMPLETE_NO_MATCH;
@@ -1199,7 +1205,7 @@ int autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
   return match;
 }
 
-int autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
+int autocomplete_file(struct bContext *C, char *str, void * /*arg_v*/)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   int match = AUTOCOMPLETE_NO_MATCH;
@@ -1366,7 +1372,7 @@ ScrArea *ED_fileselect_handler_area_find(const wmWindow *win, const wmOperator *
 
   ED_screen_areas_iter (win, screen, area) {
     if (area->spacetype == SPACE_FILE) {
-      SpaceFile *sfile = area->spacedata.first;
+      SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
 
       if (sfile->op == file_operator) {
         return area;
@@ -1386,7 +1392,7 @@ ScrArea *ED_fileselect_handler_area_find_any_with_op(const wmWindow *win)
       continue;
     }
 
-    const SpaceFile *sfile = area->spacedata.first;
+    const SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
     if (sfile->op) {
       return area;
     }
