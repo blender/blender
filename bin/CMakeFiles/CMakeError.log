@@ -1,0 +1,40 @@
+Determining if the malloc_stats exist failed with the following output:
+Change Dir: F:/GitHub/blender/bin/CMakeFiles/CMakeScratch/TryCompile-2bpji6
+
+Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe cmTC_4b729.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:m && MSBuild version 17.4.1+9a89d02ff for .NET Framework
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.34.31937 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  CheckSymbolExists.c
+  cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_4b729.dir\Debug\\" /Fd"cmTC_4b729.dir\Debug\vc143.pdb" /external:W3 /Gd /TC /errorReport:queue "F:\GitHub\blender\bin\CMakeFiles\CMakeScratch\TryCompile-2bpji6\CheckSymbolExists.c"
+F:\GitHub\blender\bin\CMakeFiles\CMakeScratch\TryCompile-2bpji6\CheckSymbolExists.c(8,31): error C2065: 'malloc_stats': undeclared identifier [F:\GitHub\blender\bin\CMakeFiles\CMakeScratch\TryCompile-2bpji6\cmTC_4b729.vcxproj]
+
+
+File CheckSymbolExists.c:
+/* */
+#include <malloc.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef malloc_stats
+  return ((int*)(&malloc_stats))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Performing C++ SOURCE FILE Test SUPPORT_NEON_BUILD failed with the following output:
+Change Dir: F:/GitHub/blender/bin/CMakeFiles/CMakeScratch/TryCompile-hxymdq
+
+Run Build Command(s):C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe cmTC_f9086.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:m && MSBuild version 17.4.1+9a89d02ff for .NET Framework
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.34.31937 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  src.cxx
+  cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D SUPPORT_NEON_BUILD /D "CMAKE_INTDIR=\"Debug\"" /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_f9086.dir\Debug\\" /Fd"cmTC_f9086.dir\Debug\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "F:\GitHub\blender\bin\CMakeFiles\CMakeScratch\TryCompile-hxymdq\src.cxx"
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.34.31933\include\arm_neon.h(21,1): fatal  error C1189: #error:  This header is specific to ARM targets [F:\GitHub\blender\bin\CMakeFiles\CMakeScratch\TryCompile-hxymdq\cmTC_f9086.vcxproj]
+
+
+Source file was:
+#include <arm_neon.h>
+       int main() {return vaddvq_s32(vdupq_n_s32(1));}
+
