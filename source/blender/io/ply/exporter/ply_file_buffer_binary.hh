@@ -45,6 +45,18 @@ class FileBufferBinary : public FileBuffer {
   void write_uchar_4(uchar r, uchar g, uchar b, uchar a) override
   {
 
+    auto *rbits = reinterpret_cast<char *>(&r);
+    auto *gbits = reinterpret_cast<char *>(&g);
+    auto *bbits = reinterpret_cast<char *>(&b);
+    auto *abits = reinterpret_cast<char *>(&a);
+
+    std::vector<char> data(rbits, rbits + sizeof(float));
+    data.insert(data.end(), gbits, gbits + sizeof(float));
+    data.insert(data.end(), bbits, bbits + sizeof(float));
+    data.insert(data.end(), abits, abits + sizeof(float));
+
+    write_bytes(data);
+
   }
 
   void write_face(int size, Vector<uint32_t> const &vertex_indices) override

@@ -28,12 +28,12 @@ class FileBufferAscii : public FileBuffer {
  public:
   using FileBuffer::FileBuffer;
 
-  void write_float_3(float x, float y, float z) override // change vectors to params 
+  void write_float_3(float x, float y, float z) override 
   {
     write_fstring("{} {} {} ", x, y, z);
   }
 
-  void write_uchar_4(uchar r, uchar g, uchar b, uchar a) override // change vectors to params 
+  void write_uchar_4(uchar r, uchar g, uchar b, uchar a) override 
   {
     write_fstring("{} {} {} {} ", r, g, b,a);
   }
@@ -45,7 +45,7 @@ class FileBufferAscii : public FileBuffer {
     for (auto &&v : vertex_indices) {
       write_fstring(" {}", v);
     }
-    write_newline(); // make a ascii specific newline 
+    write_newline(); 
   }
 
   void write_edge(int first, int second) override
