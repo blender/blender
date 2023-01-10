@@ -741,12 +741,7 @@ static void initSnappingMode(TransInfo *t)
     t->tsnap.project = false;
   }
 
-  if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_NODE, SPACE_SEQ)) {
-    /* Not with camera selected in camera view. */
-    if (!(t->options & CTX_CAMERA)) {
-      setSnappingCallback(t);
-    }
-  }
+  setSnappingCallback(t);
 
   if (t->spacetype == SPACE_VIEW3D) {
     if (t->tsnap.object_context == nullptr) {
@@ -903,6 +898,10 @@ void freeSnapping(TransInfo *t)
 static void setSnappingCallback(TransInfo *t)
 {
   if (t->spacetype == SPACE_VIEW3D) {
+    if (t->options & CTX_CAMERA) {
+      /* Not with camera selected in camera view. */
+      return;
+    }
     t->tsnap.calcSnap = snap_calc_view3d_fn;
   }
   else if (t->spacetype == SPACE_IMAGE) {
@@ -922,6 +921,9 @@ static void setSnappingCallback(TransInfo *t)
   else if (t->spacetype == SPACE_SEQ) {
     t->tsnap.calcSnap = snap_calc_sequencer_fn;
     /* The target is calculated along with the snap point. */
+    return;
+  }
+  else {
     return;
   }
 
