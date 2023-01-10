@@ -1296,6 +1296,7 @@ void PathTrace::set_guiding_params(const GuidingParams &guiding_params, const bo
 #  if OPENPGL_VERSION_MINOR >= 4
       field_args.deterministic = guiding_params.deterministic;
 #  endif
+      reinterpret_cast<PGLKDTreeArguments *>(field_args.spatialSturctureArguments)->maxDepth = 16;
       openpgl::cpp::Device *guiding_device = static_cast<openpgl::cpp::Device *>(
           device_->get_guiding_device());
       if (guiding_device) {

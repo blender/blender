@@ -30,7 +30,8 @@ class GHOST_ContextCGL : public GHOST_Context {
   GHOST_ContextCGL(bool stereoVisual,
                    NSView *metalView,
                    CAMetalLayer *metalLayer,
-                   NSOpenGLView *openglView);
+                   NSOpenGLView *openglView,
+                   GHOST_TDrawingContextType type);
 
   /**
    * Destructor.

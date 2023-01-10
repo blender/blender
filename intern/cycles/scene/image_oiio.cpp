@@ -85,6 +85,7 @@ bool OIIOImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
   }
 
   metadata.colorspace_file_format = in->format_name();
+  metadata.colorspace_file_hint = spec.get_string_attribute("oiio:ColorSpace");
 
   in->close();
 
@@ -192,8 +193,22 @@ bool OIIOImageLoader::load_pixels(const ImageMetaData &metadata,
     return false;
   }
 
-  const bool do_associate_alpha = associate_alpha &&
-                                  spec.get_int_attribute("oiio:UnassociatedAlpha", 0);
+  bool do_associate_alpha = false;
+  if (associate_alpha) {
+    do_associate_alpha = spec.get_int_attribute("oiio:UnassociatedAlpha", 0);
+
+    if (!do_associate_alpha && spec.alpha_channel != -1) {
+      /* Workaround OIIO not detecting TGA file alpha the same as Blender (since #3019).
+       * We want anything not marked as premultiplied alpha to get associated. */
+      if (strcmp(in->format_name(), "targa") == 0) {
+        do_associate_alpha = spec.get_int_attribute("targa:alpha_type", -1) != 4;
+      }
+      /* OIIO DDS reader never sets UnassociatedAlpha attribute. */
+      if (strcmp(in->format_name(), "dds") == 0) {
+        do_associate_alpha = true;
+      }
+    }
+  }
 
   switch (metadata.type) {
     case IMAGE_DATA_TYPE_BYTE:

@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(FMT_EXTRA_ARGS
-  -DFMT_TEST=Off
+  -DFMT_TEST=OFF
+  -DFMT_DOC=OFF
 )
 
 ExternalProject_Add(external_fmt

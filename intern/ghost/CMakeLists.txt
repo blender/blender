@@ -76,6 +76,24 @@ set(LIB
   ${Epoxy_LIBRARIES}
 )
 
+if(WITH_VULKAN_BACKEND)
+  list(APPEND SRC
+    intern/GHOST_ContextVK.cpp
+
+    intern/GHOST_ContextVK.h
+  )
+
+  list(APPEND INC_SYS
+    ${VULKAN_INCLUDE_DIRS}
+  )
+
+  list(APPEND LIB
+    ${VULKAN_LIBRARIES}
+  )
+
+  add_definitions(-DWITH_VULKAN_BACKEND)
+endif()
+
 if(WITH_GHOST_DEBUG)
   list(APPEND SRC
     intern/GHOST_EventPrinter.cpp
@@ -111,7 +129,7 @@ list(APPEND SRC
 
 if(WITH_HEADLESS)
   add_definitions(-DWITH_HEADLESS)
-elseif (WITH_GHOST_SDL)
+elseif(WITH_GHOST_SDL)
   list(APPEND SRC
     intern/GHOST_ContextSDL.cpp
     intern/GHOST_DisplayManagerSDL.cpp
@@ -268,7 +286,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
 
     if(WITH_GHOST_WAYLAND_DYNLOAD)
       list(APPEND INC_SYS
-        ../../intern/wayland_dynload/extern
+        ../wayland_dynload/extern
       )
       list(APPEND LIB
         bf_intern_wayland_dynload
@@ -310,6 +328,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       add_definitions(-DHAVE_MEMFD_CREATE)
     endif()
 
+    check_symbol_exists(poll "poll.h" HAVE_POLL)
+    if(HAVE_POLL)
+      add_definitions(-DHAVE_POLL)
+    endif()
+
     list(APPEND SRC
       intern/GHOST_SystemWayland.cpp
       intern/GHOST_WindowWayland.cpp
@@ -349,16 +372,16 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       ${INC_DST}
     )
 
-    if(NOT WITH_GHOST_WAYLAND_LIBDECOR)
-      # `xdg-shell`.
-      generate_protocol_bindings(
-        "${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml"
-      )
-      # `xdg-decoration`.
-      generate_protocol_bindings(
-        "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml"
-      )
-    endif()
+    # Used when: LIBDECOR is not needed.
+    # `xdg-shell`.
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml"
+    )
+    # `xdg-decoration`.
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml"
+    )
+    # End LIBDECOR alternative.
 
     # `xdg-output`.
     generate_protocol_bindings(
@@ -372,14 +395,27 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/unstable/relative-pointer/relative-pointer-unstable-v1.xml"
     )
+    # Pointer-gestures (multi-touch).
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/pointer-gestures/pointer-gestures-unstable-v1.xml"
+    )
     # Tablet.
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/unstable/tablet/tablet-unstable-v2.xml"
     )
+    # Primary-selection.
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/primary-selection/primary-selection-unstable-v1.xml"
+    )
+
+    unset(INC_DST)
 
     add_definitions(-DWITH_GHOST_WAYLAND)
 
-    unset(INC_DST)
+    if(NOT WITH_GHOST_WAYLAND_APP_ID STREQUAL "")
+      add_definitions(-DWITH_GHOST_WAYLAND_APP_ID=${WITH_GHOST_WAYLAND_APP_ID})
+    endif()
+
   endif()
 
   if(WITH_INPUT_NDOF)

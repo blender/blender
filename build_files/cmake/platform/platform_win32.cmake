@@ -83,7 +83,7 @@ string(APPEND CMAKE_MODULE_LINKER_FLAGS " /SAFESEH:NO /ignore:4099")
 list(APPEND PLATFORM_LINKLIBS
   ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 Comctl32 version
   advapi32 shfolder shell32 ole32 oleaut32 uuid psapi Dbghelp Shlwapi
-  pathcch Shcore Dwmapi
+  pathcch Shcore Dwmapi Crypt32
 )
 
 if(WITH_INPUT_IME)
@@ -110,7 +110,41 @@ remove_cc_flag("/GR")
 
 # Make the Windows 8.1 API available for use.
 add_definitions(-D_WIN32_WINNT=0x603)
-include(build_files/cmake/platform/platform_win32_bundle_crt.cmake)
+
+# First generate the manifest for tests since it will not need the dependency on the CRT.
+configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/tests.exe.manifest @ONLY)
+
+if(WITH_WINDOWS_BUNDLE_CRT)
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+  set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
+  set(CMAKE_INSTALL_OPENMP_LIBRARIES ${WITH_OPENMP})
+  include(InstallRequiredSystemLibraries)
+
+  # ucrtbase(d).dll cannot be in the manifest, due to the way windows 10 handles
+  # redirects for this dll, for details see T88813.
+  foreach(lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
+    string(FIND ${lib} "ucrtbase" pos)
+    if(NOT pos EQUAL -1)
+      list(REMOVE_ITEM CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${lib})
+      install(FILES ${lib} DESTINATION . COMPONENT Libraries)
+    endif()
+  endforeach()
+  # Install the CRT to the blender.crt Sub folder.
+  install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ./blender.crt COMPONENT Libraries)
+
+  windows_generate_manifest(
+    FILES "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}"
+    OUTPUT "${CMAKE_BINARY_DIR}/blender.crt.manifest"
+    NAME "blender.crt"
+  )
+
+  install(FILES ${CMAKE_BINARY_DIR}/blender.crt.manifest DESTINATION ./blender.crt)
+  set(BUNDLECRT "<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.crt\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
+endif()
+set(BUNDLECRT "${BUNDLECRT}<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.shared\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
+configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/blender.exe.manifest @ONLY)
+
+
 remove_cc_flag("/MDd" "/MD" "/Zi")
 
 if(MSVC_CLANG) # Clangs version of cl doesn't support all flags
@@ -150,10 +184,11 @@ endif()
 
 # Debug Symbol format
 # sccache # MSVC_ASAN # format # why
-# ON      # ON        # Z7     # sccache will only play nice with Z7
-# ON      # OFF       # Z7     # sccache will only play nice with Z7
-# OFF     # ON        # Zi     # Asan will not play nice with Edit and Continue
-# OFF     # OFF       # ZI     # Neither asan nor sscache is enabled Edit and Continue is available
+# ON      # ON        # Z7     # sccache will only play nice with Z7.
+# ON      # OFF       # Z7     # sccache will only play nice with Z7.
+# OFF     # ON        # Zi     # Asan will not play nice with Edit and Continue.
+# OFF     # OFF       # ZI     # Neither ASAN nor sscache is enabled Edit and
+#                                Continue is available.
 
 # Release Symbol format
 # sccache # MSVC_ASAN # format # why
@@ -250,6 +285,11 @@ if(CMAKE_GENERATOR MATCHES "^Visual Studio.+" AND WITH_CLANG_TIDY)
   set(VS_CLANG_TIDY ON)
 endif()
 
+# To support building against both 3.4 and 3.5 lib folders, disable materialX if it is not found
+set(MATERIALX_LIB_FOLDER_EXISTS EXISTS ${LIBDIR}/materialx)
+set_and_warn_library_found("MaterialX" MATERIALX_LIB_FOLDER_EXISTS WITH_MATERIALX)
+unset(MATERIALX_LIB_FOLDER_EXISTS)
+
 # Mark libdir as system headers with a lower warn level, to resolve some warnings
 # that we have very little control over
 if(NOT MSVC_CLANG                  AND # Available with MSVC 15.7+ but not for CLANG.
@@ -262,7 +302,7 @@ endif()
 file(GLOB children RELATIVE ${LIBDIR} ${LIBDIR}/*)
 foreach(child ${children})
   if(IS_DIRECTORY ${LIBDIR}/${child})
-    list(APPEND CMAKE_PREFIX_PATH  ${LIBDIR}/${child})
+    list(APPEND CMAKE_PREFIX_PATH ${LIBDIR}/${child})
   endif()
 endforeach()
 
@@ -326,18 +366,10 @@ if(WITH_FFTW3)
 endif()
 
 if(WITH_IMAGE_WEBP)
-  windows_find_package(WebP)
-  if(NOT WEBP_FOUND)
-    if(EXISTS ${LIBDIR}/webp)
-      set(WEBP_INCLUDE_DIRS ${LIBDIR}/webp/include)
-      set(WEBP_ROOT_DIR ${LIBDIR}/webp)
-      set(WEBP_LIBRARIES ${LIBDIR}/webp/lib/webp.lib ${LIBDIR}/webp/lib/webpdemux.lib ${LIBDIR}/webp/lib/webpmux.lib)
-      set(WEBP_FOUND ON)
-    else()
-      message(STATUS "WITH_IMAGE_WEBP is ON but WEBP libraries are not found, setting WITH_IMAGE_WEBP=OFF")
-      set(WITH_IMAGE_WEBP OFF)
-    endif()
-  endif()
+  set(WEBP_INCLUDE_DIRS ${LIBDIR}/webp/include)
+  set(WEBP_ROOT_DIR ${LIBDIR}/webp)
+  set(WEBP_LIBRARIES ${LIBDIR}/webp/lib/webp.lib ${LIBDIR}/webp/lib/webpdemux.lib ${LIBDIR}/webp/lib/webpmux.lib)
+  set(WEBP_FOUND ON)
 endif()
 
 if(WITH_OPENCOLLADA)
@@ -358,7 +390,6 @@ if(WITH_OPENCOLLADA)
     optimized ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAStreamWriter.lib
     optimized ${OPENCOLLADA}/lib/opencollada/MathMLSolver.lib
     optimized ${OPENCOLLADA}/lib/opencollada/GeneratedSaxParser.lib
-    optimized ${OPENCOLLADA}/lib/opencollada/xml.lib
     optimized ${OPENCOLLADA}/lib/opencollada/buffer.lib
     optimized ${OPENCOLLADA}/lib/opencollada/ftoa.lib
 
@@ -368,10 +399,14 @@ if(WITH_OPENCOLLADA)
     debug ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAStreamWriter_d.lib
     debug ${OPENCOLLADA}/lib/opencollada/MathMLSolver_d.lib
     debug ${OPENCOLLADA}/lib/opencollada/GeneratedSaxParser_d.lib
-    debug ${OPENCOLLADA}/lib/opencollada/xml_d.lib
     debug ${OPENCOLLADA}/lib/opencollada/buffer_d.lib
     debug ${OPENCOLLADA}/lib/opencollada/ftoa_d.lib
   )
+  if(EXISTS ${LIBDIR}/xml2/lib/libxml2s.lib) # 3.4 libraries
+    list(APPEND OPENCOLLADA_LIBRARIES ${LIBDIR}/xml2/lib/libxml2s.lib)
+  else()
+    list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/xml.lib)
+  endif()
 
   list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/UTF.lib)
 
@@ -411,9 +446,12 @@ if(WITH_IMAGE_OPENEXR)
     set(IMATH_INCLUDE_DIR ${IMATH}/include)
     set(IMATH_INCLUDE_DIRS ${IMATH_INCLUDE_DIR} ${IMATH}/include/Imath)
     set(IMATH_LIBPATH ${IMATH}/lib)
+    if(EXISTS ${IMATH_LIBPATH}/Imath_s.lib)
+      set(IMATH_POSTFIX _s)
+    endif()
     set(IMATH_LIBRARIES
-      optimized ${IMATH_LIBPATH}/Imath_s.lib
-      debug ${IMATH_LIBPATH}/Imath_s_d.lib
+      optimized ${IMATH_LIBPATH}/Imath${IMATH_POSTFIX}.lib
+      debug ${IMATH_LIBPATH}/Imath${IMATH_POSTFIX}_d.lib
     )
   endif()
   set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
@@ -423,38 +461,26 @@ if(WITH_IMAGE_OPENEXR)
     warn_hardcoded_paths(OpenEXR)
     set(OPENEXR ${LIBDIR}/openexr)
     set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
-    set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${IMATH_INCLUDE_DIRS} ${OPENEXR}/include/OpenEXR)
+    set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${IMATH_INCLUDE_DIRS} ${OPENEXR_INCLUDE_DIR}/OpenEXR)
     set(OPENEXR_LIBPATH ${OPENEXR}/lib)
-    # Check if the 3.x library name exists
-    # if not assume this is a 2.x library folder
+    # Check if the blender 3.3 lib static library eixts
+    # if not assume this is a 3.4+ dynamic version.
     if(EXISTS "${OPENEXR_LIBPATH}/OpenEXR_s.lib")
-      set(OPENEXR_LIBRARIES
-        optimized ${OPENEXR_LIBPATH}/Iex_s.lib
-        optimized ${OPENEXR_LIBPATH}/IlmThread_s.lib
-        optimized ${OPENEXR_LIBPATH}/OpenEXR_s.lib
-        optimized ${OPENEXR_LIBPATH}/OpenEXRCore_s.lib
-        optimized ${OPENEXR_LIBPATH}/OpenEXRUtil_s.lib
-        debug ${OPENEXR_LIBPATH}/Iex_s_d.lib
-        debug ${OPENEXR_LIBPATH}/IlmThread_s_d.lib
-        debug ${OPENEXR_LIBPATH}/OpenEXR_s_d.lib
-        debug ${OPENEXR_LIBPATH}/OpenEXRCore_s_d.lib
-        debug ${OPENEXR_LIBPATH}/OpenEXRUtil_s_d.lib
-        ${IMATH_LIBRARIES}
-      )
-    else()
-      set(OPENEXR_LIBRARIES
-        optimized ${OPENEXR_LIBPATH}/Iex_s.lib
-        optimized ${OPENEXR_LIBPATH}/Half_s.lib
-        optimized ${OPENEXR_LIBPATH}/IlmImf_s.lib
-        optimized ${OPENEXR_LIBPATH}/Imath_s.lib
-        optimized ${OPENEXR_LIBPATH}/IlmThread_s.lib
-        debug ${OPENEXR_LIBPATH}/Iex_s_d.lib
-        debug ${OPENEXR_LIBPATH}/Half_s_d.lib
-        debug ${OPENEXR_LIBPATH}/IlmImf_s_d.lib
-        debug ${OPENEXR_LIBPATH}/Imath_s_d.lib
-        debug ${OPENEXR_LIBPATH}/IlmThread_s_d.lib
-      )
+      set(OPENEXR_POSTFIX _s)
     endif()
+    set(OPENEXR_LIBRARIES
+      optimized ${OPENEXR_LIBPATH}/Iex${OPENEXR_POSTFIX}.lib
+      optimized ${OPENEXR_LIBPATH}/IlmThread${OPENEXR_POSTFIX}.lib
+      optimized ${OPENEXR_LIBPATH}/OpenEXR${OPENEXR_POSTFIX}.lib
+      optimized ${OPENEXR_LIBPATH}/OpenEXRCore${OPENEXR_POSTFIX}.lib
+      optimized ${OPENEXR_LIBPATH}/OpenEXRUtil${OPENEXR_POSTFIX}.lib
+      debug ${OPENEXR_LIBPATH}/Iex${OPENEXR_POSTFIX}_d.lib
+      debug ${OPENEXR_LIBPATH}/IlmThread${OPENEXR_POSTFIX}_d.lib
+      debug ${OPENEXR_LIBPATH}/OpenEXR${OPENEXR_POSTFIX}_d.lib
+      debug ${OPENEXR_LIBPATH}/OpenEXRCore${OPENEXR_POSTFIX}_d.lib
+      debug ${OPENEXR_LIBPATH}/OpenEXRUtil${OPENEXR_POSTFIX}_d.lib
+      ${IMATH_LIBRARIES}
+    )
   endif()
 endif()
 
@@ -524,38 +550,47 @@ if(WITH_BOOST)
     if(NOT BOOST_VERSION)
       message(FATAL_ERROR "Unable to determine Boost version")
     endif()
-    set(BOOST_POSTFIX "vc142-mt-x64-${BOOST_VERSION}.lib")
-    set(BOOST_DEBUG_POSTFIX "vc142-mt-gd-x64-${BOOST_VERSION}.lib")
-    if(NOT EXISTS ${BOOST_LIBPATH}/libboost_date_time-${BOOST_POSTFIX})
-      # If the new library names do not exist fall back to the old ones
-      # to ease the transition period between the libs.
-      set(BOOST_POSTFIX "vc141-mt-x64-${BOOST_VERSION}.lib")
-      set(BOOST_DEBUG_POSTFIX "vc141-mt-gd-x64-${BOOST_VERSION}.lib")
+    set(BOOST_POSTFIX "vc142-mt-x64-${BOOST_VERSION}")
+    set(BOOST_DEBUG_POSTFIX "vc142-mt-gyd-x64-${BOOST_VERSION}")
+    set(BOOST_PREFIX "")
+    # This is file new in 3.4 if it does not exist, assume we are building against 3.3 libs
+    set(BOOST_34_TRIGGER_FILE ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python310-${BOOST_DEBUG_POSTFIX}.lib)
+    if(NOT EXISTS ${BOOST_34_TRIGGER_FILE})
+      set(BOOST_DEBUG_POSTFIX "vc142-mt-gd-x64-${BOOST_VERSION}")
+      set(BOOST_PREFIX "lib")
     endif()
     set(BOOST_LIBRARIES
-      optimized ${BOOST_LIBPATH}/libboost_date_time-${BOOST_POSTFIX}
-      optimized ${BOOST_LIBPATH}/libboost_filesystem-${BOOST_POSTFIX}
-      optimized ${BOOST_LIBPATH}/libboost_regex-${BOOST_POSTFIX}
-      optimized ${BOOST_LIBPATH}/libboost_system-${BOOST_POSTFIX}
-      optimized ${BOOST_LIBPATH}/libboost_thread-${BOOST_POSTFIX}
-      optimized ${BOOST_LIBPATH}/libboost_chrono-${BOOST_POSTFIX}
-      debug ${BOOST_LIBPATH}/libboost_date_time-${BOOST_DEBUG_POSTFIX}
-      debug ${BOOST_LIBPATH}/libboost_filesystem-${BOOST_DEBUG_POSTFIX}
-      debug ${BOOST_LIBPATH}/libboost_regex-${BOOST_DEBUG_POSTFIX}
-      debug ${BOOST_LIBPATH}/libboost_system-${BOOST_DEBUG_POSTFIX}
-      debug ${BOOST_LIBPATH}/libboost_thread-${BOOST_DEBUG_POSTFIX}
-      debug ${BOOST_LIBPATH}/libboost_chrono-${BOOST_DEBUG_POSTFIX}
+      optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_date_time-${BOOST_POSTFIX}.lib
+      optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_filesystem-${BOOST_POSTFIX}.lib
+      optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_regex-${BOOST_POSTFIX}.lib
+      optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_system-${BOOST_POSTFIX}.lib
+      optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_thread-${BOOST_POSTFIX}.lib
+      optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_chrono-${BOOST_POSTFIX}.lib
+      debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_date_time-${BOOST_DEBUG_POSTFIX}.lib
+      debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_filesystem-${BOOST_DEBUG_POSTFIX}.lib
+      debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_regex-${BOOST_DEBUG_POSTFIX}.lib
+      debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_system-${BOOST_DEBUG_POSTFIX}.lib
+      debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_thread-${BOOST_DEBUG_POSTFIX}.lib
+      debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_chrono-${BOOST_DEBUG_POSTFIX}.lib
     )
+    if(EXISTS ${BOOST_34_TRIGGER_FILE})
+      if(WITH_USD)
+        set(BOOST_PYTHON_LIBRARIES
+          debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python310-${BOOST_DEBUG_POSTFIX}.lib
+          optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python310-${BOOST_POSTFIX}.lib
+        )
+      endif()
+    endif()
     if(WITH_CYCLES AND WITH_CYCLES_OSL)
       set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
-        optimized ${BOOST_LIBPATH}/libboost_wave-${BOOST_POSTFIX}
-        debug ${BOOST_LIBPATH}/libboost_wave-${BOOST_DEBUG_POSTFIX}
+        optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_wave-${BOOST_POSTFIX}.lib
+        debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_wave-${BOOST_DEBUG_POSTFIX}.lib
       )
     endif()
     if(WITH_INTERNATIONAL)
       set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
-        optimized ${BOOST_LIBPATH}/libboost_locale-${BOOST_POSTFIX}
-        debug ${BOOST_LIBPATH}/libboost_locale-${BOOST_DEBUG_POSTFIX}
+        optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_locale-${BOOST_POSTFIX}.lib
+        debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_locale-${BOOST_DEBUG_POSTFIX}.lib
       )
     endif()
   else() # we found boost using find_package
@@ -572,20 +607,24 @@ if(WITH_OPENIMAGEIO)
   if(NOT OpenImageIO_FOUND)
     set(OPENIMAGEIO ${LIBDIR}/OpenImageIO)
     set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
-    set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
+    set(OPENIMAGEIO_INCLUDE_DIR ${OPENIMAGEIO}/include)
+    set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO_INCLUDE_DIR})
     set(OIIO_OPTIMIZED optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib)
     set(OIIO_DEBUG debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_d.lib debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util_d.lib)
     set(OPENIMAGEIO_LIBRARIES ${OIIO_OPTIMIZED} ${OIIO_DEBUG})
   endif()
   set(OPENIMAGEIO_DEFINITIONS "-DUSE_TBB=0")
   set(OPENIMAGEIO_IDIFF "${OPENIMAGEIO}/bin/idiff.exe")
-  add_definitions(-DOIIO_STATIC_DEFINE)
+  # If the .dll does not exist, assume it is a static OIIO
+  if(NOT EXISTS ${OPENIMAGEIO}/bin/OpenImageIO.dll)
+    add_definitions(-DOIIO_STATIC_DEFINE)
+  endif()
   add_definitions(-DOIIO_NO_SSE=1)
 endif()
 
 if(WITH_LLVM)
   set(LLVM_ROOT_DIR ${LIBDIR}/llvm CACHE PATH "Path to the LLVM installation")
-  set(LLVM_INCLUDE_DIRS ${LLVM_ROOT_DIR}/$<$<CONFIG:Debug>:Debug>/include CACHE PATH  "Path to the LLVM include directory")
+  set(LLVM_INCLUDE_DIRS ${LLVM_ROOT_DIR}/$<$<CONFIG:Debug>:Debug>/include CACHE PATH "Path to the LLVM include directory")
   file(GLOB LLVM_LIBRARY_OPTIMIZED ${LLVM_ROOT_DIR}/lib/*.lib)
 
   if(EXISTS ${LLVM_ROOT_DIR}/debug/lib)
@@ -615,18 +654,25 @@ if(WITH_OPENCOLORIO)
     set(OPENCOLORIO ${LIBDIR}/OpenColorIO)
     set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
     set(OPENCOLORIO_LIBPATH ${OPENCOLORIO}/lib)
-    set(OPENCOLORIO_LIBRARIES
-      optimized ${OPENCOLORIO_LIBPATH}/OpenColorIO.lib
-      optimized ${OPENCOLORIO_LIBPATH}/libyaml-cpp.lib
-      optimized ${OPENCOLORIO_LIBPATH}/libexpatMD.lib
-      optimized ${OPENCOLORIO_LIBPATH}/pystring.lib
-      debug ${OPENCOLORIO_LIBPATH}/OpencolorIO_d.lib
-      debug ${OPENCOLORIO_LIBPATH}/libyaml-cpp_d.lib
-      debug ${OPENCOLORIO_LIBPATH}/libexpatdMD.lib
-      debug ${OPENCOLORIO_LIBPATH}/pystring_d.lib
-    )
+    if(EXISTS ${OPENCOLORIO_LIBPATH}/libexpatMD.lib) # 3.4
+      set(OPENCOLORIO_LIBRARIES
+        optimized ${OPENCOLORIO_LIBPATH}/OpenColorIO.lib
+        optimized ${OPENCOLORIO_LIBPATH}/libexpatMD.lib
+        optimized ${OPENCOLORIO_LIBPATH}/pystring.lib
+        optimized ${OPENCOLORIO_LIBPATH}/libyaml-cpp.lib
+        debug ${OPENCOLORIO_LIBPATH}/OpencolorIO_d.lib
+        debug ${OPENCOLORIO_LIBPATH}/libexpatdMD.lib
+        debug ${OPENCOLORIO_LIBPATH}/pystring_d.lib
+        debug ${OPENCOLORIO_LIBPATH}/libyaml-cpp_d.lib
+      )
+      set(OPENCOLORIO_DEFINITIONS "-DOpenColorIO_SKIP_IMPORTS")
+    else()
+      set(OPENCOLORIO_LIBRARIES
+        optimized ${OPENCOLORIO_LIBPATH}/OpenColorIO.lib
+        debug ${OPENCOLORIO_LIBPATH}/OpencolorIO_d.lib
+      )
+    endif()
   endif()
-  set(OPENCOLORIO_DEFINITIONS "-DOpenColorIO_SKIP_IMPORTS")
 endif()
 
 if(WITH_OPENVDB)
@@ -679,11 +725,11 @@ endif()
 
 if(WITH_IMAGE_OPENJPEG)
   set(OPENJPEG ${LIBDIR}/openjpeg)
-  set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include/openjpeg-2.4)
+  set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include/openjpeg-2.5)
   if(NOT EXISTS "${OPENJPEG_INCLUDE_DIRS}")
-    # when not found, could be an older lib folder with openjpeg 2.3
-    # to ease the transition period, fall back if 2.4 is not found.
-    set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include/openjpeg-2.3)
+    # when not found, could be an older lib folder with openjpeg 2.4
+    # to ease the transition period, fall back if 2.5 is not found.
+    set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include/openjpeg-2.4)
   endif()
   set(OPENJPEG_LIBRARIES ${OPENJPEG}/lib/openjp2.lib)
 endif()
@@ -700,12 +746,6 @@ if(WITH_OPENSUBDIV)
       debug ${OPENSUBDIV_LIBPATH}/osdCPU_d.lib
       debug ${OPENSUBDIV_LIBPATH}/osdGPU_d.lib
     )
-    set(OPENSUBDIV_HAS_OPENMP TRUE)
-    set(OPENSUBDIV_HAS_TBB FALSE)
-    set(OPENSUBDIV_HAS_OPENCL TRUE)
-    set(OPENSUBDIV_HAS_CUDA FALSE)
-    set(OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK TRUE)
-    set(OPENSUBDIV_HAS_GLSL_COMPUTE TRUE)
   endif()
 endif()
 
@@ -773,9 +813,11 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
   find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
   find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
   find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
+  find_library(OSL_LIB_NOISE NAMES oslnoise PATHS ${CYCLES_OSL}/lib)
   find_library(OSL_LIB_EXEC_DEBUG NAMES oslexec_d PATHS ${CYCLES_OSL}/lib)
   find_library(OSL_LIB_COMP_DEBUG NAMES oslcomp_d PATHS ${CYCLES_OSL}/lib)
   find_library(OSL_LIB_QUERY_DEBUG NAMES oslquery_d PATHS ${CYCLES_OSL}/lib)
+  find_library(OSL_LIB_NOISE_DEBUG NAMES oslnoise_d PATHS ${CYCLES_OSL}/lib)
   list(APPEND OSL_LIBRARIES
     optimized ${OSL_LIB_COMP}
     optimized ${OSL_LIB_EXEC}
@@ -785,15 +827,22 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
     debug ${OSL_LIB_QUERY_DEBUG}
     ${PUGIXML_LIBRARIES}
   )
+  if(OSL_LIB_NOISE)
+    list(APPEND OSL_LIBRARIES optimized ${OSL_LIB_NOISE})
+  endif()
+  if(OSL_LIB_NOISE_DEBUG)
+    list(APPEND OSL_LIBRARIES debug ${OSL_LIB_NOISE_DEBUG})
+  endif()
   find_path(OSL_INCLUDE_DIR OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
   find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
-
-  if(OSL_INCLUDE_DIR AND OSL_LIBRARIES AND OSL_COMPILER)
-    set(OSL_FOUND TRUE)
-  else()
-    message(STATUS "OSL not found")
-    set(WITH_CYCLES_OSL OFF)
-  endif()
+  file(STRINGS "${OSL_INCLUDE_DIR}/OSL/oslversion.h" OSL_LIBRARY_VERSION_MAJOR
+       REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_MAJOR[ \t]+[0-9]+.*$")
+  file(STRINGS "${OSL_INCLUDE_DIR}/OSL/oslversion.h" OSL_LIBRARY_VERSION_MINOR
+       REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_MINOR[ \t]+[0-9]+.*$")
+  string(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_MAJOR[ \t]+([.0-9]+).*"
+         "\\1" OSL_LIBRARY_VERSION_MAJOR ${OSL_LIBRARY_VERSION_MAJOR})
+  string(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_MINOR[ \t]+([.0-9]+).*"
+         "\\1" OSL_LIBRARY_VERSION_MINOR ${OSL_LIBRARY_VERSION_MINOR})
 endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
@@ -827,16 +876,21 @@ endif()
 if(WITH_USD)
   windows_find_package(USD)
   if(NOT USD_FOUND)
+    # 3.5 22.03 libs
     set(USD_INCLUDE_DIRS ${LIBDIR}/usd/include)
-    set(USD_RELEASE_LIB ${LIBDIR}/usd/lib/usd_usd_m.lib)
-    set(USD_DEBUG_LIB ${LIBDIR}/usd/lib/usd_usd_m_d.lib)
+    set(USD_RELEASE_LIB ${LIBDIR}/usd/lib/usd_usd_ms.lib)
+    set(USD_DEBUG_LIB ${LIBDIR}/usd/lib/usd_usd_ms_d.lib)
     set(USD_LIBRARY_DIR ${LIBDIR}/usd/lib)
+    if(NOT EXISTS "${USD_RELEASE_LIB}") # 3.5 22.11 libs
+      set(USD_RELEASE_LIB ${LIBDIR}/usd/lib/usd_ms.lib)
+      set(USD_DEBUG_LIB ${LIBDIR}/usd/lib/usd_ms_d.lib)
+    endif()
     # Older USD had different filenames, if the new ones are
     # not found see if the older ones exist, to ease the
     # transition period while landing libs.
-    if(NOT EXISTS "${USD_RELEASE_LIB}")
-      set(USD_RELEASE_LIB ${LIBDIR}/usd/lib/libusd_m.lib)
-      set(USD_DEBUG_LIB ${LIBDIR}/usd/lib/libusd_m_d.lib)
+    if(NOT EXISTS "${USD_RELEASE_LIB}") # 3.3 static libs
+      set(USD_RELEASE_LIB ${LIBDIR}/usd/lib/usd_usd_m.lib)
+      set(USD_DEBUG_LIB ${LIBDIR}/usd/lib/usd_usd_m_d.lib)
     endif()
     set(USD_LIBRARIES
       debug ${USD_DEBUG_LIB}
@@ -893,21 +947,16 @@ if(WINDOWS_PYTHON_DEBUG)
 endif()
 
 if(WITH_XR_OPENXR)
-  if(EXISTS ${LIBDIR}/xr_openxr_sdk)
-    set(XR_OPENXR_SDK ${LIBDIR}/xr_openxr_sdk)
-    set(XR_OPENXR_SDK_LIBPATH ${LIBDIR}/xr_openxr_sdk/lib)
-    set(XR_OPENXR_SDK_INCLUDE_DIR ${XR_OPENXR_SDK}/include)
-    # This is the old name of this library, it is checked to
-    # support the transition between the old and new lib versions
-    # this can be removed after the next lib update.
-    if(EXISTS ${XR_OPENXR_SDK_LIBPATH}/openxr_loader_d.lib)
-      set(XR_OPENXR_SDK_LIBRARIES optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loader_d.lib)
-    else()
-      set(XR_OPENXR_SDK_LIBRARIES optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loaderd.lib)
-    endif()
+  set(XR_OPENXR_SDK ${LIBDIR}/xr_openxr_sdk)
+  set(XR_OPENXR_SDK_LIBPATH ${LIBDIR}/xr_openxr_sdk/lib)
+  set(XR_OPENXR_SDK_INCLUDE_DIR ${XR_OPENXR_SDK}/include)
+  # This is the old name of this library, it is checked to
+  # support the transition between the old and new lib versions
+  # this can be removed after the next lib update.
+  if(EXISTS ${XR_OPENXR_SDK_LIBPATH}/openxr_loader_d.lib)
+    set(XR_OPENXR_SDK_LIBRARIES optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loader_d.lib)
   else()
-    message(WARNING "OpenXR-SDK was not found, disabling WITH_XR_OPENXR")
-    set(WITH_XR_OPENXR OFF)
+    set(XR_OPENXR_SDK_LIBRARIES optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loaderd.lib)
   endif()
 endif()
 
@@ -925,18 +974,27 @@ if(WITH_POTRACE)
 endif()
 
 if(WITH_HARU)
-  if(EXISTS ${LIBDIR}/haru)
-    set(HARU_FOUND ON)
-    set(HARU_ROOT_DIR ${LIBDIR}/haru)
-    set(HARU_INCLUDE_DIRS ${HARU_ROOT_DIR}/include)
-    set(HARU_LIBRARIES ${HARU_ROOT_DIR}/lib/libhpdfs.lib)
+  set(HARU_FOUND ON)
+  set(HARU_ROOT_DIR ${LIBDIR}/haru)
+  set(HARU_INCLUDE_DIRS ${HARU_ROOT_DIR}/include)
+  set(HARU_LIBRARIES ${HARU_ROOT_DIR}/lib/libhpdfs.lib)
+endif()
+
+if(WITH_VULKAN_BACKEND)
+  if(EXISTS ${LIBDIR}/vulkan)
+    set(VULKAN_FOUND On)
+    set(VULKAN_ROOT_DIR ${LIBDIR}/vulkan)
+    set(VULKAN_INCLUDE_DIR ${VULKAN_ROOT_DIR}/include)
+    set(VULKAN_INCLUDE_DIRS ${VULKAN_INCLUDE_DIR})
+    set(VULKAN_LIBRARY ${VULKAN_ROOT_DIR}/lib/vulkan-1.lib)
+    set(VULKAN_LIBRARIES ${VULKAN_LIBRARY})
   else()
-    message(WARNING "Haru was not found, disabling WITH_HARU")
-    set(WITH_HARU OFF)
+    message(WARNING "Vulkan SDK was not found, disabling WITH_VULKAN_BACKEND")
+    set(WITH_VULKAN_BACKEND OFF)
   endif()
 endif()
 
-if(WITH_CYCLES_PATH_GUIDING)
+if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   find_package(openpgl QUIET)
   if(openpgl_FOUND)
     get_target_property(OPENPGL_LIBRARIES_RELEASE openpgl::openpgl LOCATION_RELEASE)
@@ -952,7 +1010,7 @@ endif()
 set(ZSTD_INCLUDE_DIRS ${LIBDIR}/zstd/include)
 set(ZSTD_LIBRARIES ${LIBDIR}/zstd/lib/zstd_static.lib)
 
-if(WITH_CYCLES_DEVICE_ONEAPI)
+if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
   set(LEVEL_ZERO_ROOT_DIR ${LIBDIR}/level_zero)
   set(CYCLES_SYCL ${LIBDIR}/dpcpp CACHE PATH "Path to oneAPI DPC++ compiler")
   if(EXISTS ${CYCLES_SYCL} AND NOT SYCL_ROOT_DIR)
@@ -968,7 +1026,22 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   endforeach()
   unset(_sycl_runtime_libraries_glob)
 
-  list(APPEND _sycl_runtime_libraries ${SYCL_ROOT_DIR}/bin/pi_level_zero.dll)
+  file(GLOB _sycl_pi_runtime_libraries_glob
+    ${SYCL_ROOT_DIR}/bin/pi_*.dll
+  )
+  list(REMOVE_ITEM _sycl_pi_runtime_libraries_glob "${SYCL_ROOT_DIR}/bin/pi_opencl.dll")
+  list(APPEND _sycl_runtime_libraries ${_sycl_pi_runtime_libraries_glob})
+  unset(_sycl_pi_runtime_libraries_glob)
+
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 endif()
+
+
+# Environment variables to run precompiled executables that needed libraries.
+list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ";" _library_paths)
+set(PLATFORM_ENV_BUILD_DIRS "${LIBDIR}/OpenImageIO/bin\;${LIBDIR}/boost/lib\;${LIBDIR}/openexr/bin\;${LIBDIR}/imath/bin\;${PATH}")
+set(PLATFORM_ENV_BUILD "PATH=${PLATFORM_ENV_BUILD_DIRS}")
+# Install needs the additional folders from PLATFORM_ENV_BUILD_DIRS as well, as tools like idiff and abcls use the release mode dlls
+set(PLATFORM_ENV_INSTALL "PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/blender.shared/\;${PLATFORM_ENV_BUILD_DIRS}\;$ENV{PATH}")
+unset(_library_paths)

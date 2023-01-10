@@ -119,8 +119,8 @@ ustring OSLRenderServices::u_u("u");
 ustring OSLRenderServices::u_v("v");
 ustring OSLRenderServices::u_empty;
 
-OSLRenderServices::OSLRenderServices(OSL::TextureSystem *texture_system)
-    : OSL::RendererServices(texture_system)
+OSLRenderServices::OSLRenderServices(OSL::TextureSystem *texture_system, int device_type)
+    : OSL::RendererServices(texture_system), device_type_(device_type)
 {
 }
 
@@ -129,6 +129,17 @@ OSLRenderServices::~OSLRenderServices()
   if (m_texturesys) {
     VLOG_INFO << "OSL texture system stats:\n" << m_texturesys->getstats();
   }
+}
+
+int OSLRenderServices::supports(string_view feature) const
+{
+#ifdef WITH_OPTIX
+  if (feature == "OptiX") {
+    return device_type_ == DEVICE_OPTIX;
+  }
+#endif
+
+  return false;
 }
 
 bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
@@ -1139,29 +1150,40 @@ TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(ustring file
 {
   OSLTextureHandleMap::iterator it = textures.find(filename);
 
-  /* For non-OIIO textures, just return a pointer to our own OSLTextureHandle. */
-  if (it != textures.end()) {
-    if (it->second->type != OSLTextureHandle::OIIO) {
-      return (TextureSystem::TextureHandle *)it->second.get();
+  if (device_type_ == DEVICE_CPU) {
+    /* For non-OIIO textures, just return a pointer to our own OSLTextureHandle. */
+    if (it != textures.end()) {
+      if (it->second->type != OSLTextureHandle::OIIO) {
+        return (TextureSystem::TextureHandle *)it->second.get();
+      }
     }
-  }
 
-  /* Get handle from OpenImageIO. */
-  OSL::TextureSystem *ts = m_texturesys;
-  TextureSystem::TextureHandle *handle = ts->get_texture_handle(filename);
-  if (handle == NULL) {
+    /* Get handle from OpenImageIO. */
+    OSL::TextureSystem *ts = m_texturesys;
+    TextureSystem::TextureHandle *handle = ts->get_texture_handle(filename);
+    if (handle == NULL) {
+      return NULL;
+    }
+
+    /* Insert new OSLTextureHandle if needed. */
+    if (it == textures.end()) {
+      textures.insert(filename, new OSLTextureHandle(OSLTextureHandle::OIIO));
+      it = textures.find(filename);
+    }
+
+    /* Assign OIIO texture handle and return. */
+    it->second->oiio_handle = handle;
+    return (TextureSystem::TextureHandle *)it->second.get();
+  }
+  else {
+    if (it != textures.end() && it->second->type == OSLTextureHandle::SVM &&
+        it->second->svm_slots[0].w == -1) {
+      return reinterpret_cast<TextureSystem::TextureHandle *>(
+          static_cast<uintptr_t>(it->second->svm_slots[0].y + 1));
+    }
+
     return NULL;
   }
-
-  /* Insert new OSLTextureHandle if needed. */
-  if (it == textures.end()) {
-    textures.insert(filename, new OSLTextureHandle(OSLTextureHandle::OIIO));
-    it = textures.find(filename);
-  }
-
-  /* Assign OIIO texture handle and return. */
-  it->second->oiio_handle = handle;
-  return (TextureSystem::TextureHandle *)it->second.get();
 }
 
 bool OSLRenderServices::good(TextureSystem::TextureHandle *texture_handle)

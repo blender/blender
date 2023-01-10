@@ -346,7 +346,7 @@ ccl_device int bsdf_microfacet_ggx_refraction_setup(ccl_private MicrofacetBsdf *
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
+  return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
 }
 
 ccl_device void bsdf_microfacet_ggx_blur(ccl_private ShaderClosure *sc, float roughness)
@@ -517,27 +517,30 @@ ccl_device Spectrum bsdf_microfacet_ggx_eval_transmit(ccl_private const Microfac
 }
 
 ccl_device Spectrum bsdf_microfacet_ggx_eval(ccl_private const ShaderClosure *sc,
+                                             const float3 Ng,
                                              const float3 I,
                                              const float3 omega_in,
                                              ccl_private float *pdf)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
+  const bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
   const float alpha_x = bsdf->alpha_x;
   const float alpha_y = bsdf->alpha_y;
-  const bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
-  const float3 N = bsdf->N;
-  const float cosNO = dot(N, I);
-  const float cosNI = dot(N, omega_in);
+  const float cosNgI = dot(Ng, omega_in);
 
-  if (((cosNI < 0.0f) != m_refractive) || alpha_x * alpha_y <= 1e-7f) {
+  if (((cosNgI < 0.0f) != m_refractive) || alpha_x * alpha_y <= 1e-7f) {
     *pdf = 0.0f;
     return zero_spectrum();
   }
 
-  return (cosNI < 0.0f) ? bsdf_microfacet_ggx_eval_transmit(
-                              bsdf, N, I, omega_in, pdf, alpha_x, alpha_y, cosNO, cosNI) :
-                          bsdf_microfacet_ggx_eval_reflect(
-                              bsdf, N, I, omega_in, pdf, alpha_x, alpha_y, cosNO, cosNI);
+  const float3 N = bsdf->N;
+  const float cosNO = dot(N, I);
+  const float cosNI = dot(N, omega_in);
+
+  return (cosNgI < 0.0f) ? bsdf_microfacet_ggx_eval_transmit(
+                               bsdf, N, I, omega_in, pdf, alpha_x, alpha_y, cosNO, cosNI) :
+                           bsdf_microfacet_ggx_eval_reflect(
+                               bsdf, N, I, omega_in, pdf, alpha_x, alpha_y, cosNO, cosNI);
 }
 
 ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
@@ -776,7 +779,7 @@ ccl_device int bsdf_microfacet_beckmann_refraction_setup(ccl_private MicrofacetB
   bsdf->alpha_y = bsdf->alpha_x;
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
+  return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
 }
 
 ccl_device void bsdf_microfacet_beckmann_blur(ccl_private ShaderClosure *sc, float roughness)
@@ -942,22 +945,25 @@ ccl_device Spectrum bsdf_microfacet_beckmann_eval_transmit(ccl_private const Mic
 }
 
 ccl_device Spectrum bsdf_microfacet_beckmann_eval(ccl_private const ShaderClosure *sc,
+                                                  const float3 Ng,
                                                   const float3 I,
                                                   const float3 omega_in,
                                                   ccl_private float *pdf)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
+  const bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
   const float alpha_x = bsdf->alpha_x;
   const float alpha_y = bsdf->alpha_y;
-  const bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
-  const float3 N = bsdf->N;
-  const float cosNO = dot(N, I);
-  const float cosNI = dot(N, omega_in);
+  const float cosNgI = dot(Ng, omega_in);
 
-  if (((cosNI < 0.0f) != m_refractive) || alpha_x * alpha_y <= 1e-7f) {
+  if (((cosNgI < 0.0f) != m_refractive) || alpha_x * alpha_y <= 1e-7f) {
     *pdf = 0.0f;
     return zero_spectrum();
   }
+
+  const float3 N = bsdf->N;
+  const float cosNO = dot(N, I);
+  const float cosNI = dot(N, omega_in);
 
   return (cosNI < 0.0f) ? bsdf_microfacet_beckmann_eval_transmit(
                               bsdf, N, I, omega_in, pdf, alpha_x, alpha_y, cosNO, cosNI) :

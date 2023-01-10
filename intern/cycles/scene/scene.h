@@ -111,6 +111,13 @@ class DeviceScene {
   device_vector<float2> light_background_marginal_cdf;
   device_vector<float2> light_background_conditional_cdf;
 
+  /* light tree */
+  device_vector<KernelLightTreeNode> light_tree_nodes;
+  device_vector<KernelLightTreeEmitter> light_tree_emitters;
+  device_vector<uint> light_to_tree;
+  device_vector<uint> object_lookup_offset;
+  device_vector<uint> triangle_to_tree;
+
   /* particles */
   device_vector<KernelParticle> particles;
 
@@ -270,6 +277,7 @@ class Scene : public NodeOwner {
 
   void enable_update_stats();
 
+  bool load_kernels(Progress &progress);
   bool update(Progress &progress);
 
   bool has_shadow_catcher();
@@ -333,7 +341,6 @@ class Scene : public NodeOwner {
   uint loaded_kernel_features;
 
   void update_kernel_features();
-  bool load_kernels(Progress &progress, bool lock_scene = true);
 
   bool has_shadow_catcher_ = false;
   bool shadow_catcher_modified_ = true;

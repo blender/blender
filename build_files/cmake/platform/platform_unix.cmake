@@ -10,16 +10,15 @@ if(NOT DEFINED LIBDIR)
   string(TOLOWER ${LIBDIR_NAME} LIBDIR_NAME)
   set(LIBDIR_NATIVE_ABI ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_NAME})
 
-  # Path to precompiled libraries with known CentOS 7 ABI.
-  set(LIBDIR_CENTOS7_ABI ${CMAKE_SOURCE_DIR}/../lib/linux_centos7_x86_64)
+  # Path to precompiled libraries with known glibc 2.28 ABI.
+  set(LIBDIR_GLIBC228_ABI ${CMAKE_SOURCE_DIR}/../lib/linux_x86_64_glibc_228)
 
   # Choose the best suitable libraries.
   if(EXISTS ${LIBDIR_NATIVE_ABI})
     set(LIBDIR ${LIBDIR_NATIVE_ABI})
     set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
-  elseif(EXISTS ${LIBDIR_CENTOS7_ABI})
-    set(LIBDIR ${LIBDIR_CENTOS7_ABI})
-    set(WITH_CXX11_ABI OFF)
+  elseif(EXISTS ${LIBDIR_GLIBC228_ABI})
+    set(LIBDIR ${LIBDIR_GLIBC228_ABI})
     if(WITH_MEM_JEMALLOC)
       # jemalloc provides malloc hooks.
       set(WITH_LIBC_MALLOC_HOOK_WORKAROUND False)
@@ -30,7 +29,7 @@ if(NOT DEFINED LIBDIR)
 
   # Avoid namespace pollustion.
   unset(LIBDIR_NATIVE_ABI)
-  unset(LIBDIR_CENTOS7_ABI)
+  unset(LIBDIR_GLIBC228_ABI)
 endif()
 
 # Support restoring this value once pre-compiled libraries have been handled.
@@ -68,10 +67,7 @@ if(EXISTS ${LIBDIR})
   set(Boost_NO_SYSTEM_PATHS ON)
   set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
   set(CLANG_ROOT_DIR ${LIBDIR}/llvm)
-endif()
-
-if(WITH_STATIC_LIBS)
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " -static-libstdc++")
+  set(MaterialX_DIR ${LIBDIR}/materialx/lib/cmake/MaterialX)
 endif()
 
 # Wrapper to prefer static libraries
@@ -80,15 +76,6 @@ macro(find_package_wrapper)
     find_package_static(${ARGV})
   else()
     find_package(${ARGV})
-  endif()
-endmacro()
-
-# Utility to install precompiled shared libraries.
-macro(add_bundled_libraries library)
-  if(EXISTS ${LIBDIR})
-    file(GLOB _all_library_versions ${LIBDIR}/${library}/lib/*\.so*)
-    list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
-    unset(_all_library_versions)
   endif()
 endmacro()
 
@@ -107,6 +94,10 @@ find_package_wrapper(PNG REQUIRED)
 find_package_wrapper(ZLIB REQUIRED)
 find_package_wrapper(Zstd REQUIRED)
 find_package_wrapper(Epoxy REQUIRED)
+
+if(WITH_VULKAN_BACKEND)
+  find_package_wrapper(Vulkan REQUIRED)
+endif()
 
 function(check_freetype_for_brotli)
   include(CheckSymbolExists)
@@ -151,7 +142,7 @@ if(WITH_PYTHON)
     # Installing into `site-packages`, warn when installing into `./../lib/`
     # which script authors almost certainly don't want.
     if(EXISTS ${LIBDIR})
-      cmake_path(IS_PREFIX LIBDIR "${PYTHON_SITE_PACKAGES}" NORMALIZE _is_prefix)
+      path_is_prefix(LIBDIR PYTHON_SITE_PACKAGES _is_prefix)
       if(_is_prefix)
         message(WARNING "
 Building Blender with the following configuration:
@@ -174,32 +165,28 @@ endif()
 
 if(WITH_IMAGE_OPENEXR)
   find_package_wrapper(OpenEXR)  # our own module
-  if(NOT OPENEXR_FOUND)
-    set(WITH_IMAGE_OPENEXR OFF)
+  set_and_warn_library_found("OpenEXR" OPENEXR_FOUND WITH_IMAGE_OPENEXR)
+  if(WITH_IMAGE_OPENEXR)
+    add_bundled_libraries(openexr/lib)
+    add_bundled_libraries(imath/lib)
   endif()
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
   find_package_wrapper(OpenJPEG)
-  if(NOT OPENJPEG_FOUND)
-    set(WITH_IMAGE_OPENJPEG OFF)
-  endif()
+  set_and_warn_library_found("OpenJPEG" OPENJPEG_FOUND WITH_IMAGE_OPENJPEG)
 endif()
 
 if(WITH_IMAGE_TIFF)
   # XXX Linking errors with debian static tiff :/
 #       find_package_wrapper(TIFF)
   find_package(TIFF)
-  if(NOT TIFF_FOUND)
-    set(WITH_IMAGE_TIFF OFF)
-  endif()
+  set_and_warn_library_found("TIFF" TIFF_FOUND WITH_IMAGE_TIFF)
 endif()
 
 if(WITH_OPENAL)
   find_package_wrapper(OpenAL)
-  if(NOT OPENAL_FOUND)
-    set(WITH_OPENAL OFF)
-  endif()
+  set_and_warn_library_found("OpenAL" OPENAL_FOUND WITH_OPENAL)
 endif()
 
 if(WITH_SDL)
@@ -221,18 +208,14 @@ if(WITH_SDL)
       SDL_LIBRARY
     )
     # unset(SDLMAIN_LIBRARY CACHE)
-    if(NOT SDL_FOUND)
-      set(WITH_SDL OFF)
-    endif()
+    set_and_warn_library_found("SDL" SDL_FOUND WITH_SDL)
   endif()
 endif()
 
 # Codecs
 if(WITH_CODEC_SNDFILE)
   find_package_wrapper(SndFile)
-  if(NOT SNDFILE_FOUND)
-    set(WITH_CODEC_SNDFILE OFF)
-  endif()
+  set_and_warn_library_found("libsndfile" SNDFILE_FOUND WITH_CODEC_SNDFILE)
 endif()
 
 if(WITH_CODEC_FFMPEG)
@@ -260,17 +243,12 @@ if(WITH_CODEC_FFMPEG)
   endif()
   find_package(FFmpeg)
 
-  if(NOT FFMPEG_FOUND)
-    set(WITH_CODEC_FFMPEG OFF)
-    message(STATUS "FFmpeg not found, disabling it")
-  endif()
+  set_and_warn_library_found("FFmpeg" FFMPEG_FOUND WITH_CODEC_FFMPEG)
 endif()
 
 if(WITH_FFTW3)
   find_package_wrapper(Fftw3)
-  if(NOT FFTW3_FOUND)
-    set(WITH_FFTW3 OFF)
-  endif()
+  set_and_warn_library_found("fftw3" FFTW3_FOUND WITH_FFTW3)
 endif()
 
 if(WITH_OPENCOLLADA)
@@ -285,25 +263,23 @@ if(WITH_OPENCOLLADA)
     endif()
     find_package_wrapper(XML2)
   else()
-    set(WITH_OPENCOLLADA OFF)
+    set_and_warn_library_found("OpenCollada" OPENCOLLADA_FOUND WITH_OPENCOLLADA)
   endif()
 endif()
 
 if(WITH_MEM_JEMALLOC)
   find_package_wrapper(JeMalloc)
-  if(NOT JEMALLOC_FOUND)
-    set(WITH_MEM_JEMALLOC OFF)
-  endif()
+  set_and_warn_library_found("JeMalloc" JEMALLOC_FOUND WITH_MEM_JEMALLOC)
 endif()
 
 if(WITH_INPUT_NDOF)
   find_package_wrapper(Spacenav)
+  set_and_warn_library_found("SpaceNav" SPACENAV_FOUND WITH_INPUT_NDOF)
+
   if(SPACENAV_FOUND)
     # use generic names within blenders buildsystem.
     set(NDOF_INCLUDE_DIRS ${SPACENAV_INCLUDE_DIRS})
     set(NDOF_LIBRARIES ${SPACENAV_LIBRARIES})
-  else()
-    set(WITH_INPUT_NDOF OFF)
   endif()
 endif()
 
@@ -313,6 +289,8 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
     set(OSL_ROOT ${CYCLES_OSL})
   endif()
   find_package_wrapper(OSL)
+  set_and_warn_library_found("OSL" OSL_FOUND WITH_CYCLES_OSL)
+
   if(OSL_FOUND)
     if(${OSL_LIBRARY_VERSION_MAJOR} EQUAL "1" AND ${OSL_LIBRARY_VERSION_MINOR} LESS "6")
       # Note: --whole-archive is needed to force loading of all symbols in liboslexec,
@@ -323,13 +301,10 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
         -Wl,--no-whole-archive ${OSL_OSLQUERY_LIBRARY}
       )
     endif()
-  else()
-    message(STATUS "OSL not found, disabling it from Cycles")
-    set(WITH_CYCLES_OSL OFF)
   endif()
 endif()
 
-if(WITH_CYCLES_DEVICE_ONEAPI)
+if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
   set(CYCLES_LEVEL_ZERO ${LIBDIR}/level-zero CACHE PATH "Path to Level Zero installation")
   if(EXISTS ${CYCLES_LEVEL_ZERO} AND NOT LEVEL_ZERO_ROOT_DIR)
     set(LEVEL_ZERO_ROOT_DIR ${CYCLES_LEVEL_ZERO})
@@ -341,35 +316,27 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   endif()
   file(GLOB _sycl_runtime_libraries
     ${SYCL_ROOT_DIR}/lib/libsycl.so
-    ${SYCL_ROOT_DIR}/lib/libsycl.so.[0-9]
-    ${SYCL_ROOT_DIR}/lib/libsycl.so.[0-9].[0-9].[0-9]-[0-9]
-    ${SYCL_ROOT_DIR}/lib/libpi_level_zero.so
+    ${SYCL_ROOT_DIR}/lib/libsycl.so.*
+    ${SYCL_ROOT_DIR}/lib/libpi_*.so
   )
+  list(FILTER _sycl_runtime_libraries EXCLUDE REGEX ".*\.py")
+  list(REMOVE_ITEM _sycl_runtime_libraries "${SYCL_ROOT_DIR}/lib/libpi_opencl.so")
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 endif()
 
 if(WITH_OPENVDB)
-  find_package_wrapper(OpenVDB)
-  find_package_wrapper(Blosc)
+  find_package(OpenVDB)
+  set_and_warn_library_found("OpenVDB" OPENVDB_FOUND WITH_OPENVDB)
 
-  if(NOT OPENVDB_FOUND)
-    set(WITH_OPENVDB OFF)
-    set(WITH_OPENVDB_BLOSC OFF)
-    message(STATUS "OpenVDB not found, disabling it")
-  elseif(NOT BLOSC_FOUND)
-    set(WITH_OPENVDB_BLOSC OFF)
-    message(STATUS "Blosc not found, disabling it for OpenVBD")
+  if(WITH_OPENVDB)
+    add_bundled_libraries(openvdb/lib)
   endif()
 endif()
 
 if(WITH_NANOVDB)
   find_package_wrapper(NanoVDB)
-
-  if(NOT NANOVDB_FOUND)
-    set(WITH_NANOVDB OFF)
-    message(STATUS "NanoVDB not found, disabling it")
-  endif()
+  set_and_warn_library_found("NanoVDB" NANOVDB_FOUND WITH_NANOVDB)
 endif()
 
 if(WITH_CPU_SIMD AND SUPPORT_NEON_BUILD)
@@ -378,17 +345,22 @@ endif()
 
 if(WITH_ALEMBIC)
   find_package_wrapper(Alembic)
-
-  if(NOT ALEMBIC_FOUND)
-    set(WITH_ALEMBIC OFF)
-  endif()
+  set_and_warn_library_found("Alembic" ALEMBIC_FOUND WITH_ALEMBIC)
 endif()
 
 if(WITH_USD)
   find_package_wrapper(USD)
+  set_and_warn_library_found("USD" USD_FOUND WITH_USD)
+  if(WITH_USD)
+    add_bundled_libraries(usd/lib)
+  endif()
+endif()
 
-  if(NOT USD_FOUND)
-    set(WITH_USD OFF)
+if(WITH_MATERIALX)
+  find_package_wrapper(MaterialX)
+  set_and_warn_library_found("MaterialX" MaterialX_FOUND WITH_MATERIALX)
+  if(WITH_MATERIALX)
+    add_bundled_libraries(materialx/lib)
   endif()
 endif()
 
@@ -396,7 +368,7 @@ if(WITH_BOOST)
   # uses in build instructions to override include and library variables
   if(NOT BOOST_CUSTOM)
     if(WITH_STATIC_LIBS)
-      set(Boost_USE_STATIC_LIBS ON)
+      set(Boost_USE_STATIC_LIBS OFF)
     endif()
     set(Boost_USE_MULTITHREADED ON)
     set(__boost_packages filesystem regex thread date_time)
@@ -411,6 +383,9 @@ if(WITH_BOOST)
     endif()
     if(WITH_OPENVDB)
       list(APPEND __boost_packages iostreams)
+    endif()
+    if(WITH_USD AND USD_PYTHON_SUPPORT)
+      list(APPEND __boost_packages python${PYTHON_VERSION_NO_DOTS})
     endif()
     list(APPEND __boost_packages system)
     find_package(Boost 1.48 COMPONENTS ${__boost_packages})
@@ -429,8 +404,13 @@ if(WITH_BOOST)
     mark_as_advanced(Boost_INCLUDE_DIR)  # why doesn't boost do this?
   endif()
 
-  set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
+  # Boost Python is separate to avoid linking Python into tests that don't need it.
   set(BOOST_LIBRARIES ${Boost_LIBRARIES})
+  if(WITH_USD AND USD_PYTHON_SUPPORT)
+    set(BOOST_PYTHON_LIBRARIES ${Boost_PYTHON${PYTHON_VERSION_NO_DOTS}_LIBRARY})
+    list(REMOVE_ITEM BOOST_LIBRARIES ${BOOST_PYTHON_LIBRARIES})
+  endif()
+  set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
   set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
   set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 
@@ -438,24 +418,19 @@ if(WITH_BOOST)
     find_package(IcuLinux)
     list(APPEND BOOST_LIBRARIES ${ICU_LIBRARIES})
   endif()
+
+  add_bundled_libraries(boost/lib)
 endif()
 
 if(WITH_PUGIXML)
   find_package_wrapper(PugiXML)
-
-  if(NOT PUGIXML_FOUND)
-    set(WITH_PUGIXML OFF)
-    message(STATUS "PugiXML not found, disabling WITH_PUGIXML")
-  endif()
+  set_and_warn_library_found("PugiXML" PUGIXML_FOUND WITH_PUGIXML)
 endif()
 
 if(WITH_IMAGE_WEBP)
   set(WEBP_ROOT_DIR ${LIBDIR}/webp)
   find_package_wrapper(WebP)
-  if(NOT WEBP_FOUND)
-    set(WITH_IMAGE_WEBP OFF)
-    message(WARNING "WebP not found, disabling WITH_IMAGE_WEBP")
-  endif()
+  set_and_warn_library_found("WebP" WEBP_FOUND WITH_IMAGE_WEBP)
 endif()
 
 if(WITH_OPENIMAGEIO)
@@ -467,7 +442,6 @@ if(WITH_OPENIMAGEIO)
     ${ZLIB_LIBRARIES}
     ${BOOST_LIBRARIES}
   )
-  set(OPENIMAGEIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
   set(OPENIMAGEIO_DEFINITIONS "")
 
   if(WITH_IMAGE_TIFF)
@@ -480,22 +454,20 @@ if(WITH_OPENIMAGEIO)
     list(APPEND OPENIMAGEIO_LIBRARIES "${WEBP_LIBRARIES}")
   endif()
 
-  if(NOT OPENIMAGEIO_FOUND)
-    set(WITH_OPENIMAGEIO OFF)
-    message(STATUS "OpenImageIO not found, disabling WITH_CYCLES")
+  set_and_warn_library_found("OPENIMAGEIO" OPENIMAGEIO_FOUND WITH_OPENIMAGEIO)
+  if(WITH_OPENIMAGEIO)
+    add_bundled_libraries(openimageio/lib)
   endif()
 endif()
 
 if(WITH_OPENCOLORIO)
   find_package_wrapper(OpenColorIO 2.0.0)
 
-  set(OPENCOLORIO_LIBRARIES ${OPENCOLORIO_LIBRARIES})
-  set(OPENCOLORIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
   set(OPENCOLORIO_DEFINITIONS)
+  set_and_warn_library_found("OpenColorIO" OPENCOLORIO_FOUND WITH_OPENCOLORIO)
 
-  if(NOT OPENCOLORIO_FOUND)
-    set(WITH_OPENCOLORIO OFF)
-    message(STATUS "OpenColorIO not found")
+  if(WITH_OPENCOLORIO)
+    add_bundled_libraries(opencolorio/lib)
   endif()
 endif()
 
@@ -505,11 +477,7 @@ endif()
 
 if(WITH_OPENIMAGEDENOISE)
   find_package_wrapper(OpenImageDenoise)
-
-  if(NOT OPENIMAGEDENOISE_FOUND)
-    set(WITH_OPENIMAGEDENOISE OFF)
-    message(STATUS "OpenImageDenoise not found")
-  endif()
+  set_and_warn_library_found("OpenImageDenoise" OPENIMAGEDENOISE_FOUND WITH_OPENIMAGEDENOISE)
 endif()
 
 if(WITH_LLVM)
@@ -518,81 +486,64 @@ if(WITH_LLVM)
   endif()
 
   find_package_wrapper(LLVM)
-  if(WITH_CLANG)
-    find_package_wrapper(Clang)
-  endif()
-  # Symbol conflicts with same UTF library used by OpenCollada
-  if(EXISTS ${LIBDIR})
-    if(WITH_OPENCOLLADA AND (${LLVM_VERSION} VERSION_LESS "4.0.0"))
-      list(REMOVE_ITEM OPENCOLLADA_LIBRARIES ${OPENCOLLADA_UTF_LIBRARY})
-    endif()
-  endif()
+  set_and_warn_library_found("LLVM" LLVM_FOUND WITH_LLVM)
 
-  if(NOT LLVM_FOUND)
-    set(WITH_LLVM OFF)
-    set(WITH_CLANG OFF)
-    message(STATUS "LLVM not found")
-  else()
-    if(NOT CLANG_FOUND)
-      set(WITH_CLANG OFF)
-      message(STATUS "Clang not found")
+  if(LLVM_FOUND)
+    if(WITH_CLANG)
+      find_package_wrapper(Clang)
+      set_and_warn_library_found("Clang" CLANG_FOUND WITH_CLANG)
+    endif()
+
+    # Symbol conflicts with same UTF library used by OpenCollada
+    if(EXISTS ${LIBDIR})
+      if(WITH_OPENCOLLADA AND (${LLVM_VERSION} VERSION_LESS "4.0.0"))
+        list(REMOVE_ITEM OPENCOLLADA_LIBRARIES ${OPENCOLLADA_UTF_LIBRARY})
+      endif()
     endif()
   endif()
 endif()
 
 if(WITH_OPENSUBDIV)
-  find_package_wrapper(OpenSubdiv)
+  find_package(OpenSubdiv)
 
   set(OPENSUBDIV_LIBRARIES ${OPENSUBDIV_LIBRARIES})
   set(OPENSUBDIV_LIBPATH)  # TODO, remove and reference the absolute path everywhere
 
-  if(NOT OPENSUBDIV_FOUND)
-    set(WITH_OPENSUBDIV OFF)
-    message(STATUS "OpenSubdiv not found")
+  set_and_warn_library_found("OpenSubdiv" OPENSUBDIV_FOUND WITH_OPENSUBDIV)
+  if(WITH_OPENSUBDIV)
+    add_bundled_libraries(opensubdiv/lib)
   endif()
 endif()
 
 if(WITH_TBB)
   find_package_wrapper(TBB)
-  if(NOT TBB_FOUND)
-    message(WARNING "TBB not found, disabling WITH_TBB")
-    set(WITH_TBB OFF)
+  set_and_warn_library_found("TBB" TBB_FOUND WITH_TBB)
+  if(WITH_TBB)
+    add_bundled_libraries(tbb/lib)
   endif()
 endif()
 
 if(WITH_XR_OPENXR)
   find_package(XR_OpenXR_SDK)
-  if(NOT XR_OPENXR_SDK_FOUND)
-    message(WARNING "OpenXR-SDK not found, disabling WITH_XR_OPENXR")
-    set(WITH_XR_OPENXR OFF)
-  endif()
+  set_and_warn_library_found("OpenXR-SDK" XR_OPENXR_SDK_FOUND WITH_XR_OPENXR)
 endif()
 
 if(WITH_GMP)
   find_package_wrapper(GMP)
-  if(NOT GMP_FOUND)
-    message(WARNING "GMP not found, disabling WITH_GMP")
-    set(WITH_GMP OFF)
-  endif()
+  set_and_warn_library_found("GMP" GMP_FOUND WITH_GMP)
 endif()
 
 if(WITH_POTRACE)
   find_package_wrapper(Potrace)
-  if(NOT POTRACE_FOUND)
-    message(WARNING "potrace not found, disabling WITH_POTRACE")
-    set(WITH_POTRACE OFF)
-  endif()
+  set_and_warn_library_found("Potrace" POTRACE_FOUND WITH_POTRACE)
 endif()
 
 if(WITH_HARU)
   find_package_wrapper(Haru)
-  if(NOT HARU_FOUND)
-    message(WARNING "Haru not found, disabling WITH_HARU")
-    set(WITH_HARU OFF)
-  endif()
+  set_and_warn_library_found("Haru" HARU_FOUND WITH_HARU)
 endif()
 
-if(WITH_CYCLES_PATH_GUIDING)
+if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   find_package_wrapper(openpgl)
   if(openpgl_FOUND)
     get_target_property(OPENPGL_LIBRARIES openpgl::openpgl LOCATION)
@@ -676,25 +627,20 @@ endif()
 # Jack is intended to use the system library.
 if(WITH_JACK)
   find_package_wrapper(Jack)
-  if(NOT JACK_FOUND)
-    set(WITH_JACK OFF)
-  endif()
+  set_and_warn_library_found("JACK" JACK_FOUND WITH_JACK)
 endif()
 
 # Pulse is intended to use the system library.
 if(WITH_PULSEAUDIO)
   find_package_wrapper(Pulse)
-  if(NOT PULSE_FOUND)
-    set(WITH_PULSEAUDIO OFF)
-  endif()
+  set_and_warn_library_found("PulseAudio" PULSE_FOUND WITH_PULSEAUDIO)
 endif()
 
 # Audio IO
 if(WITH_SYSTEM_AUDASPACE)
   find_package_wrapper(Audaspace)
-  if(NOT AUDASPACE_FOUND OR NOT AUDASPACE_C_FOUND)
-    message(FATAL_ERROR "Audaspace external library not found!")
-  endif()
+  set(AUDASPACE_FOUND ${AUDASPACE_FOUND} AND ${AUDASPACE_C_FOUND})
+  set_and_warn_library_found("External Audaspace" AUDASPACE_FOUND WITH_SYSTEM_AUDASPACE)
 endif()
 
 if(WITH_GHOST_WAYLAND)
@@ -718,8 +664,7 @@ if(WITH_GHOST_WAYLAND)
     pkg_check_modules(wayland-protocols wayland-protocols>=1.15)
     pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
   else()
-    # CentOS 7 packages have too old a version, a newer version exist in the
-    # precompiled libraries.
+    # Rocky8 packages have too old a version, a newer version exist in the pre-compiled libraries.
     find_path(WAYLAND_PROTOCOLS_DIR
       NAMES unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
       PATH_SUFFIXES share/wayland-protocols
@@ -739,31 +684,14 @@ if(WITH_GHOST_WAYLAND)
     set(wayland-scanner_FOUND ON)
     set(wayland-cursor_FOUND ON)
   endif()
+  mark_as_advanced(WAYLAND_PROTOCOLS_DIR)
 
-  if (NOT ${wayland-client_FOUND})
-    message(STATUS "wayland-client not found, disabling WITH_GHOST_WAYLAND")
-    set(WITH_GHOST_WAYLAND OFF)
-  endif()
-  if (NOT ${wayland-egl_FOUND})
-    message(STATUS "wayland-egl not found, disabling WITH_GHOST_WAYLAND")
-    set(WITH_GHOST_WAYLAND OFF)
-  endif()
-  if (NOT ${wayland-scanner_FOUND})
-    message(STATUS "wayland-scanner not found, disabling WITH_GHOST_WAYLAND")
-    set(WITH_GHOST_WAYLAND OFF)
-  endif()
-  if (NOT ${wayland-cursor_FOUND})
-    message(STATUS "wayland-cursor not found, disabling WITH_GHOST_WAYLAND")
-    set(WITH_GHOST_WAYLAND OFF)
-  endif()
-  if (NOT ${wayland-protocols_FOUND})
-    message(STATUS "wayland-protocols not found, disabling WITH_GHOST_WAYLAND")
-    set(WITH_GHOST_WAYLAND OFF)
-  endif()
-  if (NOT ${xkbcommon_FOUND})
-    message(STATUS "xkbcommon not found, disabling WITH_GHOST_WAYLAND")
-    set(WITH_GHOST_WAYLAND OFF)
-  endif()
+  set_and_warn_library_found("wayland-client" wayland-client_FOUND WITH_GHOST_WAYLAND)
+  set_and_warn_library_found("wayland-egl" wayland-egl_FOUND WITH_GHOST_WAYLAND)
+  set_and_warn_library_found("wayland-scanner" wayland-scanner_FOUND WITH_GHOST_WAYLAND)
+  set_and_warn_library_found("wayland-cursor" wayland-cursor_FOUND WITH_GHOST_WAYLAND)
+  set_and_warn_library_found("wayland-protocols" wayland-protocols_FOUND WITH_GHOST_WAYLAND)
+  set_and_warn_library_found("xkbcommon" xkbcommon_FOUND WITH_GHOST_WAYLAND)
 
   if(WITH_GHOST_WAYLAND)
     if(WITH_GHOST_WAYLAND_DBUS)
@@ -791,6 +719,7 @@ if(WITH_GHOST_WAYLAND)
     else()
       pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
     endif()
+    mark_as_advanced(WAYLAND_SCANNER)
 
     # When using dynamic loading, headers generated
     # from older versions of `wayland-scanner` aren't compatible.
@@ -860,7 +789,7 @@ if(WITH_GHOST_X11)
   endif()
 
   if(WITH_X11_ALPHA)
-    find_library(X11_Xrender_LIB Xrender  ${X11_LIB_SEARCH_PATH})
+    find_library(X11_Xrender_LIB Xrender ${X11_LIB_SEARCH_PATH})
     mark_as_advanced(X11_Xrender_LIB)
     if(NOT X11_Xrender_LIB)
       message(FATAL_ERROR "libXrender not found. Disable WITH_X11_ALPHA if you
@@ -1060,16 +989,9 @@ if(WITH_COMPILER_CCACHE)
   endif()
 endif()
 
-# On some platforms certain atomic operations are not possible with assembly and/or intrinsics and
-# they are emulated in software with locks. For example, on armel there is no intrinsics to grant
-# 64 bit atomic operations and STL library uses libatomic to offload software emulation of atomics
-# to.
-# This function will check whether libatomic is required and if so will configure linker flags.
-# If atomic operations are possible without libatomic then linker flags are left as-is.
-function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
-  # Source which is used to enforce situation when software emulation of atomics is required.
-  # Assume that using 64bit integer gives a definitive answer (as in, if 64bit atomic operations
-  # are possible using assembly/intrinsics 8, 16, and 32 bit operations will also be possible.
+# Always link with libatomic if available, as it is required for data types
+# which don't have intrinsics.
+function(configure_atomic_lib_if_needed)
   set(_source
       "#include <atomic>
       #include <cstdint>
@@ -1080,29 +1002,28 @@ function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
   )
 
   include(CheckCXXSourceCompiles)
-  check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITHOUT_LIBATOMIC)
+  set(CMAKE_REQUIRED_LIBRARIES atomic)
+  check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITH_LIBATOMIC)
+  unset(CMAKE_REQUIRED_LIBRARIES)
 
-  if(NOT ATOMIC_OPS_WITHOUT_LIBATOMIC)
-    # Compilation of the test program has failed.
-    # Try it again with -latomic to see if this is what is needed, or whether something else is
-    # going on.
-
-    set(CMAKE_REQUIRED_LIBRARIES atomic)
-    check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITH_LIBATOMIC)
-    unset(CMAKE_REQUIRED_LIBRARIES)
-
-    if(ATOMIC_OPS_WITH_LIBATOMIC)
-      set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -latomic" PARENT_SCOPE)
-    else()
-      # Atomic operations are required part of Blender and it is not possible to process forward.
-      # We expect that either standard library or libatomic will make atomics to work. If both
-      # cases has failed something fishy o na bigger scope is going on.
-      message(FATAL_ERROR "Failed to detect required configuration for atomic operations")
-    endif()
+  if(ATOMIC_OPS_WITH_LIBATOMIC)
+    set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -latomic" PARENT_SCOPE)
   endif()
 endfunction()
 
 configure_atomic_lib_if_needed()
+
+# Handle library inter-dependencies.
+# FIXME: find a better place to handle inter-library dependencies.
+# This is done near the end of the file to ensure bundled libraries are not added multiple times.
+if(WITH_USD)
+  if(NOT WITH_OPENIMAGEIO)
+    add_bundled_libraries(openimageio/lib)
+  endif()
+  if(NOT WITH_OPENVDB)
+    add_bundled_libraries(openvdb/lib)
+  endif()
+endif()
 
 if(PLATFORM_BUNDLED_LIBRARIES)
   # For the installed Python module and installed Blender executable, we set the
@@ -1115,4 +1036,10 @@ if(PLATFORM_BUNDLED_LIBRARIES)
   # and because the build and install folder may be different.
   set(CMAKE_SKIP_BUILD_RPATH FALSE)
   list(APPEND CMAKE_BUILD_RPATH $ORIGIN/lib ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib)
+
+  # Environment variables to run precompiled executables that needed libraries.
+  list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ":" _library_paths)
+  set(PLATFORM_ENV_BUILD "LD_LIBRARY_PATH=\"${_library_paths};${LD_LIBRARY_PATH}\"")
+  set(PLATFORM_ENV_INSTALL "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib/;$LD_LIBRARY_PATH")
+  unset(_library_paths)
 endif()

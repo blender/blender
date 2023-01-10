@@ -177,7 +177,8 @@ if(ILMBASE_INCLUDE_DIR)
              "\\1" XYZ ${ILMBASE_BUILD_SPECIFICATION})
       set("ILMBASE_VERSION" ${XYZ} CACHE STRING "Version of ILMBase lib")
     else()
-      # Old versions (before 2.0?) do not have any version string, just assuming 2.0 should be fine though.
+      # Old versions (before 2.0?) do not have any version string,
+      # just assuming 2.0 should be fine though.
       message(WARNING "Could not determine ILMBase library version, assuming 2.0.")
       set("ILMBASE_VERSION" "2.0" CACHE STRING "Version of ILMBase lib")
     endif()
@@ -195,8 +196,13 @@ else()
 # elseif(${ILMBASE_VERSION} VERSION_LESS "2.1")
   set(IlmBase_Libraries Half Iex Imath IlmThread)
 # else()
-#   string(REGEX REPLACE "([0-9]+)[.]([0-9]+).*" "\\1_\\2" _ilmbase_libs_ver ${ILMBASE_VERSION})
-#   set(IlmBase_Libraries Half Iex-${_ilmbase_libs_ver} Imath-${_ilmbase_libs_ver} IlmThread-${_ilmbase_libs_ver})
+  # string(REGEX REPLACE "([0-9]+)[.]([0-9]+).*" "\\1_\\2" _ilmbase_libs_ver ${ILMBASE_VERSION})
+  # set(IlmBase_Libraries
+  #   Half
+  #   Iex-${_ilmbase_libs_ver}
+  #   Imath-${_ilmbase_libs_ver}
+  #   IlmThread-${_ilmbase_libs_ver}
+  # )
 endif()
 
 

@@ -35,9 +35,40 @@ from typing import (
     Tuple,
 )
 
+# ------------------------------------------------------------------------------
+# Long Description
+
+long_description = """# Blender
+
+[Blender](https://www.blender.org) is the free and open source 3D creation suite. It supports the entirety of the 3D pipeline—modeling, rigging, animation, simulation, rendering, compositing and motion tracking, even video editing.
+
+This package provides Blender as a Python module for use in studio pipelines, web services, scientific research, and more.
+
+## Documentation
+
+* [Blender Python API](https://docs.blender.org/api/current/)
+* [Blender as a Python Module](https://docs.blender.org/api/current/info_advanced_blender_as_bpy.html)
+
+## Requirements
+
+[System requirements](https://www.blender.org/download/requirements/) are the same as Blender.
+
+Each Blender release supports one Python version, and the package is only compatible with that version.
+
+## Source Code
+
+* [Releases](https://download.blender.org/source/)
+* Repository: [git.blender.org/blender.git](https://git.blender.org/gitweb/gitweb.cgi/blender.git)
+
+## Credits
+
+Created by the [Blender developer community](https://www.blender.org/about/credits/).
+
+Thanks to Tyler Alden Gubala for maintaining the original version of this package."""
 
 # ------------------------------------------------------------------------------
 # Generic Functions
+
 
 def find_dominating_file(
     path: str,
@@ -195,6 +226,8 @@ def main() -> None:
         options={"bdist_wheel": {"plat_name": platform_tag}},
 
         description="Blender as a Python module",
+        long_description=long_description,
+        long_description_content_type='text/markdown',
         license="GPL-3.0",
         author="Blender Foundation",
         author_email="bf-committers@blender.org",
@@ -208,12 +241,15 @@ def main() -> None:
     dist_dir = os.path.join(install_dir, "dist")
     for f in os.listdir(dist_dir):
         if f.endswith(".whl"):
-            # No apparent way to override this ABI version with setuptools, so rename.
-            sys_py = "cp%d%d" % (sys.version_info.major, sys.version_info.minor)
-            sys_py_abi = sys_py + sys.abiflags
             blender_py = "cp%d%d" % (python_version_number[0], python_version_number[1])
 
-            renamed_f = f.replace(sys_py_abi, blender_py).replace(sys_py, blender_py)
+            # No apparent way to override this ABI version with setuptools, so rename.
+            sys_py = "cp%d%d" % (sys.version_info.major, sys.version_info.minor)
+            if hasattr(sys, "abiflags"):
+                sys_py_abi = sys_py + sys.abiflags
+                renamed_f = f.replace(sys_py_abi, blender_py).replace(sys_py, blender_py)
+            else:
+                renamed_f = f.replace(sys_py, blender_py)
 
             os.rename(os.path.join(dist_dir, f), os.path.join(output_dir, renamed_f))
 

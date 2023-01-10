@@ -27,6 +27,7 @@ ExternalProject_Add(external_gmp
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${GMP_HASH_TYPE}=${GMP_HASH}
   PREFIX ${BUILD_DIR}/gmp
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/gmp/src/external_gmp < ${PATCH_DIR}/gmp.diff
   CONFIGURE_COMMAND ${CONFIGURE_ENV_NO_PERL} && cd ${BUILD_DIR}/gmp/src/external_gmp/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/gmp ${GMP_OPTIONS} ${GMP_EXTRA_ARGS}
   BUILD_COMMAND ${CONFIGURE_ENV_NO_PERL} && cd ${BUILD_DIR}/gmp/src/external_gmp/ && make -j${MAKE_THREADS}
   INSTALL_COMMAND ${CONFIGURE_ENV_NO_PERL} && cd ${BUILD_DIR}/gmp/src/external_gmp/ && make install
@@ -39,19 +40,21 @@ endif()
 
 if(BUILD_MODE STREQUAL Release AND WIN32)
   ExternalProject_Add_Step(external_gmp after_install
-      COMMAND  ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-3.dll.def ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def
-      COMMAND  lib /def:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def /machine:x64 /out:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.lib
-      COMMAND  ${CMAKE_COMMAND} -E copy ${LIBDIR}/gmp/bin/libgmp-10.dll ${HARVEST_TARGET}/gmp/lib/libgmp-10.dll
-      COMMAND  ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.lib ${HARVEST_TARGET}/gmp/lib/libgmp-10.lib
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/gmp/include ${HARVEST_TARGET}/gmp/include
+    COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-3.dll.def ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def
+    COMMAND lib /def:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def /machine:x64 /out:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.lib
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/gmp/bin/libgmp-10.dll ${HARVEST_TARGET}/gmp/lib/libgmp-10.dll
+    COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.lib ${HARVEST_TARGET}/gmp/lib/libgmp-10.lib
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/gmp/include ${HARVEST_TARGET}/gmp/include
+
     DEPENDEES install
   )
 endif()
 
 if(BUILD_MODE STREQUAL Debug AND WIN32)
-ExternalProject_Add_Step(external_gmp after_install
-      COMMAND  ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-3.dll.def ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def
-      COMMAND  lib /def:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def /machine:x64 /out:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.lib
+  ExternalProject_Add_Step(external_gmp after_install
+    COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-3.dll.def ${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def
+    COMMAND lib /def:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.def /machine:x64 /out:${BUILD_DIR}/gmp/src/external_gmp/.libs/libgmp-10.lib
+
     DEPENDEES install
   )
 endif()

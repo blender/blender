@@ -117,8 +117,8 @@ enable_testing()
 # Keep in sync with: https://wiki.blender.org/wiki/Building_Blender
 
 if(CMAKE_COMPILER_IS_GNUCC)
-  if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "9.3.1")
-    message(FATAL_ERROR "The minimum supported version of GCC is 9.3.1")
+  if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "11.0.0")
+    message(FATAL_ERROR "The minimum supported version of GCC is 11.0.0")
   endif()
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   if(CMAKE_COMPILER_IS_GNUCC AND ("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "8.0"))
@@ -177,8 +177,11 @@ option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
 
 option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
 option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default" ON)
-mark_as_advanced(WITH_PYTHON)  # don't want people disabling this unless they really know what they are doing.
-mark_as_advanced(WITH_PYTHON_SECURITY)  # some distributions see this as a security issue, rather than have them patch it, make a build option.
+# Don't want people disabling this unless they really know what they are doing.
+mark_as_advanced(WITH_PYTHON)
+# Some distributions see this as a security issue, rather than have them patch it,
+# make a build option.
+mark_as_advanced(WITH_PYTHON_SECURITY)
 
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some efficiency, only enable for development)." OFF)
 mark_as_advanced(WITH_PYTHON_SAFETY)
@@ -254,6 +257,12 @@ if(UNIX AND NOT (APPLE OR HAIKU))
 
     option(WITH_GHOST_WAYLAND_DYNLOAD  "Enable runtime dynamic WAYLAND libraries loading" ON)
     mark_as_advanced(WITH_GHOST_WAYLAND_DYNLOAD)
+
+    set(WITH_GHOST_WAYLAND_APP_ID "" CACHE STRING "\
+The application ID used for Blender (use default when an empty string), \
+this can be used to differentiate Blender instances by version or branch for example."
+    )
+    mark_as_advanced(WITH_GHOST_WAYLAND_APP_ID)
   endif()
 endif()
 
@@ -321,6 +330,9 @@ option(WITH_ALEMBIC             "Enable Alembic Support" ON)
 # Universal Scene Description support
 option(WITH_USD                 "Enable Universal Scene Description (USD) Support" ON)
 
+# MaterialX
+option(WITH_MATERIALX           "Enable MaterialX Support" OFF)
+
 # 3D format support
 # Disable opencollada when we don't have precompiled libs
 option(WITH_OPENCOLLADA   "Enable OpenCollada Support (http://www.opencollada.org)" ON)
@@ -337,10 +349,12 @@ else()
   set(WITH_COREAUDIO OFF)
 endif()
 if(NOT WIN32)
-  option(WITH_JACK          "Enable JACK Support (http://www.jackaudio.org)" ON)
-  if(UNIX AND NOT APPLE)
-    option(WITH_JACK_DYNLOAD  "Enable runtime dynamic JACK libraries loading" OFF)
+  if(APPLE)
+    option(WITH_JACK          "Enable JACK Support (http://www.jackaudio.org)" OFF)
+  else()
+    option(WITH_JACK          "Enable JACK Support (http://www.jackaudio.org)" ON)
   endif()
+  option(WITH_JACK_DYNLOAD  "Enable runtime dynamic JACK libraries loading" OFF)
 else()
   set(WITH_JACK OFF)
 endif()
@@ -456,7 +470,6 @@ if(NOT APPLE)
 
   option(WITH_CYCLES_CUDA_BINARIES     "Build Cycles NVIDIA CUDA binaries" OFF)
   set(CYCLES_CUDA_BINARIES_ARCH sm_30 sm_35 sm_37 sm_50 sm_52 sm_60 sm_61 sm_70 sm_75 sm_86 compute_75 CACHE STRING "CUDA architectures to build binaries for")
-  option(WITH_CYCLES_CUBIN_COMPILER    "Build cubins with nvrtc based compiler instead of nvcc" OFF)
   option(WITH_CYCLES_CUDA_BUILD_SERIAL "Build cubins one after another (useful on machines with limited RAM)" OFF)
   option(WITH_CUDA_DYNLOAD             "Dynamically load CUDA libraries at runtime (for developers, makes cuda-gdb work)" ON)
 
@@ -464,7 +477,6 @@ if(NOT APPLE)
   set(CYCLES_RUNTIME_OPTIX_ROOT_DIR    "" CACHE PATH "Path to the OptiX SDK root directory. When set, this path will be used at runtime to compile OptiX kernels.")
 
   mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
-  mark_as_advanced(WITH_CYCLES_CUBIN_COMPILER)
   mark_as_advanced(WITH_CYCLES_CUDA_BUILD_SERIAL)
   mark_as_advanced(WITH_CUDA_DYNLOAD)
   mark_as_advanced(OPTIX_ROOT_DIR)
@@ -475,7 +487,7 @@ endif()
 if(NOT APPLE)
   option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" ON)
   option(WITH_CYCLES_HIP_BINARIES      "Build Cycles AMD HIP binaries" OFF)
-  set(CYCLES_HIP_BINARIES_ARCH gfx900 gfx906 gfx90c gfx902 gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 gfx1035 CACHE STRING "AMD HIP architectures to build binaries for")
+  set(CYCLES_HIP_BINARIES_ARCH gfx900 gfx906 gfx90c gfx902 gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 gfx1035 gfx1100 gfx1101 gfx1102 CACHE STRING "AMD HIP architectures to build binaries for")
   mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
   mark_as_advanced(CYCLES_HIP_BINARIES_ARCH)
 endif()
@@ -489,13 +501,12 @@ endif()
 if(NOT APPLE)
   option(WITH_CYCLES_DEVICE_ONEAPI "Enable Cycles oneAPI compute support" OFF)
   option(WITH_CYCLES_ONEAPI_BINARIES "Enable Ahead-Of-Time compilation for Cycles oneAPI device" OFF)
-  option(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED "Enable use of SYCL host (CPU) device execution by oneAPI implementation. This option is for debugging purposes and impacts GPU execution." OFF)
 
   # https://www.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html
-  set(CYCLES_ONEAPI_SPIR64_GEN_DEVICES "dg2" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
+  # acm-g10 is the target for the first Intel Arc Alchemist GPUs.
+  set(CYCLES_ONEAPI_SPIR64_GEN_DEVICES "acm-g10" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
   set(CYCLES_ONEAPI_SYCL_TARGETS spir64 spir64_gen CACHE STRING "oneAPI targets to build AOT binaries for")
 
-  mark_as_advanced(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED)
   mark_as_advanced(CYCLES_ONEAPI_SPIR64_GEN_DEVICES)
   mark_as_advanced(CYCLES_ONEAPI_SYCL_TARGETS)
 endif()
@@ -553,6 +564,7 @@ endif()
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
 option(WITH_OPENGL_RENDER_TESTS "Enable OpenGL render related unit testing (Experimental)" OFF)
 option(WITH_OPENGL_DRAW_TESTS "Enable OpenGL UI drawing related unit testing (Experimental)" OFF)
+# NOTE: All callers of this must add `TEST_PYTHON_EXE_EXTRA_ARGS` before any other arguments.
 set(TEST_PYTHON_EXE "" CACHE PATH "Python executable to run unit tests")
 mark_as_advanced(TEST_PYTHON_EXE)
 
@@ -564,18 +576,24 @@ endif()
 
 # OpenGL
 
-option(WITH_OPENGL              "When off limits visibility of the opengl headers to just bf_gpu and gawain (temporary option for development purposes)" ON)
-option(WITH_GPU_BUILDTIME_SHADER_BUILDER  "Shader builder is a developer option enabling linting on GLSL during compilation"                                  OFF)
+option(WITH_OPENGL "When off limits visibility of the opengl headers to just bf_gpu and gawain (temporary option for development purposes)" ON)
+option(WITH_GPU_BUILDTIME_SHADER_BUILDER "Shader builder is a developer option enabling linting on GLSL during compilation" OFF)
 
 mark_as_advanced(
   WITH_OPENGL
   WITH_GPU_BUILDTIME_SHADER_BUILDER
 )
 
+# Vulkan
+option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend (only for development)" OFF)
+mark_as_advanced(
+  WITH_VULKAN_BACKEND
+)
+
 # Metal
 
 if(APPLE)
-  option(WITH_METAL_BACKEND "Use Metal for graphics instead of (or as well as) OpenGL on macOS." OFF)
+  option(WITH_METAL_BACKEND "Use Metal for graphics instead of (or as well as) OpenGL on macOS." ON)
   mark_as_advanced(WITH_METAL_BACKEND)
 else()
   set(WITH_METAL_BACKEND OFF)
@@ -731,11 +749,6 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja")
   mark_as_advanced(WITH_NINJA_POOL_JOBS)
 endif()
 
-if(UNIX AND NOT APPLE)
-  option(WITH_CXX11_ABI "Use native C++11 ABI of compiler" ON)
-  mark_as_advanced(WITH_CXX11_ABI)
-endif()
-
 # Installation process.
 set(POSTINSTALL_SCRIPT "" CACHE FILEPATH "Run given CMake script after installation process")
 mark_as_advanced(POSTINSTALL_SCRIPT)
@@ -779,6 +792,8 @@ endif()
 
 # -----------------------------------------------------------------------------
 # Check for Conflicting/Unsupported Configurations
+
+option(WITH_STRICT_BUILD_OPTIONS "When requirements for a build option are not met, error instead of disabling the option" OFF)
 
 if(NOT WITH_BLENDER AND NOT WITH_CYCLES_STANDALONE AND NOT WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   message(FATAL_ERROR
@@ -895,10 +910,7 @@ endif()
 
 if(WITH_BUILDINFO)
   find_package(Git)
-  if(NOT GIT_FOUND)
-    message(WARNING "Git was not found, disabling WITH_BUILDINFO")
-    set(WITH_BUILDINFO OFF)
-  endif()
+  set_and_warn_library_found("Git" GIT_FOUND WITH_BUILDINFO)
 endif()
 
 if(WITH_AUDASPACE)
@@ -938,9 +950,10 @@ if(WITH_INTERNATIONAL)
       WARNING
       "Translation path '${CMAKE_SOURCE_DIR}/release/datafiles/locale' is missing, "
       "This is a 'git submodule', which are known not to work with bridges to other version "
-      "control systems, disabling 'WITH_INTERNATIONAL'."
+      "control systems."
     )
-    set(WITH_INTERNATIONAL OFF)
+    set(TRANSLATIONS_FOUND OFF)
+    set_and_warn_library_found("Translations" TRANSLATIONS_FOUND WITH_INTERNATIONAL)
   endif()
 endif()
 
@@ -1224,6 +1237,12 @@ if(WITH_OPENGL)
   add_definitions(-DWITH_OPENGL)
 endif()
 
+#-----------------------------------------------------------------------------
+# Configure Vulkan.
+
+if(WITH_VULKAN_BACKEND)
+  list(APPEND BLENDER_GL_LIBRARIES ${VULKAN_LIBRARIES})
+endif()
 
 # -----------------------------------------------------------------------------
 # Configure Metal
@@ -1245,6 +1264,8 @@ if(WITH_OPENMP)
     find_package(OpenMP)
   endif()
 
+  set_and_warn_library_found("OpenMP" OPENMP_FOUND WITH_OPENMP)
+
   if(OPENMP_FOUND)
     if(NOT WITH_OPENMP_STATIC)
       string(APPEND CMAKE_C_FLAGS " ${OpenMP_C_FLAGS}")
@@ -1260,9 +1281,6 @@ if(WITH_OPENMP)
 
       find_library_static(OpenMP_LIBRARIES gomp ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES})
     endif()
-  else()
-    message(STATUS "OpenMP not found, disabling WITH_OPENMP")
-    set(WITH_OPENMP OFF)
   endif()
 
   mark_as_advanced(
@@ -1277,10 +1295,7 @@ endif()
 
 if(WITH_BULLET AND WITH_SYSTEM_BULLET)
   find_package(Bullet)
-  if(NOT BULLET_FOUND)
-    message(STATUS "Bullet not found, disabling WITH_BULLET")
-    set(WITH_BULLET OFF)
-  endif()
+  set_and_warn_library_found("Bullet" BULLET_FOUND WITH_BULLET)
 else()
   set(BULLET_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/bullet2/src")
   # set(BULLET_LIBRARIES "")
@@ -1701,12 +1716,6 @@ if(
   string(APPEND CMAKE_C_FLAGS " -std=gnu11")
 endif()
 
-if(UNIX AND NOT APPLE)
-  if(NOT WITH_CXX11_ABI)
-    string(APPEND PLATFORM_CFLAGS " -D_GLIBCXX_USE_CXX11_ABI=0")
-  endif()
-endif()
-
 if(WITH_COMPILER_SHORT_FILE_MACRO)
   # Use '-fmacro-prefix-map' for Clang and GCC (MSVC doesn't support this).
   add_check_c_compiler_flag(C_PREFIX_MAP_FLAGS C_MACRO_PREFIX_MAP -fmacro-prefix-map=foo=bar)
@@ -1903,6 +1912,7 @@ if(FIRST_RUN)
   info_cfg_option(WITH_QUADRIFLOW)
   info_cfg_option(WITH_TBB)
   info_cfg_option(WITH_USD)
+  info_cfg_option(WITH_MATERIALX)
   info_cfg_option(WITH_XR_OPENXR)
 
   info_cfg_text("Compiler Options:")
@@ -1996,6 +2006,24 @@ endif()
 if(0)
   print_all_vars()
 endif()
+
+set(LIBDIR_STALE)
+
+if(UNIX AND NOT APPLE)
+  # Only search for the path if it's found on the system.
+  if(EXISTS "../lib/linux_centos7_x86_64")
+    set(LIBDIR_STALE "/lib/linux_centos7_x86_64/")
+  endif()
+endif()
+
+if(LIBDIR_STALE)
+  print_cached_vars_containing_value(
+    "${LIBDIR_STALE}"
+    "\nWARNING: found cached references to old library paths!\n"
+    "\nIt is *strongly* recommended to reference updated library paths!\n"
+  )
+endif()
+unset(LIBDIR_STALE)
 
 # Should be the last step of configuration.
 if(POSTCONFIGURE_SCRIPT)

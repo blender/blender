@@ -3,7 +3,7 @@
 
 #ifdef WITH_ONEAPI
 
-#  include <CL/sycl.hpp>
+#  include <sycl/sycl.hpp>
 
 #  include "device/device.h"
 #  include "device/oneapi/device.h"
@@ -104,7 +104,7 @@ class OneapiDevice : public Device {
   int get_num_multiprocessors();
   int get_max_num_threads_per_multiprocessor();
   bool queue_synchronize(SyclQueue *queue);
-  bool kernel_globals_size(SyclQueue *queue, size_t &kernel_global_size);
+  bool kernel_globals_size(size_t &kernel_global_size);
   void set_global_memory(SyclQueue *queue,
                          void *kernel_globals,
                          const char *memory_name,

@@ -233,7 +233,7 @@ void *MEM_lockfree_callocN(size_t len, const char *str)
   print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
               SIZET_ARG(len),
               str,
-              (unsigned int)mem_in_use);
+              (uint)mem_in_use);
   return NULL;
 }
 
@@ -278,7 +278,7 @@ void *MEM_lockfree_mallocN(size_t len, const char *str)
   print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
               SIZET_ARG(len),
               str,
-              (unsigned int)mem_in_use);
+              (uint)mem_in_use);
   return NULL;
 }
 
@@ -292,7 +292,7 @@ void *MEM_lockfree_malloc_arrayN(size_t len, size_t size, const char *str)
         SIZET_ARG(len),
         SIZET_ARG(size),
         str,
-        (unsigned int)mem_in_use);
+        (uint)mem_in_use);
     abort();
     return NULL;
   }
@@ -349,7 +349,7 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
   print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
               SIZET_ARG(len),
               str,
-              (unsigned int)mem_in_use);
+              (uint)mem_in_use);
   return NULL;
 }
 
@@ -401,7 +401,7 @@ size_t MEM_lockfree_get_memory_in_use(void)
   return mem_in_use;
 }
 
-unsigned int MEM_lockfree_get_memory_blocks_in_use(void)
+uint MEM_lockfree_get_memory_blocks_in_use(void)
 {
   return totblock;
 }

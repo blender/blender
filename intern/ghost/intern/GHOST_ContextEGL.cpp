@@ -123,7 +123,7 @@ static bool egl_chk(bool result,
 
 #ifndef NDEBUG
     fprintf(stderr,
-            "%s(%d):[%s] -> EGL Error (0x%04X): %s: %s\n",
+            "%s:%d: [%s] -> EGL Error (0x%04X): %s: %s\n",
             file,
             line,
             text,

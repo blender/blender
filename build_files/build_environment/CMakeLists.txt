@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-####################################################################################################
+##################################################################################################
 #
 # This is a build system used by platform maintainers to build library dependencies on
 # Windows, macOS and Linux.
@@ -22,15 +22,18 @@
 #   Install compiler cmake autoconf automake libtool yasm tcl
 #   Run "make deps" from main Blender directory
 #
-####################################################################################################
+##################################################################################################
 
 project("BlenderDependencies")
 cmake_minimum_required(VERSION 3.5)
-
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW) # CMake 3.24+ Set the date/time for extracted files to time of extraction
+endif()
 include(ExternalProject)
 include(cmake/check_software.cmake)
 include(cmake/options.cmake)
-# versions.cmake needs to be included after options.cmake due to the BLENDER_PLATFORM_ARM variable being needed.
+# `versions.cmake` needs to be included after `options.cmake`
+# due to the `BLENDER_PLATFORM_ARM` variable being needed.
 include(cmake/versions.cmake)
 include(cmake/boost_build_options.cmake)
 include(cmake/download.cmake)
@@ -41,7 +44,7 @@ if(ENABLE_MINGW64)
 else()
   set(mingw_LIBDIR ${LIBDIR})
 endif()
-
+include(cmake/ssl.cmake)
 include(cmake/zlib.cmake)
 include(cmake/zstd.cmake)
 include(cmake/openal.cmake)
@@ -65,18 +68,16 @@ endif()
 if(UNIX)
   include(cmake/nasm.cmake)
 endif()
-include(cmake/openimageio.cmake)
 include(cmake/tiff.cmake)
 if(WIN32)
   include(cmake/flexbison.cmake)
 elseif(UNIX AND NOT APPLE)
   include(cmake/flex.cmake)
 endif()
-include(cmake/osl.cmake)
 include(cmake/tbb.cmake)
-include(cmake/openvdb.cmake)
 include(cmake/python.cmake)
 include(cmake/llvm.cmake)
+include(cmake/osl.cmake)
 option(USE_PIP_NUMPY "Install NumPy using pip wheel instead of building from source" OFF)
 if(APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64"))
   set(USE_PIP_NUMPY ON)
@@ -85,10 +86,13 @@ else()
 endif()
 include(cmake/python_site_packages.cmake)
 include(cmake/package_python.cmake)
+include(cmake/openimageio.cmake)
 include(cmake/usd.cmake)
+include(cmake/materialx.cmake)
+include(cmake/openvdb.cmake)
 include(cmake/potrace.cmake)
 include(cmake/haru.cmake)
-# Boost needs to be included after python.cmake due to the PYTHON_BINARY variable being needed.
+# Boost needs to be included after `python.cmake` due to the PYTHON_BINARY variable being needed.
 include(cmake/boost.cmake)
 include(cmake/pugixml.cmake)
 include(cmake/ispc.cmake)
@@ -97,6 +101,10 @@ include(cmake/embree.cmake)
 include(cmake/openpgl.cmake)
 include(cmake/fmt.cmake)
 include(cmake/robinmap.cmake)
+include(cmake/xml2.cmake)
+
+include(cmake/fribidi.cmake)
+include(cmake/harfbuzz.cmake)
 if(NOT APPLE)
   include(cmake/xr_openxr.cmake)
   if(NOT WIN32 OR BUILD_MODE STREQUAL Release)
@@ -114,6 +122,7 @@ endif()
 include(cmake/expat.cmake)
 include(cmake/pystring.cmake)
 include(cmake/yamlcpp.cmake)
+include(cmake/minizipng.cmake)
 include(cmake/opencolorio.cmake)
 
 if(BLENDER_PLATFORM_ARM)
@@ -149,7 +158,6 @@ if(NOT WIN32 OR ENABLE_MINGW64)
     endif()
     if(UNIX)
       include(cmake/flac.cmake)
-      include(cmake/xml2.cmake)
       if(NOT APPLE)
         include(cmake/spnav.cmake)
         include(cmake/jemalloc.cmake)
@@ -162,7 +170,6 @@ if(UNIX)
   include(cmake/bzip2.cmake)
   include(cmake/ffi.cmake)
   include(cmake/lzma.cmake)
-  include(cmake/ssl.cmake)
   include(cmake/sqlite.cmake)
 endif()
 
@@ -174,6 +181,9 @@ if(UNIX AND NOT APPLE)
   include(cmake/wayland.cmake)
   include(cmake/wayland_libdecor.cmake)
 endif()
-
+include(cmake/shaderc_deps.cmake)
+include(cmake/shaderc.cmake)
+include(cmake/vulkan.cmake)
+include(cmake/pybind11.cmake)
 include(cmake/harvest.cmake)
 include(cmake/cve_check.cmake)

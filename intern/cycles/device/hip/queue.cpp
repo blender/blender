@@ -49,7 +49,7 @@ int HIPDeviceQueue::num_concurrent_states(const size_t state_size) const
   return num_states;
 }
 
-int HIPDeviceQueue::num_concurrent_busy_states() const
+int HIPDeviceQueue::num_concurrent_busy_states(const size_t /*state_size*/) const
 {
   const int max_num_threads = hip_device_->get_num_multiprocessors() *
                               hip_device_->get_max_num_threads_per_multiprocessor();

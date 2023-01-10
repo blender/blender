@@ -4,12 +4,10 @@
 # library itself does not depend on them, so should give no problems.
 
 set(OPENPGL_EXTRA_ARGS
-    -DOPENPGL_BUILD_PYTHON=OFF
-    -DOPENPGL_BUILD_STATIC=ON
-    -DOPENPGL_TBB_ROOT=${LIBDIR}/tbb
-    -DTBB_ROOT=${LIBDIR}/tbb
-    -Dembree_DIR=${LIBDIR}/embree/lib/cmake/embree-${EMBREE_VERSION}
-    -DCMAKE_DEBUG_POSTFIX=_d
+  -DOPENPGL_BUILD_STATIC=ON
+  -DOPENPGL_TBB_ROOT=${LIBDIR}/tbb
+  -DTBB_ROOT=${LIBDIR}/tbb
+  -DCMAKE_DEBUG_POSTFIX=_d
 )
 
 if(TBB_STATIC_LIBRARY)
@@ -20,18 +18,17 @@ if(TBB_STATIC_LIBRARY)
 endif()
 
 ExternalProject_Add(external_openpgl
-    URL file://${PACKAGE_DIR}/${OPENPGL_FILE}
-    DOWNLOAD_DIR ${DOWNLOAD_DIR}
-    URL_HASH ${OPENPGL_HASH_TYPE}=${OPENPGL_HASH}
-    PREFIX ${BUILD_DIR}/openpgl
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openpgl ${DEFAULT_CMAKE_FLAGS} ${OPENPGL_EXTRA_ARGS}
-    INSTALL_DIR ${LIBDIR}/openpgl
+  URL file://${PACKAGE_DIR}/${OPENPGL_FILE}
+  DOWNLOAD_DIR ${DOWNLOAD_DIR}
+  URL_HASH ${OPENPGL_HASH_TYPE}=${OPENPGL_HASH}
+  PREFIX ${BUILD_DIR}/openpgl
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openpgl ${DEFAULT_CMAKE_FLAGS} ${OPENPGL_EXTRA_ARGS}
+  INSTALL_DIR ${LIBDIR}/openpgl
 )
 
 add_dependencies(
-    external_openpgl
-    external_tbb
-    external_embree
+  external_openpgl
+  external_tbb
 )
 
 if(WIN32)

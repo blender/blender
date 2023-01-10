@@ -142,7 +142,6 @@ class GHOST_SystemHeadless : public GHOST_System {
                               uint32_t width,
                               uint32_t height,
                               GHOST_TWindowState state,
-                              GHOST_TDrawingContextType type,
                               GHOST_GLSettings glSettings,
                               const bool /*exclusive*/,
                               const bool /*is_dialog*/,
@@ -155,7 +154,7 @@ class GHOST_SystemHeadless : public GHOST_System {
                                 height,
                                 state,
                                 parentWindow,
-                                type,
+                                glSettings.context_type,
                                 ((glSettings.flags & GHOST_glStereoVisual) != 0));
   }
 

@@ -229,7 +229,7 @@ ccl_device_inline
               /* Always use baked shadow transparency for curves. */
               if (isect.type & PRIMITIVE_CURVE) {
                 *r_throughput *= intersection_curve_shadow_transparency(
-                    kg, isect.object, isect.prim, isect.u);
+                    kg, isect.object, isect.prim, isect.type, isect.u);
 
                 if (*r_throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
                   return true;

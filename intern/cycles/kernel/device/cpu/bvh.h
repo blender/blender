@@ -252,7 +252,7 @@ ccl_device void kernel_embree_filter_occluded_func(const RTCFilterFunctionNArgum
       /* Always use baked shadow transparency for curves. */
       if (current_isect.type & PRIMITIVE_CURVE) {
         ctx->throughput *= intersection_curve_shadow_transparency(
-            kg, current_isect.object, current_isect.prim, current_isect.u);
+            kg, current_isect.object, current_isect.prim, current_isect.type, current_isect.u);
 
         if (ctx->throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
           ctx->opaque_hit = true;

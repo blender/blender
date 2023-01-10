@@ -16,9 +16,11 @@ unique_ptr<Denoiser> Denoiser::create(Device *path_trace_device, const DenoisePa
 {
   DCHECK(params.use);
 
+#ifdef WITH_OPTIX
   if (params.type == DENOISER_OPTIX && Device::available_devices(DEVICE_MASK_OPTIX).size()) {
     return make_unique<OptiXDenoiser>(path_trace_device, params);
   }
+#endif
 
   /* Always fallback to OIDN. */
   DenoiseParams oidn_params = params;

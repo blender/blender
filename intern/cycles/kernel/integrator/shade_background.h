@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "kernel/film/data_passes.h"
 #include "kernel/film/light_passes.h"
 
 #include "kernel/integrator/guiding.h"
@@ -68,9 +69,9 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
   bool eval_background = true;
   float transparent = 0.0f;
 
+  int path_flag = INTEGRATOR_STATE(state, path, flag);
   const bool is_transparent_background_ray = kernel_data.background.transparent &&
-                                             (INTEGRATOR_STATE(state, path, flag) &
-                                              PATH_RAY_TRANSPARENT_BACKGROUND);
+                                             (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND);
 
   if (is_transparent_background_ray) {
     transparent = average(INTEGRATOR_STATE(state, path, throughput));
@@ -85,7 +86,7 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
 #ifdef __MNEE__
   if (INTEGRATOR_STATE(state, path, mnee) & PATH_MNEE_CULL_LIGHT_CONNECTION) {
     if (kernel_data.background.use_mis) {
-      for (int lamp = 0; lamp < kernel_data.integrator.num_all_lights; lamp++) {
+      for (int lamp = 0; lamp < kernel_data.integrator.num_lights; lamp++) {
         /* This path should have been resolved with mnee, it will
          * generate a firefly for small lights since it is improbable. */
         const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
@@ -112,17 +113,10 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
 
     /* Background MIS weights. */
     float mis_weight = 1.0f;
-    /* Check if background light exists or if we should skip pdf. */
+    /* Check if background light exists or if we should skip PDF. */
     if (!(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_MIS_SKIP) &&
         kernel_data.background.use_mis) {
-      const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
-      const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
-      const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
-
-      /* multiple importance sampling, get background light pdf for ray
-       * direction, and compute weight with respect to BSDF pdf */
-      const float pdf = background_light_pdf(kg, ray_P, ray_D);
-      mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
+      mis_weight = light_sample_mis_weight_forward_background(kg, state, path_flag);
     }
 
     guiding_record_background(kg, state, L, mis_weight);
@@ -131,6 +125,7 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
 
   /* Write to render buffer. */
   film_write_background(kg, state, L, transparent, is_transparent_background_ray, render_buffer);
+  film_write_data_passes_background(kg, state, render_buffer);
 }
 
 ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
@@ -140,8 +135,8 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
   const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
   const float ray_time = INTEGRATOR_STATE(state, ray, time);
   LightSample ls ccl_optional_struct_init;
-  for (int lamp = 0; lamp < kernel_data.integrator.num_all_lights; lamp++) {
-    if (light_sample_from_distant_ray(kg, ray_D, lamp, &ls)) {
+  for (int lamp = 0; lamp < kernel_data.integrator.num_lights; lamp++) {
+    if (distant_light_sample_from_intersection(kg, ray_D, lamp, &ls)) {
       /* Use visibility flag to skip lights. */
 #ifdef __PASSES__
       const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
@@ -180,10 +175,7 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
       /* MIS weighting. */
       float mis_weight = 1.0f;
       if (!(path_flag & PATH_RAY_MIS_SKIP)) {
-        /* multiple importance sampling, get regular light pdf,
-         * and compute weight with respect to BSDF pdf */
-        const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
-        mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, ls.pdf);
+        mis_weight = light_sample_mis_weight_forward_distant(kg, state, path_flag, &ls);
       }
 
       /* Write to render buffer. */

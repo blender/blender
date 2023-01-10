@@ -10,43 +10,44 @@ function(download_source dep)
   if(PACKAGE_USE_UPSTREAM_SOURCES)
     set(TARGET_URI  ${${dep}_URI})
   elseif(BLENDER_VERSION)
-    set(TARGET_URI  https://svn.blender.org/svnroot/bf-blender/tags/blender-${BLENDER_VERSION}-release/lib/packages/${TARGET_FILE})
+    set(TARGET_URI https://svn.blender.org/svnroot/bf-blender/tags/blender-${BLENDER_VERSION}-release/lib/packages/${TARGET_FILE})
   else()
-    set(TARGET_URI  https://svn.blender.org/svnroot/bf-blender/trunk/lib/packages/${TARGET_FILE})
+    set(TARGET_URI https://svn.blender.org/svnroot/bf-blender/trunk/lib/packages/${TARGET_FILE})
   endif()
   # Validate all required variables are set and give an explicit error message
   # rather than CMake erroring out later on with a more ambigious error.
-  if (NOT DEFINED TARGET_FILE)
+  if(NOT DEFINED TARGET_FILE)
     message(FATAL_ERROR "${dep}_FILE variable not set")
   endif()
-  if (NOT DEFINED TARGET_HASH)
+  if(NOT DEFINED TARGET_HASH)
     message(FATAL_ERROR "${dep}_HASH variable not set")
   endif()
-  if (NOT DEFINED TARGET_HASH_TYPE)
+  if(NOT DEFINED TARGET_HASH_TYPE)
     message(FATAL_ERROR "${dep}_HASH_TYPE variable not set")
   endif()
-  if (NOT DEFINED TARGET_URI)
+  if(NOT DEFINED TARGET_URI)
     message(FATAL_ERROR "${dep}_URI variable not set")
   endif()
   set(TARGET_FILE ${PACKAGE_DIR}/${TARGET_FILE})
   message("Checking source : ${dep} (${TARGET_FILE})")
   if(NOT EXISTS ${TARGET_FILE})
     message("Checking source : ${dep} - source not found downloading from ${TARGET_URI}")
-    file(DOWNLOAD ${TARGET_URI} ${TARGET_FILE}
-         TIMEOUT 1800  # seconds
-         EXPECTED_HASH ${TARGET_HASH_TYPE}=${TARGET_HASH}
-         TLS_VERIFY ON
-         SHOW_PROGRESS
-        )
+    file(
+      DOWNLOAD ${TARGET_URI} ${TARGET_FILE}
+      TIMEOUT 1800  # seconds
+      EXPECTED_HASH ${TARGET_HASH_TYPE}=${TARGET_HASH}
+      TLS_VERIFY ON
+      SHOW_PROGRESS
+    )
   endif()
   if(EXISTS ${TARGET_FILE})
     # Sometimes the download fails, but that is not a
     # fail condition for "file(DOWNLOAD" it will warn about
-    # a crc mismatch and just carry on, we need to explicitly
+    # a CRC mismatch and just carry on, we need to explicitly
     # catch this and remove the bogus 0 byte file so we can
     # retry without having to go find the file and manually
     # delete it.
-    file (SIZE ${TARGET_FILE} TARGET_SIZE)
+    file(SIZE ${TARGET_FILE} TARGET_SIZE)
     if(${TARGET_SIZE} EQUAL 0)
       file(REMOVE ${TARGET_FILE})
       message(FATAL_ERROR "for ${TARGET_FILE} file size 0, download likely failed, deleted...")
@@ -62,7 +63,7 @@ function(download_source dep)
     # since the actual build of the dep will notify the
     # platform maintainer if there is a problem with the
     # source package and refuse to build.
-    if(NOT PACKAGE_USE_UPSTREAM_SOURCES)
+    if(NOT PACKAGE_USE_UPSTREAM_SOURCES OR FORCE_CHECK_HASH)
       file(${TARGET_HASH_TYPE} ${TARGET_FILE} LOCAL_HASH)
       if(NOT ${TARGET_HASH} STREQUAL ${LOCAL_HASH})
         message(FATAL_ERROR "${TARGET_FILE} ${TARGET_HASH_TYPE} mismatch\nExpected\t: ${TARGET_HASH}\nActual\t: ${LOCAL_HASH}")
@@ -87,6 +88,7 @@ download_source(OPENSUBDIV)
 download_source(SDL)
 download_source(OPENCOLLADA)
 download_source(OPENCOLORIO)
+download_source(MINIZIPNG)
 download_source(LLVM)
 download_source(OPENMP)
 download_source(OPENIMAGEIO)
@@ -114,7 +116,6 @@ download_source(WEBP)
 download_source(SPNAV)
 download_source(JEMALLOC)
 download_source(XML2)
-download_source(TINYXML)
 download_source(YAMLCPP)
 download_source(EXPAT)
 download_source(PUGIXML)
@@ -126,6 +127,7 @@ download_source(SSL)
 download_source(SQLITE)
 download_source(EMBREE)
 download_source(USD)
+download_source(MATERIALX)
 download_source(OIDN)
 download_source(LIBGLU)
 download_source(MESA)
@@ -164,3 +166,12 @@ download_source(IGC_SPIRV_TRANSLATOR)
 download_source(GMMLIB)
 download_source(OCLOC)
 download_source(AOM)
+download_source(FRIBIDI)
+download_source(HARFBUZZ)
+download_source(SHADERC)
+download_source(SHADERC_SPIRV_TOOLS)
+download_source(SHADERC_SPIRV_HEADERS)
+download_source(SHADERC_GLSLANG)
+download_source(VULKAN_HEADERS)
+download_source(VULKAN_LOADER)
+download_source(PYBIND11)

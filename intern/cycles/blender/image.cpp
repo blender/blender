@@ -72,6 +72,11 @@ bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures &, ImageMetaDat
     metadata.colorspace = u_colorspace_raw;
   }
   else {
+    /* In some cases (e.g. T94135), the colorspace setting in Blender gets updated as part of the
+     * metadata queries in this function, so update the colorspace setting here. */
+    PointerRNA colorspace_ptr = b_image.colorspace_settings().ptr;
+    metadata.colorspace = get_enum_identifier(colorspace_ptr, "name");
+
     if (metadata.channels == 1) {
       metadata.type = IMAGE_DATA_TYPE_BYTE;
     }

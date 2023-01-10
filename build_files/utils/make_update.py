@@ -18,8 +18,13 @@ import sys
 import make_utils
 from make_utils import call, check_output
 
+from typing import (
+    List,
+    Optional,
+)
 
-def print_stage(text):
+
+def print_stage(text: str) -> None:
     print("")
     print(text)
     print("")
@@ -27,7 +32,7 @@ def print_stage(text):
 # Parse arguments
 
 
-def parse_arguments():
+def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-libraries", action="store_true")
     parser.add_argument("--no-blender", action="store_true")
@@ -36,17 +41,17 @@ def parse_arguments():
     parser.add_argument("--svn-command", default="svn")
     parser.add_argument("--svn-branch", default=None)
     parser.add_argument("--git-command", default="git")
-    parser.add_argument("--use-centos-libraries", action="store_true")
+    parser.add_argument("--use-linux-libraries", action="store_true")
     return parser.parse_args()
 
 
-def get_blender_git_root():
+def get_blender_git_root() -> str:
     return check_output([args.git_command, "rev-parse", "--show-toplevel"])
 
 # Setup for precompiled libraries and tests from svn.
 
 
-def svn_update(args, release_version):
+def svn_update(args: argparse.Namespace, release_version: Optional[str]) -> None:
     svn_non_interactive = [args.svn_command, '--non-interactive']
 
     lib_dirpath = os.path.join(get_blender_git_root(), '..', 'lib')
@@ -54,10 +59,11 @@ def svn_update(args, release_version):
 
     # Checkout precompiled libraries
     if sys.platform == 'darwin':
-        if platform.machine() == 'x86_64':
-            lib_platform = "darwin"
-        elif platform.machine() == 'arm64':
+        # Check platform.version to detect arm64 with x86_64 python binary.
+        if platform.machine() == 'arm64' or ('ARM64' in platform.version()):
             lib_platform = "darwin_arm64"
+        elif platform.machine() == 'x86_64':
+            lib_platform = "darwin"
         else:
             lib_platform = None
     elif sys.platform == 'win32':
@@ -65,8 +71,8 @@ def svn_update(args, release_version):
         # this script is bundled as part of the precompiled libraries. However it
         # is used by the buildbot.
         lib_platform = "win64_vc15"
-    elif args.use_centos_libraries:
-        lib_platform = "linux_centos7_x86_64"
+    elif args.use_linux_libraries:
+        lib_platform = "linux_x86_64_glibc_228"
     else:
         # No precompiled libraries for Linux.
         lib_platform = None
@@ -99,42 +105,42 @@ def svn_update(args, release_version):
             call(svn_non_interactive + ["checkout", svn_url_tests, lib_tests_dirpath])
 
     # Update precompiled libraries and tests
-    print_stage("Updating Precompiled Libraries and Tests")
 
-    if os.path.isdir(lib_dirpath):
-        for dirname in os.listdir(lib_dirpath):
-            dirpath = os.path.join(lib_dirpath, dirname)
+    if not os.path.isdir(lib_dirpath):
+        print("Library path: %r, not found, skipping" % lib_dirpath)
+    else:
+        paths_local_and_remote = []
+        if os.path.exists(os.path.join(lib_dirpath, ".svn")):
+            print_stage("Updating Precompiled Libraries and Tests (one repository)")
+            paths_local_and_remote.append((lib_dirpath, svn_url))
+        else:
+            print_stage("Updating Precompiled Libraries and Tests (multiple repositories)")
+            # Separate paths checked out.
+            for dirname in os.listdir(lib_dirpath):
+                if dirname.startswith("."):
+                    # Temporary paths such as ".mypy_cache" will report a warning, skip hidden directories.
+                    continue
 
-            if dirname == ".svn":
-                # Cleanup must be run from svn root directory if it exists.
-                if not make_utils.command_missing(args.svn_command):
-                    call(svn_non_interactive + ["cleanup", lib_dirpath])
-                continue
-            elif dirname.startswith("."):
-                # Temporary paths such as ".mypy_cache" will report a warning, skip hidden directories.
-                continue
+                dirpath = os.path.join(lib_dirpath, dirname)
+                if not (os.path.isdir(dirpath) and os.path.exists(os.path.join(dirpath, ".svn"))):
+                    continue
 
-            svn_dirpath = os.path.join(dirpath, ".svn")
-            svn_root_dirpath = os.path.join(lib_dirpath, ".svn")
+                paths_local_and_remote.append((dirpath, svn_url + dirname))
 
-            if (
-                    os.path.isdir(dirpath) and
-                    (os.path.exists(svn_dirpath) or os.path.exists(svn_root_dirpath))
-            ):
-                if make_utils.command_missing(args.svn_command):
-                    sys.stderr.write("svn not found, can't update libraries\n")
-                    sys.exit(1)
+        if paths_local_and_remote:
+            if make_utils.command_missing(args.svn_command):
+                sys.stderr.write("svn not found, can't update libraries\n")
+                sys.exit(1)
 
-                # Cleanup to continue with interrupted downloads.
-                if os.path.exists(svn_dirpath):
-                    call(svn_non_interactive + ["cleanup", dirpath])
+            for dirpath, svn_url_full in paths_local_and_remote:
+                call(svn_non_interactive + ["cleanup", dirpath])
                 # Switch to appropriate branch and update.
-                call(svn_non_interactive + ["switch", svn_url + dirname, dirpath], exit_on_error=False)
+                call(svn_non_interactive + ["switch", svn_url_full, dirpath], exit_on_error=False)
                 call(svn_non_interactive + ["update", dirpath])
 
 
 # Test if git repo can be updated.
-def git_update_skip(args, check_remote_exists=True):
+def git_update_skip(args: argparse.Namespace, check_remote_exists: bool = True) -> str:
     if make_utils.command_missing(args.git_command):
         sys.stderr.write("git not found, can't update code\n")
         sys.exit(1)
@@ -166,13 +172,17 @@ def git_update_skip(args, check_remote_exists=True):
 
 
 # Update blender repository.
-def blender_update(args):
+def blender_update(args: argparse.Namespace) -> None:
     print_stage("Updating Blender Git Repository")
     call([args.git_command, "pull", "--rebase"])
 
 
 # Update submodules.
-def submodules_update(args, release_version, branch):
+def submodules_update(
+        args: argparse.Namespace,
+        release_version: Optional[str],
+        branch: Optional[str],
+) -> str:
     print_stage("Updating Submodules")
     if make_utils.command_missing(args.git_command):
         sys.stderr.write("git not found, can't update code\n")
@@ -214,7 +224,8 @@ def submodules_update(args, release_version, branch):
                 elif make_utils.git_branch_exists(args.git_command, submodule_branch_fallback):
                     submodule_branch = submodule_branch_fallback
                 else:
-                    submodule_branch = None
+                    # Skip.
+                    submodule_branch = ""
 
                 # Switch to branch and pull.
                 if submodule_branch:

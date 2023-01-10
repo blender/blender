@@ -1294,6 +1294,7 @@ def pycontext2sphinx(basepath):
 
             type_descr = prop.get_type_description(
                 class_fmt=":class:`bpy.types.%s`",
+                mathutils_fmt=":class:`mathutils.%s`",
                 collection_id=_BPY_PROP_COLLECTION_ID,
                 enum_descr_override=enum_descr_override,
             )
@@ -1446,6 +1447,7 @@ def pyrna2sphinx(basepath):
             identifier = " %s" % prop.identifier
 
         kwargs["class_fmt"] = ":class:`%s`"
+        kwargs["mathutils_fmt"] = ":class:`mathutils.%s`"
 
         kwargs["collection_id"] = _BPY_PROP_COLLECTION_ID
 
@@ -1459,15 +1461,15 @@ def pyrna2sphinx(basepath):
         # If the link has been written, no need to inline the enum items.
         enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
         if prop.name or prop.description or enum_text:
-            fw(ident + ":%s%s:\n\n" % (id_name, identifier))
+            fw(ident + ":%s%s: " % (id_name, identifier))
 
             if prop.name or prop.description:
-                fw(indent(", ".join(val for val in (prop.name, prop.description) if val), ident + "   ") + "\n\n")
+                fw(", ".join(val for val in (prop.name, prop.description.replace("\n", "")) if val) + "\n")
 
             # Special exception, can't use generic code here for enums.
             if enum_text:
-                write_indented_lines(ident + "   ", fw, enum_text)
                 fw("\n")
+                write_indented_lines(ident + "   ", fw, enum_text)
             del enum_text
             # end enum exception
 
@@ -1565,6 +1567,7 @@ def pyrna2sphinx(basepath):
 
             type_descr = prop.get_type_description(
                 class_fmt=":class:`%s`",
+                mathutils_fmt=":class:`mathutils.%s`",
                 collection_id=_BPY_PROP_COLLECTION_ID,
                 enum_descr_override=enum_descr_override,
             )
@@ -1631,6 +1634,7 @@ def pyrna2sphinx(basepath):
 
                     type_descr = prop.get_type_description(
                         as_ret=True, class_fmt=":class:`%s`",
+                        mathutils_fmt=":class:`mathutils.%s`",
                         collection_id=_BPY_PROP_COLLECTION_ID,
                         enum_descr_override=enum_descr_override,
                     )

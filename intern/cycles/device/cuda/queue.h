@@ -23,7 +23,7 @@ class CUDADeviceQueue : public DeviceQueue {
   ~CUDADeviceQueue();
 
   virtual int num_concurrent_states(const size_t state_size) const override;
-  virtual int num_concurrent_busy_states() const override;
+  virtual int num_concurrent_busy_states(const size_t state_size) const override;
 
   virtual void init_execution() override;
 

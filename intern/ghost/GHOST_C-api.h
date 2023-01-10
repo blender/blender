@@ -162,7 +162,6 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
  * \param height: The height the window.
  * \param state: The state of the window when opened.
  * \param is_dialog: Stay on top of parent window, no icon in taskbar, can't be minimized.
- * \param type: The type of drawing context installed in this window.
  * \param glSettings: Misc OpenGL options.
  * \return A handle to the new window ( == NULL if creation failed).
  */
@@ -175,7 +174,6 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              uint32_t height,
                                              GHOST_TWindowState state,
                                              bool is_dialog,
-                                             GHOST_TDrawingContextType type,
                                              GHOST_GLSettings glSettings);
 
 /**
@@ -561,6 +559,13 @@ extern GHOST_TDrawingContextType GHOST_GetDrawingContextType(GHOST_WindowHandle 
  */
 extern GHOST_TSuccess GHOST_SetDrawingContextType(GHOST_WindowHandle windowhandle,
                                                   GHOST_TDrawingContextType type);
+
+/**
+ * Returns the drawing context used in the this window.
+ * \param windowhandle: The handle to the window.
+ * \return The window drawing context.
+ */
+extern GHOST_ContextHandle GHOST_GetDrawingContext(GHOST_WindowHandle windowhandle);
 
 /**
  * Sets the title displayed in the title bar.
@@ -1186,6 +1191,30 @@ int GHOST_XrGetControllerModelData(GHOST_XrContextHandle xr_context,
                                    GHOST_XrControllerModelData *r_data);
 
 #endif /* WITH_XR_OPENXR */
+
+#ifdef WITH_VULKAN_BACKEND
+
+/**
+ * Return VULKAN handles for the given context.
+ */
+void GHOST_GetVulkanHandles(GHOST_ContextHandle context,
+                            void *r_instance,
+                            void *r_physical_device,
+                            void *r_device,
+                            uint32_t *r_graphic_queue_familly);
+
+/**
+ * Return VULKAN back-buffer resources handles for the given window.
+ */
+void GHOST_GetVulkanBackbuffer(GHOST_WindowHandle windowhandle,
+                               void *image,
+                               void *framebuffer,
+                               void *command_buffer,
+                               void *render_pass,
+                               void *extent,
+                               uint32_t *fb_id);
+
+#endif
 
 #ifdef __cplusplus
 }

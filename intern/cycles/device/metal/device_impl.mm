@@ -254,6 +254,10 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
       break;
   }
 
+  NSProcessInfo *processInfo = [NSProcessInfo processInfo];
+  NSOperatingSystemVersion macos_ver = [processInfo operatingSystemVersion];
+  global_defines += "#define __KERNEL_METAL_MACOS__ " + to_string(macos_ver.majorVersion) + "\n";
+
   string &source = this->source[pso_type];
   source = "\n#include \"kernel/device/metal/kernel.metal\"\n";
   source = path_source_replace_includes(source, path_get("source"));
@@ -292,15 +296,20 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
   }
 
   source = global_defines + source;
+#  if 0
   metal_printf("================\n%s================\n\%s================\n",
                global_defines.c_str(),
                baked_constants.c_str());
+#  endif
 
   /* Generate an MD5 from the source and include any baked constants. This is used when caching
    * PSOs. */
   MD5Hash md5;
   md5.append(baked_constants);
   md5.append(source);
+  if (use_metalrt) {
+    md5.append(std::to_string(kernel_features & METALRT_FEATURE_MASK));
+  }
   source_md5[pso_type] = md5.get_hex();
 }
 
@@ -334,6 +343,14 @@ bool MetalDevice::compile_and_load(MetalPipelineType pso_type)
   }
 
   MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
+
+#  if defined(MAC_OS_VERSION_13_0)
+  if (@available(macos 13.0, *)) {
+    if (device_vendor == METAL_GPU_INTEL) {
+      [options setOptimizationLevel:MTLLibraryOptimizationLevelSize];
+    }
+  }
+#  endif
 
   options.fastMathEnabled = YES;
   if (@available(macOS 12.0, *)) {
@@ -429,6 +446,14 @@ void MetalDevice::erase_allocation(device_memory &mem)
   }
 }
 
+bool MetalDevice::max_working_set_exceeded(size_t safety_margin) const
+{
+  /* We're allowed to allocate beyond the safe working set size, but then if all resources are made
+   * resident we will get command buffer failures at render time. */
+  size_t available = [mtlDevice recommendedMaxWorkingSetSize] - safety_margin;
+  return (stats.mem_used > available);
+}
+
 MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
 {
   size_t size = mem.memory_size();
@@ -504,6 +529,11 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
   }
   else {
     mmem->use_UMA = false;
+  }
+
+  if (max_working_set_exceeded()) {
+    set_error("System is out of GPU memory");
+    return nullptr;
   }
 
   return mmem;
@@ -826,7 +856,7 @@ void MetalDevice::tex_alloc(device_texture &mem)
   /* sampler_index maps into the GPU's constant 'metal_samplers' array */
   uint64_t sampler_index = mem.info.extension;
   if (mem.info.interpolation != INTERPOLATION_CLOSEST) {
-    sampler_index += 3;
+    sampler_index += 4;
   }
 
   /* Image Texture Storage */
@@ -904,9 +934,8 @@ void MetalDevice::tex_alloc(device_texture &mem)
               << string_human_readable_size(mem.memory_size()) << ")";
 
     mtlTexture = [mtlDevice newTextureWithDescriptor:desc];
-    assert(mtlTexture);
-
     if (!mtlTexture) {
+      set_error("System is out of GPU memory");
       return;
     }
 
@@ -938,7 +967,10 @@ void MetalDevice::tex_alloc(device_texture &mem)
               << string_human_readable_size(mem.memory_size()) << ")";
 
     mtlTexture = [mtlDevice newTextureWithDescriptor:desc];
-    assert(mtlTexture);
+    if (!mtlTexture) {
+      set_error("System is out of GPU memory");
+      return;
+    }
 
     [mtlTexture replaceRegion:MTLRegionMake2D(0, 0, mem.data_width, mem.data_height)
                   mipmapLevel:0
@@ -1000,6 +1032,10 @@ void MetalDevice::tex_alloc(device_texture &mem)
   need_texture_info = true;
 
   texture_info[slot].data = uint64_t(slot) | (sampler_index << 32);
+
+  if (max_working_set_exceeded()) {
+    set_error("System is out of GPU memory");
+  }
 }
 
 void MetalDevice::tex_free(device_texture &mem)
@@ -1059,6 +1095,10 @@ void MetalDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         bvhMetalRT = bvh_metal;
       }
     }
+  }
+
+  if (max_working_set_exceeded()) {
+    set_error("System is out of GPU memory");
   }
 }
 

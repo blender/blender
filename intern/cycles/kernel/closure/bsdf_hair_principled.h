@@ -196,7 +196,7 @@ ccl_device int bsdf_principled_hair_setup(ccl_private ShaderData *sd,
 
   bsdf->extra->geom = make_float4(Y.x, Y.y, Y.z, h);
 
-  return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_NEEDS_LCG;
+  return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_NEEDS_LCG | SD_BSDF_HAS_TRANSMISSION;
 }
 
 #endif /* __HAIR__ */

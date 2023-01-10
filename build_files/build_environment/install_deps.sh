@@ -40,15 +40,15 @@ ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,ver-xr-openxr:,ver-
 force-all,force-python,force-boost,force-tbb,\
 force-ocio,force-imath,force-openexr,force-oiio,force-llvm,force-osl,force-osd,force-openvdb,\
 force-ffmpeg,force-opencollada,force-alembic,force-embree,force-oidn,force-usd,\
-force-xr-openxr,force-level-zero, force-openpgl,\
+force-xr-openxr,force-level-zero,force-openpgl,\
 build-all,build-python,build-boost,build-tbb,\
 build-ocio,build-imath,build-openexr,build-oiio,build-llvm,build-osl,build-osd,build-openvdb,\
 build-ffmpeg,build-opencollada,build-alembic,build-embree,build-oidn,build-usd,\
-build-xr-openxr,build-level-zero, build-openpgl,\
+build-xr-openxr,build-level-zero,build-openpgl,\
 skip-python,skip-boost,skip-tbb,\
 skip-ocio,skip-imath,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-osd,skip-openvdb,\
 skip-ffmpeg,skip-opencollada,skip-alembic,skip-embree,skip-oidn,skip-usd,\
-skip-xr-openxr,skip-level-zero, skip-openpgl \
+skip-xr-openxr,skip-level-zero,skip-openpgl \
 -- "$@" \
 )
 
@@ -394,7 +394,7 @@ CLANG_FORMAT_VERSION="10.0"
 CLANG_FORMAT_VERSION_MIN="6.0"
 CLANG_FORMAT_VERSION_MEX="14.0"
 
-PYTHON_VERSION="3.10.2"
+PYTHON_VERSION="3.10.8"
 PYTHON_VERSION_SHORT="3.10"
 PYTHON_VERSION_MIN="3.10"
 PYTHON_VERSION_MEX="3.12"
@@ -505,7 +505,7 @@ OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
 
-OIIO_VERSION="2.3.13.0"
+OIIO_VERSION="2.3.20.0"
 OIIO_VERSION_SHORT="2.3"
 OIIO_VERSION_MIN="2.1.12"
 OIIO_VERSION_MEX="2.4.0"
@@ -523,8 +523,8 @@ LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
-OSL_VERSION="1.11.17.0"
-OSL_VERSION_SHORT="1.11"
+OSL_VERSION="1.12.6.2"
+OSL_VERSION_SHORT="1.12"
 OSL_VERSION_MIN="1.11"
 OSL_VERSION_MEX="2.0"
 OSL_FORCE_BUILD=false
@@ -602,10 +602,10 @@ LEVEL_ZERO_FORCE_BUILD=false
 LEVEL_ZERO_FORCE_REBUILD=false
 LEVEL_ZERO_SKIP=false
 
-OPENPGL_VERSION="0.3.1"
-OPENPGL_VERSION_SHORT="0.3"
-OPENPGL_VERSION_MIN="0.3.1"
-OPENPGL_VERSION_MEX="0.3.2"
+OPENPGL_VERSION="0.4.1"
+OPENPGL_VERSION_SHORT="0.4"
+OPENPGL_VERSION_MIN="0.4.1"
+OPENPGL_VERSION_MEX="0.5"
 OPENPGL_FORCE_BUILD=false
 OPENPGL_FORCE_REBUILD=false
 OPENPGL_SKIP=false
@@ -618,8 +618,8 @@ XR_OPENXR_FORCE_BUILD=false
 XR_OPENXR_FORCE_REBUILD=false
 XR_OPENXR_SKIP=false
 
-FFMPEG_VERSION="5.0"
-FFMPEG_VERSION_SHORT="5.0"
+FFMPEG_VERSION="5.1.2"
+FFMPEG_VERSION_SHORT="5.1"
 FFMPEG_VERSION_MIN="4.0"
 FFMPEG_VERSION_MEX="6.0"
 FFMPEG_FORCE_BUILD=false
@@ -1139,7 +1139,7 @@ LLVM_SOURCE=( "$_LLVM_SOURCE_ROOT/llvm-$LLVM_VERSION.src.tar.xz" )
 LLVM_CLANG_SOURCE=( "$_LLVM_SOURCE_ROOT/clang-$LLVM_VERSION.src.tar.xz" "$_LLVM_SOURCE_ROOT/cfe-$LLVM_VERSION.src.tar.xz" )
 
 OSL_USE_REPO=false
-OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz" )
+OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage/archive/v$OSL_VERSION.tar.gz" )
 #~ OSL_SOURCE_REPO=( "https://github.com/imageworks/OpenShadingLanguage.git" )
 #~ OSL_SOURCE_REPO_BRANCH="master"
 #~ OSL_SOURCE_REPO_UID="85179714e1bc69cd25ecb6bb711c1a156685d395"
@@ -1222,7 +1222,7 @@ Those libraries should be available as packages in all recent distributions (opt
     * Basics of dev environment (cmake, gcc, svn , git, ...).
     * libjpeg, libpng, libtiff, [openjpeg2], [libopenal].
     * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
-    * libwayland-client0, libwayland-cursor0, libwayland-egl1, libxkbcommon0, libdbus-1-3, libegl1 (Wayland)
+    * libwayland-client0, libdecor, libwayland-cursor0, libwayland-egl1, libxkbcommon0, libdbus-1-3, libegl1 (Wayland)
     * libsqlite3, libzstd, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp, flex.
     * libsdl2, libepoxy, libpugixml, libpotrace, [libgmp], fontconfig, [libharu/libhpdf].\""
 
@@ -2243,7 +2243,7 @@ compile_OIIO() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=18
+  oiio_magic=19
   _init_oiio
 
   # Force having own builds for the dependencies.
@@ -2323,7 +2323,7 @@ compile_OIIO() {
     cmake_d="$cmake_d -D USE_OPENVDB=OFF"
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
     cmake_d="$cmake_d -D OIIO_BUILD_TESTS=OFF"
-    cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=OFF"
+    cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=ON"
     cmake_d="$cmake_d -D TXT2MAN="
     #cmake_d="$cmake_d -D CMAKE_EXPORT_COMPILE_COMMANDS=ON"
     #cmake_d="$cmake_d -D CMAKE_VERBOSE_MAKEFILE=ON"
@@ -3187,7 +3187,6 @@ compile_USD() {
     if [ -d $INST/tbb ]; then
       cmake_d="$cmake_d $cmake_d -D TBB_ROOT_DIR=$INST/tbb"
     fi
-    cmake_d="$cmake_d -DPXR_SET_INTERNAL_NAMESPACE=usdBlender"
     cmake_d="$cmake_d -DPXR_ENABLE_PYTHON_SUPPORT=OFF"
     cmake_d="$cmake_d -DPXR_BUILD_IMAGING=OFF"
     cmake_d="$cmake_d -DPXR_BUILD_TESTS=OFF"
@@ -4205,7 +4204,7 @@ install_DEB() {
   _packages="gawk cmake cmake-curses-gui build-essential libjpeg-dev libpng-dev libtiff-dev \
              git libfreetype6-dev libfontconfig-dev libx11-dev flex bison libxxf86vm-dev \
              libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
-             libwayland-dev wayland-protocols libegl-dev libxkbcommon-dev libdbus-1-dev linux-libc-dev \
+             libwayland-dev libdecor-0-dev wayland-protocols libegl-dev libxkbcommon-dev libdbus-1-dev linux-libc-dev \
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev \
              libopenal-dev libepoxy-dev yasm \
              libsdl2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev \
@@ -4928,7 +4927,7 @@ install_RPM() {
   _packages="gcc gcc-c++ git make cmake tar bzip2 xz findutils flex bison fontconfig-devel \
              libtiff-devel libjpeg-devel libpng-devel sqlite-devel fftw-devel SDL2-devel \
              libX11-devel libXi-devel libXcursor-devel libXrandr-devel libXinerama-devel \
-             wayland-devel wayland-protocols-devel mesa-libEGL-devel libxkbcommon-devel dbus-devel kernel-headers \
+             wayland-devel libdecor-devel wayland-protocols-devel mesa-libEGL-devel libxkbcommon-devel dbus-devel kernel-headers \
              wget ncurses-devel readline-devel $OPENJPEG_DEV openal-soft-devel \
              libepoxy-devel yasm patch \
              libxml2-devel yaml-cpp-devel tinyxml-devel jemalloc-devel \
@@ -5582,7 +5581,7 @@ install_ARCH() {
   fi
 
   _packages="$BASE_DEVEL git cmake fontconfig flex \
-             libxi libxcursor libxrandr libxinerama libepoxy libpng libtiff wget openal \
+             libxi libxcursor libxrandr libxinerama libepoxy libdecor libpng libtiff wget openal \
              $OPENJPEG_DEV yasm sdl2 fftw \
              libxml2 yaml-cpp tinyxml python-requests jemalloc gmp potrace pugixml libharu \
              zstd pystring"

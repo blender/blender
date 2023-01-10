@@ -6,7 +6,7 @@ if(WIN32)
 else()
   set(OSL_CMAKE_CXX_STANDARD_LIBRARIES)
   set(OSL_FLEX_BISON)
-  set(OSL_OPENIMAGEIO_LIBRARY "${LIBDIR}/openimageio/lib/${LIBPREFIX}OpenImageIO${LIBEXT};${LIBDIR}/openimageio/lib/${LIBPREFIX}OpenImageIO_Util${LIBEXT};${LIBDIR}/png/lib/${LIBPREFIX}png16${LIBEXT};${LIBDIR}/jpeg/lib/${LIBPREFIX}jpeg${LIBEXT};${LIBDIR}/tiff/lib/${LIBPREFIX}tiff${LIBEXT};${LIBDIR}/openexr/lib/${LIBPREFIX}IlmImf${OPENEXR_VERSION_POSTFIX}${LIBEXT}")
+  set(OSL_OPENIMAGEIO_LIBRARY "${LIBDIR}/openimageio/lib/OpenImageIO${SHAREDLIBEXT};${LIBDIR}/png/lib/${LIBPREFIX}png16${LIBEXT};${LIBDIR}/jpeg/lib/${LIBPREFIX}jpeg${LIBEXT};${LIBDIR}/tiff/lib/${LIBPREFIX}tiff${LIBEXT};${LIBDIR}/openexr/lib/IlmImf${OPENEXR_VERSION_POSTFIX}${SHAREDLIBEXT}")
 endif()
 
 set(OSL_EXTRA_ARGS
@@ -21,7 +21,7 @@ set(OSL_EXTRA_ARGS
   ${OSL_FLEX_BISON}
   -DCMAKE_CXX_STANDARD_LIBRARIES=${OSL_CMAKE_CXX_STANDARD_LIBRARIES}
   -DBUILD_SHARED_LIBS=OFF
-  -DLINKSTATIC=ON
+  -DLINKSTATIC=OFF
   -DOSL_BUILD_PLUGINS=OFF
   -DSTOP_ON_WARNING=OFF
   -DUSE_LLVM_BITCODE=OFF
@@ -32,14 +32,17 @@ set(OSL_EXTRA_ARGS
   -DUSE_Qt5=OFF
   -DINSTALL_DOCS=OFF
   -Dpugixml_ROOT=${LIBDIR}/pugixml
+  -DTIFF_ROOT=${LIBDIR}/tiff
+  -DJPEG_ROOT=${LIBDIR}/jpeg
   -DUSE_PYTHON=OFF
-  -DCMAKE_CXX_STANDARD=14
   -DImath_ROOT=${LIBDIR}/imath
+  -DUSE_OIIO_STATIC=OFF
 )
 
 ExternalProject_Add(external_osl
   URL file://${PACKAGE_DIR}/${OSL_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   LIST_SEPARATOR ^^
   URL_HASH ${OSL_HASH_TYPE}=${OSL_HASH}
   PREFIX ${BUILD_DIR}/osl
@@ -81,6 +84,7 @@ if(WIN32)
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/osl/lib/oslcomp.lib ${HARVEST_TARGET}/osl/lib/oslcomp_d.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/osl/lib/oslexec.lib ${HARVEST_TARGET}/osl/lib/oslexec_d.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/osl/lib/oslquery.lib ${HARVEST_TARGET}/osl/lib/oslquery_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/osl/lib/oslnoise.lib ${HARVEST_TARGET}/osl/lib/oslnoise_d.lib
       DEPENDEES install
     )
   endif()

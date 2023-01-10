@@ -15,5 +15,5 @@ class GHOST_NDOFManagerUnix : public GHOST_NDOFManager {
   bool processEvents();
 
  private:
-  bool m_available;
+  bool available_;
 };

@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# LLVM does not switch over to cpp17 until llvm 16 and building ealier versions with
+# MSVC is leading to some crashes in ISPC. Switch back to their default on all platforms
+# for now. 
+string(REPLACE "-DCMAKE_CXX_STANDARD=17" " " DPCPP_CMAKE_FLAGS "${DEFAULT_CMAKE_FLAGS}")
 
 if(WIN32)
   set(LLVM_GENERATOR "Ninja")
@@ -79,9 +83,12 @@ ExternalProject_Add(external_dpcpp
   CMAKE_GENERATOR ${LLVM_GENERATOR}
   SOURCE_SUBDIR llvm
   LIST_SEPARATOR ^^
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/dpcpp ${DEFAULT_CMAKE_FLAGS} ${DPCPP_EXTRA_ARGS}
-  #CONFIGURE_COMMAND ${PYTHON_BINARY} ${BUILD_DIR}/dpcpp/src/external_dpcpp/buildbot/configure.py ${DPCPP_CONFIGURE_ARGS}
-  #BUILD_COMMAND echo "." #${PYTHON_BINARY} ${BUILD_DIR}/dpcpp/src/external_dpcpp/buildbot/compile.py
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/dpcpp ${DPCPP_CMAKE_FLAGS} ${DPCPP_EXTRA_ARGS}
+  # CONFIGURE_COMMAND
+  #   ${PYTHON_BINARY}
+  #   ${BUILD_DIR}/dpcpp/src/external_dpcpp/buildbot/configure.py ${DPCPP_CONFIGURE_ARGS}
+  # BUILD_COMMAND
+  #   echo "." # ${PYTHON_BINARY} ${BUILD_DIR}/dpcpp/src/external_dpcpp/buildbot/compile.py
   INSTALL_COMMAND ${CMAKE_COMMAND} --build . -- deploy-sycl-toolchain
   PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/dpcpp/src/external_dpcpp < ${PATCH_DIR}/dpcpp.diff
   INSTALL_DIR ${LIBDIR}/dpcpp

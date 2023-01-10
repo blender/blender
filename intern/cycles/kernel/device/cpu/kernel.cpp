@@ -7,6 +7,7 @@
  * one with SSE2 intrinsics.
  */
 #if defined(__x86_64__) || defined(_M_X64)
+#  define __KERNEL_SSE__
 #  define __KERNEL_SSE2__
 #endif
 
@@ -29,11 +30,15 @@
 #    define __KERNEL_SSE41__
 #  endif
 #  ifdef __AVX__
-#    define __KERNEL_SSE__
+#    ifndef __KERNEL_SSE__
+#      define __KERNEL_SSE__
+#    endif
 #    define __KERNEL_AVX__
 #  endif
 #  ifdef __AVX2__
-#    define __KERNEL_SSE__
+#    ifndef __KERNEL_SSE__
+#      define __KERNEL_SSE__
+#    endif
 #    define __KERNEL_AVX2__
 #  endif
 #endif

@@ -36,7 +36,7 @@ bool wayland_dynload_cursor_init(const bool verbose)
 
 #define WAYLAND_DYNLOAD_FN(symbol) \
   if (!(wayland_dynload_cursor.symbol = dynamic_library_find_with_error( \
-            lib, #symbol, paths[path_index]))) { \
+            lib, #symbol, paths[path_index], verbose))) { \
     return false; \
   }
 #include "wayland_dynload_cursor.h"

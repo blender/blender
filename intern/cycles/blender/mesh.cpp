@@ -367,13 +367,11 @@ static void attr_create_generic(Scene *scene,
 {
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
   static const ustring u_velocity("velocity");
-
-  int attribute_index = 0;
-  int render_color_index = b_mesh.attributes.render_color_index();
+  const ustring default_color_name{b_mesh.attributes.default_color_name().c_str()};
 
   for (BL::Attribute &b_attribute : b_mesh.attributes) {
     const ustring name{b_attribute.name().c_str()};
-    const bool is_render_color = (attribute_index++ == render_color_index);
+    const bool is_render_color = name == default_color_name;
 
     if (need_motion && name == u_velocity) {
       attr_create_motion(mesh, b_attribute, motion_scale);
@@ -1085,11 +1083,11 @@ static void create_subd_mesh(Scene *scene,
   const int edges_num = b_mesh.edges.length();
 
   if (edges_num != 0 && b_mesh.edge_creases.length() > 0) {
-    size_t num_creases = 0;
-    const float *creases = static_cast<float *>(b_mesh.edge_creases[0].ptr.data);
+    BL::MeshEdgeCreaseLayer creases = b_mesh.edge_creases[0];
 
+    size_t num_creases = 0;
     for (int i = 0; i < edges_num; i++) {
-      if (creases[i] != 0.0f) {
+      if (creases.data[i].value() != 0.0f) {
         num_creases++;
       }
     }
@@ -1098,17 +1096,18 @@ static void create_subd_mesh(Scene *scene,
 
     const MEdge *edges = static_cast<MEdge *>(b_mesh.edges[0].ptr.data);
     for (int i = 0; i < edges_num; i++) {
-      if (creases[i] != 0.0f) {
+      const float crease = creases.data[i].value();
+      if (crease != 0.0f) {
         const MEdge &b_edge = edges[i];
-        mesh->add_edge_crease(b_edge.v1, b_edge.v2, creases[i]);
+        mesh->add_edge_crease(b_edge.v1, b_edge.v2, crease);
       }
     }
+  }
 
-    for (BL::MeshVertexCreaseLayer &c : b_mesh.vertex_creases) {
-      for (int i = 0; i < c.data.length(); ++i) {
-        if (c.data[i].value() != 0.0f) {
-          mesh->add_vertex_crease(i, c.data[i].value());
-        }
+  for (BL::MeshVertexCreaseLayer &c : b_mesh.vertex_creases) {
+    for (int i = 0; i < c.data.length(); ++i) {
+      if (c.data[i].value() != 0.0f) {
+        mesh->add_vertex_crease(i, c.data[i].value());
       }
     }
   }

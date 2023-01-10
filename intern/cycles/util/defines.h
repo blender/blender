@@ -23,6 +23,7 @@
 /* Leave inlining decisions to compiler for these, the inline keyword here
  * is not about performance but including function definitions in headers. */
 #  define ccl_device static inline
+#  define ccl_device_extern extern "C"
 #  define ccl_device_noinline static inline
 #  define ccl_device_noinline_cpu ccl_device_noinline
 

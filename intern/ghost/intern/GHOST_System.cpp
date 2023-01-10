@@ -384,6 +384,7 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
   if (stereoVisual) {
     glSettings.flags |= GHOST_glStereoVisual;
   }
+  glSettings.context_type = GHOST_kDrawingContextTypeOpenGL;
   /* NOTE: don't use #getCurrentDisplaySetting() because on X11 we may
    * be zoomed in and the desktop may be bigger than the viewport. */
   GHOST_ASSERT(m_displayManager,
@@ -395,7 +396,6 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
                                          settings.xPixels,
                                          settings.yPixels,
                                          GHOST_kWindowStateNormal,
-                                         GHOST_kDrawingContextTypeOpenGL,
                                          glSettings,
                                          true /* exclusive */);
   return (*window == nullptr) ? GHOST_kFailure : GHOST_kSuccess;
