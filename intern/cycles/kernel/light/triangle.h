@@ -146,7 +146,7 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
 
   /* flip normal if necessary */
   const int object_flag = kernel_data_fetch(object_flag, object);
-  if (object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
+  if (object_flag & SD_OBJECT_NEGATIVE_SCALE) {
     ls->Ng = -ls->Ng;
   }
   ls->eval_fac = 1.0f;
