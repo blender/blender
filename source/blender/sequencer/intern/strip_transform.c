@@ -309,7 +309,7 @@ static SeqCollection *query_right_side_strips(const Scene *scene,
 
   SeqCollection *collection = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (SEQ_collection_has_strip(seq, time_dependent_strips)) {
+    if (time_dependent_strips != NULL && SEQ_collection_has_strip(seq, time_dependent_strips)) {
       continue;
     }
     if (SEQ_collection_has_strip(seq, transformed_strips)) {

@@ -721,8 +721,6 @@ static void draw_tile(const float2 &zoom,
     return;
   }
 
-  GPU_texture_bind(texture.gpu_texture, 0);
-
   /* Trick to keep sharp rendering without jagged edges on all GPUs.
    *
    * The idea here is to enforce driver to use linear interpolation when the image is not zoomed
@@ -735,14 +733,14 @@ static void draw_tile(const float2 &zoom,
   const float zoomed_height = draw_tile.params.size.y * zoom.y;
   if (texture.width != draw_tile.params.size.x || texture.height != draw_tile.params.size.y) {
     /* Resolution divider is different from 1, force nearest interpolation. */
-    GPU_texture_filter_mode(texture.gpu_texture, false);
+    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_DEFAULT, 0, false);
   }
   else if (zoomed_width - draw_tile.params.size.x > 0.5f ||
            zoomed_height - draw_tile.params.size.y > 0.5f) {
-    GPU_texture_filter_mode(texture.gpu_texture, false);
+    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_DEFAULT, 0, false);
   }
   else {
-    GPU_texture_filter_mode(texture.gpu_texture, true);
+    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_FILTER, 0, false);
   }
 
   /* Draw at the parameters for which the texture has been updated for. This allows to always draw

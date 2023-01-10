@@ -963,7 +963,7 @@ static bGPDstroke *gpencil_stroke_to_outline(tGPsdata *p, bGPDstroke *gps)
   /* Set pressure constant. */
   gps_perimeter->thickness = max_ii((int)outline_thickness, 1);
   /* Apply Fill Vertex Color data. */
-  ED_gpencil_fill_vertex_color_set(p->scene->toolsettings, brush, gps);
+  ED_gpencil_fill_vertex_color_set(p->scene->toolsettings, brush, gps_perimeter);
 
   bGPDspoint *pt;
   for (int i = 0; i < gps_perimeter->totpoints; i++) {
