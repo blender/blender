@@ -34,7 +34,7 @@ typedef struct UvNearestHit {
    */
   float dist_sq;
 
-  /** Scale the UV's to account for aspect ratio from the image view. */
+  /** Scale the UVs to account for aspect ratio from the image view. */
   float scale[2];
 } UvNearestHit;
 

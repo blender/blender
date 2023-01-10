@@ -1911,8 +1911,8 @@ static StitchState *stitch_init(bContext *C,
       all_edges[counter].first = NULL;
       all_edges[counter].flag = 0;
       all_edges[counter].element = element;
-      /* Using an order policy, sort UV's according to address space.
-       * This avoids having two different UvEdges with the same UV's on different positions. */
+      /* Using an order policy, sort UVs according to address space.
+       * This avoids having two different UvEdges with the same UVs on different positions. */
       if (offset1 < offset2) {
         all_edges[counter].uv1 = offset1;
         all_edges[counter].uv2 = offset2;

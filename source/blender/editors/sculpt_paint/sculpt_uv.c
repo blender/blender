@@ -82,7 +82,7 @@ typedef struct UVInitialStroke {
   /* Initial Selection,for grab brushes for instance */
   UVInitialStrokeElement *initialSelection;
 
-  /* Total initially selected UV's. */
+  /* Total initially selected UVs. */
   int totalInitialSelected;
 
   /* initial mouse coordinates */
@@ -91,9 +91,9 @@ typedef struct UVInitialStroke {
 
 /* custom data for uv smoothing brush */
 typedef struct UvSculptData {
-  /* Contains the first of each set of coincident UV's.
+  /* Contains the first of each set of coincident UVs.
    * These will be used to perform smoothing on and propagate the changes
-   * to their coincident UV's */
+   * to their coincident UVs */
   UvAdjacencyElement *uv;
 
   /* Total number of unique UVs. */
@@ -111,7 +111,7 @@ typedef struct UvSculptData {
   /* timer to be used for airbrush-type brush */
   wmTimer *timer;
 
-  /* to determine quickly adjacent UV's */
+  /* to determine quickly adjacent UVs */
   UvElementMap *elementMap;
 
   /* uvsmooth Paint for fast reference */
@@ -709,7 +709,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       island_index = element->island;
     }
 
-    /* Count 'unique' UV's */
+    /* Count 'unique' UVs */
     int unique_uvs = data->elementMap->total_unique_uvs;
     if (do_island_optimization) {
       unique_uvs = data->elementMap->island_total_unique_uvs[island_index];
@@ -785,8 +785,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
         offset1 = uniqueUv[itmp1];
         offset2 = uniqueUv[itmp2];
 
-        /* Using an order policy, sort UV's according to address space.
-         * This avoids having two different UvEdges with the same UV's on different positions. */
+        /* Using an order policy, sort UVs according to address space.
+         * This avoids having two different UvEdges with the same UVs on different positions. */
         if (offset1 < offset2) {
           edges[counter].uv1 = offset1;
           edges[counter].uv2 = offset2;
@@ -832,7 +832,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     BLI_ghash_free(edgeHash, NULL, NULL);
     MEM_SAFE_FREE(edges);
 
-    /* transfer boundary edge property to UV's */
+    /* transfer boundary edge property to UVs */
     for (int i = 0; i < data->totalUvEdges; i++) {
       if (!data->uvedges[i].is_interior) {
         data->uv[data->uvedges[i].uv1].is_boundary = true;

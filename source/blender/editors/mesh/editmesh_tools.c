@@ -733,7 +733,7 @@ void MESH_OT_edge_collapse(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Collapse Edges & Faces";
   ot->description =
-      "Collapse isolated edge and face regions, merging data such as UV's and color attributes. "
+      "Collapse isolated edge and face regions, merging data such as UVs and color attributes. "
       "This can collapse edge-rings as well as regions of connected faces into vertices";
   ot->idname = "MESH_OT_edge_collapse";
 

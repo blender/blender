@@ -59,7 +59,7 @@ struct UVPrimitivePaintInput {
   /** Corresponding index into PaintGeometryPrimitives */
   int64_t geometry_primitive_index;
   /**
-   * Delta barycentric coordinates between 2 neighboring UV's in the U direction.
+   * Delta barycentric coordinates between 2 neighboring UVs in the U direction.
    *
    * Only the first two coordinates are stored. The third should be recalculated
    */

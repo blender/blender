@@ -4,7 +4,7 @@
  * \ingroup bke
  *
  * Functions for accessing mesh connectivity data.
- * eg: polys connected to verts, UV's connected to verts.
+ * eg: polys connected to verts, UVs connected to verts.
  */
 
 #include "MEM_guardedalloc.h"

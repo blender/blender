@@ -4902,13 +4902,13 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_stretch_u", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_UV_STRETCH_U);
   RNA_def_property_ui_text(
-      prop, "Stretch U", "Stretch the U coordinates between 0 and 1 when UV's are present");
+      prop, "Stretch U", "Stretch the U coordinates between 0 and 1 when UVs are present");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "use_stretch_v", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_UV_STRETCH_V);
   RNA_def_property_ui_text(
-      prop, "Stretch V", "Stretch the V coordinates between 0 and 1 when UV's are present");
+      prop, "Stretch V", "Stretch the V coordinates between 0 and 1 when UVs are present");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 #  if 0

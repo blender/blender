@@ -1546,7 +1546,7 @@ static void *bmw_UVEdgeWalker_step(BMWalker *walker)
   }
 
   /* Go over loops around `l->v` and `l->next->v` and see which ones share `l` and `l->next`
-   * UV's coordinates. in addition, push on `l->next` if necessary. */
+   * UV coordinates. in addition, push on `l->next` if necessary. */
   for (i = 0; i < 2; i++) {
     BMIter liter;
     BMLoop *l_pivot, *l_radial;

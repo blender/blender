@@ -1034,7 +1034,7 @@ static int line_isect_x(const float p1[2], const float p2[2], const float x_leve
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 static bool cmp_uv(const float vec2a[2], const float vec2b[2])
 {
-  /* if the UV's are not between 0.0 and 1.0 */
+  /* if the UVs are not between 0.0 and 1.0 */
   float xa = fmodf(vec2a[0], 1.0f);
   float ya = fmodf(vec2a[1], 1.0f);
 
@@ -1295,8 +1295,8 @@ static float compute_seam_normal(VertSeam *seam, VertSeam *adj, float r_no[2])
   return angle_rel;
 }
 
-/* Calculate outset UV's, this is not the same as simply scaling the UVs,
- * since the outset coords are a margin that keep an even distance from the original UV's,
+/* Calculate outset UVs, this is not the same as simply scaling the UVs,
+ * since the outset coords are a margin that keep an even distance from the original UVs,
  * note that the image aspect is taken into account */
 static void uv_image_outset(const ProjPaintState *ps,
                             float (*orig_uv)[2],
@@ -2433,7 +2433,7 @@ static bool IsectPT2Df_limit(
 
 /**
  * Clip the face by a bucket and set the uv-space bucket_bounds_uv
- * so we have the clipped UV's to do pixel intersection tests with
+ * so we have the clipped UVs to do pixel intersection tests with
  */
 static int float_z_sort_flip(const void *p1, const void *p2)
 {
@@ -3241,7 +3241,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
       float seam_subsection[4][2];
       float fac1, fac2;
 
-      /* Pixel-space UV's. */
+      /* Pixel-space UVs. */
       float lt_puv[3][2];
 
       lt_puv[0][0] = lt_uv_pxoffset[0][0] * ibuf->x;
@@ -4344,7 +4344,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
         if (slot->ima == ps->stencil_ima) {
           /* Delay continuing the loop until after loop_uvs and bleed faces are initialized.
            * While this shouldn't be used, face-winding reads all polys.
-           * It's less trouble to set all faces to valid UV's,
+           * It's less trouble to set all faces to valid UVs,
            * avoiding nullptr checks all over. */
           skip_tri = true;
           tpage = nullptr;

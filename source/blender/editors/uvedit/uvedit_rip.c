@@ -55,7 +55,7 @@ typedef struct ULData {
   /** When the specified UV edge is selected. */
   uint is_select_edge : 1;
   /**
-   * When only this UV is selected and none of the other UV's
+   * When only this UV is selected and none of the other UVs
    * around the connected fan are attached to an edge.
    *
    * In this case there is no need to detect contiguous loops,
@@ -106,7 +106,7 @@ static BMLoop *bm_loop_find_other_radial_loop_with_visible_face(BMLoop *l_src,
     do {
       if (BM_elem_flag_test(l_iter->f, BM_ELEM_TAG) && UL(l_iter)->is_select_edge &&
           BM_loop_uv_share_edge_check(l_src, l_iter, cd_loop_uv_offset)) {
-        /* Check UV's are contiguous. */
+        /* Check UVs are contiguous. */
         if (l_other == NULL) {
           l_other = l_iter;
         }
@@ -132,7 +132,7 @@ static BMLoop *bm_loop_find_other_fan_loop_with_visible_face(BMLoop *l_src,
     do {
       if (BM_elem_flag_test(l_iter->f, BM_ELEM_TAG) &&
           BM_loop_uv_share_edge_check(l_src, l_iter, cd_loop_uv_offset)) {
-        /* Check UV's are contiguous. */
+        /* Check UVs are contiguous. */
         if (l_other == NULL) {
           l_other = l_iter;
         }
@@ -162,7 +162,7 @@ static BMLoop *bm_loop_find_other_fan_loop_with_visible_face(BMLoop *l_src,
 }
 
 /**
- * A version of #BM_vert_step_fan_loop that checks UV's.
+ * A version of #BM_vert_step_fan_loop that checks UVs.
  */
 static BMLoop *bm_vert_step_fan_loop_uv(BMLoop *l, BMEdge **e_step, const int cd_loop_uv_offset)
 {

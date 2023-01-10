@@ -3572,7 +3572,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
       ot->srna,
       "merge_customdata",
       true,
-      "Merge UV's",
+      "Merge UVs",
       "Merge UV coordinates that share a vertex to account for imprecision in some modifiers");
 
   prop = RNA_def_float_rotation(ot->srna,

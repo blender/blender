@@ -510,7 +510,7 @@ static bool is_uv_bool_sublayer(CustomDataLayer const *l)
          is_sublayer_name(UV_PINNED_NAME, name);
 }
 
-/** Thresh is threshold for comparing vertices, UV's, vertex colors, weights, etc. */
+/** Thresh is threshold for comparing vertices, UVs, vertex colors, weights, etc. */
 static int customdata_compare(
     CustomData *c1, CustomData *c2, const int total_length, Mesh *m1, Mesh *m2, const float thresh)
 {

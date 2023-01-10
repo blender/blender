@@ -833,7 +833,7 @@ static void init_TransDataContainers(TransInfo *t,
 
       if (object_mode & OB_MODE_EDIT) {
         tc->obedit = objects[i];
-        /* Check needed for UV's */
+        /* Check needed for UVs */
         if ((t->flag & T_2D_EDIT) == 0) {
           tc->use_local_mat = true;
         }

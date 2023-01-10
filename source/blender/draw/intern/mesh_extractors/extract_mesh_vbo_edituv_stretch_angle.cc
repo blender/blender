@@ -61,7 +61,7 @@ static void edituv_get_edituv_stretch_angle(float auv[2][2],
                                             const float av[2][3],
                                             UVStretchAngle *r_stretch)
 {
-  /* Send UV's to the shader and let it compute the aspect corrected angle. */
+  /* Send UVs to the shader and let it compute the aspect corrected angle. */
   r_stretch->uv_angles[0] = v2_to_short_angle(auv[0]);
   r_stretch->uv_angles[1] = v2_to_short_angle(auv[1]);
   /* Compute 3D angle here. */

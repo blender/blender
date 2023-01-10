@@ -92,7 +92,7 @@ static const EnumPropertyItem uv_sculpt_relaxation_items[] = {
      "COTAN",
      0,
      "Geometry",
-     "Use Geometry (cotangent) relaxation, making UV's follow the underlying 3D geometry"},
+     "Use Geometry (cotangent) relaxation, making UVs follow the underlying 3D geometry"},
     {0, NULL, 0, NULL, NULL},
 };
 #endif
@@ -3277,7 +3277,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "uvcalc_flag", UVCALC_TRANSFORM_CORRECT);
   RNA_def_property_ui_text(prop,
                            "Correct Face Attributes",
-                           "Correct data such as UV's and color attributes when transforming");
+                           "Correct data such as UVs and color attributes when transforming");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   prop = RNA_def_property(srna, "use_transform_correct_keep_connected", PROP_BOOLEAN, PROP_NONE);

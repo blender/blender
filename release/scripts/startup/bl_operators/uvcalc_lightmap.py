@@ -84,7 +84,7 @@ class prettyface:
                 # ngon, note:
                 # for ngons to calculate the width/height we need to do the
                 # whole projection, unlike other faces
-                # we store normalized UV's in the faces coords to avoid
+                # we store normalized UVs in the faces coords to avoid
                 # calculating the projection and rotating it twice.
 
                 no = data.normal
@@ -110,7 +110,7 @@ class prettyface:
                 self.height = yspan
 
                 # ngons work different, we store projected result
-                # in UV's to avoid having to re-project later.
+                # in UVs to avoid having to re-project later.
                 for i, co in enumerate(cos_2d):
                     self.uv[i][:] = ((co.x - xmin) / xspan,
                                      (co.y - ymin) / yspan)
@@ -570,7 +570,7 @@ from bpy.props import BoolProperty, FloatProperty, IntProperty
 
 
 class LightMapPack(Operator):
-    """Pack each faces UV's into the UV bounds"""
+    """Pack each face's UVs into the UV bounds"""
     bl_idname = "uv.lightmap_pack"
     bl_label = "Lightmap Pack"
 

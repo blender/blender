@@ -349,7 +349,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
     ts->sculpt->paint.symmetry_flags |= PAINT_SYMMETRY_FEATHER;
   }
 
-  /* Correct default startup UV's. */
+  /* Correct default startup UVs. */
   Mesh *me = static_cast<Mesh *>(BLI_findstring(&bmain->meshes, "Cube", offsetof(ID, name) + 2));
   if (me && (me->totloop == 24) && CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2)) {
     const float uv_values[24][2] = {

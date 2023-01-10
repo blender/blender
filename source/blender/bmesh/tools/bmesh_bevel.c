@@ -97,7 +97,7 @@ typedef struct EdgeHalf {
   bool is_bev;
   /** Is e->v2 the vertex at this end? */
   bool is_rev;
-  /** Is e a seam for custom loop-data (e.g., UV's). */
+  /** Is e a seam for custom loop-data (e.g., UVs). */
   bool is_seam;
   /** Used during the custom profile orientation pass. */
   bool visited_rpo;
@@ -5463,7 +5463,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv, BoundVert
         BMVert *bmv4 = mesh_vert(vm, i, j + 1, k)->v;
         BMVert *bmvs[4] = {bmv1, bmv2, bmv3, bmv4};
         BLI_assert(bmv1 && bmv2 && bmv3 && bmv4);
-        /* For each created quad, the UV's etc. will be interpolated
+        /* For each created quad, the UVs etc. will be interpolated
          * in potentially a different face for each corner and may need
          * to snap to a particular edge before interpolating.
          * The fr and se arrays will be filled with the interpolation faces

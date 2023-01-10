@@ -447,7 +447,7 @@ static BMOpDefine bmo_pointmerge_def = {
 };
 
 /*
- * Collapse Connected UV's.
+ * Collapse Connected UVs.
  *
  * Collapses connected UV vertices.
  */
@@ -1453,7 +1453,7 @@ static BMOpDefine bmo_spin_def = {
 /*
  * UV Rotation.
  *
- * Cycle the loop UV's
+ * Cycle the loop UVs
  */
 static BMOpDefine bmo_rotate_uvs_def = {
   "rotate_uvs",
@@ -1470,7 +1470,7 @@ static BMOpDefine bmo_rotate_uvs_def = {
 /*
  * UV Reverse.
  *
- * Reverse the UV's
+ * Reverse the UVs
  */
 static BMOpDefine bmo_reverse_uvs_def = {
   "reverse_uvs",

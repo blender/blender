@@ -524,7 +524,7 @@ static void convert_mfaces_to_mpolys(ID *id,
   }
 
   /* NOTE: we don't convert NGons at all, these are not even real ngons,
-   * they have their own UV's, colors etc - its more an editing feature. */
+   * they have their own UVs, colors etc - it's more an editing feature. */
 
   BLI_edgehash_free(eh, nullptr);
 

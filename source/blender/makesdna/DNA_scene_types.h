@@ -2526,11 +2526,11 @@ enum {
 #define UVCALC_FILLHOLES (1 << 0)
 /** Would call this UVCALC_ASPECT_CORRECT, except it should be default with old file. */
 #define UVCALC_NO_ASPECT_CORRECT (1 << 1)
-/** Adjust UV's while transforming with Vert or Edge Slide. */
+/** Adjust UVs while transforming with Vert or Edge Slide. */
 #define UVCALC_TRANSFORM_CORRECT_SLIDE (1 << 2)
-/** Use mesh data after subsurf to compute UV's. */
+/** Use mesh data after subsurf to compute UVs. */
 #define UVCALC_USESUBSURF (1 << 3)
-/** Adjust UV's while transforming to avoid distortion */
+/** Adjust UVs while transforming to avoid distortion */
 #define UVCALC_TRANSFORM_CORRECT (1 << 4)
 /** Keep equal values merged while correcting custom-data. */
 #define UVCALC_TRANSFORM_CORRECT_KEEP_CONNECTED (1 << 5)

@@ -38,11 +38,11 @@ static int compare_v2_classify(const float uv_a[2], const float uv_b[2])
    * values as the absolute value doesn't account for float precision at difference scales.
    * - For subdivision-surface ULP of 3 is sufficient,
    *   although this value is extremely small.
-   * - For bevel the ULP of 12 is sufficient to merge UV's that appear to be connected
+   * - For bevel the ULP of 12 is sufficient to merge UVs that appear to be connected
    *   with bevel on Suzanne beveled 15% with 6 segments.
    *
    * These values could be tweaked but should be kept on the small side to prevent
-   * unintentional joining of intentionally dis-connected UV's.
+   * unintentional joining of intentionally disconnected UVs.
    *
    * Before v2.91 the threshold was either (`1e-4` or `0.05 / image_size` for selection picking).
    * So picking used a threshold of `1e-4` for a 500x500 image and `1e-5` for a 5000x5000 image.
@@ -63,7 +63,7 @@ static void merge_uvs_for_vertex(const Span<int> loops_for_vert, Span<float2 *> 
   if (loops_for_vert.size() <= 1) {
     return;
   }
-  /* Manipulate a copy of the loop indices, de-duplicating UV's per layer.  */
+  /* Manipulate a copy of the loop indices, de-duplicating UVs per layer.  */
   Vector<int, 32> loops_merge;
   loops_merge.reserve(loops_for_vert.size());
   for (float2 *mloopuv : mloopuv_layers) {

@@ -754,7 +754,7 @@ static BMLoop *uvedit_loop_find_other_radial_loop_with_visible_face(const Scene 
     do {
       if (uvedit_face_visible_test(scene, l_iter->f) &&
           BM_loop_uv_share_edge_check(l_src, l_iter, offsets.uv)) {
-        /* Check UV's are contiguous. */
+        /* Check UVs are contiguous. */
         if (l_other == NULL) {
           l_other = l_iter;
         }
@@ -1107,7 +1107,7 @@ bool ED_uvedit_nearest_uv_multi(const View2D *v2d,
  *
  * These functions are quite specialized, useful when sync select is enabled
  * and we want to pick an active UV vertex/edge from the active element which may
- * have multiple UV's split out.
+ * have multiple UVs split out.
  * \{ */
 
 BMLoop *uv_find_nearest_loop_from_vert(struct Scene *scene,
@@ -1830,7 +1830,7 @@ static void uv_select_linked_multi(Scene *scene,
                   /* Special case, vertex/edge & sync select being enabled.
                    *
                    * Without this, a second linked select will 'grow' each time as each new
-                   * selection reaches the boundaries of islands that share vertices but not UV's.
+                   * selection reaches the boundaries of islands that share vertices but not UVs.
                    *
                    * Rules applied here:
                    * - This loops face isn't selected.
@@ -3368,7 +3368,7 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
 
   if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 && ts->uv_sticky == SI_STICKY_VERTEX) {
     /* Tag all verts as untouched, then touch the ones that have a face center
-     * in the loop and select all UV's that use a touched vert. */
+     * in the loop and select all UVs that use a touched vert. */
     BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -4160,7 +4160,7 @@ void UV_OT_select_lasso(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Select Pinned UV's Operator
+/** \name Select Pinned UVs Operator
  * \{ */
 
 static int uv_select_pinned_exec(bContext *C, wmOperator *op)

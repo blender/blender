@@ -315,7 +315,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
           layer = CustomData_get_named_layer(cd_ldata, CD_PROP_FLOAT2, name);
           type = CD_MTFACE;
 
-#if 0 /* Tangents are always from UV's - this will never happen. */
+#if 0 /* Tangents are always from UVs - this will never happen. */
             if (layer == -1) {
               layer = CustomData_get_named_layer(cd_ldata, CD_TANGENT, name);
               type = CD_TANGENT;

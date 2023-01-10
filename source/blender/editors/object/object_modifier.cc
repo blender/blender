@@ -1777,7 +1777,7 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "merge_customdata",
                   true,
-                  "Merge UV's",
+                  "Merge UVs",
                   "For mesh objects, merge UV coordinates that share a vertex to account for "
                   "imprecision in some modifiers");
   PropertyRNA *prop = RNA_def_boolean(ot->srna,

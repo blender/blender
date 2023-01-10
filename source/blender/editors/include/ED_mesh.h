@@ -153,7 +153,7 @@ struct UvElement **BM_uv_element_map_ensure_head_table(struct UvElementMap *elem
 int *BM_uv_element_map_ensure_unique_index(struct UvElementMap *element_map);
 
 /**
- * Can we edit UV's for this mesh?
+ * Can we edit UVs for this mesh?
  */
 bool EDBM_uv_check(struct BMEditMesh *em);
 /**
