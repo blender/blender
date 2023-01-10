@@ -4534,7 +4534,7 @@ static void output_handle_scale(void *data, struct wl_output * /*wl_output*/, co
   CLOG_INFO(LOG, 2, "scale");
   GWL_Output *output = static_cast<GWL_Output *>(data);
   output->scale = factor;
-  output->system->output_scale_update_maybe_leave(output, false);
+  output->system->output_scale_update(output);
 }
 
 static const struct wl_output_listener output_listener = {
@@ -4736,7 +4736,11 @@ static void gwl_registry_wl_output_remove(GWL_Display *display,
 
   if (!on_exit) {
     /* Needed for WLROOTS, does nothing if surface leave callbacks have already run. */
-    output->system->output_scale_update_maybe_leave(output, true);
+    if (output->system->output_unref(output->wl_output)) {
+      CLOG_WARN(LOG,
+                "mis-behaving compositor failed to call \"surface_listener.leave\" "
+                "window scale may be invalid!");
+    }
   }
 
   if (output->xdg_output) {
@@ -6744,11 +6748,13 @@ void GHOST_SystemWayland::seat_active_set(const struct GWL_Seat *seat)
   gwl_display_seat_active_set(display_, seat);
 }
 
-void GHOST_SystemWayland::window_surface_unref(const wl_surface *wl_surface)
+bool GHOST_SystemWayland::window_surface_unref(const wl_surface *wl_surface)
 {
+  bool changed = false;
 #define SURFACE_CLEAR_PTR(surface_test) \
   if (surface_test == wl_surface) { \
     surface_test = nullptr; \
+    changed = true; \
   } \
   ((void)0);
 
@@ -6760,37 +6766,62 @@ void GHOST_SystemWayland::window_surface_unref(const wl_surface *wl_surface)
     SURFACE_CLEAR_PTR(seat->wl_surface_window_focus_dnd);
   }
 #undef SURFACE_CLEAR_PTR
+
+  return changed;
 }
 
-void GHOST_SystemWayland::output_scale_update_maybe_leave(GWL_Output *output, bool leave)
+bool GHOST_SystemWayland::output_unref(wl_output *wl_output)
 {
-  /* Update scale, optionally leaving the outputs beforehand. */
-  GHOST_WindowManager *window_manager = output->system->getWindowManager();
+  bool changed = false;
+  if (!ghost_wl_output_own(wl_output)) {
+    return changed;
+  }
+
+  /* NOTE: keep in sync with `output_scale_update`. */
+  GWL_Output *output = ghost_wl_output_user_data(wl_output);
+  GHOST_WindowManager *window_manager = getWindowManager();
+  if (window_manager) {
+    for (GHOST_IWindow *iwin : window_manager->getWindows()) {
+      GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
+      if (win->outputs_leave(output)) {
+        changed = true;
+      }
+    }
+  }
+  for (GWL_Seat *seat : display_->seats) {
+    if (seat->pointer.outputs.erase(output)) {
+      changed = true;
+    }
+    if (seat->tablet.outputs.erase(output)) {
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+void GHOST_SystemWayland::output_scale_update(GWL_Output *output)
+{
+  /* NOTE: keep in sync with `output_unref`. */
+  GHOST_WindowManager *window_manager = getWindowManager();
   if (window_manager) {
     for (GHOST_IWindow *iwin : window_manager->getWindows()) {
       GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
       const std::vector<GWL_Output *> &outputs = win->outputs();
-      bool found = leave ? win->outputs_leave(output) :
-                           !(std::find(outputs.begin(), outputs.end(), output) == outputs.cend());
-      if (found) {
+      if (!(std::find(outputs.begin(), outputs.end(), output) == outputs.cend())) {
         win->outputs_changed_update_scale();
       }
     }
   }
 
   for (GWL_Seat *seat : display_->seats) {
-    bool found;
-
-    found = leave ? seat->pointer.outputs.erase(output) : seat->pointer.outputs.count(output);
-    if (found) {
+    if (seat->pointer.outputs.count(output)) {
       if (seat->cursor.wl_surface_cursor != nullptr) {
         update_cursor_scale(
             seat->cursor, seat->system->wl_shm(), &seat->pointer, seat->cursor.wl_surface_cursor);
       }
     }
 
-    found = leave ? seat->tablet.outputs.erase(output) : seat->tablet.outputs.count(output);
-    if (found) {
+    if (seat->tablet.outputs.count(output)) {
       for (struct zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : seat->tablet_tools) {
         GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(
             zwp_tablet_tool_v2_get_user_data(zwp_tablet_tool_v2));
