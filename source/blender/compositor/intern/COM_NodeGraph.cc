@@ -181,8 +181,8 @@ void NodeGraph::add_proxies_mute(bNodeTree *b_ntree,
                                  bNodeInstanceKey key,
                                  bool is_active_group)
 {
-  for (const bNodeLink *b_link : b_node->internal_links()) {
-    SocketProxyNode *proxy = new SocketProxyNode(b_node, b_link->fromsock, b_link->tosock, false);
+  for (const bNodeLink &b_link : b_node->internal_links()) {
+    SocketProxyNode *proxy = new SocketProxyNode(b_node, b_link.fromsock, b_link.tosock, false);
     add_node(proxy, b_ntree, key, is_active_group);
   }
 }

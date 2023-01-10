@@ -400,9 +400,9 @@ class LazyFunctionForMutedNode : public LazyFunction {
 
     input_by_output_index_.reinitialize(outputs_.size());
     input_by_output_index_.fill(-1);
-    for (const bNodeLink *internal_link : node.internal_links()) {
-      const int input_i = r_used_inputs.first_index_of_try(internal_link->fromsock);
-      const int output_i = r_used_outputs.first_index_of_try(internal_link->tosock);
+    for (const bNodeLink &internal_link : node.internal_links()) {
+      const int input_i = r_used_inputs.first_index_of_try(internal_link.fromsock);
+      const int output_i = r_used_outputs.first_index_of_try(internal_link.tosock);
       if (ELEM(-1, input_i, output_i)) {
         continue;
       }
@@ -1945,8 +1945,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
   {
     /* Find all outputs that use a specific input. */
     MultiValueMap<const bNodeSocket *, const bNodeSocket *> outputs_by_input;
-    for (const bNodeLink *blink : bnode.internal_links()) {
-      outputs_by_input.add(blink->fromsock, blink->tosock);
+    for (const bNodeLink &blink : bnode.internal_links()) {
+      outputs_by_input.add(blink.fromsock, blink.tosock);
     }
     for (const auto item : outputs_by_input.items()) {
       const bNodeSocket &input_bsocket = *item.key;

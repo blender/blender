@@ -375,7 +375,7 @@ typedef struct bNode {
   bool is_group_output() const;
   const blender::nodes::NodeDeclaration *declaration() const;
   /** A span containing all internal links when the node is muted. */
-  blender::Span<const bNodeLink *> internal_links() const;
+  blender::Span<bNodeLink> internal_links() const;
 
   /* The following methods are only available when #bNodeTree.ensure_topology_cache has been
    * called. */
