@@ -94,14 +94,17 @@ LightTreePrimitive::LightTreePrimitive(Scene *scene, int prim_id, int object_id)
      * seems to work fine */
     centroid = (vertices[0] + vertices[1] + vertices[2]) / 3.0f;
 
-    if (shader->emission_sampling == EMISSION_SAMPLING_FRONT) {
-      /* Front only. */
+    const bool is_front_only = (shader->emission_sampling == EMISSION_SAMPLING_FRONT);
+    const bool is_back_only = (shader->emission_sampling == EMISSION_SAMPLING_BACK);
+    if (is_front_only || is_back_only) {
+      /* One-sided. */
       bcone.axis = safe_normalize(cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
-      bcone.theta_o = 0;
-    }
-    else if (shader->emission_sampling == EMISSION_SAMPLING_BACK) {
-      /* Back only. */
-      bcone.axis = -safe_normalize(cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
+      if (is_back_only) {
+        bcone.axis = -bcone.axis;
+      }
+      if (transform_negative_scale(object->get_tfm())) {
+        bcone.axis = -bcone.axis;
+      }
       bcone.theta_o = 0;
     }
     else {

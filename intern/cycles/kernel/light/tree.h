@@ -223,11 +223,16 @@ ccl_device bool compute_emitter_centroid_and_dir(KernelGlobals kg,
     triangle_world_space_vertices(kg, object, prim_id, -1.0f, vertices);
     centroid = (vertices[0] + vertices[1] + vertices[2]) / 3.0f;
 
-    if (kemitter->emission_sampling == EMISSION_SAMPLING_FRONT) {
+    const bool is_front_only = (kemitter->emission_sampling == EMISSION_SAMPLING_FRONT);
+    const bool is_back_only = (kemitter->emission_sampling == EMISSION_SAMPLING_BACK);
+    if (is_front_only || is_back_only) {
       dir = safe_normalize(cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
-    }
-    else if (kemitter->emission_sampling == EMISSION_SAMPLING_BACK) {
-      dir = -safe_normalize(cross(vertices[1] - vertices[0], vertices[2] - vertices[0]));
+      if (is_back_only) {
+        dir = -dir;
+      }
+      if (kernel_data_fetch(object_flag, object) & SD_OBJECT_NEGATIVE_SCALE) {
+        dir = -dir;
+      }
     }
     else {
       /* Double-sided: any vector in the plane. */
