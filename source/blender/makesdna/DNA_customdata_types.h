@@ -94,8 +94,8 @@ typedef enum eCustomDataType {
    */
   CD_AUTO_FROM_NAME = -1,
 
-  CD_MVERT = 0,
 #ifdef DNA_DEPRECATED_ALLOW
+  CD_MVERT = 0,   /* DEPRECATED */
   CD_MSTICKY = 1, /* DEPRECATED */
 #endif
   CD_MDEFORMVERT = 2, /* Array of `MDeformVert`. */
@@ -165,7 +165,7 @@ typedef enum eCustomDataType {
 } eCustomDataType;
 
 /* Bits for eCustomDataMask */
-#define CD_MASK_MVERT (1 << CD_MVERT)
+// #define CD_MASK_MVERT (1 << CD_MVERT) /* DEPRECATED */
 // #define CD_MASK_MSTICKY      (1 << CD_MSTICKY)  /* DEPRECATED */
 #define CD_MASK_MDEFORMVERT (1 << CD_MDEFORMVERT)
 #define CD_MASK_MEDGE (1 << CD_MEDGE)

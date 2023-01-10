@@ -55,8 +55,8 @@ struct BMeshToMeshParams {
    */
   bool update_shapekey_indices;
   /**
-   * Instead of copying the basis shape-key into the #MVert array,
-   * copy the #BMVert.co directly to #MVert.co (used for reading undo data).
+   * Instead of copying the basis shape-key into the position array,
+   * copy the #BMVert.co directly to the #Mesh position (used for reading undo data).
    */
   bool active_shapekey_to_mvert;
   struct CustomData_MeshMasks cd_mask_extra;

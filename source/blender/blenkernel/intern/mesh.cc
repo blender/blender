@@ -18,6 +18,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_bit_vector.hh"
+#include "BLI_bounds.hh"
 #include "BLI_edgehash.h"
 #include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
@@ -28,6 +29,7 @@
 #include "BLI_math.h"
 #include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
+#include "BLI_resource_scope.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_task.hh"
@@ -228,6 +230,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   Vector<CustomDataLayer, 16> edge_layers;
   Vector<CustomDataLayer, 16> loop_layers;
   Vector<CustomDataLayer, 16> poly_layers;
+  blender::ResourceScope temp_arrays_for_legacy_format;
 
   /* cache only - don't write */
   mesh->mface = nullptr;
@@ -251,6 +254,18 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   else {
     Set<std::string> names_to_skip;
     if (!BLO_write_is_undo(writer)) {
+      /* When converting to the old mesh format, don't save redundant attributes. */
+      names_to_skip.add_multiple_new({".hide_vert",
+                                      ".hide_edge",
+                                      ".hide_poly",
+                                      "position",
+                                      "material_index",
+                                      ".select_vert",
+                                      ".select_edge",
+                                      ".select_poly"});
+
+      mesh->mvert = BKE_mesh_legacy_convert_positions_to_verts(
+          mesh, temp_arrays_for_legacy_format, vert_layers);
       BKE_mesh_legacy_convert_hide_layers_to_flags(mesh);
       BKE_mesh_legacy_convert_selection_layers_to_flags(mesh);
       BKE_mesh_legacy_convert_material_indices_to_mpoly(mesh);
@@ -261,17 +276,8 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       mesh->active_color_attribute = nullptr;
       mesh->default_color_attribute = nullptr;
       BKE_mesh_legacy_convert_loose_edges_to_flag(mesh);
-      /* When converting to the old mesh format, don't save redundant attributes. */
-      names_to_skip.add_multiple_new({".hide_vert",
-                                      ".hide_edge",
-                                      ".hide_poly",
-                                      "material_index",
-                                      ".select_vert",
-                                      ".select_edge",
-                                      ".select_poly"});
 
       /* Set deprecated mesh data pointers for forward compatibility. */
-      mesh->mvert = const_cast<MVert *>(mesh->verts().data());
       mesh->medge = const_cast<MEdge *>(mesh->edges().data());
       mesh->mpoly = const_cast<MPoly *>(mesh->polys().data());
       mesh->mloop = const_cast<MLoop *>(mesh->loops().data());
@@ -480,9 +486,8 @@ static int customdata_compare(
   const float thresh_sq = thresh * thresh;
   CustomDataLayer *l1, *l2;
   int layer_count1 = 0, layer_count2 = 0, j;
-  const uint64_t cd_mask_non_generic = CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MPOLY |
-                                       CD_MASK_MLOOPUV | CD_MASK_PROP_BYTE_COLOR |
-                                       CD_MASK_MDEFORMVERT;
+  const uint64_t cd_mask_non_generic = CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_MLOOPUV |
+                                       CD_MASK_PROP_BYTE_COLOR | CD_MASK_MDEFORMVERT;
   const uint64_t cd_mask_all_attr = CD_MASK_PROP_ALL | cd_mask_non_generic;
   const Span<MLoop> loops_1 = m1->loops();
   const Span<MLoop> loops_2 = m2->loops();
@@ -525,22 +530,6 @@ static int customdata_compare(
       found_corresponding_layer = true;
 
       switch (l1->type) {
-
-        case CD_MVERT: {
-          MVert *v1 = (MVert *)l1->data;
-          MVert *v2 = (MVert *)l2->data;
-          int vtot = m1->totvert;
-
-          for (j = 0; j < vtot; j++, v1++, v2++) {
-            for (int k = 0; k < 3; k++) {
-              if (compare_threshold_relative(v1->co[k], v2->co[k], thresh)) {
-                return MESHCMP_VERTCOMISMATCH;
-              }
-            }
-          }
-          break;
-        }
-
         /* We're order-agnostic for edges here. */
         case CD_MEDGE: {
           MEdge *e1 = (MEdge *)l1->data;
@@ -788,6 +777,11 @@ const char *BKE_mesh_cmp(Mesh *me1, Mesh *me2, float thresh)
   return nullptr;
 }
 
+bool BKE_mesh_attribute_required(const char *name)
+{
+  return StringRef(name) == "position";
+}
+
 void BKE_mesh_ensure_skin_customdata(Mesh *me)
 {
   BMesh *bm = me->edit_mesh ? me->edit_mesh->bm : nullptr;
@@ -936,8 +930,9 @@ Mesh *BKE_mesh_add(Main *bmain, const char *name)
 /* Custom data layer functions; those assume that totXXX are set correctly. */
 static void mesh_ensure_cdlayers_primary(Mesh *mesh, bool do_tessface)
 {
-  if (!CustomData_get_layer(&mesh->vdata, CD_MVERT)) {
-    CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
+  if (!CustomData_get_layer_named(&mesh->vdata, CD_PROP_FLOAT3, "position")) {
+    CustomData_add_layer_named(
+        &mesh->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, mesh->totvert, "position");
   }
   if (!CustomData_get_layer(&mesh->edata, CD_MEDGE)) {
     CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, mesh->totedge);
@@ -1293,12 +1288,12 @@ float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 
   /* Get appropriate vertex coordinates */
   float(*vcos)[3] = (float(*)[3])MEM_calloc_arrayN(me->totvert, sizeof(*vcos), "orco mesh");
-  const Span<MVert> verts = tme->verts();
+  const Span<float3> positions = tme->vert_positions();
 
   int totvert = min_ii(tme->totvert, me->totvert);
 
   for (int a = 0; a < totvert; a++) {
-    copy_v3_v3(vcos[a], verts[a].co);
+    copy_v3_v3(vcos[a], positions[a]);
   }
 
   return vcos;
@@ -1548,23 +1543,8 @@ bool BKE_mesh_minmax(const Mesh *me, float r_min[3], float r_max[3])
     return false;
   }
 
-  me->runtime->bounds_cache.ensure([me](Bounds<float3> &r_bounds) {
-    const Span<MVert> verts = me->verts();
-    r_bounds = threading::parallel_reduce(
-        verts.index_range(),
-        1024,
-        Bounds<float3>{float3(FLT_MAX), float3(-FLT_MAX)},
-        [verts](IndexRange range, const Bounds<float3> &init) {
-          Bounds<float3> result = init;
-          for (const int i : range) {
-            math::min_max(float3(verts[i].co), result.min, result.max);
-          }
-          return result;
-        },
-        [](const Bounds<float3> &a, const Bounds<float3> &b) {
-          return Bounds<float3>{math::min(a.min, b.min), math::max(a.max, b.max)};
-        });
-  });
+  me->runtime->bounds_cache.ensure(
+      [me](Bounds<float3> &r_bounds) { r_bounds = *bounds::min_max(me->vert_positions()); });
 
   const Bounds<float3> &bounds = me->runtime->bounds_cache.data();
   copy_v3_v3(r_min, math::min(bounds.min, float3(r_min)));
@@ -1575,10 +1555,10 @@ bool BKE_mesh_minmax(const Mesh *me, float r_min[3], float r_max[3])
 
 void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
 {
-  MutableSpan<MVert> verts = me->verts_for_write();
+  MutableSpan<float3> positions = me->vert_positions_for_write();
 
-  for (MVert &vert : verts) {
-    mul_m4_v3(mat, vert.co);
+  for (float3 &position : positions) {
+    mul_m4_v3(mat, position);
   }
 
   if (do_keys && me->key) {
@@ -1609,9 +1589,9 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
 
 void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
 {
-  MutableSpan<MVert> verts = me->verts_for_write();
-  for (MVert &vert : verts) {
-    add_v3_v3(vert.co, offset);
+  MutableSpan<float3> positions = me->vert_positions_for_write();
+  for (float3 &position : positions) {
+    position += offset;
   }
 
   int i;
@@ -1785,9 +1765,9 @@ float (*BKE_mesh_vert_coords_alloc(const Mesh *mesh, int *r_vert_len))[3]
 
 void BKE_mesh_vert_coords_apply(Mesh *mesh, const float (*vert_coords)[3])
 {
-  MutableSpan<MVert> verts = mesh->verts_for_write();
-  for (const int i : verts.index_range()) {
-    copy_v3_v3(verts[i].co, vert_coords[i]);
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
+  for (const int i : positions.index_range()) {
+    copy_v3_v3(positions[i], vert_coords[i]);
   }
   BKE_mesh_tag_coords_changed(mesh);
 }
@@ -1796,9 +1776,9 @@ void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
                                           const float (*vert_coords)[3],
                                           const float mat[4][4])
 {
-  MutableSpan<MVert> verts = mesh->verts_for_write();
-  for (const int i : verts.index_range()) {
-    mul_v3_m4v3(verts[i].co, mat, vert_coords[i]);
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
+  for (const int i : positions.index_range()) {
+    mul_v3_m4v3(positions[i], mat, vert_coords[i]);
   }
   BKE_mesh_tag_coords_changed(mesh);
 }
@@ -1834,14 +1814,14 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
   /* may be nullptr */
   clnors = (short(*)[2])CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
 
-  const Span<MVert> verts = mesh->verts();
+  const Span<float3> positions = mesh->vert_positions();
   const Span<MEdge> edges = mesh->edges();
   const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
 
-  BKE_mesh_normals_loop_split(verts.data(),
+  BKE_mesh_normals_loop_split(reinterpret_cast<const float(*)[3]>(positions.data()),
                               BKE_mesh_vertex_normals_ensure(mesh),
-                              verts.size(),
+                              positions.size(),
                               edges.data(),
                               edges.size(),
                               loops.data(),

@@ -72,16 +72,16 @@ void collision_move_object(CollisionModifierData *collmd,
   /* the collider doesn't move this frame */
   if (collmd->is_static) {
     for (i = 0; i < collmd->mvert_num; i++) {
-      zero_v3(collmd->current_v[i].co);
+      zero_v3(collmd->current_v[i]);
     }
 
     return;
   }
 
   for (i = 0; i < collmd->mvert_num; i++) {
-    interp_v3_v3v3(collmd->current_x[i].co, collmd->x[i].co, collmd->xnew[i].co, prevstep);
-    interp_v3_v3v3(collmd->current_xnew[i].co, collmd->x[i].co, collmd->xnew[i].co, step);
-    sub_v3_v3v3(collmd->current_v[i].co, collmd->current_xnew[i].co, collmd->current_x[i].co);
+    interp_v3_v3v3(collmd->current_x[i], collmd->x[i], collmd->xnew[i], prevstep);
+    interp_v3_v3v3(collmd->current_xnew[i], collmd->x[i], collmd->xnew[i], step);
+    sub_v3_v3v3(collmd->current_v[i], collmd->current_xnew[i], collmd->current_x[i]);
   }
 
   bvhtree_update_from_mvert(collmd->bvhtree,
@@ -92,7 +92,7 @@ void collision_move_object(CollisionModifierData *collmd,
                             moving_bvh);
 }
 
-BVHTree *bvhtree_build_from_mvert(const MVert *mvert,
+BVHTree *bvhtree_build_from_mvert(const float (*positions)[3],
                                   const struct MVertTri *tri,
                                   int tri_num,
                                   float epsilon)
@@ -105,9 +105,9 @@ BVHTree *bvhtree_build_from_mvert(const MVert *mvert,
   for (i = 0, vt = tri; i < tri_num; i++, vt++) {
     float co[3][3];
 
-    copy_v3_v3(co[0], mvert[vt->tri[0]].co);
-    copy_v3_v3(co[1], mvert[vt->tri[1]].co);
-    copy_v3_v3(co[2], mvert[vt->tri[2]].co);
+    copy_v3_v3(co[0], positions[vt->tri[0]]);
+    copy_v3_v3(co[1], positions[vt->tri[1]]);
+    copy_v3_v3(co[2], positions[vt->tri[2]]);
 
     BLI_bvhtree_insert(tree, i, co[0], 3);
   }
@@ -119,18 +119,18 @@ BVHTree *bvhtree_build_from_mvert(const MVert *mvert,
 }
 
 void bvhtree_update_from_mvert(BVHTree *bvhtree,
-                               const MVert *mvert,
-                               const MVert *mvert_moving,
+                               const float (*positions)[3],
+                               const float (*positions_moving)[3],
                                const MVertTri *tri,
                                int tri_num,
                                bool moving)
 {
 
-  if ((bvhtree == NULL) || (mvert == NULL)) {
+  if ((bvhtree == NULL) || (positions == NULL)) {
     return;
   }
 
-  if (mvert_moving == NULL) {
+  if (positions_moving == NULL) {
     moving = false;
   }
 
@@ -140,17 +140,17 @@ void bvhtree_update_from_mvert(BVHTree *bvhtree,
     float co[3][3];
     bool ret;
 
-    copy_v3_v3(co[0], mvert[vt->tri[0]].co);
-    copy_v3_v3(co[1], mvert[vt->tri[1]].co);
-    copy_v3_v3(co[2], mvert[vt->tri[2]].co);
+    copy_v3_v3(co[0], positions[vt->tri[0]]);
+    copy_v3_v3(co[1], positions[vt->tri[1]]);
+    copy_v3_v3(co[2], positions[vt->tri[2]]);
 
     /* copy new locations into array */
     if (moving) {
       float co_moving[3][3];
       /* update moving positions */
-      copy_v3_v3(co_moving[0], mvert_moving[vt->tri[0]].co);
-      copy_v3_v3(co_moving[1], mvert_moving[vt->tri[1]].co);
-      copy_v3_v3(co_moving[2], mvert_moving[vt->tri[2]].co);
+      copy_v3_v3(co_moving[0], positions_moving[vt->tri[0]]);
+      copy_v3_v3(co_moving[1], positions_moving[vt->tri[1]]);
+      copy_v3_v3(co_moving[2], positions_moving[vt->tri[2]]);
 
       ret = BLI_bvhtree_update_node(bvhtree, i, &co[0][0], &co_moving[0][0], 3);
     }
@@ -698,9 +698,9 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
     }
 
     collision_interpolateOnTriangle(v2,
-                                    collmd->current_v[collpair->bp1].co,
-                                    collmd->current_v[collpair->bp2].co,
-                                    collmd->current_v[collpair->bp3].co,
+                                    collmd->current_v[collpair->bp1],
+                                    collmd->current_v[collpair->bp2],
+                                    collmd->current_v[collpair->bp3],
                                     u1,
                                     u2,
                                     u3);
@@ -992,9 +992,9 @@ static void cloth_collision(void *__restrict userdata,
   distance = compute_collision_point_tri_tri(verts1[tri_a->tri[0]].tx,
                                              verts1[tri_a->tri[1]].tx,
                                              verts1[tri_a->tri[2]].tx,
-                                             collmd->current_xnew[tri_b->tri[0]].co,
-                                             collmd->current_xnew[tri_b->tri[1]].co,
-                                             collmd->current_xnew[tri_b->tri[2]].co,
+                                             collmd->current_xnew[tri_b->tri[0]],
+                                             collmd->current_xnew[tri_b->tri[1]],
+                                             collmd->current_xnew[tri_b->tri[2]],
                                              data->culling,
                                              data->use_normal,
                                              pa,
@@ -1031,9 +1031,9 @@ static void cloth_collision(void *__restrict userdata,
                                   &collpair[index].aw3);
 
     collision_compute_barycentric(pb,
-                                  collmd->current_xnew[tri_b->tri[0]].co,
-                                  collmd->current_xnew[tri_b->tri[1]].co,
-                                  collmd->current_xnew[tri_b->tri[2]].co,
+                                  collmd->current_xnew[tri_b->tri[0]],
+                                  collmd->current_xnew[tri_b->tri[1]],
+                                  collmd->current_xnew[tri_b->tri[2]],
                                   &collpair[index].bw1,
                                   &collpair[index].bw2,
                                   &collpair[index].bw3);
@@ -1191,9 +1191,9 @@ static void hair_collision(void *__restrict userdata,
   /* Compute distance and normal. */
   distance = compute_collision_point_edge_tri(verts1[edge_coll->v1].tx,
                                               verts1[edge_coll->v2].tx,
-                                              collmd->current_x[tri_coll->tri[0]].co,
-                                              collmd->current_x[tri_coll->tri[1]].co,
-                                              collmd->current_x[tri_coll->tri[2]].co,
+                                              collmd->current_x[tri_coll->tri[0]],
+                                              collmd->current_x[tri_coll->tri[1]],
+                                              collmd->current_x[tri_coll->tri[2]],
                                               data->culling,
                                               data->use_normal,
                                               pa,
@@ -1226,9 +1226,9 @@ static void hair_collision(void *__restrict userdata,
     collpair[index].aw1 = 1.0f - collpair[index].aw2;
 
     collision_compute_barycentric(pb,
-                                  collmd->current_xnew[tri_coll->tri[0]].co,
-                                  collmd->current_xnew[tri_coll->tri[1]].co,
-                                  collmd->current_xnew[tri_coll->tri[2]].co,
+                                  collmd->current_xnew[tri_coll->tri[0]],
+                                  collmd->current_xnew[tri_coll->tri[1]],
+                                  collmd->current_xnew[tri_coll->tri[2]],
                                   &collpair[index].bw1,
                                   &collpair[index].bw2,
                                   &collpair[index].bw3);
@@ -1747,17 +1747,17 @@ void collision_get_collider_velocity(float vel_old[3],
 
   /* compute barycentric coordinates */
   collision_compute_barycentric(collpair->pb,
-                                collmd->current_x[collpair->bp1].co,
-                                collmd->current_x[collpair->bp2].co,
-                                collmd->current_x[collpair->bp3].co,
+                                collmd->current_x[collpair->bp1],
+                                collmd->current_x[collpair->bp2],
+                                collmd->current_x[collpair->bp3],
                                 &u1,
                                 &u2,
                                 &u3);
 
   collision_interpolateOnTriangle(vel_new,
-                                  collmd->current_v[collpair->bp1].co,
-                                  collmd->current_v[collpair->bp2].co,
-                                  collmd->current_v[collpair->bp3].co,
+                                  collmd->current_v[collpair->bp1],
+                                  collmd->current_v[collpair->bp2],
+                                  collmd->current_v[collpair->bp3],
                                   u1,
                                   u2,
                                   u3);

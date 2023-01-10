@@ -154,7 +154,7 @@ void MeshFromGeometry::fixup_invalid_faces()
 
 void MeshFromGeometry::create_vertices(Mesh *mesh)
 {
-  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
   /* Go through all the global vertex indices from min to max,
    * checking which ones are actually and building a global->local
    * index mapping. Write out the used vertex positions into the Mesh
@@ -168,7 +168,7 @@ void MeshFromGeometry::create_vertices(Mesh *mesh)
     }
     int local_vi = int(mesh_geometry_.global_to_local_vertices_.size());
     BLI_assert(local_vi >= 0 && local_vi < mesh->totvert);
-    copy_v3_v3(verts[local_vi].co, global_vertices_.vertices[vi]);
+    copy_v3_v3(positions[local_vi], global_vertices_.vertices[vi]);
     mesh_geometry_.global_to_local_vertices_.add_new(vi, local_vi);
   }
 }

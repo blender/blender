@@ -19,36 +19,6 @@ extern "C" {
  * \{ */
 
 /**
- * Mesh Vertices.
- *
- * Typically accessed from #Mesh.verts()
- */
-typedef struct MVert {
-  float co[3];
-  /**
-   * Deprecated flag for storing hide status and selection, which are now stored in separate
-   * generic attributes. Kept for file read and write.
-   */
-  char flag_legacy;
-  /**
-   * Deprecated bevel weight storage, now located in #CD_BWEIGHT, except for file read and write.
-   */
-  char bweight_legacy;
-  char _pad[2];
-} MVert;
-
-/** #MVert.flag */
-
-#ifdef DNA_DEPRECATED_ALLOW
-enum {
-  /** Deprecated selection status. Now stored in ".select_vert" attribute. */
-  /*  SELECT = (1 << 0), */
-  /** Deprecated hide status. Now stored in ".hide_vert" attribute. */
-  ME_HIDE = (1 << 4),
-};
-#endif
-
-/**
  * Mesh Edges.
  *
  * Typically accessed with #Mesh.edges()
@@ -114,7 +84,7 @@ enum {
  * Typically accessed with #Mesh.loops().
  */
 typedef struct MLoop {
-  /** Vertex index into an #MVert array. */
+  /** Vertex index. */
   unsigned int v;
   /** Edge index into an #MEdge array. */
   unsigned int e;
@@ -155,7 +125,7 @@ enum {
 /**
  * #MLoopTri's are lightweight triangulation data,
  * for functionality that doesn't support ngons (#MPoly).
- * This is cache data created from (#MPoly, #MLoop & #MVert arrays).
+ * This is cache data created from (#MPoly, #MLoop & position arrays).
  * There is no attempt to maintain this data's validity over time,
  * any changes to the underlying mesh invalidate the #MLoopTri array,
  * which will need to be re-calculated.
@@ -182,9 +152,9 @@ enum {
  *
  * // access vertex locations.
  * float *vtri_co[3] = {
- *     mvert[mloop[lt->tri[0]].v].co,
- *     mvert[mloop[lt->tri[1]].v].co,
- *     mvert[mloop[lt->tri[2]].v].co,
+ *     positions[mloop[lt->tri[0]].v],
+ *     positions[mloop[lt->tri[1]].v],
+ *     positions[mloop[lt->tri[2]].v],
  * };
  *
  * // access UV coordinates (works for all loop data, vertex colors... etc).
@@ -476,6 +446,33 @@ enum {
 /* -------------------------------------------------------------------- */
 /** \name Deprecated Structs
  * \{ */
+
+/**
+ * Deprecated mesh vertex data structure. Now stored with generic attributes.
+ */
+#ifdef DNA_DEPRECATED_ALLOW
+typedef struct MVert {
+  float co_legacy[3];
+  /**
+   * Deprecated flag for storing hide status and selection, which are now stored in separate
+   * generic attributes. Kept for file read and write.
+   */
+  char flag_legacy;
+  /**
+   * Deprecated bevel weight storage, now located in #CD_BWEIGHT, except for file read and write.
+   */
+  char bweight_legacy;
+  char _pad[2];
+} MVert;
+
+/** #MVert.flag */
+enum {
+  /** Deprecated selection status. Now stored in ".select_vert" attribute. */
+  /*  SELECT = (1 << 0), */
+  /** Deprecated hide status. Now stored in ".hide_vert" attribute. */
+  ME_HIDE = (1 << 4),
+};
+#endif
 
 /**
  * Used in Blender pre 2.63, See #MLoop, #MPoly for face data stored in the blend file.

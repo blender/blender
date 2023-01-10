@@ -157,7 +157,7 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
                                            const UniformScaleParams &params,
                                            const GetVertexIndicesFn get_vertex_indices)
 {
-  MutableSpan<MVert> verts = mesh.verts_for_write();
+  MutableSpan<float3> positions = mesh.vert_positions_for_write();
   const Span<MEdge> edges = mesh.edges();
   const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
@@ -182,10 +182,7 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
       center *= f;
 
       for (const int vert_index : vertex_indices) {
-        MVert &vert = verts[vert_index];
-        const float3 old_position = vert.co;
-        const float3 new_position = transform_with_uniform_scale(old_position, center, scale);
-        copy_v3_v3(vert.co, new_position);
+        positions[vert_index] = transform_with_uniform_scale(positions[vert_index], center, scale);
       }
     }
   });
@@ -198,7 +195,7 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
                                          const AxisScaleParams &params,
                                          const GetVertexIndicesFn get_vertex_indices)
 {
-  MutableSpan<MVert> verts = mesh.verts_for_write();
+  MutableSpan<float3> positions = mesh.vert_positions_for_write();
   const Span<MEdge> edges = mesh.edges();
   const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
@@ -231,10 +228,7 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
 
       const float4x4 transform = create_single_axis_transform(center, axis, scale);
       for (const int vert_index : vertex_indices) {
-        MVert &vert = verts[vert_index];
-        const float3 old_position = vert.co;
-        const float3 new_position = transform * old_position;
-        copy_v3_v3(vert.co, new_position);
+        positions[vert_index] = transform * positions[vert_index];
       }
     }
   });

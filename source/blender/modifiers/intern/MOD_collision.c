@@ -93,7 +93,6 @@ static void deformVerts(ModifierData *md,
 {
   CollisionModifierData *collmd = (CollisionModifierData *)md;
   Mesh *mesh_src;
-  MVert *tempVert = NULL;
   Object *ob = ctx->object;
 
   /* If collision is disabled, free the stale data and exit. */
@@ -145,11 +144,11 @@ static void deformVerts(ModifierData *md,
 
     if (collmd->time_xnew == -1000) { /* first time */
 
-      collmd->x = MEM_dupallocN(BKE_mesh_verts(mesh_src)); /* frame start position */
+      collmd->x = MEM_dupallocN(BKE_mesh_vert_positions(mesh_src)); /* frame start position */
 
       for (uint i = 0; i < mvert_num; i++) {
         /* we save global positions */
-        mul_m4_v3(ob->object_to_world, collmd->x[i].co);
+        mul_m4_v3(ob->object_to_world, collmd->x[i]);
       }
 
       collmd->xnew = MEM_dupallocN(collmd->x);         /* Frame end position. */
@@ -177,25 +176,25 @@ static void deformVerts(ModifierData *md,
     }
     else if (mvert_num == collmd->mvert_num) {
       /* put positions to old positions */
-      tempVert = collmd->x;
+      float(*temp)[3] = collmd->x;
       collmd->x = collmd->xnew;
-      collmd->xnew = tempVert;
+      collmd->xnew = temp;
       collmd->time_x = collmd->time_xnew;
 
-      memcpy(collmd->xnew, BKE_mesh_verts(mesh_src), mvert_num * sizeof(MVert));
+      memcpy(collmd->xnew, BKE_mesh_vert_positions(mesh_src), mvert_num * sizeof(float[3]));
 
       bool is_static = true;
 
       for (uint i = 0; i < mvert_num; i++) {
         /* we save global positions */
-        mul_m4_v3(ob->object_to_world, collmd->xnew[i].co);
+        mul_m4_v3(ob->object_to_world, collmd->xnew[i]);
 
         /* detect motion */
-        is_static = is_static && equals_v3v3(collmd->x[i].co, collmd->xnew[i].co);
+        is_static = is_static && equals_v3v3(collmd->x[i], collmd->xnew[i]);
       }
 
-      memcpy(collmd->current_xnew, collmd->x, mvert_num * sizeof(MVert));
-      memcpy(collmd->current_x, collmd->x, mvert_num * sizeof(MVert));
+      memcpy(collmd->current_xnew, collmd->x, mvert_num * sizeof(float[3]));
+      memcpy(collmd->current_x, collmd->x, mvert_num * sizeof(float[3]));
 
       /* check if GUI setting has changed for bvh */
       if (collmd->bvhtree) {
@@ -265,9 +264,9 @@ static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
       collmd->xnew = newdataadr(fd, collmd->xnew);
       collmd->mfaces = newdataadr(fd, collmd->mfaces);
 
-      collmd->current_x = MEM_calloc_arrayN(collmd->mvert_num, sizeof(MVert), "current_x");
-      collmd->current_xnew = MEM_calloc_arrayN(collmd->mvert_num, sizeof(MVert), "current_xnew");
-      collmd->current_v = MEM_calloc_arrayN(collmd->mvert_num, sizeof(MVert), "current_v");
+      collmd->current_x = MEM_calloc_arrayN(collmd->mvert_num, sizeof(float[3]), "current_x");
+      collmd->current_xnew = MEM_calloc_arrayN(collmd->mvert_num, sizeof(float[3]), "current_xnew");
+      collmd->current_v = MEM_calloc_arrayN(collmd->mvert_num, sizeof(float[3]), "current_v");
 #endif
 
   collmd->x = NULL;

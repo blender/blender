@@ -75,7 +75,8 @@ static void compute_area_ratio(const MeshRenderData *mr,
     const MLoopUV *uv_data = (const MLoopUV *)CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
     const MPoly *mp = mr->mpoly;
     for (int mp_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
-      float area = BKE_mesh_calc_poly_area(mp, &mr->mloop[mp->loopstart], mr->mvert);
+      float area = BKE_mesh_calc_poly_area(
+          mp, &mr->mloop[mp->loopstart], reinterpret_cast<const float(*)[3]>(mr->vert_positions));
       float uvarea = BKE_mesh_calc_poly_uv_area(mp, uv_data);
       tot_area += area;
       tot_uv_area += uvarea;

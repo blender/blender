@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -72,7 +74,7 @@ struct MeshRenderData {
   int freestyle_face_ofs;
   /** Mesh */
   Mesh *me;
-  const MVert *mvert;
+  const blender::float3 *vert_positions;
   const MEdge *medge;
   const MLoop *mloop;
   const MPoly *mpoly;
@@ -267,10 +269,7 @@ using ExtractLVertBMeshFn = void(const MeshRenderData *mr,
                                  const BMVert *eve,
                                  int lvert_index,
                                  void *data);
-using ExtractLVertMeshFn = void(const MeshRenderData *mr,
-                                const MVert *mv,
-                                int lvert_index,
-                                void *data);
+using ExtractLVertMeshFn = void(const MeshRenderData *mr, int lvert_index, void *data);
 using ExtractLooseGeomSubdivFn = void(const DRWSubdivCache *subdiv_cache,
                                       const MeshRenderData *mr,
                                       void *buffer,

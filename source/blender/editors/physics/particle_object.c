@@ -707,7 +707,6 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   BVHTreeFromMesh bvhtree = {NULL};
   MFace *mface = NULL, *mf;
   const MEdge *medge = NULL, *me;
-  MVert *mvert;
   Mesh *mesh, *target_mesh;
   int numverts;
   int k;
@@ -752,11 +751,11 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   BKE_mesh_tessface_ensure(mesh);
 
   numverts = mesh->totvert;
-  mvert = BKE_mesh_verts_for_write(mesh);
+  float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
 
   /* convert to global coordinates */
   for (int i = 0; i < numverts; i++) {
-    mul_m4_v3(to_mat, mvert[i].co);
+    mul_m4_v3(to_mat, positions[i]);
   }
 
   if (mesh->totface != 0) {
@@ -803,11 +802,11 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
 
       mf = &mface[nearest.index];
 
-      copy_v3_v3(v[0], mvert[mf->v1].co);
-      copy_v3_v3(v[1], mvert[mf->v2].co);
-      copy_v3_v3(v[2], mvert[mf->v3].co);
+      copy_v3_v3(v[0], positions[mf->v1]);
+      copy_v3_v3(v[1], positions[mf->v2]);
+      copy_v3_v3(v[2], positions[mf->v3]);
       if (mf->v4) {
-        copy_v3_v3(v[3], mvert[mf->v4].co);
+        copy_v3_v3(v[3], positions[mf->v4]);
         interp_weights_poly_v3(tpa->fuv, v, 4, nearest.co);
       }
       else {
@@ -827,7 +826,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     else {
       me = &medge[nearest.index];
 
-      tpa->fuv[1] = line_point_factor_v3(nearest.co, mvert[me->v1].co, mvert[me->v2].co);
+      tpa->fuv[1] = line_point_factor_v3(nearest.co, positions[me->v1], positions[me->v2]);
       tpa->fuv[0] = 1.0f - tpa->fuv[1];
       tpa->fuv[2] = tpa->fuv[3] = 0.0f;
       tpa->foffset = 0.0f;

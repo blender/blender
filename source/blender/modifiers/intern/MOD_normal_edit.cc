@@ -47,15 +47,16 @@ static void generate_vert_coordinates(Mesh *mesh,
                                       float (*r_cos)[3],
                                       float r_size[3])
 {
+  using namespace blender;
   float min_co[3], max_co[3];
   float diff[3];
   bool do_diff = false;
 
   INIT_MINMAX(min_co, max_co);
 
-  const MVert *mv = BKE_mesh_verts(mesh);
-  for (int i = 0; i < mesh->totvert; i++, mv++) {
-    copy_v3_v3(r_cos[i], mv->co);
+  const Span<float3> positions = mesh->vert_positions();
+  for (int i = 0; i < mesh->totvert; i++) {
+    copy_v3_v3(r_cos[i], positions[i]);
     if (r_size != nullptr && ob_center == nullptr) {
       minmax_v3v3_v3(min_co, max_co, r_cos[i]);
     }
@@ -221,7 +222,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                                          const MDeformVert *dvert,
                                          const int defgrp_index,
                                          const bool use_invert_vgroup,
-                                         const MVert *mvert,
+                                         const float (*vert_positions)[3],
                                          const int verts_num,
                                          MEdge *medge,
                                          const int edges_num,
@@ -329,7 +330,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
     BKE_mesh_normals_tag_dirty(mesh);
   }
 
-  BKE_mesh_normals_loop_custom_set(mvert,
+  BKE_mesh_normals_loop_custom_set(vert_positions,
                                    BKE_mesh_vertex_normals_ensure(mesh),
                                    verts_num,
                                    medge,
@@ -360,7 +361,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                                               const MDeformVert *dvert,
                                               const int defgrp_index,
                                               const bool use_invert_vgroup,
-                                              const MVert *mvert,
+                                              const float (*positions)[3],
                                               const int verts_num,
                                               MEdge *medge,
                                               const int edges_num,
@@ -445,7 +446,7 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
     BKE_mesh_normals_tag_dirty(mesh);
   }
 
-  BKE_mesh_normals_loop_custom_set(mvert,
+  BKE_mesh_normals_loop_custom_set(positions,
                                    BKE_mesh_vertex_normals_ensure(mesh),
                                    verts_num,
                                    medge,
@@ -527,7 +528,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   const int edges_num = result->totedge;
   const int loops_num = result->totloop;
   const int polys_num = result->totpoly;
-  const MVert *verts = BKE_mesh_verts(result);
+  const float(*positions)[3] = BKE_mesh_vert_positions(result);
   MEdge *edges = BKE_mesh_edges_for_write(result);
   const MPoly *polys = BKE_mesh_polys(result);
   MLoop *loops = BKE_mesh_loops_for_write(result);
@@ -549,7 +550,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
     loop_normals = static_cast<float(*)[3]>(
         MEM_malloc_arrayN(size_t(loops_num), sizeof(*loop_normals), __func__));
 
-    BKE_mesh_normals_loop_split(verts,
+    BKE_mesh_normals_loop_split(positions,
                                 vert_normals,
                                 verts_num,
                                 edges,
@@ -588,7 +589,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                  dvert,
                                  defgrp_index,
                                  use_invert_vgroup,
-                                 verts,
+                                 positions,
                                  verts_num,
                                  edges,
                                  edges_num,
@@ -611,7 +612,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       dvert,
                                       defgrp_index,
                                       use_invert_vgroup,
-                                      verts,
+                                      positions,
                                       verts_num,
                                       edges,
                                       edges_num,

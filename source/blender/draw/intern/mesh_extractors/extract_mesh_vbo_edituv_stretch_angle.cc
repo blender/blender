@@ -167,15 +167,16 @@ static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr
     float(*auv)[2] = data->auv, *last_auv = data->last_auv;
     float(*av)[3] = data->av, *last_av = data->last_av;
     int l_next = ml_index + 1;
-    const MVert *v, *v_next;
     if (ml_index == mp->loopstart) {
       /* First loop in face. */
       const int ml_index_last = ml_index_end - 1;
       const int l_next_tmp = mp->loopstart;
-      v = &mr->mvert[mr->mloop[ml_index_last].v];
-      v_next = &mr->mvert[mr->mloop[l_next_tmp].v];
-      compute_normalize_edge_vectors(
-          auv, av, data->luv[ml_index_last].uv, data->luv[l_next_tmp].uv, v->co, v_next->co);
+      compute_normalize_edge_vectors(auv,
+                                     av,
+                                     data->luv[ml_index_last].uv,
+                                     data->luv[l_next_tmp].uv,
+                                     mr->vert_positions[mr->mloop[ml_index_last].v],
+                                     mr->vert_positions[mr->mloop[l_next_tmp].v]);
       /* Save last edge. */
       copy_v2_v2(last_auv, auv[1]);
       copy_v3_v3(last_av, av[1]);
@@ -190,10 +191,12 @@ static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr
       copy_v3_v3(av[1], last_av);
     }
     else {
-      v = &mr->mvert[mr->mloop[ml_index].v];
-      v_next = &mr->mvert[mr->mloop[l_next].v];
-      compute_normalize_edge_vectors(
-          auv, av, data->luv[ml_index].uv, data->luv[l_next].uv, v->co, v_next->co);
+      compute_normalize_edge_vectors(auv,
+                                     av,
+                                     data->luv[ml_index].uv,
+                                     data->luv[l_next].uv,
+                                     mr->vert_positions[mr->mloop[ml_index].v],
+                                     mr->vert_positions[mr->mloop[l_next].v]);
     }
     edituv_get_edituv_stretch_angle(auv, av, &data->vbo_data[ml_index]);
   }

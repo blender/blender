@@ -100,7 +100,7 @@ struct MeshElementStartIndices {
 
 struct MeshRealizeInfo {
   const Mesh *mesh = nullptr;
-  Span<MVert> verts;
+  Span<float3> positions;
   Span<MEdge> edges;
   Span<MPoly> polys;
   Span<MLoop> loops;
@@ -890,7 +890,7 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     MeshRealizeInfo &mesh_info = info.realize_info[mesh_index];
     const Mesh *mesh = info.order[mesh_index];
     mesh_info.mesh = mesh;
-    mesh_info.verts = mesh->verts();
+    mesh_info.positions = mesh->vert_positions();
     mesh_info.edges = mesh->edges();
     mesh_info.polys = mesh->polys();
     mesh_info.loops = mesh->loops();
@@ -936,7 +936,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                       const RealizeMeshTask &task,
                                       const OrderedAttributes &ordered_attributes,
                                       MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
-                                      MutableSpan<MVert> all_dst_verts,
+                                      MutableSpan<float3> all_dst_positions,
                                       MutableSpan<MEdge> all_dst_edges,
                                       MutableSpan<MPoly> all_dst_polys,
                                       MutableSpan<MLoop> all_dst_loops,
@@ -946,27 +946,24 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   const MeshRealizeInfo &mesh_info = *task.mesh_info;
   const Mesh &mesh = *mesh_info.mesh;
 
-  const Span<MVert> src_verts = mesh_info.verts;
+  const Span<float3> src_positions = mesh_info.positions;
   const Span<MEdge> src_edges = mesh_info.edges;
   const Span<MPoly> src_polys = mesh_info.polys;
   const Span<MLoop> src_loops = mesh_info.loops;
 
-  const IndexRange dst_vert_range(task.start_indices.vertex, src_verts.size());
+  const IndexRange dst_vert_range(task.start_indices.vertex, src_positions.size());
   const IndexRange dst_edge_range(task.start_indices.edge, src_edges.size());
   const IndexRange dst_poly_range(task.start_indices.poly, src_polys.size());
   const IndexRange dst_loop_range(task.start_indices.loop, src_loops.size());
 
-  MutableSpan<MVert> dst_verts = all_dst_verts.slice(dst_vert_range);
+  MutableSpan<float3> dst_positions = all_dst_positions.slice(dst_vert_range);
   MutableSpan<MEdge> dst_edges = all_dst_edges.slice(dst_edge_range);
   MutableSpan<MPoly> dst_polys = all_dst_polys.slice(dst_poly_range);
   MutableSpan<MLoop> dst_loops = all_dst_loops.slice(dst_loop_range);
 
-  threading::parallel_for(src_verts.index_range(), 1024, [&](const IndexRange vert_range) {
+  threading::parallel_for(src_positions.index_range(), 1024, [&](const IndexRange vert_range) {
     for (const int i : vert_range) {
-      const MVert &src_vert = src_verts[i];
-      MVert &dst_vert = dst_verts[i];
-      dst_vert = src_vert;
-      copy_v3_v3(dst_vert.co, task.transform * float3(src_vert.co));
+      dst_positions[i] = task.transform * src_positions[i];
     }
   });
   threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange edge_range) {
@@ -1072,7 +1069,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   MeshComponent &dst_component = r_realized_geometry.get_component_for_write<MeshComponent>();
   dst_component.replace(dst_mesh);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
-  MutableSpan<MVert> dst_verts = dst_mesh->verts_for_write();
+  MutableSpan<float3> dst_positions = dst_mesh->vert_positions_for_write();
   MutableSpan<MEdge> dst_edges = dst_mesh->edges_for_write();
   MutableSpan<MPoly> dst_polys = dst_mesh->polys_for_write();
   MutableSpan<MLoop> dst_loops = dst_mesh->loops_for_write();
@@ -1121,7 +1118,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
                                 task,
                                 ordered_attributes,
                                 dst_attribute_writers,
-                                dst_verts,
+                                dst_positions,
                                 dst_edges,
                                 dst_polys,
                                 dst_loops,

@@ -288,7 +288,7 @@ static void imapaint_pick_uv(
   const MLoopTri *lt = BKE_mesh_runtime_looptri_ensure(me_eval);
   const int tottri = BKE_mesh_runtime_looptri_len(me_eval);
 
-  const MVert *mvert = BKE_mesh_verts(me_eval);
+  const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
   const MLoop *mloop = BKE_mesh_loops(me_eval);
   const int *index_mp_to_orig = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
@@ -317,7 +317,7 @@ static void imapaint_pick_uv(
       float tri_co[3][3];
 
       for (int j = 3; j--;) {
-        copy_v3_v3(tri_co[j], mvert[mloop[lt->tri[j]].v].co);
+        copy_v3_v3(tri_co[j], positions[mloop[lt->tri[j]].v]);
       }
 
       if (mode == PAINT_CANVAS_SOURCE_MATERIAL) {

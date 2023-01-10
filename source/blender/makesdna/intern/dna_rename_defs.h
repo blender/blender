@@ -108,6 +108,7 @@ DNA_STRUCT_RENAME_ELEM(Object_Runtime, crazyspace_num_verts, crazyspace_verts_nu
 DNA_STRUCT_RENAME_ELEM(MEdge, bweight, bweight_legacy)
 DNA_STRUCT_RENAME_ELEM(MEdge, crease, crease_legacy)
 DNA_STRUCT_RENAME_ELEM(MPoly, mat_nr, mat_nr_legacy)
+DNA_STRUCT_RENAME_ELEM(MVert, co, co_legacy)
 DNA_STRUCT_RENAME_ELEM(MVert, bweight, bweight_legacy)
 DNA_STRUCT_RENAME_ELEM(MVert, flag, flag_legacy)
 DNA_STRUCT_RENAME_ELEM(ParticleSettings, child_nbr, child_percent)

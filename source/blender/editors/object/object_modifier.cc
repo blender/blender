@@ -95,6 +95,7 @@
 
 #include "object_intern.h"
 
+using blender::float3;
 using blender::Span;
 
 static CLG_LogRef LOG = {"ed.object"};
@@ -594,13 +595,13 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
   me->totvert = verts_num;
   me->totedge = edges_num;
 
-  CustomData_add_layer(&me->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, verts_num);
+  CustomData_add_layer_named(
+      &me->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, verts_num, "position");
   CustomData_add_layer(&me->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, edges_num);
   CustomData_add_layer(&me->fdata, CD_MFACE, CD_SET_DEFAULT, nullptr, 0);
 
-  blender::MutableSpan<MVert> verts = me->verts_for_write();
+  blender::MutableSpan<float3> positions = me->vert_positions_for_write();
   blender::MutableSpan<MEdge> edges = me->edges_for_write();
-  MVert *mvert = verts.data();
   MEdge *medge = edges.data();
 
   bke::MutableAttributeAccessor attributes = me->attributes_for_write();
@@ -614,7 +615,7 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
     ParticleCacheKey *key = cache[a];
     int kmax = key->segments;
     for (int k = 0; k <= kmax; k++, key++, cvert++, vert_index++) {
-      copy_v3_v3(mvert[vert_index].co, key->co);
+      positions[vert_index] = key->co;
       if (k) {
         medge->v1 = cvert - 1;
         medge->v2 = cvert;
@@ -633,7 +634,7 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList * /*reports*/,
     ParticleCacheKey *key = cache[a];
     int kmax = key->segments;
     for (int k = 0; k <= kmax; k++, key++, cvert++, vert_index++) {
-      copy_v3_v3(mvert[vert_index].co, key->co);
+      copy_v3_v3(positions[vert_index], key->co);
       if (k) {
         medge->v1 = cvert - 1;
         medge->v2 = cvert;
@@ -713,7 +714,8 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
   if (build_shapekey_layers && me->key) {
     if (KeyBlock *kb = static_cast<KeyBlock *>(
             BLI_findlink(&me->key->block, ob_eval->shapenr - 1))) {
-      BKE_keyblock_convert_to_mesh(kb, me->verts_for_write().data(), me->totvert);
+      BKE_keyblock_convert_to_mesh(
+          kb, reinterpret_cast<float(*)[3]>(me->vert_positions_for_write().data()), me->totvert);
     }
   }
 
@@ -2828,7 +2830,7 @@ void OBJECT_OT_skin_radii_equalize(wmOperatorType *ot)
 }
 
 static void skin_armature_bone_create(Object *skin_ob,
-                                      const MVert *mvert,
+                                      const Span<float3> positions,
                                       const MEdge *medge,
                                       bArmature *arm,
                                       BLI_bitmap *edges_visited,
@@ -2855,8 +2857,8 @@ static void skin_armature_bone_create(Object *skin_ob,
       bone->flag |= BONE_CONNECTED;
     }
 
-    copy_v3_v3(bone->head, mvert[parent_v].co);
-    copy_v3_v3(bone->tail, mvert[v].co);
+    copy_v3_v3(bone->head, positions[parent_v]);
+    copy_v3_v3(bone->tail, positions[v]);
     bone->rad_head = bone->rad_tail = 0.25;
     BLI_snprintf(bone->name, sizeof(bone->name), "Bone.%.2d", endx);
 
@@ -2867,14 +2869,14 @@ static void skin_armature_bone_create(Object *skin_ob,
       ED_vgroup_vert_add(skin_ob, dg, v, 1, WEIGHT_REPLACE);
     }
 
-    skin_armature_bone_create(skin_ob, mvert, medge, arm, edges_visited, emap, bone, v);
+    skin_armature_bone_create(skin_ob, positions, medge, arm, edges_visited, emap, bone, v);
   }
 }
 
 static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, Object *skin_ob)
 {
   Mesh *me = static_cast<Mesh *>(skin_ob->data);
-  const Span<MVert> me_verts = me->verts();
+  const Span<float3> me_positions = me->vert_positions();
   const Span<MEdge> me_edges = me->edges();
 
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
@@ -2882,7 +2884,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
 
   const Mesh *me_eval_deform = mesh_get_eval_deform(
       depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
-  const Span<MVert> verts_eval = me_eval_deform->verts();
+  const Span<float3> positions_eval = me_eval_deform->vert_positions();
 
   /* add vertex weights to original mesh */
   CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, me->totvert);
@@ -2917,8 +2919,8 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
       if (emap[v].count > 1) {
         bone = ED_armature_ebone_add(arm, "Bone");
 
-        copy_v3_v3(bone->head, me_verts[v].co);
-        copy_v3_v3(bone->tail, me_verts[v].co);
+        copy_v3_v3(bone->head, me_positions[v]);
+        copy_v3_v3(bone->tail, me_positions[v]);
 
         bone->head[1] = 1.0f;
         bone->rad_head = bone->rad_tail = 0.25;
@@ -2926,7 +2928,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
 
       if (emap[v].count >= 1) {
         skin_armature_bone_create(
-            skin_ob, verts_eval.data(), me_edges.data(), arm, edges_visited, emap, bone, v);
+            skin_ob, positions_eval, me_edges.data(), arm, edges_visited, emap, bone, v);
       }
     }
   }

@@ -315,10 +315,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   result = BKE_mesh_new_nomain_from_template(mesh, maxvert, maxedge, 0, maxloop, maxpoly);
 
-  const MVert *orig_mvert = BKE_mesh_verts(mesh);
   const MPoly *orig_mpoly = BKE_mesh_polys(mesh);
   const MLoop *orig_mloop = BKE_mesh_loops(mesh);
-  MVert *mvert = BKE_mesh_verts_for_write(result);
+  float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
   MEdge *edges = BKE_mesh_edges_for_write(result);
   MPoly *mpoly = BKE_mesh_polys_for_write(result);
   MLoop *mloop = BKE_mesh_loops_for_write(result);
@@ -349,13 +348,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* set vertices coordinates */
     for (k = 0; k < totvert; k++) {
       ParticleKey state;
-      const MVert *inMV;
       int vindex = p_skip * totvert + k;
-      MVert *mv = mvert + vindex;
 
-      inMV = orig_mvert + k;
-      CustomData_copy_data(&mesh->vdata, &result->vdata, k, p_skip * totvert + k, 1);
-      *mv = *inMV;
+      CustomData_copy_data(&mesh->vdata, &result->vdata, k, vindex, 1);
 
       if (vert_part_index != NULL) {
         vert_part_index[vindex] = p;
@@ -365,10 +360,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       }
 
       /* Change orientation based on object trackflag. */
-      copy_v3_v3(temp_co, mv->co);
-      mv->co[axis] = temp_co[track];
-      mv->co[(axis + 1) % 3] = temp_co[(track + 1) % 3];
-      mv->co[(axis + 2) % 3] = temp_co[(track + 2) % 3];
+      copy_v3_v3(temp_co, positions[vindex]);
+      positions[vindex][axis] = temp_co[track];
+      positions[vindex][(axis + 1) % 3] = temp_co[(track + 1) % 3];
+      positions[vindex][(axis + 2) % 3] = temp_co[(track + 2) % 3];
 
       /* get particle state */
       if ((psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) &&
@@ -382,13 +377,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           state.time = pimd->position * (1.0f - ran);
         }
         else {
-          state.time = (mv->co[axis] - min_co) / (max_co - min_co) * pimd->position * (1.0f - ran);
+          state.time = (positions[vindex][axis] - min_co) / (max_co - min_co) * pimd->position *
+                       (1.0f - ran);
 
           if (trackneg) {
             state.time = 1.0f - state.time;
           }
 
-          mv->co[axis] = 0.0;
+          positions[vindex][axis] = 0.0;
         }
 
         psys_get_particle_on_path(&sim, p, &state, 1);
@@ -462,13 +458,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         psys_get_particle_state(&sim, p, &state, 1);
       }
 
-      mul_qt_v3(state.rot, mv->co);
+      mul_qt_v3(state.rot, positions[vindex]);
       if (pimd->flag & eParticleInstanceFlag_UseSize) {
-        mul_v3_fl(mv->co, size[p]);
+        mul_v3_fl(positions[vindex], size[p]);
       }
-      add_v3_v3(mv->co, state.co);
+      add_v3_v3(positions[vindex], state.co);
 
-      mul_m4_v3(spacemat, mv->co);
+      mul_m4_v3(spacemat, positions[vindex]);
     }
 
     /* Create edges and adjust edge vertex indices. */

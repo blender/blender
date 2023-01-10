@@ -663,9 +663,9 @@ bool closest_point_on_surface(SurfaceModifierData *surmd,
       const MLoop *mloop = surmd->bvhtree->loop;
       const MLoopTri *lt = &surmd->bvhtree->looptri[nearest.index];
 
-      copy_v3_v3(surface_vel, surmd->v[mloop[lt->tri[0]].v].co);
-      add_v3_v3(surface_vel, surmd->v[mloop[lt->tri[1]].v].co);
-      add_v3_v3(surface_vel, surmd->v[mloop[lt->tri[2]].v].co);
+      copy_v3_v3(surface_vel, surmd->v[mloop[lt->tri[0]].v]);
+      add_v3_v3(surface_vel, surmd->v[mloop[lt->tri[1]].v]);
+      add_v3_v3(surface_vel, surmd->v[mloop[lt->tri[2]].v]);
 
       mul_v3_fl(surface_vel, (1.0f / 3.0f));
     }
@@ -701,10 +701,10 @@ bool get_effector_data(EffectorCache *eff,
   else if (eff->pd && eff->pd->shape == PFIELD_SHAPE_POINTS) {
     /* TODO: hair and points object support */
     const Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
-    const MVert *verts = BKE_mesh_verts(me_eval);
+    const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
     const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
     if (me_eval != NULL) {
-      copy_v3_v3(efd->loc, verts[*efd->index].co);
+      copy_v3_v3(efd->loc, positions[*efd->index]);
       copy_v3_v3(efd->nor, vert_normals[*efd->index]);
 
       mul_m4_v3(eff->ob->object_to_world, efd->loc);

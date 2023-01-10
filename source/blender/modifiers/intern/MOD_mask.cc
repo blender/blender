@@ -50,6 +50,7 @@
 #include "BLI_vector.hh"
 
 using blender::Array;
+using blender::float3;
 using blender::IndexRange;
 using blender::ListBaseWrapper;
 using blender::MutableSpan;
@@ -330,19 +331,12 @@ static void copy_masked_verts_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> vertex_map)
 {
   BLI_assert(src_mesh.totvert == vertex_map.size());
-  const Span<MVert> src_verts = src_mesh.verts();
-  MutableSpan<MVert> dst_verts = dst_mesh.verts_for_write();
-
   for (const int i_src : vertex_map.index_range()) {
     const int i_dst = vertex_map[i_src];
     if (i_dst == -1) {
       continue;
     }
 
-    const MVert &v_src = src_verts[i_src];
-    MVert &v_dst = dst_verts[i_dst];
-
-    v_dst = v_src;
     CustomData_copy_data(&src_mesh.vdata, &dst_mesh.vdata, i_src, i_dst, 1);
   }
 }
@@ -370,9 +364,7 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
 {
   BLI_assert(src_mesh.totvert == vertex_mask.size());
   BLI_assert(src_mesh.totedge == r_edge_map.size());
-  const Span<MVert> src_verts = src_mesh.verts();
   const Span<MEdge> src_edges = src_mesh.edges();
-  MutableSpan<MVert> dst_verts = dst_mesh.verts_for_write();
   MutableSpan<MEdge> dst_edges = dst_mesh.edges_for_write();
 
   uint vert_index = dst_mesh.totvert - verts_add_num;
@@ -412,11 +404,6 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
       float weights[2] = {1.0f - fac, fac};
       CustomData_interp(
           &src_mesh.vdata, &dst_mesh.vdata, (int *)&e_src.v1, weights, nullptr, 2, vert_index);
-      MVert &v = dst_verts[vert_index];
-      const MVert &v1 = src_verts[e_src.v1];
-      const MVert &v2 = src_verts[e_src.v2];
-
-      interp_v3_v3v3(v.co, v1.co, v2.co, fac);
       vert_index++;
     }
   }

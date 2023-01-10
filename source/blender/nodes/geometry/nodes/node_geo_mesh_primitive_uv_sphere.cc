@@ -64,7 +64,7 @@ static int sphere_face_total(const int segments, const int rings)
  * Also calculate vertex normals here, since the calculation is trivial, and it allows avoiding the
  * calculation later, if it's necessary. The vertex normals are just the normalized positions.
  */
-BLI_NOINLINE static void calculate_sphere_vertex_data(MutableSpan<MVert> verts,
+BLI_NOINLINE static void calculate_sphere_vertex_data(MutableSpan<float3> positions,
                                                       MutableSpan<float3> vert_normals,
                                                       const float radius,
                                                       const int segments,
@@ -84,7 +84,7 @@ BLI_NOINLINE static void calculate_sphere_vertex_data(MutableSpan<MVert> verts,
     segment_sines[segment] = std::sin(phi);
   }
 
-  copy_v3_v3(verts[0].co, float3(0.0f, 0.0f, radius));
+  positions[0] = float3(0.0f, 0.0f, radius);
   vert_normals.first() = float3(0.0f, 0.0f, 1.0f);
 
   int vert_index = 1;
@@ -95,13 +95,13 @@ BLI_NOINLINE static void calculate_sphere_vertex_data(MutableSpan<MVert> verts,
     for (const int segment : IndexRange(1, segments)) {
       const float x = sin_theta * segment_cosines[segment];
       const float y = sin_theta * segment_sines[segment];
-      copy_v3_v3(verts[vert_index].co, float3(x, y, z) * radius);
+      positions[vert_index] = float3(x, y, z) * radius;
       vert_normals[vert_index] = float3(x, y, z);
       vert_index++;
     }
   }
 
-  copy_v3_v3(verts.last().co, float3(0.0f, 0.0f, -radius));
+  positions.last() = float3(0.0f, 0.0f, -radius);
   vert_normals.last() = float3(0.0f, 0.0f, -1.0f);
 }
 
@@ -316,7 +316,7 @@ static Mesh *create_uv_sphere_mesh(const float radius,
                                    sphere_corner_total(segments, rings),
                                    sphere_face_total(segments, rings));
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
-  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
@@ -326,7 +326,7 @@ static Mesh *create_uv_sphere_mesh(const float radius,
       [&]() {
         MutableSpan vert_normals{
             reinterpret_cast<float3 *>(BKE_mesh_vertex_normals_for_write(mesh)), mesh->totvert};
-        calculate_sphere_vertex_data(verts, vert_normals, radius, segments, rings);
+        calculate_sphere_vertex_data(positions, vert_normals, radius, segments, rings);
         BKE_mesh_vertex_normals_clear_dirty(mesh);
       },
       [&]() { calculate_sphere_edge_indices(edges, segments, rings); },

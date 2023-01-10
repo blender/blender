@@ -148,9 +148,10 @@ bool paint_is_grid_face_hidden(const uint * /*grid_hidden*/,
  * \{ */
 void BKE_mesh_calc_poly_normal(const struct MPoly * /*mpoly*/,
                                const struct MLoop * /*loopstart*/,
-                               const struct MVert * /*mvarray*/,
+                               const float (*vert_positions)[3],
                                float[3] /*col*/)
 {
+  UNUSED_VARS(vert_positions);
   BLI_assert_unreachable();
 }
 

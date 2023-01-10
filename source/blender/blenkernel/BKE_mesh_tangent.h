@@ -17,7 +17,7 @@ struct ReportList;
  * split normals can be used to recreate the full tangent space.
  * NOTE: * The mesh should be made of only tris and quads!
  */
-void BKE_mesh_calc_loop_tangent_single_ex(const struct MVert *mverts,
+void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
                                           int numVerts,
                                           const struct MLoop *mloops,
                                           float (*r_looptangent)[4],
@@ -41,7 +41,7 @@ void BKE_mesh_calc_loop_tangent_single(struct Mesh *mesh,
 /**
  * See: #BKE_editmesh_loop_tangent_calc (matching logic).
  */
-void BKE_mesh_calc_loop_tangent_ex(const struct MVert *mvert,
+void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    const struct MPoly *mpoly,
                                    uint mpoly_len,
                                    const struct MLoop *mloop,

@@ -849,17 +849,17 @@ typedef struct CollisionModifierData {
   ModifierData modifier;
 
   /** Position at the beginning of the frame. */
-  struct MVert *x;
+  float (*x)[3];
   /** Position at the end of the frame. */
-  struct MVert *xnew;
+  float (*xnew)[3];
   /** Unused at the moment, but was discussed during sprint. */
-  struct MVert *xold;
+  float (*xold)[3];
   /** New position at the actual inter-frame step. */
-  struct MVert *current_xnew;
+  float (*current_xnew)[3];
   /** Position at the actual inter-frame step. */
-  struct MVert *current_x;
+  float (*current_x)[3];
   /** (xnew - x) at the actual inter-frame step. */
-  struct MVert *current_v;
+  float (*current_v)[3];
 
   struct MVertTri *tri;
 
@@ -879,9 +879,9 @@ typedef struct SurfaceModifierData {
   ModifierData modifier;
 
   /** Old position. */
-  struct MVert *x;
+  float (*x)[3];
   /** Velocity. */
-  struct MVert *v;
+  float (*v)[3];
 
   struct Mesh *mesh;
 

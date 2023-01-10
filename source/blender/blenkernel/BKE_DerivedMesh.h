@@ -61,7 +61,6 @@ struct CustomData_MeshMasks;
 struct Depsgraph;
 struct MEdge;
 struct MFace;
-struct MVert;
 struct Mesh;
 struct ModifierData;
 struct Object;
@@ -125,7 +124,10 @@ struct DerivedMesh {
    * and freed on the next ->release(). consider using getVert/Edge/Face if
    * you are only interested in a few verts/edges/faces.
    */
-  struct MVert *(*getVertArray)(DerivedMesh *dm);
+  /**
+   * \warning The real return type is `float(*)[3]`.
+   */
+  float *(*getVertArray)(DerivedMesh *dm);
   struct MEdge *(*getEdgeArray)(DerivedMesh *dm);
   struct MLoop *(*getLoopArray)(DerivedMesh *dm);
   struct MPoly *(*getPolyArray)(DerivedMesh *dm);
@@ -133,7 +135,7 @@ struct DerivedMesh {
   /** Copy all verts/edges/faces from the derived mesh into
    * *{vert/edge/face}_r (must point to a buffer large enough)
    */
-  void (*copyVertArray)(DerivedMesh *dm, struct MVert *r_vert);
+  void (*copyVertArray)(DerivedMesh *dm, float (*r_positions)[3]);
   void (*copyEdgeArray)(DerivedMesh *dm, struct MEdge *r_edge);
   void (*copyLoopArray)(DerivedMesh *dm, struct MLoop *r_loop);
   void (*copyPolyArray)(DerivedMesh *dm, struct MPoly *r_poly);

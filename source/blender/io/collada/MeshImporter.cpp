@@ -34,6 +34,7 @@
 #include "MeshImporter.h"
 #include "collada_utils.h"
 
+using blender::float3;
 using blender::MutableSpan;
 
 /* get node name, or fall back to original id if not present (name is optional) */
@@ -350,10 +351,11 @@ void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
   }
 
   me->totvert = pos.getFloatValues()->getCount() / stride;
-  CustomData_add_layer(&me->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, me->totvert);
-  MutableSpan<MVert> verts = me->verts_for_write();
-  for (const int i : verts.index_range()) {
-    get_vector(verts[i].co, pos, i, stride);
+  CustomData_add_layer_named(
+      &me->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, me->totvert, "position");
+  MutableSpan<float3> positions = me->vert_positions_for_write();
+  for (const int i : positions.index_range()) {
+    get_vector(positions[i], pos, i, stride);
   }
 }
 

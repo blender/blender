@@ -515,8 +515,12 @@ static void generate_margin(ImBuf *ibuf,
 
     tottri = poly_to_tri_count(me->totpoly, me->totloop);
     looptri_mem = static_cast<MLoopTri *>(MEM_mallocN(sizeof(*looptri) * tottri, __func__));
-    BKE_mesh_recalc_looptri(
-        mloop, mpoly, me->verts().data(), me->totloop, me->totpoly, looptri_mem);
+    BKE_mesh_recalc_looptri(mloop,
+                            mpoly,
+                            reinterpret_cast<const float(*)[3]>(me->vert_positions().data()),
+                            me->totloop,
+                            me->totpoly,
+                            looptri_mem);
     looptri = looptri_mem;
   }
   else {

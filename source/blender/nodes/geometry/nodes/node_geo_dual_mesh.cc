@@ -613,7 +613,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
                             const bool keep_boundaries,
                             const AnonymousAttributePropagationInfo &propagation_info)
 {
-  const Span<MVert> src_verts = src_mesh.verts();
+  const Span<float3> src_positions = src_mesh.vert_positions();
   const Span<MEdge> src_edges = src_mesh.edges();
   const Span<MPoly> src_polys = src_mesh.polys();
   const Span<MLoop> src_loops = src_mesh.loops();
@@ -625,7 +625,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
    * over in order of their indices, the polygon's indices will be sorted in ascending order.
    * (This can change once they are sorted using `sort_vertex_polys`). */
   Array<Vector<int>> vert_to_poly_map = bke::mesh_topology::build_vert_to_poly_map(
-      src_polys, src_loops, src_verts.size());
+      src_polys, src_loops, src_positions.size());
   Array<Array<int>> vertex_shared_edges(src_mesh.totvert);
   Array<Array<int>> vertex_corners(src_mesh.totvert);
   threading::parallel_for(vert_to_poly_map.index_range(), 512, [&](IndexRange range) {
@@ -677,8 +677,10 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
   Vector<float3> vertex_positions(src_mesh.totpoly);
   for (const int i : IndexRange(src_mesh.totpoly)) {
     const MPoly &poly = src_polys[i];
-    BKE_mesh_calc_poly_center(
-        &poly, &src_loops[poly.loopstart], src_verts.data(), vertex_positions[i]);
+    BKE_mesh_calc_poly_center(&poly,
+                              &src_loops[poly.loopstart],
+                              reinterpret_cast<const float(*)[3]>(src_positions.data()),
+                              vertex_positions[i]);
   }
 
   Array<int> boundary_edge_midpoint_index;
@@ -688,9 +690,8 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
     /* We need to add vertices at the centers of boundary edges. */
     for (const int i : IndexRange(src_mesh.totedge)) {
       if (edge_types[i] == EdgeType::Boundary) {
-        float3 mid;
         const MEdge &edge = src_edges[i];
-        mid_v3_v3v3(mid, src_verts[edge.v1].co, src_verts[edge.v2].co);
+        const float3 mid = math::midpoint(src_positions[edge.v1], src_positions[edge.v2]);
         boundary_edge_midpoint_index[i] = vertex_positions.size();
         vertex_positions.append(mid);
       }
@@ -841,7 +842,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
       new_to_old_face_corners_map.append(sorted_corners.first());
       boundary_vertex_to_relevant_face_map.append(
           std::pair(loop_indices.last(), last_face_center));
-      vertex_positions.append(src_verts[i].co);
+      vertex_positions.append(src_positions[i]);
       const int boundary_vertex = loop_indices.last();
       add_edge(src_edges,
                edge1,
@@ -896,7 +897,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
                       src_mesh.attributes(),
                       mesh_out->attributes_for_write());
 
-  MutableSpan<MVert> dst_verts = mesh_out->verts_for_write();
+  mesh_out->vert_positions_for_write().copy_from(vertex_positions);
   MutableSpan<MEdge> dst_edges = mesh_out->edges_for_write();
   MutableSpan<MPoly> dst_polys = mesh_out->polys_for_write();
   MutableSpan<MLoop> dst_loops = mesh_out->loops_for_write();
@@ -910,9 +911,6 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
   for (const int i : IndexRange(mesh_out->totloop)) {
     dst_loops[i].v = loops[i];
     dst_loops[i].e = loop_edges[i];
-  }
-  for (const int i : IndexRange(mesh_out->totvert)) {
-    copy_v3_v3(dst_verts[i].co, vertex_positions[i]);
   }
   dst_edges.copy_from(new_edges);
   return mesh_out;

@@ -125,7 +125,6 @@ static void deformVerts(ModifierData *md,
   if (surmd->mesh) {
     uint mesh_verts_num = 0, i = 0;
     int init = 0;
-    MVert *x, *v;
 
     BKE_mesh_vert_coords_apply(surmd->mesh, vertexCos);
 
@@ -142,8 +141,8 @@ static void deformVerts(ModifierData *md,
         surmd->v = NULL;
       }
 
-      surmd->x = MEM_calloc_arrayN(mesh_verts_num, sizeof(MVert), "MVert");
-      surmd->v = MEM_calloc_arrayN(mesh_verts_num, sizeof(MVert), "MVert");
+      surmd->x = MEM_calloc_arrayN(mesh_verts_num, sizeof(float[3]), __func__);
+      surmd->v = MEM_calloc_arrayN(mesh_verts_num, sizeof(float[3]), __func__);
 
       surmd->verts_num = mesh_verts_num;
 
@@ -151,19 +150,19 @@ static void deformVerts(ModifierData *md,
     }
 
     /* convert to global coordinates and calculate velocity */
-    MVert *verts = BKE_mesh_verts_for_write(surmd->mesh);
-    for (i = 0, x = surmd->x, v = surmd->v; i < mesh_verts_num; i++, x++, v++) {
-      float *vec = verts[i].co;
+    float(*positions)[3] = BKE_mesh_vert_positions_for_write(surmd->mesh);
+    for (i = 0; i < mesh_verts_num; i++) {
+      float *vec = positions[i];
       mul_m4_v3(ctx->object->object_to_world, vec);
 
       if (init) {
-        v->co[0] = v->co[1] = v->co[2] = 0.0f;
+        surmd->v[i][0] = surmd->v[i][1] = surmd->v[i][2] = 0.0f;
       }
       else {
-        sub_v3_v3v3(v->co, vec, x->co);
+        sub_v3_v3v3(surmd->v[i], vec, surmd->x[i]);
       }
 
-      copy_v3_v3(x->co, vec);
+      copy_v3_v3(surmd->x[i], vec);
     }
 
     surmd->cfra = cfra;

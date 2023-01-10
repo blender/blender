@@ -67,6 +67,10 @@
 
 #include "bmesh.h"
 
+using blender::float3;
+using blender::MutableSpan;
+using blender::Span;
+
 static void sculpt_attribute_update_refs(Object *ob);
 static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
                                                    eAttrDomain domain,
@@ -76,9 +80,6 @@ static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
                                                    PBVHType pbvhtype,
                                                    bool flat_array_for_bmesh);
 static void sculptsession_bmesh_add_layers(Object *ob);
-
-using blender::MutableSpan;
-using blender::Span;
 
 static void palette_init_data(ID *id)
 {
@@ -1694,7 +1695,7 @@ static void sculpt_update_object(
 
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
      * and tools use the Face Sets data from the base mesh when Multires is active. */
-    ss->mvert = BKE_mesh_verts_for_write(me);
+    ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
     ss->mpoly = BKE_mesh_polys(me);
     ss->mloop = BKE_mesh_loops(me);
   }
@@ -1702,7 +1703,7 @@ static void sculpt_update_object(
     ss->totvert = me->totvert;
     ss->totpoly = me->totpoly;
     ss->totfaces = me->totpoly;
-    ss->mvert = BKE_mesh_verts_for_write(me);
+    ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
     ss->mpoly = BKE_mesh_polys(me);
     ss->mloop = BKE_mesh_loops(me);
     ss->multires.active = false;
@@ -2178,21 +2179,25 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
   PBVH *pbvh = BKE_pbvh_new(PBVH_FACES);
   BKE_pbvh_respect_hide_set(pbvh, respect_hide);
 
-  MutableSpan<MVert> verts = me->verts_for_write();
+  MutableSpan<float3> positions = me->vert_positions_for_write();
   const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
 
   MLoopTri *looptri = static_cast<MLoopTri *>(
       MEM_malloc_arrayN(looptris_num, sizeof(*looptri), __func__));
 
-  BKE_mesh_recalc_looptri(
-      loops.data(), polys.data(), verts.data(), me->totloop, me->totpoly, looptri);
+  BKE_mesh_recalc_looptri(loops.data(),
+                          polys.data(),
+                          reinterpret_cast<const float(*)[3]>(positions.data()),
+                          me->totloop,
+                          me->totpoly,
+                          looptri);
 
   BKE_pbvh_build_mesh(pbvh,
                       me,
                       polys.data(),
                       loops.data(),
-                      verts.data(),
+                      reinterpret_cast<float(*)[3]>(positions.data()),
                       me->totvert,
                       &me->vdata,
                       &me->ldata,

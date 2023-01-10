@@ -247,18 +247,18 @@ static bool do_init_cloth(Object *ob, ClothModifierData *clmd, Mesh *result, int
 static int do_step_cloth(
     Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, Mesh *result, int framenr)
 {
+  using namespace blender;
   /* simulate 1 frame forward */
   ClothVertex *verts = nullptr;
   Cloth *cloth;
   ListBase *effectors = nullptr;
-  MVert *mvert;
   uint i = 0;
   int ret = 0;
   bool vert_mass_changed = false;
 
   cloth = clmd->clothObject;
   verts = cloth->verts;
-  mvert = BKE_mesh_verts_for_write(result);
+  const Span<float3> positions = result->vert_positions();
   vert_mass_changed = verts->mass != clmd->sim_parms->mass;
 
   /* force any pinned verts to their constrained location. */
@@ -268,7 +268,7 @@ static int do_step_cloth(
     copy_v3_v3(verts->txold, verts->x);
 
     /* Get the current position. */
-    copy_v3_v3(verts->xconst, mvert[i].co);
+    copy_v3_v3(verts->xconst, positions[i]);
     mul_m4_v3(ob->object_to_world, verts->xconst);
 
     if (vert_mass_changed) {
@@ -715,6 +715,7 @@ static float cloth_shrink_factor(ClothModifierData *clmd, ClothVertex *verts, in
 static bool cloth_from_object(
     Object *ob, ClothModifierData *clmd, Mesh *mesh, float /*framenr*/, int first)
 {
+  using namespace blender;
   int i = 0;
   ClothVertex *verts = nullptr;
   const float(*shapekey_rest)[3] = nullptr;
@@ -758,14 +759,14 @@ static bool cloth_from_object(
         CustomData_get_layer(&mesh->vdata, CD_CLOTH_ORCO));
   }
 
-  MVert *mvert = BKE_mesh_verts_for_write(mesh);
+  const Span<float3> positions = mesh->vert_positions();
 
   verts = clmd->clothObject->verts;
 
   /* set initial values */
   for (i = 0; i < mesh->totvert; i++, verts++) {
     if (first) {
-      copy_v3_v3(verts->x, mvert[i].co);
+      copy_v3_v3(verts->x, positions[i]);
 
       mul_m4_v3(ob->object_to_world, verts->x);
 
@@ -1159,13 +1160,14 @@ static void cloth_update_springs(ClothModifierData *clmd)
 /* Update rest verts, for dynamically deformable cloth */
 static void cloth_update_verts(Object *ob, ClothModifierData *clmd, Mesh *mesh)
 {
+  using namespace blender;
   uint i = 0;
-  const MVert *mvert = BKE_mesh_verts(mesh);
+  const Span<float3> positions = mesh->vert_positions();
   ClothVertex *verts = clmd->clothObject->verts;
 
   /* vertex count is already ensured to match */
   for (i = 0; i < mesh->totvert; i++, verts++) {
-    copy_v3_v3(verts->xrest, mvert[i].co);
+    copy_v3_v3(verts->xrest, positions[i]);
     mul_m4_v3(ob->object_to_world, verts->xrest);
   }
 }
@@ -1173,13 +1175,14 @@ static void cloth_update_verts(Object *ob, ClothModifierData *clmd, Mesh *mesh)
 /* Write rest vert locations to a copy of the mesh. */
 static Mesh *cloth_make_rest_mesh(ClothModifierData *clmd, Mesh *mesh)
 {
+  using namespace blender;
   Mesh *new_mesh = BKE_mesh_copy_for_eval(mesh, false);
   ClothVertex *verts = clmd->clothObject->verts;
-  MVert *mvert = BKE_mesh_verts_for_write(new_mesh);
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
 
   /* vertex count is already ensured to match */
-  for (uint i = 0; i < mesh->totvert; i++, verts++) {
-    copy_v3_v3(mvert[i].co, verts->xrest);
+  for (const int i : positions.index_range()) {
+    positions[i] = verts[i].xrest;
   }
   BKE_mesh_tag_coords_changed(new_mesh);
 
@@ -1395,7 +1398,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
   float co[3], no[3], new_co[3];
   float radius;
 
-  copy_v3_v3(co, treedata->vert[v_idx].co);
+  copy_v3_v3(co, treedata->vert_positions[v_idx]);
   negate_v3_v3(no, vert_normals[v_idx]);
 
   float vec_len = sin(max_diversion);

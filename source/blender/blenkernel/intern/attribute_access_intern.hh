@@ -220,8 +220,7 @@ template<typename T> GVMutableArray make_array_write_attribute(void *data, const
 
 /**
  * This provider is used to provide access to builtin attributes. It supports making internal types
- * available as different types. For example, the vertex position attribute is stored as part of
- * the #MVert struct, but is exposed as float3 attribute.
+ * available as different types.
  *
  * It also supports named builtin attributes, and will look up attributes in #CustomData by name
  * if the stored type is the same as the attribute type.

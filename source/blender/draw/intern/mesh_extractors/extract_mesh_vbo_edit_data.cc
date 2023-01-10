@@ -223,7 +223,6 @@ static void extract_edit_data_iter_lvert_bm(const MeshRenderData *mr,
 }
 
 static void extract_edit_data_iter_lvert_mesh(const MeshRenderData *mr,
-                                              const MVert * /*mv*/,
                                               const int lvert_index,
                                               void *_data)
 {

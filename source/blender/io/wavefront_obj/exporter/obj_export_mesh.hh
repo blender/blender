@@ -36,7 +36,7 @@ class OBJMesh : NonCopyable {
   const Mesh *export_mesh_;
   /** A mesh owned here, if created or modified for the export. May be null. */
   Mesh *owned_export_mesh_ = nullptr;
-  Span<MVert> mesh_verts_;
+  Span<float3> mesh_positions_;
   Span<MEdge> mesh_edges_;
   Span<MPoly> mesh_polys_;
   Span<MLoop> mesh_loops_;

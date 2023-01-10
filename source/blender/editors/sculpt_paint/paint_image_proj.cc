@@ -412,7 +412,7 @@ struct ProjPaintState {
   int totedge_eval;
   int totvert_eval;
 
-  const MVert *mvert_eval;
+  const float (*vert_positions_eval)[3];
   const float (*vert_normals)[3];
   const MEdge *medge_eval;
   const MPoly *mpoly_eval;
@@ -931,9 +931,9 @@ static bool project_bucket_point_occluded(const ProjPaintState *ps,
 
       if (do_clip) {
         const float *vtri_co[3] = {
-            ps->mvert_eval[ps->mloop_eval[lt->tri[0]].v].co,
-            ps->mvert_eval[ps->mloop_eval[lt->tri[1]].v].co,
-            ps->mvert_eval[ps->mloop_eval[lt->tri[2]].v].co,
+            ps->vert_positions_eval[ps->mloop_eval[lt->tri[0]].v],
+            ps->vert_positions_eval[ps->mloop_eval[lt->tri[1]].v],
+            ps->vert_positions_eval[ps->mloop_eval[lt->tri[2]].v],
         };
         isect_ret = project_paint_occlude_ptv_clip(
             pixelScreenCo, UNPACK3(vtri_ss), UNPACK3(vtri_co), w, ps->is_ortho, ps->rv3d);
@@ -1745,9 +1745,9 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
       /* In case the normalizing per pixel isn't optimal,
        * we could cache or access from evaluated mesh. */
       normal_tri_v3(no,
-                    ps->mvert_eval[lt_vtri[0]].co,
-                    ps->mvert_eval[lt_vtri[1]].co,
-                    ps->mvert_eval[lt_vtri[2]].co);
+                    ps->vert_positions_eval[lt_vtri[0]],
+                    ps->vert_positions_eval[lt_vtri[1]],
+                    ps->vert_positions_eval[lt_vtri[2]]);
     }
 
     if (UNLIKELY(ps->is_flip_object)) {
@@ -1762,9 +1762,9 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
       /* Annoying but for the perspective view we need to get the pixels location in 3D space :/ */
       float viewDirPersp[3];
       const float *co1, *co2, *co3;
-      co1 = ps->mvert_eval[lt_vtri[0]].co;
-      co2 = ps->mvert_eval[lt_vtri[1]].co;
-      co3 = ps->mvert_eval[lt_vtri[2]].co;
+      co1 = ps->vert_positions_eval[lt_vtri[0]];
+      co2 = ps->vert_positions_eval[lt_vtri[1]];
+      co3 = ps->vert_positions_eval[lt_vtri[2]];
 
       /* Get the direction from the viewPoint to the pixel and normalize */
       viewDirPersp[0] = (ps->viewPos[0] - (w[0] * co1[0] + w[1] * co2[0] + w[2] * co3[0]));
@@ -3043,9 +3043,9 @@ static void project_paint_face_init(const ProjPaintState *ps,
   const bool do_backfacecull = ps->do_backfacecull;
   const bool do_clip = RV3D_CLIPPING_ENABLED(ps->v3d, ps->rv3d);
 
-  vCo[0] = ps->mvert_eval[lt_vtri[0]].co;
-  vCo[1] = ps->mvert_eval[lt_vtri[1]].co;
-  vCo[2] = ps->mvert_eval[lt_vtri[2]].co;
+  vCo[0] = ps->vert_positions_eval[lt_vtri[0]];
+  vCo[1] = ps->vert_positions_eval[lt_vtri[1]];
+  vCo[2] = ps->vert_positions_eval[lt_vtri[2]];
 
   /* Use lt_uv_pxoffset instead of lt_tri_uv so we can offset the UV half a pixel
    * this is done so we can avoid offsetting all the pixels by 0.5 which causes
@@ -3142,9 +3142,9 @@ static void project_paint_face_init(const ProjPaintState *ps,
              * because it is a relatively expensive operation. */
             if (do_clip || do_3d_mapping) {
               interp_v3_v3v3v3(wco,
-                               ps->mvert_eval[lt_vtri[0]].co,
-                               ps->mvert_eval[lt_vtri[1]].co,
-                               ps->mvert_eval[lt_vtri[2]].co,
+                               ps->vert_positions_eval[lt_vtri[0]],
+                               ps->vert_positions_eval[lt_vtri[1]],
+                               ps->vert_positions_eval[lt_vtri[2]],
                                w);
               if (do_clip && ED_view3d_clipping_test(ps->rv3d, wco, true)) {
                 /* Watch out that no code below this needs to run */
@@ -3803,7 +3803,6 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
 
 static void proj_paint_state_screen_coords_init(ProjPaintState *ps, const int diameter)
 {
-  const MVert *mv;
   float *projScreenCo;
   float projMargin;
   int a;
@@ -3815,8 +3814,8 @@ static void proj_paint_state_screen_coords_init(ProjPaintState *ps, const int di
   projScreenCo = *ps->screenCoords;
 
   if (ps->is_ortho) {
-    for (a = 0, mv = ps->mvert_eval; a < ps->totvert_eval; a++, mv++, projScreenCo += 4) {
-      mul_v3_m4v3(projScreenCo, ps->projectMat, mv->co);
+    for (a = 0; a < ps->totvert_eval; a++, projScreenCo += 4) {
+      mul_v3_m4v3(projScreenCo, ps->projectMat, ps->vert_positions_eval[a]);
 
       /* screen space, not clamped */
       projScreenCo[0] = float(ps->winx * 0.5f) + (ps->winx * 0.5f) * projScreenCo[0];
@@ -3825,8 +3824,8 @@ static void proj_paint_state_screen_coords_init(ProjPaintState *ps, const int di
     }
   }
   else {
-    for (a = 0, mv = ps->mvert_eval; a < ps->totvert_eval; a++, mv++, projScreenCo += 4) {
-      copy_v3_v3(projScreenCo, mv->co);
+    for (a = 0; a < ps->totvert_eval; a++, projScreenCo += 4) {
+      copy_v3_v3(projScreenCo, ps->vert_positions_eval[a]);
       projScreenCo[3] = 1.0f;
 
       mul_m4_v4(ps->projectMat, projScreenCo);
@@ -3897,7 +3896,7 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
 
     for (a = 0, me = ps->medge_eval; a < ps->totedge_eval; a++, me++) {
       float e[3];
-      sub_v3_v3v3(e, ps->mvert_eval[me->v1].co, ps->mvert_eval[me->v2].co);
+      sub_v3_v3v3(e, ps->vert_positions_eval[me->v1], ps->vert_positions_eval[me->v2]);
       normalize_v3(e);
       add_v3_v3(edges[me->v2], e);
       counter[me->v2]++;
@@ -3969,13 +3968,12 @@ static void proj_paint_state_vert_flags_init(ProjPaintState *ps)
 {
   if (ps->do_backfacecull && ps->do_mask_normal) {
     float viewDirPersp[3];
-    const MVert *mv;
     float no[3];
     int a;
 
     ps->vertFlags = MEM_cnew_array<char>(ps->totvert_eval, "paint-vertFlags");
 
-    for (a = 0, mv = ps->mvert_eval; a < ps->totvert_eval; a++, mv++) {
+    for (a = 0; a < ps->totvert_eval; a++) {
       copy_v3_v3(no, ps->vert_normals[a]);
       if (UNLIKELY(ps->is_flip_object)) {
         negate_v3(no);
@@ -3988,7 +3986,7 @@ static void proj_paint_state_vert_flags_init(ProjPaintState *ps)
         }
       }
       else {
-        sub_v3_v3v3(viewDirPersp, ps->viewPos, mv->co);
+        sub_v3_v3v3(viewDirPersp, ps->viewPos, ps->vert_positions_eval[a]);
         normalize_v3(viewDirPersp);
         if (UNLIKELY(ps->is_flip_object)) {
           negate_v3(viewDirPersp);
@@ -4076,7 +4074,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   }
   ps->mat_array[totmat - 1] = nullptr;
 
-  ps->mvert_eval = BKE_mesh_verts(ps->me_eval);
+  ps->vert_positions_eval = BKE_mesh_vert_positions(ps->me_eval);
   ps->vert_normals = BKE_mesh_vertex_normals_ensure(ps->me_eval);
   if (ps->do_mask_cavity) {
     ps->medge_eval = BKE_mesh_edges(ps->me_eval);
@@ -5716,9 +5714,9 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
       UnifiedPaintSettings *ups = &ps->scene->toolsettings->unified_paint_settings;
 
       interp_v3_v3v3v3(world,
-                       ps->mvert_eval[lt_vtri[0]].co,
-                       ps->mvert_eval[lt_vtri[1]].co,
-                       ps->mvert_eval[lt_vtri[2]].co,
+                       ps->vert_positions_eval[lt_vtri[0]],
+                       ps->vert_positions_eval[lt_vtri[1]],
+                       ps->vert_positions_eval[lt_vtri[2]],
                        w);
 
       ups->average_stroke_counter++;

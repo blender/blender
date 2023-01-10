@@ -115,7 +115,7 @@ static void screwvert_iter_step(ScrewVertIter *iter)
 }
 
 static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
-                                         MVert *mvert_new,
+                                         float (*vert_positions_new)[3],
                                          const uint totvert,
                                          const uint step_tot,
                                          const float axis_vec[3],
@@ -131,18 +131,18 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
     float axis_co[3];
     if (use_offset) {
       float offset_co[3];
-      sub_v3_v3v3(offset_co, mvert_new[i].co, axis_offset);
+      sub_v3_v3v3(offset_co, vert_positions_new[i], axis_offset);
       project_v3_v3v3_normalized(axis_co, offset_co, axis_vec);
       add_v3_v3(axis_co, axis_offset);
     }
     else {
-      project_v3_v3v3_normalized(axis_co, mvert_new[i].co, axis_vec);
+      project_v3_v3v3_normalized(axis_co, vert_positions_new[i], axis_vec);
     }
-    const float dist_sq = len_squared_v3v3(axis_co, mvert_new[i].co);
+    const float dist_sq = len_squared_v3v3(axis_co, vert_positions_new[i]);
     if (dist_sq <= merge_threshold_sq) {
       BLI_BITMAP_ENABLE(vert_tag, i);
       tot_doubles += 1;
-      copy_v3_v3(mvert_new[i].co, axis_co);
+      copy_v3_v3(vert_positions_new[i], axis_co);
     }
   }
 
@@ -241,8 +241,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MPoly *mp_new;
   MLoop *ml_new;
   MEdge *med_new, *med_new_firstloop;
-  MVert *mv_new, *mv_new_base;
-  const MVert *mv_orig;
   Object *ob_axis = ltmd->ob_axis;
 
   ScrewVertConnect *vc, *vc_tmp, *vert_connect = nullptr;
@@ -382,12 +380,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   result = BKE_mesh_new_nomain_from_template(
       mesh, int(maxVerts), int(maxEdges), 0, int(maxPolys) * 4, int(maxPolys));
 
-  const MVert *mvert_orig = BKE_mesh_verts(mesh);
+  const float(*vert_positions_orig)[3] = BKE_mesh_vert_positions(mesh);
   const MEdge *medge_orig = BKE_mesh_edges(mesh);
   const MPoly *mpoly_orig = BKE_mesh_polys(mesh);
   const MLoop *mloop_orig = BKE_mesh_loops(mesh);
 
-  MVert *mvert_new = BKE_mesh_verts_for_write(result);
+  float(*vert_positions_new)[3] = BKE_mesh_vert_positions_for_write(result);
   MEdge *medge_new = BKE_mesh_edges_for_write(result);
   MPoly *mpoly_new = BKE_mesh_polys_for_write(result);
   MLoop *mloop_new = BKE_mesh_loops_for_write(result);
@@ -413,8 +411,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
 
     if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
-      for (i = 0, mv_orig = mvert_orig; i < totvert; i++, mv_orig++) {
-        const float v = dist_signed_squared_to_plane_v3(mv_orig->co, uv_axis_plane);
+      for (i = 0; i < totvert; i++) {
+        const float v = dist_signed_squared_to_plane_v3(vert_positions_orig[i], uv_axis_plane);
         uv_v_minmax[0] = min_ff(v, uv_v_minmax[0]);
         uv_v_minmax[1] = max_ff(v, uv_v_minmax[1]);
       }
@@ -427,9 +425,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   /* Set the locations of the first set of verts */
-
-  mv_new = mvert_new;
-  mv_orig = mvert_orig;
 
   /* Copy the first set of edges */
   const MEdge *med_orig = medge_orig;
@@ -476,22 +471,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
      * Sort edge verts for correct face flipping
      * NOT REALLY NEEDED but face flipping is nice. */
 
-    /* Notice!
-     *
-     * Since we are only ordering the edges here it can avoid mallocing the
-     * extra space by abusing the vert array before its filled with new verts.
-     * The new array for vert_connect must be at least `sizeof(ScrewVertConnect) * totvert`
-     * and the size of our resulting meshes array is `sizeof(MVert) * totvert * 3`
-     * so its safe to use the second 2 thirds of #MVert the array for vert_connect,
-     * just make sure #ScrewVertConnect struct is no more than twice as big as #MVert,
-     * at the moment there is no chance of that being a problem,
-     * unless #MVert becomes half its current size.
-     *
-     * once the edges are ordered, vert_connect is not needed and it can be used for verts
-     *
-     * This makes the modifier faster with one less allocate.
-     */
-
     vert_connect = static_cast<ScrewVertConnect *>(
         MEM_malloc_arrayN(totvert, sizeof(ScrewVertConnect), __func__));
     /* skip the first slice of verts. */
@@ -503,14 +482,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       // printf("\n\n\n\n\nStarting Modifier\n");
       /* set edge users */
       med_new = medge_new;
-      mv_new = mvert_new;
 
       if (ob_axis != nullptr) {
         /* `mtx_tx` is initialized early on. */
-        for (i = 0; i < totvert; i++, mv_new++, mv_orig++, vc++) {
-          vc->co[0] = mv_new->co[0] = mv_orig->co[0];
-          vc->co[1] = mv_new->co[1] = mv_orig->co[1];
-          vc->co[2] = mv_new->co[2] = mv_orig->co[2];
+        for (i = 0; i < totvert; i++, vc++) {
+          vc->co[0] = vert_positions_new[i][0] = vert_positions_orig[i][0];
+          vc->co[1] = vert_positions_new[i][1] = vert_positions_orig[i][1];
+          vc->co[2] = vert_positions_new[i][2] = vert_positions_orig[i][2];
 
           vc->flag = 0;
           vc->e[0] = vc->e[1] = nullptr;
@@ -525,10 +503,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         }
       }
       else {
-        for (i = 0; i < totvert; i++, mv_new++, mv_orig++, vc++) {
-          vc->co[0] = mv_new->co[0] = mv_orig->co[0];
-          vc->co[1] = mv_new->co[1] = mv_orig->co[1];
-          vc->co[2] = mv_new->co[2] = mv_orig->co[2];
+        for (i = 0; i < totvert; i++, vc++) {
+          vc->co[0] = vert_positions_new[i][0] = vert_positions_orig[i][0];
+          vc->co[1] = vert_positions_new[i][1] = vert_positions_orig[i][1];
+          vc->co[2] = vert_positions_new[i][2] = vert_positions_orig[i][2];
 
           vc->flag = 0;
           vc->e[0] = vc->e[1] = nullptr;
@@ -755,11 +733,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
   }
   else {
-    mv_orig = mvert_orig;
-    mv_new = mvert_new;
-
-    for (i = 0; i < totvert; i++, mv_new++, mv_orig++) {
-      copy_v3_v3(mv_new->co, mv_orig->co);
+    for (i = 0; i < totvert; i++) {
+      copy_v3_v3(vert_positions_new[i], vert_positions_orig[i]);
     }
   }
   /* done with edge connectivity based normal flipping */
@@ -787,25 +762,24 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* copy a slice */
     CustomData_copy_data(&mesh->vdata, &result->vdata, 0, int(varray_stride), int(totvert));
 
-    mv_new_base = mvert_new;
-    mv_new = &mvert_new[varray_stride]; /* advance to the next slice */
+    /* set location */
+    for (j = 0; j < totvert; j++) {
+      const int vert_new = int(varray_stride) + int(j);
 
-    for (j = 0; j < totvert; j++, mv_new_base++, mv_new++) {
-      /* set location */
-      copy_v3_v3(mv_new->co, mv_new_base->co);
+      copy_v3_v3(vert_positions_new[vert_new], vert_positions_new[j]);
 
       /* only need to set these if using non cleared memory */
       // mv_new->mat_nr = mv_new->flag = 0;
 
       if (ob_axis != nullptr) {
-        sub_v3_v3(mv_new->co, mtx_tx[3]);
+        sub_v3_v3(vert_positions_new[vert_new], mtx_tx[3]);
 
-        mul_m4_v3(mat, mv_new->co);
+        mul_m4_v3(mat, vert_positions_new[vert_new]);
 
-        add_v3_v3(mv_new->co, mtx_tx[3]);
+        add_v3_v3(vert_positions_new[vert_new], mtx_tx[3]);
       }
       else {
-        mul_m4_v3(mat, mv_new->co);
+        mul_m4_v3(mat, vert_positions_new[vert_new]);
       }
 
       /* add the new edge */
@@ -870,8 +844,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
 
     if (has_mloop_orig == false && mloopuv_layers_tot) {
-      uv_v_offset_a = dist_signed_to_plane_v3(mvert_new[medge_new[i].v1].co, uv_axis_plane);
-      uv_v_offset_b = dist_signed_to_plane_v3(mvert_new[medge_new[i].v2].co, uv_axis_plane);
+      uv_v_offset_a = dist_signed_to_plane_v3(vert_positions_new[medge_new[i].v1], uv_axis_plane);
+      uv_v_offset_b = dist_signed_to_plane_v3(vert_positions_new[medge_new[i].v2], uv_axis_plane);
 
       if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
         uv_v_offset_a = (uv_v_offset_a - uv_v_minmax[0]) * uv_v_range_inv;
@@ -989,7 +963,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     med_new++;
   }
 
-  /* validate loop edges */
+/* validate loop edges */
 #if 0
   {
     uint i = 0;
@@ -1026,7 +1000,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   if (do_remove_doubles) {
     result = mesh_remove_doubles_on_axis(result,
-                                         mvert_new,
+                                         vert_positions_new,
                                          totvert,
                                          step_tot,
                                          axis_vec,

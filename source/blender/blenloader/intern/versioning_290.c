@@ -822,7 +822,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         if (mp->totloop == 2) {
           bool changed;
           BKE_mesh_validate_arrays(me,
-                                   BKE_mesh_verts_for_write(me),
+                                   BKE_mesh_vert_positions_for_write(me),
                                    me->totvert,
                                    BKE_mesh_edges_for_write(me),
                                    me->totedge,

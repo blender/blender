@@ -1638,7 +1638,7 @@ static void layerInterp_propbool(const void **sources,
 }
 
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
-    /* 0: CD_MVERT */
+    /* 0: CD_MVERT */ /* DEPRECATED */
     {sizeof(MVert), "MVert", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 1: CD_MSTICKY */ /* DEPRECATED */
     {sizeof(float[2]), "", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
@@ -2106,22 +2106,22 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 };
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
-    /* vmask */ CD_MASK_MVERT,
+    /* vmask */ CD_MASK_PROP_FLOAT3,
     /* emask */ CD_MASK_MEDGE,
     /* fmask */ 0,
     /* pmask */ CD_MASK_MPOLY | CD_MASK_FACEMAP,
     /* lmask */ CD_MASK_MLOOP,
 };
 const CustomData_MeshMasks CD_MASK_BAREMESH_ORIGINDEX = {
-    /* vmask */ CD_MASK_MVERT | CD_MASK_ORIGINDEX,
+    /* vmask */ CD_MASK_PROP_FLOAT3 | CD_MASK_ORIGINDEX,
     /* emask */ CD_MASK_MEDGE | CD_MASK_ORIGINDEX,
     /* fmask */ 0,
     /* pmask */ CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_ORIGINDEX,
     /* lmask */ CD_MASK_MLOOP,
 };
 const CustomData_MeshMasks CD_MASK_MESH = {
-    /* vmask */ (CD_MASK_MVERT | CD_MASK_MDEFORMVERT | CD_MASK_MVERT_SKIN | CD_MASK_PAINT_MASK |
-                 CD_MASK_PROP_ALL | CD_MASK_CREASE | CD_MASK_BWEIGHT),
+    /* vmask */ (CD_MASK_PROP_FLOAT3 | CD_MASK_MDEFORMVERT | CD_MASK_MVERT_SKIN |
+                 CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE | CD_MASK_BWEIGHT),
     /* emask */
     (CD_MASK_MEDGE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_BWEIGHT | CD_MASK_CREASE),
     /* fmask */ 0,
@@ -2157,7 +2157,7 @@ const CustomData_MeshMasks CD_MASK_BMESH = {
      CD_MASK_PROP_ALL),
 };
 const CustomData_MeshMasks CD_MASK_EVERYTHING = {
-    /* vmask */ (CD_MASK_MVERT | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT |
+    /* vmask */ (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT |
                  CD_MASK_BWEIGHT | CD_MASK_MVERT_SKIN | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO |
                  CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK |
                  CD_MASK_PROP_ALL | CD_MASK_CREASE),
@@ -2372,6 +2372,7 @@ bool CustomData_merge(const CustomData *source,
 static bool attribute_stored_in_bmesh_flag(const StringRef name)
 {
   return ELEM(name,
+              "position",
               ".hide_vert",
               ".hide_edge",
               ".hide_poly",

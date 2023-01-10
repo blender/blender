@@ -140,7 +140,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     /* Use new generic get_texture_coords, but do not modify our DNA struct for it...
      * XXX Why use a ModifierData stuff here ? Why not a simple, generic struct for parameters?
      *     What e.g. if a modifier wants to use several textures?
-     *     Why use only v_co, and not MVert (or both)?
+     *     Why use only v_co, and not mesh positions (or both)?
      */
     t_map.texture = texture;
     t_map.map_object = tex_map_object;

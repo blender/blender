@@ -88,9 +88,8 @@ static void extract_tan_init_common(const MeshRenderData *mr,
       }
     }
     else {
-      const MVert *mv = mr->mvert;
-      for (int v = 0; v < mr->vert_len; v++, mv++) {
-        copy_v3_v3(orco[v], mv->co);
+      for (int v = 0; v < mr->vert_len; v++) {
+        copy_v3_v3(orco[v], mr->vert_positions[v]);
       }
     }
     BKE_mesh_orco_verts_transform(mr->me, orco, mr->vert_len, 0);
@@ -114,7 +113,7 @@ static void extract_tan_init_common(const MeshRenderData *mr,
                                      &tangent_mask);
     }
     else {
-      BKE_mesh_calc_loop_tangent_ex(mr->mvert,
+      BKE_mesh_calc_loop_tangent_ex(reinterpret_cast<const float(*)[3]>(mr->vert_positions),
                                     mr->mpoly,
                                     mr->poly_len,
                                     mr->mloop,

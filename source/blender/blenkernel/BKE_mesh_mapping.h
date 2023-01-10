@@ -19,7 +19,6 @@ struct MLoop;
 struct MLoopTri;
 struct MLoopUV;
 struct MPoly;
-struct MVert;
 
 /* UvVertMap */
 #define STD_UV_CONNECT_LIMIT 0.0001f
@@ -146,7 +145,6 @@ void BKE_mesh_vert_loop_map_create(MeshElemMap **r_map,
  */
 void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
                                       int **r_mem,
-                                      const struct MVert *mvert,
                                       int totvert,
                                       const struct MLoopTri *mlooptri,
                                       int totlooptri,
@@ -260,7 +258,7 @@ void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
                                int num_innercut_items,
                                int *innercut_item_indices);
 
-typedef bool (*MeshRemapIslandsCalc)(const struct MVert *verts,
+typedef bool (*MeshRemapIslandsCalc)(const float (*vert_positions)[3],
                                      int totvert,
                                      const struct MEdge *edges,
                                      int totedge,
@@ -277,7 +275,7 @@ typedef bool (*MeshRemapIslandsCalc)(const struct MVert *verts,
  * Calculate 'generic' UV islands, i.e. based only on actual geometry data (edge seams),
  * not some UV layers coordinates.
  */
-bool BKE_mesh_calc_islands_loop_poly_edgeseam(const struct MVert *verts,
+bool BKE_mesh_calc_islands_loop_poly_edgeseam(const float (*vert_positions)[3],
                                               int totvert,
                                               const struct MEdge *edges,
                                               int totedge,
@@ -300,7 +298,7 @@ bool BKE_mesh_calc_islands_loop_poly_edgeseam(const struct MVert *verts,
  * Not sure it would be worth the more complex code, though,
  * those loops are supposed to be really quick to do.
  */
-bool BKE_mesh_calc_islands_loop_poly_uvmap(struct MVert *verts,
+bool BKE_mesh_calc_islands_loop_poly_uvmap(float (*vert_positions)[3],
                                            int totvert,
                                            struct MEdge *edges,
                                            int totedge,

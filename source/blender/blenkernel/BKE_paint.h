@@ -39,7 +39,6 @@ struct ImageUser;
 struct ListBase;
 struct MLoop;
 struct MLoopTri;
-struct MVert;
 struct Main;
 struct Mesh;
 struct MeshElemMap;
@@ -577,7 +576,7 @@ typedef struct SculptSession {
   struct Depsgraph *depsgraph;
 
   /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
-  struct MVert *mvert;
+  float (*vert_positions)[3];
   const struct MPoly *mpoly;
   const struct MLoop *mloop;
 

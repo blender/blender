@@ -30,7 +30,6 @@ struct Depsgraph;
 struct EditBone;
 struct GPUSelectResult;
 struct ID;
-struct MVert;
 struct Main;
 struct MetaElem;
 struct Nurb;
@@ -355,11 +354,12 @@ void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
 
 /* foreach iterators */
 
-void meshobject_foreachScreenVert(
-    struct ViewContext *vc,
-    void (*func)(void *userData, struct MVert *eve, const float screen_co[2], int index),
-    void *userData,
-    eV3DProjTest clip_flag);
+void meshobject_foreachScreenVert(struct ViewContext *vc,
+                                  void (*func)(void *userData,
+                                               const float screen_co[2],
+                                               int index),
+                                  void *userData,
+                                  eV3DProjTest clip_flag);
 void mesh_foreachScreenVert(
     struct ViewContext *vc,
     void (*func)(void *userData, struct BMVert *eve, const float screen_co[2], int index),

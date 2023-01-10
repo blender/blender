@@ -16,7 +16,7 @@
 namespace blender::nodes {
 
 static void calculate_uvs(Mesh *mesh,
-                          Span<MVert> verts,
+                          Span<float3> positions,
                           Span<MLoop> loops,
                           const float size_x,
                           const float size_y,
@@ -31,7 +31,7 @@ static void calculate_uvs(Mesh *mesh,
   const float dy = (size_y == 0.0f) ? 0.0f : 1.0f / size_y;
   threading::parallel_for(loops.index_range(), 1024, [&](IndexRange range) {
     for (const int i : range) {
-      const float3 &co = verts[loops[i].v].co;
+      const float3 &co = positions[loops[i].v];
       uv_attribute.span[i].x = (co.x + size_x * 0.5f) * dx;
       uv_attribute.span[i].y = (co.y + size_y * 0.5f) * dy;
     }
@@ -54,7 +54,7 @@ Mesh *create_grid_mesh(const int verts_x,
                                    0,
                                    edges_x * edges_y * 4,
                                    edges_x * edges_y);
-  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
@@ -70,9 +70,9 @@ Mesh *create_grid_mesh(const int verts_x,
         threading::parallel_for(IndexRange(verts_y), 512, [&](IndexRange y_range) {
           for (const int y : y_range) {
             const int vert_index = y_offset + y;
-            verts[vert_index].co[0] = (x - x_shift) * dx;
-            verts[vert_index].co[1] = (y - y_shift) * dy;
-            verts[vert_index].co[2] = 0.0f;
+            positions[vert_index].x = (x - x_shift) * dx;
+            positions[vert_index].y = (y - y_shift) * dy;
+            positions[vert_index].z = 0.0f;
           }
         });
       }
@@ -145,7 +145,7 @@ Mesh *create_grid_mesh(const int verts_x,
   });
 
   if (uv_map_id && mesh->totpoly != 0) {
-    calculate_uvs(mesh, verts, loops, size_x, size_y, uv_map_id);
+    calculate_uvs(mesh, positions, loops, size_x, size_y, uv_map_id);
   }
 
   mesh->loose_edges_tag_none();

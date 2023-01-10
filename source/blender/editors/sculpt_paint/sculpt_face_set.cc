@@ -120,7 +120,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+  const float(*positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
@@ -135,7 +135,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
         const MPoly *p = &ss->mpoly[vert_map->indices[j]];
 
         float poly_center[3];
-        BKE_mesh_calc_poly_center(p, &ss->mloop[p->loopstart], mvert, poly_center);
+        BKE_mesh_calc_poly_center(p, &ss->mloop[p->loopstart], positions, poly_center);
 
         if (!sculpt_brush_test_sq_fn(&test, poly_center)) {
           continue;
@@ -237,7 +237,7 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                 &automask_data);
 
     SCULPT_relax_vertex(ss, &vd, fade * bstrength, relax_face_sets, vd.co);
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
@@ -1253,8 +1253,8 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
                     SCULPT_vertex_has_unique_face_set(ss, vertex);
   }
 
-  MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
-  BKE_mesh_prefair_and_fair_verts(mesh, mvert, fair_verts, fair_order);
+  float(*positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
+  BKE_mesh_prefair_and_fair_verts(mesh, positions, fair_verts, fair_order);
   MEM_freeN(fair_verts);
 }
 

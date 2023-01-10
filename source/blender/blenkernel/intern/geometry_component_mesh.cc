@@ -904,16 +904,6 @@ static GVMutableArray make_derived_write_attribute(void *data, const int domain_
       MutableSpan<StructT>((StructT *)data, domain_num));
 }
 
-static float3 get_vertex_position(const MVert &vert)
-{
-  return float3(vert.co);
-}
-
-static void set_vertex_position(MVert &vert, float3 position)
-{
-  copy_v3_v3(vert.co, position);
-}
-
 static void tag_component_positions_changed(void *owner)
 {
   Mesh *mesh = static_cast<Mesh *>(owner);
@@ -1237,18 +1227,17 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
 #undef MAKE_CONST_CUSTOM_DATA_GETTER
 #undef MAKE_MUTABLE_CUSTOM_DATA_GETTER
 
-  static BuiltinCustomDataLayerProvider position(
-      "position",
-      ATTR_DOMAIN_POINT,
-      CD_PROP_FLOAT3,
-      CD_MVERT,
-      BuiltinAttributeProvider::NonCreatable,
-      BuiltinAttributeProvider::Writable,
-      BuiltinAttributeProvider::NonDeletable,
-      point_access,
-      make_derived_read_attribute<MVert, float3, get_vertex_position>,
-      make_derived_write_attribute<MVert, float3, get_vertex_position, set_vertex_position>,
-      tag_component_positions_changed);
+  static BuiltinCustomDataLayerProvider position("position",
+                                                 ATTR_DOMAIN_POINT,
+                                                 CD_PROP_FLOAT3,
+                                                 CD_PROP_FLOAT3,
+                                                 BuiltinAttributeProvider::NonCreatable,
+                                                 BuiltinAttributeProvider::Writable,
+                                                 BuiltinAttributeProvider::NonDeletable,
+                                                 point_access,
+                                                 make_array_read_attribute<float3>,
+                                                 make_array_write_attribute<float3>,
+                                                 tag_component_positions_changed);
 
   static NormalAttributeProvider normal;
 

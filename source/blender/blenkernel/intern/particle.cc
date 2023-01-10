@@ -78,6 +78,8 @@
 
 #include "particle_private.h"
 
+using blender::float3;
+
 static void fluid_free_settings(SPHFluidSettings *fluid);
 
 static void particle_settings_init(ID *id)
@@ -1272,7 +1274,7 @@ typedef struct ParticleInterpolationData {
   HairKey *hkey[2];
 
   Mesh *mesh;
-  MVert *mvert[2];
+  float3 *vert_positions[2];
 
   int keyed;
   ParticleKey *kkey[2];
@@ -1432,9 +1434,9 @@ static void init_particle_interpolation(Object *ob,
     pind->dietime = (key + pa->totkey - 1)->time;
 
     if (pind->mesh) {
-      MVert *verts = BKE_mesh_verts_for_write(pind->mesh);
-      pind->mvert[0] = &verts[pa->hair_index];
-      pind->mvert[1] = pind->mvert[0] + 1;
+      float3 *positions = pind->mesh->vert_positions_for_write().data();
+      pind->vert_positions[0] = &positions[pa->hair_index];
+      pind->vert_positions[1] = pind->vert_positions[0] + 1;
     }
   }
 }
@@ -1452,9 +1454,9 @@ static void hair_to_particle(ParticleKey *key, HairKey *hkey)
   key->time = hkey->time;
 }
 
-static void mvert_to_particle(ParticleKey *key, MVert *mvert, HairKey *hkey)
+static void mvert_to_particle(ParticleKey *key, float3 *position, HairKey *hkey)
 {
-  copy_v3_v3(key->co, mvert->co);
+  copy_v3_v3(key->co, *position);
   key->time = hkey->time;
 }
 
@@ -1552,7 +1554,7 @@ static void do_particle_interpolation(ParticleSystem *psys,
 
     while (pind->hkey[1]->time < real_t) {
       pind->hkey[1]++;
-      pind->mvert[1]++;
+      pind->vert_positions[1]++;
     }
 
     pind->hkey[0] = pind->hkey[1] - 1;
@@ -1564,9 +1566,9 @@ static void do_particle_interpolation(ParticleSystem *psys,
     edit_to_particle(keys + 2, pind->ekey[1]);
   }
   else if (pind->mesh) {
-    pind->mvert[0] = pind->mvert[1] - 1;
-    mvert_to_particle(keys + 1, pind->mvert[0], pind->hkey[0]);
-    mvert_to_particle(keys + 2, pind->mvert[1], pind->hkey[1]);
+    pind->vert_positions[0] = pind->vert_positions[1] - 1;
+    mvert_to_particle(keys + 1, pind->vert_positions[0], pind->hkey[0]);
+    mvert_to_particle(keys + 2, pind->vert_positions[1], pind->hkey[1]);
   }
   else if (pind->keyed) {
     memcpy(keys + 1, pind->kkey[0], sizeof(ParticleKey));
@@ -1592,10 +1594,10 @@ static void do_particle_interpolation(ParticleSystem *psys,
     }
     else if (pind->mesh) {
       if (pind->hkey[0] != pa->hair) {
-        mvert_to_particle(keys, pind->mvert[0] - 1, pind->hkey[0] - 1);
+        mvert_to_particle(keys, pind->vert_positions[0] - 1, pind->hkey[0] - 1);
       }
       else {
-        mvert_to_particle(keys, pind->mvert[0], pind->hkey[0]);
+        mvert_to_particle(keys, pind->vert_positions[0], pind->hkey[0]);
       }
     }
     else {
@@ -1617,10 +1619,10 @@ static void do_particle_interpolation(ParticleSystem *psys,
     }
     else if (pind->mesh) {
       if (pind->hkey[1] != pa->hair + pa->totkey - 1) {
-        mvert_to_particle(keys + 3, pind->mvert[1] + 1, pind->hkey[1] + 1);
+        mvert_to_particle(keys + 3, pind->vert_positions[1] + 1, pind->hkey[1] + 1);
       }
       else {
-        mvert_to_particle(keys + 3, pind->mvert[1], pind->hkey[1]);
+        mvert_to_particle(keys + 3, pind->vert_positions[1], pind->hkey[1]);
       }
     }
     else {
@@ -1698,7 +1700,7 @@ static void interpolate_pathcache(ParticleCacheKey *first, float t, ParticleCach
 /************************************************/
 
 void psys_interpolate_face(Mesh *mesh,
-                           const MVert *mvert,
+                           const float (*vert_positions)[3],
                            const float (*vert_normals)[3],
                            MFace *mface,
                            MTFace *tface,
@@ -1717,16 +1719,16 @@ void psys_interpolate_face(Mesh *mesh,
   float tuv[4][2];
   const float *o1, *o2, *o3, *o4;
 
-  v1 = mvert[mface->v1].co;
-  v2 = mvert[mface->v2].co;
-  v3 = mvert[mface->v3].co;
+  v1 = vert_positions[mface->v1];
+  v2 = vert_positions[mface->v2];
+  v3 = vert_positions[mface->v3];
 
   copy_v3_v3(n1, vert_normals[mface->v1]);
   copy_v3_v3(n2, vert_normals[mface->v2]);
   copy_v3_v3(n3, vert_normals[mface->v3]);
 
   if (mface->v4) {
-    v4 = mvert[mface->v4].co;
+    v4 = vert_positions[mface->v4];
     copy_v3_v3(n4, vert_normals[mface->v4]);
 
     interp_v3_v3v3v3v3(vec, v1, v2, v3, v4, w);
@@ -2159,8 +2161,8 @@ void psys_particle_on_dm(Mesh *mesh_final,
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh_final);
 
   if (from == PART_FROM_VERT) {
-    const MVert *verts = BKE_mesh_verts(mesh_final);
-    copy_v3_v3(vec, verts[mapindex].co);
+    const float(*vert_positions)[3] = BKE_mesh_vert_positions(mesh_final);
+    copy_v3_v3(vec, vert_positions[mapindex]);
 
     if (nor) {
       copy_v3_v3(nor, vert_normals[mapindex]);
@@ -2184,11 +2186,10 @@ void psys_particle_on_dm(Mesh *mesh_final,
   else { /* PART_FROM_FACE / PART_FROM_VOLUME */
     MFace *mface;
     MTFace *mtface;
-    MVert *mvert;
 
     MFace *mfaces = static_cast<MFace *>(CustomData_get_layer(&mesh_final->fdata, CD_MFACE));
     mface = &mfaces[mapindex];
-    mvert = BKE_mesh_verts_for_write(mesh_final);
+    const float(*vert_positions)[3] = BKE_mesh_vert_positions(mesh_final);
     mtface = static_cast<MTFace *>(CustomData_get_layer(&mesh_final->fdata, CD_MTFACE));
 
     if (mtface) {
@@ -2197,7 +2198,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
 
     if (from == PART_FROM_VOLUME) {
       psys_interpolate_face(mesh_final,
-                            mvert,
+                            vert_positions,
                             vert_normals,
                             mface,
                             mtface,
@@ -2220,7 +2221,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
     }
     else {
       psys_interpolate_face(mesh_final,
-                            mvert,
+                            vert_positions,
                             vert_normals,
                             mface,
                             mtface,
@@ -3670,7 +3671,7 @@ static void psys_cache_edit_paths_iter(void *__restrict iter_data_v,
         BKE_defvert_weight_to_rgb(ca->col, pind.hkey[1]->weight);
       }
       else {
-        /* WARNING: copied from 'do_particle_interpolation' (without 'mvert' array stepping) */
+        /* WARNING: copied from 'do_particle_interpolation' (without 'vertex' array stepping) */
         float real_t;
         if (result.time < 0.0f) {
           real_t = -result.time;
@@ -3910,10 +3911,10 @@ static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4]
     }
   }
   else {
-    const MVert *verts = BKE_mesh_verts(mesh);
-    copy_v3_v3(v[0], verts[mface->v1].co);
-    copy_v3_v3(v[1], verts[mface->v2].co);
-    copy_v3_v3(v[2], verts[mface->v3].co);
+    const float(*vert_positions)[3] = BKE_mesh_vert_positions(mesh);
+    copy_v3_v3(v[0], vert_positions[mface->v1]);
+    copy_v3_v3(v[1], vert_positions[mface->v2]);
+    copy_v3_v3(v[2], vert_positions[mface->v3]);
   }
 
   triatomat(v[0], v[1], v[2], (osface) ? osface->uv : nullptr, mat);

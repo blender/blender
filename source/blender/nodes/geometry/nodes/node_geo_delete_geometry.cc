@@ -153,23 +153,6 @@ static void copy_face_corner_attributes(const Map<AttributeIDRef, AttributeKind>
       attributes, src_attributes, dst_attributes, ATTR_DOMAIN_CORNER, IndexMask(indices));
 }
 
-static void copy_masked_verts_to_new_mesh(const Mesh &src_mesh,
-                                          Mesh &dst_mesh,
-                                          Span<int> vertex_map)
-{
-  BLI_assert(src_mesh.totvert == vertex_map.size());
-  const Span<MVert> src_verts = src_mesh.verts();
-  MutableSpan<MVert> dst_verts = dst_mesh.verts_for_write();
-
-  for (const int i_src : vertex_map.index_range()) {
-    const int i_dst = vertex_map[i_src];
-    if (i_dst == -1) {
-      continue;
-    }
-    dst_verts[i_dst] = src_verts[i_src];
-  }
-}
-
 static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh, Mesh &dst_mesh, Span<int> edge_map)
 {
   BLI_assert(src_mesh.totedge == edge_map.size());
@@ -899,7 +882,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                                    selected_polys_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
-      copy_masked_verts_to_new_mesh(mesh_in, *mesh_out, vertex_map);
       copy_masked_edges_to_new_mesh(mesh_in, *mesh_out, vertex_map, edge_map);
       copy_masked_polys_to_new_mesh(
           mesh_in, *mesh_out, vertex_map, edge_map, selected_poly_indices, new_loop_starts);
@@ -976,7 +958,7 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                                    selected_polys_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
-      mesh_out->verts_for_write().copy_from(mesh_in.verts());
+      mesh_out->vert_positions_for_write().copy_from(mesh_in.vert_positions());
       copy_masked_edges_to_new_mesh(mesh_in, *mesh_out, edge_map);
       copy_masked_polys_to_new_mesh(
           mesh_in, *mesh_out, edge_map, selected_poly_indices, new_loop_starts);
@@ -1037,7 +1019,7 @@ static void do_mesh_separation(GeometrySet &geometry_set,
           &mesh_in, mesh_in.totvert, mesh_in.totedge, 0, selected_loops_num, selected_polys_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
-      mesh_out->verts_for_write().copy_from(mesh_in.verts());
+      mesh_out->vert_positions_for_write().copy_from(mesh_in.vert_positions());
       mesh_out->edges_for_write().copy_from(mesh_in.edges());
       copy_masked_polys_to_new_mesh(mesh_in, *mesh_out, selected_poly_indices, new_loop_starts);
 

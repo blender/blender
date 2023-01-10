@@ -101,9 +101,9 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
         EXPECT_EQ(mesh->totedge, exp.mesh_totedge_or_curve_endp);
         EXPECT_EQ(mesh->totpoly, exp.mesh_totpoly_or_curve_order);
         EXPECT_EQ(mesh->totloop, exp.mesh_totloop_or_curve_cyclic);
-        const Span<MVert> verts = mesh->verts();
-        EXPECT_V3_NEAR(verts.first().co, exp.vert_first, 0.0001f);
-        EXPECT_V3_NEAR(verts.last().co, exp.vert_last, 0.0001f);
+        const Span<float3> positions = mesh->vert_positions();
+        EXPECT_V3_NEAR(positions.first(), exp.vert_first, 0.0001f);
+        EXPECT_V3_NEAR(positions.last(), exp.vert_last, 0.0001f);
         const float3 *lnors = (const float3 *)CustomData_get_layer(&mesh->ldata, CD_NORMAL);
         float3 normal_first = lnors != nullptr ? lnors[0] : float3(0, 0, 0);
         EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);

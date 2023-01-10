@@ -81,7 +81,7 @@ static void set_coarse_positions(Subdiv *subdiv,
                                  const Mesh *mesh,
                                  const float (*coarse_vertex_cos)[3])
 {
-  const MVert *mvert = BKE_mesh_verts(mesh);
+  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
   const MPoly *mpoly = BKE_mesh_polys(mesh);
   const MLoop *mloop = BKE_mesh_loops(mesh);
   /* Mark vertices which needs new coordinates. */
@@ -109,8 +109,7 @@ static void set_coarse_positions(Subdiv *subdiv,
       vertex_co = coarse_vertex_cos[vertex_index];
     }
     else {
-      const MVert *vertex = &mvert[vertex_index];
-      vertex_co = vertex->co;
+      vertex_co = positions[vertex_index];
     }
     copy_v3_v3(&buffer[manifold_vertex_index][0], vertex_co);
     manifold_vertex_index++;

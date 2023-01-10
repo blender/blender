@@ -40,7 +40,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
                      BKE_object_get_evaluated_mesh(&export_object_eval_) :
                      BKE_object_get_pre_modified_mesh(&export_object_eval_);
   if (export_mesh_) {
-    mesh_verts_ = export_mesh_->verts();
+    mesh_positions_ = export_mesh_->vert_positions();
     mesh_edges_ = export_mesh_->edges();
     mesh_polys_ = export_mesh_->polys();
     mesh_loops_ = export_mesh_->loops();
@@ -72,7 +72,7 @@ void OBJMesh::set_mesh(Mesh *mesh)
   }
   owned_export_mesh_ = mesh;
   export_mesh_ = owned_export_mesh_;
-  mesh_verts_ = mesh->verts();
+  mesh_positions_ = mesh->vert_positions();
   mesh_edges_ = mesh->edges();
   mesh_polys_ = mesh->polys();
   mesh_loops_ = mesh->loops();
@@ -267,8 +267,7 @@ const char *OBJMesh::get_object_material_name(const int16_t mat_nr) const
 
 float3 OBJMesh::calc_vertex_coords(const int vert_index, const float global_scale) const
 {
-  float3 r_coords;
-  copy_v3_v3(r_coords, mesh_verts_[vert_index].co);
+  float3 r_coords = mesh_positions_[vert_index];
   mul_m4_v3(world_and_axes_transform_, r_coords);
   mul_v3_fl(r_coords, global_scale);
   return r_coords;
@@ -351,8 +350,10 @@ float3 OBJMesh::calc_poly_normal(const int poly_index) const
 {
   float3 r_poly_normal;
   const MPoly &poly = mesh_polys_[poly_index];
-  BKE_mesh_calc_poly_normal(
-      &poly, &mesh_loops_[poly.loopstart], mesh_verts_.data(), r_poly_normal);
+  BKE_mesh_calc_poly_normal(&poly,
+                            &mesh_loops_[poly.loopstart],
+                            reinterpret_cast<const float(*)[3]>(mesh_positions_.data()),
+                            r_poly_normal);
   mul_m3_v3(world_and_axes_normal_transform_, r_poly_normal);
   normalize_v3(r_poly_normal);
   return r_poly_normal;
