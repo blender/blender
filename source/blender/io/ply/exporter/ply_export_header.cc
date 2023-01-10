@@ -26,11 +26,6 @@ void write_header(std::unique_ptr<FileBuffer> &buffer,
   buffer->write_header_scalar_property("float", "x");
   buffer->write_header_scalar_property("float", "y");
   buffer->write_header_scalar_property("float", "z");
-  if (export_params.export_normals) {
-    buffer->write_header_scalar_property("float", "nx");
-    buffer->write_header_scalar_property("float", "ny");
-    buffer->write_header_scalar_property("float", "nz");
-  }
   buffer->write_header_element("face", int32_t(plyData->faces.size()));
   buffer->write_header_list_property("uchar", "uint", "vertex_indices");
   buffer->write_string("end_header");
