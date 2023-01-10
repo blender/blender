@@ -183,7 +183,7 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
   /* If there is only one positions virtual array and it is already contiguous, avoid copying
    * all of the positions and instead pass the span directly to the convex hull function. */
   if (span_count == 1 && count == 1) {
-    return hull_from_bullet(nullptr, positions_span);
+    return hull_from_bullet(geometry_set.get_mesh_for_read(), positions_span);
   }
 
   Array<float3> positions(total_num);
