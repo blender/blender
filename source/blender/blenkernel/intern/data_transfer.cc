@@ -20,6 +20,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h"
@@ -287,6 +288,8 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
       CustomData_set_layer_flag(ldata_dst, CD_NORMAL, CD_FLAG_TEMPORARY);
     }
     if (dirty_nors_dst || do_loop_nors_dst) {
+      const bool *sharp_edges = static_cast<const bool *>(
+          CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, "sharp_edge"));
       BKE_mesh_normals_loop_split(positions_dst,
                                   BKE_mesh_vertex_normals_ensure(me_dst),
                                   num_verts_dst,
@@ -300,6 +303,7 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
                                   num_polys_dst,
                                   use_split_nors_dst,
                                   split_angle_dst,
+                                  sharp_edges,
                                   nullptr,
                                   nullptr,
                                   custom_nors_dst);
@@ -314,6 +318,7 @@ static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
                                                   const int dtdata_type,
                                                   const bool changed)
 {
+  using namespace blender;
   if (dtdata_type == DT_TYPE_LNOR) {
     if (!changed) {
       return;
@@ -341,6 +346,10 @@ static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
           ldata_dst, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, num_loops_dst));
     }
 
+    bke::MutableAttributeAccessor attributes = me_dst->attributes_for_write();
+    bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
+        "sharp_edge", ATTR_DOMAIN_EDGE);
+
     /* Note loop_nors_dst contains our custom normals as transferred from source... */
     BKE_mesh_normals_loop_custom_set(positions_dst,
                                      BKE_mesh_vertex_normals_ensure(me_dst),
@@ -353,7 +362,9 @@ static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
                                      polys_dst,
                                      poly_nors_dst,
                                      num_polys_dst,
+                                     sharp_edges.span.data(),
                                      custom_nors_dst);
+    sharp_edges.finish();
   }
 }
 
@@ -961,11 +972,11 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       }
       return true;
     }
-    if (r_map && ELEM(cddata_type, CD_FAKE_SHARP, CD_FAKE_SEAM)) {
+    if (r_map && cddata_type == CD_FAKE_SEAM) {
       const size_t elem_size = sizeof(*((MEdge *)nullptr));
       const size_t data_size = sizeof(((MEdge *)nullptr)->flag);
       const size_t data_offset = offsetof(MEdge, flag);
-      const uint64_t data_flag = (cddata_type == CD_FAKE_SHARP) ? ME_SHARP : ME_SEAM;
+      const uint64_t data_flag = ME_SEAM;
 
       data_transfer_layersmapping_add_item(r_map,
                                            cddata_type,
@@ -984,7 +995,23 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                            interp_data);
       return true;
     }
-
+    if (r_map && cddata_type == CD_FAKE_SHARP) {
+      if (!CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, "sharp_edge")) {
+        CustomData_add_layer_named(
+            &me_dst->edata, CD_PROP_BOOL, CD_SET_DEFAULT, nullptr, me_dst->totedge, "sharp_edge");
+      }
+      data_transfer_layersmapping_add_item_cd(
+          r_map,
+          CD_PROP_BOOL,
+          mix_mode,
+          mix_factor,
+          mix_weights,
+          CustomData_get_layer_named(&me_src->edata, CD_PROP_BOOL, "sharp_edge"),
+          CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, "sharp_edge"),
+          interp,
+          interp_data);
+      return true;
+    }
     return false;
   }
   else if (elem_type == ME_LOOP) {

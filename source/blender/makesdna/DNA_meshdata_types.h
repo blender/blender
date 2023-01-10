@@ -46,8 +46,9 @@ enum {
 #ifdef DNA_DEPRECATED_ALLOW
   /** Deprecated loose edge status. Now stored in #Mesh::loose_edges() runtime cache. */
   ME_LOOSEEDGE = (1 << 7),
+  /** Deprecated sharp edge status. Now stored in "sharp_edge" attribute. */
+  ME_SHARP = (1 << 9),
 #endif
-  ME_SHARP = (1 << 9), /* only reason this flag remains a 'short' */
 };
 
 /**

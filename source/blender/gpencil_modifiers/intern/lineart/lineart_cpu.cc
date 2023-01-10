@@ -17,6 +17,7 @@
 
 #include "PIL_time.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_customdata.h"
@@ -1477,6 +1478,7 @@ struct EdgeFeatData {
   blender::Span<MLoop> loops;
   blender::Span<MPoly> polys;
   LineartTriangle *tri_array;
+  blender::VArray<bool> sharp_edges;
   LineartVert *v_array;
   float crease_threshold;
   bool use_auto_smooth;
@@ -1682,9 +1684,8 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
       e_feat_data->edges.data(), e_feat_data->loops.data(), &mlooptri[i / 3], real_edges);
 
   if (real_edges[i % 3] >= 0) {
-    const MEdge *medge = &e_feat_data->edges[real_edges[i % 3]];
-
-    if (ld->conf.use_crease && ld->conf.sharp_as_crease && (medge->flag & ME_SHARP)) {
+    if (ld->conf.use_crease && ld->conf.sharp_as_crease &&
+        e_feat_data->sharp_edges[real_edges[i % 3]]) {
       edge_flag_result |= LRT_EDGE_FLAG_CREASE;
     }
 
@@ -2068,6 +2069,10 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_settings.userdata_chunk_size = sizeof(EdgeFeatReduceData);
   edge_feat_settings.func_reduce = feat_data_sum_reduce;
 
+  const bke::AttributeAccessor attributes = me->attributes();
+  const VArray<bool> sharp_edges = attributes.lookup_or_default<bool>(
+      "sharp_edge", ATTR_DOMAIN_EDGE, false);
+
   EdgeFeatData edge_feat_data = {nullptr};
   edge_feat_data.ld = la_data;
   edge_feat_data.me = me;
@@ -2077,6 +2082,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_data.edges = me->edges();
   edge_feat_data.polys = me->polys();
   edge_feat_data.loops = me->loops();
+  edge_feat_data.sharp_edges = sharp_edges;
   edge_feat_data.edge_nabr = lineart_build_edge_neighbor(me, total_edges);
   edge_feat_data.tri_array = la_tri_arr;
   edge_feat_data.v_array = la_v_arr;

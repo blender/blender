@@ -1341,6 +1341,48 @@ void BKE_mesh_legacy_edge_crease_to_layers(Mesh *mesh)
   }
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Sharp Edge Conversion
+ * \{ */
+
+void BKE_mesh_legacy_sharp_edges_to_flags(Mesh *mesh)
+{
+  using namespace blender;
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  if (const bool *sharp_edges = static_cast<const bool *>(
+          CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"))) {
+    threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
+      for (const int i : range) {
+        SET_FLAG_FROM_TEST(edges[i].flag, sharp_edges[i], ME_SHARP);
+      }
+    });
+  }
+  else {
+    for (const int i : edges.index_range()) {
+      edges[i].flag &= ~ME_SHARP;
+    }
+  }
+}
+
+void BKE_mesh_legacy_sharp_edges_from_flags(Mesh *mesh)
+{
+  using namespace blender;
+  using namespace blender::bke;
+  const Span<MEdge> edges = mesh->edges();
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  if (std::any_of(
+          edges.begin(), edges.end(), [](const MEdge &edge) { return edge.flag & ME_SHARP; })) {
+    SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_only_span<bool>(
+        "sharp_edge", ATTR_DOMAIN_EDGE);
+    threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
+      for (const int i : range) {
+        sharp_edges.span[i] = edges[i].flag & ME_SHARP;
+      }
+    });
+    sharp_edges.finish();
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

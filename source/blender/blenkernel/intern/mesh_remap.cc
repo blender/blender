@@ -1368,6 +1368,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
           CustomData_set_layer_flag(ldata_dst, CD_NORMAL, CD_FLAG_TEMPORARY);
         }
         if (dirty_nors_dst || do_loop_nors_dst) {
+          const bool *sharp_edges = static_cast<const bool *>(
+              CustomData_get_layer_named(&mesh_dst->edata, CD_PROP_BOOL, "sharp_edge"));
           BKE_mesh_normals_loop_split(vert_positions_dst,
                                       BKE_mesh_vertex_normals_ensure(mesh_dst),
                                       numverts_dst,
@@ -1381,6 +1383,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                       numpolys_dst,
                                       use_split_nors_dst,
                                       split_angle_dst,
+                                      sharp_edges,
                                       nullptr,
                                       nullptr,
                                       custom_nors_dst);

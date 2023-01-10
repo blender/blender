@@ -632,6 +632,8 @@ Vector<Vector<int>> build_edge_to_loop_map_resizable(const Span<MLoop> loops, co
 using MeshRemap_CheckIslandBoundary = bool (*)(const MPoly *mpoly,
                                                const MLoop *mloop,
                                                const MEdge *medge,
+                                               const int edge_index,
+                                               const bool *sharp_edges,
                                                const int edge_user_count,
                                                const MPoly *mpoly_array,
                                                const MeshElemMap *edge_poly_map,
@@ -643,6 +645,7 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
                                         const int totpoly,
                                         const MLoop *mloop,
                                         const int totloop,
+                                        const bool *sharp_edges,
                                         MeshElemMap *edge_poly_map,
                                         const bool use_bitflags,
                                         MeshRemap_CheckIslandBoundary edge_boundary_check,
@@ -734,7 +737,8 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
         const MeshElemMap *map_ele = &edge_poly_map[me_idx];
         const int *p = map_ele->indices;
         int i = map_ele->count;
-        if (!edge_boundary_check(mp, ml, me, i, mpoly, map_ele, edge_boundary_check_data)) {
+        if (!edge_boundary_check(
+                mp, ml, me, me_idx, sharp_edges, i, mpoly, map_ele, edge_boundary_check_data)) {
           for (; i--; p++) {
             /* if we meet other non initialized its a bug */
             BLI_assert(ELEM(poly_groups[*p], 0, poly_group_id));
@@ -834,7 +838,9 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
 
 static bool poly_is_island_boundary_smooth_cb(const MPoly *mp,
                                               const MLoop * /*ml*/,
-                                              const MEdge *me,
+                                              const MEdge * /*me*/,
+                                              const int edge_index,
+                                              const bool *sharp_edges,
                                               const int edge_user_count,
                                               const MPoly *mpoly_array,
                                               const MeshElemMap *edge_poly_map,
@@ -842,7 +848,8 @@ static bool poly_is_island_boundary_smooth_cb(const MPoly *mp,
 {
   /* Edge is sharp if one of its polys is flat, or edge itself is sharp,
    * or edge is not used by exactly two polygons. */
-  if ((mp->flag & ME_SMOOTH) && !(me->flag & ME_SHARP) && (edge_user_count == 2)) {
+  if ((mp->flag & ME_SMOOTH) && !(sharp_edges && sharp_edges[edge_index]) &&
+      (edge_user_count == 2)) {
     /* In that case, edge appears to be smooth, but we need to check its other poly too. */
     const MPoly *mp_other = (mp == &mpoly_array[edge_poly_map->indices[0]]) ?
                                 &mpoly_array[edge_poly_map->indices[1]] :
@@ -858,6 +865,7 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge,
                                 const int totpoly,
                                 const MLoop *mloop,
                                 const int totloop,
+                                const bool *sharp_edges,
                                 int *r_totgroup,
                                 const bool use_bitflags)
 {
@@ -869,6 +877,7 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge,
                               totpoly,
                               mloop,
                               totloop,
+                              sharp_edges,
                               nullptr,
                               use_bitflags,
                               poly_is_island_boundary_smooth_cb,
@@ -1011,6 +1020,8 @@ struct MeshCheckIslandBoundaryUv {
 static bool mesh_check_island_boundary_uv(const MPoly * /*mp*/,
                                           const MLoop *ml,
                                           const MEdge *me,
+                                          const int /*edge_index*/,
+                                          const bool * /*sharp_edges*/,
                                           const int /*edge_user_count*/,
                                           const MPoly * /*mpoly_array*/,
                                           const MeshElemMap * /*edge_poly_map*/,
@@ -1109,6 +1120,7 @@ static bool mesh_calc_islands_loop_poly_uv(const MEdge *edges,
                               totpoly,
                               loops,
                               totloop,
+                              nullptr,
                               edge_poly_map,
                               false,
                               mesh_check_island_boundary_uv,

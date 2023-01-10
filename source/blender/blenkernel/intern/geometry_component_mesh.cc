@@ -1276,6 +1276,18 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
       make_derived_write_attribute<MPoly, bool, get_shade_smooth, set_shade_smooth>,
       nullptr);
 
+  static BuiltinCustomDataLayerProvider sharp_edge("sharp_edge",
+                                                   ATTR_DOMAIN_EDGE,
+                                                   CD_PROP_BOOL,
+                                                   CD_PROP_BOOL,
+                                                   BuiltinAttributeProvider::Creatable,
+                                                   BuiltinAttributeProvider::Writable,
+                                                   BuiltinAttributeProvider::Deletable,
+                                                   edge_access,
+                                                   make_array_read_attribute<bool>,
+                                                   make_array_write_attribute<bool>,
+                                                   nullptr);
+
   static BuiltinCustomDataLayerProvider crease(
       "crease",
       ATTR_DOMAIN_EDGE,
@@ -1296,7 +1308,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
   static CustomDataAttributeProvider face_custom_data(ATTR_DOMAIN_FACE, face_access);
 
   return ComponentAttributeProviders(
-      {&position, &id, &material_index, &shade_smooth, &normal, &crease},
+      {&position, &id, &material_index, &shade_smooth, &sharp_edge, &normal, &crease},
       {&corner_custom_data,
        &vertex_groups,
        &point_custom_data,
