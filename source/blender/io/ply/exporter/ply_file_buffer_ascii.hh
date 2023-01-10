@@ -33,9 +33,14 @@ class FileBufferAscii : public FileBuffer {
     write_fstring("{} {} {}", x, y, z);
   }
 
-  void write_vertex_normals(float nx, float ny, float nz) override
+  void write_vertex_normal(float nx, float ny, float nz) override
   {
     write_fstring(" {} {} {}", nx, ny, nz);
+  }
+
+  void write_vertex_color(uchar r, uchar g, uchar b, uchar a) override
+  {
+    write_fstring("{} {} {} {} ", r, g, b,a);
   }
 
   void write_vertex_end() override

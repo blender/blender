@@ -42,11 +42,27 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     // Vertices
     auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
 
-    if (mesh->totvert == 0)
-      continue;
-
     for (auto &&vertex : mesh->verts()) {
       plyData.vertices.append(vertex.co);
+    }
+
+    // Normals
+    if (export_params.export_normals) {
+      const float(*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+      for (int i = 0; i < plyData.vertices.size(); i++) {
+        plyData.vertex_normals.append(vertex_normals[i]);
+      }
+    }
+
+    // Colors
+    if (export_params.export_colors) {
+      if (CustomData_has_layer(&mesh->vdata, CD_PROP_COLOR)) {
+        float4 *colors = (float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
+        for (int i = 0; i < mesh->totvert; i++) {
+          std::cout << colors[i] << std::endl;
+          plyData.vertex_colors.append(colors[i]);
+        }
+      }
     }
 
     // Faces
@@ -58,14 +74,6 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
       }
 
       plyData.faces.append(polyVector);
-    }
-
-    // Normals
-    if (export_params.export_normals) {
-      const float (*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
-      for (int i = 0; i < plyData.vertices.size(); i++) {
-        plyData.vertex_normals.append(vertex_normals[i]);
-      }
     }
 
     vertex_offset = (int)plyData.vertices.size();

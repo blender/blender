@@ -31,6 +31,12 @@ void write_header(std::unique_ptr<FileBuffer> &buffer,
     buffer->write_header_scalar_property("float", "ny");
     buffer->write_header_scalar_property("float", "nz");
   }
+  if (export_params.export_colors) {
+    buffer->write_header_scalar_property("uchar", "red");
+    buffer->write_header_scalar_property("uchar", "green");
+    buffer->write_header_scalar_property("uchar", "blue");
+    buffer->write_header_scalar_property("uchar", "alpha");
+  }
   buffer->write_header_element("face", int32_t(plyData->faces.size()));
   buffer->write_header_list_property("uchar", "uint", "vertex_indices");
   buffer->write_string("end_header");
