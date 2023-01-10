@@ -38,7 +38,6 @@ void load_plydata(PlyData &plyData, const bContext *C)
       continue;
 
     // Vertices
-
     auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
     for (auto &&vertex : mesh->verts()) {
       plyData.vertices.append(vertex.co);
@@ -56,7 +55,7 @@ void load_plydata(PlyData &plyData, const bContext *C)
       float4 *colors = (float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
       for (int i = 0; i < mesh->totvert; i++) {
         std::cout << colors[i] << std::endl;
-        // plyData.vertex_colors.append(colors[i]);
+        plyData.vertex_colors.append(colors[i]);
       }
     }
 
