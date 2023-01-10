@@ -1786,7 +1786,8 @@ float ED_gpencil_radial_control_scale(struct bContext *C,
                                       const int mval[2])
 {
   float scale_fac = 1.0f;
-  if ((brush && brush->gpencil_settings) && (brush->gpencil_tool == GPAINT_TOOL_DRAW)) {
+  if ((brush && brush->gpencil_settings) && (brush->ob_mode == OB_MODE_PAINT_GPENCIL) &&
+      (brush->gpencil_tool == GPAINT_TOOL_DRAW)) {
     float cursor_radius = ED_gpencil_cursor_radius(C, mval[0], mval[1]);
     scale_fac = max_ff(cursor_radius, 1.0f) / max_ff(initial_value, 1.0f);
   }
