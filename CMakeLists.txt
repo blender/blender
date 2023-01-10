@@ -605,10 +605,6 @@ else()
   set(WITH_METAL_BACKEND OFF)
 endif()
 
-if(WITH_METAL_BACKEND)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
-endif()
-
 if(WIN32)
   getDefaultWindowsPrefixBase(CMAKE_GENERIC_PROGRAM_FILES)
   set(CPACK_INSTALL_PREFIX ${CMAKE_GENERIC_PROGRAM_FILES}/${})
