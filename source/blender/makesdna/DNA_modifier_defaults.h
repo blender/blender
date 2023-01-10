@@ -616,12 +616,7 @@
 
 #define _DNA_DEFAULT_SurfaceModifierData \
   { \
-    .x = NULL, \
-    .v = NULL, \
-    .mesh = NULL, \
-    .bvhtree = NULL, \
-    .cfra = 0, \
-    .verts_num = 0, \
+    /* Intentionally empty (all run-time data). */ \
   }
 
 #define _DNA_DEFAULT_SurfaceDeformModifierData \

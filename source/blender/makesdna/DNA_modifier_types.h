@@ -877,20 +877,24 @@ typedef struct CollisionModifierData {
   struct BVHTree *bvhtree;
 } CollisionModifierData;
 
-typedef struct SurfaceModifierData {
-  ModifierData modifier;
+typedef struct SurfaceModifierData_Runtime {
 
-  /** Old position. */
-  float (*x)[3];
-  /** Velocity. */
-  float (*v)[3];
+  float (*vert_positions_prev)[3];
+  float (*vert_velocities)[3];
 
   struct Mesh *mesh;
 
   /** Bounding volume hierarchy of the mesh faces. */
   struct BVHTreeFromMesh *bvhtree;
 
-  int cfra, verts_num;
+  int cfra_prev, verts_num;
+
+} SurfaceModifierData_Runtime;
+
+typedef struct SurfaceModifierData {
+  ModifierData modifier;
+
+  SurfaceModifierData_Runtime runtime;
 } SurfaceModifierData;
 
 typedef struct BooleanModifierData {
