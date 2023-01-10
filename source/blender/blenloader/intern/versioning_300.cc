@@ -3842,6 +3842,20 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Light *, light, &bmain->lights) {
       light->radius = light->area_size;
     }
+    /* Grease Pencil Build modifier: Set default value for new natural drawspeed factor and maximum
+     * gap. */
+    if (!DNA_struct_elem_find(fd->filesdna, "BuildGpencilModifierData", "float", "speed_fac") ||
+        !DNA_struct_elem_find(fd->filesdna, "BuildGpencilModifierData", "float", "speed_maxgap")) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
+          if (md->type == eGpencilModifierType_Build) {
+            BuildGpencilModifierData *mmd = (BuildGpencilModifierData *)md;
+            mmd->speed_fac = 1.2f;
+            mmd->speed_maxgap = 0.5f;
+          }
+        }
+      }
+    }
   }
 
   /**

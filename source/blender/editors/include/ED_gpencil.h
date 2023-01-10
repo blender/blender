@@ -83,7 +83,7 @@ typedef struct tGPspoint {
   float pressure;
   /** Pressure of tablet at this point for alpha factor. */
   float strength;
-  /** Time relative to stroke start (used when converting to path). */
+  /** Time relative to stroke start (used when converting to path & in build modifier). */
   float time;
   /** Factor of uv along the stroke. */
   float uv_fac;

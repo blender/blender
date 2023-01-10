@@ -54,6 +54,9 @@
     .mode = 0, \
     .transition = 0, \
     .time_alignment = 0, \
+    .time_mode = 0, \
+    .speed_fac = 1.2f, \
+    .speed_maxgap = 0.5f, \
     .percentage_fac = 0.0f, \
   }
 
