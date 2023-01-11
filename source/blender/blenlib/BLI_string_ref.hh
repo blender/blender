@@ -608,8 +608,13 @@ constexpr bool operator==(StringRef a, StringRef b)
     return false;
   }
   if (a.data() == b.data()) {
-    /* This also avoids passing null to the call below, which would results in an ASAN warning. */
+    /* This also avoids passing null to the call below when both are null,
+     * which would results in an ASAN warning. */
     return true;
+  }
+  if (!a.data() || !b.data()) {
+    /* Account for a single value being null, resulting in an ASAN warning. */
+    return false;
   }
   return STREQLEN(a.data(), b.data(), size_t(a.size()));
 }
