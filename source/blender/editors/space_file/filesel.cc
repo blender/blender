@@ -94,7 +94,7 @@ static void fileselect_initialize_params_common(SpaceFile *sfile, FileSelectPara
 static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
 {
   BLI_assert(sfile->browse_mode == FILE_BROWSE_MODE_ASSETS);
-  BLI_assert(sfile->op == NULL);
+  BLI_assert(sfile->op == nullptr);
 
   FileAssetSelectParams *asset_params = sfile->asset_params;
 
@@ -158,11 +158,11 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
   /* set the parameters from the operator, if it exists */
   if (op) {
     PropertyRNA *prop;
-    const bool is_files = (RNA_struct_find_property(op->ptr, "files") != NULL);
-    const bool is_filepath = (RNA_struct_find_property(op->ptr, "filepath") != NULL);
-    const bool is_filename = (RNA_struct_find_property(op->ptr, "filename") != NULL);
-    const bool is_directory = (RNA_struct_find_property(op->ptr, "directory") != NULL);
-    const bool is_relative_path = (RNA_struct_find_property(op->ptr, "relative_path") != NULL);
+    const bool is_files = (RNA_struct_find_property(op->ptr, "files") != nullptr);
+    const bool is_filepath = (RNA_struct_find_property(op->ptr, "filepath") != nullptr);
+    const bool is_filename = (RNA_struct_find_property(op->ptr, "filename") != nullptr);
+    const bool is_directory = (RNA_struct_find_property(op->ptr, "directory") != nullptr);
+    const bool is_relative_path = (RNA_struct_find_property(op->ptr, "relative_path") != nullptr);
 
     BLI_strncpy_utf8(
         params->title, WM_operatortype_name(op->type, op->ptr), sizeof(params->title));
@@ -208,68 +208,69 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
       params->flag |= FILE_DIRSEL_ONLY;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "check_existing"))) {
-      params->flag |= RNA_property_boolean_get(op->ptr, prop) ? FILE_CHECK_EXISTING : 0;
+      params->flag |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_CHECK_EXISTING) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "hide_props_region"))) {
-      params->flag |= RNA_property_boolean_get(op->ptr, prop) ? FILE_HIDE_TOOL_PROPS : 0;
+      params->flag |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_HIDE_TOOL_PROPS) : 0;
     }
 
     params->filter = 0;
     if ((prop = RNA_struct_find_property(op->ptr, "filter_blender"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_BLENDER : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_BLENDER) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_blenlib"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_BLENDERLIB : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_BLENDERLIB) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_backup"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_BLENDER_BACKUP : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_BLENDER_BACKUP) :
+                                                                  0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_image"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_IMAGE : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_IMAGE) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_movie"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_MOVIE : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_MOVIE) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_python"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_PYSCRIPT : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_PYSCRIPT) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_font"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_FTFONT : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_FTFONT) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_sound"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_SOUND : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_SOUND) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_text"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_TEXT : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_TEXT) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_archive"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_ARCHIVE : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_ARCHIVE) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_folder"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_FOLDER : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_FOLDER) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_btx"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_BTX : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_BTX) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_collada"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_COLLADA : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_COLLADA) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_alembic"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_ALEMBIC : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_ALEMBIC) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_usd"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_USD : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_USD) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_obj"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_OBJECT_IO : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_OBJECT_IO) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_volume"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_VOLUME : 0;
+      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_VOLUME) : 0;
     }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_glob"))) {
       /* Protection against Python scripts not setting proper size limit. */
       char *tmp = RNA_property_string_get_alloc(
-          op->ptr, prop, params->filter_glob, sizeof(params->filter_glob), NULL);
+          op->ptr, prop, params->filter_glob, sizeof(params->filter_glob), nullptr);
       if (tmp != params->filter_glob) {
         BLI_strncpy(params->filter_glob, tmp, sizeof(params->filter_glob));
         MEM_freeN(tmp);
@@ -366,14 +367,14 @@ FileSelectParams *ED_fileselect_ensure_active_params(SpaceFile *sfile)
   }
 
   BLI_assert_msg(0, "Invalid browse mode set in file space.");
-  return NULL;
+  return nullptr;
 }
 
 FileSelectParams *ED_fileselect_get_active_params(const SpaceFile *sfile)
 {
   if (!sfile) {
     /* Sometimes called in poll before space type was checked. */
-    return NULL;
+    return nullptr;
   }
 
   switch ((eFileBrowse_Mode)sfile->browse_mode) {
@@ -384,23 +385,23 @@ FileSelectParams *ED_fileselect_get_active_params(const SpaceFile *sfile)
   }
 
   BLI_assert_msg(0, "Invalid browse mode set in file space.");
-  return NULL;
+  return nullptr;
 }
 
 FileSelectParams *ED_fileselect_get_file_params(const SpaceFile *sfile)
 {
-  return (sfile->browse_mode == FILE_BROWSE_MODE_FILES) ? sfile->params : NULL;
+  return (sfile->browse_mode == FILE_BROWSE_MODE_FILES) ? sfile->params : nullptr;
 }
 
 FileAssetSelectParams *ED_fileselect_get_asset_params(const SpaceFile *sfile)
 {
-  return (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) ? sfile->asset_params : NULL;
+  return (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) ? sfile->asset_params : nullptr;
 }
 
 bool ED_fileselect_is_local_asset_library(const SpaceFile *sfile)
 {
   const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
-  if (asset_params == NULL) {
+  if (asset_params == nullptr) {
     return false;
   }
   return asset_params->asset_library_ref.type == ASSET_LIBRARY_LOCAL;
@@ -410,7 +411,7 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
 {
   AssetLibraryReference *library = &asset_params->asset_library_ref;
   FileSelectParams *base_params = &asset_params->base_params;
-  bUserAssetLibrary *user_library = NULL;
+  bUserAssetLibrary *user_library = nullptr;
 
   /* Ensure valid repository, or fall-back to local one. */
   if (library->type == ASSET_LIBRARY_CUSTOM) {
@@ -461,7 +462,7 @@ bool ED_fileselect_is_asset_browser(const SpaceFile *sfile)
 struct AssetLibrary *ED_fileselect_active_asset_library_get(const SpaceFile *sfile)
 {
   if (!ED_fileselect_is_asset_browser(sfile) || !sfile->files) {
-    return NULL;
+    return nullptr;
   }
 
   return filelist_asset_library(sfile->files);
@@ -470,13 +471,13 @@ struct AssetLibrary *ED_fileselect_active_asset_library_get(const SpaceFile *sfi
 struct ID *ED_fileselect_active_asset_get(const SpaceFile *sfile)
 {
   if (!ED_fileselect_is_asset_browser(sfile)) {
-    return NULL;
+    return nullptr;
   }
 
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   const FileDirEntry *file = filelist_file(sfile->files, params->active_file);
-  if (file == NULL) {
-    return NULL;
+  if (file == nullptr) {
+    return nullptr;
   }
 
   return filelist_file_get_id(file);
@@ -491,7 +492,7 @@ void ED_fileselect_activate_asset_catalog(const SpaceFile *sfile, const bUUID ca
   FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
   params->asset_catalog_visibility = FILE_SHOW_ASSETS_FROM_CATALOG;
   params->catalog_id = catalog_id;
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, NULL);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
 }
 
 static void on_reload_activate_by_id(SpaceFile *sfile, onReloadFnData custom_data)
@@ -522,15 +523,15 @@ void ED_fileselect_activate_by_id(SpaceFile *sfile, ID *asset_id, const bool def
 
   const int file_index = filelist_file_find_id(files, asset_id);
   const FileDirEntry *file = filelist_file_ex(files, file_index, true);
-  if (file == NULL) {
+  if (file == nullptr) {
     return;
   }
 
   params->active_file = file_index;
   filelist_entry_select_set(files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
 
-  WM_main_add_notifier(NC_ASSET | NA_ACTIVATED, NULL);
-  WM_main_add_notifier(NC_ASSET | NA_SELECTED, NULL);
+  WM_main_add_notifier(NC_ASSET | NA_ACTIVATED, nullptr);
+  WM_main_add_notifier(NC_ASSET | NA_SELECTED, nullptr);
 }
 
 static void on_reload_select_by_relpath(SpaceFile *sfile, onReloadFnData custom_data)
@@ -545,7 +546,7 @@ void ED_fileselect_activate_by_relpath(SpaceFile *sfile, const char *relative_pa
    * there is a fair chance that the to-be-activated file at relative_path will only be present
    * after these operations have completed. Defer activation until then. */
   struct FileList *files = sfile->files;
-  if (files == NULL || filelist_pending(files) || filelist_needs_force_reset(files)) {
+  if (files == nullptr || filelist_pending(files) || filelist_needs_force_reset(files)) {
     /* Casting away the constness of `relative_path` is safe here, because eventually it just ends
      * up in another call to this function, and then it's a const char* again. */
     file_on_reload_callback_register(sfile, on_reload_select_by_relpath, (char *)relative_path);
@@ -563,13 +564,13 @@ void ED_fileselect_activate_by_relpath(SpaceFile *sfile, const char *relative_pa
       filelist_entry_select_set(files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
     }
   }
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
 }
 
 void ED_fileselect_deselect_all(SpaceFile *sfile)
 {
   file_select_deselect_all(sfile, FILE_SEL_SELECTED);
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
 }
 
 /* The subset of FileSelectParams.flag items we store into preferences. Note that FILE_SORT_ALPHA
@@ -590,7 +591,7 @@ void ED_fileselect_window_params_get(const wmWindow *win, int win_size[2], bool 
 static bool file_select_use_default_display_type(const SpaceFile *sfile)
 {
   PropertyRNA *prop;
-  return (sfile->op == NULL) ||
+  return (sfile->op == nullptr) ||
          !(prop = RNA_struct_find_property(sfile->op->ptr, "display_type")) ||
          (RNA_property_enum_get(sfile->op->ptr, prop) == FILE_DEFAULTDISPLAY);
 }
@@ -598,7 +599,7 @@ static bool file_select_use_default_display_type(const SpaceFile *sfile)
 static bool file_select_use_default_sort_type(const SpaceFile *sfile)
 {
   PropertyRNA *prop;
-  return (sfile->op == NULL) ||
+  return (sfile->op == nullptr) ||
          !(prop = RNA_struct_find_property(sfile->op->ptr, "sort_method")) ||
          (RNA_property_enum_get(sfile->op->ptr, prop) == FILE_SORT_DEFAULT);
 }
@@ -724,7 +725,7 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const rcti *r
   FileSelection sel;
   sel.first = sel.last = -1;
 
-  if (layout == NULL) {
+  if (layout == nullptr) {
     return sel;
   }
 
@@ -772,7 +773,7 @@ int ED_fileselect_layout_offset(FileLayout *layout, int x, int y)
   int offsetx, offsety;
   int active_file;
 
-  if (layout == NULL) {
+  if (layout == nullptr) {
     return -1;
   }
 
@@ -977,12 +978,12 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   /* Request a slightly more compact layout for asset browsing. */
   const bool compact = ED_fileselect_is_asset_browser(sfile);
-  FileLayout *layout = NULL;
+  FileLayout *layout = nullptr;
   View2D *v2d = &region->v2d;
   int numfiles;
   int textheight;
 
-  if (sfile->layout == NULL) {
+  if (sfile->layout == nullptr) {
     sfile->layout = static_cast<struct FileLayout *>(
         MEM_callocN(sizeof(struct FileLayout), "file_layout"));
     sfile->layout->dirty = true;
@@ -1176,7 +1177,7 @@ int autocomplete_directory(struct bContext *C, char *str, void * /*arg_v*/)
     if (dir) {
       AutoComplete *autocpl = UI_autocomplete_begin(str, FILE_MAX);
 
-      while ((de = readdir(dir)) != NULL) {
+      while ((de = readdir(dir)) != nullptr) {
         if (FILENAME_IS_CURRPAR(de->d_name)) {
           /* pass */
         }
@@ -1227,7 +1228,7 @@ int autocomplete_file(struct bContext *C, char *str, void * /*arg_v*/)
 
 void ED_fileselect_clear(wmWindowManager *wm, SpaceFile *sfile)
 {
-  /* only NULL in rare cases - T29734. */
+  /* Only null in rare cases, see: T29734. */
   if (sfile->files) {
     filelist_readjob_stop(sfile->files, wm);
     filelist_freelib(sfile->files);
@@ -1236,7 +1237,7 @@ void ED_fileselect_clear(wmWindowManager *wm, SpaceFile *sfile)
 
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   params->highlight_file = -1;
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, NULL);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
 }
 
 void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile)
@@ -1247,7 +1248,7 @@ void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile)
   if (sfile->op) {
     wmWindow *temp_win = (wm->winactive && WM_window_is_temp_screen(wm->winactive)) ?
                              wm->winactive :
-                             NULL;
+                             nullptr;
     if (temp_win) {
       int win_size[2];
       bool is_maximized;
@@ -1256,11 +1257,11 @@ void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile)
       ED_fileselect_params_to_userdef(sfile, win_size, is_maximized);
     }
     else {
-      ED_fileselect_params_to_userdef(sfile, NULL, false);
+      ED_fileselect_params_to_userdef(sfile, nullptr, false);
     }
 
     WM_event_fileselect_event(wm, sfile->op, EVT_FILESELECT_EXTERNAL_CANCEL);
-    sfile->op = NULL;
+    sfile->op = nullptr;
   }
 
   folder_history_list_free(sfile);
@@ -1269,14 +1270,14 @@ void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile)
     ED_fileselect_clear(wm, sfile);
     filelist_free(sfile->files);
     MEM_freeN(sfile->files);
-    sfile->files = NULL;
+    sfile->files = nullptr;
   }
 }
 
 void file_params_smoothscroll_timer_clear(wmWindowManager *wm, wmWindow *win, SpaceFile *sfile)
 {
   WM_event_remove_timer(wm, win, sfile->smoothscroll_timer);
-  sfile->smoothscroll_timer = NULL;
+  sfile->smoothscroll_timer = nullptr;
 }
 
 void file_params_invoke_rename_postscroll(wmWindowManager *wm, wmWindow *win, SpaceFile *sfile)
@@ -1285,7 +1286,7 @@ void file_params_invoke_rename_postscroll(wmWindowManager *wm, wmWindow *win, Sp
 
   params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_PENDING;
 
-  if (sfile->smoothscroll_timer != NULL) {
+  if (sfile->smoothscroll_timer != nullptr) {
     file_params_smoothscroll_timer_clear(wm, win, sfile);
   }
   sfile->smoothscroll_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 1000.0);
@@ -1312,15 +1313,15 @@ void file_params_rename_end(wmWindowManager *wm,
 void file_params_renamefile_clear(FileSelectParams *params)
 {
   params->renamefile[0] = '\0';
-  params->rename_id = NULL;
+  params->rename_id = nullptr;
   params->rename_flag = 0;
 }
 
 static int file_params_find_renamed(const FileSelectParams *params, struct FileList *filelist)
 {
   /* Find the file either through the local ID/asset it represents or its relative path. */
-  return (params->rename_id != NULL) ? filelist_file_find_id(filelist, params->rename_id) :
-                                       filelist_file_find_path(filelist, params->renamefile);
+  return (params->rename_id != nullptr) ? filelist_file_find_id(filelist, params->rename_id) :
+                                          filelist_file_find_path(filelist, params->renamefile);
 }
 
 void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
@@ -1332,12 +1333,12 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
     return;
   }
 
-  BLI_assert(params->renamefile[0] != '\0' || params->rename_id != NULL);
+  BLI_assert(params->renamefile[0] != '\0' || params->rename_id != nullptr);
 
   int idx = file_params_find_renamed(params, sfile->files);
   if (idx >= 0) {
     FileDirEntry *file = filelist_file(sfile->files, idx);
-    BLI_assert(file != NULL);
+    BLI_assert(file != nullptr);
 
     params->active_file = idx;
     filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
@@ -1380,7 +1381,7 @@ ScrArea *ED_fileselect_handler_area_find(const wmWindow *win, const wmOperator *
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 ScrArea *ED_fileselect_handler_area_find_any_with_op(const wmWindow *win)
@@ -1398,7 +1399,7 @@ ScrArea *ED_fileselect_handler_area_find_any_with_op(const wmWindow *win)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void ED_fileselect_ensure_default_filepath(struct bContext *C,

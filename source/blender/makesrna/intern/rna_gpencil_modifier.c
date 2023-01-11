@@ -946,7 +946,7 @@ static void rna_EnvelopeGpencilModifier_material_set(PointerRNA *ptr,
 
 const EnumPropertyItem *gpencil_build_time_mode_filter(bContext *UNUSED(C),
                                                        PointerRNA *ptr,
-                                                       PropertyRNA *prop,
+                                                       PropertyRNA *UNUSED(prop),
                                                        bool *r_free)
 {
 
