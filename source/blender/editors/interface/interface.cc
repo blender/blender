@@ -1454,63 +1454,87 @@ static bool ui_but_event_property_operator_string(const bContext *C,
     }
   }
 
-  char *data_path = WM_context_path_resolve_property_full(C, ptr, prop, prop_index);
+  /* There may be multiple data-paths to the same properties,
+   * support different variations so key bindings are properly detected no matter which are used.
+   */
+  char *data_path_variations[2] = {nullptr};
+  int data_path_variations_num = 0;
+
+  {
+    char *data_path = WM_context_path_resolve_property_full(C, ptr, prop, prop_index);
+
+    /* Always iterate once, even if data-path isn't set. */
+    data_path_variations[data_path_variations_num++] = data_path;
+
+    if (data_path) {
+      if (STRPREFIX(data_path, "scene.tool_settings.")) {
+        data_path_variations[data_path_variations_num++] = BLI_strdup(data_path + 6);
+      }
+    }
+  }
 
   /* We have a data-path! */
   bool found = false;
-  if (data_path || (prop_enum_value_ok && prop_enum_value_id)) {
-    /* Create a property to host the "data_path" property we're sending to the operators. */
-    IDProperty *prop_path;
 
-    const IDPropertyTemplate group_val = {0};
-    prop_path = IDP_New(IDP_GROUP, &group_val, __func__);
-    if (data_path) {
-      IDP_AddToGroup(prop_path, IDP_NewString(data_path, "data_path", strlen(data_path) + 1));
-    }
-    if (prop_enum_value_ok) {
-      const EnumPropertyItem *item;
-      bool free;
-      RNA_property_enum_items((bContext *)C, ptr, prop, &item, nullptr, &free);
-      const int index = RNA_enum_from_value(item, prop_enum_value);
-      if (index != -1) {
-        IDProperty *prop_value;
-        if (prop_enum_value_is_int) {
-          const int value = item[index].value;
-          IDPropertyTemplate val = {};
-          val.i = value;
-          prop_value = IDP_New(IDP_INT, &val, prop_enum_value_id);
+  for (int data_path_index = 0; data_path_index < data_path_variations_num && (found == false);
+       data_path_index++) {
+    const char *data_path = data_path_variations[data_path_index];
+    if (data_path || (prop_enum_value_ok && prop_enum_value_id)) {
+      /* Create a property to host the "data_path" property we're sending to the operators. */
+      IDProperty *prop_path;
+
+      const IDPropertyTemplate group_val = {0};
+      prop_path = IDP_New(IDP_GROUP, &group_val, __func__);
+      if (data_path) {
+        IDP_AddToGroup(prop_path, IDP_NewString(data_path, "data_path", strlen(data_path) + 1));
+      }
+      if (prop_enum_value_ok) {
+        const EnumPropertyItem *item;
+        bool free;
+        RNA_property_enum_items((bContext *)C, ptr, prop, &item, nullptr, &free);
+        const int index = RNA_enum_from_value(item, prop_enum_value);
+        if (index != -1) {
+          IDProperty *prop_value;
+          if (prop_enum_value_is_int) {
+            const int value = item[index].value;
+            IDPropertyTemplate val = {};
+            val.i = value;
+            prop_value = IDP_New(IDP_INT, &val, prop_enum_value_id);
+          }
+          else {
+            const char *id = item[index].identifier;
+            prop_value = IDP_NewString(id, prop_enum_value_id, strlen(id) + 1);
+          }
+          IDP_AddToGroup(prop_path, prop_value);
         }
         else {
-          const char *id = item[index].identifier;
-          prop_value = IDP_NewString(id, prop_enum_value_id, strlen(id) + 1);
+          opnames_len = 0; /* Do nothing. */
         }
-        IDP_AddToGroup(prop_path, prop_value);
+        if (free) {
+          MEM_freeN((void *)item);
+        }
       }
-      else {
-        opnames_len = 0; /* Do nothing. */
+
+      /* check each until one works... */
+
+      for (int i = 0; (i < opnames_len) && (opnames[i]); i++) {
+        if (WM_key_event_operator_string(
+                C, opnames[i], WM_OP_INVOKE_REGION_WIN, prop_path, false, buf, buf_len)) {
+          found = true;
+          break;
+        }
       }
-      if (free) {
-        MEM_freeN((void *)item);
-      }
+      /* cleanup */
+      IDP_FreeProperty(prop_path);
     }
+  }
 
-    /* check each until one works... */
-
-    for (int i = 0; (i < opnames_len) && (opnames[i]); i++) {
-      if (WM_key_event_operator_string(
-              C, opnames[i], WM_OP_INVOKE_REGION_WIN, prop_path, false, buf, buf_len)) {
-        found = true;
-        break;
-      }
-    }
-
-    /* cleanup */
-    IDP_FreeProperty(prop_path);
+  for (int data_path_index = 0; data_path_index < data_path_variations_num; data_path_index++) {
+    char *data_path = data_path_variations[data_path_index];
     if (data_path) {
       MEM_freeN(data_path);
     }
   }
-
   return found;
 }
 
