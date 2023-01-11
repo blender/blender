@@ -612,9 +612,13 @@ constexpr bool operator==(StringRef a, StringRef b)
      * which would results in an ASAN warning. */
     return true;
   }
-  if (!a.data() || !b.data()) {
-    /* Account for a single value being null, resulting in an ASAN warning. */
-    return false;
+  /* Account for a single value being null, resulting in an ASAN warning.
+   * Ensure an empty string is equal to a string with a null pointer. */
+  if (!a.data()) {
+    return *b.data() == '\0';
+  }
+  if (!b.data()) {
+    return *a.data() == '\0';
   }
   return STREQLEN(a.data(), b.data(), size_t(a.size()));
 }
