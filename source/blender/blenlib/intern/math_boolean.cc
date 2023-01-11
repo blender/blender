@@ -201,7 +201,7 @@ static RobustInitCaller init_caller;
   y = bvirt - b
 
 #define Fast_Two_Diff(a, b, x, y) \
-  x = (double)(a - b); \
+  x = double(a - b); \
   Fast_Two_Diff_Tail(a, b, x, y)
 
 #define Two_Sum_Tail(a, b, x, y) \
@@ -253,7 +253,7 @@ static RobustInitCaller init_caller;
   y = (alo * blo) - err3
 
 #define Two_Product_2Presplit(a, ahi, alo, b, bhi, blo, x, y) \
-  x = (double)(a * b); \
+  x = double(a * b); \
   err1 = x - (ahi * bhi); \
   err2 = err1 - (alo * bhi); \
   err3 = err2 - (ahi * blo); \

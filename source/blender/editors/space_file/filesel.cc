@@ -701,16 +701,16 @@ int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *region)
    */
   if (layout->flag & FILE_LAYOUT_HOR) {
     const int x_item = layout->tile_w + (2 * layout->tile_border_x);
-    const int x_view = (int)BLI_rctf_size_x(&region->v2d.cur);
+    const int x_view = int(BLI_rctf_size_x(&region->v2d.cur));
     const int x_over = x_item - (x_view % x_item);
-    numfiles = (int)((float)(x_view + x_over) / (float)(x_item));
+    numfiles = int(float(x_view + x_over) / float(x_item));
     return numfiles * layout->rows;
   }
 
   const int y_item = layout->tile_h + (2 * layout->tile_border_y);
-  const int y_view = (int)BLI_rctf_size_y(&region->v2d.cur) - layout->offset_top;
+  const int y_view = int(BLI_rctf_size_y(&region->v2d.cur)) - layout->offset_top;
   const int y_over = y_item - (y_view % y_item);
-  numfiles = (int)((float)(y_view + y_over) / (float)(y_item));
+  numfiles = int(float(y_view + y_over) / float(y_item));
   return numfiles * layout->flow_columns;
 }
 
@@ -871,7 +871,7 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
 
   UI_view2d_region_to_view(v2d, x, v2d->mask.ymax - layout->offset_top - 1, &mx, &my);
   offset_tile = ED_fileselect_layout_offset(
-      layout, (int)(v2d->tot.xmin + mx), (int)(v2d->tot.ymax - my));
+      layout, int(v2d->tot.xmin + mx), int(v2d->tot.ymax - my));
   if (offset_tile > -1) {
     int tile_x, tile_y;
     int pos_x = 0;
@@ -939,7 +939,7 @@ static void file_attribute_columns_widths(const FileSelectParams *params, FileLa
                                    pad;
   columns[COLUMN_SIZE].width = file_string_width(small_size ? "98.7 M" : "098.7 MiB") + pad;
   if (params->display == FILE_IMGDISPLAY) {
-    columns[COLUMN_NAME].width = ((float)params->thumbnail_size / 8.0f) * UI_UNIT_X;
+    columns[COLUMN_NAME].width = (float(params->thumbnail_size) / 8.0f) * UI_UNIT_X;
   }
   /* Name column uses remaining width */
   else {
@@ -993,22 +993,22 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
   }
 
   numfiles = filelist_files_ensure(sfile->files);
-  textheight = (int)file_font_pointsize();
+  textheight = int(file_font_pointsize());
   layout = sfile->layout;
   layout->textheight = textheight;
 
   if (params->display == FILE_IMGDISPLAY) {
     const float pad_fac = compact ? 0.15f : 0.3f;
     /* Matches UI_preview_tile_size_x()/_y() by default. */
-    layout->prv_w = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_X;
-    layout->prv_h = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_Y;
+    layout->prv_w = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_X;
+    layout->prv_h = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_Y;
     layout->tile_border_x = pad_fac * UI_UNIT_X;
     layout->tile_border_y = pad_fac * UI_UNIT_X;
     layout->prv_border_x = pad_fac * UI_UNIT_X;
     layout->prv_border_y = pad_fac * UI_UNIT_Y;
     layout->tile_w = layout->prv_w + 2 * layout->prv_border_x;
     layout->tile_h = layout->prv_h + 2 * layout->prv_border_y + textheight;
-    layout->width = (int)(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);
+    layout->width = int(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);
     layout->flow_columns = layout->width / (layout->tile_w + 2 * layout->tile_border_x);
     layout->attribute_column_header_h = 0;
     layout->offset_top = 0;
@@ -1027,17 +1027,17 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
     int rowcount;
 
     /* Matches UI_preview_tile_size_x()/_y() by default. */
-    layout->prv_w = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_X;
-    layout->prv_h = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_Y;
+    layout->prv_w = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_X;
+    layout->prv_h = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_Y;
     layout->tile_border_x = 0.4f * UI_UNIT_X;
     layout->tile_border_y = 0.1f * UI_UNIT_Y;
     layout->tile_h = textheight * 3 / 2;
-    layout->width = (int)(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);
+    layout->width = int(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);
     layout->tile_w = layout->width;
     layout->flow_columns = 1;
     layout->attribute_column_header_h = layout->tile_h * 1.2f + 2 * layout->tile_border_y;
     layout->offset_top = layout->attribute_column_header_h;
-    rowcount = (int)(BLI_rctf_size_y(&v2d->cur) - layout->offset_top - 2 * layout->tile_border_y) /
+    rowcount = int(BLI_rctf_size_y(&v2d->cur) - layout->offset_top - 2 * layout->tile_border_y) /
                (layout->tile_h + 2 * layout->tile_border_y);
     file_attribute_columns_init(params, layout);
 
@@ -1049,14 +1049,14 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
   }
   else if (params->display == FILE_HORIZONTALDISPLAY) {
     /* Matches UI_preview_tile_size_x()/_y() by default. */
-    layout->prv_w = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_X;
-    layout->prv_h = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_Y;
+    layout->prv_w = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_X;
+    layout->prv_h = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_Y;
     layout->tile_border_x = 0.4f * UI_UNIT_X;
     layout->tile_border_y = 0.1f * UI_UNIT_Y;
     layout->tile_h = textheight * 3 / 2;
     layout->attribute_column_header_h = 0;
     layout->offset_top = layout->attribute_column_header_h;
-    layout->height = (int)(BLI_rctf_size_y(&v2d->cur) - 2 * layout->tile_border_y);
+    layout->height = int(BLI_rctf_size_y(&v2d->cur) - 2 * layout->tile_border_y);
     /* Padding by full scroll-bar H is too much, can overlap tile border Y. */
     layout->rows = (layout->height - V2D_SCROLL_HEIGHT + layout->tile_border_y) /
                    (layout->tile_h + 2 * layout->tile_border_y);

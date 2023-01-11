@@ -521,8 +521,8 @@ void BKE_particle_init_rng(void)
   RNG *rng = BLI_rng_new_srandom(5831); /* arbitrary */
   for (int i = 0; i < PSYS_FRAND_COUNT; i++) {
     PSYS_FRAND_BASE[i] = BLI_rng_get_float(rng);
-    PSYS_FRAND_SEED_OFFSET[i] = (uint)BLI_rng_get_int(rng);
-    PSYS_FRAND_SEED_MULTIPLIER[i] = (uint)BLI_rng_get_int(rng);
+    PSYS_FRAND_SEED_OFFSET[i] = uint(BLI_rng_get_int(rng));
+    PSYS_FRAND_SEED_MULTIPLIER[i] = uint(BLI_rng_get_int(rng));
   }
   BLI_rng_free(rng);
 }

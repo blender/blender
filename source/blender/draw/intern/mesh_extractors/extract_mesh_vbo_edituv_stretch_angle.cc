@@ -70,7 +70,7 @@ static void edituv_get_edituv_stretch_angle(float auv[2][2],
 #if 0 /* here for reference, this is done in shader now. */
   float uvang = angle_normalized_v2v2(auv0, auv1);
   float ang = angle_normalized_v3v3(av0, av1);
-  float stretch = fabsf(uvang - ang) / (float)M_PI;
+  float stretch = fabsf(uvang - ang) / float(M_PI);
   return 1.0f - pow2f(1.0f - stretch);
 #endif
 }

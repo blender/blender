@@ -5249,7 +5249,7 @@ void CustomData_debug_info_from_layers(const CustomData *data, const char *inden
       const char *name = CustomData_layertype_name(type);
       const int size = CustomData_sizeof(type);
       const void *pt = CustomData_get_layer(data, type);
-      const int pt_size = pt ? (int)(MEM_allocN_len(pt) / size) : 0;
+      const int pt_size = pt ? int(MEM_allocN_len(pt) / size) : 0;
       const char *structname;
       int structnum;
       CustomData_file_write_info(type, &structname, &structnum);

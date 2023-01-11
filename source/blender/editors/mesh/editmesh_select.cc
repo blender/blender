@@ -266,8 +266,8 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
   uint base_index = 0;
 
   if (!XRAY_FLAG_ENABLED(vc->v3d)) {
-    uint dist_px_manhattan_test = (uint)ED_view3d_backbuf_sample_size_clamp(vc->region,
-                                                                            *dist_px_manhattan_p);
+    uint dist_px_manhattan_test = uint(
+        ED_view3d_backbuf_sample_size_clamp(vc->region, *dist_px_manhattan_p));
     uint index;
     BMVert *eve;
 
@@ -492,8 +492,8 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
   uint base_index = 0;
 
   if (!XRAY_FLAG_ENABLED(vc->v3d)) {
-    uint dist_px_manhattan_test = (uint)ED_view3d_backbuf_sample_size_clamp(vc->region,
-                                                                            *dist_px_manhattan_p);
+    uint dist_px_manhattan_test = uint(
+        ED_view3d_backbuf_sample_size_clamp(vc->region, *dist_px_manhattan_p));
     uint index;
     BMEdge *eed;
 
@@ -713,8 +713,8 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
     {
       uint dist_px_manhattan_test = 0;
       if (*dist_px_manhattan_p != 0.0f && (use_zbuf_single_px == false)) {
-        dist_px_manhattan_test = (uint)ED_view3d_backbuf_sample_size_clamp(vc->region,
-                                                                           *dist_px_manhattan_p);
+        dist_px_manhattan_test = uint(
+            ED_view3d_backbuf_sample_size_clamp(vc->region, *dist_px_manhattan_p));
       }
 
       DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_FACE);
