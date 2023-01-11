@@ -517,8 +517,7 @@ static int customdata_compare(
 {
   CustomDataLayer *l1, *l2;
   int layer_count1 = 0, layer_count2 = 0, j;
-  const uint64_t cd_mask_non_generic = CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_PROP_BYTE_COLOR |
-                                       CD_MASK_MDEFORMVERT;
+  const uint64_t cd_mask_non_generic = CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_MDEFORMVERT;
   const uint64_t cd_mask_all_attr = CD_MASK_PROP_ALL | cd_mask_non_generic;
   const Span<MLoop> loops_1 = m1->loops();
   const Span<MLoop> loops_2 = m2->loops();
