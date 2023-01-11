@@ -821,8 +821,6 @@ bool RNA_struct_override_matches(Main *bmain,
             /* This property should be restored to its reference value. This should not be done
              * here, since this code may be called from non-main thread (modifying data through RNA
              * is not thread safe). */
-            BLI_assert(op == NULL); /* Forbidden override prop should not exist currently. */
-
             if (do_restore) {
               IDOverrideLibraryPropertyOperation opop_tmp = {
                   .operation = IDOVERRIDE_LIBRARY_OP_REPLACE,
@@ -850,10 +848,14 @@ bool RNA_struct_override_matches(Main *bmain,
                 op = BKE_lib_override_library_property_get(override, rna_path, NULL);
                 BKE_lib_override_library_operations_tag(op, IDOVERRIDE_LIBRARY_TAG_UNUSED, true);
               }
-              BKE_lib_override_library_property_operation_get(
-                  op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, false, NULL, NULL);
-              BKE_lib_override_library_operations_tag(
-                  op, IDOVERRIDE_LIBRARY_PROPERTY_TAG_NEEDS_RETORE, true);
+              IDOverrideLibraryPropertyOperation *opop_restore =
+                  BKE_lib_override_library_property_operation_get(
+                      op, IDOVERRIDE_LIBRARY_OP_REPLACE, NULL, NULL, -1, -1, false, NULL, NULL);
+              /* Do not use `BKE_lib_override_library_operations_tag` here, as the property may be
+               * a valid one that has other operations that needs to remain (e.g. from a template,
+               * a NOOP operation to enforce no change on that property, etc.). */
+              op->tag |= IDOVERRIDE_LIBRARY_PROPERTY_TAG_NEEDS_RETORE;
+              opop_restore->tag |= IDOVERRIDE_LIBRARY_PROPERTY_TAG_NEEDS_RETORE;
               override->runtime->tag |= IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RESTORE;
 
               if (r_report_flags) {
@@ -1153,6 +1155,10 @@ static void rna_property_override_apply_ex(Main *bmain,
                                            const bool do_insert)
 {
   LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+    if (opop->operation == IDOVERRIDE_LIBRARY_OP_NOOP) {
+      continue;
+    }
+
     if (!do_insert != !ELEM(opop->operation,
                             IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
                             IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE)) {

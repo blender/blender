@@ -3394,7 +3394,18 @@ void BKE_lib_override_library_operations_restore(Main *bmain, ID *local, int *r_
   LISTBASE_FOREACH_MUTABLE (
       IDOverrideLibraryProperty *, op, &local->override_library->properties) {
     if (op->tag & IDOVERRIDE_LIBRARY_PROPERTY_TAG_NEEDS_RETORE) {
-      BKE_lib_override_library_property_delete(local->override_library, op);
+      LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+        if (opop->tag & IDOVERRIDE_LIBRARY_PROPERTY_TAG_NEEDS_RETORE) {
+          BKE_lib_override_library_property_operation_delete(op, opop);
+        }
+      }
+      if (BLI_listbase_is_empty(&local->override_library->properties)) {
+        BKE_lib_override_library_property_delete(local->override_library, op);
+      }
+      else {
+        BKE_lib_override_library_operations_tag(
+            op, IDOVERRIDE_LIBRARY_PROPERTY_TAG_NEEDS_RETORE, false);
+      }
     }
   }
   local->override_library->runtime->tag &= ~IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RESTORE;
