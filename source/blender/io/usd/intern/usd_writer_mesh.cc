@@ -9,8 +9,8 @@
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
 #include "BLI_assert.h"
-#include "BLI_math_vector_types.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
