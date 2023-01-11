@@ -27,64 +27,64 @@
 #include "transform_mode.h"
 
 /* -------------------------------------------------------------------- */
-/** \name Transform (Crease) Element
+/** \name Transform Element
  * \{ */
 
 /**
  * \note Small arrays / data-structures should be stored copied for faster memory access.
  */
-struct TransDataArgs_Crease {
+struct TransDataArgs_Value {
   const TransInfo *t;
   const TransDataContainer *tc;
-  float crease;
+  float value;
 };
 
-static void transdata_elem_crease(const TransInfo *UNUSED(t),
-                                  const TransDataContainer *UNUSED(tc),
-                                  TransData *td,
-                                  const float crease)
+static void transdata_elem_value(const TransInfo *UNUSED(t),
+                                 const TransDataContainer *UNUSED(tc),
+                                 TransData *td,
+                                 const float value)
 {
   if (td->val == NULL) {
     return;
   }
 
-  *td->val = td->ival + crease * td->factor;
+  *td->val = td->ival + value * td->factor;
   CLAMP(*td->val, 0.0f, 1.0f);
 }
 
-static void transdata_elem_crease_fn(void *__restrict iter_data_v,
-                                     const int iter,
-                                     const TaskParallelTLS *__restrict UNUSED(tls))
+static void transdata_elem_value_fn(void *__restrict iter_data_v,
+                                    const int iter,
+                                    const TaskParallelTLS *__restrict UNUSED(tls))
 {
-  struct TransDataArgs_Crease *data = iter_data_v;
+  struct TransDataArgs_Value *data = iter_data_v;
   TransData *td = &data->tc->data[iter];
   if (td->flag & TD_SKIP) {
     return;
   }
-  transdata_elem_crease(data->t, data->tc, td, data->crease);
+  transdata_elem_value(data->t, data->tc, td, data->value);
 }
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Transform (Crease)
+/** \name Transform Value
  * \{ */
 
-static void applyCrease(TransInfo *t, const int UNUSED(mval[2]))
+static void apply_value_impl(TransInfo *t, const char *value_name)
 {
-  float crease;
+  float value;
   int i;
   char str[UI_MAX_DRAW_STR];
 
-  crease = t->values[0] + t->values_modal_offset[0];
+  value = t->values[0] + t->values_modal_offset[0];
 
-  CLAMP_MAX(crease, 1.0f);
+  CLAMP_MAX(value, 1.0f);
 
-  transform_snap_increment(t, &crease);
+  transform_snap_increment(t, &value);
 
-  applyNumInput(&t->num, &crease);
+  applyNumInput(&t->num, &value);
 
-  t->values_final[0] = crease;
+  t->values_final[0] = value;
 
   /* header print for NumInput */
   if (hasNumInput(&t->num)) {
@@ -92,20 +92,20 @@ static void applyCrease(TransInfo *t, const int UNUSED(mval[2]))
 
     outputNumInput(&(t->num), c, &t->scene->unit);
 
-    if (crease >= 0.0f) {
-      BLI_snprintf(str, sizeof(str), TIP_("Crease: +%s %s"), c, t->proptext);
+    if (value >= 0.0f) {
+      BLI_snprintf(str, sizeof(str), "%s: +%s %s", value_name, c, t->proptext);
     }
     else {
-      BLI_snprintf(str, sizeof(str), TIP_("Crease: %s %s"), c, t->proptext);
+      BLI_snprintf(str, sizeof(str), "%s: %s %s", value_name, c, t->proptext);
     }
   }
   else {
     /* default header print */
-    if (crease >= 0.0f) {
-      BLI_snprintf(str, sizeof(str), TIP_("Crease: +%.3f %s"), crease, t->proptext);
+    if (value >= 0.0f) {
+      BLI_snprintf(str, sizeof(str), "%s: +%.3f %s", value_name, value, t->proptext);
     }
     else {
-      BLI_snprintf(str, sizeof(str), TIP_("Crease: %.3f %s"), crease, t->proptext);
+      BLI_snprintf(str, sizeof(str), "%s: %.3f %s", value_name, value, t->proptext);
     }
   }
 
@@ -116,18 +116,18 @@ static void applyCrease(TransInfo *t, const int UNUSED(mval[2]))
         if (td->flag & TD_SKIP) {
           continue;
         }
-        transdata_elem_crease(t, tc, td, crease);
+        transdata_elem_value(t, tc, td, value);
       }
     }
     else {
-      struct TransDataArgs_Crease data = {
+      struct TransDataArgs_Value data = {
           .t = t,
           .tc = tc,
-          .crease = crease,
+          .value = value,
       };
       TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
-      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_crease_fn, &settings);
+      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_value_fn, &settings);
     }
   }
 
@@ -136,11 +136,18 @@ static void applyCrease(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-static void initCrease_ex(TransInfo *t, int mode)
+static void applyCrease(TransInfo *t, const int UNUSED(mval[2]))
 {
-  t->mode = mode;
-  t->transform = applyCrease;
+  apply_value_impl(t, TIP_("Crease"));
+}
 
+static void applyBevelWeight(TransInfo *t, const int UNUSED(mval[2]))
+{
+  apply_value_impl(t, TIP_("Bevel Weight"));
+}
+
+static void init_mode_impl(TransInfo *t)
+{
   initMouseInputMode(t, &t->mouse, INPUT_SPRING_DELTA);
 
   t->idx_max = 0;
@@ -157,11 +164,23 @@ static void initCrease_ex(TransInfo *t, int mode)
 
 void initEgdeCrease(TransInfo *t)
 {
-  initCrease_ex(t, TFM_EDGE_CREASE);
+  init_mode_impl(t);
+  t->mode = TFM_EDGE_CREASE;
+  t->transform = applyCrease;
 }
 
 void initVertCrease(TransInfo *t)
 {
-  initCrease_ex(t, TFM_VERT_CREASE);
+  init_mode_impl(t);
+  t->mode = TFM_VERT_CREASE;
+  t->transform = applyCrease;
 }
+
+void initBevelWeight(TransInfo *t)
+{
+  init_mode_impl(t);
+  t->mode = TFM_BWEIGHT;
+  t->transform = applyBevelWeight;
+}
+
 /** \} */
