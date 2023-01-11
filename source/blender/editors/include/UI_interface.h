@@ -79,7 +79,11 @@ typedef struct uiViewItemHandle uiViewItemHandle;
 
 /* Defines */
 
-/* char for splitting strings, aligning shortcuts in menus, users never see */
+/**
+ * Character used for splitting labels (right align text after this character).
+ * Users should never see this character.
+ * Only applied when #UI_BUT_HAS_SEP_CHAR flag is enabled, see it's doc-string for details.
+ */
 #define UI_SEP_CHAR '|'
 #define UI_SEP_CHAR_S "|"
 
@@ -220,7 +224,12 @@ enum {
   /** Use for popups to start editing the button on initialization. */
   UI_BUT_ACTIVATE_ON_INIT = 1 << 26,
 
-  /** #uiBut.str contains #UI_SEP_CHAR, used for key shortcuts */
+  /**
+   * #uiBut.str contains #UI_SEP_CHAR, used to show key-shortcuts right aligned.
+   *
+   * Since a label may contain #UI_SEP_CHAR, it's important to split on the last occurrence
+   * (meaning the right aligned text can't contain this character).
+   */
   UI_BUT_HAS_SEP_CHAR = 1 << 27,
   /** Don't run updates while dragging (needed in rare cases). */
   UI_BUT_UPDATE_DELAY = 1 << 28,
