@@ -959,7 +959,7 @@ const EnumPropertyItem *gpencil_build_time_mode_filter(bContext *UNUSED(C),
 
   for (const EnumPropertyItem *item = gpencil_build_time_mode_items; item->identifier != NULL;
        item++) {
-    if (is_concurrent && item->identifier == "DRAWSPEED") {
+    if (is_concurrent && (item->value == GP_BUILD_TIMEMODE_DRAWSPEED)) {
       continue;
     }
     RNA_enum_item_add(&item_list, &totitem, item);
