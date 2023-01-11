@@ -1197,6 +1197,9 @@ int WM_keymap_item_raw_to_string(const short shift,
     if (val == KM_DBL_CLICK) {
       p += BLI_strcpy_rlen(p, IFACE_("dbl-"));
     }
+    else if (val == KM_CLICK_DRAG) {
+      p += BLI_strcpy_rlen(p, IFACE_("drag-"));
+    }
     p += BLI_strcpy_rlen(p, WM_key_event_string(type, compact));
   }
 
