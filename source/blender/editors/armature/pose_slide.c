@@ -521,24 +521,75 @@ static void pose_slide_apply_props(tPoseSlideOp *pso,
         switch (RNA_property_type(prop)) {
           /* Continuous values that can be smoothly interpolated. */
           case PROP_FLOAT: {
-            float tval = RNA_property_float_get(&ptr, prop);
+            const bool is_array = RNA_property_array_check(prop);
+            float tval;
+            if (is_array) {
+              if (UNLIKELY((uint)fcu->array_index >= RNA_property_array_length(&ptr, prop))) {
+                break; /* Out of range, skip. */
+              }
+              tval = RNA_property_float_get_index(&ptr, prop, fcu->array_index);
+            }
+            else {
+              tval = RNA_property_float_get(&ptr, prop);
+            }
+
             pose_slide_apply_val(pso, fcu, pfl->ob, &tval);
-            RNA_property_float_set(&ptr, prop, tval);
+
+            if (is_array) {
+              RNA_property_float_set_index(&ptr, prop, fcu->array_index, tval);
+            }
+            else {
+              RNA_property_float_set(&ptr, prop, tval);
+            }
             break;
           }
           case PROP_INT: {
-            float tval = (float)RNA_property_int_get(&ptr, prop);
+            const bool is_array = RNA_property_array_check(prop);
+            float tval;
+            if (is_array) {
+              if (UNLIKELY((uint)fcu->array_index >= RNA_property_array_length(&ptr, prop))) {
+                break; /* Out of range, skip. */
+              }
+              tval = RNA_property_int_get_index(&ptr, prop, fcu->array_index);
+            }
+            else {
+              tval = RNA_property_int_get(&ptr, prop);
+            }
+
             pose_slide_apply_val(pso, fcu, pfl->ob, &tval);
-            RNA_property_int_set(&ptr, prop, (int)tval);
+
+            if (is_array) {
+              RNA_property_int_set_index(&ptr, prop, fcu->array_index, tval);
+            }
+            else {
+              RNA_property_int_set(&ptr, prop, tval);
+            }
             break;
           }
 
           /* Values which can only take discrete values. */
           case PROP_BOOLEAN: {
-            float tval = (float)RNA_property_boolean_get(&ptr, prop);
+            const bool is_array = RNA_property_array_check(prop);
+            float tval;
+            if (is_array) {
+              if (UNLIKELY((uint)fcu->array_index >= RNA_property_array_length(&ptr, prop))) {
+                break; /* Out of range, skip. */
+              }
+              tval = RNA_property_boolean_get_index(&ptr, prop, fcu->array_index);
+            }
+            else {
+              tval = RNA_property_boolean_get(&ptr, prop);
+            }
+
             pose_slide_apply_val(pso, fcu, pfl->ob, &tval);
-            RNA_property_boolean_set(
-                &ptr, prop, (int)tval); /* XXX: do we need threshold clamping here? */
+
+            /* XXX: do we need threshold clamping here? */
+            if (is_array) {
+              RNA_property_boolean_set_index(&ptr, prop, fcu->array_index, tval);
+            }
+            else {
+              RNA_property_boolean_set(&ptr, prop, tval);
+            }
             break;
           }
           case PROP_ENUM: {
