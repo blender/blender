@@ -103,8 +103,8 @@ static void createTransEdge(bContext *UNUSED(C), TransInfo *t)
         td->ext = NULL;
 
         fl_ptr = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_float_offset);
-        td->loc = fl_ptr;
-        td->iloc[0] = *fl_ptr;
+        td->val = fl_ptr;
+        td->ival = *fl_ptr;
 
         td++;
       }
