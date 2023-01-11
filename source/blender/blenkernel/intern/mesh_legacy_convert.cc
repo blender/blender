@@ -1519,7 +1519,7 @@ void BKE_mesh_legacy_convert_mpoly_to_material_indices(Mesh *mesh)
 void BKE_mesh_legacy_convert_uvs_to_struct(
     Mesh *mesh,
     blender::ResourceScope &temp_mloopuv_for_convert,
-    blender::Vector<CustomDataLayer, 16> &face_corner_layers_to_write)
+    blender::Vector<CustomDataLayer, 16> &loop_layers_to_write)
 {
   using namespace blender;
   using namespace blender::bke;
@@ -1531,13 +1531,13 @@ void BKE_mesh_legacy_convert_uvs_to_struct(
   char vert_name[MAX_CUSTOMDATA_LAYER_NAME];
   char edge_name[MAX_CUSTOMDATA_LAYER_NAME];
   char pin_name[MAX_CUSTOMDATA_LAYER_NAME];
-  for (const CustomDataLayer &layer : face_corner_layers_to_write) {
+  for (const CustomDataLayer &layer : loop_layers_to_write) {
     uv_sublayers_to_skip.add_multiple_new({BKE_uv_map_vert_select_name_get(layer.name, vert_name),
                                            BKE_uv_map_edge_select_name_get(layer.name, edge_name),
                                            BKE_uv_map_pin_name_get(layer.name, pin_name)});
   }
 
-  for (const CustomDataLayer &layer : face_corner_layers_to_write) {
+  for (const CustomDataLayer &layer : loop_layers_to_write) {
     if (uv_sublayers_to_skip.contains_as(layer.name)) {
       continue;
     }
@@ -1571,7 +1571,7 @@ void BKE_mesh_legacy_convert_uvs_to_struct(
     new_layer_to_write.append(mloopuv_layer);
   }
 
-  face_corner_layers_to_write = new_layer_to_write;
+  loop_layers_to_write = new_layer_to_write;
   mesh->ldata.totlayer = new_layer_to_write.size();
   mesh->ldata.maxlayer = mesh->ldata.totlayer;
 }
