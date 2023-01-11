@@ -1532,13 +1532,16 @@ void BKE_mesh_legacy_convert_uvs_to_struct(
   char edge_name[MAX_CUSTOMDATA_LAYER_NAME];
   char pin_name[MAX_CUSTOMDATA_LAYER_NAME];
   for (const CustomDataLayer &layer : loop_layers_to_write) {
-    uv_sublayers_to_skip.add_multiple_new({BKE_uv_map_vert_select_name_get(layer.name, vert_name),
-                                           BKE_uv_map_edge_select_name_get(layer.name, edge_name),
-                                           BKE_uv_map_pin_name_get(layer.name, pin_name)});
+    if (layer.type == CD_PROP_FLOAT2) {
+      uv_sublayers_to_skip.add_multiple_new(
+          {BKE_uv_map_vert_select_name_get(layer.name, vert_name),
+           BKE_uv_map_edge_select_name_get(layer.name, edge_name),
+           BKE_uv_map_pin_name_get(layer.name, pin_name)});
+    }
   }
 
   for (const CustomDataLayer &layer : loop_layers_to_write) {
-    if (uv_sublayers_to_skip.contains_as(layer.name)) {
+    if (layer.name[0] && uv_sublayers_to_skip.contains_as(layer.name)) {
       continue;
     }
     if (layer.type != CD_PROP_FLOAT2) {
