@@ -17,12 +17,12 @@ void write_vertices(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData
   for (int i = 0; i < plyData->vertices.size(); i++) {
     buffer->write_vertex(plyData->vertices[i].x, plyData->vertices[i].y, plyData->vertices[i].z);
 
-    if (plyData->vertex_normals.size() > 0)
+    if (!plyData->vertex_normals.is_empty())
       buffer->write_vertex_normal(plyData->vertex_normals[i].x,
                                   plyData->vertex_normals[i].y,
                                   plyData->vertex_normals[i].z);
 
-    if (plyData->vertex_colors.size() > 0)
+    if (!plyData->vertex_colors.is_empty())
       buffer->write_vertex_color(uchar(plyData->vertex_colors[i].x * 255),
                                  uchar(plyData->vertex_colors[i].y * 255),
                                  uchar(plyData->vertex_colors[i].z * 255),

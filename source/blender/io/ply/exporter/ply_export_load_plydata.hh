@@ -55,12 +55,10 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     }
 
     // Colors
-    if (export_params.export_colors) {
-      if (CustomData_has_layer(&mesh->vdata, CD_PROP_COLOR)) {
-        float4 *colors = (float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
-        for (int i = 0; i < mesh->totvert; i++) {
-          plyData.vertex_colors.append(colors[i]);
-        }
+    if (export_params.export_colors && CustomData_has_layer(&mesh->vdata, CD_PROP_COLOR)) {
+      const float4 *colors = (float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
+      for (int i = 0; i < mesh->totvert; i++) {
+        plyData.vertex_colors.append(colors[i]);
       }
     }
 
