@@ -815,15 +815,15 @@ static void transdata_restore_basic(TransDataBasic *td_basic)
   if (td_basic->loc) {
     copy_v3_v3(td_basic->loc, td_basic->iloc);
   }
+
+  if (td_basic->val && td_basic->val != td_basic->loc) {
+    *td_basic->val = td_basic->ival;
+  }
 }
 
 static void restoreElement(TransData *td)
 {
   transdata_restore_basic((TransDataBasic *)td);
-
-  if (td->val && td->val != td->loc) {
-    *td->val = td->ival;
-  }
 
   if (td->ext && (td->flag & TD_NO_EXT) == 0) {
     if (td->ext->rot) {

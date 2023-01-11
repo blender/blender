@@ -44,11 +44,11 @@ static void transdata_elem_bevel_weight(const TransInfo *UNUSED(t),
                                         TransData *td,
                                         const float weight)
 {
-  if (td->loc == NULL) {
+  if (td->val == NULL) {
     return;
   }
-  *td->loc = td->iloc[0] + weight * td->factor;
-  CLAMP(*td->loc, 0.0f, 1.0f);
+  *td->val = td->ival + weight * td->factor;
+  CLAMP(*td->val, 0.0f, 1.0f);
 }
 
 static void transdata_elem_bevel_weight_fn(void *__restrict iter_data_v,
