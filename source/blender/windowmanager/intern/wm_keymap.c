@@ -25,6 +25,8 @@
 
 #include "BLF_api.h"
 
+#include "UI_interface.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -1656,6 +1658,11 @@ char *WM_key_event_operator_string(const bContext *C,
                                           NULL);
   if (kmi) {
     WM_keymap_item_to_string(kmi, false, result, result_len);
+    return result;
+  }
+
+  /* Check UI state (non key-map actions for UI regions). */
+  if (UI_key_event_operator_string(C, opname, properties, is_strict, result, result_len)) {
     return result;
   }
 

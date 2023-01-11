@@ -3130,6 +3130,20 @@ void UI_butstore_register(uiButStore *bs_handle, uiBut **but_p);
 bool UI_butstore_register_update(uiBlock *block, uiBut *but_dst, const uiBut *but_src);
 void UI_butstore_unregister(uiButStore *bs_handle, uiBut **but_p);
 
+/**
+ * A version of #WM_key_event_operator_string that's limited to UI elements.
+ *
+ * This supports showing shortcuts in context-menus (for example),
+ * for actions that can also be activated using shortcuts while the cursor is over the button.
+ * Without this those shortcuts aren't discoverable for users.
+ */
+const char *UI_key_event_operator_string(const struct bContext *C,
+                                         const char *opname,
+                                         IDProperty *properties,
+                                         const bool is_strict,
+                                         char *result,
+                                         const int result_len);
+
 /* ui_interface_region_tooltip.c */
 
 /**
