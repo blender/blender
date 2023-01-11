@@ -242,6 +242,10 @@ static void snap_cursor_free(SnapGizmo3D *snap_gizmo)
 static bool snap_cursor_poll(ARegion *region, void *data)
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)data;
+  if (!(snap_gizmo->gizmo.state & WM_GIZMO_STATE_HIGHLIGHT)) {
+    return false;
+  }
+
   if (snap_gizmo->gizmo.flag & WM_GIZMO_HIDDEN) {
     snap_cursor_free(snap_gizmo);
     return false;
