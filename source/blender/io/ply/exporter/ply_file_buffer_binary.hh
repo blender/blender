@@ -57,14 +57,14 @@ class FileBufferBinary : public FileBuffer {
 
   void write_edge(int first, int second) override
   {
-    std::vector<char> first_char;
-    std::vector<char> second_char;
 
-    first_char.insert(first_char.end(), char(first));
-    second_char.insert(second_char.end(), char(second));
+    auto *fbits = reinterpret_cast<char *>(&first);
+    auto *sbits = reinterpret_cast<char *>(&second);
 
-    write_bytes(first_char);
-    write_bytes(second_char);
+    std::vector<char> data(fbits, fbits + sizeof(char));
+    data.insert(data.end(), sbits, sbits +sizeof(char));
+
+    write_bytes(data);
 
   }
 };
