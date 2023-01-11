@@ -66,10 +66,10 @@ class FileBufferBinary : public FileBuffer {
     auto *bbits = reinterpret_cast<char *>(&b);
     auto *abits = reinterpret_cast<char *>(&a);
 
-    std::vector<char> data(rbits, rbits + sizeof(float));
-    data.insert(data.end(), gbits, gbits + sizeof(float));
-    data.insert(data.end(), bbits, bbits + sizeof(float));
-    data.insert(data.end(), abits, abits + sizeof(float));
+    std::vector<char> data(rbits, rbits + sizeof(char));
+    data.insert(data.end(), gbits, gbits + sizeof(char));
+    data.insert(data.end(), bbits, bbits + sizeof(char));
+    data.insert(data.end(), abits, abits + sizeof(char));
 
     write_bytes(data);
 
