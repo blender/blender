@@ -60,7 +60,6 @@ class FileBufferBinary : public FileBuffer {
 
   void write_vertex_color(uchar r, uchar g, uchar b, uchar a) override
   {
-
     char *rbits = reinterpret_cast<char *>(&r);
     char *gbits = reinterpret_cast<char *>(&g);
     char *bbits = reinterpret_cast<char *>(&b);
@@ -72,7 +71,6 @@ class FileBufferBinary : public FileBuffer {
     data.insert(data.end(), abits, abits + sizeof(char));
 
     write_bytes(data);
-
   }
 
   void write_vertex_end() override

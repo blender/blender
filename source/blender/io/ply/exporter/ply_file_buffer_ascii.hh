@@ -40,7 +40,7 @@ class FileBufferAscii : public FileBuffer {
 
   void write_vertex_color(uchar r, uchar g, uchar b, uchar a) override
   {
-    write_fstring(" {} {} {} {}", r, g, b,a);
+    write_fstring(" {} {} {} {}", r, g, b, a);
   }
 
   void write_vertex_end() override
