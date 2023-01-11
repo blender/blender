@@ -320,7 +320,6 @@ typedef struct V3DSnapCursorState {
   uchar color_line[4];
   uchar color_point[4];
   uchar color_box[4];
-  struct wmGizmoGroupType *gzgrp_type; /* Force cursor to be drawn only when gizmo is available. */
   float *prevpoint;
   float box_dimensions[3];
   eSnapMode snap_elem_force; /* If SCE_SNAP_MODE_NONE, use scene settings. */
@@ -329,6 +328,9 @@ typedef struct V3DSnapCursorState {
   bool draw_point;
   bool draw_plane;
   bool draw_box;
+
+  bool (*poll)(struct ARegion *region, void *custom_poll_data);
+  void *poll_data;
 } V3DSnapCursorState;
 
 void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state);

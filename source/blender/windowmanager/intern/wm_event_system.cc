@@ -3573,10 +3573,10 @@ static ARegion *region_event_inside(bContext *C, const int xy[2])
   return nullptr;
 }
 
-static void wm_paintcursor_tag(bContext *C, wmPaintCursor *pc, ARegion *region)
+static void wm_paintcursor_tag(bContext *C, wmWindowManager *wm, ARegion *region)
 {
   if (region) {
-    for (; pc; pc = pc->next) {
+    LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->paintcursors) {
       if (pc->poll == nullptr || pc->poll(C)) {
         wmWindow *win = CTX_wm_window(C);
         WM_paint_cursor_tag_redraw(win, region);
@@ -3598,7 +3598,7 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
     ARegion *region = CTX_wm_region(C);
 
     if (region) {
-      wm_paintcursor_tag(C, static_cast<wmPaintCursor *>(wm->paintcursors.first), region);
+      wm_paintcursor_tag(C, wm, region);
     }
 
     /* If previous position was not in current region, we have to set a temp new context. */
@@ -3608,8 +3608,7 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
       CTX_wm_area_set(C, area_event_inside(C, event->prev_xy));
       CTX_wm_region_set(C, region_event_inside(C, event->prev_xy));
 
-      wm_paintcursor_tag(
-          C, static_cast<wmPaintCursor *>(wm->paintcursors.first), CTX_wm_region(C));
+      wm_paintcursor_tag(C, wm, CTX_wm_region(C));
 
       CTX_wm_area_set(C, area);
       CTX_wm_region_set(C, region);

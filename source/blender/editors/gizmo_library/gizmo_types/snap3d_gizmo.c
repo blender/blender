@@ -227,23 +227,64 @@ static void gizmo_snap_rna_snap_elem_index_get_fn(struct PointerRNA *UNUSED(ptr)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Snap Cursor Utils
+ * \{ */
+
+static void snap_cursor_free(SnapGizmo3D *snap_gizmo)
+{
+  if (snap_gizmo->snap_state) {
+    ED_view3d_cursor_snap_deactive(snap_gizmo->snap_state);
+    snap_gizmo->snap_state = NULL;
+  }
+}
+
+/* XXX: Delayed snap cursor removal. */
+static bool snap_cursor_poll(ARegion *region, void *data)
+{
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)data;
+  if (snap_gizmo->gizmo.flag & WM_GIZMO_HIDDEN) {
+    snap_cursor_free(snap_gizmo);
+    return false;
+  }
+
+  if (!WM_gizmomap_group_find_ptr(region->gizmo_map, snap_gizmo->gizmo.parent_gzgroup->type)) {
+    /* Wrong viewport. */
+    snap_cursor_free(snap_gizmo);
+    return false;
+  }
+  return true;
+}
+
+static void snap_cursor_init(SnapGizmo3D *snap_gizmo)
+{
+  snap_gizmo->snap_state = ED_view3d_cursor_snap_active();
+  snap_gizmo->snap_state->draw_point = true;
+  snap_gizmo->snap_state->draw_plane = false;
+
+  rgba_float_to_uchar(snap_gizmo->snap_state->color_point, snap_gizmo->gizmo.color);
+
+  snap_gizmo->snap_state->poll = snap_cursor_poll;
+  snap_gizmo->snap_state->poll_data = snap_gizmo;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name GIZMO_GT_snap_3d
  * \{ */
 
 static void snap_gizmo_setup(wmGizmo *gz)
 {
   gz->flag |= WM_GIZMO_NO_TOOLTIP;
-  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  snap_gizmo->snap_state = ED_view3d_cursor_snap_active();
-  snap_gizmo->snap_state->gzgrp_type = gz->parent_gzgroup->type;
-  snap_gizmo->snap_state->draw_point = true;
-  snap_gizmo->snap_state->draw_plane = false;
-
-  rgba_float_to_uchar(snap_gizmo->snap_state->color_point, gz->color);
+  snap_cursor_init((SnapGizmo3D *)gz);
 }
 
-static void snap_gizmo_draw(const bContext *UNUSED(C), wmGizmo *UNUSED(gz))
+static void snap_gizmo_draw(const bContext *UNUSED(C), wmGizmo *gz)
 {
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  if (snap_gizmo->snap_state == NULL) {
+    snap_cursor_init(snap_gizmo);
+  }
   /* All drawing is handled at the paint cursor. */
 }
 
@@ -292,10 +333,7 @@ static int snap_gizmo_invoke(bContext *UNUSED(C),
 
 static void snap_gizmo_free(wmGizmo *gz)
 {
-  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  if (snap_gizmo->snap_state) {
-    ED_view3d_cursor_snap_deactive(snap_gizmo->snap_state);
-  }
+  snap_cursor_free((SnapGizmo3D *)gz);
 }
 
 static void GIZMO_GT_snap_3d(wmGizmoType *gzt)
