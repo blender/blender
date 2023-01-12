@@ -289,6 +289,9 @@ static void build_sequential(Object *ob,
     if (start_stroke <= tot_strokes) {
       tot_strokes = tot_strokes - start_stroke;
     }
+    else {
+      start_stroke = 0;
+    }
   }
 
   /* 2) Compute proportion of time each stroke should occupy. */
