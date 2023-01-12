@@ -51,7 +51,7 @@ struct PaintGeometryPrimitives {
 
   int64_t mem_size() const
   {
-    return size() * sizeof(int3);
+    return this->vert_indices.as_span().size_in_bytes();
   }
 };
 
