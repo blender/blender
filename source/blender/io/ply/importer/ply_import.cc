@@ -156,7 +156,7 @@ void importer_main(Main *bmain,
     else if (words[0] == "end_header") {
       break;
     }
-    else if ((words[0][0] >= '0' && words[0][0] <= '9') || words[0][0] == '-') {
+    else if ((words[0][0] >= '0' && words[0][0] <= '9') || words[0][0] == '-' || line.empty() || infile.eof()) {
       /* A value was found before we broke out of the loop. No end_header */
       fprintf(stderr, "PLY Importer: failed to read file. No end_header.\n");
       return;
