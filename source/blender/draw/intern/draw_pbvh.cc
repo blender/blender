@@ -721,6 +721,16 @@ struct PBVHBatches {
           });
         }
         break;
+      case CD_PROP_FLOAT2: {
+        float2 *mloopuv = static_cast<float2 *>(
+            CustomData_get_layer_named(args->ldata, CD_PROP_FLOAT2, vbo.name.c_str()));
+
+        foreach_faces([&](int /*buffer_i*/, int tri_i, int /*vertex_i*/, const MLoopTri *tri) {
+          *static_cast<float2 *>(GPU_vertbuf_raw_step(&access)) = mloopuv[tri->tri[tri_i]];
+        });
+        break;
+      }
+
     }
   }
 
