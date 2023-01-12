@@ -31,10 +31,10 @@ static void uv_primitive_append_to_uv_vertices(UVPrimitive &uv_primitive)
 /** \name Mesh Primitives
  * \{ */
 
-int primitive_get_other_uv_vertex(const MeshData &mesh_data,
-                                  const MLoopTri &looptri,
-                                  const int v1,
-                                  const int v2)
+static int primitive_get_other_uv_vertex(const MeshData &mesh_data,
+                                         const MLoopTri &looptri,
+                                         const int v1,
+                                         const int v2)
 {
   const Span<MLoop> mesh_loops = mesh_data.loops;
   BLI_assert(ELEM(v1,
@@ -54,9 +54,9 @@ int primitive_get_other_uv_vertex(const MeshData &mesh_data,
   return -1;
 }
 
-bool primitive_has_shared_uv_edge(const Span<float2> uv_map,
-                                  const MLoopTri &looptri,
-                                  const MLoopTri &other)
+static bool primitive_has_shared_uv_edge(const Span<float2> uv_map,
+                                         const MLoopTri &looptri,
+                                         const MLoopTri &other)
 {
   int shared_uv_verts = 0;
   for (const int loop : looptri.tri) {
@@ -91,7 +91,7 @@ static bool has_vertex(const MeshData &mesh_data, const MLoopTri &looptri, const
   return false;
 }
 
-rctf primitive_uv_bounds(const MLoopTri &looptri, const Span<float2> uv_map)
+static rctf primitive_uv_bounds(const MLoopTri &looptri, const Span<float2> uv_map)
 {
   rctf result;
   BLI_rctf_init_minmax(&result);
@@ -1052,7 +1052,6 @@ void UVBorder::update_indexes(uint64_t border_index)
   }
 }
 
-/** Remove edge from the border. updates the indexes. */
 void UVBorder::remove(int64_t index)
 {
   /* Could read the border_index from any border edge as they are consistent. */
