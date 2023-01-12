@@ -388,6 +388,12 @@ void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor
   const float key_x_range = right_key.vec[1][0] - left_x;
   const float key_y_range = right_key.vec[1][1] - left_y;
 
+  /* Happens if there is only 1 key on the FCurve. Needs to be skipped because it
+   * would be a divide by 0. */
+  if (IS_EQF(key_x_range, 0.0f)) {
+    return;
+  }
+
   /* In order to have a curve that favors the right key, the curve needs to be mirrored in x and y.
    * Having an exponent that is a fraction of 1 would produce a similar but inferior result. */
   const bool inverted = factor > 0.5;
