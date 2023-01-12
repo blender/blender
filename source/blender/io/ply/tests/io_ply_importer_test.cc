@@ -189,9 +189,22 @@ TEST_F(PlyImportTest, PlyImportManySmallHoles)
 
 TEST_F(PlyImportTest, PlyImportWireframeCube)
 {
-  Expectation expect[] = {
-      {"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
-      {"OBwireframe_cube", BINARY_LE, 8, 0, 12, float3(-1, -1, -1), float3(1, 1, 1)}};
+  Expectation expect[] = {{"OBCube",
+                           ASCII,
+                           8,
+                           6,
+                           12,
+                           float3(1, 1, -1),
+                           float3(-1, 1, 1),
+                           float3(0.5773, 0.5773, -0.5773)},
+                          {"OBwireframe_cube",
+                           BINARY_LE,
+                           8,
+                           0,
+                           12,
+                           float3(-1, -1, -1),
+                           float3(1, 1, 1),
+                           float3(-2, -2, -2)}};
   import_and_check("wireframe_cube.ply", expect, 2);
 }
 
