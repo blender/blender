@@ -219,7 +219,7 @@ static void ApplySnapRotation(TransInfo *t, float *value)
   float point[3];
   getSnapPoint(t, point);
 
-  float dist = RotationBetween(t, t->tsnap.snapTarget, point);
+  float dist = RotationBetween(t, t->tsnap.snap_source, point);
   *value = dist;
 }
 
@@ -429,8 +429,8 @@ void initRotation(TransInfo *t)
   t->mode = TFM_ROTATION;
   t->transform = applyRotation;
   t->transform_matrix = applyRotationMatrix;
-  t->tsnap.applySnap = ApplySnapRotation;
-  t->tsnap.distance = RotationBetween;
+  t->tsnap.snap_mode_apply_fn = ApplySnapRotation;
+  t->tsnap.snap_mode_distance_fn = RotationBetween;
 
   initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
 

@@ -1618,7 +1618,7 @@ typedef struct ToolSettings {
   short snap_flag_node;
   short snap_flag_seq;
   short snap_uv_flag;
-  /** Default snap source, #eSnapSourceSelect. */
+  /** Default snap source, #eSnapSourceOP. */
   /**
    * TODO(@gfxcoder): Rename `snap_target` to `snap_source` to avoid previous ambiguity of
    * "target" (now, "source" is geometry to be moved and "target" is geometry to which moved
@@ -2244,7 +2244,7 @@ typedef enum eSnapFlag {
   SCE_SNAP_ABS_GRID = (1 << 5),
   SCE_SNAP_BACKFACE_CULLING = (1 << 6),
   SCE_SNAP_KEEP_ON_SAME_OBJECT = (1 << 7),
-  /** see #eSnapTargetSelect */
+  /** see #eSnapTargetOP */
   SCE_SNAP_TO_INCLUDE_EDITED = (1 << 8),
   SCE_SNAP_TO_INCLUDE_NONEDITED = (1 << 9),
   SCE_SNAP_TO_ONLY_SELECTABLE = (1 << 10),
@@ -2255,30 +2255,30 @@ typedef enum eSnapFlag {
 ENUM_OPERATORS(eSnapFlag, SCE_SNAP_BACKFACE_CULLING)
 #endif
 
-/** See #ToolSettings.snap_target (to be renamed `snap_source`) and #TransSnap.source_select */
-typedef enum eSnapSourceSelect {
+/** See #ToolSettings.snap_target (to be renamed `snap_source`) and #TransSnap.source_operation */
+typedef enum eSnapSourceOP {
   SCE_SNAP_SOURCE_CLOSEST = 0,
   SCE_SNAP_SOURCE_CENTER = 1,
   SCE_SNAP_SOURCE_MEDIAN = 2,
   SCE_SNAP_SOURCE_ACTIVE = 3,
-} eSnapSourceSelect;
+} eSnapSourceOP;
 
-ENUM_OPERATORS(eSnapSourceSelect, SCE_SNAP_SOURCE_ACTIVE)
+ENUM_OPERATORS(eSnapSourceOP, SCE_SNAP_SOURCE_ACTIVE)
 
 /**
- * #TransSnap.target_select and #ToolSettings.snap_flag
+ * #TransSnap.target_operation and #ToolSettings.snap_flag
  * (#SCE_SNAP_NOT_TO_ACTIVE, #SCE_SNAP_TO_INCLUDE_EDITED, #SCE_SNAP_TO_INCLUDE_NONEDITED,
  * #SCE_SNAP_TO_ONLY_SELECTABLE).
  */
-typedef enum eSnapTargetSelect {
+typedef enum eSnapTargetOP {
   SCE_SNAP_TARGET_ALL = 0,
   SCE_SNAP_TARGET_NOT_SELECTED = (1 << 0),
   SCE_SNAP_TARGET_NOT_ACTIVE = (1 << 1),
   SCE_SNAP_TARGET_NOT_EDITED = (1 << 2),
   SCE_SNAP_TARGET_ONLY_SELECTABLE = (1 << 3),
   SCE_SNAP_TARGET_NOT_NONEDITED = (1 << 4),
-} eSnapTargetSelect;
-ENUM_OPERATORS(eSnapTargetSelect, SCE_SNAP_TARGET_NOT_NONEDITED)
+} eSnapTargetOP;
+ENUM_OPERATORS(eSnapTargetOP, SCE_SNAP_TARGET_NOT_NONEDITED)
 
 /** #ToolSettings.snap_mode */
 typedef enum eSnapMode {

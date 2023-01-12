@@ -53,7 +53,7 @@ struct SnapObjectHitDepth {
 /** parameters that define which objects will be used to snap. */
 struct SnapObjectParams {
   /* Special context sensitive handling for the active or selected object. */
-  eSnapTargetSelect snap_target_select;
+  eSnapTargetOP snap_target_select;
   /* Geometry for snapping in edit mode. */
   eSnapEditType edit_mode_type;
   /* snap to the closest element, use when using more than one snap type */

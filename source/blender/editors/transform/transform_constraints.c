@@ -270,12 +270,12 @@ static void axisProjection(const TransInfo *t,
 static void constraint_snap_plane_to_edge(const TransInfo *t, const float plane[4], float r_out[3])
 {
   float lambda;
-  const float *edge_snap_point = t->tsnap.snapPoint;
+  const float *edge_snap_point = t->tsnap.snap_target;
   const float *edge_dir = t->tsnap.snapNormal;
   bool is_aligned = fabsf(dot_v3v3(edge_dir, plane)) < CONSTRAIN_EPSILON;
   if (!is_aligned && isect_ray_plane_v3(edge_snap_point, edge_dir, plane, &lambda, false)) {
     madd_v3_v3v3fl(r_out, edge_snap_point, edge_dir, lambda);
-    sub_v3_v3(r_out, t->tsnap.snapTarget);
+    sub_v3_v3(r_out, t->tsnap.snap_source);
   }
 }
 
@@ -284,13 +284,13 @@ static void UNUSED_FUNCTION(constraint_snap_plane_to_face(const TransInfo *t,
                                                           float r_out[3]))
 {
   float face_plane[4], isect_orig[3], isect_dir[3];
-  const float *face_snap_point = t->tsnap.snapPoint;
+  const float *face_snap_point = t->tsnap.snap_target;
   const float *face_normal = t->tsnap.snapNormal;
   plane_from_point_normal_v3(face_plane, face_snap_point, face_normal);
   bool is_aligned = fabsf(dot_v3v3(plane, face_plane)) > (1.0f - CONSTRAIN_EPSILON);
   if (!is_aligned && isect_plane_plane_v3(plane, face_plane, isect_orig, isect_dir)) {
     closest_to_ray_v3(r_out, face_snap_point, isect_orig, isect_dir);
-    sub_v3_v3(r_out, t->tsnap.snapTarget);
+    sub_v3_v3(r_out, t->tsnap.snap_source);
   }
 }
 
@@ -299,11 +299,11 @@ void transform_constraint_snap_axis_to_edge(const TransInfo *t,
                                             float r_out[3])
 {
   float lambda;
-  const float *edge_snap_point = t->tsnap.snapPoint;
+  const float *edge_snap_point = t->tsnap.snap_target;
   const float *edge_dir = t->tsnap.snapNormal;
   bool is_aligned = fabsf(dot_v3v3(axis, edge_dir)) > (1.0f - CONSTRAIN_EPSILON);
   if (!is_aligned &&
-      isect_ray_ray_v3(t->tsnap.snapTarget, axis, edge_snap_point, edge_dir, &lambda, NULL)) {
+      isect_ray_ray_v3(t->tsnap.snap_source, axis, edge_snap_point, edge_dir, &lambda, NULL)) {
     mul_v3_v3fl(r_out, axis, lambda);
   }
 }
@@ -314,11 +314,11 @@ void transform_constraint_snap_axis_to_face(const TransInfo *t,
 {
   float lambda;
   float face_plane[4];
-  const float *face_snap_point = t->tsnap.snapPoint;
+  const float *face_snap_point = t->tsnap.snap_target;
   const float *face_normal = t->tsnap.snapNormal;
   plane_from_point_normal_v3(face_plane, face_snap_point, face_normal);
   bool is_aligned = fabsf(dot_v3v3(axis, face_plane)) < CONSTRAIN_EPSILON;
-  if (!is_aligned && isect_ray_plane_v3(t->tsnap.snapTarget, axis, face_plane, &lambda, false)) {
+  if (!is_aligned && isect_ray_plane_v3(t->tsnap.snap_source, axis, face_plane, &lambda, false)) {
     mul_v3_v3fl(r_out, axis, lambda);
   }
 }

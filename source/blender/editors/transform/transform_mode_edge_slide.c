@@ -1272,7 +1272,7 @@ static void edge_slide_snap_apply(TransInfo *t, float *value)
   }
 
   getSnapPoint(t, dvec);
-  sub_v3_v3(dvec, t->tsnap.snapTarget);
+  sub_v3_v3(dvec, t->tsnap.snap_source);
   add_v3_v3v3(snap_point, co_orig, dvec);
 
   float perc = *value;
@@ -1498,8 +1498,8 @@ void initEdgeSlide_ex(
   t->mode = TFM_EDGE_SLIDE;
   t->transform = applyEdgeSlide;
   t->handleEvent = handleEventEdgeSlide;
-  t->tsnap.applySnap = edge_slide_snap_apply;
-  t->tsnap.distance = transform_snap_distance_len_squared_fn;
+  t->tsnap.snap_mode_apply_fn = edge_slide_snap_apply;
+  t->tsnap.snap_mode_distance_fn = transform_snap_distance_len_squared_fn;
 
   {
     EdgeSlideParams *slp = MEM_callocN(sizeof(*slp), __func__);

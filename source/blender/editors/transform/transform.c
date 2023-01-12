@@ -1573,9 +1573,9 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     if ((prop = RNA_struct_find_property(op->ptr, "snap_elements"))) {
       RNA_property_enum_set(op->ptr, prop, t->tsnap.mode);
       RNA_boolean_set(op->ptr, "use_snap_project", t->tsnap.project);
-      RNA_enum_set(op->ptr, "snap_target", t->tsnap.source_select);
+      RNA_enum_set(op->ptr, "snap_target", t->tsnap.source_operation);
 
-      eSnapTargetSelect target = t->tsnap.target_select;
+      eSnapTargetOP target = t->tsnap.target_operation;
       RNA_boolean_set(op->ptr, "use_snap_self", (target & SCE_SNAP_TARGET_NOT_ACTIVE) == 0);
       RNA_boolean_set(op->ptr, "use_snap_edit", (target & SCE_SNAP_TARGET_NOT_EDITED) == 0);
       RNA_boolean_set(op->ptr, "use_snap_nonedit", (target & SCE_SNAP_TARGET_NOT_NONEDITED) == 0);

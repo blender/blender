@@ -532,7 +532,7 @@ static void vert_slide_snap_apply(TransInfo *t, float *value)
   }
 
   getSnapPoint(t, dvec);
-  sub_v3_v3(dvec, t->tsnap.snapTarget);
+  sub_v3_v3(dvec, t->tsnap.snap_source);
   if (t->tsnap.snapElem & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE_RAYCAST)) {
     float co_dir[3];
     sub_v3_v3v3(co_dir, co_curr_3d, co_orig_3d);
@@ -610,8 +610,8 @@ void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
   t->mode = TFM_VERT_SLIDE;
   t->transform = applyVertSlide;
   t->handleEvent = handleEventVertSlide;
-  t->tsnap.applySnap = vert_slide_snap_apply;
-  t->tsnap.distance = transform_snap_distance_len_squared_fn;
+  t->tsnap.snap_mode_apply_fn = vert_slide_snap_apply;
+  t->tsnap.snap_mode_distance_fn = transform_snap_distance_len_squared_fn;
 
   {
     VertSlideParams *slp = MEM_callocN(sizeof(*slp), __func__);

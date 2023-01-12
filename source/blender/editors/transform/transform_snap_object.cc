@@ -404,7 +404,7 @@ using IterSnapObjsCallback = eSnapMode (*)(SnapObjectContext *sctx,
                                            void *data);
 
 static bool snap_object_is_snappable(const SnapObjectContext *sctx,
-                                     const eSnapTargetSelect snap_target_select,
+                                     const eSnapTargetOP snap_target_select,
                                      const Base *base_act,
                                      const Base *base)
 {
@@ -471,7 +471,7 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx,
 
   Scene *scene = DEG_get_input_scene(sctx->runtime.depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(sctx->runtime.depsgraph);
-  const eSnapTargetSelect snap_target_select = params->snap_target_select;
+  const eSnapTargetOP snap_target_select = params->snap_target_select;
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base_act = BKE_view_layer_active_base_get(view_layer);
 
