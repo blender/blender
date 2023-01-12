@@ -159,6 +159,19 @@ TEST_F(PlyImportTest, PlyImportManySmallHoles)
   import_and_check("many_small_holes.ply", expect, 2);
 }
 
+TEST_F(PlyImportTest, PlyImportWireframeCube)
+{
+  Expectation expect[] = {{"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
+                          {"OBwireframe_cube",
+                           BINARY_LE,
+                           8,
+                           0,
+                           12,
+                           float3(-1, -1, -1),
+                           float3(1, 1, 1)}};
+  import_and_check("wireframe_cube.ply", expect, 2);
+}
+
 TEST(PlyImportFunctionsTest, PlySwapBytes)
 {
   // Individual bits shouldn't swap with each other
