@@ -172,11 +172,11 @@
   NSPoint mouseLocation = [sender draggingLocation];
   NSPasteboard *draggingPBoard = [sender draggingPasteboard];
 
-  if ([[draggingPBoard types] containsObject:NSTIFFPboardType])
+  if ([[draggingPBoard types] containsObject:NSPasteboardTypeTIFF])
     m_draggedObjectType = GHOST_kDragnDropTypeBitmap;
   else if ([[draggingPBoard types] containsObject:NSFilenamesPboardType])
     m_draggedObjectType = GHOST_kDragnDropTypeFilenames;
-  else if ([[draggingPBoard types] containsObject:NSStringPboardType])
+  else if ([[draggingPBoard types] containsObject:NSPasteboardTypeString])
     m_draggedObjectType = GHOST_kDragnDropTypeString;
   else
     return NSDragOperationNone;
@@ -235,7 +235,7 @@
     case GHOST_kDragnDropTypeBitmap:
       if ([NSImage canInitWithPasteboard:draggingPBoard]) {
         droppedImg = [[NSImage alloc] initWithPasteboard:draggingPBoard];
-        data = droppedImg;  //[draggingPBoard dataForType:NSTIFFPboardType];
+        data = droppedImg;  //[draggingPBoard dataForType:NSPasteboardTypeTIFF];
       }
       else
         return NO;
@@ -244,7 +244,7 @@
       data = [draggingPBoard propertyListForType:NSFilenamesPboardType];
       break;
     case GHOST_kDragnDropTypeString:
-      data = [draggingPBoard stringForType:NSStringPboardType];
+      data = [draggingPBoard stringForType:NSPasteboardTypeString];
       break;
     default:
       return NO;
@@ -388,8 +388,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
   [contentview setAllowedTouchTypes:(NSTouchTypeMaskDirect | NSTouchTypeMaskIndirect)];
 
   [m_window registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
-                                                              NSStringPboardType,
-                                                              NSTIFFPboardType,
+                                                              NSPasteboardTypeString,
+                                                              NSPasteboardTypeTIFF,
                                                               nil]];
 
   if (is_dialog && parentWindow) {
