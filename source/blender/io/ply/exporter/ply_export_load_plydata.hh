@@ -39,10 +39,13 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     if (object->type != OB_MESH)
       continue;
 
+    if (export_params.export_selected_objects && !(object->base_flag & BASE_SELECTED)) {
+      continue;
+    }
+
     Mesh *mesh = static_cast<Mesh *>(object->data);
 
     // Vertices
-
     for (auto &&vertex : mesh->verts()) {
       float3 r_coords;
       copy_v3_v3(r_coords, vertex.co);
