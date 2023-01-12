@@ -24,8 +24,6 @@
 
 #include "ply_data.hh"
 
-// remove later
-
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
