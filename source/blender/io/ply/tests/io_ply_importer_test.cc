@@ -34,7 +34,7 @@ struct Expectation {
   PlyFormatType type;
   int totvert, totpoly, totedge;
   float3 vert_first, vert_last;
-  // float3 normal_first;
+  float3 normal_first = {0, 0, 0};
   // float2 uv_first
   // float4 color_first = {-1, -1, -1, -1};
 };
@@ -53,7 +53,7 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
     params.forward_axis = IO_AXIS_NEGATIVE_Z;
     params.up_axis = IO_AXIS_Y;
 
-    // Import the test file
+    /* Import the test file. */
     std::string ply_path = blender::tests::flags_test_asset_dir() + "/io_tests/ply/" + path;
     strncpy(params.filepath, ply_path.c_str(), FILE_MAX - 1);
     importer_main(bfile->main, bfile->curscene, bfile->cur_view_layer, params);
@@ -83,21 +83,25 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
       if (object->type == OB_MESH) {
         Mesh *mesh = BKE_object_get_evaluated_mesh(object);
 
-        // Test if mesh has expected amount of vertices, edges, and faces
+        /* Test if mesh has expected amount of vertices, edges, and faces. */
         ASSERT_EQ(mesh->totvert, exp.totvert);
         ASSERT_EQ(mesh->totedge, exp.totedge);
         ASSERT_EQ(mesh->totpoly, exp.totpoly);
 
-        // Test if first and last vertices match
+        /* Test if first and last vertices match. */
         const Span<MVert> verts = mesh->verts();
         EXPECT_V3_NEAR(verts.first().co, exp.vert_first, 0.0001f);
         EXPECT_V3_NEAR(verts.last().co, exp.vert_last, 0.0001f);
 
-        // Fetch normal data from mesh and test if it matches expectation
-        // Currently we don't support normal data yet
-        /* const float3 *lnors = (const float3 *)CustomData_get_layer(&mesh->ldata, CD_NORMAL);
-        float3 normal_first = lnors != nullptr ? lnors[0] : float3(0, 0, 0);
-        EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f); */
+        /* Fetch normal data from mesh and test if it matches expectation. */
+        /* Normals are from the range -1 to 1, so this check is to see if normals are part of the
+         * file. */
+        if (exp.normal_first[0] != -2) {
+          const float(*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+          ASSERT_TRUE(vertex_normals != nullptr);
+          float3 normal_first = vertex_normals != nullptr ? vertex_normals[0] : float3(0, 0, 0);
+          EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);
+        }
 
         // Fetch UV data from mesh and test if it matches expectation
         // Currently we don't support uv data yet
@@ -127,35 +131,59 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
 
 TEST_F(PlyImportTest, PLYImportCube)
 {
-  Expectation expect[] = {{"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
-                          {"OBcube_ascii", ASCII, 24, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)}};
+  Expectation expect[] = {
+      {"OBCube",
+       ASCII,
+       8,
+       6,
+       12,
+       float3(1, 1, -1),
+       float3(-1, 1, 1),
+       float3(0.5773, 0.5773, -0.5773)},
+      {"OBcube_ascii", ASCII, 24, 6, 24, float3(1, 1, -1), float3(-1, 1, 1), float3(0, 0, -1)}};
 
   import_and_check("cube_ascii.ply", expect, 2);
 }
 
 TEST_F(PlyImportTest, PLYImportBunny)
 {
-  Expectation expect[] = {{"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
+  Expectation expect[] = {{"OBCube",
+                           ASCII,
+                           8,
+                           6,
+                           12,
+                           float3(1, 1, -1),
+                           float3(-1, 1, 1),
+                           float3(0.5773, 0.5773, -0.5773)},
                           {"OBbunny2",
                            BINARY_LE,
                            1623,
                            1000,
                            1513,
                            float3(0.0380425, 0.109755, 0.0161689),
-                           float3(-0.0722821, 0.143895, -0.0129091)}};
+                           float3(-0.0722821, 0.143895, -0.0129091),
+                           float3(-2, -2, -2)}};
   import_and_check("bunny2.ply", expect, 2);
 }
 
 TEST_F(PlyImportTest, PlyImportManySmallHoles)
 {
-  Expectation expect[] = {{"OBCube", ASCII, 8, 6, 12, float3(1, 1, -1), float3(-1, 1, 1)},
+  Expectation expect[] = {{"OBCube",
+                           ASCII,
+                           8,
+                           6,
+                           12,
+                           float3(1, 1, -1),
+                           float3(-1, 1, 1),
+                           float3(0.5773, 0.5773, -0.5773)},
                           {"OBmany_small_holes",
                            BINARY_LE,
                            2004,
                            3524,
                            5564,
                            float3(-0.0131592, -0.0598382, 1.58958),
-                           float3(-0.0177622, 0.0105153, 1.61977)}};
+                           float3(-0.0177622, 0.0105153, 1.61977),
+                           float3(-2, -2, -2)}};
   import_and_check("many_small_holes.ply", expect, 2);
 }
 
