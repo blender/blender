@@ -49,7 +49,6 @@ class FileBufferBinary : public FileBuffer {
     char *ybits = reinterpret_cast<char *>(&ny);
     char *zbits = reinterpret_cast<char *>(&nz);
 
-
     std::vector<char> data{};
     data.reserve(12); /* resize vector for 3 floats */
     data.insert(data.end(), xbits, xbits + sizeof(float));
