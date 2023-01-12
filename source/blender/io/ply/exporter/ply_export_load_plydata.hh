@@ -39,6 +39,10 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     if (object->type != OB_MESH)
       continue;
 
+    if (export_params.export_selected_objects && !(object->base_flag & BASE_SELECTED)) {
+      continue;
+    }
+
     // Vertices
     auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
 
