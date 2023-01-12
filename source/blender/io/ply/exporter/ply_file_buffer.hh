@@ -94,6 +94,12 @@ class FileBuffer : private NonMovable {
 
   virtual void write_vertex(float x, float y, float z) = 0;
 
+  virtual void write_vertex_normal(float nx, float ny, float nz) = 0;
+
+  virtual void write_vertex_color(uchar r, uchar g, uchar b, uchar a) = 0;
+
+  virtual void write_vertex_end() = 0;
+
   virtual void write_face(int count, Vector<uint32_t> const &vertex_indices) = 0;
 
   void write_header_element(StringRef name, int count)

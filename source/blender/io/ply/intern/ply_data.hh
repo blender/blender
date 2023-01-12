@@ -22,7 +22,7 @@ struct PlyData {
   Vector<Vector<uint32_t>> faces;
 };
 
-enum class PlyFormatType { ASCII, BINARY_LE, BINARY_BE };
+enum PlyFormatType { ASCII, BINARY_LE, BINARY_BE };
 
 struct PlyHeader {
   int vertex_count = 0;
