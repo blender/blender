@@ -43,11 +43,14 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
       continue;
     }
 
-    // Vertices
-    auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
+    Mesh *mesh = static_cast<Mesh *>(object->data);
 
+    // Vertices
     for (auto &&vertex : mesh->verts()) {
-      plyData.vertices.append(vertex.co);
+      float3 r_coords;
+      copy_v3_v3(r_coords, vertex.co);
+      mul_m4_v3(object->object_to_world, r_coords);
+      plyData.vertices.append(r_coords);
     }
 
     // Normals
@@ -74,7 +77,7 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
         polyVector.append(uint32_t(loop.v + vertex_offset));
       }
 
-      plyData.faces.append(polyVector);
+      plyData.faces.append(std::move(polyVector));
     }
 
     vertex_offset = (int)plyData.vertices.size();
