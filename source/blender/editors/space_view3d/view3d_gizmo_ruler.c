@@ -301,10 +301,13 @@ static void ruler_state_set(RulerInfo *ruler_info, int state)
   }
 
   if (state == RULER_STATE_NORMAL) {
-    /* pass */
+    WM_gizmo_set_flag(ruler_info->snap_data.gizmo, WM_GIZMO_DRAW_VALUE, false);
   }
   else if (state == RULER_STATE_DRAG) {
     memset(&ruler_info->drag_state_prev, 0x0, sizeof(ruler_info->drag_state_prev));
+
+    /* Force the snap cursor to appear even though it is not highlighted. */
+    WM_gizmo_set_flag(ruler_info->snap_data.gizmo, WM_GIZMO_DRAW_VALUE, true);
   }
   else {
     BLI_assert(0);
