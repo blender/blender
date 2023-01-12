@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import argparse
 import datetime
 
 
-DESCRIPTION = ("This python script is used to generate the download urls "
-               "which we can copy-paste directly into the CMS of "
-               "www.blender.org")
-USAGE = "create_download_urls --version=2.83.7"
 # Used date format: "September 30, 2020"
 DATE_FORMAT = "%B %d, %Y"
 
@@ -62,19 +57,8 @@ def generate_html(version: Version) -> str:
     return "\n".join(lines)
 
 
-def print_download_urls(version: Version):
+def print_urls(version: str):
     """
     Generate the download urls and print them to the console.
     """
-    print(generate_html(version))
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=DESCRIPTION, usage=USAGE)
-    parser.add_argument("--version",
-                        required=True,
-                        help=("Version string in the form of {major}.{minor}."
-                              "{build} (eg 2.83.7)"))
-    args = parser.parse_args()
-
-    print_download_urls(version=Version(args.version))
+    print(generate_html(Version(version)))
