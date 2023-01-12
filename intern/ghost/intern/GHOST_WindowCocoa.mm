@@ -895,22 +895,13 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
   return GHOST_kSuccess;
 }
 
-static void postNotification()
-{
-  NSUserNotification *notification = [[NSUserNotification alloc] init];
-  notification.title = @"Blender Progress Notification";
-  notification.informativeText = @"Calculation is finished.";
-  notification.soundName = NSUserNotificationDefaultSoundName;
-  [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
-  [notification release];
-}
-
 GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 {
   if (!m_progressBarVisible)
     return GHOST_kFailure;
   m_progressBarVisible = false;
 
+  /* Reset application icon to remove the progress bar. */
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
   NSImage *dockIcon = [[NSImage alloc] initWithSize:NSMakeSize(128, 128)];
@@ -921,15 +912,6 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
                                                 fraction:1.0];
   [dockIcon unlockFocus];
   [NSApp setApplicationIconImage:dockIcon];
-
-  // We use notifications to inform the user when the progress reached 100%
-  // Atm. just fire this when the progressbar ends, the behavior is controlled
-  // in the NotificationCenter If Blender is not frontmost window, a message
-  // pops up with sound, in any case an entry in notifications
-  if ([NSUserNotificationCenter respondsToSelector:@selector(defaultUserNotificationCenter)]) {
-    postNotification();
-  }
-
   [dockIcon release];
 
   [pool drain];
