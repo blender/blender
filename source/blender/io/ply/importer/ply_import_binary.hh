@@ -22,7 +22,7 @@ Mesh *import_ply_binary(std::ifstream &file, const PlyHeader *header, Mesh *mesh
  */
 PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header);
 
-void load_vertex_data(std::ifstream &file, const PlyHeader *header, PlyData* r_data, int index);
+void load_vertex_data(std::ifstream &file, const PlyHeader *header, PlyData *r_data, int index);
 
 void check_file_errors(const std::ifstream &file);
 
