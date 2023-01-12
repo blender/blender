@@ -71,6 +71,17 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
   BKE_mesh_calc_edges(mesh, true, false);
   BKE_mesh_calc_edges_loose(mesh);
 
+  /* Note: This is important to do after initializing the loops. */
+  if (!data.vertex_normals.is_empty()) {
+    float(*vertex_normals)[3] = static_cast<float(*)[3]>(
+        MEM_malloc_arrayN(data.vertex_normals.size(), sizeof(float[3]), __func__));
+    for (int i = 0; i < data.vertex_normals.size(); i++) {
+      copy_v3_v3(vertex_normals[i], data.vertex_normals[i]);
+    }
+    BKE_mesh_set_custom_normals_from_verts(mesh, vertex_normals);
+    MEM_freeN(vertex_normals);
+  }
+
   return mesh;
 }
 }  // namespace blender::io::ply
