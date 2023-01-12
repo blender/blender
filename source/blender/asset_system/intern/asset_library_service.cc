@@ -78,7 +78,8 @@ AssetLibrary *AssetLibraryService::get_asset_library(
     }
     case ASSET_LIBRARY_ALL:
       return get_asset_library_all(bmain);
-    case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES: {
+    case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES:
+    case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
       std::string root_path = root_path_from_library_ref(library_reference);
 
       if (!root_path.empty()) {
@@ -87,7 +88,6 @@ AssetLibrary *AssetLibraryService::get_asset_library(
       break;
     }
   }
-  /* TODO project libraries */
 
   return nullptr;
 }
