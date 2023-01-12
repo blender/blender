@@ -7,8 +7,8 @@
 namespace blender::io::ply {
 Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
 {
-  // Add vertices to the mesh.
-  mesh->totvert = int(data.vertices.size());  // Explicit conversion from int64_t to int.
+  /* Add vertices to the mesh. */
+  mesh->totvert = int(data.vertices.size()); /* Explicit conversion from int64_t to int. */
   CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
   MutableSpan<MVert> verts = mesh->verts_for_write();
   for (int i = 0; i < mesh->totvert; i++) {
@@ -16,11 +16,23 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
     copy_v3_v3(verts[i].co, vert);
   }
 
-  // Add faces and edges to the mesh.
+  if (!data.edges.is_empty()) {
+    mesh->totedge = int(data.edges.size());
+    CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, mesh->totedge);
+    MutableSpan<MEdge> edges = mesh->edges_for_write();
+    for (int i = 0; i < mesh->totedge; i++) {
+      edges[i].v1 = data.edges[i].first;
+      edges[i].v2 = data.edges[i].second;
+    }
+  }
+
+  /* Add faces and edges to the mesh. */
   if (!data.faces.is_empty()) {
-    mesh->totpoly = int(data.faces.size());  // Explicit conversion from int64_t to int.
-    mesh->totloop = 0;                       // TODO: Make this more dynamic using data.edges()
+    /* Specify amount of total faces. */
+    mesh->totpoly = int(data.faces.size());
+    mesh->totloop = 0;
     for (int i = 0; i < data.faces.size(); i++) {
+      /* Add number of edges to the amount of edges. */
       mesh->totloop += data.faces[i].size();
     }
     CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
@@ -29,21 +41,24 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
     MutableSpan<MLoop> loops = mesh->loops_for_write();
 
     int offset = 0;
+    /* Iterate over amount of faces. */
     for (int i = 0; i < mesh->totpoly; i++) {
-      auto size = int(data.faces[i].size());  // Explicit conversion from int64_t to int.
+      auto size = int(data.faces[i].size());
+      /* Set the index from where this face starts and specify the amount of edges it has. */
       polys[i].loopstart = offset;
       polys[i].totloop = size;
 
       for (int j = 0; j < size; j++) {
+        /* Set the vertex index of the edge to the one in PlyData. */
         loops[offset + j].v = data.faces[i][j];
       }
       offset += size;
     }
   }
 
-  // Vertex colors
+  /* Vertex colors */
   if (!data.vertex_colors.is_empty()) {
-    // Create a data layer for vertex colors and set them.
+    /* Create a data layer for vertex colors and set them. */
     CustomDataLayer *color_layer = BKE_id_attribute_new(
         &mesh->id, "Col", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
     float4 *colors = (float4 *)color_layer->data;
@@ -52,8 +67,9 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
     }
   }
 
-  // Calculate mesh from edges.
-  BKE_mesh_calc_edges(mesh, false, false);
+  /* Calculate mesh from edges. */
+  BKE_mesh_calc_edges(mesh, true, false);
+  BKE_mesh_calc_edges_loose(mesh);
 
   return mesh;
 }

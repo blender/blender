@@ -125,8 +125,10 @@ void importer_main(Main *bmain,
       else if (strcmp(words[1].c_str(), "binary_little_endian") == 0) {
         header.type = PlyFormatType::BINARY_LE;
       }
+
     }
     else if (strcmp(words[0].c_str(), "element") == 0) {
+      header.elements.append(std::make_pair(words[1], std::stoi(words[2])));
       if (strcmp(words[1].c_str(), "vertex") == 0) {
         header.vertex_count = std::stoi(words[2]);
       }
@@ -147,7 +149,11 @@ void importer_main(Main *bmain,
       property.first = words[2];
       property.second = from_string(words[1]);
 
-      header.properties.push_back(property);
+      while (header.properties.size() < header.elements.size()) {
+        Vector<std::pair<std::string, PlyDataTypes>> temp;
+        header.properties.append(temp);
+      }
+      header.properties[header.elements.size() - 1].append(property);
     }
     else if (words[0] == "end_header") {
       break;
