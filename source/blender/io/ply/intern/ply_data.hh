@@ -29,7 +29,10 @@ struct PlyHeader {
   int edge_count = 0;
   int face_count = 0;
   int header_size = 0;
-  std::vector<std::pair<std::string, PlyDataTypes>> properties;
+  /* List of elements in ply file with their count. */
+  Vector<std::pair<std::string, int>> elements;
+  /* List of properties (Name, type) per element. */
+  Vector<Vector<std::pair<std::string, PlyDataTypes>>> properties;
   PlyDataTypes vertex_index_count_type;
   PlyDataTypes vertex_index_type;
   PlyFormatType type;
