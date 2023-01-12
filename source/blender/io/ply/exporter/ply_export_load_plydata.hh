@@ -24,7 +24,27 @@
 
 #include "ply_data.hh"
 
+// remove later
+
+#include "bmesh.h"
+#include "bmesh_tools.h"
+
+#include <tools/bmesh_triangulate.h>
+
 namespace blender::io::ply {
+
+Mesh *triangulate(Mesh *mesh)
+{
+  const BMeshCreateParams bm_create_params = {false};
+  BMeshFromMeshParams bm_convert_params{};
+  bm_convert_params.calc_face_normal = true;
+  bm_convert_params.calc_vert_normal = true;
+  bm_convert_params.add_key_index = false;
+  bm_convert_params.use_shapekey = false;
+  BMesh *bmesh = BKE_mesh_to_bmesh_ex(mesh, &bm_create_params, &bm_convert_params);
+  BM_mesh_triangulate(bmesh, 0, 3, 255, false, nullptr, nullptr, nullptr);
+  return BKE_mesh_from_bmesh_for_eval_nomain(bmesh, nullptr, mesh);
+}
 
 void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &export_params)
 {
@@ -52,6 +72,11 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     Mesh *mesh = export_params.apply_modifiers ?
                      BKE_object_get_evaluated_mesh(&export_object_eval_) :
                      BKE_object_get_pre_modified_mesh(&export_object_eval_);
+
+    // Triangulate
+    if (export_params.export_triangulated_mesh || (mesh->totvert > UINT8_MAX)) {
+      mesh = triangulate(mesh);
+    }
 
     // Vertices
     for (auto &&vertex : mesh->verts()) {
