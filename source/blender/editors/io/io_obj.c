@@ -410,6 +410,8 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
   import_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
   import_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
+  import_params.use_split_objects = RNA_boolean_get(op->ptr, "use_split_objects");
+  import_params.use_split_groups = RNA_boolean_get(op->ptr, "use_split_groups");
   import_params.import_vertex_groups = RNA_boolean_get(op->ptr, "import_vertex_groups");
   import_params.validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
   import_params.relative_paths = ((U.flag & USER_RELPATHS) != 0);
@@ -472,6 +474,8 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Options"), ICON_EXPORT);
   col = uiLayoutColumn(box, false);
+  uiItemR(col, imfptr, "use_split_objects", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "use_split_groups", 0, NULL, ICON_NONE);
   uiItemR(col, imfptr, "import_vertex_groups", 0, NULL, ICON_NONE);
   uiItemR(col, imfptr, "validate_meshes", 0, NULL, ICON_NONE);
 }
@@ -531,6 +535,16 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
   RNA_def_property_update_runtime(prop, (void *)forward_axis_update);
   prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
   RNA_def_property_update_runtime(prop, (void *)up_axis_update);
+  RNA_def_boolean(ot->srna,
+                  "use_split_objects",
+                  true,
+                  "Split By Object",
+                  "Import each OBJ 'o' as a separate object");
+  RNA_def_boolean(ot->srna,
+                  "use_split_groups",
+                  false,
+                  "Split By Group",
+                  "Import each OBJ 'g' as a separate object");
   RNA_def_boolean(ot->srna,
                   "import_vertex_groups",
                   false,

@@ -48,6 +48,19 @@ struct Expectation {
 
 class obj_importer_test : public BlendfileLoadingBaseTest {
  public:
+  obj_importer_test()
+  {
+    params.global_scale = 1.0f;
+    params.clamp_size = 0;
+    params.forward_axis = IO_AXIS_NEGATIVE_Z;
+    params.up_axis = IO_AXIS_Y;
+    params.validate_meshes = true;
+    params.use_split_objects = true;
+    params.use_split_groups = false;
+    params.import_vertex_groups = false;
+    params.relative_paths = true;
+    params.clear_selection = true;
+  }
   void import_and_check(const char *path,
                         const Expectation *expect,
                         size_t expect_count,
@@ -58,16 +71,6 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
       ADD_FAILURE();
       return;
     }
-
-    OBJImportParams params;
-    params.global_scale = 1.0f;
-    params.clamp_size = 0;
-    params.forward_axis = IO_AXIS_NEGATIVE_Z;
-    params.up_axis = IO_AXIS_Y;
-    params.validate_meshes = true;
-    params.import_vertex_groups = false;
-    params.relative_paths = true;
-    params.clear_selection = true;
 
     std::string obj_path = blender::tests::flags_test_asset_dir() + "/io_tests/obj/" + path;
     strncpy(params.filepath, obj_path.c_str(), FILE_MAX - 1);
@@ -81,6 +84,32 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
     deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
                               DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
                               DEG_ITER_OBJECT_FLAG_DUPLI;
+
+    constexpr bool print_result_scene = false;
+    if (print_result_scene) {
+      printf("Result was:\n");
+      DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
+        printf("  {\"%s\", ", object->id.name);
+        if (object->type == OB_MESH) {
+          Mesh *mesh = BKE_object_get_evaluated_mesh(object);
+          const Span<float3> positions = mesh->vert_positions();
+          printf("OB_MESH, %i, %i, %i, %i, float3(%g, %g, %g), float3(%g, %g, %g)",
+                 mesh->totvert,
+                 mesh->totedge,
+                 mesh->totpoly,
+                 mesh->totloop,
+                 positions.first().x,
+                 positions.first().y,
+                 positions.first().z,
+                 positions.last().x,
+                 positions.last().y,
+                 positions.last().z);
+        }
+        printf("},\n");
+      }
+      DEG_OBJECT_ITER_END;
+    }
+
     size_t object_index = 0;
     DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
       if (object_index >= expect_count) {
@@ -152,6 +181,8 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
     const int ima_count = BLI_listbase_count(&bfile->main->images);
     EXPECT_EQ(ima_count, expect_image_count);
   }
+
+  OBJImportParams params;
 };
 
 TEST_F(obj_importer_test, import_cube)
@@ -782,6 +813,60 @@ TEST_F(obj_importer_test, import_vertices)
       {"OBCube.001", OB_MESH, 8, 0, 0, 0, float3(1, 1, -1), float3(-1, 1, 1)},
   };
   import_and_check("vertices.obj", expect, std::size(expect), 0);
+}
+
+TEST_F(obj_importer_test, import_split_options_by_object)
+{
+  /* Default is to split by object */
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBBox", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, -1, 1)},
+      {"OBPyramid", OB_MESH, 5, 8, 5, 16, float3(3, 1, -1), float3(4, 0, 2)},
+  };
+  import_and_check("split_options.obj", expect, std::size(expect), 0);
+}
+
+TEST_F(obj_importer_test, import_split_options_by_group)
+{
+  params.use_split_objects = false;
+  params.use_split_groups = true;
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBBoxOne", OB_MESH, 4, 4, 1, 4, float3(1, -1, -1), float3(-1, -1, 1)},
+      {"OBBoxTwo", OB_MESH, 6, 7, 2, 8, float3(1, 1, 1), float3(-1, -1, 1)},
+      {"OBBoxTwo.001", OB_MESH, 6, 7, 2, 8, float3(1, 1, -1), float3(-1, -1, -1)},
+      {"OBPyrBottom", OB_MESH, 4, 4, 1, 4, float3(3, 1, -1), float3(3, -1, -1)},
+      {"OBPyrSides", OB_MESH, 5, 8, 4, 12, float3(3, 1, -1), float3(4, 0, 2)},
+      {"OBsplit_options", OB_MESH, 4, 4, 1, 4, float3(1, 1, -1), float3(-1, 1, 1)},
+  };
+  import_and_check("split_options.obj", expect, std::size(expect), 0);
+}
+
+TEST_F(obj_importer_test, import_split_options_by_object_and_group)
+{
+  params.use_split_objects = true;
+  params.use_split_groups = true;
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBBox", OB_MESH, 4, 4, 1, 4, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBBoxOne", OB_MESH, 4, 4, 1, 4, float3(1, -1, -1), float3(-1, -1, 1)},
+      {"OBBoxTwo", OB_MESH, 6, 7, 2, 8, float3(1, 1, 1), float3(-1, -1, 1)},
+      {"OBBoxTwo.001", OB_MESH, 6, 7, 2, 8, float3(1, 1, -1), float3(-1, -1, -1)},
+      {"OBPyrBottom", OB_MESH, 4, 4, 1, 4, float3(3, 1, -1), float3(3, -1, -1)},
+      {"OBPyrSides", OB_MESH, 5, 8, 4, 12, float3(3, 1, -1), float3(4, 0, 2)},
+  };
+  import_and_check("split_options.obj", expect, std::size(expect), 0);
+}
+
+TEST_F(obj_importer_test, import_split_options_none)
+{
+  params.use_split_objects = false;
+  params.use_split_groups = false;
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBsplit_options", OB_MESH, 13, 20, 11, 40, float3(1, 1, -1), float3(4, 0, 2)},
+  };
+  import_and_check("split_options.obj", expect, std::size(expect), 0);
 }
 
 }  // namespace blender::io::obj

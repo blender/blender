@@ -363,6 +363,24 @@ static void geom_update_smooth_group(const char *p, const char *end, bool &r_sta
   r_state_shaded_smooth = smooth != 0;
 }
 
+static void geom_new_object(const char *p,
+                            const char *end,
+                            bool &r_state_shaded_smooth,
+                            std::string &r_state_group_name,
+                            int &r_state_material_index,
+                            Geometry *&r_curr_geom,
+                            Vector<std::unique_ptr<Geometry>> &r_all_geometries)
+{
+  r_state_shaded_smooth = false;
+  r_state_group_name = "";
+  /* Reset object-local material index that's used in face infos.
+   * NOTE: do not reset the material name; that has to carry over
+   * into the next object if needed. */
+  r_state_material_index = -1;
+  r_curr_geom = create_geometry(
+      r_curr_geom, GEOM_MESH, StringRef(p, end).trim(), r_all_geometries);
+}
+
 OBJParser::OBJParser(const OBJImportParams &import_params, size_t read_buffer_size = 64 * 1024)
     : import_params_(import_params), read_buffer_size_(read_buffer_size)
 {
@@ -534,22 +552,34 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
       }
       /* Objects. */
       else if (parse_keyword(p, end, "o")) {
-        state_shaded_smooth = false;
-        state_group_name = "";
-        /* Reset object-local material index that's used in face infos.
-         * NOTE: do not reset the material name; that has to carry over
-         * into the next object if needed. */
-        state_material_index = -1;
-        curr_geom = create_geometry(
-            curr_geom, GEOM_MESH, StringRef(p, end).trim(), r_all_geometries);
+        if (import_params_.use_split_objects) {
+          geom_new_object(p,
+                          end,
+                          state_shaded_smooth,
+                          state_group_name,
+                          state_material_index,
+                          curr_geom,
+                          r_all_geometries);
+        }
       }
       /* Groups. */
       else if (parse_keyword(p, end, "g")) {
-        geom_update_group(StringRef(p, end).trim(), state_group_name);
-        int new_index = curr_geom->group_indices_.size();
-        state_group_index = curr_geom->group_indices_.lookup_or_add(state_group_name, new_index);
-        if (new_index == state_group_index) {
-          curr_geom->group_order_.append(state_group_name);
+        if (import_params_.use_split_groups) {
+          geom_new_object(p,
+                          end,
+                          state_shaded_smooth,
+                          state_group_name,
+                          state_material_index,
+                          curr_geom,
+                          r_all_geometries);
+        }
+        else {
+          geom_update_group(StringRef(p, end).trim(), state_group_name);
+          int new_index = curr_geom->group_indices_.size();
+          state_group_index = curr_geom->group_indices_.lookup_or_add(state_group_name, new_index);
+          if (new_index == state_group_index) {
+            curr_geom->group_order_.append(state_group_name);
+          }
         }
       }
       /* Smoothing groups. */

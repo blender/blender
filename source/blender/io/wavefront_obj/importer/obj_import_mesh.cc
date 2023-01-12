@@ -53,7 +53,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   obj->data = BKE_object_obdata_add_from_type(bmain, OB_MESH, ob_name.c_str());
 
   create_vertices(mesh);
-  create_polys_loops(mesh, import_params.import_vertex_groups);
+  create_polys_loops(mesh, import_params.import_vertex_groups && !import_params.use_split_groups);
   create_edges(mesh);
   create_uv_verts(mesh);
   create_normals(mesh);
@@ -222,8 +222,11 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
         continue;
       }
       const int group_index = curr_face.vertex_group_index;
-      MDeformWeight *dw = BKE_defvert_ensure_index(&dverts[mloop.v], group_index);
-      dw->weight = 1.0f;
+      /* Note: face might not belong to any group */
+      if (group_index >= 0 || 1) {
+        MDeformWeight *dw = BKE_defvert_ensure_index(&dverts[mloop.v], group_index);
+        dw->weight = 1.0f;
+      }
     }
   }
 
