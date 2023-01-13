@@ -11,15 +11,74 @@
 
 #include "NOD_socket_search_link.hh"
 
-namespace blender::nodes::node_geo_interpolate_domain_cc {
+namespace blender::nodes {
+
+FieldAtIndexInput::FieldAtIndexInput(Field<int> index_field,
+                                     GField value_field,
+                                     eAttrDomain value_field_domain)
+    : bke::GeometryFieldInput(value_field.cpp_type(), "Evaluate at Index"),
+      index_field_(std::move(index_field)),
+      value_field_(std::move(value_field)),
+      value_field_domain_(value_field_domain)
+{
+}
+
+GVArray FieldAtIndexInput::get_varray_for_context(const bke::GeometryFieldContext &context,
+                                                  const IndexMask mask) const
+{
+  const std::optional<AttributeAccessor> attributes = context.attributes();
+  if (!attributes) {
+    return {};
+  }
+
+  const bke::GeometryFieldContext value_field_context{
+      context.geometry(), context.type(), value_field_domain_};
+  FieldEvaluator value_evaluator{value_field_context,
+                                 attributes->domain_size(value_field_domain_)};
+  value_evaluator.add(value_field_);
+  value_evaluator.evaluate();
+  const GVArray &values = value_evaluator.get_evaluated(0);
+
+  FieldEvaluator index_evaluator{context, &mask};
+  index_evaluator.add(index_field_);
+  index_evaluator.evaluate();
+  const VArray<int> indices = index_evaluator.get_evaluated<int>(0);
+
+  GVArray output_array;
+  attribute_math::convert_to_static_type(*type_, [&](auto dummy) {
+    using T = decltype(dummy);
+    Array<T> dst_array(mask.min_array_size());
+    VArray<T> src_values = values.typed<T>();
+    threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
+      for (const int i : mask.slice(range)) {
+        const int index = indices[i];
+        if (src_values.index_range().contains(index)) {
+          dst_array[i] = src_values[index];
+        }
+        else {
+          dst_array[i] = {};
+        }
+      }
+    });
+    output_array = VArray<T>::ForContainer(std::move(dst_array));
+  });
+
+  return output_array;
+}
+
+}  // namespace blender::nodes
+
+namespace blender::nodes::node_geo_evaluate_at_index_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").supports_field();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").supports_field();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").supports_field();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").supports_field();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").supports_field();
+  b.add_input<decl::Int>(N_("Index")).min(0).supports_field();
+
+  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().supports_field();
+  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().supports_field();
+  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().supports_field();
+  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().supports_field();
+  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().supports_field();
 
   b.add_output<decl::Float>(N_("Value"), "Value_Float").field_source_reference_all();
   b.add_output<decl::Int>(N_("Value"), "Value_Int").field_source_reference_all();
@@ -44,7 +103,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 {
   const eCustomDataType data_type = eCustomDataType(node->custom2);
 
-  bNodeSocket *sock_in_float = static_cast<bNodeSocket *>(node->inputs.first);
+  bNodeSocket *sock_index = static_cast<bNodeSocket *>(node->inputs.first);
+  bNodeSocket *sock_in_float = sock_index->next;
   bNodeSocket *sock_in_int = sock_in_float->next;
   bNodeSocket *sock_in_vector = sock_in_int->next;
   bNodeSocket *sock_in_color = sock_in_vector->next;
@@ -71,6 +131,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
+  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
+
   const bNodeType &node_type = params.node_type();
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       (eNodeSocketDatatype)params.other_socket().type);
@@ -82,47 +145,6 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     });
   }
 }
-
-class InterpolateDomain final : public bke::GeometryFieldInput {
- private:
-  GField src_field_;
-  eAttrDomain src_domain_;
-
- public:
-  InterpolateDomain(GField field, eAttrDomain domain)
-      : bke::GeometryFieldInput(field.cpp_type(), "Interpolate Domain"),
-        src_field_(std::move(field)),
-        src_domain_(domain)
-  {
-  }
-
-  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 IndexMask /*mask*/) const final
-  {
-    const bke::AttributeAccessor attributes = *context.attributes();
-
-    const bke::GeometryFieldContext other_domain_context{
-        context.geometry(), context.type(), src_domain_};
-    const int64_t src_domain_size = attributes.domain_size(src_domain_);
-    GArray<> values(src_field_.cpp_type(), src_domain_size);
-    FieldEvaluator value_evaluator{other_domain_context, src_domain_size};
-    value_evaluator.add_with_destination(src_field_, values.as_mutable_span());
-    value_evaluator.evaluate();
-    return attributes.adapt_domain(
-        GVArray::ForGArray(std::move(values)), src_domain_, context.domain());
-  }
-
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
-  {
-    src_field_.node().for_each_field_input_recursive(fn);
-  }
-
-  std::optional<eAttrDomain> preferred_domain(
-      const GeometryComponent & /*component*/) const override
-  {
-    return src_domain_;
-  }
-};
 
 static StringRefNull identifier_suffix(eCustomDataType data_type)
 {
@@ -149,25 +171,26 @@ static void node_geo_exec(GeoNodeExecParams params)
   const eAttrDomain domain = eAttrDomain(node.custom1);
   const eCustomDataType data_type = eCustomDataType(node.custom2);
 
+  Field<int> index_field = params.extract_input<Field<int>>("Index");
   attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
     using T = decltype(dummy);
     static const std::string identifier = "Value_" + identifier_suffix(data_type);
-    Field<T> src_field = params.extract_input<Field<T>>(identifier);
-    Field<T> dst_field{std::make_shared<InterpolateDomain>(std::move(src_field), domain)};
-    params.set_output(identifier, std::move(dst_field));
+    Field<T> value_field = params.extract_input<Field<T>>(identifier);
+    Field<T> output_field{std::make_shared<FieldAtIndexInput>(
+        std::move(index_field), std::move(value_field), domain)};
+    params.set_output(identifier, std::move(output_field));
   });
 }
 
-}  // namespace blender::nodes::node_geo_interpolate_domain_cc
+}  // namespace blender::nodes::node_geo_evaluate_at_index_cc
 
-void register_node_type_geo_interpolate_domain()
+void register_node_type_geo_evaluate_at_index()
 {
-  namespace file_ns = blender::nodes::node_geo_interpolate_domain_cc;
+  namespace file_ns = blender::nodes::node_geo_evaluate_at_index_cc;
 
   static bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_INTERPOLATE_DOMAIN, "Interpolate Domain", NODE_CLASS_CONVERTER);
+  geo_node_type_base(&ntype, GEO_NODE_EVALUATE_AT_INDEX, "Evaluate at Index", NODE_CLASS_CONVERTER);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_layout;
