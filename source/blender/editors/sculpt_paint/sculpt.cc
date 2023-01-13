@@ -259,6 +259,11 @@ float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex)
     }
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+
+      if (key->mask_offset == -1) {
+        return 0.0f;
+      }
+
       const int grid_index = vertex.i / key->grid_area;
       const int vertex_index = vertex.i - grid_index * key->grid_area;
       CCGElem *elem = BKE_pbvh_get_grids(ss->pbvh)[grid_index];
