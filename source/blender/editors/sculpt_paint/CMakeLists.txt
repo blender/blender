@@ -4,8 +4,12 @@
 
 set(INC
   ../include
+  ../asset
   ../uvedit
+  ../../asset_system
   ../../blenkernel
+  ../../blenlib
+  ../../blenloader
   ../../blentranslation
   ../../bmesh
   ../../depsgraph

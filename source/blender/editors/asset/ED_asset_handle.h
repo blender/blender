@@ -43,6 +43,10 @@ void ED_asset_handle_get_full_library_path(
     /* `1024` for #FILE_MAX,
      * rely on warnings to let us know if this gets out of sync. */
     char r_full_lib_path[1024]);
+void ED_asset_handle_get_full_path(const AssetHandle *asset_handle,
+                                   /* `1024 + 66` for #FILE_MAX_LIBEXTRA,
+                                    * rely on warnings to let us know if this gets out of sync. */
+                                   char r_full_lib_path[1024 + 66]);
 
 #ifdef __cplusplus
 }
