@@ -94,8 +94,14 @@ class FileBuffer : private NonMovable {
 
   virtual void write_vertex(float x, float y, float z) = 0;
 
+  virtual void write_vertex_normal(float nx, float ny, float nz) = 0;
+
+  virtual void write_vertex_color(uchar r, uchar g, uchar b, uchar a) = 0;
+
+  virtual void write_vertex_end() = 0;
+
   virtual void write_face(int count, Vector<uint32_t> const &vertex_indices) = 0;
-  
+
   virtual void write_edge(int first, int second) = 0;
 
   void write_header_element(StringRef name, int count)
@@ -144,7 +150,7 @@ class FileBuffer : private NonMovable {
     bb.insert(bb.end(), buf.begin(), buf.end());
   }
 
-  void write_bytes(std::vector<char> bytes)
+  void write_bytes(Vector<char> bytes)
   {
     ensure_space(bytes.size());
     VectorChar &bb = blocks_.back();

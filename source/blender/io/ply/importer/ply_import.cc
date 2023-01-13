@@ -111,6 +111,10 @@ void importer_main(Main *bmain,
 
   while (true) {  // We break when end_header is encountered.
     safe_getline(infile, line);
+    if (header.header_size == 0 && line != "ply") {
+      fprintf(stderr, "PLY Importer: failed to read file. Invalid PLY header.\n");
+      return;
+    }
     header.header_size++;
     std::vector<std::string> words{};
     splitstr(line, words, " ");
@@ -127,6 +131,7 @@ void importer_main(Main *bmain,
       }
     }
     else if (strcmp(words[0].c_str(), "element") == 0) {
+      header.elements.append(std::make_pair(words[1], std::stoi(words[2])));
       if (strcmp(words[1].c_str(), "vertex") == 0) {
         header.vertex_count = std::stoi(words[2]);
       }
@@ -147,10 +152,20 @@ void importer_main(Main *bmain,
       property.first = words[2];
       property.second = from_string(words[1]);
 
-      header.properties.push_back(property);
+      while (header.properties.size() < header.elements.size()) {
+        Vector<std::pair<std::string, PlyDataTypes>> temp;
+        header.properties.append(temp);
+      }
+      header.properties[header.elements.size() - 1].append(property);
     }
     else if (words[0] == "end_header") {
       break;
+    }
+    else if ((words[0][0] >= '0' && words[0][0] <= '9') || words[0][0] == '-' || line.empty() ||
+             infile.eof()) {
+      /* A value was found before we broke out of the loop. No end_header */
+      fprintf(stderr, "PLY Importer: failed to read file. No end_header.\n");
+      return;
     }
   }
 
@@ -160,14 +175,20 @@ void importer_main(Main *bmain,
   BLI_path_extension_replace(ob_name, FILE_MAX, "");
 
   Mesh *mesh = BKE_mesh_add(bmain, ob_name);
-  if (header.type == PlyFormatType::ASCII) {
-    mesh = import_ply_ascii(infile, &header, mesh);
+  try {
+    if (header.type == PlyFormatType::ASCII) {
+      mesh = import_ply_ascii(infile, &header, mesh);
+    }
+    else if (header.type == PlyFormatType::BINARY_BE) {
+      mesh = import_ply_binary(infile, &header, mesh);
+    }
+    else {
+      mesh = import_ply_binary(infile, &header, mesh);
+    }
   }
-  else if (header.type == PlyFormatType::BINARY_BE) {
-    mesh = import_ply_binary(infile, &header, mesh);
-  }
-  else {
-    mesh = import_ply_binary(infile, &header, mesh);
+  catch (std::exception &e) {
+    fprintf(stderr, "PLY Importer: failed to read file. %s.\n", e.what());
+    return;
   }
 
   BKE_view_layer_base_deselect_all(scene, view_layer);
