@@ -45,10 +45,8 @@ struct PLYImportParams {
   char filepath[FILE_MAX];
   eIOAxis forward_axis;
   eIOAxis up_axis;
-  bool use_facet_normal;
   bool use_scene_unit;
   float global_scale;
-  bool use_mesh_validate;
 };
 
 /**
