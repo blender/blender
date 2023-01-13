@@ -923,10 +923,10 @@ static int select_all_exec(bContext *C, wmOperator *op)
 
 }  // namespace select_all
 
-static void SCULPT_CURVES_OT_select_all(wmOperatorType *ot)
+static void CURVES_OT_select_all(wmOperatorType *ot)
 {
   ot->name = "(De)select All";
-  ot->idname = __func__;
+  ot->idname = "CURVES_OT_select_all";
   ot->description = "(De)select all control points";
 
   ot->exec = select_all::select_all_exec;
@@ -1029,6 +1029,6 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_convert_from_particle_system);
   WM_operatortype_append(CURVES_OT_snap_curves_to_surface);
   WM_operatortype_append(CURVES_OT_set_selection_domain);
-  WM_operatortype_append(SCULPT_CURVES_OT_select_all);
+  WM_operatortype_append(CURVES_OT_select_all);
   WM_operatortype_append(CURVES_OT_surface_set);
 }
