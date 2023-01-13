@@ -3052,53 +3052,12 @@ static void *customData_duplicate_referenced_layer_index(CustomData *data,
   return layer->data;
 }
 
-void *CustomData_duplicate_referenced_layer(CustomData *data, const int type, const int totelem)
-{
-  int layer_index = CustomData_get_active_layer_index(data, type);
-
-  return customData_duplicate_referenced_layer_index(data, layer_index, totelem);
-}
-
-void *CustomData_duplicate_referenced_layer_n(CustomData *data,
-                                              const int type,
-                                              const int n,
-                                              const int totelem)
-{
-  /* get the layer index of the desired layer */
-  int layer_index = CustomData_get_layer_index_n(data, type, n);
-
-  return customData_duplicate_referenced_layer_index(data, layer_index, totelem);
-}
-
-void *CustomData_duplicate_referenced_layer_named(CustomData *data,
-                                                  const int type,
-                                                  const char *name,
-                                                  const int totelem)
-{
-  /* get the layer index of the desired layer */
-  int layer_index = CustomData_get_named_layer_index(data, type, name);
-
-  return customData_duplicate_referenced_layer_index(data, layer_index, totelem);
-}
-
 void CustomData_duplicate_referenced_layers(CustomData *data, const int totelem)
 {
   for (int i = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &data->layers[i];
     layer->data = customData_duplicate_referenced_layer_index(data, i, totelem);
   }
-}
-
-bool CustomData_is_referenced_layer(CustomData *data, const int type)
-{
-  int layer_index = CustomData_get_active_layer_index(data, type);
-  if (layer_index == -1) {
-    return false;
-  }
-
-  CustomDataLayer *layer = &data->layers[layer_index];
-
-  return (layer->flag & CD_FLAG_NOFREE) != 0;
 }
 
 void CustomData_free_temporary(CustomData *data, const int totelem)
@@ -3415,20 +3374,21 @@ void CustomData_swap(CustomData *data, const int index_a, const int index_b)
   }
 }
 
-void *CustomData_get(const CustomData *data, const int index, const int type)
+void *CustomData_get_for_write(CustomData *data, const int index, const int type, int totelem)
 {
   BLI_assert(index >= 0);
-  void *layer_data = CustomData_get_layer(data, type);
+  void *layer_data = CustomData_get_layer_for_write(data, type, totelem);
   if (!layer_data) {
     return nullptr;
   }
   return POINTER_OFFSET(layer_data, size_t(index) * layerType_getInfo(type)->size);
 }
 
-void *CustomData_get_n(const CustomData *data, const int type, const int index, const int n)
+void *CustomData_get_n_for_write(
+    CustomData *data, const int type, const int index, const int n, int totelem)
 {
   BLI_assert(index >= 0);
-  void *layer_data = CustomData_get_layer_n(data, type, n);
+  void *layer_data = CustomData_get_layer_n_for_write(data, type, n, totelem);
   if (!layer_data) {
     return nullptr;
   }
@@ -3436,7 +3396,7 @@ void *CustomData_get_n(const CustomData *data, const int type, const int index, 
   return POINTER_OFFSET(layer_data, size_t(index) * layerType_getInfo(type)->size);
 }
 
-void *CustomData_get_layer(const CustomData *data, const int type)
+const void *CustomData_get_layer(const CustomData *data, const int type)
 {
   int layer_index = CustomData_get_active_layer_index(data, type);
   if (layer_index == -1) {
@@ -3446,7 +3406,13 @@ void *CustomData_get_layer(const CustomData *data, const int type)
   return data->layers[layer_index].data;
 }
 
-void *CustomData_get_layer_n(const CustomData *data, const int type, const int n)
+void *CustomData_get_layer_for_write(CustomData *data, const int type, const int totelem)
+{
+  const int layer_index = CustomData_get_active_layer_index(data, type);
+  return customData_duplicate_referenced_layer_index(data, layer_index, totelem);
+}
+
+const void *CustomData_get_layer_n(const CustomData *data, const int type, const int n)
 {
   int layer_index = CustomData_get_layer_index_n(data, type, n);
   if (layer_index == -1) {
@@ -3456,7 +3422,16 @@ void *CustomData_get_layer_n(const CustomData *data, const int type, const int n
   return data->layers[layer_index].data;
 }
 
-void *CustomData_get_layer_named(const CustomData *data, const int type, const char *name)
+void *CustomData_get_layer_n_for_write(CustomData *data,
+                                       const int type,
+                                       const int n,
+                                       const int totelem)
+{
+  const int layer_index = CustomData_get_layer_index_n(data, type, n);
+  return customData_duplicate_referenced_layer_index(data, layer_index, totelem);
+}
+
+const void *CustomData_get_layer_named(const CustomData *data, const int type, const char *name)
 {
   int layer_index = CustomData_get_named_layer_index(data, type, name);
   if (layer_index == -1) {
@@ -3464,6 +3439,15 @@ void *CustomData_get_layer_named(const CustomData *data, const int type, const c
   }
 
   return data->layers[layer_index].data;
+}
+
+void *CustomData_get_layer_named_for_write(CustomData *data,
+                                           const int type,
+                                           const char *name,
+                                           const int totelem)
+{
+  const int layer_index = CustomData_get_named_layer_index(data, type, name);
+  return customData_duplicate_referenced_layer_index(data, layer_index, totelem);
 }
 
 int CustomData_get_offset(const CustomData *data, const int type)

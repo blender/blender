@@ -719,8 +719,9 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
              uvset_index++) {
           /* get mtface by face index and uv set index */
           COLLADAFW::IndexList &index_list = *index_list_array_uvcoord[uvset_index];
-          blender::float2 *mloopuv = static_cast<blender::float2 *>(CustomData_get_layer_named(
-              &me->ldata, CD_PROP_FLOAT2, index_list.getName().c_str()));
+          blender::float2 *mloopuv = static_cast<blender::float2 *>(
+              CustomData_get_layer_named_for_write(
+                  &me->ldata, CD_PROP_FLOAT2, index_list.getName().c_str(), me->totloop));
           if (mloopuv == nullptr) {
             fprintf(stderr,
                     "Collada import: Mesh [%s] : Unknown reference to TEXCOORD [#%s].\n",
@@ -762,8 +763,8 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
 
             COLLADAFW::IndexList &color_index_list = *mp->getColorIndices(vcolor_index);
             COLLADAFW::String colname = extract_vcolname(color_index_list.getName());
-            MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer_named(
-                &me->ldata, CD_PROP_BYTE_COLOR, colname.c_str());
+            MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer_named_for_write(
+                &me->ldata, CD_PROP_BYTE_COLOR, colname.c_str(), me->totloop);
             if (mloopcol == nullptr) {
               fprintf(stderr,
                       "Collada import: Mesh [%s] : Unknown reference to VCOLOR [#%s].\n",

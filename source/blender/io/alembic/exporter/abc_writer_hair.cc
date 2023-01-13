@@ -120,8 +120,9 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
   float inv_mat[4][4];
   invert_m4_m4_safe(inv_mat, context.object->object_to_world);
 
-  MTFace *mtface = (MTFace *)CustomData_get_layer(&mesh->fdata, CD_MTFACE);
-  MFace *mface = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  MTFace *mtface = (MTFace *)CustomData_get_layer_for_write(
+      &mesh->fdata, CD_MTFACE, mesh->totface);
+  const MFace *mface = (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
 
@@ -153,7 +154,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
       if (num < mesh->totface) {
         /* TODO(Sybren): check whether the NULL check here and if(mface) are actually required
          */
-        MFace *face = mface == nullptr ? nullptr : &mface[num];
+        const MFace *face = mface == nullptr ? nullptr : &mface[num];
         MTFace *tface = mtface + num;
 
         if (mface) {
@@ -189,8 +190,8 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
 
       /* iterate over all faces to find a corresponding underlying UV */
       for (int n = 0; n < mesh->totface; n++) {
-        MFace *face = &mface[n];
-        MTFace *tface = mtface + n;
+        const MFace *face = &mface[n];
+        const MTFace *tface = mtface + n;
         uint vtx[4];
         vtx[0] = face->v1;
         vtx[1] = face->v2;
@@ -244,8 +245,9 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
   float inv_mat[4][4];
   invert_m4_m4_safe(inv_mat, context.object->object_to_world);
 
-  MFace *mface = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
-  MTFace *mtface = (MTFace *)CustomData_get_layer(&mesh->fdata, CD_MTFACE);
+  const MFace *mface = (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  MTFace *mtface = (MTFace *)CustomData_get_layer_for_write(
+      &mesh->fdata, CD_MTFACE, mesh->totface);
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
 
@@ -271,7 +273,7 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
         continue;
       }
 
-      MFace *face = &mface[num];
+      const MFace *face = &mface[num];
       MTFace *tface = mtface + num;
 
       float r_uv[2], tmpnor[3], mapfw[4], vec[3];

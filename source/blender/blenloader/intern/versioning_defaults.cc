@@ -359,7 +359,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
         {0.625, 0.75}, {0.375, 0.75}, {0.375, 0.25}, {0.625, 0.25}, {0.625, 0.50}, {0.375, 0.50},
     };
     float(*mloopuv)[2] = static_cast<float(*)[2]>(
-        CustomData_get_layer(&me->ldata, CD_PROP_FLOAT2));
+        CustomData_get_layer_for_write(&me->ldata, CD_PROP_FLOAT2, me->totloop));
     memcpy(mloopuv, uv_values, sizeof(float[2]) * me->totloop);
   }
 

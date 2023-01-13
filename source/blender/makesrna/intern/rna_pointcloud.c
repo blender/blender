@@ -35,7 +35,8 @@ static PointCloud *rna_pointcloud(const PointerRNA *ptr)
 
 static float (*get_pointcloud_positions(PointCloud *pointcloud))[3]
 {
-  return (float(*)[3])CustomData_get_layer_named(&pointcloud->pdata, CD_PROP_FLOAT3, "position");
+  return (float(*)[3])CustomData_get_layer_named_for_write(
+      &pointcloud->pdata, CD_PROP_FLOAT3, "position", pointcloud->totpoint);
 }
 
 static const float (*get_pointcloud_positions_const(const PointCloud *pointcloud))[3]
@@ -110,7 +111,8 @@ static float rna_Point_radius_get(PointerRNA *ptr)
 static void rna_Point_radius_set(PointerRNA *ptr, float value)
 {
   PointCloud *pointcloud = rna_pointcloud(ptr);
-  float *radii = (float *)CustomData_get_layer_named(&pointcloud->pdata, CD_PROP_FLOAT, "radius");
+  float *radii = (float *)CustomData_get_layer_named_for_write(
+      &pointcloud->pdata, CD_PROP_FLOAT, "radius", pointcloud->totpoint);
   if (radii == NULL) {
     return;
   }

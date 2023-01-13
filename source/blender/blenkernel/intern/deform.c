@@ -1395,10 +1395,10 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
 
   const MDeformVert *data_src = CustomData_get_layer(cd_src, CD_MDEFORMVERT);
 
-  MDeformVert *data_dst = CustomData_get_layer(cd_dst, CD_MDEFORMVERT);
+  MDeformVert *data_dst = CustomData_get_layer_for_write(cd_dst, CD_MDEFORMVERT, num_elem_dst);
   if (data_dst && use_dupref_dst && r_map) {
     /* If dest is a derivedmesh, we do not want to overwrite cdlayers of org mesh! */
-    data_dst = CustomData_duplicate_referenced_layer(cd_dst, CD_MDEFORMVERT, num_elem_dst);
+    data_dst = CustomData_get_layer_for_write(cd_dst, CD_MDEFORMVERT, num_elem_dst);
   }
 
   if (fromlayers == DT_LAYERS_ACTIVE_SRC || fromlayers >= 0) {

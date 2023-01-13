@@ -49,10 +49,12 @@ static void add_new_vertices(Mesh &mesh, const Span<int> new_to_old_verts_map)
 
     attribute.finish();
   }
-  if (float3 *orco = static_cast<float3 *>(CustomData_get_layer(&mesh.vdata, CD_ORCO))) {
+  if (float3 *orco = static_cast<float3 *>(
+          CustomData_get_layer_for_write(&mesh.vdata, CD_ORCO, mesh.totvert))) {
     copy_to_new_verts<float3>({orco, mesh.totvert}, new_to_old_verts_map);
   }
-  if (int *orig_indices = static_cast<int *>(CustomData_get_layer(&mesh.vdata, CD_ORIGINDEX))) {
+  if (int *orig_indices = static_cast<int *>(
+          CustomData_get_layer_for_write(&mesh.vdata, CD_ORIGINDEX, mesh.totvert))) {
     copy_to_new_verts<int>({orig_indices, mesh.totvert}, new_to_old_verts_map);
   }
 }

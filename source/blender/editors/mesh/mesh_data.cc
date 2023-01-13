@@ -232,7 +232,7 @@ void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
     /* Collect Mesh UVs */
     BLI_assert(CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2));
     float2 *mloopuv = static_cast<float2 *>(
-        CustomData_get_layer_n(&me->ldata, CD_PROP_FLOAT2, layernum));
+        CustomData_get_layer_n_for_write(&me->ldata, CD_PROP_FLOAT2, layernum, me->totloop));
 
     const MPoly *polys = BKE_mesh_polys(me);
     for (int i = 0; i < me->totpoly; i++) {
@@ -302,7 +302,8 @@ int ED_mesh_uv_add(
       CustomData_add_layer_named(&me->ldata,
                                  CD_PROP_FLOAT2,
                                  CD_DUPLICATE,
-                                 CustomData_get_layer(&me->ldata, CD_PROP_FLOAT2),
+                                 const_cast<float2 *>(static_cast<const float2 *>(
+                                     CustomData_get_layer(&me->ldata, CD_PROP_FLOAT2))),
                                  me->totloop,
                                  unique_name);
 
@@ -364,8 +365,8 @@ const bool *ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int uv_index)
 
 static bool *ensure_corner_boolean_attribute(Mesh &mesh, const blender::StringRefNull name)
 {
-  bool *data = static_cast<bool *>(CustomData_duplicate_referenced_layer_named(
-      &mesh.ldata, CD_PROP_BOOL, name.c_str(), mesh.totloop));
+  bool *data = static_cast<bool *>(
+      CustomData_get_layer_named_for_write(&mesh.ldata, CD_PROP_BOOL, name.c_str(), mesh.totloop));
   if (!data) {
     data = static_cast<bool *>(CustomData_add_layer_named(
         &mesh.ldata, CD_PROP_BOOL, CD_SET_DEFAULT, nullptr, mesh.totpoly, name.c_str()));

@@ -340,11 +340,11 @@ GAttributeWriter BuiltinCustomDataLayerProvider::try_get_for_write(void *owner) 
 
   void *data = nullptr;
   if (stored_as_named_attribute_) {
-    data = CustomData_duplicate_referenced_layer_named(
+    data = CustomData_get_layer_named_for_write(
         custom_data, stored_type_, name_.c_str(), element_num);
   }
   else {
-    data = CustomData_duplicate_referenced_layer(custom_data, stored_type_, element_num);
+    data = CustomData_get_layer_for_write(custom_data, stored_type_, element_num);
   }
   if (data == nullptr) {
     return {};
@@ -461,7 +461,7 @@ GAttributeWriter CustomDataAttributeProvider::try_get_for_write(
     if (!custom_data_layer_matches_attribute_id(layer, attribute_id)) {
       continue;
     }
-    CustomData_duplicate_referenced_layer_named(custom_data, layer.type, layer.name, element_num);
+    CustomData_get_layer_named_for_write(custom_data, layer.type, layer.name, element_num);
 
     const CPPType *type = custom_data_type_to_cpp_type((eCustomDataType)layer.type);
     if (type == nullptr) {

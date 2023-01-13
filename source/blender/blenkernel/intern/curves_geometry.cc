@@ -216,8 +216,7 @@ static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
   const eCustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
   CustomData &custom_data = domain_custom_data(curves, domain);
 
-  T *data = (T *)CustomData_duplicate_referenced_layer_named(
-      &custom_data, type, name.c_str(), num);
+  T *data = (T *)CustomData_get_layer_named_for_write(&custom_data, type, name.c_str(), num);
   if (data != nullptr) {
     return {data, num};
   }

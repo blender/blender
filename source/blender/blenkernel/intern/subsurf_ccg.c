@@ -390,8 +390,10 @@ static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *
   const float(*dmloopuv)[2] = CustomData_get_layer_n(&dm->loopData, CD_PROP_FLOAT2, n);
   /* need to update both CD_MTFACE & CD_PROP_FLOAT2, hrmf, we could get away with
    * just tface except applying the modifier then looses subsurf UV */
-  MTFace *tface = CustomData_get_layer_n(&result->faceData, CD_MTFACE, n);
-  float(*mloopuv)[2] = CustomData_get_layer_n(&result->loopData, CD_PROP_FLOAT2, n);
+  MTFace *tface = CustomData_get_layer_n_for_write(
+      &result->faceData, CD_MTFACE, n, result->numTessFaceData);
+  float(*mloopuv)[2] = CustomData_get_layer_n_for_write(
+      &result->loopData, CD_PROP_FLOAT2, n, result->getNumLoops(dm));
 
   if (!dmloopuv || (!tface && !mloopuv)) {
     return;

@@ -641,11 +641,14 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
         }
         int source_layer_type_index = source_layer_i - source_cd->typemap[ty];
         BLI_assert(target_layer_type_index != -1 && source_layer_type_index >= 0);
+        const int size = CustomData_sizeof(ty);
         for (int j = 0; j < orig_mp->totloop; ++j) {
-          src_blocks_ofs[j] = CustomData_get_n(
-              source_cd, ty, orig_mp->loopstart + j, source_layer_type_index);
+          const void *layer = CustomData_get_layer_n(source_cd, ty, source_layer_type_index);
+          src_blocks_ofs[j] = POINTER_OFFSET(layer, size * (orig_mp->loopstart + j));
         }
-        void *dst_block_ofs = CustomData_get_n(target_cd, ty, loop_index, target_layer_type_index);
+        void *dst_layer = CustomData_get_layer_n_for_write(
+            target_cd, ty, target_layer_type_index, dest_mesh->totloop);
+        void *dst_block_ofs = POINTER_OFFSET(dst_layer, size * loop_index);
         CustomData_bmesh_interp_n(target_cd,
                                   src_blocks_ofs.data(),
                                   weights.data(),

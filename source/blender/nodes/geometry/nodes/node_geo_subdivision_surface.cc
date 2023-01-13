@@ -70,7 +70,7 @@ static void write_vertex_creases(Mesh &mesh, const VArray<float> &crease_varray)
   float *crease;
   if (CustomData_has_layer(&mesh.vdata, CD_CREASE)) {
     crease = static_cast<float *>(
-        CustomData_duplicate_referenced_layer(&mesh.vdata, CD_CREASE, mesh.totvert));
+        CustomData_get_layer_for_write(&mesh.vdata, CD_CREASE, mesh.totvert));
   }
   else {
     crease = static_cast<float *>(

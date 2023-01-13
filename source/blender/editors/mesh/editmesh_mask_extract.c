@@ -573,8 +573,10 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 
   if (ob->mode == OB_MODE_SCULPT) {
     SculptSession *ss = ob->sculpt;
-    ss->face_sets = CustomData_get_layer_named(
-        &((Mesh *)ob->data)->pdata, CD_PROP_INT32, ".sculpt_face_set");
+    ss->face_sets = CustomData_get_layer_named_for_write(&((Mesh *)ob->data)->pdata,
+                                                         CD_PROP_INT32,
+                                                         ".sculpt_face_set",
+                                                         ((Mesh *)ob->data)->totpoly);
     if (ss->face_sets) {
       /* Assign a new Face Set ID to the new faces created by the slice operation. */
       const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(ob->data);

@@ -79,8 +79,8 @@ static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
   Mesh *subdiv_mesh = ctx->subdiv_mesh;
   ctx->num_uv_layers = CustomData_number_of_layers(&subdiv_mesh->ldata, CD_PROP_FLOAT2);
   for (int layer_index = 0; layer_index < ctx->num_uv_layers; layer_index++) {
-    ctx->uv_layers[layer_index] = static_cast<float2 *>(
-        CustomData_get_layer_n(&subdiv_mesh->ldata, CD_PROP_FLOAT2, layer_index));
+    ctx->uv_layers[layer_index] = static_cast<float2 *>(CustomData_get_layer_n_for_write(
+        &subdiv_mesh->ldata, CD_PROP_FLOAT2, layer_index, subdiv_mesh->totloop));
   }
 }
 
@@ -93,19 +93,20 @@ static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
   ctx->subdiv_loops = BKE_mesh_loops_for_write(subdiv_mesh);
   /* Pointers to original indices layers. */
   ctx->vert_origindex = static_cast<int *>(
-      CustomData_get_layer(&subdiv_mesh->vdata, CD_ORIGINDEX));
+      CustomData_get_layer_for_write(&subdiv_mesh->vdata, CD_ORIGINDEX, subdiv_mesh->totvert));
   ctx->edge_origindex = static_cast<int *>(
-      CustomData_get_layer(&subdiv_mesh->edata, CD_ORIGINDEX));
+      CustomData_get_layer_for_write(&subdiv_mesh->edata, CD_ORIGINDEX, subdiv_mesh->totedge));
   ctx->loop_origindex = static_cast<int *>(
-      CustomData_get_layer(&subdiv_mesh->ldata, CD_ORIGINDEX));
+      CustomData_get_layer_for_write(&subdiv_mesh->ldata, CD_ORIGINDEX, subdiv_mesh->totloop));
   ctx->poly_origindex = static_cast<int *>(
-      CustomData_get_layer(&subdiv_mesh->pdata, CD_ORIGINDEX));
+      CustomData_get_layer_for_write(&subdiv_mesh->pdata, CD_ORIGINDEX, subdiv_mesh->totpoly));
   /* UV layers interpolation. */
   subdiv_mesh_ctx_cache_uv_layers(ctx);
   /* Orco interpolation. */
-  ctx->orco = static_cast<float(*)[3]>(CustomData_get_layer(&subdiv_mesh->vdata, CD_ORCO));
+  ctx->orco = static_cast<float(*)[3]>(
+      CustomData_get_layer_for_write(&subdiv_mesh->vdata, CD_ORCO, subdiv_mesh->totvert));
   ctx->cloth_orco = static_cast<float(*)[3]>(
-      CustomData_get_layer(&subdiv_mesh->vdata, CD_CLOTH_ORCO));
+      CustomData_get_layer_for_write(&subdiv_mesh->vdata, CD_CLOTH_ORCO, subdiv_mesh->totvert));
 }
 
 static void subdiv_mesh_prepare_accumulator(SubdivMeshContext *ctx, int num_vertices)

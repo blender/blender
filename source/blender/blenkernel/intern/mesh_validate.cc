@@ -1071,21 +1071,22 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
   MutableSpan<MPoly> polys = me->polys_for_write();
   MutableSpan<MLoop> loops = me->loops_for_write();
 
-  BKE_mesh_validate_arrays(me,
-                           reinterpret_cast<float(*)[3]>(positions.data()),
-                           positions.size(),
-                           edges.data(),
-                           edges.size(),
-                           (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE),
-                           me->totface,
-                           loops.data(),
-                           loops.size(),
-                           polys.data(),
-                           polys.size(),
-                           me->deform_verts_for_write().data(),
-                           do_verbose,
-                           true,
-                           &changed);
+  BKE_mesh_validate_arrays(
+      me,
+      reinterpret_cast<float(*)[3]>(positions.data()),
+      positions.size(),
+      edges.data(),
+      edges.size(),
+      (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface),
+      me->totface,
+      loops.data(),
+      loops.size(),
+      polys.data(),
+      polys.size(),
+      me->deform_verts_for_write().data(),
+      do_verbose,
+      true,
+      &changed);
 
   if (changed) {
     DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY_ALL_MODES);
@@ -1122,21 +1123,22 @@ bool BKE_mesh_is_valid(Mesh *me)
   MutableSpan<MPoly> polys = me->polys_for_write();
   MutableSpan<MLoop> loops = me->loops_for_write();
 
-  is_valid &= BKE_mesh_validate_arrays(me,
-                                       reinterpret_cast<float(*)[3]>(positions.data()),
-                                       positions.size(),
-                                       edges.data(),
-                                       edges.size(),
-                                       (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE),
-                                       me->totface,
-                                       loops.data(),
-                                       loops.size(),
-                                       polys.data(),
-                                       polys.size(),
-                                       me->deform_verts_for_write().data(),
-                                       do_verbose,
-                                       do_fixes,
-                                       &changed);
+  is_valid &= BKE_mesh_validate_arrays(
+      me,
+      reinterpret_cast<float(*)[3]>(positions.data()),
+      positions.size(),
+      edges.data(),
+      edges.size(),
+      (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface),
+      me->totface,
+      loops.data(),
+      loops.size(),
+      polys.data(),
+      polys.size(),
+      me->deform_verts_for_write().data(),
+      do_verbose,
+      do_fixes,
+      &changed);
 
   if (!me->runtime->vert_normals_dirty) {
     BLI_assert(me->runtime->vert_normals || me->totvert == 0);
@@ -1186,7 +1188,7 @@ void BKE_mesh_strip_loose_faces(Mesh *me)
   /* NOTE: We need to keep this for edge creation (for now?), and some old `readfile.c` code. */
   MFace *f;
   int a, b;
-  MFace *mfaces = (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE);
+  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface);
 
   for (a = b = 0, f = mfaces; a < me->totface; a++, f++) {
     if (f->v3) {
@@ -1323,7 +1325,7 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
 {
   const int numFaces = mesh->totface;
   EdgeSet *eh = BLI_edgeset_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(numFaces));
-  MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
 
   MFace *mf = mfaces;
   for (int i = 0; i < numFaces; i++, mf++) {
@@ -1347,8 +1349,8 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
   CustomData_add_layer(&edgeData, CD_MEDGE, CD_SET_DEFAULT, nullptr, numEdges);
   CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, numEdges);
 
-  MEdge *med = (MEdge *)CustomData_get_layer(&edgeData, CD_MEDGE);
-  int *index = (int *)CustomData_get_layer(&edgeData, CD_ORIGINDEX);
+  MEdge *med = (MEdge *)CustomData_get_layer_for_write(&edgeData, CD_MEDGE, mesh->totedge);
+  int *index = (int *)CustomData_get_layer_for_write(&edgeData, CD_ORIGINDEX, mesh->totedge);
 
   EdgeSetIterator *ehi = BLI_edgesetIterator_new(eh);
   for (int i = 0; BLI_edgesetIterator_isDone(ehi) == false;

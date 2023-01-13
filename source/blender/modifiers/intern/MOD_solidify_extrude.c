@@ -1042,7 +1042,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     }
 
     /* add faces & edges */
-    origindex_edge = CustomData_get_layer(&result->edata, CD_ORIGINDEX);
+    origindex_edge = CustomData_get_layer_for_write(&result->edata, CD_ORIGINDEX, result->totedge);
     orig_ed = (origindex_edge) ? &origindex_edge[(edges_num * stride) + newEdges] : NULL;
     MEdge *ed = &medge[(edges_num * stride) + newEdges]; /* start after copied edges */
     for (i = 0; i < rimVerts; i++, ed++) {

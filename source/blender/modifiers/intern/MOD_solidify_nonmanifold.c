@@ -1966,10 +1966,13 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   MPoly *mpoly = BKE_mesh_polys_for_write(result);
   MLoop *mloop = BKE_mesh_loops_for_write(result);
 
-  int *origindex_edge = CustomData_get_layer(&result->edata, CD_ORIGINDEX);
-  int *origindex_poly = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);
+  int *origindex_edge = CustomData_get_layer_for_write(
+      &result->edata, CD_ORIGINDEX, result->totedge);
+  int *origindex_poly = CustomData_get_layer_for_write(
+      &result->pdata, CD_ORIGINDEX, result->totpoly);
 
-  float *result_edge_bweight = CustomData_get_layer(&result->edata, CD_BWEIGHT);
+  float *result_edge_bweight = CustomData_get_layer_for_write(
+      &result->edata, CD_BWEIGHT, result->totedge);
   if (bevel_convex != 0.0f || orig_vert_bweight != NULL) {
     result_edge_bweight = CustomData_add_layer(
         &result->edata, CD_BWEIGHT, CD_SET_DEFAULT, NULL, result->totedge);

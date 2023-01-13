@@ -94,8 +94,8 @@ static void editbmesh_calc_modifier_final_normals_or_defer(
 
 static float *dm_getVertArray(DerivedMesh *dm)
 {
-  float(*positions)[3] = (float(*)[3])CustomData_get_layer_named(
-      &dm->vertData, CD_PROP_FLOAT3, "position");
+  float(*positions)[3] = (float(*)[3])CustomData_get_layer_named_for_write(
+      &dm->vertData, CD_PROP_FLOAT3, "position", dm->getNumVerts(dm));
 
   if (!positions) {
     positions = (float(*)[3])CustomData_add_layer_named(
@@ -109,7 +109,8 @@ static float *dm_getVertArray(DerivedMesh *dm)
 
 static MEdge *dm_getEdgeArray(DerivedMesh *dm)
 {
-  MEdge *medge = (MEdge *)CustomData_get_layer(&dm->edgeData, CD_MEDGE);
+  MEdge *medge = (MEdge *)CustomData_get_layer_for_write(
+      &dm->edgeData, CD_MEDGE, dm->getNumEdges(dm));
 
   if (!medge) {
     medge = (MEdge *)CustomData_add_layer(
@@ -123,7 +124,8 @@ static MEdge *dm_getEdgeArray(DerivedMesh *dm)
 
 static MLoop *dm_getLoopArray(DerivedMesh *dm)
 {
-  MLoop *mloop = (MLoop *)CustomData_get_layer(&dm->loopData, CD_MLOOP);
+  MLoop *mloop = (MLoop *)CustomData_get_layer_for_write(
+      &dm->loopData, CD_MLOOP, dm->getNumLoops(dm));
 
   if (!mloop) {
     mloop = (MLoop *)CustomData_add_layer(
@@ -137,7 +139,8 @@ static MLoop *dm_getLoopArray(DerivedMesh *dm)
 
 static MPoly *dm_getPolyArray(DerivedMesh *dm)
 {
-  MPoly *mpoly = (MPoly *)CustomData_get_layer(&dm->polyData, CD_MPOLY);
+  MPoly *mpoly = (MPoly *)CustomData_get_layer_for_write(
+      &dm->polyData, CD_MPOLY, dm->getNumPolys(dm));
 
   if (!mpoly) {
     mpoly = (MPoly *)CustomData_add_layer(
@@ -351,7 +354,7 @@ static void mesh_set_only_copy(Mesh *mesh, const CustomData_MeshMasks *mask)
 
 void *DM_get_vert_data_layer(DerivedMesh *dm, int type)
 {
-  return CustomData_get_layer(&dm->vertData, type);
+  return CustomData_get_layer_for_write(&dm->vertData, type, dm->getNumVerts(dm));
 }
 
 void *DM_get_edge_data_layer(DerivedMesh *dm, int type)
@@ -360,17 +363,17 @@ void *DM_get_edge_data_layer(DerivedMesh *dm, int type)
     return dm->getEdgeArray(dm);
   }
 
-  return CustomData_get_layer(&dm->edgeData, type);
+  return CustomData_get_layer_for_write(&dm->edgeData, type, dm->getNumEdges(dm));
 }
 
 void *DM_get_poly_data_layer(DerivedMesh *dm, int type)
 {
-  return CustomData_get_layer(&dm->polyData, type);
+  return CustomData_get_layer_for_write(&dm->polyData, type, dm->getNumPolys(dm));
 }
 
 void *DM_get_loop_data_layer(DerivedMesh *dm, int type)
 {
-  return CustomData_get_layer(&dm->loopData, type);
+  return CustomData_get_layer_for_write(&dm->loopData, type, dm->getNumLoops(dm));
 }
 
 void DM_copy_vert_data(
@@ -499,10 +502,10 @@ static void add_orco_mesh(Object *ob, BMEditMesh *em, Mesh *mesh, Mesh *mesh_orc
       BKE_mesh_orco_verts_transform((Mesh *)ob->data, orco, totvert, 0);
     }
 
-    if (!(layerorco = (float(*)[3])CustomData_get_layer(&mesh->vdata, layer))) {
-      CustomData_add_layer(&mesh->vdata, layer, CD_SET_DEFAULT, nullptr, mesh->totvert);
-
-      layerorco = (float(*)[3])CustomData_get_layer(&mesh->vdata, layer);
+    layerorco = (float(*)[3])CustomData_get_layer_for_write(&mesh->vdata, layer, mesh->totvert);
+    if (!layerorco) {
+      layerorco = (float(*)[3])CustomData_add_layer(
+          &mesh->vdata, layer, CD_SET_DEFAULT, nullptr, mesh->totvert);
     }
 
     memcpy(layerorco, orco, sizeof(float[3]) * totvert);
@@ -924,13 +927,16 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
 
           /* Not worth parallelizing this,
            * gives less than 0.1% overall speedup in best of best cases... */
-          range_vn_i((int *)CustomData_get_layer(&mesh_final->vdata, CD_ORIGINDEX),
+          range_vn_i((int *)CustomData_get_layer_for_write(
+                         &mesh_final->vdata, CD_ORIGINDEX, mesh_final->totvert),
                      mesh_final->totvert,
                      0);
-          range_vn_i((int *)CustomData_get_layer(&mesh_final->edata, CD_ORIGINDEX),
+          range_vn_i((int *)CustomData_get_layer_for_write(
+                         &mesh_final->edata, CD_ORIGINDEX, mesh_final->totedge),
                      mesh_final->totedge,
                      0);
-          range_vn_i((int *)CustomData_get_layer(&mesh_final->pdata, CD_ORIGINDEX),
+          range_vn_i((int *)CustomData_get_layer_for_write(
+                         &mesh_final->pdata, CD_ORIGINDEX, mesh_final->totpoly),
                      mesh_final->totpoly,
                      0);
         }
@@ -1932,8 +1938,8 @@ static void mesh_init_origspace(Mesh *mesh)
 {
   const float default_osf[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
 
-  OrigSpaceLoop *lof_array = (OrigSpaceLoop *)CustomData_get_layer(&mesh->ldata,
-                                                                   CD_ORIGSPACE_MLOOP);
+  OrigSpaceLoop *lof_array = (OrigSpaceLoop *)CustomData_get_layer_for_write(
+      &mesh->ldata, CD_ORIGSPACE_MLOOP, mesh->totloop);
   const int numpoly = mesh->totpoly;
   // const int numloop = mesh->totloop;
   const Span<float3> positions = mesh->vert_positions();

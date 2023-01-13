@@ -535,7 +535,7 @@ void read_generated_coordinates(const ICompoundProperty &prop,
 
   void *cd_data;
   if (CustomData_has_layer(&mesh->vdata, CD_ORCO)) {
-    cd_data = CustomData_get_layer(&mesh->vdata, CD_ORCO);
+    cd_data = CustomData_get_layer_for_write(&mesh->vdata, CD_ORCO, mesh->totvert);
   }
   else {
     cd_data = CustomData_add_layer(&mesh->vdata, CD_ORCO, CD_CONSTRUCT, nullptr, totvert);

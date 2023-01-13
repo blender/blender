@@ -383,7 +383,8 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
     return nullptr;
   }
 
-  void *cd_ptr = CustomData_get_layer_named(&mesh->ldata, cd_data_type, name);
+  void *cd_ptr = CustomData_get_layer_named_for_write(
+      &mesh->ldata, cd_data_type, name, mesh->totloop);
   if (cd_ptr != nullptr) {
     /* layer already exists, so just return it. */
     return cd_ptr;

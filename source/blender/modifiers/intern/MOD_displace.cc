@@ -307,7 +307,8 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
         BKE_mesh_calc_normals_split(mesh);
       }
 
-      float(*clnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(ldata, CD_NORMAL));
+      float(*clnors)[3] = static_cast<float(*)[3]>(
+          CustomData_get_layer_for_write(ldata, CD_NORMAL, mesh->totloop));
       vert_clnors = static_cast<float(*)[3]>(
           MEM_malloc_arrayN(verts_num, sizeof(*vert_clnors), __func__));
       BKE_mesh_normals_loop_to_vertex(

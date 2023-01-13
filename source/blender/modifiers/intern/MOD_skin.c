@@ -922,7 +922,8 @@ static Mesh *subdivide_base(const Mesh *orig)
 
   float(*out_vert_positions)[3] = BKE_mesh_vert_positions_for_write(result);
   MEdge *outedge = BKE_mesh_edges_for_write(result);
-  MVertSkin *outnode = CustomData_get_layer(&result->vdata, CD_MVERT_SKIN);
+  MVertSkin *outnode = CustomData_get_layer_for_write(
+      &result->vdata, CD_MVERT_SKIN, result->totvert);
   MDeformVert *outdvert = NULL;
   if (origdvert) {
     outdvert = BKE_mesh_deform_verts_for_write(result);
@@ -1909,7 +1910,7 @@ static void skin_set_orig_indices(Mesh *mesh)
 static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_error)
 {
   Mesh *result;
-  MVertSkin *nodes;
+  const MVertSkin *nodes;
   BMesh *bm;
   EMat *emat;
   SkinNode *skin_nodes;

@@ -1934,8 +1934,8 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             }
 
             /* paint layer */
-            MLoopCol *mloopcol = CustomData_get_layer_named(
-                &result->ldata, CD_PROP_BYTE_COLOR, surface->output_name);
+            MLoopCol *mloopcol = CustomData_get_layer_named_for_write(
+                &result->ldata, CD_PROP_BYTE_COLOR, surface->output_name, result->totloop);
             /* if output layer is lost from a constructive modifier, re-add it */
             if (!mloopcol && dynamicPaint_outputLayerExists(surface, ob, 0)) {
               mloopcol = CustomData_add_layer_named(&result->ldata,
@@ -1947,8 +1947,8 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             }
 
             /* wet layer */
-            MLoopCol *mloopcol_wet = CustomData_get_layer_named(
-                &result->ldata, CD_PROP_BYTE_COLOR, surface->output_name2);
+            MLoopCol *mloopcol_wet = CustomData_get_layer_named_for_write(
+                &result->ldata, CD_PROP_BYTE_COLOR, surface->output_name2, result->totloop);
             /* if output layer is lost from a constructive modifier, re-add it */
             if (!mloopcol_wet && dynamicPaint_outputLayerExists(surface, ob, 1)) {
               mloopcol_wet = CustomData_add_layer_named(&result->ldata,
@@ -1978,7 +1978,8 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
           /* vertex group paint */
           else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
             int defgrp_index = BKE_object_defgroup_name_index(ob, surface->output_name);
-            MDeformVert *dvert = CustomData_get_layer(&result->vdata, CD_MDEFORMVERT);
+            MDeformVert *dvert = CustomData_get_layer_for_write(
+                &result->vdata, CD_MDEFORMVERT, result->totvert);
             float *weight = (float *)sData->type_data;
 
             /* apply weights into a vertex group, if doesn't exists add a new layer */

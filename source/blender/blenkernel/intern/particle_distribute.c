@@ -179,7 +179,7 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
     int amax = from == PART_FROM_FACE ? 3 : 1;
 
     totface = mesh->totface;
-    mface = mface_array = CustomData_get_layer(&mesh->fdata, CD_MFACE);
+    mface = mface_array = CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
 
     for (a = 0; a < amax; a++) {
       if (a == 0) {
@@ -462,7 +462,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
   ParticleThreadContext *ctx = thread->ctx;
   MFace *mface;
 
-  mface = CustomData_get_layer(&ctx->mesh->fdata, CD_MFACE);
+  mface = CustomData_get_layer_for_write(&ctx->mesh->fdata, CD_MFACE, ctx->mesh->totface);
 
   int rng_skip_tot = PSYS_RND_DIST_SKIP; /* count how many rng_* calls won't need skipping */
 
@@ -523,7 +523,7 @@ static void distribute_from_faces_exec(ParticleTask *thread, ParticleData *pa, i
   int i;
   int rng_skip_tot = PSYS_RND_DIST_SKIP; /* count how many rng_* calls won't need skipping */
 
-  MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
   MFace *mface;
 
   pa->num = i = ctx->index[p];
@@ -578,7 +578,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
 
   pa->num = i = ctx->index[p];
-  MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
   mface = &mfaces[i];
 
   switch (distr) {
@@ -630,7 +630,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 
   min_d = FLT_MAX;
   intersect = 0;
-  mface = CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  mface = CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
   for (i = 0; i < tot; i++, mface++) {
     if (i == pa->num) {
       continue;
@@ -700,7 +700,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
     return;
   }
 
-  MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
   mf = &mfaces[ctx->index[p]];
 
   randu = BLI_rng_get_float(thread->rng);
@@ -1053,7 +1053,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
     orcodata = CustomData_get_layer(&mesh->vdata, CD_ORCO);
 
-    MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+    MFace *mfaces = (MFace *)CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
     for (i = 0; i < totelem; i++) {
       MFace *mf = &mfaces[i];
 
@@ -1114,7 +1114,8 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
       }
     }
     else { /* PART_FROM_FACE / PART_FROM_VOLUME */
-      MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+      MFace *mfaces = (MFace *)CustomData_get_layer_for_write(
+          &mesh->fdata, CD_MFACE, mesh->totface);
       for (i = 0; i < totelem; i++) {
         MFace *mf = &mfaces[i];
         tweight = vweight[mf->v1] + vweight[mf->v2] + vweight[mf->v3];

@@ -2222,7 +2222,7 @@ void BKE_keyblock_convert_to_mesh(const KeyBlock *kb,
 }
 
 void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
-                                    const Mesh *mesh,
+                                    Mesh *mesh,
                                     float (*r_vert_normals)[3],
                                     float (*r_poly_normals)[3],
                                     float (*r_loop_normals)[3])
@@ -2272,8 +2272,8 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
                                           vert_normals);
   }
   if (loop_normals_needed) {
-    short(*clnors)[2] = static_cast<short(*)[2]>(
-        CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL)); /* May be nullptr. */
+    short(*clnors)[2] = static_cast<short(*)[2]>(CustomData_get_layer_for_write(
+        &mesh->ldata, CD_CUSTOMLOOPNORMAL, mesh->totloop)); /* May be nullptr. */
     const bool *sharp_edges = static_cast<const bool *>(
         CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"));
     BKE_mesh_normals_loop_split(positions,

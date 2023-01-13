@@ -145,7 +145,7 @@ void BKE_keyblock_convert_to_mesh(const struct KeyBlock *kb,
  * \param r_loop_normals: if non-NULL, an array of vectors, same length as number of loops.
  */
 void BKE_keyblock_mesh_calc_normals(const struct KeyBlock *kb,
-                                    const struct Mesh *mesh,
+                                    struct Mesh *mesh,
                                     float (*r_vert_normals)[3],
                                     float (*r_poly_normals)[3],
                                     float (*r_loop_normals)[3]);

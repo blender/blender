@@ -108,9 +108,10 @@ static void join_mesh_single(Depsgraph *depsgraph,
     CustomData_copy_data_named(&me->vdata, vdata, 0, *vertofs, me->totvert);
 
     /* vertex groups */
-    MDeformVert *dvert = (MDeformVert *)CustomData_get(vdata, *vertofs, CD_MDEFORMVERT);
-    const MDeformVert *dvert_src = (const MDeformVert *)CustomData_get(
-        &me->vdata, 0, CD_MDEFORMVERT);
+    MDeformVert *dvert = (MDeformVert *)CustomData_get_for_write(
+        vdata, *vertofs, CD_MDEFORMVERT, totvert);
+    const MDeformVert *dvert_src = (const MDeformVert *)CustomData_get_layer(&me->vdata,
+                                                                             CD_MDEFORMVERT);
 
     /* Remap to correct new vgroup indices, if needed. */
     if (dvert_src) {
@@ -254,7 +255,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
     /* Apply matmap. In case we don't have material indices yet, create them if more than one
      * material is the result of joining. */
     int *material_indices = static_cast<int *>(
-        CustomData_get_layer_named(pdata, CD_PROP_INT32, "material_index"));
+        CustomData_get_layer_named_for_write(pdata, CD_PROP_INT32, "material_index", totpoly));
     if (!material_indices && totcol > 1) {
       material_indices = (int *)CustomData_add_layer_named(
           pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, totpoly, "material_index");
@@ -270,8 +271,9 @@ static void join_mesh_single(Depsgraph *depsgraph,
     }
 
     /* Face maps. */
-    int *fmap = (int *)CustomData_get(pdata, *polyofs, CD_FACEMAP);
-    const int *fmap_src = (const int *)CustomData_get(&me->pdata, 0, CD_FACEMAP);
+    int *fmap = (int *)CustomData_get_for_write(pdata, *polyofs, CD_FACEMAP, totpoly);
+    const int *fmap_src = (const int *)CustomData_get_for_write(
+        &me->pdata, 0, CD_FACEMAP, me->totpoly);
 
     /* Remap to correct new face-map indices, if needed. */
     if (fmap_src) {
@@ -300,14 +302,14 @@ static void join_mesh_single(Depsgraph *depsgraph,
 /* Face Sets IDs are a sparse sequence, so this function offsets all the IDs by face_set_offset and
  * updates face_set_offset with the maximum ID value. This way, when used in multiple meshes, all
  * of them will have different IDs for their Face Sets. */
-static void mesh_join_offset_face_sets_ID(const Mesh *mesh, int *face_set_offset)
+static void mesh_join_offset_face_sets_ID(Mesh *mesh, int *face_set_offset)
 {
   if (!mesh->totpoly) {
     return;
   }
 
-  int *face_sets = (int *)CustomData_get_layer_named(
-      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set");
+  int *face_sets = (int *)CustomData_get_layer_named_for_write(
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly);
   if (!face_sets) {
     return;
   }

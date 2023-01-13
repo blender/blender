@@ -173,7 +173,8 @@ static void SCULPT_dynamic_topology_disable_ex(
     me->face_sets_color_default = 1;
 
     /* Sync the visibility to vertices manually as the pmap is still not initialized. */
-    bool *hide_vert = (bool *)CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".hide_vert");
+    bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
+        &me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert);
     if (hide_vert != NULL) {
       memset(hide_vert, 0, sizeof(bool) * me->totvert);
     }

@@ -1709,7 +1709,8 @@ static void sculpt_update_object(
     ss->multires.active = false;
     ss->multires.modifier = nullptr;
     ss->multires.level = 0;
-    ss->vmask = static_cast<float *>(CustomData_get_layer(&me->vdata, CD_PAINT_MASK));
+    ss->vmask = static_cast<float *>(
+        CustomData_get_layer_for_write(&me->vdata, CD_PAINT_MASK, me->totvert));
 
     CustomDataLayer *layer;
     eAttrDomain domain;
@@ -1736,14 +1737,15 @@ static void sculpt_update_object(
 
   /* Sculpt Face Sets. */
   if (use_face_sets) {
-    ss->face_sets = static_cast<int *>(
-        CustomData_get_layer_named(&me->pdata, CD_PROP_INT32, ".sculpt_face_set"));
+    ss->face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
+        &me->pdata, CD_PROP_INT32, ".sculpt_face_set", me->totpoly));
   }
   else {
     ss->face_sets = nullptr;
   }
 
-  ss->hide_poly = (bool *)CustomData_get_layer_named(&me->pdata, CD_PROP_BOOL, ".hide_poly");
+  ss->hide_poly = (bool *)CustomData_get_layer_named_for_write(
+      &me->pdata, CD_PROP_BOOL, ".hide_poly", me->totpoly);
 
   ss->subdiv_ccg = me_eval->runtime->subdiv_ccg;
 
@@ -1962,14 +1964,14 @@ int *BKE_sculpt_face_sets_ensure(Mesh *mesh)
     face_sets.finish();
   }
 
-  return static_cast<int *>(
-      CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_set"));
+  return static_cast<int *>(CustomData_get_layer_named_for_write(
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly));
 }
 
 bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh)
 {
-  bool *hide_poly = static_cast<bool *>(
-      CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, ".hide_poly"));
+  bool *hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
+      &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->totpoly));
   if (hide_poly != nullptr) {
     return hide_poly;
   }

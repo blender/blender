@@ -759,7 +759,8 @@ void BKE_mesh_polygon_flip_ex(const struct MPoly *mpoly,
                               bool use_loop_mdisp_flip);
 void BKE_mesh_polygon_flip(const struct MPoly *mpoly,
                            struct MLoop *mloop,
-                           struct CustomData *ldata);
+                           struct CustomData *ldata,
+                           int totloop);
 /**
  * Flip (invert winding of) all polygons (used to inverse their normals).
  *
@@ -983,7 +984,7 @@ BLI_INLINE const int *BKE_mesh_material_indices(const Mesh *mesh)
  */
 BLI_INLINE int *BKE_mesh_material_indices_for_write(Mesh *mesh)
 {
-  int *indices = (int *)CustomData_duplicate_referenced_layer_named(
+  int *indices = (int *)CustomData_get_layer_named_for_write(
       &mesh->pdata, CD_PROP_INT32, "material_index", mesh->totpoly);
   if (indices) {
     return indices;
@@ -998,7 +999,7 @@ BLI_INLINE const float (*BKE_mesh_vert_positions(const Mesh *mesh))[3]
 }
 BLI_INLINE float (*BKE_mesh_vert_positions_for_write(Mesh *mesh))[3]
 {
-  return (float(*)[3])CustomData_duplicate_referenced_layer_named(
+  return (float(*)[3])CustomData_get_layer_named_for_write(
       &mesh->vdata, CD_PROP_FLOAT3, "position", mesh->totvert);
 }
 
@@ -1008,7 +1009,7 @@ BLI_INLINE const MEdge *BKE_mesh_edges(const Mesh *mesh)
 }
 BLI_INLINE MEdge *BKE_mesh_edges_for_write(Mesh *mesh)
 {
-  return (MEdge *)CustomData_duplicate_referenced_layer(&mesh->edata, CD_MEDGE, mesh->totedge);
+  return (MEdge *)CustomData_get_layer_for_write(&mesh->edata, CD_MEDGE, mesh->totedge);
 }
 
 BLI_INLINE const MPoly *BKE_mesh_polys(const Mesh *mesh)
@@ -1017,7 +1018,7 @@ BLI_INLINE const MPoly *BKE_mesh_polys(const Mesh *mesh)
 }
 BLI_INLINE MPoly *BKE_mesh_polys_for_write(Mesh *mesh)
 {
-  return (MPoly *)CustomData_duplicate_referenced_layer(&mesh->pdata, CD_MPOLY, mesh->totpoly);
+  return (MPoly *)CustomData_get_layer_for_write(&mesh->pdata, CD_MPOLY, mesh->totpoly);
 }
 
 BLI_INLINE const MLoop *BKE_mesh_loops(const Mesh *mesh)
@@ -1026,7 +1027,7 @@ BLI_INLINE const MLoop *BKE_mesh_loops(const Mesh *mesh)
 }
 BLI_INLINE MLoop *BKE_mesh_loops_for_write(Mesh *mesh)
 {
-  return (MLoop *)CustomData_duplicate_referenced_layer(&mesh->ldata, CD_MLOOP, mesh->totloop);
+  return (MLoop *)CustomData_get_layer_for_write(&mesh->ldata, CD_MLOOP, mesh->totloop);
 }
 
 BLI_INLINE const MDeformVert *BKE_mesh_deform_verts(const Mesh *mesh)
@@ -1035,7 +1036,7 @@ BLI_INLINE const MDeformVert *BKE_mesh_deform_verts(const Mesh *mesh)
 }
 BLI_INLINE MDeformVert *BKE_mesh_deform_verts_for_write(Mesh *mesh)
 {
-  MDeformVert *dvert = (MDeformVert *)CustomData_duplicate_referenced_layer(
+  MDeformVert *dvert = (MDeformVert *)CustomData_get_layer_for_write(
       &mesh->vdata, CD_MDEFORMVERT, mesh->totvert);
   if (dvert) {
     return dvert;

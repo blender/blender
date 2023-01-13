@@ -277,10 +277,11 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
 
     float(*loop_nors_dst)[3];
     short(*custom_nors_dst)[2] = static_cast<short(*)[2]>(
-        CustomData_get_layer(ldata_dst, CD_CUSTOMLOOPNORMAL));
+        CustomData_get_layer_for_write(ldata_dst, CD_CUSTOMLOOPNORMAL, me_dst->totloop));
 
     /* Cache loop nors into a temp CDLayer. */
-    loop_nors_dst = static_cast<float(*)[3]>(CustomData_get_layer(ldata_dst, CD_NORMAL));
+    loop_nors_dst = static_cast<float(*)[3]>(
+        CustomData_get_layer_for_write(ldata_dst, CD_NORMAL, me_dst->totloop));
     const bool do_loop_nors_dst = (loop_nors_dst == nullptr);
     if (do_loop_nors_dst) {
       loop_nors_dst = static_cast<float(*)[3]>(
@@ -337,9 +338,9 @@ static void data_transfer_dtdata_type_postprocess(Object * /*ob_src*/,
 
     const float(*poly_nors_dst)[3] = BKE_mesh_poly_normals_ensure(me_dst);
     float(*loop_nors_dst)[3] = static_cast<float(*)[3]>(
-        CustomData_get_layer(ldata_dst, CD_NORMAL));
+        CustomData_get_layer_for_write(ldata_dst, CD_NORMAL, me_dst->totloop));
     short(*custom_nors_dst)[2] = static_cast<short(*)[2]>(
-        CustomData_get_layer(ldata_dst, CD_CUSTOMLOOPNORMAL));
+        CustomData_get_layer_for_write(ldata_dst, CD_CUSTOMLOOPNORMAL, me_dst->totloop));
 
     if (!custom_nors_dst) {
       custom_nors_dst = static_cast<short(*)[2]>(CustomData_add_layer(
@@ -514,7 +515,6 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
                                                                  const bool use_delete,
                                                                  const CustomData *cd_src,
                                                                  CustomData *cd_dst,
-                                                                 const bool use_dupref_dst,
                                                                  const int tolayers,
                                                                  const bool *use_layers_src,
                                                                  const int num_layers_src,
@@ -571,15 +571,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
             continue;
           }
           data_src = CustomData_get_layer_n(cd_src, cddata_type, idx_src);
-          /* If dest is a evaluated mesh (from modifier),
-           * we do not want to overwrite cdlayers of orig mesh! */
-          if (use_dupref_dst) {
-            data_dst = CustomData_duplicate_referenced_layer_n(
-                cd_dst, cddata_type, idx_src, num_elem_dst);
-          }
-          else {
-            data_dst = CustomData_get_layer_n(cd_dst, cddata_type, idx_src);
-          }
+          data_dst = CustomData_get_layer_n_for_write(cd_dst, cddata_type, idx_src, num_elem_dst);
           data_transfer_layersmapping_add_item_cd(r_map,
                                                   cddata_type,
                                                   mix_mode,
@@ -627,15 +619,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
           data_dst_to_delete[idx_dst] = false;
         }
         if (r_map) {
-          /* If dest is a evaluated mesh (from modifier),
-           * we do not want to overwrite cdlayers of orig mesh! */
-          if (use_dupref_dst) {
-            data_dst = CustomData_duplicate_referenced_layer_n(
-                cd_dst, cddata_type, idx_dst, num_elem_dst);
-          }
-          else {
-            data_dst = CustomData_get_layer_n(cd_dst, cddata_type, idx_dst);
-          }
+          data_dst = CustomData_get_layer_n_for_write(cd_dst, cddata_type, idx_dst, num_elem_dst);
           data_transfer_layersmapping_add_item_cd(r_map,
                                                   cddata_type,
                                                   mix_mode,
@@ -677,9 +661,8 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
                                                  const int num_elem_dst,
                                                  const bool use_create,
                                                  const bool use_delete,
-                                                 CustomData *cd_src,
+                                                 const CustomData *cd_src,
                                                  CustomData *cd_dst,
-                                                 const bool use_dupref_dst,
                                                  const int fromlayers,
                                                  const int tolayers,
                                                  cd_datatransfer_interp interp,
@@ -697,17 +680,12 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
       return true;
     }
 
-    data_dst = CustomData_get_layer(cd_dst, cddata_type);
+    data_dst = CustomData_get_layer_for_write(cd_dst, cddata_type, num_elem_dst);
     if (!data_dst) {
       if (!use_create) {
         return true;
       }
       data_dst = CustomData_add_layer(cd_dst, cddata_type, CD_SET_DEFAULT, nullptr, num_elem_dst);
-    }
-    else if (use_dupref_dst && r_map) {
-      /* If dest is a evaluated mesh (from modifier),
-       * we do not want to overwrite cdlayers of orig mesh! */
-      data_dst = CustomData_duplicate_referenced_layer(cd_dst, cddata_type, num_elem_dst);
     }
 
     if (r_map) {
@@ -740,15 +718,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
 
     if (tolayers >= 0) { /* Real-layer index */
       idx_dst = tolayers;
-      /* If dest is a evaluated mesh (from modifier),
-       * we do not want to overwrite cdlayers of orig mesh! */
-      if (use_dupref_dst && r_map) {
-        data_dst = CustomData_duplicate_referenced_layer_n(
-            cd_dst, cddata_type, idx_dst, num_elem_dst);
-      }
-      else {
-        data_dst = CustomData_get_layer_n(cd_dst, cddata_type, idx_dst);
-      }
+      data_dst = CustomData_get_layer_n_for_write(cd_dst, cddata_type, idx_dst, num_elem_dst);
     }
     else if (tolayers == DT_LAYERS_ACTIVE_DST) {
       if ((idx_dst = CustomData_get_active_layer(cd_dst, cddata_type)) == -1) {
@@ -759,15 +729,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
             cd_dst, cddata_type, CD_SET_DEFAULT, nullptr, num_elem_dst);
       }
       else {
-        /* If dest is a evaluated mesh (from modifier),
-         * we do not want to overwrite cdlayers of orig mesh! */
-        if (use_dupref_dst && r_map) {
-          data_dst = CustomData_duplicate_referenced_layer_n(
-              cd_dst, cddata_type, idx_dst, num_elem_dst);
-        }
-        else {
-          data_dst = CustomData_get_layer_n(cd_dst, cddata_type, idx_dst);
-        }
+        data_dst = CustomData_get_layer_n_for_write(cd_dst, cddata_type, idx_dst, num_elem_dst);
       }
     }
     else if (tolayers == DT_LAYERS_INDEX_DST) {
@@ -782,15 +744,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
           CustomData_add_layer(cd_dst, cddata_type, CD_SET_DEFAULT, nullptr, num_elem_dst);
         }
       }
-      /* If dest is a evaluated mesh (from modifier),
-       * we do not want to overwrite cdlayers of orig mesh! */
-      if (use_dupref_dst && r_map) {
-        data_dst = CustomData_duplicate_referenced_layer_n(
-            cd_dst, cddata_type, idx_dst, num_elem_dst);
-      }
-      else {
-        data_dst = CustomData_get_layer_n(cd_dst, cddata_type, idx_dst);
-      }
+      data_dst = CustomData_get_layer_n_for_write(cd_dst, cddata_type, idx_dst, num_elem_dst);
     }
     else if (tolayers == DT_LAYERS_NAME_DST) {
       const char *name = CustomData_get_layer_name(cd_src, cddata_type, idx_src);
@@ -802,15 +756,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
             cd_dst, cddata_type, CD_SET_DEFAULT, nullptr, num_elem_dst, name);
         idx_dst = CustomData_get_named_layer(cd_dst, cddata_type, name);
       }
-      /* If dest is a evaluated mesh (from modifier),
-       * we do not want to overwrite cdlayers of orig mesh! */
-      if (use_dupref_dst && r_map) {
-        data_dst = CustomData_duplicate_referenced_layer_n(
-            cd_dst, cddata_type, idx_dst, num_elem_dst);
-      }
-      else {
-        data_dst = CustomData_get_layer_n(cd_dst, cddata_type, idx_dst);
-      }
+      data_dst = CustomData_get_layer_n_for_write(cd_dst, cddata_type, idx_dst, num_elem_dst);
     }
     else {
       return false;
@@ -853,7 +799,6 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
                                                                use_delete,
                                                                cd_src,
                                                                cd_dst,
-                                                               use_dupref_dst,
                                                                tolayers,
                                                                use_layers_src,
                                                                num_src,
@@ -909,7 +854,6 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                 use_delete,
                                                 cd_src,
                                                 cd_dst,
-                                                me_dst != ob_dst->data,
                                                 fromlayers,
                                                 tolayers,
                                                 interp,
@@ -962,7 +906,6 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                 use_delete,
                                                 cd_src,
                                                 cd_dst,
-                                                me_dst != ob_dst->data,
                                                 fromlayers,
                                                 tolayers,
                                                 interp,
@@ -1007,7 +950,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           mix_factor,
           mix_weights,
           CustomData_get_layer_named(&me_src->edata, CD_PROP_BOOL, "sharp_edge"),
-          CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, "sharp_edge"),
+          CustomData_get_layer_named_for_write(
+              &me_dst->edata, CD_PROP_BOOL, "sharp_edge", me_dst->totedge),
           interp,
           interp_data);
       return true;
@@ -1040,7 +984,6 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                 use_delete,
                                                 cd_src,
                                                 cd_dst,
-                                                me_dst != ob_dst->data,
                                                 fromlayers,
                                                 tolayers,
                                                 interp,
@@ -1072,7 +1015,6 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                 use_delete,
                                                 cd_src,
                                                 cd_dst,
-                                                me_dst != ob_dst->data,
                                                 fromlayers,
                                                 tolayers,
                                                 interp,

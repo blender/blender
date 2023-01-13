@@ -1913,7 +1913,8 @@ static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const
   short(*clnors)[2];
   const int numloops = mesh->totloop;
 
-  clnors = (short(*)[2])CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
+  clnors = (short(*)[2])CustomData_get_layer_for_write(
+      &mesh->ldata, CD_CUSTOMLOOPNORMAL, mesh->totloop);
   if (clnors != nullptr) {
     memset(clnors, 0, sizeof(*clnors) * size_t(numloops));
   }

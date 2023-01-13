@@ -221,13 +221,14 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
   CustomData_merge(&mesh->ldata, &dm->loopData, cddata_masks.lmask, alloctype, mesh->totloop);
   CustomData_merge(&mesh->pdata, &dm->polyData, cddata_masks.pmask, alloctype, mesh->totpoly);
 
-  cddm->vert_positions = CustomData_get_layer_named(&dm->vertData, CD_PROP_FLOAT3, "position");
+  cddm->vert_positions = CustomData_get_layer_named_for_write(
+      &dm->vertData, CD_PROP_FLOAT3, "position", mesh->totvert);
   /* Though this may be an unnecessary calculation, simply retrieving the layer may return nothing
    * or dirty normals. */
   cddm->vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
-  cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
-  cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
-  cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
+  cddm->medge = CustomData_get_layer_for_write(&dm->edgeData, CD_MEDGE, mesh->totedge);
+  cddm->mloop = CustomData_get_layer_for_write(&dm->loopData, CD_MLOOP, mesh->totloop);
+  cddm->mpoly = CustomData_get_layer_for_write(&dm->polyData, CD_MPOLY, mesh->totpoly);
 #if 0
   cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 #else

@@ -289,6 +289,7 @@ void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
 
 static void bm_corners_to_loops_ex(ID *id,
                                    CustomData *fdata,
+                                   const int totface,
                                    CustomData *ldata,
                                    MFace *mface,
                                    int totloop,
@@ -300,10 +301,11 @@ static void bm_corners_to_loops_ex(ID *id,
   MFace *mf = mface + findex;
 
   for (int i = 0; i < numTex; i++) {
-    const MTFace *texface = (const MTFace *)CustomData_get_n(fdata, CD_MTFACE, findex, i);
+    const MTFace *texface = (const MTFace *)CustomData_get_n_for_write(
+        fdata, CD_MTFACE, findex, i, totface);
 
     blender::float2 *uv = static_cast<blender::float2 *>(
-        CustomData_get_n(ldata, CD_PROP_FLOAT2, loopstart, i));
+        CustomData_get_n_for_write(ldata, CD_PROP_FLOAT2, loopstart, i, totloop));
     copy_v2_v2(*uv, texface->uv[0]);
     uv++;
     copy_v2_v2(*uv, texface->uv[1]);
@@ -318,8 +320,10 @@ static void bm_corners_to_loops_ex(ID *id,
   }
 
   for (int i = 0; i < numCol; i++) {
-    MLoopCol *mloopcol = (MLoopCol *)CustomData_get_n(ldata, CD_PROP_BYTE_COLOR, loopstart, i);
-    const MCol *mcol = (const MCol *)CustomData_get_n(fdata, CD_MCOL, findex, i);
+    MLoopCol *mloopcol = (MLoopCol *)CustomData_get_n_for_write(
+        ldata, CD_PROP_BYTE_COLOR, loopstart, i, totloop);
+    const MCol *mcol = (const MCol *)CustomData_get_n_for_write(
+        fdata, CD_MCOL, findex, i, totface);
 
     MESH_MLOOPCOL_FROM_MCOL(mloopcol, &mcol[0]);
     mloopcol++;
@@ -334,9 +338,10 @@ static void bm_corners_to_loops_ex(ID *id,
   }
 
   if (CustomData_has_layer(fdata, CD_TESSLOOPNORMAL)) {
-    float(*loop_normals)[3] = (float(*)[3])CustomData_get(ldata, loopstart, CD_NORMAL);
-    const short(*tessloop_normals)[3] = (short(*)[3])CustomData_get(
-        fdata, findex, CD_TESSLOOPNORMAL);
+    float(*loop_normals)[3] = (float(*)[3])CustomData_get_for_write(
+        ldata, loopstart, CD_NORMAL, totloop);
+    const short(*tessloop_normals)[3] = (short(*)[3])CustomData_get_for_write(
+        fdata, findex, CD_TESSLOOPNORMAL, totface);
     const int max = mf->v4 ? 4 : 3;
 
     for (int i = 0; i < max; i++, loop_normals++, tessloop_normals++) {
@@ -345,8 +350,8 @@ static void bm_corners_to_loops_ex(ID *id,
   }
 
   if (CustomData_has_layer(fdata, CD_MDISPS)) {
-    MDisps *ld = (MDisps *)CustomData_get(ldata, loopstart, CD_MDISPS);
-    const MDisps *fd = (const MDisps *)CustomData_get(fdata, findex, CD_MDISPS);
+    MDisps *ld = (MDisps *)CustomData_get_for_write(ldata, loopstart, CD_MDISPS, totloop);
+    const MDisps *fd = (const MDisps *)CustomData_get_for_write(fdata, findex, CD_MDISPS, totface);
     const float(*disps)[3] = fd->disps;
     int tot = mf->v4 ? 4 : 3;
     int corners;
@@ -443,7 +448,7 @@ static void convert_mfaces_to_mpolys(ID *id,
   totpoly = totface_i;
   mpoly = (MPoly *)CustomData_add_layer(pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, totpoly);
   int *material_indices = static_cast<int *>(
-      CustomData_get_layer_named(pdata, CD_PROP_INT32, "material_index"));
+      CustomData_get_layer_named_for_write(pdata, CD_PROP_INT32, "material_index", totpoly));
   if (material_indices == nullptr) {
     material_indices = static_cast<int *>(CustomData_add_layer_named(
         pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, totpoly, "material_index"));
@@ -515,7 +520,8 @@ static void convert_mfaces_to_mpolys(ID *id,
 
 #undef ML
 
-    bm_corners_to_loops_ex(id, fdata, ldata, mface, totloop, i, mp->loopstart, numTex, numCol);
+    bm_corners_to_loops_ex(
+        id, fdata, totface_i, ldata, mface, totloop, i, mp->loopstart, numTex, numCol);
 
     if (polyindex) {
       *polyindex = i;
@@ -804,7 +810,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata,
   uint(*lidx)[4];
 
   for (i = 0; i < numUV; i++) {
-    MTFace *texface = (MTFace *)CustomData_get_layer_n(fdata, CD_MTFACE, i);
+    MTFace *texface = (MTFace *)CustomData_get_layer_n_for_write(fdata, CD_MTFACE, i, num_faces);
     const blender::float2 *uv = static_cast<const blender::float2 *>(
         CustomData_get_layer_n(ldata, CD_PROP_FLOAT2, i));
 
@@ -817,7 +823,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata,
   }
 
   for (i = 0; i < numCol; i++) {
-    MCol(*mcol)[4] = (MCol(*)[4])CustomData_get_layer_n(fdata, CD_MCOL, i);
+    MCol(*mcol)[4] = (MCol(*)[4])CustomData_get_layer_n_for_write(fdata, CD_MCOL, i, num_faces);
     const MLoopCol *mloopcol = (const MLoopCol *)CustomData_get_layer_n(
         ldata, CD_PROP_BYTE_COLOR, i);
 
@@ -1835,7 +1841,7 @@ void BKE_mesh_legacy_convert_verts_to_positions(Mesh *mesh)
   using namespace blender;
   using namespace blender::bke;
 
-  const Span<MVert> verts(static_cast<MVert *>(CustomData_get_layer(&mesh->vdata, CD_MVERT)),
+  const Span<MVert> verts(static_cast<const MVert *>(CustomData_get_layer(&mesh->vdata, CD_MVERT)),
                           mesh->totvert);
   MutableSpan<float3> positions(
       static_cast<float3 *>(CustomData_add_layer_named(

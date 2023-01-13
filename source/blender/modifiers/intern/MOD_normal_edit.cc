@@ -177,12 +177,13 @@ static void mix_normals(const float mix_factor,
 static bool polygons_check_flip(MLoop *mloop,
                                 float (*nos)[3],
                                 CustomData *ldata,
+                                const int totloop,
                                 const MPoly *mpoly,
                                 float (*poly_normals)[3],
                                 const int polys_num)
 {
   const MPoly *mp;
-  MDisps *mdisp = static_cast<MDisps *>(CustomData_get_layer(ldata, CD_MDISPS));
+  MDisps *mdisp = static_cast<MDisps *>(CustomData_get_layer_for_write(ldata, CD_MDISPS, totloop));
   int i;
   bool flipped = false;
 
@@ -325,9 +326,13 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                 loops_num);
   }
 
-  if (do_polynors_fix &&
-      polygons_check_flip(
-          mloop, nos, &mesh->ldata, mpoly, BKE_mesh_poly_normals_for_write(mesh), polys_num)) {
+  if (do_polynors_fix && polygons_check_flip(mloop,
+                                             nos,
+                                             &mesh->ldata,
+                                             mesh->totloop,
+                                             mpoly,
+                                             BKE_mesh_poly_normals_for_write(mesh),
+                                             polys_num)) {
     /* We need to recompute vertex normals! */
     BKE_mesh_normals_tag_dirty(mesh);
   }
@@ -444,9 +449,13 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                 loops_num);
   }
 
-  if (do_polynors_fix &&
-      polygons_check_flip(
-          mloop, nos, &mesh->ldata, mpoly, BKE_mesh_poly_normals_for_write(mesh), polys_num)) {
+  if (do_polynors_fix && polygons_check_flip(mloop,
+                                             nos,
+                                             &mesh->ldata,
+                                             mesh->totloop,
+                                             mpoly,
+                                             BKE_mesh_poly_normals_for_write(mesh),
+                                             polys_num)) {
     BKE_mesh_normals_tag_dirty(mesh);
   }
 
@@ -553,10 +562,11 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE);
 
-  short(*clnors)[2] = static_cast<short(*)[2]>(CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL));
+  short(*clnors)[2] = static_cast<short(*)[2]>(
+      CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, loops_num));
   if (use_current_clnors) {
     clnors = static_cast<short(*)[2]>(
-        CustomData_duplicate_referenced_layer(ldata, CD_CUSTOMLOOPNORMAL, loops_num));
+        CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, loops_num));
     loop_normals = static_cast<float(*)[3]>(
         MEM_malloc_arrayN(size_t(loops_num), sizeof(*loop_normals), __func__));
 

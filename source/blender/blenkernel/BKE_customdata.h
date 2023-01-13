@@ -284,21 +284,6 @@ int CustomData_number_of_layers(const struct CustomData *data, int type);
 int CustomData_number_of_layers_typemask(const struct CustomData *data, eCustomDataMask mask);
 
 /**
- * Duplicate data of a layer with flag NOFREE, and remove that flag.
- * \return the layer data.
- */
-void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type, int totelem);
-void *CustomData_duplicate_referenced_layer_n(struct CustomData *data,
-                                              int type,
-                                              int n,
-                                              int totelem);
-void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
-                                                  int type,
-                                                  const char *name,
-                                                  int totelem);
-bool CustomData_is_referenced_layer(struct CustomData *data, int type);
-
-/**
  * Duplicate all the layers with flag NOFREE, and remove the flag from duplicated layers.
  */
 void CustomData_duplicate_referenced_layers(CustomData *data, int totelem);
@@ -409,11 +394,15 @@ void CustomData_swap_corners(struct CustomData *data, int index, const int *corn
 void CustomData_swap(struct CustomData *data, int index_a, int index_b);
 
 /**
- * Gets a pointer to the data element at index from the first layer of type.
- * \return NULL if there is no layer of type.
+ * Retrieve a pointer to an element of the active layer of the given \a type, chosen by the
+ * \a index, if it exists.
  */
-void *CustomData_get(const struct CustomData *data, int index, int type);
-void *CustomData_get_n(const struct CustomData *data, int type, int index, int n);
+void *CustomData_get_for_write(struct CustomData *data, int index, int type, int totelem);
+/**
+ * Retrieve a pointer to an element of the \a nth layer of the given \a type, chosen by the
+ * \a index, if it exists.
+ */
+void *CustomData_get_n_for_write(struct CustomData *data, int type, int index, int n, int totelem);
 
 /* BMesh Custom Data Functions.
  * Should replace edit-mesh ones with these as well, due to more efficient memory alloc. */
@@ -431,12 +420,29 @@ bool CustomData_set_layer_name(struct CustomData *data, int type, int n, const c
 const char *CustomData_get_layer_name(const struct CustomData *data, int type, int n);
 
 /**
- * Gets a pointer to the active or first layer of type.
- * \return NULL if there is no layer of type.
+ * Retrieve the data array of the active layer of the given \a type, if it exists. Return null
+ * otherwise.
  */
-void *CustomData_get_layer(const struct CustomData *data, int type);
-void *CustomData_get_layer_n(const struct CustomData *data, int type, int n);
-void *CustomData_get_layer_named(const struct CustomData *data, int type, const char *name);
+const void *CustomData_get_layer(const struct CustomData *data, int type);
+void *CustomData_get_layer_for_write(struct CustomData *data, int type, int totelem);
+
+/**
+ * Retrieve the data array of the \a nth layer of the given \a type, if it exists. Return null
+ * otherwise.
+ */
+const void *CustomData_get_layer_n(const struct CustomData *data, int type, int n);
+void *CustomData_get_layer_n_for_write(struct CustomData *data, int type, int n, int totelem);
+
+/**
+ * Retrieve the data array of the layer with the given \a name and \a type, if it exists. Return
+ * null otherwise.
+ */
+const void *CustomData_get_layer_named(const struct CustomData *data, int type, const char *name);
+void *CustomData_get_layer_named_for_write(CustomData *data,
+                                           int type,
+                                           const char *name,
+                                           int totelem);
+
 int CustomData_get_offset(const struct CustomData *data, int type);
 int CustomData_get_offset_named(const CustomData *data, int type, const char *name);
 int CustomData_get_n_offset(const struct CustomData *data, int type, int n);

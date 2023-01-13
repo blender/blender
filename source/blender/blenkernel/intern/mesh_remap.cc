@@ -1357,10 +1357,11 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       }
       if (need_lnors_dst) {
         short(*custom_nors_dst)[2] = static_cast<short(*)[2]>(
-            CustomData_get_layer(ldata_dst, CD_CUSTOMLOOPNORMAL));
+            CustomData_get_layer_for_write(ldata_dst, CD_CUSTOMLOOPNORMAL, numloops_dst));
 
         /* Cache loop normals into a temporary custom data layer. */
-        loop_nors_dst = static_cast<float(*)[3]>(CustomData_get_layer(ldata_dst, CD_NORMAL));
+        loop_nors_dst = static_cast<float(*)[3]>(
+            CustomData_get_layer_for_write(ldata_dst, CD_NORMAL, numloops_dst));
         const bool do_loop_nors_dst = (loop_nors_dst == nullptr);
         if (!loop_nors_dst) {
           loop_nors_dst = static_cast<float(*)[3]>(

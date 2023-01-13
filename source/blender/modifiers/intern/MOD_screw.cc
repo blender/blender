@@ -394,7 +394,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     CustomData_add_layer(&result->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, int(maxPolys));
   }
 
-  int *origindex = static_cast<int *>(CustomData_get_layer(&result->pdata, CD_ORIGINDEX));
+  int *origindex = static_cast<int *>(
+      CustomData_get_layer_for_write(&result->pdata, CD_ORIGINDEX, result->totpoly));
 
   CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, int(totvert));
 
@@ -406,8 +407,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   if (mloopuv_layers_tot) {
     uint uv_lay;
     for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
-      mloopuv_layers[uv_lay] = static_cast<blender::float2 *>(
-          CustomData_get_layer_n(&result->ldata, CD_PROP_FLOAT2, int(uv_lay)));
+      mloopuv_layers[uv_lay] = static_cast<blender::float2 *>(CustomData_get_layer_n_for_write(
+          &result->ldata, CD_PROP_FLOAT2, int(uv_lay), result->totloop));
     }
 
     if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {

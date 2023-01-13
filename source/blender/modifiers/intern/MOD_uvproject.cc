@@ -184,9 +184,8 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   polys_num = mesh->totpoly;
   loops_num = mesh->totloop;
 
-  /* make sure we are not modifying the original UV map */
-  float(*mloop_uv)[2] = static_cast<float(*)[2]>(CustomData_duplicate_referenced_layer_named(
-      &mesh->ldata, CD_PROP_FLOAT2, uvname, loops_num));
+  float(*mloop_uv)[2] = static_cast<float(*)[2]>(
+      CustomData_get_layer_named_for_write(&mesh->ldata, CD_PROP_FLOAT2, uvname, loops_num));
 
   coords = BKE_mesh_vert_coords_alloc(mesh, &verts_num);
 

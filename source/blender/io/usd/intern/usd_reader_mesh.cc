@@ -204,7 +204,7 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, const int data_type
   }
 
   loopdata = &mesh->ldata;
-  cd_ptr = CustomData_get_layer_named(loopdata, cd_data_type, name);
+  cd_ptr = CustomData_get_layer_named_for_write(loopdata, cd_data_type, name, mesh->totloop);
   if (cd_ptr != nullptr) {
     /* layer already exists, so just return it. */
     return cd_ptr;

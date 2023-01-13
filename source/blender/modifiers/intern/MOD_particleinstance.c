@@ -322,10 +322,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MPoly *mpoly = BKE_mesh_polys_for_write(result);
   MLoop *mloop = BKE_mesh_loops_for_write(result);
 
-  MLoopCol *mloopcols_index = CustomData_get_layer_named(
-      &result->ldata, CD_PROP_BYTE_COLOR, pimd->index_layer_name);
-  MLoopCol *mloopcols_value = CustomData_get_layer_named(
-      &result->ldata, CD_PROP_BYTE_COLOR, pimd->value_layer_name);
+  MLoopCol *mloopcols_index = CustomData_get_layer_named_for_write(
+      &result->ldata, CD_PROP_BYTE_COLOR, pimd->index_layer_name, result->totloop);
+  MLoopCol *mloopcols_value = CustomData_get_layer_named_for_write(
+      &result->ldata, CD_PROP_BYTE_COLOR, pimd->value_layer_name, result->totloop);
   int *vert_part_index = NULL;
   float *vert_part_value = NULL;
   if (mloopcols_index != NULL) {

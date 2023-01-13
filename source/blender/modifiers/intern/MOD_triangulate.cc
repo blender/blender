@@ -74,7 +74,8 @@ static Mesh *triangulate_mesh(Mesh *mesh,
   BM_mesh_free(bm);
 
   if (keep_clnors) {
-    float(*lnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(&result->ldata, CD_NORMAL));
+    float(*lnors)[3] = static_cast<float(*)[3]>(
+        CustomData_get_layer_for_write(&result->ldata, CD_NORMAL, result->totloop));
     BLI_assert(lnors != nullptr);
 
     BKE_mesh_set_custom_normals(result, lnors);

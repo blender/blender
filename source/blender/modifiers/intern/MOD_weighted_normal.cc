@@ -614,7 +614,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   const float split_angle = mesh->smoothresh;
   short(*clnors)[2] = static_cast<short(*)[2]>(
-      CustomData_get_layer(&result->ldata, CD_CUSTOMLOOPNORMAL));
+      CustomData_get_layer_for_write(&result->ldata, CD_CUSTOMLOOPNORMAL, mesh->totloop));
 
   /* Keep info whether we had clnors,
    * it helps when generating clnor spaces and default normals. */

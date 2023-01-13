@@ -2900,7 +2900,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   arm->edbo = MEM_cnew<ListBase>("edbo armature");
 
   MVertSkin *mvert_skin = static_cast<MVertSkin *>(
-      CustomData_get_layer(&me->vdata, CD_MVERT_SKIN));
+      CustomData_get_layer_for_write(&me->vdata, CD_MVERT_SKIN, me->totvert));
   int *emap_mem;
   MeshElemMap *emap;
   BKE_mesh_vert_edge_map_create(&emap, &emap_mem, me_edges.data(), me->totvert, me->totedge);

@@ -74,8 +74,8 @@ int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
 
 void ED_sculpt_face_sets_initialize_none_to_id(struct Mesh *mesh, const int new_id)
 {
-  int *face_sets = static_cast<int *>(
-      CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_set"));
+  int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly));
   if (!face_sets) {
     return;
   }

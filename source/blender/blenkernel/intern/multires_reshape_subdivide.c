@@ -32,7 +32,7 @@ static void multires_subdivide_create_object_space_linear_grids(Mesh *mesh)
   const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
 
-  MDisps *mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
+  MDisps *mdisps = CustomData_get_layer_for_write(&mesh->ldata, CD_MDISPS, mesh->totloop);
   const int totpoly = mesh->totpoly;
   for (int p = 0; p < totpoly; p++) {
     const MPoly *poly = &polys[p];
