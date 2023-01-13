@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "BLI_math.h"
+
 #include "BKE_context.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -15,6 +17,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
+
+#include "DNA_layer_types.h"
 
 #include "IO_ply.h"
 
@@ -43,7 +47,11 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
       continue;
     }
 
-    Mesh *mesh = static_cast<Mesh *>(object->data);
+    Object *obj_eval = DEG_get_evaluated_object(depsgraph, object);
+    Object export_object_eval_ = dna::shallow_copy(*obj_eval);
+    Mesh *mesh = export_params.apply_modifiers ?
+                     BKE_object_get_evaluated_mesh(&export_object_eval_) :
+                     BKE_object_get_pre_modified_mesh(&export_object_eval_);
 
     // Vertices
     for (auto &&vertex : mesh->verts()) {
