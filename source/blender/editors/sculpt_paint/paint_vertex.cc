@@ -209,10 +209,11 @@ void init_stroke(Depsgraph *depsgraph, Object *ob)
 }
 
 /* Toggle operator for turning vertex paint mode on or off (copied from sculpt.cc) */
-void init_session(Depsgraph *depsgraph, Scene *scene, Object *ob, eObjectMode object_mode)
+void init_session(
+    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, eObjectMode object_mode)
 {
   /* Create persistent sculpt mode data */
-  BKE_sculpt_toolsettings_data_ensure(scene);
+  BKE_sculpt_toolsettings_data_ensure(bmain, scene);
 
   BLI_assert(ob->sculpt == nullptr);
   ob->sculpt = MEM_new<SculptSession>(__func__);
@@ -336,7 +337,7 @@ void mode_enter_generic(
     const ePaintMode paint_mode = PAINT_MODE_VERTEX;
     ED_mesh_color_ensure(me, nullptr);
 
-    BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->vpaint);
+    BKE_paint_ensure(bmain, scene->toolsettings, (Paint **)&scene->toolsettings->vpaint);
     Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
     ED_paint_cursor_start(paint, vertex_paint_poll);
     BKE_paint_init(bmain, scene, paint_mode, PAINT_CURSOR_VERTEX_PAINT);
@@ -344,7 +345,7 @@ void mode_enter_generic(
   else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
     const ePaintMode paint_mode = PAINT_MODE_WEIGHT;
 
-    BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->wpaint);
+    BKE_paint_ensure(bmain, scene->toolsettings, (Paint **)&scene->toolsettings->wpaint);
     Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
     ED_paint_cursor_start(paint, weight_paint_poll);
     BKE_paint_init(bmain, scene, paint_mode, PAINT_CURSOR_WEIGHT_PAINT);
@@ -366,7 +367,7 @@ void mode_enter_generic(
     BKE_sculptsession_free(ob);
   }
 
-  vwpaint::init_session(depsgraph, scene, ob, mode_flag);
+  vwpaint::init_session(bmain, depsgraph, scene, ob, mode_flag);
 
   /* Flush object mode. */
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);

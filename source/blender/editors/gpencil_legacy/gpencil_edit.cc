@@ -396,8 +396,8 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
   if (mode == OB_MODE_PAINT_GPENCIL_LEGACY) {
     /* Be sure we have brushes and Paint settings.
      * Need Draw and Vertex (used for Tint). */
-    BKE_paint_ensure(ts, (Paint **)&ts->gp_paint);
-    BKE_paint_ensure(ts, (Paint **)&ts->gp_vertexpaint);
+    BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_paint);
+    BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_vertexpaint);
 
     BKE_brush_gpencil_paint_presets(bmain, ts, false);
 
@@ -511,7 +511,7 @@ static int gpencil_sculptmode_toggle_exec(bContext *C, wmOperator *op)
 
   if (mode == OB_MODE_SCULPT_GPENCIL_LEGACY) {
     /* Be sure we have brushes. */
-    BKE_paint_ensure(ts, (Paint **)&ts->gp_sculptpaint);
+    BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_sculptpaint);
 
     const bool reset_mode = (ts->gp_sculptpaint->paint.brush == nullptr);
     BKE_brush_gpencil_sculpt_presets(bmain, ts, reset_mode);
@@ -625,7 +625,7 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
 
   if (mode == OB_MODE_WEIGHT_GPENCIL_LEGACY) {
     /* Be sure we have brushes. */
-    BKE_paint_ensure(ts, (Paint **)&ts->gp_weightpaint);
+    BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_weightpaint);
 
     const bool reset_mode = (ts->gp_weightpaint->paint.brush == nullptr);
     BKE_brush_gpencil_weight_presets(bmain, ts, reset_mode);
@@ -732,8 +732,8 @@ static int gpencil_vertexmode_toggle_exec(bContext *C, wmOperator *op)
   if (mode == OB_MODE_VERTEX_GPENCIL_LEGACY) {
     /* Be sure we have brushes.
      * Need Draw as well (used for Palettes). */
-    BKE_paint_ensure(ts, (Paint **)&ts->gp_paint);
-    BKE_paint_ensure(ts, (Paint **)&ts->gp_vertexpaint);
+    BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_paint);
+    BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_vertexpaint);
 
     const bool reset_mode = (ts->gp_vertexpaint->paint.brush == nullptr);
     BKE_brush_gpencil_vertex_presets(bmain, ts, reset_mode);
