@@ -66,6 +66,7 @@ class FileBufferBinary : public FileBuffer {
     char *abits = reinterpret_cast<char *>(&a);
 
     Vector<char> data(rbits, rbits + sizeof(char));
+    data.reserve(4); /* resize vector for 4 bytes */
     data.insert(data.end(), gbits, gbits + sizeof(char));
     data.insert(data.end(), bbits, bbits + sizeof(char));
     data.insert(data.end(), abits, abits + sizeof(char));
