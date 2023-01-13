@@ -442,8 +442,8 @@ id_property_create_from_socket(const bNodeSocket &socket)
       auto property = bke::idprop::create(socket.identifier, value->value);
       IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
-      ui_data->min = ui_data->soft_min = double(value->min);
-      ui_data->max = ui_data->soft_max = double(value->max);
+      ui_data->soft_min = double(value->min);
+      ui_data->soft_max = double(value->max);
       ui_data->default_value = value->value;
       return property;
     }
@@ -453,8 +453,8 @@ id_property_create_from_socket(const bNodeSocket &socket)
       auto property = bke::idprop::create(socket.identifier, value->value);
       IDPropertyUIDataInt *ui_data = (IDPropertyUIDataInt *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
-      ui_data->min = ui_data->soft_min = value->min;
-      ui_data->max = ui_data->soft_max = value->max;
+      ui_data->soft_min = value->min;
+      ui_data->soft_max = value->max;
       ui_data->default_value = value->value;
       return property;
     }
@@ -465,8 +465,8 @@ id_property_create_from_socket(const bNodeSocket &socket)
           socket.identifier, Span<float>{value->value[0], value->value[1], value->value[2]});
       IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
-      ui_data->min = ui_data->soft_min = double(value->min);
-      ui_data->max = ui_data->soft_max = double(value->max);
+      ui_data->soft_min = double(value->min);
+      ui_data->soft_max = double(value->max);
       ui_data->default_array = (double *)MEM_mallocN(sizeof(double[3]), "mod_prop_default");
       ui_data->default_array_len = 3;
       for (const int i : IndexRange(3)) {
