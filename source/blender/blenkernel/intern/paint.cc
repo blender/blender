@@ -11,6 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_asset_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -35,6 +36,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_asset.h"
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
@@ -309,7 +311,7 @@ void BKE_paint_reset_overlay_invalid(ePaintOverlayControlFlags flag)
   overlay_flags &= ~(flag);
 }
 
-bool BKE_paint_ensure_from_paintmode(Scene *sce, ePaintMode mode)
+bool BKE_paint_ensure_from_paintmode(Main *bmain, Scene *sce, ePaintMode mode)
 {
   ToolSettings *ts = sce->toolsettings;
   Paint **paint_ptr = nullptr;
@@ -354,7 +356,7 @@ bool BKE_paint_ensure_from_paintmode(Scene *sce, ePaintMode mode)
       break;
   }
   if (paint_ptr) {
-    BKE_paint_ensure(ts, paint_ptr);
+    BKE_paint_ensure(bmain, ts, paint_ptr);
     return true;
   }
   return false;
@@ -666,6 +668,50 @@ void BKE_paint_brush_set(Paint *p, Brush *br)
 
     BKE_paint_toolslots_brush_update(p);
   }
+}
+
+static void paint_brush_asset_update(Paint *p,
+                                     Brush *br,
+                                     AssetWeakReference *brush_asset_reference)
+{
+  if (p->brush_asset_reference != nullptr) {
+    BKE_asset_weak_reference_free(&p->brush_asset_reference);
+  }
+
+  if (br == nullptr || br != p->brush || !ID_IS_OVERRIDE_LIBRARY_REAL(p->brush) ||
+      !(ID_IS_ASSET(p->brush) || ID_IS_ASSET(p->brush->id.override_library->reference)))
+  {
+    BKE_asset_weak_reference_free(&brush_asset_reference);
+    return;
+  }
+
+  p->brush_asset_reference = brush_asset_reference;
+}
+
+void BKE_paint_brush_asset_set(Paint *p, Brush *br, AssetWeakReference *weak_asset_reference)
+{
+  BKE_paint_brush_set(p, br);
+  paint_brush_asset_update(p, br, weak_asset_reference);
+}
+
+void BKE_paint_brush_asset_restore(Main *bmain, Paint *p)
+{
+  if (p->brush != nullptr) {
+    return;
+  }
+
+  if (p->brush_asset_reference == nullptr) {
+    return;
+  }
+
+  AssetWeakReference *brush_asset_reference = p->brush_asset_reference;
+  p->brush_asset_reference = nullptr;
+
+  Brush *brush_asset = BKE_brush_asset_runtime_ensure(bmain, brush_asset_reference);
+
+  /* Will either re-assign the brush_asset_reference to `p`, or free it if loading a brush ID from
+   * it failed. */
+  BKE_paint_brush_asset_set(p, brush_asset, brush_asset_reference);
 }
 
 void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
@@ -1091,7 +1137,7 @@ eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode)
   }
 }
 
-bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
+bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
 {
   Paint *paint = nullptr;
   if (*r_paint) {
@@ -1125,6 +1171,7 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
       BLI_assert(paint_test.runtime.tool_offset == (*r_paint)->runtime.tool_offset);
 #endif
     }
+    BKE_paint_brush_asset_restore(bmain, *r_paint);
     return true;
   }
 
@@ -1172,6 +1219,7 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
   *r_paint = paint;
 
   BKE_paint_runtime_init(ts, paint);
+  BKE_paint_brush_asset_restore(bmain, paint);
 
   return false;
 }
@@ -1181,7 +1229,7 @@ void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const uchar col[3]
   UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
   Paint *paint = BKE_paint_get_active_from_paintmode(sce, mode);
 
-  BKE_paint_ensure_from_paintmode(sce, mode);
+  BKE_paint_ensure_from_paintmode(bmain, sce, mode);
 
   /* If there's no brush, create one */
   if (PAINT_MODE_HAS_BRUSH(mode)) {
@@ -1211,6 +1259,9 @@ void BKE_paint_free(Paint *paint)
 {
   BKE_curvemapping_free(paint->cavity_curve);
   MEM_SAFE_FREE(paint->tool_slots);
+  if (paint->brush_asset_reference != nullptr) {
+    BKE_asset_weak_reference_free(&paint->brush_asset_reference);
+  }
 }
 
 void BKE_paint_copy(Paint *src, Paint *tar, const int flag)
@@ -1218,6 +1269,8 @@ void BKE_paint_copy(Paint *src, Paint *tar, const int flag)
   tar->brush = src->brush;
   tar->cavity_curve = BKE_curvemapping_copy(src->cavity_curve);
   tar->tool_slots = static_cast<PaintToolSlot *>(MEM_dupallocN(src->tool_slots));
+
+  tar->brush_asset_reference = BKE_asset_weak_reference_copy(src->brush_asset_reference);
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
     id_us_plus((ID *)tar->brush);
@@ -1247,6 +1300,9 @@ void BKE_paint_blend_write(BlendWriter *writer, Paint *p)
   if (p->cavity_curve) {
     BKE_curvemapping_blend_write(writer, p->cavity_curve);
   }
+  if (p->brush_asset_reference) {
+    BKE_asset_weak_reference_write(writer, p->brush_asset_reference);
+  }
   BLO_write_struct_array(writer, PaintToolSlot, p->tool_slots_len, p->tool_slots);
 }
 
@@ -1262,6 +1318,11 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
   }
   else {
     BKE_paint_cavity_curve_preset(p, CURVE_PRESET_LINE);
+  }
+
+  BLO_read_data_address(reader, &p->brush_asset_reference);
+  if (p->brush_asset_reference) {
+    BKE_asset_weak_reference_read(reader, p->brush_asset_reference);
   }
 
   BLO_read_data_address(reader, &p->tool_slots);
@@ -2062,9 +2123,9 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
   return ret;
 }
 
-void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
+void BKE_sculpt_toolsettings_data_ensure(Main *bmain, Scene *scene)
 {
-  BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->sculpt);
+  BKE_paint_ensure(bmain, scene->toolsettings, (Paint **)&scene->toolsettings->sculpt);
 
   Sculpt *sd = scene->toolsettings->sculpt;
 

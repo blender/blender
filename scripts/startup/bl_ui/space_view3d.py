@@ -987,6 +987,18 @@ class VIEW3D_HT_header(Header):
         sub.popover(panel="VIEW3D_PT_shading", text="")
 
 
+class VIEW3D_AST_brush_asset_shelf(bpy.types.AssetShelf):
+    bl_space_type = "VIEW_3D"
+
+    @classmethod
+    def poll(cls, context):
+        return context.object and context.object.mode == 'SCULPT_CURVES'
+
+    @classmethod
+    def asset_poll(cls, asset):
+        return asset.file_data.id_type == 'BRUSH'
+
+
 class VIEW3D_MT_editor_menus(Menu):
     bl_label = ""
 
@@ -8389,6 +8401,7 @@ class VIEW3D_AST_sculpt_brushes(bpy.types.AssetShelf):
 
 
 classes = (
+    VIEW3D_AST_brush_asset_shelf,
     VIEW3D_HT_header,
     VIEW3D_HT_tool_header,
     VIEW3D_MT_editor_menus,

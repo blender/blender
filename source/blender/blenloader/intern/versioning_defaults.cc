@@ -481,9 +481,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     BKE_brush_gpencil_weight_presets(bmain, scene->toolsettings, true);
 
     /* Ensure new Paint modes. */
-    BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_VERTEX_GPENCIL);
-    BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_SCULPT_GPENCIL);
-    BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_WEIGHT_GPENCIL);
+    BKE_paint_ensure_from_paintmode(bmain, scene, PAINT_MODE_VERTEX_GPENCIL);
+    BKE_paint_ensure_from_paintmode(bmain, scene, PAINT_MODE_SCULPT_GPENCIL);
+    BKE_paint_ensure_from_paintmode(bmain, scene, PAINT_MODE_WEIGHT_GPENCIL);
 
     /* Enable cursor. */
     GpPaint *gp_paint = scene->toolsettings->gp_paint;

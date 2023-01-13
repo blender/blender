@@ -14,13 +14,17 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_rand.h"
 
+#include "BLO_readfile.h"
+
 #include "BLT_translation.h"
 
+#include "BKE_blendfile_link_append.h"
 #include "BKE_bpath.h"
 #include "BKE_brush.hh"
 #include "BKE_colortools.h"
@@ -35,6 +39,8 @@
 #include "BKE_paint.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_texture.h"
+
+#include "AS_asset_library.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
@@ -376,39 +382,6 @@ static void brush_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
   }
 }
 
-static int brush_undo_preserve_cb(LibraryIDLinkCallbackData *cb_data)
-{
-  BlendLibReader *reader = (BlendLibReader *)cb_data->user_data;
-  ID *self_id = cb_data->self_id;
-  ID *id_old = *cb_data->id_pointer;
-  /* Old data has not been remapped to new values of the pointers, if we want to keep the old
-   * pointer here we need its new address. */
-  ID *id_old_new = id_old != nullptr ? BLO_read_get_new_id_address(
-                                           reader, self_id, ID_IS_LINKED(self_id), id_old) :
-                                       nullptr;
-  BLI_assert(id_old_new == nullptr || ELEM(id_old, id_old_new, id_old_new->orig_id));
-  if (cb_data->cb_flag & IDWALK_CB_USER) {
-    id_us_plus_no_lib(id_old_new);
-    id_us_min(id_old);
-  }
-  *cb_data->id_pointer = id_old_new;
-  return IDWALK_RET_NOP;
-}
-
-static void brush_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
-{
-  /* Whole Brush is preserved across undo-steps. */
-  BKE_lib_id_swap(nullptr, id_new, id_old, false, 0);
-
-  /* `id_new` now has content from `id_old`, we need to ensure those old ID pointers are valid.
-   * NOTE: Since we want to re-use all old pointers here, code is much simpler than for Scene. */
-  BKE_library_foreach_ID_link(nullptr, id_new, brush_undo_preserve_cb, reader, IDWALK_NOP);
-
-  /* NOTE: We do not swap IDProperties, as dealing with potential ID pointers in those would be
-   *       fairly delicate. */
-  std::swap(id_new->properties, id_old->properties);
-}
-
 IDTypeInfo IDType_ID_BR = {
     /*id_code*/ ID_BR,
     /*id_filter*/ FILTER_ID_BR,
@@ -417,7 +390,7 @@ IDTypeInfo IDType_ID_BR = {
     /*name*/ "Brush",
     /*name_plural*/ "brushes",
     /*translation_context*/ BLT_I18NCONTEXT_ID_BRUSH,
-    /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA,
+    /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_NO_MEMFILE_UNDO,
     /*asset_type_info*/ nullptr,
 
     /*init_data*/ brush_init_data,
@@ -433,7 +406,7 @@ IDTypeInfo IDType_ID_BR = {
     /*blend_read_data*/ brush_blend_read_data,
     /*blend_read_after_liblink*/ brush_blend_read_after_liblink,
 
-    /*blend_read_undo_preserve*/ brush_undo_preserve,
+    /*blend_read_undo_preserve*/ nullptr,
 
     /*lib_override_apply_post*/ nullptr,
 };
@@ -508,6 +481,63 @@ static void brush_defaults(Brush *brush)
 
 #undef FROM_DEFAULT
 #undef FROM_DEFAULT_PTR
+}
+
+Brush *BKE_brush_asset_runtime_ensure(Main *bmain, const AssetWeakReference *brush_asset_reference)
+{
+  BLI_assert(brush_asset_reference != nullptr);
+
+  char asset_full_path_buffer[FILE_MAX_LIBEXTRA];
+  char *asset_lib_path, *asset_group, *asset_name;
+
+  AS_asset_full_path_explode_from_weak_ref(
+      brush_asset_reference, asset_full_path_buffer, &asset_lib_path, &asset_group, &asset_name);
+
+  if (asset_lib_path == nullptr && asset_group == nullptr && asset_name == nullptr) {
+    return nullptr;
+  }
+
+  BLI_assert(STREQ(asset_group, IDType_ID_BR.name));
+  BLI_assert(asset_name != nullptr);
+
+  /* If the weakreference resolves to a null library path, assume that we are in local asset case.
+   */
+  if (asset_lib_path == nullptr) {
+    Brush *local_brush_asset = reinterpret_cast<Brush *>(
+        BLI_findstring(&bmain->brushes, asset_name, offsetof(ID, name) + 2));
+
+    if (local_brush_asset == nullptr || !ID_IS_ASSET(local_brush_asset)) {
+      return nullptr;
+    }
+    return local_brush_asset;
+  }
+
+  LibraryLink_Params lapp_parameters = {nullptr};
+  lapp_parameters.bmain = bmain;
+  BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(
+      &lapp_parameters);
+  BKE_blendfile_link_append_context_flag_set(lapp_context, BLO_LIBLINK_FORCE_INDIRECT, true);
+  BKE_blendfile_link_append_context_flag_set(lapp_context, FILE_LINK, true);
+
+  BKE_blendfile_link_append_context_library_add(lapp_context, asset_lib_path, nullptr);
+
+  BlendfileLinkAppendContextItem *lapp_item = BKE_blendfile_link_append_context_item_add(
+      lapp_context, asset_name, ID_BR, nullptr);
+  BKE_blendfile_link_append_context_item_library_index_enable(lapp_context, lapp_item, 0);
+
+  BKE_blendfile_link(lapp_context, nullptr);
+  BKE_blendfile_override(
+      lapp_context,
+      static_cast<eBKELibLinkOverride>(BKE_LIBLINK_OVERRIDE_USE_EXISTING_LIBOVERRIDES |
+                                       BKE_LIBLINK_OVERRIDE_CREATE_RUNTIME),
+      nullptr);
+
+  Brush *liboverride_brush = reinterpret_cast<Brush *>(
+      BKE_blendfile_link_append_context_item_liboverrideid_get(lapp_context, lapp_item));
+
+  BKE_blendfile_link_append_context_free(lapp_context);
+
+  return liboverride_brush;
 }
 
 /* Datablock add/copy/free/make_local */

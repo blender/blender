@@ -192,7 +192,7 @@ static void grease_pencil_draw_mode_enter(bContext *C)
 
   Object *ob = CTX_data_active_object(C);
   GpPaint *grease_pencil_paint = scene->toolsettings->gp_paint;
-  BKE_paint_ensure(scene->toolsettings, (Paint **)&grease_pencil_paint);
+  BKE_paint_ensure(CTX_data_main(C), scene->toolsettings, (Paint **)&grease_pencil_paint);
 
   ob->mode = OB_MODE_PAINT_GREASE_PENCIL;
 

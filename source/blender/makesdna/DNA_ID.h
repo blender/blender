@@ -543,6 +543,11 @@ typedef struct Library {
    */
   char filepath_abs[1024];
 
+  /**
+   * Weak reference to the Brush Asset.
+   */
+  struct AssetWeakReference *asset_repository_weak_reference;
+
   /** Set for indirectly linked libraries, used in the outliner and while reading. */
   struct Library *parent;
 

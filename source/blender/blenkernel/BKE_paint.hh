@@ -25,6 +25,7 @@
 
 #include "bmesh.h"
 
+struct AssetWeakReference;
 struct BMFace;
 struct BMesh;
 struct BlendDataReader;
@@ -164,7 +165,7 @@ PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name);
 /**
  * Call when entering each respective paint mode.
  */
-bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint);
+bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint);
 void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const uchar col[3]);
 void BKE_paint_free(Paint *p);
 /**
@@ -179,7 +180,7 @@ void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint);
 void BKE_paint_cavity_curve_preset(Paint *p, int preset);
 
 eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode);
-bool BKE_paint_ensure_from_paintmode(Scene *sce, ePaintMode mode);
+bool BKE_paint_ensure_from_paintmode(Main *bmain, Scene *sce, ePaintMode mode);
 Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode);
 const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode);
 const char *BKE_paint_get_tool_enum_translation_context_from_paintmode(ePaintMode mode);
@@ -192,6 +193,14 @@ ePaintMode BKE_paintmode_get_from_tool(const bToolRef *tref);
 Brush *BKE_paint_brush(Paint *paint);
 const Brush *BKE_paint_brush_for_read(const Paint *p);
 void BKE_paint_brush_set(Paint *paint, Brush *br);
+
+/** Set the active brush of given paint struct, and store the weak asset reference to it.
+ *  NOTE: Takes ownership of the given `weak_asset_reference`. */
+void BKE_paint_brush_asset_set(Paint *p, Brush *br, AssetWeakReference *weak_asset_reference);
+
+/** Attempt to restore a valid active brush in `p` from brush asset informations stored in `p`. */
+void BKE_paint_brush_asset_restore(Main *bmain, Paint *p);
+
 Palette *BKE_paint_palette(Paint *paint);
 void BKE_paint_palette_set(Paint *p, Palette *palette);
 void BKE_paint_curve_set(Brush *br, PaintCurve *pc);
@@ -866,7 +875,7 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
                                   Main *bmain,
                                   Object *ob,
                                   MultiresModifierData *mmd);
-void BKE_sculpt_toolsettings_data_ensure(Scene *scene);
+void BKE_sculpt_toolsettings_data_ensure(Main *bmain, Scene *scene);
 
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob);
 

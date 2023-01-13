@@ -770,7 +770,12 @@ static void rna_Brush_reset_icon(Brush *br)
 
 static void rna_Brush_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = (Brush *)ptr->owner_id;
+
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(&br->id)) {
+    br->id.tag |= LIB_TAG_LIBOVERRIDE_AUTOREFRESH;
+  }
+
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
   // WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, nullptr);
 }
@@ -2146,14 +2151,18 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "BrushCurvesSculptSettings");
   RNA_def_struct_ui_text(srna, "Curves Sculpt Brush Settings", "");
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "add_amount", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 1, INT32_MAX);
   RNA_def_property_ui_text(prop, "Count", "Number of curves added by the Add brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "points_per_curve", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 2, INT32_MAX);
   RNA_def_property_ui_text(
       prop, "Points per Curve", "Number of control points in a newly added curve");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "scale_uniform", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", BRUSH_CURVES_SCULPT_FLAG_SCALE_UNIFORM);
@@ -2161,17 +2170,20 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
                            "Scale Uniform",
                            "Grow or shrink curves by changing their size uniformly instead of "
                            "using trimming or extrapolation");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "minimum_length", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_text(
       prop, "Minimum Length", "Avoid shrinking curves shorter than this length");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "interpolate_length", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
       prop, nullptr, "flag", BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH);
   RNA_def_property_ui_text(
       prop, "Interpolate Length", "Use length of the curves in close proximity");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "interpolate_point_count", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
@@ -2179,11 +2191,13 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Interpolate Point Count",
                            "Use the number of points from the curves in close proximity");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "interpolate_shape", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE);
   RNA_def_property_ui_text(
       prop, "Interpolate Shape", "Use shape of the curves in close proximity");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "curve_length", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_range(prop, 0.0, FLT_MAX);
@@ -2191,28 +2205,35 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
       prop,
       "Curve Length",
       "Length of newly added curves when it is not interpolated from other curves");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "minimum_distance", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0, 1000.0f, 0.001, 2);
   RNA_def_property_ui_text(
       prop, "Minimum Distance", "Goal distance between curve roots for the Density brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "density_add_attempts", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 0, INT32_MAX);
   RNA_def_property_ui_text(
       prop, "Density Add Attempts", "How many times the Density brush tries to add a new curve");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "density_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, density_mode_items);
   RNA_def_property_ui_text(
       prop, "Density Mode", "Determines whether the brush adds or removes curves");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "curve_parameter_falloff", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "CurveMapping");
   RNA_def_property_ui_text(prop,
                            "Curve Parameter Falloff",
                            "Falloff that is applied from the tip to the root of each curve");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_brush(BlenderRNA *brna)
@@ -2559,6 +2580,8 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Brush", "Brush data-block for storing brush settings for painting and sculpting");
   RNA_def_struct_ui_icon(srna, ICON_BRUSH_DATA);
+
+  RNA_define_lib_overridable(true);
 
   /* enums */
   prop = RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
@@ -3867,6 +3890,8 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "BrushCurvesSculptSettings");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Curves Sculpt Settings", "");
+
+  RNA_define_lib_overridable(false);
 }
 
 /**
