@@ -203,7 +203,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap_self(const BVHTree *tree,
                                          BVHTree_OverlapCallback callback,
                                          void *userdata);
 
-int *BLI_bvhtree_intersect_plane(BVHTree *tree, float plane[4], uint *r_intersect_num);
+int *BLI_bvhtree_intersect_plane(const BVHTree *tree, float plane[4], uint *r_intersect_num);
 
 /**
  * Number of times #BLI_bvhtree_insert has been called.
@@ -218,20 +218,20 @@ float BLI_bvhtree_get_epsilon(const BVHTree *tree);
 /**
  * This function returns the bounding box of the BVH tree.
  */
-void BLI_bvhtree_get_bounding_box(BVHTree *tree, float r_bb_min[3], float r_bb_max[3]);
+void BLI_bvhtree_get_bounding_box(const BVHTree *tree, float r_bb_min[3], float r_bb_max[3]);
 
 /**
  * Find nearest node to the given coordinates
  * (if nearest is given it will only search nodes where
  * square distance is smaller than nearest->dist).
  */
-int BLI_bvhtree_find_nearest_ex(BVHTree *tree,
+int BLI_bvhtree_find_nearest_ex(const BVHTree *tree,
                                 const float co[3],
                                 BVHTreeNearest *nearest,
                                 BVHTree_NearestPointCallback callback,
                                 void *userdata,
                                 int flag);
-int BLI_bvhtree_find_nearest(BVHTree *tree,
+int BLI_bvhtree_find_nearest(const BVHTree *tree,
                              const float co[3],
                              BVHTreeNearest *nearest,
                              BVHTree_NearestPointCallback callback,
@@ -241,13 +241,13 @@ int BLI_bvhtree_find_nearest(BVHTree *tree,
  * Find the first node nearby.
  * Favors speed over quality since it doesn't find the best target node.
  */
-int BLI_bvhtree_find_nearest_first(BVHTree *tree,
+int BLI_bvhtree_find_nearest_first(const BVHTree *tree,
                                    const float co[3],
                                    float dist_sq,
                                    BVHTree_NearestPointCallback callback,
                                    void *userdata);
 
-int BLI_bvhtree_ray_cast_ex(BVHTree *tree,
+int BLI_bvhtree_ray_cast_ex(const BVHTree *tree,
                             const float co[3],
                             const float dir[3],
                             float radius,
@@ -255,7 +255,7 @@ int BLI_bvhtree_ray_cast_ex(BVHTree *tree,
                             BVHTree_RayCastCallback callback,
                             void *userdata,
                             int flag);
-int BLI_bvhtree_ray_cast(BVHTree *tree,
+int BLI_bvhtree_ray_cast(const BVHTree *tree,
                          const float co[3],
                          const float dir[3],
                          float radius,
@@ -272,7 +272,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree,
  * It also avoid redundant argument and return value which aren't meaningful
  * when collecting multiple hits.
  */
-void BLI_bvhtree_ray_cast_all_ex(BVHTree *tree,
+void BLI_bvhtree_ray_cast_all_ex(const BVHTree *tree,
                                  const float co[3],
                                  const float dir[3],
                                  float radius,
@@ -280,7 +280,7 @@ void BLI_bvhtree_ray_cast_all_ex(BVHTree *tree,
                                  BVHTree_RayCastCallback callback,
                                  void *userdata,
                                  int flag);
-void BLI_bvhtree_ray_cast_all(BVHTree *tree,
+void BLI_bvhtree_ray_cast_all(const BVHTree *tree,
                               const float co[3],
                               const float dir[3],
                               float radius,
@@ -296,10 +296,13 @@ float BLI_bvhtree_bb_raycast(const float bv[6],
 /**
  * Range query.
  */
-int BLI_bvhtree_range_query(
-    BVHTree *tree, const float co[3], float radius, BVHTree_RangeQuery callback, void *userdata);
+int BLI_bvhtree_range_query(const BVHTree *tree,
+                            const float co[3],
+                            float radius,
+                            BVHTree_RangeQuery callback,
+                            void *userdata);
 
-int BLI_bvhtree_find_nearest_projected(BVHTree *tree,
+int BLI_bvhtree_find_nearest_projected(const BVHTree *tree,
                                        float projmat[4][4],
                                        float winsize[2],
                                        float mval[2],
@@ -321,7 +324,7 @@ int BLI_bvhtree_find_nearest_projected(BVHTree *tree,
  * either from the node with the lower or higher K-DOP axis value.
  * \param userdata: Argument passed to all callbacks.
  */
-void BLI_bvhtree_walk_dfs(BVHTree *tree,
+void BLI_bvhtree_walk_dfs(const BVHTree *tree,
                           BVHTree_WalkParentCallback walk_parent_cb,
                           BVHTree_WalkLeafCallback walk_leaf_cb,
                           BVHTree_WalkOrderCallback walk_order_cb,
@@ -346,7 +349,7 @@ namespace blender {
 using BVHTree_RayCastCallback_CPP =
     FunctionRef<void(int index, const BVHTreeRay &ray, BVHTreeRayHit &hit)>;
 
-inline void BLI_bvhtree_ray_cast_all_cpp(BVHTree &tree,
+inline void BLI_bvhtree_ray_cast_all_cpp(const BVHTree &tree,
                                          const float3 co,
                                          const float3 dir,
                                          float radius,
@@ -368,7 +371,7 @@ inline void BLI_bvhtree_ray_cast_all_cpp(BVHTree &tree,
 
 using BVHTree_RangeQuery_CPP = FunctionRef<void(int index, const float3 &co, float dist_sq)>;
 
-inline void BLI_bvhtree_range_query_cpp(BVHTree &tree,
+inline void BLI_bvhtree_range_query_cpp(const BVHTree &tree,
                                         const float3 co,
                                         float radius,
                                         BVHTree_RangeQuery_CPP fn)
