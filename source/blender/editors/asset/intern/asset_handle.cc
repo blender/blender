@@ -57,3 +57,16 @@ void ED_asset_handle_get_full_library_path(const AssetHandle *asset_handle,
 
   BLI_strncpy(r_full_lib_path, library_path.c_str(), FILE_MAX);
 }
+
+void ED_asset_handle_get_full_path(const AssetHandle *asset_handle,
+                                   char r_full_lib_path[FILE_MAX_LIBEXTRA])
+{
+  *r_full_lib_path = '\0';
+
+  std::string library_path = asset_handle->file_data->asset->get_identifier().full_path();
+  if (library_path.empty()) {
+    return;
+  }
+
+  BLI_strncpy(r_full_lib_path, library_path.c_str(), FILE_MAX);
+}

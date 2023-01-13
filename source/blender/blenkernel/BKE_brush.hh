@@ -31,6 +31,9 @@ struct UnifiedPaintSettings;
 void BKE_brush_system_init();
 void BKE_brush_system_exit();
 
+Brush *BKE_brush_asset_runtime_ensure(Main *bmain,
+                                      const AssetWeakReference *brush_asset_reference);
+
 /* Data-block functions. */
 
 /**

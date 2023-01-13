@@ -949,6 +949,13 @@ typedef struct Paint {
   struct Brush *brush;
 
   /**
+   * A weak asset reference to the #brush, if not NULL.
+   * Used to attempt restoring the active brush from the AssetLibrary system, typically on
+   * file load.
+   */
+  struct AssetWeakReference *brush_asset_reference;
+
+  /**
    * Each tool has its own active brush,
    * The currently active tool is defined by the current 'brush'.
    */
