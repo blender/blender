@@ -143,10 +143,10 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
 
   Span<float3> positions_span;
 
-  if (const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>()) {
+  if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
     count++;
-    if (const VArray<float3> positions = component->attributes()->lookup<float3>(
-            "position", ATTR_DOMAIN_POINT)) {
+    if (const VArray<float3> positions = mesh->attributes().lookup<float3>("position",
+                                                                           ATTR_DOMAIN_POINT)) {
       if (positions.is_span()) {
         span_count++;
         positions_span = positions.get_internal_span();
@@ -155,11 +155,10 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
     }
   }
 
-  if (const PointCloudComponent *component =
-          geometry_set.get_component_for_read<PointCloudComponent>()) {
+  if (const PointCloud *points = geometry_set.get_pointcloud_for_read()) {
     count++;
-    if (const VArray<float3> positions = component->attributes()->lookup<float3>(
-            "position", ATTR_DOMAIN_POINT)) {
+    if (const VArray<float3> positions = points->attributes().lookup<float3>("position",
+                                                                             ATTR_DOMAIN_POINT)) {
       if (positions.is_span()) {
         span_count++;
         positions_span = positions.get_internal_span();
@@ -189,18 +188,17 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
   Array<float3> positions(total_num);
   int offset = 0;
 
-  if (const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>()) {
-    if (const VArray<float3> varray = component->attributes()->lookup<float3>("position",
-                                                                              ATTR_DOMAIN_POINT)) {
+  if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
+    if (const VArray<float3> varray = mesh->attributes().lookup<float3>("position",
+                                                                        ATTR_DOMAIN_POINT)) {
       varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
       offset += varray.size();
     }
   }
 
-  if (const PointCloudComponent *component =
-          geometry_set.get_component_for_read<PointCloudComponent>()) {
-    if (const VArray<float3> varray = component->attributes()->lookup<float3>("position",
-                                                                              ATTR_DOMAIN_POINT)) {
+  if (const PointCloud *points = geometry_set.get_pointcloud_for_read()) {
+    if (const VArray<float3> varray = points->attributes().lookup<float3>("position",
+                                                                          ATTR_DOMAIN_POINT)) {
       varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
       offset += varray.size();
     }
