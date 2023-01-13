@@ -627,6 +627,13 @@ static void rna_def_paint(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Brush", "Active Brush");
   RNA_def_property_update(prop, 0, "rna_Paint_brush_update");
 
+  prop = RNA_def_property(srna, "brush_asset_reference", PROP_POINTER, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop,
+                           "Brush Asset Reference",
+                           "A weak reference to the matching brush asset, used e.g. to restore "
+                           "the last used brush on file load");
+
   /* paint_tool_slots */
   prop = RNA_def_property(srna, "tool_slots", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "tool_slots", "tool_slots_len");
