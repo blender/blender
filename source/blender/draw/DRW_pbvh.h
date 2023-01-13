@@ -64,7 +64,7 @@ typedef struct PBVH_GPU_Args {
   int *prim_indices;
   int totprim;
 
-  bool *hide_poly;
+  const bool *hide_poly;
 
   int node_verts_num;
 

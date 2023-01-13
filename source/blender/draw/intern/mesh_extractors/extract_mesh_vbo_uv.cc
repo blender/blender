@@ -109,7 +109,7 @@ static void extract_uv_init(const MeshRenderData *mr,
         }
       }
       else {
-        const float2 *layer_data = static_cast<float2 *>(
+        const float2 *layer_data = static_cast<const float2 *>(
             CustomData_get_layer_n(cd_ldata, CD_PROP_FLOAT2, i));
         for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, uv_data++, layer_data++) {
           memcpy(uv_data, layer_data, sizeof(*uv_data));

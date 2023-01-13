@@ -40,8 +40,8 @@ static void extract_tan_init_common(const MeshRenderData *mr,
   CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
   CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
   uint32_t tan_layers = cache->cd_used.tan;
-  float(*orco)[3] = (float(*)[3])CustomData_get_layer(cd_vdata, CD_ORCO);
-  bool orco_allocated = false;
+  const float(*orco)[3] = (const float(*)[3])CustomData_get_layer(cd_vdata, CD_ORCO);
+  float(*orco_allocated)[3] = nullptr;
   bool use_orco_tan = cache->cd_used.tan_orco != 0;
 
   int tan_len = 0;
@@ -76,8 +76,7 @@ static void extract_tan_init_common(const MeshRenderData *mr,
   }
   if (use_orco_tan && orco == nullptr) {
     /* If `orco` is not available compute it ourselves */
-    orco_allocated = true;
-    orco = (float(*)[3])MEM_mallocN(sizeof(*orco) * mr->vert_len, __func__);
+    orco_allocated = (float(*)[3])MEM_mallocN(sizeof(*orco) * mr->vert_len, __func__);
 
     if (mr->extract_type == MR_EXTRACT_BMESH) {
       BMesh *bm = mr->bm;
@@ -85,15 +84,16 @@ static void extract_tan_init_common(const MeshRenderData *mr,
         const BMVert *eve = BM_vert_at_index(bm, v);
         /* Exceptional case where #bm_vert_co_get can be avoided, as we want the original coords.
          * not the distorted ones. */
-        copy_v3_v3(orco[v], eve->co);
+        copy_v3_v3(orco_allocated[v], eve->co);
       }
     }
     else {
       for (int v = 0; v < mr->vert_len; v++) {
-        copy_v3_v3(orco[v], mr->vert_positions[v]);
+        copy_v3_v3(orco_allocated[v], mr->vert_positions[v]);
       }
     }
-    BKE_mesh_orco_verts_transform(mr->me, orco, mr->vert_len, 0);
+    BKE_mesh_orco_verts_transform(mr->me, orco_allocated, mr->vert_len, 0);
+    orco = orco_allocated;
   }
 
   /* Start Fresh */
@@ -144,9 +144,7 @@ static void extract_tan_init_common(const MeshRenderData *mr,
     GPU_vertformat_alias_add(format, "at");
   }
 
-  if (orco_allocated) {
-    MEM_SAFE_FREE(orco);
-  }
+  MEM_SAFE_FREE(orco_allocated);
 
   int v_len = mr->loop_len;
   if (format->attr_len == 0) {
@@ -192,7 +190,7 @@ static void extract_tan_ex_init(const MeshRenderData *mr,
     short(*tan_data)[4] = (short(*)[4])GPU_vertbuf_get_data(vbo);
     for (int i = 0; i < tan_len; i++) {
       const char *name = tangent_names[i];
-      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_named(
+      const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
           &loop_data, CD_TANGENT, name);
       for (int ml_index = 0; ml_index < mr->loop_len; ml_index++) {
         normal_float_to_short_v3(*tan_data, layer_data[ml_index]);
@@ -201,7 +199,8 @@ static void extract_tan_ex_init(const MeshRenderData *mr,
       }
     }
     if (use_orco_tan) {
-      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_n(&loop_data, CD_TANGENT, 0);
+      const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_n(
+          &loop_data, CD_TANGENT, 0);
       for (int ml_index = 0; ml_index < mr->loop_len; ml_index++) {
         normal_float_to_short_v3(*tan_data, layer_data[ml_index]);
         (*tan_data)[3] = (layer_data[ml_index][3] > 0.0f) ? SHRT_MAX : SHRT_MIN;
@@ -213,7 +212,7 @@ static void extract_tan_ex_init(const MeshRenderData *mr,
     GPUPackedNormal *tan_data = (GPUPackedNormal *)GPU_vertbuf_get_data(vbo);
     for (int i = 0; i < tan_len; i++) {
       const char *name = tangent_names[i];
-      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_named(
+      const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
           &loop_data, CD_TANGENT, name);
       for (int ml_index = 0; ml_index < mr->loop_len; ml_index++) {
         *tan_data = GPU_normal_convert_i10_v3(layer_data[ml_index]);
@@ -222,7 +221,8 @@ static void extract_tan_ex_init(const MeshRenderData *mr,
       }
     }
     if (use_orco_tan) {
-      float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_n(&loop_data, CD_TANGENT, 0);
+      const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_n(
+          &loop_data, CD_TANGENT, 0);
       for (int ml_index = 0; ml_index < mr->loop_len; ml_index++) {
         *tan_data = GPU_normal_convert_i10_v3(layer_data[ml_index]);
         tan_data->w = (layer_data[ml_index][3] > 0.0f) ? 1 : -2;
@@ -291,7 +291,7 @@ static void extract_tan_init_subdiv(const DRWSubdivCache *subdiv_cache,
   for (int i = 0; i < tan_len; i++) {
     float(*tan_data)[4] = (float(*)[4])GPU_vertbuf_get_data(coarse_vbo);
     const char *name = tangent_names[i];
-    const float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_named(
+    const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
         &loop_data, CD_TANGENT, name);
     for (int ml_index = 0; ml_index < mr->loop_len; ml_index++) {
       copy_v3_v3(*tan_data, layer_data[ml_index]);
@@ -308,7 +308,8 @@ static void extract_tan_init_subdiv(const DRWSubdivCache *subdiv_cache,
   }
   if (use_orco_tan) {
     float(*tan_data)[4] = (float(*)[4])GPU_vertbuf_get_data(coarse_vbo);
-    const float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_n(&loop_data, CD_TANGENT, 0);
+    const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_n(
+        &loop_data, CD_TANGENT, 0);
     for (int ml_index = 0; ml_index < mr->loop_len; ml_index++) {
       copy_v3_v3(*tan_data, layer_data[ml_index]);
       (*tan_data)[3] = (layer_data[ml_index][3] > 0.0f) ? 1.0f : -1.0f;

@@ -294,7 +294,7 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
       BMesh *bm = mesh_orig->edit_mesh->bm;
       BM_mesh_elem_table_ensure(bm, BM_VERT);
 
-      const int *orig_indices = (int *)CustomData_get_layer(&mesh_eval->vdata, CD_ORIGINDEX);
+      const int *orig_indices = (const int *)CustomData_get_layer(&mesh_eval->vdata, CD_ORIGINDEX);
       if (orig_indices != nullptr) {
         /* Use CD_ORIGINDEX layer if it exists. */
         VArray<bool> selection = attributes_eval.adapt_domain<bool>(

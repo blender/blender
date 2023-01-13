@@ -1081,7 +1081,7 @@ static uint mirror_facehash(const void *ptr)
   return ((v0 * 39) ^ (v1 * 31));
 }
 
-static int mirror_facerotation(MFace *a, MFace *b)
+static int mirror_facerotation(const MFace *a, const MFace *b)
 {
   if (b->v4) {
     if (a->v1 == b->v1 && a->v2 == b->v2 && a->v3 == b->v3 && a->v4 == b->v4) {
@@ -1120,7 +1120,8 @@ static bool mirror_facecmp(const void *a, const void *b)
 int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
-  MFace mirrormf, *mf, *hashmf;
+  MFace mirrormf;
+  const MFace *mf, *hashmf;
   GHash *fhash;
   int *mirrorverts, *mirrorfaces;
 
@@ -1135,7 +1136,8 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
   mirrorfaces = static_cast<int *>(MEM_callocN(sizeof(int[2]) * totface, "MirrorFaces"));
 
   const Span<float3> vert_positions = me_eval ? me_eval->vert_positions() : me->vert_positions();
-  MFace *mface = (MFace *)CustomData_get_layer(&(me_eval ? me_eval : me)->fdata, CD_MFACE);
+  const MFace *mface = (const MFace *)CustomData_get_layer(&(me_eval ? me_eval : me)->fdata,
+                                                           CD_MFACE);
 
   ED_mesh_mirror_spatial_table_begin(ob, em, me_eval);
 
@@ -1147,7 +1149,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 
   fhash = BLI_ghash_new_ex(mirror_facehash, mirror_facecmp, "mirror_facehash gh", me->totface);
   for (a = 0, mf = mface; a < totface; a++, mf++) {
-    BLI_ghash_insert(fhash, mf, mf);
+    BLI_ghash_insert(fhash, (void *)mf, (void *)mf);
   }
 
   for (a = 0, mf = mface; a < totface; a++, mf++) {
@@ -1162,7 +1164,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
       std::swap(mirrormf.v2, mirrormf.v4);
     }
 
-    hashmf = static_cast<MFace *>(BLI_ghash_lookup(fhash, &mirrormf));
+    hashmf = static_cast<const MFace *>(BLI_ghash_lookup(fhash, &mirrormf));
     if (hashmf) {
       mirrorfaces[a * 2] = hashmf - mface;
       mirrorfaces[a * 2 + 1] = mirror_facerotation(&mirrormf, hashmf);

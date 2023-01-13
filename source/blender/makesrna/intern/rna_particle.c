@@ -397,11 +397,9 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
   /* get uvco */
   if (r_uv && ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME) &&
       !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
-    MFace *mface;
-    MTFace *mtface;
 
-    mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
-    mtface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MTFACE);
+    const MFace *mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
+    const MTFace *mtface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MTFACE);
 
     if (mface && mtface) {
       mtface += num;
@@ -565,7 +563,7 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
     }
     else if (part->from == PART_FROM_VERT) {
       if (num != DMCACHE_NOTFOUND && num < totvert) {
-        MFace *mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
+        const MFace *mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
 
         *r_fuv = &particle->fuv;
 
@@ -608,7 +606,7 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
       }
       else if (part->from == PART_FROM_VERT) {
         if (num != DMCACHE_NOTFOUND && num < totvert) {
-          MFace *mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
+          const MFace *mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
 
           *r_fuv = &parent->fuv;
 
@@ -658,8 +656,8 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem,
       zero_v2(r_uv);
     }
     else {
-      MFace *mfaces = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
-      MFace *mface = &mfaces[num];
+      const MFace *mfaces = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
+      const MFace *mface = &mfaces[num];
       const MTFace *mtface = (const MTFace *)CustomData_get_layer_n(
           &modifier->mesh_final->fdata, CD_MTFACE, uv_no);
 
@@ -693,8 +691,8 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem,
       zero_v3(r_mcol);
     }
     else {
-      MFace *mfaces = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
-      MFace *mface = &mfaces[num];
+      const MFace *mfaces = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
+      const MFace *mface = &mfaces[num];
       const MCol *mc = (const MCol *)CustomData_get_layer_n(
           &modifier->mesh_final->fdata, CD_MCOL, vcol_no);
       MCol mcol;

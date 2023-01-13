@@ -705,7 +705,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   PTCacheEditPoint *edit_point;
   PTCacheEditKey *ekey;
   BVHTreeFromMesh bvhtree = {NULL};
-  MFace *mface = NULL, *mf;
+  const MFace *mface = NULL, *mf;
   const MEdge *medge = NULL, *me;
   Mesh *mesh, *target_mesh;
   int numverts;

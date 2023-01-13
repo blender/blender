@@ -613,7 +613,8 @@ static void sculpt_face_sets_init_loop(Object *ob, const int mode)
     }
   }
   else if (mode == SCULPT_FACE_SETS_FROM_FACE_MAPS) {
-    const int *face_maps = static_cast<int *>(CustomData_get_layer(&mesh->pdata, CD_FACEMAP));
+    const int *face_maps = static_cast<const int *>(
+        CustomData_get_layer(&mesh->pdata, CD_FACEMAP));
     for (const int i : IndexRange(mesh->totpoly)) {
       ss->face_sets[i] = face_maps ? face_maps[i] : 1;
     }

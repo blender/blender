@@ -716,11 +716,12 @@ void RE_bake_pixels_populate(Mesh *me,
 {
   const float(*mloopuv)[2];
   if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
-    mloopuv = static_cast<float(*)[2]>(CustomData_get_layer(&me->ldata, CD_PROP_FLOAT2));
+    mloopuv = static_cast<const float(*)[2]>(CustomData_get_layer(&me->ldata, CD_PROP_FLOAT2));
   }
   else {
     int uv_id = CustomData_get_named_layer(&me->ldata, CD_PROP_FLOAT2, uv_layer);
-    mloopuv = static_cast<float(*)[2]>(CustomData_get_layer_n(&me->ldata, CD_PROP_FLOAT2, uv_id));
+    mloopuv = static_cast<const float(*)[2]>(
+        CustomData_get_layer_n(&me->ldata, CD_PROP_FLOAT2, uv_id));
   }
 
   if (mloopuv == nullptr) {

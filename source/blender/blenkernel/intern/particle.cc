@@ -1702,7 +1702,7 @@ static void interpolate_pathcache(ParticleCacheKey *first, float t, ParticleCach
 void psys_interpolate_face(Mesh *mesh,
                            const float (*vert_positions)[3],
                            const float (*vert_normals)[3],
-                           MFace *mface,
+                           const MFace *mface,
                            MTFace *tface,
                            const float (*orcodata)[3],
                            float w[4],
