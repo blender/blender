@@ -152,6 +152,8 @@ void SCULPT_filter_cache_init(bContext *C,
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
+
+  ss->filter_cache->vc = vc;
   copy_m4_m4(ss->filter_cache->viewmat, vc.rv3d->viewmat);
   copy_m4_m4(ss->filter_cache->viewmat_inv, vc.rv3d->viewinv);
 
