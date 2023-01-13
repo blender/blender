@@ -927,7 +927,7 @@ static bool seam_connected_recursive(BMEdge *edge,
         continue; /* `loop` is disjoint in UV space. */
       }
 
-      if (loop->prev == needle) {
+      if (loop == needle) {
         return true; /* Success. */
       }
 
@@ -971,9 +971,17 @@ static bool seam_connected(BMLoop *loop_a, BMLoop *loop_b, GSet *visited, int cd
   BLI_gset_clear(visited, NULL);
 
   const float *luv_anchor = BM_ELEM_CD_GET_FLOAT_P(loop_a, cd_loop_uv_offset);
-  const float *luv_fan = BM_ELEM_CD_GET_FLOAT_P(loop_a->next, cd_loop_uv_offset);
-  const bool result = seam_connected_recursive(
-      loop_a->e, luv_anchor, luv_fan, loop_b, visited, cd_loop_uv_offset);
+  const float *luv_next_fan = BM_ELEM_CD_GET_FLOAT_P(loop_a->next, cd_loop_uv_offset);
+  bool result = seam_connected_recursive(
+      loop_a->e, luv_anchor, luv_next_fan, loop_b, visited, cd_loop_uv_offset);
+  if (!result) {
+    /* Search around `loop_a` in the opposite direction, as one of the edges may be delimited by
+     * a boundary, seam or disjoint UV, or itself be one of these. See: T103670, T103787. */
+    float *luv_prev_fan = BM_ELEM_CD_GET_FLOAT_P(loop_a->prev, cd_loop_uv_offset);
+    result = seam_connected_recursive(
+        loop_a->prev->e, luv_anchor, luv_prev_fan, loop_b, visited, cd_loop_uv_offset);
+  }
+
   return result;
 }
 
