@@ -34,7 +34,7 @@ class FileBufferBinary : public FileBuffer {
     char *ybits = reinterpret_cast<char *>(&y);
     char *zbits = reinterpret_cast<char *>(&z);
 
-    std::vector<char> data{};
+    Vector<char> data{};
     data.reserve(12); /* resize vector for 3 floats */
     data.insert(data.end(), xbits, xbits + sizeof(float));
     data.insert(data.end(), ybits, ybits + sizeof(float));
@@ -49,7 +49,7 @@ class FileBufferBinary : public FileBuffer {
     char *ybits = reinterpret_cast<char *>(&ny);
     char *zbits = reinterpret_cast<char *>(&nz);
 
-    std::vector<char> data{};
+    Vector<char> data{};
     data.reserve(12); /* resize vector for 3 floats */
     data.insert(data.end(), xbits, xbits + sizeof(float));
     data.insert(data.end(), ybits, ybits + sizeof(float));
@@ -65,7 +65,7 @@ class FileBufferBinary : public FileBuffer {
     char *bbits = reinterpret_cast<char *>(&b);
     char *abits = reinterpret_cast<char *>(&a);
 
-    std::vector<char> data(rbits, rbits + sizeof(char));
+    Vector<char> data(rbits, rbits + sizeof(char));
     data.insert(data.end(), gbits, gbits + sizeof(char));
     data.insert(data.end(), bbits, bbits + sizeof(char));
     data.insert(data.end(), abits, abits + sizeof(char));
