@@ -423,10 +423,10 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
   /* Combine data-masks so one window doesn't disable UVs in another T26448. */
   CustomData_MeshMasks win_combine_v3d_datamask = {0};
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    const Scene *scene = WM_window_get_active_scene(win);
+    const ViewLayer *view_layer = WM_window_get_active_view_layer(win);
     const bScreen *screen = WM_window_get_active_screen(win);
 
-    ED_view3d_screen_datamask(C, scene, screen, &win_combine_v3d_datamask);
+    ED_view3d_screen_datamask(view_layer, screen, &win_combine_v3d_datamask);
   }
   /* Update all the dependency graphs of visible view layers. */
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {

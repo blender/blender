@@ -2407,11 +2407,13 @@ void ED_view3d_depths_free(ViewDepths *depths)
 /** \name Custom-data Utilities
  * \{ */
 
-void ED_view3d_datamask(const bContext *C,
-                        const Scene * /*scene*/,
+void ED_view3d_datamask(const ViewLayer *view_layer,
                         const View3D *v3d,
                         CustomData_MeshMasks *r_cddata_masks)
 {
+  /* NOTE(@campbellbarton): as this function runs continuously while idle
+   * (from #wm_event_do_depsgraph) take care to avoid expensive lookups.
+   * While they won't hurt performance noticeably, they will increase CPU usage while idle. */
   if (ELEM(v3d->shading.type, OB_TEXTURE, OB_MATERIAL, OB_RENDER)) {
     r_cddata_masks->lmask |= CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_BYTE_COLOR;
     r_cddata_masks->vmask |= CD_MASK_ORCO | CD_MASK_PROP_COLOR;
@@ -2426,26 +2428,38 @@ void ED_view3d_datamask(const bContext *C,
     }
   }
 
-  if ((CTX_data_mode_enum(C) == CTX_MODE_EDIT_MESH) &&
-      (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT)) {
-    r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
-  }
-  if (CTX_data_mode_enum(C) == CTX_MODE_SCULPT) {
-    r_cddata_masks->vmask |= CD_MASK_PAINT_MASK;
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
+  if (obact) {
+    switch (obact->type) {
+      case OB_MESH: {
+        switch (obact->mode) {
+          case OB_MODE_EDIT: {
+            if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT) {
+              r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+            }
+            break;
+          }
+          case OB_MODE_SCULPT: {
+            r_cddata_masks->vmask |= CD_MASK_PAINT_MASK;
+            break;
+          }
+        }
+        break;
+      }
+    }
   }
 }
 
-void ED_view3d_screen_datamask(const bContext *C,
-                               const Scene *scene,
+void ED_view3d_screen_datamask(const ViewLayer *view_layer,
                                const bScreen *screen,
                                CustomData_MeshMasks *r_cddata_masks)
 {
   CustomData_MeshMasks_update(r_cddata_masks, &CD_MASK_BAREMESH);
 
-  /* Check if we need tfaces & mcols due to view mode. */
+  /* Check if we need UV or color data due to the view mode. */
   LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
     if (area->spacetype == SPACE_VIEW3D) {
-      ED_view3d_datamask(C, scene, static_cast<View3D *>(area->spacedata.first), r_cddata_masks);
+      ED_view3d_datamask(view_layer, static_cast<View3D *>(area->spacedata.first), r_cddata_masks);
     }
   }
 }
