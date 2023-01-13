@@ -34,6 +34,11 @@ template<typename T> inline T abs(const T &a)
   return std::abs(a);
 }
 
+template<typename T> inline T sign(const T &a)
+{
+  return (T(0) < a) - (a < T(0));
+}
+
 template<typename T> inline T min(const T &a, const T &b)
 {
   return std::min(a, b);

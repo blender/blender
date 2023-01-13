@@ -70,6 +70,19 @@ template<typename T, int Size> [[nodiscard]] inline VecBase<T, Size> abs(const V
   return result;
 }
 
+/**
+ * Returns -1 if \a a is less than 0, 0 if \a a is equal to 0, and +1 if \a a is greater than 0.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> sign(const VecBase<T, Size> &a)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::sign(a[i]);
+  }
+  return result;
+}
+
 template<typename T, int Size>
 [[nodiscard]] inline VecBase<T, Size> min(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
 {
