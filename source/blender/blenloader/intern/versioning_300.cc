@@ -876,7 +876,7 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
 
     bNodeSocket *store_attribute_geometry_input = static_cast<bNodeSocket *>(
         store_attribute_node->inputs.first);
-    bNodeSocket *store_attribute_name_input = store_attribute_geometry_input->next;
+    bNodeSocket *store_attribute_name_input = store_attribute_geometry_input->next->next;
     bNodeSocket *store_attribute_value_input = nullptr;
     LISTBASE_FOREACH (bNodeSocket *, socket, &store_attribute_node->inputs) {
       if (socket->type == SOCK_VECTOR) {
