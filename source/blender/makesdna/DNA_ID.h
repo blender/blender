@@ -68,6 +68,16 @@ typedef struct IDPropertyUIDataInt {
   int default_value;
 } IDPropertyUIDataInt;
 
+/* IDP_UI_DATA_TYPE_BOOLEAN Use "int8_t" because DNA does not support "bool". */
+typedef struct IDPropertyUIDataBool {
+  IDPropertyUIData base;
+  int8_t *default_array; /* Only for array properties. */
+  int default_array_len;
+  char _pad[3];
+
+  int8_t default_value;
+} IDPropertyUIDataBool;
+
 /* IDP_UI_DATA_TYPE_FLOAT */
 typedef struct IDPropertyUIDataFloat {
   IDPropertyUIData base;
@@ -142,8 +152,13 @@ typedef enum eIDPropertyType {
   IDP_ID = 7,
   IDP_DOUBLE = 8,
   IDP_IDPARRAY = 9,
+  /**
+   * True or false value, backed by an `int8_t` underlying type for arrays. Values are expected to
+   * be 0 or 1.
+   */
+  IDP_BOOLEAN = 10,
 } eIDPropertyType;
-#define IDP_NUMTYPES 10
+#define IDP_NUMTYPES 11
 
 /** Used by some IDP utils, keep values in sync with type enum above. */
 enum {
@@ -155,6 +170,7 @@ enum {
   IDP_TYPE_FILTER_ID = 1 << 7,
   IDP_TYPE_FILTER_DOUBLE = 1 << 8,
   IDP_TYPE_FILTER_IDPARRAY = 1 << 9,
+  IDP_TYPE_FILTER_BOOLEAN = 1 << 10,
 };
 
 /*->subtype */

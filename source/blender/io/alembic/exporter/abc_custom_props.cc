@@ -70,6 +70,9 @@ void CustomPropertiesExporter::write(const IDProperty *id_property)
       set_scalar_property<ODoubleArrayProperty, double>(id_property->name,
                                                         IDP_Double(id_property));
       break;
+    case IDP_BOOLEAN:
+      set_scalar_property<OBoolArrayProperty, bool>(id_property->name, IDP_Bool(id_property));
+      break;
     case IDP_ARRAY:
       write_array(id_property);
       break;
@@ -98,6 +101,11 @@ void CustomPropertiesExporter::write_array(const IDProperty *id_property)
     case IDP_DOUBLE: {
       const double *array = (double *)IDP_Array(id_property);
       set_array_property<ODoubleArrayProperty, double>(id_property->name, array, id_property->len);
+      break;
+    }
+    case IDP_BOOLEAN: {
+      const int8_t *array = static_cast<const int8_t *>(IDP_Array(id_property));
+      set_array_property<OBoolArrayProperty, int8_t>(id_property->name, array, id_property->len);
       break;
     }
   }
@@ -165,7 +173,7 @@ void CustomPropertiesExporter::write_idparray_of_numbers(const IDProperty *idp_a
   BLI_assert(idp_rows[0].type == IDP_ARRAY);
 
   const int subtype = idp_rows[0].subtype;
-  if (!ELEM(subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE)) {
+  if (!ELEM(subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE, IDP_BOOLEAN)) {
     /* Non-numerical types are not supported. */
     return;
   }
@@ -181,6 +189,9 @@ void CustomPropertiesExporter::write_idparray_of_numbers(const IDProperty *idp_a
     case IDP_DOUBLE:
       write_idparray_flattened_typed<ODoubleArrayProperty, double>(idp_array);
       break;
+    case IDP_BOOLEAN:
+      write_idparray_flattened_typed<OBoolArrayProperty, int8_t>(idp_array);
+      break;
   }
 }
 
@@ -192,7 +203,7 @@ void CustomPropertiesExporter::write_idparray_flattened_typed(const IDProperty *
 
   const IDProperty *idp_rows = (IDProperty *)IDP_Array(idp_array);
   BLI_assert(idp_rows[0].type == IDP_ARRAY);
-  BLI_assert(ELEM(idp_rows[0].subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE));
+  BLI_assert(ELEM(idp_rows[0].subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE, IDP_BOOLEAN));
 
   const uint64_t num_rows = idp_array->len;
   std::vector<BlenderValueType> matrix_values;

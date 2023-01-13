@@ -4976,6 +4976,11 @@ void BLO_read_int32_array(BlendDataReader *reader, int array_size, int32_t **ptr
   }
 }
 
+void BLO_read_int8_array(BlendDataReader *reader, int /*array_size*/, int8_t **ptr_p)
+{
+  BLO_read_data_address(reader, ptr_p);
+}
+
 void BLO_read_uint32_array(BlendDataReader *reader, int array_size, uint32_t **ptr_p)
 {
   BLO_read_data_address(reader, ptr_p);
