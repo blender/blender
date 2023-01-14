@@ -19,7 +19,7 @@ enum class ParamFlag {
   None = 0,
   /**
    * If set, the multi-function parameter can be accessed using
-   * #MFParams::uninitialized_single_output_if_required which can result in better performance
+   * #Params::uninitialized_single_output_if_required which can result in better performance
    * because the output does not have to be computed when it is not needed.
    */
   SupportsUnusedOutput = 1 << 0,
@@ -142,7 +142,7 @@ class SignatureBuilder {
   }
 
   template<ParamCategory Category, typename T>
-  void add(MFParamTag<Category, T> /* tag */, const char *name)
+  void add(ParamTag<Category, T> /* tag */, const char *name)
   {
     switch (Category) {
       case ParamCategory::SingleInput:

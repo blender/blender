@@ -121,7 +121,7 @@ class NoiseFunction : public mf::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     int param = ELEM(dimensions_, 2, 3, 4) + ELEM(dimensions_, 1, 4);
     const VArray<float> &scale = params.readonly_single_input<float>(param++, "Scale");

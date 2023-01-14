@@ -52,7 +52,7 @@ static int64_t compute_grain_size(const ExecutionHints &hints, const IndexMask m
   return grain_size;
 }
 
-void MultiFunction::call_auto(IndexMask mask, MFParams params, Context context) const
+void MultiFunction::call_auto(IndexMask mask, Params params, Context context) const
 {
   if (mask.is_empty()) {
     return;

@@ -5,10 +5,10 @@
 /** \file
  * \ingroup fn
  *
- * This file provides an MFParams and ParamsBuilder structure.
+ * This file provides an Params and ParamsBuilder structure.
  *
  * `ParamsBuilder` is used by a function caller to be prepare all parameters that are passed into
- * the function. `MFParams` is then used inside the called function to access the parameters.
+ * the function. `Params` is then used inside the called function to access the parameters.
  */
 
 #include <mutex>
@@ -32,7 +32,7 @@ class ParamsBuilder {
   Vector<std::variant<GVArray, GMutableSpan, const GVVectorArray *, GVectorArray *>>
       actual_params_;
 
-  friend class MFParams;
+  friend class Params;
 
   ParamsBuilder(const Signature &signature, const IndexMask mask)
       : signature_(&signature), mask_(mask), min_array_size_(mask.min_array_size())
@@ -217,12 +217,12 @@ class ParamsBuilder {
   void add_unused_output_for_unsupporting_function(const CPPType &type);
 };
 
-class MFParams {
+class Params {
  private:
   ParamsBuilder *builder_;
 
  public:
-  MFParams(ParamsBuilder &builder) : builder_(&builder)
+  Params(ParamsBuilder &builder) : builder_(&builder)
   {
   }
 
