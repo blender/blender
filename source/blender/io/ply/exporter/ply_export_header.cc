@@ -26,16 +26,20 @@ void write_header(std::unique_ptr<FileBuffer> &buffer,
   buffer->write_header_scalar_property("float", "x");
   buffer->write_header_scalar_property("float", "y");
   buffer->write_header_scalar_property("float", "z");
-  if (export_params.export_normals) {
+  if (!plyData->vertex_normals.is_empty()) {
     buffer->write_header_scalar_property("float", "nx");
     buffer->write_header_scalar_property("float", "ny");
     buffer->write_header_scalar_property("float", "nz");
   }
-  if (export_params.export_colors) {
+  if (!plyData->vertex_colors.is_empty()) {
     buffer->write_header_scalar_property("uchar", "red");
     buffer->write_header_scalar_property("uchar", "green");
     buffer->write_header_scalar_property("uchar", "blue");
     buffer->write_header_scalar_property("uchar", "alpha");
+  }
+  if (!plyData->UV_coordinates.is_empty()) {
+    buffer->write_header_scalar_property("float", "s");
+    buffer->write_header_scalar_property("float", "t");
   }
   buffer->write_header_element("face", int32_t(plyData->faces.size()));
   buffer->write_header_list_property("uchar", "uint", "vertex_indices");
