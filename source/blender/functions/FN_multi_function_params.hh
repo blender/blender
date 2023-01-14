@@ -160,7 +160,7 @@ class ParamsBuilder {
     BLI_assert(ELEM(signature_->params[param_index].type.category(),
                     ParamCategory::SingleOutput,
                     ParamCategory::SingleMutable));
-    return *std::get_if<GMutableSpan>(&actual_params_[param_index]);
+    return std::get<GMutableSpan>(actual_params_[param_index]);
   }
 
   GVectorArray &computed_vector_array(int param_index)
@@ -168,7 +168,7 @@ class ParamsBuilder {
     BLI_assert(ELEM(signature_->params[param_index].type.category(),
                     ParamCategory::VectorOutput,
                     ParamCategory::VectorMutable));
-    return **std::get_if<GVectorArray *>(&actual_params_[param_index]);
+    return *std::get<GVectorArray *>(actual_params_[param_index]);
   }
 
   ResourceScope &resource_scope()
@@ -229,7 +229,7 @@ class MFParams {
   const GVArray &readonly_single_input(int param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, ParamCategory::SingleInput);
-    return *std::get_if<GVArray>(&builder_->actual_params_[param_index]);
+    return std::get<GVArray>(builder_->actual_params_[param_index]);
   }
 
   /**
@@ -241,7 +241,7 @@ class MFParams {
   bool single_output_is_required(int param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, ParamCategory::SingleOutput);
-    return !std::get_if<GMutableSpan>(&builder_->actual_params_[param_index])->is_empty();
+    return !std::get<GMutableSpan>(builder_->actual_params_[param_index]).is_empty();
   }
 
   template<typename T>
@@ -252,7 +252,7 @@ class MFParams {
   GMutableSpan uninitialized_single_output(int param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, ParamCategory::SingleOutput);
-    GMutableSpan span = *std::get_if<GMutableSpan>(&builder_->actual_params_[param_index]);
+    GMutableSpan span = std::get<GMutableSpan>(builder_->actual_params_[param_index]);
     if (!span.is_empty()) {
       return span;
     }
@@ -273,7 +273,7 @@ class MFParams {
   GMutableSpan uninitialized_single_output_if_required(int param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, ParamCategory::SingleOutput);
-    return *std::get_if<GMutableSpan>(&builder_->actual_params_[param_index]);
+    return std::get<GMutableSpan>(builder_->actual_params_[param_index]);
   }
 
   template<typename T>
@@ -285,7 +285,7 @@ class MFParams {
   const GVVectorArray &readonly_vector_input(int param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, ParamCategory::VectorInput);
-    return **std::get_if<const GVVectorArray *>(&builder_->actual_params_[param_index]);
+    return *std::get<const GVVectorArray *>(builder_->actual_params_[param_index]);
   }
 
   template<typename T>
@@ -296,7 +296,7 @@ class MFParams {
   GVectorArray &vector_output(int param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, ParamCategory::VectorOutput);
-    return **std::get_if<GVectorArray *>(&builder_->actual_params_[param_index]);
+    return *std::get<GVectorArray *>(builder_->actual_params_[param_index]);
   }
 
   template<typename T> MutableSpan<T> single_mutable(int param_index, StringRef name = "")
@@ -306,7 +306,7 @@ class MFParams {
   GMutableSpan single_mutable(int param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, ParamCategory::SingleMutable);
-    return *std::get_if<GMutableSpan>(&builder_->actual_params_[param_index]);
+    return std::get<GMutableSpan>(builder_->actual_params_[param_index]);
   }
 
   template<typename T>
@@ -317,7 +317,7 @@ class MFParams {
   GVectorArray &vector_mutable(int param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, ParamCategory::VectorMutable);
-    return **std::get_if<GVectorArray *>(&builder_->actual_params_[param_index]);
+    return *std::get<GVectorArray *>(builder_->actual_params_[param_index]);
   }
 
  private:
