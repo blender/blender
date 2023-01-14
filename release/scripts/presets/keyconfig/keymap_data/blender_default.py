@@ -5053,7 +5053,7 @@ def km_sculpt(params):
              ("target", "MASK"),
              ("falloff_type", "GEODESIC"),
              ("invert", True),
-             ("use_auto_mask", True),
+             ("use_auto_mask", False),
              ("use_mask_preserve", True),
          ]}),
         ("sculpt.expand", {"type": 'A', "value": 'PRESS', "shift": True, "alt": True},
