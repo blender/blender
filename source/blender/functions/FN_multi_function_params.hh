@@ -25,7 +25,7 @@ namespace blender::fn::multi_function {
 
 class ParamsBuilder {
  private:
-  ResourceScope scope_;
+  std::unique_ptr<ResourceScope> scope_;
   const Signature *signature_;
   IndexMask mask_;
   int64_t min_array_size_;
@@ -90,13 +90,15 @@ class ParamsBuilder {
 
   void add_readonly_vector_input(const GVectorArray &vector_array, StringRef expected_name = "")
   {
-    this->add_readonly_vector_input(scope_.construct<GVVectorArray_For_GVectorArray>(vector_array),
-                                    expected_name);
+    this->add_readonly_vector_input(
+        this->resource_scope().construct<GVVectorArray_For_GVectorArray>(vector_array),
+        expected_name);
   }
   void add_readonly_vector_input(const GSpan single_vector, StringRef expected_name = "")
   {
     this->add_readonly_vector_input(
-        scope_.construct<GVVectorArray_For_SingleGSpan>(single_vector, min_array_size_),
+        this->resource_scope().construct<GVVectorArray_For_SingleGSpan>(single_vector,
+                                                                        min_array_size_),
         expected_name);
   }
   void add_readonly_vector_input(const GVVectorArray &ref, StringRef expected_name = "")
@@ -174,11 +176,6 @@ class ParamsBuilder {
     return *std::get<GVectorArray *>(actual_params_[param_index]);
   }
 
-  ResourceScope &resource_scope()
-  {
-    return scope_;
-  }
-
  private:
   void assert_current_param_type(ParamType param_type, StringRef expected_name = "")
   {
@@ -212,6 +209,14 @@ class ParamsBuilder {
   int current_param_index() const
   {
     return actual_params_.size();
+  }
+
+  ResourceScope &resource_scope()
+  {
+    if (!scope_) {
+      scope_ = std::make_unique<ResourceScope>();
+    }
+    return *scope_;
   }
 
   void add_unused_output_for_unsupporting_function(const CPPType &type);
@@ -285,7 +290,7 @@ class Params {
   const VVectorArray<T> &readonly_vector_input(int param_index, StringRef name = "")
   {
     const GVVectorArray &vector_array = this->readonly_vector_input(param_index, name);
-    return builder_->scope_.construct<VVectorArray_For_GVVectorArray<T>>(vector_array);
+    return builder_->resource_scope().construct<VVectorArray_For_GVVectorArray<T>>(vector_array);
   }
   const GVVectorArray &readonly_vector_input(int param_index, StringRef name = "")
   {
