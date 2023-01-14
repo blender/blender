@@ -286,6 +286,7 @@ static void curves_sculptmode_enter(bContext *C)
   ob->mode = OB_MODE_SCULPT_CURVES;
 
   ED_paint_cursor_start(&curves_sculpt->paint, CURVES_SCULPT_mode_poll_view3d);
+  paint_init_pivot(ob, scene);
 
   /* Necessary to change the object mode on the evaluated object. */
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
