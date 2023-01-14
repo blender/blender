@@ -142,7 +142,7 @@ class ProximityFunction : public mf::MultiFunction {
       mf::Signature signature;
       mf::SignatureBuilder builder{"Geometry Proximity", signature};
       builder.single_input<float3>("Source Position");
-      builder.single_output<float3>("Position");
+      builder.single_output<float3>("Position", mf::ParamFlag::SupportsUnusedOutput);
       builder.single_output<float>("Distance");
       return signature;
     }();

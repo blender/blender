@@ -45,10 +45,10 @@ class SeparateRGBAFunction : public mf::MultiFunction {
       mf::Signature signature;
       mf::SignatureBuilder builder{"Separate Color", signature};
       builder.single_input<ColorGeometry4f>("Color");
-      builder.single_output<float>("Red");
-      builder.single_output<float>("Green");
-      builder.single_output<float>("Blue");
-      builder.single_output<float>("Alpha");
+      builder.single_output<float>("Red", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Green", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Blue", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Alpha", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
     }();
     this->set_signature(&signature);
@@ -107,7 +107,7 @@ class SeparateHSVAFunction : public mf::MultiFunction {
       builder.single_output<float>("Hue");
       builder.single_output<float>("Saturation");
       builder.single_output<float>("Value");
-      builder.single_output<float>("Alpha");
+      builder.single_output<float>("Alpha", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
     }();
     this->set_signature(&signature);
@@ -145,7 +145,7 @@ class SeparateHSLAFunction : public mf::MultiFunction {
       builder.single_output<float>("Hue");
       builder.single_output<float>("Saturation");
       builder.single_output<float>("Lightness");
-      builder.single_output<float>("Alpha");
+      builder.single_output<float>("Alpha", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
     }();
     this->set_signature(&signature);

@@ -69,7 +69,7 @@ class ImageFieldsFunction : public mf::MultiFunction {
       mf::SignatureBuilder builder{"ImageFunction", signature};
       builder.single_input<float3>("Vector");
       builder.single_output<ColorGeometry4f>("Color");
-      builder.single_output<float>("Alpha");
+      builder.single_output<float>("Alpha", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
     }();
     this->set_signature(&signature);

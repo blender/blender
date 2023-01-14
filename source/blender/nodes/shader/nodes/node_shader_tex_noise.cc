@@ -115,8 +115,8 @@ class NoiseFunction : public mf::MultiFunction {
     builder.single_input<float>("Roughness");
     builder.single_input<float>("Distortion");
 
-    builder.single_output<float>("Fac");
-    builder.single_output<ColorGeometry4f>("Color");
+    builder.single_output<float>("Fac", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
 
     return signature;
   }

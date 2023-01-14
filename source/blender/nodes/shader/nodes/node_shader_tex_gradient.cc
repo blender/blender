@@ -58,7 +58,7 @@ class GradientFunction : public mf::MultiFunction {
       mf::Signature signature;
       mf::SignatureBuilder builder{"GradientFunction", signature};
       builder.single_input<float3>("Vector");
-      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
       builder.single_output<float>("Fac");
       return signature;
     }();

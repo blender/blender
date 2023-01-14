@@ -108,11 +108,18 @@ void MultiFunction::call_auto(IndexMask mask, MFParams params, Context context) 
           break;
         }
         case ParamCategory::SingleOutput: {
-          const GMutableSpan span = params.uninitialized_single_output_if_required(param_index);
-          if (span.is_empty()) {
-            offset_params.add_ignored_single_output();
+          if (bool(signature_ref_->params[param_index].flag & ParamFlag::SupportsUnusedOutput)) {
+            const GMutableSpan span = params.uninitialized_single_output_if_required(param_index);
+            if (span.is_empty()) {
+              offset_params.add_ignored_single_output();
+            }
+            else {
+              const GMutableSpan sliced_span = span.slice(input_slice_range);
+              offset_params.add_uninitialized_single_output(sliced_span);
+            }
           }
           else {
+            const GMutableSpan span = params.uninitialized_single_output(param_index);
             const GMutableSpan sliced_span = span.slice(input_slice_range);
             offset_params.add_uninitialized_single_output(sliced_span);
           }

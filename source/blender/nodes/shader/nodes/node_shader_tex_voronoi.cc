@@ -224,14 +224,14 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
     }
     builder.single_input<float>("Exponent");
     builder.single_input<float>("Randomness");
-    builder.single_output<float>("Distance");
-    builder.single_output<ColorGeometry4f>("Color");
+    builder.single_output<float>("Distance", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
 
     if (dimensions != 1) {
-      builder.single_output<float3>("Position");
+      builder.single_output<float3>("Position", mf::ParamFlag::SupportsUnusedOutput);
     }
     if (ELEM(dimensions, 1, 4)) {
-      builder.single_output<float>("W");
+      builder.single_output<float>("W", mf::ParamFlag::SupportsUnusedOutput);
     }
 
     return signature;
@@ -661,14 +661,14 @@ class VoronoiMetricFunction : public mf::MultiFunction {
       builder.single_input<float>("Smoothness");
     }
     builder.single_input<float>("Randomness");
-    builder.single_output<float>("Distance");
-    builder.single_output<ColorGeometry4f>("Color");
+    builder.single_output<float>("Distance", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
 
     if (dimensions != 1) {
-      builder.single_output<float3>("Position");
+      builder.single_output<float3>("Position", mf::ParamFlag::SupportsUnusedOutput);
     }
     if (ELEM(dimensions, 1, 4)) {
-      builder.single_output<float>("W");
+      builder.single_output<float>("W", mf::ParamFlag::SupportsUnusedOutput);
     }
 
     return signature;

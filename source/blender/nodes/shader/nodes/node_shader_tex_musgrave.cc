@@ -190,7 +190,7 @@ class MusgraveFunction : public mf::MultiFunction {
       builder.single_input<float>("Gain");
     }
 
-    builder.single_output<float>("Fac");
+    builder.single_output<float>("Fac", mf::ParamFlag::SupportsUnusedOutput);
 
     return signature;
   }

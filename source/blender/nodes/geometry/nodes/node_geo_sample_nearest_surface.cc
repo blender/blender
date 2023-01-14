@@ -143,7 +143,7 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
 
     mf::SignatureBuilder builder{"Sample Nearest Surface", signature_};
     builder.single_input<float3>("Position");
-    builder.single_output("Value", src_field_.cpp_type());
+    builder.single_output("Value", src_field_.cpp_type(), mf::ParamFlag::SupportsUnusedOutput);
     this->set_signature(&signature_);
   }
 

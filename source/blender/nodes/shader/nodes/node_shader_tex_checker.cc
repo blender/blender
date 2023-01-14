@@ -55,7 +55,7 @@ class NodeTexChecker : public mf::MultiFunction {
       builder.single_input<ColorGeometry4f>("Color1");
       builder.single_input<ColorGeometry4f>("Color2");
       builder.single_input<float>("Scale");
-      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
       builder.single_output<float>("Fac");
       return signature;
     }();

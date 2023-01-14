@@ -62,7 +62,7 @@ class MagicFunction : public mf::MultiFunction {
       builder.single_input<float>("Scale");
       builder.single_input<float>("Distortion");
       builder.single_output<ColorGeometry4f>("Color");
-      builder.single_output<float>("Fac");
+      builder.single_output<float>("Fac", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
     }();
     this->set_signature(&signature);

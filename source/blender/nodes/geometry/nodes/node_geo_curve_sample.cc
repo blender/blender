@@ -261,10 +261,10 @@ class SampleCurveFunction : public mf::MultiFunction {
     mf::SignatureBuilder builder{"Sample Curve", signature_};
     builder.single_input<int>("Curve Index");
     builder.single_input<float>("Length");
-    builder.single_output<float3>("Position");
-    builder.single_output<float3>("Tangent");
-    builder.single_output<float3>("Normal");
-    builder.single_output("Value", src_field_.cpp_type());
+    builder.single_output<float3>("Position", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<float3>("Tangent", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<float3>("Normal", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output("Value", src_field_.cpp_type(), mf::ParamFlag::SupportsUnusedOutput);
     this->set_signature(&signature_);
 
     this->evaluate_source();

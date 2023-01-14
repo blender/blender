@@ -200,9 +200,9 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
       mf::Signature signature;
       mf::SignatureBuilder builder{"Sample UV Surface", signature};
       builder.single_input<float2>("Sample UV");
-      builder.single_output<bool>("Is Valid");
-      builder.single_output<int>("Triangle Index");
-      builder.single_output<float3>("Barycentric Weights");
+      builder.single_output<bool>("Is Valid", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<int>("Triangle Index", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float3>("Barycentric Weights", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
     }();
     this->set_signature(&signature);

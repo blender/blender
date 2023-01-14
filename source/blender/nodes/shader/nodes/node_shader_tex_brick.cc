@@ -135,8 +135,8 @@ class BrickFunction : public mf::MultiFunction {
       builder.single_input<float>("Bias");
       builder.single_input<float>("Brick Width");
       builder.single_input<float>("Row Height");
-      builder.single_output<ColorGeometry4f>("Color");
-      builder.single_output<float>("Fac");
+      builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Fac", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
     }();
     this->set_signature(&signature);

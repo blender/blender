@@ -104,7 +104,7 @@ class WaveFunction : public mf::MultiFunction {
       builder.single_input<float>("Detail Scale");
       builder.single_input<float>("Detail Roughness");
       builder.single_input<float>("Phase Offset");
-      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
       builder.single_output<float>("Fac");
       return signature;
     }();

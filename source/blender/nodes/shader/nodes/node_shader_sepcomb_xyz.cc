@@ -35,9 +35,9 @@ class MF_SeparateXYZ : public mf::MultiFunction {
       mf::Signature signature;
       mf::SignatureBuilder builder{"Separate XYZ", signature};
       builder.single_input<float3>("XYZ");
-      builder.single_output<float>("X");
-      builder.single_output<float>("Y");
-      builder.single_output<float>("Z");
+      builder.single_output<float>("X", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Y", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Z", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
     }();
     this->set_signature(&signature);

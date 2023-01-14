@@ -32,9 +32,6 @@ class ParamsBuilder {
   Vector<std::variant<GVArray, GMutableSpan, const GVVectorArray *, GVectorArray *>>
       actual_params_;
 
-  std::mutex mutex_;
-  Vector<std::pair<int, GMutableSpan>> dummy_output_spans_;
-
   friend class MFParams;
 
   ParamsBuilder(const Signature &signature, const IndexMask mask)
@@ -127,9 +124,15 @@ class ParamsBuilder {
     const ParamType &param_type = signature_->params[param_index].type;
     BLI_assert(param_type.category() == ParamCategory::SingleOutput);
     const CPPType &type = param_type.data_type().single_type();
-    /* An empty span indicates that this is ignored. */
-    const GMutableSpan dummy_span{type};
-    actual_params_.append_unchecked_as(std::in_place_type<GMutableSpan>, dummy_span);
+
+    if (bool(signature_->params[param_index].flag & ParamFlag::SupportsUnusedOutput)) {
+      /* An empty span indicates that this is ignored. */
+      const GMutableSpan dummy_span{type};
+      actual_params_.append_unchecked_as(std::in_place_type<GMutableSpan>, dummy_span);
+    }
+    else {
+      this->add_unused_output_for_unsupporting_function(type);
+    }
   }
 
   void add_vector_output(GVectorArray &vector_array, StringRef expected_name = "")
@@ -210,6 +213,8 @@ class ParamsBuilder {
   {
     return actual_params_.size();
   }
+
+  void add_unused_output_for_unsupporting_function(const CPPType &type);
 };
 
 class MFParams {
@@ -252,13 +257,11 @@ class MFParams {
   GMutableSpan uninitialized_single_output(int param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, ParamCategory::SingleOutput);
+    BLI_assert(
+        !bool(builder_->signature_->params[param_index].flag & ParamFlag::SupportsUnusedOutput));
     GMutableSpan span = std::get<GMutableSpan>(builder_->actual_params_[param_index]);
-    if (!span.is_empty()) {
-      return span;
-    }
-    /* The output is ignored by the caller, but the multi-function does not handle this case. So
-     * create a temporary buffer that the multi-function can write to. */
-    return this->ensure_dummy_single_output(param_index);
+    BLI_assert(span.size() >= builder_->min_array_size_);
+    return span;
   }
 
   /**
@@ -273,6 +276,8 @@ class MFParams {
   GMutableSpan uninitialized_single_output_if_required(int param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, ParamCategory::SingleOutput);
+    BLI_assert(
+        bool(builder_->signature_->params[param_index].flag & ParamFlag::SupportsUnusedOutput));
     return std::get<GMutableSpan>(builder_->actual_params_[param_index]);
   }
 
@@ -342,8 +347,6 @@ class MFParams {
     }
 #endif
   }
-
-  GMutableSpan ensure_dummy_single_output(int param_index);
 };
 
 }  // namespace blender::fn::multi_function

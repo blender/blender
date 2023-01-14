@@ -92,8 +92,8 @@ class WhiteNoiseFunction : public mf::MultiFunction {
       builder.single_input<float>("W");
     }
 
-    builder.single_output<float>("Value");
-    builder.single_output<ColorGeometry4f>("Color");
+    builder.single_output<float>("Value", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
 
     return signature;
   }
