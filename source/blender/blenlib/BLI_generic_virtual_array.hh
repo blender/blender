@@ -388,25 +388,24 @@ template<typename T> class VArrayImpl_For_GVArray : public VArrayImpl<T> {
     return true;
   }
 
-  void materialize(IndexMask mask, MutableSpan<T> r_span) const override
+  void materialize(IndexMask mask, T *dst) const override
   {
-    varray_.materialize(mask, r_span.data());
+    varray_.materialize(mask, dst);
   }
 
-  void materialize_to_uninitialized(IndexMask mask, MutableSpan<T> r_span) const override
+  void materialize_to_uninitialized(IndexMask mask, T *dst) const override
   {
-    varray_.materialize_to_uninitialized(mask, r_span.data());
+    varray_.materialize_to_uninitialized(mask, dst);
   }
 
-  void materialize_compressed(IndexMask mask, MutableSpan<T> r_span) const override
+  void materialize_compressed(IndexMask mask, T *dst) const override
   {
-    varray_.materialize_compressed(mask, r_span.data());
+    varray_.materialize_compressed(mask, dst);
   }
 
-  void materialize_compressed_to_uninitialized(IndexMask mask,
-                                               MutableSpan<T> r_span) const override
+  void materialize_compressed_to_uninitialized(IndexMask mask, T *dst) const override
   {
-    varray_.materialize_compressed_to_uninitialized(mask, r_span.data());
+    varray_.materialize_compressed_to_uninitialized(mask, dst);
   }
 };
 
@@ -539,25 +538,24 @@ template<typename T> class VMutableArrayImpl_For_GVMutableArray : public VMutabl
     return true;
   }
 
-  void materialize(IndexMask mask, MutableSpan<T> r_span) const override
+  void materialize(IndexMask mask, T *dst) const override
   {
-    varray_.materialize(mask, r_span.data());
+    varray_.materialize(mask, dst);
   }
 
-  void materialize_to_uninitialized(IndexMask mask, MutableSpan<T> r_span) const override
+  void materialize_to_uninitialized(IndexMask mask, T *dst) const override
   {
-    varray_.materialize_to_uninitialized(mask, r_span.data());
+    varray_.materialize_to_uninitialized(mask, dst);
   }
 
-  void materialize_compressed(IndexMask mask, MutableSpan<T> r_span) const override
+  void materialize_compressed(IndexMask mask, T *dst) const override
   {
-    varray_.materialize_compressed(mask, r_span.data());
+    varray_.materialize_compressed(mask, dst);
   }
 
-  void materialize_compressed_to_uninitialized(IndexMask mask,
-                                               MutableSpan<T> r_span) const override
+  void materialize_compressed_to_uninitialized(IndexMask mask, T *dst) const override
   {
-    varray_.materialize_compressed_to_uninitialized(mask, r_span.data());
+    varray_.materialize_compressed_to_uninitialized(mask, dst);
   }
 };
 
