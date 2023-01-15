@@ -759,7 +759,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 
 /******************** texture paint toggle operator ********************/
 
-static void paint_init_pivot_mesh(Object *ob, Scene *scene, float location[3])
+static void paint_init_pivot_mesh(Object *ob, float location[3])
 {
   const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
   if (!me_eval) {
@@ -776,7 +776,7 @@ static void paint_init_pivot_mesh(Object *ob, Scene *scene, float location[3])
   interp_v3_v3v3(location, min, max, 0.5f);
 }
 
-static void paint_init_pivot_curves(Object *ob, Scene *scene, float location[3])
+static void paint_init_pivot_curves(Object *ob, float location[3])
 {
   const BoundBox *bbox = BKE_object_boundbox_get(ob);
   interp_v3_v3v3(location, bbox->vec[0], bbox->vec[6], 0.5f);
@@ -789,10 +789,10 @@ void paint_init_pivot(Object *ob, Scene *scene)
 
   switch (ob->type) {
     case OB_MESH:
-      paint_init_pivot_mesh(ob, scene, location);
+      paint_init_pivot_mesh(ob, location);
       break;
     case OB_CURVES:
-      paint_init_pivot_curves(ob, scene, location);
+      paint_init_pivot_curves(ob, location);
       break;
     default:
       BLI_assert_unreachable();
