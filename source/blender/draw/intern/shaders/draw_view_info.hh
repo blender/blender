@@ -79,7 +79,7 @@ GPU_SHADER_CREATE_INFO(draw_modelmat_instanced_attr)
 
 GPU_SHADER_CREATE_INFO(drw_clipped)
     /* TODO(fclem): Move to engine side. */
-    .uniform_buf(DRW_CLIPPING_UBO_SLOT, "vec4", "drw_clipping[6]", Frequency::PASS)
+    .uniform_buf(DRW_CLIPPING_UBO_SLOT, "vec4", "drw_clipping_[6]", Frequency::PASS)
     .define("USE_WORLD_CLIP_PLANES");
 
 /** \} */
