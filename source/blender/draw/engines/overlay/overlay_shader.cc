@@ -705,11 +705,11 @@ GPUShader *OVERLAY_shader_outline_detect(void)
 GPUShader *OVERLAY_shader_paint_face(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_cfg];
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->paint_face) {
     sh_data->paint_face = GPU_shader_create_from_info_name(
-        sh_cfg == GPU_SHADER_CFG_CLIPPED ? "overlay_paint_face_clipped" : "overlay_paint_face");
+        draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED ? "overlay_paint_face_clipped" :
+                                                     "overlay_paint_face");
   }
   return sh_data->paint_face;
 }
@@ -717,11 +717,11 @@ GPUShader *OVERLAY_shader_paint_face(void)
 GPUShader *OVERLAY_shader_paint_point(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_cfg];
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->paint_point) {
     sh_data->paint_point = GPU_shader_create_from_info_name(
-        sh_cfg == GPU_SHADER_CFG_CLIPPED ? "overlay_paint_point_clipped" : "overlay_paint_point");
+        draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED ? "overlay_paint_point_clipped" :
+                                                     "overlay_paint_point");
   }
   return sh_data->paint_point;
 }
@@ -729,11 +729,10 @@ GPUShader *OVERLAY_shader_paint_point(void)
 GPUShader *OVERLAY_shader_paint_texture(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_cfg];
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->paint_texture) {
     sh_data->paint_texture = GPU_shader_create_from_info_name(
-        sh_cfg ? "overlay_paint_texture_clipped" : "overlay_paint_texture");
+        draw_ctx->sh_cfg ? "overlay_paint_texture_clipped" : "overlay_paint_texture");
   }
   return sh_data->paint_texture;
 }
@@ -741,11 +740,10 @@ GPUShader *OVERLAY_shader_paint_texture(void)
 GPUShader *OVERLAY_shader_paint_vertcol(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_cfg];
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->paint_vertcol) {
     sh_data->paint_vertcol = GPU_shader_create_from_info_name(
-        sh_cfg ? "overlay_paint_vertcol_clipped" : "overlay_paint_vertcol");
+        draw_ctx->sh_cfg ? "overlay_paint_vertcol_clipped" : "overlay_paint_vertcol");
   }
   return sh_data->paint_vertcol;
 }
@@ -758,10 +756,10 @@ GPUShader *OVERLAY_shader_paint_weight(const bool shading)
   };
   int index = shading ? 1 : 0;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_cfg];
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->paint_weight[index]) {
-    sh_data->paint_weight[index] = GPU_shader_create_from_info_name(info_name[sh_cfg][index]);
+    sh_data->paint_weight[index] = GPU_shader_create_from_info_name(
+        info_name[draw_ctx->sh_cfg][index]);
   }
   return sh_data->paint_weight[index];
 }
@@ -769,11 +767,10 @@ GPUShader *OVERLAY_shader_paint_weight(const bool shading)
 GPUShader *OVERLAY_shader_paint_wire(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_cfg];
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->paint_wire) {
-    sh_data->paint_wire = GPU_shader_create_from_info_name(sh_cfg ? "overlay_paint_wire_clipped" :
-                                                                    "overlay_paint_wire");
+    sh_data->paint_wire = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_paint_wire_clipped" : "overlay_paint_wire");
   }
   return sh_data->paint_wire;
 }
