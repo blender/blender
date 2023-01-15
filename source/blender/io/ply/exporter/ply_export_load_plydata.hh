@@ -8,6 +8,7 @@
 
 #include "BKE_context.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
 
 #include "RNA_types.h"
@@ -41,6 +42,59 @@ struct UV_vertex_hash {
            (std::hash<int>()(k.Vertex_index) << 1);
   }
 };
+
+std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertexmap(
+    const Mesh *mesh, const MLoopUV *mloopuv, PLYExportParams export_params)
+{
+
+  std::unordered_map<UV_vertex_key, int, UV_vertex_hash> vertex_map;
+
+  const Span<MPoly> polys = mesh->polys();
+  const Span<MLoop> loops = mesh->loops();
+  const int totvert = mesh->totvert;
+
+  if (!mloopuv || !export_params.export_uv) {
+    for (int vertex_index = 0; vertex_index < totvert; ++vertex_index) {
+      UV_vertex_key key = UV_vertex_key({0, 0}, vertex_index);
+      vertex_map.insert({key, vertex_map.size()});
+    }
+    return vertex_map;
+  }
+
+  const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
+  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(polys.data(),
+                                                       nullptr,
+                                                       nullptr,
+                                                       loops.data(),
+                                                       mloopuv,
+                                                       polys.size(),
+                                                       totvert,
+                                                       limit,
+                                                       false,
+                                                       false);
+
+  vertex_map.reserve(totvert);
+
+  for (int vertex_index = 0; vertex_index < totvert; vertex_index++) {
+    const UvMapVert *uv_vert = BKE_mesh_uv_vert_map_get_vert(uv_vert_map, vertex_index);
+
+    if (uv_vert == nullptr) {
+      UV_vertex_key key = UV_vertex_key({0, 0}, vertex_index);
+      vertex_map.insert({key, vertex_map.size()});
+    }
+
+    for (; uv_vert; uv_vert = uv_vert->next) {
+      /* Store UV vertex coordinates. */
+      const int loopstart = polys[uv_vert->poly_index].loopstart;
+      float2 vert_uv_coords(mloopuv[loopstart + uv_vert->loop_of_poly_index].uv);
+      UV_vertex_key key = UV_vertex_key(vert_uv_coords, vertex_index);
+      vertex_map.insert({key, vertex_map.size()});
+    }
+  }
+  BKE_mesh_uv_vert_map_free(uv_vert_map);
+  return vertex_map;
+}
+
 void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &export_params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -55,19 +109,23 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
   uint32_t vertex_offset = 0;
 
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
-    if (object->type != OB_MESH)
+    if (object->type != OB_MESH) {
       continue;
+    }
 
     if (export_params.export_selected_objects && !(object->base_flag & BASE_SELECTED)) {
       continue;
     }
 
     Mesh *mesh = static_cast<Mesh *>(object->data);
-    std::unordered_map<UV_vertex_key, int, UV_vertex_hash> vertex_map;
 
-    /* Faces with UV */
     const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
         CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
+
+    std::unordered_map<UV_vertex_key, int, UV_vertex_hash> vertex_map = generate_vertexmap(
+        mesh, mloopuv, export_params);
+
+    /* Load faces into plyData. */
     int loop_offset = 0;
     for (auto &&poly : mesh->polys()) {
       auto loopSpan = mesh->loops().slice(poly.loopstart, poly.totloop);
@@ -82,7 +140,7 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
           uv = {0, 0};
         }
         UV_vertex_key key = UV_vertex_key(uv, loopSpan[i].v);
-        auto ply_vertex_index = vertex_map.insert({key, int(vertex_map.size())}).first;
+        auto ply_vertex_index = vertex_map.find(key);
         polyVector.append(uint32_t(ply_vertex_index->second + vertex_offset));
       }
       loop_offset += loopSpan.size();
@@ -90,7 +148,6 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
       plyData.faces.append(polyVector);
     }
 
-    // Vertices
     int vertex_indices[vertex_map.size()];
     float2 uvs[vertex_map.size()];
 
