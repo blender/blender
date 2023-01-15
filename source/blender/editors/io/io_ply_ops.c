@@ -258,12 +258,12 @@ static int wm_ply_import_execute(bContext *C, wmOperator *op)
       RNA_property_collection_lookup_int(op->ptr, prop, i, &fileptr);
       RNA_string_get(&fileptr, "name", file_only);
       BLI_path_join(params.filepath, sizeof(params.filepath), dir_only, file_only);
-      PLY_import(C, &params);
+      PLY_import(C, &params, op);
     }
   }
   else if (RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     RNA_string_get(op->ptr, "filepath", params.filepath);
-    PLY_import(C, &params);
+    PLY_import(C, &params, op);
   }
   else {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
