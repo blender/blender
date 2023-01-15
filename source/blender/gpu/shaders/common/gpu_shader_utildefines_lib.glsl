@@ -93,4 +93,23 @@ uvec4 unpackUvec4x8(uint data)
   return (uvec4(data) >> uvec4(0u, 8u, 16u, 24u)) & uvec4(0xFFu);
 }
 
+/**
+ * Convert from float representation to ordered int allowing min/max atomic operation.
+ * Based on: https://stackoverflow.com/a/31010352
+ */
+int floatBitsToOrderedInt(float value)
+{
+  /* Floats can be sorted using their bits interpreted as integers for positive values.
+   * Negative values do not follow int's two's complement ordering which is reversed.
+   * So we have to XOR all bits except the sign bits in order to reverse the ordering.
+   * Note that this is highly hardware dependent, but there seems to be no case of GPU where the
+   * ints ares not two's complement. */
+  int int_value = floatBitsToInt(value);
+  return (int_value < 0) ? (int_value ^ 0x7FFFFFFF) : int_value;
+}
+float orderedIntBitsToFloat(int int_value)
+{
+  return intBitsToFloat((int_value < 0) ? (int_value ^ 0x7FFFFFFF) : int_value);
+}
+
 #endif /* GPU_SHADER_UTILDEFINES_GLSL */

@@ -287,4 +287,19 @@ void main()
                               vec4(0.0f, 0.0f, -1.0f, 1.0f)));
     EXPECT_NEAR(pers2, expect, 1e-4);
   }
+
+  TEST(math_matrix, OrderedInt)
+  {
+    /* Identity. */
+    EXPECT_EQ(orderedIntBitsToFloat(floatBitsToOrderedInt(0.5)), 0.5);
+    EXPECT_EQ(orderedIntBitsToFloat(floatBitsToOrderedInt(-0.5)), -0.5);
+    EXPECT_EQ(orderedIntBitsToFloat(floatBitsToOrderedInt(0.0)), 0.0);
+    EXPECT_EQ(orderedIntBitsToFloat(floatBitsToOrderedInt(-0.0)), -0.0);
+
+    EXPECT_GE(floatBitsToOrderedInt(-0.5), floatBitsToOrderedInt(-1.0));
+    EXPECT_LE(floatBitsToOrderedInt(0.5), floatBitsToOrderedInt(1.0));
+    EXPECT_LE(floatBitsToOrderedInt(-0.5), floatBitsToOrderedInt(1.0));
+    EXPECT_GE(floatBitsToOrderedInt(0.5), floatBitsToOrderedInt(-1.0));
+    EXPECT_LE(floatBitsToOrderedInt(-0.0), floatBitsToOrderedInt(0.0));
+  }
 }
