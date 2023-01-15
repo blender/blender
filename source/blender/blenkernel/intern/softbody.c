@@ -1529,7 +1529,6 @@ static void sb_sfesf_threads_run(struct Depsgraph *depsgraph,
   }
 
   sb_threads = MEM_callocN(sizeof(SB_thread_context) * totthread, "SBSpringsThread");
-  memset(sb_threads, 0, sizeof(SB_thread_context) * totthread);
   left = totsprings;
   dec = totsprings / totthread + 1;
   for (i = 0; i < totthread; i++) {
@@ -2208,7 +2207,6 @@ static void sb_cf_threads_run(Scene *scene,
   // printf("sb_cf_threads_run spawning %d threads\n", totthread);
 
   sb_threads = MEM_callocN(sizeof(SB_thread_context) * totthread, "SBThread");
-  memset(sb_threads, 0, sizeof(SB_thread_context) * totthread);
   left = totpoint;
   dec = totpoint / totthread + 1;
   for (i = 0; i < totthread; i++) {
