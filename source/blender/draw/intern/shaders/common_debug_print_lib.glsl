@@ -386,3 +386,13 @@ void drw_print_value(bvec4 value)
 {
   drw_print_no_endl("bvec4(", value[0], ", ", value[1], ", ", value[2], ", ", value[3], ")");
 }
+
+void drw_print_value(mat4 value)
+{
+  drw_print("mat4x4(");
+  drw_print("  ", value[0]);
+  drw_print("  ", value[1]);
+  drw_print("  ", value[2]);
+  drw_print("  ", value[3]);
+  drw_print(")");
+}
