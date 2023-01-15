@@ -20,6 +20,7 @@ struct PlyData {
   Vector<std::pair<int, int>> edges;
   Vector<float3> edge_colors;
   Vector<Vector<uint32_t>> faces;
+  Vector<float2> uvmap;
 };
 
 enum PlyFormatType { ASCII, BINARY_LE, BINARY_BE };

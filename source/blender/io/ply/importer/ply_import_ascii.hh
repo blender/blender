@@ -25,6 +25,7 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header);
 int3 get_vertex_pos(PlyHeader *header);
 int3 get_color_pos(PlyHeader *header);
 int3 get_normal_pos(PlyHeader *header);
+int2 get_uv_pos(PlyHeader *header);
 int get_index(PlyHeader *header, std::string property, PlyDataTypes datatype);
 std::vector<std::string> explode(const std::string_view &str, const char &ch);
 }  // namespace blender::io::ply
