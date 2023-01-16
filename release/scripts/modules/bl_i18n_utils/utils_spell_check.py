@@ -542,6 +542,7 @@ class SpellChecker:
         "voronoi",
         "voxel", "voxels",
         "vsync",
+        "vulkan",
         "wireframe",
         "zmask",
         "ztransp",

@@ -843,7 +843,8 @@ void transform_convert_mesh_islands_calc(struct BMEditMesh *em,
     MEM_freeN(group_index);
   }
 
-  /* for PET we need islands of 1 so connected vertices can use it with V3D_AROUND_LOCAL_ORIGINS */
+  /* for proportional editing we need islands of 1 so connected vertices can use it with
+   * V3D_AROUND_LOCAL_ORIGINS */
   if (calc_single_islands) {
     BMIter viter;
     BMVert *v;
@@ -1484,7 +1485,8 @@ static void createTransEditVerts(bContext *UNUSED(C), TransInfo *t)
      * transform data is created by selected vertices.
      */
 
-    /* Support other objects using PET to adjust these, unless connected is enabled. */
+    /* Support other objects using proportional editing to adjust these, unless connected is
+     * enabled. */
     if ((!prop_mode || (prop_mode & T_PROP_CONNECTED)) && (bm->totvertsel == 0)) {
       continue;
     }
@@ -1893,7 +1895,7 @@ static void tc_mesh_partial_types_calc(TransInfo *t, struct PartialTypeState *r_
       partial_for_looptri = PARTIAL_TYPE_GROUP;
       partial_for_normals = PARTIAL_TYPE_GROUP;
       /* Translation can rotate when snapping to normal. */
-      if (activeSnap(t) && usingSnappingNormal(t) && validSnappingNormal(t)) {
+      if (transform_snap_is_active(t) && usingSnappingNormal(t) && validSnappingNormal(t)) {
         partial_for_normals = PARTIAL_TYPE_ALL;
       }
       break;
@@ -1924,7 +1926,7 @@ static void tc_mesh_partial_types_calc(TransInfo *t, struct PartialTypeState *r_
   }
 
   /* With projection, transform isn't affine. */
-  if (activeSnap_SnappingIndividual(t)) {
+  if (transform_snap_project_individual_is_active(t)) {
     if (partial_for_looptri == PARTIAL_TYPE_GROUP) {
       partial_for_looptri = PARTIAL_TYPE_ALL;
     }
@@ -2040,7 +2042,7 @@ static void recalcData_mesh(TransInfo *t)
   bool is_canceling = t->state == TRANS_CANCEL;
   /* Apply corrections. */
   if (!is_canceling) {
-    applySnappingIndividual(t);
+    transform_snap_project_individual_apply(t);
 
     bool do_mirror = !(t->flag & T_NO_MIRROR);
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -2137,8 +2139,8 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_Mesh = {
-    /* flags */ (T_EDIT | T_POINTS),
-    /* createTransData */ createTransEditVerts,
-    /* recalcData */ recalcData_mesh,
-    /* special_aftertrans_update */ special_aftertrans_update__mesh,
+    /*flags*/ (T_EDIT | T_POINTS),
+    /*createTransData*/ createTransEditVerts,
+    /*recalcData*/ recalcData_mesh,
+    /*special_aftertrans_update*/ special_aftertrans_update__mesh,
 };

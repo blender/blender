@@ -286,8 +286,10 @@ static void retrieve_curve_sizes(const bke::CurvesGeometry &curves, MutableSpan<
   });
 }
 
-static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &src_curves,
-                                                    const IndexMask selection)
+static bke::CurvesGeometry convert_curves_to_bezier(
+    const bke::CurvesGeometry &src_curves,
+    const IndexMask selection,
+    const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const VArray<int8_t> src_knot_modes = src_curves.nurbs_knots_modes();
   const VArray<int8_t> src_types = src_curves.curve_types();
@@ -315,6 +317,7 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
       src_attributes,
       dst_attributes,
       ATTR_DOMAIN_MASK_POINT,
+      propagation_info,
       {"position",
        "handle_type_left",
        "handle_type_right",
@@ -460,8 +463,10 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
   return dst_curves;
 }
 
-static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &src_curves,
-                                                   const IndexMask selection)
+static bke::CurvesGeometry convert_curves_to_nurbs(
+    const bke::CurvesGeometry &src_curves,
+    const IndexMask selection,
+    const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const VArray<int8_t> src_types = src_curves.curve_types();
   const VArray<bool> src_cyclic = src_curves.cyclic();
@@ -487,6 +492,7 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
       src_attributes,
       dst_attributes,
       ATTR_DOMAIN_MASK_POINT,
+      propagation_info,
       {"position",
        "handle_type_left",
        "handle_type_right",
@@ -639,16 +645,17 @@ static bke::CurvesGeometry convert_curves_trivial(const bke::CurvesGeometry &src
 
 bke::CurvesGeometry convert_curves(const bke::CurvesGeometry &src_curves,
                                    const IndexMask selection,
-                                   const CurveType dst_type)
+                                   const CurveType dst_type,
+                                   const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   switch (dst_type) {
     case CURVE_TYPE_CATMULL_ROM:
     case CURVE_TYPE_POLY:
       return convert_curves_trivial(src_curves, selection, dst_type);
     case CURVE_TYPE_BEZIER:
-      return convert_curves_to_bezier(src_curves, selection);
+      return convert_curves_to_bezier(src_curves, selection, propagation_info);
     case CURVE_TYPE_NURBS:
-      return convert_curves_to_nurbs(src_curves, selection);
+      return convert_curves_to_nurbs(src_curves, selection, propagation_info);
   }
   BLI_assert_unreachable();
   return {};

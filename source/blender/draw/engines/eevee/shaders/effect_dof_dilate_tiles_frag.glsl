@@ -6,22 +6,10 @@
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 
-/* 1/16th of fullres. */
-uniform sampler2D cocTilesFgBuffer;
-uniform sampler2D cocTilesBgBuffer;
-
-uniform int ringCount;
-uniform int ringWidthMultiplier;
-uniform bool dilateSlightFocus;
-
-/* 1/16th of fullres. Same format as input. */
-layout(location = 0) out vec4 outFgCoc;
-layout(location = 1) out vec3 outBgCoc;
-
-const float tile_to_fullres_factor = float(DOF_TILE_DIVISOR);
+#define tile_to_fullres_factor float(DOF_TILE_DIVISOR)
 
 /* Error introduced by the random offset of the gathering kernel's center. */
-const float bluring_radius_error = 1.0 + 1.0 / (gather_ring_count + 0.5);
+#define bluring_radius_error (1.0 + 1.0 / (gather_ring_count + 0.5))
 
 void main()
 {

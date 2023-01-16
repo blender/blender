@@ -67,30 +67,30 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
   if (mirror_u || mirror_v) {
     BMFace *f;
     BMLoop *l;
-    MLoopUV *luv;
-    const int totlayer = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
+    float *luv;
+    const int totlayer = CustomData_number_of_layers(&bm->ldata, CD_PROP_FLOAT2);
     BMIter liter;
 
     BMO_ITER (f, &siter, dupeop.slots_out, "geom.out", BM_FACE) {
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
         for (i = 0; i < totlayer; i++) {
-          luv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
+          luv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_PROP_FLOAT2, i);
           if (mirror_u) {
-            float uv_u = luv->uv[0];
+            float uv_u = luv[0];
             if (mirror_udim) {
-              luv->uv[0] = ceilf(uv_u) - fmodf(uv_u, 1.0f);
+              luv[0] = ceilf(uv_u) - fmodf(uv_u, 1.0f);
             }
             else {
-              luv->uv[0] = 1.0f - uv_u;
+              luv[0] = 1.0f - uv_u;
             }
           }
           if (mirror_v) {
-            float uv_v = luv->uv[1];
+            float uv_v = luv[1];
             if (mirror_udim) {
-              luv->uv[1] = ceilf(uv_v) - fmodf(uv_v, 1.0f);
+              luv[1] = ceilf(uv_v) - fmodf(uv_v, 1.0f);
             }
             else {
-              luv->uv[1] = 1.0f - uv_v;
+              luv[1] = 1.0f - uv_v;
             }
           }
         }

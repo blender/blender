@@ -54,7 +54,7 @@ struct CuboidConfig {
   }
 };
 
-static void calculate_verts(const CuboidConfig &config, MutableSpan<MVert> verts)
+static void calculate_positions(const CuboidConfig &config, MutableSpan<float3> positions)
 {
   const float z_bottom = -config.size.z / 2.0f;
   const float z_delta = config.size.z / config.edges_z;
@@ -75,7 +75,7 @@ static void calculate_verts(const CuboidConfig &config, MutableSpan<MVert> verts
         const float y_pos = y_front + y_delta * y;
         for (const int x : IndexRange(config.verts_x)) {
           const float x_pos = x_left + x_delta * x;
-          copy_v3_v3(verts[vert_index++].co, float3(x_pos, y_pos, z_pos));
+          copy_v3_v3(positions[vert_index++], float3(x_pos, y_pos, z_pos));
         }
       }
     }
@@ -87,7 +87,7 @@ static void calculate_verts(const CuboidConfig &config, MutableSpan<MVert> verts
           const float z_pos = z_bottom + z_delta * z;
           for (const int x : IndexRange(config.verts_x)) {
             const float x_pos = x_left + x_delta * x;
-            copy_v3_v3(verts[vert_index++].co, float3(x_pos, y_pos, z_pos));
+            copy_v3_v3(positions[vert_index++], float3(x_pos, y_pos, z_pos));
           }
         }
         else {
@@ -95,9 +95,9 @@ static void calculate_verts(const CuboidConfig &config, MutableSpan<MVert> verts
           const float x_pos = x_left;
           const float y_pos = y_front + y_delta * y;
           const float z_pos = z_bottom + z_delta * z;
-          copy_v3_v3(verts[vert_index++].co, float3(x_pos, y_pos, z_pos));
+          copy_v3_v3(positions[vert_index++], float3(x_pos, y_pos, z_pos));
           const float x_pos2 = x_left + x_delta * config.edges_x;
-          copy_v3_v3(verts[vert_index++].co, float3(x_pos2, y_pos, z_pos));
+          copy_v3_v3(positions[vert_index++], float3(x_pos2, y_pos, z_pos));
         }
       }
     }
@@ -405,11 +405,11 @@ Mesh *create_cuboid_mesh(const float3 &size,
 
   Mesh *mesh = BKE_mesh_new_nomain(
       config.vertex_count, 0, 0, config.loop_count, config.poly_count);
-  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
 
-  calculate_verts(config, verts);
+  calculate_positions(config, positions);
 
   calculate_polys(config, polys, loops);
   BKE_mesh_calc_edges(mesh, false, false);

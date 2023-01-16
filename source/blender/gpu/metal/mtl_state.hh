@@ -80,6 +80,8 @@ class MTLStateManager : public StateManager {
   void mtl_depth_range(float near, float far);
   void mtl_stencil_mask(uint mask);
   void mtl_stencil_set_func(eGPUStencilTest stencil_func, int ref, uint mask);
+  void mtl_clip_plane_enable(uint i);
+  void mtl_clip_plane_disable(uint i);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLStateManager")
 };

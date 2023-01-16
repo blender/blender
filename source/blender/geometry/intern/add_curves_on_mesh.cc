@@ -246,7 +246,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   Vector<float2> used_uvs;
 
   /* Find faces that the passed in uvs belong to. */
-  const Span<MVert> surface_verts = inputs.surface->verts();
+  const Span<float3> surface_positions = inputs.surface->vert_positions();
   const Span<MLoop> surface_loops = inputs.surface->loops();
   for (const int i : inputs.uvs.index_range()) {
     const float2 &uv = inputs.uvs[i];
@@ -260,9 +260,9 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
     looptris.append(&looptri);
     const float3 root_position_su = attribute_math::mix3<float3>(
         result.bary_weights,
-        surface_verts[surface_loops[looptri.tri[0]].v].co,
-        surface_verts[surface_loops[looptri.tri[1]].v].co,
-        surface_verts[surface_loops[looptri.tri[2]].v].co);
+        surface_positions[surface_loops[looptri.tri[0]].v],
+        surface_positions[surface_loops[looptri.tri[1]].v],
+        surface_positions[surface_loops[looptri.tri[2]].v]);
     root_positions_cu.append(inputs.transforms->surface_to_curves * root_position_su);
     used_uvs.append(uv);
   }
@@ -303,6 +303,10 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   curves.resize(new_points_num, new_curves_num);
   MutableSpan<float3> positions_cu = curves.positions_for_write();
 
+  /* The new elements are added at the end of the arrays. */
+  outputs.new_points_range = curves.points_range().drop_front(old_points_num);
+  outputs.new_curves_range = curves.curves_range().drop_front(old_curves_num);
+
   /* Initialize attachment information. */
   MutableSpan<float2> surface_uv_coords = curves.surface_uv_coords_for_write();
   surface_uv_coords.take_back(added_curves_num).copy_from(used_uvs);
@@ -338,18 +342,6 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
     }
   });
 
-  /* Update selection arrays when available. */
-  const VArray<float> points_selection = curves.selection_point_float();
-  if (points_selection.is_span()) {
-    MutableSpan<float> points_selection_span = curves.selection_point_float_for_write();
-    points_selection_span.drop_front(old_points_num).fill(1.0f);
-  }
-  const VArray<float> curves_selection = curves.selection_curve_float();
-  if (curves_selection.is_span()) {
-    MutableSpan<float> curves_selection_span = curves.selection_curve_float_for_write();
-    curves_selection_span.slice(new_curves_range).fill(1.0f);
-  }
-
   /* Initialize position attribute. */
   if (inputs.interpolate_shape) {
     interpolate_position_with_interpolation(curves,
@@ -374,24 +366,20 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   curves.fill_curve_types(new_curves_range, CURVE_TYPE_CATMULL_ROM);
 
-  /* Explicitly set all other attributes besides those processed above to default values. */
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  Set<std::string> attributes_to_skip{{"position",
-                                       "curve_type",
-                                       "surface_uv_coordinate",
-                                       ".selection_point_float",
-                                       ".selection_curve_float"}};
+
+  /* Explicitly set all other attributes besides those processed above to default values. */
+  Set<std::string> attributes_to_skip{{"position", "curve_type", "surface_uv_coordinate"}};
   attributes.for_all(
       [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
-        if (id.is_named() && attributes_to_skip.contains(id.name())) {
+        if (attributes_to_skip.contains(id.name())) {
           return true;
         }
         bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
-        /* The new elements are added at the end of the array. */
-        const int old_elements_num = attribute.domain == ATTR_DOMAIN_POINT ? old_points_num :
-                                                                             old_curves_num;
         const CPPType &type = attribute.span.type();
-        GMutableSpan new_data = attribute.span.drop_front(old_elements_num);
+        GMutableSpan new_data = attribute.span.slice(attribute.domain == ATTR_DOMAIN_POINT ?
+                                                         outputs.new_points_range :
+                                                         outputs.new_curves_range);
         type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
         attribute.finish();
         return true;

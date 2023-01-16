@@ -7,7 +7,7 @@
 
 #include "NOD_texture.h"
 #include "node_texture_util.hh"
-#include <math.h>
+#include <cmath>
 
 static bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color1"), 1.0f, 0.0f, 0.0f, 1.0f},
@@ -20,7 +20,7 @@ static bNodeSocketTemplate outputs[] = {
     {-1, ""},
 };
 
-static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
+static void colorfn(float *out, TexParams *p, bNode * /*node*/, bNodeStack **in, short thread)
 {
   float x = p->co[0];
   float y = p->co[1];
@@ -28,9 +28,9 @@ static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **
   float sz = tex_input_value(in[2], p, thread);
 
   /* 0.00001  because of unit sized stuff */
-  int xi = (int)fabs(floor(0.00001f + x / sz));
-  int yi = (int)fabs(floor(0.00001f + y / sz));
-  int zi = (int)fabs(floor(0.00001f + z / sz));
+  int xi = int(fabs(floor(0.00001f + x / sz)));
+  int yi = int(fabs(floor(0.00001f + y / sz)));
+  int zi = int(fabs(floor(0.00001f + z / sz)));
 
   if ((xi % 2 == yi % 2) == (zi % 2)) {
     tex_input_rgba(out, in[0], p, thread);
@@ -41,7 +41,7 @@ static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **
 }
 
 static void exec(void *data,
-                 int UNUSED(thread),
+                 int /*thread*/,
                  bNode *node,
                  bNodeExecData *execdata,
                  bNodeStack **in,
@@ -50,7 +50,7 @@ static void exec(void *data,
   tex_output(node, execdata, in, out[0], &colorfn, static_cast<TexCallData *>(data));
 }
 
-void register_node_type_tex_checker(void)
+void register_node_type_tex_checker()
 {
   static bNodeType ntype;
 

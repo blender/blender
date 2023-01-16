@@ -38,7 +38,7 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveTrim)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curves")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_output<decl::Geometry>(N_("Curves"));
+  b.add_output<decl::Geometry>(N_("Curves")).propagate_all();
 }
 
 static void deform_curves(const CurvesGeometry &curves,
@@ -66,11 +66,11 @@ static void deform_curves(const CurvesGeometry &curves,
 
   const float4x4 curves_to_surface = surface_to_curves.inverted();
 
-  const Span<MVert> surface_verts_old = surface_mesh_old.verts();
+  const Span<float3> surface_positions_old = surface_mesh_old.vert_positions();
   const Span<MLoop> surface_loops_old = surface_mesh_old.loops();
   const Span<MLoopTri> surface_looptris_old = surface_mesh_old.looptris();
 
-  const Span<MVert> surface_verts_new = surface_mesh_new.verts();
+  const Span<float3> surface_positions_new = surface_mesh_new.vert_positions();
   const Span<MLoop> surface_loops_new = surface_mesh_new.loops();
   const Span<MLoopTri> surface_looptris_new = surface_mesh_new.looptris();
 
@@ -120,14 +120,14 @@ static void deform_curves(const CurvesGeometry &curves,
       const float3 normal_new = math::normalize(
           mix3(bary_weights_new, normal_0_new, normal_1_new, normal_2_new));
 
-      const float3 &pos_0_old = surface_verts_old[vert_0_old].co;
-      const float3 &pos_1_old = surface_verts_old[vert_1_old].co;
-      const float3 &pos_2_old = surface_verts_old[vert_2_old].co;
+      const float3 &pos_0_old = surface_positions_old[vert_0_old];
+      const float3 &pos_1_old = surface_positions_old[vert_1_old];
+      const float3 &pos_2_old = surface_positions_old[vert_2_old];
       const float3 pos_old = mix3(bary_weights_old, pos_0_old, pos_1_old, pos_2_old);
 
-      const float3 &pos_0_new = surface_verts_new[vert_0_new].co;
-      const float3 &pos_1_new = surface_verts_new[vert_1_new].co;
-      const float3 &pos_2_new = surface_verts_new[vert_2_new].co;
+      const float3 &pos_0_new = surface_positions_new[vert_0_new];
+      const float3 &pos_1_new = surface_positions_new[vert_1_new];
+      const float3 &pos_2_new = surface_positions_new[vert_2_new];
       const float3 pos_new = mix3(bary_weights_new, pos_0_new, pos_1_new, pos_2_new);
 
       /* The translation is just the difference between the old and new position on the surface. */

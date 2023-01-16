@@ -124,7 +124,7 @@ template<typename ImageBuffer> class PaintingKernel {
   SculptSession *ss;
   const Brush *brush;
   const int thread_id;
-  const MVert *mvert;
+  const float3 *vert_positions_;
 
   float4 brush_color;
   float brush_strength;
@@ -139,8 +139,11 @@ template<typename ImageBuffer> class PaintingKernel {
   explicit PaintingKernel(SculptSession *ss,
                           const Brush *brush,
                           const int thread_id,
-                          const MVert *mvert)
-      : ss(ss), brush(brush), thread_id(thread_id), mvert(mvert)
+                          const float (*positions)[3])
+      : ss(ss),
+        brush(brush),
+        thread_id(thread_id),
+        vert_positions_(reinterpret_cast<const float3 *>(positions))
   {
     init_brush_strength();
     init_brush_test();
@@ -268,9 +271,9 @@ template<typename ImageBuffer> class PaintingKernel {
                              barycentric_weights.y,
                              1.0f - barycentric_weights.x - barycentric_weights.y);
     interp_v3_v3v3v3(result,
-                     mvert[vert_indices[0]].co,
-                     mvert[vert_indices[1]].co,
-                     mvert[vert_indices[2]].co,
+                     vert_positions_[vert_indices[0]],
+                     vert_positions_[vert_indices[1]],
+                     vert_positions_[vert_indices[2]],
                      barycentric);
     return result;
   }
@@ -279,7 +282,7 @@ template<typename ImageBuffer> class PaintingKernel {
 static std::vector<bool> init_uv_primitives_brush_test(SculptSession *ss,
                                                        PaintGeometryPrimitives &geom_primitives,
                                                        PaintUVPrimitives &uv_primitives,
-                                                       const MVert *mvert)
+                                                       const float (*positions)[3])
 {
   std::vector<bool> brush_test(uv_primitives.size());
   SculptBrushTest test;
@@ -295,10 +298,10 @@ static std::vector<bool> init_uv_primitives_brush_test(SculptSession *ss,
     const int3 &vert_indices = geom_primitives.get_vert_indices(
         paint_input.geometry_primitive_index);
 
-    float3 triangle_min_bounds(mvert[vert_indices[0]].co);
+    float3 triangle_min_bounds(positions[vert_indices[0]]);
     float3 triangle_max_bounds(triangle_min_bounds);
     for (int i = 1; i < 3; i++) {
-      const float3 &pos = mvert[vert_indices[i]].co;
+      const float3 &pos = positions[vert_indices[i]];
       triangle_min_bounds.x = min_ff(triangle_min_bounds.x, pos.x);
       triangle_min_bounds.y = min_ff(triangle_min_bounds.y, pos.y);
       triangle_min_bounds.z = min_ff(triangle_min_bounds.z, pos.z);
@@ -325,13 +328,13 @@ static void do_paint_pixels(void *__restrict userdata,
   PBVHData &pbvh_data = BKE_pbvh_pixels_data_get(*pbvh);
   NodeData &node_data = BKE_pbvh_pixels_node_data_get(*node);
   const int thread_id = BLI_task_parallel_thread_id(tls);
-  MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+  const float(*positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
 
   std::vector<bool> brush_test = init_uv_primitives_brush_test(
-      ss, pbvh_data.geom_primitives, node_data.uv_primitives, mvert);
+      ss, pbvh_data.geom_primitives, node_data.uv_primitives, positions);
 
-  PaintingKernel<ImageBufferFloat4> kernel_float4(ss, brush, thread_id, mvert);
-  PaintingKernel<ImageBufferByte4> kernel_byte4(ss, brush, thread_id, mvert);
+  PaintingKernel<ImageBufferFloat4> kernel_float4(ss, brush, thread_id, positions);
+  PaintingKernel<ImageBufferByte4> kernel_byte4(ss, brush, thread_id, positions);
 
   AutomaskingNodeData automask_data;
   SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);

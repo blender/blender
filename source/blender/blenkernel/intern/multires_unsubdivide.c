@@ -938,7 +938,8 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
       bm_original_mesh, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
 
   /* Get the mapping data-layer. */
-  context->base_to_orig_vmap = CustomData_get_layer_named(&base_mesh->vdata, CD_PROP_INT32, vname);
+  context->base_to_orig_vmap = CustomData_get_layer_named_for_write(
+      &base_mesh->vdata, CD_PROP_INT32, vname, base_mesh->totvert);
 
   /* Tag the base mesh vertices in the original mesh. */
   for (int i = 0; i < base_mesh->totvert; i++) {
@@ -1001,7 +1002,8 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   int *orig_to_base_vmap = MEM_calloc_arrayN(bm_original_mesh->totvert, sizeof(int), "orig vmap");
   int *base_to_orig_vmap = MEM_calloc_arrayN(base_mesh->totvert, sizeof(int), "base vmap");
 
-  context->base_to_orig_vmap = CustomData_get_layer_named(&base_mesh->vdata, CD_PROP_INT32, vname);
+  context->base_to_orig_vmap = CustomData_get_layer_named_for_write(
+      &base_mesh->vdata, CD_PROP_INT32, vname, base_mesh->totvert);
   for (int i = 0; i < base_mesh->totvert; i++) {
     base_to_orig_vmap[i] = context->base_to_orig_vmap[i];
   }

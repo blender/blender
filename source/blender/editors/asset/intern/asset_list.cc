@@ -17,7 +17,6 @@
 #include "BKE_context.h"
 
 #include "BLI_map.hh"
-#include "BLI_path_util.h"
 #include "BLI_utility_mixins.hh"
 
 #include "DNA_space_types.h"
@@ -114,6 +113,7 @@ class AssetList : NonCopyable {
   void clear(bContext *C);
 
   bool needsRefetch() const;
+  bool isLoaded() const;
   asset_system::AssetLibrary *asset_library() const;
   void iterate(AssetListIterFn fn) const;
   bool listen(const wmNotifier &notifier) const;
@@ -179,6 +179,11 @@ void AssetList::fetch(const bContext &C)
 bool AssetList::needsRefetch() const
 {
   return filelist_needs_force_reset(filelist_) || filelist_needs_reading(filelist_);
+}
+
+bool AssetList::isLoaded() const
+{
+  return filelist_is_ready(filelist_);
 }
 
 asset_system::AssetLibrary *AssetList::asset_library() const
@@ -422,7 +427,7 @@ bool ED_assetlist_is_loaded(const AssetLibraryReference *library_reference)
   if (list->needsRefetch()) {
     return false;
   }
-  return true;
+  return list->isLoaded();
 }
 
 void ED_assetlist_ensure_previews_job(const AssetLibraryReference *library_reference,
@@ -456,7 +461,7 @@ void ED_assetlist_iterate(const AssetLibraryReference &library_reference, AssetL
   }
 }
 
-asset_system::AssetLibrary *ED_assetlist_library_get(
+asset_system::AssetLibrary *ED_assetlist_library_get_once_available(
     const AssetLibraryReference &library_reference)
 {
   const AssetList *list = AssetListStorage::lookup_list(library_reference);

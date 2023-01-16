@@ -798,18 +798,27 @@ typedef enum eRNAOverrideMatch {
 
   /** Create new property override if needed and possible. */
   RNA_OVERRIDE_COMPARE_CREATE = 1 << 16,
-  /** Restore property's value(s) to reference ones if needed and possible. */
+  /** Restore property's value(s) to reference ones, if needed and possible. */
   RNA_OVERRIDE_COMPARE_RESTORE = 1 << 17,
+  /** Tag for restoration of property's value(s) to reference ones, if needed and possible. */
+  RNA_OVERRIDE_COMPARE_TAG_FOR_RESTORE = 1 << 18,
 } eRNAOverrideMatch;
 
 typedef enum eRNAOverrideMatchResult {
+  RNA_OVERRIDE_MATCH_RESULT_INIT = 0,
+
   /**
    * Some new property overrides were created to take into account
    * differences between local and reference.
    */
   RNA_OVERRIDE_MATCH_RESULT_CREATED = 1 << 0,
+  /**
+   * Some properties are illegally different from their reference values and have been tagged for
+   * restoration.
+   */
+  RNA_OVERRIDE_MATCH_RESULT_RESTORE_TAGGED = 1 << 1,
   /** Some properties were reset to reference values. */
-  RNA_OVERRIDE_MATCH_RESULT_RESTORED = 1 << 1,
+  RNA_OVERRIDE_MATCH_RESULT_RESTORED = 1 << 2,
 } eRNAOverrideMatchResult;
 
 typedef enum eRNAOverrideStatus {
@@ -859,6 +868,12 @@ typedef enum eRNAOverrideApplyFlag {
    * pointers properties, unless the destination original value (the one being overridden) is NULL.
    */
   RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS = 1 << 0,
+
+  /** Do not check for liboverrides needing resync with their linked reference data. */
+  RNA_OVERRIDE_APPLY_FLAG_SKIP_RESYNC_CHECK = 1 << 1,
+
+  /** Only perform restore operations. */
+  RNA_OVERRIDE_APPLY_FLAG_RESTORE_ONLY = 1 << 2,
 } eRNAOverrideApplyFlag;
 
 /**

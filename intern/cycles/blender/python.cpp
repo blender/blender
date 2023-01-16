@@ -754,7 +754,7 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
   RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyscene), &sceneptr);
   BL::Scene b_scene(sceneptr);
 
-  DeviceInfo device = blender_device_info(b_preferences, b_scene, true);
+  DeviceInfo device = blender_device_info(b_preferences, b_scene, true, true);
 
   /* Get denoising parameters from view layer. */
   PointerRNA viewlayerptr;

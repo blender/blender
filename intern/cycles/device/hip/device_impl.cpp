@@ -909,6 +909,9 @@ void HIPDevice::tex_alloc(device_texture &mem)
        * because it's unsupported in HIP. */
       address_mode = hipAddressModeClamp;
       break;
+    case EXTENSION_MIRROR:
+      address_mode = hipAddressModeMirror;
+      break;
     default:
       assert(0);
       break;

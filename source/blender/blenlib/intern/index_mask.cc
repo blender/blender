@@ -5,16 +5,6 @@
 
 namespace blender {
 
-IndexMask IndexMask::slice(int64_t start, int64_t size) const
-{
-  return this->slice(IndexRange(start, size));
-}
-
-IndexMask IndexMask::slice(IndexRange slice) const
-{
-  return IndexMask(indices_.slice(slice));
-}
-
 IndexMask IndexMask::slice_safe(int64_t start, int64_t size) const
 {
   return this->slice_safe(IndexRange(start, size));

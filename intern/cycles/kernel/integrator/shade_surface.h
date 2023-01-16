@@ -147,10 +147,11 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   {
     const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
     const uint bounce = INTEGRATOR_STATE(state, path, bounce);
-    const float2 rand_light = path_state_rng_2D(kg, rng_state, PRNG_LIGHT);
+    const float3 rand_light = path_state_rng_3D(kg, rng_state, PRNG_LIGHT);
 
     if (!light_sample_from_position(kg,
                                     rng_state,
+                                    rand_light.z,
                                     rand_light.x,
                                     rand_light.y,
                                     sd->time,
@@ -501,8 +502,15 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
                                                      rng_state,
                                                  ccl_global float *ccl_restrict render_buffer)
 {
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+
   if (!(kernel_data.kernel_features & KERNEL_FEATURE_AO_ADDITIVE) &&
-      !(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_CAMERA)) {
+      !(path_flag & PATH_RAY_CAMERA)) {
+    return;
+  }
+
+  /* Skip AO for paths that were split off for shadow catchers to avoid double-counting. */
+  if (path_flag & PATH_RAY_SHADOW_CATCHER_PASS) {
     return;
   }
 

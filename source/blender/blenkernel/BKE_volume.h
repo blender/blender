@@ -160,7 +160,7 @@ bool BKE_volume_save(const struct Volume *volume,
 
 #ifdef __cplusplus
 #  include "BLI_float4x4.hh"
-#  include "BLI_math_vec_types.hh"
+#  include "BLI_math_vector_types.hh"
 #  include "BLI_string_ref.hh"
 
 bool BKE_volume_min_max(const Volume *volume, blender::float3 &r_min, blender::float3 &r_max);

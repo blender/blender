@@ -111,6 +111,10 @@ static void idp_repr_fn_recursive(struct ReprState *state, const IDProperty *pro
       STR_APPEND_FMT("%g", IDP_Double(prop));
       break;
     }
+    case IDP_BOOLEAN: {
+      STR_APPEND_FMT("%s", IDP_Bool(prop) ? "True" : "False");
+      break;
+    }
     case IDP_ARRAY: {
       STR_APPEND_STR("[");
       switch (prop->subtype) {
@@ -136,6 +140,14 @@ static void idp_repr_fn_recursive(struct ReprState *state, const IDProperty *pro
               STR_APPEND_STR(", ");
             }
             STR_APPEND_FMT("%g", *v);
+          }
+          break;
+        case IDP_BOOLEAN:
+          for (const double *v = prop->data.pointer, *v_end = v + prop->len; v != v_end; v++) {
+            if (v != prop->data.pointer) {
+              STR_APPEND_STR(", ");
+            }
+            STR_APPEND_FMT("%s", IDP_Bool(prop) ? "True" : "False");
           }
           break;
       }

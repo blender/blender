@@ -12,7 +12,7 @@ class DataButtonsPanel:
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        return hasattr(context, 'curves') and context.curves and (engine in cls.COMPAT_ENGINES)
+        return hasattr(context, "curves") and context.curves and (engine in cls.COMPAT_ENGINES)
 
 
 class DATA_PT_context_curves(DataButtonsPanel, Panel):
@@ -73,8 +73,8 @@ class CURVES_MT_add_attribute(Menu):
         layout = self.layout
         curves = context.curves
 
-        self.add_standard_attribute(layout, curves, 'radius', 'FLOAT', 'POINT')
-        self.add_standard_attribute(layout, curves, 'color', 'FLOAT_COLOR', 'POINT')
+        self.add_standard_attribute(layout, curves, "radius", 'FLOAT', 'POINT')
+        self.add_standard_attribute(layout, curves, "color", 'FLOAT_COLOR', 'POINT')
 
         layout.separator()
 
@@ -102,8 +102,8 @@ class CURVES_UL_attributes(UIList):
         return flags, indices
 
     def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
-        data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
-        domain = attribute.bl_rna.properties['domain'].enum_items[attribute.domain]
+        data_type = attribute.bl_rna.properties["data_type"].enum_items[attribute.data_type]
+        domain = attribute.bl_rna.properties["domain"].enum_items[attribute.domain]
 
         split = layout.split(factor=0.5)
         split.emboss = 'NONE'

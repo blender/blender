@@ -47,6 +47,13 @@
 #include "MOD_gpencil_modifiertypes.h"
 #include "MOD_gpencil_ui_common.h"
 
+/* Two hard-coded values for GP_BUILD_MODE_ADDITIVE with GP_BUILD_TIMEMODE_DRAWSPEED. */
+
+/* The minimum time gap we should worry about points with no time. */
+#define GP_BUILD_CORRECTGAP 0.001
+/* The time for geometric strokes */
+#define GP_BUILD_TIME_GEOSTROKES 1.0
+
 static void initData(GpencilModifierData *md)
 {
   BuildGpencilModifierData *gpmd = (BuildGpencilModifierData *)md;
@@ -252,28 +259,32 @@ static int cmp_stroke_build_details(const void *ps1, const void *ps2)
   return p1->distance > p2->distance ? 1 : (p1->distance == p2->distance ? 0 : -1);
 }
 
-/* Sequential and additive - Show strokes one after the other. */
+/* Sequential - Show strokes one after the other (includes additive mode). */
 static void build_sequential(Object *ob,
                              BuildGpencilModifierData *mmd,
+                             Depsgraph *depsgraph,
                              bGPdata *gpd,
                              bGPDframe *gpf,
-                             const int target_def_nr,
+                             int target_def_nr,
                              float fac,
-                             bool additive)
+                             const float *ctime)
 {
+  /* Total number of strokes in this run. */
   size_t tot_strokes = BLI_listbase_count(&gpf->strokes);
-  size_t start_stroke;
+  /* First stroke to build. */
+  size_t start_stroke = 0;
+  /* Pointer to current stroke. */
   bGPDstroke *gps;
+  /* Recycled counter. */
   size_t i;
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
+  /* Frame-rate of scene. */
+  const float fps = (((float)scene->r.frs_sec) / scene->r.frs_sec_base);
 
-  /* 1) Determine which strokes to start with & total strokes to build. */
-
-  if (additive) {
+  /* 1) Determine which strokes to start with (& adapt total number of strokes to build). */
+  if (mmd->mode == GP_BUILD_MODE_ADDITIVE) {
     if (gpf->prev) {
-      start_stroke = BLI_listbase_count(&gpf->prev->strokes);
-    }
-    else {
-      start_stroke = 0;
+      start_stroke = BLI_listbase_count(&gpf->runtime.gpf_orig->prev->strokes);
     }
     if (start_stroke <= tot_strokes) {
       tot_strokes = tot_strokes - start_stroke;
@@ -282,23 +293,24 @@ static void build_sequential(Object *ob,
       start_stroke = 0;
     }
   }
-  else {
-    start_stroke = 0;
-  }
 
-  /* 2) Compute proportion of time each stroke should occupy */
+  /* 2) Compute proportion of time each stroke should occupy. */
   /* NOTE: This assumes that the total number of points won't overflow! */
   tStrokeBuildDetails *table = MEM_callocN(sizeof(tStrokeBuildDetails) * tot_strokes, __func__);
-  size_t totpoints = 0;
+  /* Pointer to cache table of times for each point. */
+  float *idx_times;
+  /* Running overall time sum incrementing per point. */
+  float sumtime = 0;
+  /* Running overall point sum. */
+  size_t sumpoints = 0;
 
-  /* 2.1) First pass - Tally up points */
+  /* 2.1) Pass to initially tally up points. */
   for (gps = BLI_findlink(&gpf->strokes, start_stroke), i = 0; gps; gps = gps->next, i++) {
     tStrokeBuildDetails *cell = &table[i];
 
     cell->gps = gps;
     cell->totpoints = gps->totpoints;
-
-    totpoints += cell->totpoints;
+    sumpoints += cell->totpoints;
 
     /* Compute distance to control object if set, and build according to that order. */
     if (mmd->object) {
@@ -321,7 +333,104 @@ static void build_sequential(Object *ob,
     qsort(table, tot_strokes, sizeof(tStrokeBuildDetails), cmp_stroke_build_details);
   }
 
-  /* 2.2) Second pass - Compute the overall indices for points */
+  /* 2.2) If GP_BUILD_TIMEMODE_DRAWSPEED: Tally up point timestamps & delays to idx_times. */
+  if (mmd->time_mode == GP_BUILD_TIMEMODE_DRAWSPEED) {
+    idx_times = MEM_callocN(sizeof(float) * sumpoints, __func__);
+    /* Maximum time gap between strokes in seconds. */
+    const float GP_BUILD_MAXGAP = mmd->speed_maxgap;
+    /* Running reference to overall current point. */
+    size_t curpoint = 0;
+    /* Running timestamp of last point that had data. */
+    float last_pointtime = 0;
+
+    for (i = 0; i < tot_strokes; i++) {
+      tStrokeBuildDetails *cell = &table[i];
+      /* Adding delay between strokes to sumtime. */
+      if (mmd->object == NULL) {
+        /* Normal case: Delay to last stroke. */
+        if (i != 0 && 0 < cell->gps->inittime && 0 < (cell - 1)->gps->inittime) {
+          float curgps_delay = fabs(cell->gps->inittime - (cell - 1)->gps->inittime) -
+                               last_pointtime;
+          if (0 < curgps_delay) {
+            sumtime += MIN2(curgps_delay, GP_BUILD_MAXGAP);
+          }
+        }
+      }
+
+      /* Going through the points of the current stroke
+       * and filling in "zeropoints" where "time" = 0. */
+
+      /* Count of consecutive points where "time" is 0. */
+      int zeropoints = 0;
+      for (int j = 0; j < cell->totpoints; j++) {
+        /* Defining time for first point in stroke. */
+        if (j == 0) {
+          idx_times[curpoint] = sumtime;
+          last_pointtime = cell->gps->points[0].time;
+        }
+        /* Entering subsequent points */
+        else {
+          if (cell->gps->points[j].time <= 0) {
+            idx_times[curpoint] = sumtime;
+            zeropoints++;
+          }
+          /* From here current point has time data */
+          else {
+            float deltatime = fabs(cell->gps->points[j].time - last_pointtime);
+            /* Do we need to sanitize previous points? */
+            if (0 < zeropoints) {
+              /* Only correct if time-gap bigger than #GP_BUILD_CORRECTGAP. */
+              if (GP_BUILD_CORRECTGAP < deltatime) {
+                /* Cycling backwards through zero-points to fix them. */
+                for (int k = 0; k < zeropoints; k++) {
+                  float linear_fill = interpf(
+                      deltatime, 0, ((float)k + 1) / (zeropoints + 1)); /* Factor = Proportion. */
+                  idx_times[curpoint - k - 1] = sumtime + linear_fill;
+                }
+              }
+              else {
+                zeropoints = 0;
+              }
+            }
+
+            /* Normal behavior with time data. */
+            idx_times[curpoint] = sumtime + deltatime;
+            sumtime = idx_times[curpoint];
+            last_pointtime = cell->gps->points[j].time;
+            zeropoints = 0;
+          }
+        }
+        curpoint += 1;
+      }
+
+      /* If stroke had no time data at all, use mmd->time_geostrokes. */
+      if (zeropoints + 1 == cell->totpoints) {
+        for (int j = 0; j < cell->totpoints; j++) {
+          idx_times[(int)curpoint - j - 1] = (float)(cell->totpoints - j) *
+                                                 GP_BUILD_TIME_GEOSTROKES /
+                                                 (float)cell->totpoints +
+                                             sumtime;
+        }
+        last_pointtime = GP_BUILD_TIME_GEOSTROKES;
+        sumtime += GP_BUILD_TIME_GEOSTROKES;
+      }
+    }
+
+    float gp_build_speedfactor = mmd->speed_fac;
+    /* If current frame can't be built before next frame, adjust gp_build_speedfactor. */
+    if (gpf->next &&
+        (gpf->framenum + sumtime * fps / gp_build_speedfactor) > gpf->next->framenum) {
+      gp_build_speedfactor = sumtime * fps / (gpf->next->framenum - gpf->framenum);
+    }
+    /* Apply gp_build_speedfactor to all points & to sumtime. */
+    for (i = 0; i < sumpoints; i++) {
+      float *idx_time = &idx_times[i];
+      *idx_time /= gp_build_speedfactor;
+    }
+    sumtime /= gp_build_speedfactor;
+  }
+
+  /* 2.3) Pass to compute overall indices for points (per stroke). */
   for (i = 0; i < tot_strokes; i++) {
     tStrokeBuildDetails *cell = &table[i];
 
@@ -329,12 +438,12 @@ static void build_sequential(Object *ob,
       cell->start_idx = 0;
     }
     else {
-      cell->start_idx = (cell - 1)->end_idx;
+      cell->start_idx = (cell - 1)->end_idx + 1;
     }
     cell->end_idx = cell->start_idx + cell->totpoints - 1;
   }
 
-  /* 3) Determine the global indices for points that should be visible */
+  /* 3) Determine the global indices for points that should be visible. */
   size_t first_visible = 0;
   size_t last_visible = 0;
   /* Need signed numbers because the representation of fading offset would exceed the beginning and
@@ -343,30 +452,60 @@ static void build_sequential(Object *ob,
   int fade_end = 0;
 
   bool fading_enabled = (mmd->flag & GP_BUILD_USE_FADING);
-
   float set_fade_fac = fading_enabled ? mmd->fade_fac : 0.0f;
-  float use_fac = interpf(1 + set_fade_fac, 0, fac);
+  float use_fac;
+
+  if (mmd->time_mode == GP_BUILD_TIMEMODE_DRAWSPEED) {
+    /* Recalculate equivalent of "fac" using timestamps. */
+    float targettime = (*ctime - (float)gpf->framenum) / fps;
+    fac = 0;
+    /* If ctime is in current frame, find last point. */
+    if (0 < targettime && targettime < sumtime) {
+      /* All except GP_BUILD_TRANSITION_SHRINK count forwards. */
+      if (mmd->transition != GP_BUILD_TRANSITION_SHRINK) {
+        for (i = 0; i < sumpoints; i++) {
+          if (targettime < idx_times[i]) {
+            fac = (float)i / sumpoints;
+            break;
+          }
+        }
+      }
+      else {
+        for (i = 0; i < sumpoints; i++) {
+          if (targettime < sumtime - idx_times[sumpoints - i - 1]) {
+            fac = (float)i / sumpoints;
+            break;
+          }
+        }
+      }
+    }
+    /* Don't check if ctime is beyond time of current frame. */
+    else if (targettime >= sumtime) {
+      fac = 1;
+    }
+  }
+  use_fac = interpf(1 + set_fade_fac, 0, fac);
   float use_fade_fac = use_fac - set_fade_fac;
   CLAMP(use_fade_fac, 0.0f, 1.0f);
 
   switch (mmd->transition) {
-      /* Show in forward order
-       *  - As fac increases, the number of visible points increases
-       */
+    /* Show in forward order
+     *  - As fac increases, the number of visible points increases
+     */
     case GP_BUILD_TRANSITION_GROW:
       first_visible = 0; /* always visible */
-      last_visible = (size_t)roundf(totpoints * use_fac);
-      fade_start = (int)roundf(totpoints * use_fade_fac);
+      last_visible = (size_t)roundf(sumpoints * use_fac);
+      fade_start = (int)roundf(sumpoints * use_fade_fac);
       fade_end = last_visible;
       break;
 
-      /* Hide in reverse order
-       *  - As fac increases, the number of points visible at the end decreases
-       */
+    /* Hide in reverse order
+     *  - As fac increases, the number of points visible at the end decreases
+     */
     case GP_BUILD_TRANSITION_SHRINK:
       first_visible = 0; /* always visible (until last point removed) */
-      last_visible = (size_t)(totpoints * (1.0f + set_fade_fac - use_fac));
-      fade_start = (int)roundf(totpoints * (1.0f - use_fade_fac - set_fade_fac));
+      last_visible = (size_t)(sumpoints * (1.0f + set_fade_fac - use_fac));
+      fade_start = (int)roundf(sumpoints * (1.0f - use_fade_fac - set_fade_fac));
       fade_end = last_visible;
       break;
 
@@ -374,10 +513,10 @@ static void build_sequential(Object *ob,
        *  - As fac increases, the early points start getting hidden
        */
     case GP_BUILD_TRANSITION_VANISH:
-      first_visible = (size_t)(totpoints * use_fade_fac);
-      last_visible = totpoints; /* i.e. visible until the end, unless first overlaps this */
+      first_visible = (size_t)(sumpoints * use_fade_fac);
+      last_visible = sumpoints; /* i.e. visible until the end, unless first overlaps this */
       fade_start = first_visible;
-      fade_end = (int)roundf(totpoints * use_fac);
+      fade_end = (int)roundf(sumpoints * use_fac);
       break;
   }
 
@@ -434,6 +573,9 @@ static void build_sequential(Object *ob,
 
   /* Free table */
   MEM_freeN(table);
+  if (mmd->time_mode == GP_BUILD_TIMEMODE_DRAWSPEED) {
+    MEM_freeN(idx_times);
+  }
 }
 
 /* --------------------------------------------- */
@@ -451,7 +593,7 @@ static void build_concurrent(BuildGpencilModifierData *mmd,
   const bool reverse = (mmd->transition != GP_BUILD_TRANSITION_GROW);
 
   /* 1) Determine the longest stroke, to figure out when short strokes should start */
-  /* FIXME: A *really* long stroke here could dwarf everything else, causing bad timings */
+  /* Todo: A *really* long stroke here could dwarf everything else, causing bad timings */
   for (gps = gpf->strokes.first; gps; gps = gps->next) {
     if (gps->totpoints > max_points) {
       max_points = gps->totpoints;
@@ -565,11 +707,17 @@ static void generate_geometry(GpencilModifierData *md,
                               bGPDframe *gpf)
 {
   BuildGpencilModifierData *mmd = (BuildGpencilModifierData *)md;
+  /* Prevent incompatible options at runtime. */
   if (mmd->mode == GP_BUILD_MODE_ADDITIVE) {
     mmd->transition = GP_BUILD_TRANSITION_GROW;
+    mmd->start_delay = 0;
   }
+  if (mmd->mode == GP_BUILD_MODE_CONCURRENT && mmd->time_mode == GP_BUILD_TIMEMODE_DRAWSPEED) {
+    mmd->time_mode = GP_BUILD_TIMEMODE_FRAMES;
+  }
+
   const bool reverse = (mmd->transition != GP_BUILD_TRANSITION_GROW);
-  const bool is_percentage = (mmd->flag & GP_BUILD_PERCENTAGE);
+  const bool is_percentage = (mmd->time_mode == GP_BUILD_TIMEMODE_PERCENTAGE);
 
   const float ctime = DEG_get_ctime(depsgraph);
 
@@ -633,73 +781,76 @@ static void generate_geometry(GpencilModifierData *md,
     }
   }
 
-  /* Compute start and end frames for the animation effect
-   * By default, the upper bound is given by the "maximum length" setting
+  /* Default "fac" value to call build_sequential even with
+   * GP_BUILD_TIMEMODE_DRAWSPEED, which uses separate logic
+   * in function build_sequential()
    */
-  float start_frame = is_percentage ? gpf->framenum : gpf->framenum + mmd->start_delay;
-  /* When use percentage don't need a limit in the upper bound, so use a maximum value for the last
-   * frame. */
-  float end_frame = is_percentage ? start_frame + 9999 : start_frame + mmd->length;
+  float fac = 1;
 
-  if (gpf->next) {
-    /* Use the next frame or upper bound as end frame, whichever is lower/closer */
-    end_frame = MIN2(end_frame, gpf->next->framenum);
+  if (mmd->time_mode != GP_BUILD_TIMEMODE_DRAWSPEED) {
+    /* Compute start and end frames for the animation effect
+     * By default, the upper bound is given by the "length" setting.
+     */
+    float start_frame = is_percentage ? gpf->framenum : gpf->framenum + mmd->start_delay;
+    /* When use percentage don't need a limit in the upper bound, so use a maximum value for the
+     * last frame. */
+    float end_frame = is_percentage ? start_frame + 9999 : start_frame + mmd->length;
+
+    if (gpf->next) {
+      /* Use the next frame or upper bound as end frame, whichever is lower/closer */
+      end_frame = MIN2(end_frame, gpf->next->framenum);
+    }
+
+    /* Early exit if current frame is outside start/end bounds */
+    /* NOTE: If we're beyond the next/previous frames (if existent),
+     * then we wouldn't have this problem anyway... */
+    if (ctime < start_frame) {
+      /* Before Start - Animation hasn't started. Display initial state. */
+      if (reverse) {
+        /* 1) Reverse = Start with all, end with nothing.
+         *    ==> Do nothing (everything already present)
+         */
+      }
+      else {
+        /* 2) Forward Order = Start with nothing, end with the full frame.
+         *    ==> Free all strokes, and return an empty frame
+         */
+        gpf_clear_all_strokes(gpf);
+      }
+
+      /* Early exit */
+      return;
+    }
+    if (ctime >= end_frame) {
+      /* Past End - Animation finished. Display final result. */
+      if (reverse) {
+        /* 1) Reverse = Start with all, end with nothing.
+         *    ==> Free all strokes, and return an empty frame
+         */
+        gpf_clear_all_strokes(gpf);
+      }
+      else {
+        /* 2) Forward Order = Start with nothing, end with the full frame.
+         *    ==> Do Nothing (everything already present)
+         */
+      }
+
+      /* Early exit */
+      return;
+    }
+    /* Determine how far along we are given current time, start_frame and end_frame */
+    fac = is_percentage ? mmd->percentage_fac : (ctime - start_frame) / (end_frame - start_frame);
   }
 
-  /* Early exit if current frame is outside start/end bounds */
-  /* NOTE: If we're beyond the next/previous frames (if existent),
-   * then we wouldn't have this problem anyway... */
-  if (ctime < start_frame) {
-    /* Before Start - Animation hasn't started. Display initial state. */
-    if (reverse) {
-      /* 1) Reverse = Start with all, end with nothing.
-       *    ==> Do nothing (everything already present)
-       */
-    }
-    else {
-      /* 2) Forward Order = Start with nothing, end with the full frame.
-       *    ==> Free all strokes, and return an empty frame
-       */
-      gpf_clear_all_strokes(gpf);
-    }
-
-    /* Early exit */
-    return;
-  }
-  if (ctime >= end_frame) {
-    /* Past End - Animation finished. Display final result. */
-    if (reverse) {
-      /* 1) Reverse = Start with all, end with nothing.
-       *    ==> Free all strokes, and return an empty frame
-       */
-      gpf_clear_all_strokes(gpf);
-    }
-    else {
-      /* 2) Forward Order = Start with nothing, end with the full frame.
-       *    ==> Do Nothing (everything already present)
-       */
-    }
-
-    /* Early exit */
-    return;
-  }
-
-  /* Determine how far along we are between the keyframes */
-  float fac = is_percentage ? mmd->percentage_fac :
-                              (ctime - start_frame) / (end_frame - start_frame);
-
-  /* Time management mode */
+  /* Calling the correct build mode */
   switch (mmd->mode) {
     case GP_BUILD_MODE_SEQUENTIAL:
-      build_sequential(ob, mmd, gpd, gpf, target_def_nr, fac, false);
+    case GP_BUILD_MODE_ADDITIVE:
+      build_sequential(ob, mmd, depsgraph, gpd, gpf, target_def_nr, fac, &ctime);
       break;
 
     case GP_BUILD_MODE_CONCURRENT:
       build_concurrent(mmd, gpd, gpf, target_def_nr, fac);
-      break;
-
-    case GP_BUILD_MODE_ADDITIVE:
-      build_sequential(ob, mmd, gpd, gpf, target_def_nr, fac, true);
       break;
 
     default:
@@ -727,49 +878,59 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
-  uiLayout *row, *sub;
   uiLayout *layout = panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  int mode = RNA_enum_get(ptr, "mode");
-  const bool use_percentage = RNA_boolean_get(ptr, "use_percentage");
+  const int mode = RNA_enum_get(ptr, "mode");
+  int time_mode = RNA_enum_get(ptr, "time_mode");
 
   uiLayoutSetPropSep(layout, true);
 
+  /* First: Build mode and build settings. */
   uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
+  if (mode == GP_BUILD_MODE_SEQUENTIAL) {
+    uiItemR(layout, ptr, "transition", 0, NULL, ICON_NONE);
+  }
+  if (mode == GP_BUILD_MODE_CONCURRENT) {
+    /* Concurrent mode doesn't support GP_BUILD_TIMEMODE_DRAWSPEED, so unset it. */
+    if (time_mode == GP_BUILD_TIMEMODE_DRAWSPEED) {
+      RNA_enum_set(ptr, "time_mode", GP_BUILD_TIMEMODE_FRAMES);
+      time_mode = GP_BUILD_TIMEMODE_FRAMES;
+    }
+    uiItemR(layout, ptr, "transition", 0, NULL, ICON_NONE);
+  }
+  uiItemS(layout);
+
+  /* Second: Time mode and time settings. */
+
+  uiItemR(layout, ptr, "time_mode", 0, NULL, ICON_NONE);
   if (mode == GP_BUILD_MODE_CONCURRENT) {
     uiItemR(layout, ptr, "concurrent_time_alignment", 0, NULL, ICON_NONE);
   }
-
-  uiItemS(layout);
-
-  if (ELEM(mode, GP_BUILD_MODE_SEQUENTIAL, GP_BUILD_MODE_CONCURRENT)) {
-    uiItemR(layout, ptr, "transition", 0, NULL, ICON_NONE);
+  switch (time_mode) {
+    case GP_BUILD_TIMEMODE_DRAWSPEED:
+      uiItemR(layout, ptr, "speed_factor", 0, NULL, ICON_NONE);
+      uiItemR(layout, ptr, "speed_maxgap", 0, NULL, ICON_NONE);
+      break;
+    case GP_BUILD_TIMEMODE_FRAMES:
+      uiItemR(layout, ptr, "length", 0, IFACE_("Frames"), ICON_NONE);
+      if (mode != GP_BUILD_MODE_ADDITIVE) {
+        uiItemR(layout, ptr, "start_delay", 0, NULL, ICON_NONE);
+      }
+      break;
+    case GP_BUILD_TIMEMODE_PERCENTAGE:
+      uiItemR(layout, ptr, "percentage_factor", 0, NULL, ICON_NONE);
+      break;
+    default:
+      break;
   }
-  row = uiLayoutRow(layout, true);
-  uiLayoutSetActive(row, !use_percentage);
-  uiItemR(row, ptr, "start_delay", 0, NULL, ICON_NONE);
-  row = uiLayoutRow(layout, true);
-  uiLayoutSetActive(row, !use_percentage);
-  uiItemR(row, ptr, "length", 0, IFACE_("Frames"), ICON_NONE);
-
   uiItemS(layout);
+  uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Factor"));
-  uiLayoutSetPropDecorate(row, false);
-  uiItemR(row, ptr, "use_percentage", 0, "", ICON_NONE);
-  sub = uiLayoutRow(row, true);
-  uiLayoutSetActive(sub, use_percentage);
-  uiItemR(sub, ptr, "percentage_factor", 0, "", ICON_NONE);
-  uiItemDecoratorR(row, ptr, "percentage_factor", 0);
-
-  uiItemS(layout);
-
-  if (ELEM(mode, GP_BUILD_MODE_SEQUENTIAL, GP_BUILD_MODE_ADDITIVE)) {
-    uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
-  }
+  /* Some housekeeping to prevent clashes between incompatible
+   * options */
 
   /* Check for incompatible time modifier. */
   Object *ob = ob_ptr.data;
@@ -877,25 +1038,25 @@ static void updateDepsgraph(GpencilModifierData *md,
 /* ******************************************** */
 
 GpencilModifierTypeInfo modifierType_Gpencil_Build = {
-    /* name */ N_("Build"),
-    /* structName */ "BuildGpencilModifierData",
-    /* structSize */ sizeof(BuildGpencilModifierData),
-    /* type */ eGpencilModifierTypeType_Gpencil,
-    /* flags */ eGpencilModifierTypeFlag_NoApply,
+    /*name*/ N_("Build"),
+    /*structName*/ "BuildGpencilModifierData",
+    /*structSize*/ sizeof(BuildGpencilModifierData),
+    /*type*/ eGpencilModifierTypeType_Gpencil,
+    /*flags*/ eGpencilModifierTypeFlag_NoApply,
 
-    /* copyData */ copyData,
+    /*copyData*/ copyData,
 
-    /* deformStroke */ NULL,
-    /* generateStrokes */ generateStrokes,
-    /* bakeModifier */ NULL,
-    /* remapTime */ NULL,
+    /*deformStroke*/ NULL,
+    /*generateStrokes*/ generateStrokes,
+    /*bakeModifier*/ NULL,
+    /*remapTime*/ NULL,
 
-    /* initData */ initData,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ dependsOnTime,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* panelRegister */ panelRegister,
+    /*initData*/ initData,
+    /*freeData*/ NULL,
+    /*isDisabled*/ NULL,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ dependsOnTime,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ NULL,
+    /*panelRegister*/ panelRegister,
 };

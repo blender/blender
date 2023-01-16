@@ -9,13 +9,26 @@
 
 #include "gpu_shader_private.hh"
 
+#include "vk_backend.hh"
+#include "vk_context.hh"
+
+#include "BLI_string_ref.hh"
+
 namespace blender::gpu {
 
 class VKShader : public Shader {
+ private:
+  VKContext *context_ = nullptr;
+  VkShaderModule vertex_module_ = VK_NULL_HANDLE;
+  VkShaderModule geometry_module_ = VK_NULL_HANDLE;
+  VkShaderModule fragment_module_ = VK_NULL_HANDLE;
+  VkShaderModule compute_module_ = VK_NULL_HANDLE;
+  bool compilation_failed_ = false;
+  Vector<VkPipelineShaderStageCreateInfo> pipeline_infos_;
+
  public:
-  VKShader(const char *name) : Shader(name)
-  {
-  }
+  VKShader(const char *name);
+  virtual ~VKShader();
 
   void vertex_shader_from_glsl(MutableSpan<const char *> sources) override;
   void geometry_shader_from_glsl(MutableSpan<const char *> sources) override;
@@ -43,6 +56,13 @@ class VKShader : public Shader {
 
   /* DEPRECATED: Kept only because of BGL API. */
   int program_handle_get() const override;
+
+ private:
+  Vector<uint32_t> compile_glsl_to_spirv(Span<const char *> sources, shaderc_shader_kind kind);
+  void build_shader_module(Span<uint32_t> spirv_module, VkShaderModule *r_shader_module);
+  void build_shader_module(MutableSpan<const char *> sources,
+                           shaderc_shader_kind stage,
+                           VkShaderModule *r_shader_module);
 };
 
 }  // namespace blender::gpu

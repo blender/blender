@@ -2603,10 +2603,10 @@ static void copy_mtex_copybuf(ID *id)
 
   switch (GS(id->name)) {
     case ID_PA:
-      mtex = &(((ParticleSettings *)id)->mtex[(int)((ParticleSettings *)id)->texact]);
+      mtex = &(((ParticleSettings *)id)->mtex[int(((ParticleSettings *)id)->texact)]);
       break;
     case ID_LS:
-      mtex = &(((FreestyleLineStyle *)id)->mtex[(int)((FreestyleLineStyle *)id)->texact]);
+      mtex = &(((FreestyleLineStyle *)id)->mtex[int(((FreestyleLineStyle *)id)->texact)]);
       break;
     default:
       break;
@@ -2631,10 +2631,10 @@ static void paste_mtex_copybuf(ID *id)
 
   switch (GS(id->name)) {
     case ID_PA:
-      mtex = &(((ParticleSettings *)id)->mtex[(int)((ParticleSettings *)id)->texact]);
+      mtex = &(((ParticleSettings *)id)->mtex[int(((ParticleSettings *)id)->texact)]);
       break;
     case ID_LS:
-      mtex = &(((FreestyleLineStyle *)id)->mtex[(int)((FreestyleLineStyle *)id)->texact]);
+      mtex = &(((FreestyleLineStyle *)id)->mtex[int(((FreestyleLineStyle *)id)->texact)]);
       break;
     default:
       BLI_assert_msg(0, "invalid id type");

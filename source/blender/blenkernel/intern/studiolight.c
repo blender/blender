@@ -478,8 +478,13 @@ static void studiolight_create_equirect_radiance_gputexture(StudioLight *sl)
     BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EXTERNAL_IMAGE_LOADED);
     ImBuf *ibuf = sl->equirect_radiance_buffer;
 
-    sl->equirect_radiance_gputexture = GPU_texture_create_2d(
-        "studiolight_radiance", ibuf->x, ibuf->y, 1, GPU_RGBA16F, ibuf->rect_float);
+    sl->equirect_radiance_gputexture = GPU_texture_create_2d_ex("studiolight_radiance",
+                                                                ibuf->x,
+                                                                ibuf->y,
+                                                                1,
+                                                                GPU_RGBA16F,
+                                                                GPU_TEXTURE_USAGE_SHADER_READ,
+                                                                ibuf->rect_float);
     GPUTexture *tex = sl->equirect_radiance_gputexture;
     GPU_texture_filter_mode(tex, true);
     GPU_texture_wrap_mode(tex, true, true);
@@ -499,7 +504,8 @@ static void studiolight_create_matcap_gputexture(StudioLightImage *sli)
     copy_v3_v3(*offset3, *offset4);
   }
 
-  sli->gputexture = GPU_texture_create_2d("matcap", ibuf->x, ibuf->y, 1, GPU_R11F_G11F_B10F, NULL);
+  sli->gputexture = GPU_texture_create_2d_ex(
+      "matcap", ibuf->x, ibuf->y, 1, GPU_R11F_G11F_B10F, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
   GPU_texture_update(sli->gputexture, GPU_DATA_FLOAT, gpu_matcap_3components);
 
   MEM_SAFE_FREE(gpu_matcap_3components);
@@ -533,8 +539,13 @@ static void studiolight_create_equirect_irradiance_gputexture(StudioLight *sl)
   if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
     BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECT_IRRADIANCE_IMAGE_CALCULATED);
     ImBuf *ibuf = sl->equirect_irradiance_buffer;
-    sl->equirect_irradiance_gputexture = GPU_texture_create_2d(
-        "studiolight_irradiance", ibuf->x, ibuf->y, 1, GPU_RGBA16F, ibuf->rect_float);
+    sl->equirect_irradiance_gputexture = GPU_texture_create_2d_ex("studiolight_irradiance",
+                                                                  ibuf->x,
+                                                                  ibuf->y,
+                                                                  1,
+                                                                  GPU_RGBA16F,
+                                                                  GPU_TEXTURE_USAGE_SHADER_READ,
+                                                                  ibuf->rect_float);
     GPUTexture *tex = sl->equirect_irradiance_gputexture;
     GPU_texture_filter_mode(tex, true);
     GPU_texture_wrap_mode(tex, true, true);

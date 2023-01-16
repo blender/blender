@@ -5,9 +5,9 @@
  * \ingroup bke
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -628,8 +628,8 @@ static void direct_link_linestyle_thickness_modifier(BlendDataReader *reader,
   }
 }
 
-static void direct_link_linestyle_geometry_modifier(BlendDataReader *UNUSED(reader),
-                                                    LineStyleModifier *UNUSED(modifier))
+static void direct_link_linestyle_geometry_modifier(BlendDataReader * /*reader*/,
+                                                    LineStyleModifier * /*modifier*/)
 {
 }
 
@@ -732,33 +732,33 @@ static void linestyle_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_LS = {
-    /* id_code */ ID_LS,
-    /* id_filter */ FILTER_ID_LS,
-    /* main_listbase_index */ INDEX_ID_LS,
-    /* struct_size */ sizeof(FreestyleLineStyle),
-    /* name */ "FreestyleLineStyle",
-    /* name_plural */ "linestyles",
-    /* translation_context */ BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE,
-    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_LS,
+    /*id_filter*/ FILTER_ID_LS,
+    /*main_listbase_index*/ INDEX_ID_LS,
+    /*struct_size*/ sizeof(FreestyleLineStyle),
+    /*name*/ "FreestyleLineStyle",
+    /*name_plural*/ "linestyles",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE,
+    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ linestyle_init_data,
-    /* copy_data */ linestyle_copy_data,
-    /* free_data */ linestyle_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ linestyle_foreach_id,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ nullptr,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ linestyle_init_data,
+    /*copy_data*/ linestyle_copy_data,
+    /*free_data*/ linestyle_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ linestyle_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ nullptr,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ linestyle_blend_write,
-    /* blend_read_data */ linestyle_blend_read_data,
-    /* blend_read_lib */ linestyle_blend_read_lib,
-    /* blend_read_expand */ linestyle_blend_read_expand,
+    /*blend_write*/ linestyle_blend_write,
+    /*blend_read_data*/ linestyle_blend_read_data,
+    /*blend_read_lib*/ linestyle_blend_read_lib,
+    /*blend_read_expand*/ linestyle_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 static const char *modifier_name[LS_MODIFIER_NUM] = {
@@ -1147,7 +1147,7 @@ LineStyleModifier *BKE_linestyle_alpha_modifier_add(FreestyleLineStyle *linestyl
 
 LineStyleModifier *BKE_linestyle_alpha_modifier_copy(FreestyleLineStyle *linestyle,
                                                      const LineStyleModifier *m,
-                                                     const int UNUSED(flag))
+                                                     const int /*flag*/)
 {
   LineStyleModifier *new_m;
 
@@ -1735,7 +1735,7 @@ LineStyleModifier *BKE_linestyle_geometry_modifier_add(FreestyleLineStyle *lines
 
 LineStyleModifier *BKE_linestyle_geometry_modifier_copy(FreestyleLineStyle *linestyle,
                                                         const LineStyleModifier *m,
-                                                        const int UNUSED(flag))
+                                                        const int /*flag*/)
 {
   LineStyleModifier *new_m;
 

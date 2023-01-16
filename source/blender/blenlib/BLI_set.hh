@@ -543,6 +543,15 @@ class Set {
   }
 
   /**
+   * Removes all keys from the set and frees any allocated memory.
+   */
+  void clear_and_shrink()
+  {
+    std::destroy_at(this);
+    new (this) Set(NoExceptConstructor{});
+  }
+
+  /**
    * Creates a new slot array and reinserts all keys inside of that. This method can be used to get
    * rid of removed slots. Also this is useful for benchmarking the grow function.
    */

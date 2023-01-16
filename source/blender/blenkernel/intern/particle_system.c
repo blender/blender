@@ -2779,18 +2779,18 @@ void BKE_psys_collision_neartest_cb(void *userdata,
   ParticleCollision *col = (ParticleCollision *)userdata;
   ParticleCollisionElement pce;
   const MVertTri *vt = &col->md->tri[index];
-  MVert *x = col->md->x;
-  MVert *v = col->md->current_v;
+  float(*x)[3] = col->md->x;
+  float(*v)[3] = col->md->current_v;
   float t = hit->dist / col->original_ray_length;
   int collision = 0;
 
-  pce.x[0] = x[vt->tri[0]].co;
-  pce.x[1] = x[vt->tri[1]].co;
-  pce.x[2] = x[vt->tri[2]].co;
+  pce.x[0] = x[vt->tri[0]];
+  pce.x[1] = x[vt->tri[1]];
+  pce.x[2] = x[vt->tri[2]];
 
-  pce.v[0] = v[vt->tri[0]].co;
-  pce.v[1] = v[vt->tri[1]].co;
-  pce.v[2] = v[vt->tri[2]].co;
+  pce.v[0] = v[vt->tri[0]];
+  pce.v[1] = v[vt->tri[1]];
+  pce.v[2] = v[vt->tri[2]];
 
   pce.tot = 3;
   pce.inside = 0;
@@ -3307,7 +3307,6 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = psys->part;
   Mesh *mesh;
-  MVert *mvert;
   MEdge *medge;
   MDeformVert *dvert;
   HairKey *key;
@@ -3321,7 +3320,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   if (!mesh) {
     *r_mesh = mesh = BKE_mesh_new_nomain(totpoint, totedge, 0, 0, 0);
   }
-  mvert = BKE_mesh_verts_for_write(mesh);
+  float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
   medge = BKE_mesh_edges_for_write(mesh);
   dvert = BKE_mesh_deform_verts_for_write(mesh);
 
@@ -3344,6 +3343,8 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   }
 
   psys->clmd->sim_parms->vgroup_mass = 1;
+
+  int vert_index = 0;
 
   /* XXX placeholder for more flexible future hair settings */
   hair_radius = part->size;
@@ -3383,16 +3384,16 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
           hair->radius = hair_radius;
           hair->bending_stiffness = bending_stiffness;
 
-          add_v3_v3v3(mvert->co, co, co);
-          sub_v3_v3(mvert->co, co_next);
-          mul_m4_v3(hairmat, mvert->co);
+          add_v3_v3v3(positions[vert_index], co, co);
+          sub_v3_v3(positions[vert_index], co_next);
+          mul_m4_v3(hairmat, positions[vert_index]);
 
           medge->v1 = pa->hair_index - 1;
           medge->v2 = pa->hair_index;
 
           dvert = hair_set_pinning(dvert, 1.0f);
 
-          mvert++;
+          vert_index++;
           medge++;
         }
 
@@ -3404,8 +3405,8 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
         hair->radius = hair_radius;
         hair->bending_stiffness = bending_stiffness;
 
-        copy_v3_v3(mvert->co, co);
-        mul_m4_v3(hairmat, mvert->co);
+        copy_v3_v3(positions[vert_index], co);
+        mul_m4_v3(hairmat, positions[vert_index]);
 
         if (k) {
           medge->v1 = pa->hair_index + k - 1;
@@ -3420,7 +3421,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
           dvert = hair_set_pinning(dvert, 1.0f);
         }
 
-        mvert++;
+        vert_index++;
         if (k) {
           medge++;
         }

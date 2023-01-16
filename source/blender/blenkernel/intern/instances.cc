@@ -105,7 +105,8 @@ blender::Span<InstanceReference> Instances::references() const
   return references_;
 }
 
-void Instances::remove(const IndexMask mask)
+void Instances::remove(const IndexMask mask,
+                       const AnonymousAttributePropagationInfo &propagation_info)
 {
   using namespace blender;
   if (mask.is_range() && mask.as_range().start() == 0) {
@@ -132,7 +133,7 @@ void Instances::remove(const IndexMask mask)
 
   src_attributes.foreach_attribute(
       [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData &meta_data) {
-        if (!id.should_be_kept()) {
+        if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
           return true;
         }
 

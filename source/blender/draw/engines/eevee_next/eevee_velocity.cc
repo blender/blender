@@ -219,10 +219,10 @@ void VelocityModule::step_swap()
   }
 
   auto swap_steps = [&](eVelocityStep step_a, eVelocityStep step_b) {
-    SWAP(VelocityObjectBuf *, object_steps[step_a], object_steps[step_b]);
-    SWAP(VelocityGeometryBuf *, geometry_steps[step_a], geometry_steps[step_b]);
-    SWAP(CameraDataBuf *, camera_steps[step_a], camera_steps[step_b]);
-    SWAP(float, step_time[step_a], step_time[step_b]);
+    std::swap(object_steps[step_a], object_steps[step_b]);
+    std::swap(geometry_steps[step_a], geometry_steps[step_b]);
+    std::swap(camera_steps[step_a], camera_steps[step_b]);
+    std::swap(step_time[step_a], step_time[step_b]);
 
     for (VelocityObjectData &vel : velocity_map.values()) {
       vel.obj.ofs[step_a] = vel.obj.ofs[step_b];

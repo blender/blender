@@ -41,7 +41,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--svn-command", default="svn")
     parser.add_argument("--svn-branch", default=None)
     parser.add_argument("--git-command", default="git")
-    parser.add_argument("--use-centos-libraries", action="store_true")
+    parser.add_argument("--use-linux-libraries", action="store_true")
     return parser.parse_args()
 
 
@@ -71,8 +71,8 @@ def svn_update(args: argparse.Namespace, release_version: Optional[str]) -> None
         # this script is bundled as part of the precompiled libraries. However it
         # is used by the buildbot.
         lib_platform = "win64_vc15"
-    elif args.use_centos_libraries:
-        lib_platform = "linux_centos7_x86_64"
+    elif args.use_linux_libraries:
+        lib_platform = "linux_x86_64_glibc_228"
     else:
         # No precompiled libraries for Linux.
         lib_platform = None

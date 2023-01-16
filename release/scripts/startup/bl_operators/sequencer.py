@@ -223,7 +223,7 @@ class SequencerFadesAdd(Operator):
             if not self.is_long_enough(sequence, duration):
                 continue
 
-            animated_property = 'volume' if hasattr(sequence, 'volume') else 'blend_alpha'
+            animated_property = "volume" if hasattr(sequence, "volume") else "blend_alpha"
             fade_fcurve = self.fade_find_or_create_fcurve(context, sequence, animated_property)
             fades = self.calculate_fades(sequence, fade_fcurve, animated_property, duration)
             self.fade_animation_clear(fade_fcurve, fades)

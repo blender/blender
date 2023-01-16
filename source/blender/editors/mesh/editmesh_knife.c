@@ -4321,7 +4321,7 @@ static void knifetool_finish_single_post(KnifeTool_OpData *UNUSED(kcd), Object *
 static void knifetool_finish_ex(KnifeTool_OpData *kcd)
 {
   /* Separate pre/post passes are needed because `em->looptris` recalculation from the 'post' pass
-   * causes causes triangle indices in #KnifeTool_OpData.bvh to get out of sync.
+   * causes triangle indices in #KnifeTool_OpData.bvh to get out of sync.
    * So perform all the cuts before doing any mesh recalculation, see: T101721. */
   for (uint ob_index = 0; ob_index < kcd->objects_len; ob_index++) {
     Object *ob = kcd->objects[ob_index];

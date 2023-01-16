@@ -103,8 +103,10 @@ static void context_init_lookup(MultiresReshapeContext *reshape_context)
 static void context_init_grid_pointers(MultiresReshapeContext *reshape_context)
 {
   Mesh *base_mesh = reshape_context->base_mesh;
-  reshape_context->mdisps = CustomData_get_layer(&base_mesh->ldata, CD_MDISPS);
-  reshape_context->grid_paint_masks = CustomData_get_layer(&base_mesh->ldata, CD_GRID_PAINT_MASK);
+  reshape_context->mdisps = CustomData_get_layer_for_write(
+      &base_mesh->ldata, CD_MDISPS, base_mesh->totloop);
+  reshape_context->grid_paint_masks = CustomData_get_layer_for_write(
+      &base_mesh->ldata, CD_GRID_PAINT_MASK, base_mesh->totloop);
 }
 
 static void context_init_commoon(MultiresReshapeContext *reshape_context)
@@ -152,7 +154,7 @@ bool multires_reshape_context_create_from_base_mesh(MultiresReshapeContext *resh
   reshape_context->mmd = mmd;
 
   reshape_context->base_mesh = base_mesh;
-  reshape_context->base_verts = BKE_mesh_verts(base_mesh);
+  reshape_context->base_positions = BKE_mesh_vert_positions(base_mesh);
   reshape_context->base_edges = BKE_mesh_edges(base_mesh);
   reshape_context->base_polys = BKE_mesh_polys(base_mesh);
   reshape_context->base_loops = BKE_mesh_loops(base_mesh);
@@ -189,7 +191,7 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
   reshape_context->mmd = mmd;
 
   reshape_context->base_mesh = base_mesh;
-  reshape_context->base_verts = BKE_mesh_verts(base_mesh);
+  reshape_context->base_positions = BKE_mesh_vert_positions(base_mesh);
   reshape_context->base_edges = BKE_mesh_edges(base_mesh);
   reshape_context->base_polys = BKE_mesh_polys(base_mesh);
   reshape_context->base_loops = BKE_mesh_loops(base_mesh);
@@ -221,7 +223,7 @@ bool multires_reshape_context_create_from_ccg(MultiresReshapeContext *reshape_co
   context_zero(reshape_context);
 
   reshape_context->base_mesh = base_mesh;
-  reshape_context->base_verts = BKE_mesh_verts(base_mesh);
+  reshape_context->base_positions = BKE_mesh_vert_positions(base_mesh);
   reshape_context->base_edges = BKE_mesh_edges(base_mesh);
   reshape_context->base_polys = BKE_mesh_polys(base_mesh);
   reshape_context->base_loops = BKE_mesh_loops(base_mesh);
@@ -268,7 +270,7 @@ bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape
 
   reshape_context->mmd = mmd;
   reshape_context->base_mesh = base_mesh;
-  reshape_context->base_verts = BKE_mesh_verts(base_mesh);
+  reshape_context->base_positions = BKE_mesh_vert_positions(base_mesh);
   reshape_context->base_edges = BKE_mesh_edges(base_mesh);
   reshape_context->base_polys = BKE_mesh_polys(base_mesh);
   reshape_context->base_loops = BKE_mesh_loops(base_mesh);
@@ -559,7 +561,7 @@ static void ensure_displacement_grid(MDisps *displacement_grid, const int level)
 static void ensure_displacement_grids(Mesh *mesh, const int grid_level)
 {
   const int num_grids = mesh->totloop;
-  MDisps *mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
+  MDisps *mdisps = CustomData_get_layer_for_write(&mesh->ldata, CD_MDISPS, mesh->totloop);
   for (int grid_index = 0; grid_index < num_grids; grid_index++) {
     ensure_displacement_grid(&mdisps[grid_index], grid_level);
   }
@@ -567,7 +569,8 @@ static void ensure_displacement_grids(Mesh *mesh, const int grid_level)
 
 static void ensure_mask_grids(Mesh *mesh, const int level)
 {
-  GridPaintMask *grid_paint_masks = CustomData_get_layer(&mesh->ldata, CD_GRID_PAINT_MASK);
+  GridPaintMask *grid_paint_masks = CustomData_get_layer_for_write(
+      &mesh->ldata, CD_GRID_PAINT_MASK, mesh->totloop);
   if (grid_paint_masks == NULL) {
     return;
   }

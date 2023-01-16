@@ -65,8 +65,7 @@ typedef struct MovieClip {
 
   /** Sequence or movie. */
   int source;
-  /** Last accessed frame number. */
-  int lastframe;
+  int _pad;
   /** Size of last accessed frame. */
   int lastsize[2];
 

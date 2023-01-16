@@ -884,7 +884,7 @@ static ImBuf *get_imbuf_cache(MovieClip *clip, const MovieClipUser *user, int fl
   return NULL;
 }
 
-static bool has_imbuf_cache(MovieClip *clip, MovieClipUser *user, int flag)
+static bool has_imbuf_cache(MovieClip *clip, const MovieClipUser *user, int flag)
 {
   if (clip->cache) {
     MovieClipImBufCacheKey key;
@@ -1344,7 +1344,6 @@ static ImBuf *movieclip_get_postprocessed_ibuf(
   }
 
   if (ibuf) {
-    clip->lastframe = framenr;
     real_ibuf_size(clip, user, ibuf, &clip->lastsize[0], &clip->lastsize[1]);
 
     /* Post-process frame and put to cache if needed. */
@@ -1373,25 +1372,31 @@ static ImBuf *movieclip_get_postprocessed_ibuf(
   return ibuf;
 }
 
-ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, MovieClipUser *user)
+ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, const MovieClipUser *user)
 {
   return BKE_movieclip_get_ibuf_flag(clip, user, clip->flag, 0);
 }
 
-ImBuf *BKE_movieclip_get_ibuf_flag(MovieClip *clip, MovieClipUser *user, int flag, int cache_flag)
+ImBuf *BKE_movieclip_get_ibuf_flag(MovieClip *clip,
+                                   const MovieClipUser *user,
+                                   const int flag,
+                                   const int cache_flag)
 {
   return movieclip_get_postprocessed_ibuf(clip, user, flag, 0, cache_flag);
 }
 
 ImBuf *BKE_movieclip_get_postprocessed_ibuf(MovieClip *clip,
-                                            MovieClipUser *user,
-                                            int postprocess_flag)
+                                            const MovieClipUser *user,
+                                            const int postprocess_flag)
 {
   return movieclip_get_postprocessed_ibuf(clip, user, clip->flag, postprocess_flag, 0);
 }
 
-static ImBuf *get_stable_cached_frame(
-    MovieClip *clip, MovieClipUser *user, ImBuf *reference_ibuf, int framenr, int postprocess_flag)
+static ImBuf *get_stable_cached_frame(MovieClip *clip,
+                                      const MovieClipUser *user,
+                                      ImBuf *reference_ibuf,
+                                      const int framenr,
+                                      const int postprocess_flag)
 {
   MovieClipCache *cache = clip->cache;
   MovieTracking *tracking = &clip->tracking;
@@ -1449,8 +1454,11 @@ static ImBuf *get_stable_cached_frame(
   return stableibuf;
 }
 
-static ImBuf *put_stabilized_frame_to_cache(
-    MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, int framenr, int postprocess_flag)
+static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip,
+                                            const MovieClipUser *user,
+                                            ImBuf *ibuf,
+                                            const int framenr,
+                                            const int postprocess_flag)
 {
   MovieClipCache *cache = clip->cache;
   MovieTracking *tracking = &clip->tracking;
@@ -1492,11 +1500,11 @@ static ImBuf *put_stabilized_frame_to_cache(
 }
 
 ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip,
-                                     MovieClipUser *user,
+                                     const MovieClipUser *user,
                                      float loc[2],
                                      float *scale,
                                      float *angle,
-                                     int postprocess_flag)
+                                     const int postprocess_flag)
 {
   ImBuf *ibuf, *stableibuf = NULL;
   int framenr = user->framenr;
@@ -1552,7 +1560,7 @@ ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip,
   return ibuf;
 }
 
-bool BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
+bool BKE_movieclip_has_frame(MovieClip *clip, const MovieClipUser *user)
 {
   ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, user);
 
@@ -1564,19 +1572,9 @@ bool BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
   return false;
 }
 
-void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, int *height)
+void BKE_movieclip_get_size(MovieClip *clip, const MovieClipUser *user, int *width, int *height)
 {
-#if 0
-  /* originally was needed to support image sequences with different image dimensions,
-   * which might be useful for such things as reconstruction of unordered image sequence,
-   * or painting/rotoscoping of non-equal-sized images, but this ended up in unneeded
-   * cache lookups and even unwanted non-proxied files loading when doing mask parenting,
-   * so let's disable this for now and assume image sequence consists of images with
-   * equal sizes (sergey)
-   * TODO(sergey): Support reading sequences of different resolution.
-   */
-  if (user->framenr == clip->lastframe) {
-#endif
+  /* TODO(sergey): Support reading sequences of different resolution. */
   if (clip->lastsize[0] != 0 && clip->lastsize[1] != 0) {
     *width = clip->lastsize[0];
     *height = clip->lastsize[1];
@@ -1597,7 +1595,7 @@ void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, in
     }
   }
 }
-void BKE_movieclip_get_size_fl(MovieClip *clip, MovieClipUser *user, float size[2])
+void BKE_movieclip_get_size_fl(MovieClip *clip, const MovieClipUser *user, float size[2])
 {
   int width, height;
   BKE_movieclip_get_size(clip, user, &width, &height);
@@ -1641,7 +1639,7 @@ void BKE_movieclip_get_aspect(MovieClip *clip, float *aspx, float *aspy)
 }
 
 void BKE_movieclip_get_cache_segments(MovieClip *clip,
-                                      MovieClipUser *user,
+                                      const MovieClipUser *user,
                                       int *r_totseg,
                                       int **r_points)
 {
@@ -1728,7 +1726,9 @@ void BKE_movieclip_reload(Main *bmain, MovieClip *clip)
   BKE_ntree_update_tag_id_changed(bmain, &clip->id);
 }
 
-void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClipScopes *scopes)
+void BKE_movieclip_update_scopes(MovieClip *clip,
+                                 const MovieClipUser *user,
+                                 MovieClipScopes *scopes)
 {
   if (scopes->ok) {
     return;
@@ -1945,17 +1945,17 @@ bool BKE_movieclip_proxy_enabled(MovieClip *clip)
   return clip->flag & MCLIP_USE_PROXY;
 }
 
-float BKE_movieclip_remap_scene_to_clip_frame(const MovieClip *clip, float framenr)
+float BKE_movieclip_remap_scene_to_clip_frame(const MovieClip *clip, const float framenr)
 {
   return framenr - (float)clip->start_frame + 1.0f;
 }
 
-float BKE_movieclip_remap_clip_to_scene_frame(const MovieClip *clip, float framenr)
+float BKE_movieclip_remap_clip_to_scene_frame(const MovieClip *clip, const float framenr)
 {
   return framenr + (float)clip->start_frame - 1.0f;
 }
 
-void BKE_movieclip_filename_for_frame(MovieClip *clip, MovieClipUser *user, char *name)
+void BKE_movieclip_filename_for_frame(MovieClip *clip, const MovieClipUser *user, char *name)
 {
   if (clip->source == MCLIP_SRC_SEQUENCE) {
     int use_proxy;
@@ -1977,7 +1977,7 @@ void BKE_movieclip_filename_for_frame(MovieClip *clip, MovieClipUser *user, char
   }
 }
 
-ImBuf *BKE_movieclip_anim_ibuf_for_frame_no_lock(MovieClip *clip, MovieClipUser *user)
+ImBuf *BKE_movieclip_anim_ibuf_for_frame_no_lock(MovieClip *clip, const MovieClipUser *user)
 {
   ImBuf *ibuf = NULL;
 
@@ -1988,7 +1988,7 @@ ImBuf *BKE_movieclip_anim_ibuf_for_frame_no_lock(MovieClip *clip, MovieClipUser 
   return ibuf;
 }
 
-bool BKE_movieclip_has_cached_frame(MovieClip *clip, MovieClipUser *user)
+bool BKE_movieclip_has_cached_frame(MovieClip *clip, const MovieClipUser *user)
 {
   bool has_frame = false;
 
@@ -1999,7 +1999,7 @@ bool BKE_movieclip_has_cached_frame(MovieClip *clip, MovieClipUser *user)
   return has_frame;
 }
 
-bool BKE_movieclip_put_frame_if_possible(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf)
+bool BKE_movieclip_put_frame_if_possible(MovieClip *clip, const MovieClipUser *user, ImBuf *ibuf)
 {
   bool result;
 

@@ -604,6 +604,27 @@ class USERPREF_PT_system_cycles_devices(SystemPanel, CenterAlignMixIn, Panel):
             del addon
 
 
+class USERPREF_PT_system_gpu_backend(SystemPanel, CenterAlignMixIn, Panel):
+    bl_label = "GPU Back end"
+
+    @classmethod
+    def poll(cls, _context):
+        # Only for Apple so far
+        import sys
+        return sys.platform == "darwin"
+
+    def draw_centered(self, context, layout):
+        import gpu
+        prefs = context.preferences
+        system = prefs.system
+
+        col = layout.column()
+        col.prop(system, "gpu_backend")
+
+        if system.gpu_backend != gpu.platform.backend_type_get():
+            layout.label(text="Requires a restart of Blender to take effect", icon='INFO')
+
+
 class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Operating System Settings"
 
@@ -1131,7 +1152,7 @@ class PreferenceThemeSpacePanel:
         },
         'CLIP_EDITOR': {
             "handle_vertex_select",
-        }
+        },
     }
 
     # TODO theme_area should be deprecated
@@ -1265,7 +1286,7 @@ class ThemeGenericClassGenerator:
     def generate_panel_classes_from_theme_areas():
         from bpy.types import Theme
 
-        for theme_area in Theme.bl_rna.properties['theme_area'].enum_items_static:
+        for theme_area in Theme.bl_rna.properties["theme_area"].enum_items_static:
             if theme_area.identifier in {'USER_INTERFACE', 'STYLE', 'BONE_COLOR_SETS'}:
                 continue
 
@@ -2289,7 +2310,7 @@ class USERPREF_PT_experimental_virtual_reality(ExperimentalPanel, Panel):
             context, (
                 ({"property": "use_virtual_reality_scene_inspection"}, "T71347"),
                 ({"property": "use_virtual_reality_immersive_drawing"}, "T71348"),
-            )
+            ),
         )
 """
 
@@ -2303,7 +2324,6 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_sculpt_tools_tilt"}, "T82877"),
                 ({"property": "use_extended_asset_browser"}, ("project/view/130/", "Project Page")),
                 ({"property": "use_override_templates"}, ("T73318", "Milestone 4")),
-                ({"property": "use_realtime_compositor"}, "T99210"),
             ),
         )
 
@@ -2406,6 +2426,7 @@ classes = (
     USERPREF_PT_animation_fcurves,
 
     USERPREF_PT_system_cycles_devices,
+    USERPREF_PT_system_gpu_backend,
     USERPREF_PT_system_os_settings,
     USERPREF_PT_system_memory,
     USERPREF_PT_system_video_sequencer,

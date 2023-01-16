@@ -70,7 +70,7 @@ struct PuffOperationExecutor {
 
   Object *surface_ob_ = nullptr;
   Mesh *surface_ = nullptr;
-  Span<MVert> surface_verts_;
+  Span<float3> surface_positions_;
   Span<MLoop> surface_loops_;
   Span<MLoopTri> surface_looptris_;
   Span<float3> corner_normals_su_;
@@ -102,8 +102,9 @@ struct PuffOperationExecutor {
     brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
     brush_pos_re_ = stroke_extension.mouse_position;
 
-    point_factors_ = get_point_selection(*curves_id_);
-    curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
+    point_factors_ = curves_->attributes().lookup_or_default<float>(
+        ".selection", ATTR_DOMAIN_POINT, 1.0f);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 
     falloff_shape_ = static_cast<eBrushFalloffShape>(brush_->falloff_shape);
 
@@ -119,7 +120,7 @@ struct PuffOperationExecutor {
         reinterpret_cast<const float3 *>(CustomData_get_layer(&surface_->ldata, CD_NORMAL)),
         surface_->totloop};
 
-    surface_verts_ = surface_->verts();
+    surface_positions_ = surface_->vert_positions();
     surface_loops_ = surface_->loops();
     surface_looptris_ = surface_->looptris();
     BKE_bvhtree_from_mesh_get(&surface_bvh_, surface_, BVHTREE_FROM_LOOPTRI, 2);
@@ -291,9 +292,9 @@ struct PuffOperationExecutor {
 
         const MLoopTri &looptri = surface_looptris_[nearest.index];
         const float3 closest_pos_su = nearest.co;
-        const float3 &v0_su = surface_verts_[surface_loops_[looptri.tri[0]].v].co;
-        const float3 &v1_su = surface_verts_[surface_loops_[looptri.tri[1]].v].co;
-        const float3 &v2_su = surface_verts_[surface_loops_[looptri.tri[2]].v].co;
+        const float3 &v0_su = surface_positions_[surface_loops_[looptri.tri[0]].v];
+        const float3 &v1_su = surface_positions_[surface_loops_[looptri.tri[1]].v];
+        const float3 &v2_su = surface_positions_[surface_loops_[looptri.tri[2]].v];
         float3 bary_coords;
         interp_weights_tri_v3(bary_coords, v0_su, v1_su, v2_su, closest_pos_su);
         const float3 normal_su = geometry::compute_surface_point_normal(

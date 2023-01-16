@@ -91,6 +91,9 @@ static int ramp_blend_type(const char *type)
   if (STREQ(type, "DIFFERENCE")) {
     return MA_RAMP_DIFF;
   }
+  if (STREQ(type, "EXCLUSION")) {
+    return MA_RAMP_EXCLUSION;
+  }
   if (STREQ(type, "DARKEN")) {
     return MA_RAMP_DARK;
   }
@@ -513,10 +516,10 @@ static PyModuleDef module_definition = {
     /*m_doc*/ module_docstring,
     /*m_size*/ -1,
     /*m_methods*/ module_functions,
-    /*m_slots*/ NULL,
-    /*m_traverse*/ NULL,
-    /*m_clear*/ NULL,
-    /*m_free*/ NULL,
+    /*m_slots*/ nullptr,
+    /*m_traverse*/ nullptr,
+    /*m_clear*/ nullptr,
+    /*m_free*/ nullptr,
 };
 
 //-------------------MODULE INITIALIZATION--------------------------------

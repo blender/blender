@@ -68,7 +68,7 @@ class DATA_PT_volume_file(DataButtonsPanel, Panel):
 class VOLUME_UL_grids(UIList):
     def draw_item(self, _context, layout, _data, grid, _icon, _active_data, _active_propname, _index):
         name = grid.name
-        data_type = grid.bl_rna.properties['data_type'].enum_items[grid.data_type]
+        data_type = grid.bl_rna.properties["data_type"].enum_items[grid.data_type]
 
         layout.emboss = 'NONE'
         layout.label(text=name)

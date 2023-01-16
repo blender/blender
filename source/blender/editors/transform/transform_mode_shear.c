@@ -263,7 +263,7 @@ static bool clip_uv_transform_shear(const TransInfo *t, float *vec, float *vec_i
   for (int i = 0; i < max_i; i++) {
     /* Binary search. */
     const float value_mid = (value_inside_bounds + value) / 2.0f;
-    if (value_mid == value_inside_bounds || value_mid == value) {
+    if (ELEM(value_mid, value_inside_bounds, value)) {
       break; /* float precision reached. */
     }
     if (uv_shear_in_clip_bounds_test(t, value_mid)) {

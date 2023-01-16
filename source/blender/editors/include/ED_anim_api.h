@@ -1052,7 +1052,7 @@ void ED_keymap_anim(struct wmKeyConfig *keyconf);
 void ED_operatormacros_graph(void);
 /* space_action */
 void ED_operatormacros_action(void);
-/* space_nla*/
+/* space_nla */
 void ED_operatormacros_nla(void);
 
 /** \} */

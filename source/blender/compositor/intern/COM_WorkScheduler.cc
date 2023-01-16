@@ -266,7 +266,7 @@ static void opencl_initialize(const bool use_opencl)
 
 static void opencl_deinitialize()
 {
-  g_work_scheduler.opencl.devices.clear_and_make_inline();
+  g_work_scheduler.opencl.devices.clear_and_shrink();
 
   if (g_work_scheduler.opencl.program) {
     clReleaseProgram(g_work_scheduler.opencl.program);
@@ -364,7 +364,7 @@ static void threading_model_queue_deinitialize()
 {
   /* deinitialize CPU threads */
   if (g_work_scheduler.queue.initialized) {
-    g_work_scheduler.queue.devices.clear_and_make_inline();
+    g_work_scheduler.queue.devices.clear_and_shrink();
 
     BLI_thread_local_delete(g_thread_device);
     g_work_scheduler.queue.initialized = false;

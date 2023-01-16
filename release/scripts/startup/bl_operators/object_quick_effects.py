@@ -46,7 +46,7 @@ class QuickFur(ObjectModeOperator, Operator):
         items=(
             ('LIGHT', "Light", ""),
             ('MEDIUM', "Medium", ""),
-            ('HEAVY', "Heavy", "")
+            ('HEAVY', "Heavy", ""),
         ),
         default='MEDIUM',
     )

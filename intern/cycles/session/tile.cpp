@@ -646,7 +646,8 @@ bool TileManager::read_full_buffer_from_disk(const string_view filename,
     return false;
   }
 
-  if (!in->read_image(TypeDesc::FLOAT, buffers->buffer.data())) {
+  const int num_channels = in->spec().nchannels;
+  if (!in->read_image(0, 0, 0, num_channels, TypeDesc::FLOAT, buffers->buffer.data())) {
     LOG(ERROR) << "Error reading pixels from the tile file " << in->geterror();
     return false;
   }

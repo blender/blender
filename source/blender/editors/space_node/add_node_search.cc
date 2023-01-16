@@ -161,7 +161,7 @@ static void gather_add_node_operations(const bContext &C,
     if (!(node_type->poll && node_type->poll(node_type, &node_tree, &disabled_hint))) {
       continue;
     }
-    if ((StringRefNull(node_tree.typeinfo->group_idname) == node_type->idname)) {
+    if (StringRefNull(node_tree.typeinfo->group_idname) == node_type->idname) {
       /* Skip the empty group type. */
       continue;
     }
@@ -230,7 +230,7 @@ static void add_node_search_exec_fn(bContext *C, void *arg1, void *arg2)
     return;
   }
 
-  node_deselect_all(snode);
+  node_deselect_all(node_tree);
   bNode *new_node = nodeAddNode(C, &node_tree, item->identifier.c_str());
   BLI_assert(new_node != nullptr);
 

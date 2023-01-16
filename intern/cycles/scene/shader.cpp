@@ -263,8 +263,9 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
 
     return estimate;
   }
-  else if (node->type == LightFalloffNode::get_node_type()) {
-    /* Light Falloff node. */
+  else if (node->type == LightFalloffNode::get_node_type() ||
+           node->type == IESLightNode::get_node_type()) {
+    /* Get strength from Light Falloff and IES texture node. */
     ShaderInput *strength_in = node->input("Strength");
     is_constant = false;
 
@@ -349,7 +350,7 @@ void Shader::estimate_emission()
   }
 
   ShaderInput *surf = graph->output()->input("Surface");
-  emission_estimate = output_estimate_emission(surf->link, emission_is_constant);
+  emission_estimate = fabs(output_estimate_emission(surf->link, emission_is_constant));
 
   if (is_zero(emission_estimate)) {
     emission_sampling = EMISSION_SAMPLING_NONE;

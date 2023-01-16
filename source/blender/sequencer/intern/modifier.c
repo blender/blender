@@ -626,13 +626,13 @@ static void colorBalance_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *ma
 }
 
 static SequenceModifierTypeInfo seqModifier_ColorBalance = {
-    CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Color Balance"), /* name */
-    "ColorBalanceModifierData",                           /* struct_name */
-    sizeof(ColorBalanceModifierData),                     /* struct_size */
-    colorBalance_init_data,                               /* init_data */
-    NULL,                                                 /* free_data */
-    NULL,                                                 /* copy_data */
-    colorBalance_apply,                                   /* apply */
+    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Color Balance"),
+    /*struct_name*/ "ColorBalanceModifierData",
+    /*struct_size*/ sizeof(ColorBalanceModifierData),
+    /*init_data*/ colorBalance_init_data,
+    /*free_data*/ NULL,
+    /*copy_data*/ NULL,
+    /*apply*/ colorBalance_apply,
 };
 
 /** \} */
@@ -722,13 +722,13 @@ static void whiteBalance_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *ma
 }
 
 static SequenceModifierTypeInfo seqModifier_WhiteBalance = {
-    CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "White Balance"), /* name */
-    "WhiteBalanceModifierData",                           /* struct_name */
-    sizeof(WhiteBalanceModifierData),                     /* struct_size */
-    whiteBalance_init_data,                               /* init_data */
-    NULL,                                                 /* free_data */
-    NULL,                                                 /* copy_data */
-    whiteBalance_apply,                                   /* apply */
+    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "White Balance"),
+    /*struct_name*/ "WhiteBalanceModifierData",
+    /*struct_size*/ sizeof(WhiteBalanceModifierData),
+    /*init_data*/ whiteBalance_init_data,
+    /*free_data*/ NULL,
+    /*copy_data*/ NULL,
+    /*apply*/ whiteBalance_apply,
 };
 
 /** \} */
@@ -840,13 +840,13 @@ static void curves_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *m
 }
 
 static SequenceModifierTypeInfo seqModifier_Curves = {
-    CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Curves"), /* name */
-    "CurvesModifierData",                          /* struct_name */
-    sizeof(CurvesModifierData),                    /* struct_size */
-    curves_init_data,                              /* init_data */
-    curves_free_data,                              /* free_data */
-    curves_copy_data,                              /* copy_data */
-    curves_apply,                                  /* apply */
+    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Curves"),
+    /*struct_name*/ "CurvesModifierData",
+    /*struct_size*/ sizeof(CurvesModifierData),
+    /*init_data*/ curves_init_data,
+    /*free_data*/ curves_free_data,
+    /*copy_data*/ curves_copy_data,
+    /*apply*/ curves_apply,
 };
 
 /** \} */
@@ -964,13 +964,13 @@ static void hue_correct_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImB
 }
 
 static SequenceModifierTypeInfo seqModifier_HueCorrect = {
-    CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Hue Correct"), /* name */
-    "HueCorrectModifierData",                           /* struct_name */
-    sizeof(HueCorrectModifierData),                     /* struct_size */
-    hue_correct_init_data,                              /* init_data */
-    hue_correct_free_data,                              /* free_data */
-    hue_correct_copy_data,                              /* copy_data */
-    hue_correct_apply,                                  /* apply */
+    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Hue Correct"),
+    /*struct_name*/ "HueCorrectModifierData",
+    /*struct_size*/ sizeof(HueCorrectModifierData),
+    /*init_data*/ hue_correct_init_data,
+    /*free_data*/ hue_correct_free_data,
+    /*copy_data*/ hue_correct_copy_data,
+    /*apply*/ hue_correct_apply,
 };
 
 /** \} */
@@ -1071,13 +1071,13 @@ static void brightcontrast_apply(struct SequenceModifierData *smd, ImBuf *ibuf, 
 }
 
 static SequenceModifierTypeInfo seqModifier_BrightContrast = {
-    CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Bright/Contrast"), /* name */
-    "BrightContrastModifierData",                           /* struct_name */
-    sizeof(BrightContrastModifierData),                     /* struct_size */
-    NULL,                                                   /* init_data */
-    NULL,                                                   /* free_data */
-    NULL,                                                   /* copy_data */
-    brightcontrast_apply,                                   /* apply */
+    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Bright/Contrast"),
+    /*struct_name*/ "BrightContrastModifierData",
+    /*struct_size*/ sizeof(BrightContrastModifierData),
+    /*init_data*/ NULL,
+    /*free_data*/ NULL,
+    /*copy_data*/ NULL,
+    /*apply*/ brightcontrast_apply,
 };
 
 /** \} */
@@ -1145,13 +1145,13 @@ static void maskmodifier_apply(struct SequenceModifierData *UNUSED(smd), ImBuf *
 }
 
 static SequenceModifierTypeInfo seqModifier_Mask = {
-    CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Mask"), /* name */
-    "SequencerMaskModifierData",                 /* struct_name */
-    sizeof(SequencerMaskModifierData),           /* struct_size */
-    NULL,                                        /* init_data */
-    NULL,                                        /* free_data */
-    NULL,                                        /* copy_data */
-    maskmodifier_apply,                          /* apply */
+    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Mask"),
+    /*struct_name*/ "SequencerMaskModifierData",
+    /*struct_size*/ sizeof(SequencerMaskModifierData),
+    /*init_data*/ NULL,
+    /*free_data*/ NULL,
+    /*copy_data*/ NULL,
+    /*apply*/ maskmodifier_apply,
 };
 
 /** \} */
@@ -1361,13 +1361,13 @@ static void tonemapmodifier_apply(struct SequenceModifierData *smd, ImBuf *ibuf,
 }
 
 static SequenceModifierTypeInfo seqModifier_Tonemap = {
-    CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Tonemap"), /* name */
-    "SequencerTonemapModifierData",                 /* struct_name */
-    sizeof(SequencerTonemapModifierData),           /* struct_size */
-    tonemapmodifier_init_data,                      /* init_data */
-    NULL,                                           /* free_data */
-    NULL,                                           /* copy_data */
-    tonemapmodifier_apply,                          /* apply */
+    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Tonemap"),
+    /*struct_name*/ "SequencerTonemapModifierData",
+    /*struct_size*/ sizeof(SequencerTonemapModifierData),
+    /*init_data*/ tonemapmodifier_init_data,
+    /*free_data*/ NULL,
+    /*copy_data*/ NULL,
+    /*apply*/ tonemapmodifier_apply,
 };
 
 /** \} */

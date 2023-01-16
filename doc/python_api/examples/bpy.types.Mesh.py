@@ -13,16 +13,16 @@ Blender stores 4 main arrays to define mesh geometry.
 - :class:`Mesh.polygons`: (reference a range of loops)
 
 
-Each polygon reference a slice in the loop array, this way, polygons do not store vertices or corner data such as UV's directly,
+Each polygon references a slice in the loop array, this way, polygons do not store vertices or corner data such as UVs directly,
 only a reference to loops that the polygon uses.
 
 :class:`Mesh.loops`, :class:`Mesh.uv_layers` :class:`Mesh.vertex_colors` are all aligned so the same polygon loop
-indices can be used to find the UV's and vertex colors as with as the vertices.
+indices can be used to find the UVs and vertex colors as with as the vertices.
 
 To compare mesh API options see: :ref:`NGons and Tessellation Faces <info_gotcha_mesh_faces>`
 
 
-This example script prints the vertices and UV's for each polygon, assumes the active object is a mesh with UVs.
+This example script prints the vertices and UVs for each polygon, assumes the active object is a mesh with UVs.
 """
 
 import bpy

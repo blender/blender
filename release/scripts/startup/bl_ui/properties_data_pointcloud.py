@@ -12,7 +12,7 @@ class DataButtonsPanel:
     @classmethod
     def poll(cls, context):
         engine = context.scene.render.engine
-        return hasattr(context, 'pointcloud') and context.pointcloud and (engine in cls.COMPAT_ENGINES)
+        return hasattr(context, "pointcloud") and context.pointcloud and (engine in cls.COMPAT_ENGINES)
 
 
 class DATA_PT_context_pointcloud(DataButtonsPanel, Panel):
@@ -53,10 +53,10 @@ class POINTCLOUD_MT_add_attribute(Menu):
         layout = self.layout
         pointcloud = context.pointcloud
 
-        self.add_standard_attribute(layout, pointcloud, 'radius', 'FLOAT', 'POINT')
-        self.add_standard_attribute(layout, pointcloud, 'color', 'FLOAT_COLOR', 'POINT')
-        self.add_standard_attribute(layout, pointcloud, 'id', 'INT', 'POINT')
-        self.add_standard_attribute(layout, pointcloud, 'velocity', 'FLOAT_VECTOR', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, "radius", 'FLOAT', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, "color", 'FLOAT_COLOR', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, "id", 'INT', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, "velocity", 'FLOAT_VECTOR', 'POINT')
 
         layout.separator()
 
@@ -84,7 +84,7 @@ class POINTCLOUD_UL_attributes(UIList):
         return flags, indices
 
     def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
-        data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
+        data_type = attribute.bl_rna.properties["data_type"].enum_items[attribute.data_type]
 
         split = layout.split(factor=0.75)
         split.emboss = 'NONE'

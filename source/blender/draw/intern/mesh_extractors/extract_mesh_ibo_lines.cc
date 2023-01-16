@@ -199,7 +199,7 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
         if (mr->bm) {
           for (DRWSubdivLooseEdge edge : loose_edges) {
             const BMEdge *bm_edge = bm_original_edge_get(mr, edge.coarse_edge_index);
-            *flags_data++ = BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN) != 0;
+            *flags_data++ = (bm_edge) ? BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN) != 0 : 1;
           }
         }
         else {

@@ -27,7 +27,13 @@ typedef enum {
 
 } NDOF_DeviceT;
 
-/* NDOF device button event types */
+/**
+ * NDOF device button event types.
+ *
+ * \note Button values are stored in DNA as part of key-map items.
+ * Existing values should not be changed. Otherwise, a mapping must be used,
+ * see #NDOF_BUTTON_INDEX_AS_EVENT.
+ */
 typedef enum {
   /* Used internally, never sent or used as an index. */
   NDOF_BUTTON_NONE = -1,
@@ -58,6 +64,11 @@ typedef enum {
   NDOF_BUTTON_DOMINANT,
   NDOF_BUTTON_PLUS,
   NDOF_BUTTON_MINUS,
+  /* Store Views. */
+  NDOF_BUTTON_V1,
+  NDOF_BUTTON_V2,
+  NDOF_BUTTON_V3,
+  _NDOF_UNUSED_0,
   /* General-purpose buttons.
    * Users can assign functions via keymap editor. */
   NDOF_BUTTON_1,
@@ -74,11 +85,8 @@ typedef enum {
   NDOF_BUTTON_A,
   NDOF_BUTTON_B,
   NDOF_BUTTON_C,
-  /* Store Views. */
-  NDOF_BUTTON_V1,
-  NDOF_BUTTON_V2,
-  NDOF_BUTTON_V3,
-  /* Keyboard emulation. */
+
+  /* Keyboard emulation (keep last as they are mapped to regular keyboard events). */
   NDOF_BUTTON_ESC,
   NDOF_BUTTON_ENTER,
   NDOF_BUTTON_DELETE,

@@ -1439,13 +1439,15 @@ static int object_clear_paths_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* operator callback/wrapper */
-static int object_clear_paths_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static char *object_clear_paths_description(struct bContext *UNUSED(C),
+                                            struct wmOperatorType *UNUSED(ot),
+                                            struct PointerRNA *ptr)
 {
-  if ((event->modifier & KM_SHIFT) && !RNA_struct_property_is_set(op->ptr, "only_selected")) {
-    RNA_boolean_set(op->ptr, "only_selected", true);
+  const bool only_selected = RNA_boolean_get(ptr, "only_selected");
+  if (only_selected) {
+    return BLI_strdup(TIP_("Clear motion paths of selected objects"));
   }
-  return object_clear_paths_exec(C, op);
+  return BLI_strdup(TIP_("Clear motion paths of all objects"));
 }
 
 void OBJECT_OT_paths_clear(wmOperatorType *ot)
@@ -1453,19 +1455,21 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear Object Paths";
   ot->idname = "OBJECT_OT_paths_clear";
-  ot->description = "Clear path caches for all objects, hold Shift key for selected objects only";
 
   /* api callbacks */
-  ot->invoke = object_clear_paths_invoke;
   ot->exec = object_clear_paths_exec;
   ot->poll = ED_operator_object_active_editable;
+  ot->get_description = object_clear_paths_description;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  ot->prop = RNA_def_boolean(
-      ot->srna, "only_selected", false, "Only Selected", "Only clear paths from selected objects");
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "only_selected",
+                             false,
+                             "Only Selected",
+                             "Only clear motion paths of selected objects");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
@@ -1620,7 +1624,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
   RNA_def_property_float_default(prop, DEG2RADF(30.0f));
   RNA_def_property_ui_text(prop,
                            "Angle",
-                           "Maximum angle between face normals that will be considered as smooth"
+                           "Maximum angle between face normals that will be considered as smooth "
                            "(unused if custom split normals data are available)");
 }
 

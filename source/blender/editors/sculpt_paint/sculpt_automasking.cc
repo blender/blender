@@ -12,7 +12,7 @@
 #include "BLI_hash.h"
 #include "BLI_index_range.hh"
 #include "BLI_math.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_task.h"
 #include "BLI_vector.hh"
@@ -774,7 +774,7 @@ static void sculpt_normal_occlusion_automasking_fill(AutomaskingCache *automaski
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  /* No need to build original data since this is only called at the beginning of strokes.*/
+  /* No need to build original data since this is only called at the beginning of strokes. */
   AutomaskingNodeData nodedata;
   nodedata.have_orig_data = false;
 

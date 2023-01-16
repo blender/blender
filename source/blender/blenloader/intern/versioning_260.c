@@ -225,22 +225,22 @@ static void do_versions_nodetree_socket_use_flags_2_62(bNodeTree *ntree)
 
   for (node = ntree->nodes.first; node; node = node->next) {
     for (sock = node->inputs.first; sock; sock = sock->next) {
-      sock->flag &= ~SOCK_IN_USE;
+      sock->flag &= ~SOCK_IS_LINKED;
     }
     for (sock = node->outputs.first; sock; sock = sock->next) {
-      sock->flag &= ~SOCK_IN_USE;
+      sock->flag &= ~SOCK_IS_LINKED;
     }
   }
   for (sock = ntree->inputs.first; sock; sock = sock->next) {
-    sock->flag &= ~SOCK_IN_USE;
+    sock->flag &= ~SOCK_IS_LINKED;
   }
   for (sock = ntree->outputs.first; sock; sock = sock->next) {
-    sock->flag &= ~SOCK_IN_USE;
+    sock->flag &= ~SOCK_IS_LINKED;
   }
 
   for (link = ntree->links.first; link; link = link->next) {
-    link->fromsock->flag |= SOCK_IN_USE;
-    link->tosock->flag |= SOCK_IN_USE;
+    link->fromsock->flag |= SOCK_IS_LINKED;
+    link->tosock->flag |= SOCK_IS_LINKED;
   }
 }
 

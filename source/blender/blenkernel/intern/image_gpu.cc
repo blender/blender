@@ -111,7 +111,8 @@ static GPUTexture *gpu_texture_create_tile_mapping(Image *ima, const int multivi
     tile_info[3] = tile_runtime->tilearray_size[1] / array_h;
   }
 
-  GPUTexture *tex = GPU_texture_create_1d_array(ima->id.name + 2, width, 2, 1, GPU_RGBA32F, data);
+  GPUTexture *tex = GPU_texture_create_1d_array_ex(
+      ima->id.name + 2, width, 2, 1, GPU_RGBA32F, GPU_TEXTURE_USAGE_SHADER_READ, data);
   GPU_texture_mipmap_mode(tex, false, false);
 
   MEM_freeN(data);

@@ -235,11 +235,15 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
   switch (settings->controller_draw_style) {
     case XR_CONTROLLER_DRAW_DARK:
     case XR_CONTROLLER_DRAW_DARK_RAY:
-      color[0] = color[1] = color[2] = 0.0f, color[3] = 0.4f;
+      color[0] = color[1] = color[2] = 0.0f;
+      color[3] = 0.4f;
       break;
     case XR_CONTROLLER_DRAW_LIGHT:
     case XR_CONTROLLER_DRAW_LIGHT_RAY:
-      color[0] = 0.422f, color[1] = 0.438f, color[2] = 0.446f, color[3] = 0.4f;
+      color[0] = 0.422f;
+      color[1] = 0.438f;
+      color[2] = 0.446f;
+      color[3] = 0.4f;
       break;
   }
 

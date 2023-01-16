@@ -29,9 +29,9 @@ static std::string getActiveUVLayerName(Object *ob)
 {
   Mesh *me = (Mesh *)ob->data;
 
-  int num_layers = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
+  int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
   if (num_layers) {
-    return std::string(bc_CustomData_get_active_layer_name(&me->ldata, CD_MLOOPUV));
+    return std::string(bc_CustomData_get_active_layer_name(&me->ldata, CD_PROP_FLOAT2));
   }
 
   return "";

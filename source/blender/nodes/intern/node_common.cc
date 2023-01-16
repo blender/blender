@@ -70,10 +70,12 @@ void node_group_label(const bNodeTree * /*ntree*/, const bNode *node, char *labe
   BLI_strncpy(label, (node->id) ? node->id->name + 2 : IFACE_("Missing Data-Block"), maxlen);
 }
 
-bool node_group_poll_instance(bNode *node, bNodeTree *nodetree, const char **disabled_hint)
+bool node_group_poll_instance(const bNode *node,
+                              const bNodeTree *nodetree,
+                              const char **disabled_hint)
 {
   if (node->typeinfo->poll(node->typeinfo, nodetree, disabled_hint)) {
-    bNodeTree *grouptree = (bNodeTree *)node->id;
+    const bNodeTree *grouptree = (const bNodeTree *)node->id;
     if (grouptree) {
       return nodeGroupPoll(nodetree, grouptree, disabled_hint);
     }

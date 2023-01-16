@@ -295,7 +295,7 @@ static bke::curves::bezier::Insertion knot_insert_bezier(
  * Sample source curve data in the interval defined by the points [start_point, end_point].
  * Uses linear interpolation to compute the endpoints.
  *
- * \tparam include_start_point If False, the 'start_point' point sample will not be copied
+ * \tparam include_start_point: If False, the 'start_point' point sample will not be copied
  * and not accounted for in the destination range.
  * \param src_data: Source to sample from.
  * \param dst_data: Destination to write samples to.
@@ -929,7 +929,8 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
                                 const IndexMask selection,
                                 const VArray<float> &starts,
                                 const VArray<float> &ends,
-                                const GeometryNodeCurveSampleMode mode)
+                                const GeometryNodeCurveSampleMode mode,
+                                const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   BLI_assert(selection.size() > 0);
   BLI_assert(selection.last() <= src_curves.curves_num());
@@ -991,14 +992,19 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
     transfer_curve_skip.remove("nurbs_order");
     transfer_curve_skip.remove("knots_mode");
   }
-  bke::copy_attribute_domain(
-      src_attributes, dst_attributes, selection, ATTR_DOMAIN_CURVE, transfer_curve_skip);
+  bke::copy_attribute_domain(src_attributes,
+                             dst_attributes,
+                             selection,
+                             ATTR_DOMAIN_CURVE,
+                             propagation_info,
+                             transfer_curve_skip);
 
   /* Fetch custom point domain attributes for transfer (copy). */
   Vector<bke::AttributeTransferData> transfer_attributes = bke::retrieve_attributes_for_transfer(
       src_attributes,
       dst_attributes,
       ATTR_DOMAIN_MASK_POINT,
+      propagation_info,
       {"position",
        "handle_left",
        "handle_right",
@@ -1063,8 +1069,12 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
   /* Copy unselected */
   if (!inverse_selection.is_empty()) {
     transfer_curve_skip.remove("cyclic");
-    bke::copy_attribute_domain(
-        src_attributes, dst_attributes, inverse_selection, ATTR_DOMAIN_CURVE, transfer_curve_skip);
+    bke::copy_attribute_domain(src_attributes,
+                               dst_attributes,
+                               inverse_selection,
+                               ATTR_DOMAIN_CURVE,
+                               propagation_info,
+                               transfer_curve_skip);
     /* Trim curves are no longer cyclic. If all curves are trimmed, this will be set implicitly. */
     dst_curves.cyclic_for_write().fill_indices(selection, false);
 
@@ -1075,8 +1085,11 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
     }
 
     /* Copy point domain. */
-    for (auto &attribute : bke::retrieve_attributes_for_transfer(
-             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, copy_point_skip)) {
+    for (auto &attribute : bke::retrieve_attributes_for_transfer(src_attributes,
+                                                                 dst_attributes,
+                                                                 ATTR_DOMAIN_MASK_POINT,
+                                                                 propagation_info,
+                                                                 copy_point_skip)) {
       bke::curves::copy_point_data(
           src_curves, dst_curves, inverse_selection, attribute.src, attribute.dst.span);
       attribute.dst.finish();

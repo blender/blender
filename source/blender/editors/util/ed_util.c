@@ -364,7 +364,7 @@ void unpack_menu(bContext *C,
   uiPopupMenu *pup;
   uiLayout *layout;
   char line[FILE_MAX + 100];
-  wmOperatorType *ot = WM_operatortype_find(opname, 1);
+  wmOperatorType *ot = WM_operatortype_find(opname, true);
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
   pup = UI_popup_menu_begin(C, IFACE_("Unpack File"), ICON_NONE);

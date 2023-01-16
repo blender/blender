@@ -107,9 +107,6 @@ class GeoNodeExecParams;
 class NodeDeclarationBuilder;
 class GatherLinkSearchOpParams;
 }  // namespace nodes
-namespace fn {
-class MFDataType;
-}  // namespace fn
 namespace realtime_compositor {
 class Context;
 class NodeOperation;
@@ -183,8 +180,8 @@ typedef struct bNodeSocketType {
                                   const char *data_path);
   void (*interface_from_socket)(struct bNodeTree *ntree,
                                 struct bNodeSocket *interface_socket,
-                                struct bNode *node,
-                                struct bNodeSocket *sock);
+                                const struct bNode *node,
+                                const struct bNodeSocket *sock);
 
   /* RNA integration */
   ExtensionRNA ext_socket;
@@ -299,12 +296,14 @@ typedef struct bNodeType {
    *                         when it's not just a dummy, that is, if it actually wants to access
    *                         the returned disabled-hint (null-check needed!).
    */
-  bool (*poll)(struct bNodeType *ntype, struct bNodeTree *nodetree, const char **r_disabled_hint);
+  bool (*poll)(const struct bNodeType *ntype,
+               const struct bNodeTree *nodetree,
+               const char **r_disabled_hint);
   /** Can this node be added to a node tree?
    * \param r_disabled_hint: See `poll()`.
    */
-  bool (*poll_instance)(struct bNode *node,
-                        struct bNodeTree *nodetree,
+  bool (*poll_instance)(const struct bNode *node,
+                        const struct bNodeTree *nodetree,
                         const char **r_disabled_hint);
 
   /* optional handling of link insertion */
@@ -563,17 +562,17 @@ struct bNodeSocket *ntreeInsertSocketInterface(struct bNodeTree *ntree,
                                                struct bNodeSocket *next_sock,
                                                const char *name);
 struct bNodeSocket *ntreeAddSocketInterfaceFromSocket(struct bNodeTree *ntree,
-                                                      struct bNode *from_node,
-                                                      struct bNodeSocket *from_sock);
+                                                      const struct bNode *from_node,
+                                                      const struct bNodeSocket *from_sock);
 struct bNodeSocket *ntreeAddSocketInterfaceFromSocketWithName(struct bNodeTree *ntree,
-                                                              struct bNode *from_node,
-                                                              struct bNodeSocket *from_sock,
+                                                              const struct bNode *from_node,
+                                                              const struct bNodeSocket *from_sock,
                                                               const char *idname,
                                                               const char *name);
 struct bNodeSocket *ntreeInsertSocketInterfaceFromSocket(struct bNodeTree *ntree,
                                                          struct bNodeSocket *next_sock,
-                                                         struct bNode *from_node,
-                                                         struct bNodeSocket *from_sock);
+                                                         const struct bNode *from_node,
+                                                         const struct bNodeSocket *from_sock);
 void ntreeRemoveSocketInterface(struct bNodeTree *ntree, struct bNodeSocket *sock);
 
 /** \} */
@@ -668,6 +667,10 @@ void nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
  * Find the first available, non-duplicate name for a given node.
  */
 void nodeUniqueName(struct bNodeTree *ntree, struct bNode *node);
+/**
+ * Create a new unique integer identifier for the node. Also set the node's
+ * index in the tree, which is an eagerly maintained cache.
+ */
 void nodeUniqueID(struct bNodeTree *ntree, struct bNode *node);
 
 /**
@@ -687,7 +690,7 @@ void nodeRemoveNode(struct Main *bmain,
 
 void nodeDimensionsGet(const struct bNode *node, float *r_width, float *r_height);
 void nodeTagUpdateID(struct bNode *node);
-void nodeInternalLinks(struct bNode *node, struct bNodeLink ***r_links, int *r_len);
+void nodeInternalLinks(struct bNode *node, struct bNodeLink **r_links, int *r_len);
 
 #ifdef __cplusplus
 
@@ -706,6 +709,13 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
                               Map<const bNodeSocket *, bNodeSocket *> &new_socket_map);
 
 bNode *node_copy(bNodeTree *dst_tree, const bNode &src_node, int flag, bool use_unique);
+
+/**
+ * Free the node itself.
+ *
+ * \note ID user reference-counting and changing the `nodes_by_id` vector are up to the caller.
+ */
+void node_free_node(bNodeTree *tree, bNode *node);
 
 }  // namespace blender::bke
 
@@ -837,7 +847,6 @@ struct bNode *nodeGetActivePaintCanvas(struct bNodeTree *ntree);
  */
 bool nodeSupportsActiveFlag(const struct bNode *node, int sub_active);
 
-int nodeSocketIsHidden(const struct bNodeSocket *sock);
 void nodeSetSocketAvailability(struct bNodeTree *ntree,
                                struct bNodeSocket *sock,
                                bool is_available);
@@ -859,20 +868,6 @@ bool nodeDeclarationEnsureOnOutdatedNode(struct bNodeTree *ntree, struct bNode *
  * and sockets are up to date already.
  */
 void nodeSocketDeclarationsUpdate(struct bNode *node);
-
-/**
- * Node Clipboard.
- */
-void BKE_node_clipboard_clear(void);
-void BKE_node_clipboard_free(void);
-/**
- * Return false when one or more ID's are lost.
- */
-bool BKE_node_clipboard_validate(void);
-void BKE_node_clipboard_add_node(struct bNode *node);
-void BKE_node_clipboard_add_link(struct bNodeLink *link);
-const struct ListBase *BKE_node_clipboard_get_nodes(void);
-const struct ListBase *BKE_node_clipboard_get_links(void);
 
 /**
  * Node Instance Hash.
@@ -1499,7 +1494,7 @@ struct TexResult;
 #define GEO_NODE_INPUT_SCENE_TIME 1145
 #define GEO_NODE_ACCUMULATE_FIELD 1146
 #define GEO_NODE_INPUT_MESH_EDGE_ANGLE 1147
-#define GEO_NODE_FIELD_AT_INDEX 1148
+#define GEO_NODE_EVALUATE_AT_INDEX 1148
 #define GEO_NODE_CURVE_PRIMITIVE_ARC 1149
 #define GEO_NODE_FLIP_FACES 1150
 #define GEO_NODE_SCALE_ELEMENTS 1151
@@ -1514,7 +1509,7 @@ struct TexResult;
 #define GEO_NODE_INPUT_INSTANCE_SCALE 1160
 #define GEO_NODE_VOLUME_CUBE 1161
 #define GEO_NODE_POINTS 1162
-#define GEO_NODE_INTERPOLATE_DOMAIN 1163
+#define GEO_NODE_EVALUATE_ON_DOMAIN 1163
 #define GEO_NODE_MESH_TO_VOLUME 1164
 #define GEO_NODE_UV_UNWRAP 1165
 #define GEO_NODE_UV_PACK_ISLANDS 1166
@@ -1541,6 +1536,8 @@ struct TexResult;
 #define GEO_NODE_SAMPLE_UV_SURFACE 1187
 #define GEO_NODE_SET_CURVE_NORMAL 1188
 #define GEO_NODE_IMAGE_INFO 1189
+#define GEO_NODE_BLUR_ATTRIBUTE 1190
+#define GEO_NODE_IMAGE 1191
 
 /** \} */
 

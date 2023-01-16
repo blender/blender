@@ -278,7 +278,7 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out, bool keep_hidden
         BM_elem_select_copy(bm, bmf, orig_face);
       }
       BM_elem_flag_enable(bmf, KEEP_FLAG);
-      /* Now do interpolation of loop data (e.g., UV's) using the example face. */
+      /* Now do interpolation of loop data (e.g., UVs) using the example face. */
       if (orig_face != nullptr) {
         BMIter liter;
         BMLoop *l = static_cast<BMLoop *>(BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, bmf));

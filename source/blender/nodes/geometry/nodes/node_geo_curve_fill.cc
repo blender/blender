@@ -2,7 +2,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_delaunay_2d.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -79,13 +79,13 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(vert_len, edge_len, 0, loop_len, poly_len);
-  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   for (const int i : IndexRange(result.vert.size())) {
-    copy_v3_v3(verts[i].co, float3(float(result.vert[i].x), float(result.vert[i].y), 0.0f));
+    positions[i] = float3(float(result.vert[i].x), float(result.vert[i].y), 0.0f);
   }
   for (const int i : IndexRange(result.edge.size())) {
     edges[i].v1 = result.edge[i].first;

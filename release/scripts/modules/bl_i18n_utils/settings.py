@@ -412,6 +412,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "selected",
     "selected and lock unselected",
     "selected and unlock unselected",
+    "screen",
     "the lazy dog",
     "this legacy pose library to pose assets",
     "to the top level of the tree",

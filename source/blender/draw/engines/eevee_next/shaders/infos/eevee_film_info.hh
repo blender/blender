@@ -39,7 +39,8 @@ GPU_SHADER_CREATE_INFO(eevee_film_frag)
     .do_static_compilation(true)
     .fragment_out(0, Type::VEC4, "out_color")
     .fragment_source("eevee_film_frag.glsl")
-    .additional_info("draw_fullscreen", "eevee_film");
+    .additional_info("draw_fullscreen", "eevee_film")
+    .depth_write(DepthWrite::ANY);
 
 GPU_SHADER_CREATE_INFO(eevee_film_comp)
     .do_static_compilation(true)

@@ -1090,7 +1090,7 @@ static void calc_bevfac_mapping(const Curve *cu,
   }
 
   if (end < *r_start || (end == *r_start && *r_lastblend < 1.0f - *r_firstblend)) {
-    SWAP(int, *r_start, end);
+    std::swap(*r_start, end);
     tmpf = *r_lastblend;
     *r_lastblend = 1.0f - *r_firstblend;
     *r_firstblend = 1.0f - tmpf;

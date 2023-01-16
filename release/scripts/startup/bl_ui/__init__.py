@@ -140,17 +140,23 @@ def register():
         description="Filter add-ons by category",
     )
 
+    # These items are static but depend on the version cycle.
+    items = [
+        ('OFFICIAL', "Official", "Officially supported"),
+        ('COMMUNITY', "Community", "Maintained by community developers"),
+    ]
+    if bpy.app.version_cycle == "alpha":
+        items.append(('TESTING', "Testing", "Newly contributed scripts (excluded from release builds)"))
+
     WindowManager.addon_support = EnumProperty(
-        items=[
-            ('OFFICIAL', "Official", "Officially supported"),
-            ('COMMUNITY', "Community", "Maintained by community developers"),
-            ('TESTING', "Testing", "Newly contributed scripts (excluded from release builds)")
-        ],
+        items=items,
         name="Support",
         description="Display support level",
         default={'OFFICIAL', 'COMMUNITY'},
         options={'ENUM_FLAG'},
     )
+    del items
+
     # done...
 
 

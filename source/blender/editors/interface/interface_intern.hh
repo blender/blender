@@ -9,6 +9,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_rect.h"
+#include "BLI_vector.hh"
 
 #include "DNA_listBase.h"
 #include "RNA_types.h"
@@ -456,18 +457,6 @@ enum eBlockContentHints {
   UI_BLOCK_CONTAINS_SUBMENU_BUT = (1 << 0),
 };
 
-/**
- * A group of button references, used by property search to keep track of sets of buttons that
- * should be searched together. For example, in property split layouts number buttons and their
- * labels (and even their decorators) are separate buttons, but they must be searched and
- * highlighted together.
- */
-struct uiButtonGroup {
-  void *next, *prev;
-  ListBase buttons; /* #LinkData with #uiBut data field. */
-  short flag;
-};
-
 /* #uiButtonGroup.flag. */
 enum uiButtonGroupFlag {
   /** While this flag is set, don't create new button groups for layout item calls. */
@@ -476,6 +465,17 @@ enum uiButtonGroupFlag {
   UI_BUTTON_GROUP_PANEL_HEADER = (1 << 1),
 };
 ENUM_OPERATORS(uiButtonGroupFlag, UI_BUTTON_GROUP_PANEL_HEADER);
+
+/**
+ * A group of button references, used by property search to keep track of sets of buttons that
+ * should be searched together. For example, in property split layouts number buttons and their
+ * labels (and even their decorators) are separate buttons, but they must be searched and
+ * highlighted together.
+ */
+struct uiButtonGroup {
+  blender::Vector<uiBut *> buttons;
+  uiButtonGroupFlag flag;
+};
 
 struct uiBlockDynamicListener {
   struct uiBlockDynamicListener *next, *prev;
@@ -493,7 +493,7 @@ struct uiBlock {
   /** Used for `UI_butstore_*` runtime function. */
   ListBase butstore;
 
-  ListBase button_groups; /* #uiButtonGroup. */
+  blender::Vector<uiButtonGroup> button_groups;
 
   ListBase layouts;
   uiLayout *curlayout;
@@ -1273,8 +1273,7 @@ void ui_item_paneltype_func(bContext *C, uiLayout *layout, void *arg_pt);
  */
 void ui_block_new_button_group(uiBlock *block, uiButtonGroupFlag flag);
 void ui_button_group_add_but(uiBlock *block, uiBut *but);
-void ui_button_group_replace_but_ptr(uiBlock *block, const void *old_but_ptr, uiBut *new_but);
-void ui_block_free_button_groups(uiBlock *block);
+void ui_button_group_replace_but_ptr(uiBlock *block, const uiBut *old_but_ptr, uiBut *new_but);
 
 /* interface_drag.cc */
 

@@ -80,7 +80,7 @@ void USDLightWriter::do_write(HierarchyContext &context)
       break;
     case LA_LOCAL: {
       pxr::UsdLuxSphereLight sphere_light = pxr::UsdLuxSphereLight::Define(stage, usd_path);
-      sphere_light.CreateRadiusAttr().Set(light->area_size, timecode);
+      sphere_light.CreateRadiusAttr().Set(light->radius, timecode);
 #if PXR_VERSION >= 2111
       usd_light_api = sphere_light.LightAPI();
 #else

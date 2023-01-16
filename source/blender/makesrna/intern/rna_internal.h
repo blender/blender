@@ -552,7 +552,7 @@ int rna_property_override_diff_default(struct Main *bmain,
                                        const char *rna_path,
                                        size_t rna_path_len,
                                        int flags,
-                                       bool *r_override_changed);
+                                       eRNAOverrideMatchResult *r_report_flag);
 
 bool rna_property_override_store_default(struct Main *bmain,
                                          struct PointerRNA *ptr_local,

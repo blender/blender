@@ -112,4 +112,68 @@ TEST(lazy_function, SideEffects)
   EXPECT_EQ(dst2, 105);
 }
 
+class PartialEvaluationTestFunction : public LazyFunction {
+ public:
+  PartialEvaluationTestFunction()
+  {
+    debug_name_ = "Partial Evaluation";
+    allow_missing_requested_inputs_ = true;
+
+    inputs_.append_as("A", CPPType::get<int>(), ValueUsage::Used);
+    inputs_.append_as("B", CPPType::get<int>(), ValueUsage::Used);
+
+    outputs_.append_as("A*2", CPPType::get<int>());
+    outputs_.append_as("B*5", CPPType::get<int>());
+  }
+
+  void execute_impl(Params &params, const Context & /*context*/) const override
+  {
+    if (!params.output_was_set(0)) {
+      if (int *a = params.try_get_input_data_ptr<int>(0)) {
+        params.set_output(0, *a * 2);
+      }
+    }
+    if (!params.output_was_set(1)) {
+      if (int *b = params.try_get_input_data_ptr<int>(1)) {
+        params.set_output(1, *b * 5);
+      }
+    }
+  }
+
+  void possible_output_dependencies(const int output_index,
+                                    FunctionRef<void(Span<int>)> fn) const override
+  {
+    /* Each output only depends on the input with the same index. */
+    const int input_index = output_index;
+    fn({input_index});
+  }
+};
+
+TEST(lazy_function, GraphWithCycle)
+{
+  const PartialEvaluationTestFunction fn;
+
+  Graph graph;
+  FunctionNode &fn_node = graph.add_function(fn);
+
+  DummyNode &input_node = graph.add_dummy({}, {&CPPType::get<int>()});
+  DummyNode &output_node = graph.add_dummy({&CPPType::get<int>()}, {});
+
+  graph.add_link(input_node.output(0), fn_node.input(0));
+  /* Note: This creates a cycle in the graph. However, it should still be possible to evaluate it,
+   * because there is no actual data dependency in the cycle. */
+  graph.add_link(fn_node.output(0), fn_node.input(1));
+  graph.add_link(fn_node.output(1), output_node.input(0));
+
+  graph.update_node_indices();
+
+  GraphExecutor executor_fn{
+      graph, {&input_node.output(0)}, {&output_node.input(0)}, nullptr, nullptr};
+  int result = 0;
+  execute_lazy_function_eagerly(
+      executor_fn, nullptr, std::make_tuple(10), std::make_tuple(&result));
+
+  EXPECT_EQ(result, 10 * 2 * 5);
+}
+
 }  // namespace blender::fn::lazy_function::tests

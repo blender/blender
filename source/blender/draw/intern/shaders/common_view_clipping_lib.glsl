@@ -7,12 +7,12 @@ void view_clipping_distances(vec3 wpos)
 {
 #  ifdef USE_WORLD_CLIP_PLANES
   vec4 pos_4d = vec4(wpos, 1.0);
-  gl_ClipDistance[0] = dot(drw_clipping[0], pos_4d);
-  gl_ClipDistance[1] = dot(drw_clipping[1], pos_4d);
-  gl_ClipDistance[2] = dot(drw_clipping[2], pos_4d);
-  gl_ClipDistance[3] = dot(drw_clipping[3], pos_4d);
-  gl_ClipDistance[4] = dot(drw_clipping[4], pos_4d);
-  gl_ClipDistance[5] = dot(drw_clipping[5], pos_4d);
+  gl_ClipDistance[0] = dot(drw_clipping_[0], pos_4d);
+  gl_ClipDistance[1] = dot(drw_clipping_[1], pos_4d);
+  gl_ClipDistance[2] = dot(drw_clipping_[2], pos_4d);
+  gl_ClipDistance[3] = dot(drw_clipping_[3], pos_4d);
+  gl_ClipDistance[4] = dot(drw_clipping_[4], pos_4d);
+  gl_ClipDistance[5] = dot(drw_clipping_[5], pos_4d);
 #  endif
 }
 

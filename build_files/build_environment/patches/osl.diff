@@ -1,7 +1,8 @@
-diff -Naur OpenShadingLanguage-1.12.6.2/CMakeLists.txt external_osl/CMakeLists.txt
---- OpenShadingLanguage-1.12.6.2/CMakeLists.txt	2022-09-30 17:43:53 -0600
-+++ external_osl/CMakeLists.txt	2022-10-15 14:49:26 -0600
-@@ -101,6 +101,11 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d527232..5ad6eaa 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -99,6 +99,11 @@ set (OSL_PTX_INSTALL_DIR "${CMAKE_INSTALL_FULL_DATADIR}/${PROJECT_NAME}/ptx"
       CACHE STRING "Directory where OptiX PTX files will be installed")
  set (CMAKE_DEBUG_POSTFIX "" CACHE STRING "Library naming postfix for Debug builds (e.g., '_debug')")
  
@@ -13,10 +14,11 @@ diff -Naur OpenShadingLanguage-1.12.6.2/CMakeLists.txt external_osl/CMakeLists.t
  
  set (OSL_NO_DEFAULT_TEXTURESYSTEM OFF CACHE BOOL "Do not use create a raw OIIO::TextureSystem")
  if (OSL_NO_DEFAULT_TEXTURESYSTEM)
-diff -Naur OpenShadingLanguage-1.12.6.2/src/cmake/externalpackages.cmake external_osl/src/cmake/externalpackages.cmake
---- OpenShadingLanguage-1.12.6.2/src/cmake/externalpackages.cmake	2022-09-30 17:43:53 -0600
-+++ external_osl/src/cmake/externalpackages.cmake	2022-10-15 14:49:26 -0600
-@@ -77,6 +77,7 @@
+diff --git a/src/cmake/externalpackages.cmake b/src/cmake/externalpackages.cmake
+index a7e098b..dad11d0 100644
+--- a/src/cmake/externalpackages.cmake
++++ b/src/cmake/externalpackages.cmake
+@@ -77,6 +77,7 @@ link_directories ("${Boost_LIBRARY_DIRS}")
  
  
  checked_find_package (ZLIB REQUIRED)  # Needed by several packages
@@ -24,30 +26,10 @@ diff -Naur OpenShadingLanguage-1.12.6.2/src/cmake/externalpackages.cmake externa
  
  # IlmBase & OpenEXR
  checked_find_package (OpenEXR REQUIRED
-diff -Naur OpenShadingLanguage-1.12.6.2/src/include/OSL/llvm_util.h external_osl/src/include/OSL/llvm_util.h
---- OpenShadingLanguage-1.12.6.2/src/include/OSL/llvm_util.h	2022-09-30 17:43:53 -0600
-+++ external_osl/src/include/OSL/llvm_util.h	2022-10-15 15:37:24 -0600
-@@ -9,6 +9,8 @@
- #include <unordered_set>
- #include <vector>
- 
-+#define OSL_HAS_BLENDER_CLEANUP_FIX
-+
- #ifdef LLVM_NAMESPACE
- namespace llvm = LLVM_NAMESPACE;
- #endif
-@@ -455,7 +457,7 @@
-     llvm::BasicBlock* masked_return_block() const;
- 
-     bool is_masking_required() const { return m_is_masking_required; }
--
-+    static void Cleanup ();
-     struct ScopedMasking {
-         ScopedMasking() {}
- 
-diff -Naur OpenShadingLanguage-1.12.6.2/src/liboslcomp/oslcomp.cpp external_osl/src/liboslcomp/oslcomp.cpp
---- OpenShadingLanguage-1.12.6.2/src/liboslcomp/oslcomp.cpp	2022-09-30 17:43:53 -0600
-+++ external_osl/src/liboslcomp/oslcomp.cpp	2022-10-15 14:49:26 -0600
+diff --git a/src/liboslcomp/oslcomp.cpp b/src/liboslcomp/oslcomp.cpp
+index 8c2e77b..211b8a7 100644
+--- a/src/liboslcomp/oslcomp.cpp
++++ b/src/liboslcomp/oslcomp.cpp
 @@ -21,6 +21,13 @@
  #if !defined(__STDC_CONSTANT_MACROS)
  #    define __STDC_CONSTANT_MACROS 1
@@ -62,50 +44,34 @@ diff -Naur OpenShadingLanguage-1.12.6.2/src/liboslcomp/oslcomp.cpp external_osl/
  #include <clang/Basic/TargetInfo.h>
  #include <clang/Frontend/CompilerInstance.h>
  #include <clang/Frontend/TextDiagnosticPrinter.h>
-diff -Naur OpenShadingLanguage-1.12.6.2/src/liboslexec/llvm_util.cpp external_osl/src/liboslexec/llvm_util.cpp
---- OpenShadingLanguage-1.12.6.2/src/liboslexec/llvm_util.cpp	2022-09-30 17:43:53 -0600
-+++ external_osl/src/liboslexec/llvm_util.cpp	2022-10-15 15:53:11 -0600
-@@ -116,8 +116,6 @@
-     return { A.data(), size_t(A.size()) };
+diff --git a/src/liboslexec/llvm_instance.cpp b/src/liboslexec/llvm_instance.cpp
+index 8f52546..8c2d0c7 100644
+--- a/src/liboslexec/llvm_instance.cpp
++++ b/src/liboslexec/llvm_instance.cpp
+@@ -1363,6 +1363,10 @@ BackendLLVM::run()
+ #ifdef OSL_LLVM_NO_BITCODE
+         OSL_ASSERT(!use_rs_bitcode());
+         ll.module(ll.new_module("llvm_ops"));
++        if (use_optix()) {
++            ll.module()->setDataLayout("e-i64:64-i128:128-v16:16-v32:32-n16:32:64");
++            ll.module()->setTargetTriple("nvptx64-nvidia-cuda");
++        }
+ #else
+         if (!use_optix()) {
+             if (use_rs_bitcode()) {
+diff --git a/src/liboslexec/shadingsys.cpp b/src/liboslexec/shadingsys.cpp
+index 46e4529..8e86486 100644
+--- a/src/liboslexec/shadingsys.cpp
++++ b/src/liboslexec/shadingsys.cpp
+@@ -2121,6 +2121,11 @@ ShadingSystemImpl::getattribute(ShaderGroup* group, string_view name,
+         return true;
+     }
+ 
++    if (name == "groupdata_size" && type == TypeDesc::TypeInt) {
++        *(int*)val = (int)group->m_llvm_groupdata_size;
++        return true;
++    }
++
+     return false;
  }
  
--
--
- namespace pvt {
- 
- typedef llvm::SectionMemoryManager LLVMMemoryManager;
-@@ -182,6 +180,13 @@
-     ++jit_mem_hold_users;
- }
- 
-+void
-+LLVM_Util::Cleanup()
-+{
-+    if (jitmm_hold)
-+        jitmm_hold->clear();
-+}
-+
- 
- LLVM_Util::ScopedJitMemoryUser::~ScopedJitMemoryUser()
- {
-diff --git a/src/include/OSL/mask.h b/src/include/OSL/mask.h
-index 24197af..b9275f6 100644
---- a/src/include/OSL/mask.h
-+++ b/src/include/OSL/mask.h
-@@ -4,7 +4,6 @@
- 
- #pragma once
- 
--#include <immintrin.h>
- #include <type_traits>
- 
- #include <OSL/oslconfig.h>
-@@ -23,6 +22,8 @@ using std::countr_zero;
- 
- #elif OSL_INTEL_CLASSIC_COMPILER_VERSION
- 
-+#include <immintrin.h>
-+
- OSL_FORCEINLINE int popcount(uint32_t x) noexcept { return _mm_popcnt_u32(x);}
- OSL_FORCEINLINE int popcount(uint64_t x) noexcept { return _mm_popcnt_u64(x); }
- OSL_FORCEINLINE int countr_zero(uint32_t x) noexcept { return _bit_scan_forward(x); }

@@ -95,6 +95,10 @@
 #  include "sdlew.h"
 #endif
 
+#ifdef WITH_USD
+#  include "usd.h"
+#endif
+
 #include "creator_intern.h" /* Own include. */
 
 /* -------------------------------------------------------------------- */
@@ -470,6 +474,10 @@ int main(int argc,
 
   /* Initialize sub-systems that use `BKE_appdir.h`. */
   IMB_init();
+
+#ifdef WITH_USD
+  USD_ensure_plugin_path_registered();
+#endif
 
 #ifndef WITH_PYTHON_MODULE
   /* First test for background-mode (#Global.background) */

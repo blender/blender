@@ -42,6 +42,8 @@ ScopedTimerAveraged::~ScopedTimerAveraged()
   print_duration(total_time_ / total_count_);
   std::cout << ", Min: ";
   print_duration(min_time_);
+  std::cout << ", Last: ";
+  print_duration(duration);
   std::cout << ")\n";
 }
 

@@ -671,6 +671,24 @@ TEST(map, LookupKey)
   EXPECT_EQ(map.lookup_key_ptr("a"), map.lookup_key_ptr_as("a"));
 }
 
+TEST(map, VectorKey)
+{
+  Map<Vector<int>, int> map;
+  map.add({1, 2, 3}, 100);
+  map.add({3, 2, 1}, 200);
+
+  EXPECT_EQ(map.size(), 2);
+  EXPECT_EQ(map.lookup({1, 2, 3}), 100);
+  EXPECT_EQ(map.lookup({3, 2, 1}), 200);
+  EXPECT_FALSE(map.contains({1, 2}));
+
+  std::array<int, 3> array = {1, 2, 3};
+  EXPECT_EQ(map.lookup_as(array), 100);
+
+  map.remove_as(Vector<int>({1, 2, 3}).as_mutable_span());
+  EXPECT_EQ(map.size(), 1);
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */

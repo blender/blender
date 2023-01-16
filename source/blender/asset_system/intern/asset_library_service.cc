@@ -7,8 +7,6 @@
 #include "BKE_blender.h"
 #include "BKE_preferences.h"
 
-#include "BLI_fileops.h" /* For PATH_MAX (at least on Windows). */
-#include "BLI_path_util.h"
 #include "BLI_string_ref.hh"
 
 #include "DNA_asset_types.h"
@@ -81,7 +79,8 @@ AssetLibrary *AssetLibraryService::get_asset_library(
       if (!root_path.empty()) {
         return get_asset_library_on_disk(root_path);
       }
-    } break;
+      break;
+    }
   }
 
   return nullptr;
@@ -109,7 +108,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(StringRefNull root_
   lib->on_blend_save_handler_register();
   lib->load_catalogs();
   /* Reload catalogs on refresh. */
-  lib->on_refresh_ = [lib]() { lib->catalog_service->reload_catalogs(); };
+  lib->on_refresh_ = [](AssetLibrary &self) { self.catalog_service->reload_catalogs(); };
 
   on_disk_libraries_.add_new(normalized_root_path, std::move(lib_uptr));
   CLOG_INFO(&LOG, 2, "get \"%s\" (loaded)", normalized_root_path.c_str());
@@ -130,6 +129,23 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file()
 
   AssetLibrary *lib = current_file_library_.get();
   return lib;
+}
+
+static void rebuild_all_library(AssetLibrary &all_library, const bool reload_catalogs)
+{
+  /* Start with empty catalog storage. */
+  all_library.catalog_service = std::make_unique<AssetCatalogService>(
+      AssetCatalogService::read_only_tag());
+
+  AssetLibrary::foreach_loaded(
+      [&](AssetLibrary &nested) {
+        if (reload_catalogs) {
+          nested.catalog_service->reload_catalogs();
+        }
+        all_library.catalog_service->add_from_existing(*nested.catalog_service);
+      },
+      false);
+  all_library.catalog_service->rebuild_tree();
 }
 
 AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
@@ -154,29 +170,14 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
   CLOG_INFO(&LOG, 2, "get all lib (loaded)");
   all_library_ = std::make_unique<AssetLibrary>();
 
-  AssetLibrary &all_library = *all_library_;
-  auto build_catalogs_fn = [&all_library](const bool is_first_load) {
-    /* Start with empty catalog storage. */
-    all_library.catalog_service = std::make_unique<AssetCatalogService>(
-        AssetCatalogService::read_only_tag());
+  /* Don't reload catalogs on this initial read, they've just been loaded above. */
+  rebuild_all_library(*all_library_, /*reload_catlogs=*/false);
 
-    /* (Re-)load catalogs on refresh. */
-    AssetLibrary::foreach_loaded(
-        [&](AssetLibrary &nested) {
-          /* On first load the catalogs were read just above, no need to reload. */
-          if (!is_first_load) {
-            nested.catalog_service->reload_catalogs();
-          }
-          all_library.catalog_service->add_from_existing(*nested.catalog_service);
-        },
-        false);
-    all_library.catalog_service->rebuild_tree();
+  all_library_->on_refresh_ = [](AssetLibrary &all_library) {
+    rebuild_all_library(all_library, /*reload_catalogs=*/true);
   };
 
-  build_catalogs_fn(true);
-  all_library.on_refresh_ = [build_catalogs_fn]() { build_catalogs_fn(false); };
-
-  return &all_library;
+  return all_library_.get();
 }
 
 std::string AssetLibraryService::root_path_from_library_ref(

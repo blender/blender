@@ -420,13 +420,14 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
   if (wm->is_interface_locked) {
     return;
   }
-  /* Combine data-masks so one window doesn't disable UV's in another T26448. */
+  /* Combine data-masks so one window doesn't disable UVs in another T26448. */
   CustomData_MeshMasks win_combine_v3d_datamask = {0};
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     const Scene *scene = WM_window_get_active_scene(win);
+    ViewLayer *view_layer = WM_window_get_active_view_layer(win);
     const bScreen *screen = WM_window_get_active_screen(win);
 
-    ED_view3d_screen_datamask(C, scene, screen, &win_combine_v3d_datamask);
+    ED_view3d_screen_datamask(scene, view_layer, screen, &win_combine_v3d_datamask);
   }
   /* Update all the dependency graphs of visible view layers. */
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
@@ -1517,8 +1518,8 @@ static int wm_operator_invoke(bContext *C,
       /* Grab cursor during blocking modal operators (X11)
        * Also check for macro. */
       if (ot->flag & OPTYPE_BLOCKING || (op->opm && op->opm->type->flag & OPTYPE_BLOCKING)) {
-        int bounds[4] = {-1, -1, -1, -1};
-        int wrap = WM_CURSOR_WRAP_NONE;
+        eWM_CursorWrapAxis wrap = WM_CURSOR_WRAP_NONE;
+        const rcti *wrap_region = nullptr;
 
         if (event && (U.uiflag & USER_CONTINUOUS_MOUSE)) {
           const wmOperator *op_test = op->opm ? op->opm : op;
@@ -1536,7 +1537,6 @@ static int wm_operator_invoke(bContext *C,
         }
 
         if (wrap) {
-          const rcti *winrect = nullptr;
           ARegion *region = CTX_wm_region(C);
           ScrArea *area = CTX_wm_area(C);
 
@@ -1547,21 +1547,14 @@ static int wm_operator_invoke(bContext *C,
 
           if (region && region->regiontype == RGN_TYPE_WINDOW &&
               BLI_rcti_isect_pt_v(&region->winrct, event->xy)) {
-            winrect = &region->winrct;
+            wrap_region = &region->winrct;
           }
           else if (area && BLI_rcti_isect_pt_v(&area->totrct, event->xy)) {
-            winrect = &area->totrct;
-          }
-
-          if (winrect) {
-            bounds[0] = winrect->xmin;
-            bounds[1] = winrect->ymax;
-            bounds[2] = winrect->xmax;
-            bounds[3] = winrect->ymin;
+            wrap_region = &area->totrct;
           }
         }
 
-        WM_cursor_grab_enable(CTX_wm_window(C), wrap, false, bounds);
+        WM_cursor_grab_enable(CTX_wm_window(C), wrap, wrap_region, false);
       }
 
       /* Cancel UI handlers, typically tool-tips that can hang around
@@ -2673,7 +2666,9 @@ static int wm_handler_fileselect_do(bContext *C,
 
             wm_window_close(C, wm, win);
 
-            CTX_wm_window_set(C, root_win); /* #wm_window_close() nullptrs. */
+            /* #wm_window_close() sets the context's window to null. */
+            CTX_wm_window_set(C, root_win);
+
             /* Some operators expect a drawable context (for #EVT_FILESELECT_EXEC). */
             wm_window_make_drawable(wm, root_win);
             /* Ensure correct cursor position, otherwise, popups may close immediately after
@@ -3581,10 +3576,10 @@ static ARegion *region_event_inside(bContext *C, const int xy[2])
   return nullptr;
 }
 
-static void wm_paintcursor_tag(bContext *C, wmPaintCursor *pc, ARegion *region)
+static void wm_paintcursor_tag(bContext *C, wmWindowManager *wm, ARegion *region)
 {
   if (region) {
-    for (; pc; pc = pc->next) {
+    LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->paintcursors) {
       if (pc->poll == nullptr || pc->poll(C)) {
         wmWindow *win = CTX_wm_window(C);
         WM_paint_cursor_tag_redraw(win, region);
@@ -3606,7 +3601,7 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
     ARegion *region = CTX_wm_region(C);
 
     if (region) {
-      wm_paintcursor_tag(C, static_cast<wmPaintCursor *>(wm->paintcursors.first), region);
+      wm_paintcursor_tag(C, wm, region);
     }
 
     /* If previous position was not in current region, we have to set a temp new context. */
@@ -3616,8 +3611,7 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
       CTX_wm_area_set(C, area_event_inside(C, event->prev_xy));
       CTX_wm_region_set(C, region_event_inside(C, event->prev_xy));
 
-      wm_paintcursor_tag(
-          C, static_cast<wmPaintCursor *>(wm->paintcursors.first), CTX_wm_region(C));
+      wm_paintcursor_tag(C, wm, CTX_wm_region(C));
 
       CTX_wm_area_set(C, area);
       CTX_wm_region_set(C, region);
@@ -3823,6 +3817,9 @@ void wm_event_do_handlers(bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
   BLI_assert(ED_undo_is_state_valid(C));
 
+  /* Begin GPU render boundary - Certain event handlers require GPU usage. */
+  GPU_render_begin();
+
   /* Update key configuration before handling events. */
   WM_keyconfig_update(wm);
   WM_gizmoconfig_update(CTX_data_main(C));
@@ -3962,6 +3959,7 @@ void wm_event_do_handlers(bContext *C)
       /* File-read case. */
       if (CTX_wm_window(C) == nullptr) {
         wm_event_free_and_remove_from_queue_if_valid(event);
+        GPU_render_end();
         return;
       }
 
@@ -4016,6 +4014,7 @@ void wm_event_do_handlers(bContext *C)
             /* File-read case (Python), T29489. */
             if (CTX_wm_window(C) == nullptr) {
               wm_event_free_and_remove_from_queue_if_valid(event);
+              GPU_render_end();
               return;
             }
 
@@ -4044,6 +4043,7 @@ void wm_event_do_handlers(bContext *C)
           /* File-read case. */
           if (CTX_wm_window(C) == nullptr) {
             wm_event_free_and_remove_from_queue_if_valid(event);
+            GPU_render_end();
             return;
           }
         }
@@ -4094,6 +4094,9 @@ void wm_event_do_handlers(bContext *C)
   /* Update key configuration after handling events. */
   WM_keyconfig_update(wm);
   WM_gizmoconfig_update(CTX_data_main(C));
+
+  /* End GPU render boundary. Certain event handlers require GPU usage. */
+  GPU_render_end();
 }
 
 /** \} */
@@ -4425,7 +4428,7 @@ static void wm_event_get_keymap_from_toolsystem_ex(wmWindowManager *wm,
 
   if (is_gizmo_visible && !is_gizmo_highlight) {
     if (keymap_id_list_len == 2) {
-      SWAP(const char *, keymap_id_list[0], keymap_id_list[1]);
+      std::swap(keymap_id_list[0], keymap_id_list[1]);
     }
   }
 

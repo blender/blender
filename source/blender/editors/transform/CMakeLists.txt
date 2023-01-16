@@ -63,8 +63,7 @@ set(SRC
   transform_mode_boneenvelope.c
   transform_mode_boneroll.c
   transform_mode_curveshrinkfatten.c
-  transform_mode_edge_bevelweight.c
-  transform_mode_edge_crease.c
+  transform_mode_customdata.c
   transform_mode_edge_rotate_normal.c
   transform_mode_edge_seq_slide.c
   transform_mode_edge_slide.c

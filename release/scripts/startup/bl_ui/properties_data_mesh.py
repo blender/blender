@@ -551,7 +551,7 @@ class MESH_UL_attributes(UIList):
         return flags, indices
 
     def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
-        data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
+        data_type = attribute.bl_rna.properties["data_type"].enum_items[attribute.data_type]
 
         domain_name = self.display_domain_names.get(attribute.domain, "")
 
@@ -605,9 +605,8 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         colliding_names = []
         for collection in (
                 # Built-in names.
-                {"position": None, "shade_smooth": None, "normal": None, "crease": None},
+                {"shade_smooth": None, "normal": None, "crease": None},
                 mesh.attributes,
-                mesh.uv_layers,
                 None if ob is None else ob.vertex_groups,
         ):
             if collection is None:
@@ -658,7 +657,7 @@ class ColorAttributesListBase():
 
 class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
     def draw_item(self, _context, layout, data, attribute, _icon, _active_data, _active_propname, _index):
-        data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
+        data_type = attribute.bl_rna.properties["data_type"].enum_items[attribute.data_type]
 
         domain_name = self.display_domain_names.get(attribute.domain, "")
 

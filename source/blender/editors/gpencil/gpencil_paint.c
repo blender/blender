@@ -962,11 +962,15 @@ static bGPDstroke *gpencil_stroke_to_outline(tGPsdata *p, bGPDstroke *gps)
 
   /* Set pressure constant. */
   gps_perimeter->thickness = max_ii((int)outline_thickness, 1);
+  /* Apply Fill Vertex Color data. */
+  ED_gpencil_fill_vertex_color_set(p->scene->toolsettings, brush, gps_perimeter);
 
   bGPDspoint *pt;
   for (int i = 0; i < gps_perimeter->totpoints; i++) {
     pt = &gps_perimeter->points[i];
     pt->pressure = 1.0f;
+    /* Apply Point Vertex Color data. */
+    ED_gpencil_point_vertex_color_set(p->scene->toolsettings, brush, pt, NULL);
   }
 
   /* Remove original stroke. */
@@ -2425,7 +2429,7 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
     immUniformColor4f(1.0f, 0.39f, 0.39f, 0.78f);
     immUniform1i("colors_len", 0); /* "simple" mode */
     immUniform1f("dash_width", 12.0f);
-    immUniform1f("dash_factor", 0.5f);
+    immUniform1f("udash_factor", 0.5f);
 
     imm_draw_circle_wire_2d(shdr_pos,
                             x,

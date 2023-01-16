@@ -57,8 +57,8 @@ static PyNumberMethods nature_as_number = {
     /*nb_inplace_floor_divide*/ nullptr,
     /*nb_inplace_true_divide*/ nullptr,
     /*nb_index*/ nullptr,
-    /*nb_matrix_multiply*/ NULL,
-    /*nb_inplace_matrix_multiply*/ NULL,
+    /*nb_matrix_multiply*/ nullptr,
+    /*nb_inplace_matrix_multiply*/ nullptr,
 };
 
 /*-----------------------BPy_Nature docstring ------------------------------------*/

@@ -39,7 +39,6 @@ struct ImageUser;
 struct ListBase;
 struct MLoop;
 struct MLoopTri;
-struct MVert;
 struct Main;
 struct Mesh;
 struct MeshElemMap;
@@ -516,6 +515,11 @@ typedef struct SculptAttribute {
   int elem_size, elem_num;
   bool data_for_bmesh; /* Temporary data store as array outside of bmesh. */
 
+  /* Data is a flat array outside the CustomData system.
+   * This will be true if simple_array is requested in
+   * SculptAttributeParams, or the PBVH type is PBVH_GRIDS or PBVH_BMESH.
+   */
+  bool simple_array;
   /* Data stored per BMesh element. */
   int bmesh_cd_offset;
 
@@ -572,7 +576,7 @@ typedef struct SculptSession {
   struct Depsgraph *depsgraph;
 
   /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
-  struct MVert *mvert;
+  float (*vert_positions)[3];
   const struct MPoly *mpoly;
   const struct MLoop *mloop;
 
@@ -627,8 +631,6 @@ typedef struct SculptSession {
 
   /* PBVH acceleration structure */
   struct PBVH *pbvh;
-  bool show_mask;
-  bool show_face_sets;
 
   /* Painting on deformed mesh */
   bool deform_modifiers_active; /* Object is deformed with some modifiers. */

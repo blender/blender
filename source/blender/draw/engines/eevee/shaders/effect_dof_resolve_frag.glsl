@@ -10,28 +10,6 @@
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 
-uniform sampler2D fullResColorBuffer;
-uniform sampler2D fullResDepthBuffer;
-
-uniform sampler2D bgColorBuffer;
-uniform sampler2D bgWeightBuffer;
-uniform sampler2D bgTileBuffer;
-
-uniform sampler2D fgColorBuffer;
-uniform sampler2D fgWeightBuffer;
-uniform sampler2D fgTileBuffer;
-
-uniform sampler2D holefillColorBuffer;
-uniform sampler2D holefillWeightBuffer;
-
-uniform sampler2D bokehLut;
-
-uniform float bokehMaxSize;
-
-in vec4 uvcoordsvar;
-
-out vec4 fragColor;
-
 void dof_slight_focus_gather(float radius, out vec4 out_color, out float out_weight)
 {
   /* offset coord to avoid correlation with sampling pattern. */

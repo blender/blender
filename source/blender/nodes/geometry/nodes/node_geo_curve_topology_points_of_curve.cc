@@ -22,10 +22,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supports_field()
       .description(N_("Which of the sorted points to output"));
   b.add_output<decl::Int>(N_("Point Index"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(N_("A point of the curve, chosen by the sort index"));
   b.add_output<decl::Int>(N_("Total"))
-      .dependent_field()
+      .field_source()
+      .reference_pass({0})
       .description(N_("The number of points in the curve"));
 }
 
@@ -98,6 +99,13 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
     });
 
     return VArray<int>::ForContainer(std::move(point_of_curve));
+  }
+
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
+  {
+    curve_index_.node().for_each_field_input_recursive(fn);
+    sort_index_.node().for_each_field_input_recursive(fn);
+    sort_weight_.node().for_each_field_input_recursive(fn);
   }
 
   uint64_t hash() const override

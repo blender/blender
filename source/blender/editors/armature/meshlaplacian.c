@@ -78,8 +78,8 @@ struct LaplacianSystem {
     const MLoop *mloop; /* needed to find vertices by index */
     int verts_num;
     int tris_num;
-    float (*verts)[3]; /* vertex coordinates */
-    float (*vnors)[3]; /* vertex normals */
+    float (*verts)[3];        /* vertex coordinates */
+    float (*vert_normals)[3]; /* vertex normals */
 
     float (*root)[3]; /* bone root */
     float (*tip)[3];  /* bone tip */
@@ -489,7 +489,7 @@ static float heat_source_distance(LaplacianSystem *sys, int vertex, int source)
   dist = normalize_v3(d);
 
   /* if the vertex normal does not point along the bone, increase distance */
-  cosine = dot_v3v3(d, sys->heat.vnors[vertex]);
+  cosine = dot_v3v3(d, sys->heat.vert_normals[vertex]);
 
   return dist / (0.5f * (cosine + 1.001f));
 }
@@ -553,7 +553,7 @@ static void heat_calc_vnormals(LaplacianSystem *sys)
   float fnor[3];
   int a, v1, v2, v3, (*face)[3];
 
-  sys->heat.vnors = MEM_callocN(sizeof(float[3]) * sys->verts_num, "HeatVNors");
+  sys->heat.vert_normals = MEM_callocN(sizeof(float[3]) * sys->verts_num, "HeatVNors");
 
   for (a = 0, face = sys->faces; a < sys->faces_num; a++, face++) {
     v1 = (*face)[0];
@@ -562,13 +562,13 @@ static void heat_calc_vnormals(LaplacianSystem *sys)
 
     normal_tri_v3(fnor, sys->verts[v1], sys->verts[v2], sys->verts[v3]);
 
-    add_v3_v3(sys->heat.vnors[v1], fnor);
-    add_v3_v3(sys->heat.vnors[v2], fnor);
-    add_v3_v3(sys->heat.vnors[v3], fnor);
+    add_v3_v3(sys->heat.vert_normals[v1], fnor);
+    add_v3_v3(sys->heat.vert_normals[v2], fnor);
+    add_v3_v3(sys->heat.vert_normals[v3], fnor);
   }
 
   for (a = 0; a < sys->verts_num; a++) {
-    normalize_v3(sys->heat.vnors[a]);
+    normalize_v3(sys->heat.vert_normals[a]);
   }
 }
 
@@ -615,7 +615,7 @@ static void heat_system_free(LaplacianSystem *sys)
   MEM_freeN(sys->heat.mindist);
   MEM_freeN(sys->heat.H);
   MEM_freeN(sys->heat.p);
-  MEM_freeN(sys->heat.vnors);
+  MEM_freeN(sys->heat.vert_normals);
 }
 
 static float heat_limit_weight(float weight)
@@ -652,7 +652,7 @@ void heat_bone_weighting(Object *ob,
   int a, tris_num, j, bbone, firstsegment, lastsegment;
   bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
-  const MVert *mesh_verts = BKE_mesh_verts(me);
+  const float(*vert_positions)[3] = BKE_mesh_vert_positions(me);
   const MPoly *polys = BKE_mesh_polys(me);
   const MLoop *loops = BKE_mesh_loops(me);
   bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
@@ -700,7 +700,7 @@ void heat_bone_weighting(Object *ob,
   sys->heat.tris_num = poly_to_tri_count(me->totpoly, me->totloop);
   mlooptri = MEM_mallocN(sizeof(*sys->heat.mlooptri) * sys->heat.tris_num, __func__);
 
-  BKE_mesh_recalc_looptri(loops, polys, mesh_verts, me->totloop, me->totpoly, mlooptri);
+  BKE_mesh_recalc_looptri(loops, polys, vert_positions, me->totloop, me->totpoly, mlooptri);
 
   sys->heat.mlooptri = mlooptri;
   sys->heat.mloop = loops;
@@ -1753,7 +1753,6 @@ void ED_mesh_deform_bind_callback(Object *object,
   MeshDeformModifierData *mmd_orig = (MeshDeformModifierData *)BKE_modifier_get_original(
       object, &mmd->modifier);
   MeshDeformBind mdb;
-  const MVert *mvert;
   int a;
 
   waitcursor(1);
@@ -1773,9 +1772,9 @@ void ED_mesh_deform_bind_callback(Object *object,
   mdb.cagecos = MEM_callocN(sizeof(*mdb.cagecos) * mdb.cage_verts_num, "MeshDeformBindCos");
   copy_m4_m4(mdb.cagemat, cagemat);
 
-  mvert = BKE_mesh_verts(mdb.cagemesh);
+  const float(*positions)[3] = BKE_mesh_vert_positions(mdb.cagemesh);
   for (a = 0; a < mdb.cage_verts_num; a++) {
-    copy_v3_v3(mdb.cagecos[a], mvert[a].co);
+    copy_v3_v3(mdb.cagecos[a], positions[a]);
   }
   for (a = 0; a < mdb.verts_num; a++) {
     mul_v3_m4v3(mdb.vertexcos[a], mdb.cagemat, vertexcos + a * 3);

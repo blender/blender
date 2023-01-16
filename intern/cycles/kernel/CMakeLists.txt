@@ -299,12 +299,12 @@ set(SRC_KERNEL_LIGHT_HEADERS
 )
 
 set(SRC_KERNEL_SAMPLE_HEADERS
-  sample/jitter.h
   sample/lcg.h
   sample/mapping.h
   sample/mis.h
   sample/pattern.h
   sample/sobol_burley.h
+  sample/tabulated_sobol.h
   sample/util.h
 )
 
@@ -728,8 +728,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     ${SRC_UTIL_HEADERS}
   )
 
-  set (SYCL_OFFLINE_COMPILER_PARALLEL_JOBS 1 CACHE STRING "Number of parallel compiler instances to use for device binaries compilation (expect ~8GB peak memory usage per instance).")
-  if (WITH_CYCLES_ONEAPI_BINARIES)
+  set(SYCL_OFFLINE_COMPILER_PARALLEL_JOBS 1 CACHE STRING "Number of parallel compiler instances to use for device binaries compilation (expect ~8GB peak memory usage per instance).")
+  if(WITH_CYCLES_ONEAPI_BINARIES)
     message(STATUS "${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS} instance(s) of oneAPI offline compiler will be used.")
   endif()
   # SYCL_CPP_FLAGS is a variable that the user can set to pass extra compiler options
@@ -752,26 +752,31 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       ${SYCL_CPP_FLAGS}
       )
 
+  if (WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
+    list(APPEND sycl_compiler_flags -DWITH_ONEAPI_SYCL_HOST_TASK)
+  endif()
+
   # Set defaults for spir64 and spir64_gen options
-  if (NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64)
+  if(NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64)
     set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64 "-options '-ze-opt-large-register-file -ze-opt-regular-grf-kernel integrator_intersect'")
   endif()
-  if (NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen)
-    SET (CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}" CACHE STRING "Extra build options for spir64_gen target")
+  if(NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen)
+    set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}" CACHE STRING "Extra build options for spir64_gen target")
   endif()
   # Enable zebin, a graphics binary format with improved compatibility.
   string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "--format zebin ")
   string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "-device ${CYCLES_ONEAPI_SPIR64_GEN_DEVICES} ")
 
-  if (WITH_CYCLES_ONEAPI_BINARIES)
+  # Host execution won't use GPU binaries, no need to compile them.
+  if(WITH_CYCLES_ONEAPI_BINARIES AND NOT WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
     # AoT binaries aren't currently reused when calling sycl::build.
-    list (APPEND sycl_compiler_flags -DSYCL_SKIP_KERNELS_PRELOAD)
+    list(APPEND sycl_compiler_flags -DSYCL_SKIP_KERNELS_PRELOAD)
     # Iterate over all targest and their options
-    list (JOIN CYCLES_ONEAPI_SYCL_TARGETS "," targets_string)
-    list (APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
+    list(JOIN CYCLES_ONEAPI_SYCL_TARGETS "," targets_string)
+    list(APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
     foreach(target ${CYCLES_ONEAPI_SYCL_TARGETS})
       if(DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_${target})
-        list (APPEND sycl_compiler_flags -Xsycl-target-backend=${target} "${CYCLES_ONEAPI_SYCL_OPTIONS_${target}}")
+        list(APPEND sycl_compiler_flags -Xsycl-target-backend=${target} "${CYCLES_ONEAPI_SYCL_OPTIONS_${target}}")
       endif()
     endforeach()
   else()
@@ -860,8 +865,9 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   else()
     list(APPEND sycl_compiler_flags -fPIC)
 
-    # We avoid getting __FAST_MATH__ to be defined when building on CentOS 7 until the compilation
+    # We avoid getting __FAST_MATH__ to be defined when building on CentOS-7 until the compilation
     # crash it triggers at either AoT or JIT stages gets fixed.
+    # TODO: check if this is still needed on Rocky-8.
     list(APPEND sycl_compiler_flags -fhonor-nans)
 
     # add $ORIGIN to cycles_kernel_oneapi.so rpath so libsycl.so and

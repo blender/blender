@@ -32,7 +32,7 @@ set(SRC
   file_panels.c
   file_utils.c
   filelist.cc
-  filesel.c
+  filesel.cc
   folder_history.cc
   fsmenu.c
   space_file.c

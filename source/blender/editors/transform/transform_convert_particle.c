@@ -241,7 +241,7 @@ static void flushTransParticles(TransInfo *t)
 static void recalcData_particles(TransInfo *t)
 {
   if (t->state != TRANS_CANCEL) {
-    applySnappingIndividual(t);
+    transform_snap_project_individual_apply(t);
   }
   flushTransParticles(t);
 }
@@ -249,8 +249,8 @@ static void recalcData_particles(TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_Particle = {
-    /* flags */ T_POINTS,
-    /* createTransData */ createTransParticleVerts,
-    /* recalcData */ recalcData_particles,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ T_POINTS,
+    /*createTransData*/ createTransParticleVerts,
+    /*recalcData*/ recalcData_particles,
+    /*special_aftertrans_update*/ NULL,
 };

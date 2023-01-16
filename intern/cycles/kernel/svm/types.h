@@ -136,6 +136,7 @@ typedef enum NodeMix {
   NODE_MIX_COL,
   NODE_MIX_SOFT,
   NODE_MIX_LINEAR,
+  NODE_MIX_EXCLUSION,
   NODE_MIX_CLAMP /* used for the clamp UI option */
 } NodeMix;
 

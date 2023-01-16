@@ -84,7 +84,8 @@ struct MTLVertexDescriptor {
   MTLVertexAttributeDescriptorPSO attributes[GPU_VERT_ATTR_MAX_LEN];
   MTLVertexBufferLayoutDescriptorPSO
       buffer_layouts[GPU_BATCH_VBO_MAX_LEN + GPU_BATCH_INST_VBO_MAX_LEN];
-  int num_attributes;
+  int max_attribute_value;
+  int total_attributes;
   int num_vert_buffers;
   MTLPrimitiveTopologyClass prim_topology_class;
 
@@ -97,7 +98,8 @@ struct MTLVertexDescriptor {
 
   bool operator==(const MTLVertexDescriptor &other) const
   {
-    if ((this->num_attributes != other.num_attributes) ||
+    if ((this->max_attribute_value != other.max_attribute_value) ||
+        (this->total_attributes != other.total_attributes) ||
         (this->num_vert_buffers != other.num_vert_buffers)) {
       return false;
     }
@@ -105,7 +107,7 @@ struct MTLVertexDescriptor {
       return false;
     };
 
-    for (const int a : IndexRange(this->num_attributes)) {
+    for (const int a : IndexRange(this->max_attribute_value + 1)) {
       if (!(this->attributes[a] == other.attributes[a])) {
         return false;
       }
@@ -125,8 +127,8 @@ struct MTLVertexDescriptor {
 
   uint64_t hash() const
   {
-    uint64_t hash = (uint64_t)(this->num_attributes ^ this->num_vert_buffers);
-    for (const int a : IndexRange(this->num_attributes)) {
+    uint64_t hash = (uint64_t)(this->max_attribute_value ^ this->num_vert_buffers);
+    for (const int a : IndexRange(this->max_attribute_value + 1)) {
       hash ^= this->attributes[a].hash() << a;
     }
 
@@ -172,6 +174,9 @@ struct MTLRenderPipelineStateDescriptor {
   /* Global color write mask as this cannot be specified per attachment. */
   MTLColorWriteMask color_write_mask;
 
+  /* Clip distance enablement. */
+  uchar clipping_plane_enable_mask = 0;
+
   /* Point size required by point primitives. */
   float point_size = 0.0f;
 
@@ -179,6 +184,10 @@ struct MTLRenderPipelineStateDescriptor {
   bool operator==(const MTLRenderPipelineStateDescriptor &other) const
   {
     if (!(vertex_descriptor == other.vertex_descriptor)) {
+      return false;
+    }
+
+    if (clipping_plane_enable_mask != other.clipping_plane_enable_mask) {
       return false;
     }
 
@@ -241,13 +250,17 @@ struct MTLRenderPipelineStateDescriptor {
     hash |= uint64_t((this->blending_enabled && (this->num_color_attachments > 0)) ? 1 : 0) << 62;
     hash ^= uint64_t(this->point_size);
 
+    /* Clipping plane enablement. */
+    hash ^= uint64_t(clipping_plane_enable_mask) << 20;
+
     return hash;
   }
 
   /* Reset the Vertex Descriptor to default. */
   void reset_vertex_descriptor()
   {
-    vertex_descriptor.num_attributes = 0;
+    vertex_descriptor.total_attributes = 0;
+    vertex_descriptor.max_attribute_value = 0;
     vertex_descriptor.num_vert_buffers = 0;
     for (int i = 0; i < GPU_VERT_ATTR_MAX_LEN; i++) {
       vertex_descriptor.attributes[i].format = MTLVertexFormatInvalid;

@@ -137,7 +137,7 @@ static int template_search_textbut_width(PointerRNA *ptr, PropertyRNA *name_prop
       estimated_width, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH * 3);
 }
 
-static int template_search_textbut_height(void)
+static int template_search_textbut_height()
 {
   return TEMPLATE_SEARCH_TEXTBUT_HEIGHT;
 }
@@ -3183,7 +3183,7 @@ void uiTemplatePreview(uiLayout *layout,
   if (!ui_preview) {
     ui_preview = MEM_cnew<uiPreview>(__func__);
     BLI_strncpy(ui_preview->preview_id, preview_id, sizeof(ui_preview->preview_id));
-    ui_preview->height = (short)(UI_UNIT_Y * 7.6f);
+    ui_preview->height = short(UI_UNIT_Y * 7.6f);
     BLI_addtail(&region->ui_previews, ui_preview);
   }
 
@@ -3225,7 +3225,7 @@ void uiTemplatePreview(uiLayout *layout,
                 0,
                 0,
                 UI_UNIT_X * 10,
-                (short)(UI_UNIT_Y * 0.3f),
+                short(UI_UNIT_Y * 0.3f),
                 &ui_preview->height,
                 UI_UNIT_Y,
                 UI_UNIT_Y * 50.0f,
@@ -4028,7 +4028,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
                 0,
                 0,
                 UI_UNIT_X * 10,
-                (short)(UI_UNIT_Y * 0.3f),
+                short(UI_UNIT_Y * 0.3f),
                 &hist->height,
                 UI_UNIT_Y,
                 UI_UNIT_Y * 20.0f,
@@ -4090,7 +4090,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
                 0,
                 0,
                 UI_UNIT_X * 10,
-                (short)(UI_UNIT_Y * 0.3f),
+                short(UI_UNIT_Y * 0.3f),
                 &scopes->wavefrm_height,
                 UI_UNIT_Y,
                 UI_UNIT_Y * 20.0f,
@@ -4152,7 +4152,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
                 0,
                 0,
                 UI_UNIT_X * 10,
-                (short)(UI_UNIT_Y * 0.3f),
+                short(UI_UNIT_Y * 0.3f),
                 &scopes->vecscope_height,
                 UI_UNIT_Y,
                 UI_UNIT_Y * 20.0f,
@@ -5407,8 +5407,8 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
            "",
            0,
            0,
-           (short)path_width,
-           (short)path_height,
+           short(path_width),
+           short(path_height),
            profile,
            0.0f,
            1.0f,
@@ -5789,7 +5789,7 @@ void uiTemplateColorPicker(uiLayout *layout,
   }
 }
 
-static void ui_template_palette_menu(bContext * /* C*/, uiLayout *layout, void * /*but_p*/)
+static void ui_template_palette_menu(bContext * /*C*/, uiLayout *layout, void * /*but_p*/)
 {
   uiLayout *row;
 
@@ -6106,7 +6106,7 @@ static char *progress_tooltip_func(bContext * /*C*/, void *argN, const char * /*
   BLI_timecode_string_from_time_simple(elapsed_str, sizeof(elapsed_str), elapsed);
 
   if (progress) {
-    const double remaining = (elapsed / (double)progress) - elapsed;
+    const double remaining = (elapsed / double(progress)) - elapsed;
     BLI_timecode_string_from_time_simple(remaining_str, sizeof(remaining_str), remaining);
   }
 
@@ -6681,7 +6681,7 @@ static uiBlock *component_menu(bContext *C, ARegion *region, void *args_v)
                                                     UI_UNIT_Y,
                                                     0,
                                                     UI_style_get()),
-                                    0);
+                                    false);
 
   uiItemR(layout, &args->ptr, args->propname, UI_ITEM_R_EXPAND, "", ICON_NONE);
 

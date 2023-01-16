@@ -35,12 +35,12 @@ set(JPEG_HASH_TYPE MD5)
 set(JPEG_FILE libjpeg-turbo-${JPEG_VERSION}.tar.gz)
 set(JPEG_CPE "cpe:2.3:a:d.r.commander:libjpeg-turbo:${JPEG_VERSION}:*:*:*:*:*:*:*")
 
-set(BOOST_VERSION 1.78.0)
-set(BOOST_VERSION_SHORT 1.78)
-set(BOOST_VERSION_NODOTS 1_78_0)
-set(BOOST_VERSION_NODOTS_SHORT 1_78)
+set(BOOST_VERSION 1.80.0)
+set(BOOST_VERSION_SHORT 1.80)
+set(BOOST_VERSION_NODOTS 1_80_0)
+set(BOOST_VERSION_NODOTS_SHORT 1_80)
 set(BOOST_URI https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/boost_${BOOST_VERSION_NODOTS}.tar.gz)
-set(BOOST_HASH c2f6428ac52b0e5a3c9b2e1d8cc832b5)
+set(BOOST_HASH 077f074743ea7b0cb49c6ed43953ae95)
 set(BOOST_HASH_TYPE MD5)
 set(BOOST_FILE boost_${BOOST_VERSION_NODOTS}.tar.gz)
 set(BOOST_CPE "cpe:2.3:a:boost:boost:${BOOST_VERSION}:*:*:*:*:*:*:*")
@@ -77,11 +77,11 @@ if(WIN32)
   # we need to tell the build the postfix is _s while
   # telling all other deps the postfix is _s_d
   if(BUILD_MODE STREQUAL Release)
-    set(OPENEXR_VERSION_POSTFIX _s)
-    set(OPENEXR_VERSION_BUILD_POSTFIX _s)
+    set(OPENEXR_VERSION_POSTFIX )
+    set(OPENEXR_VERSION_BUILD_POSTFIX )
   else()
-    set(OPENEXR_VERSION_POSTFIX _s_d)
-    set(OPENEXR_VERSION_BUILD_POSTFIX _s)
+    set(OPENEXR_VERSION_POSTFIX _d)
+    set(OPENEXR_VERSION_BUILD_POSTFIX )
   endif()
 else()
   set(OPENEXR_VERSION_BUILD_POSTFIX)
@@ -114,9 +114,9 @@ set(ALEMBIC_HASH_TYPE MD5)
 set(ALEMBIC_FILE alembic-${ALEMBIC_VERSION}.tar.gz)
 SET(FREETYPE_CPE "cpe:2.3:a:freetype:freetype:${FREETYPE_VERSION}:*:*:*:*:*:*:*")
 
-set(OPENSUBDIV_VERSION v3_4_4)
+set(OPENSUBDIV_VERSION v3_5_0)
 set(OPENSUBDIV_URI https://github.com/PixarAnimationStudios/OpenSubdiv/archive/${OPENSUBDIV_VERSION}.tar.gz)
-set(OPENSUBDIV_HASH 39ecc5caf0abebc943d1ce131855e76e)
+set(OPENSUBDIV_HASH 230f5cd2911d6240e58a3773b9c6e5e4)
 set(OPENSUBDIV_HASH_TYPE MD5)
 set(OPENSUBDIV_FILE opensubdiv-${OPENSUBDIV_VERSION}.tar.gz)
 
@@ -133,11 +133,17 @@ set(OPENCOLLADA_HASH ee7dae874019fea7be11613d07567493)
 set(OPENCOLLADA_HASH_TYPE MD5)
 set(OPENCOLLADA_FILE opencollada-${OPENCOLLADA_VERSION}.tar.gz)
 
-set(OPENCOLORIO_VERSION 2.1.1)
+set(OPENCOLORIO_VERSION 2.2.0)
 set(OPENCOLORIO_URI https://github.com/AcademySoftwareFoundation/OpenColorIO/archive/v${OPENCOLORIO_VERSION}.tar.gz)
-set(OPENCOLORIO_HASH 604f562e073f23d88ce89ed4f7f709ba)
+set(OPENCOLORIO_HASH d58a5980adba2d89a363100a09daa5f3)
 set(OPENCOLORIO_HASH_TYPE MD5)
 set(OPENCOLORIO_FILE OpenColorIO-${OPENCOLORIO_VERSION}.tar.gz)
+
+set(MINIZIPNG_VERSION 3.0.7)
+set(MINIZIPNG_URI https://github.com/zlib-ng/minizip-ng/archive/${MINIZIPNG_VERSION}.tar.gz)
+set(MINIZIPNG_HASH 09dcc8a9def348e1be9659e384c2cd55)
+set(MINIZIPNG_HASH_TYPE MD5)
+set(MINIZIPNG_FILE minizip-ng-${MINIZIPNG_VERSION}.tar.gz)
 
 set(LLVM_VERSION 12.0.0)
 set(LLVM_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.src.tar.xz)
@@ -159,9 +165,9 @@ set(OPENMP_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${
 set(OPENMP_HASH_TYPE MD5)
 set(OPENMP_FILE openmp-${OPENMP_VERSION}.src.tar.xz)
 
-set(OPENIMAGEIO_VERSION v2.3.20.0)
+set(OPENIMAGEIO_VERSION v2.4.6.0)
 set(OPENIMAGEIO_URI https://github.com/OpenImageIO/oiio/archive/refs/tags/${OPENIMAGEIO_VERSION}.tar.gz)
-set(OPENIMAGEIO_HASH defb1fe7c8e64bac60eb3cacaf5c3736)
+set(OPENIMAGEIO_HASH c7acc1b9a8fda04ef48f7de1feda4dae)
 set(OPENIMAGEIO_HASH_TYPE MD5)
 set(OPENIMAGEIO_FILE OpenImageIO-${OPENIMAGEIO_VERSION}.tar.gz)
 
@@ -189,17 +195,25 @@ set(TIFF_HASH_TYPE MD5)
 set(TIFF_FILE tiff-${TIFF_VERSION}.tar.gz)
 set(TIFF_CPE "cpe:2.3:a:libtiff:libtiff:${TIFF_VERSION}:*:*:*:*:*:*:*")
 
-set(OSL_VERSION 1.12.6.2)
-set(OSL_URI https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/archive/refs/tags/v${OSL_VERSION}.tar.gz)
-set(OSL_HASH 6fef11548adfdd3e5b25c49d2dae96ee)
+# Recent commit from 1.13.0.2 under development, which includes string table
+# changes that make the Cycles OptiX implementation work. Official 1.12 OSL
+# releases should also build but without OptiX support.
+set(OSL_VERSION 1a7670600c8b08c2443a78d03c8c27e9a1149140)
+set(OSL_URI https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/archive/${OSL_VERSION}.tar.gz)
+set(OSL_HASH 7b6d6716b05d1addb92a8f47280bf77f)
 set(OSL_HASH_TYPE MD5)
 set(OSL_FILE OpenShadingLanguage-${OSL_VERSION}.tar.gz)
 
-set(PYTHON_VERSION 3.10.8)
+# NOTE: When updating the python version, it's required to check the versions of
+# it wants to use in PCbuild/get_externals.bat for the following dependencies:
+# BZIP2, FFI, SQLITE and change the versions in this file as well. For compliance
+# reasons there can be no exceptions to this.
+
+set(PYTHON_VERSION 3.10.9)
 set(PYTHON_SHORT_VERSION 3.10)
 set(PYTHON_SHORT_VERSION_NO_DOTS 310)
 set(PYTHON_URI https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz)
-set(PYTHON_HASH e92356b012ed4d0e09675131d39b1bde)
+set(PYTHON_HASH dc8c0f274b28ee9e95923d20cfc364c9)
 set(PYTHON_HASH_TYPE MD5)
 set(PYTHON_FILE Python-${PYTHON_VERSION}.tar.xz)
 set(PYTHON_CPE "cpe:2.3:a:python:python:${PYTHON_VERSION}:-:*:*:*:*:*:*")
@@ -212,33 +226,48 @@ set(TBB_HASH_TYPE MD5)
 set(TBB_FILE oneTBB-${TBB_VERSION}.tar.gz)
 set(TBB_CPE "cpe:2.3:a:intel:threading_building_blocks:${TBB_YEAR}:*:*:*:*:*:*:*")
 
-set(OPENVDB_VERSION 9.0.0)
+set(OPENVDB_VERSION 10.0.0)
 set(OPENVDB_URI https://github.com/AcademySoftwareFoundation/openvdb/archive/v${OPENVDB_VERSION}.tar.gz)
-set(OPENVDB_HASH 684ce40c2f74f3a0c9cac530e1c7b07e)
+set(OPENVDB_HASH 64301c737e16b26c8f3085a31e6397e9)
 set(OPENVDB_HASH_TYPE MD5)
 set(OPENVDB_FILE openvdb-${OPENVDB_VERSION}.tar.gz)
 
+# ------------------------------------------------------------------------------
+# Python Modules
+
+# Needed by: `requests` module (so the version doesn't change on rebuild).
 set(IDNA_VERSION 3.3)
+# Needed by: `requests` module (so the version doesn't change on rebuild).
 set(CHARSET_NORMALIZER_VERSION 2.0.10)
+# Needed by: `requests` module (so the version doesn't change on rebuild).
 set(URLLIB3_VERSION 1.26.8)
 set(URLLIB3_CPE "cpe:2.3:a:urllib3:urllib3:${URLLIB3_VERSION}:*:*:*:*:*:*:*")
+# Needed by: Python's `requests` module (so add-ons can authenticate against trusted certificates).
 set(CERTIFI_VERSION 2021.10.8)
+# Needed by: Some of Blender's add-ons (to support convenient interaction with online services).
 set(REQUESTS_VERSION 2.27.1)
-set(CYTHON_VERSION 0.29.26)
-# The version of the zstd library used to build the Python package should match ZSTD_VERSION
+# Needed by: Python's `numpy` module (used by some add-ons).
+set(CYTHON_VERSION 0.29.30)
+# Needed by: Python scripts that read `.blend` files, as files may use Z-standard compression.
+# The version of the ZSTD library used to build the Python package should match ZSTD_VERSION
 # defined below. At this time of writing, 0.17.0 was already released,
-# but built against zstd 1.5.1, while we use 1.5.0.
+# but built against ZSTD 1.5.1, while we use 1.5.0.
 set(ZSTANDARD_VERSION 0.16.0)
+# Auto-format Python source (developer tool, not used by Blender at run-time).
 set(AUTOPEP8_VERSION 1.6.0)
+# Needed by: `autopep8` (so the version doesn't change on rebuild).
 set(PYCODESTYLE_VERSION 2.8.0)
+# Needed by: `autopep8` (so the version doesn't change on rebuild).
 set(TOML_VERSION 0.10.2)
+# Build system for other packages (not used by Blender at run-time).
+set(MESON_VERSION 0.63.0)
 
-set(NUMPY_VERSION 1.22.0)
-set(NUMPY_SHORT_VERSION 1.22)
-set(NUMPY_URI https://github.com/numpy/numpy/releases/download/v${NUMPY_VERSION}/numpy-${NUMPY_VERSION}.zip)
-set(NUMPY_HASH 252de134862a27bd66705d29622edbfe)
+set(NUMPY_VERSION 1.23.5)
+set(NUMPY_SHORT_VERSION 1.23)
+set(NUMPY_URI https://github.com/numpy/numpy/releases/download/v${NUMPY_VERSION}/numpy-${NUMPY_VERSION}.tar.gz)
+set(NUMPY_HASH 8b2692a511a3795f3af8af2cd7566a15)
 set(NUMPY_HASH_TYPE MD5)
-set(NUMPY_FILE numpy-${NUMPY_VERSION}.zip)
+set(NUMPY_FILE numpy-${NUMPY_VERSION}.tar.gz)
 set(NUMPY_CPE "cpe:2.3:a:numpy:numpy:${NUMPY_VERSION}:*:*:*:*:*:*:*")
 
 set(LAME_VERSION 3.100)
@@ -330,7 +359,7 @@ set(SNDFILE_VERSION 1.1.0)
 set(SNDFILE_URI https://github.com/libsndfile/libsndfile/releases/download/1.1.0/libsndfile-${SNDFILE_VERSION}.tar.xz)
 set(SNDFILE_HASH e63dead2b4f0aaf323687619d007ee6a)
 set(SNDFILE_HASH_TYPE MD5)
-set(SNDFILE_FILE libsndfile-${SNDFILE_VERSION}.tar.gz)
+set(SNDFILE_FILE libsndfile-${SNDFILE_VERSION}.tar.xz)
 set(SNDFILE_CPE "cpe:2.3:a:libsndfile_project:libsndfile:${SNDFILE_VERSION}:*:*:*:*:*:*:*")
 
 set(WEBP_VERSION 1.2.2)
@@ -340,9 +369,9 @@ set(WEBP_HASH_TYPE MD5)
 set(WEBP_FILE libwebp-${WEBP_VERSION}.tar.gz)
 set(WEBP_CPE "cpe:2.3:a:webmproject:libwebp:${WEBP_VERSION}:*:*:*:*:*:*:*")
 
-set(SPNAV_VERSION 0.2.3)
-set(SPNAV_URI http://downloads.sourceforge.net/project/spacenav/spacenav%20library%20%28SDK%29/libspnav%20${SPNAV_VERSION}/libspnav-${SPNAV_VERSION}.tar.gz)
-set(SPNAV_HASH 44d840540d53326d4a119c0f1aa7bf0a)
+set(SPNAV_VERSION 1.1)
+set(SPNAV_URI https://github.com/FreeSpacenav/libspnav/releases/download/v${SPNAV_VERSION}/libspnav-${SPNAV_VERSION}.tar.gz)
+set(SPNAV_HASH 7c0032034672dfba3c4bb9b49a440e70)
 set(SPNAV_HASH_TYPE MD5)
 set(SPNAV_FILE libspnav-${SPNAV_VERSION}.tar.gz)
 
@@ -359,9 +388,9 @@ set(XML2_HASH_TYPE MD5)
 set(XML2_FILE libxml2-${XML2_VERSION}.tar.xz)
 set(XML2_CPE "cpe:2.3:a:xmlsoft:libxml2:${XML2_VERSION}:*:*:*:*:*:*:*")
 
-set(YAMLCPP_VERSION 0.6.3)
+set(YAMLCPP_VERSION 0.7.0)
 set(YAMLCPP_URI https://codeload.github.com/jbeder/yaml-cpp/tar.gz/yaml-cpp-${YAMLCPP_VERSION})
-set(YAMLCPP_HASH b45bf1089a382e81f6b661062c10d0c2)
+set(YAMLCPP_HASH 74d646a3cc1b5d519829441db96744f0)
 set(YAMLCPP_HASH_TYPE MD5)
 set(YAMLCPP_FILE yaml-cpp-${YAMLCPP_VERSION}.tar.gz)
 set(YAMLCPP "cpe:2.3:a:yaml-cpp_project:yaml-cpp:${YAMLCPP_VERSION}:*:*:*:*:*:*:*")
@@ -430,9 +459,7 @@ set(LZMA_HASH 5117f930900b341493827d63aa910ff5e011e0b994197c3b71c08a20228a42df)
 set(LZMA_HASH_TYPE SHA256)
 set(LZMA_FILE xz-${LZMA_VERSION}.tar.bz2)
 
-# NOTE: This will *HAVE* to match the version python ships on windows which
-# is hardcoded in pythons PCbuild/get_externals.bat. For compliance reasons there
-# can be no exceptions to this.
+# NOTE: Python's build has been modified to use our ssl version.
 set(SSL_VERSION 1.1.1q)
 set(SSL_URI https://www.openssl.org/source/openssl-${SSL_VERSION}.tar.gz)
 set(SSL_HASH d7939ce614029cdff0b6c20f0e2e5703158a489a72b2507b8bd51bf8c8fd10ca)
@@ -443,10 +470,10 @@ set(SSL_CPE "cpe:2.3:a:openssl:openssl:${SSL_VERSION}:*:*:*:*:*:*:*")
 # Note: This will *HAVE* to match the version python ships on windows which
 # is hardcoded in pythons PCbuild/get_externals.bat for compliance reasons there
 # can be no exceptions to this.
-set(SQLITE_VERSION 3.37.2)
-set(SQLLITE_LONG_VERSION 3370200)
+set(SQLITE_VERSION 3.39.4)
+set(SQLLITE_LONG_VERSION 3390400)
 set(SQLITE_URI https://www.sqlite.org/2022/sqlite-autoconf-${SQLLITE_LONG_VERSION}.tar.gz)
-set(SQLITE_HASH e56faacadfb4154f8fbd0f2a3f827d13706b70a1)
+set(SQLITE_HASH c4c5c39269d1b9bb1487cff580c1f583608229b2)
 set(SQLITE_HASH_TYPE SHA1)
 set(SQLITE_FILE sqlite-autoconf-${SQLLITE_LONG_VERSION}.tar.gz)
 set(SQLITE_CPE "cpe:2.3:a:sqlite:sqlite:${SQLITE_VERSION}:*:*:*:*:*:*:*")
@@ -457,11 +484,17 @@ set(EMBREE_HASH 52d0be294d6c88ba7a6c9e046796e7be)
 set(EMBREE_HASH_TYPE MD5)
 set(EMBREE_FILE embree-v${EMBREE_VERSION}.zip)
 
-set(USD_VERSION 22.03)
+set(USD_VERSION 22.11)
 set(USD_URI https://github.com/PixarAnimationStudios/USD/archive/v${USD_VERSION}.tar.gz)
-set(USD_HASH e0e441a05057692a83124a1195b09eed)
+set(USD_HASH 8c89459e48a2ef0e7ae9e7e490377507)
 set(USD_HASH_TYPE MD5)
 set(USD_FILE usd-v${USD_VERSION}.tar.gz)
+
+set(MATERIALX_VERSION 1.38.6)
+set(MATERIALX_URI https://github.com/AcademySoftwareFoundation/MaterialX/archive/refs/tags/v${MATERIALX_VERSION}.tar.gz)
+set(MATERIALX_HASH d49c9fdef34b5702fc60058d3e1864f2)
+set(MATERIALX_HASH_TYPE MD5)
+set(MATERIALX_FILE materialx-v${MATERIALX_VERSION}.tar.gz)
 
 set(OIDN_VERSION 1.4.3)
 set(OIDN_URI https://github.com/OpenImageDenoise/oidn/releases/download/v${OIDN_VERSION}/oidn-${OIDN_VERSION}.src.tar.gz)
@@ -708,3 +741,60 @@ set(AOM_URI https://storage.googleapis.com/aom-releases/libaom-${AOM_VERSION}.ta
 set(AOM_HASH bd754b58c3fa69f3ffd29da77de591bd9c26970e3b18537951336d6c0252e354)
 set(AOM_HASH_TYPE SHA256)
 set(AOM_FILE libaom-${AOM_VERSION}.tar.gz)
+
+set(FRIBIDI_VERSION v1.0.12)
+set(FRIBIDI_URI https://github.com/fribidi/fribidi/archive/refs/tags/${FRIBIDI_VERSION}.tar.gz)
+set(FRIBIDI_HASH 2e9e859876571f03567ac91e5ed3b5308791f31cda083408c2b60fa1fe00a39d)
+set(FRIBIDI_HASH_TYPE SHA256)
+set(FRIBIDI_FILE fribidi-${FRIBIDI_VERSION}.tar.gz)
+
+set(HARFBUZZ_VERSION 5.1.0)
+set(HARFBUZZ_URI https://github.com/harfbuzz/harfbuzz/archive/refs/tags/${HARFBUZZ_VERSION}.tar.gz)
+set(HARFBUZZ_HASH 5352ff2eec538ea9a63a485cf01ad8332a3f63aa79921c5a2e301cef185caea1)
+set(HARFBUZZ_HASH_TYPE SHA256)
+set(HARFBUZZ_FILE harfbuzz-${HARFBUZZ_VERSION}.tar.gz)
+
+set(SHADERC_VERSION v2022.3)
+set(SHADERC_URI https://github.com/google/shaderc/archive/${SHADERC_VERSION}.tar.gz)
+set(SHADERC_HASH 5cb762af57637caf997d5f46baa4e8a4)
+set(SHADERC_HASH_TYPE MD5)
+set(SHADERC_FILE shaderc-${SHADERC_VERSION}.tar.gz)
+
+# The versions of shaderc's dependencies can be found in the root of shaderc's
+# source in a file called DEPS.
+
+set(SHADERC_SPIRV_TOOLS_VERSION eb0a36633d2acf4de82588504f951ad0f2cecacb)
+set(SHADERC_SPIRV_TOOLS_URI https://github.com/KhronosGroup/SPIRV-Tools/archive/${SHADERC_SPIRV_TOOLS_VERSION}.tar.gz)
+set(SHADERC_SPIRV_TOOLS_HASH a4bdb8161f0e959c75d0d82d367c24f2)
+set(SHADERC_SPIRV_TOOLS_HASH_TYPE MD5)
+set(SHADERC_SPIRV_TOOLS_FILE SPIRV-Tools-${SHADERC_SPIRV_TOOLS_VERSION}.tar.gz)
+
+set(SHADERC_SPIRV_HEADERS_VERSION 85a1ed200d50660786c1a88d9166e871123cce39)
+set(SHADERC_SPIRV_HEADERS_URI https://github.com/KhronosGroup/SPIRV-Headers/archive/${SHADERC_SPIRV_HEADERS_VERSION}.tar.gz)
+set(SHADERC_SPIRV_HEADERS_HASH 10d5e8160f39344a641523810b075568)
+set(SHADERC_SPIRV_HEADERS_HASH_TYPE MD5)
+set(SHADERC_SPIRV_HEADERS_FILE SPIRV-Headers-${SHADERC_SPIRV_HEADERS_VERSION}.tar.gz)
+
+set(SHADERC_GLSLANG_VERSION 89db4e1caa273a057ea46deba709c6e50001b314)
+set(SHADERC_GLSLANG_URI https://github.com/KhronosGroup/glslang/archive/${SHADERC_GLSLANG_VERSION}.tar.gz)
+set(SHADERC_GLSLANG_HASH 3b3c79ad8e9132ffcb8b63cc29c532e2)
+set(SHADERC_GLSLANG_HASH_TYPE MD5)
+set(SHADERC_GLSLANG_FILE glslang-${SHADERC_GLSLANG_VERSION}.tar.gz)
+
+set(VULKAN_VERSION v1.2.198)
+
+set(VULKAN_HEADERS_URI https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/${VULKAN_VERSION}.tar.gz)
+set(VULKAN_HEADERS_HASH 64fe73e887c963ad546bfc7f9505fa1d)
+set(VULKAN_HEADERS_HASH_TYPE MD5)
+set(VULKAN_HEADERS_FILE Vulkan-Headers-${VULKAN_VERSION}.tar.gz)
+
+set(VULKAN_LOADER_URI https://github.com/KhronosGroup/Vulkan-Loader/archive/refs/tags/${VULKAN_VERSION}.tar.gz)
+set(VULKAN_LOADER_HASH 015170a74f648fd2b41e209b6bf1ebc4)
+set(VULKAN_LOADER_HASH_TYPE MD5)
+set(VULKAN_LOADER_FILE Vulkan-Loader-${VULKAN_VERSION}.tar.gz)
+
+set(PYBIND11_VERSION 2.10.1)
+set(PYBIND11_URI https://github.com/pybind/pybind11/archive/refs/tags/v${PYBIND11_VERSION}.tar.gz)
+set(PYBIND11_HASH ce07bfd5089245da7807b3faf6cbc878)
+set(PYBIND11_HASH_TYPE MD5)
+set(PYBIND11_FILE pybind-v${PYBIND11_VERSION}.tar.gz)

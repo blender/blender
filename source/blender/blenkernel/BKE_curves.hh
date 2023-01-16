@@ -17,7 +17,7 @@
 #include "BLI_float4x4.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
@@ -287,11 +287,6 @@ class CurvesGeometry : public ::CurvesGeometry {
   Span<float2> surface_uv_coords() const;
   MutableSpan<float2> surface_uv_coords_for_write();
 
-  VArray<float> selection_point_float() const;
-  MutableSpan<float> selection_point_float_for_write();
-  VArray<float> selection_curve_float() const;
-  MutableSpan<float> selection_curve_float_for_write();
-
   /**
    * Calculate the largest and smallest position values, only including control points
    * (rather than evaluated points). The existing values of `min` and `max` are taken into account.
@@ -409,8 +404,10 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   void calculate_bezier_auto_handles();
 
-  void remove_points(IndexMask points_to_delete);
-  void remove_curves(IndexMask curves_to_delete);
+  void remove_points(IndexMask points_to_delete,
+                     const AnonymousAttributePropagationInfo &propagation_info = {});
+  void remove_curves(IndexMask curves_to_delete,
+                     const AnonymousAttributePropagationInfo &propagation_info = {});
 
   /**
    * Change the direction of selected curves (switch the start and end) without changing their

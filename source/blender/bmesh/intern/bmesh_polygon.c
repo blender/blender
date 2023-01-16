@@ -234,9 +234,9 @@ float BM_face_calc_area_uv(const BMFace *f, int cd_loop_uv_offset)
   /* The Trapezium Area Rule */
   float cross = 0.0f;
   do {
-    const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
-    const MLoopUV *luv_next = BM_ELEM_CD_GET_VOID_P(l_iter->next, cd_loop_uv_offset);
-    cross += (luv_next->uv[0] - luv->uv[0]) * (luv_next->uv[1] + luv->uv[1]);
+    const float *luv = BM_ELEM_CD_GET_FLOAT_P(l_iter, cd_loop_uv_offset);
+    const float *luv_next = BM_ELEM_CD_GET_FLOAT_P(l_iter->next, cd_loop_uv_offset);
+    cross += (luv_next[0] - luv[0]) * (luv_next[1] + luv[1]);
   } while ((l_iter = l_iter->next) != l_first);
   return fabsf(cross * 0.5f);
 }

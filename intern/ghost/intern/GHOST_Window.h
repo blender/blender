@@ -152,7 +152,7 @@ class GHOST_Window : public GHOST_IWindow {
    * Gets the cursor grab region, if unset the window is used.
    * reset when grab is disabled.
    */
-  GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds) override;
+  GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds) const override;
 
   void getCursorGrabState(GHOST_TGrabCursorMode &mode,
                           GHOST_TAxisFlag &axis_flag,

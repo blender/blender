@@ -92,7 +92,7 @@ static void recalcData_texspace(TransInfo *t)
 {
 
   if (t->state != TRANS_CANCEL) {
-    applySnappingIndividual(t);
+    transform_snap_project_individual_apply(t);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -110,8 +110,8 @@ static void recalcData_texspace(TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_ObjectTexSpace = {
-    /* flags */ 0,
-    /* createTransData */ createTransTexspace,
-    /* recalcData */ recalcData_texspace,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ 0,
+    /*createTransData*/ createTransTexspace,
+    /*recalcData*/ recalcData_texspace,
+    /*special_aftertrans_update*/ NULL,
 };

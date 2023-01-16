@@ -1782,12 +1782,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 1)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "bleedexp")) {
-      for (Light *la = bmain->lights.first; la; la = la->id.next) {
-        la->bleedexp = 2.5f;
-      }
-    }
-
     if (!DNA_struct_elem_find(fd->filesdna, "GPUDOFSettings", "float", "ratio")) {
       for (Camera *ca = bmain->cameras.first; ca; ca = ca->id.next) {
         ca->gpu_dof.ratio = 1.0f;
@@ -1797,8 +1791,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     /* MTexPoly now removed. */
     if (DNA_struct_find(fd->filesdna, "MTexPoly")) {
       for (Mesh *me = bmain->meshes.first; me; me = me->id.next) {
-        /* If we have UV's, so this file will have MTexPoly layers too! */
-        if (CustomData_has_layer(&me->ldata, CD_MLOOPUV)) {
+        /* If we have UVs, so this file will have MTexPoly layers too! */
+        if (CustomData_has_layer(&me->ldata, CD_MLOOPUV) ||
+            CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2)) {
           CustomData_update_typemap(&me->pdata);
           CustomData_free_layers(&me->pdata, CD_MTEXPOLY, me->totpoly);
         }
@@ -1820,7 +1815,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       for (Light *la = bmain->lights.first; la; la = la->id.next) {
         la->contact_dist = 0.2f;
         la->contact_bias = 0.03f;
-        la->contact_spread = 0.2f;
         la->contact_thickness = 0.2f;
       }
     }

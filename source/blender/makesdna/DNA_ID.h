@@ -68,6 +68,16 @@ typedef struct IDPropertyUIDataInt {
   int default_value;
 } IDPropertyUIDataInt;
 
+/* IDP_UI_DATA_TYPE_BOOLEAN Use "int8_t" because DNA does not support "bool". */
+typedef struct IDPropertyUIDataBool {
+  IDPropertyUIData base;
+  int8_t *default_array; /* Only for array properties. */
+  int default_array_len;
+  char _pad[3];
+
+  int8_t default_value;
+} IDPropertyUIDataBool;
+
 /* IDP_UI_DATA_TYPE_FLOAT */
 typedef struct IDPropertyUIDataFloat {
   IDPropertyUIData base;
@@ -142,8 +152,13 @@ typedef enum eIDPropertyType {
   IDP_ID = 7,
   IDP_DOUBLE = 8,
   IDP_IDPARRAY = 9,
+  /**
+   * True or false value, backed by an `int8_t` underlying type for arrays. Values are expected to
+   * be 0 or 1.
+   */
+  IDP_BOOLEAN = 10,
 } eIDPropertyType;
-#define IDP_NUMTYPES 10
+#define IDP_NUMTYPES 11
 
 /** Used by some IDP utils, keep values in sync with type enum above. */
 enum {
@@ -155,6 +170,7 @@ enum {
   IDP_TYPE_FILTER_ID = 1 << 7,
   IDP_TYPE_FILTER_DOUBLE = 1 << 8,
   IDP_TYPE_FILTER_IDPARRAY = 1 << 9,
+  IDP_TYPE_FILTER_BOOLEAN = 1 << 10,
 };
 
 /*->subtype */
@@ -274,6 +290,9 @@ typedef struct IDOverrideLibraryProperty {
 enum {
   /** This override property (operation) is unused and should be removed by cleanup process. */
   IDOVERRIDE_LIBRARY_TAG_UNUSED = 1 << 0,
+
+  /** This override property is forbidden and should be restored to its linked reference value. */
+  IDOVERRIDE_LIBRARY_PROPERTY_TAG_NEEDS_RETORE = 1 << 1,
 };
 
 #
@@ -287,6 +306,12 @@ typedef struct IDOverrideLibraryRuntime {
 enum {
   /** This override needs to be reloaded. */
   IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RELOAD = 1 << 0,
+
+  /**
+   * This override contains properties with forbidden changes, which should be restored to their
+   * linked reference value.
+   */
+  IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RESTORE = 1 << 1,
 };
 
 /* Main container for all overriding data info of a data-block. */
@@ -809,6 +834,16 @@ enum {
    */
   LIB_TAG_NO_MAIN = 1 << 15,
   /**
+   * ID is considered as runtime, and should not be saved when writing .blend file, nor influence
+   * (in)direct status of linked data.
+   *
+   * Only meaningful for IDs belonging to regular Main database, all other cases are implicitly
+   * considered runtime-only.
+   *
+   * RESET_NEVER
+   */
+  LIB_TAG_RUNTIME = 1 << 22,
+  /**
    * Datablock does not refcount usages of other IDs.
    *
    * RESET_NEVER
@@ -847,6 +882,15 @@ enum {
    */
   LIB_TAG_LIB_OVERRIDE_NEED_RESYNC = 1 << 21,
 };
+
+/**
+ * Most of ID tags are cleared on file write (i.e. also when storing undo steps), since they
+ * either have of very short lifetime (not expected to exist across undo steps), or are info that
+ * will be re-generated when reading undo steps.
+ *
+ * However a few of these need to be explicitly preserved across undo steps.
+ */
+#define LIB_TAG_KEEP_ON_UNDO (LIB_TAG_EXTRAUSER | LIB_TAG_MISSING | LIB_TAG_RUNTIME)
 
 /* Tag given ID for an update in all the dependency graphs. */
 typedef enum IDRecalcFlag {

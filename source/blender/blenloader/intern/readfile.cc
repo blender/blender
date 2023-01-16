@@ -301,7 +301,7 @@ static void oldnewmap_clear(OldNewMap *onm)
       MEM_freeN(new_addr.newp);
     }
   }
-  onm->map.clear();
+  onm->map.clear_and_shrink();
 }
 
 static void oldnewmap_free(OldNewMap *onm)
@@ -724,13 +724,15 @@ static BHeadN *get_bhead(FileData *fd)
           new_bhead->has_data = false;
           new_bhead->is_memchunk_identical = false;
           new_bhead->bhead = bhead;
-          off64_t seek_new = fd->file->seek(fd->file, bhead.len, SEEK_CUR);
-          if (seek_new == -1) {
+          const off64_t seek_new = fd->file->seek(fd->file, bhead.len, SEEK_CUR);
+          if (UNLIKELY(seek_new == -1)) {
             fd->is_eof = true;
             MEM_freeN(new_bhead);
             new_bhead = nullptr;
           }
-          BLI_assert(fd->file->offset == seek_new);
+          else {
+            BLI_assert(fd->file->offset == seek_new);
+          }
         }
         else {
           fd->is_eof = true;
@@ -1604,7 +1606,7 @@ static void blo_cache_storage_entry_register(
 
 /** Restore a cache data entry from old ID into new one, when reading some undo memfile. */
 static void blo_cache_storage_entry_restore_in_new(
-    ID * /*id*/, const IDCacheKey *key, void **cache_p, uint flags, void *cache_storage_v)
+    ID *id, const IDCacheKey *key, void **cache_p, uint flags, void *cache_storage_v)
 {
   BLOCacheStorage *cache_storage = static_cast<BLOCacheStorage *>(cache_storage_v);
 
@@ -1615,6 +1617,15 @@ static void blo_cache_storage_entry_restore_in_new(
     if ((flags & IDTYPE_CACHE_CB_FLAGS_PERSISTENT) == 0) {
       *cache_p = nullptr;
     }
+    return;
+  }
+
+  /* Assume that when ID source is tagged as changed, its caches need to be cleared.
+   * NOTE: This is mainly a work-around for some IDs, like Image, which use a non-depsgraph-handled
+   * process for part of their updates.
+   */
+  if (id->recalc & ID_RECALC_SOURCE) {
+    *cache_p = nullptr;
     return;
   }
 
@@ -2020,7 +2031,16 @@ static void direct_link_id_common(
     /* When actually reading a file, we do want to reset/re-generate session UUIDS.
      * In undo case, we want to re-use existing ones. */
     id->session_uuid = MAIN_ID_SESSION_UUID_UNSET;
+
+    /* Runtime IDs should never be written in .blend files (except memfiles from undo). */
+    BLI_assert((id->tag & LIB_TAG_RUNTIME) == 0);
   }
+
+  /* No-main and other types of special IDs should never be written in .blend files. */
+  /* NOTE: `NO_MAIN` is commented for now as some code paths may still generate embedded IDs with
+   * this tag, see T103389. Related to T88555. */
+  BLI_assert(
+      (id->tag & (/*LIB_TAG_NO_MAIN |*/ LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
 
   if ((tag & LIB_TAG_TEMP_MAIN) == 0) {
     BKE_lib_libblock_session_uuid_ensure(id);
@@ -2034,7 +2054,12 @@ static void direct_link_id_common(
   id->py_instance = nullptr;
 
   /* Initialize with provided tag. */
-  id->tag = tag;
+  if (BLO_read_data_is_undo(reader)) {
+    id->tag = tag | (id->tag & LIB_TAG_KEEP_ON_UNDO);
+  }
+  else {
+    id->tag = tag;
+  }
 
   if (ID_IS_LINKED(id)) {
     id->library_weak_reference = nullptr;
@@ -3105,7 +3130,7 @@ static void read_libblock_undo_restore_identical(
   BLI_assert(id_old != nullptr);
 
   /* Some tags need to be preserved here. */
-  id_old->tag = tag | (id_old->tag & LIB_TAG_EXTRAUSER);
+  id_old->tag = tag | (id_old->tag & LIB_TAG_KEEP_ON_UNDO);
   id_old->lib = main->curlib;
   id_old->us = ID_FAKE_USERS(id_old);
   /* Do not reset id->icon_id here, memory allocated for it remains valid. */
@@ -3907,6 +3932,11 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       BKE_lib_override_library_main_validate(bfd->main, fd->reports->reports);
       BKE_lib_override_library_main_update(bfd->main);
 
+      /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
+       * `BKE_lib_override_library_main_update`, see T103062.
+       * Proper fix involves first addressing T90610. */
+      BKE_main_collections_parent_relations_rebuild(bfd->main);
+
       fd->reports->duration.lib_overrides = PIL_check_seconds_timer() -
                                             fd->reports->duration.lib_overrides;
     }
@@ -4529,6 +4559,11 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
 
   BKE_main_id_tag_all(mainvar, LIB_TAG_NEW, false);
 
+  /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
+   * `BKE_lib_override_library_main_update`, see T103062.
+   * Proper fix involves first addressing T90610. */
+  BKE_main_collections_parent_relations_rebuild(mainvar);
+
   /* Make all relative paths, relative to the open blend file. */
   fix_relpaths_library(BKE_main_blendfile_path(mainvar), mainvar);
 
@@ -4939,6 +4974,11 @@ void BLO_read_int32_array(BlendDataReader *reader, int array_size, int32_t **ptr
   if (BLO_read_requires_endian_switch(reader)) {
     BLI_endian_switch_int32_array(*ptr_p, array_size);
   }
+}
+
+void BLO_read_int8_array(BlendDataReader *reader, int /*array_size*/, int8_t **ptr_p)
+{
+  BLO_read_data_address(reader, ptr_p);
 }
 
 void BLO_read_uint32_array(BlendDataReader *reader, int array_size, uint32_t **ptr_p)

@@ -5,7 +5,15 @@
  * \ingroup pybmesh
  *
  * This file defines custom-data types which can't be accessed as primitive
- * python types such as #MDeformVert, #MLoopUV.
+ * Python types such as #MDeformVert. It also exposed UV map data in a way
+ * compatible with the (deprecated) #MLoopUV type.
+ * MLoopUV used to be a struct containing both the UV information and various
+ * selection flags. This has since been split up into a float2 attribute
+ * and three boolean attributes for the selection/pin states.
+ * For backwards compatibility, the original #MLoopUV is emulated in the
+ * python API. This comes at a performance penalty however, and the plan is
+ * to provide direct access to the boolean layers for faster access. Eventually
+ * (probably in 4.0) #BPy_BMLoopUV should be removed on the Python side as well.
  */
 
 #include <Python.h>
@@ -15,12 +23,15 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_customdata.h"
+
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_deform.h"
 
+#include "bmesh.h"
 #include "bmesh_py_types_meshdata.h"
 
 #include "../generic/py_capi_utils.h"
@@ -33,72 +44,124 @@
 
 typedef struct BPy_BMLoopUV {
   PyObject_VAR_HEAD
-  MLoopUV *data;
+  float *uv;
+  /* vert_select, edge_select and pin could be NULL, signifying those layers don't exist.
+   * Currently those layers are always created on a BMesh because adding layers to an existing
+   * BMesh is slow and invalidates existing python objects having pointers into the original
+   * datablocks (adding a layer re-generates all blocks). But eventually the plan is to lazily
+   * allocate the bool layers 'on demand'. Therefore the code tries to handle all cases where
+   * the layers don't exist. */
+  bool *vert_select;
+  bool *edge_select;
+  bool *pin;
+  BMLoop *loop;
 } BPy_BMLoopUV;
 
 PyDoc_STRVAR(bpy_bmloopuv_uv_doc,
              "Loops UV (as a 2D Vector).\n\n:type: :class:`mathutils.Vector`");
 static PyObject *bpy_bmloopuv_uv_get(BPy_BMLoopUV *self, void *UNUSED(closure))
 {
-  return Vector_CreatePyObject_wrap(self->data->uv, 2, NULL);
+  return Vector_CreatePyObject_wrap(self->uv, 2, NULL);
 }
 
 static int bpy_bmloopuv_uv_set(BPy_BMLoopUV *self, PyObject *value, void *UNUSED(closure))
 {
   float tvec[2];
   if (mathutils_array_parse(tvec, 2, 2, value, "BMLoopUV.uv") != -1) {
-    copy_v2_v2(self->data->uv, tvec);
+    copy_v2_v2(self->uv, tvec);
     return 0;
   }
 
   return -1;
 }
 
-PyDoc_STRVAR(bpy_bmloopuv_flag__pin_uv_doc, "UV pin state.\n\n:type: boolean");
-PyDoc_STRVAR(bpy_bmloopuv_flag__select_doc, "UV select state.\n\n:type: boolean");
-PyDoc_STRVAR(bpy_bmloopuv_flag__select_edge_doc, "UV edge select state.\n\n:type: boolean");
+PyDoc_STRVAR(bpy_bmloopuv_pin_uv_doc, "UV pin state.\n\n:type: boolean");
+PyDoc_STRVAR(bpy_bmloopuv_select_doc, "UV select state.\n\n:type: boolean");
+PyDoc_STRVAR(bpy_bmloopuv_select_edge_doc, "UV edge select state.\n\n:type: boolean");
 
-static PyObject *bpy_bmloopuv_flag_get(BPy_BMLoopUV *self, void *flag_p)
+static PyObject *bpy_bmloopuv_pin_uv_get(BPy_BMLoopUV *self, void *UNUSED(closure))
 {
-  const int flag = POINTER_AS_INT(flag_p);
-  return PyBool_FromLong(self->data->flag & flag);
+  /* A non existing pin layer means nothing is currently pinned */
+  return self->pin ? PyBool_FromLong(*self->pin) : false;
 }
 
-static int bpy_bmloopuv_flag_set(BPy_BMLoopUV *self, PyObject *value, void *flag_p)
+static int bpy_bmloopuv_pin_uv_set(BPy_BMLoopUV *self, PyObject *value, void *UNUSED(closure))
 {
-  const int flag = POINTER_AS_INT(flag_p);
-
-  switch (PyC_Long_AsBool(value)) {
-    case true:
-      self->data->flag |= flag;
-      return 0;
-    case false:
-      self->data->flag &= ~flag;
-      return 0;
-    default:
-      /* error is set */
-      return -1;
+  /* TODO: if we add lazy allocation of the associated uv map bool layers to BMesh we need
+   * to add a pin layer and update self->pin in the case of self->pin being NULL.
+   * This isn't easy to do currently as adding CustomData layers to a BMesh invalidates
+   * existing python objects. So for now lazy allocation isn't done and self->pin should
+   * never be NULL. */
+  BLI_assert(self->pin);
+  if (self->pin) {
+    *self->pin = PyC_Long_AsBool(value);
   }
+  else {
+    PyErr_SetString(PyExc_RuntimeError,
+                    "active uv layer has no associated pin layer. This is a bug!");
+    return -1;
+  }
+  return 0;
+}
+
+static PyObject *bpy_bmloopuv_select_get(BPy_BMLoopUV *self, void *UNUSED(closure))
+{
+  /* A non existing vert_select layer means nothing is currently selected */
+  return self->vert_select ? PyBool_FromLong(*self->vert_select) : false;
+}
+static int bpy_bmloopuv_select_set(BPy_BMLoopUV *self, PyObject *value, void *UNUSED(closure))
+{
+  /* TODO: see comment above on bpy_bmloopuv_pin_uv_set(), the same applies here. */
+  BLI_assert(self->vert_select);
+  if (self->vert_select) {
+    *self->vert_select = PyC_Long_AsBool(value);
+  }
+  else {
+    PyErr_SetString(PyExc_RuntimeError,
+                    "active uv layer has no associated vertex selection layer. This is a bug!");
+    return -1;
+  }
+  return 0;
+}
+
+static PyObject *bpy_bmloopuv_select_edge_get(BPy_BMLoopUV *self, void *UNUSED(closure))
+{
+  /* A non existing edge_select layer means nothing is currently selected */
+  return self->edge_select ? PyBool_FromLong(*self->edge_select) : false;
+}
+static int bpy_bmloopuv_select_edge_set(BPy_BMLoopUV *self, PyObject *value, void *UNUSED(closure))
+{
+  /* TODO: see comment above on bpy_bmloopuv_pin_uv_set(), the same applies here.  */
+  BLI_assert(self->edge_select);
+  if (self->edge_select) {
+    *self->edge_select = PyC_Long_AsBool(value);
+  }
+  else {
+    PyErr_SetString(PyExc_RuntimeError,
+                    "active uv layer has no associated edge selection layer. This is a bug!");
+    return -1;
+  }
+  return 0;
 }
 
 static PyGetSetDef bpy_bmloopuv_getseters[] = {
     /* attributes match rna_def_mloopuv. */
     {"uv", (getter)bpy_bmloopuv_uv_get, (setter)bpy_bmloopuv_uv_set, bpy_bmloopuv_uv_doc, NULL},
     {"pin_uv",
-     (getter)bpy_bmloopuv_flag_get,
-     (setter)bpy_bmloopuv_flag_set,
-     bpy_bmloopuv_flag__pin_uv_doc,
-     (void *)MLOOPUV_PINNED},
+     (getter)bpy_bmloopuv_pin_uv_get,
+     (setter)bpy_bmloopuv_pin_uv_set,
+     bpy_bmloopuv_pin_uv_doc,
+     NULL},
     {"select",
-     (getter)bpy_bmloopuv_flag_get,
-     (setter)bpy_bmloopuv_flag_set,
-     bpy_bmloopuv_flag__select_doc,
-     (void *)MLOOPUV_VERTSEL},
+     (getter)bpy_bmloopuv_select_get,
+     (setter)bpy_bmloopuv_select_set,
+     bpy_bmloopuv_select_doc,
+     NULL},
     {"select_edge",
-     (getter)bpy_bmloopuv_flag_get,
-     (setter)bpy_bmloopuv_flag_set,
-     bpy_bmloopuv_flag__select_edge_doc,
-     (void *)MLOOPUV_EDGESEL},
+     (getter)bpy_bmloopuv_select_edge_get,
+     (setter)bpy_bmloopuv_select_edge_set,
+     bpy_bmloopuv_select_edge_doc,
+     NULL},
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
@@ -120,21 +183,45 @@ static void bm_init_types_bmloopuv(void)
   PyType_Ready(&BPy_BMLoopUV_Type);
 }
 
-int BPy_BMLoopUV_AssignPyObject(struct MLoopUV *mloopuv, PyObject *value)
+int BPy_BMLoopUV_AssignPyObject(struct BMesh *bm, BMLoop *loop, PyObject *value)
 {
   if (UNLIKELY(!BPy_BMLoopUV_Check(value))) {
     PyErr_Format(PyExc_TypeError, "expected BMLoopUV, not a %.200s", Py_TYPE(value)->tp_name);
     return -1;
   }
 
-  *((MLoopUV *)mloopuv) = *(((BPy_BMLoopUV *)value)->data);
+  BPy_BMLoopUV *src = (BPy_BMLoopUV *)value;
+  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+
+  float *luv = BM_ELEM_CD_GET_FLOAT_P(loop, offsets.uv);
+  copy_v2_v2(luv, src->uv);
+
+  if (src->vert_select) {
+    BM_ELEM_CD_SET_BOOL(loop, offsets.select_vert, *src->vert_select);
+  }
+
+  if (src->edge_select) {
+    BM_ELEM_CD_SET_BOOL(loop, offsets.select_edge, *src->edge_select);
+  }
+  if (src->pin) {
+    BM_ELEM_CD_SET_BOOL(loop, offsets.pin, *src->pin);
+  }
   return 0;
 }
 
-PyObject *BPy_BMLoopUV_CreatePyObject(struct MLoopUV *mloopuv)
+PyObject *BPy_BMLoopUV_CreatePyObject(struct BMesh *bm, BMLoop *loop)
 {
   BPy_BMLoopUV *self = PyObject_New(BPy_BMLoopUV, &BPy_BMLoopUV_Type);
-  self->data = mloopuv;
+
+  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+
+  self->uv = BM_ELEM_CD_GET_FLOAT_P(loop, offsets.uv);
+  self->vert_select = offsets.select_vert >= 0 ? BM_ELEM_CD_GET_BOOL_P(loop, offsets.select_vert) :
+                                                 NULL;
+  self->edge_select = offsets.select_edge >= 0 ? BM_ELEM_CD_GET_BOOL_P(loop, offsets.select_edge) :
+                                                 NULL;
+  self->pin = offsets.pin >= 0 ? BM_ELEM_CD_GET_BOOL_P(loop, offsets.pin) : NULL;
+
   return (PyObject *)self;
 }
 

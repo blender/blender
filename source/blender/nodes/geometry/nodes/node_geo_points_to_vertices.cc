@@ -16,13 +16,15 @@ using blender::Array;
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Points")).supported_type(GEO_COMPONENT_TYPE_POINT_CLOUD);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
-  b.add_output<decl::Geometry>(N_("Mesh"));
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).field_on_all().hide_value();
+  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
 }
 
 /* One improvement would be to move the attribute arrays directly to the mesh when possible. */
-static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
-                                            Field<bool> &selection_field)
+static void geometry_set_points_to_vertices(
+    GeometrySet &geometry_set,
+    Field<bool> &selection_field,
+    const AnonymousAttributePropagationInfo &propagation_info)
 {
   const PointCloud *points = geometry_set.get_pointcloud_for_read();
   if (points == nullptr) {
@@ -41,8 +43,11 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
   const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
 
   Map<AttributeIDRef, AttributeKind> attributes;
-  geometry_set.gather_attributes_for_propagation(
-      {GEO_COMPONENT_TYPE_POINT_CLOUD}, GEO_COMPONENT_TYPE_MESH, false, attributes);
+  geometry_set.gather_attributes_for_propagation({GEO_COMPONENT_TYPE_POINT_CLOUD},
+                                                 GEO_COMPONENT_TYPE_MESH,
+                                                 false,
+                                                 propagation_info,
+                                                 attributes);
 
   Mesh *mesh = BKE_mesh_new_nomain(selection.size(), 0, 0, 0, 0);
   geometry_set.replace_mesh(mesh);
@@ -73,7 +78,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    geometry_set_points_to_vertices(geometry_set, selection_field);
+    geometry_set_points_to_vertices(
+        geometry_set, selection_field, params.get_output_propagation_info("Mesh"));
   });
 
   params.set_output("Mesh", std::move(geometry_set));

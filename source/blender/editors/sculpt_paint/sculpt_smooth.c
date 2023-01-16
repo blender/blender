@@ -221,7 +221,7 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
     madd_v3_v3v3fl(disp, vd.co, ss->cache->detail_directions[vd.index], fade);
     SCULPT_clip(sd, ss, vd.co, disp);
 
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
@@ -319,7 +319,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
       sub_v3_v3v3(val, avg, vd.co);
       madd_v3_v3v3fl(val, vd.co, val, fade);
       SCULPT_clip(sd, ss, vd.co, val);
-      if (vd.mvert) {
+      if (vd.is_mesh) {
         BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
       }
     }
@@ -489,7 +489,7 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
     SCULPT_surface_smooth_laplacian_step(
         ss, disp, vd.co, ss->cache->surface_smooth_laplacian_disp, vd.vertex, orig_data.co, alpha);
     madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }

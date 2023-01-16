@@ -1659,7 +1659,9 @@ char *rna_Node_ImageUser_path(const PointerRNA *ptr)
   return NULL;
 }
 
-static bool rna_Node_poll(bNodeType *ntype, bNodeTree *ntree, const char **UNUSED(r_disabled_hint))
+static bool rna_Node_poll(const bNodeType *ntype,
+                          const bNodeTree *ntree,
+                          const char **UNUSED(r_disabled_hint))
 {
   extern FunctionRNA rna_Node_poll_func;
 
@@ -1684,8 +1686,8 @@ static bool rna_Node_poll(bNodeType *ntype, bNodeTree *ntree, const char **UNUSE
   return visible;
 }
 
-static bool rna_Node_poll_instance(bNode *node,
-                                   bNodeTree *ntree,
+static bool rna_Node_poll_instance(const bNode *node,
+                                   const bNodeTree *ntree,
                                    const char **UNUSED(disabled_info))
 {
   extern FunctionRNA rna_Node_poll_instance_func;
@@ -1696,7 +1698,7 @@ static bool rna_Node_poll_instance(bNode *node,
   void *ret;
   bool visible;
 
-  RNA_pointer_create(NULL, node->typeinfo->rna_ext.srna, node, &ptr); /* dummy */
+  RNA_pointer_create(NULL, node->typeinfo->rna_ext.srna, (bNode *)node, &ptr); /* dummy */
   func = &rna_Node_poll_instance_func; /* RNA_struct_find_function(&ptr, "poll_instance"); */
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -1711,8 +1713,8 @@ static bool rna_Node_poll_instance(bNode *node,
   return visible;
 }
 
-static bool rna_Node_poll_instance_default(bNode *node,
-                                           bNodeTree *ntree,
+static bool rna_Node_poll_instance_default(const bNode *node,
+                                           const bNodeTree *ntree,
                                            const char **disabled_info)
 {
   /* use the basic poll function */
@@ -2175,6 +2177,7 @@ static bool generic_attribute_type_supported(const EnumPropertyItem *item)
 {
   return ELEM(item->value,
               CD_PROP_FLOAT,
+              CD_PROP_FLOAT2,
               CD_PROP_FLOAT3,
               CD_PROP_COLOR,
               CD_PROP_BOOL,
@@ -2192,7 +2195,8 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeType_type_itemf(bContext
 
 static bool generic_attribute_type_supported_with_socket(const EnumPropertyItem *item)
 {
-  return generic_attribute_type_supported(item) && !ELEM(item->value, CD_PROP_BYTE_COLOR);
+  return generic_attribute_type_supported(item) &&
+         !ELEM(item->value, CD_PROP_BYTE_COLOR, CD_PROP_FLOAT2);
 }
 static const EnumPropertyItem *rna_GeometryNodeAttributeType_type_with_socket_itemf(
     bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
@@ -2200,6 +2204,19 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeType_type_with_socket_it
   *r_free = true;
   return itemf_function_check(rna_enum_attribute_type_items,
                               generic_attribute_type_supported_with_socket);
+}
+
+static bool rna_GeometryNodeBlurAttribute_data_type_supported(const EnumPropertyItem *item)
+{
+  return ELEM(item->value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_COLOR, CD_PROP_INT32);
+}
+
+static const EnumPropertyItem *rna_GeometryNodeBlurAttribute_data_type_itemf(
+    bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+{
+  *r_free = true;
+  return itemf_function_check(rna_enum_attribute_type_items,
+                              rna_GeometryNodeBlurAttribute_data_type_supported);
 }
 
 static bool attribute_statistic_type_supported(const EnumPropertyItem *item)
@@ -2360,10 +2377,10 @@ static void rna_Node_parent_set(PointerRNA *ptr,
 static void rna_Node_internal_links_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   bNode *node = ptr->data;
-  bNodeLink **begin;
+  bNodeLink *begin;
   int len;
   nodeInternalLinks(node, &begin, &len);
-  rna_iterator_array_begin(iter, begin, sizeof(bNodeLink *), len, false, NULL);
+  rna_iterator_array_begin(iter, begin, sizeof(bNodeLink), len, false, NULL);
 }
 
 static bool rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
@@ -2875,7 +2892,7 @@ static void rna_NodeSocket_hide_set(PointerRNA *ptr, bool value)
   bNodeSocket *sock = (bNodeSocket *)ptr->data;
 
   /* don't hide linked sockets */
-  if (sock->flag & SOCK_IN_USE) {
+  if (sock->flag & SOCK_IS_LINKED) {
     return;
   }
 
@@ -2968,8 +2985,8 @@ static void rna_NodeSocketInterface_init_socket(bNodeTree *ntree,
 
 static void rna_NodeSocketInterface_from_socket(bNodeTree *ntree,
                                                 bNodeSocket *interface_socket,
-                                                bNode *node,
-                                                bNodeSocket *sock)
+                                                const bNode *node,
+                                                const bNodeSocket *sock)
 {
   extern FunctionRNA rna_NodeSocketInterface_from_socket_func;
 
@@ -2982,8 +2999,8 @@ static void rna_NodeSocketInterface_from_socket(bNodeTree *ntree,
   }
 
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, interface_socket, &ptr);
-  RNA_pointer_create((ID *)ntree, &RNA_Node, node, &node_ptr);
-  RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &sock_ptr);
+  RNA_pointer_create((ID *)ntree, &RNA_Node, (bNode *)node, &node_ptr);
+  RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, (bNodeSocket *)sock, &sock_ptr);
   // RNA_struct_find_function(&ptr, "from_socket");
   func = &rna_NodeSocketInterface_from_socket_func;
 
@@ -4675,6 +4692,30 @@ static const EnumPropertyItem node_subsurface_method_items[] = {
      "automatically adjusted to match color textures"},
     {0, NULL, 0, NULL, NULL}};
 
+static const EnumPropertyItem prop_image_extension[] = {
+    {SHD_IMAGE_EXTENSION_REPEAT,
+     "REPEAT",
+     0,
+     "Repeat",
+     "Cause the image to repeat horizontally and vertically"},
+    {SHD_IMAGE_EXTENSION_EXTEND,
+     "EXTEND",
+     0,
+     "Extend",
+     "Extend by repeating edge pixels of the image"},
+    {SHD_IMAGE_EXTENSION_CLIP,
+     "CLIP",
+     0,
+     "Clip",
+     "Clip to image size and set exterior pixels as transparent"},
+    {SHD_IMAGE_EXTENSION_MIRROR,
+     "MIRROR",
+     0,
+     "Mirror",
+     "Repeatedly flip the image horizontally and vertically"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 /* -- Common nodes ---------------------------------------------------------- */
 
 static void def_group_input(StructRNA *UNUSED(srna))
@@ -5416,25 +5457,6 @@ static void def_sh_tex_image(StructRNA *srna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  static const EnumPropertyItem prop_image_extension[] = {
-      {SHD_IMAGE_EXTENSION_REPEAT,
-       "REPEAT",
-       0,
-       "Repeat",
-       "Cause the image to repeat horizontally and vertically"},
-      {SHD_IMAGE_EXTENSION_EXTEND,
-       "EXTEND",
-       0,
-       "Extend",
-       "Extend by repeating edge pixels of the image"},
-      {SHD_IMAGE_EXTENSION_CLIP,
-       "CLIP",
-       0,
-       "Clip",
-       "Clip to image size and set exterior pixels as transparent"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   PropertyRNA *prop;
 
   prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
@@ -5498,25 +5520,6 @@ static void def_geo_image_texture(StructRNA *srna)
       {SHD_INTERP_LINEAR, "Linear", 0, "Linear", "Linear interpolation"},
       {SHD_INTERP_CLOSEST, "Closest", 0, "Closest", "No interpolation (sample closest texel)"},
       {SHD_INTERP_CUBIC, "Cubic", 0, "Cubic", "Cubic interpolation"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
-  static const EnumPropertyItem prop_image_extension[] = {
-      {SHD_IMAGE_EXTENSION_REPEAT,
-       "REPEAT",
-       0,
-       "Repeat",
-       "Cause the image to repeat horizontally and vertically"},
-      {SHD_IMAGE_EXTENSION_EXTEND,
-       "EXTEND",
-       0,
-       "Extend",
-       "Extend by repeating edge pixels of the image"},
-      {SHD_IMAGE_EXTENSION_CLIP,
-       "CLIP",
-       0,
-       "Clip",
-       "Clip to image size and set exterior pixels as transparent"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -7787,11 +7790,6 @@ static void def_cmp_dblur(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Iterations", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  prop = RNA_def_property(srna, "use_wrap", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "wrap", 1);
-  RNA_def_property_ui_text(prop, "Wrap", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
   prop = RNA_def_property(srna, "center_x", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "center_x");
   RNA_def_property_range(prop, 0.0f, 1.0f);
@@ -9521,6 +9519,19 @@ static void def_geo_accumulate_field(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_geo_blur_attribute(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeBlurAttribute_data_type_itemf");
+  RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
+  RNA_def_property_ui_text(prop, "Data Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
+}
+
 static void def_fn_random_value(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -9994,7 +10005,10 @@ static void def_geo_collection_info(StructRNA *srna)
 
   prop = RNA_def_property(srna, "transform_space", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_node_geometry_collection_info_transform_space_items);
-  RNA_def_property_ui_text(prop, "Transform Space", "The transformation of the geometry output");
+  RNA_def_property_ui_text(
+      prop,
+      "Transform Space",
+      "The transformation of the instances output. Does not affect the internal geometry");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 }
 
@@ -10583,6 +10597,18 @@ static void def_geo_attribute_capture(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_geo_image(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "id");
+  RNA_def_property_struct_type(prop, "Image");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
+  RNA_def_property_ui_text(prop, "Image", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_geo_delete_geometry(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -10822,7 +10848,7 @@ static void def_geo_realize_instances(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
 }
 
-static void def_geo_field_at_index(StructRNA *srna)
+static void def_geo_evaluate_at_index(StructRNA *srna)
 {
   PropertyRNA *prop;
 
@@ -10841,7 +10867,7 @@ static void def_geo_field_at_index(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
 }
 
-static void def_geo_interpolate_domain(StructRNA *srna)
+static void def_geo_evaluate_on_domain(StructRNA *srna)
 {
   PropertyRNA *prop;
 
@@ -11031,7 +11057,7 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, NULL);
 
   prop = RNA_def_property(srna, "is_linked", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SOCK_IN_USE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SOCK_IS_LINKED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Linked", "True if the socket is connected");
 
@@ -12177,7 +12203,7 @@ static void rna_def_node(BlenderRNA *brna)
                                     "rna_Node_internal_links_begin",
                                     "rna_iterator_array_next",
                                     "rna_iterator_array_end",
-                                    "rna_iterator_array_dereference_get",
+                                    "rna_iterator_array_get",
                                     NULL,
                                     NULL,
                                     NULL,

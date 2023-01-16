@@ -173,7 +173,8 @@ static void SCULPT_dynamic_topology_disable_ex(
     me->face_sets_color_default = 1;
 
     /* Sync the visibility to vertices manually as the pmap is still not initialized. */
-    bool *hide_vert = (bool *)CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".hide_vert");
+    bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
+        &me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert);
     if (hide_vert != NULL) {
       memset(hide_vert, 0, sizeof(bool) * me->totvert);
     }
@@ -314,7 +315,7 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
   UNUSED_VARS_NDEBUG(ss);
 
   for (int i = 0; i < CD_NUMTYPES; i++) {
-    if (!ELEM(i, CD_MVERT, CD_MEDGE, CD_MFACE, CD_MLOOP, CD_MPOLY, CD_PAINT_MASK, CD_ORIGINDEX)) {
+    if (!ELEM(i, CD_MEDGE, CD_MFACE, CD_MLOOP, CD_MPOLY, CD_PAINT_MASK, CD_ORIGINDEX)) {
       if (CustomData_has_layer(&me->vdata, i)) {
         flag |= DYNTOPO_WARN_VDATA;
       }

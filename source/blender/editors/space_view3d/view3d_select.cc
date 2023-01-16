@@ -1170,7 +1170,6 @@ struct LassoSelectUserData_ForMeshVert {
   blender::MutableSpan<bool> select_vert;
 };
 static void do_lasso_select_meshobject__doSelectVert(void *userData,
-                                                     MVert * /*mv*/,
                                                      const float screen_co[2],
                                                      int index)
 {
@@ -3127,7 +3126,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
                          "vert_without_handles",
                          false,
                          "Control Point Without Handles",
-                         "Only select the curve control point, not it's handles");
+                         "Only select the curve control point, not its handles");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_int_vector(ot->srna,
@@ -3196,7 +3195,6 @@ struct BoxSelectUserData_ForMeshVert {
   blender::MutableSpan<bool> select_vert;
 };
 static void do_paintvert_box_select__doSelectVert(void *userData,
-                                                  MVert * /*mv*/,
                                                   const float screen_co[2],
                                                   int index)
 {
@@ -4216,7 +4214,6 @@ struct CircleSelectUserData_ForMeshVert {
   blender::MutableSpan<bool> select_vert;
 };
 static void paint_vertsel_circle_select_doSelectVert(void *userData,
-                                                     MVert * /*mv*/,
                                                      const float screen_co[2],
                                                      int index)
 {

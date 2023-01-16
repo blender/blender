@@ -1112,11 +1112,6 @@ void GHOST_WindowX11::validate()
   m_invalid_window = false;
 }
 
-/**
- * Destructor.
- * Closes the window and disposes resources allocated.
- */
-
 GHOST_WindowX11::~GHOST_WindowX11()
 {
   std::map<uint, Cursor>::iterator it = m_standard_cursors.begin();

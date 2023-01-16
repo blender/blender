@@ -227,11 +227,14 @@ void GPU_render_step()
  * Until a global switch is added, Metal also needs to be enabled in GHOST_ContextCGL:
  * `m_useMetalForRendering = true`. */
 static eGPUBackendType g_backend_type = GPU_BACKEND_OPENGL;
+static std::optional<eGPUBackendType> g_backend_type_override = std::nullopt;
+static std::optional<bool> g_backend_type_supported = std::nullopt;
 static GPUBackend *g_backend = nullptr;
 
 void GPU_backend_type_selection_set(const eGPUBackendType backend)
 {
   g_backend_type = backend;
+  g_backend_type_supported = std::nullopt;
 }
 
 eGPUBackendType GPU_backend_type_selection_get()
@@ -239,7 +242,44 @@ eGPUBackendType GPU_backend_type_selection_get()
   return g_backend_type;
 }
 
-bool GPU_backend_supported(void)
+void GPU_backend_type_selection_set_override(const eGPUBackendType backend_type)
+{
+  g_backend_type_override = backend_type;
+}
+
+bool GPU_backend_type_selection_is_overridden(void)
+{
+  return g_backend_type_override.has_value();
+}
+
+bool GPU_backend_type_selection_detect(void)
+{
+  blender::Vector<eGPUBackendType> backends_to_check;
+  if (GPU_backend_type_selection_is_overridden()) {
+    backends_to_check.append(*g_backend_type_override);
+  }
+  else {
+    backends_to_check.append(GPU_BACKEND_OPENGL);
+  }
+
+  /* Add fallback to OpenGL when Metal backend is requested on a platform that doesn't support
+   * metal. */
+  if (backends_to_check[0] == GPU_BACKEND_METAL) {
+    backends_to_check.append(GPU_BACKEND_OPENGL);
+  }
+
+  for (const eGPUBackendType backend_type : backends_to_check) {
+    GPU_backend_type_selection_set(backend_type);
+    if (GPU_backend_supported()) {
+      return true;
+    }
+  }
+
+  GPU_backend_type_selection_set(GPU_BACKEND_NONE);
+  return false;
+}
+
+static bool gpu_backend_supported()
 {
   switch (g_backend_type) {
     case GPU_BACKEND_OPENGL:
@@ -264,6 +304,14 @@ bool GPU_backend_supported(void)
       BLI_assert(false && "No backend specified");
       return false;
   }
+}
+
+bool GPU_backend_supported()
+{
+  if (!g_backend_type_supported.has_value()) {
+    g_backend_type_supported = gpu_backend_supported();
+  }
+  return *g_backend_type_supported;
 }
 
 static void gpu_backend_create()

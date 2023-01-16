@@ -62,6 +62,7 @@
 #endif
 
 using blender::Array;
+using blender::float3;
 using blender::float4x4;
 using blender::IndexRange;
 using blender::MutableSpan;
@@ -142,9 +143,9 @@ static Mesh *get_quick_mesh(
           invert_m4_m4(imat, ob_self->object_to_world);
           mul_m4_m4m4(omat, imat, ob_operand_ob->object_to_world);
 
-          MutableSpan<MVert> verts = result->verts_for_write();
-          for (const int i : verts.index_range()) {
-            mul_m4_v3(omat, verts[i].co);
+          MutableSpan<float3> positions = result->vert_positions_for_write();
+          for (const int i : positions.index_range()) {
+            mul_m4_v3(omat, positions[i]);
           }
 
           BKE_mesh_tag_coords_changed(result);
@@ -663,35 +664,35 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Boolean = {
-    /* name */ N_("Boolean"),
-    /* structName */ "BooleanModifierData",
-    /* structSize */ sizeof(BooleanModifierData),
-    /* srna */ &RNA_BooleanModifier,
-    /* type */ eModifierTypeType_Nonconstructive,
-    /* flags */
+    /*name*/ N_("Boolean"),
+    /*structName*/ "BooleanModifierData",
+    /*structSize*/ sizeof(BooleanModifierData),
+    /*srna*/ &RNA_BooleanModifier,
+    /*type*/ eModifierTypeType_Nonconstructive,
+    /*flags*/
     (ModifierTypeFlag)(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode),
-    /* icon */ ICON_MOD_BOOLEAN,
+    /*icon*/ ICON_MOD_BOOLEAN,
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ nullptr,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ nullptr,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ nullptr,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ nullptr,
 
-    /* initData */ initData,
-    /* requiredDataMask */ requiredDataMask,
-    /* freeData */ nullptr,
-    /* isDisabled */ isDisabled,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ nullptr,
-    /* dependsOnNormals */ nullptr,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ nullptr,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ nullptr,
-    /* blendRead */ nullptr,
+    /*initData*/ initData,
+    /*requiredDataMask*/ requiredDataMask,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ isDisabled,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

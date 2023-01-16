@@ -1169,7 +1169,7 @@ static bool surfacedeformBind(Object *ob,
                               Mesh *mesh)
 {
   BVHTreeFromMesh treeData = {NULL};
-  const MVert *mvert = BKE_mesh_verts(target);
+  const float(*positions)[3] = BKE_mesh_vert_positions(target);
   const MPoly *mpoly = BKE_mesh_polys(target);
   const MEdge *medge = BKE_mesh_edges(target);
   const MLoop *mloop = BKE_mesh_loops(target);
@@ -1268,7 +1268,7 @@ static bool surfacedeformBind(Object *ob,
   invert_m4_m4(data.imat, smd_orig->mat);
 
   for (int i = 0; i < target_verts_num; i++) {
-    mul_v3_m4v3(data.targetCos[i], smd_orig->mat, mvert[i].co);
+    mul_v3_m4v3(data.targetCos[i], smd_orig->mat, positions[i]);
   }
 
   TaskParallelSettings settings;
@@ -1743,34 +1743,34 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_SurfaceDeform = {
-    /* name */ N_("SurfaceDeform"),
-    /* structName */ "SurfaceDeformModifierData",
-    /* structSize */ sizeof(SurfaceDeformModifierData),
-    /* srna */ &RNA_SurfaceDeformModifier,
-    /* type */ eModifierTypeType_OnlyDeform,
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
-    /* icon */ ICON_MOD_MESHDEFORM,
+    /*name*/ N_("SurfaceDeform"),
+    /*structName*/ "SurfaceDeformModifierData",
+    /*structSize*/ sizeof(SurfaceDeformModifierData),
+    /*srna*/ &RNA_SurfaceDeformModifier,
+    /*type*/ eModifierTypeType_OnlyDeform,
+    /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
+    /*icon*/ ICON_MOD_MESHDEFORM,
 
-    /* copyData */ copyData,
+    /*copyData*/ copyData,
 
-    /* deformVerts */ deformVerts,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ deformVertsEM,
-    /* deformMatricesEM */ NULL,
-    /* modifyMesh */ NULL,
-    /* modifyGeometrySet */ NULL,
+    /*deformVerts*/ deformVerts,
+    /*deformMatrices*/ NULL,
+    /*deformVertsEM*/ deformVertsEM,
+    /*deformMatricesEM*/ NULL,
+    /*modifyMesh*/ NULL,
+    /*modifyGeometrySet*/ NULL,
 
-    /* initData */ initData,
-    /* requiredDataMask */ requiredDataMask,
-    /* freeData */ freeData,
-    /* isDisabled */ isDisabled,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ blendWrite,
-    /* blendRead */ blendRead,
+    /*initData*/ initData,
+    /*requiredDataMask*/ requiredDataMask,
+    /*freeData*/ freeData,
+    /*isDisabled*/ isDisabled,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ NULL,
+    /*dependsOnNormals*/ NULL,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ NULL,
+    /*freeRuntimeData*/ NULL,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ blendWrite,
+    /*blendRead*/ blendRead,
 };

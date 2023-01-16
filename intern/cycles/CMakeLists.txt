@@ -298,7 +298,7 @@ if(WITH_CYCLES_DEVICE_METAL)
   add_definitions(-DWITH_METAL)
 endif()
 
-if (WITH_CYCLES_DEVICE_ONEAPI)
+if(WITH_CYCLES_DEVICE_ONEAPI)
   add_definitions(-DWITH_ONEAPI)
 endif()
 

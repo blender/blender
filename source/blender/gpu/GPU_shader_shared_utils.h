@@ -67,8 +67,10 @@
 #  include "BLI_assert.h"
 
 #  ifdef __cplusplus
-#    include "BLI_float4x4.hh"
-#    include "BLI_math_vec_types.hh"
+#    ifndef __BLI_MATH_MATRIX_TYPES_HH__
+#      include "BLI_float4x4.hh"
+#    endif
+#    include "BLI_math_vector_types.hh"
 using blender::float2;
 using blender::float3;
 using blender::float4;

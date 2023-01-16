@@ -540,7 +540,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         sc = context.space_data
         if sc and sc.type == 'CLIP_EDITOR':
             clip = sc.clip
-            if clip and clip.tracking.reconstruction.is_valid:
+            if clip and clip.tracking.objects.active.reconstruction.is_valid:
                 return True
         return False
 
@@ -620,7 +620,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         if not view_layers.get("Foreground"):
             if len(view_layers) == 1:
                 fg = view_layers[0]
-                fg.name = 'Foreground'
+                fg.name = "Foreground"
             else:
                 fg = view_layers.new("Foreground")
 
@@ -1028,7 +1028,7 @@ class CLIP_OT_track_settings_to_track(Operator):
         "use_red_channel",
         "use_green_channel",
         "use_blue_channel",
-        "weight"
+        "weight",
     )
 
     _attrs_marker = (

@@ -337,10 +337,12 @@ static bool addGPULut1D2D(OCIO_GPUTextures &textures,
    * It depends on more than height. So check instead by looking at the source. */
   std::string sampler1D_name = std::string("sampler1D ") + sampler_name;
   if (strstr(shader_desc->getShaderText(), sampler1D_name.c_str()) != nullptr) {
-    lut.texture = GPU_texture_create_1d(texture_name, width, 1, format, values);
+    lut.texture = GPU_texture_create_1d_ex(
+        texture_name, width, 1, format, GPU_TEXTURE_USAGE_SHADER_READ, values);
   }
   else {
-    lut.texture = GPU_texture_create_2d(texture_name, width, height, 1, format, values);
+    lut.texture = GPU_texture_create_2d_ex(
+        texture_name, width, height, 1, format, GPU_TEXTURE_USAGE_SHADER_READ, values);
   }
   if (lut.texture == nullptr) {
     return false;
@@ -372,8 +374,15 @@ static bool addGPULut3D(OCIO_GPUTextures &textures,
   }
 
   OCIO_GPULutTexture lut;
-  lut.texture = GPU_texture_create_3d(
-      texture_name, edgelen, edgelen, edgelen, 1, GPU_RGB16F, GPU_DATA_FLOAT, values);
+  lut.texture = GPU_texture_create_3d_ex(texture_name,
+                                         edgelen,
+                                         edgelen,
+                                         edgelen,
+                                         1,
+                                         GPU_RGB16F,
+                                         GPU_DATA_FLOAT,
+                                         GPU_TEXTURE_USAGE_SHADER_READ,
+                                         values);
   if (lut.texture == nullptr) {
     return false;
   }
@@ -442,7 +451,8 @@ static bool createGPUCurveMapping(OCIO_GPUCurveMappping &curvemap,
   if (curve_mapping_settings) {
     int lut_size = curve_mapping_settings->lut_size;
 
-    curvemap.texture = GPU_texture_create_1d("OCIOCurveMap", lut_size, 1, GPU_RGBA16F, nullptr);
+    curvemap.texture = GPU_texture_create_1d_ex(
+        "OCIOCurveMap", lut_size, 1, GPU_RGBA16F, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
     GPU_texture_filter_mode(curvemap.texture, false);
     GPU_texture_wrap_mode(curvemap.texture, false, true);
 

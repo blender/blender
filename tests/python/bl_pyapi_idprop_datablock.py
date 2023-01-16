@@ -65,8 +65,7 @@ def expect_output_or_abort(*, fn, match_stderr=None, match_stdout=None):
     for (handle, match) in ((stdout, match_stdout), (stderr, match_stderr)):
         if not match:
             continue
-        handle.seek(0)
-        output = handle.read()
+        output = handle.getvalue()
         if not re.match(match, output):
             print_fail_msg_and_exit("%r not found in %r" % (match, output))
 

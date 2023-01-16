@@ -33,4 +33,13 @@ void gather(const GSpan src, const IndexMask indices, GMutableSpan dst, const in
   gather(GVArray::ForSpan(src), indices, dst, grain_size);
 }
 
+void invert_booleans(MutableSpan<bool> span)
+{
+  threading::parallel_for(span.index_range(), 4096, [&](IndexRange range) {
+    for (const int i : range) {
+      span[i] = !span[i];
+    }
+  });
+}
+
 }  // namespace blender::array_utils

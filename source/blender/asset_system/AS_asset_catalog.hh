@@ -299,7 +299,7 @@ class AssetCatalogCollection {
   std::unique_ptr<AssetCatalogCollection> deep_copy() const;
   /**
    * Copy the catalogs from \a other and append them to this collection. Copies no other data
-   * otherwise (but marks as having unsaved changes).
+   * otherwise.
    */
   void add_catalogs_from_existing(const AssetCatalogCollection &other);
 

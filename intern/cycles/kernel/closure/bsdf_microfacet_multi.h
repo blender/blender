@@ -416,14 +416,16 @@ ccl_device int bsdf_microfacet_multi_ggx_refraction_setup(ccl_private Microfacet
 }
 
 ccl_device Spectrum bsdf_microfacet_multi_ggx_eval(ccl_private const ShaderClosure *sc,
+                                                   const float3 Ng,
                                                    const float3 I,
                                                    const float3 omega_in,
                                                    ccl_private float *pdf,
                                                    ccl_private uint *lcg_state)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
+  const float cosNgI = dot(Ng, omega_in);
 
-  if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
+  if ((cosNgI < 0.0f) || bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
     *pdf = 0.0f;
     return zero_spectrum();
   }

@@ -135,7 +135,8 @@ static uiTooltipField *text_field_add(uiTooltipData *data,
   uiTooltipField *field = text_field_add_only(data);
   field->format = {};
   field->format.style = style;
-  field->format.color_id = color, field->format.is_pad = is_pad;
+  field->format.color_id = color;
+  field->format.is_pad = is_pad;
   return field;
 }
 

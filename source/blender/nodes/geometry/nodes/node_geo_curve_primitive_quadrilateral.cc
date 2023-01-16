@@ -136,7 +136,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   if (params.in_out() == SOCK_OUT) {
-    search_link_ops_for_declarations(params, declaration.outputs());
+    search_link_ops_for_declarations(params, declaration.outputs);
   }
   else if (params.node_tree().typeinfo->validate_link(
                eNodeSocketDatatype(params.other_socket().type), SOCK_FLOAT)) {

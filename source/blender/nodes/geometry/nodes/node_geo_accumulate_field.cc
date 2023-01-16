@@ -40,33 +40,33 @@ static void node_declare(NodeDeclarationBuilder &b)
           N_("An index used to group values together for multiple separate accumulations"));
 
   b.add_output<decl::Vector>(N_("Leading"), "Leading Vector")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(leading_out_description));
   b.add_output<decl::Float>(N_("Leading"), "Leading Float")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(leading_out_description));
   b.add_output<decl::Int>(N_("Leading"), "Leading Int")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(leading_out_description));
 
   b.add_output<decl::Vector>(N_("Trailing"), "Trailing Vector")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(trailing_out_description));
   b.add_output<decl::Float>(N_("Trailing"), "Trailing Float")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(trailing_out_description));
   b.add_output<decl::Int>(N_("Trailing"), "Trailing Int")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(trailing_out_description));
 
   b.add_output<decl::Vector>(N_("Total"), "Total Vector")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(total_out_description));
   b.add_output<decl::Float>(N_("Total"), "Total Float")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(total_out_description));
   b.add_output<decl::Int>(N_("Total"), "Total Int")
-      .field_source()
+      .field_source_reference_all()
       .description(N_(total_out_description));
 }
 

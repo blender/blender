@@ -327,6 +327,8 @@ LightCache *EEVEE_lightcache_create(const int grid_len,
                                     const int vis_size,
                                     const int irr_size[3])
 {
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
+                           GPU_TEXTURE_USAGE_HOST_READ;
   LightCache *light_cache = MEM_callocN(sizeof(LightCache), "LightCache");
 
   light_cache->version = LIGHTCACHE_STATIC_VERSION;
@@ -335,8 +337,8 @@ LightCache *EEVEE_lightcache_create(const int grid_len,
   light_cache->cube_data = MEM_callocN(sizeof(EEVEE_LightProbe) * cube_len, "EEVEE_LightProbe");
   light_cache->grid_data = MEM_callocN(sizeof(EEVEE_LightGrid) * grid_len, "EEVEE_LightGrid");
 
-  light_cache->grid_tx.tex = DRW_texture_create_2d_array(
-      irr_size[0], irr_size[1], irr_size[2], IRRADIANCE_FORMAT, DRW_TEX_FILTER, NULL);
+  light_cache->grid_tx.tex = DRW_texture_create_2d_array_ex(
+      irr_size[0], irr_size[1], irr_size[2], IRRADIANCE_FORMAT, usage, DRW_TEX_FILTER, NULL);
   light_cache->grid_tx.tex_size[0] = irr_size[0];
   light_cache->grid_tx.tex_size[1] = irr_size[1];
   light_cache->grid_tx.tex_size[2] = irr_size[2];
@@ -345,12 +347,12 @@ LightCache *EEVEE_lightcache_create(const int grid_len,
 
   /* Try to create a cubemap array. */
   DRWTextureFlag cube_texflag = DRW_TEX_FILTER | DRW_TEX_MIPMAP;
-  light_cache->cube_tx.tex = DRW_texture_create_cube_array(
-      cube_size, cube_len, GPU_R11F_G11F_B10F, cube_texflag, NULL);
+  light_cache->cube_tx.tex = DRW_texture_create_cube_array_ex(
+      cube_size, cube_len, GPU_R11F_G11F_B10F, usage, cube_texflag, NULL);
   if (light_cache->cube_tx.tex == NULL) {
     /* Try fallback to 2D array. */
-    light_cache->cube_tx.tex = DRW_texture_create_2d_array(
-        cube_size, cube_size, cube_len * 6, GPU_R11F_G11F_B10F, cube_texflag, NULL);
+    light_cache->cube_tx.tex = DRW_texture_create_2d_array_ex(
+        cube_size, cube_size, cube_len * 6, GPU_R11F_G11F_B10F, usage, cube_texflag, NULL);
   }
 
   light_cache->cube_tx.tex_size[0] = cube_size;
@@ -393,8 +395,13 @@ static bool eevee_lightcache_static_load(LightCache *lcache)
   }
 
   if (lcache->grid_tx.tex == NULL) {
-    lcache->grid_tx.tex = GPU_texture_create_2d_array(
-        "lightcache_irradiance", UNPACK3(lcache->grid_tx.tex_size), 1, IRRADIANCE_FORMAT, NULL);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    lcache->grid_tx.tex = GPU_texture_create_2d_array_ex("lightcache_irradiance",
+                                                         UNPACK3(lcache->grid_tx.tex_size),
+                                                         1,
+                                                         IRRADIANCE_FORMAT,
+                                                         usage,
+                                                         NULL);
     GPU_texture_update(lcache->grid_tx.tex, GPU_DATA_UBYTE, lcache->grid_tx.data);
 
     if (lcache->grid_tx.tex == NULL) {
@@ -406,21 +413,27 @@ static bool eevee_lightcache_static_load(LightCache *lcache)
   }
 
   if (lcache->cube_tx.tex == NULL) {
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
+                             GPU_TEXTURE_USAGE_HOST_READ;
+
     /* Try to create a cubemap array. */
-    lcache->cube_tx.tex = GPU_texture_create_cube_array("lightcache_cubemaps",
-                                                        lcache->cube_tx.tex_size[0],
-                                                        lcache->cube_tx.tex_size[2] / 6,
-                                                        lcache->mips_len + 1,
-                                                        GPU_R11F_G11F_B10F,
-                                                        NULL);
+    lcache->cube_tx.tex = GPU_texture_create_cube_array_ex("lightcache_cubemaps",
+                                                           lcache->cube_tx.tex_size[0],
+                                                           lcache->cube_tx.tex_size[2] / 6,
+                                                           lcache->mips_len + 1,
+                                                           GPU_R11F_G11F_B10F,
+                                                           usage,
+                                                           NULL);
 
     if (lcache->cube_tx.tex == NULL) {
       /* Try fallback to 2D array. */
-      lcache->cube_tx.tex = GPU_texture_create_2d_array("lightcache_cubemaps_fallback",
-                                                        UNPACK3(lcache->cube_tx.tex_size),
-                                                        lcache->mips_len + 1,
-                                                        GPU_R11F_G11F_B10F,
-                                                        NULL);
+
+      lcache->cube_tx.tex = GPU_texture_create_2d_array_ex("lightcache_cubemaps_fallback",
+                                                           UNPACK3(lcache->cube_tx.tex_size),
+                                                           lcache->mips_len + 1,
+                                                           GPU_R11F_G11F_B10F,
+                                                           usage,
+                                                           NULL);
     }
 
     if (lcache->cube_tx.tex == NULL) {
@@ -610,19 +623,22 @@ static void eevee_lightbake_context_enable(EEVEE_LightBake *lbake)
 
 static void eevee_lightbake_context_disable(EEVEE_LightBake *lbake)
 {
-  GPU_render_end();
+
   if (GPU_use_main_context_workaround() && !BLI_thread_is_main()) {
     DRW_opengl_context_disable();
+    GPU_render_end();
     GPU_context_main_unlock();
     return;
   }
 
   if (lbake->gl_context) {
     DRW_gpu_render_context_disable(lbake->gpu_context);
+    GPU_render_end();
     DRW_opengl_render_context_disable(lbake->gl_context);
   }
   else {
     DRW_opengl_context_disable();
+    GPU_render_end();
   }
 }
 
@@ -666,9 +682,11 @@ static void eevee_lightbake_count_probes(EEVEE_LightBake *lbake)
 
 static void eevee_lightbake_create_render_target(EEVEE_LightBake *lbake, int rt_res)
 {
-  lbake->rt_depth = DRW_texture_create_cube(rt_res, GPU_DEPTH_COMPONENT24, 0, NULL);
-  lbake->rt_color = DRW_texture_create_cube(
-      rt_res, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
+                           GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+  lbake->rt_depth = DRW_texture_create_cube_ex(rt_res, GPU_DEPTH_COMPONENT24, usage, 0, NULL);
+  lbake->rt_color = DRW_texture_create_cube_ex(
+      rt_res, GPU_RGBA16F, usage, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 
   for (int i = 0; i < 6; i++) {
     GPU_framebuffer_ensure_config(&lbake->rt_fb[i],
@@ -694,12 +712,13 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
   lbake->cube_prb = MEM_callocN(sizeof(LightProbe *) * lbake->cube_len, "EEVEE Cube visgroup ptr");
   lbake->grid_prb = MEM_callocN(sizeof(LightProbe *) * lbake->grid_len, "EEVEE Grid visgroup ptr");
 
-  lbake->grid_prev = DRW_texture_create_2d_array(lbake->irr_size[0],
-                                                 lbake->irr_size[1],
-                                                 lbake->irr_size[2],
-                                                 IRRADIANCE_FORMAT,
-                                                 DRW_TEX_FILTER,
-                                                 NULL);
+  lbake->grid_prev = DRW_texture_create_2d_array_ex(lbake->irr_size[0],
+                                                    lbake->irr_size[1],
+                                                    lbake->irr_size[2],
+                                                    IRRADIANCE_FORMAT,
+                                                    GPU_TEXTURE_USAGE_SHADER_READ,
+                                                    DRW_TEX_FILTER,
+                                                    NULL);
 
   /* Ensure Light Cache is ready to accept new data. If not recreate one.
    * WARNING: All the following must be threadsafe. It's currently protected
@@ -980,12 +999,13 @@ static void eevee_lightbake_copy_irradiance(EEVEE_LightBake *lbake, LightCache *
 
   /* Copy texture by reading back and re-uploading it. */
   float *tex = GPU_texture_read(lcache->grid_tx.tex, GPU_DATA_FLOAT, 0);
-  lbake->grid_prev = DRW_texture_create_2d_array(lbake->irr_size[0],
-                                                 lbake->irr_size[1],
-                                                 lbake->irr_size[2],
-                                                 IRRADIANCE_FORMAT,
-                                                 DRW_TEX_FILTER,
-                                                 tex);
+  lbake->grid_prev = DRW_texture_create_2d_array_ex(lbake->irr_size[0],
+                                                    lbake->irr_size[1],
+                                                    lbake->irr_size[2],
+                                                    IRRADIANCE_FORMAT,
+                                                    GPU_TEXTURE_USAGE_SHADER_READ,
+                                                    DRW_TEX_FILTER,
+                                                    tex);
 
   MEM_freeN(tex);
 }

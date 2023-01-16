@@ -129,7 +129,7 @@ list(APPEND SRC
 
 if(WITH_HEADLESS)
   add_definitions(-DWITH_HEADLESS)
-elseif (WITH_GHOST_SDL)
+elseif(WITH_GHOST_SDL)
   list(APPEND SRC
     intern/GHOST_ContextSDL.cpp
     intern/GHOST_DisplayManagerSDL.cpp

@@ -33,6 +33,8 @@ set(MESA_EXTRA_FLAGS
   # At some point we will likely want to support Wayland.
   # Disable for now since it's not officially supported.
   -Dplatforms=x11
+  # Needed to find the local expat.
+  --pkg-config-path=${LIBDIR}/expat/lib/pkgconfig
   --native-file ${BUILD_DIR}/mesa/tmp/native-file.ini
 )
 
@@ -43,7 +45,7 @@ ExternalProject_Add(external_mesa
   PREFIX ${BUILD_DIR}/mesa
   CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/mesa/src/external_mesa/ &&
-    meson ${BUILD_DIR}/mesa/src/external_mesa-build --prefix=${LIBDIR}/mesa ${MESA_EXTRA_FLAGS}
+    ${MESON} ${BUILD_DIR}/mesa/src/external_mesa-build --prefix=${LIBDIR}/mesa ${MESA_EXTRA_FLAGS}
   BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/mesa/src/external_mesa-build && ninja -j${MAKE_THREADS}
   INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/mesa/src/external_mesa-build && ninja install
   INSTALL_DIR ${LIBDIR}/mesa
@@ -52,4 +54,9 @@ ExternalProject_Add(external_mesa
 add_dependencies(
   external_mesa
   ll
+  external_zlib
+  # Run-time dependency.
+  external_expat
+  # Needed for `MESON`.
+  external_python_site_packages
 )

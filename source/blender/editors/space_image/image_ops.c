@@ -667,35 +667,47 @@ static int image_view_zoom_modal(bContext *C, wmOperator *op, const wmEvent *eve
 {
   ViewZoomData *vpd = op->customdata;
   short event_code = VIEW_PASS;
+  int ret = OPERATOR_RUNNING_MODAL;
 
-  /* execute the events */
-  if (event->type == TIMER && event->customdata == vpd->timer) {
-    /* continuous zoom */
+  /* Execute the events. */
+  if (event->type == MOUSEMOVE) {
     event_code = VIEW_APPLY;
   }
-  else if (event->type == MOUSEMOVE) {
-    event_code = VIEW_APPLY;
+  else if (event->type == TIMER) {
+    /* Continuous zoom. */
+    if (event->customdata == vpd->timer) {
+      event_code = VIEW_APPLY;
+    }
   }
-  else if (event->type == vpd->launch_event && event->val == KM_RELEASE) {
-    event_code = VIEW_CONFIRM;
+  else if (event->type == vpd->launch_event) {
+    if (event->val == KM_RELEASE) {
+      event_code = VIEW_CONFIRM;
+    }
   }
 
-  if (event_code == VIEW_APPLY) {
-    const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
-    image_zoom_apply(vpd,
-                     op,
-                     event->xy[0],
-                     event->xy[1],
-                     U.viewzoom,
-                     (U.uiflag & USER_ZOOM_INVERT) != 0,
-                     (use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)));
+  switch (event_code) {
+    case VIEW_APPLY: {
+      const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
+      image_zoom_apply(vpd,
+                       op,
+                       event->xy[0],
+                       event->xy[1],
+                       U.viewzoom,
+                       (U.uiflag & USER_ZOOM_INVERT) != 0,
+                       (use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)));
+      break;
+    }
+    case VIEW_CONFIRM: {
+      ret = OPERATOR_FINISHED;
+      break;
+    }
   }
-  else if (event_code == VIEW_CONFIRM) {
+
+  if ((ret & OPERATOR_RUNNING_MODAL) == 0) {
     image_view_zoom_exit(C, op, false);
-    return OPERATOR_FINISHED;
   }
 
-  return OPERATOR_RUNNING_MODAL;
+  return ret;
 }
 
 static void image_view_zoom_cancel(bContext *C, wmOperator *op)

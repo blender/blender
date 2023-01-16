@@ -5,8 +5,8 @@
  * \ingroup spbuttons
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -154,18 +154,23 @@ static void buttons_texture_users_find_nodetree(ListBase *users,
   }
 }
 
-static void buttons_texture_modifier_geonodes_users_add(Object *ob,
-                                                        NodesModifierData *nmd,
-                                                        bNodeTree *node_tree,
-                                                        ListBase *users)
+static void buttons_texture_modifier_geonodes_users_add(
+    Object *ob,
+    NodesModifierData *nmd,
+    bNodeTree *node_tree,
+    ListBase *users,
+    blender::Set<const bNodeTree *> &handled_groups)
 {
   PointerRNA ptr;
   PropertyRNA *prop;
 
   for (bNode *node : node_tree->all_nodes()) {
     if (node->type == NODE_GROUP && node->id) {
-      /* Recurse into the node group */
-      buttons_texture_modifier_geonodes_users_add(ob, nmd, (bNodeTree *)node->id, users);
+      if (handled_groups.add(reinterpret_cast<bNodeTree *>(node->id))) {
+        /* Recurse into the node group */
+        buttons_texture_modifier_geonodes_users_add(
+            ob, nmd, (bNodeTree *)node->id, users, handled_groups);
+      }
     }
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
       if (socket->flag & SOCK_UNAVAIL) {
@@ -205,7 +210,8 @@ static void buttons_texture_modifier_foreach(void *userData,
   if (md->type == eModifierType_Nodes) {
     NodesModifierData *nmd = (NodesModifierData *)md;
     if (nmd->node_group != nullptr) {
-      buttons_texture_modifier_geonodes_users_add(ob, nmd, nmd->node_group, users);
+      blender::Set<const bNodeTree *> handled_groups;
+      buttons_texture_modifier_geonodes_users_add(ob, nmd, nmd->node_group, users, handled_groups);
     }
   }
   else {
@@ -422,7 +428,7 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
   }
 }
 
-static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg))
+static void template_texture_select(bContext *C, void *user_p, void * /*arg*/)
 {
   /* callback when selecting a texture user in the menu */
   SpaceProperties *sbuts = find_space_properties(C);
@@ -475,7 +481,7 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
   ct->index = user->index;
 }
 
-static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUSED(arg))
+static void template_texture_user_menu(bContext *C, uiLayout *layout, void * /*arg*/)
 {
   /* callback when opening texture user selection menu, to create buttons. */
   SpaceProperties *sbuts = CTX_wm_space_properties(C);

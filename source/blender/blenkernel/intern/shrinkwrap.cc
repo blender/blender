@@ -59,7 +59,7 @@ struct ShrinkwrapCalcData {
 
   Object *ob; /* object we are applying shrinkwrap to */
 
-  MVert *vert; /* Array of verts being projected. */
+  float (*vert_positions)[3]; /* Array of verts being projected. */
   const float (*vert_normals)[3];
   /* Vertices being shrink-wrapped. */
   float (*vertexCos)[3];
@@ -134,7 +134,7 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
-    data->pnors = BKE_mesh_poly_normals_ensure(mesh);
+    data->poly_normals = BKE_mesh_poly_normals_ensure(mesh);
     if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
       data->clnors = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
     }
@@ -188,7 +188,7 @@ static void merge_vert_dir(ShrinkwrapBoundaryVertData *vdata,
 
 static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 {
-  const MVert *mvert = BKE_mesh_verts(mesh);
+  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
   const MEdge *medge = BKE_mesh_edges(mesh);
   const MLoop *mloop = BKE_mesh_loops(mesh);
 
@@ -285,7 +285,7 @@ static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
       const MEdge *edge = &medge[i];
 
       float dir[3];
-      sub_v3_v3v3(dir, mvert[edge->v2].co, mvert[edge->v1].co);
+      sub_v3_v3v3(dir, positions[edge->v2], positions[edge->v1]);
       normalize_v3(dir);
 
       merge_vert_dir(boundary_verts, vert_status, vert_boundary_id[edge->v1], dir, 1);
@@ -355,8 +355,8 @@ static void shrinkwrap_calc_nearest_vertex_cb_ex(void *__restrict userdata,
   }
 
   /* Convert the vertex to tree coordinates */
-  if (calc->vert) {
-    copy_v3_v3(tmp_co, calc->vert[i].co);
+  if (calc->vert_positions) {
+    copy_v3_v3(tmp_co, calc->vert_positions[i]);
   }
   else {
     copy_v3_v3(tmp_co, co);
@@ -517,12 +517,13 @@ static void shrinkwrap_calc_normal_projection_cb_ex(void *__restrict userdata,
     return;
   }
 
-  if (calc->vert != nullptr && calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
-    /* calc->vert contains verts from evaluated mesh. */
+  if (calc->vert_positions != nullptr &&
+      calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
+    /* calc->vert_positions contains verts from evaluated mesh. */
     /* These coordinates are deformed by vertexCos only for normal projection
      * (to get correct normals) for other cases calc->verts contains undeformed coordinates and
      * vertexCos should be used */
-    copy_v3_v3(tmp_co, calc->vert[i].co);
+    copy_v3_v3(tmp_co, calc->vert_positions[i]);
     copy_v3_v3(tmp_no, calc->vert_normals[i]);
   }
   else {
@@ -638,7 +639,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
   /* Prepare data to retrieve the direction in which we should project each vertex */
   if (calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
-    if (calc->vert == nullptr) {
+    if (calc->vert_positions == nullptr) {
       return;
     }
   }
@@ -934,7 +935,7 @@ static void target_project_edge(const ShrinkwrapTreeData *tree,
 {
   const BVHTreeFromMesh *data = &tree->treeData;
   const MEdge *edge = &data->edge[eidx];
-  const float *vedge_co[2] = {data->vert[edge->v1].co, data->vert[edge->v2].co};
+  const float *vedge_co[2] = {data->vert_positions[edge->v1], data->vert_positions[edge->v2]};
 
 #ifdef TRACE_TARGET_PROJECT
   printf("EDGE %d (%.3f,%.3f,%.3f) (%.3f,%.3f,%.3f)\n",
@@ -1012,9 +1013,9 @@ static void mesh_looptri_target_project(void *userdata,
   const MLoopTri *lt = &data->looptri[index];
   const MLoop *loop[3] = {
       &data->loop[lt->tri[0]], &data->loop[lt->tri[1]], &data->loop[lt->tri[2]]};
-  const MVert *vtri[3] = {
-      &data->vert[loop[0]->v], &data->vert[loop[1]->v], &data->vert[loop[2]->v]};
-  const float *vtri_co[3] = {vtri[0]->co, vtri[1]->co, vtri[2]->co};
+  const float *vtri_co[3] = {data->vert_positions[loop[0]->v],
+                             data->vert_positions[loop[1]->v],
+                             data->vert_positions[loop[2]->v]};
   float raw_hit_co[3], hit_co[3], hit_no[3], dist_sq, vtri_no[3][3];
 
   /* First find the closest point and bail out if it's worse than the current solution. */
@@ -1116,8 +1117,8 @@ static void shrinkwrap_calc_nearest_surface_point_cb_ex(void *__restrict userdat
   }
 
   /* Convert the vertex to tree coordinates */
-  if (calc->vert) {
-    copy_v3_v3(tmp_co, calc->vert[i].co);
+  if (calc->vert_positions) {
+    copy_v3_v3(tmp_co, calc->vert_positions[i]);
   }
   else {
     copy_v3_v3(tmp_co, co);
@@ -1202,9 +1203,9 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
     }
 
     interp_weights_tri_v3(w,
-                          treeData->vert[vert_indices[0]].co,
-                          treeData->vert[vert_indices[1]].co,
-                          treeData->vert[vert_indices[2]].co,
+                          treeData->vert_positions[vert_indices[0]],
+                          treeData->vert_positions[vert_indices[1]],
+                          treeData->vert_positions[vert_indices[2]],
                           tmp_co);
 
     /* Interpolate using weights. */
@@ -1218,8 +1219,8 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
     }
   }
   /* Use the polygon normal if flat. */
-  else if (tree->pnors != nullptr) {
-    copy_v3_v3(r_no, tree->pnors[tri->poly]);
+  else if (tree->poly_normals != nullptr) {
+    copy_v3_v3(r_no, tree->poly_normals[tri->poly]);
   }
   /* Finally fallback to the looptri normal. */
   else {
@@ -1405,8 +1406,8 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
   calc.aux_target = DEG_get_evaluated_object(ctx->depsgraph, smd->auxTarget);
 
   if (mesh != nullptr && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
-    /* Setup arrays to get vertices position, normals and deform weights. */
-    calc.vert = BKE_mesh_verts_for_write(mesh);
+    /* Setup arrays to get vertexs positions, normals and deform weights */
+    calc.vert_positions = BKE_mesh_vert_positions_for_write(mesh);
     calc.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
 
     /* Using vertices positions/normals as if a subsurface was applied */
@@ -1426,11 +1427,12 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
           (ob->mode & OB_MODE_EDIT) ? SUBSURF_IN_EDIT_MODE : SubsurfFlags(0));
 
       if (ss_mesh) {
-        calc.vert = static_cast<MVert *>(ss_mesh->getVertDataArray(ss_mesh, CD_MVERT));
-        if (calc.vert) {
+        calc.vert_positions = reinterpret_cast<float(*)[3]>(ss_mesh->getVertArray(ss_mesh));
+        if (calc.vert_positions) {
           /* TRICKY: this code assumes subsurface will have the transformed original vertices
            * in their original order at the end of the vert array. */
-          calc.vert = calc.vert + ss_mesh->getNumVerts(ss_mesh) - dm->getNumVerts(dm);
+          calc.vert_positions = calc.vert_positions + ss_mesh->getNumVerts(ss_mesh) -
+                                dm->getNumVerts(dm);
         }
       }
 
@@ -1525,7 +1527,7 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(bContext *C, Object *ob_source, 
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *sce = CTX_data_scene(C);
-  ShrinkwrapModifierData ssmd = {{0}};
+  ShrinkwrapModifierData ssmd = {{nullptr}};
   ModifierEvalContext ctx = {depsgraph, ob_source, ModifierApplyFlag(0)};
   int totvert;
 
@@ -1546,7 +1548,7 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(bContext *C, Object *ob_source, 
 
 void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object *ob_target)
 {
-  ShrinkwrapModifierData ssmd = {{0}};
+  ShrinkwrapModifierData ssmd = {{nullptr}};
   int totvert;
 
   ssmd.target = ob_target;
@@ -1571,7 +1573,7 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
   calc.vgroup = -1;
   calc.target = target_me;
   calc.keepDist = ssmd.keepDist;
-  calc.vert = BKE_mesh_verts_for_write(src_me);
+  calc.vert_positions = BKE_mesh_vert_positions_for_write(src_me);
   BLI_SPACE_TRANSFORM_SETUP(&calc.local2target, ob_target, ob_target);
 
   ShrinkwrapTreeData tree;

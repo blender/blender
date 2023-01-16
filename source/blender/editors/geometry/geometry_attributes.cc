@@ -107,8 +107,9 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void next_color_attribute(ID *id, CustomDataLayer *layer, bool is_render)
+static void next_color_attribute(ID *id, const StringRefNull name, bool is_render)
 {
+  const CustomDataLayer *layer = BKE_id_attributes_color_find(id, name.c_str());
   int index = BKE_id_attribute_to_index(id, layer, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
 
   index++;
@@ -122,18 +123,18 @@ static void next_color_attribute(ID *id, CustomDataLayer *layer, bool is_render)
 
   if (layer) {
     if (is_render) {
-      BKE_id_attributes_active_color_set(id, layer);
+      BKE_id_attributes_active_color_set(id, layer->name);
     }
     else {
-      BKE_id_attributes_render_color_set(id, layer);
+      BKE_id_attributes_default_color_set(id, layer->name);
     }
   }
 }
 
-static void next_color_attributes(ID *id, CustomDataLayer *layer)
+static void next_color_attributes(ID *id, const StringRefNull name)
 {
-  next_color_attribute(id, layer, false); /* active */
-  next_color_attribute(id, layer, true);  /* render */
+  next_color_attribute(id, name, false); /* active */
+  next_color_attribute(id, name, true);  /* render */
 }
 
 void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
@@ -181,7 +182,7 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
   ID *id = static_cast<ID *>(ob->data);
   CustomDataLayer *layer = BKE_id_attributes_active_get(id);
 
-  next_color_attributes(id, layer);
+  next_color_attributes(id, layer->name);
 
   if (!BKE_id_attribute_remove(id, layer->name, op->reports)) {
     return OPERATOR_CANCELLED;
@@ -231,10 +232,10 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_id_attributes_active_color_set(id, layer);
+  BKE_id_attributes_active_color_set(id, layer->name);
 
-  if (!BKE_id_attributes_render_color_get(id)) {
-    BKE_id_attributes_render_color_set(id, layer);
+  if (!BKE_id_attributes_color_find(id, BKE_id_attributes_default_color_name(id))) {
+    BKE_id_attributes_default_color_set(id, layer->name);
   }
 
   BKE_object_attributes_active_color_fill(ob, color, false);
@@ -247,7 +248,6 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
 
 enum class ConvertAttributeMode {
   Generic,
-  UVMap,
   VertexGroup,
 };
 
@@ -297,23 +297,6 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
                                          eAttrDomain(RNA_enum_get(op->ptr, "domain")),
                                          op->reports)) {
         return OPERATOR_CANCELLED;
-      }
-      break;
-    }
-    case ConvertAttributeMode::UVMap: {
-      MLoopUV *dst_uvs = static_cast<MLoopUV *>(
-          MEM_calloc_arrayN(mesh->totloop, sizeof(MLoopUV), __func__));
-      VArray<float2> src_varray = attributes.lookup_or_default<float2>(
-          name, ATTR_DOMAIN_CORNER, {0.0f, 0.0f});
-      for (const int i : IndexRange(mesh->totloop)) {
-        copy_v2_v2(dst_uvs[i].uv, src_varray[i]);
-      }
-      attributes.remove(name);
-      CustomData_add_layer_named(
-          &mesh->ldata, CD_MLOOPUV, CD_ASSIGN, dst_uvs, mesh->totloop, name.c_str());
-      int *active_index = BKE_id_attributes_active_index_p(&mesh->id);
-      if (*active_index > 0) {
-        *active_index -= 1;
       }
       break;
     }
@@ -411,13 +394,8 @@ static int geometry_color_attribute_set_render_exec(bContext *C, wmOperator *op)
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
 
-  CustomDataLayer *layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_POINT);
-  layer = !layer ? BKE_id_attribute_find(id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_POINT) : layer;
-  layer = !layer ? BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_CORNER) : layer;
-  layer = !layer ? BKE_id_attribute_find(id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER) : layer;
-
-  if (layer) {
-    BKE_id_attributes_render_color_set(id, layer);
+  if (BKE_id_attributes_color_find(id, name)) {
+    BKE_id_attributes_default_color_set(id, name);
 
     DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -453,15 +431,14 @@ static int geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   ID *id = static_cast<ID *>(ob->data);
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
-
-  if (layer == nullptr) {
+  const std::string active_name = StringRef(BKE_id_attributes_active_color_name(id));
+  if (active_name.empty()) {
     return OPERATOR_CANCELLED;
   }
 
-  next_color_attributes(id, layer);
+  next_color_attributes(id, active_name);
 
-  if (!BKE_id_attribute_remove(id, layer->name, op->reports)) {
+  if (!BKE_id_attribute_remove(id, active_name.c_str(), op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -477,10 +454,10 @@ static bool geometry_color_attributes_remove_poll(bContext *C)
     return false;
   }
 
-  Object *ob = ED_object_context(C);
-  ID *data = ob ? static_cast<ID *>(ob->data) : nullptr;
+  const Object *ob = ED_object_context(C);
+  const ID *data = static_cast<ID *>(ob->data);
 
-  if (BKE_id_attributes_active_color_get(data) != nullptr) {
+  if (BKE_id_attributes_color_find(data, BKE_id_attributes_active_color_name(data))) {
     return true;
   }
 
@@ -506,18 +483,17 @@ static int geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   ID *id = static_cast<ID *>(ob->data);
-  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
-
-  if (layer == nullptr) {
+  const char *active_name = BKE_id_attributes_active_color_name(id);
+  if (active_name == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  CustomDataLayer *new_layer = BKE_id_attribute_duplicate(id, layer->name, op->reports);
+  CustomDataLayer *new_layer = BKE_id_attribute_duplicate(id, active_name, op->reports);
   if (new_layer == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  BKE_id_attributes_active_color_set(id, new_layer);
+  BKE_id_attributes_active_color_set(id, new_layer->name);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -535,10 +511,10 @@ static bool geometry_color_attributes_duplicate_poll(bContext *C)
     return false;
   }
 
-  Object *ob = ED_object_context(C);
-  ID *data = ob ? static_cast<ID *>(ob->data) : nullptr;
+  const Object *ob = ED_object_context(C);
+  const ID *data = static_cast<ID *>(ob->data);
 
-  if (BKE_id_attributes_active_color_get(data) != nullptr) {
+  if (BKE_id_attributes_color_find(data, BKE_id_attributes_active_color_name(data))) {
     return true;
   }
 
@@ -572,11 +548,11 @@ static int geometry_attribute_convert_invoke(bContext *C,
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    RNA_enum_set(op->ptr, "domain", meta_data.domain);
+    RNA_property_enum_set(op->ptr, prop, meta_data.domain);
   }
   prop = RNA_struct_find_property(op->ptr, "data_type");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    RNA_enum_set(op->ptr, "data_type", meta_data.data_type);
+    RNA_property_enum_set(op->ptr, prop, meta_data.data_type);
   }
 
   return WM_operator_props_dialog_popup(C, op, 300);
@@ -605,15 +581,22 @@ static bool geometry_color_attribute_convert_poll(bContext *C)
     return false;
   }
 
+  if (CTX_data_edit_object(C) != nullptr) {
+    CTX_wm_operator_poll_msg_set(C, "Operation is not allowed in edit mode");
+    return false;
+  }
+
   Object *ob = ED_object_context(C);
   ID *id = static_cast<ID *>(ob->data);
   if (GS(id->name) != ID_ME) {
     return false;
   }
+
   CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
   if (layer == nullptr) {
     return false;
   }
+
   return true;
 }
 
@@ -642,17 +625,17 @@ static int geometry_color_attribute_convert_invoke(bContext *C,
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    RNA_enum_set(op->ptr, "domain", meta_data.domain);
+    RNA_property_enum_set(op->ptr, prop, meta_data.domain);
   }
   prop = RNA_struct_find_property(op->ptr, "data_type");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    RNA_enum_set(op->ptr, "data_type", meta_data.data_type);
+    RNA_property_enum_set(op->ptr, prop, meta_data.data_type);
   }
 
   return WM_operator_props_dialog_popup(C, op, 300);
 }
 
-static void geometry_color_attribute_convert_ui(bContext *UNUSED(C), wmOperator *op)
+static void geometry_color_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   uiLayoutSetPropSep(layout, true);
@@ -709,7 +692,6 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
 
   static EnumPropertyItem mode_items[] = {
       {int(ConvertAttributeMode::Generic), "GENERIC", 0, "Generic", ""},
-      {int(ConvertAttributeMode::UVMap), "UV_MAP", 0, "UV Map", ""},
       {int(ConvertAttributeMode::VertexGroup), "VERTEX_GROUP", 0, "Vertex Group", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };

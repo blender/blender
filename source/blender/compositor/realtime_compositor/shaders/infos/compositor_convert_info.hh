@@ -61,9 +61,3 @@ GPU_SHADER_CREATE_INFO(compositor_convert_float_to_half_float)
     .image(0, GPU_R16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
     .define("CONVERT_EXPRESSION(value)", "vec4(value.r, vec3(0.0))")
     .do_static_compilation(true);
-
-GPU_SHADER_CREATE_INFO(compositor_convert_color_to_opaque)
-    .additional_info("compositor_convert_shared")
-    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .define("CONVERT_EXPRESSION(value)", "vec4(value.rgb, 1.0)")
-    .do_static_compilation(true);

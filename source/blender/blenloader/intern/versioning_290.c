@@ -821,21 +821,22 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       for (const MPoly *mp = BKE_mesh_polys(me), *mp_end = mp + me->totpoly; mp < mp_end; mp++) {
         if (mp->totloop == 2) {
           bool changed;
-          BKE_mesh_validate_arrays(me,
-                                   BKE_mesh_verts_for_write(me),
-                                   me->totvert,
-                                   BKE_mesh_edges_for_write(me),
-                                   me->totedge,
-                                   (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE),
-                                   me->totface,
-                                   BKE_mesh_loops_for_write(me),
-                                   me->totloop,
-                                   BKE_mesh_polys_for_write(me),
-                                   me->totpoly,
-                                   BKE_mesh_deform_verts_for_write(me),
-                                   false,
-                                   true,
-                                   &changed);
+          BKE_mesh_validate_arrays(
+              me,
+              BKE_mesh_vert_positions_for_write(me),
+              me->totvert,
+              BKE_mesh_edges_for_write(me),
+              me->totedge,
+              (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface),
+              me->totface,
+              BKE_mesh_loops_for_write(me),
+              me->totloop,
+              BKE_mesh_polys_for_write(me),
+              me->totpoly,
+              BKE_mesh_deform_verts_for_write(me),
+              false,
+              true,
+              &changed);
           break;
         }
       }
@@ -1100,9 +1101,8 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         continue;
       }
 
-      /* The substep method changed from "per second" to "per frame".
-       * To get the new value simply divide the old bullet sim fps with the scene fps.
-       */
+      /* The sub-step method changed from "per second" to "per frame".
+       * To get the new value simply divide the old bullet sim FPS with the scene FPS. */
       rbw->substeps_per_frame /= FPS;
 
       if (rbw->substeps_per_frame <= 0) {

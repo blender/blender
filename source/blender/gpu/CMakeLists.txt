@@ -12,9 +12,9 @@ endif()
 set(INC
   .
   intern
-  vulkan
   metal
   opengl
+  vulkan
   ../blenkernel
   ../blenlib
   ../bmesh
@@ -43,6 +43,7 @@ set(INC
 
 set(INC_SYS
   ${Epoxy_INCLUDE_DIRS}
+  ${VULKAN_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -197,6 +198,7 @@ set(VULKAN_SRC
   vulkan/vk_pixel_buffer.cc
   vulkan/vk_query.cc
   vulkan/vk_shader.cc
+  vulkan/vk_shader_log.cc
   vulkan/vk_storage_buffer.cc
   vulkan/vk_texture.cc
   vulkan/vk_uniform_buffer.cc
@@ -212,6 +214,7 @@ set(VULKAN_SRC
   vulkan/vk_pixel_buffer.hh
   vulkan/vk_query.hh
   vulkan/vk_shader.hh
+  vulkan/vk_shader_log.hh
   vulkan/vk_storage_buffer.hh
   vulkan/vk_texture.hh
   vulkan/vk_uniform_buffer.hh
@@ -275,6 +278,7 @@ endif()
 
 set(LIB
   ${Epoxy_LIBRARIES}
+  ${VULKAN_LIBRARIES}
 )
 
 if(WITH_VULKAN_BACKEND)
@@ -384,6 +388,13 @@ set(GLSL_SRC
   shaders/common/gpu_shader_common_math.glsl
   shaders/common/gpu_shader_common_math_utils.glsl
   shaders/common/gpu_shader_common_mix_rgb.glsl
+  shaders/common/gpu_shader_math_base_lib.glsl
+  shaders/common/gpu_shader_math_fast_lib.glsl
+  shaders/common/gpu_shader_math_matrix_lib.glsl
+  shaders/common/gpu_shader_math_rotation_lib.glsl
+  shaders/common/gpu_shader_math_vector_lib.glsl
+  shaders/common/gpu_shader_test_lib.glsl
+  shaders/common/gpu_shader_utildefines_lib.glsl
 
   shaders/material/gpu_shader_material_add_shader.glsl
   shaders/material/gpu_shader_material_ambient_occlusion.glsl
@@ -480,6 +491,8 @@ set(GLSL_SRC
   shaders/gpu_shader_cfg_world_clip_lib.glsl
   shaders/gpu_shader_colorspace_lib.glsl
 
+  tests/gpu_math_test.glsl
+
   GPU_shader_shared_utils.h
 )
 
@@ -574,6 +587,17 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/workbench/shaders/infos/workbench_shadow_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_transparent_resolve_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_volume_info.hh
+
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_bloom_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_common_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_dof_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_effects_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_lightprobe_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_material_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_motion_blur_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_shadow_info.hh
+  ../draw/engines/eevee/shaders/infos/eevee_legacy_volume_info.hh
+
   ../draw/engines/image/shaders/infos/engine_image_info.hh
   ../draw/intern/shaders/draw_debug_info.hh
   ../draw/intern/shaders/draw_fullscreen_info.hh
@@ -610,6 +634,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_keyframe_shape_info.hh
   shaders/infos/gpu_shader_line_dashed_uniform_color_info.hh
   shaders/infos/gpu_shader_simple_lighting_info.hh
+  shaders/infos/gpu_shader_test_info.hh
   shaders/infos/gpu_shader_text_info.hh
   shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
 )

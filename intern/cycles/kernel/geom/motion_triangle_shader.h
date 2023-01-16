@@ -58,7 +58,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
   sd->P = motion_triangle_point_from_uv(kg, sd, isect_object, isect_prim, sd->u, sd->v, verts);
   /* Compute face normal. */
   float3 Ng;
-  if (sd->object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
+  if (object_negative_scale_applied(sd->object_flag)) {
     Ng = normalize(cross(verts[2] - verts[0], verts[1] - verts[0]));
   }
   else {

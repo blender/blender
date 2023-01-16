@@ -104,7 +104,7 @@ struct SlideOperationExecutor {
 
   Object *surface_ob_eval_ = nullptr;
   Mesh *surface_eval_ = nullptr;
-  Span<MVert> surface_verts_eval_;
+  Span<float3> surface_positions_eval_;
   Span<MLoop> surface_loops_eval_;
   Span<MLoopTri> surface_looptris_eval_;
   VArraySpan<float2> surface_uv_map_eval_;
@@ -157,8 +157,9 @@ struct SlideOperationExecutor {
     brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
     brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
 
-    curve_factors_ = get_curves_selection(*curves_id_orig_);
-    curve_selection_ = retrieve_selected_curves(*curves_id_orig_, selected_curve_indices_);
+    curve_factors_ = curves_orig_->attributes().lookup_or_default(
+        ".selection", ATTR_DOMAIN_CURVE, 1.0f);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_orig_, selected_curve_indices_);
 
     brush_pos_re_ = stroke_extension.mouse_position;
 
@@ -197,7 +198,7 @@ struct SlideOperationExecutor {
       return;
     }
     surface_looptris_eval_ = surface_eval_->looptris();
-    surface_verts_eval_ = surface_eval_->verts();
+    surface_positions_eval_ = surface_eval_->vert_positions();
     surface_loops_eval_ = surface_eval_->loops();
     surface_uv_map_eval_ = surface_eval_->attributes().lookup<float2>(uv_map_name,
                                                                       ATTR_DOMAIN_CORNER);
@@ -314,7 +315,7 @@ struct SlideOperationExecutor {
   {
     const float4x4 brush_transform_inv = brush_transform.inverted();
 
-    const Span<MVert> verts_orig_su = surface_orig_->verts();
+    const Span<float3> positions_orig_su = surface_orig_->vert_positions();
     const Span<MLoop> loops_orig = surface_orig_->loops();
 
     MutableSpan<float3> positions_orig_cu = curves_orig_->positions_for_write();
@@ -378,7 +379,7 @@ struct SlideOperationExecutor {
         /* Compute the uv of the new surface position on the evaluated mesh. */
         const MLoopTri &looptri_eval = surface_looptris_eval_[looptri_index_eval];
         const float3 bary_weights_eval = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
-            surface_verts_eval_, surface_loops_eval_, looptri_eval, hit_pos_eval_su);
+            surface_positions_eval_, surface_loops_eval_, looptri_eval, hit_pos_eval_su);
         const float2 uv = attribute_math::mix3(bary_weights_eval,
                                                surface_uv_map_eval_[looptri_eval.tri[0]],
                                                surface_uv_map_eval_[looptri_eval.tri[1]],
@@ -405,9 +406,9 @@ struct SlideOperationExecutor {
         const float3 new_first_pos_orig_cu =
             transforms_.surface_to_curves *
             attribute_math::mix3<float3>(bary_weights_orig,
-                                         verts_orig_su[loops_orig[looptri_orig.tri[0]].v].co,
-                                         verts_orig_su[loops_orig[looptri_orig.tri[1]].v].co,
-                                         verts_orig_su[loops_orig[looptri_orig.tri[2]].v].co);
+                                         positions_orig_su[loops_orig[looptri_orig.tri[0]].v],
+                                         positions_orig_su[loops_orig[looptri_orig.tri[1]].v],
+                                         positions_orig_su[loops_orig[looptri_orig.tri[2]].v]);
 
         /* Actually transform curve points. */
         const float4x4 slide_transform = this->get_slide_transform(

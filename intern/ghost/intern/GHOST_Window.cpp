@@ -175,7 +175,7 @@ GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode,
   return GHOST_kFailure;
 }
 
-GHOST_TSuccess GHOST_Window::getCursorGrabBounds(GHOST_Rect &bounds)
+GHOST_TSuccess GHOST_Window::getCursorGrabBounds(GHOST_Rect &bounds) const
 {
   if (m_cursorGrab != GHOST_kGrabWrap) {
     return GHOST_kFailure;

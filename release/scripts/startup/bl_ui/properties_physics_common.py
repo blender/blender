@@ -86,7 +86,7 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
                 col, obj.rigid_body, "Rigid Body",
                 "rigidbody.object_add",
                 "rigidbody.object_remove",
-                'RIGID_BODY'
+                'RIGID_BODY',
             )
 
         # all types of objects can have rigid body constraint.
@@ -94,7 +94,7 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
             col, obj.rigid_body_constraint, "Rigid Body Constraint",
             "rigidbody.constraint_add",
             "rigidbody.constraint_remove",
-            'RIGID_BODY_CONSTRAINT'
+            'RIGID_BODY_CONSTRAINT',
         )
 
 

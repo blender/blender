@@ -17,10 +17,10 @@ namespace blender::geometry {
 
 static fn::Field<int> get_count_input_max_one(const fn::Field<int> &count_field)
 {
-  static fn::CustomMF_SI_SO<int, int> max_one_fn(
+  static auto max_one_fn = mf::build::SI1_SO<int, int>(
       "Clamp Above One",
       [](int value) { return std::max(1, value); },
-      fn::CustomMF_presets::AllSpanOrSingle());
+      mf::build::exec_presets::AllSpanOrSingle());
   auto clamp_op = std::make_shared<fn::FieldOperation>(
       fn::FieldOperation(max_one_fn, {count_field}));
 
@@ -29,7 +29,7 @@ static fn::Field<int> get_count_input_max_one(const fn::Field<int> &count_field)
 
 static fn::Field<int> get_count_input_from_length(const fn::Field<float> &length_field)
 {
-  static fn::CustomMF_SI_SI_SO<float, float, int> get_count_fn(
+  static auto get_count_fn = mf::build::SI2_SO<float, float, int>(
       "Length Input to Count",
       [](const float curve_length, const float sample_length) {
         /* Find the number of sampled segments by dividing the total length by
@@ -37,7 +37,7 @@ static fn::Field<int> get_count_input_from_length(const fn::Field<float> &length
         const int count = int(curve_length / sample_length) + 1;
         return std::max(1, count);
       },
-      fn::CustomMF_presets::AllSpanOrSingle());
+      mf::build::exec_presets::AllSpanOrSingle());
 
   auto get_count_op = std::make_shared<fn::FieldOperation>(fn::FieldOperation(
       get_count_fn,
@@ -53,7 +53,7 @@ static fn::Field<int> get_count_input_from_length(const fn::Field<float> &length
 static bool interpolate_attribute_to_curves(const bke::AttributeIDRef &attribute_id,
                                             const std::array<int, CURVE_TYPES_NUM> &type_counts)
 {
-  if (!attribute_id.is_named()) {
+  if (attribute_id.is_anonymous()) {
     return true;
   }
   if (ELEM(attribute_id.name(),
@@ -81,7 +81,7 @@ static bool interpolate_attribute_to_poly_curve(const bke::AttributeIDRef &attri
       "handle_left",
       "nurbs_weight",
   }};
-  return !(attribute_id.is_named() && no_interpolation.contains(attribute_id.name()));
+  return !no_interpolation.contains(attribute_id.name());
 }
 
 /**

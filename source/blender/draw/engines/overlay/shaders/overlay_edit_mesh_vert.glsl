@@ -31,17 +31,17 @@ void main()
   vec3 world_pos = point_object_to_world(pos);
   gl_Position = point_world_to_ndc(world_pos);
 
-  ivec4 m_data = data & dataMask;
+  uvec4 m_data = data & uvec4(dataMask);
 
 #if defined(VERT)
   vertexCrease = float(m_data.z >> 4) / 15.0;
   finalColor = EDIT_MESH_vertex_color(m_data.y, vertexCrease);
   gl_PointSize = sizeVertex * ((vertexCrease > 0.0) ? 3.0 : 2.0);
   /* Make selected and active vertex always on top. */
-  if ((data.x & VERT_SELECTED) != 0) {
+  if ((data.x & VERT_SELECTED) != 0u) {
     gl_Position.z -= 5e-7 * abs(gl_Position.w);
   }
-  if ((data.x & VERT_ACTIVE) != 0) {
+  if ((data.x & VERT_ACTIVE) != 0u) {
     gl_Position.z -= 5e-7 * abs(gl_Position.w);
   }
 
@@ -50,13 +50,13 @@ void main()
 #elif defined(EDGE)
 #  ifdef FLAT
   finalColor = EDIT_MESH_edge_color_inner(m_data.y);
-  selectOverride = 1;
+  selectOverride = 1u;
 #  else
   finalColor = EDIT_MESH_edge_vertex_color(m_data.y);
   selectOverride = (m_data.y & EDGE_SELECTED);
 #  endif
 
-  float edge_crease = float(m_data.z & 0xF) / 15.0;
+  float edge_crease = float(m_data.z & 0xFu) / 15.0;
   float bweight = float(m_data.w) / 255.0;
   finalColorOuter = EDIT_MESH_edge_color_outer(m_data.y, m_data.x, edge_crease, bweight);
 

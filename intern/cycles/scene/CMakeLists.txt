@@ -23,7 +23,6 @@ set(SRC
   image_sky.cpp
   image_vdb.cpp
   integrator.cpp
-  jitter.cpp
   light.cpp
   light_tree.cpp
   mesh.cpp
@@ -43,6 +42,7 @@ set(SRC
   stats.cpp
   svm.cpp
   tables.cpp
+  tabulated_sobol.cpp
   volume.cpp
 )
 
@@ -65,7 +65,6 @@ set(SRC_HEADERS
   integrator.h
   light.h
   light_tree.h
-  jitter.h
   mesh.h
   object.h
   osl.h
@@ -81,6 +80,7 @@ set(SRC_HEADERS
   stats.h
   svm.h
   tables.h
+  tabulated_sobol.h
   volume.h
 )
 

@@ -27,7 +27,6 @@ struct SubdivCCG;
 struct MLoop;
 struct MLoopTri;
 struct MPoly;
-struct MVert;
 
 /**
  * Delete mesh mdisps and grid paint masks.

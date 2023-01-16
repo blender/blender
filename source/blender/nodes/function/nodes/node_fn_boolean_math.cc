@@ -65,26 +65,27 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static const fn::MultiFunction *get_multi_function(const bNode &bnode)
+static const mf::MultiFunction *get_multi_function(const bNode &bnode)
 {
-  static auto exec_preset = fn::CustomMF_presets::AllSpanOrSingle();
-  static fn::CustomMF_SI_SI_SO<bool, bool, bool> and_fn{
-      "And", [](bool a, bool b) { return a && b; }, exec_preset};
-  static fn::CustomMF_SI_SI_SO<bool, bool, bool> or_fn{
-      "Or", [](bool a, bool b) { return a || b; }, exec_preset};
-  static fn::CustomMF_SI_SO<bool, bool> not_fn{"Not", [](bool a) { return !a; }, exec_preset};
-  static fn::CustomMF_SI_SI_SO<bool, bool, bool> nand_fn{
-      "Not And", [](bool a, bool b) { return !(a && b); }, exec_preset};
-  static fn::CustomMF_SI_SI_SO<bool, bool, bool> nor_fn{
-      "Nor", [](bool a, bool b) { return !(a || b); }, exec_preset};
-  static fn::CustomMF_SI_SI_SO<bool, bool, bool> xnor_fn{
-      "Equal", [](bool a, bool b) { return a == b; }, exec_preset};
-  static fn::CustomMF_SI_SI_SO<bool, bool, bool> xor_fn{
-      "Not Equal", [](bool a, bool b) { return a != b; }, exec_preset};
-  static fn::CustomMF_SI_SI_SO<bool, bool, bool> imply_fn{
-      "Imply", [](bool a, bool b) { return !a || b; }, exec_preset};
-  static fn::CustomMF_SI_SI_SO<bool, bool, bool> nimply_fn{
-      "Subtract", [](bool a, bool b) { return a && !b; }, exec_preset};
+  static auto exec_preset = mf::build::exec_presets::AllSpanOrSingle();
+  static auto and_fn = mf::build::SI2_SO<bool, bool, bool>(
+      "And", [](bool a, bool b) { return a && b; }, exec_preset);
+  static auto or_fn = mf::build::SI2_SO<bool, bool, bool>(
+      "Or", [](bool a, bool b) { return a || b; }, exec_preset);
+  static auto not_fn = mf::build::SI1_SO<bool, bool>(
+      "Not", [](bool a) { return !a; }, exec_preset);
+  static auto nand_fn = mf::build::SI2_SO<bool, bool, bool>(
+      "Not And", [](bool a, bool b) { return !(a && b); }, exec_preset);
+  static auto nor_fn = mf::build::SI2_SO<bool, bool, bool>(
+      "Nor", [](bool a, bool b) { return !(a || b); }, exec_preset);
+  static auto xnor_fn = mf::build::SI2_SO<bool, bool, bool>(
+      "Equal", [](bool a, bool b) { return a == b; }, exec_preset);
+  static auto xor_fn = mf::build::SI2_SO<bool, bool, bool>(
+      "Not Equal", [](bool a, bool b) { return a != b; }, exec_preset);
+  static auto imply_fn = mf::build::SI2_SO<bool, bool, bool>(
+      "Imply", [](bool a, bool b) { return !a || b; }, exec_preset);
+  static auto nimply_fn = mf::build::SI2_SO<bool, bool, bool>(
+      "Subtract", [](bool a, bool b) { return a && !b; }, exec_preset);
 
   switch (bnode.custom1) {
     case NODE_BOOLEAN_MATH_AND:
@@ -113,7 +114,7 @@ static const fn::MultiFunction *get_multi_function(const bNode &bnode)
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  const fn::MultiFunction *fn = get_multi_function(builder.node());
+  const mf::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
 }
 

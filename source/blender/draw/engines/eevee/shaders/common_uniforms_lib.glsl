@@ -1,6 +1,8 @@
 
 #define COMMON_UNIFORMS_LIB
 
+#if !defined(USE_GPU_SHADER_CREATE_INFO)
+/* keep in sync with CommonUniformBlock */
 layout(std140) uniform common_block
 {
   mat4 pastViewProjectionMatrix;
@@ -48,6 +50,14 @@ layout(std140) uniform common_block
   vec4 cameraUvScaleBias;
   vec4 planarClipPlane;
 };
+
+#endif /* !USE_GPU_SHADER_CREATE_INFO */
+
+#ifdef USE_GPU_SHADER_CREATE_INFO
+#  ifndef EEVEE_SHADER_SHARED_H
+#    error Missing eevee_legacy_common_lib additional create info on shader create info
+#  endif
+#endif
 
 /* rayType (keep in sync with ray_type) */
 #define EEVEE_RAY_CAMERA 0

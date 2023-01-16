@@ -40,11 +40,13 @@ ccl_device_inline float bsdf_ashikhmin_shirley_roughness_to_exponent(float rough
 }
 
 ccl_device_forceinline Spectrum bsdf_ashikhmin_shirley_eval(ccl_private const ShaderClosure *sc,
+                                                            const float3 Ng,
                                                             const float3 I,
                                                             const float3 omega_in,
                                                             ccl_private float *pdf)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
+  const float cosNgI = dot(Ng, omega_in);
   float3 N = bsdf->N;
 
   float NdotI = dot(N, I);        /* in Cycles/OSL convention I is omega_out */
@@ -52,7 +54,8 @@ ccl_device_forceinline Spectrum bsdf_ashikhmin_shirley_eval(ccl_private const Sh
 
   float out = 0.0f;
 
-  if (fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f || !(NdotI > 0.0f && NdotO > 0.0f)) {
+  if ((cosNgI < 0.0f) || fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f ||
+      !(NdotI > 0.0f && NdotO > 0.0f)) {
     *pdf = 0.0f;
     return zero_spectrum();
   }
@@ -210,7 +213,7 @@ ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc
   }
   else {
     /* leave the rest to eval */
-    *eval = bsdf_ashikhmin_shirley_eval(sc, I, *omega_in, pdf);
+    *eval = bsdf_ashikhmin_shirley_eval(sc, N, I, *omega_in, pdf);
   }
 
   return label;

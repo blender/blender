@@ -233,103 +233,74 @@ static float3 clamp_range(const float3 value, const float3 min, const float3 max
 
 template<bool Clamp> static auto build_float_linear()
 {
-  return fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleOutput, float>>{
+  return mf::build::SI5_SO<float, float, float, float, float, float>(
       Clamp ? "Map Range (clamped)" : "Map Range (unclamped)",
-      [](float value, float from_min, float from_max, float to_min, float to_max, float *r_value) {
+      [](float value, float from_min, float from_max, float to_min, float to_max) -> float {
         const float factor = safe_divide(value - from_min, from_max - from_min);
         float result = to_min + factor * (to_max - to_min);
         if constexpr (Clamp) {
           result = clamp_range(result, to_min, to_max);
         }
-        *r_value = result;
+        return result;
       },
-      fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+      mf::build::exec_presets::SomeSpanOrSingle<0>());
 }
 
 template<bool Clamp> static auto build_float_stepped()
 {
-  return fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleOutput, float>>{
+  return mf::build::SI6_SO<float, float, float, float, float, float, float>(
       Clamp ? "Map Range Stepped (clamped)" : "Map Range Stepped (unclamped)",
-      [](float value,
-         float from_min,
-         float from_max,
-         float to_min,
-         float to_max,
-         float steps,
-         float *r_value) {
+      [](float value, float from_min, float from_max, float to_min, float to_max, float steps)
+          -> float {
         float factor = safe_divide(value - from_min, from_max - from_min);
         factor = safe_divide(floorf(factor * (steps + 1.0f)), steps);
         float result = to_min + factor * (to_max - to_min);
         if constexpr (Clamp) {
           result = clamp_range(result, to_min, to_max);
         }
-        *r_value = result;
+        return result;
       },
-      fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+      mf::build::exec_presets::SomeSpanOrSingle<0>());
 }
 
 template<bool Clamp> static auto build_vector_linear()
 {
-  return fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleOutput, float3>>{
+  return mf::build::SI5_SO<float3, float3, float3, float3, float3, float3>(
       Clamp ? "Vector Map Range (clamped)" : "Vector Map Range (unclamped)",
       [](const float3 &value,
          const float3 &from_min,
          const float3 &from_max,
          const float3 &to_min,
-         const float3 &to_max,
-         float3 *r_value) {
+         const float3 &to_max) -> float3 {
         float3 factor = math::safe_divide(value - from_min, from_max - from_min);
         float3 result = factor * (to_max - to_min) + to_min;
         if constexpr (Clamp) {
           result = clamp_range(result, to_min, to_max);
         }
-        *r_value = result;
+        return result;
       },
-      fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+      mf::build::exec_presets::SomeSpanOrSingle<0>());
 }
 
 template<bool Clamp> static auto build_vector_stepped()
 {
-  return fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                      fn::MFParamTag<fn::MFParamCategory::SingleOutput, float3>>{
+  return mf::build::SI6_SO<float3, float3, float3, float3, float3, float3, float3>(
       Clamp ? "Vector Map Range Stepped (clamped)" : "Vector Map Range Stepped (unclamped)",
       [](const float3 &value,
          const float3 &from_min,
          const float3 &from_max,
          const float3 &to_min,
          const float3 &to_max,
-         const float3 &steps,
-         float3 *r_value) {
+         const float3 &steps) -> float3 {
         float3 factor = math::safe_divide(value - from_min, from_max - from_min);
         factor = math::safe_divide(math::floor(factor * (steps + 1.0f)), steps);
         float3 result = factor * (to_max - to_min) + to_min;
         if constexpr (Clamp) {
           result = clamp_range(result, to_min, to_max);
         }
-        *r_value = result;
+        return result;
       },
-      fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+      mf::build::exec_presets::SomeSpanOrSingle<0>());
 }
 
 static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &builder)
@@ -364,48 +335,36 @@ static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &bui
           break;
         }
         case NODE_MAP_RANGE_SMOOTHSTEP: {
-          static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleOutput, float3>>
-              fn{"Vector Map Range Smoothstep",
-                 [](const float3 &value,
-                    const float3 &from_min,
-                    const float3 &from_max,
-                    const float3 &to_min,
-                    const float3 &to_max,
-                    float3 *r_value) {
-                   float3 factor = math::safe_divide(value - from_min, from_max - from_min);
-                   clamp_v3(factor, 0.0f, 1.0f);
-                   factor = (float3(3.0f) - 2.0f * factor) * (factor * factor);
-                   *r_value = factor * (to_max - to_min) + to_min;
-                 },
-                 fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+          static auto fn = mf::build::SI5_SO<float3, float3, float3, float3, float3, float3>(
+              "Vector Map Range Smoothstep",
+              [](const float3 &value,
+                 const float3 &from_min,
+                 const float3 &from_max,
+                 const float3 &to_min,
+                 const float3 &to_max) -> float3 {
+                float3 factor = math::safe_divide(value - from_min, from_max - from_min);
+                clamp_v3(factor, 0.0f, 1.0f);
+                factor = (float3(3.0f) - 2.0f * factor) * (factor * factor);
+                return factor * (to_max - to_min) + to_min;
+              },
+              mf::build::exec_presets::SomeSpanOrSingle<0>());
           builder.set_matching_fn(fn);
           break;
         }
         case NODE_MAP_RANGE_SMOOTHERSTEP: {
-          static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleOutput, float3>>
-              fn{"Vector Map Range Smootherstep",
-                 [](const float3 &value,
-                    const float3 &from_min,
-                    const float3 &from_max,
-                    const float3 &to_min,
-                    const float3 &to_max,
-                    float3 *r_value) {
-                   float3 factor = math::safe_divide(value - from_min, from_max - from_min);
-                   clamp_v3(factor, 0.0f, 1.0f);
-                   factor = factor * factor * factor * (factor * (factor * 6.0f - 15.0f) + 10.0f);
-                   *r_value = factor * (to_max - to_min) + to_min;
-                 },
-                 fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+          static auto fn = mf::build::SI5_SO<float3, float3, float3, float3, float3, float3>(
+              "Vector Map Range Smootherstep",
+              [](const float3 &value,
+                 const float3 &from_min,
+                 const float3 &from_max,
+                 const float3 &to_min,
+                 const float3 &to_max) -> float3 {
+                float3 factor = math::safe_divide(value - from_min, from_max - from_min);
+                clamp_v3(factor, 0.0f, 1.0f);
+                factor = factor * factor * factor * (factor * (factor * 6.0f - 15.0f) + 10.0f);
+                return factor * (to_max - to_min) + to_min;
+              },
+              mf::build::exec_presets::SomeSpanOrSingle<0>());
           builder.set_matching_fn(fn);
           break;
         }
@@ -438,48 +397,30 @@ static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &bui
           break;
         }
         case NODE_MAP_RANGE_SMOOTHSTEP: {
-          static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleOutput, float>>
-              fn{"Map Range Smoothstep",
-                 [](float value,
-                    float from_min,
-                    float from_max,
-                    float to_min,
-                    float to_max,
-                    float *r_value) {
-                   float factor = safe_divide(value - from_min, from_max - from_min);
-                   factor = std::clamp(factor, 0.0f, 1.0f);
-                   factor = (3.0f - 2.0f * factor) * (factor * factor);
-                   *r_value = to_min + factor * (to_max - to_min);
-                 },
-                 fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+          static auto fn = mf::build::SI5_SO<float, float, float, float, float, float>(
+              "Map Range Smoothstep",
+              [](float value, float from_min, float from_max, float to_min, float to_max)
+                  -> float {
+                float factor = safe_divide(value - from_min, from_max - from_min);
+                factor = std::clamp(factor, 0.0f, 1.0f);
+                factor = (3.0f - 2.0f * factor) * (factor * factor);
+                return to_min + factor * (to_max - to_min);
+              },
+              mf::build::exec_presets::SomeSpanOrSingle<0>());
           builder.set_matching_fn(fn);
           break;
         }
         case NODE_MAP_RANGE_SMOOTHERSTEP: {
-          static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
-                              fn::MFParamTag<fn::MFParamCategory::SingleOutput, float>>
-              fn{"Map Range Smoothstep",
-                 [](float value,
-                    float from_min,
-                    float from_max,
-                    float to_min,
-                    float to_max,
-                    float *r_value) {
-                   float factor = safe_divide(value - from_min, from_max - from_min);
-                   factor = std::clamp(factor, 0.0f, 1.0f);
-                   factor = factor * factor * factor * (factor * (factor * 6.0f - 15.0f) + 10.0f);
-                   *r_value = to_min + factor * (to_max - to_min);
-                 },
-                 fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+          static auto fn = mf::build::SI5_SO<float, float, float, float, float, float>(
+              "Map Range Smoothstep",
+              [](float value, float from_min, float from_max, float to_min, float to_max)
+                  -> float {
+                float factor = safe_divide(value - from_min, from_max - from_min);
+                factor = std::clamp(factor, 0.0f, 1.0f);
+                factor = factor * factor * factor * (factor * (factor * 6.0f - 15.0f) + 10.0f);
+                return to_min + factor * (to_max - to_min);
+              },
+              mf::build::exec_presets::SomeSpanOrSingle<0>());
           builder.set_matching_fn(fn);
           break;
         }

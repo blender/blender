@@ -17,7 +17,6 @@
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
-#include "BLI_set.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -161,7 +160,7 @@ void AssetLibrary::load_catalogs()
 void AssetLibrary::refresh()
 {
   if (on_refresh_) {
-    on_refresh_();
+    on_refresh_(*this);
   }
 }
 

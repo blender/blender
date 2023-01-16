@@ -60,8 +60,8 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
 {
   memset(input, 0, sizeof(DualConInput));
 
-  input->co = (void *)BKE_mesh_verts(mesh);
-  input->co_stride = sizeof(MVert);
+  input->co = (void *)BKE_mesh_vert_positions(mesh);
+  input->co_stride = sizeof(float[3]);
   input->totco = mesh->totvert;
 
   input->mloop = (void *)BKE_mesh_loops(mesh);
@@ -79,7 +79,7 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
  * keep track of the current elements */
 typedef struct {
   Mesh *mesh;
-  MVert *verts;
+  float (*vert_positions)[3];
   MPoly *polys;
   MLoop *loops;
   int curvert, curface;
@@ -95,7 +95,7 @@ static void *dualcon_alloc_output(int totvert, int totquad)
   }
 
   output->mesh = BKE_mesh_new_nomain(totvert, 0, 0, 4 * totquad, totquad);
-  output->verts = BKE_mesh_verts_for_write(output->mesh);
+  output->vert_positions = BKE_mesh_vert_positions_for_write(output->mesh);
   output->polys = BKE_mesh_polys_for_write(output->mesh);
   output->loops = BKE_mesh_loops_for_write(output->mesh);
 
@@ -108,7 +108,7 @@ static void dualcon_add_vert(void *output_v, const float co[3])
 
   BLI_assert(output->curvert < output->mesh->totvert);
 
-  copy_v3_v3(output->verts[output->curvert].co, co);
+  copy_v3_v3(output->vert_positions[output->curvert], co);
   output->curvert++;
 }
 
@@ -272,35 +272,35 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Remesh = {
-    /* name */ N_("Remesh"),
-    /* structName */ "RemeshModifierData",
-    /* structSize */ sizeof(RemeshModifierData),
-    /* srna */ &RNA_RemeshModifier,
-    /* type */ eModifierTypeType_Nonconstructive,
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
+    /*name*/ N_("Remesh"),
+    /*structName*/ "RemeshModifierData",
+    /*structSize*/ sizeof(RemeshModifierData),
+    /*srna*/ &RNA_RemeshModifier,
+    /*type*/ eModifierTypeType_Nonconstructive,
+    /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_SupportsEditmode,
-    /* icon */ ICON_MOD_REMESH,
+    /*icon*/ ICON_MOD_REMESH,
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ NULL,
+    /*deformVerts*/ NULL,
+    /*deformMatrices*/ NULL,
+    /*deformVertsEM*/ NULL,
+    /*deformMatricesEM*/ NULL,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ NULL,
 
-    /* initData */ initData,
-    /* requiredDataMask */ NULL,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
-    /* updateDepsgraph */ NULL,
-    /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
-    /* foreachIDLink */ NULL,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /*initData*/ initData,
+    /*requiredDataMask*/ NULL,
+    /*freeData*/ NULL,
+    /*isDisabled*/ NULL,
+    /*updateDepsgraph*/ NULL,
+    /*dependsOnTime*/ NULL,
+    /*dependsOnNormals*/ NULL,
+    /*foreachIDLink*/ NULL,
+    /*foreachTexLink*/ NULL,
+    /*freeRuntimeData*/ NULL,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ NULL,
+    /*blendRead*/ NULL,
 };

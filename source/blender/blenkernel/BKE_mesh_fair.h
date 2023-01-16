@@ -29,10 +29,10 @@ void BKE_bmesh_prefair_and_fair_verts(struct BMesh *bm,
                                       bool *affect_verts,
                                       eMeshFairingDepth depth);
 
-/* This function can optionally use the MVert coordinates of deform_mverts to read and write the
- * fairing result. When NULL, the function will use mesh->mverts directly. */
+/* This function can optionally use the vertex coordinates of deform_mverts to read and write the
+ * fairing result. When NULL, the function will use mesh positions directly. */
 void BKE_mesh_prefair_and_fair_verts(struct Mesh *mesh,
-                                     struct MVert *deform_mverts,
+                                     float (*deform_vert_positions)[3],
                                      bool *affect_verts,
                                      eMeshFairingDepth depth);
 

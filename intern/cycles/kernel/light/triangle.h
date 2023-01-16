@@ -146,7 +146,7 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
 
   /* flip normal if necessary */
   const int object_flag = kernel_data_fetch(object_flag, object);
-  if (object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
+  if (object_flag & SD_OBJECT_NEGATIVE_SCALE) {
     ls->Ng = -ls->Ng;
   }
   ls->eval_fac = 1.0f;
@@ -306,7 +306,7 @@ ccl_device_forceinline bool triangle_light_tree_parameters(
 
   const int object = kemitter->mesh_light.object_id;
   float3 vertices[3];
-  triangle_world_space_vertices(kg, object, kemitter->prim_id, -1.0f, vertices);
+  triangle_world_space_vertices(kg, object, kemitter->prim, -1.0f, vertices);
 
   bool shape_above_surface = false;
   for (int i = 0; i < 3; i++) {

@@ -219,7 +219,7 @@ static void ApplySnapRotation(TransInfo *t, float *value)
   float point[3];
   getSnapPoint(t, point);
 
-  float dist = RotationBetween(t, t->tsnap.snapTarget, point);
+  float dist = RotationBetween(t, t->tsnap.snap_source, point);
   *value = dist;
 }
 
@@ -368,8 +368,8 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
     final = large_rotation_limit(final);
   }
   else {
-    applySnappingAsGroup(t, &final);
-    if (!(activeSnap(t) && validSnap(t))) {
+    transform_snap_mixed_apply(t, &final);
+    if (!(transform_snap_is_active(t) && validSnap(t))) {
       transform_snap_increment(t, &final);
     }
   }
@@ -429,8 +429,8 @@ void initRotation(TransInfo *t)
   t->mode = TFM_ROTATION;
   t->transform = applyRotation;
   t->transform_matrix = applyRotationMatrix;
-  t->tsnap.applySnap = ApplySnapRotation;
-  t->tsnap.distance = RotationBetween;
+  t->tsnap.snap_mode_apply_fn = ApplySnapRotation;
+  t->tsnap.snap_mode_distance_fn = RotationBetween;
 
   initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
 

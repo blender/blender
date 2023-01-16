@@ -809,25 +809,25 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Lineart = {
-    /* name. */ "Line Art",
-    /* structName. */ "LineartGpencilModifierData",
-    /* structSize. */ sizeof(LineartGpencilModifierData),
-    /* type. */ eGpencilModifierTypeType_Gpencil,
-    /* flags. */ eGpencilModifierTypeFlag_SupportsEditmode,
+    /*name*/ "Line Art",
+    /*structName*/ "LineartGpencilModifierData",
+    /*structSize*/ sizeof(LineartGpencilModifierData),
+    /*type*/ eGpencilModifierTypeType_Gpencil,
+    /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 
-    /* copyData. */ copyData,
+    /*copyData*/ copyData,
 
-    /* deformStroke. */ NULL,
-    /* generateStrokes. */ generateStrokes,
-    /* bakeModifier. */ bakeModifier,
-    /* remapTime. */ NULL,
+    /*deformStroke*/ NULL,
+    /*generateStrokes*/ generateStrokes,
+    /*bakeModifier*/ bakeModifier,
+    /*remapTime*/ NULL,
 
-    /* initData. */ initData,
-    /* freeData. */ NULL,
-    /* isDisabled. */ isDisabled,
-    /* updateDepsgraph. */ updateDepsgraph,
-    /* dependsOnTime. */ NULL,
-    /* foreachIDLink. */ foreachIDLink,
-    /* foreachTexLink. */ NULL,
-    /* panelRegister. */ panelRegister,
+    /*initData*/ initData,
+    /*freeData*/ NULL,
+    /*isDisabled*/ isDisabled,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ NULL,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ NULL,
+    /*panelRegister*/ panelRegister,
 };

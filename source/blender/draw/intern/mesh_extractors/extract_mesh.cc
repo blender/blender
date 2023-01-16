@@ -91,7 +91,7 @@ const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor,
 
 void mesh_render_data_face_flag(const MeshRenderData *mr,
                                 const BMFace *efa,
-                                const int cd_ofs,
+                                const BMUVOffsets offsets,
                                 EditLoopData *eattr)
 {
   if (efa == mr->efa_act) {
@@ -104,7 +104,7 @@ void mesh_render_data_face_flag(const MeshRenderData *mr,
   if (efa == mr->efa_act_uv) {
     eattr->v_flag |= VFLAG_FACE_UV_ACTIVE;
   }
-  if ((cd_ofs != -1) && uvedit_face_select_test_ex(mr->toolsettings, (BMFace *)efa, cd_ofs)) {
+  if ((offsets.uv != -1) && uvedit_face_select_test_ex(mr->toolsettings, (BMFace *)efa, offsets)) {
     eattr->v_flag |= VFLAG_FACE_UV_SELECT;
   }
 
@@ -121,30 +121,29 @@ void mesh_render_data_face_flag(const MeshRenderData *mr,
 
 void mesh_render_data_loop_flag(const MeshRenderData *mr,
                                 BMLoop *l,
-                                const int cd_ofs,
+                                const BMUVOffsets offsets,
                                 EditLoopData *eattr)
 {
-  if (cd_ofs == -1) {
+  if (offsets.uv == -1) {
     return;
   }
-  MLoopUV *luv = (MLoopUV *)BM_ELEM_CD_GET_VOID_P(l, cd_ofs);
-  if (luv != nullptr && (luv->flag & MLOOPUV_PINNED)) {
+  if (BM_ELEM_CD_GET_BOOL(l, offsets.pin)) {
     eattr->v_flag |= VFLAG_VERT_UV_PINNED;
   }
-  if (uvedit_uv_select_test_ex(mr->toolsettings, l, cd_ofs)) {
+  if (uvedit_uv_select_test_ex(mr->toolsettings, l, offsets)) {
     eattr->v_flag |= VFLAG_VERT_UV_SELECT;
   }
 }
 
 void mesh_render_data_loop_edge_flag(const MeshRenderData *mr,
                                      BMLoop *l,
-                                     const int cd_ofs,
+                                     const BMUVOffsets offsets,
                                      EditLoopData *eattr)
 {
-  if (cd_ofs == -1) {
+  if (offsets.uv == -1) {
     return;
   }
-  if (uvedit_edge_select_test_ex(mr->toolsettings, l, cd_ofs)) {
+  if (uvedit_edge_select_test_ex(mr->toolsettings, l, offsets)) {
     eattr->v_flag |= VFLAG_EDGE_UV_SELECT;
     eattr->v_flag |= VFLAG_VERT_UV_SELECT;
   }

@@ -48,9 +48,7 @@ typedef struct Light {
 
   float clipsta, clipend;
   float bias;
-  float soft;      /* DEPRECATED kept for compatibility. */
-  float bleedbias; /* DEPRECATED kept for compatibility. */
-  float bleedexp;  /* DEPRECATED kept for compatibility. */
+  float radius;
   short bufsize, samp, buffers, filtertype;
   char bufflag, buftype;
 
@@ -66,7 +64,6 @@ typedef struct Light {
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
   short pr_texture, use_nodes;
-  char _pad6[4];
 
   /* Eevee */
   float cascade_max_dist;
@@ -76,7 +73,6 @@ typedef struct Light {
 
   float contact_dist;
   float contact_bias;
-  float contact_spread; /* DEPRECATED kept for compatibility. */
   float contact_thickness;
 
   float diff_fac, volume_fac;

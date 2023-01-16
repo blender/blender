@@ -322,8 +322,8 @@ void id_us_min(ID *id)
 
     if (id->us <= limit) {
       if (!ID_TYPE_IS_DEPRECATED(GS(id->name))) {
-        /* Do not assert on deprecated ID types, we cannot really ensure that their ID refcounting
-         * is valid... */
+        /* Do not assert on deprecated ID types, we cannot really ensure that their ID
+         * reference-counting is valid. */
         CLOG_ERROR(&LOG,
                    "ID user decrement error: %s (from '%s'): %d <= %d",
                    id->name,

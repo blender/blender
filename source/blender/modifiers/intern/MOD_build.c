@@ -75,7 +75,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct
   const int vert_src_num = mesh->totvert;
   const int edge_src_num = mesh->totedge;
   const int poly_src_num = mesh->totpoly;
-  const MVert *mvert_src = BKE_mesh_verts(mesh);
   const MEdge *medge_src = BKE_mesh_edges(mesh);
   const MPoly *mpoly_src = BKE_mesh_polys(mesh);
   const MLoop *mloop_src = BKE_mesh_loops(mesh);
@@ -202,23 +201,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct
   /* now we know the number of verts, edges and faces, we can create the mesh. */
   result = BKE_mesh_new_nomain_from_template(
       mesh, BLI_ghash_len(vertHash), BLI_ghash_len(edgeHash), 0, loops_dst_num, faces_dst_num);
-  MVert *result_verts = BKE_mesh_verts_for_write(result);
   MEdge *result_edges = BKE_mesh_edges_for_write(result);
   MPoly *result_polys = BKE_mesh_polys_for_write(result);
   MLoop *result_loops = BKE_mesh_loops_for_write(result);
 
   /* copy the vertices across */
   GHASH_ITER (gh_iter, vertHash) {
-    MVert source;
-    MVert *dest;
     int oldIndex = POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
     int newIndex = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
-
-    source = mvert_src[oldIndex];
-    dest = &result_verts[newIndex];
-
     CustomData_copy_data(&mesh->vdata, &result->vdata, oldIndex, newIndex, 1);
-    *dest = source;
   }
 
   /* copy the edges across, remapping indices */
@@ -318,34 +309,34 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Build = {
-    /* name */ N_("Build"),
-    /* structName */ "BuildModifierData",
-    /* structSize */ sizeof(BuildModifierData),
-    /* srna */ &RNA_BuildModifier,
-    /* type */ eModifierTypeType_Nonconstructive,
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs,
-    /* icon */ ICON_MOD_BUILD,
+    /*name*/ N_("Build"),
+    /*structName*/ "BuildModifierData",
+    /*structSize*/ sizeof(BuildModifierData),
+    /*srna*/ &RNA_BuildModifier,
+    /*type*/ eModifierTypeType_Nonconstructive,
+    /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs,
+    /*icon*/ ICON_MOD_BUILD,
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ NULL,
+    /*deformVerts*/ NULL,
+    /*deformMatrices*/ NULL,
+    /*deformVertsEM*/ NULL,
+    /*deformMatricesEM*/ NULL,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ NULL,
 
-    /* initData */ initData,
-    /* requiredDataMask */ NULL,
-    /* freeData */ NULL,
-    /* isDisabled */ NULL,
-    /* updateDepsgraph */ NULL,
-    /* dependsOnTime */ dependsOnTime,
-    /* dependsOnNormals */ NULL,
-    /* foreachIDLink */ NULL,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /*initData*/ initData,
+    /*requiredDataMask*/ NULL,
+    /*freeData*/ NULL,
+    /*isDisabled*/ NULL,
+    /*updateDepsgraph*/ NULL,
+    /*dependsOnTime*/ dependsOnTime,
+    /*dependsOnNormals*/ NULL,
+    /*foreachIDLink*/ NULL,
+    /*foreachTexLink*/ NULL,
+    /*freeRuntimeData*/ NULL,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ NULL,
+    /*blendRead*/ NULL,
 };

@@ -579,7 +579,11 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   link_options.maxTraceDepth = 1;
   link_options.debugLevel = module_options.debugLevel;
 
-  if (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE) && !use_osl) {
+  if (use_osl) {
+    /* Re-create OSL pipeline in case kernels are reloaded after it has been created before. */
+    load_osl_kernels();
+  }
+  else if (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) {
     /* Create shader raytracing and MNEE pipeline. */
     vector<OptixProgramGroup> pipeline_groups;
     pipeline_groups.reserve(NUM_PROGRAM_GROUPS);
@@ -743,6 +747,11 @@ bool OptiXDevice::load_osl_kernels()
     }
   }
 
+  if (osl_kernels.empty()) {
+    /* No OSL shader groups, so no need to create a pipeline. */
+    return true;
+  }
+
   OptixProgramGroupOptions group_options = {}; /* There are no options currently. */
   OptixModuleCompileOptions module_options = {};
   module_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
@@ -856,6 +865,11 @@ bool OptiXDevice::load_osl_kernels()
     if (osl_groups[i] != NULL) {
       optix_assert(optixSbtRecordPackHeader(osl_groups[i], &sbt_data[NUM_PROGRAM_GROUPS + i]));
       optix_assert(optixProgramGroupGetStackSize(osl_groups[i], &osl_stack_size[i]));
+    }
+    else {
+      /* Default to "__direct_callable__dummy_services", so that OSL evaluation for empty
+       * materials has direct callables to call and does not crash. */
+      optix_assert(optixSbtRecordPackHeader(osl_groups.back(), &sbt_data[NUM_PROGRAM_GROUPS + i]));
     }
   }
   sbt_data.copy_to_device(); /* Upload updated SBT to device. */

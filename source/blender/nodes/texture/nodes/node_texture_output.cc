@@ -18,11 +18,11 @@ static bNodeSocketTemplate inputs[] = {
 
 /* applies to render pipeline */
 static void exec(void *data,
-                 int UNUSED(thread),
+                 int /*thread*/,
                  bNode *node,
-                 bNodeExecData *UNUSED(execdata),
+                 bNodeExecData * /*execdata*/,
                  bNodeStack **in,
-                 bNodeStack **UNUSED(out))
+                 bNodeStack ** /*out*/)
 {
   TexCallData *cdata = (TexCallData *)data;
   TexResult *target = cdata->target;
@@ -114,7 +114,7 @@ check_index:
   node->custom1 = index;
 }
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node)
+static void init(bNodeTree * /*ntree*/, bNode *node)
 {
   TexNodeOutput *tno = MEM_cnew<TexNodeOutput>("TEX_output");
   node->storage = tno;

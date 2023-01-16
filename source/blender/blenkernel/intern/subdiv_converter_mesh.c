@@ -34,7 +34,7 @@
 typedef struct ConverterStorage {
   SubdivSettings settings;
   const Mesh *mesh;
-  const MVert *verts;
+  const float (*vert_positions)[3];
   const MEdge *edges;
   const MPoly *polys;
   const MLoop *loops;
@@ -193,14 +193,14 @@ static int get_num_uv_layers(const OpenSubdiv_Converter *converter)
 {
   ConverterStorage *storage = converter->user_data;
   const Mesh *mesh = storage->mesh;
-  return CustomData_number_of_layers(&mesh->ldata, CD_MLOOPUV);
+  return CustomData_number_of_layers(&mesh->ldata, CD_PROP_FLOAT2);
 }
 
 static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int layer_index)
 {
   ConverterStorage *storage = converter->user_data;
   const Mesh *mesh = storage->mesh;
-  const MLoopUV *mloopuv = CustomData_get_layer_n(&mesh->ldata, CD_MLOOPUV, layer_index);
+  const float(*mloopuv)[2] = CustomData_get_layer_n(&mesh->ldata, CD_PROP_FLOAT2, layer_index);
   const int num_poly = mesh->totpoly;
   const int num_vert = mesh->totvert;
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
@@ -395,7 +395,7 @@ static void init_user_data(OpenSubdiv_Converter *converter,
   ConverterStorage *user_data = MEM_mallocN(sizeof(ConverterStorage), __func__);
   user_data->settings = *settings;
   user_data->mesh = mesh;
-  user_data->verts = BKE_mesh_verts(mesh);
+  user_data->vert_positions = BKE_mesh_vert_positions(mesh);
   user_data->edges = BKE_mesh_edges(mesh);
   user_data->polys = BKE_mesh_polys(mesh);
   user_data->loops = BKE_mesh_loops(mesh);

@@ -493,7 +493,7 @@ static void drawviewborder_triangle(
       ofs = h * (h / w);
     }
     if (dir == 'B') {
-      SWAP(float, y1, y2);
+      std::swap(y1, y2);
     }
 
     immVertex2f(shdr_pos, x1, y1);
@@ -513,7 +513,7 @@ static void drawviewborder_triangle(
       ofs = w * (w / h);
     }
     if (dir == 'B') {
-      SWAP(float, x1, x2);
+      std::swap(x1, x2);
     }
 
     immVertex2f(shdr_pos, x1, y1);
@@ -631,7 +631,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
 
     immUniform1i("colors_len", 0); /* "simple" mode */
     immUniform1f("dash_width", 6.0f);
-    immUniform1f("dash_factor", 0.5f);
+    immUniform1f("udash_factor", 0.5f);
 
     /* outer line not to confuse with object selection */
     if (v3d->flag2 & V3D_LOCK_CAMERA) {
@@ -812,7 +812,7 @@ static void drawrenderborder(ARegion *region, View3D *v3d)
   immUniform1i("colors_len", 0); /* "simple" mode */
   immUniform4f("color", 1.0f, 0.25f, 0.25f, 1.0f);
   immUniform1f("dash_width", 6.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   imm_draw_box_wire_2d(shdr_pos,
                        v3d->render_border.xmin * region->winx,
@@ -2407,18 +2407,21 @@ void ED_view3d_depths_free(ViewDepths *depths)
 /** \name Custom-data Utilities
  * \{ */
 
-void ED_view3d_datamask(const bContext *C,
-                        const Scene * /*scene*/,
+void ED_view3d_datamask(const Scene *scene,
+                        ViewLayer *view_layer,
                         const View3D *v3d,
                         CustomData_MeshMasks *r_cddata_masks)
 {
+  /* NOTE(@campbellbarton): as this function runs continuously while idle
+   * (from #wm_event_do_depsgraph) take care to avoid expensive lookups.
+   * While they won't hurt performance noticeably, they will increase CPU usage while idle. */
   if (ELEM(v3d->shading.type, OB_TEXTURE, OB_MATERIAL, OB_RENDER)) {
-    r_cddata_masks->lmask |= CD_MASK_MLOOPUV | CD_MASK_PROP_BYTE_COLOR;
+    r_cddata_masks->lmask |= CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_BYTE_COLOR;
     r_cddata_masks->vmask |= CD_MASK_ORCO | CD_MASK_PROP_COLOR;
   }
   else if (v3d->shading.type == OB_SOLID) {
     if (v3d->shading.color_type == V3D_SHADING_TEXTURE_COLOR) {
-      r_cddata_masks->lmask |= CD_MASK_MLOOPUV;
+      r_cddata_masks->lmask |= CD_MASK_PROP_FLOAT2;
     }
     if (v3d->shading.color_type == V3D_SHADING_VERTEX_COLOR) {
       r_cddata_masks->lmask |= CD_MASK_PROP_BYTE_COLOR;
@@ -2426,26 +2429,41 @@ void ED_view3d_datamask(const bContext *C,
     }
   }
 
-  if ((CTX_data_mode_enum(C) == CTX_MODE_EDIT_MESH) &&
-      (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT)) {
-    r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
-  }
-  if (CTX_data_mode_enum(C) == CTX_MODE_SCULPT) {
-    r_cddata_masks->vmask |= CD_MASK_PAINT_MASK;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
+  if (obact) {
+    switch (obact->type) {
+      case OB_MESH: {
+        switch (obact->mode) {
+          case OB_MODE_EDIT: {
+            if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT) {
+              r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+            }
+            break;
+          }
+          case OB_MODE_SCULPT: {
+            r_cddata_masks->vmask |= CD_MASK_PAINT_MASK;
+            break;
+          }
+        }
+        break;
+      }
+    }
   }
 }
 
-void ED_view3d_screen_datamask(const bContext *C,
-                               const Scene *scene,
+void ED_view3d_screen_datamask(const Scene *scene,
+                               ViewLayer *view_layer,
                                const bScreen *screen,
                                CustomData_MeshMasks *r_cddata_masks)
 {
   CustomData_MeshMasks_update(r_cddata_masks, &CD_MASK_BAREMESH);
 
-  /* Check if we need tfaces & mcols due to view mode. */
+  /* Check if we need UV or color data due to the view mode. */
   LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
     if (area->spacetype == SPACE_VIEW3D) {
-      ED_view3d_datamask(C, scene, static_cast<View3D *>(area->spacedata.first), r_cddata_masks);
+      ED_view3d_datamask(
+          scene, view_layer, static_cast<View3D *>(area->spacedata.first), r_cddata_masks);
     }
   }
 }

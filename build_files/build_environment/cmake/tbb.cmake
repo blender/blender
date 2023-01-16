@@ -1,26 +1,14 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-if(WIN32)
-  set(TBB_EXTRA_ARGS
-    -DTBB_BUILD_SHARED=On
-    -DTBB_BUILD_TBBMALLOC=On
-    -DTBB_BUILD_TBBMALLOC_PROXY=On
-    -DTBB_BUILD_STATIC=Off
-    -DTBB_BUILD_TESTS=Off
-    -DCMAKE_DEBUG_POSTFIX=_debug
-  )
-  set(TBB_LIBRARY tbb)
-  set(TBB_STATIC_LIBRARY Off)
-else()
-  set(TBB_EXTRA_ARGS
-    -DTBB_BUILD_SHARED=Off
-    -DTBB_BUILD_TBBMALLOC=On
-    -DTBB_BUILD_TBBMALLOC_PROXY=Off
-    -DTBB_BUILD_STATIC=On
-    -DTBB_BUILD_TESTS=Off
-  )
-  set(TBB_LIBRARY tbb_static)
-  set(TBB_STATIC_LIBRARY On)
-endif()
+set(TBB_EXTRA_ARGS
+  -DTBB_BUILD_SHARED=On
+  -DTBB_BUILD_TBBMALLOC=On
+  -DTBB_BUILD_TBBMALLOC_PROXY=On
+  -DTBB_BUILD_STATIC=Off
+  -DTBB_BUILD_TESTS=Off
+  -DCMAKE_DEBUG_POSTFIX=_debug
+)
+set(TBB_LIBRARY tbb)
+set(TBB_STATIC_LIBRARY Off)
 
 # CMake script for TBB from https://github.com/wjakob/tbb/blob/master/CMakeLists.txt
 ExternalProject_Add(external_tbb

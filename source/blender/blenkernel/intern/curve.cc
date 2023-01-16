@@ -16,7 +16,7 @@
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
 #include "BLI_math.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 #include "BLT_translation.h"
@@ -304,33 +304,33 @@ static void curve_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_CU_LEGACY = {
-    /* id_code */ ID_CU_LEGACY,
-    /* id_filter */ FILTER_ID_CU_LEGACY,
-    /* main_listbase_index */ INDEX_ID_CU_LEGACY,
-    /* struct_size */ sizeof(Curve),
-    /* name */ "Curve",
-    /* name_plural */ "curves",
-    /* translation_context */ BLT_I18NCONTEXT_ID_CURVE_LEGACY,
-    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_CU_LEGACY,
+    /*id_filter*/ FILTER_ID_CU_LEGACY,
+    /*main_listbase_index*/ INDEX_ID_CU_LEGACY,
+    /*struct_size*/ sizeof(Curve),
+    /*name*/ "Curve",
+    /*name_plural*/ "curves",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_CURVE_LEGACY,
+    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ curve_init_data,
-    /* copy_data */ curve_copy_data,
-    /* free_data */ curve_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ curve_foreach_id,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ nullptr,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ curve_init_data,
+    /*copy_data*/ curve_copy_data,
+    /*free_data*/ curve_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ curve_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ nullptr,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ curve_blend_write,
-    /* blend_read_data */ curve_blend_read_data,
-    /* blend_read_lib */ curve_blend_read_lib,
-    /* blend_read_expand */ curve_blend_read_expand,
+    /*blend_write*/ curve_blend_write,
+    /*blend_read_data*/ curve_blend_read_data,
+    /*blend_read_lib*/ curve_blend_read_lib,
+    /*blend_read_expand*/ curve_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 void BKE_curve_editfont_free(Curve *cu)
@@ -704,7 +704,7 @@ Nurb *BKE_nurb_copy(Nurb *src, int pntsu, int pntsv)
   *newnu = blender::dna::shallow_copy(*src);
 
   if (pntsu == 1) {
-    SWAP(int, pntsu, pntsv);
+    std::swap(pntsu, pntsv);
   }
   newnu->pntsu = pntsu;
   newnu->pntsv = pntsv;
@@ -3048,7 +3048,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
           bevp2 = bevp1 + (bl->nr - 1);
           nr = bl->nr / 2;
           while (nr--) {
-            SWAP(BevPoint, *bevp1, *bevp2);
+            std::swap(*bevp1, *bevp2);
             bevp1++;
             bevp2--;
           }
@@ -4437,7 +4437,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
     a /= 2;
     while (a > 0) {
       if (bezt1 != bezt2) {
-        SWAP(BezTriple, *bezt1, *bezt2);
+        std::swap(*bezt1, *bezt2);
       }
 
       swap_v3_v3(bezt1->vec[0], bezt1->vec[2]);
@@ -4446,12 +4446,12 @@ void BKE_nurb_direction_switch(Nurb *nu)
         swap_v3_v3(bezt2->vec[0], bezt2->vec[2]);
       }
 
-      SWAP(uint8_t, bezt1->h1, bezt1->h2);
-      SWAP(uint8_t, bezt1->f1, bezt1->f3);
+      std::swap(bezt1->h1, bezt1->h2);
+      std::swap(bezt1->f1, bezt1->f3);
 
       if (bezt1 != bezt2) {
-        SWAP(uint8_t, bezt2->h1, bezt2->h2);
-        SWAP(uint8_t, bezt2->f1, bezt2->f3);
+        std::swap(bezt2->h1, bezt2->h2);
+        std::swap(bezt2->f1, bezt2->f3);
         bezt1->tilt = -bezt1->tilt;
         bezt2->tilt = -bezt2->tilt;
       }
@@ -4469,7 +4469,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
     bp2 = bp1 + (a - 1);
     a /= 2;
     while (bp1 != bp2 && a > 0) {
-      SWAP(BPoint, *bp1, *bp2);
+      std::swap(*bp1, *bp2);
       a--;
       bp1->tilt = -bp1->tilt;
       bp2->tilt = -bp2->tilt;
@@ -4491,7 +4491,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
         fp2 = fp1 + (a - 1);
         a /= 2;
         while (fp1 != fp2 && a > 0) {
-          SWAP(float, *fp1, *fp2);
+          std::swap(*fp1, *fp2);
           a--;
           fp1++;
           fp2--;
@@ -4530,7 +4530,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
       a /= 2;
 
       while (bp1 != bp2 && a > 0) {
-        SWAP(BPoint, *bp1, *bp2);
+        std::swap(*bp1, *bp2);
         a--;
         bp1++;
         bp2--;

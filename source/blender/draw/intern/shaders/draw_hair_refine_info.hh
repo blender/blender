@@ -23,6 +23,8 @@ GPU_SHADER_CREATE_INFO(draw_hair_refine_compute)
     .push_constant(Type::INT, "hairStrandOffset")
     .compute_source("common_hair_refine_comp.glsl")
     .define("HAIR_PHASE_SUBDIV")
+    .define("HAIR_SHADER")
+    .define("DRW_HAIR_INFO")
     .do_static_compilation(true);
 
 GPU_SHADER_INTERFACE_INFO(draw_hair_refine_transform_feedback_workaround_iface, "")

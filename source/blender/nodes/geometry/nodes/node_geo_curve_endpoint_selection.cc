@@ -22,7 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supports_field()
       .description(N_("The amount of points to select from the end of each spline"));
   b.add_output<decl::Bool>(N_("Selection"))
-      .field_source()
+      .field_source_reference_all()
       .description(
           N_("The selection from the start and end of the splines based on the input sizes"));
 }
@@ -76,6 +76,12 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
 
     return VArray<bool>::ForContainer(std::move(selection));
   };
+
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
+  {
+    start_size_.node().for_each_field_input_recursive(fn);
+    end_size_.node().for_each_field_input_recursive(fn);
+  }
 
   uint64_t hash() const override
   {

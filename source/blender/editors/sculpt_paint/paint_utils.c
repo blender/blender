@@ -288,7 +288,7 @@ static void imapaint_pick_uv(
   const MLoopTri *lt = BKE_mesh_runtime_looptri_ensure(me_eval);
   const int tottri = BKE_mesh_runtime_looptri_len(me_eval);
 
-  const MVert *mvert = BKE_mesh_verts(me_eval);
+  const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
   const MLoop *mloop = BKE_mesh_loops(me_eval);
   const int *index_mp_to_orig = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
@@ -312,12 +312,12 @@ static void imapaint_pick_uv(
     findex = index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
 
     if (findex == faceindex) {
-      const MLoopUV *mloopuv;
-      const MLoopUV *tri_uv[3];
+      const float(*mloopuv)[2];
+      const float *tri_uv[3];
       float tri_co[3][3];
 
       for (int j = 3; j--;) {
-        copy_v3_v3(tri_co[j], mvert[mloop[lt->tri[j]].v].co);
+        copy_v3_v3(tri_co[j], positions[mloop[lt->tri[j]].v]);
       }
 
       if (mode == PAINT_CANVAS_SOURCE_MATERIAL) {
@@ -329,17 +329,18 @@ static void imapaint_pick_uv(
         slot = &ma->texpaintslot[ma->paint_active_slot];
 
         if (!(slot && slot->uvname &&
-              (mloopuv = CustomData_get_layer_named(&me_eval->ldata, CD_MLOOPUV, slot->uvname)))) {
-          mloopuv = CustomData_get_layer(&me_eval->ldata, CD_MLOOPUV);
+              (mloopuv = CustomData_get_layer_named(
+                   &me_eval->ldata, CD_PROP_FLOAT2, slot->uvname)))) {
+          mloopuv = CustomData_get_layer(&me_eval->ldata, CD_PROP_FLOAT2);
         }
       }
       else {
-        mloopuv = CustomData_get_layer(&me_eval->ldata, CD_MLOOPUV);
+        mloopuv = CustomData_get_layer(&me_eval->ldata, CD_PROP_FLOAT2);
       }
 
-      tri_uv[0] = &mloopuv[lt->tri[0]];
-      tri_uv[1] = &mloopuv[lt->tri[1]];
-      tri_uv[2] = &mloopuv[lt->tri[2]];
+      tri_uv[0] = mloopuv[lt->tri[0]];
+      tri_uv[1] = mloopuv[lt->tri[1]];
+      tri_uv[2] = mloopuv[lt->tri[2]];
 
       p[0] = xy[0];
       p[1] = xy[1];
@@ -347,8 +348,8 @@ static void imapaint_pick_uv(
       imapaint_tri_weights(matrix, view, UNPACK3(tri_co), p, w);
       absw = fabsf(w[0]) + fabsf(w[1]) + fabsf(w[2]);
       if (absw < minabsw) {
-        uv[0] = tri_uv[0]->uv[0] * w[0] + tri_uv[1]->uv[0] * w[1] + tri_uv[2]->uv[0] * w[2];
-        uv[1] = tri_uv[0]->uv[1] * w[0] + tri_uv[1]->uv[1] * w[1] + tri_uv[2]->uv[1] * w[2];
+        uv[0] = tri_uv[0][0] * w[0] + tri_uv[1][0] * w[1] + tri_uv[2][0] * w[2];
+        uv[1] = tri_uv[0][1] * w[0] + tri_uv[1][1] * w[1] + tri_uv[2][1] * w[2];
         minabsw = absw;
       }
     }
@@ -423,7 +424,7 @@ void paint_sample_color(
       uint faceindex;
       uint totpoly = me->totpoly;
 
-      if (CustomData_has_layer(&me_eval->ldata, CD_MLOOPUV)) {
+      if (CustomData_has_layer(&me_eval->ldata, CD_PROP_FLOAT2)) {
         ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
         view3d_operator_needs_opengl(C);

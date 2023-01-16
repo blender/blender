@@ -33,6 +33,12 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
     return;
   }
 
+  /* Don't write data passes for paths that were split off for shadow catchers
+   * to avoid double-counting. */
+  if (path_flag & PATH_RAY_SHADOW_CATCHER_PASS) {
+    return;
+  }
+
   const int flag = kernel_data.film.pass_flag;
 
   if (!(flag & PASS_ANY)) {

@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
@@ -113,15 +113,12 @@ void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
                                  const int vert_offset,
                                  const int poly_offset,
                                  const int loop_offset,
-                                 MutableSpan<MVert> verts,
+                                 MutableSpan<float3> vert_positions,
                                  MutableSpan<MPoly> polys,
                                  MutableSpan<MLoop> loops)
 {
   /* Write vertices. */
-  for (const int i : vdb_verts.index_range()) {
-    const blender::float3 co = blender::float3(vdb_verts[i].asV());
-    copy_v3_v3(verts[vert_offset + i].co, co);
-  }
+  vert_positions.slice(vert_offset, vdb_verts.size()).copy_from(vdb_verts.cast<float3>());
 
   /* Write triangles. */
   for (const int i : vdb_tris.index_range()) {
@@ -178,7 +175,7 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                               0,
                               0,
                               0,
-                              mesh->verts_for_write(),
+                              mesh->vert_positions_for_write(),
                               mesh->polys_for_write(),
                               mesh->loops_for_write());
 
