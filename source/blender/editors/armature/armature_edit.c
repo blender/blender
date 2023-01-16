@@ -388,17 +388,20 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
         ED_armature_ebone_to_mat3(ebone, mat);
         copy_v3_v3(vec, mat[2]);
       }
-      else { /* Axis */
-        BLI_assert(type <= 5);
+      else if (type < 6) { /* NOTE: always true, check to quiet GCC12.2 `-Warray-bounds`. */
+        /* Axis */
         if (type < 3) {
           vec[type] = 1.0f;
         }
         else {
-          /* Use casting to quiet -Warray-bounds warning in gcc. */
-          vec[(int)type - 2] = -1.0f;
+          vec[type - 2] = -1.0f;
         }
         mul_m3_v3(imat, vec);
         normalize_v3(vec);
+      }
+      else {
+        /* The previous block should handle all remaining cases. */
+        BLI_assert_unreachable();
       }
 
       if (axis_flip) {
