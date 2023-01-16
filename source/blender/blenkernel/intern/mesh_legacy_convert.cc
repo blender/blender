@@ -1239,6 +1239,9 @@ void BKE_mesh_legacy_face_set_from_generic(Mesh *mesh,
 void BKE_mesh_legacy_face_set_to_generic(Mesh *mesh)
 {
   using namespace blender;
+  if (mesh->attributes().contains(".sculpt_face_set")) {
+    return;
+  }
   for (CustomDataLayer &layer : MutableSpan(mesh->pdata.layers, mesh->pdata.totlayer)) {
     if (layer.type == CD_SCULPT_FACE_SETS) {
       BLI_strncpy(layer.name, ".sculpt_face_set", sizeof(layer.name));
@@ -1290,21 +1293,25 @@ void BKE_mesh_legacy_bevel_weight_from_layers(Mesh *mesh)
 void BKE_mesh_legacy_bevel_weight_to_layers(Mesh *mesh)
 {
   using namespace blender;
-  const Span<MVert> verts(mesh->mvert, mesh->totvert);
-  if (mesh->cd_flag & ME_CDFLAG_VERT_BWEIGHT) {
-    float *weights = static_cast<float *>(
-        CustomData_add_layer(&mesh->vdata, CD_BWEIGHT, CD_CONSTRUCT, nullptr, verts.size()));
-    for (const int i : verts.index_range()) {
-      weights[i] = verts[i].bweight_legacy / 255.0f;
+  if (mesh->mvert && !CustomData_has_layer(&mesh->vdata, CD_BWEIGHT)) {
+    const Span<MVert> verts(mesh->mvert, mesh->totvert);
+    if (mesh->cd_flag & ME_CDFLAG_VERT_BWEIGHT) {
+      float *weights = static_cast<float *>(
+          CustomData_add_layer(&mesh->vdata, CD_BWEIGHT, CD_CONSTRUCT, nullptr, verts.size()));
+      for (const int i : verts.index_range()) {
+        weights[i] = verts[i].bweight_legacy / 255.0f;
+      }
     }
   }
 
   const Span<MEdge> edges = mesh->edges();
-  if (mesh->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
-    float *weights = static_cast<float *>(
-        CustomData_add_layer(&mesh->edata, CD_BWEIGHT, CD_CONSTRUCT, nullptr, edges.size()));
-    for (const int i : edges.index_range()) {
-      weights[i] = edges[i].bweight_legacy / 255.0f;
+  if (!CustomData_has_layer(&mesh->edata, CD_BWEIGHT)) {
+    if (mesh->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
+      float *weights = static_cast<float *>(
+          CustomData_add_layer(&mesh->edata, CD_BWEIGHT, CD_CONSTRUCT, nullptr, edges.size()));
+      for (const int i : edges.index_range()) {
+        weights[i] = edges[i].bweight_legacy / 255.0f;
+      }
     }
   }
 }
@@ -1337,6 +1344,9 @@ void BKE_mesh_legacy_edge_crease_from_layers(Mesh *mesh)
 void BKE_mesh_legacy_edge_crease_to_layers(Mesh *mesh)
 {
   using namespace blender;
+  if (CustomData_has_layer(&mesh->edata, CD_CREASE)) {
+    return;
+  }
   const Span<MEdge> edges = mesh->edges();
   if (mesh->cd_flag & ME_CDFLAG_EDGE_CREASE) {
     float *creases = static_cast<float *>(
@@ -1376,6 +1386,9 @@ void BKE_mesh_legacy_sharp_edges_from_flags(Mesh *mesh)
   using namespace blender::bke;
   const Span<MEdge> edges = mesh->edges();
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  if (attributes.contains("sharp_edge")) {
+    return;
+  }
   if (std::any_of(
           edges.begin(), edges.end(), [](const MEdge &edge) { return edge.flag & ME_SHARP; })) {
     SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_only_span<bool>(
@@ -1434,7 +1447,10 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
   using namespace blender;
   using namespace blender::bke;
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
-
+  if (!mesh->mvert || attributes.contains(".hide_vert") || attributes.contains(".hide_edge") ||
+      attributes.contains(".hide_poly")) {
+    return;
+  }
   const Span<MVert> verts(mesh->mvert, mesh->totvert);
   if (std::any_of(verts.begin(), verts.end(), [](const MVert &vert) {
         return vert.flag_legacy & ME_HIDE;
@@ -1502,6 +1518,9 @@ void BKE_mesh_legacy_convert_mpoly_to_material_indices(Mesh *mesh)
   using namespace blender;
   using namespace blender::bke;
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  if (attributes.contains("material_index")) {
+    return;
+  }
   const Span<MPoly> polys = mesh->polys();
   if (std::any_of(
           polys.begin(), polys.end(), [](const MPoly &poly) { return poly.mat_nr_legacy != 0; })) {
@@ -1737,6 +1756,10 @@ void BKE_mesh_legacy_convert_flags_to_selection_layers(Mesh *mesh)
   using namespace blender;
   using namespace blender::bke;
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  if (!mesh->mvert || attributes.contains(".select_vert") || attributes.contains(".select_edge") ||
+      attributes.contains(".select_poly")) {
+    return;
+  }
 
   const Span<MVert> verts(mesh->mvert, mesh->totvert);
   if (std::any_of(verts.begin(), verts.end(), [](const MVert &vert) {
@@ -1840,6 +1863,9 @@ void BKE_mesh_legacy_convert_verts_to_positions(Mesh *mesh)
 {
   using namespace blender;
   using namespace blender::bke;
+  if (!mesh->mvert || CustomData_get_layer_named(&mesh->vdata, CD_PROP_FLOAT3, "position")) {
+    return;
+  }
 
   const Span<MVert> verts(static_cast<const MVert *>(CustomData_get_layer(&mesh->vdata, CD_MVERT)),
                           mesh->totvert);
