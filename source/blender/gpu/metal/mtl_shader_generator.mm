@@ -521,7 +521,7 @@ char *MSLGeneratorInterface::msl_patch_default_get()
   std::stringstream ss_patch;
   ss_patch << datatoc_mtl_shader_defines_msl << std::endl;
   ss_patch << datatoc_mtl_shader_shared_h << std::endl;
-  size_t len = strlen(ss_patch.str().c_str());
+  size_t len = strlen(ss_patch.str().c_str()) + 1;
 
   msl_patch_default = (char *)malloc(len * sizeof(char));
   strcpy(msl_patch_default, ss_patch.str().c_str());
