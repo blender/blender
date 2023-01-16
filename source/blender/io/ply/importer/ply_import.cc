@@ -177,7 +177,7 @@ void importer_main(Main *bmain,
   Mesh *mesh = BKE_mesh_add(bmain, ob_name);
   try {
     if (header.type == PlyFormatType::ASCII) {
-      mesh = r_import_ply_ascii(infile, &header, mesh);
+      mesh = import_ply_ascii(infile, &header, mesh);
     }
     else if (header.type == PlyFormatType::BINARY_BE) {
       mesh = import_ply_binary(infile, &header, mesh);

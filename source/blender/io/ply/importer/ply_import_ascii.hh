@@ -11,7 +11,7 @@ namespace blender::io::ply {
  * @param file The PLY file that was opened.
  * @param header The information in the PLY header.
  */
-void r_import_ply_ascii(std::ifstream &file, PlyHeader *header, Mesh *mesh);
+Mesh *import_ply_ascii(std::ifstream &file, const PlyHeader *header, Mesh *mesh);
 
 /**
  * Loads the information from the PLY file in ASCII format to the PlyData datastructure.
@@ -19,7 +19,7 @@ void r_import_ply_ascii(std::ifstream &file, PlyHeader *header, Mesh *mesh);
  * @param header The information in the PLY header.
  * @return The PlyData datastructure that can be used for conversion to a Mesh.
  */
-PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header);
+PlyData load_ply_ascii(std::ifstream &file, const PlyHeader *header);
 
 int3 get_vertex_index(PlyHeader *header);
 int3 get_color_index(PlyHeader *header);
