@@ -139,9 +139,10 @@ class View {
 
   void update_viewport_size();
 
-  void frustum_boundbox_calc(BoundBox &bbox, int view_id);
+  /* WARNING: These 3 functions must be called in order */
+  void frustum_boundbox_calc(int view_id);
   void frustum_culling_planes_calc(int view_id);
-  void frustum_culling_sphere_calc(const BoundBox &bbox, BoundSphere &bsphere, int view_id);
+  void frustum_culling_sphere_calc(int view_id);
 };
 
 }  // namespace blender::draw
