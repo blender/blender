@@ -431,7 +431,7 @@ typedef struct ImageFormatData {
   /** OpenEXR. */
   char exr_codec;
 
-  /** Cineon. */
+  /** CINEON. */
   char cineon_flag;
   short cineon_white, cineon_black;
   float cineon_gamma;
@@ -657,7 +657,7 @@ typedef struct RenderData {
 
   /** Frames as in 'images'. */
   int cfra, sfra, efra;
-  /** Subframe offset from cfra, in 0.0-1.0. */
+  /** Sub-frame offset from `cfra`, in 0.0-1.0. */
   float subframe;
   /** Start+end frames of preview range. */
   int psfra, pefra;
@@ -719,13 +719,13 @@ typedef struct RenderData {
 
   /**
    * What to do with the sky/background.
-   * Picks sky/premul blending for the background.
+   * Picks sky/pre-multiply blending for the background.
    */
   char alphamode;
 
   char _pad0[1];
 
-  /** Render border to render sub-resions. */
+  /** Render border to render sub-regions. */
   rctf border;
 
   /* Information on different layers to be rendered. */
@@ -1928,7 +1928,7 @@ typedef struct Scene {
   void *sound_scrub_handle;
   void *speaker_handles;
 
-  /** (runtime) info/cache used for presenting playback framerate info to the user. */
+  /** (runtime) info/cache used for presenting playback frame-rate info to the user. */
   void *fps_info;
 
   /** None of the dependency graph vars is mean to be saved. */
@@ -2000,7 +2000,7 @@ typedef struct Scene {
 /* Use preview range. */
 #define SCER_PRV_RANGE (1 << 0)
 #define SCER_LOCK_FRAME_SELECTION (1 << 1)
-/* Show/use subframes (for checking motion blur). */
+/** Show/use sub-frames (for checking motion blur). */
 #define SCER_SHOW_SUBFRAME (1 << 3)
 
 /** #RenderData.mode. */
@@ -2560,7 +2560,7 @@ typedef enum eGPencil_Flags {
   GP_TOOL_FLAG_PAINT_ONBACK = (1 << 2),
   /** Show compact list of colors. */
   GP_TOOL_FLAG_THUMBNAIL_LIST = (1 << 3),
-  /** Generate wheight data for new strokes. */
+  /** Generate weight data for new strokes. */
   GP_TOOL_FLAG_CREATE_WEIGHTS = (1 << 4),
   /** Auto-merge with last stroke. */
   GP_TOOL_FLAG_AUTOMERGE_STROKE = (1 << 5),

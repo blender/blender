@@ -278,7 +278,7 @@ static void build_sequential(Object *ob,
   /* Recycled counter. */
   size_t i;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
-  /* Framerate of scene. */
+  /* Frame-rate of scene. */
   const float fps = (((float)scene->r.frs_sec) / scene->r.frs_sec_base);
 
   /* 1) Determine which strokes to start with (& adapt total number of strokes to build). */
@@ -379,9 +379,9 @@ static void build_sequential(Object *ob,
             float deltatime = fabs(cell->gps->points[j].time - last_pointtime);
             /* Do we need to sanitize previous points? */
             if (0 < zeropoints) {
-              /* Only correct if timegap bigger than MIN_CORRECTGAP. */
+              /* Only correct if time-gap bigger than #GP_BUILD_CORRECTGAP. */
               if (GP_BUILD_CORRECTGAP < deltatime) {
-                /* Cycling backwards through zeropoints to fix them. */
+                /* Cycling backwards through zero-points to fix them. */
                 for (int k = 0; k < zeropoints; k++) {
                   float linear_fill = interpf(
                       deltatime, 0, ((float)k + 1) / (zeropoints + 1)); /* Factor = Proportion. */
@@ -393,7 +393,7 @@ static void build_sequential(Object *ob,
               }
             }
 
-            /* Normal behaviour with time data */
+            /* Normal behavior with time data. */
             idx_times[curpoint] = sumtime + deltatime;
             sumtime = idx_times[curpoint];
             last_pointtime = cell->gps->points[j].time;

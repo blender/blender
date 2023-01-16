@@ -316,9 +316,10 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
   }
 }
 
-/* modified copy from rayshade.c */
 static void hammersley_create(float *out, int n, int seed, float amount)
 {
+  /* This code is originally from a modified copy from `rayshade.c`
+   * (a file that's no longer included). */
   RNG *rng;
 
   double ofs[2], t;
@@ -917,7 +918,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   }
 
   /* XXX This distribution code is totally broken in case from == PART_FROM_CHILD,
-   *     it's always using finaldm even if use_modifier_stack is unset...
+   *     it's always using `final_mesh` even if use_modifier_stack is unset...
    *     But making things consistent here break all existing edited
    *     hair systems, so better wait for complete rewrite. */
 

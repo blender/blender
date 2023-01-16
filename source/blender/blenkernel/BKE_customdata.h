@@ -681,7 +681,7 @@ typedef struct CustomDataTransferLayerMap {
   /** If non-NULL, array of weights, one for each dest item, replaces mix_factor. */
   const float *mix_weights;
 
-  /** Data source array (can be regular CD data, vertices/edges/etc., keyblocks...). */
+  /** Data source array (can be regular CD data, vertices/edges/etc., key-blocks...). */
   const void *data_src;
   /** Data dest array (same type as dat_src). */
   void *data_dst;
@@ -699,7 +699,7 @@ typedef struct CustomDataTransferLayerMap {
   /** For bit-flag transfer, flag(s) to affect in transferred data. */
   uint64_t data_flag;
 
-  /** Opaque pointer, to be used by specific interp callback (e.g. transformspace for normals). */
+  /** Opaque pointer, to be used by specific interp callback (e.g. transform-space for normals). */
   void *interp_data;
 
   cd_datatransfer_interp interp;

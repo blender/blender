@@ -448,9 +448,9 @@ struct IslandResult {
  *   This only concerns loops, currently (because of islands), and 'sampled' edges/polys norproj.
  */
 
-/* At most n raycasts per 'real' ray. */
+/** At most N ray-casts per 'real' ray. */
 #define MREMAP_RAYCAST_APPROXIMATE_NR 3
-/* Each approximated raycasts will have n times bigger radius than previous one. */
+/** Each approximated ray-casts will have n times bigger radius than previous one. */
 #define MREMAP_RAYCAST_APPROXIMATE_FAC 5.0f
 
 /* min 16 rays/face, max 400. */

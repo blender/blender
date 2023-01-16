@@ -2666,7 +2666,9 @@ static int wm_handler_fileselect_do(bContext *C,
 
             wm_window_close(C, wm, win);
 
-            CTX_wm_window_set(C, root_win); /* #wm_window_close() nullptrs. */
+            /* #wm_window_close() sets the context's window to null. */
+            CTX_wm_window_set(C, root_win);
+
             /* Some operators expect a drawable context (for #EVT_FILESELECT_EXEC). */
             wm_window_make_drawable(wm, root_win);
             /* Ensure correct cursor position, otherwise, popups may close immediately after

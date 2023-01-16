@@ -343,8 +343,8 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 
   /* we only include bones that are part of a continual connected chain */
   do {
-    /* here, we set ik-settings for bone from pchan->protectflag */
-    /* XXX: careful with quats/axis-angle rotations where we're locking 4d components. */
+    /* Here, we set IK-settings for bone from `pchan->protectflag`. */
+    /* XXX: careful with quaternion/axis-angle rotations where we're locking 4D components. */
     if (pchan->protectflag & OB_LOCK_ROTX) {
       pchan->ikflag |= BONE_IK_NO_XDOF_TEMP;
     }

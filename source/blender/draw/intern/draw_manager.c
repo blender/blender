@@ -1474,7 +1474,7 @@ void DRW_draw_callbacks_post_scene(void)
     /* XXX: Or should we use a proper draw/overlay engine for this case? */
     if (do_annotations) {
       GPU_depth_test(GPU_DEPTH_NONE);
-      /* XXX: as scene->gpd is not copied for COW yet */
+      /* XXX: as `scene->gpd` is not copied for COW yet. */
       ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, region, true);
       GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     }

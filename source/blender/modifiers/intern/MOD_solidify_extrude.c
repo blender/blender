@@ -352,7 +352,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
      * (so that winding of copied face get reversed, so that normals get reversed
      * and point in expected direction...).
      * If we also copy data here, then this data get overwritten
-     * (and allocated memory becomes memleak). */
+     * (and allocated memory becomes a memory leak). */
 
     CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)polys_num);
     CustomData_copy_data(&mesh->pdata, &result->pdata, 0, (int)polys_num, (int)polys_num);

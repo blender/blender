@@ -366,7 +366,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
   const MPoly *polys = BKE_mesh_polys(result);
 
-  /* add vcols before displacement - allows lookup based on position */
+  /* Add vertex-colors before displacement: allows lookup based on position. */
 
   if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
     const int polys_num = result->totpoly;

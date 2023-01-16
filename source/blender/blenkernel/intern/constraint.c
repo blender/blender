@@ -124,7 +124,7 @@ bConstraintOb *BKE_constraints_make_evalob(
   /* create regardless of whether we have any data! */
   cob = MEM_callocN(sizeof(bConstraintOb), "bConstraintOb");
 
-  /* for system time, part of deglobalization, code nicer later with local time (ton) */
+  /* NOTE(@ton): For system time, part of de-globalization, code nicer later with local time. */
   cob->scene = scene;
   cob->depsgraph = depsgraph;
 
@@ -236,7 +236,7 @@ void BKE_constraints_clear_evalob(bConstraintOb *cob)
     }
   }
 
-  /* free tempolary struct */
+  /* Free temporary struct. */
   MEM_freeN(cob);
 }
 
@@ -3842,7 +3842,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
      * be used that doesn't lazy initialize to avoid thread safety issues in the future. */
     BKE_object_minmax(ct->tar, curveMin, curveMax, true);
 
-    /* get targetmatrix */
+    /* Get target-matrix. */
     if (data->tar->runtime.curve_cache && data->tar->runtime.curve_cache->anim_path_accum_length) {
       float vec[4], totmat[4][4];
       float curvetime;

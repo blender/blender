@@ -507,7 +507,7 @@ static float mixColors(
 
 static void scene_setSubframe(Scene *scene, float subframe)
 {
-  /* dynamic paint subframes must be done on previous frame */
+  /* Dynamic paint sub-frames must be done on previous frame. */
   scene->r.cfra -= 1;
   scene->r.subframe = subframe;
 }
@@ -1139,7 +1139,7 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
       brush->smudge_strength = 0.3f;
       brush->max_velocity = 1.0f;
 
-      /* Paint proximity falloff colorramp. */
+      /* Paint proximity falloff color-ramp. */
       {
         CBData *ramp;
 
@@ -1659,7 +1659,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
   /* vertex color layer */
   else if (surface->init_color_type == MOD_DPAINT_INITIAL_VERTEXCOLOR) {
 
-    /* for vertex surface, just copy colors from mcol */
+    /* For vertex surface, just copy colors from #MLoopCol. */
     if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
       const MLoop *mloop = BKE_mesh_loops(mesh);
       const int totloop = mesh->totloop;
@@ -2787,7 +2787,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
                                  float *progress,
                                  bool *do_update)
 {
-  /* Antialias jitter point relative coords */
+  /* Anti-alias jitter point relative coords. */
   const int aa_samples = (surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
   char uvname[MAX_CUSTOMDATA_LAYER_NAME];
   uint32_t active_points = 0;
@@ -5333,7 +5333,7 @@ static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
 
       const uint n_trgt = (uint)n_target[n_idx];
 
-      /* Sort of spinlock, but only for given ePoint.
+      /* Sort of spin-lock, but only for given ePoint.
        * Since the odds a same ePoint is modified at the same time by several threads is very low,
        * this is much more efficient than a global spin lock. */
       const uint epointlock_idx = n_trgt / 8;

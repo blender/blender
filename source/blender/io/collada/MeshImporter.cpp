@@ -654,8 +654,8 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
     if (collada_meshtype == COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
       uint grouped_vertex_count = mp->getGroupedVertexElementsCount();
       for (uint group_index = 0; group_index < grouped_vertex_count; group_index++) {
-        uint first_vertex = position_indices[0]; /* Store first trifan vertex */
-        uint first_normal = normal_indices[0];   /* Store first trifan vertex normal */
+        uint first_vertex = position_indices[0]; /* Store first triangle-fan vertex. */
+        uint first_normal = normal_indices[0];   /* Store first triangle-fan vertex normal. */
         uint vertex_count = mp->getGroupedVerticesVertexCount(group_index);
 
         for (uint vertex_index = 0; vertex_index < vertex_count - 2; vertex_index++) {

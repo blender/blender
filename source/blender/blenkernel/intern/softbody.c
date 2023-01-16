@@ -377,7 +377,7 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
   pccd_M->bbmin[0] = pccd_M->bbmin[1] = pccd_M->bbmin[2] = 1e30f;
   pccd_M->bbmax[0] = pccd_M->bbmax[1] = pccd_M->bbmax[2] = -1e30f;
 
-  /* blow it up with forcefield ranges */
+  /* Blow it up with force-field ranges. */
   hull = max_ff(ob->pd->pdef_sbift, ob->pd->pdef_sboft);
 
   /* rotate current to previous */
@@ -848,7 +848,7 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
       }
       else {
         bp->goal = 0.0f;
-        /* so this will definily be below SOFTGOALSNAP */
+        /* So this will definitely be below #SOFTGOALSNAP. */
       }
 
       bp->nofsprings = 0;
@@ -1793,7 +1793,7 @@ static int sb_detect_vertex_collisionCached(float opco[3],
   return deflected;
 }
 
-/* sandbox to plug in various deflection algos */
+/* Sandbox to plug in various deflection algorithms. */
 static int sb_deflect_face(Object *ob,
                            float *actpos,
                            float *facenormal,

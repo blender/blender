@@ -2976,7 +2976,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "effector_amount", PROP_INT, PROP_UNSIGNED);
   /* In theory PROP_ANIMATABLE perhaps should be cleared,
    * but animating this can give some interesting results! */
-  RNA_def_property_range(prop, 0, 10000); /* 10000 effectors will bel SLOW, but who knows */
+  RNA_def_property_range(prop, 0, 10000); /* 10000 effectors will be SLOW, but who knows */
   RNA_def_property_ui_range(prop, 0, 100, 1, -1);
   RNA_def_property_ui_text(
       prop, "Effector Number", "How many particles are effectors (0 is all particles)");
@@ -4015,7 +4015,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
   RNA_def_function_output(func, parm);
 
-  /* extract hair mcols */
+  /* Extract hair vertex-colors. */
   func = RNA_def_function(srna, "mcol_on_emitter", "rna_ParticleSystem_mcol_on_emitter");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Obtain mcol for all particles");

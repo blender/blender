@@ -1101,9 +1101,8 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         continue;
       }
 
-      /* The substep method changed from "per second" to "per frame".
-       * To get the new value simply divide the old bullet sim fps with the scene fps.
-       */
+      /* The sub-step method changed from "per second" to "per frame".
+       * To get the new value simply divide the old bullet sim FPS with the scene FPS. */
       rbw->substeps_per_frame /= FPS;
 
       if (rbw->substeps_per_frame <= 0) {
