@@ -160,6 +160,7 @@ class SocketDeclaration {
   InputSocketFieldType input_field_type = InputSocketFieldType::None;
   OutputFieldDependency output_field_dependency;
 
+ private:
   /** The priority of the input for determining the domain of the node. See
    * realtime_compositor::InputDescriptor for more information. */
   int compositor_domain_priority_ = 0;
@@ -461,6 +462,11 @@ class NodeDeclaration {
   Vector<SocketDeclarationPtr> outputs;
   std::unique_ptr<aal::RelationsInNode> anonymous_attribute_relations_;
 
+  /** Leave the sockets in place, even if they don't match the declaration. Used for dynamic
+   * declarations when the information used to build the declaration is missing, but might become
+   * available again in the future. */
+  bool skip_updating_sockets = false;
+
   friend NodeDeclarationBuilder;
 
   bool matches(const bNode &node) const;
@@ -523,6 +529,9 @@ void id_or_index(const bNode &node, void *r_value);
 }  // namespace implicit_field_inputs
 
 void build_node_declaration(const bNodeType &typeinfo, NodeDeclaration &r_declaration);
+void build_node_declaration_dynamic(const bNodeTree &node_tree,
+                                    const bNode &node,
+                                    NodeDeclaration &r_declaration);
 
 template<typename SocketDecl>
 typename SocketDeclarationBuilder<SocketDecl>::Self &SocketDeclarationBuilder<

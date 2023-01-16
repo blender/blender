@@ -933,9 +933,9 @@ static void node_group_make_insert_selected(const bContext &C,
   }
   nodeRebuildIDVector(&ntree);
 
-  node_group_update(&ntree, gnode);
-  node_group_input_update(&group, input_node);
-  node_group_output_update(&group, output_node);
+  /* Update input and output node first, since the group node declaration can depend on them. */
+  nodes::update_node_declaration_and_sockets(group, *input_node);
+  nodes::update_node_declaration_and_sockets(group, *output_node);
 
   /* move nodes in the group to the center */
   for (bNode *node : nodes_to_move) {
@@ -956,6 +956,7 @@ static void node_group_make_insert_selected(const bContext &C,
     nodeRemLink(&ntree, link);
   }
 
+  /* Handle links to the new group inputs. */
   for (const auto item : input_links.items()) {
     const char *interface_identifier = item.value.interface_socket->identifier;
     bNodeSocket *input_socket = node_group_input_find_socket(input_node, interface_identifier);
@@ -969,23 +970,17 @@ static void node_group_make_insert_selected(const bContext &C,
       link->fromnode = input_node;
       link->fromsock = input_socket;
     }
-
-    /* Add a new link outside of the group. */
-    bNodeSocket *group_node_socket = node_group_find_input_socket(gnode, interface_identifier);
-    nodeAddLink(&ntree, item.value.from_node, item.key, gnode, group_node_socket);
   }
 
+  /* Handle links to new group outputs. */
   for (const OutputLinkInfo &info : output_links) {
     /* Create a new link inside of the group. */
     const char *io_identifier = info.interface_socket->identifier;
     bNodeSocket *output_sock = node_group_output_find_socket(output_node, io_identifier);
     nodeAddLink(&group, info.link->fromnode, info.link->fromsock, output_node, output_sock);
-
-    /* Reconnect the link to the group node instead of the node now inside the group. */
-    info.link->fromnode = gnode;
-    info.link->fromsock = node_group_find_output_socket(gnode, io_identifier);
   }
 
+  /* Handle new links inside the group. */
   for (const NewInternalLinkInfo &info : new_internal_links) {
     const char *io_identifier = info.interface_socket->identifier;
     if (info.socket->in_out == SOCK_IN) {
@@ -997,6 +992,25 @@ static void node_group_make_insert_selected(const bContext &C,
       nodeAddLink(&group, info.node, info.socket, output_node, output_socket);
     }
   }
+
+  bke::node_field_inferencing::update_field_inferencing(group);
+  nodes::update_node_declaration_and_sockets(ntree, *gnode);
+
+  /* Add new links to inputs outside of the group. */
+  for (const auto item : input_links.items()) {
+    const char *interface_identifier = item.value.interface_socket->identifier;
+    bNodeSocket *group_node_socket = node_group_find_input_socket(gnode, interface_identifier);
+    nodeAddLink(&ntree, item.value.from_node, item.key, gnode, group_node_socket);
+  }
+
+  /* Add new links to outputs outside the group. */
+  for (const OutputLinkInfo &info : output_links) {
+    /* Reconnect the link to the group node instead of the node now inside the group. */
+    info.link->fromnode = gnode;
+    info.link->fromsock = node_group_find_output_socket(gnode, info.interface_socket->identifier);
+  }
+
+  ED_node_tree_propagate_change(&C, bmain, nullptr);
 }
 
 static bNode *node_group_make_from_nodes(const bContext &C,
@@ -1051,8 +1065,6 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
     }
   }
 
-  ED_node_tree_propagate_change(C, bmain, nullptr);
-
   WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
 
   /* We broke relations in node tree, need to rebuild them in the graphs. */
@@ -1105,7 +1117,6 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
   const char *node_idname = node_group_idname(C);
-  Main *bmain = CTX_data_main(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
@@ -1137,7 +1148,6 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
 
   nodeSetActive(ntree, gnode);
   ED_node_tree_push(snode, ngroup, gnode);
-  ED_node_tree_propagate_change(C, bmain, nullptr);
 
   return OPERATOR_FINISHED;
 }

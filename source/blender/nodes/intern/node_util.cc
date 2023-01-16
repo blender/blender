@@ -324,19 +324,19 @@ static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree,
   return nullptr;
 }
 
-void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
+bool node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
 {
   bNodeSocket *socket = link->tosock;
 
   if (node != link->tonode) {
-    return;
+    return true;
   }
 
   /* If we're not at the link limit of the target socket, we can skip
    * trying to move existing links to another socket. */
   const int to_link_limit = nodeSocketLinkLimit(socket);
   if (socket->runtime->total_inputs + 1 < to_link_limit) {
-    return;
+    return true;
   }
 
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, to_link, &ntree->links) {
@@ -345,16 +345,17 @@ void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
       if (new_socket && new_socket != socket) {
         /* Attempt to redirect the existing link to the new socket. */
         to_link->tosock = new_socket;
-        return;
+        return true;
       }
 
       if (new_socket == nullptr) {
         /* No possible replacement, remove the existing link. */
         nodeRemLink(ntree, to_link);
-        return;
+        return true;
       }
     }
   }
+  return true;
 }
 
 /** \} */
