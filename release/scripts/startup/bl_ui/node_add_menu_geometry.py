@@ -145,6 +145,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY(Menu):
         layout = self.layout
         layout.menu("NODE_MT_geometry_node_GEO_GEOMETRY_READ")
         layout.menu("NODE_MT_geometry_node_GEO_GEOMETRY_WRITE")
+        layout.separator()
         layout.menu("NODE_MT_geometry_node_GEO_GEOMETRY_OPERATIONS")
         layout.menu("NODE_MT_geometry_node_GEO_GEOMETRY_SAMPLE")
         layout.separator()
