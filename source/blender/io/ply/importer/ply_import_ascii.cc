@@ -116,7 +116,7 @@ PlyData load_ply_ascii(std::ifstream &file, const PlyHeader *header)
   return data;
 }
 
-int3 get_vertex_index(PlyHeader *header)
+int3 get_vertex_index(const PlyHeader *header)
 {
   int3 vertexPos;
   vertexPos.x = get_index(header, "x", PlyDataTypes::FLOAT);
@@ -126,7 +126,7 @@ int3 get_vertex_index(PlyHeader *header)
   return vertexPos;
 }
 
-int3 get_color_index(PlyHeader *header)
+int3 get_color_index(const PlyHeader *header)
 {
   int3 vertexPos;
   vertexPos.x = get_index(header, "red", PlyDataTypes::UCHAR);
@@ -136,7 +136,7 @@ int3 get_color_index(PlyHeader *header)
   return vertexPos;
 }
 
-int3 get_normal_index(PlyHeader *header)
+int3 get_normal_index(const PlyHeader *header)
 {
   int3 vertexPos;
   vertexPos.x = get_index(header, "nx", PlyDataTypes::FLOAT);
@@ -146,7 +146,7 @@ int3 get_normal_index(PlyHeader *header)
   return vertexPos;
 }
 
-int get_index(PlyHeader *header, std::string property, PlyDataTypes datatype)
+int get_index(const PlyHeader *header, std::string property, PlyDataTypes datatype)
 {
   std::pair<std::string, PlyDataTypes> pair = {property, datatype};
   auto it = std::find(header->properties[0].begin(), header->properties[0].end(), pair);

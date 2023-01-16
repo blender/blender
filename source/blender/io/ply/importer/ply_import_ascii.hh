@@ -21,10 +21,10 @@ Mesh *import_ply_ascii(std::ifstream &file, const PlyHeader *header, Mesh *mesh)
  */
 PlyData load_ply_ascii(std::ifstream &file, const PlyHeader *header);
 
-int3 get_vertex_index(PlyHeader *header);
-int3 get_color_index(PlyHeader *header);
-int3 get_normal_index(PlyHeader *header);
-int get_index(PlyHeader *header, std::string property, PlyDataTypes datatype);
+int3 get_vertex_index(const PlyHeader *header);
+int3 get_color_index(const PlyHeader *header);
+int3 get_normal_index(const PlyHeader *header);
+int get_index(const PlyHeader *header, std::string property, PlyDataTypes datatype);
 std::vector<std::string> explode(const std::string_view &str, const char &ch);
 }  // namespace blender::io::ply
 #endif  // BLENDER_PLY_IMPORT_ASCII_HH
