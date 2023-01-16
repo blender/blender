@@ -231,7 +231,8 @@ struct DisplaceGridOp {
     openvdb::tools::foreach (temp_grid->beginValueOn(),
                              displace_op,
                              true,
-                             /* Disable sharing of the operator. */ false);
+                             /* Disable sharing of the operator. */
+                             false);
 
     /* It is likely that we produced too many active cells. Those are removed here, to avoid
      * slowing down subsequent operations. */
