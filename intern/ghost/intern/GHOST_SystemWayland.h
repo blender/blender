@@ -242,5 +242,11 @@ class GHOST_SystemWayland : public GHOST_System {
 #endif
 
  private:
+  /**
+   * Support freeing the internal data separately from the destructor
+   * so it can be called when WAYLAND isn't running (immediately before raising an exception).
+   */
+  void display_destroy_and_free_all();
+
   struct GWL_Display *display_;
 };

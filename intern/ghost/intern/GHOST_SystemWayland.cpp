@@ -5328,7 +5328,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   /* Connect to the Wayland server. */
   display_->wl_display = wl_display_connect(nullptr);
   if (!display_->wl_display) {
-    this->~GHOST_SystemWayland();
+    display_destroy_and_free_all();
     throw std::runtime_error("Wayland: unable to connect to display!");
   }
 
@@ -5372,7 +5372,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
               "WAYLAND found but libdecor was not, install libdecor for Wayland support, "
               "falling back to X11\n");
 #  endif
-      this->~GHOST_SystemWayland();
+      display_destroy_and_free_all();
       throw std::runtime_error("Wayland: unable to find libdecor!");
 
       use_libdecor = true;
@@ -5389,7 +5389,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     GWL_LibDecor_System &decor = *display_->libdecor;
     decor.context = libdecor_new(display_->wl_display, &libdecor_interface);
     if (!decor.context) {
-      this->~GHOST_SystemWayland();
+      display_destroy_and_free_all();
       throw std::runtime_error("Wayland: unable to create window decorations!");
     }
   }
@@ -5400,7 +5400,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   {
     GWL_XDG_Decor_System &decor = *display_->xdg_decor;
     if (!decor.shell) {
-      this->~GHOST_SystemWayland();
+      display_destroy_and_free_all();
       throw std::runtime_error("Wayland: unable to access xdg_shell!");
     }
   }
@@ -5410,7 +5410,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
 #endif
 }
 
-GHOST_SystemWayland::~GHOST_SystemWayland()
+void GHOST_SystemWayland::display_destroy_and_free_all()
 {
   gwl_display_destroy(display_);
 
@@ -5418,6 +5418,11 @@ GHOST_SystemWayland::~GHOST_SystemWayland()
   delete server_mutex;
   delete timer_mutex;
 #endif
+}
+
+GHOST_SystemWayland::~GHOST_SystemWayland()
+{
+  display_destroy_and_free_all();
 }
 
 GHOST_TSuccess GHOST_SystemWayland::init()
