@@ -122,8 +122,8 @@ static void recalcData_mesh_edge(TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_MeshEdge = {
-    /* flags */ T_EDIT,
-    /* createTransData */ createTransEdge,
-    /* recalcData */ recalcData_mesh_edge,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ T_EDIT,
+    /*createTransData*/ createTransEdge,
+    /*recalcData*/ recalcData_mesh_edge,
+    /*special_aftertrans_update*/ NULL,
 };

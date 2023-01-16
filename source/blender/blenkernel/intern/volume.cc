@@ -564,8 +564,8 @@ static void volume_foreach_cache(ID *id,
 {
   Volume *volume = (Volume *)id;
   IDCacheKey key = {
-      /* id_session_uuid */ id->session_uuid,
-      /* offset_in_ID */ offsetof(Volume, runtime.grids),
+      /*id_session_uuid*/ id->session_uuid,
+      /*offset_in_ID*/ offsetof(Volume, runtime.grids),
   };
 
   function_callback(id, &key, (void **)&volume->runtime.grids, 0, user_data);
@@ -644,33 +644,33 @@ static void volume_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_VO = {
-    /* id_code */ ID_VO,
-    /* id_filter */ FILTER_ID_VO,
-    /* main_listbase_index */ INDEX_ID_VO,
-    /* struct_size */ sizeof(Volume),
-    /* name */ "Volume",
-    /* name_plural */ "volumes",
-    /* translation_context */ BLT_I18NCONTEXT_ID_VOLUME,
-    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_VO,
+    /*id_filter*/ FILTER_ID_VO,
+    /*main_listbase_index*/ INDEX_ID_VO,
+    /*struct_size*/ sizeof(Volume),
+    /*name*/ "Volume",
+    /*name_plural*/ "volumes",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_VOLUME,
+    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ volume_init_data,
-    /* copy_data */ volume_copy_data,
-    /* free_data */ volume_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ volume_foreach_id,
-    /* foreach_cache */ volume_foreach_cache,
-    /* foreach_path */ volume_foreach_path,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ volume_init_data,
+    /*copy_data*/ volume_copy_data,
+    /*free_data*/ volume_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ volume_foreach_id,
+    /*foreach_cache*/ volume_foreach_cache,
+    /*foreach_path*/ volume_foreach_path,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ volume_blend_write,
-    /* blend_read_data */ volume_blend_read_data,
-    /* blend_read_lib */ volume_blend_read_lib,
-    /* blend_read_expand */ volume_blend_read_expand,
+    /*blend_write*/ volume_blend_write,
+    /*blend_read_data*/ volume_blend_read_data,
+    /*blend_read_lib*/ volume_blend_read_lib,
+    /*blend_read_expand*/ volume_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 void BKE_volume_init_grids(Volume *volume)

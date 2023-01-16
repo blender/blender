@@ -465,8 +465,8 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_Mask = {
-    /* flags */ (T_POINTS | T_2D_EDIT),
-    /* createTransData */ createTransMaskingData,
-    /* recalcData */ recalcData_mask_common,
-    /* special_aftertrans_update */ special_aftertrans_update__mask,
+    /*flags*/ (T_POINTS | T_2D_EDIT),
+    /*createTransData*/ createTransMaskingData,
+    /*recalcData*/ recalcData_mask_common,
+    /*special_aftertrans_update*/ special_aftertrans_update__mask,
 };

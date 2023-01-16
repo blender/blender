@@ -249,20 +249,20 @@ extern "C" {
 static const DrawEngineDataSize compositor_data_size = DRW_VIEWPORT_DATA_SIZE(COMPOSITOR_Data);
 
 DrawEngineType draw_engine_compositor_type = {
-    nullptr,                   /* next */
-    nullptr,                   /* prev */
-    N_("Compositor"),          /* idname */
-    &compositor_data_size,     /* vedata_size */
-    &compositor_engine_init,   /* engine_init */
-    nullptr,                   /* engine_free */
-    &compositor_engine_free,   /* instance_free */
-    nullptr,                   /* cache_init */
-    nullptr,                   /* cache_populate */
-    nullptr,                   /* cache_finish */
-    &compositor_engine_draw,   /* draw_scene */
-    &compositor_engine_update, /* view_update */
-    nullptr,                   /* id_update */
-    nullptr,                   /* render_to_image */
-    nullptr,                   /* store_metadata */
+    /*next*/ nullptr,
+    /*prev*/ nullptr,
+    /*idname*/ N_("Compositor"),
+    /*vedata_size*/ &compositor_data_size,
+    /*engine_init*/ &compositor_engine_init,
+    /*engine_free*/ nullptr,
+    /*instance_free*/ &compositor_engine_free,
+    /*cache_init*/ nullptr,
+    /*cache_populate*/ nullptr,
+    /*cache_finish*/ nullptr,
+    /*draw_scene*/ &compositor_engine_draw,
+    /*view_update*/ &compositor_engine_update,
+    /*id_update*/ nullptr,
+    /*render_to_image*/ nullptr,
+    /*store_metadata*/ nullptr,
 };
 }

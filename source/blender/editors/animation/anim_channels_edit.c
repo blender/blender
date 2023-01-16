@@ -240,7 +240,7 @@ static void select_pchan_for_action_group(bAnimContext *ac, bActionGroup *agrp, 
   }
 }
 
-static ListBase /* bAnimListElem */ anim_channels_for_selection(bAnimContext *ac)
+static ListBase /*bAnimListElem*/ anim_channels_for_selection(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
 

@@ -304,33 +304,33 @@ static void curve_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_CU_LEGACY = {
-    /* id_code */ ID_CU_LEGACY,
-    /* id_filter */ FILTER_ID_CU_LEGACY,
-    /* main_listbase_index */ INDEX_ID_CU_LEGACY,
-    /* struct_size */ sizeof(Curve),
-    /* name */ "Curve",
-    /* name_plural */ "curves",
-    /* translation_context */ BLT_I18NCONTEXT_ID_CURVE_LEGACY,
-    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_CU_LEGACY,
+    /*id_filter*/ FILTER_ID_CU_LEGACY,
+    /*main_listbase_index*/ INDEX_ID_CU_LEGACY,
+    /*struct_size*/ sizeof(Curve),
+    /*name*/ "Curve",
+    /*name_plural*/ "curves",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_CURVE_LEGACY,
+    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ curve_init_data,
-    /* copy_data */ curve_copy_data,
-    /* free_data */ curve_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ curve_foreach_id,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ nullptr,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ curve_init_data,
+    /*copy_data*/ curve_copy_data,
+    /*free_data*/ curve_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ curve_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ nullptr,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ curve_blend_write,
-    /* blend_read_data */ curve_blend_read_data,
-    /* blend_read_lib */ curve_blend_read_lib,
-    /* blend_read_expand */ curve_blend_read_expand,
+    /*blend_write*/ curve_blend_write,
+    /*blend_read_data*/ curve_blend_read_data,
+    /*blend_read_lib*/ curve_blend_read_lib,
+    /*blend_read_expand*/ curve_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 void BKE_curve_editfont_free(Curve *cu)

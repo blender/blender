@@ -1771,15 +1771,15 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_EditArmature = {
-    /* flags */ (T_EDIT | T_POINTS),
-    /* createTransData */ createTransArmatureVerts,
-    /* recalcData */ recalcData_edit_armature,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ (T_EDIT | T_POINTS),
+    /*createTransData*/ createTransArmatureVerts,
+    /*recalcData*/ recalcData_edit_armature,
+    /*special_aftertrans_update*/ NULL,
 };
 
 TransConvertTypeInfo TransConvertType_Pose = {
-    /* flags */ 0,
-    /* createTransData */ createTransPose,
-    /* recalcData */ recalcData_pose,
-    /* special_aftertrans_update */ special_aftertrans_update__pose,
+    /*flags*/ 0,
+    /*createTransData*/ createTransPose,
+    /*recalcData*/ recalcData_pose,
+    /*special_aftertrans_update*/ special_aftertrans_update__pose,
 };

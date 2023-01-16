@@ -1907,38 +1907,38 @@ static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cdda
 }
 
 ModifierTypeInfo modifierType_Nodes = {
-    /* name */ N_("GeometryNodes"),
-    /* structName */ "NodesModifierData",
-    /* structSize */ sizeof(NodesModifierData),
-    /* srna */ &RNA_NodesModifier,
-    /* type */ eModifierTypeType_Constructive,
-    /* flags */
+    /*name*/ N_("GeometryNodes"),
+    /*structName*/ "NodesModifierData",
+    /*structSize*/ sizeof(NodesModifierData),
+    /*srna*/ &RNA_NodesModifier,
+    /*type*/ eModifierTypeType_Constructive,
+    /*flags*/
     static_cast<ModifierTypeFlag>(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
                                   eModifierTypeFlag_SupportsEditmode |
                                   eModifierTypeFlag_EnableInEditmode |
                                   eModifierTypeFlag_SupportsMapping),
-    /* icon */ ICON_GEOMETRY_NODES,
+    /*icon*/ ICON_GEOMETRY_NODES,
 
-    /* copyData */ copyData,
+    /*copyData*/ copyData,
 
-    /* deformVerts */ nullptr,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ nullptr,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ modifyGeometrySet,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ modifyGeometrySet,
 
-    /* initData */ initData,
-    /* requiredDataMask */ requiredDataMask,
-    /* freeData */ freeData,
-    /* isDisabled */ isDisabled,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ dependsOnTime,
-    /* dependsOnNormals */ nullptr,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ foreachTexLink,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ blendWrite,
-    /* blendRead */ blendRead,
+    /*initData*/ initData,
+    /*requiredDataMask*/ requiredDataMask,
+    /*freeData*/ freeData,
+    /*isDisabled*/ isDisabled,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ dependsOnTime,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ foreachTexLink,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ blendWrite,
+    /*blendRead*/ blendRead,
 };

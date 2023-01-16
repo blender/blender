@@ -2015,7 +2015,7 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
                                                        size[0],
                                                        size[1],
                                                        view_layer->name,
-                                                       /* RR_ALL_VIEWS */ NULL);
+                                                       /*RR_ALL_VIEWS*/ NULL);
   RenderLayer *render_layer = render_result->layers.first;
   for (RenderView *render_view = render_result->views.first; render_view != NULL;
        render_view = render_view->next) {

@@ -280,41 +280,41 @@ struct GWL_ModifierInfo {
 };
 
 static const GWL_ModifierInfo g_modifier_info_table[MOD_INDEX_NUM] = {
-    /* MOD_INDEX_SHIFT */
+    /*MOD_INDEX_SHIFT*/
     {
-        /* display_name */ "Shift",
-        /* xkb_id */ XKB_MOD_NAME_SHIFT,
-        /* key_l */ GHOST_kKeyLeftShift,
-        /* key_r */ GHOST_kKeyRightShift,
-        /* mod_l */ GHOST_kModifierKeyLeftShift,
-        /* mod_r */ GHOST_kModifierKeyRightShift,
+        /*display_name*/ "Shift",
+        /*xkb_id*/ XKB_MOD_NAME_SHIFT,
+        /*key_l*/ GHOST_kKeyLeftShift,
+        /*key_r*/ GHOST_kKeyRightShift,
+        /*mod_l*/ GHOST_kModifierKeyLeftShift,
+        /*mod_r*/ GHOST_kModifierKeyRightShift,
     },
-    /* MOD_INDEX_ALT */
+    /*MOD_INDEX_ALT*/
     {
-        /* display_name */ "Alt",
-        /* xkb_id */ XKB_MOD_NAME_ALT,
-        /* key_l */ GHOST_kKeyLeftAlt,
-        /* key_r */ GHOST_kKeyRightAlt,
-        /* mod_l */ GHOST_kModifierKeyLeftAlt,
-        /* mod_r */ GHOST_kModifierKeyRightAlt,
+        /*display_name*/ "Alt",
+        /*xkb_id*/ XKB_MOD_NAME_ALT,
+        /*key_l*/ GHOST_kKeyLeftAlt,
+        /*key_r*/ GHOST_kKeyRightAlt,
+        /*mod_l*/ GHOST_kModifierKeyLeftAlt,
+        /*mod_r*/ GHOST_kModifierKeyRightAlt,
     },
-    /* MOD_INDEX_CTRL */
+    /*MOD_INDEX_CTRL*/
     {
-        /* display_name */ "Control",
-        /* xkb_id */ XKB_MOD_NAME_CTRL,
-        /* key_l */ GHOST_kKeyLeftControl,
-        /* key_r */ GHOST_kKeyRightControl,
-        /* mod_l */ GHOST_kModifierKeyLeftControl,
-        /* mod_r */ GHOST_kModifierKeyRightControl,
+        /*display_name*/ "Control",
+        /*xkb_id*/ XKB_MOD_NAME_CTRL,
+        /*key_l*/ GHOST_kKeyLeftControl,
+        /*key_r*/ GHOST_kKeyRightControl,
+        /*mod_l*/ GHOST_kModifierKeyLeftControl,
+        /*mod_r*/ GHOST_kModifierKeyRightControl,
     },
-    /* MOD_INDEX_OS */
+    /*MOD_INDEX_OS*/
     {
-        /* display_name */ "OS",
-        /* xkb_id */ XKB_MOD_NAME_LOGO,
-        /* key_l */ GHOST_kKeyLeftOS,
-        /* key_r */ GHOST_kKeyRightOS,
-        /* mod_l */ GHOST_kModifierKeyLeftOS,
-        /* mod_r */ GHOST_kModifierKeyRightOS,
+        /*display_name*/ "OS",
+        /*xkb_id*/ XKB_MOD_NAME_LOGO,
+        /*key_l*/ GHOST_kKeyLeftOS,
+        /*key_r*/ GHOST_kKeyRightOS,
+        /*mod_l*/ GHOST_kModifierKeyLeftOS,
+        /*mod_r*/ GHOST_kModifierKeyRightOS,
     },
 };
 

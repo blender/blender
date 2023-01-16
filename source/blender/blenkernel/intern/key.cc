@@ -195,35 +195,35 @@ static void shapekey_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_KE = {
-    /* id_code */ ID_KE,
-    /* id_filter */ FILTER_ID_KE,
-    /* main_listbase_index */ INDEX_ID_KE,
-    /* struct_size */ sizeof(Key),
-    /* name */ "Key",
-    /* name_plural */ "shape_keys",
-    /* translation_context */ BLT_I18NCONTEXT_ID_SHAPEKEY,
-    /* flags */ IDTYPE_FLAGS_NO_LIBLINKING,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_KE,
+    /*id_filter*/ FILTER_ID_KE,
+    /*main_listbase_index*/ INDEX_ID_KE,
+    /*struct_size*/ sizeof(Key),
+    /*name*/ "Key",
+    /*name_plural*/ "shape_keys",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_SHAPEKEY,
+    /*flags*/ IDTYPE_FLAGS_NO_LIBLINKING,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ nullptr,
-    /* copy_data */ shapekey_copy_data,
-    /* free_data */ shapekey_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ shapekey_foreach_id,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ nullptr,
+    /*init_data*/ nullptr,
+    /*copy_data*/ shapekey_copy_data,
+    /*free_data*/ shapekey_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ shapekey_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ nullptr,
     /* A bit weird, due to shape-keys not being strictly speaking embedded data... But they also
      * share a lot with those (non linkable, only ever used by one owner ID, etc.). */
-    /* owner_pointer_get */ shapekey_owner_pointer_get,
+    /*owner_pointer_get*/ shapekey_owner_pointer_get,
 
-    /* blend_write */ shapekey_blend_write,
-    /* blend_read_data */ shapekey_blend_read_data,
-    /* blend_read_lib */ shapekey_blend_read_lib,
-    /* blend_read_expand */ shapekey_blend_read_expand,
+    /*blend_write*/ shapekey_blend_write,
+    /*blend_read_data*/ shapekey_blend_read_data,
+    /*blend_read_lib*/ shapekey_blend_read_lib,
+    /*blend_read_expand*/ shapekey_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 #define KEY_MODE_DUMMY 0 /* use where mode isn't checked for */

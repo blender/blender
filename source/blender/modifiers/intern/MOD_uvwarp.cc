@@ -303,35 +303,35 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_UVWarp = {
-    /* name */ N_("UVWarp"),
-    /* structName */ "UVWarpModifierData",
-    /* structSize */ sizeof(UVWarpModifierData),
-    /* srna */ &RNA_UVWarpModifier,
-    /* type */ eModifierTypeType_NonGeometrical,
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode |
+    /*name*/ N_("UVWarp"),
+    /*structName*/ "UVWarpModifierData",
+    /*structSize*/ sizeof(UVWarpModifierData),
+    /*srna*/ &RNA_UVWarpModifier,
+    /*type*/ eModifierTypeType_NonGeometrical,
+    /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode,
-    /* icon */ ICON_MOD_UVPROJECT, /* TODO: Use correct icon. */
+    /*icon*/ ICON_MOD_UVPROJECT, /* TODO: Use correct icon. */
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ nullptr,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ nullptr,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ nullptr,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ nullptr,
 
-    /* initData */ initData,
-    /* requiredDataMask */ requiredDataMask,
-    /* freeData */ nullptr,
-    /* isDisabled */ nullptr,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ nullptr,
-    /* dependsOnNormals */ nullptr,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ nullptr,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ nullptr,
-    /* blendRead */ nullptr,
+    /*initData*/ initData,
+    /*requiredDataMask*/ requiredDataMask,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

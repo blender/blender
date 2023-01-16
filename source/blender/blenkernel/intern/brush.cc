@@ -411,33 +411,33 @@ static void brush_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
 }
 
 IDTypeInfo IDType_ID_BR = {
-    /* id_code */ ID_BR,
-    /* id_filter */ FILTER_ID_BR,
-    /* main_listbase_index */ INDEX_ID_BR,
-    /* struct_size */ sizeof(Brush),
-    /* name */ "Brush",
-    /* name_plural */ "brushes",
-    /* translation_context */ BLT_I18NCONTEXT_ID_BRUSH,
-    /* flags */ IDTYPE_FLAGS_NO_ANIMDATA,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_BR,
+    /*id_filter*/ FILTER_ID_BR,
+    /*main_listbase_index*/ INDEX_ID_BR,
+    /*struct_size*/ sizeof(Brush),
+    /*name*/ "Brush",
+    /*name_plural*/ "brushes",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_BRUSH,
+    /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ brush_init_data,
-    /* copy_data */ brush_copy_data,
-    /* free_data */ brush_free_data,
-    /* make_local */ brush_make_local,
-    /* foreach_id */ brush_foreach_id,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ brush_foreach_path,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ brush_init_data,
+    /*copy_data*/ brush_copy_data,
+    /*free_data*/ brush_free_data,
+    /*make_local*/ brush_make_local,
+    /*foreach_id*/ brush_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ brush_foreach_path,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ brush_blend_write,
-    /* blend_read_data */ brush_blend_read_data,
-    /* blend_read_lib */ brush_blend_read_lib,
-    /* blend_read_expand */ brush_blend_read_expand,
+    /*blend_write*/ brush_blend_write,
+    /*blend_read_data*/ brush_blend_read_data,
+    /*blend_read_lib*/ brush_blend_read_lib,
+    /*blend_read_expand*/ brush_blend_read_expand,
 
-    /* blend_read_undo_preserve */ brush_undo_preserve,
+    /*blend_read_undo_preserve*/ brush_undo_preserve,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 static RNG *brush_rng;

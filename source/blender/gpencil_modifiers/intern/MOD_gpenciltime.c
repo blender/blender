@@ -421,25 +421,25 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Time = {
-    /* name */ N_("TimeOffset"),
-    /* structName */ "TimeGpencilModifierData",
-    /* structSize */ sizeof(TimeGpencilModifierData),
-    /* type */ eGpencilModifierTypeType_Gpencil,
-    /* flags */ eGpencilModifierTypeFlag_NoApply,
+    /*name*/ N_("TimeOffset"),
+    /*structName*/ "TimeGpencilModifierData",
+    /*structSize*/ sizeof(TimeGpencilModifierData),
+    /*type*/ eGpencilModifierTypeType_Gpencil,
+    /*flags*/ eGpencilModifierTypeFlag_NoApply,
 
-    /* copyData */ copyData,
+    /*copyData*/ copyData,
 
-    /* deformStroke */ NULL,
-    /* generateStrokes */ NULL,
-    /* bakeModifier */ NULL,
-    /* remapTime */ remapTime,
+    /*deformStroke*/ NULL,
+    /*generateStrokes*/ NULL,
+    /*bakeModifier*/ NULL,
+    /*remapTime*/ remapTime,
 
-    /* initData */ initData,
-    /* freeData */ freeData,
-    /* isDisabled */ NULL,
-    /* updateDepsgraph */ NULL,
-    /* dependsOnTime */ NULL,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* panelRegister */ panelRegister,
+    /*initData*/ initData,
+    /*freeData*/ freeData,
+    /*isDisabled*/ NULL,
+    /*updateDepsgraph*/ NULL,
+    /*dependsOnTime*/ NULL,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ NULL,
+    /*panelRegister*/ panelRegister,
 };

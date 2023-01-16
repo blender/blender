@@ -1040,37 +1040,37 @@ static void node_tree_asset_pre_save(void *asset_ptr, AssetMetaData *asset_data)
 }  // namespace blender::bke
 
 static AssetTypeInfo AssetType_NT = {
-    /* pre_save_fn */ blender::bke::node_tree_asset_pre_save,
+    /*pre_save_fn*/ blender::bke::node_tree_asset_pre_save,
 };
 
 IDTypeInfo IDType_ID_NT = {
-    /* id_code */ ID_NT,
-    /* id_filter */ FILTER_ID_NT,
-    /* main_listbase_index */ INDEX_ID_NT,
-    /* struct_size */ sizeof(bNodeTree),
-    /* name */ "NodeTree",
-    /* name_plural */ "node_groups",
-    /* translation_context */ BLT_I18NCONTEXT_ID_NODETREE,
-    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /* asset_type_info */ &AssetType_NT,
+    /*id_code*/ ID_NT,
+    /*id_filter*/ FILTER_ID_NT,
+    /*main_listbase_index*/ INDEX_ID_NT,
+    /*struct_size*/ sizeof(bNodeTree),
+    /*name*/ "NodeTree",
+    /*name_plural*/ "node_groups",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_NODETREE,
+    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /*asset_type_info*/ &AssetType_NT,
 
-    /* init_data */ ntree_init_data,
-    /* copy_data */ ntree_copy_data,
-    /* free_data */ ntree_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ node_foreach_id,
-    /* foreach_cache */ node_foreach_cache,
-    /* foreach_path */ node_foreach_path,
-    /* owner_pointer_get */ node_owner_pointer_get,
+    /*init_data*/ ntree_init_data,
+    /*copy_data*/ ntree_copy_data,
+    /*free_data*/ ntree_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ node_foreach_id,
+    /*foreach_cache*/ node_foreach_cache,
+    /*foreach_path*/ node_foreach_path,
+    /*owner_pointer_get*/ node_owner_pointer_get,
 
-    /* blend_write */ ntree_blend_write,
-    /* blend_read_data */ ntree_blend_read_data,
-    /* blend_read_lib */ ntree_blend_read_lib,
-    /* blend_read_expand */ ntree_blend_read_expand,
+    /*blend_write*/ ntree_blend_write,
+    /*blend_read_data*/ ntree_blend_read_data,
+    /*blend_read_lib*/ ntree_blend_read_lib,
+    /*blend_read_expand*/ ntree_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)

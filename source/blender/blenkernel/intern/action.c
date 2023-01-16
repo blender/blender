@@ -294,7 +294,7 @@ static void action_asset_pre_save(void *asset_ptr, struct AssetMetaData *asset_d
 }
 
 static AssetTypeInfo AssetType_AC = {
-    /* pre_save_fn */ action_asset_pre_save,
+    /*pre_save_fn*/ action_asset_pre_save,
 };
 
 IDTypeInfo IDType_ID_AC = {

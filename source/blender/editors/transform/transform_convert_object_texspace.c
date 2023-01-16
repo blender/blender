@@ -110,8 +110,8 @@ static void recalcData_texspace(TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_ObjectTexSpace = {
-    /* flags */ 0,
-    /* createTransData */ createTransTexspace,
-    /* recalcData */ recalcData_texspace,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ 0,
+    /*createTransData*/ createTransTexspace,
+    /*recalcData*/ recalcData_texspace,
+    /*special_aftertrans_update*/ NULL,
 };

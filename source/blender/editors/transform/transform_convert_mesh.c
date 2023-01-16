@@ -2139,8 +2139,8 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_Mesh = {
-    /* flags */ (T_EDIT | T_POINTS),
-    /* createTransData */ createTransEditVerts,
-    /* recalcData */ recalcData_mesh,
-    /* special_aftertrans_update */ special_aftertrans_update__mesh,
+    /*flags*/ (T_EDIT | T_POINTS),
+    /*createTransData*/ createTransEditVerts,
+    /*recalcData*/ recalcData_mesh,
+    /*special_aftertrans_update*/ special_aftertrans_update__mesh,
 };

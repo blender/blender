@@ -131,7 +131,7 @@ void ED_file_indexer_entries_clear(FileIndexerEntries *indexer_entries);
  */
 void ED_file_indexer_entries_extend_from_datablock_infos(
     FileIndexerEntries *indexer_entries,
-    const LinkNode * /* BLODataBlockInfo */ datablock_infos,
+    const LinkNode * /*BLODataBlockInfo*/ datablock_infos,
     int idcode);
 
 #ifdef __cplusplus

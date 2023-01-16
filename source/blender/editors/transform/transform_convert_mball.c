@@ -135,8 +135,8 @@ static void recalcData_mball(TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_MBall = {
-    /* flags */ (T_EDIT | T_POINTS),
-    /* createTransData */ createTransMBallVerts,
-    /* recalcData */ recalcData_mball,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ (T_EDIT | T_POINTS),
+    /*createTransData*/ createTransMBallVerts,
+    /*recalcData*/ recalcData_mball,
+    /*special_aftertrans_update*/ NULL,
 };

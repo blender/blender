@@ -1221,37 +1221,37 @@ static void object_asset_pre_save(void *asset_ptr, struct AssetMetaData *asset_d
 }
 
 static AssetTypeInfo AssetType_OB = {
-    /* pre_save_fn */ object_asset_pre_save,
+    /*pre_save_fn*/ object_asset_pre_save,
 };
 
 IDTypeInfo IDType_ID_OB = {
-    /* id_code */ ID_OB,
-    /* id_filter */ FILTER_ID_OB,
-    /* main_listbase_index */ INDEX_ID_OB,
-    /* struct_size */ sizeof(Object),
-    /* name */ "Object",
-    /* name_plural */ "objects",
-    /* translation_context */ BLT_I18NCONTEXT_ID_OBJECT,
-    /* flags */ 0,
-    /* asset_type_info */ &AssetType_OB,
+    /*id_code*/ ID_OB,
+    /*id_filter*/ FILTER_ID_OB,
+    /*main_listbase_index*/ INDEX_ID_OB,
+    /*struct_size*/ sizeof(Object),
+    /*name*/ "Object",
+    /*name_plural*/ "objects",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_OBJECT,
+    /*flags*/ 0,
+    /*asset_type_info*/ &AssetType_OB,
 
-    /* init_data */ object_init_data,
-    /* copy_data */ object_copy_data,
-    /* free_data */ object_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ object_foreach_id,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ object_foreach_path,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ object_init_data,
+    /*copy_data*/ object_copy_data,
+    /*free_data*/ object_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ object_foreach_id,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ object_foreach_path,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ object_blend_write,
-    /* blend_read_data */ object_blend_read_data,
-    /* blend_read_lib */ object_blend_read_lib,
-    /* blend_read_expand */ object_blend_read_expand,
+    /*blend_write*/ object_blend_write,
+    /*blend_read_data*/ object_blend_read_data,
+    /*blend_read_lib*/ object_blend_read_lib,
+    /*blend_read_expand*/ object_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ object_lib_override_apply_post,
+    /*lib_override_apply_post*/ object_lib_override_apply_post,
 };
 
 void BKE_object_workob_clear(Object *workob)

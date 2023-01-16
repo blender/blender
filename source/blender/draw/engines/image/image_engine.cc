@@ -185,20 +185,20 @@ extern "C" {
 using namespace blender::draw::image_engine;
 
 DrawEngineType draw_engine_image_type = {
-    nullptr,               /* next */
-    nullptr,               /* prev */
-    N_("UV/Image"),        /* idname */
-    &IMAGE_data_size,      /* vedata_size */
-    &IMAGE_engine_init,    /* engine_init */
-    &IMAGE_engine_free,    /* engine_free */
-    &IMAGE_instance_free,  /* instance_free */
-    &IMAGE_cache_init,     /* cache_init */
-    &IMAGE_cache_populate, /* cache_populate */
-    nullptr,               /* cache_finish */
-    &IMAGE_draw_scene,     /* draw_scene */
-    nullptr,               /* view_update */
-    nullptr,               /* id_update */
-    nullptr,               /* render_to_image */
-    nullptr,               /* store_metadata */
+    /*next*/ nullptr,
+    /*prev*/ nullptr,
+    /*idname*/ N_("UV/Image"),
+    /*vedata_size*/ &IMAGE_data_size,
+    /*engine_init*/ &IMAGE_engine_init,
+    /*engine_free*/ &IMAGE_engine_free,
+    /*instance_free*/ &IMAGE_instance_free,
+    /*cache_init*/ &IMAGE_cache_init,
+    /*cache_populate*/ &IMAGE_cache_populate,
+    /*cache_finish*/ nullptr,
+    /*draw_scene*/ &IMAGE_draw_scene,
+    /*view_update*/ nullptr,
+    /*id_update*/ nullptr,
+    /*render_to_image*/ nullptr,
+    /*store_metadata*/ nullptr,
 };
 }
