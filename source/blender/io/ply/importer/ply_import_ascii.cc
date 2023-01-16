@@ -30,8 +30,9 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
 
   /* Check if header contains normals. */
   std::pair<std::string, PlyDataTypes> normalx = {"nx", PlyDataTypes::FLOAT};
-  bool hasNormals = std::find(header->properties[0].begin(), header->properties[0].end(), normalx) !=
-                    header->properties[0].end();
+  bool hasNormals = std::find(header->properties[0].begin(),
+                              header->properties[0].end(),
+                              normalx) != header->properties[0].end();
 
   int3 vertexIndex = get_vertex_index(header);
   int alphaIndex;

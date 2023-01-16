@@ -6,16 +6,29 @@
 
 #include <cstdio>
 
-#include "../intern/ply_data.hh"
 #include "IO_ply.h"
+#include "ply_data.hh"
 #include "ply_file_buffer.hh"
 
 namespace blender::io::ply {
 
 void write_vertices(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData)
 {
-  for (const auto &vertex : plyData->vertices) {
-    buffer->write_vertex(vertex.x, vertex.y, vertex.z);
+  for (int i = 0; i < plyData->vertices.size(); i++) {
+    buffer->write_vertex(plyData->vertices[i].x, plyData->vertices[i].y, plyData->vertices[i].z);
+
+    if (!plyData->vertex_normals.is_empty())
+      buffer->write_vertex_normal(plyData->vertex_normals[i].x,
+                                  plyData->vertex_normals[i].y,
+                                  plyData->vertex_normals[i].z);
+
+    if (!plyData->vertex_colors.is_empty())
+      buffer->write_vertex_color(uchar(plyData->vertex_colors[i].x * 255),
+                                 uchar(plyData->vertex_colors[i].y * 255),
+                                 uchar(plyData->vertex_colors[i].z * 255),
+                                 uchar(plyData->vertex_colors[i].w * 255));
+
+    buffer->write_vertex_end();
   }
   buffer->write_to_file();
 }
