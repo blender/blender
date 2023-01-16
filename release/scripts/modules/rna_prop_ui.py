@@ -181,6 +181,7 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
             value_column.prop(rna_item, '["%s"]' % escape_identifier(key), text="")
 
         operator_row = value_row.row()
+        operator_row.alignment = 'RIGHT'
 
         # Do not allow editing of overridden properties (we cannot use a poll function
         # of the operators here since they's have no access to the specific property).
