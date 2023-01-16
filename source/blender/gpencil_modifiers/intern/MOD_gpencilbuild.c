@@ -370,7 +370,7 @@ static void build_sequential(Object *ob,
         }
         /* Entering subsequent points */
         else {
-          if (cell->gps->points[j].time == 0) {
+          if (cell->gps->points[j].time <= 0) {
             idx_times[curpoint] = sumtime;
             zeropoints++;
           }

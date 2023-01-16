@@ -3216,7 +3216,8 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
 
         pts = new_stroke->points;
         for (j = 0; j < new_stroke->totpoints; j++, pts++) {
-          pts->time -= delta;
+          /* Some points have time = 0, so check to not get negative time values.*/
+          pts->time = max_ff(pts->time - delta, 0.0f);
           /* set flag for select again later */
           if (select == true) {
             pts->flag &= ~GP_SPOINT_SELECT;
