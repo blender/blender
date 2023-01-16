@@ -72,6 +72,7 @@ class NODE_MT_geometry_node_GEO_CURVE_READ(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeInputSplineResolution")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
+
 class NODE_MT_geometry_node_GEO_CURVE_WRITE(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_CURVE_WRITE"
     bl_label = "Write"
@@ -153,6 +154,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeGeometryToInstance")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
+
 class NODE_MT_geometry_node_GEO_GEOMETRY_READ(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_GEOMETRY_READ"
     bl_label = "Read"
@@ -178,6 +180,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_WRITE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeSetPosition")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
+
 class NODE_MT_geometry_node_GEO_GEOMETRY_OPERATIONS(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_GEOMETRY_OPERATIONS"
     bl_label = "Operations"
@@ -194,6 +197,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_OPERATIONS(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeSeparateComponents")
         node_add_menu.add_node_type(layout, "GeometryNodeSeparateGeometry")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+
 
 class NODE_MT_geometry_node_GEO_GEOMETRY_SAMPLE(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_GEOMETRY_SAMPLE"
@@ -506,6 +510,7 @@ class NODE_MT_category_GEO_UTILITIES_ROTATION(Menu):
         node_add_menu.add_node_type(layout, "FunctionNodeAlignEulerToVector")
         node_add_menu.add_node_type(layout, "FunctionNodeRotateEuler")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+
 
 class NODE_MT_category_GEO_UTILITIES_MATH(Menu):
     bl_idname = "NODE_MT_category_GEO_UTILITIES_MATH"
