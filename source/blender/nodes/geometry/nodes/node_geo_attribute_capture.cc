@@ -147,6 +147,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   if (!attribute_id) {
     params.set_output("Geometry", geometry_set);
+    params.set_default_remaining_outputs();
     return;
   }
 
