@@ -92,5 +92,17 @@ class FileBufferBinary : public FileBuffer {
 
     write_bytes(data);
   }
+
+  void write_edge(int first, int second) override
+  {
+
+    auto *fbits = reinterpret_cast<char *>(&first);
+    auto *sbits = reinterpret_cast<char *>(&second);
+
+    Vector<char> data(fbits, fbits + sizeof(int));
+    data.insert(data.end(), sbits, sbits + sizeof(int));
+
+    write_bytes(data);
+  }
 };
 }  // namespace blender::io::ply
