@@ -1,7 +1,16 @@
-#include "ply_import_binary.hh"
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
 #include "BKE_customdata.h"
+
 #include "BLI_math_vector.h"
+
+#include "ply_import_binary.hh"
 #include "ply_import_mesh.hh"
+
 #include <fstream>
 
 namespace blender::io::ply {

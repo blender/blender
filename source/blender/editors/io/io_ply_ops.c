@@ -211,7 +211,7 @@ void WM_OT_ply_export(struct wmOperatorType *ot)
                   "Export Normals",
                   "Export per-face normals if the face is flat-shaded, per-face-per-loop "
                   "normals if smooth-shaded");
-  RNA_def_boolean(ot->srna, "export_colors", false, "Export Colors", "Export per-vertex colors");
+  RNA_def_boolean(ot->srna, "export_colors", false, "Export Vertex Colors", "Export per-vertex colors");
   RNA_def_boolean(ot->srna,
                   "export_triangulated_mesh",
                   false,

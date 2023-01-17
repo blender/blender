@@ -7,6 +7,7 @@
 #pragma once
 
 #include "BKE_context.h"
+
 #include "BLI_path_util.h"
 #include "DNA_windowmanager_types.h"
 #include "IO_orientation.h"

@@ -1,8 +1,15 @@
-#ifndef BLENDER_PLY_IMPORT_BINARY_HH
-#define BLENDER_PLY_IMPORT_BINARY_HH
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
+#pragma once
 
 #include "BKE_mesh.h"
+
 #include "DNA_mesh_types.h"
+
 #include "ply_data.hh"
 
 namespace blender::io::ply {
@@ -69,5 +76,3 @@ template<typename T> T swap_bytes(T input)
 template<typename T> T read(std::ifstream &file, bool isBigEndian);
 
 }  // namespace blender::io::ply
-
-#endif  // BLENDER_PLY_IMPORT_BINARY_HH
