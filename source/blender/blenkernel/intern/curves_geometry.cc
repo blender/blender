@@ -716,14 +716,57 @@ static void rotate_directions_around_axes(MutableSpan<float3> directions,
   }
 }
 
+static void evaluate_generic_data_for_curve(
+    const int curve_index,
+    const IndexRange points,
+    const VArray<int8_t> &types,
+    const VArray<bool> &cyclic,
+    const VArray<int> &resolution,
+    const Span<int> bezier_evaluated_offsets,
+    const Span<curves::nurbs::BasisCache> nurbs_basis_cache,
+    const VArray<int8_t> &nurbs_orders,
+    const Span<float> nurbs_weights,
+    const GSpan src,
+    GMutableSpan dst)
+{
+  switch (types[curve_index]) {
+    case CURVE_TYPE_CATMULL_ROM:
+      curves::catmull_rom::interpolate_to_evaluated(
+          src, cyclic[curve_index], resolution[curve_index], dst);
+      break;
+    case CURVE_TYPE_POLY:
+      dst.copy_from(src);
+      break;
+    case CURVE_TYPE_BEZIER:
+      curves::bezier::interpolate_to_evaluated(src, bezier_evaluated_offsets.slice(points), dst);
+      break;
+    case CURVE_TYPE_NURBS:
+      curves::nurbs::interpolate_to_evaluated(nurbs_basis_cache[curve_index],
+                                              nurbs_orders[curve_index],
+                                              nurbs_weights.slice_safe(points),
+                                              src,
+                                              dst);
+      break;
+  }
+}
+
 Span<float3> CurvesGeometry::evaluated_normals() const
 {
   this->runtime->normal_cache_mutex.ensure([&]() {
-    const Span<float3> evaluated_tangents = this->evaluated_tangents();
+    const VArray<int8_t> types = this->curve_types();
     const VArray<bool> cyclic = this->cyclic();
     const VArray<int8_t> normal_mode = this->normal_mode();
-    const VArray<int8_t> types = this->curve_types();
+    const VArray<int> resolution = this->resolution();
+    const VArray<int8_t> nurbs_orders = this->nurbs_orders();
+    const Span<float> nurbs_weights = this->nurbs_weights();
+
+    const Span<float3> evaluated_tangents = this->evaluated_tangents();
     const VArray<float> tilt = this->tilt();
+    VArraySpan<float> tilt_span;
+    const bool use_tilt = !(tilt.is_single() && tilt.get_internal_single() == 0.0f);
+    if (use_tilt) {
+      tilt_span = tilt;
+    }
 
     this->runtime->evaluated_normal_cache.resize(this->evaluated_points_num());
     MutableSpan<float3> evaluated_normals = this->runtime->evaluated_normal_cache;
@@ -748,19 +791,26 @@ Span<float3> CurvesGeometry::evaluated_normals() const
 
         /* If the "tilt" attribute exists, rotate the normals around the tangents by the
          * evaluated angles. We can avoid copying the tilts to evaluate them for poly curves. */
-        if (!(tilt.is_single() && tilt.get_internal_single() == 0.0f)) {
+        if (use_tilt) {
           const IndexRange points = this->points_for_curve(curve_index);
-          Span<float> curve_tilt = tilt.get_internal_span().slice(points);
           if (types[curve_index] == CURVE_TYPE_POLY) {
             rotate_directions_around_axes(evaluated_normals.slice(evaluated_points),
                                           evaluated_tangents.slice(evaluated_points),
-                                          curve_tilt);
+                                          tilt_span.slice(points));
           }
           else {
-            evaluated_tilts.clear();
-            evaluated_tilts.resize(evaluated_points.size());
-            this->interpolate_to_evaluated(
-                curve_index, curve_tilt, evaluated_tilts.as_mutable_span());
+            evaluated_tilts.reinitialize(evaluated_points.size());
+            evaluate_generic_data_for_curve(curve_index,
+                                            points,
+                                            types,
+                                            cyclic,
+                                            resolution,
+                                            this->runtime->bezier_evaluated_offsets.as_span(),
+                                            this->runtime->nurbs_basis_cache.as_span(),
+                                            nurbs_orders,
+                                            nurbs_weights,
+                                            tilt_span.slice(points),
+                                            evaluated_tilts.as_mutable_span());
             rotate_directions_around_axes(evaluated_normals.slice(evaluated_points),
                                           evaluated_tangents.slice(evaluated_points),
                                           evaluated_tilts.as_span());
@@ -781,27 +831,17 @@ void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
   const IndexRange points = this->points_for_curve(curve_index);
   BLI_assert(src.size() == points.size());
   BLI_assert(dst.size() == this->evaluated_points_for_curve(curve_index).size());
-  switch (this->curve_types()[curve_index]) {
-    case CURVE_TYPE_CATMULL_ROM:
-      curves::catmull_rom::interpolate_to_evaluated(
-          src, this->cyclic()[curve_index], this->resolution()[curve_index], dst);
-      return;
-    case CURVE_TYPE_POLY:
-      dst.type().copy_assign_n(src.data(), dst.data(), src.size());
-      return;
-    case CURVE_TYPE_BEZIER:
-      curves::bezier::interpolate_to_evaluated(
-          src, this->runtime->bezier_evaluated_offsets.as_span().slice(points), dst);
-      return;
-    case CURVE_TYPE_NURBS:
-      curves::nurbs::interpolate_to_evaluated(this->runtime->nurbs_basis_cache[curve_index],
-                                              this->nurbs_orders()[curve_index],
-                                              this->nurbs_weights().slice_safe(points),
-                                              src,
-                                              dst);
-      return;
-  }
-  BLI_assert_unreachable();
+  evaluate_generic_data_for_curve(curve_index,
+                                  points,
+                                  this->curve_types(),
+                                  this->cyclic(),
+                                  this->resolution(),
+                                  this->runtime->bezier_evaluated_offsets.as_span(),
+                                  this->runtime->nurbs_basis_cache.as_span(),
+                                  this->nurbs_orders(),
+                                  this->nurbs_weights(),
+                                  src,
+                                  dst);
 }
 
 void CurvesGeometry::interpolate_to_evaluated(const GSpan src, GMutableSpan dst) const
@@ -818,30 +858,17 @@ void CurvesGeometry::interpolate_to_evaluated(const GSpan src, GMutableSpan dst)
     for (const int curve_index : curves_range) {
       const IndexRange points = this->points_for_curve(curve_index);
       const IndexRange evaluated_points = this->evaluated_points_for_curve(curve_index);
-      switch (types[curve_index]) {
-        case CURVE_TYPE_CATMULL_ROM:
-          curves::catmull_rom::interpolate_to_evaluated(src.slice(points),
-                                                        cyclic[curve_index],
-                                                        resolution[curve_index],
-                                                        dst.slice(evaluated_points));
-          continue;
-        case CURVE_TYPE_POLY:
-          dst.slice(evaluated_points).copy_from(src.slice(points));
-          continue;
-        case CURVE_TYPE_BEZIER:
-          curves::bezier::interpolate_to_evaluated(
-              src.slice(points),
-              this->runtime->bezier_evaluated_offsets.as_span().slice(points),
-              dst.slice(evaluated_points));
-          continue;
-        case CURVE_TYPE_NURBS:
-          curves::nurbs::interpolate_to_evaluated(this->runtime->nurbs_basis_cache[curve_index],
-                                                  nurbs_orders[curve_index],
-                                                  nurbs_weights.slice_safe(points),
-                                                  src.slice(points),
-                                                  dst.slice(evaluated_points));
-          continue;
-      }
+      evaluate_generic_data_for_curve(curve_index,
+                                      points,
+                                      types,
+                                      cyclic,
+                                      resolution,
+                                      this->runtime->bezier_evaluated_offsets,
+                                      this->runtime->nurbs_basis_cache,
+                                      nurbs_orders,
+                                      nurbs_weights,
+                                      src.slice(points),
+                                      dst.slice(evaluated_points));
     }
   });
 }
