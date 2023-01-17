@@ -1,3 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
 #ifndef BLENDER_PLY_IMPORT_MESH_HH
 #define BLENDER_PLY_IMPORT_MESH_HH
 

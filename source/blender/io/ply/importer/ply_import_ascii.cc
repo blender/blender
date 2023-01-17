@@ -1,11 +1,17 @@
-#include <algorithm>
-#include <fstream>
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
 
 #include "BLI_math_vector.h"
 
 #include "ply_functions.hh"
 #include "ply_import_ascii.hh"
 #include "ply_import_mesh.hh"
+
+#include <algorithm>
+#include <fstream>
 
 namespace blender::io::ply {
 
@@ -23,18 +29,19 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
   PlyData data;
   // Check if header contains alpha.
   std::pair<std::string, PlyDataTypes> alpha = {"alpha", PlyDataTypes::UCHAR};
-  bool hasAlpha = std::find(header->properties.begin(), header->properties.end(), alpha) !=
-                  header->properties.end();
+  bool hasAlpha = std::find(header->properties[0].begin(), header->properties[0].end(), alpha) !=
+                  header->properties[0].end();
 
   // Check if header contains colors.
   std::pair<std::string, PlyDataTypes> red = {"red", PlyDataTypes::UCHAR};
-  bool hasColor = std::find(header->properties.begin(), header->properties.end(), red) !=
-                  header->properties.end();
+  bool hasColor = std::find(header->properties[0].begin(), header->properties[0].end(), red) !=
+                  header->properties[0].end();
 
   // Check if header contains normals.
   std::pair<std::string, PlyDataTypes> normalx = {"nx", PlyDataTypes::FLOAT};
-  bool hasNormals = std::find(header->properties.begin(), header->properties.end(), normalx) !=
-                    header->properties.end();
+  bool hasNormals = std::find(header->properties[0].begin(),
+                              header->properties[0].end(),
+                              normalx) != header->properties[0].end();
 
   int3 vertexpos = get_vertex_pos(header);
   int alphapos;
@@ -86,7 +93,7 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
     // If normals
     if (hasNormals) {
       float3 normals3;
-      vertex3.x = std::stof(value_arr.at(normalpos.x));
+      normals3.x = std::stof(value_arr.at(normalpos.x));
       normals3.y = std::stof(value_arr.at(normalpos.y));
       normals3.z = std::stof(value_arr.at(normalpos.z));
 
@@ -141,8 +148,8 @@ int3 get_normal_pos(PlyHeader *header)
 int get_index(PlyHeader *header, std::string property, PlyDataTypes datatype)
 {
   std::pair<std::string, PlyDataTypes> pair = {property, datatype};
-  auto it = std::find(header->properties.begin(), header->properties.end(), pair);
-  return (int)(it - header->properties.begin());
+  auto it = std::find(header->properties[0].begin(), header->properties[0].end(), pair);
+  return (int)(it - header->properties[0].begin());
 }
 
 std::vector<std::string> explode(const std::string_view &str, const char &ch)

@@ -1,3 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
 #ifndef BLENDER_PLY_IMPORT_BINARY_HH
 #define BLENDER_PLY_IMPORT_BINARY_HH
 
@@ -23,6 +29,8 @@ Mesh *import_ply_binary(std::ifstream &file, const PlyHeader *header, Mesh *mesh
  * @return The PlyData datastructure that can be used for conversion to a Mesh.
  */
 PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header);
+
+void load_vertex_data(std::ifstream &file, const PlyHeader *header, PlyData *r_data, int index);
 
 void check_file_errors(const std::ifstream &file);
 
