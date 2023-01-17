@@ -565,9 +565,11 @@ class GreasePencilMaterialsPanel:
 
             if is_view3d and ma is not None and ma.grease_pencil is not None:
                 gpcolor = ma.grease_pencil
-                if gpcolor.stroke_style == 'SOLID':
-                    row = layout.row()
-                    row.prop(gpcolor, "color", text="Stroke Color")
+                col = layout.column(align=True)
+                if gpcolor.show_stroke and gpcolor.stroke_style == 'SOLID':
+                    col.prop(gpcolor, "color", text="Stroke Color")
+                if gpcolor.show_fill and gpcolor.fill_style == 'SOLID':
+                    col.prop(gpcolor, "fill_color", text="Fill Color")
 
         else:
             space = context.space_data
