@@ -29,15 +29,15 @@ namespace blender::io::ply {
 
 struct UV_vertex_key {
   float2 UV;
-  int Vertex_index;
+  int vertex_index;
   UV_vertex_key(float2 UV, int vertex_index)
   {
     this->UV = UV;
-    this->Vertex_index = vertex_index;
+    this->vertex_index = vertex_index;
   }
   bool operator==(const UV_vertex_key &r) const
   {
-    return (UV == r.UV && Vertex_index == r.Vertex_index);
+    return (UV == r.UV && vertex_index == r.vertex_index);
   }
 };
 
@@ -45,7 +45,7 @@ struct UV_vertex_hash {
   std::size_t operator()(const blender::io::ply::UV_vertex_key &key) const
   {
     return ((std::hash<float>()(key.UV.x) ^ (std::hash<float>()(key.UV.y) << 1)) >> 1) ^
-           (std::hash<int>()(key.Vertex_index) << 1);
+           (std::hash<int>()(key.vertex_index) << 1);
   }
 };
 
@@ -163,8 +163,8 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     float2 *uv_coordinates = new float2[vertex_map.size()];
 
     for (auto &key_value_pair : vertex_map) {
-      mesh_vertex_index_LUT[key_value_pair.second] = key_value_pair.first.Vertex_index;
-      ply_vertex_index_LUT[key_value_pair.first.Vertex_index] = key_value_pair.second;
+      mesh_vertex_index_LUT[key_value_pair.second] = key_value_pair.first.vertex_index;
+      ply_vertex_index_LUT[key_value_pair.first.vertex_index] = key_value_pair.second;
       uv_coordinates[key_value_pair.second] = key_value_pair.first.UV;
     }
 
