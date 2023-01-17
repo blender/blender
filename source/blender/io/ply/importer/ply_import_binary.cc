@@ -4,10 +4,13 @@
  * \ingroup ply
  */
 
-#include "ply_import_binary.hh"
 #include "BKE_customdata.h"
+
 #include "BLI_math_vector.h"
+
+#include "ply_import_binary.hh"
 #include "ply_import_mesh.hh"
+
 #include <fstream>
 
 namespace blender::io::ply {

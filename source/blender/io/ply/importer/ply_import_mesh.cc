@@ -4,11 +4,13 @@
  * \ingroup ply
  */
 
-#include "ply_import_mesh.hh"
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
+
 #include "BLI_math_vector.h"
+
+#include "ply_import_mesh.hh"
 
 namespace blender::io::ply {
 Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)

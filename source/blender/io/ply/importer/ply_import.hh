@@ -6,9 +6,10 @@
 
 #pragma once
 
+#include <cstdio>
+
 #include "IO_ply.h"
 #include "ply_data.hh"
-#include <cstdio>
 
 namespace blender::io::ply {
 

@@ -4,8 +4,9 @@
  * \ingroup ply
  */
 
-#include "ply_functions.hh"
 #include <iostream>
+
+#include "ply_functions.hh"
 
 namespace blender::io::ply {
 

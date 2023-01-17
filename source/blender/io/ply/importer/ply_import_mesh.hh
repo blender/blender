@@ -7,6 +7,7 @@
 #pragma once
 
 #include "DNA_mesh_types.h"
+
 #include "ply_data.hh"
 
 namespace blender::io::ply {

@@ -7,7 +7,9 @@
 #pragma once
 
 #include "BKE_context.h"
+
 #include "BLI_path_util.h"
+
 #include "IO_orientation.h"
 
 #ifdef __cplusplus
