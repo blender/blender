@@ -4,8 +4,7 @@
  * \ingroup ply
  */
 
-#ifndef BLENDER_PLY_FUNCTIONS_HH
-#define BLENDER_PLY_FUNCTIONS_HH
+#pragma once
 
 #include <fstream>
 #include <string>
@@ -25,5 +24,3 @@ enum line_ending { CR_LF, LF, CR, LF_CR, UNSET };
 line_ending safe_getline(std::ifstream &file, std::string &line);
 
 }  // namespace blender::io::ply
-
-#endif  // BLENDER_PLY_FUNCTIONS_HH

@@ -4,8 +4,7 @@
  * \ingroup ply
  */
 
-#ifndef BLENDER_PLY_IMPORT_BINARY_HH
-#define BLENDER_PLY_IMPORT_BINARY_HH
+#pragma once
 
 #include "BKE_mesh.h"
 #include "DNA_mesh_types.h"
@@ -75,5 +74,3 @@ template<typename T> T swap_bytes(T input)
 template<typename T> T read(std::ifstream &file, bool isBigEndian);
 
 }  // namespace blender::io::ply
-
-#endif  // BLENDER_PLY_IMPORT_BINARY_HH
