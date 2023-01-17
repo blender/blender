@@ -97,7 +97,8 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
         /* Normals are from the range -1 to 1, so this check is to see if normals are part of the
          * file. */
         if (exp.normal_first[0] != -2) {
-          const float(*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+          const float3 *vertex_normals = (float3 *)BKE_mesh_vertex_normals_ensure(mesh);
+          // const float(*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
           ASSERT_TRUE(vertex_normals != nullptr);
           float3 normal_first = vertex_normals != nullptr ? vertex_normals[0] : float3(0, 0, 0);
           EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);

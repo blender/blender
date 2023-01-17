@@ -77,10 +77,12 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
                      BKE_object_get_evaluated_mesh(&export_object_eval_) :
                      BKE_object_get_pre_modified_mesh(&export_object_eval_);
 
+    set_world_axes_transform(
+        &export_object_eval_, export_params.forward_axis, export_params.up_axis);
+
     // Vertices
     for (auto &&vertex : mesh->verts()) {
       float3 r_coords;
-      set_world_axes_transform(object, export_params.forward_axis, export_params.up_axis);
       copy_v3_v3(r_coords, vertex.co);
       mul_m4_v3(object->object_to_world, r_coords);
       mul_v3_fl(r_coords, export_params.global_scale);
@@ -89,7 +91,7 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
 
     // Normals
     if (export_params.export_normals) {
-      const float(*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+      const float3 *vertex_normals = (float3 *)BKE_mesh_vertex_normals_ensure(mesh);
       for (int i = 0; i < plyData.vertices.size(); i++) {
         plyData.vertex_normals.append(vertex_normals[i]);
       }
