@@ -339,13 +339,13 @@ static void curves_batch_cache_ensure_edit_points_data(const Curves &curves_id,
   switch (curves_id.selection_domain) {
     case ATTR_DOMAIN_POINT:
       for (const int point_i : selection.index_range()) {
-        const float point_selection = (selection[point_i] > 0.0f) ? 1.0f : 0.0f;
+        const float point_selection = selection[point_i] ? 1.0f : 0.0f;
         GPU_vertbuf_attr_set(cache.edit_points_data, color, point_i, &point_selection);
       }
       break;
     case ATTR_DOMAIN_CURVE:
       for (const int curve_i : curves.curves_range()) {
-        const float curve_selection = (selection[curve_i] > 0.0f) ? 1.0f : 0.0f;
+        const float curve_selection = selection[curve_i] ? 1.0f : 0.0f;
         const IndexRange points = curves.points_for_curve(curve_i);
         for (const int point_i : points) {
           GPU_vertbuf_attr_set(cache.edit_points_data, color, point_i, &curve_selection);
