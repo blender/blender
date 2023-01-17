@@ -39,19 +39,19 @@
 
 static CLG_LogRef LOG = {"bke.idprop"};
 
-/* Local size table. */
+/** Local size table, aligned with #eIDPropertyType. */
 static size_t idp_size_table[] = {
-    1, /*strings*/
-    sizeof(int),
-    sizeof(float),
-    sizeof(float[3]),  /* Vector type, deprecated. */
-    sizeof(float[16]), /* Matrix type, deprecated. */
-    0,                 /* Arrays don't have a fixed size. */
-    sizeof(ListBase),  /* Group type. */
-    sizeof(void *),
-    sizeof(double),
-    0,
-    sizeof(int8_t), /* Boolean type. */
+    1,                 /* #IDP_STRING */
+    sizeof(int),       /* #IDP_INT */
+    sizeof(float),     /* #IDP_FLOAT */
+    sizeof(float[3]),  /* DEPRECATED (was vector). */
+    sizeof(float[16]), /* DEPRECATED (was matrix). */
+    0,                 /* #IDP_ARRAY (no fixed size). */
+    sizeof(ListBase),  /* #IDP_GROUP */
+    sizeof(void *),    /* #IDP_ID */
+    sizeof(double),    /* #IDP_DOUBLE */
+    0,                 /* #IDP_IDPARRAY (no fixed size). */
+    sizeof(int8_t),    /* #IDP_BOOLEAN */
 };
 
 /* -------------------------------------------------------------------- */

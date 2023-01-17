@@ -28,12 +28,15 @@ typedef union IDPropertyTemplate {
   double d;
   struct {
     const char *str;
+    /** String length (including the null byte): `strlen(str) + 1`. */
     int len;
+    /** #eIDPropertySubType */
     char subtype;
   } string;
   struct ID *id;
   struct {
     int len;
+    /** #eIDPropertyType */
     char type;
   } array;
   struct {
