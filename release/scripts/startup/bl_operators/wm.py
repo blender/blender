@@ -1623,7 +1623,7 @@ class WM_OT_properties_edit(Operator):
 
         if prop_type_new == 'BOOL_ARRAY':
             prop_type_old = self.get_property_type(item, name_old)
-            if prop_type_old in {'INT', 'FLOAT', 'FLOAT_ARRAY', 'INT_ARRAY'}:
+            if prop_type_old in {'INT', 'FLOAT', 'FLOAT_ARRAY', 'INT_ARRAY', 'BOOL_ARRAY'}:
                 return self._convert_new_value_array(item[name_old], bool, self.array_length)
             else:
                 return [False] * self.array_length
