@@ -85,7 +85,7 @@ PlyData load_ply_ascii(std::ifstream &file, PlyHeader *header)
     // If normals
     if (hasNormals) {
       float3 normals3;
-      vertex3.x = std::stof(value_arr.at(normalpos.x));
+      normals3.x = std::stof(value_arr.at(normalpos.x));
       normals3.y = std::stof(value_arr.at(normalpos.y));
       normals3.z = std::stof(value_arr.at(normalpos.z));
 
