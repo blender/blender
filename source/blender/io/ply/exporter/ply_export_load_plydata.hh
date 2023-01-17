@@ -160,7 +160,7 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
 
     int *mesh_vertex_index_LUT = new int[vertex_map.size()];
     int *ply_vertex_index_LUT = new int[mesh->totvert];
-    float2 *uv_coordinates = new float2 [vertex_map.size()];
+    float2 *uv_coordinates = new float2[vertex_map.size()];
 
     for (auto &key_value_pair : vertex_map) {
       mesh_vertex_index_LUT[key_value_pair.second] = key_value_pair.first.Vertex_index;
@@ -209,9 +209,9 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
       }
     }
 
-    delete [] mesh_vertex_index_LUT;
-    delete [] ply_vertex_index_LUT;
-    delete [] uv_coordinates;
+    delete[] mesh_vertex_index_LUT;
+    delete[] ply_vertex_index_LUT;
+    delete[] uv_coordinates;
 
     vertex_offset = (int)plyData.vertices.size();
   }
