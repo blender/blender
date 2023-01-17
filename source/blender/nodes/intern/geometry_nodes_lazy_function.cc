@@ -2250,15 +2250,18 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       AttributeReferenceKey key;
       key.type = AttributeReferenceKeyType::InputField;
       key.index = relation.field_input;
-      r_attribute_reference_keys.add_new(key);
-      AttributeReferenceInfo info;
-      lf::OutputSocket &lf_field_socket = *const_cast<lf::OutputSocket *>(
-          mapping_->group_input_sockets[relation.field_input]);
-      info.lf_attribute_set_socket = &add_get_attributes_node(lf_field_socket);
+      const int key_index = r_attribute_reference_keys.index_of_or_add(key);
+      if (key_index >= r_attribute_reference_infos.size()) {
+        AttributeReferenceInfo info;
+        lf::OutputSocket &lf_field_socket = *const_cast<lf::OutputSocket *>(
+            mapping_->group_input_sockets[relation.field_input]);
+        info.lf_attribute_set_socket = &add_get_attributes_node(lf_field_socket);
+        r_attribute_reference_infos.append(info);
+      }
+      AttributeReferenceInfo &info = r_attribute_reference_infos[key_index];
       for (const bNode *bnode : btree_.group_input_nodes()) {
         info.initial_geometry_sockets.append(&bnode->output_socket(relation.geometry_input));
       }
-      r_attribute_reference_infos.append(std::move(info));
     }
     /* Find group outputs that attributes need to be propagated to. */
     for (const aal::PropagateRelation &relation : tree_relations.propagate_relations) {
