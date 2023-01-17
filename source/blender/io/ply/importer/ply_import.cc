@@ -115,7 +115,7 @@ void importer_main(Main *bmain,
     safe_getline(infile, line);
     if (header.header_size == 0 && line != "ply") {
       fprintf(stderr, "PLY Importer: failed to read file. Invalid PLY header.\n");
-      BKE_report(op->reports, RPT_ERROR, "PLY Import: Invalid PLY header.");
+      BKE_report(op->reports, RPT_ERROR, "PLY Importer: Invalid PLY header.");
       return;
     }
     header.header_size++;
@@ -168,7 +168,7 @@ void importer_main(Main *bmain,
              infile.eof()) {
       /* A value was found before we broke out of the loop. No end_header */
       fprintf(stderr, "PLY Importer: failed to read file. No end_header.\n");
-      BKE_report(op->reports, RPT_ERROR, "PLY Import: No end_header");
+      BKE_report(op->reports, RPT_ERROR, "PLY Importer: No end_header");
       return;
     }
   }
@@ -192,7 +192,7 @@ void importer_main(Main *bmain,
   }
   catch (std::exception &e) {
     fprintf(stderr, "PLY Importer: failed to read file. %s.\n", e.what());
-    BKE_report(op->reports, RPT_ERROR, "Ply Importer: failed to parse file.");
+    BKE_report(op->reports, RPT_ERROR, "PLY Importer: failed to parse file.");
     return;
   }
 
