@@ -2161,6 +2161,7 @@ int uiLayoutGetAlignment(uiLayout *layout);
 bool uiLayoutGetFixedSize(uiLayout *layout);
 bool uiLayoutGetKeepAspect(uiLayout *layout);
 int uiLayoutGetWidth(uiLayout *layout);
+int uiLayoutGetRootHeight(uiLayout *layout);
 float uiLayoutGetScaleX(uiLayout *layout);
 float uiLayoutGetScaleY(uiLayout *layout);
 float uiLayoutGetUnitsX(uiLayout *layout);
@@ -2598,6 +2599,9 @@ void uiTemplateAssetView(struct uiLayout *layout,
                          struct PointerRNA *r_activate_op_properties,
                          const char *drag_opname,
                          struct PointerRNA *r_drag_op_properties);
+void uiTemplateAssetShelf(uiLayout *layout,
+                          const struct bContext *C,
+                          const struct AssetFilterSettings *filter_settings);
 
 /**
  * \return: A RNA pointer for the operator properties.

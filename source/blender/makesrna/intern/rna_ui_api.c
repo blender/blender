@@ -714,6 +714,15 @@ static const EnumPropertyItem *rna_uiTemplateAssetView_filter_id_types_itemf(
   return items;
 }
 
+static void rna_uiTemplateAssetShelf(uiLayout *layout, bContext *C, int filter_id_types)
+{
+  AssetFilterSettings filter_settings = {
+      .id_types = filter_id_types ? filter_id_types : FILTER_ID_ALL,
+  };
+
+  uiTemplateAssetShelf(layout, C, &filter_settings);
+}
+
 static uiLayout *rna_uiLayoutRowWithHeading(
     uiLayout *layout, bool align, const char *heading, const char *heading_ctxt, bool translate)
 {
@@ -1958,6 +1967,16 @@ void RNA_api_ui_layout(StructRNA *srna)
       "Operator properties to fill in for the custom drag operator passed to the template");
   RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
   RNA_def_function_output(func, parm);
+
+  func = RNA_def_function(srna, "template_asset_shelf", "rna_uiTemplateAssetShelf");
+  RNA_def_function_ui_description(func,
+                                  "Item. A list of assets in a horizontally scrollable layout. "
+                                  "Meant to be placed in a 'ASSET_SHELF' region");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  parm = RNA_def_property(func, "filter_id_types", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(parm, DummyRNA_NULL_items);
+  RNA_def_property_enum_funcs(parm, NULL, NULL, "rna_uiTemplateAssetView_filter_id_types_itemf");
+  RNA_def_property_flag(parm, PROP_ENUM_FLAG);
 }
 
 #endif

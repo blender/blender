@@ -122,6 +122,8 @@ void ED_region_header(const struct bContext *C, struct ARegion *region);
 void ED_region_header_layout(const struct bContext *C, struct ARegion *region);
 void ED_region_header_draw(const struct bContext *C, struct ARegion *region);
 
+void ED_region_asset_shelf_listen(const struct wmRegionListenerParams *params);
+
 void ED_region_cursor_set(struct wmWindow *win, struct ScrArea *area, struct ARegion *region);
 /**
  * Exported to all editors, uses fading default.

@@ -3926,10 +3926,18 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
             if (new_asset_shelf != nullptr) {
               new_asset_shelf->alignment = RGN_ALIGN_BOTTOM;
               new_asset_shelf->flag |= RGN_FLAG_HIDDEN;
+              new_asset_shelf->flag = RGN_FLAG_HIDDEN | RGN_FLAG_DYNAMIC_SIZE;
             }
           }
         }
       }
+    }
+
+    /* Should we really use the "All" library by default? Consider loading time and memory usage.
+     */
+    LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+      workspace->asset_library_ref.type = ASSET_LIBRARY_ALL;
+      workspace->asset_library_ref.custom_library_index = -1;
     }
   }
 }

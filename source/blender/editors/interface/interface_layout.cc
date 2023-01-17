@@ -4088,7 +4088,7 @@ static void ui_litem_layout_box(uiLayout *litem)
   const uiStyle *style = litem->root->style;
 
   int boxspace = style->boxspace;
-  if (litem->root->type == UI_LAYOUT_HEADER) {
+  if (litem->root->type == UI_LAYOUT_HEADER && false) {
     boxspace = 0;
   }
 
@@ -5115,6 +5115,11 @@ int uiLayoutGetAlignment(uiLayout *layout)
 int uiLayoutGetWidth(uiLayout *layout)
 {
   return layout->w;
+}
+
+int uiLayoutGetRootHeight(uiLayout *layout)
+{
+  return layout->root->layout->h;
 }
 
 float uiLayoutGetScaleX(uiLayout *layout)

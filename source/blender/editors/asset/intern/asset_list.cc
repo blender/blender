@@ -116,7 +116,7 @@ class AssetList : NonCopyable {
   bool isLoaded() const;
   asset_system::AssetLibrary *asset_library() const;
   void iterate(AssetListIterFn fn) const;
-  bool listen(const wmNotifier &notifier) const;
+  static bool listen(const wmNotifier &notifier);
   int size() const;
   void tagMainDataDirty() const;
   void remapID(ID *id_old, ID *id_new) const;
@@ -249,7 +249,7 @@ void AssetList::clear(bContext *C)
 /**
  * \return True if the asset-list needs a UI redraw.
  */
-bool AssetList::listen(const wmNotifier &notifier) const
+bool AssetList::listen(const wmNotifier &notifier)
 {
   switch (notifier.category) {
     case NC_ID: {
@@ -481,14 +481,9 @@ ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)
   return filelist_geticon_image_ex(asset_handle->file_data);
 }
 
-bool ED_assetlist_listen(const AssetLibraryReference *library_reference,
-                         const wmNotifier *notifier)
+bool ED_assetlist_listen(const wmNotifier *notifier)
 {
-  AssetList *list = AssetListStorage::lookup_list(*library_reference);
-  if (list) {
-    return list->listen(*notifier);
-  }
-  return false;
+  return AssetList::listen(*notifier);
 }
 
 int ED_assetlist_size(const AssetLibraryReference *library_reference)

@@ -33,6 +33,7 @@
 #include "WM_toolsystem.h"
 #include "WM_types.h"
 
+#include "ED_asset.h"
 #include "ED_buttons.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
@@ -3311,12 +3312,15 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
   bool region_layout_based = region->flag & RGN_FLAG_DYNAMIC_SIZE;
 
   /* Height of buttons and scaling needed to achieve it. */
-  const int buttony = min_ii(UI_UNIT_Y, region->winy - 2 * UI_DPI_FAC);
+  const bool is_fixed_header_height = region->type->prefsizey == HEADERY;
+  const int buttony = is_fixed_header_height ? UI_UNIT_Y :
+                                               region->winy - 2 * UI_DPI_FAC - UI_HEADER_OFFSET;
   const float buttony_scale = buttony / (float)UI_UNIT_Y;
 
   /* Vertically center buttons. */
   int xco = UI_HEADER_OFFSET;
-  int yco = buttony + (region->winy - buttony) / 2;
+  int yco = is_fixed_header_height ? buttony + (region->winy - buttony) / 2 :
+                                     buttony + UI_HEADER_OFFSET / 2;
   int maxco = xco;
 
   /* XXX workaround for 1 px alignment issue. Not sure what causes it...
@@ -3420,6 +3424,13 @@ void ED_region_header(const bContext *C, ARegion *region)
 void ED_region_header_init(ARegion *region)
 {
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_HEADER, region->winx, region->winy);
+}
+
+void ED_region_asset_shelf_listen(const wmRegionListenerParams *params)
+{
+  if (ED_assetlist_listen(params->notifier)) {
+    ED_region_tag_redraw_no_rebuild(params->region);
+  }
 }
 
 int ED_area_headersize(void)

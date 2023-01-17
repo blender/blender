@@ -60,6 +60,7 @@ set(SRC
   interface_region_tooltip.cc
   interface_regions.cc
   interface_style.cc
+  interface_template_asset_shelf.cc
   interface_template_asset_view.cc
   interface_template_attribute_search.cc
   interface_template_list.cc

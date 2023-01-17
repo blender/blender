@@ -20,7 +20,7 @@
 
 #define _DNA_DEFAULT_AssetLibraryReference \
   { \
-    .type = ASSET_LIBRARY_LOCAL, \
+    .type = ASSET_LIBRARY_ALL, \
     /* Not needed really (should be ignored for anything but #ASSET_LIBRARY_CUSTOM), but helps debugging. */ \
     .custom_library_index = -1, \
   }

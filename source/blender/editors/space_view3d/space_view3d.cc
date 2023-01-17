@@ -2148,10 +2148,11 @@ void ED_spacetype_view3d()
   /* regions: asset shelf */
   art = MEM_cnew<ARegionType>("spacetype view3d asset shelf region");
   art->regionid = RGN_TYPE_ASSET_SHELF;
-  art->prefsizey = HEADERY * 4;
+  art->prefsizey = HEADERY * 3.5f;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
+  art->listener = ED_region_asset_shelf_listen;
   art->init = view3d_header_region_init;
-  art->draw = view3d_header_region_draw;
+  art->draw = ED_region_header;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: hud */
