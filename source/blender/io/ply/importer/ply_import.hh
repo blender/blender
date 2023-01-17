@@ -19,12 +19,13 @@ enum PlyDataTypes from_string(const std::string &input);
 void splitstr(std::string str, std::vector<std::string> &words, const std::string &deli);
 
 /* Main import function used from within Blender. */
-void importer_main(bContext *C, const PLYImportParams &import_params);
+void importer_main(bContext *C, const PLYImportParams &import_params, wmOperator *op);
 
 /* Used from tests, where full bContext does not exist. */
 void importer_main(Main *bmain,
                    Scene *scene,
                    ViewLayer *view_layer,
-                   const PLYImportParams &import_params);
+                   const PLYImportParams &import_params,
+                   wmOperator *op);
 
 }  // namespace blender::io::ply

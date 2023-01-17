@@ -23,6 +23,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "BKE_report.h"
 #include "intern/ply_data.hh"
 #include "ply_functions.hh"
 #include "ply_import.hh"
@@ -83,18 +84,19 @@ enum PlyDataTypes from_string(const std::string &input)
   return PlyDataTypes::FLOAT;
 }
 
-void importer_main(bContext *C, const PLYImportParams &import_params)
+void importer_main(bContext *C, const PLYImportParams &import_params, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  importer_main(bmain, scene, view_layer, import_params);
+  importer_main(bmain, scene, view_layer, import_params, op);
 }
 
 void importer_main(Main *bmain,
                    Scene *scene,
                    ViewLayer *view_layer,
-                   const PLYImportParams &import_params)
+                   const PLYImportParams &import_params,
+                   wmOperator *op)
 {
 
   FILE *file = BLI_fopen(import_params.filepath, "rb");
@@ -113,6 +115,7 @@ void importer_main(Main *bmain,
     safe_getline(infile, line);
     if (header.header_size == 0 && line != "ply") {
       fprintf(stderr, "PLY Importer: failed to read file. Invalid PLY header.\n");
+      BKE_report(op->reports, RPT_ERROR, "PLY Importer: Invalid PLY header.");
       return;
     }
     header.header_size++;
@@ -165,6 +168,7 @@ void importer_main(Main *bmain,
              infile.eof()) {
       /* A value was found before we broke out of the loop. No end_header */
       fprintf(stderr, "PLY Importer: failed to read file. No end_header.\n");
+      BKE_report(op->reports, RPT_ERROR, "PLY Importer: No end_header");
       return;
     }
   }
@@ -188,6 +192,7 @@ void importer_main(Main *bmain,
   }
   catch (std::exception &e) {
     fprintf(stderr, "PLY Importer: failed to read file. %s.\n", e.what());
+    BKE_report(op->reports, RPT_ERROR, "PLY Importer: failed to parse file.");
     return;
   }
 
