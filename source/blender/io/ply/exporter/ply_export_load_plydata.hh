@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "BLI_math.h"
+
 #include "BKE_context.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
@@ -16,6 +18,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
+
+#include "DNA_layer_types.h"
 
 #include "IO_ply.h"
 
@@ -117,7 +121,11 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
       continue;
     }
 
-    Mesh *mesh = static_cast<Mesh *>(object->data);
+    Object *obj_eval = DEG_get_evaluated_object(depsgraph, object);
+    Object export_object_eval_ = dna::shallow_copy(*obj_eval);
+    Mesh *mesh = export_params.apply_modifiers ?
+                     BKE_object_get_evaluated_mesh(&export_object_eval_) :
+                     BKE_object_get_pre_modified_mesh(&export_object_eval_);
 
     const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
         CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
@@ -184,6 +192,15 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
       const float4 *colors = (float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
       for (int i = 0; i < vertex_map.size(); i++) {
         plyData.vertex_colors.append(colors[vertex_indices[i]]);
+      }
+    }
+
+    // Edges
+    for (auto &&edge : mesh->edges()) {
+      if ((edge.flag & ME_LOOSEEDGE) == ME_LOOSEEDGE) {
+        std::pair<uint32_t, uint32_t> edge_pair = std::make_pair(uint32_t(edge.v1),
+                                                                 uint32_t(edge.v2));
+        plyData.edges.append(edge_pair);
       }
     }
 

@@ -71,6 +71,9 @@ void exporter_main(Main *bmain,
   /* Generate and write faces. */
   write_faces(buffer, plyData);
 
+  /* Generate and write edges. */
+  write_edges(buffer, plyData);
+
   /* Clean up. */
   buffer->close_file();
 }
