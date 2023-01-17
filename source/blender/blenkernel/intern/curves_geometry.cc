@@ -263,7 +263,7 @@ void CurvesGeometry::fill_curve_types(const IndexMask selection, const CurveType
   }
   if (std::optional<int8_t> single_type = this->curve_types().get_if_single()) {
     if (single_type == type) {
-      /* No need for an array if the types are already a single with the correct type. */
+      this->fill_curve_types(type);
       return;
     }
   }
