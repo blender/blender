@@ -39,10 +39,6 @@ typedef union IDPropertyTemplate {
     /** #eIDPropertyType */
     char type;
   } array;
-  struct {
-    int matvec_size;
-    const float *example;
-  } matrix_or_vector;
 } IDPropertyTemplate;
 
 /* ----------- Property Array Type ---------- */

@@ -127,9 +127,8 @@ typedef struct IDProperty {
   /** Size matches #MAX_IDPROP_NAME. */
   char name[64];
 
-  /* saved is used to indicate if this struct has been saved yet.
-   * seemed like a good idea as a '_pad' var was needed anyway :) */
-  int saved;
+  char _pad0[4];
+
   /** NOTE: alignment for 64 bits. */
   IDPropertyData data;
 
