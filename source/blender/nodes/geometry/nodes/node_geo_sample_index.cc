@@ -323,7 +323,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     const GVArray &data = evaluator.get_evaluated(0);
     BUFFER_FOR_CPP_TYPE_VALUE(cpp_type, buffer);
     data.get_to_uninitialized(index, buffer);
-    output_field = fn::make_constant_field(cpp_type, cpp_type.default_value());
+    output_field = fn::make_constant_field(cpp_type, buffer);
     cpp_type.destruct(buffer);
   }
   else {
