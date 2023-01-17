@@ -49,20 +49,30 @@ class PlyExportTest : public BlendfileLoadingBaseTest {
   }
 };
 
-std::unique_ptr<PlyData> load_cube()
+std::unique_ptr<PlyData> load_cube(PLYExportParams &params)
 {
   std::unique_ptr<PlyData> plyData = std::make_unique<PlyData>();
   plyData->vertices = {{1.122082, 1.122082, 1.122082},
-                       {-1.122082, 1.122082, 1.122082},
-                       {-1.122082, -1.122082, 1.122082},
+                       {1.122082, 1.122082, -1.122082},
                        {1.122082, -1.122082, 1.122082},
                        {1.122082, -1.122082, -1.122082},
-                       {-1.122082, -1.122082, -1.122082},
+                       {-1.122082, 1.122082, 1.122082},
                        {-1.122082, 1.122082, -1.122082},
-                       {1.122082, 1.122082, -1.122082}};
+                       {-1.122082, -1.122082, 1.122082},
+                       {-1.122082, -1.122082, -1.122082}};
 
   plyData->faces = {
-      {0, 1, 2, 3}, {4, 3, 2, 5}, {5, 2, 1, 6}, {6, 7, 4, 5}, {7, 0, 3, 4}, {6, 1, 0, 7}};
+      {0, 2, 6, 4}, {3, 7, 6, 2}, {7, 5, 4, 6}, {5, 7, 3, 1}, {1, 3, 2, 0}, {5, 1, 0, 4}};
+
+  if (params.export_normals)
+    plyData->vertex_normals = {{-0.5773503, -0.5773503, -0.5773503},
+                               {-0.5773503, -0.5773503, 0.5773503},
+                               {-0.5773503, 0.5773503, -0.5773503},
+                               {-0.5773503, 0.5773503, 0.5773503},
+                               {0.5773503, -0.5773503, -0.5773503},
+                               {0.5773503, -0.5773503, 0.5773503},
+                               {0.5773503, 0.5773503, -0.5773503},
+                               {0.5773503, 0.5773503, 0.5773503}};
 
   return plyData;
 }
@@ -112,9 +122,11 @@ TEST_F(PlyExportTest, WriteHeaderAscii)
   std::string filePath = blender::tests::flags_test_release_dir() + "/" + temp_file_path;
   PLYExportParams _params;
   _params.ascii_format = true;
+  _params.export_normals = false;
+  _params.export_colors = false;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
-  std::unique_ptr<PlyData> plyData = load_cube();
+  std::unique_ptr<PlyData> plyData = load_cube(_params);
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferAscii>(_params.filepath);
 
@@ -148,9 +160,11 @@ TEST_F(PlyExportTest, WriteHeaderBinary)
   std::string filePath = blender::tests::flags_test_release_dir() + "/" + temp_file_path;
   PLYExportParams _params;
   _params.ascii_format = false;
+  _params.export_normals = false;
+  _params.export_colors = false;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
-  std::unique_ptr<PlyData> plyData = load_cube();
+  std::unique_ptr<PlyData> plyData = load_cube(_params);
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferBinary>(_params.filepath);
 
@@ -184,9 +198,11 @@ TEST_F(PlyExportTest, WriteVerticesAscii)
   std::string filePath = blender::tests::flags_test_release_dir() + "/" + temp_file_path;
   PLYExportParams _params;
   _params.ascii_format = true;
+  _params.export_normals = false;
+  _params.export_colors = false;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
-  std::unique_ptr<PlyData> plyData = load_cube();
+  std::unique_ptr<PlyData> plyData = load_cube(_params);
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferAscii>(_params.filepath);
 
@@ -198,13 +214,13 @@ TEST_F(PlyExportTest, WriteVerticesAscii)
 
   std::string expected =
       "1.122082 1.122082 1.122082\n"
-      "-1.122082 1.122082 1.122082\n"
-      "-1.122082 -1.122082 1.122082\n"
+      "1.122082 1.122082 -1.122082\n"
       "1.122082 -1.122082 1.122082\n"
       "1.122082 -1.122082 -1.122082\n"
-      "-1.122082 -1.122082 -1.122082\n"
+      "-1.122082 1.122082 1.122082\n"
       "-1.122082 1.122082 -1.122082\n"
-      "1.122082 1.122082 -1.122082\n";
+      "-1.122082 -1.122082 1.122082\n"
+      "-1.122082 -1.122082 -1.122082\n";
 
   ASSERT_STREQ(result.c_str(), expected.c_str());
 }
@@ -214,9 +230,11 @@ TEST_F(PlyExportTest, WriteVerticesBinary)
   std::string filePath = blender::tests::flags_test_release_dir() + "/" + temp_file_path;
   PLYExportParams _params;
   _params.ascii_format = false;
+  _params.export_normals = false;
+  _params.export_colors = false;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
-  std::unique_ptr<PlyData> plyData = load_cube();
+  std::unique_ptr<PlyData> plyData = load_cube(_params);
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferBinary>(_params.filepath);
 
@@ -229,18 +247,18 @@ TEST_F(PlyExportTest, WriteVerticesBinary)
   std::vector<char> expected(
       {(char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F,
        (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62, (char)0xA0,
-       (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62,
-       (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF,
+       (char)0x8F, (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62,
+       (char)0xA0, (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F,
        (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F,
        (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62, (char)0xA0,
-       (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62,
-       (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF,
-       (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F,
-       (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0,
        (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF, (char)0x62,
-       (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF,
+       (char)0xA0, (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F,
        (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F,
-       (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF});
+       (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62, (char)0xA0,
+       (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF, (char)0x62,
+       (char)0xA0, (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F,
+       (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F,
+       (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF});
 
   ASSERT_EQ(result.size(), expected.size());
 
@@ -254,9 +272,11 @@ TEST_F(PlyExportTest, WriteFacesAscii)
   std::string filePath = blender::tests::flags_test_release_dir() + "/" + temp_file_path;
   PLYExportParams _params;
   _params.ascii_format = true;
+  _params.export_normals = false;
+  _params.export_colors = false;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
-  std::unique_ptr<PlyData> plyData = load_cube();
+  std::unique_ptr<PlyData> plyData = load_cube(_params);
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferAscii>(_params.filepath);
 
@@ -269,12 +289,12 @@ TEST_F(PlyExportTest, WriteFacesAscii)
   StringRef version = BKE_blender_version_string();
 
   std::string expected =
-      "4 0 1 2 3\n"
-      "4 4 3 2 5\n"
-      "4 5 2 1 6\n"
-      "4 6 7 4 5\n"
-      "4 7 0 3 4\n"
-      "4 6 1 0 7\n";
+      "4 0 2 6 4\n"
+      "4 3 7 6 2\n"
+      "4 7 5 4 6\n"
+      "4 5 7 3 1\n"
+      "4 1 3 2 0\n"
+      "4 5 1 0 4\n";
 
   ASSERT_STREQ(result.c_str(), expected.c_str());
 }
@@ -284,9 +304,11 @@ TEST_F(PlyExportTest, WriteFacesBinary)
   std::string filePath = blender::tests::flags_test_release_dir() + "/" + temp_file_path;
   PLYExportParams _params;
   _params.ascii_format = false;
+  _params.export_normals = false;
+  _params.export_colors = false;
   BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
 
-  std::unique_ptr<PlyData> plyData = load_cube();
+  std::unique_ptr<PlyData> plyData = load_cube(_params);
 
   std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferBinary>(_params.filepath);
 
@@ -297,21 +319,109 @@ TEST_F(PlyExportTest, WriteFacesBinary)
   std::vector<char> result = read_temp_file_in_vectorchar(filePath);
 
   std::vector<char> expected(
-      {(char)0x04, (char)0x00, (char)0x00, (char)0x00, (char)0x00, (char)0x01, (char)0x00,
-       (char)0x00, (char)0x00, (char)0x02, (char)0x00, (char)0x00, (char)0x00, (char)0x03,
-       (char)0x00, (char)0x00, (char)0x00, (char)0x04, (char)0x04, (char)0x00, (char)0x00,
-       (char)0x00, (char)0x03, (char)0x00, (char)0x00, (char)0x00, (char)0x02, (char)0x00,
-       (char)0x00, (char)0x00, (char)0x05, (char)0x00, (char)0x00, (char)0x00, (char)0x04,
-       (char)0x05, (char)0x00, (char)0x00, (char)0x00, (char)0x02, (char)0x00, (char)0x00,
-       (char)0x00, (char)0x01, (char)0x00, (char)0x00, (char)0x00, (char)0x06, (char)0x00,
-       (char)0x00, (char)0x00, (char)0x04, (char)0x06, (char)0x00, (char)0x00, (char)0x00,
-       (char)0x07, (char)0x00, (char)0x00, (char)0x00, (char)0x04, (char)0x00, (char)0x00,
-       (char)0x00, (char)0x05, (char)0x00, (char)0x00, (char)0x00, (char)0x04, (char)0x07,
+      {(char)0x04, (char)0x00, (char)0x00, (char)0x00, (char)0x00, (char)0x02, (char)0x00,
+       (char)0x00, (char)0x00, (char)0x06, (char)0x00, (char)0x00, (char)0x00, (char)0x04,
+       (char)0x00, (char)0x00, (char)0x00, (char)0x04, (char)0x03, (char)0x00, (char)0x00,
+       (char)0x00, (char)0x07, (char)0x00, (char)0x00, (char)0x00, (char)0x06, (char)0x00,
+       (char)0x00, (char)0x00, (char)0x02, (char)0x00, (char)0x00, (char)0x00, (char)0x04,
+       (char)0x07, (char)0x00, (char)0x00, (char)0x00, (char)0x05, (char)0x00, (char)0x00,
+       (char)0x00, (char)0x04, (char)0x00, (char)0x00, (char)0x00, (char)0x06, (char)0x00,
+       (char)0x00, (char)0x00, (char)0x04, (char)0x05, (char)0x00, (char)0x00, (char)0x00,
+       (char)0x07, (char)0x00, (char)0x00, (char)0x00, (char)0x03, (char)0x00, (char)0x00,
+       (char)0x00, (char)0x01, (char)0x00, (char)0x00, (char)0x00, (char)0x04, (char)0x01,
+       (char)0x00, (char)0x00, (char)0x00, (char)0x03, (char)0x00, (char)0x00, (char)0x00,
+       (char)0x02, (char)0x00, (char)0x00, (char)0x00, (char)0x00, (char)0x00, (char)0x00,
+       (char)0x00, (char)0x04, (char)0x05, (char)0x00, (char)0x00, (char)0x00, (char)0x01,
        (char)0x00, (char)0x00, (char)0x00, (char)0x00, (char)0x00, (char)0x00, (char)0x00,
-       (char)0x03, (char)0x00, (char)0x00, (char)0x00, (char)0x04, (char)0x00, (char)0x00,
-       (char)0x00, (char)0x04, (char)0x06, (char)0x00, (char)0x00, (char)0x00, (char)0x01,
-       (char)0x00, (char)0x00, (char)0x00, (char)0x00, (char)0x00, (char)0x00, (char)0x00,
-       (char)0x07, (char)0x00, (char)0x00, (char)0x00});
+       (char)0x04, (char)0x00, (char)0x00, (char)0x00});
+
+  ASSERT_EQ(result.size(), expected.size());
+
+  for (int i = 0; i < result.size(); i++) {
+    ASSERT_EQ(result[i], expected[i]);
+  }
+}
+
+TEST_F(PlyExportTest, WriteVertexNormalsAscii)
+{
+  std::string filePath = blender::tests::flags_test_release_dir() + "/" + temp_file_path;
+  PLYExportParams _params;
+  _params.ascii_format = true;
+  _params.export_normals = true;
+  _params.export_colors = false;
+  BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
+
+  std::unique_ptr<PlyData> plyData = load_cube(_params);
+
+  std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferAscii>(_params.filepath);
+
+  write_vertices(buffer, plyData);
+
+  buffer->close_file();
+
+  std::string result = read_temp_file_in_string(filePath);
+
+  std::string expected =
+      "1.122082 1.122082 1.122082 -0.5773503 -0.5773503 -0.5773503\n"
+      "1.122082 1.122082 -1.122082 -0.5773503 -0.5773503 0.5773503\n"
+      "1.122082 -1.122082 1.122082 -0.5773503 0.5773503 -0.5773503\n"
+      "1.122082 -1.122082 -1.122082 -0.5773503 0.5773503 0.5773503\n"
+      "-1.122082 1.122082 1.122082 0.5773503 -0.5773503 -0.5773503\n"
+      "-1.122082 1.122082 -1.122082 0.5773503 -0.5773503 0.5773503\n"
+      "-1.122082 -1.122082 1.122082 0.5773503 0.5773503 -0.5773503\n"
+      "-1.122082 -1.122082 -1.122082 0.5773503 0.5773503 0.5773503\n";
+
+  ASSERT_STREQ(result.c_str(), expected.c_str());
+}
+
+TEST_F(PlyExportTest, WriteVertexNormalsBinary)
+{
+  std::string filePath = blender::tests::flags_test_release_dir() + "/" + temp_file_path;
+  PLYExportParams _params;
+  _params.ascii_format = false;
+  _params.export_normals = true;
+  _params.export_colors = false;
+  BLI_strncpy(_params.filepath, filePath.c_str(), 1024);
+
+  std::unique_ptr<PlyData> plyData = load_cube(_params);
+
+  std::unique_ptr<FileBuffer> buffer = std::make_unique<FileBufferBinary>(_params.filepath);
+
+  write_vertices(buffer, plyData);
+
+  buffer->close_file();
+
+  std::vector<char> result = read_temp_file_in_vectorchar(filePath);
+
+  std::vector<char> expected(
+      {(char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F,
+       (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x3B, (char)0xCD,
+       (char)0x13, (char)0xBF, (char)0x3B, (char)0xCD, (char)0x13, (char)0xBF, (char)0x3B,
+       (char)0xCD, (char)0x13, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F,
+       (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F,
+       (char)0xBF, (char)0x3B, (char)0xCD, (char)0x13, (char)0xBF, (char)0x3B, (char)0xCD,
+       (char)0x13, (char)0xBF, (char)0x3B, (char)0xCD, (char)0x13, (char)0x3F, (char)0x62,
+       (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF,
+       (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x3B, (char)0xCD, (char)0x13,
+       (char)0xBF, (char)0x3B, (char)0xCD, (char)0x13, (char)0x3F, (char)0x3B, (char)0xCD,
+       (char)0x13, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62,
+       (char)0xA0, (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF,
+       (char)0x3B, (char)0xCD, (char)0x13, (char)0xBF, (char)0x3B, (char)0xCD, (char)0x13,
+       (char)0x3F, (char)0x3B, (char)0xCD, (char)0x13, (char)0x3F, (char)0x62, (char)0xA0,
+       (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0x3F, (char)0x62,
+       (char)0xA0, (char)0x8F, (char)0x3F, (char)0x3B, (char)0xCD, (char)0x13, (char)0x3F,
+       (char)0x3B, (char)0xCD, (char)0x13, (char)0xBF, (char)0x3B, (char)0xCD, (char)0x13,
+       (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0,
+       (char)0x8F, (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF, (char)0x3B,
+       (char)0xCD, (char)0x13, (char)0x3F, (char)0x3B, (char)0xCD, (char)0x13, (char)0xBF,
+       (char)0x3B, (char)0xCD, (char)0x13, (char)0x3F, (char)0x62, (char)0xA0, (char)0x8F,
+       (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0,
+       (char)0x8F, (char)0x3F, (char)0x3B, (char)0xCD, (char)0x13, (char)0x3F, (char)0x3B,
+       (char)0xCD, (char)0x13, (char)0x3F, (char)0x3B, (char)0xCD, (char)0x13, (char)0xBF,
+       (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F,
+       (char)0xBF, (char)0x62, (char)0xA0, (char)0x8F, (char)0xBF, (char)0x3B, (char)0xCD,
+       (char)0x13, (char)0x3F, (char)0x3B, (char)0xCD, (char)0x13, (char)0x3F, (char)0x3B,
+       (char)0xCD, (char)0x13, (char)0x3F});
 
   ASSERT_EQ(result.size(), expected.size());
 

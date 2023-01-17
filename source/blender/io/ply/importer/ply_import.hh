@@ -14,9 +14,9 @@ namespace blender::io::ply {
 
 void ply_import_report_error(FILE *file);
 
-enum PlyDataTypes from_string(const std::string &input);
+enum PlyDataTypes from_string(const StringRef &input);
 
-void splitstr(std::string str, Vector<std::string> &words, const std::string &deli);
+void splitstr(std::string str, Vector<std::string> &words, const StringRef &deli);
 
 /* Main import function used from within Blender. */
 void importer_main(bContext *C, const PLYImportParams &import_params);
