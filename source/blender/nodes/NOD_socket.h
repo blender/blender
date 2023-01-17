@@ -36,3 +36,13 @@ void register_standard_node_socket_types(void);
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+
+namespace blender::nodes {
+
+void update_node_declaration_and_sockets(bNodeTree &ntree, bNode &node);
+
+}  // namespace blender::nodes
+
+#endif

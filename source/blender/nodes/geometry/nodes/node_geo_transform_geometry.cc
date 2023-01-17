@@ -55,13 +55,15 @@ static void transform_positions(MutableSpan<float3> positions, const float4x4 &m
 static void translate_mesh(Mesh &mesh, const float3 translation)
 {
   if (!math::is_zero(translation)) {
-    BKE_mesh_translate(&mesh, translation, false);
+    translate_positions(mesh.vert_positions_for_write(), translation);
+    BKE_mesh_tag_coords_changed_uniformly(&mesh);
   }
 }
 
 static void transform_mesh(Mesh &mesh, const float4x4 &transform)
 {
-  BKE_mesh_transform(&mesh, transform.values, false);
+  transform_positions(mesh.vert_positions_for_write(), transform);
+  BKE_mesh_tag_coords_changed(&mesh);
 }
 
 static void translate_pointcloud(PointCloud &pointcloud, const float3 translation)
@@ -162,16 +164,17 @@ static void translate_volume(GeoNodeExecParams &params,
 static void transform_curve_edit_hints(bke::CurvesEditHints &edit_hints, const float4x4 &transform)
 {
   if (edit_hints.positions.has_value()) {
-    for (float3 &pos : *edit_hints.positions) {
-      pos = transform * pos;
-    }
+    transform_positions(*edit_hints.positions, transform);
   }
   float3x3 deform_mat;
   copy_m3_m4(deform_mat.values, transform.values);
   if (edit_hints.deform_mats.has_value()) {
-    for (float3x3 &mat : *edit_hints.deform_mats) {
-      mat = deform_mat * mat;
-    }
+    MutableSpan<float3x3> deform_mats = *edit_hints.deform_mats;
+    threading::parallel_for(deform_mats.index_range(), 1024, [&](const IndexRange range) {
+      for (const int64_t i : range) {
+        deform_mats[i] = deform_mat * deform_mats[i];
+      }
+    });
   }
   else {
     edit_hints.deform_mats.emplace(edit_hints.curves_id_orig.geometry.point_num, deform_mat);
@@ -181,9 +184,7 @@ static void transform_curve_edit_hints(bke::CurvesEditHints &edit_hints, const f
 static void translate_curve_edit_hints(bke::CurvesEditHints &edit_hints, const float3 &translation)
 {
   if (edit_hints.positions.has_value()) {
-    for (float3 &pos : *edit_hints.positions) {
-      pos += translation;
-    }
+    translate_positions(*edit_hints.positions, translation);
   }
 }
 

@@ -24,16 +24,14 @@ void View::sync(const float4x4 &view_mat, const float4x4 &win_mat, int view_id)
 
   is_inverted_ = (is_negative_m4(view_mat.ptr()) == is_negative_m4(win_mat.ptr()));
 
-  BoundBox &bound_box = *reinterpret_cast<BoundBox *>(&culling_[view_id].corners);
-  BoundSphere &bound_sphere = *reinterpret_cast<BoundSphere *>(&culling_[view_id].bound_sphere);
-  frustum_boundbox_calc(bound_box, view_id);
+  frustum_boundbox_calc(view_id);
   frustum_culling_planes_calc(view_id);
-  frustum_culling_sphere_calc(bound_box, bound_sphere, view_id);
+  frustum_culling_sphere_calc(view_id);
 
   dirty_ = true;
 }
 
-void View::frustum_boundbox_calc(BoundBox &bbox, int view_id)
+void View::frustum_boundbox_calc(int view_id)
 {
   /* Extract the 8 corners from a Projection Matrix. */
 #if 0 /* Equivalent to this but it has accuracy problems. */
@@ -43,16 +41,18 @@ void View::frustum_boundbox_calc(BoundBox &bbox, int view_id)
   }
 #endif
 
+  MutableSpan<float4> corners = {culling_[view_id].corners, ARRAY_SIZE(culling_[view_id].corners)};
+
   float left, right, bottom, top, near, far;
   bool is_persp = data_[view_id].winmat[3][3] == 0.0f;
 
   projmat_dimensions(data_[view_id].winmat.ptr(), &left, &right, &bottom, &top, &near, &far);
 
-  bbox.vec[0][2] = bbox.vec[3][2] = bbox.vec[7][2] = bbox.vec[4][2] = -near;
-  bbox.vec[0][0] = bbox.vec[3][0] = left;
-  bbox.vec[4][0] = bbox.vec[7][0] = right;
-  bbox.vec[0][1] = bbox.vec[4][1] = bottom;
-  bbox.vec[7][1] = bbox.vec[3][1] = top;
+  corners[0][2] = corners[3][2] = corners[7][2] = corners[4][2] = -near;
+  corners[0][0] = corners[3][0] = left;
+  corners[4][0] = corners[7][0] = right;
+  corners[0][1] = corners[4][1] = bottom;
+  corners[7][1] = corners[3][1] = top;
 
   /* Get the coordinates of the far plane. */
   if (is_persp) {
@@ -63,15 +63,16 @@ void View::frustum_boundbox_calc(BoundBox &bbox, int view_id)
     top *= sca_far;
   }
 
-  bbox.vec[1][2] = bbox.vec[2][2] = bbox.vec[6][2] = bbox.vec[5][2] = -far;
-  bbox.vec[1][0] = bbox.vec[2][0] = left;
-  bbox.vec[6][0] = bbox.vec[5][0] = right;
-  bbox.vec[1][1] = bbox.vec[5][1] = bottom;
-  bbox.vec[2][1] = bbox.vec[6][1] = top;
+  corners[1][2] = corners[2][2] = corners[6][2] = corners[5][2] = -far;
+  corners[1][0] = corners[2][0] = left;
+  corners[6][0] = corners[5][0] = right;
+  corners[1][1] = corners[5][1] = bottom;
+  corners[2][1] = corners[6][1] = top;
 
   /* Transform into world space. */
-  for (int i = 0; i < 8; i++) {
-    mul_m4_v3(data_[view_id].viewinv.ptr(), bbox.vec[i]);
+  for (float4 &corner : corners) {
+    mul_m4_v3(data_[view_id].viewinv.ptr(), corner);
+    corner.w = 1.0;
   }
 }
 
@@ -87,19 +88,22 @@ void View::frustum_culling_planes_calc(int view_id)
                       culling_[view_id].planes[2]);
 
   /* Normalize. */
-  for (int p = 0; p < 6; p++) {
-    culling_[view_id].planes[p].w /= normalize_v3(culling_[view_id].planes[p]);
+  for (float4 &plane : culling_[view_id].planes) {
+    plane.w /= normalize_v3(plane);
   }
 }
 
-void View::frustum_culling_sphere_calc(const BoundBox &bbox, BoundSphere &bsphere, int view_id)
+void View::frustum_culling_sphere_calc(int view_id)
 {
+  BoundSphere &bsphere = *reinterpret_cast<BoundSphere *>(&culling_[view_id].bound_sphere);
+  Span<float4> corners = {culling_[view_id].corners, ARRAY_SIZE(culling_[view_id].corners)};
+
   /* Extract Bounding Sphere */
   if (data_[view_id].winmat[3][3] != 0.0f) {
     /* Orthographic */
     /* The most extreme points on the near and far plane. (normalized device coords). */
-    const float *nearpoint = bbox.vec[0];
-    const float *farpoint = bbox.vec[6];
+    const float *nearpoint = corners[0];
+    const float *farpoint = corners[6];
 
     /* just use median point */
     mid_v3_v3v3(bsphere.center, farpoint, nearpoint);
@@ -113,12 +117,12 @@ void View::frustum_culling_sphere_calc(const BoundBox &bbox, BoundSphere &bspher
 
     /* center of each clipping plane */
     float mid_min[3], mid_max[3];
-    mid_v3_v3v3(mid_min, bbox.vec[3], bbox.vec[4]);
-    mid_v3_v3v3(mid_max, bbox.vec[2], bbox.vec[5]);
+    mid_v3_v3v3(mid_min, corners[3], corners[4]);
+    mid_v3_v3v3(mid_max, corners[2], corners[5]);
 
     /* square length of the diagonals of each clipping plane */
-    float a_sq = len_squared_v3v3(bbox.vec[3], bbox.vec[4]);
-    float b_sq = len_squared_v3v3(bbox.vec[2], bbox.vec[5]);
+    float a_sq = len_squared_v3v3(corners[3], corners[4]);
+    float b_sq = len_squared_v3v3(corners[2], corners[5]);
 
     /* distance squared between clipping planes */
     float h_sq = len_squared_v3v3(mid_min, mid_max);
@@ -132,7 +136,7 @@ void View::frustum_culling_sphere_calc(const BoundBox &bbox, BoundSphere &bspher
     interp_v3_v3v3(bsphere.center, mid_min, mid_max, fac);
 
     /* distance from the center to one of the points of the far plane (1, 2, 5, 6) */
-    bsphere.radius = len_v3v3(bsphere.center, bbox.vec[1]);
+    bsphere.radius = len_v3v3(bsphere.center, corners[1]);
   }
   else {
     /* Perspective with asymmetrical frustum. */

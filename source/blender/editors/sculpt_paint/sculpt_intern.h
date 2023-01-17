@@ -1303,6 +1303,7 @@ enum eDynTopoWarnFlag {
   DYNTOPO_WARN_LDATA = (1 << 2),
   DYNTOPO_WARN_MODIFIER = (1 << 3),
 };
+ENUM_OPERATORS(eDynTopoWarnFlag, DYNTOPO_WARN_MODIFIER);
 
 /** Enable dynamic topology; mesh will be triangulated */
 void SCULPT_dynamic_topology_enable_ex(struct Main *bmain,

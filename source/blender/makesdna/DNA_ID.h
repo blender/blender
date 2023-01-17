@@ -45,9 +45,9 @@ typedef struct DrawDataList {
 } DrawDataList;
 
 typedef struct IDPropertyUIData {
-  /** Tooltip / property description pointer. Owned by the IDProperty. */
+  /** Tool-tip / property description pointer. Owned by the #IDProperty. */
   char *description;
-  /** RNA subtype, used for every type except string properties (PropertySubType). */
+  /** RNA `subtype`, used for every type except string properties (#PropertySubType). */
   int rna_subtype;
 
   char _pad[4];
@@ -68,7 +68,7 @@ typedef struct IDPropertyUIDataInt {
   int default_value;
 } IDPropertyUIDataInt;
 
-/* IDP_UI_DATA_TYPE_BOOLEAN Use "int8_t" because DNA does not support "bool". */
+/** For #IDP_UI_DATA_TYPE_BOOLEAN Use `int8_t` because DNA does not support `bool`. */
 typedef struct IDPropertyUIDataBool {
   IDPropertyUIData base;
   int8_t *default_array; /* Only for array properties. */
@@ -78,7 +78,7 @@ typedef struct IDPropertyUIDataBool {
   int8_t default_value;
 } IDPropertyUIDataBool;
 
-/* IDP_UI_DATA_TYPE_FLOAT */
+/** For #IDP_UI_DATA_TYPE_FLOAT */
 typedef struct IDPropertyUIDataFloat {
   IDPropertyUIData base;
   double *default_array; /* Only for array properties. */
@@ -95,13 +95,13 @@ typedef struct IDPropertyUIDataFloat {
   double default_value;
 } IDPropertyUIDataFloat;
 
-/* IDP_UI_DATA_TYPE_STRING */
+/** For #IDP_UI_DATA_TYPE_STRING */
 typedef struct IDPropertyUIDataString {
   IDPropertyUIData base;
   char *default_value;
 } IDPropertyUIDataString;
 
-/* IDP_UI_DATA_TYPE_ID */
+/** For #IDP_UI_DATA_TYPE_ID. */
 typedef struct IDPropertyUIDataID {
   IDPropertyUIData base;
 } IDPropertyUIDataID;
@@ -109,30 +109,39 @@ typedef struct IDPropertyUIDataID {
 typedef struct IDPropertyData {
   void *pointer;
   ListBase group;
-  /** NOTE: we actually fit a double into these two 32bit integers. */
+  /** NOTE: a `double` is written into two 32bit integers. */
   int val, val2;
 } IDPropertyData;
 
 typedef struct IDProperty {
   struct IDProperty *next, *prev;
-  char type, subtype;
+  /** #eIDPropertyType */
+  char type;
+  /**
+   * #eIDPropertySubType when `type` is #IDP_STRING.
+   * #eIDPropertyType for all other types.
+   */
+  char subtype;
+  /** #IDP_FLAG_GHOST and others. */
   short flag;
-  /** MAX_IDPROP_NAME. */
+  /** Size matches #MAX_IDPROP_NAME. */
   char name[64];
 
-  /* saved is used to indicate if this struct has been saved yet.
-   * seemed like a good idea as a '_pad' var was needed anyway :) */
-  int saved;
+  char _pad0[4];
+
   /** NOTE: alignment for 64 bits. */
   IDPropertyData data;
 
-  /* Array length, also (this is important!) string length + 1.
-   * the idea is to be able to reuse array realloc functions on strings. */
+  /**
+   * Array length, and importantly string length + 1.
+   * the idea is to be able to reuse array reallocation functions on strings.
+   */
   int len;
-
-  /* Strings and arrays are both buffered, though the buffer isn't saved. */
-  /* totallen is total length of allocated array/string, including a buffer.
-   * Note that the buffering is mild; the code comes from python's list implementation. */
+  /**
+   * Strings and arrays are both buffered, though the buffer isn't saved.
+   * `totallen` is total length of allocated array/string, including a buffer.
+   * \note the buffering is mild; see #IDP_ResizeIDPArray for details.
+   */
   int totallen;
 
   IDPropertyUIData *ui_data;
@@ -141,7 +150,7 @@ typedef struct IDProperty {
 #define MAX_IDPROP_NAME 64
 #define DEFAULT_ALLOC_FOR_NULL_STRINGS 64
 
-/*->type*/
+/** #IDProperty.type */
 typedef enum eIDPropertyType {
   IDP_STRING = 0,
   IDP_INT = 1,
@@ -173,27 +182,29 @@ enum {
   IDP_TYPE_FILTER_BOOLEAN = 1 << 10,
 };
 
-/*->subtype */
-
-/* IDP_STRING */
-enum {
+/** #IDProperty.subtype for #IDP_STRING properties. */
+typedef enum eIDPropertySubType {
   IDP_STRING_SUB_UTF8 = 0, /* default */
   IDP_STRING_SUB_BYTE = 1, /* arbitrary byte array, _not_ null terminated */
-};
+} eIDPropertySubType;
 
-/*->flag*/
+/** #IDProperty.flag. */
 enum {
-  /** This IDProp may be statically overridden.
-   * Should only be used/be relevant for custom properties. */
+  /**
+   * This #IDProperty may be statically overridden.
+   * Should only be used/be relevant for custom properties.
+   */
   IDP_FLAG_OVERRIDABLE_LIBRARY = 1 << 0,
-
-  /** This collection item IDProp has been inserted in a local override.
+  /**
+   * This collection item #IDProperty has been inserted in a local override.
    * This is used by internal code to distinguish between library-originated items and
-   * local-inserted ones, as many operations are not allowed on the former. */
+   * local-inserted ones, as many operations are not allowed on the former.
+   */
   IDP_FLAG_OVERRIDELIBRARY_LOCAL = 1 << 1,
-
-  /** This means the property is set but RNA will return false when checking
-   * 'RNA_property_is_set', currently this is a runtime flag */
+  /**
+   * This means the property is set but RNA will return false when checking
+   * #RNA_property_is_set, currently this is a runtime flag.
+   */
   IDP_FLAG_GHOST = 1 << 7,
 };
 
@@ -208,7 +219,7 @@ typedef struct IDOverrideLibraryPropertyOperation {
   short operation;
   short flag;
 
-  /** Runtime, tags are common to both IDOverrideProperty and IDOverridePropertyOperation. */
+  /** Runtime, tags are common to both #IDOverrideProperty and #IDOverridePropertyOperation. */
   short tag;
   char _pad0[2];
 

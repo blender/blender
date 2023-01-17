@@ -14,9 +14,7 @@ set(INC_SYS
 set(SRC_KERNEL_DEVICE_CPU
   device/cpu/kernel.cpp
   device/cpu/kernel_sse2.cpp
-  device/cpu/kernel_sse3.cpp
   device/cpu/kernel_sse41.cpp
-  device/cpu/kernel_avx.cpp
   device/cpu/kernel_avx2.cpp
 )
 
@@ -940,12 +938,7 @@ set_source_files_properties(device/cpu/kernel.cpp PROPERTIES COMPILE_FLAGS "${CY
 
 if(CXX_HAS_SSE)
   set_source_files_properties(device/cpu/kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
-  set_source_files_properties(device/cpu/kernel_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
   set_source_files_properties(device/cpu/kernel_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
-endif()
-
-if(CXX_HAS_AVX)
-  set_source_files_properties(device/cpu/kernel_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
 endif()
 
 if(CXX_HAS_AVX2)

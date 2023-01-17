@@ -885,10 +885,15 @@ static void compute_curve_trim_parameters(const bke::CurvesGeometry &curves,
         if (end_length <= start_length) {
           /* Single point. */
           dst_curve_size[curve_i] = 1;
-          src_ranges[curve_i] = bke::curves::IndexRangeCyclic::get_range_from_size(
-              start_points[curve_i].index,
-              start_points[curve_i].is_controlpoint(), /* Only iterate if control point. */
-              point_count);
+          if (start_points[curve_i].is_controlpoint()) {
+            /* Only iterate if control point. */
+            const int single_point_index = start_points[curve_i].parameter == 1.0f ?
+                                               start_points[curve_i].next_index :
+                                               start_points[curve_i].index;
+            src_ranges[curve_i] = bke::curves::IndexRangeCyclic::get_range_from_size(
+                single_point_index, 1, point_count);
+          }
+          /* else: leave empty range */
         }
         else {
           /* Split. */

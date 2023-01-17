@@ -1738,7 +1738,7 @@ static void rna_Node_update_reg(bNodeTree *ntree, bNode *node)
   RNA_parameter_list_free(&list);
 }
 
-static void rna_Node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
+static bool rna_Node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
 {
   extern FunctionRNA rna_Node_insert_link_func;
 
@@ -1754,6 +1754,7 @@ static void rna_Node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
   node->typeinfo->rna_ext.call(NULL, &ptr, func, &list);
 
   RNA_parameter_list_free(&list);
+  return true;
 }
 
 static void rna_Node_init(const bContext *C, PointerRNA *ptr)
@@ -3386,9 +3387,6 @@ static StructRNA *rna_NodeCustomGroup_register(Main *bmain,
     return NULL;
   }
 
-  /* this updates the group node instance from the tree's interface */
-  nt->group_update_func = node_group_update;
-
   nodeRegisterType(nt);
 
   /* update while blender is running */
@@ -3412,7 +3410,6 @@ static StructRNA *rna_GeometryNodeCustomGroup_register(Main *bmain,
     return NULL;
   }
 
-  nt->group_update_func = node_group_update;
   nt->type = NODE_CUSTOM_GROUP;
 
   register_node_type_geo_custom_group(nt);
@@ -3441,7 +3438,6 @@ static StructRNA *rna_ShaderNodeCustomGroup_register(Main *bmain,
     return NULL;
   }
 
-  nt->group_update_func = node_group_update;
   nt->type = NODE_CUSTOM_GROUP;
 
   register_node_type_sh_custom_group(nt);
@@ -3467,7 +3463,6 @@ static StructRNA *rna_CompositorNodeCustomGroup_register(Main *bmain,
     return NULL;
   }
 
-  nt->group_update_func = node_group_update;
   nt->type = NODE_CUSTOM_GROUP;
 
   register_node_type_cmp_custom_group(nt);

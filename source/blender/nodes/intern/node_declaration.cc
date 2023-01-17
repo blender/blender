@@ -16,6 +16,15 @@ void build_node_declaration(const bNodeType &typeinfo, NodeDeclaration &r_declar
   node_decl_builder.finalize();
 }
 
+void build_node_declaration_dynamic(const bNodeTree &node_tree,
+                                    const bNode &node,
+                                    NodeDeclaration &r_declaration)
+{
+  r_declaration.inputs.clear();
+  r_declaration.outputs.clear();
+  node.typeinfo->declare_dynamic(node_tree, node, r_declaration);
+}
+
 void NodeDeclarationBuilder::finalize()
 {
   if (is_function_node_) {

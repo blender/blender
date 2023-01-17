@@ -519,7 +519,7 @@ void fill_points(const CurvesGeometry &curves,
 }
 
 /**
- * Copy only the information on the point domain, but not the offsets or any point attributes,
+ * Copy only the attributes on the curve domain, but not the offsets or any point attributes,
  * meant for operations that change the number of points but not the number of curves.
  * \warning The returned curves have invalid offsets!
  */

@@ -2447,8 +2447,8 @@ static void lineart_object_load_single_instance(LineartData *ld,
 
   /* Prepare the matrix used for transforming this specific object (instance). This has to be
    * done before mesh boundbox check because the function needs that. */
-  mul_m4db_m4db_m4fl_uniq(obi->model_view_proj, ld->conf.view_projection, use_mat);
-  mul_m4db_m4db_m4fl_uniq(obi->model_view, ld->conf.view, use_mat);
+  mul_m4db_m4db_m4fl(obi->model_view_proj, ld->conf.view_projection, use_mat);
+  mul_m4db_m4db_m4fl(obi->model_view, ld->conf.view, use_mat);
 
   if (!ELEM(ob->type, OB_MESH, OB_MBALL, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
     return;
@@ -2524,7 +2524,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
     }
 
     invert_m4_m4(inv, ld->conf.cam_obmat);
-    mul_m4db_m4db_m4fl_uniq(result, proj, inv);
+    mul_m4db_m4db_m4fl(result, proj, inv);
     copy_m4_m4_db(proj, result);
     copy_m4_m4_db(ld->conf.view_projection, proj);
 

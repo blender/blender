@@ -951,9 +951,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         return _cycles.debug_flags_update(scene)
 
     debug_use_cpu_avx2: BoolProperty(name="AVX2", default=True)
-    debug_use_cpu_avx: BoolProperty(name="AVX", default=True)
     debug_use_cpu_sse41: BoolProperty(name="SSE41", default=True)
-    debug_use_cpu_sse3: BoolProperty(name="SSE3", default=True)
     debug_use_cpu_sse2: BoolProperty(name="SSE2", default=True)
     debug_bvh_layout: EnumProperty(
         name="BVH Layout",

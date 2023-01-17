@@ -132,9 +132,8 @@ void search_link_ops_for_basic_node(GatherLinkSearchOpParams &params)
     return;
   }
 
-  if (node_type.declaration_is_dynamic) {
-    /* Dynamic declarations (whatever they end up being) aren't supported
-     * by this function, but still avoid a crash in release builds. */
+  if (node_type.declare_dynamic) {
+    /* Dynamic declarations aren't supported here, but avoid crashing in release builds. */
     BLI_assert_unreachable();
     return;
   }
