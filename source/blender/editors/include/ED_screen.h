@@ -122,8 +122,6 @@ void ED_region_header(const struct bContext *C, struct ARegion *region);
 void ED_region_header_layout(const struct bContext *C, struct ARegion *region);
 void ED_region_header_draw(const struct bContext *C, struct ARegion *region);
 
-void ED_region_asset_shelf_listen(const struct wmRegionListenerParams *params);
-
 void ED_region_cursor_set(struct wmWindow *win, struct ScrArea *area, struct ARegion *region);
 /**
  * Exported to all editors, uses fading default.
@@ -703,6 +701,7 @@ enum {
   ED_KEYMAP_FOOTER = (1 << 9),
   ED_KEYMAP_GPENCIL = (1 << 10),
   ED_KEYMAP_NAVBAR = (1 << 11),
+  ED_KEYMAP_ASSET_SHELF_FOOTER = (1 << 12),
 };
 
 /** #SCREEN_OT_space_context_cycle direction. */

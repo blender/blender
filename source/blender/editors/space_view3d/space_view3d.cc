@@ -47,6 +47,7 @@
 #include "BKE_viewer_path.h"
 #include "BKE_workspace.h"
 
+#include "ED_asset_shelf.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_render.h"
@@ -289,13 +290,20 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   region->alignment = RGN_ALIGN_RIGHT;
   region->flag = RGN_FLAG_HIDDEN;
 
+  /* asset shelf footer */
+  region = MEM_cnew<ARegion>("asset shelf footer for view3d");
+  BLI_addtail(&v3d->regionbase, region);
+  region->regiontype = RGN_TYPE_ASSET_SHELF_FOOTER;
+  region->alignment = RGN_ALIGN_BOTTOM;
+  region->flag = RGN_FLAG_HIDDEN;
+
   /* asset shelf */
   region = MEM_cnew<ARegion>("asset shelf for view3d");
 
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_ASSET_SHELF;
-  region->alignment = RGN_ALIGN_BOTTOM;
-  region->flag = RGN_FLAG_HIDDEN;
+  region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
+  region->flag |= RGN_FLAG_DYNAMIC_SIZE;
 
   /* main region */
   region = MEM_cnew<ARegion>("main region for view3d");
@@ -2154,6 +2162,15 @@ void ED_spacetype_view3d()
   art->init = view3d_header_region_init;
   art->draw = ED_region_header;
   BLI_addhead(&st->regiontypes, art);
+  /* regions: asset shelf footer */
+  art = MEM_cnew<ARegionType>("spacetype view3d asset shelf footer region");
+  art->regionid = RGN_TYPE_ASSET_SHELF_FOOTER;
+  art->prefsizey = HEADERY;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
+  art->init = ED_region_asset_shelf_footer_init;
+  art->draw = ED_region_asset_shelf_footer;
+  BLI_addhead(&st->regiontypes, art);
+  ED_asset_shelf_footer_register(art, "VIEW3D_HT_asset_shelf", SPACE_VIEW3D);
 
   /* regions: hud */
   art = ED_area_type_hud(st->spaceid);

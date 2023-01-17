@@ -1264,7 +1264,8 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
                RGN_TYPE_TOOL_PROPS,
                RGN_TYPE_FOOTER,
                RGN_TYPE_TOOL_HEADER,
-               RGN_TYPE_ASSET_SHELF)) {
+               RGN_TYPE_ASSET_SHELF,
+               RGN_TYPE_ASSET_SHELF_FOOTER)) {
         return true;
       }
     }
@@ -1337,6 +1338,9 @@ static void region_rect_recursive(
     prefsizey = ED_area_headersize();
   }
   else if (region->regiontype == RGN_TYPE_FOOTER) {
+    prefsizey = ED_area_footersize();
+  }
+  else if (region->regiontype == RGN_TYPE_ASSET_SHELF_FOOTER) {
     prefsizey = ED_area_footersize();
   }
   else if (ED_area_is_global(area)) {
@@ -1742,6 +1746,11 @@ static void ed_default_handlers(
     WM_event_add_keymap_handler(handlers, keymap);
   }
   if (flag & ED_KEYMAP_NAVBAR) {
+    /* standard keymap for Navigation bar regions */
+    wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Region Context Menu", 0, 0);
+    WM_event_add_keymap_handler(&region->handlers, keymap);
+  }
+  if (flag & ED_KEYMAP_ASSET_SHELF_FOOTER) {
     /* standard keymap for Navigation bar regions */
     wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Region Context Menu", 0, 0);
     WM_event_add_keymap_handler(&region->handlers, keymap);
@@ -3425,14 +3434,6 @@ void ED_region_header_init(ARegion *region)
 {
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_HEADER, region->winx, region->winy);
 }
-
-void ED_region_asset_shelf_listen(const wmRegionListenerParams *params)
-{
-  if (ED_assetlist_listen(params->notifier)) {
-    ED_region_tag_redraw_no_rebuild(params->region);
-  }
-}
-
 int ED_area_headersize(void)
 {
   /* Accommodate widget and padding. */

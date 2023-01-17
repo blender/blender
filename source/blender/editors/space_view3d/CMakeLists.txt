@@ -2,6 +2,7 @@
 
 set(INC
   ../include
+  ../asset
   ../../blenfont
   ../../blenkernel
   ../../blenlib
