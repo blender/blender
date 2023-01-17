@@ -158,9 +158,14 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
       plyData.faces.append(polyVector);
     }
 
-    int mesh_vertex_index_LUT[vertex_map.size()];
-    int ply_vertex_index_LUT[mesh->totvert];
-    float2 uv_coordinates[vertex_map.size()];
+    Vector<int> mesh_vertex_index_LUT;
+    mesh_vertex_index_LUT.reserve(vertex_map.size());
+
+    Vector<int> ply_vertex_index_LUT;
+    ply_vertex_index_LUT.reserve(mesh->totvert);
+
+    Vector<float2> uv_coordinates;
+    uv_coordinates.reserve(vertex_map.size());
 
     for (auto &key_value_pair : vertex_map) {
       mesh_vertex_index_LUT[key_value_pair.second] = key_value_pair.first.Vertex_index;
