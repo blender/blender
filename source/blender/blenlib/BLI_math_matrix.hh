@@ -1136,6 +1136,7 @@ MatBase<T, 4, 4> perspective(T left, T right, T bottom, T top, T near_clip, T fa
     mat[2][2] = -(far_clip + near_clip) / z_delta;
     mat[2][3] = -1.0f;
     mat[3][2] = (-2.0f * near_clip * far_clip) / z_delta;
+    mat[3][3] = 0.0f;
   }
   return mat;
 }

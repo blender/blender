@@ -1343,6 +1343,7 @@ mat4x4 projection_perspective(
     mat[2][2] = -(far_clip + near_clip) / z_delta;
     mat[2][3] = -1.0;
     mat[3][2] = (-2.0 * near_clip * far_clip) / z_delta;
+    mat[3][3] = 0.0;
   }
   return mat;
 }
