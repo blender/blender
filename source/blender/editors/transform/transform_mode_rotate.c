@@ -171,27 +171,11 @@ static float RotationBetween(TransInfo *t, const float p1[3], const float p2[3])
 
   /* Angle around a constraint axis (error prone, will need debug). */
   if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
-    float axis[3], tmp[3];
+    float axis[3];
 
     t->con.applyRot(t, NULL, NULL, axis, NULL);
 
-    project_v3_v3v3(tmp, end, axis);
-    sub_v3_v3v3(end, end, tmp);
-
-    project_v3_v3v3(tmp, start, axis);
-    sub_v3_v3v3(start, start, tmp);
-
-    normalize_v3(end);
-    normalize_v3(start);
-
-    cross_v3_v3v3(tmp, start, end);
-
-    if (dot_v3v3(tmp, axis) < 0.0f) {
-      angle = -acosf(dot_v3v3(start, end));
-    }
-    else {
-      angle = acosf(dot_v3v3(start, end));
-    }
+    angle = -angle_signed_on_axis_v3v3_v3(start, end, axis);
   }
   else {
     float mtx[3][3];
