@@ -1,5 +1,10 @@
-#ifndef BLENDER_PLY_IMPORT_BINARY_HH
-#define BLENDER_PLY_IMPORT_BINARY_HH
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
+#pragma once
 
 #include "BKE_mesh.h"
 #include "DNA_mesh_types.h"
@@ -21,6 +26,8 @@ Mesh *import_ply_binary(std::ifstream &file, const PlyHeader *header, Mesh *mesh
  * @return The PlyData datastructure that can be used for conversion to a Mesh.
  */
 PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header);
+
+void load_vertex_data(std::ifstream &file, const PlyHeader *header, PlyData *r_data, int index);
 
 void check_file_errors(const std::ifstream &file);
 
@@ -67,5 +74,3 @@ template<typename T> T swap_bytes(T input)
 template<typename T> T read(std::ifstream &file, bool isBigEndian);
 
 }  // namespace blender::io::ply
-
-#endif  // BLENDER_PLY_IMPORT_BINARY_HH
