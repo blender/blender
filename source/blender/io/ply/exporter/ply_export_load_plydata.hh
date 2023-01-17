@@ -203,8 +203,8 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     for (auto &&edge : mesh->edges()) {
       if ((edge.flag & ME_LOOSEEDGE) == ME_LOOSEEDGE) {
         std::pair<uint32_t, uint32_t> edge_pair = std::make_pair(
-            ply_vertex_index_LUT[uint32_t(edge.v1)],
-            ply_vertex_index_LUT[uint32_t(edge.v2)]);
+            ply_vertex_index_LUT[uint32_t(edge.v1)], ply_vertex_index_LUT[uint32_t(edge.v2)]);
+
         plyData.edges.append(edge_pair);
       }
     }
