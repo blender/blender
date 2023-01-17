@@ -243,6 +243,7 @@ static int wm_ply_import_execute(bContext *C, wmOperator *op)
   params.use_facet_normal = RNA_boolean_get(op->ptr, "use_facet_normal");
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
+  params.import_normals_as_attribute = RNA_boolean_get(op->ptr, "import_normals_as_attribute");
   params.use_mesh_validate = RNA_boolean_get(op->ptr, "use_mesh_validate");
 
   int files_len = RNA_collection_length(op->ptr, "files");
@@ -327,6 +328,11 @@ void WM_OT_ply_import(struct wmOperatorType *ot)
                   "Use (import) facet normals (note that this will still give flat shading)");
   RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
   RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
+  RNA_def_boolean(ot->srna,
+                  "import_normals_as_attribute",
+                  false,
+                  "Import Vertex Normals As Attribute",
+                  "Sets the vertex normal data as a vertex attribute");
   RNA_def_boolean(ot->srna,
                   "use_mesh_validate",
                   false,

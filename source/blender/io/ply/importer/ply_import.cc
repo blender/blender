@@ -177,13 +177,13 @@ void importer_main(Main *bmain,
   Mesh *mesh = BKE_mesh_add(bmain, ob_name);
   try {
     if (header.type == PlyFormatType::ASCII) {
-      mesh = import_ply_ascii(infile, &header, mesh);
+      mesh = import_ply_ascii(infile, &header, mesh, import_params);
     }
     else if (header.type == PlyFormatType::BINARY_BE) {
-      mesh = import_ply_binary(infile, &header, mesh);
+      mesh = import_ply_binary(infile, &header, mesh, import_params);
     }
     else {
-      mesh = import_ply_binary(infile, &header, mesh);
+      mesh = import_ply_binary(infile, &header, mesh, import_params);
     }
   }
   catch (std::exception &e) {
