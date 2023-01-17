@@ -102,7 +102,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
 
   float3 N = stack_valid(data_node.x) ? stack_load_float3(stack, data_node.x) : sd->N;
   if (!(sd->type & PRIMITIVE_CURVE)) {
-    N = ensure_valid_reflection(sd->Ng, sd->I, N);
+    N = ensure_valid_reflection(sd->Ng, sd->wi, N);
   }
 
   float param1 = (stack_valid(param1_offset)) ? stack_load_float(stack, param1_offset) :
@@ -162,8 +162,8 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       float ior = (sd->flag & SD_BACKFACING) ? 1.0f / eta : eta;
 
       // calculate fresnel for refraction
-      float cosNO = dot(N, sd->I);
-      float fresnel = fresnel_dielectric_cos(cosNO, ior);
+      float cosNI = dot(N, sd->wi);
+      float fresnel = fresnel_dielectric_cos(cosNI, ior);
 
       // calculate weights of the diffuse and specular part
       float diffuse_weight = (1.0f - saturatef(metallic)) * (1.0f - saturatef(transmission));
@@ -185,7 +185,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
                                     stack_load_float3(stack, data_cn_ssr.x) :
                                     sd->N;
       if (!(sd->type & PRIMITIVE_CURVE)) {
-        clearcoat_normal = ensure_valid_reflection(sd->Ng, sd->I, clearcoat_normal);
+        clearcoat_normal = ensure_valid_reflection(sd->Ng, sd->wi, clearcoat_normal);
       }
       float3 subsurface_radius = stack_valid(data_cn_ssr.y) ?
                                      stack_load_float3(stack, data_cn_ssr.y) :
@@ -652,8 +652,8 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       eta = (sd->flag & SD_BACKFACING) ? 1.0f / eta : eta;
 
       /* fresnel */
-      float cosNO = dot(N, sd->I);
-      float fresnel = fresnel_dielectric_cos(cosNO, eta);
+      float cosNI = dot(N, sd->wi);
+      float fresnel = fresnel_dielectric_cos(cosNI, eta);
       float roughness = sqr(param1);
 
       /* reflection */

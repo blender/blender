@@ -55,7 +55,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
 #endif
 
   /* Read ray data into shader globals. */
-  sd->I = -ray->D;
+  sd->wi = -ray->D;
 
 #ifdef __HAIR__
   if (sd->type & PRIMITIVE_CURVE) {
@@ -111,7 +111,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
   sd->flag = kernel_data_fetch(shaders, (sd->shader & SHADER_MASK)).flags;
 
   /* backfacing test */
-  bool backfacing = (dot(sd->Ng, sd->I) < 0.0f);
+  bool backfacing = (dot(sd->Ng, sd->wi) < 0.0f);
 
   if (backfacing) {
     sd->flag |= SD_BACKFACING;
@@ -152,7 +152,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
   sd->P = P;
   sd->N = Ng;
   sd->Ng = Ng;
-  sd->I = I;
+  sd->wi = I;
   sd->shader = shader;
   if (prim != PRIM_NONE)
     sd->type = PRIMITIVE_TRIANGLE;
@@ -185,7 +185,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
       object_position_transform_auto(kg, sd, &sd->P);
       object_normal_transform_auto(kg, sd, &sd->Ng);
       sd->N = sd->Ng;
-      object_dir_transform_auto(kg, sd, &sd->I);
+      object_dir_transform_auto(kg, sd, &sd->wi);
     }
 
     if (sd->type == PRIMITIVE_TRIANGLE) {
@@ -227,7 +227,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
 
   /* backfacing test */
   if (sd->prim != PRIM_NONE) {
-    bool backfacing = (dot(sd->Ng, sd->I) < 0.0f);
+    bool backfacing = (dot(sd->Ng, sd->wi) < 0.0f);
 
     if (backfacing) {
       sd->flag |= SD_BACKFACING;
@@ -341,7 +341,7 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
   }
 
   /* No view direction, normals or bitangent. */
-  sd->I = zero_float3();
+  sd->wi = zero_float3();
   sd->N = zero_float3();
   sd->Ng = zero_float3();
 #ifdef __DPDU__
@@ -372,7 +372,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
   sd->P = ray_D;
   sd->N = -ray_D;
   sd->Ng = -ray_D;
-  sd->I = -ray_D;
+  sd->wi = -ray_D;
   sd->shader = kernel_data.background.surface_shader;
   sd->flag = kernel_data_fetch(shaders, (sd->shader & SHADER_MASK)).flags;
   sd->object_flag = 0;
@@ -412,7 +412,7 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals kg,
   sd->P = ray->P + ray->D * ray->tmin;
   sd->N = -ray->D;
   sd->Ng = -ray->D;
-  sd->I = -ray->D;
+  sd->wi = -ray->D;
   sd->shader = SHADER_NONE;
   sd->flag = 0;
   sd->object_flag = 0;

@@ -1720,8 +1720,8 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg,
           return set_attribute_float3(f, type, derivatives, val);
         }
         else if (name == u_I) {
-          const differential3 dI = differential_from_compact(sd->I, sd->dI);
-          float3 f[3] = {sd->I, dI.dx, dI.dy};
+          const differential3 dI = differential_from_compact(sd->wi, sd->dI);
+          float3 f[3] = {sd->wi, dI.dx, dI.dy};
           return set_attribute_float3(f, type, derivatives, val);
         }
         else if (name == u_u) {

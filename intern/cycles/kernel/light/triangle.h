@@ -63,7 +63,7 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
   const float3 e2 = V[2] - V[1];
   const float longest_edge_squared = max(len_squared(e0), max(len_squared(e1), len_squared(e2)));
   const float3 N = cross(e0, e1);
-  const float distance_to_plane = fabsf(dot(N, sd->I * t)) / dot(N, N);
+  const float distance_to_plane = fabsf(dot(N, sd->wi * t)) / dot(N, N);
   const float area = 0.5f * len(N);
 
   float pdf;
@@ -71,7 +71,7 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
   if (longest_edge_squared > distance_to_plane * distance_to_plane) {
     /* sd contains the point on the light source
      * calculate Px, the point that we're shading */
-    const float3 Px = sd->P + sd->I * t;
+    const float3 Px = sd->P + sd->wi * t;
     const float3 v0_p = V[0] - Px;
     const float3 v1_p = V[1] - Px;
     const float3 v2_p = V[2] - Px;
@@ -99,7 +99,7 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
       return 0.0f;
     }
 
-    pdf = triangle_light_pdf_area_sampling(sd->Ng, sd->I, t) / area;
+    pdf = triangle_light_pdf_area_sampling(sd->Ng, sd->wi, t) / area;
   }
 
   /* Belongs in distribution.h but can reuse computations here. */

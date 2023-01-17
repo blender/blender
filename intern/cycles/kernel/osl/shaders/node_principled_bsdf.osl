@@ -111,8 +111,8 @@ shader node_principled_bsdf(string distribution = "Multiscatter GGX",
     float eta = backfacing() ? 1.0 / f : f;
 
     if (distribution == "GGX" || Roughness <= 5e-2) {
-      float cosNO = dot(Normal, I);
-      float Fr = fresnel_dielectric_cos(cosNO, eta);
+      float cosNI = dot(Normal, I);
+      float Fr = fresnel_dielectric_cos(cosNI, eta);
 
       float refl_roughness = Roughness;
       if (Roughness <= 1e-2)

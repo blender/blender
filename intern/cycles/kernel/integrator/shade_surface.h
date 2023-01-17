@@ -364,7 +364,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   /* BSDF closure, sample direction. */
   float bsdf_pdf = 0.0f, unguided_bsdf_pdf = 0.0f;
   BsdfEval bsdf_eval ccl_optional_struct_init;
-  float3 bsdf_omega_in ccl_optional_struct_init;
+  float3 bsdf_wo ccl_optional_struct_init;
   int label;
 
   float2 bsdf_sampled_roughness = make_float2(1.0f, 1.0f);
@@ -378,7 +378,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
                                                       sc,
                                                       rand_bsdf,
                                                       &bsdf_eval,
-                                                      &bsdf_omega_in,
+                                                      &bsdf_wo,
                                                       &bsdf_pdf,
                                                       &unguided_bsdf_pdf,
                                                       &bsdf_sampled_roughness,
@@ -398,7 +398,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
                                                sc,
                                                rand_bsdf,
                                                &bsdf_eval,
-                                               &bsdf_omega_in,
+                                               &bsdf_wo,
                                                &bsdf_pdf,
                                                &bsdf_sampled_roughness,
                                                &bsdf_eta);
@@ -416,7 +416,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   }
   else {
     /* Setup ray with changed origin and direction. */
-    const float3 D = normalize(bsdf_omega_in);
+    const float3 D = normalize(bsdf_wo);
     INTEGRATOR_STATE_WRITE(state, ray, P) = integrate_surface_ray_offset(kg, sd, sd->P, D);
     INTEGRATOR_STATE_WRITE(state, ray, D) = D;
     INTEGRATOR_STATE_WRITE(state, ray, tmin) = 0.0f;
@@ -455,7 +455,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
                                 bsdf_weight,
                                 bsdf_pdf,
                                 sd->N,
-                                normalize(bsdf_omega_in),
+                                normalize(bsdf_wo),
                                 bsdf_sampled_roughness,
                                 bsdf_eta);
 

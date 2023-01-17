@@ -607,11 +607,11 @@ ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(ccl_private ShaderCl
 {
   ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)closure;
 
-  float cosNO = dot(bsdf->N, wi);
-  float cosNI = dot(bsdf->N, wo);
+  float cosNI = dot(bsdf->N, wi);
+  float cosNO = dot(bsdf->N, wo);
 
   float3 Ht = normalize(-(bsdf->ior * wo + wi));
-  float cosHO = dot(Ht, wi);
+  float cosHI = dot(Ht, wi);
 
   float alpha2 = bsdf->alpha_x * bsdf->alpha_y;
   float cosThetaM = dot(bsdf->N, Ht);
@@ -619,12 +619,12 @@ ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(ccl_private ShaderCl
   float G;
   if (bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID) {
     /* Eq. 26, 27: now calculate G1(i,m) and G1(o,m). */
-    G = bsdf_beckmann_G1(bsdf->alpha_x, cosNO) * bsdf_beckmann_G1(bsdf->alpha_x, cosNI);
+    G = bsdf_beckmann_G1(bsdf->alpha_x, cosNI) * bsdf_beckmann_G1(bsdf->alpha_x, cosNO);
   }
   else { /* bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID assumed */
     /* Eq. 34: now calculate G1(i,m) and G1(o,m). */
-    G = (2.f / (1.f + safe_sqrtf(1.f + alpha2 * (1.f - cosNO * cosNO) / (cosNO * cosNO)))) *
-        (2.f / (1.f + safe_sqrtf(1.f + alpha2 * (1.f - cosNI * cosNI) / (cosNI * cosNI))));
+    G = (2.f / (1.f + safe_sqrtf(1.f + alpha2 * (1.f - cosNI * cosNI) / (cosNI * cosNI)))) *
+        (2.f / (1.f + safe_sqrtf(1.f + alpha2 * (1.f - cosNO * cosNO) / (cosNO * cosNO))));
   }
 
   /*
@@ -635,7 +635,7 @@ ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(ccl_private ShaderCl
    * contribution = bsdf_do * |do/dh| * |n.wo / n.h| / pdf_dh
    *              = (1 - F) * G * |h.wi / (n.wi * n.h^2)|
    */
-  return bsdf->weight * G * fabsf(cosHO / (cosNO * sqr(cosThetaM)));
+  return bsdf->weight * G * fabsf(cosHI / (cosNI * sqr(cosThetaM)));
 }
 
 /* Compute transfer matrix determinant |T1| = |dx1/dxn| (and |dh/dx| in the process) */
