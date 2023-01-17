@@ -26,6 +26,7 @@
 #include "ply_data.hh"
 
 namespace blender::io::ply {
+
 struct UV_vertex_key {
   float2 UV;
   int Vertex_index;
@@ -36,18 +37,19 @@ struct UV_vertex_key {
   }
   bool operator==(const UV_vertex_key &r) const
   {
-    return (UV.x == r.UV.x && UV.y == UV.y && Vertex_index == r.Vertex_index);
-  }
-};
-struct UV_vertex_hash {
-  std::size_t operator()(const blender::io::ply::UV_vertex_key &k) const
-  {
-    return ((std::hash<float>()(k.UV.x) ^ (std::hash<float>()(k.UV.y) << 1)) >> 1) ^
-           (std::hash<int>()(k.Vertex_index) << 1);
+    return (UV == r.UV && Vertex_index == r.Vertex_index);
   }
 };
 
-std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertexmap(
+struct UV_vertex_hash {
+  std::size_t operator()(const blender::io::ply::UV_vertex_key &key) const
+  {
+    return ((std::hash<float>()(key.UV.x) ^ (std::hash<float>()(key.UV.y) << 1)) >> 1) ^
+           (std::hash<int>()(key.Vertex_index) << 1);
+  }
+};
+
+std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertex_map(
     const Mesh *mesh, const MLoopUV *mloopuv, PLYExportParams export_params)
 {
 
@@ -56,6 +58,8 @@ std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertexmap(
   const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
   const int totvert = mesh->totvert;
+
+  vertex_map.reserve(totvert);
 
   if (!mloopuv || !export_params.export_uv) {
     for (int vertex_index = 0; vertex_index < totvert; ++vertex_index) {
@@ -76,8 +80,6 @@ std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertexmap(
                                                        limit,
                                                        false,
                                                        false);
-
-  vertex_map.reserve(totvert);
 
   for (int vertex_index = 0; vertex_index < totvert; vertex_index++) {
     const UvMapVert *uv_vert = BKE_mesh_uv_vert_map_get_vert(uv_vert_map, vertex_index);
@@ -130,7 +132,7 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
         CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
 
-    std::unordered_map<UV_vertex_key, int, UV_vertex_hash> vertex_map = generate_vertexmap(
+    std::unordered_map<UV_vertex_key, int, UV_vertex_hash> vertex_map = generate_vertex_map(
         mesh, mloopuv, export_params);
 
     /* Load faces into plyData. */
@@ -141,7 +143,7 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
 
       for (int i = 0; i < loopSpan.size(); ++i) {
         float2 uv;
-        if (export_params.export_uv) {
+        if (export_params.export_uv && mloopuv) {
           uv = mloopuv[i + loop_offset].uv;
         }
         else {
@@ -156,18 +158,20 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
       plyData.faces.append(polyVector);
     }
 
-    int vertex_indices[vertex_map.size()];
-    float2 uvs[vertex_map.size()];
+    int mesh_vertex_index_LUT[vertex_map.size()];
+    int ply_vertex_index_LUT[mesh->totvert];
+    float2 uv_coordinates[vertex_map.size()];
 
     for (auto &key_value_pair : vertex_map) {
-      vertex_indices[key_value_pair.second] = key_value_pair.first.Vertex_index;
-      uvs[key_value_pair.second] = key_value_pair.first.UV;
+      mesh_vertex_index_LUT[key_value_pair.second] = key_value_pair.first.Vertex_index;
+      ply_vertex_index_LUT[key_value_pair.first.Vertex_index] = key_value_pair.second;
+      uv_coordinates[key_value_pair.second] = key_value_pair.first.UV;
     }
 
     // Vertices
     for (int i = 0; i < vertex_map.size(); ++i) {
       float3 r_coords;
-      copy_v3_v3(r_coords, mesh->verts()[vertex_indices[i]].co);
+      copy_v3_v3(r_coords, mesh->verts()[mesh_vertex_index_LUT[i]].co);
       mul_m4_v3(object->object_to_world, r_coords);
       plyData.vertices.append(r_coords);
     }
@@ -175,7 +179,7 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     // UV's
     if (export_params.export_uv) {
       for (int i = 0; i < vertex_map.size(); ++i) {
-        plyData.UV_coordinates.append(uvs[i]);
+        plyData.UV_coordinates.append(uv_coordinates[i]);
       }
     }
 
@@ -183,7 +187,7 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     if (export_params.export_normals) {
       const float(*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
       for (int i = 0; i < vertex_map.size(); i++) {
-        plyData.vertex_normals.append(vertex_normals[vertex_indices[i]]);
+        plyData.vertex_normals.append(vertex_normals[mesh_vertex_index_LUT[i]]);
       }
     }
 
@@ -191,15 +195,16 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     if (export_params.export_colors && CustomData_has_layer(&mesh->vdata, CD_PROP_COLOR)) {
       const float4 *colors = (float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
       for (int i = 0; i < vertex_map.size(); i++) {
-        plyData.vertex_colors.append(colors[vertex_indices[i]]);
+        plyData.vertex_colors.append(colors[mesh_vertex_index_LUT[i]]);
       }
     }
 
     // Edges
     for (auto &&edge : mesh->edges()) {
       if ((edge.flag & ME_LOOSEEDGE) == ME_LOOSEEDGE) {
-        std::pair<uint32_t, uint32_t> edge_pair = std::make_pair(uint32_t(edge.v1),
-                                                                 uint32_t(edge.v2));
+        std::pair<uint32_t, uint32_t> edge_pair = std::make_pair(
+            ply_vertex_index_LUT[uint32_t(edge.v1)],
+            ply_vertex_index_LUT[uint32_t(edge.v2)]);
         plyData.edges.append(edge_pair);
       }
     }
