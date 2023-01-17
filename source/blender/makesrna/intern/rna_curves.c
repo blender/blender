@@ -338,7 +338,6 @@ static void rna_def_curves(BlenderRNA *brna)
 
   /* Direct access to built-in attributes. */
 
-  RNA_define_verify_sdna(0);
   prop = RNA_def_property(srna, "position_data", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Curves_position_data_begin",
@@ -351,7 +350,6 @@ static void rna_def_curves(BlenderRNA *brna)
                                     NULL);
   RNA_def_property_struct_type(prop, "FloatVectorAttributeValue");
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
-  RNA_define_verify_sdna(1);
 
   prop = RNA_def_property(srna, "curve_offset_data", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "geometry.curve_offsets", NULL);
