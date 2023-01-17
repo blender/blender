@@ -51,7 +51,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
     int offset = 0;
     /* Iterate over amount of faces. */
     for (int i = 0; i < mesh->totpoly; i++) {
-      auto size = int(data.faces[i].size());
+      int size = int(data.faces[i].size());
       /* Set the index from where this face starts and specify the amount of edges it has. */
       polys[i].loopstart = offset;
       polys[i].totloop = size;
