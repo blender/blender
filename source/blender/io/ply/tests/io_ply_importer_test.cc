@@ -56,7 +56,7 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
     /* Import the test file. */
     std::string ply_path = blender::tests::flags_test_asset_dir() + "/io_tests/ply/" + path;
     strncpy(params.filepath, ply_path.c_str(), FILE_MAX - 1);
-    importer_main(bfile->main, bfile->curscene, bfile->cur_view_layer, params);
+    importer_main(bfile->main, bfile->curscene, bfile->cur_view_layer, params, nullptr);
 
     depsgraph_create(DAG_EVAL_VIEWPORT);
 
