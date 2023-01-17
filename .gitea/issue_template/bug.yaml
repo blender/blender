@@ -27,6 +27,7 @@ body:
                 If a report is tagged with Needs Information from User and it has no reply after a week, we will assume the issue is gone and close the report.
 
   - type: textarea
+    id: body
     attributes:
       label: "Description"
       value: |
