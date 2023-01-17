@@ -211,7 +211,7 @@ void WM_OT_ply_export(struct wmOperatorType *ot)
                   "Export Normals",
                   "Export per-face normals if the face is flat-shaded, per-face-per-loop "
                   "normals if smooth-shaded");
-  RNA_def_boolean(ot->srna, "export_colors", false, "Export Colors", "Export per-vertex colors");
+  RNA_def_boolean(ot->srna, "export_colors", false, "Export Vertex Colors", "Export per-vertex colors");
   RNA_def_boolean(ot->srna,
                   "export_triangulated_mesh",
                   false,
@@ -240,10 +240,8 @@ static int wm_ply_import_execute(bContext *C, wmOperator *op)
   struct PLYImportParams params;
   params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
   params.up_axis = RNA_enum_get(op->ptr, "up_axis");
-  params.use_facet_normal = RNA_boolean_get(op->ptr, "use_facet_normal");
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
-  params.use_mesh_validate = RNA_boolean_get(op->ptr, "use_mesh_validate");
 
   int files_len = RNA_collection_length(op->ptr, "files");
 
@@ -258,12 +256,12 @@ static int wm_ply_import_execute(bContext *C, wmOperator *op)
       RNA_property_collection_lookup_int(op->ptr, prop, i, &fileptr);
       RNA_string_get(&fileptr, "name", file_only);
       BLI_path_join(params.filepath, sizeof(params.filepath), dir_only, file_only);
-      PLY_import(C, &params);
+      PLY_import(C, &params, op);
     }
   }
   else if (RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     RNA_string_get(op->ptr, "filepath", params.filepath);
-    PLY_import(C, &params);
+    PLY_import(C, &params, op);
   }
   else {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -320,18 +318,8 @@ void WM_OT_ply_import(struct wmOperatorType *ot)
                   false,
                   "Scene Unit",
                   "Apply current scene's unit (as defined by unit scale) to imported data");
-  RNA_def_boolean(ot->srna,
-                  "use_facet_normal",
-                  false,
-                  "Facet Normals",
-                  "Use (import) facet normals (note that this will still give flat shading)");
   RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
   RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
-  RNA_def_boolean(ot->srna,
-                  "use_mesh_validate",
-                  false,
-                  "Validate Mesh",
-                  "Validate and correct imported mesh (slow)");
 
   /* Only show .ply files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.ply", 0, "Extension Filter", "");

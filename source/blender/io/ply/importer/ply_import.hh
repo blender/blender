@@ -6,25 +6,27 @@
 
 #pragma once
 
+#include <cstdio>
+
 #include "IO_ply.h"
 #include "ply_data.hh"
-#include <cstdio>
 
 namespace blender::io::ply {
 
 void ply_import_report_error(FILE *file);
 
-enum PlyDataTypes from_string(const std::string &input);
+enum PlyDataTypes from_string(const StringRef &input);
 
-void splitstr(std::string str, std::vector<std::string> &words, const std::string &deli);
+void splitstr(std::string str, Vector<std::string> &words, const StringRef &deli);
 
 /* Main import function used from within Blender. */
-void importer_main(bContext *C, const PLYImportParams &import_params);
+void importer_main(bContext *C, const PLYImportParams &import_params, wmOperator *op);
 
 /* Used from tests, where full bContext does not exist. */
 void importer_main(Main *bmain,
                    Scene *scene,
                    ViewLayer *view_layer,
-                   const PLYImportParams &import_params);
+                   const PLYImportParams &import_params,
+                   wmOperator *op);
 
 }  // namespace blender::io::ply
