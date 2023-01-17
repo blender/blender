@@ -33,8 +33,8 @@ namespace blender::io::ply {
  */
 class FileBuffer : private NonMovable {
  private:
-  typedef std::vector<char> VectorChar;
-  std::vector<VectorChar> blocks_;
+  typedef Vector<char> VectorChar;
+  Vector<VectorChar> blocks_;
   size_t buffer_chunk_size_;
   const char *filepath_;
   FILE *outfile_;
@@ -133,9 +133,10 @@ class FileBuffer : private NonMovable {
    * If not, add a new block with max of block size & the amount of space needed. */
   void ensure_space(size_t at_least)
   {
-    if (blocks_.empty() || (blocks_.back().capacity() - blocks_.back().size() < at_least)) {
-      VectorChar &b = blocks_.emplace_back(VectorChar());
-      b.reserve(std::max(at_least, buffer_chunk_size_));
+    if (blocks_.is_empty() || (blocks_.last().capacity() - blocks_.last().size() < at_least)) {
+
+      blocks_.append(VectorChar());
+      blocks_.reserve(std::max(at_least, buffer_chunk_size_));
     }
   }
 
@@ -146,14 +147,14 @@ class FileBuffer : private NonMovable {
     fmt::format_to(fmt::appender(buf), fmt, std::forward<T>(args)...);
     size_t len = buf.size();
     ensure_space(len);
-    VectorChar &bb = blocks_.back();
+    VectorChar &bb = blocks_.last();
     bb.insert(bb.end(), buf.begin(), buf.end());
   }
 
   void write_bytes(Vector<char> bytes)
   {
     ensure_space(bytes.size());
-    VectorChar &bb = blocks_.back();
+    VectorChar &bb = blocks_.last();
     bb.insert(bb.end(), bytes.begin(), bytes.end());
   }
 };

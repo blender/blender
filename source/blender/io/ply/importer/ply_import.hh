@@ -16,7 +16,7 @@ void ply_import_report_error(FILE *file);
 
 enum PlyDataTypes from_string(const StringRef &input);
 
-void splitstr(std::string str, std::vector<std::string> &words, const StringRef &deli);
+void splitstr(std::string str, Vector<std::string> &words, const StringRef &deli);
 
 /* Main import function used from within Blender. */
 void importer_main(bContext *C, const PLYImportParams &import_params);
