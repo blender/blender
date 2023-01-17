@@ -35,7 +35,7 @@ struct Expectation {
   int totvert, totpoly, totedge;
   float3 vert_first, vert_last;
   float3 normal_first = {0, 0, 0};
-  // float2 uv_first
+  float2 uv_first;
   // float4 color_first = {-1, -1, -1, -1};
 };
 
@@ -99,16 +99,16 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
         if (exp.normal_first[0] != -2) {
           const float(*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
           ASSERT_TRUE(vertex_normals != nullptr);
-          float3 normal_first = vertex_normals != nullptr ? vertex_normals[0] : float3(0, 0, 0);
+          float3 normal_first = vertex_normals != nullptr ? vertex_normals : float3(0, 0, 0);
           EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);
         }
 
         // Fetch UV data from mesh and test if it matches expectation
         // Currently we don't support uv data yet
-        /* const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
+        const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
             CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
         float2 uv_first = mloopuv ? float2(mloopuv->uv) : float2(0, 0);
-        EXPECT_V2_NEAR(uv_first, exp.uv_first, 0.0001f); */
+        EXPECT_V2_NEAR(uv_first, exp.uv_first, 0.0001f);
 
         // Check if expected mesh has vertex colors, and tests if it matches
         // Currently we don't support vertex colors yet.
@@ -131,17 +131,24 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
 
 TEST_F(PlyImportTest, PLYImportCube)
 {
-  Expectation expect[] = {
-      {"OBCube",
-       ASCII,
-       8,
-       6,
-       12,
-       float3(1, 1, -1),
-       float3(-1, 1, 1),
-       float3(0.5773, 0.5773, -0.5773)},
-      {"OBcube_ascii", ASCII, 24, 6, 24, float3(1, 1, -1), float3(-1, 1, 1), float3(0, 0, -1)}};
-
+  Expectation expect[] = {{"OBCube",
+                           ASCII,
+                           8,
+                           6,
+                           12,
+                           float3(1, 1, -1),
+                           float3(-1, 1, 1),
+                           float3(0.5773, 0.5773, -0.5773),
+                           float2(0, 0)},
+                          {"OBcube_ascii",
+                           ASCII,
+                           24,
+                           6,
+                           24,
+                           float3(1, 1, -1),
+                           float3(-1, 1, 1),
+                           float3(0, 0, -1),
+                           float2(0.979336, 0.844958)}};
   import_and_check("cube_ascii.ply", expect, 2);
 }
 
