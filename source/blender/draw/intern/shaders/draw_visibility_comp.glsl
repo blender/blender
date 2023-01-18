@@ -4,6 +4,7 @@
  */
 /* TODO(fclem): This could be augmented by a 2 pass occlusion culling system. */
 
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
 
