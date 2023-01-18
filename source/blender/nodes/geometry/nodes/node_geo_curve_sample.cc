@@ -312,6 +312,7 @@ class SampleCurveFunction : public mf::MultiFunction {
       evaluated_normals = curves.evaluated_normals();
     }
 
+    const OffsetIndices points_by_curve = curves.points_by_curve();
     const VArray<int> curve_indices = params.readonly_single_input<int>(0, "Curve Index");
     const VArraySpan<float> lengths = params.readonly_single_input<float>(1, "Length");
     const VArray<bool> cyclic = curves.cyclic();
@@ -377,7 +378,7 @@ class SampleCurveFunction : public mf::MultiFunction {
         }
       }
       if (!sampled_values.is_empty()) {
-        const IndexRange points = curves.points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         src_original_values.reinitialize(points.size());
         source_data_->materialize_compressed_to_uninitialized(points, src_original_values.data());
         src_evaluated_values.reinitialize(curves.evaluated_points_for_curve(curve_i).size());

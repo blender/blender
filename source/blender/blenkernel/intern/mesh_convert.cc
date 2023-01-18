@@ -401,9 +401,9 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
  */
 static void mesh_copy_texture_space_from_curve_type(const Curve *cu, Mesh *me)
 {
-  me->texflag = cu->texflag & ~CU_AUTOSPACE;
-  copy_v3_v3(me->loc, cu->loc);
-  copy_v3_v3(me->size, cu->size);
+  me->texspace_flag = cu->texspace_flag & ~CU_TEXSPACE_FLAG_AUTO;
+  copy_v3_v3(me->texspace_location, cu->texspace_location);
+  copy_v3_v3(me->texspace_size, cu->texspace_size);
   BKE_mesh_texspace_calc(me);
 }
 

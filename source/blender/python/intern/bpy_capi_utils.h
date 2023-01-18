@@ -14,7 +14,6 @@
 extern "C" {
 #endif
 
-struct EnumPropertyItem;
 struct ReportList;
 
 /* error reporting */

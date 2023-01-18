@@ -140,10 +140,11 @@ struct DeleteOperationExecutor {
     /* Remove deleted curves from the stored deformed positions. */
     const Vector<IndexRange> ranges_to_keep = mask_to_delete.extract_ranges_invert(
         curves_->curves_range());
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
     Vector<float3> new_deformed_positions;
     for (const IndexRange curves_range : ranges_to_keep) {
       new_deformed_positions.extend(
-          self_->deformed_positions_.as_span().slice(curves_->points_for_curves(curves_range)));
+          self_->deformed_positions_.as_span().slice(points_by_curve[curves_range]));
     }
     self_->deformed_positions_ = std::move(new_deformed_positions);
 
@@ -172,10 +173,11 @@ struct DeleteOperationExecutor {
 
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     threading::parallel_for(curve_selection_.index_range(), 512, [&](const IndexRange range) {
       for (const int curve_i : curve_selection_.slice(range)) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         if (points.size() == 1) {
           const float3 pos_cu = brush_transform_inv * self_->deformed_positions_[points.first()];
           float2 pos_re;
@@ -231,10 +233,11 @@ struct DeleteOperationExecutor {
   {
     const float brush_radius_cu = self_->brush_3d_.radius_cu * brush_radius_factor_;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     threading::parallel_for(curve_selection_.index_range(), 512, [&](const IndexRange range) {
       for (const int curve_i : curve_selection_.slice(range)) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
 
         if (points.size() == 1) {
           const float3 &pos_cu = self_->deformed_positions_[points.first()];

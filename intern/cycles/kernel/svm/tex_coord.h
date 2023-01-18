@@ -64,9 +64,9 @@ ccl_device_noinline int svm_node_tex_coord(KernelGlobals kg,
     }
     case NODE_TEXCO_REFLECTION: {
       if (sd->object != OBJECT_NONE)
-        data = 2.0f * dot(sd->N, sd->I) * sd->N - sd->I;
+        data = 2.0f * dot(sd->N, sd->wi) * sd->N - sd->wi;
       else
-        data = sd->I;
+        data = sd->wi;
       break;
     }
     case NODE_TEXCO_DUPLI_GENERATED: {
@@ -146,9 +146,9 @@ ccl_device_noinline int svm_node_tex_coord_bump_dx(KernelGlobals kg,
     }
     case NODE_TEXCO_REFLECTION: {
       if (sd->object != OBJECT_NONE)
-        data = 2.0f * dot(sd->N, sd->I) * sd->N - sd->I;
+        data = 2.0f * dot(sd->N, sd->wi) * sd->N - sd->wi;
       else
-        data = sd->I;
+        data = sd->wi;
       break;
     }
     case NODE_TEXCO_DUPLI_GENERATED: {
@@ -231,9 +231,9 @@ ccl_device_noinline int svm_node_tex_coord_bump_dy(KernelGlobals kg,
     }
     case NODE_TEXCO_REFLECTION: {
       if (sd->object != OBJECT_NONE)
-        data = 2.0f * dot(sd->N, sd->I) * sd->N - sd->I;
+        data = 2.0f * dot(sd->N, sd->wi) * sd->N - sd->wi;
       else
-        data = sd->I;
+        data = sd->wi;
       break;
     }
     case NODE_TEXCO_DUPLI_GENERATED: {

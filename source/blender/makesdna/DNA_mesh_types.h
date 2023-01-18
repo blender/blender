@@ -127,9 +127,9 @@ typedef struct Mesh {
   struct Mesh *texcomesh;
 
   /** Texture space location and size, used for procedural coordinates when rendering. */
-  float loc[3];
-  float size[3];
-  char texflag;
+  float texspace_location[3];
+  float texspace_size[3];
+  char texspace_flag;
 
   /** Various flags used when editing the mesh. */
   char editflag;
@@ -303,10 +303,10 @@ typedef struct TFace {
 
 /* **************** MESH ********************* */
 
-/** #Mesh.texflag */
+/** #Mesh.texspace_flag */
 enum {
-  ME_AUTOSPACE = 1,
-  ME_AUTOSPACE_EVALUATED = 2,
+  ME_TEXSPACE_FLAG_AUTO = 1 << 0,
+  ME_TEXSPACE_FLAG_AUTO_EVALUATED = 1 << 1,
 };
 
 /** #Mesh.editflag */

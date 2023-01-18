@@ -28,7 +28,6 @@ struct View3D;
 struct bContext;
 struct rcti;
 struct wmEvent;
-struct wmOperator;
 
 enum eV3D_OpPropFlag {
   V3D_OP_PROP_MOUSE_CO = (1 << 0),

@@ -11,7 +11,6 @@
 extern "C" {
 #endif
 
-struct Editing;
 struct ListBase;
 struct Scene;
 struct SeqCollection;

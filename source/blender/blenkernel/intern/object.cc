@@ -4360,42 +4360,45 @@ void BKE_object_sculpt_data_create(Object *ob)
   ob->sculpt->mode_type = (eObjectMode)ob->mode;
 }
 
-bool BKE_object_obdata_texspace_get(Object *ob, char **r_texflag, float **r_loc, float **r_size)
+bool BKE_object_obdata_texspace_get(Object *ob,
+                                    char **r_texspace_flag,
+                                    float **r_texspace_location,
+                                    float **r_texspace_size)
 {
-
   if (ob->data == nullptr) {
     return false;
   }
 
   switch (GS(((ID *)ob->data)->name)) {
     case ID_ME: {
-      BKE_mesh_texspace_get_reference((Mesh *)ob->data, r_texflag, r_loc, r_size);
+      BKE_mesh_texspace_get_reference(
+          (Mesh *)ob->data, r_texspace_flag, r_texspace_location, r_texspace_size);
       break;
     }
     case ID_CU_LEGACY: {
       Curve *cu = (Curve *)ob->data;
       BKE_curve_texspace_ensure(cu);
-      if (r_texflag) {
-        *r_texflag = &cu->texflag;
+      if (r_texspace_flag) {
+        *r_texspace_flag = &cu->texspace_flag;
       }
-      if (r_loc) {
-        *r_loc = cu->loc;
+      if (r_texspace_location) {
+        *r_texspace_location = cu->texspace_location;
       }
-      if (r_size) {
-        *r_size = cu->size;
+      if (r_texspace_size) {
+        *r_texspace_size = cu->texspace_size;
       }
       break;
     }
     case ID_MB: {
       MetaBall *mb = (MetaBall *)ob->data;
-      if (r_texflag) {
-        *r_texflag = &mb->texflag;
+      if (r_texspace_flag) {
+        *r_texspace_flag = &mb->texspace_flag;
       }
-      if (r_loc) {
-        *r_loc = mb->loc;
+      if (r_texspace_location) {
+        *r_texspace_location = mb->texspace_location;
       }
-      if (r_size) {
-        *r_size = mb->size;
+      if (r_texspace_size) {
+        *r_texspace_size = mb->texspace_size;
       }
       break;
     }

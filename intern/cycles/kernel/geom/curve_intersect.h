@@ -738,7 +738,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
     /* NOTE: It is possible that P will be the same as P_inside (precision issues, or very small
      * radius). In this case use the view direction to approximate the normal. */
     const float3 P_inside = float4_to_float3(catmull_rom_basis_eval(P_curve, sd->u));
-    const float3 N = (!isequal(P, P_inside)) ? normalize(P - P_inside) : -sd->I;
+    const float3 N = (!isequal(P, P_inside)) ? normalize(P - P_inside) : -sd->wi;
 
     sd->N = N;
     sd->v = 0.0f;
@@ -757,7 +757,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
   }
 
   sd->P = P;
-  sd->Ng = (sd->type & PRIMITIVE_CURVE_RIBBON) ? sd->I : sd->N;
+  sd->Ng = (sd->type & PRIMITIVE_CURVE_RIBBON) ? sd->wi : sd->N;
   sd->dPdv = cross(sd->dPdu, sd->Ng);
   sd->shader = kernel_data_fetch(curves, sd->prim).shader_id;
 }

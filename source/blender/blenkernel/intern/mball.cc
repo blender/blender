@@ -85,9 +85,6 @@ static void metaball_free_data(ID *id)
   MEM_SAFE_FREE(metaball->mat);
 
   BLI_freelistN(&metaball->elems);
-  if (metaball->disp.first) {
-    BKE_displist_free(&metaball->disp);
-  }
 }
 
 static void metaball_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -103,7 +100,6 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
   MetaBall *mb = (MetaBall *)id;
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-  BLI_listbase_clear(&mb->disp);
   mb->editelems = nullptr;
   /* Must always be cleared (meta's don't have their own edit-data). */
   mb->needs_flush_to_id = 0;
@@ -134,7 +130,6 @@ static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_list(reader, &(mb->elems));
 
-  BLI_listbase_clear(&mb->disp);
   mb->editelems = nullptr;
   /* Must always be cleared (meta's don't have their own edit-data). */
   mb->needs_flush_to_id = 0;

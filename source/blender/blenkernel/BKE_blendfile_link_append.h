@@ -13,11 +13,7 @@ struct BlendHandle;
 struct ID;
 struct Library;
 struct LibraryLink_Params;
-struct Main;
 struct ReportList;
-struct Scene;
-struct View3D;
-struct ViewLayer;
 
 typedef struct BlendfileLinkAppendContext BlendfileLinkAppendContext;
 typedef struct BlendfileLinkAppendContextItem BlendfileLinkAppendContextItem;

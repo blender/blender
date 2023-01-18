@@ -370,13 +370,14 @@ static int select_random_exec(bContext *C, wmOperator *op)
     if (!was_anything_selected) {
       selection.fill(1.0f);
     }
+    const OffsetIndices points_by_curve = curves.points_by_curve();
     switch (curves_id->selection_domain) {
       case ATTR_DOMAIN_POINT: {
         if (partial) {
           if (constant_per_curve) {
             for (const int curve_i : curves.curves_range()) {
               const float random_value = next_partial_random_value();
-              const IndexRange points = curves.points_for_curve(curve_i);
+              const IndexRange points = points_by_curve[curve_i];
               for (const int point_i : points) {
                 selection[point_i] *= random_value;
               }
@@ -393,7 +394,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
           if (constant_per_curve) {
             for (const int curve_i : curves.curves_range()) {
               const bool random_value = next_bool_random_value();
-              const IndexRange points = curves.points_for_curve(curve_i);
+              const IndexRange points = points_by_curve[curve_i];
               if (!random_value) {
                 selection.slice(points).fill(0.0f);
               }
@@ -547,6 +548,7 @@ static int select_end_exec(bContext *C, wmOperator *op)
     if (!was_anything_selected) {
       curves::fill_selection_true(selection.span);
     }
+    const OffsetIndices points_by_curve = curves.points_by_curve();
     selection.span.type().to_static_type_tag<bool, float>([&](auto type_tag) {
       using T = typename decltype(type_tag)::type;
       if constexpr (std::is_void_v<T>) {
@@ -556,7 +558,7 @@ static int select_end_exec(bContext *C, wmOperator *op)
         MutableSpan<T> selection_typed = selection.span.typed<T>();
         threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
           for (const int curve_i : range) {
-            const IndexRange points = curves.points_for_curve(curve_i);
+            const IndexRange points = points_by_curve[curve_i];
             if (end_points) {
               selection_typed.slice(points.drop_back(amount)).fill(T(0));
             }
@@ -667,6 +669,7 @@ static int select_grow_update(bContext *C, wmOperator *op, const float mouse_dif
     const float distance = curve_op_data->pixel_to_distance_factor * mouse_diff_x;
 
     bke::SpanAttributeWriter<float> selection = float_selection_ensure(curves_id);
+    const OffsetIndices points_by_curve = curves.points_by_curve();
 
     /* Grow or shrink selection based on precomputed distances. */
     switch (selection.domain) {
@@ -680,7 +683,7 @@ static int select_grow_update(bContext *C, wmOperator *op, const float mouse_dif
         /* Propagate grown point selection to the curve selection. */
         MutableSpan<float> curves_selection = selection.span;
         for (const int curve_i : curves.curves_range()) {
-          const IndexRange points = curves.points_for_curve(curve_i);
+          const IndexRange points = points_by_curve[curve_i];
           const Span<float> points_selection = new_points_selection.as_span().slice(points);
           const float max_selection = *std::max_element(points_selection.begin(),
                                                         points_selection.end());

@@ -32,7 +32,6 @@ void ED_gizmotypes_snap_3d(void);
 struct Object;
 struct bContext;
 struct wmGizmo;
-struct wmWindowManager;
 
 /* -------------------------------------------------------------------- */
 /* Shape Presets

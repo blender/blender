@@ -382,6 +382,12 @@ void mul_m4_m4m3(float R[4][4], const float A[4][4], const float B[3][3])
 {
   if (R == A) {
     float T[4][4];
+    /* The mul_m4_m4m3 only writes to the upper-left 3x3 block, so make it so the rest of the
+     * matrix is copied from the input to the output.
+     *
+     * TODO(sergey): It does sound a bit redundant from the number of copy operations, so there is
+     * a potential for optimization. */
+    copy_m4_m4(T, A);
     mul_m4_m4m3(T, A, B);
     copy_m4_m4(R, T);
     return;
@@ -450,6 +456,12 @@ void mul_m4_m3m4(float R[4][4], const float A[3][3], const float B[4][4])
 {
   if (R == B) {
     float T[4][4];
+    /* The mul_m4_m4m3 only writes to the upper-left 3x3 block, so make it so the rest of the
+     * matrix is copied from the input to the output.
+     *
+     * TODO(sergey): It does sound a bit redundant from the number of copy operations, so there is
+     * a potential for optimization. */
+    copy_m4_m4(T, B);
     mul_m4_m3m4(T, A, B);
     copy_m4_m4(R, T);
     return;

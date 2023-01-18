@@ -19,8 +19,6 @@
 #include "UI_view2d.h"
 
 struct ARegion;
-struct ARegionType;
-struct Main;
 struct NodeInsertOfsData;
 struct View2D;
 struct bContext;

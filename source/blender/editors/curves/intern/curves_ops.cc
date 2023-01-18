@@ -286,11 +286,12 @@ static void try_convert_single_object(Object &curves_ob,
   const bke::CurvesSurfaceTransforms transforms{curves_ob, &surface_ob};
 
   const MFace *mfaces = (const MFace *)CustomData_get_layer(&surface_me.fdata, CD_MFACE);
+  const OffsetIndices points_by_curve = curves.points_by_curve();
   const Span<float3> positions = surface_me.vert_positions();
 
   for (const int new_hair_i : IndexRange(hair_num)) {
     const int curve_i = new_hair_i;
-    const IndexRange points = curves.points_for_curve(curve_i);
+    const IndexRange points = points_by_curve[curve_i];
 
     const float3 &root_pos_cu = positions_cu[points.first()];
     const float3 root_pos_su = transforms.curves_to_surface * root_pos_cu;
@@ -440,6 +441,7 @@ static bke::CurvesGeometry particles_to_curves(Object &object, ParticleSystem &p
   const float4x4 world_to_object_mat = object_to_world_mat.inverted();
 
   MutableSpan<float3> positions = curves.positions_for_write();
+  const OffsetIndices points_by_curve = curves.points_by_curve();
 
   const auto copy_hair_to_curves = [&](const Span<ParticleCacheKey *> hair_cache,
                                        const Span<int> indices_to_transfer,
@@ -448,7 +450,7 @@ static bke::CurvesGeometry particles_to_curves(Object &object, ParticleSystem &p
       for (const int i : range) {
         const int hair_i = indices_to_transfer[i];
         const int curve_i = i + curve_index_offset;
-        const IndexRange points = curves.points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         const Span<ParticleCacheKey> keys{hair_cache[hair_i], points.size()};
         for (const int key_i : keys.index_range()) {
           const float3 key_pos_wo = keys[key_i].co;
@@ -554,6 +556,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
                          .typed<float2>();
   }
 
+  const OffsetIndices points_by_curve = curves.points_by_curve();
   MutableSpan<float3> positions_cu = curves.positions_for_write();
   MutableSpan<float2> surface_uv_coords = curves.surface_uv_coords_for_write();
 
@@ -567,7 +570,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
 
       threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange curves_range) {
         for (const int curve_i : curves_range) {
-          const IndexRange points = curves.points_for_curve(curve_i);
+          const IndexRange points = points_by_curve[curve_i];
           const int first_point_i = points.first();
           const float3 old_first_point_pos_cu = positions_cu[first_point_i];
           const float3 old_first_point_pos_su = transforms.curves_to_surface *
@@ -625,7 +628,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
 
       threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange curves_range) {
         for (const int curve_i : curves_range) {
-          const IndexRange points = curves.points_for_curve(curve_i);
+          const IndexRange points = points_by_curve[curve_i];
           const int first_point_i = points.first();
           const float3 old_first_point_pos_cu = positions_cu[first_point_i];
 

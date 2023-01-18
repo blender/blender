@@ -143,6 +143,7 @@ namespace blender::bke {
 
 static Array<float3> curve_normal_point_domain(const bke::CurvesGeometry &curves)
 {
+  const OffsetIndices points_by_curve = curves.points_by_curve();
   const VArray<int8_t> types = curves.curve_types();
   const VArray<int> resolutions = curves.resolution();
   const VArray<bool> curves_cyclic = curves.cyclic();
@@ -158,7 +159,7 @@ static Array<float3> curve_normal_point_domain(const bke::CurvesGeometry &curves
     Vector<float3> nurbs_tangents;
 
     for (const int i_curve : range) {
-      const IndexRange points = curves.points_for_curve(i_curve);
+      const IndexRange points = points_by_curve[i_curve];
       const IndexRange evaluated_points = curves.evaluated_points_for_curve(i_curve);
 
       MutableSpan<float3> curve_normals = results.as_mutable_span().slice(points);

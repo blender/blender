@@ -12,8 +12,6 @@
 
 struct AssetHandle;
 struct AssetLibraryReference;
-struct FileDirEntry;
-struct bContext;
 
 namespace blender::asset_system {
 class AssetLibrary;

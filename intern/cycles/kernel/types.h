@@ -888,7 +888,7 @@ typedef struct ccl_align(16) ShaderData
   /* true geometric normal */
   float3 Ng;
   /* view/incoming direction */
-  float3 I;
+  float3 wi;
   /* shader id */
   int shader;
   /* booleans describing shader, see ShaderDataFlag */
@@ -920,7 +920,7 @@ typedef struct ccl_align(16) ShaderData
 #ifdef __RAY_DIFFERENTIALS__
   /* Radius of differential of P. */
   float dP;
-  /* Radius of differential of I. */
+  /* Radius of differential of wi. */
   float dI;
   /* differential of u, v */
   differential du;

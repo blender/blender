@@ -189,6 +189,7 @@ struct CombOperationExecutor {
     MutableSpan<float3> positions_cu_orig = curves_orig_->positions_for_write();
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *curves_ob_orig_);
+    const OffsetIndices points_by_curve = curves_orig_->points_by_curve();
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_, projection.values);
@@ -200,7 +201,7 @@ struct CombOperationExecutor {
       Vector<int> &local_changed_curves = r_changed_curves.local();
       for (const int curve_i : curve_selection_.slice(range)) {
         bool curve_changed = false;
-        const IndexRange points = curves_orig_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         for (const int point_i : points.drop_front(1)) {
           const float3 old_pos_cu = deformation.positions[point_i];
           const float3 old_symm_pos_cu = brush_transform_inv * old_pos_cu;
@@ -295,12 +296,13 @@ struct CombOperationExecutor {
 
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *curves_ob_orig_);
+    const OffsetIndices points_by_curve = curves_orig_->points_by_curve();
 
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
       Vector<int> &local_changed_curves = r_changed_curves.local();
       for (const int curve_i : curve_selection_.slice(range)) {
         bool curve_changed = false;
-        const IndexRange points = curves_orig_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         for (const int point_i : points.drop_front(1)) {
           const float3 pos_old_cu = deformation.positions[point_i];
 
@@ -359,10 +361,11 @@ struct CombOperationExecutor {
   void initialize_segment_lengths()
   {
     const Span<float3> positions_cu = curves_orig_->positions();
+    const OffsetIndices points_by_curve = curves_orig_->points_by_curve();
     self_->segment_lengths_cu_.reinitialize(curves_orig_->points_num());
     threading::parallel_for(curves_orig_->curves_range(), 128, [&](const IndexRange range) {
       for (const int curve_i : range) {
-        const IndexRange points = curves_orig_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         for (const int point_i : points.drop_back(1)) {
           const float3 &p1_cu = positions_cu[point_i];
           const float3 &p2_cu = positions_cu[point_i + 1];
@@ -379,12 +382,13 @@ struct CombOperationExecutor {
   void restore_segment_lengths(EnumerableThreadSpecific<Vector<int>> &changed_curves)
   {
     const Span<float> expected_lengths_cu = self_->segment_lengths_cu_;
+    const OffsetIndices points_by_curve = curves_orig_->points_by_curve();
     MutableSpan<float3> positions_cu = curves_orig_->positions_for_write();
 
     threading::parallel_for_each(changed_curves, [&](const Vector<int> &changed_curves) {
       threading::parallel_for(changed_curves.index_range(), 256, [&](const IndexRange range) {
         for (const int curve_i : changed_curves.as_span().slice(range)) {
-          const IndexRange points = curves_orig_->points_for_curve(curve_i);
+          const IndexRange points = points_by_curve[curve_i];
           for (const int segment_i : points.drop_back(1)) {
             const float3 &p1_cu = positions_cu[segment_i];
             float3 &p2_cu = positions_cu[segment_i + 1];

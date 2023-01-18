@@ -258,7 +258,7 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
       switch_endian_knots(nu);
     }
   }
-  cu->texflag &= ~CU_AUTOSPACE_EVALUATED;
+  cu->texspace_flag &= ~CU_TEXSPACE_FLAG_AUTO_EVALUATED;
 
   BLO_read_data_address(reader, &cu->bevel_profile);
   if (cu->bevel_profile != nullptr) {
@@ -517,7 +517,7 @@ BoundBox *BKE_curve_boundbox_get(Object *ob)
 
 void BKE_curve_texspace_calc(Curve *cu)
 {
-  if (cu->texflag & CU_AUTOSPACE) {
+  if (cu->texspace_flag & CU_TEXSPACE_FLAG_AUTO) {
     float min[3], max[3];
 
     INIT_MINMAX(min, max);
@@ -526,35 +526,36 @@ void BKE_curve_texspace_calc(Curve *cu)
       max[0] = max[1] = max[2] = 1.0f;
     }
 
-    float loc[3], size[3];
-    mid_v3_v3v3(loc, min, max);
+    float texspace_location[3], texspace_size[3];
+    mid_v3_v3v3(texspace_location, min, max);
 
-    size[0] = (max[0] - min[0]) / 2.0f;
-    size[1] = (max[1] - min[1]) / 2.0f;
-    size[2] = (max[2] - min[2]) / 2.0f;
+    texspace_size[0] = (max[0] - min[0]) / 2.0f;
+    texspace_size[1] = (max[1] - min[1]) / 2.0f;
+    texspace_size[2] = (max[2] - min[2]) / 2.0f;
 
     for (int a = 0; a < 3; a++) {
-      if (size[a] == 0.0f) {
-        size[a] = 1.0f;
+      if (texspace_size[a] == 0.0f) {
+        texspace_size[a] = 1.0f;
       }
-      else if (size[a] > 0.0f && size[a] < 0.00001f) {
-        size[a] = 0.00001f;
+      else if (texspace_size[a] > 0.0f && texspace_size[a] < 0.00001f) {
+        texspace_size[a] = 0.00001f;
       }
-      else if (size[a] < 0.0f && size[a] > -0.00001f) {
-        size[a] = -0.00001f;
+      else if (texspace_size[a] < 0.0f && texspace_size[a] > -0.00001f) {
+        texspace_size[a] = -0.00001f;
       }
     }
 
-    copy_v3_v3(cu->loc, loc);
-    copy_v3_v3(cu->size, size);
+    copy_v3_v3(cu->texspace_location, texspace_location);
+    copy_v3_v3(cu->texspace_size, texspace_size);
 
-    cu->texflag |= CU_AUTOSPACE_EVALUATED;
+    cu->texspace_flag |= CU_TEXSPACE_FLAG_AUTO_EVALUATED;
   }
 }
 
 void BKE_curve_texspace_ensure(Curve *cu)
 {
-  if ((cu->texflag & CU_AUTOSPACE) && !(cu->texflag & CU_AUTOSPACE_EVALUATED)) {
+  if ((cu->texspace_flag & CU_TEXSPACE_FLAG_AUTO) &&
+      (cu->texspace_flag & CU_TEXSPACE_FLAG_AUTO_EVALUATED) == 0) {
     BKE_curve_texspace_calc(cu);
   }
 }
@@ -5508,10 +5509,10 @@ void BKE_curve_eval_geometry(Depsgraph *depsgraph, Curve *curve)
   BKE_curve_texspace_calc(curve);
   if (DEG_is_active(depsgraph)) {
     Curve *curve_orig = (Curve *)DEG_get_original_id(&curve->id);
-    if (curve->texflag & CU_AUTOSPACE_EVALUATED) {
-      curve_orig->texflag |= CU_AUTOSPACE_EVALUATED;
-      copy_v3_v3(curve_orig->loc, curve->loc);
-      copy_v3_v3(curve_orig->size, curve->size);
+    if (curve->texspace_flag & CU_TEXSPACE_FLAG_AUTO_EVALUATED) {
+      curve_orig->texspace_flag |= CU_TEXSPACE_FLAG_AUTO_EVALUATED;
+      copy_v3_v3(curve_orig->texspace_location, curve->texspace_location);
+      copy_v3_v3(curve_orig->texspace_size, curve->texspace_size);
     }
   }
 }

@@ -55,11 +55,14 @@
 #include "intern/gpu_codegen.h"
 
 namespace blender::draw {
-
 using namespace blender::draw;
 using namespace blender::draw::command;
 
 class Manager;
+
+namespace command {
+class DrawCommandBuf;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Pass API
@@ -112,6 +115,7 @@ template<
     typename DrawCommandBufType>
 class PassBase {
   friend Manager;
+  friend DrawCommandBuf;
 
   /** Will use texture own sampler state. */
   static constexpr eGPUSamplerState sampler_auto = GPU_SAMPLER_MAX;

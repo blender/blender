@@ -2218,7 +2218,7 @@ void BKE_keyblock_convert_to_mesh(const KeyBlock *kb,
                                   const int totvert)
 {
   const int tot = min_ii(kb->totelem, totvert);
-  memcpy(kb->data, vert_positions, sizeof(float[3]) * tot);
+  memcpy(vert_positions, kb->data, sizeof(float[3]) * tot);
 }
 
 void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,

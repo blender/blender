@@ -12,7 +12,6 @@ struct Object;
 struct RenderEngine;
 struct SmoothView3DStore;
 struct SpaceLink;
-struct ViewDepths;
 struct bGPdata;
 struct wmTimer;
 

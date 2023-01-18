@@ -179,6 +179,7 @@ struct SnakeHookOperatorExecutor {
     const float4x4 brush_transform_inv = brush_transform.inverted();
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
@@ -191,7 +192,7 @@ struct SnakeHookOperatorExecutor {
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
       MoveAndResampleBuffers resample_buffer;
       for (const int curve_i : curves_range) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         const int last_point_i = points.last();
         const float3 old_pos_cu = deformation.positions[last_point_i];
         const float3 old_symm_pos_cu = brush_transform_inv * old_pos_cu;
@@ -264,6 +265,7 @@ struct SnakeHookOperatorExecutor {
   {
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
     const float3 brush_diff_cu = brush_end_cu - brush_start_cu;
@@ -272,7 +274,7 @@ struct SnakeHookOperatorExecutor {
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
       MoveAndResampleBuffers resample_buffer;
       for (const int curve_i : curves_range) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         const int last_point_i = points.last();
         const float3 old_pos_cu = deformation.positions[last_point_i];
 

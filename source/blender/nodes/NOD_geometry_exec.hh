@@ -14,8 +14,6 @@
 #include "NOD_derived_node_tree.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 
-struct ModifierData;
-
 namespace blender::nodes {
 
 using bke::AnonymousAttributeFieldInput;

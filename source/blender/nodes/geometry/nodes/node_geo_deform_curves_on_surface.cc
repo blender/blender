@@ -74,6 +74,8 @@ static void deform_curves(const CurvesGeometry &curves,
   const Span<MLoop> surface_loops_new = surface_mesh_new.loops();
   const Span<MLoopTri> surface_looptris_new = surface_mesh_new.looptris();
 
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+
   threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
     for (const int curve_i : range) {
       const ReverseUVSampler::Result &surface_sample_old = surface_samples_old[curve_i];
@@ -197,7 +199,7 @@ static void deform_curves(const CurvesGeometry &curves,
       const float4x4 curve_transform = surface_to_curves * surface_transform * curves_to_surface;
 
       /* Actually transform all points. */
-      const IndexRange points = curves.points_for_curve(curve_i);
+      const IndexRange points = points_by_curve[curve_i];
       for (const int point_i : points) {
         const float3 old_point_pos = r_positions[point_i];
         const float3 new_point_pos = curve_transform * old_point_pos;

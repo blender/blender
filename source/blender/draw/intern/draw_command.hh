@@ -21,6 +21,12 @@
 #include "draw_state.h"
 #include "draw_view.hh"
 
+/* Forward declarations. */
+namespace blender::draw::detail {
+template<typename T, int64_t block_size> class SubPassVector;
+template<typename DrawCommandBufType> class PassBase;
+}  // namespace blender::draw::detail
+
 namespace blender::draw::command {
 
 class DrawCommandBuf;
@@ -411,6 +417,7 @@ class DrawCommandBuf {
 
  private:
   using ResourceIdBuf = StorageArrayBuffer<uint, 128, false>;
+  using SubPassVector = detail::SubPassVector<detail::PassBase<DrawCommandBuf>, 16>;
 
   /** Array of resource id. One per instance. Generated on GPU and send to GPU. */
   ResourceIdBuf resource_id_buf_;
@@ -436,7 +443,17 @@ class DrawCommandBuf {
     commands[index].draw = {batch, instance_len, vertex_len, vertex_first, handle};
   }
 
-  void bind(RecordingState &state, Vector<Header, 0> &headers, Vector<Undetermined, 0> &commands);
+  void bind(RecordingState &state,
+            Vector<Header, 0> &headers,
+            Vector<Undetermined, 0> &commands,
+            SubPassVector &sub_passes);
+
+ private:
+  static void finalize_commands(Vector<Header, 0> &headers,
+                                Vector<Undetermined, 0> &commands,
+                                SubPassVector &sub_passes,
+                                uint &resource_id_count,
+                                ResourceIdBuf &resource_id_buf);
 };
 
 /** \} */

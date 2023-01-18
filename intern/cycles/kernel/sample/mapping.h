@@ -33,19 +33,19 @@ ccl_device void make_orthonormals_tangent(const float3 N,
 
 /* sample direction with cosine weighted distributed in hemisphere */
 ccl_device_inline void sample_cos_hemisphere(
-    const float3 N, float randu, float randv, ccl_private float3 *omega_in, ccl_private float *pdf)
+    const float3 N, float randu, float randv, ccl_private float3 *wo, ccl_private float *pdf)
 {
   to_unit_disk(&randu, &randv);
   float costheta = sqrtf(max(1.0f - randu * randu - randv * randv, 0.0f));
   float3 T, B;
   make_orthonormals(N, &T, &B);
-  *omega_in = randu * T + randv * B + costheta * N;
+  *wo = randu * T + randv * B + costheta * N;
   *pdf = costheta * M_1_PI_F;
 }
 
 /* sample direction uniformly distributed in hemisphere */
 ccl_device_inline void sample_uniform_hemisphere(
-    const float3 N, float randu, float randv, ccl_private float3 *omega_in, ccl_private float *pdf)
+    const float3 N, float randu, float randv, ccl_private float3 *wo, ccl_private float *pdf)
 {
   float z = randu;
   float r = sqrtf(max(0.0f, 1.0f - z * z));
@@ -55,7 +55,7 @@ ccl_device_inline void sample_uniform_hemisphere(
 
   float3 T, B;
   make_orthonormals(N, &T, &B);
-  *omega_in = x * T + y * B + z * N;
+  *wo = x * T + y * B + z * N;
   *pdf = 0.5f * M_1_PI_F;
 }
 
@@ -64,7 +64,7 @@ ccl_device_inline void sample_uniform_cone(const float3 N,
                                            float angle,
                                            float randu,
                                            float randv,
-                                           ccl_private float3 *omega_in,
+                                           ccl_private float3 *wo,
                                            ccl_private float *pdf)
 {
   float zMin = cosf(angle);
@@ -76,7 +76,7 @@ ccl_device_inline void sample_uniform_cone(const float3 N,
 
   float3 T, B;
   make_orthonormals(N, &T, &B);
-  *omega_in = x * T + y * B + z * N;
+  *wo = x * T + y * B + z * N;
   *pdf = M_1_2PI_F / (1.0f - zMin);
 }
 

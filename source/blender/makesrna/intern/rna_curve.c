@@ -260,7 +260,7 @@ static void rna_Curve_texspace_set(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 {
   Curve *cu = (Curve *)ptr->data;
 
-  if (cu->texflag & CU_AUTOSPACE) {
+  if (cu->texspace_flag & CU_TEXSPACE_FLAG_AUTO) {
     BKE_curve_texspace_calc(cu);
   }
 }
@@ -268,23 +268,23 @@ static void rna_Curve_texspace_set(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 static int rna_Curve_texspace_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
   Curve *cu = (Curve *)ptr->data;
-  return (cu->texflag & CU_AUTOSPACE) ? 0 : PROP_EDITABLE;
+  return (cu->texspace_flag & CU_TEXSPACE_FLAG_AUTO) ? 0 : PROP_EDITABLE;
 }
 
-static void rna_Curve_texspace_loc_get(PointerRNA *ptr, float *values)
+static void rna_Curve_texspace_location_get(PointerRNA *ptr, float *values)
 {
   Curve *cu = (Curve *)ptr->data;
 
   BKE_curve_texspace_ensure(cu);
 
-  copy_v3_v3(values, cu->loc);
+  copy_v3_v3(values, cu->texspace_location);
 }
 
-static void rna_Curve_texspace_loc_set(PointerRNA *ptr, const float *values)
+static void rna_Curve_texspace_location_set(PointerRNA *ptr, const float *values)
 {
   Curve *cu = (Curve *)ptr->data;
 
-  copy_v3_v3(cu->loc, values);
+  copy_v3_v3(cu->texspace_location, values);
 }
 
 static void rna_Curve_texspace_size_get(PointerRNA *ptr, float *values)
@@ -293,14 +293,14 @@ static void rna_Curve_texspace_size_get(PointerRNA *ptr, float *values)
 
   BKE_curve_texspace_ensure(cu);
 
-  copy_v3_v3(values, cu->size);
+  copy_v3_v3(values, cu->texspace_size);
 }
 
 static void rna_Curve_texspace_size_set(PointerRNA *ptr, const float *values)
 {
   Curve *cu = (Curve *)ptr->data;
 
-  copy_v3_v3(cu->size, values);
+  copy_v3_v3(cu->texspace_size, values);
 }
 
 static void rna_Curve_material_index_range(
@@ -1805,7 +1805,7 @@ static void rna_def_curve(BlenderRNA *brna)
 
   /* texture space */
   prop = RNA_def_property(srna, "use_auto_texspace", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "texflag", CU_AUTOSPACE);
+  RNA_def_property_boolean_sdna(prop, NULL, "texspace_flag", CU_TEXSPACE_FLAG_AUTO);
   RNA_def_property_ui_text(
       prop,
       "Auto Texture Space",
@@ -1818,7 +1818,7 @@ static void rna_def_curve(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_editable_func(prop, "rna_Curve_texspace_editable");
   RNA_def_property_float_funcs(
-      prop, "rna_Curve_texspace_loc_get", "rna_Curve_texspace_loc_set", NULL);
+      prop, "rna_Curve_texspace_location_get", "rna_Curve_texspace_location_set", NULL);
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_XYZ);

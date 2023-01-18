@@ -32,9 +32,10 @@ static IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves,
     if (selection.is_single()) {
       return selection.get_internal_single() ? IndexMask(curves_range) : IndexMask();
     }
+    const OffsetIndices points_by_curve = curves.points_by_curve();
     return index_mask_ops::find_indices_based_on_predicate(
         curves_range, 512, r_indices, [&](const int64_t curve_i) {
-          const IndexRange points = curves.points_for_curve(curve_i);
+          const IndexRange points = points_by_curve[curve_i];
           /* The curve is selected if any of its points are selected. */
           Array<bool, 32> point_selection(points.size());
           selection.materialize_compressed(points, point_selection);

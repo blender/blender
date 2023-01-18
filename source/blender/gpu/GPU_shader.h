@@ -11,7 +11,6 @@
 extern "C" {
 #endif
 
-struct GPUIndexBuf;
 struct GPUVertBuf;
 
 /** Opaque type hiding #blender::gpu::shader::ShaderCreateInfo */

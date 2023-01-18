@@ -43,7 +43,6 @@ struct UVEdge;
 struct UVIslands;
 struct UVIslandsMask;
 struct UVPrimitive;
-struct UVPrimitiveEdge;
 struct MeshData;
 struct UVVertex;
 

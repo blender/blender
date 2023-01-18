@@ -19,7 +19,6 @@ extern "C" {
 #endif
 
 struct ID;
-struct ListBase;
 struct Main;
 struct ReportList;
 

@@ -8,7 +8,6 @@
 struct BMEditMesh;
 struct CustomData_MeshMasks;
 struct Mesh;
-struct Object;
 
 #ifdef __cplusplus
 extern "C" {

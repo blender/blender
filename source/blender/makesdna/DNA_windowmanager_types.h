@@ -23,7 +23,6 @@ struct wmWindow;
 struct wmWindowManager;
 
 struct wmEvent;
-struct wmGesture;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmMsgBus;

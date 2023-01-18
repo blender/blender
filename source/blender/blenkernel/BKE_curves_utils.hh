@@ -532,11 +532,6 @@ void fill_curve_counts(const bke::CurvesGeometry &curves,
                        Span<IndexRange> curve_ranges,
                        MutableSpan<int> counts);
 
-/**
- * Turn an array of sizes into the offset at each index including all previous sizes.
- */
-void accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets, int start_offset = 0);
-
 IndexMask indices_for_type(const VArray<int8_t> &types,
                            const std::array<int, CURVE_TYPES_NUM> &type_counts,
                            const CurveType type,

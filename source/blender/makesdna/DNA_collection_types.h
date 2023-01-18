@@ -44,11 +44,30 @@ enum eCollectionLineArt_Flags {
   COLLECTION_LRT_USE_INTERSECTION_PRIORITY = (1 << 1),
 };
 
+typedef struct Collection_Runtime {
+  /** The ID owning this collection, in case it is an embedded one. */
+  ID *owner_id;
+
+  /**
+   * Cache of objects in this collection and all its children.
+   * This is created on demand when e.g. some physics simulation needs it,
+   * we don't want to have it for every collections due to memory usage reasons.
+   */
+  ListBase object_cache;
+
+  /** Need this for line art sub-collection selections. */
+  ListBase object_cache_instanced;
+
+  /** List of collections that are a parent of this data-block. */
+  ListBase parents;
+
+  uint8_t tag;
+
+  char _pad0[7];
+} Collection_Runtime;
+
 typedef struct Collection {
   ID id;
-
-  /** The ID owning this node tree, in case it is an embedded one. */
-  ID *owner_id;
 
   /** CollectionObject. */
   ListBase gobject;
@@ -60,56 +79,54 @@ typedef struct Collection {
   unsigned int layer DNA_DEPRECATED;
   float instance_offset[3];
 
-  short flag;
-  /* Runtime-only, always cleared on file load. */
-  short tag;
+  uint8_t flag;
+  int8_t color_tag;
 
-  short lineart_usage;         /* eCollectionLineArt_Usage */
-  unsigned char lineart_flags; /* eCollectionLineArt_Flags */
-  unsigned char lineart_intersection_mask;
-  unsigned char lineart_intersection_priority;
-  char _pad[5];
+  char _pad0[2];
 
-  int16_t color_tag;
+  uint8_t lineart_usage; /* #eCollectionLineArt_Usage */
+  uint8_t lineart_flags; /* #eCollectionLineArt_Flags */
+  uint8_t lineart_intersection_mask;
+  uint8_t lineart_intersection_priority;
 
-  /* Runtime. Cache of objects in this collection and all its
-   * children. This is created on demand when e.g. some physics
-   * simulation needs it, we don't want to have it for every
-   * collections due to memory usage reasons. */
-  ListBase object_cache;
-
-  /* Need this for line art sub-collection selections. */
-  ListBase object_cache_instanced;
-
-  /* Runtime. List of collections that are a parent of this
-   * datablock. */
-  ListBase parents;
-
-  /* Deprecated */
   struct SceneCollection *collection DNA_DEPRECATED;
   struct ViewLayer *view_layer DNA_DEPRECATED;
+
+  /* Keep last. */
+  Collection_Runtime runtime;
 } Collection;
 
-/* Collection->flag */
+/** #Collection.flag */
 enum {
-  COLLECTION_HIDE_VIEWPORT = (1 << 0),             /* Disable in viewports. */
-  COLLECTION_HIDE_SELECT = (1 << 1),               /* Not selectable in viewport. */
-  /* COLLECTION_DISABLED_DEPRECATED = (1 << 2), */ /* Not used anymore */
-  COLLECTION_HIDE_RENDER = (1 << 3),               /* Disable in renders. */
-  COLLECTION_HAS_OBJECT_CACHE = (1 << 4),          /* Runtime: object_cache is populated. */
-  COLLECTION_IS_MASTER = (1 << 5), /* Is master collection embedded in the scene. */
-  COLLECTION_HAS_OBJECT_CACHE_INSTANCED = (1 << 6), /* for object_cache_instanced. */
+  /** Disable in viewports. */
+  COLLECTION_HIDE_VIEWPORT = (1 << 0),
+  /** Not selectable in viewport. */
+  COLLECTION_HIDE_SELECT = (1 << 1),
+  // COLLECTION_DISABLED_DEPRECATED = (1 << 2), /* DIRTY */
+  /** Disable in renders. */
+  COLLECTION_HIDE_RENDER = (1 << 3),
+  /** Runtime: object_cache is populated. */
+  COLLECTION_HAS_OBJECT_CACHE = (1 << 4),
+  /** Is master collection embedded in the scene. */
+  COLLECTION_IS_MASTER = (1 << 5),
+  /** for object_cache_instanced. */
+  COLLECTION_HAS_OBJECT_CACHE_INSTANCED = (1 << 6),
 };
 
-/* Collection->tag */
+#define COLLECTION_FLAG_ALL_RUNTIME \
+  (COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED)
+
+/** #Collection_Runtime.tag */
 enum {
-  /* That code (BKE_main_collections_parent_relations_rebuild and the like)
+  /**
+   * That code (#BKE_main_collections_parent_relations_rebuild and the like)
    * is called from very low-level places, like e.g ID remapping...
-   * Using a generic tag like LIB_TAG_DOIT for this is just impossible, we need our very own. */
+   * Using a generic tag like #LIB_TAG_DOIT for this is just impossible, we need our very own.
+   */
   COLLECTION_TAG_RELATION_REBUILD = (1 << 0),
 };
 
-/* Collection->color_tag. */
+/** #Collection.color_tag */
 typedef enum CollectionColorTag {
   COLLECTION_COLOR_NONE = -1,
   COLLECTION_COLOR_01,

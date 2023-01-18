@@ -1876,8 +1876,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
   Object *single_object = BLI_listbase_is_single(&objects) ? ((LinkData *)objects.first)->data :
                                                              NULL;
 
-  if ((single_object != NULL) && is_link &&
-      BLI_findptr(&collection->gobject, single_object, offsetof(CollectionObject, ob))) {
+  if ((single_object != NULL) && is_link && BKE_collection_has_object(collection, single_object)) {
     BKE_reportf(op->reports,
                 RPT_ERROR,
                 "%s already in %s",

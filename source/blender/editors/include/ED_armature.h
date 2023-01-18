@@ -31,7 +31,6 @@ struct SelectPick_Params;
 struct UndoType;
 struct View3D;
 struct ViewLayer;
-struct bAction;
 struct bArmature;
 struct bContext;
 struct bPoseChannel;

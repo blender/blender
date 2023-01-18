@@ -62,6 +62,7 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
     point_evaluator.add(sort_weight_);
     point_evaluator.evaluate();
     const VArray<float> all_sort_weights = point_evaluator.get_evaluated<float>(0);
+    const OffsetIndices points_by_curve = curves.points_by_curve();
 
     Array<int> point_of_curve(mask.min_array_size());
     threading::parallel_for(mask.index_range(), 256, [&](const IndexRange range) {
@@ -77,7 +78,7 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
           continue;
         }
 
-        const IndexRange points = curves.points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
 
         /* Retrieve the weights for each point. */
         sort_weights.reinitialize(points.size());
@@ -142,8 +143,9 @@ class CurvePointCountInput final : public bke::CurvesFieldInput {
     if (domain != ATTR_DOMAIN_CURVE) {
       return {};
     }
-    return VArray<int>::ForFunc(curves.curves_num(), [&, curves](const int64_t curve_i) {
-      return curves.points_num_for_curve(curve_i);
+    const OffsetIndices points_by_curve = curves.points_by_curve();
+    return VArray<int>::ForFunc(curves.curves_num(), [points_by_curve](const int64_t curve_i) {
+      return points_by_curve.size(curve_i);
     });
   }
 

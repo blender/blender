@@ -460,14 +460,14 @@ static void OVERLAY_texture_space(OVERLAY_ExtraCallBuffers *cb, Object *ob, cons
     case ID_CU_LEGACY: {
       Curve *cu = (Curve *)ob_data;
       BKE_curve_texspace_ensure(cu);
-      texcoloc = cu->loc;
-      texcosize = cu->size;
+      texcoloc = cu->texspace_location;
+      texcosize = cu->texspace_size;
       break;
     }
     case ID_MB: {
       MetaBall *mb = (MetaBall *)ob_data;
-      texcoloc = mb->loc;
-      texcosize = mb->size;
+      texcoloc = mb->texspace_location;
+      texcosize = mb->texspace_size;
       break;
     }
     case ID_CV:

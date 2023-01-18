@@ -117,11 +117,12 @@ static void interpolate_position_without_interpolation(
     const float4x4 &surface_to_curves_normal_mat)
 {
   const int added_curves_num = root_positions_cu.size();
+  const OffsetIndices points_by_curve = curves.points_by_curve();
   MutableSpan<float3> positions_cu = curves.positions_for_write();
   threading::parallel_for(IndexRange(added_curves_num), 256, [&](const IndexRange range) {
     for (const int i : range) {
       const int curve_i = old_curves_num + i;
-      const IndexRange points = curves.points_for_curve(curve_i);
+      const IndexRange points = points_by_curve[curve_i];
       const float3 &root_cu = root_positions_cu[i];
       const float length = new_lengths_cu[i];
       const float3 &normal_su = new_normals_su[i];
@@ -147,13 +148,14 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
   MutableSpan<float3> positions_cu = curves.positions_for_write();
   const int added_curves_num = root_positions_cu.size();
 
+  const OffsetIndices points_by_curve = curves.points_by_curve();
   const Span<float2> uv_coords = curves.surface_uv_coords();
 
   threading::parallel_for(IndexRange(added_curves_num), 256, [&](const IndexRange range) {
     for (const int added_curve_i : range) {
       const NeighborCurves &neighbors = neighbors_per_curve[added_curve_i];
       const int curve_i = old_curves_num + added_curve_i;
-      const IndexRange points = curves.points_for_curve(curve_i);
+      const IndexRange points = points_by_curve[curve_i];
 
       const float length_cu = new_lengths_cu[added_curve_i];
       const float3 &normal_su = new_normals_su[added_curve_i];
@@ -188,7 +190,7 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
         float normal_rotation_cu[3][3];
         rotation_between_vecs_to_mat3(normal_rotation_cu, neighbor_normal_cu, normal_cu);
 
-        const IndexRange neighbor_points = curves.points_for_curve(neighbor_curve_i);
+        const IndexRange neighbor_points = points_by_curve[neighbor_curve_i];
         const float3 &neighbor_root_cu = positions_cu[neighbor_points[0]];
 
         /* Sample the positions on neighbors and mix them into the final positions of the curve.
@@ -289,7 +291,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
     interpolate_from_neighbors<int>(
         neighbors_per_curve,
         inputs.fallback_point_count,
-        [&](const int curve_i) { return curves.points_for_curve(curve_i).size(); },
+        [&](const int curve_i) { return curve_offsets[curve_i + 1] - curve_offsets[curve_i]; },
         new_point_counts_per_curve);
   }
   else {
@@ -314,11 +316,12 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   /* Determine length of new curves. */
   Array<float> new_lengths_cu(added_curves_num);
   if (inputs.interpolate_length) {
+    const OffsetIndices points_by_curve = curves.points_by_curve();
     interpolate_from_neighbors<float>(
         neighbors_per_curve,
         inputs.fallback_curve_length,
         [&](const int curve_i) {
-          const IndexRange points = curves.points_for_curve(curve_i);
+          const IndexRange points = points_by_curve[curve_i];
           float length = 0.0f;
           for (const int segment_i : points.drop_back(1)) {
             const float3 &p1 = positions_cu[segment_i];

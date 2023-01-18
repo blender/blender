@@ -61,6 +61,7 @@ class ControlPointNeighborFieldInput final : public bke::CurvesFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask mask) const final
   {
+    const OffsetIndices points_by_curve = curves.points_by_curve();
     const VArray<bool> cyclic = curves.cyclic();
     const Array<int> parent_curves = curves.point_to_curve_map();
 
@@ -76,7 +77,7 @@ class ControlPointNeighborFieldInput final : public bke::CurvesFieldInput {
     for (const int i_selection : mask) {
       const int i_point = std::clamp(indices[i_selection], 0, curves.points_num() - 1);
       const int i_curve = parent_curves[i_point];
-      const IndexRange curve_points = curves.points_for_curve(i_curve);
+      const IndexRange curve_points = points_by_curve[i_curve];
       const int offset_point = i_point + offsets[i_point];
 
       if (cyclic[i_curve]) {
@@ -116,6 +117,7 @@ class OffsetValidFieldInput final : public bke::CurvesFieldInput {
                                  const IndexMask mask) const final
   {
     const VArray<bool> cyclic = curves.cyclic();
+    const OffsetIndices points_by_curve = curves.points_by_curve();
     const Array<int> parent_curves = curves.point_to_curve_map();
 
     const bke::CurvesFieldContext context{curves, domain};
@@ -135,7 +137,7 @@ class OffsetValidFieldInput final : public bke::CurvesFieldInput {
       }
 
       const int i_curve = parent_curves[i_point];
-      const IndexRange curve_points = curves.points_for_curve(i_curve);
+      const IndexRange curve_points = points_by_curve[i_curve];
       if (cyclic[i_curve]) {
         output[i_selection] = true;
         continue;

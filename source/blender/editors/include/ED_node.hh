@@ -8,6 +8,7 @@
 struct SpaceNode;
 struct ARegion;
 struct Main;
+struct bNodeSocket;
 struct bNodeTree;
 struct rcti;
 

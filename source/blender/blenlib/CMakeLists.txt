@@ -117,6 +117,7 @@ set(SRC
   intern/mesh_intersect.cc
   intern/noise.c
   intern/noise.cc
+  intern/offset_indices.cc
   intern/path_util.c
   intern/polyfill_2d.c
   intern/polyfill_2d_beautify.c
@@ -294,6 +295,7 @@ set(SRC
   BLI_multi_value_map.hh
   BLI_noise.h
   BLI_noise.hh
+  BLI_offset_indices.hh
   BLI_parameter_pack_utils.hh
   BLI_path_util.h
   BLI_polyfill_2d.h

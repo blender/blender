@@ -574,7 +574,8 @@ static void loose_data_instantiate_obdata_preprocess(
  * (return false). */
 static bool loose_data_instantiate_collection_parents_check_recursive(Collection *collection)
 {
-  for (CollectionParent *parent_collection = collection->parents.first; parent_collection != NULL;
+  for (CollectionParent *parent_collection = collection->runtime.parents.first;
+       parent_collection != NULL;
        parent_collection = parent_collection->next) {
     if ((parent_collection->collection->id.tag & LIB_TAG_DOIT) != 0) {
       return true;

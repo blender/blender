@@ -42,7 +42,6 @@ typedef struct BlendWriter BlendWriter;
 
 struct BlendFileReadReport;
 struct Main;
-struct ReportList;
 
 /* -------------------------------------------------------------------- */
 /** \name Blend Write API

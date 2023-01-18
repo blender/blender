@@ -15,7 +15,7 @@
 
 #define _DNA_DEFAULT_Curve \
   { \
-    .size = {1, 1, 1}, \
+    .texspace_size = {1, 1, 1}, \
     .flag = CU_DEFORM_BOUNDS_OFF | CU_PATH_RADIUS, \
     .pathlen = 100, \
     .resolu = 12, \
@@ -26,7 +26,7 @@
     .linedist = 1.0, \
     .fsize = 1.0, \
     .ulheight = 0.05, \
-    .texflag = CU_AUTOSPACE, \
+    .texspace_flag = CU_TEXSPACE_FLAG_AUTO, \
     .smallcaps_scale = 0.75f, \
     /* This one seems to be the best one in most cases, at least for curve deform. */ \
     .twist_mode = CU_TWIST_MINIMUM, \

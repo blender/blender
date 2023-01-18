@@ -31,9 +31,10 @@ static void calculate_result_offsets(const bke::CurvesGeometry &src_curves,
 {
   /* Fill the array with each curve's point count, then accumulate them to the offsets. */
   bke::curves::fill_curve_counts(src_curves, unselected_ranges, dst_curve_offsets);
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
     for (const int curve_i : selection.slice(range)) {
-      const IndexRange src_points = src_curves.points_for_curve(curve_i);
+      const IndexRange src_points = src_points_by_curve[curve_i];
       const IndexRange src_segments = curve_dst_offsets(src_points, curve_i);
 
       MutableSpan<int> point_offsets = dst_point_offsets.slice(src_segments);
@@ -54,11 +55,11 @@ static void calculate_result_offsets(const bke::CurvesGeometry &src_curves,
         }
       }
 
-      bke::curves::accumulate_counts_to_offsets(point_offsets);
+      offset_indices::accumulate_counts_to_offsets(point_offsets);
       dst_curve_offsets[curve_i] = point_offsets.last();
     }
   });
-  bke::curves::accumulate_counts_to_offsets(dst_curve_offsets);
+  offset_indices::accumulate_counts_to_offsets(dst_curve_offsets);
 }
 
 template<typename T>
@@ -79,13 +80,15 @@ static void subdivide_attribute_linear(const bke::CurvesGeometry &src_curves,
                                        const Span<T> src,
                                        MutableSpan<T> dst)
 {
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
   threading::parallel_for(selection.index_range(), 512, [&](IndexRange selection_range) {
     for (const int curve_i : selection.slice(selection_range)) {
-      const IndexRange src_points = src_curves.points_for_curve(curve_i);
+      const IndexRange src_points = src_points_by_curve[curve_i];
       const IndexRange src_segments = curve_dst_offsets(src_points, curve_i);
       const Span<int> offsets = point_offsets.slice(src_segments);
 
-      const IndexRange dst_points = dst_curves.points_for_curve(curve_i);
+      const IndexRange dst_points = dst_points_by_curve[curve_i];
       const Span<T> curve_src = src.slice(src_points);
       MutableSpan<T> curve_dst = dst.slice(dst_points);
 
@@ -126,11 +129,13 @@ static void subdivide_attribute_catmull_rom(const bke::CurvesGeometry &src_curve
                                             const Span<T> src,
                                             MutableSpan<T> dst)
 {
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
   threading::parallel_for(selection.index_range(), 512, [&](IndexRange selection_range) {
     for (const int curve_i : selection.slice(selection_range)) {
-      const IndexRange src_points = src_curves.points_for_curve(curve_i);
+      const IndexRange src_points = src_points_by_curve[curve_i];
       const IndexRange src_segments = curve_dst_offsets(src_points, curve_i);
-      const IndexRange dst_points = dst_curves.points_for_curve(curve_i);
+      const IndexRange dst_points = dst_points_by_curve[curve_i];
 
       bke::curves::catmull_rom::interpolate_to_evaluated(src.slice(src_points),
                                                          cyclic[curve_i],
@@ -367,19 +372,21 @@ bke::CurvesGeometry subdivide_curves(
     const VArraySpan<int8_t> src_types_r{src_curves.handle_types_right()};
     const Span<float3> src_handles_l = src_curves.handle_positions_left();
     const Span<float3> src_handles_r = src_curves.handle_positions_right();
+    const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
 
     MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
     MutableSpan<int8_t> dst_types_l = dst_curves.handle_types_left_for_write();
     MutableSpan<int8_t> dst_types_r = dst_curves.handle_types_right_for_write();
     MutableSpan<float3> dst_handles_l = dst_curves.handle_positions_left_for_write();
     MutableSpan<float3> dst_handles_r = dst_curves.handle_positions_right_for_write();
+    const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
 
     threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
       for (const int curve_i : selection.slice(range)) {
-        const IndexRange src_points = src_curves.points_for_curve(curve_i);
+        const IndexRange src_points = src_points_by_curve[curve_i];
         const IndexRange src_segments = curve_dst_offsets(src_points, curve_i);
 
-        const IndexRange dst_points = dst_curves.points_for_curve(curve_i);
+        const IndexRange dst_points = dst_points_by_curve[curve_i];
         subdivide_bezier_positions(src_positions.slice(src_points),
                                    src_types_l.slice(src_points),
                                    src_types_r.slice(src_points),

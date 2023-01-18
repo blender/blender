@@ -40,7 +40,6 @@ struct MPoly;
 struct Main;
 struct MemArena;
 struct Mesh;
-struct ModifierData;
 struct Object;
 struct PointCloud;
 struct Scene;
@@ -247,11 +246,13 @@ struct BoundBox *BKE_mesh_boundbox_get(struct Object *ob);
 
 void BKE_mesh_texspace_calc(struct Mesh *me);
 void BKE_mesh_texspace_ensure(struct Mesh *me);
-void BKE_mesh_texspace_get(struct Mesh *me, float r_loc[3], float r_size[3]);
+void BKE_mesh_texspace_get(struct Mesh *me,
+                           float r_texspace_location[3],
+                           float r_texspace_size[3]);
 void BKE_mesh_texspace_get_reference(struct Mesh *me,
-                                     char **r_texflag,
-                                     float **r_loc,
-                                     float **r_size);
+                                     char **r_texspace_flag,
+                                     float **r_texspace_location,
+                                     float **r_texspace_size);
 void BKE_mesh_texspace_copy_from_object(struct Mesh *me, struct Object *ob);
 
 /**

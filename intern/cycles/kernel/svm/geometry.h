@@ -28,7 +28,7 @@ ccl_device_noinline void svm_node_geometry(KernelGlobals kg,
       break;
 #endif
     case NODE_GEOM_I:
-      data = sd->I;
+      data = sd->wi;
       break;
     case NODE_GEOM_Ng:
       data = sd->Ng;
