@@ -29,9 +29,9 @@ namespace blender::io::ply {
 
 struct UV_vertex_key {
   float2 UV;
-  int Vertex_index;
+  int vertex_index;
 
-  UV_vertex_key(float2 UV, int vertex_index) : UV(UV), Vertex_index(vertex_index)
+  UV_vertex_key(float2 UV, int vertex_index) : UV(UV), vertex_index(vertex_index)
   {
   }
 
@@ -163,8 +163,8 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     std::unique_ptr<float2[]> uv_coordinates(new float2[vertex_map.size()]);
 
     for (auto &[key, value] : vertex_map) {
-      mesh_vertex_index_LUT[value] = key.Vertex_index;
-      ply_vertex_index_LUT[key.Vertex_index] = value;
+      mesh_vertex_index_LUT[value] = key.vertex_index;
+      ply_vertex_index_LUT[key.vertex_index] = value;
       uv_coordinates[value] = key.UV;
     }
 
