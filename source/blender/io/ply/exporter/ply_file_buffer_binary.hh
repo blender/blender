@@ -44,6 +44,19 @@ class FileBufferBinary : public FileBuffer {
     write_bytes(data);
   }
 
+  void write_UV(float u, float v) override
+  {
+    char *ubits = reinterpret_cast<char *>(&u);
+    char *vbits = reinterpret_cast<char *>(&v);
+
+    Vector<char> data{};
+    data.reserve(8); /* resize vector for 2 floats */
+    data.insert(data.end(), ubits, ubits + sizeof(float));
+    data.insert(data.end(), vbits, vbits + sizeof(float));
+
+    write_bytes(data);
+  }
+
   void write_vertex_normal(float nx, float ny, float nz) override
   {
     char *xbits = reinterpret_cast<char *>(&nx);
