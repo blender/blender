@@ -29,12 +29,15 @@
 
 #include "ply_export_data.hh"
 #include "ply_export_header.hh"
+#include "ply_export_load_plydata.hh"
 #include "ply_file_buffer_ascii.hh"
 #include "ply_file_buffer_binary.hh"
 
 #include <fstream>
 
 namespace blender::io::ply {
+/* Set this true to keep comparison-failing test output in temp file directory. */
+constexpr bool save_failing_test_output = false;
 
 class PlyExportTest : public BlendfileLoadingBaseTest {
  public:
@@ -428,6 +431,29 @@ TEST_F(PlyExportTest, WriteVertexNormalsBinary)
   for (int i = 0; i < result.size(); i++) {
     ASSERT_EQ(result[i], expected[i]);
   }
+}
+
+class ply_exporter_ply_data_test : public PlyExportTest {
+ public:
+  PlyData load_ply_data_from_blendfile(const std::string &blendfile, PLYExportParams &params)
+  {
+    PlyData data;
+    if (!load_file_and_depsgraph(blendfile)) {
+      return data;
+    }
+
+    load_plydata(data, depsgraph, params);
+
+    return data;
+  }
+};
+
+TEST_F(ply_exporter_ply_data_test, LoadPLYDataVertices)
+{
+  PLYExportParams params;
+  PlyData plyData = load_ply_data_from_blendfile("io_tests/blend_geometry/cube_all_data.blend",
+                                                 params);
+  EXPECT_EQ(plyData.vertices.size(), 8);
 }
 
 }  // namespace blender::io::ply
