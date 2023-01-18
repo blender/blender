@@ -1,5 +1,12 @@
-#include "ply_functions.hh"
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
 #include <iostream>
+
+#include "ply_functions.hh"
 
 namespace blender::io::ply {
 

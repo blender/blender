@@ -15,6 +15,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
+
 #include "ply_file_buffer.hh"
 
 /* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */

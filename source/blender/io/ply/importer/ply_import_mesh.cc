@@ -1,11 +1,19 @@
-#include "ply_import_mesh.hh"
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
+
 #include "BLI_math_vector.h"
 
+#include "ply_import_mesh.hh"
+
 namespace blender::io::ply {
-Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
+Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &params)
 {
   /* Add vertices to the mesh. */
   mesh->totvert = int(data.vertices.size()); /* Explicit conversion from int64_t to int. */
@@ -43,7 +51,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
     int offset = 0;
     /* Iterate over amount of faces. */
     for (int i = 0; i < mesh->totpoly; i++) {
-      auto size = int(data.faces[i].size());
+      int size = int(data.faces[i].size());
       /* Set the index from where this face starts and specify the amount of edges it has. */
       polys[i].loopstart = offset;
       polys[i].totloop = size;
@@ -75,8 +83,21 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
   if (!data.vertex_normals.is_empty()) {
     float(*vertex_normals)[3] = static_cast<float(*)[3]>(
         MEM_malloc_arrayN(data.vertex_normals.size(), sizeof(float[3]), __func__));
+
+    /* Below code is necessary to access vertex normals within Blender.
+     * Until Blender supports vertex normals, this is a workaround. */
+    float3 *normals = nullptr;
+    if (params.import_normals_as_attribute) {
+      CustomDataLayer *normal_layer = BKE_id_attribute_new(
+          &mesh->id, "Normal", CD_PROP_FLOAT3, ATTR_DOMAIN_POINT, nullptr);
+      normals = (float3 *)normal_layer->data;
+    }
+
     for (int i = 0; i < data.vertex_normals.size(); i++) {
       copy_v3_v3(vertex_normals[i], data.vertex_normals[i]);
+      if (normals != nullptr) {
+        copy_v3_v3(normals[i], data.vertex_normals[i]);
+      }
     }
     BKE_mesh_set_custom_normals_from_verts(mesh, vertex_normals);
     MEM_freeN(vertex_normals);

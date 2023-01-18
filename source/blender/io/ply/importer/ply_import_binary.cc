@@ -1,15 +1,27 @@
-#include "ply_import_binary.hh"
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
 #include "BKE_customdata.h"
+
 #include "BLI_math_vector.h"
+
+#include "ply_import_binary.hh"
 #include "ply_import_mesh.hh"
+
 #include <fstream>
 
 namespace blender::io::ply {
-Mesh *import_ply_binary(std::ifstream &file, const PlyHeader *header, Mesh *mesh)
+Mesh *import_ply_binary(std::ifstream &file,
+                        const PlyHeader *header,
+                        Mesh *mesh,
+                        const PLYImportParams &params)
 {
   PlyData data = load_ply_binary(file, header);
   if (!data.vertices.is_empty()) {
-    return convert_ply_to_mesh(data, mesh);
+    return convert_ply_to_mesh(data, mesh, params);
   }
   return nullptr;
 }

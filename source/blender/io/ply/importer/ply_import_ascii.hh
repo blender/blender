@@ -1,8 +1,16 @@
-#ifndef BLENDER_PLY_IMPORT_ASCII_HH
-#define BLENDER_PLY_IMPORT_ASCII_HH
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
+#pragma once
 
 #include "BKE_mesh.h"
+
 #include "DNA_mesh_types.h"
+
+#include "IO_ply.h"
 #include "ply_data.hh"
 
 namespace blender::io::ply {
@@ -12,7 +20,10 @@ namespace blender::io::ply {
  * @param header The information in the PLY header.
  * @return The mesh that can be used inside blender.
  */
-Mesh *import_ply_ascii(std::ifstream &file, PlyHeader *header, Mesh *mesh);
+Mesh *import_ply_ascii(std::ifstream &file,
+                       PlyHeader *header,
+                       Mesh *mesh,
+                       const PLYImportParams &params);
 
 /**
  * Loads the information from the PLY file in ASCII format to the PlyData datastructure.
@@ -26,6 +37,5 @@ int3 get_vertex_pos(PlyHeader *header);
 int3 get_color_pos(PlyHeader *header);
 int3 get_normal_pos(PlyHeader *header);
 int get_index(PlyHeader *header, std::string property, PlyDataTypes datatype);
-std::vector<std::string> explode(const std::string_view &str, const char &ch);
+Vector<std::string> explode(const StringRef &str, const char &ch);
 }  // namespace blender::io::ply
-#endif  // BLENDER_PLY_IMPORT_ASCII_HH
