@@ -804,7 +804,7 @@ static void rna_MeshLoopColor_color_set(PointerRNA *ptr, const float *values)
 static int rna_Mesh_texspace_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
   Mesh *me = (Mesh *)ptr->data;
-  return (me->texflag & ME_AUTOSPACE) ? 0 : PROP_EDITABLE;
+  return (me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) ? 0 : PROP_EDITABLE;
 }
 
 static void rna_Mesh_texspace_size_get(PointerRNA *ptr, float values[3])
@@ -813,16 +813,16 @@ static void rna_Mesh_texspace_size_get(PointerRNA *ptr, float values[3])
 
   BKE_mesh_texspace_ensure(me);
 
-  copy_v3_v3(values, me->size);
+  copy_v3_v3(values, me->texspace_size);
 }
 
-static void rna_Mesh_texspace_loc_get(PointerRNA *ptr, float values[3])
+static void rna_Mesh_texspace_location_get(PointerRNA *ptr, float values[3])
 {
   Mesh *me = (Mesh *)ptr->data;
 
   BKE_mesh_texspace_ensure(me);
 
-  copy_v3_v3(values, me->loc);
+  copy_v3_v3(values, me->texspace_location);
 }
 
 static void rna_MeshVertex_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -850,10 +850,10 @@ static void rna_MeshVertex_undeformed_co_get(PointerRNA *ptr, float values[3])
   if (orco) {
     const int index = rna_MeshVertex_index_get(ptr);
     /* orco is normalized to 0..1, we do inverse to match the vertex position */
-    float loc[3], size[3];
+    float texspace_location[3], texspace_size[3];
 
-    BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, loc, size);
-    madd_v3_v3v3v3(values, loc, orco[index], size);
+    BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, texspace_location, texspace_size);
+    madd_v3_v3v3v3(values, texspace_location, orco[index], texspace_size);
   }
   else {
     copy_v3_v3(values, position);
@@ -3095,21 +3095,21 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 
   /* texture space */
   prop = RNA_def_property(srna, "auto_texspace", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "texflag", ME_AUTOSPACE);
+  RNA_def_property_boolean_sdna(prop, NULL, "texspace_flag", ME_TEXSPACE_FLAG_AUTO);
   RNA_def_property_ui_text(
       prop,
       "Auto Texture Space",
       "Adjust active object's texture space automatically when transforming object");
 
   prop = RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);
-  RNA_def_property_float_sdna(prop, NULL, "loc");
+  RNA_def_property_float_sdna(prop, NULL, "texspace_location");
   RNA_def_property_ui_text(prop, "Texture Space Location", "Texture space location");
-  RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_loc_get", NULL, NULL);
+  RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_location_get", NULL, NULL);
   RNA_def_property_editable_func(prop, texspace_editable);
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_XYZ);
-  RNA_def_property_float_sdna(prop, NULL, "size");
+  RNA_def_property_float_sdna(prop, NULL, "texspace_size");
   RNA_def_property_flag(prop, PROP_PROPORTIONAL);
   RNA_def_property_ui_text(prop, "Texture Space Size", "Texture space size");
   RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_size_get", NULL, NULL);
@@ -4349,7 +4349,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   /* texture space */
   prop = RNA_def_property(srna, "use_auto_texspace", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "texflag", ME_AUTOSPACE);
+  RNA_def_property_boolean_sdna(prop, NULL, "texspace_flag", ME_TEXSPACE_FLAG_AUTO);
   RNA_def_property_ui_text(
       prop,
       "Auto Texture Space",
@@ -4362,7 +4362,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Texture Space Location", "Texture space location");
   RNA_def_property_editable_func(prop, "rna_Mesh_texspace_editable");
   RNA_def_property_float_funcs(
-      prop, "rna_Mesh_texspace_loc_get", "rna_Mesh_texspace_loc_set", NULL);
+      prop, "rna_Mesh_texspace_location_get", "rna_Mesh_texspace_location_set", NULL);
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 #  endif
 

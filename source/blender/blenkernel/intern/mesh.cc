@@ -360,7 +360,7 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_data_address(reader, &mesh->active_color_attribute);
   BLO_read_data_address(reader, &mesh->default_color_attribute);
 
-  mesh->texflag &= ~ME_AUTOSPACE_EVALUATED;
+  mesh->texspace_flag &= ~ME_TEXSPACE_FLAG_AUTO_EVALUATED;
   mesh->edit_mesh = nullptr;
 
   mesh->runtime = new blender::bke::MeshRuntime();
@@ -1029,9 +1029,9 @@ void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
   me_dst->face_sets_color_default = me_src->face_sets_color_default;
 
   /* Copy texture space. */
-  me_dst->texflag = me_src->texflag;
-  copy_v3_v3(me_dst->loc, me_src->loc);
-  copy_v3_v3(me_dst->size, me_src->size);
+  me_dst->texspace_flag = me_src->texspace_flag;
+  copy_v3_v3(me_dst->texspace_location, me_src->texspace_location);
+  copy_v3_v3(me_dst->texspace_size, me_src->texspace_size);
 
   me_dst->vertex_group_active_index = me_src->vertex_group_active_index;
   me_dst->attributes_active_index = me_src->attributes_active_index;
@@ -1228,7 +1228,7 @@ BoundBox *BKE_mesh_boundbox_get(Object *ob)
 
 void BKE_mesh_texspace_calc(Mesh *me)
 {
-  if (me->texflag & ME_AUTOSPACE) {
+  if (me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) {
     float min[3], max[3];
 
     INIT_MINMAX(min, max);
@@ -1237,75 +1237,79 @@ void BKE_mesh_texspace_calc(Mesh *me)
       max[0] = max[1] = max[2] = 1.0f;
     }
 
-    float loc[3], size[3];
-    mid_v3_v3v3(loc, min, max);
+    float texspace_location[3], texspace_size[3];
+    mid_v3_v3v3(texspace_location, min, max);
 
-    size[0] = (max[0] - min[0]) / 2.0f;
-    size[1] = (max[1] - min[1]) / 2.0f;
-    size[2] = (max[2] - min[2]) / 2.0f;
+    texspace_size[0] = (max[0] - min[0]) / 2.0f;
+    texspace_size[1] = (max[1] - min[1]) / 2.0f;
+    texspace_size[2] = (max[2] - min[2]) / 2.0f;
 
     for (int a = 0; a < 3; a++) {
-      if (size[a] == 0.0f) {
-        size[a] = 1.0f;
+      if (texspace_size[a] == 0.0f) {
+        texspace_size[a] = 1.0f;
       }
-      else if (size[a] > 0.0f && size[a] < 0.00001f) {
-        size[a] = 0.00001f;
+      else if (texspace_size[a] > 0.0f && texspace_size[a] < 0.00001f) {
+        texspace_size[a] = 0.00001f;
       }
-      else if (size[a] < 0.0f && size[a] > -0.00001f) {
-        size[a] = -0.00001f;
+      else if (texspace_size[a] < 0.0f && texspace_size[a] > -0.00001f) {
+        texspace_size[a] = -0.00001f;
       }
     }
 
-    copy_v3_v3(me->loc, loc);
-    copy_v3_v3(me->size, size);
+    copy_v3_v3(me->texspace_location, texspace_location);
+    copy_v3_v3(me->texspace_size, texspace_size);
 
-    me->texflag |= ME_AUTOSPACE_EVALUATED;
+    me->texspace_flag |= ME_TEXSPACE_FLAG_AUTO_EVALUATED;
   }
 }
 
 void BKE_mesh_texspace_ensure(Mesh *me)
 {
-  if ((me->texflag & ME_AUTOSPACE) && !(me->texflag & ME_AUTOSPACE_EVALUATED)) {
+  if ((me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) &&
+      !(me->texspace_flag & ME_TEXSPACE_FLAG_AUTO_EVALUATED)) {
     BKE_mesh_texspace_calc(me);
   }
 }
 
-void BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_size[3])
+void BKE_mesh_texspace_get(Mesh *me, float r_texspace_location[3], float r_texspace_size[3])
 {
   BKE_mesh_texspace_ensure(me);
 
-  if (r_loc) {
-    copy_v3_v3(r_loc, me->loc);
+  if (r_texspace_location) {
+    copy_v3_v3(r_texspace_location, me->texspace_location);
   }
-  if (r_size) {
-    copy_v3_v3(r_size, me->size);
+  if (r_texspace_size) {
+    copy_v3_v3(r_texspace_size, me->texspace_size);
   }
 }
 
-void BKE_mesh_texspace_get_reference(Mesh *me, char **r_texflag, float **r_loc, float **r_size)
+void BKE_mesh_texspace_get_reference(Mesh *me,
+                                     char **r_texspace_flag,
+                                     float **r_texspace_location,
+                                     float **r_texspace_size)
 {
   BKE_mesh_texspace_ensure(me);
 
-  if (r_texflag != nullptr) {
-    *r_texflag = &me->texflag;
+  if (r_texspace_flag != nullptr) {
+    *r_texspace_flag = &me->texspace_flag;
   }
-  if (r_loc != nullptr) {
-    *r_loc = me->loc;
+  if (r_texspace_location != nullptr) {
+    *r_texspace_location = me->texspace_location;
   }
-  if (r_size != nullptr) {
-    *r_size = me->size;
+  if (r_texspace_size != nullptr) {
+    *r_texspace_size = me->texspace_size;
   }
 }
 
 void BKE_mesh_texspace_copy_from_object(Mesh *me, Object *ob)
 {
-  float *texloc, *texsize;
-  char *texflag;
+  float *texspace_location, *texspace_size;
+  char *texspace_flag;
 
-  if (BKE_object_obdata_texspace_get(ob, &texflag, &texloc, &texsize)) {
-    me->texflag = *texflag;
-    copy_v3_v3(me->loc, texloc);
-    copy_v3_v3(me->size, texsize);
+  if (BKE_object_obdata_texspace_get(ob, &texspace_flag, &texspace_location, &texspace_size)) {
+    me->texspace_flag = *texspace_flag;
+    copy_v3_v3(me->texspace_location, texspace_location);
+    copy_v3_v3(me->texspace_size, texspace_size);
   }
 }
 
@@ -1329,22 +1333,22 @@ float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 
 void BKE_mesh_orco_verts_transform(Mesh *me, float (*orco)[3], int totvert, int invert)
 {
-  float loc[3], size[3];
+  float texspace_location[3], texspace_size[3];
 
-  BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, loc, size);
+  BKE_mesh_texspace_get(me->texcomesh ? me->texcomesh : me, texspace_location, texspace_size);
 
   if (invert) {
     for (int a = 0; a < totvert; a++) {
       float *co = orco[a];
-      madd_v3_v3v3v3(co, loc, co, size);
+      madd_v3_v3v3v3(co, texspace_location, co, texspace_size);
     }
   }
   else {
     for (int a = 0; a < totvert; a++) {
       float *co = orco[a];
-      co[0] = (co[0] - loc[0]) / size[0];
-      co[1] = (co[1] - loc[1]) / size[1];
-      co[2] = (co[2] - loc[2]) / size[2];
+      co[0] = (co[0] - texspace_location[0]) / texspace_size[0];
+      co[1] = (co[1] - texspace_location[1]) / texspace_size[1];
+      co[2] = (co[2] - texspace_location[2]) / texspace_size[2];
     }
   }
 }
@@ -1889,10 +1893,10 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
   }
   if (DEG_is_active(depsgraph)) {
     Mesh *mesh_orig = (Mesh *)DEG_get_original_id(&mesh->id);
-    if (mesh->texflag & ME_AUTOSPACE_EVALUATED) {
-      mesh_orig->texflag |= ME_AUTOSPACE_EVALUATED;
-      copy_v3_v3(mesh_orig->loc, mesh->loc);
-      copy_v3_v3(mesh_orig->size, mesh->size);
+    if (mesh->texspace_flag & ME_TEXSPACE_FLAG_AUTO_EVALUATED) {
+      mesh_orig->texspace_flag |= ME_TEXSPACE_FLAG_AUTO_EVALUATED;
+      copy_v3_v3(mesh_orig->texspace_location, mesh->texspace_location);
+      copy_v3_v3(mesh_orig->texspace_size, mesh->texspace_size);
     }
   }
 }

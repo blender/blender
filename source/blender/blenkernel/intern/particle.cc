@@ -4451,15 +4451,15 @@ void psys_get_texture(
                                    texvec);
 
           BKE_mesh_texspace_ensure(me);
-          sub_v3_v3(texvec, me->loc);
-          if (me->size[0] != 0.0f) {
-            texvec[0] /= me->size[0];
+          sub_v3_v3(texvec, me->texspace_location);
+          if (me->texspace_size[0] != 0.0f) {
+            texvec[0] /= me->texspace_size[0];
           }
-          if (me->size[1] != 0.0f) {
-            texvec[1] /= me->size[1];
+          if (me->texspace_size[1] != 0.0f) {
+            texvec[1] /= me->texspace_size[1];
           }
-          if (me->size[2] != 0.0f) {
-            texvec[2] /= me->size[2];
+          if (me->texspace_size[2] != 0.0f) {
+            texvec[2] /= me->texspace_size[2];
           }
           break;
         case TEXCO_PARTICLE:

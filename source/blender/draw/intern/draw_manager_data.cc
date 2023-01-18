@@ -627,33 +627,36 @@ void DRW_shgroup_buffer_texture_ref(DRWShadingGroup *shgroup,
 static void drw_call_calc_orco(Object *ob, float (*r_orcofacs)[4])
 {
   ID *ob_data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
-  float loc[3], size[3];
-  float *texcoloc = nullptr;
-  float *texcosize = nullptr;
+  struct {
+    float texspace_location[3], texspace_size[3];
+  } static_buf;
+  float *texspace_location = nullptr;
+  float *texspace_size = nullptr;
   if (ob_data != nullptr) {
     switch (GS(ob_data->name)) {
       case ID_VO: {
         BoundBox *bbox = BKE_volume_boundbox_get(ob);
-        mid_v3_v3v3(loc, bbox->vec[0], bbox->vec[6]);
-        sub_v3_v3v3(size, bbox->vec[0], bbox->vec[6]);
-        texcoloc = loc;
-        texcosize = size;
+        mid_v3_v3v3(static_buf.texspace_location, bbox->vec[0], bbox->vec[6]);
+        sub_v3_v3v3(static_buf.texspace_size, bbox->vec[0], bbox->vec[6]);
+        texspace_location = static_buf.texspace_location;
+        texspace_size = static_buf.texspace_size;
         break;
       }
       case ID_ME:
-        BKE_mesh_texspace_get_reference((Mesh *)ob_data, nullptr, &texcoloc, &texcosize);
+        BKE_mesh_texspace_get_reference(
+            (Mesh *)ob_data, nullptr, &texspace_location, &texspace_size);
         break;
       case ID_CU_LEGACY: {
         Curve *cu = (Curve *)ob_data;
         BKE_curve_texspace_ensure(cu);
-        texcoloc = cu->loc;
-        texcosize = cu->size;
+        texspace_location = cu->texspace_location;
+        texspace_size = cu->texspace_size;
         break;
       }
       case ID_MB: {
         MetaBall *mb = (MetaBall *)ob_data;
-        texcoloc = mb->loc;
-        texcosize = mb->size;
+        texspace_location = mb->texspace_location;
+        texspace_size = mb->texspace_size;
         break;
       }
       default:
@@ -661,10 +664,10 @@ static void drw_call_calc_orco(Object *ob, float (*r_orcofacs)[4])
     }
   }
 
-  if ((texcoloc != nullptr) && (texcosize != nullptr)) {
-    mul_v3_v3fl(r_orcofacs[1], texcosize, 2.0f);
+  if ((texspace_location != nullptr) && (texspace_size != nullptr)) {
+    mul_v3_v3fl(r_orcofacs[1], texspace_size, 2.0f);
     invert_v3(r_orcofacs[1]);
-    sub_v3_v3v3(r_orcofacs[0], texcoloc, texcosize);
+    sub_v3_v3v3(r_orcofacs[0], texspace_location, texspace_size);
     negate_v3(r_orcofacs[0]);
     mul_v3_v3(r_orcofacs[0], r_orcofacs[1]); /* result in a nice MADD in the shader */
   }
