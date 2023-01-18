@@ -37,7 +37,7 @@ struct UV_vertex_key {
 
   bool operator==(const UV_vertex_key &r) const
   {
-    return (UV == r.UV && Vertex_index == r.Vertex_index);
+    return (UV == r.UV && vertex_index == r.vertex_index);
   }
 };
 
@@ -45,7 +45,7 @@ struct UV_vertex_hash {
   std::size_t operator()(const blender::io::ply::UV_vertex_key &key) const
   {
     return ((std::hash<float>()(key.UV.x) ^ (std::hash<float>()(key.UV.y) << 1)) >> 1) ^
-           (std::hash<int>()(key.Vertex_index) << 1);
+           (std::hash<int>()(key.vertex_index) << 1);
   }
 };
 

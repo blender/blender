@@ -49,7 +49,7 @@ class FileBufferBinary : public FileBuffer {
     char *vbits = reinterpret_cast<char *>(&v);
 
     Vector<char> data{};
-    data.reserve(8); /* resize vector for 3 floats */
+    data.reserve(8); /* resize vector for 2 floats */
     data.insert(data.end(), ubits, ubits + sizeof(float));
     data.insert(data.end(), vbits, vbits + sizeof(float));
 
