@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstdio>
+#include <fmt/format.h>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -20,7 +21,6 @@
 /* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */
 #undef SEP
 #define FMT_HEADER_ONLY
-#include <fmt/format.h>
 
 namespace blender::io::ply {
 
