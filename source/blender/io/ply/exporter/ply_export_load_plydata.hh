@@ -32,7 +32,7 @@
 
 namespace blender::io::ply {
 
-Mesh *do_triangulation(Mesh *mesh, bool force_triangulation)
+Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation)
 {
   const BMeshCreateParams bm_create_params = {false};
   BMeshFromMeshParams bm_convert_params{};
