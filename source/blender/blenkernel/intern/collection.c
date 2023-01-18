@@ -209,10 +209,8 @@ static void collection_blend_write(BlendWriter *writer, ID *id, const void *id_a
   /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
   collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
   collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
-  collection->runtime.tag = 0;
-  BLI_listbase_clear(&collection->runtime.object_cache);
-  BLI_listbase_clear(&collection->runtime.object_cache_instanced);
-  BLI_listbase_clear(&collection->runtime.parents);
+
+  memset(&collection->runtime, 0, sizeof(collection->runtime));
 
   /* write LibData */
   BLO_write_id_struct(writer, Collection, id_address, &collection->id);
@@ -259,6 +257,8 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
     }
     collection->id.flag |= LIB_EMBEDDED_DATA;
   }
+
+  memset(&collection->runtime, 0, sizeof(collection->runtime));
   collection->runtime.owner_id = owner_id;
 
   BLO_read_list(reader, &collection->gobject);
@@ -269,10 +269,6 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
 
   collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
   collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
-  collection->runtime.tag = 0;
-  BLI_listbase_clear(&collection->runtime.object_cache);
-  BLI_listbase_clear(&collection->runtime.object_cache_instanced);
-  BLI_listbase_clear(&collection->runtime.parents);
 
 #ifdef USE_COLLECTION_COMPAT_28
   /* This runs before the very first doversion. */
