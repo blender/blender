@@ -162,7 +162,7 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
     std::unique_ptr<int[]> ply_vertex_index_LUT(new int[mesh->totvert]);
     std::unique_ptr<float2[]> uv_coordinates(new float2[vertex_map.size()]);
 
-    for (auto &[key, value] : vertex_map) {
+    for (auto const &[key, value] : vertex_map) {
       mesh_vertex_index_LUT[value] = key.vertex_index;
       ply_vertex_index_LUT[key.vertex_index] = value;
       uv_coordinates[value] = key.UV;
