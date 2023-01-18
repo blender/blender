@@ -448,12 +448,37 @@ class ply_exporter_ply_data_test : public PlyExportTest {
   }
 };
 
-TEST_F(ply_exporter_ply_data_test, LoadPLYDataVertices)
+TEST_F(ply_exporter_ply_data_test, CubeLoadPLYDataVertices)
 {
   PLYExportParams params;
   PlyData plyData = load_ply_data_from_blendfile("io_tests/blend_geometry/cube_all_data.blend",
                                                  params);
   EXPECT_EQ(plyData.vertices.size(), 8);
+}
+TEST_F(ply_exporter_ply_data_test, CubeLoadPLYDataUV)
+{
+  PLYExportParams params;
+  params.export_uv = true;
+  PlyData plyData = load_ply_data_from_blendfile("io_tests/blend_geometry/cube_all_data.blend",
+                                                 params);
+  EXPECT_EQ(plyData.UV_coordinates.size(), 8);
+}
+TEST_F(ply_exporter_ply_data_test, SuzanneLoadPLYDataUV)
+{
+  PLYExportParams params;
+  params.export_uv = true;
+  PlyData plyData = load_ply_data_from_blendfile("io_tests/blend_geometry/suzanne_all_data.blend",
+                                                 params);
+  EXPECT_EQ(plyData.UV_coordinates.size(), 542);
+}
+
+TEST_F(ply_exporter_ply_data_test, CubeLoadPLYDataUVDisabled)
+{
+  PLYExportParams params;
+  params.export_uv = false;
+  PlyData plyData = load_ply_data_from_blendfile("io_tests/blend_geometry/cube_all_data.blend",
+                                                 params);
+  EXPECT_EQ(plyData.UV_coordinates.size(), 0);
 }
 
 }  // namespace blender::io::ply

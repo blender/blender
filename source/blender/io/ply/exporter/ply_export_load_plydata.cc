@@ -21,8 +21,9 @@
 
 #include "IO_ply.h"
 
-#include "ply_export_load_plydata.hh"
 #include "ply_data.hh"
+#include "ply_export_load_plydata.hh"
+namespace blender::io::ply {
 
 void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams &export_params)
 {
@@ -187,3 +188,4 @@ std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertex_map(
   BKE_mesh_uv_vert_map_free(uv_vert_map);
   return vertex_map;
 }
+}  // namespace blender::io::ply
