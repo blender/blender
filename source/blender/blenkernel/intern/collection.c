@@ -112,8 +112,7 @@ static void collection_copy_data(Main *bmain, ID *id_dst, const ID *id_src, cons
     collection_dst->preview = NULL;
   }
 
-  collection_dst->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
-  collection_dst->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
+  collection_dst->flag &= ~(COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED);
   BLI_listbase_clear(&collection_dst->runtime.object_cache);
   BLI_listbase_clear(&collection_dst->runtime.object_cache_instanced);
 
@@ -206,11 +205,9 @@ static void collection_blend_write(BlendWriter *writer, ID *id, const void *id_a
 {
   Collection *collection = (Collection *)id;
 
-  /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
-  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
-  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
-
   memset(&collection->runtime, 0, sizeof(collection->runtime));
+  /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
+  collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
 
   /* write LibData */
   BLO_write_id_struct(writer, Collection, id_address, &collection->id);
@@ -259,6 +256,8 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
   }
 
   memset(&collection->runtime, 0, sizeof(collection->runtime));
+  collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
+
   collection->runtime.owner_id = owner_id;
 
   BLO_read_list(reader, &collection->gobject);
@@ -266,9 +265,6 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
 
   BLO_read_data_address(reader, &collection->preview);
   BKE_previewimg_blend_read(reader, collection->preview);
-
-  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
-  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
 
 #ifdef USE_COLLECTION_COMPAT_28
   /* This runs before the very first doversion. */
@@ -842,8 +838,7 @@ ListBase BKE_collection_object_cache_instanced_get(Collection *collection)
 static void collection_object_cache_free(Collection *collection)
 {
   /* Clear own cache an for all parents, since those are affected by changes as well. */
-  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
-  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
+  collection->flag &= ~(COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED);
   BLI_freelistN(&collection->runtime.object_cache);
   BLI_freelistN(&collection->runtime.object_cache_instanced);
 
