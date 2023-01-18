@@ -1235,7 +1235,7 @@ static char *collection_drop_tooltip(bContext *C,
 
     /* Test if we are moving within same parent collection. */
     bool same_level = false;
-    LISTBASE_FOREACH (CollectionParent *, parent, &data.to->parents) {
+    LISTBASE_FOREACH (CollectionParent *, parent, &data.to->runtime.parents) {
       if (data.from == parent->collection) {
         same_level = true;
       }

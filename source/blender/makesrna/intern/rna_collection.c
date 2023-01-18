@@ -31,6 +31,9 @@ const EnumPropertyItem rna_enum_collection_color_items[] = {
     {COLLECTION_COLOR_08, "COLOR_08", ICON_COLLECTION_COLOR_08, "Color 08", ""},
     {0, NULL, 0, NULL, NULL},
 };
+/* Minus 1 for NONE & 1 for the NULL sentinel. */
+BLI_STATIC_ASSERT(ARRAY_SIZE(rna_enum_collection_color_items) - 2 == COLLECTION_COLOR_TOT,
+                  "Collection color total is an invalid size");
 
 #ifdef RNA_RUNTIME
 
