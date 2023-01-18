@@ -242,6 +242,7 @@ static int wm_ply_import_execute(bContext *C, wmOperator *op)
   params.up_axis = RNA_enum_get(op->ptr, "up_axis");
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
+  params.import_normals_as_attribute = RNA_boolean_get(op->ptr, "import_normals_as_attribute");
 
   int files_len = RNA_collection_length(op->ptr, "files");
 
@@ -320,6 +321,11 @@ void WM_OT_ply_import(struct wmOperatorType *ot)
                   "Apply current scene's unit (as defined by unit scale) to imported data");
   RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
   RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
+  RNA_def_boolean(ot->srna,
+                  "import_normals_as_attribute",
+                  false,
+                  "Normals As Attribute",
+                  "Sets the vertex normal data as a vertex attribute");
 
   /* Only show .ply files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.ply", 0, "Extension Filter", "");

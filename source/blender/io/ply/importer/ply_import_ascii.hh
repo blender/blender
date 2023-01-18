@@ -10,6 +10,7 @@
 
 #include "DNA_mesh_types.h"
 
+#include "IO_ply.h"
 #include "ply_data.hh"
 
 namespace blender::io::ply {
@@ -18,7 +19,11 @@ namespace blender::io::ply {
  * @param file The PLY file that was opened.
  * @param header The information in the PLY header.
  */
-Mesh *import_ply_ascii(std::ifstream &file, const PlyHeader *header, Mesh *mesh);
+
+Mesh *import_ply_ascii(std::ifstream &file,
+                       PlyHeader *header,
+                       Mesh *mesh,
+                       const PLYImportParams &params);
 
 /**
  * Loads the information from the PLY file in ASCII format to the PlyData datastructure.
