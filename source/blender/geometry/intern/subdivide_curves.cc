@@ -372,14 +372,14 @@ bke::CurvesGeometry subdivide_curves(
     const VArraySpan<int8_t> src_types_r{src_curves.handle_types_right()};
     const Span<float3> src_handles_l = src_curves.handle_positions_left();
     const Span<float3> src_handles_r = src_curves.handle_positions_right();
-    const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+    const OffsetIndices<int> src_points_by_curve = src_curves.points_by_curve();
 
     MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
     MutableSpan<int8_t> dst_types_l = dst_curves.handle_types_left_for_write();
     MutableSpan<int8_t> dst_types_r = dst_curves.handle_types_right_for_write();
     MutableSpan<float3> dst_handles_l = dst_curves.handle_positions_left_for_write();
     MutableSpan<float3> dst_handles_r = dst_curves.handle_positions_right_for_write();
-    const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
+    const OffsetIndices<int> dst_points_by_curve = dst_curves.points_by_curve();
 
     threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
       for (const int curve_i : selection.slice(range)) {

@@ -554,7 +554,7 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
     this->runtime->nurbs_basis_cache.resize(this->curves_num());
     MutableSpan<curves::nurbs::BasisCache> basis_caches(this->runtime->nurbs_basis_cache);
 
-    const OffsetIndices points_by_curve = this->points_by_curve();
+    const OffsetIndices<int> points_by_curve = this->points_by_curve();
     VArray<bool> cyclic = this->cyclic();
     VArray<int8_t> orders = this->nurbs_orders();
     VArray<int8_t> knots_modes = this->nurbs_knots_modes();
@@ -600,7 +600,7 @@ Span<float3> CurvesGeometry::evaluated_positions() const
     MutableSpan<float3> evaluated_positions = this->runtime->evaluated_position_cache;
     this->runtime->evaluated_positions_span = evaluated_positions;
 
-    const OffsetIndices points_by_curve = this->points_by_curve();
+    const OffsetIndices<int> points_by_curve = this->points_by_curve();
     VArray<int8_t> types = this->curve_types();
     VArray<bool> cyclic = this->cyclic();
     VArray<int> resolution = this->resolution();
@@ -681,7 +681,7 @@ Span<float3> CurvesGeometry::evaluated_tangents() const
     Vector<int64_t> bezier_indices;
     const IndexMask bezier_mask = this->indices_for_curve_type(CURVE_TYPE_BEZIER, bezier_indices);
     if (!bezier_mask.is_empty()) {
-      const OffsetIndices points_by_curve = this->points_by_curve();
+      const OffsetIndices<int> points_by_curve = this->points_by_curve();
       const Span<float3> positions = this->positions();
       const Span<float3> handles_left = this->handle_positions_left();
       const Span<float3> handles_right = this->handle_positions_right();
@@ -758,7 +758,7 @@ static void evaluate_generic_data_for_curve(
 Span<float3> CurvesGeometry::evaluated_normals() const
 {
   this->runtime->normal_cache_mutex.ensure([&]() {
-    const OffsetIndices points_by_curve = this->points_by_curve();
+    const OffsetIndices<int> points_by_curve = this->points_by_curve();
     const VArray<int8_t> types = this->curve_types();
     const VArray<bool> cyclic = this->cyclic();
     const VArray<int8_t> normal_mode = this->normal_mode();
