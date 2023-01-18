@@ -324,7 +324,7 @@ void WM_OT_ply_import(struct wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "import_normals_as_attribute",
                   false,
-                  "Import Vertex Normals As Attribute",
+                  "Normals As Attribute",
                   "Sets the vertex normal data as a vertex attribute");
 
   /* Only show .ply files by default. */
