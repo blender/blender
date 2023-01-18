@@ -7,7 +7,6 @@
 #pragma once
 
 struct IDRemapper;
-struct Main;
 
 #ifdef __cplusplus
 extern "C" {

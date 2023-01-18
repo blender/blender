@@ -8,7 +8,6 @@
 
 #pragma once
 
-struct AnimData;
 struct LinkNode;
 struct TransData;
 struct TransDataContainer;

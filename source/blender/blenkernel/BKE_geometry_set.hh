@@ -20,10 +20,8 @@
 #include "BKE_geometry_set.h"
 
 struct Curves;
-struct Collection;
 struct Curve;
 struct Mesh;
-struct Object;
 struct PointCloud;
 struct Volume;
 

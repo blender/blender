@@ -11,7 +11,6 @@ extern "C" {
 #endif
 
 struct DerivedMesh;
-struct IMBuf;
 struct ImBuf;
 struct Mesh;
 

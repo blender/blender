@@ -16,13 +16,11 @@ extern "C" {
 
 struct BHead;
 struct BlendThumbnail;
-struct Collection;
 struct FileData;
 struct LinkNode;
 struct ListBase;
 struct Main;
 struct MemFile;
-struct Object;
 struct ReportList;
 struct Scene;
 struct UserDef;

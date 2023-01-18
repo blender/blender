@@ -53,10 +53,8 @@ struct bGPdata;
 struct bNodeInstanceHash;
 struct bNodeLink;
 struct bNodePreview;
-struct bNodeTreeExec;
 struct bNodeType;
 struct bNode;
-struct uiBlock;
 
 #define NODE_MAXSTR 64
 

@@ -14,13 +14,11 @@ extern "C" {
 struct ID;
 struct Main;
 struct Scene;
-struct ScrArea;
 struct SpaceNode;
 struct Tex;
 struct View2D;
 struct bContext;
 struct bNode;
-struct bNodeSocket;
 struct bNodeSocketType;
 struct bNodeTree;
 struct bNodeTreeType;

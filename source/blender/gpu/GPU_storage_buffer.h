@@ -20,8 +20,6 @@
 extern "C" {
 #endif
 
-struct ListBase;
-
 /** Opaque type hiding blender::gpu::StorageBuf. */
 typedef struct GPUStorageBuf GPUStorageBuf;
 

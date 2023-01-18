@@ -10,8 +10,6 @@
 extern "C" {
 #endif
 
-struct Curves;
-
 void ED_operatortypes_sculpt_curves(void);
 
 #ifdef __cplusplus

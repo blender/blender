@@ -32,7 +32,6 @@
 /* Unused currently. */
 // static CLG_LogRef LOG = {.identifier = "bke.library"};
 
-struct BlendWriter;
 struct BlendDataReader;
 
 static void library_runtime_reset(Library *lib)

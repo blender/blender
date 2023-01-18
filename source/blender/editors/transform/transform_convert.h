@@ -17,7 +17,6 @@ extern "C" {
 struct BMEditMesh;
 struct BMesh;
 struct BezTriple;
-struct FCurve;
 struct ListBase;
 struct Object;
 struct TransData;

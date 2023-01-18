@@ -40,8 +40,6 @@
 #include "DNA_node_types.h"
 
 struct SpaceNode;
-struct SpaceSpreadsheet;
-struct NodesModifierData;
 
 namespace blender::nodes::geo_eval_log {
 

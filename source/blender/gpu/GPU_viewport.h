@@ -25,8 +25,6 @@ typedef struct GHash GHash;
 typedef struct GPUViewport GPUViewport;
 
 struct DRWData;
-struct DefaultFramebufferList;
-struct DefaultTextureList;
 struct GPUFrameBuffer;
 
 GPUViewport *GPU_viewport_create(void);

@@ -23,7 +23,6 @@
 #include "DNA_image_types.h"
 
 extern "C" {
-struct PartialUpdateRegister;
 struct PartialUpdateUser;
 }
 

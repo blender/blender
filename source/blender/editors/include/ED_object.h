@@ -35,7 +35,6 @@ struct bContext;
 struct bFaceMap;
 struct bPoseChannel;
 struct uiLayout;
-struct wmEvent;
 struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;

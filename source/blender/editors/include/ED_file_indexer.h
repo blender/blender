@@ -22,7 +22,6 @@ extern "C" {
  * `filelist_setindexer` function.
  */
 
-struct AssetLibraryReference;
 struct LinkNode;
 
 /**

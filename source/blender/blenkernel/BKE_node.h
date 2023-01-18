@@ -29,27 +29,19 @@ extern "C" {
 /* not very important, but the stack solver likes to know a maximum */
 #define MAX_SOCKET 512
 
-struct ARegion;
 struct BlendDataReader;
 struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
-struct ColorManagedDisplaySettings;
-struct ColorManagedViewSettings;
-struct CryptomatteSession;
 struct FreestyleLineStyle;
 struct GPUMaterial;
 struct GPUNodeStack;
 struct ID;
 struct ImBuf;
-struct ImageFormatData;
 struct Light;
-struct ListBase;
-struct MTex;
 struct Main;
 struct Material;
 struct PointerRNA;
-struct RenderData;
 struct Scene;
 struct SpaceNode;
 struct Tex;
@@ -1354,8 +1346,6 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 /* -------------------------------------------------------------------- */
 /** \name Texture Nodes
  * \{ */
-
-struct TexResult;
 
 #define TEX_NODE_OUTPUT 401
 #define TEX_NODE_CHECKER 402

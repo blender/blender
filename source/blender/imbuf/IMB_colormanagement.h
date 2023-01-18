@@ -19,7 +19,6 @@ extern "C" {
 struct ColorManagedColorspaceSettings;
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
-struct ColorManagedOutputSettings;
 struct ColormanageProcessor;
 struct EnumPropertyItem;
 struct ImBuf;

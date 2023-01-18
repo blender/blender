@@ -19,8 +19,6 @@ extern "C" {
 #endif
 
 struct AssetHandle;
-struct AssetLibraryReference;
-struct bContext;
 
 const char *ED_asset_handle_get_name(const struct AssetHandle *asset);
 struct AssetMetaData *ED_asset_handle_get_metadata(const struct AssetHandle *asset);

@@ -31,7 +31,6 @@ struct CustomData_MeshMasks;
 struct Depsgraph;
 struct EdgeHash;
 struct KDTree_3d;
-struct LatticeDeformData;
 struct LinkNode;
 struct MCol;
 struct MFace;

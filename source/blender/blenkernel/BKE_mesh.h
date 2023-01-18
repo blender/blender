@@ -40,7 +40,6 @@ struct MPoly;
 struct Main;
 struct MemArena;
 struct Mesh;
-struct ModifierData;
 struct Object;
 struct PointCloud;
 struct Scene;

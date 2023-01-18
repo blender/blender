@@ -33,7 +33,6 @@ struct PointerRNA;
 struct PropertyRNA;
 struct bAction;
 struct bActionGroup;
-struct bContext;
 
 /* Container for data required to do FCurve and Driver evaluation. */
 typedef struct AnimationEvalContext {

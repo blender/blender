@@ -27,7 +27,6 @@ typedef struct DRWDebugDrawBuffer DRWDebugDrawBuffer;
 /* C++ only forward declarations. */
 struct Object;
 struct ViewLayer;
-struct ID;
 struct GPUUniformAttr;
 struct GPULayerAttr;
 

@@ -17,17 +17,14 @@
 extern "C" {
 #endif
 
-struct GPUViewport;
 struct PBVHAttrReq;
 struct GPUBatch;
 struct PBVHNode;
 struct GSet;
 struct DMFlagMat;
-struct Object;
 struct Mesh;
 struct MLoopTri;
 struct CustomData;
-struct MEdge;
 struct MLoop;
 struct MPoly;
 struct SubdivCCG;

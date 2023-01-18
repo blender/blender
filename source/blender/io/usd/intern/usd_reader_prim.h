@@ -10,6 +10,7 @@
 #include <map>
 #include <string>
 
+struct CacheFile;
 struct Main;
 struct Material;
 struct Object;

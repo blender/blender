@@ -20,11 +20,9 @@ extern "C" {
 
 #define RNA_MAGIC ((int)~0)
 
-struct AssetLibraryReference;
 struct FreestyleSettings;
 struct ID;
 struct IDOverrideLibrary;
-struct IDOverrideLibraryenOperation;
 struct IDProperty;
 struct Main;
 struct Object;

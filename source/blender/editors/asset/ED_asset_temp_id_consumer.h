@@ -20,10 +20,8 @@ extern "C" {
 typedef struct AssetTempIDConsumer AssetTempIDConsumer;
 
 struct AssetHandle;
-struct AssetLibraryReference;
 struct Main;
 struct ReportList;
-struct bContext;
 
 AssetTempIDConsumer *ED_asset_temp_id_consumer_create(const struct AssetHandle *handle);
 void ED_asset_temp_id_consumer_free(AssetTempIDConsumer **consumer);

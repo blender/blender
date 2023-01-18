@@ -14,7 +14,6 @@
 extern "C" {
 #endif
 
-struct GPUBatch;
 struct IDRemapper;
 struct Main;
 struct bContext;

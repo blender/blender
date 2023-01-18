@@ -8,10 +8,8 @@
 #pragma once
 
 struct GPUBatch;
-struct GPUIndexBuf;
 struct GPUMaterial;
 struct GPUVertBuf;
-struct ListBase;
 struct ModifierData;
 struct PTCacheEdit;
 struct ParticleSystem;
@@ -21,7 +19,6 @@ struct Curve;
 struct Curves;
 struct Lattice;
 struct Mesh;
-struct MetaBall;
 struct PointCloud;
 struct Volume;
 struct bGPdata;

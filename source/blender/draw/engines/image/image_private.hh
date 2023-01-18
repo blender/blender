@@ -16,8 +16,6 @@
 
 /* Forward declarations */
 extern "C" {
-struct GPUTexture;
-struct ImBuf;
 struct Image;
 }
 

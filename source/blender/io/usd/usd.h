@@ -10,7 +10,6 @@ extern "C" {
 #endif
 
 struct CacheArchiveHandle;
-struct CacheFile;
 struct CacheReader;
 struct Object;
 struct bContext;

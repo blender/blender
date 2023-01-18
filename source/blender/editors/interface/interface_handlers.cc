@@ -150,6 +150,8 @@
 /** \name Local Prototypes
  * \{ */
 
+struct uiBlockInteraction_Handle;
+
 static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event);
 static bool ui_but_find_select_in_enum__cmp(const uiBut *but_a, const uiBut *but_b);
 static void ui_textedit_string_set(uiBut *but, uiHandleButtonData *data, const char *str);

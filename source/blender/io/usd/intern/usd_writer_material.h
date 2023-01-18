@@ -9,9 +9,6 @@
 #include <string>
 
 struct Material;
-struct USDExportParams;
-struct bNode;
-struct bNodeTree;
 
 namespace blender::io::usd {
 
