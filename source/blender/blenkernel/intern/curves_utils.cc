@@ -14,27 +14,16 @@ void fill_curve_counts(const bke::CurvesGeometry &curves,
                        const Span<IndexRange> curve_ranges,
                        MutableSpan<int> counts)
 {
+  const OffsetIndices points_by_curve = curves.points_by_curve();
   threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange ranges_range) {
     for (const IndexRange curves_range : curve_ranges.slice(ranges_range)) {
       threading::parallel_for(curves_range, 4096, [&](IndexRange range) {
         for (const int i : range) {
-          counts[i] = curves.points_for_curve(i).size();
+          counts[i] = points_by_curve.size(i);
         }
       });
     }
   });
-}
-
-void accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets, const int start_offset)
-{
-  int offset = start_offset;
-  for (const int i : counts_to_offsets.index_range().drop_back(1)) {
-    const int count = counts_to_offsets[i];
-    BLI_assert(count > 0);
-    counts_to_offsets[i] = offset;
-    offset += count;
-  }
-  counts_to_offsets.last() = offset;
 }
 
 void copy_point_data(const CurvesGeometry &src_curves,
@@ -43,10 +32,12 @@ void copy_point_data(const CurvesGeometry &src_curves,
                      const GSpan src,
                      GMutableSpan dst)
 {
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
   threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange range) {
     for (const IndexRange range : curve_ranges.slice(range)) {
-      const IndexRange src_points = src_curves.points_for_curves(range);
-      const IndexRange dst_points = dst_curves.points_for_curves(range);
+      const IndexRange src_points = src_points_by_curve[range];
+      const IndexRange dst_points = dst_points_by_curve[range];
       /* The arrays might be large, so a threaded copy might make sense here too. */
       dst.slice(dst_points).copy_from(src.slice(src_points));
     }
@@ -59,10 +50,12 @@ void copy_point_data(const CurvesGeometry &src_curves,
                      const GSpan src,
                      GMutableSpan dst)
 {
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
   threading::parallel_for(src_curve_selection.index_range(), 512, [&](IndexRange range) {
     for (const int i : src_curve_selection.slice(range)) {
-      const IndexRange src_points = src_curves.points_for_curve(i);
-      const IndexRange dst_points = dst_curves.points_for_curve(i);
+      const IndexRange src_points = src_points_by_curve[i];
+      const IndexRange dst_points = dst_points_by_curve[i];
       /* The arrays might be large, so a threaded copy might make sense here too. */
       dst.slice(dst_points).copy_from(src.slice(src_points));
     }
@@ -76,10 +69,11 @@ void fill_points(const CurvesGeometry &curves,
 {
   BLI_assert(*value.type() == dst.type());
   const CPPType &type = dst.type();
+  const OffsetIndices points_by_curve = curves.points_by_curve();
   threading::parallel_for(curve_selection.index_range(), 512, [&](IndexRange range) {
     for (const int i : curve_selection.slice(range)) {
-      const IndexRange points = curves.points_for_curve(i);
-      type.fill_assign_n(value.get(), dst.slice(curves.points_for_curve(i)).data(), points.size());
+      const IndexRange points = points_by_curve[i];
+      type.fill_assign_n(value.get(), dst.slice(points).data(), points.size());
     }
   });
 }
@@ -91,9 +85,10 @@ void fill_points(const CurvesGeometry &curves,
 {
   BLI_assert(*value.type() == dst.type());
   const CPPType &type = dst.type();
+  const OffsetIndices points_by_curve = curves.points_by_curve();
   threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange range) {
     for (const IndexRange range : curve_ranges.slice(range)) {
-      const IndexRange points = curves.points_for_curves(range);
+      const IndexRange points = points_by_curve[range];
       type.fill_assign_n(value.get(), dst.slice(points).data(), points.size());
     }
   });

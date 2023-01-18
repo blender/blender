@@ -263,6 +263,7 @@ struct SelectionPaintOperationExecutor {
 
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
@@ -273,7 +274,7 @@ struct SelectionPaintOperationExecutor {
     threading::parallel_for(curves_->curves_range(), 1024, [&](const IndexRange curves_range) {
       for (const int curve_i : curves_range) {
         const float max_weight = threading::parallel_reduce(
-            curves_->points_for_curve(curve_i).drop_back(1),
+            points_by_curve[curve_i].drop_back(1),
             1024,
             0.0f,
             [&](const IndexRange segment_range, const float init) {
@@ -330,6 +331,7 @@ struct SelectionPaintOperationExecutor {
   {
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     const float brush_radius_cu = self_->brush_3d_.radius_cu;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
@@ -337,7 +339,7 @@ struct SelectionPaintOperationExecutor {
     threading::parallel_for(curves_->curves_range(), 1024, [&](const IndexRange curves_range) {
       for (const int curve_i : curves_range) {
         const float max_weight = threading::parallel_reduce(
-            curves_->points_for_curve(curve_i).drop_back(1),
+            points_by_curve[curve_i].drop_back(1),
             1024,
             0.0f,
             [&](const IndexRange segment_range, const float init) {

@@ -18,6 +18,7 @@
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
@@ -165,22 +166,16 @@ class CurvesGeometry : public ::CurvesGeometry {
   IndexRange curves_range() const;
 
   /**
-   * Number of control points in the indexed curve.
-   */
-  int points_num_for_curve(const int index) const;
-
-  /**
    * The index of the first point in every curve. The size of this span is one larger than the
-   * number of curves. Consider using #points_for_curve rather than using the offsets directly.
+   * number of curves. Consider using #points_by_curve rather than using the offsets directly.
    */
   Span<int> offsets() const;
   MutableSpan<int> offsets_for_write();
 
   /**
-   * Access a range of indices of point data for a specific curve.
+   * The offsets of every curve into arrays on the points domain.
    */
-  IndexRange points_for_curve(int index) const;
-  IndexRange points_for_curves(IndexRange curves) const;
+  OffsetIndices<int> points_by_curve() const;
 
   /** The type (#CurveType) of each curve, or potentially a single if all are the same type. */
   VArray<int8_t> curve_types() const;
@@ -852,16 +847,6 @@ inline IndexRange CurvesGeometry::curves_range() const
   return IndexRange(this->curves_num());
 }
 
-inline int CurvesGeometry::points_num_for_curve(const int index) const
-{
-  BLI_assert(this->curve_num > 0);
-  BLI_assert(this->curve_num > index);
-  BLI_assert(this->curve_offsets != nullptr);
-  const int offset = this->curve_offsets[index];
-  const int offset_next = this->curve_offsets[index + 1];
-  return offset_next - offset;
-}
-
 inline bool CurvesGeometry::is_single_type(const CurveType type) const
 {
   return this->curve_type_counts()[type] == this->curves_num();
@@ -884,25 +869,9 @@ inline const std::array<int, CURVE_TYPES_NUM> &CurvesGeometry::curve_type_counts
   return this->runtime->type_counts;
 }
 
-inline IndexRange CurvesGeometry::points_for_curve(const int index) const
+inline OffsetIndices<int> CurvesGeometry::points_by_curve() const
 {
-  /* Offsets are not allocated when there are no curves. */
-  BLI_assert(this->curve_num > 0);
-  BLI_assert(this->curve_num > index);
-  BLI_assert(this->curve_offsets != nullptr);
-  const int offset = this->curve_offsets[index];
-  const int offset_next = this->curve_offsets[index + 1];
-  return {offset, offset_next - offset};
-}
-
-inline IndexRange CurvesGeometry::points_for_curves(const IndexRange curves) const
-{
-  /* Offsets are not allocated when there are no curves. */
-  BLI_assert(this->curve_num > 0);
-  BLI_assert(this->curve_offsets != nullptr);
-  const int offset = this->curve_offsets[curves.start()];
-  const int offset_next = this->curve_offsets[curves.one_after_last()];
-  return {offset, offset_next - offset};
+  return OffsetIndices<int>({this->curve_offsets, this->curve_num + 1});
 }
 
 inline int CurvesGeometry::evaluated_points_num() const
@@ -928,7 +897,8 @@ inline IndexRange CurvesGeometry::evaluated_points_for_curves(const IndexRange c
 
 inline Span<int> CurvesGeometry::bezier_evaluated_offsets_for_curve(const int curve_index) const
 {
-  const IndexRange points = this->points_for_curve(curve_index);
+  const OffsetIndices points_by_curve = this->points_by_curve();
+  const IndexRange points = points_by_curve[curve_index];
   return this->runtime->bezier_evaluated_offsets.as_span().slice(points);
 }
 

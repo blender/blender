@@ -235,6 +235,9 @@ static void copy_curve_attributes_without_id(
   Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
       geometry_set, GEO_COMPONENT_TYPE_CURVE, propagation_info);
 
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
+
   for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     GAttributeReader src_attribute = src_curves.attributes().lookup(attribute_id);
@@ -265,9 +268,9 @@ static void copy_curve_attributes_without_id(
           threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
             for (const int i_selection : range) {
               const int i_src_curve = selection[i_selection];
-              const Span<T> curve_src = src.slice(src_curves.points_for_curve(i_src_curve));
+              const Span<T> curve_src = src.slice(src_points_by_curve[i_src_curve]);
               for (const int i_dst_curve : range_for_offsets_index(curve_offsets, i_selection)) {
-                dst.slice(dst_curves.points_for_curve(i_dst_curve)).copy_from(curve_src);
+                dst.slice(dst_points_by_curve[i_dst_curve]).copy_from(curve_src);
               }
             }
           });
@@ -305,15 +308,17 @@ static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
   VArraySpan<int> src{src_attribute.varray.typed<int>()};
   MutableSpan<int> dst = dst_attribute.span.typed<int>();
 
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
+
   threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
     for (const int i_selection : range) {
       const int i_src_curve = selection[i_selection];
-      const Span<int> curve_src = src.slice(src_curves.points_for_curve(i_src_curve));
+      const Span<int> curve_src = src.slice(src_points_by_curve[i_src_curve]);
       const IndexRange duplicates_range = range_for_offsets_index(curve_offsets, i_selection);
       for (const int i_duplicate : IndexRange(duplicates_range.size()).drop_front(1)) {
         const int i_dst_curve = duplicates_range[i_duplicate];
-        copy_hashed_ids(
-            curve_src, i_duplicate, dst.slice(dst_curves.points_for_curve(i_dst_curve)));
+        copy_hashed_ids(curve_src, i_duplicate, dst.slice(dst_points_by_curve[i_dst_curve]));
       }
     }
   });
@@ -344,6 +349,8 @@ static void duplicate_curves(GeometrySet &geometry_set,
   const VArray<int> counts = evaluator.get_evaluated<int>(0);
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+
   /* The offset in the result curve domain at every selected input curve. */
   Array<int> curve_offsets(selection.size() + 1);
   Array<int> point_offsets(selection.size() + 1);
@@ -355,7 +362,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
     curve_offsets[i_curve] = dst_curves_num;
     point_offsets[i_curve] = dst_points_num;
     dst_curves_num += count;
-    dst_points_num += count * curves.points_for_curve(selection[i_curve]).size();
+    dst_points_num += count * points_by_curve.size(selection[i_curve]);
   }
   curve_offsets.last() = dst_curves_num;
   point_offsets.last() = dst_points_num;
@@ -368,7 +375,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
   threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
     for (const int i_selection : range) {
       const int i_src_curve = selection[i_selection];
-      const IndexRange src_curve_range = curves.points_for_curve(i_src_curve);
+      const IndexRange src_curve_range = points_by_curve[i_src_curve];
       const IndexRange dst_curves_range = range_for_offsets_index(curve_offsets, i_selection);
       MutableSpan<int> dst_offsets = all_dst_offsets.slice(dst_curves_range);
       for (const int i_duplicate : IndexRange(dst_curves_range.size())) {
@@ -814,10 +821,11 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
   const int dst_num = offsets.last();
 
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   Array<int> point_to_curve_map(src_curves.points_num());
   threading::parallel_for(src_curves.curves_range(), 1024, [&](const IndexRange range) {
     for (const int i_curve : range) {
-      const IndexRange points = src_curves.points_for_curve(i_curve);
+      const IndexRange points = src_points_by_curve[i_curve];
       point_to_curve_map.as_mutable_span().slice(points).fill(i_curve);
     }
   });

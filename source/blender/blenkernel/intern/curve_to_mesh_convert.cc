@@ -633,10 +633,11 @@ static void write_sharp_bezier_edges(const CurvesInfo &curves_info,
 
   sharp_edges = mesh_attributes.lookup_or_add_for_write_span<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
 
+  const OffsetIndices profile_points_by_curve = profile.points_by_curve();
   const VArray<int8_t> types = profile.curve_types();
   foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
     if (types[info.i_profile] == CURVE_TYPE_BEZIER) {
-      const IndexRange points = profile.points_for_curve(info.i_profile);
+      const IndexRange points = profile_points_by_curve[info.i_profile];
       mark_bezier_vector_edges_sharp(points.size(),
                                      info.main_segment_num,
                                      profile.bezier_evaluated_offsets_for_curve(info.i_profile),

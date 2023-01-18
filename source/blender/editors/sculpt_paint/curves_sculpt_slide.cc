@@ -317,6 +317,7 @@ struct SlideOperationExecutor {
 
     const Span<float3> positions_orig_su = surface_orig_->vert_positions();
     const Span<MLoop> loops_orig = surface_orig_->loops();
+    const OffsetIndices points_by_curve = curves_orig_->points_by_curve();
 
     MutableSpan<float3> positions_orig_cu = curves_orig_->positions_for_write();
     MutableSpan<float2> surface_uv_coords = curves_orig_->surface_uv_coords_for_write();
@@ -334,7 +335,7 @@ struct SlideOperationExecutor {
     threading::parallel_for(slide_curves.index_range(), 256, [&](const IndexRange range) {
       for (const SlideCurveInfo &slide_curve_info : slide_curves.slice(range)) {
         const int curve_i = slide_curve_info.curve_i;
-        const IndexRange points = curves_orig_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         const int first_point_i = points[0];
 
         const float3 old_first_pos_eval_cu = self_->initial_deformed_positions_cu_[first_point_i];

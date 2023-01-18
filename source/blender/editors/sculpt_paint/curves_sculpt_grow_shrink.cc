@@ -88,13 +88,14 @@ class ShrinkCurvesEffect : public CurvesEffect {
                const Span<int> curve_indices,
                const Span<float> move_distances_cu) override
   {
+    const OffsetIndices points_by_curve = curves.points_by_curve();
     MutableSpan<float3> positions_cu = curves.positions_for_write();
     threading::parallel_for(curve_indices.index_range(), 256, [&](const IndexRange range) {
       ParameterizationBuffers data;
       for (const int influence_i : range) {
         const int curve_i = curve_indices[influence_i];
         const float move_distance_cu = move_distances_cu[influence_i];
-        const IndexRange points = curves.points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         this->shrink_curve(positions_cu.slice(points), move_distance_cu, data);
       }
     });
@@ -137,13 +138,14 @@ class ExtrapolateCurvesEffect : public CurvesEffect {
                const Span<int> curve_indices,
                const Span<float> move_distances_cu) override
   {
+    const OffsetIndices points_by_curve = curves.points_by_curve();
     MutableSpan<float3> positions_cu = curves.positions_for_write();
     threading::parallel_for(curve_indices.index_range(), 256, [&](const IndexRange range) {
       MoveAndResampleBuffers resample_buffer;
       for (const int influence_i : range) {
         const int curve_i = curve_indices[influence_i];
         const float move_distance_cu = move_distances_cu[influence_i];
-        const IndexRange points = curves.points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         if (points.size() <= 1) {
           continue;
         }
@@ -178,12 +180,13 @@ class ScaleCurvesEffect : public CurvesEffect {
                const Span<int> curve_indices,
                const Span<float> move_distances_cu) override
   {
+    const OffsetIndices points_by_curve = curves.points_by_curve();
     MutableSpan<float3> positions_cu = curves.positions_for_write();
     threading::parallel_for(curve_indices.index_range(), 256, [&](const IndexRange range) {
       for (const int influence_i : range) {
         const int curve_i = curve_indices[influence_i];
         const float move_distance_cu = move_distances_cu[influence_i];
-        const IndexRange points = curves.points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
 
         const float old_length = this->compute_poly_curve_length(positions_cu.slice(points));
         const float length_diff = scale_up_ ? move_distance_cu : -move_distance_cu;
@@ -342,6 +345,7 @@ struct CurvesEffectOperationExecutor {
   {
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
@@ -360,7 +364,7 @@ struct CurvesEffectOperationExecutor {
       Influences &local_influences = influences_for_thread.local();
 
       for (const int curve_i : curves_range) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
 
         const float curve_selection_factor = curve_selection_factors_[curve_i];
 
@@ -452,12 +456,13 @@ struct CurvesEffectOperationExecutor {
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
       Influences &local_influences = influences_for_thread.local();
 
       for (const int curve_i : curves_range) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
 
         float max_move_distance_cu = 0.0f;
 

@@ -138,10 +138,11 @@ struct SmoothOperationExecutor {
 
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
       for (const int curve_i : curve_selection_.slice(range)) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         for (const int point_i : points) {
           const float3 &pos_cu = brush_transform_inv * deformation.positions[point_i];
           float2 pos_re;
@@ -194,10 +195,11 @@ struct SmoothOperationExecutor {
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
       for (const int curve_i : curve_selection_.slice(range)) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         for (const int point_i : points) {
           const float3 &pos_cu = deformation.positions[point_i];
           const float dist_to_brush_sq_cu = math::distance_squared(pos_cu, brush_pos_cu);
@@ -221,11 +223,12 @@ struct SmoothOperationExecutor {
 
   void smooth(const Span<float> point_smooth_factors)
   {
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
     MutableSpan<float3> positions = curves_->positions_for_write();
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
       Vector<float3> old_positions;
       for (const int curve_i : curve_selection_.slice(range)) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         old_positions.clear();
         old_positions.extend(positions.slice(points));
         for (const int i : IndexRange(points.size()).drop_front(1).drop_back(1)) {

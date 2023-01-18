@@ -334,7 +334,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
   if (curves.curves_num() >= 1) {
     blender::VArray<float> radii = curves.attributes().lookup_or_default(
         "radius", ATTR_DOMAIN_POINT, 0.005f);
-    const blender::IndexRange first_curve_points = curves.points_for_curve(0);
+    const blender::IndexRange first_curve_points = curves.points_by_curve()[0];
     const float first_radius = radii[first_curve_points.first()];
     const float last_radius = radii[first_curve_points.last()];
     const float middle_radius = radii[first_curve_points.size() / 2];

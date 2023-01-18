@@ -160,6 +160,7 @@ struct PinchOperationExecutor {
 
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
@@ -169,7 +170,7 @@ struct PinchOperationExecutor {
 
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
       for (const int curve_i : curve_selection_.slice(range)) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         for (const int point_i : points.drop_front(1)) {
           const float3 old_pos_cu = deformation.positions[point_i];
           const float3 old_symm_pos_cu = brush_transform_inv * old_pos_cu;
@@ -236,10 +237,11 @@ struct PinchOperationExecutor {
 
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
       for (const int curve_i : curve_selection_.slice(range)) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         for (const int point_i : points.drop_front(1)) {
           const float3 old_pos_cu = deformation.positions[point_i];
 
@@ -269,10 +271,11 @@ struct PinchOperationExecutor {
   void initialize_segment_lengths()
   {
     const Span<float3> positions_cu = curves_->positions();
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
     self_->segment_lengths_cu_.reinitialize(curves_->points_num());
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
       for (const int curve_i : curve_selection_.slice(range)) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         for (const int point_i : points.drop_back(1)) {
           const float3 &p1_cu = positions_cu[point_i];
           const float3 &p2_cu = positions_cu[point_i + 1];
@@ -286,6 +289,7 @@ struct PinchOperationExecutor {
   void restore_segment_lengths(const Span<bool> changed_curves)
   {
     const Span<float> expected_lengths_cu = self_->segment_lengths_cu_;
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     threading::parallel_for(changed_curves.index_range(), 256, [&](const IndexRange range) {
@@ -293,7 +297,7 @@ struct PinchOperationExecutor {
         if (!changed_curves[curve_i]) {
           continue;
         }
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         for (const int segment_i : IndexRange(points.size() - 1)) {
           const float3 &p1_cu = positions_cu[points[segment_i]];
           float3 &p2_cu = positions_cu[points[segment_i] + 1];

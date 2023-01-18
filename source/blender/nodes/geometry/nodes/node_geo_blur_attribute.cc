@@ -304,13 +304,14 @@ static void blur_on_curve_exec(const bke::CurvesGeometry &curves,
   MutableSpan<T> src = main_buffer;
   MutableSpan<T> dst = tmp_buffer;
 
+  const OffsetIndices points_by_curve = curves.points_by_curve();
   const VArray<bool> cyclic = curves.cyclic();
 
   for ([[maybe_unused]] const int iteration : IndexRange(iterations)) {
     attribute_math::DefaultMixer<T> mixer{dst, IndexMask(0)};
     threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
       for (const int curve_i : range) {
-        const IndexRange points = curves.points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         if (points.size() == 1) {
           /* No mixing possible. */
           const int point_i = points[0];
@@ -347,7 +348,7 @@ static void blur_on_curve_exec(const bke::CurvesGeometry &curves,
           mixer.mix_in(last_i, src[last_i - 1], last_neighbor_weight);
         }
       }
-      mixer.finalize(curves.points_for_curves(range));
+      mixer.finalize(points_by_curve[range]);
     });
     std::swap(src, dst);
   }
