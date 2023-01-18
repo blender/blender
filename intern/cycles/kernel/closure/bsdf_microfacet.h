@@ -871,8 +871,8 @@ ccl_device Spectrum bsdf_microfacet_beckmann_eval_reflect(ccl_private const Micr
     D = expf(-slope_x * slope_x - slope_y * slope_y) / (M_PI_F * alpha2 * cosThetaM4);
 
     /* G1(i,m) and G1(o,m) */
-    G1i = bsdf_beckmann_aniso_G1(alpha_x, alpha_y, cosNO, dot(wi, X), dot(wi, Y));
-    G1o = bsdf_beckmann_aniso_G1(alpha_x, alpha_y, cosNI, dot(wo, X), dot(wo, Y));
+    G1i = bsdf_beckmann_aniso_G1(alpha_x, alpha_y, cosNI, dot(wi, X), dot(wi, Y));
+    G1o = bsdf_beckmann_aniso_G1(alpha_x, alpha_y, cosNO, dot(wo, X), dot(wo, Y));
   }
 
   float G = G1i * G1o;
