@@ -30,11 +30,11 @@ namespace blender::io::ply {
 struct UV_vertex_key {
   float2 UV;
   int Vertex_index;
-  UV_vertex_key(float2 UV, int vertex_index)
+
+  UV_vertex_key(float2 UV, int vertex_index) : UV(UV), Vertex_index(vertex_index)
   {
-    this->UV = UV;
-    this->Vertex_index = vertex_index;
   }
+
   bool operator==(const UV_vertex_key &r) const
   {
     return (UV == r.UV && Vertex_index == r.Vertex_index);
@@ -50,7 +50,7 @@ struct UV_vertex_hash {
 };
 
 std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertex_map(
-    const Mesh *mesh, const MLoopUV *mloopuv, PLYExportParams export_params)
+    const Mesh *mesh, const MLoopUV *mloopuv, const PLYExportParams &export_params)
 {
 
   std::unordered_map<UV_vertex_key, int, UV_vertex_hash> vertex_map;
@@ -158,14 +158,14 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
       plyData.faces.append(polyVector);
     }
 
-    int *mesh_vertex_index_LUT = new int[vertex_map.size()];
-    int *ply_vertex_index_LUT = new int[mesh->totvert];
-    float2 *uv_coordinates = new float2[vertex_map.size()];
+    std::unique_ptr<int[]> mesh_vertex_index_LUT(new int[vertex_map.size()]);
+    std::unique_ptr<int[]> ply_vertex_index_LUT(new int[mesh->totvert]);
+    std::unique_ptr<float2[]> uv_coordinates(new float2[vertex_map.size()]);
 
-    for (auto &key_value_pair : vertex_map) {
-      mesh_vertex_index_LUT[key_value_pair.second] = key_value_pair.first.Vertex_index;
-      ply_vertex_index_LUT[key_value_pair.first.Vertex_index] = key_value_pair.second;
-      uv_coordinates[key_value_pair.second] = key_value_pair.first.UV;
+    for (auto &[key, value] : vertex_map) {
+      mesh_vertex_index_LUT[value] = key.Vertex_index;
+      ply_vertex_index_LUT[key.Vertex_index] = value;
+      uv_coordinates[value] = key.UV;
     }
 
     // Vertices
@@ -208,10 +208,6 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
         plyData.edges.append(edge_pair);
       }
     }
-
-    delete[] mesh_vertex_index_LUT;
-    delete[] ply_vertex_index_LUT;
-    delete[] uv_coordinates;
 
     vertex_offset = (int)plyData.vertices.size();
   }
