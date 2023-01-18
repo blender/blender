@@ -184,9 +184,19 @@ void OSLShaderManager::device_update_specific(Device *device,
      * is being freed after the Session is freed.
      */
     thread_scoped_lock lock(ss_shared_mutex);
+
+    /* Set current image manager during the lock, so that there is no conflict with other shader
+     * manager instances.
+     *
+     * It is used in "OSLRenderServices::get_texture_handle" called during optimization below to
+     * load images for the GPU. */
+    OSLRenderServices::image_manager = scene->image_manager;
+
     for (const auto &[device_type, ss] : ss_shared) {
       ss->optimize_all_groups();
     }
+
+    OSLRenderServices::image_manager = nullptr;
   }
 
   /* load kernels */
@@ -213,6 +223,22 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
     og->bump_state.clear();
     og->background_state.reset();
   });
+
+  /* Remove any textures specific to an image manager from shared render services textures, since
+   * the image manager may get destroyed next. */
+  for (const auto &[device_type, ss] : ss_shared) {
+    OSLRenderServices *services = static_cast<OSLRenderServices *>(ss->renderer());
+
+    for (auto it = services->textures.begin(); it != services->textures.end(); ++it) {
+      if (it->second->handle.get_manager() == scene->image_manager) {
+        /* Don't lock again, since the iterator already did so. */
+        services->textures.erase(it->first, false);
+        it.clear();
+        /* Iterator was invalidated, start from the beginning again. */
+        it = services->textures.begin();
+      }
+    }
+  }
 }
 
 void OSLShaderManager::texture_system_init()
