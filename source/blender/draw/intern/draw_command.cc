@@ -11,6 +11,7 @@
 #include "GPU_debug.h"
 
 #include "draw_command.hh"
+#include "draw_pass.hh"
 #include "draw_shader.h"
 #include "draw_view.hh"
 
@@ -530,15 +531,20 @@ std::string StencilSet::serialize() const
 /** \name Commands buffers binding / command / resource ID generation
  * \{ */
 
-void DrawCommandBuf::bind(RecordingState &state,
-                          Vector<Header, 0> &headers,
-                          Vector<Undetermined, 0> &commands)
+void DrawCommandBuf::finalize_commands(Vector<Header, 0> &headers,
+                                       Vector<Undetermined, 0> &commands,
+                                       SubPassVector &sub_passes,
+                                       uint &resource_id_count,
+                                       ResourceIdBuf &resource_id_buf)
 {
-  UNUSED_VARS(headers, commands);
-
-  resource_id_count_ = 0;
-
   for (const Header &header : headers) {
+    if (header.type == Type::SubPass) {
+      /** WARNING: Recursive. */
+      auto &sub = sub_passes[int64_t(header.index)];
+      finalize_commands(
+          sub.headers_, sub.commands_, sub_passes, resource_id_count, resource_id_buf);
+    }
+
     if (header.type != Type::Draw) {
       continue;
     }
@@ -559,18 +565,28 @@ void DrawCommandBuf::bind(RecordingState &state,
 
     if (cmd.handle.raw > 0) {
       /* Save correct offset to start of resource_id buffer region for this draw. */
-      uint instance_first = resource_id_count_;
-      resource_id_count_ += cmd.instance_len;
+      uint instance_first = resource_id_count;
+      resource_id_count += cmd.instance_len;
       /* Ensure the buffer is big enough. */
-      resource_id_buf_.get_or_resize(resource_id_count_ - 1);
+      resource_id_buf.get_or_resize(resource_id_count - 1);
 
       /* Copy the resource id for all instances. */
       uint index = cmd.handle.resource_index();
       for (int i = instance_first; i < (instance_first + cmd.instance_len); i++) {
-        resource_id_buf_[i] = index;
+        resource_id_buf[i] = index;
       }
     }
   }
+}
+
+void DrawCommandBuf::bind(RecordingState &state,
+                          Vector<Header, 0> &headers,
+                          Vector<Undetermined, 0> &commands,
+                          SubPassVector &sub_passes)
+{
+  resource_id_count_ = 0;
+
+  finalize_commands(headers, commands, sub_passes, resource_id_count_, resource_id_buf_);
 
   resource_id_buf_.push_update();
 
