@@ -54,7 +54,6 @@ typedef struct MetaBall {
   struct AnimData *adt;
 
   ListBase elems;
-  ListBase disp;
   /** Not saved in files, note we use pointer for editmode check. */
   ListBase *editelems;
   /** Old animation system, deprecated for 2.5. */
@@ -76,10 +75,8 @@ typedef struct MetaBall {
    */
   char needs_flush_to_id;
 
-  /* texture space, copied as one block in editobject.c */
   float loc[3];
   float size[3];
-  float rot[3];
 
   /** Display and render res. */
   float wiresize, rendersize;
@@ -89,9 +86,11 @@ typedef struct MetaBall {
    * but these may also have their own thresh as an offset */
   float thresh;
 
-  /* used in editmode */
-  // ListBase edit_elems;
+  char _pad0[4];
+
+  /** The active meta-element (used in edit-mode). */
   MetaElem *lastelem;
+
 } MetaBall;
 
 /* **************** METABALL ********************* */
