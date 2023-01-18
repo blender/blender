@@ -8,6 +8,7 @@
 
 #include "DNA_mesh_types.h"
 
+#include "IO_ply.h"
 #include "ply_data.hh"
 
 namespace blender::io::ply {
@@ -17,6 +18,6 @@ namespace blender::io::ply {
  * @param data The PLY data.
  * @return The mesh that can be used inside blender.
  */
-Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh);
+Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &params);
 
 }  // namespace blender::io::ply
