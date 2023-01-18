@@ -156,7 +156,7 @@ TEST_F(PlyImportTest, PLYImportASCIIEdgeTest)
        float3(1, 1, -1),
        float3(-1, 1, 1),
        float3(0.5773, 0.5773, -0.5773)},
-      {"OBcube_ascii", ASCII, 8, 12, 0, float3(-1, -1, -1), float3(1, 1, 1), float3(0, 0, -1)}};
+      {"OBASCII_wireframe_cube", ASCII, 8, 0, 12, float3(-1, -1, -1), float3(1, 1, 1), float3(-2, 0, -1)}};
 
   import_and_check("ASCII_wireframe_cube.ply", expect, 2);
 }
