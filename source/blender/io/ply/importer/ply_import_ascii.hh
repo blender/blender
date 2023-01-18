@@ -1,8 +1,15 @@
-#ifndef BLENDER_PLY_IMPORT_ASCII_HH
-#define BLENDER_PLY_IMPORT_ASCII_HH
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
+#pragma once
 
 #include "BKE_mesh.h"
+
 #include "DNA_mesh_types.h"
+
 #include "ply_data.hh"
 
 namespace blender::io::ply {
@@ -27,4 +34,3 @@ int3 get_normal_index(const PlyHeader *header);
 int get_index(const PlyHeader *header, std::string property, PlyDataTypes datatype);
 std::vector<std::string> explode(const std::string_view &str, const char &ch);
 }  // namespace blender::io::ply
-#endif  // BLENDER_PLY_IMPORT_ASCII_HH

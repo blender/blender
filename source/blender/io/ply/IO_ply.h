@@ -7,7 +7,9 @@
 #pragma once
 
 #include "BKE_context.h"
+
 #include "BLI_path_util.h"
+#include "DNA_windowmanager_types.h"
 #include "IO_orientation.h"
 
 #ifdef __cplusplus
@@ -45,10 +47,8 @@ struct PLYImportParams {
   char filepath[FILE_MAX];
   eIOAxis forward_axis;
   eIOAxis up_axis;
-  bool use_facet_normal;
   bool use_scene_unit;
   float global_scale;
-  bool use_mesh_validate;
 };
 
 /**
@@ -56,7 +56,7 @@ struct PLYImportParams {
  */
 void PLY_export(bContext *C, const struct PLYExportParams *export_params);
 
-void PLY_import(bContext *C, const struct PLYImportParams *import_params);
+void PLY_import(bContext *C, const struct PLYImportParams *import_params, wmOperator *op);
 
 #ifdef __cplusplus
 }

@@ -88,6 +88,15 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
       plyData.faces.append(std::move(polyVector));
     }
 
+    // Edges
+    for (auto &&edge : mesh->edges()) {
+      if ((edge.flag & ME_LOOSEEDGE) == ME_LOOSEEDGE) {
+        std::pair<uint32_t, uint32_t> edge_pair = std::make_pair(uint32_t(edge.v1),
+                                                                 uint32_t(edge.v2));
+        plyData.edges.append(edge_pair);
+      }
+    }
+
     vertex_offset = (int)plyData.vertices.size();
   }
 

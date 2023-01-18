@@ -15,6 +15,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
+
 #include "ply_file_buffer.hh"
 
 /* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */
@@ -89,6 +90,18 @@ class FileBufferBinary : public FileBuffer {
       auto *vtxbits = static_cast<char *>(static_cast<void *>(&x));
       data.insert(data.end(), vtxbits, vtxbits + sizeof(uint32_t));
     }
+
+    write_bytes(data);
+  }
+
+  void write_edge(int first, int second) override
+  {
+
+    auto *fbits = reinterpret_cast<char *>(&first);
+    auto *sbits = reinterpret_cast<char *>(&second);
+
+    Vector<char> data(fbits, fbits + sizeof(int));
+    data.insert(data.end(), sbits, sbits + sizeof(int));
 
     write_bytes(data);
   }

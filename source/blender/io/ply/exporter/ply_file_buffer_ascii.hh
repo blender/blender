@@ -16,6 +16,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
+
 #include "ply_file_buffer.hh"
 
 /* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */
@@ -55,6 +56,11 @@ class FileBufferAscii : public FileBuffer {
     for (auto &&v : vertex_indices) {
       write_fstring(" {}", v);
     }
+    write_newline();
+  }
+  void write_edge(int first, int second) override
+  {
+    write_fstring("{} {}", first, second);
     write_newline();
   }
 };

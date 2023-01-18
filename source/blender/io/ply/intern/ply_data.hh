@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 /** \file
  * \ingroup ply
  */
@@ -6,6 +8,7 @@
 
 #include "BLI_math_vec_types.hh"
 #include "BLI_vector.hh"
+
 #include "DNA_meshdata_types.h"
 
 namespace blender::io::ply {

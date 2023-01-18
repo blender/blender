@@ -1,7 +1,15 @@
-#include "ply_import_ascii.hh"
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup ply
+ */
+
 #include "BLI_math_vector.h"
+
 #include "ply_functions.hh"
+#include "ply_import_ascii.hh"
 #include "ply_import_mesh.hh"
+
 #include <algorithm>
 #include <fstream>
 
@@ -153,10 +161,10 @@ int get_index(const PlyHeader *header, std::string property, PlyDataTypes dataty
   return (int)(it - header->properties[0].begin());
 }
 
-std::vector<std::string> explode(const std::string_view &str, const char &ch)
+Vector<std::string> explode(const StringRef &str, const char &ch)
 {
   std::string next;
-  std::vector<std::string> result;
+  Vector<std::string> result;
 
   /* For each character in the string. */
   for (auto c : str) {
@@ -176,7 +184,7 @@ std::vector<std::string> explode(const std::string_view &str, const char &ch)
   }
 
   if (!next.empty()) {
-    result.push_back(next);
+    result.append(next);
   }
 
   return result;

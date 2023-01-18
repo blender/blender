@@ -49,7 +49,7 @@ void exporter_main(Main *bmain,
                    const PLYExportParams &export_params)
 {
   // Load mesh data into PlyData struct.
-  auto plyData = std::make_unique<PlyData>();
+  std::unique_ptr<blender::io::ply::PlyData> plyData = std::make_unique<PlyData>();
   load_plydata(*plyData, C, export_params);
 
   // Get filebuffer.
@@ -70,6 +70,9 @@ void exporter_main(Main *bmain,
 
   /* Generate and write faces. */
   write_faces(buffer, plyData);
+
+  /* Generate and write edges. */
+  write_edges(buffer, plyData);
 
   /* Clean up. */
   buffer->close_file();
