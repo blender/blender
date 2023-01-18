@@ -558,7 +558,7 @@ void DebugDraw::display_prints()
   int slot = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_PRINT);
   float f_viewport[4];
   GPU_viewport_size_get_f(f_viewport);
-  GPU_shader_uniform_2fv(shader, "viewport_size", f_viewport);
+  GPU_shader_uniform_2fv(shader, "viewport_size", &f_viewport[2]);
 
   if (gpu_print_buf_used) {
     GPU_debug_group_begin("GPU");
