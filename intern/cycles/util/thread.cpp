@@ -6,6 +6,8 @@
 #include "util/system.h"
 #include "util/windows.h"
 
+#include <system_error>
+
 CCL_NAMESPACE_BEGIN
 
 thread::thread(function<void()> run_cb) : run_cb_(run_cb), joined_(false)
