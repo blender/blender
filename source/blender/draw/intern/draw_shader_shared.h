@@ -70,6 +70,7 @@ typedef enum eObjectInfoFlag eObjectInfoFlag;
 #  define drw_view_id 0
 #  define DRW_VIEW_LEN 1
 #  define DRW_VIEW_SHIFT 0
+#  define DRW_VIEW_FROM_RESOURCE_ID
 #else
 
 /* Multi-view case. */
@@ -90,7 +91,7 @@ uint drw_view_id = 0;
      (DRW_VIEW_LEN > 2)  ? 2 : \
                            1)
 #  define DRW_VIEW_MASK ~(0xFFFFFFFFu << DRW_VIEW_SHIFT)
-#  define DRW_VIEW_FROM_RESOURCE_ID (drw_ResourceID & DRW_VIEW_MASK)
+#  define DRW_VIEW_FROM_RESOURCE_ID drw_view_id = (drw_ResourceID & DRW_VIEW_MASK)
 #endif
 
 struct ViewCullingData {
