@@ -1,6 +1,5 @@
 name: Pull Request
 about: Contribute code to Blender
-ref: master
 body:
   - type: markdown
     attributes:
