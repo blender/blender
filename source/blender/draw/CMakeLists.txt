@@ -530,6 +530,7 @@ set(GLSL_SRC
   intern/shaders/draw_debug_print_display_frag.glsl
   intern/shaders/draw_debug_print_display_vert.glsl
   intern/shaders/draw_resource_finalize_comp.glsl
+  intern/shaders/draw_view_finalize_comp.glsl
   intern/shaders/draw_visibility_comp.glsl
 
   intern/draw_command_shared.hh
