@@ -37,5 +37,5 @@ int3 get_vertex_index(const PlyHeader *header);
 int3 get_color_index(const PlyHeader *header);
 int3 get_normal_index(const PlyHeader *header);
 int get_index(const PlyHeader *header, std::string property, PlyDataTypes datatype);
-std::vector<std::string> explode(const std::string_view &str, const char &ch);
+Vector<std::string> explode(const StringRef &str, const char &ch);
 }  // namespace blender::io::ply
