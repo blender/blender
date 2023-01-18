@@ -821,14 +821,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
   const int dst_num = offsets.last();
 
-  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
-  Array<int> point_to_curve_map(src_curves.points_num());
-  threading::parallel_for(src_curves.curves_range(), 1024, [&](const IndexRange range) {
-    for (const int i_curve : range) {
-      const IndexRange points = src_points_by_curve[i_curve];
-      point_to_curve_map.as_mutable_span().slice(points).fill(i_curve);
-    }
-  });
+  const Array<int> point_to_curve_map = src_curves.point_to_curve_map();
 
   Curves *new_curves_id = bke::curves_new_nomain(dst_num, dst_num);
   bke::curves_copy_parameters(src_curves_id, *new_curves_id);

@@ -536,9 +536,11 @@ Array<int> CurvesGeometry::point_to_curve_map() const
 {
   const OffsetIndices points_by_curve = this->points_by_curve();
   Array<int> map(this->points_num());
-  for (const int i : this->curves_range()) {
-    map.as_mutable_span().slice(points_by_curve[i]).fill(i);
-  }
+  threading::parallel_for(this->curves_range(), 1024, [&](const IndexRange range) {
+    for (const int i_curve : range) {
+      map.as_mutable_span().slice(points_by_curve[i_curve]).fill(i_curve);
+    }
+  });
   return map;
 }
 
@@ -1075,28 +1077,13 @@ static void copy_with_map(const GSpan src, const Span<int> map, GMutableSpan dst
   });
 }
 
-/**
- * Builds an array that for every point, contains the corresponding curve index.
- */
-static Array<int> build_point_to_curve_map(const CurvesGeometry &curves)
-{
-  const OffsetIndices points_by_curve = curves.points_by_curve();
-  Array<int> point_to_curve_map(curves.points_num());
-  threading::parallel_for(curves.curves_range(), 1024, [&](const IndexRange curves_range) {
-    for (const int i_curve : curves_range) {
-      point_to_curve_map.as_mutable_span().slice(points_by_curve[i_curve]).fill(i_curve);
-    }
-  });
-  return point_to_curve_map;
-}
-
 static CurvesGeometry copy_with_removed_points(
     const CurvesGeometry &curves,
     const IndexMask points_to_delete,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
   /* Use a map from points to curves to facilitate using an #IndexMask input. */
-  const Array<int> point_to_curve_map = build_point_to_curve_map(curves);
+  const Array<int> point_to_curve_map = curves.point_to_curve_map();
 
   const Vector<IndexRange> copy_point_ranges = points_to_delete.extract_ranges_invert(
       curves.points_range());
