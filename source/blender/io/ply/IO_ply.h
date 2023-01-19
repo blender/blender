@@ -50,6 +50,7 @@ struct PLYImportParams {
   bool use_scene_unit;
   float global_scale;
   bool import_normals_as_attribute;
+  bool merge_verts;
 };
 
 /**

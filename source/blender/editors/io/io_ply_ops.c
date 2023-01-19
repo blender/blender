@@ -243,6 +243,7 @@ static int wm_ply_import_execute(bContext *C, wmOperator *op)
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
   params.import_normals_as_attribute = RNA_boolean_get(op->ptr, "import_normals_as_attribute");
+  params.merge_verts = RNA_boolean_get(op->ptr, "merge_verts");
 
   int files_len = RNA_collection_length(op->ptr, "files");
 
@@ -326,6 +327,11 @@ void WM_OT_ply_import(struct wmOperatorType *ot)
                   false,
                   "Normals As Attribute",
                   "Sets the vertex normal data as a vertex attribute");
+  RNA_def_boolean(ot->srna,
+                  "merge_verts",
+                  false,
+                  "Merge Vertices",
+                  "Merges vertices by distance");
 
   /* Only show .ply files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.ply", 0, "Extension Filter", "");
