@@ -562,6 +562,7 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
     const VArray<int8_t> knots_modes = this->nurbs_knots_modes();
 
     threading::parallel_for(nurbs_mask.index_range(), 64, [&](const IndexRange range) {
+      Vector<float, 32> knots;
       for (const int curve_index : nurbs_mask.slice(range)) {
         const IndexRange points = points_by_curve[curve_index];
         const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
@@ -575,8 +576,7 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
           continue;
         }
 
-        const int knots_num = curves::nurbs::knots_num(points.size(), order, is_cyclic);
-        Array<float> knots(knots_num);
+        knots.reinitialize(curves::nurbs::knots_num(points.size(), order, is_cyclic));
         curves::nurbs::calculate_knots(points.size(), mode, order, is_cyclic, knots);
         curves::nurbs::calculate_basis_cache(points.size(),
                                              evaluated_points.size(),
