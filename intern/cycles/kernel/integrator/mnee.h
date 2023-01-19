@@ -619,10 +619,10 @@ ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(ccl_private ShaderCl
   /* Now calculate G1(i, m) and G1(o, m). */
   float G;
   if (bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID) {
-    G = bsdf_G<true>(alpha2, cosNI, cosNO);
+    G = bsdf_G<MicrofacetType::BECKMANN>(alpha2, cosNI, cosNO);
   }
   else { /* bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID assumed */
-    G = bsdf_G<false>(alpha2, cosNI, cosNO);
+    G = bsdf_G<MicrofacetType::GGX>(alpha2, cosNI, cosNO);
   }
 
   /*

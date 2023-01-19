@@ -16,6 +16,11 @@
 
 CCL_NAMESPACE_BEGIN
 
+enum MicrofacetType {
+  BECKMANN,
+  GGX,
+};
+
 typedef struct MicrofacetExtra {
   Spectrum color, cspec0;
   Spectrum fresnel_color;
@@ -175,13 +180,13 @@ ccl_device_inline void microfacet_ggx_sample_slopes(const float cos_theta_i,
   *slope_y = S * z * safe_sqrtf(1.0f + (*slope_x) * (*slope_x));
 }
 
+template<MicrofacetType m_type>
 ccl_device_forceinline float3 microfacet_sample_stretched(KernelGlobals kg,
                                                           const float3 wi,
                                                           const float alpha_x,
                                                           const float alpha_y,
                                                           const float randu,
                                                           const float randv,
-                                                          bool beckmann,
                                                           ccl_private float *G1i)
 {
   /* 1. stretch wi */
@@ -206,7 +211,7 @@ ccl_device_forceinline float3 microfacet_sample_stretched(KernelGlobals kg,
   /* 2. sample P22_{wi}(x_slope, y_slope, 1, 1) */
   float slope_x, slope_y;
 
-  if (beckmann) {
+  if constexpr (m_type == MicrofacetType::BECKMANN) {
     microfacet_beckmann_sample_slopes(
         kg, costheta_, sintheta_, randu, randv, &slope_x, &slope_y, G1i);
   }
@@ -268,45 +273,51 @@ ccl_device_forceinline float bsdf_clearcoat_D(float alpha2, float cos_NH)
 }
 
 /* Monodirectional shadowing-masking term. */
-template<bool beckmann> ccl_device_inline float bsdf_G1_from_sqr_alpha_tan_n(float sqr_alpha_tan_n)
+template<MicrofacetType m_type>
+ccl_device_inline float bsdf_G1_from_sqr_alpha_tan_n(float sqr_alpha_tan_n)
 {
-  if (!beckmann) { /* GGX. */
+  if constexpr (m_type == MicrofacetType::GGX) {
     return 2.0f / (1.0f + sqrtf(1.0f + sqr_alpha_tan_n));
   }
 
+  /* m_type == MicrofacetType::BECKMANN */
   const float a = inversesqrtf(sqr_alpha_tan_n);
   return (a > 1.6f) ? 1.0f : ((2.181f * a + 3.535f) * a) / ((2.577f * a + 2.276f) * a + 1.0f);
 }
 
-template<bool beckmann> ccl_device_inline float bsdf_G1(float alpha2, float cos_N)
+template<MicrofacetType m_type> ccl_device_inline float bsdf_G1(float alpha2, float cos_N)
 {
-  return bsdf_G1_from_sqr_alpha_tan_n<beckmann>(alpha2 *
-                                                fmaxf(1.0f / (cos_N * cos_N) - 1.0f, 0.0f));
+  return bsdf_G1_from_sqr_alpha_tan_n<m_type>(alpha2 * fmaxf(1.0f / (cos_N * cos_N) - 1.0f, 0.0f));
 }
 
-template<bool beckmann>
+template<MicrofacetType m_type>
 ccl_device_inline float bsdf_aniso_G1(float alpha_x, float alpha_y, float3 V)
 {
-  return bsdf_G1_from_sqr_alpha_tan_n<beckmann>((sqr(alpha_x * V.x) + sqr(alpha_y * V.y)) /
-                                                sqr(V.z));
+  return bsdf_G1_from_sqr_alpha_tan_n<m_type>((sqr(alpha_x * V.x) + sqr(alpha_y * V.y)) /
+                                              sqr(V.z));
 }
 
 /* Smith's separable shadowing-masking term. */
-template<bool beckmann> ccl_device_inline float bsdf_G(float alpha2, float cos_NI, float cos_NO)
+template<MicrofacetType m_type>
+ccl_device_inline float bsdf_G(float alpha2, float cos_NI, float cos_NO)
 {
-  return bsdf_G1<beckmann>(alpha2, cos_NI) * bsdf_G1<beckmann>(alpha2, cos_NO);
+  return bsdf_G1<m_type>(alpha2, cos_NI) * bsdf_G1<m_type>(alpha2, cos_NO);
 }
 
 /* Normal distribution function. */
-template<bool beckmann> ccl_device_inline float bsdf_D(float alpha2, float cos_NH)
+template<MicrofacetType m_type> ccl_device_inline float bsdf_D(float alpha2, float cos_NH)
 {
   const float cos_NH2 = sqr(cos_NH);
 
-  return beckmann ? expf((1.0f - 1.0f / cos_NH2) / alpha2) / (M_PI_F * alpha2 * sqr(cos_NH2)) :
-                    alpha2 / (M_PI_F * sqr(1.0f + (alpha2 - 1.0f) * cos_NH2));
+  if constexpr (m_type == MicrofacetType::BECKMANN) {
+    return expf((1.0f - 1.0f / cos_NH2) / alpha2) / (M_PI_F * alpha2 * sqr(cos_NH2));
+  }
+
+  /* m_type == MicrofacetType::GGX */
+  return alpha2 / (M_PI_F * sqr(1.0f + (alpha2 - 1.0f) * cos_NH2));
 }
 
-template<bool beckmann>
+template<MicrofacetType m_type>
 ccl_device_inline float bsdf_aniso_D(float alpha_x, float alpha_y, float3 H)
 {
   H /= make_float3(alpha_x, alpha_y, 1.0f);
@@ -314,8 +325,12 @@ ccl_device_inline float bsdf_aniso_D(float alpha_x, float alpha_y, float3 H)
   const float cos_NH2 = sqr(H.z);
   const float alpha2 = alpha_x * alpha_y;
 
-  return beckmann ? expf(-(sqr(H.x) + sqr(H.y)) / cos_NH2) / (M_PI_F * alpha2 * sqr(cos_NH2)) :
-                    M_1_PI_F / (alpha2 * sqr(len_squared(H)));
+  if constexpr (m_type == MicrofacetType::BECKMANN) {
+    return expf(-(sqr(H.x) + sqr(H.y)) / cos_NH2) / (M_PI_F * alpha2 * sqr(cos_NH2));
+  }
+
+  /* m_type == MicrofacetType::GGX */
+  return M_1_PI_F / (alpha2 * sqr(len_squared(H)));
 }
 
 ccl_device_forceinline void bsdf_microfacet_fresnel_color(ccl_private const ShaderData *sd,
@@ -334,7 +349,7 @@ ccl_device_forceinline void bsdf_microfacet_fresnel_color(ccl_private const Shad
   bsdf->sample_weight *= average(bsdf->extra->fresnel_color);
 }
 
-template<bool beckmann>
+template<MicrofacetType m_type>
 ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
                                          const float3 Ng,
                                          const float3 wi,
@@ -379,11 +394,11 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
       alpha2 = 0.0625f;
     }
     else {
-      D = bsdf_D<beckmann>(alpha2, cos_NH);
+      D = bsdf_D<m_type>(alpha2, cos_NH);
     }
 
-    G1i = bsdf_G1<beckmann>(alpha2, cos_NI);
-    G1o = bsdf_G1<beckmann>(alpha2, cos_NO);
+    G1i = bsdf_G1<m_type>(alpha2, cos_NI);
+    G1o = bsdf_G1<m_type>(alpha2, cos_NO);
   }
   else { /* Anisotropic. */
     float3 X, Y;
@@ -393,10 +408,10 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
     const float3 local_I = make_float3(dot(X, wi), dot(Y, wi), cos_NI);
     const float3 local_O = make_float3(dot(X, wo), dot(Y, wo), cos_NO);
 
-    D = bsdf_aniso_D<beckmann>(alpha_x, alpha_y, local_H);
+    D = bsdf_aniso_D<m_type>(alpha_x, alpha_y, local_H);
 
-    G1i = bsdf_aniso_G1<beckmann>(alpha_x, alpha_y, local_I);
-    G1o = bsdf_aniso_G1<beckmann>(alpha_x, alpha_y, local_O);
+    G1i = bsdf_aniso_G1<m_type>(alpha_x, alpha_y, local_I);
+    G1o = bsdf_aniso_G1<m_type>(alpha_x, alpha_y, local_O);
   }
 
   const float common = G1i * D / cos_NI *
@@ -411,7 +426,7 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
   return F * G1o * common;
 }
 
-template<bool beckmann>
+template<MicrofacetType m_type>
 ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
                                       ccl_private const ShaderClosure *sc,
                                       float3 Ng,
@@ -451,14 +466,14 @@ ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
    * space before and after sampling. */
   float G1i;
   const float3 local_I = make_float3(dot(X, wi), dot(Y, wi), cos_NI);
-  const float3 local_H = microfacet_sample_stretched(
-      kg, local_I, alpha_x, alpha_y, randu, randv, beckmann, &G1i);
+  const float3 local_H = microfacet_sample_stretched<m_type>(
+      kg, local_I, alpha_x, alpha_y, randu, randv, &G1i);
 
   const float3 H = X * local_H.x + Y * local_H.y + N * local_H.z;
   const float cos_NH = local_H.z;
   const float cos_HI = dot(H, wi);
 
-  bool valid = beckmann;
+  bool valid = false;
   if (m_refractive) {
     float3 R, T;
     bool inside;
@@ -511,20 +526,20 @@ ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
         alpha2 = 0.0625f;
 
         /* Recalculate G1i. */
-        G1i = bsdf_G1<beckmann>(alpha2, cos_NI);
+        G1i = bsdf_G1<m_type>(alpha2, cos_NI);
       }
       else {
-        D = bsdf_D<beckmann>(alpha2, cos_NH);
+        D = bsdf_D<m_type>(alpha2, cos_NH);
       }
 
-      G1o = bsdf_G1<beckmann>(alpha2, cos_NO);
+      G1o = bsdf_G1<m_type>(alpha2, cos_NO);
     }
     else { /* Anisotropic. */
       const float3 local_O = make_float3(dot(X, *wo), dot(Y, *wo), cos_NO);
 
-      D = bsdf_aniso_D<beckmann>(alpha_x, alpha_y, local_H);
+      D = bsdf_aniso_D<m_type>(alpha_x, alpha_y, local_H);
 
-      G1o = bsdf_aniso_G1<beckmann>(alpha_x, alpha_y, local_O);
+      G1o = bsdf_aniso_G1<m_type>(alpha_x, alpha_y, local_O);
     }
 
     const float cos_HO = dot(H, *wo);
@@ -634,7 +649,7 @@ ccl_device Spectrum bsdf_microfacet_ggx_eval(ccl_private const ShaderClosure *sc
                                              const float3 wo,
                                              ccl_private float *pdf)
 {
-  return bsdf_microfacet_eval<false>(sc, Ng, wi, wo, pdf);
+  return bsdf_microfacet_eval<MicrofacetType::GGX>(sc, Ng, wi, wo, pdf);
 }
 
 ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
@@ -649,7 +664,7 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
                                           ccl_private float2 *sampled_roughness,
                                           ccl_private float *eta)
 {
-  return bsdf_microfacet_sample<false>(
+  return bsdf_microfacet_sample<MicrofacetType::GGX>(
       kg, sc, Ng, wi, randu, randv, eval, wo, pdf, sampled_roughness, eta);
 }
 
@@ -698,7 +713,7 @@ ccl_device Spectrum bsdf_microfacet_beckmann_eval(ccl_private const ShaderClosur
                                                   const float3 wo,
                                                   ccl_private float *pdf)
 {
-  return bsdf_microfacet_eval<true>(sc, Ng, wi, wo, pdf);
+  return bsdf_microfacet_eval<MicrofacetType::BECKMANN>(sc, Ng, wi, wo, pdf);
 }
 
 ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
@@ -713,7 +728,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
                                                ccl_private float2 *sampled_roughness,
                                                ccl_private float *eta)
 {
-  return bsdf_microfacet_sample<true>(
+  return bsdf_microfacet_sample<MicrofacetType::BECKMANN>(
       kg, sc, Ng, wi, randu, randv, eval, wo, pdf, sampled_roughness, eta);
 }
 
