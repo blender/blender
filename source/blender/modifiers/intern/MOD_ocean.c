@@ -336,7 +336,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   }
 
   /* do ocean simulation */
-  if (omd->cached == true) {
+  if (omd->cached) {
     if (!omd->oceancache) {
       init_cache_data(ob, omd, resolution);
     }
@@ -403,7 +403,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
           const float v = OCEAN_CO(size_co_inv, vco[1]);
           float foam;
 
-          if (omd->oceancache && omd->cached == true) {
+          if (omd->oceancache && omd->cached) {
             BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra_for_cache, u, v);
             foam = ocr.foam;
             CLAMP(foam, 0.0f, 1.0f);
@@ -450,7 +450,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
       const float u = OCEAN_CO(size_co_inv, vco[0]);
       const float v = OCEAN_CO(size_co_inv, vco[1]);
 
-      if (omd->oceancache && omd->cached == true) {
+      if (omd->oceancache && omd->cached) {
         BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra_for_cache, u, v);
       }
       else {
