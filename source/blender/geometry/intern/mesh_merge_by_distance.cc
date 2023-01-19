@@ -1006,13 +1006,14 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
  *                  done to reduce allocations.
  * \return r_weld_mesh: Loop and poly members will be configured here.
  */
-static void weld_poly_loop_ctx_setup_collapsed_and_split(Span<MLoop> mloop,
+static void weld_poly_loop_ctx_setup_collapsed_and_split(
 #ifdef USE_WELD_DEBUG
-                                                         Span<MPoly> mpoly,
+    Span<MLoop> mloop,
+    Span<MPoly> mpoly,
 #endif
-                                                         Span<int> vert_dest_map,
-                                                         const int remain_edge_ctx_len,
-                                                         WeldMesh *r_weld_mesh)
+    Span<int> vert_dest_map,
+    const int remain_edge_ctx_len,
+    WeldMesh *r_weld_mesh)
 {
   if (remain_edge_ctx_len == 0) {
     r_weld_mesh->poly_kill_len = r_weld_mesh->wpoly.size();
@@ -1262,13 +1263,14 @@ static void weld_mesh_context_create(const Mesh &mesh,
 
   weld_poly_loop_ctx_alloc(polys, loops, vert_dest_map, edge_dest_map, r_weld_mesh);
 
-  weld_poly_loop_ctx_setup_collapsed_and_split(loops,
+  weld_poly_loop_ctx_setup_collapsed_and_split(
 #ifdef USE_WELD_DEBUG
-                                               polys,
+      loops,
+      polys,
 #endif
-                                               vert_dest_map,
-                                               wedge.size() - r_weld_mesh->edge_kill_len,
-                                               r_weld_mesh);
+      vert_dest_map,
+      wedge.size() - r_weld_mesh->edge_kill_len,
+      r_weld_mesh);
 
   weld_poly_find_doubles(loops,
 #ifdef USE_WELD_DEBUG
