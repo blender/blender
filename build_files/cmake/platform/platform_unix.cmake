@@ -4,38 +4,52 @@
 # Libraries configuration for any *nix system including Linux and Unix (excluding APPLE).
 
 # Detect precompiled library directory
-if(NOT DEFINED LIBDIR)
-  # Path to a locally compiled libraries.
-  set(LIBDIR_NAME ${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR})
-  string(TOLOWER ${LIBDIR_NAME} LIBDIR_NAME)
-  set(LIBDIR_NATIVE_ABI ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_NAME})
 
-  # Path to precompiled libraries with known glibc 2.28 ABI.
-  set(LIBDIR_GLIBC228_ABI ${CMAKE_SOURCE_DIR}/../lib/linux_x86_64_glibc_228)
+if(NOT WITH_LIBS_PRECOMPILED)
+  unset(LIBDIR)
+else()
+  if(NOT DEFINED LIBDIR)
+    # Path to a locally compiled libraries.
+    set(LIBDIR_NAME ${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR})
+    string(TOLOWER ${LIBDIR_NAME} LIBDIR_NAME)
+    set(LIBDIR_NATIVE_ABI ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_NAME})
 
-  # Choose the best suitable libraries.
-  if(EXISTS ${LIBDIR_NATIVE_ABI})
-    set(LIBDIR ${LIBDIR_NATIVE_ABI})
-    set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
-  elseif(EXISTS ${LIBDIR_GLIBC228_ABI})
-    set(LIBDIR ${LIBDIR_GLIBC228_ABI})
-    if(WITH_MEM_JEMALLOC)
-      # jemalloc provides malloc hooks.
-      set(WITH_LIBC_MALLOC_HOOK_WORKAROUND False)
-    else()
+    # Path to precompiled libraries with known glibc 2.28 ABI.
+    set(LIBDIR_GLIBC228_ABI ${CMAKE_SOURCE_DIR}/../lib/linux_x86_64_glibc_228)
+
+    # Choose the best suitable libraries.
+    if(EXISTS ${LIBDIR_NATIVE_ABI})
+      set(LIBDIR ${LIBDIR_NATIVE_ABI})
       set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
+    elseif(EXISTS ${LIBDIR_GLIBC228_ABI})
+      set(LIBDIR ${LIBDIR_GLIBC228_ABI})
+      if(WITH_MEM_JEMALLOC)
+        # jemalloc provides malloc hooks.
+        set(WITH_LIBC_MALLOC_HOOK_WORKAROUND False)
+      else()
+        set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
+      endif()
     endif()
+
+    # Avoid namespace pollustion.
+    unset(LIBDIR_NATIVE_ABI)
+    unset(LIBDIR_GLIBC228_ABI)
   endif()
 
-  # Avoid namespace pollustion.
-  unset(LIBDIR_NATIVE_ABI)
-  unset(LIBDIR_GLIBC228_ABI)
+  if(NOT (EXISTS ${LIBDIR}))
+    message(STATUS
+      "Unable to find LIBDIR: ${LIBDIR}, system libraries may be used "
+      "(disable WITH_LIBS_PRECOMPILED to suppress this message)."
+    )
+    unset(LIBDIR)
+  endif()
 endif()
+
 
 # Support restoring this value once pre-compiled libraries have been handled.
 set(WITH_STATIC_LIBS_INIT ${WITH_STATIC_LIBS})
 
-if(EXISTS ${LIBDIR})
+if(DEFINED LIBDIR)
   message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
 
   file(GLOB LIB_SUBDIRS ${LIBDIR}/*)
@@ -85,7 +99,7 @@ endmacro()
 # These are libraries that may be precompiled. For this we disable searching in
 # the system directories so that we don't accidentally use them instead.
 
-if(EXISTS ${LIBDIR})
+if(DEFINED LIBDIR)
   without_system_libs_begin()
 endif()
 
@@ -114,7 +128,7 @@ endfunction()
 if(NOT WITH_SYSTEM_FREETYPE)
   # FreeType compiled with Brotli compression for woff2.
   find_package_wrapper(Freetype REQUIRED)
-  if(EXISTS ${LIBDIR})
+  if(DEFINED LIBDIR)
     find_package_wrapper(Brotli REQUIRED)
 
     # NOTE: This is done on WIN32 & APPLE but fails on some Linux systems.
@@ -141,7 +155,7 @@ if(WITH_PYTHON)
   if(WITH_PYTHON_MODULE AND NOT WITH_INSTALL_PORTABLE)
     # Installing into `site-packages`, warn when installing into `./../lib/`
     # which script authors almost certainly don't want.
-    if(EXISTS ${LIBDIR})
+    if(DEFINED LIBDIR)
       path_is_prefix(LIBDIR PYTHON_SITE_PACKAGES _is_prefix)
       if(_is_prefix)
         message(WARNING "
@@ -217,7 +231,7 @@ if(WITH_CODEC_SNDFILE)
 endif()
 
 if(WITH_CODEC_FFMPEG)
-  if(EXISTS ${LIBDIR})
+  if(DEFINED LIBDIR)
     set(FFMPEG_ROOT_DIR ${LIBDIR}/ffmpeg)
     # Override FFMPEG components to also include static library dependencies
     # included with precompiled libraries, and to ensure correct link order.
@@ -232,7 +246,7 @@ if(WITH_CODEC_FFMPEG)
       vpx
       x264
       xvidcore)
-    if(EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a)
+    if((DEFINED LIBDIR) AND (EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a))
       list(APPEND FFMPEG_FIND_COMPONENTS aom)
     endif()
   elseif(FFMPEG)
@@ -469,7 +483,7 @@ if(WITH_OPENIMAGEDENOISE)
 endif()
 
 if(WITH_LLVM)
-  if(EXISTS ${LIBDIR})
+  if(DEFINED LIBDIR)
     set(LLVM_STATIC ON)
   endif()
 
@@ -483,7 +497,7 @@ if(WITH_LLVM)
     endif()
 
     # Symbol conflicts with same UTF library used by OpenCollada
-    if(EXISTS ${LIBDIR})
+    if(DEFINED LIBDIR)
       if(WITH_OPENCOLLADA AND (${LLVM_VERSION} VERSION_LESS "4.0.0"))
         list(REMOVE_ITEM OPENCOLLADA_LIBRARIES ${OPENCOLLADA_UTF_LIBRARY})
       endif()
@@ -539,7 +553,7 @@ if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   endif()
 endif()
 
-if(EXISTS ${LIBDIR})
+if(DEFINED LIBDIR)
   without_system_libs_end()
 endif()
 
@@ -583,7 +597,7 @@ add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE
 #
 # Keep last, so indirectly linked libraries don't override our own pre-compiled libs.
 
-if(EXISTS ${LIBDIR})
+if(DEFINED LIBDIR)
   # Clear the prefix path as it causes the `LIBDIR` to override system locations.
   unset(CMAKE_PREFIX_PATH)
 
@@ -639,7 +653,7 @@ if(WITH_GHOST_WAYLAND)
   # When dynamically linked WAYLAND is used and `${LIBDIR}/wayland` is present,
   # there is no need to search for the libraries as they are not needed for building.
   # Only the headers are needed which can reference the known paths.
-  if(EXISTS "${LIBDIR}/wayland" AND WITH_GHOST_WAYLAND_DYNLOAD)
+  if((DEFINED LIBDIR) AND (EXISTS "${LIBDIR}/wayland" AND WITH_GHOST_WAYLAND_DYNLOAD))
     set(_use_system_wayland OFF)
   else()
     set(_use_system_wayland ON)
@@ -703,7 +717,7 @@ if(WITH_GHOST_WAYLAND)
       add_definitions(-DWITH_GHOST_WAYLAND_LIBDECOR)
     endif()
 
-    if(EXISTS "${LIBDIR}/wayland/bin/wayland-scanner")
+    if((DEFINED LIBDIR) AND (EXISTS "${LIBDIR}/wayland/bin/wayland-scanner"))
       set(WAYLAND_SCANNER "${LIBDIR}/wayland/bin/wayland-scanner")
     else()
       pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)

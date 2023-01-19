@@ -1264,7 +1264,7 @@ endmacro()
 
 # Utility to gather and install precompiled shared libraries.
 macro(add_bundled_libraries library_dir)
-  if(EXISTS ${LIBDIR})
+  if(DEFINED LIBDIR)
     set(_library_dir ${LIBDIR}/${library_dir})
     if(WIN32)
       file(GLOB _all_library_versions ${_library_dir}/*\.dll)

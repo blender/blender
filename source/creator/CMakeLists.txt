@@ -605,7 +605,10 @@ if(UNIX AND NOT APPLE)
       )
     endif()
 
-    if(EXISTS ${LIBDIR}/mesa)
+    # NOTE: there is a bug in CMake 3.25.1 where `LIBDIR` is reported as undefined.
+    if(NOT DEFINED LIBDIR)
+      # Pass.
+    elseif(EXISTS ${LIBDIR}/mesa)
       install(DIRECTORY ${LIBDIR}/mesa/lib/ DESTINATION "lib/mesa/")
 
       install(
@@ -665,7 +668,7 @@ if(UNIX AND NOT APPLE)
       DESTINATION ${TARGETDIR_VER}/python/bin
     )
 
-    if(EXISTS ${LIBDIR})
+    if(DEFINED LIBDIR)
       # Precompiled libraries, copy over complete lib directory.
       install_dir(
         ${PYTHON_LIBPATH}
@@ -1499,7 +1502,7 @@ endif()
 
 # Always install USD shared library and datafiles regardless if Blender
 # itself uses them, the bundled Python module still needs it.
-if(LIBDIR AND TARGETDIR_LIB)
+if((DEFINED LIBDIR) AND TARGETDIR_LIB)
   # On windows the usd library sits in ./blender.shared copy the files
   # relative to the location of the USD dll, if the dll does not exist
   # assume we are linking against the static 3.5 lib.
@@ -1556,7 +1559,7 @@ endif()
 
 # Always install MaterialX files regardless if Blender itself uses them, the
 # bundled Python module still needs it.
-if(WITH_MATERIALX AND LIBDIR AND TARGETDIR_LIB)
+if((DEFINED LIBDIR) AND TARGETDIR_LIB AND WITH_MATERIALX )
   install(
     DIRECTORY ${LIBDIR}/materialx/libraries
     DESTINATION "${TARGETDIR_LIB}/materialx"
