@@ -360,6 +360,15 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
         COMMAND ${WAYLAND_SCANNER} private-code ${PROT_DEF} ${INC_DST}/${_name}-client-protocol.c
         DEPENDS ${INC_DST}/${_name}-client-protocol.h
       )
+
+      if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+        # Prevent warnings/failure to compile with generated `WL_PRIVATE` declarations.
+        set_source_files_properties(
+          "${INC_DST}/${_name}-client-protocol.c"
+          PROPERTIES COMPILE_FLAGS "-Wno-missing-variable-declarations"
+        )
+      endif()
+
       list(APPEND SRC
         ${INC_DST}/${_name}-client-protocol.c
         ${INC_DST}/${_name}-client-protocol.h
