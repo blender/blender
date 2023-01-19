@@ -7,11 +7,11 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes::node_geo_mesh_face_set_boundaries_cc {
+namespace blender::nodes::node_geo_mesh_face_group_boundaries_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Face Set"))
+  b.add_input<decl::Int>(N_("Face Group ID"), "Face Set")
       .default_value(0)
       .hide_value()
       .supports_field()
@@ -19,7 +19,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                       "same value are in the same region"));
   b.add_output<decl::Bool>(N_("Boundary Edges"))
       .field_source_reference_all()
-      .description(N_("The edges that lie on the boundaries between the different face sets"));
+      .description(N_("The edges that lie on the boundaries between the different face groups"));
 }
 
 class BoundaryFieldInput final : public bke::MeshFieldInput {
@@ -28,7 +28,7 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
 
  public:
   BoundaryFieldInput(const Field<int> face_set)
-      : bke::MeshFieldInput(CPPType::get<bool>(), "Boundary Field"), face_set_(face_set)
+      : bke::MeshFieldInput(CPPType::get<bool>(), "Face Group Boundaries"), face_set_(face_set)
   {
     category_ = Category::Generated;
   }
@@ -84,15 +84,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Boundary Edges", std::move(face_set_boundaries));
 }
 
-}  // namespace blender::nodes::node_geo_mesh_face_set_boundaries_cc
+}  // namespace blender::nodes::node_geo_mesh_face_group_boundaries_cc
 
-void register_node_type_geo_mesh_face_set_boundaries()
+void register_node_type_geo_mesh_face_group_boundaries()
 {
-  namespace file_ns = blender::nodes::node_geo_mesh_face_set_boundaries_cc;
+  namespace file_ns = blender::nodes::node_geo_mesh_face_group_boundaries_cc;
 
   static bNodeType ntype;
   geo_node_type_base(
-      &ntype, GEO_NODE_MESH_FACE_SET_BOUNDARIES, "Face Set Boundaries", NODE_CLASS_INPUT);
+      &ntype, GEO_NODE_MESH_FACE_GROUP_BOUNDARIES, "Face Group Boundaries", NODE_CLASS_INPUT);
+  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);

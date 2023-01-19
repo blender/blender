@@ -92,7 +92,7 @@ void register_node_type_geo_join_geometry();
 void register_node_type_geo_material_replace();
 void register_node_type_geo_material_selection();
 void register_node_type_geo_merge_by_distance();
-void register_node_type_geo_mesh_face_set_boundaries();
+void register_node_type_geo_mesh_face_group_boundaries();
 void register_node_type_geo_mesh_primitive_circle();
 void register_node_type_geo_mesh_primitive_cone();
 void register_node_type_geo_mesh_primitive_cube();
