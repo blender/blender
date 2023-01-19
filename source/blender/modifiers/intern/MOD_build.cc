@@ -48,18 +48,17 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BuildModifierData), modifier);
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *UNUSED(md))
+static bool dependsOnTime(Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result;
   BuildModifierData *bmd = (BuildModifierData *)md;
   int i, j, k;
   int faces_dst_num, edges_dst_num, loops_dst_num = 0;
-  int *vertMap, *edgeMap, *faceMap;
   float frac;
   MPoly *mpoly_dst;
   MLoop *ml_dst;
@@ -79,15 +78,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct
   const MPoly *mpoly_src = BKE_mesh_polys(mesh);
   const MLoop *mloop_src = BKE_mesh_loops(mesh);
 
-  vertMap = MEM_malloc_arrayN(vert_src_num, sizeof(*vertMap), "build modifier vertMap");
-  edgeMap = MEM_malloc_arrayN(edge_src_num, sizeof(*edgeMap), "build modifier edgeMap");
-  faceMap = MEM_malloc_arrayN(poly_src_num, sizeof(*faceMap), "build modifier faceMap");
+  int *vertMap = static_cast<int *>(MEM_malloc_arrayN(vert_src_num, sizeof(int), __func__));
+  int *edgeMap = static_cast<int *>(MEM_malloc_arrayN(edge_src_num, sizeof(int), __func__));
+  int *faceMap = static_cast<int *>(MEM_malloc_arrayN(poly_src_num, sizeof(int), __func__));
 
   range_vn_i(vertMap, vert_src_num, 0);
   range_vn_i(edgeMap, edge_src_num, 0);
   range_vn_i(faceMap, poly_src_num, 0);
 
-  struct Scene *scene = DEG_get_input_scene(ctx->depsgraph);
+  Scene *scene = DEG_get_input_scene(ctx->depsgraph);
   frac = (BKE_scene_ctime_get(scene) - bmd->start) / bmd->length;
   CLAMP(frac, 0.0f, 1.0f);
   if (bmd->flag & MOD_BUILD_FLAG_REVERSE) {
@@ -253,9 +252,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct
     }
   }
 
-  BLI_ghash_free(vertHash, NULL, NULL);
-  BLI_ghash_free(edgeHash, NULL, NULL);
-  BLI_ghash_free(edgeHash2, NULL, NULL);
+  BLI_ghash_free(vertHash, nullptr, nullptr);
+  BLI_ghash_free(edgeHash, nullptr, nullptr);
+  BLI_ghash_free(edgeHash2, nullptr, nullptr);
 
   MEM_freeN(vertMap);
   MEM_freeN(edgeMap);
@@ -265,40 +264,40 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct
   return result;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "frame_start", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "frame_duration", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "use_reverse", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "frame_start", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "frame_duration", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_reverse", 0, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
 
-static void random_panel_header_draw(const bContext *UNUSED(C), Panel *panel)
+static void random_panel_header_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_random_order", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_random_order", 0, nullptr, ICON_NONE);
 }
 
-static void random_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void random_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
   uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_random_order"));
-  uiItemR(layout, ptr, "seed", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "seed", 0, nullptr, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
@@ -319,24 +318,24 @@ ModifierTypeInfo modifierType_Build = {
 
     /*copyData*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ NULL,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ NULL,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
-    /*requiredDataMask*/ NULL,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
+    /*requiredDataMask*/ nullptr,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
     /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ NULL,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

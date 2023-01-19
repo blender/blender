@@ -5,7 +5,7 @@
  * \ingroup modifiers
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
@@ -29,7 +29,7 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
 
-#include "MOD_solidify_util.h"
+#include "MOD_solidify_util.hh"
 
 static bool dependsOnNormals(ModifierData *md)
 {
@@ -78,7 +78,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return mesh;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *sub, *row, *col;
   uiLayout *layout = panel->layout;
@@ -91,32 +91,32 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "solidify_mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "solidify_mode", 0, nullptr, ICON_NONE);
 
   if (solidify_mode == MOD_SOLIDIFY_MODE_NONMANIFOLD) {
     uiItemR(layout, ptr, "nonmanifold_thickness_mode", 0, IFACE_("Thickness Mode"), ICON_NONE);
     uiItemR(layout, ptr, "nonmanifold_boundary_mode", 0, IFACE_("Boundary"), ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "thickness", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "offset", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "thickness", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "offset", 0, nullptr, ICON_NONE);
 
   if (solidify_mode == MOD_SOLIDIFY_MODE_NONMANIFOLD) {
-    uiItemR(layout, ptr, "nonmanifold_merge_threshold", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "nonmanifold_merge_threshold", 0, nullptr, ICON_NONE);
   }
   else {
-    uiItemR(layout, ptr, "use_even_offset", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "use_even_offset", 0, nullptr, ICON_NONE);
   }
 
   col = uiLayoutColumnWithHeading(layout, false, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"));
   uiItemR(col, ptr, "use_rim", 0, IFACE_("Fill"), ICON_NONE);
   sub = uiLayoutColumn(col, false);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_rim"));
-  uiItemR(sub, ptr, "use_rim_only", 0, NULL, ICON_NONE);
+  uiItemR(sub, ptr, "use_rim_only", 0, nullptr, ICON_NONE);
 
   uiItemS(layout);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
   row = uiLayoutRow(layout, false);
   uiLayoutSetActive(row, has_vertex_group);
   uiItemR(row, ptr, "thickness_vertex_group", 0, IFACE_("Factor"), ICON_NONE);
@@ -124,13 +124,13 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   if (solidify_mode == MOD_SOLIDIFY_MODE_NONMANIFOLD) {
     row = uiLayoutRow(layout, false);
     uiLayoutSetActive(row, has_vertex_group);
-    uiItemR(row, ptr, "use_flat_faces", 0, NULL, ICON_NONE);
+    uiItemR(row, ptr, "use_flat_faces", 0, nullptr, ICON_NONE);
   }
 
   modifier_panel_end(layout, ptr);
 }
 
-static void normals_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void normals_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
@@ -149,7 +149,7 @@ static void normals_panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
 }
 
-static void materials_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void materials_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
@@ -159,14 +159,14 @@ static void materials_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "material_offset", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "material_offset", 0, nullptr, ICON_NONE);
   col = uiLayoutColumn(layout, true);
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_rim"));
   uiItemR(
       col, ptr, "material_offset_rim", 0, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"), ICON_NONE);
 }
 
-static void edge_data_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void edge_data_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -184,10 +184,10 @@ static void edge_data_panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemR(col, ptr, "edge_crease_outer", 0, IFACE_("Outer"), ICON_NONE);
     uiItemR(col, ptr, "edge_crease_rim", 0, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"), ICON_NONE);
   }
-  uiItemR(layout, ptr, "bevel_convex", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "bevel_convex", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
 }
 
-static void clamp_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void clamp_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row, *col;
   uiLayout *layout = panel->layout;
@@ -198,13 +198,13 @@ static void clamp_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "thickness_clamp", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "thickness_clamp", 0, nullptr, ICON_NONE);
   row = uiLayoutRow(col, false);
   uiLayoutSetActive(row, RNA_float_get(ptr, "thickness_clamp") > 0.0f);
-  uiItemR(row, ptr, "use_thickness_angle_clamp", 0, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_thickness_angle_clamp", 0, nullptr, ICON_NONE);
 }
 
-static void vertex_group_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void vertex_group_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
@@ -230,17 +230,17 @@ static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Solidify, panel_draw);
   modifier_subpanel_register(
-      region_type, "normals", "Normals", NULL, normals_panel_draw, panel_type);
+      region_type, "normals", "Normals", nullptr, normals_panel_draw, panel_type);
   modifier_subpanel_register(
-      region_type, "materials", "Materials", NULL, materials_panel_draw, panel_type);
+      region_type, "materials", "Materials", nullptr, materials_panel_draw, panel_type);
   modifier_subpanel_register(
-      region_type, "edge_data", "Edge Data", NULL, edge_data_panel_draw, panel_type);
+      region_type, "edge_data", "Edge Data", nullptr, edge_data_panel_draw, panel_type);
   modifier_subpanel_register(
-      region_type, "clamp", "Thickness Clamp", NULL, clamp_panel_draw, panel_type);
+      region_type, "clamp", "Thickness Clamp", nullptr, clamp_panel_draw, panel_type);
   modifier_subpanel_register(region_type,
                              "vertex_groups",
                              "Output Vertex Groups",
-                             NULL,
+                             nullptr,
                              vertex_group_panel_draw,
                              panel_type);
 }
@@ -259,24 +259,24 @@ ModifierTypeInfo modifierType_Solidify = {
 
     /*copyData*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ NULL,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ NULL,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
     /*dependsOnNormals*/ dependsOnNormals,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

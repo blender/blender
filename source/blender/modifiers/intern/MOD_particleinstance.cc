@@ -61,7 +61,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool isDisabled(const struct Scene *scene, ModifierData *md, bool useRenderParams)
+static bool isDisabled(const Scene *scene, ModifierData *md, bool useRenderParams)
 {
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
   ParticleSystem *psys;
@@ -76,15 +76,16 @@ static bool isDisabled(const struct Scene *scene, ModifierData *md, bool useRend
     return true;
   }
 
-  psys = BLI_findlink(&pimd->ob->particlesystem, pimd->psys - 1);
-  if (psys == NULL) {
+  psys = static_cast<ParticleSystem *>(BLI_findlink(&pimd->ob->particlesystem, pimd->psys - 1));
+  if (psys == nullptr) {
     return true;
   }
 
   /* If the psys modifier is disabled we cannot use its data.
    * First look up the psys modifier from the object, then check if it is enabled.
    */
-  for (ob_md = pimd->ob->modifiers.first; ob_md; ob_md = ob_md->next) {
+  for (ob_md = static_cast<ModifierData *>(pimd->ob->modifiers.first); ob_md;
+       ob_md = ob_md->next) {
     if (ob_md->type == eModifierType_ParticleSystem) {
       ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)ob_md;
       if (psmd->psys == psys) {
@@ -112,7 +113,7 @@ static bool isDisabled(const struct Scene *scene, ModifierData *md, bool useRend
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
-  if (pimd->ob != NULL) {
+  if (pimd->ob != nullptr) {
     DEG_add_object_relation(
         ctx->node, pimd->ob, DEG_OB_COMP_TRANSFORM, "Particle Instance Modifier");
     DEG_add_object_relation(
@@ -166,10 +167,10 @@ static bool particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *ps
   totpart = psys->totpart + psys->totchild;
 
   /* TODO: make randomization optional? */
-  randp = (int)(psys_frand(psys, 3578 + p) * totpart) % totpart;
+  randp = int(psys_frand(psys, 3578 + p) * totpart) % totpart;
 
-  minp = (int)(totpart * pimd->particle_offset) % (totpart + 1);
-  maxp = (int)(totpart * (pimd->particle_offset + pimd->particle_amount)) % (totpart + 1);
+  minp = int(totpart * pimd->particle_offset) % (totpart + 1);
+  maxp = int(totpart * (pimd->particle_offset + pimd->particle_amount)) % (totpart + 1);
 
   if (maxp > minp) {
     return randp < minp || randp >= maxp;
@@ -194,16 +195,16 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 {
   Mesh *result;
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
-  struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+  Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   ParticleSimulationData sim;
-  ParticleSystem *psys = NULL;
-  ParticleData *pa = NULL;
+  ParticleSystem *psys = nullptr;
+  ParticleData *pa = nullptr;
   int totvert, totpoly, totloop, totedge;
   int maxvert, maxpoly, maxloop, maxedge, part_end = 0, part_start;
   int k, p, p_skip;
   short track = ctx->object->trackflag % 3, trackneg, axis = pimd->axis;
   float max_co = 0.0, min_co = 0.0, temp_co[3];
-  float *size = NULL;
+  float *size = nullptr;
   float spacemat[4][4];
   const bool use_parents = pimd->flag & eParticleInstanceFlag_Parents;
   const bool use_children = pimd->flag & eParticleInstanceFlag_Children;
@@ -212,13 +213,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   trackneg = ((ctx->object->trackflag > 2) ? 1 : 0);
 
   if (pimd->ob == ctx->object) {
-    pimd->ob = NULL;
+    pimd->ob = nullptr;
     return mesh;
   }
 
   if (pimd->ob) {
-    psys = BLI_findlink(&pimd->ob->particlesystem, pimd->psys - 1);
-    if (psys == NULL || psys->totpart == 0) {
+    psys = static_cast<ParticleSystem *>(BLI_findlink(&pimd->ob->particlesystem, pimd->psys - 1));
+    if (psys == nullptr || psys->totpart == 0) {
       return mesh;
     }
   }
@@ -249,7 +250,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   if (pimd->flag & eParticleInstanceFlag_UseSize) {
     float *si;
-    si = size = MEM_calloc_arrayN(part_end, sizeof(float), "particle size array");
+    si = size = static_cast<float *>(MEM_calloc_arrayN(part_end, sizeof(float), __func__));
 
     if (pimd->flag & eParticleInstanceFlag_Parents) {
       for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++, si++) {
@@ -261,7 +262,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       ChildParticle *cpa = psys->child;
 
       for (p = 0; p < psys->totchild; p++, cpa++, si++) {
-        *si = psys_get_child_size(psys, cpa, 0.0f, NULL);
+        *si = psys_get_child_size(psys, cpa, 0.0f, nullptr);
       }
     }
   }
@@ -322,17 +323,17 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MPoly *mpoly = BKE_mesh_polys_for_write(result);
   MLoop *mloop = BKE_mesh_loops_for_write(result);
 
-  MLoopCol *mloopcols_index = CustomData_get_layer_named_for_write(
-      &result->ldata, CD_PROP_BYTE_COLOR, pimd->index_layer_name, result->totloop);
-  MLoopCol *mloopcols_value = CustomData_get_layer_named_for_write(
-      &result->ldata, CD_PROP_BYTE_COLOR, pimd->value_layer_name, result->totloop);
-  int *vert_part_index = NULL;
-  float *vert_part_value = NULL;
-  if (mloopcols_index != NULL) {
-    vert_part_index = MEM_calloc_arrayN(maxvert, sizeof(int), "vertex part index array");
+  MLoopCol *mloopcols_index = static_cast<MLoopCol *>(CustomData_get_layer_named_for_write(
+      &result->ldata, CD_PROP_BYTE_COLOR, pimd->index_layer_name, result->totloop));
+  MLoopCol *mloopcols_value = static_cast<MLoopCol *>(CustomData_get_layer_named_for_write(
+      &result->ldata, CD_PROP_BYTE_COLOR, pimd->value_layer_name, result->totloop));
+  int *vert_part_index = nullptr;
+  float *vert_part_value = nullptr;
+  if (mloopcols_index != nullptr) {
+    vert_part_index = MEM_cnew_array<int>(maxvert, "vertex part index array");
   }
   if (mloopcols_value) {
-    vert_part_value = MEM_calloc_arrayN(maxvert, sizeof(float), "vertex part value array");
+    vert_part_value = MEM_cnew_array<float>(maxvert, "vertex part value array");
   }
 
   for (p = part_start, p_skip = 0; p < part_end; p++) {
@@ -352,10 +353,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
       CustomData_copy_data(&mesh->vdata, &result->vdata, k, vindex, 1);
 
-      if (vert_part_index != NULL) {
+      if (vert_part_index != nullptr) {
         vert_part_index[vindex] = p;
       }
-      if (vert_part_value != NULL) {
+      if (vert_part_value != nullptr) {
         vert_part_value[vindex] = p_random;
       }
 
@@ -495,12 +496,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           ml->v = inML->v + (p_skip * totvert);
           ml->e = inML->e + (p_skip * totedge);
           const int ml_index = (ml - mloop);
-          if (mloopcols_index != NULL) {
+          if (mloopcols_index != nullptr) {
             const int part_index = vert_part_index[ml->v];
             store_float_in_vcol(&mloopcols_index[ml_index],
-                                (float)part_index / (float)(psys->totpart - 1));
+                                float(part_index) / float(psys->totpart - 1));
           }
-          if (mloopcols_value != NULL) {
+          if (mloopcols_value != nullptr) {
             const float part_value = vert_part_value[ml->v];
             store_float_in_vcol(&mloopcols_value[ml_index], part_value);
           }
@@ -522,7 +523,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
@@ -535,7 +536,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "object", 0, nullptr, ICON_NONE);
   if (!RNA_pointer_is_null(&particle_obj_ptr)) {
     uiItemPointerR(layout,
                    ptr,
@@ -552,14 +553,14 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemS(layout);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Create Instances"));
-  uiItemR(row, ptr, "use_normal", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "use_children", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "use_size", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_normal", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "use_children", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "use_size", toggles_flag, nullptr, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Show"));
-  uiItemR(row, ptr, "show_alive", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "show_dead", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "show_unborn", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "show_alive", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "show_dead", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "show_unborn", toggles_flag, nullptr, ICON_NONE);
 
   uiItemR(layout, ptr, "particle_amount", 0, IFACE_("Amount"), ICON_NONE);
   uiItemR(layout, ptr, "particle_offset", 0, IFACE_("Offset"), ICON_NONE);
@@ -568,21 +569,21 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiItemR(layout, ptr, "space", 0, IFACE_("Coordinate Space"), ICON_NONE);
   row = uiLayoutRow(layout, true);
-  uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
 
-static void path_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
+static void path_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiItemR(layout, ptr, "use_path", 0, IFACE_("Create Along Paths"), ICON_NONE);
 }
 
-static void path_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void path_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
@@ -595,16 +596,16 @@ static void path_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_path"));
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "position", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiItemR(col, ptr, "position", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
   uiItemR(col, ptr, "random_position", UI_ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "rotation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiItemR(col, ptr, "rotation", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
   uiItemR(col, ptr, "random_rotation", UI_ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
 
-  uiItemR(layout, ptr, "use_preserve_shape", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_preserve_shape", 0, nullptr, ICON_NONE);
 }
 
-static void layers_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void layers_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
@@ -629,7 +630,8 @@ static void panelRegister(ARegionType *region_type)
       region_type, eModifierType_ParticleInstance, panel_draw);
   modifier_subpanel_register(
       region_type, "paths", "", path_panel_draw_header, path_panel_draw, panel_type);
-  modifier_subpanel_register(region_type, "layers", "Layers", NULL, layers_panel_draw, panel_type);
+  modifier_subpanel_register(
+      region_type, "layers", "Layers", nullptr, layers_panel_draw, panel_type);
 }
 
 ModifierTypeInfo modifierType_ParticleInstance = {
@@ -644,24 +646,24 @@ ModifierTypeInfo modifierType_ParticleInstance = {
 
     /*copyData*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ NULL,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ NULL,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ NULL,
+    /*freeData*/ nullptr,
     /*isDisabled*/ isDisabled,
     /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ NULL,
-    /*dependsOnNormals*/ NULL,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
     /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

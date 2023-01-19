@@ -72,9 +72,9 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 
   BKE_modifier_copydata_generic(md, target, flag);
 
-  temd->facepa = NULL;
+  temd->facepa = nullptr;
 }
-static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *UNUSED(md))
+static bool dependsOnTime(Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
@@ -90,12 +90,12 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
 static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *psmd, Mesh *mesh)
 {
   ParticleSystem *psys = psmd->psys;
-  MFace *fa = NULL, *mface = NULL;
+  MFace *fa = nullptr, *mface = nullptr;
   ParticleData *pa;
   KDTree_3d *tree;
   RNG *rng;
   float center[3], co[3];
-  int *facepa = NULL, *vertpa = NULL, totvert = 0, totface = 0, totpart = 0;
+  int *facepa = nullptr, *vertpa = nullptr, totvert = 0, totface = 0, totpart = 0;
   int i, p, v1, v2, v3, v4 = 0;
   const bool invert_vgroup = (emd->flag & eExplodeFlag_INVERT_VGROUP) != 0;
 
@@ -110,9 +110,9 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   if (emd->facepa) {
     MEM_freeN(emd->facepa);
   }
-  facepa = emd->facepa = MEM_calloc_arrayN(totface, sizeof(int), "explode_facepa");
+  facepa = emd->facepa = static_cast<int *>(MEM_calloc_arrayN(totface, sizeof(int), __func__));
 
-  vertpa = MEM_calloc_arrayN(totvert, sizeof(int), "explode_vertpa");
+  vertpa = static_cast<int *>(MEM_calloc_arrayN(totvert, sizeof(int), __func__));
 
   /* initialize all faces & verts to no particle */
   for (i = 0; i < totface; i++) {
@@ -124,7 +124,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
 
   /* set protected verts */
   if (emd->vgroup) {
-    const MDeformVert *dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
+    const MDeformVert *dvert = BKE_mesh_deform_verts(mesh);
     if (dvert) {
       const int defgrp_index = emd->vgroup - 1;
       for (i = 0; i < totvert; i++, dvert++) {
@@ -149,10 +149,10 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
                              pa->fuv,
                              pa->foffset,
                              co,
-                             NULL,
-                             NULL,
-                             NULL,
-                             NULL);
+                             nullptr,
+                             nullptr,
+                             nullptr,
+                             nullptr);
     BLI_kdtree_3d_insert(tree, p, co);
   }
   BLI_kdtree_3d_balance(tree);
@@ -169,7 +169,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
       mul_v3_fl(center, 1.0f / 3.0f);
     }
 
-    p = BLI_kdtree_3d_find_nearest(tree, center, NULL);
+    p = BLI_kdtree_3d_find_nearest(tree, center, nullptr);
 
     v1 = vertpa[fa->v1];
     v2 = vertpa[fa->v2];
@@ -215,7 +215,8 @@ static const short add_faces[24] = {
 
 static MFace *get_dface(Mesh *mesh, Mesh *split, int cur, int i, MFace *mf)
 {
-  MFace *mfaces = CustomData_get_layer_for_write(&split->fdata, CD_MFACE, split->totface);
+  MFace *mfaces = static_cast<MFace *>(
+      CustomData_get_layer_for_write(&split->fdata, CD_MFACE, split->totface));
   MFace *df = &mfaces[cur];
   CustomData_copy_data(&mesh->fdata, &split->fdata, i, cur, 1);
   *df = *mf;
@@ -284,11 +285,13 @@ static void remap_uvs_3_6_9_12(
   int l;
 
   for (l = 0; l < layers_num; l++) {
-    mf = CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface);
+    mf = static_cast<MTFace *>(
+        CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface));
     df1 = mf + cur;
     df2 = df1 + 1;
     df3 = df1 + 2;
-    mf = CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface);
+    mf = static_cast<MTFace *>(
+        CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface));
     mf += i;
 
     copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -344,10 +347,12 @@ static void remap_uvs_5_10(
   int l;
 
   for (l = 0; l < layers_num; l++) {
-    mf = CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface);
+    mf = static_cast<MTFace *>(
+        CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface));
     df1 = mf + cur;
     df2 = df1 + 1;
-    mf = CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface);
+    mf = static_cast<MTFace *>(
+        CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface));
     mf += i;
 
     copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -416,12 +421,14 @@ static void remap_uvs_15(
   int l;
 
   for (l = 0; l < layers_num; l++) {
-    mf = CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface);
+    mf = static_cast<MTFace *>(
+        CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface));
     df1 = mf + cur;
     df2 = df1 + 1;
     df3 = df1 + 2;
     df4 = df1 + 3;
-    mf = CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface);
+    mf = static_cast<MTFace *>(
+        CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface));
     mf += i;
 
     copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -492,11 +499,13 @@ static void remap_uvs_7_11_13_14(
   int l;
 
   for (l = 0; l < layers_num; l++) {
-    mf = CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface);
+    mf = static_cast<MTFace *>(
+        CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface));
     df1 = mf + cur;
     df2 = df1 + 1;
     df3 = df1 + 2;
-    mf = CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface);
+    mf = static_cast<MTFace *>(
+        CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface));
     mf += i;
 
     copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -552,10 +561,12 @@ static void remap_uvs_19_21_22(
   int l;
 
   for (l = 0; l < layers_num; l++) {
-    mf = CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface);
+    mf = static_cast<MTFace *>(
+        CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface));
     df1 = mf + cur;
     df2 = df1 + 1;
-    mf = CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface);
+    mf = static_cast<MTFace *>(
+        CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface));
     mf += i;
 
     copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -614,10 +625,12 @@ static void remap_uvs_23(
   int l;
 
   for (l = 0; l < layers_num; l++) {
-    mf = CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface);
+    mf = static_cast<MTFace *>(
+        CustomData_get_layer_n_for_write(&split->fdata, CD_MTFACE, l, split->totface));
     df1 = mf + cur;
     df2 = df1 + 1;
-    mf = CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface);
+    mf = static_cast<MTFace *>(
+        CustomData_get_layer_n_for_write(&mesh->fdata, CD_MTFACE, l, mesh->totface));
     mf += i;
 
     copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -638,16 +651,17 @@ static void remap_uvs_23(
 static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 {
   Mesh *split_m;
-  MFace *mf = NULL, *df1 = NULL;
-  MFace *mface = CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
+  MFace *mf = nullptr, *df1 = nullptr;
+  MFace *mface = static_cast<MFace *>(
+      CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface));
   float *dupve;
   EdgeHash *edgehash;
   EdgeHashIterator *ehi;
   int totvert = mesh->totvert;
   int totface = mesh->totface;
 
-  int *facesplit = MEM_calloc_arrayN(totface, sizeof(int), "explode_facesplit");
-  int *vertpa = MEM_calloc_arrayN(totvert, sizeof(int), "explode_vertpa2");
+  int *facesplit = static_cast<int *>(MEM_calloc_arrayN(totface, sizeof(int), __func__));
+  int *vertpa = static_cast<int *>(MEM_calloc_arrayN(totvert, sizeof(int), __func__));
   int *facepa = emd->facepa;
   int *fs, totesplit = 0, totfsplit = 0, curdupface = 0;
   int i, v1, v2, v3, v4, esplit, v[4] = {0, 0, 0, 0}, /* To quite gcc barking... */
@@ -674,12 +688,12 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
     v3 = vertpa[mf->v3];
 
     if (v1 != v2) {
-      BLI_edgehash_reinsert(edgehash, mf->v1, mf->v2, NULL);
+      BLI_edgehash_reinsert(edgehash, mf->v1, mf->v2, nullptr);
       (*fs) |= 1;
     }
 
     if (v2 != v3) {
-      BLI_edgehash_reinsert(edgehash, mf->v2, mf->v3, NULL);
+      BLI_edgehash_reinsert(edgehash, mf->v2, mf->v3, nullptr);
       (*fs) |= 2;
     }
 
@@ -687,25 +701,25 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
       v4 = vertpa[mf->v4];
 
       if (v3 != v4) {
-        BLI_edgehash_reinsert(edgehash, mf->v3, mf->v4, NULL);
+        BLI_edgehash_reinsert(edgehash, mf->v3, mf->v4, nullptr);
         (*fs) |= 4;
       }
 
       if (v1 != v4) {
-        BLI_edgehash_reinsert(edgehash, mf->v1, mf->v4, NULL);
+        BLI_edgehash_reinsert(edgehash, mf->v1, mf->v4, nullptr);
         (*fs) |= 8;
       }
 
       /* mark center vertex as a fake edge split */
       if (*fs == 15) {
-        BLI_edgehash_reinsert(edgehash, mf->v1, mf->v3, NULL);
+        BLI_edgehash_reinsert(edgehash, mf->v1, mf->v3, nullptr);
       }
     }
     else {
       (*fs) |= 16; /* mark face as tri */
 
       if (v1 != v3) {
-        BLI_edgehash_reinsert(edgehash, mf->v1, mf->v3, NULL);
+        BLI_edgehash_reinsert(edgehash, mf->v1, mf->v3, nullptr);
         (*fs) |= 4;
       }
     }
@@ -742,7 +756,8 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
    * later interpreted as tri's, for this to work right I think we probably
    * have to stop using tessface. */
 
-  facepa = MEM_calloc_arrayN((totface + (totfsplit * 2)), sizeof(int), "explode_facepa");
+  facepa = static_cast<int *>(
+      MEM_calloc_arrayN((totface + (totfsplit * 2)), sizeof(int), __func__));
   // memcpy(facepa, emd->facepa, totface*sizeof(int));
   emd->facepa = facepa;
 
@@ -869,13 +884,14 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
     curdupface += add_faces[*fs] + 1;
   }
 
-  MFace *split_mface = CustomData_get_layer_for_write(&split_m->fdata, CD_MFACE, split_m->totface);
+  MFace *split_mface = static_cast<MFace *>(
+      CustomData_get_layer_for_write(&split_m->fdata, CD_MFACE, split_m->totface));
   for (i = 0; i < curdupface; i++) {
     mf = &split_mface[i];
     BKE_mesh_mface_index_validate(mf, &split_m->fdata, i, ((mf->flag & ME_FACE_SEL) ? 4 : 3));
   }
 
-  BLI_edgehash_free(edgehash, NULL);
+  BLI_edgehash_free(edgehash, nullptr);
   MEM_freeN(facesplit);
   MEM_freeN(vertpa);
 
@@ -891,14 +907,14 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
                          Mesh *to_explode)
 {
   Mesh *explode, *mesh = to_explode;
-  MFace *mf = NULL, *mface;
+  MFace *mf = nullptr, *mface;
   // ParticleSettings *part=psmd->psys->part; /* UNUSED */
-  ParticleSimulationData sim = {NULL};
-  ParticleData *pa = NULL, *pars = psmd->psys->particles;
+  ParticleSimulationData sim = {nullptr};
+  ParticleData *pa = nullptr, *pars = psmd->psys->particles;
   ParticleKey state, birth;
   EdgeHash *vertpahash;
   EdgeHashIterator *ehi;
-  float *vertco = NULL, imat[4][4];
+  float *vertco = nullptr, imat[4][4];
   float rot[4];
   float ctime;
   // float timestep;
@@ -909,7 +925,8 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
   totface = mesh->totface;
   totvert = mesh->totvert;
-  mface = CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface);
+  mface = static_cast<MFace *>(
+      CustomData_get_layer_for_write(&mesh->fdata, CD_MFACE, mesh->totface));
   totpart = psmd->psys->totpart;
 
   sim.depsgraph = ctx->depsgraph;
@@ -937,12 +954,12 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       }
     }
     else {
-      pa = NULL;
+      pa = nullptr;
     }
 
     /* do mindex + totvert to ensure the vertex index to be the first
      * with BLI_edgehashIterator_getKey */
-    if (pa == NULL || ctime < pa->time) {
+    if (pa == nullptr || ctime < pa->time) {
       mindex = totvert + totpart;
     }
     else {
@@ -952,11 +969,11 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
     mf = &mface[i];
 
     /* set face vertices to exist in particle group */
-    BLI_edgehash_reinsert(vertpahash, mf->v1, mindex, NULL);
-    BLI_edgehash_reinsert(vertpahash, mf->v2, mindex, NULL);
-    BLI_edgehash_reinsert(vertpahash, mf->v3, mindex, NULL);
+    BLI_edgehash_reinsert(vertpahash, mf->v1, mindex, nullptr);
+    BLI_edgehash_reinsert(vertpahash, mf->v2, mindex, nullptr);
+    BLI_edgehash_reinsert(vertpahash, mf->v3, mindex, nullptr);
     if (mf->v4) {
-      BLI_edgehash_reinsert(vertpahash, mf->v4, mindex, NULL);
+      BLI_edgehash_reinsert(vertpahash, mf->v4, mindex, nullptr);
     }
   }
 
@@ -971,8 +988,8 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   /* the final duplicated vertices */
   explode = BKE_mesh_new_nomain_from_template(mesh, totdup, 0, totface - delface, 0, 0);
 
-  MTFace *mtface = CustomData_get_layer_named_for_write(
-      &explode->fdata, CD_MTFACE, emd->uvname, explode->totface);
+  MTFace *mtface = static_cast<MTFace *>(CustomData_get_layer_named_for_write(
+      &explode->fdata, CD_MTFACE, emd->uvname, explode->totface));
 
   /* getting back to object space */
   invert_m4_m4(imat, ctx->object->object_to_world);
@@ -1024,14 +1041,14 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       mul_m4_v3(imat, vertco);
     }
     else {
-      pa = NULL;
+      pa = nullptr;
     }
   }
   BLI_edgehashIterator_free(ehi);
 
   /* Map new vertices to faces. */
-  MFace *explode_mface = CustomData_get_layer_for_write(
-      &explode->fdata, CD_MFACE, explode->totface);
+  MFace *explode_mface = static_cast<MFace *>(
+      CustomData_get_layer_for_write(&explode->fdata, CD_MFACE, explode->totface));
   for (i = 0, u = 0; i < totface; i++) {
     MFace source;
     int orig_v4;
@@ -1050,7 +1067,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       }
     }
     else {
-      pa = NULL;
+      pa = nullptr;
     }
 
     source = mface[i];
@@ -1059,7 +1076,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
     orig_v4 = source.v4;
 
     /* Same as above in the first loop over mesh's faces. */
-    if (pa == NULL || ctime < pa->time) {
+    if (pa == nullptr || ctime < pa->time) {
       mindex = totvert + totpart;
     }
     else {
@@ -1079,7 +1096,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
     /* override uv channel for particle age */
     if (mtface) {
-      float age = (pa != NULL) ? (ctime - pa->time) / pa->lifetime : 0.0f;
+      float age = (pa != nullptr) ? (ctime - pa->time) / pa->lifetime : 0.0f;
       /* Clamp to this range to avoid flipping to the other side of the coordinates. */
       CLAMP(age, 0.001f, 0.999f);
 
@@ -1094,7 +1111,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   }
 
   /* cleanup */
-  BLI_edgehash_free(vertpahash, NULL);
+  BLI_edgehash_free(vertpahash, nullptr);
 
   /* finalization */
   BKE_mesh_calc_edges_tessface(explode);
@@ -1110,7 +1127,7 @@ static ParticleSystemModifierData *findPrecedingParticlesystem(Object *ob, Modif
   ModifierData *md;
   ParticleSystemModifierData *psmd = NULL;
 
-  for (md = ob->modifiers.first; emd != md; md = md->next) {
+  for (md = static_cast<ModifierData *>(ob->modifiers.first); emd != md; md = md->next) {
     if (md->type == eModifierType_ParticleSystem) {
       psmd = (ParticleSystemModifierData *)md;
     }
@@ -1125,20 +1142,20 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   if (psmd) {
     ParticleSystem *psys = psmd->psys;
 
-    if (psys == NULL || psys->totpart == 0) {
+    if (psys == nullptr || psys->totpart == 0) {
       return mesh;
     }
-    if (psys->part == NULL || psys->particles == NULL) {
+    if (psys->part == nullptr || psys->particles == nullptr) {
       return mesh;
     }
-    if (psmd->mesh_final == NULL) {
+    if (psmd->mesh_final == nullptr) {
       return mesh;
     }
 
     BKE_mesh_tessface_ensure(mesh); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
     /* 1. find faces to be exploded if needed */
-    if (emd->facepa == NULL || psmd->flag & eParticleSystemFlag_Pars ||
+    if (emd->facepa == nullptr || psmd->flag & eParticleSystemFlag_Pars ||
         emd->flag & eExplodeFlag_CalcFaces ||
         MEM_allocN_len(emd->facepa) / sizeof(int) != mesh->totface) {
       if (psmd->flag & eParticleSystemFlag_Pars) {
@@ -1158,7 +1175,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
       MEM_freeN(emd->facepa);
       emd->facepa = facepa;
-      BKE_id_free(NULL, split_m);
+      BKE_id_free(nullptr, split_m);
       return explode;
     }
 
@@ -1167,7 +1184,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return mesh;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row, *col;
   uiLayout *layout = panel->layout;
@@ -1181,24 +1198,24 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemPointerR(layout, ptr, "particle_uv", &obj_data_ptr, "uv_layers", NULL, ICON_NONE);
+  uiItemPointerR(layout, ptr, "particle_uv", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Show"));
-  uiItemR(row, ptr, "show_alive", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "show_dead", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "show_unborn", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "show_alive", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "show_dead", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "show_unborn", toggles_flag, nullptr, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "use_edge_cut", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "use_size", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_edge_cut", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_size", 0, nullptr, ICON_NONE);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   row = uiLayoutRow(layout, false);
   uiLayoutSetActive(row, has_vertex_group);
-  uiItemR(row, ptr, "protect", 0, NULL, ICON_NONE);
+  uiItemR(row, ptr, "protect", 0, nullptr, ICON_NONE);
 
   uiItemO(layout, IFACE_("Refresh"), ICON_NONE, "OBJECT_OT_explode_refresh");
 
@@ -1210,11 +1227,11 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_Explode, panel_draw);
 }
 
-static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
+static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
 {
   ExplodeModifierData *psmd = (ExplodeModifierData *)md;
 
-  psmd->facepa = NULL;
+  psmd->facepa = nullptr;
 }
 
 ModifierTypeInfo modifierType_Explode = {
@@ -1227,24 +1244,24 @@ ModifierTypeInfo modifierType_Explode = {
     /*icon*/ ICON_MOD_EXPLODE,
     /*copyData*/ copyData,
 
-    /*deformVerts*/ NULL,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ NULL,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
     /*requiredDataMask*/ requiredDataMask,
     /*freeData*/ freeData,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
     /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ NULL,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
+    /*blendWrite*/ nullptr,
     /*blendRead*/ blendRead,
 };

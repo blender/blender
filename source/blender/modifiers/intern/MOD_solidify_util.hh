@@ -6,13 +6,13 @@
 
 #pragma once
 
-/* MOD_solidify_extrude.c */
+/* MOD_solidify_extrude.cc */
 
 Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md,
                                       const ModifierEvalContext *ctx,
                                       Mesh *mesh);
 
-/* MOD_solidify_nonmanifold.c */
+/* MOD_solidify_nonmanifold.cc */
 
 Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                                           const ModifierEvalContext *ctx,

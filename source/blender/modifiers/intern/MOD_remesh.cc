@@ -7,10 +7,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-
 #include "BLI_math_base.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -36,8 +35,8 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #ifdef WITH_MOD_REMESH
 #  include "BLI_math_vector.h"
@@ -60,14 +59,14 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
 {
   memset(input, 0, sizeof(DualConInput));
 
-  input->co = (void *)BKE_mesh_vert_positions(mesh);
+  input->co = (DualConCo)BKE_mesh_vert_positions(mesh);
   input->co_stride = sizeof(float[3]);
   input->totco = mesh->totvert;
 
-  input->mloop = (void *)BKE_mesh_loops(mesh);
+  input->mloop = (DualConLoop)BKE_mesh_loops(mesh);
   input->loop_stride = sizeof(MLoop);
 
-  input->looptri = (void *)BKE_mesh_runtime_looptri_ensure(mesh);
+  input->looptri = (DualConTri)BKE_mesh_runtime_looptri_ensure(mesh);
   input->tri_stride = sizeof(MLoopTri);
   input->tottri = BKE_mesh_runtime_looptri_len(mesh);
 
@@ -90,8 +89,8 @@ static void *dualcon_alloc_output(int totvert, int totquad)
 {
   DualConOutput *output;
 
-  if (!(output = MEM_callocN(sizeof(DualConOutput), "DualConOutput"))) {
-    return NULL;
+  if (!(output = MEM_cnew<DualConOutput>(__func__))) {
+    return nullptr;
   }
 
   output->mesh = BKE_mesh_new_nomain(totvert, 0, 0, 4 * totquad, totquad);
@@ -104,7 +103,7 @@ static void *dualcon_alloc_output(int totvert, int totquad)
 
 static void dualcon_add_vert(void *output_v, const float co[3])
 {
-  DualConOutput *output = output_v;
+  DualConOutput *output = static_cast<DualConOutput *>(output_v);
 
   BLI_assert(output->curvert < output->mesh->totvert);
 
@@ -114,7 +113,7 @@ static void dualcon_add_vert(void *output_v, const float co[3])
 
 static void dualcon_add_quad(void *output_v, const int vert_indices[4])
 {
-  DualConOutput *output = output_v;
+  DualConOutput *output = static_cast<DualConOutput *>(output_v);
   Mesh *mesh = output->mesh;
   int i;
 
@@ -133,25 +132,25 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
   output->curface++;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx), Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
   RemeshModifierData *rmd;
   DualConOutput *output;
   DualConInput input;
   Mesh *result;
-  DualConFlags flags = 0;
-  DualConMode mode = 0;
+  DualConFlags flags = DualConFlags(0);
+  DualConMode mode = DualConMode(0);
 
   rmd = (RemeshModifierData *)md;
 
   if (rmd->mode == MOD_REMESH_VOXEL) {
     /* OpenVDB modes. */
     if (rmd->voxel_size == 0.0f) {
-      return NULL;
+      return nullptr;
     }
     result = BKE_mesh_remesh_voxel(mesh, rmd->voxel_size, rmd->adaptivity, 0.0f);
-    if (result == NULL) {
-      return NULL;
+    if (result == nullptr) {
+      return nullptr;
     }
   }
   else {
@@ -159,7 +158,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
     init_dualcon_mesh(&input, mesh);
 
     if (rmd->flag & MOD_REMESH_FLOOD_FILL) {
-      flags |= DUALCON_FLOOD_FILL;
+      flags = DualConFlags(flags | DUALCON_FLOOD_FILL);
     }
 
     switch (rmd->mode) {
@@ -182,16 +181,16 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
      * This was identified when changing the task isolation's during T76553. */
     static ThreadMutex dualcon_mutex = BLI_MUTEX_INITIALIZER;
     BLI_mutex_lock(&dualcon_mutex);
-    output = dualcon(&input,
-                     dualcon_alloc_output,
-                     dualcon_add_vert,
-                     dualcon_add_quad,
-                     flags,
-                     mode,
-                     rmd->threshold,
-                     rmd->hermite_num,
-                     rmd->scale,
-                     rmd->depth);
+    output = static_cast<DualConOutput *>(dualcon(&input,
+                                                  dualcon_alloc_output,
+                                                  dualcon_add_vert,
+                                                  dualcon_add_quad,
+                                                  flags,
+                                                  mode,
+                                                  rmd->threshold,
+                                                  rmd->hermite_num,
+                                                  rmd->scale,
+                                                  rmd->depth));
     BLI_mutex_unlock(&dualcon_mutex);
 
     result = output->mesh;
@@ -215,16 +214,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
 
 #else /* !WITH_MOD_REMESH */
 
-static Mesh *modifyMesh(ModifierData *UNUSED(md),
-                        const ModifierEvalContext *UNUSED(ctx),
-                        Mesh *mesh)
+static Mesh *modifyMesh(ModifierData * /*md*/, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
   return mesh;
 }
 
 #endif /* !WITH_MOD_REMESH */
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 #ifdef WITH_MOD_REMESH
@@ -235,29 +232,29 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   int mode = RNA_enum_get(ptr, "mode");
 
-  uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
   if (mode == MOD_REMESH_VOXEL) {
-    uiItemR(col, ptr, "voxel_size", 0, NULL, ICON_NONE);
-    uiItemR(col, ptr, "adaptivity", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "voxel_size", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "adaptivity", 0, nullptr, ICON_NONE);
   }
   else {
-    uiItemR(col, ptr, "octree_depth", 0, NULL, ICON_NONE);
-    uiItemR(col, ptr, "scale", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "octree_depth", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "scale", 0, nullptr, ICON_NONE);
 
     if (mode == MOD_REMESH_SHARP_FEATURES) {
-      uiItemR(col, ptr, "sharpness", 0, NULL, ICON_NONE);
+      uiItemR(col, ptr, "sharpness", 0, nullptr, ICON_NONE);
     }
 
-    uiItemR(layout, ptr, "use_remove_disconnected", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "use_remove_disconnected", 0, nullptr, ICON_NONE);
     row = uiLayoutRow(layout, false);
     uiLayoutSetActive(row, RNA_boolean_get(ptr, "use_remove_disconnected"));
-    uiItemR(layout, ptr, "threshold", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "threshold", 0, nullptr, ICON_NONE);
   }
-  uiItemR(layout, ptr, "use_smooth_shade", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_smooth_shade", 0, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 
@@ -283,24 +280,24 @@ ModifierTypeInfo modifierType_Remesh = {
 
     /*copyData*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ NULL,
-    /*deformMatrices*/ NULL,
-    /*deformVertsEM*/ NULL,
-    /*deformMatricesEM*/ NULL,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ NULL,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ initData,
-    /*requiredDataMask*/ NULL,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
-    /*dependsOnNormals*/ NULL,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*requiredDataMask*/ nullptr,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

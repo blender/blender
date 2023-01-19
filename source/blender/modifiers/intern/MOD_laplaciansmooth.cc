@@ -39,7 +39,7 @@
 
 #include "eigen_capi.h"
 
-struct BLaplacianSystem {
+struct LaplacianSystem {
   float *eweights;      /* Length weights per Edge */
   float (*fweights)[3]; /* Cotangent weights per face */
   float *ring_areas;    /* Total area per ring. */
@@ -64,7 +64,6 @@ struct BLaplacianSystem {
   float min_area;
   float vert_centroid[3];
 };
-typedef struct BLaplacianSystem LaplacianSystem;
 
 static float compute_volume(const float center[3],
                             float (*vertexCos)[3],
@@ -97,10 +96,10 @@ static void delete_laplacian_system(LaplacianSystem *sys)
   if (sys->context) {
     EIG_linear_solver_delete(sys->context);
   }
-  sys->vertexCos = NULL;
-  sys->mpoly = NULL;
-  sys->mloop = NULL;
-  sys->medges = NULL;
+  sys->vertexCos = nullptr;
+  sys->mpoly = nullptr;
+  sys->mloop = nullptr;
+  sys->medges = nullptr;
   MEM_freeN(sys);
 }
 
@@ -122,20 +121,20 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges,
                                               int a_numVerts)
 {
   LaplacianSystem *sys;
-  sys = MEM_callocN(sizeof(LaplacianSystem), "ModLaplSmoothSystem");
+  sys = static_cast<LaplacianSystem *>(MEM_callocN(sizeof(LaplacianSystem), __func__));
   sys->edges_num = a_numEdges;
   sys->polys_num = a_numPolys;
   sys->loops_num = a_numLoops;
   sys->verts_num = a_numVerts;
 
-  sys->eweights = MEM_calloc_arrayN(sys->edges_num, sizeof(float), __func__);
-  sys->fweights = MEM_calloc_arrayN(sys->loops_num, sizeof(float[3]), __func__);
-  sys->ne_ed_num = MEM_calloc_arrayN(sys->verts_num, sizeof(short), __func__);
-  sys->ne_fa_num = MEM_calloc_arrayN(sys->verts_num, sizeof(short), __func__);
-  sys->ring_areas = MEM_calloc_arrayN(sys->verts_num, sizeof(float), __func__);
-  sys->vlengths = MEM_calloc_arrayN(sys->verts_num, sizeof(float), __func__);
-  sys->vweights = MEM_calloc_arrayN(sys->verts_num, sizeof(float), __func__);
-  sys->zerola = MEM_calloc_arrayN(sys->verts_num, sizeof(bool), __func__);
+  sys->eweights = MEM_cnew_array<float>(sys->edges_num, __func__);
+  sys->fweights = MEM_cnew_array<float[3]>(sys->loops_num, __func__);
+  sys->ne_ed_num = MEM_cnew_array<short>(sys->verts_num, __func__);
+  sys->ne_fa_num = MEM_cnew_array<short>(sys->verts_num, __func__);
+  sys->ring_areas = MEM_cnew_array<float>(sys->verts_num, __func__);
+  sys->vlengths = MEM_cnew_array<float>(sys->verts_num, __func__);
+  sys->vweights = MEM_cnew_array<float>(sys->verts_num, __func__);
+  sys->zerola = MEM_cnew_array<bool>(sys->verts_num, __func__);
 
   return sys;
 }
@@ -350,15 +349,15 @@ static void validate_solution(LaplacianSystem *sys, short flag, float lambda, fl
       lam = sys->ne_ed_num[i] == sys->ne_fa_num[i] ? (lambda >= 0.0f ? 1.0f : -1.0f) :
                                                      (lambda_border >= 0.0f ? 1.0f : -1.0f);
       if (flag & MOD_LAPLACIANSMOOTH_X) {
-        sys->vertexCos[i][0] += lam * ((float)EIG_linear_solver_variable_get(sys->context, 0, i) -
+        sys->vertexCos[i][0] += lam * (float(EIG_linear_solver_variable_get(sys->context, 0, i)) -
                                        sys->vertexCos[i][0]);
       }
       if (flag & MOD_LAPLACIANSMOOTH_Y) {
-        sys->vertexCos[i][1] += lam * ((float)EIG_linear_solver_variable_get(sys->context, 1, i) -
+        sys->vertexCos[i][1] += lam * (float(EIG_linear_solver_variable_get(sys->context, 1, i)) -
                                        sys->vertexCos[i][1]);
       }
       if (flag & MOD_LAPLACIANSMOOTH_Z) {
-        sys->vertexCos[i][2] += lam * ((float)EIG_linear_solver_variable_get(sys->context, 2, i) -
+        sys->vertexCos[i][2] += lam * (float(EIG_linear_solver_variable_get(sys->context, 2, i)) -
                                        sys->vertexCos[i][2]);
       }
     }
@@ -374,8 +373,8 @@ static void laplaciansmoothModifier_do(
     LaplacianSmoothModifierData *smd, Object *ob, Mesh *mesh, float (*vertexCos)[3], int verts_num)
 {
   LaplacianSystem *sys;
-  const MDeformVert *dvert = NULL;
-  const MDeformVert *dv = NULL;
+  const MDeformVert *dvert = nullptr;
+  const MDeformVert *dv = nullptr;
   float w, wpaint;
   int i, iter;
   int defgrp_index;
@@ -412,7 +411,7 @@ static void laplaciansmoothModifier_do(
       }
     }
     if (iter == 0 && verts_num > 0) {
-      mul_v3_fl(sys->vert_centroid, 1.0f / (float)verts_num);
+      mul_v3_fl(sys->vert_centroid, 1.0f / float(verts_num));
     }
 
     dv = dvert;
@@ -478,7 +477,7 @@ static void laplaciansmoothModifier_do(
     }
   }
   EIG_linear_solver_delete(sys->context);
-  sys->context = NULL;
+  sys->context = nullptr;
 
   delete_laplacian_system(sys);
 }
@@ -492,9 +491,7 @@ static void init_data(ModifierData *md)
   MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(LaplacianSmoothModifierData), modifier);
 }
 
-static bool is_disabled(const struct Scene *UNUSED(scene),
-                        ModifierData *md,
-                        bool UNUSED(useRenderParams))
+static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *)md;
   short flag;
@@ -531,19 +528,19 @@ static void deformVerts(ModifierData *md,
     return;
   }
 
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
+  mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
 
   laplaciansmoothModifier_do(
       (LaplacianSmoothModifierData *)md, ctx->object, mesh_src, vertexCos, verts_num);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          struct BMEditMesh *editData,
+                          BMEditMesh *editData,
                           Mesh *mesh,
                           float (*vertexCos)[3],
                           int verts_num)
@@ -554,22 +551,22 @@ static void deformVertsEM(ModifierData *md,
     return;
   }
 
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
+  mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr, verts_num, false);
 
   /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
-  if (mesh_src != NULL) {
+  if (mesh_src != nullptr) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
 
   laplaciansmoothModifier_do(
       (LaplacianSmoothModifierData *)md, ctx->object, mesh_src, vertexCos, verts_num);
 
-  if (!ELEM(mesh_src, NULL, mesh)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
@@ -580,20 +577,20 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "iterations", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "iterations", 0, nullptr, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Axis"));
-  uiItemR(row, ptr, "use_x", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "use_y", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "use_z", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_x", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "use_y", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "use_z", toggles_flag, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "lambda_factor", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "lambda_border", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "lambda_factor", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "lambda_border", 0, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "use_volume_preserve", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "use_normalized", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_volume_preserve", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_normalized", 0, nullptr, ICON_NONE);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   modifier_panel_end(layout, ptr);
 }
@@ -615,23 +612,23 @@ ModifierTypeInfo modifierType_LaplacianSmooth = {
     /*copyData*/ BKE_modifier_copydata_generic,
 
     /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ NULL,
+    /*deformMatrices*/ nullptr,
     /*deformVertsEM*/ deformVertsEM,
-    /*deformMatricesEM*/ NULL,
-    /*modifyMesh*/ NULL,
-    /*modifyGeometrySet*/ NULL,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ nullptr,
+    /*modifyGeometrySet*/ nullptr,
 
     /*initData*/ init_data,
     /*requiredDataMask*/ required_data_mask,
-    /*freeData*/ NULL,
+    /*freeData*/ nullptr,
     /*isDisabled*/ is_disabled,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
-    /*dependsOnNormals*/ NULL,
-    /*foreachIDLink*/ NULL,
-    /*foreachTexLink*/ NULL,
-    /*freeRuntimeData*/ NULL,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ nullptr,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
     /*panelRegister*/ panelRegister,
-    /*blendWrite*/ NULL,
-    /*blendRead*/ NULL,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };
