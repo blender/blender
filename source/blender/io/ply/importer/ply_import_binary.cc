@@ -150,12 +150,14 @@ void load_vertex_data(std::ifstream &file, const PlyHeader *header, PlyData *r_d
 {
   bool hasNormal = false;
   bool hasColor = false;
+  bool hasUv = false;
   bool isBigEndian = header->type == PlyFormatType::BINARY_BE;
 
   for (int i = 0; i < header->vertex_count; i++) {
     float3 coord{0};
     float3 normal{0};
     float4 color{1};
+    float2 uv{0};
 
     for (auto [name, type] : header->properties[index]) {
       if (name == "x") {
@@ -190,6 +192,13 @@ void load_vertex_data(std::ifstream &file, const PlyHeader *header, PlyData *r_d
       else if (name == "alpha") {
         color.w = read<uint8_t>(file, isBigEndian) / 255.0f;
       }
+      else if (name == "s") {
+        uv.x = read<float>(file, isBigEndian);
+        hasUv = true;
+      }
+      else if (name == "t") {
+        uv.y = read<float>(file, isBigEndian);
+      }
       else {
         /* No other properties are supported yet. */
         discard_value(file, type);
@@ -202,6 +211,9 @@ void load_vertex_data(std::ifstream &file, const PlyHeader *header, PlyData *r_d
     }
     if (hasColor) {
       r_data->vertex_colors.append(color);
+    }
+    if (hasUv) {
+      r_data->UV_coordinates.append(uv);
     }
   }
 }

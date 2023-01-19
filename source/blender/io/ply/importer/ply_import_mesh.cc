@@ -8,6 +8,8 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
 
+#include "GEO_mesh_merge_by_distance.hh"
+
 #include "BLI_math_vector.h"
 
 #include "ply_import_mesh.hh"
@@ -15,6 +17,7 @@
 namespace blender::io::ply {
 Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &params)
 {
+
   /* Add vertices to the mesh. */
   mesh->totvert = int(data.vertices.size()); /* Explicit conversion from int64_t to int. */
   CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
@@ -75,6 +78,19 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
     }
   }
 
+  /* Uvmap */
+  if (!data.UV_coordinates.is_empty()) {
+    MLoopUV *Uv = static_cast<MLoopUV *>(
+        CustomData_add_layer(&mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop));
+    int counter = 0;
+    for (int i = 0; i < data.faces.size(); i++) {
+      for (int j = 0; j < data.faces[i].size(); j++) {
+        copy_v2_v2(Uv[counter].uv, data.UV_coordinates[data.faces[i][j]]);
+        counter++;
+      }
+    }
+  }
+
   /* Calculate mesh from edges. */
   BKE_mesh_calc_edges(mesh, true, false);
   BKE_mesh_calc_edges_loose(mesh);
@@ -102,6 +118,10 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
     BKE_mesh_set_custom_normals_from_verts(mesh, vertex_normals);
     MEM_freeN(vertex_normals);
   }
+
+  /* Merge all vertices on the same location. */
+  mesh = blender::geometry::mesh_merge_by_distance_all(*mesh, IndexMask(mesh->totvert), 0.0001f)
+             .value();
 
   return mesh;
 }

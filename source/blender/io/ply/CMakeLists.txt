@@ -13,6 +13,7 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../windowmanager
+  ../../geometry
   ../../../../extern/fmtlib/include
   ../../../../intern/guardedalloc
 )
