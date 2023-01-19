@@ -787,13 +787,15 @@ static void trim_evaluated_curves(const bke::CurvesGeometry &src_curves,
       using T = decltype(dummy);
 
       threading::parallel_for(selection.index_range(), 512, [&](const IndexRange range) {
+        Vector<std::byte> evaluated_buffer;
         for (const int64_t curve_i : selection.slice(range)) {
+          const IndexRange src_points = src_points_by_curve[curve_i];
+
           /* Interpolate onto the evaluated point domain and sample the evaluated domain. */
-          GArray<> evaluated_data(CPPType::get<T>(), src_evaluated_points_by_curve.size(curve_i));
-          GMutableSpan evaluated_span = evaluated_data.as_mutable_span();
-          src_curves.interpolate_to_evaluated(
-              curve_i, attribute.src.slice(src_points_by_curve[curve_i]), evaluated_span);
-          sample_interval_linear<T>(evaluated_span.typed<T>(),
+          evaluated_buffer.reinitialize(sizeof(T) * src_evaluated_points_by_curve.size(curve_i));
+          MutableSpan<T> evaluated = evaluated_buffer.as_mutable_span().cast<T>();
+          src_curves.interpolate_to_evaluated(curve_i, attribute.src.slice(src_points), evaluated);
+          sample_interval_linear<T>(evaluated,
                                     attribute.dst.span.typed<T>(),
                                     src_ranges[curve_i],
                                     dst_points_by_curve[curve_i],
