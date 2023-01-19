@@ -213,7 +213,7 @@ void load_vertex_data(std::ifstream &file, const PlyHeader *header, PlyData *r_d
       r_data->vertex_colors.append(color);
     }
     if (hasUv) {
-      r_data->uvmap.append(uv);
+      r_data->UV_coordinates.append(uv);
     }
   }
 }

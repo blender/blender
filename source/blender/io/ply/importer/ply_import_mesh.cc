@@ -79,13 +79,13 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
   }
 
   /* Uvmap */
-  if (!data.uvmap.is_empty()) {
+  if (!data.UV_coordinates.is_empty()) {
     MLoopUV *Uv = static_cast<MLoopUV *>(
         CustomData_add_layer(&mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop));
     int counter = 0;
     for (int i = 0; i < data.faces.size(); i++) {
       for (int j = 0; j < data.faces[i].size(); j++) {
-        copy_v2_v2(Uv[counter].uv, data.uvmap[data.faces[i][j]]);
+        copy_v2_v2(Uv[counter].uv, data.UV_coordinates[data.faces[i][j]]);
         counter++;
       }
     }

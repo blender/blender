@@ -116,10 +116,10 @@ PlyData load_ply_ascii(std::ifstream &file, const PlyHeader *header)
     // If uv
     if (hasUv) {
       float2 uvmap;
-      uvmap.x = std::stof(value_arr[uvpos.x]);
-      uvmap.y = std::stof(value_arr[uvpos.y]);
+      uvmap.x = std::stof(value_vec[uvIndex.x]);
+      uvmap.y = std::stof(value_vec[uvIndex.y]);
 
-      data.uvmap.append(uvmap);
+      data.UV_coordinates.append(uvmap);
     }
   }
   for (int i = 0; i < header->face_count; i++) {
@@ -176,7 +176,7 @@ int3 get_normal_index(const PlyHeader *header)
   return vertexPos;
 }
 
-int2 get_uv_index(PlyHeader *header)
+int2 get_uv_index(const PlyHeader *header)
 {
   int2 uvPos;
   uvPos.x = get_index(header, "s", PlyDataTypes::FLOAT);
