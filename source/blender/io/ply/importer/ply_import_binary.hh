@@ -19,9 +19,9 @@ namespace blender::io::ply {
  * @return The r_mesh that can be used inside blender.
  */
 void import_ply_binary(std::ifstream &file,
-                        const PlyHeader *header,
-                        Mesh *r_mesh,
-                        const PLYImportParams &params);
+                       const PlyHeader *header,
+                       Mesh *r_mesh,
+                       const PLYImportParams &params);
 
 /**
  * Loads the information from the PLY file in binary format to the PlyData datastructure.

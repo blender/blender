@@ -21,9 +21,9 @@ namespace blender::io::ply {
  */
 
 void import_ply_ascii(std::ifstream &file,
-                       PlyHeader *header,
-                       Mesh *r_mesh,
-                       const PLYImportParams &params);
+                      PlyHeader *header,
+                      Mesh *r_mesh,
+                      const PLYImportParams &params);
 
 /**
  * Loads the information from the PLY file in ASCII format to the PlyData datastructure.
