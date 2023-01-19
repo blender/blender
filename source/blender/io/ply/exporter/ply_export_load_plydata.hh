@@ -207,7 +207,13 @@ void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &ex
 
     // Normals
     if (export_params.export_normals) {
-      const float(*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+      const float3 *vertex_normals = (const float3 *)CustomData_get_layer_named(
+          &mesh->vdata, CD_PROP_FLOAT3, "Normal");
+
+      if (vertex_normals == nullptr) {
+        vertex_normals = (const float3 *)BKE_mesh_vertex_normals_ensure(mesh);
+      }
+
       for (int i = 0; i < vertex_map.size(); i++) {
         plyData.vertex_normals.append(vertex_normals[mesh_vertex_index_LUT[i]]);
       }
