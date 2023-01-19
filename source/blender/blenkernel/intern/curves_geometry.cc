@@ -499,6 +499,14 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
 
 OffsetIndices<int> CurvesGeometry::evaluated_points_by_curve() const
 {
+  if (this->is_single_type(CURVE_TYPE_POLY)) {
+    /* When all the curves are poly curves, the evaluated offsets are the same as the control
+     * point offsets, so it's possible to completely avoid building a new offsets array. */
+    this->runtime->offsets_cache_mutex.ensure(
+        [&]() { this->runtime->evaluated_offsets_cache.clear_and_shrink(); });
+    return this->points_by_curve();
+  }
+
   this->runtime->offsets_cache_mutex.ensure([&]() {
     this->runtime->evaluated_offsets_cache.resize(this->curves_num() + 1);
 
