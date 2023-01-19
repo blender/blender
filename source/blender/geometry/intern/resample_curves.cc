@@ -239,16 +239,7 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
                                           const fn::Field<int> &count_field,
                                           const ResampleCurvesOutputAttributeIDs &output_ids)
 {
-  /* Create the new curves without any points and evaluate the final count directly
-   * into the offsets array, in order to be accumulated into offsets later. */
-  CurvesGeometry dst_curves = CurvesGeometry(0, src_curves.curves_num());
-
-  /* Directly copy curve attributes, since they stay the same (except for curve types). */
-  CustomData_copy(&src_curves.curve_data,
-                  &dst_curves.curve_data,
-                  CD_MASK_ALL,
-                  CD_DUPLICATE,
-                  src_curves.curves_num());
+  CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
   const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
@@ -422,17 +413,8 @@ CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   const OffsetIndices src_evaluated_points_by_curve = src_curves.evaluated_points_by_curve();
 
-  CurvesGeometry dst_curves(0, src_curves.curves_num());
-
-  /* Directly copy curve attributes, since they stay the same (except for curve types). */
-  CustomData_copy(&src_curves.curve_data,
-                  &dst_curves.curve_data,
-                  CD_MASK_ALL,
-                  CD_DUPLICATE,
-                  src_curves.curves_num());
-  /* All resampled curves are poly curves. */
+  CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
   dst_curves.fill_curve_types(selection, CURVE_TYPE_POLY);
-
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
   threading::parallel_for(selection.index_range(), 4096, [&](IndexRange range) {
     for (const int i : selection.slice(range)) {
