@@ -46,7 +46,7 @@ PlyData load_ply_ascii(std::ifstream &file, const PlyHeader *header)
                               header->properties[0].end(),
                               normalx) != header->properties[0].end();
 
-  // Check if header contains uv data.
+  /* Check if header contains uv data. */
   std::pair<std::string, PlyDataTypes> uv = {"s", PlyDataTypes::FLOAT};
   bool hasUv = std::find(header->properties[0].begin(), header->properties[0].end(), uv) !=
                header->properties[0].end();
@@ -177,15 +177,6 @@ int3 get_normal_index(const PlyHeader *header)
 }
 
 int2 get_uv_index(const PlyHeader *header)
-{
-  int2 uvPos;
-  uvPos.x = get_index(header, "s", PlyDataTypes::FLOAT);
-  uvPos.y = get_index(header, "t", PlyDataTypes::FLOAT);
-
-  return uvPos;
-}
-
-int2 get_uv_pos(PlyHeader *header)
 {
   int2 uvPos;
   uvPos.x = get_index(header, "s", PlyDataTypes::FLOAT);
