@@ -20,7 +20,7 @@ static void calculate_result_offsets(const bke::CurvesGeometry &src_curves,
                                      MutableSpan<int> dst_point_offsets)
 {
   /* Fill the array with each curve's point count, then accumulate them to the offsets. */
-  bke::curves::fill_curve_counts(src_curves, unselected_ranges, dst_curve_offsets);
+  bke::curves::copy_curve_sizes(src_curves, unselected_ranges, dst_curve_offsets);
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
     for (const int curve_i : selection.slice(range)) {

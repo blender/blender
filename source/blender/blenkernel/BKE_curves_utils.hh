@@ -533,11 +533,11 @@ void fill_points(const CurvesGeometry &curves,
 bke::CurvesGeometry copy_only_curve_domain(const bke::CurvesGeometry &src_curves);
 
 /**
- * Copy the size of every curve in #curve_ranges to the corresponding index in #counts.
+ * Copy the number of points in every curve in #curve_ranges to the corresponding index in #sizes.
  */
-void fill_curve_counts(const bke::CurvesGeometry &curves,
-                       Span<IndexRange> curve_ranges,
-                       MutableSpan<int> counts);
+void copy_curve_sizes(const bke::CurvesGeometry &curves,
+                      Span<IndexRange> curve_ranges,
+                      MutableSpan<int> sizes);
 
 IndexMask indices_for_type(const VArray<int8_t> &types,
                            const std::array<int, CURVE_TYPES_NUM> &type_counts,

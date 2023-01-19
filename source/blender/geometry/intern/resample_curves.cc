@@ -252,7 +252,7 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
       src_curves.curves_range(), nullptr);
 
   /* Fill the counts for the curves that aren't selected and accumulate the counts into offsets. */
-  bke::curves::fill_curve_counts(src_curves, unselected_ranges, dst_offsets);
+  bke::curves::copy_curve_sizes(src_curves, unselected_ranges, dst_offsets);
   offset_indices::accumulate_counts_to_offsets(dst_offsets);
   dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
 
@@ -421,7 +421,7 @@ CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
       dst_offsets[i] = src_evaluated_points_by_curve.size(i);
     }
   });
-  bke::curves::fill_curve_counts(src_curves, unselected_ranges, dst_offsets);
+  bke::curves::copy_curve_sizes(src_curves, unselected_ranges, dst_offsets);
   offset_indices::accumulate_counts_to_offsets(dst_offsets);
   const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
 

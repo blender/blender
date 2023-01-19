@@ -10,16 +10,16 @@
 
 namespace blender::bke::curves {
 
-void fill_curve_counts(const bke::CurvesGeometry &curves,
-                       const Span<IndexRange> curve_ranges,
-                       MutableSpan<int> counts)
+void copy_curve_sizes(const bke::CurvesGeometry &curves,
+                      const Span<IndexRange> curve_ranges,
+                      MutableSpan<int> sizes)
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
   threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange ranges_range) {
     for (const IndexRange curves_range : curve_ranges.slice(ranges_range)) {
       threading::parallel_for(curves_range, 4096, [&](IndexRange range) {
         for (const int i : range) {
-          counts[i] = points_by_curve.size(i);
+          sizes[i] = points_by_curve.size(i);
         }
       });
     }

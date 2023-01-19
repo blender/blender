@@ -974,7 +974,7 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
                                 start_points,
                                 end_points,
                                 src_ranges);
-  bke::curves::fill_curve_counts(src_curves, inverse_selection, dst_curve_offsets);
+  bke::curves::copy_curve_sizes(src_curves, inverse_selection, dst_curve_offsets);
 
   /* Finalize and update the geometry container. */
   offset_indices::accumulate_counts_to_offsets(dst_curve_offsets);
