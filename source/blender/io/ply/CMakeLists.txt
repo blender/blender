@@ -30,6 +30,7 @@ set(SRC
     importer/ply_import_mesh.cc
     exporter/ply_export_header.cc
     exporter/ply_export_data.cc
+    exporter/ply_export_load_plydata.cc
 
 
 
