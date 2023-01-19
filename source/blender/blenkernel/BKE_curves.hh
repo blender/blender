@@ -30,17 +30,6 @@
 
 namespace blender::bke {
 
-template<typename T, BLI_ENABLE_IF(std::is_integral_v<T>)>
-constexpr IndexRange offsets_to_range(Span<T> offsets, int64_t index)
-{
-  BLI_assert(index >= 0);
-  BLI_assert(index < offsets.size());
-
-  const int offset = offsets[index];
-  const int offset_next = offsets[index + 1];
-  return {offset, offset_next - offset};
-}
-
 namespace curves::nurbs {
 
 struct BasisCache {
@@ -81,7 +70,7 @@ class CurvesGeometryRuntime {
    * evaluated points, Bezier curve vector segments, different resolutions per curve, etc.
    */
   mutable Vector<int> evaluated_offsets_cache;
-  mutable Vector<int> bezier_evaluated_offsets;
+  mutable Vector<int> all_bezier_evaluated_offsets;
   mutable CacheMutex offsets_cache_mutex;
 
   mutable Vector<curves::nurbs::BasisCache> nurbs_basis_cache;
@@ -303,25 +292,14 @@ class CurvesGeometry : public ::CurvesGeometry {
   int evaluated_points_num() const;
 
   /**
-   * Access a range of indices of point data for a specific curve.
-   * Call #evaluated_offsets() first to ensure that the evaluated offsets cache is current.
+   * The offsets of every curve's evaluated points.
    */
-  IndexRange evaluated_points_for_curve(int index) const;
-  IndexRange evaluated_points_for_curves(IndexRange curves) const;
+  OffsetIndices<int> evaluated_points_by_curve() const;
 
   /**
-   * The index of the first evaluated point for every curve. The size of this span is one larger
-   * than the number of curves. Consider using #evaluated_points_for_curve rather than using the
-   * offsets directly.
-   */
-  Span<int> evaluated_offsets() const;
-
-  /** Makes sure the data described by #evaluated_offsets if necessary. */
-  void ensure_evaluated_offsets() const;
-
-  /**
-   * Retrieve offsets into a Bezier curve's evaluated points for each control point.
-   * Call #ensure_evaluated_offsets() first to ensure that the evaluated offsets cache is current.
+   * Retrieve offsets into a Bezier curve's evaluated points for each control point. Stored in the
+   * same format as #OffsetIndices. Call #evaluated_points_by_curve() first to ensure that the
+   * evaluated offsets cache is current.
    */
   Span<int> bezier_evaluated_offsets_for_curve(int curve_index) const;
 
@@ -489,6 +467,17 @@ inline float3 decode_surface_bary_coord(const float2 &v)
   return {v.x, v.y, 1.0f - v.x - v.y};
 }
 
+/**
+ * Return a range used to retrieve values from an array of values stored per point, but with an
+ * extra element at the end of each curve. This is useful for offsets within curves, where it is
+ * convenient to store the first 0 and have the last offset be the total result curve size, using
+ * the same rules as #OffsetIndices.
+ */
+inline IndexRange per_curve_point_offsets_range(const IndexRange points, const int curve_index)
+{
+  return {curve_index + points.start(), points.size() + 1};
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -567,8 +556,9 @@ bool point_is_sharp(Span<int8_t> handle_types_left, Span<int8_t> handle_types_ri
  * point edges generate the number of edges specified by the resolution, vector segments only
  * generate one edge.
  *
- * The size of the offsets array must be the same as the number of points. The value at each index
- * is the evaluated point offset including the following segment.
+ * The expectations for the result \a evaluated_offsets are the same as for #OffsetIndices, so the
+ * size must be one greater than the number of points. The value at each index is the evaluated
+ * point at the start of that segment.
  */
 void calculate_evaluated_offsets(Span<int8_t> handle_types_left,
                                  Span<int8_t> handle_types_right,
@@ -668,7 +658,7 @@ void evaluate_segment(const float3 &point_0,
 void calculate_evaluated_positions(Span<float3> positions,
                                    Span<float3> handles_left,
                                    Span<float3> handles_right,
-                                   Span<int> evaluated_offsets,
+                                   OffsetIndices<int> evaluated_offsets,
                                    MutableSpan<float3> evaluated_positions);
 
 /**
@@ -676,7 +666,7 @@ void calculate_evaluated_positions(Span<float3> positions,
  * #evaluated_offsets. Unlike other curve types, for Bezier curves generic data and positions
  * are treated separately, since attribute values aren't stored for the handle control points.
  */
-void interpolate_to_evaluated(GSpan src, Span<int> evaluated_offsets, GMutableSpan dst);
+void interpolate_to_evaluated(GSpan src, OffsetIndices<int> evaluated_offsets, GMutableSpan dst);
 
 }  // namespace bezier
 
@@ -702,12 +692,12 @@ int calculate_evaluated_num(int points_num, bool cyclic, int resolution);
 void interpolate_to_evaluated(GSpan src, bool cyclic, int resolution, GMutableSpan dst);
 
 /**
- * Evaluate the Catmull Rom curve. The size of each segment and its offset in the #dst span
- * is encoded in #evaluated_offsets, with the same method as #CurvesGeometry::offsets().
+ * Evaluate the Catmull Rom curve. The placement of each segment in the #dst span is desribed by
+ * #evaluated_offsets.
  */
 void interpolate_to_evaluated(const GSpan src,
                               const bool cyclic,
-                              const Span<int> evaluated_offsets,
+                              const OffsetIndices<int> evaluated_offsets,
                               GMutableSpan dst);
 
 void calculate_basis(const float parameter, float4 &r_weights);
@@ -877,36 +867,22 @@ inline OffsetIndices<int> CurvesGeometry::points_by_curve() const
 inline int CurvesGeometry::evaluated_points_num() const
 {
   /* This could avoid calculating offsets in the future in simple circumstances. */
-  return this->evaluated_offsets().last();
-}
-
-inline IndexRange CurvesGeometry::evaluated_points_for_curve(int index) const
-{
-  BLI_assert(this->runtime->offsets_cache_mutex.is_cached());
-  return offsets_to_range(this->runtime->evaluated_offsets_cache.as_span(), index);
-}
-
-inline IndexRange CurvesGeometry::evaluated_points_for_curves(const IndexRange curves) const
-{
-  BLI_assert(this->runtime->offsets_cache_mutex.is_cached());
-  BLI_assert(this->curve_num > 0);
-  const int offset = this->runtime->evaluated_offsets_cache[curves.start()];
-  const int offset_next = this->runtime->evaluated_offsets_cache[curves.one_after_last()];
-  return {offset, offset_next - offset};
+  return this->evaluated_points_by_curve().total_size();
 }
 
 inline Span<int> CurvesGeometry::bezier_evaluated_offsets_for_curve(const int curve_index) const
 {
   const OffsetIndices points_by_curve = this->points_by_curve();
   const IndexRange points = points_by_curve[curve_index];
-  return this->runtime->bezier_evaluated_offsets.as_span().slice(points);
+  const IndexRange range = curves::per_curve_point_offsets_range(points, curve_index);
+  return this->runtime->all_bezier_evaluated_offsets.as_span().slice(range);
 }
 
 inline IndexRange CurvesGeometry::lengths_range_for_curve(const int curve_index,
                                                           const bool cyclic) const
 {
   BLI_assert(cyclic == this->cyclic()[curve_index]);
-  const IndexRange points = this->evaluated_points_for_curve(curve_index);
+  const IndexRange points = this->evaluated_points_by_curve()[curve_index];
   const int start = points.start() + curve_index;
   return {start, curves::segments_num(points.size(), cyclic)};
 }

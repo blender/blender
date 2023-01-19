@@ -42,6 +42,7 @@ using blender::Array;
 using blender::ColorGeometry4f;
 using blender::float3;
 using blender::IndexRange;
+using blender::OffsetIndices;
 using blender::Span;
 
 /* See: edit_curve_point_vert.glsl for duplicate includes. */
@@ -103,14 +104,14 @@ static void curve_eval_render_wire_verts_edges_len_get(const blender::bke::Curve
                                                        int *r_vert_len,
                                                        int *r_edge_len)
 {
-  *r_curve_len = curves.curves_num();
-  *r_vert_len = curves.evaluated_points_num();
-
-  *r_edge_len = 0;
+  const OffsetIndices points_by_curve = curves.evaluated_points_by_curve();
   const blender::VArray<bool> cyclic = curves.cyclic();
+
+  *r_curve_len = curves.curves_num();
+  *r_vert_len = points_by_curve.total_size();
+  *r_edge_len = 0;
   for (const int i : curves.curves_range()) {
-    const IndexRange points = curves.evaluated_points_for_curve(i);
-    *r_edge_len += blender::bke::curves::segments_num(points.size(), cyclic[i]);
+    *r_edge_len += blender::bke::curves::segments_num(points_by_curve.size(i), cyclic[i]);
   }
 }
 
@@ -480,6 +481,7 @@ static void curve_create_curves_pos(CurveRenderData *rdata, GPUVertBuf *vbo_curv
 
 static void curve_create_attribute(CurveRenderData *rdata, GPUVertBuf *vbo_attr)
 {
+  using namespace blender;
   if (rdata->curve_eval == nullptr) {
     return;
   }
@@ -493,18 +495,17 @@ static void curve_create_attribute(CurveRenderData *rdata, GPUVertBuf *vbo_attr)
   GPU_vertbuf_init_with_format(vbo_attr, &format);
   GPU_vertbuf_data_alloc(vbo_attr, vert_len);
 
-  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
-      rdata->curve_eval->geometry);
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(rdata->curve_eval->geometry);
   curves.ensure_can_interpolate_to_evaluated();
-  const blender::VArraySpan<ColorGeometry4f> colors = curves.attributes().lookup<ColorGeometry4f>(
+  const VArraySpan<ColorGeometry4f> colors = curves.attributes().lookup<ColorGeometry4f>(
       ".viewer", ATTR_DOMAIN_POINT);
   ColorGeometry4f *vbo_data = static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(vbo_attr));
-  curves.interpolate_to_evaluated(colors,
-                                  blender::MutableSpan<ColorGeometry4f>{vbo_data, vert_len});
+  curves.interpolate_to_evaluated(colors, MutableSpan<ColorGeometry4f>{vbo_data, vert_len});
 }
 
 static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_curve_lines)
 {
+  using namespace blender;
   if (rdata->curve_eval == nullptr) {
     return;
   }
@@ -518,11 +519,12 @@ static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_c
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len);
 
-  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
-      rdata->curve_eval->geometry);
-  const blender::VArray<bool> cyclic = curves.cyclic();
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(rdata->curve_eval->geometry);
+  const OffsetIndices points_by_curve = curves.evaluated_points_by_curve();
+  const VArray<bool> cyclic = curves.cyclic();
+
   for (const int i : curves.curves_range()) {
-    const IndexRange points = curves.evaluated_points_for_curve(i);
+    const IndexRange points = points_by_curve[i];
     if (cyclic[i] && points.size() > 1) {
       GPU_indexbuf_add_generic_vert(&elb, points.last());
     }
