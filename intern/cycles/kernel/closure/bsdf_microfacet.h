@@ -1006,7 +1006,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
     float3 local_m;
     float G1i;
 
-    local_m = microfacet_sample_stretched(kg, local_I, alpha_x, alpha_x, randu, randv, true, &G1i);
+    local_m = microfacet_sample_stretched(kg, local_I, alpha_x, alpha_y, randu, randv, true, &G1i);
 
     float3 m = X * local_m.x + Y * local_m.y + Z * local_m.z;
     float cosThetaM = local_m.z;
