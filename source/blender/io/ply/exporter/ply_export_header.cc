@@ -48,8 +48,11 @@ void write_header(std::unique_ptr<FileBuffer> &buffer,
     buffer->write_header_scalar_property("float", "t");
   }
 
-  buffer->write_header_element("face", int32_t(plyData->faces.size()));
-  buffer->write_header_list_property("uchar", "uint", "vertex_indices");
+  if (!plyData->faces.is_empty()) {
+    buffer->write_header_element("face", int32_t(plyData->faces.size()));
+    buffer->write_header_list_property("uchar", "uint", "vertex_indices");
+  }
+
   if (!plyData->edges.is_empty()) {
     buffer->write_header_element("edge", int32_t(plyData->edges.size()));
     buffer->write_header_scalar_property("int", "vertex1");
