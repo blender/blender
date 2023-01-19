@@ -149,14 +149,12 @@ void BM_face_interp_from_face_ex(BMesh *bm,
 
   float *w = BLI_array_alloca(w, f_src->len);
   float co[2];
-  int i;
 
   if (f_src != f_dst) {
     BM_elem_attrs_copy(bm, bm, f_src, f_dst);
   }
 
   /* interpolate */
-  i = 0;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f_dst);
   do {
     mul_v2_m3v3(co, axis_mat, l_iter->v->co);
@@ -165,7 +163,7 @@ void BM_face_interp_from_face_ex(BMesh *bm,
     if (do_vertex) {
       CustomData_bmesh_interp(&bm->vdata, blocks_v, w, NULL, f_src->len, l_iter->v->head.data);
     }
-  } while ((void)i++, (l_iter = l_iter->next) != l_first);
+  } while ((l_iter = l_iter->next) != l_first);
 }
 
 void BM_face_interp_from_face(BMesh *bm, BMFace *f_dst, const BMFace *f_src, const bool do_vertex)

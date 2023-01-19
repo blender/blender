@@ -4506,7 +4506,7 @@ LineartBoundingArea *MOD_lineart_get_bounding_area(LineartData *ld, double x, do
 static void lineart_add_triangles_worker(TaskPool *__restrict /*pool*/, LineartIsecThread *th)
 {
   LineartData *ld = th->ld;
-  int _dir_control = 0;
+  // int _dir_control = 0; /* UNUSED */
   while (lineart_schedule_new_triangle_task(th)) {
     for (LineartElementLinkNode *eln = th->pending_from; eln != th->pending_to->next;
          eln = eln->next) {
@@ -4522,7 +4522,7 @@ static void lineart_add_triangles_worker(TaskPool *__restrict /*pool*/, LineartI
           continue;
         }
         if (lineart_get_triangle_bounding_areas(ld, tri, &y1, &y2, &x1, &x2)) {
-          _dir_control++;
+          // _dir_control++;
           for (co = x1; co <= x2; co++) {
             for (r = y1; r <= y2; r++) {
               lineart_bounding_area_link_triangle(ld,

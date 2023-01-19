@@ -983,13 +983,6 @@ static void region_azone_tab_plus(ScrArea *area, AZone *az, ARegion *region)
   const float tab_size_x = 0.7f * U.widget_unit;
   const float tab_size_y = 0.4f * U.widget_unit;
 
-  int tot = 0;
-  LISTBASE_FOREACH (AZone *, azt, &area->actionzones) {
-    if (azt->edge == az->edge) {
-      tot++;
-    }
-  }
-
   switch (az->edge) {
     case AE_TOP_TO_BOTTOMRIGHT: {
       int add = (region->winrct.ymax == area->totrct.ymin) ? 1 : 0;

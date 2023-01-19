@@ -291,6 +291,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
     BM_edge_loop_pair(e_last, &lp->l_a, &lp->l_b);
 
     BLI_assert(tot == uid_end - uid_start);
+    UNUSED_VARS_NDEBUG(tot);
 
 #if 0
     printf("%s: found contiguous edge loop of (%d)\n", __func__, uid_end - uid_start);

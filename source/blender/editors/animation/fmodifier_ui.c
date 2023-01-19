@@ -887,8 +887,7 @@ void ANIM_fmodifier_panels(const bContext *C,
 
   if (!panels_match) {
     UI_panels_free_instanced(C, region);
-    FModifier *fcm = fmodifiers->first;
-    for (int i = 0; fcm; i++, fcm = fcm->next) {
+    for (FModifier *fcm = fmodifiers->first; fcm; fcm = fcm->next) {
       char panel_idname[MAX_NAME];
       panel_id_fn(fcm, panel_idname);
 

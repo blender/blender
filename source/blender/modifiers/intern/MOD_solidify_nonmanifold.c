@@ -1401,8 +1401,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     gs_ptr = orig_vert_groups_arr;
     for (uint i = 0; i < verts_num; i++, gs_ptr++) {
       if (*gs_ptr) {
-        EdgeGroup *g = *gs_ptr;
-        for (uint j = 0; g->valid; j++, g++) {
+        for (EdgeGroup *g = *gs_ptr; g->valid; g++) {
           if (!g->is_singularity) {
             float *nor = g->no;
             /* During vertex position calculation, the algorithm decides if it wants to disable the
@@ -2003,8 +2002,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     for (uint i = 0; i < verts_num; i++, gs_ptr++) {
       EdgeGroup *gs = *gs_ptr;
       if (gs) {
-        EdgeGroup *g = gs;
-        for (uint j = 0; g->valid; j++, g++) {
+        for (EdgeGroup *g = gs; g->valid; g++) {
           if (g->new_vert != MOD_SOLIDIFY_EMPTY_TAG) {
             CustomData_copy_data(&mesh->vdata, &result->vdata, (int)i, (int)g->new_vert, 1);
             copy_v3_v3(vert_positions[g->new_vert], g->co);

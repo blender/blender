@@ -767,7 +767,6 @@ void render_result_single_layer_end(Render *re)
     BLI_remlink(&re->result->layers, rl);
 
     /* reconstruct render result layers */
-    int nr = 0;
     LISTBASE_FOREACH (ViewLayer *, view_layer, &re->scene->view_layers) {
       if (STREQ(view_layer->name, re->single_view_layer)) {
         BLI_addtail(&re->result->layers, rl);
@@ -779,7 +778,6 @@ void render_result_single_layer_end(Render *re)
           BLI_addtail(&re->result->layers, rlpush);
         }
       }
-      nr++;
     }
   }
 

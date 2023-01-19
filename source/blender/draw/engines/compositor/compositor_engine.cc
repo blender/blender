@@ -29,6 +29,8 @@
 
 #include "GPU_texture.h"
 
+#include "compositor_engine.h" /* Own include. */
+
 namespace blender::draw::compositor {
 
 class TexturePool : public realtime_compositor::TexturePool {

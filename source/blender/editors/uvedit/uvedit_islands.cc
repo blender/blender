@@ -377,7 +377,7 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
     }
   }
 
-  struct SharedUVLoopData user_data = {0};
+  struct SharedUVLoopData user_data = {{0}};
   user_data.offsets = uv_offsets;
   user_data.use_seams = use_seams;
 

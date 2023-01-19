@@ -347,7 +347,7 @@ static void snode_autoconnect(SpaceNode &snode, const bool allow_multiple, const
     return a->locx < b->locx;
   });
 
-  int numlinks = 0;
+  // int numlinks = 0; /* UNUSED */
   for (const int i : sorted_nodes.as_mutable_span().drop_back(1).index_range()) {
     bool has_selected_inputs = false;
 
@@ -374,7 +374,7 @@ static void snode_autoconnect(SpaceNode &snode, const bool allow_multiple, const
         }
 
         if (snode_autoconnect_input(snode, node_fr, sock_fr, node_to, sock_to, replace)) {
-          numlinks++;
+          // numlinks++;
         }
       }
     }
@@ -398,7 +398,7 @@ static void snode_autoconnect(SpaceNode &snode, const bool allow_multiple, const
         }
 
         if (snode_autoconnect_input(snode, node_fr, sock_fr, node_to, sock_to, replace)) {
-          numlinks++;
+          // numlinks++;
           break;
         }
       }
