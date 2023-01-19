@@ -1012,7 +1012,8 @@ class TextureRef : public Texture {
  * Dummy type to bind texture as image.
  * It is just a GPUTexture in disguise.
  */
-class Image {};
+class Image {
+};
 
 static inline Image *as_image(GPUTexture *tex)
 {

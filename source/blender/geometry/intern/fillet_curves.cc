@@ -39,7 +39,8 @@ static void duplicate_fillet_point_data(const bke::CurvesGeometry &src_curves,
     for (const int curve_i : curve_selection.slice(range)) {
       const IndexRange src_points = src_points_by_curve[curve_i];
       const IndexRange dst_points = dst_points_by_curve[curve_i];
-      const IndexRange offsets_range = bke::curves::per_curve_point_offsets_range(src_points, curve_i);
+      const IndexRange offsets_range = bke::curves::per_curve_point_offsets_range(src_points,
+                                                                                  curve_i);
       const OffsetIndices<int> offsets(all_point_offsets.slice(offsets_range));
       threaded_slice_fill(src.slice(src_points), offsets, dst.slice(dst_points));
     }
@@ -75,7 +76,8 @@ static void calculate_result_offsets(const bke::CurvesGeometry &src_curves,
   threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
     for (const int curve_i : selection.slice(range)) {
       const IndexRange src_points = points_by_curve[curve_i];
-      const IndexRange offsets_range = bke::curves::per_curve_point_offsets_range(src_points, curve_i);
+      const IndexRange offsets_range = bke::curves::per_curve_point_offsets_range(src_points,
+                                                                                  curve_i);
 
       MutableSpan<int> point_offsets = dst_point_offsets.slice(offsets_range);
       MutableSpan<int> point_counts = point_offsets.drop_back(1);
@@ -456,7 +458,8 @@ static bke::CurvesGeometry fillet_curves(
 
     for (const int curve_i : curve_selection.slice(range)) {
       const IndexRange src_points = src_points_by_curve[curve_i];
-      const IndexRange offsets_range = bke::curves::per_curve_point_offsets_range(src_points, curve_i);
+      const IndexRange offsets_range = bke::curves::per_curve_point_offsets_range(src_points,
+                                                                                  curve_i);
       const OffsetIndices<int> offsets(all_point_offsets.slice(offsets_range));
       const IndexRange dst_points = dst_points_by_curve[curve_i];
       const Span<float3> src_positions = positions.slice(src_points);
