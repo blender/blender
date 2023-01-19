@@ -2644,9 +2644,9 @@ PyObject *BPyInit_bgl(void)
   }
 
   if (GPU_backend_get_type() != GPU_BACKEND_OPENGL) {
-    CLOG_ERROR(&LOG,
-               "'bgl' imported without an OpenGL backend. Please update your add-ons to use the "
-               "'gpu' module. In Blender 3.7 'bgl' will be removed.");
+    CLOG_WARN(&LOG,
+              "'bgl' imported without an OpenGL backend. Please update your add-ons to use the "
+              "'gpu' module. In Blender 3.7 'bgl' will be removed.");
   }
 
   PyModule_AddObject(submodule, "Buffer", (PyObject *)&BGL_bufferType);
