@@ -10,16 +10,15 @@
 #include <fstream>
 
 namespace blender::io::ply {
-void *import_ply_binary(std::ifstream &file,
-                        const PlyHeader *header,
-                        Mesh *r_mesh,
-                        const PLYImportParams &params)
+void import_ply_binary(std::ifstream &file,
+                       const PlyHeader *header,
+                       Mesh *r_mesh,
+                       const PLYImportParams &params)
 {
   PlyData data = load_ply_binary(file, header);
   if (!data.vertices.is_empty()) {
-    return convert_ply_to_mesh(data, r_mesh, params);
+    convert_ply_to_mesh(data, r_mesh, params);
   }
-  return nullptr;
 }
 
 template<typename T> T read(std::ifstream &file, bool isBigEndian)
