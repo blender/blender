@@ -9,8 +9,6 @@
 #include "BLI_math_vec_types.hh"
 #include "BLI_vector.hh"
 
-#include "DNA_meshdata_types.h"
-
 namespace blender::io::ply {
 
 enum PlyDataTypes { CHAR, UCHAR, SHORT, USHORT, INT, UINT, FLOAT, DOUBLE };
@@ -18,7 +16,7 @@ enum PlyDataTypes { CHAR, UCHAR, SHORT, USHORT, INT, UINT, FLOAT, DOUBLE };
 struct PlyData {
   Vector<float3> vertices;
   Vector<float3> vertex_normals;
-  // Value between 0 and 1.
+  /* Value between 0 and 1. */
   Vector<float4> vertex_colors;
   Vector<std::pair<int, int>> edges;
   Vector<float3> edge_colors;
@@ -37,8 +35,6 @@ struct PlyHeader {
   Vector<std::pair<std::string, int>> elements;
   /* List of properties (Name, type) per element. */
   Vector<Vector<std::pair<std::string, PlyDataTypes>>> properties;
-  PlyDataTypes vertex_index_count_type;
-  PlyDataTypes vertex_index_type;
   PlyFormatType type;
 };
 

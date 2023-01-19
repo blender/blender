@@ -6,7 +6,6 @@
 
 #include <cstdio>
 
-#include "BKE_customdata.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -14,7 +13,6 @@
 #include "DNA_collection_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_fileops.hh"
 #include "BLI_math_vector.h"
 #include "BLI_memory_utils.hh"
 
@@ -32,20 +30,9 @@
 
 namespace blender::io::ply {
 
-void ply_import_report_error(FILE *file)
-{
-  fprintf(stderr, "PLY Importer: failed to read file");
-  if (feof(file)) {
-    fprintf(stderr, ", end of file reached.\n");
-  }
-  else if (ferror(file)) {
-    perror("Error");
-  }
-}
-
 void splitstr(std::string str, Vector<std::string> &words, const StringRef &deli)
 {
-  int pos = 0;
+  int pos;
 
   while ((pos = int(str.find(deli))) != std::string::npos) {
     words.append(str.substr(0, pos));
@@ -99,13 +86,6 @@ void importer_main(Main *bmain,
                    wmOperator *op)
 {
 
-  FILE *file = BLI_fopen(import_params.filepath, "rb");
-  if (!file) {
-    fprintf(stderr, "Failed to open PLY file:'%s'.\n", import_params.filepath);
-    return;
-  }
-  BLI_SCOPED_DEFER([&]() { fclose(file); });
-
   std::string line;
   std::ifstream infile(import_params.filepath, std::ios::binary);
 
@@ -146,11 +126,6 @@ void importer_main(Main *bmain,
       }
     }
     else if (strcmp(words[0].c_str(), "property") == 0) {
-      if (strcmp(words[1].c_str(), "list") == 0) {
-        header.vertex_index_count_type = from_string(words[2]);
-        header.vertex_index_type = from_string(words[3]);
-        continue;
-      }
       std::pair<std::string, PlyDataTypes> property;
       property.first = words[2];
       property.second = from_string(words[1]);
@@ -166,7 +141,7 @@ void importer_main(Main *bmain,
     }
     else if ((words[0][0] >= '0' && words[0][0] <= '9') || words[0][0] == '-' || line.empty() ||
              infile.eof()) {
-      /* A value was found before we broke out of the loop. No end_header */
+      /* A value was found before we broke out of the loop. No end_header. */
       fprintf(stderr, "PLY Importer: failed to read file. No end_header.\n");
       BKE_report(op->reports, RPT_ERROR, "PLY Importer: No end_header");
       return;
@@ -181,13 +156,10 @@ void importer_main(Main *bmain,
   Mesh *mesh = BKE_mesh_add(bmain, ob_name);
   try {
     if (header.type == PlyFormatType::ASCII) {
-      mesh = import_ply_ascii(infile, &header, mesh, import_params);
-    }
-    else if (header.type == PlyFormatType::BINARY_BE) {
-      mesh = import_ply_binary(infile, &header, mesh, import_params);
+      import_ply_ascii(infile, &header, mesh, import_params);
     }
     else {
-      mesh = import_ply_binary(infile, &header, mesh, import_params);
+      import_ply_binary(infile, &header, mesh, import_params);
     }
   }
   catch (std::exception &e) {

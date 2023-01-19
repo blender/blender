@@ -36,7 +36,7 @@ struct Expectation {
   float3 vert_first, vert_last;
   float3 normal_first = {0, 0, 0};
   float2 uv_first;
-  // float4 color_first = {-1, -1, -1, -1};
+  float4 color_first = {-1, -1, -1, -1};
 };
 
 class PlyImportTest : public BlendfileLoadingBaseTest {
@@ -95,33 +95,28 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
         EXPECT_V3_NEAR(verts.last().co, exp.vert_last, 0.0001f);
 
         /* Fetch normal data from mesh and test if it matches expectation. */
-        /* Normals are from the range -1 to 1, so this check is to see if normals are part of the
-         * file. */
+        /* This uses the normal import workaround for vertex normals. This should be changed when
+         * Blender supports custom vertex normals. */
         if (BKE_mesh_has_custom_loop_normals(mesh)) {
           const float3 *vertex_normals = (const float3 *)CustomData_get_layer_named(
               &mesh->vdata, CD_PROP_FLOAT3, "Normal");
           ASSERT_TRUE(vertex_normals != nullptr);
-          float3 normal_first = vertex_normals != nullptr ? vertex_normals : float3(0, 0, 0);
+          float3 normal_first = vertex_normals != nullptr ? vertex_normals[0] : float3(0, 0, 0);
           EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);
         }
 
-        // Fetch UV data from mesh and test if it matches expectation
-        // Currently we don't support uv data yet
+        /* Fetch UV data from mesh and test if it matches expectation. */
         const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
             CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
         float2 uv_first = mloopuv ? float2(mloopuv->uv) : float2(0, 0);
         EXPECT_V2_NEAR(uv_first, exp.uv_first, 0.0001f);
 
-        // Check if expected mesh has vertex colors, and tests if it matches
-        // Currently we don't support vertex colors yet.
-        /* if (exp.color_first.x >= 0) {
+        /* Check if expected mesh has vertex colors, and tests if it matches. */
+        if (CustomData_has_layer(&mesh->vdata, CD_PROP_COLOR)) {
           const float4 *colors = (const float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
-          EXPECT_TRUE(colors != nullptr);
+          ASSERT_TRUE(colors != nullptr);
           EXPECT_V4_NEAR(colors[0], exp.color_first, 0.0001f);
         }
-        else {
-          EXPECT_FALSE(CustomData_has_layer(&mesh->vdata, CD_PROP_COLOR));
-        } */
       }
       ++object_index;
     }
@@ -150,7 +145,8 @@ TEST_F(PlyImportTest, PLYImportCube)
                            float3(1, 1, -1),
                            float3(-1, 1, 1),
                            float3(0, 0, -1),
-                           float2(0.979336, 0.844958)}};
+                           float2(0.979336, 0.844958),
+                           float4(1, 0.8470, 0, 1)}};
   import_and_check("cube_ascii.ply", expect, 2);
 }
 
@@ -214,7 +210,9 @@ TEST_F(PlyImportTest, PlyImportManySmallHoles)
                            5564,
                            float3(-0.0131592, -0.0598382, 1.58958),
                            float3(-0.0177622, 0.0105153, 1.61977),
-                           float3(-2, -2, -2)}};
+                           float3(-2, -2, -2),
+                           float2(0, 0),
+                           float4(0.7215, 0.6784, 0.6627, 1)}};
   import_and_check("many_small_holes.ply", expect, 2);
 }
 
@@ -241,7 +239,7 @@ TEST_F(PlyImportTest, PlyImportWireframeCube)
 
 TEST(PlyImportFunctionsTest, PlySwapBytes)
 {
-  // Individual bits shouldn't swap with each other
+  /* Individual bits shouldn't swap with each other. */
   uint8_t val8 = 0xA8;
   uint8_t exp8 = 0xA8;
   uint8_t actual8 = swap_bytes<uint8_t>(val8);
