@@ -22,11 +22,14 @@
 #include "BLI_alloca.h"
 #include "BLI_blenlib.h"
 #include "BLI_hash.h"
+#include "BLI_heap.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_kdtree.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_math.h"
+#include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
+#include "BLI_polyfill_2d_beautify.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -4359,6 +4362,9 @@ static int uv_select_overlap(bContext *C, const bool extend)
   float(*uv_verts)[2] = MEM_mallocN(sizeof(*uv_verts) * face_len_alloc, "UvOverlapCoords");
   uint(*indices)[3] = MEM_mallocN(sizeof(*indices) * (face_len_alloc - 2), "UvOverlapTris");
 
+  MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+  Heap *heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
+
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -4393,7 +4399,14 @@ static int uv_select_overlap(bContext *C, const bool extend)
         copy_v2_v2(uv_verts[vert_index], luv);
       }
 
-      BLI_polyfill_calc(uv_verts, face_len, 0, indices);
+      /* The winding order of the coordinates is not guaranteed, determine it automatically. */
+      const int coords_sign = 0;
+      BLI_polyfill_calc_arena(uv_verts, face_len, coords_sign, indices, arena);
+
+      /* A beauty fill is necessary to remove degenerate triangles that may be produced from the
+       * above polyfill (see T103913), otherwise the overlap tests can fail.
+       */
+      BLI_polyfill_beautify(uv_verts, face_len, indices, arena, heap);
 
       for (int t = 0; t < tri_len; t++) {
         overlap_data[data_index].ob_index = ob_index;
@@ -4413,10 +4426,15 @@ static int uv_select_overlap(bContext *C, const bool extend)
         BLI_bvhtree_insert(uv_tree, data_index, &tri[0][0], 3);
         data_index++;
       }
+
+      BLI_memarena_clear(arena);
+      BLI_heap_clear(heap, NULL);
     }
   }
   BLI_assert(data_index == uv_tri_len);
 
+  BLI_memarena_free(arena);
+  BLI_heap_free(heap, NULL);
   MEM_freeN(uv_verts);
   MEM_freeN(indices);
 
