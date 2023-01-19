@@ -9,15 +9,11 @@ set(INC
   ../../blenkernel
   ../../blenlib
   ../../bmesh
-  ../../bmesh/intern
   ../../depsgraph
-  ../../editors/include
   ../../makesdna
   ../../makesrna
-  ../../nodes
   ../../windowmanager
   ../../geometry
-  ../../../../extern/fast_float
   ../../../../extern/fmtlib/include
   ../../../../intern/guardedalloc
 )

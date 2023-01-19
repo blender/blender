@@ -28,6 +28,9 @@ void write_vertices(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData
                                  uchar(plyData->vertex_colors[i].z * 255),
                                  uchar(plyData->vertex_colors[i].w * 255));
 
+    if (!plyData->UV_coordinates.is_empty())
+      buffer->write_UV(plyData->UV_coordinates[i].x, plyData->UV_coordinates[i].y);
+
     buffer->write_vertex_end();
   }
   buffer->write_to_file();

@@ -52,6 +52,7 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
     params.global_scale = 1.0f;
     params.forward_axis = IO_AXIS_NEGATIVE_Z;
     params.up_axis = IO_AXIS_Y;
+    params.import_normals_as_attribute = true;
 
     /* Import the test file. */
     std::string ply_path = blender::tests::flags_test_asset_dir() + "/io_tests/ply/" + path;
@@ -96,8 +97,9 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
         /* Fetch normal data from mesh and test if it matches expectation. */
         /* Normals are from the range -1 to 1, so this check is to see if normals are part of the
          * file. */
-        if (exp.normal_first[0] != -2) {
-          const float(*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+        if (BKE_mesh_has_custom_loop_normals(mesh)) {
+          const float3 *vertex_normals = (const float3 *)CustomData_get_layer_named(
+              &mesh->vdata, CD_PROP_FLOAT3, "Normal");
           ASSERT_TRUE(vertex_normals != nullptr);
           float3 normal_first = vertex_normals != nullptr ? vertex_normals : float3(0, 0, 0);
           EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);
@@ -150,6 +152,28 @@ TEST_F(PlyImportTest, PLYImportCube)
                            float3(0, 0, -1),
                            float2(0.979336, 0.844958)}};
   import_and_check("cube_ascii.ply", expect, 2);
+}
+
+TEST_F(PlyImportTest, PLYImportASCIIEdgeTest)
+{
+  Expectation expect[] = {{"OBCube",
+                           ASCII,
+                           8,
+                           6,
+                           12,
+                           float3(1, 1, -1),
+                           float3(-1, 1, 1),
+                           float3(0.5773, 0.5773, -0.5773)},
+                          {"OBASCII_wireframe_cube",
+                           ASCII,
+                           8,
+                           0,
+                           12,
+                           float3(-1, -1, -1),
+                           float3(1, 1, 1),
+                           float3(-2, 0, -1)}};
+
+  import_and_check("ASCII_wireframe_cube.ply", expect, 2);
 }
 
 TEST_F(PlyImportTest, PLYImportBunny)
