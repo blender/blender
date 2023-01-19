@@ -147,6 +147,28 @@ TEST_F(PlyImportTest, PLYImportCube)
   import_and_check("cube_ascii.ply", expect, 2);
 }
 
+TEST_F(PlyImportTest, PLYImportASCIIEdgeTest)
+{
+  Expectation expect[] = {{"OBCube",
+                           ASCII,
+                           8,
+                           6,
+                           12,
+                           float3(1, 1, -1),
+                           float3(-1, 1, 1),
+                           float3(0.5773, 0.5773, -0.5773)},
+                          {"OBASCII_wireframe_cube",
+                           ASCII,
+                           8,
+                           0,
+                           12,
+                           float3(-1, -1, -1),
+                           float3(1, 1, 1),
+                           float3(-2, 0, -1)}};
+
+  import_and_check("ASCII_wireframe_cube.ply", expect, 2);
+}
+
 TEST_F(PlyImportTest, PLYImportBunny)
 {
   Expectation expect[] = {{"OBCube",
