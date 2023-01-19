@@ -1262,12 +1262,14 @@ endif()
 # -----------------------------------------------------------------------------
 # Configure Bullet
 
-if(WITH_BULLET AND WITH_SYSTEM_BULLET)
-  find_package(Bullet)
-  set_and_warn_library_found("Bullet" BULLET_FOUND WITH_BULLET)
-else()
-  set(BULLET_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/bullet2/src")
-  # set(BULLET_LIBRARIES "")
+if(WITH_BULLET)
+  if(WITH_SYSTEM_BULLET)
+    find_package(Bullet)
+    set_and_warn_library_found("Bullet" BULLET_FOUND WITH_BULLET)
+  else()
+    set(BULLET_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/bullet2/src")
+    set(BULLET_LIBRARIES "extern_bullet")
+  endif()
 endif()
 
 

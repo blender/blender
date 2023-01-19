@@ -158,11 +158,9 @@ if(WITH_OPENSUBDIV)
 endif()
 
 if(WITH_BULLET)
-  if(NOT WITH_SYSTEM_BULLET)
-    list(APPEND LIB
-      extern_bullet
-    )
-  endif()
+  list(APPEND LIB
+    ${BULLET_LIBRARIES}
+  )
   add_definitions(-DWITH_BULLET)
 endif()
 
