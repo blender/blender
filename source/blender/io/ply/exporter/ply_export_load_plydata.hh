@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "BKE_mesh.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
@@ -25,11 +26,6 @@
 #include "IO_ply.h"
 
 #include "ply_data.hh"
-
-#include "bmesh.h"
-#include "bmesh_tools.h"
-
-#include <tools/bmesh_triangulate.h>
 
 namespace blender::io::ply {
 
