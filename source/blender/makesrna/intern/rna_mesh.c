@@ -3239,7 +3239,7 @@ static void rna_def_mesh_polygons(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
-/* Defines a read-only vector type since normals should not be modified manually. */
+/* Defines a read-only vector type since normals can not be modified manually. */
 static void rna_def_normal_layer_value(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "MeshNormalValue", NULL);

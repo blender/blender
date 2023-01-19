@@ -7,12 +7,26 @@
 #pragma once
 
 struct bContext;
+struct Curves;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/* -------------------------------------------------------------------- */
+/** \name C Wrappers
+ * \{ */
+
 void ED_operatortypes_curves(void);
+
+/**
+ * Return an owning pointer to an array of point normals the same size as the number of control
+ * points. The normals depend on the normal mode for each curve and the "tilt" attribute and may be
+ * calculated for the evaluated points and sampled back to the control points.
+ */
+float (*ED_curves_point_normals_array_create(const struct Curves *curves_id))[3];
+
+/** \} */
 
 #ifdef __cplusplus
 }
