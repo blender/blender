@@ -866,7 +866,8 @@ class Texture : NonCopyable {
     /* TODO(@fclem): In the future, we need to check if mip_count did not change.
      * For now it's ok as we always define all MIP level. */
     if (tx_) {
-      int3 size = this->size();
+      int3 size(0);
+      GPU_texture_get_mipmap_size(tx_, 0, size);
       if (size != int3(w, h, d) || GPU_texture_format(tx_) != format ||
           GPU_texture_cube(tx_) != cubemap || GPU_texture_array(tx_) != layered) {
         free();
