@@ -460,13 +460,17 @@ static MTLFunctionConstantValues *GetConstantValues(KernelData const *data = nul
   if (!data) {
     data = &zero_data;
   }
-  int zero_int = 0;
-  [constant_values setConstantValue:&zero_int type:MTLDataType_int atIndex:Kernel_DummyConstant];
+  [constant_values setConstantValue:&zero_data type:MTLDataType_int atIndex:Kernel_DummyConstant];
+
+  bool next_member_is_specialized = true;
+
+#  define KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE next_member_is_specialized = false;
 
 #  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
-    [constant_values setConstantValue:&data->parent.name \
+    [constant_values setConstantValue:next_member_is_specialized ? (void*)&data->parent.name : (void*)&zero_data \
                                  type:MTLDataType_##_type \
-                              atIndex:KernelData_##parent##_##name];
+                              atIndex:KernelData_##parent##_##name]; \
+    next_member_is_specialized = true;
 
 #  include "kernel/data_template.h"
 
