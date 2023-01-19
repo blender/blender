@@ -1135,8 +1135,11 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
     /* Sockets haven't been drawn yet, e.g. when the file is currently opening. */
     return nullptr;
   }
-
   const Span<bNode *> nodes = snode.edittree->all_nodes();
+  if (nodes.is_empty()) {
+    return nullptr;
+  }
+
   for (int i = nodes.index_range().last(); i >= 0; i--) {
     bNode &node = *nodes[i];
 
