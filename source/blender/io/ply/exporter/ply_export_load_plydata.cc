@@ -22,6 +22,11 @@
 
 #include "IO_ply.h"
 
+#include "bmesh.h"
+#include "bmesh_tools.h"
+
+#include <tools/bmesh_triangulate.h>
+
 #include "ply_data.hh"
 #include "ply_export_load_plydata.hh"
 
