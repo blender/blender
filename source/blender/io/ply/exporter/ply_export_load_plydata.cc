@@ -44,10 +44,7 @@ Mesh *do_triangulation(Mesh *mesh, bool force_triangulation)
   return temp_mesh;
 }
 
-void load_plydata(PlyData &plyData,
-                  Main *bmain,
-                  Depsgraph *depsgraph,
-                  const PLYExportParams &export_params)
+void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams &export_params)
 {
 
   DEGObjectIterSettings deg_iter_settings{};
