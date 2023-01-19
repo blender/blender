@@ -157,6 +157,8 @@ static void rna_NlaStrip_transform_update(Main *bmain, Scene *scene, PointerRNA 
     }
   }
 
+  BKE_nlastrip_recalculate_blend(strip);
+
   rna_NlaStrip_update(bmain, scene, ptr);
 }
 

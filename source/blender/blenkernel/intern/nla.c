@@ -1521,6 +1521,30 @@ void BKE_nlastrip_recalculate_bounds(NlaStrip *strip)
   nlastrip_fix_resize_overlaps(strip);
 }
 
+void BKE_nlastrip_recalculate_blend(NlaStrip *strip)
+{
+
+  /* check if values need to be re-calculated. */
+  if (strip->blendin == 0 && strip->blendout == 0) {
+    return;
+  }
+
+  const double strip_len = strip->end - strip->start;
+  double blend_in = strip->blendin;
+  double blend_out = strip->blendout;
+
+  double blend_in_max = strip_len - blend_out;
+
+  CLAMP_MIN(blend_in_max, 0);
+
+  /* blend-out is limited to the length of the strip. */
+  CLAMP(blend_in, 0, blend_in_max);
+  CLAMP(blend_out, 0, strip_len - blend_in);
+
+  strip->blendin = blend_in;
+  strip->blendout = blend_out;
+}
+
 /* Animated Strips ------------------------------------------- */
 
 bool BKE_nlatrack_has_animated_strips(NlaTrack *nlt)
@@ -1854,6 +1878,7 @@ void BKE_nla_validate_state(AnimData *adt)
     for (strip = nlt->strips.first; strip; strip = strip->next) {
       /* auto-blending first */
       BKE_nlastrip_validate_autoblends(nlt, strip);
+      BKE_nlastrip_recalculate_blend(strip);
     }
   }
 }
