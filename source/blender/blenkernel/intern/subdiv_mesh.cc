@@ -471,11 +471,11 @@ static void subdiv_vertex_orco_evaluate(const SubdivMeshContext *ctx,
     if (ctx->orco) {
       copy_v3_v3(ctx->orco[subdiv_vertex_index], vertex_data);
       if (ctx->cloth_orco) {
-        copy_v3_v3(ctx->orco[subdiv_vertex_index], vertex_data + 3);
+        copy_v3_v3(ctx->cloth_orco[subdiv_vertex_index], vertex_data + 3);
       }
     }
     else if (ctx->cloth_orco) {
-      copy_v3_v3(ctx->orco[subdiv_vertex_index], vertex_data);
+      copy_v3_v3(ctx->cloth_orco[subdiv_vertex_index], vertex_data);
     }
   }
 }
