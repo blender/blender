@@ -12,6 +12,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
+#include "BLI_math.h"
 
 #include "RNA_types.h"
 
@@ -33,6 +34,7 @@
 namespace blender::io::ply {
 
 Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation);
+void set_world_axes_transform(Object *object, const eIOAxis forward, const eIOAxis up);
 
 struct UV_vertex_key {
   float2 UV;
