@@ -2607,6 +2607,10 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(const char *nam
           c_offset);
       c_offset += size;
     }
+
+    /* Used in `GPU_shader_get_attribute_info`. */
+    interface->attr_types_[this->vertex_input_attributes[attribute].layout_location] = uint8_t(
+        this->vertex_input_attributes[attribute].type);
   }
 
   /* Prepare Interface Default Uniform Block. */
