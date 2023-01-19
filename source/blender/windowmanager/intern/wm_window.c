@@ -1646,6 +1646,75 @@ GHOST_TDrawingContextType wm_ghost_drawing_context_type(const eGPUBackendType gp
   return GHOST_kDrawingContextTypeNone;
 }
 
+static uiBlock *block_create_opengl_usage_warning(struct bContext *C,
+                                                  struct ARegion *region,
+                                                  void *UNUSED(arg1))
+{
+  uiBlock *block = UI_block_begin(C, region, "autorun_warning_popup", UI_EMBOSS);
+  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_emboss_set(block, UI_EMBOSS);
+
+  uiLayout *layout = uiItemsAlertBox(block, 44, ALERT_ICON_ERROR);
+
+  /* Title and explanation text. */
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiItemL_ex(col, TIP_("Python script uses OpenGL for drawing."), ICON_NONE, true, false);
+  uiItemL(col, TIP_("This may lead to unexpected behavior"), ICON_NONE);
+  uiItemL(col,
+          TIP_("One of the add-ons or scripts is using OpenGL and will not work correct on Metal."),
+          ICON_NONE);
+  uiItemL(col,
+          TIP_("Please contact the developer of the add-on to migrate to use 'gpu' module."),
+          ICON_NONE);
+  if (G.opengl_deprecation_usage_filename) {
+    char location[1024];
+    SNPRINTF(
+        location, "%s:%d", G.opengl_deprecation_usage_filename, G.opengl_deprecation_usage_lineno);
+    uiItemL(col, location, ICON_NONE);
+  }
+  uiItemL(col, TIP_("See system tab in preferences to switch to OpenGL backend."), ICON_NONE);
+
+  uiItemS(layout);
+
+  UI_block_bounds_set_centered(block, 14 * U.dpi_fac);
+
+  return block;
+}
+
+void wm_test_opengl_deprecation_warning(bContext *C)
+{
+  static bool message_shown = false;
+
+  /* Exit when no failure detected. */
+  if (!G.opengl_deprecation_usage_detected) {
+    return;
+  }
+
+  /* Have we already shown a message during this Blender session. bgl calls are done in a draw
+   * handler that will run many times. */
+  if (message_shown) {
+    return;
+  }
+
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindow *win = (wm->winactive) ? wm->winactive : wm->windows.first;
+
+  BKE_report(
+      &wm->reports,
+      RPT_ERROR,
+      TIP_("One of the add-ons or script is using OpenGL and will not work correct on Metal. "
+           "Please contact the developer of the add-on to migrate to use 'gpu' module."));
+
+  if (win) {
+    wmWindow *prevwin = CTX_wm_window(C);
+    CTX_wm_window_set(C, win);
+    UI_popup_block_invoke(C, block_create_opengl_usage_warning, NULL, NULL);
+    CTX_wm_window_set(C, prevwin);
+  }
+
+  message_shown = true;
+}
+
 eWM_CapabilitiesFlag WM_capabilities_flag(void)
 {
   static eWM_CapabilitiesFlag flag = -1;

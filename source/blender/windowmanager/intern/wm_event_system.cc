@@ -77,6 +77,7 @@
 #include "wm_event_types.h"
 #include "wm_surface.h"
 #include "wm_window.h"
+#include "wm_window_private.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -704,6 +705,8 @@ void wm_event_do_notifiers(bContext *C)
 
   /* Auto-run warning. */
   wm_test_autorun_warning(C);
+  /* Deprecation warning. */
+  wm_test_opengl_deprecation_warning(C);
 
   GPU_render_end();
 }
