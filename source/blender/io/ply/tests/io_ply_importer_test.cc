@@ -53,6 +53,7 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
     params.forward_axis = IO_AXIS_NEGATIVE_Z;
     params.up_axis = IO_AXIS_Y;
     params.import_normals_as_attribute = true;
+    params.merge_verts = false;
 
     /* Import the test file. */
     std::string ply_path = blender::tests::flags_test_asset_dir() + "/io_tests/ply/" + path;
