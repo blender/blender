@@ -8,6 +8,8 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
 
+#include "GEO_mesh_merge_by_distance.hh"
+
 #include "BLI_math_vector.h"
 
 #include "ply_import_mesh.hh"
@@ -15,6 +17,7 @@
 namespace blender::io::ply {
 Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
 {
+
   /* Add vertices to the mesh. */
   mesh->totvert = int(data.vertices.size()); /* Explicit conversion from int64_t to int. */
   CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
@@ -102,6 +105,10 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh)
     BKE_mesh_set_custom_normals_from_verts(mesh, vertex_normals);
     MEM_freeN(vertex_normals);
   }
+
+  /* Merge all vertices on the same location*/
+  mesh = blender::geometry::mesh_merge_by_distance_all(*mesh, IndexMask(mesh->totvert), 0.0001f)
+             .value();
 
   return mesh;
 }

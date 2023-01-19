@@ -16,6 +16,7 @@ set(INC
   ../../makesrna
   ../../nodes
   ../../windowmanager
+  ../../geometry
   ../../../../extern/fast_float
   ../../../../extern/fmtlib/include
   ../../../../intern/guardedalloc
