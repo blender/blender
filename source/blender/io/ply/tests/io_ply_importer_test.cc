@@ -101,7 +101,7 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
           const float3 *vertex_normals = (const float3 *)CustomData_get_layer_named(
               &mesh->vdata, CD_PROP_FLOAT3, "Normal");
           ASSERT_TRUE(vertex_normals != nullptr);
-          float3 normal_first = vertex_normals != nullptr ? vertex_normals : float3(0, 0, 0);
+          float3 normal_first = vertex_normals != nullptr ? vertex_normals[0] : float3(0, 0, 0);
           EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);
         }
 

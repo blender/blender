@@ -145,6 +145,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       float3 r_coords;
       copy_v3_v3(r_coords, mesh->verts()[mesh_vertex_index_LUT[i]].co);
       mul_m4_v3(object->object_to_world, r_coords);
+      mul_m4_v3(world_and_axes_transform_, r_coords);
       mul_v3_fl(r_coords, export_params.global_scale);
       plyData.vertices.append(r_coords);
     }
@@ -160,6 +161,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     if (export_params.export_normals) {
       const float(*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
       for (int i = 0; i < vertex_map.size(); i++) {
+        mul_m3_v3(world_and_axes_normal_transform_, (float3)vertex_normals);
         plyData.vertex_normals.append(vertex_normals[mesh_vertex_index_LUT[i]]);
       }
     }
