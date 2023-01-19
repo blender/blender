@@ -3,6 +3,7 @@
 #include "BLI_array_utils.hh"
 #include "BLI_map.hh"
 #include "BLI_noise.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
 
@@ -75,36 +76,27 @@ static Map<AttributeIDRef, AttributeKind> gather_attributes_without_id(
   return attributes;
 };
 
-static IndexRange range_for_offsets_index(const Span<int> offsets, const int index)
+static OffsetIndices<int> accumulate_counts_to_offsets(const IndexMask selection,
+                                                       const VArray<int> &counts,
+                                                       Array<int> &r_offset_data)
 {
-  return {offsets[index], offsets[index + 1] - offsets[index]};
-}
-
-static Array<int> accumulate_counts_to_offsets(const IndexMask selection,
-                                               const VArray<int> &counts)
-{
-  Array<int> offsets(selection.size() + 1);
-  int total = 0;
-  for (const int i : selection.index_range()) {
-    offsets[i] = total;
-    total += std::max(counts[selection[i]], 0);
-  }
-  offsets.last() = total;
-  return offsets;
+  r_offset_data.reinitialize(selection.size() + 1);
+  counts.materialize_compressed(selection, r_offset_data);
+  offset_indices::accumulate_counts_to_offsets(r_offset_data);
+  return OffsetIndices<int>(r_offset_data);
 }
 
 /* Utility functions for threaded copying of attribute data where possible. */
 template<typename T>
-static void threaded_slice_fill(Span<int> offsets,
+static void threaded_slice_fill(const OffsetIndices<int> offsets,
                                 const IndexMask selection,
-                                Span<T> src,
+                                const Span<T> src,
                                 MutableSpan<T> dst)
 {
-  BLI_assert(offsets.last() == dst.size());
-  BLI_assert(selection.size() == offsets.size() - 1);
-  threading::parallel_for(IndexRange(offsets.size() - 1), 512, [&](IndexRange range) {
+  BLI_assert(offsets.total_size() == dst.size());
+  threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
     for (const int i : range) {
-      dst.slice(range_for_offsets_index(offsets, i)).fill(src[selection[i]]);
+      dst.slice(offsets[i]).fill(src[selection[i]]);
     }
   });
 }
@@ -116,20 +108,20 @@ static void copy_hashed_ids(const Span<int> src, const int hash, MutableSpan<int
   }
 }
 
-static void threaded_id_offset_copy(const Span<int> offsets,
+static void threaded_id_offset_copy(const OffsetIndices<int> offsets,
                                     const Span<int> src,
-                                    MutableSpan<int> dst)
+                                    MutableSpan<int> all_dst)
 {
-  BLI_assert(offsets.last() == dst.size());
-  threading::parallel_for(IndexRange(offsets.size() - 1), 512, [&](IndexRange range) {
+  BLI_assert(offsets.total_size() == all_dst.size());
+  threading::parallel_for(IndexRange(offsets.ranges_num()), 512, [&](IndexRange range) {
     for (const int i : range) {
-      dst[offsets[i]] = src[i];
-      const int count = offsets[i + 1] - offsets[i];
-      if (count == 0) {
+      MutableSpan<int> dst = all_dst.slice(offsets[i]);
+      if (dst.is_empty()) {
         continue;
       }
-      for (const int i_duplicate : IndexRange(1, count - 1)) {
-        dst[offsets[i] + i_duplicate] = noise::hash(src[i], i_duplicate);
+      dst.first() = src[i];
+      for (const int i_duplicate : dst.index_range().drop_front(1)) {
+        dst[i_duplicate] = noise::hash(src[i], i_duplicate);
       }
     }
   });
@@ -140,13 +132,12 @@ static void create_duplicate_index_attribute(bke::MutableAttributeAccessor attri
                                              const eAttrDomain output_domain,
                                              const IndexMask selection,
                                              const IndexAttributes &attribute_outputs,
-                                             const Span<int> offsets)
+                                             const OffsetIndices<int> offsets)
 {
   SpanAttributeWriter<int> duplicate_indices = attributes.lookup_or_add_for_write_only_span<int>(
       attribute_outputs.duplicate_index.get(), output_domain);
   for (const int i : IndexRange(selection.size())) {
-    const IndexRange range = range_for_offsets_index(offsets, i);
-    MutableSpan<int> indices = duplicate_indices.span.slice(range);
+    MutableSpan<int> indices = duplicate_indices.span.slice(offsets[i]);
     for (const int i : indices.index_range()) {
       indices[i] = i;
     }
@@ -158,7 +149,7 @@ static void create_duplicate_index_attribute(bke::MutableAttributeAccessor attri
  * Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
  * and the duplicate number. This function is used for the point domain elements.
  */
-static void copy_stable_id_point(const Span<int> offsets,
+static void copy_stable_id_point(const OffsetIndices<int> offsets,
                                  const bke::AttributeAccessor src_attributes,
                                  bke::MutableAttributeAccessor dst_attributes)
 {
@@ -181,7 +172,7 @@ static void copy_stable_id_point(const Span<int> offsets,
 static void copy_attributes_without_id(GeometrySet &geometry_set,
                                        const GeometryComponentType component_type,
                                        const eAttrDomain domain,
-                                       const Span<int> offsets,
+                                       const OffsetIndices<int> offsets,
                                        const IndexMask selection,
                                        const AnonymousAttributePropagationInfo &propagation_info,
                                        const bke::AttributeAccessor src_attributes,
@@ -228,7 +219,7 @@ static void copy_curve_attributes_without_id(
     const GeometrySet &geometry_set,
     const bke::CurvesGeometry &src_curves,
     const IndexMask selection,
-    const Span<int> curve_offsets,
+    const OffsetIndices<int> curve_offsets,
     const AnonymousAttributePropagationInfo &propagation_info,
     bke::CurvesGeometry &dst_curves)
 {
@@ -269,7 +260,7 @@ static void copy_curve_attributes_without_id(
             for (const int i_selection : range) {
               const int i_src_curve = selection[i_selection];
               const Span<T> curve_src = src.slice(src_points_by_curve[i_src_curve]);
-              for (const int i_dst_curve : range_for_offsets_index(curve_offsets, i_selection)) {
+              for (const int i_dst_curve : curve_offsets[i_selection]) {
                 dst.slice(dst_points_by_curve[i_dst_curve]).copy_from(curve_src);
               }
             }
@@ -291,7 +282,7 @@ static void copy_curve_attributes_without_id(
  */
 static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
                                   const IndexMask selection,
-                                  const Span<int> curve_offsets,
+                                  const OffsetIndices<int> offsets,
                                   bke::CurvesGeometry &dst_curves)
 {
   GAttributeReader src_attribute = src_curves.attributes().lookup("id");
@@ -315,8 +306,8 @@ static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
     for (const int i_selection : range) {
       const int i_src_curve = selection[i_selection];
       const Span<int> curve_src = src.slice(src_points_by_curve[i_src_curve]);
-      const IndexRange duplicates_range = range_for_offsets_index(curve_offsets, i_selection);
-      for (const int i_duplicate : IndexRange(duplicates_range.size()).drop_front(1)) {
+      const IndexRange duplicates_range = offsets[i_selection];
+      for (const int i_duplicate : IndexRange(offsets.size(i_selection)).drop_front(1)) {
         const int i_dst_curve = duplicates_range[i_duplicate];
         copy_hashed_ids(curve_src, i_duplicate, dst.slice(dst_points_by_curve[i_dst_curve]));
       }
@@ -352,20 +343,23 @@ static void duplicate_curves(GeometrySet &geometry_set,
   const OffsetIndices points_by_curve = curves.points_by_curve();
 
   /* The offset in the result curve domain at every selected input curve. */
-  Array<int> curve_offsets(selection.size() + 1);
-  Array<int> point_offsets(selection.size() + 1);
+  Array<int> curve_offset_data(selection.size() + 1);
+  Array<int> point_offset_data(selection.size() + 1);
 
   int dst_curves_num = 0;
   int dst_points_num = 0;
   for (const int i_curve : selection.index_range()) {
     const int count = std::max(counts[selection[i_curve]], 0);
-    curve_offsets[i_curve] = dst_curves_num;
-    point_offsets[i_curve] = dst_points_num;
+    curve_offset_data[i_curve] = dst_curves_num;
+    point_offset_data[i_curve] = dst_points_num;
     dst_curves_num += count;
     dst_points_num += count * points_by_curve.size(selection[i_curve]);
   }
-  curve_offsets.last() = dst_curves_num;
-  point_offsets.last() = dst_points_num;
+  curve_offset_data.last() = dst_curves_num;
+  point_offset_data.last() = dst_points_num;
+
+  const OffsetIndices<int> curve_offsets(curve_offset_data);
+  const OffsetIndices<int> point_offsets(point_offset_data);
 
   Curves *new_curves_id = bke::curves_new_nomain(dst_points_num, dst_curves_num);
   bke::curves_copy_parameters(curves_id, *new_curves_id);
@@ -376,10 +370,10 @@ static void duplicate_curves(GeometrySet &geometry_set,
     for (const int i_selection : range) {
       const int i_src_curve = selection[i_selection];
       const IndexRange src_curve_range = points_by_curve[i_src_curve];
-      const IndexRange dst_curves_range = range_for_offsets_index(curve_offsets, i_selection);
+      const IndexRange dst_curves_range = curve_offsets[i_selection];
       MutableSpan<int> dst_offsets = all_dst_offsets.slice(dst_curves_range);
       for (const int i_duplicate : IndexRange(dst_curves_range.size())) {
-        dst_offsets[i_duplicate] = point_offsets[i_selection] +
+        dst_offsets[i_duplicate] = point_offsets[i_selection].start() +
                                    src_curve_range.size() * i_duplicate;
       }
     }
@@ -417,7 +411,7 @@ static void copy_face_attributes_without_id(
     const Span<int> edge_mapping,
     const Span<int> vert_mapping,
     const Span<int> loop_mapping,
-    const Span<int> offsets,
+    const OffsetIndices<int> offsets,
     const IndexMask selection,
     const AnonymousAttributePropagationInfo &propagation_info,
     const bke::AttributeAccessor src_attributes,
@@ -477,7 +471,7 @@ static void copy_face_attributes_without_id(
  */
 static void copy_stable_id_faces(const Mesh &mesh,
                                  const IndexMask selection,
-                                 const Span<int> poly_offsets,
+                                 const OffsetIndices<int> poly_offsets,
                                  const Span<int> vert_mapping,
                                  const bke::AttributeAccessor src_attributes,
                                  bke::MutableAttributeAccessor dst_attributes)
@@ -498,7 +492,7 @@ static void copy_stable_id_faces(const Mesh &mesh,
   const Span<MPoly> polys = mesh.polys();
   int loop_index = 0;
   for (const int i_poly : selection.index_range()) {
-    const IndexRange range = range_for_offsets_index(poly_offsets, i_poly);
+    const IndexRange range = poly_offsets[i_poly];
     if (range.size() == 0) {
       continue;
     }
@@ -546,14 +540,16 @@ static void duplicate_faces(GeometrySet &geometry_set,
 
   int total_polys = 0;
   int total_loops = 0;
-  Array<int> offsets(selection.size() + 1);
+  Array<int> offset_data(selection.size() + 1);
   for (const int i_selection : selection.index_range()) {
     const int count = std::max(counts[selection[i_selection]], 0);
-    offsets[i_selection] = total_polys;
+    offset_data[i_selection] = total_polys;
     total_polys += count;
     total_loops += count * polys[selection[i_selection]].totloop;
   }
-  offsets[selection.size()] = total_polys;
+  offset_data[selection.size()] = total_polys;
+
+  const OffsetIndices<int> duplicates(offset_data);
 
   Mesh *new_mesh = BKE_mesh_new_nomain(total_loops, total_loops, 0, total_loops, total_polys);
   MutableSpan<MEdge> new_edges = new_mesh->edges_for_write();
@@ -567,7 +563,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
   int poly_index = 0;
   int loop_index = 0;
   for (const int i_selection : selection.index_range()) {
-    const IndexRange poly_range = range_for_offsets_index(offsets, i_selection);
+    const IndexRange poly_range = duplicates[i_selection];
 
     const MPoly &source = polys[selection[i_selection]];
     for ([[maybe_unused]] const int i_duplicate : IndexRange(poly_range.size())) {
@@ -600,18 +596,25 @@ static void duplicate_faces(GeometrySet &geometry_set,
                                   edge_mapping,
                                   vert_mapping,
                                   loop_mapping,
-                                  offsets,
+                                  duplicates,
                                   selection,
                                   propagation_info,
                                   mesh.attributes(),
                                   new_mesh->attributes_for_write());
 
-  copy_stable_id_faces(
-      mesh, selection, offsets, vert_mapping, mesh.attributes(), new_mesh->attributes_for_write());
+  copy_stable_id_faces(mesh,
+                       selection,
+                       duplicates,
+                       vert_mapping,
+                       mesh.attributes(),
+                       new_mesh->attributes_for_write());
 
   if (attribute_outputs.duplicate_index) {
-    create_duplicate_index_attribute(
-        new_mesh->attributes_for_write(), ATTR_DOMAIN_FACE, selection, attribute_outputs, offsets);
+    create_duplicate_index_attribute(new_mesh->attributes_for_write(),
+                                     ATTR_DOMAIN_FACE,
+                                     selection,
+                                     attribute_outputs,
+                                     duplicates);
   }
 
   geometry_set.replace_mesh(new_mesh);
@@ -630,7 +633,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
 static void copy_edge_attributes_without_id(
     GeometrySet &geometry_set,
     const Span<int> point_mapping,
-    const Span<int> offsets,
+    const OffsetIndices<int> offsets,
     const IndexMask selection,
     const AnonymousAttributePropagationInfo &propagation_info,
     const bke::AttributeAccessor src_attributes,
@@ -680,7 +683,7 @@ static void copy_edge_attributes_without_id(
  */
 static void copy_stable_id_edges(const Mesh &mesh,
                                  const IndexMask selection,
-                                 const Span<int> edge_offsets,
+                                 const OffsetIndices<int> offsets,
                                  const bke::AttributeAccessor src_attributes,
                                  bke::MutableAttributeAccessor dst_attributes)
 {
@@ -700,7 +703,7 @@ static void copy_stable_id_edges(const Mesh &mesh,
   MutableSpan<int> dst = dst_attribute.span.typed<int>();
   threading::parallel_for(IndexRange(selection.size()), 1024, [&](IndexRange range) {
     for (const int i_selection : range) {
-      const IndexRange edge_range = range_for_offsets_index(edge_offsets, i_selection);
+      const IndexRange edge_range = offsets[i_selection];
       if (edge_range.size() == 0) {
         continue;
       }
@@ -739,16 +742,19 @@ static void duplicate_edges(GeometrySet &geometry_set,
   const VArray<int> counts = evaluator.get_evaluated<int>(0);
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
-  Array<int> edge_offsets = accumulate_counts_to_offsets(selection, counts);
+  Array<int> offset_data;
+  const OffsetIndices<int> duplicates = accumulate_counts_to_offsets(
+      selection, counts, offset_data);
+  const int output_edges_num = duplicates.total_size();
 
-  Mesh *new_mesh = BKE_mesh_new_nomain(edge_offsets.last() * 2, edge_offsets.last(), 0, 0, 0);
+  Mesh *new_mesh = BKE_mesh_new_nomain(output_edges_num * 2, output_edges_num, 0, 0, 0);
   MutableSpan<MEdge> new_edges = new_mesh->edges_for_write();
 
-  Array<int> vert_orig_indices(edge_offsets.last() * 2);
+  Array<int> vert_orig_indices(output_edges_num * 2);
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
     for (const int i_selection : range) {
       const MEdge &edge = edges[selection[i_selection]];
-      const IndexRange edge_range = range_for_offsets_index(edge_offsets, i_selection);
+      const IndexRange edge_range = duplicates[i_selection];
       const IndexRange vert_range(edge_range.start() * 2, edge_range.size() * 2);
 
       for (const int i_duplicate : IndexRange(edge_range.size())) {
@@ -760,7 +766,7 @@ static void duplicate_edges(GeometrySet &geometry_set,
 
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
     for (const int i_selection : range) {
-      const IndexRange edge_range = range_for_offsets_index(edge_offsets, i_selection);
+      const IndexRange edge_range = duplicates[i_selection];
       const IndexRange vert_range(edge_range.start() * 2, edge_range.size() * 2);
       for (const int i_duplicate : IndexRange(edge_range.size())) {
         MEdge &new_edge = new_edges[edge_range[i_duplicate]];
@@ -772,21 +778,21 @@ static void duplicate_edges(GeometrySet &geometry_set,
 
   copy_edge_attributes_without_id(geometry_set,
                                   vert_orig_indices,
-                                  edge_offsets,
+                                  duplicates,
                                   selection,
                                   propagation_info,
                                   mesh.attributes(),
                                   new_mesh->attributes_for_write());
 
   copy_stable_id_edges(
-      mesh, selection, edge_offsets, mesh.attributes(), new_mesh->attributes_for_write());
+      mesh, selection, duplicates, mesh.attributes(), new_mesh->attributes_for_write());
 
   if (attribute_outputs.duplicate_index) {
     create_duplicate_index_attribute(new_mesh->attributes_for_write(),
                                      ATTR_DOMAIN_EDGE,
                                      selection,
                                      attribute_outputs,
-                                     edge_offsets);
+                                     duplicates);
   }
 
   geometry_set.replace_mesh(new_mesh);
@@ -818,8 +824,10 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   const VArray<int> counts = evaluator.get_evaluated<int>(0);
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
-  Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
-  const int dst_num = offsets.last();
+  Array<int> offset_data;
+  const OffsetIndices<int> duplicates = accumulate_counts_to_offsets(
+      selection, counts, offset_data);
+  const int dst_num = duplicates.total_size();
 
   const Array<int> point_to_curve_map = src_curves.point_to_curve_map();
 
@@ -862,13 +870,12 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
           threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
             for (const int i_selection : range) {
               const T &src_value = src[point_to_curve_map[selection[i_selection]]];
-              const IndexRange duplicate_range = range_for_offsets_index(offsets, i_selection);
-              dst.slice(duplicate_range).fill(src_value);
+              dst.slice(duplicates[i_selection]).fill(src_value);
             }
           });
           break;
         case ATTR_DOMAIN_POINT:
-          threaded_slice_fill(offsets, selection, src, dst);
+          threaded_slice_fill(duplicates, selection, src, dst);
           break;
         default:
           break;
@@ -877,14 +884,14 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
     dst_attribute.finish();
   }
 
-  copy_stable_id_point(offsets, src_curves.attributes(), new_curves.attributes_for_write());
+  copy_stable_id_point(duplicates, src_curves.attributes(), new_curves.attributes_for_write());
 
   if (attribute_outputs.duplicate_index) {
     create_duplicate_index_attribute(new_curves.attributes_for_write(),
                                      ATTR_DOMAIN_POINT,
                                      selection,
                                      attribute_outputs,
-                                     offsets.as_span());
+                                     duplicates);
   }
 
   geometry_set.replace_curves(new_curves_id);
@@ -912,27 +919,29 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
   const VArray<int> counts = evaluator.get_evaluated<int>(0);
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
-  Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
+  Array<int> offset_data;
+  const OffsetIndices<int> duplicates = accumulate_counts_to_offsets(
+      selection, counts, offset_data);
 
-  Mesh *new_mesh = BKE_mesh_new_nomain(offsets.last(), 0, 0, 0, 0);
+  Mesh *new_mesh = BKE_mesh_new_nomain(duplicates.total_size(), 0, 0, 0, 0);
 
   copy_attributes_without_id(geometry_set,
                              GEO_COMPONENT_TYPE_MESH,
                              ATTR_DOMAIN_POINT,
-                             offsets,
+                             duplicates,
                              selection,
                              propagation_info,
                              mesh.attributes(),
                              new_mesh->attributes_for_write());
 
-  copy_stable_id_point(offsets, mesh.attributes(), new_mesh->attributes_for_write());
+  copy_stable_id_point(duplicates, mesh.attributes(), new_mesh->attributes_for_write());
 
   if (attribute_outputs.duplicate_index) {
     create_duplicate_index_attribute(new_mesh->attributes_for_write(),
                                      ATTR_DOMAIN_POINT,
                                      selection,
                                      attribute_outputs,
-                                     offsets.as_span());
+                                     duplicates);
   }
 
   geometry_set.replace_mesh(new_mesh);
@@ -960,27 +969,29 @@ static void duplicate_points_pointcloud(GeometrySet &geometry_set,
   const VArray<int> counts = evaluator.get_evaluated<int>(0);
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
-  Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
+  Array<int> offset_data;
+  const OffsetIndices<int> duplicates = accumulate_counts_to_offsets(
+      selection, counts, offset_data);
 
-  PointCloud *pointcloud = BKE_pointcloud_new_nomain(offsets.last());
+  PointCloud *pointcloud = BKE_pointcloud_new_nomain(duplicates.total_size());
 
   copy_attributes_without_id(geometry_set,
                              GEO_COMPONENT_TYPE_POINT_CLOUD,
                              ATTR_DOMAIN_POINT,
-                             offsets,
+                             duplicates,
                              selection,
                              propagation_info,
                              src_points.attributes(),
                              pointcloud->attributes_for_write());
 
-  copy_stable_id_point(offsets, src_points.attributes(), pointcloud->attributes_for_write());
+  copy_stable_id_point(duplicates, src_points.attributes(), pointcloud->attributes_for_write());
 
   if (attribute_outputs.duplicate_index) {
     create_duplicate_index_attribute(pointcloud->attributes_for_write(),
                                      ATTR_DOMAIN_POINT,
                                      selection,
                                      attribute_outputs,
-                                     offsets);
+                                     duplicates);
   }
   geometry_set.replace_pointcloud(pointcloud);
 }
@@ -1053,17 +1064,19 @@ static void duplicate_instances(GeometrySet &geometry_set,
   IndexMask selection = evaluator.get_evaluated_selection_as_mask();
   const VArray<int> counts = evaluator.get_evaluated<int>(0);
 
-  Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
-  if (offsets.last() == 0) {
+  Array<int> offset_data;
+  const OffsetIndices<int> duplicates = accumulate_counts_to_offsets(
+      selection, counts, offset_data);
+  if (duplicates.total_size() == 0) {
     geometry_set.clear();
     return;
   }
 
   std::unique_ptr<bke::Instances> dst_instances = std::make_unique<bke::Instances>();
 
-  dst_instances->resize(offsets.last());
+  dst_instances->resize(duplicates.total_size());
   for (const int i_selection : selection.index_range()) {
-    const IndexRange range = range_for_offsets_index(offsets, i_selection);
+    const IndexRange range = duplicates[i_selection];
     if (range.size() == 0) {
       continue;
     }
@@ -1078,7 +1091,7 @@ static void duplicate_instances(GeometrySet &geometry_set,
   copy_attributes_without_id(geometry_set,
                              GEO_COMPONENT_TYPE_INSTANCES,
                              ATTR_DOMAIN_INSTANCE,
-                             offsets,
+                             duplicates,
                              selection,
                              propagation_info,
                              src_instances.attributes(),
@@ -1089,7 +1102,7 @@ static void duplicate_instances(GeometrySet &geometry_set,
                                      ATTR_DOMAIN_INSTANCE,
                                      selection,
                                      attribute_outputs,
-                                     offsets);
+                                     duplicates);
   }
 
   geometry_set = GeometrySet::create_with_instances(dst_instances.release());
