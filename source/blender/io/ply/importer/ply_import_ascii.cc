@@ -15,7 +15,6 @@
 
 namespace blender::io::ply {
 
-
 Mesh *import_ply_ascii(std::ifstream &file,
                        PlyHeader *header,
                        Mesh *mesh,
