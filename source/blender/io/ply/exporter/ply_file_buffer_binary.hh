@@ -35,7 +35,7 @@ class FileBufferBinary : public FileBuffer {
     char *ybits = reinterpret_cast<char *>(&y);
     char *zbits = reinterpret_cast<char *>(&z);
 
-    Vector<char> data{};
+    Vector<char, 128> data{};
     data.reserve(12); /* resize vector for 3 floats */
     data.insert(data.end(), xbits, xbits + sizeof(float));
     data.insert(data.end(), ybits, ybits + sizeof(float));
@@ -49,7 +49,7 @@ class FileBufferBinary : public FileBuffer {
     char *ubits = reinterpret_cast<char *>(&u);
     char *vbits = reinterpret_cast<char *>(&v);
 
-    Vector<char> data{};
+    Vector<char, 128> data{};
     data.reserve(8); /* resize vector for 2 floats */
     data.insert(data.end(), ubits, ubits + sizeof(float));
     data.insert(data.end(), vbits, vbits + sizeof(float));
@@ -63,7 +63,7 @@ class FileBufferBinary : public FileBuffer {
     char *ybits = reinterpret_cast<char *>(&ny);
     char *zbits = reinterpret_cast<char *>(&nz);
 
-    Vector<char> data{};
+    Vector<char, 128> data{};
     data.reserve(12); /* resize vector for 3 floats */
     data.insert(data.end(), xbits, xbits + sizeof(float));
     data.insert(data.end(), ybits, ybits + sizeof(float));
@@ -79,7 +79,7 @@ class FileBufferBinary : public FileBuffer {
     char *bbits = reinterpret_cast<char *>(&b);
     char *abits = reinterpret_cast<char *>(&a);
 
-    Vector<char> data(rbits, rbits + sizeof(char));
+    Vector<char, 128> data(rbits, rbits + sizeof(char));
     data.reserve(4); /* resize vector for 4 bytes */
     data.insert(data.end(), gbits, gbits + sizeof(char));
     data.insert(data.end(), bbits, bbits + sizeof(char));
@@ -113,7 +113,7 @@ class FileBufferBinary : public FileBuffer {
     auto *fbits = reinterpret_cast<char *>(&first);
     auto *sbits = reinterpret_cast<char *>(&second);
 
-    Vector<char> data(fbits, fbits + sizeof(int));
+    Vector<char, 128> data(fbits, fbits + sizeof(int));
     data.insert(data.end(), sbits, sbits + sizeof(int));
 
     write_bytes(data);

@@ -153,7 +153,7 @@ class FileBuffer : private NonMovable {
     bb.insert(bb.end(), buf.begin(), buf.end());
   }
 
-  void write_bytes(Vector<char> bytes)
+  void write_bytes(Vector<char, 128> &bytes)
   {
     ensure_space(bytes.size());
     VectorChar &bb = blocks_.last();
