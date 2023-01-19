@@ -39,7 +39,7 @@ Mesh *do_triangulation(Mesh *mesh, bool force_triangulation)
 
   BMesh *bmesh = BKE_mesh_to_bmesh_ex(mesh, &bm_create_params, &bm_convert_params);
   BM_mesh_triangulate(bmesh, 0, 3, triangulation_threshold, false, nullptr, nullptr, nullptr);
-  Mesh * temp_mesh = BKE_mesh_from_bmesh_for_eval_nomain(bmesh, nullptr, mesh);
+  Mesh *temp_mesh = BKE_mesh_from_bmesh_for_eval_nomain(bmesh, nullptr, mesh);
   BM_mesh_free(bmesh);
   return temp_mesh;
 }
