@@ -1660,9 +1660,10 @@ static uiBlock *block_create_opengl_usage_warning(struct bContext *C,
   uiLayout *col = uiLayoutColumn(layout, false);
   uiItemL_ex(col, TIP_("Python script uses OpenGL for drawing."), ICON_NONE, true, false);
   uiItemL(col, TIP_("This may lead to unexpected behavior"), ICON_NONE);
-  uiItemL(col,
-          TIP_("One of the add-ons or scripts is using OpenGL and will not work correct on Metal."),
-          ICON_NONE);
+  uiItemL(
+      col,
+      TIP_("One of the add-ons or scripts is using OpenGL and will not work correct on Metal."),
+      ICON_NONE);
   uiItemL(col,
           TIP_("Please contact the developer of the add-on to migrate to use 'gpu' module."),
           ICON_NONE);
@@ -1702,7 +1703,7 @@ void wm_test_opengl_deprecation_warning(bContext *C)
   BKE_report(
       &wm->reports,
       RPT_ERROR,
-      TIP_("One of the add-ons or script is using OpenGL and will not work correct on Metal. "
+      TIP_("One of the add-ons or scripts is using OpenGL and will not work correct on Metal. "
            "Please contact the developer of the add-on to migrate to use 'gpu' module."));
 
   if (win) {
