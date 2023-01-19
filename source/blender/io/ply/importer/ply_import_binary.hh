@@ -57,7 +57,7 @@ template<typename T> T swap_bytes(T input)
     uint32_t newInput = *(uint32_t *)&input;
     uint32_t output = 0;
     for (int i = 0; i < 4; i++) {
-      output |= ((newInput >> i * 4) & 0xFF) << (24 - i * 8);
+      output |= ((newInput >> i * 8) & 0xFF) << (24 - i * 8);
     }
     T value = *(T *)&output;
     return value; /* Reinterpret the bytes of output as a T value. */
