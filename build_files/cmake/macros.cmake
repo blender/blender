@@ -1115,7 +1115,7 @@ function(find_python_package
     # endif()
     # Not set, so initialize.
   else()
-   string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
+    string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
     list(GET _PY_VER_SPLIT 0 _PY_VER_MAJOR)
 
     # re-cache
@@ -1275,7 +1275,7 @@ macro(add_bundled_libraries library_dir)
     list(APPEND PLATFORM_BUNDLED_LIBRARY_DIRS ${_library_dir})
     unset(_all_library_versions)
     unset(_library_dir)
- endif()
+  endif()
 endmacro()
 
 macro(windows_install_shared_manifest)
