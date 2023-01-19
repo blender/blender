@@ -25,6 +25,20 @@
 #include "ply_export_load_plydata.hh"
 namespace blender::io::ply {
 
+Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation)
+{
+  const BMeshCreateParams bm_create_params = {false};
+  BMeshFromMeshParams bm_convert_params{};
+  bm_convert_params.calc_face_normal = true;
+  bm_convert_params.calc_vert_normal = true;
+  bm_convert_params.add_key_index = false;
+  bm_convert_params.use_shapekey = false;
+  const int triangulation_threshold = force_triangulation ? 4 : 255;
+  BMesh *bmesh = BKE_mesh_to_bmesh_ex(mesh, &bm_create_params, &bm_convert_params);
+  BM_mesh_triangulate(bmesh, 0, 3, triangulation_threshold, false, nullptr, nullptr, nullptr);
+  return BKE_mesh_from_bmesh_for_eval_nomain(bmesh, nullptr, mesh);
+}
+
 void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams &export_params)
 {
 
@@ -51,6 +65,9 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     Mesh *mesh = export_params.apply_modifiers ?
                      BKE_object_get_evaluated_mesh(&export_object_eval_) :
                      BKE_object_get_pre_modified_mesh(&export_object_eval_);
+
+    // Triangulate
+    mesh = do_triangulation(mesh, export_params.export_triangulated_mesh);
 
     const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
         CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));

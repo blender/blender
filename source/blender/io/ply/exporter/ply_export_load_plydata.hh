@@ -25,7 +25,14 @@
 
 #include "ply_data.hh"
 
+#include "bmesh.h"
+#include "bmesh_tools.h"
+
+#include <tools/bmesh_triangulate.h>
+
 namespace blender::io::ply {
+
+Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation);
 
 struct UV_vertex_key {
   float2 UV;
@@ -51,6 +58,129 @@ struct UV_vertex_hash {
 
 std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertex_map(
     const Mesh *mesh, const MLoopUV *mloopuv, const PLYExportParams &export_params);
+
+void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &export_params)
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+
+  DEGObjectIterSettings deg_iter_settings{};
+  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                            DEG_ITER_OBJECT_FLAG_DUPLI;
+
+  // When exporting multiple objects, vertex indices have to be offset.
+  uint32_t vertex_offset = 0;
+
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
+    if (object->type != OB_MESH) {
+      continue;
+    }
+
+    if (export_params.export_selected_objects && !(object->base_flag & BASE_SELECTED)) {
+      continue;
+    }
+
+    Object *obj_eval = DEG_get_evaluated_object(depsgraph, object);
+    Object export_object_eval_ = dna::shallow_copy(*obj_eval);
+    Mesh *mesh = export_params.apply_modifiers ?
+                     BKE_object_get_evaluated_mesh(&export_object_eval_) :
+                     BKE_object_get_pre_modified_mesh(&export_object_eval_);
+
+    // Triangulate
+    mesh = do_triangulation(mesh, export_params.export_triangulated_mesh);
+
+    const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
+        CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
+
+    std::unordered_map<UV_vertex_key, int, UV_vertex_hash> vertex_map = generate_vertex_map(
+        mesh, mloopuv, export_params);
+
+    /* Load faces into plyData. */
+    int loop_offset = 0;
+    for (auto &&poly : mesh->polys()) {
+      auto loopSpan = mesh->loops().slice(poly.loopstart, poly.totloop);
+      Vector<uint32_t> polyVector;
+
+      for (int i = 0; i < loopSpan.size(); ++i) {
+        float2 uv;
+        if (export_params.export_uv && mloopuv) {
+          uv = mloopuv[i + loop_offset].uv;
+        }
+        else {
+          uv = {0, 0};
+        }
+        UV_vertex_key key = UV_vertex_key(uv, loopSpan[i].v);
+        auto ply_vertex_index = vertex_map.find(key);
+        polyVector.append(uint32_t(ply_vertex_index->second + vertex_offset));
+      }
+      loop_offset += loopSpan.size();
+
+      plyData.faces.append(polyVector);
+    }
+
+    std::unique_ptr<int[]> mesh_vertex_index_LUT(new int[vertex_map.size()]);
+    std::unique_ptr<int[]> ply_vertex_index_LUT(new int[mesh->totvert]);
+    std::unique_ptr<float2[]> uv_coordinates(new float2[vertex_map.size()]);
+
+    for (auto const &[key, value] : vertex_map) {
+      mesh_vertex_index_LUT[value] = key.vertex_index;
+      ply_vertex_index_LUT[key.vertex_index] = value;
+      uv_coordinates[value] = key.UV;
+    }
+
+    // Vertices
+    for (int i = 0; i < vertex_map.size(); ++i) {
+      float3 r_coords;
+      copy_v3_v3(r_coords, mesh->verts()[mesh_vertex_index_LUT[i]].co);
+      mul_m4_v3(object->object_to_world, r_coords);
+      plyData.vertices.append(r_coords);
+    }
+
+    // UV's
+    if (export_params.export_uv) {
+      for (int i = 0; i < vertex_map.size(); ++i) {
+        plyData.UV_coordinates.append(uv_coordinates[i]);
+      }
+    }
+
+    // Normals
+    if (export_params.export_normals) {
+      const float3 *vertex_normals = (const float3 *)CustomData_get_layer_named(
+          &mesh->vdata, CD_PROP_FLOAT3, "Normal");
+
+      if (vertex_normals == nullptr) {
+        vertex_normals = (const float3 *)BKE_mesh_vertex_normals_ensure(mesh);
+      }
+
+      for (int i = 0; i < vertex_map.size(); i++) {
+        plyData.vertex_normals.append(vertex_normals[mesh_vertex_index_LUT[i]]);
+      }
+    }
+
+    // Colors
+    if (export_params.export_colors && CustomData_has_layer(&mesh->vdata, CD_PROP_COLOR)) {
+      const float4 *colors = (float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
+      for (int i = 0; i < vertex_map.size(); i++) {
+        plyData.vertex_colors.append(colors[mesh_vertex_index_LUT[i]]);
+      }
+    }
+
+    // Edges
+    for (auto &&edge : mesh->edges()) {
+      if ((edge.flag & ME_LOOSEEDGE) == ME_LOOSEEDGE) {
+        std::pair<uint32_t, uint32_t> edge_pair = std::make_pair(
+            ply_vertex_index_LUT[uint32_t(edge.v1)], ply_vertex_index_LUT[uint32_t(edge.v2)]);
+
+        plyData.edges.append(edge_pair);
+      }
+    }
+
+    vertex_offset = (int)plyData.vertices.size();
+  }
+
+  DEG_OBJECT_ITER_END;
+}
 
 void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams &export_params);
 }  // namespace blender::io::ply

@@ -8,6 +8,7 @@ set(INC
   ../common
   ../../blenkernel
   ../../blenlib
+  ../../bmesh
   ../../depsgraph
   ../../makesdna
   ../../makesrna
