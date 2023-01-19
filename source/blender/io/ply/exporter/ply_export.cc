@@ -50,7 +50,7 @@ void exporter_main(Main *bmain,
 {
   // Load mesh data into PlyData struct.
   std::unique_ptr<blender::io::ply::PlyData> plyData = std::make_unique<PlyData>();
-  load_plydata(*plyData, CTX_data_ensure_evaluated_depsgraph(C), export_params);
+  load_plydata(*plyData, bmain, CTX_data_ensure_evaluated_depsgraph(C), export_params);
 
   // Get filebuffer.
   std::unique_ptr<FileBuffer> buffer;

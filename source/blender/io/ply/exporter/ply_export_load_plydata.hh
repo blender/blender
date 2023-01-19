@@ -61,5 +61,5 @@ std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertex_map(
 
 void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &export_params);
 
-void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams &export_params);
+void load_plydata(PlyData &plyData, Main *bmain, Depsgraph *depsgraph, const PLYExportParams &export_params);
 }  // namespace blender::io::ply

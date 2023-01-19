@@ -7,6 +7,7 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
@@ -23,9 +24,10 @@
 
 #include "ply_data.hh"
 #include "ply_export_load_plydata.hh"
+
 namespace blender::io::ply {
 
-Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation)
+Mesh *do_triangulation(Mesh *mesh, bool force_triangulation)
 {
   const BMeshCreateParams bm_create_params = {false};
   BMeshFromMeshParams bm_convert_params{};
@@ -34,12 +36,18 @@ Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation)
   bm_convert_params.add_key_index = false;
   bm_convert_params.use_shapekey = false;
   const int triangulation_threshold = force_triangulation ? 4 : 255;
+
   BMesh *bmesh = BKE_mesh_to_bmesh_ex(mesh, &bm_create_params, &bm_convert_params);
   BM_mesh_triangulate(bmesh, 0, 3, triangulation_threshold, false, nullptr, nullptr, nullptr);
-  return BKE_mesh_from_bmesh_for_eval_nomain(bmesh, nullptr, mesh);
+  Mesh * temp_mesh = BKE_mesh_from_bmesh_for_eval_nomain(bmesh, nullptr, mesh);
+  BM_mesh_free(bmesh);
+  return temp_mesh;
 }
 
-void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams &export_params)
+void load_plydata(PlyData &plyData,
+                  Main *bmain,
+                  Depsgraph *depsgraph,
+                  const PLYExportParams &export_params)
 {
 
   DEGObjectIterSettings deg_iter_settings{};
@@ -150,10 +158,12 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     }
 
     vertex_offset = (int)plyData.vertices.size();
+    BKE_id_free(nullptr, mesh);
   }
 
   DEG_OBJECT_ITER_END;
 }
+
 std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertex_map(
     const Mesh *mesh, const MLoopUV *mloopuv, const PLYExportParams &export_params)
 {
