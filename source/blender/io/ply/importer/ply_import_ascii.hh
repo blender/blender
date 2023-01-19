@@ -20,9 +20,9 @@ namespace blender::io::ply {
  * @param header The information in the PLY header.
  */
 
-Mesh *import_ply_ascii(std::ifstream &file,
+void *import_ply_ascii(std::ifstream &file,
                        PlyHeader *header,
-                       Mesh *mesh,
+                       Mesh *r_mesh,
                        const PLYImportParams &params);
 
 /**

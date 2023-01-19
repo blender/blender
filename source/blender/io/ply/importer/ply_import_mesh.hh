@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include "DNA_mesh_types.h"
-
 #include "IO_ply.h"
 #include "ply_data.hh"
 

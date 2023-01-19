@@ -4,7 +4,6 @@
  * \ingroup ply
  */
 
-#include "BLI_math_vector.h"
 
 #include "ply_functions.hh"
 #include "ply_import_ascii.hh"
@@ -15,14 +14,14 @@
 
 namespace blender::io::ply {
 
-Mesh *import_ply_ascii(std::ifstream &file,
+void *import_ply_ascii(std::ifstream &file,
                        PlyHeader *header,
-                       Mesh *mesh,
+                       Mesh *r_mesh,
                        const PLYImportParams &params)
 {
   PlyData data = load_ply_ascii(file, header);
   if (!data.vertices.is_empty()) {
-    return convert_ply_to_mesh(data, mesh, params);
+    return convert_ply_to_mesh(data, r_mesh, params);
   }
   return nullptr;
 }

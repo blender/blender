@@ -38,7 +38,8 @@ line_ending safe_getline(std::ifstream &file, std::string &line)
         }
         break;
       default:
-        // If a different character is encountered after the line ending is set, we know to return.
+        /* If a different character is encountered after the line ending is set, we know to return.
+         */
         if (possible != UNSET) {
           return possible;
         }

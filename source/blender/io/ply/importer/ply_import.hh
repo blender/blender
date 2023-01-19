@@ -13,8 +13,6 @@
 
 namespace blender::io::ply {
 
-void ply_import_report_error(FILE *file);
-
 enum PlyDataTypes from_string(const StringRef &input);
 
 void splitstr(std::string str, Vector<std::string> &words, const StringRef &deli);

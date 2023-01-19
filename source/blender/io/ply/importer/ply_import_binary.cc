@@ -4,24 +4,20 @@
  * \ingroup ply
  */
 
-#include "BKE_customdata.h"
-
-#include "BLI_math_vector.h"
-
 #include "ply_import_binary.hh"
 #include "ply_import_mesh.hh"
 
 #include <fstream>
 
 namespace blender::io::ply {
-Mesh *import_ply_binary(std::ifstream &file,
+void *import_ply_binary(std::ifstream &file,
                         const PlyHeader *header,
-                        Mesh *mesh,
+                        Mesh *r_mesh,
                         const PLYImportParams &params)
 {
   PlyData data = load_ply_binary(file, header);
   if (!data.vertices.is_empty()) {
-    return convert_ply_to_mesh(data, mesh, params);
+    return convert_ply_to_mesh(data, r_mesh, params);
   }
   return nullptr;
 }
