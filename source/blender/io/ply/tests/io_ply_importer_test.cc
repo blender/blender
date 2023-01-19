@@ -105,20 +105,18 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
           EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);
         }
 
-        // Fetch UV data from mesh and test if it matches expectation
-        // Currently we don't support uv data yet
+        /* Fetch UV data from mesh and test if it matches expectation. */
         const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
             CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
         float2 uv_first = mloopuv ? float2(mloopuv->uv) : float2(0, 0);
         EXPECT_V2_NEAR(uv_first, exp.uv_first, 0.0001f);
 
-        /* Check if expected mesh has vertex colors, and tests if it matches */
+        /* Check if expected mesh has vertex colors, and tests if it matches. */
         if (CustomData_has_layer(&mesh->vdata, CD_PROP_COLOR)) {
           const float4 *colors = (const float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
           ASSERT_TRUE(colors != nullptr);
           EXPECT_V4_NEAR(colors[0], exp.color_first, 0.0001f);
         }
-
       }
       ++object_index;
     }
@@ -241,7 +239,7 @@ TEST_F(PlyImportTest, PlyImportWireframeCube)
 
 TEST(PlyImportFunctionsTest, PlySwapBytes)
 {
-  // Individual bits shouldn't swap with each other
+  /* Individual bits shouldn't swap with each other. */
   uint8_t val8 = 0xA8;
   uint8_t exp8 = 0xA8;
   uint8_t actual8 = swap_bytes<uint8_t>(val8);
