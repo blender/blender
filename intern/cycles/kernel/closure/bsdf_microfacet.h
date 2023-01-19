@@ -71,7 +71,6 @@ ccl_device_inline void microfacet_beckmann_sample_slopes(KernelGlobals kg,
 
   *G1i = G1;
 
-#if defined(__KERNEL_GPU__)
   /* Based on paper from Wenzel Jakob
    * An Improved Visible Normal Sampling Routine for the Beckmann Distribution
    *
@@ -87,38 +86,38 @@ ccl_device_inline void microfacet_beckmann_sample_slopes(KernelGlobals kg,
    *   exp(-ierf(x)^2) ~= 1 - x * x
    *   solve y = 1 + b + K * (1 - b * b)
    */
-  float K = tan_theta_i * SQRT_PI_INV;
-  float y_approx = randu * (1.0f + erf_a + K * (1 - erf_a * erf_a));
-  float y_exact = randu * (1.0f + erf_a + K * exp_a2);
+  const float K = tan_theta_i * SQRT_PI_INV;
+  const float y_approx = randu * (1.0f + erf_a + K * (1 - erf_a * erf_a));
+  const float y_exact = randu * (1.0f + erf_a + K * exp_a2);
   float b = K > 0 ? (0.5f - sqrtf(K * (K - y_approx + 1.0f) + 0.25f)) / K : y_approx - 1.0f;
 
-  /* Perform newton step to refine toward the true root. */
   float inv_erf = fast_ierff(b);
-  float value = 1.0f + b + K * expf(-inv_erf * inv_erf) - y_exact;
-  /* Check if we are close enough already,
-   * this also avoids NaNs as we get close to the root.
-   */
-  if (fabsf(value) > 1e-6f) {
-    b -= value / (1.0f - inv_erf * tan_theta_i); /* newton step 1. */
-    inv_erf = fast_ierff(b);
-    value = 1.0f + b + K * expf(-inv_erf * inv_erf) - y_exact;
-    b -= value / (1.0f - inv_erf * tan_theta_i); /* newton step 2. */
-    /* Compute the slope from the refined value. */
-    *slope_x = fast_ierff(b);
-  }
-  else {
-    /* We are close enough already. */
-    *slope_x = inv_erf;
-  }
-  *slope_y = fast_ierff(2.0f * randv - 1.0f);
-#else
-  /* Use precomputed table on CPU, it gives better performance. */
-  int beckmann_table_offset = kernel_data.tables.beckmann_offset;
+  float2 begin = make_float2(-1.0f, -y_exact);
+  float2 end = make_float2(erf_a, 1.0f + erf_a + K * exp_a2 - y_exact);
+  float2 current = make_float2(b, 1.0f + b + K * expf(-sqr(inv_erf)) - y_exact);
 
-  *slope_x = lookup_table_read_2D(
-      kg, randu, cos_theta_i, beckmann_table_offset, BECKMANN_TABLE_SIZE, BECKMANN_TABLE_SIZE);
+  /* Find root in a monotonic interval using newton method, under given precision and maximal
+   * iterations. Falls back to bisection if newton step produces results outside of the valid
+   * interval.*/
+  const float precision = 1e-6f;
+  const int max_iter = 3;
+  int iter = 0;
+  while (fabsf(current.y) > precision && iter++ < max_iter) {
+    if (signf(begin.y) == signf(current.y)) {
+      begin.x = current.x;
+      begin.y = current.y;
+    }
+    else {
+      end.x = current.x;
+    }
+    const float newton_x = current.x - current.y / (1.0f - inv_erf * tan_theta_i);
+    current.x = (newton_x >= begin.x && newton_x <= end.x) ? newton_x : 0.5f * (begin.x + end.x);
+    inv_erf = fast_ierff(current.x);
+    current.y = 1.0f + current.x + K * expf(-sqr(inv_erf)) - y_exact;
+  }
+
+  *slope_x = inv_erf;
   *slope_y = fast_ierff(2.0f * randv - 1.0f);
-#endif
 }
 
 /* GGX microfacet importance sampling from:

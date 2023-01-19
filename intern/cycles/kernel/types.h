@@ -34,8 +34,6 @@ CCL_NAMESPACE_BEGIN
 
 #define VOLUME_BOUNDS_MAX 1024
 
-#define BECKMANN_TABLE_SIZE 256
-
 #define SHADER_NONE (~0)
 #define OBJECT_NONE (~0)
 #define PRIM_NONE (~0)
@@ -1187,9 +1185,8 @@ typedef enum KernelBVHLayout {
 #include "kernel/data_template.h"
 
 typedef struct KernelTables {
-  int beckmann_offset;
   int filter_table_offset;
-  int pad1, pad2;
+  int pad1, pad2, pad3;
 } KernelTables;
 static_assert_align(KernelTables, 16);
 
