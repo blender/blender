@@ -48,11 +48,11 @@ void exporter_main(Main *bmain,
                    bContext *C,
                    const PLYExportParams &export_params)
 {
-  // Load mesh data into PlyData struct.
+  /* Load mesh data into PlyData struct. */
   std::unique_ptr<blender::io::ply::PlyData> plyData = std::make_unique<PlyData>();
   load_plydata(*plyData, CTX_data_ensure_evaluated_depsgraph(C), export_params);
 
-  // Get filebuffer.
+  /* Get filebuffer. */
   std::unique_ptr<FileBuffer> buffer;
 
   if (export_params.ascii_format) {

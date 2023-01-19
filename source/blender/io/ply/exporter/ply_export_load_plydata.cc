@@ -53,7 +53,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
                             DEG_ITER_OBJECT_FLAG_DUPLI;
 
-  // When exporting multiple objects, vertex indices have to be offset.
+  /* When exporting multiple objects, vertex indices have to be offset. */
   uint32_t vertex_offset = 0;
 
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
@@ -71,7 +71,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
                      BKE_object_get_evaluated_mesh(&export_object_eval_) :
                      BKE_object_get_pre_modified_mesh(&export_object_eval_);
 
-    // Triangulate
+    /* Triangulate */
     mesh = do_triangulation(mesh, export_params.export_triangulated_mesh);
 
     const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
@@ -113,7 +113,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       uv_coordinates[value] = key.UV;
     }
 
-    // Vertices
+    /* Vertices */
     for (int i = 0; i < vertex_map.size(); ++i) {
       float3 r_coords;
       copy_v3_v3(r_coords, mesh->verts()[mesh_vertex_index_LUT[i]].co);
@@ -121,14 +121,14 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       plyData.vertices.append(r_coords);
     }
 
-    // UV's
+    /* UV's */
     if (export_params.export_uv) {
       for (int i = 0; i < vertex_map.size(); ++i) {
         plyData.UV_coordinates.append(uv_coordinates[i]);
       }
     }
 
-    // Normals
+    /* Normals */
     if (export_params.export_normals) {
       const float(*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
       for (int i = 0; i < vertex_map.size(); i++) {
@@ -136,7 +136,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       }
     }
 
-    // Colors
+    /* Colors */
     if (export_params.export_colors && CustomData_has_layer(&mesh->vdata, CD_PROP_COLOR)) {
       const float4 *colors = (float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
       for (int i = 0; i < vertex_map.size(); i++) {
@@ -144,7 +144,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       }
     }
 
-    // Edges
+    /* Edges */
     for (auto &&edge : mesh->edges()) {
       if ((edge.flag & ME_LOOSEEDGE) == ME_LOOSEEDGE) {
         std::pair<uint32_t, uint32_t> edge_pair = std::make_pair(
