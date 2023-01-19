@@ -43,7 +43,6 @@ set(INC
 
 set(INC_SYS
   ${Epoxy_INCLUDE_DIRS}
-  ${VULKAN_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -267,6 +266,10 @@ set(METAL_SRC
   metal/mtl_vertex_buffer.hh
 )
 
+set(LIB
+  ${Epoxy_LIBRARIES}
+)
+
 # Select Backend source based on availability
 if(WITH_OPENGL)
   list(APPEND SRC ${OPENGL_SRC})
@@ -276,27 +279,23 @@ if(WITH_METAL_BACKEND)
   list(APPEND SRC ${METAL_SRC})
 endif()
 
-set(LIB
-  ${Epoxy_LIBRARIES}
-  ${VULKAN_LIBRARIES}
-)
 
 if(WITH_VULKAN_BACKEND)
-  list(APPEND SRC ${VULKAN_SRC})
-
-  add_definitions(-DWITH_VULKAN_BACKEND)
-
-  list(APPEND INC_SYS
-    ${VULKAN_INCLUDE_DIRS}
-  )
-
   list(APPEND INC
     ../../../extern/vulkan_memory_allocator/
   )
+  list(APPEND INC_SYS
+    ${VULKAN_INCLUDE_DIRS}
+  )
+  list(APPEND SRC
+    ${VULKAN_SRC}
+  )
 
   list(APPEND LIB
+    ${VULKAN_LIBRARIES}
     extern_vulkan_memory_allocator
   )
+  add_definitions(-DWITH_VULKAN_BACKEND)
 endif()
 
 set(MSL_SRC

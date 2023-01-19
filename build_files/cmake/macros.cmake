@@ -550,7 +550,9 @@ function(setup_platform_linker_libs
   endif()
 
   if(WIN32 AND NOT UNIX)
-    target_link_libraries(${target} ${PTHREADS_LIBRARIES})
+    if(DEFINED PTHREADS_LIBRARIES)
+      target_link_libraries(${target} ${PTHREADS_LIBRARIES})
+    endif()
   endif()
 
   # target_link_libraries(${target} ${PLATFORM_LINKLIBS} ${CMAKE_DL_LIBS})

@@ -430,10 +430,13 @@ if(WITH_OPENIMAGEIO)
     ${PNG_LIBRARIES}
     ${JPEG_LIBRARIES}
     ${ZLIB_LIBRARIES}
-    ${BOOST_LIBRARIES}
   )
+
   set(OPENIMAGEIO_DEFINITIONS "")
 
+  if(WITH_BOOST)
+    list(APPEND OPENIMAGEIO_LIBRARIES "${BOOST_LIBRARIES}")
+  endif()
   if(WITH_IMAGE_TIFF)
     list(APPEND OPENIMAGEIO_LIBRARIES "${TIFF_LIBRARY}")
   endif()
@@ -451,7 +454,7 @@ add_bundled_libraries(openimageio/lib)
 if(WITH_OPENCOLORIO)
   find_package_wrapper(OpenColorIO 2.0.0)
 
-  set(OPENCOLORIO_DEFINITIONS)
+  set(OPENCOLORIO_DEFINITIONS "")
   set_and_warn_library_found("OpenColorIO" OPENCOLORIO_FOUND WITH_OPENCOLORIO)
 endif()
 add_bundled_libraries(opencolorio/lib)
@@ -551,9 +554,14 @@ else()
 endif()
 
 find_package(Threads REQUIRED)
-list(APPEND PLATFORM_LINKLIBS ${CMAKE_THREAD_LIBS_INIT})
-# used by other platforms
-set(PTHREADS_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+# `FindThreads` documentation notes that this may be empty
+# with the system libraries provide threading functionality.
+if(CMAKE_THREAD_LIBS_INIT)
+  list(APPEND PLATFORM_LINKLIBS ${CMAKE_THREAD_LIBS_INIT})
+  # used by other platforms
+  set(PTHREADS_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+endif()
+
 
 if(CMAKE_DL_LIBS)
   list(APPEND PLATFORM_LINKLIBS ${CMAKE_DL_LIBS})

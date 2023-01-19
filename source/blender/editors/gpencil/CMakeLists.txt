@@ -18,6 +18,9 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   annotate_draw.c
   annotate_paint.c

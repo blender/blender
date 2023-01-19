@@ -32,7 +32,7 @@ endif()
 
 
 # Include these arguments before all others, they must not interfere with Python execution.
-set(TEST_PYTHON_EXE_EXTRA_ARGS)
+set(TEST_PYTHON_EXE_EXTRA_ARGS "")
 
 # Check if this a Blender managed Python installation, if so, don't add `*.pyc` files.
 if(LIBDIR)

@@ -14,6 +14,9 @@ set(INC
   ../../bmesh
 )
 
+set(INC_SYS
+)
+
 set(SRC
   ed_undo.c
   memfile_undo.c
