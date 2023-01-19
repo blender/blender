@@ -6,29 +6,14 @@
 
 #pragma once
 
-#include "BLI_math.h"
-
-#include "BKE_context.h"
 #include "BKE_mesh.h"
-#include "BKE_mesh_mapping.h"
-#include "BKE_object.h"
-
-#include "RNA_types.h"
-
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
+#include "BLI_math.h"
 
 #include "DNA_layer_types.h"
 
 #include "IO_ply.h"
 
 #include "ply_data.hh"
-
-#include "bmesh.h"
-#include "bmesh_tools.h"
-
-#include <tools/bmesh_triangulate.h>
 
 namespace blender::io::ply {
 
