@@ -1832,6 +1832,12 @@ static void rna_def_menu(BlenderRNA *brna)
   RNA_define_verify_sdna(1);
 }
 
+static void rna_def_asset_shelf_settings(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "AssetShelfSettings", NULL);
+  RNA_def_struct_ui_text(srna, "Asset Shelf Settings", "");
+}
+
 void RNA_def_ui(BlenderRNA *brna)
 {
   rna_def_ui_layout(brna);
@@ -1839,6 +1845,7 @@ void RNA_def_ui(BlenderRNA *brna)
   rna_def_uilist(brna);
   rna_def_header(brna);
   rna_def_menu(brna);
+  rna_def_asset_shelf_settings(brna);
 }
 
 #endif /* RNA_RUNTIME */

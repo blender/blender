@@ -168,6 +168,7 @@ enum {
   UI_BLOCK_SEARCH_ONLY = 1 << 25,
   /** Hack for quick setup (splash screen) to draw text centered. */
   UI_BLOCK_QUICK_SETUP = 1 << 26,
+  UI_BLOCK_POPUP_CAN_REFRESH = 1 << 27,
 };
 
 /** #uiPopupBlockHandle.menuretval */

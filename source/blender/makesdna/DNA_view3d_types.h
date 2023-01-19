@@ -356,6 +356,8 @@ typedef struct View3D {
   /** Path to the viewer node that is currently previewed. This is retrieved from the workspace. */
   ViewerPath viewer_path;
 
+  struct AssetShelfSettings *asset_shelf;
+
   /** Runtime evaluation data (keep last). */
   View3D_Runtime runtime;
 } View3D;

@@ -746,6 +746,11 @@ enum {
   RGN_DRAW_EDITOR_OVERLAYS = 32,
 };
 
+typedef struct AssetShelfSettings {
+  /* TODO make this per mode? (or use a custom identifier?) */
+  ListBase enabled_catalog_paths; /* #LinkData */
+} AssetShelfSettings;
+
 #ifdef __cplusplus
 }
 #endif

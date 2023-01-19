@@ -342,11 +342,21 @@ static void view3d_free(SpaceLink *sl)
   }
 
   BKE_viewer_path_clear(&vd->viewer_path);
+
+  if (vd->asset_shelf) {
+    ED_asset_shelf_settings_free(vd->asset_shelf);
+    MEM_SAFE_FREE(vd->asset_shelf);
+  }
 }
 
 /* spacetype; init callback */
-static void view3d_init(wmWindowManager * /*wm*/, ScrArea * /*area*/)
+static void view3d_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
+  BLI_assert(area->spacetype == SPACE_VIEW3D);
+  View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+  if (!v3d->asset_shelf) {
+    v3d->asset_shelf = MEM_cnew<AssetShelfSettings>("AssetShelfSettings");
+  }
 }
 
 static void view3d_exit(wmWindowManager * /*wm*/, ScrArea *area)
@@ -381,6 +391,8 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
   }
 
   BKE_viewer_path_copy(&v3dn->viewer_path, &v3do->viewer_path);
+
+  v3dn->asset_shelf = ED_asset_shelf_settings_duplicate(v3do->asset_shelf);
 
   /* copy or clear inside new stuff */
 
@@ -1959,6 +1971,14 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
+static int view3d_asset_shelf_context(const bContext *C,
+                                      const char *member,
+                                      bContextDataResult *result)
+{
+  View3D *v3d = CTX_wm_view3d(C);
+  return ED_asset_shelf_context(C, member, result, v3d->asset_shelf);
+}
+
 static void view3d_id_remap_v3d_ob_centers(View3D *v3d, const struct IDRemapper *mappings)
 {
   if (BKE_id_remapper_apply(mappings, (ID **)&v3d->ob_center, ID_REMAP_APPLY_DEFAULT) ==
@@ -2034,6 +2054,8 @@ static void view3d_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   BKE_screen_view3d_do_versions_250(v3d, &sl->regionbase);
 
   BKE_viewer_path_blend_read_data(reader, &v3d->viewer_path);
+
+  ED_asset_shelf_settings_blend_read_data(reader, &v3d->asset_shelf);
 }
 
 static void view3d_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
@@ -2062,6 +2084,8 @@ static void view3d_blend_write(BlendWriter *writer, SpaceLink *sl)
   BKE_screen_view3d_shading_blend_write(writer, &v3d->shading);
 
   BKE_viewer_path_blend_write(writer, &v3d->viewer_path);
+
+  ED_asset_shelf_settings_blend_write(writer, v3d->asset_shelf);
 }
 
 void ED_spacetype_view3d()
@@ -2158,7 +2182,7 @@ void ED_spacetype_view3d()
   art->regionid = RGN_TYPE_ASSET_SHELF;
   art->prefsizey = HEADERY * 3.5f;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
-  art->listener = ED_region_asset_shelf_listen;
+  art->listener = ED_asset_shelf_region_listen;
   art->init = view3d_header_region_init;
   art->draw = ED_region_header;
   BLI_addhead(&st->regiontypes, art);
@@ -2167,8 +2191,10 @@ void ED_spacetype_view3d()
   art->regionid = RGN_TYPE_ASSET_SHELF_FOOTER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
-  art->init = ED_region_asset_shelf_footer_init;
-  art->draw = ED_region_asset_shelf_footer;
+  art->init = ED_asset_shelf_footer_region_init;
+  art->draw = ED_asset_shelf_footer_region;
+  art->listener = ED_asset_shelf_footer_region_listen;
+  art->context = view3d_asset_shelf_context;
   BLI_addhead(&st->regiontypes, art);
   ED_asset_shelf_footer_register(art, "VIEW3D_HT_asset_shelf", SPACE_VIEW3D);
 
