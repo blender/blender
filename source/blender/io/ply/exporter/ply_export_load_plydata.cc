@@ -71,8 +71,20 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
                      BKE_object_get_evaluated_mesh(&export_object_eval_) :
                      BKE_object_get_pre_modified_mesh(&export_object_eval_);
 
-    // Triangulate
-    mesh = do_triangulation(mesh, export_params.export_triangulated_mesh);
+    bool force_triangulation = false;
+    for (auto &&poly : mesh->polys()) {
+      if (poly.totloop > 255) {
+        force_triangulation = true;
+        break;
+      }
+    }
+
+    /* Triangulate */
+    bool manually_free_mesh = false;
+    if (export_params.export_triangulated_mesh || force_triangulation) {
+      mesh = do_triangulation(mesh, export_params.export_triangulated_mesh);
+      manually_free_mesh = true;
+    }
 
     const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
         CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
@@ -155,7 +167,9 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     }
 
     vertex_offset = (int)plyData.vertices.size();
-    BKE_id_free(nullptr, mesh);
+    if (manually_free_mesh) {
+      BKE_id_free(nullptr, mesh);
+    }
   }
 
   DEG_OBJECT_ITER_END;
