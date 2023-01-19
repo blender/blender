@@ -467,7 +467,8 @@ static MTLFunctionConstantValues *GetConstantValues(KernelData const *data = nul
 #  define KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE next_member_is_specialized = false;
 
 #  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
-    [constant_values setConstantValue:next_member_is_specialized ? (void*)&data->parent.name : (void*)&zero_data \
+    [constant_values setConstantValue:next_member_is_specialized ? (void *)&data->parent.name : \
+                                                                   (void *)&zero_data \
                                  type:MTLDataType_##_type \
                               atIndex:KernelData_##parent##_##name]; \
     next_member_is_specialized = true;

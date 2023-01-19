@@ -14,7 +14,6 @@
 #  define KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
 #endif
 
-
 /* Background. */
 
 KERNEL_STRUCT_BEGIN(KernelBackground, background)
@@ -183,9 +182,12 @@ KERNEL_STRUCT_MEMBER(integrator, float, sample_clamp_indirect)
 KERNEL_STRUCT_MEMBER(integrator, int, use_caustics)
 /* Sampling pattern. */
 KERNEL_STRUCT_MEMBER(integrator, int, sampling_pattern)
-KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE KERNEL_STRUCT_MEMBER(integrator, int, tabulated_sobol_sequence_size)
-KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE KERNEL_STRUCT_MEMBER(integrator, int, sobol_index_mask)
 KERNEL_STRUCT_MEMBER(integrator, float, scrambling_distance)
+/* Sobol pattern. */
+KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
+KERNEL_STRUCT_MEMBER(integrator, int, tabulated_sobol_sequence_size)
+KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
+KERNEL_STRUCT_MEMBER(integrator, int, sobol_index_mask)
 /* Volume render. */
 KERNEL_STRUCT_MEMBER(integrator, int, use_volumes)
 KERNEL_STRUCT_MEMBER(integrator, int, volume_max_steps)

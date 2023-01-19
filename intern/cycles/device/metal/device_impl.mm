@@ -335,9 +335,11 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
 #  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
     if (next_member_is_specialized) { \
       baked_constants += string(#parent "." #name "=") + \
-                        to_string(_type(launch_params.data.parent.name)) + "\n"; \
-    } else { \
-      string_replace(source, "kernel_data_" #parent "_" #name, "kernel_data." #parent ".__unused_" #name); \
+                         to_string(_type(launch_params.data.parent.name)) + "\n"; \
+    } \
+    else { \
+      string_replace( \
+          source, "kernel_data_" #parent "_" #name, "kernel_data." #parent ".__unused_" #name); \
       next_member_is_specialized = true; \
     }
 
