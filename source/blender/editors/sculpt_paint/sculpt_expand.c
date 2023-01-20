@@ -256,7 +256,7 @@ static bool sculpt_expand_state_get(SculptSession *ss,
  */
 static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_cache, const int f)
 {
-  if (expand_cache->original_face_sets[f] <= 0) {
+  if (ss->hide_poly && ss->hide_poly[f]) {
     return false;
   }
 
