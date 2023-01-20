@@ -5,6 +5,9 @@
  * \ingroup edsculpt
  */
 
+#include <cmath>
+#include <cstdlib>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_linklist_stack.h"
@@ -47,9 +50,6 @@
 #include "IMB_imbuf.h"
 
 #include "bmesh.h"
-
-#include <math.h>
-#include <stdlib.h>
 
 /* Sculpt Expand. */
 /* Operator for creating selections and patterns in Sculpt Mode. Expand can create masks, face sets
@@ -421,8 +421,8 @@ static PBVHVertRef sculpt_expand_get_vertex_index_for_symmetry_pass(
   }
   else {
     float location[3];
-    flip_v3_v3(location, SCULPT_vertex_co_get(ss, original_vertex), symm_it);
-    symm_vertex = SCULPT_nearest_vertex_get(NULL, ob, location, FLT_MAX, false);
+    flip_v3_v3(location, SCULPT_vertex_co_get(ss, original_vertex), ePaintSymmetryFlags(symm_it));
+    symm_vertex = SCULPT_nearest_vertex_get(nullptr, ob, location, FLT_MAX, false);
   }
   return symm_vertex;
 }
@@ -440,12 +440,12 @@ static float *sculpt_expand_geodesic_falloff_create(Sculpt *sd, Object *ob, cons
  * Topology: Initializes the falloff using a flood-fill operation,
  * increasing the falloff value by 1 when visiting a new vertex.
  */
-typedef struct ExpandFloodFillData {
+struct ExpandFloodFillData {
   float original_normal[3];
   float edge_sensitivity;
   float *dists;
   float *edge_factor;
-} ExpandFloodFillData;
+};
 
 static bool expand_topology_floodfill_cb(
     SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate, void *userdata)
@@ -453,7 +453,7 @@ static bool expand_topology_floodfill_cb(
   int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
   int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
 
-  ExpandFloodFillData *data = userdata;
+  ExpandFloodFillData *data = static_cast<ExpandFloodFillData *>(userdata);
   if (!is_duplicate) {
     const float to_it = data->dists[from_v_i] + 1.0f;
     data->dists[to_v_i] = to_it;
@@ -468,7 +468,7 @@ static float *sculpt_expand_topology_falloff_create(Sculpt *sd, Object *ob, cons
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
-  float *dists = MEM_calloc_arrayN(totvert, sizeof(float), "topology dist");
+  float *dists = static_cast<float *>(MEM_calloc_arrayN(totvert, sizeof(float), __func__));
 
   SculptFloodFill flood;
   SCULPT_floodfill_init(ss, &flood);
@@ -494,7 +494,7 @@ static bool mask_expand_normal_floodfill_cb(
   int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
   int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
 
-  ExpandFloodFillData *data = userdata;
+  ExpandFloodFillData *data = static_cast<ExpandFloodFillData *>(userdata);
   if (!is_duplicate) {
     float current_normal[3], prev_normal[3];
     SCULPT_vertex_normal_get(ss, to_v, current_normal);
@@ -521,8 +521,8 @@ static float *sculpt_expand_normal_falloff_create(Sculpt *sd,
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
-  float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "normal dist");
-  float *edge_factor = MEM_callocN(sizeof(float) * totvert, "mask edge factor");
+  float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), __func__));
+  float *edge_factor = static_cast<float *>(MEM_callocN(sizeof(float) * totvert, __func__));
   for (int i = 0; i < totvert; i++) {
     edge_factor[i] = 1.0f;
   }
@@ -568,7 +568,7 @@ static float *sculpt_expand_spherical_falloff_create(Object *ob, const PBVHVertR
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "spherical dist");
+  float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), __func__));
   for (int i = 0; i < totvert; i++) {
     dists[i] = FLT_MAX;
   }
@@ -602,7 +602,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const P
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
-  float *dists = MEM_calloc_arrayN(totvert, sizeof(float), "spherical dist");
+  float *dists = static_cast<float *>(MEM_calloc_arrayN(totvert, sizeof(float), __func__));
   BLI_bitmap *visited_verts = BLI_BITMAP_NEW(totvert, "visited verts");
   GSQueue *queue = BLI_gsqueue_new(sizeof(PBVHVertRef));
 
@@ -616,7 +616,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const P
     const PBVHVertRef symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(
         ob, symm_it, v);
 
-    SculptBoundary *boundary = SCULPT_boundary_data_init(ob, NULL, symm_vertex, FLT_MAX);
+    SculptBoundary *boundary = SCULPT_boundary_data_init(ob, nullptr, symm_vertex, FLT_MAX);
     if (!boundary) {
       continue;
     }
@@ -666,7 +666,7 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
-  float *dists = MEM_calloc_arrayN(totvert, sizeof(float), "spherical dist");
+  float *dists = static_cast<float *>(MEM_calloc_arrayN(totvert, sizeof(float), __func__));
 
   /* This algorithm uses mesh data (polys and loops), so this falloff type can't be initialized for
    * Multires. It also does not make sense to implement it for dyntopo as the result will be the
@@ -822,11 +822,11 @@ static void sculpt_expand_mesh_face_falloff_from_vertex_falloff(SculptSession *s
                                                                 Mesh *mesh,
                                                                 ExpandCache *expand_cache)
 {
-  BLI_assert(expand_cache->vert_falloff != NULL);
+  BLI_assert(expand_cache->vert_falloff != nullptr);
 
   if (!expand_cache->face_falloff) {
-    expand_cache->face_falloff = MEM_malloc_arrayN(
-        mesh->totpoly, sizeof(float), "face falloff factors");
+    expand_cache->face_falloff = static_cast<float *>(
+        MEM_malloc_arrayN(mesh->totpoly, sizeof(float), __func__));
   }
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
@@ -869,7 +869,7 @@ static void sculpt_expand_geodesics_from_state_boundary(Object *ob,
   MEM_SAFE_FREE(expand_cache->face_falloff);
 
   expand_cache->vert_falloff = SCULPT_geodesic_distances_create(ob, initial_verts, FLT_MAX);
-  BLI_gset_free(initial_verts, NULL);
+  BLI_gset_free(initial_verts, nullptr);
 }
 
 /**
@@ -886,7 +886,7 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  float *dists = MEM_calloc_arrayN(totvert, sizeof(float), "topology dist");
+  float *dists = static_cast<float *>(MEM_calloc_arrayN(totvert, sizeof(float), __func__));
   BLI_bitmap *boundary_verts = sculpt_expand_boundary_from_enabled(ss, enabled_verts, false);
 
   SculptFloodFill flood;
@@ -939,7 +939,8 @@ static void sculpt_expand_resursion_step_add(Object *ob,
 
   sculpt_expand_update_max_vert_falloff_value(ss, expand_cache);
   if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
-    sculpt_expand_mesh_face_falloff_from_vertex_falloff(ss, ob->data, expand_cache);
+    sculpt_expand_mesh_face_falloff_from_vertex_falloff(
+        ss, static_cast<Mesh *>(ob->data), expand_cache);
     sculpt_expand_update_max_face_falloff_factor(ss, expand_cache);
   }
 
@@ -1069,7 +1070,8 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
   /* Update max falloff values and propagate to base mesh faces if needed. */
   sculpt_expand_update_max_vert_falloff_value(ss, expand_cache);
   if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
-    sculpt_expand_mesh_face_falloff_from_vertex_falloff(ss, ob->data, expand_cache);
+    sculpt_expand_mesh_face_falloff_from_vertex_falloff(
+        ss, static_cast<Mesh *>(ob->data), expand_cache);
     sculpt_expand_update_max_face_falloff_factor(ss, expand_cache);
   }
 }
@@ -1113,7 +1115,7 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
     }
     if (any_disabled) {
       const int face_set = expand_cache->original_face_sets[p];
-      BLI_gset_remove(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set), NULL);
+      BLI_gset_remove(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set), nullptr);
     }
   }
 
@@ -1128,7 +1130,7 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
 static void sculpt_expand_cache_data_free(ExpandCache *expand_cache)
 {
   if (expand_cache->snap_enabled_face_sets) {
-    BLI_gset_free(expand_cache->snap_enabled_face_sets, NULL);
+    BLI_gset_free(expand_cache->snap_enabled_face_sets, nullptr);
   }
   MEM_SAFE_FREE(expand_cache->nodes);
   MEM_SAFE_FREE(expand_cache->vert_falloff);
@@ -1143,9 +1145,9 @@ static void sculpt_expand_cache_data_free(ExpandCache *expand_cache)
 static void sculpt_expand_cache_free(SculptSession *ss)
 {
   sculpt_expand_cache_data_free(ss->expand_cache);
-  /* Needs to be set to NULL as the paint cursor relies on checking this pointer detecting if an
+  /* Needs to be set to nullptr as the paint cursor relies on checking this pointer detecting if an
    * expand operation is running. */
-  ss->expand_cache = NULL;
+  ss->expand_cache = nullptr;
 }
 
 /**
@@ -1155,7 +1157,7 @@ static void sculpt_expand_restore_face_set_data(SculptSession *ss, ExpandCache *
 {
   PBVHNode **nodes;
   int totnode;
-  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
   for (int n = 0; n < totnode; n++) {
     PBVHNode *node = nodes[n];
     BKE_pbvh_node_mark_redraw(node);
@@ -1170,7 +1172,7 @@ static void sculpt_expand_restore_color_data(SculptSession *ss, ExpandCache *exp
 {
   PBVHNode **nodes;
   int totnode;
-  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
   for (int n = 0; n < totnode; n++) {
     PBVHNode *node = nodes[n];
     PBVHVertexIter vd;
@@ -1187,7 +1189,7 @@ static void sculpt_expand_restore_mask_data(SculptSession *ss, ExpandCache *expa
 {
   PBVHNode **nodes;
   int totnode;
-  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
   for (int n = 0; n < totnode; n++) {
     PBVHNode *node = nodes[n];
     PBVHVertexIter vd;
@@ -1232,7 +1234,7 @@ static void sculpt_expand_restore_original_state(bContext *C,
 /**
  * Cancel operator callback.
  */
-static void sculpt_expand_cancel(bContext *C, wmOperator *UNUSED(op))
+static void sculpt_expand_cancel(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -1250,9 +1252,9 @@ static void sculpt_expand_cancel(bContext *C, wmOperator *UNUSED(op))
  */
 static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
                                               const int i,
-                                              const TaskParallelTLS *__restrict UNUSED(tls))
+                                              const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   PBVHNode *node = data->nodes[i];
   ExpandCache *expand_cache = ss->expand_cache;
@@ -1329,9 +1331,9 @@ static void sculpt_expand_face_sets_update(SculptSession *ss, ExpandCache *expan
  */
 static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
                                                 const int i,
-                                                const TaskParallelTLS *__restrict UNUSED(tls))
+                                                const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   PBVHNode *node = data->nodes[i];
   ExpandCache *expand_cache = ss->expand_cache;
@@ -1362,7 +1364,7 @@ static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
     IMB_blend_color_float(final_color,
                           expand_cache->original_colors[vd.index],
                           final_fill_color,
-                          expand_cache->blend_mode);
+                          IMB_BlendMode(expand_cache->blend_mode));
 
     if (equals_v4v4(initial_color, final_color)) {
       continue;
@@ -1405,8 +1407,10 @@ static void sculpt_expand_original_state_store(Object *ob, ExpandCache *expand_c
   const int totface = ss->totfaces;
 
   /* Face Sets are always stored as they are needed for snapping. */
-  expand_cache->initial_face_sets = MEM_malloc_arrayN(totface, sizeof(int), "initial face set");
-  expand_cache->original_face_sets = MEM_malloc_arrayN(totface, sizeof(int), "original face set");
+  expand_cache->initial_face_sets = static_cast<int *>(
+      MEM_malloc_arrayN(totface, sizeof(int), "initial face set"));
+  expand_cache->original_face_sets = static_cast<int *>(
+      MEM_malloc_arrayN(totface, sizeof(int), "original face set"));
   if (ss->face_sets) {
     for (int i = 0; i < totface; i++) {
       expand_cache->initial_face_sets[i] = ss->face_sets[i];
@@ -1419,7 +1423,8 @@ static void sculpt_expand_original_state_store(Object *ob, ExpandCache *expand_c
   }
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
-    expand_cache->original_mask = MEM_malloc_arrayN(totvert, sizeof(float), "initial mask");
+    expand_cache->original_mask = static_cast<float *>(
+        MEM_malloc_arrayN(totvert, sizeof(float), "initial mask"));
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
@@ -1428,7 +1433,8 @@ static void sculpt_expand_original_state_store(Object *ob, ExpandCache *expand_c
   }
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_COLORS) {
-    expand_cache->original_colors = MEM_malloc_arrayN(totvert, sizeof(float[4]), "initial colors");
+    expand_cache->original_colors = static_cast<float(*)[4]>(
+        MEM_malloc_arrayN(totvert, sizeof(float[4]), "initial colors"));
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
@@ -1483,11 +1489,10 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const PBVHV
   }
 
   /* Update the mesh sculpt data. */
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .nodes = expand_cache->nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.nodes = expand_cache->nodes;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, expand_cache->totnode);
@@ -1597,7 +1602,7 @@ static void sculpt_expand_finish(bContext *C)
   /* Tag all nodes to redraw to avoid artifacts after the fast partial updates. */
   PBVHNode **nodes;
   int totnode;
-  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
   for (int n = 0; n < totnode; n++) {
     BKE_pbvh_node_mark_update_mask(nodes[n]);
   }
@@ -1616,7 +1621,7 @@ static void sculpt_expand_finish(bContext *C)
   }
 
   sculpt_expand_cache_free(ss);
-  ED_workspace_status_text(C, NULL);
+  ED_workspace_status_text(C, nullptr);
 }
 
 /**
@@ -1640,8 +1645,8 @@ static void sculpt_expand_find_active_connected_components_from_vert(
     const PBVHVertRef symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(
         ob, symm_it, initial_vertex);
 
-    expand_cache->active_connected_islands[(int)symm_it] = SCULPT_vertex_island_get(
-        ss, symm_vertex);
+    expand_cache->active_connected_islands[int(symm_it)] = SCULPT_vertex_island_get(ss,
+                                                                                    symm_vertex);
   }
 }
 
@@ -1679,7 +1684,8 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
       expand_cache->next_face_set = SCULPT_active_face_set_get(ss);
     }
     else {
-      expand_cache->next_face_set = ED_sculpt_face_sets_find_next_available_id(ob->data);
+      expand_cache->next_face_set = ED_sculpt_face_sets_find_next_available_id(
+          static_cast<Mesh *>(ob->data));
     }
   }
 
@@ -1699,7 +1705,7 @@ static void sculpt_expand_move_propagation_origin(bContext *C,
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
-  const float mval_fl[2] = {UNPACK2(event->mval)};
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   float move_disp[2];
   sub_v2_v2v2(move_disp, mval_fl, expand_cache->initial_mouse_move);
 
@@ -1767,7 +1773,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
   sculpt_expand_ensure_sculptsession_data(ob);
 
   /* Update and get the active vertex (and face) from the cursor. */
-  const float mval_fl[2] = {UNPACK2(event->mval)};
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   const PBVHVertRef target_expand_vertex = sculpt_expand_target_vertex_update_and_get(
       C, ob, mval_fl);
 
@@ -1802,8 +1808,8 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         if (expand_cache->snap) {
           expand_cache->snap = false;
           if (expand_cache->snap_enabled_face_sets) {
-            BLI_gset_free(expand_cache->snap_enabled_face_sets, NULL);
-            expand_cache->snap_enabled_face_sets = NULL;
+            BLI_gset_free(expand_cache->snap_enabled_face_sets, nullptr);
+            expand_cache->snap_enabled_face_sets = nullptr;
           }
         }
         else {
@@ -1916,7 +1922,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
       case SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_INCREASE: {
         if (expand_cache->texture_distortion_strength == 0.0f) {
           const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache->brush, OB_MODE_SCULPT);
-          if (mask_tex->tex == NULL) {
+          if (mask_tex->tex == nullptr) {
             BKE_report(op->reports,
                        RPT_WARNING,
                        "Active brush does not contain any texture to distort the expand boundary");
@@ -2067,7 +2073,7 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
   expand_cache->preserve = RNA_boolean_get(op->ptr, "use_mask_preserve");
   expand_cache->auto_mask = RNA_boolean_get(op->ptr, "use_auto_mask");
   expand_cache->falloff_gradient = RNA_boolean_get(op->ptr, "use_falloff_gradient");
-  expand_cache->target = RNA_enum_get(op->ptr, "target");
+  expand_cache->target = eSculptExpandTargetType(RNA_enum_get(op->ptr, "target"));
   expand_cache->modify_active_face_set = RNA_boolean_get(op->ptr, "use_modify_active");
   expand_cache->reposition_pivot = RNA_boolean_get(op->ptr, "use_reposition_pivot");
   expand_cache->max_geodesic_move_preview = RNA_int_get(op->ptr, "max_geodesic_move_preview");
@@ -2099,7 +2105,7 @@ static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache)
   SculptSession *ss = ob->sculpt;
   PBVHNode **nodes;
   int totnode;
-  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
 
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
@@ -2132,7 +2138,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   SCULPT_stroke_id_next(ob);
 
   /* Create and configure the Expand Cache. */
-  ss->expand_cache = MEM_callocN(sizeof(ExpandCache), "expand cache");
+  ss->expand_cache = MEM_cnew<ExpandCache>(__func__);
   sculpt_expand_cache_initial_config_set(C, op, ss->expand_cache);
 
   /* Update object. */
@@ -2168,7 +2174,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
         /* TODO: implement SCULPT_vertex_mask_set and use it here. */
 
-        BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &nodes_num);
+        BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &nodes_num);
         for (int i = 0; i < nodes_num; i++) {
           PBVHVertexIter vd;
 
@@ -2192,8 +2198,8 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
     return OPERATOR_CANCELLED;
   }
 
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
   if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
-    Mesh *mesh = ob->data;
     ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
   }
 
@@ -2211,12 +2217,12 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   sculpt_expand_undo_push(ob, ss->expand_cache);
 
   /* Set the initial element for expand from the event position. */
-  const float mouse[2] = {event->mval[0], event->mval[1]};
+  const float mouse[2] = {float(event->mval[0]), float(event->mval[1])};
   sculpt_expand_set_initial_components_for_mouse(C, ob, ss->expand_cache, mouse);
 
   /* Cache PBVH nodes. */
   BKE_pbvh_search_gather(
-      ss->pbvh, NULL, NULL, &ss->expand_cache->nodes, &ss->expand_cache->totnode);
+      ss->pbvh, nullptr, nullptr, &ss->expand_cache->nodes, &ss->expand_cache->totnode);
 
   /* Store initial state. */
   sculpt_expand_original_state_store(ob, ss->expand_cache);
@@ -2225,12 +2231,13 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
     sculpt_expand_delete_face_set_id(ss->expand_cache->initial_face_sets,
                                      ss,
                                      ss->expand_cache,
-                                     ob->data,
+                                     mesh,
                                      ss->expand_cache->next_face_set);
   }
 
   /* Initialize the falloff. */
-  eSculptExpandFalloffType falloff_type = RNA_enum_get(op->ptr, "falloff_type");
+  eSculptExpandFalloffType falloff_type = eSculptExpandFalloffType(
+      RNA_enum_get(op->ptr, "falloff_type"));
 
   /* When starting from a boundary vertex, set the initial falloff to boundary. */
   if (SCULPT_vertex_is_boundary(ss, ss->expand_cache->initial_active_vertex)) {
@@ -2302,7 +2309,7 @@ void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
        0,
        "Texture Distortion Decrease",
        ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const char *name = "Sculpt Expand Modal";
@@ -2345,14 +2352,14 @@ void SCULPT_OT_expand(wmOperatorType *ot)
       {SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY, "BOUNDARY_TOPOLOGY", 0, "Boundary Topology", ""},
       {SCULPT_EXPAND_FALLOFF_BOUNDARY_FACE_SET, "BOUNDARY_FACE_SET", 0, "Boundary Face Set", ""},
       {SCULPT_EXPAND_FALLOFF_ACTIVE_FACE_SET, "ACTIVE_FACE_SET", 0, "Active Face Set", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static EnumPropertyItem prop_sculpt_expand_target_type_items[] = {
       {SCULPT_EXPAND_TARGET_MASK, "MASK", 0, "Mask", ""},
       {SCULPT_EXPAND_TARGET_FACE_SETS, "FACE_SETS", 0, "Face Sets", ""},
       {SCULPT_EXPAND_TARGET_COLORS, "COLOR", 0, "Color", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   RNA_def_enum(ot->srna,

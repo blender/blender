@@ -5,6 +5,8 @@
  * \ingroup edsculpt
  */
 
+#include <cstdlib>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
@@ -13,7 +15,6 @@
 #include "DNA_object_types.h"
 #include "DNA_vec_types.h"
 
-#include "BLI_alloca.h"
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_math_geom.h"
@@ -53,8 +54,6 @@
 /* For undo push. */
 #include "sculpt_intern.h"
 
-#include <stdlib.h>
-
 static const EnumPropertyItem mode_items[] = {
     {PAINT_MASK_FLOOD_VALUE,
      "VALUE",
@@ -84,7 +83,7 @@ static void mask_flood_fill_set_elem(float *elem, PaintMaskFloodMode mode, float
   }
 }
 
-typedef struct MaskTaskData {
+struct MaskTaskData {
   Object *ob;
   PBVH *pbvh;
   PBVHNode **nodes;
@@ -96,13 +95,13 @@ typedef struct MaskTaskData {
 
   bool front_faces_only;
   float view_normal[3];
-} MaskTaskData;
+};
 
 static void mask_flood_fill_task_cb(void *__restrict userdata,
                                     const int i,
-                                    const TaskParallelTLS *__restrict UNUSED(tls))
+                                    const TaskParallelTLS *__restrict /*tls*/)
 {
-  MaskTaskData *data = userdata;
+  MaskTaskData *data = static_cast<MaskTaskData *>(userdata);
 
   PBVHNode *node = data->nodes[i];
 
@@ -136,15 +135,13 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  PaintMaskFloodMode mode;
-  float value;
   PBVH *pbvh;
   PBVHNode **nodes;
   int totnode;
   bool multires;
 
-  mode = RNA_enum_get(op->ptr, "mode");
-  value = RNA_float_get(op->ptr, "value");
+  PaintMaskFloodMode mode = PaintMaskFloodMode(RNA_enum_get(op->ptr, "mode"));
+  float value = RNA_float_get(op->ptr, "value");
 
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
   BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
@@ -153,18 +150,17 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   pbvh = ob->sculpt->pbvh;
   multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
-  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
 
   SCULPT_undo_push_begin(ob, op);
 
-  MaskTaskData data = {
-      .ob = ob,
-      .pbvh = pbvh,
-      .nodes = nodes,
-      .multires = multires,
-      .mode = mode,
-      .value = value,
-  };
+  MaskTaskData data{};
+  data.ob = ob;
+  data.pbvh = pbvh;
+  data.nodes = nodes;
+  data.multires = multires;
+  data.mode = mode;
+  data.value = value;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -187,7 +183,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
+void PAINT_OT_mask_flood_fill(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Mask Flood Fill";
@@ -201,7 +197,7 @@ void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 
   /* RNA. */
-  RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", NULL);
+  RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", nullptr);
   RNA_def_float(
       ot->srna,
       "value",
@@ -216,13 +212,13 @@ void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
 
 /* Sculpt Gesture Operators. */
 
-typedef enum eSculptGestureShapeType {
+enum eSculptGestureShapeType {
   SCULPT_GESTURE_SHAPE_BOX,
   SCULPT_GESTURE_SHAPE_LASSO,
   SCULPT_GESTURE_SHAPE_LINE,
-} eMaskGesturesShapeType;
+};
 
-typedef struct LassoGestureData {
+struct LassoGestureData {
   float projviewobjmat[4][4];
 
   rcti boundbox;
@@ -230,9 +226,9 @@ typedef struct LassoGestureData {
 
   /* 2D bitmap to test if a vertex is affected by the lasso shape. */
   BLI_bitmap *mask_px;
-} LassoGestureData;
+};
 
-typedef struct LineGestureData {
+struct LineGestureData {
   /* Plane aligned to the gesture line. */
   float true_plane[4];
   float plane[4];
@@ -244,11 +240,11 @@ typedef struct LineGestureData {
   bool use_side_planes;
 
   bool flip;
-} LineGestureData;
+};
 
 struct SculptGestureOperation;
 
-typedef struct SculptGestureContext {
+struct SculptGestureContext {
   SculptSession *ss;
   ViewContext vc;
 
@@ -257,10 +253,10 @@ typedef struct SculptGestureContext {
   ePaintSymmetryFlags symmpass;
 
   /* Operation parameters. */
-  eMaskGesturesShapeType shape_type;
+  eSculptGestureShapeType shape_type;
   bool front_faces_only;
 
-  struct SculptGestureOperation *operation;
+  SculptGestureOperation *operation;
 
   /* Gesture data. */
   /* Screen space points that represent the gesture shape. */
@@ -294,19 +290,19 @@ typedef struct SculptGestureContext {
   /* Task Callback Data. */
   PBVHNode **nodes;
   int totnode;
-} SculptGestureContext;
+};
 
-typedef struct SculptGestureOperation {
+struct SculptGestureOperation {
   /* Initial setup (data updates, special undo push...). */
-  void (*sculpt_gesture_begin)(struct bContext *, SculptGestureContext *);
+  void (*sculpt_gesture_begin)(bContext *, SculptGestureContext *);
 
   /* Apply the gesture action for each symmetry pass. */
-  void (*sculpt_gesture_apply_for_symmetry_pass)(struct bContext *, SculptGestureContext *);
+  void (*sculpt_gesture_apply_for_symmetry_pass)(bContext *, SculptGestureContext *);
 
   /* Remaining actions after finishing the symmetry passes iterations
    * (updating data-layers, tagging PBVH updates...). */
-  void (*sculpt_gesture_end)(struct bContext *, SculptGestureContext *);
-} SculptGestureOperation;
+  void (*sculpt_gesture_end)(bContext *, SculptGestureContext *);
+};
 
 static void sculpt_gesture_operator_properties(wmOperatorType *ot)
 {
@@ -340,7 +336,7 @@ static void sculpt_gesture_context_init_common(bContext *C,
   sgcontext->ss = ob->sculpt;
 
   /* Symmetry. */
-  sgcontext->symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  sgcontext->symm = ePaintSymmetryFlags(SCULPT_mesh_symmetry_xyz_get(ob));
 
   /* View Normal. */
   float mat[3][3];
@@ -359,7 +355,7 @@ static void sculpt_gesture_context_init_common(bContext *C,
 
 static void sculpt_gesture_lasso_px_cb(int x, int x_end, int y, void *user_data)
 {
-  SculptGestureContext *mcontext = user_data;
+  SculptGestureContext *mcontext = static_cast<SculptGestureContext *>(user_data);
   LassoGestureData *lasso = &mcontext->lasso;
   int index = (y * lasso->width) + x;
   int index_end = (y * lasso->width) + x_end;
@@ -370,8 +366,7 @@ static void sculpt_gesture_lasso_px_cb(int x, int x_end, int y, void *user_data)
 
 static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOperator *op)
 {
-  SculptGestureContext *sgcontext = MEM_callocN(sizeof(SculptGestureContext),
-                                                "sculpt gesture context lasso");
+  SculptGestureContext *sgcontext = MEM_cnew<SculptGestureContext>(__func__);
   sgcontext->shape_type = SCULPT_GESTURE_SHAPE_LASSO;
 
   sculpt_gesture_context_init_common(C, op, sgcontext);
@@ -380,7 +375,7 @@ static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOpera
   const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
 
   if (!mcoords) {
-    return NULL;
+    return nullptr;
   }
 
   ED_view3d_ob_project_mat_get(
@@ -407,7 +402,8 @@ static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOpera
                           sgcontext->vc.obact,
                           &sgcontext->lasso.boundbox);
 
-  sgcontext->gesture_points = MEM_malloc_arrayN(mcoords_len, sizeof(float[2]), "trim points");
+  sgcontext->gesture_points = static_cast<float(*)[2]>(
+      MEM_malloc_arrayN(mcoords_len, sizeof(float[2]), "trim points"));
   sgcontext->tot_gesture_points = mcoords_len;
   for (int i = 0; i < mcoords_len; i++) {
     sgcontext->gesture_points[i][0] = mcoords[i][0];
@@ -421,8 +417,7 @@ static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOpera
 
 static SculptGestureContext *sculpt_gesture_init_from_box(bContext *C, wmOperator *op)
 {
-  SculptGestureContext *sgcontext = MEM_callocN(sizeof(SculptGestureContext),
-                                                "sculpt gesture context box");
+  SculptGestureContext *sgcontext = MEM_cnew<SculptGestureContext>(__func__);
   sgcontext->shape_type = SCULPT_GESTURE_SHAPE_BOX;
 
   sculpt_gesture_context_init_common(C, op, sgcontext);
@@ -434,7 +429,8 @@ static SculptGestureContext *sculpt_gesture_init_from_box(bContext *C, wmOperato
   ED_view3d_clipping_calc(
       &bb, sgcontext->true_clip_planes, sgcontext->vc.region, sgcontext->vc.obact, &rect);
 
-  sgcontext->gesture_points = MEM_calloc_arrayN(4, sizeof(float[2]), "trim points");
+  sgcontext->gesture_points = static_cast<float(*)[2]>(
+      MEM_calloc_arrayN(4, sizeof(float[2]), "trim points"));
   sgcontext->tot_gesture_points = 4;
 
   sgcontext->gesture_points[0][0] = rect.xmax;
@@ -497,8 +493,7 @@ static void sculpt_gesture_line_calculate_plane_points(SculptGestureContext *sgc
 
 static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperator *op)
 {
-  SculptGestureContext *sgcontext = MEM_callocN(sizeof(SculptGestureContext),
-                                                "sculpt gesture context line");
+  SculptGestureContext *sgcontext = MEM_cnew<SculptGestureContext>(__func__);
   sgcontext->shape_type = SCULPT_GESTURE_SHAPE_LINE;
 
   sculpt_gesture_context_init_common(C, op, sgcontext);
@@ -600,8 +595,10 @@ static void sculpt_gesture_update_effected_nodes_by_line_plane(SculptGestureCont
   copy_v4_v4(clip_planes[1], sgcontext->line.side_plane[0]);
   copy_v4_v4(clip_planes[2], sgcontext->line.side_plane[1]);
 
-  const int num_planes = sgcontext->line.use_side_planes ? 3 : 1;
-  PBVHFrustumPlanes frustum = {.planes = clip_planes, .num_planes = num_planes};
+  PBVHFrustumPlanes frustum{};
+  frustum.planes = clip_planes;
+  frustum.num_planes = sgcontext->line.use_side_planes ? 3 : 1;
+
   BKE_pbvh_search_gather(ss->pbvh,
                          BKE_pbvh_node_frustum_contain_AABB,
                          &frustum,
@@ -615,7 +612,11 @@ static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureCon
   float clip_planes[4][4];
   copy_m4_m4(clip_planes, sgcontext->clip_planes);
   negate_m4(clip_planes);
-  PBVHFrustumPlanes frustum = {.planes = clip_planes, .num_planes = 4};
+
+  PBVHFrustumPlanes frustum{};
+  frustum.planes = clip_planes;
+  frustum.num_planes = 4;
+
   BKE_pbvh_search_gather(ss->pbvh,
                          BKE_pbvh_node_frustum_contain_AABB,
                          &frustum,
@@ -709,9 +710,9 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext, w
 
   operation->sculpt_gesture_begin(C, sgcontext);
 
-  for (ePaintSymmetryFlags symmpass = 0; symmpass <= sgcontext->symm; symmpass++) {
+  for (int symmpass = 0; symmpass <= sgcontext->symm; symmpass++) {
     if (SCULPT_is_symmetry_iteration_valid(symmpass, sgcontext->symm)) {
-      sculpt_gesture_flip_for_symmetry_pass(sgcontext, symmpass);
+      sculpt_gesture_flip_for_symmetry_pass(sgcontext, ePaintSymmetryFlags(symmpass));
       sculpt_gesture_update_effected_nodes(sgcontext);
 
       operation->sculpt_gesture_apply_for_symmetry_pass(C, sgcontext);
@@ -730,11 +731,11 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext, w
 
 /* Face Set Gesture Operation. */
 
-typedef struct SculptGestureFaceSetOperation {
+struct SculptGestureFaceSetOperation {
   SculptGestureOperation op;
 
   int new_face_set_id;
-} SculptGestureFaceSetOperation;
+};
 
 static void sculpt_gesture_face_set_begin(bContext *C, SculptGestureContext *sgcontext)
 {
@@ -744,9 +745,9 @@ static void sculpt_gesture_face_set_begin(bContext *C, SculptGestureContext *sgc
 
 static void face_set_gesture_apply_task_cb(void *__restrict userdata,
                                            const int i,
-                                           const TaskParallelTLS *__restrict UNUSED(tls))
+                                           const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptGestureContext *sgcontext = userdata;
+  SculptGestureContext *sgcontext = static_cast<SculptGestureContext *>(userdata);
   SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
                                                           sgcontext->operation;
   PBVHNode *node = sgcontext->nodes[i];
@@ -768,7 +769,7 @@ static void face_set_gesture_apply_task_cb(void *__restrict userdata,
   }
 }
 
-static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext *UNUSED(C),
+static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext * /*C*/,
                                                             SculptGestureContext *sgcontext)
 {
   TaskParallelSettings settings;
@@ -777,16 +778,17 @@ static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext *UNUSED(C),
       0, sgcontext->totnode, sgcontext, face_set_gesture_apply_task_cb, &settings);
 }
 
-static void sculpt_gesture_face_set_end(bContext *UNUSED(C), SculptGestureContext *sgcontext)
+static void sculpt_gesture_face_set_end(bContext * /*C*/, SculptGestureContext *sgcontext)
 {
   BKE_pbvh_update_vertex_data(sgcontext->ss->pbvh, PBVH_UpdateVisibility);
 }
 
 static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcontext,
-                                                    wmOperator *UNUSED(op))
+                                                    wmOperator * /*op*/)
 {
-  struct Mesh *mesh = BKE_mesh_from_object(sgcontext->vc.obact);
-  sgcontext->operation = MEM_callocN(sizeof(SculptGestureFaceSetOperation), "Face Set Operation");
+  Mesh *mesh = BKE_mesh_from_object(sgcontext->vc.obact);
+  sgcontext->operation = reinterpret_cast<SculptGestureOperation *>(
+      MEM_cnew<SculptGestureFaceSetOperation>(__func__));
 
   sgcontext->ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
 
@@ -803,12 +805,12 @@ static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcont
 
 /* Mask Gesture Operation. */
 
-typedef struct SculptGestureMaskOperation {
+struct SculptGestureMaskOperation {
   SculptGestureOperation op;
 
   PaintMaskFloodMode mode;
   float value;
-} SculptGestureMaskOperation;
+};
 
 static void sculpt_gesture_mask_begin(bContext *C, SculptGestureContext *sgcontext)
 {
@@ -818,9 +820,9 @@ static void sculpt_gesture_mask_begin(bContext *C, SculptGestureContext *sgconte
 
 static void mask_gesture_apply_task_cb(void *__restrict userdata,
                                        const int i,
-                                       const TaskParallelTLS *__restrict UNUSED(tls))
+                                       const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptGestureContext *sgcontext = userdata;
+  SculptGestureContext *sgcontext = static_cast<SculptGestureContext *>(userdata);
   SculptGestureMaskOperation *mask_operation = (SculptGestureMaskOperation *)sgcontext->operation;
   Object *ob = sgcontext->vc.obact;
   PBVHNode *node = sgcontext->nodes[i];
@@ -856,7 +858,7 @@ static void mask_gesture_apply_task_cb(void *__restrict userdata,
   }
 }
 
-static void sculpt_gesture_mask_apply_for_symmetry_pass(bContext *UNUSED(C),
+static void sculpt_gesture_mask_apply_for_symmetry_pass(bContext * /*C*/,
                                                         SculptGestureContext *sgcontext)
 {
   TaskParallelSettings settings;
@@ -877,7 +879,8 @@ static void sculpt_gesture_init_mask_properties(bContext *C,
                                                 SculptGestureContext *sgcontext,
                                                 wmOperator *op)
 {
-  sgcontext->operation = MEM_callocN(sizeof(SculptGestureMaskOperation), "Mask Operation");
+  sgcontext->operation = reinterpret_cast<SculptGestureOperation *>(
+      MEM_cnew<SculptGestureMaskOperation>(__func__));
 
   SculptGestureMaskOperation *mask_operation = (SculptGestureMaskOperation *)sgcontext->operation;
 
@@ -891,13 +894,13 @@ static void sculpt_gesture_init_mask_properties(bContext *C,
       sculpt_gesture_mask_apply_for_symmetry_pass;
   mask_operation->op.sculpt_gesture_end = sculpt_gesture_mask_end;
 
-  mask_operation->mode = RNA_enum_get(op->ptr, "mode");
+  mask_operation->mode = PaintMaskFloodMode(RNA_enum_get(op->ptr, "mode"));
   mask_operation->value = RNA_float_get(op->ptr, "value");
 }
 
 static void paint_mask_gesture_operator_properties(wmOperatorType *ot)
 {
-  RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", NULL);
+  RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", nullptr);
   RNA_def_float(
       ot->srna,
       "value",
@@ -912,12 +915,12 @@ static void paint_mask_gesture_operator_properties(wmOperatorType *ot)
 
 /* Trim Gesture Operation. */
 
-typedef enum eSculptTrimOperationType {
+enum eSculptTrimOperationType {
   SCULPT_GESTURE_TRIM_INTERSECT,
   SCULPT_GESTURE_TRIM_DIFFERENCE,
   SCULPT_GESTURE_TRIM_UNION,
   SCULPT_GESTURE_TRIM_JOIN,
-} eSculptTrimOperationType;
+};
 
 /* Intersect is not exposed in the UI because it does not work correctly with symmetry (it deletes
  * the symmetrical part of the mesh in the first symmetry pass). */
@@ -933,13 +936,13 @@ static EnumPropertyItem prop_trim_operation_types[] = {
      0,
      "Join",
      "Join the new mesh as separate geometry, without performing any boolean operation"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
-typedef enum eSculptTrimOrientationType {
+enum eSculptTrimOrientationType {
   SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
   SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE,
-} eSculptTrimOrientationType;
+};
 static EnumPropertyItem prop_trim_orientation_types[] = {
     {SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
      "VIEW",
@@ -951,13 +954,13 @@ static EnumPropertyItem prop_trim_orientation_types[] = {
      0,
      "Surface",
      "Use the surface normal to orientate the trimming shape"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
-typedef enum eSculptTrimExtrudeMode {
+enum eSculptTrimExtrudeMode {
   SCULPT_GESTURE_TRIM_EXTRUDE_PROJECT,
   SCULPT_GESTURE_TRIM_EXTRUDE_FIXED
-} eSculptTrimExtrudeMode;
+};
 
 static EnumPropertyItem prop_trim_extrude_modes[] = {
     {SCULPT_GESTURE_TRIM_EXTRUDE_PROJECT,
@@ -966,10 +969,10 @@ static EnumPropertyItem prop_trim_extrude_modes[] = {
      "Project",
      "Project back faces when extruding"},
     {SCULPT_GESTURE_TRIM_EXTRUDE_FIXED, "FIXED", 0, "Fixed", "Extrude back faces by fixed amount"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
-typedef struct SculptGestureTrimOperation {
+struct SculptGestureTrimOperation {
   SculptGestureOperation op;
 
   Mesh *mesh;
@@ -983,7 +986,7 @@ typedef struct SculptGestureTrimOperation {
   eSculptTrimOperationType mode;
   eSculptTrimOrientationType orientation;
   eSculptTrimExtrudeMode extrude_mode;
-} SculptGestureTrimOperation;
+};
 
 static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
 {
@@ -991,31 +994,29 @@ static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
   Mesh *trim_mesh = trim_operation->mesh;
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(trim_mesh);
-  BMesh *bm;
-  bm = BM_mesh_create(&allocsize,
-                      &((struct BMeshCreateParams){
-                          .use_toolflags = true,
-                      }));
 
-  BM_mesh_bm_from_me(bm,
-                     trim_mesh,
-                     (&(struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
-                         .calc_vert_normal = true,
-                     }));
+  BMeshCreateParams bm_create_params{};
+  bm_create_params.use_toolflags = true;
+  BMesh *bm = BM_mesh_create(&allocsize, &bm_create_params);
+
+  BMeshFromMeshParams bm_from_me_params{};
+  bm_from_me_params.calc_face_normal = true;
+  bm_from_me_params.calc_vert_normal = true;
+  BM_mesh_bm_from_me(bm, trim_mesh, &bm_from_me_params);
+
   BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, false);
   BMO_op_callf(bm,
                (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
                "recalc_face_normals faces=%hf",
                BM_ELEM_TAG);
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
-  Mesh *result = BKE_mesh_from_bmesh_nomain(bm,
-                                            (&(struct BMeshToMeshParams){
-                                                .calc_object_remap = false,
-                                            }),
-                                            trim_mesh);
+
+  BMeshToMeshParams convert_params{};
+  convert_params.calc_object_remap = false;
+  Mesh *result = BKE_mesh_from_bmesh_nomain(bm, &convert_params, trim_mesh);
+
   BM_mesh_free(bm);
-  BKE_id_free(NULL, trim_mesh);
+  BKE_id_free(nullptr, trim_mesh);
   trim_operation->mesh = result;
 }
 
@@ -1142,7 +1143,8 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   const int trim_totpolys = (2 * (tot_screen_points - 2)) + (2 * tot_screen_points);
   trim_operation->mesh = BKE_mesh_new_nomain(
       trim_totverts, 0, 0, trim_totpolys * 3, trim_totpolys);
-  trim_operation->true_mesh_co = MEM_malloc_arrayN(trim_totverts, sizeof(float[3]), "mesh orco");
+  trim_operation->true_mesh_co = static_cast<float(*)[3]>(
+      MEM_malloc_arrayN(trim_totverts, sizeof(float[3]), "mesh orco"));
 
   float depth_front = trim_operation->depth_front;
   float depth_back = trim_operation->depth_back;
@@ -1213,7 +1215,8 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   /* Get the triangulation for the front/back poly. */
   const int tot_tris_face = tot_screen_points - 2;
-  uint(*r_tris)[3] = MEM_malloc_arrayN(tot_tris_face, sizeof(uint[3]), "tris");
+  uint(*r_tris)[3] = static_cast<uint(*)[3]>(
+      MEM_malloc_arrayN(tot_tris_face, sizeof(uint[3]), "tris"));
   BLI_polyfill_calc(screen_points, tot_screen_points, 0, r_tris);
 
   /* Write the front face triangle indices. */
@@ -1222,7 +1225,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   MPoly *mp = polys;
   MLoop *ml = loops;
   for (int i = 0; i < tot_tris_face; i++, mp++, ml += 3) {
-    mp->loopstart = (int)(ml - loops);
+    mp->loopstart = int(ml - loops);
     mp->totloop = 3;
     ml[0].v = r_tris[i][0];
     ml[1].v = r_tris[i][1];
@@ -1231,7 +1234,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   /* Write the back face triangle indices. */
   for (int i = 0; i < tot_tris_face; i++, mp++, ml += 3) {
-    mp->loopstart = (int)(ml - loops);
+    mp->loopstart = int(ml - loops);
     mp->totloop = 3;
     ml[0].v = r_tris[i][0] + tot_screen_points;
     ml[1].v = r_tris[i][1] + tot_screen_points;
@@ -1242,7 +1245,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   /* Write the indices for the lateral triangles. */
   for (int i = 0; i < tot_screen_points; i++, mp++, ml += 3) {
-    mp->loopstart = (int)(ml - loops);
+    mp->loopstart = int(ml - loops);
     mp->totloop = 3;
     int current_index = i;
     int next_index = current_index + 1;
@@ -1255,7 +1258,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   }
 
   for (int i = 0; i < tot_screen_points; i++, mp++, ml += 3) {
-    mp->loopstart = (int)(ml - loops);
+    mp->loopstart = int(ml - loops);
     mp->totloop = 3;
     int current_index = i;
     int next_index = current_index + 1;
@@ -1274,11 +1277,11 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 static void sculpt_gesture_trim_geometry_free(SculptGestureContext *sgcontext)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
-  BKE_id_free(NULL, trim_operation->mesh);
+  BKE_id_free(nullptr, trim_operation->mesh);
   MEM_freeN(trim_operation->true_mesh_co);
 }
 
-static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
+static int bm_face_isect_pair(BMFace *f, void * /*user_data*/)
 {
   return BM_elem_flag_test(f, BM_ELEM_DRAW) ? 1 : 0;
 }
@@ -1289,30 +1292,21 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
   Mesh *sculpt_mesh = BKE_mesh_from_object(sgcontext->vc.obact);
   Mesh *trim_mesh = trim_operation->mesh;
 
-  BMesh *bm;
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
-  bm = BM_mesh_create(&allocsize,
-                      &((struct BMeshCreateParams){
-                          .use_toolflags = false,
-                      }));
 
-  BM_mesh_bm_from_me(bm,
-                     trim_mesh,
-                     &((struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
-                         .calc_vert_normal = true,
-                     }));
+  BMeshCreateParams bm_create_params{};
+  bm_create_params.use_toolflags = false;
+  BMesh *bm = BM_mesh_create(&allocsize, &bm_create_params);
 
-  BM_mesh_bm_from_me(bm,
-                     sculpt_mesh,
-                     &((struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
-                         .calc_vert_normal = true,
-                     }));
+  BMeshFromMeshParams bm_from_me_params{};
+  bm_from_me_params.calc_face_normal = true;
+  bm_from_me_params.calc_vert_normal = true;
+  BM_mesh_bm_from_me(bm, trim_mesh, &bm_from_me_params);
+  BM_mesh_bm_from_me(bm, sculpt_mesh, &bm_from_me_params);
 
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-  BMLoop *(*looptris)[3];
-  looptris = MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
+  BMLoop *(*looptris)[3] = static_cast<BMLoop *(*)[3]>(
+      MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__));
   BM_mesh_calc_tessellation_beauty(bm, looptris);
 
   BMIter iter;
@@ -1323,7 +1317,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
    * we could calculate on the fly too (before calling split). */
 
   const short ob_src_totcol = trim_mesh->totcol;
-  short *material_remap = BLI_array_alloca(material_remap, ob_src_totcol ? ob_src_totcol : 1);
+  blender::Array<short> material_remap(ob_src_totcol ? ob_src_totcol : 1);
 
   BMFace *efa;
   i = 0;
@@ -1360,19 +1354,27 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
         BLI_assert(false);
         break;
     }
-    BM_mesh_boolean(
-        bm, looptris, looptris_tot, bm_face_isect_pair, NULL, 2, true, true, false, boolean_mode);
+    BM_mesh_boolean(bm,
+                    looptris,
+                    looptris_tot,
+                    bm_face_isect_pair,
+                    nullptr,
+                    2,
+                    true,
+                    true,
+                    false,
+                    boolean_mode);
   }
 
   MEM_freeN(looptris);
 
-  Mesh *result = BKE_mesh_from_bmesh_nomain(bm,
-                                            (&(struct BMeshToMeshParams){
-                                                .calc_object_remap = false,
-                                            }),
-                                            sculpt_mesh);
+  BMeshToMeshParams convert_params{};
+  convert_params.calc_object_remap = false;
+  Mesh *result = BKE_mesh_from_bmesh_nomain(bm, &convert_params, sculpt_mesh);
+
   BM_mesh_free(bm);
-  BKE_mesh_nomain_to_mesh(result, sgcontext->vc.obact->data, sgcontext->vc.obact);
+  BKE_mesh_nomain_to_mesh(
+      result, static_cast<Mesh *>(sgcontext->vc.obact->data), sgcontext->vc.obact);
 }
 
 static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgcontext)
@@ -1387,10 +1389,10 @@ static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgconte
   sculpt_gesture_trim_geometry_generate(sgcontext);
   SCULPT_topology_islands_invalidate(ss);
   BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
-  SCULPT_undo_push_node(sgcontext->vc.obact, NULL, SCULPT_UNDO_GEOMETRY);
+  SCULPT_undo_push_node(sgcontext->vc.obact, nullptr, SCULPT_UNDO_GEOMETRY);
 }
 
-static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext *UNUSED(C),
+static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext * /*C*/,
                                                         SculptGestureContext *sgcontext)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
@@ -1403,30 +1405,31 @@ static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext *UNUSED(C),
   sculpt_gesture_apply_trim(sgcontext);
 }
 
-static void sculpt_gesture_trim_end(bContext *UNUSED(C), SculptGestureContext *sgcontext)
+static void sculpt_gesture_trim_end(bContext * /*C*/, SculptGestureContext *sgcontext)
 {
   Object *object = sgcontext->vc.obact;
   SculptSession *ss = object->sculpt;
   Mesh *mesh = (Mesh *)object->data;
 
-  ss->face_sets = CustomData_get_layer_named_for_write(
-      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly);
+  ss->face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly));
   if (ss->face_sets) {
     /* Assign a new Face Set ID to the new faces created by the trim operation. */
-    const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(object->data);
-    ED_sculpt_face_sets_initialize_none_to_id(object->data, next_face_set_id);
+    const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
+    ED_sculpt_face_sets_initialize_none_to_id(mesh, next_face_set_id);
   }
 
   sculpt_gesture_trim_geometry_free(sgcontext);
 
-  SCULPT_undo_push_node(sgcontext->vc.obact, NULL, SCULPT_UNDO_GEOMETRY);
-  BKE_mesh_batch_cache_dirty_tag(sgcontext->vc.obact->data, BKE_MESH_BATCH_DIRTY_ALL);
+  SCULPT_undo_push_node(sgcontext->vc.obact, nullptr, SCULPT_UNDO_GEOMETRY);
+  BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
   DEG_id_tag_update(&sgcontext->vc.obact->id, ID_RECALC_GEOMETRY);
 }
 
 static void sculpt_gesture_init_trim_properties(SculptGestureContext *sgcontext, wmOperator *op)
 {
-  sgcontext->operation = MEM_callocN(sizeof(SculptGestureTrimOperation), "Trim Operation");
+  sgcontext->operation = reinterpret_cast<SculptGestureOperation *>(
+      MEM_cnew<SculptGestureTrimOperation>(__func__));
 
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
 
@@ -1435,10 +1438,12 @@ static void sculpt_gesture_init_trim_properties(SculptGestureContext *sgcontext,
       sculpt_gesture_trim_apply_for_symmetry_pass;
   trim_operation->op.sculpt_gesture_end = sculpt_gesture_trim_end;
 
-  trim_operation->mode = RNA_enum_get(op->ptr, "trim_mode");
+  trim_operation->mode = eSculptTrimOperationType(RNA_enum_get(op->ptr, "trim_mode"));
   trim_operation->use_cursor_depth = RNA_boolean_get(op->ptr, "use_cursor_depth");
-  trim_operation->orientation = RNA_enum_get(op->ptr, "trim_orientation");
-  trim_operation->extrude_mode = RNA_enum_get(op->ptr, "trim_extrude_mode");
+  trim_operation->orientation = eSculptTrimOrientationType(
+      RNA_enum_get(op->ptr, "trim_orientation"));
+  trim_operation->extrude_mode = eSculptTrimExtrudeMode(
+      RNA_enum_get(op->ptr, "trim_extrude_mode"));
 
   /* If the cursor was not over the mesh, force the orientation to view. */
   if (!sgcontext->ss->gesture_initial_hit) {
@@ -1453,7 +1458,7 @@ static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
                prop_trim_operation_types,
                SCULPT_GESTURE_TRIM_DIFFERENCE,
                "Trim Mode",
-               NULL);
+               nullptr);
   RNA_def_boolean(
       ot->srna,
       "use_cursor_depth",
@@ -1465,20 +1470,20 @@ static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
                prop_trim_orientation_types,
                SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
                "Shape Orientation",
-               NULL);
+               nullptr);
   RNA_def_enum(ot->srna,
                "trim_extrude_mode",
                prop_trim_extrude_modes,
                SCULPT_GESTURE_TRIM_EXTRUDE_FIXED,
                "Extrude Mode",
-               NULL);
+               nullptr);
 }
 
 /* Project Gesture Operation. */
 
-typedef struct SculptGestureProjectOperation {
+struct SculptGestureProjectOperation {
   SculptGestureOperation operation;
-} SculptGestureProjectOperation;
+};
 
 static void sculpt_gesture_project_begin(bContext *C, SculptGestureContext *sgcontext)
 {
@@ -1488,9 +1493,9 @@ static void sculpt_gesture_project_begin(bContext *C, SculptGestureContext *sgco
 
 static void project_line_gesture_apply_task_cb(void *__restrict userdata,
                                                const int i,
-                                               const TaskParallelTLS *__restrict UNUSED(tls))
+                                               const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptGestureContext *sgcontext = userdata;
+  SculptGestureContext *sgcontext = static_cast<SculptGestureContext *>(userdata);
 
   PBVHNode *node = sgcontext->nodes[i];
   PBVHVertexIter vd;
@@ -1526,7 +1531,7 @@ static void project_line_gesture_apply_task_cb(void *__restrict userdata,
   }
 }
 
-static void sculpt_gesture_project_apply_for_symmetry_pass(bContext *UNUSED(C),
+static void sculpt_gesture_project_apply_for_symmetry_pass(bContext * /*C*/,
                                                            SculptGestureContext *sgcontext)
 {
   TaskParallelSettings settings;
@@ -1558,9 +1563,10 @@ static void sculpt_gesture_project_end(bContext *C, SculptGestureContext *sgcont
 }
 
 static void sculpt_gesture_init_project_properties(SculptGestureContext *sgcontext,
-                                                   wmOperator *UNUSED(op))
+                                                   wmOperator * /*op*/)
 {
-  sgcontext->operation = MEM_callocN(sizeof(SculptGestureFaceSetOperation), "Project Operation");
+  sgcontext->operation = reinterpret_cast<SculptGestureOperation *>(
+      MEM_cnew<SculptGestureFaceSetOperation>(__func__));
 
   SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
                                                          sgcontext->operation;
@@ -1662,7 +1668,7 @@ static int sculpt_trim_gesture_box_invoke(bContext *C, wmOperator *op, const wmE
   SculptSession *ss = ob->sculpt;
 
   SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {UNPACK2(event->mval)};
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SCULPT_vertex_random_access_ensure(ss);
   ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
   if (ss->gesture_initial_hit) {
@@ -1703,7 +1709,7 @@ static int sculpt_trim_gesture_lasso_invoke(bContext *C, wmOperator *op, const w
   SculptSession *ss = ob->sculpt;
 
   SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {UNPACK2(event->mval)};
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SCULPT_vertex_random_access_ensure(ss);
   ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
   if (ss->gesture_initial_hit) {

@@ -52,34 +52,35 @@
 
 struct WPaintPrev {
   /* previous vertex weights */
-  struct MDeformVert *wpaint_prev;
+  MDeformVert *wpaint_prev;
   /* allocation size of prev buffers */
   int tot;
 };
 
-static void wpaint_prev_init(struct WPaintPrev *wpp)
+static void wpaint_prev_init(WPaintPrev *wpp)
 {
-  wpp->wpaint_prev = NULL;
+  wpp->wpaint_prev = nullptr;
   wpp->tot = 0;
 }
 
-static void wpaint_prev_create(struct WPaintPrev *wpp, MDeformVert *dverts, int dcount)
+static void wpaint_prev_create(WPaintPrev *wpp, MDeformVert *dverts, int dcount)
 {
   wpaint_prev_init(wpp);
 
   if (dverts && dcount) {
-    wpp->wpaint_prev = MEM_mallocN(sizeof(MDeformVert) * dcount, "wpaint prev");
+    wpp->wpaint_prev = static_cast<MDeformVert *>(
+        MEM_malloc_arrayN(dcount, sizeof(MDeformVert), __func__));
     wpp->tot = dcount;
     BKE_defvert_array_copy(wpp->wpaint_prev, dverts, dcount);
   }
 }
 
-static void wpaint_prev_destroy(struct WPaintPrev *wpp)
+static void wpaint_prev_destroy(WPaintPrev *wpp)
 {
   if (wpp->wpaint_prev) {
     BKE_defvert_array_free(wpp->wpaint_prev, wpp->tot);
   }
-  wpp->wpaint_prev = NULL;
+  wpp->wpaint_prev = nullptr;
   wpp->tot = 0;
 }
 
@@ -102,7 +103,7 @@ static int weight_from_bones_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Object *armob = BKE_modifiers_is_deformed_by_armature(ob);
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   int type = RNA_enum_get(op->ptr, "type");
 
   ED_object_vgroup_calc_from_armature(
@@ -124,7 +125,7 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
        0,
        "From Envelopes",
        "Weights from envelopes with user defined radius"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
@@ -203,7 +204,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
       float vgroup_weight = BKE_defvert_find_weight(&dvert[v_idx_best], vgroup_active);
       const int defbase_tot = BLI_listbase_count(&me->vertex_group_names);
       bool use_lock_relative = ts->wpaint_lock_relative;
-      bool *defbase_locked = NULL, *defbase_unlocked = NULL;
+      bool *defbase_locked = nullptr, *defbase_unlocked = nullptr;
 
       if (use_lock_relative) {
         defbase_locked = BKE_object_defgroup_lock_flags_get(vc.obact, defbase_tot);
@@ -257,7 +258,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   if (changed) {
     /* not really correct since the brush didn't change, but redraws the toolbar */
-    WM_main_add_notifier(NC_BRUSH | NA_EDITED, NULL); /* ts->wpaint->paint.brush */
+    WM_main_add_notifier(NC_BRUSH | NA_EDITED, nullptr); /* ts->wpaint->paint.brush */
 
     return OPERATOR_FINISHED;
   }
@@ -303,8 +304,8 @@ static bool weight_paint_sample_enum_itemf__helper(const MDeformVert *dvert,
   return found;
 }
 static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
-                                                              PointerRNA *UNUSED(ptr),
-                                                              PropertyRNA *UNUSED(prop),
+                                                              PointerRNA * /*ptr*/,
+                                                              PropertyRNA * /*prop*/,
                                                               bool *r_free)
 {
   if (C) {
@@ -323,7 +324,7 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
       if (me && dverts && vc.v3d && vc.rv3d && me->vertex_group_names.first) {
         const int defbase_tot = BLI_listbase_count(&me->vertex_group_names);
         const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
-        int *groups = MEM_callocN(defbase_tot * sizeof(int), "groups");
+        int *groups = static_cast<int *>(MEM_callocN(defbase_tot * sizeof(int), "groups"));
         bool found = false;
         uint index;
 
@@ -357,11 +358,13 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
           MEM_freeN(groups);
         }
         else {
-          EnumPropertyItem *item = NULL, item_tmp = {0};
+          EnumPropertyItem *item = nullptr, item_tmp = {0};
           int totitem = 0;
           int i = 0;
           bDeformGroup *dg;
-          for (dg = me->vertex_group_names.first; dg && i < defbase_tot; i++, dg = dg->next) {
+          for (dg = static_cast<bDeformGroup *>(me->vertex_group_names.first);
+               dg && i < defbase_tot;
+               i++, dg = dg->next) {
             if (groups[i]) {
               item_tmp.identifier = item_tmp.name = dg->name;
               item_tmp.value = i;
@@ -402,7 +405,7 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
   /* TODO: we could make this a menu into #OBJECT_OT_vertex_group_set_active
    * rather than its own operator */
 
-  PropertyRNA *prop = NULL;
+  PropertyRNA *prop = nullptr;
 
   /* identifiers */
   ot->name = "Weight Paint Sample Group";
@@ -434,7 +437,7 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 /* fills in the selected faces with the current weight and vertex group */
 static bool weight_paint_set(Object *ob, float paintweight)
 {
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   const MPoly *mp;
   MDeformWeight *dw, *dw_prev;
   int vgroup_active, vgroup_mirror = -1;
@@ -448,7 +451,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
   const MLoop *loops = BKE_mesh_loops(me);
   MDeformVert *dvert = BKE_mesh_deform_verts_for_write(me);
 
-  if (me->totpoly == 0 || dvert == NULL) {
+  if (me->totpoly == 0 || dvert == nullptr) {
     return false;
   }
 
@@ -459,7 +462,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
     vgroup_mirror = ED_wpaint_mirror_vgroup_ensure(ob, vgroup_active);
   }
 
-  struct WPaintPrev wpp;
+  WPaintPrev wpp;
   wpaint_prev_create(&wpp, dvert, me->totvert);
 
   const bool *select_vert = (const bool *)CustomData_get_layer_named(
@@ -490,7 +493,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
 
           if (me->symmetry & ME_SYMMETRY_X) {
             /* x mirror painting */
-            int j = mesh_get_x_mirror_vert(ob, NULL, vidx, topology);
+            int j = mesh_get_x_mirror_vert(ob, nullptr, vidx, topology);
             if (j >= 0) {
               /* copy, not paint again */
               if (vgroup_mirror != -1) {
@@ -528,13 +531,13 @@ static bool weight_paint_set(Object *ob, float paintweight)
 
 static int weight_paint_set_exec(bContext *C, wmOperator *op)
 {
-  struct Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_scene(C);
   Object *obact = CTX_data_active_object(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   Brush *brush = BKE_paint_brush(&ts->wpaint->paint);
   float vgroup_weight = BKE_brush_weight_get(scene, brush);
 
-  if (ED_wpaint_ensure_data(C, op->reports, WPAINT_ENSURE_MIRROR, NULL) == false) {
+  if (ED_wpaint_ensure_data(C, op->reports, WPAINT_ENSURE_MIRROR, nullptr) == false) {
     return OPERATOR_CANCELLED;
   }
 
@@ -567,23 +570,25 @@ void PAINT_OT_weight_set(wmOperatorType *ot)
  * \{ */
 
 /* *** VGroups Gradient *** */
-typedef struct WPGradient_vertStore {
-  float sco[2];
-  float weight_orig;
-  enum {
+struct WPGradient_vertStore {
+  enum Flag {
     VGRAD_STORE_NOP = 0,
     VGRAD_STORE_DW_EXIST = (1 << 0),
     VGRAD_STORE_IS_MODIFIED = (1 << 1)
-  } flag;
-} WPGradient_vertStore;
+  };
+  float sco[2];
+  float weight_orig;
+  Flag flag;
+};
+ENUM_OPERATORS(WPGradient_vertStore::Flag, WPGradient_vertStore::VGRAD_STORE_IS_MODIFIED);
 
-typedef struct WPGradient_vertStoreBase {
-  struct WPaintPrev wpp;
+struct WPGradient_vertStoreBase {
+  WPaintPrev wpp;
   WPGradient_vertStore elem[0];
-} WPGradient_vertStoreBase;
+};
 
-typedef struct WPGradient_userData {
-  struct ARegion *region;
+struct WPGradient_userData {
+  ARegion *region;
   Scene *scene;
   Mesh *me;
   MDeformVert *dvert;
@@ -603,16 +608,17 @@ typedef struct WPGradient_userData {
   bool use_vgroup_restrict;
   short type;
   float weightpaint;
-} WPGradient_userData;
+};
 
 static void gradientVert_update(WPGradient_userData *grad_data, int index)
 {
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
 
   /* Optionally restrict to assigned vertices only. */
-  if (grad_data->use_vgroup_restrict && ((vs->flag & VGRAD_STORE_DW_EXIST) == 0)) {
+  if (grad_data->use_vgroup_restrict &&
+      ((vs->flag & WPGradient_vertStore::VGRAD_STORE_DW_EXIST) == 0)) {
     /* In this case the vertex will never have been touched. */
-    BLI_assert((vs->flag & VGRAD_STORE_IS_MODIFIED) == 0);
+    BLI_assert((vs->flag & WPGradient_vertStore::VGRAD_STORE_IS_MODIFIED) == 0);
     return;
   }
 
@@ -641,12 +647,12 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
         tool, vs->weight_orig, grad_data->weightpaint, alpha * grad_data->brush->alpha);
     CLAMP(testw, 0.0f, 1.0f);
     dw->weight = testw;
-    vs->flag |= VGRAD_STORE_IS_MODIFIED;
+    vs->flag |= WPGradient_vertStore::VGRAD_STORE_IS_MODIFIED;
   }
   else {
     MDeformVert *dv = &grad_data->dvert[index];
-    if (vs->flag & VGRAD_STORE_DW_EXIST) {
-      /* normally we NULL check, but in this case we know it exists */
+    if (vs->flag & WPGradient_vertStore::VGRAD_STORE_DW_EXIST) {
+      /* normally we nullptr check, but in this case we know it exists */
       MDeformWeight *dw = BKE_defvert_find_index(dv, grad_data->def_nr);
       dw->weight = vs->weight_orig;
     }
@@ -657,16 +663,16 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
         BKE_defvert_remove_group(dv, dw);
       }
     }
-    vs->flag &= ~VGRAD_STORE_IS_MODIFIED;
+    vs->flag &= ~WPGradient_vertStore::VGRAD_STORE_IS_MODIFIED;
   }
 }
 
 static void gradientVertUpdate__mapFunc(void *userData,
                                         int index,
-                                        const float UNUSED(co[3]),
-                                        const float UNUSED(no[3]))
+                                        const float /*co*/[3],
+                                        const float /*no*/[3])
 {
-  WPGradient_userData *grad_data = userData;
+  WPGradient_userData *grad_data = static_cast<WPGradient_userData *>(userData);
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
 
   if (vs->sco[0] == FLT_MAX) {
@@ -679,9 +685,9 @@ static void gradientVertUpdate__mapFunc(void *userData,
 static void gradientVertInit__mapFunc(void *userData,
                                       int index,
                                       const float co[3],
-                                      const float UNUSED(no[3]))
+                                      const float /*no*/[3])
 {
-  WPGradient_userData *grad_data = userData;
+  WPGradient_userData *grad_data = static_cast<WPGradient_userData *>(userData);
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
 
   if (grad_data->use_select && (grad_data->select_vert && !grad_data->select_vert[index])) {
@@ -709,11 +715,11 @@ static void gradientVertInit__mapFunc(void *userData,
   const MDeformWeight *dw = BKE_defvert_find_index(dv, grad_data->def_nr);
   if (dw) {
     vs->weight_orig = dw->weight;
-    vs->flag = VGRAD_STORE_DW_EXIST;
+    vs->flag = WPGradient_vertStore::VGRAD_STORE_DW_EXIST;
   }
   else {
     vs->weight_orig = 0.0f;
-    vs->flag = VGRAD_STORE_NOP;
+    vs->flag = WPGradient_vertStore::VGRAD_STORE_NOP;
   }
   BLI_BITMAP_ENABLE(grad_data->vert_visit, index);
   gradientVert_update(grad_data, index);
@@ -721,8 +727,9 @@ static void gradientVertInit__mapFunc(void *userData,
 
 static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  wmGesture *gesture = op->customdata;
-  WPGradient_vertStoreBase *vert_cache = gesture->user_data.data;
+  wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
+  WPGradient_vertStoreBase *vert_cache = static_cast<WPGradient_vertStoreBase *>(
+      gesture->user_data.data);
   int ret = WM_gesture_straightline_modal(C, op, event);
 
   if (ret & OPERATOR_RUNNING_MODAL) {
@@ -736,8 +743,8 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEven
 
   if (ret & OPERATOR_CANCELLED) {
     Object *ob = CTX_data_active_object(C);
-    if (vert_cache != NULL) {
-      Mesh *me = ob->data;
+    if (vert_cache != nullptr) {
+      Mesh *me = static_cast<Mesh *>(ob->data);
       if (vert_cache->wpp.wpaint_prev) {
         MDeformVert *dvert = BKE_mesh_deform_verts_for_write(me);
         BKE_defvert_array_free_elems(dvert, me->totvert);
@@ -760,27 +767,27 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEven
 
 static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 {
-  wmGesture *gesture = op->customdata;
+  wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
   WPGradient_vertStoreBase *vert_cache;
-  struct ARegion *region = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   MDeformVert *dverts = BKE_mesh_deform_verts_for_write(me);
   int x_start = RNA_int_get(op->ptr, "xstart");
   int y_start = RNA_int_get(op->ptr, "ystart");
   int x_end = RNA_int_get(op->ptr, "xend");
   int y_end = RNA_int_get(op->ptr, "yend");
-  const float sco_start[2] = {x_start, y_start};
-  const float sco_end[2] = {x_end, y_end};
-  const bool is_interactive = (gesture != NULL);
+  const float sco_start[2] = {float(x_start), float(y_start)};
+  const float sco_end[2] = {float(x_end), float(y_end)};
+  const bool is_interactive = (gesture != nullptr);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
-  WPGradient_userData data = {NULL};
+  WPGradient_userData data = {nullptr};
 
   if (is_interactive) {
-    if (gesture->user_data.data == NULL) {
+    if (gesture->user_data.data == nullptr) {
       gesture->user_data.data = MEM_mallocN(sizeof(WPGradient_vertStoreBase) +
                                                 (sizeof(WPGradient_vertStore) * me->totvert),
                                             __func__);
@@ -796,21 +803,22 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
       }
     }
 
-    vert_cache = gesture->user_data.data;
+    vert_cache = static_cast<WPGradient_vertStoreBase *>(gesture->user_data.data);
   }
   else {
-    if (ED_wpaint_ensure_data(C, op->reports, 0, NULL) == false) {
+    if (ED_wpaint_ensure_data(C, op->reports, eWPaintFlag(0), nullptr) == false) {
       return OPERATOR_CANCELLED;
     }
 
     data.is_init = true;
-    vert_cache = MEM_mallocN(
-        sizeof(WPGradient_vertStoreBase) + (sizeof(WPGradient_vertStore) * me->totvert), __func__);
+    vert_cache = static_cast<WPGradient_vertStoreBase *>(MEM_mallocN(
+        sizeof(WPGradient_vertStoreBase) + (sizeof(WPGradient_vertStore) * me->totvert),
+        __func__));
   }
 
   data.region = region;
   data.scene = scene;
-  data.me = ob->data;
+  data.me = me;
   data.dvert = dverts;
   data.select_vert = (const bool *)CustomData_get_layer_named(
       &me->vdata, CD_PROP_BOOL, ".select_vert");
@@ -820,13 +828,13 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   data.def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
   data.use_select = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) != 0;
   data.vert_cache = vert_cache;
-  data.vert_visit = NULL;
+  data.vert_visit = nullptr;
   data.type = RNA_enum_get(op->ptr, "type");
 
   {
     ToolSettings *ts = CTX_data_tool_settings(C);
     VPaint *wp = ts->wpaint;
-    struct Brush *brush = BKE_paint_brush(&wp->paint);
+    Brush *brush = BKE_paint_brush(&wp->paint);
 
     BKE_curvemapping_init(brush->curve);
 
@@ -835,7 +843,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
     data.use_vgroup_restrict = (ts->wpaint->flag & VP_FLAG_VGROUP_RESTRICT) != 0;
   }
 
-  ED_view3d_init_mats_rv3d(ob, region->regiondata);
+  ED_view3d_init_mats_rv3d(ob, static_cast<RegionView3D *>(region->regiondata));
 
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
@@ -851,7 +859,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
     BKE_mesh_foreach_mapped_vert(me_eval, gradientVertInit__mapFunc, &data, MESH_FOREACH_NOP);
 
     MEM_freeN(data.vert_visit);
-    data.vert_visit = NULL;
+    data.vert_visit = nullptr;
   }
   else {
     BKE_mesh_foreach_mapped_vert(me_eval, gradientVertUpdate__mapFunc, &data, MESH_FOREACH_NOP);
@@ -867,10 +875,10 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   if (scene->toolsettings->auto_normalize) {
     const int vgroup_num = BLI_listbase_count(&me->vertex_group_names);
     bool *vgroup_validmap = BKE_object_defgroup_validmap_get(ob, vgroup_num);
-    if (vgroup_validmap != NULL) {
+    if (vgroup_validmap != nullptr) {
       MDeformVert *dvert = dverts;
       for (int i = 0; i < me->totvert; i++) {
-        if ((data.vert_cache->elem[i].flag & VGRAD_STORE_IS_MODIFIED) != 0) {
+        if ((data.vert_cache->elem[i].flag & WPGradient_vertStore::VGRAD_STORE_IS_MODIFIED) != 0) {
           BKE_defvert_normalize_lock_single(&dvert[i], vgroup_validmap, vgroup_num, data.def_nr);
         }
       }
@@ -885,17 +893,17 @@ static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, const wmEve
 {
   int ret;
 
-  if (ED_wpaint_ensure_data(C, op->reports, 0, NULL) == false) {
+  if (ED_wpaint_ensure_data(C, op->reports, eWPaintFlag(0), nullptr) == false) {
     return OPERATOR_CANCELLED;
   }
 
   ret = WM_gesture_straightline_invoke(C, op, event);
   if (ret & OPERATOR_RUNNING_MODAL) {
-    struct ARegion *region = CTX_wm_region(C);
+    ARegion *region = CTX_wm_region(C);
     if (region->regiontype == RGN_TYPE_WINDOW) {
       /* TODO: hard-coded, extend `WM_gesture_straightline_*`. */
       if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
-        wmGesture *gesture = op->customdata;
+        wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
         gesture->is_active = true;
       }
     }
@@ -909,7 +917,7 @@ void PAINT_OT_weight_gradient(wmOperatorType *ot)
   static const EnumPropertyItem gradient_types[] = {
       {WPAINT_GRADIENT_TYPE_LINEAR, "LINEAR", 0, "Linear", ""},
       {WPAINT_GRADIENT_TYPE_RADIAL, "RADIAL", 0, "Radial", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   PropertyRNA *prop;

@@ -51,14 +51,14 @@ set(SRC
   paint_image_2d_curve_mask.cc
   paint_image_ops_paint.cc
   paint_image_proj.cc
-  paint_mask.c
+  paint_mask.cc
   paint_ops.c
   paint_stroke.c
   paint_utils.c
   paint_vertex.cc
   paint_vertex_color_ops.cc
   paint_vertex_proj.c
-  paint_vertex_weight_ops.c
+  paint_vertex_weight_ops.cc
   paint_vertex_weight_utils.c
   sculpt.cc
   sculpt_automasking.cc
@@ -67,12 +67,12 @@ set(SRC
   sculpt_cloth.c
   sculpt_detail.c
   sculpt_dyntopo.cc
-  sculpt_expand.c
+  sculpt_expand.cc
   sculpt_face_set.cc
   sculpt_filter_color.c
   sculpt_filter_mask.c
   sculpt_filter_mesh.c
-  sculpt_geodesic.c
+  sculpt_geodesic.cc
   sculpt_mask_expand.c
   sculpt_mask_init.c
   sculpt_multiplane_scrape.c
