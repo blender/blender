@@ -390,6 +390,22 @@ static BLI_bitmap *sculpt_expand_boundary_from_enabled(SculptSession *ss,
   return boundary_verts;
 }
 
+static void sculpt_expand_check_topology_islands(Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+
+  ss->expand_cache->check_islands = ELEM(ss->expand_cache->falloff_type,
+                                         SCULPT_EXPAND_FALLOFF_GEODESIC,
+                                         SCULPT_EXPAND_FALLOFF_TOPOLOGY,
+                                         SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY);
+
+  if (ss->expand_cache->check_islands) {
+    SCULPT_topology_islands_ensure(ob);
+    ss->expand_cache->initial_island_key = SCULPT_vertex_island_get(
+        ss, ss->expand_cache->initial_active_vertex);
+  }
+}
+
 /* Functions implementing different algorithms for initializing falloff values. */
 
 /**
@@ -1250,6 +1266,11 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
     const float initial_mask = *vd.mask;
     const bool enabled = sculpt_expand_state_get(ss, expand_cache, vd.vertex);
 
+    if (expand_cache->check_islands &&
+        SCULPT_vertex_island_get(ss, vd.vertex) != expand_cache->initial_island_key) {
+      continue;
+    }
+
     float new_mask;
 
     if (enabled) {
@@ -1842,6 +1863,9 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         return OPERATOR_FINISHED;
       }
       case SCULPT_EXPAND_MODAL_FALLOFF_GEODESIC: {
+        expand_cache->falloff_gradient = SCULPT_EXPAND_MODAL_FALLOFF_GEODESIC;
+        sculpt_expand_check_topology_islands(ob);
+
         sculpt_expand_falloff_factors_from_vertex_and_symm_create(
             expand_cache,
             sd,
@@ -1851,6 +1875,9 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         break;
       }
       case SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY: {
+        expand_cache->falloff_gradient = SCULPT_EXPAND_FALLOFF_TOPOLOGY;
+        sculpt_expand_check_topology_islands(ob);
+
         sculpt_expand_falloff_factors_from_vertex_and_symm_create(
             expand_cache,
             sd,
@@ -1860,6 +1887,9 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         break;
       }
       case SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY_DIAGONALS: {
+        expand_cache->falloff_gradient = SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY_DIAGONALS;
+        sculpt_expand_check_topology_islands(ob);
+
         sculpt_expand_falloff_factors_from_vertex_and_symm_create(
             expand_cache,
             sd,
@@ -1869,6 +1899,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         break;
       }
       case SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL: {
+        expand_cache->check_islands = false;
         sculpt_expand_falloff_factors_from_vertex_and_symm_create(
             expand_cache,
             sd,
@@ -2212,6 +2243,8 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   sculpt_expand_falloff_factors_from_vertex_and_symm_create(
       ss->expand_cache, sd, ob, ss->expand_cache->initial_active_vertex, falloff_type);
+
+  sculpt_expand_check_topology_islands(ob);
 
   /* Initial mesh data update, resets all target data in the sculpt mesh. */
   sculpt_expand_update_for_vertex(C, ob, ss->expand_cache->initial_active_vertex);

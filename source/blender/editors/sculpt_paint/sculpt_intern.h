@@ -818,6 +818,9 @@ typedef struct ExpandCache {
   float *original_mask;
   int *original_face_sets;
   float (*original_colors)[4];
+
+  int initial_island_key;
+  bool check_islands;
 } ExpandCache;
 /** \} */
 
