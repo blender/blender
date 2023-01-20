@@ -65,7 +65,7 @@ BLI_INLINE int ptex_face_resolution_get(const MPoly *poly, int resolution)
 /** \name Context which is passed to all threaded tasks
  * \{ */
 
-typedef struct SubdivForeachTaskContext {
+struct SubdivForeachTaskContext {
   const Mesh *coarse_mesh;
   const MEdge *coarse_edges;
   const MPoly *coarse_polys;
@@ -109,7 +109,7 @@ typedef struct SubdivForeachTaskContext {
    *   were already evaluated.
    */
   BLI_bitmap *coarse_edges_used_map;
-} SubdivForeachTaskContext;
+};
 
 /** \} */
 
@@ -120,7 +120,7 @@ typedef struct SubdivForeachTaskContext {
 static void *subdiv_foreach_tls_alloc(SubdivForeachTaskContext *ctx)
 {
   const SubdivForeachContext *foreach_context = ctx->foreach_context;
-  void *tls = NULL;
+  void *tls = nullptr;
   if (foreach_context->user_data_tls_size != 0) {
     tls = MEM_mallocN(foreach_context->user_data_tls_size, "tls");
     memcpy(tls, foreach_context->user_data_tls, foreach_context->user_data_tls_size);
@@ -130,10 +130,10 @@ static void *subdiv_foreach_tls_alloc(SubdivForeachTaskContext *ctx)
 
 static void subdiv_foreach_tls_free(SubdivForeachTaskContext *ctx, void *tls)
 {
-  if (tls == NULL) {
+  if (tls == nullptr) {
     return;
   }
-  if (ctx->foreach_context != NULL) {
+  if (ctx->foreach_context != nullptr) {
     ctx->foreach_context->user_data_tls_free(tls);
   }
   MEM_freeN(tls);
@@ -260,12 +260,12 @@ static void subdiv_foreach_ctx_init(Subdiv *subdiv, SubdivForeachTaskContext *ct
   /* Allocate maps and offsets. */
   ctx->coarse_vertices_used_map = BLI_BITMAP_NEW(coarse_mesh->totvert, "vertices used map");
   ctx->coarse_edges_used_map = BLI_BITMAP_NEW(coarse_mesh->totedge, "edges used map");
-  ctx->subdiv_vertex_offset = MEM_malloc_arrayN(
-      coarse_mesh->totpoly, sizeof(*ctx->subdiv_vertex_offset), "vertex_offset");
-  ctx->subdiv_edge_offset = MEM_malloc_arrayN(
-      coarse_mesh->totpoly, sizeof(*ctx->subdiv_edge_offset), "subdiv_edge_offset");
-  ctx->subdiv_polygon_offset = MEM_malloc_arrayN(
-      coarse_mesh->totpoly, sizeof(*ctx->subdiv_polygon_offset), "subdiv_edge_offset");
+  ctx->subdiv_vertex_offset = static_cast<int *>(MEM_malloc_arrayN(
+      coarse_mesh->totpoly, sizeof(*ctx->subdiv_vertex_offset), "vertex_offset"));
+  ctx->subdiv_edge_offset = static_cast<int *>(MEM_malloc_arrayN(
+      coarse_mesh->totpoly, sizeof(*ctx->subdiv_edge_offset), "subdiv_edge_offset"));
+  ctx->subdiv_polygon_offset = static_cast<int *>(MEM_malloc_arrayN(
+      coarse_mesh->totpoly, sizeof(*ctx->subdiv_polygon_offset), "subdiv_edge_offset"));
   /* Initialize all offsets. */
   subdiv_foreach_ctx_init_offsets(ctx);
   /* Calculate number of geometry in the result subdivision mesh. */
@@ -399,7 +399,7 @@ static void subdiv_foreach_every_corner_vertices_special(SubdivForeachTaskContex
 
 static void subdiv_foreach_every_corner_vertices(SubdivForeachTaskContext *ctx, void *tls)
 {
-  if (ctx->foreach_context->vertex_every_corner == NULL) {
+  if (ctx->foreach_context->vertex_every_corner == nullptr) {
     return;
   }
   const Mesh *coarse_mesh = ctx->coarse_mesh;
@@ -576,7 +576,7 @@ static void subdiv_foreach_every_edge_vertices_special(SubdivForeachTaskContext 
 
 static void subdiv_foreach_every_edge_vertices(SubdivForeachTaskContext *ctx, void *tls)
 {
-  if (ctx->foreach_context->vertex_every_edge == NULL) {
+  if (ctx->foreach_context->vertex_every_edge == nullptr) {
     return;
   }
   const Mesh *coarse_mesh = ctx->coarse_mesh;
@@ -672,7 +672,7 @@ static void subdiv_foreach_inner_vertices(SubdivForeachTaskContext *ctx,
 /* Traverse all vertices which are emitted from given coarse polygon. */
 static void subdiv_foreach_vertices(SubdivForeachTaskContext *ctx, void *tls, const int poly_index)
 {
-  if (ctx->foreach_context->vertex_inner != NULL) {
+  if (ctx->foreach_context->vertex_inner != nullptr) {
     subdiv_foreach_inner_vertices(ctx, tls, &ctx->coarse_polys[poly_index]);
   }
 }
@@ -1664,7 +1664,7 @@ static void subdiv_foreach_loose_vertices_task(void *__restrict userdata,
                                                const int coarse_vertex_index,
                                                const TaskParallelTLS *__restrict tls)
 {
-  SubdivForeachTaskContext *ctx = userdata;
+  SubdivForeachTaskContext *ctx = static_cast<SubdivForeachTaskContext *>(userdata);
   if (BLI_BITMAP_TEST_BOOL(ctx->coarse_vertices_used_map, coarse_vertex_index)) {
     /* Vertex is not loose, was handled when handling polygons. */
     return;
@@ -1678,7 +1678,7 @@ static void subdiv_foreach_vertices_of_loose_edges_task(void *__restrict userdat
                                                         const int coarse_edge_index,
                                                         const TaskParallelTLS *__restrict tls)
 {
-  SubdivForeachTaskContext *ctx = userdata;
+  SubdivForeachTaskContext *ctx = static_cast<SubdivForeachTaskContext *>(userdata);
   if (BLI_BITMAP_TEST_BOOL(ctx->coarse_edges_used_map, coarse_edge_index)) {
     /* Vertex is not loose, was handled when handling polygons. */
     return;
@@ -1720,7 +1720,7 @@ static void subdiv_foreach_vertices_of_loose_edges_task(void *__restrict userdat
 
 static void subdiv_foreach_single_geometry_vertices(SubdivForeachTaskContext *ctx, void *tls)
 {
-  if (ctx->foreach_context->vertex_corner == NULL) {
+  if (ctx->foreach_context->vertex_corner == nullptr) {
     return;
   }
   const Mesh *coarse_mesh = ctx->coarse_mesh;
@@ -1759,10 +1759,10 @@ static void subdiv_foreach_single_thread_tasks(SubdivForeachTaskContext *ctx)
   subdiv_foreach_tls_free(ctx, tls);
 
   const SubdivForeachContext *foreach_context = ctx->foreach_context;
-  const bool is_loose_geometry_tagged = (foreach_context->vertex_every_edge != NULL &&
-                                         foreach_context->vertex_every_corner != NULL);
-  const bool is_loose_geometry_tags_needed = (foreach_context->vertex_loose != NULL ||
-                                              foreach_context->vertex_of_loose_edge != NULL);
+  const bool is_loose_geometry_tagged = (foreach_context->vertex_every_edge != nullptr &&
+                                         foreach_context->vertex_every_corner != nullptr);
+  const bool is_loose_geometry_tags_needed = (foreach_context->vertex_loose != nullptr ||
+                                              foreach_context->vertex_of_loose_edge != nullptr);
   if (is_loose_geometry_tagged && is_loose_geometry_tags_needed) {
     subdiv_foreach_mark_non_loose_geometry(ctx);
   }
@@ -1772,17 +1772,17 @@ static void subdiv_foreach_task(void *__restrict userdata,
                                 const int poly_index,
                                 const TaskParallelTLS *__restrict tls)
 {
-  SubdivForeachTaskContext *ctx = userdata;
+  SubdivForeachTaskContext *ctx = static_cast<SubdivForeachTaskContext *>(userdata);
   /* Traverse hi-poly vertex coordinates and normals. */
   subdiv_foreach_vertices(ctx, tls->userdata_chunk, poly_index);
   /* Traverse mesh geometry for the given base poly index. */
-  if (ctx->foreach_context->edge != NULL) {
+  if (ctx->foreach_context->edge != nullptr) {
     subdiv_foreach_edges(ctx, tls->userdata_chunk, poly_index);
   }
-  if (ctx->foreach_context->loop != NULL) {
+  if (ctx->foreach_context->loop != nullptr) {
     subdiv_foreach_loops(ctx, tls->userdata_chunk, poly_index);
   }
-  if (ctx->foreach_context->poly != NULL) {
+  if (ctx->foreach_context->poly != nullptr) {
     subdiv_foreach_polys(ctx, tls->userdata_chunk, poly_index);
   }
 }
@@ -1791,13 +1791,13 @@ static void subdiv_foreach_boundary_edges_task(void *__restrict userdata,
                                                const int edge_index,
                                                const TaskParallelTLS *__restrict tls)
 {
-  SubdivForeachTaskContext *ctx = userdata;
+  SubdivForeachTaskContext *ctx = static_cast<SubdivForeachTaskContext *>(userdata);
   subdiv_foreach_boundary_edges(ctx, tls->userdata_chunk, edge_index);
 }
 
 static void subdiv_foreach_free(const void *__restrict userdata, void *__restrict userdata_chunk)
 {
-  const SubdivForeachTaskContext *ctx = userdata;
+  const SubdivForeachTaskContext *ctx = static_cast<const SubdivForeachTaskContext *>(userdata);
   ctx->foreach_context->user_data_tls_free(userdata_chunk);
 }
 
@@ -1814,7 +1814,7 @@ bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
   ctx.settings = mesh_settings;
   ctx.foreach_context = context;
   subdiv_foreach_ctx_init(subdiv, &ctx);
-  if (context->topology_info != NULL) {
+  if (context->topology_info != nullptr) {
     if (!context->topology_info(context,
                                 ctx.num_subdiv_vertices,
                                 ctx.num_subdiv_edges,
@@ -1833,7 +1833,7 @@ bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
   parallel_range_settings.userdata_chunk = context->user_data_tls;
   parallel_range_settings.userdata_chunk_size = context->user_data_tls_size;
   parallel_range_settings.min_iter_per_thread = 1;
-  if (context->user_data_tls_free != NULL) {
+  if (context->user_data_tls_free != nullptr) {
     parallel_range_settings.func_free = subdiv_foreach_free;
   }
 
@@ -1845,21 +1845,21 @@ bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
 
   BLI_task_parallel_range(
       0, coarse_mesh->totpoly, &ctx, subdiv_foreach_task, &parallel_range_settings);
-  if (context->vertex_loose != NULL) {
+  if (context->vertex_loose != nullptr) {
     BLI_task_parallel_range(0,
                             coarse_mesh->totvert,
                             &ctx,
                             subdiv_foreach_loose_vertices_task,
                             &parallel_range_settings);
   }
-  if (context->vertex_of_loose_edge != NULL) {
+  if (context->vertex_of_loose_edge != nullptr) {
     BLI_task_parallel_range(0,
                             coarse_mesh->totedge,
                             &ctx,
                             subdiv_foreach_vertices_of_loose_edges_task,
                             &parallel_range_settings);
   }
-  if (context->edge != NULL) {
+  if (context->edge != nullptr) {
     BLI_task_parallel_range(0,
                             coarse_mesh->totedge,
                             &ctx,

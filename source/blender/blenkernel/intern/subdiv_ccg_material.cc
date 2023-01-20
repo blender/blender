@@ -13,11 +13,11 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-typedef struct CCGMaterialFromMeshData {
+struct CCGMaterialFromMeshData {
   const Mesh *mesh;
   const MPoly *polys;
   const int *material_indices;
-} CCGMaterialFromMeshData;
+};
 
 static DMFlagMat subdiv_ccg_material_flags_eval(
     SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator, const int coarse_face_index)
@@ -40,8 +40,8 @@ static void subdiv_ccg_material_flags_free(
 void BKE_subdiv_ccg_material_flags_init_from_mesh(
     SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator, const Mesh *mesh)
 {
-  CCGMaterialFromMeshData *data = MEM_mallocN(sizeof(CCGMaterialFromMeshData),
-                                              "ccg material eval");
+  CCGMaterialFromMeshData *data = static_cast<CCGMaterialFromMeshData *>(
+      MEM_mallocN(sizeof(CCGMaterialFromMeshData), __func__));
   data->mesh = mesh;
   data->material_indices = (const int *)CustomData_get_layer_named(
       &mesh->pdata, CD_PROP_INT32, "material_index");

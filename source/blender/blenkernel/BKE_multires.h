@@ -41,7 +41,7 @@ void multires_flush_sculpt_updates(struct Object *object);
 void multires_force_sculpt_rebuild(struct Object *object);
 void multires_force_external_reload(struct Object *object);
 
-/* internal, only called in subsurf_ccg.c */
+/* internal, only called in subsurf_ccg.cc */
 void multires_modifier_update_mdisps(struct DerivedMesh *dm, struct Scene *scene);
 void multires_modifier_update_hidden(struct DerivedMesh *dm);
 

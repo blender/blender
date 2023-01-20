@@ -96,7 +96,7 @@ bool BKE_subdiv_settings_equal(const SubdivSettings *settings_a, const SubdivSet
 /* Creation from scratch. */
 
 Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
-                                      struct OpenSubdiv_Converter *converter)
+                                      OpenSubdiv_Converter *converter)
 {
   SubdivStats stats;
   BKE_subdiv_stats_init(&stats);
@@ -104,7 +104,7 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
   OpenSubdiv_TopologyRefinerSettings topology_refiner_settings;
   topology_refiner_settings.level = settings->level;
   topology_refiner_settings.is_adaptive = settings->is_adaptive;
-  struct OpenSubdiv_TopologyRefiner *osd_topology_refiner = NULL;
+  OpenSubdiv_TopologyRefiner *osd_topology_refiner = nullptr;
   if (converter->getNumVertices(converter) != 0) {
     osd_topology_refiner = openSubdiv_createTopologyRefinerFromConverter(
         converter, &topology_refiner_settings);
@@ -114,11 +114,11 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
      * The thing here is: OpenSubdiv can only deal with faces, but our
      * side of subdiv also deals with loose vertices and edges. */
   }
-  Subdiv *subdiv = MEM_callocN(sizeof(Subdiv), "subdiv from converter");
+  Subdiv *subdiv = MEM_cnew<Subdiv>(__func__);
   subdiv->settings = *settings;
   subdiv->topology_refiner = osd_topology_refiner;
-  subdiv->evaluator = NULL;
-  subdiv->displacement_evaluator = NULL;
+  subdiv->evaluator = nullptr;
+  subdiv->displacement_evaluator = nullptr;
   BKE_subdiv_stats_end(&stats, SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME);
   subdiv->stats = stats;
   return subdiv;
@@ -127,7 +127,7 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
 Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings, const Mesh *mesh)
 {
   if (mesh->totvert == 0) {
-    return NULL;
+    return nullptr;
   }
   OpenSubdiv_Converter converter;
   BKE_subdiv_converter_init_for_mesh(&converter, settings, mesh);
@@ -144,7 +144,7 @@ Subdiv *BKE_subdiv_update_from_converter(Subdiv *subdiv,
 {
   /* Check if the existing descriptor can be re-used. */
   bool can_reuse_subdiv = true;
-  if (subdiv != NULL && subdiv->topology_refiner != NULL) {
+  if (subdiv != nullptr && subdiv->topology_refiner != nullptr) {
     if (!BKE_subdiv_settings_equal(&subdiv->settings, settings)) {
       can_reuse_subdiv = false;
     }
@@ -162,7 +162,7 @@ Subdiv *BKE_subdiv_update_from_converter(Subdiv *subdiv,
     return subdiv;
   }
   /* Create new subdiv. */
-  if (subdiv != NULL) {
+  if (subdiv != nullptr) {
     BKE_subdiv_free(subdiv);
   }
   return BKE_subdiv_new_from_converter(settings, converter);
@@ -183,7 +183,7 @@ Subdiv *BKE_subdiv_update_from_mesh(Subdiv *subdiv,
 
 void BKE_subdiv_free(Subdiv *subdiv)
 {
-  if (subdiv->evaluator != NULL) {
+  if (subdiv->evaluator != nullptr) {
     const eOpenSubdivEvaluator evaluator_type = subdiv->evaluator->type;
     if (evaluator_type != OPENSUBDIV_EVALUATOR_CPU) {
       /* Let the draw code do the freeing, to ensure that the OpenGL context is valid. */
@@ -192,11 +192,11 @@ void BKE_subdiv_free(Subdiv *subdiv)
     }
     openSubdiv_deleteEvaluator(subdiv->evaluator);
   }
-  if (subdiv->topology_refiner != NULL) {
+  if (subdiv->topology_refiner != nullptr) {
     openSubdiv_deleteTopologyRefiner(subdiv->topology_refiner);
   }
   BKE_subdiv_displacement_detach(subdiv);
-  if (subdiv->cache_.face_ptex_offset != NULL) {
+  if (subdiv->cache_.face_ptex_offset != nullptr) {
     MEM_freeN(subdiv->cache_.face_ptex_offset);
   }
   MEM_freeN(subdiv);
@@ -208,16 +208,16 @@ void BKE_subdiv_free(Subdiv *subdiv)
 
 int *BKE_subdiv_face_ptex_offset_get(Subdiv *subdiv)
 {
-  if (subdiv->cache_.face_ptex_offset != NULL) {
+  if (subdiv->cache_.face_ptex_offset != nullptr) {
     return subdiv->cache_.face_ptex_offset;
   }
   OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
-  if (topology_refiner == NULL) {
-    return NULL;
+  if (topology_refiner == nullptr) {
+    return nullptr;
   }
   const int num_coarse_faces = topology_refiner->getNumFaces(topology_refiner);
-  subdiv->cache_.face_ptex_offset = MEM_malloc_arrayN(
-      num_coarse_faces + 1, sizeof(int), "subdiv face_ptex_offset");
+  subdiv->cache_.face_ptex_offset = static_cast<int *>(
+      MEM_malloc_arrayN(num_coarse_faces + 1, sizeof(int), __func__));
   int ptex_offset = 0;
   for (int face_index = 0; face_index < num_coarse_faces; face_index++) {
     const int num_ptex_faces = topology_refiner->getNumFacePtexFaces(topology_refiner, face_index);

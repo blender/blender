@@ -5,7 +5,7 @@
  * \ingroup bke
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "BKE_subdiv_ccg.h"
 
@@ -22,12 +22,12 @@
 
 #include "MEM_guardedalloc.h"
 
-typedef struct PolyCornerIndex {
+struct PolyCornerIndex {
   int poly_index;
   int corner;
-} PolyCornerIndex;
+};
 
-typedef struct GridPaintMaskData {
+struct GridPaintMaskData {
   // int grid_size;
   const MPoly *mpoly;
   const GridPaintMask *grid_paint_mask;
@@ -38,7 +38,7 @@ typedef struct GridPaintMaskData {
    * there we only have one ptex.
    */
   PolyCornerIndex *ptex_poly_corner;
-} GridPaintMaskData;
+};
 
 static int mask_get_grid_and_coord(SubdivCCGMaskEvaluator *mask_evaluator,
                                    const int ptex_face_index,
@@ -48,7 +48,7 @@ static int mask_get_grid_and_coord(SubdivCCGMaskEvaluator *mask_evaluator,
                                    float *grid_u,
                                    float *grid_v)
 {
-  GridPaintMaskData *data = mask_evaluator->user_data;
+  GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
   const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
   const MPoly *poly = &data->mpoly[poly_corner->poly_index];
   const int start_grid_index = poly->loopstart + poly_corner->corner;
@@ -70,7 +70,7 @@ BLI_INLINE float read_mask_grid(const GridPaintMask *mask_grid,
                                 const float grid_u,
                                 const float grid_v)
 {
-  if (mask_grid->data == NULL) {
+  if (mask_grid->data == nullptr) {
     return 0;
   }
   const int grid_size = BKE_subdiv_grid_size_from_level(mask_grid->level);
@@ -92,7 +92,7 @@ static float eval_mask(SubdivCCGMaskEvaluator *mask_evaluator,
 
 static void free_mask_data(SubdivCCGMaskEvaluator *mask_evaluator)
 {
-  GridPaintMaskData *data = mask_evaluator->user_data;
+  GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
   MEM_freeN(data->ptex_poly_corner);
   MEM_freeN(data);
 }
@@ -113,12 +113,12 @@ static int count_num_ptex_faces(const Mesh *mesh)
 
 static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *mesh)
 {
-  GridPaintMaskData *data = mask_evaluator->user_data;
+  GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
   const MPoly *mpoly = BKE_mesh_polys(mesh);
   const int num_ptex_faces = count_num_ptex_faces(mesh);
   /* Allocate memory. */
-  data->ptex_poly_corner = MEM_malloc_arrayN(
-      num_ptex_faces, sizeof(*data->ptex_poly_corner), "ptex poly corner");
+  data->ptex_poly_corner = static_cast<PolyCornerIndex *>(
+      MEM_malloc_arrayN(num_ptex_faces, sizeof(*data->ptex_poly_corner), __func__));
   /* Fill in offsets. */
   int ptex_face_index = 0;
   PolyCornerIndex *ptex_poly_corner = data->ptex_poly_corner;
@@ -141,9 +141,10 @@ static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator, const
 
 static void mask_init_data(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *mesh)
 {
-  GridPaintMaskData *data = mask_evaluator->user_data;
+  GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
   data->mpoly = BKE_mesh_polys(mesh);
-  data->grid_paint_mask = CustomData_get_layer(&mesh->ldata, CD_GRID_PAINT_MASK);
+  data->grid_paint_mask = static_cast<const GridPaintMask *>(
+      CustomData_get_layer(&mesh->ldata, CD_GRID_PAINT_MASK));
   mask_data_init_mapping(mask_evaluator, mesh);
 }
 
@@ -153,8 +154,7 @@ static void mask_init_functions(SubdivCCGMaskEvaluator *mask_evaluator)
   mask_evaluator->free = free_mask_data;
 }
 
-bool BKE_subdiv_ccg_mask_init_from_paint(SubdivCCGMaskEvaluator *mask_evaluator,
-                                         const struct Mesh *mesh)
+bool BKE_subdiv_ccg_mask_init_from_paint(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *mesh)
 {
   if (!CustomData_get_layer(&mesh->ldata, CD_GRID_PAINT_MASK)) {
     return false;

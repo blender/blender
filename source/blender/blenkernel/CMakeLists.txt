@@ -268,22 +268,22 @@ set(SRC
   intern/sound.c
   intern/speaker.c
   intern/studiolight.c
-  intern/subdiv.c
+  intern/subdiv.cc
   intern/subdiv_ccg.cc
-  intern/subdiv_ccg_mask.c
-  intern/subdiv_ccg_material.c
-  intern/subdiv_converter.c
-  intern/subdiv_converter_mesh.c
-  intern/subdiv_deform.c
-  intern/subdiv_displacement.c
-  intern/subdiv_displacement_multires.c
-  intern/subdiv_eval.c
-  intern/subdiv_foreach.c
+  intern/subdiv_ccg_mask.cc
+  intern/subdiv_ccg_material.cc
+  intern/subdiv_converter.cc
+  intern/subdiv_converter_mesh.cc
+  intern/subdiv_deform.cc
+  intern/subdiv_displacement.cc
+  intern/subdiv_displacement_multires.cc
+  intern/subdiv_eval.cc
+  intern/subdiv_foreach.cc
   intern/subdiv_mesh.cc
   intern/subdiv_modifier.cc
-  intern/subdiv_stats.c
-  intern/subdiv_topology.c
-  intern/subsurf_ccg.c
+  intern/subdiv_stats.cc
+  intern/subdiv_topology.cc
+  intern/subsurf_ccg.cc
   intern/text.c
   intern/text_suggestions.c
   intern/texture.cc

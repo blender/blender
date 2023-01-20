@@ -27,7 +27,7 @@
 /** \name Subdivision context
  * \{ */
 
-typedef struct SubdivDeformContext {
+struct SubdivDeformContext {
   const Mesh *coarse_mesh;
   Subdiv *subdiv;
 
@@ -45,15 +45,15 @@ typedef struct SubdivDeformContext {
   int *accumulated_counters;
 
   bool have_displacement;
-} SubdivDeformContext;
+};
 
 static void subdiv_mesh_prepare_accumulator(SubdivDeformContext *ctx, int num_vertices)
 {
   if (!ctx->have_displacement) {
     return;
   }
-  ctx->accumulated_counters = MEM_calloc_arrayN(
-      num_vertices, sizeof(*ctx->accumulated_counters), "subdiv accumulated counters");
+  ctx->accumulated_counters = static_cast<int *>(
+      MEM_calloc_arrayN(num_vertices, sizeof(*ctx->accumulated_counters), __func__));
 }
 
 static void subdiv_mesh_context_free(SubdivDeformContext *ctx)
@@ -98,46 +98,47 @@ static void subdiv_accumulate_vertex_displacement(SubdivDeformContext *ctx,
  * \{ */
 
 static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_context,
-                                      const int UNUSED(num_vertices),
-                                      const int UNUSED(num_edges),
-                                      const int UNUSED(num_loops),
-                                      const int UNUSED(num_polygons),
-                                      const int *UNUSED(subdiv_polygon_offset))
+                                      const int /*num_vertices*/,
+                                      const int /*num_edges*/,
+                                      const int /*num_loops*/,
+                                      const int /*num_polygons*/,
+                                      const int * /*subdiv_polygon_offset*/)
 {
-  SubdivDeformContext *subdiv_context = foreach_context->user_data;
+  SubdivDeformContext *subdiv_context = static_cast<SubdivDeformContext *>(
+      foreach_context->user_data);
   subdiv_mesh_prepare_accumulator(subdiv_context, subdiv_context->coarse_mesh->totvert);
   return true;
 }
 
 static void subdiv_mesh_vertex_every_corner(const SubdivForeachContext *foreach_context,
-                                            void *UNUSED(tls),
+                                            void * /*tls*/,
                                             const int ptex_face_index,
                                             const float u,
                                             const float v,
                                             const int coarse_vertex_index,
-                                            const int UNUSED(coarse_poly_index),
-                                            const int UNUSED(coarse_corner),
-                                            const int UNUSED(subdiv_vertex_index))
+                                            const int /*coarse_poly_index*/,
+                                            const int /*coarse_corner*/,
+                                            const int /*subdiv_vertex_index*/)
 {
-  SubdivDeformContext *ctx = foreach_context->user_data;
+  SubdivDeformContext *ctx = static_cast<SubdivDeformContext *>(foreach_context->user_data);
   subdiv_accumulate_vertex_displacement(ctx, ptex_face_index, u, v, coarse_vertex_index);
 }
 
 static void subdiv_mesh_vertex_corner(const SubdivForeachContext *foreach_context,
-                                      void *UNUSED(tls),
+                                      void * /*tls*/,
                                       const int ptex_face_index,
                                       const float u,
                                       const float v,
                                       const int coarse_vertex_index,
-                                      const int UNUSED(coarse_poly_index),
-                                      const int UNUSED(coarse_corner),
-                                      const int UNUSED(subdiv_vertex_index))
+                                      const int /*coarse_poly_index*/,
+                                      const int /*coarse_corner*/,
+                                      const int /*subdiv_vertex_index*/)
 {
-  SubdivDeformContext *ctx = foreach_context->user_data;
+  SubdivDeformContext *ctx = static_cast<SubdivDeformContext *>(foreach_context->user_data);
   BLI_assert(coarse_vertex_index != ORIGINDEX_NONE);
   BLI_assert(coarse_vertex_index < ctx->num_verts);
   float inv_num_accumulated = 1.0f;
-  if (ctx->accumulated_counters != NULL) {
+  if (ctx->accumulated_counters != nullptr) {
     inv_num_accumulated = 1.0f / ctx->accumulated_counters[coarse_vertex_index];
   }
   /* Displacement is accumulated in subdiv vertex position.
@@ -179,8 +180,8 @@ static void setup_foreach_callbacks(const SubdivDeformContext *subdiv_context,
 /** \name Public entry point
  * \{ */
 
-void BKE_subdiv_deform_coarse_vertices(struct Subdiv *subdiv,
-                                       const struct Mesh *coarse_mesh,
+void BKE_subdiv_deform_coarse_vertices(Subdiv *subdiv,
+                                       const Mesh *coarse_mesh,
                                        float (*vertex_cos)[3],
                                        int num_verts)
 {
@@ -188,7 +189,7 @@ void BKE_subdiv_deform_coarse_vertices(struct Subdiv *subdiv,
   /* Make sure evaluator is up to date with possible new topology, and that
    * is refined for the new positions of coarse vertices. */
   if (!BKE_subdiv_eval_begin_from_mesh(
-          subdiv, coarse_mesh, vertex_cos, SUBDIV_EVALUATOR_TYPE_CPU, NULL)) {
+          subdiv, coarse_mesh, vertex_cos, SUBDIV_EVALUATOR_TYPE_CPU, nullptr)) {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our
@@ -206,7 +207,7 @@ void BKE_subdiv_deform_coarse_vertices(struct Subdiv *subdiv,
   subdiv_context.subdiv = subdiv;
   subdiv_context.vertex_cos = vertex_cos;
   subdiv_context.num_verts = num_verts;
-  subdiv_context.have_displacement = (subdiv->displacement_evaluator != NULL);
+  subdiv_context.have_displacement = (subdiv->displacement_evaluator != nullptr);
 
   SubdivForeachContext foreach_context;
   setup_foreach_callbacks(&subdiv_context, &foreach_context);

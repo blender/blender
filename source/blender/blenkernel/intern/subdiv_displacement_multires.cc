@@ -5,7 +5,7 @@
  * \ingroup bke
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "BKE_subdiv.h"
 
@@ -24,12 +24,12 @@
 
 #include "MEM_guardedalloc.h"
 
-typedef struct PolyCornerIndex {
+struct PolyCornerIndex {
   int poly_index;
   int corner;
-} PolyCornerIndex;
+};
 
-typedef struct MultiresDisplacementData {
+struct MultiresDisplacementData {
   Subdiv *subdiv;
   int grid_size;
   /* Mesh is used to read external displacement. */
@@ -49,7 +49,7 @@ typedef struct MultiresDisplacementData {
   /* Sanity check, is used in debug builds.
    * Controls that initialize() was called prior to eval_displacement(). */
   bool is_initialized;
-} MultiresDisplacementData;
+};
 
 /* Denotes which grid to use to average value of the displacement read from the
  * grid which corresponds to the ptex face. */
@@ -68,7 +68,8 @@ static int displacement_get_grid_and_coord(SubdivDisplacement *displacement,
                                            float *grid_u,
                                            float *grid_v)
 {
-  MultiresDisplacementData *data = displacement->user_data;
+  MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
+      displacement->user_data);
   const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
   const MPoly *poly = &data->mpoly[poly_corner->poly_index];
   const int start_grid_index = poly->loopstart + poly_corner->corner;
@@ -91,7 +92,8 @@ static const MDisps *displacement_get_other_grid(SubdivDisplacement *displacemen
                                                  const int corner,
                                                  const int corner_delta)
 {
-  MultiresDisplacementData *data = displacement->user_data;
+  MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
+      displacement->user_data);
   const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
   const MPoly *poly = &data->mpoly[poly_corner->poly_index];
   const int effective_corner = (poly->totloop == 4) ? corner : poly_corner->corner;
@@ -105,7 +107,7 @@ BLI_INLINE eAverageWith read_displacement_grid(const MDisps *displacement_grid,
                                                const float grid_v,
                                                float r_tangent_D[3])
 {
-  if (displacement_grid->disps == NULL) {
+  if (displacement_grid->disps == nullptr) {
     zero_v3(r_tangent_D);
     return AVERAGE_WITH_NONE;
   }
@@ -216,7 +218,8 @@ static void average_with_other(SubdivDisplacement *displacement,
                                const int corner_delta,
                                float r_D[3])
 {
-  MultiresDisplacementData *data = displacement->user_data;
+  MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
+      displacement->user_data);
   const MDisps *other_displacement_grid = displacement_get_other_grid(
       displacement, ptex_face_index, corner, corner_delta);
   int other_ptex_face_index, other_corner_index;
@@ -239,11 +242,12 @@ static void average_with_other(SubdivDisplacement *displacement,
 static void average_with_all(SubdivDisplacement *displacement,
                              const int ptex_face_index,
                              const int corner,
-                             const float UNUSED(grid_u),
-                             const float UNUSED(grid_v),
+                             const float /*grid_u*/,
+                             const float /*grid_v*/,
                              float r_D[3])
 {
-  MultiresDisplacementData *data = displacement->user_data;
+  MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
+      displacement->user_data);
   const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
   const MPoly *poly = &data->mpoly[poly_corner->poly_index];
   const int num_corners = poly->totloop;
@@ -256,7 +260,7 @@ static void average_with_next(SubdivDisplacement *displacement,
                               const int ptex_face_index,
                               const int corner,
                               const float grid_u,
-                              const float UNUSED(grid_v),
+                              const float /*grid_v*/,
                               float r_D[3])
 {
   average_with_other(displacement, ptex_face_index, corner, 0.0f, grid_u, 1, r_D);
@@ -265,7 +269,7 @@ static void average_with_next(SubdivDisplacement *displacement,
 static void average_with_prev(SubdivDisplacement *displacement,
                               const int ptex_face_index,
                               const int corner,
-                              const float UNUSED(grid_u),
+                              const float /*grid_u*/,
                               const float grid_v,
                               float r_D[3])
 {
@@ -314,7 +318,8 @@ static int displacement_get_face_corner(MultiresDisplacementData *data,
 
 static void initialize(SubdivDisplacement *displacement)
 {
-  MultiresDisplacementData *data = displacement->user_data;
+  MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
+      displacement->user_data);
   multiresModifier_ensure_external_read(data->mesh, data->mmd);
   data->is_initialized = true;
 }
@@ -327,7 +332,8 @@ static void eval_displacement(SubdivDisplacement *displacement,
                               const float dPdv[3],
                               float r_D[3])
 {
-  MultiresDisplacementData *data = displacement->user_data;
+  MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
+      displacement->user_data);
   BLI_assert(data->is_initialized);
   const int grid_size = data->grid_size;
   /* Get displacement in tangent space. */
@@ -351,7 +357,8 @@ static void eval_displacement(SubdivDisplacement *displacement,
 
 static void free_displacement(SubdivDisplacement *displacement)
 {
-  MultiresDisplacementData *data = displacement->user_data;
+  MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
+      displacement->user_data);
   MEM_freeN(data->ptex_poly_corner);
   MEM_freeN(data);
 }
@@ -371,12 +378,13 @@ static int count_num_ptex_faces(const Mesh *mesh)
 
 static void displacement_data_init_mapping(SubdivDisplacement *displacement, const Mesh *mesh)
 {
-  MultiresDisplacementData *data = displacement->user_data;
+  MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
+      displacement->user_data);
   const MPoly *mpoly = BKE_mesh_polys(mesh);
   const int num_ptex_faces = count_num_ptex_faces(mesh);
   /* Allocate memory. */
-  data->ptex_poly_corner = MEM_malloc_arrayN(
-      num_ptex_faces, sizeof(*data->ptex_poly_corner), "ptex poly corner");
+  data->ptex_poly_corner = static_cast<PolyCornerIndex *>(
+      MEM_malloc_arrayN(num_ptex_faces, sizeof(*data->ptex_poly_corner), "ptex poly corner"));
   /* Fill in offsets. */
   int ptex_face_index = 0;
   PolyCornerIndex *ptex_poly_corner = data->ptex_poly_corner;
@@ -402,13 +410,14 @@ static void displacement_init_data(SubdivDisplacement *displacement,
                                    Mesh *mesh,
                                    const MultiresModifierData *mmd)
 {
-  MultiresDisplacementData *data = displacement->user_data;
+  MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
+      displacement->user_data);
   data->subdiv = subdiv;
   data->grid_size = BKE_subdiv_grid_size_from_level(mmd->totlvl);
   data->mesh = mesh;
   data->mmd = mmd;
   data->mpoly = BKE_mesh_polys(mesh);
-  data->mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
+  data->mdisps = static_cast<const MDisps *>(CustomData_get_layer(&mesh->ldata, CD_MDISPS));
   data->face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
   data->is_initialized = false;
   displacement_data_init_mapping(displacement, mesh);
@@ -433,8 +442,7 @@ void BKE_subdiv_displacement_attach_from_multires(Subdiv *subdiv,
     return;
   }
   /* Allocate all required memory. */
-  SubdivDisplacement *displacement = MEM_callocN(sizeof(SubdivDisplacement),
-                                                 "multires displacement");
+  SubdivDisplacement *displacement = MEM_cnew<SubdivDisplacement>("multires displacement");
   displacement->user_data = MEM_callocN(sizeof(MultiresDisplacementData),
                                         "multires displacement data");
   displacement_init_data(displacement, subdiv, mesh, mmd);

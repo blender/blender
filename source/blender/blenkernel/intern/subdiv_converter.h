@@ -9,6 +9,10 @@
 
 #include "BKE_subdiv.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* NOTE: Was initially used to get proper enumerator types, but this makes
  * it tricky to compile without OpenSubdiv. */
 /* #include "opensubdiv_converter_capi.h" */
@@ -34,3 +38,7 @@ int BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(const SubdivSe
 /* TODO(sergey): Find a way to make it OpenSubdiv_FVarLinearInterpolation,
  * without breaking compilation without OpenSubdiv. */
 int BKE_subdiv_converter_fvar_linear_from_settings(const SubdivSettings *settings);
+
+#ifdef __cplusplus
+}
+#endif

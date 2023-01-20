@@ -7,7 +7,7 @@
 
 #include "subdiv_converter.h"
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -31,7 +31,7 @@
  * This forces Catmark scheme with all edges marked as infinitely sharp. */
 #define BUGGY_SIMPLE_SCHEME_WORKAROUND 1
 
-typedef struct ConverterStorage {
+struct ConverterStorage {
   SubdivSettings settings;
   const Mesh *mesh;
   const float (*vert_positions)[3];
@@ -66,7 +66,7 @@ typedef struct ConverterStorage {
   /* Number of non-loose elements. */
   int num_manifold_vertices;
   int num_manifold_edges;
-} ConverterStorage;
+};
 
 static OpenSubdiv_SchemeType get_scheme_type(const OpenSubdiv_Converter *converter)
 {
@@ -74,7 +74,7 @@ static OpenSubdiv_SchemeType get_scheme_type(const OpenSubdiv_Converter *convert
   (void)converter;
   return OSD_SCHEME_CATMARK;
 #else
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   if (storage->settings.is_simple) {
     return OSD_SCHEME_BILINEAR;
   }
@@ -85,45 +85,47 @@ static OpenSubdiv_SchemeType get_scheme_type(const OpenSubdiv_Converter *convert
 }
 
 static OpenSubdiv_VtxBoundaryInterpolation get_vtx_boundary_interpolation(
-    const struct OpenSubdiv_Converter *converter)
+    const OpenSubdiv_Converter *converter)
 {
-  ConverterStorage *storage = converter->user_data;
-  return BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(&storage->settings);
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
+  return OpenSubdiv_VtxBoundaryInterpolation(
+      BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(&storage->settings));
 }
 
 static OpenSubdiv_FVarLinearInterpolation get_fvar_linear_interpolation(
     const OpenSubdiv_Converter *converter)
 {
-  ConverterStorage *storage = converter->user_data;
-  return BKE_subdiv_converter_fvar_linear_from_settings(&storage->settings);
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
+  return OpenSubdiv_FVarLinearInterpolation(
+      BKE_subdiv_converter_fvar_linear_from_settings(&storage->settings));
 }
 
-static bool specifies_full_topology(const OpenSubdiv_Converter *UNUSED(converter))
+static bool specifies_full_topology(const OpenSubdiv_Converter * /*converter*/)
 {
   return false;
 }
 
 static int get_num_faces(const OpenSubdiv_Converter *converter)
 {
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   return storage->mesh->totpoly;
 }
 
 static int get_num_edges(const OpenSubdiv_Converter *converter)
 {
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   return storage->num_manifold_edges;
 }
 
 static int get_num_vertices(const OpenSubdiv_Converter *converter)
 {
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   return storage->num_manifold_vertices;
 }
 
 static int get_num_face_vertices(const OpenSubdiv_Converter *converter, int manifold_face_index)
 {
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   return storage->polys[manifold_face_index].totloop;
 }
 
@@ -131,7 +133,7 @@ static void get_face_vertices(const OpenSubdiv_Converter *converter,
                               int manifold_face_index,
                               int *manifold_face_vertices)
 {
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   const MPoly *poly = &storage->polys[manifold_face_index];
   const MLoop *mloop = storage->loops;
   for (int corner = 0; corner < poly->totloop; corner++) {
@@ -144,7 +146,7 @@ static void get_edge_vertices(const OpenSubdiv_Converter *converter,
                               int manifold_edge_index,
                               int *manifold_edge_vertices)
 {
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   const int edge_index = storage->manifold_edge_index_reverse[manifold_edge_index];
   const MEdge *edge = &storage->edges[edge_index];
   manifold_edge_vertices[0] = storage->manifold_vertex_index[edge->v1];
@@ -153,7 +155,7 @@ static void get_edge_vertices(const OpenSubdiv_Converter *converter,
 
 static float get_edge_sharpness(const OpenSubdiv_Converter *converter, int manifold_edge_index)
 {
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
 #if BUGGY_SIMPLE_SCHEME_WORKAROUND
   if (storage->settings.is_simple) {
     return 10.0f;
@@ -169,7 +171,7 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter, int manif
 static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
                                      int manifold_vertex_index)
 {
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
 #if BUGGY_SIMPLE_SCHEME_WORKAROUND
   if (storage->settings.is_simple) {
     return true;
@@ -181,7 +183,7 @@ static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
 
 static float get_vertex_sharpness(const OpenSubdiv_Converter *converter, int manifold_vertex_index)
 {
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   if (!storage->settings.use_creases || storage->cd_vertex_crease == NULL) {
     return 0.0f;
   }
@@ -191,23 +193,24 @@ static float get_vertex_sharpness(const OpenSubdiv_Converter *converter, int man
 
 static int get_num_uv_layers(const OpenSubdiv_Converter *converter)
 {
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   const Mesh *mesh = storage->mesh;
   return CustomData_number_of_layers(&mesh->ldata, CD_PROP_FLOAT2);
 }
 
 static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int layer_index)
 {
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   const Mesh *mesh = storage->mesh;
-  const float(*mloopuv)[2] = CustomData_get_layer_n(&mesh->ldata, CD_PROP_FLOAT2, layer_index);
+  const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
+      CustomData_get_layer_n(&mesh->ldata, CD_PROP_FLOAT2, layer_index));
   const int num_poly = mesh->totpoly;
   const int num_vert = mesh->totvert;
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
   /* Initialize memory required for the operations. */
   if (storage->loop_uv_indices == NULL) {
-    storage->loop_uv_indices = MEM_malloc_arrayN(
-        mesh->totloop, sizeof(int), "loop uv vertex index");
+    storage->loop_uv_indices = static_cast<int *>(
+        MEM_malloc_arrayN(mesh->totloop, sizeof(int), "loop uv vertex index"));
   }
   UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
       storage->polys,
@@ -241,13 +244,13 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
   BKE_mesh_uv_vert_map_free(uv_vert_map);
 }
 
-static void finish_uv_layer(const OpenSubdiv_Converter *UNUSED(converter))
+static void finish_uv_layer(const OpenSubdiv_Converter * /*converter*/)
 {
 }
 
 static int get_num_uvs(const OpenSubdiv_Converter *converter)
 {
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   return storage->num_uv_coordinates;
 }
 
@@ -255,14 +258,14 @@ static int get_face_corner_uv_index(const OpenSubdiv_Converter *converter,
                                     const int face_index,
                                     const int corner)
 {
-  ConverterStorage *storage = converter->user_data;
+  ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   const MPoly *mp = &storage->polys[face_index];
   return storage->loop_uv_indices[mp->loopstart + corner];
 }
 
 static void free_user_data(const OpenSubdiv_Converter *converter)
 {
-  ConverterStorage *user_data = converter->user_data;
+  ConverterStorage *user_data = static_cast<ConverterStorage *>(converter->user_data);
   MEM_SAFE_FREE(user_data->loop_uv_indices);
   MEM_freeN(user_data->manifold_vertex_index);
   MEM_freeN(user_data->infinite_sharp_vertices_map);
@@ -315,11 +318,12 @@ static void initialize_manifold_index_array(const BLI_bitmap *used_map,
 {
   int *indices = NULL;
   if (r_indices != NULL) {
-    indices = MEM_malloc_arrayN(num_elements, sizeof(int), "manifold indices");
+    indices = static_cast<int *>(MEM_malloc_arrayN(num_elements, sizeof(int), "manifold indices"));
   }
   int *indices_reverse = NULL;
   if (r_indices_reverse != NULL) {
-    indices_reverse = MEM_malloc_arrayN(num_elements, sizeof(int), "manifold indices reverse");
+    indices_reverse = static_cast<int *>(
+        MEM_malloc_arrayN(num_elements, sizeof(int), "manifold indices reverse"));
   }
   int offset = 0;
   for (int i = 0; i < num_elements; i++) {
@@ -392,21 +396,24 @@ static void init_user_data(OpenSubdiv_Converter *converter,
                            const SubdivSettings *settings,
                            const Mesh *mesh)
 {
-  ConverterStorage *user_data = MEM_mallocN(sizeof(ConverterStorage), __func__);
+  ConverterStorage *user_data = static_cast<ConverterStorage *>(
+      MEM_mallocN(sizeof(ConverterStorage), __func__));
   user_data->settings = *settings;
   user_data->mesh = mesh;
   user_data->vert_positions = BKE_mesh_vert_positions(mesh);
   user_data->edges = BKE_mesh_edges(mesh);
   user_data->polys = BKE_mesh_polys(mesh);
   user_data->loops = BKE_mesh_loops(mesh);
-  user_data->cd_vertex_crease = CustomData_get_layer(&mesh->vdata, CD_CREASE);
-  user_data->cd_edge_crease = CustomData_get_layer(&mesh->edata, CD_CREASE);
+  user_data->cd_vertex_crease = static_cast<const float *>(
+      CustomData_get_layer(&mesh->vdata, CD_CREASE));
+  user_data->cd_edge_crease = static_cast<const float *>(
+      CustomData_get_layer(&mesh->edata, CD_CREASE));
   user_data->loop_uv_indices = NULL;
   initialize_manifold_indices(user_data);
   converter->user_data = user_data;
 }
 
-void BKE_subdiv_converter_init_for_mesh(struct OpenSubdiv_Converter *converter,
+void BKE_subdiv_converter_init_for_mesh(OpenSubdiv_Converter *converter,
                                         const SubdivSettings *settings,
                                         const Mesh *mesh)
 {

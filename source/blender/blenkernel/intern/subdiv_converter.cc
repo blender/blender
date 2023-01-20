@@ -11,7 +11,7 @@
 
 #include "opensubdiv_converter_capi.h"
 
-void BKE_subdiv_converter_free(struct OpenSubdiv_Converter *converter)
+void BKE_subdiv_converter_free(OpenSubdiv_Converter *converter)
 {
   if (converter->freeUserData) {
     converter->freeUserData(converter);
