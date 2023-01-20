@@ -60,7 +60,7 @@
 
 namespace blender::ed::curves {
 
-static bool object_has_editable_curves(const Main &bmain, const Object &object)
+bool object_has_editable_curves(const Main &bmain, const Object &object)
 {
   if (object.type != OB_CURVES) {
     return false;
@@ -95,7 +95,10 @@ VectorSet<Curves *> get_unique_editable_curves(const bContext &C)
   return unique_curves;
 }
 
-static bool curves_poll_impl(bContext *C, const bool check_editable, const bool check_surface)
+static bool curves_poll_impl(bContext *C,
+                             const bool check_editable,
+                             const bool check_surface,
+                             const bool check_edit_mode)
 {
   Object *object = CTX_data_active_object(C);
   if (object == nullptr || object->type != OB_CURVES) {
@@ -113,27 +116,37 @@ static bool curves_poll_impl(bContext *C, const bool check_editable, const bool 
       return false;
     }
   }
+  if (check_edit_mode) {
+    if ((object->mode & OB_MODE_EDIT) == 0) {
+      return false;
+    }
+  }
   return true;
+}
+
+bool editable_curves_in_edit_mode_poll(bContext *C)
+{
+  return curves_poll_impl(C, true, false, true);
 }
 
 bool editable_curves_with_surface_poll(bContext *C)
 {
-  return curves_poll_impl(C, true, true);
+  return curves_poll_impl(C, true, true, false);
 }
 
 bool curves_with_surface_poll(bContext *C)
 {
-  return curves_poll_impl(C, false, true);
+  return curves_poll_impl(C, false, true, false);
 }
 
 bool editable_curves_poll(bContext *C)
 {
-  return curves_poll_impl(C, false, false);
+  return curves_poll_impl(C, false, false, false);
 }
 
 bool curves_poll(bContext *C)
 {
-  return curves_poll_impl(C, false, false);
+  return curves_poll_impl(C, false, false, false);
 }
 
 using bke::CurvesGeometry;

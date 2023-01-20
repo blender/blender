@@ -18,6 +18,7 @@ extern "C" {
  * \{ */
 
 void ED_operatortypes_curves(void);
+void ED_curves_undosys_type(struct UndoType *ut);
 
 /**
  * Return an owning pointer to an array of point normals the same size as the number of control
@@ -43,6 +44,7 @@ float (*ED_curves_point_normals_array_create(const struct Curves *curves_id))[3]
 
 namespace blender::ed::curves {
 
+bool object_has_editable_curves(const Main &bmain, const Object &object);
 bke::CurvesGeometry primitive_random_sphere(int curves_size, int points_per_curve);
 VectorSet<Curves *> get_unique_editable_curves(const bContext &C);
 void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob);
@@ -52,6 +54,7 @@ void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob);
  * \{ */
 
 bool editable_curves_with_surface_poll(bContext *C);
+bool editable_curves_in_edit_mode_poll(bContext *C);
 bool curves_with_surface_poll(bContext *C);
 bool editable_curves_poll(bContext *C);
 bool curves_poll(bContext *C);

@@ -10,6 +10,7 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_curves.h"
 #include "ED_lattice.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
@@ -32,6 +33,7 @@ void ED_undosys_type_init(void)
   BKE_undosys_type_append(ED_lattice_undosys_type);
   BKE_undosys_type_append(ED_mball_undosys_type);
   BKE_undosys_type_append(ED_mesh_undosys_type);
+  BKE_undosys_type_append(ED_curves_undosys_type);
 
   /* Paint Modes */
   BKE_UNDOSYS_TYPE_IMAGE = BKE_undosys_type_append(ED_image_undosys_type);
