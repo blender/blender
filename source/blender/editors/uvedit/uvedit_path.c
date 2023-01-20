@@ -709,6 +709,7 @@ static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
 
   BMElem *ele_src, *ele_dst;
 
+  /* NOLINTBEGIN: bugprone-assignment-in-if-condition */
   if (uv_selectmode & UV_SELECT_FACE) {
     if (index < 0 || index >= bm->totface) {
       return OPERATOR_CANCELLED;
@@ -736,6 +737,7 @@ static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
   }
+  /* NOLINTEND: bugprone-assignment-in-if-condition */
 
   /* Always use the active object, not `obedit` as the active defines the UV display. */
   const float aspect_y = ED_uvedit_get_aspect_y(CTX_data_edit_object(C));
