@@ -136,7 +136,8 @@ static bool bake_strokes(Object *ob,
       lmd->silhouette_selection,
       lmd->source_vertex_group,
       lmd->vgname,
-      lmd->flags);
+      lmd->flags,
+      lmd->calculation_flags);
 
   if (!(lmd->flags & LRT_GPENCIL_USE_CACHE)) {
     /* Clear local cache. */
