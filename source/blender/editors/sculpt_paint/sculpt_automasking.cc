@@ -181,9 +181,6 @@ static bool SCULPT_automasking_needs_factors_cache(const Sculpt *sd, const Brush
 {
 
   const int automasking_flags = sculpt_automasking_mode_effective_bits(sd, brush);
-  if (automasking_flags & BRUSH_AUTOMASKING_TOPOLOGY) {
-    return true;
-  }
 
   if (automasking_flags & (BRUSH_AUTOMASKING_BOUNDARY_EDGES |
                            BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS | BRUSH_AUTOMASKING_VIEW_NORMAL)) {
@@ -540,6 +537,11 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
     return automasking_factor_end(ss, automasking, vert, 0.0f);
   }
 
+  if (automasking->settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
+      SCULPT_vertex_island_get(ss, vert) != automasking->settings.initial_island_nr) {
+    return 0.0f;
+  }
+
   if (automasking->settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
     if (!SCULPT_vertex_has_face_set(ss, vert, automasking->settings.initial_face_set)) {
       return 0.0f;
@@ -613,41 +615,6 @@ static bool automask_floodfill_cb(
   return (!data->use_radius ||
           SCULPT_is_vertex_inside_brush_radius_symm(
               SCULPT_vertex_co_get(ss, to_v), data->location, data->radius, data->symm));
-}
-
-static void SCULPT_topology_automasking_init(Sculpt *sd, Object *ob)
-{
-  SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
-
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
-    BLI_assert_unreachable();
-    return;
-  }
-
-  const int totvert = SCULPT_vertex_count_get(ss);
-  for (int i : IndexRange(totvert)) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-
-    (*(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_factor)) = 0.0f;
-  }
-
-  /* Flood fill automask to connected vertices. Limited to vertices inside
-   * the brush radius if the tool requires it. */
-  SculptFloodFill flood;
-  SCULPT_floodfill_init(ss, &flood);
-  const float radius = ss->cache ? ss->cache->radius : FLT_MAX;
-  SCULPT_floodfill_add_active(sd, ob, ss, &flood, radius);
-
-  AutomaskFloodFillData fdata = {0};
-
-  fdata.radius = radius;
-  fdata.use_radius = ss->cache && sculpt_automasking_is_constrained_by_radius(brush);
-  fdata.symm = SCULPT_mesh_symmetry_xyz_get(ob);
-
-  copy_v3_v3(fdata.location, SCULPT_active_vertex_co_get(ss));
-  SCULPT_floodfill_execute(ss, &flood, automask_floodfill_cb, &fdata);
-  SCULPT_floodfill_free(&flood);
 }
 
 static void sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob)
@@ -827,6 +794,11 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
   bool use_stroke_id = false;
   int mode = sculpt_automasking_mode_effective_bits(sd, brush);
 
+  if (mode & BRUSH_AUTOMASKING_TOPOLOGY && ss->active_vertex.i != PBVH_REF_NONE) {
+    SCULPT_topology_islands_ensure(ob);
+    automasking->settings.initial_island_nr = SCULPT_vertex_island_get(ss, ss->active_vertex);
+  }
+
   if ((mode & BRUSH_AUTOMASKING_VIEW_OCCLUSION) && (mode & BRUSH_AUTOMASKING_VIEW_NORMAL)) {
     use_stroke_id = true;
 
@@ -919,7 +891,6 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
   /* Additive modes. */
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_TOPOLOGY)) {
     SCULPT_vertex_random_access_ensure(ss);
-    SCULPT_topology_automasking_init(sd, ob);
   }
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_FACE_SETS)) {
     SCULPT_vertex_random_access_ensure(ss);

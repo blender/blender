@@ -559,6 +559,8 @@ typedef struct SculptAttributePointers {
   SculptAttribute *automasking_stroke_id;
   SculptAttribute *automasking_cavity;
 
+  SculptAttribute *topology_island_key; /* CD_PROP_INT8 */
+
   /* BMesh */
   SculptAttribute *dyntopo_node_id_vertex;
   SculptAttribute *dyntopo_node_id_face;
@@ -756,6 +758,7 @@ typedef struct SculptSession {
 
   int last_automasking_settings_hash;
   uchar last_automask_stroke_id;
+  bool islands_valid; /* Is attrs.topology_island_key valid? */
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);

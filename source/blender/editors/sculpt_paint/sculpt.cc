@@ -17,10 +17,12 @@
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
 #include "BLI_math.h"
+#include "BLI_set.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
@@ -75,6 +77,8 @@
 
 using blender::float3;
 using blender::MutableSpan;
+using blender::Set;
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt PBVH Abstraction API
@@ -412,6 +416,8 @@ void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visibl
 
 void SCULPT_face_visibility_all_invert(SculptSession *ss)
 {
+  SCULPT_topology_islands_invalidate(ss);
+
   BLI_assert(ss->face_sets != nullptr);
   BLI_assert(ss->hide_poly != nullptr);
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -435,6 +441,8 @@ void SCULPT_face_visibility_all_invert(SculptSession *ss)
 
 void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible)
 {
+  SCULPT_topology_islands_invalidate(ss);
+
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
     case PBVH_GRIDS:
@@ -626,6 +634,9 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
+
+  SCULPT_topology_islands_invalidate(ss);
+
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       /* We may have adjusted the ".hide_poly" attribute, now make the hide status attributes for
@@ -6301,4 +6312,70 @@ void SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset)
   }
 }
 
+int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex)
+{
+  if (ss->attrs.topology_island_key) {
+    return *static_cast<uint8_t *>(SCULPT_vertex_attr_get(vertex, ss->attrs.topology_island_key));
+  }
+
+  return -1;
+}
+
+void SCULPT_topology_islands_invalidate(SculptSession *ss)
+{
+  ss->islands_valid = false;
+}
+
+void SCULPT_topology_islands_ensure(Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+
+  if (ss->attrs.topology_island_key && ss->islands_valid &&
+      BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+    return;
+  }
+
+  SculptAttributeParams params;
+  params.permanent = params.stroke_only = params.simple_array = false;
+
+  ss->attrs.topology_island_key = BKE_sculpt_attribute_ensure(
+      ob, ATTR_DOMAIN_POINT, CD_PROP_INT8, SCULPT_ATTRIBUTE_NAME(topology_island_key), &params);
+  SCULPT_vertex_random_access_ensure(ss);
+
+  int totvert = SCULPT_vertex_count_get(ss);
+  Set<PBVHVertRef> visit;
+  Vector<PBVHVertRef> stack;
+  uint8_t island_nr = 0;
+
+  for (int i = 0; i < totvert; i++) {
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+    if (visit.contains(vertex)) {
+      continue;
+    }
+
+    stack.clear();
+    stack.append(vertex);
+    visit.add(vertex);
+
+    while (stack.size()) {
+      PBVHVertRef vertex2 = stack.pop_last();
+      SculptVertexNeighborIter ni;
+
+      *static_cast<uint8_t *>(
+          SCULPT_vertex_attr_get(vertex2, ss->attrs.topology_island_key)) = island_nr;
+
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex2, ni) {
+        if (visit.add(ni.vertex) && SCULPT_vertex_any_face_visible_get(ss, ni.vertex)) {
+          stack.append(ni.vertex);
+        }
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+    }
+
+    island_nr++;
+  }
+
+  ss->islands_valid = true;
+}
 /** \} */

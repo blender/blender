@@ -1323,6 +1323,8 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
     }
   }
 
+  SCULPT_topology_islands_invalidate(ss);
+
   if (!with_bmesh) {
     /* As an optimization, free the hide attribute when making all geometry visible. This allows
      * reduced memory usage without manually clearing it later, and allows sculpt operations to

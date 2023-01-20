@@ -74,18 +74,40 @@ struct PBVHPublic {
  * to be vertices.  This is not true of edges or faces which are pulled from
  * the base mesh.
  */
+
+#ifdef __cplusplus
+/* A few C++ methods to play nice with sets and maps. */
+#  define PBVH_REF_CXX_METHODS(Class) \
+    bool operator==(const Class b) const \
+    { \
+      return i == b.i; \
+    } \
+    uint64_t hash() const \
+    { \
+      return i; \
+    }
+#else
+#  define PBVH_REF_CXX_METHODS(cls)
+#endif
+
 typedef struct PBVHVertRef {
   intptr_t i;
+
+  PBVH_REF_CXX_METHODS(PBVHVertRef)
 } PBVHVertRef;
 
 /* NOTE: edges in PBVH_GRIDS are always pulled from the base mesh. */
 typedef struct PBVHEdgeRef {
   intptr_t i;
+
+  PBVH_REF_CXX_METHODS(PBVHVertRef)
 } PBVHEdgeRef;
 
 /* NOTE: faces in PBVH_GRIDS are always puled from the base mesh. */
 typedef struct PBVHFaceRef {
   intptr_t i;
+
+  PBVH_REF_CXX_METHODS(PBVHVertRef)
 } PBVHFaceRef;
 
 #define PBVH_REF_NONE -1LL

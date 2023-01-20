@@ -410,6 +410,7 @@ typedef struct AutomaskingSettings {
   /* Flags from eAutomasking_flag. */
   int flags;
   int initial_face_set;
+  int initial_island_nr;
 
   float cavity_factor;
   int cavity_blur_steps;
@@ -1940,6 +1941,27 @@ void SCULPT_stroke_id_next(struct Object *ob);
 bool SCULPT_tool_can_reuse_automask(int sculpt_tool);
 
 void SCULPT_ensure_valid_pivot(const struct Object *ob, struct Scene *scene);
+
+/* -------------------------------------------------------------------- */
+/** \name Topology island API
+ * \{
+ * Each mesh island shell gets its own integer
+ * key; these are temporary and internally limited to 8 bits.
+ * Uses the `ss->topology_island_key` attribute.
+ */
+
+/* Ensures vertex island keys exist and are valid. */
+void SCULPT_topology_islands_ensure(struct Object *ob);
+
+/* Mark vertex island keys as invalid.  Call when adding or hiding
+ * geometry.
+ */
+void SCULPT_topology_islands_invalidate(SculptSession *ss);
+
+/* Get vertex island key.*/
+int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
+
+/** \} */
 
 #ifdef __cplusplus
 }
