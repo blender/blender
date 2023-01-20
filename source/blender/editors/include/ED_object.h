@@ -507,6 +507,31 @@ void ED_object_posemode_set_for_weight_paint(struct bContext *C,
                                              struct Object *ob,
                                              bool is_mode_set);
 
+/**
+ * Return the index of an object in a mode (typically edit/pose mode).
+ *
+ * Useful for operators with multi-mode editing to be able to redo an action on an object
+ * by it's index which (unlike pointers) the operator can store for redo.
+ *
+ * The indices aren't intended to be useful from Python scripts,
+ * although they are not prevented from passing them in, this is mainly to enable redo.
+ * For scripts it's more convenient to set the object active before operating on it.
+ *
+ * \note The active object is always index 0.
+ */
+int ED_object_in_mode_to_index(const struct Scene *scene,
+                               struct ViewLayer *view_layer,
+                               eObjectMode mode,
+                               const struct Object *ob);
+
+/**
+ * Access the object from the index returned by #ED_object_in_mode_to_index.
+ */
+Object *ED_object_in_mode_from_index(const struct Scene *scene,
+                                     struct ViewLayer *view_layer,
+                                     eObjectMode mode,
+                                     int index);
+
 /* object_modifier.c */
 
 enum {

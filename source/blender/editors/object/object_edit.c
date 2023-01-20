@@ -218,6 +218,52 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Object Index Lookup/Creation
+ * \{ */
+
+int ED_object_in_mode_to_index(const Scene *scene,
+                               ViewLayer *view_layer,
+                               const eObjectMode mode,
+                               const Object *ob)
+{
+  BLI_assert(ob != NULL);
+  /* NOTE: the `v3d` is always NULL because the purpose of this function is to return
+   * a reusable index, using the `v3d` only increases the chance the index may become invalid. */
+  int index = -1;
+  int i = 0;
+  FOREACH_BASE_IN_MODE_BEGIN (scene, view_layer, NULL, -1, mode, base_iter) {
+    if (base_iter->object == ob) {
+      index = i;
+      break;
+    }
+    i++;
+  }
+  FOREACH_BASE_IN_MODE_END;
+  return index;
+}
+
+Object *ED_object_in_mode_from_index(const Scene *scene,
+                                     ViewLayer *view_layer,
+                                     const eObjectMode mode,
+                                     int index)
+{
+  BLI_assert(index >= 0);
+  Object *ob = NULL;
+  int i = 0;
+  FOREACH_BASE_IN_MODE_BEGIN (scene, view_layer, NULL, -1, mode, base_iter) {
+    if (index == i) {
+      ob = base_iter->object;
+      break;
+    }
+    i++;
+  }
+  FOREACH_BASE_IN_MODE_END;
+  return ob;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Hide Operator
  * \{ */
 
