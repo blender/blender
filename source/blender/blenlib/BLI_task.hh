@@ -37,7 +37,7 @@
 namespace blender::threading {
 
 template<typename Range, typename Function>
-void parallel_for_each(Range &range, const Function &function)
+void parallel_for_each(Range &&range, const Function &function)
 {
 #ifdef WITH_TBB
   tbb::parallel_for_each(range, function);

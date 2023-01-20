@@ -815,6 +815,7 @@ set(geo_node_tests
   attributes
   curve_primitives
   curves
+  curves/interpolate_curves
   geometry
   instance
   mesh_primitives

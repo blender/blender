@@ -87,6 +87,7 @@ void register_node_type_geo_input_spline_resolution();
 void register_node_type_geo_input_tangent();
 void register_node_type_geo_instance_on_points();
 void register_node_type_geo_instances_to_points();
+void register_node_type_geo_interpolate_curves();
 void register_node_type_geo_is_viewport();
 void register_node_type_geo_join_geometry();
 void register_node_type_geo_material_replace();
