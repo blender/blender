@@ -3351,7 +3351,6 @@ static void sculpt_topology_update(Sculpt *sd,
   /* Free index based vertex info as it will become invalid after modifying the topology during the
    * stroke. */
   MEM_SAFE_FREE(ss->vertex_info.boundary);
-  MEM_SAFE_FREE(ss->vertex_info.connected_component);
 
   PBVHTopologyUpdateMode mode = PBVHTopologyUpdateMode(0);
   float location[3];
@@ -5928,14 +5927,6 @@ enum {
   SCULPT_TOPOLOGY_ID_DEFAULT,
 };
 
-static int SCULPT_vertex_get_connected_component(SculptSession *ss, PBVHVertRef vertex)
-{
-  if (ss->vertex_info.connected_component) {
-    return ss->vertex_info.connected_component[vertex.i];
-  }
-  return SCULPT_TOPOLOGY_ID_DEFAULT;
-}
-
 static void SCULPT_fake_neighbor_init(SculptSession *ss, const float max_dist)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
@@ -5981,7 +5972,7 @@ static void do_fake_neighbor_search_task_cb(void *__restrict userdata,
   PBVHVertexIter vd;
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    int vd_topology_id = SCULPT_vertex_get_connected_component(ss, vd.vertex);
+    int vd_topology_id = SCULPT_vertex_island_get(ss, vd.vertex);
     if (vd_topology_id != nvtd->current_topology_id &&
         ss->fake_neighbors.fake_neighbor_index[vd.index] == FAKE_NEIGHBOR_NONE) {
       float distance_squared = len_squared_v3v3(vd.co, data->nearest_vertex_search_co);
@@ -6044,7 +6035,7 @@ static PBVHVertRef SCULPT_fake_neighbor_search(Sculpt *sd,
   NearestVertexFakeNeighborTLSData nvtd;
   nvtd.nearest_vertex.i = -1;
   nvtd.nearest_vertex_distance_squared = FLT_MAX;
-  nvtd.current_topology_id = SCULPT_vertex_get_connected_component(ss, vertex);
+  nvtd.current_topology_id = SCULPT_vertex_island_get(ss, vertex);
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -6061,55 +6052,6 @@ static PBVHVertRef SCULPT_fake_neighbor_search(Sculpt *sd,
 struct SculptTopologyIDFloodFillData {
   int next_id;
 };
-
-static bool SCULPT_connected_components_floodfill_cb(
-    SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool /*is_duplicate*/, void *userdata)
-{
-  SculptTopologyIDFloodFillData *data = static_cast<SculptTopologyIDFloodFillData *>(userdata);
-
-  int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
-  int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
-
-  ss->vertex_info.connected_component[from_v_i] = data->next_id;
-  ss->vertex_info.connected_component[to_v_i] = data->next_id;
-  return true;
-}
-
-void SCULPT_connected_components_ensure(Object *ob)
-{
-  SculptSession *ss = ob->sculpt;
-
-  /* Topology IDs already initialized. They only need to be recalculated when the PBVH is
-   * rebuild.
-   */
-  if (ss->vertex_info.connected_component) {
-    return;
-  }
-
-  const int totvert = SCULPT_vertex_count_get(ss);
-  ss->vertex_info.connected_component = static_cast<int *>(
-      MEM_malloc_arrayN(totvert, sizeof(int), "topology ID"));
-
-  for (int i = 0; i < totvert; i++) {
-    ss->vertex_info.connected_component[i] = SCULPT_TOPOLOGY_ID_NONE;
-  }
-
-  int next_id = 0;
-  for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-
-    if (ss->vertex_info.connected_component[i] == SCULPT_TOPOLOGY_ID_NONE) {
-      SculptFloodFill flood;
-      SCULPT_floodfill_init(ss, &flood);
-      SCULPT_floodfill_add_initial(&flood, vertex);
-      SculptTopologyIDFloodFillData data;
-      data.next_id = next_id;
-      SCULPT_floodfill_execute(ss, &flood, SCULPT_connected_components_floodfill_cb, &data);
-      SCULPT_floodfill_free(&flood);
-      next_id++;
-    }
-  }
-}
 
 void SCULPT_boundary_info_ensure(Object *object)
 {
@@ -6159,7 +6101,7 @@ void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)
     return;
   }
 
-  SCULPT_connected_components_ensure(ob);
+  SCULPT_topology_islands_ensure(ob);
   SCULPT_fake_neighbor_init(ss, max_dist);
 
   for (int i = 0; i < totvert; i++) {

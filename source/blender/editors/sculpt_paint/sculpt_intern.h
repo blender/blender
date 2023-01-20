@@ -744,11 +744,11 @@ typedef struct ExpandCache {
    * initial position of Expand. */
   float original_mouse_move[2];
 
-  /* Active components checks. */
-  /* Indexed by symmetry pass index, contains the connected component ID found in
-   * SculptSession->vertex_info.connected_component. Other connected components not found in this
+  /* Active island checks. */
+  /* Indexed by symmetry pass index, contains the connected island ID for that
+   * symmetry pass. Other connected island IDs not found in this
    * array will be ignored by Expand. */
-  int active_connected_components[EXPAND_SYMM_AREAS];
+  int active_connected_islands[EXPAND_SYMM_AREAS];
 
   /* Snapping. */
   /* GSet containing all Face Sets IDs that Expand will use to snap the new data. */
@@ -819,7 +819,6 @@ typedef struct ExpandCache {
   int *original_face_sets;
   float (*original_colors)[4];
 
-  int initial_island_key;
   bool check_islands;
 } ExpandCache;
 /** \} */
@@ -1027,8 +1026,6 @@ void SCULPT_fake_neighbors_free(struct Object *ob);
 void SCULPT_boundary_info_ensure(Object *object);
 /* Boundary Info needs to be initialized in order to use this function. */
 bool SCULPT_vertex_is_boundary(const SculptSession *ss, PBVHVertRef vertex);
-
-void SCULPT_connected_components_ensure(Object *ob);
 
 /** \} */
 
