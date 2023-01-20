@@ -305,14 +305,15 @@ void OSLShaderManager::shading_system_init()
 
       /* our own ray types */
       static const char *raytypes[] = {
-          "camera",         /* PATH_RAY_CAMERA */
-          "reflection",     /* PATH_RAY_REFLECT */
-          "refraction",     /* PATH_RAY_TRANSMIT */
-          "diffuse",        /* PATH_RAY_DIFFUSE */
-          "glossy",         /* PATH_RAY_GLOSSY */
-          "singular",       /* PATH_RAY_SINGULAR */
-          "transparent",    /* PATH_RAY_TRANSPARENT */
-          "volume_scatter", /* PATH_RAY_VOLUME_SCATTER */
+          "camera",          /* PATH_RAY_CAMERA */
+          "reflection",      /* PATH_RAY_REFLECT */
+          "refraction",      /* PATH_RAY_TRANSMIT */
+          "diffuse",         /* PATH_RAY_DIFFUSE */
+          "glossy",          /* PATH_RAY_GLOSSY */
+          "singular",        /* PATH_RAY_SINGULAR */
+          "transparent",     /* PATH_RAY_TRANSPARENT */
+          "volume_scatter",  /* PATH_RAY_VOLUME_SCATTER */
+          "importance_bake", /* PATH_RAY_IMPORTANCE_BAKE */
 
           "shadow", /* PATH_RAY_SHADOW_OPAQUE */
           "shadow", /* PATH_RAY_SHADOW_TRANSPARENT */
@@ -323,7 +324,6 @@ void OSLShaderManager::shading_system_init()
           "diffuse_ancestor", /* PATH_RAY_DIFFUSE_ANCESTOR */
 
           /* Remaining irrelevant bits up to 32. */
-          "__unused__",
           "__unused__",
           "__unused__",
           "__unused__",
