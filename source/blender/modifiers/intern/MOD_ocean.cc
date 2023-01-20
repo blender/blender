@@ -416,7 +416,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
             foam = BKE_ocean_jminus_to_foam(ocr.Jminus, omd->foam_coverage);
           }
 
-          mlcol->r = mlcol->g = mlcol->b = (char)(foam * 255);
+          mlcol->r = mlcol->g = mlcol->b = char(foam * 255);
           /* This needs to be set (render engine uses) */
           mlcol->a = 255;
 

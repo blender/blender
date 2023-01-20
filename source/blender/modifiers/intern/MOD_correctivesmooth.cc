@@ -131,8 +131,8 @@ static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
   const MPoly *mpoly = BKE_mesh_polys(mesh);
   const MLoop *mloop = BKE_mesh_loops(mesh);
 
-  const uint mpoly_num = (uint)mesh->totpoly;
-  const uint medge_num = (uint)mesh->totedge;
+  const uint mpoly_num = uint(mesh->totpoly);
+  const uint medge_num = uint(mesh->totedge);
 
   /* Flag boundary edges so only boundaries are set to 1. */
   uint8_t *boundaries = static_cast<uint8_t *>(
@@ -144,7 +144,7 @@ static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
     int j;
     for (j = 0; j < totloop; j++) {
       uint8_t *e_value = &boundaries[mloop[p->loopstart + j].e];
-      *e_value |= (uint8_t)((*e_value) + 1);
+      *e_value |= uint8_t((*e_value) + 1);
     }
   }
 
@@ -173,7 +173,7 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
   const float lambda = csmd->lambda;
   uint i;
 
-  const uint edges_num = (uint)mesh->totedge;
+  const uint edges_num = uint(mesh->totedge);
   const MEdge *edges = BKE_mesh_edges(mesh);
 
   struct SmoothingData_Simple {
@@ -248,7 +248,7 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
                                        uint iterations)
 {
   const float eps = FLT_EPSILON * 10.0f;
-  const uint edges_num = (uint)mesh->totedge;
+  const uint edges_num = uint(mesh->totedge);
   /* NOTE: the way this smoothing method works, its approx half as strong as the simple-smooth,
    * and 2.0 rarely spikes, double the value for consistent behavior. */
   const float lambda = csmd->lambda * 2.0f;
@@ -384,7 +384,7 @@ static void smooth_verts(CorrectiveSmoothModifierData *csmd,
     }
   }
 
-  smooth_iter(csmd, mesh, vertexCos, verts_num, smooth_weights, (uint)csmd->repeat);
+  smooth_iter(csmd, mesh, vertexCos, verts_num, smooth_weights, uint(csmd->repeat));
 
   if (smooth_weights) {
     MEM_freeN(smooth_weights);
@@ -437,8 +437,8 @@ static void calc_tangent_spaces(const Mesh *mesh,
                                 float *r_tangent_weights,
                                 float *r_tangent_weights_per_vertex)
 {
-  const uint mpoly_num = (uint)mesh->totpoly;
-  const uint mvert_num = (uint)mesh->totvert;
+  const uint mpoly_num = uint(mesh->totpoly);
+  const uint mvert_num = uint(mesh->totvert);
   const MPoly *mpoly = BKE_mesh_polys(mesh);
   const MLoop *mloop = BKE_mesh_loops(mesh);
   uint i;
@@ -462,7 +462,7 @@ static void calc_tangent_spaces(const Mesh *mesh,
     normalize_v3(v_dir_prev);
 
     for (; l_next != l_term; l_prev = l_curr, l_curr = l_next, l_next++) {
-      uint l_index = (uint)(l_curr - mloop);
+      uint l_index = uint(l_curr - mloop);
       float(*ts)[3] = r_tangent_spaces[l_index];
 
       /* re-use the previous value */
@@ -520,7 +520,7 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
                         uint verts_num)
 {
   const MLoop *mloop = BKE_mesh_loops(mesh);
-  const uint loops_num = (uint)mesh->totloop;
+  const uint loops_num = uint(mesh->totloop);
 
   float(*smooth_vertex_coords)[3] = static_cast<float(*)[3]>(MEM_dupallocN(rest_coords));
 
@@ -579,7 +579,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
        (((ID *)ob->data)->recalc & ID_RECALC_ALL));
 
   const MLoop *mloop = BKE_mesh_loops(mesh);
-  const uint loops_num = (uint)mesh->totloop;
+  const uint loops_num = uint(mesh->totloop);
 
   bool use_only_smooth = (csmd->flag & MOD_CORRECTIVESMOOTH_ONLY_SMOOTH) != 0;
   const MDeformVert *dvert = nullptr;
@@ -590,7 +590,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   /* if rest bind_coords not are defined, set them (only run during bind) */
   if ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) &&
       /* signal to recalculate, whoever sets MUST also free bind coords */
-      (csmd->bind_coords_num == (uint)-1)) {
+      (csmd->bind_coords_num == uint(-1))) {
     if (DEG_is_active(depsgraph)) {
       BLI_assert(csmd->bind_coords == nullptr);
       csmd->bind_coords = static_cast<float(*)[3]>(MEM_dupallocN(vertexCos));
@@ -633,7 +633,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       goto error;
     }
     else {
-      uint me_numVerts = (uint)((em) ? em->bm->totvert : ((Mesh *)ob->data)->totvert);
+      uint me_numVerts = uint((em) ? em->bm->totvert : ((Mesh *)ob->data)->totvert);
 
       if (me_numVerts != verts_num) {
         BKE_modifier_set_error(
@@ -747,7 +747,7 @@ static void deformVerts(ModifierData *md,
   Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
 
   correctivesmooth_modifier_do(
-      md, ctx->depsgraph, ctx->object, mesh_src, vertexCos, (uint)verts_num, nullptr);
+      md, ctx->depsgraph, ctx->object, mesh_src, vertexCos, uint(verts_num), nullptr);
 
   if (!ELEM(mesh_src, nullptr, mesh)) {
     BKE_id_free(nullptr, mesh_src);
@@ -770,7 +770,7 @@ static void deformVertsEM(ModifierData *md,
   }
 
   correctivesmooth_modifier_do(
-      md, ctx->depsgraph, ctx->object, mesh_src, vertexCos, (uint)verts_num, editData);
+      md, ctx->depsgraph, ctx->object, mesh_src, vertexCos, uint(verts_num), editData);
 
   if (!ELEM(mesh_src, nullptr, mesh)) {
     BKE_id_free(nullptr, mesh_src);

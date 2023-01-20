@@ -204,7 +204,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   uint new_loops_num = 0;
   uint new_polys_num = 0;
 
-#define MOD_SOLIDIFY_EMPTY_TAG ((uint)-1)
+#define MOD_SOLIDIFY_EMPTY_TAG uint(-1)
 
   /* Calculate only face normals. Copied because they are modified directly below. */
   float(*poly_nors)[3] = static_cast<float(*)[3]>(
@@ -420,7 +420,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
             mul_v3_fl(edgedir,
                       (combined_verts[v2] + 1) /
-                          (float)(combined_verts[v1] + combined_verts[v2] + 2));
+                          float(combined_verts[v1] + combined_verts[v2] + 2));
             add_v3_v3(orig_mvert_co[v1], edgedir);
             for (uint j = v2; j < verts_num; j++) {
               if (vm[j] == v2) {
@@ -2537,8 +2537,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     uint *face_edges = static_cast<uint *>(
         MEM_malloc_arrayN(largest_ngon * 2, sizeof(*face_edges), __func__));
     for (uint i = 0; i < polys_num * 2; i++, fr++) {
-      const uint loopstart = (uint)fr->face->loopstart;
-      uint totloop = (uint)fr->face->totloop;
+      const uint loopstart = uint(fr->face->loopstart);
+      uint totloop = uint(fr->face->totloop);
       uint valid_edges = 0;
       uint k = 0;
       while (totloop > 0 && (!fr->link_edges[totloop - 1] ||
@@ -2547,14 +2547,14 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
       }
       if (totloop > 0) {
         NewEdgeRef *prior_edge = fr->link_edges[totloop - 1];
-        uint prior_flip = (uint)(vm[orig_medge[prior_edge->old_edge].v1] ==
-                                 vm[orig_mloop[loopstart + (totloop - 1)].v]);
+        uint prior_flip = uint(vm[orig_medge[prior_edge->old_edge].v1] ==
+                               vm[orig_mloop[loopstart + (totloop - 1)].v]);
         for (uint j = 0; j < totloop; j++) {
           NewEdgeRef *new_edge = fr->link_edges[j];
           if (new_edge && new_edge->new_edge != MOD_SOLIDIFY_EMPTY_TAG) {
             valid_edges++;
-            const uint flip = (uint)(vm[orig_medge[new_edge->old_edge].v2] ==
-                                     vm[orig_mloop[loopstart + j].v]);
+            const uint flip = uint(vm[orig_medge[new_edge->old_edge].v2] ==
+                                   vm[orig_mloop[loopstart + j].v]);
             BLI_assert(flip ||
                        vm[orig_medge[new_edge->old_edge].v1] == vm[orig_mloop[loopstart + j].v]);
             /* The vert that's in the current loop. */

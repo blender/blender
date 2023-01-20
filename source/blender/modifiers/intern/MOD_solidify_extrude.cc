@@ -73,7 +73,7 @@ static void mesh_calc_hq_normal(Mesh *mesh,
   const MPoly *mp = mpoly;
 
   {
-    EdgeFaceRef *edge_ref_array = MEM_cnew_array<EdgeFaceRef>((size_t)edges_num, __func__);
+    EdgeFaceRef *edge_ref_array = MEM_cnew_array<EdgeFaceRef>(size_t(edges_num), __func__);
     EdgeFaceRef *edge_ref;
     float edge_normal[3];
 
@@ -231,8 +231,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     uint eidx;
     uint i;
 
-#define INVALID_UNUSED ((uint)-1)
-#define INVALID_PAIR ((uint)-2)
+#define INVALID_UNUSED uint(-1)
+#define INVALID_PAIR uint(-2)
 
     new_vert_arr = static_cast<uint *>(
         MEM_malloc_arrayN(verts_num, 2 * sizeof(*new_vert_arr), __func__));
@@ -530,7 +530,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
           eidx = ml_prev->e;
           const MEdge *ed = orig_medge + eidx;
           BLI_assert(ELEM(ml_prev->v, ed->v1, ed->v2) && ELEM(ml->v, ed->v1, ed->v2));
-          char flip = (char)((ml_prev->v > ml->v) == (ed->v1 < ed->v2));
+          char flip = char((ml_prev->v > ml->v) == (ed->v1 < ed->v2));
           if (edge_user_pairs[eidx][flip] == INVALID_UNUSED) {
             edge_user_pairs[eidx][flip] = i;
           }
@@ -827,7 +827,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
           eidx = ml_prev->e;
           const MEdge *ed = orig_medge + eidx;
           BLI_assert(ELEM(ml_prev->v, ed->v1, ed->v2) && ELEM(ml->v, ed->v1, ed->v2));
-          char flip = (char)((ml_prev->v > ml->v) == (ed->v1 < ed->v2));
+          char flip = char((ml_prev->v > ml->v) == (ed->v1 < ed->v2));
           if (edge_user_pairs[eidx][flip] == INVALID_UNUSED) {
             edge_user_pairs[eidx][flip] = i;
           }
