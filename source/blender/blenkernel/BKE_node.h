@@ -1533,6 +1533,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_IMAGE_INFO 1189
 #define GEO_NODE_BLUR_ATTRIBUTE 1190
 #define GEO_NODE_IMAGE 1191
+#define GEO_NODE_INTERPOLATE_CURVES 1192
 
 /** \} */
 
@@ -1561,8 +1562,6 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define FN_NODE_COMBINE_COLOR 1222
 
 /** \} */
-
-#define GEO_NODE_INTERPOLATE_CURVES 2000
 
 void BKE_node_system_init(void);
 void BKE_node_system_exit(void);
