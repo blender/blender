@@ -945,7 +945,8 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
         char line[256];
         BLI_snprintf(line,
                      sizeof(line),
-                     TIP_("\u2022 Curve: %s splines"),
+                     TIP_("\u2022 Curve: %s points, %s splines"),
+                     to_string(curve_info.points_num).c_str(),
                      to_string(curve_info.splines_num).c_str());
         ss << line;
         break;

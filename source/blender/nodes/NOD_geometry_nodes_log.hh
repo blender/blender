@@ -126,6 +126,7 @@ class GeometryInfoLog : public ValueLog {
     int verts_num, edges_num, faces_num;
   };
   struct CurveInfo {
+    int points_num;
     int splines_num;
   };
   struct PointCloudInfo {

@@ -89,6 +89,7 @@ GeometryInfoLog::GeometryInfoLog(const GeometrySet &geometry_set)
       case GEO_COMPONENT_TYPE_CURVE: {
         const CurveComponent &curve_component = *(const CurveComponent *)component;
         CurveInfo &info = this->curve_info.emplace();
+        info.points_num = curve_component.attribute_domain_size(ATTR_DOMAIN_POINT);
         info.splines_num = curve_component.attribute_domain_size(ATTR_DOMAIN_CURVE);
         break;
       }
