@@ -85,7 +85,7 @@ static void subdivide_attribute_linear(const bke::CurvesGeometry &src_curves,
 
       threading::parallel_for(curve_src.index_range().drop_back(1), 1024, [&](IndexRange range) {
         for (const int i : range) {
-          const IndexRange segment_points = curve_offsets[src_segments[i]];
+          const IndexRange segment_points = curve_offsets[i];
           linear_interpolation(curve_src[i], curve_src[i + 1], curve_dst.slice(segment_points));
         }
       });
