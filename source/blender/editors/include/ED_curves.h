@@ -19,6 +19,7 @@ extern "C" {
 
 void ED_operatortypes_curves(void);
 void ED_curves_undosys_type(struct UndoType *ut);
+void ED_keymap_curves(struct wmKeyConfig *keyconf);
 
 /**
  * Return an owning pointer to an array of point normals the same size as the number of control
@@ -80,7 +81,7 @@ void fill_selection_true(GMutableSpan span);
 /**
  * Return true if any element is selected, on either domain with either type.
  */
-bool has_anything_selected(const Curves &curves_id);
+bool has_anything_selected(const bke::CurvesGeometry &curves);
 
 /**
  * Find curves that have any point selected (a selection factor greater than zero),
@@ -97,8 +98,40 @@ IndexMask retrieve_selected_points(const Curves &curves_id, Vector<int64_t> &r_i
 /**
  * If the ".selection" attribute doesn't exist, create it with the requested type (bool or float).
  */
-void ensure_selection_attribute(Curves &curves_id, const eCustomDataType create_type);
+bke::GSpanAttributeWriter ensure_selection_attribute(bke::CurvesGeometry &curves,
+                                                     const eAttrDomain selection_domain,
+                                                     const eCustomDataType create_type);
 
+/**
+ * (De)select all the curves.
+ *
+ * \param action: One of SEL_TOGGLE, SEL_SELECT, SEL_DESELECT, or SEL_INVERT. See
+ * "ED_select_utils.h".
+ */
+void select_all(bke::CurvesGeometry &curves, const eAttrDomain selection_domain, int action);
+
+/**
+ * Select the ends (front or back) of all the curves.
+ *
+ * \param amount: The amount of points to select from the front or back.
+ * \param end_points: If true, select the last point(s), if false, select the first point(s).
+ */
+void select_ends(bke::CurvesGeometry &curves,
+                 const eAttrDomain selection_domain,
+                 int amount,
+                 bool end_points);
+
+/**
+ * Select random points or curves.
+ *
+ * \param random_seed: The seed for the \a RandomNumberGenerator.
+ * \param probability: Determins how likely a point/curve will be selected. If set to 0.0, nothing
+ * will be selected, if set to 1.0 everything will be selected.
+ */
+void select_random(bke::CurvesGeometry &curves,
+                   const eAttrDomain selection_domain,
+                   uint32_t random_seed,
+                   float probability);
 /** \} */
 
 }  // namespace blender::ed::curves
