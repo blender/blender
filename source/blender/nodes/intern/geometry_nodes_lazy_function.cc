@@ -2571,28 +2571,31 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
     Array<SocketState> socket_states(sockets_num);
 
-    Stack<lf::Socket *> lf_sockets_to_check;
+    Vector<lf::Socket *> lf_sockets_to_check;
     for (lf::Node *lf_node : lf_graph_->nodes()) {
       if (lf_node->is_function()) {
         for (lf::OutputSocket *lf_socket : lf_node->outputs()) {
           if (lf_socket->targets().is_empty()) {
-            lf_sockets_to_check.push(lf_socket);
+            lf_sockets_to_check.append(lf_socket);
           }
         }
       }
       if (lf_node->outputs().is_empty()) {
         for (lf::InputSocket *lf_socket : lf_node->inputs()) {
-          lf_sockets_to_check.push(lf_socket);
+          lf_sockets_to_check.append(lf_socket);
         }
       }
     }
     Vector<lf::Socket *> lf_socket_stack;
     while (!lf_sockets_to_check.is_empty()) {
-      lf::Socket *lf_inout_socket = lf_sockets_to_check.peek();
+      lf::Socket *lf_inout_socket = lf_sockets_to_check.last();
       lf::Node &lf_node = lf_inout_socket->node();
       SocketState &state = socket_states[lf_inout_socket->index_in_graph()];
-      lf_socket_stack.append(lf_inout_socket);
-      state.in_stack = true;
+
+      if (!state.in_stack) {
+        lf_socket_stack.append(lf_inout_socket);
+        state.in_stack = true;
+      }
 
       Vector<lf::Socket *, 16> lf_origin_sockets;
       if (lf_inout_socket->is_input()) {
@@ -2616,10 +2619,24 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       }
 
       bool pushed_socket = false;
+      bool detected_cycle = false;
       for (lf::Socket *lf_origin_socket : lf_origin_sockets) {
         if (socket_states[lf_origin_socket->index_in_graph()].in_stack) {
+          /* A cycle has been detected. The cycle is broken by removing a link and replacing it
+           * with a constant "true" input. This can only affect inputs which determine whether a
+           * specific value is used. Therefore, setting it to a constant true can result in more
+           * computation later, but does not change correctness.
+           *
+           * After the cycle is broken, the cycle-detection is "rolled back" to the socket where
+           * the first socket of the cycle was found. This is necessary in case another cycle goes
+           * through this socket. */
+
+          detected_cycle = true;
+          const int index_in_socket_stack = lf_socket_stack.first_index_of(lf_origin_socket);
+          const int index_in_sockets_to_check = lf_sockets_to_check.first_index_of(
+              lf_origin_socket);
           const Span<lf::Socket *> cycle = lf_socket_stack.as_span().drop_front(
-              lf_socket_stack.first_index_of(lf_origin_socket));
+              index_in_socket_stack);
 
           bool broke_cycle = false;
           for (lf::Socket *lf_cycle_socket : cycle) {
@@ -2631,15 +2648,27 @@ struct GeometryNodesLazyFunctionGraphBuilder {
               lf_cycle_input_socket.set_default_value(&static_true);
               broke_cycle = true;
             }
+            /* This is actually removed from the stack when it is resized below. */
+            SocketState &lf_cycle_socket_state = socket_states[lf_cycle_socket->index_in_graph()];
+            lf_cycle_socket_state.in_stack = false;
           }
           if (!broke_cycle) {
             BLI_assert_unreachable();
           }
+          /* Roll back algorithm by removing the sockets that corresponded to the cycle from the
+           * stacks. */
+          lf_socket_stack.resize(index_in_socket_stack);
+          /* The +1 is there so that the socket itself is not removed. */
+          lf_sockets_to_check.resize(index_in_sockets_to_check + 1);
+          break;
         }
         else if (!socket_states[lf_origin_socket->index_in_graph()].done) {
-          lf_sockets_to_check.push(lf_origin_socket);
+          lf_sockets_to_check.append(lf_origin_socket);
           pushed_socket = true;
         }
+      }
+      if (detected_cycle) {
+        continue;
       }
       if (pushed_socket) {
         continue;
@@ -2647,7 +2676,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
       state.done = true;
       state.in_stack = false;
-      lf_sockets_to_check.pop();
+      lf_sockets_to_check.pop_last();
       lf_socket_stack.pop_last();
     }
   }
