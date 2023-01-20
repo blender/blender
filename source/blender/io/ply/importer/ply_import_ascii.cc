@@ -13,15 +13,11 @@
 
 namespace blender::io::ply {
 
-void import_ply_ascii(std::ifstream &file,
-                      PlyHeader *header,
-                      Mesh *r_mesh,
-                      const PLYImportParams &params)
+PlyData *import_ply_ascii(std::ifstream &file, PlyHeader *header)
 {
-  PlyData data = load_ply_ascii(file, header);
-  if (!data.vertices.is_empty()) {
-    convert_ply_to_mesh(data, r_mesh, params);
-  }
+  PlyData *data = new PlyData;
+  *data = load_ply_ascii(file, header);
+  return data;
 }
 
 PlyData load_ply_ascii(std::ifstream &file, const PlyHeader *header)

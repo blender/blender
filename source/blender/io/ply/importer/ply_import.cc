@@ -21,12 +21,14 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "BKE_lib_id.h"
 #include "BKE_report.h"
 #include "intern/ply_data.hh"
 #include "ply_functions.hh"
 #include "ply_import.hh"
 #include "ply_import_ascii.hh"
 #include "ply_import_binary.hh"
+#include "ply_import_mesh.hh"
 
 namespace blender::io::ply {
 
@@ -154,19 +156,6 @@ void importer_main(Main *bmain,
   BLI_path_extension_replace(ob_name, FILE_MAX, "");
 
   Mesh *mesh = BKE_mesh_add(bmain, ob_name);
-  try {
-    if (header.type == PlyFormatType::ASCII) {
-      import_ply_ascii(infile, &header, mesh, import_params);
-    }
-    else {
-      import_ply_binary(infile, &header, mesh, import_params);
-    }
-  }
-  catch (std::exception &e) {
-    fprintf(stderr, "PLY Importer: failed to read file. %s.\n", e.what());
-    BKE_report(op->reports, RPT_ERROR, "PLY Importer: failed to parse file.");
-    return;
-  }
 
   BKE_view_layer_base_deselect_all(scene, view_layer);
   LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
@@ -176,6 +165,27 @@ void importer_main(Main *bmain,
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, obj);
   BKE_view_layer_base_select_and_set_active(view_layer, base);
+
+  try {
+    PlyData *data;
+    if (header.type == PlyFormatType::ASCII) {
+      data = import_ply_ascii(infile, &header);
+    }
+    else {
+      data = import_ply_binary(infile, &header);
+    }
+
+    Mesh *temp_val = convert_ply_to_mesh(*data, mesh, import_params);
+    if (import_params.merge_verts && temp_val != mesh) {
+      BKE_mesh_nomain_to_mesh(temp_val, mesh, obj);
+    }
+    delete data;
+  }
+  catch (std::exception &e) {
+    fprintf(stderr, "PLY Importer: failed to read file. %s.\n", e.what());
+    BKE_report(op->reports, RPT_ERROR, "PLY Importer: failed to parse file.");
+    return;
+  }
 
   float global_scale = import_params.global_scale;
   if ((scene->unit.system != USER_UNIT_NONE) && import_params.use_scene_unit) {

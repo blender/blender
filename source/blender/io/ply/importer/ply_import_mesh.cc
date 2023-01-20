@@ -12,6 +12,7 @@
 
 #include "BLI_math_vector.h"
 
+#include "BKE_mesh_runtime.h"
 #include "ply_import_mesh.hh"
 
 namespace blender::io::ply {
@@ -121,8 +122,11 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
 
   /* Merge all vertices on the same location. */
   if (params.merge_verts) {
-    mesh = blender::geometry::mesh_merge_by_distance_all(*mesh, IndexMask(mesh->totvert), 0.0001f)
-               .value();
+    std::optional<Mesh *> return_value = blender::geometry::mesh_merge_by_distance_all(
+        *mesh, IndexMask(mesh->totvert), 0.0001f);
+    if (return_value.has_value()) {
+      mesh = return_value.value();
+    }
   }
 
   return mesh;
