@@ -210,11 +210,13 @@ static void mesh_data_init(MeshData &mesh_data)
 MeshData::MeshData(const Span<MLoopTri> looptris,
                    const Span<MLoop> loops,
                    const int verts_num,
-                   const Span<float2> uv_map)
+                   const Span<float2> uv_map,
+                   const Span<float3> vertex_positions)
     : looptris(looptris),
       verts_num(verts_num),
       loops(loops),
       uv_map(uv_map),
+      vertex_positions(vertex_positions),
       vert_to_edge_map(verts_num),
       edge_to_primitive_map(0),
       primitive_to_edge_map(looptris.size())
@@ -961,6 +963,63 @@ void UVIsland::extend_border(const MeshData &mesh_data,
   }
 }
 
+void UVIsland::print_debug(const MeshData &mesh_data) const
+{
+  std::stringstream ss;
+  ss << "#### Start UVIsland ####\n";
+  ss << "import bpy\n";
+  ss << "import bpy_extras.object_utils\n";
+  ss << "import mathutils\n";
+
+  ss << "uvisland_vertices = [\n";
+  for (const float3 &vertex_position : mesh_data.vertex_positions) {
+    ss << "  mathutils.Vector((" << vertex_position.x << ", " << vertex_position.y << ", "
+       << vertex_position.z << ")),\n";
+  }
+  ss << "]\n";
+
+  ss << "uvisland_edges = []\n";
+
+  ss << "uvisland_faces = [\n";
+  for (const VectorList<UVPrimitive>::UsedVector &uvprimitives : uv_primitives) {
+    for (const UVPrimitive &uvprimitive : uvprimitives) {
+      ss << "  [" << uvprimitive.edges[0]->vertices[0]->vertex << ", "
+         << uvprimitive.edges[0]->vertices[1]->vertex << ", "
+         << uvprimitive
+                .get_other_uv_vertex(uvprimitive.edges[0]->vertices[0],
+                                     uvprimitive.edges[0]->vertices[1])
+                ->vertex
+         << "],\n";
+    }
+  }
+  ss << "]\n";
+
+  ss << "uvisland_uvs = [\n";
+  for (const VectorList<UVPrimitive>::UsedVector &uvprimitives : uv_primitives) {
+    for (const UVPrimitive &uvprimitive : uvprimitives) {
+      float2 uv = uvprimitive.edges[0]->vertices[0]->uv;
+      ss << "  " << uv.x << ", " << uv.y << ",\n";
+      uv = uvprimitive.edges[0]->vertices[1]->uv;
+      ss << "  " << uv.x << ", " << uv.y << ",\n";
+      uv = uvprimitive
+               .get_other_uv_vertex(uvprimitive.edges[0]->vertices[0],
+                                    uvprimitive.edges[0]->vertices[1])
+               ->uv;
+      ss << "  " << uv.x << ", " << uv.y << ",\n";
+    }
+  }
+  ss << "]\n";
+
+  ss << "uvisland_mesh = bpy.data.meshes.new(name='UVIsland')\n";
+  ss << "uvisland_mesh.from_pydata(uvisland_vertices, uvisland_edges, uvisland_faces)\n";
+  ss << "uv_map = uvisland_mesh.attributes.new('UVMap', 'FLOAT2', 'CORNER')\n";
+  ss << "uv_map.data.foreach_set('vector', uvisland_uvs)\n";
+  ss << "bpy_extras.object_utils.object_data_add(bpy.context, uvisland_mesh)\n";
+  ss << "#### End UVIsland ####\n\n\n";
+
+  std::cout << ss.str();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1289,6 +1348,14 @@ void UVIslands::extend_borders(const MeshData &mesh_data, const UVIslandsMask &i
   ushort index = 0;
   for (UVIsland &island : islands) {
     island.extend_border(mesh_data, islands_mask, index++);
+    island.print_debug(mesh_data);
+  }
+}
+
+void UVIslands::print_debug(const MeshData &mesh_data) const
+{
+  for (const UVIsland &island : islands) {
+    island.print_debug(mesh_data);
   }
 }
 

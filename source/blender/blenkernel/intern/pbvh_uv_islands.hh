@@ -122,6 +122,7 @@ struct MeshData {
   const int64_t verts_num;
   const Span<MLoop> loops;
   const Span<float2> uv_map;
+  const Span<float3> vertex_positions;
 
   VertToEdgeMap vert_to_edge_map;
 
@@ -142,7 +143,8 @@ struct MeshData {
   explicit MeshData(Span<MLoopTri> looptris,
                     Span<MLoop> loops,
                     const int verts_num,
-                    const Span<float2> uv_map);
+                    const Span<float2> uv_map,
+                    const Span<float3> vertex_positions);
 };
 
 struct UVVertex {
@@ -312,6 +314,9 @@ struct UVIsland {
   bool has_shared_edge(const UVPrimitive &primitive) const;
   bool has_shared_edge(const MeshData &mesh_data, const int primitive_i) const;
   void extend_border(const UVPrimitive &primitive);
+
+  /** Print a python script to the console that generates a mesh representing this UVIsland. */
+  void print_debug(const MeshData &mesh_data) const;
 };
 
 struct UVIslands {
@@ -321,6 +326,7 @@ struct UVIslands {
 
   void extract_borders();
   void extend_borders(const MeshData &mesh_data, const UVIslandsMask &islands_mask);
+  void print_debug(const MeshData &mesh_data) const;
 };
 
 /** Mask to find the index of the UVIsland for a given UV coordinate. */
