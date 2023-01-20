@@ -2915,7 +2915,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "uv", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "Float2AttributeValue");
-  RNA_def_property_ui_text(prop, "UV", "UV coordinates on face corners"));
+  RNA_def_property_ui_text(prop, "UV", "UV coordinates on face corners");
   RNA_def_property_collection_funcs(prop,
                                     "rna_MeshUVLoopLayer_uv_begin",
                                     "rna_iterator_array_next",
