@@ -30,9 +30,9 @@
 /** \name Reshape from object
  * \{ */
 
-bool multiresModifier_reshapeFromVertcos(struct Depsgraph *depsgraph,
-                                         struct Object *object,
-                                         struct MultiresModifierData *mmd,
+bool multiresModifier_reshapeFromVertcos(Depsgraph *depsgraph,
+                                         Object *object,
+                                         MultiresModifierData *mmd,
                                          const float (*vert_coords)[3],
                                          const int num_vert_coords)
 {
@@ -41,7 +41,7 @@ bool multiresModifier_reshapeFromVertcos(struct Depsgraph *depsgraph,
     return false;
   }
   multires_reshape_store_original_grids(&reshape_context);
-  multires_reshape_ensure_grids(object->data, reshape_context.top.level);
+  multires_reshape_ensure_grids(static_cast<Mesh *>(object->data), reshape_context.top.level);
   if (!multires_reshape_assign_final_coords_from_vertcos(
           &reshape_context, vert_coords, num_vert_coords)) {
     multires_reshape_context_free(&reshape_context);
@@ -53,13 +53,13 @@ bool multiresModifier_reshapeFromVertcos(struct Depsgraph *depsgraph,
   return true;
 }
 
-bool multiresModifier_reshapeFromObject(struct Depsgraph *depsgraph,
-                                        struct MultiresModifierData *mmd,
-                                        struct Object *dst,
-                                        struct Object *src)
+bool multiresModifier_reshapeFromObject(Depsgraph *depsgraph,
+                                        MultiresModifierData *mmd,
+                                        Object *dst,
+                                        Object *src)
 {
-  struct Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  struct Object *src_eval = DEG_get_evaluated_object(depsgraph, src);
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *src_eval = DEG_get_evaluated_object(depsgraph, src);
   Mesh *src_mesh_eval = mesh_get_eval_final(depsgraph, scene_eval, src_eval, &CD_MASK_BAREMESH);
 
   int num_deformed_verts;
@@ -79,10 +79,10 @@ bool multiresModifier_reshapeFromObject(struct Depsgraph *depsgraph,
 /** \name Reshape from modifier
  * \{ */
 
-bool multiresModifier_reshapeFromDeformModifier(struct Depsgraph *depsgraph,
-                                                struct Object *object,
-                                                struct MultiresModifierData *mmd,
-                                                struct ModifierData *deform_md)
+bool multiresModifier_reshapeFromDeformModifier(Depsgraph *depsgraph,
+                                                Object *object,
+                                                MultiresModifierData *mmd,
+                                                ModifierData *deform_md)
 {
   MultiresModifierData highest_mmd = *mmd;
   highest_mmd.sculptlvl = highest_mmd.totlvl;
@@ -96,14 +96,14 @@ bool multiresModifier_reshapeFromDeformModifier(struct Depsgraph *depsgraph,
   float(*deformed_verts)[3] = BKE_mesh_vert_coords_alloc(multires_mesh, &num_deformed_verts);
 
   /* Apply deformation modifier on the multires, */
-  const ModifierEvalContext modifier_ctx = {
-      .depsgraph = depsgraph,
-      .object = object,
-      .flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY,
-  };
+  ModifierEvalContext modifier_ctx{};
+  modifier_ctx.depsgraph = depsgraph;
+  modifier_ctx.object = object;
+  modifier_ctx.flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY;
+
   BKE_modifier_deform_verts(
       deform_md, &modifier_ctx, multires_mesh, deformed_verts, multires_mesh->totvert);
-  BKE_id_free(NULL, multires_mesh);
+  BKE_id_free(nullptr, multires_mesh);
 
   /* Reshaping */
   bool result = multiresModifier_reshapeFromVertcos(
@@ -121,9 +121,7 @@ bool multiresModifier_reshapeFromDeformModifier(struct Depsgraph *depsgraph,
 /** \name Reshape from grids
  * \{ */
 
-bool multiresModifier_reshapeFromCCG(const int tot_level,
-                                     Mesh *coarse_mesh,
-                                     struct SubdivCCG *subdiv_ccg)
+bool multiresModifier_reshapeFromCCG(const int tot_level, Mesh *coarse_mesh, SubdivCCG *subdiv_ccg)
 {
   MultiresReshapeContext reshape_context;
   if (!multires_reshape_context_create_from_ccg(
@@ -159,8 +157,8 @@ void multiresModifier_subdivide(Object *object,
   multiresModifier_subdivide_to_level(object, mmd, top_level, mode);
 }
 
-void multiresModifier_subdivide_to_level(struct Object *object,
-                                         struct MultiresModifierData *mmd,
+void multiresModifier_subdivide_to_level(Object *object,
+                                         MultiresModifierData *mmd,
                                          const int top_level,
                                          const eMultiresSubdivideModeType mode)
 {
@@ -168,7 +166,7 @@ void multiresModifier_subdivide_to_level(struct Object *object,
     return;
   }
 
-  Mesh *coarse_mesh = object->data;
+  Mesh *coarse_mesh = static_cast<Mesh *>(object->data);
   if (coarse_mesh->totloop == 0) {
     /* If there are no loops in the mesh implies there is no CD_MDISPS as well. So can early output
      * from here as there is nothing to subdivide. */
@@ -182,7 +180,7 @@ void multiresModifier_subdivide_to_level(struct Object *object,
   const bool has_mdisps = CustomData_has_layer(&coarse_mesh->ldata, CD_MDISPS);
   if (!has_mdisps) {
     CustomData_add_layer(
-        &coarse_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, NULL, coarse_mesh->totloop);
+        &coarse_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, nullptr, coarse_mesh->totloop);
   }
 
   /* NOTE: Subdivision happens from the top level of the existing multires modifier. If it is set
@@ -238,9 +236,7 @@ void multiresModifier_subdivide_to_level(struct Object *object,
 /** \name Apply base
  * \{ */
 
-void multiresModifier_base_apply(struct Depsgraph *depsgraph,
-                                 Object *object,
-                                 MultiresModifierData *mmd)
+void multiresModifier_base_apply(Depsgraph *depsgraph, Object *object, MultiresModifierData *mmd)
 {
   multires_force_sculpt_rebuild(object);
 

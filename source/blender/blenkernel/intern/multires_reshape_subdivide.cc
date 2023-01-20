@@ -32,7 +32,8 @@ static void multires_subdivide_create_object_space_linear_grids(Mesh *mesh)
   const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
 
-  MDisps *mdisps = CustomData_get_layer_for_write(&mesh->ldata, CD_MDISPS, mesh->totloop);
+  MDisps *mdisps = static_cast<MDisps *>(
+      CustomData_get_layer_for_write(&mesh->ldata, CD_MDISPS, mesh->totloop));
   const int totpoly = mesh->totpoly;
   for (int p = 0; p < totpoly; p++) {
     const MPoly *poly = &polys[p];
@@ -63,7 +64,7 @@ static void multires_subdivide_create_object_space_linear_grids(Mesh *mesh)
 void multires_subdivide_create_tangent_displacement_linear_grids(Object *object,
                                                                  MultiresModifierData *mmd)
 {
-  Mesh *coarse_mesh = object->data;
+  Mesh *coarse_mesh = static_cast<Mesh *>(object->data);
   multires_force_sculpt_rebuild(object);
 
   MultiresReshapeContext reshape_context;
@@ -73,7 +74,7 @@ void multires_subdivide_create_tangent_displacement_linear_grids(Object *object,
   const bool has_mdisps = CustomData_has_layer(&coarse_mesh->ldata, CD_MDISPS);
   if (!has_mdisps) {
     CustomData_add_layer(
-        &coarse_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, NULL, coarse_mesh->totloop);
+        &coarse_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, nullptr, coarse_mesh->totloop);
   }
 
   if (new_top_level == 1) {

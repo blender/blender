@@ -18,14 +18,14 @@
 #include "opensubdiv_converter_capi.h"
 #include "subdiv_converter.h"
 
-static float simple_to_catmull_clark_get_edge_sharpness(
-    const OpenSubdiv_Converter *UNUSED(converter), int UNUSED(manifold_edge_index))
+static float simple_to_catmull_clark_get_edge_sharpness(const OpenSubdiv_Converter * /*converter*/,
+                                                        int /*manifold_edge_index*/)
 {
   return 10.0f;
 }
 
 static bool simple_to_catmull_clark_is_infinite_sharp_vertex(
-    const OpenSubdiv_Converter *UNUSED(converter), int UNUSED(manifold_vertex_index))
+    const OpenSubdiv_Converter * /*converter*/, int /*manifold_vertex_index*/)
 {
   return true;
 }
@@ -35,7 +35,7 @@ static Subdiv *subdiv_for_simple_to_catmull_clark(Object *object, MultiresModifi
   SubdivSettings subdiv_settings;
   BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
 
-  Mesh *base_mesh = object->data;
+  const Mesh *base_mesh = static_cast<const Mesh *>(object->data);
 
   OpenSubdiv_Converter converter;
   BKE_subdiv_converter_init_for_mesh(&converter, &subdiv_settings, base_mesh);
@@ -45,9 +45,10 @@ static Subdiv *subdiv_for_simple_to_catmull_clark(Object *object, MultiresModifi
   Subdiv *subdiv = BKE_subdiv_new_from_converter(&subdiv_settings, &converter);
   BKE_subdiv_converter_free(&converter);
 
-  if (!BKE_subdiv_eval_begin_from_mesh(subdiv, base_mesh, NULL, SUBDIV_EVALUATOR_TYPE_CPU, NULL)) {
+  if (!BKE_subdiv_eval_begin_from_mesh(
+          subdiv, base_mesh, nullptr, SUBDIV_EVALUATOR_TYPE_CPU, nullptr)) {
     BKE_subdiv_free(subdiv);
-    return NULL;
+    return nullptr;
   }
 
   return subdiv;
@@ -55,7 +56,7 @@ static Subdiv *subdiv_for_simple_to_catmull_clark(Object *object, MultiresModifi
 
 void multires_do_versions_simple_to_catmull_clark(Object *object, MultiresModifierData *mmd)
 {
-  const Mesh *base_mesh = object->data;
+  const Mesh *base_mesh = static_cast<const Mesh *>(object->data);
   if (base_mesh->totloop == 0) {
     return;
   }

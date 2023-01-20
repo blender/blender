@@ -156,7 +156,7 @@ void old_mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, float
 int mdisp_rot_face_to_crn(
     struct MPoly *mpoly, int face_side, float u, float v, float *x, float *y);
 
-/* Reshaping, define in multires_reshape.c */
+/* Reshaping, define in multires_reshape.cc */
 
 bool multiresModifier_reshapeFromVertcos(struct Depsgraph *depsgraph,
                                          struct Object *object,
@@ -204,7 +204,7 @@ void multiresModifier_subdivide_to_level(struct Object *object,
                                          int top_level,
                                          eMultiresSubdivideModeType mode);
 
-/* Subdivision integration, defined in multires_subdiv.c */
+/* Subdivision integration, defined in multires_subdiv.cc */
 
 struct SubdivSettings;
 struct SubdivToMeshSettings;

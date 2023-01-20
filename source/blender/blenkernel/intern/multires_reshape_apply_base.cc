@@ -81,8 +81,8 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
                                 base_mesh->totpoly,
                                 base_mesh->totloop);
 
-  float(*origco)[3] = MEM_calloc_arrayN(
-      base_mesh->totvert, sizeof(float[3]), "multires apply base origco");
+  float(*origco)[3] = static_cast<float(*)[3]>(
+      MEM_calloc_arrayN(base_mesh->totvert, sizeof(float[3]), __func__));
   for (int i = 0; i < base_mesh->totvert; i++) {
     copy_v3_v3(origco[i], base_positions[i]);
   }
@@ -115,15 +115,15 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
     for (int j = 0; j < pmap[i].count; j++) {
       const MPoly *p = &reshape_context->base_polys[pmap[i].indices[j]];
       MPoly fake_poly;
-      MLoop *fake_loops;
-      float(*fake_co)[3];
       float no[3];
 
       /* Set up poly, loops, and coords in order to call BKE_mesh_calc_poly_normal(). */
       fake_poly.totloop = p->totloop;
       fake_poly.loopstart = 0;
-      fake_loops = MEM_malloc_arrayN(p->totloop, sizeof(MLoop), "fake_loops");
-      fake_co = MEM_malloc_arrayN(p->totloop, sizeof(float[3]), "fake_co");
+      MLoop *fake_loops = static_cast<MLoop *>(
+          MEM_malloc_arrayN(p->totloop, sizeof(MLoop), __func__));
+      float(*fake_co)[3] = static_cast<float(*)[3]>(
+          MEM_malloc_arrayN(p->totloop, sizeof(float[3]), __func__));
 
       for (int k = 0; k < p->totloop; k++) {
         const int vndx = reshape_context->base_loops[p->loopstart + k].v;
@@ -165,20 +165,20 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
 
 void multires_reshape_apply_base_refine_from_base(MultiresReshapeContext *reshape_context)
 {
-  BKE_subdiv_eval_refine_from_mesh(reshape_context->subdiv, reshape_context->base_mesh, NULL);
+  BKE_subdiv_eval_refine_from_mesh(reshape_context->subdiv, reshape_context->base_mesh, nullptr);
 }
 
 void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *reshape_context)
 {
-  struct Depsgraph *depsgraph = reshape_context->depsgraph;
+  Depsgraph *depsgraph = reshape_context->depsgraph;
   Object *object = reshape_context->object;
   MultiresModifierData *mmd = reshape_context->mmd;
-  BLI_assert(depsgraph != NULL);
-  BLI_assert(object != NULL);
-  BLI_assert(mmd != NULL);
+  BLI_assert(depsgraph != nullptr);
+  BLI_assert(object != nullptr);
+  BLI_assert(mmd != nullptr);
 
   float(*deformed_verts)[3] = BKE_multires_create_deformed_base_mesh_vert_coords(
-      depsgraph, object, mmd, NULL);
+      depsgraph, object, mmd, nullptr);
 
   BKE_subdiv_eval_refine_from_mesh(
       reshape_context->subdiv, reshape_context->base_mesh, deformed_verts);

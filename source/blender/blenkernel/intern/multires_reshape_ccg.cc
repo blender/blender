@@ -7,7 +7,7 @@
 
 #include "multires_reshape.h"
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
@@ -15,21 +15,21 @@
 #include "BKE_subdiv_ccg.h"
 
 bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext *reshape_context,
-                                                   struct SubdivCCG *subdiv_ccg)
+                                                   SubdivCCG *subdiv_ccg)
 {
   CCGKey reshape_level_key;
   BKE_subdiv_ccg_key(&reshape_level_key, subdiv_ccg, reshape_context->reshape.level);
 
   const int reshape_grid_size = reshape_context->reshape.grid_size;
-  const float reshape_grid_size_1_inv = 1.0f / (((float)reshape_grid_size) - 1.0f);
+  const float reshape_grid_size_1_inv = 1.0f / ((float(reshape_grid_size)) - 1.0f);
 
   int num_grids = subdiv_ccg->num_grids;
   for (int grid_index = 0; grid_index < num_grids; ++grid_index) {
     CCGElem *ccg_grid = subdiv_ccg->grids[grid_index];
     for (int y = 0; y < reshape_grid_size; ++y) {
-      const float v = (float)y * reshape_grid_size_1_inv;
+      const float v = float(y) * reshape_grid_size_1_inv;
       for (int x = 0; x < reshape_grid_size; ++x) {
-        const float u = (float)x * reshape_grid_size_1_inv;
+        const float u = float(x) * reshape_grid_size_1_inv;
 
         GridCoord grid_coord;
         grid_coord.grid_index = grid_index;
@@ -39,7 +39,7 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
         ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(
             reshape_context, &grid_coord);
 
-        BLI_assert(grid_element.displacement != NULL);
+        BLI_assert(grid_element.displacement != nullptr);
         memcpy(grid_element.displacement,
                CCG_grid_elem_co(&reshape_level_key, ccg_grid, x, y),
                sizeof(float[3]));
@@ -66,7 +66,7 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
         /* NOTE: There is a known bug in Undo code that results in first Sculpt step
          * after a Memfile one to never be undone (see T83806). This might be the root cause of
          * this inconsistency. */
-        if (reshape_level_key.has_mask && grid_element.mask != NULL) {
+        if (reshape_level_key.has_mask && grid_element.mask != nullptr) {
           *grid_element.mask = *CCG_grid_elem_mask(&reshape_level_key, ccg_grid, x, y);
         }
       }

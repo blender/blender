@@ -15,12 +15,12 @@
 #include "BKE_subdiv_foreach.h"
 #include "BKE_subdiv_mesh.h"
 
-typedef struct MultiresReshapeAssignVertcosContext {
+struct MultiresReshapeAssignVertcosContext {
   const MultiresReshapeContext *reshape_context;
 
   const float (*vert_coords)[3];
-  const int num_vert_coords;
-} MultiresReshapeAssignVertcosContext;
+  int num_vert_coords;
+};
 
 /**
  * Set single displacement grid value at a reshape level to a corresponding vertex coordinate.
@@ -31,21 +31,23 @@ static void multires_reshape_vertcos_foreach_single_vertex(
     const GridCoord *grid_coord,
     const int subdiv_vertex_index)
 {
-  MultiresReshapeAssignVertcosContext *reshape_vertcos_context = foreach_context->user_data;
+  MultiresReshapeAssignVertcosContext *reshape_vertcos_context =
+      static_cast<MultiresReshapeAssignVertcosContext *>(foreach_context->user_data);
   const float *coordinate = reshape_vertcos_context->vert_coords[subdiv_vertex_index];
 
   ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(
       reshape_vertcos_context->reshape_context, grid_coord);
-  BLI_assert(grid_element.displacement != NULL);
+  BLI_assert(grid_element.displacement != nullptr);
   copy_v3_v3(grid_element.displacement, coordinate);
 }
 
-/* TODO(sergey): De-duplicate with similar function in multires_reshape_smooth.c */
+/* TODO(sergey): De-duplicate with similar function in multires_reshape_smooth.cc */
 static void multires_reshape_vertcos_foreach_vertex(const SubdivForeachContext *foreach_context,
                                                     const PTexCoord *ptex_coord,
                                                     const int subdiv_vertex_index)
 {
-  const MultiresReshapeAssignVertcosContext *reshape_vertcos_context = foreach_context->user_data;
+  const MultiresReshapeAssignVertcosContext *reshape_vertcos_context =
+      static_cast<MultiresReshapeAssignVertcosContext *>(foreach_context->user_data);
   const MultiresReshapeContext *reshape_context = reshape_vertcos_context->reshape_context;
 
   const GridCoord grid_coord = multires_reshape_ptex_coord_to_grid(reshape_context, ptex_coord);
@@ -95,12 +97,13 @@ static void multires_reshape_vertcos_foreach_vertex(const SubdivForeachContext *
 static bool multires_reshape_vertcos_foreach_topology_info(
     const SubdivForeachContext *foreach_context,
     const int num_vertices,
-    const int UNUSED(num_edges),
-    const int UNUSED(num_loops),
-    const int UNUSED(num_polygons),
-    const int *UNUSED(subdiv_polygon_offset))
+    const int /*num_edges*/,
+    const int /*num_loops*/,
+    const int /*num_polygons*/,
+    const int * /*subdiv_polygon_offset*/)
 {
-  MultiresReshapeAssignVertcosContext *reshape_vertcos_context = foreach_context->user_data;
+  MultiresReshapeAssignVertcosContext *reshape_vertcos_context =
+      static_cast<MultiresReshapeAssignVertcosContext *>(foreach_context->user_data);
   if (num_vertices != reshape_vertcos_context->num_vert_coords) {
     return false;
   }
@@ -110,59 +113,56 @@ static bool multires_reshape_vertcos_foreach_topology_info(
 /* SubdivForeachContext::vertex_inner() */
 static void multires_reshape_vertcos_foreach_vertex_inner(
     const SubdivForeachContext *foreach_context,
-    void *UNUSED(tls_v),
+    void * /*tls_v*/,
     const int ptex_face_index,
     const float ptex_face_u,
     const float ptex_face_v,
-    const int UNUSED(coarse_face_index),
-    const int UNUSED(coarse_face_corner),
+    const int /*coarse_face_index*/,
+    const int /*coarse_face_corner*/,
     const int subdiv_vertex_index)
 {
-  const PTexCoord ptex_coord = {
-      .ptex_face_index = ptex_face_index,
-      .u = ptex_face_u,
-      .v = ptex_face_v,
-  };
+  PTexCoord ptex_coord{};
+  ptex_coord.ptex_face_index = ptex_face_index;
+  ptex_coord.u = ptex_face_u;
+  ptex_coord.v = ptex_face_v;
   multires_reshape_vertcos_foreach_vertex(foreach_context, &ptex_coord, subdiv_vertex_index);
 }
 
 /* SubdivForeachContext::vertex_every_corner() */
 static void multires_reshape_vertcos_foreach_vertex_every_corner(
-    const struct SubdivForeachContext *foreach_context,
-    void *UNUSED(tls_v),
+    const SubdivForeachContext *foreach_context,
+    void * /*tls_v*/,
     const int ptex_face_index,
     const float ptex_face_u,
     const float ptex_face_v,
-    const int UNUSED(coarse_vertex_index),
-    const int UNUSED(coarse_face_index),
-    const int UNUSED(coarse_face_corner),
+    const int /*coarse_vertex_index*/,
+    const int /*coarse_face_index*/,
+    const int /*coarse_face_corner*/,
     const int subdiv_vertex_index)
 {
-  const PTexCoord ptex_coord = {
-      .ptex_face_index = ptex_face_index,
-      .u = ptex_face_u,
-      .v = ptex_face_v,
-  };
+  PTexCoord ptex_coord{};
+  ptex_coord.ptex_face_index = ptex_face_index;
+  ptex_coord.u = ptex_face_u;
+  ptex_coord.v = ptex_face_v;
   multires_reshape_vertcos_foreach_vertex(foreach_context, &ptex_coord, subdiv_vertex_index);
 }
 
 /* SubdivForeachContext::vertex_every_edge() */
 static void multires_reshape_vertcos_foreach_vertex_every_edge(
-    const struct SubdivForeachContext *foreach_context,
-    void *UNUSED(tls_v),
+    const SubdivForeachContext *foreach_context,
+    void * /*tls_v*/,
     const int ptex_face_index,
     const float ptex_face_u,
     const float ptex_face_v,
-    const int UNUSED(coarse_edge_index),
-    const int UNUSED(coarse_face_index),
-    const int UNUSED(coarse_face_corner),
+    const int /*coarse_edge_index*/,
+    const int /*coarse_face_index*/,
+    const int /*coarse_face_corner*/,
     const int subdiv_vertex_index)
 {
-  const PTexCoord ptex_coord = {
-      .ptex_face_index = ptex_face_index,
-      .u = ptex_face_u,
-      .v = ptex_face_v,
-  };
+  PTexCoord ptex_coord{};
+  ptex_coord.ptex_face_index = ptex_face_index;
+  ptex_coord.u = ptex_face_u;
+  ptex_coord.v = ptex_face_v;
   multires_reshape_vertcos_foreach_vertex(foreach_context, &ptex_coord, subdiv_vertex_index);
 }
 
@@ -171,19 +171,17 @@ bool multires_reshape_assign_final_coords_from_vertcos(
     const float (*vert_coords)[3],
     const int num_vert_coords)
 {
-  MultiresReshapeAssignVertcosContext reshape_vertcos_context = {
-      .reshape_context = reshape_context,
-      .vert_coords = vert_coords,
-      .num_vert_coords = num_vert_coords,
-  };
+  MultiresReshapeAssignVertcosContext reshape_vertcos_context{};
+  reshape_vertcos_context.reshape_context = reshape_context;
+  reshape_vertcos_context.vert_coords = vert_coords;
+  reshape_vertcos_context.num_vert_coords = num_vert_coords;
 
-  SubdivForeachContext foreach_context = {
-      .topology_info = multires_reshape_vertcos_foreach_topology_info,
-      .vertex_inner = multires_reshape_vertcos_foreach_vertex_inner,
-      .vertex_every_edge = multires_reshape_vertcos_foreach_vertex_every_edge,
-      .vertex_every_corner = multires_reshape_vertcos_foreach_vertex_every_corner,
-      .user_data = &reshape_vertcos_context,
-  };
+  SubdivForeachContext foreach_context{};
+  foreach_context.topology_info = multires_reshape_vertcos_foreach_topology_info;
+  foreach_context.vertex_inner = multires_reshape_vertcos_foreach_vertex_inner;
+  foreach_context.vertex_every_edge = multires_reshape_vertcos_foreach_vertex_every_edge;
+  foreach_context.vertex_every_corner = multires_reshape_vertcos_foreach_vertex_every_corner;
+  foreach_context.user_data = &reshape_vertcos_context;
 
   SubdivToMeshSettings mesh_settings;
   mesh_settings.resolution = (1 << reshape_context->reshape.level) + 1;

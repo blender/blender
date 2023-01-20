@@ -216,16 +216,16 @@ set(SRC
   intern/modifier.cc
   intern/movieclip.c
   intern/multires.cc
-  intern/multires_reshape.c
-  intern/multires_reshape_apply_base.c
-  intern/multires_reshape_ccg.c
-  intern/multires_reshape_smooth.c
-  intern/multires_reshape_subdivide.c
-  intern/multires_reshape_util.c
-  intern/multires_reshape_vertcos.c
-  intern/multires_subdiv.c
-  intern/multires_unsubdivide.c
-  intern/multires_versioning.c
+  intern/multires_reshape.cc
+  intern/multires_reshape_apply_base.cc
+  intern/multires_reshape_ccg.cc
+  intern/multires_reshape_smooth.cc
+  intern/multires_reshape_subdivide.cc
+  intern/multires_reshape_util.cc
+  intern/multires_reshape_vertcos.cc
+  intern/multires_subdiv.cc
+  intern/multires_unsubdivide.cc
+  intern/multires_versioning.cc
   intern/nla.c
   intern/node.cc
   intern/node_runtime.cc
