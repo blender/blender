@@ -3513,7 +3513,8 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
         }
       }
 
-      /* lattices have to be calculated separately to avoid mixups between effector calculations */
+      /* Lattices have to be calculated separately to avoid mix-ups between effector calculations.
+       */
       if (psys->lattice_deform_data) {
         for (k = 0, ca = cache[p]; k <= segments; k++, ca++) {
           BKE_lattice_deform_data_eval_co(

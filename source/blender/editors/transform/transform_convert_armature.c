@@ -864,7 +864,7 @@ static void createTransPose(bContext *UNUSED(C), TransInfo *t)
     }
   }
 
-  /* initialize initial auto=ik chainlen's? */
+  /* Initialize initial auto=IK chain-length's? */
   if (t->flag & T_AUTOIK) {
     transform_autoik_update(t, 0);
   }

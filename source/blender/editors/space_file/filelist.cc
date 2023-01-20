@@ -3876,7 +3876,7 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
 
   filelist_readjob_main_assets_add_items(job_params, stop, do_update, progress);
 
-  /* When only doing partialy reload for main data, we're done. */
+  /* When only doing partially reload for main data, we're done. */
   if (job_params->only_main_data) {
     return;
   }

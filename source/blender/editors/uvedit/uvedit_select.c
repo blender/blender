@@ -4399,13 +4399,13 @@ static int uv_select_overlap(bContext *C, const bool extend)
         copy_v2_v2(uv_verts[vert_index], luv);
       }
 
-      /* The winding order of the coordinates is not guaranteed, determine it automatically. */
+      /* The UV coordinates winding could be positive of negative,
+       * determine it automatically. */
       const int coords_sign = 0;
       BLI_polyfill_calc_arena(uv_verts, face_len, coords_sign, indices, arena);
 
       /* A beauty fill is necessary to remove degenerate triangles that may be produced from the
-       * above polyfill (see T103913), otherwise the overlap tests can fail.
-       */
+       * above poly-fill (see T103913), otherwise the overlap tests can fail. */
       BLI_polyfill_beautify(uv_verts, face_len, indices, arena, heap);
 
       for (int t = 0; t < tri_len; t++) {

@@ -415,7 +415,7 @@ void PARTICLE_OT_dupliob_refresh(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/************************ move up particle dupliweight operator *********************/
+/************************ move up particle dupli-weight operator *********************/
 
 static int dupliob_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 {

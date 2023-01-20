@@ -70,7 +70,7 @@ template<typename T> class OffsetIndices {
   }
 
   /**
-   * Return a subset of the offsets desribing the specified range of source elements.
+   * Return a subset of the offsets describing the specified range of source elements.
    * This is a slice into the source ranges rather than the indexed elements described by the
    * offset values.
    */

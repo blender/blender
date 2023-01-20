@@ -336,14 +336,13 @@ static bool bm_loop_uv_shared_edge_check(const BMLoop *l_a, const BMLoop *l_b, v
 }
 
 /**
- * returns true if `BMFace *efa` is able to be affected by a packing operation, given various
- * parameters.
+ * Returns true if `efa` is able to be affected by a packing operation, given various parameters.
  *
  * Checks if it's (not) hidden, and optionally selected, and/or UV selected.
  *
  * Will eventually be superseded by `BM_uv_element_map_create()`.
  *
- * Loosely based on`uvedit_is_face_affected`, but "bug-compatible" with previous code.
+ * Loosely based on `uvedit_is_face_affected`, but "bug-compatible" with previous code.
  */
 static bool uvedit_is_face_affected_for_calc_uv_islands(const Scene *scene,
                                                         BMFace *efa,
@@ -462,8 +461,7 @@ static float pack_islands_margin_fraction(const blender::Vector<FaceIsland *> &i
    * First, use a robust search procedure to bracket the root within a factor of 10.
    * Then, use a modified-secant method to converge.
    *
-   * This is a specialized solver using domain knowledge to accelerate convergence.
-   */
+   * This is a specialized solver using domain knowledge to accelerate convergence. */
 
   float scale_low = 0.0f;
   float value_low = 0.0f;
@@ -570,11 +568,8 @@ static float calc_margin_from_aabb_length_sum(const blender::Vector<FaceIsland *
                                               const struct UVPackIsland_Params &params)
 {
   /* Logic matches behavior from #GEO_uv_parametrizer_pack.
-   * Attempt to give predictable results
-   * not dependent on current UV scale by using
-   * `aabb_length_sum` (was "`area`") to multiply
-   * the margin by the length (was "area").
-   */
+   * Attempt to give predictable results not dependent on current UV scale by using
+   * `aabb_length_sum` (was "`area`") to multiply the margin by the length (was "area"). */
   double aabb_length_sum = 0.0f;
   for (FaceIsland *island : island_vector) {
     float w = BLI_rctf_size_x(&island->bounds_rect);

@@ -527,7 +527,7 @@ static void sample_interval_bezier(const Span<float3> src_positions,
                                                        start_point_insert.position,
                                                        parameter);
 
-        /* Update startpoint handle. */
+        /* Update start-point handle. */
         dst_handles_l[dst_range.first()] = end_point_insert.handle_next;
       }
       else {

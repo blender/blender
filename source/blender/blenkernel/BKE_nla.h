@@ -298,7 +298,7 @@ void BKE_nlastrip_recalculate_bounds(struct NlaStrip *strip);
 void BKE_nlastrip_recalculate_bounds_sync_action(struct NlaStrip *strip);
 
 /**
- * Recalculate the Blendin and Blendout values after a strip transform update.
+ * Recalculate the blend-in and blend-out values after a strip transform update.
  */
 void BKE_nlastrip_recalculate_blend(struct NlaStrip *strip);
 

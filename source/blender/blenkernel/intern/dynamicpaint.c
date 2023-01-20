@@ -922,7 +922,7 @@ static void surface_freeUnusedData(DynamicPaintSurface *surface)
     return;
   }
 
-  /* free bakedata if not active or surface is baked */
+  /* Free bake-data if not active or surface is baked. */
   if (!(surface->flags & MOD_DPAINT_ACTIVE) ||
       (surface->pointcache && surface->pointcache->flag & PTCACHE_BAKED)) {
     free_bakeData(surface->data);
@@ -1071,7 +1071,7 @@ DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *c
   BKE_modifier_path_init(
       surface->image_output_path, sizeof(surface->image_output_path), "cache_dynamicpaint");
 
-  /* Using ID_BRUSH i18n context, as we have no physics/dpaint one for now... */
+  /* Using ID_BRUSH i18n context, as we have no physics/dynamic-paint one for now. */
   dynamicPaintSurface_setUniqueName(surface, CTX_DATA_(BLT_I18NCONTEXT_ID_BRUSH, "Surface"));
 
   surface->effector_weights = BKE_effector_add_weights(NULL);
@@ -5067,7 +5067,7 @@ static void dynamic_paint_prepare_effect_cb(void *__restrict userdata,
 
   /* if global gravity is enabled, add it too */
   if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
-    /* also divide by 10 to about match default grav
+    /* also divide by 10 to about match default gravity
      * with default force strength (1.0). */
     madd_v3_v3fl(forc,
                  scene->physics_settings.gravity,
@@ -5139,9 +5139,9 @@ static int dynamicPaint_prepareEffectStep(struct Depsgraph *depsgraph,
   }
 
   /* Get number of required steps using average point distance
-   * so that just a few ultra close pixels won't increase substeps to max. */
+   * so that just a few ultra close pixels won't increase sub-steps to max. */
 
-  /* adjust number of required substep by fastest active effect */
+  /* Adjust number of required sub-step by fastest active effect. */
   if (surface->effect & MOD_DPAINT_EFFECT_DO_SPREAD) {
     spread_speed = surface->spread_speed;
   }
@@ -5811,7 +5811,7 @@ static void dynamic_paint_surface_pre_step_cb(void *__restrict userdata,
 
         pPoint->state = DPAINT_PAINT_WET;
       }
-      /* in case of just dryed paint, just mix it to the dry layer and mark it empty */
+      /* In case of just dried paint, just mix it to the dry layer and mark it empty. */
       else if (pPoint->state > 0) {
         float f_color[4];
         blendColors(pPoint->color, pPoint->color[3], pPoint->e_color, pPoint->e_color[3], f_color);

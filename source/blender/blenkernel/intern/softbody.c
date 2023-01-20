@@ -2550,11 +2550,12 @@ static void softbody_swap_state(Object *ob, float *ppos, float *pvel)
 }
 #endif
 
-/* care for bodypoints taken out of the 'ordinary' solver step
+/**
+ * Care for body-points taken out of the 'ordinary' solver step
  * because they are screwed to goal by bolts
  * they just need to move along with the goal in time
  * we need to adjust them on sub frame timing in solver
- * so now when frame is done .. put 'em to the position at the end of frame
+ * so now when frame is done .. put them to the position at the end of frame.
  */
 static void softbody_apply_goalsnap(Object *ob)
 {

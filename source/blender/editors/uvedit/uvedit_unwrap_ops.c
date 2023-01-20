@@ -595,10 +595,10 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   /* Modifier initialization data, will  control what type of subdivision will happen. */
   SubsurfModifierData smd = {{NULL}};
 
-  /* holds a map to editfaces for every subsurfed MFace.
+  /* Holds a map to edit-faces for every subdivision-surface polygon.
    * These will be used to get hidden/ selected flags etc. */
   BMFace **faceMap;
-  /* similar to the above, we need a way to map edges to their original ones */
+  /* Similar to the above, we need a way to map edges to their original ones. */
   BMEdge **edgeMap;
 
   const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);

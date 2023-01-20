@@ -949,7 +949,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
   bool is_active_state = (state == ssc->states[ssc->active_object_index]);
 
   char stitch_midpoints = ssc->midpoints;
-  /* used to map uv indices to uvaverage indices for selection */
+  /* Used to map UV indices to UV-average indices for selection. */
   uint *uvfinal_map = NULL;
   /* per face preview position in preview buffer */
   PreviewPosition *preview_position = NULL;

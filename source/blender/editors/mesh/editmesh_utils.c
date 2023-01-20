@@ -887,7 +887,7 @@ static void bm_uv_build_islands(UvElementMap *element_map,
   MEM_SAFE_FREE(map);
 }
 
-/* return true if `loop` has UV co-ordinates which match `luv_a` and `luv_b` */
+/** Return true if `loop` has UV co-ordinates which match `luv_a` and `luv_b`. */
 static bool loop_uv_match(BMLoop *loop,
                           const float luv_a[2],
                           const float luv_b[2],
