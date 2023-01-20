@@ -273,6 +273,13 @@ struct BMLoop **ED_uvedit_selected_verts(const struct Scene *scene,
                                          int *r_verts_len);
 
 void ED_uvedit_get_aspect(struct Object *obedit, float *r_aspx, float *r_aspy);
+
+/**
+ * Return the X / Y aspect (wider aspects are over 1, taller are below 1).
+ * Apply this aspect by multiplying with the Y axis (X aspect is always 1 & unchanged).
+ */
+float ED_uvedit_get_aspect_y(struct Object *obedit);
+
 void ED_uvedit_get_aspect_from_material(Object *ob,
                                         const int material_index,
                                         float *r_aspx,

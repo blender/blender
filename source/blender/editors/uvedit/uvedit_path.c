@@ -653,13 +653,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
 
     if (ele_src && ele_dst) {
       /* Always use the active object, not `obedit` as the active defines the UV display. */
-      float aspect_y;
-      {
-        float aspx, aspy;
-        ED_uvedit_get_aspect(CTX_data_edit_object(C), &aspx, &aspy);
-        aspect_y = aspx / aspy;
-      }
-
+      const float aspect_y = ED_uvedit_get_aspect_y(CTX_data_edit_object(C));
       uv_shortest_path_pick_ex(
           scene, depsgraph, obedit, &op_params, ele_src, ele_dst, aspect_y, offsets);
 
@@ -744,12 +738,7 @@ static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
   }
 
   /* Always use the active object, not `obedit` as the active defines the UV display. */
-  float aspect_y;
-  {
-    float aspx, aspy;
-    ED_uvedit_get_aspect(CTX_data_edit_object(C), &aspx, &aspy);
-    aspect_y = aspx / aspy;
-  }
+  const float aspect_y = ED_uvedit_get_aspect_y(CTX_data_edit_object(C));
 
   struct PathSelectParams op_params;
   path_select_params_from_op(op, &op_params);
@@ -803,13 +792,7 @@ static int uv_shortest_path_select_exec(bContext *C, wmOperator *op)
   const char uv_selectmode = ED_uvedit_select_mode_get(scene);
   bool found_valid_elements = false;
 
-  float aspect_y;
-  {
-    Object *obedit = CTX_data_edit_object(C);
-    float aspx, aspy;
-    ED_uvedit_get_aspect(obedit, &aspx, &aspy);
-    aspect_y = aspx / aspy;
-  }
+  const float aspect_y = ED_uvedit_get_aspect_y(CTX_data_edit_object(C));
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;

@@ -675,14 +675,7 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
       continue;
     }
 
-    float aspect_y = 1.0f;
-    if (params->correct_aspect) {
-      float aspx, aspy;
-      ED_uvedit_get_aspect(obedit, &aspx, &aspy);
-      if (aspx != aspy) {
-        aspect_y = aspx / aspy;
-      }
-    }
+    const float aspect_y = params->correct_aspect ? ED_uvedit_get_aspect_y(obedit) : 1.0f;
 
     bool only_selected_faces = params->only_selected_faces;
     bool only_selected_uvs = params->only_selected_uvs;

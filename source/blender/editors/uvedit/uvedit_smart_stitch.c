@@ -130,6 +130,7 @@ typedef struct UvEdge {
 
 /* stitch state object */
 typedef struct StitchState {
+  /** The `aspect[0] / aspect[1]`. */
   float aspect;
   /* object for editmesh */
   Object *obedit;
@@ -1827,7 +1828,6 @@ static StitchState *stitch_init(bContext *C,
   StitchState *state;
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
-  float aspx, aspy;
 
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
@@ -1850,8 +1850,7 @@ static StitchState *stitch_init(bContext *C,
     return NULL;
   }
 
-  ED_uvedit_get_aspect(obedit, &aspx, &aspy);
-  state->aspect = aspx / aspy;
+  state->aspect = ED_uvedit_get_aspect_y(obedit);
 
   int unique_uvs = state->element_map->total_unique_uvs;
   state->total_separate_uvs = unique_uvs;
