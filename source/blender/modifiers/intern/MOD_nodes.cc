@@ -496,10 +496,8 @@ id_property_create_from_socket(const bNodeSocket &socket)
     case SOCK_BOOLEAN: {
       const bNodeSocketValueBoolean *value = static_cast<const bNodeSocketValueBoolean *>(
           socket.default_value);
-      auto property = bke::idprop::create(socket.identifier, int(value->value));
-      IDPropertyUIDataInt *ui_data = (IDPropertyUIDataInt *)IDP_ui_data_ensure(property.get());
-      ui_data->min = ui_data->soft_min = 0;
-      ui_data->max = ui_data->soft_max = 1;
+      auto property = bke::idprop::create_bool(socket.identifier, value->value);
+      IDPropertyUIDataBool *ui_data = (IDPropertyUIDataBool *)IDP_ui_data_ensure(property.get());
       ui_data->default_value = value->value != 0;
       return property;
     }
@@ -553,7 +551,7 @@ static bool id_property_type_matches_socket(const bNodeSocket &socket, const IDP
     case SOCK_RGBA:
       return property.type == IDP_ARRAY && property.subtype == IDP_FLOAT && property.len == 4;
     case SOCK_BOOLEAN:
-      return property.type == IDP_INT;
+      return property.type == IDP_BOOLEAN;
     case SOCK_STRING:
       return property.type == IDP_STRING;
     case SOCK_OBJECT:
@@ -601,7 +599,7 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
       break;
     }
     case SOCK_BOOLEAN: {
-      bool value = IDP_Int(&property) != 0;
+      const bool value = IDP_Bool(&property);
       new (r_value) ValueOrField<bool>(value);
       break;
     }
@@ -682,16 +680,23 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
 
     if (old_properties != nullptr) {
       IDProperty *old_prop = IDP_GetPropertyFromGroup(old_properties, socket->identifier);
-      if (old_prop != nullptr && id_property_type_matches_socket(*socket, *old_prop)) {
-        /* #IDP_CopyPropertyContent replaces the UI data as well, which we don't (we only
-         * want to replace the values). So release it temporarily and replace it after. */
-        IDPropertyUIData *ui_data = new_prop->ui_data;
-        new_prop->ui_data = nullptr;
-        IDP_CopyPropertyContent(new_prop, old_prop);
-        if (new_prop->ui_data != nullptr) {
-          IDP_ui_data_free(new_prop);
+      if (old_prop != nullptr) {
+        if (id_property_type_matches_socket(*socket, *old_prop)) {
+          /* #IDP_CopyPropertyContent replaces the UI data as well, which we don't (we only
+           * want to replace the values). So release it temporarily and replace it after. */
+          IDPropertyUIData *ui_data = new_prop->ui_data;
+          new_prop->ui_data = nullptr;
+          IDP_CopyPropertyContent(new_prop, old_prop);
+          if (new_prop->ui_data != nullptr) {
+            IDP_ui_data_free(new_prop);
+          }
+          new_prop->ui_data = ui_data;
         }
-        new_prop->ui_data = ui_data;
+        else if (old_prop->type == IDP_INT && new_prop->type == IDP_BOOLEAN) {
+          /* Support versioning from integer to boolean property values. The actual value is stored
+           * in the same variable for both types. */
+          new_prop->data.val = old_prop->data.val != 0;
+        }
       }
     }
 
@@ -1575,9 +1580,17 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
   uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
   uiLayout *name_row = uiLayoutRow(split, false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
-  uiItemL(name_row, socket.name, ICON_NONE);
+  if (socket.type == SOCK_BOOLEAN) {
+    uiItemL(name_row, "", ICON_NONE);
+  }
+  else {
+    uiItemL(name_row, socket.name, ICON_NONE);
+  }
 
   uiLayout *prop_row = uiLayoutRow(split, true);
+  if (socket.type == SOCK_BOOLEAN) {
+    uiLayoutSetAlignment(prop_row, UI_LAYOUT_ALIGN_LEFT);
+  }
 
   PointerRNA props;
   uiItemFullO(prop_row,
@@ -1594,10 +1607,10 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
   const int use_attribute = RNA_int_get(md_ptr, rna_path_use_attribute.c_str()) != 0;
   if (use_attribute) {
     add_attribute_search_button(C, prop_row, nmd, md_ptr, rna_path_attribute_name, socket, false);
-    uiItemL(layout, "", ICON_BLANK1);
   }
   else {
-    uiItemR(prop_row, md_ptr, rna_path.c_str(), 0, "", ICON_NONE);
+    const char *name = socket.type == SOCK_BOOLEAN ? socket.name : "";
+    uiItemR(prop_row, md_ptr, rna_path.c_str(), 0, name, ICON_NONE);
     uiItemDecoratorR(layout, md_ptr, rna_path.c_str(), -1);
   }
 }
@@ -1854,9 +1867,33 @@ static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const Modif
   BLO_write_struct(writer, NodesModifierData, nmd);
 
   if (nmd->settings.properties != nullptr) {
+    /* Boolean properties are added automatically for boolean node group inputs. Integer properties
+     * are automatically converted to boolean sockets where applicable as well. However, boolean
+     * properties will crash old versions of Blender, so convert them to integer properties for
+     * writing. The actual value is stored in the same variable for both types */
+    Map<IDProperty *, IDPropertyUIDataBool *> boolean_props;
+    LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
+      if (prop->type == IDP_BOOLEAN) {
+        boolean_props.add_new(prop, reinterpret_cast<IDPropertyUIDataBool *>(prop->ui_data));
+        prop->type = IDP_INT;
+        prop->ui_data = nullptr;
+      }
+    }
+
     /* Note that the property settings are based on the socket type info
      * and don't necessarily need to be written, but we can't just free them. */
     IDP_BlendWrite(writer, nmd->settings.properties);
+
+    LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
+      if (prop->type == IDP_INT) {
+        if (IDPropertyUIDataBool **ui_data = boolean_props.lookup_ptr(prop)) {
+          prop->type = IDP_BOOLEAN;
+          if (ui_data) {
+            prop->ui_data = reinterpret_cast<IDPropertyUIData *>(*ui_data);
+          }
+        }
+      }
+    }
   }
 }
 
