@@ -585,37 +585,12 @@ void SCULPT_automasking_cache_free(AutomaskingCache *automasking)
   MEM_SAFE_FREE(automasking);
 }
 
-static bool sculpt_automasking_is_constrained_by_radius(Brush *br)
-{
-  /* 2D falloff is not constrained by radius. */
-  if (br->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-    return false;
-  }
-
-  if (ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE)) {
-    return true;
-  }
-  return false;
-}
-
 struct AutomaskFloodFillData {
   float radius;
   bool use_radius;
   float location[3];
   char symm;
 };
-
-static bool automask_floodfill_cb(
-    SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool /*is_duplicate*/, void *userdata)
-{
-  AutomaskFloodFillData *data = (AutomaskFloodFillData *)userdata;
-
-  *(float *)SCULPT_vertex_attr_get(to_v, ss->attrs.automasking_factor) = 1.0f;
-  *(float *)SCULPT_vertex_attr_get(from_v, ss->attrs.automasking_factor) = 1.0f;
-  return (!data->use_radius ||
-          SCULPT_is_vertex_inside_brush_radius_symm(
-              SCULPT_vertex_co_get(ss, to_v), data->location, data->radius, data->symm));
-}
 
 static void sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob)
 {
