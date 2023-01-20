@@ -110,7 +110,7 @@ PlyData load_ply_ascii(std::ifstream &file, const PlyHeader *header)
       data.vertex_normals.append(normals3);
     }
 
-    // If uv
+    /* If uv */
     if (hasUv) {
       float2 uvmap;
       uvmap.x = std::stof(value_vec[uvIndex.x]);

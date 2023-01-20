@@ -69,7 +69,7 @@ class PlyImportTest : public BlendfileLoadingBaseTest {
                               DEG_ITER_OBJECT_FLAG_DUPLI;
     size_t object_index = 0;
 
-    // Iterate over the objects in the viewport
+    /* Iterate over the objects in the viewport */
     DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
       if (object_index >= expect_count) {
         ADD_FAILURE();
