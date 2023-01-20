@@ -210,7 +210,7 @@ ccl_device_forceinline float3 microfacet_sample_stretched(KernelGlobals kg,
   /* 2. sample P22_{wi}(x_slope, y_slope, 1, 1) */
   float slope_x, slope_y;
 
-  if constexpr (m_type == MicrofacetType::BECKMANN) {
+  if (m_type == MicrofacetType::BECKMANN) {
     microfacet_beckmann_sample_slopes(
         kg, costheta_, sintheta_, randu, randv, &slope_x, &slope_y, G1i);
   }
@@ -275,13 +275,14 @@ ccl_device_forceinline float bsdf_clearcoat_D(float alpha2, float cos_NH)
 template<MicrofacetType m_type>
 ccl_device_inline float bsdf_G1_from_sqr_alpha_tan_n(float sqr_alpha_tan_n)
 {
-  if constexpr (m_type == MicrofacetType::GGX) {
+  if (m_type == MicrofacetType::GGX) {
     return 2.0f / (1.0f + sqrtf(1.0f + sqr_alpha_tan_n));
   }
-
-  /* m_type == MicrofacetType::BECKMANN */
-  const float a = inversesqrtf(sqr_alpha_tan_n);
-  return (a > 1.6f) ? 1.0f : ((2.181f * a + 3.535f) * a) / ((2.577f * a + 2.276f) * a + 1.0f);
+  else {
+    /* m_type == MicrofacetType::BECKMANN */
+    const float a = inversesqrtf(sqr_alpha_tan_n);
+    return (a > 1.6f) ? 1.0f : ((2.181f * a + 3.535f) * a) / ((2.577f * a + 2.276f) * a + 1.0f);
+  }
 }
 
 template<MicrofacetType m_type> ccl_device_inline float bsdf_G1(float alpha2, float cos_N)
@@ -308,12 +309,13 @@ template<MicrofacetType m_type> ccl_device_inline float bsdf_D(float alpha2, flo
 {
   const float cos_NH2 = sqr(cos_NH);
 
-  if constexpr (m_type == MicrofacetType::BECKMANN) {
+  if (m_type == MicrofacetType::BECKMANN) {
     return expf((1.0f - 1.0f / cos_NH2) / alpha2) / (M_PI_F * alpha2 * sqr(cos_NH2));
   }
-
-  /* m_type == MicrofacetType::GGX */
-  return alpha2 / (M_PI_F * sqr(1.0f + (alpha2 - 1.0f) * cos_NH2));
+  else {
+    /* m_type == MicrofacetType::GGX */
+    return alpha2 / (M_PI_F * sqr(1.0f + (alpha2 - 1.0f) * cos_NH2));
+  }
 }
 
 template<MicrofacetType m_type>
@@ -324,12 +326,13 @@ ccl_device_inline float bsdf_aniso_D(float alpha_x, float alpha_y, float3 H)
   const float cos_NH2 = sqr(H.z);
   const float alpha2 = alpha_x * alpha_y;
 
-  if constexpr (m_type == MicrofacetType::BECKMANN) {
+  if (m_type == MicrofacetType::BECKMANN) {
     return expf(-(sqr(H.x) + sqr(H.y)) / cos_NH2) / (M_PI_F * alpha2 * sqr(cos_NH2));
   }
-
-  /* m_type == MicrofacetType::GGX */
-  return M_1_PI_F / (alpha2 * sqr(len_squared(H)));
+  else {
+    /* m_type == MicrofacetType::GGX */
+    return M_1_PI_F / (alpha2 * sqr(len_squared(H)));
+  }
 }
 
 ccl_device_forceinline void bsdf_microfacet_fresnel_color(ccl_private const ShaderData *sd,
