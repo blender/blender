@@ -78,6 +78,7 @@ class Socket : NonCopyable, NonMovable {
   const CPPType &type() const;
 
   std::string name() const;
+  std::string detailed_name() const;
 };
 
 class InputSocket : public Socket {
