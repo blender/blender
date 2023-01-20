@@ -89,7 +89,8 @@ static void generate_strokes_actual(
       lmd->silhouette_selection,
       lmd->source_vertex_group,
       lmd->vgname,
-      lmd->flags);
+      lmd->flags,
+      lmd->calculation_flags);
 }
 
 static bool isModifierDisabled(GpencilModifierData *md)

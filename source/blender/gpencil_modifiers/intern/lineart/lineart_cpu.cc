@@ -5156,7 +5156,8 @@ static void lineart_gpencil_generate(LineartCache *cache,
                                      uchar silhouette_mode,
                                      const char *source_vgname,
                                      const char *vgname,
-                                     int modifier_flags)
+                                     int modifier_flags,
+                                     int modifier_calculation_flags)
 {
   if (cache == nullptr) {
     if (G.debug_value == 4000) {
@@ -5182,8 +5183,8 @@ static void lineart_gpencil_generate(LineartCache *cache,
   /* (!orig_col && !orig_ob) means the whole scene is selected. */
 
   int enabled_types = cache->all_enabled_edge_types;
-  bool invert_input = modifier_flags & LRT_GPENCIL_INVERT_SOURCE_VGROUP;
-  bool match_output = modifier_flags & LRT_GPENCIL_MATCH_OUTPUT_VGROUP;
+  bool invert_input = modifier_calculation_flags & LRT_GPENCIL_INVERT_SOURCE_VGROUP;
+  bool match_output = modifier_calculation_flags & LRT_GPENCIL_MATCH_OUTPUT_VGROUP;
   bool inverse_silhouette = modifier_flags & LRT_GPENCIL_INVERT_SILHOUETTE_FILTER;
 
   LISTBASE_FOREACH (LineartEdgeChain *, ec, &cache->chains) {
@@ -5381,7 +5382,8 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   uchar silhouette_mode,
                                   const char *source_vgname,
                                   const char *vgname,
-                                  int modifier_flags)
+                                  int modifier_flags,
+                                  int modifier_calculation_flags)
 {
 
   if (!gpl || !gpf || !ob) {
@@ -5427,5 +5429,6 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                            silhouette_mode,
                            source_vgname,
                            vgname,
-                           modifier_flags);
+                           modifier_flags,
+                           modifier_calculation_flags);
 }
