@@ -336,6 +336,35 @@ static bool bm_loop_uv_shared_edge_check(const BMLoop *l_a, const BMLoop *l_b, v
 }
 
 /**
+ * returns true if `BMFace *efa` is able to be affected by a packing operation, given various
+ * parameters.
+ *
+ * Checks if it's (not) hidden, and optionally selected, and/or UV selected.
+ *
+ * Will eventually be superseded by `BM_uv_element_map_create()`.
+ *
+ * Loosely based on`uvedit_is_face_affected`, but "bug-compatible" with previous code.
+ */
+static bool uvedit_is_face_affected_for_calc_uv_islands(const Scene *scene,
+                                                        BMFace *efa,
+                                                        const bool only_selected_faces,
+                                                        const bool only_selected_uvs,
+                                                        const BMUVOffsets &uv_offsets)
+{
+  if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+    return false;
+  }
+  if (only_selected_faces) {
+    if (only_selected_uvs) {
+      return BM_elem_flag_test(efa, BM_ELEM_SELECT) &&
+             uvedit_face_select_test(scene, efa, uv_offsets);
+    }
+    return BM_elem_flag_test(efa, BM_ELEM_SELECT);
+  }
+  return true;
+}
+
+/**
  * Calculate islands and add them to \a island_list returning the number of items added.
  */
 int bm_mesh_calc_uv_islands(const Scene *scene,
@@ -356,25 +385,13 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
 
   int(*group_index)[2];
 
-  /* Calculate the tag to use. */
-  uchar hflag_face_test = 0;
-  if (only_selected_faces) {
-    if (only_selected_uvs) {
-      BMFace *f;
-      BMIter iter;
-      BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-        bool value = false;
-        if (BM_elem_flag_test(f, BM_ELEM_SELECT) &&
-            uvedit_face_select_test(scene, f, uv_offsets)) {
-          value = true;
-        }
-        BM_elem_flag_set(f, BM_ELEM_TAG, value);
-      }
-      hflag_face_test = BM_ELEM_TAG;
-    }
-    else {
-      hflag_face_test = BM_ELEM_SELECT;
-    }
+  /* Set the tag for `BM_mesh_calc_face_groups`. */
+  BMFace *f;
+  BMIter iter;
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    const bool face_affected = uvedit_is_face_affected_for_calc_uv_islands(
+        scene, f, only_selected_faces, only_selected_uvs, uv_offsets);
+    BM_elem_flag_set(f, BM_ELEM_TAG, face_affected);
   }
 
   struct SharedUVLoopData user_data = {{0}};
@@ -387,7 +404,7 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
                                                  nullptr,
                                                  bm_loop_uv_shared_edge_check,
                                                  &user_data,
-                                                 hflag_face_test,
+                                                 BM_ELEM_TAG,
                                                  BM_EDGE);
 
   for (int i = 0; i < group_len; i++) {
