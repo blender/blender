@@ -24,11 +24,11 @@ class CAMERA_PT_presets(PresetPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
 
-class SAFE_AREAS_PT_presets(PresetPanel, Panel):
+class CAMERA_PT_safe_areas_presets(PresetPanel, Panel):
     bl_label = "Camera Presets"
     preset_subdir = "safe_areas"
     preset_operator = "script.execute_preset"
-    preset_add_operator = "safe_areas.preset_add"
+    preset_add_operator = "camera.safe_areas_preset_add"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
 
@@ -427,7 +427,7 @@ class DATA_PT_camera_safe_areas(CameraButtonsPanel, Panel):
         self.layout.prop(cam, "show_safe_areas", text="")
 
     def draw_header_preset(self, _context):
-        SAFE_AREAS_PT_presets.draw_panel_header(self.layout)
+        CAMERA_PT_safe_areas_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         layout = self.layout
@@ -503,7 +503,7 @@ def draw_display_safe_settings(layout, safe_data, settings):
 
 classes = (
     CAMERA_PT_presets,
-    SAFE_AREAS_PT_presets,
+    CAMERA_PT_safe_areas_presets,
     DATA_PT_context_camera,
     DATA_PT_lens,
     DATA_PT_camera_dof,
