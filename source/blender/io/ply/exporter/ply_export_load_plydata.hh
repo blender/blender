@@ -9,6 +9,18 @@
 #include "BKE_mesh.h"
 #include "BLI_math.h"
 
+#include "BKE_context.h"
+#include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
+#include "BKE_object.h"
+#include "BLI_math.h"
+
+#include "RNA_types.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
+
 #include "DNA_layer_types.h"
 
 #include "IO_ply.h"
@@ -18,6 +30,7 @@
 namespace blender::io::ply {
 
 Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation);
+void set_world_axes_transform(Object *object, const eIOAxis forward, const eIOAxis up);
 
 struct UV_vertex_key {
   float2 UV;

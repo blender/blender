@@ -11,6 +11,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
+#include "BLI_math.h"
 
 #include "RNA_types.h"
 
@@ -32,6 +33,10 @@
 
 namespace blender::io::ply {
 
+float world_and_axes_transform_[4][4];
+float world_and_axes_normal_transform_[3][3];
+bool mirrored_transform_;
+
 Mesh *do_triangulation(Mesh *mesh, bool force_triangulation)
 {
   const BMeshCreateParams bm_create_params = {false};
@@ -47,6 +52,25 @@ Mesh *do_triangulation(Mesh *mesh, bool force_triangulation)
   Mesh *temp_mesh = BKE_mesh_from_bmesh_for_eval_nomain(bmesh, nullptr, mesh);
   BM_mesh_free(bmesh);
   return temp_mesh;
+}
+
+void set_world_axes_transform(Object *object, const eIOAxis forward, const eIOAxis up)
+{
+  float axes_transform[3][3];
+  unit_m3(axes_transform);
+  /* +Y-forward and +Z-up are the default Blender axis settings. */
+  mat3_from_axis_conversion(forward, up, IO_AXIS_Y, IO_AXIS_Z, axes_transform);
+  mul_m4_m3m4(world_and_axes_transform_, axes_transform, object->object_to_world);
+  /* mul_m4_m3m4 does not transform last row of obmat, i.e. location data. */
+  mul_v3_m3v3(world_and_axes_transform_[3], axes_transform, object->object_to_world[3]);
+  world_and_axes_transform_[3][3] = object->object_to_world[3][3];
+
+  /* Normals need inverse transpose of the regular matrix to handle non-uniform scale. */
+  float normal_matrix[3][3];
+  copy_m3_m4(normal_matrix, world_and_axes_transform_);
+  invert_m3_m3(world_and_axes_normal_transform_, normal_matrix);
+  transpose_m3(world_and_axes_normal_transform_);
+  mirrored_transform_ = is_negative_m3(world_and_axes_normal_transform_);
 }
 
 void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams &export_params)
@@ -97,6 +121,9 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     std::unordered_map<UV_vertex_key, int, UV_vertex_hash> vertex_map = generate_vertex_map(
         mesh, mloopuv, export_params);
 
+    set_world_axes_transform(
+        &export_object_eval_, export_params.forward_axis, export_params.up_axis);
+
     /* Load faces into plyData. */
     int loop_offset = 0;
     for (auto &&poly : mesh->polys()) {
@@ -135,6 +162,8 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       float3 r_coords;
       copy_v3_v3(r_coords, mesh->verts()[mesh_vertex_index_LUT[i]].co);
       mul_m4_v3(object->object_to_world, r_coords);
+      mul_m4_v3(world_and_axes_transform_, r_coords);
+      mul_v3_fl(r_coords, export_params.global_scale);
       plyData.vertices.append(r_coords);
     }
 
@@ -149,6 +178,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     if (export_params.export_normals) {
       const float(*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
       for (int i = 0; i < vertex_map.size(); i++) {
+        mul_m3_v3(world_and_axes_normal_transform_, (float3)vertex_normals);
         plyData.vertex_normals.append(vertex_normals[mesh_vertex_index_LUT[i]]);
       }
     }
