@@ -1580,7 +1580,9 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
   uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
   uiLayout *name_row = uiLayoutRow(split, false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
-  if (socket.type == SOCK_BOOLEAN) {
+
+  const int use_attribute = RNA_int_get(md_ptr, rna_path_use_attribute.c_str()) != 0;
+  if (socket.type == SOCK_BOOLEAN && !use_attribute) {
     uiItemL(name_row, "", ICON_NONE);
   }
   else {
@@ -1589,7 +1591,18 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
 
   uiLayout *prop_row = uiLayoutRow(split, true);
   if (socket.type == SOCK_BOOLEAN) {
-    uiLayoutSetAlignment(prop_row, UI_LAYOUT_ALIGN_LEFT);
+    uiLayoutSetPropSep(prop_row, false);
+    uiLayoutSetAlignment(prop_row, UI_LAYOUT_ALIGN_EXPAND);
+  }
+
+  if (use_attribute) {
+    add_attribute_search_button(C, prop_row, nmd, md_ptr, rna_path_attribute_name, socket, false);
+    uiItemL(layout, "", ICON_BLANK1);
+  }
+  else {
+    const char *name = socket.type == SOCK_BOOLEAN ? socket.name : "";
+    uiItemR(prop_row, md_ptr, rna_path.c_str(), 0, name, ICON_NONE);
+    uiItemDecoratorR(layout, md_ptr, rna_path.c_str(), -1);
   }
 
   PointerRNA props;
@@ -1603,16 +1616,6 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
               &props);
   RNA_string_set(&props, "modifier_name", nmd.modifier.name);
   RNA_string_set(&props, "prop_path", rna_path_use_attribute.c_str());
-
-  const int use_attribute = RNA_int_get(md_ptr, rna_path_use_attribute.c_str()) != 0;
-  if (use_attribute) {
-    add_attribute_search_button(C, prop_row, nmd, md_ptr, rna_path_attribute_name, socket, false);
-  }
-  else {
-    const char *name = socket.type == SOCK_BOOLEAN ? socket.name : "";
-    uiItemR(prop_row, md_ptr, rna_path.c_str(), 0, name, ICON_NONE);
-    uiItemDecoratorR(layout, md_ptr, rna_path.c_str(), -1);
-  }
 }
 
 /* Drawing the properties manually with #uiItemR instead of #uiDefAutoButsRNA allows using
@@ -1677,6 +1680,9 @@ static void draw_property_for_socket(const bContext &C,
         uiItemR(row, md_ptr, rna_path, 0, socket.name, ICON_NONE);
       }
     }
+  }
+  if (!input_has_attribute_toggle(*nmd->node_group, socket_index)) {
+    uiItemL(row, "", ICON_BLANK1);
   }
 }
 
