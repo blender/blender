@@ -6269,6 +6269,7 @@ def km_sculpt_expand_modal(_params):
         ("CANCEL", {"type": 'ESC', "value": 'PRESS', "any": True}, None),
         ("CANCEL", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}, None),
         ("CONFIRM", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("CONFIRM", {"type": 'LEFTMOUSE', "value": 'RELEASE', "any": True}, None),
         ("INVERT", {"type": 'F', "value": 'PRESS', "any": True}, None),
         ("PRESERVE", {"type": 'E', "value": 'PRESS', "any": True}, None),
         ("GRADIENT", {"type": 'G', "value": 'PRESS', "any": True}, None),
