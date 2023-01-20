@@ -397,7 +397,9 @@ static void sculpt_expand_check_topology_islands(Object *ob)
   ss->expand_cache->check_islands = ELEM(ss->expand_cache->falloff_type,
                                          SCULPT_EXPAND_FALLOFF_GEODESIC,
                                          SCULPT_EXPAND_FALLOFF_TOPOLOGY,
-                                         SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY);
+                                         SCULPT_EXPAND_FALLOFF_TOPOLOGY_DIAGONALS,
+                                         SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY,
+                                         SCULPT_EXPAND_FALLOFF_NORMALS);
 
   if (ss->expand_cache->check_islands) {
     SCULPT_topology_islands_ensure(ob);
