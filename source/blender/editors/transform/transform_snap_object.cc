@@ -63,13 +63,13 @@ enum eViewProj {
   VIEW_PROJ_PERSP = -1,
 };
 
-/* SnapObjectContext.cache.editmesh_map */
+/** #SnapObjectContext.editmesh_caches */
 struct SnapData_EditMesh {
   /* Verts, Edges. */
   BVHTree *bvhtree[2];
   bool cached[2];
 
-  /* Looptris. */
+  /* BVH tree from #BMEditMesh.looptris. */
   BVHTreeFromEditMesh treedata_editmesh;
 
   blender::bke::MeshRuntime *mesh_runtime;

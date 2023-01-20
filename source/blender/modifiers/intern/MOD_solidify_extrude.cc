@@ -392,7 +392,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         &result->edata, CD_BWEIGHT, CD_SET_DEFAULT, nullptr, result->totedge));
   }
 
-  /* initializes: (i_end, do_shell_align, mv). */
+  /* Initializes: (`i_end`, `do_shell_align`, `vert_index`). */
 #define INIT_VERT_ARRAY_OFFSETS(test) \
   if (((ofs_new >= ofs_orig) == do_flip) == test) { \
     i_end = verts_num; \

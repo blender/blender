@@ -717,7 +717,6 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
 
         for (uint uvset_index = 0; uvset_index < index_list_array_uvcoord.getCount();
              uvset_index++) {
-          /* get mtface by face index and uv set index */
           COLLADAFW::IndexList &index_list = *index_list_array_uvcoord[uvset_index];
           blender::float2 *mloopuv = static_cast<blender::float2 *>(
               CustomData_get_layer_named_for_write(

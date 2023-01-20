@@ -912,6 +912,7 @@ static bool loop_uv_match(BMLoop *loop,
  * \param edge: Search for `needle` in all loops connected to `edge` (recursively).
  * \param luv_anchor: The UV of the anchor (vertex that's being stepped around).
  * \param luv_fan: The UV of the outer edge, this changes as the fan is stepped over.
+ * \param needle: Search for this loop, also defines the vertex at the center of the face-fan.
  * \param visited: A set of edges to prevent recursing down the same edge multiple times.
  * \param cd_loop_uv_offset: The UV layer.
  * \return true if there are edges that fan between them that are seam-free.
