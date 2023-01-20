@@ -1348,7 +1348,6 @@ void UVIslands::extend_borders(const MeshData &mesh_data, const UVIslandsMask &i
   ushort index = 0;
   for (UVIsland &island : islands) {
     island.extend_border(mesh_data, islands_mask, index++);
-    island.print_debug(mesh_data);
   }
 }
 
