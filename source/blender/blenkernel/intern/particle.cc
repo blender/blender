@@ -4216,7 +4216,9 @@ static int get_particle_uv(Mesh *mesh,
   int i;
 
   tf = static_cast<const MTFace *>(CustomData_get_layer_named(&mesh->fdata, CD_MTFACE, name));
-
+  if (tf == nullptr) {
+    tf = static_cast<const MTFace *>(CustomData_get_layer(&mesh->fdata, CD_MTFACE));
+  }
   if (tf == nullptr) {
     return 0;
   }
