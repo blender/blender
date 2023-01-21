@@ -62,6 +62,54 @@ static int64_t compute_alignment(const int64_t grain_size)
   return 32;
 }
 
+static void add_sliced_parameters(const Signature &signature,
+                                  Params &full_params,
+                                  const IndexRange slice_range,
+                                  ParamsBuilder &r_sliced_params)
+{
+  for (const int param_index : signature.params.index_range()) {
+    const ParamType &param_type = signature.params[param_index].type;
+    switch (param_type.category()) {
+      case ParamCategory::SingleInput: {
+        const GVArray &varray = full_params.readonly_single_input(param_index);
+        r_sliced_params.add_readonly_single_input(varray.slice(slice_range));
+        break;
+      }
+      case ParamCategory::SingleMutable: {
+        const GMutableSpan span = full_params.single_mutable(param_index);
+        const GMutableSpan sliced_span = span.slice(slice_range);
+        r_sliced_params.add_single_mutable(sliced_span);
+        break;
+      }
+      case ParamCategory::SingleOutput: {
+        if (bool(signature.params[param_index].flag & ParamFlag::SupportsUnusedOutput)) {
+          const GMutableSpan span = full_params.uninitialized_single_output_if_required(
+              param_index);
+          if (span.is_empty()) {
+            r_sliced_params.add_ignored_single_output();
+          }
+          else {
+            const GMutableSpan sliced_span = span.slice(slice_range);
+            r_sliced_params.add_uninitialized_single_output(sliced_span);
+          }
+        }
+        else {
+          const GMutableSpan span = full_params.uninitialized_single_output(param_index);
+          const GMutableSpan sliced_span = span.slice(slice_range);
+          r_sliced_params.add_uninitialized_single_output(sliced_span);
+        }
+        break;
+      }
+      case ParamCategory::VectorInput:
+      case ParamCategory::VectorMutable:
+      case ParamCategory::VectorOutput: {
+        BLI_assert_unreachable();
+        break;
+      }
+    }
+  }
+}
+
 void MultiFunction::call_auto(IndexMask mask, Params params, Context context) const
 {
   if (mask.is_empty()) {
@@ -102,53 +150,9 @@ void MultiFunction::call_auto(IndexMask mask, Params params, Context context) co
         Vector<int64_t> offset_mask_indices;
         const IndexMask offset_mask = mask.slice_and_offset(sub_range, offset_mask_indices);
 
-        ParamsBuilder offset_params{*this, offset_mask.min_array_size()};
-
-        /* Slice all parameters so that for the actual function call. */
-        for (const int param_index : this->param_indices()) {
-          const ParamType param_type = this->param_type(param_index);
-          switch (param_type.category()) {
-            case ParamCategory::SingleInput: {
-              const GVArray &varray = params.readonly_single_input(param_index);
-              offset_params.add_readonly_single_input(varray.slice(input_slice_range));
-              break;
-            }
-            case ParamCategory::SingleMutable: {
-              const GMutableSpan span = params.single_mutable(param_index);
-              const GMutableSpan sliced_span = span.slice(input_slice_range);
-              offset_params.add_single_mutable(sliced_span);
-              break;
-            }
-            case ParamCategory::SingleOutput: {
-              if (bool(signature_ref_->params[param_index].flag &
-                       ParamFlag::SupportsUnusedOutput)) {
-                const GMutableSpan span = params.uninitialized_single_output_if_required(
-                    param_index);
-                if (span.is_empty()) {
-                  offset_params.add_ignored_single_output();
-                }
-                else {
-                  const GMutableSpan sliced_span = span.slice(input_slice_range);
-                  offset_params.add_uninitialized_single_output(sliced_span);
-                }
-              }
-              else {
-                const GMutableSpan span = params.uninitialized_single_output(param_index);
-                const GMutableSpan sliced_span = span.slice(input_slice_range);
-                offset_params.add_uninitialized_single_output(sliced_span);
-              }
-              break;
-            }
-            case ParamCategory::VectorInput:
-            case ParamCategory::VectorMutable:
-            case ParamCategory::VectorOutput: {
-              BLI_assert_unreachable();
-              break;
-            }
-          }
-        }
-
-        this->call(offset_mask, offset_params, context);
+        ParamsBuilder sliced_params{*this, offset_mask.min_array_size()};
+        add_sliced_parameters(*signature_ref_, params, input_slice_range, sliced_params);
+        this->call(offset_mask, sliced_params, context);
       });
 }
 
