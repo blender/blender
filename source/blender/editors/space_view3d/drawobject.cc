@@ -53,11 +53,11 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
     return;
   }
 
-  const Mesh *me = ob->data;
+  const Mesh *me = static_cast<const Mesh *>(ob->data);
   {
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
     const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-    if (me_eval != NULL) {
+    if (me_eval != nullptr) {
       me = me_eval;
     }
   }
@@ -65,7 +65,7 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
   GPU_front_facing(ob->transflag & OB_NEG_SCALE);
 
   /* Just to create the data to pass to immediate mode! (sigh) */
-  const int *facemap_data = CustomData_get_layer(&me->pdata, CD_FACEMAP);
+  const int *facemap_data = static_cast<const int *>(CustomData_get_layer(&me->pdata, CD_FACEMAP));
   if (facemap_data) {
     GPU_blend(GPU_BLEND_ALPHA);
 
@@ -76,7 +76,7 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
     int mpoly_len = me->totpoly;
     int mloop_len = me->totloop;
 
-    facemap_data = CustomData_get_layer(&me->pdata, CD_FACEMAP);
+    facemap_data = static_cast<const int *>(CustomData_get_layer(&me->pdata, CD_FACEMAP));
 
     /* Make a batch and free it each time for now. */
     const int looptris_len = poly_to_tri_count(mpoly_len, mloop_len);
@@ -100,9 +100,12 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
       for (mp = polys, i = 0; i < mpoly_len; i++, mp++) {
         if (facemap_data[i] == facemap) {
           for (int j = 2; j < mp->totloop; j++) {
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), positions[loops[mlt->tri[0]].v]);
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), positions[loops[mlt->tri[1]].v]);
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), positions[loops[mlt->tri[2]].v]);
+            copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
+                       positions[loops[mlt->tri[0]].v]);
+            copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
+                       positions[loops[mlt->tri[1]].v]);
+            copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
+                       positions[loops[mlt->tri[2]].v]);
             vbo_len_used += 3;
             mlt++;
           }
@@ -120,9 +123,10 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
           const MLoop *ml_a = ml_start + 1;
           const MLoop *ml_b = ml_start + 2;
           for (int j = 2; j < mp->totloop; j++) {
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), positions[ml_start->v]);
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), positions[ml_a->v]);
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), positions[ml_b->v]);
+            copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)),
+                       positions[ml_start->v]);
+            copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)), positions[ml_a->v]);
+            copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(&pos_step)), positions[ml_b->v]);
             vbo_len_used += 3;
 
             ml_a++;
@@ -136,7 +140,7 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
       GPU_vertbuf_data_resize(vbo_pos, vbo_len_used);
     }
 
-    GPUBatch *draw_batch = GPU_batch_create(GPU_PRIM_TRIS, vbo_pos, NULL);
+    GPUBatch *draw_batch = GPU_batch_create(GPU_PRIM_TRIS, vbo_pos, nullptr);
     GPU_batch_program_set_builtin(draw_batch, GPU_SHADER_3D_UNIFORM_COLOR);
     GPU_batch_uniform_4fv(draw_batch, "color", col);
     GPU_batch_draw(draw_batch);

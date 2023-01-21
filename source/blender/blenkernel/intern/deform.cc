@@ -5,11 +5,11 @@
  * \ingroup bke
  */
 
-#include <ctype.h>
-#include <math.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -46,7 +46,7 @@ bDeformGroup *BKE_object_defgroup_new(Object *ob, const char *name)
 
   BLI_assert(OB_TYPE_SUPPORT_VGROUP(ob->type));
 
-  defgroup = MEM_callocN(sizeof(bDeformGroup), __func__);
+  defgroup = MEM_cnew<bDeformGroup>(__func__);
 
   BLI_strncpy(defgroup->name, name, sizeof(defgroup->name));
 
@@ -62,31 +62,26 @@ bDeformGroup *BKE_object_defgroup_new(Object *ob, const char *name)
 
 void BKE_defgroup_copy_list(ListBase *outbase, const ListBase *inbase)
 {
-  bDeformGroup *defgroup, *defgroupn;
-
   BLI_listbase_clear(outbase);
-
-  for (defgroup = inbase->first; defgroup; defgroup = defgroup->next) {
-    defgroupn = BKE_defgroup_duplicate(defgroup);
+  LISTBASE_FOREACH (const bDeformGroup *, defgroup, inbase) {
+    bDeformGroup *defgroupn = BKE_defgroup_duplicate(defgroup);
     BLI_addtail(outbase, defgroupn);
   }
 }
 
 bDeformGroup *BKE_defgroup_duplicate(const bDeformGroup *ingroup)
 {
-  bDeformGroup *outgroup;
-
   if (!ingroup) {
     BLI_assert(0);
-    return NULL;
+    return nullptr;
   }
 
-  outgroup = MEM_callocN(sizeof(bDeformGroup), "copy deformGroup");
+  bDeformGroup *outgroup = MEM_cnew<bDeformGroup>(__func__);
 
   /* For now, just copy everything over. */
   memcpy(outgroup, ingroup, sizeof(bDeformGroup));
 
-  outgroup->next = outgroup->prev = NULL;
+  outgroup->next = outgroup->prev = nullptr;
 
   return outgroup;
 }
@@ -132,10 +127,10 @@ void BKE_defvert_copy(MDeformVert *dvert_dst, const MDeformVert *dvert_src)
     }
 
     if (dvert_src->totweight) {
-      dvert_dst->dw = MEM_dupallocN(dvert_src->dw);
+      dvert_dst->dw = static_cast<MDeformWeight *>(MEM_dupallocN(dvert_src->dw));
     }
     else {
-      dvert_dst->dw = NULL;
+      dvert_dst->dw = nullptr;
     }
 
     dvert_dst->totweight = dvert_src->totweight;
@@ -157,7 +152,7 @@ void BKE_defvert_copy_index(MDeformVert *dvert_dst,
     dw_dst->weight = dw_src->weight;
   }
   else {
-    /* Source was NULL, assign zero (could also remove). */
+    /* Source was nullptr, assign zero (could also remove). */
     dw_dst = BKE_defvert_find_index(dvert_dst, defgroup_dst);
 
     if (dw_dst) {
@@ -307,7 +302,7 @@ void BKE_defvert_normalize_lock_single(MDeformVert *dvert,
     }
   }
   else {
-    MDeformWeight *dw_lock = NULL;
+    MDeformWeight *dw_lock = nullptr;
     MDeformWeight *dw;
     uint i;
     float tot_weight = 0.0f;
@@ -423,7 +418,7 @@ void BKE_defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int 
   for (dw = dvert->dw, i = 0; i < totweight; dw++, i++) {
     if (dw->def_nr < flip_map_num) {
       if (flip_map[dw->def_nr] >= 0) {
-        /* error checkers complain of this but we'll never get NULL return */
+        /* error checkers complain of this but we'll never get nullptr return */
         dw_cpy = BKE_defvert_ensure_index(dvert, flip_map[dw->def_nr]);
         dw = &dvert->dw[i]; /* in case array got realloced */
 
@@ -441,7 +436,7 @@ void BKE_defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int 
 bool BKE_object_supports_vertex_groups(const Object *ob)
 {
   const ID *id = (const ID *)ob->data;
-  if (id == NULL) {
+  if (id == nullptr) {
     return false;
   }
 
@@ -467,7 +462,7 @@ const ListBase *BKE_id_defgroup_list_get(const ID *id)
       BLI_assert_unreachable();
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 static const int *object_defgroup_active_index_get_p(const Object *ob)
@@ -487,7 +482,7 @@ static const int *object_defgroup_active_index_get_p(const Object *ob)
       return &gpd->vertex_group_active_index;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 ListBase *BKE_id_defgroup_list_get_mutable(ID *id)
@@ -498,38 +493,38 @@ ListBase *BKE_id_defgroup_list_get_mutable(ID *id)
 
 bDeformGroup *BKE_object_defgroup_find_name(const Object *ob, const char *name)
 {
-  if (name == NULL || name[0] == '\0') {
-    return NULL;
+  if (name == nullptr || name[0] == '\0') {
+    return nullptr;
   }
   const ListBase *defbase = BKE_object_defgroup_list(ob);
-  return BLI_findstring(defbase, name, offsetof(bDeformGroup, name));
+  return static_cast<bDeformGroup *>(BLI_findstring(defbase, name, offsetof(bDeformGroup, name)));
 }
 
 int BKE_id_defgroup_name_index(const ID *id, const char *name)
 {
   int index;
-  if (!BKE_id_defgroup_name_find(id, name, &index, NULL)) {
+  if (!BKE_id_defgroup_name_find(id, name, &index, nullptr)) {
     return -1;
   }
   return index;
 }
 
-bool BKE_id_defgroup_name_find(const struct ID *id,
+bool BKE_id_defgroup_name_find(const ID *id,
                                const char *name,
                                int *r_index,
-                               struct bDeformGroup **r_group)
+                               bDeformGroup **r_group)
 {
-  if (name == NULL || name[0] == '\0') {
+  if (name == nullptr || name[0] == '\0') {
     return false;
   }
   const ListBase *defbase = BKE_id_defgroup_list_get(id);
   int index;
   LISTBASE_FOREACH_INDEX (bDeformGroup *, group, defbase, index) {
     if (STREQ(name, group->name)) {
-      if (r_index != NULL) {
+      if (r_index != nullptr) {
         *r_index = index;
       }
-      if (r_group != NULL) {
+      if (r_group != nullptr) {
         *r_group = group;
       }
       return true;
@@ -582,19 +577,19 @@ static int *object_defgroup_unlocked_flip_map_ex(const Object *ob,
   *r_flip_map_num = defbase_num;
 
   if (defbase_num == 0) {
-    return NULL;
+    return nullptr;
   }
 
   bDeformGroup *dg;
   char name_flip[sizeof(dg->name)];
   int i, flip_num;
-  int *map = MEM_mallocN(defbase_num * sizeof(int), __func__);
+  int *map = static_cast<int *>(MEM_mallocN(defbase_num * sizeof(int), __func__));
 
   for (i = 0; i < defbase_num; i++) {
     map[i] = -1;
   }
 
-  for (dg = defbase->first, i = 0; dg; dg = dg->next, i++) {
+  for (dg = static_cast<bDeformGroup *>(defbase->first), i = 0; dg; dg = dg->next, i++) {
     if (map[i] == -1) { /* may be calculated previously */
 
       /* in case no valid value is found, use this */
@@ -642,18 +637,17 @@ int *BKE_object_defgroup_flip_map_single(const Object *ob,
   *r_flip_map_num = defbase_num;
 
   if (defbase_num == 0) {
-    return NULL;
+    return nullptr;
   }
 
-  bDeformGroup *dg;
-  char name_flip[sizeof(dg->name)];
-  int i, flip_num, *map = MEM_mallocN(defbase_num * sizeof(int), __func__);
+  char name_flip[sizeof(bDeformGroup::name)];
+  int i, flip_num, *map = static_cast<int *>(MEM_mallocN(defbase_num * sizeof(int), __func__));
 
   for (i = 0; i < defbase_num; i++) {
     map[i] = use_default ? i : -1;
   }
 
-  dg = BLI_findlink(defbase, defgroup);
+  bDeformGroup *dg = static_cast<bDeformGroup *>(BLI_findlink(defbase, defgroup));
 
   BLI_string_flip_side_name(name_flip, dg->name, false, sizeof(name_flip));
   if (!STREQ(name_flip, dg->name)) {
@@ -671,7 +665,7 @@ int *BKE_object_defgroup_flip_map_single(const Object *ob,
 int BKE_object_defgroup_flip_index(const Object *ob, int index, const bool use_default)
 {
   const ListBase *defbase = BKE_object_defgroup_list(ob);
-  bDeformGroup *dg = BLI_findlink(defbase, index);
+  bDeformGroup *dg = static_cast<bDeformGroup *>(BLI_findlink(defbase, index));
   int flip_index = -1;
 
   if (dg) {
@@ -691,7 +685,7 @@ static bool defgroup_find_name_dupe(const char *name, bDeformGroup *dg, Object *
   const ListBase *defbase = BKE_object_defgroup_list(ob);
   bDeformGroup *curdef;
 
-  for (curdef = defbase->first; curdef; curdef = curdef->next) {
+  for (curdef = static_cast<bDeformGroup *>(defbase->first); curdef; curdef = curdef->next) {
     if (dg != curdef) {
       if (STREQ(curdef->name, name)) {
         return true;
@@ -702,46 +696,42 @@ static bool defgroup_find_name_dupe(const char *name, bDeformGroup *dg, Object *
   return false;
 }
 
+struct DeformGroupUniqueNameData {
+  Object *ob;
+  bDeformGroup *dg;
+};
+
 static bool defgroup_unique_check(void *arg, const char *name)
 {
-  struct {
-    Object *ob;
-    void *dg;
-  } *data = arg;
+  DeformGroupUniqueNameData *data = static_cast<DeformGroupUniqueNameData *>(arg);
   return defgroup_find_name_dupe(name, data->dg, data->ob);
 }
 
 void BKE_object_defgroup_unique_name(bDeformGroup *dg, Object *ob)
 {
-  struct {
-    Object *ob;
-    void *dg;
-  } data;
-  data.ob = ob;
-  data.dg = dg;
-
+  DeformGroupUniqueNameData data{ob, dg};
   BLI_uniquename_cb(defgroup_unique_check, &data, DATA_("Group"), '.', dg->name, sizeof(dg->name));
 }
 
-float BKE_defvert_find_weight(const struct MDeformVert *dvert, const int defgroup)
+float BKE_defvert_find_weight(const MDeformVert *dvert, const int defgroup)
 {
   MDeformWeight *dw = BKE_defvert_find_index(dvert, defgroup);
   return dw ? dw->weight : 0.0f;
 }
 
-float BKE_defvert_array_find_weight_safe(const struct MDeformVert *dvert,
+float BKE_defvert_array_find_weight_safe(const MDeformVert *dvert,
                                          const int index,
                                          const int defgroup)
 {
   /* Invalid defgroup index means the vgroup selected is invalid,
    * does not exist, in that case it is OK to return 1.0
    * (i.e. maximum weight, as if no vgroup was selected).
-   * But in case of valid defgroup and NULL dvert data pointer, it means that vgroup **is** valid,
-   * and just totally empty, so we shall return '0.0' value then! */
+   * But in case of valid defgroup and nullptr dvert data pointer, it means that vgroup **is**
+   * valid, and just totally empty, so we shall return '0.0' value then! */
   if (defgroup == -1) {
     return 1.0f;
   }
-  if (dvert == NULL) {
+  if (dvert == nullptr) {
     return 0.0f;
   }
 
@@ -764,7 +754,7 @@ MDeformWeight *BKE_defvert_find_index(const MDeformVert *dvert, const int defgro
     BLI_assert(0);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 MDeformWeight *BKE_defvert_ensure_index(MDeformVert *dvert, const int defgroup)
@@ -774,7 +764,7 @@ MDeformWeight *BKE_defvert_ensure_index(MDeformVert *dvert, const int defgroup)
   /* do this check always, this function is used to check for it */
   if (!dvert || defgroup < 0) {
     BLI_assert(0);
-    return NULL;
+    return nullptr;
   }
 
   dw_new = BKE_defvert_find_index(dvert, defgroup);
@@ -782,7 +772,8 @@ MDeformWeight *BKE_defvert_ensure_index(MDeformVert *dvert, const int defgroup)
     return dw_new;
   }
 
-  dw_new = MEM_mallocN(sizeof(MDeformWeight) * (dvert->totweight + 1), "deformWeight");
+  dw_new = static_cast<MDeformWeight *>(
+      MEM_mallocN(sizeof(MDeformWeight) * (dvert->totweight + 1), __func__));
   if (dvert->dw) {
     memcpy(dw_new, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
     MEM_freeN(dvert->dw);
@@ -810,8 +801,8 @@ void BKE_defvert_add_index_notest(MDeformVert *dvert, const int defgroup, const 
     return;
   }
 
-  dw_new = MEM_callocN(sizeof(MDeformWeight) * (dvert->totweight + 1),
-                       "defvert_add_to group, new deformWeight");
+  dw_new = static_cast<MDeformWeight *>(
+      MEM_callocN(sizeof(MDeformWeight) * (dvert->totweight + 1), __func__));
   if (dvert->dw) {
     memcpy(dw_new, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
     MEM_freeN(dvert->dw);
@@ -838,18 +829,19 @@ void BKE_defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
      * this deform weight, and reshuffle the others.
      */
     if (dvert->totweight) {
-      BLI_assert(dvert->dw != NULL);
+      BLI_assert(dvert->dw != nullptr);
 
       if (i != dvert->totweight) {
         dvert->dw[i] = dvert->dw[dvert->totweight];
       }
 
-      dvert->dw = MEM_reallocN(dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
+      dvert->dw = static_cast<MDeformWeight *>(
+          MEM_reallocN(dvert->dw, sizeof(MDeformWeight) * dvert->totweight));
     }
     else {
       /* If there are no other deform weights left then just remove this one. */
       MEM_freeN(dvert->dw);
-      dvert->dw = NULL;
+      dvert->dw = nullptr;
     }
   }
 }
@@ -877,7 +869,7 @@ int BKE_defvert_find_shared(const MDeformVert *dvert_a, const MDeformVert *dvert
   return -1;
 }
 
-bool BKE_defvert_is_weight_zero(const struct MDeformVert *dvert, const int defgroup_tot)
+bool BKE_defvert_is_weight_zero(const MDeformVert *dvert, const int defgroup_tot)
 {
   MDeformWeight *dw = dvert->dw;
   for (int i = dvert->totweight; i != 0; i--, dw++) {
@@ -891,14 +883,14 @@ bool BKE_defvert_is_weight_zero(const struct MDeformVert *dvert, const int defgr
   return true;
 }
 
-float BKE_defvert_total_selected_weight(const struct MDeformVert *dv,
+float BKE_defvert_total_selected_weight(const MDeformVert *dv,
                                         int defbase_num,
                                         const bool *defbase_sel)
 {
   float total = 0.0f;
   const MDeformWeight *dw = dv->dw;
 
-  if (defbase_sel == NULL) {
+  if (defbase_sel == nullptr) {
     return total;
   }
 
@@ -913,7 +905,7 @@ float BKE_defvert_total_selected_weight(const struct MDeformVert *dv,
   return total;
 }
 
-float BKE_defvert_multipaint_collective_weight(const struct MDeformVert *dv,
+float BKE_defvert_multipaint_collective_weight(const MDeformVert *dv,
                                                const int defbase_num,
                                                const bool *defbase_sel,
                                                const int defbase_sel_num,
@@ -959,7 +951,7 @@ float BKE_defvert_calc_lock_relative_weight(float weight,
 }
 
 float BKE_defvert_lock_relative_weight(const float weight,
-                                       const struct MDeformVert *dv,
+                                       const MDeformVert *dv,
                                        const int defbase_num,
                                        const bool *defbase_locked,
                                        const bool *defbase_unlocked)
@@ -991,7 +983,8 @@ void BKE_defvert_array_copy(MDeformVert *dst, const MDeformVert *src, int totver
 
   for (int i = 0; i < totvert; i++) {
     if (src[i].dw) {
-      dst[i].dw = MEM_mallocN(sizeof(MDeformWeight) * src[i].totweight, "copy_deformWeight");
+      dst[i].dw = static_cast<MDeformWeight *>(
+          MEM_mallocN(sizeof(MDeformWeight) * src[i].totweight, __func__));
       memcpy(dst[i].dw, src[i].dw, sizeof(MDeformWeight) * src[i].totweight);
     }
   }
@@ -1059,7 +1052,8 @@ void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
 {
   if (dvert && defgroup != -1) {
     int i = edges_num;
-    float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)verts_num, __func__);
+    float *tmp_weights = static_cast<float *>(
+        MEM_mallocN(sizeof(*tmp_weights) * (size_t)verts_num, __func__));
 
     BKE_defvert_extract_vgroup_to_vertweights(
         dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
@@ -1087,7 +1081,8 @@ void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
 {
   if (dvert && defgroup != -1) {
     int i = loops_num;
-    float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)verts_num, __func__);
+    float *tmp_weights = static_cast<float *>(
+        MEM_mallocN(sizeof(*tmp_weights) * (size_t)verts_num, __func__));
 
     BKE_defvert_extract_vgroup_to_vertweights(
         dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
@@ -1109,7 +1104,7 @@ void BKE_defvert_extract_vgroup_to_polyweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int verts_num,
                                                const MLoop *loops,
-                                               const int UNUSED(loops_num),
+                                               const int /*loops_num*/,
                                                const MPoly *polys,
                                                const int polys_num,
                                                const bool invert_vgroup,
@@ -1117,7 +1112,8 @@ void BKE_defvert_extract_vgroup_to_polyweights(const MDeformVert *dvert,
 {
   if (dvert && defgroup != -1) {
     int i = polys_num;
-    float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)verts_num, __func__);
+    float *tmp_weights = static_cast<float *>(
+        MEM_mallocN(sizeof(*tmp_weights) * (size_t)verts_num, __func__));
 
     BKE_defvert_extract_vgroup_to_vertweights(
         dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
@@ -1131,7 +1127,7 @@ void BKE_defvert_extract_vgroup_to_polyweights(const MDeformVert *dvert,
       for (; j--; ml++) {
         w += tmp_weights[ml->v];
       }
-      r_weights[i] = w / (float)mp->totloop;
+      r_weights[i] = w / float(mp->totloop);
     }
 
     MEM_freeN(tmp_weights);
@@ -1217,9 +1213,9 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
                                                                 Object *ob_dst,
                                                                 const MDeformVert *data_src,
                                                                 MDeformVert *data_dst,
-                                                                const CustomData *UNUSED(cd_src),
+                                                                const CustomData * /*cd_src*/,
                                                                 CustomData *cd_dst,
-                                                                const bool UNUSED(use_dupref_dst),
+                                                                const bool /*use_dupref_dst*/,
                                                                 const int tolayers,
                                                                 const bool *use_layers_src,
                                                                 const int num_layers_src)
@@ -1231,7 +1227,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
 
   const int tot_dst = BLI_listbase_count(dst_defbase);
 
-  const size_t elem_size = sizeof(*((MDeformVert *)NULL));
+  const size_t elem_size = sizeof(*((MDeformVert *)nullptr));
 
   switch (tolayers) {
     case DT_LAYERS_INDEX_DST:
@@ -1258,15 +1254,15 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
       }
       else if (use_delete && idx_dst > idx_src) {
         while (idx_dst-- > idx_src) {
-          BKE_object_defgroup_remove(ob_dst, dst_defbase->last);
+          BKE_object_defgroup_remove(ob_dst, static_cast<bDeformGroup *>(dst_defbase->last));
         }
       }
       if (r_map) {
         /* At this stage, we **need** a valid CD_MDEFORMVERT layer on dest!
          * Again, use_create is not relevant in this case */
         if (!data_dst) {
-          data_dst = CustomData_add_layer(
-              cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, num_elem_dst);
+          data_dst = static_cast<MDeformVert *>(
+              CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, num_elem_dst));
         }
 
         while (idx_src--) {
@@ -1287,7 +1283,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
                                                0,
                                                0,
                                                vgroups_datatransfer_interp,
-                                               NULL);
+                                               nullptr);
         }
       }
       break;
@@ -1296,7 +1292,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
 
       if (use_delete) {
         /* Remove all unused dst vgroups first, simpler in this case. */
-        for (dg_dst = dst_defbase->first; dg_dst;) {
+        for (dg_dst = static_cast<bDeformGroup *>(dst_defbase->first); dg_dst;) {
           bDeformGroup *dg_dst_next = dg_dst->next;
 
           if (BKE_object_defgroup_name_index(ob_src, dg_dst->name) == -1) {
@@ -1306,7 +1302,8 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
         }
       }
 
-      for (idx_src = 0, dg_src = src_list->first; idx_src < num_layers_src;
+      for (idx_src = 0, dg_src = static_cast<bDeformGroup *>(src_list->first);
+           idx_src < num_layers_src;
            idx_src++, dg_src = dg_src->next) {
         if (!use_layers_src[idx_src]) {
           continue;
@@ -1326,8 +1323,8 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
           /* At this stage, we **need** a valid CD_MDEFORMVERT layer on dest!
            * use_create is not relevant in this case */
           if (!data_dst) {
-            data_dst = CustomData_add_layer(
-                cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, num_elem_dst);
+            data_dst = static_cast<MDeformVert *>(CustomData_add_layer(
+                cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, num_elem_dst));
           }
 
           data_transfer_layersmapping_add_item(r_map,
@@ -1344,7 +1341,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
                                                0,
                                                0,
                                                vgroups_datatransfer_interp,
-                                               NULL);
+                                               nullptr);
         }
       }
       break;
@@ -1373,13 +1370,13 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
 {
   int idx_src, idx_dst;
 
-  const size_t elem_size = sizeof(*((MDeformVert *)NULL));
+  const size_t elem_size = sizeof(*((MDeformVert *)nullptr));
 
   /* NOTE:
    * VGroups are a bit hairy, since their layout is defined on object level (ob->defbase),
    * while their actual data is a (mesh) CD layer.
-   * This implies we may have to handle data layout itself while having NULL data itself,
-   * and even have to support NULL data_src in transfer data code
+   * This implies we may have to handle data layout itself while having nullptr data itself,
+   * and even have to support nullptr data_src in transfer data code
    * (we always create a data_dst, though).
    *
    * NOTE: Above comment is outdated, but this function was written when that was true.
@@ -1393,12 +1390,15 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
     return true;
   }
 
-  const MDeformVert *data_src = CustomData_get_layer(cd_src, CD_MDEFORMVERT);
+  const MDeformVert *data_src = static_cast<const MDeformVert *>(
+      CustomData_get_layer(cd_src, CD_MDEFORMVERT));
 
-  MDeformVert *data_dst = CustomData_get_layer_for_write(cd_dst, CD_MDEFORMVERT, num_elem_dst);
+  MDeformVert *data_dst = static_cast<MDeformVert *>(
+      CustomData_get_layer_for_write(cd_dst, CD_MDEFORMVERT, num_elem_dst));
   if (data_dst && use_dupref_dst && r_map) {
     /* If dest is a derivedmesh, we do not want to overwrite cdlayers of org mesh! */
-    data_dst = CustomData_get_layer_for_write(cd_dst, CD_MDEFORMVERT, num_elem_dst);
+    data_dst = static_cast<MDeformVert *>(
+        CustomData_get_layer_for_write(cd_dst, CD_MDEFORMVERT, num_elem_dst));
   }
 
   if (fromlayers == DT_LAYERS_ACTIVE_SRC || fromlayers >= 0) {
@@ -1430,7 +1430,7 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
         if (!use_create) {
           return true;
         }
-        dg_src = BLI_findlink(src_defbase, idx_src);
+        dg_src = static_cast<bDeformGroup *>(BLI_findlink(src_defbase, idx_src));
         BKE_object_defgroup_add_name(ob_dst, dg_src->name);
         idx_dst = BKE_object_defgroup_active_index_get(ob_dst) - 1;
       }
@@ -1449,7 +1449,7 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
       }
     }
     else if (tolayers == DT_LAYERS_NAME_DST) {
-      bDeformGroup *dg_src = BLI_findlink(src_defbase, idx_src);
+      bDeformGroup *dg_src = static_cast<bDeformGroup *>(BLI_findlink(src_defbase, idx_src));
       if ((idx_dst = BKE_object_defgroup_name_index(ob_dst, dg_src->name)) == -1) {
         if (!use_create) {
           return true;
@@ -1466,8 +1466,8 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
       /* At this stage, we **need** a valid CD_MDEFORMVERT layer on dest!
        * use_create is not relevant in this case */
       if (!data_dst) {
-        data_dst = CustomData_add_layer(
-            cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, num_elem_dst);
+        data_dst = static_cast<MDeformVert *>(
+            CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, num_elem_dst));
       }
 
       data_transfer_layersmapping_add_item(r_map,
@@ -1484,12 +1484,12 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
                                            0,
                                            0,
                                            vgroups_datatransfer_interp,
-                                           NULL);
+                                           nullptr);
     }
   }
   else {
     int num_src, num_sel_unused;
-    bool *use_layers_src = NULL;
+    bool *use_layers_src = nullptr;
     bool ret = false;
 
     switch (fromlayers) {
@@ -1588,7 +1588,7 @@ void BKE_defbase_blend_write(BlendWriter *writer, const ListBase *defbase)
 
 void BKE_defvert_blend_write(BlendWriter *writer, int count, const MDeformVert *dvlist)
 {
-  if (dvlist == NULL) {
+  if (dvlist == nullptr) {
     return;
   }
 
@@ -1605,22 +1605,23 @@ void BKE_defvert_blend_write(BlendWriter *writer, int count, const MDeformVert *
 
 void BKE_defvert_blend_read(BlendDataReader *reader, int count, MDeformVert *mdverts)
 {
-  if (mdverts == NULL) {
+  if (mdverts == nullptr) {
     return;
   }
 
   for (int i = count; i > 0; i--, mdverts++) {
     /* Convert to vertex group allocation system. */
     MDeformWeight *dw;
-    if (mdverts->dw && (dw = BLO_read_get_new_data_address(reader, mdverts->dw))) {
+    if (mdverts->dw &&
+        (dw = static_cast<MDeformWeight *>(BLO_read_get_new_data_address(reader, mdverts->dw)))) {
       const size_t dw_len = sizeof(MDeformWeight) * mdverts->totweight;
       void *dw_tmp = MEM_mallocN(dw_len, __func__);
       memcpy(dw_tmp, dw, dw_len);
-      mdverts->dw = dw_tmp;
+      mdverts->dw = static_cast<MDeformWeight *>(dw_tmp);
       MEM_freeN(dw);
     }
     else {
-      mdverts->dw = NULL;
+      mdverts->dw = nullptr;
       mdverts->totweight = 0;
     }
   }

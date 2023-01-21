@@ -29,7 +29,7 @@ set(INC_SYS
 )
 
 set(SRC
-  drawobject.c
+  drawobject.cc
   space_view3d.cc
   view3d_buttons.c
   view3d_camera_control.c

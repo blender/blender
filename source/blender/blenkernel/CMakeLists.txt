@@ -119,7 +119,7 @@ set(SRC
   intern/customdata.cc
   intern/customdata_file.c
   intern/data_transfer.cc
-  intern/deform.c
+  intern/deform.cc
   intern/displist.cc
   intern/dynamicpaint.cc
   intern/editlattice.c
