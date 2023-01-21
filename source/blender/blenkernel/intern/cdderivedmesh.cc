@@ -7,6 +7,10 @@
  * BKE_cdderivedmesh.h contains the function prototypes for this file.
  */
 
+#include <climits>
+#include <cmath>
+#include <cstring>
+
 #include "atomic_ops.h"
 
 #include "BLI_math.h"
@@ -29,11 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <limits.h>
-#include <math.h>
-#include <string.h>
-
-typedef struct {
+struct CDDerivedMesh {
   DerivedMesh dm;
 
   /* these point to data in the DerivedMesh custom data layers,
@@ -52,7 +52,7 @@ typedef struct {
   /* Mesh connectivity */
   MeshElemMap *pmap;
   int *pmap_mem;
-} CDDerivedMesh;
+};
 
 /**************** DerivedMesh interface functions ****************/
 static int cdDM_getNumVerts(DerivedMesh *dm)
@@ -157,11 +157,8 @@ static void cdDM_release(DerivedMesh *dm)
 /**************** CDDM interface functions ****************/
 static CDDerivedMesh *cdDM_create(const char *desc)
 {
-  CDDerivedMesh *cddm;
-  DerivedMesh *dm;
-
-  cddm = MEM_callocN(sizeof(*cddm), desc);
-  dm = &cddm->dm;
+  CDDerivedMesh *cddm = MEM_cnew<CDDerivedMesh>(desc);
+  DerivedMesh *dm = &cddm->dm;
 
   dm->getNumVerts = cdDM_getNumVerts;
   dm->getNumEdges = cdDM_getNumEdges;
@@ -221,14 +218,17 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
   CustomData_merge(&mesh->ldata, &dm->loopData, cddata_masks.lmask, alloctype, mesh->totloop);
   CustomData_merge(&mesh->pdata, &dm->polyData, cddata_masks.pmask, alloctype, mesh->totpoly);
 
-  cddm->vert_positions = CustomData_get_layer_named_for_write(
-      &dm->vertData, CD_PROP_FLOAT3, "position", mesh->totvert);
+  cddm->vert_positions = static_cast<float(*)[3]>(CustomData_get_layer_named_for_write(
+      &dm->vertData, CD_PROP_FLOAT3, "position", mesh->totvert));
   /* Though this may be an unnecessary calculation, simply retrieving the layer may return nothing
    * or dirty normals. */
   cddm->vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
-  cddm->medge = CustomData_get_layer_for_write(&dm->edgeData, CD_MEDGE, mesh->totedge);
-  cddm->mloop = CustomData_get_layer_for_write(&dm->loopData, CD_MLOOP, mesh->totloop);
-  cddm->mpoly = CustomData_get_layer_for_write(&dm->polyData, CD_MPOLY, mesh->totpoly);
+  cddm->medge = static_cast<MEdge *>(
+      CustomData_get_layer_for_write(&dm->edgeData, CD_MEDGE, mesh->totedge));
+  cddm->mloop = static_cast<MLoop *>(
+      CustomData_get_layer_for_write(&dm->loopData, CD_MLOOP, mesh->totloop));
+  cddm->mpoly = static_cast<MPoly *>(
+      CustomData_get_layer_for_write(&dm->polyData, CD_MPOLY, mesh->totpoly));
 #if 0
   cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 #else
