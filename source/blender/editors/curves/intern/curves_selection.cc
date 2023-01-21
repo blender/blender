@@ -56,8 +56,7 @@ IndexMask retrieve_selected_curves(const Curves &curves_id, Vector<int64_t> &r_i
   return retrieve_selected_curves(curves, r_indices);
 }
 
-static IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves,
-                                          Vector<int64_t> &r_indices)
+IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, Vector<int64_t> &r_indices)
 {
   return index_mask_ops::find_indices_from_virtual_array(
       curves.points_range(),

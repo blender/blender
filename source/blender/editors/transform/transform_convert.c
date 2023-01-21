@@ -713,6 +713,7 @@ static void init_proportional_edit(TransInfo *t)
   if (!ELEM(t->data_type,
             &TransConvertType_Action,
             &TransConvertType_Curve,
+            &TransConvertType_Curves,
             &TransConvertType_Graph,
             &TransConvertType_GPencil,
             &TransConvertType_Lattice,
@@ -784,6 +785,7 @@ static void init_TransDataContainers(TransInfo *t,
             &TransConvertType_Pose,
             &TransConvertType_EditArmature,
             &TransConvertType_Curve,
+            &TransConvertType_Curves,
             &TransConvertType_GPencil,
             &TransConvertType_Lattice,
             &TransConvertType_MBall,
@@ -958,6 +960,9 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
     }
     if (t->obedit_type == OB_ARMATURE) {
       return &TransConvertType_EditArmature;
+    }
+    if (t->obedit_type == OB_CURVES) {
+      return &TransConvertType_Curves;
     }
     return NULL;
   }

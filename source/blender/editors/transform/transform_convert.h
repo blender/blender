@@ -134,6 +134,10 @@ extern TransConvertTypeInfo TransConvertType_Cursor3D;
 
 extern TransConvertTypeInfo TransConvertType_Curve;
 
+/* transform_convert_curves.cc */
+
+extern TransConvertTypeInfo TransConvertType_Curves;
+
 /* transform_convert_graph.c */
 
 extern TransConvertTypeInfo TransConvertType_Graph;

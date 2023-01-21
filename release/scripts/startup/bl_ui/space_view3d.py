@@ -5332,7 +5332,10 @@ class VIEW3D_MT_edit_curves(Menu):
     bl_label = "Curves"
 
     def draw(self, _context):
-        pass
+        layout = self.layout
+
+        layout.menu("VIEW3D_MT_transform")
+        layout.separator()
 
 
 class VIEW3D_MT_object_mode_pie(Menu):
