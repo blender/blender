@@ -1865,7 +1865,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         return OPERATOR_FINISHED;
       }
       case SCULPT_EXPAND_MODAL_FALLOFF_GEODESIC: {
-        expand_cache->falloff_gradient = SCULPT_EXPAND_MODAL_FALLOFF_GEODESIC;
+        expand_cache->falloff_gradient = true;
         sculpt_expand_check_topology_islands(ob);
 
         sculpt_expand_falloff_factors_from_vertex_and_symm_create(
@@ -1889,7 +1889,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         break;
       }
       case SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY_DIAGONALS: {
-        expand_cache->falloff_gradient = SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY_DIAGONALS;
+        expand_cache->falloff_gradient = true;
         sculpt_expand_check_topology_islands(ob);
 
         sculpt_expand_falloff_factors_from_vertex_and_symm_create(

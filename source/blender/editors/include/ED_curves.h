@@ -8,6 +8,7 @@
 
 struct bContext;
 struct Curves;
+struct UndoType;
 
 #ifdef __cplusplus
 extern "C" {

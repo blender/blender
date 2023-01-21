@@ -1094,7 +1094,7 @@ static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *mpoly)
   for (index = 0; index < totface; index++) {
     CCGFace *f = ccgdm->faceMap[index].face;
     int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
-    int flag = (faceFlags) ? faceFlags[index].flag : ME_SMOOTH;
+    char flag = (faceFlags) ? faceFlags[index].flag : char(ME_SMOOTH);
 
     for (S = 0; S < numVerts; S++) {
       for (y = 0; y < gridSize - 1; y++) {
