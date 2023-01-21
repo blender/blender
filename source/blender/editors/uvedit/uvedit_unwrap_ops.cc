@@ -2301,7 +2301,6 @@ static int smart_project_exec(bContext *C, wmOperator *op)
 
     if (project_normal_array.size() == 0) {
       MEM_freeN(thick_faces);
-      BLI_assert(project_normal_array == nullptr);
       continue;
     }
 
