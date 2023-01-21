@@ -6,7 +6,6 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
-#include "BLI_alloca.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -73,16 +72,16 @@
 
 static eSpaceSeq_Proxy_RenderSize get_sequencer_render_size(Main *bmain)
 {
-  eSpaceSeq_Proxy_RenderSize render_size = 100;
+  eSpaceSeq_Proxy_RenderSize render_size = eSpaceSeq_Proxy_RenderSize(100);
 
-  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
         switch (sl->spacetype) {
           case SPACE_SEQ: {
             SpaceSeq *sseq = (SpaceSeq *)sl;
             if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-              render_size = sseq->render_size;
+              render_size = eSpaceSeq_Proxy_RenderSize(sseq->render_size);
               break;
             }
           }
@@ -96,7 +95,7 @@ static eSpaceSeq_Proxy_RenderSize get_sequencer_render_size(Main *bmain)
 
 static bool can_use_proxy(const Sequence *seq, int psize)
 {
-  if (seq->strip->proxy == NULL) {
+  if (seq->strip->proxy == nullptr) {
     return false;
   }
   short size_flags = seq->strip->proxy->build_size_flags;
@@ -110,7 +109,7 @@ static void seq_convert_transform_animation(const Sequence *seq,
                                             const int image_size,
                                             const int scene_size)
 {
-  if (scene->adt == NULL || scene->adt->action == NULL) {
+  if (scene->adt == nullptr || scene->adt->action == nullptr) {
     return;
   }
 
@@ -121,7 +120,7 @@ static void seq_convert_transform_animation(const Sequence *seq,
   /* Convert offset animation, but only if crop is not used. */
   if ((seq->flag & use_transform_flag) != 0 && (seq->flag & use_crop_flag) == 0) {
     FCurve *fcu = BKE_fcurve_find(&scene->adt->action->curves, path, 0);
-    if (fcu != NULL && !BKE_fcurve_is_empty(fcu)) {
+    if (fcu != nullptr && !BKE_fcurve_is_empty(fcu)) {
       BezTriple *bezt = fcu->bezt;
       for (int i = 0; i < fcu->totvert; i++, bezt++) {
         /* Same math as with old_image_center_*, but simplified. */
@@ -142,11 +141,11 @@ static void seq_convert_transform_crop(const Scene *scene,
                                        Sequence *seq,
                                        const eSpaceSeq_Proxy_RenderSize render_size)
 {
-  if (seq->strip->transform == NULL) {
-    seq->strip->transform = MEM_callocN(sizeof(struct StripTransform), "StripTransform");
+  if (seq->strip->transform == nullptr) {
+    seq->strip->transform = MEM_cnew<StripTransform>(__func__);
   }
-  if (seq->strip->crop == NULL) {
-    seq->strip->crop = MEM_callocN(sizeof(struct StripCrop), "StripCrop");
+  if (seq->strip->crop == nullptr) {
+    seq->strip->crop = MEM_cnew<StripCrop>(__func__);
   }
 
   StripCrop *c = seq->strip->crop;
@@ -161,7 +160,7 @@ static void seq_convert_transform_crop(const Scene *scene,
   const uint32_t use_crop_flag = (1 << 17);
 
   const StripElem *s_elem = seq->strip->stripdata;
-  if (s_elem != NULL) {
+  if (s_elem != nullptr) {
     image_size_x = s_elem->orig_width;
     image_size_y = s_elem->orig_height;
 
@@ -186,8 +185,8 @@ static void seq_convert_transform_crop(const Scene *scene,
     t->xofs = t->yofs = 0;
 
     /* Reverse scale to fit for strips not using offset. */
-    float project_aspect = (float)scene->r.xsch / (float)scene->r.ysch;
-    float image_aspect = (float)image_size_x / (float)image_size_y;
+    float project_aspect = float(scene->r.xsch) / float(scene->r.ysch);
+    float image_aspect = float(image_size_x) / float(image_size_y);
     if (project_aspect > image_aspect) {
       t->scale_x = project_aspect / image_aspect;
     }
@@ -207,8 +206,8 @@ static void seq_convert_transform_crop(const Scene *scene,
     int cropped_image_size_x = image_size_x - c->right - c->left;
     int cropped_image_size_y = image_size_y - c->top - c->bottom;
     c->bottom = c->top = c->left = c->right = 0;
-    t->scale_x *= (float)image_size_x / (float)cropped_image_size_x;
-    t->scale_y *= (float)image_size_y / (float)cropped_image_size_y;
+    t->scale_x *= float(image_size_x) / float(cropped_image_size_x);
+    t->scale_y *= float(image_size_y) / float(cropped_image_size_y);
   }
 
   if ((seq->flag & use_transform_flag) != 0) {
@@ -217,8 +216,8 @@ static void seq_convert_transform_crop(const Scene *scene,
     old_image_center_y = image_size_y / 2 - c->bottom + t->yofs;
 
     /* Preserve original image size. */
-    t->scale_x = t->scale_y = MAX2((float)image_size_x / (float)scene->r.xsch,
-                                   (float)image_size_y / (float)scene->r.ysch);
+    t->scale_x = t->scale_y = MAX2(float(image_size_x) / float(scene->r.xsch),
+                                   float(image_size_y) / float(scene->r.ysch));
 
     /* Convert crop. */
     if ((seq->flag & use_crop_flag) != 0) {
@@ -265,12 +264,12 @@ static void seq_convert_transform_animation_2(const Scene *scene,
                                               const char *path,
                                               const float scale_to_fit_factor)
 {
-  if (scene->adt == NULL || scene->adt->action == NULL) {
+  if (scene->adt == nullptr || scene->adt->action == nullptr) {
     return;
   }
 
   FCurve *fcu = BKE_fcurve_find(&scene->adt->action->curves, path, 0);
-  if (fcu != NULL && !BKE_fcurve_is_empty(fcu)) {
+  if (fcu != nullptr && !BKE_fcurve_is_empty(fcu)) {
     BezTriple *bezt = fcu->bezt;
     for (int i = 0; i < fcu->totvert; i++, bezt++) {
       /* Same math as with old_image_center_*, but simplified. */
@@ -286,7 +285,7 @@ static void seq_convert_transform_crop_2(const Scene *scene,
                                          const eSpaceSeq_Proxy_RenderSize render_size)
 {
   const StripElem *s_elem = seq->strip->stripdata;
-  if (s_elem == NULL) {
+  if (s_elem == nullptr) {
     return;
   }
 
@@ -301,8 +300,8 @@ static void seq_convert_transform_crop_2(const Scene *scene,
   }
 
   /* Calculate scale factor, so image fits in preview area with original aspect ratio. */
-  const float scale_to_fit_factor = MIN2((float)scene->r.xsch / (float)image_size_x,
-                                         (float)scene->r.ysch / (float)image_size_y);
+  const float scale_to_fit_factor = MIN2(float(scene->r.xsch) / float(image_size_x),
+                                         float(scene->r.ysch) / float(image_size_y));
   t->scale_x *= scale_to_fit_factor;
   t->scale_y *= scale_to_fit_factor;
   c->top /= scale_to_fit_factor;
@@ -351,7 +350,7 @@ static void seq_update_meta_disp_range(Scene *scene)
 {
   Editing *ed = SEQ_editing_get(scene);
 
-  if (ed == NULL) {
+  if (ed == nullptr) {
     return;
   }
 
@@ -411,7 +410,7 @@ static void version_node_socket_duplicate(bNodeTree *ntree,
   }
 }
 
-void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
+void do_versions_after_linking_290(Main *bmain, ReportList * /*reports*/)
 {
   if (!MAIN_VERSION_ATLEAST(bmain, 290, 1)) {
     /* Patch old grease pencil modifiers material filter. */
@@ -421,8 +420,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Array: {
             ArrayGpencilModifierData *gpmd = (ArrayGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -430,8 +429,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Color: {
             ColorGpencilModifierData *gpmd = (ColorGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -439,8 +438,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Hook: {
             HookGpencilModifierData *gpmd = (HookGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -448,8 +447,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Lattice: {
             LatticeGpencilModifierData *gpmd = (LatticeGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -457,8 +456,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Mirror: {
             MirrorGpencilModifierData *gpmd = (MirrorGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -466,8 +465,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Multiply: {
             MultiplyGpencilModifierData *gpmd = (MultiplyGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -475,8 +474,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Noise: {
             NoiseGpencilModifierData *gpmd = (NoiseGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -484,8 +483,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Offset: {
             OffsetGpencilModifierData *gpmd = (OffsetGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -493,8 +492,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Opacity: {
             OpacityGpencilModifierData *gpmd = (OpacityGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -502,8 +501,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Simplify: {
             SimplifyGpencilModifierData *gpmd = (SimplifyGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -511,8 +510,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Smooth: {
             SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -520,8 +519,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Subdiv: {
             SubdivGpencilModifierData *gpmd = (SubdivGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -529,8 +528,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Texture: {
             TextureGpencilModifierData *gpmd = (TextureGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -538,8 +537,8 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
           case eGpencilModifierType_Thick: {
             ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
             if (gpmd->materialname[0] != '\0') {
-              gpmd->material = BLI_findstring(
-                  &bmain->materials, gpmd->materialname, offsetof(ID, name) + 2);
+              gpmd->material = static_cast<Material *>(
+                  BLI_findstring(&bmain->materials, gpmd->materialname, offsetof(ID, name) + 2));
               gpmd->materialname[0] = '\0';
             }
             break;
@@ -551,15 +550,15 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
     }
 
     /* Patch first frame for old files. */
-    Scene *scene = bmain->scenes.first;
-    if (scene != NULL) {
+    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
+    if (scene != nullptr) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
         if (ob->type != OB_GPENCIL) {
           continue;
         }
-        bGPdata *gpd = ob->data;
+        bGPdata *gpd = static_cast<bGPdata *>(ob->data);
         LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-          bGPDframe *gpf = gpl->frames.first;
+          bGPDframe *gpf = static_cast<bGPDframe *>(gpl->frames.first);
           if (gpf && gpf->framenum > scene->r.sfra) {
             bGPDframe *gpf_dup = BKE_gpencil_frame_duplicate(gpf, true);
             gpf_dup->framenum = scene->r.sfra;
@@ -600,8 +599,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
   /* Convert all Multires displacement to Catmull-Clark subdivision limit surface. */
   if (!MAIN_VERSION_ATLEAST(bmain, 292, 1)) {
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      ModifierData *md;
-      for (md = ob->modifiers.first; md; md = md->next) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Multires) {
           MultiresModifierData *mmd = (MultiresModifierData *)md;
           if (mmd->simple) {
@@ -617,7 +615,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
     eSpaceSeq_Proxy_RenderSize render_size = get_sequencer_render_size(bmain);
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->ed != NULL) {
+      if (scene->ed != nullptr) {
         seq_convert_transform_crop_lb(scene, &scene->ed->seqbase, render_size);
       }
     }
@@ -628,12 +626,12 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
      * Armature obdata. */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       if (ob->type == OB_ARMATURE) {
-        BKE_pose_rebuild(bmain, ob, ob->data, true);
+        BKE_pose_rebuild(bmain, ob, static_cast<bArmature *>(ob->data), true);
       }
     }
 
     /* Wet Paint Radius Factor */
-    for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
+    LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
       if (br->ob_mode & OB_MODE_SCULPT && br->wet_paint_radius_factor == 0.0f) {
         br->wet_paint_radius_factor = 1.0f;
       }
@@ -641,7 +639,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
 
     eSpaceSeq_Proxy_RenderSize render_size = get_sequencer_render_size(bmain);
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->ed != NULL) {
+      if (scene->ed != nullptr) {
         seq_convert_transform_crop_lb_2(scene, &scene->ed->seqbase, render_size);
       }
     }
@@ -797,12 +795,12 @@ static void version_node_join_geometry_for_multi_input_socket(bNodeTree *ntree)
 {
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
     if (link->tonode->type == GEO_NODE_JOIN_GEOMETRY && !(link->tosock->flag & SOCK_MULTI_INPUT)) {
-      link->tosock = link->tonode->inputs.first;
+      link->tosock = static_cast<bNodeSocket *>(link->tonode->inputs.first);
     }
   }
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == GEO_NODE_JOIN_GEOMETRY) {
-      bNodeSocket *socket = node->inputs.first;
+      bNodeSocket *socket = static_cast<bNodeSocket *>(node->inputs.first);
       socket->flag |= SOCK_MULTI_INPUT;
       socket->limit = 4095;
       nodeRemoveSocket(ntree, node, socket->next);
@@ -811,7 +809,7 @@ static void version_node_join_geometry_for_multi_input_socket(bNodeTree *ntree)
 }
 
 /* NOLINTNEXTLINE: readability-function-size */
-void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
+void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   UNUSED_VARS(fd);
 
@@ -854,7 +852,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     if (!DNA_struct_elem_find(fd->filesdna, "SpaceImage", "float", "uv_opacity")) {
-      for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_IMAGE) {
@@ -869,7 +867,8 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     /* Init Grease Pencil new random curves. */
     if (!DNA_struct_elem_find(fd->filesdna, "BrushGpencilSettings", "float", "random_hue")) {
       LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-        if ((brush->gpencil_settings) && (brush->gpencil_settings->curve_rand_pressure == NULL)) {
+        if ((brush->gpencil_settings) &&
+            (brush->gpencil_settings->curve_rand_pressure == nullptr)) {
           brush->gpencil_settings->curve_rand_pressure = BKE_curvemapping_add(
               1, 0.0f, 0.0f, 1.0f, 1.0f);
           brush->gpencil_settings->curve_rand_strength = BKE_curvemapping_add(
@@ -923,7 +922,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 290, 6)) {
     /* Transition to saving expansion for all of a modifier's sub-panels. */
     if (!DNA_struct_elem_find(fd->filesdna, "ModifierData", "short", "ui_expand_flag")) {
-      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+      LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->mode & eModifierMode_Expanded_DEPRECATED) {
             md->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT;
@@ -951,7 +950,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Transition to saving expansion for all of a constraint's sub-panels. */
     if (!DNA_struct_elem_find(fd->filesdna, "bConstraint", "short", "ui_expand_flag")) {
-      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+      LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (bConstraint *, con, &object->constraints) {
           if (con->flag & CONSTRAINT_EXPAND_DEPRECATED) {
             con->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT;
@@ -965,7 +964,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Transition to saving expansion for all of grease pencil modifier's sub-panels. */
     if (!DNA_struct_elem_find(fd->filesdna, "GpencilModifierData", "short", "ui_expand_flag")) {
-      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+      LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (GpencilModifierData *, md, &object->greasepencil_modifiers) {
           if (md->mode & eGpencilModifierMode_Expanded_DEPRECATED) {
             md->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT;
@@ -979,7 +978,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Transition to saving expansion for all of an effect's sub-panels. */
     if (!DNA_struct_elem_find(fd->filesdna, "ShaderFxData", "short", "ui_expand_flag")) {
-      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+      LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ShaderFxData *, fx, &object->shader_fx) {
           if (fx->mode & eShaderFxMode_Expanded_DEPRECATED) {
             fx->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT;
@@ -993,7 +992,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Refactor bevel profile type to use an enum. */
     if (!DNA_struct_elem_find(fd->filesdna, "BevelModifierData", "short", "profile_type")) {
-      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+      LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_Bevel) {
             BevelModifierData *bmd = (BevelModifierData *)md;
@@ -1006,7 +1005,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     /* Change ocean modifier values from [0, 10] to [0, 1] ranges. */
-    for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
       LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
         if (md->type == eModifierType_Ocean) {
           OceanModifierData *omd = (OceanModifierData *)md;
@@ -1037,7 +1036,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Refactor bevel affect type to use an enum. */
     if (!DNA_struct_elem_find(fd->filesdna, "BevelModifierData", "char", "affect_type")) {
-      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+      LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_Bevel) {
             BevelModifierData *bmd = (BevelModifierData *)md;
@@ -1052,7 +1051,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     /* Initialize additional velocity parameter for #CacheFile's. */
     if (!DNA_struct_elem_find(
             fd->filesdna, "MeshSeqCacheModifierData", "float", "velocity_scale")) {
-      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+      LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_MeshSequenceCache) {
             MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
@@ -1063,15 +1062,14 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     if (!DNA_struct_elem_find(fd->filesdna, "CacheFile", "char", "velocity_unit")) {
-      for (CacheFile *cache_file = bmain->cachefiles.first; cache_file != NULL;
-           cache_file = cache_file->id.next) {
+      LISTBASE_FOREACH (CacheFile *, cache_file, &bmain->cachefiles) {
         BLI_strncpy(cache_file->velocity_name, ".velocities", sizeof(cache_file->velocity_name));
         cache_file->velocity_unit = CACHEFILE_VELOCITY_UNIT_SECOND;
       }
     }
 
     if (!DNA_struct_elem_find(fd->filesdna, "OceanModifierData", "int", "viewport_resolution")) {
-      for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+      LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_Ocean) {
             OceanModifierData *omd = (OceanModifierData *)md;
@@ -1094,10 +1092,10 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 291, 2)) {
-    for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       RigidBodyWorld *rbw = scene->rigidbody_world;
 
-      if (rbw == NULL) {
+      if (rbw == nullptr) {
         continue;
       }
 
@@ -1111,8 +1109,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     /* PointCloud attributes. */
-    for (PointCloud *pointcloud = bmain->pointclouds.first; pointcloud != NULL;
-         pointcloud = pointcloud->id.next) {
+    LISTBASE_FOREACH (PointCloud *, pointcloud, &bmain->pointclouds) {
       do_versions_point_attributes(&pointcloud->pdata);
     }
 
@@ -1130,7 +1127,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     /* Solver and Collections for Boolean. */
-    for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
       LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
         if (md->type == eModifierType_Boolean) {
           BooleanModifierData *bmd = (BooleanModifierData *)md;
@@ -1160,10 +1157,10 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 291, 5)) {
     /* Fix fcurves to allow for new bezier handles behavior (T75881 and D8752). */
-    for (bAction *act = bmain->actions.first; act; act = act->id.next) {
-      for (FCurve *fcu = act->curves.first; fcu; fcu = fcu->next) {
+    LISTBASE_FOREACH (bAction *, act, &bmain->actions) {
+      LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
         /* Only need to fix Bezier curves with at least 2 key-frames. */
-        if (fcu->totvert < 2 || fcu->bezt == NULL) {
+        if (fcu->totvert < 2 || fcu->bezt == nullptr) {
           continue;
         }
         do_versions_291_fcurve_handles_limit(fcu);
@@ -1184,7 +1181,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     /* Add custom profile and bevel mode to curve bevels. */
     if (!DNA_struct_elem_find(fd->filesdna, "Curve", "char", "bevel_mode")) {
       LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
-        if (curve->bevobj != NULL) {
+        if (curve->bevobj != nullptr) {
           curve->bevel_mode = CU_BEV_MODE_OBJECT;
         }
         else {
@@ -1198,7 +1195,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Fluid) {
           FluidModifierData *fmd = (FluidModifierData *)md;
-          if (fmd->domain != NULL) {
+          if (fmd->domain != nullptr) {
             if (!fmd->domain->coba_field && fmd->domain->type == FLUID_DOMAIN_TYPE_LIQUID) {
               fmd->domain->coba_field = FLUID_DOMAIN_FIELD_PHI;
             }
@@ -1216,7 +1213,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 291, 6)) {
     /* Darken Inactive Overlay. */
     if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "fade_alpha")) {
-      for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_VIEW3D) {
@@ -1239,7 +1236,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     /* Alembic importer: allow vertex interpolation by default. */
-    for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
       LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
         if (md->type != eModifierType_MeshSequenceCache) {
           continue;
@@ -1264,11 +1261,11 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
             WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {
           relation->parent = blo_read_get_new_globaldata_address(fd, relation->parent);
           BLI_assert(relation->parentid == 0);
-          if (relation->parent != NULL) {
+          if (relation->parent != nullptr) {
             LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
-              wmWindow *win = BLI_findptr(
-                  &wm->windows, relation->parent, offsetof(wmWindow, workspace_hook));
-              if (win != NULL) {
+              wmWindow *win = static_cast<wmWindow *>(
+                  BLI_findptr(&wm->windows, relation->parent, offsetof(wmWindow, workspace_hook)));
+              if (win != nullptr) {
                 relation->parentid = win->winid;
                 break;
               }
@@ -1310,7 +1307,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 291, 9)) {
     /* Remove options of legacy UV/Image editor */
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           switch (sl->spacetype) {
@@ -1370,7 +1367,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 292, 5)) {
     /* Initialize the opacity of the overlay wireframe */
     if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "wireframe_opacity")) {
-      for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_VIEW3D) {
@@ -1401,7 +1398,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_WeightVGProximity) {
           WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
-          if (wmd->cmap_curve == NULL) {
+          if (wmd->cmap_curve == nullptr) {
             wmd->cmap_curve = BKE_curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
             BKE_curvemapping_init(wmd->cmap_curve);
           }
@@ -1442,7 +1439,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     /* EEVEE/Cycles Volumes consistency */
-    for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       /* Remove Volume Transmittance render pass from each view layer. */
       LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
         view_layer->eevee.render_passes &= ~EEVEE_RENDER_PASS_UNUSED_8;
@@ -1471,7 +1468,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
             if (node->type == CMP_NODE_CRYPTOMATTE_LEGACY) {
               NodeCryptomatte *storage = (NodeCryptomatte *)node->storage;
               char *matte_id = storage->matte_id;
-              if (matte_id == NULL || strlen(storage->matte_id) == 0) {
+              if (matte_id == nullptr || strlen(storage->matte_id) == 0) {
                 continue;
               }
               BKE_cryptomatte_matte_id_to_entries(storage, storage->matte_id);
@@ -1505,7 +1502,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->toolsettings->sequencer_tool_settings == NULL) {
+      if (scene->toolsettings->sequencer_tool_settings == nullptr) {
         scene->toolsettings->sequencer_tool_settings = SEQ_tool_settings_init();
       }
     }
@@ -1530,7 +1527,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_Fluid) {
             FluidModifierData *fmd = (FluidModifierData *)md;
-            if (fmd->domain != NULL) {
+            if (fmd->domain != nullptr) {
               fmd->domain->viscosity_value = 0.05;
             }
           }
@@ -1549,7 +1546,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
           if (node->type != CMP_NODE_SETALPHA) {
             continue;
           }
-          NodeSetAlpha *storage = MEM_callocN(sizeof(NodeSetAlpha), "NodeSetAlpha");
+          NodeSetAlpha *storage = MEM_cnew<NodeSetAlpha>("NodeSetAlpha");
           storage->mode = CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA;
           node->storage = storage;
         }
@@ -1559,7 +1556,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       Editing *ed = SEQ_editing_get(scene);
-      if (ed == NULL) {
+      if (ed == nullptr) {
         continue;
       }
       ed->cache_flag = (SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_FINAL_OUT);
@@ -1575,7 +1572,8 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type == CMP_NODE_OUTPUT_FILE) {
             LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-              NodeImageMultiFileSocket *simf = sock->storage;
+              NodeImageMultiFileSocket *simf = static_cast<NodeImageMultiFileSocket *>(
+                  sock->storage);
               simf->save_as_render = true;
             }
           }
@@ -1617,7 +1615,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         continue;
       }
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == GEO_NODE_OBJECT_INFO && node->storage == NULL) {
+        if (node->type == GEO_NODE_OBJECT_INFO && node->storage == nullptr) {
           NodeGeometryObjectInfo *data = (NodeGeometryObjectInfo *)MEM_callocN(
               sizeof(NodeGeometryObjectInfo), __func__);
           data->transform_space = GEO_NODE_TRANSFORM_SPACE_RELATIVE;
@@ -1767,7 +1765,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
                                                                    &sl->regionbase;
             ARegion *new_footer = do_versions_add_region_if_not_found(
                 regionbase, RGN_TYPE_FOOTER, "footer for spreadsheet", RGN_TYPE_HEADER);
-            if (new_footer != NULL) {
+            if (new_footer != nullptr) {
               new_footer->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP :
                                                                         RGN_ALIGN_BOTTOM;
             }
@@ -1842,7 +1840,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 18)) {
     if (!DNA_struct_elem_find(fd->filesdna, "bArmature", "float", "axes_position")) {
       /* Convert the axes draw position to its old default (tip of bone). */
-      LISTBASE_FOREACH (struct bArmature *, arm, &bmain->armatures) {
+      LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
         arm->axes_position = 1.0;
       }
     }
