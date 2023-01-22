@@ -38,8 +38,8 @@ typedef struct bGPundonode {
   struct bGPdata *gpd;
 } bGPundonode;
 
-static ListBase undo_nodes = {NULL, NULL};
-static bGPundonode *cur_node = NULL;
+static ListBase undo_nodes = {nullptr, nullptr};
+static bGPundonode *cur_node = nullptr;
 
 int ED_gpencil_session_active(void)
 {
@@ -48,9 +48,9 @@ int ED_gpencil_session_active(void)
 
 int ED_undo_gpencil_step(bContext *C, const int step)
 {
-  bGPdata **gpd_ptr = NULL, *new_gpd = NULL;
+  bGPdata **gpd_ptr = nullptr, *new_gpd = nullptr;
 
-  gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
+  gpd_ptr = ED_gpencil_data_get_pointers(C, nullptr);
 
   const eUndoStepDir undo_step = (eUndoStepDir)step;
   if (undo_step == STEP_UNDO) {
@@ -89,7 +89,7 @@ int ED_undo_gpencil_step(bContext *C, const int step)
     new_gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
   }
 
-  WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -104,7 +104,7 @@ static void gpencil_undo_free_node(bGPundonode *undo_node)
   /* HACK: animdata wasn't duplicated, so it shouldn't be freed here,
    * or else the real copy will segfault when accessed
    */
-  undo_node->gpd->adt = NULL;
+  undo_node->gpd->adt = nullptr;
 
   BKE_gpencil_free_data(undo_node->gpd, false);
   MEM_freeN(undo_node->gpd);
@@ -138,7 +138,7 @@ void gpencil_undo_push(bGPdata *gpd)
     /* remove anything older than n-steps before cur_node */
     int steps = 0;
 
-    undo_node = (cur_node) ? cur_node : undo_nodes.last;
+    undo_node = (cur_node) ? cur_node : static_cast<bGPundonode *>(undo_nodes.last);
     while (undo_node) {
       bGPundonode *prev_node = undo_node->prev;
 
@@ -153,8 +153,8 @@ void gpencil_undo_push(bGPdata *gpd)
   }
 
   /* create new undo node */
-  undo_node = MEM_callocN(sizeof(bGPundonode), "gpencil undo node");
-  undo_node->gpd = BKE_gpencil_data_duplicate(NULL, gpd, true);
+  undo_node = MEM_cnew<bGPundonode>("gpencil undo node");
+  undo_node->gpd = BKE_gpencil_data_duplicate(nullptr, gpd, true);
 
   cur_node = undo_node;
 
@@ -163,7 +163,7 @@ void gpencil_undo_push(bGPdata *gpd)
 
 void gpencil_undo_finish(void)
 {
-  bGPundonode *undo_node = undo_nodes.first;
+  bGPundonode *undo_node = static_cast<bGPundonode *>(undo_nodes.first);
 
   while (undo_node) {
     gpencil_undo_free_node(undo_node);
@@ -172,5 +172,5 @@ void gpencil_undo_finish(void)
 
   BLI_freelistN(&undo_nodes);
 
-  cur_node = NULL;
+  cur_node = nullptr;
 }

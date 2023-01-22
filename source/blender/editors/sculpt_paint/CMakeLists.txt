@@ -82,7 +82,7 @@ set(SRC
   sculpt_pose.c
   sculpt_smooth.c
   sculpt_transform.c
-  sculpt_undo.c
+  sculpt_undo.cc
   sculpt_uv.c
 
   curves_sculpt_intern.h

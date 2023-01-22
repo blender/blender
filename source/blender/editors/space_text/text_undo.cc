@@ -61,16 +61,17 @@ static void text_state_encode(TextState *state, Text *text, BArrayStore *buffer_
 {
   size_t buf_len = 0;
   uchar *buf = (uchar *)txt_to_buf_for_undo(text, &buf_len);
-  state->buf_array_state = BLI_array_store_state_add(buffer_store, buf, buf_len, NULL);
+  state->buf_array_state = BLI_array_store_state_add(buffer_store, buf, buf_len, nullptr);
   MEM_freeN(buf);
 
-  state->cursor_line = txt_get_span(text->lines.first, text->curl);
+  state->cursor_line = txt_get_span(static_cast<TextLine *>(text->lines.first), text->curl);
   state->cursor_column = text->curc;
 
   if (txt_has_sel(text)) {
     state->cursor_line_select = (text->curl == text->sell) ?
                                     state->cursor_line :
-                                    txt_get_span(text->lines.first, text->sell);
+                                    txt_get_span(static_cast<TextLine *>(text->lines.first),
+                                                 text->sell);
     state->cursor_column_select = text->selc;
   }
   else {
@@ -83,7 +84,8 @@ static void text_state_decode(TextState *state, Text *text)
 {
   size_t buf_len;
   {
-    const uchar *buf = BLI_array_store_state_data_get_alloc(state->buf_array_state, &buf_len);
+    const uchar *buf = static_cast<const uchar *>(
+        BLI_array_store_state_data_get_alloc(state->buf_array_state, &buf_len));
     txt_from_buf_for_undo(text, (const char *)buf, buf_len);
     MEM_freeN((void *)buf);
   }
@@ -115,12 +117,12 @@ typedef struct TextUndoStep {
 static struct {
   BArrayStore *buffer_store;
   int users;
-} g_text_buffers = {NULL};
+} g_text_buffers = {nullptr};
 
 static size_t text_undosys_step_encode_to_state(TextState *state, Text *text)
 {
   BLI_assert(BLI_array_is_zeroed(state, 1));
-  if (g_text_buffers.buffer_store == NULL) {
+  if (g_text_buffers.buffer_store == nullptr) {
     g_text_buffers.buffer_store = BLI_array_store_create(1, ARRAY_CHUNK_SIZE);
   }
   g_text_buffers.users += 1;
@@ -132,7 +134,7 @@ static size_t text_undosys_step_encode_to_state(TextState *state, Text *text)
   return BLI_array_store_calc_size_compacted_get(g_text_buffers.buffer_store) - total_size_prev;
 }
 
-static bool text_undosys_poll(bContext *UNUSED(C))
+static bool text_undosys_poll(bContext * /*C*/)
 {
   /* Only use when operators initialized. */
   UndoStack *ustack = ED_undo_stack_get();
@@ -165,9 +167,7 @@ static void text_undosys_step_encode_init(struct bContext *C, UndoStep *us_p)
   us->text_ref.ptr = text;
 }
 
-static bool text_undosys_step_encode(struct bContext *C,
-                                     struct Main *UNUSED(bmain),
-                                     UndoStep *us_p)
+static bool text_undosys_step_encode(struct bContext *C, struct Main * /*bmain*/, UndoStep *us_p)
 {
   TextUndoStep *us = (TextUndoStep *)us_p;
 
@@ -183,7 +183,7 @@ static bool text_undosys_step_encode(struct bContext *C,
 }
 
 static void text_undosys_step_decode(struct bContext *C,
-                                     struct Main *UNUSED(bmain),
+                                     struct Main * /*bmain*/,
                                      UndoStep *us_p,
                                      const eUndoStepDir dir,
                                      bool is_final)
@@ -194,7 +194,7 @@ static void text_undosys_step_decode(struct bContext *C,
   Text *text = us->text_ref.ptr;
 
   TextState *state;
-  if ((us->states[0].buf_array_state != NULL) && (dir == STEP_UNDO) && !is_final) {
+  if ((us->states[0].buf_array_state != nullptr) && (dir == STEP_UNDO) && !is_final) {
     state = &us->states[0];
   }
   else {
@@ -224,7 +224,7 @@ static void text_undosys_step_free(UndoStep *us_p)
       g_text_buffers.users -= 1;
       if (g_text_buffers.users == 0) {
         BLI_array_store_destroy(g_text_buffers.buffer_store);
-        g_text_buffers.buffer_store = NULL;
+        g_text_buffers.buffer_store = nullptr;
       }
     }
   }
@@ -264,12 +264,13 @@ UndoStep *ED_text_undo_push_init(bContext *C)
 {
   UndoStack *ustack = ED_undo_stack_get();
   Main *bmain = CTX_data_main(C);
-  wmWindowManager *wm = bmain->wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   if (wm->op_undo_depth <= 1) {
-    UndoStep *us_p = BKE_undosys_step_push_init_with_type(ustack, C, NULL, BKE_UNDOSYS_TYPE_TEXT);
+    UndoStep *us_p = BKE_undosys_step_push_init_with_type(
+        ustack, C, nullptr, BKE_UNDOSYS_TYPE_TEXT);
     return us_p;
   }
-  return NULL;
+  return nullptr;
 }
 
 /** \} */

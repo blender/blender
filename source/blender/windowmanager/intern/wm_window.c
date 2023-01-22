@@ -1644,7 +1644,7 @@ void wm_ghost_init(bContext *C)
   GHOST_UseWindowFocus(wm_init_state.window_focus);
 }
 
-/* TODO move this to wm_init_exit.c. */
+/* TODO move this to wm_init_exit.cc. */
 void wm_ghost_init_background(void)
 {
   if (g_system) {

@@ -63,10 +63,10 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
   G.fileflags |= G_FILE_NO_UI;
 
   if (UNDO_DISK) {
-    const struct BlendFileReadParams params = {0};
-    BlendFileReadReport bf_reports = {.reports = NULL};
+    const BlendFileReadParams params{};
+    BlendFileReadReport bf_reports{};
     struct BlendFileData *bfd = BKE_blendfile_read(mfu->filepath, &params, &bf_reports);
-    if (bfd != NULL) {
+    if (bfd != nullptr) {
       BKE_blendfile_read_setup(C, bfd, &params, &bf_reports);
       success = true;
     }
@@ -77,10 +77,11 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
     if (!use_old_bmain_data) {
       params.skip_flags |= BLO_READ_SKIP_UNDO_OLD_MAIN;
     }
+    BlendFileReadReport blend_file_read_report{};
     struct BlendFileData *bfd = BKE_blendfile_read_from_memfile(
-        bmain, &mfu->memfile, &params, NULL);
-    if (bfd != NULL) {
-      BKE_blendfile_read_setup(C, bfd, &params, &(BlendFileReadReport){NULL});
+        bmain, &mfu->memfile, &params, nullptr);
+    if (bfd != nullptr) {
+      BKE_blendfile_read_setup(C, bfd, &params, &blend_file_read_report);
       success = true;
     }
   }
@@ -100,7 +101,7 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
 
 MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
 {
-  MemFileUndoData *mfu = MEM_callocN(sizeof(MemFileUndoData), __func__);
+  MemFileUndoData *mfu = MEM_cnew<MemFileUndoData>(__func__);
 
   /* Include recovery information since undo-data is written out as #BLENDER_QUIT_FILE. */
   const int fileflags = G.fileflags | G_FILE_RECOVER_WRITE;
@@ -118,13 +119,14 @@ MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
     BLI_snprintf(numstr, sizeof(numstr), "%d.blend", counter);
     BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_session(), numstr);
 
+    const BlendFileWriteParams blend_file_write_params{};
     /* success = */ /* UNUSED */ BLO_write_file(
-        bmain, filepath, fileflags, &(const struct BlendFileWriteParams){0}, NULL);
+        bmain, filepath, fileflags, &blend_file_write_params, nullptr);
 
     BLI_strncpy(mfu->filepath, filepath, sizeof(mfu->filepath));
   }
   else {
-    MemFile *prevfile = (mfu_prev) ? &(mfu_prev->memfile) : NULL;
+    MemFile *prevfile = (mfu_prev) ? &(mfu_prev->memfile) : nullptr;
     if (prevfile) {
       BLO_memfile_clear_future(prevfile);
     }

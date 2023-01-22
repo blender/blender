@@ -10,7 +10,7 @@
 
 struct UndoType;
 
-/* memfile_undo.c */
+/* memfile_undo.cc */
 
 /** Export for ED_undo_sys. */
 void ED_memfile_undosys_type(struct UndoType *ut);

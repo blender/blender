@@ -41,7 +41,7 @@
 
 #include "../blenloader/BLO_undofile.h"
 
-#include "undo_intern.h"
+#include "undo_intern.hh"
 
 #include <stdio.h>
 
@@ -64,13 +64,13 @@ static bool memfile_undosys_poll(bContext *C)
 
   /* Allow a single memfile undo step (the first). */
   UndoStack *ustack = ED_undo_stack_get();
-  if ((ustack->step_active != NULL) && (ED_undo_is_memfile_compatible(C) == false)) {
+  if ((ustack->step_active != nullptr) && (ED_undo_is_memfile_compatible(C) == false)) {
     return false;
   }
   return true;
 }
 
-static bool memfile_undosys_step_encode(struct bContext *UNUSED(C),
+static bool memfile_undosys_step_encode(struct bContext * /*C*/,
                                         struct Main *bmain,
                                         UndoStep *us_p)
 {
@@ -83,10 +83,10 @@ static bool memfile_undosys_step_encode(struct bContext *UNUSED(C),
     ED_editors_flush_edits_ex(bmain, false, true);
   }
 
-  /* can be NULL, use when set. */
+  /* can be null, use when set. */
   MemFileUndoStep *us_prev = (MemFileUndoStep *)BKE_undosys_step_find_by_type(
       ustack, BKE_UNDOSYS_TYPE_MEMFILE);
-  us->data = BKE_memfile_undo_encode(bmain, us_prev ? us_prev->data : NULL);
+  us->data = BKE_memfile_undo_encode(bmain, us_prev ? us_prev->data : nullptr);
   us->step.data_size = us->data->undo_size;
 
   /* Store the fact that we should not re-use old data with that undo step, and reset the Main
@@ -104,14 +104,14 @@ static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
   BLI_assert((id_self->tag & LIB_TAG_UNDO_OLD_ID_REUSED) != 0);
 
   ID *id = *id_pointer;
-  if (id != NULL && !ID_IS_LINKED(id) && (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED) == 0) {
+  if (id != nullptr && !ID_IS_LINKED(id) && (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED) == 0) {
     bool do_stop_iter = true;
     if (GS(id_self->name) == ID_OB) {
       Object *ob_self = (Object *)id_self;
       if (ob_self->type == OB_ARMATURE) {
         if (ob_self->data == id) {
           BLI_assert(GS(id->name) == ID_AR);
-          if (ob_self->pose != NULL) {
+          if (ob_self->pose != nullptr) {
             /* We have a changed/re-read armature used by an unchanged armature object: our beloved
              * Bone pointers from the object's pose need their usual special treatment. */
             ob_self->pose->flag |= POSE_RECALC;
@@ -151,7 +151,7 @@ static void memfile_undosys_unfinished_id_previews_restart(ID *id)
     }
 
     if (!BKE_previewimg_is_finished(preview, i)) {
-      ED_preview_restart_queue_add(id, i);
+      ED_preview_restart_queue_add(id, eIconSizes(i));
     }
   }
 }
@@ -160,7 +160,7 @@ static void memfile_undosys_step_decode(struct bContext *C,
                                         struct Main *bmain,
                                         UndoStep *us_p,
                                         const eUndoStepDir undo_direction,
-                                        bool UNUSED(is_final))
+                                        bool /*is_final*/)
 {
   BLI_assert(undo_direction != STEP_INVALID);
 
@@ -187,7 +187,7 @@ static void memfile_undosys_step_decode(struct bContext *C,
      * fine-grained update flags now.
      */
     UndoStep *us_next = us_p->next;
-    if (us_next != NULL) {
+    if (us_next != nullptr) {
       if (us_next->use_old_bmain_data == false) {
         use_old_bmain_data = false;
       }
@@ -196,7 +196,7 @@ static void memfile_undosys_step_decode(struct bContext *C,
 
   /* Extract depsgraphs from current bmain (which may be freed during undo step reading),
    * and store them for re-use. */
-  GHash *depsgraphs = NULL;
+  GHash *depsgraphs = nullptr;
   if (use_old_bmain_data) {
     depsgraphs = BKE_scene_undo_depsgraphs_extract(bmain);
   }
@@ -232,11 +232,11 @@ static void memfile_undosys_step_decode(struct bContext *C,
 
     /* We need to inform depsgraph about re-used old IDs that would be using newly read
      * data-blocks, at least COW evaluated copies need to be updated... */
-    ID *id = NULL;
+    ID *id = nullptr;
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
       if (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED) {
         BKE_library_foreach_ID_link(
-            bmain, id, memfile_undosys_step_id_reused_cb, NULL, IDWALK_READONLY);
+            bmain, id, memfile_undosys_step_id_reused_cb, nullptr, IDWALK_READONLY);
       }
 
       /* Tag depsgraph to update data-block for changes that happened between the
@@ -246,12 +246,12 @@ static void memfile_undosys_step_decode(struct bContext *C,
       }
 
       bNodeTree *nodetree = ntreeFromID(id);
-      if (nodetree != NULL && nodetree->id.recalc != 0) {
+      if (nodetree != nullptr && nodetree->id.recalc != 0) {
         DEG_id_tag_update_ex(bmain, &nodetree->id, nodetree->id.recalc);
       }
       if (GS(id->name) == ID_SCE) {
         Scene *scene = (Scene *)id;
-        if (scene->master_collection != NULL && scene->master_collection->id.recalc != 0) {
+        if (scene->master_collection != nullptr && scene->master_collection->id.recalc != 0) {
           DEG_id_tag_update_ex(
               bmain, &scene->master_collection->id, scene->master_collection->id.recalc);
         }
@@ -271,12 +271,12 @@ static void memfile_undosys_step_decode(struct bContext *C,
        * loop because DEG_id_tag_update may set tags on other datablocks. */
       id->recalc_after_undo_push = 0;
       bNodeTree *nodetree = ntreeFromID(id);
-      if (nodetree != NULL) {
+      if (nodetree != nullptr) {
         nodetree->id.recalc_after_undo_push = 0;
       }
       if (GS(id->name) == ID_SCE) {
         Scene *scene = (Scene *)id;
-        if (scene->master_collection != NULL) {
+        if (scene->master_collection != nullptr) {
           scene->master_collection->id.recalc_after_undo_push = 0;
         }
       }
@@ -284,7 +284,7 @@ static void memfile_undosys_step_decode(struct bContext *C,
     FOREACH_MAIN_ID_END;
   }
   else {
-    ID *id = NULL;
+    ID *id = nullptr;
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
       /* Restart preview generation if the undo state was generating previews. */
       memfile_undosys_unfinished_id_previews_restart(id);
@@ -300,9 +300,9 @@ static void memfile_undosys_step_free(UndoStep *us_p)
   /* To avoid unnecessary slow down, free backwards
    * (so we don't need to merge when clearing all). */
   MemFileUndoStep *us = (MemFileUndoStep *)us_p;
-  if (us_p->next != NULL) {
+  if (us_p->next != nullptr) {
     UndoStep *us_next_p = BKE_undosys_step_same_type_next(us_p);
-    if (us_next_p != NULL) {
+    if (us_next_p != nullptr) {
       MemFileUndoStep *us_next = (MemFileUndoStep *)us_next_p;
       BLO_memfile_merge(&us->data->memfile, &us_next->data->memfile);
     }
@@ -346,13 +346,13 @@ struct MemFile *ED_undosys_stack_memfile_get_active(UndoStack *ustack)
   if (us) {
     return ed_undosys_step_get_memfile(us);
   }
-  return NULL;
+  return nullptr;
 }
 
 void ED_undosys_stack_memfile_id_changed_tag(UndoStack *ustack, ID *id)
 {
   UndoStep *us = ustack->step_active;
-  if (id == NULL || us == NULL || us->type != BKE_UNDOSYS_TYPE_MEMFILE) {
+  if (id == nullptr || us == nullptr || us->type != BKE_UNDOSYS_TYPE_MEMFILE) {
     return;
   }
 

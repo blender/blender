@@ -190,7 +190,7 @@ static void sound_jack_sync_callback(Main *bmain, int mode, double time)
     return;
   }
 
-  wmWindowManager *wm = bmain->wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
 
   LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
     Scene *scene = WM_window_get_active_scene(window);
@@ -199,7 +199,7 @@ static void sound_jack_sync_callback(Main *bmain, int mode, double time)
     }
     ViewLayer *view_layer = WM_window_get_active_view_layer(window);
     Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
-    if (depsgraph == NULL) {
+    if (depsgraph == nullptr) {
       continue;
     }
     BKE_sound_lock();
@@ -250,7 +250,7 @@ void WM_init(bContext *C, int argc, const char **argv)
   BLT_lang_init();
   /* Must call first before doing any `.blend` file reading,
    * since versioning code may create new IDs. See T57066. */
-  BLT_lang_set(NULL);
+  BLT_lang_set(nullptr);
 
   /* Init icons before reading .blend files for preview icons, which can
    * get triggered by the depsgraph. This is also done in background mode
@@ -287,25 +287,23 @@ void WM_init(bContext *C, int argc, const char **argv)
    * Creating a dummy window-manager early, or moving the key-maps into the preferences
    * would resolve this and may be worth looking into long-term, see: D12184 for details.
    */
-  struct wmFileReadPost_Params *params_file_read_post = NULL;
-  wm_homefile_read_ex(C,
-                      &(const struct wmHomeFileRead_Params){
-                          .use_data = true,
-                          .use_userdef = true,
-                          .use_factory_settings = G.factory_startup,
-                          .use_empty_data = false,
-                          .filepath_startup_override = NULL,
-                          .app_template_override = WM_init_state_app_template_get(),
-                      },
-                      NULL,
-                      &params_file_read_post);
+  struct wmFileReadPost_Params *params_file_read_post = nullptr;
+  wmHomeFileRead_Params read_homefile_params{};
+  read_homefile_params.use_data = true;
+  read_homefile_params.use_userdef = true;
+  read_homefile_params.use_factory_settings = G.factory_startup;
+  read_homefile_params.use_empty_data = false;
+  read_homefile_params.filepath_startup_override = nullptr;
+  read_homefile_params.app_template_override = WM_init_state_app_template_get();
+
+  wm_homefile_read_ex(C, &read_homefile_params, nullptr, &params_file_read_post);
 
   /* NOTE: leave `G_MAIN->filepath` set to an empty string since this
    * matches behavior after loading a new file. */
   BLI_assert(G_MAIN->filepath[0] == '\0');
 
   /* Call again to set from preferences. */
-  BLT_lang_set(NULL);
+  BLT_lang_set(nullptr);
 
   /* For file-system. Called here so can include user preference paths if needed. */
   ED_file_init();
@@ -367,8 +365,8 @@ void WM_init_splash(bContext *C)
     wmWindow *prevwin = CTX_wm_window(C);
 
     if (wm->windows.first) {
-      CTX_wm_window_set(C, wm->windows.first);
-      WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, NULL, NULL);
+      CTX_wm_window_set(C, static_cast<wmWindow *>(wm->windows.first));
+      WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
       CTX_wm_window_set(C, prevwin);
     }
   }
@@ -390,7 +388,8 @@ static void wait_for_console_key(void)
 {
   HANDLE hConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
 
-  if (!ELEM(hConsoleInput, NULL, INVALID_HANDLE_VALUE) && FlushConsoleInputBuffer(hConsoleInput)) {
+  if (!ELEM(hConsoleInput, nullptr, INVALID_HANDLE_VALUE) &&
+      FlushConsoleInputBuffer(hConsoleInput)) {
     for (;;) {
       INPUT_RECORD buffer;
       DWORD ignored;
@@ -424,25 +423,26 @@ void wm_exit_schedule_delayed(const bContext *C)
 
   /* Use modal UI handler for now.
    * Could add separate WM handlers or so, but probably not worth it. */
-  WM_event_add_ui_handler(C, &win->modalhandlers, wm_exit_handler, NULL, NULL, 0);
+  WM_event_add_ui_handler(
+      C, &win->modalhandlers, wm_exit_handler, nullptr, nullptr, eWM_EventHandlerFlag(0));
   WM_event_add_mousemove(win); /* ensure handler actually gets called */
 }
 
-void UV_clipboard_free(void);
+void UV_clipboard_free();
 
 void WM_exit_ex(bContext *C, const bool do_python)
 {
-  wmWindowManager *wm = C ? CTX_wm_manager(C) : NULL;
+  wmWindowManager *wm = C ? CTX_wm_manager(C) : nullptr;
 
   /* first wrap up running stuff, we assume only the active WM is running */
   /* modal handlers are on window level freed, others too? */
-  /* NOTE: same code copied in `wm_files.c`. */
+  /* NOTE: same code copied in `wm_files.cc`. */
   if (C && wm) {
     if (!G.background) {
       struct MemFile *undo_memfile = wm->undo_stack ?
                                          ED_undosys_stack_memfile_get_active(wm->undo_stack) :
-                                         NULL;
-      if (undo_memfile != NULL) {
+                                         nullptr;
+      if (undo_memfile != nullptr) {
         /* save the undo state as quit.blend */
         Main *bmain = CTX_data_main(C);
         char filepath[FILE_MAX];
@@ -453,9 +453,9 @@ void WM_exit_ex(bContext *C, const bool do_python)
 
         has_edited = ED_editors_flush_edits(bmain);
 
+        BlendFileWriteParams blend_file_write_params{};
         if ((has_edited &&
-             BLO_write_file(
-                 bmain, filepath, fileflags, &(const struct BlendFileWriteParams){0}, NULL)) ||
+             BLO_write_file(bmain, filepath, fileflags, &blend_file_write_params, nullptr)) ||
             BLO_memfile_write_file(undo_memfile, filepath)) {
           printf("Saved session recovery to '%s'\n", filepath);
         }
@@ -474,12 +474,12 @@ void WM_exit_ex(bContext *C, const bool do_python)
     if (!G.background) {
       if ((U.pref_flag & USER_PREF_FLAG_SAVE) && ((G.f & G_FLAG_USERPREF_NO_SAVE_ON_EXIT) == 0)) {
         if (U.runtime.is_dirty) {
-          BKE_blendfile_userdef_write_all(NULL);
+          BKE_blendfile_userdef_write_all(nullptr);
         }
       }
       /* Free the callback data used on file-open
        * (will be set when a recover operation has run). */
-      wm_test_autorun_revert_action_set(NULL, NULL);
+      wm_test_autorun_revert_action_set(nullptr, nullptr);
     }
   }
 
@@ -492,7 +492,8 @@ void WM_exit_ex(bContext *C, const bool do_python)
    * Don't run this code when built as a Python module as this runs when Python is in the
    * process of shutting down, where running a snippet like this will crash, see T82675.
    * Instead use the `atexit` module, installed by #BPY_python_start */
-  BPY_run_string_eval(C, (const char *[]){"addon_utils", NULL}, "addon_utils.disable_all()");
+  const char *imports[2] = {"addon_utils", nullptr};
+  BPY_run_string_eval(C, imports, "addon_utils.disable_all()");
 #endif
 
   BLI_timer_free();
@@ -584,7 +585,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
 
 #ifdef WITH_PYTHON
   /* option not to close python so we can use 'atexit' */
-  if (do_python && ((C == NULL) || CTX_py_init_get(C))) {
+  if (do_python && ((C == nullptr) || CTX_py_init_get(C))) {
     /* NOTE: (old note)
      * before BKE_blender_free so Python's garbage-collection happens while library still exists.
      * Needed at least for a rare crash that can happen in python-drivers.

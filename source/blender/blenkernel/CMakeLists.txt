@@ -78,9 +78,9 @@ set(SRC
   intern/autoexec.c
   intern/blender.c
   intern/blender_copybuffer.c
-  intern/blender_undo.c
+  intern/blender_undo.cc
   intern/blender_user_menu.c
-  intern/blendfile.c
+  intern/blendfile.cc
   intern/blendfile_link_append.c
   intern/boids.c
   intern/bpath.c
@@ -296,7 +296,7 @@ set(SRC
   intern/tracking_stabilize.c
   intern/tracking_util.c
   intern/type_conversions.cc
-  intern/undo_system.c
+  intern/undo_system.cc
   intern/unit.c
   intern/vfont.c
   intern/vfontdata_freetype.c

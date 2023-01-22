@@ -205,7 +205,7 @@ void ED_object_vgroup_calc_from_armature(struct ReportList *reports,
                                          int mode,
                                          bool mirror);
 
-/* editarmature_undo.c */
+/* editarmature_undo.cc */
 
 /** Export for ED_undo_sys. */
 void ED_armature_undosys_type(struct UndoType *ut);

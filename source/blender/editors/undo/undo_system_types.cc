@@ -19,7 +19,7 @@
 #include "ED_sculpt.h"
 #include "ED_text.h"
 #include "ED_undo.h"
-#include "undo_intern.h"
+#include "undo_intern.hh"
 
 /* Keep last */
 #include "BKE_undo_system.h"

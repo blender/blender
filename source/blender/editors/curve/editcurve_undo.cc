@@ -84,7 +84,7 @@ static void undocurve_to_editcurve(Main *bmain, UndoCurve *ucu, Curve *cu, short
   }
 
   /* Copy. */
-  for (nu = undobase->first; nu; nu = nu->next) {
+  for (nu = static_cast<Nurb *>(undobase->first); nu; nu = nu->next) {
     newnu = BKE_nurb_duplicate(nu);
 
     if (editnurb->keyindex) {
@@ -126,7 +126,7 @@ static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu, const short shap
   }
 
   /* Copy. */
-  for (nu = nubase->first; nu; nu = nu->next) {
+  for (nu = static_cast<Nurb *>(nubase->first); nu; nu = nu->next) {
     newnu = BKE_nurb_duplicate(nu);
 
     if (ucu->undoIndex) {
@@ -165,12 +165,12 @@ static Object *editcurve_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = obedit->data;
-    if (BKE_curve_editNurbs_get(cu) != NULL) {
+    Curve *cu = static_cast<Curve *>(obedit->data);
+    if (BKE_curve_editNurbs_get(cu) != nullptr) {
       return obedit;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 /** \} */
@@ -195,7 +195,7 @@ typedef struct CurveUndoStep {
 static bool curve_undosys_poll(bContext *C)
 {
   Object *obedit = editcurve_object_from_context(C);
-  return (obedit != NULL);
+  return (obedit != nullptr);
 }
 
 static bool curve_undosys_step_encode(struct bContext *C, struct Main *bmain, UndoStep *us_p)
@@ -209,16 +209,17 @@ static bool curve_undosys_step_encode(struct bContext *C, struct Main *bmain, Un
   uint objects_len = 0;
   Object **objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer, &objects_len);
 
-  us->elems = MEM_callocN(sizeof(*us->elems) * objects_len, __func__);
+  us->elems = static_cast<CurveUndoStep_Elem *>(
+      MEM_callocN(sizeof(*us->elems) * objects_len, __func__));
   us->elems_len = objects_len;
 
   for (uint i = 0; i < objects_len; i++) {
     Object *ob = objects[i];
-    Curve *cu = ob->data;
+    Curve *cu = static_cast<Curve *>(ob->data);
     CurveUndoStep_Elem *elem = &us->elems[i];
 
     elem->obedit_ref.ptr = ob;
-    undocurve_from_editcurve(&elem->data, ob->data, ob->shapenr);
+    undocurve_from_editcurve(&elem->data, static_cast<Curve *>(ob->data), ob->shapenr);
     cu->editnurb->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
   }
@@ -232,8 +233,8 @@ static bool curve_undosys_step_encode(struct bContext *C, struct Main *bmain, Un
 static void curve_undosys_step_decode(struct bContext *C,
                                       struct Main *bmain,
                                       UndoStep *us_p,
-                                      const eUndoStepDir UNUSED(dir),
-                                      bool UNUSED(is_final))
+                                      const eUndoStepDir /*dir*/,
+                                      bool /*is_final*/)
 {
   CurveUndoStep *us = (CurveUndoStep *)us_p;
 
@@ -245,8 +246,8 @@ static void curve_undosys_step_decode(struct bContext *C,
   for (uint i = 0; i < us->elems_len; i++) {
     CurveUndoStep_Elem *elem = &us->elems[i];
     Object *obedit = elem->obedit_ref.ptr;
-    Curve *cu = obedit->data;
-    if (cu->editnurb == NULL) {
+    Curve *cu = static_cast<Curve *>(obedit->data);
+    if (cu->editnurb == nullptr) {
       /* Should never fail, may not crash but can give odd behavior. */
       CLOG_ERROR(&LOG,
                  "name='%s', failed to enter edit-mode for object '%s', undo state invalid",
@@ -254,7 +255,8 @@ static void curve_undosys_step_decode(struct bContext *C,
                  obedit->id.name);
       continue;
     }
-    undocurve_to_editcurve(bmain, &elem->data, obedit->data, &obedit->shapenr);
+    undocurve_to_editcurve(
+        bmain, &elem->data, static_cast<Curve *>(obedit->data), &obedit->shapenr);
     cu->editnurb->needs_flush_to_id = 1;
     DEG_id_tag_update(&cu->id, ID_RECALC_GEOMETRY);
   }
@@ -268,7 +270,7 @@ static void curve_undosys_step_decode(struct bContext *C,
 
   bmain->is_memfile_undo_flush_needed = true;
 
-  WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, nullptr);
 }
 
 static void curve_undosys_step_free(UndoStep *us_p)

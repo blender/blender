@@ -60,7 +60,7 @@ static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
     arm->act_edbone = ebone->temp.ebone;
   }
   else {
-    arm->act_edbone = NULL;
+    arm->act_edbone = nullptr;
   }
 
   ED_armature_ebone_listbase_temp_clear(arm->edbo);
@@ -102,12 +102,12 @@ static Object *editarm_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_ARMATURE) {
-    bArmature *arm = obedit->data;
-    if (arm->edbo != NULL) {
+    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    if (arm->edbo != nullptr) {
       return obedit;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 /** \} */
@@ -132,7 +132,7 @@ typedef struct ArmatureUndoStep {
 
 static bool armature_undosys_poll(bContext *C)
 {
-  return editarm_object_from_context(C) != NULL;
+  return editarm_object_from_context(C) != nullptr;
 }
 
 static bool armature_undosys_step_encode(struct bContext *C, struct Main *bmain, UndoStep *us_p)
@@ -146,7 +146,8 @@ static bool armature_undosys_step_encode(struct bContext *C, struct Main *bmain,
   uint objects_len = 0;
   Object **objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer, &objects_len);
 
-  us->elems = MEM_callocN(sizeof(*us->elems) * objects_len, __func__);
+  us->elems = static_cast<ArmatureUndoStep_Elem *>(
+      MEM_callocN(sizeof(*us->elems) * objects_len, __func__));
   us->elems_len = objects_len;
 
   for (uint i = 0; i < objects_len; i++) {
@@ -154,7 +155,7 @@ static bool armature_undosys_step_encode(struct bContext *C, struct Main *bmain,
     ArmatureUndoStep_Elem *elem = &us->elems[i];
 
     elem->obedit_ref.ptr = ob;
-    bArmature *arm = elem->obedit_ref.ptr->data;
+    bArmature *arm = static_cast<bArmature *>(elem->obedit_ref.ptr->data);
     undoarm_from_editarm(&elem->data, arm);
     arm->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
@@ -169,8 +170,8 @@ static bool armature_undosys_step_encode(struct bContext *C, struct Main *bmain,
 static void armature_undosys_step_decode(struct bContext *C,
                                          struct Main *bmain,
                                          UndoStep *us_p,
-                                         const eUndoStepDir UNUSED(dir),
-                                         bool UNUSED(is_final))
+                                         const eUndoStepDir /*dir*/,
+                                         bool /*is_final*/)
 {
   ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
 
@@ -182,8 +183,8 @@ static void armature_undosys_step_decode(struct bContext *C,
   for (uint i = 0; i < us->elems_len; i++) {
     ArmatureUndoStep_Elem *elem = &us->elems[i];
     Object *obedit = elem->obedit_ref.ptr;
-    bArmature *arm = obedit->data;
-    if (arm->edbo == NULL) {
+    bArmature *arm = static_cast<bArmature *>(obedit->data);
+    if (arm->edbo == nullptr) {
       /* Should never fail, may not crash but can give odd behavior. */
       CLOG_ERROR(&LOG,
                  "name='%s', failed to enter edit-mode for object '%s', undo state invalid",
@@ -205,7 +206,7 @@ static void armature_undosys_step_decode(struct bContext *C,
 
   bmain->is_memfile_undo_flush_needed = true;
 
-  WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, nullptr);
 }
 
 static void armature_undosys_step_free(UndoStep *us_p)

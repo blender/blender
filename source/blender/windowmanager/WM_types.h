@@ -1270,7 +1270,7 @@ typedef struct RecentFile {
 
 /* Logging */
 struct CLG_LogRef;
-/* wm_init_exit.c */
+/* wm_init_exit.cc */
 
 extern struct CLG_LogRef *WM_LOG_OPERATORS;
 extern struct CLG_LogRef *WM_LOG_HANDLERS;

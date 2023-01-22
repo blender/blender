@@ -67,7 +67,7 @@ bool ED_undo_is_state_valid(bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
 
   /* Currently only checks matching begin/end calls. */
-  if (wm->undo_stack == NULL) {
+  if (wm->undo_stack == nullptr) {
     /* No undo stack is valid, nothing to do. */
     return true;
   }
@@ -75,7 +75,7 @@ bool ED_undo_is_state_valid(bContext *C)
     /* If this fails #ED_undo_grouped_begin, #ED_undo_grouped_end calls don't match. */
     return false;
   }
-  if (wm->undo_stack->step_active != NULL) {
+  if (wm->undo_stack->step_active != nullptr) {
     if (wm->undo_stack->step_active->skip == true) {
       /* Skip is only allowed between begin/end calls,
        * a state that should never happen in main event loop. */
@@ -113,7 +113,7 @@ void ED_undo_push(bContext *C, const char *str)
    *
    * For this reason we need to handle the undo step even when undo steps is set to zero.
    */
-  if ((steps <= 0) && wm->undo_stack->step_init != NULL) {
+  if ((steps <= 0) && wm->undo_stack->step_init != nullptr) {
     steps = 1;
   }
   if (steps <= 0) {
@@ -121,9 +121,9 @@ void ED_undo_push(bContext *C, const char *str)
   }
   if (G.background) {
     /* Python developers may have explicitly created the undo stack in background mode,
-     * otherwise allow it to be NULL, see: T60934.
-     * Otherwise it must never be NULL, even when undo is disabled. */
-    if (wm->undo_stack == NULL) {
+     * otherwise allow it to be nullptr, see: T60934.
+     * Otherwise it must never be nullptr, even when undo is disabled. */
+    if (wm->undo_stack == nullptr) {
       return;
     }
   }
@@ -131,7 +131,7 @@ void ED_undo_push(bContext *C, const char *str)
   eUndoPushReturn push_retval;
 
   /* Only apply limit if this is the last undo step. */
-  if (wm->undo_stack->step_active && (wm->undo_stack->step_active->next == NULL)) {
+  if (wm->undo_stack->step_active && (wm->undo_stack->step_active->next == nullptr)) {
     BKE_undosys_stack_limit_steps_and_memory(wm->undo_stack, steps - 1, 0);
   }
 
@@ -147,7 +147,7 @@ void ED_undo_push(bContext *C, const char *str)
   }
 
   if (push_retval & UNDO_PUSH_RET_OVERRIDE_CHANGED) {
-    WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
+    WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, nullptr);
   }
 }
 
@@ -170,7 +170,7 @@ static void ed_undo_step_pre(bContext *C,
   WM_jobs_kill_all(wm);
 
   if (G.debug & G_DEBUG_IO) {
-    if (bmain->lock != NULL) {
+    if (bmain->lock != nullptr) {
       BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *BEFORE* undo step");
       BLO_main_validate_libraries(bmain, reports);
     }
@@ -179,7 +179,7 @@ static void ed_undo_step_pre(bContext *C,
   if (area && (area->spacetype == SPACE_VIEW3D)) {
     Object *obact = CTX_data_active_object(C);
     if (obact && (obact->type == OB_GPENCIL)) {
-      ED_gpencil_toggle_brush_cursor(C, false, NULL);
+      ED_gpencil_toggle_brush_cursor(C, false, nullptr);
     }
   }
 
@@ -210,15 +210,15 @@ static void ed_undo_step_post(bContext *C,
   ScrArea *area = CTX_wm_area(C);
 
   /* Set special modes for grease pencil */
-  if (area != NULL && (area->spacetype == SPACE_VIEW3D)) {
+  if (area != nullptr && (area->spacetype == SPACE_VIEW3D)) {
     Object *obact = CTX_data_active_object(C);
     if (obact && (obact->type == OB_GPENCIL)) {
       /* set cursor */
       if ((obact->mode & OB_MODE_ALL_PAINT_GPENCIL)) {
-        ED_gpencil_toggle_brush_cursor(C, true, NULL);
+        ED_gpencil_toggle_brush_cursor(C, true, nullptr);
       }
       else {
-        ED_gpencil_toggle_brush_cursor(C, false, NULL);
+        ED_gpencil_toggle_brush_cursor(C, false, nullptr);
       }
       /* set workspace mode */
       Base *basact = CTX_data_active_base(C);
@@ -235,14 +235,14 @@ static void ed_undo_step_post(bContext *C,
   }
 
   if (G.debug & G_DEBUG_IO) {
-    if (bmain->lock != NULL) {
+    if (bmain->lock != nullptr) {
       BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *AFTER* undo step");
       BLO_main_validate_libraries(bmain, reports);
     }
   }
 
-  WM_event_add_notifier(C, NC_WINDOW, NULL);
-  WM_event_add_notifier(C, NC_WM | ND_UNDO, NULL);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+  WM_event_add_notifier(C, NC_WM | ND_UNDO, nullptr);
 
   WM_toolsystem_refresh_active(C);
   WM_toolsystem_refresh_screen_all(bmain);
@@ -298,7 +298,7 @@ static int ed_undo_step_direction(bContext *C, enum eUndoStepDir step, ReportLis
  */
 static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *reports)
 {
-  BLI_assert(undo_name != NULL);
+  BLI_assert(undo_name != nullptr);
 
   /* FIXME: See comments in `ed_undo_step_direction`. */
   if (ED_gpencil_session_active()) {
@@ -307,20 +307,21 @@ static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *
 
   wmWindowManager *wm = CTX_wm_manager(C);
   UndoStep *undo_step_from_name = BKE_undosys_step_find_by_name(wm->undo_stack, undo_name);
-  if (undo_step_from_name == NULL) {
+  if (undo_step_from_name == nullptr) {
     CLOG_ERROR(&LOG, "Step name='%s' not found in current undo stack", undo_name);
 
     return OPERATOR_CANCELLED;
   }
 
   UndoStep *undo_step_target = undo_step_from_name->prev;
-  if (undo_step_target == NULL) {
+  if (undo_step_target == nullptr) {
     CLOG_ERROR(&LOG, "Step name='%s' cannot be undone", undo_name);
 
     return OPERATOR_CANCELLED;
   }
 
-  const int undo_dir_i = BKE_undosys_step_calc_direction(wm->undo_stack, undo_step_target, NULL);
+  const int undo_dir_i = BKE_undosys_step_calc_direction(
+      wm->undo_stack, undo_step_target, nullptr);
   BLI_assert(ELEM(undo_dir_i, -1, 1));
   const enum eUndoStepDir undo_dir = (undo_dir_i == -1) ? STEP_UNDO : STEP_REDO;
 
@@ -332,7 +333,7 @@ static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *
 
   ed_undo_step_pre(C, wm, undo_dir, reports);
 
-  BKE_undosys_step_load_data_ex(wm->undo_stack, C, undo_step_target, NULL, true);
+  BKE_undosys_step_load_data_ex(wm->undo_stack, C, undo_step_target, nullptr, true);
 
   ed_undo_step_post(C, wm, undo_dir, reports);
 
@@ -390,11 +391,11 @@ void ED_undo_grouped_push(bContext *C, const char *str)
 
 void ED_undo_pop(bContext *C)
 {
-  ed_undo_step_direction(C, STEP_UNDO, NULL);
+  ed_undo_step_direction(C, STEP_UNDO, nullptr);
 }
 void ED_undo_redo(bContext *C)
 {
-  ed_undo_step_direction(C, STEP_REDO, NULL);
+  ed_undo_step_direction(C, STEP_REDO, nullptr);
 }
 
 void ED_undo_push_op(bContext *C, wmOperator *op)
@@ -431,10 +432,10 @@ bool ED_undo_is_memfile_compatible(const bContext *C)
    * (this matches 2.7x behavior). */
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  if (view_layer != NULL) {
+  if (view_layer != nullptr) {
     BKE_view_layer_synced_ensure(scene, view_layer);
     Object *obact = BKE_view_layer_active_object_get(view_layer);
-    if (obact != NULL) {
+    if (obact != nullptr) {
       if (obact->mode & OB_MODE_EDIT) {
         return false;
       }
@@ -447,10 +448,10 @@ bool ED_undo_is_legacy_compatible_for_property(struct bContext *C, ID *id)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  if (view_layer != NULL) {
+  if (view_layer != nullptr) {
     BKE_view_layer_synced_ensure(scene, view_layer);
     Object *obact = BKE_view_layer_active_object_get(view_layer);
-    if (obact != NULL) {
+    if (obact != nullptr) {
       if (obact->mode & OB_MODE_ALL_PAINT) {
         /* Don't store property changes when painting
          * (only do undo pushes on brush strokes which each paint operator handles on its own). */
@@ -458,7 +459,7 @@ bool ED_undo_is_legacy_compatible_for_property(struct bContext *C, ID *id)
         return false;
       }
       if (obact->mode & OB_MODE_EDIT) {
-        if ((id == NULL) || (obact->data == NULL) ||
+        if ((id == nullptr) || (obact->data == nullptr) ||
             (GS(id->name) != GS(((ID *)obact->data)->name))) {
           /* No undo push on id type mismatch in edit-mode. */
           CLOG_INFO(&LOG, 1, "skipping undo for edit-mode");
@@ -472,7 +473,7 @@ bool ED_undo_is_legacy_compatible_for_property(struct bContext *C, ID *id)
 
 UndoStack *ED_undo_stack_get(void)
 {
-  wmWindowManager *wm = G_MAIN->wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
   return wm->undo_stack;
 }
 
@@ -514,7 +515,7 @@ static int ed_undo_push_exec(bContext *C, wmOperator *op)
      * NOTE: since the undo stack isn't initialized on startup, background mode behavior
      * won't match regular usage, this is just for scripts to do explicit undo pushes. */
     wmWindowManager *wm = CTX_wm_manager(C);
-    if (wm->undo_stack == NULL) {
+    if (wm->undo_stack == nullptr) {
       wm->undo_stack = BKE_undosys_stack_create();
     }
   }
@@ -533,7 +534,7 @@ static int ed_redo_exec(bContext *C, wmOperator *op)
   return ret;
 }
 
-static int ed_undo_redo_exec(bContext *C, wmOperator *UNUSED(op))
+static int ed_undo_redo_exec(bContext *C, wmOperator * /*op*/)
 {
   wmOperator *last_op = WM_operator_last_redo(C);
   int ret = ED_undo_operator_repeat(C, last_op);
@@ -550,7 +551,7 @@ static int ed_undo_redo_exec(bContext *C, wmOperator *UNUSED(op))
 static bool ed_undo_is_init_poll(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  if (wm->undo_stack == NULL) {
+  if (wm->undo_stack == nullptr) {
     /* This message is intended for Python developers,
      * it will be part of the exception when attempting to call undo in background mode. */
     CTX_wm_operator_poll_msg_set(
@@ -583,7 +584,7 @@ static bool ed_undo_poll(bContext *C)
     return false;
   }
   UndoStack *undo_stack = CTX_wm_manager(C)->undo_stack;
-  return (undo_stack->step_active != NULL) && (undo_stack->step_active->prev != NULL);
+  return (undo_stack->step_active != nullptr) && (undo_stack->step_active->prev != nullptr);
 }
 
 void ED_OT_undo(wmOperatorType *ot)
@@ -626,7 +627,7 @@ static bool ed_redo_poll(bContext *C)
     return false;
   }
   UndoStack *undo_stack = CTX_wm_manager(C)->undo_stack;
-  return (undo_stack->step_active != NULL) && (undo_stack->step_active->next != NULL);
+  return (undo_stack->step_active != nullptr) && (undo_stack->step_active->next != nullptr);
 }
 
 void ED_OT_redo(wmOperatorType *ot)
@@ -724,18 +725,18 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
     CTX_wm_region_set(C, region_orig);
   }
   else {
-    CLOG_WARN(&LOG, "called with NULL 'op'");
+    CLOG_WARN(&LOG, "called with nullptr 'op'");
   }
 
   return ret;
 }
 
-void ED_undo_operator_repeat_cb(bContext *C, void *arg_op, void *UNUSED(arg_unused))
+void ED_undo_operator_repeat_cb(bContext *C, void *arg_op, void * /*arg_unused*/)
 {
   ED_undo_operator_repeat(C, (wmOperator *)arg_op);
 }
 
-void ED_undo_operator_repeat_cb_evt(bContext *C, void *arg_op, int UNUSED(arg_unused))
+void ED_undo_operator_repeat_cb_evt(bContext *C, void *arg_op, int /*arg_unused*/)
 {
   ED_undo_operator_repeat(C, (wmOperator *)arg_op);
 }
@@ -758,14 +759,14 @@ static int undo_history_exec(bContext *C, wmOperator *op)
     if (ret & OPERATOR_FINISHED) {
       ed_undo_refresh_for_op(C);
 
-      WM_event_add_notifier(C, NC_WINDOW, NULL);
+      WM_event_add_notifier(C, NC_WINDOW, nullptr);
       return OPERATOR_FINISHED;
     }
   }
   return OPERATOR_CANCELLED;
 }
 
-static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "item");
   if (RNA_property_is_set(op->ptr, prop)) {
@@ -804,7 +805,7 @@ void ED_undo_object_set_active_or_warn(
   Object *ob_prev = BKE_view_layer_active_object_get(view_layer);
   if (ob_prev != ob) {
     Base *base = BKE_view_layer_base_find(view_layer, ob);
-    if (base != NULL) {
+    if (base != nullptr) {
       view_layer->basact = base;
       ED_object_base_active_refresh(G_MAIN, scene, view_layer);
     }
@@ -831,13 +832,14 @@ void ED_undo_object_editmode_restore_helper(struct bContext *C,
     ((ID *)bases[i]->object->data)->tag |= LIB_TAG_DOIT;
   }
   Object **ob_p = object_array;
-  for (uint i = 0; i < object_array_len; i++, ob_p = POINTER_OFFSET(ob_p, object_array_stride)) {
+  for (uint i = 0; i < object_array_len;
+       i++, ob_p = static_cast<Object **>(POINTER_OFFSET(ob_p, object_array_stride))) {
     Object *obedit = *ob_p;
     ED_object_editmode_enter_ex(bmain, scene, obedit, EM_NO_CONTEXT);
     ((ID *)obedit->data)->tag &= ~LIB_TAG_DOIT;
   }
   for (uint i = 0; i < bases_len; i++) {
-    ID *id = bases[i]->object->data;
+    ID *id = static_cast<ID *>(bases[i]->object->data);
     if (id->tag & LIB_TAG_DOIT) {
       ED_object_editmode_exit_ex(bmain, scene, bases[i]->object, EM_FREEDATA);
       /* Ideally we would know the selection state it was before entering edit-mode,
@@ -870,7 +872,7 @@ static int undo_editmode_objects_from_view_layer_prepare(const Scene *scene,
   LISTBASE_FOREACH (Base *, base, object_bases) {
     Object *ob = base->object;
     if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {
-      ID *id = ob->data;
+      ID *id = static_cast<ID *>(ob->data);
       id->tag &= ~LIB_TAG_DOIT;
     }
   }
@@ -879,7 +881,7 @@ static int undo_editmode_objects_from_view_layer_prepare(const Scene *scene,
   LISTBASE_FOREACH (Base *, base, object_bases) {
     Object *ob = base->object;
     if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {
-      ID *id = ob->data;
+      ID *id = static_cast<ID *>(ob->data);
       if ((id->tag & LIB_TAG_DOIT) == 0) {
         len += 1;
         id->tag |= LIB_TAG_DOIT;
@@ -895,21 +897,23 @@ Object **ED_undo_editmode_objects_from_view_layer(const Scene *scene,
 {
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *baseact = BKE_view_layer_active_base_get(view_layer);
-  if ((baseact == NULL) || (baseact->object->mode & OB_MODE_EDIT) == 0) {
-    return MEM_mallocN(0, __func__);
+  if ((baseact == nullptr) || (baseact->object->mode & OB_MODE_EDIT) == 0) {
+    return static_cast<Object **>(MEM_mallocN(0, __func__));
   }
   const int len = undo_editmode_objects_from_view_layer_prepare(
       scene, view_layer, baseact->object);
   const short object_type = baseact->object->type;
   int i = 0;
-  Object **objects = MEM_malloc_arrayN(len, sizeof(*objects), __func__);
+  Object **objects = static_cast<Object **>(MEM_malloc_arrayN(len, sizeof(*objects), __func__));
   /* Base iteration, starting with the active-base to ensure it's the first item in the array.
    * Looping over the active-base twice is OK as the tag check prevents it being handled twice. */
-  for (Base *base = baseact, *base_next = BKE_view_layer_object_bases_get(view_layer)->first; base;
-       base = base_next, base_next = base_next ? base_next->next : NULL) {
+  for (Base *base = baseact,
+            *base_next = static_cast<Base *>(BKE_view_layer_object_bases_get(view_layer)->first);
+       base;
+       base = base_next, base_next = base_next ? base_next->next : nullptr) {
     Object *ob = base->object;
     if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {
-      ID *id = ob->data;
+      ID *id = static_cast<ID *>(ob->data);
       if (id->tag & LIB_TAG_DOIT) {
         objects[i++] = ob;
         id->tag &= ~LIB_TAG_DOIT;
@@ -928,23 +932,23 @@ Base **ED_undo_editmode_bases_from_view_layer(const Scene *scene,
 {
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *baseact = BKE_view_layer_active_base_get(view_layer);
-  if ((baseact == NULL) || (baseact->object->mode & OB_MODE_EDIT) == 0) {
-    return MEM_mallocN(0, __func__);
+  if ((baseact == nullptr) || (baseact->object->mode & OB_MODE_EDIT) == 0) {
+    return static_cast<Base **>(MEM_mallocN(0, __func__));
   }
   const int len = undo_editmode_objects_from_view_layer_prepare(
       scene, view_layer, baseact->object);
   const short object_type = baseact->object->type;
   int i = 0;
-  Base **base_array = MEM_malloc_arrayN(len, sizeof(*base_array), __func__);
+  Base **base_array = static_cast<Base **>(MEM_malloc_arrayN(len, sizeof(*base_array), __func__));
   /* Base iteration, starting with the active-base to ensure it's the first item in the array.
    * Looping over the active-base twice is OK as the tag check prevents it being handled twice. */
   for (Base *base = BKE_view_layer_active_base_get(view_layer),
-            *base_next = BKE_view_layer_object_bases_get(view_layer)->first;
+            *base_next = static_cast<Base *>(BKE_view_layer_object_bases_get(view_layer)->first);
        base;
-       base = base_next, base_next = base_next ? base_next->next : NULL) {
+       base = base_next, base_next = base_next ? base_next->next : nullptr) {
     Object *ob = base->object;
     if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {
-      ID *id = ob->data;
+      ID *id = static_cast<ID *>(ob->data);
       if (id->tag & LIB_TAG_DOIT) {
         base_array[i++] = base;
         id->tag &= ~LIB_TAG_DOIT;

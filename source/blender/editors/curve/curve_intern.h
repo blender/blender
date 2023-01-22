@@ -15,6 +15,10 @@ struct Object;
 struct ViewContext;
 struct wmOperatorType;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* editfont.c */
 
 enum {
@@ -129,7 +133,7 @@ void CURVE_OT_cyclic_toggle(struct wmOperatorType *ot);
 
 void CURVE_OT_match_texture_space(struct wmOperatorType *ot);
 
-/* exported for editcurve_undo.c */
+/* exported for editcurve_undo.cc */
 
 struct GHash *ED_curve_keyindex_hash_duplicate(struct GHash *keyindex);
 void ED_curve_keyindex_update_nurb(struct EditNurb *editnurb, struct Nurb *nu, struct Nurb *newnu);
@@ -227,3 +231,7 @@ void CURVE_OT_draw(struct wmOperatorType *ot);
 
 void CURVE_OT_pen(struct wmOperatorType *ot);
 struct wmKeyMap *curve_pen_modal_keymap(struct wmKeyConfig *keyconf);
+
+#ifdef __cplusplus
+}
+#endif

@@ -17,6 +17,10 @@ struct TextLine;
 struct bContext;
 struct wmOperatorType;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* text_draw.c */
 
 void draw_text_main(struct SpaceText *st, struct ARegion *region);
@@ -176,3 +180,7 @@ void TEXT_OT_autocomplete(struct wmOperatorType *ot);
 /* space_text.c */
 
 extern const char *text_context_dir[]; /* doc access */
+
+#ifdef __cplusplus
+}
+#endif
