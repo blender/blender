@@ -221,7 +221,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
   DerivedMesh *dm;
   MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
   Mesh *me = (Mesh *)ob->data;
-  MultiresModifierData tmp_mmd = *mmd;
+  MultiresModifierData tmp_mmd = blender::dna::shallow_copy(*mmd);
 
   *lvl = mmd->lvl;
 
@@ -246,7 +246,7 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 {
   Mesh *me = (Mesh *)ob->data;
   MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
-  MultiresModifierData tmp_mmd = *mmd;
+  MultiresModifierData tmp_mmd = blender::dna::shallow_copy(*mmd);
   DerivedMesh *cddm = CDDM_from_mesh(me);
   DerivedMesh *dm;
 

@@ -238,7 +238,6 @@ static void compute_point_counts_per_child(const bke::CurvesGeometry &guide_curv
 {
   const OffsetIndices guide_points_by_curve = guide_curves.points_by_curve();
   threading::parallel_for(r_points_per_child.index_range(), 512, [&](const IndexRange range) {
-    int points_sum = 0;
     for (const int child_curve_i : range) {
       const int neighbor_count = all_neighbor_counts[child_curve_i];
       if (neighbor_count == 0) {
@@ -250,7 +249,6 @@ static void compute_point_counts_per_child(const bke::CurvesGeometry &guide_curv
       const int points_per_curve_in_group = points_per_curve_by_group.lookup_default(group, -1);
       if (points_per_curve_in_group != -1) {
         r_points_per_child[child_curve_i] = points_per_curve_in_group;
-        points_sum += points_per_curve_in_group;
         r_use_direct_interpolation[child_curve_i] = true;
         continue;
       }
@@ -268,7 +266,6 @@ static void compute_point_counts_per_child(const bke::CurvesGeometry &guide_curv
       const int points_in_child = std::max<int>(1, roundf(neighbor_points_weighted_sum));
       r_points_per_child[child_curve_i] = points_in_child;
       r_use_direct_interpolation[child_curve_i] = false;
-      points_sum += r_points_per_child[child_curve_i];
     }
   });
 }

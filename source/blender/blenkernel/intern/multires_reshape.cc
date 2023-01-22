@@ -84,7 +84,7 @@ bool multiresModifier_reshapeFromDeformModifier(Depsgraph *depsgraph,
                                                 MultiresModifierData *mmd,
                                                 ModifierData *deform_md)
 {
-  MultiresModifierData highest_mmd = *mmd;
+  MultiresModifierData highest_mmd = blender::dna::shallow_copy(*mmd);
   highest_mmd.sculptlvl = highest_mmd.totlvl;
   highest_mmd.lvl = highest_mmd.totlvl;
   highest_mmd.renderlvl = highest_mmd.totlvl;
