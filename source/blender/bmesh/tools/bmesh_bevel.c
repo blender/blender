@@ -1506,7 +1506,7 @@ static void offset_meet(BevelParams *bp,
  * Update: changed again from 0.0001f to fix bug T95335.
  * Original two bugs remained fixed.
  */
-#define BEVEL_GOOD_ANGLE 0.001f
+#define BEVEL_GOOD_ANGLE 0.1f
 
 /**
  * Calculate the meeting point between e1 and e2 (one of which should have zero offsets),
