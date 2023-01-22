@@ -2304,7 +2304,7 @@ static int wm_userpref_read_exec(bContext *C, wmOperator *op)
   const bool use_factory_settings_app_template_only =
       (use_factory_settings && RNA_boolean_get(op->ptr, "use_factory_startup_app_template_only"));
 
-  UserDef U_backup = U;
+  UserDef U_backup = blender::dna::shallow_copy(U);
 
   wmHomeFileRead_Params read_homefile_params{};
   read_homefile_params.use_data = use_data;
@@ -2407,7 +2407,7 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
   bool use_userdef = false;
   char filepath_buf[FILE_MAX];
   const char *filepath = nullptr;
-  UserDef U_backup = U;
+  UserDef U_backup = blender::dna::shallow_copy(U);
 
   if (!use_factory_settings) {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");

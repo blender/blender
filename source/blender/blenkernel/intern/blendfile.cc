@@ -641,7 +641,7 @@ UserDef *BKE_blendfile_userdef_read_from_memory(const void *filebuf,
 UserDef *BKE_blendfile_userdef_from_defaults(void)
 {
   UserDef *userdef = MEM_cnew<UserDef>(__func__);
-  memcpy(userdef, &U_default, sizeof(*userdef));
+  *userdef = blender::dna::shallow_copy(U_default);
 
   /* Add-ons. */
   {

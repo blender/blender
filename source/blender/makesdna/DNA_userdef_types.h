@@ -659,6 +659,8 @@ typedef struct UserDef_Experimental {
   (((userdef)->flag & USER_DEVELOPER_UI) && ((userdef)->experimental).member)
 
 typedef struct UserDef {
+  DNA_DEFINE_CXX_METHODS(UserDef)
+
   /** UserDef has separate do-version handling, and can be read from other files. */
   int versionfile, subversionfile;
 
