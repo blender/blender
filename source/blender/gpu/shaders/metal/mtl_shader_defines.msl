@@ -210,44 +210,12 @@ template<typename S, typename T, access A>
 inline vec<S, 4> _texelFetch_internal(thread _mtl_combined_image_sampler_1d<S, A> tex,
                                       T texel,
                                       uint lod,
-                                      T offset = 0)
+                                      T offset)
 {
   float w = tex.texture->get_width();
   if ((texel + offset) >= 0 && (texel + offset) < w) {
     /* LODs not supported for 1d textures. This must be zero. */
     return tex.texture->read(uint(texel + offset), 0);
-  }
-  else {
-    return vec<S, 4>(0);
-  }
-}
-
-template<typename S, typename T, access A>
-inline vec<S, 4> _texelFetch_internal(thread _mtl_combined_image_sampler_1d<S, A> tex,
-                                      vec<T, 1> texel,
-                                      uint lod,
-                                      vec<T, 1> offset = 0)
-{
-  float w = tex.texture->get_width();
-  if ((texel + offset) >= 0 && (texel + offset) < w) {
-    /* LODs not supported for 1d textures. This must be zero. */
-    return tex.texture->read(uint(texel + offset), 0);
-  }
-  else {
-    return vec<S, 4>(0);
-  }
-}
-
-template<typename S, typename T, int n, access A>
-inline vec<S, 4> _texelFetch_internal(thread _mtl_combined_image_sampler_1d<S, A> tex,
-                                      vec<T, n> texel,
-                                      uint lod,
-                                      vec<T, n> offset = vec<T, n>(0))
-{
-  float w = tex.texture->get_width();
-  if ((texel.x + offset.x) >= 0 && (texel.x + offset.x) < w) {
-    /* LODs not supported for 1d textures. This must be zero. */
-    return tex.texture->read(uint(texel.x + offset.x), 0);
   }
   else {
     return vec<S, 4>(0);
@@ -1236,8 +1204,7 @@ mat3 MAT3x3(
 {
   return mat3(vec3(a1, a2, a3), vec3(b1, b2, b3), vec3(c1, c2, c3));
 }
-mat3 MAT3x3(
-    vec3 a, float b1, float b2, float b3, float c1, float c2, float c3)
+mat3 MAT3x3(vec3 a, float b1, float b2, float b3, float c1, float c2, float c3)
 {
   return mat3(a, vec3(b1, b2, b3), vec3(c1, c2, c3));
 }
