@@ -2919,6 +2919,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
               }
 
               if (extend_lines) {
+                stroke_array_free(tgpf);
                 gpencil_delete_temp_stroke_extension(tgpf, true);
               }
 
