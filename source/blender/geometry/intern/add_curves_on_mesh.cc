@@ -286,7 +286,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Compute new curve offsets. */
   MutableSpan<int> curve_offsets = curves.offsets_for_write();
-  MutableSpan<int> new_point_counts_per_curve = curve_offsets.take_back(added_curves_num);
+  MutableSpan<int> new_point_counts_per_curve = curve_offsets.drop_front(old_curves_num);
   if (inputs.interpolate_point_count) {
     interpolate_from_neighbors<int>(
         neighbors_per_curve,
@@ -297,9 +297,8 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   else {
     new_point_counts_per_curve.fill(inputs.fallback_point_count);
   }
-  for (const int i : new_curves_range) {
-    curve_offsets[i + 1] += curve_offsets[i];
-  }
+  offset_indices::accumulate_counts_to_offsets(curve_offsets.drop_front(old_curves_num),
+                                               old_points_num);
 
   const int new_points_num = curves.offsets().last();
   curves.resize(new_points_num, new_curves_num);

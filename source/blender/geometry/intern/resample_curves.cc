@@ -192,29 +192,36 @@ static void copy_or_defaults_for_unselected_curves(const CurvesGeometry &src_cur
                                                    const AttributesForInterpolation &attributes,
                                                    CurvesGeometry &dst_curves)
 {
-  bke::curves::copy_point_data(src_curves,
-                               dst_curves,
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
+  bke::curves::copy_point_data(src_points_by_curve,
+                               dst_points_by_curve,
                                unselected_ranges,
                                src_curves.positions(),
                                dst_curves.positions_for_write());
 
   for (const int i : attributes.src.index_range()) {
-    bke::curves::copy_point_data(
-        src_curves, dst_curves, unselected_ranges, attributes.src[i], attributes.dst[i]);
+    bke::curves::copy_point_data(src_points_by_curve,
+                                 dst_points_by_curve,
+                                 unselected_ranges,
+                                 attributes.src[i],
+                                 attributes.dst[i]);
   }
   for (const int i : attributes.src_no_interpolation.index_range()) {
-    bke::curves::copy_point_data(src_curves,
-                                 dst_curves,
+    bke::curves::copy_point_data(src_points_by_curve,
+                                 dst_points_by_curve,
                                  unselected_ranges,
                                  attributes.src_no_interpolation[i],
                                  attributes.dst_no_interpolation[i]);
   }
 
   if (!attributes.dst_tangents.is_empty()) {
-    bke::curves::fill_points(dst_curves, unselected_ranges, float3(0), attributes.dst_tangents);
+    bke::curves::fill_points(
+        dst_points_by_curve, unselected_ranges, float3(0), attributes.dst_tangents);
   }
   if (!attributes.dst_normals.is_empty()) {
-    bke::curves::fill_points(dst_curves, unselected_ranges, float3(0), attributes.dst_normals);
+    bke::curves::fill_points(
+        dst_points_by_curve, unselected_ranges, float3(0), attributes.dst_normals);
   }
 }
 
@@ -239,6 +246,12 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
                                           const fn::Field<int> &count_field,
                                           const ResampleCurvesOutputAttributeIDs &output_ids)
 {
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+  const OffsetIndices evaluated_points_by_curve = src_curves.evaluated_points_by_curve();
+  const VArray<bool> curves_cyclic = src_curves.cyclic();
+  const VArray<int8_t> curve_types = src_curves.curve_types();
+  const Span<float3> evaluated_positions = src_curves.evaluated_positions();
+
   CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
@@ -252,17 +265,12 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
       src_curves.curves_range(), nullptr);
 
   /* Fill the counts for the curves that aren't selected and accumulate the counts into offsets. */
-  bke::curves::copy_curve_sizes(src_curves, unselected_ranges, dst_offsets);
+  bke::curves::copy_curve_sizes(src_points_by_curve, unselected_ranges, dst_offsets);
   offset_indices::accumulate_counts_to_offsets(dst_offsets);
   dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
 
   /* All resampled curves are poly curves. */
   dst_curves.fill_curve_types(selection, CURVE_TYPE_POLY);
-
-  const OffsetIndices evaluated_points_by_curve = src_curves.evaluated_points_by_curve();
-  const VArray<bool> curves_cyclic = src_curves.cyclic();
-  const VArray<int8_t> curve_types = src_curves.curve_types();
-  const Span<float3> evaluated_positions = src_curves.evaluated_positions();
 
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
 
@@ -280,7 +288,6 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
   Array<float> sample_factors(dst_curves.points_num());
 
   const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
-  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
 
   /* Use a "for each group of curves: for each attribute: for each curve" pattern to work on
    * smaller sections of data that ideally fit into CPU cache better than simply one attribute at a
@@ -403,6 +410,10 @@ CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
                                      const fn::Field<bool> &selection_field,
                                      const ResampleCurvesOutputAttributeIDs &output_ids)
 {
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+  const OffsetIndices src_evaluated_points_by_curve = src_curves.evaluated_points_by_curve();
+  const Span<float3> evaluated_positions = src_curves.evaluated_positions();
+
   const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
   evaluator.set_selection(selection_field);
@@ -410,25 +421,17 @@ CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
   const Vector<IndexRange> unselected_ranges = selection.extract_ranges_invert(
       src_curves.curves_range(), nullptr);
-  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
-  const OffsetIndices src_evaluated_points_by_curve = src_curves.evaluated_points_by_curve();
 
   CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
   dst_curves.fill_curve_types(selection, CURVE_TYPE_POLY);
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
-  threading::parallel_for(selection.index_range(), 4096, [&](IndexRange range) {
-    for (const int i : selection.slice(range)) {
-      dst_offsets[i] = src_evaluated_points_by_curve.size(i);
-    }
-  });
-  bke::curves::copy_curve_sizes(src_curves, unselected_ranges, dst_offsets);
+  bke::curves::copy_curve_sizes(src_evaluated_points_by_curve, selection, dst_offsets);
+  bke::curves::copy_curve_sizes(src_points_by_curve, unselected_ranges, dst_offsets);
   offset_indices::accumulate_counts_to_offsets(dst_offsets);
   const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
 
   dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
 
-  /* Create the correct number of uniform-length samples for every selected curve. */
-  const Span<float3> evaluated_positions = src_curves.evaluated_positions();
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
 
   AttributesForInterpolation attributes;

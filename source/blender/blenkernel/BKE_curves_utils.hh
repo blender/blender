@@ -471,54 +471,58 @@ class IndexRangeCyclic {
  * ranges, assuming that all curves have the same number of control points in #src_curves
  * and #dst_curves.
  */
-void copy_point_data(const CurvesGeometry &src_curves,
-                     const CurvesGeometry &dst_curves,
+void copy_point_data(OffsetIndices<int> src_points_by_curve,
+                     OffsetIndices<int> dst_points_by_curve,
                      Span<IndexRange> curve_ranges,
                      GSpan src,
                      GMutableSpan dst);
 
-void copy_point_data(const CurvesGeometry &src_curves,
-                     const CurvesGeometry &dst_curves,
+void copy_point_data(OffsetIndices<int> src_points_by_curve,
+                     OffsetIndices<int> dst_points_by_curve,
                      IndexMask src_curve_selection,
                      GSpan src,
                      GMutableSpan dst);
 
 template<typename T>
-void copy_point_data(const CurvesGeometry &src_curves,
-                     const CurvesGeometry &dst_curves,
+void copy_point_data(OffsetIndices<int> src_points_by_curve,
+                     OffsetIndices<int> dst_points_by_curve,
                      IndexMask src_curve_selection,
                      Span<T> src,
                      MutableSpan<T> dst)
 {
-  copy_point_data(src_curves, dst_curves, src_curve_selection, GSpan(src), GMutableSpan(dst));
+  copy_point_data(src_points_by_curve,
+                  dst_points_by_curve,
+                  src_curve_selection,
+                  GSpan(src),
+                  GMutableSpan(dst));
 }
 
-void fill_points(const CurvesGeometry &curves,
+void fill_points(OffsetIndices<int> points_by_curve,
                  IndexMask curve_selection,
                  GPointer value,
                  GMutableSpan dst);
 
 template<typename T>
-void fill_points(const CurvesGeometry &curves,
+void fill_points(const OffsetIndices<int> points_by_curve,
                  IndexMask curve_selection,
                  const T &value,
                  MutableSpan<T> dst)
 {
-  fill_points(curves, curve_selection, &value, dst);
+  fill_points(points_by_curve, curve_selection, &value, dst);
 }
 
-void fill_points(const CurvesGeometry &curves,
+void fill_points(const OffsetIndices<int> points_by_curve,
                  Span<IndexRange> curve_ranges,
                  GPointer value,
                  GMutableSpan dst);
 
 template<typename T>
-void fill_points(const CurvesGeometry &curves,
+void fill_points(const OffsetIndices<int> points_by_curve,
                  Span<IndexRange> curve_ranges,
                  const T &value,
                  MutableSpan<T> dst)
 {
-  fill_points(curves, curve_ranges, &value, dst);
+  fill_points(points_by_curve, curve_ranges, &value, dst);
 }
 
 /**
@@ -533,9 +537,15 @@ void fill_points(const CurvesGeometry &curves,
 bke::CurvesGeometry copy_only_curve_domain(const bke::CurvesGeometry &src_curves);
 
 /**
- * Copy the number of points in every curve in #curve_ranges to the corresponding index in #sizes.
+ * Copy the number of points in every curve in the mask to the corresponding index in #sizes.
  */
-void copy_curve_sizes(const bke::CurvesGeometry &curves,
+void copy_curve_sizes(OffsetIndices<int> points_by_curve, IndexMask mask, MutableSpan<int> sizes);
+
+/**
+ * Copy the number of points in every curve in #curve_ranges to the corresponding index in
+ * #sizes.
+ */
+void copy_curve_sizes(OffsetIndices<int> points_by_curve,
                       Span<IndexRange> curve_ranges,
                       MutableSpan<int> sizes);
 

@@ -212,7 +212,8 @@ static void fill_nurbs_data(bke::CurvesGeometry &dst_curves, const IndexMask sel
   if (!dst_curves.has_curve_with_type(CURVE_TYPE_NURBS)) {
     return;
   }
-  bke::curves::fill_points(dst_curves, selection, 0.0f, dst_curves.nurbs_weights_for_write());
+  bke::curves::fill_points(
+      dst_curves.points_by_curve(), selection, 0.0f, dst_curves.nurbs_weights_for_write());
 }
 
 template<typename T>
@@ -950,21 +951,21 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
                                 const GeometryNodeCurveSampleMode mode,
                                 const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+  const Vector<IndexRange> unselected_ranges = selection.extract_ranges_invert(
+      src_curves.curves_range());
+
   BLI_assert(selection.size() > 0);
   BLI_assert(selection.last() <= src_curves.curves_num());
   BLI_assert(starts.size() == src_curves.curves_num());
   BLI_assert(starts.size() == ends.size());
   src_curves.ensure_evaluated_lengths();
 
-  const Vector<IndexRange> inverse_selection = selection.extract_ranges_invert(
-      src_curves.curves_range());
-
   bke::CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
   MutableSpan<int> dst_curve_offsets = dst_curves.offsets_for_write();
   Array<bke::curves::CurvePoint, 16> start_points(src_curves.curves_num());
   Array<bke::curves::CurvePoint, 16> end_points(src_curves.curves_num());
   Array<bke::curves::IndexRangeCyclic, 16> src_ranges(src_curves.curves_num());
-
   compute_curve_trim_parameters(src_curves,
                                 selection,
                                 starts,
@@ -974,10 +975,9 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
                                 start_points,
                                 end_points,
                                 src_ranges);
-  bke::curves::copy_curve_sizes(src_curves, inverse_selection, dst_curve_offsets);
-
-  /* Finalize and update the geometry container. */
+  bke::curves::copy_curve_sizes(src_points_by_curve, unselected_ranges, dst_curve_offsets);
   offset_indices::accumulate_counts_to_offsets(dst_curve_offsets);
+  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
   dst_curves.resize(dst_curves.offsets().last(), dst_curves.curves_num());
 
   /* Populate curve domain. */
@@ -1058,7 +1058,7 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
   }
 
   /* Copy unselected */
-  if (inverse_selection.is_empty()) {
+  if (unselected_ranges.is_empty()) {
     /* Since all curves were trimmed, none of them are cyclic and the attribute can be removed. */
     dst_curves.attributes_for_write().remove("cyclic");
   }
@@ -1081,8 +1081,11 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
                                                                  ATTR_DOMAIN_MASK_POINT,
                                                                  propagation_info,
                                                                  copy_point_skip)) {
-      bke::curves::copy_point_data(
-          src_curves, dst_curves, inverse_selection, attribute.src, attribute.dst.span);
+      bke::curves::copy_point_data(src_points_by_curve,
+                                   dst_points_by_curve,
+                                   unselected_ranges,
+                                   attribute.src,
+                                   attribute.dst.span);
       attribute.dst.finish();
     }
   }

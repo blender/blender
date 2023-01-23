@@ -20,8 +20,8 @@ static void calculate_result_offsets(const bke::CurvesGeometry &src_curves,
                                      MutableSpan<int> dst_point_offsets)
 {
   /* Fill the array with each curve's point count, then accumulate them to the offsets. */
-  bke::curves::copy_curve_sizes(src_curves, unselected_ranges, dst_curve_offsets);
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+  bke::curves::copy_curve_sizes(src_points_by_curve, unselected_ranges, dst_curve_offsets);
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
     for (const int curve_i : selection.slice(range)) {
       const IndexRange src_points = src_points_by_curve[curve_i];
@@ -64,15 +64,13 @@ static inline void linear_interpolation(const T &a, const T &b, MutableSpan<T> d
 }
 
 template<typename T>
-static void subdivide_attribute_linear(const bke::CurvesGeometry &src_curves,
-                                       const bke::CurvesGeometry &dst_curves,
+static void subdivide_attribute_linear(const OffsetIndices<int> src_points_by_curve,
+                                       const OffsetIndices<int> dst_points_by_curve,
                                        const IndexMask selection,
                                        const Span<int> all_point_offsets,
                                        const Span<T> src,
                                        MutableSpan<T> dst)
 {
-  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
-  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
   threading::parallel_for(selection.index_range(), 512, [&](IndexRange selection_range) {
     for (const int curve_i : selection.slice(selection_range)) {
       const IndexRange src_points = src_points_by_curve[curve_i];
@@ -96,8 +94,8 @@ static void subdivide_attribute_linear(const bke::CurvesGeometry &src_curves,
   });
 }
 
-static void subdivide_attribute_linear(const bke::CurvesGeometry &src_curves,
-                                       const bke::CurvesGeometry &dst_curves,
+static void subdivide_attribute_linear(const OffsetIndices<int> src_points_by_curve,
+                                       const OffsetIndices<int> dst_points_by_curve,
                                        const IndexMask selection,
                                        const Span<int> all_point_offsets,
                                        const GSpan src,
@@ -105,22 +103,24 @@ static void subdivide_attribute_linear(const bke::CurvesGeometry &src_curves,
 {
   attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    subdivide_attribute_linear(
-        src_curves, dst_curves, selection, all_point_offsets, src.typed<T>(), dst.typed<T>());
+    subdivide_attribute_linear(src_points_by_curve,
+                               dst_points_by_curve,
+                               selection,
+                               all_point_offsets,
+                               src.typed<T>(),
+                               dst.typed<T>());
   });
 }
 
 template<typename T>
-static void subdivide_attribute_catmull_rom(const bke::CurvesGeometry &src_curves,
-                                            const bke::CurvesGeometry &dst_curves,
+static void subdivide_attribute_catmull_rom(const OffsetIndices<int> src_points_by_curve,
+                                            const OffsetIndices<int> dst_points_by_curve,
                                             const IndexMask selection,
                                             const Span<int> all_point_offsets,
                                             const Span<bool> cyclic,
                                             const Span<T> src,
                                             MutableSpan<T> dst)
 {
-  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
-  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
   threading::parallel_for(selection.index_range(), 512, [&](IndexRange selection_range) {
     for (const int curve_i : selection.slice(selection_range)) {
       const IndexRange src_points = src_points_by_curve[curve_i];
@@ -135,8 +135,8 @@ static void subdivide_attribute_catmull_rom(const bke::CurvesGeometry &src_curve
   });
 }
 
-static void subdivide_attribute_catmull_rom(const bke::CurvesGeometry &src_curves,
-                                            const bke::CurvesGeometry &dst_curves,
+static void subdivide_attribute_catmull_rom(const OffsetIndices<int> src_points_by_curve,
+                                            const OffsetIndices<int> dst_points_by_curve,
                                             const IndexMask selection,
                                             const Span<int> all_point_offsets,
                                             const Span<bool> cyclic,
@@ -145,8 +145,8 @@ static void subdivide_attribute_catmull_rom(const bke::CurvesGeometry &src_curve
 {
   attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    subdivide_attribute_catmull_rom(src_curves,
-                                    dst_curves,
+    subdivide_attribute_catmull_rom(src_points_by_curve,
+                                    dst_points_by_curve,
                                     selection,
                                     all_point_offsets,
                                     cyclic,
@@ -300,11 +300,11 @@ bke::CurvesGeometry subdivide_curves(
     const VArray<int> &cuts,
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
-  const Vector<IndexRange> unselected_ranges = selection.extract_ranges_invert(
-      src_curves.curves_range());
-
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   /* Cyclic is accessed a lot, it's probably worth it to make sure it's a span. */
   const VArraySpan<bool> cyclic{src_curves.cyclic()};
+  const Vector<IndexRange> unselected_ranges = selection.extract_ranges_invert(
+      src_curves.curves_range());
 
   bke::CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
 
@@ -331,6 +331,8 @@ bke::CurvesGeometry subdivide_curves(
                            cyclic,
                            dst_curves.offsets_for_write(),
                            all_point_offset_data);
+  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
+
   const Span<int> all_point_offsets(all_point_offset_data);
 
   dst_curves.resize(dst_curves.offsets().last(), dst_curves.curves_num());
@@ -341,8 +343,8 @@ bke::CurvesGeometry subdivide_curves(
   auto subdivide_catmull_rom = [&](IndexMask selection) {
     for (auto &attribute : bke::retrieve_attributes_for_transfer(
              src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, propagation_info)) {
-      subdivide_attribute_catmull_rom(src_curves,
-                                      dst_curves,
+      subdivide_attribute_catmull_rom(src_points_by_curve,
+                                      dst_points_by_curve,
                                       selection,
                                       all_point_offsets,
                                       cyclic,
@@ -355,8 +357,12 @@ bke::CurvesGeometry subdivide_curves(
   auto subdivide_poly = [&](IndexMask selection) {
     for (auto &attribute : bke::retrieve_attributes_for_transfer(
              src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, propagation_info)) {
-      subdivide_attribute_linear(
-          src_curves, dst_curves, selection, all_point_offsets, attribute.src, attribute.dst.span);
+      subdivide_attribute_linear(src_points_by_curve,
+                                 dst_points_by_curve,
+                                 selection,
+                                 all_point_offsets,
+                                 attribute.src,
+                                 attribute.dst.span);
       attribute.dst.finish();
     }
   };
@@ -367,7 +373,6 @@ bke::CurvesGeometry subdivide_curves(
     const VArraySpan<int8_t> src_types_r{src_curves.handle_types_right()};
     const Span<float3> src_handles_l = src_curves.handle_positions_left();
     const Span<float3> src_handles_r = src_curves.handle_positions_right();
-    const OffsetIndices<int> src_points_by_curve = src_curves.points_by_curve();
 
     MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
     MutableSpan<int8_t> dst_types_l = dst_curves.handle_types_left_for_write();
@@ -406,8 +411,12 @@ bke::CurvesGeometry subdivide_curves(
                                                                   "handle_type_right",
                                                                   "handle_right",
                                                                   "handle_left"})) {
-      subdivide_attribute_linear(
-          src_curves, dst_curves, selection, all_point_offsets, attribute.src, attribute.dst.span);
+      subdivide_attribute_linear(src_points_by_curve,
+                                 dst_points_by_curve,
+                                 selection,
+                                 all_point_offsets,
+                                 attribute.src,
+                                 attribute.dst.span);
       attribute.dst.finish();
     }
   };
@@ -427,8 +436,11 @@ bke::CurvesGeometry subdivide_curves(
   if (!unselected_ranges.is_empty()) {
     for (auto &attribute : bke::retrieve_attributes_for_transfer(
              src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, propagation_info)) {
-      bke::curves::copy_point_data(
-          src_curves, dst_curves, unselected_ranges, attribute.src, attribute.dst.span);
+      bke::curves::copy_point_data(src_points_by_curve,
+                                   dst_points_by_curve,
+                                   unselected_ranges,
+                                   attribute.src,
+                                   attribute.dst.span);
       attribute.dst.finish();
     }
   }

@@ -10,11 +10,21 @@
 
 namespace blender::bke::curves {
 
-void copy_curve_sizes(const bke::CurvesGeometry &curves,
+void copy_curve_sizes(const OffsetIndices<int> points_by_curve,
+                      const IndexMask mask,
+                      MutableSpan<int> sizes)
+{
+  threading::parallel_for(mask.index_range(), 4096, [&](IndexRange ranges_range) {
+    for (const int64_t i : mask.slice(ranges_range)) {
+      sizes[i] = points_by_curve.size(i);
+    }
+  });
+}
+
+void copy_curve_sizes(const OffsetIndices<int> points_by_curve,
                       const Span<IndexRange> curve_ranges,
                       MutableSpan<int> sizes)
 {
-  const OffsetIndices points_by_curve = curves.points_by_curve();
   threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange ranges_range) {
     for (const IndexRange curves_range : curve_ranges.slice(ranges_range)) {
       threading::parallel_for(curves_range, 4096, [&](IndexRange range) {
@@ -26,14 +36,12 @@ void copy_curve_sizes(const bke::CurvesGeometry &curves,
   });
 }
 
-void copy_point_data(const CurvesGeometry &src_curves,
-                     const CurvesGeometry &dst_curves,
+void copy_point_data(const OffsetIndices<int> src_points_by_curve,
+                     const OffsetIndices<int> dst_points_by_curve,
                      const Span<IndexRange> curve_ranges,
                      const GSpan src,
                      GMutableSpan dst)
 {
-  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
-  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
   threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange range) {
     for (const IndexRange range : curve_ranges.slice(range)) {
       const IndexRange src_points = src_points_by_curve[range];
@@ -44,14 +52,12 @@ void copy_point_data(const CurvesGeometry &src_curves,
   });
 }
 
-void copy_point_data(const CurvesGeometry &src_curves,
-                     const CurvesGeometry &dst_curves,
+void copy_point_data(const OffsetIndices<int> src_points_by_curve,
+                     const OffsetIndices<int> dst_points_by_curve,
                      const IndexMask src_curve_selection,
                      const GSpan src,
                      GMutableSpan dst)
 {
-  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
-  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
   threading::parallel_for(src_curve_selection.index_range(), 512, [&](IndexRange range) {
     for (const int i : src_curve_selection.slice(range)) {
       const IndexRange src_points = src_points_by_curve[i];
@@ -62,14 +68,13 @@ void copy_point_data(const CurvesGeometry &src_curves,
   });
 }
 
-void fill_points(const CurvesGeometry &curves,
+void fill_points(const OffsetIndices<int> points_by_curve,
                  const IndexMask curve_selection,
                  const GPointer value,
                  GMutableSpan dst)
 {
   BLI_assert(*value.type() == dst.type());
   const CPPType &type = dst.type();
-  const OffsetIndices points_by_curve = curves.points_by_curve();
   threading::parallel_for(curve_selection.index_range(), 512, [&](IndexRange range) {
     for (const int i : curve_selection.slice(range)) {
       const IndexRange points = points_by_curve[i];
@@ -78,14 +83,13 @@ void fill_points(const CurvesGeometry &curves,
   });
 }
 
-void fill_points(const CurvesGeometry &curves,
+void fill_points(const OffsetIndices<int> points_by_curve,
                  Span<IndexRange> curve_ranges,
                  GPointer value,
                  GMutableSpan dst)
 {
   BLI_assert(*value.type() == dst.type());
   const CPPType &type = dst.type();
-  const OffsetIndices points_by_curve = curves.points_by_curve();
   threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange range) {
     for (const IndexRange range : curve_ranges.slice(range)) {
       const IndexRange points = points_by_curve[range];
