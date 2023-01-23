@@ -1873,16 +1873,18 @@ static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const Modif
   BLO_write_struct(writer, NodesModifierData, nmd);
 
   if (nmd->settings.properties != nullptr) {
-    /* Boolean properties are added automatically for boolean node group inputs. Integer properties
-     * are automatically converted to boolean sockets where applicable as well. However, boolean
-     * properties will crash old versions of Blender, so convert them to integer properties for
-     * writing. The actual value is stored in the same variable for both types */
     Map<IDProperty *, IDPropertyUIDataBool *> boolean_props;
-    LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
-      if (prop->type == IDP_BOOLEAN) {
-        boolean_props.add_new(prop, reinterpret_cast<IDPropertyUIDataBool *>(prop->ui_data));
-        prop->type = IDP_INT;
-        prop->ui_data = nullptr;
+    if (!BLO_write_is_undo(writer)) {
+      /* Boolean properties are added automatically for boolean node group inputs. Integer
+       * properties are automatically converted to boolean sockets where applicable as well.
+       * However, boolean properties will crash old versions of Blender, so convert them to integer
+       * properties for writing. The actual value is stored in the same variable for both types */
+      LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
+        if (prop->type == IDP_BOOLEAN) {
+          boolean_props.add_new(prop, reinterpret_cast<IDPropertyUIDataBool *>(prop->ui_data));
+          prop->type = IDP_INT;
+          prop->ui_data = nullptr;
+        }
       }
     }
 
@@ -1890,12 +1892,14 @@ static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const Modif
      * and don't necessarily need to be written, but we can't just free them. */
     IDP_BlendWrite(writer, nmd->settings.properties);
 
-    LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
-      if (prop->type == IDP_INT) {
-        if (IDPropertyUIDataBool **ui_data = boolean_props.lookup_ptr(prop)) {
-          prop->type = IDP_BOOLEAN;
-          if (ui_data) {
-            prop->ui_data = reinterpret_cast<IDPropertyUIData *>(*ui_data);
+    if (!BLO_write_is_undo(writer)) {
+      LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
+        if (prop->type == IDP_INT) {
+          if (IDPropertyUIDataBool **ui_data = boolean_props.lookup_ptr(prop)) {
+            prop->type = IDP_BOOLEAN;
+            if (ui_data) {
+              prop->ui_data = reinterpret_cast<IDPropertyUIData *>(*ui_data);
+            }
           }
         }
       }
