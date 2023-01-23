@@ -424,7 +424,7 @@ static void subdiv_foreach_edge_vertices_regular_do(SubdivForeachTaskContext *ct
 {
   const int resolution = ctx->settings->resolution;
   const int resolution_1 = resolution - 1;
-  const float inv_resolution_1 = 1.0f / (float)resolution_1;
+  const float inv_resolution_1 = 1.0f / float(resolution_1);
   const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
   const int coarse_poly_index = coarse_poly - ctx->coarse_polys;
   const int ptex_face_index = ctx->face_ptex_offset[coarse_poly_index];
@@ -487,7 +487,7 @@ static void subdiv_foreach_edge_vertices_special_do(SubdivForeachTaskContext *ct
   const int resolution = ctx->settings->resolution;
   const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
   const int num_vertices_per_ptex_edge = ((resolution >> 1) + 1);
-  const float inv_ptex_resolution_1 = 1.0f / (float)(num_vertices_per_ptex_edge - 1);
+  const float inv_ptex_resolution_1 = 1.0f / float(num_vertices_per_ptex_edge - 1);
   const int coarse_poly_index = coarse_poly - ctx->coarse_polys;
   const int ptex_face_start_index = ctx->face_ptex_offset[coarse_poly_index];
   int ptex_face_index = ptex_face_start_index;
@@ -598,7 +598,7 @@ static void subdiv_foreach_inner_vertices_regular(SubdivForeachTaskContext *ctx,
                                                   const MPoly *coarse_poly)
 {
   const int resolution = ctx->settings->resolution;
-  const float inv_resolution_1 = 1.0f / (float)(resolution - 1);
+  const float inv_resolution_1 = 1.0f / float(resolution - 1);
   const int coarse_poly_index = coarse_poly - ctx->coarse_polys;
   const int ptex_face_index = ctx->face_ptex_offset[coarse_poly_index];
   const int start_vertex_index = ctx->subdiv_vertex_offset[coarse_poly_index];
@@ -625,7 +625,7 @@ static void subdiv_foreach_inner_vertices_special(SubdivForeachTaskContext *ctx,
 {
   const int resolution = ctx->settings->resolution;
   const int ptex_face_resolution = ptex_face_resolution_get(coarse_poly, resolution);
-  const float inv_ptex_face_resolution_1 = 1.0f / (float)(ptex_face_resolution - 1);
+  const float inv_ptex_face_resolution_1 = 1.0f / float(ptex_face_resolution - 1);
   const int coarse_poly_index = coarse_poly - ctx->coarse_polys;
   int ptex_face_index = ctx->face_ptex_offset[coarse_poly_index];
   const int start_vertex_index = ctx->subdiv_vertex_offset[coarse_poly_index];
@@ -1096,7 +1096,7 @@ static void subdiv_foreach_loops_regular(SubdivForeachTaskContext *ctx,
   const int ptex_inner_resolution = ptex_resolution - 2;
   const int num_subdiv_edges_per_coarse_edge = resolution - 1;
   const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
-  const float inv_ptex_resolution_1 = 1.0f / (float)(ptex_resolution - 1);
+  const float inv_ptex_resolution_1 = 1.0f / float(ptex_resolution - 1);
   const int ptex_face_index = ctx->face_ptex_offset[coarse_poly_index];
   const int start_vertex_index = ctx->vertices_inner_offset +
                                  ctx->subdiv_vertex_offset[coarse_poly_index];
@@ -1285,7 +1285,7 @@ static void subdiv_foreach_loops_special(SubdivForeachTaskContext *ctx,
   const int coarse_poly_index = coarse_poly - ctx->coarse_polys;
   const int ptex_face_resolution = ptex_face_resolution_get(coarse_poly, resolution);
   const int ptex_face_inner_resolution = ptex_face_resolution - 2;
-  const float inv_ptex_resolution_1 = 1.0f / (float)(ptex_face_resolution - 1);
+  const float inv_ptex_resolution_1 = 1.0f / float(ptex_face_resolution - 1);
   const int num_inner_vertices_per_ptex = (ptex_face_resolution - 1) * (ptex_face_resolution - 2);
   const int num_inner_edges_per_ptex_face = num_inner_edges_per_ptex_face_get(
       ptex_face_inner_resolution + 1);
@@ -1685,7 +1685,7 @@ static void subdiv_foreach_vertices_of_loose_edges_task(void *__restrict userdat
   }
   const int resolution = ctx->settings->resolution;
   const int resolution_1 = resolution - 1;
-  const float inv_resolution_1 = 1.0f / (float)resolution_1;
+  const float inv_resolution_1 = 1.0f / float(resolution_1);
   const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
   const MEdge *coarse_edge = &ctx->coarse_edges[coarse_edge_index];
   /* Subdivision vertices which corresponds to edge's v1 and v2. */

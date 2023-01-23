@@ -482,7 +482,7 @@ static void wm_init_userdef(Main *bmain)
     SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_FLAG_SCRIPT_AUTOEXEC);
   }
 
-  MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
+  MEM_CacheLimiter_set_maximum((size_t(U.memcachelimit)) * 1024 * 1024);
   BKE_sound_init(bmain);
 
   /* Update the temporary directory from the preferences or fallback to the system default. */
@@ -1603,10 +1603,10 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_t
     int ex, ey;
     if (ibuf->x > ibuf->y) {
       ex = BLEN_THUMB_SIZE;
-      ey = max_ii(1, (int)(((float)ibuf->y / (float)ibuf->x) * BLEN_THUMB_SIZE));
+      ey = max_ii(1, int((float(ibuf->y) / float(ibuf->x)) * BLEN_THUMB_SIZE));
     }
     else {
-      ex = max_ii(1, (int)(((float)ibuf->x / (float)ibuf->y) * BLEN_THUMB_SIZE));
+      ex = max_ii(1, int((float(ibuf->x) / float(ibuf->y)) * BLEN_THUMB_SIZE));
       ey = BLEN_THUMB_SIZE;
     }
 
@@ -2775,14 +2775,14 @@ static char *wm_open_mainfile_description(struct bContext * /*C*/,
   char time_st[FILELIST_DIRENTRY_TIME_LEN];
   bool is_today, is_yesterday;
   BLI_filelist_entry_datetime_to_string(
-      nullptr, (int64_t)stats.st_mtime, false, time_st, date_st, &is_today, &is_yesterday);
+      nullptr, int64_t(stats.st_mtime), false, time_st, date_st, &is_today, &is_yesterday);
   if (is_today || is_yesterday) {
     BLI_strncpy(date_st, is_today ? TIP_("Today") : TIP_("Yesterday"), sizeof(date_st));
   }
 
   /* Size. */
   char size_str[FILELIST_DIRENTRY_SIZE_LEN];
-  BLI_filelist_entry_size_to_string(nullptr, (uint64_t)stats.st_size, false, size_str);
+  BLI_filelist_entry_size_to_string(nullptr, uint64_t(stats.st_size), false, size_str);
 
   return BLI_sprintfN(
       "%s\n\n%s: %s %s\n%s: %s", path, TIP_("Modified"), date_st, time_st, TIP_("Size"), size_str);

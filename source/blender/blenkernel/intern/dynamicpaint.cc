@@ -768,12 +768,12 @@ static void surfaceGenerateGrid(DynamicPaintSurface *surface)
     volume = td[0] * td[1] * td[2];
 
     /* determine final grid size by trying to fit average 10.000 points per grid cell */
-    dim_factor = (float)pow((double)volume / ((double)sData->total_points / 10000.0),
-                            1.0 / (double)axis);
+    dim_factor = (float)pow(double(volume) / (double(sData->total_points) / 10000.0),
+                            1.0 / double(axis));
 
     /* define final grid size using dim_factor, use min 3 for active axes */
     for (i = 0; i < 3; i++) {
-      grid->dim[i] = (int)floor(td[i] / dim_factor);
+      grid->dim[i] = int(floor(td[i] / dim_factor));
       CLAMP(grid->dim[i], (dim[i] >= min_dim) ? 3 : 1, 100);
     }
     grid_cells = grid->dim[0] * grid->dim[1] * grid->dim[2];
@@ -2101,7 +2101,7 @@ static void dynamicPaint_frameUpdate(
 
     /* loop through surfaces */
     for (; surface; surface = surface->next) {
-      int current_frame = (int)scene->r.cfra;
+      int current_frame = int(scene->r.cfra);
       bool no_surface_data;
 
       /* free bake data if not required anymore */
@@ -2123,7 +2123,7 @@ static void dynamicPaint_frameUpdate(
       CLAMP(current_frame, surface->start_frame, surface->end_frame);
 
       if (no_surface_data || current_frame != surface->current_frame ||
-          (int)scene->r.cfra == surface->start_frame) {
+          int(scene->r.cfra) == surface->start_frame) {
         PointCache *cache = surface->pointcache;
         PTCacheID pid;
         surface->current_frame = current_frame;
@@ -2132,21 +2132,21 @@ static void dynamicPaint_frameUpdate(
         BKE_ptcache_id_from_dynamicpaint(&pid, ob, surface);
         pid.cache->startframe = surface->start_frame;
         pid.cache->endframe = surface->end_frame;
-        BKE_ptcache_id_time(&pid, scene, (float)scene->r.cfra, nullptr, nullptr, nullptr);
+        BKE_ptcache_id_time(&pid, scene, float(scene->r.cfra), nullptr, nullptr, nullptr);
 
         /* reset non-baked cache at first frame */
-        if ((int)scene->r.cfra == surface->start_frame && !(cache->flag & PTCACHE_BAKED)) {
+        if (int(scene->r.cfra) == surface->start_frame && !(cache->flag & PTCACHE_BAKED)) {
           cache->flag |= PTCACHE_REDO_NEEDED;
           BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
           cache->flag &= ~PTCACHE_REDO_NEEDED;
         }
 
         /* try to read from cache */
-        bool can_simulate = ((int)scene->r.cfra == current_frame) &&
+        bool can_simulate = (int(scene->r.cfra) == current_frame) &&
                             !(cache->flag & PTCACHE_BAKED);
 
-        if (BKE_ptcache_read(&pid, (float)scene->r.cfra, can_simulate)) {
-          BKE_ptcache_validate(cache, (int)scene->r.cfra);
+        if (BKE_ptcache_read(&pid, float(scene->r.cfra), can_simulate)) {
+          BKE_ptcache_validate(cache, int(scene->r.cfra));
         }
         /* if read failed and we're on surface range do recalculate */
         else if (can_simulate) {
@@ -2238,24 +2238,24 @@ static void dynamic_paint_create_uv_surface_direct_cb(void *__restrict userdata,
     tPoint->pixel_index = index;
 
     /* Actual pixel center, used when collision is found */
-    point[0][0] = ((float)tx + 0.5f) / w;
-    point[0][1] = ((float)ty + 0.5f) / h;
+    point[0][0] = (float(tx) + 0.5f) / w;
+    point[0][1] = (float(ty) + 0.5f) / h;
 
     /*
      * A pixel middle sample isn't enough to find very narrow polygons
      * So using 4 samples of each corner too
      */
-    point[1][0] = ((float)tx) / w;
-    point[1][1] = ((float)ty) / h;
+    point[1][0] = (float(tx)) / w;
+    point[1][1] = (float(ty)) / h;
 
-    point[2][0] = ((float)tx + 1) / w;
-    point[2][1] = ((float)ty) / h;
+    point[2][0] = (float(tx) + 1) / w;
+    point[2][1] = (float(ty)) / h;
 
-    point[3][0] = ((float)tx) / w;
-    point[3][1] = ((float)ty + 1) / h;
+    point[3][0] = (float(tx)) / w;
+    point[3][1] = (float(ty) + 1) / h;
 
-    point[4][0] = ((float)tx + 1) / w;
-    point[4][1] = ((float)ty + 1) / h;
+    point[4][0] = (float(tx) + 1) / w;
+    point[4][1] = (float(ty) + 1) / h;
 
     /* Loop through samples, starting from middle point */
     for (int sample = 0; sample < 5; sample++) {
@@ -2337,8 +2337,8 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *__restrict userdat
       const int v_min = (ty > 0) ? -1 : 0;
       const int v_max = (ty < (h - 1)) ? 1 : 0;
 
-      point[0] = ((float)tx + 0.5f) / w;
-      point[1] = ((float)ty + 0.5f) / h;
+      point[0] = (float(tx) + 0.5f) / w;
+      point[1] = (float(ty) + 0.5f) / h;
 
       /* search through defined area for neighbor, checking grid directions first */
       for (int ni = 0; ni < 8; ni++) {
@@ -2505,8 +2505,8 @@ static int dynamic_paint_find_neighbor_pixel(const DynamicPaintCreateUVSurfaceDa
 
     float pixel[2];
 
-    pixel[0] = ((float)(px + neighX[n_index]) + 0.5f) / (float)w;
-    pixel[1] = ((float)(py + neighY[n_index]) + 0.5f) / (float)h;
+    pixel[0] = (float(px + neighX[n_index]) + 0.5f) / float(w);
+    pixel[1] = (float(py + neighY[n_index]) + 0.5f) / float(h);
 
     /* Do a small recursive search for the best island edge. */
     dynamic_paint_find_island_border(data, &bdata, cPoint->tri_index, pixel, -1, 5);
@@ -2646,7 +2646,7 @@ static void dynamic_paint_find_island_border(const DynamicPaintCreateUVSurfaceDa
 
     int w = bdata->w, h = bdata->h, px = bdata->px, py = bdata->py;
 
-    const int final_pixel[2] = {(int)floorf(tgt_pixel[0] * w), (int)floorf(tgt_pixel[1] * h)};
+    const int final_pixel[2] = {int(floorf(tgt_pixel[0] * w)), int(floorf(tgt_pixel[1] * h))};
 
     /* If current pixel uv is outside of texture */
     if (final_pixel[0] < 0 || final_pixel[0] >= w || final_pixel[1] < 0 || final_pixel[1] >= h) {
@@ -3124,7 +3124,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
       sData->total_points = 0;
     }
     else {
-      sData->total_points = (int)active_points;
+      sData->total_points = int(active_points);
       sData->format_data = f_data;
 
       for (int index = 0, cursor = 0; index < (w * h); index++) {
@@ -3960,7 +3960,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(void *__restrict userdata,
   const int index = grid->t_index[grid->s_pos[c_index] + id];
   const int samples = bData->s_num[index];
   int ss;
-  float total_sample = (float)samples;
+  float total_sample = float(samples);
   float brushStrength = 0.0f; /* brush influence factor */
   float depth = 0.0f;         /* brush intersection depth */
   float velocity_val = 0.0f;
@@ -4322,7 +4322,7 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
     }
 
     if (brush->flags & MOD_DPAINT_PROX_PROJECT && brush->collision != MOD_DPAINT_COL_VOLUME) {
-      mul_v3_fl(avg_brushNor, 1.0f / (float)numOfVerts);
+      mul_v3_fl(avg_brushNor, 1.0f / float(numOfVerts));
       /* instead of null vector use positive z */
       if (UNLIKELY(normalize_v3(avg_brushNor) == 0.0f)) {
         avg_brushNor[2] = 1.0f;
@@ -4878,7 +4878,7 @@ static void dynamicPaint_prepareAdjacencyData(DynamicPaintSurface *surface, cons
     int numOfNeighs = adj_data->n_num[index];
 
     for (int i = 0; i < numOfNeighs; i++) {
-      bData->average_dist += (double)bNeighs[adj_data->n_index[index] + i].dist;
+      bData->average_dist += double(bNeighs[adj_data->n_index[index] + i].dist);
     }
   }
   bData->average_dist /= adj_data->total_targets;
@@ -4959,11 +4959,11 @@ static void surface_determineForceTargetPoints(const PaintSurfaceData *sData,
     /* and multiply depending on how deeply force intersects surface */
     temp = fabsf(force_intersect);
     CLAMP(temp, 0.0f, 1.0f);
-    mul_v2_fl(closest_d, acosf(temp) / (float)M_PI_2);
+    mul_v2_fl(closest_d, acosf(temp) / float(M_PI_2));
   }
   else {
     /* if only single neighbor, still linearize force intersection effect */
-    closest_d[0] = 1.0f - acosf(closest_d[0]) / (float)M_PI_2;
+    closest_d[0] = 1.0f - acosf(closest_d[0]) / float(M_PI_2);
   }
 }
 
@@ -4986,9 +4986,9 @@ static void dynamicPaint_doSmudge(DynamicPaintSurface *surface,
     CLAMP_MIN(max_velocity, vel);
   }
 
-  int steps = (int)ceil((double)max_velocity / bData->average_dist * (double)timescale);
+  int steps = int(ceil(double(max_velocity) / bData->average_dist * double(timescale)));
   CLAMP(steps, 0, 12);
-  float eff_scale = brush->smudge_strength / (float)steps * timescale;
+  float eff_scale = brush->smudge_strength / float(steps) * timescale;
 
   for (int step = 0; step < steps; step++) {
     for (int index = 0; index < sData->total_points; index++) {
@@ -5188,9 +5188,9 @@ static int dynamicPaint_prepareEffectStep(Depsgraph *depsgraph,
   }
 
   fastest_effect = max_fff(spread_speed, shrink_speed, average_force);
-  avg_dist = bData->average_dist * (double)CANVAS_REL_SIZE / (double)getSurfaceDimension(sData);
+  avg_dist = bData->average_dist * double(CANVAS_REL_SIZE) / double(getSurfaceDimension(sData));
 
-  steps = (int)ceilf(1.5f * EFF_MOVEMENT_PER_FRAME * fastest_effect / avg_dist * timescale);
+  steps = int(ceilf(1.5f * EFF_MOVEMENT_PER_FRAME * fastest_effect / avg_dist * timescale));
   CLAMP(steps, 1, 20);
 
   return steps;
@@ -5369,7 +5369,7 @@ static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
       float dir_factor, a_factor;
       const float speed_scale = eff_scale * force[index * 4 + 3] / bNeighs[n_idx].dist;
 
-      const uint n_trgt = (uint)n_target[n_idx];
+      const uint n_trgt = uint(n_target[n_idx]);
 
       /* Sort of spin-lock, but only for given ePoint.
        * Since the odds a same ePoint is modified at the same time by several threads is very low,
@@ -5740,14 +5740,14 @@ static void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescal
     int numOfNeighs = sData->adj_data->n_num[index];
 
     for (int i = 0; i < numOfNeighs; i++) {
-      average_dist += (double)bNeighs[sData->adj_data->n_index[index] + i].dist;
+      average_dist += double(bNeighs[sData->adj_data->n_index[index] + i].dist);
     }
   }
-  average_dist *= (double)wave_scale / sData->adj_data->total_targets;
+  average_dist *= double(wave_scale) / sData->adj_data->total_targets;
 
   /* determine number of required steps */
-  steps = (int)ceil((double)(WAVE_TIME_FAC * timescale * surface->wave_timescale) /
-                    (average_dist / (double)wave_speed / 3));
+  steps = (int)ceil(double(WAVE_TIME_FAC * timescale * surface->wave_timescale) /
+                    (average_dist / double(wave_speed) / 3));
   CLAMP(steps, 1, 20);
   timescale /= steps;
 
@@ -6346,7 +6346,7 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
       /* Prepare effects and get number of required steps */
       steps = dynamicPaint_prepareEffectStep(depsgraph, surface, scene, ob, &force, timescale);
       for (s = 0; s < steps; s++) {
-        dynamicPaint_doEffectStep(surface, force, prevPoint, timescale, (float)steps);
+        dynamicPaint_doEffectStep(surface, force, prevPoint, timescale, float(steps));
       }
 
       /* Free temporary effect data */
@@ -6386,7 +6386,7 @@ int dynamicPaint_calculateFrame(
     timescale = 1.0f / (surface->substeps + 1);
 
     for (st = 1; st <= surface->substeps; st++) {
-      float subframe = ((float)st) / (surface->substeps + 1);
+      float subframe = (float(st)) / (surface->substeps + 1);
       if (!dynamicPaint_doStep(depsgraph, scene, cObject, surface, timescale, subframe)) {
         return 0;
       }

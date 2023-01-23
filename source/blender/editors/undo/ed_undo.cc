@@ -138,7 +138,7 @@ void ED_undo_push(bContext *C, const char *str)
   push_retval = BKE_undosys_step_push(wm->undo_stack, C, str);
 
   if (U.undomemory != 0) {
-    const size_t memory_limit = (size_t)U.undomemory * 1024 * 1024;
+    const size_t memory_limit = size_t(U.undomemory) * 1024 * 1024;
     BKE_undosys_stack_limit_steps_and_memory(wm->undo_stack, -1, memory_limit);
   }
 

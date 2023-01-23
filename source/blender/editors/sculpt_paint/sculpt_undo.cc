@@ -1235,7 +1235,7 @@ static size_t sculpt_undo_alloc_and_store_hidden(PBVH *pbvh, SculptUndoNode *uno
   int *grid_indices, totgrid;
   BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, NULL, NULL, NULL);
 
-  size_t alloc_size = sizeof(*unode->grid_hidden) * (size_t)totgrid;
+  size_t alloc_size = sizeof(*unode->grid_hidden) * size_t(totgrid);
   unode->grid_hidden = static_cast<BLI_bitmap **>(MEM_callocN(alloc_size, "unode->grid_hidden"));
 
   for (int i = 0; i < totgrid; i++) {
@@ -1335,24 +1335,24 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     unode->maxloop = 0;
     unode->totloop = totloop;
 
-    size_t alloc_size = sizeof(int) * (size_t)totloop;
+    size_t alloc_size = sizeof(int) * size_t(totloop);
     usculpt->undo_size += alloc_size;
   }
 
   if (need_faces) {
     sculpt_undo_store_faces(ss, unode);
-    const size_t alloc_size = sizeof(*unode->faces) * (size_t)unode->faces_num;
+    const size_t alloc_size = sizeof(*unode->faces) * size_t(unode->faces_num);
     usculpt->undo_size += alloc_size;
   }
 
   switch (type) {
     case SCULPT_UNDO_COORDS: {
-      size_t alloc_size = sizeof(*unode->co) * (size_t)allvert;
+      size_t alloc_size = sizeof(*unode->co) * size_t(allvert);
       unode->co = static_cast<float(*)[3]>(MEM_callocN(alloc_size, "SculptUndoNode.co"));
       usculpt->undo_size += alloc_size;
 
       /* Needed for original data lookup. */
-      alloc_size = sizeof(*unode->no) * (size_t)allvert;
+      alloc_size = sizeof(*unode->no) * size_t(allvert);
       unode->no = static_cast<float(*)[3]>(MEM_callocN(alloc_size, "SculptUndoNode.no"));
       usculpt->undo_size += alloc_size;
       break;
@@ -1369,7 +1369,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
       break;
     }
     case SCULPT_UNDO_MASK: {
-      const size_t alloc_size = sizeof(*unode->mask) * (size_t)allvert;
+      const size_t alloc_size = sizeof(*unode->mask) * size_t(allvert);
       unode->mask = static_cast<float *>(MEM_callocN(alloc_size, "SculptUndoNode.mask"));
       usculpt->undo_size += alloc_size;
       break;
@@ -1377,13 +1377,13 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     case SCULPT_UNDO_COLOR: {
       /* Allocate vertex colors, even for loop colors we still
        * need this for original data lookup. */
-      const size_t alloc_size = sizeof(*unode->col) * (size_t)allvert;
+      const size_t alloc_size = sizeof(*unode->col) * size_t(allvert);
       unode->col = static_cast<float(*)[4]>(MEM_callocN(alloc_size, "SculptUndoNode.col"));
       usculpt->undo_size += alloc_size;
 
       /* Allocate loop colors separately too. */
       if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
-        size_t alloc_size_loop = sizeof(float) * 4 * (size_t)unode->totloop;
+        size_t alloc_size_loop = sizeof(float) * 4 * size_t(unode->totloop);
 
         unode->loop_col = static_cast<float(*)[4]>(
             MEM_calloc_arrayN(unode->totloop, sizeof(float) * 4, "SculptUndoNode.loop_col"));
@@ -1399,7 +1399,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     case SCULPT_UNDO_GEOMETRY:
       break;
     case SCULPT_UNDO_FACE_SETS: {
-      const size_t alloc_size = sizeof(*unode->face_sets) * (size_t)unode->faces_num;
+      const size_t alloc_size = sizeof(*unode->face_sets) * size_t(unode->faces_num);
       usculpt->undo_size += alloc_size;
       break;
     }
@@ -1411,7 +1411,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     unode->totgrid = totgrid;
     unode->gridsize = gridsize;
 
-    const size_t alloc_size = sizeof(*unode->grids) * (size_t)totgrid;
+    const size_t alloc_size = sizeof(*unode->grids) * size_t(totgrid);
     unode->grids = static_cast<int *>(MEM_callocN(alloc_size, "SculptUndoNode.grids"));
     usculpt->undo_size += alloc_size;
   }
@@ -1419,13 +1419,13 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     /* Regular mesh. */
     unode->maxvert = ss->totvert;
 
-    const size_t alloc_size = sizeof(*unode->index) * (size_t)allvert;
+    const size_t alloc_size = sizeof(*unode->index) * size_t(allvert);
     unode->index = static_cast<int *>(MEM_callocN(alloc_size, "SculptUndoNode.index"));
     usculpt->undo_size += alloc_size;
   }
 
   if (ss->deform_modifiers_active) {
-    const size_t alloc_size = sizeof(*unode->orig_co) * (size_t)allvert;
+    const size_t alloc_size = sizeof(*unode->orig_co) * size_t(allvert);
     unode->orig_co = static_cast<float(*)[3]>(MEM_callocN(alloc_size, "undoSculpt orig_cos"));
     usculpt->undo_size += alloc_size;
   }

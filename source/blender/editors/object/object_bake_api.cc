@@ -187,7 +187,7 @@ static bool write_internal_bake_pixels(Image *image,
   void *lock;
   bool is_float;
   char *mask_buffer = nullptr;
-  const size_t pixels_num = (size_t)width * (size_t)height;
+  const size_t pixels_num = size_t(width) * size_t(height);
 
   ImageUser iuser;
   BKE_imageuser_default(&iuser);
@@ -383,7 +383,7 @@ static bool write_external_bake_pixels(const char *filepath,
   /* margins */
   if (margin > 0) {
     char *mask_buffer = nullptr;
-    const size_t pixels_num = (size_t)width * (size_t)height;
+    const size_t pixels_num = size_t(width) * size_t(height);
 
     mask_buffer = static_cast<char *>(MEM_callocN(sizeof(char) * pixels_num, "Bake Mask"));
     RE_bake_mask_fill(pixel_array, pixels_num, mask_buffer);
@@ -765,7 +765,7 @@ static bool bake_targets_init_internal(const BakeAPIRender *bkr,
       bk_image->offset = targets->pixels_num;
       BKE_image_get_tile_uv(bk_image->image, bk_image->tile_number, bk_image->uv_offset);
 
-      targets->pixels_num += (size_t)ibuf->x * (size_t)ibuf->y;
+      targets->pixels_num += size_t(ibuf->x) * size_t(ibuf->y);
     }
     else {
       BKE_image_release_ibuf(bk_image->image, ibuf, lock);
@@ -840,7 +840,7 @@ static bool bake_targets_init_external(const BakeAPIRender *bkr,
     bk_image->height = bkr->height;
     bk_image->offset = targets->pixels_num;
 
-    targets->pixels_num += (size_t)bkr->width * (size_t)bkr->height;
+    targets->pixels_num += size_t(bkr->width) * size_t(bkr->height);
 
     if (!bkr->is_split_materials) {
       break;

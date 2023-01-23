@@ -195,7 +195,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
                    edge_map_index++) {
                 const int e_other = ss->vemap[v_other].indices[edge_map_index];
                 int ev_other;
-                if (edges[e_other].v1 == (uint)v_other) {
+                if (edges[e_other].v1 == uint(v_other)) {
                   ev_other = edges[e_other].v2;
                 }
                 else {

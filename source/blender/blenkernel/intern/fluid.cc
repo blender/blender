@@ -441,28 +441,28 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
     scale = res / size[0];
     fds->scale = size[0] / fabsf(ob->scale[0]);
     fds->base_res[0] = res;
-    fds->base_res[1] = max_ii((int)(size[1] * scale + 0.5f), 4);
-    fds->base_res[2] = max_ii((int)(size[2] * scale + 0.5f), 4);
+    fds->base_res[1] = max_ii(int(size[1] * scale + 0.5f), 4);
+    fds->base_res[2] = max_ii(int(size[2] * scale + 0.5f), 4);
   }
   else if (size[1] >= MAX2(size[0], size[2])) {
     scale = res / size[1];
     fds->scale = size[1] / fabsf(ob->scale[1]);
-    fds->base_res[0] = max_ii((int)(size[0] * scale + 0.5f), 4);
+    fds->base_res[0] = max_ii(int(size[0] * scale + 0.5f), 4);
     fds->base_res[1] = res;
-    fds->base_res[2] = max_ii((int)(size[2] * scale + 0.5f), 4);
+    fds->base_res[2] = max_ii(int(size[2] * scale + 0.5f), 4);
   }
   else {
     scale = res / size[2];
     fds->scale = size[2] / fabsf(ob->scale[2]);
-    fds->base_res[0] = max_ii((int)(size[0] * scale + 0.5f), 4);
-    fds->base_res[1] = max_ii((int)(size[1] * scale + 0.5f), 4);
+    fds->base_res[0] = max_ii(int(size[0] * scale + 0.5f), 4);
+    fds->base_res[1] = max_ii(int(size[1] * scale + 0.5f), 4);
     fds->base_res[2] = res;
   }
 
   /* Set cell size. */
-  fds->cell_size[0] /= (float)fds->base_res[0];
-  fds->cell_size[1] /= (float)fds->base_res[1];
-  fds->cell_size[2] /= (float)fds->base_res[2];
+  fds->cell_size[0] /= float(fds->base_res[0]);
+  fds->cell_size[1] /= float(fds->base_res[1]);
+  fds->cell_size[2] /= float(fds->base_res[2]);
 }
 
 static void update_final_gravity(FluidDomainSettings *fds, Scene *scene)
@@ -479,7 +479,7 @@ static void update_final_gravity(FluidDomainSettings *fds, Scene *scene)
 static bool fluid_modifier_init(
     FluidModifierData *fmd, Depsgraph *depsgraph, Object *ob, Scene *scene, Mesh *me)
 {
-  int scene_framenr = (int)DEG_get_ctime(depsgraph);
+  int scene_framenr = int(DEG_get_ctime(depsgraph));
 
   if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain && !fmd->domain->fluid) {
     FluidDomainSettings *fds = fmd->domain;
@@ -590,10 +590,10 @@ static void clamp_bounds_in_domain(FluidDomainSettings *fds,
 
     /* Adapt to velocity. */
     if (min_vel && min_vel[i] < 0.0f) {
-      min[i] += (int)floor(min_vel[i] * dt);
+      min[i] += int(floor(min_vel[i] * dt));
     }
     if (max_vel && max_vel[i] > 0.0f) {
-      max[i] += (int)ceil(max_vel[i] * dt);
+      max[i] += int(ceil(max_vel[i] * dt));
     }
 
     /* Clamp within domain max size. */
@@ -650,18 +650,18 @@ static void bb_boundInsert(FluidObjectBB *bb, const float point[3])
   int i = 0;
   if (!bb->valid) {
     for (; i < 3; i++) {
-      bb->min[i] = (int)floor(point[i]);
-      bb->max[i] = (int)ceil(point[i]);
+      bb->min[i] = int(floor(point[i]));
+      bb->max[i] = int(ceil(point[i]));
     }
     bb->valid = 1;
   }
   else {
     for (; i < 3; i++) {
       if (point[i] < bb->min[i]) {
-        bb->min[i] = (int)floor(point[i]);
+        bb->min[i] = int(floor(point[i]));
       }
       if (point[i] > bb->max[i]) {
-        bb->max[i] = (int)ceil(point[i]);
+        bb->max[i] = int(ceil(point[i]));
       }
     }
   }
@@ -960,7 +960,7 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
     for (int y = data->min[1]; y < data->max[1]; y++) {
       const int index = manta_get_index(
           x - bb->min[0], bb->res[0], y - bb->min[1], bb->res[1], z - bb->min[2]);
-      const float ray_start[3] = {(float)x + 0.5f, (float)y + 0.5f, (float)z + 0.5f};
+      const float ray_start[3] = {float(x) + 0.5f, float(y) + 0.5f, float(z) + 0.5f};
 
       /* Calculate levelset values from meshes. Result in bb->distances. */
       update_distances(index,
@@ -1055,7 +1055,7 @@ static void obstacles_from_mesh(Object *coll_ob,
 
     /* Set emission map.
      * Use 3 cell diagonals as margin (3 * 1.732 = 5.196). */
-    int bounds_margin = (int)ceil(5.196);
+    int bounds_margin = int(ceil(5.196));
     clamp_bounds_in_domain(fds, bb->min, bb->max, nullptr, nullptr, bounds_margin, dt);
     bb_allocateData(bb, true, false);
 
@@ -1216,7 +1216,7 @@ static void compute_obstaclesemission(Scene *scene,
       }
 
       /* More splitting because of emission subframe: If no subframes present, sample_size is 1. */
-      float sample_size = 1.0f / (float)(subframes + 1);
+      float sample_size = 1.0f / float(subframes + 1);
       float subframe_dt = dt * sample_size;
 
       /* Emission loop. When not using subframes this will loop only once. */
@@ -1484,7 +1484,7 @@ static void emit_from_particles_task_cb(void *__restrict userdata,
     for (int y = data->min[1]; y < data->max[1]; y++) {
       const int index = manta_get_index(
           x - bb->min[0], bb->res[0], y - bb->min[1], bb->res[1], z - bb->min[2]);
-      const float ray_start[3] = {((float)x) + 0.5f, ((float)y) + 0.5f, ((float)z) + 0.5f};
+      const float ray_start[3] = {(float(x)) + 0.5f, (float(y)) + 0.5f, (float(z)) + 0.5f};
 
       /* Find particle distance from the kdtree. */
       KDTreeNearest_3d nearest;
@@ -1554,7 +1554,7 @@ static void emit_from_particles(Object *flow_ob,
     /* setup particle radius emission if enabled */
     if (ffs->flags & FLUID_FLOW_USE_PART_SIZE) {
       tree = BLI_kdtree_3d_new(psys->totpart + psys->totchild);
-      bounds_margin = (int)ceil(solid + smooth);
+      bounds_margin = int(ceil(solid + smooth));
     }
 
     /* calculate local position for each particle */
@@ -2008,7 +2008,7 @@ static void emit_from_mesh_task_cb(void *__restrict userdata,
     for (int y = data->min[1]; y < data->max[1]; y++) {
       const int index = manta_get_index(
           x - bb->min[0], bb->res[0], y - bb->min[1], bb->res[1], z - bb->min[2]);
-      const float ray_start[3] = {((float)x) + 0.5f, ((float)y) + 0.5f, ((float)z) + 0.5f};
+      const float ray_start[3] = {(float(x)) + 0.5f, (float(y)) + 0.5f, (float(z)) + 0.5f};
 
       /* Compute emission only for flow objects that produce fluid (i.e. skip outflow objects).
        * Result in bb->influence. Also computes initial velocities. Result in bb->velocity. */
@@ -2031,9 +2031,9 @@ static void emit_from_mesh_task_cb(void *__restrict userdata,
                     data->has_velocity,
                     data->defgrp_index,
                     data->dvert,
-                    (float)x,
-                    (float)y,
-                    (float)z);
+                    float(x),
+                    float(y),
+                    float(z));
       }
 
       /* Calculate levelset values from meshes. Result in bb->distances. */
@@ -2123,7 +2123,7 @@ static void emit_from_mesh(
 
     /* Set emission map.
      * Use 3 cell diagonals as margin (3 * 1.732 = 5.196). */
-    int bounds_margin = (int)ceil(5.196);
+    int bounds_margin = int(ceil(5.196));
     clamp_bounds_in_domain(fds, bb->min, bb->max, nullptr, nullptr, bounds_margin, dt);
     bb_allocateData(bb, ffs->flags & FLUID_FLOW_INITVELOCITY, true);
 
@@ -2199,9 +2199,9 @@ static void adaptive_domain_adjust(
   /* add to total shift */
   add_v3_v3(fds->shift_f, frame_shift_f);
   /* convert to integer */
-  total_shift[0] = (int)floorf(fds->shift_f[0]);
-  total_shift[1] = (int)floorf(fds->shift_f[1]);
-  total_shift[2] = (int)floorf(fds->shift_f[2]);
+  total_shift[0] = int(floorf(fds->shift_f[0]));
+  total_shift[1] = int(floorf(fds->shift_f[1]));
+  total_shift[2] = int(floorf(fds->shift_f[2]));
   int temp_shift[3];
   copy_v3_v3_int(temp_shift, fds->shift);
   sub_v3_v3v3_int(new_shift, total_shift, fds->shift);
@@ -2733,7 +2733,7 @@ static void compute_flowsemission(Scene *scene,
       }
 
       /* More splitting because of emission subframe: If no subframes present, sample_size is 1. */
-      float sample_size = 1.0f / (float)(subframes + 1);
+      float sample_size = 1.0f / float(subframes + 1);
       float subframe_dt = dt * sample_size;
 
       /* Emission loop. When not using subframes this will loop only once. */
@@ -3135,9 +3135,9 @@ static void update_effectors_task_cb(void *__restrict userdata,
       normalize_v3(vel);
       mul_v3_fl(vel, mag);
 
-      voxel_center[0] = fds->p0[0] + fds->cell_size[0] * ((float)(x + fds->res_min[0]) + 0.5f);
-      voxel_center[1] = fds->p0[1] + fds->cell_size[1] * ((float)(y + fds->res_min[1]) + 0.5f);
-      voxel_center[2] = fds->p0[2] + fds->cell_size[2] * ((float)(z + fds->res_min[2]) + 0.5f);
+      voxel_center[0] = fds->p0[0] + fds->cell_size[0] * (float(x + fds->res_min[0]) + 0.5f);
+      voxel_center[1] = fds->p0[1] + fds->cell_size[1] * (float(y + fds->res_min[1]) + 0.5f);
+      voxel_center[2] = fds->p0[2] + fds->cell_size[2] * (float(z + fds->res_min[2]) + 0.5f);
       mul_m4_v3(fds->obmat, voxel_center);
 
       /* Do effectors. */
@@ -3297,7 +3297,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
     positions[i][2] = manta_liquid_get_vertex_z_at(fds->fluid, i);
 
     /* Adjust coordinates from Mantaflow to match viewport scaling. */
-    float tmp[3] = {(float)fds->res[0], (float)fds->res[1], (float)fds->res[2]};
+    float tmp[3] = {float(fds->res[0]), float(fds->res[1]), float(fds->res[2])};
     /* Scale to unit cube around 0. */
     mul_v3_fl(tmp, fds->mesh_scale * 0.5f);
     sub_v3_v3(positions[i], tmp);
@@ -4078,7 +4078,7 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
 static void fluid_modifier_process(
     FluidModifierData *fmd, Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me)
 {
-  const int scene_framenr = (int)DEG_get_ctime(depsgraph);
+  const int scene_framenr = int(DEG_get_ctime(depsgraph));
 
   if (fmd->type & MOD_FLUID_TYPE_FLOW) {
     fluid_modifier_processFlow(fmd, depsgraph, scene, ob, me, scene_framenr);
@@ -4304,15 +4304,15 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *fds,
 
   /* Convert light pos to sim cell space. */
   mul_m4_v3(fds->imat, light);
-  light[0] = (light[0] - fds->p0[0]) / fds->cell_size[0] - 0.5f - (float)fds->res_min[0];
-  light[1] = (light[1] - fds->p0[1]) / fds->cell_size[1] - 0.5f - (float)fds->res_min[1];
-  light[2] = (light[2] - fds->p0[2]) / fds->cell_size[2] - 0.5f - (float)fds->res_min[2];
+  light[0] = (light[0] - fds->p0[0]) / fds->cell_size[0] - 0.5f - float(fds->res_min[0]);
+  light[1] = (light[1] - fds->p0[1]) / fds->cell_size[1] - 0.5f - float(fds->res_min[1]);
+  light[2] = (light[2] - fds->p0[2]) / fds->cell_size[2] - 0.5f - float(fds->res_min[2]);
 
   /* Calculate domain bounds in sim cell space. */
   /* 0,2,4 = 0.0f */
-  bv[1] = (float)fds->res[0]; /* X */
-  bv[3] = (float)fds->res[1]; /* Y */
-  bv[5] = (float)fds->res[2]; /* Z */
+  bv[1] = float(fds->res[0]); /* X */
+  bv[3] = float(fds->res[1]); /* Y */
+  bv[5] = float(fds->res[2]); /* Z */
 
   for (int z = 0; z < fds->res[2]; z++) {
     size_t index = z * slabsize;
@@ -4327,22 +4327,22 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *fds,
         /* Reset shadow value. */
         shadow[index] = -1.0f;
 
-        voxel_center[0] = (float)x;
-        voxel_center[1] = (float)y;
-        voxel_center[2] = (float)z;
+        voxel_center[0] = float(x);
+        voxel_center[1] = float(y);
+        voxel_center[2] = float(z);
 
         /* Get starting cell (light pos). */
         if (BLI_bvhtree_bb_raycast(bv, light, voxel_center, pos) > FLT_EPSILON) {
           /* We're outside -> use point on side of domain. */
-          cell[0] = (int)floor(pos[0]);
-          cell[1] = (int)floor(pos[1]);
-          cell[2] = (int)floor(pos[2]);
+          cell[0] = int(floor(pos[0]));
+          cell[1] = int(floor(pos[1]));
+          cell[2] = int(floor(pos[2]));
         }
         else {
           /* We're inside -> use light itself. */
-          cell[0] = (int)floor(light[0]);
-          cell[1] = (int)floor(light[1]);
-          cell[2] = (int)floor(light[2]);
+          cell[0] = int(floor(light[0]));
+          cell[1] = int(floor(light[1]));
+          cell[2] = int(floor(light[2]));
         }
         /* Clamp within grid bounds */
         CLAMP(cell[0], 0, fds->res[0] - 1);
@@ -4394,9 +4394,9 @@ float BKE_fluid_get_velocity_at(Object *ob, float position[3], float velocity[3]
     }
 
     /* map pos between 0.0 - 1.0 */
-    pos[0] = (pos[0] - fds->res_min[0]) / ((float)fds->res[0]);
-    pos[1] = (pos[1] - fds->res_min[1]) / ((float)fds->res[1]);
-    pos[2] = (pos[2] - fds->res_min[2]) / ((float)fds->res[2]);
+    pos[0] = (pos[0] - fds->res_min[0]) / (float(fds->res[0]));
+    pos[1] = (pos[1] - fds->res_min[1]) / (float(fds->res[1]));
+    pos[2] = (pos[2] - fds->res_min[2]) / (float(fds->res[2]));
 
     /* Check if position is outside active area. */
     if (fds->type == FLUID_DOMAIN_TYPE_GAS && fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) {

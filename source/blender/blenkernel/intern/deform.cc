@@ -1053,7 +1053,7 @@ void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
   if (dvert && defgroup != -1) {
     int i = edges_num;
     float *tmp_weights = static_cast<float *>(
-        MEM_mallocN(sizeof(*tmp_weights) * (size_t)verts_num, __func__));
+        MEM_mallocN(sizeof(*tmp_weights) * size_t(verts_num), __func__));
 
     BKE_defvert_extract_vgroup_to_vertweights(
         dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
@@ -1082,7 +1082,7 @@ void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
   if (dvert && defgroup != -1) {
     int i = loops_num;
     float *tmp_weights = static_cast<float *>(
-        MEM_mallocN(sizeof(*tmp_weights) * (size_t)verts_num, __func__));
+        MEM_mallocN(sizeof(*tmp_weights) * size_t(verts_num), __func__));
 
     BKE_defvert_extract_vgroup_to_vertweights(
         dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
@@ -1113,7 +1113,7 @@ void BKE_defvert_extract_vgroup_to_polyweights(const MDeformVert *dvert,
   if (dvert && defgroup != -1) {
     int i = polys_num;
     float *tmp_weights = static_cast<float *>(
-        MEM_mallocN(sizeof(*tmp_weights) * (size_t)verts_num, __func__));
+        MEM_mallocN(sizeof(*tmp_weights) * size_t(verts_num), __func__));
 
     BKE_defvert_extract_vgroup_to_vertweights(
         dvert, defgroup, verts_num, invert_vgroup, tmp_weights);

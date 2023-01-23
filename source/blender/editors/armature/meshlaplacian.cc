@@ -108,16 +108,16 @@ static void laplacian_increase_edge_count(EdgeHash *edgehash, int v1, int v2)
   void **p;
 
   if (BLI_edgehash_ensure_p(edgehash, v1, v2, &p)) {
-    *p = (void *)((intptr_t)*p + (intptr_t)1);
+    *p = (void *)(intptr_t(*p) + intptr_t(1));
   }
   else {
-    *p = (void *)((intptr_t)1);
+    *p = (void *)(intptr_t(1));
   }
 }
 
 static int laplacian_edge_count(EdgeHash *edgehash, int v1, int v2)
 {
-  return (int)(intptr_t)BLI_edgehash_lookup(edgehash, v1, v2);
+  return int(intptr_t(BLI_edgehash_lookup(edgehash, v1, v2)));
 }
 
 static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3)
@@ -1248,7 +1248,7 @@ static float meshdeform_interp_w(MeshDeformBind *mdb,
   float totweight = 0.0f;
 
   for (int i = 0; i < 3; i++) {
-    ivec[i] = (int)gridvec[i];
+    ivec[i] = int(gridvec[i]);
     dvec[i] = gridvec[i] - ivec[i];
   }
 
@@ -1564,7 +1564,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
                  "Mesh deform solve %d / %d       |||",
                  a + 1,
                  mdb->cage_verts_num);
-    progress_bar((float)(a + 1) / (float)(mdb->cage_verts_num), message);
+    progress_bar(float(a + 1) / float(mdb->cage_verts_num), message);
   }
 
 #if 0

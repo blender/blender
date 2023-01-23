@@ -482,13 +482,13 @@ static float *get_ss_weights(WeightTable *wtable, int gridCuts, int faceLen)
     wtable->weight_table[faceLen].w = w = static_cast<float *>(
         MEM_callocN(sizeof(float) * faceLen * faceLen * (gridCuts + 2) * (gridCuts + 2),
                     "weight table alloc"));
-    fac = 1.0f / (float)faceLen;
+    fac = 1.0f / float(faceLen);
 
     for (i = 0; i < faceLen; i++) {
       for (x = 0; x < gridCuts + 2; x++) {
         for (y = 0; y < gridCuts + 2; y++) {
-          fx = 0.5f - (float)x / (float)(gridCuts + 1) / 2.0f;
-          fy = 0.5f - (float)y / (float)(gridCuts + 1) / 2.0f;
+          fx = 0.5f - float(x) / float(gridCuts + 1) / 2.0f;
+          fy = 0.5f - float(y) / float(gridCuts + 1) / 2.0f;
 
           fac2 = faceLen - 4;
           w1 = (1.0f - fx) * (1.0f - fy) + (-fac2 * fx * fy * fac);
@@ -498,7 +498,7 @@ static float *get_ss_weights(WeightTable *wtable, int gridCuts, int faceLen)
           /* these values aren't used for tri's and cause divide by zero */
           if (faceLen > 3) {
             fac2 = 1.0f - (w1 + w2 + w4);
-            fac2 = fac2 / (float)(faceLen - 3);
+            fac2 = fac2 / float(faceLen - 3);
             for (j = 0; j < faceLen; j++) {
               w[j] = fac2;
             }
@@ -537,7 +537,7 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
                                          float (*vertexCos)[3],
                                          int useFlatSubdiv)
 {
-  float creaseFactor = (float)ccgSubSurf_getSubdivisionLevels(ss);
+  float creaseFactor = float(ccgSubSurf_getSubdivisionLevels(ss));
   blender::Vector<CCGVertHDL, 16> fverts;
   float(*positions)[3] = (float(*)[3])dm->getVertArray(dm);
   MEdge *medge = dm->getEdgeArray(dm);
@@ -1004,7 +1004,7 @@ static void copyFinalLoopArray_task_cb(void *__restrict userdata,
   CCGFace *f = ccgdm->faceMap[iter].face;
   const int num_verts = ccgSubSurf_getFaceNumVerts(f);
   const int grid_index = data->grid_offset[iter];
-  const size_t loop_index = 4 * (size_t)grid_index * (grid_size - 1) * (grid_size - 1);
+  const size_t loop_index = 4 * size_t(grid_index) * (grid_size - 1) * (grid_size - 1);
   MLoop *ml = &data->mloop[loop_index];
   for (int S = 0; S < num_verts; S++) {
     for (int y = 0; y < grid_size - 1; y++) {
@@ -1755,7 +1755,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
 
     for (x = 1; x < edgeSize - 1; x++) {
       float w[2];
-      w[1] = (float)x / (edgeSize - 1);
+      w[1] = float(x) / (edgeSize - 1);
       w[0] = 1 - w[1];
       DM_interp_vert_data(dm, &ccgdm->dm, vertIdx, w, 2, vertNum);
       if (vertOrigIndex) {
@@ -2036,7 +2036,7 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*r_positions)[3])
     /* ad-hoc correction for boundary vertices, to at least avoid them
      * moving completely out of place (brecht) */
     if (numFaces && numFaces != N) {
-      mul_v3_fl(face_sum, (float)N / (float)numFaces);
+      mul_v3_fl(face_sum, float(N) / float(numFaces));
     }
 
     const float *co = static_cast<const float *>(ccgSubSurf_getVertData(ss, v));
