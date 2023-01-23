@@ -1085,6 +1085,16 @@ class Framebuffer : NonCopyable {
     GPU_framebuffer_default_size(fb_, UNPACK2(target_size));
   }
 
+  void bind()
+  {
+    GPU_framebuffer_bind(fb_);
+  }
+
+  void clear_depth(float depth)
+  {
+    GPU_framebuffer_clear_depth(fb_, depth);
+  }
+
   Framebuffer &operator=(Framebuffer &&a)
   {
     if (*this != a) {

@@ -1297,13 +1297,21 @@ void ED_scene_draw_fps(const struct Scene *scene, int xoffset, int *yoffset);
 void ED_view3d_stop_render_preview(struct wmWindowManager *wm, struct ARegion *region);
 void ED_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrArea *area);
 
-#define XRAY_ALPHA(v3d) \
-  (((v3d)->shading.type == OB_WIRE) ? (v3d)->shading.xray_alpha_wire : (v3d)->shading.xray_alpha)
-#define XRAY_FLAG(v3d) \
-  (((v3d)->shading.type == OB_WIRE) ? V3D_SHADING_XRAY_WIREFRAME : V3D_SHADING_XRAY)
-#define XRAY_FLAG_ENABLED(v3d) (((v3d)->shading.flag & XRAY_FLAG(v3d)) != 0)
-#define XRAY_ENABLED(v3d) (XRAY_FLAG_ENABLED(v3d) && (XRAY_ALPHA(v3d) < 1.0f))
-#define XRAY_ACTIVE(v3d) (XRAY_ENABLED(v3d) && ((v3d)->shading.type < OB_MATERIAL))
+#define SHADING_XRAY_ALPHA(shading) \
+  (((shading).type == OB_WIRE) ? (shading).xray_alpha_wire : (shading).xray_alpha)
+#define SHADING_XRAY_FLAG(shading) \
+  (((shading).type == OB_WIRE) ? V3D_SHADING_XRAY_WIREFRAME : V3D_SHADING_XRAY)
+#define SHADING_XRAY_FLAG_ENABLED(shading) (((shading).flag & SHADING_XRAY_FLAG(shading)) != 0)
+#define SHADING_XRAY_ENABLED(shading) \
+  (SHADING_XRAY_FLAG_ENABLED(shading) && (SHADING_XRAY_ALPHA(shading) < 1.0f))
+#define SHADING_XRAY_ACTIVE(shading) \
+  (SHADING_XRAY_ENABLED(shading) && ((shading).type < OB_MATERIAL))
+
+#define XRAY_ALPHA(v3d) SHADING_XRAY_ALPHA((v3d)->shading)
+#define XRAY_FLAG(v3d) SHADING_XRAY_FLAG((v3d)->shading)
+#define XRAY_FLAG_ENABLED(v3d) SHADING_XRAY_FLAG_ENABLED((v3d)->shading)
+#define XRAY_ENABLED(v3d) SHADING_XRAY_ENABLED((v3d)->shading)
+#define XRAY_ACTIVE(v3d) SHADING_XRAY_ACTIVE((v3d)->shading)
 
 /* view3d_draw_legacy.c */
 
