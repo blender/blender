@@ -131,11 +131,9 @@ void ShadowPass::ShadowView::setup(View &view, float3 light_direction, bool forc
       float4 extruded_face = float4(UNPACK3(normal), math::dot(normal, corner_a));
 
       /* Ensure the plane faces outwards */
-      bool flipped = false;
       for (float3 corner : frustum_corners.vec) {
         if (math::dot(float3(extruded_face), corner) > (extruded_face.w + 0.1)) {
           BLI_assert(!flipped);
-          flipped = true;
           extruded_face *= -1;
         }
       }
@@ -201,9 +199,7 @@ void ShadowPass::ShadowView::set_mode(ShadowPass::PassType type)
   current_pass_type_ = type;
 }
 
-void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
-                                                uint resource_len,
-                                                bool debug_freeze)
+void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds, uint resource_len)
 {
   GPU_debug_group_begin("ShadowView.compute_visibility");
 
@@ -390,8 +386,7 @@ void ShadowPass::sync()
   }
 }
 
-void ShadowPass::object_sync(Manager &manager,
-                             SceneState &scene_state,
+void ShadowPass::object_sync(SceneState &scene_state,
                              ObjectRef &ob_ref,
                              ResourceHandle handle,
                              const bool has_transp_mat)
@@ -436,7 +431,6 @@ void ShadowPass::object_sync(Manager &manager,
 void ShadowPass::draw(Manager &manager,
                       View &view,
                       SceneResources &resources,
-                      int2 resolution,
                       GPUTexture &depth_stencil_tx,
                       bool force_fail_method)
 {

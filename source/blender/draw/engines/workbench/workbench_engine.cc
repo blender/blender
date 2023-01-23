@@ -272,7 +272,7 @@ class Instance {
     }
 
     if (object_state.draw_shadow) {
-      shadow_ps.object_sync(manager, scene_state, ob_ref, handle, has_transparent_material);
+      shadow_ps.object_sync(scene_state, ob_ref, handle, has_transparent_material);
     }
   }
 
@@ -363,11 +363,11 @@ class Instance {
                    &shadow_ps,
                    transparent_ps.accumulation_ps_.is_empty());
     transparent_ps.draw(manager, view, resources, resolution);
-    transparent_depth_ps.draw(manager, view, resources, resolution);
+    transparent_depth_ps.draw(manager, view, resources);
 
     // volume_ps.draw_prepass(manager, view, resources.depth_tx);
 
-    outline_ps.draw(manager, view, resources, resolution);
+    outline_ps.draw(manager, resources);
     dof_ps.draw(manager, view, resources, resolution);
     anti_aliasing_ps.draw(manager, view, resources, resolution, depth_tx, color_tx);
 

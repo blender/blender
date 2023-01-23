@@ -8,7 +8,7 @@
 
 namespace blender::workbench {
 
-bool get_matcap_tx(Texture &matcap_tx, const StudioLight &studio_light)
+static bool get_matcap_tx(Texture &matcap_tx, const StudioLight &studio_light)
 {
   ImBuf *matcap_diffuse = studio_light.matcap_diffuse.ibuf;
   ImBuf *matcap_specular = studio_light.matcap_specular.ibuf;
@@ -36,7 +36,7 @@ bool get_matcap_tx(Texture &matcap_tx, const StudioLight &studio_light)
   return false;
 }
 
-float4x4 get_world_shading_rotation_matrix(float studiolight_rot_z)
+static float4x4 get_world_shading_rotation_matrix(float studiolight_rot_z)
 {
   /* TODO(Miguel Pozo) C++ API ? */
   float V[4][4], R[4][4];
@@ -48,8 +48,8 @@ float4x4 get_world_shading_rotation_matrix(float studiolight_rot_z)
   return float4x4(R);
 }
 
-LightData get_light_data_from_studio_solidlight(const SolidLight *sl,
-                                                float4x4 world_shading_rotation)
+static LightData get_light_data_from_studio_solidlight(const SolidLight *sl,
+                                                       float4x4 world_shading_rotation)
 {
   LightData light = {};
   if (sl && sl->flag) {

@@ -244,7 +244,7 @@ class TransparentDepthPass {
   Framebuffer merge_fb = {"TransparentDepth.Merge"};
 
   void sync(const SceneState &scene_state, SceneResources &resources);
-  void draw(Manager &manager, View &view, SceneResources &resources, int2 resolution);
+  void draw(Manager &manager, View &view, SceneResources &resources);
   bool is_empty() const;
 };
 
@@ -269,7 +269,7 @@ class ShadowPass {
     ShadowView();
 
    protected:
-    virtual void compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool debug_freeze);
+    virtual void compute_visibility(ObjectBoundsBuf &bounds, uint resource_len);
     virtual VisibilityBuf &get_visibility_buffer();
   } view_ = {};
 
@@ -299,15 +299,13 @@ class ShadowPass {
   void init(const SceneState &scene_state, SceneResources &resources);
   void update();
   void sync();
-  void object_sync(Manager &manager,
-                   SceneState &scene_state,
+  void object_sync(SceneState &scene_state,
                    ObjectRef &ob_ref,
                    ResourceHandle handle,
                    const bool has_transp_mat);
   void draw(Manager &manager,
             View &view,
             SceneResources &resources,
-            int2 resolution,
             GPUTexture &depth_stencil_tx,
             /* Needed when there are opaque "In Front" objects in the scene */
             bool force_fail_method);
@@ -324,7 +322,7 @@ class OutlinePass {
  public:
   void init(const SceneState &scene_state);
   void sync(SceneResources &resources);
-  void draw(Manager &manager, View &view, SceneResources &resources, int2 resolution);
+  void draw(Manager &manager, SceneResources &resources);
 };
 
 class DofPass {

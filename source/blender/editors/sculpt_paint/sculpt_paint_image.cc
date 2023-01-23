@@ -552,8 +552,6 @@ bool SCULPT_use_image_paint_brush(PaintModeSettings *settings, Object *ob)
 void SCULPT_do_paint_brush_image(PaintModeSettings *paint_mode_settings,
                                  Sculpt *sd,
                                  Object *ob,
-                                 PBVHNode **nodes,
-                                 int totnode,
                                  PBVHNode **texnodes,
                                  int texnodes_num)
 {

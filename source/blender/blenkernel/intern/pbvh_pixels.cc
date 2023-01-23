@@ -99,12 +99,8 @@ struct SplitNodePair {
 
 static void split_thread_job(TaskPool *__restrict pool, void *taskdata);
 
-static void split_pixel_node(PBVH *pbvh,
-                             SplitNodePair *split,
-                             Mesh *mesh,
-                             Image *image,
-                             ImageUser *image_user,
-                             SplitQueueData *tdata)
+static void split_pixel_node(
+    PBVH *pbvh, SplitNodePair *split, Image *image, ImageUser *image_user, SplitQueueData *tdata)
 {
   BB cb;
   PBVHNode *node = &split->node;
@@ -304,7 +300,7 @@ static void split_thread_job(TaskPool *__restrict pool, void *taskdata)
   SplitQueueData *tdata = static_cast<SplitQueueData *>(BLI_task_pool_user_data(pool));
   SplitNodePair *split = static_cast<SplitNodePair *>(taskdata);
 
-  split_pixel_node(tdata->pbvh, split, tdata->mesh, tdata->image, tdata->image_user, tdata);
+  split_pixel_node(tdata->pbvh, split, tdata->image, tdata->image_user, tdata);
 }
 
 static void split_pixel_nodes(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image_user)

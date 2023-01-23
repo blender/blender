@@ -1807,8 +1807,6 @@ bool SCULPT_paint_image_canvas_get(struct PaintModeSettings *paint_mode_settings
 void SCULPT_do_paint_brush_image(struct PaintModeSettings *paint_mode_settings,
                                  Sculpt *sd,
                                  Object *ob,
-                                 PBVHNode **nodes,
-                                 int totnode,
                                  PBVHNode **texnodes,
                                  int texnode_num) ATTR_NONNULL();
 bool SCULPT_use_image_paint_brush(struct PaintModeSettings *settings, Object *ob) ATTR_NONNULL();

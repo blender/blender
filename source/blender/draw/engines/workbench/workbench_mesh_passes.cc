@@ -216,12 +216,8 @@ void OpaquePass::draw(Manager &manager,
   }
 
   if (shadow_pass) {
-    shadow_pass->draw(manager,
-                      view,
-                      resources,
-                      resolution,
-                      *deferred_ps_stencil_tx,
-                      !gbuffer_in_front_ps_.is_empty());
+    shadow_pass->draw(
+        manager, view, resources, *deferred_ps_stencil_tx, !gbuffer_in_front_ps_.is_empty());
   }
 
   opaque_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(resources.color_tx));
@@ -359,10 +355,7 @@ void TransparentDepthPass::sync(const SceneState &scene_state, SceneResources &r
       ePipelineType::OPAQUE, eLightingType::FLAT, clip, resources.shader_cache);
 }
 
-void TransparentDepthPass::draw(Manager &manager,
-                                View &view,
-                                SceneResources &resources,
-                                int2 resolution)
+void TransparentDepthPass::draw(Manager &manager, View &view, SceneResources &resources)
 {
   if (is_empty()) {
     return;

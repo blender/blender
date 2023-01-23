@@ -258,8 +258,7 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
                            int texnodes_num)
 {
   if (SCULPT_use_image_paint_brush(paint_mode_settings, ob)) {
-    SCULPT_do_paint_brush_image(
-        paint_mode_settings, sd, ob, nodes, totnode, texnodes, texnodes_num);
+    SCULPT_do_paint_brush_image(paint_mode_settings, sd, ob, texnodes, texnodes_num);
     return;
   }
 

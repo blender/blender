@@ -225,11 +225,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
     if (G.debug_value == 889 && ob->sculpt && ob->sculpt->pbvh) {
       int debug_node_nr = 0;
       DRW_debug_modelmat(ob->object_to_world);
-      BKE_pbvh_draw_debug_cb(
-          ob->sculpt->pbvh,
-          (void (*)(void *d, const float min[3], const float max[3], PBVHNodeFlags f))
-              DRW_sculpt_debug_cb,
-          &debug_node_nr);
+      BKE_pbvh_draw_debug_cb(ob->sculpt->pbvh, DRW_sculpt_debug_cb, &debug_node_nr);
     }
   }
 }
