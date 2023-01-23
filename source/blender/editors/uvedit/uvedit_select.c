@@ -3315,12 +3315,12 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
       if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           if (select) {
-            BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, true);
+            BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, true);
             uv_select_flush_from_tag_sticky_loc_internal(
                 scene, em, vmap, efa_index, l, select, offsets);
           }
           else {
-            BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, false);
+            BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, false);
             if (!uvedit_vert_is_face_select_any_other(scene, l, offsets)) {
               uv_select_flush_from_tag_sticky_loc_internal(
                   scene, em, vmap, efa_index, l, select, offsets);
