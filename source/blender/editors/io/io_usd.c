@@ -477,15 +477,15 @@ static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
   uiItemR(col, ptr, "relative_path", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "create_collection", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "light_intensity_scale", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "mtl_name_collision_mode", 0, NULL, ICON_NONE);
 
   box = uiLayoutBox(layout);
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("Experimental"));
+  col = uiLayoutColumnWithHeading(box, true, IFACE_("Materials"));
   uiItemR(col, ptr, "import_usd_preview", 0, NULL, ICON_NONE);
   uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
   uiLayout *row = uiLayoutRow(col, true);
   uiItemR(row, ptr, "set_material_blend", 0, NULL, ICON_NONE);
   uiLayoutSetEnabled(row, RNA_boolean_get(ptr, "import_usd_preview"));
+  uiItemR(col, ptr, "mtl_name_collision_mode", 0, NULL, ICON_NONE);
 }
 
 void WM_OT_usd_import(struct wmOperatorType *ot)
@@ -581,7 +581,7 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "import_usd_preview",
-                  false,
+                  true,
                   "Import USD Preview",
                   "Convert UsdPreviewSurface shaders to Principled BSDF shader networks");
 
