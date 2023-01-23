@@ -1671,10 +1671,10 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif device_type == 'HIP':
                 import sys
                 if sys.platform[:3] == "win":
-                    col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
+                    col.label(text="Requires AMD GPU with RDNA architecture", icon='BLANK1')
                     col.label(text="and AMD Radeon Pro 21.Q4 driver or newer", icon='BLANK1')
                 elif sys.platform.startswith("linux"):
-                    col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
+                    col.label(text="Requires AMD GPU with RDNA architecture", icon='BLANK1')
                     col.label(text="and AMD driver version 22.10 or newer", icon='BLANK1')
             elif device_type == 'ONEAPI':
                 import sys
