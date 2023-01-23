@@ -716,7 +716,8 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
                                                     lbake->irr_size[1],
                                                     lbake->irr_size[2],
                                                     IRRADIANCE_FORMAT,
-                                                    GPU_TEXTURE_USAGE_SHADER_READ,
+                                                    GPU_TEXTURE_USAGE_SHADER_READ |
+                                                        GPU_TEXTURE_USAGE_ATTACHMENT,
                                                     DRW_TEX_FILTER,
                                                     NULL);
 
