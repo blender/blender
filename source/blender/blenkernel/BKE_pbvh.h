@@ -163,7 +163,8 @@ typedef enum {
   PBVH_UpdateTopology = 1 << 13,
   PBVH_UpdateColor = 1 << 14,
   PBVH_RebuildPixels = 1 << 15,
-  PBVH_TopologyUpdated = 1 << 16, /* Used internally by pbvh_bmesh.c */
+  PBVH_TexLeaf = 1 << 16,
+  PBVH_TopologyUpdated = 1 << 17, /* Used internally by pbvh_bmesh.c */
 
 } PBVHNodeFlags;
 
@@ -337,7 +338,12 @@ void BKE_pbvh_search_callback(PBVH *pbvh,
 
 void BKE_pbvh_search_gather(
     PBVH *pbvh, BKE_pbvh_SearchCallback scb, void *search_data, PBVHNode ***array, int *tot);
-
+void BKE_pbvh_search_gather_ex(PBVH *pbvh,
+                               BKE_pbvh_SearchCallback scb,
+                               void *search_data,
+                               PBVHNode ***r_array,
+                               int *r_tot,
+                               PBVHNodeFlags leaf_flag);
 /* Ray-cast
  * the hit callback is called for all leaf nodes intersecting the ray;
  * it's up to the callback to find the primitive within the leaves that is

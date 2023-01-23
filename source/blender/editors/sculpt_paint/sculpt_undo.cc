@@ -193,7 +193,7 @@ static void print_sculpt_node(Object *ob, SculptUndoNode *node)
   printf("    %s:%s {applied=%d}\n", undo_type_to_str(node->type), node->idname, node->applied);
 
   if (node->bm_entry) {
-    BM_log_print_entry(ob->sculpt ? ob->sculpt->bm : NULL, node->bm_entry);
+    BM_log_print_entry(ob->sculpt ? ob->sculpt->bm : nullptr, node->bm_entry);
   }
 }
 
@@ -2090,7 +2090,7 @@ static UndoSculpt *sculpt_undo_get_nodes(void)
 {
   UndoStack *ustack = ED_undo_stack_get();
   UndoStep *us = BKE_undosys_stack_init_or_active_with_type(ustack, BKE_UNDOSYS_TYPE_SCULPT);
-  return sculpt_undosys_step_get_nodes(us);
+  return us ? sculpt_undosys_step_get_nodes(us) : NULL;
 }
 
 /** \} */

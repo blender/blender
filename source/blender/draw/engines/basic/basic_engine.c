@@ -10,9 +10,11 @@
 
 #include "DRW_render.h"
 
+#include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
+#include "BKE_pbvh.h"
 
 #include "BLI_alloca.h"
 
@@ -218,6 +220,16 @@ static void basic_cache_populate(void *vedata, Object *ob)
       if (geom) {
         DRW_shgroup_call(shgrp, geom, ob);
       }
+    }
+
+    if (G.debug_value == 889 && ob->sculpt && ob->sculpt->pbvh) {
+      int debug_node_nr = 0;
+      DRW_debug_modelmat(ob->object_to_world);
+      BKE_pbvh_draw_debug_cb(
+          ob->sculpt->pbvh,
+          (void (*)(void *d, const float min[3], const float max[3], PBVHNodeFlags f))
+              DRW_sculpt_debug_cb,
+          &debug_node_nr);
     }
   }
 }

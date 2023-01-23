@@ -150,6 +150,8 @@ struct PBVH {
   int faces_num; /* Do not use directly, use BKE_pbvh_num_faces. */
 
   int leaf_limit;
+  int pixel_leaf_limit;
+  int depth_limit;
 
   /* Mesh data */
   struct Mesh *mesh;

@@ -200,6 +200,10 @@ struct NodeData {
   {
     undo_regions.clear();
     for (UDIMTilePixels &tile : tiles) {
+      if (tile.pixel_rows.size() == 0) {
+        continue;
+      }
+
       rcti region;
       BLI_rcti_init_minmax(&region);
       for (PackedPixelRow &pixel_row : tile.pixel_rows) {

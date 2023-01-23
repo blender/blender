@@ -1789,7 +1789,9 @@ void SCULPT_do_paint_brush(struct PaintModeSettings *paint_mode_settings,
                            Sculpt *sd,
                            Object *ob,
                            PBVHNode **nodes,
-                           int totnode) ATTR_NONNULL();
+                           int totnode,
+                           PBVHNode **texnodes,
+                           int texnodes_num) ATTR_NONNULL();
 
 /**
  * \brief Get the image canvas for painting on the given object.
@@ -1806,7 +1808,9 @@ void SCULPT_do_paint_brush_image(struct PaintModeSettings *paint_mode_settings,
                                  Sculpt *sd,
                                  Object *ob,
                                  PBVHNode **nodes,
-                                 int totnode) ATTR_NONNULL();
+                                 int totnode,
+                                 PBVHNode **texnodes,
+                                 int texnode_num) ATTR_NONNULL();
 bool SCULPT_use_image_paint_brush(struct PaintModeSettings *settings, Object *ob) ATTR_NONNULL();
 
 /* Smear Brush. */
