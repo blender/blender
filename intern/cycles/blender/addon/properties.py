@@ -1680,10 +1680,10 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 import sys
                 if sys.platform.startswith("win"):
                     col.label(text="Requires Intel GPU with Xe-HPG architecture", icon='BLANK1')
-                    col.label(text="and Windows driver version 101.3430 or newer", icon='BLANK1')
+                    col.label(text="and Windows driver version 101.4032 or newer", icon='BLANK1')
                 elif sys.platform.startswith("linux"):
                     col.label(text="Requires Intel GPU with Xe-HPG architecture and", icon='BLANK1')
-                    col.label(text="  - intel-level-zero-gpu version 1.3.23904 or newer", icon='BLANK1')
+                    col.label(text="  - intel-level-zero-gpu version 1.3.24931 or newer", icon='BLANK1')
                     col.label(text="  - oneAPI Level-Zero Loader", icon='BLANK1')
             elif device_type == 'METAL':
                 col.label(text="Requires Apple Silicon with macOS 12.2 or newer", icon='BLANK1')
