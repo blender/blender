@@ -46,7 +46,7 @@ ccl_device_inline void microfacet_beckmann_sample_slopes(KernelGlobals kg,
                                                          float randv,
                                                          ccl_private float *slope_x,
                                                          ccl_private float *slope_y,
-                                                         ccl_private float *G1i)
+                                                         ccl_private float *lambda_i)
 {
   /* Special case (normal incidence). */
   if (cos_theta_i >= 0.99999f) {
@@ -54,7 +54,7 @@ ccl_device_inline void microfacet_beckmann_sample_slopes(KernelGlobals kg,
     const float phi = M_2PI_F * randv;
     *slope_x = r * cosf(phi);
     *slope_y = r * sinf(phi);
-    *G1i = 1.0f;
+    *lambda_i = 0.0f;
 
     return;
   }
@@ -67,9 +67,8 @@ ccl_device_inline void microfacet_beckmann_sample_slopes(KernelGlobals kg,
   const float exp_a2 = expf(-cot_theta_i * cot_theta_i);
   const float SQRT_PI_INV = 0.56418958354f;
   const float Lambda = 0.5f * (erf_a - 1.0f) + (0.5f * SQRT_PI_INV) * (exp_a2 * inv_a);
-  const float G1 = 1.0f / (1.0f + Lambda); /* masking */
 
-  *G1i = G1;
+  *lambda_i = Lambda;
 
   /* Based on paper from Wenzel Jakob
    * An Improved Visible Normal Sampling Routine for the Beckmann Distribution
@@ -132,7 +131,7 @@ ccl_device_inline void microfacet_ggx_sample_slopes(const float cos_theta_i,
                                                     float randv,
                                                     ccl_private float *slope_x,
                                                     ccl_private float *slope_y,
-                                                    ccl_private float *G1i)
+                                                    ccl_private float *lambda_i)
 {
   /* Special case (normal incidence). */
   if (cos_theta_i >= 0.99999f) {
@@ -140,7 +139,7 @@ ccl_device_inline void microfacet_ggx_sample_slopes(const float cos_theta_i,
     const float phi = M_2PI_F * randv;
     *slope_x = r * cosf(phi);
     *slope_y = r * sinf(phi);
-    *G1i = 1.0f;
+    *lambda_i = 0.0f;
 
     return;
   }
@@ -149,7 +148,7 @@ ccl_device_inline void microfacet_ggx_sample_slopes(const float cos_theta_i,
   const float tan_theta_i = sin_theta_i / cos_theta_i;
   const float G1_inv = 0.5f * (1.0f + safe_sqrtf(1.0f + tan_theta_i * tan_theta_i));
 
-  *G1i = 1.0f / G1_inv;
+  *lambda_i = G1_inv - 1.0f;
 
   /* Sample slope_x. */
   const float A = 2.0f * randu * G1_inv - 1.0f;
@@ -186,7 +185,7 @@ ccl_device_forceinline float3 microfacet_sample_stretched(KernelGlobals kg,
                                                           const float alpha_y,
                                                           const float randu,
                                                           const float randv,
-                                                          ccl_private float *G1i)
+                                                          ccl_private float *lambda_i)
 {
   /* 1. stretch wi */
   float3 wi_ = make_float3(alpha_x * wi.x, alpha_y * wi.y, wi.z);
@@ -212,10 +211,10 @@ ccl_device_forceinline float3 microfacet_sample_stretched(KernelGlobals kg,
 
   if (m_type == MicrofacetType::BECKMANN) {
     microfacet_beckmann_sample_slopes(
-        kg, costheta_, sintheta_, randu, randv, &slope_x, &slope_y, G1i);
+        kg, costheta_, sintheta_, randu, randv, &slope_x, &slope_y, lambda_i);
   }
   else {
-    microfacet_ggx_sample_slopes(costheta_, sintheta_, randu, randv, &slope_x, &slope_y, G1i);
+    microfacet_ggx_sample_slopes(costheta_, sintheta_, randu, randv, &slope_x, &slope_y, lambda_i);
   }
 
   /* 3. rotate */
@@ -271,37 +270,48 @@ ccl_device_forceinline float bsdf_clearcoat_D(float alpha2, float cos_NH)
   return (alpha2 - 1.0f) / (M_PI_F * logf(alpha2) * t);
 }
 
-/* Monodirectional shadowing-masking term. */
+/* Smith shadowing-masking term, here in the non-separable form.
+ * For details, see:
+ * Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs.
+ * Eric Heitz, JCGT Vol. 3, No. 2, 2014.
+ * https://jcgt.org/published/0003/02/03/ */
 template<MicrofacetType m_type>
-ccl_device_inline float bsdf_G1_from_sqr_alpha_tan_n(float sqr_alpha_tan_n)
+ccl_device_inline float bsdf_lambda_from_sqr_alpha_tan_n(float sqr_alpha_tan_n)
 {
   if (m_type == MicrofacetType::GGX) {
-    return 2.0f / (1.0f + sqrtf(1.0f + sqr_alpha_tan_n));
+    /* Equation 72. */
+    return 0.5f * (sqrtf(1.0f + sqr_alpha_tan_n) - 1.0f);
   }
   else {
-    /* m_type == MicrofacetType::BECKMANN */
+    /* m_type == MicrofacetType::BECKMANN
+     * Approximation from below Equation 69. */
+    if (sqr_alpha_tan_n < 0.39f) {
+      /* Equivalent to a >= 1.6f, but also handles sqr_alpha_tan_n == 0.0f cleanly. */
+      return 0.0f;
+    }
+
     const float a = inversesqrtf(sqr_alpha_tan_n);
-    return (a > 1.6f) ? 1.0f : ((2.181f * a + 3.535f) * a) / ((2.577f * a + 2.276f) * a + 1.0f);
+    return ((0.396f * a - 1.259f) * a + 1.0f) / ((2.181f * a + 3.535f) * a);
   }
 }
 
-template<MicrofacetType m_type> ccl_device_inline float bsdf_G1(float alpha2, float cos_N)
+template<MicrofacetType m_type> ccl_device_inline float bsdf_lambda(float alpha2, float cos_N)
 {
-  return bsdf_G1_from_sqr_alpha_tan_n<m_type>(alpha2 * fmaxf(1.0f / (cos_N * cos_N) - 1.0f, 0.0f));
+  return bsdf_lambda_from_sqr_alpha_tan_n<m_type>(alpha2 * fmaxf(1.0f / sqr(cos_N) - 1.0f, 0.0f));
 }
 
 template<MicrofacetType m_type>
-ccl_device_inline float bsdf_aniso_G1(float alpha_x, float alpha_y, float3 V)
+ccl_device_inline float bsdf_aniso_lambda(float alpha_x, float alpha_y, float3 V)
 {
-  return bsdf_G1_from_sqr_alpha_tan_n<m_type>((sqr(alpha_x * V.x) + sqr(alpha_y * V.y)) /
-                                              sqr(V.z));
+  const float sqr_alpha_tan_n = (sqr(alpha_x * V.x) + sqr(alpha_y * V.y)) / sqr(V.z);
+  return bsdf_lambda_from_sqr_alpha_tan_n<m_type>(sqr_alpha_tan_n);
 }
 
-/* Smith's separable shadowing-masking term. */
+/* Combined shadowing-masking term. */
 template<MicrofacetType m_type>
 ccl_device_inline float bsdf_G(float alpha2, float cos_NI, float cos_NO)
 {
-  return bsdf_G1<m_type>(alpha2, cos_NI) * bsdf_G1<m_type>(alpha2, cos_NO);
+  return 1.0f / (1.0f + bsdf_lambda<m_type>(alpha2, cos_NI) + bsdf_lambda<m_type>(alpha2, cos_NO));
 }
 
 /* Normal distribution function. */
@@ -382,7 +392,7 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
   H *= inv_len_H;
 
   const float cos_NH = dot(N, H);
-  float D, G1i, G1o;
+  float D, lambdaI, lambdaO;
 
   /* TODO: add support for anisotropic transmission. */
   if (alpha_x == alpha_y || m_refractive) { /* Isotropic. */
@@ -399,8 +409,8 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
       D = bsdf_D<m_type>(alpha2, cos_NH);
     }
 
-    G1i = bsdf_G1<m_type>(alpha2, cos_NI);
-    G1o = bsdf_G1<m_type>(alpha2, cos_NO);
+    lambdaI = bsdf_lambda<m_type>(alpha2, cos_NI);
+    lambdaO = bsdf_lambda<m_type>(alpha2, cos_NO);
   }
   else { /* Anisotropic. */
     float3 X, Y;
@@ -412,20 +422,20 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
 
     D = bsdf_aniso_D<m_type>(alpha_x, alpha_y, local_H);
 
-    G1i = bsdf_aniso_G1<m_type>(alpha_x, alpha_y, local_I);
-    G1o = bsdf_aniso_G1<m_type>(alpha_x, alpha_y, local_O);
+    lambdaI = bsdf_aniso_lambda<m_type>(alpha_x, alpha_y, local_I);
+    lambdaO = bsdf_aniso_lambda<m_type>(alpha_x, alpha_y, local_O);
   }
 
-  const float common = G1i * D / cos_NI *
+  const float common = D / cos_NI *
                        (m_refractive ?
                             sqr(bsdf->ior * inv_len_H) * fabsf(dot(H, wi) * dot(H, wo)) :
                             0.25f);
 
-  *pdf = common;
+  *pdf = common / (1.0f + lambdaI);
 
   const Spectrum F = m_refractive ? one_spectrum() : reflection_color(bsdf, wo, H);
 
-  return F * G1o * common;
+  return F * common / (1.0f + lambdaO + lambdaI);
 }
 
 template<MicrofacetType m_type>
@@ -466,10 +476,10 @@ ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
 
   /* Importance sampling with distribution of visible normals. Vectors are transformed to local
    * space before and after sampling. */
-  float G1i;
+  float lambdaI;
   const float3 local_I = make_float3(dot(X, wi), dot(Y, wi), cos_NI);
   const float3 local_H = microfacet_sample_stretched<m_type>(
-      kg, local_I, alpha_x, alpha_y, randu, randv, &G1i);
+      kg, local_I, alpha_x, alpha_y, randu, randv, &lambdaI);
 
   const float3 H = X * local_H.x + Y * local_H.y + N * local_H.z;
   const float cos_NH = local_H.z;
@@ -514,7 +524,7 @@ ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
   else {
     label |= LABEL_GLOSSY;
     float cos_NO = dot(N, *wo);
-    float D, G1o;
+    float D, lambdaO;
 
     /* TODO: add support for anisotropic transmission. */
     if (alpha_x == alpha_y || m_refractive) { /* Isotropic. */
@@ -527,33 +537,33 @@ ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
          * => alpha2 = 0.25 * 0.25 */
         alpha2 = 0.0625f;
 
-        /* Recalculate G1i. */
-        G1i = bsdf_G1<m_type>(alpha2, cos_NI);
+        /* Recalculate lambdaI. */
+        lambdaI = bsdf_lambda<m_type>(alpha2, cos_NI);
       }
       else {
         D = bsdf_D<m_type>(alpha2, cos_NH);
       }
 
-      G1o = bsdf_G1<m_type>(alpha2, cos_NO);
+      lambdaO = bsdf_lambda<m_type>(alpha2, cos_NO);
     }
     else { /* Anisotropic. */
       const float3 local_O = make_float3(dot(X, *wo), dot(Y, *wo), cos_NO);
 
       D = bsdf_aniso_D<m_type>(alpha_x, alpha_y, local_H);
 
-      G1o = bsdf_aniso_G1<m_type>(alpha_x, alpha_y, local_O);
+      lambdaO = bsdf_aniso_lambda<m_type>(alpha_x, alpha_y, local_O);
     }
 
     const float cos_HO = dot(H, *wo);
-    const float common = G1i * D / cos_NI *
+    const float common = D / cos_NI *
                          (m_refractive ? fabsf(cos_HI * cos_HO) / sqr(cos_HO + cos_HI / m_eta) :
                                          0.25f);
 
-    *pdf = common;
+    *pdf = common / (1.0f + lambdaI);
 
     Spectrum F = m_refractive ? one_spectrum() : reflection_color(bsdf, *wo, H);
 
-    *eval = G1o * common * F;
+    *eval = F * common / (1.0f + lambdaI + lambdaO);
   }
 
   *sampled_roughness = make_float2(alpha_x, alpha_y);
