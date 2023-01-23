@@ -8,6 +8,8 @@
 #include "mtl_debug.hh"
 #include "mtl_framebuffer.hh"
 
+#include "intern/GHOST_ContextCGL.h"
+
 #include <fstream>
 
 using namespace blender;
@@ -45,9 +47,15 @@ id<MTLCommandBuffer> MTLCommandBufferManager::ensure_begin()
   if (active_command_buffer_ == nil) {
 
     /* Verify number of active command buffers is below limit.
-     * Exceeding this limit will mean we either have a leak/GPU hang
-     * or we should increase the command buffer limit during MTLQueue creation */
-    BLI_assert(MTLCommandBufferManager::num_active_cmd_bufs < MTL_MAX_COMMAND_BUFFERS);
+     * Exceeding this limit will mean we either have a command buffer leak/GPU hang
+     * or we should increase the command buffer limit during MTLQueue creation.
+     * Excessive command buffers can also be caused by frequent GPUContext switches, which cause
+     * the GPU pipeline to flush. This is common during indirect light baking operations.
+     *
+     * NOTE: We currently stall until completion of GPU work upon ::submit if we have reached the
+     * in-flight command buffer limit. */
+    BLI_assert(MTLCommandBufferManager::num_active_cmd_bufs <
+               GHOST_ContextCGL::max_command_buffer_count);
 
     if (G.debug & G_DEBUG_GPU) {
       /* Debug: Enable Advanced Errors for GPU work execution. */
@@ -136,6 +144,19 @@ bool MTLCommandBufferManager::submit(bool wait)
 
   /* Submit command buffer to GPU. */
   [active_command_buffer_ commit];
+
+  /* If we have too many active command buffers in flight, wait until completed to avoid running
+   * out. We can increase */
+  if (MTLCommandBufferManager::num_active_cmd_bufs >=
+      (GHOST_ContextCGL::max_command_buffer_count - 1)) {
+    wait = true;
+    MTL_LOG_WARNING(
+        "Maximum number of command buffers in flight. Host will wait until GPU work has "
+        "completed. Consider increasing GHOST_ContextCGL::max_command_buffer_count or reducing "
+        "work fragmentation to better utilise system hardware. Command buffers are flushed upon "
+        "GPUContext switches, this is the most common cause of excessive command buffer "
+        "generation.\n");
+  }
 
   if (wait || (G.debug & G_DEBUG_GPU)) {
     /* Wait until current GPU work has finished executing. */
