@@ -1842,16 +1842,16 @@ void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len
     uvedit_unwrap_multi(scene, objects, objects_len, &options, nullptr);
 
     UVPackIsland_Params pack_island_params{};
-    pack_island_params.rotate = true,
-    pack_island_params.only_selected_uvs = options.only_selected_uvs,
-    pack_island_params.only_selected_faces = options.only_selected_faces,
+    pack_island_params.rotate = true;
+    pack_island_params.only_selected_uvs = options.only_selected_uvs;
+    pack_island_params.only_selected_faces = options.only_selected_faces;
     pack_island_params.use_seams = !options.topology_from_uvs ||
-                                   options.topology_from_uvs_use_seams,
-    pack_island_params.correct_aspect = options.correct_aspect,
-    pack_island_params.ignore_pinned = true,
-    pack_island_params.pin_unselected = options.pin_unselected,
-    pack_island_params.margin_method = ED_UVPACK_MARGIN_SCALED,
-    pack_island_params.margin = scene->toolsettings->uvcalc_margin,
+                                   options.topology_from_uvs_use_seams;
+    pack_island_params.correct_aspect = options.correct_aspect;
+    pack_island_params.ignore_pinned = true;
+    pack_island_params.pin_unselected = options.pin_unselected;
+    pack_island_params.margin_method = ED_UVPACK_MARGIN_SCALED;
+    pack_island_params.margin = scene->toolsettings->uvcalc_margin;
 
     ED_uvedit_pack_islands_multi(
         scene, objects, objects_len, nullptr, nullptr, &pack_island_params);

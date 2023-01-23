@@ -1489,7 +1489,7 @@ void BKE_volume_grid_transform_matrix_set(const Volume *volume,
   grid->setTransform(std::make_shared<openvdb::math::Transform>(
       std::make_shared<openvdb::math::AffineMap>(mat_openvdb)));
 #else
-  UNUSED_VARS(volume_grid, mat);
+  UNUSED_VARS(volume, volume_grid, mat);
 #endif
 }
 

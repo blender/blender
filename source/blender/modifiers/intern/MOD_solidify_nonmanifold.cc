@@ -1267,15 +1267,18 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                       memcpy(edges, g.edges, uint(first_split) * sizeof(*edges));
 
                       EdgeGroup edge_group_a{};
-                      edge_group_a.valid = true, edge_group_a.edges = edges,
-                      edge_group_a.edges_len = uint(first_split),
-                      edge_group_a.open_face_edge = MOD_SOLIDIFY_EMPTY_TAG,
-                      edge_group_a.is_orig_closed = g.is_orig_closed,
-                      edge_group_a.is_even_split = first_even_split, edge_group_a.split = 1,
-                      edge_group_a.is_singularity = false, edge_group_a.topo_group = g.topo_group,
+                      edge_group_a.valid = true;
+                      edge_group_a.edges = edges;
+                      edge_group_a.edges_len = uint(first_split);
+                      edge_group_a.open_face_edge = MOD_SOLIDIFY_EMPTY_TAG;
+                      edge_group_a.is_orig_closed = g.is_orig_closed;
+                      edge_group_a.is_even_split = first_even_split;
+                      edge_group_a.split = 1;
+                      edge_group_a.is_singularity = false;
+                      edge_group_a.topo_group = g.topo_group;
                       zero_v3(edge_group_a.co);
                       zero_v3(edge_group_a.no);
-                      edge_group_a.new_vert = MOD_SOLIDIFY_EMPTY_TAG,
+                      edge_group_a.new_vert = MOD_SOLIDIFY_EMPTY_TAG;
                       edge_groups[j + prior_index] = edge_group_a;
 
                       add_index++;
