@@ -1049,12 +1049,10 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 #endif
 
   /* Set MSL source NSString's. Required by Metal API. */
-  NSString *msl_final_vert = [NSString stringWithCString:ss_vertex.str().c_str()
-                                                encoding:[NSString defaultCStringEncoding]];
+  NSString *msl_final_vert = [NSString stringWithUTF8String:ss_vertex.str().c_str()];
   NSString *msl_final_frag = (msl_iface.uses_transform_feedback) ?
                                  (@"") :
-                                 ([NSString stringWithCString:ss_fragment.str().c_str()
-                                                     encoding:[NSString defaultCStringEncoding]]);
+                                 ([NSString stringWithUTF8String:ss_fragment.str().c_str()]);
 
   this->shader_source_from_msl(msl_final_vert, msl_final_frag);
   shader_debug_printf("[METAL] BSL Converted into MSL\n");
