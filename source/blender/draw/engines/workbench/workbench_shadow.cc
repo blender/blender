@@ -131,9 +131,12 @@ void ShadowPass::ShadowView::setup(View &view, float3 light_direction, bool forc
       float4 extruded_face = float4(UNPACK3(normal), math::dot(normal, corner_a));
 
       /* Ensure the plane faces outwards */
+      bool flipped = false;
       for (float3 corner : frustum_corners.vec) {
         if (math::dot(float3(extruded_face), corner) > (extruded_face.w + 0.1)) {
           BLI_assert(!flipped);
+          UNUSED_VARS_NDEBUG(flipped);
+          flipped = true;
           extruded_face *= -1;
         }
       }
