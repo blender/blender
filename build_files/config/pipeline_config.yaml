@@ -43,6 +43,10 @@ update-code:
             branch: trunk
             commit_id: HEAD
             path: lib/benchmarks
+        assets:
+            branch: trunk
+            commit_id: HEAD
+            path: lib/assets
 
 #
 # Buildbot only configs
