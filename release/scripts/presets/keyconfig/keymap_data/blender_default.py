@@ -11,7 +11,7 @@ __all__ = (
 # - This script should run without Blender (no references to the `bpy` module for example).
 # - All configuration must be passed into the `generate_keymaps` function (via `Params`).
 # - Supporting some combinations of options is becoming increasingly complex,
-#   especially `Params.select_mouse` & `Params.use_fallback_tool_rmb`.
+#   especially `Params.select_mouse` & `Params.use_fallback_tool`.
 #   To ensure changes don't unintentionally break other configurations, see:
 #   `source/tools/utils/blender_keyconfig_export_permutations.py --help`
 #
@@ -52,8 +52,6 @@ class Params:
         "use_gizmo_drag",
         # Use the fallback tool instead of tweak for RMB select.
         "use_fallback_tool",
-        # Only set for RMB select.
-        "use_fallback_tool_rmb",
         # Use pie menu for tab by default (swap 'Tab/Ctrl-Tab').
         "use_v3d_tab_menu",
         # Use extended pie menu for shading.
@@ -78,9 +76,9 @@ class Params:
         # (derived from other settings).
         #
         # The fallback tool is activated on the same button as selection.
-        # Shorthand for: `(True if (select_mouse == 'LEFT') else self.use_fallback_tool_rmb)`
+        # Shorthand for: `(True if (select_mouse == 'LEFT') else self.use_fallback_tool)`
         "use_fallback_tool_select_mouse",
-        # Shorthand for: `('CLICK' if self.use_fallback_tool_rmb else self.select_mouse_value)`.
+        # Shorthand for: `('CLICK' if self.use_fallback_tool and select_mouse == 'RIGHT' else self.select_mouse_value)`.
         "select_mouse_value_fallback",
         # Shorthand for: `{"type": params.select_mouse, "value": 'CLICK_DRAG'}`.
         "select_tweak_event",
@@ -110,7 +108,6 @@ class Params:
             use_select_all_toggle=False,
             use_gizmo_drag=True,
             use_fallback_tool=False,
-            use_fallback_tool_rmb=False,
             use_tweak_select_passthrough=False,
             use_tweak_tool_lmb_interaction=False,
             use_v3d_tab_menu=False,
@@ -202,11 +199,12 @@ class Params:
         self.use_tweak_select_passthrough = use_tweak_select_passthrough
 
         self.use_fallback_tool = use_fallback_tool
-        self.use_fallback_tool_rmb = use_fallback_tool_rmb
 
         # Convenience variables:
-        self.use_fallback_tool_select_mouse = True if (select_mouse == 'LEFT') else self.use_fallback_tool_rmb
-        self.select_mouse_value_fallback = 'CLICK' if self.use_fallback_tool_rmb else self.select_mouse_value
+        self.use_fallback_tool_select_mouse = True if (select_mouse == 'LEFT') else self.use_fallback_tool
+        self.select_mouse_value_fallback = (
+            'CLICK' if (self.use_fallback_tool and select_mouse == 'RIGHT') else self.select_mouse_value
+        )
         self.select_tweak_event = {"type": self.select_mouse, "value": 'CLICK_DRAG'}
         self.pie_value = 'CLICK_DRAG' if use_pie_click_drag else 'PRESS'
         self.tool_tweak_event = {"type": self.tool_mouse, "value": 'CLICK_DRAG'}
@@ -4720,7 +4718,7 @@ def _template_paint_radial_control(paint, rotation=False, secondary_rotation=Fal
 
 def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_mod=None):
     # NOTE: `exclude_mod` is needed since we don't want this tool to exclude Control-RMB actions when this is used
-    # as a tool key-map with RMB-select and `use_fallback_tool_rmb` is enabled. See T92467.
+    # as a tool key-map with RMB-select and `use_fallback_tool` is enabled with RMB select. See T92467.
 
     props_vert_without_handles = ()
     if select_passthrough:
@@ -6501,11 +6499,12 @@ def km_image_editor_tool_uv_select(params, *, fallback):
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "uv.select", "uv.cursor_set", fallback=fallback)),
-            *([] if (not params.use_fallback_tool_rmb) else _template_uv_select(
-                type=params.select_mouse,
-                value=params.select_mouse_value,
-                select_passthrough=params.use_tweak_select_passthrough,
-                legacy=params.legacy,
+            *([] if (not (params.use_fallback_tool and params.select_mouse == 'RIGHTMOUSE')) else
+              _template_uv_select(
+                  type=params.select_mouse,
+                  value=params.select_mouse_value,
+                  select_passthrough=params.use_tweak_select_passthrough,
+                  legacy=params.legacy,
             )),
         ]},
     )
@@ -6720,12 +6719,13 @@ def km_3d_view_tool_select(params, *, fallback):
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "view3d.select", "view3d.cursor3d", operator_props=operator_props, fallback=fallback)),
-            *([] if (not params.use_fallback_tool_rmb) else _template_view3d_select(
-                type=params.select_mouse,
-                value=params.select_mouse_value,
-                legacy=params.legacy,
-                select_passthrough=params.use_tweak_select_passthrough,
-                exclude_mod="ctrl",
+            *([] if (not (params.use_fallback_tool and params.select_mouse == 'RIGHTMOUSE')) else
+              _template_view3d_select(
+                  type=params.select_mouse,
+                  value=params.select_mouse_value,
+                  legacy=params.legacy,
+                  select_passthrough=params.use_tweak_select_passthrough,
+                  exclude_mod="ctrl",
             )),
         ]},
     )
@@ -7664,8 +7664,12 @@ def km_3d_view_tool_edit_gpencil_select(params, *, fallback):
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "gpencil.select", "view3d.cursor3d", fallback=fallback)),
-            *([] if (not params.use_fallback_tool_rmb) else _template_view3d_gpencil_select(
-                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+            *([] if (not (params.use_fallback_tool and params.select_mouse == 'RIGHTMOUSE')) else
+              _template_view3d_gpencil_select(
+                  type=params.select_mouse,
+                  value=params.select_mouse_value,
+                  legacy=params.legacy,
+            )),
         ]},
     )
 
@@ -7843,8 +7847,9 @@ def km_sequencer_editor_tool_generic_select(params, *, fallback):
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "sequencer.select", "sequencer.cursor_set", cursor_prioritize=True, fallback=fallback)),
 
-            *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_preview_select(
-                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+            *([] if (not (params.use_fallback_tool and params.select_mouse == 'RIGHTMOUSE')) else
+              _template_sequencer_preview_select(
+                  type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
             # Ignored for preview.
             *_template_items_change_frame(params),
         ]},
