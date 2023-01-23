@@ -358,6 +358,9 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
       supportsFamily:MTLGPUFamilyMacCatalyst1];
   MTLBackend::capabilities.supports_family_mac_catalyst2 = [device
       supportsFamily:MTLGPUFamilyMacCatalyst2];
+  /* NOTE(Metal): Texture gather is supported on AMD, but results are non consistent
+   * with Apple Silicon GPUs. Disabling for now to avoid erroneous rendering. */
+  MTLBackend::capabilities.supports_texture_gather = [device hasUnifiedMemory];
 
   /* Common Global Capabilities. */
   GCaps.max_texture_size = ([device supportsFamily:MTLGPUFamilyApple3] ||

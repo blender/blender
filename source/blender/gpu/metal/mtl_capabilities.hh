@@ -36,6 +36,7 @@ struct MTLCapabilities {
   bool supports_memory_barriers = false;
   bool supports_sampler_border_color = false;
   bool supports_argument_buffers_tier2 = false;
+  bool supports_texture_gather = false;
 
   /* GPU Family */
   bool supports_family_mac1 = false;
