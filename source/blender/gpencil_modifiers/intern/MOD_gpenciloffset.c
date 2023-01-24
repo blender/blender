@@ -285,7 +285,7 @@ static void random_panel_draw(const bContext *UNUSED(C), Panel *panel)
       break;
     case GP_OFFSET_LAYER:
       uiItemR(layout, ptr, "stroke_step", 0, IFACE_("Layer Step"), ICON_NONE);
-      uiItemR(layout, ptr, "stroke_start_offset", 0, IFACE_("Layer Offset"), ICON_NONE);
+      uiItemR(layout, ptr, "stroke_start_offset", 0, IFACE_("Offset"), ICON_NONE);
       break;
   }
   gpencil_modifier_panel_end(layout, ptr);
