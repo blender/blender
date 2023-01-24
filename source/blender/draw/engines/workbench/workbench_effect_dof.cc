@@ -53,6 +53,15 @@ static void square_to_circle(float x, float y, float &r, float &T)
   }
 }
 
+DofPass::~DofPass()
+{
+  DRW_SHADER_FREE_SAFE(prepare_sh_);
+  DRW_SHADER_FREE_SAFE(downsample_sh_);
+  DRW_SHADER_FREE_SAFE(blur1_sh_);
+  DRW_SHADER_FREE_SAFE(blur2_sh_);
+  DRW_SHADER_FREE_SAFE(resolve_sh_);
+}
+
 void DofPass::setup_samples()
 {
   float4 *sample = samples_buf_.begin();

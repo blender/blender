@@ -245,6 +245,11 @@ bool OpaquePass::is_empty() const
 /** \name TransparentPass
  * \{ */
 
+TransparentPass::~TransparentPass()
+{
+  DRW_SHADER_FREE_SAFE(resolve_sh_);
+}
+
 void TransparentPass::sync(const SceneState &scene_state, SceneResources &resources)
 {
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_OIT |
@@ -323,6 +328,11 @@ bool TransparentPass::is_empty() const
 /* -------------------------------------------------------------------- */
 /** \name TransparentDepthPass
  * \{ */
+
+TransparentDepthPass::~TransparentDepthPass()
+{
+  DRW_SHADER_FREE_SAFE(merge_sh_);
+}
 
 void TransparentDepthPass::sync(const SceneState &scene_state, SceneResources &resources)
 {

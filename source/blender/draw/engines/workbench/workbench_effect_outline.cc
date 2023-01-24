@@ -12,6 +12,11 @@
 
 namespace blender::workbench {
 
+OutlinePass::~OutlinePass()
+{
+  DRW_SHADER_FREE_SAFE(sh_);
+}
+
 void OutlinePass::init(const SceneState &scene_state)
 {
   enabled_ = scene_state.draw_outline;

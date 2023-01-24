@@ -226,6 +226,8 @@ class TransparentPass {
   PassSimple resolve_ps_ = {"Transparent.Resolve"};
   Framebuffer resolve_fb = {};
 
+  ~TransparentPass();
+
   void sync(const SceneState &scene_state, SceneResources &resources);
   void draw(Manager &manager, View &view, SceneResources &resources, int2 resolution);
   bool is_empty() const;
@@ -242,6 +244,8 @@ class TransparentDepthPass {
   Framebuffer in_front_fb = {"TransparentDepth.InFront"};
   PassSimple merge_ps_ = {"TransparentDepth.Merge"};
   Framebuffer merge_fb = {"TransparentDepth.Merge"};
+
+  ~TransparentDepthPass();
 
   void sync(const SceneState &scene_state, SceneResources &resources);
   void draw(Manager &manager, View &view, SceneResources &resources);
@@ -261,12 +265,16 @@ class ShadowPass {
     VisibilityBuf pass_visibility_buf_ = {};
     VisibilityBuf fail_visibility_buf_ = {};
 
+    GPUShader *dynamic_pass_type_shader_;
+    GPUShader *static_pass_type_shader_;
+
    public:
+    ShadowView();
+    ~ShadowView();
+
     void setup(View &view, float3 light_direction, bool force_fail_method);
     bool debug_object_culling(Object *ob);
     void set_mode(PassType type);
-
-    ShadowView();
 
    protected:
     virtual void compute_visibility(ObjectBoundsBuf &bounds,
@@ -298,6 +306,8 @@ class ShadowPass {
   Framebuffer fb_ = {};
 
  public:
+  ~ShadowPass();
+
   void init(const SceneState &scene_state, SceneResources &resources);
   void update();
   void sync();
@@ -322,6 +332,8 @@ class OutlinePass {
   Framebuffer fb_ = Framebuffer("Workbench.Outline");
 
  public:
+  ~OutlinePass();
+
   void init(const SceneState &scene_state);
   void sync(SceneResources &resources);
   void draw(Manager &manager, SceneResources &resources);
@@ -369,6 +381,8 @@ class DofPass {
   float ratio_ = 0;
 
  public:
+  ~DofPass();
+
   void init(const SceneState &scene_state);
   void sync(SceneResources &resources);
   void draw(Manager &manager, View &view, SceneResources &resources, int2 resolution);

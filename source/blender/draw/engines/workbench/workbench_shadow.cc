@@ -25,6 +25,11 @@
 namespace blender::workbench {
 
 ShadowPass::ShadowView::ShadowView() : View("ShadowPass.View"){};
+ShadowPass::ShadowView::~ShadowView()
+{
+  DRW_SHADER_FREE_SAFE(dynamic_pass_type_shader_);
+  DRW_SHADER_FREE_SAFE(static_pass_type_shader_);
+}
 
 void ShadowPass::ShadowView::setup(View &view, float3 light_direction, bool force_fail_method)
 {
@@ -237,13 +242,17 @@ void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
   if (do_visibility_) {
     /* TODO(Miguel Pozo): Use regular culling for the caps pass */
 
-    static GPUShader *dynamic_pass_type_shader = GPU_shader_create_from_info_name(
-        "workbench_next_shadow_visibility_compute_dynamic_pass_type");
-    static GPUShader *static_pass_type_shader = GPU_shader_create_from_info_name(
-        "workbench_next_shadow_visibility_compute_static_pass_type");
+    if (dynamic_pass_type_shader_ == nullptr) {
+      dynamic_pass_type_shader_ = GPU_shader_create_from_info_name(
+          "workbench_next_shadow_visibility_compute_dynamic_pass_type");
+    }
+    if (static_pass_type_shader_ == nullptr) {
+      static_pass_type_shader_ = GPU_shader_create_from_info_name(
+          "workbench_next_shadow_visibility_compute_static_pass_type");
+    }
 
-    GPUShader *shader = current_pass_type_ == ShadowPass::FORCED_FAIL ? static_pass_type_shader :
-                                                                        dynamic_pass_type_shader;
+    GPUShader *shader = current_pass_type_ == ShadowPass::FORCED_FAIL ? static_pass_type_shader_ :
+                                                                        dynamic_pass_type_shader_;
     GPU_shader_bind(shader);
     GPU_shader_uniform_1i(shader, "resource_len", resource_len);
     GPU_shader_uniform_1i(shader, "view_len", view_len_);
@@ -283,6 +292,17 @@ VisibilityBuf &ShadowPass::ShadowView::get_visibility_buffer()
       BLI_assert_unreachable();
   }
   return visibility_buf_;
+}
+
+ShadowPass::~ShadowPass()
+{
+  for (int depth_pass : IndexRange(2)) {
+    for (int manifold : IndexRange(2)) {
+      for (int cap : IndexRange(2)) {
+        DRW_SHADER_FREE_SAFE(shaders_[depth_pass][manifold][cap]);
+      }
+    }
+  }
 }
 
 PassMain::Sub *&ShadowPass::get_pass_ptr(PassType type, bool manifold, bool cap /*= false*/)
