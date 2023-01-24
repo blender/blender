@@ -24,6 +24,7 @@ jobs:
           git config submodule.source/tools.url git://git.blender.org/blender-dev-tools.git
           git submodule update --init --recursive
           git merge upstream/master
+          git add .
           git commit -m "Gen for diff"
       - name: Generate diff
         run: |
