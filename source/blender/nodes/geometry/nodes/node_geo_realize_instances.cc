@@ -34,6 +34,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
   geometry::RealizeInstancesOptions options;
   options.keep_original_ids = legacy_behavior;
   options.realize_instance_attributes = !legacy_behavior;
