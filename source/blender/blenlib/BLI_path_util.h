@@ -516,6 +516,24 @@ int BLI_path_cmp_normalized(const char *p1, const char *p2)
 #  define ALTSEP_STR "\\"
 #endif
 
+/**
+ * Return true if the slash can be used as a separator on this platform.
+ */
+BLI_INLINE bool BLI_path_slash_is_native_compat(const char ch)
+{
+  /* On UNIX it only makes sense to treat `/` as a path separator.
+   * On WIN32 either may be used. */
+  if (ch == SEP) {
+    return true;
+  }
+#ifdef WIN32
+  if (ch == ALTSEP) {
+    return true;
+  }
+#endif
+  return false;
+}
+
 /* Parent and current dir helpers. */
 #define FILENAME_PARENT ".."
 #define FILENAME_CURRENT "."
