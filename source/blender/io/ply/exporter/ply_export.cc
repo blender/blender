@@ -24,7 +24,7 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "../intern/ply_data.hh"
+#include "ply_data.hh"
 #include "ply_export.hh"
 #include "ply_export_data.hh"
 #include "ply_export_header.hh"
@@ -48,11 +48,11 @@ void exporter_main(Main *bmain,
                    bContext *C,
                    const PLYExportParams &export_params)
 {
-  // Load mesh data into PlyData struct.
-  auto plyData = std::make_unique<PlyData>();
-  load_plydata(*plyData, C);
+  /* Load mesh data into PlyData struct. */
+  std::unique_ptr<blender::io::ply::PlyData> plyData = std::make_unique<PlyData>();
+  load_plydata(*plyData, CTX_data_ensure_evaluated_depsgraph(C), export_params);
 
-  // Get filebuffer.
+  /* Get filebuffer. */
   std::unique_ptr<FileBuffer> buffer;
 
   if (export_params.ascii_format) {
@@ -62,16 +62,19 @@ void exporter_main(Main *bmain,
     buffer = std::make_unique<FileBufferBinary>(export_params.filepath);
   }
 
-  // Generate and write header.
+  /* Generate and write header. */
   write_header(buffer, plyData, export_params);
 
-  // Generate and write vertices.
+  /* Generate and write vertices. */
   write_vertices(buffer, plyData);
 
-  // Generate and write faces.
+  /* Generate and write faces. */
   write_faces(buffer, plyData);
 
-  // Clean up.
+  /* Generate and write edges. */
+  write_edges(buffer, plyData);
+
+  /* Clean up. */
   buffer->close_file();
 }
 }  // namespace blender::io::ply

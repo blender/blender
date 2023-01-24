@@ -6,7 +6,6 @@
 
 #include <cstdio>
 
-#include "BKE_customdata.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -14,7 +13,6 @@
 #include "DNA_collection_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_fileops.hh"
 #include "BLI_math_vector.h"
 #include "BLI_memory_utils.hh"
 
@@ -23,38 +21,30 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "BKE_lib_id.h"
+#include "BKE_report.h"
 #include "intern/ply_data.hh"
 #include "ply_functions.hh"
 #include "ply_import.hh"
 #include "ply_import_ascii.hh"
 #include "ply_import_binary.hh"
+#include "ply_import_mesh.hh"
 
 namespace blender::io::ply {
 
-void ply_import_report_error(FILE *file)
+void splitstr(std::string str, Vector<std::string> &words, const StringRef &deli)
 {
-  fprintf(stderr, "PLY Importer: failed to read file");
-  if (feof(file)) {
-    fprintf(stderr, ", end of file reached.\n");
-  }
-  else if (ferror(file)) {
-    perror("Error");
-  }
-}
-
-void splitstr(std::string str, std::vector<std::string> &words, const std::string &deli)
-{
-  int pos = 0;
+  int pos;
 
   while ((pos = int(str.find(deli))) != std::string::npos) {
-    words.push_back(str.substr(0, pos));
-    str.erase(0, pos + deli.length());
+    words.append(str.substr(0, pos));
+    str.erase(0, pos + deli.size());
   }
   /* We add the final word to the vector. */
-  words.push_back(str.substr());
+  words.append(str.substr());
 }
 
-enum PlyDataTypes from_string(const std::string &input)
+enum PlyDataTypes from_string(const StringRef &input)
 {
   if (input == "uchar") {
     return PlyDataTypes::UCHAR;
@@ -83,26 +73,20 @@ enum PlyDataTypes from_string(const std::string &input)
   return PlyDataTypes::FLOAT;
 }
 
-void importer_main(bContext *C, const PLYImportParams &import_params)
+void importer_main(bContext *C, const PLYImportParams &import_params, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  importer_main(bmain, scene, view_layer, import_params);
+  importer_main(bmain, scene, view_layer, import_params, op);
 }
 
 void importer_main(Main *bmain,
                    Scene *scene,
                    ViewLayer *view_layer,
-                   const PLYImportParams &import_params)
+                   const PLYImportParams &import_params,
+                   wmOperator *op)
 {
-
-  FILE *file = BLI_fopen(import_params.filepath, "rb");
-  if (!file) {
-    fprintf(stderr, "Failed to open PLY file:'%s'.\n", import_params.filepath);
-    return;
-  }
-  BLI_SCOPED_DEFER([&]() { fclose(file); });
 
   std::string line;
   std::ifstream infile(import_params.filepath, std::ios::binary);
@@ -111,8 +95,13 @@ void importer_main(Main *bmain,
 
   while (true) {  // We break when end_header is encountered.
     safe_getline(infile, line);
+    if (header.header_size == 0 && line != "ply") {
+      fprintf(stderr, "PLY Importer: failed to read file. Invalid PLY header.\n");
+      BKE_report(op->reports, RPT_ERROR, "PLY Importer: Invalid PLY header.");
+      return;
+    }
     header.header_size++;
-    std::vector<std::string> words{};
+    Vector<std::string> words{};
     splitstr(line, words, " ");
 
     if (strcmp(words[0].c_str(), "format") == 0) {
@@ -127,6 +116,7 @@ void importer_main(Main *bmain,
       }
     }
     else if (strcmp(words[0].c_str(), "element") == 0) {
+      header.elements.append(std::make_pair(words[1], std::stoi(words[2])));
       if (strcmp(words[1].c_str(), "vertex") == 0) {
         header.vertex_count = std::stoi(words[2]);
       }
@@ -138,19 +128,25 @@ void importer_main(Main *bmain,
       }
     }
     else if (strcmp(words[0].c_str(), "property") == 0) {
-      if (strcmp(words[1].c_str(), "list") == 0) {
-        header.vertex_index_count_type = from_string(words[2]);
-        header.vertex_index_type = from_string(words[3]);
-        continue;
-      }
       std::pair<std::string, PlyDataTypes> property;
       property.first = words[2];
       property.second = from_string(words[1]);
 
-      header.properties.push_back(property);
+      while (header.properties.size() < header.elements.size()) {
+        Vector<std::pair<std::string, PlyDataTypes>> temp;
+        header.properties.append(temp);
+      }
+      header.properties[header.elements.size() - 1].append(property);
     }
     else if (words[0] == "end_header") {
       break;
+    }
+    else if ((words[0][0] >= '0' && words[0][0] <= '9') || words[0][0] == '-' || line.empty() ||
+             infile.eof()) {
+      /* A value was found before we broke out of the loop. No end_header. */
+      fprintf(stderr, "PLY Importer: failed to read file. No end_header.\n");
+      BKE_report(op->reports, RPT_ERROR, "PLY Importer: No end_header");
+      return;
     }
   }
 
@@ -160,15 +156,6 @@ void importer_main(Main *bmain,
   BLI_path_extension_replace(ob_name, FILE_MAX, "");
 
   Mesh *mesh = BKE_mesh_add(bmain, ob_name);
-  if (header.type == PlyFormatType::ASCII) {
-    mesh = import_ply_ascii(infile, &header, mesh);
-  }
-  else if (header.type == PlyFormatType::BINARY_BE) {
-    mesh = import_ply_binary(infile, &header, mesh);
-  }
-  else {
-    mesh = import_ply_binary(infile, &header, mesh);
-  }
 
   BKE_view_layer_base_deselect_all(scene, view_layer);
   LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
@@ -178,6 +165,27 @@ void importer_main(Main *bmain,
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, obj);
   BKE_view_layer_base_select_and_set_active(view_layer, base);
+
+  try {
+    PlyData *data;
+    if (header.type == PlyFormatType::ASCII) {
+      data = import_ply_ascii(infile, &header);
+    }
+    else {
+      data = import_ply_binary(infile, &header);
+    }
+
+    Mesh *temp_val = convert_ply_to_mesh(*data, mesh, import_params);
+    if (import_params.merge_verts && temp_val != mesh) {
+      BKE_mesh_nomain_to_mesh(temp_val, mesh, obj);
+    }
+    delete data;
+  }
+  catch (std::exception &e) {
+    fprintf(stderr, "PLY Importer: failed to read file. %s.\n", e.what());
+    BKE_report(op->reports, RPT_ERROR, "PLY Importer: failed to parse file.");
+    return;
+  }
 
   float global_scale = import_params.global_scale;
   if ((scene->unit.system != USER_UNIT_NONE) && import_params.use_scene_unit) {

@@ -6,9 +6,14 @@
 
 #pragma once
 
+#include "BKE_mesh.h"
+#include "BLI_math.h"
+
 #include "BKE_context.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
+#include "BLI_math.h"
 
 #include "RNA_types.h"
 
@@ -16,48 +21,43 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "../intern/ply_data.hh"
+#include "DNA_layer_types.h"
+
+#include "IO_ply.h"
+
+#include "ply_data.hh"
 
 namespace blender::io::ply {
 
-void load_plydata(PlyData &plyData, const bContext *C)
-{
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation);
+void set_world_axes_transform(Object *object, const eIOAxis forward, const eIOAxis up);
 
-  DEGObjectIterSettings deg_iter_settings{};
-  deg_iter_settings.depsgraph = depsgraph;
-  deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
-                            DEG_ITER_OBJECT_FLAG_DUPLI;
+struct UV_vertex_key {
+  float2 UV;
+  int vertex_index;
 
-  // When exporting multiple objects, vertex indices have to be offset.
-  uint32_t vertex_offset = 0;
-
-  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
-    if (object->type != OB_MESH)
-      continue;
-
-    // Vertices
-    auto mesh = BKE_mesh_new_from_object(depsgraph, object, true, true);
-    for (auto &&vertex : mesh->verts()) {
-      plyData.vertices.append(vertex.co);
-    }
-
-    // Faces
-    for (auto &&poly : mesh->polys()) {
-      auto loopSpan = mesh->loops().slice(poly.loopstart, poly.totloop);
-      Vector<uint32_t> polyVector;
-      for (auto &&loop : loopSpan) {
-        polyVector.append(uint32_t(loop.v + vertex_offset));
-      }
-
-      plyData.faces.append(polyVector);
-    }
-
-    vertex_offset = (int)plyData.vertices.size();
+  UV_vertex_key(float2 UV, int vertex_index) : UV(UV), vertex_index(vertex_index)
+  {
   }
 
-  DEG_OBJECT_ITER_END;
-}
+  bool operator==(const UV_vertex_key &r) const
+  {
+    return (UV == r.UV && vertex_index == r.vertex_index);
+  }
+};
 
+struct UV_vertex_hash {
+  std::size_t operator()(const blender::io::ply::UV_vertex_key &key) const
+  {
+    return ((std::hash<float>()(key.UV.x) ^ (std::hash<float>()(key.UV.y) << 1)) >> 1) ^
+           (std::hash<int>()(key.vertex_index) << 1);
+  }
+};
+
+std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertex_map(
+    const Mesh *mesh, const MLoopUV *mloopuv, const PLYExportParams &export_params);
+
+void load_plydata(PlyData &plyData, const bContext *C, const PLYExportParams &export_params);
+
+void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams &export_params);
 }  // namespace blender::io::ply

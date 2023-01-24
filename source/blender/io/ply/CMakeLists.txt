@@ -9,14 +9,11 @@ set(INC
   ../../blenkernel
   ../../blenlib
   ../../bmesh
-  ../../bmesh/intern
   ../../depsgraph
-  ../../editors/include
   ../../makesdna
   ../../makesrna
-  ../../nodes
   ../../windowmanager
-  ../../../../extern/fast_float
+  ../../geometry
   ../../../../extern/fmtlib/include
   ../../../../intern/guardedalloc
 )
@@ -34,6 +31,7 @@ set(SRC
     importer/ply_import_mesh.cc
     exporter/ply_export_header.cc
     exporter/ply_export_data.cc
+    exporter/ply_export_load_plydata.cc
 
 
 
@@ -64,6 +62,9 @@ blender_add_lib(bf_ply "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 if (WITH_GTESTS)
   set(TEST_SRC
           tests/io_ply_importer_test.cc
+
+          tests/io_ply_exporter_test.cc
+
   )
   set(TEST_INC
     ../../blenloader
