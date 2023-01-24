@@ -620,7 +620,7 @@ struct Fan {
     return result;
   }
 
-  void mark_already_added_segments(const MeshData &mesh_data, const UVVertex &uv_vertex)
+  void mark_already_added_segments(const UVVertex &uv_vertex)
   {
     Vector<int> mesh_primitive_indices = connecting_mesh_primitive_indices(uv_vertex);
 
@@ -908,7 +908,7 @@ static void extend_at_vert(const MeshData &mesh_data,
     return;
   }
   fan.init_uv_coordinates(mesh_data, *uv_vertex);
-  fan.mark_already_added_segments(mesh_data, *uv_vertex);
+  fan.mark_already_added_segments(*uv_vertex);
   int num_to_add = fan.count_edges_not_added();
 
   /* In 3d space everything can connected, but in uv space it may not.
