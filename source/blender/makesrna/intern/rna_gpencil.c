@@ -1275,6 +1275,11 @@ static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Select", "Point is selected for viewport editing");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
+  prop = RNA_def_property(srna, "time", PROP_FLOAT, PROP_TIME);
+  RNA_def_property_float_sdna(prop, NULL, "time");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Time", "Time relative to stroke start");
+
   /* Vertex color. */
   prop = RNA_def_property(srna, "vertex_color", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_float_sdna(prop, NULL, "vert_color");
@@ -1748,6 +1753,12 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
   prop = RNA_def_property(srna, "select_index", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "select_index");
   RNA_def_property_ui_text(prop, "Select Index", "Index of selection used for interpolation");
+
+  /* Init time */
+  prop = RNA_def_property(srna, "init_time", PROP_FLOAT, PROP_TIME);
+  RNA_def_property_float_sdna(prop, NULL, "inittime");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Init Time", "Initial time of the stroke");
 }
 
 static void rna_def_gpencil_strokes_api(BlenderRNA *brna, PropertyRNA *cprop)
