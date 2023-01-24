@@ -4,6 +4,7 @@
  * \ingroup bli
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -109,7 +110,10 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 {
   DIR *dir = opendir(dirname);
   if (UNLIKELY(dir == NULL)) {
-    printf("%s non-existent directory\n", dirname);
+    fprintf(stderr,
+            "Failed to open dir (%s): %s\n",
+            errno ? strerror(errno) : "unknown error",
+            dirname);
     return;
   }
 
@@ -172,7 +176,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
       if (tmp) {
         dir_ctx->files = (struct direntry *)tmp;
       }
-      else { /* realloc fail */
+      else { /* Reallocation may fail. */
         MEM_freeN(dir_ctx->files);
         dir_ctx->files = NULL;
       }
@@ -182,7 +186,11 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
       dir_ctx->files = (struct direntry *)MEM_mallocN(newnum * sizeof(struct direntry), __func__);
     }
 
-    if (dir_ctx->files) {
+    if (UNLIKELY(dir_ctx->files == NULL)) {
+      fprintf(stderr, "Couldn't get memory for dir: %s\n", dirname);
+      dir_ctx->files_num = 0;
+    }
+    else {
       struct dirlink *dlink = (struct dirlink *)dirbase.first;
       struct direntry *file = &dir_ctx->files[dir_ctx->files_num];
 
@@ -194,30 +202,22 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
           file->type = file->s.st_mode;
         }
         else if (FILENAME_IS_CURRPAR(file->relname)) {
-          /* Hack around for UNC paths on windows:
-           * does not support stat on '\\SERVER\foo\..', sigh... */
+          /* Unfortunately a hack around UNC paths on WIN32,
+           * which does not support `stat` on `\\SERVER\foo\..`. */
           file->type |= S_IFDIR;
         }
         dir_ctx->files_num++;
         file++;
         dlink = dlink->next;
       }
-    }
-    else {
-      printf("Couldn't get memory for dir\n");
-      exit(1);
-    }
 
-    BLI_freelist(&dirbase);
-    if (dir_ctx->files) {
       qsort(dir_ctx->files,
             dir_ctx->files_num,
             sizeof(struct direntry),
             (int (*)(const void *, const void *))direntry_cmp);
     }
-  }
-  else {
-    printf("%s empty directory\n", dirname);
+
+    BLI_freelist(&dirbase);
   }
 
   closedir(dir);
