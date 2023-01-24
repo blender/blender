@@ -18,7 +18,13 @@ jobs:
           git config --global user.email "noreply@example.com"
           git remote add upstream https://github.com/blender/blender.git
           git fetch upstream
+          git config submodule.release/scripts/addons_contrib.url git://git.blender.org/blender-addons-contrib.git
+          git config submodule.release/scripts/addons.url git://git.blender.org/blender-addons.git
+          git config submodule.release/datafiles/locale.url git://git.blender.org/blender-translations.git
+          git config submodule.source/tools.url git://git.blender.org/blender-dev-tools.git
+          git submodule update --init --recursive
           git merge upstream/master
+          git commit -m "Gen for diff"
       - name: Generate diff
         run: |
           cd $GITHUB_WORKSPACE
