@@ -74,7 +74,11 @@ class TaaSamples {
   }
 };
 
-static TaaSamples TAA_SAMPLES = TaaSamples();
+static const TaaSamples &get_taa_samples()
+{
+  static const TaaSamples taa_samples;
+  return taa_samples;
+}
 
 static float filter_blackman_harris(float x, const float width)
 {
@@ -195,23 +199,25 @@ void AntiAliasingPass::setup_view(View &view, int2 resolution)
     return;
   }
 
+  const TaaSamples &taa_samples = get_taa_samples();
+
   float2 sample_offset;
   switch (samples_len_) {
     default:
     case 5:
-      sample_offset = TAA_SAMPLES.x5[sample_];
+      sample_offset = taa_samples.x5[sample_];
       break;
     case 8:
-      sample_offset = TAA_SAMPLES.x8[sample_];
+      sample_offset = taa_samples.x8[sample_];
       break;
     case 11:
-      sample_offset = TAA_SAMPLES.x11[sample_];
+      sample_offset = taa_samples.x11[sample_];
       break;
     case 16:
-      sample_offset = TAA_SAMPLES.x16[sample_];
+      sample_offset = taa_samples.x16[sample_];
       break;
     case 32:
-      sample_offset = TAA_SAMPLES.x32[sample_];
+      sample_offset = taa_samples.x32[sample_];
       break;
   }
 
