@@ -2801,7 +2801,8 @@ static PBVHNode **sculpt_pbvh_gather_generic_intern(Object *ob,
     data.original = use_original;
     data.ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK;
     data.center = nullptr;
-    BKE_pbvh_search_gather_ex(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, r_totnode, leaf_flag);
+    BKE_pbvh_search_gather_ex(
+        ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, r_totnode, leaf_flag);
   }
   else {
     DistRayAABB_Precalc dist_ray_to_aabb_precalc;
@@ -2815,7 +2816,8 @@ static PBVHNode **sculpt_pbvh_gather_generic_intern(Object *ob,
     data.original = use_original;
     data.dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc;
     data.ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK;
-    BKE_pbvh_search_gather_ex(ss->pbvh, SCULPT_search_circle_cb, &data, &nodes, r_totnode, leaf_flag);
+    BKE_pbvh_search_gather_ex(
+        ss->pbvh, SCULPT_search_circle_cb, &data, &nodes, r_totnode, leaf_flag);
   }
   return nodes;
 }

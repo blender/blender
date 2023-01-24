@@ -26,7 +26,12 @@ class ViewLayerButtonsPanel:
 
 class VIEWLAYER_PT_layer(ViewLayerButtonsPanel, Panel):
     bl_label = "View Layer"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH','BLENDER_WORKBENCH_NEXT'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     def draw(self, context):
         layout = self.layout
@@ -93,6 +98,7 @@ class VIEWLAYER_PT_eevee_next_layer_passes_data(ViewLayerButtonsPanel, Panel):
         sub = col.column()
         sub.active = not scene.eevee.use_motion_blur
         sub.prop(view_layer, "use_pass_vector")
+
 
 class VIEWLAYER_PT_eevee_next_layer_passes_data(ViewLayerButtonsPanel, Panel):
     bl_label = "Data"

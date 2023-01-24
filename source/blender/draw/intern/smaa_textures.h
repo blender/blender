@@ -36,4 +36,3 @@ extern const unsigned char searchTexBytes[];
 #ifdef __cplusplus
 }
 #endif
-
