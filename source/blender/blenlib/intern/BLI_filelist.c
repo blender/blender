@@ -114,6 +114,16 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
     const struct dirent *fname;
     bool has_current = false, has_parent = false;
 
+    char dirname_with_slash[FILE_MAXDIR + 1];
+    size_t dirname_with_slash_len = BLI_strncpy_rlen(
+        dirname_with_slash, dirname, sizeof(dirname_with_slash) - 1);
+
+    if ((dirname_with_slash_len > 0) &&
+        (BLI_path_slash_is_native_compat(dirname_with_slash_len - 1) == false)) {
+      dirname_with_slash[dirname_with_slash_len++] = SEP;
+      dirname_with_slash[dirname_with_slash_len] = '\0';
+    }
+
     while ((fname = readdir(dir)) != NULL) {
       struct dirlink *const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
       if (dlink != NULL) {
@@ -172,9 +182,14 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
       if (dir_ctx->files) {
         struct dirlink *dlink = (struct dirlink *)dirbase.first;
         struct direntry *file = &dir_ctx->files[dir_ctx->files_num];
+
+        char fullname[PATH_MAX];
+        STRNCPY(fullname, dirname_with_slash);
+        char *fullname_name_part = fullname + dirname_with_slash_len;
+        const size_t fullname_name_part_len = sizeof(fullname) - dirname_with_slash_len;
+
         while (dlink) {
-          char fullname[PATH_MAX];
-          BLI_path_join(fullname, sizeof(fullname), dirname, dlink->name);
+          BLI_strncpy(fullname_name_part, dlink->name, fullname_name_part_len);
           memset(file, 0, sizeof(struct direntry));
           file->relname = dlink->name;
           file->path = BLI_strdup(fullname);
