@@ -3289,11 +3289,23 @@ static BHead *read_libblock(FileData *fd,
    * address and inherit recalc flags for the dependency graph. */
   ID *id_old = nullptr;
   if (fd->flags & FD_FLAGS_IS_MEMFILE) {
+    /* FIXME `read_libblock_undo_restore` currently often skips setting `id_old` even if there
+     * would be a valid matching old ID (libraries, linked data, and `IDTYPE_FLAGS_NO_MEMFILE_UNDO`
+     * id types, at least).
+     *
+     * It is unclear whether this is currently an issue:
+     *   * `r_id` is currently only requested by linking code (both independent one, and as part of
+     *     loading .blend file through `read_library_linked_ids`).
+     *   * `main->id_map` seems to always be `nullptr` in undo case at this point.
+     *
+     * So undo case does not seem to be affected by this. A future cleanup should try to remove
+     * most of this related code in the future, and instead assert that both `r_id` and
+     * `main->id_map` are `nullptr`. */
     if (read_libblock_undo_restore(fd, main, bhead, tag, &id_old)) {
       if (r_id) {
         *r_id = id_old;
       }
-      if (main->id_map != nullptr) {
+      if (main->id_map != nullptr && id_old != nullptr) {
         BKE_main_idmap_insert_id(main->id_map, id_old);
       }
 
