@@ -47,7 +47,9 @@ typedef struct BevPoint {
 typedef struct BevList {
   struct BevList *next, *prev;
   int nr, dupe_nr;
-  int poly, hole;
+  /** Cyclic when set to any value besides -1. */
+  int poly;
+  int hole;
   int charidx;
   int *segbevcount;
   float *seglen;
