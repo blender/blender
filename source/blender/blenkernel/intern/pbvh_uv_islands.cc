@@ -500,8 +500,7 @@ static std::optional<UVBorderCorner> sharpest_border_corner(UVIsland &island)
 }
 
 /** The inner edge of a fan. */
-/* TODO: InnerEdge name is incorrect as it links to an edge and primitive. */
-struct InnerEdge {
+struct FanSegment {
   const int primitive_index;
   const MLoopTri *primitive;
   /* UVs order are already applied. So `uvs[0]` matches `primitive->vertices[vert_order[0]]`. */
@@ -512,10 +511,10 @@ struct InnerEdge {
     bool found : 1;
   } flags;
 
-  InnerEdge(const MeshData &mesh_data,
-            const int primitive_index,
-            const MLoopTri *primitive,
-            int vertex)
+  FanSegment(const MeshData &mesh_data,
+             const int primitive_index,
+             const MLoopTri *primitive,
+             int vertex)
       : primitive_index(primitive_index), primitive(primitive)
   {
     flags.found = false;
@@ -559,20 +558,20 @@ struct InnerEdge {
 
 struct Fan {
   /* Blades of the fan. */
-  Vector<InnerEdge> inner_edges;
+  Vector<FanSegment> segments;
 
   struct {
     /**
      * Do all segments of the fan make a full fan, or are there parts missing. Non manifold meshes
      * can have missing parts.
      */
-    bool full : 1;
+    bool is_manifold : 1;
 
   } flags;
 
   Fan(const MeshData &mesh_data, const int vertex)
   {
-    flags.full = true;
+    flags.is_manifold = true;
     int current_edge = mesh_data.vert_to_edge_map[vertex].first();
     const int stop_primitive = mesh_data.edge_to_primitive_map[current_edge].first();
     int previous_primitive = stop_primitive;
@@ -593,7 +592,7 @@ struct Fan {
           if (edge_i == current_edge || (edge.vert1 != vertex && edge.vert2 != vertex)) {
             continue;
           }
-          inner_edges.append(InnerEdge(mesh_data, other_primitive_i, &other_looptri, vertex));
+          segments.append(FanSegment(mesh_data, other_primitive_i, &other_looptri, vertex));
           current_edge = edge_i;
           previous_primitive = other_primitive_i;
           stop = true;
@@ -601,7 +600,7 @@ struct Fan {
         }
       }
       if (stop == false) {
-        flags.full = false;
+        flags.is_manifold = false;
         break;
       }
       if (stop_primitive == previous_primitive) {
@@ -613,7 +612,7 @@ struct Fan {
   int count_edges_not_added() const
   {
     int result = 0;
-    for (const InnerEdge &fan_edge : inner_edges) {
+    for (const FanSegment &fan_edge : segments) {
       if (!fan_edge.flags.found) {
         result++;
       }
@@ -626,14 +625,14 @@ struct Fan {
     Vector<int> mesh_primitive_indices = connecting_mesh_primitive_indices(uv_vertex);
 
     /* Go over all fan edges to find if they can be found as primitive around the uv vertex. */
-    for (InnerEdge &fan_edge : inner_edges) {
+    for (FanSegment &fan_edge : segments) {
       fan_edge.flags.found = mesh_primitive_indices.contains(fan_edge.primitive_index);
     }
   }
 
   void init_uv_coordinates(const MeshData &mesh_data, UVVertex &uv_vertex)
   {
-    for (InnerEdge &fan_edge : inner_edges) {
+    for (FanSegment &fan_edge : segments) {
       int other_v = mesh_data.loops[fan_edge.primitive->tri[fan_edge.vert_order[0]]].v;
       if (other_v == uv_vertex.vertex) {
         other_v = mesh_data.loops[fan_edge.primitive->tri[fan_edge.vert_order[1]]].v;
@@ -650,9 +649,9 @@ struct Fan {
       }
     }
 
-    inner_edges.last().uvs[2] = inner_edges.first().uvs[1];
-    for (int i = 0; i < inner_edges.size() - 1; i++) {
-      inner_edges[i].uvs[2] = inner_edges[i + 1].uvs[1];
+    segments.last().uvs[2] = segments.first().uvs[1];
+    for (int i = 0; i < segments.size() - 1; i++) {
+      segments[i].uvs[2] = segments[i + 1].uvs[1];
     }
   }
 
@@ -663,8 +662,8 @@ struct Fan {
    */
   bool contains_vertex_on_outside(const MeshData &mesh_data, const int vertex_index) const
   {
-    for (const InnerEdge &inner_edge : inner_edges) {
-      int v2 = mesh_data.loops[inner_edge.primitive->tri[inner_edge.vert_order[1]]].v;
+    for (const FanSegment &segment : segments) {
+      int v2 = mesh_data.loops[segment.primitive->tri[segment.vert_order[1]]].v;
       if (vertex_index == v2) {
         return true;
       }
@@ -674,15 +673,15 @@ struct Fan {
 
 #endif
 
-  static bool is_path_valid(const Span<InnerEdge *> &path,
+  static bool is_path_valid(const Span<FanSegment *> &path,
                             const MeshData &mesh_data,
                             const int from_vertex,
                             const int to_vertex)
   {
     int current_vert = from_vertex;
-    for (InnerEdge *inner_edge : path) {
-      int v1 = mesh_data.loops[inner_edge->primitive->tri[inner_edge->vert_order[1]]].v;
-      int v2 = mesh_data.loops[inner_edge->primitive->tri[inner_edge->vert_order[2]]].v;
+    for (FanSegment *segment : path) {
+      int v1 = mesh_data.loops[segment->primitive->tri[segment->vert_order[1]]].v;
+      int v2 = mesh_data.loops[segment->primitive->tri[segment->vert_order[2]]].v;
       if (!ELEM(current_vert, v1, v2)) {
         return false;
       }
@@ -697,23 +696,22 @@ struct Fan {
    *
    * Algorithm only uses the winding order of the given fan segments.
    */
-  static Vector<InnerEdge *> path_between(const Span<InnerEdge *> edge_order,
-                                          const MeshData &mesh_data,
-                                          const int from_vertex,
-                                          const int to_vertex,
-                                          const bool reversed)
+  static Vector<FanSegment *> path_between(const Span<FanSegment *> edge_order,
+                                           const MeshData &mesh_data,
+                                           const int from_vertex,
+                                           const int to_vertex,
+                                           const bool reversed)
   {
     const int from_vert_order = 1;
     const int to_vert_order = 2;
     const int index_increment = reversed ? -1 : 1;
 
-    Vector<InnerEdge *> result;
+    Vector<FanSegment *> result;
     result.reserve(edge_order.size());
     int index = 0;
     while (true) {
-      InnerEdge *inner_edge = edge_order[index];
-      int v2 =
-          mesh_data.loops[inner_edge->primitive->tri[inner_edge->vert_order[from_vert_order]]].v;
+      FanSegment *segment = edge_order[index];
+      int v2 = mesh_data.loops[segment->primitive->tri[segment->vert_order[from_vert_order]]].v;
       if (v2 == from_vertex) {
         break;
       }
@@ -721,11 +719,10 @@ struct Fan {
     }
 
     while (true) {
-      InnerEdge *inner_edge = edge_order[index];
-      result.append(inner_edge);
+      FanSegment *segment = edge_order[index];
+      result.append(segment);
 
-      int v3 =
-          mesh_data.loops[inner_edge->primitive->tri[inner_edge->vert_order[to_vert_order]]].v;
+      int v3 = mesh_data.loops[segment->primitive->tri[segment->vert_order[to_vert_order]]].v;
       if (v3 == to_vertex) {
         break;
       }
@@ -742,36 +739,36 @@ struct Fan {
    * Score is determined by counting the number of steps and subtracting that with steps that have
    * not yet been visited.
    */
-  static int64_t score(const Span<InnerEdge *> solution)
+  static int64_t score(const Span<FanSegment *> solution)
   {
     int64_t not_visited_steps = 0;
-    for (InnerEdge *inner_edge : solution) {
-      if (!inner_edge->flags.found) {
+    for (FanSegment *segment : solution) {
+      if (!segment->flags.found) {
         not_visited_steps++;
       }
     }
     return solution.size() - not_visited_steps;
   }
 
-  Vector<InnerEdge *> best_path_between(const MeshData &mesh_data,
-                                        const int from_vertex,
-                                        const int to_vertex)
+  Vector<FanSegment *> best_path_between(const MeshData &mesh_data,
+                                         const int from_vertex,
+                                         const int to_vertex)
   {
     BLI_assert_msg(contains_vertex_on_outside(mesh_data, from_vertex),
                    "Inconsistency detected, `from_vertex` isn't part of the outside of the fan.");
     BLI_assert_msg(contains_vertex_on_outside(mesh_data, to_vertex),
                    "Inconsistency detected, `to_vertex` isn't part of the outside of the fan.");
     if (to_vertex == from_vertex) {
-      return Vector<InnerEdge *>();
+      return Vector<FanSegment *>();
     }
 
-    Array<InnerEdge *> edges(inner_edges.size());
-    for (int64_t index : inner_edges.index_range()) {
-      edges[index] = &inner_edges[index];
+    Array<FanSegment *> edges(segments.size());
+    for (int64_t index : segments.index_range()) {
+      edges[index] = &segments[index];
     }
 
-    Vector<InnerEdge *> winding_1 = path_between(edges, mesh_data, from_vertex, to_vertex, false);
-    Vector<InnerEdge *> winding_2 = path_between(edges, mesh_data, from_vertex, to_vertex, true);
+    Vector<FanSegment *> winding_1 = path_between(edges, mesh_data, from_vertex, to_vertex, false);
+    Vector<FanSegment *> winding_2 = path_between(edges, mesh_data, from_vertex, to_vertex, true);
 
     bool winding_1_valid = is_path_valid(winding_1, mesh_data, from_vertex, to_vertex);
     bool winding_2_valid = is_path_valid(winding_2, mesh_data, from_vertex, to_vertex);
@@ -784,7 +781,7 @@ struct Fan {
     }
     if (!winding_1_valid && !winding_2_valid) {
       BLI_assert_msg(false, "Both solutions aren't valid.");
-      return Vector<InnerEdge *>();
+      return Vector<FanSegment *>();
     }
     if (score(winding_1) < score(winding_2)) {
       return winding_1;
@@ -794,8 +791,8 @@ struct Fan {
 
   void print_debug(const MeshData &mesh_data) const
   {
-    for (const InnerEdge &inner_edge : inner_edges) {
-      inner_edge.print_debug(mesh_data);
+    for (const FanSegment &segment : segments) {
+      segment.print_debug(mesh_data);
     }
     std::cout << "\n";
   }
@@ -907,7 +904,7 @@ static void extend_at_vert(const MeshData &mesh_data,
 
   UVVertex *uv_vertex = corner.second->get_uv_vertex(0);
   Fan fan(mesh_data, uv_vertex->vertex);
-  if (!fan.flags.full) {
+  if (!fan.flags.is_manifold) {
     return;
   }
   fan.init_uv_coordinates(mesh_data, *uv_vertex);
@@ -917,7 +914,7 @@ static void extend_at_vert(const MeshData &mesh_data,
   /* In 3d space everything can connected, but in uv space it may not.
    * in this case in the space between we should extract the primitives to be added
    * from the fan. */
-  Vector<InnerEdge *> winding_solution = fan.best_path_between(
+  Vector<FanSegment *> winding_solution = fan.best_path_between(
       mesh_data, corner.first->get_uv_vertex(0)->vertex, corner.second->get_uv_vertex(1)->vertex);
 
   /*
@@ -987,7 +984,7 @@ static void extend_at_vert(const MeshData &mesh_data,
       float factor = (segment_index + 1.0f) / num_to_add;
       float2 new_uv = corner.uv(factor, min_uv_distance);
 
-      InnerEdge &segment = *winding_solution[segment_index];
+      FanSegment &segment = *winding_solution[segment_index];
 
       const int fill_primitive_i = segment.primitive_index;
       const MLoopTri &fill_primitive = mesh_data.looptris[fill_primitive_i];
