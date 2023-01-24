@@ -202,8 +202,12 @@ void ShadowPass::ShadowView::set_mode(ShadowPass::PassType type)
   current_pass_type_ = type;
 }
 
-void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds, uint resource_len)
+void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
+                                                uint resource_len,
+                                                bool debug_freeze)
 {
+  UNUSED_VARS(debug_freeze);
+
   GPU_debug_group_begin("ShadowView.compute_visibility");
 
   uint word_per_draw = this->visibility_word_per_draw();
