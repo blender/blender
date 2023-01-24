@@ -610,6 +610,7 @@ void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
   t->mode = TFM_VERT_SLIDE;
   t->transform = applyVertSlide;
   t->handleEvent = handleEventVertSlide;
+  t->transform_matrix = NULL;
   t->tsnap.snap_mode_apply_fn = vert_slide_snap_apply;
   t->tsnap.snap_mode_distance_fn = transform_snap_distance_len_squared_fn;
 

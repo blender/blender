@@ -285,6 +285,7 @@ void initResize(TransInfo *t, float mouse_dir_constraint[3])
 {
   t->mode = TFM_RESIZE;
   t->transform = applyResize;
+  t->transform_matrix = NULL;
   t->tsnap.snap_mode_apply_fn = ApplySnapResize;
   t->tsnap.snap_mode_distance_fn = ResizeBetween;
 
