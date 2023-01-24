@@ -1616,9 +1616,9 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
   const std::string default_uv = StringRef(
       CustomData_get_render_layer_name(&mesh->ldata, CD_MLOOPUV));
 
-  Set<std::string> uv_layers_to_convert;
+  Vector<std::string> uv_layers_to_convert;
   for (const int uv_layer_i : IndexRange(CustomData_number_of_layers(&mesh->ldata, CD_MLOOPUV))) {
-    uv_layers_to_convert.add_as(CustomData_get_layer_name(&mesh->ldata, CD_MLOOPUV, uv_layer_i));
+    uv_layers_to_convert.append(CustomData_get_layer_name(&mesh->ldata, CD_MLOOPUV, uv_layer_i));
   }
 
   for (const StringRefNull name : uv_layers_to_convert) {
