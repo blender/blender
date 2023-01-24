@@ -286,19 +286,25 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Compute new curve offsets. */
   MutableSpan<int> curve_offsets = curves.offsets_for_write();
-  MutableSpan<int> new_point_counts_per_curve = curve_offsets.drop_front(old_curves_num);
-  if (inputs.interpolate_point_count) {
+  Array<int> new_point_counts_per_curve(added_curves_num);
+  if (inputs.interpolate_point_count && old_curves_num > 0) {
+    const OffsetIndices<int> old_points_by_curve{curve_offsets.take_front(old_curves_num + 1)};
     interpolate_from_neighbors<int>(
         neighbors_per_curve,
         inputs.fallback_point_count,
-        [&](const int curve_i) { return curve_offsets[curve_i + 1] - curve_offsets[curve_i]; },
+        [&](const int curve_i) { return old_points_by_curve.size(curve_i); },
         new_point_counts_per_curve);
   }
   else {
     new_point_counts_per_curve.fill(inputs.fallback_point_count);
   }
-  offset_indices::accumulate_counts_to_offsets(curve_offsets.drop_front(old_curves_num),
-                                               old_points_num);
+  curve_offsets[old_curves_num] = old_points_num;
+  int offset = old_points_num;
+  for (const int i : new_point_counts_per_curve.index_range()) {
+    const int point_count_in_curve = new_point_counts_per_curve[i];
+    curve_offsets[old_curves_num + i + 1] = offset + point_count_in_curve;
+    offset += point_count_in_curve;
+  }
 
   const int new_points_num = curves.offsets().last();
   curves.resize(new_points_num, new_curves_num);
