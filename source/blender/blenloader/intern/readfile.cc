@@ -3195,7 +3195,7 @@ static bool read_libblock_undo_restore(
 {
   /* Get pointer to memory of new ID that we will be reading. */
   const ID *id = static_cast<const ID *>(peek_struct_undo(fd, bhead));
-  const short idcode = GS(id->name);
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
 
   if (bhead->code == ID_LI) {
     /* Restore library datablock. */
@@ -3209,7 +3209,7 @@ static bool read_libblock_undo_restore(
       return true;
     }
   }
-  else if (ELEM(idcode, ID_WM, ID_SCR, ID_WS)) {
+  else if (id_type->flags & IDTYPE_FLAGS_NO_MEMFILE_UNDO) {
     /* Skip reading any UI datablocks, existing ones are kept. We don't
      * support pointers from other datablocks to UI datablocks so those
      * we also don't put UI datablocks in fd->libmap. */
