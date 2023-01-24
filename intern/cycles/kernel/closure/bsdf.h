@@ -661,4 +661,37 @@ ccl_device void bsdf_blur(KernelGlobals kg, ccl_private ShaderClosure *sc, float
 #endif
 }
 
+ccl_device_inline Spectrum bsdf_albedo(ccl_private const ShaderData *sd, ccl_private const ShaderClosure *sc)
+{
+  Spectrum albedo = sc->weight;
+  /* Some closures include additional components such as Fresnel terms that cause their albedo to
+   * be below 1. The point of this function is to return a best-effort estimation of their albedo,
+   * meaning the amount of reflected/refracted light that would be expected when illuminated by a
+   * uniform white background.
+   * This is used for the denoising albedo pass and diffuse/glossy/transmission color passes.
+   * NOTE: This should always match the sample_weight of the closure - as in, if there's an albedo
+   * adjustment in here, the sample_weight should also be reduced accordingly.
+   * TODO(lukas): Consider calling this function to determine the sample_weight? Would be a bit of
+   * extra overhead though. */
+#if defined(__SVM__) || defined(__OSL__)
+  switch (sc->type) {
+    case CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID:
+    case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:
+    case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID:
+    case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
+      albedo *= microfacet_fresnel((ccl_private const MicrofacetBsdf *)sc, sd->wi, sc->N);
+      break;
+    case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
+      albedo *= ((ccl_private const PrincipledSheenBsdf *)sc)->avg_value;
+      break;
+    case CLOSURE_BSDF_HAIR_PRINCIPLED_ID:
+      albedo *= bsdf_principled_hair_albedo(sc);
+      break;
+    default:
+      break;
+  }
+#endif
+  return albedo;
+}
+
 CCL_NAMESPACE_END

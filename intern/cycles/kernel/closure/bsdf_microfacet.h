@@ -23,8 +23,6 @@ enum MicrofacetType {
 
 typedef struct MicrofacetExtra {
   Spectrum color, cspec0;
-  Spectrum fresnel_color;
-  float clearcoat;
 } MicrofacetExtra;
 
 typedef struct MicrofacetBsdf {
@@ -184,26 +182,25 @@ ccl_device_forceinline float3 microfacet_ggx_sample_vndf(const float3 wi,
  *
  * Else it is simply white
  */
-ccl_device_forceinline Spectrum reflection_color(ccl_private const MicrofacetBsdf *bsdf,
-                                                 float3 L,
-                                                 float3 H)
+ccl_device_forceinline Spectrum microfacet_fresnel(ccl_private const MicrofacetBsdf *bsdf,
+                                                   float3 wi,
+                                                   float3 H)
 {
-  Spectrum F = one_spectrum();
-
-  bool use_clearcoat = bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID;
-  bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID || use_clearcoat);
-
-  if (use_fresnel) {
-    float F0 = fresnel_dielectric_cos(1.0f, bsdf->ior);
-
-    F = interpolate_fresnel_color(L, H, bsdf->ior, F0, bsdf->extra->cspec0);
+  if (CLOSURE_IS_BSDF_MICROFACET_FRESNEL(bsdf->type)) {
+    return interpolate_fresnel_color(wi, H, bsdf->ior, bsdf->extra->cspec0);
   }
-
-  if (use_clearcoat) {
-    F *= 0.25f * bsdf->extra->clearcoat;
+  else if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID) {
+    return make_spectrum(fresnel_dielectric_cos(dot(wi, H), bsdf->ior));
   }
+  else {
+    return one_spectrum();
+  }
+}
 
-  return F;
+ccl_device_forceinline void bsdf_microfacet_adjust_weight(ccl_private const ShaderData *sd,
+                                                          ccl_private MicrofacetBsdf *bsdf)
+{
+  bsdf->sample_weight *= average(microfacet_fresnel(bsdf, sd->wi, bsdf->N));
 }
 
 /* Generalized Trowbridge-Reitz for clearcoat. */
@@ -292,22 +289,6 @@ ccl_device_inline float bsdf_aniso_D(float alpha_x, float alpha_y, float3 H)
   }
 }
 
-ccl_device_forceinline void bsdf_microfacet_fresnel_color(ccl_private const ShaderData *sd,
-                                                          ccl_private MicrofacetBsdf *bsdf)
-{
-  kernel_assert(CLOSURE_IS_BSDF_MICROFACET_FRESNEL(bsdf->type));
-
-  float F0 = fresnel_dielectric_cos(1.0f, bsdf->ior);
-  bsdf->extra->fresnel_color = interpolate_fresnel_color(
-      sd->wi, bsdf->N, bsdf->ior, F0, bsdf->extra->cspec0);
-
-  if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID) {
-    bsdf->extra->fresnel_color *= 0.25f * bsdf->extra->clearcoat;
-  }
-
-  bsdf->sample_weight *= average(bsdf->extra->fresnel_color);
-}
-
 template<MicrofacetType m_type>
 ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
                                          const float3 Ng,
@@ -380,8 +361,7 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
 
   *pdf = common / (1.0f + lambdaI);
 
-  const Spectrum F = m_refractive ? one_spectrum() : reflection_color(bsdf, wo, H);
-
+  const Spectrum F = microfacet_fresnel(bsdf, wo, H);
   return F * common / (1.0f + lambdaO + lambdaI);
 }
 
@@ -463,14 +443,7 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
     label |= LABEL_SINGULAR;
     /* Some high number for MIS. */
     *pdf = 1e6f;
-    *eval = make_spectrum(1e6f);
-
-    bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID ||
-                        bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID);
-
-    if (use_fresnel && !m_refractive) {
-      *eval *= reflection_color(bsdf, *wo, H);
-    }
+    *eval = make_spectrum(1e6f) * microfacet_fresnel(bsdf, *wo, H);
   }
   else {
     label |= LABEL_GLOSSY;
@@ -511,8 +484,7 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
 
     *pdf = common / (1.0f + lambdaI);
 
-    Spectrum F = m_refractive ? one_spectrum() : reflection_color(bsdf, *wo, H);
-
+    Spectrum F = microfacet_fresnel(bsdf, *wo, H);
     *eval = F * common / (1.0f + lambdaI + lambdaO);
   }
 
@@ -565,7 +537,7 @@ ccl_device int bsdf_microfacet_ggx_fresnel_setup(ccl_private MicrofacetBsdf *bsd
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID;
 
-  bsdf_microfacet_fresnel_color(sd, bsdf);
+  bsdf_microfacet_adjust_weight(sd, bsdf);
 
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
@@ -573,14 +545,12 @@ ccl_device int bsdf_microfacet_ggx_fresnel_setup(ccl_private MicrofacetBsdf *bsd
 ccl_device int bsdf_microfacet_ggx_clearcoat_setup(ccl_private MicrofacetBsdf *bsdf,
                                                    ccl_private const ShaderData *sd)
 {
-  bsdf->extra->cspec0 = saturate(bsdf->extra->cspec0);
-
   bsdf->alpha_x = saturatef(bsdf->alpha_x);
   bsdf->alpha_y = bsdf->alpha_x;
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID;
 
-  bsdf_microfacet_fresnel_color(sd, bsdf);
+  bsdf_microfacet_adjust_weight(sd, bsdf);
 
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }

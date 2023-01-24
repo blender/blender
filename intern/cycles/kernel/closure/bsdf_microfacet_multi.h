@@ -401,7 +401,7 @@ ccl_device int bsdf_microfacet_multi_ggx_fresnel_setup(ccl_private MicrofacetBsd
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID;
 
-  bsdf_microfacet_fresnel_color(sd, bsdf);
+  bsdf_microfacet_adjust_weight(sd, bsdf);
 
   return bsdf_microfacet_multi_ggx_common_setup(bsdf);
 }
@@ -575,7 +575,7 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_fresnel_setup(ccl_private Microfa
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID;
 
-  bsdf_microfacet_fresnel_color(sd, bsdf);
+  bsdf_microfacet_adjust_weight(sd, bsdf);
 
   return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_NEEDS_LCG;
 }
