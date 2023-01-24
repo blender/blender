@@ -37,6 +37,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 
 #include "../imbuf/IMB_imbuf.h"
 
@@ -183,17 +184,11 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
         struct dirlink *dlink = (struct dirlink *)dirbase.first;
         struct direntry *file = &dir_ctx->files[dir_ctx->files_num];
 
-        char fullname[PATH_MAX];
-        STRNCPY(fullname, dirname_with_slash);
-        char *fullname_name_part = fullname + dirname_with_slash_len;
-        const size_t fullname_name_part_len = sizeof(fullname) - dirname_with_slash_len;
-
         while (dlink) {
-          BLI_strncpy(fullname_name_part, dlink->name, fullname_name_part_len);
           memset(file, 0, sizeof(struct direntry));
           file->relname = dlink->name;
-          file->path = BLI_strdup(fullname);
-          if (BLI_stat(fullname, &file->s) != -1) {
+          file->path = BLI_string_joinN(dirname_with_slash, dlink->name);
+          if (BLI_stat(file->path, &file->s) != -1) {
             file->type = file->s.st_mode;
           }
           else if (FILENAME_IS_CURRPAR(file->relname)) {
