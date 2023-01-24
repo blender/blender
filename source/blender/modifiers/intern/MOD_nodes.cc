@@ -1280,9 +1280,6 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
       BKE_modifier_set_error(ob, md, "Node group's geometry input must be the first");
     }
   }
-  else if (geometry_socket_count > 1) {
-    BKE_modifier_set_error(ob, md, "Node group can only have one geometry input");
-  }
 }
 
 static void modifyGeometry(ModifierData *md,
