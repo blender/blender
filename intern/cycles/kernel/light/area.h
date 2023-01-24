@@ -102,7 +102,7 @@ ccl_device float area_light_spread_attenuation(const float3 D,
     /* The factor M_PI_F comes from integrating the radiance over the hemisphere */
     return (cos_a > 0.9999997f) ? M_PI_F : 0.0f;
   }
-  const float sin_a = safe_sqrtf(1.0f - sqr(cos_a));
+  const float sin_a = sin_from_cos(cos_a);
   const float tan_a = sin_a / cos_a;
   return max((tan_half_spread - tan_a) * normalize_spread, 0.0f);
 }

@@ -218,7 +218,7 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
     /* Finally, select a random point along the edge of the new triangle
      * That point on the spherical triangle is the sampled ray direction */
     const float z = 1.0f - randv * (1.0f - dot(C_, B));
-    ls->D = z * B + safe_sqrtf(1.0f - z * z) * safe_normalize(C_ - dot(C_, B) * B);
+    ls->D = z * B + sin_from_cos(z) * safe_normalize(C_ - dot(C_, B) * B);
 
     /* calculate intersection with the planar triangle */
     if (!ray_triangle_intersect(

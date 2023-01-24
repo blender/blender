@@ -88,7 +88,7 @@ henyey_greenstrein_sample(float3 D, float g, float randu, float randv, ccl_priva
     }
   }
 
-  float sin_theta = safe_sqrtf(1.0f - cos_theta * cos_theta);
+  float sin_theta = sin_from_cos(cos_theta);
   float phi = M_2PI_F * randv;
   float3 dir = make_float3(sin_theta * cosf(phi), sin_theta * sinf(phi), cos_theta);
 

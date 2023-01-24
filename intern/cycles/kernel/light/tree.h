@@ -47,11 +47,6 @@ ccl_device float light_tree_cos_bounding_box_angle(const BoundingBox bbox,
   return cos_theta_u;
 }
 
-ccl_device_forceinline float sin_from_cos(const float c)
-{
-  return safe_sqrtf(1.0f - sqr(c));
-}
-
 /* Compute vector v as in Fig .8. P_v is the corresponding point along the ray. */
 ccl_device float3 compute_v(
     const float3 centroid, const float3 P, const float3 D, const float3 bcone_axis, const float t)

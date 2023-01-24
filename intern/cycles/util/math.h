@@ -750,6 +750,16 @@ ccl_device_inline float sqr(float a)
   return a * a;
 }
 
+ccl_device_inline float sin_from_cos(const float c)
+{
+  return safe_sqrtf(1.0f - sqr(c));
+}
+
+ccl_device_inline float cos_from_sin(const float s)
+{
+  return safe_sqrtf(1.0f - sqr(s));
+}
+
 ccl_device_inline float pow20(float a)
 {
   return sqr(sqr(sqr(sqr(a)) * a));

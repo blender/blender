@@ -200,7 +200,7 @@ ccl_device_forceinline float3 microfacet_sample_stretched(KernelGlobals kg,
 
   if (wi_.z < 0.99999f) {
     costheta_ = wi_.z;
-    sintheta_ = safe_sqrtf(1.0f - costheta_ * costheta_);
+    sintheta_ = sin_from_cos(costheta_);
 
     float invlen = 1.0f / sintheta_;
     cosphi_ = wi_.x * invlen;

@@ -720,7 +720,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
     const float3 tangent = normalize(dPdu);
     const float3 bitangent = normalize(cross(tangent, -D));
     const float sine = sd->v;
-    const float cosine = safe_sqrtf(1.0f - sine * sine);
+    const float cosine = cos_from_sin(sine);
 
     sd->N = normalize(sine * bitangent - cosine * normalize(cross(tangent, bitangent)));
 #  if 0

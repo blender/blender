@@ -704,9 +704,9 @@ ccl_device_forceinline bool mnee_compute_transfer_matrix(ccl_private const Shade
     float ilo = -eta * ilh;
 
     float cos_theta = dot(wo, m.n);
-    float sin_theta = safe_sqrtf(1.f - sqr(cos_theta));
+    float sin_theta = sin_from_cos(cos_theta);
     float cos_phi = dot(wo, s);
-    float sin_phi = safe_sqrtf(1.f - sqr(cos_phi));
+    float sin_phi = sin_from_cos(cos_phi);
 
     /* Wo = (cos_phi * sin_theta) * s + (sin_phi * sin_theta) * t + cos_theta * n. */
     float3 dH_dtheta = ilo * (cos_theta * (cos_phi * s + sin_phi * t) - sin_theta * m.n);
