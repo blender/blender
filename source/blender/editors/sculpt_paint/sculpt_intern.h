@@ -418,6 +418,8 @@ typedef struct AutomaskingSettings {
 
   float start_normal_limit, start_normal_falloff;
   float view_normal_limit, view_normal_falloff;
+
+  bool topology_use_brush_limit;
 } AutomaskingSettings;
 
 typedef struct AutomaskingCache {
