@@ -560,10 +560,20 @@ class Texture : NonCopyable {
 
   Texture &operator=(Texture &&a)
   {
-    if (*this != a) {
+    if (this != std::addressof(a)) {
+      this->free();
+
       this->tx_ = a.tx_;
       this->name_ = a.name_;
+      this->stencil_view_ = a.stencil_view_;
+      this->mip_views_ = std::move(a.mip_views_);
+      this->layer_views_ = std::move(a.layer_views_);
+
       a.tx_ = nullptr;
+      a.name_ = nullptr;
+      a.stencil_view_ = nullptr;
+      a.mip_views_.clear();
+      a.layer_views_.clear();
     }
     return *this;
   }
