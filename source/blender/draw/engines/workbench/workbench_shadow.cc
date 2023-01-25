@@ -209,9 +209,9 @@ void ShadowPass::ShadowView::set_mode(ShadowPass::PassType type)
 
 void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
                                                 uint resource_len,
-                                                bool debug_freeze)
+                                                bool /*debug_freeze*/)
 {
-  UNUSED_VARS(debug_freeze);
+  /* TODO (Miguel Pozo): Add debug_freeze support */
 
   GPU_debug_group_begin("ShadowView.compute_visibility");
 
