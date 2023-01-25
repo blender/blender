@@ -227,6 +227,10 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
 
   archive->collect_readers(data->bmain);
 
+  if (data->params.import_materials && data->params.import_all_materials) {
+    archive->import_all_materials(data->bmain);
+  }
+
   *data->do_update = true;
   *data->progress = 0.2f;
 
@@ -352,6 +356,10 @@ static void import_endjob(void *customdata)
 
     DEG_id_tag_update(&data->scene->id, ID_RECALC_BASE_FLAGS);
     DEG_relations_tag_update(data->bmain);
+
+    if (data->params.import_materials && data->params.import_all_materials) {
+      data->archive->fake_users_for_unused_materials();
+    }
   }
 
   WM_set_locked_interface(data->wm, false);

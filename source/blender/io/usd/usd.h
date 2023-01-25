@@ -64,6 +64,7 @@ struct USDImportParams {
   bool set_material_blend;
   float light_intensity_scale;
   eUSDMtlNameCollisionMode mtl_name_collision_mode;
+  bool import_all_materials;
 };
 
 /* The USD_export takes a as_background_job parameter, and returns a boolean.

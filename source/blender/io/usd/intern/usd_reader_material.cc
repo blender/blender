@@ -757,4 +757,45 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(
   link_nodes(ntree, uv_map, "UV", dest_node, dest_socket_name);
 }
 
+void build_material_map(const Main *bmain, std::map<std::string, Material *> *r_mat_map)
+{
+  BLI_assert_msg(r_mat_map, "...");
+
+  LISTBASE_FOREACH (Material *, material, &bmain->materials) {
+    std::string usd_name = pxr::TfMakeValidIdentifier(material->id.name + 2);
+    (*r_mat_map)[usd_name] = material;
+  }
+}
+
+Material *find_existing_material(const pxr::SdfPath &usd_mat_path,
+                                 const USDImportParams &params,
+                                 const std::map<std::string, Material *> &mat_map,
+                                 const std::map<std::string, std::string> &usd_path_to_mat_name)
+{
+  if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
+    /* Check if we've already created the Blender material with a modified name. */
+    std::map<std::string, std::string>::const_iterator path_to_name_iter =
+        usd_path_to_mat_name.find(usd_mat_path.GetAsString());
+
+    if (path_to_name_iter == usd_path_to_mat_name.end()) {
+      return nullptr;
+    }
+
+    std::string mat_name = path_to_name_iter->second;
+    std::map<std::string, Material *>::const_iterator mat_iter = mat_map.find(mat_name);
+    BLI_assert_msg(mat_iter != mat_map.end(),
+                   "Previously created material cannot be found any more");
+    return mat_iter->second;
+  }
+
+  std::string mat_name = usd_mat_path.GetName();
+  std::map<std::string, Material *>::const_iterator mat_iter = mat_map.find(mat_name);
+
+  if (mat_iter == mat_map.end()) {
+    return nullptr;
+  }
+
+  return mat_iter->second;
+}
+
 }  // namespace blender::io::usd
