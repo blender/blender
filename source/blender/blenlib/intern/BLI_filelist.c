@@ -127,7 +127,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
       dirname_with_slash, dirname, sizeof(dirname_with_slash) - 1);
 
   if ((dirname_with_slash_len > 0) &&
-      (BLI_path_slash_is_native_compat(dirname_with_slash_len - 1) == false)) {
+      (BLI_path_slash_is_native_compat(dirname[dirname_with_slash_len - 1]) == false)) {
     dirname_with_slash[dirname_with_slash_len++] = SEP;
     dirname_with_slash[dirname_with_slash_len] = '\0';
   }
