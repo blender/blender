@@ -215,13 +215,15 @@ static bool use_gnome_confine_hack = false;
 /**
  * The event codes are used to differentiate from which mouse button an event comes from.
  */
-#define BTN_LEFT 0x110
-#define BTN_RIGHT 0x111
-#define BTN_MIDDLE 0x112
-#define BTN_SIDE 0x113
-#define BTN_EXTRA 0x114
-#define BTN_FORWARD 0x115
-#define BTN_BACK 0x116
+enum {
+  BTN_LEFT = 0x110,
+  BTN_RIGHT = 0x111,
+  BTN_MIDDLE = 0x112,
+  BTN_SIDE = 0x113,
+  BTN_EXTRA = 0x114,
+  BTN_FORWARD = 0x115,
+  BTN_BACK = 0x116
+};
 // #define BTN_TASK 0x117 /* UNUSED. */
 
 /**
@@ -232,28 +234,34 @@ static bool use_gnome_confine_hack = false;
  * at the Blender studio, having the button closest to the nib be MMB is preferable,
  * so use this as a default. If needs be - swapping these could be a preference.
  */
-#define BTN_STYLUS 0x14b  /* Use as middle-mouse. */
-#define BTN_STYLUS2 0x14c /* Use as right-mouse. */
-/* NOTE(@campbellbarton): Map to an additional button (not sure which hardware uses this). */
-#define BTN_STYLUS3 0x149
+enum {
+  /** Use as middle-mouse. */
+  BTN_STYLUS = 0x14b,
+  /** Use as right-mouse. */
+  BTN_STYLUS2 = 0x14c,
+  /** NOTE(@campbellbarton): Map to an additional button (not sure which hardware uses this). */
+  BTN_STYLUS3 = 0x149,
+};
 
 /**
  * Keyboard scan-codes.
  */
-#define KEY_GRAVE 41
+enum {
+  KEY_GRAVE = 41,
 
 #ifdef USE_NON_LATIN_KB_WORKAROUND
-#  define KEY_1 2
-#  define KEY_2 3
-#  define KEY_3 4
-#  define KEY_4 5
-#  define KEY_5 6
-#  define KEY_6 7
-#  define KEY_7 8
-#  define KEY_8 9
-#  define KEY_9 10
-#  define KEY_0 11
+  KEY_1 = 2,
+  KEY_2 = 3,
+  KEY_3 = 4,
+  KEY_4 = 5,
+  KEY_5 = 6,
+  KEY_6 = 7,
+  KEY_7 = 8,
+  KEY_8 = 9,
+  KEY_9 = 10,
+  KEY_0 = 11,
 #endif
+};
 
 /** \} */
 

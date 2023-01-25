@@ -1143,7 +1143,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
     wmWindow *win = GHOST_GetWindowUserData(ghostwin);
 
     switch (type) {
-      case GHOST_kEventWindowDeactivate:
+      case GHOST_kEventWindowDeactivate: {
 #ifdef USE_WIN_DEACTIVATE
         /* Release all held modifiers before de-activating the window. */
         if (win->eventstate->modifier != 0) {
@@ -1180,8 +1180,9 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
 #endif /* USE_WIN_DEACTIVATE */
 
         wm_event_add_ghostevent(wm, win, type, data);
-        win->active = 0; /* XXX */
+        win->active = 0;
         break;
+      }
       case GHOST_kEventWindowActivate: {
 
         /* No context change! C->wm->windrawable is drawable, or for area queues. */
