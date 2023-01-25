@@ -288,8 +288,7 @@ static void add_stroke_extension(bGPDframe *gpf, bGPDstroke *gps, float p1[3], f
   pt->pressure = 1.0f;
 }
 
-static void add_endpoint_radius_help(tGPDfill *tgpf,
-                                     bGPDframe *gpf,
+static void add_endpoint_radius_help(bGPDframe *gpf,
                                      bGPDstroke *gps,
                                      const float endpoint[3],
                                      const float radius,
@@ -834,8 +833,8 @@ static void gpencil_create_extensions_radius(tGPDfill *tgpf)
 
     bool start_connected = BLI_gset_haskey(connected_endpoints, stroke1_start);
     bool end_connected = BLI_gset_haskey(connected_endpoints, stroke1_end);
-    add_endpoint_radius_help(tgpf, gpf, gps, stroke1_start, connection_dist, start_connected);
-    add_endpoint_radius_help(tgpf, gpf, gps, stroke1_end, connection_dist, end_connected);
+    add_endpoint_radius_help(gpf, gps, stroke1_start, connection_dist, start_connected);
+    add_endpoint_radius_help(gpf, gps, stroke1_end, connection_dist, end_connected);
   }
 
   BLI_gset_free(connected_endpoints, NULL);
