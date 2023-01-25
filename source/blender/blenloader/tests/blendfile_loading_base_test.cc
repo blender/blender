@@ -103,8 +103,8 @@ void BlendfileLoadingBaseTest::TearDownTestCase()
 void BlendfileLoadingBaseTest::TearDown()
 {
   BKE_mball_cubeTable_free();
-  depsgraph_free();
   blendfile_free();
+  depsgraph_free();
 
   testing::Test::TearDown();
 }

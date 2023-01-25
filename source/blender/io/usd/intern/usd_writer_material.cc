@@ -748,4 +748,16 @@ static void export_texture(bNode *node,
   }
 }
 
+const pxr::TfToken token_for_input(const char *input_name)
+{
+  const InputSpecMap &input_map = preview_surface_input_map();
+  const InputSpecMap::const_iterator it = input_map.find(input_name);
+
+  if (it == input_map.end()) {
+    return pxr::TfToken();
+  }
+
+  return it->second.input_name;
+}
+
 }  // namespace blender::io::usd

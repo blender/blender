@@ -163,12 +163,17 @@ target_link_libraries(bf_usd INTERFACE ${TBB_LIBRARIES})
 if(WITH_GTESTS)
   set(TEST_SRC
     tests/usd_stage_creation_test.cc
+    tests/usd_export_test.cc
     tests/usd_tests_common.cc
     tests/usd_tests_common.h
+
+    intern/usd_writer_material.h
   )
   if(USD_IMAGING_HEADERS)
     list(APPEND TEST_SRC tests/usd_imaging_test.cc)
   endif()
+
+  include_directories(intern)
 
   set(TEST_INC
   )

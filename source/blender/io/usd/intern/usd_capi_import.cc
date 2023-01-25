@@ -207,6 +207,7 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
   if (!stage) {
     WM_reportf(RPT_ERROR, "USD Import: unable to open stage to read %s", data->filepath);
     data->import_ok = false;
+    data->error_code = USD_ARCHIVE_FAIL;
     return;
   }
 
