@@ -100,8 +100,11 @@ static void freeRuntimeData(void *runtime_data_v)
     return;
   }
   SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)runtime_data_v;
-  if (runtime_data->subdiv != nullptr) {
-    BKE_subdiv_free(runtime_data->subdiv);
+  if (runtime_data->subdiv_cpu != nullptr) {
+    BKE_subdiv_free(runtime_data->subdiv_cpu);
+  }
+  if (runtime_data->subdiv_gpu != nullptr) {
+    BKE_subdiv_free(runtime_data->subdiv_gpu);
   }
   MEM_freeN(runtime_data);
 }
@@ -227,6 +230,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
 
+  /* Decrement the recent usage counters. */
+  if (runtime_data->used_cpu) {
+    runtime_data->used_cpu--;
+  }
+
+  if (runtime_data->used_gpu) {
+    runtime_data->used_gpu--;
+  }
+
   /* Delay evaluation to the draw code if possible, provided we do not have to apply the modifier.
    */
   if ((ctx->flag & MOD_APPLY_TO_BASE_MESH) == 0) {
@@ -273,7 +285,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
   // BKE_subdiv_stats_print(&subdiv->stats);
-  if (subdiv != runtime_data->subdiv) {
+  if (subdiv != runtime_data->subdiv_cpu && subdiv != runtime_data->subdiv_gpu) {
     BKE_subdiv_free(subdiv);
   }
   return result;
@@ -305,7 +317,7 @@ static void deformMatrices(ModifierData *md,
     return;
   }
   BKE_subdiv_deform_coarse_vertices(subdiv, mesh, vertex_cos, verts_num);
-  if (subdiv != runtime_data->subdiv) {
+  if (subdiv != runtime_data->subdiv_cpu && subdiv != runtime_data->subdiv_gpu) {
     BKE_subdiv_free(subdiv);
   }
 }
@@ -409,11 +421,28 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiItemR(layout, ptr, "show_only_control_edges", 0, nullptr, ICON_NONE);
 
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SubsurfModifierData *smd = static_cast<SubsurfModifierData *>(ptr->data);
-  const Object *ob = static_cast<const Object *>(ob_ptr.data);
+  Object *ob = static_cast<Object *>(ob_ptr.data);
   const Mesh *mesh = static_cast<const Mesh *>(ob->data);
   if (BKE_subsurf_modifier_force_disable_gpu_evaluation_for_mesh(smd, mesh)) {
     uiItemL(layout, "Autosmooth or custom normals detected, disabling GPU subdivision", ICON_INFO);
+  }
+  else if (Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob)) {
+    if (ModifierData *md_eval = BKE_modifiers_findby_name(ob_eval, smd->modifier.name)) {
+      if (md_eval->type == eModifierType_Subsurf) {
+        SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)md_eval->runtime;
+
+        if (runtime_data && runtime_data->used_gpu) {
+          if (runtime_data->used_cpu) {
+            uiItemL(layout, "Using both CPU and GPU subdivision", ICON_INFO);
+          }
+          else {
+            uiItemL(layout, "Using GPU subdivision", ICON_INFO);
+          }
+        }
+      }
+    }
   }
 
   modifier_panel_end(layout, ptr);
