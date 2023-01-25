@@ -8,8 +8,11 @@
 
 namespace blender::workbench {
 
-static bool get_matcap_tx(Texture &matcap_tx, const StudioLight &studio_light)
+static bool get_matcap_tx(Texture &matcap_tx, StudioLight &studio_light)
 {
+  BKE_studiolight_ensure_flag(&studio_light,
+                              STUDIOLIGHT_MATCAP_DIFFUSE_GPUTEXTURE |
+                                  STUDIOLIGHT_MATCAP_SPECULAR_GPUTEXTURE);
   ImBuf *matcap_diffuse = studio_light.matcap_diffuse.ibuf;
   ImBuf *matcap_specular = studio_light.matcap_specular.ibuf;
   if (matcap_diffuse && matcap_diffuse->rect_float) {
