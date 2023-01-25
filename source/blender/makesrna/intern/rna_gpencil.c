@@ -1101,16 +1101,22 @@ static void rna_GPencil_layer_mask_remove(bGPDlayer *gpl,
   WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
-static void rna_GPencil_frame_clear(bGPDframe *frame)
+static void rna_GPencil_frame_clear(ID *id, bGPDframe *frame)
 {
   BKE_gpencil_free_strokes(frame);
+
+  bGPdata *gpd = (bGPdata *)id;
+  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
   WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
-static void rna_GPencil_layer_clear(bGPDlayer *layer)
+static void rna_GPencil_layer_clear(ID *id, bGPDlayer *layer)
 {
   BKE_gpencil_free_frames(layer);
+
+  bGPdata *gpd = (bGPdata *)id;
+  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
   WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
@@ -1118,6 +1124,8 @@ static void rna_GPencil_layer_clear(bGPDlayer *layer)
 static void rna_GPencil_clear(bGPdata *gpd)
 {
   BKE_gpencil_free_layers(&gpd->layers);
+
+  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
   WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
@@ -1841,6 +1849,7 @@ static void rna_def_gpencil_frame(BlenderRNA *brna)
   /* API */
   func = RNA_def_function(srna, "clear", "rna_GPencil_frame_clear");
   RNA_def_function_ui_description(func, "Remove all the grease pencil frame data");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 }
 
 static void rna_def_gpencil_frames_api(BlenderRNA *brna, PropertyRNA *cprop)
@@ -2304,6 +2313,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
   /* Layers API */
   func = RNA_def_function(srna, "clear", "rna_GPencil_layer_clear");
   RNA_def_function_ui_description(func, "Remove all the grease pencil layer data");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 }
 
 static void rna_def_gpencil_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
