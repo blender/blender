@@ -200,7 +200,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
 
         col = layout.column(heading="Show")
         col.prop(obj, "show_name", text="Name")
-        col.prop(obj, "show_axis", text="Axis")
+        col.prop(obj, "show_axis", text="Axes")
 
         # Makes no sense for cameras, armatures, etc.!
         # but these settings do apply to dupli instances
