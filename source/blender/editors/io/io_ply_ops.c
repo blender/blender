@@ -89,9 +89,9 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "global_scale", 0, NULL, ICON_NONE);
 
   row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "forward_axis", UI_ITEM_R_EXPAND, IFACE_("Forward Axis"), ICON_NONE);
+  uiItemR(row, imfptr, "forward_axis", 0, IFACE_("Forward Axis"), ICON_NONE);
   row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "up_axis", UI_ITEM_R_EXPAND, IFACE_("Up Axis"), ICON_NONE);
+  uiItemR(row, imfptr, "up_axis", 0, IFACE_("Up Axis"), ICON_NONE);
 
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumn(col, false);
@@ -103,8 +103,8 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Geometry"));
   uiItemR(sub, imfptr, "export_uv", 0, IFACE_("UV Coordinates"), ICON_NONE);
-  uiItemR(sub, imfptr, "export_normals", 0, IFACE_("Normals"), ICON_NONE);
-  uiItemR(sub, imfptr, "export_colors", 0, IFACE_("Colors"), ICON_NONE);
+  uiItemR(sub, imfptr, "export_normals", 0, IFACE_("Vertex Normals"), ICON_NONE);
+  uiItemR(sub, imfptr, "export_colors", 0, IFACE_("Vertex Colors"), ICON_NONE);
   uiItemR(sub, imfptr, "export_triangulated_mesh", 0, IFACE_("Triangulated Mesh"), ICON_NONE);
 }
 
@@ -182,9 +182,9 @@ void WM_OT_ply_export(struct wmOperatorType *ot)
 
   /* Object transform options. */
   prop = RNA_def_enum(
-      ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
+      ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
   RNA_def_property_update_runtime(prop, (void *)forward_axis_update);
-  prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
+  prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
   RNA_def_property_update_runtime(prop, (void *)up_axis_update);
   RNA_def_float(
       ot->srna,
@@ -204,14 +204,13 @@ void WM_OT_ply_export(struct wmOperatorType *ot)
                   false,
                   "Export Selected Objects",
                   "Export only selected objects instead of all supported objects");
-  RNA_def_boolean(ot->srna, "export_uv", true, "Export UVs", "");
+  RNA_def_boolean(ot->srna, "export_uv", false, "Export UVs", "");
   RNA_def_boolean(ot->srna,
                   "export_normals",
-                  true,
-                  "Export Normals",
-                  "Export per-face normals if the face is flat-shaded, per-face-per-loop "
-                  "normals if smooth-shaded");
-  RNA_def_boolean(ot->srna, "export_colors", false, "Export Vertex Colors", "Export per-vertex colors");
+                  false,
+                  "Export Vertex Normals",
+                  "Export specific vertex normals if available, export calculated normals otherwise");
+  RNA_def_boolean(ot->srna, "export_colors", true, "Export Vertex Colors", "Export per-vertex colors");
   RNA_def_boolean(ot->srna,
                   "export_triangulated_mesh",
                   false,
