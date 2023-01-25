@@ -92,6 +92,7 @@ struct PuffOperationExecutor {
       return;
     }
     if (curves_id_->surface == nullptr || curves_id_->surface->type != OB_MESH) {
+      report_missing_surface(stroke_extension.reports);
       return;
     }
 
