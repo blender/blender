@@ -42,8 +42,7 @@ static_assert(sizeof(ShaderClosure) >= sizeof(MicrofacetBsdf), "MicrofacetBsdf i
  * Eric Heitz and Eugene d'Eon, EGSR 2014.
  * https://hal.inria.fr/hal-00996995v2/document */
 
-ccl_device_forceinline float3 microfacet_beckmann_sample_vndf(KernelGlobals kg,
-                                                              const float3 wi,
+ccl_device_forceinline float3 microfacet_beckmann_sample_vndf(const float3 wi,
                                                               const float alpha_x,
                                                               const float alpha_y,
                                                               const float randu,
@@ -387,8 +386,7 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
 }
 
 template<MicrofacetType m_type>
-ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
-                                      ccl_private const ShaderClosure *sc,
+ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
                                       float3 Ng,
                                       float3 wi,
                                       float randu,
@@ -431,7 +429,7 @@ ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
   }
   else {
     /* m_type == MicrofacetType::BECKMANN */
-    local_H = microfacet_beckmann_sample_vndf(kg, local_I, alpha_x, alpha_y, randu, randv);
+    local_H = microfacet_beckmann_sample_vndf(local_I, alpha_x, alpha_y, randu, randv);
   }
 
   const float3 H = X * local_H.x + Y * local_H.y + N * local_H.z;
@@ -616,8 +614,7 @@ ccl_device Spectrum bsdf_microfacet_ggx_eval(ccl_private const ShaderClosure *sc
   return bsdf_microfacet_eval<MicrofacetType::GGX>(sc, Ng, wi, wo, pdf);
 }
 
-ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
-                                          ccl_private const ShaderClosure *sc,
+ccl_device int bsdf_microfacet_ggx_sample(ccl_private const ShaderClosure *sc,
                                           float3 Ng,
                                           float3 wi,
                                           float randu,
@@ -629,7 +626,7 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
                                           ccl_private float *eta)
 {
   return bsdf_microfacet_sample<MicrofacetType::GGX>(
-      kg, sc, Ng, wi, randu, randv, eval, wo, pdf, sampled_roughness, eta);
+      sc, Ng, wi, randu, randv, eval, wo, pdf, sampled_roughness, eta);
 }
 
 /* Beckmann microfacet with Smith shadow-masking from:
@@ -680,8 +677,7 @@ ccl_device Spectrum bsdf_microfacet_beckmann_eval(ccl_private const ShaderClosur
   return bsdf_microfacet_eval<MicrofacetType::BECKMANN>(sc, Ng, wi, wo, pdf);
 }
 
-ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
-                                               ccl_private const ShaderClosure *sc,
+ccl_device int bsdf_microfacet_beckmann_sample(ccl_private const ShaderClosure *sc,
                                                float3 Ng,
                                                float3 wi,
                                                float randu,
@@ -693,7 +689,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
                                                ccl_private float *eta)
 {
   return bsdf_microfacet_sample<MicrofacetType::BECKMANN>(
-      kg, sc, Ng, wi, randu, randv, eval, wo, pdf, sampled_roughness, eta);
+      sc, Ng, wi, randu, randv, eval, wo, pdf, sampled_roughness, eta);
 }
 
 CCL_NAMESPACE_END
