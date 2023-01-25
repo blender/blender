@@ -599,6 +599,10 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   BLI_args_print_arg_doc(ba, "--verbose");
 
   printf("\n");
+  printf("GPU Options:\n");
+  BLI_args_print_arg_doc(ba, "--gpu-backend");
+
+  printf("\n");
   printf("Misc Options:\n");
   BLI_args_print_arg_doc(ba, "--open-last");
   BLI_args_print_arg_doc(ba, "--app-template");
@@ -1126,29 +1130,37 @@ static const char arg_handle_gpu_backend_set_doc[] =
 static int arg_handle_gpu_backend_set(int argc, const char **argv, void *UNUSED(data))
 {
   if (argc == 0) {
-    printf("\nError: GPU backend must follow '--gpu-backend'.\n");
+    fprintf(stderr, "\nError: GPU backend must follow '--gpu-backend'.\n");
     return 0;
   }
+  const char *backends_supported[3] = {NULL};
+  int backends_supported_num = 0;
 
   eGPUBackendType gpu_backend = GPU_BACKEND_NONE;
 
-  if (STREQ(argv[1], "opengl")) {
+  /* NOLINTBEGIN: bugprone-assignment-in-if-condition */
+  if (STREQ(argv[1], (backends_supported[backends_supported_num++] = "opengl"))) {
     gpu_backend = GPU_BACKEND_OPENGL;
   }
 #  ifdef WITH_VULKAN_BACKEND
-  else if (STREQ(argv[1], "vulkan")) {
+  else if (STREQ(argv[1], (backends_supported[backends_supported_num++] = "vulkan"))) {
     gpu_backend = GPU_BACKEND_VULKAN;
   }
 #  endif
 #  ifdef WITH_METAL_BACKEND
-  else if (STREQ(argv[1], "metal")) {
+  else if (STREQ(argv[1], (backends_supported[backends_supported_num++] = "metal"))) {
     gpu_backend = GPU_BACKEND_METAL;
   }
 #  endif
   else {
-    printf("\nError: Unrecognized GPU backend for '--gpu-backend'.\n");
+    fprintf(stderr, "\nError: Unrecognized GPU backend for '--gpu-backend', expected one of [");
+    for (int i = 0; i < backends_supported_num; i++) {
+      fprintf(stderr, (i + 1 != backends_supported_num) ? "%s, " : "%s", backends_supported[i]);
+    }
+    fprintf(stderr, "].\n");
     return 0;
   }
+  /* NOLINTEND: bugprone-assignment-in-if-condition */
 
   GPU_backend_type_selection_set_override(gpu_backend);
 
