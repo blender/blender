@@ -63,10 +63,8 @@ BMBackup EDBM_redo_state_store(BMEditMesh *em)
 
 void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_looptri)
 {
-  BMesh *tmpbm;
-
   BM_mesh_data_free(em->bm);
-  tmpbm = BM_mesh_copy(backup->bmcopy);
+  BMesh *tmpbm = BM_mesh_copy(backup->bmcopy);
   *em->bm = *tmpbm;
   MEM_freeN(tmpbm);
   tmpbm = NULL;
@@ -208,11 +206,9 @@ bool EDBM_op_call_and_selectf(BMEditMesh *em,
                               const char *fmt,
                               ...)
 {
-  BMOpSlot *slot_select_out;
   BMesh *bm = em->bm;
   BMOperator bmop;
   va_list list;
-  char hflag;
 
   va_start(list, fmt);
 
@@ -224,8 +220,8 @@ bool EDBM_op_call_and_selectf(BMEditMesh *em,
 
   BMO_op_exec(bm, &bmop);
 
-  slot_select_out = BMO_slot_get(bmop.slots_out, select_slot_out);
-  hflag = slot_select_out->slot_subtype.elem & BM_ALL_NOLOOP;
+  BMOpSlot *slot_select_out = BMO_slot_get(bmop.slots_out, select_slot_out);
+  char hflag = slot_select_out->slot_subtype.elem & BM_ALL_NOLOOP;
   BLI_assert(hflag != 0);
 
   if (select_extend == false) {
@@ -269,14 +265,12 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
 void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 {
   Mesh *me = ob->data;
-  BMesh *bm;
-
-  bm = BKE_mesh_to_bmesh(me,
-                         ob,
-                         add_key_index,
-                         &((struct BMeshCreateParams){
-                             .use_toolflags = true,
-                         }));
+  BMesh *bm = BKE_mesh_to_bmesh(me,
+                                ob,
+                                add_key_index,
+                                &((struct BMeshCreateParams){
+                                    .use_toolflags = true,
+                                }));
 
   if (me->edit_mesh) {
     /* this happens when switching shape keys */
@@ -456,21 +450,15 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool us
   BMFace *efa;
   BMLoop *l;
   BMIter iter, liter;
-  /* vars from original func */
-  UvVertMap *vmap;
-  UvMapVert *buf;
-  const float(*luv)[2];
   uint a;
-  int totverts, i, totuv, totfaces;
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
-  bool *winding = NULL;
   BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
 
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
 
-  totfaces = bm->totface;
-  totverts = bm->totvert;
-  totuv = 0;
+  const int totfaces = bm->totface;
+  const int totverts = bm->totvert;
+  int totuv = 0;
 
   /* generate UvMapVert array */
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
@@ -482,13 +470,15 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool us
   if (totuv == 0) {
     return NULL;
   }
-  vmap = (UvVertMap *)MEM_callocN(sizeof(*vmap), "UvVertMap");
+  UvVertMap *vmap = (UvVertMap *)MEM_callocN(sizeof(*vmap), "UvVertMap");
   if (!vmap) {
     return NULL;
   }
 
   vmap->vert = (UvMapVert **)MEM_callocN(sizeof(*vmap->vert) * totverts, "UvMapVert_pt");
-  buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * totuv, "UvMapVert");
+  UvMapVert *buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * totuv, "UvMapVert");
+
+  bool *winding = NULL;
   if (use_winding) {
     winding = MEM_callocN(sizeof(*winding) * totfaces, "winding");
   }
@@ -506,6 +496,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool us
         tf_uv = (float(*)[2])BLI_buffer_reinit_data(&tf_uv_buf, vec2f, efa->len);
       }
 
+      int i;
       BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
         buf->loop_of_poly_index = i;
         buf->poly_index = a;
@@ -516,7 +507,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool us
         buf++;
 
         if (use_winding) {
-          luv = BM_ELEM_CD_GET_FLOAT2_P(l, cd_loop_uv_offset);
+          const float(*luv)[2] = BM_ELEM_CD_GET_FLOAT2_P(l, cd_loop_uv_offset);
           copy_v2_v2(tf_uv[i], *luv);
         }
       }
@@ -1263,14 +1254,10 @@ UvElement *BM_uv_element_get_head(UvElementMap *element_map, UvElement *child)
 
 BMFace *EDBM_uv_active_face_get(BMEditMesh *em, const bool sloppy, const bool selected)
 {
-  BMFace *efa = NULL;
-
   if (!EDBM_uv_check(em)) {
     return NULL;
   }
-
-  efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
-
+  BMFace *efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
   if (efa) {
     return efa;
   }
@@ -1765,10 +1752,10 @@ void EDBM_update_extern(struct Mesh *me, const bool do_tessellation, const bool 
 bool EDBM_view3d_poll(bContext *C)
 {
   if (ED_operator_editmesh(C) && ED_operator_view3d_active(C)) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /** \} */
@@ -1779,19 +1766,16 @@ bool EDBM_view3d_poll(bContext *C)
 
 BMElem *EDBM_elem_from_selectmode(BMEditMesh *em, BMVert *eve, BMEdge *eed, BMFace *efa)
 {
-  BMElem *ele = NULL;
-
   if ((em->selectmode & SCE_SELECT_VERTEX) && eve) {
-    ele = (BMElem *)eve;
+    return (BMElem *)eve;
   }
-  else if ((em->selectmode & SCE_SELECT_EDGE) && eed) {
-    ele = (BMElem *)eed;
+  if ((em->selectmode & SCE_SELECT_EDGE) && eed) {
+    return (BMElem *)eed;
   }
-  else if ((em->selectmode & SCE_SELECT_FACE) && efa) {
-    ele = (BMElem *)efa;
+  if ((em->selectmode & SCE_SELECT_FACE) && efa) {
+    return (BMElem *)efa;
   }
-
-  return ele;
+  return NULL;
 }
 
 int EDBM_elem_to_index_any(BMEditMesh *em, BMElem *ele)
