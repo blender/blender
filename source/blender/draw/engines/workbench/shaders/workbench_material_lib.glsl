@@ -12,7 +12,7 @@ void workbench_material_data_get(int handle,
   vec4 data = materials_data[uint(handle) & 0xFFFu];
   color = data.rgb;
   if (materialIndex == 0) {
-    color_interp = vertex_color;
+    color = vertex_color;
   }
 #else
 
