@@ -1,13 +1,15 @@
 name: Bug Report
 about: File a bug report
 labels:
-  - bug
+  - "type::Report"
+  - "status::Needs Triage"
+  - "priority::Normal"
 body:
   - type: markdown
     attributes:
       value: |
                 ### Instructions
-                First time reporting? See [tips](https://wiki.blender.org/wiki/Process/Bug_Reports) and [walkthrough video](https://www.youtube.com/watch?v=JTD0OJq_rF4).
+                First time reporting? See [tips](https://wiki.blender.org/wiki/Process/Bug_Reports).
 
                 * Use **Help > Report a Bug** in Blender to fill system information and exact Blender version.
                 * Test [daily builds](https://builder.blender.org/) to verify if the issue is already fixed.
@@ -19,6 +21,7 @@ body:
     id: body
     attributes:
       label: "Description"
+      hide_label: true
       value: |
                **System Information**
                Operating system:
