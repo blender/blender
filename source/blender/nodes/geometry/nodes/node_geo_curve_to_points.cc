@@ -25,6 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>(N_("Count"))
       .default_value(10)
       .min(2)
+      .field_on_all()
       .max(100000)
       .make_available(
           [](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_RESAMPLE_COUNT; });
