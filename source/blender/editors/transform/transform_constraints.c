@@ -1001,6 +1001,9 @@ void postSelectConstraint(TransInfo *t)
 
 static void setNearestAxis2d(TransInfo *t)
 {
+  /* Clear any prior constraint flags. */
+  t->con.mode &= ~(CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
+
   /* no correction needed... just use whichever one is lower */
   if (abs(t->mval[0] - t->con.imval[0]) < abs(t->mval[1] - t->con.imval[1])) {
     t->con.mode |= CON_AXIS1;
@@ -1014,6 +1017,9 @@ static void setNearestAxis2d(TransInfo *t)
 
 static void setNearestAxis3d(TransInfo *t)
 {
+  /* Clear any prior constraint flags. */
+  t->con.mode &= ~(CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
+
   float zfac;
   float mvec[3], proj[3];
   float len[3];
@@ -1090,10 +1096,7 @@ static void setNearestAxis3d(TransInfo *t)
 
 void setNearestAxis(TransInfo *t)
 {
-  /* clear any prior constraint flags */
-  t->con.mode &= ~CON_AXIS0;
-  t->con.mode &= ~CON_AXIS1;
-  t->con.mode &= ~CON_AXIS2;
+  eTConstraint mode_prev = t->con.mode;
 
   /* constraint setting - depends on spacetype */
   if (t->spacetype == SPACE_VIEW3D) {
@@ -1105,7 +1108,9 @@ void setNearestAxis(TransInfo *t)
     setNearestAxis2d(t);
   }
 
-  projection_matrix_calc(t, t->con.pmtx);
+  if (mode_prev != t->con.mode) {
+    projection_matrix_calc(t, t->con.pmtx);
+  }
 }
 
 /** \} */

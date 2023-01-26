@@ -440,6 +440,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   {
     short orient_types[3];
+    short orient_type_apply = O_DEFAULT;
     float custom_matrix[3][3];
 
     int orient_type_scene = V3D_ORIENT_GLOBAL;
@@ -502,14 +503,23 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         t->is_orient_default_overwrite = true;
       }
     }
-    else if (t->con.mode & CON_APPLY) {
-      orient_type_set = orient_type_scene;
-    }
-    else if (orient_type_scene == V3D_ORIENT_GLOBAL) {
-      orient_type_set = V3D_ORIENT_LOCAL;
+
+    if (orient_type_set == -1) {
+      if (orient_type_scene == V3D_ORIENT_GLOBAL) {
+        orient_type_set = V3D_ORIENT_LOCAL;
+      }
+      else {
+        orient_type_set = V3D_ORIENT_GLOBAL;
+      }
+
+      if (t->con.mode & CON_APPLY) {
+        orient_type_apply = O_SCENE;
+      }
     }
     else {
-      orient_type_set = V3D_ORIENT_GLOBAL;
+      if (t->con.mode & CON_APPLY) {
+        orient_type_apply = O_SET;
+      }
     }
 
     BLI_assert(!ELEM(-1, orient_type_default, orient_type_set));
@@ -546,7 +556,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       }
     }
 
-    transform_orientations_current_set(t, (t->con.mode & CON_APPLY) ? 2 : 0);
+    transform_orientations_current_set(t, orient_type_apply);
   }
 
   if (op && ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) &&
