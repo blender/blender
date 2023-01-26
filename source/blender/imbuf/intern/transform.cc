@@ -474,6 +474,11 @@ class ChannelConverter {
       blend_color_interpolate_byte(
           pixel_pointer.get_pointer(), pixel_pointer.get_pointer(), sample.data(), mix_factor);
     }
+    else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 4 &&
+                       DestinationNumChannels == 4) {
+      blend_color_interpolate_float(
+          pixel_pointer.get_pointer(), pixel_pointer.get_pointer(), sample.data(), mix_factor);
+    }
     else {
       BLI_assert_unreachable();
     }
@@ -547,19 +552,11 @@ class ScanlineProcessor {
       xi += 1;
     }
 
-    /*
-     * Draw until we didn't draw for at least 4 pixels.
-     */
-    int num_output_pixels_skipped = 0;
-    const int num_missing_output_pixels_allowed = 4;
-    for (; xi < width && num_output_pixels_skipped < num_missing_output_pixels_allowed; xi++) {
+    for (; xi < width; xi++) {
       if (!discarder.should_discard(*user_data, uv)) {
         typename Sampler::SampleType sample;
         sampler.sample(user_data->src, uv, sample);
         channel_converter.convert_and_store(sample, output);
-      }
-      else {
-        num_output_pixels_skipped += 1;
       }
 
       uv += user_data->add_x;
@@ -593,12 +590,7 @@ class ScanlineProcessor {
       xi += 1;
     }
 
-    /*
-     * Draw until we didn't draw for at least 4 pixels.
-     */
-    int num_output_pixels_skipped = 0;
-    const int num_missing_output_pixels_allowed = 4;
-    for (; xi < width && num_output_pixels_skipped < num_missing_output_pixels_allowed; xi++) {
+    for (; xi < width; xi++) {
       typename Sampler::SampleType sample;
       sample.clear();
       int num_subsamples_added = 0;
@@ -624,9 +616,6 @@ class ScanlineProcessor {
         float mix_weight = float(num_subsamples_added) /
                            (user_data->subsampling.num * user_data->subsampling.num);
         channel_converter.mix_and_store(sample, output, mix_weight);
-      }
-      else {
-        num_output_pixels_skipped += 1;
       }
       uv += user_data->add_x;
       output.increase_pixel_pointer();
