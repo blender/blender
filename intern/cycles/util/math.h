@@ -483,6 +483,12 @@ ccl_device_inline float compatible_signf(float f)
 
 ccl_device_inline float smoothstepf(float f)
 {
+  if (f <= 0.0f) {
+    return 0.0f;
+  }
+  if (f >= 1.0f) {
+    return 1.0f;
+  }
   float ff = f * f;
   return (3.0f * ff - 2.0f * ff * f);
 }
