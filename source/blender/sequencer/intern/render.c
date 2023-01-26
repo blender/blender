@@ -515,16 +515,24 @@ static void sequencer_preprocess_transform_crop(
   const float crop_scale_factor = do_scale_to_render_size ? preview_scale_factor : 1.0f;
   sequencer_image_crop_init(seq, in, crop_scale_factor, &source_crop);
 
-  eIMBInterpolationFilterMode filter;
   const StripTransform *transform = seq->strip->transform;
-  if (transform->filter == SEQ_TRANSFORM_FILTER_NEAREST) {
-    filter = IMB_FILTER_NEAREST;
-  }
-  else {
-    filter = IMB_FILTER_BILINEAR;
+  eIMBInterpolationFilterMode filter;
+  int num_subsamples = 1;
+  switch (transform->filter) {
+    case SEQ_TRANSFORM_FILTER_NEAREST:
+      filter = IMB_FILTER_NEAREST;
+      num_subsamples = 1;
+      break;
+    case SEQ_TRANSFORM_FILTER_BILINEAR:
+      filter = IMB_FILTER_BILINEAR;
+      num_subsamples = 1;
+      break;
+    case SEQ_TRANSFORM_FILTER_NEAREST_3x3:
+      filter = IMB_FILTER_NEAREST;
+      num_subsamples = G.is_rendering ? 3 : 1;
+      break;
   }
 
-  const int num_subsamples = G.is_rendering ? 3 : 1;
   IMB_transform(in,
                 out,
                 IMB_TRANSFORM_MODE_CROP_SRC,
