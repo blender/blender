@@ -526,12 +526,12 @@ class ScanlineProcessor {
    */
   void process(const TransformUserData *user_data, int scanline)
   {
-    // if (user_data->subsampling.num > 1) {
-    process_with_subsampling(user_data, scanline);
-    // }
-    // else {
-    //   process_one_sample_per_pixel(user_data, scanline);
-    // }
+    if (user_data->subsampling.num > 1) {
+      process_with_subsampling(user_data, scanline);
+    }
+    else {
+      process_one_sample_per_pixel(user_data, scanline);
+    }
   }
 
  private:
