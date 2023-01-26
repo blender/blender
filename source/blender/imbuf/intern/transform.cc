@@ -9,6 +9,7 @@
 #include <type_traits>
 
 #include "BLI_math.h"
+#include "BLI_math_color_blend.h"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 
@@ -37,6 +38,14 @@ struct TransformUserData {
    */
   double2 add_y;
 
+  struct {
+    int num;
+    double2 offset_x;
+    double2 offset_y;
+    double2 add_x;
+    double2 add_y;
+  } subsampling;
+
   /**
    * \brief Cropping region in source image pixel space.
    */
@@ -45,11 +54,12 @@ struct TransformUserData {
   /**
    * \brief Initialize the start_uv, add_x and add_y fields based on the given transform matrix.
    */
-  void init(const float transform_matrix[4][4])
+  void init(const float transform_matrix[4][4], const int num_subsamples)
   {
     init_start_uv(transform_matrix);
     init_add_x(transform_matrix);
     init_add_y(transform_matrix);
+    init_subsampling(num_subsamples);
   }
 
  private:
@@ -82,6 +92,15 @@ struct TransformUserData {
     double3 uv_max_y(0.0, height, 0.0);
     mul_v3_m4v3_db(add_y_v3, transform_matrix_double, double3(0.0, height, 0.0));
     add_y = double2((add_y_v3 - double3(start_uv)) * (1.0 / height));
+  }
+
+  void init_subsampling(const int num_subsamples)
+  {
+    subsampling.num = max_ii(num_subsamples, 1);
+    subsampling.add_x = add_x / (subsampling.num);
+    subsampling.add_y = add_y / (subsampling.num);
+    subsampling.offset_x = -add_x * 0.5 + subsampling.add_x * 0.5;
+    subsampling.offset_y = -add_y * 0.5 + subsampling.add_y * 0.5;
   }
 };
 
@@ -257,6 +276,39 @@ class WrapRepeatUV : public BaseUVWrapping {
   }
 };
 
+// TODO: should we use math_vectors for this.
+template<typename StorageType, int NumChannels>
+class Pixel : public std::array<StorageType, NumChannels> {
+ public:
+  void clear()
+  {
+    for (int channel_index : IndexRange(NumChannels)) {
+      (*this)[channel_index] = 0;
+    }
+  }
+
+  void add_subsample(const Pixel<StorageType, NumChannels> other, int sample_number)
+  {
+    BLI_STATIC_ASSERT((std::is_same_v<StorageType, uchar>) || (std::is_same_v<StorageType, float>),
+                      "Only uchar and float channels supported.");
+
+    float factor = 1.0 / (sample_number + 1);
+    if constexpr (std::is_same_v<StorageType, uchar>) {
+      BLI_STATIC_ASSERT(NumChannels == 4, "Pixels using uchar requires to have 4 channels.");
+      blend_color_interpolate_byte(this->data(), this->data(), other.data(), factor);
+    }
+    else if constexpr (std::is_same_v<StorageType, float> && NumChannels == 4) {
+      blend_color_interpolate_float(this->data(), this->data(), other.data(), factor);
+    }
+    else if constexpr (std::is_same_v<StorageType, float>) {
+      for (int channel_index : IndexRange(NumChannels)) {
+        (*this)[channel_index] = (*this)[channel_index] * (1.0 - factor) +
+                                 other[channel_index] * factor;
+      }
+    }
+  }
+};
+
 /**
  * \brief Read a sample from an image buffer.
  *
@@ -286,7 +338,7 @@ class Sampler {
  public:
   using ChannelType = StorageType;
   static const int ChannelLen = NumChannels;
-  using SampleType = std::array<StorageType, NumChannels>;
+  using SampleType = Pixel<StorageType, NumChannels>;
 
   void sample(const ImBuf *source, const double2 uv, SampleType &r_sample)
   {
@@ -378,12 +430,12 @@ class Sampler {
 template<typename StorageType, int SourceNumChannels, int DestinationNumChannels>
 class ChannelConverter {
  public:
-  using SampleType = std::array<StorageType, SourceNumChannels>;
+  using SampleType = Pixel<StorageType, SourceNumChannels>;
   using PixelType = PixelPointer<StorageType, DestinationNumChannels>;
 
   /**
-   * \brief Convert the number of channels of the given sample to match the pixel pointer and store
-   * it at the location the pixel_pointer points at.
+   * \brief Convert the number of channels of the given sample to match the pixel pointer and
+   * store it at the location the pixel_pointer points at.
    */
   void convert_and_store(const SampleType &sample, PixelType &pixel_pointer)
   {
@@ -408,6 +460,19 @@ class ChannelConverter {
     else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 1 &&
                        DestinationNumChannels == 4) {
       copy_v4_fl4(pixel_pointer.get_pointer(), sample[0], sample[0], sample[0], 1.0f);
+    }
+    else {
+      BLI_assert_unreachable();
+    }
+  }
+
+  void mix_and_store(const SampleType &sample, PixelType &pixel_pointer, const float mix_factor)
+  {
+    if constexpr (std::is_same_v<StorageType, uchar>) {
+      BLI_STATIC_ASSERT(SourceNumChannels == 4, "Unsigned chars always have 4 channels.");
+      BLI_STATIC_ASSERT(DestinationNumChannels == 4, "Unsigned chars always have 4 channels.");
+      blend_color_interpolate_byte(
+          pixel_pointer.get_pointer(), pixel_pointer.get_pointer(), sample.data(), mix_factor);
     }
     else {
       BLI_assert_unreachable();
@@ -442,8 +507,8 @@ class ScanlineProcessor {
   Sampler sampler;
 
   /**
-   * \brief Channels sizzling logic to convert between the input image buffer and the output image
-   * buffer.
+   * \brief Channels sizzling logic to convert between the input image buffer and the output
+   * image buffer.
    */
   ChannelConverter<typename Sampler::ChannelType,
                    Sampler::ChannelLen,
@@ -456,17 +521,113 @@ class ScanlineProcessor {
    */
   void process(const TransformUserData *user_data, int scanline)
   {
+    // if (user_data->subsampling.num > 1) {
+    process_with_subsampling(user_data, scanline);
+    // }
+    // else {
+    //   process_one_sample_per_pixel(user_data, scanline);
+    // }
+  }
+
+ private:
+  void process_one_sample_per_pixel(const TransformUserData *user_data, int scanline)
+  {
     const int width = user_data->dst->x;
     double2 uv = user_data->start_uv + user_data->add_y * scanline;
 
     output.init_pixel_pointer(user_data->dst, int2(0, scanline));
-    for (int xi = 0; xi < width; xi++) {
+    int xi = 0;
+    while (xi < width) {
+      const bool discard_pixel = discarder.should_discard(*user_data, uv);
+      if (!discard_pixel) {
+        break;
+      }
+      uv += user_data->add_x;
+      output.increase_pixel_pointer();
+      xi += 1;
+    }
+
+    /*
+     * Draw until we didn't draw for at least 4 pixels.
+     */
+    int num_output_pixels_skipped = 0;
+    const int num_missing_output_pixels_allowed = 4;
+    for (; xi < width && num_output_pixels_skipped < num_missing_output_pixels_allowed; xi++) {
       if (!discarder.should_discard(*user_data, uv)) {
         typename Sampler::SampleType sample;
         sampler.sample(user_data->src, uv, sample);
         channel_converter.convert_and_store(sample, output);
       }
+      else {
+        num_output_pixels_skipped += 1;
+      }
 
+      uv += user_data->add_x;
+      output.increase_pixel_pointer();
+    }
+  }
+
+  void process_with_subsampling(const TransformUserData *user_data, int scanline)
+  {
+    const int width = user_data->dst->x;
+    double2 uv = user_data->start_uv + user_data->add_y * scanline;
+
+    output.init_pixel_pointer(user_data->dst, int2(0, scanline));
+    int xi = 0;
+    /*
+     * Skip leading pixels that would be fully discarded.
+     *
+     * NOTE: This could be improved by intersection between an ray and the image bounds.
+     */
+    while (xi < width) {
+      const bool discard_pixel = discarder.should_discard(*user_data, uv) &&
+                                 discarder.should_discard(*user_data, uv + user_data->add_x) &&
+                                 discarder.should_discard(*user_data, uv + user_data->add_y) &&
+                                 discarder.should_discard(
+                                     *user_data, uv + user_data->add_x + user_data->add_y);
+      if (!discard_pixel) {
+        break;
+      }
+      uv += user_data->add_x;
+      output.increase_pixel_pointer();
+      xi += 1;
+    }
+
+    /*
+     * Draw until we didn't draw for at least 4 pixels.
+     */
+    int num_output_pixels_skipped = 0;
+    const int num_missing_output_pixels_allowed = 4;
+    for (; xi < width && num_output_pixels_skipped < num_missing_output_pixels_allowed; xi++) {
+      typename Sampler::SampleType sample;
+      sample.clear();
+      int num_subsamples_added = 0;
+
+      double2 subsample_uv_y = uv + user_data->subsampling.offset_y;
+      for (int subsample_yi : IndexRange(user_data->subsampling.num)) {
+        UNUSED_VARS(subsample_yi);
+        double2 subsample_uv = subsample_uv_y + user_data->subsampling.offset_x;
+        for (int subsample_xi : IndexRange(user_data->subsampling.num)) {
+          UNUSED_VARS(subsample_xi);
+          if (!discarder.should_discard(*user_data, subsample_uv)) {
+            typename Sampler::SampleType sub_sample;
+            sampler.sample(user_data->src, subsample_uv, sub_sample);
+            sample.add_subsample(sub_sample, num_subsamples_added);
+            num_subsamples_added += 1;
+          }
+          subsample_uv += user_data->subsampling.add_x;
+        }
+        subsample_uv_y += user_data->subsampling.add_y;
+      }
+
+      if (num_subsamples_added != 0) {
+        float mix_weight = float(num_subsamples_added) /
+                           (user_data->subsampling.num * user_data->subsampling.num);
+        channel_converter.mix_and_store(sample, output, mix_weight);
+      }
+      else {
+        num_output_pixels_skipped += 1;
+      }
       uv += user_data->add_x;
       output.increase_pixel_pointer();
     }
@@ -562,6 +723,7 @@ void IMB_transform(const struct ImBuf *src,
                    struct ImBuf *dst,
                    const eIMBTransformMode mode,
                    const eIMBInterpolationFilterMode filter,
+                   const int num_subsamples,
                    const float transform_matrix[4][4],
                    const struct rctf *src_crop)
 {
@@ -575,7 +737,7 @@ void IMB_transform(const struct ImBuf *src,
   if (mode == IMB_TRANSFORM_MODE_CROP_SRC) {
     user_data.src_crop = *src_crop;
   }
-  user_data.init(transform_matrix);
+  user_data.init(transform_matrix, num_subsamples);
 
   if (filter == IMB_FILTER_NEAREST) {
     transform_threaded<IMB_FILTER_NEAREST>(&user_data, mode);

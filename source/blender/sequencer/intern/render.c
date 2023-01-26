@@ -445,8 +445,14 @@ static void sequencer_thumbnail_transform(ImBuf *in, ImBuf *out)
                        (const float[]){scale_x, scale_y, 1.0f});
   transform_pivot_set_m4(transform_matrix, pivot);
   invert_m4(transform_matrix);
-
-  IMB_transform(in, out, IMB_TRANSFORM_MODE_REGULAR, IMB_FILTER_NEAREST, transform_matrix, NULL);
+  const int num_subsamples = 1;
+  IMB_transform(in,
+                out,
+                IMB_TRANSFORM_MODE_REGULAR,
+                IMB_FILTER_NEAREST,
+                num_subsamples,
+                transform_matrix,
+                NULL);
 }
 
 /* Check whether transform introduces transparent ares in the result (happens when the transformed
@@ -518,7 +524,14 @@ static void sequencer_preprocess_transform_crop(
     filter = IMB_FILTER_BILINEAR;
   }
 
-  IMB_transform(in, out, IMB_TRANSFORM_MODE_CROP_SRC, filter, transform_matrix, &source_crop);
+  const int num_subsamples = G.is_rendering ? 3 : 1;
+  IMB_transform(in,
+                out,
+                IMB_TRANSFORM_MODE_CROP_SRC,
+                filter,
+                num_subsamples,
+                transform_matrix,
+                &source_crop);
 
   if (!seq_image_transform_transparency_gained(context, seq)) {
     out->planes = in->planes;
