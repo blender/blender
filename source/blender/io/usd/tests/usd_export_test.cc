@@ -25,8 +25,8 @@
 #include "BKE_node.h"
 #include "BLI_fileops.h"
 #include "BLI_math.h"
-#include "BLI_path_util.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_path_util.h"
 #include "BLO_readfile.h"
 
 #include "BKE_node_runtime.hh"
@@ -45,10 +45,8 @@ const StringRefNull simple_scene_filename = "usd/usd_simple_scene.blend";
 const StringRefNull materials_filename = "usd/usd_materials_export.blend";
 const StringRefNull output_filename = "output.usd";
 
-
 static const bNode *find_node_for_type_in_graph(const bNodeTree *nodetree,
                                                 const blender::StringRefNull type_idname);
-
 
 class UsdExportTest : public BlendfileLoadingBaseTest {
  protected:
@@ -104,7 +102,9 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
    * Loop the sockets on the Blender bNode, and fail if any of their values do
    * not match the equivalent Attribtue values on the UsdPrim.
    */
-  const void compare_blender_node_to_usd_prim(const bNode *bsdf_node, const pxr::UsdPrim& bsdf_prim) {
+  const void compare_blender_node_to_usd_prim(const bNode *bsdf_node,
+                                              const pxr::UsdPrim &bsdf_prim)
+  {
     ASSERT_NE(bsdf_node, nullptr);
     ASSERT_TRUE(bool(bsdf_prim));
 
@@ -155,7 +155,9 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     }
   }
 
-  const void compare_blender_image_to_usd_image_shader(const bNode *image_node, const pxr::UsdPrim& image_prim) {
+  const void compare_blender_image_to_usd_image_shader(const bNode *image_node,
+                                                       const pxr::UsdPrim &image_prim)
+  {
     const Image *image = reinterpret_cast<Image *>(image_node->id);
 
     const pxr::UsdShadeShader image_shader(image_prim);
@@ -171,14 +173,16 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     /* The path is expected to be relative, but that means in Blender the
      * path will start with //.
      */
-    EXPECT_EQ(BLI_path_cmp_normalized(image->filepath+2, image_prim_asset.GetAssetPath().c_str()), 0);
+    EXPECT_EQ(
+        BLI_path_cmp_normalized(image->filepath + 2, image_prim_asset.GetAssetPath().c_str()), 0);
   }
 
   /*
    * Determine if a Blender Mesh matches a UsdGeomMesh prim by checking counts
    * on vertices, faces, face indices, and normals.
    */
-  const void compare_blender_mesh_to_usd_prim(const Mesh *mesh, const pxr::UsdGeomMesh& mesh_prim) {
+  const void compare_blender_mesh_to_usd_prim(const Mesh *mesh, const pxr::UsdGeomMesh &mesh_prim)
+  {
     pxr::VtIntArray face_indices;
     pxr::VtIntArray face_counts;
     pxr::VtVec3fArray positions;
@@ -196,9 +200,7 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     EXPECT_EQ(mesh->totloop, face_indices.size());
     EXPECT_EQ(mesh->totloop, normals.size());
   }
-
 };
-
 
 TEST_F(UsdExportTest, usd_export_rain_mesh)
 {
@@ -239,8 +241,8 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
   }
 }
 
-
-static const bNode *find_node_for_type_in_graph(const bNodeTree *nodetree, const blender::StringRefNull type_idname)
+static const bNode *find_node_for_type_in_graph(const bNodeTree *nodetree,
+                                                const blender::StringRefNull type_idname)
 {
   auto found_nodes = nodetree->nodes_by_type(type_idname);
   if (found_nodes.size() == 1) {
@@ -249,7 +251,6 @@ static const bNode *find_node_for_type_in_graph(const bNodeTree *nodetree, const
 
   return nullptr;
 }
-
 
 /*
  * Export Material test-- export a scene with a material, then read it back
@@ -269,7 +270,8 @@ TEST_F(UsdExportTest, usd_export_material)
   /* There are two materials because of the Dots Stroke. */
   EXPECT_EQ(BLI_listbase_count(&bfile->main->materials), 2);
 
-  Material *material = reinterpret_cast<Material *>(BKE_libblock_find_name(bfile->main, ID_MA, "Material"));
+  Material *material = reinterpret_cast<Material *>(
+      BKE_libblock_find_name(bfile->main, ID_MA, "Material"));
 
   EXPECT_TRUE(bool(material));
 
@@ -300,13 +302,13 @@ TEST_F(UsdExportTest, usd_export_material)
   ASSERT_NE(image_node, nullptr);
   ASSERT_NE(image_node->storage, nullptr);
 
-
   const std::string image_prim_name = pxr::TfMakeValidIdentifier(image_node->name);
 
   const pxr::UsdPrim image_prim = stage->GetPrimAtPath(
       pxr::SdfPath("/_materials/Material/preview/" + image_prim_name));
 
-  ASSERT_TRUE(bool(image_prim)) << "Unable to find Material prim from exported stage " << output_filename;
+  ASSERT_TRUE(bool(image_prim)) << "Unable to find Material prim from exported stage "
+                                << output_filename;
 
   compare_blender_image_to_usd_image_shader(image_node, image_prim);
 }
