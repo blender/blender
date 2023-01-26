@@ -640,6 +640,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   setTransformViewMatrices(t);
   initNumInput(&t->num);
+
+  transform_gizmo_3d_model_from_constraint_and_mode_init(t);
 }
 
 static void freeTransCustomData(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data)

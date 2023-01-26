@@ -862,6 +862,9 @@ static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
     else {
       setUserConstraint(t, constraint_new, msg_3d);
     }
+
+    /* Take the opportunity to update the gizmo. */
+    transform_gizmo_3d_model_from_constraint_and_mode_set(t);
   }
   t->redraw |= TREDRAW_HARD;
   return true;
@@ -2057,6 +2060,8 @@ int transformEnd(bContext *C, TransInfo *t)
     viewRedrawPost(C, t);
 
     viewRedrawForce(C, t);
+
+    transform_gizmo_3d_model_from_constraint_and_mode_restore(t);
   }
 
   t->context = NULL;

@@ -1215,6 +1215,8 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
     transform_convert_mesh_customdatacorrect_init(t);
   }
 
+  transform_gizmo_3d_model_from_constraint_and_mode_set(t);
+
   /* TODO(@germano): Some of these operations change the `t->mode`.
    * This can be bad for Redo. */
   // BLI_assert(t->mode == mode);
