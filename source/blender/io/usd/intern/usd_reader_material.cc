@@ -3,6 +3,9 @@
 
 #include "usd_reader_material.h"
 
+#include "usd_asset_utils.h"
+
+#include "BKE_appdir.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -19,6 +22,7 @@
 #include "DNA_material_types.h"
 
 #include <pxr/base/gf/vec3f.h>
+#include <pxr/usd/ar/packageUtils.h>
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/shader.h>
 
@@ -62,6 +66,23 @@ static const pxr::TfToken UsdPrimvarReader_float2("UsdPrimvarReader_float2",
                                                   pxr::TfToken::Immortal);
 static const pxr::TfToken UsdUVTexture("UsdUVTexture", pxr::TfToken::Immortal);
 }  // namespace usdtokens
+
+/* Temporary folder for saving imported textures prior to packing.
+ * CAUTION: this directory is recursively deleted after material
+ * import. */
+static const char *temp_textures_dir()
+{
+  static bool inited = false;
+
+  static char temp_dir[FILE_MAXDIR] = {'\0'};
+
+  if (!inited) {
+    BLI_path_join(temp_dir, sizeof(temp_dir), BKE_tempdir_session(), "usd_textures_tmp", SEP_STR);
+    inited = true;
+  }
+
+  return temp_dir;
+}
 
 /* Add a node of the given type at the given location coordinates. */
 static bNode *add_node(
@@ -110,11 +131,6 @@ static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &attribute)
   }
 
   return pxr::SdfLayerHandle();
-}
-
-static bool is_udim_path(const std::string &path)
-{
-  return path.find("<UDIM>") != std::string::npos;
 }
 
 /* For the given UDIM path (assumed to contain the UDIM token), returns an array
@@ -676,6 +692,26 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
     return;
   }
 
+  /* Optionally copy the asset if it's inside a USDZ package. */
+
+  const bool import_textures = params_.import_textures_mode != USD_TEX_IMPORT_NONE &&
+                               pxr::ArIsPackageRelativePath(file_path);
+
+  if (import_textures) {
+    /* If we are packing the imported textures, we first write them
+     * to a temporary directory. */
+    const char *textures_dir = params_.import_textures_mode == USD_TEX_IMPORT_PACK ?
+                                   temp_textures_dir() :
+                                   params_.import_textures_dir;
+
+    const eUSDTexNameCollisionMode name_collision_mode = params_.import_textures_mode ==
+                                                                 USD_TEX_IMPORT_PACK ?
+                                                             USD_TEX_NAME_COLLISION_OVERWRITE :
+                                                             params_.tex_name_collision_mode;
+
+    file_path = import_asset(file_path.c_str(), textures_dir, name_collision_mode);
+  }
+
   /* If this is a UDIM texture, this will store the
    * UDIM tile indices. */
   blender::Vector<int> udim_tiles;
@@ -711,6 +747,14 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
 
   if (ELEM(color_space, usdtokens::RAW, usdtokens::raw)) {
     STRNCPY(image->colorspace_settings.name, "Raw");
+  }
+
+  if (import_textures && params_.import_textures_mode == USD_TEX_IMPORT_PACK &&
+      !BKE_image_has_packedfile(image)) {
+    BKE_image_packfiles(nullptr, image, ID_BLEND_PATH(bmain_, &image->id));
+    if (BLI_is_dir(temp_textures_dir())) {
+      BLI_delete(temp_textures_dir(), true, true);
+    }
   }
 }
 

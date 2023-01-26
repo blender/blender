@@ -2667,7 +2667,7 @@ int ED_path_extension_type(const char *path)
   if (BLI_path_extension_check(path, ".abc")) {
     return FILE_TYPE_ALEMBIC;
   }
-  if (BLI_path_extension_check_n(path, ".usd", ".usda", ".usdc", nullptr)) {
+  if (BLI_path_extension_check_n(path, ".usd", ".usda", ".usdc", ".usdz", nullptr)) {
     return FILE_TYPE_USD;
   }
   if (BLI_path_extension_check(path, ".vdb")) {
