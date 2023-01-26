@@ -2250,6 +2250,19 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
   BevPoint *bevp2, *bevp1, *bevp0; /* Standard for all make_bevel_list_3D_* functions. */
   int nr;
   float q[4];
+  const bool is_cyclic = bl->poly != -1;
+  /* NOTE(@campbellbarton): For non-cyclic curves only initialize the first direction
+   * (via `vec_to_quat`), necessary for symmetry, see T71137.
+   * Otherwise initialize the first and second points before propagating rotation forward.
+   * This is historical as changing this can cause significantly different output.
+   * Specifically: `deform_modifiers` test: (`CurveMeshDeform`).
+   *
+   * While it would seem correct to only use the first point for non-cyclic curves as well
+   * the end-points direction is initialized from the input handles (instead of the directions
+   * between points), there is often a bigger difference in the first and second directions
+   * than you'd otherwise expect. So using only the first direction breaks compatibility
+   * enough it's best to leave it as-is. */
+  const int nr_init = bl->nr - (is_cyclic ? 1 : 2);
 
   bevel_list_calc_bisect(bl);
 
@@ -2260,7 +2273,8 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
   nr = bl->nr;
   while (nr--) {
 
-    if (nr + 3 > bl->nr) { /* first time and second time, otherwise first point adjusts last */
+    if (nr >= nr_init) {
+      /* Initialize the rotation, otherwise propagate the previous rotation forward. */
       vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
     }
     else {
