@@ -130,7 +130,7 @@ def _draw_move_buttons(
 ) -> None:
     """Draw the up/down arrows to move elements in the list."""
     col = layout.column()
-    col.enabled = list_length > 0
+    col.enabled = list_length > 1
     move_up_op = layout.operator(UILIST_OT_entry_move.bl_idname, text="", icon='TRIA_UP')
     move_up_op.direction = 'UP'
     move_up_op.list_path = list_path
