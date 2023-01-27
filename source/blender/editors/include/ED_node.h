@@ -14,13 +14,11 @@ extern "C" {
 struct ID;
 struct Main;
 struct Scene;
-struct ScrArea;
 struct SpaceNode;
 struct Tex;
 struct View2D;
 struct bContext;
 struct bNode;
-struct bNodeSocket;
 struct bNodeSocketType;
 struct bNodeTree;
 struct bNodeTreeType;
@@ -32,6 +30,7 @@ typedef enum {
   NODE_LEFT = 4,
   NODE_RIGHT = 8,
 } NodeBorder;
+ENUM_OPERATORS(NodeBorder, NODE_RIGHT)
 
 #define NODE_GRID_STEP_SIZE U.widget_unit /* Based on the grid nodes snap to. */
 #define NODE_EDGE_PAN_INSIDE_PAD 2
@@ -40,6 +39,10 @@ typedef enum {
 #define NODE_EDGE_PAN_MAX_SPEED 26 /* In UI units per second, slower than default. */
 #define NODE_EDGE_PAN_DELAY 0.5f
 #define NODE_EDGE_PAN_ZOOM_INFLUENCE 0.5f
+
+/* clipboard.cc */
+
+void ED_node_clipboard_free(void);
 
 /* space_node.cc */
 
@@ -73,15 +76,6 @@ void ED_node_draw_snap(
 
 /* node_draw.cc */
 
-/**
- * Draw a single node socket at default size.
- * \note this is only called from external code, internally #node_socket_draw_nested() is used for
- *       optimized drawing of multiple/all sockets of a node.
- */
-void ED_node_socket_draw(struct bNodeSocket *sock,
-                         const struct rcti *rect,
-                         const float color[4],
-                         float scale);
 void ED_node_tree_update(const struct bContext *C);
 void ED_node_tag_update_id(struct ID *id);
 
@@ -174,21 +168,4 @@ bool ED_space_node_color_sample(struct Main *bmain,
 
 #ifdef __cplusplus
 }
-#endif
-
-#ifdef __cplusplus
-
-/* node_relationships.cc */
-
-namespace blender::ed::space_node {
-
-void node_insert_on_link_flags_set(SpaceNode &snode, const ARegion &region);
-/**
- * Assumes link with #NODE_LINKFLAG_HILITE set.
- */
-void node_insert_on_link_flags(Main &bmain, SpaceNode &snode);
-void node_insert_on_link_flags_clear(bNodeTree &node_tree);
-
-}  // namespace blender::ed::space_node
-
 #endif

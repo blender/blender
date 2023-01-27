@@ -268,8 +268,9 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   FileBrowseOp *fbo;
   char *str;
 
-  if (CTX_wm_space_file(C)) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot activate a file selector, one already open");
+  const SpaceFile *sfile = CTX_wm_space_file(C);
+  if (sfile && sfile->op) {
+    BKE_report(op->reports, RPT_ERROR, "Cannot activate a file selector dialog, one already open");
     return OPERATOR_CANCELLED;
   }
 

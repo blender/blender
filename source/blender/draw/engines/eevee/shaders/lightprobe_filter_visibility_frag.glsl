@@ -4,20 +4,6 @@
 #pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(irradiance_lib.glsl)
 
-uniform samplerCube probeDepth;
-uniform int outputSize;
-uniform float lodFactor;
-uniform float storedTexelSize;
-uniform float lodMax;
-uniform float nearClip;
-uniform float farClip;
-uniform float visibilityRange;
-uniform float visibilityBlur;
-
-uniform float sampleCount;
-
-out vec4 FragColor;
-
 vec3 octahedral_to_cubemap_proj(vec2 co)
 {
   co = co * 2.0 - 1.0;

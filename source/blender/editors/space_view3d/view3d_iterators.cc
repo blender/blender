@@ -203,10 +203,9 @@ static bool view3d_project_segment_to_screen_with_clip_tag(const ARegion *region
  * \{ */
 
 struct foreachScreenObjectVert_userData {
-  void (*func)(void *userData, MVert *mv, const float screen_co[2], int index);
+  void (*func)(void *userData, const float screen_co[2], int index);
   void *userData;
   ViewContext vc;
-  MVert *verts;
   const bool *hide_vert;
   eV3DProjTest clip_flag;
 };
@@ -269,7 +268,6 @@ static void meshobject_foreachScreenVert__mapFunc(void *userData,
   if (data->hide_vert && data->hide_vert[index]) {
     return;
   }
-  MVert *mv = &data->verts[index];
 
   float screen_co[2];
 
@@ -278,14 +276,15 @@ static void meshobject_foreachScreenVert__mapFunc(void *userData,
     return;
   }
 
-  data->func(data->userData, mv, screen_co, index);
+  data->func(data->userData, screen_co, index);
 }
 
-void meshobject_foreachScreenVert(
-    ViewContext *vc,
-    void (*func)(void *userData, MVert *eve, const float screen_co[2], int index),
-    void *userData,
-    eV3DProjTest clip_flag)
+void meshobject_foreachScreenVert(ViewContext *vc,
+                                  void (*func)(void *userData,
+                                               const float screen_co[2],
+                                               int index),
+                                  void *userData,
+                                  eV3DProjTest clip_flag)
 {
   BLI_assert((clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) == 0);
   foreachScreenObjectVert_userData data;
@@ -302,7 +301,6 @@ void meshobject_foreachScreenVert(
   data.func = func;
   data.userData = userData;
   data.clip_flag = clip_flag;
-  data.verts = BKE_mesh_verts_for_write((Mesh *)vc->obact->data);
   data.hide_vert = (const bool *)CustomData_get_layer_named(
       &me->vdata, CD_PROP_BOOL, ".hide_vert");
 

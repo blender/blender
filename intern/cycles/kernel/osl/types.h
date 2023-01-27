@@ -5,47 +5,26 @@
 
 CCL_NAMESPACE_BEGIN
 
-struct DeviceString {
 #if defined(__KERNEL_GPU__)
-  /* Strings are represented by their hashes in CUDA and OptiX. */
-  size_t str_;
-
-  ccl_device_inline_method uint64_t hash() const
-  {
-    return str_;
-  }
+/* Strings are represented by their hashes on the GPU. */
+typedef size_t DeviceString;
 #elif defined(OPENIMAGEIO_USTRING_H)
-  ustring str_;
-
-  ccl_device_inline_method uint64_t hash() const
-  {
-    return str_.hash();
-  }
+typedef ustring DeviceString;
 #else
-  const char *str_;
+typedef const char *DeviceString;
 #endif
-
-  ccl_device_inline_method bool operator==(DeviceString b) const
-  {
-    return str_ == b.str_;
-  }
-  ccl_device_inline_method bool operator!=(DeviceString b) const
-  {
-    return str_ != b.str_;
-  }
-};
 
 ccl_device_inline DeviceString make_string(const char *str, size_t hash)
 {
 #if defined(__KERNEL_GPU__)
   (void)str;
-  return {hash};
+  return hash;
 #elif defined(OPENIMAGEIO_USTRING_H)
   (void)hash;
-  return {ustring(str)};
+  return ustring(str);
 #else
   (void)hash;
-  return {str};
+  return str;
 #endif
 }
 
@@ -116,5 +95,14 @@ struct OSLNoiseOptions {
 
 struct OSLTextureOptions {
 };
+
+#define OSL_TEXTURE_HANDLE_TYPE_IES ((uintptr_t)0x2 << 30)
+#define OSL_TEXTURE_HANDLE_TYPE_SVM ((uintptr_t)0x1 << 30)
+#define OSL_TEXTURE_HANDLE_TYPE_AO_OR_BEVEL ((uintptr_t)0x3 << 30)
+
+#define OSL_TEXTURE_HANDLE_TYPE(handle) \
+  ((unsigned int)((uintptr_t)(handle) & ((uintptr_t)0x3 << 30)))
+#define OSL_TEXTURE_HANDLE_SLOT(handle) \
+  ((unsigned int)((uintptr_t)(handle) & ((uintptr_t)0x3FFFFFFF)))
 
 CCL_NAMESPACE_END

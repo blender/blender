@@ -19,11 +19,11 @@ typedef struct BPy_BMGenericMeshData {
 
 struct MDeformVert;
 struct MLoopCol;
-struct MLoopUV;
 struct MVertSkin;
+struct BMesh;
 
-int BPy_BMLoopUV_AssignPyObject(struct MLoopUV *mloopuv, PyObject *value);
-PyObject *BPy_BMLoopUV_CreatePyObject(struct MLoopUV *mloopuv);
+int BPy_BMLoopUV_AssignPyObject(struct BMesh *bm, BMLoop *loop, PyObject *value);
+PyObject *BPy_BMLoopUV_CreatePyObject(struct BMesh *bm, BMLoop *loop);
 
 int BPy_BMVertSkin_AssignPyObject(struct MVertSkin *mvertskin, PyObject *value);
 PyObject *BPy_BMVertSkin_CreatePyObject(struct MVertSkin *mvertskin);

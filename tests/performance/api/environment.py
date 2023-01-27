@@ -241,7 +241,7 @@ class TestEnvironment:
                       f'args = pickle.loads(base64.b64decode({args}))\n'
                       f'result = {modulename}.{functionname}(args)\n'
                       f'result = base64.b64encode(pickle.dumps(result))\n'
-                      f'print("{output_prefix}" + result.decode())\n')
+                      f'print("\\n{output_prefix}" + result.decode() + "\\n")\n')
 
         expr_args = blender_args + ['--python-expr', expression]
         lines = self.call_blender(expr_args, foreground=foreground)

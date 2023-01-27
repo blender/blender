@@ -37,6 +37,7 @@
 
 #include "ED_armature.h"
 #include "ED_asset.h"
+#include "ED_gpencil.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -97,11 +98,12 @@ void ED_editors_init(bContext *C)
       continue;
     }
     if (BKE_object_has_mode_data(ob, mode)) {
+      /* For multi-edit mode we may already have mode data. */
       continue;
     }
     if (ob->type == OB_GPENCIL) {
-      /* For multi-edit mode we may already have mode data (grease pencil does not need it).
-       * However we may have a non-active object stuck in a grease-pencil edit mode. */
+      /* Grease pencil does not need a toggle of mode. However we may have a non-active object
+       * stuck in a grease-pencil edit mode. */
       if (ob != obact) {
         bGPdata *gpd = (bGPdata *)ob->data;
         gpd->flag &= ~(GP_DATA_STROKE_PAINTMODE | GP_DATA_STROKE_EDITMODE |
@@ -109,6 +111,9 @@ void ED_editors_init(bContext *C)
                        GP_DATA_STROKE_VERTEXMODE);
         ob->mode = OB_MODE_OBJECT;
         DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+      }
+      else if (mode & OB_MODE_ALL_PAINT_GPENCIL) {
+        ED_gpencil_toggle_brush_cursor(C, true, NULL);
       }
       continue;
     }
@@ -359,7 +364,7 @@ void unpack_menu(bContext *C,
   uiPopupMenu *pup;
   uiLayout *layout;
   char line[FILE_MAX + 100];
-  wmOperatorType *ot = WM_operatortype_find(opname, 1);
+  wmOperatorType *ot = WM_operatortype_find(opname, true);
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
   pup = UI_popup_menu_begin(C, IFACE_("Unpack File"), ICON_NONE);

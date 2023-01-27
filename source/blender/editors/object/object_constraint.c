@@ -428,7 +428,7 @@ static void test_constraint(
           con->flag |= CONSTRAINT_DISABLE;
         }
         else {
-          if (!BKE_tracking_track_get_named(tracking, tracking_object, data->track)) {
+          if (!BKE_tracking_object_find_track_with_name(tracking_object, data->track)) {
             con->flag |= CONSTRAINT_DISABLE;
           }
         }

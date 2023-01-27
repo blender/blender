@@ -202,6 +202,14 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
     return clamp(x, 0, width - 1);
   }
 
+  static ccl_always_inline int wrap_mirror(int x, int width)
+  {
+    const int m = abs(x + (x < 0)) % (2 * width);
+    if (m >= width)
+      return 2 * width - m - 1;
+    return m;
+  }
+
   /* ********  2D interpolation ******** */
 
   static ccl_always_inline OutT interp_closest(const TextureInfo &info, float x, float y)
@@ -225,6 +233,10 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
       case EXTENSION_EXTEND:
         ix = wrap_clamp(ix, width);
         iy = wrap_clamp(iy, height);
+        break;
+      case EXTENSION_MIRROR:
+        ix = wrap_mirror(ix, width);
+        iy = wrap_mirror(iy, height);
         break;
       default:
         kernel_assert(0);
@@ -267,6 +279,12 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
         ix = wrap_clamp(ix, width);
         niy = wrap_clamp(iy + 1, height);
         iy = wrap_clamp(iy, height);
+        break;
+      case EXTENSION_MIRROR:
+        nix = wrap_mirror(ix + 1, width);
+        ix = wrap_mirror(ix, width);
+        niy = wrap_mirror(iy + 1, height);
+        iy = wrap_mirror(iy, height);
         break;
       default:
         kernel_assert(0);
@@ -330,6 +348,17 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
         niy = wrap_clamp(iy + 1, height);
         nniy = wrap_clamp(iy + 2, height);
         iy = wrap_clamp(iy, height);
+        break;
+      case EXTENSION_MIRROR:
+        pix = wrap_mirror(ix - 1, width);
+        nix = wrap_mirror(ix + 1, width);
+        nnix = wrap_mirror(ix + 2, width);
+        ix = wrap_mirror(ix, width);
+
+        piy = wrap_mirror(iy - 1, height);
+        niy = wrap_mirror(iy + 1, height);
+        nniy = wrap_mirror(iy + 2, height);
+        iy = wrap_mirror(iy, height);
         break;
       default:
         kernel_assert(0);
@@ -402,6 +431,11 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
         ix = wrap_clamp(ix, width);
         iy = wrap_clamp(iy, height);
         iz = wrap_clamp(iz, depth);
+        break;
+      case EXTENSION_MIRROR:
+        ix = wrap_mirror(ix, width);
+        iy = wrap_mirror(iy, height);
+        iz = wrap_mirror(iz, depth);
         break;
       default:
         kernel_assert(0);
@@ -479,6 +513,16 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
 
         niz = wrap_clamp(iz + 1, depth);
         iz = wrap_clamp(iz, depth);
+        break;
+      case EXTENSION_MIRROR:
+        nix = wrap_mirror(ix + 1, width);
+        ix = wrap_mirror(ix, width);
+
+        niy = wrap_mirror(iy + 1, height);
+        iy = wrap_mirror(iy, height);
+
+        niz = wrap_mirror(iz + 1, depth);
+        iz = wrap_mirror(iz, depth);
         break;
       default:
         kernel_assert(0);
@@ -594,6 +638,22 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
         niz = wrap_clamp(iz + 1, depth);
         nniz = wrap_clamp(iz + 2, depth);
         iz = wrap_clamp(iz, depth);
+        break;
+      case EXTENSION_MIRROR:
+        pix = wrap_mirror(ix - 1, width);
+        nix = wrap_mirror(ix + 1, width);
+        nnix = wrap_mirror(ix + 2, width);
+        ix = wrap_mirror(ix, width);
+
+        piy = wrap_mirror(iy - 1, height);
+        niy = wrap_mirror(iy + 1, height);
+        nniy = wrap_mirror(iy + 2, height);
+        iy = wrap_mirror(iy, height);
+
+        piz = wrap_mirror(iz - 1, depth);
+        niz = wrap_mirror(iz + 1, depth);
+        nniz = wrap_mirror(iz + 2, depth);
+        iz = wrap_mirror(iz, depth);
         break;
       default:
         kernel_assert(0);

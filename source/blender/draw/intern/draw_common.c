@@ -219,7 +219,8 @@ void DRW_globals_update(void)
 
     BKE_colorband_evaluate_table_rgba(&ramp, &colors, &col_size);
 
-    G_draw.ramp = GPU_texture_create_1d("ramp", col_size, 1, GPU_RGBA8, colors);
+    G_draw.ramp = GPU_texture_create_1d_ex(
+        "ramp", col_size, 1, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, colors);
 
     MEM_freeN(colors);
   }
@@ -476,5 +477,6 @@ static GPUTexture *DRW_create_weight_colorramp_texture(void)
     pixels[i][3] = 1.0f;
   }
 
-  return GPU_texture_create_1d("weight_color_ramp", 256, 1, GPU_SRGB8_A8, pixels[0]);
+  return GPU_texture_create_1d_ex(
+      "weight_color_ramp", 256, 1, GPU_SRGB8_A8, GPU_TEXTURE_USAGE_SHADER_READ, pixels[0]);
 }

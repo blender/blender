@@ -43,6 +43,7 @@ if(WIN32)
     target_link_libraries(blender_test ${_lib})
     target_link_options(blender_test PRIVATE /wholearchive:$<TARGET_FILE:${_lib}>)
   endforeach()
+  set_target_properties(blender_test PROPERTIES VS_DEBUGGER_ENVIRONMENT "${PLATFORM_ENV_INSTALL};$<TARGET_FILE_DIR:blender>")
 elseif(APPLE)
   # force_load for `_test_libs` ensures that all symbols definitely make it into the test binary.
   # But linking against them again using `target_link_libraries` creates duplicate symbol

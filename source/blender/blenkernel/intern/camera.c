@@ -1119,6 +1119,9 @@ float BKE_camera_multiview_shift_x(const RenderData *rd,
   if (rd->views_format == SCE_VIEWS_FORMAT_MULTIVIEW) {
     return data->shiftx;
   }
+  if (data->type == CAM_PANO) {
+    return data->shiftx;
+  }
   /* SCE_VIEWS_SETUP_BASIC */
   return camera_stereo3d_shift_x(camera, viewname);
 }

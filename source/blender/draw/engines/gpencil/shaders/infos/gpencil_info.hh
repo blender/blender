@@ -43,6 +43,7 @@ GPU_SHADER_CREATE_INFO(gpencil_geometry)
     .vertex_out(gpencil_geometry_iface)
     .vertex_source("gpencil_vert.glsl")
     .fragment_source("gpencil_frag.glsl")
+    .depth_write(DepthWrite::ANY)
     .additional_info("draw_gpencil");
 
 /** \} */
@@ -79,6 +80,7 @@ GPU_SHADER_CREATE_INFO(gpencil_depth_merge)
     .sampler(0, ImageType::DEPTH_2D, "depthBuf")
     .vertex_source("gpencil_depth_merge_vert.glsl")
     .fragment_source("gpencil_depth_merge_frag.glsl")
+    .depth_write(DepthWrite::ANY)
     .additional_info("draw_view");
 
 /** \} */

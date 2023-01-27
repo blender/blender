@@ -22,24 +22,24 @@ void main()
   vec4 v1 = gl_in[0].gl_Position;
   vec4 v2 = gl_in[1].gl_Position;
 
-  int is_active_nurb = (vert[1].flag & ACTIVE_NURB);
-  int color_id = (vert[1].flag >> COLOR_SHIFT);
+  uint is_active_nurb = (vert[1].flag & ACTIVE_NURB);
+  uint color_id = (vert[1].flag >> COLOR_SHIFT);
 
   /* Don't output any edges if we don't show handles */
   if (!showCurveHandles && (color_id < 5)) {
     return;
   }
 
-  bool edge_selected = (((vert[1].flag | vert[0].flag) & VERT_SELECTED) != 0);
+  bool edge_selected = (((vert[1].flag | vert[0].flag) & VERT_SELECTED) != 0u);
   bool handle_selected = (showCurveHandles &&
-                          (((vert[1].flag | vert[0].flag) & VERT_SELECTED_BEZT_HANDLE) != 0));
+                          (((vert[1].flag | vert[0].flag) & VERT_SELECTED_BEZT_HANDLE) != 0u));
 
-  bool is_gpencil = ((vert[1].flag & VERT_GPENCIL_BEZT_HANDLE) != 0);
+  bool is_gpencil = ((vert[1].flag & VERT_GPENCIL_BEZT_HANDLE) != 0u);
 
   /* If handle type is only selected and the edge is not selected, don't show. */
   if ((curveHandleDisplay != CURVE_HANDLE_ALL) && (!handle_selected)) {
     /* Nurbs must show the handles always. */
-    bool is_u_segment = (((vert[1].flag ^ vert[0].flag) & EVEN_U_BIT) != 0);
+    bool is_u_segment = (((vert[1].flag ^ vert[0].flag) & EVEN_U_BIT) != 0u);
     if ((!is_u_segment) && (color_id <= 4)) {
       return;
     }
@@ -93,7 +93,7 @@ void main()
   }
 
   /* draw the transparent border (AA). */
-  if (is_active_nurb != 0) {
+  if (is_active_nurb != 0u) {
     offset *= 0.75; /* Don't make the active "halo" appear very thick. */
     output_line(offset * 2.0, vec4(colorActiveSpline.rgb, 0.0));
   }
@@ -108,7 +108,7 @@ void main()
   output_line(-offset, outer_color);
 
   /* draw the transparent border (AA). */
-  if (is_active_nurb != 0) {
+  if (is_active_nurb != 0u) {
     output_line(offset * -2.0, vec4(colorActiveSpline.rgb, 0.0));
   }
 

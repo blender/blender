@@ -89,7 +89,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm,
   immUniform1i("colors_len", 0); /* Simple dashes. */
   immUniformColor3f(0.0f, 0.0f, 0.0f);
   immUniform1f("dash_width", 10.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   /* draw two black lines showing the standard reference levels */
 
@@ -1049,7 +1049,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
       immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
       immUniform1i("colors_len", 0); /* Simple dashes. */
       immUniform1f("dash_width", 4.0f);
-      immUniform1f("dash_factor", 0.5f);
+      immUniform1f("udash_factor", 0.5f);
     }
     else {
       immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
@@ -1208,7 +1208,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
     immUniformColor3fv(fcu->color);
 
     immUniform1f("dash_width", 40.0f);
-    immUniform1f("dash_factor", 0.5f);
+    immUniform1f("udash_factor", 0.5f);
     GPU_line_width(2.0f);
 
     /* draw 1-1 line, stretching just past the screen limits
@@ -1238,7 +1238,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
       /* draw dotted lines leading towards this point from both axes ....... */
       immUniformColor3f(0.9f, 0.9f, 0.9f);
       immUniform1f("dash_width", 10.0f);
-      immUniform1f("dash_factor", 0.5f);
+      immUniform1f("udash_factor", 0.5f);
       GPU_line_width(1.0f);
 
       immBegin(GPU_PRIM_LINES, (y <= v2d->cur.ymax) ? 4 : 2);
@@ -1318,7 +1318,7 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region
 
   immUniform1i("colors_len", 0); /* Simple dashes. */
   immUniform1f("dash_width", 20.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   const bool draw_extrapolation = (sipo->flag & SIPO_NO_DRAW_EXTRAPOLATION) == 0;
   /* the ghost curves are simply sampled F-Curves stored in sipo->runtime.ghost_curves */

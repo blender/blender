@@ -16,7 +16,7 @@ set(OPENEXR_EXTRA_ARGS
   -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include/
   -DBUILD_TESTING=OFF
   -DOPENEXR_BUILD_BOTH_STATIC_SHARED=OFF
-  -DBUILD_SHARED_LIBS=OFF
+  -DBUILD_SHARED_LIBS=ON
   -DOPENEXR_INSTALL_TOOLS=OFF
   -DOPENEXR_INSTALL_EXAMPLES=OFF
   -DImath_DIR=${LIBDIR}/imath/lib/cmake/Imath
@@ -27,6 +27,7 @@ ExternalProject_Add(external_openexr
   URL file://${PACKAGE_DIR}/${OPENEXR_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${OPENEXR_HASH_TYPE}=${OPENEXR_HASH}
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/openexr
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openexr ${DEFAULT_CMAKE_FLAGS} ${OPENEXR_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/openexr
@@ -36,6 +37,11 @@ if(WIN32)
   ExternalProject_Add_Step(external_openexr after_install
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/lib ${HARVEST_TARGET}/openexr/lib
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/include ${HARVEST_TARGET}/openexr/include
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openexr/bin/Iex${OPENEXR_VERSION_POSTFIX}.dll ${HARVEST_TARGET}/openexr/bin/Iex${OPENEXR_VERSION_POSTFIX}.dll
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openexr/bin/IlmThread${OPENEXR_VERSION_POSTFIX}.dll ${HARVEST_TARGET}/openexr/bin/IlmThread${OPENEXR_VERSION_POSTFIX}.dll
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openexr/bin/OpenEXRCore${OPENEXR_VERSION_POSTFIX}.dll ${HARVEST_TARGET}/openexr/bin/OpenEXRCore${OPENEXR_VERSION_POSTFIX}.dll
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openexr/bin/OpenEXRUtil${OPENEXR_VERSION_POSTFIX}.dll ${HARVEST_TARGET}/openexr/bin/OpenEXRUtil${OPENEXR_VERSION_POSTFIX}.dll
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openexr/bin/OpenEXR${OPENEXR_VERSION_POSTFIX}.dll ${HARVEST_TARGET}/openexr/bin/OpenEXR${OPENEXR_VERSION_POSTFIX}.dll
     DEPENDEES install
   )
 endif()
@@ -43,4 +49,5 @@ endif()
 add_dependencies(
   external_openexr
   external_zlib
+  external_imath
 )

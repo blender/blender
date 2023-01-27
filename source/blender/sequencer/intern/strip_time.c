@@ -31,7 +31,7 @@
 #include "strip_time.h"
 #include "utils.h"
 
-static float seq_time_media_playback_rate_factor_get(const Scene *scene, const Sequence *seq)
+float seq_time_media_playback_rate_factor_get(const Scene *scene, const Sequence *seq)
 {
   if ((seq->flag & SEQ_AUTO_PLAYBACK_RATE) == 0) {
     return 1.0f;
@@ -44,7 +44,7 @@ static float seq_time_media_playback_rate_factor_get(const Scene *scene, const S
   return seq->media_playback_rate / scene_playback_rate;
 }
 
-static float seq_time_playback_rate_factor_get(const Scene *scene, const Sequence *seq)
+float seq_time_playback_rate_factor_get(const Scene *scene, const Sequence *seq)
 {
   return seq_time_media_playback_rate_factor_get(scene, seq) * seq->speed_factor;
 }

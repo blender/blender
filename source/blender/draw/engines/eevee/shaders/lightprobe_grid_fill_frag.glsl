@@ -1,6 +1,3 @@
-uniform sampler2DArray irradianceGrid;
-
-out vec4 FragColor;
 
 void main()
 {

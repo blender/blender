@@ -12,10 +12,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       .implicit_field(implicit_field_inputs::index)
       .description(N_("The control point to retrieve data from"));
   b.add_output<decl::Int>(N_("Curve Index"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(N_("The curve the control point is part of"));
   b.add_output<decl::Int>(N_("Index in Curve"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(N_("How far along the control point is along its curve"));
 }
 

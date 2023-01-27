@@ -367,13 +367,11 @@ static void attr_create_generic(Scene *scene,
 {
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
   static const ustring u_velocity("velocity");
-
-  int attribute_index = 0;
-  int render_color_index = b_mesh.attributes.render_color_index();
+  const ustring default_color_name{b_mesh.attributes.default_color_name().c_str()};
 
   for (BL::Attribute &b_attribute : b_mesh.attributes) {
     const ustring name{b_attribute.name().c_str()};
-    const bool is_render_color = (attribute_index++ == render_color_index);
+    const bool is_render_color = name == default_color_name;
 
     if (need_motion && name == u_velocity) {
       attr_create_motion(mesh, b_attribute, motion_scale);
@@ -681,7 +679,7 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
   if (num_verts == 0) {
     return;
   }
-  const MVert *verts = static_cast<const MVert *>(b_mesh.vertices[0].ptr.data);
+  const float(*positions)[3] = static_cast<const float(*)[3]>(b_mesh.vertices[0].ptr.data);
 
   /* STEP 1: Find out duplicated vertices and point duplicates to a single
    *         original vertex.
@@ -767,10 +765,8 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
       continue;
     }
     visited_edges.insert(v0, v1);
-    const MVert &b_vert_0 = verts[v0];
-    const MVert &b_vert_1 = verts[v1];
-    float3 co0 = make_float3(b_vert_0.co[0], b_vert_0.co[1], b_vert_0.co[2]);
-    float3 co1 = make_float3(b_vert_1.co[0], b_vert_1.co[1], b_vert_1.co[2]);
+    float3 co0 = make_float3(positions[v0][0], positions[v0][1], positions[v0][2]);
+    float3 co1 = make_float3(positions[v1][0], positions[v1][1], positions[v1][2]);
     float3 edge = normalize(co1 - co0);
     edge_accum[v0] += edge;
     edge_accum[v1] += -edge;
@@ -921,7 +917,7 @@ static void create_mesh(Scene *scene,
     return;
   }
 
-  const MVert *verts = static_cast<const MVert *>(b_mesh.vertices[0].ptr.data);
+  const float(*positions)[3] = static_cast<const float(*)[3]>(b_mesh.vertices[0].ptr.data);
 
   if (!subdivision) {
     numtris = numfaces;
@@ -944,8 +940,7 @@ static void create_mesh(Scene *scene,
 
   /* create vertex coordinates and normals */
   for (int i = 0; i < numverts; i++) {
-    const MVert &b_vert = verts[i];
-    mesh->add_vertex(make_float3(b_vert.co[0], b_vert.co[1], b_vert.co[2]));
+    mesh->add_vertex(make_float3(positions[i][0], positions[i][1], positions[i][2]));
   }
 
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
@@ -1085,11 +1080,11 @@ static void create_subd_mesh(Scene *scene,
   const int edges_num = b_mesh.edges.length();
 
   if (edges_num != 0 && b_mesh.edge_creases.length() > 0) {
-    size_t num_creases = 0;
-    const float *creases = static_cast<float *>(b_mesh.edge_creases[0].ptr.data);
+    BL::MeshEdgeCreaseLayer creases = b_mesh.edge_creases[0];
 
+    size_t num_creases = 0;
     for (int i = 0; i < edges_num; i++) {
-      if (creases[i] != 0.0f) {
+      if (creases.data[i].value() != 0.0f) {
         num_creases++;
       }
     }
@@ -1098,17 +1093,18 @@ static void create_subd_mesh(Scene *scene,
 
     const MEdge *edges = static_cast<MEdge *>(b_mesh.edges[0].ptr.data);
     for (int i = 0; i < edges_num; i++) {
-      if (creases[i] != 0.0f) {
+      const float crease = creases.data[i].value();
+      if (crease != 0.0f) {
         const MEdge &b_edge = edges[i];
-        mesh->add_edge_crease(b_edge.v1, b_edge.v2, creases[i]);
+        mesh->add_edge_crease(b_edge.v1, b_edge.v2, crease);
       }
     }
+  }
 
-    for (BL::MeshVertexCreaseLayer &c : b_mesh.vertex_creases) {
-      for (int i = 0; i < c.data.length(); ++i) {
-        if (c.data[i].value() != 0.0f) {
-          mesh->add_vertex_crease(i, c.data[i].value());
-        }
+  for (BL::MeshVertexCreaseLayer &c : b_mesh.vertex_creases) {
+    for (int i = 0; i < c.data.length(); ++i) {
+      if (c.data[i].value() != 0.0f) {
+        mesh->add_vertex_crease(i, c.data[i].value());
       }
     }
   }
@@ -1253,14 +1249,13 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
     float3 *mP = attr_mP->data_float3() + motion_step * numverts;
     float3 *mN = (attr_mN) ? attr_mN->data_float3() + motion_step * numverts : NULL;
 
-    const MVert *verts = static_cast<const MVert *>(b_mesh.vertices[0].ptr.data);
+    const float(*positions)[3] = static_cast<const float(*)[3]>(b_mesh.vertices[0].ptr.data);
 
     /* NOTE: We don't copy more that existing amount of vertices to prevent
      * possible memory corruption.
      */
     for (int i = 0; i < std::min<size_t>(b_verts_num, numverts); i++) {
-      const MVert &b_vert = verts[i];
-      mP[i] = make_float3(b_vert.co[0], b_vert.co[1], b_vert.co[2]);
+      mP[i] = make_float3(positions[i][0], positions[i][1], positions[i][2]);
     }
     if (mN) {
       const float(*b_vert_normals)[3] = static_cast<const float(*)[3]>(

@@ -41,7 +41,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--svn-command", default="svn")
     parser.add_argument("--svn-branch", default=None)
     parser.add_argument("--git-command", default="git")
-    parser.add_argument("--use-centos-libraries", action="store_true")
+    parser.add_argument("--use-linux-libraries", action="store_true")
     return parser.parse_args()
 
 
@@ -59,10 +59,11 @@ def svn_update(args: argparse.Namespace, release_version: Optional[str]) -> None
 
     # Checkout precompiled libraries
     if sys.platform == 'darwin':
-        if platform.machine() == 'x86_64':
-            lib_platform = "darwin"
-        elif platform.machine() == 'arm64':
+        # Check platform.version to detect arm64 with x86_64 python binary.
+        if platform.machine() == 'arm64' or ('ARM64' in platform.version()):
             lib_platform = "darwin_arm64"
+        elif platform.machine() == 'x86_64':
+            lib_platform = "darwin"
         else:
             lib_platform = None
     elif sys.platform == 'win32':
@@ -70,8 +71,8 @@ def svn_update(args: argparse.Namespace, release_version: Optional[str]) -> None
         # this script is bundled as part of the precompiled libraries. However it
         # is used by the buildbot.
         lib_platform = "win64_vc15"
-    elif args.use_centos_libraries:
-        lib_platform = "linux_centos7_x86_64"
+    elif args.use_linux_libraries:
+        lib_platform = "linux_x86_64_glibc_228"
     else:
         # No precompiled libraries for Linux.
         lib_platform = None
@@ -103,17 +104,30 @@ def svn_update(args: argparse.Namespace, release_version: Optional[str]) -> None
             svn_url_tests = svn_url + lib_tests
             call(svn_non_interactive + ["checkout", svn_url_tests, lib_tests_dirpath])
 
-    # Update precompiled libraries and tests
+    lib_assets = "assets"
+    lib_assets_dirpath = os.path.join(lib_dirpath, lib_assets)
+
+    if not os.path.exists(lib_assets_dirpath):
+        print_stage("Checking out Assets")
+
+        if make_utils.command_missing(args.svn_command):
+            sys.stderr.write("svn not found, can't checkout assets\n")
+            sys.exit(1)
+
+        svn_url_assets = svn_url + lib_assets
+        call(svn_non_interactive + ["checkout", svn_url_assets, lib_assets_dirpath])
+
+    # Update precompiled libraries, assets and tests
 
     if not os.path.isdir(lib_dirpath):
         print("Library path: %r, not found, skipping" % lib_dirpath)
     else:
         paths_local_and_remote = []
         if os.path.exists(os.path.join(lib_dirpath, ".svn")):
-            print_stage("Updating Precompiled Libraries and Tests (one repository)")
+            print_stage("Updating Precompiled Libraries, Assets and Tests (one repository)")
             paths_local_and_remote.append((lib_dirpath, svn_url))
         else:
-            print_stage("Updating Precompiled Libraries and Tests (multiple repositories)")
+            print_stage("Updating Precompiled Libraries, Assets and Tests (multiple repositories)")
             # Separate paths checked out.
             for dirname in os.listdir(lib_dirpath):
                 if dirname.startswith("."):

@@ -18,6 +18,7 @@
 struct BakeTargets;
 struct BakePixel;
 struct Depsgraph;
+struct GPUContext;
 struct Main;
 struct Object;
 struct Render;
@@ -158,9 +159,12 @@ typedef struct RenderEngine {
   void *update_render_passes_data;
 
   /* GPU context. */
-  void *gpu_context;
+  void *wm_gpu_context; /* WindowManager GPU context -> GHOSTContext. */
   ThreadMutex gpu_context_mutex;
   bool use_drw_render_context;
+  struct GPUContext *gpu_context;
+  /* Whether to restore DRWState after RenderEngine display pass. */
+  bool gpu_restore_context;
 } RenderEngine;
 
 RenderEngine *RE_engine_create(RenderEngineType *type);

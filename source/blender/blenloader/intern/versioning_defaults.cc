@@ -15,7 +15,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_system.h"
 #include "BLI_utildefines.h"
@@ -51,6 +51,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
@@ -295,7 +296,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   if (scene->nodetree) {
     ntreeFreeEmbeddedTree(scene->nodetree);
     MEM_freeN(scene->nodetree);
-    scene->nodetree = NULL;
+    scene->nodetree = nullptr;
     scene->use_nodes = false;
   }
 
@@ -325,7 +326,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 
   /* Be sure `curfalloff` and primitive are initialized. */
   ToolSettings *ts = scene->toolsettings;
-  if (ts->gp_sculpt.cur_falloff == NULL) {
+  if (ts->gp_sculpt.cur_falloff == nullptr) {
     ts->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
     CurveMapping *gp_falloff_curve = ts->gp_sculpt.cur_falloff;
     BKE_curvemapping_init(gp_falloff_curve);
@@ -334,7 +335,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
                        CURVE_PRESET_GAUSS,
                        CURVEMAP_SLOPE_POSITIVE);
   }
-  if (ts->gp_sculpt.cur_primitive == NULL) {
+  if (ts->gp_sculpt.cur_primitive == nullptr) {
     ts->gp_sculpt.cur_primitive = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
     CurveMapping *gp_primitive_curve = ts->gp_sculpt.cur_primitive;
     BKE_curvemapping_init(gp_primitive_curve);
@@ -348,23 +349,22 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
     ts->sculpt->paint.symmetry_flags |= PAINT_SYMMETRY_FEATHER;
   }
 
-  /* Correct default startup UV's. */
+  /* Correct default startup UVs. */
   Mesh *me = static_cast<Mesh *>(BLI_findstring(&bmain->meshes, "Cube", offsetof(ID, name) + 2));
-  if (me && (me->totloop == 24) && CustomData_has_layer(&me->ldata, CD_MLOOPUV)) {
-    MLoopUV *mloopuv = static_cast<MLoopUV *>(CustomData_get_layer(&me->ldata, CD_MLOOPUV));
+  if (me && (me->totloop == 24) && CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2)) {
     const float uv_values[24][2] = {
         {0.625, 0.50}, {0.875, 0.50}, {0.875, 0.75}, {0.625, 0.75}, {0.375, 0.75}, {0.625, 0.75},
         {0.625, 1.00}, {0.375, 1.00}, {0.375, 0.00}, {0.625, 0.00}, {0.625, 0.25}, {0.375, 0.25},
         {0.125, 0.50}, {0.375, 0.50}, {0.375, 0.75}, {0.125, 0.75}, {0.375, 0.50}, {0.625, 0.50},
         {0.625, 0.75}, {0.375, 0.75}, {0.375, 0.25}, {0.625, 0.25}, {0.625, 0.50}, {0.375, 0.50},
     };
-    for (int i = 0; i < ARRAY_SIZE(uv_values); i++) {
-      copy_v2_v2(mloopuv[i].uv, uv_values[i]);
-    }
+    float(*mloopuv)[2] = static_cast<float(*)[2]>(
+        CustomData_get_layer_for_write(&me->ldata, CD_PROP_FLOAT2, me->totloop));
+    memcpy(mloopuv, uv_values, sizeof(float[2]) * me->totloop);
   }
 
   /* Make sure that the curve profile is initialized */
-  if (ts->custom_bevel_profile_preset == NULL) {
+  if (ts->custom_bevel_profile_preset == nullptr) {
     ts->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);
   }
 
@@ -421,7 +421,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
     /* Rename and fix materials and enable default object lights on. */
     if (app_template && STREQ(app_template, "2D_Animation")) {
-      Material *ma = NULL;
+      Material *ma = nullptr;
       do_versions_rename_id(bmain, ID_MA, "Black", "Solid Stroke");
       do_versions_rename_id(bmain, ID_MA, "Red", "Squares Stroke");
       do_versions_rename_id(bmain, ID_MA, "Grey", "Solid Fill");
@@ -430,7 +430,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       /* Dots Stroke. */
       ma = static_cast<Material *>(
           BLI_findstring(&bmain->materials, "Dots Stroke", offsetof(ID, name) + 2));
-      if (ma == NULL) {
+      if (ma == nullptr) {
         ma = BKE_gpencil_material_add(bmain, "Dots Stroke");
       }
       ma->gp_style->mode = GP_MATERIAL_MODE_DOT;
@@ -438,7 +438,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       /* Squares Stroke. */
       ma = static_cast<Material *>(
           BLI_findstring(&bmain->materials, "Squares Stroke", offsetof(ID, name) + 2));
-      if (ma == NULL) {
+      if (ma == nullptr) {
         ma = BKE_gpencil_material_add(bmain, "Squares Stroke");
       }
       ma->gp_style->mode = GP_MATERIAL_MODE_SQUARE;
@@ -446,7 +446,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       /* Change Solid Stroke settings. */
       ma = static_cast<Material *>(
           BLI_findstring(&bmain->materials, "Solid Stroke", offsetof(ID, name) + 2));
-      if (ma != NULL) {
+      if (ma != nullptr) {
         ma->gp_style->mix_rgba[3] = 1.0f;
         ma->gp_style->texture_offset[0] = -0.5f;
         ma->gp_style->mix_factor = 0.5f;
@@ -455,7 +455,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       /* Change Solid Fill settings. */
       ma = static_cast<Material *>(
           BLI_findstring(&bmain->materials, "Solid Fill", offsetof(ID, name) + 2));
-      if (ma != NULL) {
+      if (ma != nullptr) {
         ma->gp_style->flag &= ~GP_MATERIAL_STROKE_SHOW;
         ma->gp_style->mix_rgba[3] = 1.0f;
         ma->gp_style->texture_offset[0] = -0.5f;
@@ -494,7 +494,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     return;
   }
 
-  /* Workspaces. */
+  /* Work-spaces. */
   LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
@@ -598,7 +598,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     ma->roughness = 0.5f;
 
     if (ma->nodetree) {
-      LISTBASE_FOREACH (bNode *, node, &ma->nodetree->nodes) {
+      for (bNode *node : ma->nodetree->all_nodes()) {
         if (node->type == SH_NODE_BSDF_PRINCIPLED) {
           bNodeSocket *roughness_socket = nodeFindSocket(node, SOCK_IN, "Roughness");
           bNodeSocketValueFloat *roughness_data = static_cast<bNodeSocketValueFloat *>(

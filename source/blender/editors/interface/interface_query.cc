@@ -19,7 +19,7 @@
 
 #include "RNA_access.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -815,7 +815,7 @@ ARegion *ui_screen_region_find_mouse_over(bScreen *screen, const wmEvent *event)
 /** \name Manage Internal State
  * \{ */
 
-void ui_interface_tag_script_reload_queries(void)
+void ui_interface_tag_script_reload_queries()
 {
   g_ot_tool_set_by_id = nullptr;
 }

@@ -84,7 +84,7 @@ bool ED_view3d_has_workbench_in_texture_color(const Scene *scene,
     }
   }
   else if (v3d->shading.type == OB_RENDER) {
-    if (STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH)) {
+    if (BKE_scene_uses_blender_workbench(scene)) {
       return scene->display.shading.color_type == V3D_SHADING_TEXTURE_COLOR;
     }
   }

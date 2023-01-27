@@ -848,6 +848,8 @@ BLI_INLINE int lineart_line_isec_2d_ignore_line2pos(const double a1[2],
 #endif
 }
 
+struct bGPDframe;
+struct bGPDlayer;
 struct Depsgraph;
 struct LineartGpencilModifierData;
 struct LineartData;
@@ -886,9 +888,7 @@ void MOD_lineart_finalize_chains(LineartData *ld);
 bool MOD_lineart_compute_feature_lines(struct Depsgraph *depsgraph,
                                        struct LineartGpencilModifierData *lmd,
                                        struct LineartCache **cached_result,
-                                       bool enable_stroke_offset);
-
-struct Scene;
+                                       bool enable_stroke_depth_offset);
 
 /**
  * This only gets initial "biggest" tile.
@@ -899,9 +899,6 @@ LineartBoundingArea *MOD_lineart_get_parent_bounding_area(LineartData *ld, doubl
  * Wrapper for more convenience.
  */
 LineartBoundingArea *MOD_lineart_get_bounding_area(LineartData *ld, double x, double y);
-
-struct bGPDframe;
-struct bGPDlayer;
 
 /**
  * Wrapper for external calls.
@@ -926,7 +923,8 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   uint8_t silhouette_mode,
                                   const char *source_vgname,
                                   const char *vgname,
-                                  int modifier_flags);
+                                  int modifier_flags,
+                                  int modifier_calculation_flags);
 
 /**
  * Length is in image space.

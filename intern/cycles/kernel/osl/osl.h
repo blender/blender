@@ -25,13 +25,13 @@ ccl_device_inline void shaderdata_to_shaderglobals(KernelGlobals kg,
                                                    ccl_private ShaderGlobals *globals)
 {
   const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
-  const differential3 dI = differential_from_compact(sd->I, sd->dI);
+  const differential3 dI = differential_from_compact(sd->wi, sd->dI);
 
   /* copy from shader data to shader globals */
   globals->P = sd->P;
   globals->dPdx = dP.dx;
   globals->dPdy = dP.dy;
-  globals->I = sd->I;
+  globals->I = sd->wi;
   globals->dIdx = dI.dx;
   globals->dIdy = dI.dy;
   globals->N = sd->N;

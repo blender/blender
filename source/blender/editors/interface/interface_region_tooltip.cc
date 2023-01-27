@@ -52,7 +52,7 @@
 
 #include "ED_screen.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 
 #define UI_TIP_PAD_FAC 1.3f
@@ -135,7 +135,8 @@ static uiTooltipField *text_field_add(uiTooltipData *data,
   uiTooltipField *field = text_field_add_only(data);
   field->format = {};
   field->format.style = style;
-  field->format.color_id = color, field->format.is_pad = is_pad;
+  field->format.color_id = color;
+  field->format.is_pad = is_pad;
   return field;
 }
 

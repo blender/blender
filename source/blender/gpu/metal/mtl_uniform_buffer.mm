@@ -65,7 +65,7 @@ void MTLUniformBuf::update(const void *data)
   UNUSED_VARS_NDEBUG(ctx);
 
   if (data != nullptr) {
-    metal_buffer_ = MTLContext::get_global_memory_manager().allocate_with_data(
+    metal_buffer_ = MTLContext::get_global_memory_manager()->allocate_with_data(
         size_in_bytes_, true, data);
     has_data_ = true;
 
@@ -79,6 +79,14 @@ void MTLUniformBuf::update(const void *data)
     metal_buffer_ = nullptr;
     has_data_ = false;
   }
+}
+
+void MTLUniformBuf::clear_to_zero()
+{
+  /* TODO(fclem): Avoid another allocation and just do the clear on the GPU if possible. */
+  void *clear_data = calloc(1, size_in_bytes_);
+  this->update(clear_data);
+  free(clear_data);
 }
 
 void MTLUniformBuf::bind(int slot)
@@ -111,6 +119,16 @@ void MTLUniformBuf::bind(int slot)
   if (metal_buffer_ == nullptr) {
     this->update(nullptr);
   }
+}
+
+void MTLUniformBuf::bind_as_ssbo(int slot)
+{
+  if (slot < 0) {
+    MTL_LOG_WARNING("Failed to bind UBO %p as SSBO. uniform location %d invalid.\n", this, slot);
+    return;
+  }
+
+  BLI_assert_msg(0, "Not implemented yet");
 }
 
 void MTLUniformBuf::unbind()

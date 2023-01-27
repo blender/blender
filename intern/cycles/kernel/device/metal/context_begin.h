@@ -47,9 +47,11 @@ class MetalKernelContext {
         case 0: return texture_array[tid].tex.sample(sampler(address::repeat, filter::nearest), coords);
         case 1: return texture_array[tid].tex.sample(sampler(address::clamp_to_edge, filter::nearest), coords);
         case 2: return texture_array[tid].tex.sample(sampler(address::clamp_to_zero, filter::nearest), coords);
-        case 3: return texture_array[tid].tex.sample(sampler(address::repeat, filter::linear), coords);
-        case 4: return texture_array[tid].tex.sample(sampler(address::clamp_to_edge, filter::linear), coords);
-        case 5: return texture_array[tid].tex.sample(sampler(address::clamp_to_zero, filter::linear), coords);
+        case 3: return texture_array[tid].tex.sample(sampler(address::mirrored_repeat, filter::nearest), coords);
+        case 4: return texture_array[tid].tex.sample(sampler(address::repeat, filter::linear), coords);
+        case 5: return texture_array[tid].tex.sample(sampler(address::clamp_to_edge, filter::linear), coords);
+        case 6: return texture_array[tid].tex.sample(sampler(address::clamp_to_zero, filter::linear), coords);
+        case 7: return texture_array[tid].tex.sample(sampler(address::mirrored_repeat, filter::linear), coords);
       }
     }
 #endif

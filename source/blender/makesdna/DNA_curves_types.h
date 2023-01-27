@@ -25,9 +25,33 @@ typedef struct CurvesGeometryRuntimeHandle CurvesGeometryRuntimeHandle;
 #endif
 
 typedef enum CurveType {
+  /**
+   * Catmull Rom curves provide automatic smoothness, like Bezier curves with automatic handle
+   * positions. This is the default type for the hair system because of the simplicity of
+   * interaction and data storage.
+   */
   CURVE_TYPE_CATMULL_ROM = 0,
+  /**
+   * Poly curves (often called "polylines") have no interpolation at all. They evaluate to the same
+   * set of points as the original control points. They are a good choice for high-resolution
+   * data-sets or when constrained by performance.
+   */
   CURVE_TYPE_POLY = 1,
+  /**
+   * Bezier curves provide a common intuitive control system made up of handles and control points.
+   * Handles are stored separately from positions, and do not store extra generic attribute values.
+   * Bezier curves also give the flexibility to set handle types (see #HandleType) that influence
+   * the number of evaluated points in each segment.
+   */
   CURVE_TYPE_BEZIER = 2,
+  /**
+   * NURBS curves offer the most flexibility at the cost of increased complexity. Given the choice
+   * of different knot modes (see #KnotsMode) and different orders (see "nurbs_order" attribute),
+   * any of the other types can theoretically be created with a NURBS curve.
+   *
+   * Note that Blender currently does not support custom knot vectors, though that should be
+   * supported in the long term.
+   */
   CURVE_TYPE_NURBS = 3,
 } CurveType;
 /* The number of supported curve types. */
@@ -54,17 +78,23 @@ typedef enum KnotsMode {
 
 /** Method used to calculate the normals of a curve's evaluated points. */
 typedef enum NormalMode {
+  /** Calculate normals with the smallest twist around the curve tangent across the whole curve. */
   NORMAL_MODE_MINIMUM_TWIST = 0,
+  /**
+   * Calculate normals perpendicular to the Z axis and the curve tangent. If a series of points
+   * is vertical, the X axis is used.
+   */
   NORMAL_MODE_Z_UP = 1,
 } NormalMode;
 
 /**
  * A reusable data structure for geometry consisting of many curves. All control point data is
- * stored contiguously for better efficiency. Data for each curve is stored as a slice of the
- * main #point_data array.
+ * stored contiguously for better efficiency when there are many curves. Multiple curve types are
+ * supported, as described in #CurveType. Data for each curve is accessed by slicing the main
+ * #point_data arrays.
  *
- * The data structure is meant to be embedded in other data-blocks to allow reusing
- * curve-processing algorithms for multiple Blender data-block types.
+ * The data structure is meant to separate geometry data storage and processing from Blender
+ * focused ID data-block handling. The struct can also be embedded to allow reusing it.
  */
 typedef struct CurvesGeometry {
   /**
@@ -73,10 +103,10 @@ typedef struct CurvesGeometry {
    * this array is allocated with a length one larger than the number of curves. This is allowed
    * to be null when there are no curves.
    *
-   * Every curve offset must be at least one larger than the previous.
-   * In other words, every curve must have at least one point.
+   * Every curve offset must be at least one larger than the previous. In other words, every curve
+   * must have at least one point. The first value is 0 and the last value is #point_num.
    *
-   * \note This is *not* stored in #CustomData because its size is one larger than #curve_data.
+   * \note This is *not* stored as an attribute because its size is one larger than #curve_num.
    */
   int *curve_offsets;
 
@@ -96,7 +126,7 @@ typedef struct CurvesGeometry {
    */
   int point_num;
   /**
-   * The number of curves in the data-block.
+   * The number of curves.
    */
   int curve_num;
 
@@ -106,11 +136,17 @@ typedef struct CurvesGeometry {
   CurvesGeometryRuntimeHandle *runtime;
 } CurvesGeometry;
 
+/**
+ * A data-block corresponding to a number of curves of various types with various attributes.
+ * Geometry data (as opposed to pointers to other data-blocks and higher level data for user
+ * interaction) is embedded in the #CurvesGeometry struct.
+ */
 typedef struct Curves {
   ID id;
-  /* Animation data (must be immediately after id). */
+  /** Animation data (must be immediately after #id). */
   struct AnimData *adt;
 
+  /** Geometry data. */
   CurvesGeometry geometry;
 
   int flag;
@@ -126,8 +162,8 @@ typedef struct Curves {
    */
   char symmetry;
   /**
-   * #eAttrDomain. The active selection mode domain. At most one selection mode can be active
-   * at a time.
+   * #eAttrDomain. The active domain for edit/sculpt mode selection. Only one selection mode can
+   * be active at a time.
    */
   char selection_domain;
   char _pad[4];
@@ -143,19 +179,18 @@ typedef struct Curves {
 
   /**
    * The name of the attribute on the surface #Mesh used to give meaning to the UV attachment
-   * coordinates stored on each curve. Expected to be a 2D vector attribute on the face corner
+   * coordinates stored for each curve. Expected to be a 2D vector attribute on the face corner
    * domain.
    */
   char *surface_uv_map;
 
-  /* Draw Cache. */
+  /* Draw cache to store data used for viewport drawing. */
   void *batch_cache;
 } Curves;
 
 /** #Curves.flag */
 enum {
   HA_DS_EXPAND = (1 << 0),
-  CV_SCULPT_SELECTION_ENABLED = (1 << 1),
 };
 
 /** #Curves.symmetry */

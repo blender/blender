@@ -272,6 +272,20 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
               }
               break;
             }
+            case ANIMTYPE_GPLAYER: {
+              if (show_group_colors) {
+                uchar gpl_col[4];
+                bGPDlayer *gpl = (bGPDlayer *)ale->data;
+                rgb_float_to_uchar(gpl_col, gpl->color);
+                gpl_col[3] = col1[3];
+
+                immUniformColor4ubv(sel ? col1 : gpl_col);
+              }
+              else {
+                immUniformColor4ubv(sel ? col1 : col2);
+              }
+              break;
+            }
             default: {
               immUniformColor4ubv(sel ? col1 : col2);
             }

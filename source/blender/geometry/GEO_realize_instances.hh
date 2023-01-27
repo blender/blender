@@ -19,6 +19,8 @@ struct RealizeInstancesOptions {
    * instances. Otherwise, instance attributes are ignored.
    */
   bool realize_instance_attributes = true;
+
+  bke::AnonymousAttributePropagationInfo propagation_info;
 };
 
 /**

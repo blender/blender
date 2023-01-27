@@ -2,7 +2,7 @@
 
 bool cryptomatte_can_merge_sample(vec2 dst, vec2 src)
 {
-  if (dst == vec2(0.0, 0.0)) {
+  if (all(equal(dst, vec2(0.0, 0.0)))) {
     return true;
   }
   if (dst.x == src.x) {

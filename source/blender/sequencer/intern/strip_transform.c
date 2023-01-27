@@ -117,9 +117,10 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
     return;
   }
 
-  /* Meta strips requires special handling: their content is to be translated, and then frame range
-   * of the meta is to be updated for the updated content. */
-  if (seq->type == SEQ_TYPE_META) {
+  /* Meta strips requires their content is to be translated, and then frame range of the meta is
+   * updated based on nested strips. This won't work for empty meta-strips,
+   * so they can be treated as normal strip. */
+  if (seq->type == SEQ_TYPE_META && !BLI_listbase_is_empty(&seq->seqbase)) {
     Sequence *seq_child;
     for (seq_child = seq->seqbase.first; seq_child; seq_child = seq_child->next) {
       SEQ_transform_translate_sequence(evil_scene, seq_child, delta);
@@ -308,7 +309,7 @@ static SeqCollection *query_right_side_strips(const Scene *scene,
 
   SeqCollection *collection = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (SEQ_collection_has_strip(seq, time_dependent_strips)) {
+    if (time_dependent_strips != NULL && SEQ_collection_has_strip(seq, time_dependent_strips)) {
       continue;
     }
     if (SEQ_collection_has_strip(seq, transformed_strips)) {

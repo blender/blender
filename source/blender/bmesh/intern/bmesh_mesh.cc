@@ -1249,7 +1249,7 @@ void BM_mesh_rebuild(BMesh *bm,
    * (and not be needed). */
   if (remap & BM_VERT) {
     if (bm->vtable) {
-      SWAP(BMVert **, vtable_dst, bm->vtable);
+      std::swap(vtable_dst, bm->vtable);
       bm->vtable_tot = bm->totvert;
       bm->elem_table_dirty &= ~BM_VERT;
     }
@@ -1260,7 +1260,7 @@ void BM_mesh_rebuild(BMesh *bm,
 
   if (remap & BM_EDGE) {
     if (bm->etable) {
-      SWAP(BMEdge **, etable_dst, bm->etable);
+      std::swap(etable_dst, bm->etable);
       bm->etable_tot = bm->totedge;
       bm->elem_table_dirty &= ~BM_EDGE;
     }
@@ -1278,7 +1278,7 @@ void BM_mesh_rebuild(BMesh *bm,
 
   if (remap & BM_FACE) {
     if (bm->ftable) {
-      SWAP(BMFace **, ftable_dst, bm->ftable);
+      std::swap(ftable_dst, bm->ftable);
       bm->ftable_tot = bm->totface;
       bm->elem_table_dirty &= ~BM_FACE;
     }

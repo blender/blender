@@ -1027,8 +1027,12 @@ static void datastack_drop_reorder(bContext *C, ReportList *reports, StackDropDa
       }
       else {
         index = outliner_get_insert_index(drag_te, drop_te, insert_type, &ob->modifiers);
-        ED_object_modifier_move_to_index(
-            reports, ob, static_cast<ModifierData *>(drop_data->drag_directdata), index);
+        ED_object_modifier_move_to_index(reports,
+                                         RPT_WARNING,
+                                         ob,
+                                         static_cast<ModifierData *>(drop_data->drag_directdata),
+                                         index,
+                                         true);
       }
       break;
     case TSE_CONSTRAINT:
@@ -1235,7 +1239,7 @@ static char *collection_drop_tooltip(bContext *C,
 
     /* Test if we are moving within same parent collection. */
     bool same_level = false;
-    LISTBASE_FOREACH (CollectionParent *, parent, &data.to->parents) {
+    LISTBASE_FOREACH (CollectionParent *, parent, &data.to->runtime.parents) {
       if (data.from == parent->collection) {
         same_level = true;
       }

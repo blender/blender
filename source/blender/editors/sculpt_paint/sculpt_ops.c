@@ -220,7 +220,6 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
       BKE_mesh_mirror_apply_mirror_on_axis(bmain, mesh, sd->symmetrize_direction, dist);
 
       ED_sculpt_undo_geometry_end(ob);
-      BKE_mesh_normals_tag_dirty(mesh);
       BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 
       break;
@@ -302,6 +301,27 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
         ss->face_sets[i] = new_face_set;
       }
     }
+  }
+}
+
+void SCULPT_ensure_valid_pivot(const Object *ob, Scene *scene)
+{
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  const SculptSession *ss = ob->sculpt;
+
+  /* No valid pivot? Use bounding box center. */
+  if (ups->average_stroke_counter == 0 || !ups->last_stroke_valid) {
+    float location[3], max[3];
+    BKE_pbvh_bounding_box(ss->pbvh, location, max);
+
+    interp_v3_v3v3(location, location, max, 0.5f);
+    mul_m4_v3(ob->object_to_world, location);
+
+    copy_v3_v3(ups->average_stroke_accum, location);
+    ups->average_stroke_counter = 1;
+
+    /* Update last stroke position. */
+    ups->last_stroke_valid = true;
   }
 }
 
@@ -388,6 +408,8 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
     }
   }
+
+  SCULPT_ensure_valid_pivot(ob, scene);
 
   /* Flush object mode. */
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
@@ -888,13 +910,15 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
     v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
   }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
-
   /* Color data is not available in multi-resolution or dynamic topology. */
   if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
+  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
   SCULPT_vertex_random_access_ensure(ss);
 
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
@@ -973,6 +997,12 @@ typedef enum {
   AUTOMASK_BAKE_ADD,
   AUTOMASK_BAKE_SUBTRACT,
 } CavityBakeMixMode;
+
+typedef enum {
+  AUTOMASK_SETTINGS_OPERATOR,
+  AUTOMASK_SETTINGS_SCENE,
+  AUTOMASK_SETTINGS_BRUSH
+} CavityBakeSettingsSource;
 
 typedef struct AutomaskBakeTaskData {
   SculptSession *ss;
@@ -1066,31 +1096,53 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
    */
   Sculpt sd2 = *sd;
 
-  /* Override cavity mask settings if use_automask_settings is false. */
-  if (!RNA_boolean_get(op->ptr, "use_automask_settings")) {
-    if (RNA_boolean_get(op->ptr, "invert")) {
-      sd2.automasking_flags = BRUSH_AUTOMASKING_CAVITY_INVERTED;
-    }
-    else {
-      sd2.automasking_flags = BRUSH_AUTOMASKING_CAVITY_NORMAL;
-    }
+  CavityBakeSettingsSource source = (CavityBakeSettingsSource)RNA_enum_get(op->ptr,
+                                                                           "settings_source");
+  switch (source) {
+    case AUTOMASK_SETTINGS_OPERATOR:
+      if (RNA_boolean_get(op->ptr, "invert")) {
+        sd2.automasking_flags = BRUSH_AUTOMASKING_CAVITY_INVERTED;
+      }
+      else {
+        sd2.automasking_flags = BRUSH_AUTOMASKING_CAVITY_NORMAL;
+      }
 
-    if (RNA_boolean_get(op->ptr, "use_curve")) {
-      sd2.automasking_flags |= BRUSH_AUTOMASKING_CAVITY_USE_CURVE;
-    }
+      if (RNA_boolean_get(op->ptr, "use_curve")) {
+        sd2.automasking_flags |= BRUSH_AUTOMASKING_CAVITY_USE_CURVE;
+      }
 
-    sd2.automasking_cavity_blur_steps = RNA_int_get(op->ptr, "blur_steps");
-    sd2.automasking_cavity_factor = RNA_float_get(op->ptr, "factor");
+      sd2.automasking_cavity_blur_steps = RNA_int_get(op->ptr, "blur_steps");
+      sd2.automasking_cavity_factor = RNA_float_get(op->ptr, "factor");
 
-    sd2.automasking_cavity_curve = sd->automasking_cavity_curve_op;
+      sd2.automasking_cavity_curve = sd->automasking_cavity_curve_op;
+      break;
+    case AUTOMASK_SETTINGS_BRUSH:
+      if (brush) {
+        sd2.automasking_flags = brush->automasking_flags;
+        sd2.automasking_cavity_factor = brush->automasking_cavity_factor;
+        sd2.automasking_cavity_curve = brush->automasking_cavity_curve;
+        sd2.automasking_cavity_blur_steps = brush->automasking_cavity_blur_steps;
+
+        /* Ensure only cavity masking is enabled. */
+        sd2.automasking_flags &= BRUSH_AUTOMASKING_CAVITY_ALL | BRUSH_AUTOMASKING_CAVITY_USE_CURVE;
+      }
+      else {
+        sd2.automasking_flags = 0;
+        BKE_report(op->reports, RPT_WARNING, "No active brush");
+
+        return OPERATOR_CANCELLED;
+      }
+
+      break;
+    case AUTOMASK_SETTINGS_SCENE:
+      /* Ensure only cavity masking is enabled. */
+      sd2.automasking_flags &= BRUSH_AUTOMASKING_CAVITY_ALL | BRUSH_AUTOMASKING_CAVITY_USE_CURVE;
+      break;
   }
-  else {
-    sd2.automasking_flags &= BRUSH_AUTOMASKING_CAVITY_ALL | BRUSH_AUTOMASKING_CAVITY_USE_CURVE;
 
-    /* Ensure cavity mask is actually enabled. */
-    if (!(sd2.automasking_flags & BRUSH_AUTOMASKING_CAVITY_ALL)) {
-      sd2.automasking_flags |= BRUSH_AUTOMASKING_CAVITY_NORMAL;
-    }
+  /* Ensure cavity mask is actually enabled. */
+  if (!(sd2.automasking_flags & BRUSH_AUTOMASKING_CAVITY_ALL)) {
+    sd2.automasking_flags |= BRUSH_AUTOMASKING_CAVITY_NORMAL;
   }
 
   /* Create copy of brush with cleared automasking settings. */
@@ -1132,46 +1184,39 @@ static void cavity_bake_ui(bContext *C, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  bool use_curve = false;
+  CavityBakeSettingsSource source = (CavityBakeSettingsSource)RNA_enum_get(op->ptr,
+                                                                           "settings_source");
 
-  if (!sd || !RNA_boolean_get(op->ptr, "use_automask_settings")) {
-    uiItemR(layout, op->ptr, "mix_mode", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "mix_factor", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "use_automask_settings", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "factor", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "blur_steps", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "invert", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "use_curve", 0, NULL, ICON_NONE);
-
-    use_curve = RNA_boolean_get(op->ptr, "use_curve");
-  }
-  else {
-    PointerRNA sculpt_ptr;
-
-    RNA_pointer_create(&scene->id, &RNA_Sculpt, sd, &sculpt_ptr);
-    uiItemR(layout, op->ptr, "mix_mode", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "mix_factor", 0, NULL, ICON_NONE);
-    uiItemR(layout, op->ptr, "use_automask_settings", 0, NULL, ICON_NONE);
-
-    use_curve = false;
+  if (!sd) {
+    source = AUTOMASK_SETTINGS_OPERATOR;
   }
 
-  if (use_curve) {
-    PointerRNA sculpt_ptr;
+  switch (source) {
+    case AUTOMASK_SETTINGS_OPERATOR: {
+      uiItemR(layout, op->ptr, "mix_mode", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_factor", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "settings_source", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "factor", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "blur_steps", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "invert", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "use_curve", 0, NULL, ICON_NONE);
 
-    const char *curve_prop;
+      if (sd && RNA_boolean_get(op->ptr, "use_curve")) {
+        PointerRNA sculpt_ptr;
 
-    if (RNA_boolean_get(op->ptr, "use_automask_settings")) {
-      curve_prop = "automasking_cavity_curve";
+        RNA_pointer_create(&scene->id, &RNA_Sculpt, sd, &sculpt_ptr);
+        uiTemplateCurveMapping(
+            layout, &sculpt_ptr, "automasking_cavity_curve_op", 'v', false, false, false, false);
+      }
+      break;
     }
-    else {
-      curve_prop = "automasking_cavity_curve_op";
-    }
+    case AUTOMASK_SETTINGS_BRUSH:
+    case AUTOMASK_SETTINGS_SCENE:
+      uiItemR(layout, op->ptr, "mix_mode", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_factor", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "settings_source", 0, NULL, ICON_NONE);
 
-    if (scene->toolsettings && scene->toolsettings->sculpt) {
-      RNA_pointer_create(&scene->id, &RNA_Sculpt, scene->toolsettings->sculpt, &sculpt_ptr);
-      uiTemplateCurveMapping(layout, &sculpt_ptr, curve_prop, 'v', false, false, false, false);
-    }
+      break;
   }
 }
 
@@ -1201,11 +1246,22 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "mix_mode", mix_modes, AUTOMASK_BAKE_MIX, "Mode", "Mix mode");
   RNA_def_float(ot->srna, "mix_factor", 1.0f, 0.0f, 5.0f, "Mix Factor", "", 0.0f, 1.0f);
 
-  RNA_def_boolean(ot->srna,
-                  "use_automask_settings",
-                  false,
-                  "Automask Settings",
-                  "Use default settings from Options panel in sculpt mode");
+  static EnumPropertyItem settings_sources[] = {
+      {AUTOMASK_SETTINGS_OPERATOR,
+       "OPERATOR",
+       ICON_NONE,
+       "Operator",
+       "Use settings from operator properties"},
+      {AUTOMASK_SETTINGS_BRUSH, "BRUSH", ICON_NONE, "Brush", "Use settings from brush"},
+      {AUTOMASK_SETTINGS_SCENE, "SCENE", ICON_NONE, "Scene", "Use settings from scene"},
+      {0, NULL, 0, NULL, NULL}};
+
+  RNA_def_enum(ot->srna,
+               "settings_source",
+               settings_sources,
+               AUTOMASK_SETTINGS_OPERATOR,
+               "Settings",
+               "Use settings from here");
 
   RNA_def_float(ot->srna,
                 "factor",
@@ -1266,6 +1322,8 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
       SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_HIDDEN);
     }
   }
+
+  SCULPT_topology_islands_invalidate(ss);
 
   if (!with_bmesh) {
     /* As an optimization, free the hide attribute when making all geometry visible. This allows

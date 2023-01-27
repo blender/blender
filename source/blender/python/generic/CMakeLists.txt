@@ -8,6 +8,7 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../../../intern/guardedalloc
+  ../../../../intern/clog
 )
 
 set(INC_SYS

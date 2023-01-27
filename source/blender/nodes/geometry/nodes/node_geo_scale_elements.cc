@@ -21,19 +21,19 @@ namespace blender::nodes::node_geo_scale_elements_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Float>(N_("Scale"), "Scale").default_value(1.0f).min(0.0f).supports_field();
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Float>(N_("Scale"), "Scale").default_value(1.0f).min(0.0f).field_on_all();
   b.add_input<decl::Vector>(N_("Center"))
       .subtype(PROP_TRANSLATION)
-      .implicit_field(implicit_field_inputs::position)
+      .implicit_field_on_all(implicit_field_inputs::position)
       .description(N_("Origin of the scaling for each element. If multiple elements are "
                       "connected, their center is averaged"));
   b.add_input<decl::Vector>(N_("Axis"))
       .default_value({1.0f, 0.0f, 0.0f})
-      .supports_field()
+      .field_on_all()
       .description(N_("Direction in which to scale the element"))
       .make_available([](bNode &node) { node.custom2 = GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS; });
-  b.add_output<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
 };
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -157,7 +157,7 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
                                            const UniformScaleParams &params,
                                            const GetVertexIndicesFn get_vertex_indices)
 {
-  MutableSpan<MVert> verts = mesh.verts_for_write();
+  MutableSpan<float3> positions = mesh.vert_positions_for_write();
   const Span<MEdge> edges = mesh.edges();
   const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
@@ -182,10 +182,7 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
       center *= f;
 
       for (const int vert_index : vertex_indices) {
-        MVert &vert = verts[vert_index];
-        const float3 old_position = vert.co;
-        const float3 new_position = transform_with_uniform_scale(old_position, center, scale);
-        copy_v3_v3(vert.co, new_position);
+        positions[vert_index] = transform_with_uniform_scale(positions[vert_index], center, scale);
       }
     }
   });
@@ -198,7 +195,7 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
                                          const AxisScaleParams &params,
                                          const GetVertexIndicesFn get_vertex_indices)
 {
-  MutableSpan<MVert> verts = mesh.verts_for_write();
+  MutableSpan<float3> positions = mesh.vert_positions_for_write();
   const Span<MEdge> edges = mesh.edges();
   const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
@@ -231,10 +228,7 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
 
       const float4x4 transform = create_single_axis_transform(center, axis, scale);
       for (const int vert_index : vertex_indices) {
-        MVert &vert = verts[vert_index];
-        const float3 old_position = vert.co;
-        const float3 new_position = transform * old_position;
-        copy_v3_v3(vert.co, new_position);
+        positions[vert_index] = transform * positions[vert_index];
       }
     }
   });

@@ -4,7 +4,7 @@
 /** \file
  * \ingroup bli
  *
- * \section aboutbli Blender LIbrary external interface
+ * \section aboutbli Blender Library external interface
  *
  * \subsection about About the BLI module
  *

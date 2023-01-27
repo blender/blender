@@ -13,7 +13,6 @@ extern "C" {
 
 struct Editing;
 struct ListBase;
-struct Scene;
 struct SeqTimelineChannel;
 struct Sequence;
 

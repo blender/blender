@@ -1,16 +1,20 @@
 #pragma BLENDER_REQUIRE(gpu_shader_compositor_blur_common.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
 
+/* Loads the input color of the pixel at the given texel. If gamma correction is enabled, the color
+ * is gamma corrected. If bounds are extended, then the input is treated as padded by a blur size
+ * amount of pixels of zero color, and the given texel is assumed to be in the space of the image
+ * after padding. So we offset the texel by the blur radius amount and fallback to a zero color if
+ * it is out of bounds. For instance, if the input is padded by 5 pixels to the left of the image,
+ * the first 5 pixels should be out of bounds and thus zero, hence the introduced offset. */
 vec4 load_input(ivec2 texel)
 {
   vec4 color;
   if (extend_bounds) {
-    /* If bounds are extended, then we treat the input as padded by a radius amount of pixels. So
-     * we load the input with an offset by the radius amount and fallback to a transparent color if
-     * it is out of bounds. Notice that we subtract 1 because the weights texture have an extra
-     * center weight, see the SymmetricBlurWeights for more information. */
-    ivec2 blur_size = texture_size(weights_tx) - 1;
-    color = texture_load(input_tx, texel - blur_size, vec4(0.0));
+    /* Notice that we subtract 1 because the weights texture have an extra center weight, see the
+     * SymmetricBlurWeights class for more information. */
+    ivec2 blur_radius = texture_size(weights_tx) - 1;
+    color = texture_load(input_tx, texel - blur_radius, vec4(0.0));
   }
   else {
     color = texture_load(input_tx, texel);

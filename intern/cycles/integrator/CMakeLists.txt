@@ -5,10 +5,13 @@ set(INC
   ..
 )
 
+set(INC_SYS
+)
+
 set(SRC
   adaptive_sampling.cpp
   denoiser.cpp
-  denoiser_device.cpp
+  denoiser_gpu.cpp
   denoiser_oidn.cpp
   denoiser_optix.cpp
   path_trace.cpp
@@ -30,7 +33,7 @@ set(SRC
 set(SRC_HEADERS
   adaptive_sampling.h
   denoiser.h
-  denoiser_device.h
+  denoiser_gpu.h
   denoiser_oidn.h
   denoiser_optix.h
   path_trace.h

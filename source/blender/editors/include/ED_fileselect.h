@@ -17,7 +17,6 @@ struct ARegion;
 struct FileAssetSelectParams;
 struct FileDirEntry;
 struct FileSelectParams;
-struct Scene;
 struct ScrArea;
 struct SpaceFile;
 struct bContext;

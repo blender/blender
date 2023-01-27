@@ -904,16 +904,6 @@ void minmax_v2v2_v2(float min[2], float max[2], const float vec[2])
   }
 }
 
-void minmax_v3v3_v3_array(float r_min[3],
-                          float r_max[3],
-                          const float (*vec_arr)[3],
-                          int var_arr_num)
-{
-  while (var_arr_num--) {
-    minmax_v3v3_v3(r_min, r_max, *vec_arr++);
-  }
-}
-
 void dist_ensure_v3_v3fl(float v1[3], const float v2[3], const float dist)
 {
   if (!equals_v3v3(v2, v1)) {

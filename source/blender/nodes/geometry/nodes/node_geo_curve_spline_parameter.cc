@@ -35,7 +35,7 @@ static Array<float> accumulated_lengths_curve_domain(const bke::CurvesGeometry &
   curves.ensure_evaluated_lengths();
 
   Array<float> lengths(curves.curves_num());
-  VArray<bool> cyclic = curves.cyclic();
+  const VArray<bool> cyclic = curves.cyclic();
   float length = 0.0f;
   for (const int i : curves.curves_range()) {
     lengths[i] = length;
@@ -58,6 +58,7 @@ static Array<float> accumulated_lengths_curve_domain(const bke::CurvesGeometry &
 static Array<float> curve_length_point_domain(const bke::CurvesGeometry &curves)
 {
   curves.ensure_evaluated_lengths();
+  const OffsetIndices points_by_curve = curves.points_by_curve();
   const VArray<int8_t> types = curves.curve_types();
   const VArray<int> resolutions = curves.resolution();
   const VArray<bool> cyclic = curves.cyclic();
@@ -66,7 +67,7 @@ static Array<float> curve_length_point_domain(const bke::CurvesGeometry &curves)
 
   threading::parallel_for(curves.curves_range(), 128, [&](IndexRange range) {
     for (const int i_curve : range) {
-      const IndexRange points = curves.points_for_curve(i_curve);
+      const IndexRange points = points_by_curve[i_curve];
       const Span<float> evaluated_lengths = curves.evaluated_lengths_for_curve(i_curve,
                                                                                cyclic[i_curve]);
       MutableSpan<float> lengths = result.as_mutable_span().slice(points);
@@ -85,7 +86,7 @@ static Array<float> curve_length_point_domain(const bke::CurvesGeometry &curves)
         case CURVE_TYPE_BEZIER: {
           const Span<int> offsets = curves.bezier_evaluated_offsets_for_curve(i_curve);
           for (const int i : IndexRange(points.size()).drop_back(1)) {
-            lengths[i + 1] = evaluated_lengths[offsets[i] - 1];
+            lengths[i + 1] = evaluated_lengths[offsets[i + 1] - 1];
           }
           break;
         }
@@ -109,15 +110,16 @@ static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry 
                                                       const IndexMask /*mask*/,
                                                       const eAttrDomain domain)
 {
-  VArray<bool> cyclic = curves.cyclic();
+  const VArray<bool> cyclic = curves.cyclic();
 
   if (domain == ATTR_DOMAIN_POINT) {
     Array<float> result = curve_length_point_domain(curves);
     MutableSpan<float> lengths = result.as_mutable_span();
+    const OffsetIndices points_by_curve = curves.points_by_curve();
 
     threading::parallel_for(curves.curves_range(), 1024, [&](IndexRange range) {
       for (const int i_curve : range) {
-        MutableSpan<float> curve_lengths = lengths.slice(curves.points_for_curve(i_curve));
+        MutableSpan<float> curve_lengths = lengths.slice(points_by_curve[i_curve]);
         const float total_length = curve_lengths.last();
         if (total_length > 0.0f) {
           const float factor = 1.0f / total_length;
@@ -193,9 +195,10 @@ static VArray<int> construct_index_on_spline_varray(const bke::CurvesGeometry &c
   if (domain == ATTR_DOMAIN_POINT) {
     Array<int> result(curves.points_num());
     MutableSpan<int> span = result.as_mutable_span();
+    const OffsetIndices points_by_curve = curves.points_by_curve();
     threading::parallel_for(curves.curves_range(), 1024, [&](IndexRange range) {
       for (const int i_curve : range) {
-        MutableSpan<int> indices = span.slice(curves.points_for_curve(i_curve));
+        MutableSpan<int> indices = span.slice(points_by_curve[i_curve]);
         for (const int i : indices.index_range()) {
           indices[i] = i;
         }

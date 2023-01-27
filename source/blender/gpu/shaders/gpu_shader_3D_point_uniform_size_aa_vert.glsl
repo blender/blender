@@ -17,6 +17,6 @@ void main()
   radii /= size;
 
 #ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance((clipPlanes.ModelMatrix * pos_4d).xyz);
+  world_clip_planes_calc_clip_distance((clipPlanes.ClipModelMatrix * pos_4d).xyz);
 #endif
 }

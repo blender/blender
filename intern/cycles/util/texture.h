@@ -65,6 +65,8 @@ typedef enum ExtensionType {
   EXTENSION_EXTEND = 1,
   /* Clip to image size and set exterior pixels as transparent. */
   EXTENSION_CLIP = 2,
+  /* Repeatedly flip the image horizontally and vertically. */
+  EXTENSION_MIRROR = 3,
 
   EXTENSION_NUM_TYPES,
 } ExtensionType;

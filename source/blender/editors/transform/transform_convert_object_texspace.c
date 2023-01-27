@@ -36,7 +36,7 @@ static void createTransTexspace(bContext *UNUSED(C), TransInfo *t)
   TransData *td;
   Object *ob;
   ID *id;
-  char *texflag;
+  char *texspace_flag;
 
   BKE_view_layer_synced_ensure(t->scene, t->view_layer);
   ob = BKE_view_layer_active_object_get(view_layer);
@@ -72,9 +72,9 @@ static void createTransTexspace(bContext *UNUSED(C), TransInfo *t)
   normalize_m3(td->axismtx);
   pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 
-  if (BKE_object_obdata_texspace_get(ob, &texflag, &td->loc, &td->ext->size)) {
+  if (BKE_object_obdata_texspace_get(ob, &texspace_flag, &td->loc, &td->ext->size)) {
     ob->dtx |= OB_TEXSPACE;
-    *texflag &= ~ME_AUTOSPACE;
+    *texspace_flag &= ~ME_TEXSPACE_FLAG_AUTO;
   }
 
   copy_v3_v3(td->iloc, td->loc);
@@ -92,7 +92,7 @@ static void recalcData_texspace(TransInfo *t)
 {
 
   if (t->state != TRANS_CANCEL) {
-    applySnappingIndividual(t);
+    transform_snap_project_individual_apply(t);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -110,8 +110,8 @@ static void recalcData_texspace(TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_ObjectTexSpace = {
-    /* flags */ 0,
-    /* createTransData */ createTransTexspace,
-    /* recalcData */ recalcData_texspace,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ 0,
+    /*createTransData*/ createTransTexspace,
+    /*recalcData*/ recalcData_texspace,
+    /*special_aftertrans_update*/ NULL,
 };

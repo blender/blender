@@ -178,7 +178,7 @@ void Light::shape_parameters_set(const ::Light *la, const float scale[3])
       _area_size_x = tanf(min_ff(la->sun_angle, DEG2RADF(179.9f)) / 2.0f);
     }
     else {
-      _area_size_x = la->area_size;
+      _area_size_x = la->radius;
     }
     _area_size_y = _area_size_x = max_ff(0.001f, _area_size_x);
     radius_squared = square_f(_area_size_x);

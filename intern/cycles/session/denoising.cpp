@@ -439,9 +439,12 @@ bool DenoiseImage::read_previous_pixels(const DenoiseImageLayer &layer,
 {
   /* Load pixels from neighboring frames, and copy them into device buffer
    * with channels reshuffled. */
-  size_t num_pixels = (size_t)width * (size_t)height;
+  const size_t num_pixels = (size_t)width * (size_t)height;
+  const int num_channels = in_previous->spec().nchannels;
+
   array<float> neighbor_pixels(num_pixels * num_channels);
-  if (!in_previous->read_image(TypeDesc::FLOAT, neighbor_pixels.data())) {
+
+  if (!in_previous->read_image(0, 0, 0, num_channels, TypeDesc::FLOAT, neighbor_pixels.data())) {
     return false;
   }
 
@@ -491,7 +494,7 @@ bool DenoiseImage::load(const string &in_filepath, string &error)
 
   /* Read all channels into buffer. Reading all channels at once is faster
    * than individually due to interleaved EXR channel storage. */
-  if (!in->read_image(TypeDesc::FLOAT, pixels.data())) {
+  if (!in->read_image(0, 0, 0, num_channels, TypeDesc::FLOAT, pixels.data())) {
     error = "Failed to read image: " + in_filepath;
     return false;
   }

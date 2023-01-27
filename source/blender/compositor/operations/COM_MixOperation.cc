@@ -494,7 +494,65 @@ void MixDifferenceOperation::update_memory_buffer_row(PixelCursor &p)
   }
 }
 
-/* ******** Mix Difference Operation ******** */
+/* ******** Mix Exclusion Operation ******** */
+
+void MixExclusionOperation::execute_pixel_sampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+  output[0] = max_ff(valuem * input_color1[0] + value * (input_color1[0] + input_color2[0] -
+                                                         2.0f * input_color1[0] * input_color2[0]),
+                     0.0f);
+  output[1] = max_ff(valuem * input_color1[1] + value * (input_color1[1] + input_color2[1] -
+                                                         2.0f * input_color1[1] * input_color2[1]),
+                     0.0f);
+  output[2] = max_ff(valuem * input_color1[2] + value * (input_color1[2] + input_color2[2] -
+                                                         2.0f * input_color1[2] * input_color2[2]),
+                     0.0f);
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
+
+void MixExclusionOperation::update_memory_buffer_row(PixelCursor &p)
+{
+  while (p.out < p.row_end) {
+    float value = p.value[0];
+    if (this->use_value_alpha_multiply()) {
+      value *= p.color2[3];
+    }
+    const float value_m = 1.0f - value;
+    p.out[0] = max_ff(value_m * p.color1[0] +
+                          value * (p.color1[0] + p.color2[0] - 2.0f * p.color1[0] * p.color2[0]),
+                      0.0f);
+    p.out[1] = max_ff(value_m * p.color1[1] +
+                          value * (p.color1[1] + p.color2[1] - 2.0f * p.color1[1] * p.color2[1]),
+                      0.0f);
+    p.out[2] = max_ff(value_m * p.color1[2] +
+                          value * (p.color1[2] + p.color2[2] - 2.0f * p.color1[2] * p.color2[2]),
+                      0.0f);
+    p.out[3] = p.color1[3];
+
+    clamp_if_needed(p.out);
+    p.next();
+  }
+}
+
+/* ******** Mix Divide Operation ******** */
 
 void MixDivideOperation::execute_pixel_sampled(float output[4],
                                                float x,

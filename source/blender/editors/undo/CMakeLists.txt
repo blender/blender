@@ -2,6 +2,7 @@
 
 set(INC
   ../include
+  ../../asset_system
   ../../blenkernel
   ../../blenlib
   ../../blenloader
@@ -14,18 +15,22 @@ set(INC
   ../../bmesh
 )
 
-set(SRC
-  ed_undo.c
-  memfile_undo.c
-  undo_system_types.c
+set(INC_SYS
+)
 
-  undo_intern.h
+set(SRC
+  ed_undo.cc
+  memfile_undo.cc
+  undo_system_types.cc
+
+  undo_intern.hh
 )
 
 set(LIB
   bf_blenkernel
   bf_blenlib
   bf_editor_curve
+  bf_editor_curves
   bf_editor_lattice
   bf_editor_mesh
   bf_editor_metaball

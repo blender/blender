@@ -91,6 +91,8 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
     }
   };
 
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+
   BrushPositionCandidate best_candidate = threading::parallel_reduce(
       curves.curves_range(),
       128,
@@ -99,7 +101,7 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
         BrushPositionCandidate best_candidate = init;
 
         for (const int curve_i : curves_range) {
-          const IndexRange points = curves.points_for_curve(curve_i);
+          const IndexRange points = points_by_curve[curve_i];
 
           if (points.size() == 1) {
             const float3 &pos_cu = positions[points.first()];

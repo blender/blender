@@ -31,6 +31,8 @@ shader node_mix_color(string blend_type = "mix",
     Result = node_mix_div(t, A, B);
   if (blend_type == "difference")
     Result = node_mix_diff(t, A, B);
+  if (blend_type == "exclusion")
+    Result = node_mix_exclusion(t, A, B);
   if (blend_type == "darken")
     Result = node_mix_dark(t, A, B);
   if (blend_type == "lighten")

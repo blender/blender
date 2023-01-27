@@ -248,7 +248,7 @@ bool BKE_view_layer_filter_edit_mesh_has_uvs(const Object *ob, void *UNUSED(user
     const Mesh *me = ob->data;
     const BMEditMesh *em = me->edit_mesh;
     if (em != NULL) {
-      if (CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV) != -1) {
+      if (CustomData_has_layer(&em->bm->ldata, CD_PROP_FLOAT2)) {
         return true;
       }
     }

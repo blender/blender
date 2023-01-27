@@ -14,111 +14,111 @@
 namespace DeviceStrings {
 
 /* "" */
-ccl_device_constant DeviceString _emptystring_ = {0ull};
+ccl_device_constant DeviceString _emptystring_ = 0ull;
 /* "common" */
-ccl_device_constant DeviceString u_common = {14645198576927606093ull};
+ccl_device_constant DeviceString u_common = 14645198576927606093ull;
 /* "world" */
-ccl_device_constant DeviceString u_world = {16436542438370751598ull};
+ccl_device_constant DeviceString u_world = 16436542438370751598ull;
 /* "shader" */
-ccl_device_constant DeviceString u_shader = {4279676006089868ull};
+ccl_device_constant DeviceString u_shader = 4279676006089868ull;
 /* "object" */
-ccl_device_constant DeviceString u_object = {973692718279674627ull};
+ccl_device_constant DeviceString u_object = 973692718279674627ull;
 /* "NDC" */
-ccl_device_constant DeviceString u_ndc = {5148305047403260775ull};
+ccl_device_constant DeviceString u_ndc = 5148305047403260775ull;
 /* "screen" */
-ccl_device_constant DeviceString u_screen = {14159088609039777114ull};
+ccl_device_constant DeviceString u_screen = 14159088609039777114ull;
 /* "camera" */
-ccl_device_constant DeviceString u_camera = {2159505832145726196ull};
+ccl_device_constant DeviceString u_camera = 2159505832145726196ull;
 /* "raster" */
-ccl_device_constant DeviceString u_raster = {7759263238610201778ull};
+ccl_device_constant DeviceString u_raster = 7759263238610201778ull;
 /* "hsv" */
-ccl_device_constant DeviceString u_hsv = {2177035556331879497ull};
+ccl_device_constant DeviceString u_hsv = 2177035556331879497ull;
 /* "hsl" */
-ccl_device_constant DeviceString u_hsl = {7749766809258288148ull};
+ccl_device_constant DeviceString u_hsl = 7749766809258288148ull;
 /* "XYZ" */
-ccl_device_constant DeviceString u_xyz = {4957977063494975483ull};
+ccl_device_constant DeviceString u_xyz = 4957977063494975483ull;
 /* "xyY" */
-ccl_device_constant DeviceString u_xyy = {5138822319725660255ull};
+ccl_device_constant DeviceString u_xyy = 5138822319725660255ull;
 /* "sRGB" */
-ccl_device_constant DeviceString u_srgb = {15368599878474175032ull};
+ccl_device_constant DeviceString u_srgb = 15368599878474175032ull;
 /* "object:location" */
-ccl_device_constant DeviceString u_object_location = {7846190347358762897ull};
+ccl_device_constant DeviceString u_object_location = 7846190347358762897ull;
 /* "object:color" */
-ccl_device_constant DeviceString u_object_color = {12695623857059169556ull};
+ccl_device_constant DeviceString u_object_color = 12695623857059169556ull;
 /* "object:alpha" */
-ccl_device_constant DeviceString u_object_alpha = {11165053919428293151ull};
+ccl_device_constant DeviceString u_object_alpha = 11165053919428293151ull;
 /* "object:index" */
-ccl_device_constant DeviceString u_object_index = {6588325838217472556ull};
+ccl_device_constant DeviceString u_object_index = 6588325838217472556ull;
 /* "geom:dupli_generated" */
-ccl_device_constant DeviceString u_geom_dupli_generated = {6715607178003388908ull};
+ccl_device_constant DeviceString u_geom_dupli_generated = 6715607178003388908ull;
 /* "geom:dupli_uv" */
-ccl_device_constant DeviceString u_geom_dupli_uv = {1294253317490155849ull};
+ccl_device_constant DeviceString u_geom_dupli_uv = 1294253317490155849ull;
 /* "material:index" */
-ccl_device_constant DeviceString u_material_index = {741770758159634623ull};
+ccl_device_constant DeviceString u_material_index = 741770758159634623ull;
 /* "object:random" */
-ccl_device_constant DeviceString u_object_random = {15789063994977955884ull};
+ccl_device_constant DeviceString u_object_random = 15789063994977955884ull;
 /* "particle:index" */
-ccl_device_constant DeviceString u_particle_index = {9489711748229903784ull};
+ccl_device_constant DeviceString u_particle_index = 9489711748229903784ull;
 /* "particle:random" */
-ccl_device_constant DeviceString u_particle_random = {17993722202766855761ull};
+ccl_device_constant DeviceString u_particle_random = 17993722202766855761ull;
 /* "particle:age" */
-ccl_device_constant DeviceString u_particle_age = {7380730644710951109ull};
+ccl_device_constant DeviceString u_particle_age = 7380730644710951109ull;
 /* "particle:lifetime" */
-ccl_device_constant DeviceString u_particle_lifetime = {16576828923156200061ull};
+ccl_device_constant DeviceString u_particle_lifetime = 16576828923156200061ull;
 /* "particle:location" */
-ccl_device_constant DeviceString u_particle_location = {10309536211423573010ull};
+ccl_device_constant DeviceString u_particle_location = 10309536211423573010ull;
 /* "particle:rotation" */
-ccl_device_constant DeviceString u_particle_rotation = {17858543768041168459ull};
+ccl_device_constant DeviceString u_particle_rotation = 17858543768041168459ull;
 /* "particle:size" */
-ccl_device_constant DeviceString u_particle_size = {16461524249715420389ull};
+ccl_device_constant DeviceString u_particle_size = 16461524249715420389ull;
 /* "particle:velocity" */
-ccl_device_constant DeviceString u_particle_velocity = {13199101248768308863ull};
+ccl_device_constant DeviceString u_particle_velocity = 13199101248768308863ull;
 /* "particle:angular_velocity" */
-ccl_device_constant DeviceString u_particle_angular_velocity = {16327930120486517910ull};
+ccl_device_constant DeviceString u_particle_angular_velocity = 16327930120486517910ull;
 /* "geom:numpolyvertices" */
-ccl_device_constant DeviceString u_geom_numpolyvertices = {382043551489988826ull};
+ccl_device_constant DeviceString u_geom_numpolyvertices = 382043551489988826ull;
 /* "geom:trianglevertices" */
-ccl_device_constant DeviceString u_geom_trianglevertices = {17839267571524187074ull};
+ccl_device_constant DeviceString u_geom_trianglevertices = 17839267571524187074ull;
 /* "geom:polyvertices" */
-ccl_device_constant DeviceString u_geom_polyvertices = {1345577201967881769ull};
+ccl_device_constant DeviceString u_geom_polyvertices = 1345577201967881769ull;
 /* "geom:name" */
-ccl_device_constant DeviceString u_geom_name = {13606338128269760050ull};
+ccl_device_constant DeviceString u_geom_name = 13606338128269760050ull;
 /* "geom:undisplaced" */
-ccl_device_constant DeviceString u_geom_undisplaced = {12431586303019276305ull};
+ccl_device_constant DeviceString u_geom_undisplaced = 12431586303019276305ull;
 /* "geom:is_smooth" */
-ccl_device_constant DeviceString u_is_smooth = {857544214094480123ull};
+ccl_device_constant DeviceString u_is_smooth = 857544214094480123ull;
 /* "geom:is_curve" */
-ccl_device_constant DeviceString u_is_curve = {129742495633653138ull};
+ccl_device_constant DeviceString u_is_curve = 129742495633653138ull;
 /* "geom:curve_thickness" */
-ccl_device_constant DeviceString u_curve_thickness = {10605802038397633852ull};
+ccl_device_constant DeviceString u_curve_thickness = 10605802038397633852ull;
 /* "geom:curve_length" */
-ccl_device_constant DeviceString u_curve_length = {11423459517663715453ull};
+ccl_device_constant DeviceString u_curve_length = 11423459517663715453ull;
 /* "geom:curve_tangent_normal" */
-ccl_device_constant DeviceString u_curve_tangent_normal = {12301397394034985633ull};
+ccl_device_constant DeviceString u_curve_tangent_normal = 12301397394034985633ull;
 /* "geom:curve_random" */
-ccl_device_constant DeviceString u_curve_random = {15293085049960492358ull};
+ccl_device_constant DeviceString u_curve_random = 15293085049960492358ull;
 /* "geom:is_point" */
-ccl_device_constant DeviceString u_is_point = {2511357849436175953ull};
+ccl_device_constant DeviceString u_is_point = 2511357849436175953ull;
 /* "geom:point_radius" */
-ccl_device_constant DeviceString u_point_radius = {9956381140398668479ull};
+ccl_device_constant DeviceString u_point_radius = 9956381140398668479ull;
 /* "geom:point_position" */
-ccl_device_constant DeviceString u_point_position = {15684484280742966916ull};
+ccl_device_constant DeviceString u_point_position = 15684484280742966916ull;
 /* "geom:point_random" */
-ccl_device_constant DeviceString u_point_random = {5632627207092325544ull};
+ccl_device_constant DeviceString u_point_random = 5632627207092325544ull;
 /* "geom:normal_map_normal" */
-ccl_device_constant DeviceString u_normal_map_normal = {10718948685686827073};
+ccl_device_constant DeviceString u_normal_map_normal = 10718948685686827073;
 /* "path:ray_length" */
-ccl_device_constant DeviceString u_path_ray_length = {16391985802412544524ull};
+ccl_device_constant DeviceString u_path_ray_length = 16391985802412544524ull;
 /* "path:ray_depth" */
-ccl_device_constant DeviceString u_path_ray_depth = {16643933224879500399ull};
+ccl_device_constant DeviceString u_path_ray_depth = 16643933224879500399ull;
 /* "path:diffuse_depth" */
-ccl_device_constant DeviceString u_path_diffuse_depth = {13191651286699118408ull};
+ccl_device_constant DeviceString u_path_diffuse_depth = 13191651286699118408ull;
 /* "path:glossy_depth" */
-ccl_device_constant DeviceString u_path_glossy_depth = {15717768399057252940ull};
+ccl_device_constant DeviceString u_path_glossy_depth = 15717768399057252940ull;
 /* "path:transparent_depth" */
-ccl_device_constant DeviceString u_path_transparent_depth = {7821650266475578543ull};
+ccl_device_constant DeviceString u_path_transparent_depth = 7821650266475578543ull;
 /* "path:transmission_depth" */
-ccl_device_constant DeviceString u_path_transmission_depth = {15113408892323917624ull};
+ccl_device_constant DeviceString u_path_transmission_depth = 15113408892323917624ull;
 
 }  // namespace DeviceStrings
 
@@ -1275,9 +1275,7 @@ ccl_device_extern bool osl_get_attribute(ccl_private ShaderGlobals *sg,
     object = sd->object;
   }
 
-  const uint64_t id = name.hash();
-
-  const AttributeDescriptor desc = find_attribute(kg, object, sd->prim, sd->type, id);
+  const AttributeDescriptor desc = find_attribute(kg, object, sd->prim, sd->type, name);
   if (desc.offset != ATTR_STD_NOT_FOUND) {
     return get_object_attribute(kg, sd, desc, type, derivatives, res);
   }
@@ -1445,6 +1443,8 @@ OSL_NOISE_IMPL(osl_snoise, snoise)
 
 /* Texturing */
 
+#include "kernel/svm/ies.h"
+
 ccl_device_extern ccl_private OSLTextureOptions *osl_get_texture_options(
     ccl_private ShaderGlobals *sg)
 {
@@ -1534,7 +1534,7 @@ ccl_device_extern void osl_texture_set_missingcolor_alpha(ccl_private OSLTexture
 ccl_device_extern bool osl_texture(ccl_private ShaderGlobals *sg,
                                    DeviceString filename,
                                    ccl_private void *texture_handle,
-                                   OSLTextureOptions *opt,
+                                   ccl_private OSLTextureOptions *opt,
                                    float s,
                                    float t,
                                    float dsdx,
@@ -1550,30 +1550,37 @@ ccl_device_extern bool osl_texture(ccl_private ShaderGlobals *sg,
                                    ccl_private float *dalphady,
                                    ccl_private void *errormessage)
 {
-  if (!texture_handle) {
-    return false;
+  const unsigned int type = OSL_TEXTURE_HANDLE_TYPE(texture_handle);
+  const unsigned int slot = OSL_TEXTURE_HANDLE_SLOT(texture_handle);
+
+  switch (type) {
+    case OSL_TEXTURE_HANDLE_TYPE_SVM: {
+      const float4 rgba = kernel_tex_image_interp(nullptr, slot, s, 1.0f - t);
+      if (nchannels > 0)
+        result[0] = rgba.x;
+      if (nchannels > 1)
+        result[1] = rgba.y;
+      if (nchannels > 2)
+        result[2] = rgba.z;
+      if (alpha)
+        *alpha = rgba.w;
+      return true;
+    }
+    case OSL_TEXTURE_HANDLE_TYPE_IES: {
+      if (nchannels > 0)
+        result[0] = kernel_ies_interp(nullptr, slot, s, t);
+      return true;
+    }
+    default: {
+      return false;
+    }
   }
-
-  /* Only SVM textures are supported. */
-  int id = static_cast<int>(reinterpret_cast<size_t>(texture_handle) - 1);
-
-  const float4 rgba = kernel_tex_image_interp(nullptr, id, s, 1.0f - t);
-
-  result[0] = rgba.x;
-  if (nchannels > 1)
-    result[1] = rgba.y;
-  if (nchannels > 2)
-    result[2] = rgba.z;
-  if (nchannels > 3)
-    result[3] = rgba.w;
-
-  return true;
 }
 
 ccl_device_extern bool osl_texture3d(ccl_private ShaderGlobals *sg,
                                      DeviceString filename,
                                      ccl_private void *texture_handle,
-                                     OSLTextureOptions *opt,
+                                     ccl_private OSLTextureOptions *opt,
                                      ccl_private const float3 *P,
                                      ccl_private const float3 *dPdx,
                                      ccl_private const float3 *dPdy,
@@ -1587,30 +1594,32 @@ ccl_device_extern bool osl_texture3d(ccl_private ShaderGlobals *sg,
                                      ccl_private float *dalphady,
                                      ccl_private void *errormessage)
 {
-  if (!texture_handle) {
-    return false;
+  const unsigned int type = OSL_TEXTURE_HANDLE_TYPE(texture_handle);
+  const unsigned int slot = OSL_TEXTURE_HANDLE_SLOT(texture_handle);
+
+  switch (type) {
+    case OSL_TEXTURE_HANDLE_TYPE_SVM: {
+      const float4 rgba = kernel_tex_image_interp_3d(nullptr, slot, *P, INTERPOLATION_NONE);
+      if (nchannels > 0)
+        result[0] = rgba.x;
+      if (nchannels > 1)
+        result[1] = rgba.y;
+      if (nchannels > 2)
+        result[2] = rgba.z;
+      if (alpha)
+        *alpha = rgba.w;
+      return true;
+    }
+    default: {
+      return false;
+    }
   }
-
-  /* Only SVM textures are supported. */
-  int id = static_cast<int>(reinterpret_cast<size_t>(texture_handle) - 1);
-
-  const float4 rgba = kernel_tex_image_interp_3d(nullptr, id, *P, INTERPOLATION_NONE);
-
-  result[0] = rgba.x;
-  if (nchannels > 1)
-    result[1] = rgba.y;
-  if (nchannels > 2)
-    result[2] = rgba.z;
-  if (nchannels > 3)
-    result[3] = rgba.w;
-
-  return true;
 }
 
 ccl_device_extern bool osl_environment(ccl_private ShaderGlobals *sg,
                                        DeviceString filename,
                                        ccl_private void *texture_handle,
-                                       OSLTextureOptions *opt,
+                                       ccl_private OSLTextureOptions *opt,
                                        ccl_private const float3 *R,
                                        ccl_private const float3 *dRdx,
                                        ccl_private const float3 *dRdy,
@@ -1623,13 +1632,14 @@ ccl_device_extern bool osl_environment(ccl_private ShaderGlobals *sg,
                                        ccl_private float *dalphay,
                                        ccl_private void *errormessage)
 {
-  result[0] = 1.0f;
+  if (nchannels > 0)
+    result[0] = 1.0f;
   if (nchannels > 1)
     result[1] = 0.0f;
   if (nchannels > 2)
     result[2] = 1.0f;
-  if (nchannels > 3)
-    result[3] = 1.0f;
+  if (alpha)
+    *alpha = 1.0f;
 
   return false;
 }

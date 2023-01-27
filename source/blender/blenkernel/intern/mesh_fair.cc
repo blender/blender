@@ -27,6 +27,7 @@
 #include "eigen_capi.h"
 
 using blender::Array;
+using blender::float3;
 using blender::Map;
 using blender::MutableSpan;
 using blender::Span;
@@ -191,12 +192,12 @@ class FairingContext {
 
 class MeshFairingContext : public FairingContext {
  public:
-  MeshFairingContext(Mesh *mesh, MVert *deform_mverts)
+  MeshFairingContext(Mesh *mesh, MutableSpan<float3> deform_positions)
   {
     totvert_ = mesh->totvert;
     totloop_ = mesh->totloop;
 
-    MutableSpan<MVert> verts = mesh->verts_for_write();
+    MutableSpan<float3> positions = mesh->vert_positions_for_write();
     medge_ = mesh->edges();
     mpoly_ = mesh->polys();
     mloop_ = mesh->loops();
@@ -210,14 +211,14 @@ class MeshFairingContext : public FairingContext {
 
     /* Deformation coords. */
     co_.reserve(mesh->totvert);
-    if (deform_mverts) {
+    if (!deform_positions.is_empty()) {
       for (int i = 0; i < mesh->totvert; i++) {
-        co_[i] = deform_mverts[i].co;
+        co_[i] = deform_positions[i];
       }
     }
     else {
       for (int i = 0; i < mesh->totvert; i++) {
-        co_[i] = verts[i].co;
+        co_[i] = positions[i];
       }
     }
 
@@ -466,11 +467,15 @@ static void prefair_and_fair_verts(FairingContext *fairing_context,
 }
 
 void BKE_mesh_prefair_and_fair_verts(struct Mesh *mesh,
-                                     struct MVert *deform_mverts,
+                                     float (*deform_vert_positions)[3],
                                      bool *affect_verts,
                                      const eMeshFairingDepth depth)
 {
-  MeshFairingContext *fairing_context = new MeshFairingContext(mesh, deform_mverts);
+  MutableSpan<float3> deform_positions_span;
+  if (deform_vert_positions) {
+    deform_positions_span = {reinterpret_cast<float3 *>(deform_vert_positions), mesh->totvert};
+  }
+  MeshFairingContext *fairing_context = new MeshFairingContext(mesh, deform_positions_span);
   prefair_and_fair_verts(fairing_context, affect_verts, depth);
   delete fairing_context;
 }

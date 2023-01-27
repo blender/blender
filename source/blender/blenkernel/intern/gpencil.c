@@ -1566,7 +1566,6 @@ bGPDlayer *BKE_gpencil_layer_active_get(bGPdata *gpd)
 bGPDlayer *BKE_gpencil_layer_get_by_name(bGPdata *gpd, char *name, int first_if_not_found)
 {
   bGPDlayer *gpl;
-  int i = 0;
 
   /* error checking */
   if (ELEM(NULL, gpd, gpd->layers.first)) {
@@ -1578,7 +1577,6 @@ bGPDlayer *BKE_gpencil_layer_get_by_name(bGPdata *gpd, char *name, int first_if_
     if (STREQ(name, gpl->info)) {
       return gpl;
     }
-    i++;
   }
 
   /* no such layer */
@@ -1863,6 +1861,18 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
 
   /* Remove the group */
   BLI_freelinkN(&gpd->vertex_group_names, defgroup);
+
+  /* Update the active deform index if necessary. */
+  const int active_index = BKE_object_defgroup_active_index_get(ob);
+  if (active_index > def_nr) {
+    BKE_object_defgroup_active_index_set(ob, active_index - 1);
+  }
+  /* Keep a valid active index if we still have some vertex groups. */
+  if (!BLI_listbase_is_empty(&gpd->vertex_group_names) &&
+      BKE_object_defgroup_active_index_get(ob) < 1) {
+    BKE_object_defgroup_active_index_set(ob, 1);
+  }
+
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 }
 

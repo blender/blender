@@ -285,10 +285,10 @@ static void gizmo_node_crop_prop_matrix_set(const wmGizmo *gz,
   rct_isect.ymax = 1;
   BLI_rctf_isect(&rct_isect, &rct, &rct);
   if (nx) {
-    SWAP(float, rct.xmin, rct.xmax);
+    std::swap(rct.xmin, rct.xmax);
   }
   if (ny) {
-    SWAP(float, rct.ymin, rct.ymax);
+    std::swap(rct.ymin, rct.ymax);
   }
   two_xy_from_rect(nxy, &rct, dims, is_relative);
   gizmo_node_crop_update(crop_group);

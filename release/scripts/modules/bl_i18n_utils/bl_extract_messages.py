@@ -570,7 +570,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         bag = extract_strings_split(node)
         opname, _ = bag[0]
         if not opname:
-            return i18n_contexts.default
+            return i18n_contexts.operator_default
         op = bpy.ops
         for n in opname.split('.'):
             op = getattr(op, n)

@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>(N_("Geometry")).supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Material>(N_("Old"));
   b.add_input<decl::Material>(N_("New"));
-  b.add_output<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

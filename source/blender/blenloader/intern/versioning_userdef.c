@@ -31,6 +31,8 @@
 
 #include "BLO_readfile.h"
 
+#include "GPU_platform.h"
+
 #include "readfile.h" /* Own include. */
 
 #include "WM_types.h"
@@ -764,6 +766,11 @@ void blo_do_versions_userdef(UserDef *userdef)
 
   if (!USER_VERSION_ATLEAST(302, 11)) {
     userdef->dupflag |= USER_DUP_CURVES | USER_DUP_POINTCLOUD;
+  }
+
+  /* Set GPU backend to OpenGL. */
+  if (!USER_VERSION_ATLEAST(305, 5)) {
+    userdef->gpu_backend = GPU_BACKEND_OPENGL;
   }
 
   /**

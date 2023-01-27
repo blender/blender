@@ -31,6 +31,14 @@ typedef struct ModifierViewerPathElem {
 
 typedef struct NodeViewerPathElem {
   ViewerPathElem base;
+
+  int32_t node_id;
+  char _pad1[4];
+
+  /**
+   * The name of the node with the identifier. Not used to lookup nodes, only for display
+   * in the UI. Still stored here to avoid looking up the name for every redraw.
+   */
   char *node_name;
 } NodeViewerPathElem;
 

@@ -155,8 +155,8 @@ if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
   # M1 chips run Big Sur onwards.
   set(OSX_MIN_DEPLOYMENT_TARGET 11.00)
 else()
-  # 10.13 is our min. target, if you use higher sdk, weak linking happens
-  set(OSX_MIN_DEPLOYMENT_TARGET 10.13)
+  # 10.15 is our min. target, if you use higher sdk, weak linking happens
+  set(OSX_MIN_DEPLOYMENT_TARGET 10.15)
 endif()
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET "${OSX_MIN_DEPLOYMENT_TARGET}" CACHE STRING "" FORCE)

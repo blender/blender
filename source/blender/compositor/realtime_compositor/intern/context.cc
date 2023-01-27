@@ -1,5 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_rect.h"
+
+#include "DNA_vec_types.h"
+
 #include "COM_context.hh"
 #include "COM_static_cache_manager.hh"
 #include "COM_static_shader_manager.hh"
@@ -9,6 +13,12 @@ namespace blender::realtime_compositor {
 
 Context::Context(TexturePool &texture_pool) : texture_pool_(texture_pool)
 {
+}
+
+int2 Context::get_compositing_region_size() const
+{
+  const rcti compositing_region = get_compositing_region();
+  return int2(BLI_rcti_size_x(&compositing_region), BLI_rcti_size_y(&compositing_region));
 }
 
 int Context::get_frame_number() const

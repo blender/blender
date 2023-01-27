@@ -101,6 +101,12 @@ void mix_diff(float fac, vec4 col1, vec4 col2, out vec4 outcol)
   outcol.a = col1.a;
 }
 
+void mix_exclusion(float fac, vec4 col1, vec4 col2, out vec4 outcol)
+{
+  outcol = max(mix(col1, col1 + col2 - 2.0 * col1 * col2, fac), 0.0);
+  outcol.a = col1.a;
+}
+
 void mix_dark(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
   outcol.rgb = mix(col1.rgb, min(col1.rgb, col2.rgb), fac);

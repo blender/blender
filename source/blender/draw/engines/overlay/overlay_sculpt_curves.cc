@@ -10,6 +10,7 @@
 #include "draw_cache_impl.h"
 #include "overlay_private.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 
 void OVERLAY_sculpt_curves_cache_init(OVERLAY_Data *vedata)
@@ -31,22 +32,11 @@ void OVERLAY_sculpt_curves_cache_init(OVERLAY_Data *vedata)
 
 static bool everything_selected(const Curves &curves_id)
 {
-  if (!(curves_id.flag & CV_SCULPT_SELECTION_ENABLED)) {
-    /* When the selection is disabled, conceptually everything is selected. */
-    return true;
-  }
-  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
-      curves_id.geometry);
-  blender::VArray<float> selection;
-  switch (curves_id.selection_domain) {
-    case ATTR_DOMAIN_POINT:
-      selection = curves.selection_point_float();
-      break;
-    case ATTR_DOMAIN_CURVE:
-      selection = curves.selection_curve_float();
-      break;
-  }
-  return selection.is_single() && selection.get_internal_single() == 1.0f;
+  using namespace blender;
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const VArray<bool> selection = curves.attributes().lookup_or_default<bool>(
+      ".selection", ATTR_DOMAIN_POINT, true);
+  return selection.is_single() && selection.get_internal_single();
 }
 
 void OVERLAY_sculpt_curves_cache_populate(OVERLAY_Data *vedata, Object *object)
@@ -60,12 +50,9 @@ void OVERLAY_sculpt_curves_cache_populate(OVERLAY_Data *vedata, Object *object)
   }
 
   /* Retrieve the location of the texture. */
-  const char *name = curves->selection_domain == ATTR_DOMAIN_POINT ? ".selection_point_float" :
-                                                                     ".selection_curve_float";
-
   bool is_point_domain;
   GPUVertBuf **texture = DRW_curves_texture_for_evaluated_attribute(
-      curves, name, &is_point_domain);
+      curves, ".selection", &is_point_domain);
   if (texture == nullptr) {
     return;
   }

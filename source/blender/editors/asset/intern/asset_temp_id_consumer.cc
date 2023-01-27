@@ -44,15 +44,11 @@ class AssetTemporaryIDConsumer : NonCopyable, NonMovable {
     return ED_asset_handle_get_local_id(&handle_);
   }
 
-  ID *import_id(const bContext *C,
-                const AssetLibraryReference &asset_library_ref,
-                ID_Type id_type,
-                Main &bmain,
-                ReportList &reports)
+  ID *import_id(ID_Type id_type, Main &bmain, ReportList &reports)
   {
     const char *asset_name = ED_asset_handle_get_name(&handle_);
     char blend_file_path[FILE_MAX_LIBEXTRA];
-    ED_asset_handle_get_full_library_path(C, &asset_library_ref, &handle_, blend_file_path);
+    ED_asset_handle_get_full_library_path(&handle_, blend_file_path);
 
     temp_lib_context_ = BLO_library_temp_load_id(
         &bmain, blend_file_path, id_type, asset_name, &reports);
@@ -84,13 +80,11 @@ void ED_asset_temp_id_consumer_free(AssetTempIDConsumer **consumer)
 }
 
 ID *ED_asset_temp_id_consumer_ensure_local_id(AssetTempIDConsumer *consumer_,
-                                              const bContext *C,
-                                              const AssetLibraryReference *asset_library_ref,
                                               ID_Type id_type,
                                               Main *bmain,
                                               ReportList *reports)
 {
-  if (!(consumer_ && asset_library_ref && bmain && reports)) {
+  if (!(consumer_ && bmain && reports)) {
     return nullptr;
   }
   AssetTemporaryIDConsumer *consumer = reinterpret_cast<AssetTemporaryIDConsumer *>(consumer_);
@@ -98,5 +92,5 @@ ID *ED_asset_temp_id_consumer_ensure_local_id(AssetTempIDConsumer *consumer_,
   if (ID *local_id = consumer->get_local_id()) {
     return local_id;
   }
-  return consumer->import_id(C, *asset_library_ref, id_type, *bmain, *reports);
+  return consumer->import_id(id_type, *bmain, *reports);
 }

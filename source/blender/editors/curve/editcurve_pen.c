@@ -497,7 +497,8 @@ static bool get_closest_vertex_to_point_in_nurbs(const ViewContext *vc,
         int handle_display = vc->v3d->overlay.handle_display;
         if (handle_display == CURVE_HANDLE_NONE ||
             (handle_display == CURVE_HANDLE_SELECTED && !BEZT_ISSEL_ANY(bezt))) {
-          start = 1, end = 2;
+          start = 1;
+          end = 2;
         }
 
         /* Loop over each of the 3 points of the #BezTriple and update data of closest bezt. */
@@ -1169,7 +1170,8 @@ static void move_segment(ViewContext *vc, MoveSegmentData *seg_data, const wmEve
     BezTriple *temp_bezt = bezt2;
     bezt2 = bezt1;
     bezt1 = temp_bezt;
-    h1 = 0, h2 = 2;
+    h1 = 0;
+    h2 = 2;
   }
 
   const float t = max_ff(min_ff(seg_data->t, 0.9f), 0.1f);

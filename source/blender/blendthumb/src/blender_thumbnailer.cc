@@ -73,7 +73,7 @@ static eThumbStatus extract_png_from_blend_file(const char *src_blend, const cha
 
   std::optional<blender::Vector<uint8_t>> png_buf_opt = blendthumb_create_png_data_from_thumb(
       &thumb);
-  if (png_buf_opt == std::nullopt) {
+  if (!png_buf_opt) {
     err = BT_ERROR;
   }
   else {

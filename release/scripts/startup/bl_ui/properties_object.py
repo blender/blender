@@ -200,7 +200,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
 
         col = layout.column(heading="Show")
         col.prop(obj, "show_name", text="Name")
-        col.prop(obj, "show_axis", text="Axis")
+        col.prop(obj, "show_axis", text="Axes")
 
         # Makes no sense for cameras, armatures, etc.!
         # but these settings do apply to dupli instances
@@ -366,7 +366,7 @@ class OBJECT_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
 class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
     bl_label = "Visibility"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -395,7 +395,7 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
 
 
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
     _context_path = "object"
     _property_type = bpy.types.Object
 

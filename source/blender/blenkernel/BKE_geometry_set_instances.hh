@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "BLI_float4x4.hh"
+
 #include "BKE_geometry_set.hh"
 
 namespace blender::bke {

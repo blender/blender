@@ -114,7 +114,9 @@ int BKE_volume_grid_channels(const struct VolumeGrid *grid);
  * Transformation from index space to object space.
  */
 void BKE_volume_grid_transform_matrix(const struct VolumeGrid *grid, float mat[4][4]);
-void BKE_volume_grid_transform_matrix_set(struct VolumeGrid *volume_grid, const float mat[4][4]);
+void BKE_volume_grid_transform_matrix_set(const struct Volume *volume,
+                                          struct VolumeGrid *volume_grid,
+                                          const float mat[4][4]);
 
 /* Volume Editing
  *
@@ -160,7 +162,7 @@ bool BKE_volume_save(const struct Volume *volume,
 
 #ifdef __cplusplus
 #  include "BLI_float4x4.hh"
-#  include "BLI_math_vec_types.hh"
+#  include "BLI_math_vector_types.hh"
 #  include "BLI_string_ref.hh"
 
 bool BKE_volume_min_max(const Volume *volume, blender::float3 &r_min, blender::float3 &r_max);

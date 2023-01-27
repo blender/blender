@@ -83,7 +83,12 @@ BLI_INLINE CCGElem *CCG_elem_next(const CCGKey *key, CCGElem *elem);
 
 /* inline definitions follow */
 
-BLI_INLINE float *CCG_elem_co(const CCGKey *UNUSED(key), CCGElem *elem)
+BLI_INLINE float *CCG_elem_co(const CCGKey *
+#ifndef __cplusplus
+                                  UNUSED(key)
+#endif
+                                      ,
+                              CCGElem *elem)
 {
   return (float *)elem;
 }

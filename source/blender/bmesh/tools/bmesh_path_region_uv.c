@@ -7,7 +7,7 @@
  * (path isn't ordered).
  *
  * \note This uses the same behavior as bmesh_path_region.c
- * however walking UV's causes enough differences that it's
+ * however walking UVs causes enough differences that it's
  * impractical to share the code.
  */
 
@@ -233,7 +233,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
             continue;
           }
 
-          /* Flush the depth to connected loops (only needed for UV's). */
+          /* Flush the depth to connected loops (only needed for UVs). */
           if (depths[side][BM_elem_index_get(l_iter)] == -1) {
             depths[side][BM_elem_index_get(l_iter)] = depths[side][l_a_index];
           }

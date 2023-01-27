@@ -112,8 +112,9 @@ bke::CurvesGeometry primitive_random_sphere(const int curves_size, const int poi
 
   RandomNumberGenerator rng;
 
+  const OffsetIndices points_by_curve = curves.points_by_curve();
   for (const int i : curves.curves_range()) {
-    const IndexRange points = curves.points_for_curve(i);
+    const IndexRange points = points_by_curve[i];
     MutableSpan<float3> curve_positions = positions.slice(points);
     MutableSpan<float> curve_radii = radius.span.slice(points);
 

@@ -344,9 +344,16 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
 {
   bAnimVizSettings *avs = ob->mode == OB_MODE_POSE ? &ob->pose->avs : &ob->avs;
 
+  if (avs->path_range == MOTIONPATH_RANGE_MANUAL) {
+    /* Don't touch manually-determined ranges.  */
+    return;
+  }
+
   const bool has_action = ob->adt && ob->adt->action;
   if (avs->path_range == MOTIONPATH_RANGE_SCENE || !has_action ||
       BLI_listbase_is_empty(&ob->adt->action->curves)) {
+    /* Default to the scene (preview) range if there is no animation data to
+     * find selected keys in. */
     avs->path_sf = PSFRA;
     avs->path_ef = PEFRA;
     return;
@@ -367,6 +374,7 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
     case MOTIONPATH_RANGE_KEYS_ALL:
       ED_keylist_all_keys_frame_range(keylist, &frame_range);
       break;
+    case MOTIONPATH_RANGE_MANUAL:
     case MOTIONPATH_RANGE_SCENE:
       BLI_assert_msg(false, "This should not happen, function should have exited earlier.");
   };

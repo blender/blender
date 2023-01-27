@@ -19,7 +19,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 static VArray<int> construct_curve_point_count_gvarray(const bke::CurvesGeometry &curves,
                                                        const eAttrDomain domain)
 {
-  auto count_fn = [curves](int64_t i) { return curves.points_for_curve(i).size(); };
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  auto count_fn = [points_by_curve](int64_t i) { return points_by_curve.size(i); };
 
   if (domain == ATTR_DOMAIN_CURVE) {
     return VArray<int>::ForFunc(curves.curves_num(), count_fn);

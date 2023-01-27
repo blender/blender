@@ -8,22 +8,6 @@
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 
-uniform sampler2D occlusionBuffer;
-uniform sampler2D bokehLut;
-
-uniform vec2 bokehAnisotropyInv;
-
-flat in vec4 color1;
-flat in vec4 color2;
-flat in vec4 color3;
-flat in vec4 color4;
-flat in vec4 weights;
-flat in vec4 cocs;
-flat in vec2 spritepos;
-flat in float spritesize; /* MaxCoC */
-
-layout(location = 0) out vec4 fragColor;
-
 float bokeh_shape(vec2 center)
 {
   vec2 co = gl_FragCoord.xy - center;
@@ -45,6 +29,7 @@ float bokeh_shape(vec2 center)
 
 void main(void)
 {
+  DEFINE_DOF_QUAD_OFFSETS
   vec4 shapes;
   for (int i = 0; i < 4; i++) {
     shapes[i] = bokeh_shape(spritepos + quad_offsets[i]);

@@ -7,22 +7,9 @@
 /* Step 2 : Evaluate all light scattering for each froxels.
  * Also do the temporal reprojection to fight aliasing artifacts. */
 
-uniform sampler3D volumeScattering;
-uniform sampler3D volumeExtinction;
-uniform sampler3D volumeEmission;
-uniform sampler3D volumePhase;
-
-uniform sampler3D historyScattering;
-uniform sampler3D historyTransmittance;
-
-flat in int slice;
-
-layout(location = 0) out vec4 outScattering;
-layout(location = 1) out vec4 outTransmittance;
-
 void main()
 {
-  ivec3 volume_cell = ivec3(ivec2(gl_FragCoord.xy), slice);
+  ivec3 volume_cell = ivec3(ivec2(gl_FragCoord.xy), volumetric_geom_iface.slice);
 
   /* Emission */
   outScattering = texelFetch(volumeEmission, volume_cell, 0);
@@ -65,7 +52,8 @@ void main()
 
   /* Temporal supersampling */
   /* Note : this uses the cell non-jittered position (texel center). */
-  vec3 curr_ndc = volume_to_ndc(vec3(gl_FragCoord.xy, float(slice) + 0.5) * volInvTexSize.xyz);
+  vec3 curr_ndc = volume_to_ndc(vec3(gl_FragCoord.xy, float(volumetric_geom_iface.slice) + 0.5) *
+                                volInvTexSize.xyz);
   vec3 wpos = get_world_space_from_depth(curr_ndc.xy, curr_ndc.z);
   vec3 prev_ndc = project_point(pastViewProjectionMatrix, wpos);
   vec3 prev_volume = ndc_to_volume(prev_ndc * 0.5 + 0.5);

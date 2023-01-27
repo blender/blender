@@ -18,7 +18,12 @@ class DataButtonsPanel:
 class DATA_PT_context_light(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     def draw(self, context):
         layout = self.layout
@@ -44,7 +49,7 @@ class DATA_PT_preview(DataButtonsPanel, Panel):
 
 class DATA_PT_light(DataButtonsPanel, Panel):
     bl_label = "Light"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}
 
     def draw(self, context):
         layout = self.layout
@@ -227,36 +232,15 @@ class DATA_PT_EEVEE_shadow_contact(DataButtonsPanel, Panel):
         col.prop(light, "contact_shadow_thickness", text="Thickness")
 
 
-class DATA_PT_area(DataButtonsPanel, Panel):
-    bl_label = "Area Shape"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_WORKBENCH'}
-
-    @classmethod
-    def poll(cls, context):
-        light = context.light
-        engine = context.engine
-        return (light and light.type == 'AREA') and (engine in cls.COMPAT_ENGINES)
-
-    def draw(self, context):
-        layout = self.layout
-
-        light = context.light
-
-        col = layout.column()
-        col.row().prop(light, "shape", expand=True)
-        sub = col.row(align=True)
-
-        if light.shape in {'SQUARE', 'DISK'}:
-            sub.prop(light, "size")
-        elif light.shape in {'RECTANGLE', 'ELLIPSE'}:
-            sub.prop(light, "size", text="Size X")
-            sub.prop(light, "size_y", text="Size Y")
-
-
 class DATA_PT_spot(DataButtonsPanel, Panel):
     bl_label = "Spot Shape"
     bl_parent_id = "DATA_PT_EEVEE_light"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
 
     @classmethod
     def poll(cls, context):
@@ -301,7 +285,12 @@ class DATA_PT_falloff_curve(DataButtonsPanel, Panel):
 
 
 class DATA_PT_custom_props_light(DataButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
     _context_path = "object.data"
     _property_type = bpy.types.Light
 
@@ -315,7 +304,6 @@ classes = (
     DATA_PT_EEVEE_shadow,
     DATA_PT_EEVEE_shadow_cascaded_shadow_map,
     DATA_PT_EEVEE_shadow_contact,
-    DATA_PT_area,
     DATA_PT_spot,
     DATA_PT_falloff_curve,
     DATA_PT_custom_props_light,

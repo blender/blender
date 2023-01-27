@@ -13,14 +13,16 @@ namespace blender::nodes::node_geo_edge_paths_to_curves_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Start Vertices")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Int>(N_("Next Vertex Index")).default_value(-1).hide_value().supports_field();
-  b.add_output<decl::Geometry>(N_("Curves"));
+  b.add_input<decl::Bool>(N_("Start Vertices")).default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Int>(N_("Next Vertex Index")).default_value(-1).hide_value().field_on_all();
+  b.add_output<decl::Geometry>(N_("Curves")).propagate_all();
 }
 
-static Curves *edge_paths_to_curves_convert(const Mesh &mesh,
-                                            const IndexMask start_verts_mask,
-                                            const Span<int> next_indices)
+static Curves *edge_paths_to_curves_convert(
+    const Mesh &mesh,
+    const IndexMask start_verts_mask,
+    const Span<int> next_indices,
+    const AnonymousAttributePropagationInfo &propagation_info)
 {
   Vector<int> vert_indices;
   Vector<int> curve_offsets;
@@ -58,8 +60,8 @@ static Curves *edge_paths_to_curves_convert(const Mesh &mesh,
   if (vert_indices.is_empty()) {
     return nullptr;
   }
-  Curves *curves_id = bke::curves_new_nomain(
-      geometry::create_curve_from_vert_indices(mesh, vert_indices, curve_offsets, IndexRange(0)));
+  Curves *curves_id = bke::curves_new_nomain(geometry::create_curve_from_vert_indices(
+      mesh, vert_indices, curve_offsets, IndexRange(0), propagation_info));
   return curves_id;
 }
 
@@ -87,7 +89,8 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    geometry_set.replace_curves(edge_paths_to_curves_convert(*mesh, start_verts, next_vert));
+    geometry_set.replace_curves(edge_paths_to_curves_convert(
+        *mesh, start_verts, next_vert, params.get_output_propagation_info("Curves")));
     geometry_set.keep_only({GEO_COMPONENT_TYPE_CURVE, GEO_COMPONENT_TYPE_INSTANCES});
   });
 

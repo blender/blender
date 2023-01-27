@@ -93,6 +93,9 @@ inline void execute_lazy_function_eagerly_impl(
       fn, input_pointers, output_pointers, input_usages, output_usages, set_outputs};
   fn.execute(params, context);
   fn.destruct_storage(context.storage);
+
+  /* Make sure all outputs have been computed.  */
+  BLI_assert(!Span<bool>(set_outputs).contains(false));
 }
 
 }  // namespace detail

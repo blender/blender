@@ -81,10 +81,10 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   if (pmd->canvas) {
     DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
     for (; surface; surface = surface->next) {
-      /* UV's: #CD_MLOOPUV. */
+      /* UVs: #CD_PROP_FLOAT2. */
       if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ ||
           surface->init_color_type == MOD_DPAINT_INITIAL_TEXTURE) {
-        r_cddata_masks->lmask |= CD_MASK_MLOOPUV;
+        r_cddata_masks->lmask |= CD_MASK_PROP_FLOAT2;
       }
       /* Vertex Colors: #CD_PROP_BYTE_COLOR. */
       if (surface->type == MOD_DPAINT_SURFACE_T_PAINT ||
@@ -187,36 +187,36 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_DynamicPaint = {
-    /* name */ N_("Dynamic Paint"),
-    /* structName */ "DynamicPaintModifierData",
-    /* structSize */ sizeof(DynamicPaintModifierData),
-    /* srna */ &RNA_DynamicPaintModifier,
-    /* type */ eModifierTypeType_Constructive,
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
+    /*name*/ N_("Dynamic Paint"),
+    /*structName*/ "DynamicPaintModifierData",
+    /*structSize*/ sizeof(DynamicPaintModifierData),
+    /*srna*/ &RNA_DynamicPaintModifier,
+    /*type*/ eModifierTypeType_Constructive,
+    /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_UsesPointCache | eModifierTypeFlag_Single |
         eModifierTypeFlag_UsesPreview,
-    /* icon */ ICON_MOD_DYNAMICPAINT,
+    /*icon*/ ICON_MOD_DYNAMICPAINT,
 
-    /* copyData */ copyData,
+    /*copyData*/ copyData,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ NULL,
+    /*deformVerts*/ NULL,
+    /*deformMatrices*/ NULL,
+    /*deformVertsEM*/ NULL,
+    /*deformMatricesEM*/ NULL,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ NULL,
 
-    /* initData */ initData,
-    /* requiredDataMask */ requiredDataMask,
-    /* freeData */ freeData,
-    /* isDisabled */ NULL,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ dependsOnTime,
-    /* dependsOnNormals */ NULL,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ foreachTexLink,
-    /* freeRuntimeData */ freeRuntimeData,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ NULL,
+    /*initData*/ initData,
+    /*requiredDataMask*/ requiredDataMask,
+    /*freeData*/ freeData,
+    /*isDisabled*/ NULL,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ dependsOnTime,
+    /*dependsOnNormals*/ NULL,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ foreachTexLink,
+    /*freeRuntimeData*/ freeRuntimeData,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ NULL,
+    /*blendRead*/ NULL,
 };

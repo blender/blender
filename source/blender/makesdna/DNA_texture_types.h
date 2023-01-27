@@ -31,7 +31,8 @@ typedef struct MTex {
   struct Object *object;
   struct Tex *tex;
   /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char uvname[64];
+  char uvname[68];
+  char _pad1[4];
 
   char projx, projy, projz, mapping;
   char brush_map_mode, brush_angle_mode;
@@ -122,7 +123,8 @@ typedef struct PointDensity {
   /** cache points in world-space, object space, ... ? */
   short ob_cache_space;
   /** vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME */
-  char vertex_attribute_name[64];
+  char vertex_attribute_name[68];
+  char _pad1[4];
 
   /** The acceleration tree containing points. */
   void *point_tree;
@@ -133,11 +135,11 @@ typedef struct PointDensity {
   short noise_depth;
   short noise_influence;
   short noise_basis;
-  char _pad1[6];
+  char _pad2[6];
   float noise_fac;
 
   float speed_scale, falloff_speed_scale;
-  char _pad2[4];
+  char _pad3[4];
   /** For time -> color */
   struct ColorBand *coba;
 

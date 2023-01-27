@@ -1,12 +1,7 @@
 
-#ifdef GPU_ARB_texture_cube_map_array
-
-#  define textureLod_cubemapArray(tex, co, lod) textureLod(tex, co, lod)
-
-#else
-
-/* Fallback implementation for hardware not supporting cubemap arrays. */
-#  define samplerCubeArray sampler2DArray
+/* Fallback implementation for hardware not supporting cubemap arrays.
+ * `samplerCubeArray` fallback declaration as sampler2DArray in `glsl_shader_defines.glsl`*/
+#ifndef GPU_ARB_texture_cube_map_array
 
 float cubemap_face_index(vec3 P)
 {
@@ -60,7 +55,14 @@ vec3 cubemap_adj_xy(float face)
   }
 }
 
+#  ifdef GPU_METAL
+template<typename T>
+vec4 cubemap_seamless(thread _mtl_combined_image_sampler_2d_array<T, access::sample> *tex,
+                      vec4 cubevec,
+                      float lod)
+#  else
 vec4 cubemap_seamless(sampler2DArray tex, vec4 cubevec, float lod)
+#  endif
 {
   /* Manual Cube map Layer indexing. */
   float face = cubemap_face_index(cubevec.xyz);
@@ -116,7 +118,14 @@ vec4 cubemap_seamless(sampler2DArray tex, vec4 cubevec, float lod)
   }
 }
 
+#  ifdef GPU_METAL
+template<typename T, access A>
+vec4 textureLod_cubemapArray(thread _mtl_combined_image_sampler_2d_array<T, A> tex,
+                             vec4 cubevec,
+                             float lod)
+#  else
 vec4 textureLod_cubemapArray(sampler2DArray tex, vec4 cubevec, float lod)
+#  endif
 {
   float lod1 = floor(lod);
   float lod2 = ceil(lod);

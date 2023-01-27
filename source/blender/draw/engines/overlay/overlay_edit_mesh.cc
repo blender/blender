@@ -285,11 +285,11 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
     struct GPUBatch *normal_geom = DRW_cache_normal_arrow_get();
     Mesh *me = static_cast<Mesh *>(ob->data);
     if (vnormals_do) {
-      geom = DRW_mesh_batch_cache_get_edit_vnors(me);
+      geom = DRW_mesh_batch_cache_get_edit_vert_normals(me);
       DRW_shgroup_call_instances_with_attrs(pd->edit_mesh_normals_grp, ob, normal_geom, geom);
     }
     if (lnormals_do) {
-      geom = DRW_mesh_batch_cache_get_edit_lnors(me);
+      geom = DRW_mesh_batch_cache_get_edit_loop_normals(me);
       DRW_shgroup_call_instances_with_attrs(pd->edit_mesh_normals_grp, ob, normal_geom, geom);
     }
     if (fnormals_do) {

@@ -19,6 +19,7 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
                                 IndexMask selection,
                                 const VArray<float> &starts,
                                 const VArray<float> &ends,
-                                GeometryNodeCurveSampleMode mode);
+                                GeometryNodeCurveSampleMode mode,
+                                const bke::AnonymousAttributePropagationInfo &propagation_info);
 
 }  // namespace blender::geometry

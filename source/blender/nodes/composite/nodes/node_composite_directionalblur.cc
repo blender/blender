@@ -7,8 +7,8 @@
 
 #include "BLI_float3x3.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -46,7 +46,6 @@ static void node_composit_buts_dblur(uiLayout *layout, bContext * /*C*/, Pointer
   uiLayout *col;
 
   uiItemR(layout, ptr, "iterations", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_wrap", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
   uiItemL(col, IFACE_("Center:"), ICON_NONE);

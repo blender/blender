@@ -20,7 +20,6 @@
 
 extern "C" {
 struct Material;
-struct CryptomatteSession;
 }
 
 namespace blender::eevee {
