@@ -12,6 +12,7 @@
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
+#include "BLI_vector.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -39,11 +40,10 @@ struct TransformUserData {
   double2 add_y;
 
   struct {
-    int num;
-    double2 offset_x;
-    double2 offset_y;
-    double2 add_x;
-    double2 add_y;
+    /**
+     * Contains per sub-sample a delta to be added to the uv of the source image buffer.
+     */
+    Vector<double2, 9> delta_uvs;
   } subsampling;
 
   /**
@@ -96,11 +96,19 @@ struct TransformUserData {
 
   void init_subsampling(const int num_subsamples)
   {
-    subsampling.num = max_ii(num_subsamples, 1);
-    subsampling.add_x = add_x / (subsampling.num);
-    subsampling.add_y = add_y / (subsampling.num);
-    subsampling.offset_x = -add_x * 0.5 + subsampling.add_x * 0.5;
-    subsampling.offset_y = -add_y * 0.5 + subsampling.add_y * 0.5;
+    double2 subsample_add_x = add_x / num_subsamples;
+    double2 subsample_add_y = add_y / num_subsamples;
+    double2 offset_x = -add_x * 0.5 + subsample_add_x * 0.5;
+    double2 offset_y = -add_y * 0.5 + subsample_add_y * 0.5;
+
+    for (int y : IndexRange(0, num_subsamples)) {
+      for (int x : IndexRange(0, num_subsamples)) {
+        double2 delta_uv = -offset_x - offset_y;
+        delta_uv += x * subsample_add_x;
+        delta_uv += y * subsample_add_y;
+        subsampling.delta_uvs.append(delta_uv);
+      }
+    }
   }
 };
 
@@ -526,7 +534,7 @@ class ScanlineProcessor {
    */
   void process(const TransformUserData *user_data, int scanline)
   {
-    if (user_data->subsampling.num > 1) {
+    if (user_data->subsampling.delta_uvs.size() > 1) {
       process_with_subsampling(user_data, scanline);
     }
     else {
@@ -595,26 +603,19 @@ class ScanlineProcessor {
       sample.clear();
       int num_subsamples_added = 0;
 
-      double2 subsample_uv_y = uv + user_data->subsampling.offset_y;
-      for (int subsample_yi : IndexRange(user_data->subsampling.num)) {
-        UNUSED_VARS(subsample_yi);
-        double2 subsample_uv = subsample_uv_y + user_data->subsampling.offset_x;
-        for (int subsample_xi : IndexRange(user_data->subsampling.num)) {
-          UNUSED_VARS(subsample_xi);
-          if (!discarder.should_discard(*user_data, subsample_uv)) {
-            typename Sampler::SampleType sub_sample;
-            sampler.sample(user_data->src, subsample_uv, sub_sample);
-            sample.add_subsample(sub_sample, num_subsamples_added);
-            num_subsamples_added += 1;
-          }
-          subsample_uv += user_data->subsampling.add_x;
+      for (double2 delta_uv : user_data->subsampling.delta_uvs) {
+        double2 subsample_uv = uv + delta_uv;
+        if (!discarder.should_discard(*user_data, subsample_uv)) {
+          typename Sampler::SampleType sub_sample;
+          sampler.sample(user_data->src, subsample_uv, sub_sample);
+          sample.add_subsample(sub_sample, num_subsamples_added);
+          num_subsamples_added += 1;
         }
-        subsample_uv_y += user_data->subsampling.add_y;
       }
 
       if (num_subsamples_added != 0) {
-        float mix_weight = float(num_subsamples_added) /
-                           (user_data->subsampling.num * user_data->subsampling.num);
+        const float mix_weight = float(num_subsamples_added) /
+                                 user_data->subsampling.delta_uvs.size();
         channel_converter.mix_and_store(sample, output, mix_weight);
       }
       uv += user_data->add_x;
