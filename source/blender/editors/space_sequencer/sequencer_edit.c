@@ -2570,17 +2570,16 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
    * in the new list. */
   BLI_movelisttolist(ed->seqbasep, &nseqbase);
 
-  /* Make sure, that pasted strips have unique names. This has to be done immediately after adding
-   * strips to seqbase, for lookup cache to work correctly. */
-  for (iseq = iseq_first; iseq; iseq = iseq->next) {
-    SEQ_ensure_unique_name(iseq, scene);
-  }
-
   for (iseq = iseq_first; iseq; iseq = iseq->next) {
     if (SEQ_clipboard_pasted_seq_was_active(iseq)) {
       SEQ_select_active_set(scene, iseq);
     }
+    /* Make sure, that pasted strips have unique names. This has to be done after
+     * adding strips to seqbase, for lookup cache to work correctly. */
+    SEQ_ensure_unique_name(iseq, scene);
+  }
 
+  for (iseq = iseq_first; iseq; iseq = iseq->next) {
     /* Translate after name has been changed, otherwise this will affect animdata of original
      * strip. */
     SEQ_transform_translate_sequence(scene, iseq, ofs);
