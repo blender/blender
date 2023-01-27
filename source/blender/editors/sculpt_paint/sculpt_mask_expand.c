@@ -86,6 +86,8 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
   PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
   int active_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, active_vertex);
 
+  bool face_sets_changed = false;
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
     int vi = vd.index;
     float final_mask = *vd.mask;
@@ -111,6 +113,7 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
     if (data->mask_expand_create_face_set) {
       if (final_mask == 1.0f) {
         SCULPT_vertex_face_set_set(ss, vd.vertex, ss->filter_cache->new_face_set);
+        face_sets_changed = true;
       }
       BKE_pbvh_node_mark_redraw(node);
     }
@@ -131,6 +134,10 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
     }
   }
   BKE_pbvh_vertex_iter_end;
+
+  if (face_sets_changed) {
+    SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_FACE_SETS);
+  }
 }
 
 static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -353,9 +360,9 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   SCULPT_undo_push_begin(ob, op);
 
   if (create_face_set) {
-    SCULPT_undo_push_node(ob, ss->filter_cache->nodes[0], SCULPT_UNDO_FACE_SETS);
     for (int i = 0; i < ss->filter_cache->totnode; i++) {
       BKE_pbvh_node_mark_redraw(ss->filter_cache->nodes[i]);
+      SCULPT_undo_push_node(ob, ss->filter_cache->nodes[i], SCULPT_UNDO_FACE_SETS);
     }
   }
   else {

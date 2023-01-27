@@ -11,7 +11,6 @@
 extern "C" {
 #endif
 
-struct GPUIndexBuf;
 struct GPUVertBuf;
 
 /** Opaque type hiding #blender::gpu::shader::ShaderCreateInfo */
@@ -97,6 +96,7 @@ void GPU_shader_free(GPUShader *shader);
 
 void GPU_shader_bind(GPUShader *shader);
 void GPU_shader_unbind(void);
+GPUShader *GPU_shader_get_bound(void);
 
 const char *GPU_shader_get_name(GPUShader *shader);
 

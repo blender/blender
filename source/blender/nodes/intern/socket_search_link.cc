@@ -91,7 +91,7 @@ void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
   Set<StringRef> socket_names;
   for (const int i : declarations.index_range()) {
     const SocketDeclaration &socket = *declarations[i];
-    if (!socket_names.add(socket.name())) {
+    if (!socket_names.add(socket.name)) {
       /* Don't add sockets with the same name to the search. Needed to support being called from
        * #search_link_ops_for_basic_node, which should have "okay" behavior for nodes with
        * duplicate socket names. */
@@ -100,7 +100,7 @@ void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
     if (!socket.can_connect(params.other_socket())) {
       continue;
     }
-    if (socket.is_default_link_socket() || main_socket == nullptr) {
+    if (socket.is_default_link_socket || main_socket == nullptr) {
       /* Either the first connectable or explicitly tagged socket is the main socket. */
       main_socket = &socket;
     }
@@ -115,11 +115,11 @@ void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
      * sockets. */
     const int weight = (&socket == main_socket) ? 0 : -1 - i;
     params.add_item(
-        IFACE_(socket.name().c_str()),
+        IFACE_(socket.name.c_str()),
         [&node_type, &socket](LinkSearchOpParams &params) {
           bNode &node = params.add_node(node_type);
           socket.make_available(node);
-          params.update_and_connect_available_socket(node, socket.name());
+          params.update_and_connect_available_socket(node, socket.name);
         },
         weight);
   }
@@ -132,9 +132,8 @@ void search_link_ops_for_basic_node(GatherLinkSearchOpParams &params)
     return;
   }
 
-  if (node_type.declaration_is_dynamic) {
-    /* Dynamic declarations (whatever they end up being) aren't supported
-     * by this function, but still avoid a crash in release builds. */
+  if (node_type.declare_dynamic) {
+    /* Dynamic declarations aren't supported here, but avoid crashing in release builds. */
     BLI_assert_unreachable();
     return;
   }

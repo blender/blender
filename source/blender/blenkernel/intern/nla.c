@@ -973,19 +973,17 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
   oEnd = ((NlaStrip *)mstrip->strips.last)->end;
   offset = mstrip->start - oStart;
 
+  /* check if scale changed */
+  oLen = oEnd - oStart;
+  nLen = mstrip->end - mstrip->start;
+  scaleChanged = !IS_EQF(oLen, nLen);
+
   /* optimization:
    * don't flush if nothing changed yet
    * TODO: maybe we need a flag to say always flush?
    */
-  if (IS_EQF(oStart, mstrip->start) && IS_EQF(oEnd, mstrip->end)) {
+  if (IS_EQF(oStart, mstrip->start) && IS_EQF(oEnd, mstrip->end) && !scaleChanged) {
     return;
-  }
-
-  /* check if scale changed */
-  oLen = oEnd - oStart;
-  nLen = mstrip->end - mstrip->start;
-  if (IS_EQF(nLen, oLen) == 0) {
-    scaleChanged = 1;
   }
 
   /* for each child-strip, calculate new start/end points based on this new info */
@@ -1001,6 +999,12 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
        * then wait for second pass to flush scale properly. */
       strip->start = (p1 * nLen) + mstrip->start;
       strip->end = (p2 * nLen) + mstrip->start;
+
+      // Recompute the playback scale, given the new start & end frame of the strip.
+      const double action_len = strip->actend - strip->actstart;
+      const double repeated_len = action_len * strip->repeat;
+      const double strip_len = strip->end - strip->start;
+      strip->scale = strip_len / repeated_len;
     }
     else {
       /* just apply the changes in offset to both ends of the strip */
@@ -1360,6 +1364,17 @@ bool BKE_nlastrip_within_bounds(NlaStrip *strip, float min, float max)
   return true;
 }
 
+float BKE_nlastrip_distance_to_frame(const NlaStrip *strip, const float timeline_frame)
+{
+  if (timeline_frame < strip->start) {
+    return strip->start - timeline_frame;
+  }
+  if (strip->end < timeline_frame) {
+    return timeline_frame - strip->end;
+  }
+  return 0.0f;
+}
+
 /* Ensure that strip doesn't overlap those around it after resizing
  * by offsetting those which follow. */
 static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
@@ -1504,6 +1519,30 @@ void BKE_nlastrip_recalculate_bounds(NlaStrip *strip)
 
   /* make sure we don't overlap our neighbors */
   nlastrip_fix_resize_overlaps(strip);
+}
+
+void BKE_nlastrip_recalculate_blend(NlaStrip *strip)
+{
+
+  /* check if values need to be re-calculated. */
+  if (strip->blendin == 0 && strip->blendout == 0) {
+    return;
+  }
+
+  const double strip_len = strip->end - strip->start;
+  double blend_in = strip->blendin;
+  double blend_out = strip->blendout;
+
+  double blend_in_max = strip_len - blend_out;
+
+  CLAMP_MIN(blend_in_max, 0);
+
+  /* blend-out is limited to the length of the strip. */
+  CLAMP(blend_in, 0, blend_in_max);
+  CLAMP(blend_out, 0, strip_len - blend_in);
+
+  strip->blendin = blend_in;
+  strip->blendout = blend_out;
 }
 
 /* Animated Strips ------------------------------------------- */
@@ -1839,6 +1878,7 @@ void BKE_nla_validate_state(AnimData *adt)
     for (strip = nlt->strips.first; strip; strip = strip->next) {
       /* auto-blending first */
       BKE_nlastrip_validate_autoblends(nlt, strip);
+      BKE_nlastrip_recalculate_blend(strip);
     }
   }
 }

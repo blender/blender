@@ -19,8 +19,8 @@ ccl_device int bsdf_refraction_setup(ccl_private MicrofacetBsdf *bsdf)
 }
 
 ccl_device Spectrum bsdf_refraction_eval(ccl_private const ShaderClosure *sc,
-                                         const float3 I,
-                                         const float3 omega_in,
+                                         const float3 wi,
+                                         const float3 wo,
                                          ccl_private float *pdf)
 {
   *pdf = 0.0f;
@@ -29,11 +29,11 @@ ccl_device Spectrum bsdf_refraction_eval(ccl_private const ShaderClosure *sc,
 
 ccl_device int bsdf_refraction_sample(ccl_private const ShaderClosure *sc,
                                       float3 Ng,
-                                      float3 I,
+                                      float3 wi,
                                       float randu,
                                       float randv,
                                       ccl_private Spectrum *eval,
-                                      ccl_private float3 *omega_in,
+                                      ccl_private float3 *wo,
                                       ccl_private float *pdf,
                                       ccl_private float *eta)
 {
@@ -46,13 +46,13 @@ ccl_device int bsdf_refraction_sample(ccl_private const ShaderClosure *sc,
   float3 R, T;
   bool inside;
   float fresnel;
-  fresnel = fresnel_dielectric(m_eta, N, I, &R, &T, &inside);
+  fresnel = fresnel_dielectric(m_eta, N, wi, &R, &T, &inside);
 
   if (!inside && fresnel != 1.0f) {
     /* Some high number for MIS. */
     *pdf = 1e6f;
     *eval = make_spectrum(1e6f);
-    *omega_in = T;
+    *wo = T;
   }
   else {
     *pdf = 0.0f;

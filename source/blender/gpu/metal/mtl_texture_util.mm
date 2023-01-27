@@ -102,7 +102,7 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
     case GPU_DEPTH32F_STENCIL8:
       return MTLPixelFormatDepth32Float_Stencil8;
     case GPU_DEPTH24_STENCIL8: {
-      BLI_assert(false && "GPU_DEPTH24_STENCIL8 not supported by Apple Silicon.");
+      BLI_assert_msg(false, "GPU_DEPTH24_STENCIL8 not supported by Apple Silicon.");
       return MTLPixelFormatDepth24Unorm_Stencil8;
     }
     case GPU_SRGB8_A8:
@@ -118,7 +118,7 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
       return MTLPixelFormatDepth16Unorm;
 
     default:
-      BLI_assert(!"Unrecognized GPU pixel format!\n");
+      BLI_assert_msg(false, "Unrecognised GPU pixel format!\n");
       return MTLPixelFormatRGBA8Unorm;
   }
 }
@@ -177,7 +177,7 @@ int get_mtl_format_bytesize(MTLPixelFormat tex_format)
       return 2;
 
     default:
-      BLI_assert(!"Unrecognized GPU pixel format!\n");
+      BLI_assert_msg(false, "Unrecognised GPU pixel format!\n");
       return 1;
   }
 }
@@ -232,7 +232,7 @@ int get_mtl_format_num_components(MTLPixelFormat tex_format)
       return 1;
 
     default:
-      BLI_assert(!"Unrecognized GPU pixel format!\n");
+      BLI_assert_msg(false, "Unrecognised GPU pixel format!\n");
       return 1;
   }
 }
@@ -508,13 +508,19 @@ void gpu::MTLTexture::update_sub_depth_2d(
       break;
 
     default:
-      BLI_assert(false && "Unsupported eGPUDataFormat being passed to depth texture update\n");
+      BLI_assert_msg(false, "Unsupported eGPUDataFormat being passed to depth texture update\n");
       return;
   }
 
   /* Push contents into an r32_tex and render contents to depth using a shader. */
-  GPUTexture *r32_tex_tmp = GPU_texture_create_2d(
-      "depth_intermediate_copy_tex", w_, h_, 1, format, nullptr);
+  GPUTexture *r32_tex_tmp = GPU_texture_create_2d_ex("depth_intermediate_copy_tex",
+                                                     w_,
+                                                     h_,
+                                                     1,
+                                                     format,
+                                                     GPU_TEXTURE_USAGE_SHADER_READ |
+                                                         GPU_TEXTURE_USAGE_ATTACHMENT,
+                                                     nullptr);
   GPU_texture_filter_mode(r32_tex_tmp, false);
   GPU_texture_wrap_mode(r32_tex_tmp, false, true);
   gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(unwrap(r32_tex_tmp));

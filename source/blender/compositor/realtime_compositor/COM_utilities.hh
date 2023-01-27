@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BLI_function_ref.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "NOD_derived_node_tree.hh"
 

@@ -4,17 +4,16 @@
 
 #include "BLI_stack.hh"
 
-namespace blender::fn {
+namespace blender::fn::multi_function {
 
-MFProcedureExecutor::MFProcedureExecutor(const MFProcedure &procedure) : procedure_(procedure)
+ProcedureExecutor::ProcedureExecutor(const Procedure &procedure) : procedure_(procedure)
 {
-  MFSignatureBuilder signature("Procedure Executor");
+  SignatureBuilder builder("Procedure Executor", signature_);
 
-  for (const ConstMFParameter &param : procedure.params()) {
-    signature.add("Parameter", MFParamType(param.type, param.variable->data_type()));
+  for (const ConstParameter &param : procedure.params()) {
+    builder.add("Parameter", ParamType(param.type, param.variable->data_type()));
   }
 
-  signature_ = signature.build();
   this->set_signature(&signature_);
 }
 
@@ -237,7 +236,7 @@ class ValueAllocator : NonCopyable, NonMovable {
     return this->obtain<VariableValue_OneVector>(*vector_array);
   }
 
-  void release_value(VariableValue *value, const MFDataType &data_type)
+  void release_value(VariableValue *value, const DataType &data_type)
   {
     switch (value->type) {
       case ValueType::GVArray: {
@@ -318,7 +317,7 @@ class VariableState : NonCopyable, NonMovable {
   /* This a non-owning pointer to either span buffer or #GVectorArray or null. */
   void *caller_provided_storage_ = nullptr;
 
-  void destruct_value(ValueAllocator &value_allocator, const MFDataType &data_type)
+  void destruct_value(ValueAllocator &value_allocator, const DataType &data_type)
   {
     value_allocator.release_value(value_, data_type);
     value_ = nullptr;
@@ -360,7 +359,7 @@ class VariableState : NonCopyable, NonMovable {
     return tot_initialized_ == 0;
   }
 
-  void add_as_input(MFParamsBuilder &params, IndexMask mask, const MFDataType &data_type) const
+  void add_as_input(ParamsBuilder &params, IndexMask mask, const DataType &data_type) const
   {
     /* Sanity check to make sure that enough values are initialized. */
     BLI_assert(mask.size() <= tot_initialized_);
@@ -400,7 +399,7 @@ class VariableState : NonCopyable, NonMovable {
   }
 
   void ensure_is_mutable(IndexMask full_mask,
-                         const MFDataType &data_type,
+                         const DataType &data_type,
                          ValueAllocator &value_allocator)
   {
     if (value_ != nullptr && ELEM(value_->type, ValueType::Span, ValueType::GVectorArray)) {
@@ -410,7 +409,7 @@ class VariableState : NonCopyable, NonMovable {
     const int array_size = full_mask.min_array_size();
 
     switch (data_type.category()) {
-      case MFDataType::Single: {
+      case DataType::Single: {
         const CPPType &type = data_type.single_type();
         VariableValue_Span *new_value = nullptr;
         if (caller_provided_storage_ == nullptr) {
@@ -441,7 +440,7 @@ class VariableState : NonCopyable, NonMovable {
         value_ = new_value;
         break;
       }
-      case MFDataType::Vector: {
+      case DataType::Vector: {
         const CPPType &type = data_type.vector_base_type();
         VariableValue_GVectorArray *new_value = nullptr;
         if (caller_provided_storage_ == nullptr) {
@@ -472,10 +471,10 @@ class VariableState : NonCopyable, NonMovable {
     }
   }
 
-  void add_as_mutable(MFParamsBuilder &params,
+  void add_as_mutable(ParamsBuilder &params,
                       IndexMask mask,
                       IndexMask full_mask,
-                      const MFDataType &data_type,
+                      const DataType &data_type,
                       ValueAllocator &value_allocator)
   {
     /* Sanity check to make sure that enough values are initialized. */
@@ -505,10 +504,10 @@ class VariableState : NonCopyable, NonMovable {
     }
   }
 
-  void add_as_output(MFParamsBuilder &params,
+  void add_as_output(ParamsBuilder &params,
                      IndexMask mask,
                      IndexMask full_mask,
-                     const MFDataType &data_type,
+                     const DataType &data_type,
                      ValueAllocator &value_allocator)
   {
     /* Sanity check to make sure that enough values are not initialized. */
@@ -539,7 +538,7 @@ class VariableState : NonCopyable, NonMovable {
     tot_initialized_ += mask.size();
   }
 
-  void add_as_input__one(MFParamsBuilder &params, const MFDataType &data_type) const
+  void add_as_input__one(ParamsBuilder &params, const DataType &data_type) const
   {
     BLI_assert(this->is_one());
     BLI_assert(value_ != nullptr);
@@ -572,7 +571,7 @@ class VariableState : NonCopyable, NonMovable {
     }
   }
 
-  void ensure_is_mutable__one(const MFDataType &data_type, ValueAllocator &value_allocator)
+  void ensure_is_mutable__one(const DataType &data_type, ValueAllocator &value_allocator)
   {
     BLI_assert(this->is_one());
     if (value_ != nullptr && ELEM(value_->type, ValueType::OneSingle, ValueType::OneVector)) {
@@ -580,7 +579,7 @@ class VariableState : NonCopyable, NonMovable {
     }
 
     switch (data_type.category()) {
-      case MFDataType::Single: {
+      case DataType::Single: {
         const CPPType &type = data_type.single_type();
         VariableValue_OneSingle *new_value = value_allocator.obtain_OneSingle(type);
         if (value_ != nullptr) {
@@ -601,7 +600,7 @@ class VariableState : NonCopyable, NonMovable {
         value_ = new_value;
         break;
       }
-      case MFDataType::Vector: {
+      case DataType::Vector: {
         const CPPType &type = data_type.vector_base_type();
         VariableValue_OneVector *new_value = value_allocator.obtain_OneVector(type);
         if (value_ != nullptr) {
@@ -625,8 +624,8 @@ class VariableState : NonCopyable, NonMovable {
     }
   }
 
-  void add_as_mutable__one(MFParamsBuilder &params,
-                           const MFDataType &data_type,
+  void add_as_mutable__one(ParamsBuilder &params,
+                           const DataType &data_type,
                            ValueAllocator &value_allocator)
   {
     BLI_assert(this->is_one());
@@ -654,9 +653,9 @@ class VariableState : NonCopyable, NonMovable {
     }
   }
 
-  void add_as_output__one(MFParamsBuilder &params,
+  void add_as_output__one(ParamsBuilder &params,
                           IndexMask mask,
-                          const MFDataType &data_type,
+                          const DataType &data_type,
                           ValueAllocator &value_allocator)
   {
     BLI_assert(this->is_one());
@@ -698,7 +697,7 @@ class VariableState : NonCopyable, NonMovable {
    */
   bool destruct(IndexMask mask,
                 IndexMask full_mask,
-                const MFDataType &data_type,
+                const DataType &data_type,
                 ValueAllocator &value_allocator)
   {
     BLI_assert(value_ != nullptr);
@@ -823,14 +822,14 @@ class VariableState : NonCopyable, NonMovable {
 class VariableStates {
  private:
   ValueAllocator value_allocator_;
-  const MFProcedure &procedure_;
-  /** The state of every variable, indexed by #MFVariable::index_in_procedure(). */
+  const Procedure &procedure_;
+  /** The state of every variable, indexed by #Variable::index_in_procedure(). */
   Array<VariableState> variable_states_;
   IndexMask full_mask_;
 
  public:
   VariableStates(LinearAllocator<> &linear_allocator,
-                 const MFProcedure &procedure,
+                 const Procedure &procedure,
                  IndexMask full_mask)
       : value_allocator_(linear_allocator),
         procedure_(procedure),
@@ -844,7 +843,7 @@ class VariableStates {
     for (const int variable_i : procedure_.variables().index_range()) {
       VariableState &state = variable_states_[variable_i];
       if (state.value_ != nullptr) {
-        const MFVariable *variable = procedure_.variables()[variable_i];
+        const Variable *variable = procedure_.variables()[variable_i];
         state.destruct_value(value_allocator_, variable->data_type());
       }
     }
@@ -860,13 +859,13 @@ class VariableStates {
     return full_mask_;
   }
 
-  void add_initial_variable_states(const MFProcedureExecutor &fn,
-                                   const MFProcedure &procedure,
-                                   MFParams &params)
+  void add_initial_variable_states(const ProcedureExecutor &fn,
+                                   const Procedure &procedure,
+                                   Params &params)
   {
     for (const int param_index : fn.param_indices()) {
-      MFParamType param_type = fn.param_type(param_index);
-      const MFVariable *variable = procedure.params()[param_index].variable;
+      ParamType param_type = fn.param_type(param_index);
+      const Variable *variable = procedure.params()[param_index].variable;
 
       auto add_state = [&](VariableValue *value,
                            bool input_is_initialized,
@@ -881,32 +880,32 @@ class VariableStates {
       };
 
       switch (param_type.category()) {
-        case MFParamCategory::SingleInput: {
+        case ParamCategory::SingleInput: {
           const GVArray &data = params.readonly_single_input(param_index);
           add_state(value_allocator_.obtain_GVArray(data), true);
           break;
         }
-        case MFParamCategory::VectorInput: {
+        case ParamCategory::VectorInput: {
           const GVVectorArray &data = params.readonly_vector_input(param_index);
           add_state(value_allocator_.obtain_GVVectorArray(data), true);
           break;
         }
-        case MFParamCategory::SingleOutput: {
+        case ParamCategory::SingleOutput: {
           GMutableSpan data = params.uninitialized_single_output(param_index);
           add_state(value_allocator_.obtain_Span_not_owned(data.data()), false, data.data());
           break;
         }
-        case MFParamCategory::VectorOutput: {
+        case ParamCategory::VectorOutput: {
           GVectorArray &data = params.vector_output(param_index);
           add_state(value_allocator_.obtain_GVectorArray_not_owned(data), false, &data);
           break;
         }
-        case MFParamCategory::SingleMutable: {
+        case ParamCategory::SingleMutable: {
           GMutableSpan data = params.single_mutable(param_index);
           add_state(value_allocator_.obtain_Span_not_owned(data.data()), true, data.data());
           break;
         }
-        case MFParamCategory::VectorMutable: {
+        case ParamCategory::VectorMutable: {
           GVectorArray &data = params.vector_mutable(param_index);
           add_state(value_allocator_.obtain_GVectorArray_not_owned(data), true, &data);
           break;
@@ -916,21 +915,21 @@ class VariableStates {
   }
 
   void add_as_param(VariableState &variable_state,
-                    MFParamsBuilder &params,
-                    const MFParamType &param_type,
+                    ParamsBuilder &params,
+                    const ParamType &param_type,
                     const IndexMask &mask)
   {
-    const MFDataType data_type = param_type.data_type();
+    const DataType data_type = param_type.data_type();
     switch (param_type.interface_type()) {
-      case MFParamType::Input: {
+      case ParamType::Input: {
         variable_state.add_as_input(params, mask, data_type);
         break;
       }
-      case MFParamType::Mutable: {
+      case ParamType::Mutable: {
         variable_state.add_as_mutable(params, mask, full_mask_, data_type, value_allocator_);
         break;
       }
-      case MFParamType::Output: {
+      case ParamType::Output: {
         variable_state.add_as_output(params, mask, full_mask_, data_type, value_allocator_);
         break;
       }
@@ -938,28 +937,28 @@ class VariableStates {
   }
 
   void add_as_param__one(VariableState &variable_state,
-                         MFParamsBuilder &params,
-                         const MFParamType &param_type,
+                         ParamsBuilder &params,
+                         const ParamType &param_type,
                          const IndexMask &mask)
   {
-    const MFDataType data_type = param_type.data_type();
+    const DataType data_type = param_type.data_type();
     switch (param_type.interface_type()) {
-      case MFParamType::Input: {
+      case ParamType::Input: {
         variable_state.add_as_input__one(params, data_type);
         break;
       }
-      case MFParamType::Mutable: {
+      case ParamType::Mutable: {
         variable_state.add_as_mutable__one(params, data_type, value_allocator_);
         break;
       }
-      case MFParamType::Output: {
+      case ParamType::Output: {
         variable_state.add_as_output__one(params, mask, data_type, value_allocator_);
         break;
       }
     }
   }
 
-  void destruct(const MFVariable &variable, const IndexMask &mask)
+  void destruct(const Variable &variable, const IndexMask &mask)
   {
     VariableState &variable_state = this->get_variable_state(variable);
     if (variable_state.destruct(mask, full_mask_, variable.data_type(), value_allocator_)) {
@@ -967,7 +966,7 @@ class VariableStates {
     }
   }
 
-  VariableState &get_variable_state(const MFVariable &variable)
+  VariableState &get_variable_state(const Variable &variable)
   {
     const int variable_i = variable.index_in_procedure();
     VariableState &variable_state = variable_states_[variable_i];
@@ -975,14 +974,10 @@ class VariableStates {
   }
 };
 
-static bool evaluate_as_one(const MultiFunction &fn,
-                            Span<VariableState *> param_variable_states,
+static bool evaluate_as_one(Span<VariableState *> param_variable_states,
                             const IndexMask &mask,
                             const IndexMask &full_mask)
 {
-  if (fn.depends_on_context()) {
-    return false;
-  }
   if (mask.size() < full_mask.size()) {
     return false;
   }
@@ -995,12 +990,12 @@ static bool evaluate_as_one(const MultiFunction &fn,
 }
 
 static void gather_parameter_variable_states(const MultiFunction &fn,
-                                             const MFCallInstruction &instruction,
+                                             const CallInstruction &instruction,
                                              VariableStates &variable_states,
                                              MutableSpan<VariableState *> r_param_variable_states)
 {
   for (const int param_index : fn.param_indices()) {
-    const MFVariable *variable = instruction.params()[param_index];
+    const Variable *variable = instruction.params()[param_index];
     if (variable == nullptr) {
       r_param_variable_states[param_index] = nullptr;
     }
@@ -1013,12 +1008,12 @@ static void gather_parameter_variable_states(const MultiFunction &fn,
 
 static void fill_params__one(const MultiFunction &fn,
                              const IndexMask mask,
-                             MFParamsBuilder &params,
+                             ParamsBuilder &params,
                              VariableStates &variable_states,
                              const Span<VariableState *> param_variable_states)
 {
   for (const int param_index : fn.param_indices()) {
-    const MFParamType param_type = fn.param_type(param_index);
+    const ParamType param_type = fn.param_type(param_index);
     VariableState *variable_state = param_variable_states[param_index];
     if (variable_state == nullptr) {
       params.add_ignored_single_output();
@@ -1031,12 +1026,12 @@ static void fill_params__one(const MultiFunction &fn,
 
 static void fill_params(const MultiFunction &fn,
                         const IndexMask mask,
-                        MFParamsBuilder &params,
+                        ParamsBuilder &params,
                         VariableStates &variable_states,
                         const Span<VariableState *> param_variable_states)
 {
   for (const int param_index : fn.param_indices()) {
-    const MFParamType param_type = fn.param_type(param_index);
+    const ParamType param_type = fn.param_type(param_index);
     VariableState *variable_state = param_variable_states[param_index];
     if (variable_state == nullptr) {
       params.add_ignored_single_output();
@@ -1047,10 +1042,10 @@ static void fill_params(const MultiFunction &fn,
   }
 }
 
-static void execute_call_instruction(const MFCallInstruction &instruction,
+static void execute_call_instruction(const CallInstruction &instruction,
                                      const IndexMask mask,
                                      VariableStates &variable_states,
-                                     const MFContext &context)
+                                     const Context &context)
 {
   const MultiFunction &fn = instruction.fn();
 
@@ -1060,8 +1055,8 @@ static void execute_call_instruction(const MFCallInstruction &instruction,
 
   /* If all inputs to the function are constant, it's enough to call the function only once instead
    * of for every index. */
-  if (evaluate_as_one(fn, param_variable_states, mask, variable_states.full_mask())) {
-    MFParamsBuilder params(fn, 1);
+  if (evaluate_as_one(param_variable_states, mask, variable_states.full_mask())) {
+    ParamsBuilder params(fn, 1);
     fill_params__one(fn, mask, params, variable_states, param_variable_states);
 
     try {
@@ -1073,7 +1068,7 @@ static void execute_call_instruction(const MFCallInstruction &instruction,
     }
   }
   else {
-    MFParamsBuilder params(fn, &mask);
+    ParamsBuilder params(fn, &mask);
     fill_params(fn, mask, params, variable_states, param_variable_states);
 
     try {
@@ -1103,7 +1098,7 @@ struct InstructionIndices {
 
 /** Contains information about the next instruction that should be executed. */
 struct NextInstructionInfo {
-  const MFInstruction *instruction = nullptr;
+  const Instruction *instruction = nullptr;
   InstructionIndices indices;
 
   IndexMask mask() const
@@ -1128,7 +1123,7 @@ class InstructionScheduler {
  public:
   InstructionScheduler() = default;
 
-  void add_referenced_indices(const MFInstruction &instruction, IndexMask mask)
+  void add_referenced_indices(const Instruction &instruction, IndexMask mask)
   {
     if (mask.is_empty()) {
       return;
@@ -1139,7 +1134,7 @@ class InstructionScheduler {
     next_instructions_.push({&instruction, std::move(new_indices)});
   }
 
-  void add_owned_indices(const MFInstruction &instruction, Vector<int64_t> indices)
+  void add_owned_indices(const Instruction &instruction, Vector<int64_t> indices)
   {
     if (indices.is_empty()) {
       return;
@@ -1163,7 +1158,7 @@ class InstructionScheduler {
     return next_instructions_.peek();
   }
 
-  void update_instruction_pointer(const MFInstruction &instruction)
+  void update_instruction_pointer(const Instruction &instruction)
   {
     next_instructions_.peek().instruction = &instruction;
   }
@@ -1174,7 +1169,7 @@ class InstructionScheduler {
   }
 };
 
-void MFProcedureExecutor::call(IndexMask full_mask, MFParams params, MFContext context) const
+void ProcedureExecutor::call(IndexMask full_mask, Params params, Context context) const
 {
   BLI_assert(procedure_.validate());
 
@@ -1191,19 +1186,19 @@ void MFProcedureExecutor::call(IndexMask full_mask, MFParams params, MFContext c
   /* Loop until all indices got to a return instruction. */
   while (!scheduler.is_done()) {
     const NextInstructionInfo &instr_info = scheduler.peek();
-    const MFInstruction &instruction = *instr_info.instruction;
+    const Instruction &instruction = *instr_info.instruction;
     switch (instruction.type()) {
-      case MFInstructionType::Call: {
-        const MFCallInstruction &call_instruction = static_cast<const MFCallInstruction &>(
+      case InstructionType::Call: {
+        const CallInstruction &call_instruction = static_cast<const CallInstruction &>(
             instruction);
         execute_call_instruction(call_instruction, instr_info.mask(), variable_states, context);
         scheduler.update_instruction_pointer(*call_instruction.next());
         break;
       }
-      case MFInstructionType::Branch: {
-        const MFBranchInstruction &branch_instruction = static_cast<const MFBranchInstruction &>(
+      case InstructionType::Branch: {
+        const BranchInstruction &branch_instruction = static_cast<const BranchInstruction &>(
             instruction);
-        const MFVariable *condition_var = branch_instruction.condition();
+        const Variable *condition_var = branch_instruction.condition();
         VariableState &variable_state = variable_states.get_variable_state(*condition_var);
 
         IndicesSplitVectors new_indices;
@@ -1213,21 +1208,21 @@ void MFProcedureExecutor::call(IndexMask full_mask, MFParams params, MFContext c
         scheduler.add_owned_indices(*branch_instruction.branch_true(), new_indices[true]);
         break;
       }
-      case MFInstructionType::Destruct: {
-        const MFDestructInstruction &destruct_instruction =
-            static_cast<const MFDestructInstruction &>(instruction);
-        const MFVariable *variable = destruct_instruction.variable();
+      case InstructionType::Destruct: {
+        const DestructInstruction &destruct_instruction = static_cast<const DestructInstruction &>(
+            instruction);
+        const Variable *variable = destruct_instruction.variable();
         variable_states.destruct(*variable, instr_info.mask());
         scheduler.update_instruction_pointer(*destruct_instruction.next());
         break;
       }
-      case MFInstructionType::Dummy: {
-        const MFDummyInstruction &dummy_instruction = static_cast<const MFDummyInstruction &>(
+      case InstructionType::Dummy: {
+        const DummyInstruction &dummy_instruction = static_cast<const DummyInstruction &>(
             instruction);
         scheduler.update_instruction_pointer(*dummy_instruction.next());
         break;
       }
-      case MFInstructionType::Return: {
+      case InstructionType::Return: {
         /* Don't insert the indices back into the scheduler. */
         scheduler.pop();
         break;
@@ -1236,17 +1231,17 @@ void MFProcedureExecutor::call(IndexMask full_mask, MFParams params, MFContext c
   }
 
   for (const int param_index : this->param_indices()) {
-    const MFParamType param_type = this->param_type(param_index);
-    const MFVariable *variable = procedure_.params()[param_index].variable;
+    const ParamType param_type = this->param_type(param_index);
+    const Variable *variable = procedure_.params()[param_index].variable;
     VariableState &variable_state = variable_states.get_variable_state(*variable);
     switch (param_type.interface_type()) {
-      case MFParamType::Input: {
+      case ParamType::Input: {
         /* Input variables must be destructed in the end. */
         BLI_assert(variable_state.is_fully_uninitialized(full_mask));
         break;
       }
-      case MFParamType::Mutable:
-      case MFParamType::Output: {
+      case ParamType::Mutable:
+      case ParamType::Output: {
         /* Mutable and output variables must be initialized in the end. */
         BLI_assert(variable_state.is_fully_initialized(full_mask));
         /* Make sure that the data is in the memory provided by the caller. */
@@ -1258,7 +1253,7 @@ void MFProcedureExecutor::call(IndexMask full_mask, MFParams params, MFContext c
   }
 }
 
-MultiFunction::ExecutionHints MFProcedureExecutor::get_execution_hints() const
+MultiFunction::ExecutionHints ProcedureExecutor::get_execution_hints() const
 {
   ExecutionHints hints;
   hints.allocates_array = true;
@@ -1266,4 +1261,4 @@ MultiFunction::ExecutionHints MFProcedureExecutor::get_execution_hints() const
   return hints;
 }
 
-}  // namespace blender::fn
+}  // namespace blender::fn::multi_function

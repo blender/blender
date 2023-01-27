@@ -39,7 +39,6 @@ struct ImageUser;
 struct ListBase;
 struct MLoop;
 struct MLoopTri;
-struct MVert;
 struct Main;
 struct Mesh;
 struct MeshElemMap;
@@ -393,9 +392,6 @@ typedef struct SculptPersistentBase {
 } SculptPersistentBase;
 
 typedef struct SculptVertexInfo {
-  /* Indexed by vertex, stores and ID of its topologically connected component. */
-  int *connected_component;
-
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
   BLI_bitmap *boundary;
 } SculptVertexInfo;
@@ -516,6 +512,11 @@ typedef struct SculptAttribute {
   int elem_size, elem_num;
   bool data_for_bmesh; /* Temporary data store as array outside of bmesh. */
 
+  /* Data is a flat array outside the CustomData system.
+   * This will be true if simple_array is requested in
+   * SculptAttributeParams, or the PBVH type is PBVH_GRIDS or PBVH_BMESH.
+   */
+  bool simple_array;
   /* Data stored per BMesh element. */
   int bmesh_cd_offset;
 
@@ -555,6 +556,8 @@ typedef struct SculptAttributePointers {
   SculptAttribute *automasking_stroke_id;
   SculptAttribute *automasking_cavity;
 
+  SculptAttribute *topology_island_key; /* CD_PROP_INT8 */
+
   /* BMesh */
   SculptAttribute *dyntopo_node_id_vertex;
   SculptAttribute *dyntopo_node_id_face;
@@ -572,7 +575,7 @@ typedef struct SculptSession {
   struct Depsgraph *depsgraph;
 
   /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
-  struct MVert *mvert;
+  float (*vert_positions)[3];
   const struct MPoly *mpoly;
   const struct MLoop *mloop;
 
@@ -627,8 +630,6 @@ typedef struct SculptSession {
 
   /* PBVH acceleration structure */
   struct PBVH *pbvh;
-  bool show_mask;
-  bool show_face_sets;
 
   /* Painting on deformed mesh */
   bool deform_modifiers_active; /* Object is deformed with some modifiers. */
@@ -754,6 +755,7 @@ typedef struct SculptSession {
 
   int last_automasking_settings_hash;
   uchar last_automask_stroke_id;
+  bool islands_valid; /* Is attrs.topology_island_key valid? */
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);

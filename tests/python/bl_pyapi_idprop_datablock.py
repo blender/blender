@@ -65,8 +65,7 @@ def expect_output_or_abort(*, fn, match_stderr=None, match_stdout=None):
     for (handle, match) in ((stdout, match_stdout), (stderr, match_stderr)):
         if not match:
             continue
-        handle.seek(0)
-        output = handle.read()
+        output = handle.getvalue()
         if not re.match(match, output):
             print_fail_msg_and_exit("%r not found in %r" % (match, output))
 
@@ -146,6 +145,8 @@ def check_lib_linking():
     with bpy.data.libraries.load(lib_path, link=True) as (data_from, data_to):
         data_to.scenes = ["Scene_lib"]
 
+    bpy.context.window.scene = bpy.data.scenes["Scene_lib"]
+
     o = bpy.data.scenes["Scene_lib"].objects['Unique_Cube']
 
     expect_false_or_abort(o.prop_array[0].test_prop == bpy.data.scenes["Scene_lib"].objects['Light'])
@@ -158,8 +159,9 @@ def check_lib_linking():
 def check_linked_scene_copying():
     # full copy of the scene with datablock props
     bpy.ops.wm.open_mainfile(filepath=test_path)
-    bpy.context.window.scene = bpy.data.scenes["Scene_lib"]
     bpy.ops.scene.new(type='FULL_COPY')
+
+    bpy.context.window.scene = get_scene("lib.blend", "Scene_lib")
 
     # check save/open
     bpy.ops.wm.save_as_mainfile(filepath=test_path)

@@ -21,7 +21,6 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_asset.h"
-#include "BKE_asset_library.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
@@ -138,16 +137,16 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
     BKE_main_lock(bmain);
   }
 
-  struct IDRemapper *remapper = BKE_id_remapper_create();
-  BKE_id_remapper_add(remapper, id, NULL);
-
   if ((flag & LIB_ID_FREE_NO_UI_USER) == 0) {
     if (free_notifier_reference_cb) {
       free_notifier_reference_cb(id);
     }
 
     if (remap_editor_id_reference_cb) {
+      struct IDRemapper *remapper = BKE_id_remapper_create();
+      BKE_id_remapper_add(remapper, id, NULL);
       remap_editor_id_reference_cb(remapper);
+      BKE_id_remapper_free(remapper);
     }
   }
 
@@ -158,9 +157,6 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
       BKE_main_namemap_remove_name(bmain, id, id->name + 2);
     }
   }
-
-  BKE_asset_library_remap_ids(remapper);
-  BKE_id_remapper_free(remapper);
 
   BKE_libblock_free_data(id, (flag & LIB_ID_FREE_NO_USER_REFCOUNT) == 0);
 

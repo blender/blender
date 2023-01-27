@@ -4914,39 +4914,59 @@ void box_minmax_bounds_m4(float min[3], float max[3], float boundbox[2][3], floa
 
 /********************************** Mapping **********************************/
 
-void map_to_tube(float *r_u, float *r_v, const float x, const float y, const float z)
+static float snap_coordinate(float u)
 {
-  float len;
-
-  *r_v = (z + 1.0f) / 2.0f;
-
-  len = sqrtf(x * x + y * y);
-  if (len > 0.0f) {
-    *r_u = (1.0f - (atan2f(x / len, y / len) / (float)M_PI)) / 2.0f;
+  /* Adjust a coordinate value `u` to obtain a value inside the (closed) unit interval.
+   *   i.e. 0.0 <= snap_coordinate(u) <= 1.0.
+   * Due to round-off errors, it is possible that the value of `u` may be close to the boundary of
+   * the unit interval, but not exactly on it. In order to handle these cases, `snap_coordinate`
+   * checks whether `u` is within `epsilon` of the boundary, and if so, it snaps the return value
+   * to the boundary. */
+  if (u < 0.0f) {
+    u += 1.0f; /* Get back into the unit interval. */
   }
-  else {
-    *r_v = *r_u = 0.0f; /* to avoid un-initialized variables */
+  BLI_assert(0.0f <= u);
+  BLI_assert(u <= 1.0f);
+  const float epsilon = 0.25f / 65536.0f; /* i.e. Quarter of a texel on a 65536 x 65536 texture. */
+  if (u < epsilon) {
+    return 0.0f; /* `u` is close to 0, just return 0. */
   }
+  if (1.0f - epsilon < u) {
+    return 1.0f; /* `u` is close to 1, just return 1. */
+  }
+  return u;
 }
 
-void map_to_sphere(float *r_u, float *r_v, const float x, const float y, const float z)
+bool map_to_tube(float *r_u, float *r_v, const float x, const float y, const float z)
 {
-  float len;
-
-  len = sqrtf(x * x + y * y + z * z);
-  if (len > 0.0f) {
-    if (UNLIKELY(x == 0.0f && y == 0.0f)) {
-      *r_u = 0.0f; /* Otherwise domain error. */
-    }
-    else {
-      *r_u = (1.0f - atan2f(x, y) / (float)M_PI) / 2.0f;
-    }
-
-    *r_v = 1.0f - saacos(z / len) / (float)M_PI;
+  bool regular = true;
+  if (x * x + y * y < 1e-6f * 1e-6f) {
+    regular = false; /* We're too close to the cylinder's axis. */
+    *r_u = 0.5f;
   }
   else {
-    *r_v = *r_u = 0.0f; /* to avoid un-initialized variables */
+    /* The "Regular" case, just compute the coordinate. */
+    *r_u = snap_coordinate(atan2f(x, -y) / (float)(2.0f * M_PI));
   }
+  *r_v = (z + 1.0f) / 2.0f;
+  return regular;
+}
+
+bool map_to_sphere(float *r_u, float *r_v, const float x, const float y, const float z)
+{
+  bool regular = true;
+  const float epsilon = 0.25f / 65536.0f; /* i.e. Quarter of a texel on a 65536 x 65536 texture. */
+  const float len_xy = sqrtf(x * x + y * y);
+  if (len_xy <= fabsf(z) * epsilon) {
+    regular = false; /* We're on the line that runs through the north and south poles. */
+    *r_u = 0.5f;
+  }
+  else {
+    /* The "Regular" case, just compute the coordinate. */
+    *r_u = snap_coordinate(atan2f(x, -y) / (float)(2.0f * M_PI));
+  }
+  *r_v = snap_coordinate(atan2f(len_xy, -z) / (float)M_PI);
+  return regular;
 }
 
 void map_to_plane_v2_v3v3(float r_co[2], const float co[3], const float no[3])

@@ -983,13 +983,6 @@ static void region_azone_tab_plus(ScrArea *area, AZone *az, ARegion *region)
   const float tab_size_x = 0.7f * U.widget_unit;
   const float tab_size_y = 0.4f * U.widget_unit;
 
-  int tot = 0;
-  LISTBASE_FOREACH (AZone *, azt, &area->actionzones) {
-    if (azt->edge == az->edge) {
-      tot++;
-    }
-  }
-
   switch (az->edge) {
     case AE_TOP_TO_BOTTOMRIGHT: {
       int add = (region->winrct.ymax == area->totrct.ymin) ? 1 : 0;
@@ -3530,6 +3523,9 @@ void ED_region_info_draw_multiline(ARegion *region,
 
   /* background box */
   rcti rect = *ED_region_visible_rect(region);
+
+  /* Needed in case scripts leave the font size at an unexpected value, see: T102213. */
+  BLF_size(fontid, style->widget.points * U.dpi_fac);
 
   /* Box fill entire width or just around text. */
   if (!full_redraw) {

@@ -32,6 +32,11 @@ if(WITH_IMAGE_OPENEXR)
     ${OPENEXR_LIBRARIES}
   )
   add_definitions(-DWITH_OPENEXR)
+  if(WIN32)
+    if(EXISTS ${LIBDIR}/imath/bin/imath.dll)
+      add_definitions(-DIMATH_DLL)
+    endif()
+  endif()
 endif()
 
 blender_add_lib(bf_imbuf_openexr "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -38,23 +38,23 @@
 static int rna_Meta_texspace_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
   MetaBall *mb = (MetaBall *)ptr->data;
-  return (mb->texflag & MB_AUTOSPACE) ? 0 : PROP_EDITABLE;
+  return (mb->texspace_flag & MB_TEXSPACE_FLAG_AUTO) ? 0 : PROP_EDITABLE;
 }
 
-static void rna_Meta_texspace_loc_get(PointerRNA *ptr, float *values)
+static void rna_Meta_texspace_location_get(PointerRNA *ptr, float *values)
 {
   MetaBall *mb = (MetaBall *)ptr->data;
 
   /* tex_space_mball() needs object.. ugh */
 
-  copy_v3_v3(values, mb->loc);
+  copy_v3_v3(values, mb->texspace_location);
 }
 
-static void rna_Meta_texspace_loc_set(PointerRNA *ptr, const float *values)
+static void rna_Meta_texspace_location_set(PointerRNA *ptr, const float *values)
 {
   MetaBall *mb = (MetaBall *)ptr->data;
 
-  copy_v3_v3(mb->loc, values);
+  copy_v3_v3(mb->texspace_location, values);
 }
 
 static void rna_Meta_texspace_size_get(PointerRNA *ptr, float *values)
@@ -63,14 +63,14 @@ static void rna_Meta_texspace_size_get(PointerRNA *ptr, float *values)
 
   /* tex_space_mball() needs object.. ugh */
 
-  copy_v3_v3(values, mb->size);
+  copy_v3_v3(values, mb->texspace_size);
 }
 
 static void rna_Meta_texspace_size_set(PointerRNA *ptr, const float *values)
 {
   MetaBall *mb = (MetaBall *)ptr->data;
 
-  copy_v3_v3(mb->size, values);
+  copy_v3_v3(mb->texspace_size, values);
 }
 
 static void rna_MetaBall_redraw_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -358,7 +358,7 @@ static void rna_def_metaball(BlenderRNA *brna)
 
   /* texture space */
   prop = RNA_def_property(srna, "use_auto_texspace", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "texflag", MB_AUTOSPACE);
+  RNA_def_property_boolean_sdna(prop, NULL, "texspace_flag", MB_TEXSPACE_FLAG_AUTO);
   RNA_def_property_ui_text(
       prop,
       "Auto Texture Space",
@@ -369,7 +369,7 @@ static void rna_def_metaball(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Texture Space Location", "Texture space location");
   RNA_def_property_editable_func(prop, "rna_Meta_texspace_editable");
   RNA_def_property_float_funcs(
-      prop, "rna_Meta_texspace_loc_get", "rna_Meta_texspace_loc_set", NULL);
+      prop, "rna_Meta_texspace_location_get", "rna_Meta_texspace_location_set", NULL);
   RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 
   prop = RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_XYZ);

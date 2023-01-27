@@ -21,23 +21,23 @@ uint drw_debug_start_draw(uint v_needed)
   return vertid;
 }
 
-uint drw_debug_color_pack(vec4 color)
+uint drw_debug_color_pack(vec4 v_color)
 {
-  color = clamp(color, 0.0, 1.0);
+  v_color = clamp(v_color, 0.0, 1.0);
   uint result = 0;
-  result |= uint(color.x * 255.0) << 0u;
-  result |= uint(color.y * 255.0) << 8u;
-  result |= uint(color.z * 255.0) << 16u;
-  result |= uint(color.w * 255.0) << 24u;
+  result |= uint(v_color.x * 255.0) << 0u;
+  result |= uint(v_color.y * 255.0) << 8u;
+  result |= uint(v_color.z * 255.0) << 16u;
+  result |= uint(v_color.w * 255.0) << 24u;
   return result;
 }
 
-void drw_debug_line(inout uint vertid, vec3 v1, vec3 v2, uint color)
+void drw_debug_line(inout uint vertid, vec3 v1, vec3 v2, uint v_color)
 {
   drw_debug_verts_buf[vertid++] = DRWDebugVert(
-      floatBitsToUint(v1.x), floatBitsToUint(v1.y), floatBitsToUint(v1.z), color);
+      floatBitsToUint(v1.x), floatBitsToUint(v1.y), floatBitsToUint(v1.z), v_color);
   drw_debug_verts_buf[vertid++] = DRWDebugVert(
-      floatBitsToUint(v2.x), floatBitsToUint(v2.y), floatBitsToUint(v2.z), color);
+      floatBitsToUint(v2.x), floatBitsToUint(v2.y), floatBitsToUint(v2.z), v_color);
 }
 
 /** \} */
@@ -49,7 +49,7 @@ void drw_debug_line(inout uint vertid, vec3 v1, vec3 v2, uint color)
 /**
  * Draw a line.
  */
-void drw_debug_line(vec3 v1, vec3 v2, vec4 color)
+void drw_debug_line(vec3 v1, vec3 v2, vec4 v_color)
 {
   if (!drw_debug_draw_enable) {
     return;
@@ -57,7 +57,7 @@ void drw_debug_line(vec3 v1, vec3 v2, vec4 color)
   const uint v_needed = 2;
   uint vertid = drw_debug_start_draw(v_needed);
   if (vertid + v_needed < DRW_DEBUG_DRAW_VERT_MAX) {
-    drw_debug_line(vertid, v1, v2, drw_debug_color_pack(color));
+    drw_debug_line(vertid, v1, v2, drw_debug_color_pack(v_color));
   }
 }
 void drw_debug_line(vec3 v1, vec3 v2)
@@ -68,7 +68,7 @@ void drw_debug_line(vec3 v1, vec3 v2)
 /**
  * Draw a quad contour.
  */
-void drw_debug_quad(vec3 v1, vec3 v2, vec3 v3, vec3 v4, vec4 color)
+void drw_debug_quad(vec3 v1, vec3 v2, vec3 v3, vec3 v4, vec4 v_color)
 {
   if (!drw_debug_draw_enable) {
     return;
@@ -76,7 +76,7 @@ void drw_debug_quad(vec3 v1, vec3 v2, vec3 v3, vec3 v4, vec4 color)
   const uint v_needed = 8;
   uint vertid = drw_debug_start_draw(v_needed);
   if (vertid + v_needed < DRW_DEBUG_DRAW_VERT_MAX) {
-    uint pcolor = drw_debug_color_pack(color);
+    uint pcolor = drw_debug_color_pack(v_color);
     drw_debug_line(vertid, v1, v2, pcolor);
     drw_debug_line(vertid, v2, v3, pcolor);
     drw_debug_line(vertid, v3, v4, pcolor);
@@ -91,7 +91,7 @@ void drw_debug_quad(vec3 v1, vec3 v2, vec3 v3, vec3 v4)
 /**
  * Draw a point as octahedron wireframe.
  */
-void drw_debug_point(vec3 p, float radius, vec4 color)
+void drw_debug_point(vec3 p, float radius, vec4 v_color)
 {
   if (!drw_debug_draw_enable) {
     return;
@@ -107,7 +107,7 @@ void drw_debug_point(vec3 p, float radius, vec4 color)
   const uint v_needed = 12 * 2;
   uint vertid = drw_debug_start_draw(v_needed);
   if (vertid + v_needed < DRW_DEBUG_DRAW_VERT_MAX) {
-    uint pcolor = drw_debug_color_pack(color);
+    uint pcolor = drw_debug_color_pack(v_color);
     drw_debug_line(vertid, v1, v2, pcolor);
     drw_debug_line(vertid, v2, v3, pcolor);
     drw_debug_line(vertid, v3, v4, pcolor);
@@ -134,7 +134,7 @@ void drw_debug_point(vec3 p)
 /**
  * Draw a sphere wireframe as 3 axes circle.
  */
-void drw_debug_sphere(vec3 p, float radius, vec4 color)
+void drw_debug_sphere(vec3 p, float radius, vec4 v_color)
 {
   if (!drw_debug_draw_enable) {
     return;
@@ -143,7 +143,7 @@ void drw_debug_sphere(vec3 p, float radius, vec4 color)
   const uint v_needed = circle_resolution * 2 * 3;
   uint vertid = drw_debug_start_draw(v_needed);
   if (vertid + v_needed < DRW_DEBUG_DRAW_VERT_MAX) {
-    uint pcolor = drw_debug_color_pack(color);
+    uint pcolor = drw_debug_color_pack(v_color);
     for (int axis = 0; axis < 3; axis++) {
       for (int edge = 0; edge < circle_resolution; edge++) {
         float angle1 = (2.0 * 3.141592) * float(edge + 0) / float(circle_resolution);
@@ -167,7 +167,7 @@ void drw_debug_sphere(vec3 p, float radius)
 /**
  * Draw a matrix transformation as 3 colored axes.
  */
-void drw_debug_matrix(mat4 mat, vec4 color)
+void drw_debug_matrix(mat4 mat, vec4 v_color)
 {
   vec4 p[4] = vec4[4](vec4(0, 0, 0, 1), vec4(1, 0, 0, 1), vec4(0, 1, 0, 1), vec4(0, 0, 1, 1));
   for (int i = 0; i < 4; i++) {
@@ -186,7 +186,7 @@ void drw_debug_matrix(mat4 mat)
 /**
  * Draw a matrix as a 2 units length bounding box, centered on origin.
  */
-void drw_debug_matrix_as_bbox(mat4 mat, vec4 color)
+void drw_debug_matrix_as_bbox(mat4 mat, vec4 v_color)
 {
   vec4 p[8] = vec4[8](vec4(-1, -1, -1, 1),
                       vec4(1, -1, -1, 1),
@@ -200,12 +200,12 @@ void drw_debug_matrix_as_bbox(mat4 mat, vec4 color)
     p[i] = mat * p[i];
     p[i].xyz /= p[i].w;
   }
-  drw_debug_quad(p[0].xyz, p[1].xyz, p[2].xyz, p[3].xyz, color);
-  drw_debug_line(p[0].xyz, p[4].xyz, color);
-  drw_debug_line(p[1].xyz, p[5].xyz, color);
-  drw_debug_line(p[2].xyz, p[6].xyz, color);
-  drw_debug_line(p[3].xyz, p[7].xyz, color);
-  drw_debug_quad(p[4].xyz, p[5].xyz, p[6].xyz, p[7].xyz, color);
+  drw_debug_quad(p[0].xyz, p[1].xyz, p[2].xyz, p[3].xyz, v_color);
+  drw_debug_line(p[0].xyz, p[4].xyz, v_color);
+  drw_debug_line(p[1].xyz, p[5].xyz, v_color);
+  drw_debug_line(p[2].xyz, p[6].xyz, v_color);
+  drw_debug_line(p[3].xyz, p[7].xyz, v_color);
+  drw_debug_quad(p[4].xyz, p[5].xyz, p[6].xyz, p[7].xyz, v_color);
 }
 void drw_debug_matrix_as_bbox(mat4 mat)
 {

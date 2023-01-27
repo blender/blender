@@ -2859,12 +2859,12 @@ static bool file_delete_poll(bContext *C)
   return false;
 }
 
-static bool file_delete_single(const FileSelectParams *params,
+static bool file_delete_single(const struct FileList *files,
                                FileDirEntry *file,
                                const char **r_error_message)
 {
-  char str[FILE_MAX];
-  BLI_path_join(str, sizeof(str), params->dir, file->relpath);
+  char str[FILE_MAX_LIBEXTRA];
+  filelist_file_get_full_path(files, file, str);
   if (BLI_delete_soft(str, r_error_message) != 0 || BLI_exists(str)) {
     return false;
   }
@@ -2876,7 +2876,6 @@ static int file_delete_exec(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   int numfiles = filelist_files_ensure(sfile->files);
 
   const char *error_message = NULL;
@@ -2885,7 +2884,7 @@ static int file_delete_exec(bContext *C, wmOperator *op)
   for (int i = 0; i < numfiles; i++) {
     if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
       FileDirEntry *file = filelist_file(sfile->files, i);
-      if (!file_delete_single(params, file, &error_message)) {
+      if (!file_delete_single(sfile->files, file, &error_message)) {
         report_error = true;
       }
     }

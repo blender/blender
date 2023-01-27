@@ -25,26 +25,26 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR; })
-      .supports_field();
+      .field_on_all();
   b.add_input<decl::Float>(N_("End"))
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR; })
-      .supports_field();
+      .field_on_all();
   b.add_input<decl::Float>(N_("Start"), "Start_001")
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH; })
-      .supports_field();
+      .field_on_all();
   b.add_input<decl::Float>(N_("End"), "End_001")
       .min(0.0f)
       .default_value(1.0f)
       .subtype(PROP_DISTANCE)
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH; })
-      .supports_field();
-  b.add_output<decl::Geometry>(N_("Curve"));
+      .field_on_all();
+  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -92,8 +92,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
 
-  search_link_ops_for_declarations(params, declaration.outputs());
-  search_link_ops_for_declarations(params, declaration.inputs().take_front(1));
+  search_link_ops_for_declarations(params, declaration.outputs);
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
 
   if (params.in_out() == SOCK_IN) {
     if (params.node_tree().typeinfo->validate_link(eNodeSocketDatatype(params.other_socket().type),
@@ -112,7 +112,8 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
                                     const GeometryNodeCurveSampleMode mode,
                                     Field<bool> &selection_field,
                                     Field<float> &start_field,
-                                    Field<float> &end_field)
+                                    Field<float> &end_field,
+                                    const AnonymousAttributePropagationInfo &propagation_info)
 {
   if (!geometry_set.has_curves()) {
     return;
@@ -139,7 +140,7 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
   }
 
   bke::CurvesGeometry dst_curves = geometry::trim_curves(
-      src_curves, selection, starts, ends, mode);
+      src_curves, selection, starts, ends, mode, propagation_info);
   Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
   bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
   geometry_set.replace_curves(dst_curves_id);
@@ -153,19 +154,24 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
 
+  const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
+      "Curve");
+
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   if (mode == GEO_NODE_CURVE_SAMPLE_FACTOR) {
     Field<float> start_field = params.extract_input<Field<float>>("Start");
     Field<float> end_field = params.extract_input<Field<float>>("End");
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-      geometry_set_curve_trim(geometry_set, mode, selection_field, start_field, end_field);
+      geometry_set_curve_trim(
+          geometry_set, mode, selection_field, start_field, end_field, propagation_info);
     });
   }
   else if (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
     Field<float> start_field = params.extract_input<Field<float>>("Start_001");
     Field<float> end_field = params.extract_input<Field<float>>("End_001");
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-      geometry_set_curve_trim(geometry_set, mode, selection_field, start_field, end_field);
+      geometry_set_curve_trim(
+          geometry_set, mode, selection_field, start_field, end_field, propagation_info);
     });
   }
 

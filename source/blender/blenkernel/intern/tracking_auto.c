@@ -361,10 +361,9 @@ static void autotrack_context_init_tracks_for_clip(AutoTrackContext *context, in
 
   const AutoTrackClip *autotrack_clip = &context->autotrack_clips[clip_index];
   MovieClip *clip = autotrack_clip->clip;
-  MovieTracking *tracking = &clip->tracking;
-  ListBase *tracks_base = BKE_tracking_get_active_tracks(tracking);
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
 
-  const int num_clip_tracks = BLI_listbase_count(tracks_base);
+  const int num_clip_tracks = BLI_listbase_count(&tracking_object->tracks);
   if (num_clip_tracks == 0) {
     return;
   }
@@ -373,7 +372,7 @@ static void autotrack_context_init_tracks_for_clip(AutoTrackContext *context, in
                                                (context->num_all_tracks + num_clip_tracks) *
                                                    sizeof(AutoTrackTrack));
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracks_base) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     AutoTrackTrack *autotrack_track = &context->all_autotrack_tracks[context->num_all_tracks++];
     autotrack_track->clip_index = clip_index;
     autotrack_track->track = track;
@@ -838,11 +837,11 @@ void BKE_autotrack_context_finish(AutoTrackContext *context)
   for (int clip_index = 0; clip_index < context->num_clips; clip_index++) {
     const AutoTrackClip *autotrack_clip = &context->autotrack_clips[clip_index];
     MovieClip *clip = autotrack_clip->clip;
-    ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(&clip->tracking);
+    const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
     const int start_clip_frame = BKE_movieclip_remap_scene_to_clip_frame(
         clip, context->start_scene_frame);
 
-    LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
+    LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
       if (plane_track->flag & PLANE_TRACK_AUTOKEY) {
         continue;
       }

@@ -18,13 +18,14 @@
 #include "util/guiding.h"
 #include "util/log.h"
 #include "util/md5.h"
-#include "util/opengl.h"
 #include "util/openimagedenoise.h"
 #include "util/path.h"
 #include "util/string.h"
 #include "util/task.h"
 #include "util/tbb.h"
 #include "util/types.h"
+
+#include "GPU_state.h"
 
 #ifdef WITH_OSL
 #  include "scene/osl.h"
@@ -62,9 +63,7 @@ static void debug_flags_sync_from_scene(BL::Scene b_scene)
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
   /* Synchronize CPU flags. */
   flags.cpu.avx2 = get_boolean(cscene, "debug_use_cpu_avx2");
-  flags.cpu.avx = get_boolean(cscene, "debug_use_cpu_avx");
   flags.cpu.sse41 = get_boolean(cscene, "debug_use_cpu_sse41");
-  flags.cpu.sse3 = get_boolean(cscene, "debug_use_cpu_sse3");
   flags.cpu.sse2 = get_boolean(cscene, "debug_use_cpu_sse2");
   flags.cpu.bvh_layout = (BVHLayout)get_enum(cscene, "debug_bvh_layout");
   /* Synchronize CUDA flags. */
@@ -337,7 +336,7 @@ static PyObject *view_draw_func(PyObject * /*self*/, PyObject *args)
   if (PyLong_AsVoidPtr(pyrv3d)) {
     /* 3d view drawing */
     int viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
+    GPU_viewport_size_get_i(viewport);
 
     session->view_draw(viewport[2], viewport[3]);
   }
@@ -478,6 +477,7 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 
     /* Read metadata. */
     bool is_bool_param = false;
+    bool hide_value = !param->validdefault;
     ustring param_label = param->name;
 
     for (const OSL::OSLQuery::Parameter &metadata : param->metadata) {
@@ -486,6 +486,9 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
           /* Boolean socket. */
           if (metadata.sdefault[0] == "boolean" || metadata.sdefault[0] == "checkBox") {
             is_bool_param = true;
+          }
+          else if (metadata.sdefault[0] == "null") {
+            hide_value = true;
           }
         }
         else if (metadata.name == "label") {
@@ -596,6 +599,9 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
             if (b_sock.name() != param_label) {
               b_sock.name(param_label.string());
             }
+            if (b_sock.hide_value() != hide_value) {
+              b_sock.hide_value(hide_value);
+            }
             used_sockets.insert(b_sock.ptr.data);
             found_existing = true;
           }
@@ -634,6 +640,8 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
       else if (data_type == BL::NodeSocket::type_BOOLEAN) {
         set_boolean(b_sock.ptr, "default_value", default_boolean);
       }
+
+      b_sock.hide_value(hide_value);
 
       used_sockets.insert(b_sock.ptr.data);
     }
@@ -744,7 +752,7 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
   RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyscene), &sceneptr);
   BL::Scene b_scene(sceneptr);
 
-  DeviceInfo device = blender_device_info(b_preferences, b_scene, true);
+  DeviceInfo device = blender_device_info(b_preferences, b_scene, true, true);
 
   /* Get denoising parameters from view layer. */
   PointerRNA viewlayerptr;

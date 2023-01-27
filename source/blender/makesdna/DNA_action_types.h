@@ -139,6 +139,7 @@ typedef enum eMotionPath_Ranges {
   MOTIONPATH_RANGE_SCENE = 0,
   MOTIONPATH_RANGE_KEYS_SELECTED = 1,
   MOTIONPATH_RANGE_KEYS_ALL = 2,
+  MOTIONPATH_RANGE_MANUAL = 3,
 } eMotionPath_Ranges;
 
 /* bAnimVizSettings->path_viewflag */

@@ -84,6 +84,7 @@ ccl_device_inline float kernel_ies_interp(KernelGlobals kg, int slot, float h_an
   return max(cubic_interp(a, b, c, d, h_frac), 0.0f);
 }
 
+#ifdef __SVM__
 ccl_device_noinline void svm_node_ies(KernelGlobals kg,
                                       ccl_private ShaderData *sd,
                                       ccl_private float *stack,
@@ -105,5 +106,6 @@ ccl_device_noinline void svm_node_ies(KernelGlobals kg,
     stack_store_float(stack, fac_offset, fac);
   }
 }
+#endif
 
 CCL_NAMESPACE_END

@@ -440,7 +440,7 @@ DrawEngineType draw_engine_external_type = {
     &external_data_size,
     &external_engine_init,
     &external_engine_free,
-    NULL, /* instance_free */
+    /*instance_free*/ NULL,
     &external_cache_init,
     &external_cache_populate,
     &external_cache_finish,

@@ -368,11 +368,9 @@ static void extract_range_iter_lvert_mesh(void *__restrict userdata,
 
   const ExtractorIterData *data = static_cast<ExtractorIterData *>(userdata);
   const MeshRenderData *mr = data->mr;
-  const int lvert_index = data->loose_elems[iter];
-  const MVert *mv = &((const MVert *)data->elems)[lvert_index];
   for (const ExtractorRunData &run_data : data->extractors) {
     run_data.extractor->iter_lvert_mesh(
-        mr, mv, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
+        mr, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
   }
 }
 
@@ -406,7 +404,7 @@ BLI_INLINE void extract_task_range_run_iter(const MeshRenderData *mr,
       break;
     case MR_ITER_LVERT:
       range_data.loose_elems = mr->lverts;
-      range_data.elems = is_mesh ? mr->mvert : (void *)mr->bm->vtable;
+      range_data.elems = is_mesh ? mr->vert_positions : (void *)mr->bm->vtable;
       func = is_mesh ? extract_range_iter_lvert_mesh : extract_range_iter_lvert_bm;
       stop = mr->vert_loose_len;
       break;

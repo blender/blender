@@ -8,17 +8,6 @@
  */
 
 #ifdef LAYERED
-uniform sampler2DArray depthBuffer;
-uniform int depthLayer;
-#else
-uniform sampler2D depthBuffer;
-#endif
-
-#ifndef COPY_DEPTH
-uniform vec2 texelSize;
-#endif
-
-#ifdef LAYERED
 #  define sampleLowerMip(t) texture(depthBuffer, vec3(t, depthLayer)).r
 #  define gatherLowerMip(t) textureGather(depthBuffer, vec3(t, depthLayer))
 #else
@@ -34,12 +23,6 @@ uniform vec2 texelSize;
 #  define minmax2(a, b) max(a, b)
 #  define minmax3(a, b, c) max(max(a, b), c)
 #  define minmax4(a, b, c, d) max(max(max(a, b), c), d)
-#endif
-
-/* On some AMD card / driver combination, it is needed otherwise,
- * the shader does not write anything. */
-#if (defined(GPU_INTEL) || defined(GPU_ATI)) && defined(GPU_OPENGL)
-out vec4 fragColor;
 #endif
 
 void main()

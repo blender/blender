@@ -202,6 +202,9 @@ MetalDeviceQueue::~MetalDeviceQueue()
   assert(mtlCommandBuffer_ == nil);
   assert(command_buffers_submitted_ == command_buffers_completed_);
 
+  close_compute_encoder();
+  close_blit_encoder();
+
   if (@available(macos 10.14, *)) {
     [shared_event_listener_ release];
     [shared_event_ release];
@@ -275,7 +278,8 @@ int MetalDeviceQueue::num_concurrent_states(const size_t state_size) const
   if (metal_device_->device_vendor == METAL_GPU_APPLE) {
     result *= 4;
 
-    if (MetalInfo::get_apple_gpu_architecture(metal_device_->mtlDevice) == APPLE_M2) {
+    /* Increasing the state count doesn't notably benefit M1-family systems.  */
+    if (MetalInfo::get_apple_gpu_architecture(metal_device_->mtlDevice) != APPLE_M1) {
       size_t system_ram = system_physical_ram();
       size_t allocated_so_far = [metal_device_->mtlDevice currentAllocatedSize];
       size_t max_recommended_working_set = [metal_device_->mtlDevice recommendedMaxWorkingSetSize];
@@ -637,9 +641,7 @@ bool MetalDeviceQueue::synchronize()
     return false;
   }
 
-  if (mtlComputeEncoder_) {
-    close_compute_encoder();
-  }
+  close_compute_encoder();
   close_blit_encoder();
 
   if (mtlCommandBuffer_) {
@@ -702,6 +704,10 @@ bool MetalDeviceQueue::synchronize()
 
 void MetalDeviceQueue::zero_to_device(device_memory &mem)
 {
+  if (metal_device_->have_error()) {
+    return;
+  }
+
   assert(mem.type != MEM_GLOBAL && mem.type != MEM_TEXTURE);
 
   if (mem.memory_size() == 0) {
@@ -729,6 +735,10 @@ void MetalDeviceQueue::zero_to_device(device_memory &mem)
 
 void MetalDeviceQueue::copy_to_device(device_memory &mem)
 {
+  if (metal_device_->have_error()) {
+    return;
+  }
+
   if (mem.memory_size() == 0) {
     return;
   }
@@ -771,6 +781,10 @@ void MetalDeviceQueue::copy_to_device(device_memory &mem)
 
 void MetalDeviceQueue::copy_from_device(device_memory &mem)
 {
+  if (metal_device_->have_error()) {
+    return;
+  }
+
   assert(mem.type != MEM_GLOBAL && mem.type != MEM_TEXTURE);
 
   if (mem.memory_size() == 0) {
@@ -843,9 +857,7 @@ id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel 
   if (@available(macos 10.14, *)) {
     if (timing_shared_event_) {
       /* Close the current encoder to ensure we're able to capture per-encoder timing data. */
-      if (mtlComputeEncoder_) {
-        close_compute_encoder();
-      }
+      close_compute_encoder();
     }
 
     if (mtlComputeEncoder_) {
@@ -885,9 +897,7 @@ id<MTLBlitCommandEncoder> MetalDeviceQueue::get_blit_encoder()
     return mtlBlitEncoder_;
   }
 
-  if (mtlComputeEncoder_) {
-    close_compute_encoder();
-  }
+  close_compute_encoder();
 
   if (!mtlCommandBuffer_) {
     mtlCommandBuffer_ = [mtlCommandQueue_ commandBuffer];
@@ -901,12 +911,14 @@ id<MTLBlitCommandEncoder> MetalDeviceQueue::get_blit_encoder()
 
 void MetalDeviceQueue::close_compute_encoder()
 {
-  [mtlComputeEncoder_ endEncoding];
-  mtlComputeEncoder_ = nil;
+  if (mtlComputeEncoder_) {
+    [mtlComputeEncoder_ endEncoding];
+    mtlComputeEncoder_ = nil;
 
-  if (@available(macos 10.14, *)) {
-    if (timing_shared_event_) {
-      [mtlCommandBuffer_ encodeSignalEvent:timing_shared_event_ value:timing_shared_event_id_++];
+    if (@available(macos 10.14, *)) {
+      if (timing_shared_event_) {
+        [mtlCommandBuffer_ encodeSignalEvent:timing_shared_event_ value:timing_shared_event_id_++];
+      }
     }
   }
 }

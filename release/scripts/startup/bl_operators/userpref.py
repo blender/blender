@@ -3,7 +3,7 @@
 import bpy
 from bpy.types import (
     Operator,
-    OperatorFileListElement
+    OperatorFileListElement,
 )
 from bpy.props import (
     BoolProperty,
@@ -12,8 +12,10 @@ from bpy.props import (
     StringProperty,
     CollectionProperty,
 )
-
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    pgettext_tip as tip_,
+)
 
 
 def _zipfile_root_namelist(file_to_extract):
@@ -224,7 +226,7 @@ class PREFERENCES_OT_keyconfig_import(Operator):
             else:
                 shutil.move(self.filepath, path)
         except Exception as ex:
-            self.report({'ERROR'}, "Installing keymap failed: %s" % ex)
+            self.report({'ERROR'}, tip_("Installing keymap failed: %s") % ex)
             return {'CANCELLED'}
 
         # sneaky way to check we're actually running the code.
@@ -450,11 +452,11 @@ class PREFERENCES_OT_addon_enable(Operator):
             if info_ver > bpy.app.version:
                 self.report(
                     {'WARNING'},
-                    "This script was written Blender "
-                    "version %d.%d.%d and might not "
-                    "function (correctly), "
-                    "though it is enabled" %
-                    info_ver
+                    tip_("This script was written Blender "
+                         "version %d.%d.%d and might not "
+                         "function (correctly), "
+                         "though it is enabled")
+                    % info_ver
                 )
             return {'FINISHED'}
         else:
@@ -538,7 +540,7 @@ class PREFERENCES_OT_theme_install(Operator):
 
         if not self.overwrite:
             if os.path.exists(path_dest):
-                self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
+                self.report({'WARNING'}, tip_("File already installed to %r\n") % path_dest)
                 return {'CANCELLED'}
 
         try:
@@ -645,7 +647,7 @@ class PREFERENCES_OT_addon_install(Operator):
         pyfile_dir = os.path.dirname(pyfile)
         for addon_path in addon_utils.paths():
             if os.path.samefile(pyfile_dir, addon_path):
-                self.report({'ERROR'}, "Source file is in the add-on search path: %r" % addon_path)
+                self.report({'ERROR'}, tip_("Source file is in the add-on search path: %r") % addon_path)
                 return {'CANCELLED'}
         del addon_path
         del pyfile_dir
@@ -669,7 +671,7 @@ class PREFERENCES_OT_addon_install(Operator):
                 for f in file_to_extract_root:
                     path_dest = os.path.join(path_addons, os.path.basename(f))
                     if os.path.exists(path_dest):
-                        self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
+                        self.report({'WARNING'}, tip_("File already installed to %r\n") % path_dest)
                         return {'CANCELLED'}
 
             try:  # extract the file to "addons"
@@ -684,7 +686,7 @@ class PREFERENCES_OT_addon_install(Operator):
             if self.overwrite:
                 _module_filesystem_remove(path_addons, os.path.basename(pyfile))
             elif os.path.exists(path_dest):
-                self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
+                self.report({'WARNING'}, tip_("File already installed to %r\n") % path_dest)
                 return {'CANCELLED'}
 
             # if not compressed file just copy into the addon path
@@ -764,7 +766,7 @@ class PREFERENCES_OT_addon_remove(Operator):
 
         path, isdir = PREFERENCES_OT_addon_remove.path_from_addon(self.module)
         if path is None:
-            self.report({'WARNING'}, "Add-on path %r could not be found" % path)
+            self.report({'WARNING'}, tip_("Add-on path %r could not be found") % path)
             return {'CANCELLED'}
 
         # in case its enabled
@@ -783,9 +785,9 @@ class PREFERENCES_OT_addon_remove(Operator):
 
     # lame confirmation check
     def draw(self, _context):
-        self.layout.label(text="Remove Add-on: %r?" % self.module)
+        self.layout.label(text=iface_("Remove Add-on: %r?") % self.module, translate=False)
         path, _isdir = PREFERENCES_OT_addon_remove.path_from_addon(self.module)
-        self.layout.label(text="Path: %r" % path)
+        self.layout.label(text=iface_("Path: %r") % path, translate=False)
 
     def invoke(self, context, _event):
         wm = context.window_manager
@@ -914,7 +916,7 @@ class PREFERENCES_OT_app_template_install(Operator):
                 for f in file_to_extract_root:
                     path_dest = os.path.join(path_app_templates, os.path.basename(f))
                     if os.path.exists(path_dest):
-                        self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
+                        self.report({'WARNING'}, tip_("File already installed to %r\n") % path_dest)
                         return {'CANCELLED'}
 
             try:  # extract the file to "bl_app_templates_user"
@@ -925,7 +927,7 @@ class PREFERENCES_OT_app_template_install(Operator):
 
         else:
             # Only support installing zipfiles
-            self.report({'WARNING'}, "Expected a zip-file %r\n" % filepath)
+            self.report({'WARNING'}, tip_("Expected a zip-file %r\n") % filepath)
             return {'CANCELLED'}
 
         app_templates_new = set(os.listdir(path_app_templates)) - app_templates_old
@@ -979,7 +981,7 @@ class PREFERENCES_OT_studiolight_install(Operator):
             ('MATCAP', "MatCap", "Install custom MatCaps"),
             ('WORLD', "World", "Install custom HDRIs"),
             ('STUDIO', "Studio", "Install custom Studio Lights"),
-        )
+        ),
     )
 
     def execute(self, context):

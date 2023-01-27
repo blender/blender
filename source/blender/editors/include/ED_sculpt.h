@@ -17,9 +17,6 @@ struct UndoType;
 struct ViewContext;
 struct bContext;
 struct rcti;
-struct wmMsgSubscribeKey;
-struct wmMsgSubscribeValue;
-struct wmRegionMessageSubscribeParams;
 struct wmOperator;
 
 /* sculpt.cc */
@@ -40,7 +37,7 @@ void ED_sculpt_init_transform(struct bContext *C,
                               const char *undo_name);
 void ED_sculpt_end_transform(struct bContext *C, struct Object *ob);
 
-/* sculpt_undo.c */
+/* sculpt_undo.cc */
 
 /** Export for ED_undo_sys. */
 void ED_sculpt_undosys_type(struct UndoType *ut);

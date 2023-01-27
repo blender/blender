@@ -1510,6 +1510,11 @@ static void rna_def_strip_crop(BlenderRNA *brna)
 static const EnumPropertyItem transform_filter_items[] = {
     {SEQ_TRANSFORM_FILTER_NEAREST, "NEAREST", 0, "Nearest", ""},
     {SEQ_TRANSFORM_FILTER_BILINEAR, "BILINEAR", 0, "Bilinear", ""},
+    {SEQ_TRANSFORM_FILTER_NEAREST_3x3,
+     "SUBSAMPLING_3x3",
+     0,
+     "Subsampling (3x3)",
+     "Use nearest with 3x3 subsamples during rendering"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -2272,7 +2277,7 @@ static void rna_def_editor(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_cache_preprocessed", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", SEQ_CACHE_VIEW_PREPROCESSED);
-  RNA_def_property_ui_text(prop, "Pre-processed Images", "Visualize cached pre-processed images");
+  RNA_def_property_ui_text(prop, "Preprocessed Images", "Visualize cached pre-processed images");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
 
   prop = RNA_def_property(srna, "show_cache_composite", PROP_BOOLEAN, PROP_NONE);
@@ -2291,8 +2296,8 @@ static void rna_def_editor(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", SEQ_CACHE_STORE_PREPROCESSED);
   RNA_def_property_ui_text(
       prop,
-      "Cache Pre-processed",
-      "Cache pre-processed images, for faster tweaking of effects at the cost of memory usage");
+      "Cache Preprocessed",
+      "Cache preprocessed images, for faster tweaking of effects at the cost of memory usage");
 
   prop = RNA_def_property(srna, "use_cache_composite", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", SEQ_CACHE_STORE_COMPOSITE);

@@ -15,7 +15,15 @@
 extern "C" {
 #endif
 
-struct AnonymousAttributeID;
+/** Workaround to forward-declare C++ type in C header. */
+#ifdef __cplusplus
+namespace blender::bke {
+class AnonymousAttributeID;
+}  // namespace blender::bke
+using AnonymousAttributeIDHandle = blender::bke::AnonymousAttributeID;
+#else
+typedef struct AnonymousAttributeIDHandle AnonymousAttributeIDHandle;
+#endif
 
 /** Descriptor and storage for a custom data layer. */
 typedef struct CustomDataLayer {
@@ -36,19 +44,19 @@ typedef struct CustomDataLayer {
   /** Shape keyblock unique id reference. */
   int uid;
   /** Layer name, MAX_CUSTOMDATA_LAYER_NAME. */
-  char name[64];
+  char name[68];
+  char _pad1[4];
   /** Layer data. */
   void *data;
   /**
-   * Run-time identifier for this layer. If no one has a strong reference to this id anymore,
-   * the layer can be removed. The custom data layer only has a weak reference to the id, because
-   * otherwise there will always be a strong reference and the attribute can't be removed
-   * automatically.
+   * Run-time identifier for this layer. Can be used to retrieve information about where this
+   * attribute was created.
    */
-  const struct AnonymousAttributeID *anonymous_id;
+  const AnonymousAttributeIDHandle *anonymous_id;
 } CustomDataLayer;
 
-#define MAX_CUSTOMDATA_LAYER_NAME 64
+#define MAX_CUSTOMDATA_LAYER_NAME 68
+#define MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX 64
 
 typedef struct CustomDataExternal {
   /** FILE_MAX. */
@@ -88,11 +96,11 @@ typedef enum eCustomDataType {
    */
   CD_AUTO_FROM_NAME = -1,
 
-  CD_MVERT = 0,
 #ifdef DNA_DEPRECATED_ALLOW
+  CD_MVERT = 0,   /* DEPRECATED */
   CD_MSTICKY = 1, /* DEPRECATED */
 #endif
-  CD_MDEFORMVERT = 2,
+  CD_MDEFORMVERT = 2, /* Array of `MDeformVert`. */
   CD_MEDGE = 3,
   CD_MFACE = 4,
   CD_MTFACE = 5,
@@ -159,7 +167,7 @@ typedef enum eCustomDataType {
 } eCustomDataType;
 
 /* Bits for eCustomDataMask */
-#define CD_MASK_MVERT (1 << CD_MVERT)
+// #define CD_MASK_MVERT (1 << CD_MVERT) /* DEPRECATED */
 // #define CD_MASK_MSTICKY      (1 << CD_MSTICKY)  /* DEPRECATED */
 #define CD_MASK_MDEFORMVERT (1 << CD_MDEFORMVERT)
 #define CD_MASK_MEDGE (1 << CD_MEDGE)
@@ -175,7 +183,6 @@ typedef enum eCustomDataType {
 #define CD_MASK_ORIGSPACE (1 << CD_ORIGSPACE)
 #define CD_MASK_ORCO (1 << CD_ORCO)
 // #define CD_MASK_MTEXPOLY (1 << CD_MTEXPOLY)  /* DEPRECATED */
-#define CD_MASK_MLOOPUV (1 << CD_MLOOPUV)
 #define CD_MASK_PROP_BYTE_COLOR (1 << CD_PROP_BYTE_COLOR)
 #define CD_MASK_TANGENT (1 << CD_TANGENT)
 #define CD_MASK_MDISPS (1 << CD_MDISPS)
@@ -244,8 +251,10 @@ enum {
   CD_FLAG_EXTERNAL = (1 << 3),
   /* Indicates external data is read into memory */
   CD_FLAG_IN_MEMORY = (1 << 4),
+#ifdef DNA_DEPRECATED_ALLOW
   CD_FLAG_COLOR_ACTIVE = (1 << 5),
   CD_FLAG_COLOR_RENDER = (1 << 6)
+#endif
 };
 
 /* Limits */

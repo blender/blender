@@ -5,8 +5,6 @@
 
 #pragma BLENDER_REQUIRE(closure_eval_surface_lib.glsl)
 
-in vec2 pos;
-
 RESOURCE_ID_VARYING
 
 void main()

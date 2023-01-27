@@ -56,10 +56,7 @@ static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int
 
   BKE_modifier_copydata_generic(md_src, md_dst, flag);
 
-  surmd_dst->bvhtree = NULL;
-  surmd_dst->mesh = NULL;
-  surmd_dst->x = NULL;
-  surmd_dst->v = NULL;
+  memset(&surmd_dst->runtime, 0, sizeof(surmd_dst->runtime));
 }
 
 static void freeData(ModifierData *md)
@@ -67,19 +64,19 @@ static void freeData(ModifierData *md)
   SurfaceModifierData *surmd = (SurfaceModifierData *)md;
 
   if (surmd) {
-    if (surmd->bvhtree) {
-      free_bvhtree_from_mesh(surmd->bvhtree);
-      MEM_SAFE_FREE(surmd->bvhtree);
+    if (surmd->runtime.bvhtree) {
+      free_bvhtree_from_mesh(surmd->runtime.bvhtree);
+      MEM_SAFE_FREE(surmd->runtime.bvhtree);
     }
 
-    if (surmd->mesh) {
-      BKE_id_free(NULL, surmd->mesh);
-      surmd->mesh = NULL;
+    if (surmd->runtime.mesh) {
+      BKE_id_free(NULL, surmd->runtime.mesh);
+      surmd->runtime.mesh = NULL;
     }
 
-    MEM_SAFE_FREE(surmd->x);
+    MEM_SAFE_FREE(surmd->runtime.vert_positions_prev);
 
-    MEM_SAFE_FREE(surmd->v);
+    MEM_SAFE_FREE(surmd->runtime.vert_velocities);
   }
 }
 
@@ -98,23 +95,24 @@ static void deformVerts(ModifierData *md,
   const int cfra = (int)DEG_get_ctime(ctx->depsgraph);
 
   /* Free mesh and BVH cache. */
-  if (surmd->bvhtree) {
-    free_bvhtree_from_mesh(surmd->bvhtree);
-    MEM_SAFE_FREE(surmd->bvhtree);
+  if (surmd->runtime.bvhtree) {
+    free_bvhtree_from_mesh(surmd->runtime.bvhtree);
+    MEM_SAFE_FREE(surmd->runtime.bvhtree);
   }
 
-  if (surmd->mesh) {
-    BKE_id_free(NULL, surmd->mesh);
-    surmd->mesh = NULL;
+  if (surmd->runtime.mesh) {
+    BKE_id_free(NULL, surmd->runtime.mesh);
+    surmd->runtime.mesh = NULL;
   }
 
   if (mesh) {
     /* Not possible to use get_mesh() in this case as we'll modify its vertices
      * and get_mesh() would return 'mesh' directly. */
-    surmd->mesh = (Mesh *)BKE_id_copy_ex(NULL, (ID *)mesh, NULL, LIB_ID_COPY_LOCALIZE);
+    surmd->runtime.mesh = (Mesh *)BKE_id_copy_ex(NULL, (ID *)mesh, NULL, LIB_ID_COPY_LOCALIZE);
   }
   else {
-    surmd->mesh = MOD_deform_mesh_eval_get(ctx->object, NULL, NULL, NULL, verts_num, false);
+    surmd->runtime.mesh = MOD_deform_mesh_eval_get(
+        ctx->object, NULL, NULL, NULL, verts_num, false);
   }
 
   if (!ctx->object->pd) {
@@ -122,62 +120,61 @@ static void deformVerts(ModifierData *md,
     return;
   }
 
-  if (surmd->mesh) {
+  if (surmd->runtime.mesh) {
     uint mesh_verts_num = 0, i = 0;
     int init = 0;
-    MVert *x, *v;
 
-    BKE_mesh_vert_coords_apply(surmd->mesh, vertexCos);
+    BKE_mesh_vert_coords_apply(surmd->runtime.mesh, vertexCos);
 
-    mesh_verts_num = surmd->mesh->totvert;
+    mesh_verts_num = surmd->runtime.mesh->totvert;
 
-    if (mesh_verts_num != surmd->verts_num || surmd->x == NULL || surmd->v == NULL ||
-        cfra != surmd->cfra + 1) {
-      if (surmd->x) {
-        MEM_freeN(surmd->x);
-        surmd->x = NULL;
-      }
-      if (surmd->v) {
-        MEM_freeN(surmd->v);
-        surmd->v = NULL;
-      }
+    if ((mesh_verts_num != surmd->runtime.verts_num) ||
+        (surmd->runtime.vert_positions_prev == NULL) || (surmd->runtime.vert_velocities == NULL) ||
+        (cfra != surmd->runtime.cfra_prev + 1)) {
 
-      surmd->x = MEM_calloc_arrayN(mesh_verts_num, sizeof(MVert), "MVert");
-      surmd->v = MEM_calloc_arrayN(mesh_verts_num, sizeof(MVert), "MVert");
+      MEM_SAFE_FREE(surmd->runtime.vert_positions_prev);
+      MEM_SAFE_FREE(surmd->runtime.vert_velocities);
 
-      surmd->verts_num = mesh_verts_num;
+      surmd->runtime.vert_positions_prev = MEM_calloc_arrayN(
+          mesh_verts_num, sizeof(float[3]), __func__);
+      surmd->runtime.vert_velocities = MEM_calloc_arrayN(
+          mesh_verts_num, sizeof(float[3]), __func__);
+
+      surmd->runtime.verts_num = mesh_verts_num;
 
       init = 1;
     }
 
     /* convert to global coordinates and calculate velocity */
-    MVert *verts = BKE_mesh_verts_for_write(surmd->mesh);
-    for (i = 0, x = surmd->x, v = surmd->v; i < mesh_verts_num; i++, x++, v++) {
-      float *vec = verts[i].co;
+    float(*positions)[3] = BKE_mesh_vert_positions_for_write(surmd->runtime.mesh);
+    for (i = 0; i < mesh_verts_num; i++) {
+      float *vec = positions[i];
       mul_m4_v3(ctx->object->object_to_world, vec);
 
       if (init) {
-        v->co[0] = v->co[1] = v->co[2] = 0.0f;
+        zero_v3(surmd->runtime.vert_velocities[i]);
       }
       else {
-        sub_v3_v3v3(v->co, vec, x->co);
+        sub_v3_v3v3(surmd->runtime.vert_velocities[i], vec, surmd->runtime.vert_positions_prev[i]);
       }
 
-      copy_v3_v3(x->co, vec);
+      copy_v3_v3(surmd->runtime.vert_positions_prev[i], vec);
     }
 
-    surmd->cfra = cfra;
+    surmd->runtime.cfra_prev = cfra;
 
-    const bool has_poly = surmd->mesh->totpoly > 0;
-    const bool has_edge = surmd->mesh->totedge > 0;
+    const bool has_poly = surmd->runtime.mesh->totpoly > 0;
+    const bool has_edge = surmd->runtime.mesh->totedge > 0;
     if (has_poly || has_edge) {
-      surmd->bvhtree = MEM_callocN(sizeof(BVHTreeFromMesh), "BVHTreeFromMesh");
+      surmd->runtime.bvhtree = MEM_callocN(sizeof(BVHTreeFromMesh), "BVHTreeFromMesh");
 
       if (has_poly) {
-        BKE_bvhtree_from_mesh_get(surmd->bvhtree, surmd->mesh, BVHTREE_FROM_LOOPTRI, 2);
+        BKE_bvhtree_from_mesh_get(
+            surmd->runtime.bvhtree, surmd->runtime.mesh, BVHTREE_FROM_LOOPTRI, 2);
       }
       else if (has_edge) {
-        BKE_bvhtree_from_mesh_get(surmd->bvhtree, surmd->mesh, BVHTREE_FROM_EDGES, 2);
+        BKE_bvhtree_from_mesh_get(
+            surmd->runtime.bvhtree, surmd->runtime.mesh, BVHTREE_FROM_EDGES, 2);
       }
     }
   }
@@ -203,43 +200,39 @@ static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
 {
   SurfaceModifierData *surmd = (SurfaceModifierData *)md;
 
-  surmd->mesh = NULL;
-  surmd->bvhtree = NULL;
-  surmd->x = NULL;
-  surmd->v = NULL;
-  surmd->verts_num = 0;
+  memset(&surmd->runtime, 0, sizeof(surmd->runtime));
 }
 
 ModifierTypeInfo modifierType_Surface = {
-    /* name */ N_("Surface"),
-    /* structName */ "SurfaceModifierData",
-    /* structSize */ sizeof(SurfaceModifierData),
-    /* srna */ &RNA_SurfaceModifier,
-    /* type */ eModifierTypeType_OnlyDeform,
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
+    /*name*/ N_("Surface"),
+    /*structName*/ "SurfaceModifierData",
+    /*structSize*/ sizeof(SurfaceModifierData),
+    /*srna*/ &RNA_SurfaceModifier,
+    /*type*/ eModifierTypeType_OnlyDeform,
+    /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_NoUserAdd,
-    /* icon */ ICON_MOD_PHYSICS,
+    /*icon*/ ICON_MOD_PHYSICS,
 
-    /* copyData */ copyData,
+    /*copyData*/ copyData,
 
-    /* deformVerts */ deformVerts,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
-    /* modifyMesh */ NULL,
-    /* modifyGeometrySet */ NULL,
+    /*deformVerts*/ deformVerts,
+    /*deformMatrices*/ NULL,
+    /*deformVertsEM*/ NULL,
+    /*deformMatricesEM*/ NULL,
+    /*modifyMesh*/ NULL,
+    /*modifyGeometrySet*/ NULL,
 
-    /* initData */ initData,
-    /* requiredDataMask */ NULL,
-    /* freeData */ freeData,
-    /* isDisabled */ NULL,
-    /* updateDepsgraph */ NULL,
-    /* dependsOnTime */ dependsOnTime,
-    /* dependsOnNormals */ NULL,
-    /* foreachIDLink */ NULL,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
-    /* blendRead */ blendRead,
+    /*initData*/ initData,
+    /*requiredDataMask*/ NULL,
+    /*freeData*/ freeData,
+    /*isDisabled*/ NULL,
+    /*updateDepsgraph*/ NULL,
+    /*dependsOnTime*/ dependsOnTime,
+    /*dependsOnNormals*/ NULL,
+    /*foreachIDLink*/ NULL,
+    /*foreachTexLink*/ NULL,
+    /*freeRuntimeData*/ NULL,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ NULL,
+    /*blendRead*/ blendRead,
 };

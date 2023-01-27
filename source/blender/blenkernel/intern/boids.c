@@ -1127,7 +1127,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 
   /* decide on jumping & liftoff */
   if (bpa->data.mode == eBoidMode_OnLand) {
-    /* fuzziness makes boids capable of misjudgement */
+    /* Fuzziness makes boids capable of misjudgment. */
     float mul = 1.0f + state->rule_fuzziness;
 
     if (boids->options & BOID_ALLOW_FLIGHT && bbd->wanted_co[2] > 0.0f) {

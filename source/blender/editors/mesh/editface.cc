@@ -379,13 +379,13 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
   float vec[3], bmat[3][3];
 
   const Mesh *me = BKE_mesh_from_object(ob);
-  if (!me || !CustomData_has_layer(&me->ldata, CD_MLOOPUV)) {
+  if (!me || !CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2)) {
     return ok;
   }
 
   copy_m3_m4(bmat, ob->object_to_world);
 
-  const Span<MVert> verts = me->verts();
+  const Span<float3> positions = me->vert_positions();
   const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
   bke::AttributeAccessor attributes = me->attributes();
@@ -402,7 +402,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
     const MPoly &poly = polys[i];
     const MLoop *ml = &loops[poly.loopstart];
     for (int b = 0; b < poly.totloop; b++, ml++) {
-      mul_v3_m3v3(vec, bmat, verts[ml->v].co);
+      mul_v3_m3v3(vec, bmat, positions[ml->v]);
       add_v3_v3v3(vec, vec, ob->object_to_world[3]);
       minmax_v3v3_v3(r_min, r_max, vec);
     }

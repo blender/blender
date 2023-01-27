@@ -12,7 +12,6 @@ extern "C" {
 #endif
 
 struct Scene;
-struct SeqRenderData;
 struct Sequence;
 
 struct SeqEffectHandle seq_effect_get_sequence_blend(struct Sequence *seq);

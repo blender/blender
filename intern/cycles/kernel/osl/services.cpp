@@ -20,6 +20,7 @@
 
 #include "kernel/osl/globals.h"
 #include "kernel/osl/services.h"
+#include "kernel/osl/types.h"
 
 #include "util/foreach.h"
 #include "util/log.h"
@@ -118,6 +119,8 @@ ustring OSLRenderServices::u_I("I");
 ustring OSLRenderServices::u_u("u");
 ustring OSLRenderServices::u_v("v");
 ustring OSLRenderServices::u_empty;
+
+ImageManager *OSLRenderServices::image_manager = nullptr;
 
 OSLRenderServices::OSLRenderServices(OSL::TextureSystem *texture_system, int device_type)
     : OSL::RendererServices(texture_system), device_type_(device_type)
@@ -1154,7 +1157,7 @@ TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(ustring file
     /* For non-OIIO textures, just return a pointer to our own OSLTextureHandle. */
     if (it != textures.end()) {
       if (it->second->type != OSLTextureHandle::OIIO) {
-        return (TextureSystem::TextureHandle *)it->second.get();
+        return reinterpret_cast<TextureSystem::TextureHandle *>(it->second.get());
       }
     }
 
@@ -1173,16 +1176,53 @@ TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(ustring file
 
     /* Assign OIIO texture handle and return. */
     it->second->oiio_handle = handle;
-    return (TextureSystem::TextureHandle *)it->second.get();
+    return reinterpret_cast<TextureSystem::TextureHandle *>(it->second.get());
   }
   else {
-    if (it != textures.end() && it->second->type == OSLTextureHandle::SVM &&
-        it->second->svm_slots[0].w == -1) {
-      return reinterpret_cast<TextureSystem::TextureHandle *>(
-          static_cast<uintptr_t>(it->second->svm_slots[0].y + 1));
+    /* Construct GPU texture handle for existing textures. */
+    if (it != textures.end()) {
+      switch (it->second->type) {
+        case OSLTextureHandle::OIIO:
+          return NULL;
+        case OSLTextureHandle::SVM:
+          if (!it->second->handle.empty() && it->second->handle.get_manager() != image_manager) {
+            it.clear();
+            break;
+          }
+          return reinterpret_cast<TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_SVM |
+                                                                  it->second->svm_slots[0].y);
+        case OSLTextureHandle::IES:
+          if (!it->second->handle.empty() && it->second->handle.get_manager() != image_manager) {
+            it.clear();
+            break;
+          }
+          return reinterpret_cast<TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_IES |
+                                                                  it->second->svm_slots[0].y);
+        case OSLTextureHandle::AO:
+          return reinterpret_cast<TextureSystem::TextureHandle *>(
+              OSL_TEXTURE_HANDLE_TYPE_AO_OR_BEVEL | 1);
+        case OSLTextureHandle::BEVEL:
+          return reinterpret_cast<TextureSystem::TextureHandle *>(
+              OSL_TEXTURE_HANDLE_TYPE_AO_OR_BEVEL | 2);
+      }
     }
 
-    return NULL;
+    if (!image_manager) {
+      return NULL;
+    }
+
+    /* Load new textures using SVM image manager. */
+    ImageHandle handle = image_manager->add_image(filename.string(), ImageParams());
+    if (handle.empty()) {
+      return NULL;
+    }
+
+    if (!textures.insert(filename, new OSLTextureHandle(handle))) {
+      return NULL;
+    }
+
+    return reinterpret_cast<TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_SVM |
+                                                            handle.svm_slot());
   }
 }
 
@@ -1720,8 +1760,8 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg,
           return set_attribute_float3(f, type, derivatives, val);
         }
         else if (name == u_I) {
-          const differential3 dI = differential_from_compact(sd->I, sd->dI);
-          float3 f[3] = {sd->I, dI.dx, dI.dy};
+          const differential3 dI = differential_from_compact(sd->wi, sd->dI);
+          float3 f[3] = {sd->wi, dI.dx, dI.dy};
           return set_attribute_float3(f, type, derivatives, val);
         }
         else if (name == u_u) {

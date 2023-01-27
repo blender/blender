@@ -189,7 +189,7 @@ bool TreeDisplayLibraries::library_id_filter_poll(const Library *lib, ID *id) co
     Collection *collection = (Collection *)id;
     bool has_non_scene_parent = false;
 
-    for (CollectionParent *cparent : List<CollectionParent>(collection->parents)) {
+    for (CollectionParent *cparent : List<CollectionParent>(collection->runtime.parents)) {
       if (!(cparent->collection->flag & COLLECTION_IS_MASTER)) {
         has_non_scene_parent = true;
       }

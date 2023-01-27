@@ -2,10 +2,11 @@
 
 #pragma once
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_scene_types.h"
+#include "DNA_vec_types.h"
 
 #include "GPU_texture.h"
 
@@ -41,8 +42,17 @@ class Context {
   /* Get the active compositing scene. */
   virtual const Scene *get_scene() const = 0;
 
-  /* Get the dimensions of the output. */
-  virtual int2 get_output_size() = 0;
+  /* Get the width and height of the render passes and of the output texture returned by the
+   * get_input_texture and get_output_texture methods respectively. */
+  virtual int2 get_render_size() const = 0;
+
+  /* Get the rectangular region representing the area of the input that the compositor will operate
+   * on. Conversely, the compositor will only update the region of the output that corresponds to
+   * the compositing region. In the base case, the compositing region covers the entirety of the
+   * render region with a lower bound of zero and an upper bound of the render size returned by the
+   * get_render_size method. In other cases, the compositing region might be a subset of the render
+   * region. */
+  virtual rcti get_compositing_region() const = 0;
 
   /* Get the texture representing the output where the result of the compositor should be
    * written. This should be called by output nodes to get their target texture. */
@@ -59,6 +69,9 @@ class Context {
    * about something, typically an error. The implementation should display the message in an
    * appropriate place, which can be directly in the UI or just logged to the output stream. */
   virtual void set_info_message(StringRef message) const = 0;
+
+  /* Get the size of the compositing region. See get_compositing_region(). */
+  int2 get_compositing_region_size() const;
 
   /* Get the current frame number of the active scene. */
   int get_frame_number() const;

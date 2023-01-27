@@ -761,13 +761,9 @@ static eContextResult screen_ctx_selected_movieclip_tracks(const bContext *C,
   if (clip == NULL) {
     return CTX_RESULT_NO_DATA;
   }
-  MovieTracking *tracking = &clip->tracking;
-  if (tracking == NULL) {
-    return CTX_RESULT_NO_DATA;
-  }
 
-  ListBase *tracks_list = BKE_tracking_get_active_tracks(tracking);
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracks_list) {
+  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (!TRACK_SELECTED(track)) {
       continue;
     }

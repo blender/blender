@@ -75,7 +75,7 @@ void HRTFLoader::loadHRTFs(std::shared_ptr<HRTF> hrtfs, char ear, const std::str
 				if(ear == 'L')
 					azim = 360 - azim;
 			}
-			catch(std::exception& e)
+			catch(...)
 			{
 				AUD_THROW(FileException, "The HRTF name doesn't follow the naming scheme: " + filename);
 			}

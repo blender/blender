@@ -66,7 +66,9 @@ static void export_startjob(void *customdata,
   data->start_time = timeit::Clock::now();
 
   G.is_rendering = true;
-  WM_set_locked_interface(data->wm, true);
+  if (data->wm) {
+    WM_set_locked_interface(data->wm, true);
+  }
   G.is_break = false;
 
   /* Construct the depsgraph for exporting. */
@@ -160,7 +162,9 @@ static void export_endjob(void *customdata)
   }
 
   G.is_rendering = false;
-  WM_set_locked_interface(data->wm, false);
+  if (data->wm) {
+    WM_set_locked_interface(data->wm, false);
+  }
   report_job_duration(data);
 }
 
@@ -173,8 +177,6 @@ bool USD_export(bContext *C,
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Scene *scene = CTX_data_scene(C);
-
-  blender::io::usd::ensure_usd_plugin_path_registered();
 
   blender::io::usd::ExportJobData *job = static_cast<blender::io::usd::ExportJobData *>(
       MEM_mallocN(sizeof(blender::io::usd::ExportJobData), "ExportJobData"));

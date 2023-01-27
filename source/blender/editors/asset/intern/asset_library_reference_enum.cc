@@ -47,7 +47,7 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
   if (value < ASSET_LIBRARY_CUSTOM) {
     library.type = value;
     library.custom_library_index = -1;
-    BLI_assert(ELEM(value, ASSET_LIBRARY_LOCAL));
+    BLI_assert(ELEM(value, ASSET_LIBRARY_ALL, ASSET_LIBRARY_LOCAL));
     return library;
   }
 
@@ -70,16 +70,18 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
   return library;
 }
 
-const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(
-    const bool include_local_library)
+const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(const bool include_generated)
 {
   EnumPropertyItem *item = nullptr;
   int totitem = 0;
 
-  if (include_local_library) {
-    const EnumPropertyItem predefined_items[] = {
-        /* For the future. */
-        // {ASSET_REPO_BUNDLED, "BUNDLED", 0, "Bundled", "Show the default user assets"},
+  if (include_generated) {
+    const EnumPropertyItem generated_items[] = {
+        {ASSET_LIBRARY_ALL,
+         "ALL",
+         ICON_NONE,
+         "All",
+         "Show assets from all of the listed asset libraries"},
         {ASSET_LIBRARY_LOCAL,
          "LOCAL",
          ICON_CURRENT_FILE,
@@ -88,8 +90,9 @@ const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(
         {0, nullptr, 0, nullptr, nullptr},
     };
 
-    /* Add predefined items. */
-    RNA_enum_items_add(&item, &totitem, predefined_items);
+    /* Add predefined libraries that are generated and not simple directories that can be written
+     * to. */
+    RNA_enum_items_add(&item, &totitem, generated_items);
   }
 
   /* Add separator if needed. */

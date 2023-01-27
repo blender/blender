@@ -125,7 +125,6 @@ static PartialUpdateRegisterImpl *unwrap(struct PartialUpdateRegister *partial_u
   return static_cast<PartialUpdateRegisterImpl *>(static_cast<void *>(partial_update_register));
 }
 
-using TileNumber = int32_t;
 using ChangesetID = int64_t;
 constexpr ChangesetID UnknownChangesetID = -1;
 
@@ -277,7 +276,7 @@ struct TileChangeset {
     const int chunk_len = chunk_x_len * chunk_y_len;
 
     for (int chunk_index = 0; chunk_index < chunk_len; chunk_index++) {
-      chunk_dirty_flags_[chunk_index] = chunk_dirty_flags_[chunk_index] |
+      chunk_dirty_flags_[chunk_index] = chunk_dirty_flags_[chunk_index] ||
                                         other.chunk_dirty_flags_[chunk_index];
     }
     has_dirty_chunks_ |= other.has_dirty_chunks_;

@@ -6,6 +6,7 @@
 #pragma once
 
 #include "BLI_assert.h"
+#include "GPU_material.h"
 
 enum eMTLDataType {
   MTL_DATATYPE_CHAR,
@@ -248,4 +249,26 @@ inline uint mtl_get_data_type_alignment(eMTLDataType type)
       BLI_assert_msg(false, "Unrecognized MTL datatype.");
       return 0;
   };
+}
+
+inline eMTLDataType gpu_type_to_mtl_type(eGPUType type)
+{
+  switch (type) {
+    case GPU_FLOAT:
+      return MTL_DATATYPE_FLOAT;
+    case GPU_VEC2:
+      return MTL_DATATYPE_FLOAT2;
+    case GPU_VEC3:
+      return MTL_DATATYPE_FLOAT3;
+    case GPU_VEC4:
+      return MTL_DATATYPE_FLOAT4;
+    case GPU_MAT3:
+      return MTL_DATATYPE_FLOAT3x3;
+    case GPU_MAT4:
+      return MTL_DATATYPE_FLOAT4x4;
+    default:
+      BLI_assert(false && "Other types unsupported");
+      return MTL_DATATYPE_FLOAT;
+  }
+  return MTL_DATATYPE_FLOAT;
 }

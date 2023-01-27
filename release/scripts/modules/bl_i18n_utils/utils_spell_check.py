@@ -243,6 +243,7 @@ class SpellChecker:
         "ungroup", "ungrouped",
         "unhide",
         "unindent",
+        "unitless",
         "unkeyed",
         "unlink", "unlinked",
         "unmute",
@@ -541,6 +542,7 @@ class SpellChecker:
         "voronoi",
         "voxel", "voxels",
         "vsync",
+        "vulkan",
         "wireframe",
         "zmask",
         "ztransp",
@@ -727,6 +729,7 @@ class SpellChecker:
         "lhs",
         "lmb", "mmb", "rmb",
         "lscm",
+        "lx",  # Lux light unit
         "kb",
         "mis",
         "mocap",

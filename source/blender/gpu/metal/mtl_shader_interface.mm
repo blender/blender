@@ -55,6 +55,7 @@ void MTLShaderInterface::init()
 {
   total_attributes_ = 0;
   total_uniform_blocks_ = 0;
+  max_uniformbuf_index_ = 0;
   total_uniforms_ = 0;
   total_textures_ = 0;
   max_texture_index_ = -1;
@@ -121,6 +122,7 @@ uint32_t MTLShaderInterface::add_uniform_block(uint32_t name_offset,
   uni_block.size = size;
   uni_block.current_offset = 0;
   uni_block.stage_mask = ShaderStage::BOTH;
+  max_uniformbuf_index_ = max_ii(max_uniformbuf_index_, buffer_index);
   return (total_uniform_blocks_++);
 }
 
@@ -187,9 +189,11 @@ void MTLShaderInterface::add_uniform(uint32_t name_offset, eMTLDataType type, in
 void MTLShaderInterface::add_texture(uint32_t name_offset,
                                      uint32_t texture_slot,
                                      eGPUTextureType tex_binding_type,
+                                     eGPUSamplerFormat sampler_format,
                                      ShaderStage stage_mask)
 {
   BLI_assert(texture_slot >= 0 && texture_slot < GPU_max_textures());
+  BLI_assert(sampler_format < GPU_SAMPLER_TYPE_MAX);
   if (texture_slot >= 0 && texture_slot < GPU_max_textures()) {
 
     MTLShaderTexture &tex = textures_[texture_slot];
@@ -197,6 +201,7 @@ void MTLShaderInterface::add_texture(uint32_t name_offset,
     tex.name_offset = name_offset;
     tex.slot_index = texture_slot;
     tex.type = tex_binding_type;
+    tex.sampler_format = sampler_format;
     tex.stage_mask = stage_mask;
     tex.used = true;
     total_textures_++;
@@ -281,7 +286,11 @@ void MTLShaderInterface::prepare_common_shader_inputs()
     MTLShaderInputAttribute &shd_attr = attributes_[attr_index];
     current_input->name_offset = shd_attr.name_offset;
     current_input->name_hash = BLI_hash_string(this->get_name_at_offset(shd_attr.name_offset));
-    current_input->location = attr_index;
+    /* For Metal, we flatten the vertex attribute indices within the shader in order to minimize
+     * complexity.  ShaderInput "Location" contains the original attribute location, as can be
+     * fetched using `GPU_shader_get_attribute_info`. ShaderInput binding contains the array index
+     * into the MTLShaderInterface `attributes_` array. */
+    current_input->location = shd_attr.location;
     current_input->binding = attr_index;
     current_input++;
   }
@@ -417,6 +426,11 @@ const MTLShaderUniformBlock &MTLShaderInterface::get_push_constant_block() const
 uint32_t MTLShaderInterface::get_total_uniform_blocks() const
 {
   return total_uniform_blocks_;
+}
+
+uint32_t MTLShaderInterface::get_max_ubo_index() const
+{
+  return max_uniformbuf_index_;
 }
 
 bool MTLShaderInterface::has_uniform_block(uint32_t block_index) const

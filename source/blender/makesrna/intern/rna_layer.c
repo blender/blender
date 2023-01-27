@@ -435,7 +435,8 @@ static void rna_def_layer_collection(BlenderRNA *brna)
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "collection->id.name");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Name", "Name of this view layer (same as its collection one)");
+  RNA_def_property_ui_text(
+      prop, "Name", "Name of this layer collection (same as its collection one)");
   RNA_def_property_string_funcs(
       prop, "rna_LayerCollection_name_get", "rna_LayerCollection_name_length", NULL);
   RNA_def_struct_name_property(srna, prop);
@@ -443,7 +444,7 @@ static void rna_def_layer_collection(BlenderRNA *brna)
   prop = RNA_def_property(srna, "children", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "layer_collections", NULL);
   RNA_def_property_struct_type(prop, "LayerCollection");
-  RNA_def_property_ui_text(prop, "Children", "Child layer collections");
+  RNA_def_property_ui_text(prop, "Children", "Layer collection children");
   RNA_def_property_collection_funcs(prop,
                                     "rna_LayerCollection_children_begin",
                                     NULL,
@@ -614,7 +615,7 @@ void RNA_def_view_layer(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Layer Collection",
-      "Root of collections hierarchy of this view layer,"
+      "Root of collections hierarchy of this view layer, "
       "its 'collection' pointer property is the same as the scene's master collection");
 
   prop = RNA_def_property(srna, "active_layer_collection", PROP_POINTER, PROP_NONE);

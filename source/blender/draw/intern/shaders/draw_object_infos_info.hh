@@ -8,7 +8,7 @@ GPU_SHADER_CREATE_INFO(draw_object_infos)
     .define("OBINFO_LIB")
     .define("OrcoTexCoFactors", "(drw_infos[resource_id].orco_mul_bias)")
     .define("ObjectInfo", "(drw_infos[resource_id].infos)")
-    .define("ObjectColor", "(drw_infos[resource_id].color)")
+    .define("ObjectColor", "(drw_infos[resource_id].ob_color)")
     .uniform_buf(1, "ObjectInfos", "drw_infos[DRW_RESOURCE_CHUNK_LEN]", Frequency::BATCH);
 
 GPU_SHADER_CREATE_INFO(draw_volume_infos)
@@ -32,7 +32,7 @@ GPU_SHADER_CREATE_INFO(draw_object_infos_new)
     .define("OBINFO_LIB")
     .define("OrcoTexCoFactors", "(drw_infos[resource_id].orco_mul_bias)")
     .define("ObjectInfo", "(drw_infos[resource_id].infos)")
-    .define("ObjectColor", "(drw_infos[resource_id].color)")
+    .define("ObjectColor", "(drw_infos[resource_id].ob_color)")
     .storage_buf(DRW_OBJ_INFOS_SLOT, Qualifier::READ, "ObjectInfos", "drw_infos[]");
 
 /** \note Requires draw_object_infos_new. */

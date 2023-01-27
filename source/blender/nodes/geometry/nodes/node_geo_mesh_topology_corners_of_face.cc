@@ -22,10 +22,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supports_field()
       .description(N_("Which of the sorted corners to output"));
   b.add_output<decl::Int>(N_("Corner Index"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(N_("A corner of the face, chosen by the sort index"));
   b.add_output<decl::Int>(N_("Total"))
-      .dependent_field()
+      .field_source()
+      .reference_pass({0})
       .description(N_("The number of corners in the face"));
 }
 
@@ -63,6 +64,7 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
     corner_evaluator.add(sort_weight_);
     corner_evaluator.evaluate();
     const VArray<float> all_sort_weights = corner_evaluator.get_evaluated<float>(0);
+    const bool use_sorting = !all_sort_weights.is_single();
 
     Array<int> corner_of_face(mask.min_array_size());
     threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
@@ -81,27 +83,38 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
         const MPoly &poly = polys[poly_i];
         const IndexRange corners(poly.loopstart, poly.totloop);
 
-        /* Retrieve the weights for each corner. */
-        sort_weights.reinitialize(corners.size());
-        all_sort_weights.materialize_compressed(IndexMask(corners),
-                                                sort_weights.as_mutable_span());
-
-        /* Sort a separate array of compressed indices corresponding to the compressed weights.
-         * This allows using `materialize_compressed` to avoid virtual function call overhead
-         * when accessing values in the sort weights. However, it means a separate array of
-         * indices within the compressed array is necessary for sorting. */
-        sort_indices.reinitialize(corners.size());
-        std::iota(sort_indices.begin(), sort_indices.end(), 0);
-        std::stable_sort(sort_indices.begin(), sort_indices.end(), [&](int a, int b) {
-          return sort_weights[a] < sort_weights[b];
-        });
-
         const int index_in_sort_wrapped = mod_i(index_in_sort, corners.size());
-        corner_of_face[selection_i] = corners[sort_indices[index_in_sort_wrapped]];
+        if (use_sorting) {
+          /* Retrieve the weights for each corner. */
+          sort_weights.reinitialize(corners.size());
+          all_sort_weights.materialize_compressed(IndexMask(corners),
+                                                  sort_weights.as_mutable_span());
+
+          /* Sort a separate array of compressed indices corresponding to the compressed weights.
+           * This allows using `materialize_compressed` to avoid virtual function call overhead
+           * when accessing values in the sort weights. However, it means a separate array of
+           * indices within the compressed array is necessary for sorting. */
+          sort_indices.reinitialize(corners.size());
+          std::iota(sort_indices.begin(), sort_indices.end(), 0);
+          std::stable_sort(sort_indices.begin(), sort_indices.end(), [&](int a, int b) {
+            return sort_weights[a] < sort_weights[b];
+          });
+          corner_of_face[selection_i] = corners[sort_indices[index_in_sort_wrapped]];
+        }
+        else {
+          corner_of_face[selection_i] = corners[index_in_sort_wrapped];
+        }
       }
     });
 
     return VArray<int>::ForContainer(std::move(corner_of_face));
+  }
+
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
+  {
+    face_index_.node().for_each_field_input_recursive(fn);
+    sort_index_.node().for_each_field_input_recursive(fn);
+    sort_weight_.node().for_each_field_input_recursive(fn);
   }
 
   uint64_t hash() const final

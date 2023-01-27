@@ -4,18 +4,6 @@
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(irradiance_lib.glsl)
 
-uniform samplerCube probeHdr;
-uniform int probeSize;
-uniform float lodFactor;
-uniform float lodMax;
-uniform float intensityFac;
-
-uniform float sampleCount;
-
-in vec3 worldPosition;
-
-out vec4 FragColor;
-
 #define M_4PI 12.5663706143591729
 
 const mat3 CUBE_ROTATIONS[6] = mat3[](

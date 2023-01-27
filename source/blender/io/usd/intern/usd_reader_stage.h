@@ -27,6 +27,10 @@ class USDStageReader {
 
   std::vector<USDPrimReader *> readers_;
 
+  /* USD material prim paths encountered during stage
+   * traversal, for importing unused materials. */
+  std::vector<std::string> material_paths_;
+
  public:
   USDStageReader(pxr::UsdStageRefPtr stage,
                  const USDImportParams &params,
@@ -39,6 +43,17 @@ class USDStageReader {
   USDPrimReader *create_reader(const pxr::UsdPrim &prim);
 
   void collect_readers(struct Main *bmain);
+
+  /* Convert every material prim on the stage to a Blender
+   * material, including materials not used by any geometry.
+   * Note that collect_readers() must be called before calling
+   * import_all_materials(). */
+  void import_all_materials(struct Main *bmain);
+
+  /* Add fake users for any imported materials with no
+   * users. This is typically required when importing all
+   * materials. */
+  void fake_users_for_unused_materials();
 
   bool valid() const;
 

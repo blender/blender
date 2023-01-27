@@ -12,6 +12,7 @@
 #include "BLI_string_ref.hh"
 
 #include "GPU_capabilities.h"
+#include "GPU_context.h"
 #include "GPU_platform.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -43,6 +44,8 @@ void ShaderCreateInfo::finalize()
   validate_vertex_attributes();
 
   for (auto &info_name : additional_infos_) {
+
+    /* Fetch create info. */
     const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(
         gpu_shader_create_info_get(info_name.c_str()));
 
@@ -51,24 +54,30 @@ void ShaderCreateInfo::finalize()
 
     interface_names_size_ += info.interface_names_size_;
 
-    vertex_inputs_.extend(info.vertex_inputs_);
-    fragment_outputs_.extend(info.fragment_outputs_);
-    vertex_out_interfaces_.extend(info.vertex_out_interfaces_);
-    geometry_out_interfaces_.extend(info.geometry_out_interfaces_);
+    /* NOTE: EEVEE Materials can result in nested includes. To avoid duplicate
+     * shader resources, we need to avoid inserting duplicates.
+     * TODO: Optimize create info preparation to include each individual "additional_info"
+     * only a single time. */
+    vertex_inputs_.extend_non_duplicates(info.vertex_inputs_);
+    fragment_outputs_.extend_non_duplicates(info.fragment_outputs_);
+    vertex_out_interfaces_.extend_non_duplicates(info.vertex_out_interfaces_);
+    geometry_out_interfaces_.extend_non_duplicates(info.geometry_out_interfaces_);
 
     validate_vertex_attributes(&info);
 
-    push_constants_.extend(info.push_constants_);
-    defines_.extend(info.defines_);
-
-    batch_resources_.extend(info.batch_resources_);
-    pass_resources_.extend(info.pass_resources_);
+    /* Insert with duplicate check. */
+    push_constants_.extend_non_duplicates(info.push_constants_);
+    defines_.extend_non_duplicates(info.defines_);
+    batch_resources_.extend_non_duplicates(info.batch_resources_);
+    pass_resources_.extend_non_duplicates(info.pass_resources_);
     typedef_sources_.extend_non_duplicates(info.typedef_sources_);
 
     if (info.early_fragment_test_) {
       early_fragment_test_ = true;
     }
-    if (info.depth_write_ != DepthWrite::ANY) {
+    /* Modify depth write if has been changed from default.
+     * `UNCHANGED` implies gl_FragDepth is not used at all. */
+    if (info.depth_write_ != DepthWrite::UNCHANGED) {
       depth_write_ = info.depth_write_;
     }
 
@@ -148,7 +157,7 @@ std::string ShaderCreateInfo::check_error() const
     if (this->vertex_source_.is_empty()) {
       error += "Missing vertex shader in " + this->name_ + ".\n";
     }
-    if (this->fragment_source_.is_empty()) {
+    if (tf_type_ == GPU_SHADER_TFB_NONE && this->fragment_source_.is_empty()) {
       error += "Missing fragment shader in " + this->name_ + ".\n";
     }
   }
@@ -296,8 +305,12 @@ void gpu_shader_create_info_init()
 
   /* WORKAROUND: Replace draw_mesh info with the legacy one for systems that have problems with UBO
    * indexing. */
-  if (GPU_type_matches(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_ANY, GPU_DRIVER_ANY) ||
-      GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY) || GPU_crappy_amd_driver()) {
+  if (GPU_type_matches_ex(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD,
+                          GPU_OS_ANY,
+                          GPU_DRIVER_ANY,
+                          GPU_BACKEND_OPENGL) ||
+      GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL) ||
+      GPU_crappy_amd_driver()) {
     draw_modelmat = draw_modelmat_legacy;
   }
 
@@ -306,9 +319,9 @@ void gpu_shader_create_info_init()
     draw_resource_id_new = draw_resource_id_fallback;
   }
 
+#ifdef WITH_METAL_BACKEND
   /* Metal-specific alternatives for Geometry shaders. */
   if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_METAL)) {
-
     /* 3D polyline. */
     gpu_shader_3D_polyline_uniform_color = gpu_shader_3D_polyline_uniform_color_no_geom;
     gpu_shader_3D_polyline_flat_color = gpu_shader_3D_polyline_flat_color_no_geom;
@@ -321,6 +334,8 @@ void gpu_shader_create_info_init()
     overlay_edit_mesh_edge_flat = overlay_edit_mesh_edge_flat_no_geom;
     overlay_edit_mesh_edge_clipped = overlay_edit_mesh_edge_clipped_no_geom;
     overlay_edit_mesh_edge_flat_clipped = overlay_edit_mesh_edge_flat_clipped_no_geom;
+    overlay_edit_curve_handle = overlay_edit_curve_handle_no_geom;
+    overlay_edit_curve_handle_clipped = overlay_edit_curve_handle_clipped_no_geom;
 
     /* Overlay Armature Shape outline. */
     overlay_armature_shape_outline = overlay_armature_shape_outline_no_geom;
@@ -329,7 +344,43 @@ void gpu_shader_create_info_init()
     /* Overlay Motion Path Line. */
     overlay_motion_path_line = overlay_motion_path_line_no_geom;
     overlay_motion_path_line_clipped = overlay_motion_path_line_clipped_no_geom;
+
+    /* Workbench shadows.
+     * Note: Updates additional-info used by workbench shadow permutations.
+     * Must be prepared prior to permutation preparation. */
+    workbench_shadow_manifold = workbench_shadow_manifold_no_geom;
+    workbench_shadow_no_manifold = workbench_shadow_no_manifold_no_geom;
+    workbench_shadow_caps = workbench_shadow_caps_no_geom;
+
+    /* Conservative rasterization. */
+    basic_depth_mesh_conservative = basic_depth_mesh_conservative_no_geom;
+    basic_depth_mesh_conservative_clipped = basic_depth_mesh_conservative_no_geom_clipped;
+    basic_depth_pointcloud_conservative = basic_depth_pointcloud_conservative_no_geom;
+    basic_depth_pointcloud_conservative_clipped =
+        basic_depth_pointcloud_conservative_no_geom_clipped;
+
+    /* Overlay pre-pass wire. */
+    overlay_outline_prepass_wire = overlay_outline_prepass_wire_no_geom;
+
+    /* Edit UV Edges. */
+    overlay_edit_uv_edges = overlay_edit_uv_edges_no_geom;
+
+    /* Down-sample Cube/Probe rendering. */
+    eevee_legacy_effect_downsample_cube = eevee_legacy_effect_downsample_cube_no_geom;
+    eevee_legacy_probe_filter_glossy = eevee_legacy_probe_filter_glossy_no_geom;
+    eevee_legacy_lightprobe_planar_downsample = eevee_legacy_lightprobe_planar_downsample_no_geom;
+
+    /* EEVEE Volumetrics */
+    eevee_legacy_volumes_clear = eevee_legacy_volumes_clear_no_geom;
+    eevee_legacy_volumes_scatter = eevee_legacy_volumes_scatter_no_geom;
+    eevee_legacy_volumes_scatter_with_lights = eevee_legacy_volumes_scatter_with_lights_no_geom;
+    eevee_legacy_volumes_integration = eevee_legacy_volumes_integration_no_geom;
+    eevee_legacy_volumes_integration_OPTI = eevee_legacy_volumes_integration_OPTI_no_geom;
+
+    /* EEVEE Volumetric Material */
+    eevee_legacy_material_volumetric_vert = eevee_legacy_material_volumetric_vert_no_geom;
   }
+#endif
 
   for (ShaderCreateInfo *info : g_create_infos->values()) {
     if (info->do_static_compilation_) {
@@ -374,7 +425,9 @@ bool gpu_shader_create_info_compile_all()
   for (ShaderCreateInfo *info : g_create_infos->values()) {
     info->finalize();
     if (info->do_static_compilation_) {
-      if ((GPU_compute_shader_support() == false && info->compute_source_ != nullptr) ||
+      if ((info->metal_backend_only_ && GPU_backend_get_type() != GPU_BACKEND_METAL) ||
+          (GPU_compute_shader_support() == false && info->compute_source_ != nullptr) ||
+          (GPU_geometry_shader_support() == false && info->geometry_source_ != nullptr) ||
           (GPU_shader_image_load_store_support() == false && info->has_resource_image()) ||
           (GPU_shader_storage_buffer_objects_support() == false && info->has_resource_storage())) {
         skipped++;

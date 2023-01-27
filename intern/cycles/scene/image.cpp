@@ -222,6 +222,11 @@ VDBImageLoader *ImageHandle::vdb_loader(const int tile_index) const
   return NULL;
 }
 
+ImageManager *ImageHandle::get_manager() const
+{
+  return manager;
+}
+
 bool ImageHandle::operator==(const ImageHandle &other) const
 {
   return manager == other.manager && tile_slots == other.tile_slots;
@@ -261,7 +266,7 @@ void ImageMetaData::detect_colorspace()
 {
   /* Convert used specified color spaces to one we know how to handle. */
   colorspace = ColorSpaceManager::detect_known_colorspace(
-      colorspace, colorspace_file_format, is_float());
+      colorspace, colorspace_file_hint.c_str(), colorspace_file_format, is_float());
 
   if (colorspace == u_colorspace_raw) {
     /* Nothing to do. */

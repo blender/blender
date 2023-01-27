@@ -13,6 +13,7 @@
 
 #include "GPU_capabilities.h"
 
+#include "gpu_py.h"
 #include "gpu_py_capabilities.h" /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -315,7 +316,7 @@ PyObject *bpygpu_capabilities_init(void)
 {
   PyObject *submodule;
 
-  submodule = PyModule_Create(&pygpu_capabilities_module_def);
+  submodule = bpygpu_create_module(&pygpu_capabilities_module_def);
 
   return submodule;
 }

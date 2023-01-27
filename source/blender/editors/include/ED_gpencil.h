@@ -83,7 +83,7 @@ typedef struct tGPspoint {
   float pressure;
   /** Pressure of tablet at this point for alpha factor. */
   float strength;
-  /** Time relative to stroke start (used when converting to path). */
+  /** Time relative to stroke start (used when converting to path & in build modifier). */
   float time;
   /** Factor of uv along the stroke. */
   float uv_fac;
@@ -640,6 +640,15 @@ struct bGPDstroke *ED_gpencil_stroke_join_and_trim(struct bGPdata *gpd,
  * Close if the distance between extremes is below threshold.
  */
 void ED_gpencil_stroke_close_by_distance(struct bGPDstroke *gps, float threshold);
+
+/**
+ * Calculate the brush cursor size in world space.
+ */
+float ED_gpencil_cursor_radius(struct bContext *C, int x, int y);
+float ED_gpencil_radial_control_scale(struct bContext *C,
+                                      struct Brush *brush,
+                                      float initial_value,
+                                      const int mval[2]);
 
 #ifdef __cplusplus
 }

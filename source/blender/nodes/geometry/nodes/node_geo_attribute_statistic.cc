@@ -17,9 +17,9 @@ namespace blender::nodes::node_geo_attribute_statistic_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
-  b.add_input<decl::Float>(N_("Attribute")).hide_value().supports_field();
-  b.add_input<decl::Vector>(N_("Attribute"), "Attribute_001").hide_value().supports_field();
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).field_on_all().hide_value();
+  b.add_input<decl::Float>(N_("Attribute")).hide_value().field_on_all();
+  b.add_input<decl::Vector>(N_("Attribute"), "Attribute_001").hide_value().field_on_all();
 
   b.add_output<decl::Float>(N_("Mean"));
   b.add_output<decl::Float>(N_("Median"));
@@ -119,7 +119,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeType &node_type = params.node_type();
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs().take_front(2));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(2));
 
   const std::optional<eCustomDataType> type = node_type_from_other_socket(params.other_socket());
   if (!type) {

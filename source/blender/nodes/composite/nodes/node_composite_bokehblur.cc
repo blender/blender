@@ -6,7 +6,7 @@
  */
 
 #include "BLI_math_base.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -195,7 +195,7 @@ class BokehBlurOperation : public NodeOperation {
 
   int get_max_size()
   {
-    return static_cast<int>(bnode().custom4);
+    return int(bnode().custom4);
   }
 };
 

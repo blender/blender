@@ -20,35 +20,40 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>(N_("Selection")).field_source();
 }
 
-static void select_mesh_by_material(const Mesh &mesh,
-                                    const Material *material,
-                                    const IndexMask mask,
-                                    MutableSpan<bool> r_selection)
+static VArray<bool> select_mesh_faces_by_material(const Mesh &mesh,
+                                                  const Material *material,
+                                                  const IndexMask face_mask)
 {
-  BLI_assert(mesh.totpoly >= r_selection.size());
   Vector<int> slots;
-  for (const int i : IndexRange(mesh.totcol)) {
-    if (mesh.mat[i] == material) {
-      slots.append(i);
+  for (const int slot_i : IndexRange(mesh.totcol)) {
+    if (mesh.mat[slot_i] == material) {
+      slots.append(slot_i);
     }
   }
+  if (slots.is_empty()) {
+    return VArray<bool>::ForSingle(false, mesh.totpoly);
+  }
+
   const AttributeAccessor attributes = mesh.attributes();
   const VArray<int> material_indices = attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
-  if (material != nullptr && material_indices.is_single() &&
-      material_indices.get_internal_single() == 0) {
-    r_selection.fill_indices(mask, false);
-    return;
+  if (material_indices.is_single()) {
+    const int slot_i = material_indices.get_internal_single();
+    return VArray<bool>::ForSingle(slots.contains(slot_i), mesh.totpoly);
   }
 
   const VArraySpan<int> material_indices_span(material_indices);
 
-  threading::parallel_for(mask.index_range(), 1024, [&](IndexRange range) {
+  Array<bool> face_selection(face_mask.min_array_size());
+  threading::parallel_for(face_mask.index_range(), 1024, [&](IndexRange range) {
     for (const int i : range) {
-      const int face_index = mask[i];
-      r_selection[i] = slots.contains(material_indices_span[face_index]);
+      const int face_index = face_mask[i];
+      const int slot_i = material_indices_span[face_index];
+      face_selection[face_index] = slots.contains(slot_i);
     }
   });
+
+  return VArray<bool>::ForContainer(std::move(face_selection));
 }
 
 class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
@@ -72,19 +77,12 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
     if (mesh == nullptr) {
       return {};
     }
+
     const eAttrDomain domain = context.domain();
-    if (domain == ATTR_DOMAIN_FACE) {
-      Array<bool> selection(mask.min_array_size());
-      select_mesh_by_material(*mesh, material_, mask, selection);
-      return VArray<bool>::ForContainer(std::move(selection));
-    }
+    const IndexMask domain_mask = (domain == ATTR_DOMAIN_FACE) ? mask : IndexMask(mesh->totpoly);
 
-    Array<bool> selection(mesh->totpoly);
-    select_mesh_by_material(*mesh, material_, IndexMask(mesh->totpoly), selection);
-    return mesh->attributes().adapt_domain<bool>(
-        VArray<bool>::ForContainer(std::move(selection)), ATTR_DOMAIN_FACE, domain);
-
-    return nullptr;
+    VArray<bool> selection = select_mesh_faces_by_material(*mesh, material_, domain_mask);
+    return mesh->attributes().adapt_domain<bool>(std::move(selection), ATTR_DOMAIN_FACE, domain);
   }
 
   uint64_t hash() const override

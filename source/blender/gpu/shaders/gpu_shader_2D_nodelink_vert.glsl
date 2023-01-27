@@ -16,11 +16,11 @@ void main(void)
   const float end_gradient_threshold = 0.65;
 
 #ifdef USE_INSTANCE
-#  define colStart (colid_doarrow[0] < 3 ? start_color : node_link_data.colors[colid_doarrow[0]])
-#  define colEnd (colid_doarrow[1] < 3 ? end_color : node_link_data.colors[colid_doarrow[1]])
+#  define colStart (colid_doarrow[0] < 3u ? start_color : node_link_data.colors[colid_doarrow[0]])
+#  define colEnd (colid_doarrow[1] < 3u ? end_color : node_link_data.colors[colid_doarrow[1]])
 #  define colShadow node_link_data.colors[colid_doarrow[2]]
-#  define doArrow (colid_doarrow[3] != 0)
-#  define doMuted (domuted[0] != 0)
+#  define doArrow (colid_doarrow[3] != 0u)
+#  define doMuted (domuted[0] != 0u)
 #else
   vec2 P0 = node_link_data.bezierPts[0].xy;
   vec2 P1 = node_link_data.bezierPts[1].xy;

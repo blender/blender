@@ -1017,9 +1017,9 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
     et->setData("clipsta", &(lamp->clipsta));
     et->setData("clipend", &(lamp->clipend));
     et->setData("bias", &(lamp->bias));
-    et->setData("soft", &(lamp->soft));
     et->setData("bufsize", &(lamp->bufsize));
     et->setData("buffers", &(lamp->buffers));
+    et->setData("radius", &(lamp->radius));
     et->setData("area_shape", &(lamp->area_shape));
     et->setData("area_size", &(lamp->area_size));
     et->setData("area_sizey", &(lamp->area_sizey));

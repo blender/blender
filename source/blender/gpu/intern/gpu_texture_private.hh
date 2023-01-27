@@ -41,7 +41,20 @@ typedef enum eGPUTextureType {
   GPU_TEXTURE_CUBE_ARRAY = (GPU_TEXTURE_CUBE | GPU_TEXTURE_ARRAY),
 } eGPUTextureType;
 
-ENUM_OPERATORS(eGPUTextureType, GPU_TEXTURE_CUBE_ARRAY)
+ENUM_OPERATORS(eGPUTextureType, GPU_TEXTURE_BUFFER)
+
+/* Format types for samplers within the shader.
+ * This covers the sampler format type permutations within GLSL/MSL. */
+typedef enum eGPUSamplerFormat {
+  GPU_SAMPLER_TYPE_FLOAT = 0,
+  GPU_SAMPLER_TYPE_INT = 1,
+  GPU_SAMPLER_TYPE_UINT = 2,
+  /* Special case for depth, as these require differing dummy formats. */
+  GPU_SAMPLER_TYPE_DEPTH = 3,
+  GPU_SAMPLER_TYPE_MAX = 4
+} eGPUSamplerFormat;
+
+ENUM_OPERATORS(eGPUSamplerFormat, GPU_SAMPLER_TYPE_UINT)
 
 #ifdef DEBUG
 #  define DEBUG_NAME_LEN 64
@@ -82,6 +95,8 @@ class Texture {
   eGPUTextureFormatFlag format_flag_;
   /** Texture type. */
   eGPUTextureType type_;
+  /** Texture usage flags. */
+  eGPUTextureUsage gpu_image_usage_flags_;
 
   /** Number of mipmaps this texture has (Max miplvl). */
   /* TODO(fclem): Should become immutable and the need for mipmaps should be specified upfront. */
@@ -127,8 +142,14 @@ class Texture {
   void detach_from(FrameBuffer *fb);
   void update(eGPUDataFormat format, const void *data);
 
+  void usage_set(eGPUTextureUsage usage_flags);
+
   virtual void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data) = 0;
+  virtual void update_sub(int offset[3],
+                          int extent[3],
+                          eGPUDataFormat format,
+                          GPUPixelBuffer *pixbuf) = 0;
 
   /* TODO(fclem): Legacy. Should be removed at some point. */
   virtual uint gl_bindcode_get() const = 0;
@@ -143,6 +164,10 @@ class Texture {
   int depth_get() const
   {
     return d_;
+  }
+  eGPUTextureUsage usage_get() const
+  {
+    return gpu_image_usage_flags_;
   }
 
   void mip_size_get(int mip, int r_size[3]) const
@@ -262,6 +287,35 @@ static inline Texture *unwrap(GPUTexture *vert)
 static inline const Texture *unwrap(const GPUTexture *vert)
 {
   return reinterpret_cast<const Texture *>(vert);
+}
+
+/* GPU pixel Buffer. */
+class PixelBuffer {
+ protected:
+  uint size_ = 0;
+
+ public:
+  PixelBuffer(uint size) : size_(size){};
+  virtual ~PixelBuffer(){};
+
+  virtual void *map() = 0;
+  virtual void unmap() = 0;
+  virtual int64_t get_native_handle() = 0;
+  virtual uint get_size() = 0;
+};
+
+/* Syntactic sugar. */
+static inline GPUPixelBuffer *wrap(PixelBuffer *pixbuf)
+{
+  return reinterpret_cast<GPUPixelBuffer *>(pixbuf);
+}
+static inline PixelBuffer *unwrap(GPUPixelBuffer *pixbuf)
+{
+  return reinterpret_cast<PixelBuffer *>(pixbuf);
+}
+static inline const PixelBuffer *unwrap(const GPUPixelBuffer *pixbuf)
+{
+  return reinterpret_cast<const PixelBuffer *>(pixbuf);
 }
 
 #undef DEBUG_NAME_LEN
@@ -405,6 +459,8 @@ inline size_t to_bytesize(eGPUDataFormat data_format)
   switch (data_format) {
     case GPU_DATA_UBYTE:
       return 1;
+    case GPU_DATA_HALF_FLOAT:
+      return 2;
     case GPU_DATA_FLOAT:
     case GPU_DATA_INT:
     case GPU_DATA_UINT:
@@ -421,6 +477,14 @@ inline size_t to_bytesize(eGPUDataFormat data_format)
 
 inline size_t to_bytesize(eGPUTextureFormat tex_format, eGPUDataFormat data_format)
 {
+  /* Special case for compacted types.
+   * Standard component len calculation does not apply, as the texture formats contain multiple
+   * channels, but associated data format contains several compacted components. */
+  if ((tex_format == GPU_R11F_G11F_B10F && data_format == GPU_DATA_10_11_11_REV) ||
+      (tex_format == GPU_RGB10_A2 && data_format == GPU_DATA_2_10_10_10_REV)) {
+    return 4;
+  }
+
   return to_component_len(tex_format) * to_bytesize(data_format);
 }
 
@@ -435,18 +499,28 @@ inline bool validate_data_format(eGPUTextureFormat tex_format, eGPUDataFormat da
     case GPU_DEPTH24_STENCIL8:
     case GPU_DEPTH32F_STENCIL8:
       return ELEM(data_format, GPU_DATA_UINT_24_8, GPU_DATA_UINT);
-    case GPU_R8UI:
     case GPU_R16UI:
     case GPU_RG16UI:
+    case GPU_RGBA16UI:
     case GPU_R32UI:
+    case GPU_RG32UI:
+    case GPU_RGBA32UI:
       return data_format == GPU_DATA_UINT;
-    case GPU_R32I:
-    case GPU_RG16I:
+    case GPU_R8I:
+    case GPU_RG8I:
+    case GPU_RGBA8I:
     case GPU_R16I:
+    case GPU_RG16I:
+    case GPU_RGBA16I:
+    case GPU_R32I:
+    case GPU_RG32I:
+    case GPU_RGBA32I:
       return data_format == GPU_DATA_INT;
     case GPU_R8:
     case GPU_RG8:
     case GPU_RGBA8:
+    case GPU_R8UI:
+    case GPU_RG8UI:
     case GPU_RGBA8UI:
     case GPU_SRGB8_A8:
       return ELEM(data_format, GPU_DATA_UBYTE, GPU_DATA_FLOAT);

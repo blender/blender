@@ -17,8 +17,9 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "AS_asset_library.h"
+
 #  include "BKE_asset.h"
-#  include "BKE_asset_library.h"
 #  include "BKE_context.h"
 #  include "BKE_idprop.h"
 
@@ -29,6 +30,11 @@
 #  include "ED_fileselect.h"
 
 #  include "RNA_access.h"
+
+static char *rna_AssetMetaData_path(const PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("asset_data");
+}
 
 static bool rna_AssetMetaData_editable_from_owner_id(const ID *owner_id,
                                                      const AssetMetaData *asset_data,
@@ -53,6 +59,12 @@ int rna_AssetMetaData_editable(PointerRNA *ptr, const char **r_info)
   return rna_AssetMetaData_editable_from_owner_id(ptr->owner_id, asset_data, r_info) ?
              PROP_EDITABLE :
              0;
+}
+
+static char *rna_AssetTag_path(const PointerRNA *ptr)
+{
+  const AssetTag *asset_tag = ptr->data;
+  return BLI_sprintfN("asset_data.tags['%s']", asset_tag->name);
 }
 
 static int rna_AssetTag_editable(PointerRNA *ptr, const char **r_info)
@@ -251,7 +263,7 @@ void rna_AssetMetaData_catalog_id_update(struct bContext *C, struct PointerRNA *
   }
 
   AssetMetaData *asset_data = ptr->data;
-  BKE_asset_library_refresh_catalog_simplename(asset_library, asset_data);
+  AS_asset_library_refresh_catalog_simplename(asset_library, asset_data);
 }
 
 static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)
@@ -272,13 +284,12 @@ static void rna_AssetHandle_file_data_set(PointerRNA *ptr,
 
 static void rna_AssetHandle_get_full_library_path(
     // AssetHandle *asset,
-    bContext *C,
     FileDirEntry *asset_file,
-    AssetLibraryReference *library,
+    AssetLibraryReference *UNUSED(asset_library), /* Deprecated. */
     char r_result[/*FILE_MAX_LIBEXTRA*/])
 {
   AssetHandle asset = {.file_data = asset_file};
-  ED_asset_handle_get_full_library_path(C, library, &asset, r_result);
+  ED_asset_handle_get_full_library_path(&asset, r_result);
 }
 
 static PointerRNA rna_AssetHandle_local_id_get(PointerRNA *ptr)
@@ -310,6 +321,7 @@ static void rna_def_asset_tag(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "AssetTag", NULL);
+  RNA_def_struct_path_func(srna, "rna_AssetTag_path");
   RNA_def_struct_ui_text(srna, "Asset Tag", "User defined tag (name token)");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -361,6 +373,7 @@ static void rna_def_asset_data(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "AssetMetaData", NULL);
+  RNA_def_struct_path_func(srna, "rna_AssetMetaData_path");
   RNA_def_struct_ui_text(srna, "Asset Data", "Additional data stored for an asset data-block");
   //  RNA_def_struct_ui_icon(srna, ICON_ASSET); /* TODO: Icon doesn't exist! */
   /* The struct has custom properties, but no pointer properties to other IDs! */
@@ -423,19 +436,18 @@ static void rna_def_asset_handle_api(StructRNA *srna)
   PropertyRNA *parm;
 
   func = RNA_def_function(srna, "get_full_library_path", "rna_AssetHandle_get_full_library_path");
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   /* TODO temporarily static function, for until .py can receive the asset handle from context
    * properly. `asset_file_handle` should go away too then. */
   RNA_def_function_flag(func, FUNC_NO_SELF);
   parm = RNA_def_pointer(func, "asset_file_handle", "FileSelectEntry", "", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_pointer(func,
-                         "asset_library_ref",
-                         "AssetLibraryReference",
-                         "",
-                         "The asset library containing the given asset, only valid if the asset "
-                         "library is external (i.e. not the \"Current File\" one");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_pointer(
+      func,
+      "asset_library_ref",
+      "AssetLibraryReference",
+      "",
+      "The asset library containing the given asset. Deprecated and optional argument, will be "
+      "ignored. Kept for API compatibility only");
   parm = RNA_def_string(func, "result", NULL, FILE_MAX_LIBEXTRA, "result", "");
   RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
   RNA_def_function_output(func, parm);

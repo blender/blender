@@ -152,6 +152,8 @@ void SCULPT_filter_cache_init(bContext *C,
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
+
+  ss->filter_cache->vc = vc;
   copy_m4_m4(ss->filter_cache->viewmat, vc.rv3d->viewmat);
   copy_m4_m4(ss->filter_cache->viewmat_inv, vc.rv3d->viewinv);
 
@@ -191,7 +193,8 @@ void SCULPT_filter_cache_init(bContext *C,
 
     BKE_pbvh_search_gather(pbvh, SCULPT_search_sphere_cb, &search_data2, &nodes, &totnode);
 
-    if (SCULPT_pbvh_calc_area_normal(
+    if (BKE_paint_brush(&sd->paint) &&
+        SCULPT_pbvh_calc_area_normal(
             brush, ob, nodes, totnode, true, ss->filter_cache->initial_normal)) {
       copy_v3_v3(ss->last_normal, ss->filter_cache->initial_normal);
     }
@@ -529,7 +532,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
       add_v3_v3v3(final_pos, orig_co, disp);
     }
     copy_v3_v3(vd.co, final_pos);
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }

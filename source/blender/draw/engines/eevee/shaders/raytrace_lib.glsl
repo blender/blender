@@ -7,9 +7,6 @@
  * Screen-Space Raytracing functions.
  */
 
-uniform sampler2D maxzBuffer;
-uniform sampler2DArray planarDepth;
-
 struct Ray {
   vec3 origin;
   /* Ray direction premultiplied by its maximum length. */

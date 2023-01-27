@@ -55,7 +55,7 @@ static void initData(ModifierData *md)
 static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
   /* ask for UV coordinates */
-  r_cddata_masks->lmask |= CD_MASK_MLOOPUV;
+  r_cddata_masks->lmask |= CD_MASK_PROP_FLOAT2;
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
@@ -118,13 +118,13 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
   /* Create a new layer if no UV Maps are available
    * (e.g. if a preceding modifier could not preserve it). */
-  if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
+  if (!CustomData_has_layer(&mesh->ldata, CD_PROP_FLOAT2)) {
     CustomData_add_layer_named(
-        &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop, umd->uvlayer_name);
+        &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, nullptr, mesh->totloop, umd->uvlayer_name);
   }
 
   /* make sure we're using an existing layer */
-  CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, umd->uvlayer_name, uvname);
+  CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);
 
   /* calculate a projection matrix and normal for each projector */
   for (i = 0; i < projectors_num; i++) {
@@ -184,9 +184,8 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   polys_num = mesh->totpoly;
   loops_num = mesh->totloop;
 
-  /* make sure we are not modifying the original UV map */
-  MLoopUV *mloop_uv = static_cast<MLoopUV *>(
-      CustomData_duplicate_referenced_layer_named(&mesh->ldata, CD_MLOOPUV, uvname, loops_num));
+  float(*mloop_uv)[2] = static_cast<float(*)[2]>(
+      CustomData_get_layer_named_for_write(&mesh->ldata, CD_PROP_FLOAT2, uvname, loops_num));
 
   coords = BKE_mesh_vert_coords_alloc(mesh, &verts_num);
 
@@ -214,7 +213,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
           uint lidx = mp->loopstart + fidx;
           uint vidx = loops[lidx].v;
           BLI_uvproject_from_camera(
-              mloop_uv[lidx].uv, coords[vidx], static_cast<ProjCameraInfo *>(projectors[0].uci));
+              mloop_uv[lidx], coords[vidx], static_cast<ProjCameraInfo *>(projectors[0].uci));
         } while (fidx--);
       }
       else {
@@ -223,7 +222,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
         do {
           uint lidx = mp->loopstart + fidx;
           uint vidx = loops[lidx].v;
-          copy_v2_v2(mloop_uv[lidx].uv, coords[vidx]);
+          copy_v2_v2(mloop_uv[lidx], coords[vidx]);
         } while (fidx--);
       }
     }
@@ -235,8 +234,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       float best_dot;
 
       /* get the untransformed face normal */
-      BKE_mesh_calc_poly_normal_coords(
-          mp, loops + mp->loopstart, (const float(*)[3])coords, face_no);
+      BKE_mesh_calc_poly_normal(mp, loops + mp->loopstart, (const float(*)[3])coords, face_no);
 
       /* find the projector which the face points at most directly
        * (projector normal with largest dot product is best)
@@ -258,7 +256,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
           uint lidx = mp->loopstart + fidx;
           uint vidx = loops[lidx].v;
           BLI_uvproject_from_camera(
-              mloop_uv[lidx].uv, coords[vidx], static_cast<ProjCameraInfo *>(best_projector->uci));
+              mloop_uv[lidx], coords[vidx], static_cast<ProjCameraInfo *>(best_projector->uci));
         } while (fidx--);
       }
       else {
@@ -266,7 +264,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
         do {
           uint lidx = mp->loopstart + fidx;
           uint vidx = loops[lidx].v;
-          mul_v2_project_m4_v3(mloop_uv[lidx].uv, best_projector->projmat, coords[vidx]);
+          mul_v2_project_m4_v3(mloop_uv[lidx], best_projector->projmat, coords[vidx]);
         } while (fidx--);
       }
     }
@@ -348,35 +346,35 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_UVProject = {
-    /* name */ N_("UVProject"),
-    /* structName */ "UVProjectModifierData",
-    /* structSize */ sizeof(UVProjectModifierData),
-    /* srna */ &RNA_UVProjectModifier,
-    /* type */ eModifierTypeType_NonGeometrical,
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
+    /*name*/ N_("UVProject"),
+    /*structName*/ "UVProjectModifierData",
+    /*structSize*/ sizeof(UVProjectModifierData),
+    /*srna*/ &RNA_UVProjectModifier,
+    /*type*/ eModifierTypeType_NonGeometrical,
+    /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
-    /* icon */ ICON_MOD_UVPROJECT,
+    /*icon*/ ICON_MOD_UVPROJECT,
 
-    /* copyData */ BKE_modifier_copydata_generic,
+    /*copyData*/ BKE_modifier_copydata_generic,
 
-    /* deformVerts */ nullptr,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ nullptr,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ nullptr,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ nullptr,
 
-    /* initData */ initData,
-    /* requiredDataMask */ requiredDataMask,
-    /* freeData */ nullptr,
-    /* isDisabled */ nullptr,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ nullptr,
-    /* dependsOnNormals */ nullptr,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ nullptr,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ nullptr,
-    /* blendRead */ nullptr,
+    /*initData*/ initData,
+    /*requiredDataMask*/ requiredDataMask,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ nullptr,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ nullptr,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ nullptr,
+    /*blendRead*/ nullptr,
 };

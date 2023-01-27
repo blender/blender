@@ -39,10 +39,10 @@ static inline MTLPrimitiveType gpu_prim_type_to_metal(GPUPrimType prim_type)
       return MTLPrimitiveTypePoint;
     case GPU_PRIM_LINES:
     case GPU_PRIM_LINES_ADJ:
-    case GPU_PRIM_LINE_LOOP:
       return MTLPrimitiveTypeLine;
     case GPU_PRIM_LINE_STRIP:
     case GPU_PRIM_LINE_STRIP_ADJ:
+    case GPU_PRIM_LINE_LOOP:
       return MTLPrimitiveTypeLineStrip;
     case GPU_PRIM_TRIS:
     case GPU_PRIM_TRI_FAN:

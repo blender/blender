@@ -238,8 +238,7 @@ class DOPESHEET_HT_editor_buttons:
         # Layer management
         if st.mode == 'GPENCIL':
             ob = context.active_object
-            selected = st.dopesheet.show_only_selected
-            enable_but = selected and ob is not None and ob.type == 'GPENCIL'
+            enable_but = ob is not None and ob.type == 'GPENCIL'
 
             row = layout.row(align=True)
             row.enabled = enable_but
@@ -551,7 +550,7 @@ class DOPESHEET_PT_custom_props_action(PropertyPanel, Panel):
     bl_space_type = 'DOPESHEET_EDITOR'
     bl_category = "Action"
     bl_region_type = 'UI'
-    bl_context = 'data'
+    bl_context = "data"
     _context_path = "active_action"
     _property_type = bpy.types.Action
 

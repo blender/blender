@@ -179,13 +179,14 @@ class GHOST_SharedOpenGLResource {
     }
 
     if (m_is_initialized) {
-      if (m_shared.render_target
-#if 1
+#if 0 /* TODO: Causes an access violation since Blender 3.4 (a296b8f694d1). */
+        if (m_shared.render_target
+#  if 1
           /* TODO: #wglDXUnregisterObjectNV() causes an access violation on AMD when the shared
            * resource is a GL texture. Since there is currently no good alternative, just skip
            * unregistering the shared resource. */
           && !m_use_gl_texture2d
-#endif
+#  endif
       ) {
         wglDXUnregisterObjectNV(m_shared.device, m_shared.render_target);
       }
@@ -199,6 +200,12 @@ class GHOST_SharedOpenGLResource {
       else {
         glDeleteRenderbuffers(1, &m_gl_render_target);
       }
+#else
+      glDeleteFramebuffers(1, &m_shared.fbo);
+      if (m_use_gl_texture2d) {
+        glDeleteTextures(1, &m_gl_render_target);
+      }
+#endif
     }
   }
 

@@ -15,7 +15,8 @@ namespace blender::geometry {
 
 PointCloud *point_merge_by_distance(const PointCloud &src_points,
                                     const float merge_distance,
-                                    const IndexMask selection)
+                                    const IndexMask selection,
+                                    const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const bke::AttributeAccessor src_attributes = src_points.attributes();
   VArraySpan<float3> positions = src_attributes.lookup_or_default<float3>(
@@ -125,7 +126,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
 
   /* Transfer all other attributes. */
   for (const bke::AttributeIDRef &id : attribute_ids) {
-    if (!id.should_be_kept()) {
+    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
       continue;
     }
 

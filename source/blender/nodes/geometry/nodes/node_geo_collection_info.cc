@@ -28,7 +28,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           N_("Reset the transforms of every child instance in the output. Only used when Separate "
              "Children is enabled"));
-  b.add_output<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Geometry>(N_("Instances"));
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -137,7 +137,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     instances->add_instance(handle, transform);
   }
 
-  params.set_output("Geometry", GeometrySet::create_with_instances(instances.release()));
+  params.set_output("Instances", GeometrySet::create_with_instances(instances.release()));
 }
 
 }  // namespace blender::nodes::node_geo_collection_info_cc

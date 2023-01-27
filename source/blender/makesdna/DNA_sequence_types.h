@@ -795,6 +795,7 @@ typedef enum SequenceColorTag {
 enum {
   SEQ_TRANSFORM_FILTER_NEAREST = 0,
   SEQ_TRANSFORM_FILTER_BILINEAR = 1,
+  SEQ_TRANSFORM_FILTER_NEAREST_3x3 = 2,
 };
 
 typedef enum eSeqChannelFlag {

@@ -294,7 +294,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
   if (width_ == 0 || height_ == 0) {
     return;
   } /** \note Break out... no pixels to calculate. */
-  if (bTree->test_break && bTree->test_break(bTree->tbh)) {
+  if (bTree->runtime->test_break && bTree->runtime->test_break(bTree->runtime->tbh)) {
     return;
   } /** \note Early break out for blur and preview nodes. */
   if (chunks_len_ == 0) {
@@ -335,8 +335,8 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
           start_evaluated = true;
           number_evaluated++;
 
-          if (bTree->update_draw) {
-            bTree->update_draw(bTree->udh);
+          if (bTree->runtime->update_draw) {
+            bTree->runtime->update_draw(bTree->runtime->udh);
           }
           break;
         }
@@ -356,7 +356,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 
     WorkScheduler::finish();
 
-    if (bTree->test_break && bTree->test_break(bTree->tbh)) {
+    if (bTree->runtime->test_break && bTree->runtime->test_break(bTree->runtime->tbh)) {
       breaked = true;
     }
   }
@@ -414,12 +414,12 @@ void ExecutionGroup::finalize_chunk_execution(int chunk_number, MemoryBuffer **m
     /* Status report is only performed for top level Execution Groups. */
     float progress = chunks_finished_;
     progress /= chunks_len_;
-    bTree_->progress(bTree_->prh, progress);
+    bTree_->runtime->progress(bTree_->runtime->prh, progress);
 
     char buf[128];
     BLI_snprintf(
         buf, sizeof(buf), TIP_("Compositing | Tile %u-%u"), chunks_finished_, chunks_len_);
-    bTree_->stats_draw(bTree_->sdh, buf);
+    bTree_->runtime->stats_draw(bTree_->runtime->sdh, buf);
   }
 }
 

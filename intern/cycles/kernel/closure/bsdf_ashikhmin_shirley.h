@@ -40,34 +40,37 @@ ccl_device_inline float bsdf_ashikhmin_shirley_roughness_to_exponent(float rough
 }
 
 ccl_device_forceinline Spectrum bsdf_ashikhmin_shirley_eval(ccl_private const ShaderClosure *sc,
-                                                            const float3 I,
-                                                            const float3 omega_in,
+                                                            const float3 Ng,
+                                                            const float3 wi,
+                                                            const float3 wo,
                                                             ccl_private float *pdf)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
+  const float cosNgO = dot(Ng, wo);
   float3 N = bsdf->N;
 
-  float NdotI = dot(N, I);        /* in Cycles/OSL convention I is omega_out */
-  float NdotO = dot(N, omega_in); /* and consequently we use for O omaga_in ;) */
+  float NdotI = dot(N, wi);
+  float NdotO = dot(N, wo);
 
   float out = 0.0f;
 
-  if (fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f || !(NdotI > 0.0f && NdotO > 0.0f)) {
+  if ((cosNgO < 0.0f) || fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f ||
+      !(NdotI > 0.0f && NdotO > 0.0f)) {
     *pdf = 0.0f;
     return zero_spectrum();
   }
 
   NdotI = fmaxf(NdotI, 1e-6f);
   NdotO = fmaxf(NdotO, 1e-6f);
-  float3 H = normalize(omega_in + I);
-  float HdotI = fmaxf(fabsf(dot(H, I)), 1e-6f);
+  float3 H = normalize(wi + wo);
+  float HdotI = fmaxf(fabsf(dot(H, wi)), 1e-6f);
   float HdotN = fmaxf(dot(H, N), 1e-6f);
 
   /* pump from original paper
    * (first derivative disc., but cancels the HdotI in the pdf nicely) */
-  float pump = 1.0f / fmaxf(1e-6f, (HdotI * fmaxf(NdotO, NdotI)));
+  float pump = 1.0f / fmaxf(1e-6f, (HdotI * fmaxf(NdotI, NdotO)));
   /* pump from d-brdf paper */
-  /*float pump = 1.0f / fmaxf(1e-4f, ((NdotO + NdotI) * (NdotO*NdotI))); */
+  /*float pump = 1.0f / fmaxf(1e-4f, ((NdotI + NdotO) * (NdotI * NdotO))); */
 
   float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_x);
   float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_y);
@@ -121,11 +124,11 @@ ccl_device_inline void bsdf_ashikhmin_shirley_sample_first_quadrant(float n_x,
 
 ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc,
                                              float3 Ng,
-                                             float3 I,
+                                             float3 wi,
                                              float randu,
                                              float randv,
                                              ccl_private Spectrum *eval,
-                                             ccl_private float3 *omega_in,
+                                             ccl_private float3 *wo,
                                              ccl_private float *pdf,
                                              ccl_private float2 *sampled_roughness)
 {
@@ -134,7 +137,7 @@ ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc
   float3 N = bsdf->N;
   int label = LABEL_REFLECT | LABEL_GLOSSY;
 
-  float NdotI = dot(N, I);
+  float NdotI = dot(N, wi);
   if (!(NdotI > 0.0f)) {
     *pdf = 0.0f;
     *eval = zero_spectrum();
@@ -195,12 +198,12 @@ ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc
 
   /* half vector to world space */
   float3 H = h.x * X + h.y * Y + h.z * N;
-  float HdotI = dot(H, I);
+  float HdotI = dot(H, wi);
   if (HdotI < 0.0f)
     H = -H;
 
-  /* reflect I on H to get omega_in */
-  *omega_in = -I + (2.0f * HdotI) * H;
+  /* reflect wi on H to get wo */
+  *wo = -wi + (2.0f * HdotI) * H;
 
   if (fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f) {
     /* Some high number for MIS. */
@@ -210,7 +213,7 @@ ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc
   }
   else {
     /* leave the rest to eval */
-    *eval = bsdf_ashikhmin_shirley_eval(sc, I, *omega_in, pdf);
+    *eval = bsdf_ashikhmin_shirley_eval(sc, N, wi, *wo, pdf);
   }
 
   return label;

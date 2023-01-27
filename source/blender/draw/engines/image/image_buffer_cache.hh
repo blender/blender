@@ -9,8 +9,11 @@
 
 #include "BLI_vector.hh"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
+namespace blender::draw::image_engine {
 
 struct FloatImageBuffer {
   ImBuf *source_buffer = nullptr;
@@ -49,15 +52,30 @@ struct FloatImageBuffer {
   }
 };
 
+/**
+ * \brief Float buffer cache for image buffers.
+ *
+ * Image buffers might not have float buffers which are required for the image engine.
+ * Image buffers are not allowed to have both a float buffer and a byte buffer as some
+ * functionality doesn't know what to do.
+ *
+ * For this reason we store the float buffer in separate image buffers. The FloatBufferCache keep
+ * track of the cached buffers and if they are still used.
+ */
 struct FloatBufferCache {
  private:
-  blender::Vector<FloatImageBuffer> cache_;
+  Vector<FloatImageBuffer> cache_;
 
  public:
-  ImBuf *ensure_float_buffer(ImBuf *image_buffer)
+  ImBuf *cached_float_buffer(ImBuf *image_buffer)
   {
     /* Check if we can use the float buffer of the given image_buffer. */
     if (image_buffer->rect_float != nullptr) {
+      BLI_assert_msg(
+          IMB_colormanagement_space_name_is_scene_linear(
+              IMB_colormanagement_get_float_colorspace(image_buffer)),
+          "Expected rect_float to be scene_linear - if there are code paths where this "
+          "isn't the case we should convert those and add to the FloatBufferCache as well.");
       return image_buffer;
     }
 
@@ -114,3 +132,5 @@ struct FloatBufferCache {
     cache_.clear();
   }
 };
+
+}  // namespace blender::draw::image_engine

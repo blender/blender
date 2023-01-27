@@ -68,8 +68,8 @@ void main()
   do_vertex(geometry_in[0].finalColor_, pos0, -half_size, -edge_ofs.xy);
 
   view_clipping_distances_set(gl_in[1]);
-  vec4 final_color = (geometry_in[0].selectOverride_ == 0) ? geometry_in[1].finalColor_ :
-                                                             geometry_in[0].finalColor_;
+  vec4 final_color = (geometry_in[0].selectOverride_ == 0u) ? geometry_in[1].finalColor_ :
+                                                              geometry_in[0].finalColor_;
   do_vertex(final_color, pos1, half_size, edge_ofs.xy);
   do_vertex(final_color, pos1, -half_size, -edge_ofs.xy);
 

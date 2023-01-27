@@ -62,7 +62,7 @@ void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
                                  int vert_offset,
                                  int poly_offset,
                                  int loop_offset,
-                                 MutableSpan<MVert> verts,
+                                 MutableSpan<float3> vert_positions,
                                  MutableSpan<MPoly> polys,
                                  MutableSpan<MLoop> loops);
 

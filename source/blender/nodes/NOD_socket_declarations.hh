@@ -7,22 +7,21 @@
 #include "RNA_types.h"
 
 #include "BLI_color.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 namespace blender::nodes::decl {
 
 class FloatBuilder;
 
 class Float : public SocketDeclaration {
- private:
-  float default_value_ = 0.0f;
-  float soft_min_value_ = -FLT_MAX;
-  float soft_max_value_ = FLT_MAX;
-  PropertySubType subtype_ = PROP_NONE;
+ public:
+  float default_value = 0.0f;
+  float soft_min_value = -FLT_MAX;
+  float soft_max_value = FLT_MAX;
+  PropertySubType subtype = PROP_NONE;
 
   friend FloatBuilder;
 
- public:
   using Builder = FloatBuilder;
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
@@ -42,15 +41,14 @@ class FloatBuilder : public SocketDeclarationBuilder<Float> {
 class IntBuilder;
 
 class Int : public SocketDeclaration {
- private:
-  int default_value_ = 0;
-  int soft_min_value_ = INT32_MIN;
-  int soft_max_value_ = INT32_MAX;
-  PropertySubType subtype_ = PROP_NONE;
+ public:
+  int default_value = 0;
+  int soft_min_value = INT32_MIN;
+  int soft_max_value = INT32_MAX;
+  PropertySubType subtype = PROP_NONE;
 
   friend IntBuilder;
 
- public:
   using Builder = IntBuilder;
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
@@ -70,15 +68,14 @@ class IntBuilder : public SocketDeclarationBuilder<Int> {
 class VectorBuilder;
 
 class Vector : public SocketDeclaration {
- private:
-  float3 default_value_ = {0, 0, 0};
-  float soft_min_value_ = -FLT_MAX;
-  float soft_max_value_ = FLT_MAX;
-  PropertySubType subtype_ = PROP_NONE;
+ public:
+  float3 default_value = {0, 0, 0};
+  float soft_min_value = -FLT_MAX;
+  float soft_max_value = FLT_MAX;
+  PropertySubType subtype = PROP_NONE;
 
   friend VectorBuilder;
 
- public:
   using Builder = VectorBuilder;
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
@@ -99,15 +96,15 @@ class VectorBuilder : public SocketDeclarationBuilder<Vector> {
 class BoolBuilder;
 
 class Bool : public SocketDeclaration {
- private:
-  bool default_value_ = false;
+ public:
+  bool default_value = false;
   friend BoolBuilder;
 
- public:
   using Builder = BoolBuilder;
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
   bool can_connect(const bNodeSocket &socket) const override;
 };
 
@@ -119,16 +116,16 @@ class BoolBuilder : public SocketDeclarationBuilder<Bool> {
 class ColorBuilder;
 
 class Color : public SocketDeclaration {
- private:
-  ColorGeometry4f default_value_;
+ public:
+  ColorGeometry4f default_value;
 
   friend ColorBuilder;
 
- public:
   using Builder = ColorBuilder;
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
   bool can_connect(const bNodeSocket &socket) const override;
 };
 
@@ -140,16 +137,16 @@ class ColorBuilder : public SocketDeclarationBuilder<Color> {
 class StringBuilder;
 
 class String : public SocketDeclaration {
- private:
-  std::string default_value_;
+ public:
+  std::string default_value;
 
   friend StringBuilder;
 
- public:
   using Builder = StringBuilder;
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
   bool can_connect(const bNodeSocket &socket) const override;
 };
 
@@ -159,8 +156,8 @@ class StringBuilder : public SocketDeclarationBuilder<String> {
 };
 
 class IDSocketDeclaration : public SocketDeclaration {
- private:
-  const char *idname_;
+ public:
+  const char *idname;
 
  public:
   IDSocketDeclaration(const char *idname);
@@ -209,10 +206,9 @@ class Image : public IDSocketDeclaration {
 class ShaderBuilder;
 
 class Shader : public SocketDeclaration {
- private:
+ public:
   friend ShaderBuilder;
 
- public:
   using Builder = ShaderBuilder;
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
@@ -223,31 +219,59 @@ class Shader : public SocketDeclaration {
 class ShaderBuilder : public SocketDeclarationBuilder<Shader> {
 };
 
+class ExtendBuilder;
+
+class Extend : public SocketDeclaration {
+ private:
+  friend ExtendBuilder;
+
+ public:
+  using Builder = ExtendBuilder;
+
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
+  bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
+};
+
+class ExtendBuilder : public SocketDeclarationBuilder<Extend> {
+};
+
+class Custom : public SocketDeclaration {
+ public:
+  const char *idname_;
+
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
+  bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
+};
+
 /* -------------------------------------------------------------------- */
 /** \name #FloatBuilder Inline Methods
  * \{ */
 
 inline FloatBuilder &FloatBuilder::min(const float value)
 {
-  decl_->soft_min_value_ = value;
+  decl_->soft_min_value = value;
   return *this;
 }
 
 inline FloatBuilder &FloatBuilder::max(const float value)
 {
-  decl_->soft_max_value_ = value;
+  decl_->soft_max_value = value;
   return *this;
 }
 
 inline FloatBuilder &FloatBuilder::default_value(const float value)
 {
-  decl_->default_value_ = value;
+  decl_->default_value = value;
   return *this;
 }
 
 inline FloatBuilder &FloatBuilder::subtype(PropertySubType subtype)
 {
-  decl_->subtype_ = subtype;
+  decl_->subtype = subtype;
   return *this;
 }
 
@@ -259,25 +283,25 @@ inline FloatBuilder &FloatBuilder::subtype(PropertySubType subtype)
 
 inline IntBuilder &IntBuilder::min(const int value)
 {
-  decl_->soft_min_value_ = value;
+  decl_->soft_min_value = value;
   return *this;
 }
 
 inline IntBuilder &IntBuilder::max(const int value)
 {
-  decl_->soft_max_value_ = value;
+  decl_->soft_max_value = value;
   return *this;
 }
 
 inline IntBuilder &IntBuilder::default_value(const int value)
 {
-  decl_->default_value_ = value;
+  decl_->default_value = value;
   return *this;
 }
 
 inline IntBuilder &IntBuilder::subtype(PropertySubType subtype)
 {
-  decl_->subtype_ = subtype;
+  decl_->subtype = subtype;
   return *this;
 }
 
@@ -289,31 +313,31 @@ inline IntBuilder &IntBuilder::subtype(PropertySubType subtype)
 
 inline VectorBuilder &VectorBuilder::default_value(const float3 value)
 {
-  decl_->default_value_ = value;
+  decl_->default_value = value;
   return *this;
 }
 
 inline VectorBuilder &VectorBuilder::subtype(PropertySubType subtype)
 {
-  decl_->subtype_ = subtype;
+  decl_->subtype = subtype;
   return *this;
 }
 
 inline VectorBuilder &VectorBuilder::min(const float min)
 {
-  decl_->soft_min_value_ = min;
+  decl_->soft_min_value = min;
   return *this;
 }
 
 inline VectorBuilder &VectorBuilder::max(const float max)
 {
-  decl_->soft_max_value_ = max;
+  decl_->soft_max_value = max;
   return *this;
 }
 
 inline VectorBuilder &VectorBuilder::compact()
 {
-  decl_->compact_ = true;
+  decl_->compact = true;
   return *this;
 }
 
@@ -325,7 +349,7 @@ inline VectorBuilder &VectorBuilder::compact()
 
 inline BoolBuilder &BoolBuilder::default_value(const bool value)
 {
-  decl_->default_value_ = value;
+  decl_->default_value = value;
   return *this;
 }
 
@@ -337,7 +361,7 @@ inline BoolBuilder &BoolBuilder::default_value(const bool value)
 
 inline ColorBuilder &ColorBuilder::default_value(const ColorGeometry4f value)
 {
-  decl_->default_value_ = value;
+  decl_->default_value = value;
   return *this;
 }
 
@@ -349,7 +373,7 @@ inline ColorBuilder &ColorBuilder::default_value(const ColorGeometry4f value)
 
 inline StringBuilder &StringBuilder::default_value(std::string value)
 {
-  decl_->default_value_ = std::move(value);
+  decl_->default_value = std::move(value);
   return *this;
 }
 
@@ -359,7 +383,7 @@ inline StringBuilder &StringBuilder::default_value(std::string value)
 /** \name #IDSocketDeclaration and Children Inline Methods
  * \{ */
 
-inline IDSocketDeclaration::IDSocketDeclaration(const char *idname) : idname_(idname)
+inline IDSocketDeclaration::IDSocketDeclaration(const char *idname) : idname(idname)
 {
 }
 

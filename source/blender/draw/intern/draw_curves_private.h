@@ -18,9 +18,7 @@ extern "C" {
 
 struct Curves;
 struct GPUVertBuf;
-struct GPUIndexBuf;
 struct GPUBatch;
-struct GPUTexture;
 
 #define MAX_THICKRES 2    /* see eHairType */
 #define MAX_HAIR_SUBDIV 4 /* see hair_subdiv rna */
@@ -64,11 +62,8 @@ typedef struct CurvesEvalFinalCache {
 
 /* Curves procedural display: Evaluation is done on the GPU. */
 typedef struct CurvesEvalCache {
-  /* Input control point positions combined with parameter data. */
+  /* Control point positions on evaluated data-block combined with parameter data. */
   GPUVertBuf *proc_point_buf;
-
-  /* Editmode data (such as selection flags) used by overlay_edit_curve_point.glsl */
-  GPUVertBuf *data_edit_points;
 
   /** Info of control points strands (segment count and base index) */
   GPUVertBuf *proc_strand_buf;

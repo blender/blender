@@ -33,7 +33,7 @@ bool ED_text_region_location_from_cursor(struct SpaceText *st,
                                          const int cursor_co[2],
                                          int r_pixel_co[2]);
 
-/* text_undo.c */
+/* text_undo.cc */
 
 /** Export for ED_undo_sys. */
 void ED_text_undosys_type(struct UndoType *ut);

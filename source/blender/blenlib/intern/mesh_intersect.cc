@@ -21,9 +21,9 @@
 #  include "BLI_map.hh"
 #  include "BLI_math_boolean.hh"
 #  include "BLI_math_mpq.hh"
-#  include "BLI_math_vec_mpq_types.hh"
-#  include "BLI_math_vec_types.hh"
 #  include "BLI_math_vector.h"
+#  include "BLI_math_vector_mpq_types.hh"
+#  include "BLI_math_vector_types.hh"
 #  include "BLI_polyfill_2d.h"
 #  include "BLI_set.hh"
 #  include "BLI_sort.hh"
@@ -2030,7 +2030,8 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
     }
     return Array<Face *>{f0, f1};
   }
-  /* Project along negative face normal so (x,y) can be used in 2d. */ float axis_mat[3][3];
+  /* Project along negative face normal so (x,y) can be used in 2d. */
+  float axis_mat[3][3];
   float(*projverts)[2];
   uint(*tris)[3];
   const int totfilltri = flen - 2;

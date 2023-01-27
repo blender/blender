@@ -60,6 +60,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "ED_node.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_scene.h"
@@ -215,13 +216,25 @@ static bool outliner_operation_tree_element_poll(bContext *C)
 }
 
 static void unlink_action_fn(bContext *C,
-                             ReportList * /*reports*/,
+                             ReportList *reports,
                              Scene * /*scene*/,
                              TreeElement * /*te*/,
                              TreeStoreElem *tsep,
-                             TreeStoreElem * /*tselem*/,
+                             TreeStoreElem *tselem,
                              void * /*user_data*/)
 {
+  if (!tsep || !TSE_IS_REAL_ID(tsep)) {
+    /* Valid case, no parent element of the action or it is not an ID (could be a #TSE_ID_BASE
+     * for example) so there's no data to unlink from. */
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Cannot unlink action '%s'. It's not clear which object or object-data it "
+                "should be unlinked from, there's no object or object-data as parent in the "
+                "Outliner tree",
+                tselem->id->name + 2);
+    return;
+  }
+
   /* just set action to nullptr */
   BKE_animdata_set_action(CTX_wm_reports(C), tsep->id, nullptr);
   DEG_id_tag_update(tsep->id, ID_RECALC_ANIMATION);
@@ -316,13 +329,24 @@ static void unlink_material_fn(bContext * /*C*/,
 }
 
 static void unlink_texture_fn(bContext * /*C*/,
-                              ReportList * /*reports*/,
+                              ReportList *reports,
                               Scene * /*scene*/,
                               TreeElement *te,
                               TreeStoreElem *tsep,
-                              TreeStoreElem * /*tselem*/,
+                              TreeStoreElem *tselem,
                               void * /*user_data*/)
 {
+  if (!tsep || !TSE_IS_REAL_ID(tsep)) {
+    /* Valid case, no parent element of the texture or it is not an ID (could be a #TSE_ID_BASE
+     * for example) so there's no data to unlink from. */
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Cannot unlink texture '%s'. It's not clear which freestyle line style it should "
+                "be unlinked from, there's no freestyle line style as parent in the Outliner tree",
+                tselem->id->name + 2);
+    return;
+  }
+
   MTex **mtex = nullptr;
   int a;
 
@@ -345,7 +369,7 @@ static void unlink_texture_fn(bContext * /*C*/,
 }
 
 static void unlink_collection_fn(bContext *C,
-                                 ReportList * /*reports*/,
+                                 ReportList *reports,
                                  Scene * /*scene*/,
                                  TreeElement * /*te*/,
                                  TreeStoreElem *tsep,
@@ -354,6 +378,18 @@ static void unlink_collection_fn(bContext *C,
 {
   Main *bmain = CTX_data_main(C);
   Collection *collection = (Collection *)tselem->id;
+
+  if (!tsep || !TSE_IS_REAL_ID(tsep)) {
+    /* Valid case, no parent element of the collection or it is not an ID (could be a #TSE_ID_BASE
+     * for example) so there's no data to unlink from. */
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Cannot unlink collection '%s'. It's not clear which scene, collection or "
+                "instance empties it should be unlinked from, there's no scene, collection or "
+                "instance empties as parent in the Outliner tree",
+                tselem->id->name + 2);
+    return;
+  }
 
   if (tsep) {
     if (GS(tsep->id->name) == ID_OB) {
@@ -436,13 +472,24 @@ static void unlink_object_fn(bContext *C,
 }
 
 static void unlink_world_fn(bContext * /*C*/,
-                            ReportList * /*reports*/,
+                            ReportList *reports,
                             Scene * /*scene*/,
                             TreeElement * /*te*/,
                             TreeStoreElem *tsep,
                             TreeStoreElem *tselem,
                             void * /*user_data*/)
 {
+  if (!tsep || !TSE_IS_REAL_ID(tsep)) {
+    /* Valid case, no parent element of the world or it is not an ID (could be a #TSE_ID_BASE
+     * for example) so there's no data to unlink from. */
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Cannot unlink world '%s'. It's not clear which scene it should be unlinked from, "
+                "there's no scene as parent in the Outliner tree",
+                tselem->id->name + 2);
+    return;
+  }
+
   Scene *parscene = (Scene *)tsep->id;
   World *wo = (World *)tselem->id;
 
@@ -2458,6 +2505,8 @@ static int outliner_delete_exec(bContext *C, wmOperator *op)
     WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
   }
 
+  ED_node_tree_propagate_change(C, bmain, nullptr);
+
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
@@ -2763,6 +2812,8 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       /* Invalid - unhandled. */
       break;
   }
+
+  ED_node_tree_propagate_change(C, bmain, nullptr);
 
   /* wrong notifier still... */
   WM_event_add_notifier(C, NC_ID | NA_EDITED, nullptr);

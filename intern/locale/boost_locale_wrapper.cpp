@@ -6,6 +6,7 @@
  */
 
 #include <boost/locale.hpp>
+#include <iostream>
 #include <stdio.h>
 
 #include "boost_locale_wrapper.h"

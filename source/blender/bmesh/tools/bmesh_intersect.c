@@ -10,7 +10,7 @@
  * Supported:
  * - Concave faces.
  * - Non-planar faces.
- * - Custom-data (UV's etc).
+ * - Custom-data (UVs etc).
  *
  * Unsupported:
  * - Intersecting between different meshes.
@@ -1342,10 +1342,9 @@ bool BM_mesh_intersect(BMesh *bm,
       GHASH_ITER (gh_iter, s.face_edges) {
         struct LinkBase *e_ls_base = BLI_ghashIterator_getValue(&gh_iter);
         LinkNode **node_prev_p;
-        uint i;
 
         node_prev_p = &e_ls_base->list;
-        for (i = 0, node = e_ls_base->list; node; i++, node = node->next) {
+        for (node = e_ls_base->list; node; node = node->next) {
           BMEdge *e = node->link;
           if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
             /* allocated by arena, don't free */

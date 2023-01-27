@@ -44,7 +44,7 @@ ccl_device_forceinline void guiding_record_surface_segment(KernelGlobals kg,
 
   state->guiding.path_segment = kg->opgl_path_segment_storage->NextSegment();
   openpgl::cpp::SetPosition(state->guiding.path_segment, guiding_point3f(sd->P));
-  openpgl::cpp::SetDirectionOut(state->guiding.path_segment, guiding_vec3f(sd->I));
+  openpgl::cpp::SetDirectionOut(state->guiding.path_segment, guiding_vec3f(sd->wi));
   openpgl::cpp::SetVolumeScatter(state->guiding.path_segment, false);
   openpgl::cpp::SetScatteredContribution(state->guiding.path_segment, zero);
   openpgl::cpp::SetDirectContribution(state->guiding.path_segment, zero);
@@ -60,7 +60,7 @@ ccl_device_forceinline void guiding_record_surface_bounce(KernelGlobals kg,
                                                           const Spectrum weight,
                                                           const float pdf,
                                                           const float3 N,
-                                                          const float3 omega_in,
+                                                          const float3 wo,
                                                           const float2 roughness,
                                                           const float eta)
 {
@@ -78,7 +78,7 @@ ccl_device_forceinline void guiding_record_surface_bounce(KernelGlobals kg,
   openpgl::cpp::SetTransmittanceWeight(state->guiding.path_segment, guiding_vec3f(one_float3()));
   openpgl::cpp::SetVolumeScatter(state->guiding.path_segment, false);
   openpgl::cpp::SetNormal(state->guiding.path_segment, guiding_vec3f(normal));
-  openpgl::cpp::SetDirectionIn(state->guiding.path_segment, guiding_vec3f(omega_in));
+  openpgl::cpp::SetDirectionIn(state->guiding.path_segment, guiding_vec3f(wo));
   openpgl::cpp::SetPDFDirectionIn(state->guiding.path_segment, pdf);
   openpgl::cpp::SetScatteringWeight(state->guiding.path_segment, guiding_vec3f(weight_rgb));
   openpgl::cpp::SetIsDelta(state->guiding.path_segment, is_delta);
@@ -113,7 +113,7 @@ ccl_device_forceinline void guiding_record_surface_emission(KernelGlobals kg,
 ccl_device_forceinline void guiding_record_bssrdf_segment(KernelGlobals kg,
                                                           IntegratorState state,
                                                           const float3 P,
-                                                          const float3 I)
+                                                          const float3 wi)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -124,7 +124,7 @@ ccl_device_forceinline void guiding_record_bssrdf_segment(KernelGlobals kg,
 
   state->guiding.path_segment = kg->opgl_path_segment_storage->NextSegment();
   openpgl::cpp::SetPosition(state->guiding.path_segment, guiding_point3f(P));
-  openpgl::cpp::SetDirectionOut(state->guiding.path_segment, guiding_vec3f(I));
+  openpgl::cpp::SetDirectionOut(state->guiding.path_segment, guiding_vec3f(wi));
   openpgl::cpp::SetVolumeScatter(state->guiding.path_segment, true);
   openpgl::cpp::SetScatteredContribution(state->guiding.path_segment, zero);
   openpgl::cpp::SetDirectContribution(state->guiding.path_segment, zero);
@@ -166,7 +166,7 @@ ccl_device_forceinline void guiding_record_bssrdf_bounce(KernelGlobals kg,
                                                          IntegratorState state,
                                                          const float pdf,
                                                          const float3 N,
-                                                         const float3 omega_in,
+                                                         const float3 wo,
                                                          const Spectrum weight,
                                                          const Spectrum albedo)
 {
@@ -181,7 +181,7 @@ ccl_device_forceinline void guiding_record_bssrdf_bounce(KernelGlobals kg,
 
   openpgl::cpp::SetVolumeScatter(state->guiding.path_segment, false);
   openpgl::cpp::SetNormal(state->guiding.path_segment, guiding_vec3f(normal));
-  openpgl::cpp::SetDirectionIn(state->guiding.path_segment, guiding_vec3f(omega_in));
+  openpgl::cpp::SetDirectionIn(state->guiding.path_segment, guiding_vec3f(wo));
   openpgl::cpp::SetPDFDirectionIn(state->guiding.path_segment, pdf);
   openpgl::cpp::SetTransmittanceWeight(state->guiding.path_segment, guiding_vec3f(weight_rgb));
 #endif
@@ -222,7 +222,7 @@ ccl_device_forceinline void guiding_record_volume_bounce(KernelGlobals kg,
                                                          ccl_private const ShaderData *sd,
                                                          const Spectrum weight,
                                                          const float pdf,
-                                                         const float3 omega_in,
+                                                         const float3 wo,
                                                          const float roughness)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
@@ -237,7 +237,7 @@ ccl_device_forceinline void guiding_record_volume_bounce(KernelGlobals kg,
   openpgl::cpp::SetVolumeScatter(state->guiding.path_segment, true);
   openpgl::cpp::SetTransmittanceWeight(state->guiding.path_segment, guiding_vec3f(one_float3()));
   openpgl::cpp::SetNormal(state->guiding.path_segment, guiding_vec3f(normal));
-  openpgl::cpp::SetDirectionIn(state->guiding.path_segment, guiding_vec3f(omega_in));
+  openpgl::cpp::SetDirectionIn(state->guiding.path_segment, guiding_vec3f(wo));
   openpgl::cpp::SetPDFDirectionIn(state->guiding.path_segment, pdf);
   openpgl::cpp::SetScatteringWeight(state->guiding.path_segment, guiding_vec3f(weight_rgb));
   openpgl::cpp::SetIsDelta(state->guiding.path_segment, false);
@@ -467,13 +467,13 @@ ccl_device_forceinline bool guiding_bsdf_init(KernelGlobals kg,
 ccl_device_forceinline float guiding_bsdf_sample(KernelGlobals kg,
                                                  IntegratorState state,
                                                  const float2 rand_bsdf,
-                                                 ccl_private float3 *omega_in)
+                                                 ccl_private float3 *wo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
-  pgl_vec3f wo;
+  pgl_vec3f pgl_wo;
   const pgl_point2f rand = openpgl::cpp::Point2(rand_bsdf.x, rand_bsdf.y);
-  const float pdf = kg->opgl_surface_sampling_distribution->SamplePDF(rand, wo);
-  *omega_in = make_float3(wo.x, wo.y, wo.z);
+  const float pdf = kg->opgl_surface_sampling_distribution->SamplePDF(rand, pgl_wo);
+  *wo = make_float3(pgl_wo.x, pgl_wo.y, pgl_wo.z);
   return pdf;
 #else
   return 0.0f;
@@ -482,10 +482,10 @@ ccl_device_forceinline float guiding_bsdf_sample(KernelGlobals kg,
 
 ccl_device_forceinline float guiding_bsdf_pdf(KernelGlobals kg,
                                               IntegratorState state,
-                                              const float3 omega_in)
+                                              const float3 wo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
-  return kg->opgl_surface_sampling_distribution->PDF(guiding_vec3f(omega_in));
+  return kg->opgl_surface_sampling_distribution->PDF(guiding_vec3f(wo));
 #else
   return 0.0f;
 #endif
@@ -520,13 +520,13 @@ ccl_device_forceinline bool guiding_phase_init(KernelGlobals kg,
 ccl_device_forceinline float guiding_phase_sample(KernelGlobals kg,
                                                   IntegratorState state,
                                                   const float2 rand_phase,
-                                                  ccl_private float3 *omega_in)
+                                                  ccl_private float3 *wo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
-  pgl_vec3f wo;
+  pgl_vec3f pgl_wo;
   const pgl_point2f rand = openpgl::cpp::Point2(rand_phase.x, rand_phase.y);
-  const float pdf = kg->opgl_volume_sampling_distribution->SamplePDF(rand, wo);
-  *omega_in = make_float3(wo.x, wo.y, wo.z);
+  const float pdf = kg->opgl_volume_sampling_distribution->SamplePDF(rand, pgl_wo);
+  *wo = make_float3(pgl_wo.x, pgl_wo.y, pgl_wo.z);
   return pdf;
 #else
   return 0.0f;
@@ -535,10 +535,10 @@ ccl_device_forceinline float guiding_phase_sample(KernelGlobals kg,
 
 ccl_device_forceinline float guiding_phase_pdf(KernelGlobals kg,
                                                IntegratorState state,
-                                               const float3 omega_in)
+                                               const float3 wo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
-  return kg->opgl_volume_sampling_distribution->PDF(guiding_vec3f(omega_in));
+  return kg->opgl_volume_sampling_distribution->PDF(guiding_vec3f(wo));
 #else
   return 0.0f;
 #endif

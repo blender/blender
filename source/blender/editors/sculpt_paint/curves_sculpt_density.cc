@@ -280,11 +280,19 @@ struct DensityAddOperationExecutor {
     add_inputs.transforms = &transforms_;
     add_inputs.surface = surface_orig_;
     add_inputs.corner_normals_su = corner_normals_su;
+    add_inputs.surface_looptris = surface_looptris_orig;
     add_inputs.reverse_uv_sampler = &reverse_uv_sampler;
     add_inputs.old_roots_kdtree = self_->original_curve_roots_kdtree_;
 
     const geometry::AddCurvesOnMeshOutputs add_outputs = geometry::add_curves_on_mesh(
         *curves_orig_, add_inputs);
+    bke::MutableAttributeAccessor attributes = curves_orig_->attributes_for_write();
+    if (bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection")) {
+      curves::fill_selection_true(selection.span.slice(selection.domain == ATTR_DOMAIN_POINT ?
+                                                           add_outputs.new_points_range :
+                                                           add_outputs.new_curves_range));
+      selection.finish();
+    }
 
     if (add_outputs.uv_error) {
       report_invalid_uv_map(stroke_extension.reports);
@@ -561,7 +569,7 @@ struct DensitySubtractOperationExecutor {
 
     minimum_distance_ = brush_->curves_sculpt_settings->minimum_distance;
 
-    curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 
     transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
     const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(

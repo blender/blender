@@ -139,9 +139,9 @@ struct OperationKey {
   int name_tag = -1;
 };
 
-/* Similar to the the OperationKey but does not contain external references, which makes it
+/* Similar to the #OperationKey but does not contain external references, which makes it
  * suitable to identify operations even after the original database or graph was destroyed.
- * The downside of this key over the OperationKey is that it performs string allocation upon
+ * The downside of this key over the #OperationKey is that it performs string allocation upon
  * the key construction. */
 struct PersistentOperationKey : public OperationKey {
   /* Create the key which identifies the given operation node. */
@@ -151,11 +151,11 @@ struct PersistentOperationKey : public OperationKey {
     const IDNode *id_node = component_node->owner;
 
     /* Copy names over to our object, so that the key stays valid even after the `operation_node`
-     * is destroyed.*/
+     * is destroyed. */
     component_name_storage_ = component_node->name;
     name_storage_ = operation_node->name;
 
-    /* Assign fields used by the OperationKey API.  */
+    /* Assign fields used by the #OperationKey API.  */
     id = id_node->id_orig;
     component_type = component_node->type;
     component_name = component_name_storage_.c_str();

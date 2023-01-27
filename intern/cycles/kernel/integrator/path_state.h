@@ -91,7 +91,10 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
 #endif
 }
 
-ccl_device_inline void path_state_next(KernelGlobals kg, IntegratorState state, int label)
+ccl_device_inline void path_state_next(KernelGlobals kg,
+                                       IntegratorState state,
+                                       const int label,
+                                       const int shader_flag)
 {
   uint32_t flag = INTEGRATOR_STATE(state, path, flag);
 
@@ -120,12 +123,12 @@ ccl_device_inline void path_state_next(KernelGlobals kg, IntegratorState state, 
     flag |= PATH_RAY_TERMINATE_AFTER_TRANSPARENT;
   }
 
-  flag &= ~(PATH_RAY_ALL_VISIBILITY | PATH_RAY_MIS_SKIP);
+  flag &= ~(PATH_RAY_ALL_VISIBILITY | PATH_RAY_MIS_SKIP | PATH_RAY_MIS_HAD_TRANSMISSION);
 
 #ifdef __VOLUME__
   if (label & LABEL_VOLUME_SCATTER) {
     /* volume scatter */
-    flag |= PATH_RAY_VOLUME_SCATTER;
+    flag |= PATH_RAY_VOLUME_SCATTER | PATH_RAY_MIS_HAD_TRANSMISSION;
     flag &= ~PATH_RAY_TRANSPARENT_BACKGROUND;
     if (!(flag & PATH_RAY_ANY_PASS)) {
       flag |= PATH_RAY_VOLUME_PASS;
@@ -186,6 +189,11 @@ ccl_device_inline void path_state_next(KernelGlobals kg, IntegratorState state, 
     else {
       kernel_assert(label & LABEL_SINGULAR);
       flag |= PATH_RAY_GLOSSY | PATH_RAY_SINGULAR | PATH_RAY_MIS_SKIP;
+    }
+
+    /* Flag for consistent MIS weights with light tree. */
+    if (shader_flag & SD_BSDF_HAS_TRANSMISSION) {
+      flag |= PATH_RAY_MIS_HAD_TRANSMISSION;
     }
 
     /* Render pass categories. */
@@ -328,6 +336,14 @@ ccl_device_inline float2 path_state_rng_2D(KernelGlobals kg,
       kg, rng_state->rng_hash, rng_state->sample, rng_state->rng_offset + dimension);
 }
 
+ccl_device_inline float3 path_state_rng_3D(KernelGlobals kg,
+                                           ccl_private const RNGState *rng_state,
+                                           const int dimension)
+{
+  return path_rng_3D(
+      kg, rng_state->rng_hash, rng_state->sample, rng_state->rng_offset + dimension);
+}
+
 ccl_device_inline float path_branched_rng_1D(KernelGlobals kg,
                                              ccl_private const RNGState *rng_state,
                                              const int branch,
@@ -347,6 +363,18 @@ ccl_device_inline float2 path_branched_rng_2D(KernelGlobals kg,
                                               const int dimension)
 {
   return path_rng_2D(kg,
+                     rng_state->rng_hash,
+                     rng_state->sample * num_branches + branch,
+                     rng_state->rng_offset + dimension);
+}
+
+ccl_device_inline float3 path_branched_rng_3D(KernelGlobals kg,
+                                              ccl_private const RNGState *rng_state,
+                                              const int branch,
+                                              const int num_branches,
+                                              const int dimension)
+{
+  return path_rng_3D(kg,
                      rng_state->rng_hash,
                      rng_state->sample * num_branches + branch,
                      rng_state->rng_offset + dimension);

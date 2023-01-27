@@ -60,7 +60,7 @@ struct MetaDataExtractCallbackData {
   static void extract_cryptomatte_meta_data(void *_data,
                                             const char *propname,
                                             char *propvalue,
-                                            int UNUSED(len));
+                                            int /*len*/);
 };
 
 }  // namespace blender::compositor

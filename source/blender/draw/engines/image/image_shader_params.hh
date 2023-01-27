@@ -17,17 +17,20 @@
 
 #include "BLI_math.h"
 
+#include "image_enums.hh"
 #include "image_space.hh"
 
+namespace blender::draw::image_engine {
+
 struct ShaderParameters {
-  int flags = 0;
+  ImageDrawFlags flags = ImageDrawFlags::Default;
   float shuffle[4];
   float far_near[2];
   bool use_premul_alpha = false;
 
   void update(AbstractSpaceAccessor *space, const Scene *scene, Image *image, ImBuf *image_buffer)
   {
-    flags = 0;
+    flags = ImageDrawFlags::Default;
     copy_v4_fl(shuffle, 1.0f);
     copy_v2_fl2(far_near, 100.0f, 0.0f);
 
@@ -40,3 +43,5 @@ struct ShaderParameters {
     space->get_shader_parameters(*this, image_buffer);
   }
 };
+
+}  // namespace blender::draw::image_engine

@@ -7,9 +7,11 @@
 
 #include "DNA_space_types.h"
 
+#include "AS_asset_catalog.hh"
+#include "AS_asset_catalog_tree.hh"
+#include "AS_asset_library.hh"
+
 #include "BKE_asset.h"
-#include "BKE_asset_catalog.hh"
-#include "BKE_asset_library.hh"
 
 #include "BLI_string_ref.hh"
 
@@ -33,7 +35,7 @@
 #include "filelist.h"
 
 using namespace blender;
-using namespace blender::bke;
+using namespace blender::asset_system;
 
 namespace blender::ed::asset_browser {
 
@@ -42,7 +44,7 @@ class AssetCatalogTreeViewAllItem;
 class AssetCatalogTreeView : public ui::AbstractTreeView {
   ::AssetLibrary *asset_library_;
   /** The asset catalog tree this tree-view represents. */
-  bke::AssetCatalogTree *catalog_tree_;
+  asset_system::AssetCatalogTree *catalog_tree_;
   FileAssetSelectParams *params_;
   SpaceFile &space_file_;
 
@@ -117,6 +119,8 @@ class AssetCatalogDropController : public ui::AbstractViewItemDropController {
 
   static AssetCatalog *get_drag_catalog(const wmDrag &drag, const ::AssetLibrary &asset_library);
   static bool has_droppable_asset(const wmDrag &drag, const char **r_disabled_hint);
+  static bool can_modify_catalogs(const ::AssetLibrary &asset_library,
+                                  const char **r_disabled_hint);
   static bool drop_assets_into_catalog(struct bContext *C,
                                        const AssetCatalogTreeView &tree_view,
                                        const wmDrag &drag,
@@ -173,7 +177,7 @@ AssetCatalogTreeView::AssetCatalogTreeView(::AssetLibrary *library,
                                            FileAssetSelectParams *params,
                                            SpaceFile &space_file)
     : asset_library_(library),
-      catalog_tree_(BKE_asset_library_get_catalog_tree(library)),
+      catalog_tree_(AS_asset_library_get_catalog_tree(library)),
       params_(params),
       space_file_(space_file)
 {
@@ -319,7 +323,9 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
 
 bool AssetCatalogTreeViewItem::supports_renaming() const
 {
-  return true;
+  const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
+      get_tree_view());
+  return !ED_asset_catalogs_read_only(*tree_view.asset_library_);
 }
 
 bool AssetCatalogTreeViewItem::rename(StringRefNull new_name)
@@ -358,7 +364,12 @@ AssetCatalogDropController::AssetCatalogDropController(AssetCatalogTreeView &tre
 bool AssetCatalogDropController::can_drop(const wmDrag &drag, const char **r_disabled_hint) const
 {
   if (drag.type == WM_DRAG_ASSET_CATALOG) {
-    const AssetCatalog *drag_catalog = get_drag_catalog(drag, get_asset_library());
+    const ::AssetLibrary &library = get_asset_library();
+    if (!can_modify_catalogs(library, r_disabled_hint)) {
+      return false;
+    }
+
+    const AssetCatalog *drag_catalog = get_drag_catalog(drag, library);
     /* NOTE: Technically it's not an issue to allow this (the catalog will just receive a new
      * path and the catalog system will generate missing parents from the path). But it does
      * appear broken to users, so disabling entirely. */
@@ -486,7 +497,7 @@ AssetCatalog *AssetCatalogDropController::get_drag_catalog(const wmDrag &drag,
   if (drag.type != WM_DRAG_ASSET_CATALOG) {
     return nullptr;
   }
-  const bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(
+  const AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
       &asset_library);
   const wmDragAssetCatalog *catalog_drag = WM_drag_get_asset_catalog_data(&drag);
 
@@ -508,6 +519,16 @@ bool AssetCatalogDropController::has_droppable_asset(const wmDrag &drag,
 
   *r_disabled_hint = TIP_("Only assets from this current file can be moved between catalogs");
   return false;
+}
+
+bool AssetCatalogDropController::can_modify_catalogs(const ::AssetLibrary &library,
+                                                     const char **r_disabled_hint)
+{
+  if (ED_asset_catalogs_read_only(library)) {
+    *r_disabled_hint = "Catalogs cannot be edited in this asset library";
+    return false;
+  }
+  return true;
 }
 
 ::AssetLibrary &AssetCatalogDropController::get_asset_library() const
@@ -577,9 +598,12 @@ bool AssetCatalogTreeViewAllItem::DropController::can_drop(const wmDrag &drag,
   if (drag.type != WM_DRAG_ASSET_CATALOG) {
     return false;
   }
+  ::AssetLibrary &library = *get_view<AssetCatalogTreeView>().asset_library_;
+  if (!AssetCatalogDropController::can_modify_catalogs(library, r_disabled_hint)) {
+    return false;
+  }
 
-  const AssetCatalog *drag_catalog = AssetCatalogDropController::get_drag_catalog(
-      drag, *get_view<AssetCatalogTreeView>().asset_library_);
+  const AssetCatalog *drag_catalog = AssetCatalogDropController::get_drag_catalog(drag, library);
   if (drag_catalog->path.parent() == "") {
     *r_disabled_hint = "Catalog is already placed at the highest level";
     return false;
@@ -708,7 +732,7 @@ bool file_set_asset_catalog_filter_settings(
 
 void file_ensure_updated_catalog_filter_data(
     FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
-    const bke::AssetLibrary *asset_library)
+    const asset_system::AssetLibrary *asset_library)
 {
   AssetCatalogFilterSettings *filter_settings = reinterpret_cast<AssetCatalogFilterSettings *>(
       filter_settings_handle);

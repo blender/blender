@@ -22,10 +22,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supports_field()
       .description(N_("Which of the sorted points to output"));
   b.add_output<decl::Int>(N_("Point Index"))
-      .dependent_field()
+      .field_source_reference_all()
       .description(N_("A point of the curve, chosen by the sort index"));
   b.add_output<decl::Int>(N_("Total"))
-      .dependent_field()
+      .field_source()
+      .reference_pass({0})
       .description(N_("The number of points in the curve"));
 }
 
@@ -48,6 +49,8 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask mask) const final
   {
+    const OffsetIndices points_by_curve = curves.points_by_curve();
+
     const bke::CurvesFieldContext context{curves, domain};
     fn::FieldEvaluator evaluator{context, &mask};
     evaluator.add(curve_index_);
@@ -61,6 +64,7 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
     point_evaluator.add(sort_weight_);
     point_evaluator.evaluate();
     const VArray<float> all_sort_weights = point_evaluator.get_evaluated<float>(0);
+    const bool use_sorting = !all_sort_weights.is_single();
 
     Array<int> point_of_curve(mask.min_array_size());
     threading::parallel_for(mask.index_range(), 256, [&](const IndexRange range) {
@@ -75,29 +79,40 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
           point_of_curve[selection_i] = 0;
           continue;
         }
-
-        const IndexRange points = curves.points_for_curve(curve_i);
-
-        /* Retrieve the weights for each point. */
-        sort_weights.reinitialize(points.size());
-        all_sort_weights.materialize_compressed(IndexMask(points), sort_weights.as_mutable_span());
-
-        /* Sort a separate array of compressed indices corresponding to the compressed weights.
-         * This allows using `materialize_compressed` to avoid virtual function call overhead
-         * when accessing values in the sort weights. However, it means a separate array of
-         * indices within the compressed array is necessary for sorting. */
-        sort_indices.reinitialize(points.size());
-        std::iota(sort_indices.begin(), sort_indices.end(), 0);
-        std::stable_sort(sort_indices.begin(), sort_indices.end(), [&](int a, int b) {
-          return sort_weights[a] < sort_weights[b];
-        });
+        const IndexRange points = points_by_curve[curve_i];
 
         const int index_in_sort_wrapped = mod_i(index_in_sort, points.size());
-        point_of_curve[selection_i] = points[sort_indices[index_in_sort_wrapped]];
+        if (use_sorting) {
+          /* Retrieve the weights for each point. */
+          sort_weights.reinitialize(points.size());
+          all_sort_weights.materialize_compressed(IndexMask(points),
+                                                  sort_weights.as_mutable_span());
+
+          /* Sort a separate array of compressed indices corresponding to the compressed weights.
+           * This allows using `materialize_compressed` to avoid virtual function call overhead
+           * when accessing values in the sort weights. However, it means a separate array of
+           * indices within the compressed array is necessary for sorting. */
+          sort_indices.reinitialize(points.size());
+          std::iota(sort_indices.begin(), sort_indices.end(), 0);
+          std::stable_sort(sort_indices.begin(), sort_indices.end(), [&](int a, int b) {
+            return sort_weights[a] < sort_weights[b];
+          });
+          point_of_curve[selection_i] = points[sort_indices[index_in_sort_wrapped]];
+        }
+        else {
+          point_of_curve[selection_i] = points[index_in_sort_wrapped];
+        }
       }
     });
 
     return VArray<int>::ForContainer(std::move(point_of_curve));
+  }
+
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
+  {
+    curve_index_.node().for_each_field_input_recursive(fn);
+    sort_index_.node().for_each_field_input_recursive(fn);
+    sort_weight_.node().for_each_field_input_recursive(fn);
   }
 
   uint64_t hash() const override
@@ -134,8 +149,9 @@ class CurvePointCountInput final : public bke::CurvesFieldInput {
     if (domain != ATTR_DOMAIN_CURVE) {
       return {};
     }
-    return VArray<int>::ForFunc(curves.curves_num(), [&, curves](const int64_t curve_i) {
-      return curves.points_num_for_curve(curve_i);
+    const OffsetIndices points_by_curve = curves.points_by_curve();
+    return VArray<int>::ForFunc(curves.curves_num(), [points_by_curve](const int64_t curve_i) {
+      return points_by_curve.size(curve_i);
     });
   }
 

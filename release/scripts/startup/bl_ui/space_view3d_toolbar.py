@@ -1084,7 +1084,7 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
         wpaint = tool_settings.weight_paint
         mesh = context.object.data
 
-        layout.prop(mesh, 'use_mirror_vertex_groups')
+        layout.prop(mesh, "use_mirror_vertex_groups")
 
         draw_vpaint_symmetry(layout, wpaint, context.object)
 

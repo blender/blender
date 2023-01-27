@@ -2,7 +2,6 @@
 
 #pragma once
 
-struct Main;
 struct NodesModifierData;
 struct Object;
 

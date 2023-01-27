@@ -36,7 +36,7 @@ class HIPDeviceGraphicsInterop : public DeviceGraphicsInterop {
   HIPDevice *device_ = nullptr;
 
   /* OpenGL PBO which is currently registered as the destination for the HIP buffer. */
-  uint opengl_pbo_id_ = 0;
+  int64_t opengl_pbo_id_ = 0;
   /* Buffer area in pixels of the corresponding PBO. */
   int64_t buffer_area_ = 0;
 

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BLI_float3x3.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -105,6 +105,11 @@ class Result {
    * and release the result's texture. */
   Result(ResultType type, TexturePool &texture_pool);
 
+  /* Identical to the standard constructor but initializes the reference count to 1. This is useful
+   * to construct temporary results that are created and released by the developer manually, which
+   * are typically used in operations that need temporary intermediate results. */
+  static Result Temporary(ResultType type, TexturePool &texture_pool);
+
   /* Declare the result to be a texture result, allocate a texture of an appropriate type with
    * the size of the given domain from the result's texture pool, and set the domain of the result
    * to the given domain. */
@@ -125,8 +130,9 @@ class Result {
   void bind_as_texture(GPUShader *shader, const char *texture_name) const;
 
   /* Bind the texture of the result to the image unit with the given name in the currently bound
-   * given shader. */
-  void bind_as_image(GPUShader *shader, const char *image_name) const;
+   * given shader. If read is true, a memory barrier will be inserted for image reads to ensure any
+   * prior writes to the images are reflected before reading from it. */
+  void bind_as_image(GPUShader *shader, const char *image_name, bool read = false) const;
 
   /* Unbind the texture which was previously bound using bind_as_texture. */
   void unbind_as_texture() const;

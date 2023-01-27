@@ -588,7 +588,7 @@ static void lineart_shadow_edge_cut(LineartData *ld,
     new_seg_2->ratio = end;
   }
 
-  double r_fb_co_1[4], r_fb_co_2[4], r_gloc_1[3], r_gloc_2[3];
+  double r_fb_co_1[4] = {0}, r_fb_co_2[4] = {0}, r_gloc_1[3] = {0}, r_gloc_2[3] = {0};
   double r_new_in_the_middle[4], r_new_in_the_middle_global[3], r_new_at;
   double *s1_fb_co_1, *s1_fb_co_2, *s1_gloc_1, *s1_gloc_2;
 
@@ -603,9 +603,15 @@ static void lineart_shadow_edge_cut(LineartData *ld,
   for (seg = cut_start_after; seg != cut_end_before; seg = nes) {
     nes = seg->next;
 
-    s1_fb_co_1 = seg->fbc2, s1_fb_co_2 = nes->fbc1;
-    s1_gloc_1 = seg->g2, s1_gloc_2 = nes->g1;
-    seg_1 = seg, seg_2 = nes;
+    s1_fb_co_1 = seg->fbc2;
+    s1_fb_co_2 = nes->fbc1;
+
+    s1_gloc_1 = seg->g2;
+    s1_gloc_2 = nes->g1;
+
+    seg_1 = seg;
+    seg_2 = nes;
+
     if (seg == cut_start_after) {
       lineart_shadow_segment_slice_get(seg->fbc2,
                                        nes->fbc1,
@@ -616,7 +622,9 @@ static void lineart_shadow_edge_cut(LineartData *ld,
                                        nes->ratio,
                                        m_fbc1,
                                        m_g1);
-      s1_fb_co_1 = m_fbc1, s1_gloc_1 = m_g1;
+      s1_fb_co_1 = m_fbc1;
+      s1_gloc_1 = m_g1;
+
       seg_1 = new_seg_1;
       if (cut_start_after != new_seg_1) {
         BLI_insertlinkafter(&e->shadow_segments, cut_start_after, new_seg_1);
@@ -634,7 +642,9 @@ static void lineart_shadow_edge_cut(LineartData *ld,
                                        nes->ratio,
                                        m_fbc2,
                                        m_g2);
-      s1_fb_co_2 = m_fbc2, s1_gloc_2 = m_g2;
+      s1_fb_co_2 = m_fbc2;
+      s1_gloc_2 = m_g2;
+
       seg_2 = new_seg_2;
       if (cut_end_before != new_seg_2) {
         BLI_insertlinkbefore(&e->shadow_segments, cut_end_before, new_seg_2);
@@ -821,13 +831,15 @@ static bool lineart_shadow_cast_onto_triangle(LineartData *ld,
       interp_v3_v3v3_db(t_gpos1, gpos1, gpos2, gat1);
       interp_v3_v3v3_db(t_fbc1, fbc1, fbc2, rat1);
       t_fbc1[3] = interpd(fbc2[3], fbc1[3], gat1);
-      at1 = 0, trimmed1 = true;
+      at1 = 0;
+      trimmed1 = true;
     }
     if (at2 > 1) {
       interp_v3_v3v3_db(t_gpos2, gpos1, gpos2, gat2);
       interp_v3_v3v3_db(t_fbc2, fbc1, fbc2, rat2);
       t_fbc2[3] = interpd(fbc2[3], fbc1[3], gat2);
-      at2 = 1, trimmed2 = true;
+      at2 = 1;
+      trimmed2 = true;
     }
   }
   if (trimmed1) {
@@ -1214,7 +1226,7 @@ bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
         proj, -ld->w, ld->w, -ld->h, ld->h, ld->conf.near_clip, ld->conf.far_clip);
   }
   invert_m4_m4(inv, ld->conf.cam_obmat);
-  mul_m4db_m4db_m4fl_uniq(result, proj, inv);
+  mul_m4db_m4db_m4fl(result, proj, inv);
   copy_m4_m4_db(proj, result);
   copy_m4_m4_db(ld->conf.view_projection, proj);
   unit_m4_db(view);

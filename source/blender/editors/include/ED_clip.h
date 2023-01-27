@@ -69,73 +69,79 @@ bool ED_space_clip_maskedit_mask_poll(struct bContext *C);
  * - Mask has visible and editable splines. */
 bool ED_space_clip_maskedit_mask_visible_splines_poll(struct bContext *C);
 
-void ED_space_clip_get_size(struct SpaceClip *sc, int *width, int *height);
-void ED_space_clip_get_size_fl(struct SpaceClip *sc, float size[2]);
-void ED_space_clip_get_zoom(struct SpaceClip *sc,
-                            struct ARegion *region,
+void ED_space_clip_get_size(const struct SpaceClip *sc, int *width, int *height);
+void ED_space_clip_get_size_fl(const struct SpaceClip *sc, float size[2]);
+void ED_space_clip_get_zoom(const struct SpaceClip *sc,
+                            const struct ARegion *region,
                             float *zoomx,
                             float *zoomy);
-void ED_space_clip_get_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
-void ED_space_clip_get_aspect_dimension_aware(struct SpaceClip *sc, float *aspx, float *aspy);
+void ED_space_clip_get_aspect(const struct SpaceClip *sc, float *aspx, float *aspy);
+void ED_space_clip_get_aspect_dimension_aware(const struct SpaceClip *sc,
+                                              float *aspx,
+                                              float *aspy);
 
 /**
  * Return current frame number in clip space.
  */
-int ED_space_clip_get_clip_frame_number(struct SpaceClip *sc);
+int ED_space_clip_get_clip_frame_number(const struct SpaceClip *sc);
 
-struct ImBuf *ED_space_clip_get_buffer(struct SpaceClip *sc);
-struct ImBuf *ED_space_clip_get_stable_buffer(struct SpaceClip *sc,
+struct ImBuf *ED_space_clip_get_buffer(const struct SpaceClip *sc);
+struct ImBuf *ED_space_clip_get_stable_buffer(const struct SpaceClip *sc,
                                               float loc[2],
                                               float *scale,
                                               float *angle);
 
-bool ED_space_clip_get_position(struct SpaceClip *sc,
-                                struct ARegion *region,
+bool ED_space_clip_get_position(const struct SpaceClip *sc,
+                                const struct ARegion *region,
                                 int mval[2],
                                 float fpos[2]);
 /**
  * Returns color in linear space, matching #ED_space_image_color_sample().
  */
-bool ED_space_clip_color_sample(struct SpaceClip *sc,
-                                struct ARegion *region,
+bool ED_space_clip_color_sample(const struct SpaceClip *sc,
+                                const struct ARegion *region,
                                 const int mval[2],
                                 float r_col[3]);
 
 void ED_clip_update_frame(const struct Main *mainp, int cfra);
-bool ED_clip_view_selection(const struct bContext *C, struct ARegion *region, bool fit);
+bool ED_clip_view_selection(const struct bContext *C, const struct ARegion *region, bool fit);
 
-void ED_clip_select_all(struct SpaceClip *sc, int action, bool *r_has_selection);
+void ED_clip_select_all(const struct SpaceClip *sc, int action, bool *r_has_selection);
 bool ED_clip_can_select(struct bContext *C);
 
-void ED_clip_point_undistorted_pos(struct SpaceClip *sc, const float co[2], float r_co[2]);
-void ED_clip_point_stable_pos(
-    struct SpaceClip *sc, struct ARegion *region, float x, float y, float *xr, float *yr);
+void ED_clip_point_undistorted_pos(const struct SpaceClip *sc, const float co[2], float r_co[2]);
+void ED_clip_point_stable_pos(const struct SpaceClip *sc,
+                              const struct ARegion *region,
+                              float x,
+                              float y,
+                              float *xr,
+                              float *yr);
 /**
  * \brief the reverse of #ED_clip_point_stable_pos(), gets the marker region coords.
  * better name here? view_to_track / track_to_view or so?
  */
-void ED_clip_point_stable_pos__reverse(struct SpaceClip *sc,
-                                       struct ARegion *region,
+void ED_clip_point_stable_pos__reverse(const struct SpaceClip *sc,
+                                       const struct ARegion *region,
                                        const float co[2],
                                        float r_co[2]);
 /**
  * Takes `event->mval`.
  */
-void ED_clip_mouse_pos(struct SpaceClip *sc,
-                       struct ARegion *region,
+void ED_clip_mouse_pos(const struct SpaceClip *sc,
+                       const struct ARegion *region,
                        const int mval[2],
                        float co[2]);
 
-bool ED_space_clip_check_show_trackedit(struct SpaceClip *sc);
-bool ED_space_clip_check_show_maskedit(struct SpaceClip *sc);
+bool ED_space_clip_check_show_trackedit(const struct SpaceClip *sc);
+bool ED_space_clip_check_show_maskedit(const struct SpaceClip *sc);
 
-struct MovieClip *ED_space_clip_get_clip(struct SpaceClip *sc);
+struct MovieClip *ED_space_clip_get_clip(const struct SpaceClip *sc);
 void ED_space_clip_set_clip(struct bContext *C,
                             struct bScreen *screen,
                             struct SpaceClip *sc,
                             struct MovieClip *clip);
 
-struct Mask *ED_space_clip_get_mask(struct SpaceClip *sc);
+struct Mask *ED_space_clip_get_mask(const struct SpaceClip *sc);
 void ED_space_clip_set_mask(struct bContext *C, struct SpaceClip *sc, struct Mask *mask);
 
 /* Locked state is used to preserve current clip editor viewport upon changes. Example usage:

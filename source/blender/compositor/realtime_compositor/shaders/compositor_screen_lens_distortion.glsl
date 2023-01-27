@@ -20,9 +20,9 @@ vec3 compute_chromatic_distortion_scale(float distance_squared)
 /* Compute the image coordinates after distortion by the given distortion scale computed by the
  * compute_distortion_scale function. Note that the function expects centered normalized UV
  * coordinates but outputs non-centered image coordinates. */
-vec2 compute_distorted_uv(vec2 uv, float scale)
+vec2 compute_distorted_uv(vec2 uv, float uv_scale)
 {
-  return (uv * scale + 0.5) * texture_size(input_tx) - 0.5;
+  return (uv * uv_scale + 0.5) * texture_size(input_tx) - 0.5;
 }
 
 /* Compute the number of integration steps that should be used to approximate the distorted pixel

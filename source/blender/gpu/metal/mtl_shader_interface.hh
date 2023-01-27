@@ -130,6 +130,7 @@ struct MTLShaderTexture {
   /* Texture resource bind slot in shader `[[texture(n)]]`. */
   int slot_index;
   eGPUTextureType type;
+  eGPUSamplerFormat sampler_format;
   ShaderStage stage_mask;
 };
 
@@ -168,6 +169,7 @@ class MTLShaderInterface : public ShaderInterface {
 
   /* Uniform Blocks. */
   uint32_t total_uniform_blocks_;
+  uint32_t max_uniformbuf_index_;
   MTLShaderUniformBlock ubos_[MTL_MAX_UNIFORM_BUFFER_BINDINGS];
   MTLShaderUniformBlock push_constant_block_;
 
@@ -209,6 +211,7 @@ class MTLShaderInterface : public ShaderInterface {
   void add_texture(uint32_t name_offset,
                    uint32_t texture_slot,
                    eGPUTextureType tex_binding_type,
+                   eGPUSamplerFormat sampler_format,
                    ShaderStage stage_mask = ShaderStage::FRAGMENT);
   void add_push_constant_block(uint32_t name_offset);
 
@@ -228,6 +231,7 @@ class MTLShaderInterface : public ShaderInterface {
   /* Fetch Uniform Blocks. */
   const MTLShaderUniformBlock &get_uniform_block(uint index) const;
   uint32_t get_total_uniform_blocks() const;
+  uint32_t get_max_ubo_index() const;
   bool has_uniform_block(uint32_t block_index) const;
   uint32_t get_uniform_block_size(uint32_t block_index) const;
 

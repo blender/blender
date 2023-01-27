@@ -174,6 +174,8 @@ class SkyTextureNode : public TextureNode {
     /* Clamping for numerical precision. */
     return fmaxf(sun_size, 0.0005f);
   }
+
+  float get_sun_average_radiance();
 };
 
 class OutputNode : public ShaderNode {
@@ -1525,10 +1527,15 @@ class OSLNode final : public ShaderNode {
   ShaderNode *clone(ShaderGraph *graph) const;
 
   char *input_default_value();
-  void add_input(ustring name, SocketType::Type type);
+  void add_input(ustring name, SocketType::Type type, const int flags = 0);
   void add_output(ustring name, SocketType::Type type);
 
   SHADER_NODE_NO_CLONE_CLASS(OSLNode)
+
+  bool has_surface_emission()
+  {
+    return has_emission;
+  }
 
   /* Ideally we could better detect this, but we can't query this now. */
   bool has_spatial_varying()
@@ -1551,6 +1558,7 @@ class OSLNode final : public ShaderNode {
 
   string filepath;
   string bytecode_hash;
+  bool has_emission;
 };
 
 class NormalMapNode : public ShaderNode {

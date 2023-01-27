@@ -9,7 +9,6 @@
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
-#include "BLI_devirtualize_parameters.hh"
 #include "BLI_noise.hh"
 #include "BLI_task.hh"
 
@@ -75,6 +74,7 @@ struct PointCloudRealizeInfo {
   Array<std::optional<GVArraySpan>> attributes;
   /** Id attribute on the point cloud. If there are no ids, this #Span is empty. */
   Span<float3> positions;
+  VArray<float> radii;
   Span<int> stored_ids;
 };
 
@@ -100,7 +100,7 @@ struct MeshElementStartIndices {
 
 struct MeshRealizeInfo {
   const Mesh *mesh = nullptr;
-  Span<MVert> verts;
+  Span<float3> positions;
   Span<MEdge> edges;
   Span<MPoly> polys;
   Span<MLoop> loops;
@@ -180,6 +180,7 @@ struct AllPointCloudsInfo {
   /** Preprocessed data about every original point cloud. This is ordered by #order. */
   Array<PointCloudRealizeInfo> realize_info;
   bool create_id_attribute = false;
+  bool create_radius_attribute = false;
 };
 
 struct AllMeshesInfo {
@@ -622,7 +623,10 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
  * \{ */
 
 static OrderedAttributes gather_generic_pointcloud_attributes_to_propagate(
-    const GeometrySet &in_geometry_set, const RealizeInstancesOptions &options, bool &r_create_id)
+    const GeometrySet &in_geometry_set,
+    const RealizeInstancesOptions &options,
+    bool &r_create_radii,
+    bool &r_create_id)
 {
   Vector<GeometryComponentType> src_component_types;
   src_component_types.append(GEO_COMPONENT_TYPE_POINT_CLOUD);
@@ -631,10 +635,14 @@ static OrderedAttributes gather_generic_pointcloud_attributes_to_propagate(
   }
 
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
-  in_geometry_set.gather_attributes_for_propagation(
-      src_component_types, GEO_COMPONENT_TYPE_POINT_CLOUD, true, attributes_to_propagate);
+  in_geometry_set.gather_attributes_for_propagation(src_component_types,
+                                                    GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                                    true,
+                                                    options.propagation_info,
+                                                    attributes_to_propagate);
   attributes_to_propagate.remove("position");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
+  r_create_radii = attributes_to_propagate.pop_try("radius").has_value();
   OrderedAttributes ordered_attributes;
   for (const auto item : attributes_to_propagate.items()) {
     ordered_attributes.ids.add_new(item.key);
@@ -663,7 +671,7 @@ static AllPointCloudsInfo preprocess_pointclouds(const GeometrySet &geometry_set
 {
   AllPointCloudsInfo info;
   info.attributes = gather_generic_pointcloud_attributes_to_propagate(
-      geometry_set, options, info.create_id_attribute);
+      geometry_set, options, info.create_radius_attribute, info.create_id_attribute);
 
   gather_pointclouds_to_realize(geometry_set, info.order);
   info.realize_info.reinitialize(info.order.size());
@@ -690,6 +698,9 @@ static AllPointCloudsInfo preprocess_pointclouds(const GeometrySet &geometry_set
         pointcloud_info.stored_ids = ids_attribute.varray.get_internal_span().typed<int>();
       }
     }
+    if (info.create_radius_attribute) {
+      pointcloud_info.radii = attributes.lookup_or_default("radius", ATTR_DOMAIN_POINT, 0.01f);
+    }
     const VArray<float3> position_attribute = attributes.lookup_or_default<float3>(
         "position", ATTR_DOMAIN_POINT, float3(0));
     pointcloud_info.positions = position_attribute.get_internal_span();
@@ -702,6 +713,7 @@ static void execute_realize_pointcloud_task(
     const RealizePointCloudTask &task,
     const OrderedAttributes &ordered_attributes,
     MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
+    MutableSpan<float> all_dst_radii,
     MutableSpan<int> all_dst_ids,
     MutableSpan<float3> all_dst_positions)
 {
@@ -716,6 +728,9 @@ static void execute_realize_pointcloud_task(
   if (!all_dst_ids.is_empty()) {
     create_result_ids(
         options, pointcloud_info.stored_ids, task.id, all_dst_ids.slice(point_slice));
+  }
+  if (!all_dst_radii.is_empty()) {
+    pointcloud_info.radii.materialize(all_dst_radii.slice(point_slice));
   }
 
   copy_generic_attributes_to_result(
@@ -759,6 +774,11 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
   if (all_pointclouds_info.create_id_attribute) {
     point_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id", ATTR_DOMAIN_POINT);
   }
+  SpanAttributeWriter<float> point_radii;
+  if (all_pointclouds_info.create_radius_attribute) {
+    point_radii = dst_attributes.lookup_or_add_for_write_only_span<float>("radius",
+                                                                          ATTR_DOMAIN_POINT);
+  }
 
   /* Prepare generic output attributes. */
   Vector<GSpanAttributeWriter> dst_attribute_writers;
@@ -777,6 +797,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
                                       task,
                                       ordered_attributes,
                                       dst_attribute_writers,
+                                      point_radii.span,
                                       point_ids.span,
                                       positions.span);
     }
@@ -787,6 +808,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
     dst_attribute.finish();
   }
   positions.finish();
+  point_radii.finish();
   point_ids.finish();
 }
 
@@ -809,8 +831,11 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
   }
 
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
-  in_geometry_set.gather_attributes_for_propagation(
-      src_component_types, GEO_COMPONENT_TYPE_MESH, true, attributes_to_propagate);
+  in_geometry_set.gather_attributes_for_propagation(src_component_types,
+                                                    GEO_COMPONENT_TYPE_MESH,
+                                                    true,
+                                                    options.propagation_info,
+                                                    attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("normal");
   attributes_to_propagate.remove("shade_smooth");
@@ -865,7 +890,7 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     MeshRealizeInfo &mesh_info = info.realize_info[mesh_index];
     const Mesh *mesh = info.order[mesh_index];
     mesh_info.mesh = mesh;
-    mesh_info.verts = mesh->verts();
+    mesh_info.positions = mesh->vert_positions();
     mesh_info.edges = mesh->edges();
     mesh_info.polys = mesh->polys();
     mesh_info.loops = mesh->loops();
@@ -911,7 +936,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                       const RealizeMeshTask &task,
                                       const OrderedAttributes &ordered_attributes,
                                       MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
-                                      MutableSpan<MVert> all_dst_verts,
+                                      MutableSpan<float3> all_dst_positions,
                                       MutableSpan<MEdge> all_dst_edges,
                                       MutableSpan<MPoly> all_dst_polys,
                                       MutableSpan<MLoop> all_dst_loops,
@@ -921,27 +946,24 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   const MeshRealizeInfo &mesh_info = *task.mesh_info;
   const Mesh &mesh = *mesh_info.mesh;
 
-  const Span<MVert> src_verts = mesh_info.verts;
+  const Span<float3> src_positions = mesh_info.positions;
   const Span<MEdge> src_edges = mesh_info.edges;
   const Span<MPoly> src_polys = mesh_info.polys;
   const Span<MLoop> src_loops = mesh_info.loops;
 
-  const IndexRange dst_vert_range(task.start_indices.vertex, src_verts.size());
+  const IndexRange dst_vert_range(task.start_indices.vertex, src_positions.size());
   const IndexRange dst_edge_range(task.start_indices.edge, src_edges.size());
   const IndexRange dst_poly_range(task.start_indices.poly, src_polys.size());
   const IndexRange dst_loop_range(task.start_indices.loop, src_loops.size());
 
-  MutableSpan<MVert> dst_verts = all_dst_verts.slice(dst_vert_range);
+  MutableSpan<float3> dst_positions = all_dst_positions.slice(dst_vert_range);
   MutableSpan<MEdge> dst_edges = all_dst_edges.slice(dst_edge_range);
   MutableSpan<MPoly> dst_polys = all_dst_polys.slice(dst_poly_range);
   MutableSpan<MLoop> dst_loops = all_dst_loops.slice(dst_loop_range);
 
-  threading::parallel_for(src_verts.index_range(), 1024, [&](const IndexRange vert_range) {
+  threading::parallel_for(src_positions.index_range(), 1024, [&](const IndexRange vert_range) {
     for (const int i : vert_range) {
-      const MVert &src_vert = src_verts[i];
-      MVert &dst_vert = dst_verts[i];
-      dst_vert = src_vert;
-      copy_v3_v3(dst_vert.co, task.transform * float3(src_vert.co));
+      dst_positions[i] = task.transform * src_positions[i];
     }
   });
   threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange edge_range) {
@@ -1047,7 +1069,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   MeshComponent &dst_component = r_realized_geometry.get_component_for_write<MeshComponent>();
   dst_component.replace(dst_mesh);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
-  MutableSpan<MVert> dst_verts = dst_mesh->verts_for_write();
+  MutableSpan<float3> dst_positions = dst_mesh->vert_positions_for_write();
   MutableSpan<MEdge> dst_edges = dst_mesh->edges_for_write();
   MutableSpan<MPoly> dst_polys = dst_mesh->polys_for_write();
   MutableSpan<MLoop> dst_loops = dst_mesh->loops_for_write();
@@ -1096,7 +1118,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
                                 task,
                                 ordered_attributes,
                                 dst_attribute_writers,
-                                dst_verts,
+                                dst_positions,
                                 dst_edges,
                                 dst_polys,
                                 dst_loops,
@@ -1129,8 +1151,11 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
   }
 
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
-  in_geometry_set.gather_attributes_for_propagation(
-      src_component_types, GEO_COMPONENT_TYPE_CURVE, true, attributes_to_propagate);
+  in_geometry_set.gather_attributes_for_propagation(src_component_types,
+                                                    GEO_COMPONENT_TYPE_CURVE,
+                                                    true,
+                                                    options.propagation_info,
+                                                    attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("radius");
   attributes_to_propagate.remove("resolution");

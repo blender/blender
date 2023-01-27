@@ -103,32 +103,3 @@ if(WITH_CYCLES_STANDALONE)
     $<TARGET_FILE:cycles>
     DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
-
-#####################################################################
-# Cycles cubin compiler executable
-#####################################################################
-
-if(WITH_CYCLES_CUBIN_COMPILER)
-  # 32 bit windows is special, nvrtc is not supported on x86, so even
-  # though we are building 32 bit blender a 64 bit cubin_cc will have
-  # to be build to compile the cubins.
-  if(MSVC AND NOT CMAKE_CL_64)
-    message("Building with CUDA not supported on 32 bit, skipped")
-    set(WITH_CYCLES_CUDA_BINARIES OFF CACHE BOOL "" FORCE)
-  else()
-    set(SRC
-      cycles_cubin_cc.cpp
-    )
-    set(INC
-      ../../../extern/cuew/include
-    )
-    set(LIB
-    )
-    cycles_external_libraries_append(LIB)
-    add_executable(cycles_cubin_cc ${SRC})
-    include_directories(${INC})
-    target_link_libraries(cycles_cubin_cc PRIVATE ${LIB})
-    unset(SRC)
-    unset(INC)
-  endif()
-endif()

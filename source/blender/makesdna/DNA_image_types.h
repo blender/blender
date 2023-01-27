@@ -163,7 +163,11 @@ typedef struct Image {
   short gpu_pass;
   short gpu_layer;
   short gpu_view;
-  char _pad2[4];
+
+  /* Number of iterations to perform when extracting mask for uv seam fixing. */
+  short seam_margin;
+
+  char _pad2[2];
 
   /** Deprecated. */
   struct PackedFile *packedfile DNA_DEPRECATED;

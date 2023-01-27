@@ -40,6 +40,20 @@ class GHOST_IContext {
 
   virtual unsigned int getDefaultFramebuffer() = 0;
 
+  virtual GHOST_TSuccess getVulkanHandles(void *, void *, void *, uint32_t *) = 0;
+
+  /**
+   * Gets the Vulkan framebuffer related resource handles associated with the Vulkan context.
+   * Needs to be called after each swap events as the framebuffer will change.
+   * \return  A boolean success indicator.
+   */
+  virtual GHOST_TSuccess getVulkanBackbuffer(void *image,
+                                             void *framebuffer,
+                                             void *command_buffer,
+                                             void *render_pass,
+                                             void *extent,
+                                             uint32_t *fb_id) = 0;
+
   virtual GHOST_TSuccess swapBuffers() = 0;
 
 #ifdef WITH_CXX_GUARDEDALLOC

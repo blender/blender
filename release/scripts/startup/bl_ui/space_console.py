@@ -31,10 +31,10 @@ class CONSOLE_MT_view(Menu):
         layout = self.layout
 
         props = layout.operator("wm.context_cycle_int", text="Zoom In")
-        props.data_path = 'space_data.font_size'
+        props.data_path = "space_data.font_size"
         props.reverse = False
         props = layout.operator("wm.context_cycle_int", text="Zoom Out")
-        props.data_path = 'space_data.font_size'
+        props.data_path = "space_data.font_size"
         props.reverse = True
 
         layout.separator()
@@ -62,7 +62,7 @@ class CONSOLE_MT_language(Menu):
         layout = self.layout
         layout.column()
 
-        # Collect modules with 'console_*.execute'
+        # Collect modules with `console_*.execute`.
         languages = []
         for modname, mod in sys.modules.items():
             if modname.startswith("console_") and hasattr(mod, "execute"):

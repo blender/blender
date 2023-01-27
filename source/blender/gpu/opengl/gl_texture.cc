@@ -303,6 +303,42 @@ void GLTexture::update_sub(
   has_pixels_ = true;
 }
 
+void GLTexture::update_sub(int offset[3],
+                           int extent[3],
+                           eGPUDataFormat format,
+                           GPUPixelBuffer *pixbuf)
+{
+  /* Update texture from pixel buffer. */
+  BLI_assert(validate_data_format(format_, format));
+  BLI_assert(pixbuf != nullptr);
+
+  const int dimensions = this->dimensions_count();
+  GLenum gl_format = to_gl_data_format(format_);
+  GLenum gl_type = to_gl(format);
+
+  /* Temporarily Bind texture. */
+  GLContext::state_manager_active_get()->texture_bind_temp(this);
+
+  /* Bind pixel buffer for source data. */
+  GLint pix_buf_handle = (GLint)GPU_pixel_buffer_get_native_handle(pixbuf);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pix_buf_handle);
+
+  switch (dimensions) {
+    default:
+    case 1:
+      glTexSubImage1D(target_, 0, offset[0], extent[0], gl_format, gl_type, nullptr);
+      break;
+    case 2:
+      glTexSubImage2D(target_, 0, UNPACK2(offset), UNPACK2(extent), gl_format, gl_type, nullptr);
+      break;
+    case 3:
+      glTexSubImage3D(target_, 0, UNPACK3(offset), UNPACK3(extent), gl_format, gl_type, nullptr);
+      break;
+  }
+
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+}
+
 /**
  * This will create the mipmap images and populate them with filtered data from base level.
  *
@@ -512,12 +548,13 @@ GLuint GLTexture::samplers_[GPU_SAMPLER_MAX] = {0};
 void GLTexture::samplers_init()
 {
   glGenSamplers(GPU_SAMPLER_MAX, samplers_);
-  for (int i = 0; i <= GPU_SAMPLER_ICON - 1; i++) {
+  for (int i = 0; i < GPU_SAMPLER_ICON; i++) {
     eGPUSamplerState state = static_cast<eGPUSamplerState>(i);
     GLenum clamp_type = (state & GPU_SAMPLER_CLAMP_BORDER) ? GL_CLAMP_TO_BORDER : GL_CLAMP_TO_EDGE;
-    GLenum wrap_s = (state & GPU_SAMPLER_REPEAT_S) ? GL_REPEAT : clamp_type;
-    GLenum wrap_t = (state & GPU_SAMPLER_REPEAT_T) ? GL_REPEAT : clamp_type;
-    GLenum wrap_r = (state & GPU_SAMPLER_REPEAT_R) ? GL_REPEAT : clamp_type;
+    GLenum repeat_type = (state & GPU_SAMPLER_MIRROR_REPEAT) ? GL_MIRRORED_REPEAT : GL_REPEAT;
+    GLenum wrap_s = (state & GPU_SAMPLER_REPEAT_S) ? repeat_type : clamp_type;
+    GLenum wrap_t = (state & GPU_SAMPLER_REPEAT_T) ? repeat_type : clamp_type;
+    GLenum wrap_r = (state & GPU_SAMPLER_REPEAT_R) ? repeat_type : clamp_type;
     GLenum mag_filter = (state & GPU_SAMPLER_FILTER) ? GL_LINEAR : GL_NEAREST;
     GLenum min_filter = (state & GPU_SAMPLER_FILTER) ?
                             ((state & GPU_SAMPLER_MIPMAP) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR) :
@@ -541,7 +578,7 @@ void GLTexture::samplers_init()
 
     char sampler_name[128] = "\0\0";
     SNPRINTF(sampler_name,
-             "%s%s%s%s%s%s%s%s%s%s",
+             "%s%s%s%s%s%s%s%s%s%s%s",
              (state == GPU_SAMPLER_DEFAULT) ? "_default" : "",
              (state & GPU_SAMPLER_FILTER) ? "_filter" : "",
              (state & GPU_SAMPLER_MIPMAP) ? "_mipmap" : "",
@@ -549,6 +586,7 @@ void GLTexture::samplers_init()
              (state & GPU_SAMPLER_REPEAT_S) ? "S" : "",
              (state & GPU_SAMPLER_REPEAT_T) ? "T" : "",
              (state & GPU_SAMPLER_REPEAT_R) ? "R" : "",
+             (state & GPU_SAMPLER_MIRROR_REPEAT) ? "-mirror" : "",
              (state & GPU_SAMPLER_CLAMP_BORDER) ? "_clamp_border" : "",
              (state & GPU_SAMPLER_COMPARE) ? "_compare" : "",
              (state & GPU_SAMPLER_ANISO) ? "_aniso" : "");
@@ -576,7 +614,7 @@ void GLTexture::samplers_update()
 
   float aniso_filter = min_ff(max_anisotropy, U.anisotropic_filter);
 
-  for (int i = 0; i <= GPU_SAMPLER_ICON - 1; i++) {
+  for (int i = 0; i < GPU_SAMPLER_ICON; i++) {
     eGPUSamplerState state = static_cast<eGPUSamplerState>(i);
     if ((state & GPU_SAMPLER_ANISO) && (state & GPU_SAMPLER_MIPMAP)) {
       glSamplerParameterf(samplers_[i], GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso_filter);
@@ -739,4 +777,63 @@ uint GLTexture::gl_bindcode_get() const
   return tex_id_;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Pixel Buffer
+ * \{ */
+
+GLPixelBuffer::GLPixelBuffer(uint size) : PixelBuffer(size)
+{
+  glGenBuffers(1, &gl_id_);
+  BLI_assert(gl_id_);
+
+  if (!gl_id_) {
+    return;
+  }
+
+  /* Ensure size is non-zero for pixel buffer backing storage creation. */
+  size = max_ii(size, 32);
+
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, gl_id_);
+  glBufferData(GL_PIXEL_UNPACK_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+}
+
+GLPixelBuffer::~GLPixelBuffer()
+{
+  if (!gl_id_) {
+    return;
+  }
+  glDeleteBuffers(1, &gl_id_);
+}
+
+void *GLPixelBuffer::map()
+{
+  if (!gl_id_) {
+    BLI_assert(false);
+    return nullptr;
+  }
+
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, gl_id_);
+  void *ptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+  BLI_assert(ptr);
+  return ptr;
+}
+
+void GLPixelBuffer::unmap()
+{
+  glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+}
+
+int64_t GLPixelBuffer::get_native_handle()
+{
+  return int64_t(gl_id_);
+}
+
+uint GLPixelBuffer::get_size()
+{
+  return size_;
+}
+
+/** \} */
 }  // namespace blender::gpu

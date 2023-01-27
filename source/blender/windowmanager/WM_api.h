@@ -26,7 +26,6 @@ extern "C" {
 
 struct ARegion;
 struct AssetHandle;
-struct AssetLibraryReference;
 struct GHashIterator;
 struct GPUViewport;
 struct ID;
@@ -39,7 +38,6 @@ struct MenuType;
 struct PointerRNA;
 struct PropertyRNA;
 struct ScrArea;
-struct SelectPick_Params;
 struct View3D;
 struct ViewLayer;
 struct bContext;
@@ -125,6 +123,15 @@ void WM_init_opengl(void);
  * see: #GHOST_ISystem::getSystemBackend for details.
  */
 const char *WM_ghost_backend(void);
+
+typedef enum eWM_CapabilitiesFlag {
+  /** Ability to warp the cursor (set it's location). */
+  WM_CAPABILITY_CURSOR_WARP = (1 << 0),
+  /** Ability to access window positions & move them. */
+  WM_CAPABILITY_WINDOW_POSITION = (1 << 1),
+} eWM_CapabilitiesFlag;
+
+eWM_CapabilitiesFlag WM_capabilities_flag(void);
 
 void WM_check(struct bContext *C);
 void WM_reinit_gizmomap_all(struct Main *bmain);
@@ -267,7 +274,7 @@ void WM_window_set_dpi(const wmWindow *win);
 
 bool WM_stereo3d_enabled(struct wmWindow *win, bool only_fullscreen_test);
 
-/* wm_files.c */
+/* wm_files.cc */
 
 void WM_file_autoexec_init(const char *filepath);
 bool WM_file_read(struct bContext *C, const char *filepath, struct ReportList *reports);
@@ -312,9 +319,22 @@ void WM_cursor_modal_restore(struct wmWindow *win);
  */
 void WM_cursor_wait(bool val);
 /**
- * \param bounds: can be NULL
+ * Enable cursor grabbing, optionally hiding the cursor and wrapping cursor-motion
+ * within a sub-region of the window.
+ *
+ * \param wrap: an enum (#WM_CURSOR_WRAP_NONE, #WM_CURSOR_WRAP_XY... etc).
+ * \param wrap_region: Window-relative region for cursor wrapping (when `wrap` is
+ * #WM_CURSOR_WRAP_XY). When NULL, the window bounds are used for wrapping.
+ *
+ * \note The current grab state can be accessed by #wmWindowManager.grabcursor although.
  */
-void WM_cursor_grab_enable(struct wmWindow *win, int wrap, bool hide, int bounds[4]);
+void WM_cursor_grab_enable(struct wmWindow *win,
+                           eWM_CursorWrapAxis wrap,
+                           const struct rcti *wrap_region,
+                           bool hide);
+/**
+ *
+ */
 void WM_cursor_grab_disable(struct wmWindow *win, const int mouse_ungrab_xy[2]);
 /**
  * After this you can call restore too.
@@ -335,7 +355,10 @@ void WM_paint_cursor_remove_by_type(struct wmWindowManager *wm,
 void WM_paint_cursor_tag_redraw(struct wmWindow *win, struct ARegion *region);
 
 /**
- * This function requires access to the GHOST_SystemHandle (g_system).
+ * Set the cursor location in window coordinates (compatible with #wmEvent.xy).
+ *
+ * \note Some platforms don't support this, check: #WM_CAPABILITY_WINDOW_POSITION
+ * before relying on this functionality.
  */
 void WM_cursor_warp(struct wmWindow *win, int x, int y);
 
@@ -1332,10 +1355,7 @@ struct wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const struct wmDrag *d
 /**
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
-void WM_drag_add_asset_list_item(wmDrag *drag,
-                                 const struct bContext *C,
-                                 const struct AssetLibraryReference *asset_library_ref,
-                                 const struct AssetHandle *asset);
+void WM_drag_add_asset_list_item(wmDrag *drag, const struct AssetHandle *asset);
 const ListBase *WM_drag_asset_list_get(const wmDrag *drag);
 
 const char *WM_drag_get_item_name(struct wmDrag *drag);

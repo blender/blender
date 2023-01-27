@@ -7,7 +7,7 @@
 #include "BLI_hash.hh"
 #include "BLI_math_boolean.hh"
 #include "BLI_math_mpq.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
@@ -201,7 +201,7 @@ static RobustInitCaller init_caller;
   y = bvirt - b
 
 #define Fast_Two_Diff(a, b, x, y) \
-  x = (double)(a - b); \
+  x = double(a - b); \
   Fast_Two_Diff_Tail(a, b, x, y)
 
 #define Two_Sum_Tail(a, b, x, y) \
@@ -253,7 +253,7 @@ static RobustInitCaller init_caller;
   y = (alo * blo) - err3
 
 #define Two_Product_2Presplit(a, ahi, alo, b, bhi, blo, x, y) \
-  x = (double)(a * b); \
+  x = double(a * b); \
   err1 = x - (ahi * bhi); \
   err2 = err1 - (alo * bhi); \
   err3 = err2 - (ahi * blo); \
@@ -501,11 +501,15 @@ static int fast_expansion_sum_zeroelim(
     while ((eindex < elen) && (findex < flen)) {
       if ((fnow > enow) == (fnow > -enow)) {
         Two_Sum(Q, enow, Qnew, hh);
-        enow = e[++eindex];
+        if (++eindex < elen) {
+          enow = e[eindex];
+        }
       }
       else {
         Two_Sum(Q, fnow, Qnew, hh);
-        fnow = f[++findex];
+        if (++findex < flen) {
+          fnow = f[findex];
+        }
       }
       Q = Qnew;
       if (hh != 0.0) {
@@ -515,7 +519,9 @@ static int fast_expansion_sum_zeroelim(
   }
   while (eindex < elen) {
     Two_Sum(Q, enow, Qnew, hh);
-    enow = e[++eindex];
+    if (++eindex < elen) {
+      enow = e[eindex];
+    }
     Q = Qnew;
     if (hh != 0.0) {
       h[hindex++] = hh;
@@ -523,7 +529,9 @@ static int fast_expansion_sum_zeroelim(
   }
   while (findex < flen) {
     Two_Sum(Q, fnow, Qnew, hh);
-    fnow = f[++findex];
+    if (++findex < flen) {
+      fnow = f[findex];
+    }
     Q = Qnew;
     if (hh != 0.0) {
       h[hindex++] = hh;

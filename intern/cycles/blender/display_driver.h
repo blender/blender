@@ -15,6 +15,10 @@
 #include "util/unique_ptr.h"
 #include "util/vector.h"
 
+typedef struct GPUContext GPUContext;
+typedef struct GPUFence GPUFence;
+typedef struct GPUShader GPUShader;
+
 CCL_NAMESPACE_BEGIN
 
 /* Base class of shader used for display driver rendering. */
@@ -29,7 +33,7 @@ class BlenderDisplayShader {
   BlenderDisplayShader() = default;
   virtual ~BlenderDisplayShader() = default;
 
-  virtual void bind(int width, int height) = 0;
+  virtual GPUShader *bind(int width, int height) = 0;
   virtual void unbind() = 0;
 
   /* Get attribute location for position and texture coordinate respectively.
@@ -40,7 +44,7 @@ class BlenderDisplayShader {
  protected:
   /* Get program of this display shader.
    * NOTE: The shader needs to be bound to have access to this. */
-  virtual uint get_shader_program() = 0;
+  virtual GPUShader *get_shader_program() = 0;
 
   /* Cached values of various OpenGL resources. */
   int position_attribute_location_ = -1;
@@ -51,16 +55,16 @@ class BlenderDisplayShader {
  * display space shader. */
 class BlenderFallbackDisplayShader : public BlenderDisplayShader {
  public:
-  virtual void bind(int width, int height) override;
+  virtual GPUShader *bind(int width, int height) override;
   virtual void unbind() override;
 
  protected:
-  virtual uint get_shader_program() override;
+  virtual GPUShader *get_shader_program() override;
 
   void create_shader_if_needed();
   void destroy_shader();
 
-  uint shader_program_ = 0;
+  GPUShader *shader_program_ = 0;
   int image_texture_location_ = -1;
   int fullscreen_location_ = -1;
 
@@ -73,17 +77,17 @@ class BlenderDisplaySpaceShader : public BlenderDisplayShader {
  public:
   BlenderDisplaySpaceShader(BL::RenderEngine &b_engine, BL::Scene &b_scene);
 
-  virtual void bind(int width, int height) override;
+  virtual GPUShader *bind(int width, int height) override;
   virtual void unbind() override;
 
  protected:
-  virtual uint get_shader_program() override;
+  virtual GPUShader *get_shader_program() override;
 
   BL::RenderEngine b_engine_;
   BL::Scene &b_scene_;
 
   /* Cached values of various OpenGL resources. */
-  uint shader_program_ = 0;
+  GPUShader *shader_program_ = nullptr;
 };
 
 /* Display driver implementation which is specific for Blender viewport integration. */
@@ -122,6 +126,9 @@ class BlenderDisplayDriver : public DisplayDriver {
   void gpu_context_lock();
   void gpu_context_unlock();
 
+  /* Create GPU resources used by the display driver. */
+  bool gpu_resources_create();
+
   /* Destroy all GPU resources which are being used by this object. */
   void gpu_resources_destroy();
 
@@ -137,8 +144,8 @@ class BlenderDisplayDriver : public DisplayDriver {
   struct Tiles;
   unique_ptr<Tiles> tiles_;
 
-  void *gl_render_sync_ = nullptr;
-  void *gl_upload_sync_ = nullptr;
+  GPUFence *gpu_render_sync_ = nullptr;
+  GPUFence *gpu_upload_sync_ = nullptr;
 
   float2 zoom_ = make_float2(1.0f, 1.0f);
 };

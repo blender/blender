@@ -9,8 +9,8 @@
 
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
-#include "BLI_set.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "BKE_node.h"
 
@@ -19,8 +19,6 @@
 #include "UI_view2d.h"
 
 struct ARegion;
-struct ARegionType;
-struct Main;
 struct NodeInsertOfsData;
 struct View2D;
 struct bContext;
@@ -43,8 +41,7 @@ struct AssetItemTree;
 /** Temporary data used in node link drag modal operator. */
 struct bNodeLinkDrag {
   /** Links dragged by the operator. */
-  Vector<bNodeLink *> links;
-  bool from_multi_input_socket;
+  Vector<bNodeLink> links;
   eNodeSocketInOut in_out;
 
   /** Draw handler for the "+" icon when dragging a link in empty space. */
@@ -74,6 +71,12 @@ struct bNodeLinkDrag {
 };
 
 struct SpaceNode_Runtime {
+  /**
+   * The location of all sockets in the tree, calculated while drawing the nodes.
+   * To be indexed with #bNodeSocket::index_in_tree().
+   */
+  Vector<float2> all_socket_locations;
+
   float aspect;
 
   /** Mouse position for drawing socket-less links and adding nodes. */
@@ -156,10 +159,7 @@ void node_socket_color_get(const bContext &C,
 
 void node_draw_space(const bContext &C, ARegion &region);
 
-void node_socket_add_tooltip(const bNodeTree &ntree,
-                             const bNode &node,
-                             const bNodeSocket &sock,
-                             uiLayout &layout);
+void node_socket_add_tooltip(const bNodeTree &ntree, const bNodeSocket &sock, uiLayout &layout);
 
 /**
  * Sort nodes by selection: unselected nodes first, then selected,
@@ -183,12 +183,11 @@ void node_keymap(wmKeyConfig *keyconf);
 rctf node_frame_rect_inside(const bNode &node);
 bool node_or_socket_isect_event(const bContext &C, const wmEvent &event);
 
-Set<bNode *> get_selected_nodes(bNodeTree &node_tree);
-void node_deselect_all(SpaceNode &snode);
+void node_deselect_all(bNodeTree &node_tree);
 void node_socket_select(bNode *node, bNodeSocket &sock);
 void node_socket_deselect(bNode *node, bNodeSocket &sock, bool deselect_node);
-void node_deselect_all_input_sockets(SpaceNode &snode, bool deselect_nodes);
-void node_deselect_all_output_sockets(SpaceNode &snode, bool deselect_nodes);
+void node_deselect_all_input_sockets(bNodeTree &node_tree, bool deselect_nodes);
+void node_deselect_all_output_sockets(bNodeTree &node_tree, bool deselect_nodes);
 void node_select_single(bContext &C, bNode &node);
 
 void NODE_OT_select(wmOperatorType *ot);
@@ -246,10 +245,13 @@ void node_draw_link_bezier(const bContext &C,
                            int th_col3,
                            bool selected);
 
-void node_link_bezier_points_evaluated(const bNodeLink &link,
+void node_link_bezier_points_evaluated(Span<float2> all_socket_locations,
+                                       const bNodeLink &link,
                                        std::array<float2, NODE_LINK_RESOL + 1> &coords);
 
-std::optional<float2> link_path_intersection(const bNodeLink &link, Span<float2> path);
+std::optional<float2> link_path_intersection(Span<float2> socket_locations,
+                                             const bNodeLink &link,
+                                             Span<float2> path);
 
 void draw_nodespace_back_pix(const bContext &C,
                              ARegion &region,
@@ -316,14 +318,15 @@ bool composite_node_editable(bContext *C);
 bool node_has_hidden_sockets(bNode *node);
 void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set);
 int node_render_changed_exec(bContext *, wmOperator *);
-/** Type is #SOCK_IN and/or #SOCK_OUT. */
-bool node_find_indicated_socket(SpaceNode &snode,
-                                bNode **nodep,
-                                bNodeSocket **sockp,
-                                const float2 &cursor,
-                                eNodeSocketInOut in_out);
-float node_link_dim_factor(const View2D &v2d, const bNodeLink &link);
-bool node_link_is_hidden_or_dimmed(const View2D &v2d, const bNodeLink &link);
+bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
+                                        const float2 &cursor,
+                                        eNodeSocketInOut in_out);
+float node_link_dim_factor(Span<float2> socket_locations,
+                           const View2D &v2d,
+                           const bNodeLink &link);
+bool node_link_is_hidden_or_dimmed(Span<float2> socket_locations,
+                                   const View2D &v2d,
+                                   const bNodeLink &link);
 
 void NODE_OT_duplicate(wmOperatorType *ot);
 void NODE_OT_delete(wmOperatorType *ot);

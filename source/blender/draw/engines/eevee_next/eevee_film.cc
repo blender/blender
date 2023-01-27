@@ -595,7 +595,7 @@ void Film::update_sample_table()
     }
     /* Put the closest one in first position. */
     if (closest_index != 0) {
-      SWAP(FilmSample, data_.samples[closest_index], data_.samples[0]);
+      std::swap(data_.samples[closest_index], data_.samples[0]);
     }
   }
   else {

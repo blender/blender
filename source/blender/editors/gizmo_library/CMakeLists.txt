@@ -18,6 +18,9 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   gizmo_draw_utils.c
   gizmo_geometry.h

@@ -302,6 +302,11 @@ void DRW_deferred_shader_remove(GPUMaterial *mat)
 
 /** \{ */
 
+GPUShader *DRW_shader_create_from_info_name(const char *info_name)
+{
+  return GPU_shader_create_from_info_name(info_name);
+}
+
 GPUShader *DRW_shader_create_ex(
     const char *vert, const char *geom, const char *frag, const char *defines, const char *name)
 {

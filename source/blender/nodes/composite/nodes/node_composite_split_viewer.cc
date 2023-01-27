@@ -60,10 +60,16 @@ class ViewerOperation : public NodeOperation {
     GPUShader *shader = get_split_viewer_shader();
     GPU_shader_bind(shader);
 
-    const int2 size = compute_domain().size;
+    /* The compositing space might be limited to a subset of the output texture, so only write into
+     * that compositing region. */
+    const rcti compositing_region = context().get_compositing_region();
+    const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
+    GPU_shader_uniform_2iv(shader, "compositing_region_lower_bound", lower_bound);
 
     GPU_shader_uniform_1f(shader, "split_ratio", get_split_ratio());
-    GPU_shader_uniform_2iv(shader, "view_size", size);
+
+    const int2 compositing_region_size = context().get_compositing_region_size();
+    GPU_shader_uniform_2iv(shader, "view_size", compositing_region_size);
 
     const Result &first_image = get_input("Image");
     first_image.bind_as_texture(shader, "first_image_tx");
@@ -74,7 +80,7 @@ class ViewerOperation : public NodeOperation {
     const int image_unit = GPU_shader_get_texture_binding(shader, "output_img");
     GPU_texture_image_bind(output_texture, image_unit);
 
-    compute_dispatch_threads_at_least(shader, size);
+    compute_dispatch_threads_at_least(shader, compositing_region_size);
 
     first_image.unbind_as_texture();
     second_image.unbind_as_texture();
@@ -82,10 +88,11 @@ class ViewerOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
-  /* The operation domain have the same dimensions of the output without any transformations. */
+  /* The operation domain has the same size as the compositing region without any transformations
+   * applied. */
   Domain compute_domain() override
   {
-    return Domain(context().get_output_size());
+    return Domain(context().get_compositing_region_size());
   }
 
   GPUShader *get_split_viewer_shader()

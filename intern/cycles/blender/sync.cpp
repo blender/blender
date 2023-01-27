@@ -26,7 +26,6 @@
 #include "util/foreach.h"
 #include "util/hash.h"
 #include "util/log.h"
-#include "util/opengl.h"
 #include "util/openimagedenoise.h"
 
 CCL_NAMESPACE_BEGIN
@@ -348,10 +347,17 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
     integrator->set_motion_blur(view_layer.use_motion_blur);
   }
 
-  integrator->set_light_sampling_threshold(get_float(cscene, "light_sampling_threshold"));
+  bool use_light_tree = get_boolean(cscene, "use_light_tree");
+  integrator->set_use_light_tree(use_light_tree);
+  integrator->set_light_sampling_threshold(
+      (use_light_tree) ? 0.0f : get_float(cscene, "light_sampling_threshold"));
+
+  if (integrator->use_light_tree_is_modified()) {
+    scene->light_manager->tag_update(scene, LightManager::UPDATE_ALL);
+  }
 
   SamplingPattern sampling_pattern = (SamplingPattern)get_enum(
-      cscene, "sampling_pattern", SAMPLING_NUM_PATTERNS, SAMPLING_PATTERN_PMJ);
+      cscene, "sampling_pattern", SAMPLING_NUM_PATTERNS, SAMPLING_PATTERN_TABULATED_SOBOL);
   integrator->set_sampling_pattern(sampling_pattern);
 
   int samples = 1;
@@ -617,7 +623,6 @@ static bool get_known_pass_type(BL::RenderPass &b_pass, PassType &type, PassMode
   MAP_PASS("Emit", PASS_EMISSION, false);
   MAP_PASS("Env", PASS_BACKGROUND, false);
   MAP_PASS("AO", PASS_AO, false);
-  MAP_PASS("Shadow", PASS_SHADOW, false);
 
   MAP_PASS("BakePrimitive", PASS_BAKE_PRIMITIVE, false);
   MAP_PASS("BakeDifferential", PASS_BAKE_DIFFERENTIAL, false);
@@ -861,7 +866,8 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
 
   /* Device */
   params.threads = blender_device_threads(b_scene);
-  params.device = blender_device_info(b_preferences, b_scene, params.background);
+  params.device = blender_device_info(
+      b_preferences, b_scene, params.background, b_engine.is_preview());
 
   /* samples */
   int samples = get_int(cscene, "samples");

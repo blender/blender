@@ -107,7 +107,13 @@ class UtilityTexture : public Texture {
   static constexpr int layer_count = 4 + UTIL_BTDF_LAYER_COUNT;
 
  public:
-  UtilityTexture() : Texture("UtilityTx", GPU_RGBA16F, int2(lut_size), layer_count, nullptr)
+  UtilityTexture()
+      : Texture("UtilityTx",
+                GPU_RGBA16F,
+                GPU_TEXTURE_USAGE_SHADER_READ,
+                int2(lut_size),
+                layer_count,
+                nullptr)
   {
 #ifdef RUNTIME_LUT_CREATION
     float *bsdf_ggx_lut = EEVEE_lut_update_ggx_brdf(lut_size);

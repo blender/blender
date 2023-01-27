@@ -445,7 +445,7 @@ static void draw_marker_line(const uchar *color, int xpos, int ymin, int ymax)
   immUniformColor4ubv(color);
   immUniform1i("colors_len", 0); /* "simple" mode */
   immUniform1f("dash_width", 6.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   immBegin(GPU_PRIM_LINES, 2);
   immVertex2f(pos, xpos, ymin);

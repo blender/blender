@@ -48,8 +48,19 @@ typedef struct MovieTrackingCamera {
   /** Units of focal length user is working with. */
   short units;
   char _pad1[2];
-  /** Principal point. */
-  float principal[2];
+
+  /**
+   * Principal point (optical center) stored in normalized coordinates.
+   *
+   * The normalized space stores principal point relative to the frame center which has normalized
+   * principal coordinate of (0, 0). The right top corer of the frame corresponds to a normalized
+   * principal coordinate of (1, 1), and the left bottom corner corresponds to coordinate of
+   * (-1, -1).
+   */
+  float principal_point[2];
+
+  /** Legacy principal point in pixel space. */
+  float principal_legacy[2];
 
   /* Polynomial distortion */
   /** Polynomial radial distortion. */
@@ -350,10 +361,14 @@ typedef struct MovieTrackingObject {
   /** Scale of object solution in camera space. */
   float scale;
 
-  /** List of tracks use to tracking this object. */
+  /** Lists of point and plane tracks use to tracking this object. */
   ListBase tracks;
-  /** List of plane tracks used by this object. */
   ListBase plane_tracks;
+
+  /** Active point and plane tracks. */
+  MovieTrackingTrack *active_track;
+  MovieTrackingPlaneTrack *active_plane_track;
+
   /** Reconstruction data for this object. */
   MovieTrackingReconstruction reconstruction;
 
@@ -422,18 +437,22 @@ typedef struct MovieTracking {
   MovieTrackingSettings settings;
   /** Camera intrinsics. */
   MovieTrackingCamera camera;
-  /** List of tracks used for camera object. */
-  ListBase tracks;
-  /** List of plane tracks used by camera object. */
-  ListBase plane_tracks;
-  /** Reconstruction data for camera object. */
-  MovieTrackingReconstruction reconstruction;
+  /** Lists of point and plane tracks used for camera object.
+   * NOTE: Only left for the versioning purposes. */
+  ListBase tracks_legacy;
+  ListBase plane_tracks_legacy;
+
+  /** Reconstruction data for camera object.
+   * NOTE: Only left for the versioning purposes. */
+  MovieTrackingReconstruction reconstruction_legacy;
+
   /** Stabilization data. */
   MovieTrackingStabilization stabilization;
-  /** Active track. */
-  MovieTrackingTrack *act_track;
-  /** Active plane track. */
-  MovieTrackingPlaneTrack *act_plane_track;
+
+  /** Active point and plane tracks.
+   * NOTE: Only left for the versioning purposes. */
+  MovieTrackingTrack *act_track_legacy;
+  MovieTrackingPlaneTrack *act_plane_track_legacy;
 
   ListBase objects;
   /** Index of active object and total number of objects. */

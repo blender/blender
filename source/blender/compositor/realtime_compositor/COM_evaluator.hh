@@ -102,8 +102,9 @@ class Evaluator {
  private:
   /* A reference to the compositor context. */
   Context &context_;
-  /* A reference to the compositor node tree. */
-  bNodeTree &node_tree_;
+  /* A derived node tree representing the compositor node tree. This is constructed when the node
+   * tree is compiled and reset when the evaluator is reset, so it gets reconstructed every time
+   * the node tree changes. */
   std::unique_ptr<DerivedNodeTree> derived_node_tree_;
   /* The compiled operations stream. This contains ordered pointers to the operations that were
    * compiled. This is initialized when the node tree is compiled and freed when the evaluator
@@ -116,8 +117,8 @@ class Evaluator {
   bool is_compiled_ = false;
 
  public:
-  /* Construct an evaluator from a compositor node tree and a context. */
-  Evaluator(Context &context, bNodeTree &node_tree);
+  /* Construct an evaluator from a context. */
+  Evaluator(Context &context);
 
   /* Evaluate the compositor node tree. If the node tree is already compiled into an operations
    * stream, that stream will be evaluated directly. Otherwise, the node tree will be compiled and

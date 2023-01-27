@@ -462,56 +462,56 @@ void bmo_rotate_uvs_exec(BMesh *bm, BMOperator *op)
   BMIter l_iter;   /* iteration loop */
 
   const bool use_ccw = BMO_slot_bool_get(op->slots_in, "use_ccw");
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
 
   if (cd_loop_uv_offset != -1) {
     BMO_ITER (fs, &fs_iter, op->slots_in, "faces", BM_FACE) {
       if (use_ccw == false) { /* same loops direction */
         BMLoop *lf;           /* current face loops */
-        MLoopUV *f_luv;       /* first face loop uv */
+        float *f_luv;         /* first face loop uv */
         float p_uv[2];        /* previous uvs */
         float t_uv[2];        /* temp uvs */
 
         int n = 0;
         BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
           /* current loop uv is the previous loop uv */
-          MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(lf, cd_loop_uv_offset);
+          float *luv = BM_ELEM_CD_GET_FLOAT_P(lf, cd_loop_uv_offset);
           if (n == 0) {
             f_luv = luv;
-            copy_v2_v2(p_uv, luv->uv);
+            copy_v2_v2(p_uv, luv);
           }
           else {
-            copy_v2_v2(t_uv, luv->uv);
-            copy_v2_v2(luv->uv, p_uv);
+            copy_v2_v2(t_uv, luv);
+            copy_v2_v2(luv, p_uv);
             copy_v2_v2(p_uv, t_uv);
           }
           n++;
         }
 
-        copy_v2_v2(f_luv->uv, p_uv);
+        copy_v2_v2(f_luv, p_uv);
       }
-      else {            /* counter loop direction */
-        BMLoop *lf;     /* current face loops */
-        MLoopUV *p_luv; /* previous loop uv */
-        MLoopUV *luv;
+      else {          /* counter loop direction */
+        BMLoop *lf;   /* current face loops */
+        float *p_luv; /* previous loop uv */
+        float *luv;
         float t_uv[2]; /* current uvs */
 
         int n = 0;
         BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
           /* previous loop uv is the current loop uv */
-          luv = BM_ELEM_CD_GET_VOID_P(lf, cd_loop_uv_offset);
+          luv = BM_ELEM_CD_GET_FLOAT_P(lf, cd_loop_uv_offset);
           if (n == 0) {
             p_luv = luv;
-            copy_v2_v2(t_uv, luv->uv);
+            copy_v2_v2(t_uv, luv);
           }
           else {
-            copy_v2_v2(p_luv->uv, luv->uv);
+            copy_v2_v2(p_luv, luv);
             p_luv = luv;
           }
           n++;
         }
 
-        copy_v2_v2(luv->uv, t_uv);
+        copy_v2_v2(luv, t_uv);
       }
     }
   }
@@ -530,22 +530,22 @@ static void bm_face_reverse_uvs(BMFace *f, const int cd_loop_uv_offset)
   float(*uvs)[2] = BLI_array_alloca(uvs, f->len);
 
   BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
-    MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-    copy_v2_v2(uvs[i], luv->uv);
+    float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+    copy_v2_v2(uvs[i], luv);
   }
 
   /* now that we have the uvs in the array, reverse! */
   BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
     /* current loop uv is the previous loop uv */
-    MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-    copy_v2_v2(luv->uv, uvs[(f->len - i - 1)]);
+    float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+    copy_v2_v2(luv, uvs[(f->len - i - 1)]);
   }
 }
 void bmo_reverse_uvs_exec(BMesh *bm, BMOperator *op)
 {
   BMOIter iter;
   BMFace *f;
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
 
   if (cd_loop_uv_offset != -1) {
     BMO_ITER (f, &iter, op->slots_in, "faces", BM_FACE) {

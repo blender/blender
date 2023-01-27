@@ -3,6 +3,7 @@
 
 set(INC
   .
+  ../asset_system
   ../blenfont
   ../blenlib
   ../blenloader
@@ -63,7 +64,7 @@ set(SRC
   intern/anim_path.c
   intern/anim_sys.c
   intern/anim_visualization.c
-  intern/anonymous_attribute.cc
+  intern/anonymous_attribute_id.cc
   intern/appdir.c
   intern/armature.c
   intern/armature_deform.c
@@ -71,20 +72,15 @@ set(SRC
   intern/armature_selection.cc
   intern/armature_update.c
   intern/asset.cc
-  intern/asset_catalog.cc
-  intern/asset_catalog_path.cc
-  intern/asset_library.cc
-  intern/asset_library_service.cc
-  intern/asset_representation.cc
   intern/attribute.cc
   intern/attribute_access.cc
   intern/attribute_math.cc
   intern/autoexec.c
   intern/blender.c
   intern/blender_copybuffer.c
-  intern/blender_undo.c
+  intern/blender_undo.cc
   intern/blender_user_menu.c
-  intern/blendfile.c
+  intern/blendfile.cc
   intern/blendfile_link_append.c
   intern/boids.c
   intern/bpath.c
@@ -93,7 +89,7 @@ set(SRC
   intern/cachefile.c
   intern/callbacks.c
   intern/camera.c
-  intern/cdderivedmesh.c
+  intern/cdderivedmesh.cc
   intern/cloth.cc
   intern/collection.c
   intern/collision.c
@@ -101,7 +97,7 @@ set(SRC
   intern/colortools.c
   intern/compute_contexts.cc
   intern/constraint.c
-  intern/context.c
+  intern/context.cc
   intern/cpp_types.cc
   intern/crazyspace.cc
   intern/cryptomatte.cc
@@ -122,10 +118,10 @@ set(SRC
   intern/curves_utils.cc
   intern/customdata.cc
   intern/customdata_file.c
-  intern/data_transfer.c
-  intern/deform.c
+  intern/data_transfer.cc
+  intern/deform.cc
   intern/displist.cc
-  intern/dynamicpaint.c
+  intern/dynamicpaint.cc
   intern/editlattice.c
   intern/editmesh.cc
   intern/editmesh_bvh.c
@@ -135,7 +131,7 @@ set(SRC
   intern/fcurve.c
   intern/fcurve_cache.c
   intern/fcurve_driver.c
-  intern/fluid.c
+  intern/fluid.cc
   intern/fmodifier.c
   intern/freestyle.c
   intern/geometry_component_curves.cc
@@ -168,11 +164,11 @@ set(SRC
   intern/instances.cc
   intern/ipo.c
   intern/kelvinlet.c
-  intern/key.c
+  intern/key.cc
   intern/keyconfig.c
   intern/lattice.c
   intern/lattice_deform.c
-  intern/layer.c
+  intern/layer.cc
   intern/layer_utils.c
   intern/lib_id.c
   intern/lib_id_delete.c
@@ -185,14 +181,14 @@ set(SRC
   intern/library.c
   intern/light.c
   intern/lightprobe.c
-  intern/linestyle.c
+  intern/linestyle.cc
   intern/main.c
   intern/main_idmap.c
   intern/main_namemap.cc
   intern/mask.c
   intern/mask_evaluate.c
   intern/mask_rasterize.c
-  intern/material.c
+  intern/material.cc
   intern/mball.cc
   intern/mball_tessellate.cc
   intern/mesh.cc
@@ -207,7 +203,7 @@ set(SRC
   intern/mesh_mapping.cc
   intern/mesh_merge.c
   intern/mesh_merge_customdata.cc
-  intern/mesh_mirror.c
+  intern/mesh_mirror.cc
   intern/mesh_normals.cc
   intern/mesh_remap.cc
   intern/mesh_remesh_voxel.cc
@@ -220,19 +216,21 @@ set(SRC
   intern/modifier.cc
   intern/movieclip.c
   intern/multires.cc
-  intern/multires_reshape.c
-  intern/multires_reshape_apply_base.c
-  intern/multires_reshape_ccg.c
-  intern/multires_reshape_smooth.c
-  intern/multires_reshape_subdivide.c
-  intern/multires_reshape_util.c
-  intern/multires_reshape_vertcos.c
-  intern/multires_subdiv.c
-  intern/multires_unsubdivide.c
-  intern/multires_versioning.c
+  intern/multires_reshape.cc
+  intern/multires_reshape_apply_base.cc
+  intern/multires_reshape_ccg.cc
+  intern/multires_reshape_smooth.cc
+  intern/multires_reshape_subdivide.cc
+  intern/multires_reshape_util.cc
+  intern/multires_reshape_vertcos.cc
+  intern/multires_subdiv.cc
+  intern/multires_unsubdivide.cc
+  intern/multires_versioning.cc
   intern/nla.c
   intern/node.cc
   intern/node_runtime.cc
+  intern/node_tree_anonymous_attributes.cc
+  intern/node_tree_field_inferencing.cc
   intern/node_tree_update.cc
   intern/object.cc
   intern/object_deform.c
@@ -246,16 +244,18 @@ set(SRC
   intern/paint.cc
   intern/paint_canvas.cc
   intern/paint_toolslots.c
-  intern/particle.c
+  intern/particle.cc
   intern/particle_child.c
   intern/particle_distribute.c
   intern/particle_system.c
   intern/pbvh.c
-  intern/pbvh.cc
+  intern/pbvh_colors.cc
   intern/pbvh_bmesh.c
   intern/pbvh_pixels.cc
+  intern/pbvh_uv_islands.cc
   intern/pointcache.c
   intern/pointcloud.cc
+  intern/pose_backup.cc
   intern/preferences.c
   intern/report.c
   intern/rigidbody.c
@@ -268,25 +268,25 @@ set(SRC
   intern/sound.c
   intern/speaker.c
   intern/studiolight.c
-  intern/subdiv.c
+  intern/subdiv.cc
   intern/subdiv_ccg.cc
-  intern/subdiv_ccg_mask.c
-  intern/subdiv_ccg_material.c
-  intern/subdiv_converter.c
-  intern/subdiv_converter_mesh.c
-  intern/subdiv_deform.c
-  intern/subdiv_displacement.c
-  intern/subdiv_displacement_multires.c
-  intern/subdiv_eval.c
-  intern/subdiv_foreach.c
+  intern/subdiv_ccg_mask.cc
+  intern/subdiv_ccg_material.cc
+  intern/subdiv_converter.cc
+  intern/subdiv_converter_mesh.cc
+  intern/subdiv_deform.cc
+  intern/subdiv_displacement.cc
+  intern/subdiv_displacement_multires.cc
+  intern/subdiv_eval.cc
+  intern/subdiv_foreach.cc
   intern/subdiv_mesh.cc
   intern/subdiv_modifier.cc
-  intern/subdiv_stats.c
-  intern/subdiv_topology.c
-  intern/subsurf_ccg.c
+  intern/subdiv_stats.cc
+  intern/subdiv_topology.cc
+  intern/subsurf_ccg.cc
   intern/text.c
   intern/text_suggestions.c
-  intern/texture.c
+  intern/texture.cc
   intern/tracking.c
   intern/tracking_auto.c
   intern/tracking_detect.c
@@ -296,7 +296,7 @@ set(SRC
   intern/tracking_stabilize.c
   intern/tracking_util.c
   intern/type_conversions.cc
-  intern/undo_system.c
+  intern/undo_system.cc
   intern/unit.c
   intern/vfont.c
   intern/vfontdata_freetype.c
@@ -316,17 +316,11 @@ set(SRC
   BKE_anim_path.h
   BKE_anim_visualization.h
   BKE_animsys.h
-  BKE_anonymous_attribute.h
-  BKE_anonymous_attribute.hh
+  BKE_anonymous_attribute_id.hh
   BKE_appdir.h
   BKE_armature.h
   BKE_armature.hh
   BKE_asset.h
-  BKE_asset_catalog.hh
-  BKE_asset_catalog_path.hh
-  BKE_asset_library.h
-  BKE_asset_library.hh
-  BKE_asset_representation.hh
   BKE_attribute.h
   BKE_attribute.hh
   BKE_attribute_math.hh
@@ -458,6 +452,7 @@ set(SRC
   BKE_pbvh_pixels.hh
   BKE_pointcache.h
   BKE_pointcloud.h
+  BKE_pose_backup.h
   BKE_preferences.h
   BKE_report.h
   BKE_rigidbody.h
@@ -503,7 +498,6 @@ set(SRC
   intern/CCGSubSurf.h
   intern/CCGSubSurf_inline.h
   intern/CCGSubSurf_intern.h
-  intern/asset_library_service.hh
   intern/attribute_access_intern.hh
   intern/data_transfer_intern.h
   intern/lib_intern.h
@@ -512,11 +506,13 @@ set(SRC
   intern/multires_unsubdivide.h
   intern/ocean_intern.h
   intern/pbvh_intern.h
+  intern/pbvh_uv_islands.hh
   intern/subdiv_converter.h
   intern/subdiv_inline.h
 )
 
 set(LIB
+  bf_asset_system
   bf_blenfont
   bf_blenlib
   bf_blenloader
@@ -563,15 +559,16 @@ if(WIN32)
 endif()
 
 if(WITH_AUDASPACE)
-  add_definitions(-DWITH_AUDASPACE)
-
   list(APPEND INC_SYS
     ${AUDASPACE_C_INCLUDE_DIRS}
   )
-  list(APPEND LIB
-    ${AUDASPACE_C_LIBRARIES}
-    ${AUDASPACE_PY_LIBRARIES}
-  )
+  if(WITH_SYSTEM_AUDASPACE)
+    list(APPEND LIB
+      ${AUDASPACE_C_LIBRARIES}
+      ${AUDASPACE_PY_LIBRARIES}
+    )
+  endif()
+  add_definitions(-DWITH_AUDASPACE)
 endif()
 
 if(WITH_BULLET)
@@ -581,13 +578,6 @@ if(WITH_BULLET)
   list(APPEND INC
     ../../../intern/rigidbody
   )
-
-  if(NOT WITH_SYSTEM_BULLET)
-    list(APPEND LIB
-      extern_bullet
-    )
-  endif()
-
   list(APPEND LIB
     bf_intern_rigidbody
 
@@ -834,11 +824,7 @@ if(WITH_GTESTS)
   set(TEST_SRC
     intern/action_test.cc
     intern/armature_test.cc
-    intern/asset_catalog_path_test.cc
-    intern/asset_catalog_test.cc
-    intern/asset_library_service_test.cc
-    intern/asset_library_test.cc
-    intern/asset_test.cc
+    intern/asset_metadata_test.cc
     intern/bpath_test.cc
     intern/cryptomatte_test.cc
     intern/curves_geometry_test.cc
@@ -851,6 +837,7 @@ if(WITH_GTESTS)
     intern/lib_id_remapper_test.cc
     intern/lib_id_test.cc
     intern/lib_remap_test.cc
+    intern/nla_test.cc
     intern/tracking_test.cc
   )
   set(TEST_INC

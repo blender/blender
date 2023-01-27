@@ -1,0 +1,10 @@
+name: Design
+about: Create a design task (for developers only)
+labels:
+  - "type::Design"
+body:
+  - type: textarea
+    id: body
+    attributes:
+      label: "Description"
+      hide_label: true

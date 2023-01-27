@@ -98,7 +98,7 @@ void MTLIndexBuf::upload_data()
       MTL_LOG_WARNING("[Metal] Warning! Trying to allocate index buffer with size=0 bytes\n");
     }
     else {
-      ibo_ = MTLContext::get_global_memory_manager().allocate_with_data(alloc_size_, true, data_);
+      ibo_ = MTLContext::get_global_memory_manager()->allocate_with_data(alloc_size_, true, data_);
       BLI_assert(ibo_);
       ibo_->set_label(@"Index Buffer");
     }
@@ -340,7 +340,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
         BLI_assert(max_possible_verts > 0);
 
         /* Allocate new buffer. */
-        optimized_ibo_ = MTLContext::get_global_memory_manager().allocate(
+        optimized_ibo_ = MTLContext::get_global_memory_manager()->allocate(
             max_possible_verts *
                 ((index_type_ == GPU_INDEX_U16) ? sizeof(uint16_t) : sizeof(uint32_t)),
             true);
@@ -350,7 +350,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
           Span<uint16_t> orig_data(static_cast<const uint16_t *>(ibo_->get_host_ptr()),
                                    this->index_len_);
           MutableSpan<uint16_t> output_data(
-              static_cast<uint16_t *>(optimized_ibo_->get_host_ptr()), this->index_len_);
+              static_cast<uint16_t *>(optimized_ibo_->get_host_ptr()), max_possible_verts);
           emulated_v_count = populate_emulated_tri_fan_buf<uint16_t>(
               orig_data, output_data, this->index_len_);
         }
@@ -358,7 +358,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
           Span<uint32_t> orig_data(static_cast<const uint32_t *>(ibo_->get_host_ptr()),
                                    this->index_len_);
           MutableSpan<uint32_t> output_data(
-              static_cast<uint32_t *>(optimized_ibo_->get_host_ptr()), this->index_len_);
+              static_cast<uint32_t *>(optimized_ibo_->get_host_ptr()), max_possible_verts);
           emulated_v_count = populate_emulated_tri_fan_buf<uint32_t>(
               orig_data, output_data, this->index_len_);
         }
@@ -379,7 +379,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
         BLI_assert(max_possible_verts > 0);
 
         /* Allocate new buffer. */
-        optimized_ibo_ = MTLContext::get_global_memory_manager().allocate(
+        optimized_ibo_ = MTLContext::get_global_memory_manager()->allocate(
             max_possible_verts *
                 ((index_type_ == GPU_INDEX_U16) ? sizeof(uint16_t) : sizeof(uint32_t)),
             true);
@@ -389,7 +389,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
           Span<uint16_t> orig_data(static_cast<const uint16_t *>(ibo_->get_host_ptr()),
                                    this->index_len_);
           MutableSpan<uint16_t> output_data(
-              static_cast<uint16_t *>(optimized_ibo_->get_host_ptr()), this->index_len_);
+              static_cast<uint16_t *>(optimized_ibo_->get_host_ptr()), max_possible_verts);
           emulated_v_count = populate_optimized_tri_strip_buf<uint16_t>(
               orig_data, output_data, this->index_len_);
         }
@@ -397,7 +397,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
           Span<uint32_t> orig_data(static_cast<const uint32_t *>(ibo_->get_host_ptr()),
                                    this->index_len_);
           MutableSpan<uint32_t> output_data(
-              static_cast<uint32_t *>(optimized_ibo_->get_host_ptr()), this->index_len_);
+              static_cast<uint32_t *>(optimized_ibo_->get_host_ptr()), max_possible_verts);
           emulated_v_count = populate_optimized_tri_strip_buf<uint32_t>(
               orig_data, output_data, this->index_len_);
         }

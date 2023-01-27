@@ -22,7 +22,7 @@ namespace blender::meshintersect {
  * It is allowed for the pointers to be null, meaning the transformation is the identity.
  * \param material_remaps: An array of maps from material slot numbers in the corresponding mesh
  * to the material slot in the first mesh. It is OK for material_remaps or any of its constituent
- * arrays to be empty.
+ * arrays to be empty. A -1 value means that the original index should be used with no mapping.
  * \param r_intersecting_edges: Array to store indices of edges on the resulting mesh in. These
  * 'new' edges are the result of the intersections.
  */

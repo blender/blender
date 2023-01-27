@@ -48,7 +48,7 @@
 
 #include "UI_interface.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 #include "WM_api.h"
 #include "WM_types.h"

@@ -22,7 +22,7 @@
 AUD_NAMESPACE_BEGIN
 
 FFTConvolver::FFTConvolver(std::shared_ptr<std::vector<std::complex<sample_t>>> ir, std::shared_ptr<FFTPlan> plan) :
-	m_plan(plan), m_N(plan->getSize()), m_M(plan->getSize()/2), m_L(plan->getSize()/2), m_tailPos(0), m_irBuffer(ir)
+	m_plan(plan), m_N(plan->getSize()), m_M(plan->getSize()/2), m_L(plan->getSize()/2), m_irBuffer(ir), m_tailPos(0)
 {
 	m_tail = (float*)calloc(m_M - 1, sizeof(float));
 	m_realBufLen = ((m_N / 2) + 1) * 2;

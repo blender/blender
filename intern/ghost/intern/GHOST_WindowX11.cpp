@@ -24,6 +24,9 @@
 
 #include "GHOST_ContextEGL.h"
 #include "GHOST_ContextGLX.h"
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_ContextVK.h"
+#endif
 
 /* For #XIWarpPointer. */
 #ifdef WITH_X11_XINPUT
@@ -1109,11 +1112,6 @@ void GHOST_WindowX11::validate()
   m_invalid_window = false;
 }
 
-/**
- * Destructor.
- * Closes the window and disposes resources allocated.
- */
-
 GHOST_WindowX11::~GHOST_WindowX11()
 {
   std::map<uint, Cursor>::iterator it = m_standard_cursors.begin();
@@ -1228,6 +1226,26 @@ static GHOST_Context *create_glx_context(Window window,
 
 GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type)
 {
+#if defined(WITH_VULKAN)
+  if (type == GHOST_kDrawingContextTypeVulkan) {
+    GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual,
+                                                 GHOST_kVulkanPlatformX11,
+                                                 m_window,
+                                                 m_display,
+                                                 NULL,
+                                                 NULL,
+                                                 1,
+                                                 0,
+                                                 m_is_debug_context);
+
+    if (!context->initializeDrawingContext()) {
+      delete context;
+      return nullptr;
+    }
+    return context;
+  }
+#endif
+
   if (type == GHOST_kDrawingContextTypeOpenGL) {
 
     /* During development:

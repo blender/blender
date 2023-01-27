@@ -6,34 +6,12 @@
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 
-/** Inputs:
- * COPY_PASS: Is output of setup pass (halfres) and downsample pass (quarter res).
- * REDUCE_PASS: Is previous Gather input miplvl (halfres >> miplvl).
- */
-uniform sampler2D colorBuffer;
-uniform sampler2D cocBuffer;
-uniform sampler2D downsampledBuffer;
-
-uniform vec2 bokehAnisotropy;
-uniform float scatterColorThreshold;
-uniform float scatterCocThreshold;
-uniform float scatterColorNeighborMax;
-uniform float colorNeighborClamping;
-
-/** Outputs:
- * COPY_PASS: Gather input mip0.
- * REDUCE_PASS: Is next Gather input miplvl (halfres >> miplvl).
- */
-layout(location = 0) out vec4 outColor;
-layout(location = 1) out float outCoc;
-
 #ifdef COPY_PASS
-
-layout(location = 2) out vec3 outScatterColor;
 
 /* NOTE: Do not compare alpha as it is not scattered by the scatter pass. */
 float dof_scatter_neighborhood_rejection(vec3 color)
 {
+  DEFINE_DOF_QUAD_OFFSETS;
   color = min(vec3(scatterColorNeighborMax), color);
 
   float validity = 0.0;
@@ -155,6 +133,7 @@ void main()
 /* Downsample pass done for each mip starting from mip1. */
 void main()
 {
+  DEFINE_DOF_QUAD_OFFSETS
   vec2 input_texel_size = 1.0 / vec2(textureSize(colorBuffer, 0).xy);
   /* Center uv around the 4 pixels of the previous mip. */
   vec2 quad_center = (floor(gl_FragCoord.xy) * 2.0 + 1.0) * input_texel_size;

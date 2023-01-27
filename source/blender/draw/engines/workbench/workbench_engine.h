@@ -8,3 +8,4 @@
 #pragma once
 
 extern RenderEngineType DRW_engine_viewport_workbench_type;
+extern RenderEngineType DRW_engine_viewport_workbench_next_type;

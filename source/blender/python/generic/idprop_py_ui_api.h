@@ -6,7 +6,6 @@
 
 #pragma once
 
-struct ID;
 struct IDProperty;
 
 extern PyTypeObject BPy_IDPropertyUIManager_Type;

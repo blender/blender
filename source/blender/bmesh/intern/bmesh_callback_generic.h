@@ -6,6 +6,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 bool BM_elem_cb_check_hflag_enabled(BMElem *, void *user_data);
 bool BM_elem_cb_check_hflag_disabled(BMElem *, void *user_data);
 bool BM_elem_cb_check_hflag_ex(BMElem *, void *user_data);
@@ -20,3 +24,7 @@ bool BM_elem_cb_check_elem_not_equal(BMElem *ele, void *user_data);
 
 #define BM_elem_cb_check_hflag_disabled_simple(type, hflag_n) \
   (bool (*)(type, void *)) BM_elem_cb_check_hflag_disabled, POINTER_FROM_UINT(hflag_n)
+
+#ifdef __cplusplus
+}
+#endif

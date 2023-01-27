@@ -21,7 +21,7 @@ ccl_device_inline float3 triangle_normal(KernelGlobals kg, ccl_private ShaderDat
   const float3 v2 = kernel_data_fetch(tri_verts, tri_vindex.w + 2);
 
   /* return normal */
-  if (sd->object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
+  if (object_negative_scale_applied(sd->object_flag)) {
     return normalize(cross(v2 - v0, v1 - v0));
   }
   else {
@@ -50,7 +50,7 @@ ccl_device_inline void triangle_point_normal(KernelGlobals kg,
   /* get object flags */
   int object_flag = kernel_data_fetch(object_flag, object);
   /* compute normal */
-  if (object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
+  if (object_negative_scale_applied(object_flag)) {
     *Ng = normalize(cross(v2 - v0, v1 - v0));
   }
   else {

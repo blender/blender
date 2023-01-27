@@ -5,6 +5,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BLT_translation.h"
+
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -35,6 +37,7 @@ class TextureOperation : public NodeOperation {
   {
     get_result("Value").allocate_invalid();
     get_result("Color").allocate_invalid();
+    context().set_info_message("Viewport compositor setup not fully supported");
   }
 };
 
@@ -55,6 +58,8 @@ void register_node_type_cmp_texture()
   ntype.declare = file_ns::cmp_node_texture_declare;
   ntype.flag |= NODE_PREVIEW;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

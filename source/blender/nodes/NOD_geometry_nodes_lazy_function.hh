@@ -31,8 +31,8 @@ struct Depsgraph;
 
 namespace blender::nodes {
 
-namespace lf = fn::lazy_function;
 using lf::LazyFunction;
+using mf::MultiFunction;
 
 /**
  * Data that is passed into geometry nodes evaluation from the modifier.
@@ -48,7 +48,15 @@ struct GeoNodesModifierData {
    * Some nodes should be executed even when their output is not used (e.g. active viewer nodes and
    * the node groups they are contained in).
    */
-  const MultiValueMap<ComputeContextHash, const lf::FunctionNode *> *side_effect_nodes;
+  const MultiValueMap<ComputeContextHash, const lf::FunctionNode *> *side_effect_nodes = nullptr;
+  /**
+   * Controls in which compute contexts we want to log socket values. Logging them in all contexts
+   * can result in slowdowns. In the majority of cases, the logged socket values are freed without
+   * being looked at anyway.
+   *
+   * If this is null, all socket values will be logged.
+   */
+  const Set<ComputeContextHash> *socket_log_contexts = nullptr;
 };
 
 /**
@@ -64,6 +72,32 @@ struct GeoNodesLFUserData : public lf::UserData {
    * evaluated.
    */
   const ComputeContext *compute_context = nullptr;
+  /**
+   * Log socket values in the current compute context. Child contexts might use logging again.
+   */
+  bool log_socket_values = true;
+};
+
+/**
+ * In the general case, this is #DynamicSocket. That means that to determine if a node group will
+ * use a particular input, it has to be partially executed.
+ *
+ * In other cases, it's not necessary to look into the node group to determine if an input is
+ * necessary.
+ */
+enum class InputUsageHintType {
+  /** The input socket is never used. */
+  Never,
+  /** The input socket is used when a subset of the outputs is used. */
+  DependsOnOutput,
+  /** Can't determine statically if the input is used, check the corresponding output socket. */
+  DynamicSocket,
+};
+
+struct InputUsageHint {
+  InputUsageHintType type = InputUsageHintType::DependsOnOutput;
+  /** Used in depends-on-output mode. */
+  Vector<int> output_dependencies;
 };
 
 /**
@@ -79,7 +113,32 @@ struct GeometryNodeLazyFunctionGraphMapping {
    * The inputs sockets in the graph. Multiple group input nodes are combined into one in the
    * lazy-function graph.
    */
-  Vector<lf::OutputSocket *> group_input_sockets;
+  Vector<const lf::OutputSocket *> group_input_sockets;
+  /**
+   * Dummy output sockets that correspond to the active group output node. If there is no such
+   * node, defaulted fallback outputs are created.
+   */
+  Vector<const lf::InputSocket *> standard_group_output_sockets;
+  /**
+   * Dummy boolean sockets that have to be passed in from the outside and indicate whether a
+   * specific output will be used.
+   */
+  Vector<const lf::OutputSocket *> group_output_used_sockets;
+  /**
+   * Dummy boolean sockets that can be used as group output that indicate whether a specific input
+   * will be used (this may depend on the used outputs as well as other inputs).
+   */
+  Vector<const lf::InputSocket *> group_input_usage_sockets;
+  /**
+   * This is an optimization to avoid partially evaluating a node group just to figure out which
+   * inputs are needed.
+   */
+  Vector<InputUsageHint> group_input_usage_hints;
+  /**
+   * If the node group propagates attributes from an input geometry to the output, it has to know
+   * which attributes should be propagated and which can be removed (for optimization purposes).
+   */
+  Map<int, const lf::OutputSocket *> attribute_set_by_geometry_output;
   /**
    * A mapping used for logging intermediate values.
    */
@@ -110,6 +169,10 @@ struct GeometryNodesLazyFunctionGraphInfo {
    * we have to keep track of them separately.
    */
   Vector<std::unique_ptr<LazyFunction>> functions;
+  /**
+   * Debug info that has to be destructed when the graph is not used anymore.
+   */
+  Vector<std::unique_ptr<lf::DummyDebugInfo>> dummy_debug_infos_;
   /**
    * Many sockets have default values. Since those are not owned by the lazy-function graph, we
    * have to keep track of them separately. This only owns the values, the memory is owned by the

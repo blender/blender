@@ -4,16 +4,17 @@
  * \ingroup edasset
  */
 
-#include "BKE_asset_library.hh"
+#include "AS_asset_library.h"
+#include "AS_asset_library.hh"
+
 #include "BKE_bpath.h"
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_preferences.h"
 #include "BKE_report.h"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.h" /* MSVC needs this for `PATH_MAX` */
 #include "BLI_fnmatch.h"
 #include "BLI_path_util.h"
 #include "BLI_set.hh"
@@ -34,8 +35,6 @@
 #include "WM_api.h"
 
 #include "DNA_space_types.h"
-
-#include "BLO_writefile.h"
 
 using namespace blender;
 
@@ -436,7 +435,18 @@ static void ASSET_OT_library_refresh(struct wmOperatorType *ot)
 static bool asset_catalog_operator_poll(bContext *C)
 {
   const SpaceFile *sfile = CTX_wm_space_file(C);
-  return sfile && ED_fileselect_active_asset_library_get(sfile);
+  if (!sfile) {
+    return false;
+  }
+  const AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  if (!asset_library) {
+    return false;
+  }
+  if (ED_asset_catalogs_read_only(*asset_library)) {
+    CTX_wm_operator_poll_msg_set(C, "Asset catalogs cannot be edited in this asset library");
+    return false;
+  }
+  return true;
 }
 
 static int asset_catalog_new_exec(bContext *C, wmOperator *op)
@@ -445,7 +455,7 @@ static int asset_catalog_new_exec(bContext *C, wmOperator *op)
   struct AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
   char *parent_path = RNA_string_get_alloc(op->ptr, "parent_path", nullptr, 0, nullptr);
 
-  blender::bke::AssetCatalog *new_catalog = ED_asset_catalog_add(
+  blender::asset_system::AssetCatalog *new_catalog = ED_asset_catalog_add(
       asset_library, "Catalog", parent_path);
 
   if (sfile) {
@@ -484,7 +494,7 @@ static int asset_catalog_delete_exec(bContext *C, wmOperator *op)
   SpaceFile *sfile = CTX_wm_space_file(C);
   struct AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
   char *catalog_id_str = RNA_string_get_alloc(op->ptr, "catalog_id", nullptr, 0, nullptr);
-  bke::CatalogID catalog_id;
+  asset_system::CatalogID catalog_id;
   if (!BLI_uuid_parse_string(&catalog_id, catalog_id_str)) {
     return OPERATOR_CANCELLED;
   }
@@ -515,7 +525,7 @@ static void ASSET_OT_catalog_delete(struct wmOperatorType *ot)
   RNA_def_string(ot->srna, "catalog_id", nullptr, 0, "Catalog ID", "ID of the catalog to delete");
 }
 
-static bke::AssetCatalogService *get_catalog_service(bContext *C)
+static asset_system::AssetCatalogService *get_catalog_service(bContext *C)
 {
   const SpaceFile *sfile = CTX_wm_space_file(C);
   if (!sfile) {
@@ -523,12 +533,12 @@ static bke::AssetCatalogService *get_catalog_service(bContext *C)
   }
 
   AssetLibrary *asset_lib = ED_fileselect_active_asset_library_get(sfile);
-  return BKE_asset_library_get_catalog_service(asset_lib);
+  return AS_asset_library_get_catalog_service(asset_lib);
 }
 
 static int asset_catalog_undo_exec(bContext *C, wmOperator * /*op*/)
 {
-  bke::AssetCatalogService *catalog_service = get_catalog_service(C);
+  asset_system::AssetCatalogService *catalog_service = get_catalog_service(C);
   if (!catalog_service) {
     return OPERATOR_CANCELLED;
   }
@@ -540,7 +550,7 @@ static int asset_catalog_undo_exec(bContext *C, wmOperator * /*op*/)
 
 static bool asset_catalog_undo_poll(bContext *C)
 {
-  const bke::AssetCatalogService *catalog_service = get_catalog_service(C);
+  const asset_system::AssetCatalogService *catalog_service = get_catalog_service(C);
   return catalog_service && catalog_service->is_undo_possbile();
 }
 
@@ -558,7 +568,7 @@ static void ASSET_OT_catalog_undo(struct wmOperatorType *ot)
 
 static int asset_catalog_redo_exec(bContext *C, wmOperator * /*op*/)
 {
-  bke::AssetCatalogService *catalog_service = get_catalog_service(C);
+  asset_system::AssetCatalogService *catalog_service = get_catalog_service(C);
   if (!catalog_service) {
     return OPERATOR_CANCELLED;
   }
@@ -570,7 +580,7 @@ static int asset_catalog_redo_exec(bContext *C, wmOperator * /*op*/)
 
 static bool asset_catalog_redo_poll(bContext *C)
 {
-  const bke::AssetCatalogService *catalog_service = get_catalog_service(C);
+  const asset_system::AssetCatalogService *catalog_service = get_catalog_service(C);
   return catalog_service && catalog_service->is_redo_possbile();
 }
 
@@ -588,7 +598,7 @@ static void ASSET_OT_catalog_redo(struct wmOperatorType *ot)
 
 static int asset_catalog_undo_push_exec(bContext *C, wmOperator * /*op*/)
 {
-  bke::AssetCatalogService *catalog_service = get_catalog_service(C);
+  asset_system::AssetCatalogService *catalog_service = get_catalog_service(C);
   if (!catalog_service) {
     return OPERATOR_CANCELLED;
   }
@@ -631,7 +641,7 @@ static bool asset_catalogs_save_poll(bContext *C)
     return false;
   }
 
-  if (!BKE_asset_library_has_any_unsaved_catalogs()) {
+  if (!AS_asset_library_has_any_unsaved_catalogs()) {
     CTX_wm_operator_poll_msg_set(C, "No changes to be saved");
     return false;
   }
@@ -748,7 +758,7 @@ static int asset_bundle_install_exec(bContext *C, wmOperator *op)
   }
 
   WM_cursor_wait(true);
-  bke::AssetCatalogService *cat_service = get_catalog_service(C);
+  asset_system::AssetCatalogService *cat_service = get_catalog_service(C);
   /* Store undo step, such that on a failed save the 'prepare_to_merge_on_write' call can be
    * un-done. */
   cat_service->undo_push();
@@ -898,11 +908,11 @@ static bool has_external_files(Main *bmain, struct ReportList *reports)
       | BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES); /* Only care about actually used files. */
 
   BPathForeachPathData bpath_data = {
-      /* bmain */ bmain,
-      /* callback_function */ &external_file_check_callback,
-      /* flag */ flag,
-      /* user_data */ &callback_info,
-      /* absolute_base_path */ nullptr,
+      /*bmain*/ bmain,
+      /*callback_function*/ &external_file_check_callback,
+      /*flag*/ flag,
+      /*user_data*/ &callback_info,
+      /*absolute_base_path*/ nullptr,
   };
   BKE_bpath_foreach_path_main(&bpath_data);
 

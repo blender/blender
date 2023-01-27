@@ -329,6 +329,15 @@ class Stack {
     top_ = top_chunk_->begin;
   }
 
+  /**
+   * Removes all elements from the stack and frees any allocated memory.
+   */
+  void clear_and_shrink()
+  {
+    std::destroy_at(this);
+    new (this) Stack(NoExceptConstructor{});
+  }
+
   /* This should only be called by unit tests. */
   bool is_invariant_maintained() const
   {

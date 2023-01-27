@@ -223,13 +223,13 @@ inline const char *ShaderInterface::builtin_uniform_block_name(GPUUniformBlockBu
       return "infoBlock";
 
     case GPU_UNIFORM_BLOCK_DRW_VIEW:
-      return "drw_view";
+      return "drw_view_";
     case GPU_UNIFORM_BLOCK_DRW_MODEL:
       return "drw_matrices";
     case GPU_UNIFORM_BLOCK_DRW_INFOS:
       return "drw_infos";
     case GPU_UNIFORM_BLOCK_DRW_CLIPPING:
-      return "drw_clipping";
+      return "drw_clipping_";
     default:
       return nullptr;
   }

@@ -7,7 +7,7 @@
 
 #include <cmath>
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -100,7 +100,7 @@ class BoxMaskOperation : public NodeOperation {
   Domain compute_domain() override
   {
     if (get_input("Mask").is_single_value()) {
-      return Domain(context().get_output_size());
+      return Domain(context().get_compositing_region_size());
     }
     return get_input("Mask").domain();
   }

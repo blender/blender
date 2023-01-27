@@ -5,12 +5,12 @@ import os
 import codecs
 import numpy
 
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 
 if len(sys.argv) > 2 and sys.argv[1] == '--build-docs':
     import subprocess
-    from distutils.core import Distribution
-    from distutils.command.build import build
+    from setuptools import Distribution
+    from setuptools.command.build import build
 
     dist = Distribution()
     cmd = build(dist)

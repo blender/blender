@@ -401,8 +401,8 @@ static bool merge_pixels(const vector<MergeImage> &images,
      * faster than individually due to interleaved EXR channel storage. */
     array<float> pixels;
     alloc_pixels(image.in->spec(), pixels);
-
-    if (!image.in->read_image(TypeDesc::FLOAT, pixels.data())) {
+    const int num_channels = image.in->spec().nchannels;
+    if (!image.in->read_image(0, 0, 0, num_channels, TypeDesc::FLOAT, pixels.data())) {
       error = "Failed to read image: " + image.filepath;
       return false;
     }
@@ -538,6 +538,7 @@ static void read_layer_samples(vector<MergeImage> &images,
         /* Load the "Debug Sample Count" pass and add the samples to the layer's sample count. */
         array<float> sample_count_buffer;
         sample_count_buffer.resize(in_spec.width * in_spec.height);
+
         image.in->read_image(0,
                              0,
                              layer.sample_pass_offset,

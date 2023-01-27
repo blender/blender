@@ -26,6 +26,11 @@
 #include <mutex>
 #include <string>
 
+#ifdef USE_EVENT_BACKGROUND_THREAD
+#  include <atomic>
+#  include <thread>
+#endif
+
 class GHOST_WindowWayland;
 
 bool ghost_wl_output_own(const struct wl_output *wl_output);
@@ -180,11 +185,34 @@ class GHOST_SystemWayland : public GHOST_System {
 
   /* WAYLAND utility functions. */
 
+  /**
+   * Push an event, with support for calling from a thread.
+   * NOTE: only needed for `USE_EVENT_BACKGROUND_THREAD`.
+   */
+  GHOST_TSuccess pushEvent_maybe_pending(GHOST_IEvent *event);
+
   /** Set this seat to be active. */
   void seat_active_set(const struct GWL_Seat *seat);
 
-  /** Clear all references to this surface to prevent accessing NULL pointers. */
-  void window_surface_unref(const wl_surface *wl_surface);
+  /**
+   * Clear all references to this output.
+   *
+   * \note The compositor should have already called the `wl_surface_listener.leave` callback,
+   * however some compositors may not (see T103586).
+   * So remove references to the output before it's destroyed to avoid crashing.
+   *
+   * \return true when any references were removed.
+   */
+  bool output_unref(struct wl_output *wl_output);
+
+  void output_scale_update(GWL_Output *output);
+
+  /**
+   * Clear all references to this surface to prevent accessing NULL pointers.
+   *
+   * \return true when any references were removed.
+   */
+  bool window_surface_unref(const wl_surface *wl_surface);
 
   bool window_cursor_grab_set(const GHOST_TGrabCursorMode mode,
                               const GHOST_TGrabCursorMode mode_current,
@@ -198,6 +226,27 @@ class GHOST_SystemWayland : public GHOST_System {
   static bool use_libdecor_runtime();
 #endif
 
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  /* NOTE: allocate mutex so `const` functions can lock the mutex. */
+
+  /** Lock to prevent #wl_display_dispatch / #wl_display_roundtrip / #wl_display_flush
+   * from running at the same time. */
+  std::mutex *server_mutex = nullptr;
+
+  /** Threads must lock this before manipulating timers. */
+  std::mutex *timer_mutex = nullptr;
+
+  std::thread::id main_thread_id;
+
+  std::atomic<bool> has_pending_actions_for_window = false;
+#endif
+
  private:
+  /**
+   * Support freeing the internal data separately from the destructor
+   * so it can be called when WAYLAND isn't running (immediately before raising an exception).
+   */
+  void display_destroy_and_free_all();
+
   struct GWL_Display *display_;
 };

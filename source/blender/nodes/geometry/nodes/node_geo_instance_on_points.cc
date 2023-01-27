@@ -19,29 +19,29 @@ namespace blender::nodes::node_geo_instance_on_points_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Points")).description(N_("Points to instance on"));
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
+  b.add_input<decl::Bool>(N_("Selection")).default_value(true).field_on({0}).hide_value();
   b.add_input<decl::Geometry>(N_("Instance"))
       .description(N_("Geometry that is instanced on the points"));
   b.add_input<decl::Bool>(N_("Pick Instance"))
-      .supports_field()
+      .field_on({0})
       .description(N_("Choose instances from the \"Instance\" input at each point instead of "
                       "instancing the entire geometry"));
   b.add_input<decl::Int>(N_("Instance Index"))
-      .implicit_field(implicit_field_inputs::id_or_index)
-      .description(N_(
-          "Index of the instance that used for each point. This is only used when Pick Instances "
-          "is on. By default the point index is used"));
+      .implicit_field_on(implicit_field_inputs::id_or_index, {0})
+      .description(
+          N_("Index of the instance used for each point. This is only used when Pick Instances "
+             "is on. By default the point index is used"));
   b.add_input<decl::Vector>(N_("Rotation"))
       .subtype(PROP_EULER)
-      .supports_field()
+      .field_on({0})
       .description(N_("Rotation of the instances"));
   b.add_input<decl::Vector>(N_("Scale"))
       .default_value({1.0f, 1.0f, 1.0f})
       .subtype(PROP_XYZ)
-      .supports_field()
+      .field_on({0})
       .description(N_("Scale of the instances"));
 
-  b.add_output<decl::Geometry>(N_("Instances"));
+  b.add_output<decl::Geometry>(N_("Instances")).propagate_all();
 }
 
 static void add_instances_from_component(
@@ -198,8 +198,11 @@ static void node_geo_exec(GeoNodeExecParams params)
         GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE};
 
     Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
-    geometry_set.gather_attributes_for_propagation(
-        types, GEO_COMPONENT_TYPE_INSTANCES, false, attributes_to_propagate);
+    geometry_set.gather_attributes_for_propagation(types,
+                                                   GEO_COMPONENT_TYPE_INSTANCES,
+                                                   false,
+                                                   params.get_output_propagation_info("Instances"),
+                                                   attributes_to_propagate);
     attributes_to_propagate.remove("position");
 
     for (const GeometryComponentType type : types) {

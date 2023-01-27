@@ -367,6 +367,8 @@ Sequence *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_
   seqm->start = load_data->start_frame;
   seqm->len = 1;
 
+  seq_add_generic_update(scene, seqm);
+
   return seqm;
 }
 

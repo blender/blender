@@ -80,8 +80,30 @@ class MTLStateManager : public StateManager {
   void mtl_depth_range(float near, float far);
   void mtl_stencil_mask(uint mask);
   void mtl_stencil_set_func(eGPUStencilTest stencil_func, int ref, uint mask);
+  void mtl_clip_plane_enable(uint i);
+  void mtl_clip_plane_disable(uint i);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLStateManager")
+};
+
+/* Fence synchronization primitive. */
+class MTLFence : public Fence {
+ private:
+  /* Using an event in this instance, as this is global for the command stream, rather than being
+   * inserted at the encoder level. This has the behavior to match the GL functionality. */
+  id<MTLEvent> mtl_event_ = nil;
+  /* Events can be re-used multiple times. We can track a counter flagging the latest value
+   * signalled. */
+  uint64_t last_signalled_value_ = 0;
+
+ public:
+  MTLFence() : Fence(){};
+  ~MTLFence();
+
+  void signal() override;
+  void wait() override;
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("MTLFence")
 };
 
 }  // namespace blender::gpu

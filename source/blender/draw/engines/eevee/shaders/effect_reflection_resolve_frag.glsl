@@ -18,18 +18,6 @@
  * https://media.contentapi.ea.com/content/dam/ea/seed/presentations/dd18-seed-raytracing-in-hybrid-real-time-rendering.pdf
  */
 
-uniform sampler2D colorBuffer;
-uniform sampler2D normalBuffer;
-uniform sampler2D specroughBuffer;
-uniform sampler2D hitBuffer;
-uniform sampler2D hitDepth;
-
-uniform int samplePoolOffset;
-
-in vec4 uvcoordsvar;
-
-out vec4 fragColor;
-
 vec4 ssr_get_scene_color_and_mask(vec3 hit_vP, int planar_index, float mip)
 {
   vec2 uv;
@@ -114,6 +102,58 @@ void raytrace_resolve(ClosureInputGlossy cl_in,
                       inout ClosureEvalCommon cl_common,
                       inout ClosureOutputGlossy cl_out)
 {
+  /* Note: Reflection samples declared in function scope to avoid per-thread memory pressure on
+   * tile-based GPUs e.g. Apple Silicon. */
+  const vec2 resolve_sample_offsets[36] = vec2[36](
+      /* Set 1. */
+      /* First Ring (2x2). */
+      vec2(0, 0),
+      /* Second Ring (6x6). */
+      vec2(-1, 3),
+      vec2(1, 3),
+      vec2(-1, 1),
+      vec2(3, 1),
+      vec2(-2, 0),
+      vec2(3, 0),
+      vec2(2, -1),
+      vec2(1, -2),
+      /* Set 2. */
+      /* First Ring (2x2). */
+      vec2(1, 1),
+      /* Second Ring (6x6). */
+      vec2(-2, 3),
+      vec2(3, 3),
+      vec2(0, 2),
+      vec2(2, 2),
+      vec2(-2, -1),
+      vec2(1, -1),
+      vec2(0, -2),
+      vec2(3, -2),
+      /* Set 3. */
+      /* First Ring (2x2). */
+      vec2(0, 1),
+      /* Second Ring (6x6). */
+      vec2(0, 3),
+      vec2(3, 2),
+      vec2(-2, 1),
+      vec2(2, 1),
+      vec2(-1, 0),
+      vec2(-2, -2),
+      vec2(0, -1),
+      vec2(2, -2),
+      /* Set 4. */
+      /* First Ring (2x2). */
+      vec2(1, 0),
+      /* Second Ring (6x6). */
+      vec2(2, 3),
+      vec2(-2, 2),
+      vec2(-1, 2),
+      vec2(1, 2),
+      vec2(2, 0),
+      vec2(-1, -1),
+      vec2(3, -1),
+      vec2(-1, -2));
+
   float roughness = cl_in.roughness;
 
   vec4 ssr_accum = vec4(0.0);

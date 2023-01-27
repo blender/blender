@@ -55,7 +55,7 @@ extern "C" {
 
 void ED_file_indexer_entries_extend_from_datablock_infos(
     FileIndexerEntries *indexer_entries,
-    const LinkNode * /* BLODataBlockInfo */ datablock_infos,
+    const LinkNode * /*BLODataBlockInfo*/ datablock_infos,
     const int idcode)
 {
   for (const LinkNode *ln = datablock_infos; ln; ln = ln->next) {
@@ -70,6 +70,7 @@ void ED_file_indexer_entries_extend_from_datablock_infos(
 static void ED_file_indexer_entry_free(void *indexer_entry_ptr)
 {
   FileIndexerEntry *indexer_entry = static_cast<FileIndexerEntry *>(indexer_entry_ptr);
+  BLO_datablock_info_free(&indexer_entry->datablock_info);
   MEM_freeN(indexer_entry);
 }
 

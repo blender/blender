@@ -3378,7 +3378,7 @@ static PySequenceMethods pyrna_prop_array_as_sequence = {
     /*sq_item*/ (ssizeargfunc)pyrna_prop_array_subscript_int,
     /*sq_slice*/ NULL,
     /*sq_ass_item*/ (ssizeobjargproc)prop_subscript_ass_array_int,
-    /* was_sq_ass_slice */ NULL, /* DEPRECATED. */
+    /*was_sq_ass_slice*/ NULL, /* DEPRECATED. */
     /*sq_contains*/ (objobjproc)pyrna_prop_array_contains,
     /*sq_inplace_concat*/ NULL,
     /*sq_inplace_repeat*/ NULL,

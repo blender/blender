@@ -1,4 +1,5 @@
 
+#pragma BLENDER_REQUIRE(engine_eevee_legacy_shared.h)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
@@ -9,17 +10,14 @@
 
 /* ----------- Uniforms --------- */
 
+#if !defined(USE_GPU_SHADER_CREATE_INFO)
+
 uniform sampler2DArray probePlanars;
 uniform samplerCubeArray probeCubes;
 
-/* ----------- Structures --------- */
+#endif
 
-struct CubeData {
-  vec4 position_type;
-  vec4 attenuation_fac_type;
-  mat4 influencemat;
-  mat4 parallaxmat;
-};
+/* ----------- Structures --------- */
 
 #define PROBE_PARALLAX_BOX 1.0
 #define PROBE_ATTENUATION_BOX 1.0
@@ -28,16 +26,6 @@ struct CubeData {
 #define p_parallax_type position_type.w
 #define p_atten_fac attenuation_fac_type.x
 #define p_atten_type attenuation_fac_type.y
-
-struct PlanarData {
-  vec4 plane_equation;
-  vec4 clip_vec_x_fade_scale;
-  vec4 clip_vec_y_fade_bias;
-  vec4 clip_edges;
-  vec4 facing_scale_bias;
-  mat4 reflectionmat; /* transform world space into reflection texture space */
-  mat4 unused;
-};
 
 #define pl_plane_eq plane_equation
 #define pl_normal plane_equation.xyz
@@ -48,16 +36,6 @@ struct PlanarData {
 #define pl_clip_pos_x clip_vec_x_fade_scale.xyz
 #define pl_clip_pos_y clip_vec_y_fade_bias.xyz
 #define pl_clip_edges clip_edges
-
-struct GridData {
-  mat4 localmat;
-  ivec4 resolution_offset;
-  vec4 ws_corner_atten_scale;     /* world space corner position */
-  vec4 ws_increment_x_atten_bias; /* world space vector between 2 opposite cells */
-  vec4 ws_increment_y_lvl_bias;
-  vec4 ws_increment_z;
-  vec4 vis_bias_bleed_range;
-};
 
 #define g_corner ws_corner_atten_scale.xyz
 #define g_atten_scale ws_corner_atten_scale.w
@@ -82,21 +60,28 @@ struct GridData {
 #  define MAX_PLANAR 1
 #endif
 
+#if !defined(USE_GPU_SHADER_CREATE_INFO)
+
 layout(std140) uniform probe_block
 {
-  CubeData probes_data[MAX_PROBE];
+  ProbeBlock _probe_block;
 };
 
 layout(std140) uniform grid_block
 {
-  GridData grids_data[MAX_GRID];
+  GridBlock _grid_block;
 };
 
 layout(std140) uniform planar_block
 {
-  PlanarData planars_data[MAX_PLANAR];
+  PlanarBlock _planar_block;
 };
 
+#  define probes_data _probe_block.probes_data
+#  define grids_data _grid_block.grids_data
+#  define planars_data _planar_block.planars_data
+
+#endif
 /* ----------- Functions --------- */
 
 float probe_attenuation_cube(int pd_id, vec3 P)
