@@ -8,25 +8,23 @@
 namespace blender::workbench {
 
 class TaaSamples {
-  void init_samples(Array<float2> &samples, const int size)
+  void init_samples(MutableSpan<float2> samples)
   {
-    samples = Array<float2>(size);
-    BLI_jitter_init((float(*)[2])samples.begin(), size);
+    BLI_jitter_init(reinterpret_cast<float(*)[2]>(samples.data()), samples.size());
 
     /* Find closest element to center */
     int closest_index = 0;
     float closest_squared_distance = 1.0f;
-
     for (int i : samples.index_range()) {
-      float2 sample = samples[i];
-      const float squared_dist = len_squared_v2(sample);
+      const float2 sample = samples[i];
+      const float squared_dist = math::length_squared(sample);
       if (squared_dist < closest_squared_distance) {
         closest_squared_distance = squared_dist;
         closest_index = i;
       }
     }
 
-    float2 closest_sample = samples[closest_index];
+    const float2 closest_sample = samples[closest_index];
 
     for (float2 &sample : samples) {
       /* Move jitter samples so that closest sample is in center */
@@ -43,11 +41,11 @@ class TaaSamples {
     }
 
     /* Sort list based on farthest distance with previous. */
-    for (int i = 0; i < size - 2; i++) {
+    for (int i = 0; i < samples.size() - 2; i++) {
       float squared_dist = 0.0;
       int index = i;
-      for (int j = i + 1; j < size; j++) {
-        const float _squared_dist = len_squared_v2(samples[i] - samples[j]);
+      for (int j = i + 1; j < samples.size(); j++) {
+        const float _squared_dist = math::length_squared(samples[i] - samples[j]);
         if (_squared_dist > squared_dist) {
           squared_dist = _squared_dist;
           index = j;
@@ -58,19 +56,19 @@ class TaaSamples {
   }
 
  public:
-  Array<float2> x5;
-  Array<float2> x8;
-  Array<float2> x11;
-  Array<float2> x16;
-  Array<float2> x32;
+  std::array<float2, 5> x5;
+  std::array<float2, 8> x8;
+  std::array<float2, 11> x11;
+  std::array<float2, 16> x16;
+  std::array<float2, 32> x32;
 
   TaaSamples()
   {
-    init_samples(x5, 5);
-    init_samples(x8, 8);
-    init_samples(x11, 11);
-    init_samples(x16, 16);
-    init_samples(x32, 32);
+    init_samples(x5);
+    init_samples(x8);
+    init_samples(x11);
+    init_samples(x16);
+    init_samples(x32);
   }
 };
 
