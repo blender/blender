@@ -3793,6 +3793,7 @@ static void blo_read_file_checks(Main *bmain)
     }
   }
 #endif
+  UNUSED_VARS_NDEBUG(bmain);
 }
 
 BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
