@@ -169,7 +169,7 @@ class BaseDiscard {
   /**
    * \brief Should the source pixel at the given uv coordinate be discarded.
    */
-  virtual bool should_discard(const TransformUserData &user_data, const double2 uv) = 0;
+  virtual bool should_discard(const TransformUserData &user_data, const double2 &uv) = 0;
 };
 
 /**
@@ -182,7 +182,7 @@ class CropSource : public BaseDiscard {
    *
    * Uses user_data.src_crop to determine if the uv coordinate should be skipped.
    */
-  bool should_discard(const TransformUserData &user_data, const double2 uv) override
+  bool should_discard(const TransformUserData &user_data, const double2 &uv) override
   {
     return uv.x < user_data.src_crop.xmin || uv.x >= user_data.src_crop.xmax ||
            uv.y < user_data.src_crop.ymin || uv.y >= user_data.src_crop.ymax;
@@ -199,7 +199,7 @@ class NoDiscard : public BaseDiscard {
    *
    * Will never discard any pixels.
    */
-  bool should_discard(const TransformUserData & /*user_data*/, const double2 /*uv*/) override
+  bool should_discard(const TransformUserData & /*user_data*/, const double2 & /*uv*/) override
   {
     return false;
   }
@@ -278,7 +278,7 @@ class BaseUVWrapping {
   /**
    * \brief modify the given uv coordinate.
    */
-  double2 modify_uv(const ImBuf *source_buffer, double2 uv)
+  double2 modify_uv(const ImBuf *source_buffer, const double2 &uv)
   {
     return double2(modify_u(source_buffer, uv.x), modify_v(source_buffer, uv.y));
   }
@@ -391,7 +391,7 @@ class Sampler {
   static const int ChannelLen = NumChannels;
   using SampleType = Pixel<StorageType, NumChannels>;
 
-  void sample(const ImBuf *source, const double2 uv, SampleType &r_sample)
+  void sample(const ImBuf *source, const double2 &uv, SampleType &r_sample)
   {
     if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float> &&
                   NumChannels == 4) {
@@ -431,7 +431,7 @@ class Sampler {
     }
     else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<StorageType, float>) {
       const double2 wrapped_uv = uv_wrapper.modify_uv(source, uv);
-      sample_nearest_float(source, UNPACK2(wrapped_uv), r_sample);
+      sample_nearest_float(source, wrapped_uv, r_sample);
     }
     else {
       /* Unsupported sampler. */
@@ -440,16 +440,13 @@ class Sampler {
   }
 
  private:
-  void sample_nearest_float(const ImBuf *source,
-                            const double u,
-                            const double v,
-                            SampleType &r_sample)
+  void sample_nearest_float(const ImBuf *source, const double2 &uv, SampleType &r_sample)
   {
     BLI_STATIC_ASSERT(std::is_same_v<StorageType, float>);
 
     /* ImBuf in must have a valid rect or rect_float, assume this is already checked */
-    int x1 = int(u);
-    int y1 = int(v);
+    int x1 = int(uv.x);
+    int y1 = int(uv.y);
 
     /* Break when sample outside image is requested. */
     if (x1 < 0 || x1 >= source->x || y1 < 0 || y1 >= source->y) {
@@ -621,8 +618,8 @@ class ScanlineProcessor {
       sample.clear();
       int num_subsamples_added = 0;
 
-      for (double2 delta_uv : user_data->subsampling.delta_uvs) {
-        double2 subsample_uv = uv + delta_uv;
+      for (const double2 &delta_uv : user_data->subsampling.delta_uvs) {
+        const double2 subsample_uv = uv + delta_uv;
         if (!discarder.should_discard(*user_data, subsample_uv)) {
           typename Sampler::SampleType sub_sample;
           sampler.sample(user_data->src, subsample_uv, sub_sample);
