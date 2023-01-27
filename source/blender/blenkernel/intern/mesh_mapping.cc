@@ -47,7 +47,6 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
   uint a;
   int i, totuv, nverts;
 
-  bool *winding = nullptr;
   BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, 32);
 
   totuv = 0;
@@ -67,13 +66,15 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
   vmap = (UvVertMap *)MEM_callocN(sizeof(*vmap), "UvVertMap");
   buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * size_t(totuv), "UvMapVert");
   vmap->vert = (UvMapVert **)MEM_callocN(sizeof(*vmap->vert) * totvert, "UvMapVert*");
-  if (use_winding) {
-    winding = static_cast<bool *>(MEM_callocN(sizeof(*winding) * totpoly, "winding"));
-  }
 
   if (!vmap->vert || !vmap->buf) {
     BKE_mesh_uv_vert_map_free(vmap);
     return nullptr;
+  }
+
+  bool *winding = nullptr;
+  if (use_winding) {
+    winding = static_cast<bool *>(MEM_callocN(sizeof(*winding) * totpoly, "winding"));
   }
 
   mp = mpoly;

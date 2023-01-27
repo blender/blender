@@ -1786,7 +1786,6 @@ static void uv_select_linked_multi(Scene *scene,
     BMFace *efa;
     BMLoop *l;
     BMIter iter, liter;
-    UvVertMap *vmap;
     UvMapVert *vlist, *iterv, *startv;
     int i, stacksize = 0, *stack;
     uint a;
@@ -1807,8 +1806,7 @@ static void uv_select_linked_multi(Scene *scene,
      *
      * Better solve this by having a delimit option for select-linked operator,
      * keeping island-select working as is. */
-    vmap = BM_uv_vert_map_create(em->bm, !uv_sync_select, false);
-
+    UvVertMap *vmap = BM_uv_vert_map_create(em->bm, !uv_sync_select);
     if (vmap == NULL) {
       continue;
     }
@@ -3304,11 +3302,10 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
   if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 &&
       ELEM(ts->uv_sticky, SI_STICKY_VERTEX, SI_STICKY_LOC)) {
 
-    struct UvVertMap *vmap;
     uint efa_index;
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
-    vmap = BM_uv_vert_map_create(em->bm, false, false);
+    struct UvVertMap *vmap = BM_uv_vert_map_create(em->bm, false);
     if (vmap == NULL) {
       return;
     }
@@ -3394,11 +3391,10 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
     }
   }
   else if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 && ts->uv_sticky == SI_STICKY_LOC) {
-    struct UvVertMap *vmap;
     uint efa_index;
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
-    vmap = BM_uv_vert_map_create(em->bm, false, false);
+    struct UvVertMap *vmap = BM_uv_vert_map_create(em->bm, false);
     if (vmap == NULL) {
       return;
     }
@@ -3449,13 +3445,12 @@ static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMEditMesh *
   if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 &&
       ELEM(ts->uv_sticky, SI_STICKY_LOC, SI_STICKY_VERTEX)) {
     /* Use UV edge selection to identify which verts must to be selected */
-    struct UvVertMap *vmap;
     uint efa_index;
     /* Clear UV vert flags */
     bm_clear_uv_vert_selection(scene, em->bm, offsets);
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
-    vmap = BM_uv_vert_map_create(em->bm, false, false);
+    struct UvVertMap *vmap = BM_uv_vert_map_create(em->bm, false);
     if (vmap == NULL) {
       return;
     }
