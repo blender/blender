@@ -1297,7 +1297,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
-  /* New workspace design */
+  /* New workspace design. */
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 1)) {
     do_version_workspaces_after_lib_link(bmain);
   }
@@ -1969,6 +1969,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 #endif
+
+  /* Files from this version included do get a valid `win->screen` pointer written for backward
+   * compatibility, however this should never be used nor needed, so clear these pointers here. */
+  if (MAIN_VERSION_ATLEAST(bmain, 280, 1)) {
+    for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+      LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+        win->screen = NULL;
+      }
+    }
+  }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 3)) {
     /* init grease pencil grids and paper */

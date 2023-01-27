@@ -2701,8 +2701,6 @@ void blo_lib_link_restore(Main *oldmain,
      * all workspaces), that one only focuses one current active screen, takes care of
      * potential local view, and needs window's scene pointer to be final... */
     lib_link_window_scene_data_restore(win, win->scene, cur_view_layer);
-
-    BLI_assert(win->screen == nullptr);
   }
 
   lib_link_wm_xr_data_restore(id_map, &curwm->xr);

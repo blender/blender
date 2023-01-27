@@ -438,6 +438,16 @@ static void setup_app_data(bContext *C,
     /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
     BKE_lib_override_library_main_operations_create(bmain, true, nullptr);
   }
+
+  /* Sanity checks. */
+#ifndef NDEBUG
+  LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+      /* This pointer is deprecated and should always be nullptr. */
+      BLI_assert(win->screen == nullptr);
+    }
+  }
+#endif
 }
 
 static void setup_app_blend_file_data(bContext *C,
