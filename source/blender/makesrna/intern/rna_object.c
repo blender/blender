@@ -1759,8 +1759,7 @@ static void rna_Object_modifier_clear(Object *object, bContext *C)
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
 
-static void rna_Object_modifier_move(
-    Object *object, Main *bmain, ReportList *reports, int from, int to)
+static void rna_Object_modifier_move(Object *object, ReportList *reports, int from, int to)
 {
   ModifierData *md = BLI_findlink(&object->modifiers, from);
 
@@ -2651,7 +2650,7 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
   /* move a modifier */
   func = RNA_def_function(srna, "move", "rna_Object_modifier_move");
   RNA_def_function_ui_description(func, "Move a modifier to a different position");
-  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_int(
       func, "from_index", -1, INT_MIN, INT_MAX, "From Index", "Index to move", 0, 10000);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
