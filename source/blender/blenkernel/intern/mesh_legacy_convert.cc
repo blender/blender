@@ -1608,6 +1608,9 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
 {
   using namespace blender;
   using namespace blender::bke;
+  if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
+    return;
+  }
 
   /* Store layer names since they will be removed, used to set the active status of new layers.
    * Use intermediate #StringRef because the names can be null. */
