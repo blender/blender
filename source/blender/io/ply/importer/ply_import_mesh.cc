@@ -5,9 +5,9 @@
  */
 
 #include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
-#include "BKE_attribute.hh"
 #include "BKE_mesh_runtime.h"
 
 #include "GEO_mesh_merge_by_distance.hh"
@@ -69,7 +69,8 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
   /* Vertex colors */
   if (!data.vertex_colors.is_empty()) {
     /* Create a data layer for vertex colors and set them. */
-    bke::SpanAttributeWriter<ColorGeometry4f> colors = attributes.lookup_or_add_for_write_span<ColorGeometry4f>("Col", ATTR_DOMAIN_POINT);
+    bke::SpanAttributeWriter<ColorGeometry4f> colors =
+        attributes.lookup_or_add_for_write_span<ColorGeometry4f>("Col", ATTR_DOMAIN_POINT);
     for (int i = 0; i < data.vertex_colors.size(); i++) {
       copy_v4_v4(colors.span[i], data.vertex_colors[i]);
     }
