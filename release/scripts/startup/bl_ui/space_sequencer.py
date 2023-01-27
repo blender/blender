@@ -1845,17 +1845,17 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         frame_offset_end = strip.frame_offset_end
 
         length_list = (
-            str(frame_start),
-            str(frame_final_end),
-            str(frame_final_duration),
-            str(frame_offset_start),
-            str(frame_offset_end),
+            str(round(frame_start, 0)),
+            str(round(frame_final_end, 0)),
+            str(round(frame_final_duration, 0)),
+            str(round(frame_offset_start, 0)),
+            str(round(frame_offset_end, 0)),
         )
 
         if not is_effect:
             length_list = length_list + (
-                str(strip.animation_offset_start),
-                str(strip.animation_offset_end),
+                str(round(strip.animation_offset_start, 0)),
+                str(round(strip.animation_offset_end, 0)),
             )
 
         max_length = max(len(x) for x in length_list)
