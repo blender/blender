@@ -355,7 +355,8 @@ void USDStageReader::fake_users_for_unused_materials()
 {
   /* Iterate over the imported materials and set a fake user for any unused
    * materials. */
-  for (const std::pair<const std::string, std::string> &path_mat_pair : settings_.usd_path_to_mat_name) {
+  for (const std::pair<const std::string, std::string> &path_mat_pair :
+       settings_.usd_path_to_mat_name) {
 
     std::map<std::string, Material *>::iterator mat_it = settings_.mat_name_to_mat.find(
         path_mat_pair.second);
