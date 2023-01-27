@@ -60,7 +60,6 @@ static const pxr::TfToken out("out", pxr::TfToken::Immortal);
 static const pxr::TfToken normal("normal", pxr::TfToken::Immortal);
 static const pxr::TfToken ior("ior", pxr::TfToken::Immortal);
 static const pxr::TfToken file("file", pxr::TfToken::Immortal);
-static const pxr::TfToken preview("preview", pxr::TfToken::Immortal);
 static const pxr::TfToken raw("raw", pxr::TfToken::Immortal);
 static const pxr::TfToken sRGB("sRGB", pxr::TfToken::Immortal);
 static const pxr::TfToken sourceColorSpace("sourceColorSpace", pxr::TfToken::Immortal);
@@ -123,10 +122,6 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
   if (!material) {
     return;
   }
-
-  /* Define a 'preview' scope beneath the material which will contain the preview shaders. */
-  pxr::UsdGeomScope::Define(usd_export_context.stage,
-                            usd_material.GetPath().AppendChild(usdtokens::preview));
 
   /* Default map when creating UV primvar reader shaders. */
   pxr::TfToken default_uv_sampler = default_uv.empty() ? cyclestokens::UVMap :
@@ -470,9 +465,8 @@ static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &u
                                                      const char *name,
                                                      const int type)
 {
-  pxr::SdfPath shader_path = material.GetPath()
-                                 .AppendChild(usdtokens::preview)
-                                 .AppendChild(pxr::TfToken(pxr::TfMakeValidIdentifier(name)));
+  pxr::SdfPath shader_path = material.GetPath().AppendChild(
+      pxr::TfToken(pxr::TfMakeValidIdentifier(name)));
   pxr::UsdShadeShader shader = pxr::UsdShadeShader::Define(usd_export_context.stage, shader_path);
 
   switch (type) {

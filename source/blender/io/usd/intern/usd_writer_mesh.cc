@@ -350,7 +350,8 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
    * which is why we always bind the first material to the entire mesh. See
    * https://github.com/PixarAnimationStudios/USD/issues/542 for more info. */
   bool mesh_material_bound = false;
-  pxr::UsdShadeMaterialBindingAPI material_binding_api(usd_mesh.GetPrim());
+  auto mesh_prim = usd_mesh.GetPrim();
+  pxr::UsdShadeMaterialBindingAPI material_binding_api(mesh_prim);
   for (int mat_num = 0; mat_num < context.object->totcol; mat_num++) {
     Material *material = BKE_object_material_get(context.object, mat_num + 1);
     if (material == nullptr) {
@@ -369,7 +370,13 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
     break;
   }
 
-  if (!mesh_material_bound) {
+  if (mesh_material_bound) {
+    /* USD will require that prims with material bindings have the MaterialBindingAPI applied
+     * schema. While Bind() above will create the binding attribute, Apply() needs to be called as
+     * well to add the MaterialBindingAPI schema to the prim itself.*/
+    material_binding_api.Apply(mesh_prim);
+  }
+  else {
     /* Blender defaults to double-sided, but USD to single-sided. */
     usd_mesh.CreateDoubleSidedAttr(pxr::VtValue(true));
   }
@@ -396,7 +403,11 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
 
     pxr::UsdGeomSubset usd_face_subset = material_binding_api.CreateMaterialBindSubset(
         material_name, face_indices);
-    pxr::UsdShadeMaterialBindingAPI(usd_face_subset.GetPrim()).Bind(usd_material);
+    auto subset_prim = usd_face_subset.GetPrim();
+    auto subset_material_api = pxr::UsdShadeMaterialBindingAPI(subset_prim);
+    subset_material_api.Bind(usd_material);
+    /* Apply the MaterialBindingAPI applied schema, as required by USD.*/
+    subset_material_api.Apply(subset_prim);
   }
 }
 
