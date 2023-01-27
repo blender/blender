@@ -1,0 +1,91 @@
+name: Check PR Development
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - development
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-22.04
+    container:
+      image: stroopwafe1/blender_deps:latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Copy workspace to proper path
+        run: cp -r $GITHUB_WORKSPACE /blender-git/blender
+      - name: Run Compile Commands
+        run: |
+          cd /blender-git
+          mkdir cmake-make
+          cd cmake-make
+          cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON /blender-git/blender
+      - name: Upload compile_commands
+        uses: actions/upload-artifact@v3
+        with:
+          name: compile_commands
+          path: /blender-git/cmake-make/compile_commands.json
+
+  check-syntax:
+    name: Syntax checking
+    runs-on: ubuntu-20.04
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Download compile_commands
+        uses: actions/download-artifact@v3
+        with:
+          name: compile_commands
+          path: $GITHUB_WORKSPACE/build
+      - name: Run clang-format
+        uses: jidicula/clang-format-action@v4.9.0
+        with:
+          clang-format-version: '13'
+          check-path: source/blender/io/ply
+          fallback-style: 'Mozilla' # optional
+
+
+  sonar:
+    name: Sonar
+    runs-on: ubuntu-22.04
+    container:
+      image: stroopwafe1/blender_deps:latest
+    needs: setup
+    env:
+      SONAR_SCANNER_VERSION: 4.7.0.2747
+      SONAR_SERVER_URL: "https://sonarcloud.io"
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: Download and set up sonar-scanner
+        env:
+          SONAR_SCANNER_DOWNLOAD_URL: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${{ env.SONAR_SCANNER_VERSION }}-linux.zip
+        run: |
+          mkdir -p $HOME/.sonar
+          curl -sSLo $HOME/.sonar/sonar-scanner.zip ${{ env.SONAR_SCANNER_DOWNLOAD_URL }}
+          unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
+          echo "$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin" >> $GITHUB_PATH
+      - name: Copy workspace to proper path
+        run: cp -r $GITHUB_WORKSPACE /blender-git/blender
+      - name: Run Compile Commands
+        run: |
+          cd /blender-git
+          mkdir cmake-make
+          cd cmake-make
+          cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON /blender-git/blender
+      - name: Run sonar-scanner
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" --define sonar.cfamily.compile-commands=/blender-git/cmake-make/compile_commands.json

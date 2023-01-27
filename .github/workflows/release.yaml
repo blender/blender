@@ -1,0 +1,46 @@
+name: Release
+on:
+  push:
+    branches:
+      - master
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Update from upstream
+        run: |
+          cd $GITHUB_WORKSPACE
+          git config --global user.name "CI Bot"
+          git config --global user.email "noreply@example.com"
+          git remote add upstream https://github.com/blender/blender.git
+          git fetch upstream
+          git config submodule.release/scripts/addons_contrib.url git://git.blender.org/blender-addons-contrib.git
+          git config submodule.release/scripts/addons.url git://git.blender.org/blender-addons.git
+          git config submodule.release/datafiles/locale.url git://git.blender.org/blender-translations.git
+          git config submodule.source/tools.url git://git.blender.org/blender-dev-tools.git
+          git submodule update --init --recursive
+          git merge upstream/master
+          git add .
+          git commit -m "Gen for diff"
+      - name: Generate diff
+        run: |
+          cd $GITHUB_WORKSPACE
+          git diff upstream/master master > $HOME/blender_ply.diff
+      - name: Upload diff as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: diff
+          path: /home/runner/blender_ply.diff
+      - name: Make release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: false
+          title: "Cleaned Release"
+          files: |
+            /home/runner/blender_ply.diff
