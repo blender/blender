@@ -123,7 +123,7 @@ class CornersOfVertInput final : public bke::MeshFieldInput {
           corner_of_vertex[selection_i] = corner_indices[sort_indices[index_in_sort_wrapped]];
         }
         else {
-          corner_of_vertex[selection_i] = corner_indices[index_in_sort_wrapped];
+          corner_of_vertex[selection_i] = corners[index_in_sort_wrapped];
         }
       }
     });

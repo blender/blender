@@ -124,7 +124,7 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
           edge_of_vertex[selection_i] = edge_indices[sort_indices[index_in_sort_wrapped]];
         }
         else {
-          edge_of_vertex[selection_i] = edge_indices[index_in_sort_wrapped];
+          edge_of_vertex[selection_i] = edges[index_in_sort_wrapped];
         }
       }
     });
