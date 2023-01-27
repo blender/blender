@@ -2786,21 +2786,14 @@ extern "C" bool BKE_sculptsession_check_sculptverts(Object *ob, struct PBVH *pbv
 
   sculpt_boundary_flags_ensure(ob, pbvh, totvert);
 
-  if (!ss->attrs.sculpt_vert) {
+  if (!ss->attrs.sculpt_vert || !ss->attrs.sculpt_vert->data) {
     SculptAttributeParams params = {0};
 
     ss->attrs.sculpt_vert = sculpt_attribute_ensure_ex(
         ob, ATTR_DOMAIN_POINT, CD_DYNTOPO_VERT, "", &params, BKE_pbvh_type(pbvh));
   }
 
-  if (!ss->bm && (!ss->msculptverts || totvert != ss->last_msculptverts_count)) {
-    ss->last_msculptverts_count = totvert;
-    ss->msculptverts = static_cast<MSculptVert *>(ss->attrs.sculpt_vert->data);
-
-    init_sculptvert_layer(ss, pbvh, totvert);
-    return true;
-  }
-
+  ss->msculptverts = static_cast<MSculptVert *>(ss->attrs.sculpt_vert->data);
   BKE_pbvh_set_sculpt_verts(pbvh, ss->msculptverts);
 
   return false;

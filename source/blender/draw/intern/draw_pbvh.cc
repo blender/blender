@@ -760,7 +760,7 @@ struct PBVHBatches {
     }
   }
 
-  void fill_vbo_bmesh(PBVHVbo &vbo, PBVH_GPU_Args *args)
+  ATTR_NO_OPT void fill_vbo_bmesh(PBVHVbo &vbo, PBVH_GPU_Args *args)
   {
     auto foreach_bmesh_normal = [&](std::function<void(BMLoop * l)> callback) {
       for (int i : IndexRange(args->tribuf->tottri)) {
@@ -931,6 +931,7 @@ struct PBVHBatches {
         const bool do_loop = vbo.domain == ATTR_DOMAIN_CORNER;
 
         const int cd_color = CustomData_get_offset_named(cdata, CD_PROP_COLOR, vbo.name.c_str());
+
         foreach_bmesh([&](BMLoop *l) {
           MPropCol *col;
 

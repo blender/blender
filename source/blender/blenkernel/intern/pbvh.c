@@ -830,6 +830,10 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       break;
     case PBVH_BMESH:
       args->bm = pbvh->header.bm;
+
+      args->active_color = pbvh->mesh->active_color_attribute;
+      args->render_color = pbvh->mesh->default_color_attribute;
+
       args->me = pbvh->mesh;
       args->vdata = &args->bm->vdata;
       args->ldata = &args->bm->ldata;
@@ -979,6 +983,11 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
 
   /* For each face, store the AABB and the AABB centroid */
   prim_bbc = MEM_mallocN(sizeof(BBC) * looptri_num, "prim_bbc");
+
+  for (int i = 0; i < mesh->totvert; i++) {
+    msculptverts[i].flag &= ~SCULPTVERT_NEED_VALENCE;
+    msculptverts[i].valence = pmap->pmap[i].count;
+  }
 
   for (int i = 0; i < looptri_num; i++) {
     const MLoopTri *lt = &looptri[i];
@@ -1794,6 +1803,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
 
   Mesh me_query;
   BKE_id_attribute_copy_domains_temp(ID_ME, vdata, NULL, ldata, NULL, NULL, &me_query.id);
+  me_query.active_color_attribute = me->active_color_attribute;
 
   if (!pbvh->header.bm) {
     vdata = pbvh->vdata;
@@ -5374,6 +5384,8 @@ void BKE_pbvh_update_active_vcol(PBVH *pbvh, const Mesh *mesh)
   }
 
   BKE_id_attribute_copy_domains_temp(ID_ME, vdata, NULL, ldata, NULL, NULL, &me_query.id);
+  me_query.active_color_attribute = mesh->active_color_attribute;
+
   BKE_pbvh_get_color_layer(&me_query, &pbvh->color_layer, &pbvh->color_domain);
 
   if (pbvh->color_layer && pbvh->header.bm) {

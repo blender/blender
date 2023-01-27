@@ -1991,14 +1991,14 @@ void SCULPT_bound_smooth_ensure(SculptSession *ss, Object *ob)
   }
 }
 
-void SCULPT_smooth(Sculpt *sd,
-                   Object *ob,
-                   PBVHNode **nodes,
-                   const int totnode,
-                   float bstrength,
-                   const bool smooth_mask,
-                   float projection,
-                   bool do_origco)
+ATTR_NO_OPT void SCULPT_smooth(Sculpt *sd,
+                               Object *ob,
+                               PBVHNode **nodes,
+                               const int totnode,
+                               float bstrength,
+                               const bool smooth_mask,
+                               float projection,
+                               bool do_origco)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = ss->cache && ss->cache->brush ? ss->cache->brush : BKE_paint_brush(&sd->paint);
@@ -2114,7 +2114,7 @@ void SCULPT_smooth(Sculpt *sd,
     };
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+    BKE_pbvh_parallel_range_settings(&settings, false /* XXX */, totnode);
     BLI_task_parallel_range(0, totnode, &data, do_smooth_brush_task_cb_ex, &settings);
 
 #ifndef SMOOTH_ITER_IN_THREADS
