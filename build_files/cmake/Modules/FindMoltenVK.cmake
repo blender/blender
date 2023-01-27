@@ -24,7 +24,7 @@ SET(_moltenvk_SEARCH_DIRS
 # FIXME: These finder modules typically don't use LIBDIR,
 # this should be set by `./build_files/cmake/platform/` instead.
 IF(DEFINED LIBDIR)
-  SET(_moltenvk_SEARCH_DIRS ${_moltenvk_SEARCH_DIRS} ${LIBDIR}/vulkan/MoltenVK)
+  SET(_moltenvk_SEARCH_DIRS ${_moltenvk_SEARCH_DIRS} ${LIBDIR}/moltenvk)
 ENDIF()
 
 FIND_PATH(MOLTENVK_INCLUDE_DIR
