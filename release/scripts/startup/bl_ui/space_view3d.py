@@ -4274,7 +4274,10 @@ class VIEW3D_MT_edit_mesh_faces_data(Menu):
 
         layout.separator()
 
+        layout.operator("mesh.flip_quad_tessellation")
+
         if with_freestyle:
+            layout.separator()
             layout.operator("mesh.mark_freestyle_face").clear = False
             layout.operator("mesh.mark_freestyle_face", text="Clear Freestyle Face").clear = True
 

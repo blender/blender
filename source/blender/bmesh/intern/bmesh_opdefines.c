@@ -271,6 +271,23 @@ static BMOpDefine bmo_reverse_faces_def = {
 };
 
 /*
+ * Flip Quad Tessellation
+ *
+ * Flip the tessellation direction of the selected quads.
+*/
+static BMOpDefine bmo_flip_quad_tessellation_def = {
+  "flip_quad_tessellation",
+  /* slot_in */
+  {
+    {"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
+    {{'\0'}}
+  },
+  {{{'\0'}}}, /* no output */
+  bmo_flip_quad_tessellation_exec,
+  (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC),
+};
+
+/*
  * Edge Bisect.
  *
  * Splits input edges (but doesn't do anything else).
@@ -2128,6 +2145,7 @@ const BMOpDefine *bmo_opdefines[] = {
     &bmo_extrude_face_region_def,
     &bmo_extrude_vert_indiv_def,
     &bmo_find_doubles_def,
+    &bmo_flip_quad_tessellation_def,
     &bmo_grid_fill_def,
     &bmo_inset_individual_def,
     &bmo_inset_region_def,
