@@ -437,9 +437,9 @@ void BM_mesh_bm_from_me(Object *ob,
      * At the moment it's simplest to assume all original meshes use the key-block and meshes
      * that are evaluated (through the modifier stack for example) use custom-data layers.
      */
-    BLI_assert(!CustomData_has_layer(&me->vdata, CD_SHAPEKEY));
+    BLI_assert(!CustomData_has_layer(&mesh_vdata, CD_SHAPEKEY));
   }
-  if (is_new == false && CustomData_has_layer(&me->vdata, CD_SHAPEKEY)) {
+  if (is_new == false && CustomData_has_layer(&bm->vdata, CD_SHAPEKEY)) {
     tot_shape_keys = min_ii(tot_shape_keys, CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY));
   }
   const float(**shape_key_table)[3] = tot_shape_keys ? (const float(**)[3])BLI_array_alloca(
@@ -1580,8 +1580,10 @@ void BM_mesh_bm_to_me(
     CustomData_copy(&bm->pdata, &me->pdata, mask.pmask, CD_SET_DEFAULT, me->totpoly);
   }
 
-  CustomData_add_layer_named(
-      &me->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, me->totvert, "position");
+  if (CustomData_get_named_layer_index(&me->vdata, CD_PROP_FLOAT3, "position") == -1) {
+    CustomData_add_layer_named(
+        &me->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, me->totvert, "position");
+  }
   CustomData_add_layer(&me->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, me->totedge);
   CustomData_add_layer(&me->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, me->totloop);
   CustomData_add_layer(&me->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, me->totpoly);
@@ -1601,8 +1603,6 @@ void BM_mesh_bm_to_me(
 
   i = 0;
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    copy_v3_v3(positions[i], v->co);
-
     if (BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       need_hide_vert = true;
     }
@@ -1614,6 +1614,8 @@ void BM_mesh_bm_to_me(
 
     /* Copy over custom-data. */
     CustomData_from_bmesh_block(&bm->vdata, &me->vdata, v->head.data, i);
+
+    copy_v3_v3(positions[i], v->co);
 
     i++;
 
