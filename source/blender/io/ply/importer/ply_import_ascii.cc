@@ -6,16 +6,15 @@
 
 #include "ply_import_ascii.hh"
 #include "ply_functions.hh"
-#include "ply_import_mesh.hh"
 
 #include <algorithm>
 #include <fstream>
 
 namespace blender::io::ply {
 
-PlyData *import_ply_ascii(std::ifstream &file, PlyHeader *header)
+std::unique_ptr<PlyData> import_ply_ascii(std::ifstream &file, PlyHeader *header)
 {
-  PlyData *data = new PlyData;
+  std::unique_ptr<PlyData> data = std::make_unique<PlyData>();
   *data = load_ply_ascii(file, header);
   return data;
 }

@@ -20,7 +20,7 @@ namespace blender::io::ply {
  * @param header The information in the PLY header.
  */
 
-PlyData *import_ply_ascii(std::ifstream &file, PlyHeader *header);
+std::unique_ptr<PlyData> import_ply_ascii(std::ifstream &file, PlyHeader *header);
 
 /**
  * Loads the information from the PLY file in ASCII format to the PlyData datastructure.

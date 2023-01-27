@@ -7,12 +7,13 @@
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
+#include "BKE_attribute.hh"
+#include "BKE_mesh_runtime.h"
 
 #include "GEO_mesh_merge_by_distance.hh"
 
 #include "BLI_math_vector.h"
 
-#include "BKE_mesh_runtime.h"
 #include "ply_import_mesh.hh"
 
 namespace blender::io::ply {
@@ -20,13 +21,10 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
 {
 
   /* Add vertices to the mesh. */
-  mesh->totvert = int(data.vertices.size()); /* Explicit conversion from int64_t to int. */
-  CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
-  MutableSpan<MVert> verts = mesh->verts_for_write();
-  for (int i = 0; i < mesh->totvert; i++) {
-    float3 vert = {data.vertices[i].x, data.vertices[i].y, data.vertices[i].z};
-    copy_v3_v3(verts[i].co, vert);
-  }
+  mesh->totvert = int(data.vertices.size());
+  mesh->vert_positions_for_write().copy_from(data.vertices);
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   if (!data.edges.is_empty()) {
     mesh->totedge = int(data.edges.size());
@@ -71,30 +69,28 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
   /* Vertex colors */
   if (!data.vertex_colors.is_empty()) {
     /* Create a data layer for vertex colors and set them. */
-    CustomDataLayer *color_layer = BKE_id_attribute_new(
-        &mesh->id, "Col", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
-    float4 *colors = (float4 *)color_layer->data;
+    bke::SpanAttributeWriter<ColorGeometry4f> colors = attributes.lookup_or_add_for_write_span<ColorGeometry4f>("Col", ATTR_DOMAIN_POINT);
     for (int i = 0; i < data.vertex_colors.size(); i++) {
-      colors[i] = data.vertex_colors[i];
+      copy_v4_v4(colors.span[i], data.vertex_colors[i]);
     }
   }
 
   /* Uvmap */
   if (!data.UV_coordinates.is_empty()) {
-    MLoopUV *Uv = static_cast<MLoopUV *>(
-        CustomData_add_layer(&mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop));
+    bke::SpanAttributeWriter<float2> Uv = attributes.lookup_or_add_for_write_only_span<float2>(
+        "UVMap", ATTR_DOMAIN_CORNER);
     int counter = 0;
     for (int i = 0; i < data.faces.size(); i++) {
       for (int j = 0; j < data.faces[i].size(); j++) {
-        copy_v2_v2(Uv[counter].uv, data.UV_coordinates[data.faces[i][j]]);
+        copy_v2_v2(Uv.span[counter], data.UV_coordinates[data.faces[i][j]]);
         counter++;
       }
     }
+    Uv.finish();
   }
 
-  /* Calculate mesh from edges. */
+  /* Calculate edges from the rest of the mesh. */
   BKE_mesh_calc_edges(mesh, true, false);
-  BKE_mesh_calc_edges_loose(mesh);
 
   /* Note: This is important to do after initializing the loops. */
   if (!data.vertex_normals.is_empty()) {
@@ -102,7 +98,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
         MEM_malloc_arrayN(data.vertex_normals.size(), sizeof(float[3]), __func__));
 
     /* Below code is necessary to access vertex normals within Blender.
-     * Until Blender supports vertex normals, this is a workaround. */
+     * Until Blender supports custom vertex normals, this is a workaround. */
     float3 *normals = nullptr;
     if (params.import_normals_as_attribute) {
       CustomDataLayer *normal_layer = BKE_id_attribute_new(

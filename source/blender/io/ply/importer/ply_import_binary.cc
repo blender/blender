@@ -5,14 +5,13 @@
  */
 
 #include "ply_import_binary.hh"
-#include "ply_import_mesh.hh"
 
 #include <fstream>
 
 namespace blender::io::ply {
-PlyData *import_ply_binary(std::ifstream &file, const PlyHeader *header)
+std::unique_ptr<PlyData> import_ply_binary(std::ifstream &file, const PlyHeader *header)
 {
-  PlyData *data = new PlyData;
+  std::unique_ptr<PlyData> data = std::make_unique<PlyData>();
   *data = load_ply_binary(file, header);
   return data;
 }
