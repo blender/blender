@@ -87,9 +87,11 @@ typedef enum {
   UV_SSIM_FACE,
   UV_SSIM_LENGTH_UV,
   UV_SSIM_LENGTH_3D,
-  UV_SSIM_SIDES,
-  UV_SSIM_PIN,
   UV_SSIM_MATERIAL,
+  UV_SSIM_OBJECT,
+  UV_SSIM_PIN,
+  UV_SSIM_SIDES,
+  UV_SSIM_WINDING,
 } eUVSelectSimilar;
 
 /* -------------------------------------------------------------------- */
@@ -4633,6 +4635,7 @@ static float get_uv_edge_needle(const eUVSelectSimilar type,
 
 static float get_uv_face_needle(const eUVSelectSimilar type,
                                 BMFace *face,
+                                int ob_index,
                                 const float ob_m3[3][3],
                                 const BMUVOffsets offsets)
 {
@@ -4646,6 +4649,8 @@ static float get_uv_face_needle(const eUVSelectSimilar type,
       return BM_face_calc_area_with_mat3(face, ob_m3);
     case UV_SSIM_SIDES:
       return face->len;
+    case UV_SSIM_OBJECT:
+      return ob_index;
     case UV_SSIM_PIN: {
       BMLoop *l;
       BMIter liter;
@@ -4657,6 +4662,8 @@ static float get_uv_face_needle(const eUVSelectSimilar type,
     } break;
     case UV_SSIM_MATERIAL:
       return face->mat_nr;
+    case UV_SSIM_WINDING:
+      return signum_i(BM_face_calc_area_uv_signed(face, offsets.uv));
     default:
       BLI_assert_unreachable();
       return false;
@@ -4966,7 +4973,7 @@ static int uv_select_similar_face_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      float needle = get_uv_face_needle(type, face, ob_m3, offsets);
+      float needle = get_uv_face_needle(type, face, ob_index, ob_m3, offsets);
       if (tree_1d) {
         BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
       }
@@ -5000,7 +5007,7 @@ static int uv_select_similar_face_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      float needle = get_uv_face_needle(type, face, ob_m3, offsets);
+      float needle = get_uv_face_needle(type, face, ob_index, ob_m3, offsets);
 
       bool select = ED_select_similar_compare_float_tree(tree_1d, needle, threshold, compare);
       if (select) {
@@ -5180,8 +5187,10 @@ static EnumPropertyItem prop_edge_similar_types[] = {
 static EnumPropertyItem prop_face_similar_types[] = {
     {UV_SSIM_AREA_UV, "AREA", 0, "Area", ""},
     {UV_SSIM_AREA_3D, "AREA_3D", 0, "Area 3D", ""},
-    {UV_SSIM_SIDES, "SIDES", 0, "Polygon Sides", ""},
     {UV_SSIM_MATERIAL, "MATERIAL", 0, "Material", ""},
+    {UV_SSIM_OBJECT, "OBJECT", 0, "Object", ""},
+    {UV_SSIM_SIDES, "SIDES", 0, "Polygon Sides", ""},
+    {UV_SSIM_WINDING, "WINDING", 0, "Winding", ""},
     {0}};
 
 static EnumPropertyItem prop_island_similar_types[] = {

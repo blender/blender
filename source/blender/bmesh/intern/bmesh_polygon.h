@@ -73,7 +73,12 @@ float BM_face_calc_area(const BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float BM_face_calc_area_with_mat3(const BMFace *f, const float mat3[3][3]) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 /**
- * get the area of UV face
+ * Calculate the signed area of UV face.
+ */
+float BM_face_calc_area_uv_signed(const BMFace *f, int cd_loop_uv_offset) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
+/**
+ * Calculate the area of UV face.
  */
 float BM_face_calc_area_uv(const BMFace *f, int cd_loop_uv_offset) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();

@@ -225,20 +225,26 @@ float BM_face_calc_area_with_mat3(const BMFace *f, const float mat3[3][3])
   return len_v3(n) * 0.5f;
 }
 
-float BM_face_calc_area_uv(const BMFace *f, int cd_loop_uv_offset)
+float BM_face_calc_area_uv_signed(const BMFace *f, int cd_loop_uv_offset)
 {
   /* inline 'area_poly_v2' logic, avoid creating a temp array */
   const BMLoop *l_iter, *l_first;
 
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  /* The Trapezium Area Rule */
+  /* Green's theorem applied to area of a polygon.
+   * TODO: `cross` should be of type `double` to reduce rounding error. */
   float cross = 0.0f;
   do {
     const float *luv = BM_ELEM_CD_GET_FLOAT_P(l_iter, cd_loop_uv_offset);
     const float *luv_next = BM_ELEM_CD_GET_FLOAT_P(l_iter->next, cd_loop_uv_offset);
     cross += (luv_next[0] - luv[0]) * (luv_next[1] + luv[1]);
   } while ((l_iter = l_iter->next) != l_first);
-  return fabsf(cross * 0.5f);
+  return cross * 0.5f;
+}
+
+float BM_face_calc_area_uv(const BMFace *f, int cd_loop_uv_offset)
+{
+  return fabsf(BM_face_calc_area_uv_signed(f, cd_loop_uv_offset));
 }
 
 float BM_face_calc_perimeter(const BMFace *f)
