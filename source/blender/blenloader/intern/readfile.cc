@@ -3781,6 +3781,20 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 /** \name Read File (Internal)
  * \{ */
 
+/** Contains sanity/debug checks to be performed at the very end of the reading process (i.e. after
+ * data, liblink, linked data, etc. has been done). */
+static void blo_read_file_checks(Main *bmain)
+{
+#ifndef NDEBUG
+  LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+      /* This pointer is deprecated and should always be nullptr. */
+      BLI_assert(win->screen == nullptr);
+    }
+  }
+#endif
+}
+
 BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 {
   BHead *bhead = blo_bhead_first(fd);
@@ -3962,6 +3976,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   fd->mainlist = nullptr; /* Safety, this is local variable, shall not be used afterward. */
 
   BLI_assert(bfd->main->id_map == nullptr);
+
+  /* Sanity checks. */
+  blo_read_file_checks(bfd->main);
 
   return bfd;
 }
@@ -4582,6 +4599,9 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
     blo_filedata_free(*fd);
     *fd = nullptr;
   }
+
+  /* Sanity checks. */
+  blo_read_file_checks(mainvar);
 }
 
 void BLO_library_link_end(Main *mainl, BlendHandle **bh, const LibraryLink_Params *params)
