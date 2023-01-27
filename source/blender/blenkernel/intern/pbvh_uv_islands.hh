@@ -289,6 +289,12 @@ struct UVBorder {
 };
 
 struct UVIsland {
+  /**
+   * Id (Index) of the UVIsland. Contains the index of this island in UVIslands.
+   *
+   * Useful during debugging to set a breaking condition on a specific island/vert.
+   */
+  int id;
   VectorList<UVVertex> uv_vertices;
   VectorList<UVEdge> uv_edges;
   VectorList<UVPrimitive> uv_primitives;
