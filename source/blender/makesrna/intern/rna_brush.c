@@ -968,7 +968,7 @@ static const EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C,
 /* Grease Pencil Drawing Brushes Settings */
 static char *rna_BrushGpencilSettings_path(const PointerRNA *UNUSED(ptr))
 {
-  return BLI_strdup("tool_settings.gpencil_paint.brush.gpencil_settings");
+  return BLI_strdup("gpencil_settings");
 }
 
 static void rna_BrushGpencilSettings_default_eraser_update(Main *bmain,
@@ -1121,6 +1121,11 @@ static void rna_Brush_automasking_cavity_set(PointerRNA *ptr, bool val)
   else {
     brush->automasking_flags &= ~BRUSH_AUTOMASKING_CAVITY_NORMAL;
   }
+}
+
+static char *rna_BrushCurvesSculptSettings_path(const PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("curves_sculpt_settings");
 }
 
 #else
@@ -2037,6 +2042,7 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
   };
 
   srna = RNA_def_struct(brna, "BrushCurvesSculptSettings", NULL);
+  RNA_def_struct_path_func(srna, "rna_BrushCurvesSculptSettings_path");
   RNA_def_struct_sdna(srna, "BrushCurvesSculptSettings");
   RNA_def_struct_ui_text(srna, "Curves Sculpt Brush Settings", "");
 
