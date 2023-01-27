@@ -82,19 +82,32 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  const bNodeType &node_type = params.node_type();
+  const NodeDeclaration &declaration = *node_type.fixed_declaration;
+
+  /* Weight and Iterations inputs don't change based on the data type. */
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(2));
 
-  const bNodeType &node_type = params.node_type();
-  const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
-      (eNodeSocketDatatype)params.other_socket().type);
-  if (type && *type != CD_PROP_STRING) {
-    params.add_item(IFACE_("Value"), [node_type, type](LinkSearchOpParams &params) {
-      bNode &node = params.add_node(node_type);
-      node.custom1 = *type;
-      params.update_and_connect_available_socket(node, "Value");
-    });
+  const eNodeSocketDatatype other_socket_type = static_cast<eNodeSocketDatatype>(
+      params.other_socket().type);
+  const std::optional<eCustomDataType> new_node_type = node_data_type_to_custom_data_type(
+      other_socket_type);
+  if (!new_node_type.has_value()) {
+    return;
   }
+  eCustomDataType fixed_data_type = *new_node_type;
+  if (fixed_data_type == CD_PROP_STRING) {
+    return;
+  }
+  if (fixed_data_type == CD_PROP_BOOL) {
+    /* This node does not support boolean sockets, use integer instead. */
+    fixed_data_type = CD_PROP_INT32;
+  }
+  params.add_item(IFACE_("Value"), [node_type, fixed_data_type](LinkSearchOpParams &params) {
+    bNode &node = params.add_node(node_type);
+    node.custom1 = fixed_data_type;
+    params.update_and_connect_available_socket(node, "Value");
+  });
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)
