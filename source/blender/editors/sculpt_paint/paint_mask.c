@@ -650,8 +650,8 @@ static bool sculpt_gesture_is_effected_lasso(SculptGestureContext *sgcontext, co
   ED_view3d_project_float_v2_m4(
       sgcontext->vc.region, co_final, scr_co_f, sgcontext->lasso.projviewobjmat);
 
-  scr_co_s[0] = scr_co_f[0];
-  scr_co_s[1] = scr_co_f[1];
+  scr_co_s[0] = (int)scr_co_f[0];
+  scr_co_s[1] = (int)scr_co_f[1];
 
   /* Clip against lasso boundbox. */
   LassoGestureData *lasso = &sgcontext->lasso;
@@ -974,6 +974,21 @@ static EnumPropertyItem prop_trim_location_types[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+typedef enum eSculptTrimExtrudeMode {
+  SCULPT_GESTURE_TRIM_EXTRUDE_PROJECT,
+  SCULPT_GESTURE_TRIM_EXTRUDE_FIXED
+} eSculptTrimExtrudeMode;
+
+static EnumPropertyItem prop_trim_extrude_modes[] = {
+    {SCULPT_GESTURE_TRIM_EXTRUDE_PROJECT,
+     "PROJECT",
+     0,
+     "Project",
+     "Project back faces when extruding"},
+    {SCULPT_GESTURE_TRIM_EXTRUDE_FIXED, "FIXED", 0, "Fixed", "Extrude back faces by fixed amount"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 typedef struct SculptGestureTrimOperation {
   SculptGestureOperation op;
 
@@ -989,6 +1004,7 @@ typedef struct SculptGestureTrimOperation {
   eSculptTrimOperationType mode;
   eSculptTrimOrientationType orientation;
   eSculptTrimLocationType location;
+  eSculptTrimExtrudeMode extrude_mode;
 } SculptGestureTrimOperation;
 
 static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
@@ -1194,7 +1210,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   const float(*ob_imat)[4] = vc->obact->world_to_object;
 
   /* Write vertices coordinates for the front face. */
-  MVert *verts = BKE_mesh_verts_for_write(trim_operation->mesh);
+  float(*positions)[3] = BKE_mesh_vert_positions_for_write(trim_operation->mesh);
   float depth_point[3];
   madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_front);
   for (int i = 0; i < tot_screen_points; i++) {
@@ -1206,17 +1222,17 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
       ED_view3d_win_to_3d_on_plane(region, shape_plane, screen_points[i], false, new_point);
       madd_v3_v3fl(new_point, shape_normal, depth_front);
     }
-    mul_v3_m4v3(verts[i].co, ob_imat, new_point);
-    mul_v3_m4v3(trim_operation->true_mesh_co[i], ob_imat, new_point);
+
+    copy_v3_v3(positions[i], new_point);
   }
 
   float avg_elen = 0.0f;
 
   for (int i = 0; i < tot_screen_points; i++) {
-    MVert *v1 = trim_operation->mesh->mvert + i;
-    MVert *v2 = trim_operation->mesh->mvert + ((i + 1) % tot_screen_points);
+    float *v1 = trim_operation->true_mesh_co[i];
+    float *v2 = trim_operation->true_mesh_co[((i + 1) % tot_screen_points)];
 
-    avg_elen += len_v3v3(v1->co, v2->co);
+    avg_elen += len_v3v3(v1, v2);
   }
 
   trim_operation->avg_edge_len = avg_elen / (float)tot_screen_points;
@@ -1225,15 +1241,31 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_back);
   for (int i = 0; i < tot_screen_points; i++) {
     float new_point[3];
-    if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
-      ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
+
+    if (trim_operation->extrude_mode == SCULPT_GESTURE_TRIM_EXTRUDE_PROJECT) {
+      if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
+        ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
+      }
+      else {
+        ED_view3d_win_to_3d_on_plane(region, shape_plane, screen_points[i], false, new_point);
+        madd_v3_v3fl(new_point, shape_normal, depth_back);
+      }
     }
     else {
-      ED_view3d_win_to_3d_on_plane(region, shape_plane, screen_points[i], false, new_point);
+      copy_v3_v3(new_point, positions[i]);
       madd_v3_v3fl(new_point, shape_normal, depth_back);
     }
-    mul_v3_m4v3(verts[i + tot_screen_points].co, ob_imat, new_point);
-    mul_v3_m4v3(trim_operation->true_mesh_co[i + tot_screen_points], ob_imat, new_point);
+
+    copy_v3_v3(positions[i + tot_screen_points], new_point);
+  }
+
+  /* Project to object space. */
+  for (int i = 0; i < tot_screen_points * 2; i++) {
+    float new_point[3];
+
+    copy_v3_v3(new_point, positions[i]);
+    mul_v3_m4v3(positions[i], ob_imat, new_point);
+    mul_v3_m4v3(trim_operation->true_mesh_co[i], ob_imat, new_point);
   }
 
   /* Get the triangulation for the front/back poly. */
@@ -1297,11 +1329,24 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   mp = trim_operation->mesh->mpoly + tot_tris_face * 2;
 
+  bool *sharp_edge = CustomData_get_layer_named_for_write(
+      &trim_operation->mesh->edata, CD_PROP_BOOL, "sharp_edge", trim_operation->mesh->totedge);
+
+  if (!sharp_edge) {
+    CustomData_add_layer(&trim_operation->mesh->edata,
+                         CD_PROP_BOOL,
+                         CD_CONSTRUCT,
+                         NULL,
+                         trim_operation->mesh->totedge);
+    sharp_edge = CustomData_get_layer_named_for_write(
+        &trim_operation->mesh->edata, CD_PROP_BOOL, "sharp_edge", trim_operation->mesh->totedge);
+  }
+
   /* flag edges as sharp for dyntopo remesher */
   for (int i = 0; i < tot_screen_points * 2; i++, mp++) {
     ml = trim_operation->mesh->mloop + mp->loopstart;
 
-    trim_operation->mesh->medge[ml[1].e].flag |= ME_SHARP;
+    sharp_edge[ml[1].e] = true;
   }
 }
 static void sculpt_gesture_trim_geometry_free(SculptGestureContext *sgcontext)
@@ -1481,6 +1526,11 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
 static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgcontext)
 {
+  Object *object = sgcontext->vc.obact;
+  SculptSession *ss = object->sculpt;
+  Mesh *mesh = (Mesh *)object->data;
+  ss->face_sets = BKE_sculpt_face_sets_ensure(object);
+
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   sculpt_gesture_trim_calculate_depth(sgcontext);
   sculpt_gesture_trim_geometry_generate(sgcontext);
@@ -1493,9 +1543,9 @@ static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext *UNUSED(C),
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
   Mesh *trim_mesh = trim_operation->mesh;
-  MVert *verts = BKE_mesh_verts_for_write(trim_mesh);
+  float(*positions)[3] = BKE_mesh_vert_positions_for_write(trim_mesh);
   for (int i = 0; i < trim_mesh->totvert; i++) {
-    flip_v3_v3(verts[i].co, trim_operation->true_mesh_co[i], sgcontext->symmpass);
+    flip_v3_v3(positions[i], trim_operation->true_mesh_co[i], sgcontext->symmpass);
   }
   sculpt_gesture_trim_normals_update(sgcontext);
   sculpt_gesture_apply_trim(sgcontext);
@@ -1505,9 +1555,10 @@ static void sculpt_gesture_trim_end(bContext *UNUSED(C), SculptGestureContext *s
 {
   Object *object = sgcontext->vc.obact;
   SculptSession *ss = object->sculpt;
+  Mesh *mesh = (Mesh *)object->data;
 
-  ss->face_sets = CustomData_get_layer_named(
-      &((Mesh *)object->data)->pdata, CD_PROP_INT32, ".sculpt_face_set");
+  ss->face_sets = CustomData_get_layer_named_for_write(
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly);
   if (ss->face_sets) {
     /* Assign a new Face Set ID to the new faces created by the trim operation. */
     const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(object->data);
@@ -1536,6 +1587,7 @@ static void sculpt_gesture_init_trim_properties(SculptGestureContext *sgcontext,
   trim_operation->use_cursor_depth = RNA_boolean_get(op->ptr, "use_cursor_depth");
   trim_operation->orientation = RNA_enum_get(op->ptr, "trim_orientation");
   trim_operation->location = RNA_enum_get(op->ptr, "trim_location");
+  trim_operation->extrude_mode = RNA_enum_get(op->ptr, "trim_extrude_mode");
 
   /* If the cursor was not over the mesh, force the orientation to view. */
   if (!sgcontext->ss->gesture_initial_hit) {
@@ -1569,6 +1621,13 @@ static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
                prop_trim_location_types,
                SCULPT_GESTURE_TRIM_LOCATION_DEPTH_SURFACE,
                "Shape Location",
+               NULL);
+
+  RNA_def_enum(ot->srna,
+               "trim_extrude_mode",
+               prop_trim_extrude_modes,
+               SCULPT_GESTURE_TRIM_EXTRUDE_FIXED,
+               "Extrude Mode",
                NULL);
 }
 
@@ -1639,7 +1698,7 @@ static void project_line_gesture_apply_task_cb(void *__restrict userdata,
       continue;
     }
     add_v3_v3(vd.co, disp);
-    if (vd.mvert) {
+    if (vd.vert_positions) {
       BKE_pbvh_vert_tag_update_normal(sgcontext->ss->pbvh, vd.vertex);
     }
     any_updated = true;
@@ -1670,7 +1729,7 @@ static void project_gesture_tag_fairing_task_cb(void *__restrict userdata,
       continue;
     }
     project_operation->fairing_mask[vd.index] = true;
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(sgcontext->ss->pbvh, vd.vertex);
     }
     any_updated = true;
@@ -1715,7 +1774,7 @@ static void project_gesture_project_fairing_boundary_task_cb(
 
     closest_to_plane_v3(vd.co, sgcontext->line.plane, vd.co);
 
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(sgcontext->ss->pbvh, vd.vertex);
     }
   }
@@ -1761,9 +1820,9 @@ static void sculpt_gesture_fairing_apply(SculptGestureContext *sgcontext)
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       Mesh *mesh = sgcontext->vc.obact->data;
-      MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+      float(*vert_cos)[3] = SCULPT_mesh_deformed_positions_get(ss);
       BKE_mesh_prefair_and_fair_verts(
-          mesh, mvert, project_operation->fairing_mask, MESH_FAIRING_DEPTH_POSITION);
+          mesh, vert_cos, project_operation->fairing_mask, MESH_FAIRING_DEPTH_POSITION);
     } break;
     case PBVH_BMESH: {
       BKE_bmesh_prefair_and_fair_verts(

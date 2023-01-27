@@ -20,8 +20,8 @@
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_heap.h"
-#include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_polyfill_2d.h"
 #include "BLI_span.hh"
 
@@ -2471,7 +2471,7 @@ static void gpencil_generate_edgeloops(Object *ob,
   if (me->totedge == 0) {
     return;
   }
-  const Span<MVert> verts = me->verts();
+  const Span<float3> vert_positions = me->vert_positions();
   const Span<MEdge> edges = me->edges();
   const Span<MDeformVert> dverts = me->deform_verts();
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me);
@@ -2488,18 +2488,16 @@ static void gpencil_generate_edgeloops(Object *ob,
   for (int i = 0; i < me->totedge; i++) {
     const MEdge *ed = &edges[i];
     gped = &gp_edges[i];
-    const MVert *mv1 = &verts[ed->v1];
     copy_v3_v3(gped->n1, vert_normals[ed->v1]);
 
     gped->v1 = ed->v1;
-    copy_v3_v3(gped->v1_co, mv1->co);
+    copy_v3_v3(gped->v1_co, vert_positions[ed->v1]);
 
-    const MVert *mv2 = &verts[ed->v2];
     copy_v3_v3(gped->n2, vert_normals[ed->v2]);
     gped->v2 = ed->v2;
-    copy_v3_v3(gped->v2_co, mv2->co);
+    copy_v3_v3(gped->v2_co, vert_positions[ed->v2]);
 
-    sub_v3_v3v3(gped->vec, mv1->co, mv2->co);
+    sub_v3_v3v3(gped->vec, vert_positions[ed->v1], vert_positions[ed->v2]);
 
     /* If use seams, mark as done if not a seam. */
     if ((use_seams) && ((ed->flag & ME_SEAM) == 0)) {
@@ -2559,13 +2557,11 @@ static void gpencil_generate_edgeloops(Object *ob,
     float fpt[3];
     for (int i = 0; i < array_len + 1; i++) {
       int vertex_index = i == 0 ? gp_edges[stroke[0]].v1 : gp_edges[stroke[i - 1]].v2;
-      const MVert *mv = &verts[vertex_index];
-
       /* Add segment. */
       bGPDspoint *pt = &gps_stroke->points[i];
       copy_v3_v3(fpt, vert_normals[vertex_index]);
       mul_v3_v3fl(fpt, fpt, offset);
-      add_v3_v3v3(&pt->x, mv->co, fpt);
+      add_v3_v3v3(&pt->x, vert_positions[vertex_index], fpt);
       mul_m4_v3(matrix, &pt->x);
 
       pt->pressure = 1.0f;
@@ -2683,7 +2679,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
   /* Use evaluated data to get mesh with all modifiers on top. */
   Object *ob_eval = (Object *)DEG_get_evaluated_object(depsgraph, ob_mesh);
   const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  const Span<MVert> verts = me_eval->verts();
+  const Span<float3> positions = me_eval->vert_positions();
   const Span<MPoly> polys = me_eval->polys();
   const Span<MLoop> loops = me_eval->loops();
   int mpoly_len = me_eval->totpoly;
@@ -2758,10 +2754,9 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
       /* Add points to strokes. */
       for (int j = 0; j < mp->totloop; j++) {
         const MLoop *ml = &loops[mp->loopstart + j];
-        const MVert *mv = &verts[ml->v];
 
         bGPDspoint *pt = &gps_fill->points[j];
-        copy_v3_v3(&pt->x, mv->co);
+        copy_v3_v3(&pt->x, positions[ml->v]);
         mul_m4_v3(matrix, &pt->x);
         pt->pressure = 1.0f;
         pt->strength = 1.0f;

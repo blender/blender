@@ -267,7 +267,7 @@ size_t BLI_strncpy_utf8_rlen(char *__restrict dst, const char *__restrict src, s
 
 #undef BLI_STR_UTF8_CPY
 
-/* --------------------------------------------------------------------------*/
+/* -------------------------------------------------------------------- */
 /* wchar_t / utf8 functions */
 
 size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
@@ -359,7 +359,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
 }
 
 /* end wchar_t / utf8 functions */
-/* --------------------------------------------------------------------------*/
+/* -------------------------------------------------------------------- */
 
 int BLI_wcwidth(char32_t ucs)
 {
@@ -399,7 +399,7 @@ int BLI_str_utf8_char_width_safe(const char *p)
   return (columns < 0) ? 1 : columns;
 }
 
-/* --------------------------------------------------------------------------*/
+/* -------------------------------------------------------------------- */
 
 /* copied from glib's gutf8.c, added 'Err' arg */
 

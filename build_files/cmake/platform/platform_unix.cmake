@@ -10,16 +10,15 @@ if(NOT DEFINED LIBDIR)
   string(TOLOWER ${LIBDIR_NAME} LIBDIR_NAME)
   set(LIBDIR_NATIVE_ABI ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_NAME})
 
-  # Path to precompiled libraries with known CentOS 7 ABI.
-  set(LIBDIR_CENTOS7_ABI ${CMAKE_SOURCE_DIR}/../lib/linux_centos7_x86_64)
+  # Path to precompiled libraries with known glibc 2.28 ABI.
+  set(LIBDIR_GLIBC228_ABI ${CMAKE_SOURCE_DIR}/../lib/linux_x86_64_glibc_228)
 
   # Choose the best suitable libraries.
   if(EXISTS ${LIBDIR_NATIVE_ABI})
     set(LIBDIR ${LIBDIR_NATIVE_ABI})
     set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
-  elseif(EXISTS ${LIBDIR_CENTOS7_ABI})
-    set(LIBDIR ${LIBDIR_CENTOS7_ABI})
-    set(WITH_CXX11_ABI OFF)
+  elseif(EXISTS ${LIBDIR_GLIBC228_ABI})
+    set(LIBDIR ${LIBDIR_GLIBC228_ABI})
     if(WITH_MEM_JEMALLOC)
       # jemalloc provides malloc hooks.
       set(WITH_LIBC_MALLOC_HOOK_WORKAROUND False)
@@ -30,7 +29,7 @@ if(NOT DEFINED LIBDIR)
 
   # Avoid namespace pollustion.
   unset(LIBDIR_NATIVE_ABI)
-  unset(LIBDIR_CENTOS7_ABI)
+  unset(LIBDIR_GLIBC228_ABI)
 endif()
 
 # Support restoring this value once pre-compiled libraries have been handled.
@@ -68,10 +67,7 @@ if(EXISTS ${LIBDIR})
   set(Boost_NO_SYSTEM_PATHS ON)
   set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
   set(CLANG_ROOT_DIR ${LIBDIR}/llvm)
-endif()
-
-if(WITH_STATIC_LIBS)
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " -static-libstdc++")
+  set(MaterialX_DIR ${LIBDIR}/materialx/lib/cmake/MaterialX)
 endif()
 
 # Wrapper to prefer static libraries
@@ -80,15 +76,6 @@ macro(find_package_wrapper)
     find_package_static(${ARGV})
   else()
     find_package(${ARGV})
-  endif()
-endmacro()
-
-# Utility to install precompiled shared libraries.
-macro(add_bundled_libraries library)
-  if(EXISTS ${LIBDIR})
-    file(GLOB _all_library_versions ${LIBDIR}/${library}/lib/*\.so*)
-    list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
-    unset(_all_library_versions)
   endif()
 endmacro()
 
@@ -180,6 +167,8 @@ if(WITH_IMAGE_OPENEXR)
   find_package_wrapper(OpenEXR)  # our own module
   set_and_warn_library_found("OpenEXR" OPENEXR_FOUND WITH_IMAGE_OPENEXR)
 endif()
+add_bundled_libraries(openexr/lib)
+add_bundled_libraries(imath/lib)
 
 if(WITH_IMAGE_OPENJPEG)
   find_package_wrapper(OpenJPEG)
@@ -335,14 +324,10 @@ if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
 endif()
 
 if(WITH_OPENVDB)
-  find_package_wrapper(OpenVDB)
+  find_package(OpenVDB)
   set_and_warn_library_found("OpenVDB" OPENVDB_FOUND WITH_OPENVDB)
-
-  if(OPENVDB_FOUND)
-    find_package_wrapper(Blosc)
-    set_and_warn_library_found("Blosc" BLOSC_FOUND WITH_OPENVDB_BLOSC)
-  endif()
 endif()
+add_bundled_libraries(openvdb/lib)
 
 if(WITH_NANOVDB)
   find_package_wrapper(NanoVDB)
@@ -362,12 +347,19 @@ if(WITH_USD)
   find_package_wrapper(USD)
   set_and_warn_library_found("USD" USD_FOUND WITH_USD)
 endif()
+add_bundled_libraries(usd/lib)
+
+if(WITH_MATERIALX)
+  find_package_wrapper(MaterialX)
+  set_and_warn_library_found("MaterialX" MaterialX_FOUND WITH_MATERIALX)
+endif()
+add_bundled_libraries(materialx/lib)
 
 if(WITH_BOOST)
   # uses in build instructions to override include and library variables
   if(NOT BOOST_CUSTOM)
     if(WITH_STATIC_LIBS)
-      set(Boost_USE_STATIC_LIBS ON)
+      set(Boost_USE_STATIC_LIBS OFF)
     endif()
     set(Boost_USE_MULTITHREADED ON)
     set(__boost_packages filesystem regex thread date_time)
@@ -382,6 +374,9 @@ if(WITH_BOOST)
     endif()
     if(WITH_OPENVDB)
       list(APPEND __boost_packages iostreams)
+    endif()
+    if(WITH_USD AND USD_PYTHON_SUPPORT)
+      list(APPEND __boost_packages python${PYTHON_VERSION_NO_DOTS})
     endif()
     list(APPEND __boost_packages system)
     find_package(Boost 1.48 COMPONENTS ${__boost_packages})
@@ -400,8 +395,13 @@ if(WITH_BOOST)
     mark_as_advanced(Boost_INCLUDE_DIR)  # why doesn't boost do this?
   endif()
 
-  set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
+  # Boost Python is separate to avoid linking Python into tests that don't need it.
   set(BOOST_LIBRARIES ${Boost_LIBRARIES})
+  if(WITH_USD AND USD_PYTHON_SUPPORT)
+    set(BOOST_PYTHON_LIBRARIES ${Boost_PYTHON${PYTHON_VERSION_NO_DOTS}_LIBRARY})
+    list(REMOVE_ITEM BOOST_LIBRARIES ${BOOST_PYTHON_LIBRARIES})
+  endif()
+  set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
   set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
   set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 
@@ -410,6 +410,7 @@ if(WITH_BOOST)
     list(APPEND BOOST_LIBRARIES ${ICU_LIBRARIES})
   endif()
 endif()
+add_bundled_libraries(boost/lib)
 
 if(WITH_PUGIXML)
   find_package_wrapper(PugiXML)
@@ -431,7 +432,6 @@ if(WITH_OPENIMAGEIO)
     ${ZLIB_LIBRARIES}
     ${BOOST_LIBRARIES}
   )
-  set(OPENIMAGEIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
   set(OPENIMAGEIO_DEFINITIONS "")
 
   if(WITH_IMAGE_TIFF)
@@ -446,16 +446,15 @@ if(WITH_OPENIMAGEIO)
 
   set_and_warn_library_found("OPENIMAGEIO" OPENIMAGEIO_FOUND WITH_OPENIMAGEIO)
 endif()
+add_bundled_libraries(openimageio/lib)
 
 if(WITH_OPENCOLORIO)
   find_package_wrapper(OpenColorIO 2.0.0)
 
-  set(OPENCOLORIO_LIBRARIES ${OPENCOLORIO_LIBRARIES})
-  set(OPENCOLORIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
   set(OPENCOLORIO_DEFINITIONS)
-
   set_and_warn_library_found("OpenColorIO" OPENCOLORIO_FOUND WITH_OPENCOLORIO)
 endif()
+add_bundled_libraries(opencolorio/lib)
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
@@ -490,18 +489,20 @@ if(WITH_LLVM)
 endif()
 
 if(WITH_OPENSUBDIV)
-  find_package_wrapper(OpenSubdiv)
+  find_package(OpenSubdiv)
 
   set(OPENSUBDIV_LIBRARIES ${OPENSUBDIV_LIBRARIES})
   set(OPENSUBDIV_LIBPATH)  # TODO, remove and reference the absolute path everywhere
 
   set_and_warn_library_found("OpenSubdiv" OPENSUBDIV_FOUND WITH_OPENSUBDIV)
 endif()
+add_bundled_libraries(opensubdiv/lib)
 
 if(WITH_TBB)
   find_package_wrapper(TBB)
   set_and_warn_library_found("TBB" TBB_FOUND WITH_TBB)
 endif()
+add_bundled_libraries(tbb/lib)
 
 if(WITH_XR_OPENXR)
   find_package(XR_OpenXR_SDK)
@@ -644,8 +645,7 @@ if(WITH_GHOST_WAYLAND)
     pkg_check_modules(wayland-protocols wayland-protocols>=1.15)
     pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
   else()
-    # CentOS 7 packages have too old a version, a newer version exist in the
-    # precompiled libraries.
+    # Rocky8 packages have too old a version, a newer version exist in the pre-compiled libraries.
     find_path(WAYLAND_PROTOCOLS_DIR
       NAMES unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
       PATH_SUFFIXES share/wayland-protocols
@@ -770,7 +770,7 @@ if(WITH_GHOST_X11)
   endif()
 
   if(WITH_X11_ALPHA)
-    find_library(X11_Xrender_LIB Xrender  ${X11_LIB_SEARCH_PATH})
+    find_library(X11_Xrender_LIB Xrender ${X11_LIB_SEARCH_PATH})
     mark_as_advanced(X11_Xrender_LIB)
     if(NOT X11_Xrender_LIB)
       message(FATAL_ERROR "libXrender not found. Disable WITH_X11_ALPHA if you
@@ -1005,4 +1005,10 @@ if(PLATFORM_BUNDLED_LIBRARIES)
   # and because the build and install folder may be different.
   set(CMAKE_SKIP_BUILD_RPATH FALSE)
   list(APPEND CMAKE_BUILD_RPATH $ORIGIN/lib ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib)
+
+  # Environment variables to run precompiled executables that needed libraries.
+  list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ":" _library_paths)
+  set(PLATFORM_ENV_BUILD "LD_LIBRARY_PATH=\"${_library_paths};${LD_LIBRARY_PATH}\"")
+  set(PLATFORM_ENV_INSTALL "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib/;$LD_LIBRARY_PATH")
+  unset(_library_paths)
 endif()

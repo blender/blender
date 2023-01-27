@@ -43,19 +43,20 @@ static void group_gpu_copy_inputs(bNode *gnode, GPUNodeStack *in, bNodeStack *gs
  */
 static void group_gpu_move_outputs(bNode *gnode, GPUNodeStack *out, bNodeStack *gstack)
 {
-  bNodeTree *ngroup = (bNodeTree *)gnode->id;
+  const bNodeTree &ngroup = *reinterpret_cast<bNodeTree *>(gnode->id);
 
-  for (bNode *node : ngroup->all_nodes()) {
-    if (node->type == NODE_GROUP_OUTPUT && (node->flag & NODE_DO_OUTPUT)) {
-      int a;
-      LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->inputs, a) {
-        bNodeStack *ns = node_get_socket_stack(gstack, sock);
-        if (ns) {
-          /* convert the node stack data result back to gpu stack */
-          node_gpu_stack_from_data(&out[a], sock->type, ns);
-        }
-      }
-      break; /* only one active output node */
+  ngroup.ensure_topology_cache();
+  const bNode *group_output_node = ngroup.group_output_node();
+  if (!group_output_node) {
+    return;
+  }
+
+  int a;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &group_output_node->inputs, a) {
+    bNodeStack *ns = node_get_socket_stack(gstack, sock);
+    if (ns) {
+      /* convert the node stack data result back to gpu stack */
+      node_gpu_stack_from_data(&out[a], sock->type, ns);
     }
   }
 }

@@ -27,8 +27,8 @@ MTLFrameBuffer::MTLFrameBuffer(MTLContext *ctx, const char *name) : FrameBuffer(
   dirty_state_ctx_ = nullptr;
   has_pending_clear_ = false;
   colour_attachment_count_ = 0;
-  srgb_enabled_ = false;
-  is_srgb_ = false;
+  enabled_srgb_ = false;
+  srgb_ = false;
 
   for (int i = 0; i < GPU_FB_MAX_COLOR_ATTACHMENT; i++) {
     mtl_color_attachments_[i].used = false;
@@ -95,22 +95,22 @@ void MTLFrameBuffer::bind(bool enabled_srgb)
 
   /* Verify Context is valid. */
   if (context_ != static_cast<MTLContext *>(unwrap(GPU_context_active_get()))) {
-    BLI_assert(false && "Trying to use the same frame-buffer in multiple context's.");
+    BLI_assert_msg(false, "Trying to use the same frame-buffer in multiple context's.");
     return;
-  }
-
-  /* Ensure SRGB state is up-to-date and valid. */
-  bool srgb_state_changed = srgb_enabled_ != enabled_srgb;
-  if (context_->active_fb != this || srgb_state_changed) {
-    if (srgb_state_changed) {
-      this->mark_dirty();
-    }
-    srgb_enabled_ = enabled_srgb;
-    GPU_shader_set_framebuffer_srgb_target(srgb_enabled_ && is_srgb_);
   }
 
   /* Ensure local MTLAttachment data is up to date. */
   this->update_attachments(true);
+
+  /* Ensure SRGB state is up-to-date and valid. */
+  bool srgb_state_changed = enabled_srgb_ != enabled_srgb;
+  if (context_->active_fb != this || srgb_state_changed) {
+    if (srgb_state_changed) {
+      this->mark_dirty();
+    }
+    enabled_srgb_ = enabled_srgb;
+    GPU_shader_set_framebuffer_srgb_target(enabled_srgb && srgb_);
+  }
 
   /* Reset clear state on bind -- Clears and load/store ops are set after binding. */
   this->reset_clear_state();
@@ -740,7 +740,7 @@ void MTLFrameBuffer::update_attachments(bool update_viewport)
 
   /* Check whether the first attachment is SRGB. */
   if (first_attachment != GPU_FB_MAX_ATTACHMENT) {
-    is_srgb_ = (first_attachment_mtl.texture->format_get() == GPU_SRGB8_A8);
+    srgb_ = (first_attachment_mtl.texture->format_get() == GPU_SRGB8_A8);
   }
 
   /* Reset viewport and Scissor (If viewport is smaller or equal to the framebuffer size). */
@@ -986,7 +986,7 @@ bool MTLFrameBuffer::add_depth_attachment(gpu::MTLTexture *texture, int miplevel
         if (layer == -1) {
           mtl_depth_attachment_.slice = 0;
           mtl_depth_attachment_.depth_plane = 0;
-          mtl_depth_attachment_.render_target_array_length = 1;
+          mtl_depth_attachment_.render_target_array_length = 6;
           use_multilayered_rendering_ = true;
         }
         break;
@@ -1007,7 +1007,7 @@ bool MTLFrameBuffer::add_depth_attachment(gpu::MTLTexture *texture, int miplevel
         mtl_depth_attachment_.depth_plane = 0;
         break;
       default:
-        BLI_assert(false && "Unrecognized texture type");
+        BLI_assert_msg(false, "Unrecognized texture type");
         break;
     }
 
@@ -1108,7 +1108,7 @@ bool MTLFrameBuffer::add_stencil_attachment(gpu::MTLTexture *texture, int miplev
         if (layer == -1) {
           mtl_stencil_attachment_.slice = 0;
           mtl_stencil_attachment_.depth_plane = 0;
-          mtl_stencil_attachment_.render_target_array_length = 1;
+          mtl_stencil_attachment_.render_target_array_length = 6;
           use_multilayered_rendering_ = true;
         }
         break;
@@ -1129,7 +1129,7 @@ bool MTLFrameBuffer::add_stencil_attachment(gpu::MTLTexture *texture, int miplev
         mtl_stencil_attachment_.depth_plane = 0;
         break;
       default:
-        BLI_assert(false && "Unrecognized texture type");
+        BLI_assert_msg(false, "Unrecognized texture type");
         break;
     }
 
@@ -1617,10 +1617,13 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
         }
 
         /* IF SRGB is enabled, but we are rendering with SRGB disabled, sample texture view. */
-        /* TODO(Metal): Consider caching SRGB texture view. */
         id<MTLTexture> source_color_texture = texture;
-        if (this->get_is_srgb() && !this->get_srgb_enabled()) {
-          source_color_texture = [texture newTextureViewWithPixelFormat:MTLPixelFormatRGBA8Unorm];
+        if (this->get_is_srgb() &&
+            mtl_color_attachments_[attachment_ind].texture->is_format_srgb() &&
+            !this->get_srgb_enabled()) {
+          source_color_texture =
+              mtl_color_attachments_[attachment_ind].texture->get_non_srgb_handle();
+          BLI_assert(source_color_texture != nil);
         }
 
         /* Resolve appropriate load action -- IF force load, perform load.

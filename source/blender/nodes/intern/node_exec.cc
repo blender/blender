@@ -71,18 +71,18 @@ static void node_init_input_index(bNodeSocket *sock, int *index)
 
 static void node_init_output_index_muted(bNodeSocket *sock,
                                          int *index,
-                                         const blender::Span<bNodeLink *> internal_links)
+                                         const blender::MutableSpan<bNodeLink> internal_links)
 {
-  bNodeLink *link;
+  const bNodeLink *link;
   /* copy the stack index from internally connected input to skip the node */
-  for (bNodeLink *iter_link : internal_links) {
-    if (iter_link->tosock == sock) {
-      sock->stack_index = iter_link->fromsock->stack_index;
+  for (bNodeLink &iter_link : internal_links) {
+    if (iter_link.tosock == sock) {
+      sock->stack_index = iter_link.fromsock->stack_index;
       /* set the link pointer to indicate that this socket
        * should not overwrite the stack value!
        */
-      sock->link = iter_link;
-      link = iter_link;
+      sock->link = &iter_link;
+      link = &iter_link;
       break;
     }
   }

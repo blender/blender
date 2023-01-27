@@ -561,6 +561,15 @@ class VectorSet {
   }
 
   /**
+   * Removes all keys from the set and frees any allocated memory.
+   */
+  void clear_and_shrink()
+  {
+    std::destroy_at(this);
+    new (this) VectorSet(NoExceptConstructor{});
+  }
+
+  /**
    * Get the number of collisions that the probing strategy has to go through to find the key or
    * determine that it is not in the set.
    */

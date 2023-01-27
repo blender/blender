@@ -682,7 +682,7 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
 
     any_modified = true;
 
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
@@ -764,7 +764,7 @@ static void do_array_smooth_task_cb_ex(void *__restrict userdata,
 
     any_modified = true;
 
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }

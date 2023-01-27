@@ -24,7 +24,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &bnode = builder.node();
   NodeInputInt *node_storage = static_cast<NodeInputInt *>(bnode.storage);
-  builder.construct_and_set_matching_fn<fn::CustomMF_Constant<int>>(node_storage->integer);
+  builder.construct_and_set_matching_fn<mf::CustomMF_Constant<int>>(node_storage->integer);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

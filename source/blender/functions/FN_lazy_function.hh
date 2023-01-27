@@ -39,6 +39,7 @@
  */
 
 #include "BLI_cpp_type.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_vector.hh"
@@ -165,7 +166,8 @@ class Params {
    * Typed utility methods that wrap the methods above.
    */
   template<typename T> T extract_input(int index);
-  template<typename T> const T &get_input(int index) const;
+  template<typename T> T &get_input(int index) const;
+  template<typename T> T *try_get_input_data_ptr(int index) const;
   template<typename T> T *try_get_input_data_ptr_or_request(int index);
   template<typename T> void set_output(int index, T &&value);
 
@@ -253,6 +255,10 @@ class LazyFunction {
   const char *debug_name_ = "<unknown>";
   Vector<Input> inputs_;
   Vector<Output> outputs_;
+  /**
+   * Allow executing the function even if previously requested values are not yet available.
+   */
+  bool allow_missing_requested_inputs_ = false;
 
  public:
   virtual ~LazyFunction() = default;
@@ -278,6 +284,13 @@ class LazyFunction {
   virtual void destruct_storage(void *storage) const;
 
   /**
+   * Calls `fn` with the input indices that the given `output_index` may depend on. By default
+   * every output depends on every input.
+   */
+  virtual void possible_output_dependencies(int output_index,
+                                            FunctionRef<void(Span<int>)> fn) const;
+
+  /**
    * Inputs of the function.
    */
   Span<Input> inputs() const;
@@ -297,6 +310,17 @@ class LazyFunction {
    * Utility to check that the guarantee by #Input::usage is followed.
    */
   bool always_used_inputs_available(const Params &params) const;
+
+  /**
+   * If true, the function can be executed even when some requested inputs are not available yet.
+   * This allows the function to make some progress and maybe to compute some outputs that are
+   * passed into this function again (lazy-function graphs may contain cycles as long as there
+   * aren't actually data dependencies).
+   */
+  bool allow_missing_requested_inputs() const
+  {
+    return allow_missing_requested_inputs_;
+  }
 
  private:
   /**
@@ -391,11 +415,17 @@ template<typename T> inline T Params::extract_input(const int index)
   return return_value;
 }
 
-template<typename T> inline const T &Params::get_input(const int index) const
+template<typename T> inline T &Params::get_input(const int index) const
 {
-  const void *data = this->try_get_input_data_ptr(index);
+  void *data = this->try_get_input_data_ptr(index);
   BLI_assert(data != nullptr);
-  return *static_cast<const T *>(data);
+  return *static_cast<T *>(data);
+}
+
+template<typename T> inline T *Params::try_get_input_data_ptr(const int index) const
+{
+  this->assert_valid_thread();
+  return static_cast<T *>(this->try_get_input_data_ptr(index));
 }
 
 template<typename T> inline T *Params::try_get_input_data_ptr_or_request(const int index)
@@ -440,3 +470,7 @@ inline void Params::assert_valid_thread() const
 /** \} */
 
 }  // namespace blender::fn::lazy_function
+
+namespace blender {
+namespace lf = fn::lazy_function;
+}

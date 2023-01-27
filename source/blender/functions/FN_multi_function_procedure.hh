@@ -8,19 +8,19 @@
 
 #include "FN_multi_function.hh"
 
-namespace blender::fn {
+namespace blender::fn::multi_function {
 
-class MFVariable;
-class MFInstruction;
-class MFCallInstruction;
-class MFBranchInstruction;
-class MFDestructInstruction;
-class MFDummyInstruction;
-class MFReturnInstruction;
-class MFProcedure;
+class Variable;
+class Instruction;
+class CallInstruction;
+class BranchInstruction;
+class DestructInstruction;
+class DummyInstruction;
+class ReturnInstruction;
+class Procedure;
 
 /** Every instruction has exactly one of these types. */
-enum class MFInstructionType {
+enum class InstructionType {
   Call,
   Branch,
   Destruct,
@@ -29,10 +29,10 @@ enum class MFInstructionType {
 };
 
 /**
- * An #MFInstructionCursor points to a position in a multi-function procedure, where an instruction
+ * An #InstructionCursor points to a position in a multi-function procedure, where an instruction
  * can be inserted.
  */
-class MFInstructionCursor {
+class InstructionCursor {
  public:
   enum Type {
     None,
@@ -45,33 +45,33 @@ class MFInstructionCursor {
 
  private:
   Type type_ = None;
-  MFInstruction *instruction_ = nullptr;
+  Instruction *instruction_ = nullptr;
   /* Only used when it is a branch instruction. */
   bool branch_output_ = false;
 
  public:
-  MFInstructionCursor() = default;
-  MFInstructionCursor(MFCallInstruction &instruction);
-  MFInstructionCursor(MFDestructInstruction &instruction);
-  MFInstructionCursor(MFBranchInstruction &instruction, bool branch_output);
-  MFInstructionCursor(MFDummyInstruction &instruction);
+  InstructionCursor() = default;
+  InstructionCursor(CallInstruction &instruction);
+  InstructionCursor(DestructInstruction &instruction);
+  InstructionCursor(BranchInstruction &instruction, bool branch_output);
+  InstructionCursor(DummyInstruction &instruction);
 
-  static MFInstructionCursor ForEntry();
+  static InstructionCursor ForEntry();
 
-  MFInstruction *next(MFProcedure &procedure) const;
-  void set_next(MFProcedure &procedure, MFInstruction *new_instruction) const;
+  Instruction *next(Procedure &procedure) const;
+  void set_next(Procedure &procedure, Instruction *new_instruction) const;
 
-  MFInstruction *instruction() const;
+  Instruction *instruction() const;
 
   Type type() const;
 
-  friend bool operator==(const MFInstructionCursor &a, const MFInstructionCursor &b)
+  friend bool operator==(const InstructionCursor &a, const InstructionCursor &b)
   {
     return a.type_ == b.type_ && a.instruction_ == b.instruction_ &&
            a.branch_output_ == b.branch_output_;
   }
 
-  friend bool operator!=(const MFInstructionCursor &a, const MFInstructionCursor &b)
+  friend bool operator!=(const InstructionCursor &a, const InstructionCursor &b)
   {
     return !(a == b);
   }
@@ -82,21 +82,21 @@ class MFInstructionCursor {
  * either uninitialized or contains a value for every index (remember, a multi-function procedure
  * is always evaluated for many indices at the same time).
  */
-class MFVariable : NonCopyable, NonMovable {
+class Variable : NonCopyable, NonMovable {
  private:
-  MFDataType data_type_;
-  Vector<MFInstruction *> users_;
+  DataType data_type_;
+  Vector<Instruction *> users_;
   std::string name_;
   int index_in_graph_;
 
-  friend MFProcedure;
-  friend MFCallInstruction;
-  friend MFBranchInstruction;
-  friend MFDestructInstruction;
+  friend Procedure;
+  friend CallInstruction;
+  friend BranchInstruction;
+  friend DestructInstruction;
 
  public:
-  MFDataType data_type() const;
-  Span<MFInstruction *> users();
+  DataType data_type() const;
+  Span<Instruction *> users();
 
   StringRefNull name() const;
   void set_name(std::string name);
@@ -105,78 +105,78 @@ class MFVariable : NonCopyable, NonMovable {
 };
 
 /** Base class for all instruction types. */
-class MFInstruction : NonCopyable, NonMovable {
+class Instruction : NonCopyable, NonMovable {
  protected:
-  MFInstructionType type_;
-  Vector<MFInstructionCursor> prev_;
+  InstructionType type_;
+  Vector<InstructionCursor> prev_;
 
-  friend MFProcedure;
-  friend MFCallInstruction;
-  friend MFBranchInstruction;
-  friend MFDestructInstruction;
-  friend MFDummyInstruction;
-  friend MFReturnInstruction;
+  friend Procedure;
+  friend CallInstruction;
+  friend BranchInstruction;
+  friend DestructInstruction;
+  friend DummyInstruction;
+  friend ReturnInstruction;
 
  public:
-  MFInstructionType type() const;
+  InstructionType type() const;
 
   /**
    * Other instructions that come before this instruction. There can be multiple previous
    * instructions when branching is used in the procedure.
    */
-  Span<MFInstructionCursor> prev() const;
+  Span<InstructionCursor> prev() const;
 };
 
 /**
  * References a multi-function that is evaluated when the instruction is executed. It also
  * references the variables whose data will be passed into the multi-function.
  */
-class MFCallInstruction : public MFInstruction {
+class CallInstruction : public Instruction {
  private:
   const MultiFunction *fn_ = nullptr;
-  MFInstruction *next_ = nullptr;
-  MutableSpan<MFVariable *> params_;
+  Instruction *next_ = nullptr;
+  MutableSpan<Variable *> params_;
 
-  friend MFProcedure;
+  friend Procedure;
 
  public:
   const MultiFunction &fn() const;
 
-  MFInstruction *next();
-  const MFInstruction *next() const;
-  void set_next(MFInstruction *instruction);
+  Instruction *next();
+  const Instruction *next() const;
+  void set_next(Instruction *instruction);
 
-  void set_param_variable(int param_index, MFVariable *variable);
-  void set_params(Span<MFVariable *> variables);
+  void set_param_variable(int param_index, Variable *variable);
+  void set_params(Span<Variable *> variables);
 
-  Span<MFVariable *> params();
-  Span<const MFVariable *> params() const;
+  Span<Variable *> params();
+  Span<const Variable *> params() const;
 };
 
 /**
  * What makes a branch instruction special is that it has two successor instructions. One that will
  * be used when a condition variable was true, and one otherwise.
  */
-class MFBranchInstruction : public MFInstruction {
+class BranchInstruction : public Instruction {
  private:
-  MFVariable *condition_ = nullptr;
-  MFInstruction *branch_true_ = nullptr;
-  MFInstruction *branch_false_ = nullptr;
+  Variable *condition_ = nullptr;
+  Instruction *branch_true_ = nullptr;
+  Instruction *branch_false_ = nullptr;
 
-  friend MFProcedure;
+  friend Procedure;
 
  public:
-  MFVariable *condition();
-  const MFVariable *condition() const;
-  void set_condition(MFVariable *variable);
+  Variable *condition();
+  const Variable *condition() const;
+  void set_condition(Variable *variable);
 
-  MFInstruction *branch_true();
-  const MFInstruction *branch_true() const;
-  void set_branch_true(MFInstruction *instruction);
+  Instruction *branch_true();
+  const Instruction *branch_true() const;
+  void set_branch_true(Instruction *instruction);
 
-  MFInstruction *branch_false();
-  const MFInstruction *branch_false() const;
-  void set_branch_false(MFInstruction *instruction);
+  Instruction *branch_false();
+  const Instruction *branch_false() const;
+  void set_branch_false(Instruction *instruction);
 };
 
 /**
@@ -185,55 +185,55 @@ class MFBranchInstruction : public MFInstruction {
  * destructed before the procedure ends. Destructing early is generally a good thing, because it
  * might help with memory buffer reuse, which decreases memory-usage and increases performance.
  */
-class MFDestructInstruction : public MFInstruction {
+class DestructInstruction : public Instruction {
  private:
-  MFVariable *variable_ = nullptr;
-  MFInstruction *next_ = nullptr;
+  Variable *variable_ = nullptr;
+  Instruction *next_ = nullptr;
 
-  friend MFProcedure;
+  friend Procedure;
 
  public:
-  MFVariable *variable();
-  const MFVariable *variable() const;
-  void set_variable(MFVariable *variable);
+  Variable *variable();
+  const Variable *variable() const;
+  void set_variable(Variable *variable);
 
-  MFInstruction *next();
-  const MFInstruction *next() const;
-  void set_next(MFInstruction *instruction);
+  Instruction *next();
+  const Instruction *next() const;
+  void set_next(Instruction *instruction);
 };
 
 /**
  * This instruction does nothing, it just exists to building a procedure simpler in some cases.
  */
-class MFDummyInstruction : public MFInstruction {
+class DummyInstruction : public Instruction {
  private:
-  MFInstruction *next_ = nullptr;
+  Instruction *next_ = nullptr;
 
-  friend MFProcedure;
+  friend Procedure;
 
  public:
-  MFInstruction *next();
-  const MFInstruction *next() const;
-  void set_next(MFInstruction *instruction);
+  Instruction *next();
+  const Instruction *next() const;
+  void set_next(Instruction *instruction);
 };
 
 /**
  * This instruction ends the procedure.
  */
-class MFReturnInstruction : public MFInstruction {
+class ReturnInstruction : public Instruction {
 };
 
 /**
  * Inputs and outputs of the entire procedure network.
  */
 struct MFParameter {
-  MFParamType::InterfaceType type;
-  MFVariable *variable;
+  ParamType::InterfaceType type;
+  Variable *variable;
 };
 
 struct ConstMFParameter {
-  MFParamType::InterfaceType type;
-  const MFVariable *variable;
+  ParamType::InterfaceType type;
+  const Variable *variable;
 };
 
 /**
@@ -241,46 +241,46 @@ struct ConstMFParameter {
  * variables and instructions that operate on those variables. Branching and looping within the
  * procedure is supported as well.
  *
- * Typically, a #MFProcedure should be constructed using a #MFProcedureBuilder, which has many more
+ * Typically, a #Procedure should be constructed using a #ProcedureBuilder, which has many more
  * utility methods for common use cases.
  */
-class MFProcedure : NonCopyable, NonMovable {
+class Procedure : NonCopyable, NonMovable {
  private:
   LinearAllocator<> allocator_;
-  Vector<MFCallInstruction *> call_instructions_;
-  Vector<MFBranchInstruction *> branch_instructions_;
-  Vector<MFDestructInstruction *> destruct_instructions_;
-  Vector<MFDummyInstruction *> dummy_instructions_;
-  Vector<MFReturnInstruction *> return_instructions_;
-  Vector<MFVariable *> variables_;
+  Vector<CallInstruction *> call_instructions_;
+  Vector<BranchInstruction *> branch_instructions_;
+  Vector<DestructInstruction *> destruct_instructions_;
+  Vector<DummyInstruction *> dummy_instructions_;
+  Vector<ReturnInstruction *> return_instructions_;
+  Vector<Variable *> variables_;
   Vector<MFParameter> params_;
   Vector<destruct_ptr<MultiFunction>> owned_functions_;
-  MFInstruction *entry_ = nullptr;
+  Instruction *entry_ = nullptr;
 
-  friend class MFProcedureDotExport;
+  friend class ProcedureDotExport;
 
  public:
-  MFProcedure() = default;
-  ~MFProcedure();
+  Procedure() = default;
+  ~Procedure();
 
-  MFVariable &new_variable(MFDataType data_type, std::string name = "");
-  MFCallInstruction &new_call_instruction(const MultiFunction &fn);
-  MFBranchInstruction &new_branch_instruction();
-  MFDestructInstruction &new_destruct_instruction();
-  MFDummyInstruction &new_dummy_instruction();
-  MFReturnInstruction &new_return_instruction();
+  Variable &new_variable(DataType data_type, std::string name = "");
+  CallInstruction &new_call_instruction(const MultiFunction &fn);
+  BranchInstruction &new_branch_instruction();
+  DestructInstruction &new_destruct_instruction();
+  DummyInstruction &new_dummy_instruction();
+  ReturnInstruction &new_return_instruction();
 
-  void add_parameter(MFParamType::InterfaceType interface_type, MFVariable &variable);
+  void add_parameter(ParamType::InterfaceType interface_type, Variable &variable);
   Span<ConstMFParameter> params() const;
 
   template<typename T, typename... Args> const MultiFunction &construct_function(Args &&...args);
 
-  MFInstruction *entry();
-  const MFInstruction *entry() const;
-  void set_entry(MFInstruction &entry);
+  Instruction *entry();
+  const Instruction *entry() const;
+  void set_entry(Instruction &entry);
 
-  Span<MFVariable *> variables();
-  Span<const MFVariable *> variables() const;
+  Span<Variable *> variables();
+  Span<const Variable *> variables() const;
 
   std::string to_dot() const;
 
@@ -298,59 +298,49 @@ class MFProcedure : NonCopyable, NonMovable {
     bool can_be_uninitialized = false;
   };
 
-  InitState find_initialization_state_before_instruction(const MFInstruction &target_instruction,
-                                                         const MFVariable &variable) const;
+  InitState find_initialization_state_before_instruction(const Instruction &target_instruction,
+                                                         const Variable &variable) const;
 };
 
-namespace multi_function_procedure_types {
-using MFVariable = fn::MFVariable;
-using MFInstruction = fn::MFInstruction;
-using MFCallInstruction = fn::MFCallInstruction;
-using MFBranchInstruction = fn::MFBranchInstruction;
-using MFDestructInstruction = fn::MFDestructInstruction;
-using MFProcedure = fn::MFProcedure;
-}  // namespace multi_function_procedure_types
-
 /* -------------------------------------------------------------------- */
-/** \name #MFInstructionCursor Inline Methods
+/** \name #InstructionCursor Inline Methods
  * \{ */
 
-inline MFInstructionCursor::MFInstructionCursor(MFCallInstruction &instruction)
+inline InstructionCursor::InstructionCursor(CallInstruction &instruction)
     : type_(Call), instruction_(&instruction)
 {
 }
 
-inline MFInstructionCursor::MFInstructionCursor(MFDestructInstruction &instruction)
+inline InstructionCursor::InstructionCursor(DestructInstruction &instruction)
     : type_(Destruct), instruction_(&instruction)
 {
 }
 
-inline MFInstructionCursor::MFInstructionCursor(MFBranchInstruction &instruction,
-                                                bool branch_output)
+inline InstructionCursor::InstructionCursor(BranchInstruction &instruction, bool branch_output)
     : type_(Branch), instruction_(&instruction), branch_output_(branch_output)
 {
 }
 
-inline MFInstructionCursor::MFInstructionCursor(MFDummyInstruction &instruction)
+inline InstructionCursor::InstructionCursor(DummyInstruction &instruction)
     : type_(Dummy), instruction_(&instruction)
 {
 }
 
-inline MFInstructionCursor MFInstructionCursor::ForEntry()
+inline InstructionCursor InstructionCursor::ForEntry()
 {
-  MFInstructionCursor cursor;
+  InstructionCursor cursor;
   cursor.type_ = Type::Entry;
   return cursor;
 }
 
-inline MFInstruction *MFInstructionCursor::instruction() const
+inline Instruction *InstructionCursor::instruction() const
 {
   /* This isn't really const correct unfortunately, because to make it correct we'll need a const
-   * version of #MFInstructionCursor. */
+   * version of #InstructionCursor. */
   return instruction_;
 }
 
-inline MFInstructionCursor::Type MFInstructionCursor::type() const
+inline InstructionCursor::Type InstructionCursor::type() const
 {
   return type_;
 }
@@ -358,25 +348,25 @@ inline MFInstructionCursor::Type MFInstructionCursor::type() const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #MFVariable Inline Methods
+/** \name #Variable Inline Methods
  * \{ */
 
-inline MFDataType MFVariable::data_type() const
+inline DataType Variable::data_type() const
 {
   return data_type_;
 }
 
-inline Span<MFInstruction *> MFVariable::users()
+inline Span<Instruction *> Variable::users()
 {
   return users_;
 }
 
-inline StringRefNull MFVariable::name() const
+inline StringRefNull Variable::name() const
 {
   return name_;
 }
 
-inline int MFVariable::index_in_procedure() const
+inline int Variable::index_in_procedure() const
 {
   return index_in_graph_;
 }
@@ -384,15 +374,15 @@ inline int MFVariable::index_in_procedure() const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #MFInstruction Inline Methods
+/** \name #Instruction Inline Methods
  * \{ */
 
-inline MFInstructionType MFInstruction::type() const
+inline InstructionType Instruction::type() const
 {
   return type_;
 }
 
-inline Span<MFInstructionCursor> MFInstruction::prev() const
+inline Span<InstructionCursor> Instruction::prev() const
 {
   return prev_;
 }
@@ -400,30 +390,30 @@ inline Span<MFInstructionCursor> MFInstruction::prev() const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #MFCallInstruction Inline Methods
+/** \name #CallInstruction Inline Methods
  * \{ */
 
-inline const MultiFunction &MFCallInstruction::fn() const
+inline const MultiFunction &CallInstruction::fn() const
 {
   return *fn_;
 }
 
-inline MFInstruction *MFCallInstruction::next()
+inline Instruction *CallInstruction::next()
 {
   return next_;
 }
 
-inline const MFInstruction *MFCallInstruction::next() const
+inline const Instruction *CallInstruction::next() const
 {
   return next_;
 }
 
-inline Span<MFVariable *> MFCallInstruction::params()
+inline Span<Variable *> CallInstruction::params()
 {
   return params_;
 }
 
-inline Span<const MFVariable *> MFCallInstruction::params() const
+inline Span<const Variable *> CallInstruction::params() const
 {
   return params_;
 }
@@ -431,35 +421,35 @@ inline Span<const MFVariable *> MFCallInstruction::params() const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #MFBranchInstruction Inline Methods
+/** \name #BranchInstruction Inline Methods
  * \{ */
 
-inline MFVariable *MFBranchInstruction::condition()
+inline Variable *BranchInstruction::condition()
 {
   return condition_;
 }
 
-inline const MFVariable *MFBranchInstruction::condition() const
+inline const Variable *BranchInstruction::condition() const
 {
   return condition_;
 }
 
-inline MFInstruction *MFBranchInstruction::branch_true()
+inline Instruction *BranchInstruction::branch_true()
 {
   return branch_true_;
 }
 
-inline const MFInstruction *MFBranchInstruction::branch_true() const
+inline const Instruction *BranchInstruction::branch_true() const
 {
   return branch_true_;
 }
 
-inline MFInstruction *MFBranchInstruction::branch_false()
+inline Instruction *BranchInstruction::branch_false()
 {
   return branch_false_;
 }
 
-inline const MFInstruction *MFBranchInstruction::branch_false() const
+inline const Instruction *BranchInstruction::branch_false() const
 {
   return branch_false_;
 }
@@ -467,25 +457,25 @@ inline const MFInstruction *MFBranchInstruction::branch_false() const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #MFDestructInstruction Inline Methods
+/** \name #DestructInstruction Inline Methods
  * \{ */
 
-inline MFVariable *MFDestructInstruction::variable()
+inline Variable *DestructInstruction::variable()
 {
   return variable_;
 }
 
-inline const MFVariable *MFDestructInstruction::variable() const
+inline const Variable *DestructInstruction::variable() const
 {
   return variable_;
 }
 
-inline MFInstruction *MFDestructInstruction::next()
+inline Instruction *DestructInstruction::next()
 {
   return next_;
 }
 
-inline const MFInstruction *MFDestructInstruction::next() const
+inline const Instruction *DestructInstruction::next() const
 {
   return next_;
 }
@@ -493,15 +483,15 @@ inline const MFInstruction *MFDestructInstruction::next() const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #MFDummyInstruction Inline Methods
+/** \name #DummyInstruction Inline Methods
  * \{ */
 
-inline MFInstruction *MFDummyInstruction::next()
+inline Instruction *DummyInstruction::next()
 {
   return next_;
 }
 
-inline const MFInstruction *MFDummyInstruction::next() const
+inline const Instruction *DummyInstruction::next() const
 {
   return next_;
 }
@@ -509,37 +499,37 @@ inline const MFInstruction *MFDummyInstruction::next() const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #MFProcedure Inline Methods
+/** \name #Procedure Inline Methods
  * \{ */
 
-inline Span<ConstMFParameter> MFProcedure::params() const
+inline Span<ConstMFParameter> Procedure::params() const
 {
   static_assert(sizeof(MFParameter) == sizeof(ConstMFParameter));
   return params_.as_span().cast<ConstMFParameter>();
 }
 
-inline MFInstruction *MFProcedure::entry()
+inline Instruction *Procedure::entry()
 {
   return entry_;
 }
 
-inline const MFInstruction *MFProcedure::entry() const
+inline const Instruction *Procedure::entry() const
 {
   return entry_;
 }
 
-inline Span<MFVariable *> MFProcedure::variables()
+inline Span<Variable *> Procedure::variables()
 {
   return variables_;
 }
 
-inline Span<const MFVariable *> MFProcedure::variables() const
+inline Span<const Variable *> Procedure::variables() const
 {
   return variables_;
 }
 
 template<typename T, typename... Args>
-inline const MultiFunction &MFProcedure::construct_function(Args &&...args)
+inline const MultiFunction &Procedure::construct_function(Args &&...args)
 {
   destruct_ptr<T> fn = allocator_.construct<T>(std::forward<Args>(args)...);
   const MultiFunction &fn_ref = *fn;
@@ -549,4 +539,4 @@ inline const MultiFunction &MFProcedure::construct_function(Args &&...args)
 
 /** \} */
 
-}  // namespace blender::fn
+}  // namespace blender::fn::multi_function

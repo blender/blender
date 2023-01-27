@@ -162,7 +162,7 @@ void BM_mesh_esubdivide(BMesh *bm,
                         int seed);
 
 /**
- * Fills first available UV-map with grid-like UV's for all faces with `oflag` set.
+ * Fills first available UV-map with grid-like UVs for all faces with `oflag` set.
  *
  * \param bm: The BMesh to operate on
  * \param x_segments: The x-resolution of the grid

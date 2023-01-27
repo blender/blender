@@ -97,7 +97,7 @@ static void bm_interp_face_free(InterpFace *iface, BMesh *bm)
 
 #ifdef USE_LOOP_CUSTOMDATA_MERGE
 /**
- * This function merges loop customdata (UV's)
+ * This function merges loop customdata (UVs)
  * where interpolating the values across the face causes values to diverge.
  */
 static void bm_loop_customdata_merge(BMesh *bm,
@@ -177,7 +177,7 @@ static void bm_loop_customdata_merge(BMesh *bm,
                                 BM_ELEM_CD_GET_VOID_P(l_a_outer, offset),
                                 BM_ELEM_CD_GET_VOID_P(l_b_outer, offset)) == true)
 
-    /* Epsilon for comparing UV's is too big, gives noticeable problems. */
+    /* Epsilon for comparing UVs is too big, gives noticeable problems. */
 #  if 0
         &&
         /* check if the data ends up diverged */
@@ -1183,7 +1183,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
     f = BM_face_create_verts(bm, varr, j, es->l->f, BM_CREATE_NOP, true);
     BMO_face_flag_enable(bm, f, ELE_NEW);
 
-    /* Copy for loop data, otherwise UV's and vcols are no good.
+    /* Copy for loop data, otherwise UVs and vcols are no good.
      * tiny speedup here we could be more clever and copy from known adjacent data
      * also - we could attempt to interpolate the loop data,
      * this would be much slower but more useful too. */

@@ -152,9 +152,7 @@ BLI_INLINE ColorTheme4<uint8_t> BLI_color_convert_to_theme4b(const ColorTheme4<f
 template<eAlpha Alpha>
 class ColorSceneLinear4f final : public ColorRGBA<float, eSpace::SceneLinear, Alpha> {
  public:
-  constexpr ColorSceneLinear4f<Alpha>() : ColorRGBA<float, eSpace::SceneLinear, Alpha>()
-  {
-  }
+  constexpr ColorSceneLinear4f<Alpha>() = default;
 
   constexpr ColorSceneLinear4f<Alpha>(const float *rgba)
       : ColorRGBA<float, eSpace::SceneLinear, Alpha>(rgba)

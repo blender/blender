@@ -217,6 +217,7 @@ void Object::tag_update(Scene *scene)
 
     if (is_shadow_catcher_is_modified()) {
       scene->tag_shadow_catcher_modified();
+      flag |= ObjectManager::VISIBILITY_MODIFIED;
     }
   }
 
@@ -435,6 +436,10 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
     state->have_motion = true;
   }
 
+  if (transform_negative_scale(tfm)) {
+    flag |= SD_OBJECT_NEGATIVE_SCALE;
+  }
+
   if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::POINTCLOUD) {
     /* TODO: why only mesh? */
     Mesh *mesh = static_cast<Mesh *>(geom);
@@ -565,10 +570,12 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 
 void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dscene, Scene *scene)
 {
-  BVHLayoutMask layout_mask = device->get_bvh_layout_mask();
-  if (layout_mask != BVH_LAYOUT_METAL && layout_mask != BVH_LAYOUT_MULTI_METAL &&
-      layout_mask != BVH_LAYOUT_MULTI_METAL_EMBREE) {
-    return;
+  if (!scene->integrator->get_use_light_tree()) {
+    BVHLayoutMask layout_mask = device->get_bvh_layout_mask();
+    if (layout_mask != BVH_LAYOUT_METAL && layout_mask != BVH_LAYOUT_MULTI_METAL &&
+        layout_mask != BVH_LAYOUT_MULTI_METAL_EMBREE) {
+      return;
+    }
   }
 
   /* On MetalRT, primitive / curve segment offsets can't be baked at BVH build time. Intersection
@@ -968,8 +975,6 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
         }
 
         object_flag[i] |= SD_OBJECT_TRANSFORM_APPLIED;
-        if (geom->transform_negative_scaled)
-          object_flag[i] |= SD_OBJECT_NEGATIVE_SCALE_APPLIED;
       }
     }
 

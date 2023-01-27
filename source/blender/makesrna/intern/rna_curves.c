@@ -77,8 +77,8 @@ static void rna_Curves_curve_offset_data_begin(CollectionPropertyIterator *iter,
 
 static float (*get_curves_positions(Curves *curves))[3]
 {
-  return (float(*)[3])CustomData_get_layer_named(
-      &curves->geometry.point_data, CD_PROP_FLOAT3, "position");
+  return (float(*)[3])CustomData_get_layer_named_for_write(
+      &curves->geometry.point_data, CD_PROP_FLOAT3, "position", curves->geometry.point_num);
 }
 
 static const float (*get_curves_positions_const(const Curves *curves))[3]
@@ -152,9 +152,9 @@ static float rna_CurvePoint_radius_get(PointerRNA *ptr)
 
 static void rna_CurvePoint_radius_set(PointerRNA *ptr, float value)
 {
-  const Curves *curves = rna_curves(ptr);
-  float *radii = (float *)CustomData_get_layer_named(
-      &curves->geometry.point_data, CD_PROP_FLOAT, "radius");
+  Curves *curves = rna_curves(ptr);
+  float *radii = (float *)CustomData_get_layer_named_for_write(
+      &curves->geometry.point_data, CD_PROP_FLOAT, "radius", curves->geometry.point_num);
   if (radii == NULL) {
     return;
   }
@@ -212,8 +212,7 @@ static void rna_CurveSlice_points_begin(CollectionPropertyIterator *iter, Pointe
   Curves *curves = rna_curves(ptr);
   const int offset = rna_CurveSlice_first_point_index_get(ptr);
   const int size = rna_CurveSlice_points_length_get(ptr);
-  float(*positions)[3] = (float(*)[3])CustomData_get_layer_named(
-      &curves->geometry.point_data, CD_PROP_FLOAT3, "position");
+  float(*positions)[3] = get_curves_positions(curves);
   float(*co)[3] = positions + offset;
   rna_iterator_array_begin(iter, co, sizeof(float[3]), size, 0, NULL);
 }
@@ -413,12 +412,6 @@ static void rna_def_curves(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Selection Domain", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
-
-  prop = RNA_def_property(srna, "use_sculpt_selection", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", CV_SCULPT_SELECTION_ENABLED);
-  RNA_def_property_ui_text(prop, "Use Sculpt Selection", "");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
   /* attributes */
   rna_def_attributes_common(srna);

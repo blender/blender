@@ -276,13 +276,22 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
     return;
   }
 
-  /* Make sure new sockets are properly created. */
-  node_verify_sockets(ntree, node, false);
   /* Convert value from old storage to new sockets. */
   NodeHueSat *nhs = node->storage;
-  bNodeSocket *hue = nodeFindSocket(node, SOCK_IN, "Hue"),
-              *saturation = nodeFindSocket(node, SOCK_IN, "Saturation"),
-              *value = nodeFindSocket(node, SOCK_IN, "Value");
+  bNodeSocket *hue = nodeFindSocket(node, SOCK_IN, "Hue");
+  bNodeSocket *saturation = nodeFindSocket(node, SOCK_IN, "Saturation");
+  bNodeSocket *value = nodeFindSocket(node, SOCK_IN, "Value");
+  if (hue == NULL) {
+    hue = nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Hue", "Hue");
+  }
+  if (saturation == NULL) {
+    saturation = nodeAddStaticSocket(
+        ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Saturation", "Saturation");
+  }
+  if (value == NULL) {
+    value = nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Value", "Value");
+  }
+
   ((bNodeSocketValueFloat *)hue->default_value)->value = nhs->hue;
   ((bNodeSocketValueFloat *)saturation->default_value)->value = nhs->sat;
   ((bNodeSocketValueFloat *)value->default_value)->value = nhs->val;

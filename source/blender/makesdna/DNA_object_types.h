@@ -194,6 +194,14 @@ typedef struct Object_Runtime {
   struct Mesh *object_as_temp_mesh;
 
   /**
+   * Backup of the object's pose (might be a subset, i.e. not contain all bones).
+   *
+   * Created by `BKE_pose_backup_create_on_object()`. This memory is owned by the Object.
+   * It is freed along with the object, or when `BKE_pose_backup_clear()` is called.
+   */
+  struct PoseBackup *pose_backup;
+
+  /**
    * This is a curve representation of corresponding object.
    * It created when Python calls `object.to_curve()`.
    */
@@ -201,6 +209,7 @@ typedef struct Object_Runtime {
 
   /** Runtime evaluated curve-specific data, not stored in the file. */
   struct CurveCache *curve_cache;
+  void *_pad4;
 
   unsigned short local_collections_bits;
   short _pad2[3];
@@ -212,7 +221,7 @@ typedef struct Object_Runtime {
   int _pad3[3];
 
   struct PBVH *cached_pbvh;
-  void *_pad4;
+  void *_pad5;
 } Object_Runtime;
 
 typedef struct ObjectLineArt {
@@ -270,8 +279,8 @@ typedef struct Object {
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
   /* struct Path *path; */
-  struct bAction *action DNA_DEPRECATED; /* XXX deprecated... old animation system */
-  struct bAction *poselib;
+  struct bAction *action DNA_DEPRECATED;  /* XXX deprecated... old animation system */
+  struct bAction *poselib DNA_DEPRECATED; /* Pre-Blender 3.0 pose library, deprecated in 3.5. */
   /** Pose data, armature objects only. */
   struct bPose *pose;
   /** Pointer to objects data - an 'ID' or NULL. */
@@ -448,7 +457,7 @@ typedef struct Object {
   /** Lightgroup membership information. */
   struct LightgroupMembership *lightgroup;
 
-  struct PBVH *cached_pbvh2;
+  struct PBVH *cached_pbvh;
 
   /** Runtime evaluation data (keep last). */
   Object_Runtime runtime;

@@ -182,13 +182,15 @@ void eval_volume_step(inout vec3 Lscat, float extinction, float step_len, out fl
 }
 
 #define P(x) ((x + 0.5) * (1.0 / 16.0))
-const vec4 dither_mat[4] = vec4[4](vec4(P(0.0), P(8.0), P(2.0), P(10.0)),
-                                   vec4(P(12.0), P(4.0), P(14.0), P(6.0)),
-                                   vec4(P(3.0), P(11.0), P(1.0), P(9.0)),
-                                   vec4(P(15.0), P(7.0), P(13.0), P(5.0)));
 
 vec4 volume_integration(vec3 ray_ori, vec3 ray_dir, float ray_inc, float ray_max, float step_len)
 {
+  /* Note: Constant array declared inside function scope to reduce shader core thread memory
+   * pressure on Apple Silicon. */
+  const vec4 dither_mat[4] = vec4[4](vec4(P(0.0), P(8.0), P(2.0), P(10.0)),
+                                     vec4(P(12.0), P(4.0), P(14.0), P(6.0)),
+                                     vec4(P(3.0), P(11.0), P(1.0), P(9.0)),
+                                     vec4(P(15.0), P(7.0), P(13.0), P(5.0)));
   /* Start with full transmittance and no scattered light. */
   vec3 final_scattering = vec3(0.0);
   float final_transmittance = 1.0;

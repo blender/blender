@@ -224,7 +224,7 @@ typedef struct SculptUndoNode {
 
   /* non-multires */
   int maxvert;        /* to verify if totvert it still the same */
-  PBVHVertRef *index; /* to restore into right location */
+  int *index; /* to restore into right location */
   int maxloop;
   int *loop_index;
 
@@ -640,7 +640,9 @@ typedef struct FilterCache {
   float bound_smooth_radius;
   float bevel_smooth_fac;
 
-  float (*pre_smoothed_color)[3];
+  float (*pre_smoothed_color)[4];
+
+  ViewContext vc;
 } FilterCache;
 
 /**
@@ -963,7 +965,7 @@ typedef struct ExpandCache {
   /* Texture distortion data. */
   Brush *brush;
   struct Scene *scene;
-  struct MTex *mtex;
+  // struct MTex *mtex;
 
   /* Controls how much texture distortion will be applied to the current falloff */
   float texture_distortion_strength;
@@ -1008,6 +1010,9 @@ typedef struct ExpandCache {
   /* When set to true, Expand will reposition the sculpt pivot to the boundary of the expand
    * result after finishing the operation. */
   bool reposition_pivot;
+
+  /* If nothing is masked set mask of every vertex to 0. */
+  bool auto_mask;
 
   /* Color target data type related data. */
   float fill_color[4];
@@ -1281,7 +1286,7 @@ void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3]);
 
 /* Returns PBVH deformed vertices array if shape keys or deform modifiers are used, otherwise
  * returns mesh original vertices array. */
-struct MVert *SCULPT_mesh_deformed_mverts_get(SculptSession *ss);
+float (*SCULPT_mesh_deformed_positions_get(SculptSession *ss))[3];
 
 /* Fake Neighbors */
 
@@ -1395,7 +1400,6 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertRef ver
 void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data,
                                       Object *ob,
                                       struct SculptUndoNode *unode);
-
 
 void SCULPT_face_check_origdata(SculptSession *ss, PBVHFaceRef face);
 bool SCULPT_vertex_check_origdata(SculptSession *ss, PBVHVertRef vertex);

@@ -43,6 +43,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_undo_system.h"
 #include "BKE_workspace.h"
 
 #include "BKE_sound.h"
@@ -419,13 +420,13 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
   if (wm->is_interface_locked) {
     return;
   }
-  /* Combine data-masks so one window doesn't disable UV's in another T26448. */
+  /* Combine data-masks so one window doesn't disable UVs in another T26448. */
   CustomData_MeshMasks win_combine_v3d_datamask = {0};
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    const Scene *scene = WM_window_get_active_scene(win);
+    const ViewLayer *view_layer = WM_window_get_active_view_layer(win);
     const bScreen *screen = WM_window_get_active_screen(win);
 
-    ED_view3d_screen_datamask(C, scene, screen, &win_combine_v3d_datamask);
+    ED_view3d_screen_datamask(view_layer, screen, &win_combine_v3d_datamask);
   }
   /* Update all the dependency graphs of visible view layers. */
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
@@ -928,6 +929,17 @@ void WM_reportf(eReportType type, const char *format, ...)
 /** \name Operator Logic
  * \{ */
 
+/**
+ * Return the active undo step as an identifier for the purpose of comparison only.
+ */
+static intptr_t wm_operator_undo_active_id(const wmWindowManager *wm)
+{
+  if (wm->undo_stack) {
+    return intptr_t(wm->undo_stack->step_active);
+  }
+  return -1;
+}
+
 bool WM_operator_poll(bContext *C, wmOperatorType *ot)
 {
 
@@ -1059,7 +1071,12 @@ static bool wm_operator_register_check(wmWindowManager *wm, wmOperatorType *ot)
   return wm && (wm->op_undo_depth == 0) && (ot->flag & (OPTYPE_REGISTER | OPTYPE_UNDO));
 }
 
-static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat, const bool store)
+/**
+ * \param has_undo_step: True when an undo step was added,
+ * needed when the operator doesn't use #OPTYPE_UNDO, #OPTYPE_UNDO_GROUPED but adds an undo step.
+ */
+static void wm_operator_finished(
+    bContext *C, wmOperator *op, const bool repeat, const bool store, const bool has_undo_step)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   enum {
@@ -1086,6 +1103,11 @@ static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat,
     }
     else if (op->type->flag & OPTYPE_UNDO_GROUPED) {
       ED_undo_grouped_push_op(C, op);
+      if (repeat == 0) {
+        hud_status = CLEAR;
+      }
+    }
+    else if (has_undo_step) {
       if (repeat == 0) {
         hud_status = CLEAR;
       }
@@ -1150,6 +1172,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, const bool repeat, cons
     return retval;
   }
 
+  const intptr_t undo_id_prev = wm_operator_undo_active_id(wm);
   if (op->type->exec) {
     if (op->type->flag & OPTYPE_UNDO) {
       wm->op_undo_depth++;
@@ -1171,7 +1194,9 @@ static int wm_operator_exec(bContext *C, wmOperator *op, const bool repeat, cons
   }
 
   if (retval & OPERATOR_FINISHED) {
-    wm_operator_finished(C, op, repeat, store && wm->op_undo_depth == 0);
+    const bool has_undo_step = (undo_id_prev != wm_operator_undo_active_id(wm));
+
+    wm_operator_finished(C, op, repeat, store && wm->op_undo_depth == 0, has_undo_step);
   }
   else if (repeat == 0) {
     /* WARNING: modal from exec is bad practice, but avoid crashing. */
@@ -1412,6 +1437,7 @@ static int wm_operator_invoke(bContext *C,
 
   if (WM_operator_poll(C, ot)) {
     wmWindowManager *wm = CTX_wm_manager(C);
+    const intptr_t undo_id_prev = wm_operator_undo_active_id(wm);
 
     /* If `reports == nullptr`, they'll be initialized. */
     wmOperator *op = wm_operator_create(wm, ot, properties, reports);
@@ -1480,8 +1506,9 @@ static int wm_operator_invoke(bContext *C,
       /* Do nothing, #wm_operator_exec() has been called somewhere. */
     }
     else if (retval & OPERATOR_FINISHED) {
+      const bool has_undo_step = (undo_id_prev != wm_operator_undo_active_id(wm));
       const bool store = !is_nested_call && use_last_properties;
-      wm_operator_finished(C, op, false, store);
+      wm_operator_finished(C, op, false, store, has_undo_step);
     }
     else if (retval & OPERATOR_RUNNING_MODAL) {
       /* Take ownership of reports (in case python provided own). */
@@ -1490,8 +1517,8 @@ static int wm_operator_invoke(bContext *C,
       /* Grab cursor during blocking modal operators (X11)
        * Also check for macro. */
       if (ot->flag & OPTYPE_BLOCKING || (op->opm && op->opm->type->flag & OPTYPE_BLOCKING)) {
-        int bounds[4] = {-1, -1, -1, -1};
-        int wrap = WM_CURSOR_WRAP_NONE;
+        eWM_CursorWrapAxis wrap = WM_CURSOR_WRAP_NONE;
+        const rcti *wrap_region = nullptr;
 
         if (event && (U.uiflag & USER_CONTINUOUS_MOUSE)) {
           const wmOperator *op_test = op->opm ? op->opm : op;
@@ -1509,7 +1536,6 @@ static int wm_operator_invoke(bContext *C,
         }
 
         if (wrap) {
-          const rcti *winrect = nullptr;
           ARegion *region = CTX_wm_region(C);
           ScrArea *area = CTX_wm_area(C);
 
@@ -1520,21 +1546,14 @@ static int wm_operator_invoke(bContext *C,
 
           if (region && region->regiontype == RGN_TYPE_WINDOW &&
               BLI_rcti_isect_pt_v(&region->winrct, event->xy)) {
-            winrect = &region->winrct;
+            wrap_region = &region->winrct;
           }
           else if (area && BLI_rcti_isect_pt_v(&area->totrct, event->xy)) {
-            winrect = &area->totrct;
-          }
-
-          if (winrect) {
-            bounds[0] = winrect->xmin;
-            bounds[1] = winrect->ymax;
-            bounds[2] = winrect->xmax;
-            bounds[3] = winrect->ymin;
+            wrap_region = &area->totrct;
           }
         }
 
-        WM_cursor_grab_enable(CTX_wm_window(C), wrap, false, bounds);
+        WM_cursor_grab_enable(CTX_wm_window(C), wrap, wrap_region, false);
       }
 
       /* Cancel UI handlers, typically tool-tips that can hang around
@@ -2378,6 +2397,7 @@ static int wm_handler_operator_call(bContext *C,
       wmEvent_ModalMapStore event_backup;
       wm_event_modalkeymap_begin(C, op, event, &event_backup);
 
+      const intptr_t undo_id_prev = wm_operator_undo_active_id(wm);
       if (ot->flag & OPTYPE_UNDO) {
         wm->op_undo_depth++;
       }
@@ -2413,7 +2433,9 @@ static int wm_handler_operator_call(bContext *C,
 
         /* Important to run 'wm_operator_finished' before setting the context members to null. */
         if (retval & OPERATOR_FINISHED) {
-          wm_operator_finished(C, op, false, true);
+          const bool has_undo_step = (undo_id_prev != wm_operator_undo_active_id(wm));
+
+          wm_operator_finished(C, op, false, true, has_undo_step);
           handler->op = nullptr;
         }
         else if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED)) {
@@ -3551,10 +3573,10 @@ static ARegion *region_event_inside(bContext *C, const int xy[2])
   return nullptr;
 }
 
-static void wm_paintcursor_tag(bContext *C, wmPaintCursor *pc, ARegion *region)
+static void wm_paintcursor_tag(bContext *C, wmWindowManager *wm, ARegion *region)
 {
   if (region) {
-    for (; pc; pc = pc->next) {
+    LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->paintcursors) {
       if (pc->poll == nullptr || pc->poll(C)) {
         wmWindow *win = CTX_wm_window(C);
         WM_paint_cursor_tag_redraw(win, region);
@@ -3576,7 +3598,7 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
     ARegion *region = CTX_wm_region(C);
 
     if (region) {
-      wm_paintcursor_tag(C, static_cast<wmPaintCursor *>(wm->paintcursors.first), region);
+      wm_paintcursor_tag(C, wm, region);
     }
 
     /* If previous position was not in current region, we have to set a temp new context. */
@@ -3586,8 +3608,7 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
       CTX_wm_area_set(C, area_event_inside(C, event->prev_xy));
       CTX_wm_region_set(C, region_event_inside(C, event->prev_xy));
 
-      wm_paintcursor_tag(
-          C, static_cast<wmPaintCursor *>(wm->paintcursors.first), CTX_wm_region(C));
+      wm_paintcursor_tag(C, wm, CTX_wm_region(C));
 
       CTX_wm_area_set(C, area);
       CTX_wm_region_set(C, region);
@@ -3793,6 +3814,9 @@ void wm_event_do_handlers(bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
   BLI_assert(ED_undo_is_state_valid(C));
 
+  /* Begin GPU render boundary - Certain event handlers require GPU usage. */
+  GPU_render_begin();
+
   /* Update key configuration before handling events. */
   WM_keyconfig_update(wm);
   WM_gizmoconfig_update(CTX_data_main(C));
@@ -3932,6 +3956,7 @@ void wm_event_do_handlers(bContext *C)
       /* File-read case. */
       if (CTX_wm_window(C) == nullptr) {
         wm_event_free_and_remove_from_queue_if_valid(event);
+        GPU_render_end();
         return;
       }
 
@@ -3986,6 +4011,7 @@ void wm_event_do_handlers(bContext *C)
             /* File-read case (Python), T29489. */
             if (CTX_wm_window(C) == nullptr) {
               wm_event_free_and_remove_from_queue_if_valid(event);
+              GPU_render_end();
               return;
             }
 
@@ -4014,6 +4040,7 @@ void wm_event_do_handlers(bContext *C)
           /* File-read case. */
           if (CTX_wm_window(C) == nullptr) {
             wm_event_free_and_remove_from_queue_if_valid(event);
+            GPU_render_end();
             return;
           }
         }
@@ -4064,6 +4091,9 @@ void wm_event_do_handlers(bContext *C)
   /* Update key configuration after handling events. */
   WM_keyconfig_update(wm);
   WM_gizmoconfig_update(CTX_data_main(C));
+
+  /* End GPU render boundary. Certain event handlers require GPU usage. */
+  GPU_render_end();
 }
 
 /** \} */
@@ -4395,7 +4425,7 @@ static void wm_event_get_keymap_from_toolsystem_ex(wmWindowManager *wm,
 
   if (is_gizmo_visible && !is_gizmo_highlight) {
     if (keymap_id_list_len == 2) {
-      SWAP(const char *, keymap_id_list[0], keymap_id_list[1]);
+      std::swap(keymap_id_list[0], keymap_id_list[1]);
     }
   }
 

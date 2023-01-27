@@ -50,10 +50,10 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "../../bmesh/intern/bmesh_idmap.h"
 #include "bmesh.h"
 #include "bmesh_log.h"
 #include "bmesh_tools.h"
-#include "../../bmesh/intern/bmesh_idmap.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -207,19 +207,22 @@ void SCULPT_faces_get_cotangents(SculptSession *ss,
     int i2 = i;
     int i3 = (i + 1) % elem->count;
 
-    const MVert *v = ss->mvert + vertex.i;
+    const float *v = ss->vert_positions[vertex.i];
     const MEdge *e1 = ss->medge + elem->indices[i1];
     const MEdge *e2 = ss->medge + elem->indices[i2];
     const MEdge *e3 = ss->medge + elem->indices[i3];
 
-    const MVert *v1 = (unsigned int)vertex.i == e1->v1 ? ss->mvert + e1->v2 : ss->mvert + e1->v1;
-    const MVert *v2 = (unsigned int)vertex.i == e2->v1 ? ss->mvert + e2->v2 : ss->mvert + e2->v1;
-    const MVert *v3 = (unsigned int)vertex.i == e3->v1 ? ss->mvert + e3->v2 : ss->mvert + e3->v1;
+    const float *v1 = (unsigned int)vertex.i == e1->v1 ? ss->vert_positions[e1->v2] :
+                                                         ss->vert_positions[e1->v1];
+    const float *v2 = (unsigned int)vertex.i == e2->v1 ? ss->vert_positions[e2->v2] :
+                                                         ss->vert_positions[e2->v1];
+    const float *v3 = (unsigned int)vertex.i == e3->v1 ? ss->vert_positions[e3->v2] :
+                                                         ss->vert_positions[e3->v1];
 
-    float cot1 = cotangent_tri_weight_v3(v1->co, v->co, v2->co);
-    float cot2 = cotangent_tri_weight_v3(v3->co, v2->co, v->co);
+    float cot1 = cotangent_tri_weight_v3(v1, v, v2);
+    float cot2 = cotangent_tri_weight_v3(v3, v2, v);
 
-    float area = tri_voronoi_area(v->co, v1->co, v2->co);
+    float area = tri_voronoi_area(v, v1, v2);
 
     r_ws[i] = (cot1 + cot2);
     totw += r_ws[i];
@@ -269,7 +272,7 @@ void SCULPT_cotangents_begin(Object *ob, SculptSession *ss)
       if (!ss->vemap) {
         BKE_mesh_vert_edge_map_create(&ss->vemap,
                                       &ss->vemap_mem,
-                                      BKE_mesh_verts(mesh),
+                                      ss->vert_positions,
                                       BKE_mesh_edges(mesh),
                                       mesh->totvert,
                                       mesh->totedge,
@@ -671,7 +674,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   if (!ss->bm_idmap) {
-    ss->bm_idmap = BM_idmap_new(ss->bm, BM_VERT|BM_EDGE|BM_FACE);
+    ss->bm_idmap = BM_idmap_new(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
     BKE_sculptsession_update_attr_refs(ob);
   }
 
@@ -1042,13 +1045,13 @@ static void uvsolver_free(UVSolver *solver)
 void *uvsolver_calc_loop_key(UVSolver *solver, BMLoop *l)
 {
   // return (void *)l->v;
-  MLoopUV *uv = BM_ELEM_CD_GET_VOID_P(l, solver->cd_uv);
+  float *uv = BM_ELEM_CD_GET_VOID_P(l, solver->cd_uv);
 
-  // float u = floorf(uv->uv[0] / solver->snap_limit) * solver->snap_limit;
-  // float v = floorf(uv->uv[1] / solver->snap_limit) * solver->snap_limit;
+  // float u = floorf(uv[0] / solver->snap_limit) * solver->snap_limit;
+  // float v = floorf(uv[1] / solver->snap_limit) * solver->snap_limit;
 
-  intptr_t x = (intptr_t)(uv->uv[0] * 16384.0);
-  intptr_t y = (intptr_t)(uv->uv[1] * 16384.0);
+  intptr_t x = (intptr_t)(uv[0] * 16384.0);
+  intptr_t y = (intptr_t)(uv[1] * 16384.0);
   intptr_t key;
   int boundflag = BM_ELEM_CD_GET_INT(l->v, solver->cd_boundary_flag);
 
@@ -1065,7 +1068,7 @@ void *uvsolver_calc_loop_key(UVSolver *solver, BMLoop *l)
 
 static UVSmoothVert *uvsolver_get_vert(UVSolver *solver, BMLoop *l)
 {
-  MLoopUV *uv = BM_ELEM_CD_GET_VOID_P(l, solver->cd_uv);
+  float *uv = BM_ELEM_CD_GET_VOID_P(l, solver->cd_uv);
 
   void *pkey = uvsolver_calc_loop_key(solver, l);
   void **entry = NULL;
@@ -1088,9 +1091,9 @@ static UVSmoothVert *uvsolver_get_vert(UVSolver *solver, BMLoop *l)
       v->pinned = true;
     }
 
-    // copy_v2_v2(v->uv, uv->uv);
-    v->uv[0] = (double)uv->uv[0];
-    v->uv[1] = (double)uv->uv[1];
+    // copy_v2_v2(v, uv);
+    v->uv[0] = (double)uv[0];
+    v->uv[1] = (double)uv[1];
 
     if (isnan(v->uv[0]) || !isfinite(v->uv[0])) {
       v->uv[0] = 0.0f;
@@ -1439,10 +1442,10 @@ static void uvsolver_simple_relax(UVSolver *solver, float strength)
   for (; sv; sv = BLI_mempool_iterstep(&iter)) {
     for (int i = 0; i < sv->totloop; i++) {
       BMLoop *l = sv->ls[i];
-      MLoopUV *uv = BM_ELEM_CD_GET_VOID_P(l, cd_uv);
+      float *uv = BM_ELEM_CD_GET_VOID_P(l, cd_uv);
 
-      uv->uv[0] = (float)sv->uv[0];
-      uv->uv[1] = (float)sv->uv[1];
+      uv[0] = (float)sv->uv[0];
+      uv[1] = (float)sv->uv[1];
     }
   }
 }
@@ -1540,12 +1543,12 @@ static float uvsolver_solve_step(UVSolver *solver)
   for (; sv; sv = BLI_mempool_iterstep(&iter)) {
     for (int i = 0; i < sv->totloop; i++) {
       BMLoop *l = sv->ls[i];
-      MLoopUV *uv = BM_ELEM_CD_GET_VOID_P(l, cd_uv);
+      float *uv = BM_ELEM_CD_GET_VOID_P(l, cd_uv);
 
       float fac = solver->strength * sv->brushfade;
 
-      uv->uv[0] += ((float)sv->uv[0] - uv->uv[0]) * fac;
-      uv->uv[1] += ((float)sv->uv[1] - uv->uv[1]) * fac;
+      uv[0] += ((float)sv->uv[0] - uv[0]) * fac;
+      uv[1] += ((float)sv->uv[1] - uv[1]) * fac;
     }
   }
 
@@ -1621,9 +1624,9 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
 
         lastv = sv;
 
-        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l2, cd_uv);
+        float *luv = BM_ELEM_CD_GET_VOID_P(l2, cd_uv);
 
-        add_v2_v2(uv, luv->uv);
+        add_v2_v2(uv, luv);
         tot2++;
 
         if (BM_elem_flag_test(l2->e, BM_ELEM_SEAM)) {
@@ -1642,10 +1645,10 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
             l2 = l2->next;
           }
 
-          MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l2, cd_uv);
+          float *luv = BM_ELEM_CD_GET_VOID_P(l2, cd_uv);
 
-          if (len_v2v2(luv->uv, uv) < 0.02) {
-            copy_v2_v2(luv->uv, uv);
+          if (len_v2v2(luv, uv) < 0.02) {
+            copy_v2_v2(luv, uv);
           }
         }
       }

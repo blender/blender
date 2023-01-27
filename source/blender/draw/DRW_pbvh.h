@@ -28,7 +28,6 @@ struct Mesh;
 struct MLoopTri;
 struct PBVHTriBuf;
 struct CustomData;
-struct MVert;
 struct MEdge;
 struct MSculptVert;
 struct MLoop;
@@ -43,12 +42,15 @@ typedef struct PBVH_GPU_Args {
 
   struct BMesh *bm;
   const struct Mesh *me;
-  const struct MVert *mvert;
+  const float (*vert_positions)[3];
   const struct MLoop *mloop;
   const struct MPoly *mpoly;
   int mesh_verts_num, mesh_faces_num, mesh_grids_num;
   struct CustomData *vdata, *ldata, *pdata;
   const float (*vert_normals)[3];
+
+  const char *active_color;
+  const char *render_color;
 
   int face_sets_color_seed, face_sets_color_default;
   int *face_sets; /* for PBVH_FACES and PBVH_GRIDS */
@@ -64,7 +66,7 @@ typedef struct PBVH_GPU_Args {
   int *prim_indices;
   int totprim;
 
-  bool *hide_poly;
+  const bool *hide_poly;
 
   int node_verts_num;
 
@@ -94,12 +96,14 @@ struct GPUBatch *DRW_pbvh_tris_get(PBVHBatches *batches,
                                    struct PBVHAttrReq *attrs,
                                    int attrs_num,
                                    PBVH_GPU_Args *args,
-                                   int *r_prim_count);
+                                   int *r_prim_count,
+                                   bool do_coarse_grids);
 struct GPUBatch *DRW_pbvh_lines_get(struct PBVHBatches *batches,
                                     struct PBVHAttrReq *attrs,
                                     int attrs_num,
                                     PBVH_GPU_Args *args,
-                                    int *r_prim_count);
+                                    int *r_prim_count,
+                                    bool do_coarse_grids);
 
 #ifdef __cplusplus
 }

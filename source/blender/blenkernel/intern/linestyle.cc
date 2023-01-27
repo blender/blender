@@ -5,9 +5,9 @@
  * \ingroup bke
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -628,8 +628,8 @@ static void direct_link_linestyle_thickness_modifier(BlendDataReader *reader,
   }
 }
 
-static void direct_link_linestyle_geometry_modifier(BlendDataReader *UNUSED(reader),
-                                                    LineStyleModifier *UNUSED(modifier))
+static void direct_link_linestyle_geometry_modifier(BlendDataReader * /*reader*/,
+                                                    LineStyleModifier * /*modifier*/)
 {
 }
 
@@ -1147,7 +1147,7 @@ LineStyleModifier *BKE_linestyle_alpha_modifier_add(FreestyleLineStyle *linestyl
 
 LineStyleModifier *BKE_linestyle_alpha_modifier_copy(FreestyleLineStyle *linestyle,
                                                      const LineStyleModifier *m,
-                                                     const int UNUSED(flag))
+                                                     const int /*flag*/)
 {
   LineStyleModifier *new_m;
 
@@ -1735,7 +1735,7 @@ LineStyleModifier *BKE_linestyle_geometry_modifier_add(FreestyleLineStyle *lines
 
 LineStyleModifier *BKE_linestyle_geometry_modifier_copy(FreestyleLineStyle *linestyle,
                                                         const LineStyleModifier *m,
-                                                        const int UNUSED(flag))
+                                                        const int /*flag*/)
 {
   LineStyleModifier *new_m;
 

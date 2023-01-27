@@ -90,7 +90,7 @@ struct AddOperationExecutor {
 
   Object *surface_ob_eval_ = nullptr;
   Mesh *surface_eval_ = nullptr;
-  Span<MVert> surface_verts_eval_;
+  Span<float3> surface_positions_eval_;
   Span<MLoop> surface_loops_eval_;
   Span<MLoopTri> surface_looptris_eval_;
   VArraySpan<float2> surface_uv_map_eval_;
@@ -142,7 +142,7 @@ struct AddOperationExecutor {
       report_empty_evaluated_surface(stroke_extension.reports);
       return;
     }
-    surface_verts_eval_ = surface_eval_->verts();
+    surface_positions_eval_ = surface_eval_->vert_positions();
     surface_loops_eval_ = surface_eval_->loops();
     surface_looptris_eval_ = surface_eval_->looptris();
     BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_LOOPTRI, 2);
@@ -241,6 +241,13 @@ struct AddOperationExecutor {
 
     const geometry::AddCurvesOnMeshOutputs add_outputs = geometry::add_curves_on_mesh(
         *curves_orig_, add_inputs);
+    bke::MutableAttributeAccessor attributes = curves_orig_->attributes_for_write();
+    if (bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection")) {
+      curves::fill_selection_true(selection.span.slice(selection.domain == ATTR_DOMAIN_POINT ?
+                                                           add_outputs.new_points_range :
+                                                           add_outputs.new_curves_range));
+      selection.finish();
+    }
 
     if (add_outputs.uv_error) {
       report_invalid_uv_map(stroke_extension.reports);
@@ -296,7 +303,7 @@ struct AddOperationExecutor {
     const MLoopTri &looptri = surface_looptris_eval_[looptri_index];
     const float3 brush_pos_su = ray_hit.co;
     const float3 bary_coords = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
-        surface_verts_eval_, surface_loops_eval_, looptri, brush_pos_su);
+        surface_positions_eval_, surface_loops_eval_, looptri, brush_pos_su);
 
     const float2 uv = bke::mesh_surface_sample::sample_corner_attrribute_with_bary_coords(
         bary_coords, looptri, surface_uv_map_eval_);
@@ -421,9 +428,9 @@ struct AddOperationExecutor {
           brush_radius_su,
           [&](const int index, const float3 & /*co*/, const float /*dist_sq*/) {
             const MLoopTri &looptri = surface_looptris_eval_[index];
-            const float3 v0_su = surface_verts_eval_[surface_loops_eval_[looptri.tri[0]].v].co;
-            const float3 v1_su = surface_verts_eval_[surface_loops_eval_[looptri.tri[1]].v].co;
-            const float3 v2_su = surface_verts_eval_[surface_loops_eval_[looptri.tri[2]].v].co;
+            const float3 &v0_su = surface_positions_eval_[surface_loops_eval_[looptri.tri[0]].v];
+            const float3 &v1_su = surface_positions_eval_[surface_loops_eval_[looptri.tri[1]].v];
+            const float3 &v2_su = surface_positions_eval_[surface_loops_eval_[looptri.tri[2]].v];
             float3 normal_su;
             normal_tri_v3(normal_su, v0_su, v1_su, v2_su);
             if (math::dot(normal_su, view_direction_su) >= 0.0f) {

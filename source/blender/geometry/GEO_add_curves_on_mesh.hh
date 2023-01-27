@@ -47,6 +47,8 @@ struct AddCurvesOnMeshInputs {
 
 struct AddCurvesOnMeshOutputs {
   bool uv_error = false;
+  IndexRange new_curves_range;
+  IndexRange new_points_range;
 };
 
 /**

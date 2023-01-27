@@ -30,8 +30,13 @@ typedef struct LightSample {
 
 ccl_device_inline float3 ellipse_sample(float3 ru, float3 rv, float randu, float randv)
 {
-  to_unit_disk(&randu, &randv);
-  return ru * randu + rv * randv;
+  const float2 rand = concentric_sample_disk(randu, randv);
+  return ru * rand.x + rv * rand.y;
+}
+
+ccl_device_inline float3 rectangle_sample(float3 ru, float3 rv, float randu, float randv)
+{
+  return ru * (2.0f * randu - 1.0f) + rv * (2.0f * randv - 1.0f);
 }
 
 ccl_device float3 disk_light_sample(float3 v, float randu, float randv)

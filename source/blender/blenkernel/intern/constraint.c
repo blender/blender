@@ -548,7 +548,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   else if (me_eval) {
     const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
     const MDeformVert *dvert = CustomData_get_layer(&me_eval->vdata, CD_MDEFORMVERT);
-    const MVert *verts = BKE_mesh_verts(me_eval);
+    const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
     int numVerts = me_eval->totvert;
 
     /* check that dvert is a valid pointers (just in case) */
@@ -557,11 +557,10 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
       /* get the average of all verts with that are in the vertex-group */
       for (int i = 0; i < numVerts; i++) {
         const MDeformVert *dv = &dvert[i];
-        const MVert *mv = &verts[i];
         const MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
 
         if (dw && dw->weight > 0.0f) {
-          madd_v3_v3fl(vec, mv->co, dw->weight);
+          madd_v3_v3fl(vec, positions[i], dw->weight);
           madd_v3_v3fl(normal, vert_normals[i], dw->weight);
           weightsum += dw->weight;
         }

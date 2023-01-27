@@ -3728,7 +3728,7 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     return nullptr;
   }
 
-  int uvidx = pbvh->header.bm->ldata.typemap[CD_MLOOPUV];
+  int uvidx = pbvh->header.bm->ldata.typemap[CD_PROP_FLOAT2];
   CustomDataLayer *uv_layer = nullptr;
   int totuv = 0;
 
@@ -3737,7 +3737,7 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     totuv = 0;
 
     while (uvidx < pbvh->header.bm->ldata.totlayer &&
-           pbvh->header.bm->ldata.layers[uvidx].type == CD_MLOOPUV) {
+           pbvh->header.bm->ldata.layers[uvidx].type == CD_PROP_FLOAT2) {
       uvidx++;
       totuv++;
     }
@@ -3813,9 +3813,9 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
         BMLoop *l1 = step ? l : l->next;
 
         for (int k = 0; k < totuv; k++) {
-          MLoopUV *luv = (MLoopUV *)BM_ELEM_CD_GET_VOID_P(l1, uv_layer[k].offset);
+          float *luv = (float *)BM_ELEM_CD_GET_VOID_P(l1, uv_layer[k].offset);
 
-          copy_v2_v2(uv[k * 2 + step], luv->uv);
+          copy_v2_v2(uv[k * 2 + step], luv);
         }
       }
 
@@ -3851,17 +3851,17 @@ ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
               const int cd_uv = uv_layer[k].offset;
 
-              MLoopUV *luv1 = (MLoopUV *)BM_ELEM_CD_GET_VOID_P(l1, cd_uv);
-              MLoopUV *luv2 = (MLoopUV *)BM_ELEM_CD_GET_VOID_P(l3, cd_uv);
+              float *luv1 = (float *)BM_ELEM_CD_GET_VOID_P(l1, cd_uv);
+              float *luv2 = (float *)BM_ELEM_CD_GET_VOID_P(l3, cd_uv);
 
-              float dx = luv2->uv[0] - uv[k * 2 + step][0];
-              float dy = luv2->uv[1] - uv[k * 2 + step][1];
+              float dx = luv2[0] - uv[k * 2 + step][0];
+              float dy = luv2[1] - uv[k * 2 + step][1];
 
               float delta = dx * dx + dy * dy;
 
               if (delta < 0.001) {
                 l3->head.index |= flag;
-                copy_v2_v2(luv2->uv, luv1->uv);
+                copy_v2_v2(luv2, luv1);
               }
             }
           } while ((l2 = l2->radial_next) != e2->l);
@@ -4609,7 +4609,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     bool is_snake_hook)
 {
   /* Disable surface smooth if uv layers are present, to avoid expensive reprojection operation. */
-  if (!is_snake_hook && CustomData_has_layer(&pbvh->header.bm->ldata, CD_MLOOPUV)) {
+  if (!is_snake_hook && CustomData_has_layer(&pbvh->header.bm->ldata, CD_PROP_FLOAT2)) {
     disable_surface_relax = true;
   }
 

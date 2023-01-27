@@ -28,7 +28,7 @@ struct Scene;
 int BKE_mesh_runtime_looptri_len(const struct Mesh *mesh);
 
 /**
- * Return mesh triangulation data, calculated lazily when necessary necessary.
+ * Return mesh triangulation data, calculated lazily when necessary.
  * See #MLoopTri for further description of mesh triangulation.
  *
  * \note Prefer #Mesh::looptris() in C++ code.

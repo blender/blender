@@ -51,6 +51,8 @@ void main()
   if (visibility_word_per_draw > 0) {
     uint visibility_word = resource_index * visibility_word_per_draw;
     for (uint i = 0; i < visibility_word_per_draw; i++, visibility_word++) {
+      /* NOTE: This assumes `proto.instance_len` is 1. */
+      /* TODO: Assert. */
       visible_instance_len += bitCount(visibility_buf[visibility_word]);
     }
   }
@@ -89,7 +91,7 @@ void main()
     }
   }
 
-  /* Fill resource_id buffer for each instance of this draw */
+  /* Fill resource_id buffer for each instance of this draw. */
   if (visibility_word_per_draw > 0) {
     uint visibility_word = resource_index * visibility_word_per_draw;
     for (uint i = 0; i < visibility_word_per_draw; i++, visibility_word++) {

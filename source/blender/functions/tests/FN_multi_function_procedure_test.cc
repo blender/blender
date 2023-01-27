@@ -7,7 +7,7 @@
 #include "FN_multi_function_procedure_executor.hh"
 #include "FN_multi_function_test_common.hh"
 
-namespace blender::fn::tests {
+namespace blender::fn::multi_function::tests {
 
 TEST(multi_function_procedure, ConstantOutput)
 {
@@ -19,10 +19,10 @@ TEST(multi_function_procedure, ConstantOutput)
    */
 
   CustomMF_Constant<int> constant_fn{5};
-  CustomMF_SI_SI_SO<int, int, int> add_fn{"Add", [](int a, int b) { return a + b; }};
+  auto add_fn = build::SI2_SO<int, int, int>("Add", [](int a, int b) { return a + b; });
 
-  MFProcedure procedure;
-  MFProcedureBuilder builder{procedure};
+  Procedure procedure;
+  ProcedureBuilder builder{procedure};
 
   auto [var1] = builder.add_call<1>(constant_fn);
   auto [var2] = builder.add_call<1>(add_fn, {var1, var1});
@@ -32,10 +32,10 @@ TEST(multi_function_procedure, ConstantOutput)
 
   EXPECT_TRUE(procedure.validate());
 
-  MFProcedureExecutor executor{procedure};
+  ProcedureExecutor executor{procedure};
 
-  MFParamsBuilder params{executor, 2};
-  MFContextBuilder context;
+  ParamsBuilder params{executor, 2};
+  ContextBuilder context;
 
   Array<int> output_array(2);
   params.add_uninitialized_single_output(output_array.as_mutable_span());
@@ -56,14 +56,14 @@ TEST(multi_function_procedure, SimpleTest)
    * }
    */
 
-  CustomMF_SI_SI_SO<int, int, int> add_fn{"add", [](int a, int b) { return a + b; }};
-  CustomMF_SM<int> add_10_fn{"add_10", [](int &a) { a += 10; }};
+  auto add_fn = mf::build::SI2_SO<int, int, int>("add", [](int a, int b) { return a + b; });
+  auto add_10_fn = mf::build::SM<int>("add_10", [](int &a) { a += 10; });
 
-  MFProcedure procedure;
-  MFProcedureBuilder builder{procedure};
+  Procedure procedure;
+  ProcedureBuilder builder{procedure};
 
-  MFVariable *var1 = &builder.add_single_input_parameter<int>();
-  MFVariable *var2 = &builder.add_single_input_parameter<int>();
+  Variable *var1 = &builder.add_single_input_parameter<int>();
+  Variable *var2 = &builder.add_single_input_parameter<int>();
   auto [var3] = builder.add_call<1>(add_fn, {var1, var2});
   auto [var4] = builder.add_call<1>(add_fn, {var2, var3});
   builder.add_call(add_10_fn, {var4});
@@ -73,10 +73,10 @@ TEST(multi_function_procedure, SimpleTest)
 
   EXPECT_TRUE(procedure.validate());
 
-  MFProcedureExecutor executor{procedure};
+  ProcedureExecutor executor{procedure};
 
-  MFParamsBuilder params{executor, 3};
-  MFContextBuilder context;
+  ParamsBuilder params{executor, 3};
+  ContextBuilder context;
 
   Array<int> input_array = {1, 2, 3};
   params.add_readonly_single_input(input_array.as_span());
@@ -106,16 +106,16 @@ TEST(multi_function_procedure, BranchTest)
    * }
    */
 
-  CustomMF_SM<int> add_10_fn{"add_10", [](int &a) { a += 10; }};
-  CustomMF_SM<int> add_100_fn{"add_100", [](int &a) { a += 100; }};
+  auto add_10_fn = build::SM<int>("add_10", [](int &a) { a += 10; });
+  auto add_100_fn = build::SM<int>("add_100", [](int &a) { a += 100; });
 
-  MFProcedure procedure;
-  MFProcedureBuilder builder{procedure};
+  Procedure procedure;
+  ProcedureBuilder builder{procedure};
 
-  MFVariable *var1 = &builder.add_single_mutable_parameter<int>();
-  MFVariable *var2 = &builder.add_single_input_parameter<bool>();
+  Variable *var1 = &builder.add_single_mutable_parameter<int>();
+  Variable *var2 = &builder.add_single_input_parameter<bool>();
 
-  MFProcedureBuilder::Branch branch = builder.add_branch(*var2);
+  ProcedureBuilder::Branch branch = builder.add_branch(*var2);
   branch.branch_false.add_call(add_10_fn, {var1});
   branch.branch_true.add_call(add_100_fn, {var1});
   builder.set_cursor_after_branch(branch);
@@ -125,8 +125,8 @@ TEST(multi_function_procedure, BranchTest)
 
   EXPECT_TRUE(procedure.validate());
 
-  MFProcedureExecutor procedure_fn{procedure};
-  MFParamsBuilder params(procedure_fn, 5);
+  ProcedureExecutor procedure_fn{procedure};
+  ParamsBuilder params(procedure_fn, 5);
 
   Array<int> values_a = {1, 5, 3, 6, 2};
   Array<bool> values_cond = {true, false, true, true, false};
@@ -134,7 +134,7 @@ TEST(multi_function_procedure, BranchTest)
   params.add_single_mutable(values_a.as_mutable_span());
   params.add_readonly_single_input(values_cond.as_span());
 
-  MFContextBuilder context;
+  ContextBuilder context;
   procedure_fn.call({1, 2, 3, 4}, params, context);
 
   EXPECT_EQ(values_a[0], 1);
@@ -153,28 +153,28 @@ TEST(multi_function_procedure, EvaluateOne)
    */
 
   int tot_evaluations = 0;
-  CustomMF_SI_SO<int, int> add_10_fn{"add_10", [&](int a) {
-                                       tot_evaluations++;
-                                       return a + 10;
-                                     }};
+  const auto add_10_fn = mf::build::SI1_SO<int, int>("add_10", [&](int a) {
+    tot_evaluations++;
+    return a + 10;
+  });
 
-  MFProcedure procedure;
-  MFProcedureBuilder builder{procedure};
+  Procedure procedure;
+  ProcedureBuilder builder{procedure};
 
-  MFVariable *var1 = &builder.add_single_input_parameter<int>();
+  Variable *var1 = &builder.add_single_input_parameter<int>();
   auto [var2] = builder.add_call<1>(add_10_fn, {var1});
   builder.add_destruct(*var1);
   builder.add_return();
   builder.add_output_parameter(*var2);
 
-  MFProcedureExecutor procedure_fn{procedure};
-  MFParamsBuilder params{procedure_fn, 5};
+  ProcedureExecutor procedure_fn{procedure};
+  ParamsBuilder params{procedure_fn, 5};
 
   Array<int> values_out = {1, 2, 3, 4, 5};
   params.add_readonly_single_input_value(1);
   params.add_uninitialized_single_output(values_out.as_mutable_span());
 
-  MFContextBuilder context;
+  ContextBuilder context;
   procedure_fn.call({0, 1, 3, 4}, params, context);
 
   EXPECT_EQ(values_out[0], 11);
@@ -205,25 +205,25 @@ TEST(multi_function_procedure, SimpleLoop)
 
   CustomMF_Constant<int> const_1_fn{1};
   CustomMF_Constant<int> const_0_fn{0};
-  CustomMF_SI_SI_SO<int, int, bool> greater_or_equal_fn{"greater or equal",
-                                                        [](int a, int b) { return a >= b; }};
-  CustomMF_SM<int> double_fn{"double", [](int &a) { a *= 2; }};
-  CustomMF_SM<int> add_1000_fn{"add 1000", [](int &a) { a += 1000; }};
-  CustomMF_SM<int> add_1_fn{"add 1", [](int &a) { a += 1; }};
+  auto greater_or_equal_fn = mf::build::SI2_SO<int, int, bool>(
+      "greater or equal", [](int a, int b) { return a >= b; });
+  auto double_fn = build::SM<int>("double", [](int &a) { a *= 2; });
+  auto add_1000_fn = build::SM<int>("add 1000", [](int &a) { a += 1000; });
+  auto add_1_fn = build::SM<int>("add 1", [](int &a) { a += 1; });
 
-  MFProcedure procedure;
-  MFProcedureBuilder builder{procedure};
+  Procedure procedure;
+  ProcedureBuilder builder{procedure};
 
-  MFVariable *var_count = &builder.add_single_input_parameter<int>("count");
+  Variable *var_count = &builder.add_single_input_parameter<int>("count");
   auto [var_out] = builder.add_call<1>(const_1_fn);
   var_out->set_name("out");
   auto [var_index] = builder.add_call<1>(const_0_fn);
   var_index->set_name("index");
 
-  MFProcedureBuilder::Loop loop = builder.add_loop();
+  ProcedureBuilder::Loop loop = builder.add_loop();
   auto [var_condition] = builder.add_call<1>(greater_or_equal_fn, {var_index, var_count});
   var_condition->set_name("condition");
-  MFProcedureBuilder::Branch branch = builder.add_branch(*var_condition);
+  ProcedureBuilder::Branch branch = builder.add_branch(*var_condition);
   branch.branch_true.add_destruct(*var_condition);
   branch.branch_true.add_loop_break(loop);
   branch.branch_false.add_destruct(*var_condition);
@@ -239,8 +239,8 @@ TEST(multi_function_procedure, SimpleLoop)
 
   EXPECT_TRUE(procedure.validate());
 
-  MFProcedureExecutor procedure_fn{procedure};
-  MFParamsBuilder params{procedure_fn, 5};
+  ProcedureExecutor procedure_fn{procedure};
+  ParamsBuilder params{procedure_fn, 5};
 
   Array<int> counts = {4, 3, 7, 6, 4};
   Array<int> results(5, -1);
@@ -248,7 +248,7 @@ TEST(multi_function_procedure, SimpleLoop)
   params.add_readonly_single_input(counts.as_span());
   params.add_uninitialized_single_output(results.as_mutable_span());
 
-  MFContextBuilder context;
+  ContextBuilder context;
   procedure_fn.call({0, 1, 3, 4}, params, context);
 
   EXPECT_EQ(results[0], 1016);
@@ -277,11 +277,11 @@ TEST(multi_function_procedure, Vectors)
   SumVectorFunction sum_elements_fn;
   CustomMF_Constant<int> constant_5_fn{5};
 
-  MFProcedure procedure;
-  MFProcedureBuilder builder{procedure};
+  Procedure procedure;
+  ProcedureBuilder builder{procedure};
 
-  MFVariable *var_v1 = &builder.add_input_parameter(MFDataType::ForVector<int>());
-  MFVariable *var_v2 = &builder.add_parameter(MFParamType::ForMutableVector(CPPType::get<int>()));
+  Variable *var_v1 = &builder.add_input_parameter(DataType::ForVector<int>());
+  Variable *var_v2 = &builder.add_parameter(ParamType::ForMutableVector(CPPType::get<int>()));
   builder.add_call(extend_fn, {var_v1, var_v2});
   auto [var_constant] = builder.add_call<1>(constant_5_fn);
   builder.add_call(append_fn, {var_v2, var_constant});
@@ -295,8 +295,8 @@ TEST(multi_function_procedure, Vectors)
 
   EXPECT_TRUE(procedure.validate());
 
-  MFProcedureExecutor procedure_fn{procedure};
-  MFParamsBuilder params{procedure_fn, 5};
+  ProcedureExecutor procedure_fn{procedure};
+  ParamsBuilder params{procedure_fn, 5};
 
   Array<int> v1 = {5, 2, 3};
   GVectorArray v2{CPPType::get<int>(), 5};
@@ -310,7 +310,7 @@ TEST(multi_function_procedure, Vectors)
   params.add_vector_mutable(v2);
   params.add_vector_output(v3);
 
-  MFContextBuilder context;
+  ContextBuilder context;
   procedure_fn.call({0, 1, 3, 4}, params, context);
 
   EXPECT_EQ(v2[0].size(), 6);
@@ -338,12 +338,12 @@ TEST(multi_function_procedure, BufferReuse)
    * }
    */
 
-  CustomMF_SI_SO<int, int> add_10_fn{"add 10", [](int a) { return a + 10; }};
+  auto add_10_fn = build::SI1_SO<int, int>("add 10", [](int a) { return a + 10; });
 
-  MFProcedure procedure;
-  MFProcedureBuilder builder{procedure};
+  Procedure procedure;
+  ProcedureBuilder builder{procedure};
 
-  MFVariable *var_a = &builder.add_single_input_parameter<int>();
+  Variable *var_a = &builder.add_single_input_parameter<int>();
   auto [var_b] = builder.add_call<1>(add_10_fn, {var_a});
   builder.add_destruct(*var_a);
   auto [var_c] = builder.add_call<1>(add_10_fn, {var_b});
@@ -359,16 +359,16 @@ TEST(multi_function_procedure, BufferReuse)
 
   EXPECT_TRUE(procedure.validate());
 
-  MFProcedureExecutor procedure_fn{procedure};
+  ProcedureExecutor procedure_fn{procedure};
 
   Array<int> inputs = {4, 1, 6, 2, 3};
   Array<int> results(5, -1);
 
-  MFParamsBuilder params{procedure_fn, 5};
+  ParamsBuilder params{procedure_fn, 5};
   params.add_readonly_single_input(inputs.as_span());
   params.add_uninitialized_single_output(results.as_mutable_span());
 
-  MFContextBuilder context;
+  ContextBuilder context;
   procedure_fn.call({0, 2, 3, 4}, params, context);
 
   EXPECT_EQ(results[0], 54);
@@ -380,12 +380,12 @@ TEST(multi_function_procedure, BufferReuse)
 
 TEST(multi_function_procedure, OutputBufferReplaced)
 {
-  MFProcedure procedure;
-  MFProcedureBuilder builder{procedure};
+  Procedure procedure;
+  ProcedureBuilder builder{procedure};
 
   const int output_value = 42;
   CustomMF_GenericConstant constant_fn(CPPType::get<int>(), &output_value, false);
-  MFVariable &var_o = procedure.new_variable(MFDataType::ForSingle<int>());
+  Variable &var_o = procedure.new_variable(DataType::ForSingle<int>());
   builder.add_output_parameter(var_o);
   builder.add_call_with_all_variables(constant_fn, {&var_o});
   builder.add_destruct(var_o);
@@ -394,13 +394,13 @@ TEST(multi_function_procedure, OutputBufferReplaced)
 
   EXPECT_TRUE(procedure.validate());
 
-  MFProcedureExecutor procedure_fn{procedure};
+  ProcedureExecutor procedure_fn{procedure};
 
   Array<int> output(3, 0);
-  fn::MFParamsBuilder params(procedure_fn, output.size());
+  mf::ParamsBuilder params(procedure_fn, output.size());
   params.add_uninitialized_single_output(output.as_mutable_span());
 
-  fn::MFContextBuilder context;
+  mf::ContextBuilder context;
   procedure_fn.call(IndexMask(output.size()), params, context);
 
   EXPECT_EQ(output[0], output_value);
@@ -408,4 +408,4 @@ TEST(multi_function_procedure, OutputBufferReplaced)
   EXPECT_EQ(output[2], output_value);
 }
 
-}  // namespace blender::fn::tests
+}  // namespace blender::fn::multi_function::tests

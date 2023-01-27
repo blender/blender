@@ -8,7 +8,7 @@
 #include "BLI_listbase.h"
 #include "NOD_texture.h"
 #include "node_texture_util.hh"
-#include <math.h>
+#include <cmath>
 
 static bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
@@ -65,19 +65,19 @@ static void valuefn_b(float *out, TexParams *p, bNode *node, bNodeStack **in, sh
   *out = out[2];
 }
 
-static void valuefn_a(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
+static void valuefn_a(float *out, TexParams *p, bNode * /*node*/, bNodeStack **in, short thread)
 {
   tex_input_rgba(out, in[0], p, thread);
   *out = out[3];
 }
 
-static void update(bNodeTree *UNUSED(ntree), bNode *node)
+static void update(bNodeTree * /*ntree*/, bNode *node)
 {
   node_combsep_color_label(&node->outputs, (NodeCombSepColorMode)node->custom1);
 }
 
 static void exec(void *data,
-                 int UNUSED(thread),
+                 int /*thread*/,
                  bNode *node,
                  bNodeExecData *execdata,
                  bNodeStack **in,
@@ -90,7 +90,7 @@ static void exec(void *data,
   tex_output(node, execdata, in, out[3], &valuefn_a, tex_call_data);
 }
 
-void register_node_type_tex_separate_color(void)
+void register_node_type_tex_separate_color()
 {
   static bNodeType ntype;
 

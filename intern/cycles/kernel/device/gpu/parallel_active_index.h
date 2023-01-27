@@ -30,6 +30,16 @@ void gpu_parallel_active_index_array_impl(const uint num_states,
                                           ccl_global int *ccl_restrict num_indices,
                                           IsActiveOp is_active_op)
 {
+#  ifdef WITH_ONEAPI_SYCL_HOST_TASK
+  int write_index = 0;
+  for (int state_index = 0; state_index < num_states; state_index++) {
+    if (is_active_op(state_index))
+      indices[write_index++] = state_index;
+  }
+  *num_indices = write_index;
+  return;
+#  endif /* WITH_ONEAPI_SYCL_HOST_TASK */
+
   const sycl::nd_item<1> &item_id = sycl::ext::oneapi::experimental::this_nd_item<1>();
   const uint blocksize = item_id.get_local_range(0);
 

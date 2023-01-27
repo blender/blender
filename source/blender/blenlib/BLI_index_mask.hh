@@ -284,4 +284,22 @@ class IndexMask {
                                            Vector<int64_t> *r_skip_amounts = nullptr) const;
 };
 
+/** To be used with #call_with_devirtualized_parameters. */
+template<bool UseRange, bool UseSpan> struct IndexMaskDevirtualizer {
+  const IndexMask &mask;
+
+  template<typename Fn> bool devirtualize(const Fn &fn) const
+  {
+    if constexpr (UseRange) {
+      if (this->mask.is_range()) {
+        return fn(this->mask.as_range());
+      }
+    }
+    if constexpr (UseSpan) {
+      return fn(this->mask.indices());
+    }
+    return false;
+  }
+};
+
 }  // namespace blender

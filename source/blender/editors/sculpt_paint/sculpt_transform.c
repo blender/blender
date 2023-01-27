@@ -208,7 +208,7 @@ static void sculpt_transform_task_cb(void *__restrict userdata,
         break;
     }
 
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
@@ -282,7 +282,7 @@ static void sculpt_elastic_transform_task_cb(void *__restrict userdata,
 
     copy_v3_v3(proxy[vd.i], final_disp);
 
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }

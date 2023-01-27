@@ -100,7 +100,7 @@ static const char *vulkan_error_as_string(VkResult result)
     printf(__VA_ARGS__); \
   }
 
-/* Tripple buffering. */
+/* Triple buffering. */
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
 GHOST_ContextVK::GHOST_ContextVK(bool stereoVisual,
@@ -220,7 +220,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
                                           &m_currentImage);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-    /* Swapchain is out of date. Recreate swapchain and skip this frame. */
+    /* Swap-chain is out of date. Recreate swap-chain and skip this frame. */
     destroySwapchain();
     createSwapchain();
     return GHOST_kSuccess;
@@ -271,7 +271,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   result = vkQueuePresentKHR(m_present_queue, &present_info);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-    /* Swapchain is out of date. Recreate swapchain and skip this frame. */
+    /* Swap-chain is out of date. Recreate swap-chain and skip this frame. */
     destroySwapchain();
     createSwapchain();
     return GHOST_kSuccess;
@@ -932,7 +932,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     present_queue_create_info.queueCount = 1;
     present_queue_create_info.pQueuePriorities = queue_priorities;
 
-    /* Eash queue must be unique. */
+    /* Each queue must be unique. */
     if (m_queue_family_graphic != m_queue_family_present) {
       queue_create_infos.push_back(present_queue_create_info);
     }

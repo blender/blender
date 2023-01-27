@@ -213,7 +213,7 @@ struct GPUTexture **gpu_material_ramp_texture_row_set(struct GPUMaterial *mat,
  * Returns the address of the future pointer to sky_tex
  */
 struct GPUTexture **gpu_material_sky_texture_layer_set(
-    struct GPUMaterial *mat, int width, int height, const float *pixels, float *layer);
+    struct GPUMaterial *mat, int width, int height, const float *pixels, float *row);
 
 #ifdef __cplusplus
 }

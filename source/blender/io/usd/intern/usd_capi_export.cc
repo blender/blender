@@ -174,8 +174,6 @@ bool USD_export(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Scene *scene = CTX_data_scene(C);
 
-  blender::io::usd::ensure_usd_plugin_path_registered();
-
   blender::io::usd::ExportJobData *job = static_cast<blender::io::usd::ExportJobData *>(
       MEM_mallocN(sizeof(blender::io::usd::ExportJobData), "ExportJobData"));
 

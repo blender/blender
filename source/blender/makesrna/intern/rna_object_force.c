@@ -1964,7 +1964,7 @@ static void rna_def_softbody(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "springpreload");
   RNA_def_property_range(prop, 0.0f, 200.0f);
   RNA_def_property_ui_text(
-      prop, "View Layer", "Alter spring length to shrink/blow up (unit %) 0 to disable");
+      prop, "Spring Length", "Alter spring length to shrink/blow up (unit %) 0 to disable");
   RNA_def_property_update(prop, 0, "rna_softbody_update");
 
   prop = RNA_def_property(srna, "aero", PROP_INT, PROP_NONE);
@@ -2016,13 +2016,13 @@ static void rna_def_softbody(BlenderRNA *brna)
   prop = RNA_def_property(srna, "ball_stiff", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "ballstiff");
   RNA_def_property_range(prop, 0.001f, 100.0f);
-  RNA_def_property_ui_text(prop, "Ball Size", "Ball inflating pressure");
+  RNA_def_property_ui_text(prop, "Stiffness", "Ball inflating pressure");
   RNA_def_property_update(prop, 0, "rna_softbody_update");
 
   prop = RNA_def_property(srna, "ball_damp", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "balldamp");
   RNA_def_property_range(prop, 0.001f, 1.0f);
-  RNA_def_property_ui_text(prop, "Ball Size", "Blending to inelastic collision");
+  RNA_def_property_ui_text(prop, "Dampening", "Blending to inelastic collision");
   RNA_def_property_update(prop, 0, "rna_softbody_update");
 
   /* Solver */

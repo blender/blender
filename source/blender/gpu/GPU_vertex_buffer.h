@@ -141,7 +141,9 @@ GPU_INLINE void *GPU_vertbuf_raw_step(GPUVertBufRaw *a)
 {
   unsigned char *data = a->data;
   a->data += a->stride;
+#ifdef DEBUG
   BLI_assert(data < a->_data_end);
+#endif
   return (void *)data;
 }
 

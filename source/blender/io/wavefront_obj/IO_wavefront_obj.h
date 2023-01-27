@@ -68,6 +68,8 @@ struct OBJImportParams {
   float global_scale;
   eIOAxis forward_axis;
   eIOAxis up_axis;
+  bool use_split_objects;
+  bool use_split_groups;
   bool import_vertex_groups;
   bool validate_meshes;
   bool relative_paths;

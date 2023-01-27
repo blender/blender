@@ -88,8 +88,15 @@ static void sculpt_poly_loop_topology_data_ensure(Object *ob)
                                   mesh->totloop);
   }
   if (!ss->vemap) {
-    BKE_mesh_vert_edge_map_create(
-        &ss->vemap, &ss->vemap_mem, mesh->mvert, mesh->medge, mesh->totvert, mesh->totedge, false);
+    const float(*vert_positions)[3] = BKE_mesh_vert_positions(mesh);
+
+    BKE_mesh_vert_edge_map_create(&ss->vemap,
+                                  &ss->vemap_mem,
+                                  vert_positions,
+                                  mesh->medge,
+                                  mesh->totvert,
+                                  mesh->totedge,
+                                  false);
   }
 }
 
@@ -147,7 +154,7 @@ PBVHEdgeRef sculpt_poly_loop_initial_edge_from_cursor(Object *ob)
 
   float *location = ss->cursor_location;
 
-  MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+  float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
   MPoly *initial_poly = &mesh->mpoly[ss->active_face.i];
 
   if (initial_poly->totloop != 4) {
@@ -156,8 +163,8 @@ PBVHEdgeRef sculpt_poly_loop_initial_edge_from_cursor(Object *ob)
 
   int closest_vert = mesh->mloop[initial_poly->loopstart].v;
   for (int i = 0; i < initial_poly->totloop; i++) {
-    if (len_squared_v3v3(mvert[ss->mloop[initial_poly->loopstart + i].v].co, location) <
-        len_squared_v3v3(mvert[closest_vert].co, location)) {
+    if (len_squared_v3v3(vert_positions[ss->mloop[initial_poly->loopstart + i].v], location) <
+        len_squared_v3v3(vert_positions[closest_vert], location)) {
       closest_vert = ss->mloop[initial_poly->loopstart + i].v;
     }
   }
@@ -171,9 +178,11 @@ PBVHEdgeRef sculpt_poly_loop_initial_edge_from_cursor(Object *ob)
     const int other_vert = mesh->medge[edge_index].v1 == closest_vert ?
                                mesh->medge[edge_index].v2 :
                                mesh->medge[edge_index].v1;
-    if (dist_to_line_segment_v3(location, mvert[closest_vert].co, mvert[other_vert].co) <
-        dist_to_line_segment_v3(
-            location, mvert[closest_vert].co, mvert[closest_vert_on_initial_edge].co)) {
+    if (dist_to_line_segment_v3(
+            location, vert_positions[closest_vert], vert_positions[other_vert]) <
+        dist_to_line_segment_v3(location,
+                                vert_positions[closest_vert],
+                                vert_positions[closest_vert_on_initial_edge])) {
       initial_edge = edge_index;
       closest_vert_on_initial_edge = other_vert;
     }
@@ -226,12 +235,12 @@ static void sculpt_poly_loop_symm_poly_find(Object *ob,
 
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
-  MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+  float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
 
   MPoly *original_poly = &mesh->mpoly[poly_index];
   float original_poly_center[3];
   BKE_mesh_calc_poly_center(
-      original_poly, &mesh->mloop[original_poly->loopstart], mvert, original_poly_center);
+      original_poly, &mesh->mloop[original_poly->loopstart], vert_positions, original_poly_center);
 
   float symm_poly_center[3];
   flip_v3_v3(symm_poly_center, original_poly_center, symm_it);
@@ -242,7 +251,7 @@ static void sculpt_poly_loop_symm_poly_find(Object *ob,
   for (int i = 0; i < mesh->totpoly; i++) {
     MPoly *poly = &mesh->mpoly[i];
     float poly_center[3];
-    BKE_mesh_calc_poly_center(poly, &mesh->mloop[poly->loopstart], mvert, poly_center);
+    BKE_mesh_calc_poly_center(poly, &mesh->mloop[poly->loopstart], vert_positions, poly_center);
     const float dist_to_poly_squared = len_squared_v3v3(symm_poly_center, poly_center);
     if (dist_to_poly_squared < min_poly_dist) {
       min_poly_dist = dist_to_poly_squared;
@@ -255,7 +264,7 @@ static void sculpt_poly_loop_symm_poly_find(Object *ob,
 
   float original_edge_center[3];
   MEdge *original_edge = &mesh->medge[edge_index];
-  mid_v3_v3v3(original_edge_center, mvert[original_edge->v1].co, mvert[original_edge->v2].co);
+  mid_v3_v3v3(original_edge_center, vert_positions[original_edge->v1], vert_positions[original_edge->v2]);
 
   float symm_edge_center[3];
   flip_v3_v3(symm_edge_center, original_edge_center, symm_it);
@@ -267,7 +276,7 @@ static void sculpt_poly_loop_symm_poly_find(Object *ob,
     MLoop *loop = &mesh->mloop[search_poly->loopstart + i];
     MEdge *edge = &mesh->medge[loop->e];
     float edge_center[3];
-    mid_v3_v3v3(edge_center, mvert[edge->v1].co, mvert[edge->v2].co);
+    mid_v3_v3v3(edge_center, vert_positions[edge->v1], vert_positions[edge->v2]);
     const float dist_to_edge_squared = len_squared_v3v3(symm_edge_center, edge_center);
     if (dist_to_edge_squared < min_edge_dist) {
       min_edge_dist = dist_to_edge_squared;

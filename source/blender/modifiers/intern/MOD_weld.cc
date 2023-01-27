@@ -28,10 +28,6 @@
 #include "DNA_modifier_types.h"
 #include "DNA_screen_types.h"
 
-#ifdef USE_BVHTREEKDOP
-#  include "BKE_bvhutils.h"
-#endif
-
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_modifier.h"

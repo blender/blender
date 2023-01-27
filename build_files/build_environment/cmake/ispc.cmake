@@ -34,21 +34,21 @@ elseif(UNIX)
 endif()
 
 set(ISPC_EXTRA_ARGS
-    -DISPC_NO_DUMPS=On
-    -DISPC_INCLUDE_EXAMPLES=Off
-    -DISPC_INCLUDE_TESTS=Off
-    -DLLVM_ROOT=${LIBDIR}/llvm/lib/cmake/llvm
-    -DLLVM_LIBRARY_DIR=${LIBDIR}/llvm/lib
-    -DCLANG_EXECUTABLE=${LIBDIR}/llvm/bin/clang
-    -DCLANGPP_EXECUTABLE=${LIBDIR}/llvm/bin/clang++
-    -DISPC_INCLUDE_TESTS=Off
-    -DCLANG_LIBRARY_DIR=${LIBDIR}/llvm/lib
-    -DCLANG_INCLUDE_DIRS=${LIBDIR}/llvm/include
-    -DPython3_ROOT_DIR=${LIBDIR}/python/
-    -DPython3_EXECUTABLE=${PYTHON_BINARY}
-    ${ISPC_EXTRA_ARGS_WIN}
-    ${ISPC_EXTRA_ARGS_APPLE}
-    ${ISPC_EXTRA_ARGS_UNIX}
+  -DISPC_NO_DUMPS=On
+  -DISPC_INCLUDE_EXAMPLES=Off
+  -DISPC_INCLUDE_TESTS=Off
+  -DLLVM_ROOT=${LIBDIR}/llvm/lib/cmake/llvm
+  -DLLVM_LIBRARY_DIR=${LIBDIR}/llvm/lib
+  -DCLANG_EXECUTABLE=${LIBDIR}/llvm/bin/clang
+  -DCLANGPP_EXECUTABLE=${LIBDIR}/llvm/bin/clang++
+  -DISPC_INCLUDE_TESTS=Off
+  -DCLANG_LIBRARY_DIR=${LIBDIR}/llvm/lib
+  -DCLANG_INCLUDE_DIRS=${LIBDIR}/llvm/include
+  -DPython3_ROOT_DIR=${LIBDIR}/python/
+  -DPython3_EXECUTABLE=${PYTHON_BINARY}
+  ${ISPC_EXTRA_ARGS_WIN}
+  ${ISPC_EXTRA_ARGS_APPLE}
+  ${ISPC_EXTRA_ARGS_UNIX}
 )
 
 ExternalProject_Add(external_ispc

@@ -47,7 +47,6 @@ struct ImageUser;
 struct ListBase;
 struct MLoop;
 struct MLoopTri;
-struct MVert;
 struct Main;
 struct Mesh;
 struct MeshElemMap;
@@ -688,6 +687,11 @@ typedef struct SculptAttribute {
   int elem_size, elem_num;
   bool data_for_bmesh; /* Temporary data store as array outside of bmesh. */
 
+  /* Data is a flat array outside the CustomData system.
+   * This will be true if simple_array is requested in
+   * SculptAttributeParams, or the PBVH type is PBVH_GRIDS or PBVH_BMESH.
+   */
+  bool simple_array;
   /* Data stored per BMesh element. */
   int bmesh_cd_offset;
 
@@ -769,8 +773,9 @@ typedef struct SculptSession {
   CustomData temp_vdata, temp_pdata;
   int temp_vdata_elems, temp_pdata_elems;
 
-  /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
-  struct MVert *mvert;
+  float (*vert_positions)[3];
+
+  const struct MVert *mvert;
   const struct MEdge *medge;
   const struct MPoly *mpoly;
   const struct MLoop *mloop;
@@ -850,9 +855,6 @@ typedef struct SculptSession {
   /* PBVH acceleration structure */
   struct PBVH *pbvh;
   struct PBVH *last_pbvh;
-
-  bool show_mask;
-  bool show_face_sets;
 
   /* Setting this to true allows a PBVH rebuild when evaluating the object even if the stroke or
    * filter caches are active. */
@@ -1009,6 +1011,7 @@ typedef struct SculptSession {
 
   int last_automasking_settings_hash;
   uchar last_automask_stroke_id;
+  bool *sharp_edge;
 } SculptSession;
 
 typedef enum eSculptBoundary {

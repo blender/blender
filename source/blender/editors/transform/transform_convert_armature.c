@@ -1193,7 +1193,7 @@ static void restoreBones(TransDataContainer *tc)
 static void recalcData_edit_armature(TransInfo *t)
 {
   if (t->state != TRANS_CANCEL) {
-    applySnappingIndividual(t);
+    transform_snap_project_individual_apply(t);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {

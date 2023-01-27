@@ -26,18 +26,22 @@ ccl_device_inline void integrate_camera_sample(KernelGlobals kg,
   const float2 rand_filter = (sample == 0) ? make_float2(0.5f, 0.5f) :
                                              path_rng_2D(kg, rng_hash, sample, PRNG_FILTER);
 
-  /* Depth of field sampling. */
-  const float2 rand_lens = (kernel_data.cam.aperturesize > 0.0f) ?
-                               path_rng_2D(kg, rng_hash, sample, PRNG_LENS) :
-                               zero_float2();
-
-  /* Motion blur time sampling. */
-  const float rand_time = (kernel_data.cam.shuttertime != -1.0f) ?
-                              path_rng_1D(kg, rng_hash, sample, PRNG_TIME) :
-                              0.0f;
+  /* Motion blur (time) and depth of field (lens) sampling. (time, lens_x, lens_y) */
+  const float3 rand_time_lens = (kernel_data.cam.shuttertime != -1.0f ||
+                                 kernel_data.cam.aperturesize > 0.0f) ?
+                                    path_rng_3D(kg, rng_hash, sample, PRNG_LENS_TIME) :
+                                    zero_float3();
 
   /* Generate camera ray. */
-  camera_sample(kg, x, y, rand_filter.x, rand_filter.y, rand_lens.x, rand_lens.y, rand_time, ray);
+  camera_sample(kg,
+                x,
+                y,
+                rand_filter.x,
+                rand_filter.y,
+                rand_time_lens.y,
+                rand_time_lens.z,
+                rand_time_lens.x,
+                ray);
 }
 
 /* Return false to indicate that this pixel is finished.

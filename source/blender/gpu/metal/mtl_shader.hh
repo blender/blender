@@ -637,15 +637,15 @@ inline bool mtl_convert_vertex_format(MTLVertexFormat shader_attrib_format,
             out_vert_format = MTLVertexFormatChar4;
           }
           else if (shader_attrib_format == MTLVertexFormatInt3 && component_length == 3) {
-            /* Same as above case for matching length and signage (Len=3)*/
+            /* Same as above case for matching length and signage (Len=3). */
             out_vert_format = MTLVertexFormatChar3;
           }
           else if (shader_attrib_format == MTLVertexFormatInt2 && component_length == 2) {
-            /* Same as above case for matching length and signage (Len=2)*/
+            /* Same as above case for matching length and signage (Len=2). */
             out_vert_format = MTLVertexFormatChar2;
           }
           else if (shader_attrib_format == MTLVertexFormatInt && component_length == 1) {
-            /* Same as above case for matching length and signage (Len=1)*/
+            /* Same as above case for matching length and signage (Len=1). */
             out_vert_format = MTLVertexFormatChar;
           }
           else if (shader_attrib_format == MTLVertexFormatInt && component_length == 4) {
@@ -718,15 +718,15 @@ inline bool mtl_convert_vertex_format(MTLVertexFormat shader_attrib_format,
             out_vert_format = MTLVertexFormatUChar4;
           }
           else if (shader_attrib_format == MTLVertexFormatUInt3 && component_length == 3) {
-            /* Same as above case for matching length and signage (Len=3)*/
+            /* Same as above case for matching length and signage (Len=3). */
             out_vert_format = MTLVertexFormatUChar3;
           }
           else if (shader_attrib_format == MTLVertexFormatUInt2 && component_length == 2) {
-            /* Same as above case for matching length and signage (Len=2)*/
+            /* Same as above case for matching length and signage (Len=2). */
             out_vert_format = MTLVertexFormatUChar2;
           }
           else if (shader_attrib_format == MTLVertexFormatUInt && component_length == 1) {
-            /* Same as above case for matching length and signage (Len=1)*/
+            /* Same as above case for matching length and signage (Len=1). */
             out_vert_format = MTLVertexFormatUChar;
           }
           else if (shader_attrib_format == MTLVertexFormatInt && component_length == 4) {

@@ -18,6 +18,7 @@ set(INC
 )
 
 set(INC_SYS
+  ${EIGEN3_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   ${ZSTD_INCLUDE_DIRS}
   ${GMP_INCLUDE_DIRS}
@@ -91,7 +92,7 @@ set(SRC
   intern/lockfree_mempool.cc
   intern/lazy_threading.cc
   intern/length_parameterize.cc
-  intern/listbase.c
+  intern/listbase.cc
   intern/math_base.c
   intern/math_base_inline.c
   intern/math_base_safe_inline.c
@@ -104,6 +105,7 @@ set(SRC
   intern/math_geom_inline.c
   intern/math_interp.c
   intern/math_matrix.c
+  intern/math_matrix.cc
   intern/math_rotation.c
   intern/math_rotation.cc
   intern/math_solvers.c
@@ -277,12 +279,12 @@ set(SRC
   BLI_math_matrix.h
   BLI_math_mpq.hh
   BLI_math_rotation.h
-  BLI_math_rotation.hh
+  BLI_math_rotation_legacy.hh
   BLI_math_solvers.h
   BLI_math_statistics.h
   BLI_math_time.h
-  BLI_math_vec_mpq_types.hh
-  BLI_math_vec_types.hh
+  BLI_math_vector_mpq_types.hh
+  BLI_math_vector_types.hh
   BLI_math_vector.h
   BLI_math_vector.hh
   BLI_memarena.h
@@ -493,11 +495,12 @@ if(WITH_GTESTS)
     tests/BLI_math_bits_test.cc
     tests/BLI_math_color_test.cc
     tests/BLI_math_geom_test.cc
+    tests/BLI_math_matrix_types_test.cc
     tests/BLI_math_matrix_test.cc
     tests/BLI_math_rotation_test.cc
     tests/BLI_math_solvers_test.cc
     tests/BLI_math_time_test.cc
-    tests/BLI_math_vec_types_test.cc
+    tests/BLI_math_vector_types_test.cc
     tests/BLI_math_vector_test.cc
     tests/BLI_memiter_test.cc
     tests/BLI_memory_utils_test.cc

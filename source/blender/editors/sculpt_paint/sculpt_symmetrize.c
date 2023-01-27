@@ -264,7 +264,7 @@ static void do_shape_symmetrize_brush_task_cb(void *__restrict userdata,
     sub_v3_v3v3(disp, new_co, vd.co);
     madd_v3_v3v3fl(vd.co, vd.co, disp, fade);
 
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
 

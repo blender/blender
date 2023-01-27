@@ -95,16 +95,19 @@ bool ColorSpaceManager::colorspace_is_data(ustring colorspace)
 }
 
 ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
+                                                   const char *file_colorspace,
                                                    const char *file_format,
                                                    bool is_float)
 {
   if (colorspace == u_colorspace_auto) {
     /* Auto detect sRGB or raw if none specified. */
     if (is_float) {
-      bool srgb = (colorspace == "sRGB" || colorspace == "GammaCorrected" ||
-                   (colorspace.empty() &&
-                    (strcmp(file_format, "png") == 0 || strcmp(file_format, "tiff") == 0 ||
-                     strcmp(file_format, "dpx") == 0 || strcmp(file_format, "jpeg2000") == 0)));
+      bool srgb = (strcmp(file_colorspace, "sRGB") == 0 ||
+                   strcmp(file_colorspace, "GammaCorrected") == 0 ||
+                   (file_colorspace[0] == '\0' &&
+                    (strcmp(file_format, "png") == 0 || strcmp(file_format, "jpeg") == 0 ||
+                     strcmp(file_format, "tiff") == 0 || strcmp(file_format, "dpx") == 0 ||
+                     strcmp(file_format, "jpeg2000") == 0)));
       return srgb ? u_colorspace_srgb : u_colorspace_raw;
     }
     else {

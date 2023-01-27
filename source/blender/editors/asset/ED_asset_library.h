@@ -29,10 +29,13 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value);
  * Since this is meant for UI display, skips non-displayable libraries, that is, libraries with an
  * empty name or path.
  *
- * \param include_local_library: Whether to include the "Current File" library or not.
+ * \param include_generated: Whether to include libraries that are generated and thus cannot be
+ *                           written to. Setting this to false means only custom libraries will be
+ *                           included, since they are stored on disk with a single root directory,
+ *                           thus have a well defined location that can be written to.
  */
 const struct EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(
-    bool include_local_library);
+    bool include_generated);
 
 #ifdef __cplusplus
 }

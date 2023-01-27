@@ -34,12 +34,6 @@ struct IMAGE_Data {
   IMAGE_InstanceData *instance_data;
 };
 
-/* Shader parameters. */
-#define IMAGE_DRAW_FLAG_SHOW_ALPHA (1 << 0)
-#define IMAGE_DRAW_FLAG_APPLY_ALPHA (1 << 1)
-#define IMAGE_DRAW_FLAG_SHUFFLING (1 << 2)
-#define IMAGE_DRAW_FLAG_DEPTH (1 << 3)
-
 /**
  * Abstract class for a drawing mode of the image engine.
  *
@@ -49,9 +43,9 @@ struct IMAGE_Data {
 class AbstractDrawingMode {
  public:
   virtual ~AbstractDrawingMode() = default;
-  virtual void cache_init(IMAGE_Data *vedata) const = 0;
-  virtual void cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser) const = 0;
-  virtual void draw_scene(IMAGE_Data *vedata) const = 0;
+  virtual void begin_sync(IMAGE_Data *vedata) const = 0;
+  virtual void image_sync(IMAGE_Data *vedata, Image *image, ImageUser *iuser) const = 0;
+  virtual void draw_viewport(IMAGE_Data *vedata) const = 0;
   virtual void draw_finish(IMAGE_Data *vedata) const = 0;
 };
 

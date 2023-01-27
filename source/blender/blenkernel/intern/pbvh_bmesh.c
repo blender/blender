@@ -1710,7 +1710,7 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
 
   int *disjount_uv_count = BLI_array_alloca(disjount_uv_count, totuv);
   int *cd_uvs = BLI_array_alloca(cd_uvs, totuv);
-  int base_uv_idx = ldata->typemap[CD_MLOOPUV];
+  int base_uv_idx = ldata->typemap[CD_PROP_FLOAT2];
   bool uv_first = true;
 
   for (int i = 0; i < totuv; i++) {
@@ -1781,23 +1781,23 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
           BMLoop *l = l_iter->v != v ? l_iter->next : l_iter;
 
           for (int i = 0; i < totuv; i++) {
-            MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_uvs[i]);
+            float *luv = BM_ELEM_CD_GET_VOID_P(l, cd_uvs[i]);
 
             if (uv_first) {
-              copy_v2_v2(lastuv[i], luv->uv);
-              copy_v2_v2(lastuv2[i], luv->uv);
+              copy_v2_v2(lastuv[i], luv);
+              copy_v2_v2(lastuv2[i], luv);
 
               continue;
             }
 
             const float uv_snap_limit = 0.01f * 0.01f;
 
-            float dist = len_squared_v2v2(luv->uv, lastuv[i]);
+            float dist = len_squared_v2v2(luv, lastuv[i]);
             bool same = dist <= uv_snap_limit;
 
             bool corner = len_squared_v2v2(lastuv[i], lastuv2[i]) > uv_snap_limit &&
-                          len_squared_v2v2(lastuv[i], luv->uv) > uv_snap_limit &&
-                          len_squared_v2v2(lastuv2[i], luv->uv) > uv_snap_limit;
+                          len_squared_v2v2(lastuv[i], luv) > uv_snap_limit &&
+                          len_squared_v2v2(lastuv2[i], luv) > uv_snap_limit;
 
             if (!same) {
               boundflag |= SCULPT_BOUNDARY_UV;
@@ -1809,7 +1809,7 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
 
             if (!same) {
               copy_v2_v2(lastuv2[i], lastuv[i]);
-              copy_v2_v2(lastuv[i], luv->uv);
+              copy_v2_v2(lastuv[i], luv);
             }
           }
 
@@ -2477,7 +2477,7 @@ static bool pbvh_bmesh_split_tris(PBVH *pbvh, PBVHNode *node)
   BM_mesh_elem_index_ensure(pbvh->header.bm, BM_VERT | BM_FACE);
 
   // split by uvs
-  int layeri = CustomData_get_layer_index(&pbvh->header.bm->ldata, CD_MLOOPUV);
+  int layeri = CustomData_get_layer_index(&pbvh->header.bm->ldata, CD_PROP_FLOAT2);
   if (layeri < 0) {
     return false;
   }
@@ -2485,13 +2485,13 @@ static bool pbvh_bmesh_split_tris(PBVH *pbvh, PBVHNode *node)
   int totlayer = 0;
 
   while (layeri < pbvh->header.bm->ldata.totlayer &&
-         pbvh->header.bm->ldata.layers[layeri].type == CD_MLOOPUV) {
+         pbvh->header.bm->ldata.layers[layeri].type == CD_PROP_FLOAT2) {
     totlayer++;
     layeri++;
   }
 
   const int cd_uv = pbvh->header.bm->ldata.layers[layeri].offset;
-  const int cd_size = CustomData_sizeof(CD_MLOOPUV);
+  const int cd_size = CustomData_sizeof(CD_PROP_FLOAT2);
 
   PBVHVertRef *verts = NULL;
   PBVHTri *tris = NULL;
@@ -2534,10 +2534,10 @@ static bool pbvh_bmesh_split_tris(PBVH *pbvh, PBVHNode *node)
         bool ok = true;
 
         for (int i = 0; i < totlayer; i++) {
-          MLoopUV *uv1 = BM_ELEM_CD_GET_VOID_P(l, cd_uv + cd_size * i);
-          MLoopUV *uv2 = BM_ELEM_CD_GET_VOID_P(l2, cd_uv + cd_size * i);
+          float *uv1 = BM_ELEM_CD_GET_VOID_P(l, cd_uv + cd_size * i);
+          float *uv2 = BM_ELEM_CD_GET_VOID_P(l2, cd_uv + cd_size * i);
 
-          if (len_v3v3(uv1->uv, uv2->uv) > 0.001) {
+          if (len_v3v3(uv1, uv2) > 0.001) {
             ok = false;
             break;
           }
@@ -2712,11 +2712,11 @@ static uintptr_t tri_loopkey(BMLoop *l, int mat_nr, int cd_fset, int cd_uvs[], i
   }
 
   for (int i = 0; i < totuv; i++) {
-    MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_uvs[i]);
+    float *luv = BM_ELEM_CD_GET_VOID_P(l, cd_uvs[i]);
     float snap = 4196.0f;
 
-    uintptr_t x = (uintptr_t)(luv->uv[0] * snap);
-    uintptr_t y = (uintptr_t)(luv->uv[1] * snap);
+    uintptr_t x = (uintptr_t)(luv[0] * snap);
+    uintptr_t y = (uintptr_t)(luv[1] * snap);
 
     uintptr_t key2 = y * snap + x;
     key ^= key2;
@@ -2736,11 +2736,11 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
     return false;
   }
 
-  int totuv = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
+  int totuv = CustomData_number_of_layers(&bm->ldata, CD_PROP_FLOAT2);
   int *cd_uvs = BLI_array_alloca(cd_uvs, totuv);
 
   for (int i = 0; i < totuv; i++) {
-    int idx = CustomData_get_layer_index_n(&bm->ldata, CD_MLOOPUV, i);
+    int idx = CustomData_get_layer_index_n(&bm->ldata, CD_PROP_FLOAT2, i);
     cd_uvs[i] = bm->ldata.layers[idx].offset;
   }
 
@@ -3940,7 +3940,7 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   pbvh->cd_faceset_offset = CustomData_get_offset_named(
       &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
-  pbvh->totuv = CustomData_number_of_layers(&pbvh->header.bm->ldata, CD_MLOOPUV);
+  pbvh->totuv = CustomData_number_of_layers(&pbvh->header.bm->ldata, CD_PROP_FLOAT2);
   pbvh->cd_boundary_flag = cd_boundary_flag;
 
   if (pbvh->bm_idmap) {

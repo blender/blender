@@ -1153,7 +1153,7 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyOb_restitution_set", NULL);
   RNA_def_property_ui_text(prop,
-                           "Restitution",
+                           "Bounciness",
                            "Tendency of object to bounce after colliding with another "
                            "(0 = stays still, 1 = perfectly elastic)");
   RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");

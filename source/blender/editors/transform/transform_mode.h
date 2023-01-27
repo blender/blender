@@ -94,14 +94,11 @@ void initBoneRoll(TransInfo *t);
 
 void initCurveShrinkFatten(TransInfo *t);
 
-/* transform_mode_edge_bevelweight.c */
-
-void initBevelWeight(TransInfo *t);
-
-/* transform_mode_edge_crease.c */
+/* transform_mode_customdata.c */
 
 void initEgdeCrease(TransInfo *t);
 void initVertCrease(TransInfo *t);
+void initBevelWeight(TransInfo *t);
 
 /* transform_mode_edge_rotate_normal.c */
 

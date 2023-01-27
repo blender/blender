@@ -40,7 +40,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_math.h"
 #include "BLI_math_solvers.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_span.hh"
 #include "BLI_task.h"
@@ -150,7 +150,6 @@ struct ReliefOptimizer {
 
   ReliefOptimizer(const float (*cos)[3],
                   const float (*nos)[3],
-                  const MVert *mvert_,
                   int totvert_,
                   const MEdge *medge_,
                   int totedge_,
@@ -187,10 +186,9 @@ struct ReliefOptimizer {
     verts = new ReliefVertex[(uint)totvert];
     compress_ratio = 0.5f;
 
-    const MVert *mv = mvert_;
     ReliefVertex *rv = verts;
 
-    for (uint i = 0; i < (uint)totvert; i++, rv++, mv++) {
+    for (uint i = 0; i < (uint)totvert; i++, rv++) {
       memset(static_cast<void *>(rv), 0, sizeof(ReliefVertex));
 
       copy_v3_v3(rv->co, cos[i]);
@@ -1241,8 +1239,9 @@ struct BassReliefCalcData {
 
   struct Object *ob; /* object we are applying shrinkwrap to */
 
-  const struct MVert *vert; /* Array of verts being projected (to fetch normals or other data) */
-  float (*vertexCos)[3];    /* vertexs being shrinkwraped */
+  const float (
+      *vert_positions)[3]; /* Array of verts being projected (to fetch normals or other data) */
+  float (*vertexCos)[3];   /* vertexs being shrinkwraped */
   const float (*vertexNos)[3]; /* vertexs being shrinkwraped */
   int numVerts;
 
@@ -1314,11 +1313,11 @@ bool BKE_bassrelief_init_tree(
   }
 
   data->pnors = reinterpret_cast<decltype(data->pnors)>(
-      CustomData_get_layer(&mesh->pdata, CD_NORMAL));
+      CustomData_get_layer_for_write(&mesh->pdata, CD_NORMAL, mesh->totpoly));
 
   if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
     data->clnors = reinterpret_cast<decltype(data->clnors)>(
-        CustomData_get_layer(&mesh->ldata, CD_NORMAL));
+        CustomData_get_layer_for_write(&mesh->ldata, CD_NORMAL, mesh->totloop));
   }
 
   /* TODO: there might be several "bugs" with non-uniform scales matrices
@@ -1350,12 +1349,12 @@ static void shrinkwrap_ray_callback(void *userdata,
 {
   ShrinkWrapRayData *sdata = (ShrinkWrapRayData *)userdata;
   const BVHTreeFromMesh *data = sdata->data;
-  const MVert *vert = data->vert;
+  const float(*vert_positions)[3] = data->vert_positions;
   const MLoopTri *lt = &data->looptri[index];
   const float *vtri_co[3] = {
-      vert[data->loop[lt->tri[0]].v].co,
-      vert[data->loop[lt->tri[1]].v].co,
-      vert[data->loop[lt->tri[2]].v].co,
+      vert_positions[data->loop[lt->tri[0]].v],
+      vert_positions[data->loop[lt->tri[1]].v],
+      vert_positions[data->loop[lt->tri[2]].v],
   };
   float dist;
 
@@ -1477,12 +1476,13 @@ ATTR_NO_OPT static void shrinkwrap_calc_normal_projection_cb_ex_intern(
   BVHTreeRayHit hit_tmp = *hit;
   hit_tmp.index = -1;
 
-  if (calc->vert != nullptr && calc->smd->projAxis == MOD_BASSRELIEF_PROJECT_OVER_NORMAL) {
+  if (calc->vert_positions != nullptr &&
+      calc->smd->projAxis == MOD_BASSRELIEF_PROJECT_OVER_NORMAL) {
     /* calc->vert contains verts from evaluated mesh. */
     /* These coordinates are deformed by vertexCos only for normal projection
      * (to get correct normals) for other cases calc->verts contains undeformed coordinates and
      * vertexCos should be used */
-    copy_v3_v3(tmp_co, calc->vert[i].co);
+    copy_v3_v3(tmp_co, calc->vert_positions[i]);
     copy_v3_v3(tmp_no, calc->vertexNos[i]);
   }
   else {
@@ -1613,7 +1613,7 @@ static void shrinkwrap_calc_normal_projection(BassReliefCalcData *calc)
 
   /* Prepare data to retrieve the direction in which we should project each vertex */
   if (calc->smd->projAxis == MOD_BASSRELIEF_PROJECT_OVER_NORMAL) {
-    if (calc->vert == nullptr) {
+    if (calc->vert_positions == nullptr) {
       return;
     }
   }
@@ -1722,7 +1722,7 @@ static void target_project_tri_clamp(float x[3])
 }
 
 /* Correct the Newton's method step to keep the coordinates within the triangle. */
-static bool target_project_tri_correct(void *UNUSED(userdata),
+static bool target_project_tri_correct(void * /*userdata*/,
                                        const float x[3],
                                        float step[3],
                                        float x_next[3])
@@ -1891,9 +1891,9 @@ ATTR_NO_OPT static void mesh_looptri_target_project(void *userdata,
   const MLoopTri *lt = &data->looptri[index];
   const MLoop *loop[3] = {
       &data->loop[lt->tri[0]], &data->loop[lt->tri[1]], &data->loop[lt->tri[2]]};
-  const MVert *vtri[3] = {
-      &data->vert[loop[0]->v], &data->vert[loop[1]->v], &data->vert[loop[2]->v]};
-  const float *vtri_co[3] = {vtri[0]->co, vtri[1]->co, vtri[2]->co};
+  const float *vtri_co[3] = {data->vert_positions[loop[0]->v],
+                             data->vert_positions[loop[1]->v],
+                             data->vert_positions[loop[2]->v]};
   float raw_hit_co[3], hit_co[3], hit_no[3], dist_sq, vtri_no[3][3];
 
   /* First find the closest point and bail out if it's worse than the current solution. */
@@ -1944,10 +1944,10 @@ ATTR_NO_OPT void BKE_bassrelief_compute_smooth_normal(const struct BassReliefTre
 
   /* Interpolate smooth normals if enabled. */
   if ((tree->mpoly[tri->poly].flag & ME_SMOOTH) != 0) {
-    const MVert *verts[] = {
-        &treeData->vert[treeData->loop[tri->tri[0]].v],
-        &treeData->vert[treeData->loop[tri->tri[1]].v],
-        &treeData->vert[treeData->loop[tri->tri[2]].v],
+    const float *verts[] = {
+        treeData->vert_positions[treeData->loop[tri->tri[0]].v],
+        treeData->vert_positions[treeData->loop[tri->tri[1]].v],
+        treeData->vert_positions[treeData->loop[tri->tri[2]].v],
     };
     float w[3], no[3][3], tmp_co[3];
 
@@ -1971,7 +1971,7 @@ ATTR_NO_OPT void BKE_bassrelief_compute_smooth_normal(const struct BassReliefTre
       BLI_space_transform_apply(transform, tmp_co);
     }
 
-    interp_weights_tri_v3(w, verts[0]->co, verts[1]->co, verts[2]->co, tmp_co);
+    interp_weights_tri_v3(w, verts[0], verts[1], verts[2], tmp_co);
 
     /* Interpolate using weights. */
     interp_v3_v3v3v3(r_no, no[0], no[1], no[2], w);
@@ -2123,7 +2123,7 @@ void bassReliefModifier_deform(BassReliefModifierData *smd,
 
   if (mesh != nullptr) {
     /* Setup arrays to get vertexs positions, normals and deform weights */
-    calc.vert = mesh->verts().data();
+    calc.vert_positions = BKE_mesh_vert_positions(mesh);
   }
 
   if (!calc.ropt && (smd->shrinkOpts & MOD_BASSRELIEF_OPTIMIZE)) {
@@ -2132,7 +2132,6 @@ void bassReliefModifier_deform(BassReliefModifierData *smd,
 
     calc.ropt = new ReliefOptimizer(vertexCos,
                                     calc.vertexNos,
-                                    mesh->verts().data(),
                                     mesh->totvert,
                                     mesh->edges().data(),
                                     mesh->totedge,

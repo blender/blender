@@ -798,6 +798,28 @@ inline bool GVArrayCommon::is_empty() const
 
 /** \} */
 
+/** To be used with #call_with_devirtualized_parameters. */
+template<typename T, bool UseSingle, bool UseSpan> struct GVArrayDevirtualizer {
+  const GVArrayImpl &varray_impl;
+
+  template<typename Fn> bool devirtualize(const Fn &fn) const
+  {
+    const CommonVArrayInfo info = this->varray_impl.common_info();
+    const int64_t size = this->varray_impl.size();
+    if constexpr (UseSingle) {
+      if (info.type == CommonVArrayInfo::Type::Single) {
+        return fn(SingleAsSpan<T>(*static_cast<const T *>(info.data), size));
+      }
+    }
+    if constexpr (UseSpan) {
+      if (info.type == CommonVArrayInfo::Type::Span) {
+        return fn(Span<T>(static_cast<const T *>(info.data), size));
+      }
+    }
+    return false;
+  }
+};
+
 /* -------------------------------------------------------------------- */
 /** \name Inline methods for #GVArray.
  * \{ */

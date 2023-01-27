@@ -34,6 +34,24 @@ static bool use_translate(const float3 rotation, const float3 scale)
   return true;
 }
 
+static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
+{
+  threading::parallel_for(positions.index_range(), 2048, [&](const IndexRange range) {
+    for (float3 &position : positions.slice(range)) {
+      position += translation;
+    }
+  });
+}
+
+static void transform_positions(MutableSpan<float3> positions, const float4x4 &matrix)
+{
+  threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
+    for (float3 &position : positions.slice(range)) {
+      position = matrix * position;
+    }
+  });
+}
+
 static void translate_mesh(Mesh &mesh, const float3 translation)
 {
   if (!math::is_zero(translation)) {
@@ -51,9 +69,7 @@ static void translate_pointcloud(PointCloud &pointcloud, const float3 translatio
   MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
   SpanAttributeWriter position = attributes.lookup_or_add_for_write_span<float3>(
       "position", ATTR_DOMAIN_POINT);
-  for (const int i : position.span.index_range()) {
-    position.span[i] += translation;
-  }
+  translate_positions(position.span, translation);
   position.finish();
 }
 
@@ -62,26 +78,28 @@ static void transform_pointcloud(PointCloud &pointcloud, const float4x4 &transfo
   MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
   SpanAttributeWriter position = attributes.lookup_or_add_for_write_span<float3>(
       "position", ATTR_DOMAIN_POINT);
-  for (const int i : position.span.index_range()) {
-    position.span[i] = transform * position.span[i];
-  }
+  transform_positions(position.span, transform);
   position.finish();
 }
 
 static void translate_instances(bke::Instances &instances, const float3 translation)
 {
   MutableSpan<float4x4> transforms = instances.transforms();
-  for (float4x4 &transform : transforms) {
-    add_v3_v3(transform.ptr()[3], translation);
-  }
+  threading::parallel_for(transforms.index_range(), 1024, [&](const IndexRange range) {
+    for (float4x4 &instance_transform : transforms.slice(range)) {
+      add_v3_v3(instance_transform.ptr()[3], translation);
+    }
+  });
 }
 
 static void transform_instances(bke::Instances &instances, const float4x4 &transform)
 {
   MutableSpan<float4x4> transforms = instances.transforms();
-  for (float4x4 &instance_transform : transforms) {
-    instance_transform = transform * instance_transform;
-  }
+  threading::parallel_for(transforms.index_range(), 1024, [&](const IndexRange range) {
+    for (float4x4 &instance_transform : transforms.slice(range)) {
+      instance_transform = transform * instance_transform;
+    }
+  });
 }
 
 static void transform_volume(GeoNodeExecParams &params,
@@ -238,7 +256,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Translation")).subtype(PROP_TRANSLATION);
   b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER);
   b.add_input<decl::Vector>(N_("Scale")).default_value({1, 1, 1}).subtype(PROP_XYZ);
-  b.add_output<decl::Geometry>(N_("Geometry"));
+  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

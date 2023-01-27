@@ -55,6 +55,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
@@ -451,7 +452,7 @@ static bool bake_object_check(const Scene *scene,
   }
 
   if (target == R_BAKE_TARGET_VERTEX_COLORS) {
-    if (BKE_id_attributes_active_color_get(&me->id) == NULL) {
+    if (!BKE_id_attributes_color_find(&me->id, me->active_color_attribute)) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Mesh does not have an active color attribute \"%s\"",
@@ -460,7 +461,7 @@ static bool bake_object_check(const Scene *scene,
     }
   }
   else if (target == R_BAKE_TARGET_IMAGE_TEXTURES) {
-    if (CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV) == -1) {
+    if (CustomData_get_active_layer_index(&me->ldata, CD_PROP_FLOAT2) == -1) {
       BKE_reportf(
           reports, RPT_ERROR, "No active UV layer found in the object \"%s\"", ob->id.name + 2);
       return false;
@@ -670,7 +671,8 @@ static Mesh *bake_mesh_new_from_object(Depsgraph *depsgraph,
   Mesh *me = BKE_mesh_new_from_object(depsgraph, object, false, preserve_origindex);
 
   if (me->flag & ME_AUTOSMOOTH) {
-    BKE_mesh_split_faces(me, true);
+    ED_mesh_split_faces(me);
+    CustomData_free_layers(&me->ldata, CD_NORMAL, me->totloop);
   }
 
   return me;
@@ -948,7 +950,7 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
   }
 
   Mesh *me = ob->data;
-  if (BKE_id_attributes_active_color_get(&me->id) == NULL) {
+  if (!BKE_id_attributes_color_find(&me->id, me->active_color_attribute)) {
     BKE_report(reports, RPT_ERROR, "No active color attribute to bake to");
     return false;
   }
@@ -1032,7 +1034,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   const MLoop *loops = BKE_mesh_loops(me_eval);
   BKE_mesh_recalc_looptri(loops,
                           BKE_mesh_polys(me_eval),
-                          BKE_mesh_verts(me_eval),
+                          BKE_mesh_vert_positions(me_eval),
                           me_eval->totloop,
                           me_eval->totpoly,
                           looptri);
@@ -1129,7 +1131,8 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
 {
   Mesh *me = ob->data;
   BMEditMesh *em = me->edit_mesh;
-  CustomDataLayer *active_color_layer = BKE_id_attributes_active_color_get(&me->id);
+  CustomDataLayer *active_color_layer = BKE_id_attributes_color_find(&me->id,
+                                                                     me->active_color_attribute);
   BLI_assert(active_color_layer != NULL);
   const eAttrDomain domain = BKE_id_attribute_domain(&me->id, active_color_layer);
 
@@ -1378,7 +1381,7 @@ static int bake(const BakeAPIRender *bkr,
 
   if (bkr->uv_layer[0] != '\0') {
     Mesh *me = (Mesh *)ob_low->data;
-    if (CustomData_get_named_layer(&me->ldata, CD_MLOOPUV, bkr->uv_layer) == -1) {
+    if (CustomData_get_named_layer(&me->ldata, CD_PROP_FLOAT2, bkr->uv_layer) == -1) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "No UV layer named \"%s\" found in the object \"%s\"",
@@ -2243,7 +2246,7 @@ void OBJECT_OT_bake(wmOperatorType *ot)
   RNA_def_string(ot->srna,
                  "uv_layer",
                  NULL,
-                 MAX_CUSTOMDATA_LAYER_NAME,
+                 MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX,
                  "UV Layer",
                  "UV layer to override active");
 }

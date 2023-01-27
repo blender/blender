@@ -2841,8 +2841,9 @@ static void drop_named_material_face_set_slots_update(bContext *C,
   const float mval[2] = {event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin};
   const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
 
-  int *face_sets = CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_sets");
-  int *mat_nr = CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index");
+  int *face_sets = (int *)CustomData_get_layer_named(
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_sets");
+  int *mat_nr = (int *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index");
 
   if (!mat_nr) {
     printf("%s: no material index!\n", __func__);

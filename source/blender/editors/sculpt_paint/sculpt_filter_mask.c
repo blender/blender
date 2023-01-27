@@ -619,7 +619,7 @@ static void ipmask_filter_apply_task_cb(void *__restrict userdata,
 
     *vd.mask = new_mask;
     update = true;
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
@@ -842,7 +842,7 @@ static void ipmask_filter_apply_from_original_task_cb(
 
     *vd.mask = new_mask;
     update = true;
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
@@ -894,7 +894,7 @@ static void ipmask_filter_restore_original_mask_task_cb(
     SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     *vd.mask = orig_data.mask;
     update = true;
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }

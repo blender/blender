@@ -776,7 +776,7 @@ class TransformsToDeltasAnim(Operator):
             "rotation_euler": "delta_rotation_euler",
             "rotation_quaternion": "delta_rotation_quaternion",
             # "rotation_axis_angle" : "delta_rotation_axis_angle",
-            "scale": "delta_scale"
+            "scale": "delta_scale",
         }
         DELTA_PATHS = STANDARD_TO_DELTA_PATHS.values()
 

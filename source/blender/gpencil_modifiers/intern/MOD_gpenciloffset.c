@@ -15,12 +15,16 @@
 
 #include "BLT_translation.h"
 
+#include "BLI_hash.h"
+#include "BLI_math.h"
+#include "BLI_rand.h"
 #include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "RNA_access.h"
 
 #include "BKE_context.h"
 #include "BKE_deform.h"
@@ -31,6 +35,8 @@
 #include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -46,6 +52,8 @@ static void initData(GpencilModifierData *md)
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
 
   MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(OffsetGpencilModifierData), modifier);
+  /* Open the first subpanel too, because it's activated by default. */
+  md->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT | UI_SUBPANEL_DATA_EXPAND_1;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
@@ -84,6 +92,8 @@ static void deformStroke(GpencilModifierData *md,
 
   const bool is_randomized = !(is_zero_v3(mmd->rnd_offset) && is_zero_v3(mmd->rnd_rot) &&
                                is_zero_v3(mmd->rnd_scale));
+  const bool is_general = !(is_zero_v3(mmd->loc) && is_zero_v3(mmd->rot) &&
+                            is_zero_v3(mmd->scale));
 
   int seed = mmd->seed;
   /* Make sure different modifiers get different seeds. */
@@ -92,8 +102,9 @@ static void deformStroke(GpencilModifierData *md,
 
   float rand[3][3];
   float rand_offset = BLI_hash_int_01(seed);
+  bGPdata *gpd = ob->data;
 
-  if (is_randomized) {
+  if (is_randomized && mmd->mode == GP_OFFSET_RANDOM) {
     /* Get stroke index for random offset. */
     int rnd_index = BLI_findindex(&gpf->strokes, gps);
     for (int j = 0; j < 3; j++) {
@@ -117,9 +128,39 @@ static void deformStroke(GpencilModifierData *md,
       }
     }
   }
+  else {
+    if (is_randomized) {
+      const int step = max_ii(mmd->stroke_step, 1);
+      const int start_offset = mmd->stroke_start_offset;
+      int offset_index;
+      int offset_size;
+      float offset_factor;
+      switch (mmd->mode) {
+        case GP_OFFSET_STROKE:
+          offset_size = max_ii(BLI_listbase_count(&gpf->strokes), 1);
+          offset_index = max_ii(BLI_findindex(&gpf->strokes, gps), 0);
+          break;
+        case GP_OFFSET_MATERIAL:
+          offset_size = max_ii(gpd->totcol, 1);
+          offset_index = max_ii(gps->mat_nr, 0);
+          break;
+        case GP_OFFSET_LAYER:
+          offset_size = max_ii(BLI_listbase_count(&gpd->layers), 1);
+          offset_index = max_ii(BLI_findindex(&gpd->layers, gpl), 0);
+          break;
+      }
 
-  bGPdata *gpd = ob->data;
-
+      offset_factor = ((offset_size - (offset_index / step + start_offset % offset_size) %
+                                          offset_size * step % offset_size) -
+                       1) /
+                      (float)offset_size;
+      for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < 3; i++) {
+          rand[j][i] = offset_factor;
+        }
+      }
+    }
+  }
   for (int i = 0; i < gps->totpoints; i++) {
     bGPDspoint *pt = &gps->points[i];
     MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
@@ -151,17 +192,19 @@ static void deformStroke(GpencilModifierData *md,
     }
 
     /* Calculate matrix. */
-    mul_v3_v3fl(loc, mmd->loc, weight);
-    mul_v3_v3fl(rot, mmd->rot, weight);
-    mul_v3_v3fl(scale, mmd->scale, weight);
-    add_v3_fl(scale, 1.0);
-    loc_eul_size_to_mat4(mat, loc, rot, scale);
+    if (is_general) {
+      mul_v3_v3fl(loc, mmd->loc, weight);
+      mul_v3_v3fl(rot, mmd->rot, weight);
+      mul_v3_v3fl(scale, mmd->scale, weight);
+      add_v3_fl(scale, 1.0f);
+      loc_eul_size_to_mat4(mat, loc, rot, scale);
 
-    /* Apply scale to thickness. */
-    float unit_scale = (fabsf(scale[0]) + fabsf(scale[1]) + fabsf(scale[2])) / 3.0f;
-    pt->pressure *= unit_scale;
+      /* Apply scale to thickness. */
+      float unit_scale = (fabsf(scale[0]) + fabsf(scale[1]) + fabsf(scale[2])) / 3.0f;
+      pt->pressure *= unit_scale;
 
-    mul_m4_v3(mat, &pt->x);
+      mul_m4_v3(mat, &pt->x);
+    }
   }
   /* Calc geometry data. */
   BKE_gpencil_stroke_geometry_update(gpd, gps);
@@ -173,6 +216,13 @@ static void bakeModifier(struct Main *UNUSED(bmain),
                          Object *ob)
 {
   generic_bake_deform_stroke(depsgraph, md, ob, false, deformStroke);
+}
+
+static void updateDepsgraph(GpencilModifierData *UNUSED(md),
+                            const ModifierUpdateDepsgraphContext *ctx,
+                            const int UNUSED(mode))
+{
+  DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Offset Modifier");
 }
 
 static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
@@ -187,12 +237,22 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *layout = panel->layout;
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
-
   uiLayoutSetPropSep(layout, true);
 
   uiItemR(layout, ptr, "location", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "rotation", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "scale", 0, NULL, ICON_NONE);
+
+  gpencil_modifier_panel_end(layout, ptr);
+  uiLayoutSetActive(layout, true);
+}
+
+static void empty_panel_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
+  uiLayoutSetPropSep(layout, true);
 
   gpencil_modifier_panel_end(layout, ptr);
 }
@@ -202,14 +262,33 @@ static void random_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *layout = panel->layout;
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
-
+  int mode = RNA_enum_get(ptr, "mode");
   uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
 
   uiItemR(layout, ptr, "random_offset", 0, IFACE_("Offset"), ICON_NONE);
   uiItemR(layout, ptr, "random_rotation", 0, IFACE_("Rotation"), ICON_NONE);
   uiItemR(layout, ptr, "random_scale", 0, IFACE_("Scale"), ICON_NONE);
-  uiItemR(layout, ptr, "use_uniform_random_scale", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "seed", 0, NULL, ICON_NONE);
+  switch (mode) {
+    case GP_OFFSET_RANDOM:
+      uiItemR(layout, ptr, "use_uniform_random_scale", 0, NULL, ICON_NONE);
+      uiItemR(layout, ptr, "seed", 0, NULL, ICON_NONE);
+      break;
+    case GP_OFFSET_STROKE:
+      uiItemR(layout, ptr, "stroke_step", 0, IFACE_("Stroke Step"), ICON_NONE);
+      uiItemR(layout, ptr, "stroke_start_offset", 0, IFACE_("Stroke Offset"), ICON_NONE);
+      break;
+    case GP_OFFSET_MATERIAL:
+      uiItemR(layout, ptr, "stroke_step", 0, IFACE_("Material Step"), ICON_NONE);
+      uiItemR(layout, ptr, "stroke_start_offset", 0, IFACE_("Material Offset"), ICON_NONE);
+      break;
+    case GP_OFFSET_LAYER:
+      uiItemR(layout, ptr, "stroke_step", 0, IFACE_("Layer Step"), ICON_NONE);
+      uiItemR(layout, ptr, "stroke_start_offset", 0, IFACE_("Layer Offset"), ICON_NONE);
+      break;
+  }
+  gpencil_modifier_panel_end(layout, ptr);
 }
 
 static void mask_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -220,9 +299,11 @@ static void mask_panel_draw(const bContext *UNUSED(C), Panel *panel)
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
-      region_type, eGpencilModifierType_Offset, panel_draw);
+      region_type, eGpencilModifierType_Offset, empty_panel_draw);
   gpencil_modifier_subpanel_register(
-      region_type, "randomize", "Randomize", NULL, random_panel_draw, panel_type);
+      region_type, "general", "General", NULL, panel_draw, panel_type);
+  gpencil_modifier_subpanel_register(
+      region_type, "randomize", "Advanced", NULL, random_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(
       region_type, "mask", "Influence", NULL, mask_panel_draw, panel_type);
 }
@@ -244,7 +325,7 @@ GpencilModifierTypeInfo modifierType_Gpencil_Offset = {
     /* initData */ initData,
     /* freeData */ NULL,
     /* isDisabled */ NULL,
-    /* updateDepsgraph */ NULL,
+    /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,

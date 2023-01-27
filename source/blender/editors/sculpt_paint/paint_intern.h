@@ -653,6 +653,8 @@ BlurKernel *paint_new_blur_kernel(struct Brush *br, bool proj);
 void paint_delete_blur_kernel(BlurKernel *);
 
 #define paint_use_channels(C) BKE_paint_uses_channels(BKE_paintmode_get_active_from_context(C))
+/** Initialize viewport pivot from evaluated bounding box center of `ob`. */
+void paint_init_pivot(struct Object *ob, struct Scene *scene);
 
 /* paint curve defines */
 #define PAINT_CURVE_NUM_SEGMENTS 40

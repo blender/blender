@@ -5,6 +5,7 @@
  * \ingroup gpu
  */
 
+#include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
 
 #include "vk_batch.hh"
@@ -142,6 +143,20 @@ void VKBackend::render_end()
 
 void VKBackend::render_step()
 {
+}
+
+shaderc::Compiler &VKBackend::get_shaderc_compiler()
+{
+  return shaderc_compiler_;
+}
+
+void VKBackend::capabilities_init(VKContext &context)
+{
+  /* Reset all capabilities from previous context. */
+  GCaps = {};
+  GCaps.compute_shader_support = true;
+  GCaps.shader_storage_buffer_objects_support = true;
+  GCaps.shader_image_load_store_support = true;
 }
 
 }  // namespace blender::gpu

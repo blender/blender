@@ -65,7 +65,7 @@ void MTLUniformBuf::update(const void *data)
   UNUSED_VARS_NDEBUG(ctx);
 
   if (data != nullptr) {
-    metal_buffer_ = MTLContext::get_global_memory_manager().allocate_with_data(
+    metal_buffer_ = MTLContext::get_global_memory_manager()->allocate_with_data(
         size_in_bytes_, true, data);
     has_data_ = true;
 

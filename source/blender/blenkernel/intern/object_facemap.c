@@ -176,7 +176,7 @@ static void object_fmap_remove_object_mode(Object *ob, bFaceMap *fmap, bool purg
     Mesh *me = ob->data;
 
     if (CustomData_has_layer(&me->pdata, CD_FACEMAP)) {
-      int *map = CustomData_get_layer(&me->pdata, CD_FACEMAP);
+      int *map = CustomData_get_layer_for_write(&me->pdata, CD_FACEMAP, me->totpoly);
       int i;
 
       if (map) {

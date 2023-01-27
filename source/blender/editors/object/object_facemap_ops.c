@@ -52,7 +52,7 @@ void ED_object_facemap_face_add(Object *ob, bFaceMap *fmap, int facenum)
     Mesh *me = ob->data;
 
     /* if there's is no facemap layer then create one */
-    if ((facemap = CustomData_get_layer(&me->pdata, CD_FACEMAP)) == NULL) {
+    if ((facemap = CustomData_get_layer_for_write(&me->pdata, CD_FACEMAP, me->totpoly)) == NULL) {
       facemap = CustomData_add_layer(&me->pdata, CD_FACEMAP, CD_SET_DEFAULT, NULL, me->totpoly);
     }
 
@@ -74,7 +74,7 @@ void ED_object_facemap_face_remove(Object *ob, bFaceMap *fmap, int facenum)
     int *facemap;
     Mesh *me = ob->data;
 
-    if ((facemap = CustomData_get_layer(&me->pdata, CD_FACEMAP)) == NULL) {
+    if ((facemap = CustomData_get_layer_for_write(&me->pdata, CD_FACEMAP, me->totpoly)) == NULL) {
       return;
     }
 
@@ -117,7 +117,7 @@ static void object_fmap_remap_object_mode(Object *ob, const int *remap)
 
   Mesh *me = ob->data;
   if (CustomData_has_layer(&me->pdata, CD_FACEMAP)) {
-    int *map = CustomData_get_layer(&me->pdata, CD_FACEMAP);
+    int *map = CustomData_get_layer_for_write(&me->pdata, CD_FACEMAP, me->totpoly);
     if (map) {
       for (int i = 0; i < me->totpoly; i++) {
         if (map[i] != -1) {

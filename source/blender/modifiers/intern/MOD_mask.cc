@@ -9,6 +9,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -49,6 +50,7 @@
 #include "BLI_vector.hh"
 
 using blender::Array;
+using blender::float3;
 using blender::IndexRange;
 using blender::ListBaseWrapper;
 using blender::MutableSpan;
@@ -131,13 +133,6 @@ static void compute_vertex_mask__vertex_group_mode(const MDeformVert *dvert,
   for (int i : r_vertex_mask.index_range()) {
     const bool found = BKE_defvert_find_weight(&dvert[i], defgrp_index) > threshold;
     r_vertex_mask[i] = found;
-  }
-}
-
-static void invert_boolean_array(MutableSpan<bool> array)
-{
-  for (bool &value : array) {
-    value = !value;
   }
 }
 
@@ -336,19 +331,12 @@ static void copy_masked_verts_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> vertex_map)
 {
   BLI_assert(src_mesh.totvert == vertex_map.size());
-  const Span<MVert> src_verts = src_mesh.verts();
-  MutableSpan<MVert> dst_verts = dst_mesh.verts_for_write();
-
   for (const int i_src : vertex_map.index_range()) {
     const int i_dst = vertex_map[i_src];
     if (i_dst == -1) {
       continue;
     }
 
-    const MVert &v_src = src_verts[i_src];
-    MVert &v_dst = dst_verts[i_dst];
-
-    v_dst = v_src;
     CustomData_copy_data(&src_mesh.vdata, &dst_mesh.vdata, i_src, i_dst, 1);
   }
 }
@@ -376,9 +364,7 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
 {
   BLI_assert(src_mesh.totvert == vertex_mask.size());
   BLI_assert(src_mesh.totedge == r_edge_map.size());
-  const Span<MVert> src_verts = src_mesh.verts();
   const Span<MEdge> src_edges = src_mesh.edges();
-  MutableSpan<MVert> dst_verts = dst_mesh.verts_for_write();
   MutableSpan<MEdge> dst_edges = dst_mesh.edges_for_write();
 
   uint vert_index = dst_mesh.totvert - verts_add_num;
@@ -418,11 +404,6 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
       float weights[2] = {1.0f - fac, fac};
       CustomData_interp(
           &src_mesh.vdata, &dst_mesh.vdata, (int *)&e_src.v1, weights, nullptr, 2, vert_index);
-      MVert &v = dst_verts[vert_index];
-      const MVert &v1 = src_verts[e_src.v1];
-      const MVert &v2 = src_verts[e_src.v2];
-
-      interp_v3_v3v3(v.co, v1.co, v2.co, fac);
       vert_index++;
     }
   }
@@ -685,7 +666,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
   }
 
   if (invert_mask) {
-    invert_boolean_array(vertex_mask);
+    blender::array_utils::invert_booleans(vertex_mask);
   }
 
   Array<int> vertex_map(mesh->totvert);

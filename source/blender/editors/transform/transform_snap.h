@@ -43,16 +43,15 @@ bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float
 bool transform_snap_increment(const TransInfo *t, float *val);
 float transform_snap_increment_get(const TransInfo *t);
 
-bool activeSnap(const TransInfo *t);
-bool activeSnap_SnappingIndividual(const TransInfo *t);
-bool activeSnap_SnappingAsGroup(const TransInfo *t);
+bool transform_snap_is_active(const TransInfo *t);
 
 bool validSnap(const TransInfo *t);
 
 void initSnapping(struct TransInfo *t, struct wmOperator *op);
 void freeSnapping(struct TransInfo *t);
-void applySnappingIndividual(TransInfo *t);
-void applySnappingAsGroup(TransInfo *t, float *vec);
+bool transform_snap_project_individual_is_active(const TransInfo *t);
+void transform_snap_project_individual_apply(TransInfo *t);
+void transform_snap_mixed_apply(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
 eRedrawFlag handleSnapping(TransInfo *t, const struct wmEvent *event);
 void drawSnapping(const struct bContext *C, TransInfo *t);

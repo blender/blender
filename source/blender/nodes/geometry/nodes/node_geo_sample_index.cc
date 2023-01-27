@@ -23,11 +23,11 @@ static void node_declare(NodeDeclarationBuilder &b)
                        GEO_COMPONENT_TYPE_CURVE,
                        GEO_COMPONENT_TYPE_INSTANCES});
 
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().supports_field();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().supports_field();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().supports_field();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().supports_field();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().supports_field();
+  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().field_on_all();
+  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().field_on_all();
+  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().field_on_all();
+  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().field_on_all();
+  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().field_on_all();
   b.add_input<decl::Int>(N_("Index"))
       .supports_field()
       .description(N_("Which element to retrieve a value from on the geometry"));
@@ -88,8 +88,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs().take_back(1));
-  search_link_ops_for_declarations(params, declaration.inputs().take_front(1));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(1));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
 
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       (eNodeSocketDatatype)params.other_socket().type);
@@ -176,13 +176,13 @@ void copy_with_clamped_indices(const VArray<T> &src,
  * instance geometry set in the source. A future optimization could be removing that limitation
  * internally.
  */
-class SampleIndexFunction : public fn::MultiFunction {
+class SampleIndexFunction : public mf::MultiFunction {
   GeometrySet src_geometry_;
   GField src_field_;
   eAttrDomain domain_;
   bool clamp_;
 
-  fn::MFSignature signature_;
+  mf::Signature signature_;
 
   std::optional<bke::GeometryFieldContext> geometry_context_;
   std::unique_ptr<FieldEvaluator> evaluator_;
@@ -200,18 +200,12 @@ class SampleIndexFunction : public fn::MultiFunction {
   {
     src_geometry_.ensure_owns_direct_data();
 
-    signature_ = this->create_signature();
+    mf::SignatureBuilder builder{"Sample Index", signature_};
+    builder.single_input<int>("Index");
+    builder.single_output("Value", src_field_.cpp_type());
     this->set_signature(&signature_);
 
     this->evaluate_field();
-  }
-
-  fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Sample Index"};
-    signature.single_input<int>("Index");
-    signature.single_output("Value", src_field_.cpp_type());
-    return signature.build();
   }
 
   void evaluate_field()
@@ -228,7 +222,7 @@ class SampleIndexFunction : public fn::MultiFunction {
     src_data_ = &evaluator_->get_evaluated(0);
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArray<int> &indices = params.readonly_single_input<int>(0, "Index");
     GMutableSpan dst = params.uninitialized_single_output(1, "Value");

@@ -14,6 +14,7 @@ void register_geometry_nodes()
   register_node_type_geo_attribute_capture();
   register_node_type_geo_attribute_domain_size();
   register_node_type_geo_attribute_statistic();
+  register_node_type_geo_blur_attribute();
   register_node_type_geo_boolean();
   register_node_type_geo_bounding_box();
   register_node_type_geo_collection_info();
@@ -52,12 +53,14 @@ void register_geometry_nodes()
   register_node_type_geo_edge_paths_to_curves();
   register_node_type_geo_edge_paths_to_selection();
   register_node_type_geo_edge_split();
+  register_node_type_geo_evaluate_at_index();
+  register_node_type_geo_evaluate_on_domain();
   register_node_type_geo_extrude_mesh();
-  register_node_type_geo_field_at_index();
   register_node_type_geo_flip_faces();
   register_node_type_geo_geometry_to_instance();
   register_node_type_geo_image_info();
   register_node_type_geo_image_texture();
+  register_node_type_geo_image();
   register_node_type_geo_input_curve_handles();
   register_node_type_geo_input_curve_tilt();
   register_node_type_geo_input_id();
@@ -87,7 +90,6 @@ void register_geometry_nodes()
   register_node_type_geo_input_tangent();
   register_node_type_geo_instance_on_points();
   register_node_type_geo_instances_to_points();
-  register_node_type_geo_interpolate_domain();
   register_node_type_geo_is_viewport();
   register_node_type_geo_join_geometry();
   register_node_type_geo_material_replace();

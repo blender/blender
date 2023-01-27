@@ -9,6 +9,10 @@
 #include "kernel/light/distribution.h"
 #include "kernel/light/light.h"
 
+#ifdef __LIGHT_TREE__
+#  include "kernel/light/tree.h"
+#endif
+
 #include "kernel/sample/mapping.h"
 #include "kernel/sample/mis.h"
 
@@ -315,10 +319,13 @@ ccl_device_inline float light_sample_mis_weight_nee(KernelGlobals kg,
 /* Next event estimation sampling.
  *
  * Sample a position on a light in the scene, from a position on a surface or
- * from a volume segment. */
+ * from a volume segment.
+ *
+ * Uses either a flat distribution or light tree. */
 
 ccl_device_inline bool light_sample_from_volume_segment(KernelGlobals kg,
-                                                        float randu,
+                                                        const float randn,
+                                                        const float randu,
                                                         const float randv,
                                                         const float time,
                                                         const float3 P,
@@ -328,11 +335,22 @@ ccl_device_inline bool light_sample_from_volume_segment(KernelGlobals kg,
                                                         const uint32_t path_flag,
                                                         ccl_private LightSample *ls)
 {
-  return light_distribution_sample<true>(kg, randu, randv, time, P, bounce, path_flag, ls);
+#ifdef __LIGHT_TREE__
+  if (kernel_data.integrator.use_light_tree) {
+    return light_tree_sample<true>(
+        kg, randn, randu, randv, time, P, D, t, SD_BSDF_HAS_TRANSMISSION, bounce, path_flag, ls);
+  }
+  else
+#endif
+  {
+    return light_distribution_sample<true>(
+        kg, randn, randu, randv, time, P, bounce, path_flag, ls);
+  }
 }
 
 ccl_device bool light_sample_from_position(KernelGlobals kg,
                                            ccl_private const RNGState *rng_state,
+                                           const float randn,
                                            const float randu,
                                            const float randv,
                                            const float time,
@@ -343,7 +361,17 @@ ccl_device bool light_sample_from_position(KernelGlobals kg,
                                            const uint32_t path_flag,
                                            ccl_private LightSample *ls)
 {
-  return light_distribution_sample<false>(kg, randu, randv, time, P, bounce, path_flag, ls);
+#ifdef __LIGHT_TREE__
+  if (kernel_data.integrator.use_light_tree) {
+    return light_tree_sample<false>(
+        kg, randn, randu, randv, time, P, N, 0, shader_flags, bounce, path_flag, ls);
+  }
+  else
+#endif
+  {
+    return light_distribution_sample<false>(
+        kg, randn, randu, randv, time, P, bounce, path_flag, ls);
+  }
 }
 
 ccl_device_inline bool light_sample_new_position(KernelGlobals kg,
@@ -357,6 +385,16 @@ ccl_device_inline bool light_sample_new_position(KernelGlobals kg,
   if (ls->type == LIGHT_TRIANGLE) {
     if (!triangle_light_sample<false>(kg, ls->prim, ls->object, randu, randv, time, ls, P)) {
       return false;
+    }
+
+#ifdef __LIGHT_TREE__
+    if (kernel_data.integrator.use_light_tree) {
+      ls->pdf *= ls->pdf_selection;
+    }
+    else
+#endif
+    {
+      /* Handled in triangle_light_sample for efficiency. */
     }
     return true;
   }
@@ -401,7 +439,19 @@ ccl_device_inline float light_sample_mis_weight_forward_surface(KernelGlobals kg
   float pdf = triangle_light_pdf(kg, sd, t);
 
   /* Light selection pdf. */
-  /* Handled in triangle_light_pdf for effeciency. */
+#ifdef __LIGHT_TREE__
+  if (kernel_data.integrator.use_light_tree) {
+    float3 ray_P = INTEGRATOR_STATE(state, ray, P);
+    const float3 N = INTEGRATOR_STATE(state, path, mis_origin_n);
+    uint lookup_offset = kernel_data_fetch(object_lookup_offset, sd->object);
+    uint prim_offset = kernel_data_fetch(object_prim_offset, sd->object);
+    pdf *= light_tree_pdf(kg, ray_P, N, path_flag, sd->prim - prim_offset + lookup_offset);
+  }
+  else
+#endif
+  {
+    /* Handled in triangle_light_pdf for efficiency. */
+  }
 
   return light_sample_mis_weight_forward(kg, bsdf_pdf, pdf);
 }
@@ -416,7 +466,16 @@ ccl_device_inline float light_sample_mis_weight_forward_lamp(KernelGlobals kg,
   float pdf = ls->pdf;
 
   /* Light selection pdf. */
-  pdf *= light_distribution_pdf_lamp(kg);
+#ifdef __LIGHT_TREE__
+  if (kernel_data.integrator.use_light_tree) {
+    const float3 N = INTEGRATOR_STATE(state, path, mis_origin_n);
+    pdf *= light_tree_pdf(kg, P, N, path_flag, ~ls->lamp);
+  }
+  else
+#endif
+  {
+    pdf *= light_distribution_pdf_lamp(kg);
+  }
 
   return light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
 }
@@ -441,7 +500,16 @@ ccl_device_inline float light_sample_mis_weight_forward_background(KernelGlobals
   float pdf = background_light_pdf(kg, ray_P, ray_D);
 
   /* Light selection pdf. */
-  pdf *= light_distribution_pdf_lamp(kg);
+#ifdef __LIGHT_TREE__
+  if (kernel_data.integrator.use_light_tree) {
+    const float3 N = INTEGRATOR_STATE(state, path, mis_origin_n);
+    pdf *= light_tree_pdf(kg, ray_P, N, path_flag, ~kernel_data.background.light_index);
+  }
+  else
+#endif
+  {
+    pdf *= light_distribution_pdf_lamp(kg);
+  }
 
   return light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
 }

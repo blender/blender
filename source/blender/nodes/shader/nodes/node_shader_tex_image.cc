@@ -61,6 +61,9 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
     case SHD_IMAGE_EXTENSION_CLIP:
       sampler_state |= GPU_SAMPLER_CLAMP_BORDER;
       break;
+    case SHD_IMAGE_EXTENSION_MIRROR:
+      sampler_state |= GPU_SAMPLER_REPEAT | GPU_SAMPLER_MIRROR_REPEAT;
+      break;
     default:
       break;
   }

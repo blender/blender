@@ -60,20 +60,20 @@ void SCULPT_reproject_cdata(SculptSession *ss,
 
   MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
 
-  // int totuv = CustomData_number_of_layers(&ss->bm->ldata, CD_MLOOPUV);
+  // int totuv = CustomData_number_of_layers(&ss->bm->ldata, CD_PROP_FLOAT2);
   CustomData *ldata = &ss->bm->ldata;
 
   int totuv = 0;
   CustomDataLayer *uvlayer = NULL;
 
-  if (ldata->typemap[CD_MLOOPUV] != -1) {
-    for (int i = ldata->typemap[CD_MLOOPUV];
-         i < ldata->totlayer && ldata->layers[i].type == CD_MLOOPUV;
+  if (ldata->typemap[CD_PROP_FLOAT2] != -1) {
+    for (int i = ldata->typemap[CD_PROP_FLOAT2];
+         i < ldata->totlayer && ldata->layers[i].type == CD_PROP_FLOAT2;
          i++) {
       totuv++;
     }
 
-    uvlayer = ldata->layers + ldata->typemap[CD_MLOOPUV];
+    uvlayer = ldata->layers + ldata->typemap[CD_PROP_FLOAT2];
   }
 
   BMEdge *e;
@@ -152,12 +152,12 @@ void SCULPT_reproject_cdata(SculptSession *ss,
 
       for (int i = 0; i < totuv; i++) {
         const int cd_uv = uvlayer[i].offset;
-        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l2, cd_uv);
+        float *luv = BM_ELEM_CD_GET_VOID_P(l2, cd_uv);
 
         // check that we are not part of a uv seam
         if (!first) {
-          const float dx = lastuvs[i * 2] - luv->uv[0];
-          const float dy = lastuvs[i * 2 + 1] - luv->uv[1];
+          const float dx = lastuvs[i * 2] - luv[0];
+          const float dy = lastuvs[i * 2 + 1] - luv[1];
           const float eps = 0.00001f;
 
           if (dx * dx + dy * dy > eps) {
@@ -166,8 +166,8 @@ void SCULPT_reproject_cdata(SculptSession *ss,
           }
         }
 
-        lastuvs[i * 2] = luv->uv[0];
-        lastuvs[i * 2 + 1] = luv->uv[1];
+        lastuvs[i * 2] = luv[0];
+        lastuvs[i * 2 + 1] = luv[1];
       }
 
       first = false;
@@ -315,9 +315,9 @@ void SCULPT_reproject_cdata(SculptSession *ss,
 
       for (int i = 0; i < totuv; i++) {
         const int cd_uv = uvlayer[i].offset;
-        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_uv);
+        float *luv = BM_ELEM_CD_GET_VOID_P(l, cd_uv);
 
-        add_v2_v2(lastuvs + i * 2, luv->uv);
+        add_v2_v2(lastuvs + i * 2, luv);
         tots[i]++;
       }
     } while ((l_iter = l_iter->radial_next) != e->l);
@@ -341,10 +341,10 @@ void SCULPT_reproject_cdata(SculptSession *ss,
 
       for (int i = 0; i < totuv; i++) {
         const int cd_uv = uvlayer[i].offset;
-        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_uv);
+        float *luv = BM_ELEM_CD_GET_VOID_P(l, cd_uv);
 
         if (snapuvs[i]) {
-          copy_v2_v2(luv->uv, lastuvs + i * 2);
+          copy_v2_v2(luv, lastuvs + i * 2);
         }
       }
     } while ((l_iter = l_iter->radial_next) != e->l);
@@ -929,11 +929,11 @@ ATTR_NO_OPT void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     cross_v3_v3v3(tan, bound, no);
     normalize_v3(tan);
 
-    float w = total / (float) neighbor_count;
+    float w = total / (float)neighbor_count;
 
     /* project to plane, remember we negated bound2 earlier */
-    madd_v3_v3fl(avg, tan, -w*dot_v3v3(bound1, tan) * 0.75);
-    madd_v3_v3fl(avg, tan, w*dot_v3v3(bound2, tan) * 0.75);
+    madd_v3_v3fl(avg, tan, -w * dot_v3v3(bound1, tan) * 0.75);
+    madd_v3_v3fl(avg, tan, w * dot_v3v3(bound2, tan) * 0.75);
   }
 
   if (args->vel_scl && totvel != 0.0f) {
@@ -1510,7 +1510,7 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
     madd_v3_v3v3fl(disp, vd.co, dir, fade);
     SCULPT_clip(sd, ss, vd.co, disp);
 
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
@@ -1538,7 +1538,6 @@ static void do_enhance_details_brush_dir_task_cb_ex(void *__restrict userdata,
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
-
 
     if (SCULPT_stroke_id_test(ss, vd.vertex, STROKEID_USER_SMOOTH)) {
       modified = true;
@@ -1960,7 +1959,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
           }
         }
       }
-      if (vd.mvert) {
+      if (vd.is_mesh) {
         BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
       }
     }
@@ -2282,7 +2281,7 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
                                          check_fsets,
                                          weighted);
     madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
 
@@ -2453,7 +2452,7 @@ static void SCULPT_do_directional_smooth_task_cb_ex(void *__restrict userdata,
       SCULPT_reproject_cdata(ss, vd.vertex, oldco, oldno);
     }
 
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
 
@@ -2564,7 +2563,7 @@ static void SCULPT_do_uniform_weigths_smooth_task_cb_ex(void *__restrict userdat
     madd_v3_v3v3fl(final_disp, vd.co, final_disp, fade);
     SCULPT_clip(data->sd, ss, vd.co, final_disp);
 
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
 
@@ -2736,7 +2735,7 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
       madd_v3_v3v3fl(val, vd.co, val, fade);
       SCULPT_clip(sd, ss, vd.co, val);
 
-      if (vd.mvert) {
+      if (vd.is_mesh) {
         BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
       }
     }

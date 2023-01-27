@@ -9,6 +9,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "DNA_customdata_types.h"
 
 /**
  * \see #BKE_mesh_calc_loop_tangent, same logic but used arrays instead of #BMesh data.
@@ -19,7 +20,7 @@ extern "C" {
  */
 void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
                                     bool calc_active_tangent,
-                                    const char (*tangent_names)[MAX_NAME],
+                                    const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                     int tangent_names_len,
                                     const float (*poly_normals)[3],
                                     const float (*loop_normals)[3],

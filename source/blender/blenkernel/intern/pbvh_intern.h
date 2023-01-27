@@ -34,7 +34,6 @@ struct MLoop;
 struct MLoopTri;
 struct BMIdMap;
 struct MPoly;
-struct MVert;
 
 /* Axis-aligned bounding box */
 typedef struct {
@@ -78,7 +77,7 @@ struct PBVHNode {
   int *prim_indices;
   unsigned int totprim; /* Number of primitives inside prim_indices. */
 
-  /* Array of indices into the mesh's MVert array. Contains the
+  /* Array of indices into the mesh's vertex array. Contains the
    * indices of all vertices used by faces that are within this
    * node's bounding box.
    *
@@ -191,7 +190,7 @@ struct PBVH {
   /* NOTE: Normals are not `const` because they can be updated for drawing by sculpt code. */
   float (*vert_normals)[3];
   bool *hide_vert;
-  struct MVert *verts;
+  float (*vert_positions)[3];
   const struct MPoly *mpoly;
   bool *hide_poly;
   /** Material indices. Only valid for polygon meshes. */
@@ -228,8 +227,6 @@ struct PBVH {
 
   /* flag are verts/faces deformed */
   bool deformed;
-  bool show_mask;
-  bool show_face_sets;
   bool respect_hide;
 
   /* Dynamic topology */

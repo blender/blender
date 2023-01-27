@@ -192,15 +192,15 @@ static Mesh *modifyMeshDebug(struct ModifierData *md,
 
   for (int i = 0; i < MAX_BASSRELIEF_DEBUG_COLORS; i++) {
     sprintf(name, "debug%d", i + 1);
-    colors[i] = CustomData_get_layer_named(&mesh->vdata, CD_PROP_COLOR, name);
+    colors[i] = (MPropCol *)CustomData_get_layer_named_for_write(
+        &mesh->vdata, CD_PROP_COLOR, name, mesh->totvert);
   }
 
   float(*cos)[3] = MEM_malloc_arrayN(mesh->totvert, sizeof(float) * 3, __func__);
-
-  const MVert *mvert = BKE_mesh_verts(mesh);
+  float(*vert_cos)[3] = BKE_mesh_vert_positions_for_write(mesh);
 
   for (int i = 0; i < mesh->totvert; i++) {
-    copy_v3_v3(cos[i], mvert[i].co);
+    copy_v3_v3(cos[i], vert_cos[i]);
   }
 
   BassReliefModifierData *swmd = (BassReliefModifierData *)md;
@@ -218,9 +218,9 @@ static Mesh *modifyMeshDebug(struct ModifierData *md,
   bassReliefModifier_deform(
       swmd, ctx, scene, ctx->object, mesh, dvert, defgrp_index, cos, mesh->totvert, colors);
 
-  mvert = BKE_mesh_verts(mesh);
+  vert_cos = BKE_mesh_vert_positions_for_write(mesh);
   for (int i = 0; i < mesh->totvert; i++) {
-    copy_v3_v3((float *)mvert[i].co, cos[i]);
+    copy_v3_v3(vert_cos[i], cos[i]);
   }
 
   // BKE_mesh_calc_normals(mesh);

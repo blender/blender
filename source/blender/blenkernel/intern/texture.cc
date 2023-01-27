@@ -5,10 +5,10 @@
  * \ingroup bke
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -451,7 +451,7 @@ Tex *give_current_linestyle_texture(FreestyleLineStyle *linestyle)
   Tex *tex = nullptr;
 
   if (linestyle) {
-    mtex = linestyle->mtex[(int)(linestyle->texact)];
+    mtex = linestyle->mtex[int(linestyle->texact)];
     if (mtex) {
       tex = mtex->tex;
     }
@@ -555,7 +555,7 @@ Tex *give_current_particle_texture(ParticleSettings *part)
     return nullptr;
   }
 
-  mtex = part->mtex[(int)(part->texact)];
+  mtex = part->mtex[int(part->texact)];
   if (mtex) {
     tex = mtex->tex;
   }
@@ -626,7 +626,7 @@ PointDensity *BKE_texture_pointdensity_add(void)
   return pd;
 }
 
-PointDensity *BKE_texture_pointdensity_copy(const PointDensity *pd, const int UNUSED(flag))
+PointDensity *BKE_texture_pointdensity_copy(const PointDensity *pd, const int /*flag*/)
 {
   PointDensity *pdn;
 

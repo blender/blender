@@ -40,6 +40,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
     {MA_RAMP_LINEAR, "LINEAR_LIGHT", 0, "Linear Light", ""},
     RNA_ENUM_ITEM_SEPR,
     {MA_RAMP_DIFF, "DIFFERENCE", 0, "Difference", ""},
+    {MA_RAMP_EXCLUSION, "EXCLUSION", 0, "Exclusion", ""},
     {MA_RAMP_SUB, "SUBTRACT", 0, "Subtract", ""},
     {MA_RAMP_DIV, "DIVIDE", 0, "Divide", ""},
     RNA_ENUM_ITEM_SEPR,
@@ -163,6 +164,20 @@ static void rna_Material_active_paint_texture_index_update(bContext *C, PointerR
     Image *image = slot->ima;
     if (image) {
       ED_space_image_sync(bmain, image, false);
+    }
+
+    /* For compatibility reasons with vertex paint we activate the color attribute. */
+    if (slot->attribute_name) {
+      Object *ob = CTX_data_active_object(C);
+      if (ob != NULL && ob->type == OB_MESH) {
+        Mesh *mesh = ob->data;
+        CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh->id, slot->attribute_name);
+        if (layer != NULL) {
+          BKE_id_attributes_active_color_set(&mesh->id, layer->name);
+        }
+        DEG_id_tag_update(&ob->id, 0);
+        WM_main_add_notifier(NC_GEOM | ND_DATA, &ob->id);
+      }
     }
   }
 
@@ -1020,6 +1035,7 @@ static void rna_def_tex_slot(BlenderRNA *brna)
   RNA_def_property_string_funcs(
       prop, "rna_TexPaintSlot_name_get", "rna_TexPaintSlot_name_length", NULL);
   RNA_def_property_ui_text(prop, "Name", "Name of the slot");
+  RNA_def_struct_name_property(srna, prop);
 
   prop = RNA_def_property(srna, "icon_value", PROP_INT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

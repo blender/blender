@@ -1097,7 +1097,10 @@ static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_
   }
   BLI_assert(!ID_IS_LINKED(id_self));
   BLI_assert((cb_flag & IDWALK_CB_INDIRECT_USAGE) == 0);
-  UNUSED_VARS_NDEBUG(id_self);
+
+  if (id_self->tag & LIB_TAG_RUNTIME) {
+    return IDWALK_RET_NOP;
+  }
 
   if (cb_flag & IDWALK_CB_DIRECT_WEAK_LINK) {
     id_lib_indirect_weak_link(id);
@@ -1207,9 +1210,15 @@ static bool write_file_handle(Main *mainvar,
 
         /* We only write unused IDs in undo case.
          * NOTE: All Scenes, WindowManagers and WorkSpaces should always be written to disk, so
-         * their user-count should never be nullptr currently. */
+         * their user-count should never be zero currently. */
         if (id->us == 0 && !wd->use_memfile) {
           BLI_assert(!ELEM(GS(id->name), ID_SCE, ID_WM, ID_WS));
+          continue;
+        }
+
+        if ((id->tag & LIB_TAG_RUNTIME) != 0 && !wd->use_memfile) {
+          /* Runtime IDs are never written to .blend files, and they should not influence
+           * (in)direct status of linked IDs they may use. */
           continue;
         }
 
@@ -1253,7 +1262,12 @@ static bool write_file_handle(Main *mainvar,
         memcpy(id_buffer, id, idtype_struct_size);
 
         /* Clear runtime data to reduce false detection of changed data in undo/redo context. */
-        ((ID *)id_buffer)->tag = 0;
+        if (wd->use_memfile) {
+          ((ID *)id_buffer)->tag &= LIB_TAG_KEEP_ON_UNDO;
+        }
+        else {
+          ((ID *)id_buffer)->tag = 0;
+        }
         ((ID *)id_buffer)->us = 0;
         ((ID *)id_buffer)->icon_id = 0;
         /* Those listbase data change every time we add/remove an ID, and also often when
@@ -1623,6 +1637,11 @@ int BLO_get_struct_id_by_name(BlendWriter *writer, const char *struct_name)
 {
   int struct_id = DNA_struct_find_nr(writer->wd->sdna, struct_name);
   return struct_id;
+}
+
+void BLO_write_int8_array(BlendWriter *writer, uint num, const int8_t *data_ptr)
+{
+  BLO_write_raw(writer, sizeof(int8_t) * size_t(num), data_ptr);
 }
 
 void BLO_write_int32_array(BlendWriter *writer, uint num, const int32_t *data_ptr)

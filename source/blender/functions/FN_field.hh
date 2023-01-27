@@ -84,6 +84,12 @@ class FieldNode {
 
   virtual uint64_t hash() const;
   virtual bool is_equal_to(const FieldNode &other) const;
+
+  /**
+   * Calls the callback for every field input that the current field depends on. This is recursive,
+   * so if a field input depends on other field inputs, those are taken into account as well.
+   */
+  virtual void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const;
 };
 
 /**
@@ -206,28 +212,28 @@ class FieldOperation : public FieldNode {
    * The multi-function used by this node. It is optionally owned.
    * Multi-functions with mutable or vector parameters are not supported currently.
    */
-  std::shared_ptr<const MultiFunction> owned_function_;
-  const MultiFunction *function_;
+  std::shared_ptr<const mf::MultiFunction> owned_function_;
+  const mf::MultiFunction *function_;
 
   /** Inputs to the operation. */
   blender::Vector<GField> inputs_;
 
  public:
-  FieldOperation(std::shared_ptr<const MultiFunction> function, Vector<GField> inputs = {});
-  FieldOperation(const MultiFunction &function, Vector<GField> inputs = {});
+  FieldOperation(std::shared_ptr<const mf::MultiFunction> function, Vector<GField> inputs = {});
+  FieldOperation(const mf::MultiFunction &function, Vector<GField> inputs = {});
   ~FieldOperation();
 
   Span<GField> inputs() const;
-  const MultiFunction &multi_function() const;
+  const mf::MultiFunction &multi_function() const;
 
   const CPPType &output_cpp_type(int output_index) const override;
 
-  static std::shared_ptr<FieldOperation> Create(std::shared_ptr<const MultiFunction> function,
+  static std::shared_ptr<FieldOperation> Create(std::shared_ptr<const mf::MultiFunction> function,
                                                 Vector<GField> inputs = {})
   {
     return std::make_shared<FieldOperation>(FieldOperation(std::move(function), inputs));
   }
-  static std::shared_ptr<FieldOperation> Create(const MultiFunction &function,
+  static std::shared_ptr<FieldOperation> Create(const mf::MultiFunction &function,
                                                 Vector<GField> inputs = {})
   {
     return std::make_shared<FieldOperation>(FieldOperation(function, inputs));
@@ -634,7 +640,7 @@ inline Span<GField> FieldOperation::inputs() const
   return inputs_;
 }
 
-inline const MultiFunction &FieldOperation::multi_function() const
+inline const mf::MultiFunction &FieldOperation::multi_function() const
 {
   return *function_;
 }
@@ -643,7 +649,7 @@ inline const CPPType &FieldOperation::output_cpp_type(int output_index) const
 {
   int output_counter = 0;
   for (const int param_index : function_->param_indices()) {
-    MFParamType param_type = function_->param_type(param_index);
+    mf::ParamType param_type = function_->param_type(param_index);
     if (param_type.is_output()) {
       if (output_counter == output_index) {
         return param_type.data_type().single_type();

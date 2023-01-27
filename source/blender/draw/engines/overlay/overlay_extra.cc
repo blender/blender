@@ -637,7 +637,7 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
   DRW_buffer_add_entry(cb->groundline, instdata.pos);
 
   if (la->type == LA_LOCAL) {
-    instdata.area_size_x = instdata.area_size_y = la->area_size;
+    instdata.area_size_x = instdata.area_size_y = la->radius;
     DRW_buffer_add_entry(cb->light_point, color, &instdata);
   }
   else if (la->type == LA_SUN) {
@@ -661,7 +661,7 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
     instdata.spot_blend = sqrtf((-a - c * a) / (c - c * a));
     instdata.spot_cosine = a;
     /* HACK: We pack the area size in alpha color. This is decoded by the shader. */
-    color[3] = -max_ff(la->area_size, FLT_MIN);
+    color[3] = -max_ff(la->radius, FLT_MIN);
     DRW_buffer_add_entry(cb->light_spot, color, &instdata);
 
     if ((la->mode & LA_SHOW_CONE) && !DRW_state_is_select()) {
@@ -1552,7 +1552,8 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   const bool is_select_mode = DRW_state_is_select();
   const bool is_paint_mode = (draw_ctx->object_mode &
-                              (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL)) != 0;
+                              (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL |
+                               OB_MODE_SCULPT_CURVES)) != 0;
   const bool from_dupli = (ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) != 0;
   const bool has_bounds = !ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_EMPTY, OB_SPEAKER, OB_LIGHTPROBE);
   const bool has_texspace = has_bounds &&

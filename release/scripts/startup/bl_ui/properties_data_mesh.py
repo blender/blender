@@ -8,6 +8,7 @@ from bpy.app.translations import (
     pgettext_tip as tip_,
 )
 
+
 class MESH_MT_vertex_group_context_menu(Menu):
     bl_label = "Vertex Group Specials"
 
@@ -539,13 +540,21 @@ class MESH_UL_attributes(UIList):
 
         show_all = _context.tool_settings.save_temp_layers if hasattr(_context, "tool_settings") else False
 
-        for item in attributes:
-            flags.append(0 if (not show_all and item.is_internal) else self.bitflag_filter_item)
+        # Filtering by name
+        if self.filter_name:
+            flags = bpy.types.UI_UL_list.filter_items_by_name(
+                self.filter_name, self.bitflag_filter_item, attributes, "name", reverse=self.use_filter_invert)
+        if not flags:
+            flags = [self.bitflag_filter_item] * len(attributes)
+
+        # Filtering internal attributes
+        for idx, item in enumerate(attributes):
+            flags[idx] = 0 if (not show_all and item.is_internal) else flags[idx]
 
         return flags, indices
 
     def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
-        data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
+        data_type = attribute.bl_rna.properties["data_type"].enum_items[attribute.data_type]
 
         domain_name = self.display_domain_names.get(attribute.domain, "")
 
@@ -599,9 +608,8 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         colliding_names = []
         for collection in (
                 # Built-in names.
-                {"position": None, "shade_smooth": None, "normal": None, "crease": None},
+                {"shade_smooth": None, "normal": None, "crease": None},
                 mesh.attributes,
-                mesh.uv_layers,
                 None if ob is None else ob.vertex_groups,
         ):
             if collection is None:
@@ -628,25 +636,31 @@ class ColorAttributesListBase():
     }
 
     def filter_items(self, _context, data, property):
-        attrs = getattr(data, property)
-        ret = []
-        idxs = []
+        attributes = getattr(data, property)
+        flags = []
+        indices = [i for i in range(len(attributes))]
 
-        for idx, item in enumerate(attrs):
+        # Filtering by name
+        if self.filter_name:
+            flags = bpy.types.UI_UL_list.filter_items_by_name(
+                self.filter_name, self.bitflag_filter_item, attributes, "name", reverse=self.use_filter_invert)
+        if not flags:
+            flags = [self.bitflag_filter_item] * len(attributes)
+
+        for idx, item in enumerate(attributes):
             skip = (
                 (item.domain not in {"POINT", "CORNER"}) or
                 (item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"}) or
                 item.is_internal
             )
-            ret.append(0 if skip else self.bitflag_filter_item)
-            idxs.append(idx)
+            flags[idx] = 0 if skip else flags[idx]
 
-        return ret, idxs
+        return flags, indices
 
 
 class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
     def draw_item(self, _context, layout, data, attribute, _icon, _active_data, _active_propname, _index):
-        data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
+        data_type = attribute.bl_rna.properties["data_type"].enum_items[attribute.data_type]
 
         domain_name = self.display_domain_names.get(attribute.domain, "")
 

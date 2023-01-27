@@ -223,22 +223,33 @@ void WM_cursor_wait(bool val)
   }
 }
 
-void WM_cursor_grab_enable(wmWindow *win, int wrap, bool hide, int bounds[4])
+void WM_cursor_grab_enable(wmWindow *win,
+                           const eWM_CursorWrapAxis wrap,
+                           const rcti *wrap_region,
+                           const bool hide)
 {
+  int _wrap_region_buf[4];
+  int *wrap_region_screen = NULL;
+
   /* Only grab cursor when not running debug.
    * It helps not to get a stuck WM when hitting a break-point. */
   GHOST_TGrabCursorMode mode = GHOST_kGrabNormal;
   GHOST_TAxisFlag mode_axis = GHOST_kAxisX | GHOST_kAxisY;
 
-  if (bounds) {
-    wm_cursor_position_to_ghost_screen_coords(win, &bounds[0], &bounds[1]);
-    wm_cursor_position_to_ghost_screen_coords(win, &bounds[2], &bounds[3]);
+  if (wrap_region) {
+    wrap_region_screen = _wrap_region_buf;
+    wrap_region_screen[0] = wrap_region->xmin;
+    wrap_region_screen[1] = wrap_region->ymax;
+    wrap_region_screen[2] = wrap_region->xmax;
+    wrap_region_screen[3] = wrap_region->ymin;
+    wm_cursor_position_to_ghost_screen_coords(win, &wrap_region_screen[0], &wrap_region_screen[1]);
+    wm_cursor_position_to_ghost_screen_coords(win, &wrap_region_screen[2], &wrap_region_screen[3]);
   }
 
   if (hide) {
     mode = GHOST_kGrabHide;
   }
-  else if (wrap) {
+  else if (wrap != WM_CURSOR_WRAP_NONE) {
     mode = GHOST_kGrabWrap;
 
     if (wrap == WM_CURSOR_WRAP_X) {
@@ -252,7 +263,7 @@ void WM_cursor_grab_enable(wmWindow *win, int wrap, bool hide, int bounds[4])
   if ((G.debug & G_DEBUG) == 0) {
     if (win->ghostwin) {
       if (win->eventstate->tablet.is_motion_absolute == false) {
-        GHOST_SetCursorGrab(win->ghostwin, mode, mode_axis, bounds, NULL);
+        GHOST_SetCursorGrab(win->ghostwin, mode, mode_axis, wrap_region_screen, NULL);
       }
 
       win->grabcursor = mode;

@@ -739,7 +739,7 @@ static void ui_color_snap_hue(const enum eSnapType snap, float *r_hue)
 
 static ListBase UIAfterFuncs = {nullptr, nullptr};
 
-static uiAfterFunc *ui_afterfunc_new(void)
+static uiAfterFunc *ui_afterfunc_new()
 {
   uiAfterFunc *after = MEM_cnew<uiAfterFunc>(__func__);
 
@@ -995,7 +995,7 @@ static void ui_apply_but_funcs_after(bContext *C)
   BLI_listbase_clear(&UIAfterFuncs);
 
   LISTBASE_FOREACH_MUTABLE (uiAfterFunc *, afterf, &funcs) {
-    uiAfterFunc after = *afterf; /* copy to avoid memleak on exit() */
+    uiAfterFunc after = *afterf; /* Copy to avoid memory leak on exit(). */
     BLI_freelinkN(&funcs, afterf);
 
     if (after.context) {
@@ -2795,7 +2795,7 @@ static void ui_but_copy(bContext *C, uiBut *but, const bool copy_array)
   }
 
   if (is_buf_set) {
-    WM_clipboard_text_set(buf, 0);
+    WM_clipboard_text_set(buf, false);
   }
 }
 
@@ -2864,7 +2864,7 @@ static void ui_but_paste(bContext *C, uiBut *but, uiHandleButtonData *data, cons
   MEM_freeN((void *)buf_paste);
 }
 
-void ui_but_clipboard_free(void)
+void ui_but_clipboard_free()
 {
   BKE_curvemapping_free_data(&but_copypaste_curve);
   BKE_curveprofile_free_data(&but_copypaste_profile);
@@ -3087,7 +3087,7 @@ static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, 
   but->selsta = but->pos;
   but->selend = data->sel_pos_init;
   if (but->selend < but->selsta) {
-    SWAP(short, but->selsta, but->selend);
+    std::swap(but->selsta, but->selend);
   }
 
   ui_but_update(but);
@@ -3190,7 +3190,7 @@ static void ui_textedit_move(uiBut *but,
       but->selend = data->sel_pos_init;
     }
     if (but->selend < but->selsta) {
-      SWAP(short, but->selsta, but->selend);
+      std::swap(but->selsta, but->selend);
     }
   }
 }
@@ -3283,7 +3283,7 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
 
     if (pbuf) {
       if (UI_but_is_utf8(but)) {
-        buf_len -= BLI_str_utf8_invalid_strip(pbuf, (size_t)buf_len);
+        buf_len -= BLI_str_utf8_invalid_strip(pbuf, size_t(buf_len));
       }
 
       ui_textedit_insert_buf(but, data, pbuf, buf_len);
@@ -3301,7 +3301,7 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
         MEM_mallocN(sizeof(char) * (sellen + 1), "ui_textedit_copypaste"));
 
     BLI_strncpy(buf, data->str + but->selsta, sellen + 1);
-    WM_clipboard_text_set(buf, 0);
+    WM_clipboard_text_set(buf, false);
     MEM_freeN(buf);
 
     /* for cut only, delete the selection afterwards */
@@ -8309,7 +8309,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
   /* number editing */
   if (state == BUTTON_STATE_NUM_EDITING) {
     if (ui_but_is_cursor_warp(but)) {
-      WM_cursor_grab_enable(CTX_wm_window(C), WM_CURSOR_WRAP_XY, true, nullptr);
+      WM_cursor_grab_enable(CTX_wm_window(C), WM_CURSOR_WRAP_XY, nullptr, true);
     }
     ui_numedit_begin(but, data);
   }
@@ -9689,14 +9689,20 @@ static int ui_handle_view_items_hover(const wmEvent *event, const ARegion *regio
 
 static int ui_handle_view_item_event(bContext *C,
                                      const wmEvent *event,
-                                     ARegion *region,
-                                     uiBut *view_but)
+                                     uiBut *active_but,
+                                     ARegion *region)
 {
-  BLI_assert(view_but->type == UI_BTYPE_VIEW_ITEM);
   if (event->type == LEFTMOUSE) {
+    /* Only bother finding the active view item button if the active button isn't already a view
+     * item. */
+    uiBut *view_but = (active_but && active_but->type == UI_BTYPE_VIEW_ITEM) ?
+                          active_but :
+                          ui_view_item_find_mouse_over(region, event->xy);
     /* Will free active button if there already is one. */
-    ui_handle_button_activate(C, region, view_but, BUTTON_ACTIVATE_OVER);
-    return ui_do_button(C, view_but->block, view_but, event);
+    if (view_but) {
+      ui_handle_button_activate(C, region, view_but, BUTTON_ACTIVATE_OVER);
+      return ui_do_button(C, view_but->block, view_but, event);
+    }
   }
 
   return WM_UI_HANDLER_CONTINUE;
@@ -11307,10 +11313,7 @@ static int ui_region_handler(bContext *C, const wmEvent *event, void * /*userdat
    * nested in the item (it's an overlapping layout). */
   ui_handle_view_items_hover(event, region);
   if (retval == WM_UI_HANDLER_CONTINUE) {
-    uiBut *view_item = ui_view_item_find_mouse_over(region, event->xy);
-    if (view_item) {
-      retval = ui_handle_view_item_event(C, event, region, view_item);
-    }
+    retval = ui_handle_view_item_event(C, event, but, region);
   }
 
   /* delayed apply callbacks */

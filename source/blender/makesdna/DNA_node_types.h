@@ -172,6 +172,7 @@ typedef struct bNodeSocket {
 #ifdef __cplusplus
   bool is_hidden() const;
   bool is_available() const;
+  bool is_visible() const;
   bool is_multi_input() const;
   bool is_input() const;
   bool is_output() const;
@@ -186,6 +187,10 @@ typedef struct bNodeSocket {
   int index() const;
   /** Socket index in the entire node tree. Inputs and outputs share the same index space. */
   int index_in_tree() const;
+  /** Socket index in the entire node tree. All inputs share the same index space. */
+  int index_in_all_inputs() const;
+  /** Socket index in the entire node tree. All outputs share the same index space. */
+  int index_in_all_outputs() const;
   /** Node this socket belongs to. */
   bNode &owner_node();
   const bNode &owner_node() const;
@@ -249,13 +254,14 @@ typedef enum eNodeSocketInOut {
   SOCK_IN = 1 << 0,
   SOCK_OUT = 1 << 1,
 } eNodeSocketInOut;
+ENUM_OPERATORS(eNodeSocketInOut, SOCK_OUT);
 
 /** #bNodeSocket.flag, first bit is selection. */
 typedef enum eNodeSocketFlag {
   /** Hidden is user defined, to hide unused sockets. */
   SOCK_HIDDEN = (1 << 1),
   /** For quick check if socket is linked. */
-  SOCK_IN_USE = (1 << 2),
+  SOCK_IS_LINKED = (1 << 2),
   /** Unavailable is for dynamic sockets. */
   SOCK_UNAVAIL = (1 << 3),
   // /** DEPRECATED  dynamic socket (can be modified by user) */
@@ -280,42 +286,14 @@ typedef enum eNodeSocketFlag {
   SOCK_HIDE_LABEL = (1 << 12),
 } eNodeSocketFlag;
 
-/** TODO: Limit data in #bNode to what we want to see saved. */
 typedef struct bNode {
   struct bNode *next, *prev;
 
-  /** User-defined properties. */
-  IDProperty *prop;
-
-  /** Runtime type information. */
-  struct bNodeType *typeinfo;
-  /** Runtime type identifier. */
-  char idname[64];
-
-  /** MAX_NAME. */
-  char name[64];
-  int flag;
-  short type;
-
-  char _pad2[6];
-
-  /** Custom user-defined color. */
-  float color[3];
-
+  /* Input and output #bNodeSocket. */
   ListBase inputs, outputs;
-  /** Parent node. */
-  struct bNode *parent;
-  /** Optional link to libdata. */
-  struct ID *id;
-  /** Custom data, must be struct, for storage in file. */
-  void *storage;
 
-  /** Root offset for drawing (parent space). */
-  float locx, locy;
-  /** Node custom width and height. */
-  float width, height;
-  /** Additional offset from loc. */
-  float offsetx, offsety;
+  /** The node's name for unique identification and string lookup. MAX_NAME. */
+  char name[64];
 
   /**
    * A value that uniquely identifies a node in a node tree even when the name changes.
@@ -326,15 +304,68 @@ typedef struct bNode {
    */
   int32_t identifier;
 
+  int flag;
+
+  /**
+   * String identifier of the type like "FunctionNodeCompare". Stored in files to allow retrieving
+   * the node type for node types including custom nodes defined in Python by addons.
+   */
+  char idname[64];
+
+  /** Type information retrieved from the #idname. TODO: Move to runtime data. */
+  struct bNodeType *typeinfo;
+
+  /**
+   * Integer type used for builtin nodes, allowing cheaper lookup and changing ID names with
+   * versioning code. Avoid using directly if possible, since may not match runtime node type if it
+   * wasn't found.
+   */
+  int16_t type;
+
+  char _pad1[2];
+
+  /** Used for some builtin nodes that store properties but don't have a storage struct . */
+  int16_t custom1, custom2;
+  float custom3, custom4;
+
+  /** Optional link to libdata. */
+  struct ID *id;
+
+  /** Custom data struct for node properties for storage in files. */
+  void *storage;
+
+  /**
+   * Custom properties often defined by addons to store arbitrary data on nodes. A non-builtin
+   * equivalent to #storage.
+   */
+  IDProperty *prop;
+
+  /** Parent node (for frame nodes). */
+  struct bNode *parent;
+
+  /** Root location in the node canvas (in parent space). */
+  float locx, locy;
+  /**
+   * Custom width and height controlled by users. Height is calculate automatically for most
+   * nodes.
+   */
+  float width, height;
+  /** Additional offset from loc. TODO: Redundant with #locx and #locy, remove/deprecate. */
+  float offsetx, offsety;
+
   /** Custom user-defined label, MAX_NAME. */
   char label[64];
-  /** To be abused for buttons. */
-  short custom1, custom2;
-  float custom3, custom4;
+
+  /** Custom user-defined color. */
+  float color[3];
+
+  char _pad2[4];
 
   bNodeRuntimeHandle *runtime;
 
 #ifdef __cplusplus
+  /** The index in the owner node tree. */
+  int index() const;
   blender::StringRefNull label_or_name() const;
   bool is_muted() const;
   bool is_reroute() const;
@@ -344,7 +375,7 @@ typedef struct bNode {
   bool is_group_output() const;
   const blender::nodes::NodeDeclaration *declaration() const;
   /** A span containing all internal links when the node is muted. */
-  blender::Span<const bNodeLink *> internal_links() const;
+  blender::Span<bNodeLink> internal_links() const;
 
   /* The following methods are only available when #bNodeTree.ensure_topology_cache has been
    * called. */
@@ -392,7 +423,7 @@ typedef struct bNode {
 /* node is always behind others */
 #define NODE_BACKGROUND (1 << 12)
 /* automatic flag for nodes included in transforms */
-#define NODE_TRANSFORM (1 << 13)
+// #define NODE_TRANSFORM (1 << 13) /* deprecated */
 /* node is active texture */
 
 /* NOTE: take care with this flag since its possible it gets
@@ -464,6 +495,8 @@ typedef struct bNodeLink {
 #ifdef __cplusplus
   bool is_muted() const;
   bool is_available() const;
+  /** Both linked sockets are available and the link is not muted. */
+  bool is_used() const;
 #endif
 
 } bNodeLink;
@@ -474,7 +507,6 @@ typedef struct bNodeLink {
 #define NODE_LINK_TEST (1 << 2)           /* free test flag, undefined */
 #define NODE_LINK_TEMP_HIGHLIGHT (1 << 3) /* Link is highlighted for picking. */
 #define NODE_LINK_MUTED (1 << 4)          /* Link is muted. */
-#define NODE_LINK_DRAGGED (1 << 5)        /* Node link is being dragged by the user. */
 
 /* tree->edit_quality/tree->render_quality */
 #define NTREE_QUALITY_HIGH 0
@@ -608,7 +640,13 @@ typedef struct bNodeTree {
    */
   bool has_undefined_nodes_or_sockets() const;
   /** Get the active group output node. */
+  bNode *group_output_node();
   const bNode *group_output_node() const;
+  /** Get all input nodes of the node group. */
+  blender::Span<const bNode *> group_input_nodes() const;
+  /** Inputs and outputs of the entire node group. */
+  blender::Span<const bNodeSocket *> interface_inputs() const;
+  blender::Span<const bNodeSocket *> interface_outputs() const;
 #endif
 } bNodeTree;
 
@@ -822,7 +860,7 @@ typedef struct NodeBlurData {
 typedef struct NodeDBlurData {
   float center_x, center_y, distance, angle, spin, zoom;
   short iter;
-  char wrap, _pad;
+  char _pad[2];
 } NodeDBlurData;
 
 typedef struct NodeBilateralBlurData {
@@ -1098,12 +1136,11 @@ typedef struct NodeShaderTexPointDensity {
   short interpolation;
   short color_source;
   short ob_color_source;
-  /** Vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME. */
-  char vertex_attribute_name[64];
   /* Used at runtime only by sampling RNA API. */
   PointDensity pd;
   int cached_resolution;
-  char _pad2[4];
+  /** Vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME. */
+  char vertex_attribute_name[68];
 } NodeShaderTexPointDensity;
 
 typedef struct NodeShaderPrincipled {
@@ -1727,6 +1764,7 @@ enum {
 #define SHD_IMAGE_EXTENSION_REPEAT 0
 #define SHD_IMAGE_EXTENSION_EXTEND 1
 #define SHD_IMAGE_EXTENSION_CLIP 2
+#define SHD_IMAGE_EXTENSION_MIRROR 3
 
 /* image texture */
 #define SHD_PROJ_FLAT 0
@@ -2042,6 +2080,14 @@ typedef enum CMPNodeTrackPositionMode {
   CMP_NODE_TRACK_POSITION_RELATIVE_FRAME = 2,
   CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME = 3,
 } CMPNodeTrackPositionMode;
+
+/* Glare Node. Stored in NodeGlare.type. */
+typedef enum CMPNodeGlareType {
+  CMP_NODE_GLARE_SIMPLE_STAR = 0,
+  CMP_NODE_GLARE_FOG_GLOW = 1,
+  CMP_NODE_GLARE_STREAKS = 2,
+  CMP_NODE_GLARE_GHOST = 3,
+} CMPNodeGlareType;
 
 /* Plane track deform node. */
 

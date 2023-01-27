@@ -85,7 +85,7 @@ class VIEW3D_HT_tool_header(Header):
             # why show this in the header? it takes up too much space - joeedh
             #layout.popover("VIEW3D_PT_tools_brush_display")
 
-        # Note: general mode options should be added to 'draw_mode_settings'.
+        # NOTE: general mode options should be added to `draw_mode_settings`.
         if tool_mode == 'SCULPT':
             if is_valid_context:
                 draw_3d_brush_settings(layout, tool_mode)
@@ -115,12 +115,13 @@ class VIEW3D_HT_tool_header(Header):
         elif tool_mode == 'PAINT_GPENCIL':
             if is_valid_context:
                 brush = context.tool_settings.gpencil_paint.brush
-                if brush and brush.gpencil_tool != 'ERASE':
-                    if brush.gpencil_tool != 'TINT':
-                        layout.popover("VIEW3D_PT_tools_grease_pencil_brush_advanced")
+                if brush:
+                    if brush.gpencil_tool != 'ERASE':
+                        if brush.gpencil_tool != 'TINT':
+                            layout.popover("VIEW3D_PT_tools_grease_pencil_brush_advanced")
 
-                    if brush.gpencil_tool not in {'FILL', 'TINT'}:
-                        layout.popover("VIEW3D_PT_tools_grease_pencil_brush_stroke")
+                        if brush.gpencil_tool not in {'FILL', 'TINT'}:
+                            layout.popover("VIEW3D_PT_tools_grease_pencil_brush_stroke")
 
                     layout.popover("VIEW3D_PT_tools_grease_pencil_paint_appearance")
         elif tool_mode == 'SCULPT_GPENCIL':
@@ -761,18 +762,19 @@ class VIEW3D_HT_header(Header):
                 curves = obj.data
 
                 row = layout.row(align=True)
-
-                # Combine the "use selection" toggle with the "set domain" operators
-                # to allow turning selection off directly.
                 domain = curves.selection_domain
-                if domain == 'POINT':
-                    row.prop(curves, "use_sculpt_selection", text="", icon='CURVE_BEZCIRCLE')
-                else:
-                    row.operator("curves.set_selection_domain", text="", icon='CURVE_BEZCIRCLE').domain = 'POINT'
-                if domain == 'CURVE':
-                    row.prop(curves, "use_sculpt_selection", text="", icon='CURVE_PATH')
-                else:
-                    row.operator("curves.set_selection_domain", text="", icon='CURVE_PATH').domain = 'CURVE'
+                row.operator(
+                    "curves.set_selection_domain",
+                    text="",
+                    icon='CURVE_BEZCIRCLE',
+                    depress=(domain == 'POINT'),
+                ).domain = 'POINT'
+                row.operator(
+                    "curves.set_selection_domain",
+                    text="",
+                    icon='CURVE_PATH',
+                    depress=(domain == 'CURVE'),
+                ).domain = 'CURVE'
 
         # Grease Pencil
         if obj and obj.type == 'GPENCIL' and context.gpencil_data:
@@ -872,13 +874,13 @@ class VIEW3D_HT_header(Header):
                 layout.popover(
                     panel="VIEW3D_PT_gpencil_sculpt_automasking",
                     text="",
-                    icon="MOD_MASK"
+                    icon='MOD_MASK',
                 )
         elif object_mode == 'SCULPT':
             layout.popover(
                 panel="VIEW3D_PT_sculpt_automasking",
                 text="",
-                icon="MOD_MASK"
+                icon='MOD_MASK',
             )
         else:
             # Transform settings depending on tool header visibility
@@ -910,7 +912,7 @@ class VIEW3D_HT_header(Header):
         row = layout.row()
         row.active = (object_mode == 'EDIT') or (shading.type in {'WIREFRAME', 'SOLID'})
 
-        # While exposing 'shading.show_xray(_wireframe)' is correct.
+        # While exposing `shading.show_xray(_wireframe)` is correct.
         # this hides the key shortcut from users: T70433.
         if has_pose_mode:
             draw_depressed = overlay.show_xray_bone
@@ -1268,11 +1270,21 @@ class VIEW3D_MT_view(Menu):
 
         layout.separator()
 
-        layout.operator("render.opengl", text="Viewport Render Image", icon='RENDER_STILL')
-        layout.operator("render.opengl", text="Viewport Render Animation", icon='RENDER_ANIMATION').animation = True
-        props = layout.operator("render.opengl",
-                                text="Viewport Render Keyframes",
-                                icon='RENDER_ANIMATION',)
+        layout.operator(
+            "render.opengl",
+            text="Viewport Render Image",
+            icon='RENDER_STILL',
+        )
+        layout.operator(
+            "render.opengl",
+            text="Viewport Render Animation",
+            icon='RENDER_ANIMATION',
+        ).animation = True
+        props = layout.operator(
+            "render.opengl",
+            text="Viewport Render Keyframes",
+            icon='RENDER_ANIMATION',
+        )
         props.animation = True
         props.render_keyed_only = True
 
@@ -2054,9 +2066,9 @@ class VIEW3D_MT_select_sculpt_curves(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("sculpt_curves.select_all", text="All").action = 'SELECT'
-        layout.operator("sculpt_curves.select_all", text="None").action = 'DESELECT'
-        layout.operator("sculpt_curves.select_all", text="Invert").action = 'INVERT'
+        layout.operator("curves.select_all", text="All").action = 'SELECT'
+        layout.operator("curves.select_all", text="None").action = 'DESELECT'
+        layout.operator("curves.select_all", text="Invert").action = 'INVERT'
         layout.operator("sculpt_curves.select_random", text="Random")
         layout.operator("sculpt_curves.select_end", text="Endpoints")
         layout.operator("sculpt_curves.select_grow", text="Grow")
@@ -2291,11 +2303,9 @@ class VIEW3D_MT_add(Menu):
     def draw(self, context):
         layout = self.layout
 
-        # note, don't use 'EXEC_SCREEN' or operators won't get the 'v3d'
-        # context.
+        # NOTE: don't use 'EXEC_SCREEN' or operators won't get the `v3d` context.
 
-        # Note: was EXEC_AREA, but this context does not have the 'rv3d', which
-        # prevents
+        # NOTE: was `EXEC_AREA`, but this context does not have the `rv3d`, which prevents
         #       "align_view" to work on first call (see T32719).
         layout.operator_context = 'EXEC_REGION_WIN'
 
@@ -2698,13 +2708,15 @@ class VIEW3D_MT_object_context_menu(Menu):
                 if selected_objects_len > 1:
                     layout.operator("object.join")
 
-            if obj.type in {'MESH', 'CURVE', 'SURFACE', 'POINTCLOUD', 'META', 'FONT'}:
+            if obj.type in {'MESH', 'CURVE', 'CURVES', 'SURFACE', 'POINTCLOUD', 'META', 'FONT'}:
                 layout.operator_menu_enum("object.convert", "target")
 
             if obj.type == 'GPENCIL':
                 layout.operator_menu_enum("gpencil.convert", "type", text="Convert To")
 
-            if (obj.type in {'MESH', 'CURVE', 'SURFACE', 'GPENCIL', 'LATTICE', 'ARMATURE', 'META', 'FONT'} or (obj.type == 'EMPTY' and obj.instance_collection is not None)):
+            if (obj.type in {
+                'MESH', 'CURVE', 'CURVES', 'SURFACE', 'GPENCIL', 'LATTICE', 'ARMATURE', 'META', 'FONT', 'POINTCLOUD',
+            } or (obj.type == 'EMPTY' and obj.instance_collection is not None)):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator_menu_enum("object.origin_set", text="Set Origin", property="type")
                 layout.operator_context = 'INVOKE_DEFAULT'
@@ -3277,23 +3289,23 @@ class VIEW3D_MT_mask(Menu):
 
         layout.separator()
 
-        props = layout.operator("sculpt.mask_filter", text='Smooth Mask')
+        props = layout.operator("sculpt.mask_filter", text="Smooth Mask")
         props.filter_type = 'SMOOTH'
 
-        props = layout.operator("sculpt.mask_filter", text='Sharpen Mask')
+        props = layout.operator("sculpt.mask_filter", text="Sharpen Mask")
         props.filter_type = 'SHARPEN'
 
-        props = layout.operator("sculpt.mask_filter", text='Grow Mask')
+        props = layout.operator("sculpt.mask_filter", text="Grow Mask")
         props.filter_type = 'GROW'
 
-        props = layout.operator("sculpt.mask_filter", text='Shrink Mask')
+        props = layout.operator("sculpt.mask_filter", text="Shrink Mask")
         props.filter_type = 'SHRINK'
 
-        props = layout.operator("sculpt.mask_filter", text='Increase Contrast')
+        props = layout.operator("sculpt.mask_filter", text="Increase Contrast")
         props.filter_type = 'CONTRAST_INCREASE'
         props.auto_iteration_count = False
 
-        props = layout.operator("sculpt.mask_filter", text='Decrease Contrast')
+        props = layout.operator("sculpt.mask_filter", text="Decrease Contrast")
         props.filter_type = 'CONTRAST_DECREASE'
         props.auto_iteration_count = False
 
@@ -3338,13 +3350,13 @@ class VIEW3D_MT_face_sets(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        op = layout.operator("sculpt.face_sets_create", text='Face Set from Masked')
+        op = layout.operator("sculpt.face_sets_create", text="Face Set from Masked")
         op.mode = 'MASKED'
 
-        op = layout.operator("sculpt.face_sets_create", text='Face Set from Visible')
+        op = layout.operator("sculpt.face_sets_create", text="Face Set from Visible")
         op.mode = 'VISIBLE'
 
-        op = layout.operator("sculpt.face_sets_create", text='Face Set from Edit Mode Selection')
+        op = layout.operator("sculpt.face_sets_create", text="Face Set from Edit Mode Selection")
         op.mode = 'SELECTION'
 
         layout.separator()
@@ -3353,10 +3365,10 @@ class VIEW3D_MT_face_sets(Menu):
 
         layout.separator()
 
-        op = layout.operator("sculpt.face_set_edit", text='Grow Face Set')
+        op = layout.operator("sculpt.face_set_edit", text="Grow Face Set")
         op.mode = 'GROW'
 
-        op = layout.operator("sculpt.face_set_edit", text='Shrink Face Set')
+        op = layout.operator("sculpt.face_set_edit", text="Shrink Face Set")
         op.mode = 'SHRINK'
 
         layout.separator()
@@ -3375,18 +3387,18 @@ class VIEW3D_MT_face_sets(Menu):
 
         layout.separator()
 
-        op = layout.operator("mesh.face_set_extract", text='Extract Face Set')
+        op = layout.operator("mesh.face_set_extract", text="Extract Face Set")
 
         layout.separator()
 
-        op = layout.operator("sculpt.face_set_change_visibility", text='Invert Visible Face Sets')
+        op = layout.operator("sculpt.face_set_change_visibility", text="Invert Visible Face Sets")
         op.mode = 'INVERT'
 
-        op = layout.operator("sculpt.reveal_all", text='Show All Face Sets')
+        op = layout.operator("sculpt.reveal_all", text="Show All Face Sets")
 
         layout.separator()
 
-        op = layout.operator("sculpt.face_sets_randomize_colors", text='Randomize Colors')
+        op = layout.operator("sculpt.face_sets_randomize_colors", text="Randomize Colors")
 
 
 class VIEW3D_MT_sculpt_set_pivot(Menu):
@@ -3417,31 +3429,31 @@ class VIEW3D_MT_face_sets_init(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        op = layout.operator("sculpt.face_sets_init", text='By Loose Parts')
+        op = layout.operator("sculpt.face_sets_init", text="By Loose Parts")
         op.mode = 'LOOSE_PARTS'
 
-        op = layout.operator("sculpt.face_sets_init", text='By Face Set Boundaries')
+        op = layout.operator("sculpt.face_sets_init", text="By Face Set Boundaries")
         op.mode = 'FACE_SET_BOUNDARIES'
 
-        op = layout.operator("sculpt.face_sets_init", text='By Materials')
+        op = layout.operator("sculpt.face_sets_init", text="By Materials")
         op.mode = 'MATERIALS'
 
-        op = layout.operator("sculpt.face_sets_init", text='By Normals')
+        op = layout.operator("sculpt.face_sets_init", text="By Normals")
         op.mode = 'NORMALS'
 
-        op = layout.operator("sculpt.face_sets_init", text='By UV Seams')
+        op = layout.operator("sculpt.face_sets_init", text="By UV Seams")
         op.mode = 'UV_SEAMS'
 
-        op = layout.operator("sculpt.face_sets_init", text='By Edge Creases')
+        op = layout.operator("sculpt.face_sets_init", text="By Edge Creases")
         op.mode = 'CREASES'
 
-        op = layout.operator("sculpt.face_sets_init", text='By Edge Bevel Weight')
+        op = layout.operator("sculpt.face_sets_init", text="By Edge Bevel Weight")
         op.mode = 'BEVEL_WEIGHT'
 
-        op = layout.operator("sculpt.face_sets_init", text='By Sharp Edges')
+        op = layout.operator("sculpt.face_sets_init", text="By Sharp Edges")
         op.mode = 'SHARP_EDGES'
 
-        op = layout.operator("sculpt.face_sets_init", text='By Face Maps')
+        op = layout.operator("sculpt.face_sets_init", text="By Face Maps")
         op.mode = 'FACE_MAPS'
 
 
@@ -3451,13 +3463,13 @@ class VIEW3D_MT_random_mask(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        op = layout.operator("sculpt.mask_init", text='Per Vertex')
+        op = layout.operator("sculpt.mask_init", text="Per Vertex")
         op.mode = 'RANDOM_PER_VERTEX'
 
-        op = layout.operator("sculpt.mask_init", text='Per Face Set')
+        op = layout.operator("sculpt.mask_init", text="Per Face Set")
         op.mode = 'RANDOM_PER_FACE_SET'
 
-        op = layout.operator("sculpt.mask_init", text='Per Loose Part')
+        op = layout.operator("sculpt.mask_init", text="Per Loose Part")
         op.mode = 'RANDOM_PER_LOOSE_PART'
 
 
@@ -3645,10 +3657,6 @@ class VIEW3D_MT_pose_propagate(Menu):
 
     def draw(self, _context):
         layout = self.layout
-
-        layout.operator("pose.propagate").mode = 'WHILE_HELD'
-
-        layout.separator()
 
         layout.operator("pose.propagate", text="To Next Keyframe").mode = 'NEXT_KEY'
         layout.operator("pose.propagate", text="To Last Keyframe (Make Cyclic)").mode = 'LAST_KEY'
@@ -5474,11 +5482,25 @@ class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
         layout = self.layout
         pie = layout.menu_pie()
 
-        op = pie.operator("paint.mask_flood_fill", text='Invert Mask')
+        op = pie.operator("paint.mask_flood_fill", text="Invert Mask")
         op.mode = 'INVERT'
-        op = pie.operator("paint.mask_flood_fill", text='Clear Mask')
+        op = pie.operator("paint.mask_flood_fill", text="Clear Mask")
         op.mode = 'VALUE'
         op.value = 0.0
+        op = pie.operator("sculpt.mask_filter", text="Smooth Mask")
+        op.filter_type = 'SMOOTH'
+        op = pie.operator("sculpt.mask_filter", text="Sharpen Mask")
+        op.filter_type = 'SHARPEN'
+        op = pie.operator("sculpt.mask_filter", text="Grow Mask")
+        op.filter_type = 'GROW'
+        op = pie.operator("sculpt.mask_filter", text="Shrink Mask")
+        op.filter_type = 'SHRINK'
+        op = pie.operator("sculpt.mask_filter", text="Increase Contrast")
+        op.filter_type = 'CONTRAST_INCREASE'
+        op.auto_iteration_count = False
+        op = pie.operator("sculpt.mask_filter", text="Decrease Contrast")
+        op.filter_type = 'CONTRAST_DECREASE'
+        op.auto_iteration_count = False
 
         op = pie.operator("sculpt.ipmask_filter", text='IPMask Smooth')
         op.filter_type = "SMOOTH_SHARPEN"
@@ -5542,16 +5564,16 @@ class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):
         layout = self.layout
         pie = layout.menu_pie()
 
-        op = pie.operator("sculpt.face_sets_create", text='Face Set from Masked')
+        op = pie.operator("sculpt.face_sets_create", text="Face Set from Masked")
         op.mode = 'MASKED'
 
-        op = pie.operator("sculpt.face_sets_create", text='Face Set from Visible')
+        op = pie.operator("sculpt.face_sets_create", text="Face Set from Visible")
         op.mode = 'VISIBLE'
 
-        op = pie.operator("sculpt.face_set_change_visibility", text='Invert Visible')
+        op = pie.operator("sculpt.face_set_change_visibility", text="Invert Visible")
         op.mode = 'INVERT'
 
-        op = pie.operator("sculpt.reveal_all", text='Show All')
+        op = pie.operator("sculpt.reveal_all", text="Show All")
 
         op = pie.operator("sculpt.face_sets_init", text='Init by UV Seams')
         op.mode = 'UV_SEAMS'
@@ -6188,8 +6210,7 @@ class VIEW3D_PT_shading_compositor(Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.space_data.shading.type in {'MATERIAL', 'RENDERED'} and
-                context.preferences.experimental.use_realtime_compositor)
+        return context.space_data.shading.type in {'MATERIAL', 'RENDERED'}
 
     def draw(self, context):
         shading = context.space_data.shading
@@ -6201,7 +6222,7 @@ class VIEW3D_PT_shading_compositor(Panel):
         row.active = not is_macos
         row.prop(shading, "use_compositor", expand=True)
         if is_macos and shading.use_compositor != "DISABLED":
-            self.layout.label(text="Compositor not supported on MacOS.", icon="ERROR")
+            self.layout.label(text="Compositor not supported on MacOS", icon='ERROR')
 
 
 class VIEW3D_PT_gizmo_display(Panel):
@@ -6704,15 +6725,15 @@ class VIEW3D_PT_overlay_sculpt(Panel):
         overlay = view.overlay
 
         row = layout.row(align=True)
-        row.prop(sculpt, "show_mask", text="")
+        row.prop(overlay, "sculpt_show_mask", text="")
         sub = row.row()
-        sub.active = sculpt.show_mask
+        sub.active = overlay.sculpt_show_mask
         sub.prop(overlay, "sculpt_mode_mask_opacity", text="Mask")
 
         row = layout.row(align=True)
-        row.prop(sculpt, "show_face_sets", text="")
+        row.prop(overlay, "sculpt_show_face_sets", text="")
         sub = row.row()
-        sub.active = sculpt.show_face_sets
+        sub.active = overlay.sculpt_show_face_sets
         row.prop(overlay, "sculpt_mode_face_sets_opacity", text="Face Sets")
 
         row = layout.row(align=True)
@@ -6944,9 +6965,9 @@ class VIEW3D_PT_snapping(Panel):
                 col.prop(tool_settings, "use_snap_project")
 
             if 'FACE_NEAREST' in snap_elements:
-                col.prop(tool_settings, 'use_snap_to_same_target')
+                col.prop(tool_settings, "use_snap_to_same_target")
                 if object_mode == 'EDIT':
-                    col.prop(tool_settings, 'snap_face_nearest_steps')
+                    col.prop(tool_settings, "snap_face_nearest_steps")
 
             if 'VOLUME' in snap_elements:
                 col.prop(tool_settings, "use_snap_peel_object")

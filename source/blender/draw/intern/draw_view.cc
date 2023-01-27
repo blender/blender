@@ -205,7 +205,7 @@ void View::frustum_culling_sphere_calc(const BoundBox &bbox, BoundSphere &bspher
 
 void View::bind()
 {
-  if (dirty_) {
+  if (dirty_ && !procedural_) {
     dirty_ = false;
     data_.push_update();
     culling_.push_update();

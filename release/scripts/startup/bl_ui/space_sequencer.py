@@ -732,7 +732,7 @@ class SEQUENCER_MT_add_scene(Menu):
 
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("sequencer.scene_strip_add_new", text="New Scene", icon="ADD").type = 'NEW'
+        layout.operator("sequencer.scene_strip_add_new", text="New Scene", icon='ADD').type = 'NEW'
 
         bpy_data_scenes_len = len(bpy.data.scenes)
         if bpy_data_scenes_len > 10:
@@ -1378,7 +1378,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
             'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
             'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
-            'MULTICAM', 'GAUSSIAN_BLUR', 'TEXT', 'COLORMIX'
+            'MULTICAM', 'GAUSSIAN_BLUR', 'TEXT', 'COLORMIX',
         }
 
     def draw(self, context):
@@ -2112,7 +2112,7 @@ class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
             'META', 'ADD', 'SUBTRACT', 'ALPHA_OVER',
             'ALPHA_UNDER', 'CROSS', 'GAMMA_CROSS', 'MULTIPLY',
             'OVER_DROP', 'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
-            'MULTICAM', 'SPEED', 'ADJUSTMENT', 'COLORMIX'
+            'MULTICAM', 'SPEED', 'ADJUSTMENT', 'COLORMIX',
         }
 
     def draw(self, context):
@@ -2160,7 +2160,7 @@ class SEQUENCER_PT_adjust_color(SequencerButtonsPanel, Panel):
             'META', 'ADD', 'SUBTRACT', 'ALPHA_OVER',
             'ALPHA_UNDER', 'CROSS', 'GAMMA_CROSS', 'MULTIPLY',
             'OVER_DROP', 'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
-            'MULTICAM', 'SPEED', 'ADJUSTMENT', 'COLORMIX'
+            'MULTICAM', 'SPEED', 'ADJUSTMENT', 'COLORMIX',
         }
 
     def draw(self, context):
@@ -2196,7 +2196,7 @@ class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
         col = layout.column(heading="Cache", align=True)
 
         col.prop(ed, "use_cache_raw", text="Raw")
-        col.prop(ed, "use_cache_preprocessed", text="Pre-Processed")
+        col.prop(ed, "use_cache_preprocessed", text="Preprocessed")
         col.prop(ed, "use_cache_composite", text="Composite")
         col.prop(ed, "use_cache_final", text="Final")
 
@@ -2315,7 +2315,7 @@ class SEQUENCER_PT_strip_cache(SequencerButtonsPanel, Panel):
 
         col = layout.column(heading="Cache")
         col.prop(strip, "use_cache_raw", text="Raw")
-        col.prop(strip, "use_cache_preprocessed", text="Pre-Processed")
+        col.prop(strip, "use_cache_preprocessed", text="Preprocessed")
         col.prop(strip, "use_cache_composite", text="Composite")
 
 

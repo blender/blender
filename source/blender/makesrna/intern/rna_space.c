@@ -1967,7 +1967,7 @@ static void rna_SpaceTextEditor_updateEdited(Main *UNUSED(bmain),
 
 /* Space Properties */
 
-/* NOTE: this function exists only to avoid id refcounting. */
+/* NOTE: this function exists only to avoid id reference-counting. */
 static void rna_SpaceProperties_pin_id_set(PointerRNA *ptr,
                                            PointerRNA value,
                                            struct ReportList *UNUSED(reports))
@@ -4737,6 +4737,15 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "overlay.sculpt_mode_face_sets_moire_scale");
   RNA_def_property_ui_text(prop, "Pattern Scale", "Sculpt Face Sets Pattern Scale");
   RNA_def_property_range(prop, 0.0f, 1.0f);
+
+  prop = RNA_def_property(srna, "sculpt_show_mask", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_SHOW_MASK);
+  RNA_def_property_ui_text(prop, "Sculpt Show Mask", "");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "sculpt_show_face_sets", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_SHOW_FACE_SETS);
+  RNA_def_property_ui_text(prop, "Sculpt Show Face Sets", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   /* grease pencil paper settings */
@@ -6343,7 +6352,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
   /* editing */
   prop = RNA_def_property(srna, "use_auto_merge_keyframes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NOTRANSKEYCULL);
-  RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Automatically merge nearby keyframes");
+  RNA_def_property_ui_text(prop, "Auto-Merge Keyframes", "Automatically merge nearby keyframes");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
   prop = RNA_def_property(srna, "use_realtime_update", PROP_BOOLEAN, PROP_NONE);

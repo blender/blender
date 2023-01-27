@@ -30,3 +30,19 @@ diff -ru ./src/video/SDL_video.c ./src/video/SDL_video.c
      if (SDL_strcmp(_this->name, "cocoa") == 0) {  /* don't do this for X11, etc */
          if (Cocoa_IsWindowInFullscreenSpace(window)) {
              return SDL_FALSE;
+--- CMakeLists.txt	2022-12-09 20:40:00
++++ CMakeLists.txt	2022-12-09 20:40:00
+@@ -526,6 +526,13 @@
+     list(APPEND EXTRA_CFLAGS "-fno-strict-aliasing")
+   endif()
+ 
++  # BLENDER: make libs compatible with older Xcode.
++  # https://github.com/KhronosGroup/MoltenVK/issues/1756
++  check_c_compiler_flag(-fno-objc-msgsend-selector-stubs HAVE_GCC_NO_OBJC_MSGSEND_SELECTOR_STUBS)
++  if(HAVE_GCC_NO_OBJC_MSGSEND_SELECTOR_STUBS)
++    list(APPEND EXTRA_CFLAGS "-fno-objc-msgsend-selector-stubs")
++  endif()
++
+   check_c_compiler_flag(-Wdeclaration-after-statement HAVE_GCC_WDECLARATION_AFTER_STATEMENT)
+   if(HAVE_GCC_WDECLARATION_AFTER_STATEMENT)
+     check_c_compiler_flag(-Werror=declaration-after-statement HAVE_GCC_WERROR_DECLARATION_AFTER_STATEMENT)

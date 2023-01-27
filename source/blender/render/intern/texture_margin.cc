@@ -7,8 +7,8 @@
 
 #include "BLI_assert.h"
 #include "BLI_math_geom.h"
-#include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_DerivedMesh.h"
@@ -56,7 +56,7 @@ class TextureMarginMap {
 
   MPoly const *mpoly_;
   MLoop const *mloop_;
-  MLoopUV const *mloopuv_;
+  float2 const *mloopuv_;
   int totpoly_;
   int totloop_;
   int totedge_;
@@ -67,7 +67,7 @@ class TextureMarginMap {
                    const float uv_offset[2],
                    MPoly const *mpoly,
                    MLoop const *mloop,
-                   MLoopUV const *mloopuv,
+                   float2 const *mloopuv,
                    int totpoly,
                    int totloop,
                    int totedge)
@@ -280,11 +280,11 @@ class TextureMarginMap {
   }
 
  private:
-  float2 uv_to_xy(MLoopUV const &mloopuv) const
+  float2 uv_to_xy(const float2 &mloopuv) const
   {
     float2 ret;
-    ret.x = (((mloopuv.uv[0] - uv_offset_[0]) * w_) - (0.5f + 0.001f));
-    ret.y = (((mloopuv.uv[1] - uv_offset_[1]) * h_) - (0.5f + 0.001f));
+    ret.x = (((mloopuv[0] - uv_offset_[0]) * w_) - (0.5f + 0.001f));
+    ret.y = (((mloopuv[1] - uv_offset_[1]) * h_) - (0.5f + 0.001f));
     return ret;
   }
 
@@ -489,7 +489,7 @@ static void generate_margin(ImBuf *ibuf,
 
   const MPoly *mpoly;
   const MLoop *mloop;
-  const MLoopUV *mloopuv;
+  const float2 *mloopuv;
   int totpoly, totloop, totedge;
 
   int tottri;
@@ -505,18 +505,22 @@ static void generate_margin(ImBuf *ibuf,
     mloop = me->loops().data();
 
     if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
-      mloopuv = static_cast<const MLoopUV *>(CustomData_get_layer(&me->ldata, CD_MLOOPUV));
+      mloopuv = static_cast<const float2 *>(CustomData_get_layer(&me->ldata, CD_PROP_FLOAT2));
     }
     else {
-      int uv_id = CustomData_get_named_layer(&me->ldata, CD_MLOOPUV, uv_layer);
-      mloopuv = static_cast<const MLoopUV *>(
-          CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, uv_id));
+      int uv_id = CustomData_get_named_layer(&me->ldata, CD_PROP_FLOAT2, uv_layer);
+      mloopuv = static_cast<const float2 *>(
+          CustomData_get_layer_n(&me->ldata, CD_PROP_FLOAT2, uv_id));
     }
 
     tottri = poly_to_tri_count(me->totpoly, me->totloop);
     looptri_mem = static_cast<MLoopTri *>(MEM_mallocN(sizeof(*looptri) * tottri, __func__));
-    BKE_mesh_recalc_looptri(
-        mloop, mpoly, me->verts().data(), me->totloop, me->totpoly, looptri_mem);
+    BKE_mesh_recalc_looptri(mloop,
+                            mpoly,
+                            reinterpret_cast<const float(*)[3]>(me->vert_positions().data()),
+                            me->totloop,
+                            me->totpoly,
+                            looptri_mem);
     looptri = looptri_mem;
   }
   else {
@@ -527,7 +531,7 @@ static void generate_margin(ImBuf *ibuf,
     totloop = dm->getNumLoops(dm);
     mpoly = dm->getPolyArray(dm);
     mloop = dm->getLoopArray(dm);
-    mloopuv = (MLoopUV const *)dm->getLoopDataArray(dm, CD_MLOOPUV);
+    mloopuv = static_cast<const float2 *>(dm->getLoopDataArray(dm, CD_PROP_FLOAT2));
 
     looptri = dm->getLoopTriArray(dm);
     tottri = dm->getNumLoopTri(dm);
@@ -552,7 +556,7 @@ static void generate_margin(ImBuf *ibuf,
     float vec[3][2];
 
     for (int a = 0; a < 3; a++) {
-      const float *uv = mloopuv[lt->tri[a]].uv;
+      const float *uv = mloopuv[lt->tri[a]];
 
       /* NOTE(@campbellbarton): workaround for pixel aligned UVs which are common and can screw up
        * our intersection tests where a pixel gets in between 2 faces or the middle of a quad,

@@ -4,7 +4,7 @@
  * \ingroup modifiers
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -74,7 +74,8 @@ static Mesh *triangulate_mesh(Mesh *mesh,
   BM_mesh_free(bm);
 
   if (keep_clnors) {
-    float(*lnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(&result->ldata, CD_NORMAL));
+    float(*lnors)[3] = static_cast<float(*)[3]>(
+        CustomData_get_layer_for_write(&result->ldata, CD_NORMAL, result->totloop));
     BLI_assert(lnors != nullptr);
 
     BKE_mesh_set_custom_normals(result, lnors);
@@ -107,7 +108,7 @@ static void initData(ModifierData *md)
   md->mode |= eModifierMode_Editmode;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
   TriangulateModifierData *tmd = (TriangulateModifierData *)md;
   Mesh *result;
@@ -119,7 +120,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 

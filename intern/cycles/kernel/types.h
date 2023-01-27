@@ -60,6 +60,7 @@ CCL_NAMESPACE_BEGIN
 #define __DENOISING_FEATURES__
 #define __DPDU__
 #define __HAIR__
+#define __LIGHT_TREE__
 #define __OBJECT_MOTION__
 #define __PASSES__
 #define __PATCH_EVAL__
@@ -73,6 +74,11 @@ CCL_NAMESPACE_BEGIN
 #define __TRANSPARENT_SHADOWS__
 #define __VISIBILITY_FLAG__
 #define __VOLUME__
+
+/* TODO: solve internal compiler errors and enable light tree on HIP. */
+#ifdef __KERNEL_HIP__
+#  undef __LIGHT_TREE__
+#endif
 
 /* Device specific features */
 #ifdef WITH_OSL
@@ -142,8 +148,7 @@ CCL_NAMESPACE_BEGIN
 enum PathTraceDimension {
   /* Init bounce */
   PRNG_FILTER = 0,
-  PRNG_LENS = 1,
-  PRNG_TIME = 2,
+  PRNG_LENS_TIME = 1,
 
   /* Shade bounce */
   PRNG_TERMINATE = 0,
@@ -181,7 +186,7 @@ enum PathTraceDimension {
 
 enum SamplingPattern {
   SAMPLING_PATTERN_SOBOL_BURLEY = 0,
-  SAMPLING_PATTERN_PMJ = 1,
+  SAMPLING_PATTERN_TABULATED_SOBOL = 1,
 
   SAMPLING_NUM_PATTERNS,
 };
@@ -226,7 +231,7 @@ enum PathRayFlag : uint32_t {
    */
 
   /* Surface had transmission component at previous bounce. Used for light tree
-   * traversal and culling to be consistent with MIS pdf at the next bounce. */
+   * traversal and culling to be consistent with MIS PDF at the next bounce. */
   PATH_RAY_MIS_HAD_TRANSMISSION = (1U << 10U),
 
   /* Don't apply multiple importance sampling weights to emission from
@@ -348,7 +353,6 @@ typedef enum PassType {
   PASS_EMISSION,
   PASS_BACKGROUND,
   PASS_AO,
-  PASS_SHADOW,
   PASS_DIFFUSE,
   PASS_DIFFUSE_DIRECT,
   PASS_DIFFUSE_INDIRECT,
@@ -846,8 +850,8 @@ enum ShaderDataObjectFlag {
   SD_OBJECT_MOTION = (1 << 1),
   /* Vertices have transform applied. */
   SD_OBJECT_TRANSFORM_APPLIED = (1 << 2),
-  /* Vertices have negative scale applied. */
-  SD_OBJECT_NEGATIVE_SCALE_APPLIED = (1 << 3),
+  /* The object's transform applies a negative scale. */
+  SD_OBJECT_NEGATIVE_SCALE = (1 << 3),
   /* Object has a volume shader. */
   SD_OBJECT_HAS_VOLUME = (1 << 4),
   /* Object intersects AABB of an object with volume shader. */
@@ -869,7 +873,7 @@ enum ShaderDataObjectFlag {
   SD_OBJECT_CAUSTICS = (SD_OBJECT_CAUSTICS_CASTER | SD_OBJECT_CAUSTICS_RECEIVER),
 
   SD_OBJECT_FLAGS = (SD_OBJECT_HOLDOUT_MASK | SD_OBJECT_MOTION | SD_OBJECT_TRANSFORM_APPLIED |
-                     SD_OBJECT_NEGATIVE_SCALE_APPLIED | SD_OBJECT_HAS_VOLUME |
+                     SD_OBJECT_NEGATIVE_SCALE | SD_OBJECT_HAS_VOLUME |
                      SD_OBJECT_INTERSECTS_VOLUME | SD_OBJECT_SHADOW_CATCHER |
                      SD_OBJECT_HAS_VOLUME_ATTRIBUTES | SD_OBJECT_CAUSTICS |
                      SD_OBJECT_HAS_VOLUME_MOTION)
@@ -1027,13 +1031,28 @@ typedef struct LocalIntersection {
 typedef struct KernelCamera {
   /* type */
   int type;
+  int use_dof_or_motion_blur;
+
+  /* depth of field */
+  float aperturesize;
+  float blades;
+  float bladesrotation;
+  float focaldistance;
+
+  /* motion blur */
+  float shuttertime;
+  int num_motion_steps, have_perspective_motion;
+
+  int pad1;
+  int pad2;
+  int pad3;
 
   /* panorama */
   int panorama_type;
   float fisheye_fov;
   float fisheye_lens;
-  float4 equirectangular_range;
   float fisheye_lens_polynomial_bias;
+  float4 equirectangular_range;
   float4 fisheye_lens_polynomial_coefficients;
 
   /* stereo */
@@ -1050,16 +1069,6 @@ typedef struct KernelCamera {
   float4 dx;
   float4 dy;
 
-  /* depth of field */
-  float aperturesize;
-  float blades;
-  float bladesrotation;
-  float focaldistance;
-
-  /* motion blur */
-  float shuttertime;
-  int num_motion_steps, have_perspective_motion;
-
   /* clipping */
   float nearclip;
   float cliplength;
@@ -1070,7 +1079,6 @@ typedef struct KernelCamera {
 
   /* render size */
   float width, height;
-  int pad1;
 
   /* anamorphic lens bokeh */
   float inv_aperture_ratio;
@@ -1302,7 +1310,7 @@ typedef struct KernelAreaLight {
   float len_v;
   packed_float3 dir;
   float invarea;
-  float tan_spread;
+  float tan_half_spread;
   float normalize_spread;
   float pad[2];
 } KernelAreaLight;
@@ -1333,21 +1341,71 @@ typedef struct KernelLight {
 } KernelLight;
 static_assert_align(KernelLight, 16);
 
+using MeshLight = struct MeshLight {
+  int shader_flag;
+  int object_id;
+};
+
 typedef struct KernelLightDistribution {
   float totarea;
   int prim;
-  union {
-    struct {
-      int shader_flag;
-      int object_id;
-    } mesh_light;
-    struct {
-      float pad;
-      float size;
-    } lamp;
-  };
+  MeshLight mesh_light;
 } KernelLightDistribution;
 static_assert_align(KernelLightDistribution, 16);
+
+/* Bounding box. */
+using BoundingBox = struct BoundingBox {
+  packed_float3 min;
+  packed_float3 max;
+};
+
+using BoundingCone = struct BoundingCone {
+  packed_float3 axis;
+  float theta_o;
+  float theta_e;
+};
+
+typedef struct KernelLightTreeNode {
+  /* Bounding box. */
+  BoundingBox bbox;
+
+  /* Bounding cone. */
+  BoundingCone bcone;
+
+  /* Energy. */
+  float energy;
+
+  /* If this is 0 or less, we're at a leaf node
+   * and the negative value indexes into the first child of the light array.
+   * Otherwise, it's an index to the node's second child. */
+  int child_index;
+  int num_prims; /* leaf nodes need to know the number of primitives stored. */
+
+  /* Bit trail. */
+  uint bit_trail;
+
+  /* Padding. */
+  int pad;
+} KernelLightTreeNode;
+static_assert_align(KernelLightTreeNode, 16);
+
+typedef struct KernelLightTreeEmitter {
+  /* Bounding cone. */
+  float theta_o;
+  float theta_e;
+
+  /* Energy. */
+  float energy;
+
+  /* prim_id denotes the location in the lights or triangles array. */
+  int prim;
+  MeshLight mesh_light;
+  EmissionSampling emission_sampling;
+
+  /* Parent. */
+  int parent_index;
+} KernelLightTreeEmitter;
+static_assert_align(KernelLightTreeEmitter, 16);
 
 typedef struct KernelParticle {
   int index;
@@ -1411,15 +1469,15 @@ typedef struct KernelShaderEvalInput {
 } KernelShaderEvalInput;
 static_assert_align(KernelShaderEvalInput, 16);
 
-/* Pre-computed sample table sizes for PMJ02 sampler.
+/* Pre-computed sample table sizes for the tabulated Sobol sampler.
  *
  * NOTE: min and max samples *must* be a power of two, and patterns
  * ideally should be as well.
  */
-#define MIN_PMJ_SAMPLES 256
-#define MAX_PMJ_SAMPLES 8192
-#define NUM_PMJ_DIMENSIONS 2
-#define NUM_PMJ_PATTERNS 256
+#define MIN_TAB_SOBOL_SAMPLES 256
+#define MAX_TAB_SOBOL_SAMPLES 8192
+#define NUM_TAB_SOBOL_DIMENSIONS 4
+#define NUM_TAB_SOBOL_PATTERNS 256
 
 /* Device kernels.
  *
@@ -1548,22 +1606,19 @@ enum KernelFeatureFlag : uint32_t {
   /* Light render passes. */
   KERNEL_FEATURE_LIGHT_PASSES = (1U << 21U),
 
-  /* Shadow render pass. */
-  KERNEL_FEATURE_SHADOW_PASS = (1U << 22U),
-
   /* AO. */
-  KERNEL_FEATURE_AO_PASS = (1U << 23U),
-  KERNEL_FEATURE_AO_ADDITIVE = (1U << 24U),
+  KERNEL_FEATURE_AO_PASS = (1U << 22U),
+  KERNEL_FEATURE_AO_ADDITIVE = (1U << 23U),
   KERNEL_FEATURE_AO = (KERNEL_FEATURE_AO_PASS | KERNEL_FEATURE_AO_ADDITIVE),
 
   /* MNEE. */
-  KERNEL_FEATURE_MNEE = (1U << 25U),
+  KERNEL_FEATURE_MNEE = (1U << 24U),
 
   /* Path guiding. */
-  KERNEL_FEATURE_PATH_GUIDING = (1U << 26U),
+  KERNEL_FEATURE_PATH_GUIDING = (1U << 25U),
 
   /* OSL. */
-  KERNEL_FEATURE_OSL = (1U << 27U),
+  KERNEL_FEATURE_OSL = (1U << 26U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */

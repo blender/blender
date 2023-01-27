@@ -226,9 +226,8 @@ static void update_cb_partial(PBVHNode *node, void *userdata)
       BKE_pbvh_node_mark_update(node);
     }
     int verts_num;
-    const int *vert_indices;
     BKE_pbvh_node_num_verts(data->pbvh, node, NULL, &verts_num);
-    BKE_pbvh_node_get_verts(data->pbvh, node, &vert_indices, NULL);
+    const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
     if (data->modified_mask_verts != NULL) {
       for (int i = 0; i < verts_num; i++) {
         if (data->modified_mask_verts[vert_indices[i]]) {
@@ -299,8 +298,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
-  MVert *mvert;
-  PBVHVertRef *index;
+  int *index;
 
   if (unode->maxvert) {
     /* Regular mesh restore. */
@@ -325,7 +323,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
 
     /* No need for float comparison here (memory is exactly equal or not). */
     index = unode->index;
-    mvert = ss->mvert;
+    float(*positions)[3] = ss->vert_positions;
 
     if (ss->shapekey_active) {
       float(*vertCos)[3];
@@ -334,25 +332,25 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
       if (unode->orig_co) {
         if (ss->deform_modifiers_active) {
           for (int i = 0; i < unode->totvert; i++) {
-            sculpt_undo_restore_deformed(ss, unode, i, index[i].i, vertCos[index[i].i]);
+            sculpt_undo_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
           }
         }
         else {
           for (int i = 0; i < unode->totvert; i++) {
-            swap_v3_v3(vertCos[index[i].i], unode->orig_co[i]);
+            swap_v3_v3(vertCos[index[i]], unode->orig_co[i]);
           }
         }
       }
       else {
         for (int i = 0; i < unode->totvert; i++) {
-          swap_v3_v3(vertCos[index[i].i], unode->co[i]);
+          swap_v3_v3(vertCos[index[i]], unode->co[i]);
         }
       }
 
       /* Propagate new coords to keyblock. */
       SCULPT_vertcos_to_key(ob, ss->shapekey_active, vertCos);
 
-      /* PBVH uses its own mvert array, so coords should be */
+      /* PBVH uses its own vertex array, so coords should be */
       /* propagated to PBVH here. */
       BKE_pbvh_vert_coords_apply(ss->pbvh, vertCos, ss->shapekey_active->totelem);
 
@@ -362,21 +360,21 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
       if (unode->orig_co) {
         if (ss->deform_modifiers_active) {
           for (int i = 0; i < unode->totvert; i++) {
-            sculpt_undo_restore_deformed(ss, unode, i, index[i].i, mvert[index[i].i].co);
-            BKE_pbvh_vert_tag_update_normal(ss->pbvh, index[i]);
+            sculpt_undo_restore_deformed(ss, unode, i, index[i], positions[index[i]]);
+            BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
           }
         }
         else {
           for (int i = 0; i < unode->totvert; i++) {
-            swap_v3_v3(mvert[index[i].i].co, unode->orig_co[i]);
-            BKE_pbvh_vert_tag_update_normal(ss->pbvh, index[i]);
+            swap_v3_v3(positions[index[i]], unode->orig_co[i]);
+            BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
           }
         }
       }
       else {
         for (int i = 0; i < unode->totvert; i++) {
-          swap_v3_v3(mvert[index[i].i].co, unode->co[i]);
-          BKE_pbvh_vert_tag_update_normal(ss->pbvh, index[i]);
+          swap_v3_v3(positions[index[i]], unode->co[i]);
+          BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
         }
       }
     }
@@ -418,7 +416,7 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode, bool 
 
   if (unode->maxvert) {
     for (int i = 0; i < unode->totvert; i++) {
-      const int vert_index = unode->index[i].i;
+      const int vert_index = unode->index[i];
 
       if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != hide_vert[vert_index]) {
         BLI_BITMAP_FLIP(unode->vert_hidden, i);
@@ -443,7 +441,7 @@ static int *sculpt_undo_get_indices32(SculptUndoNode *unode, int allvert)
   int *indices = MEM_malloc_arrayN(allvert, sizeof(int), __func__);
 
   for (int i = 0; i < allvert; i++) {
-    indices[i] = (int)unode->index[i].i;
+    indices[i] = (int)unode->index[i];
   }
 
   return indices;
@@ -480,7 +478,7 @@ static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode, bool *
 
   if (modified) {
     for (int i = 0; i < unode->totvert; i++) {
-      modified_vertices[unode->index[i].i] = true;
+      modified_vertices[unode->index[i]] = true;
     }
   }
 
@@ -496,7 +494,7 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
   float *vmask;
-  PBVHVertRef *index;
+  int *index;
 
   if (unode->maxvert) {
     /* Regular mesh restore. */
@@ -505,9 +503,9 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *m
     vmask = ss->vmask;
 
     for (int i = 0; i < unode->totvert; i++) {
-      if (vmask[index[i].i] != unode->mask[i]) {
-        SWAP(float, vmask[index[i].i], unode->mask[i]);
-        modified_vertices[index[i].i] = true;
+      if (vmask[index[i]] != unode->mask[i]) {
+        SWAP(float, vmask[index[i]], unode->mask[i]);
+        modified_vertices[index[i]] = true;
       }
     }
   }
@@ -1888,12 +1886,10 @@ static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
     /* Already stored during allocation. */
   }
   else {
-    MVert *mvert;
-    const int *vert_indices;
     int allvert;
 
     BKE_pbvh_node_num_verts(pbvh, node, NULL, &allvert);
-    BKE_pbvh_node_get_verts(pbvh, node, &vert_indices, &mvert);
+    const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
     for (int i = 0; i < allvert; i++) {
       BLI_BITMAP_SET(unode->vert_hidden, i, hide_vert[vert_indices[i]]);
     }
@@ -2311,15 +2307,12 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     memcpy(unode->grids, grids, sizeof(int) * totgrid);
   }
   else {
-    const int *vert_indices, *loop_indices;
+    const int *loop_indices;
     int allvert, allloop;
 
     BKE_pbvh_node_num_verts(ss->pbvh, unode->node, NULL, &allvert);
-    BKE_pbvh_node_get_verts(ss->pbvh, node, &vert_indices, NULL);
-
-    for (int i = 0; i < allvert; i++) {
-      unode->index[i].i = vert_indices[i];
-    }
+    const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
+    memcpy(unode->index, vert_indices, sizeof(int) * allvert);
 
     if (unode->loop_index) {
       BKE_pbvh_node_num_loops(ss->pbvh, unode->node, &allloop);
@@ -2587,8 +2580,8 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
     layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
   }
 
-  if (layer && is_color) {
-    BKE_id_attributes_active_color_set(&me->id, layer);
+  if (layer) {
+    BKE_id_attributes_active_color_set(&me->id, layer->name);
 
     if (ob->sculpt && ob->sculpt->pbvh) {
       BKE_pbvh_update_active_vcol(ob->sculpt->pbvh, me);

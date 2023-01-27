@@ -71,7 +71,7 @@ def add_uvs(mesh, minor_seg, major_seg):
     u_step = 1.0 / major_seg
     v_step = 1.0 / minor_seg
 
-    # Round UV's, needed when segments aren't divisible by 4.
+    # Round UVs, needed when segments aren't divisible by 4.
     u_init = 0.5 + fmod(0.5, u_step)
     v_init = 0.5 + fmod(0.5, v_step)
 

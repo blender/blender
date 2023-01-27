@@ -2537,9 +2537,6 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
             row = layout.row(align=True)
             row.prop(gp_settings, "eraser_thickness_factor")
 
-        row = layout.row(align=True)
-        row.prop(settings, "show_brush", text="Display Cursor")
-
     # FIXME: tools must use their own UI drawing!
     elif brush.gpencil_tool == 'FILL':
         use_property_split_prev = layout.use_property_split
@@ -2595,7 +2592,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
             "builtin.line",
             "builtin.box",
             "builtin.circle",
-            "builtin.polyline"
+            "builtin.polyline",
     }:
         settings = context.tool_settings.gpencil_sculpt
         if compact:

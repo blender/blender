@@ -782,10 +782,11 @@ static void rna_Object_dup_collection_set(PointerRNA *ptr,
     }
   }
   else {
-    BKE_report(NULL,
-               RPT_ERROR,
-               "Cannot set instance-collection as object belongs in group being instanced, thus "
-               "causing a cycle");
+    BKE_report(
+        NULL,
+        RPT_ERROR,
+        "Cannot set instance-collection as object belongs in collection being instanced, thus "
+        "causing a cycle");
   }
 }
 
@@ -1055,7 +1056,7 @@ void rna_object_uvlayer_name_set(PointerRNA *ptr, const char *value, char *resul
     for (a = 0; a < me->ldata.totlayer; a++) {
       layer = &me->ldata.layers[a];
 
-      if (layer->type == CD_MLOOPUV && STREQ(layer->name, value)) {
+      if (layer->type == CD_PROP_FLOAT2 && STREQ(layer->name, value)) {
         BLI_strncpy(result, value, maxlen);
         return;
       }
@@ -3750,15 +3751,6 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_GPencil_update");
 
   /* pose */
-  prop = RNA_def_property(srna, "pose_library", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, NULL, "poselib");
-  RNA_def_property_struct_type(prop, "Action");
-  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
-  RNA_def_property_ui_text(prop,
-                           "Pose Library",
-                           "Deprecated, will be removed in Blender 3.3. "
-                           "Action used as a pose library for armatures");
-
   prop = RNA_def_property(srna, "pose", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "pose");
   RNA_def_property_struct_type(prop, "Pose");

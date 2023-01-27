@@ -46,11 +46,10 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
   }
 
   /* Copy vertices. */
-  MutableSpan<MVert> dst_verts = result->verts_for_write();
+  MutableSpan<float3> dst_positions = result->vert_positions_for_write();
   for (const int i : IndexRange(verts_num)) {
-    float co[3];
     int original_index;
-    plConvexHullGetVertex(hull, i, co, &original_index);
+    plConvexHullGetVertex(hull, i, dst_positions[i], &original_index);
 
     if (original_index >= 0 && original_index < coords.size()) {
 #  if 0 /* Disabled because it only works for meshes, not predictable enough. */
@@ -59,8 +58,6 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
         CustomData_copy_data(&mesh->vdata, &result->vdata, int(original_index), int(i), 1);
       }
 #  endif
-      /* Copy the position of the original point. */
-      copy_v3_v3(dst_verts[i].co, co);
     }
     else {
       BLI_assert_msg(0, "Unexpected new vertex in hull output");
@@ -146,10 +143,10 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
 
   Span<float3> positions_span;
 
-  if (const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>()) {
+  if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
     count++;
-    if (const VArray<float3> positions = component->attributes()->lookup<float3>(
-            "position", ATTR_DOMAIN_POINT)) {
+    if (const VArray<float3> positions = mesh->attributes().lookup<float3>("position",
+                                                                           ATTR_DOMAIN_POINT)) {
       if (positions.is_span()) {
         span_count++;
         positions_span = positions.get_internal_span();
@@ -158,11 +155,10 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
     }
   }
 
-  if (const PointCloudComponent *component =
-          geometry_set.get_component_for_read<PointCloudComponent>()) {
+  if (const PointCloud *points = geometry_set.get_pointcloud_for_read()) {
     count++;
-    if (const VArray<float3> positions = component->attributes()->lookup<float3>(
-            "position", ATTR_DOMAIN_POINT)) {
+    if (const VArray<float3> positions = points->attributes().lookup<float3>("position",
+                                                                             ATTR_DOMAIN_POINT)) {
       if (positions.is_span()) {
         span_count++;
         positions_span = positions.get_internal_span();
@@ -186,24 +182,23 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
   /* If there is only one positions virtual array and it is already contiguous, avoid copying
    * all of the positions and instead pass the span directly to the convex hull function. */
   if (span_count == 1 && count == 1) {
-    return hull_from_bullet(nullptr, positions_span);
+    return hull_from_bullet(geometry_set.get_mesh_for_read(), positions_span);
   }
 
   Array<float3> positions(total_num);
   int offset = 0;
 
-  if (const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>()) {
-    if (const VArray<float3> varray = component->attributes()->lookup<float3>("position",
-                                                                              ATTR_DOMAIN_POINT)) {
+  if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
+    if (const VArray<float3> varray = mesh->attributes().lookup<float3>("position",
+                                                                        ATTR_DOMAIN_POINT)) {
       varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
       offset += varray.size();
     }
   }
 
-  if (const PointCloudComponent *component =
-          geometry_set.get_component_for_read<PointCloudComponent>()) {
-    if (const VArray<float3> varray = component->attributes()->lookup<float3>("position",
-                                                                              ATTR_DOMAIN_POINT)) {
+  if (const PointCloud *points = geometry_set.get_pointcloud_for_read()) {
+    if (const VArray<float3> varray = points->attributes().lookup<float3>("position",
+                                                                          ATTR_DOMAIN_POINT)) {
       varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
       offset += varray.size();
     }

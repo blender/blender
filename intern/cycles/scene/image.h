@@ -69,6 +69,7 @@ class ImageMetaData {
 
   /* Optional color space, defaults to raw. */
   ustring colorspace;
+  string colorspace_file_hint;
   const char *colorspace_file_format;
 
   /* Optional transform for 3D images. */

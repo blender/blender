@@ -14,6 +14,13 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Light info. */
+
+ccl_device_inline bool light_select_reached_max_bounces(KernelGlobals kg, int index, int bounce)
+{
+  return (bounce > kernel_data_fetch(lights, index).max_bounces);
+}
+
 /* Sample point on an individual light. */
 
 template<bool in_volume_segment>
@@ -87,6 +94,68 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     }
   }
 
+  return in_volume_segment || (ls->pdf > 0.0f);
+}
+
+/* Sample a point on the chosen emitter. */
+
+template<bool in_volume_segment>
+ccl_device_noinline bool light_sample(KernelGlobals kg,
+                                      const float randu,
+                                      const float randv,
+                                      const float time,
+                                      const float3 P,
+                                      const int bounce,
+                                      const uint32_t path_flag,
+                                      const int emitter_index,
+                                      const float pdf_selection,
+                                      ccl_private LightSample *ls)
+{
+  int prim;
+  MeshLight mesh_light;
+  if (kernel_data.integrator.use_light_tree) {
+    ccl_global const KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
+                                                                           emitter_index);
+    prim = kemitter->prim;
+    mesh_light = kemitter->mesh_light;
+  }
+  else {
+    ccl_global const KernelLightDistribution *kdistribution = &kernel_data_fetch(
+        light_distribution, emitter_index);
+    prim = kdistribution->prim;
+    mesh_light = kdistribution->mesh_light;
+  }
+
+  /* A different value would be assigned in `triangle_light_sample()` if `!use_light_tree`. */
+  ls->pdf_selection = pdf_selection;
+
+  if (prim >= 0) {
+    /* Mesh light. */
+    const int object = mesh_light.object_id;
+
+    /* Exclude synthetic meshes from shadow catcher pass. */
+    if ((path_flag & PATH_RAY_SHADOW_CATCHER_PASS) &&
+        !(kernel_data_fetch(object_flag, object) & SD_OBJECT_SHADOW_CATCHER)) {
+      return false;
+    }
+
+    const int shader_flag = mesh_light.shader_flag;
+    if (!triangle_light_sample<in_volume_segment>(kg, prim, object, randu, randv, time, ls, P)) {
+      return false;
+    }
+    ls->shader |= shader_flag;
+  }
+  else {
+    if (UNLIKELY(light_select_reached_max_bounces(kg, ~prim, bounce))) {
+      return false;
+    }
+
+    if (!light_sample<in_volume_segment>(kg, ~prim, randu, randv, P, path_flag, ls)) {
+      return false;
+    }
+  }
+
+  ls->pdf *= ls->pdf_selection;
   return in_volume_segment || (ls->pdf > 0.0f);
 }
 
@@ -228,13 +297,6 @@ ccl_device_forceinline void light_update_position(KernelGlobals kg,
   else if (ls->type == LIGHT_AREA) {
     area_light_update_position(klight, ls, P);
   }
-}
-
-/* Light info. */
-
-ccl_device_inline bool light_select_reached_max_bounces(KernelGlobals kg, int index, int bounce)
-{
-  return (bounce > kernel_data_fetch(lights, index).max_bounces);
 }
 
 CCL_NAMESPACE_END

@@ -16,18 +16,40 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* This helps with AA but it's not the real solution as it does not AA the geometry
- * but it's better than nothing, thus committed. */
-ccl_device_inline float bake_clamp_mirror_repeat(float u, float max)
+/* In order to perform anti-aliasing during baking, we jitter the input barycentric coordinates
+ * (which are for the center of the texel) within the texel.
+ * However, the baking code currently doesn't support going to neighboring triangle, so if the
+ * jittered location falls outside of the input triangle, we need to bring it back in somehow.
+ * Clamping is a bad choice here since it can produce noticeable artifacts at triangle edges,
+ * but properly uniformly sampling the intersection of triangle and texel would be very
+ * performance-heavy, so cheat by just trying different jittering until we end up inside the
+ * triangle.
+ * For triangles that are smaller than a texel, this might take too many attempts, so eventually
+ * we just give up and don't jitter in that case.
+ * This is not a particularly elegant solution, but it's probably the best we can do. */
+ccl_device_inline void bake_jitter_barycentric(ccl_private float &u,
+                                               ccl_private float &v,
+                                               float2 rand_filter,
+                                               const float dudx,
+                                               const float dudy,
+                                               const float dvdx,
+                                               const float dvdy)
 {
-  /* use mirror repeat (like opengl texture) so that if the barycentric
-   * coordinate goes past the end of the triangle it is not always clamped
-   * to the same value, gives ugly patterns */
-  u /= max;
-  float fu = floorf(u);
-  u = u - fu;
-
-  return ((((int)fu) & 1) ? 1.0f - u : u) * max;
+  for (int i = 0; i < 10; i++) {
+    /* Offset UV according to differentials. */
+    float jitterU = u + (rand_filter.x - 0.5f) * dudx + (rand_filter.y - 0.5f) * dudy;
+    float jitterV = v + (rand_filter.x - 0.5f) * dvdx + (rand_filter.y - 0.5f) * dvdy;
+    /* If this location is inside the triangle, return. */
+    if (jitterU > 0.0f && jitterV > 0.0f && jitterU + jitterV < 1.0f) {
+      u = jitterU;
+      v = jitterV;
+      return;
+    }
+    /* Retry with new jitter value. */
+    rand_filter = hash_float2_to_float2(rand_filter);
+  }
+  /* Retries exceeded, give up and just use center value. */
+  return;
 }
 
 /* Offset towards center of triangle to avoid ray-tracing precision issues. */
@@ -144,12 +166,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   }
 
   /* Sub-pixel offset. */
-  if (sample > 0) {
-    u = bake_clamp_mirror_repeat(u + dudx * (rand_filter.x - 0.5f) + dudy * (rand_filter.y - 0.5f),
-                                 1.0f);
-    v = bake_clamp_mirror_repeat(v + dvdx * (rand_filter.x - 0.5f) + dvdy * (rand_filter.y - 0.5f),
-                                 1.0f - u);
-  }
+  bake_jitter_barycentric(u, v, rand_filter, dudx, dudy, dvdx, dvdy);
 
   /* Convert from Blender to Cycles/Embree/OptiX barycentric convention. */
   const float tmp = u;

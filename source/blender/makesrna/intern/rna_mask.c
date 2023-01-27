@@ -103,7 +103,7 @@ static void rna_Mask_update_parent(Main *bmain, Scene *scene, PointerRNA *ptr)
   rna_Mask_update_data(bmain, scene, ptr);
 }
 
-/* NOTE: this function exists only to avoid id refcounting. */
+/* NOTE: this function exists only to avoid id reference-counting. */
 static void rna_MaskParent_id_set(PointerRNA *ptr,
                                   PointerRNA value,
                                   struct ReportList *UNUSED(reports))

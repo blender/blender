@@ -40,7 +40,7 @@ static const EnumPropertyItem space_items[] = {
      "LOCAL_WITH_PARENT",
      0,
      "Local With Parent",
-     "The rest pose local space of a bone (thus matrix includes parent transforms)"},
+     "The rest pose local space of a bone (this matrix includes parent transforms)"},
     {CONSTRAINT_SPACE_LOCAL, "LOCAL", 0, "Local Space", "The local space of an object/bone"},
     {0, NULL, 0, NULL, NULL},
 };
@@ -205,6 +205,10 @@ static bool rna_Object_holdout_get(Object *ob, bContext *C, PointerRNA *view_lay
 static bool rna_Object_indirect_only_get(Object *ob, bContext *C, PointerRNA *view_layer_ptr)
 {
   Base *base = find_view_layer_base_with_synced_ensure(ob, C, view_layer_ptr, NULL, NULL);
+  if (!base) {
+    return false;
+  }
+
   return ((base->flag & BASE_INDIRECT_ONLY) != 0);
 }
 

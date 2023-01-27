@@ -92,7 +92,7 @@ class AddPresetPerformance(AddPresetBase, Operator):
 
     preset_defines = [
         "render = bpy.context.scene.render",
-        "cycles = bpy.context.scene.cycles"
+        "cycles = bpy.context.scene.cycles",
     ]
 
     preset_values = [

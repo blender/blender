@@ -113,7 +113,7 @@ static void paint_brush_cubic_vis(const bContext *C, ARegion *region, void *user
   immEnd();
 
   int steps = 256;
-  float t = 0.0f, dt = 1.0f / (float)(steps - 1);
+  // float t = 0.0f, dt = 1.0f / (float)(steps - 1);
 
   immUniformColor4ub(45, 75, 255, 255);
 
@@ -123,8 +123,8 @@ static void paint_brush_cubic_vis(const bContext *C, ARegion *region, void *user
   float ds = stroke->world_spline->length / (steps - 1);
 
   for (int i = 0; i < steps; i++, s += ds) {
-    float mval[3], tan[3];
 #  if 0
+    float mval[3], tan[3];
     float co[3];
     float2 p = stroke->spline->evaluate(s);
 
@@ -263,7 +263,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
   immUniform4f("color", 0.0f, 0.0f, 0.0f, alpha);
   immUniform4f("color2", 1.0f, 1.0f, 1.0f, alpha);
   immUniform1f("dash_width", 6.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   immBegin(GPU_PRIM_LINES, 2);
 
@@ -334,7 +334,7 @@ static bool paint_stroke_use_scene_spacing(ToolSettings *ts, Brush *brush, ePain
   return false;
 }
 
-static bool paint_tool_raycast_original(Brush *brush, ePaintMode UNUSED(mode))
+static bool paint_tool_raycast_original(Brush *brush, ePaintMode /*mode*/)
 {
   return brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT);
 }
@@ -406,7 +406,6 @@ static void paint_project_cubic(bContext *C,
                                 blender::CubicBezier<float, 2> &bezier2d,
                                 blender::CubicBezier<float, 3> &bezier3d)
 {
-  Object *ob = CTX_data_active_object(C);
   float2 mvals[4];
 
   for (int i = 0; i < 4; i++) {
@@ -1187,8 +1186,9 @@ static float paint_space_get_final_size_intern(
   if (paint_stroke_use_scene_spacing(scene->toolsettings, stroke->brush, mode)) {
     if (!BKE_brush_use_locked_size(scene, stroke->brush, mode == PAINT_MODE_SCULPT)) {
       float last_object_space_position[3];
-      mul_v3_m4v3(
-          last_object_space_position, stroke->vc.obact->world_to_object, stroke->last_world_space_position);
+      mul_v3_m4v3(last_object_space_position,
+                  stroke->vc.obact->world_to_object,
+                  stroke->last_world_space_position);
       size = paint_calc_object_space_radius(&stroke->vc, last_object_space_position, size);
     }
     else {
@@ -1465,7 +1465,7 @@ PaintStroke *paint_stroke_new(bContext *C,
   return stroke;
 }
 
-void paint_stroke_free(bContext *C, wmOperator *UNUSED(op), PaintStroke *stroke)
+void paint_stroke_free(bContext *C, wmOperator * /* op */, PaintStroke *stroke)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   if (rv3d) {

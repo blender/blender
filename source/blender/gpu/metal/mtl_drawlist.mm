@@ -185,8 +185,9 @@ void MTLDrawList::submit()
   can_use_MDI = can_use_MDI && (is_finishing_a_buffer || command_len_ > 2);
 
   /* Bind Batch to setup render pipeline state. */
+  BLI_assert(batch_ != nullptr);
   id<MTLRenderCommandEncoder> rec = batch_->bind(0, 0, 0, 0);
-  if (!rec) {
+  if (rec == nil) {
     BLI_assert_msg(false, "A RenderCommandEncoder should always be available!\n");
     return;
   }

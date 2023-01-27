@@ -135,7 +135,7 @@ static void sculpt_gradient_apply_task_cb(void *__restrict userdata,
 
     gradient_value = clamp_f(gradient_value, 0.0f, 1.0f);
     gcontext->sculpt_gradient_apply_for_element(sd, ss, &orig_data, &vd, gradient_value, fade);
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }

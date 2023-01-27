@@ -61,17 +61,17 @@ ContinuationIndentWidth: 4
 # This tries to match Blender's style as much as possible. One
 BreakBeforeBraces: Custom
 BraceWrapping: {
-    AfterClass: 'false'
-    AfterControlStatement: 'false'
-    AfterEnum : 'false'
-    AfterFunction : 'true'
-    AfterNamespace : 'false'
-    AfterStruct : 'false'
-    AfterUnion : 'false'
-    BeforeCatch : 'true'
-    BeforeElse : 'true'
-    IndentBraces : 'false'
-    AfterObjCDeclaration: 'true'
+    AfterClass: 'false',
+    AfterControlStatement: 'false',
+    AfterEnum : 'false',
+    AfterFunction : 'true',
+    AfterNamespace : 'false',
+    AfterStruct : 'false',
+    AfterUnion : 'false',
+    BeforeCatch : 'true',
+    BeforeElse : 'true',
+    IndentBraces : 'false',
+    AfterObjCDeclaration: 'true',
 }
 
 # For switch statements, indent the cases.

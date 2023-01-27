@@ -175,12 +175,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     BLI_SPACE_TRANSFORM_SETUP(space_transform, ctx->object, ob_source);
   }
 
-  const MVert *me_verts = BKE_mesh_verts(me);
+  const float(*me_positions)[3] = BKE_mesh_vert_positions(me);
   const MEdge *me_edges = BKE_mesh_edges(me);
-  const MVert *result_verts = BKE_mesh_verts(result);
+  const float(*result_positions)[3] = BKE_mesh_vert_positions(result);
   const MEdge *result_edges = BKE_mesh_edges(result);
 
-  if (((result == me) || (me_verts == result_verts) || (me_edges == result_edges)) &&
+  if (((result == me) || (me_positions == result_positions) || (me_edges == result_edges)) &&
       (dtmd->data_types & DT_TYPES_AFFECT_MESH)) {
     /* We need to duplicate data here, otherwise setting custom normals, edges' sharpness, etc.,
      * could modify org mesh, see T43671. */

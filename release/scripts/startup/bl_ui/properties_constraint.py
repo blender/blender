@@ -87,7 +87,7 @@ class ConstraintButtonsPanel:
     @staticmethod
     def target_template(layout, con, subtargets=True):
         col = layout.column()
-        col.prop(con, "target")  # XXX limiting settings for only 'curves' or some type of object
+        col.prop(con, "target")  # XXX: limiting settings for only `curves` or some type of object.
 
         if con.target and subtargets:
             if con.target.type == 'ARMATURE':

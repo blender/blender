@@ -154,10 +154,10 @@ static bool dependsOnNormals(ModifierData *md)
 #ifdef WITH_OCEANSIM
 
 typedef struct GenerateOceanGeometryData {
-  MVert *mverts;
+  float (*vert_positions)[3];
   MPoly *mpolys;
   MLoop *mloops;
-  MLoopUV *mloopuvs;
+  float (*mloopuvs)[2];
 
   int res_x, res_y;
   int rx, ry;
@@ -175,7 +175,7 @@ static void generate_ocean_geometry_verts(void *__restrict userdata,
 
   for (x = 0; x <= gogd->res_x; x++) {
     const int i = y * (gogd->res_x + 1) + x;
-    float *co = gogd->mverts[i].co;
+    float *co = gogd->vert_positions[i];
     co[0] = gogd->ox + (x * gogd->sx);
     co[1] = gogd->oy + (y * gogd->sy);
     co[2] = 0.0f;
@@ -220,22 +220,22 @@ static void generate_ocean_geometry_uvs(void *__restrict userdata,
 
   for (x = 0; x < gogd->res_x; x++) {
     const int i = y * gogd->res_x + x;
-    MLoopUV *luv = &gogd->mloopuvs[i * 4];
+    float(*luv)[2] = &gogd->mloopuvs[i * 4];
 
-    luv->uv[0] = x * gogd->ix;
-    luv->uv[1] = y * gogd->iy;
+    (*luv)[0] = x * gogd->ix;
+    (*luv)[1] = y * gogd->iy;
     luv++;
 
-    luv->uv[0] = (x + 1) * gogd->ix;
-    luv->uv[1] = y * gogd->iy;
+    (*luv)[0] = (x + 1) * gogd->ix;
+    (*luv)[1] = y * gogd->iy;
     luv++;
 
-    luv->uv[0] = (x + 1) * gogd->ix;
-    luv->uv[1] = (y + 1) * gogd->iy;
+    (*luv)[0] = (x + 1) * gogd->ix;
+    (*luv)[1] = (y + 1) * gogd->iy;
     luv++;
 
-    luv->uv[0] = x * gogd->ix;
-    luv->uv[1] = (y + 1) * gogd->iy;
+    (*luv)[0] = x * gogd->ix;
+    (*luv)[1] = (y + 1) * gogd->iy;
     luv++;
   }
 }
@@ -270,7 +270,7 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   result = BKE_mesh_new_nomain(verts_num, 0, 0, polys_num * 4, polys_num);
   BKE_mesh_copy_parameters_for_eval(result, mesh_orig);
 
-  gogd.mverts = BKE_mesh_verts_for_write(result);
+  gogd.vert_positions = BKE_mesh_vert_positions_for_write(result);
   gogd.mpolys = BKE_mesh_polys_for_write(result);
   gogd.mloops = BKE_mesh_loops_for_write(result);
 
@@ -287,9 +287,9 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   BKE_mesh_calc_edges(result, false, false);
 
   /* add uvs */
-  if (CustomData_number_of_layers(&result->ldata, CD_MLOOPUV) < MAX_MTFACE) {
-    gogd.mloopuvs = CustomData_add_layer(
-        &result->ldata, CD_MLOOPUV, CD_SET_DEFAULT, NULL, polys_num * 4);
+  if (CustomData_number_of_layers(&result->ldata, CD_PROP_FLOAT2) < MAX_MTFACE) {
+    gogd.mloopuvs = CustomData_add_layer_named(
+        &result->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, NULL, polys_num * 4, "UVMap");
 
     if (gogd.mloopuvs) { /* unlikely to fail */
       gogd.ix = 1.0 / gogd.rx;
@@ -363,15 +363,15 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   CLAMP(cfra_for_cache, omd->bakestart, omd->bakeend);
   cfra_for_cache -= omd->bakestart; /* shift to 0 based */
 
-  MVert *verts = BKE_mesh_verts_for_write(result);
-  MPoly *polys = BKE_mesh_polys_for_write(result);
+  float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
+  const MPoly *polys = BKE_mesh_polys(result);
 
   /* add vcols before displacement - allows lookup based on position */
 
   if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
     const int polys_num = result->totpoly;
     const int loops_num = result->totloop;
-    MLoop *mloops = BKE_mesh_loops_for_write(result);
+    const MLoop *mloops = BKE_mesh_loops(result);
     MLoopCol *mloopcols = CustomData_add_layer_named(
         &result->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, NULL, loops_num, omd->foamlayername);
 
@@ -386,10 +386,10 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
     }
 
     if (mloopcols) { /* unlikely to fail */
-      MPoly *mp;
+      const MPoly *mp;
 
       for (i = 0, mp = polys; i < polys_num; i++, mp++) {
-        MLoop *ml = &mloops[mp->loopstart];
+        const MLoop *ml = &mloops[mp->loopstart];
         MLoopCol *mlcol = &mloopcols[mp->loopstart];
 
         MLoopCol *mlcolspray = NULL;
@@ -398,7 +398,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
         }
 
         for (j = mp->totloop; j--; ml++, mlcol++) {
-          const float *vco = verts[ml->v].co;
+          const float *vco = positions[ml->v];
           const float u = OCEAN_CO(size_co_inv, vco[0]);
           const float v = OCEAN_CO(size_co_inv, vco[1]);
           float foam;
@@ -446,7 +446,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
     const int verts_num = result->totvert;
 
     for (i = 0; i < verts_num; i++) {
-      float *vco = verts[i].co;
+      float *vco = positions[i];
       const float u = OCEAN_CO(size_co_inv, vco[0]);
       const float v = OCEAN_CO(size_co_inv, vco[1]);
 

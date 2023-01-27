@@ -34,8 +34,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "bmesh.h"
-
 #include <math.h>
 #include <stdlib.h>
 

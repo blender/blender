@@ -394,7 +394,8 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
           vec[type] = 1.0f;
         }
         else {
-          vec[type - 2] = -1.0f;
+          /* Use casting to quiet -Warray-bounds warning in gcc. */
+          vec[(int)type - 2] = -1.0f;
         }
         mul_m3_v3(imat, vec);
         normalize_v3(vec);

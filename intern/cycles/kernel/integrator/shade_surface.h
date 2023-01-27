@@ -147,10 +147,11 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   {
     const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
     const uint bounce = INTEGRATOR_STATE(state, path, bounce);
-    const float2 rand_light = path_state_rng_2D(kg, rng_state, PRNG_LIGHT);
+    const float3 rand_light = path_state_rng_3D(kg, rng_state, PRNG_LIGHT);
 
     if (!light_sample_from_position(kg,
                                     rng_state,
+                                    rand_light.z,
                                     rand_light.x,
                                     rand_light.y,
                                     sd->time,
@@ -326,10 +327,6 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
 
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = throughput;
 
-  if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_PASS) {
-    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unshadowed_throughput) = throughput;
-  }
-
   /* Write Lightgroup, +1 as lightgroup is int but we need to encode into a uint8_t. */
   INTEGRATOR_STATE_WRITE(
       shadow_state, shadow_path, lightgroup) = (ls.type != LIGHT_BACKGROUND) ?
@@ -445,6 +442,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   /* Update path state */
   if (!(label & LABEL_TRANSPARENT)) {
     INTEGRATOR_STATE_WRITE(state, path, mis_ray_pdf) = bsdf_pdf;
+    INTEGRATOR_STATE_WRITE(state, path, mis_origin_n) = sd->N;
     INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = fminf(
         unguided_bsdf_pdf, INTEGRATOR_STATE(state, path, min_ray_pdf));
   }
@@ -504,8 +502,15 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
                                                      rng_state,
                                                  ccl_global float *ccl_restrict render_buffer)
 {
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+
   if (!(kernel_data.kernel_features & KERNEL_FEATURE_AO_ADDITIVE) &&
-      !(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_CAMERA)) {
+      !(path_flag & PATH_RAY_CAMERA)) {
+    return;
+  }
+
+  /* Skip AO for paths that were split off for shadow catchers to avoid double-counting. */
+  if (path_flag & PATH_RAY_SHADOW_CATCHER_PASS) {
     return;
   }
 

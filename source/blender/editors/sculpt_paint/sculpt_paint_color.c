@@ -80,7 +80,7 @@ static void do_color_smooth_task_cb_exec(void *__restrict userdata,
     blend_color_interpolate_float(color, color, smooth_color, fade);
     SCULPT_vertex_color_set(ss, vd.vertex, color);
 
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
@@ -246,7 +246,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     CLAMP4(vcolor, 0.0f, 1.0f);
     SCULPT_vertex_color_set(ss, vd.vertex, vcolor);
 
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }

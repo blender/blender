@@ -81,8 +81,8 @@ class ASSET_OT_open_containing_blend_file(Operator):
 
     @classmethod
     def poll(cls, context):
-        asset_file_handle = getattr(context, 'asset_file_handle', None)
-        asset_library_ref = getattr(context, 'asset_library_ref', None)
+        asset_file_handle = getattr(context, "asset_file_handle", None)
+        asset_library_ref = getattr(context, "asset_library_ref", None)
 
         if not asset_library_ref:
             cls.poll_message_set("No asset library selected")

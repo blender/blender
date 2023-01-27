@@ -113,7 +113,7 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
 
     /* Background MIS weights. */
     float mis_weight = 1.0f;
-    /* Check if background light exists or if we should skip pdf. */
+    /* Check if background light exists or if we should skip PDF. */
     if (!(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_MIS_SKIP) &&
         kernel_data.background.use_mis) {
       mis_weight = light_sample_mis_weight_forward_background(kg, state, path_flag);
@@ -180,8 +180,7 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
 
       /* Write to render buffer. */
       guiding_record_background(kg, state, light_eval, mis_weight);
-      film_write_surface_emission(
-          kg, state, light_eval, mis_weight, render_buffer, kernel_data.background.lightgroup);
+      film_write_surface_emission(kg, state, light_eval, mis_weight, render_buffer, ls.group);
     }
   }
 }

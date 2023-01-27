@@ -156,11 +156,8 @@ def execute(context, is_interactive):
     if _BPY_MAIN_OWN:
         sys.modules["__main__"] = main_mod_back
 
-    stdout.seek(0)
-    stderr.seek(0)
-
-    output = stdout.read()
-    output_err = stderr.read()
+    output = stdout.getvalue()
+    output_err = stderr.getvalue()
 
     # cleanup
     sys.last_traceback = None

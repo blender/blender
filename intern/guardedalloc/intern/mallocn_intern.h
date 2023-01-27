@@ -89,6 +89,14 @@ void aligned_free(void *ptr);
 extern bool leak_detector_has_run;
 extern char free_after_leak_detection_message[];
 
+void memory_usage_init(void);
+void memory_usage_block_alloc(size_t size);
+void memory_usage_block_free(size_t size);
+size_t memory_usage_block_num(void);
+size_t memory_usage_current(void);
+size_t memory_usage_peak(void);
+void memory_usage_peak_reset(void);
+
 /* Prototypes for counted allocator functions */
 size_t MEM_lockfree_allocN_len(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
 void MEM_lockfree_freeN(void *vmemh);

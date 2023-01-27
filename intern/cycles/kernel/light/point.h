@@ -108,4 +108,29 @@ ccl_device_inline bool point_light_sample_from_intersection(
 
   return true;
 }
+
+template<bool in_volume_segment>
+ccl_device_forceinline bool point_light_tree_parameters(const ccl_global KernelLight *klight,
+                                                        const float3 centroid,
+                                                        const float3 P,
+                                                        ccl_private float &cos_theta_u,
+                                                        ccl_private float2 &distance,
+                                                        ccl_private float3 &point_to_centroid)
+{
+  if (in_volume_segment) {
+    cos_theta_u = 1.0f; /* Any value in [-1, 1], irrelevant since theta = 0 */
+    return true;
+  }
+  float min_distance;
+  point_to_centroid = safe_normalize_len(centroid - P, &min_distance);
+
+  const float radius = klight->spot.radius;
+  const float hypotenus = sqrtf(sqr(radius) + sqr(min_distance));
+  cos_theta_u = min_distance / hypotenus;
+
+  distance = make_float2(hypotenus, min_distance);
+
+  return true;
+}
+
 CCL_NAMESPACE_END

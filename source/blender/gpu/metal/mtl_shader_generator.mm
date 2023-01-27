@@ -165,8 +165,9 @@ static bool is_program_word(const char *chr, int *len)
   int numchars = 0;
   for (const char *c = chr; *c != '\0'; c++) {
     char ch = *c;
+    /* Note: Hash (`#`) is not valid in var names, but is used by Closure macro patterns. */
     if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
-        (numchars > 0 && ch >= '0' && ch <= '9') || ch == '_') {
+        (numchars > 0 && ch >= '0' && ch <= '9') || ch == '_' || ch == '#') {
       numchars++;
     }
     else {
@@ -335,7 +336,8 @@ static bool extract_ssbo_pragma_info(const MTLShader *shader,
   /* SSBO Vertex-fetch parameter extraction. */
   static std::regex use_ssbo_fetch_mode_find(
       "#pragma "
-      "USE_SSBO_VERTEX_FETCH\\(\\s*(TriangleList|LineList|\\w+)\\s*,\\s*([0-9]+)\\s*\\)");
+      "USE_SSBO_VERTEX_FETCH\\(\\s*(TriangleList|LineList|TriangleStrip|\\w+)\\s*,\\s*([0-9]+)\\s*"
+      "\\)");
 
   /* Perform regex search if pragma string found. */
   std::smatch vertex_shader_ssbo_flags;
@@ -351,6 +353,7 @@ static bool extract_ssbo_pragma_info(const MTLShader *shader,
      * Supported Primitive Types (Others can be added if needed, but List types for efficiency):
      * - TriangleList
      * - LineList
+     * - TriangleStrip (To be used with caution).
      *
      * Output vertex count is determined by calculating the number of input primitives, and
      * multiplying that by the number of output vertices specified. */
@@ -363,6 +366,9 @@ static bool extract_ssbo_pragma_info(const MTLShader *shader,
     }
     else if (str_output_primitive_type == "LineList") {
       out_prim_tye = MTLPrimitiveTypeLine;
+    }
+    else if (str_output_primitive_type == "TriangleStrip") {
+      out_prim_tye = MTLPrimitiveTypeTriangleStrip;
     }
     else {
       MTL_LOG_ERROR("Unsupported output primitive type for SSBO VERTEX FETCH MODE. Shader: %s",
@@ -513,8 +519,8 @@ char *MSLGeneratorInterface::msl_patch_default_get()
   }
 
   std::stringstream ss_patch;
-  ss_patch << datatoc_mtl_shader_shared_h << std::endl;
   ss_patch << datatoc_mtl_shader_defines_msl << std::endl;
+  ss_patch << datatoc_mtl_shader_shared_h << std::endl;
   size_t len = strlen(ss_patch.str().c_str());
 
   msl_patch_default = (char *)malloc(len * sizeof(char));
@@ -554,8 +560,6 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
     BLI_assert(shd_builder_->glsl_fragment_source_.size() > 0);
   }
 
-  /** Determine use of Transform Feedback. **/
-  msl_iface.uses_transform_feedback = false;
   if (transform_feedback_type_ != GPU_SHADER_TFB_NONE) {
     /* Ensure #TransformFeedback is configured correctly. */
     BLI_assert(tf_output_name_list_.size() > 0);
@@ -603,7 +607,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   /*** Regex Commands ***/
   /* Source cleanup and syntax replacement. */
   static std::regex remove_excess_newlines("\\n+");
-  static std::regex replace_mat3("mat3\\s*\\(");
+  static std::regex replace_matrix_construct("mat([234](x[234])?)\\s*\\(");
 
   /* Special condition - mat3 and array constructor replacement.
    * Also replace excessive new lines to ensure cases are not missed.
@@ -611,14 +615,14 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   shd_builder_->glsl_vertex_source_ = std::regex_replace(
       shd_builder_->glsl_vertex_source_, remove_excess_newlines, "\n");
   shd_builder_->glsl_vertex_source_ = std::regex_replace(
-      shd_builder_->glsl_vertex_source_, replace_mat3, "MAT3(");
+      shd_builder_->glsl_vertex_source_, replace_matrix_construct, "MAT$1(");
   replace_array_initializers_func(shd_builder_->glsl_vertex_source_);
 
   if (!msl_iface.uses_transform_feedback) {
     shd_builder_->glsl_fragment_source_ = std::regex_replace(
         shd_builder_->glsl_fragment_source_, remove_excess_newlines, "\n");
     shd_builder_->glsl_fragment_source_ = std::regex_replace(
-        shd_builder_->glsl_fragment_source_, replace_mat3, "MAT3(");
+        shd_builder_->glsl_fragment_source_, replace_matrix_construct, "MAT$1(");
     replace_array_initializers_func(shd_builder_->glsl_fragment_source_);
   }
 
@@ -666,6 +670,9 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
     msl_iface.uses_gl_FrontFacing = bool(info->builtins_ & BuiltinBits::FRONT_FACING) ||
                                     shd_builder_->glsl_fragment_source_.find("gl_FrontFacing") !=
                                         std::string::npos;
+    msl_iface.uses_gl_PrimitiveID = bool(info->builtins_ & BuiltinBits::PRIMITIVE_ID) ||
+                                    shd_builder_->glsl_fragment_source_.find("gl_PrimitiveID") !=
+                                        std::string::npos;
 
     /* NOTE(Metal): If FragColor is not used, then we treat the first fragment output attachment
      * as the primary output. */
@@ -674,8 +681,9 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 
     /* NOTE(Metal): FragDepth output mode specified in create-info 'DepthWrite depth_write_'.
      * If parsing without create-info, manual extraction will be required. */
-    msl_iface.uses_gl_FragDepth = shd_builder_->glsl_fragment_source_.find("gl_FragDepth") !=
-                                  std::string::npos;
+    msl_iface.uses_gl_FragDepth = (info->depth_write_ != DepthWrite::UNCHANGED) &&
+                                  shd_builder_->glsl_fragment_source_.find("gl_FragDepth") !=
+                                      std::string::npos;
     msl_iface.depth_write = info->depth_write_;
   }
 
@@ -985,6 +993,9 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
     if (msl_iface.uses_gl_FrontFacing) {
       ss_fragment << "MTLBOOL gl_FrontFacing;" << std::endl;
     }
+    if (msl_iface.uses_gl_PrimitiveID) {
+      ss_fragment << "uint gl_PrimitiveID;" << std::endl;
+    }
 
     /* Add Texture members. */
     for (const MSLTextureSampler &tex : msl_iface.texture_samplers) {
@@ -1194,6 +1205,27 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
   /** Prepare textures and uniform blocks.
    * Perform across both resource categories and extract both
    * texture samplers and image types. */
+
+  /* NOTE: Metal requires Samplers and images to share slots. We will re-map these.
+   * If `auto_resource_location_` is not used, then slot collision could occur and
+   * this should be resolved in the original create-info. */
+  int texture_slot_id = 0;
+
+  /* Determine max sampler slot for image resource offset, when not using auto resource location,
+   * as image resources cannot overlap sampler ranges. */
+  int max_sampler_slot = 0;
+  if (!create_info_->auto_resource_location_) {
+    for (int i = 0; i < 2; i++) {
+      const Vector<ShaderCreateInfo::Resource> &resources = (i == 0) ? info->pass_resources_ :
+                                                                       info->batch_resources_;
+      for (const ShaderCreateInfo::Resource &res : resources) {
+        if (res.bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
+          max_sampler_slot = max_ii(res.slot, max_sampler_slot);
+        }
+      }
+    }
+  }
+
   for (int i = 0; i < 2; i++) {
     const Vector<ShaderCreateInfo::Resource> &resources = (i == 0) ? info->pass_resources_ :
                                                                      info->batch_resources_;
@@ -1203,6 +1235,13 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
       switch (res.bind_type) {
         case shader::ShaderCreateInfo::Resource::BindType::SAMPLER: {
 
+          /* Re-map sampler slot to share texture indices with images.
+           * Only applies if `auto_resource_location_` is enabled. */
+          BLI_assert(res.slot >= 0 && res.slot < MTL_MAX_TEXTURE_SLOTS);
+          unsigned int used_slot = (create_info_->auto_resource_location_) ? (texture_slot_id++) :
+                                                                             res.slot;
+          BLI_assert(used_slot < MTL_MAX_TEXTURE_SLOTS);
+
           /* Samplers to have access::sample by default. */
           MSLTextureSamplerAccess access = MSLTextureSamplerAccess::TEXTURE_ACCESS_SAMPLE;
           /* TextureBuffers must have read/write/read-write access pattern. */
@@ -1211,13 +1250,23 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
               res.sampler.type == ImageType::UINT_BUFFER) {
             access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READ;
           }
-          BLI_assert(res.slot >= 0 && res.slot < MTL_MAX_TEXTURE_SLOTS);
+
           MSLTextureSampler msl_tex(
-              ShaderStage::BOTH, res.sampler.type, res.sampler.name, access, res.slot);
+              ShaderStage::BOTH, res.sampler.type, res.sampler.name, access, used_slot);
           texture_samplers.append(msl_tex);
         } break;
 
         case shader::ShaderCreateInfo::Resource::BindType::IMAGE: {
+
+          /* Re-map sampler slot to share texture indices with samplers.
+           * Automatically applies if `auto_resource_location_` is enabled.
+           * Otherwise, if not using automatic resource location, offset by max sampler slot. */
+          BLI_assert(res.slot >= 0 && res.slot < MTL_MAX_TEXTURE_SLOTS);
+          unsigned int used_slot = (create_info_->auto_resource_location_) ?
+                                       (texture_slot_id++) :
+                                       res.slot + max_sampler_slot + 1;
+          BLI_assert(used_slot < MTL_MAX_TEXTURE_SLOTS);
+
           /* Flatten qualifier flags into final access state. */
           MSLTextureSamplerAccess access;
           if (bool(res.image.qualifiers & Qualifier::READ_WRITE)) {
@@ -1229,9 +1278,11 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
           else {
             access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READ;
           }
-          BLI_assert(res.slot >= 0 && res.slot < MTL_MAX_TEXTURE_SLOTS);
+          BLI_assert(used_slot >= 0 && used_slot < MTL_MAX_TEXTURE_SLOTS);
+
+          /* Writeable image targets only assigned to Fragment shader. */
           MSLTextureSampler msl_tex(
-              ShaderStage::BOTH, res.image.type, res.image.name, access, res.slot);
+              ShaderStage::FRAGMENT, res.image.type, res.image.name, access, used_slot);
           texture_samplers.append(msl_tex);
         } break;
 
@@ -1304,6 +1355,10 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
 
     fragment_outputs.append(mtl_frag_out);
   }
+
+  /* Transform feedback. */
+  uses_transform_feedback = (create_info_->tf_type_ != GPU_SHADER_TFB_NONE) &&
+                            (create_info_->tf_names_.size() > 0);
 }
 
 bool MSLGeneratorInterface::use_argument_buffer_for_samplers() const
@@ -1466,6 +1521,9 @@ std::string MSLGeneratorInterface::generate_msl_fragment_entry_stub()
   if (this->uses_gl_FrontFacing) {
     out << "fragment_shader_instance.gl_FrontFacing = gl_FrontFacing;" << std::endl;
   }
+  if (this->uses_gl_PrimitiveID) {
+    out << "fragment_shader_instance.gl_PrimitiveID = gl_PrimitiveID;" << std::endl;
+  }
 
   /* Copy vertex attributes into local variable.s */
   out << this->generate_msl_fragment_input_population();
@@ -1474,7 +1532,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_entry_stub()
   if (this->uses_barycentrics) {
 
     /* Main barycentrics. */
-    out << "fragment_shader_instance.gpu_BaryCoord = mtl_barycentric_coord.xyz;";
+    out << "fragment_shader_instance.gpu_BaryCoord = mtl_barycentric_coord.xyz;" << std::endl;
 
     /* barycentricDist represents the world-space distance from the current world-space position
      * to the opposite edge of the vertex. */
@@ -1640,6 +1698,9 @@ std::string MSLGeneratorInterface::generate_msl_fragment_inputs_string()
   }
   if (this->uses_gl_FrontFacing) {
     out << ",\n\tconst MTLBOOL gl_FrontFacing [[front_facing]]";
+  }
+  if (this->uses_gl_PrimitiveID) {
+    out << ",\n\tconst uint gl_PrimitiveID [[primitive_id]]";
   }
 
   /* Barycentrics. */
@@ -1827,11 +1888,14 @@ std::string MSLGeneratorInterface::generate_msl_vertex_out_struct(ShaderStage sh
     out << "#if defined(USE_CLIP_PLANES) || defined(USE_WORLD_CLIP_PLANES)" << std::endl;
     if (this->clip_distances.size() > 1) {
       /* Output array of clip distances if specified. */
-      out << "\tfloat clipdistance [[clip_distance]] [" << this->clip_distances.size() << "];"
-          << std::endl;
+      out << "\tfloat clipdistance [[clip_distance, "
+             "function_constant(MTL_clip_distances_enabled)]] ["
+          << this->clip_distances.size() << "];" << std::endl;
     }
     else if (this->clip_distances.size() > 0) {
-      out << "\tfloat clipdistance [[clip_distance]];" << std::endl;
+      out << "\tfloat clipdistance [[clip_distance, "
+             "function_constant(MTL_clip_distances_enabled)]];"
+          << std::endl;
     }
     out << "#endif" << std::endl;
   }
@@ -2108,18 +2172,24 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
         << std::endl;
   }
 
-  /* Output clip-distances. */
-  out << "#if defined(USE_CLIP_PLANES) || defined(USE_WORLD_CLIP_PLANES)" << std::endl;
+  /* Output clip-distances.
+   * Clip distances are only written to if both clipping planes are turned on for the shader,
+   * and the clipping planes are enabled. Enablement is controlled on a per-plane basis
+   * via function constants in the shader pipeline state object (PSO). */
+  out << "#if defined(USE_CLIP_PLANES) || defined(USE_WORLD_CLIP_PLANES)" << std::endl
+      << "if(MTL_clip_distances_enabled) {" << std::endl;
   if (this->clip_distances.size() > 1) {
     for (int cd = 0; cd < this->clip_distances.size(); cd++) {
-      out << "\toutput.clipdistance[" << cd << "] = vertex_shader_instance.gl_ClipDistance_" << cd
-          << ";" << std::endl;
+      /* Default value when clipping is disabled >= 0.0 to ensure primitive is not clipped. */
+      out << "\toutput.clipdistance[" << cd
+          << "] = (is_function_constant_defined(MTL_clip_distance_enabled" << cd
+          << "))?vertex_shader_instance.gl_ClipDistance_" << cd << ":1.0;" << std::endl;
     }
   }
   else if (this->clip_distances.size() > 0) {
     out << "\toutput.clipdistance = vertex_shader_instance.gl_ClipDistance_0;" << std::endl;
   }
-  out << "#endif" << std::endl;
+  out << "}" << std::endl << "#endif" << std::endl;
 
   /* Populate output vertex variables. */
   int output_id = 0;
@@ -2341,8 +2411,8 @@ std::string MSLGeneratorInterface::generate_msl_texture_vars(ShaderStage shader_
         out << "\t"
             << ((shader_stage == ShaderStage::VERTEX) ? "vertex_shader_instance." :
                                                         "fragment_shader_instance.")
-            << this->texture_samplers[i].name << ".samp = &samplers.sampler_args[" << i << "];"
-            << std::endl;
+            << this->texture_samplers[i].name << ".samp = &samplers.sampler_args["
+            << this->texture_samplers[i].location << "];" << std::endl;
       }
       else {
         out << "\t"
@@ -2573,6 +2643,7 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(const char *nam
                                                name_buffer_offset),
                            texture_sampler.location,
                            texture_sampler.get_texture_binding_type(),
+                           texture_sampler.get_sampler_format(),
                            texture_sampler.stage);
   }
 
@@ -2969,6 +3040,51 @@ eGPUTextureType MSLTextureSampler::get_texture_binding_type() const
       return GPU_TEXTURE_2D;
     }
   };
+}
+
+eGPUSamplerFormat MSLTextureSampler::get_sampler_format() const
+{
+  switch (this->type) {
+    case ImageType::FLOAT_BUFFER:
+    case ImageType::FLOAT_1D:
+    case ImageType::FLOAT_1D_ARRAY:
+    case ImageType::FLOAT_2D:
+    case ImageType::FLOAT_2D_ARRAY:
+    case ImageType::FLOAT_3D:
+    case ImageType::FLOAT_CUBE:
+    case ImageType::FLOAT_CUBE_ARRAY:
+      return GPU_SAMPLER_TYPE_FLOAT;
+    case ImageType::INT_BUFFER:
+    case ImageType::INT_1D:
+    case ImageType::INT_1D_ARRAY:
+    case ImageType::INT_2D:
+    case ImageType::INT_2D_ARRAY:
+    case ImageType::INT_3D:
+    case ImageType::INT_CUBE:
+    case ImageType::INT_CUBE_ARRAY:
+      return GPU_SAMPLER_TYPE_INT;
+    case ImageType::UINT_BUFFER:
+    case ImageType::UINT_1D:
+    case ImageType::UINT_1D_ARRAY:
+    case ImageType::UINT_2D:
+    case ImageType::UINT_2D_ARRAY:
+    case ImageType::UINT_3D:
+    case ImageType::UINT_CUBE:
+    case ImageType::UINT_CUBE_ARRAY:
+      return GPU_SAMPLER_TYPE_UINT;
+    case ImageType::SHADOW_2D:
+    case ImageType::SHADOW_2D_ARRAY:
+    case ImageType::SHADOW_CUBE:
+    case ImageType::SHADOW_CUBE_ARRAY:
+    case ImageType::DEPTH_2D:
+    case ImageType::DEPTH_2D_ARRAY:
+    case ImageType::DEPTH_CUBE:
+    case ImageType::DEPTH_CUBE_ARRAY:
+      return GPU_SAMPLER_TYPE_DEPTH;
+    default:
+      BLI_assert_unreachable();
+  }
+  return GPU_SAMPLER_TYPE_FLOAT;
 }
 
 /** \} */

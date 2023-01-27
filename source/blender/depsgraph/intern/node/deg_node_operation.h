@@ -224,6 +224,10 @@ enum OperationFlag {
 
   /* Set of flags which gets flushed along the relations. */
   DEPSOP_FLAG_FLUSH = (DEPSOP_FLAG_USER_MODIFIED),
+
+  /* Set of flags which get cleared upon evaluation. */
+  DEPSOP_FLAG_CLEAR_ON_EVAL = (DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE |
+                               DEPSOP_FLAG_USER_MODIFIED),
 };
 
 /* Atomic Operation - Base type for all operations */

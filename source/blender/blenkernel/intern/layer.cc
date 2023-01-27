@@ -7,7 +7,7 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
-#include <string.h>
+#include <cstring>
 
 #include "CLG_log.h"
 
@@ -400,7 +400,7 @@ void BKE_view_layer_base_deselect_all(const Scene *scene, ViewLayer *view_layer)
   }
 }
 
-void BKE_view_layer_base_select_and_set_active(struct ViewLayer *view_layer, Base *selbase)
+void BKE_view_layer_base_select_and_set_active(ViewLayer *view_layer, Base *selbase)
 {
   view_layer->basact = selbase;
   if ((selbase->flag & BASE_SELECTABLE) != 0) {
@@ -489,7 +489,7 @@ static void layer_collections_copy_data(ViewLayer *view_layer_dst,
 }
 
 void BKE_view_layer_copy_data(Scene *scene_dst,
-                              const Scene *UNUSED(scene_src),
+                              const Scene * /*scene_src*/,
                               ViewLayer *view_layer_dst,
                               const ViewLayer *view_layer_src,
                               const int flag)
@@ -780,12 +780,12 @@ void BKE_layer_collection_resync_allow(void)
   no_resync = false;
 }
 
-typedef struct LayerCollectionResync {
-  struct LayerCollectionResync *prev, *next;
+struct LayerCollectionResync {
+  LayerCollectionResync *prev, *next;
 
   /* Temp data used to generate a queue during valid layer search. See
    * #layer_collection_resync_find. */
-  struct LayerCollectionResync *queue_next;
+  LayerCollectionResync *queue_next;
 
   /* LayerCollection and Collection wrapped by this data. */
   LayerCollection *layer;
@@ -793,7 +793,7 @@ typedef struct LayerCollectionResync {
 
   /* Hierarchical relationships in the old, existing ViewLayer state (except for newly created
    * layers). */
-  struct LayerCollectionResync *parent_layer_resync;
+  LayerCollectionResync *parent_layer_resync;
   ListBase children_layer_resync;
 
   /* This layer still points to a valid collection. */
@@ -809,7 +809,7 @@ typedef struct LayerCollectionResync {
    * OR
    * This layer has already been re-used to match the new collections hierarchy. */
   bool is_used;
-} LayerCollectionResync;
+};
 
 static LayerCollectionResync *layer_collection_resync_create_recurse(
     LayerCollectionResync *parent_layer_resync, LayerCollection *layer, BLI_mempool *mempool)
@@ -969,12 +969,12 @@ static void layer_collection_resync_unused_layers_free(ViewLayer *view_layer,
   }
 }
 
-void BKE_view_layer_need_resync_tag(struct ViewLayer *view_layer)
+void BKE_view_layer_need_resync_tag(ViewLayer *view_layer)
 {
   view_layer->flag |= VIEW_LAYER_OUT_OF_SYNC;
 }
 
-void BKE_view_layer_synced_ensure(const Scene *scene, struct ViewLayer *view_layer)
+void BKE_view_layer_synced_ensure(const Scene *scene, ViewLayer *view_layer)
 {
   if (view_layer->flag & VIEW_LAYER_OUT_OF_SYNC) {
     BKE_layer_collection_sync(scene, view_layer);
@@ -1057,7 +1057,7 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
     }
 
     /* Holdout and indirect only */
-    if ((layer->flag & LAYER_COLLECTION_HOLDOUT)) {
+    if (layer->flag & LAYER_COLLECTION_HOLDOUT) {
       base->flag_from_collection |= BASE_HOLDOUT;
     }
     if (layer->flag & LAYER_COLLECTION_INDIRECT_ONLY) {
@@ -1257,8 +1257,8 @@ static bool view_layer_objects_base_cache_validate(ViewLayer *view_layer, LayerC
   return is_valid;
 }
 #else
-static bool view_layer_objects_base_cache_validate(ViewLayer *UNUSED(view_layer),
-                                                   LayerCollection *UNUSED(layer))
+static bool view_layer_objects_base_cache_validate(ViewLayer * /*view_layer*/,
+                                                   LayerCollection * /*layer*/)
 {
   return true;
 }
@@ -1599,7 +1599,7 @@ bool BKE_base_is_visible(const View3D *v3d, const Base *base)
   return base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT;
 }
 
-bool BKE_object_is_visible_in_viewport(const View3D *v3d, const struct Object *ob)
+bool BKE_object_is_visible_in_viewport(const View3D *v3d, const Object *ob)
 {
   BLI_assert(v3d != nullptr);
 
@@ -1650,7 +1650,7 @@ static void layer_collection_flag_unset_recursive(LayerCollection *lc, const int
   }
 }
 
-void BKE_layer_collection_isolate_global(Scene *UNUSED(scene),
+void BKE_layer_collection_isolate_global(Scene * /*scene*/,
                                          ViewLayer *view_layer,
                                          LayerCollection *lc,
                                          bool extend)
@@ -1988,10 +1988,10 @@ bool BKE_scene_has_object(Scene *scene, Object *ob)
 /** \name Private Iterator Helpers
  * \{ */
 
-typedef struct LayerObjectBaseIteratorData {
+struct LayerObjectBaseIteratorData {
   const View3D *v3d;
   Base *base;
-} LayerObjectBaseIteratorData;
+};
 
 static bool object_bases_iterator_is_valid(const View3D *v3d, Base *base, const int flag)
 {
@@ -2207,7 +2207,7 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter)
 /** \name BKE_view_layer_bases_in_mode_iterator
  * \{ */
 
-static bool base_is_in_mode(struct ObjectsInModeIteratorData *data, Base *base)
+static bool base_is_in_mode(ObjectsInModeIteratorData *data, Base *base)
 {
   return (base->object->type == data->object_type) &&
          (base->object->mode & data->object_mode) != 0;
@@ -2215,7 +2215,7 @@ static bool base_is_in_mode(struct ObjectsInModeIteratorData *data, Base *base)
 
 void BKE_view_layer_bases_in_mode_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
-  struct ObjectsInModeIteratorData *data = static_cast<ObjectsInModeIteratorData *>(data_in);
+  ObjectsInModeIteratorData *data = static_cast<ObjectsInModeIteratorData *>(data_in);
   Base *base = data->base_active;
 
   /* In this case the result will always be empty, the caller must check for no mode. */
@@ -2241,7 +2241,7 @@ void BKE_view_layer_bases_in_mode_iterator_begin(BLI_Iterator *iter, void *data_
 
 void BKE_view_layer_bases_in_mode_iterator_next(BLI_Iterator *iter)
 {
-  struct ObjectsInModeIteratorData *data = static_cast<ObjectsInModeIteratorData *>(iter->data);
+  ObjectsInModeIteratorData *data = static_cast<ObjectsInModeIteratorData *>(iter->data);
   Base *base = static_cast<Base *>(iter->current);
 
   if (base == data->base_active) {
@@ -2266,7 +2266,7 @@ void BKE_view_layer_bases_in_mode_iterator_next(BLI_Iterator *iter)
   iter->valid = false;
 }
 
-void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
+void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator * /*iter*/)
 {
   /* do nothing */
 }
@@ -2309,9 +2309,7 @@ void BKE_base_eval_flags(Base *base)
   }
 }
 
-static void layer_eval_view_layer(struct Depsgraph *depsgraph,
-                                  struct Scene *scene,
-                                  ViewLayer *view_layer)
+static void layer_eval_view_layer(Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer)
 {
   DEG_debug_print_eval(depsgraph, __func__, view_layer->name, view_layer);
 
@@ -2327,9 +2325,7 @@ static void layer_eval_view_layer(struct Depsgraph *depsgraph,
   }
 }
 
-void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,
-                                       struct Scene *scene,
-                                       int view_layer_index)
+void BKE_layer_eval_view_layer_indexed(Depsgraph *depsgraph, Scene *scene, int view_layer_index)
 {
   BLI_assert(view_layer_index >= 0);
   ViewLayer *view_layer = static_cast<ViewLayer *>(
@@ -2502,7 +2498,7 @@ static void viewlayer_aov_active_set(ViewLayer *view_layer, ViewLayerAOV *aov)
   }
 }
 
-struct ViewLayerAOV *BKE_view_layer_add_aov(struct ViewLayer *view_layer)
+ViewLayerAOV *BKE_view_layer_add_aov(ViewLayer *view_layer)
 {
   ViewLayerAOV *aov;
   aov = MEM_cnew<ViewLayerAOV>(__func__);
@@ -2535,12 +2531,12 @@ void BKE_view_layer_set_active_aov(ViewLayer *view_layer, ViewLayerAOV *aov)
 }
 
 static void bke_view_layer_verify_aov_cb(void *userdata,
-                                         Scene *UNUSED(scene),
-                                         ViewLayer *UNUSED(view_layer),
+                                         Scene * /*scene*/,
+                                         ViewLayer * /*view_layer*/,
                                          const char *name,
-                                         int UNUSED(channels),
-                                         const char *UNUSED(chanid),
-                                         eNodeSocketDatatype UNUSED(type))
+                                         int /*channels*/,
+                                         const char * /*chanid*/,
+                                         eNodeSocketDatatype /*type*/)
 {
   GHash *name_count = static_cast<GHash *>(userdata);
   void **value_p;
@@ -2557,9 +2553,7 @@ static void bke_view_layer_verify_aov_cb(void *userdata,
   }
 }
 
-void BKE_view_layer_verify_aov(struct RenderEngine *engine,
-                               struct Scene *scene,
-                               struct ViewLayer *view_layer)
+void BKE_view_layer_verify_aov(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
   viewlayer_aov_make_name_unique(view_layer);
 
@@ -2584,7 +2578,7 @@ bool BKE_view_layer_has_valid_aov(ViewLayer *view_layer)
   return false;
 }
 
-ViewLayer *BKE_view_layer_find_with_aov(struct Scene *scene, struct ViewLayerAOV *aov)
+ViewLayer *BKE_view_layer_find_with_aov(Scene *scene, ViewLayerAOV *aov)
 {
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     if (BLI_findindex(&view_layer->aovs, aov) != -1) {
@@ -2625,8 +2619,7 @@ static void viewlayer_lightgroup_active_set(ViewLayer *view_layer, ViewLayerLigh
   }
 }
 
-struct ViewLayerLightgroup *BKE_view_layer_add_lightgroup(struct ViewLayer *view_layer,
-                                                          const char *name)
+ViewLayerLightgroup *BKE_view_layer_add_lightgroup(ViewLayer *view_layer, const char *name)
 {
   ViewLayerLightgroup *lightgroup;
   lightgroup = MEM_cnew<ViewLayerLightgroup>(__func__);
@@ -2662,8 +2655,7 @@ void BKE_view_layer_set_active_lightgroup(ViewLayer *view_layer, ViewLayerLightg
   viewlayer_lightgroup_active_set(view_layer, lightgroup);
 }
 
-ViewLayer *BKE_view_layer_find_with_lightgroup(struct Scene *scene,
-                                               struct ViewLayerLightgroup *lightgroup)
+ViewLayer *BKE_view_layer_find_with_lightgroup(Scene *scene, ViewLayerLightgroup *lightgroup)
 {
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     if (BLI_findindex(&view_layer->lightgroups, lightgroup) != -1) {
@@ -2706,7 +2698,7 @@ void BKE_view_layer_rename_lightgroup(Scene *scene,
   }
 }
 
-void BKE_lightgroup_membership_get(struct LightgroupMembership *lgm, char *name)
+void BKE_lightgroup_membership_get(LightgroupMembership *lgm, char *name)
 {
   if (lgm != nullptr) {
     BLI_strncpy(name, lgm->name, sizeof(lgm->name));
@@ -2716,7 +2708,7 @@ void BKE_lightgroup_membership_get(struct LightgroupMembership *lgm, char *name)
   }
 }
 
-int BKE_lightgroup_membership_length(struct LightgroupMembership *lgm)
+int BKE_lightgroup_membership_length(LightgroupMembership *lgm)
 {
   if (lgm != nullptr) {
     return strlen(lgm->name);
@@ -2724,7 +2716,7 @@ int BKE_lightgroup_membership_length(struct LightgroupMembership *lgm)
   return 0;
 }
 
-void BKE_lightgroup_membership_set(struct LightgroupMembership **lgm, const char *name)
+void BKE_lightgroup_membership_set(LightgroupMembership **lgm, const char *name)
 {
   if (name[0] != '\0') {
     if (*lgm == nullptr) {

@@ -241,7 +241,7 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *ved)
     DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->grid_ps);
     float color_back[4];
     interp_v4_v4v4(color_back, G_draw.block.color_background, G_draw.block.color_grid, 0.5);
-    DRW_shgroup_uniform_vec4_copy(grp, "color", color_back);
+    DRW_shgroup_uniform_vec4_copy(grp, "ucolor", color_back);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
     unit_m4(mat);
     mat[0][0] = grid->size[0];

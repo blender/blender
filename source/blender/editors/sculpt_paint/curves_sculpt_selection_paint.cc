@@ -8,6 +8,7 @@
 
 #include "DNA_brush_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
@@ -57,6 +58,8 @@ struct SelectionPaintOperationExecutor {
   Curves *curves_id_ = nullptr;
   CurvesGeometry *curves_ = nullptr;
 
+  bke::SpanAttributeWriter<float> selection_;
+
   const Brush *brush_ = nullptr;
   float brush_radius_base_re_;
   float brush_radius_factor_;
@@ -81,8 +84,11 @@ struct SelectionPaintOperationExecutor {
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
-    curves_id_->flag |= CV_SCULPT_SELECTION_ENABLED;
     if (curves_->curves_num() == 0) {
+      return;
+    }
+    selection_ = float_selection_ensure(*curves_id_);
+    if (!selection_) {
       return;
     }
 
@@ -95,12 +101,7 @@ struct SelectionPaintOperationExecutor {
 
     if (self.clear_selection_) {
       if (stroke_extension.is_first) {
-        if (curves_id_->selection_domain == ATTR_DOMAIN_POINT) {
-          curves_->selection_point_float_for_write().fill(0.0f);
-        }
-        else if (curves_id_->selection_domain == ATTR_DOMAIN_CURVE) {
-          curves_->selection_curve_float_for_write().fill(0.0f);
-        }
+        curves::fill_selection_false(selection_.span);
       }
     }
 
@@ -117,24 +118,24 @@ struct SelectionPaintOperationExecutor {
       }
     }
 
-    if (curves_id_->selection_domain == ATTR_DOMAIN_POINT) {
-      MutableSpan<float> selection = curves_->selection_point_float_for_write();
+    if (selection_.domain == ATTR_DOMAIN_POINT) {
       if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-        this->paint_point_selection_projected_with_symmetry(selection);
+        this->paint_point_selection_projected_with_symmetry(selection_.span);
       }
       else if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-        this->paint_point_selection_spherical_with_symmetry(selection);
+        this->paint_point_selection_spherical_with_symmetry(selection_.span);
       }
     }
     else {
-      MutableSpan<float> selection = curves_->selection_curve_float_for_write();
       if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-        this->paint_curve_selection_projected_with_symmetry(selection);
+        this->paint_curve_selection_projected_with_symmetry(selection_.span);
       }
       else if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-        this->paint_curve_selection_spherical_with_symmetry(selection);
+        this->paint_curve_selection_spherical_with_symmetry(selection_.span);
       }
     }
+
+    selection_.finish();
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because
      * selection is handled as a generic attribute for now. */

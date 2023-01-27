@@ -27,6 +27,7 @@
 
 #include "BLI_any.hh"
 #include "BLI_array.hh"
+#include "BLI_devirtualize_parameters.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_span.hh"
 
@@ -1311,5 +1312,69 @@ template<typename T> class SingleAsSpan {
     return value_;
   }
 };
+
+/** To be used with #call_with_devirtualized_parameters. */
+template<typename T, bool UseSingle, bool UseSpan> struct VArrayDevirtualizer {
+  const VArray<T> &varray;
+
+  template<typename Fn> bool devirtualize(const Fn &fn) const
+  {
+    const CommonVArrayInfo info = this->varray.common_info();
+    const int64_t size = this->varray.size();
+    if constexpr (UseSingle) {
+      if (info.type == CommonVArrayInfo::Type::Single) {
+        return fn(SingleAsSpan<T>(*static_cast<const T *>(info.data), size));
+      }
+    }
+    if constexpr (UseSpan) {
+      if (info.type == CommonVArrayInfo::Type::Span) {
+        return fn(Span<T>(static_cast<const T *>(info.data), size));
+      }
+    }
+    return false;
+  }
+};
+
+/**
+ * Generate multiple versions of the given function optimized for different virtual arrays.
+ * One has to be careful with nesting multiple devirtualizations, because that results in an
+ * exponential number of function instantiations (increasing compile time and binary size).
+ *
+ * Generally, this function should only be used when the virtual method call overhead to get an
+ * element from a virtual array is significant.
+ */
+template<typename T, typename Func>
+inline void devirtualize_varray(const VArray<T> &varray, const Func &func, bool enable = true)
+{
+  if (enable) {
+    if (call_with_devirtualized_parameters(
+            std::make_tuple(VArrayDevirtualizer<T, true, true>{varray}), func)) {
+      return;
+    }
+  }
+  func(varray);
+}
+
+/**
+ * Same as `devirtualize_varray`, but devirtualizes two virtual arrays at the same time.
+ * This is better than nesting two calls to `devirtualize_varray`, because it instantiates fewer
+ * cases.
+ */
+template<typename T1, typename T2, typename Func>
+inline void devirtualize_varray2(const VArray<T1> &varray1,
+                                 const VArray<T2> &varray2,
+                                 const Func &func,
+                                 bool enable = true)
+{
+  if (enable) {
+    if (call_with_devirtualized_parameters(
+            std::make_tuple(VArrayDevirtualizer<T1, true, true>{varray1},
+                            VArrayDevirtualizer<T2, true, true>{varray2}),
+            func)) {
+      return;
+    }
+  }
+  func(varray1, varray2);
+}
 
 }  // namespace blender

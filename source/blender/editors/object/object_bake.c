@@ -155,7 +155,7 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
       break;
     }
 
-    if (!CustomData_has_layer(&me->ldata, CD_MLOOPUV)) {
+    if (!CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2)) {
       BKE_report(op->reports, RPT_ERROR, "Mesh should be unwrapped before multires data baking");
 
       ok = false;

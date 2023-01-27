@@ -193,7 +193,7 @@ class CYCLES_RENDER_PT_sampling_viewport(CyclesButtonsPanel, Panel):
 
         if cscene.use_preview_adaptive_sampling:
             col = layout.column(align=True)
-            col.prop(cscene, "preview_samples", text=" Max Samples")
+            col.prop(cscene, "preview_samples", text="Max Samples")
             col.prop(cscene, "preview_adaptive_min_samples", text="Min Samples")
         else:
             layout.prop(cscene, "preview_samples", text="Samples")
@@ -255,7 +255,7 @@ class CYCLES_RENDER_PT_sampling_render(CyclesButtonsPanel, Panel):
 
         col = layout.column(align=True)
         if cscene.use_adaptive_sampling:
-            col.prop(cscene, "samples", text=" Max Samples")
+            col.prop(cscene, "samples", text="Max Samples")
             col.prop(cscene, "adaptive_min_samples", text="Min Samples")
         else:
             col.prop(cscene, "samples", text="Samples")
@@ -365,15 +365,12 @@ class CYCLES_RENDER_PT_sampling_advanced(CyclesButtonsPanel, Panel):
         row.prop(cscene, "use_animated_seed", text="", icon='TIME')
 
         col = layout.column(align=True)
-        col.prop(cscene, "sampling_pattern", text="Pattern")
-
-        col = layout.column(align=True)
         col.prop(cscene, "sample_offset")
 
         layout.separator()
 
         heading = layout.column(align=True, heading="Scrambling Distance")
-        heading.active = cscene.sampling_pattern != 'SOBOL'
+        heading.active = cscene.sampling_pattern == 'TABULATED_SOBOL'
         heading.prop(cscene, "auto_scrambling_distance", text="Automatic")
         heading.prop(cscene, "preview_scrambling_distance", text="Viewport")
         heading.prop(cscene, "scrambling_distance", text="Multiplier")
@@ -383,13 +380,49 @@ class CYCLES_RENDER_PT_sampling_advanced(CyclesButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(cscene, "min_light_bounces")
         col.prop(cscene, "min_transparent_bounces")
-        col.prop(cscene, "light_sampling_threshold", text="Light Threshold")
 
         for view_layer in scene.view_layers:
             if view_layer.samples > 0:
                 layout.separator()
                 layout.row().prop(cscene, "use_layer_samples")
                 break
+
+
+class CYCLES_RENDER_PT_sampling_lights(CyclesButtonsPanel, Panel):
+    bl_label = "Lights"
+    bl_parent_id = "CYCLES_RENDER_PT_sampling"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+        cscene = scene.cycles
+
+        col = layout.column(align=True)
+        col.prop(cscene, "use_light_tree")
+        sub = col.row()
+        sub.prop(cscene, "light_sampling_threshold", text="Light Threshold")
+        sub.active = not cscene.use_light_tree
+
+
+class CYCLES_RENDER_PT_sampling_debug(CyclesDebugButtonsPanel, Panel):
+    bl_label = "Debug"
+    bl_parent_id = "CYCLES_RENDER_PT_sampling"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+        cscene = scene.cycles
+
+        col = layout.column(align=True)
+        col.prop(cscene, "sampling_pattern", text="Pattern")
 
 
 class CYCLES_RENDER_PT_subdivision(CyclesButtonsPanel, Panel):
@@ -954,7 +987,6 @@ class CYCLES_RENDER_PT_passes_light(CyclesButtonsPanel, Panel):
         col = layout.column(heading="Other", align=True)
         col.prop(view_layer, "use_pass_emit", text="Emission")
         col.prop(view_layer, "use_pass_environment")
-        col.prop(view_layer, "use_pass_shadow")
         col.prop(view_layer, "use_pass_ambient_occlusion", text="Ambient Occlusion")
         col.prop(cycles_view_layer, "use_pass_shadow_catcher")
 
@@ -2328,7 +2360,6 @@ def draw_pause(self, context):
 
 def get_panels():
     exclude_panels = {
-        'DATA_PT_area',
         'DATA_PT_camera_dof',
         'DATA_PT_falloff_curve',
         'DATA_PT_light',
@@ -2366,7 +2397,9 @@ classes = (
     CYCLES_RENDER_PT_sampling_render_denoise,
     CYCLES_RENDER_PT_sampling_path_guiding,
     CYCLES_RENDER_PT_sampling_path_guiding_debug,
+    CYCLES_RENDER_PT_sampling_lights,
     CYCLES_RENDER_PT_sampling_advanced,
+    CYCLES_RENDER_PT_sampling_debug,
     CYCLES_RENDER_PT_light_paths,
     CYCLES_RENDER_PT_light_paths_max_bounces,
     CYCLES_RENDER_PT_light_paths_clamping,

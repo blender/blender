@@ -809,7 +809,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
            0,
            sizeof(oglrender->scene->customdata_mask_modal));
     ED_view3d_datamask(
-        C, oglrender->scene, oglrender->v3d, &oglrender->scene->customdata_mask_modal);
+        oglrender->view_layer, oglrender->v3d, &oglrender->scene->customdata_mask_modal);
 
     /* apply immediately in case we're rendering from a script,
      * running notifiers again will overwrite */

@@ -7,11 +7,11 @@ namespace blender::nodes::node_geo_separate_components_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_output<decl::Geometry>(N_("Mesh"));
-  b.add_output<decl::Geometry>(N_("Point Cloud"));
-  b.add_output<decl::Geometry>(N_("Curve"));
-  b.add_output<decl::Geometry>(N_("Volume"));
-  b.add_output<decl::Geometry>(N_("Instances"));
+  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
+  b.add_output<decl::Geometry>(N_("Point Cloud")).propagate_all();
+  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
+  b.add_output<decl::Geometry>(N_("Volume")).propagate_all();
+  b.add_output<decl::Geometry>(N_("Instances")).propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

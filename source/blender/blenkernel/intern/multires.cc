@@ -437,6 +437,28 @@ void multires_flush_sculpt_updates(Object *object)
   }
 
   Mesh *mesh = static_cast<Mesh *>(object->data);
+
+  /* Check that the multires modifier still exists.
+   * Fixes crash when deleting multires modifier
+   * from within sculpt mode.
+   */
+  ModifierData *md;
+  MultiresModifierData *mmd = nullptr;
+  VirtualModifierData virtualModifierData;
+
+  for (md = BKE_modifiers_get_virtual_modifierlist(object, &virtualModifierData); md;
+       md = md->next) {
+    if (md->type == eModifierType_Multires) {
+      if (BKE_modifier_is_enabled(nullptr, md, eModifierMode_Realtime)) {
+        mmd = (MultiresModifierData *)md;
+      }
+    }
+  }
+
+  if (!mmd) {
+    return;
+  }
+
   multiresModifier_reshapeFromCCG(
       sculpt_session->multires.modifier->totlvl, mesh, sculpt_session->subdiv_ccg);
 
@@ -488,7 +510,7 @@ static int get_levels_from_disps(Object *ob)
         continue;
       }
 
-      while (1) {
+      while (true) {
         int side = (1 << (totlvl - 1)) + 1;
         int lvl_totdisp = side * side;
         if (md->totdisp == lvl_totdisp) {
@@ -532,7 +554,8 @@ void multiresModifier_set_levels_from_disps(MultiresModifierData *mmd, Object *o
 
 static void multires_set_tot_mdisps(Mesh *me, int lvl)
 {
-  MDisps *mdisps = static_cast<MDisps *>(CustomData_get_layer(&me->ldata, CD_MDISPS));
+  MDisps *mdisps = static_cast<MDisps *>(
+      CustomData_get_layer_for_write(&me->ldata, CD_MDISPS, me->totloop));
   int i;
 
   if (mdisps) {
@@ -651,14 +674,16 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 
   multires_set_tot_mdisps(me, mmd->totlvl);
   multiresModifier_ensure_external_read(me, mmd);
-  mdisps = static_cast<MDisps *>(CustomData_get_layer(&me->ldata, CD_MDISPS));
-  gpm = static_cast<GridPaintMask *>(CustomData_get_layer(&me->ldata, CD_GRID_PAINT_MASK));
+  mdisps = static_cast<MDisps *>(
+      CustomData_get_layer_for_write(&me->ldata, CD_MDISPS, me->totloop));
+  gpm = static_cast<GridPaintMask *>(
+      CustomData_get_layer_for_write(&me->ldata, CD_GRID_PAINT_MASK, me->totloop));
 
   multires_force_sculpt_rebuild(ob);
 
   if (mdisps && levels > 0) {
     if (lvl > 0) {
-      /* MLoop *ml = me->mloop; */ /*UNUSED*/
+      // MLoop *ml = me->mloop; /*UNUSED*/
       int nsize = multires_side_tot[lvl];
       int hsize = multires_side_tot[mmd->totlvl];
       int i, j;
@@ -716,7 +741,8 @@ void multiresModifier_del_levels(MultiresModifierData *mmd,
 
   multires_set_tot_mdisps(me, mmd->totlvl);
   multiresModifier_ensure_external_read(me, mmd);
-  MDisps *mdisps = static_cast<MDisps *>(CustomData_get_layer(&me->ldata, CD_MDISPS));
+  MDisps *mdisps = static_cast<MDisps *>(
+      CustomData_get_layer_for_write(&me->ldata, CD_MDISPS, me->totloop));
 
   multires_force_sculpt_rebuild(ob);
 
@@ -965,6 +991,8 @@ extern "C" Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm)
 
 #define VINDEX(i, j) (loopi * dimen * dimen + ((j)*dimen + (i)))
 
+  float(*vert_positions)[3] = BKE_mesh_vert_positions_for_write(me);
+
   // CustomData_daata_
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     BMLoop *l = f->l_first;
@@ -977,8 +1005,7 @@ extern "C" Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm)
           int idx = j * dimen + i;
           float *co = md->disps[idx];
 
-          MVert *mv = mvert + vidx;
-          copy_v3_v3(mv->co, co);
+          copy_v3_v3(vert_positions[vidx], co);
         }
       }
 
@@ -1052,7 +1079,7 @@ extern "C" Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm)
 
 static void multires_bmesh_space_set_cb(void *__restrict userdata,
                                         const int pidx,
-                                        const TaskParallelTLS *__restrict UNUSED(tls))
+                                        const TaskParallelTLS *__restrict)
 {
   MultiresThreadedData *tdata = (MultiresThreadedData *)userdata;
 
@@ -1396,7 +1423,8 @@ static void multiresModifier_disp_run(
   CCGElem **gridData, **subGridData;
   CCGKey key;
   const MPoly *mpoly = BKE_mesh_polys(me);
-  MDisps *mdisps = static_cast<MDisps *>(CustomData_get_layer(&me->ldata, CD_MDISPS));
+  MDisps *mdisps = static_cast<MDisps *>(
+      CustomData_get_layer_for_write(&me->ldata, CD_MDISPS, me->totloop));
   GridPaintMask *grid_paint_mask = nullptr;
   int *gridOffset;
   int i, gridSize, dGridSize, dSkip;
@@ -1404,8 +1432,10 @@ static void multiresModifier_disp_run(
 
   /* this happens in the dm made by bmesh_mdisps_space_set */
   if (dm2 && CustomData_has_layer(&dm2->loopData, CD_MDISPS)) {
-    mpoly = static_cast<const MPoly *>(CustomData_get_layer(&dm2->polyData, CD_MPOLY));
-    mdisps = static_cast<MDisps *>(CustomData_get_layer(&dm2->loopData, CD_MDISPS));
+    mpoly = static_cast<const MPoly *>(
+        CustomData_get_layer_for_write(&dm2->polyData, CD_MPOLY, dm2->getNumPolys(dm)));
+    mdisps = static_cast<MDisps *>(
+        CustomData_get_layer_for_write(&dm2->loopData, CD_MDISPS, dm2->getNumLoops(dm)));
     totloop = dm2->numLoopData;
     totpoly = dm2->numPolyData;
   }
@@ -1437,7 +1467,7 @@ static void multiresModifier_disp_run(
   /* multires paint masks */
   if (key.has_mask) {
     grid_paint_mask = static_cast<GridPaintMask *>(
-        CustomData_get_layer(&me->ldata, CD_GRID_PAINT_MASK));
+        CustomData_get_layer_for_write(&me->ldata, CD_GRID_PAINT_MASK, me->totloop));
   }
 
   /* when adding new faces in edit mode, need to allocate disps */
@@ -1510,7 +1540,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
                                        cddm,
                                        totlvl,
                                        false,
-                                       0,
+                                       false,
                                        mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
                                        has_mask,
                                        false,
@@ -1587,7 +1617,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
                                       cddm,
                                       mmd->totlvl,
                                       false,
-                                      0,
+                                      false,
                                       mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
                                       has_mask,
                                       false,
@@ -1607,7 +1637,8 @@ void multires_modifier_update_hidden(DerivedMesh *dm)
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   BLI_bitmap **grid_hidden = ccgdm->gridHidden;
   Mesh *me = static_cast<Mesh *>(ccgdm->multires.ob->data);
-  MDisps *mdisps = static_cast<MDisps *>(CustomData_get_layer(&me->ldata, CD_MDISPS));
+  MDisps *mdisps = static_cast<MDisps *>(
+      CustomData_get_layer_for_write(&me->ldata, CD_MDISPS, me->totloop));
   int totlvl = ccgdm->multires.totlvl;
   int lvl = ccgdm->multires.lvl;
 
@@ -1826,7 +1857,8 @@ static void multires_sync_levels(Scene *scene, Object *ob_src, Object *ob_dst)
 static void multires_apply_uniform_scale(Object *object, const float scale)
 {
   Mesh *mesh = (Mesh *)object->data;
-  MDisps *mdisps = static_cast<MDisps *>(CustomData_get_layer(&mesh->ldata, CD_MDISPS));
+  MDisps *mdisps = static_cast<MDisps *>(
+      CustomData_get_layer_for_write(&mesh->ldata, CD_MDISPS, mesh->totloop));
   for (int i = 0; i < mesh->totloop; i++) {
     MDisps *grid = &mdisps[i];
     for (int j = 0; j < grid->totdisp; j++) {
@@ -1910,7 +1942,8 @@ void multires_topology_changed(Mesh *me)
   int i, grid = 0;
 
   CustomData_external_read(&me->ldata, &me->id, CD_MASK_MDISPS, me->totloop);
-  mdisp = static_cast<MDisps *>(CustomData_get_layer(&me->ldata, CD_MDISPS));
+  mdisp = static_cast<MDisps *>(
+      CustomData_get_layer_for_write(&me->ldata, CD_MDISPS, me->totloop));
 
   if (!mdisp) {
     return;
@@ -1945,7 +1978,8 @@ void multires_ensure_external_read(struct Mesh *mesh, int top_level)
     return;
   }
 
-  MDisps *mdisps = static_cast<MDisps *>(CustomData_get_layer(&mesh->ldata, CD_MDISPS));
+  MDisps *mdisps = static_cast<MDisps *>(
+      CustomData_get_layer_for_write(&mesh->ldata, CD_MDISPS, mesh->totloop));
   if (mdisps == nullptr) {
     mdisps = static_cast<MDisps *>(
         CustomData_add_layer(&mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, nullptr, mesh->totloop));
@@ -2049,7 +2083,7 @@ int mdisp_rot_face_to_crn(
     float mindist = FLT_MAX;
 
     for (i = 0; i < mpoly->totloop; i++) {
-      float len = len_v3v3(nullptr, mvert[mloop[mpoly->loopstart + i].v].co);
+      float len = len_v3v3(nullptr, positions[mloop[mpoly->loopstart + i].v]);
       if (len < mindist) {
         mindist = len;
         minS = i;

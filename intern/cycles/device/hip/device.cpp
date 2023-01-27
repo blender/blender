@@ -137,6 +137,7 @@ void device_hip_info(vector<DeviceInfo> &devices)
     info.num = num;
 
     info.has_nanovdb = true;
+    info.has_light_tree = false;
     info.denoisers = 0;
 
     info.has_gpu_queue = true;
@@ -162,10 +163,10 @@ void device_hip_info(vector<DeviceInfo> &devices)
     /* If device has a kernel timeout and no compute preemption, we assume
      * it is connected to a display and will freeze the display while doing
      * computations. */
-    int timeout_attr = 0, preempt_attr = 0;
+    int timeout_attr = 0;
     hipDeviceGetAttribute(&timeout_attr, hipDeviceAttributeKernelExecTimeout, num);
 
-    if (timeout_attr && !preempt_attr) {
+    if (timeout_attr) {
       VLOG_INFO << "Device is recognized as display.";
       info.description += " (Display)";
       info.display_device = true;

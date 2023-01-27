@@ -211,7 +211,7 @@ endif
 # Set the LIBDIR, an empty string when not found.
 LIBDIR:=$(wildcard ../lib/${OS_NCASE}_${CPU})
 ifeq (, $(LIBDIR))
-	LIBDIR:=$(wildcard ../lib/${OS_NCASE}_centos7_${CPU})
+	LIBDIR:=$(wildcard ../lib/${OS_NCASE}_${CPU}_glibc_228)
 endif
 ifeq (, $(LIBDIR))
 	LIBDIR:=$(wildcard ../lib/${OS_NCASE})

@@ -72,7 +72,7 @@ void MTLVertBuf::duplicate_data(VertBuf *dst_)
 
     /* Allocate VBO for destination vertbuf. */
     uint length = src->vbo_->get_size();
-    dst->vbo_ = MTLContext::get_global_memory_manager().allocate(
+    dst->vbo_ = MTLContext::get_global_memory_manager()->allocate(
         length, (dst->get_usage_type() != GPU_USAGE_DEVICE_ONLY));
     dst->alloc_size_ = length;
 
@@ -162,7 +162,7 @@ void MTLVertBuf::bind()
 
   /* Create MTLBuffer of requested size. */
   if (vbo_ == nullptr) {
-    vbo_ = MTLContext::get_global_memory_manager().allocate(
+    vbo_ = MTLContext::get_global_memory_manager()->allocate(
         required_size, (this->get_usage_type() != GPU_USAGE_DEVICE_ONLY));
     vbo_->set_label(@"Vertex Buffer");
     BLI_assert(vbo_ != nullptr);

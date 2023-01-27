@@ -63,7 +63,7 @@ float *EEVEE_lut_update_ggx_btdf(int lut_size, int lut_depth)
   DRWPass *pass = DRW_pass_create(__func__, DRW_STATE_WRITE_COLOR);
   DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_ggx_refraction_lut_sh_get(), pass);
   DRW_shgroup_uniform_float_copy(grp, "sampleCount", 64.0f); /* Actual sample count is squared. */
-  DRW_shgroup_uniform_float(grp, "z", &roughness, 1);
+  DRW_shgroup_uniform_float(grp, "z_factor", &roughness, 1);
   DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
 
   GPUTexture *tex = DRW_texture_create_2d_array(lut_size, lut_size, lut_depth, GPU_RG16F, 0, NULL);

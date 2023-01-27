@@ -75,6 +75,7 @@
 
 #include "object_intern.h" /* own include */
 
+using blender::float3;
 using blender::IndexRange;
 using blender::Span;
 
@@ -94,7 +95,7 @@ static bool object_remesh_poll(bContext *C)
   }
 
   if (ID_IS_LINKED(ob) || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
-    CTX_wm_operator_poll_msg_set(C, "The remesher cannot worked on linked or override data");
+    CTX_wm_operator_poll_msg_set(C, "The remesher cannot work on linked or override data");
     return false;
   }
 
@@ -686,7 +687,7 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
    * check that the direction of the faces are consistent and doesn't suddenly
    * flip
    */
-  const Span<MVert> verts = mesh->verts();
+  const Span<float3> positions = mesh->vert_positions();
   const Span<MEdge> edges = mesh->edges();
   const Span<MLoop> loops = mesh->loops();
 
@@ -724,9 +725,7 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
         break;
       }
       /* Check for zero length edges */
-      const MVert &v1 = verts[edges[i].v1];
-      const MVert &v2 = verts[edges[i].v2];
-      if (compare_v3v3(v1.co, v2.co, 1e-4f)) {
+      if (compare_v3v3(positions[edges[i].v1], positions[edges[i].v2], 1e-4f)) {
         is_manifold_consistent = false;
         break;
       }

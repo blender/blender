@@ -111,6 +111,13 @@ class DeviceScene {
   device_vector<float2> light_background_marginal_cdf;
   device_vector<float2> light_background_conditional_cdf;
 
+  /* light tree */
+  device_vector<KernelLightTreeNode> light_tree_nodes;
+  device_vector<KernelLightTreeEmitter> light_tree_emitters;
+  device_vector<uint> light_to_tree;
+  device_vector<uint> object_lookup_offset;
+  device_vector<uint> triangle_to_tree;
+
   /* particles */
   device_vector<KernelParticle> particles;
 

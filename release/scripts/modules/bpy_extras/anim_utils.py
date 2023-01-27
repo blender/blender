@@ -9,13 +9,25 @@ __all__ = (
 )
 
 import bpy
-from typing import  Mapping, List, Tuple, Sequence
+from bpy.types import Action
 
-# (fcurve.data_path, fcurve.array_index)
-FCurveKey = Tuple[str, int]
-# [frame0, value0, frame1, value1, ...]
+from typing import (
+    List,
+    Mapping,
+    Sequence,
+    Tuple,
+)
+
+FCurveKey = Tuple[
+    # `fcurve.data_path`.
+    str,
+    # `fcurve.array_index`.
+    int,
+]
+
+# List of `[frame0, value0, frame1, value1, ...]` pairs.
 ListKeyframes = List[float]
-Action = bpy.types.Action
+
 
 def bake_action(
         obj,
@@ -143,11 +155,11 @@ def bake_action_iter(
 
     # Note: BBONE_PROPS is a list so we can preserve the ordering
     BBONE_PROPS = [
-        'bbone_curveinx', 'bbone_curveoutx',
-        'bbone_curveinz', 'bbone_curveoutz',
-        'bbone_rollin', 'bbone_rollout',
-        'bbone_scalein', 'bbone_scaleout',
-        'bbone_easein', 'bbone_easeout'
+        "bbone_curveinx", "bbone_curveoutx",
+        "bbone_curveinz", "bbone_curveoutz",
+        "bbone_rollin", "bbone_rollout",
+        "bbone_scalein", "bbone_scaleout",
+        "bbone_easein", "bbone_easeout",
     ]
     BBONE_PROPS_LENGTHS = {
         "bbone_curveinx": 1,
@@ -430,15 +442,20 @@ def bake_action_iter(
 
     yield action
 
+
 class KeyframesCo:
-    """A buffer for keyframe Co unpacked values per FCurveKey. FCurveKeys are added using
-    add_paths(), Co values stored using extend_co_values(), then finally use
-    insert_keyframes_into_*_action() for efficiently inserting keys into the fcurves.
+    """
+    A buffer for keyframe Co unpacked values per ``FCurveKey``. ``FCurveKeys`` are added using
+    ``add_paths()``, Co values stored using extend_co_values(), then finally use
+    ``insert_keyframes_into_*_action()`` for efficiently inserting keys into the F-curves.
 
     Users are limited to one Action Group per instance.
     """
+    __slots__ = (
+        "keyframes_from_fcurve",
+    )
 
-    # keyframes[(rna_path, array_index)] = list(time0,value0, time1,value1,...)
+    # `keyframes[(rna_path, array_index)] = list(time0,value0, time1,value1,...)`.
     keyframes_from_fcurve: Mapping[FCurveKey, ListKeyframes]
 
     def __init__(self):
@@ -478,11 +495,12 @@ class KeyframesCo:
         action: Action,
         action_group_name: str,
     ) -> None:
-        """Assumes the action is new, that it has no fcurves. Otherwise, the only difference between versions is
+        """
+        Assumes the action is new, that it has no F-curves. Otherwise, the only difference between versions is
         performance and implementation simplicity.
 
-        Args:
-            action_group_name (str): Name of Action Group that fcurves are added to.
+        :arg action_group_name: Name of Action Group that F-curves are added to.
+        :type action_group_name: str
         """
         linear_enum_values = [
             bpy.types.Keyframe.bl_rna.properties["interpolation"].enum_items["LINEAR"].value
@@ -511,14 +529,15 @@ class KeyframesCo:
         action: Action,
         action_group_name: str,
     ) -> None:
-        """Assumes the action already exists, that it might already have fcurves. Otherwise, the
+        """
+        Assumes the action already exists, that it might already have F-curves. Otherwise, the
         only difference between versions is performance and implementation simplicity.
 
-        Args:
-            lookup_fcurves (Mapping[FCurveKey, bpy.types.FCurve]): This is only used for efficiency.
-            It's a substitute for action.fcurves.find() which is a potentially expensive linear
-            search.
-            action_group_name (str): Name of Action Group that fcurves are added to.
+        :arg lookup_fcurves: : This is only used for efficiency.
+           It's a substitute for ``action.fcurves.find()`` which is a potentially expensive linear search.
+        :type lookup_fcurves: ``Mapping[FCurveKey, bpy.types.FCurve]``
+        :arg action_group_name: Name of Action Group that F-curves are added to.
+        :type action_group_name: str
         """
         linear_enum_values = [
             bpy.types.Keyframe.bl_rna.properties["interpolation"].enum_items["LINEAR"].value
@@ -537,7 +556,7 @@ class KeyframesCo:
 
             keyframe_points = fcurve.keyframe_points
 
-            co_buffer = [0] * 2 * len(keyframe_points)
+            co_buffer = [0] * (2 * len(keyframe_points))
             keyframe_points.foreach_get("co", co_buffer)
             co_buffer.extend(key_values)
 

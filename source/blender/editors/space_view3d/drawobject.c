@@ -69,7 +69,7 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
   if (facemap_data) {
     GPU_blend(GPU_BLEND_ALPHA);
 
-    const MVert *verts = BKE_mesh_verts(me);
+    const float(*positions)[3] = BKE_mesh_vert_positions(me);
     const MPoly *polys = BKE_mesh_polys(me);
     const MLoop *loops = BKE_mesh_loops(me);
 
@@ -100,9 +100,9 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
       for (mp = polys, i = 0; i < mpoly_len; i++, mp++) {
         if (facemap_data[i] == facemap) {
           for (int j = 2; j < mp->totloop; j++) {
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), verts[loops[mlt->tri[0]].v].co);
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), verts[loops[mlt->tri[1]].v].co);
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), verts[loops[mlt->tri[2]].v].co);
+            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), positions[loops[mlt->tri[0]].v]);
+            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), positions[loops[mlt->tri[1]].v]);
+            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), positions[loops[mlt->tri[2]].v]);
             vbo_len_used += 3;
             mlt++;
           }
@@ -120,9 +120,9 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
           const MLoop *ml_a = ml_start + 1;
           const MLoop *ml_b = ml_start + 2;
           for (int j = 2; j < mp->totloop; j++) {
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), verts[ml_start->v].co);
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), verts[ml_a->v].co);
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), verts[ml_b->v].co);
+            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), positions[ml_start->v]);
+            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), positions[ml_a->v]);
+            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), positions[ml_b->v]);
             vbo_len_used += 3;
 
             ml_a++;

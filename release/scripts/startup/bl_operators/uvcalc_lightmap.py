@@ -84,7 +84,7 @@ class prettyface:
                 # ngon, note:
                 # for ngons to calculate the width/height we need to do the
                 # whole projection, unlike other faces
-                # we store normalized UV's in the faces coords to avoid
+                # we store normalized UVs in the faces coords to avoid
                 # calculating the projection and rotating it twice.
 
                 no = data.normal
@@ -110,7 +110,7 @@ class prettyface:
                 self.height = yspan
 
                 # ngons work different, we store projected result
-                # in UV's to avoid having to re-project later.
+                # in UVs to avoid having to re-project later.
                 for i, co in enumerate(cos_2d):
                     self.uv[i][:] = ((co.x - xmin) / xspan,
                                      (co.y - ymin) / yspan)
@@ -228,8 +228,8 @@ def lightmap_uvpack(
     """
     BOX_DIV if the maximum division of the UV map that
     a box may be consolidated into.
-    Basically, a lower value will be slower but waist less space
-    and a higher value will have more clumpy boxes but more wasted space
+    A lower value will create more clumpy boxes and more wasted space,
+    and a higher value will be slower but waste less space
     """
     import time
     from math import sqrt
@@ -570,7 +570,7 @@ from bpy.props import BoolProperty, FloatProperty, IntProperty
 
 
 class LightMapPack(Operator):
-    """Pack each faces UV's into the UV bounds"""
+    """Pack each face's UVs into the UV bounds"""
     bl_idname = "uv.lightmap_pack"
     bl_label = "Lightmap Pack"
 
@@ -623,7 +623,10 @@ class LightMapPack(Operator):
     # UV Packing...
     PREF_BOX_DIV: IntProperty(
         name="Pack Quality",
-        description="Pre-packing before the complex boxpack",
+        description=(
+            "Quality of the packing. "
+            "Higher values will be slower but waste less space"
+        ),
         min=1, max=48,
         default=12,
     )

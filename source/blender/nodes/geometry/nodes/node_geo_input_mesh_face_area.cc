@@ -18,13 +18,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static VArray<float> construct_face_area_varray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const Span<MVert> verts = mesh.verts();
+  const Span<float3> positions = mesh.vert_positions();
   const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
-  auto area_fn = [verts, polys, loops](const int i) -> float {
+  auto area_fn = [positions, polys, loops](const int i) -> float {
     const MPoly &poly = polys[i];
-    return BKE_mesh_calc_poly_area(&poly, &loops[poly.loopstart], verts.data());
+    return BKE_mesh_calc_poly_area(
+        &poly, &loops[poly.loopstart], reinterpret_cast<const float(*)[3]>(positions.data()));
   };
 
   return mesh.attributes().adapt_domain<float>(

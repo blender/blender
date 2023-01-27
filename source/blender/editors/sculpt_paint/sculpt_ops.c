@@ -524,7 +524,8 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
 
         /* Create an empty log if reconstruction failed. */
         if (!ob->sculpt->bm_log) {
-          ob->sculpt->bm_log = BM_log_create(ob->sculpt->bm, ob->sculpt->bm_idmap, ob->sculpt->cd_sculpt_vert);
+          ob->sculpt->bm_log = BM_log_create(
+              ob->sculpt->bm, ob->sculpt->bm_idmap, ob->sculpt->cd_sculpt_vert);
         }
       }
     }
@@ -811,7 +812,7 @@ static bool sculpt_sample_color_update_from_base(bContext *C,
 
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, object_sample);
   Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  MPropCol *vcol = CustomData_get_layer(&me_eval->vdata, CD_PROP_COLOR);
+  MPropCol *vcol = CustomData_get_layer_for_write(&me_eval->vdata, CD_PROP_COLOR, me_eval->totvert);
 
   if (!vcol) {
     return false;
@@ -1187,13 +1188,15 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
     v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
   }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
-
   /* Color data is not available in multi-resolution or dynamic topology. */
   if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
+  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
   SCULPT_vertex_random_access_ensure(ss);
 
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse
@@ -1431,8 +1434,8 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
       MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
       int *boundflag = (int *)SCULPT_vertex_attr_get(vertex, ss->attrs.boundary_flags);
 
-      if (*boundflag &
-          (SCULPT_CORNER_MESH, SCULPT_CORNER_FACE_SET, SCULPT_CORNER_SHARP, SCULPT_CORNER_SEAM)) {
+      if (*boundflag & (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SHARP |
+                        SCULPT_CORNER_SEAM)) {
         continue;
       }
 

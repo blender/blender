@@ -1675,8 +1675,11 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
         continue;
       }
 
-      OperationCode target_op = driver_targets_bbone ? OperationCode::BONE_SEGMENTS :
-                                                       OperationCode::BONE_LOCAL;
+      OperationCode target_op = OperationCode::BONE_LOCAL;
+      if (driver_targets_bbone) {
+        target_op = check_pchan_has_bbone_segments(object, pchan) ? OperationCode::BONE_SEGMENTS :
+                                                                    OperationCode::BONE_DONE;
+      }
       OperationKey bone_key(&object->id, NodeType::BONE, pchan->name, target_op);
       add_relation(driver_key, bone_key, "Arm Bone -> Driver -> Bone");
     }

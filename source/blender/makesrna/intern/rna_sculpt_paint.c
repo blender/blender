@@ -32,10 +32,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "bmesh.h"
-
-extern const EnumPropertyItem RNA_automasking_flags[];
-
 const EnumPropertyItem rna_enum_particle_edit_hair_brush_items[] = {
     {PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb hairs"},
     {PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth hairs"},
@@ -398,24 +394,6 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | ND_DRAW, ob);
   }
-}
-
-static void rna_Sculpt_ShowMask_update(bContext *C, PointerRNA *UNUSED(ptr))
-{
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *object = BKE_view_layer_active_object_get(view_layer);
-  if (object == NULL || object->sculpt == NULL) {
-    return;
-  }
-  Sculpt *sd = scene->toolsettings->sculpt;
-  object->sculpt->show_mask = ((sd->flags & SCULPT_HIDE_MASK) == 0);
-  if (object->sculpt->pbvh != NULL) {
-    pbvh_show_mask_set(object->sculpt->pbvh, object->sculpt->show_mask);
-  }
-  DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
-  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, object);
 }
 
 static char *rna_Sculpt_path(const PointerRNA *UNUSED(ptr))
@@ -963,18 +941,6 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
-  prop = RNA_def_property(srna, "show_mask", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "flags", SCULPT_HIDE_MASK);
-  RNA_def_property_ui_text(prop, "Show Mask", "Show mask as overlay on object");
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_ShowMask_update");
-
-  prop = RNA_def_property(srna, "show_face_sets", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "flags", SCULPT_HIDE_FACE_SETS);
-  RNA_def_property_ui_text(prop, "Show Face Sets", "Show Face Sets as overlay on object");
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_ShowMask_update");
-
   prop = RNA_def_property(srna, "use_dyntopo", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_ENABLED);
   RNA_def_property_ui_text(prop, "DynTopo", "Enable DynTopo remesher in dynamic topology mode.");
@@ -1054,7 +1020,7 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
-  const EnumPropertyItem *entry = RNA_automasking_flags;
+  const EnumPropertyItem *entry = rna_enum_brush_automasking_flag_items;
   do {
     prop = RNA_def_property(srna, entry->identifier, PROP_BOOLEAN, PROP_NONE);
     RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", entry->value);

@@ -10,7 +10,7 @@
  * Supported:
  * - Concave faces.
  * - Non-planar faces.
- * - Custom-data (UV's etc).
+ * - Custom-data (UVs etc).
  *
  * Unsupported:
  * - Intersecting between different meshes.

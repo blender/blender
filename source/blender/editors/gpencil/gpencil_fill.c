@@ -510,7 +510,7 @@ static void gpencil_stroke_collision(
   const float connection_dist = tgpf->fill_extend_fac * 0.1f;
   float diff_mat[4][4], inv_mat[4][4];
 
-  /* Transform matrix for original stroke.*/
+  /* Transform matrix for original stroke. */
   BKE_gpencil_layer_transform_matrix_get(tgpf->depsgraph, tgpf->ob, gpl, diff_mat);
   invert_m4_m4(inv_mat, diff_mat);
 
@@ -932,7 +932,7 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
     /* Help strokes are for display only and shouldn't render. */
     return;
   }
-  else if (is_help) {
+  if (is_help) {
     /* Color help strokes that won't affect fill or render separately from
      * extended strokes, as they will affect them. */
     copy_v4_v4(col, help_col);

@@ -51,10 +51,11 @@ class View {
   bool do_visibility_ = true;
   bool dirty_ = true;
   bool frozen_ = false;
+  bool procedural_ = false;
 
  public:
-  View(const char *name, int view_len = 1)
-      : visibility_buf_(name), debug_name_(name), view_len_(view_len)
+  View(const char *name, int view_len = 1, bool procedural = false)
+      : visibility_buf_(name), debug_name_(name), view_len_(view_len), procedural_(procedural)
   {
     BLI_assert(view_len < DRW_VIEW_MAX);
   }

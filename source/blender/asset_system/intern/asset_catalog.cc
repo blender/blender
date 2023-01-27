@@ -9,7 +9,6 @@
 
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
-#include "AS_asset_library.h"
 #include "AS_asset_library.hh"
 
 #include "BLI_fileops.hh"
@@ -44,6 +43,11 @@ AssetCatalogService::AssetCatalogService()
 {
 }
 
+AssetCatalogService::AssetCatalogService(read_only_tag) : AssetCatalogService()
+{
+  const_cast<bool &>(is_read_only_) = true;
+}
+
 AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_root)
     : AssetCatalogService()
 {
@@ -52,6 +56,8 @@ AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_ro
 
 void AssetCatalogService::tag_has_unsaved_changes(AssetCatalog *edited_catalog)
 {
+  BLI_assert(!is_read_only_);
+
   if (edited_catalog) {
     edited_catalog->flags.has_unsaved_changes = true;
   }
@@ -84,6 +90,11 @@ bool AssetCatalogService::has_unsaved_changes() const
 {
   BLI_assert(catalog_collection_);
   return catalog_collection_->has_unsaved_changes_;
+}
+
+bool AssetCatalogService::is_read_only() const
+{
+  return is_read_only_;
 }
 
 void AssetCatalogService::tag_all_catalogs_as_unsaved_changes()
@@ -323,6 +334,11 @@ void AssetCatalogService::load_from_disk(const CatalogFilePath &file_or_director
   rebuild_tree();
 }
 
+void AssetCatalogService::add_from_existing(const AssetCatalogService &other_service)
+{
+  catalog_collection_->add_catalogs_from_existing(*other_service.catalog_collection_);
+}
+
 void AssetCatalogService::load_directory_recursive(const CatalogFilePath &directory_path)
 {
   /* TODO(@sybren): implement proper multi-file support. For now, just load
@@ -453,6 +469,8 @@ bool AssetCatalogService::is_catalog_known_with_unsaved_changes(const CatalogID 
 
 bool AssetCatalogService::write_to_disk(const CatalogFilePath &blend_file_path)
 {
+  BLI_assert(!is_read_only_);
+
   if (!write_to_disk_ex(blend_file_path)) {
     return false;
   }
@@ -626,6 +644,7 @@ void AssetCatalogService::undo()
 
 void AssetCatalogService::redo()
 {
+  BLI_assert(!is_read_only_);
   BLI_assert_msg(is_redo_possbile(), "Redo stack is empty");
 
   undo_snapshots_.append(std::move(catalog_collection_));
@@ -635,6 +654,7 @@ void AssetCatalogService::redo()
 
 void AssetCatalogService::undo_push()
 {
+  BLI_assert(!is_read_only_);
   std::unique_ptr<AssetCatalogCollection> snapshot = catalog_collection_->deep_copy();
   undo_snapshots_.append(std::move(snapshot));
   redo_snapshots_.clear();
@@ -658,15 +678,24 @@ std::unique_ptr<AssetCatalogCollection> AssetCatalogCollection::deep_copy() cons
   return copy;
 }
 
+static void copy_catalog_map_into_existing(const OwningAssetCatalogMap &source,
+                                           OwningAssetCatalogMap &dest)
+{
+  for (const auto &orig_catalog_uptr : source.values()) {
+    auto copy_catalog_uptr = std::make_unique<AssetCatalog>(*orig_catalog_uptr);
+    dest.add_new(copy_catalog_uptr->catalog_id, std::move(copy_catalog_uptr));
+  }
+}
+
+void AssetCatalogCollection::add_catalogs_from_existing(const AssetCatalogCollection &other)
+{
+  copy_catalog_map_into_existing(other.catalogs_, catalogs_);
+}
+
 OwningAssetCatalogMap AssetCatalogCollection::copy_catalog_map(const OwningAssetCatalogMap &orig)
 {
   OwningAssetCatalogMap copy;
-
-  for (const auto &orig_catalog_uptr : orig.values()) {
-    auto copy_catalog_uptr = std::make_unique<AssetCatalog>(*orig_catalog_uptr);
-    copy.add_new(copy_catalog_uptr->catalog_id, std::move(copy_catalog_uptr));
-  }
-
+  copy_catalog_map_into_existing(orig, copy);
   return copy;
 }
 

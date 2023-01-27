@@ -156,6 +156,9 @@ class GHOST_WindowWayland : public GHOST_Window {
   bool outputs_enter(GWL_Output *output);
   bool outputs_leave(GWL_Output *output);
 
+  /**
+   * Return true when the windows scale or DPI changes.
+   */
   bool outputs_changed_update_scale();
 
 #ifdef USE_EVENT_BACKGROUND_THREAD

@@ -239,7 +239,7 @@ static bool uv_shear_in_clip_bounds_test(const TransInfo *t, const float value)
       sub_v2_v2v2(uv, td->iloc, center);
       uv[axis] = uv[axis] + value * uv[1 - axis] * (2 * axis - 1);
       add_v2_v2(uv, center);
-      /* TODO: udim support. */
+      /* TODO: UDIM support. */
       if (uv[axis] < 0.0f || 1.0f < uv[axis]) {
         return false;
       }
@@ -263,7 +263,7 @@ static bool clip_uv_transform_shear(const TransInfo *t, float *vec, float *vec_i
   for (int i = 0; i < max_i; i++) {
     /* Binary search. */
     const float value_mid = (value_inside_bounds + value) / 2.0f;
-    if (value_mid == value_inside_bounds || value_mid == value) {
+    if (ELEM(value_mid, value_inside_bounds, value)) {
       break; /* float precision reached. */
     }
     if (uv_shear_in_clip_bounds_test(t, value_mid)) {

@@ -40,8 +40,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "bmesh.h"
-
 void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *ctx)
 {
   Tex *tex = dmd->texture;
@@ -93,17 +91,16 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
 
   /* UVs need special handling, since they come from faces */
   if (texmapping == MOD_DISP_MAP_UV) {
-    if (CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
+    if (CustomData_has_layer(&mesh->ldata, CD_PROP_FLOAT2)) {
       const MPoly *mpoly = BKE_mesh_polys(mesh);
       const MPoly *mp;
       const MLoop *mloop = BKE_mesh_loops(mesh);
       BLI_bitmap *done = BLI_BITMAP_NEW(verts_num, __func__);
       const int polys_num = mesh->totpoly;
       char uvname[MAX_CUSTOMDATA_LAYER_NAME];
-
-      CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, dmd->uvlayer_name, uvname);
-      const MLoopUV *mloop_uv = static_cast<const MLoopUV *>(
-          CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, uvname));
+      CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, dmd->uvlayer_name, uvname);
+      const float(*mloop_uv)[2] = static_cast<const float(*)[2]>(
+          CustomData_get_layer_named(&mesh->ldata, CD_PROP_FLOAT2, uvname));
 
       /* verts are given the UV from the first face that uses them */
       for (i = 0, mp = mpoly; i < polys_num; i++, mp++) {
@@ -115,8 +112,8 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
 
           if (!BLI_BITMAP_TEST(done, vidx)) {
             /* remap UVs from [0, 1] to [-1, 1] */
-            r_texco[vidx][0] = (mloop_uv[lidx].uv[0] * 2.0f) - 1.0f;
-            r_texco[vidx][1] = (mloop_uv[lidx].uv[1] * 2.0f) - 1.0f;
+            r_texco[vidx][0] = (mloop_uv[lidx][0] * 2.0f) - 1.0f;
+            r_texco[vidx][1] = (mloop_uv[lidx][1] * 2.0f) - 1.0f;
             BLI_BITMAP_ENABLE(done, vidx);
           }
 
@@ -131,17 +128,17 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
     texmapping = MOD_DISP_MAP_LOCAL;
   }
 
-  const MVert *mv = BKE_mesh_verts(mesh);
-  for (i = 0; i < verts_num; i++, mv++, r_texco++) {
+  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+  for (i = 0; i < verts_num; i++, r_texco++) {
     switch (texmapping) {
       case MOD_DISP_MAP_LOCAL:
-        copy_v3_v3(*r_texco, cos != nullptr ? *cos : mv->co);
+        copy_v3_v3(*r_texco, cos != nullptr ? *cos : positions[i]);
         break;
       case MOD_DISP_MAP_GLOBAL:
-        mul_v3_m4v3(*r_texco, ob->object_to_world, cos != nullptr ? *cos : mv->co);
+        mul_v3_m4v3(*r_texco, ob->object_to_world, cos != nullptr ? *cos : positions[i]);
         break;
       case MOD_DISP_MAP_OBJECT:
-        mul_v3_m4v3(*r_texco, ob->object_to_world, cos != nullptr ? *cos : mv->co);
+        mul_v3_m4v3(*r_texco, ob->object_to_world, cos != nullptr ? *cos : positions[i]);
         mul_m4_v3(mapref_imat, *r_texco);
         break;
     }
@@ -188,7 +185,7 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
                                     &mesh_prior_modifiers->id,
                                     nullptr,
                                     (LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_CD_REFERENCE));
-      mesh->runtime->deformed_only = 1;
+      mesh->runtime->deformed_only = true;
     }
 
     if (em != nullptr) {

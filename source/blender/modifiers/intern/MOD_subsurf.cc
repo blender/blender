@@ -265,7 +265,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   if (use_clnors) {
-    float(*lnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(&result->ldata, CD_NORMAL));
+    float(*lnors)[3] = static_cast<float(*)[3]>(
+        CustomData_get_layer_for_write(&result->ldata, CD_NORMAL, result->totloop));
     BLI_assert(lnors != nullptr);
     BKE_mesh_set_custom_normals(result, lnors);
     CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);

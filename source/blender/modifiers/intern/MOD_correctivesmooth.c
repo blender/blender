@@ -175,7 +175,7 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
   const float projection = csmd->projection;
   const uint edges_num = (uint)mesh->totedge;
   const MEdge *edges = BKE_mesh_edges(mesh);
-  const MVert *verts = BKE_mesh_verts(mesh);
+  const float(*vert_cos)[3] = BKE_mesh_vert_positions(mesh);
   float *vertex_edge_count_div;
 
   const float(*vertexNos)[3] = BKE_mesh_vertex_normals_ensure(mesh);
@@ -272,7 +272,6 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
   const float lambda = csmd->lambda * 2.0f;
   const float projection = csmd->projection;
   const MEdge *edges = BKE_mesh_edges(mesh);
-  const MVert *verts = BKE_mesh_verts(mesh);
   float *vertex_edge_count;
   uint i;
 

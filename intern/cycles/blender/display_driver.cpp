@@ -1,12 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2021-2022 Blender Foundation */
 
-#include "blender/display_driver.h"
-
-#include "device/device.h"
-#include "util/log.h"
-#include "util/math.h"
-
 #include "GPU_context.h"
 #include "GPU_immediate.h"
 #include "GPU_shader.h"
@@ -14,6 +8,12 @@
 #include "GPU_texture.h"
 
 #include "RE_engine.h"
+
+#include "blender/display_driver.h"
+
+#include "device/device.h"
+#include "util/log.h"
+#include "util/math.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -57,7 +57,6 @@ int BlenderDisplayShader::get_tex_coord_attrib_location()
 
 /* TODO move shaders to standalone .glsl file. */
 static const char *FALLBACK_VERTEX_SHADER =
-    "#version 330\n"
     "uniform vec2 fullscreen;\n"
     "in vec2 texCoord;\n"
     "in vec2 pos;\n"
@@ -75,7 +74,6 @@ static const char *FALLBACK_VERTEX_SHADER =
     "}\n\0";
 
 static const char *FALLBACK_FRAGMENT_SHADER =
-    "#version 330\n"
     "uniform sampler2D image_texture;\n"
     "in vec2 texCoord_interp;\n"
     "out vec4 fragColor;\n"
@@ -723,8 +721,6 @@ static void draw_tile(const float2 &zoom,
     return;
   }
 
-  GPU_texture_bind(texture.gpu_texture, 0);
-
   /* Trick to keep sharp rendering without jagged edges on all GPUs.
    *
    * The idea here is to enforce driver to use linear interpolation when the image is not zoomed
@@ -737,14 +733,14 @@ static void draw_tile(const float2 &zoom,
   const float zoomed_height = draw_tile.params.size.y * zoom.y;
   if (texture.width != draw_tile.params.size.x || texture.height != draw_tile.params.size.y) {
     /* Resolution divider is different from 1, force nearest interpolation. */
-    GPU_texture_filter_mode(texture.gpu_texture, false);
+    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_DEFAULT, 0, false);
   }
   else if (zoomed_width - draw_tile.params.size.x > 0.5f ||
            zoomed_height - draw_tile.params.size.y > 0.5f) {
-    GPU_texture_filter_mode(texture.gpu_texture, false);
+    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_DEFAULT, 0, false);
   }
   else {
-    GPU_texture_filter_mode(texture.gpu_texture, true);
+    GPU_texture_bind_ex(texture.gpu_texture, GPU_SAMPLER_FILTER, 0, false);
   }
 
   /* Draw at the parameters for which the texture has been updated for. This allows to always draw
@@ -803,11 +799,16 @@ void BlenderDisplayDriver::draw(const Params &params)
   const int position_attribute = GPU_vertformat_attr_add(
       format, display_shader_->position_attribute_name, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  /* Note: Shader is bound again through IMM to register this shader with the imm module
+  /* Note: Shader is bound again through IMM to register this shader with the IMM module
    * and perform required setup for IMM rendering. This is required as the IMM module
    * needs to be aware of which shader is bound, and the main display shader
    * is bound externally. */
   immBindShader(active_shader);
+
+  if (tiles_->current_tile.need_update_texture_pixels) {
+    update_tile_texture_pixels(tiles_->current_tile);
+    tiles_->current_tile.need_update_texture_pixels = false;
+  }
 
   draw_tile(zoom_, texcoord_attribute, position_attribute, tiles_->current_tile.tile);
 

@@ -719,7 +719,7 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
   const float xtot_inv2 = 2.0f / (xtot);
   const float ytot_inv2 = 2.0f / (ytot);
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
   const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
   BMVert **varr;
@@ -799,7 +799,7 @@ void BM_mesh_calc_uvs_grid(BMesh *bm,
     }
 
     BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
-      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+      float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
 
       switch (loop_index) {
         case 0:
@@ -818,8 +818,8 @@ void BM_mesh_calc_uvs_grid(BMesh *bm,
           break;
       }
 
-      luv->uv[0] = x;
-      luv->uv[1] = y;
+      luv[0] = x;
+      luv[1] = y;
     }
 
     x += dx;
@@ -836,7 +836,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
   const int seg = BMO_slot_int_get(op->slots_in, "u_segments");
   const int tot = BMO_slot_int_get(op->slots_in, "v_segments");
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
   const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
   BMOperator bmop, prevop;
@@ -955,7 +955,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
   const float rad_div = rad / 200.0f;
   const int subdiv = BMO_slot_int_get(op->slots_in, "subdivisions");
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
   const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
   BMVert *eva[12];
@@ -1000,9 +1000,9 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
     if (calc_uvs) {
       int loop_index;
       BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
-        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        luv->uv[0] = icouvs[uvi][0];
-        luv->uv[1] = icouvs[uvi][1];
+        float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+        luv[0] = icouvs[uvi][0];
+        luv[1] = icouvs[uvi][1];
         uvi++;
       }
     }
@@ -1063,7 +1063,7 @@ static void bm_mesh_calc_uvs_sphere_face(BMFace *f, const int cd_loop_uv_offset)
   avgy /= 3.0f;
 
   BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, loop_index) {
-    MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+    float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
     float x = l->v->co[0];
     float y = l->v->co[1];
     float z = l->v->co[2];
@@ -1084,10 +1084,10 @@ static void bm_mesh_calc_uvs_sphere_face(BMFace *f, const int cd_loop_uv_offset)
     }
 
     float phi = saacos(z / len);
-    luv->uv[0] = 0.5f + theta / ((float)M_PI * 2);
-    luv->uv[1] = 1.0f - phi / (float)M_PI;
+    luv[0] = 0.5f + theta / ((float)M_PI * 2);
+    luv[1] = 1.0f - phi / (float)M_PI;
 
-    uvs[loop_index] = luv->uv;
+    uvs[loop_index] = luv;
   }
 
   /* Fix awkwardly-wrapping UVs */
@@ -1133,9 +1133,9 @@ void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag, const int cd_loop_uv_
       continue;
     }
     BM_ITER_ELEM_INDEX (l, &iter2, f, BM_LOOPS_OF_FACE, loop_index) {
-      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-      if (luv->uv[0] < minx) {
-        minx = luv->uv[0];
+      float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+      if (luv[0] < minx) {
+        minx = luv[0];
       }
     }
   }
@@ -1145,8 +1145,8 @@ void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag, const int cd_loop_uv_
       continue;
     }
     BM_ITER_ELEM_INDEX (l, &iter2, f, BM_LOOPS_OF_FACE, loop_index) {
-      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-      luv->uv[0] -= minx;
+      float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+      luv[0] -= minx;
     }
   }
 }
@@ -1159,7 +1159,7 @@ void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 
   BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
   const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
   for (i = 0; i < monkeynv; i++) {
@@ -1213,15 +1213,15 @@ void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
       BMLoop *l;
       BMIter liter;
       BM_ITER_ELEM (l, &liter, f_new_a, BM_LOOPS_OF_FACE) {
-        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        luv->uv[0] = monkeyuvs[uvi * 2 + 0];
-        luv->uv[1] = monkeyuvs[uvi * 2 + 1];
+        float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+        luv[0] = monkeyuvs[uvi * 2 + 0];
+        luv[1] = monkeyuvs[uvi * 2 + 1];
         uvi++;
       }
       BM_ITER_ELEM (l, &liter, f_new_b, BM_LOOPS_OF_FACE) {
-        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        luv->uv[0] = monkeyuvs[uvi * 2 + 0];
-        luv->uv[1] = monkeyuvs[uvi * 2 + 1];
+        float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
+        luv[0] = monkeyuvs[uvi * 2 + 0];
+        luv[1] = monkeyuvs[uvi * 2 + 1];
         uvi++;
       }
     }
@@ -1239,7 +1239,7 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
   const bool cap_ends = BMO_slot_bool_get(op->slots_in, "cap_ends");
   const bool cap_tris = BMO_slot_bool_get(op->slots_in, "cap_tris");
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
   const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
   BMVert *v1, *lastv1 = NULL, *cent1, *firstv1 = NULL;
@@ -1335,7 +1335,7 @@ void BM_mesh_calc_uvs_circle(
     }
 
     BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+      float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
 
       float uv_vco[3];
       copy_v3_v3(uv_vco, l->v->co);
@@ -1343,8 +1343,8 @@ void BM_mesh_calc_uvs_circle(
       mul_m4_v3(inv_mat, uv_vco);
 
       /* then just take those coords for UVs */
-      luv->uv[0] = uv_center + uv_scale * uv_vco[0];
-      luv->uv[1] = uv_center + uv_scale * uv_vco[1];
+      luv[0] = uv_center + uv_scale * uv_vco[0];
+      luv[1] = uv_center + uv_scale * uv_vco[1];
     }
   }
 }
@@ -1361,7 +1361,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
   const bool cap_ends = BMO_slot_bool_get(op->slots_in, "cap_ends");
   const bool cap_tris = BMO_slot_bool_get(op->slots_in, "cap_tris");
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
   const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
   if (!segs) {
@@ -1556,7 +1556,7 @@ void BM_mesh_calc_uvs_cone(BMesh *bm,
     if (f->len == 4 && radius_top && radius_bottom) {
       /* side face - so unwrap it in a rectangle */
       BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
-        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+        float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
 
         switch (loop_index) {
           case 0:
@@ -1575,8 +1575,8 @@ void BM_mesh_calc_uvs_cone(BMesh *bm,
             break;
         }
 
-        luv->uv[0] = x;
-        luv->uv[1] = y;
+        luv[0] = x;
+        luv[1] = y;
       }
     }
     else {
@@ -1585,18 +1585,18 @@ void BM_mesh_calc_uvs_cone(BMesh *bm,
       BM_face_normal_update(f);
 
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+        float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
         float uv_vco[3];
 
         mul_v3_m4v3(uv_vco, inv_mat, l->v->co);
 
         if (dot_v3v3(f->no, local_up) > 0.0f) { /* if this is a top face of the cone */
-          luv->uv[0] = uv_center_x_top + uv_vco[0] * uv_scale_top;
-          luv->uv[1] = uv_center_y + uv_vco[1] * uv_scale_top;
+          luv[0] = uv_center_x_top + uv_vco[0] * uv_scale_top;
+          luv[1] = uv_center_y + uv_vco[1] * uv_scale_top;
         }
         else {
-          luv->uv[0] = uv_center_x_bottom + uv_vco[0] * uv_scale_bottom;
-          luv->uv[1] = uv_center_y + uv_vco[1] * uv_scale_bottom;
+          luv[0] = uv_center_x_bottom + uv_vco[0] * uv_scale_bottom;
+          luv[1] = uv_center_y + uv_vco[1] * uv_scale_bottom;
         }
       }
     }
@@ -1609,7 +1609,7 @@ void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
   float mat[4][4];
   float off = BMO_slot_float_get(op->slots_in, "size") / 2.0f;
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
   const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
   /* rotation order set to match 'BM_mesh_calc_uvs_cube' */
@@ -1670,7 +1670,7 @@ void BM_mesh_calc_uvs_cube(BMesh *bm, const short oflag)
   BMIter fiter, liter;
   const float width = 0.25f;
 
-  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
 
   float x = 0.375f;
   float y = 0.0f;
@@ -1685,10 +1685,10 @@ void BM_mesh_calc_uvs_cube(BMesh *bm, const short oflag)
     }
 
     BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
-      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+      float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
 
-      luv->uv[0] = x;
-      luv->uv[1] = y;
+      luv[0] = x;
+      luv[1] = y;
 
       switch (loop_index) {
         case 0:

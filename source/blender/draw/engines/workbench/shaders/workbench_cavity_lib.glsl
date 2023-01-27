@@ -8,7 +8,7 @@
 #ifdef USE_CAVITY
 
 void cavity_compute(vec2 screenco,
-                    sampler2D depthBuffer,
+                    depth2D depthBuffer,
                     sampler2D normalBuffer,
                     out float cavities,
                     out float edges)

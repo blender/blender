@@ -301,10 +301,12 @@ enum SamplerType {
   SamplerFilterNearest_AddressRepeat,
   SamplerFilterNearest_AddressClampEdge,
   SamplerFilterNearest_AddressClampZero,
+  SamplerFilterNearest_AddressMirroredRepeat,
 
   SamplerFilterLinear_AddressRepeat,
   SamplerFilterLinear_AddressClampEdge,
   SamplerFilterLinear_AddressClampZero,
+  SamplerFilterLinear_AddressMirroredRepeat,
 
   SamplerCount
 };
@@ -313,7 +315,9 @@ constant constexpr array<sampler, SamplerCount> metal_samplers = {
     sampler(address::repeat, filter::nearest),
     sampler(address::clamp_to_edge, filter::nearest),
     sampler(address::clamp_to_zero, filter::nearest),
+    sampler(address::mirrored_repeat, filter::nearest),
     sampler(address::repeat, filter::linear),
     sampler(address::clamp_to_edge, filter::linear),
     sampler(address::clamp_to_zero, filter::linear),
+    sampler(address::mirrored_repeat, filter::linear),
 };

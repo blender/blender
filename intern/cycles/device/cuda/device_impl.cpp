@@ -952,6 +952,9 @@ void CUDADevice::tex_alloc(device_texture &mem)
     case EXTENSION_CLIP:
       address_mode = CU_TR_ADDRESS_MODE_BORDER;
       break;
+    case EXTENSION_MIRROR:
+      address_mode = CU_TR_ADDRESS_MODE_MIRROR;
+      break;
     default:
       assert(0);
       break;

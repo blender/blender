@@ -27,6 +27,7 @@
 #include "eigen_capi.h"
 
 using blender::Array;
+using blender::float3;
 using blender::Map;
 using blender::MutableSpan;
 using blender::Span;
@@ -194,25 +195,27 @@ class FairingContext {
 
 class MeshFairingContext : public FairingContext {
  public:
-  MeshFairingContext(Mesh *mesh, MVert *deform_mverts)
+  MeshFairingContext(Mesh *mesh, MutableSpan<float3> deform_positions)
   {
     totvert_ = mesh->totvert;
     totloop_ = mesh->totloop;
 
-    MutableSpan<MVert> verts = mesh->verts_for_write();
+    MutableSpan<float3> positions = mesh->vert_positions_for_write();
     medge_ = mesh->edges();
     mpoly_ = mesh->polys();
     mloop_ = mesh->loops();
-    BKE_mesh_vert_loop_map_create(&vlmap_,
-                                  &vlmap_mem_,
-                                  mesh->verts().data(),
-                                  medge_.data(),
-                                  mpoly_.data(),
-                                  mloop_.data(),
-                                  mesh->totvert,
-                                  mesh->totpoly,
-                                  mesh->totloop,
-                                  false);
+
+    BKE_mesh_vert_loop_map_create(
+        &vlmap_,
+        &vlmap_mem_,
+        reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data()),
+        medge_.data(),
+        mpoly_.data(),
+        mloop_.data(),
+        mesh->totvert,
+        mesh->totpoly,
+        mesh->totloop,
+        false);
 
     BKE_mesh_edge_loop_map_create(&elmap_,
                                   &elmap_mem_,
@@ -223,19 +226,31 @@ class MeshFairingContext : public FairingContext {
                                   mesh->mloop,
                                   mesh->totloop);
 
+    auto vert_positions = mesh->vert_positions_for_write().data();
+
     /* Deformation coords. */
-    if (deform_mverts) {
-      deform_mvert_ = deform_mverts;
-    }
+    if (vert_positions) {
+      deform_mvert_ = reinterpret_cast<float(*)[3]>(vert_positions);
+#if 0
+      co_.reserve(mesh->totvert);
+
+      if (!deform_positions.is_empty()) {
+        for (int i = 0; i < mesh->totvert; i++) {
+          co_[i] = deform_positions[i];
+        }
+      }
+#endif
 #if 0
     else {
       for (int i = 0; i < mesh->totvert; i++) {
-        co_[i] = verts[i].co;
+        co_[i] = positions[i];
       }
     }
 #endif
 
-    loop_to_poly_map_ = blender::bke::mesh_topology::build_loop_to_poly_map(mpoly_, mloop_.size());
+      loop_to_poly_map_ = blender::bke::mesh_topology::build_loop_to_poly_map(mpoly_,
+                                                                              mloop_.size());
+    }
   }
 
   ~MeshFairingContext() override
@@ -248,12 +263,12 @@ class MeshFairingContext : public FairingContext {
 
   float *vertex_deformation_co_get(const int v)
   {
-    return deform_mvert_[v].co;
+    return deform_mvert_[v];
   }
 
   void vertex_deformation_co_set(const int v, const float co[3])
   {
-    copy_v3_v3(deform_mvert_[v].co, co);
+    copy_v3_v3(deform_mvert_[v], co);
   }
 
   void adjacents_coords_from_loop(const int loop,
@@ -263,8 +278,8 @@ class MeshFairingContext : public FairingContext {
     const int vert = mloop_[loop].v;
     const MPoly *p = &mpoly_[loop_to_poly_map_[loop]];
     const int corner = poly_find_loop_from_vert(p, &mloop_[p->loopstart], vert);
-    copy_v3_v3(r_adj_next, deform_mvert_[ME_POLY_LOOP_NEXT(mloop_, p, corner)->v].co);
-    copy_v3_v3(r_adj_prev, deform_mvert_[ME_POLY_LOOP_PREV(mloop_, p, corner)->v].co);
+    copy_v3_v3(r_adj_next, deform_mvert_[ME_POLY_LOOP_NEXT(mloop_, p, corner)->v]);
+    copy_v3_v3(r_adj_prev, deform_mvert_[ME_POLY_LOOP_PREV(mloop_, p, corner)->v]);
   }
 
   int other_vertex_index_from_loop(const int loop, const uint v) override
@@ -281,7 +296,7 @@ class MeshFairingContext : public FairingContext {
     return mloop_[loop].v;
   }
 
-  float cotangent_loop_weight_get(const int UNUSED(loop)) override
+  float cotangent_loop_weight_get(const int /*UNUSED(loop)*/) override
   {
     /* TODO: Implement cotangent loop weights for meshes. */
     return 1.0f;
@@ -294,7 +309,7 @@ class MeshFairingContext : public FairingContext {
   Span<MEdge> medge_;
   Array<int> loop_to_poly_map_;
 
-  MVert *deform_mvert_;
+  float (*deform_mvert_)[3];
 
   MeshElemMap *elmap_;
   int *elmap_mem_;
@@ -619,11 +634,15 @@ static void prefair_and_fair_verts(FairingContext *fairing_context,
 }
 
 void BKE_mesh_prefair_and_fair_verts(struct Mesh *mesh,
-                                     struct MVert *deform_mverts,
+                                     float (*deform_vert_positions)[3],
                                      bool *affect_verts,
                                      const eMeshFairingDepth depth)
 {
-  MeshFairingContext *fairing_context = new MeshFairingContext(mesh, deform_mverts);
+  MutableSpan<float3> deform_positions_span;
+  if (deform_vert_positions) {
+    deform_positions_span = {reinterpret_cast<float3 *>(deform_vert_positions), mesh->totvert};
+  }
+  MeshFairingContext *fairing_context = new MeshFairingContext(mesh, deform_positions_span);
   prefair_and_fair_verts(fairing_context, affect_verts, depth);
   delete fairing_context;
 }

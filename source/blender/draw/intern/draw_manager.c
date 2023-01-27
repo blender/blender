@@ -1245,10 +1245,6 @@ static void drw_engines_enable_editors(void)
 
 static bool is_compositor_enabled(void)
 {
-  if (!U.experimental.use_realtime_compositor) {
-    return false;
-  }
-
   if (DST.draw_ctx.v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
     return false;
   }
@@ -2188,7 +2184,7 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
   DRW_viewport_colormanagement_set(viewport);
 
   /* TODO(jbakker): Only populate when editor needs to draw object.
-   * for the image editor this is when showing UV's. */
+   * for the image editor this is when showing UVs. */
   const bool do_populate_loop = (DST.draw_ctx.space_data->spacetype == SPACE_IMAGE);
   const bool do_annotations = drw_draw_show_annotation();
   const bool do_draw_gizmos = (DST.draw_ctx.space_data->spacetype != SPACE_IMAGE);
@@ -2338,8 +2334,9 @@ static void draw_select_framebuffer_depth_only_setup(const int size[2])
   }
 
   if (g_select_buffer.texture_depth == NULL) {
-    g_select_buffer.texture_depth = GPU_texture_create_2d(
-        "select_depth", size[0], size[1], 1, GPU_DEPTH_COMPONENT24, NULL);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    g_select_buffer.texture_depth = GPU_texture_create_2d_ex(
+        "select_depth", size[0], size[1], 1, GPU_DEPTH_COMPONENT24, usage, NULL);
 
     GPU_framebuffer_texture_attach(
         g_select_buffer.framebuffer_depth_only, g_select_buffer.texture_depth, 0, 0);
@@ -2829,7 +2826,7 @@ void DRW_draw_depth_object(
     for (int i = 0; i < 6; i++) {
       copy_v4_v4(planes.world[i], rv3d->clip_local[i]);
     }
-    copy_m4_m4(planes.ModelMatrix, object->object_to_world);
+    copy_m4_m4(planes.ClipModelMatrix, object->object_to_world);
   }
 
   drw_batch_cache_validate(object);
@@ -3132,10 +3129,9 @@ void DRW_render_context_enable(Render *render)
 
 void DRW_render_context_disable(Render *render)
 {
-  GPU_render_end();
-
   if (GPU_use_main_context_workaround()) {
     DRW_opengl_context_disable();
+    GPU_render_end();
     GPU_context_main_unlock();
     return;
   }
@@ -3145,11 +3141,14 @@ void DRW_render_context_disable(Render *render)
   if (re_gl_context != NULL) {
     void *re_gpu_context = NULL;
     re_gpu_context = RE_gpu_context_get(render);
+    /* GPU rendering may occur during context disable. */
     DRW_gpu_render_context_disable(re_gpu_context);
+    GPU_render_end();
     DRW_opengl_render_context_disable(re_gl_context);
   }
   else {
     DRW_opengl_context_disable();
+    GPU_render_end();
   }
 }
 

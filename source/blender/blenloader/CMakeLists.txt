@@ -10,6 +10,7 @@ set(INC
   ../depsgraph
   ../draw
   ../editors/include
+  ../gpu
   ../imbuf
   ../makesdna
   ../makesrna

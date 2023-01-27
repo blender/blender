@@ -1409,6 +1409,7 @@ class _defs_sculpt:
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.trim_box_gesture")
             layout.prop(props, "trim_mode", expand=False)
+            layout.prop(props, "trim_extrude_mode", expand=False)
             layout.prop(props, "use_cursor_depth", expand=False)
         return dict(idname="builtin.box_trim",
             label="Box Trim",
@@ -1424,6 +1425,7 @@ class _defs_sculpt:
             layout.prop(props, "trim_mode", expand=False)
             layout.prop(props, "trim_orientation", expand=False)
             layout.prop(props, "trim_location", expand=False)
+            layout.prop(props, "trim_extrude_mode", expand=False)
             layout.prop(props, "use_cursor_depth", expand=False)
         return dict(idname="builtin.lasso_trim",
             label="Lasso Trim",
@@ -2271,7 +2273,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.selection_paint",
             label="Selection Paint",
             icon="ops.generic.select_paint",
-            data_block="SELECTION_PAINT"
+            data_block="SELECTION_PAINT",
         )
 
     @ToolDef.from_fn
@@ -2280,7 +2282,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.comb",
             label="Comb",
             icon="ops.curves.sculpt_comb",
-            data_block='COMB'
+            data_block='COMB',
         )
 
     @ToolDef.from_fn
@@ -2289,7 +2291,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.add",
             label="Add",
             icon="ops.curves.sculpt_add",
-            data_block='ADD'
+            data_block='ADD',
         )
 
     @ToolDef.from_fn
@@ -2298,7 +2300,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.delete",
             label="Delete",
             icon="ops.curves.sculpt_delete",
-            data_block='DELETE'
+            data_block='DELETE',
         )
 
     @ToolDef.from_fn
@@ -2307,7 +2309,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.snake_hook",
             label="Snake Hook",
             icon="ops.curves.sculpt_snake_hook",
-            data_block='SNAKE_HOOK'
+            data_block='SNAKE_HOOK',
         )
 
     @ToolDef.from_fn
@@ -2316,7 +2318,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.grow_shrink",
             label="Grow/Shrink",
             icon="ops.curves.sculpt_grow_shrink",
-            data_block='GROW_SHRINK'
+            data_block='GROW_SHRINK',
         )
 
     @ToolDef.from_fn
@@ -2325,7 +2327,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.pinch",
             label="Pinch",
             icon="ops.curves.sculpt_pinch",
-            data_block='PINCH'
+            data_block='PINCH',
         )
 
     @ToolDef.from_fn
@@ -2334,7 +2336,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.smooth",
             label="Smooth",
             icon="ops.curves.sculpt_smooth",
-            data_block='SMOOTH'
+            data_block='SMOOTH',
         )
 
     @ToolDef.from_fn
@@ -2343,7 +2345,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.puff",
             label="Puff",
             icon="ops.curves.sculpt_puff",
-            data_block='PUFF'
+            data_block='PUFF',
         )
 
     @ToolDef.from_fn
@@ -2352,7 +2354,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.density",
             label="Density",
             icon="ops.curves.sculpt_density",
-            data_block="DENSITY"
+            data_block="DENSITY",
         )
 
     @ToolDef.from_fn
@@ -2361,7 +2363,7 @@ class _defs_curves_sculpt:
             idname="builtin_brush.slide",
             label="Slide",
             icon="ops.curves.sculpt_slide",
-            data_block="SLIDE"
+            data_block="SLIDE",
         )
 
 
@@ -2605,9 +2607,8 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_annotate.poly,
             _defs_annotate.eraser,),)
 
-    # Private tools dictionary, store data to implement `tools_all` &
-    # `tools_from_context`.
-    # The keys match image spaces modes: 'context.space_data.mode'.
+    # Private tools dictionary, store data to implement `tools_all` & `tools_from_context`.
+    # The keys match image spaces modes: `context.space_data.mode`.
     # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [
@@ -2754,9 +2755,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         *_tools_annotate,
         _defs_view3d_generic.ruler,)
 
-    # Private tools dictionary, store data to implement `tools_all` &
-    # `tools_from_context`.
-    # The keys match object-modes from: 'context.mode'.
+    # Private tools dictionary, store data to implement `tools_all` & `tools_from_context`.
+    # The keys match object-modes from: `context.mode`.
     # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [
@@ -3017,10 +3017,8 @@ class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_annotate.poly,
             _defs_annotate.eraser,),)
 
-    # Private tools dictionary, store data to implement `tools_all` &
-    # `tools_from_context`.
-    # The keys match sequence editors view type:
-    # 'context.space_data.view_type'.
+    # Private tools dictionary, store data to implement `tools_all` & `tools_from_context`.
+    # The keys match sequence editors view type: `context.space_data.view_type`.
     # The values represent the tools, see `ToolSelectPanelHelper` for details.
     _tools = {
         None: [],

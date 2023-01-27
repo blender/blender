@@ -81,7 +81,7 @@ static void set_coarse_positions(Subdiv *subdiv,
                                  const Mesh *mesh,
                                  const float (*coarse_vertex_cos)[3])
 {
-  const MVert *mvert = BKE_mesh_verts(mesh);
+  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
   const MPoly *mpoly = BKE_mesh_polys(mesh);
   const MLoop *mloop = BKE_mesh_loops(mesh);
   /* Mark vertices which needs new coordinates. */
@@ -109,8 +109,7 @@ static void set_coarse_positions(Subdiv *subdiv,
       vertex_co = coarse_vertex_cos[vertex_index];
     }
     else {
-      const MVert *vertex = &mvert[vertex_index];
-      vertex_co = vertex->co;
+      vertex_co = positions[vertex_index];
     }
     copy_v3_v3(&buffer[manifold_vertex_index][0], vertex_co);
     manifold_vertex_index++;
@@ -127,7 +126,7 @@ typedef struct FaceVaryingDataFromUVContext {
   OpenSubdiv_TopologyRefiner *topology_refiner;
   const Mesh *mesh;
   const MPoly *polys;
-  const MLoopUV *mloopuv;
+  const float (*mloopuv)[2];
   float (*buffer)[2];
   int layer_index;
 } FaceVaryingDataFromUVContext;
@@ -140,7 +139,7 @@ static void set_face_varying_data_from_uv_task(void *__restrict userdata,
   OpenSubdiv_TopologyRefiner *topology_refiner = ctx->topology_refiner;
   const int layer_index = ctx->layer_index;
   const MPoly *mpoly = &ctx->polys[face_index];
-  const MLoopUV *mluv = &ctx->mloopuv[mpoly->loopstart];
+  const float(*mluv)[2] = &ctx->mloopuv[mpoly->loopstart];
 
   /* TODO(sergey): OpenSubdiv's C-API converter can change winding of
    * loops of a face, need to watch for that, to prevent wrong UVs assigned.
@@ -149,19 +148,19 @@ static void set_face_varying_data_from_uv_task(void *__restrict userdata,
   const int *uv_indices = topology_refiner->getFaceFVarValueIndices(
       topology_refiner, face_index, layer_index);
   for (int vertex_index = 0; vertex_index < num_face_vertices; vertex_index++, mluv++) {
-    copy_v2_v2(ctx->buffer[uv_indices[vertex_index]], mluv->uv);
+    copy_v2_v2(ctx->buffer[uv_indices[vertex_index]], *mluv);
   }
 }
 
 static void set_face_varying_data_from_uv(Subdiv *subdiv,
                                           const Mesh *mesh,
-                                          const MLoopUV *mloopuv,
+                                          const float (*mloopuv)[2],
                                           const int layer_index)
 {
   OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
   OpenSubdiv_Evaluator *evaluator = subdiv->evaluator;
   const int num_faces = topology_refiner->getNumFaces(topology_refiner);
-  const MLoopUV *mluv = mloopuv;
+  const float(*mluv)[2] = mloopuv;
 
   const int num_fvar_values = topology_refiner->getNumFVarValues(topology_refiner, layer_index);
   /* Use a temporary buffer so we do not upload UVs one at a time to the GPU. */
@@ -250,9 +249,9 @@ bool BKE_subdiv_eval_refine_from_mesh(Subdiv *subdiv,
   /* Set coordinates of base mesh vertices. */
   set_coarse_positions(subdiv, mesh, coarse_vertex_cos);
   /* Set face-varying data to UV maps. */
-  const int num_uv_layers = CustomData_number_of_layers(&mesh->ldata, CD_MLOOPUV);
+  const int num_uv_layers = CustomData_number_of_layers(&mesh->ldata, CD_PROP_FLOAT2);
   for (int layer_index = 0; layer_index < num_uv_layers; layer_index++) {
-    const MLoopUV *mloopuv = CustomData_get_layer_n(&mesh->ldata, CD_MLOOPUV, layer_index);
+    const float(*mloopuv)[2] = CustomData_get_layer_n(&mesh->ldata, CD_PROP_FLOAT2, layer_index);
     set_face_varying_data_from_uv(subdiv, mesh, mloopuv, layer_index);
   }
   /* Set vertex data to orco. */

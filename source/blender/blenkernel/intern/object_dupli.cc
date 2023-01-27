@@ -17,7 +17,7 @@
 #include "BLI_array.hh"
 #include "BLI_float4x4.hh"
 #include "BLI_math.h"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rand.h"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
@@ -67,6 +67,7 @@
 #include "RNA_types.h"
 
 using blender::Array;
+using blender::float2;
 using blender::float3;
 using blender::float4x4;
 using blender::Span;
@@ -553,7 +554,7 @@ struct VertexDupliData_Mesh {
   VertexDupliData_Params params;
 
   int totvert;
-  const MVert *mvert;
+  Span<float3> vert_positions;
   const float (*vert_normals)[3];
 
   const float (*orco)[3];
@@ -565,8 +566,8 @@ struct VertexDupliData_EditMesh {
   BMEditMesh *em;
 
   /* Can be nullptr. */
-  const float (*vert_coords)[3];
-  const float (*vert_normals)[3];
+  const float (*vert_positions_deform)[3];
+  const float (*vert_normals_deform)[3];
 
   /**
    * \note The edit-mesh may assign #DupliObject.orco in cases when a regular mesh wouldn't.
@@ -644,7 +645,6 @@ static void make_child_duplis_verts_from_mesh(const DupliContext *ctx,
   VertexDupliData_Mesh *vdd = (VertexDupliData_Mesh *)userdata;
   const bool use_rotation = vdd->params.use_rotation;
 
-  const MVert *mvert = vdd->mvert;
   const int totvert = vdd->totvert;
 
   invert_m4_m4(inst_ob->world_to_object, inst_ob->object_to_world);
@@ -653,8 +653,13 @@ static void make_child_duplis_verts_from_mesh(const DupliContext *ctx,
   mul_m4_m4m4(child_imat, inst_ob->world_to_object, ctx->object->object_to_world);
 
   for (int i = 0; i < totvert; i++) {
-    DupliObject *dob = vertex_dupli(
-        vdd->params.ctx, inst_ob, child_imat, i, mvert[i].co, vdd->vert_normals[i], use_rotation);
+    DupliObject *dob = vertex_dupli(vdd->params.ctx,
+                                    inst_ob,
+                                    child_imat,
+                                    i,
+                                    vdd->vert_positions[i],
+                                    vdd->vert_normals[i],
+                                    use_rotation);
     if (vdd->orco) {
       copy_v3_v3(dob->orco, vdd->orco[i]);
     }
@@ -678,14 +683,14 @@ static void make_child_duplis_verts_from_editmesh(const DupliContext *ctx,
   BMIter iter;
   int i;
 
-  const float(*vert_coords)[3] = vdd->vert_coords;
-  const float(*vert_normals)[3] = vdd->vert_normals;
+  const float(*vert_positions_deform)[3] = vdd->vert_positions_deform;
+  const float(*vert_normals_deform)[3] = vdd->vert_normals_deform;
 
   BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
     const float *co, *no;
-    if (vert_coords != nullptr) {
-      co = vert_coords[i];
-      no = vert_normals ? vert_normals[i] : nullptr;
+    if (vert_positions_deform != nullptr) {
+      co = vert_positions_deform[i];
+      no = vert_normals_deform ? vert_normals_deform[i] : nullptr;
     }
     else {
       co = v->co;
@@ -706,10 +711,10 @@ static void make_duplis_verts(const DupliContext *ctx)
 
   /* Gather mesh info. */
   BMEditMesh *em = nullptr;
-  const float(*vert_coords)[3] = nullptr;
-  const float(*vert_normals)[3] = nullptr;
+  const float(*vert_positions_deform)[3] = nullptr;
+  const float(*vert_normals_deform)[3] = nullptr;
   const Mesh *me_eval = mesh_data_from_duplicator_object(
-      parent, &em, &vert_coords, use_rotation ? &vert_normals : nullptr);
+      parent, &em, &vert_positions_deform, use_rotation ? &vert_normals_deform : nullptr);
   if (em == nullptr && me_eval == nullptr) {
     return;
   }
@@ -720,9 +725,9 @@ static void make_duplis_verts(const DupliContext *ctx)
     VertexDupliData_EditMesh vdd{};
     vdd.params = vdd_params;
     vdd.em = em;
-    vdd.vert_coords = vert_coords;
-    vdd.vert_normals = vert_normals;
-    vdd.has_orco = (vert_coords != nullptr);
+    vdd.vert_positions_deform = vert_positions_deform;
+    vdd.vert_normals_deform = vert_normals_deform;
+    vdd.has_orco = (vert_positions_deform != nullptr);
 
     make_child_duplis(ctx, &vdd, make_child_duplis_verts_from_editmesh);
   }
@@ -730,7 +735,7 @@ static void make_duplis_verts(const DupliContext *ctx)
     VertexDupliData_Mesh vdd{};
     vdd.params = vdd_params;
     vdd.totvert = me_eval->totvert;
-    vdd.mvert = me_eval->verts().data();
+    vdd.vert_positions = me_eval->vert_positions();
     vdd.vert_normals = BKE_mesh_vertex_normals_ensure(me_eval);
     vdd.orco = (const float(*)[3])CustomData_get_layer(&me_eval->vdata, CD_ORCO);
 
@@ -1056,9 +1061,9 @@ struct FaceDupliData_Mesh {
   int totface;
   const MPoly *mpoly;
   const MLoop *mloop;
-  const MVert *mvert;
+  Span<float3> vert_positions;
   const float (*orco)[3];
-  const MLoopUV *mloopuv;
+  const float2 *mloopuv;
 };
 
 struct FaceDupliData_EditMesh {
@@ -1069,7 +1074,7 @@ struct FaceDupliData_EditMesh {
   bool has_orco, has_uvs;
   int cd_loop_uv_offset;
   /* Can be nullptr. */
-  const float (*vert_coords)[3];
+  const float (*vert_positions_deform)[3];
 };
 
 static void get_dupliface_transform_from_coords(Span<float3> coords,
@@ -1155,14 +1160,14 @@ static DupliObject *face_dupli_from_mesh(const DupliContext *ctx,
                                          /* Mesh variables. */
                                          const MPoly *mpoly,
                                          const MLoop *mloopstart,
-                                         const MVert *mvert)
+                                         const Span<float3> vert_positions)
 {
   const int coords_len = mpoly->totloop;
   Array<float3, 64> coords(coords_len);
 
   const MLoop *ml = mloopstart;
   for (int i = 0; i < coords_len; i++, ml++) {
-    coords[i] = float3(mvert[ml->v].co);
+    coords[i] = vert_positions[ml->v];
   }
 
   return face_dupli(ctx, inst_ob, child_imat, index, use_scale, scale_fac, coords);
@@ -1177,7 +1182,7 @@ static DupliObject *face_dupli_from_editmesh(const DupliContext *ctx,
 
                                              /* Mesh variables. */
                                              BMFace *f,
-                                             const float (*vert_coords)[3])
+                                             const float (*vert_positions_deform)[3])
 {
   const int coords_len = f->len;
   Array<float3, 64> coords(coords_len);
@@ -1185,9 +1190,9 @@ static DupliObject *face_dupli_from_editmesh(const DupliContext *ctx,
   BMLoop *l_first, *l_iter;
   int i = 0;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  if (vert_coords != nullptr) {
+  if (vert_positions_deform != nullptr) {
     do {
-      copy_v3_v3(coords[i++], vert_coords[BM_elem_index_get(l_iter->v)]);
+      copy_v3_v3(coords[i++], vert_positions_deform[BM_elem_index_get(l_iter->v)]);
     } while ((l_iter = l_iter->next) != l_first);
   }
   else {
@@ -1206,9 +1211,8 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
   FaceDupliData_Mesh *fdd = (FaceDupliData_Mesh *)userdata;
   const MPoly *mpoly = fdd->mpoly, *mp;
   const MLoop *mloop = fdd->mloop;
-  const MVert *mvert = fdd->mvert;
   const float(*orco)[3] = fdd->orco;
-  const MLoopUV *mloopuv = fdd->mloopuv;
+  const float2 *mloopuv = fdd->mloopuv;
   const int totface = fdd->totface;
   const bool use_scale = fdd->params.use_scale;
   int a;
@@ -1222,8 +1226,15 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
 
   for (a = 0, mp = mpoly; a < totface; a++, mp++) {
     const MLoop *loopstart = mloop + mp->loopstart;
-    DupliObject *dob = face_dupli_from_mesh(
-        fdd->params.ctx, inst_ob, child_imat, a, use_scale, scale_fac, mp, loopstart, mvert);
+    DupliObject *dob = face_dupli_from_mesh(fdd->params.ctx,
+                                            inst_ob,
+                                            child_imat,
+                                            a,
+                                            use_scale,
+                                            scale_fac,
+                                            mp,
+                                            loopstart,
+                                            fdd->vert_positions);
 
     const float w = 1.0f / float(mp->totloop);
     if (orco) {
@@ -1233,7 +1244,7 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
     }
     if (mloopuv) {
       for (int j = 0; j < mp->totloop; j++) {
-        madd_v2_v2fl(dob->uv, mloopuv[mp->loopstart + j].uv, w);
+        madd_v2_v2fl(dob->uv, mloopuv[mp->loopstart + j], w);
       }
     }
   }
@@ -1251,9 +1262,9 @@ static void make_child_duplis_faces_from_editmesh(const DupliContext *ctx,
   BMIter iter;
   const bool use_scale = fdd->params.use_scale;
 
-  const float(*vert_coords)[3] = fdd->vert_coords;
+  const float(*vert_positions_deform)[3] = fdd->vert_positions_deform;
 
-  BLI_assert((vert_coords == nullptr) || (em->bm->elem_index_dirty & BM_VERT) == 0);
+  BLI_assert((vert_positions_deform == nullptr) || (em->bm->elem_index_dirty & BM_VERT) == 0);
 
   invert_m4_m4(inst_ob->world_to_object, inst_ob->object_to_world);
   /* Relative transform from parent to child space. */
@@ -1262,7 +1273,7 @@ static void make_child_duplis_faces_from_editmesh(const DupliContext *ctx,
 
   BM_ITER_MESH_INDEX (f, &iter, em->bm, BM_FACES_OF_MESH, a) {
     DupliObject *dob = face_dupli_from_editmesh(
-        fdd->params.ctx, inst_ob, child_imat, a, use_scale, scale_fac, f, vert_coords);
+        fdd->params.ctx, inst_ob, child_imat, a, use_scale, scale_fac, f, vert_positions_deform);
 
     if (fdd->has_orco) {
       const float w = 1.0f / float(f->len);
@@ -1284,8 +1295,9 @@ static void make_duplis_faces(const DupliContext *ctx)
 
   /* Gather mesh info. */
   BMEditMesh *em = nullptr;
-  const float(*vert_coords)[3] = nullptr;
-  const Mesh *me_eval = mesh_data_from_duplicator_object(parent, &em, &vert_coords, nullptr);
+  const float(*vert_positions_deform)[3] = nullptr;
+  const Mesh *me_eval = mesh_data_from_duplicator_object(
+      parent, &em, &vert_positions_deform, nullptr);
   if (em == nullptr && me_eval == nullptr) {
     return;
   }
@@ -1293,28 +1305,28 @@ static void make_duplis_faces(const DupliContext *ctx)
   FaceDupliData_Params fdd_params = {ctx, (parent->transflag & OB_DUPLIFACES_SCALE) != 0};
 
   if (em != nullptr) {
-    const int uv_idx = CustomData_get_render_layer(&em->bm->ldata, CD_MLOOPUV);
+    const int uv_idx = CustomData_get_render_layer(&em->bm->ldata, CD_PROP_FLOAT2);
     FaceDupliData_EditMesh fdd{};
     fdd.params = fdd_params;
     fdd.em = em;
-    fdd.vert_coords = vert_coords;
-    fdd.has_orco = (vert_coords != nullptr);
+    fdd.vert_positions_deform = vert_positions_deform;
+    fdd.has_orco = (vert_positions_deform != nullptr);
     fdd.has_uvs = (uv_idx != -1);
     fdd.cd_loop_uv_offset = (uv_idx != -1) ?
-                                CustomData_get_n_offset(&em->bm->ldata, CD_MLOOPUV, uv_idx) :
+                                CustomData_get_n_offset(&em->bm->ldata, CD_PROP_FLOAT2, uv_idx) :
                                 -1;
     make_child_duplis(ctx, &fdd, make_child_duplis_faces_from_editmesh);
   }
   else {
-    const int uv_idx = CustomData_get_render_layer(&me_eval->ldata, CD_MLOOPUV);
+    const int uv_idx = CustomData_get_render_layer(&me_eval->ldata, CD_PROP_FLOAT2);
     FaceDupliData_Mesh fdd{};
     fdd.params = fdd_params;
     fdd.totface = me_eval->totpoly;
     fdd.mpoly = me_eval->polys().data();
     fdd.mloop = me_eval->loops().data();
-    fdd.mvert = me_eval->verts().data();
-    fdd.mloopuv = (uv_idx != -1) ? (const MLoopUV *)CustomData_get_layer_n(
-                                       &me_eval->ldata, CD_MLOOPUV, uv_idx) :
+    fdd.vert_positions = me_eval->vert_positions();
+    fdd.mloopuv = (uv_idx != -1) ? (const float2 *)CustomData_get_layer_n(
+                                       &me_eval->ldata, CD_PROP_FLOAT2, uv_idx) :
                                    nullptr;
     fdd.orco = (const float(*)[3])CustomData_get_layer(&me_eval->vdata, CD_ORCO);
 
@@ -1784,10 +1796,8 @@ ListBase *object_duplilist_preview(Depsgraph *depsgraph,
     if (nmd_orig->runtime_eval_log == nullptr) {
       continue;
     }
-    geo_log::GeoModifierLog *log = static_cast<geo_log::GeoModifierLog *>(
-        nmd_orig->runtime_eval_log);
-    if (const geo_log::ViewerNodeLog *viewer_log = log->find_viewer_node_log_for_path(
-            *viewer_path)) {
+    if (const geo_log::ViewerNodeLog *viewer_log =
+            geo_log::GeoModifierLog::find_viewer_node_log_for_path(*viewer_path)) {
       ctx.preview_base_geometry = &viewer_log->geometry;
       make_duplis_geometry_set_impl(
           &ctx, viewer_log->geometry, ob_eval->object_to_world, true, ob_eval->type == OB_CURVES);

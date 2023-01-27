@@ -13,8 +13,6 @@
 #include "AS_asset_representation.h"
 #include "AS_asset_representation.hh"
 
-#include "BKE_asset.h"
-
 namespace blender::asset_system {
 
 AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,

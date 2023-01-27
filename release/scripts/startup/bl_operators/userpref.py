@@ -3,7 +3,7 @@
 import bpy
 from bpy.types import (
     Operator,
-    OperatorFileListElement
+    OperatorFileListElement,
 )
 from bpy.props import (
     BoolProperty,
@@ -981,7 +981,7 @@ class PREFERENCES_OT_studiolight_install(Operator):
             ('MATCAP', "MatCap", "Install custom MatCaps"),
             ('WORLD', "World", "Install custom HDRIs"),
             ('STUDIO', "Studio", "Install custom Studio Lights"),
-        )
+        ),
     )
 
     def execute(self, context):

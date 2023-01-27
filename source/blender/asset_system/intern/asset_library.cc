@@ -17,7 +17,6 @@
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
-#include "BLI_set.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -64,6 +63,12 @@ bool AS_asset_library_has_any_unsaved_catalogs()
 {
   AssetLibraryService *service = AssetLibraryService::get();
   return service->has_any_unsaved_catalogs();
+}
+
+std::string AS_asset_library_root_path_from_library_ref(
+    const AssetLibraryReference &library_reference)
+{
+  return AssetLibraryService::root_path_from_library_ref(library_reference);
 }
 
 std::string AS_asset_library_find_suitable_root_path_from_path(
@@ -115,9 +120,11 @@ void AS_asset_library_refresh_catalog_simplename(struct ::AssetLibrary *asset_li
 void AS_asset_library_remap_ids(const IDRemapper *mappings)
 {
   AssetLibraryService *service = AssetLibraryService::get();
-  service->foreach_loaded_asset_library([mappings](asset_system::AssetLibrary &library) {
-    library.remap_ids_and_remove_invalid(*mappings);
-  });
+  service->foreach_loaded_asset_library(
+      [mappings](asset_system::AssetLibrary &library) {
+        library.remap_ids_and_remove_invalid(*mappings);
+      },
+      true);
 }
 
 namespace blender::asset_system {
@@ -136,6 +143,13 @@ AssetLibrary::~AssetLibrary()
   }
 }
 
+void AssetLibrary::foreach_loaded(FunctionRef<void(AssetLibrary &)> fn,
+                                  const bool include_all_library)
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+  service->foreach_loaded_asset_library(fn, include_all_library);
+}
+
 void AssetLibrary::load_catalogs()
 {
   auto catalog_service = std::make_unique<AssetCatalogService>(root_path());
@@ -145,7 +159,9 @@ void AssetLibrary::load_catalogs()
 
 void AssetLibrary::refresh()
 {
-  this->catalog_service->reload_catalogs();
+  if (on_refresh_) {
+    on_refresh_(*this);
+  }
 }
 
 AssetRepresentation &AssetLibrary::add_external_asset(StringRef relative_asset_path,

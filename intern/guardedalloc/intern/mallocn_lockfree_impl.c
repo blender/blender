@@ -31,8 +31,6 @@ typedef struct MemHeadAligned {
   size_t len;
 } MemHeadAligned;
 
-static unsigned int totblock = 0;
-static size_t mem_in_use = 0, peak_mem = 0;
 static bool malloc_debug_memset = false;
 
 static void (*error_callback)(const char *) = NULL;
@@ -115,8 +113,7 @@ void MEM_lockfree_freeN(void *vmemh)
 
   size_t len = MEMHEAD_LEN(memh);
 
-  atomic_sub_and_fetch_u(&totblock, 1);
-  atomic_sub_and_fetch_z(&mem_in_use, len);
+  memory_usage_block_free(len);
 
   if (UNLIKELY(malloc_debug_memset && len)) {
     memset(memh + 1, 255, len);
@@ -271,9 +268,7 @@ void *MEM_lockfree_callocN(size_t len, const char *str)
 
   if (LIKELY(memh)) {
     memh->len = len;
-    atomic_add_and_fetch_u(&totblock, 1);
-    atomic_add_and_fetch_z(&mem_in_use, len);
-    update_maximum(&peak_mem, mem_in_use);
+    memory_usage_block_alloc(len);
 
     MEM_POISON_MEMHEAD(PTR_FROM_MEMHEAD(memh));
     return PTR_FROM_MEMHEAD(memh);
@@ -281,7 +276,7 @@ void *MEM_lockfree_callocN(size_t len, const char *str)
   print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
               SIZET_ARG(len),
               str,
-              (uint)mem_in_use);
+              (uint)memory_usage_current());
   return NULL;
 }
 
@@ -295,7 +290,7 @@ void *MEM_lockfree_calloc_arrayN(size_t len, size_t size, const char *str)
         SIZET_ARG(len),
         SIZET_ARG(size),
         str,
-        (unsigned int)mem_in_use);
+        (unsigned int)memory_usage_current());
     abort();
     return NULL;
   }
@@ -317,9 +312,7 @@ void *MEM_lockfree_mallocN(size_t len, const char *str)
     }
 
     memh->len = len;
-    atomic_add_and_fetch_u(&totblock, 1);
-    atomic_add_and_fetch_z(&mem_in_use, len);
-    update_maximum(&peak_mem, mem_in_use);
+    memory_usage_block_alloc(len);
 
     MEM_POISON_MEMHEAD(PTR_FROM_MEMHEAD(memh));
 
@@ -328,7 +321,7 @@ void *MEM_lockfree_mallocN(size_t len, const char *str)
   print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
               SIZET_ARG(len),
               str,
-              (uint)mem_in_use);
+              (uint)memory_usage_current());
   return NULL;
 }
 
@@ -342,7 +335,7 @@ void *MEM_lockfree_malloc_arrayN(size_t len, size_t size, const char *str)
         SIZET_ARG(len),
         SIZET_ARG(size),
         str,
-        (uint)mem_in_use);
+        (uint)memory_usage_current());
     abort();
     return NULL;
   }
@@ -390,9 +383,7 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
 
     memh->len = len | (size_t)MEMHEAD_ALIGN_FLAG;
     memh->alignment = (short)alignment;
-    atomic_add_and_fetch_u(&totblock, 1);
-    atomic_add_and_fetch_z(&mem_in_use, len);
-    update_maximum(&peak_mem, mem_in_use);
+    memory_usage_block_alloc(len);
 
     MEM_POISON_MEMHEAD(PTR_FROM_MEMHEAD(memh));
 
@@ -401,7 +392,7 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
   print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
               SIZET_ARG(len),
               str,
-              (uint)mem_in_use);
+              (uint)memory_usage_current());
   return NULL;
 }
 
@@ -421,8 +412,8 @@ void MEM_lockfree_callbackmemlist(void (*func)(void *))
 
 void MEM_lockfree_printmemlist_stats(void)
 {
-  printf("\ntotal memory len: %.3f MB\n", (double)mem_in_use / (double)(1024 * 1024));
-  printf("peak memory len: %.3f MB\n", (double)peak_mem / (double)(1024 * 1024));
+  printf("\ntotal memory len: %.3f MB\n", (double)memory_usage_current() / (double)(1024 * 1024));
+  printf("peak memory len: %.3f MB\n", (double)memory_usage_peak() / (double)(1024 * 1024));
   printf(
       "\nFor more detailed per-block statistics run Blender with memory debugging command line "
       "argument.\n");
@@ -450,23 +441,23 @@ void MEM_lockfree_set_memory_debug(void)
 
 size_t MEM_lockfree_get_memory_in_use(void)
 {
-  return mem_in_use;
+  return memory_usage_current();
 }
 
 uint MEM_lockfree_get_memory_blocks_in_use(void)
 {
-  return totblock;
+  return (uint)memory_usage_block_num();
 }
 
 /* dummy */
 void MEM_lockfree_reset_peak_memory(void)
 {
-  peak_mem = mem_in_use;
+  memory_usage_peak_reset();
 }
 
 size_t MEM_lockfree_get_peak_memory(void)
 {
-  return peak_mem;
+  return memory_usage_peak();
 }
 
 #ifndef NDEBUG

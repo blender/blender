@@ -1049,9 +1049,9 @@ void GHOST_SystemWin32::processPointerEvent(
   }
 }
 
-GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window)
+GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window,
+                                                         const int32_t screen_co[2])
 {
-  int32_t x_screen, y_screen;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
   if (window->getTabletData().Active != GHOST_kTabletModeNone) {
@@ -1059,8 +1059,7 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
     return NULL;
   }
 
-  system->getCursorPosition(x_screen, y_screen);
-
+  int32_t x_screen = screen_co[0], y_screen = screen_co[1];
   if (window->getCursorGrabModeIsWarp()) {
     /* WORKAROUND:
      * Sometimes Windows ignores `SetCursorPos()` or `SendInput()` calls or the mouse event is
@@ -1211,16 +1210,16 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     const bool ctrl_pressed = has_state && state[VK_CONTROL] & 0x80;
     const bool alt_pressed = has_state && state[VK_MENU] & 0x80;
 
-    if (!key_down) {
-      /* Pass. */
-    }
+    /* We can be here with !key_down if processing dead keys (diacritics). See T103119. */
+
     /* No text with control key pressed (Alt can be used to insert special characters though!). */
-    else if (ctrl_pressed && !alt_pressed) {
+    if (ctrl_pressed && !alt_pressed) {
       /* Pass. */
     }
     /* Don't call #ToUnicodeEx on dead keys as it clears the buffer and so won't allow diacritical
-     * composition. */
-    else if (MapVirtualKeyW(vk, 2) != 0) {
+     * composition. XXX: we are not checking return of MapVirtualKeyW for high bit set, which is
+     * what is supposed to indicate dead keys. But this is working now so approach cautiously. */
+    else if (MapVirtualKeyW(vk, MAPVK_VK_TO_CHAR) != 0) {
       wchar_t utf16[3] = {0};
       int r;
       /* TODO: #ToUnicodeEx can respond with up to 4 utf16 chars (only 2 here).
@@ -1234,6 +1233,10 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
         else if (r == -1) {
           utf8_char[0] = '\0';
         }
+      }
+      if (!key_down) {
+        /* Clear or wm_event_add_ghostevent will warn of unexpected data on key up. */
+        utf8_char[0] = '\0';
       }
     }
 
@@ -1834,7 +1837,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
             }
           }
 
-          event = processCursorEvent(window);
+          const int32_t window_co[2] = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+          int32_t screen_co[2];
+          window->clientToScreen(UNPACK2(window_co), UNPACK2(screen_co));
+          event = processCursorEvent(window, screen_co);
 
           break;
         }
@@ -1876,7 +1882,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           WINTAB_PRINTF("HWND %p mouse leave\n", window->getHWND());
           window->m_mousePresent = false;
           if (window->getTabletData().Active == GHOST_kTabletModeNone) {
-            event = processCursorEvent(window);
+            /* FIXME: document why the cursor motion event on mouse leave is needed. */
+            int32_t screen_co[2] = {0, 0};
+            system->getCursorPosition(screen_co[0], screen_co[1]);
+            event = processCursorEvent(window, screen_co);
           }
           GHOST_Wintab *wt = window->getWintab();
           if (wt) {

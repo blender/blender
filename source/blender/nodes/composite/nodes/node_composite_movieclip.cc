@@ -5,7 +5,7 @@
  * \ingroup cmpnodes
  */
 
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"

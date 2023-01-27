@@ -670,11 +670,13 @@ extern bool BLI_memory_is_zero(const void *arr, size_t arr_size);
 /** \name Unused Function/Argument Macros
  * \{ */
 
+#ifndef __cplusplus
 /* UNUSED macro, for function argument */
-#if defined(__GNUC__) || defined(__clang__)
-#  define UNUSED(x) UNUSED_##x __attribute__((__unused__))
-#else
-#  define UNUSED(x) UNUSED_##x
+#  if defined(__GNUC__) || defined(__clang__)
+#    define UNUSED(x) UNUSED_##x __attribute__((__unused__))
+#  else
+#    define UNUSED(x) UNUSED_##x
+#  endif
 #endif
 
 /**
@@ -848,7 +850,7 @@ extern bool BLI_memory_is_zero(const void *arr, size_t arr_size);
  */
 #define BLI_ENABLE_IF(condition) typename std::enable_if_t<(condition)> * = nullptr
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
 #  define BLI_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
 #elif defined(__has_cpp_attribute)
 #  if __has_cpp_attribute(no_unique_address)

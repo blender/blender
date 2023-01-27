@@ -1141,51 +1141,51 @@ void UI_FontThemeColor(int fontid, int colorid)
 float UI_GetThemeValuef(int colorid)
 {
   const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
-  return (float(cp[0]));
+  return float(cp[0]);
 }
 
 int UI_GetThemeValue(int colorid)
 {
   const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
-  return (int(cp[0]));
+  return int(cp[0]);
 }
 
 float UI_GetThemeValueTypef(int colorid, int spacetype)
 {
   const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, spacetype, colorid);
-  return (float(cp[0]));
+  return float(cp[0]);
 }
 
 int UI_GetThemeValueType(int colorid, int spacetype)
 {
   const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, spacetype, colorid);
-  return (int(cp[0]));
+  return int(cp[0]);
 }
 
 void UI_GetThemeColor3fv(int colorid, float col[3])
 {
   const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
-  col[0] = (float(cp[0])) / 255.0f;
-  col[1] = (float(cp[1])) / 255.0f;
-  col[2] = (float(cp[2])) / 255.0f;
+  col[0] = float(cp[0]) / 255.0f;
+  col[1] = float(cp[1]) / 255.0f;
+  col[2] = float(cp[2]) / 255.0f;
 }
 
 void UI_GetThemeColor4fv(int colorid, float col[4])
 {
   const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
-  col[0] = (float(cp[0])) / 255.0f;
-  col[1] = (float(cp[1])) / 255.0f;
-  col[2] = (float(cp[2])) / 255.0f;
-  col[3] = (float(cp[3])) / 255.0f;
+  col[0] = float(cp[0]) / 255.0f;
+  col[1] = float(cp[1]) / 255.0f;
+  col[2] = float(cp[2]) / 255.0f;
+  col[3] = float(cp[3]) / 255.0f;
 }
 
 void UI_GetThemeColorType4fv(int colorid, int spacetype, float col[4])
 {
   const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, spacetype, colorid);
-  col[0] = (float(cp[0])) / 255.0f;
-  col[1] = (float(cp[1])) / 255.0f;
-  col[2] = (float(cp[2])) / 255.0f;
-  col[3] = (float(cp[3])) / 255.0f;
+  col[0] = float(cp[0]) / 255.0f;
+  col[1] = float(cp[1]) / 255.0f;
+  col[2] = float(cp[2]) / 255.0f;
+  col[3] = float(cp[3]) / 255.0f;
 }
 
 void UI_GetThemeColorShade3fv(int colorid, int offset, float col[3])
@@ -1361,9 +1361,9 @@ void UI_GetThemeColor4ubv(int colorid, uchar col[4])
 void UI_GetThemeColorType3fv(int colorid, int spacetype, float col[3])
 {
   const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, spacetype, colorid);
-  col[0] = (float(cp[0])) / 255.0f;
-  col[1] = (float(cp[1])) / 255.0f;
-  col[2] = (float(cp[2])) / 255.0f;
+  col[0] = float(cp[0]) / 255.0f;
+  col[1] = float(cp[1]) / 255.0f;
+  col[2] = float(cp[2]) / 255.0f;
 }
 
 void UI_GetThemeColorType3ubv(int colorid, int spacetype, uchar col[3])

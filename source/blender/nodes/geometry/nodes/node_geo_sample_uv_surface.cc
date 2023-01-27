@@ -21,15 +21,15 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
 
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().supports_field();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().supports_field();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().supports_field();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().supports_field();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().supports_field();
+  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().field_on_all();
+  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().field_on_all();
+  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().field_on_all();
+  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().field_on_all();
+  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().field_on_all();
 
   b.add_input<decl::Vector>(N_("Source UV Map"))
       .hide_value()
-      .supports_field()
+      .field_on_all()
       .description(N_("The mesh UV map to sample. Should not have overlapping faces"));
   b.add_input<decl::Vector>(N_("Sample UV"))
       .supports_field()
@@ -89,9 +89,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs().take_back(2));
-  search_link_ops_for_declarations(params, declaration.inputs().take_front(1));
-  search_link_ops_for_declarations(params, declaration.outputs().take_back(1));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(2));
+  search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
+  search_link_ops_for_declarations(params, declaration.outputs.as_span().take_back(1));
 
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       eNodeSocketDatatype(params.other_socket().type));
@@ -105,7 +105,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-class SampleMeshBarycentricFunction : public fn::MultiFunction {
+class SampleMeshBarycentricFunction : public mf::MultiFunction {
   GeometrySet source_;
   GField src_field_;
 
@@ -116,7 +116,7 @@ class SampleMeshBarycentricFunction : public fn::MultiFunction {
    */
   eAttrDomain domain_ = ATTR_DOMAIN_CORNER;
 
-  fn::MFSignature signature_;
+  mf::Signature signature_;
 
   std::optional<bke::MeshFieldContext> source_context_;
   std::unique_ptr<FieldEvaluator> source_evaluator_;
@@ -129,21 +129,16 @@ class SampleMeshBarycentricFunction : public fn::MultiFunction {
       : source_(std::move(geometry)), src_field_(std::move(src_field))
   {
     source_.ensure_owns_direct_data();
-    this->set_signature(&signature_);
-    signature_ = this->create_signature();
     this->evaluate_source();
+
+    mf::SignatureBuilder builder{"Sample Barycentric Triangles", signature_};
+    builder.single_input<int>("Triangle Index");
+    builder.single_input<float3>("Barycentric Weight");
+    builder.single_output("Value", src_field_.cpp_type());
+    this->set_signature(&signature_);
   }
 
-  fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Sample Barycentric Triangles"};
-    signature.single_input<int>("Triangle Index");
-    signature.single_input<float3>("Barycentric Weight");
-    signature.single_output("Value", src_field_.cpp_type());
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArraySpan<int> triangle_indices = params.readonly_single_input<int>(0,
                                                                                "Triangle Index");
@@ -184,7 +179,7 @@ class SampleMeshBarycentricFunction : public fn::MultiFunction {
   }
 };
 
-class ReverseUVSampleFunction : public fn::MultiFunction {
+class ReverseUVSampleFunction : public mf::MultiFunction {
   GeometrySet source_;
   Field<float2> src_uv_map_field_;
 
@@ -199,22 +194,21 @@ class ReverseUVSampleFunction : public fn::MultiFunction {
       : source_(std::move(geometry)), src_uv_map_field_(std::move(src_uv_map_field))
   {
     source_.ensure_owns_direct_data();
-    static fn::MFSignature signature = create_signature();
-    this->set_signature(&signature);
     this->evaluate_source();
+
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Sample UV Surface", signature};
+      builder.single_input<float2>("Sample UV");
+      builder.single_output<bool>("Is Valid");
+      builder.single_output<int>("Triangle Index");
+      builder.single_output<float3>("Barycentric Weights");
+      return signature;
+    }();
+    this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Sample UV Surface"};
-    signature.single_input<float2>("Sample UV");
-    signature.single_output<bool>("Is Valid");
-    signature.single_output<int>("Triangle Index");
-    signature.single_output<float3>("Barycentric Weights");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
   {
     const VArraySpan<float2> sample_uvs = params.readonly_single_input<float2>(0, "Sample UV");
     MutableSpan<bool> is_valid = params.uninitialized_single_output_if_required<bool>(1,

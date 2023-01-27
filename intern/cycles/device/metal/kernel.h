@@ -64,6 +64,8 @@ struct MetalKernelPipeline {
 
   void compile();
 
+  int originating_device_id;
+
   id<MTLLibrary> mtlLibrary = nil;
   MetalPipelineType pso_type;
   string source_md5;
@@ -94,9 +96,13 @@ struct MetalKernelPipeline {
 /* Cache of Metal kernels for each DeviceKernel. */
 namespace MetalDeviceKernels {
 
-bool should_load_kernels(MetalDevice *device, MetalPipelineType pso_type);
+bool any_specialization_happening_now();
+int get_loaded_kernel_count(MetalDevice const *device, MetalPipelineType pso_type);
+bool should_load_kernels(MetalDevice const *device, MetalPipelineType pso_type);
 bool load(MetalDevice *device, MetalPipelineType pso_type);
 const MetalKernelPipeline *get_best_pipeline(const MetalDevice *device, DeviceKernel kernel);
+void wait_for_all();
+bool is_benchmark_warmup();
 
 } /* namespace MetalDeviceKernels */
 

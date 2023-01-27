@@ -163,8 +163,8 @@ int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
 
 void ED_sculpt_face_sets_initialize_none_to_id(struct Mesh *mesh, const int new_id)
 {
-  int *face_sets = static_cast<int *>(
-      CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_set"));
+  int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly));
   if (!face_sets) {
     return;
   }
@@ -307,7 +307,7 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+  float (*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
   const float test_limit = 0.05f;
   int cd_mask = -1;
 
@@ -351,7 +351,7 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
         const MPoly *p = &ss->mpoly[vert_map->indices[j]];
 
         float poly_center[3];
-        BKE_mesh_calc_poly_center(p, &ss->mloop[p->loopstart], mvert, poly_center);
+        BKE_mesh_calc_poly_center(p, &ss->mloop[p->loopstart], vert_positions, poly_center);
 
         if (!sculpt_brush_test_sq_fn(&test, poly_center)) {
           continue;
@@ -405,7 +405,7 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
           const MLoop *ml = &ss->mloop[p->loopstart];
 
           for (int i = 0; i < p->totloop; i++, ml++) {
-            MVert *v = &ss->mvert[ml->v];
+            float *v = vert_positions[ml->v];
             float fno[3];
 
             MSculptVert *mv = ss->msculptverts + ml->v;
@@ -420,7 +420,7 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
             const float fade2 = bstrength *
                                 SCULPT_brush_strength_factor(ss,
                                                              brush,
-                                                             v->co,
+                                                             v,
                                                              sqrtf(test.dist),
                                                              ss->vert_normals[ml->v],
                                                              fno,
@@ -636,7 +636,7 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
                         fade * bstrength,
                         (eSculptBoundary)(SCULPT_BOUNDARY_DEFAULT | SCULPT_BOUNDARY_FACE_SET),
                         vd.co);
-    if (vd.mvert) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
     if (do_reproject) {
@@ -967,53 +967,53 @@ static EnumPropertyItem prop_sculpt_face_sets_init_types[] = {
 typedef bool (*face_sets_flood_fill_test)(
     BMesh *bm, BMFace *from_f, BMEdge *from_e, BMFace *to_f, const float threshold);
 
-static bool sculpt_face_sets_init_loose_parts_test(BMesh *UNUSED(bm),
-                                                   BMFace *UNUSED(from_f),
-                                                   BMEdge *UNUSED(from_e),
-                                                   BMFace *UNUSED(to_f),
-                                                   const float UNUSED(threshold))
+static bool sculpt_face_sets_init_loose_parts_test(BMesh * /*bm*/,
+                                                   BMFace */*from_f*/,
+                                                   BMEdge */*from_e*/,
+                                                   BMFace */*UNUSED(to_f)*/,
+                                                   const float /*UNUSED(threshold)*/)
 {
   return true;
 }
 
 static bool sculpt_face_sets_init_normals_test(
-    BMesh *UNUSED(bm), BMFace *from_f, BMEdge *UNUSED(from_e), BMFace *to_f, const float threshold)
+    BMesh */*bm*/, BMFace *from_f, BMEdge */*UNUSED(from_e)*/, BMFace *to_f, const float threshold)
 {
   return fabsf(dot_v3v3(from_f->no, to_f->no)) > threshold;
 }
 
-static bool sculpt_face_sets_init_uv_seams_test(BMesh *UNUSED(bm),
-                                                BMFace *UNUSED(from_f),
+static bool sculpt_face_sets_init_uv_seams_test(BMesh */*UNUSED(bm)*/,
+                                                BMFace */*UNUSED(from_f)*/,
                                                 BMEdge *from_e,
-                                                BMFace *UNUSED(to_f),
-                                                const float UNUSED(threshold))
+                                                BMFace */*UNUSED(to_f)*/,
+                                                const float /*UNUSED(threshold)*/)
 {
   return !BM_elem_flag_test(from_e, BM_ELEM_SEAM);
 }
 
 static bool sculpt_face_sets_init_crease_test(
-    BMesh *bm, BMFace *UNUSED(from_f), BMEdge *from_e, BMFace *UNUSED(to_f), const float threshold)
+    BMesh *bm, BMFace */*UNUSED(from_f)*/, BMEdge *from_e, BMFace */*UNUSED(to_f)*/, const float threshold)
 {
   return BM_elem_float_data_get(&bm->edata, from_e, CD_CREASE) < threshold;
 }
 
 static bool sculpt_face_sets_init_bevel_weight_test(
-    BMesh *bm, BMFace *UNUSED(from_f), BMEdge *from_e, BMFace *UNUSED(to_f), const float threshold)
+    BMesh *bm, BMFace */*UNUSED(from_f)*/, BMEdge *from_e, BMFace */*UNUSED(to_f)*/, const float threshold)
 {
   return BM_elem_float_data_get(&bm->edata, from_e, CD_BWEIGHT) < threshold;
 }
 
-static bool sculpt_face_sets_init_sharp_edges_test(BMesh *UNUSED(bm),
-                                                   BMFace *UNUSED(from_f),
+static bool sculpt_face_sets_init_sharp_edges_test(BMesh */*UNUSED(bm)*/,
+                                                   BMFace */*UNUSED(from_f)*/,
                                                    BMEdge *from_e,
-                                                   BMFace *UNUSED(to_f),
-                                                   const float UNUSED(threshold))
+                                                   BMFace */*UNUSED(to_f)*/,
+                                                   const float /*UNUSED(threshold)*/)
 {
   return BM_elem_flag_test(from_e, BM_ELEM_SMOOTH);
 }
 
 static bool sculpt_face_sets_init_face_set_boundary_test(
-    BMesh *bm, BMFace *from_f, BMEdge *UNUSED(from_e), BMFace *to_f, const float UNUSED(threshold))
+    BMesh *bm, BMFace *from_f, BMEdge */*UNUSED(from_e)*/, BMFace *to_f, const float /*UNUSED(threshold)*/)
 {
   const int cd_face_sets_offset = CustomData_get_offset_named(
       &bm->pdata, CD_PROP_INT32, ".sculpt_face_sets");
@@ -1718,7 +1718,7 @@ static void sculpt_face_set_grow(Object *ob,
 static void sculpt_face_set_fill_component(Object *ob,
                                            SculptSession *ss,
                                            const int active_face_set_id,
-                                           const bool UNUSED(modify_hidden))
+                                           const bool /*UNUSED(modify_hidden)*/)
 {
   SCULPT_connected_components_ensure(ob);
   GSet *connected_components = BLI_gset_int_new("affected_components");
@@ -1965,8 +1965,8 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
     BKE_bmesh_prefair_and_fair_verts(ss->bm, fair_vertices, (eMeshFairingDepth)fair_order);
   }
   else {
-    MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
-    BKE_mesh_prefair_and_fair_verts(mesh, mvert, fair_vertices, (eMeshFairingDepth)fair_order);
+    float (*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
+    BKE_mesh_prefair_and_fair_verts(mesh, vert_positions, fair_vertices, (eMeshFairingDepth)fair_order);
 
     MEM_freeN(fair_vertices);
   }
@@ -2852,11 +2852,11 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
   }
 
   if (!ss->bm) {
-    MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+    float (*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
     for (int i = 0; i < fsecd->totvert; i++) {
       int idx = fsecd->verts[i];
 
-      madd_v3_v3v3fl(mvert[idx].co, fsecd->orig_co[i], fsecd->orig_no[i], extrude_disp);
+      madd_v3_v3v3fl(vert_positions[idx], fsecd->orig_co[i], fsecd->orig_no[i], extrude_disp);
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(idx));
     }
 

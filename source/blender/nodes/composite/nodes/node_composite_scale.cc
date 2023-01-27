@@ -8,7 +8,7 @@
 #include "BLI_assert.h"
 #include "BLI_float3x3.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "RNA_access.h"
 
@@ -149,7 +149,7 @@ class ScaleOperation : public NodeOperation {
   float2 get_scale_render_size_stretch()
   {
     const float2 input_size = float2(get_input("Image").domain().size);
-    const float2 render_size = float2(context().get_output_size());
+    const float2 render_size = float2(context().get_compositing_region_size());
     return render_size / input_size;
   }
 
@@ -160,7 +160,7 @@ class ScaleOperation : public NodeOperation {
   float2 get_scale_render_size_fit()
   {
     const float2 input_size = float2(get_input("Image").domain().size);
-    const float2 render_size = float2(context().get_output_size());
+    const float2 render_size = float2(context().get_compositing_region_size());
     const float2 scale = render_size / input_size;
     return float2(math::min(scale.x, scale.y));
   }
@@ -172,7 +172,7 @@ class ScaleOperation : public NodeOperation {
   float2 get_scale_render_size_crop()
   {
     const float2 input_size = float2(get_input("Image").domain().size);
-    const float2 render_size = float2(context().get_output_size());
+    const float2 render_size = float2(context().get_compositing_region_size());
     const float2 scale = render_size / input_size;
     return float2(math::max(scale.x, scale.y));
   }

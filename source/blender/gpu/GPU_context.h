@@ -25,6 +25,30 @@ void GPU_backend_type_selection_set(const eGPUBackendType backend);
 eGPUBackendType GPU_backend_type_selection_get(void);
 eGPUBackendType GPU_backend_get_type(void);
 
+/**
+ * Detect the most suited eGPUBackendType.
+ *
+ * - The detected backend will be set in `GPU_backend_type_selection_set`.
+ * - When GPU_backend_type_selection_is_overridden it checks the overridden backend.
+ *   When not overridden it checks a default list.
+ * - OpenGL backend will be checked as fallback for Metal.
+ *
+ * Returns true when detection found a supported backend, otherwise returns false.
+ * When no supported backend is found GPU_backend_type_selection_set is called with
+ * GPU_BACKEND_NONE.
+ */
+bool GPU_backend_type_selection_detect(void);
+
+/**
+ * Alter the GPU_backend_type_selection_detect to only test a specific backend
+ */
+void GPU_backend_type_selection_set_override(eGPUBackendType backend_type);
+
+/**
+ * Check if the GPU_backend_type_selection_detect is overridden to only test a specific backend.
+ */
+bool GPU_backend_type_selection_is_overridden(void);
+
 /** Opaque type hiding blender::gpu::Context. */
 typedef struct GPUContext GPUContext;
 

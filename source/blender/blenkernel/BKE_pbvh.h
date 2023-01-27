@@ -111,7 +111,6 @@ struct MLoop;
 struct MLoopTri;
 struct MSculptVert;
 struct MPoly;
-struct MVert;
 struct Mesh;
 struct MeshElemMap;
 struct PBVH;
@@ -403,7 +402,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          struct Mesh *mesh,
                          const struct MPoly *mpoly,
                          const struct MLoop *mloop,
-                         struct MVert *verts,
+                         float (*vert_positions)[3],
                          struct MSculptVert *msculptverts,
                          int totvert,
                          struct CustomData *vdata,
@@ -602,7 +601,8 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, struct Mesh *me);
 int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
                               const int *grid_indices,
                               int totgrid,
-                              int gridsize);
+                              int gridsize,
+                              int display_gridsize);
 
 /**
  * Multi-res level, only valid for type == #PBVH_GRIDS.
@@ -713,10 +713,7 @@ void BKE_pbvh_node_get_grids(PBVH *pbvh,
                              int *gridsize,
                              struct CCGElem ***r_griddata);
 void BKE_pbvh_node_num_verts(PBVH *pbvh, PBVHNode *node, int *r_uniquevert, int *r_totvert);
-void BKE_pbvh_node_get_verts(PBVH *pbvh,
-                             PBVHNode *node,
-                             const int **r_vert_indices,
-                             struct MVert **r_verts);
+const int *BKE_pbvh_node_get_vert_indices(PBVHNode *node);
 void BKE_pbvh_node_get_loops(PBVH *pbvh,
                              PBVHNode *node,
                              const int **r_loop_indices,
@@ -816,12 +813,13 @@ typedef struct PBVHVertexIter {
   int gridsize;
 
   /* mesh */
-  struct MVert *mverts;
+  float (*vert_positions)[3];
   float (*vert_normals)[3];
   const bool *hide_vert;
   int totvert;
   const int *vert_indices;
   float *vmask;
+  bool is_mesh;
 
   /* bmesh */
   int bi;
@@ -835,7 +833,6 @@ typedef struct PBVHVertexIter {
 
   /* result: these are all computed in the macro, but we assume
    * that compiler optimization's will skip the ones we don't use */
-  struct MVert *mvert;
   struct BMVert *bm_vert;
   float *co;
   float *no;
@@ -883,8 +880,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
             } \
           } \
         } \
-        else if (vi.mverts) { \
-          vi.mvert = &vi.mverts[vi.vert_indices[vi.gx]]; \
+        else if (vi.vert_positions) { \
           if (vi.respect_hide) { \
             vi.visible = !(vi.hide_vert && vi.hide_vert[vi.vert_indices[vi.gx]]); \
             if (mode == PBVH_ITER_UNIQUE && !vi.visible) { \
@@ -894,7 +890,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           else { \
             BLI_assert(vi.visible); \
           } \
-          vi.co = vi.mvert->co; \
+          vi.co = vi.vert_positions[vi.vert_indices[vi.gx]]; \
           vi.no = vi.vert_normals[vi.vert_indices[vi.gx]]; \
           vi.index = vi.vertex.i = vi.vert_indices[vi.i]; \
           if (vi.vmask) { \
@@ -1030,7 +1026,7 @@ void BKE_pbvh_parallel_range_settings(struct TaskParallelSettings *settings,
                                       bool use_threading,
                                       int totnode);
 
-struct MVert *BKE_pbvh_get_verts(const PBVH *pbvh);
+float (*BKE_pbvh_get_vert_positions(const PBVH *pbvh))[3];
 const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3];
 const bool *BKE_pbvh_get_vert_hide(const PBVH *pbvh);
 bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh);
@@ -1247,13 +1243,14 @@ bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v);
 void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
                                          const int *face_sets,
                                          const bool *hide_poly,
-                                         const struct MVert *mvert,
+                                         const float (*vert_positions)[3],
                                          const struct MEdge *medge,
                                          const struct MLoop *mloop,
                                          const struct MPoly *mpoly,
                                          struct MSculptVert *msculptverts,
                                          const struct MeshElemMap *pmap,
-                                         PBVHVertRef vertex);
+                                         PBVHVertRef vertex,
+                                         const bool *sharp_edges);
 void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
                                          struct SubdivCCG *subdiv_ccg,
                                          PBVHVertRef vertex);

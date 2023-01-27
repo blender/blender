@@ -2845,12 +2845,15 @@ static bool rename_anim_channels(bAnimContext *ac, int channel_index)
   int filter;
   bool success = false;
 
-  /* get the channel that was clicked on */
-  /* filter channels */
+  /* Filter relevant channels (note that grease-pencil/annotations are not displayed in Graph
+   * Editor). */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+  if (ELEM(ac->datatype, ANIMCONT_FCURVES, ANIMCONT_NLA)) {
+    filter |= ANIMFILTER_FCURVESONLY;
+  }
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* get channel from index */
+  /* Get channel that was clicked on from index. */
   ale = BLI_findlink(&anim_data, channel_index);
   if (ale == NULL) {
     /* channel not found */

@@ -1199,7 +1199,8 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
       if (gc->texture) {
         GPU_texture_free(gc->texture);
       }
-      gc->texture = GPU_texture_create_2d(__func__, w, h, 1, GPU_R8, NULL);
+      gc->texture = GPU_texture_create_2d_ex(
+          __func__, w, h, 1, GPU_R8, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
 
       gc->bitmap_len_landed = 0;
     }

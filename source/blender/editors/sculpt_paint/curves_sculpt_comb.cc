@@ -132,8 +132,9 @@ struct CombOperationExecutor {
 
     transforms_ = CurvesSurfaceTransforms(*curves_ob_orig_, curves_id_orig_->surface);
 
-    point_factors_ = get_point_selection(*curves_id_orig_);
-    curve_selection_ = retrieve_selected_curves(*curves_id_orig_, selected_curve_indices_);
+    point_factors_ = curves_orig_->attributes().lookup_or_default<float>(
+        ".selection", ATTR_DOMAIN_POINT, 1.0f);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_orig_, selected_curve_indices_);
 
     brush_pos_prev_re_ = self_->brush_pos_last_re_;
     brush_pos_re_ = stroke_extension.mouse_position;

@@ -2201,16 +2201,16 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
   int subd_vert_offset = 0;
 
   /* Subdivide each loose coarse edge. */
-  const Span<MVert> coarse_verts = coarse_mesh->verts();
+  const Span<float3> coarse_positions = coarse_mesh->vert_positions();
   const Span<MEdge> coarse_edges = coarse_mesh->edges();
 
   int *vert_to_edge_buffer;
   MeshElemMap *vert_to_edge_map;
   BKE_mesh_vert_edge_map_create(&vert_to_edge_map,
                                 &vert_to_edge_buffer,
-                                coarse_verts.data(),
+                                reinterpret_cast<const float(*)[3]>(coarse_positions.data()),
                                 coarse_edges.data(),
-                                coarse_verts.size(),
+                                coarse_positions.size(),
                                 coarse_edges.size(),
                                 false);
 
@@ -2227,13 +2227,14 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
       DRWSubdivLooseVertex &subd_v1 = loose_subd_verts[subd_vert_offset];
       subd_v1.coarse_vertex_index = (i == 0) ? coarse_edge->v1 : -1u;
       const float u1 = i * inv_resolution_1;
-      BKE_subdiv_mesh_interpolate_position_on_edge(coarse_verts.data(),
-                                                   coarse_edges.data(),
-                                                   vert_to_edge_map,
-                                                   coarse_edge_index,
-                                                   is_simple,
-                                                   u1,
-                                                   subd_v1.co);
+      BKE_subdiv_mesh_interpolate_position_on_edge(
+          reinterpret_cast<const float(*)[3]>(coarse_positions.data()),
+          coarse_edges.data(),
+          vert_to_edge_map,
+          coarse_edge_index,
+          is_simple,
+          u1,
+          subd_v1.co);
 
       subd_edge.loose_subdiv_v1_index = subd_vert_offset++;
 
@@ -2241,13 +2242,14 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
       DRWSubdivLooseVertex &subd_v2 = loose_subd_verts[subd_vert_offset];
       subd_v2.coarse_vertex_index = ((i + 1) == resolution - 1) ? coarse_edge->v2 : -1u;
       const float u2 = (i + 1) * inv_resolution_1;
-      BKE_subdiv_mesh_interpolate_position_on_edge(coarse_verts.data(),
-                                                   coarse_edges.data(),
-                                                   vert_to_edge_map,
-                                                   coarse_edge_index,
-                                                   is_simple,
-                                                   u2,
-                                                   subd_v2.co);
+      BKE_subdiv_mesh_interpolate_position_on_edge(
+          reinterpret_cast<const float(*)[3]>(coarse_positions.data()),
+          coarse_edges.data(),
+          vert_to_edge_map,
+          coarse_edge_index,
+          is_simple,
+          u2,
+          subd_v2.co);
 
       subd_edge.loose_subdiv_v2_index = subd_vert_offset++;
     }
@@ -2259,11 +2261,10 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
   /* Copy the remaining loose_verts. */
   for (int i = 0; i < coarse_loose_vert_len; i++) {
     const int coarse_vertex_index = cache->loose_geom.verts[i];
-    const MVert &coarse_vertex = coarse_verts[coarse_vertex_index];
 
     DRWSubdivLooseVertex &subd_v = loose_subd_verts[subd_vert_offset++];
     subd_v.coarse_vertex_index = cache->loose_geom.verts[i];
-    copy_v3_v3(subd_v.co, coarse_vertex.co);
+    copy_v3_v3(subd_v.co, coarse_positions[coarse_vertex_index]);
   }
 
   subdiv_cache->loose_geom.edges = loose_subd_edges;
