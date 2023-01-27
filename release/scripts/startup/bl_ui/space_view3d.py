@@ -2067,40 +2067,6 @@ class VIEW3D_MT_select_sculpt_curves(Menu):
         layout.operator("sculpt_curves.select_grow", text="Grow")
 
 
-class VIEW3D_MT_angle_control(Menu):
-    bl_label = "Angle Control"
-
-    @classmethod
-    def poll(cls, context):
-        settings = UnifiedPaintPanel.paint_settings(context)
-        if not settings:
-            return False
-
-        brush = settings.brush
-        tex_slot = brush.texture_slot
-
-        return tex_slot.has_texture_angle and tex_slot.has_texture_angle_source
-
-    def draw(self, context):
-        layout = self.layout
-
-        settings = UnifiedPaintPanel.paint_settings(context)
-        brush = settings.brush
-
-        sculpt = (context.sculpt_object is not None)
-
-        tex_slot = brush.texture_slot
-
-        layout.prop(tex_slot, "use_rake", text="Rake")
-
-        if brush.brush_capabilities.has_random_texture_angle and tex_slot.has_random_texture_angle:
-            if sculpt:
-                if brush.sculpt_capabilities.has_random_texture_angle:
-                    layout.prop(tex_slot, "use_random", text="Random")
-            else:
-                layout.prop(tex_slot, "use_random", text="Random")
-
-
 class VIEW3D_MT_mesh_add(Menu):
     bl_idname = "VIEW3D_MT_mesh_add"
     bl_label = "Mesh"
@@ -8041,7 +8007,6 @@ classes = (
     VIEW3D_MT_select_paint_mask_vertex,
     VIEW3D_MT_select_edit_curves,
     VIEW3D_MT_select_sculpt_curves,
-    VIEW3D_MT_angle_control,
     VIEW3D_MT_mesh_add,
     VIEW3D_MT_curve_add,
     VIEW3D_MT_surface_add,
