@@ -2523,9 +2523,6 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     if (attribute_set_sockets.is_empty()) {
       return nullptr;
     }
-    if (attribute_set_sockets.size() == 1) {
-      return attribute_set_sockets[0];
-    }
 
     Vector<lf::OutputSocket *, 16> key;
     key.extend(attribute_set_sockets);
