@@ -8,7 +8,7 @@
 #  define WITH_BM_ID_FREELIST
 #endif
 
-#define USE_NEW_IDMAP
+//#define USE_NEW_IDMAP
 
 #ifdef __cplusplus
 #  include "BLI_map.hh"
