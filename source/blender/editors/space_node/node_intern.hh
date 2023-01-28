@@ -44,17 +44,23 @@ struct bNodeLinkDrag {
   Vector<bNodeLink> links;
   eNodeSocketInOut in_out;
 
-  /** Draw handler for the "+" icon when dragging a link in empty space. */
+  /** Draw handler for the tooltip icon when dragging a link in empty space. */
   void *draw_handle;
 
   /** Temporarily stores the last picked link from multi-input socket operator. */
   bNodeLink *last_picked_multi_input_socket_link;
 
   /**
-   * Temporarily stores the last hovered socket for multi-input socket operator.
+   * Temporarily stores the last hovered node for multi-input socket operator.
    * Store it to recalculate sorting after it is no longer hovered.
    */
   bNode *last_node_hovered_while_dragging_a_link;
+
+  /**
+   * Temporarily stores the currently hovered socket for link swapping to allow reliably swap links
+   * even when dragging multiple links at once. `nullptr`, when no socket is hovered.
+   */
+  bNodeSocket *hovered_socket;
 
   /* The cursor position, used for drawing a + icon when dragging a node link. */
   std::array<int, 2> cursor;
@@ -65,6 +71,8 @@ struct bNodeLinkDrag {
   bNodeSocket *start_socket;
   /** The number of links connected to the #start_socket when the drag started. */
   int start_link_count;
+
+  bool swap_links = false;
 
   /* Data for edge panning */
   View2DEdgePanData pan_data;
