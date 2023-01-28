@@ -12,8 +12,8 @@
 #include "BKE_paint.h" /* for SCULPT_BOUNDARY_NEEDS_UPDATE */
 #include "BKE_pbvh.h"
 
-#include "bmesh.h"
 #include "../../bmesh/intern/bmesh_idmap.h"
+#include "bmesh.h"
 
 #define PBVH_STACK_FIXED_DEPTH 100
 
@@ -429,12 +429,10 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
                                    int cd_face_node_offset,
                                    int cd_vcol_offset,
                                    int cd_boundary_flags,
-                                   BMVert * v,
+                                   BMVert *v,
                                    int bound_symmetry,
                                    const struct CustomData *ldata,
                                    const int totuv);
-void pbvh_boundary_update_bmesh(PBVH *pbvh, struct BMVert *v);
-bool pbvh_boundary_needs_update_bmesh(PBVH *pbvh, struct BMVert *v);
 
 BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
 {
@@ -466,6 +464,24 @@ void pbvh_node_pixels_free(PBVHNode *node);
 void pbvh_pixels_free(PBVH *pbvh);
 void pbvh_pixels_free_brush_test(PBVHNode *node);
 void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node);
+
+BLI_INLINE bool pbvh_boundary_needs_update_bmesh(PBVH *pbvh, BMVert *v)
+{
+  int *flags = (int *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_boundary_flag);
+
+  return *flags & SCULPT_BOUNDARY_NEEDS_UPDATE;
+}
+
+BLI_INLINE void pbvh_boundary_update_bmesh(PBVH *pbvh, BMVert *v)
+{
+  if (pbvh->cd_boundary_flag == -1) {
+    printf("%s: error!\n", __func__);
+    return;
+  }
+
+  int *flags = (int *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_boundary_flag);
+  *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+}
 
 #ifdef __cplusplus
 }

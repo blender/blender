@@ -132,6 +132,7 @@ set(SRC
   intern/displist.cc
   intern/dynamicpaint.c
   intern/dyntopo.cc
+  intern/dyntopo_collapse.cc
   intern/editlattice.c
   intern/editmesh.cc
   intern/editmesh_bvh.c
@@ -514,6 +515,7 @@ set(SRC
   intern/CCGSubSurf.h
   intern/CCGSubSurf_inline.h
   intern/CCGSubSurf_intern.h
+  intern/dyntopo_intern.hh
   intern/attribute_access_intern.hh
   intern/data_transfer_intern.h
   intern/lib_intern.h
