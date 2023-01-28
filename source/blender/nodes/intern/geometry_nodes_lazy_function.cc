@@ -1088,7 +1088,7 @@ class LazyFunctionForAnonymousAttributeSetJoin : public lf::LazyFunction {
     constexpr int cache_amount = 16;
     static std::array<LazyFunctionForAnonymousAttributeSetJoin, cache_amount> cached_functions =
         get_cache(std::make_index_sequence<cache_amount>{});
-    if (amount <= cached_functions.size()) {
+    if (amount < cached_functions.size()) {
       return cached_functions[amount];
     }
 
