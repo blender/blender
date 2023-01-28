@@ -237,7 +237,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   if (params.output_is_required("Point Index")) {
     Field<int> sort_index = params.extract_input<Field<int>>("Sort Index");
-    Field<int> sort_weight = params.extract_input<Field<float>>("Weights");
+    Field<float> sort_weight = params.extract_input<Field<float>>("Weights");
     if (use_start_point_special_case(curve_index, sort_index, sort_weight)) {
       params.set_output("Point Index", Field<int>(std::make_shared<CurveStartPointInput>()));
     }
