@@ -44,6 +44,7 @@
 
 ListBase seqbase_clipboard;
 ListBase fcurves_clipboard;
+ListBase drivers_clipboard;
 int seqbase_clipboard_frame;
 static char seq_clipboard_active_seq_name[SEQ_NAME_MAXSTR];
 
@@ -62,6 +63,11 @@ void SEQ_clipboard_free(void)
     BKE_fcurve_free(fcu);
   }
   BLI_listbase_clear(&fcurves_clipboard);
+
+  LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, &drivers_clipboard) {
+    BKE_fcurve_free(fcu);
+  }
+  BLI_listbase_clear(&drivers_clipboard);
 }
 
 #define ID_PT (*id_pt)

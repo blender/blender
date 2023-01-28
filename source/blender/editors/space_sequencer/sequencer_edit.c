@@ -1606,8 +1606,8 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
    * This way, when pasted strips are renamed, curves are renamed with them. Finally, restore
    * original curves from backup.
    */
-  ListBase fcurves_original_backup = {NULL, NULL};
-  SEQ_animation_backup_original(scene, &fcurves_original_backup);
+  SeqAnimationBackup animation_backup = {0};
+  SEQ_animation_backup_original(scene, &animation_backup);
 
   Sequence *seq = duplicated_strips.first;
 
@@ -1623,12 +1623,15 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
     }
     seq->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL + SEQ_LOCK);
     seq->flag |= SEQ_IGNORE_CHANNEL_LOCK;
-    SEQ_animation_duplicate(scene, seq, &fcurves_original_backup);
+
+    SEQ_animation_duplicate_backup_to_scene(scene, seq, &animation_backup);
     SEQ_ensure_unique_name(seq, scene);
   }
 
-  SEQ_animation_restore_original(scene, &fcurves_original_backup);
+  SEQ_animation_restore_original(scene, &animation_backup);
 
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+  DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
   return OPERATOR_FINISHED;
 }
@@ -2393,31 +2396,39 @@ static void seq_copy_del_sound(Scene *scene, Sequence *seq)
   }
 }
 
-static void sequencer_copy_animation(Scene *scene, Sequence *seq)
+static void sequencer_copy_animation_listbase(Scene *scene,
+                                              Sequence *seq,
+                                              ListBase *clipboard,
+                                              ListBase *fcurve_base)
 {
-  if (scene->adt == NULL || scene->adt->action == NULL ||
-      BLI_listbase_is_empty(&scene->adt->action->curves)) {
-    return;
-  }
-
   /* Add curves for strips inside meta strip. */
   if (seq->type == SEQ_TYPE_META) {
     LISTBASE_FOREACH (Sequence *, meta_child, &seq->seqbase) {
-      sequencer_copy_animation(scene, meta_child);
+      sequencer_copy_animation_listbase(scene, meta_child, clipboard, fcurve_base);
     }
   }
 
-  GSet *fcurves = SEQ_fcurves_by_strip_get(seq, &scene->adt->action->curves);
+  GSet *fcurves = SEQ_fcurves_by_strip_get(seq, fcurve_base);
   if (fcurves == NULL) {
     return;
   }
 
   GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
-    BLI_addtail(&fcurves_clipboard, BKE_fcurve_copy(fcu));
+    BLI_addtail(clipboard, BKE_fcurve_copy(fcu));
   }
   GSET_FOREACH_END();
 
   BLI_gset_free(fcurves, NULL);
+}
+
+static void sequencer_copy_animation(Scene *scene, Sequence *seq)
+{
+  if (SEQ_animation_curves_exist(scene)) {
+    sequencer_copy_animation_listbase(scene, seq, &fcurves_clipboard, &scene->adt->action->curves);
+  }
+  if (SEQ_animation_drivers_exist(scene)) {
+    sequencer_copy_animation_listbase(scene, seq, &drivers_clipboard, &scene->adt->drivers);
+  }
 }
 
 static int sequencer_copy_exec(bContext *C, wmOperator *op)
@@ -2496,7 +2507,7 @@ void ED_sequencer_deselect_all(Scene *scene)
 
 static void sequencer_paste_animation(bContext *C)
 {
-  if (BLI_listbase_is_empty(&fcurves_clipboard)) {
+  if (BLI_listbase_is_empty(&fcurves_clipboard) && BLI_listbase_is_empty(&drivers_clipboard)) {
     return;
   }
 
@@ -2514,6 +2525,9 @@ static void sequencer_paste_animation(bContext *C)
 
   LISTBASE_FOREACH (FCurve *, fcu, &fcurves_clipboard) {
     BLI_addtail(&act->curves, BKE_fcurve_copy(fcu));
+  }
+  LISTBASE_FOREACH (FCurve *, fcu, &drivers_clipboard) {
+    BLI_addtail(&scene->adt->drivers, BKE_fcurve_copy(fcu));
   }
 }
 
@@ -2553,8 +2567,8 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
    * curves from backup.
    */
 
-  ListBase fcurves_original_backup = {NULL, NULL};
-  SEQ_animation_backup_original(scene, &fcurves_original_backup);
+  SeqAnimationBackup animation_backup = {0};
+  SEQ_animation_backup_original(scene, &animation_backup);
   sequencer_paste_animation(C);
 
   /* Copy strips, temporarily restoring pointers to actual data-blocks. This
@@ -2589,7 +2603,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
     }
   }
 
-  SEQ_animation_restore_original(scene, &fcurves_original_backup);
+  SEQ_animation_restore_original(scene, &animation_backup);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   DEG_relations_tag_update(bmain);
