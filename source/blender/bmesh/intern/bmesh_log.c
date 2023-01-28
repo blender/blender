@@ -3487,7 +3487,7 @@ void _BM_log_vert_removed(BMLog *log, BMVert *v, int UNUSED(cd_vert_mask_offset)
   BM_idmap_check_assign(log->idmap, (BMElem *)v);
 
   if (bm_log_vert_from_id(log, (uint)bm_log_vert_id_get(log, v)) != v) {
-    fprintf(DEBUG_FILE, "%s: idmap error\n", __func__);
+    fprintf(DEBUG_FILE, "%s: idmap error: %d\n", __func__, bm_log_vert_id_get(log, v));
     bm_logstack_pop();
     return;
   }
@@ -3517,10 +3517,13 @@ BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, fl
   }
 
   BM_log_edge_pre(log, e);
+  BM_idmap_release(log->idmap, (BMElem *)e, true);
+
   BMVert *newv = BM_edge_split(log->bm, e, v, newe, t);
 
-  BM_idmap_alloc(log->idmap, (BMElem *)newv);
+  BM_idmap_alloc(log->idmap, (BMElem *)e);
   BM_idmap_alloc(log->idmap, (BMElem *)*newe);
+  BM_idmap_alloc(log->idmap, (BMElem *)newv);
 
   BMIter iter;
   BMLoop *l;

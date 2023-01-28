@@ -80,7 +80,6 @@ static void edge_queue_create_local(struct EdgeQueueContext *eq_ctx,
                                     const bool use_projected,
                                     PBVHTopologyUpdateMode local_mode);
 
-
 BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v, float fac)
 {
   float co[3];
@@ -714,7 +713,7 @@ static float maskcb_get(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
     return min_ff(w1, w2);
     //}
 
-    return (w1 + w2) * 0.5f;
+    // return (w1 + w2) * 0.5f;
   }
 
   return 1.0f;
@@ -1392,8 +1391,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 
 ATTR_NO_OPT bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
 {
-  return false;
-
+#if 0
   bm_logstack_push();
 
   static int max_faces = 64;
@@ -1436,7 +1434,6 @@ ATTR_NO_OPT bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
           continue;
         }
 
-        void **val = nullptr;
         BMFace *f2 = l->radial_next->f;
 
         if (visit.add(f2)) {
@@ -1469,7 +1466,7 @@ ATTR_NO_OPT bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     return false;
   }
 
-  printf("manifold fin size: %d\n", minfs.size());
+  printf("manifold fin size: %d\n", (int)minfs.size());
   const int tag = BM_ELEM_TAG_ALT;
 
   for (int i = 0; i < minfs.size(); i++) {
@@ -1534,9 +1531,9 @@ ATTR_NO_OPT bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     }
 
     pbvh_bmesh_face_remove(pbvh, f, true, false, false);
-#ifdef USE_NEW_IDMAP
+#  ifdef USE_NEW_IDMAP
     BM_idmap_release(pbvh->bm_idmap, (BMElem *)f, true);
-#endif
+#  endif
     BM_face_kill(pbvh->header.bm, f);
   }
 
@@ -1547,9 +1544,9 @@ ATTR_NO_OPT bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
 
     if (!e->l) {
       BM_log_edge_removed(pbvh->bm_log, e);
-#ifdef USE_NEW_IDMAP
+#  ifdef USE_NEW_IDMAP
       BM_idmap_release(pbvh->bm_idmap, (BMElem *)e, true);
-#endif
+#  endif
       BM_edge_kill(pbvh->header.bm, e);
     }
   }
@@ -1561,9 +1558,9 @@ ATTR_NO_OPT bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
       pbvh_bmesh_vert_remove(pbvh, v);
 
       BM_log_vert_removed(pbvh->bm_log, v, pbvh->cd_vert_mask_offset);
-#ifdef USE_NEW_IDMAP
+#  ifdef USE_NEW_IDMAP
       BM_idmap_release(pbvh->bm_idmap, (BMElem *)v, true);
-#endif
+#  endif
       BM_vert_kill(pbvh->header.bm, v);
     }
     else {
@@ -1576,6 +1573,9 @@ ATTR_NO_OPT bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
 
   bm_logstack_pop();
   return true;
+#else
+  return false;
+#endif
 }
 
 bool check_for_fins(PBVH *pbvh, BMVert *v)
@@ -3192,16 +3192,6 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
   for (int i = 0; i < totedge; i++) {
     BMEdge *e = edges[i];
 
-#if 0
-    BMLoop *l = e->l;
-    while (e->l) {
-      BMFace *f = e->l->f;
-      BM_log_face_removed(pbvh->bm_log, f);
-      BKE_pbvh_bmesh_remove_face(pbvh, f, false);
-      BM_idmap_release(pbvh->bm_idmap, (BMElem *)f, true);
-      BM_face_kill(pbvh->header.bm, f);
-    }
-#endif
     check_vert_fan_are_tris(pbvh, e->v1);
     check_vert_fan_are_tris(pbvh, e->v2);
   }
@@ -3287,7 +3277,6 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
     BMFace *f = faces[i];
     BMLoop *l = f->l_first;
 
-    // pbvh_bmesh_face_remove(pbvh, f, true, false, false);
     if (!ignore_isolated_edges) {
       f->head.hflag |= SPLIT_TAG;
       BM_log_face_pre(pbvh->bm_log, f);

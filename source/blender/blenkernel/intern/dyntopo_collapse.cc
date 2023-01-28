@@ -47,6 +47,11 @@ using blender::Vector;
 
 namespace blender::dyntopo {
 
+typedef struct TraceData {
+  PBVH *pbvh;
+  BMEdge *e;
+} TraceData;
+
 // copied from decimate modifier code
 inline bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
 {
@@ -128,128 +133,6 @@ inline bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
   } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, e_first->v2)) != e_first);
 
   return false;
-}
-
-typedef struct TraceData {
-  PBVH *pbvh;
-  blender::Set<void *> visit;
-  BMEdge *e;
-} TraceData;
-
-ATTR_NO_OPT void col_on_vert_kill(BMesh *bm, BMVert *v, void *userdata)
-{
-  TraceData *data = (TraceData *)userdata;
-  PBVH *pbvh = data->pbvh;
-
-  if (BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
-    // printf("vert pbvh remove!\n");
-    blender::dyntopo::pbvh_bmesh_vert_remove(pbvh, v);
-  }
-
-  if (!data->visit.add(static_cast<void *>(v))) {
-    // printf("vert kill!\n");
-    BM_log_vert_pre(pbvh->bm_log, v);
-#ifdef USE_NEW_IDMAP
-    BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(v), true);
-#endif
-  }
-}
-
-ATTR_NO_OPT void col_on_edge_kill(BMesh *bm, BMEdge *e, void *userdata)
-{
-  TraceData *data = (TraceData *)userdata;
-  PBVH *pbvh = data->pbvh;
-
-  if (!data->visit.add(static_cast<void *>(e))) {
-    // printf("edge kill!\n");
-    BM_log_edge_pre(pbvh->bm_log, e);
-#ifdef USE_NEW_IDMAP
-    BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e), true);
-#endif
-  }
-}
-
-ATTR_NO_OPT void col_on_face_kill(BMesh *bm, BMFace *f, void *userdata)
-{
-  TraceData *data = (TraceData *)userdata;
-  PBVH *pbvh = data->pbvh;
-
-  if (BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset) != DYNTOPO_NODE_NONE) {
-    pbvh_bmesh_face_remove(pbvh, f, false, false, false);
-  }
-
-  if (!data->visit.add(static_cast<void *>(f))) {
-    BM_log_face_pre(pbvh->bm_log, f);
-#ifdef USE_NEW_IDMAP
-    BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(f), true);
-#endif
-  }
-}
-
-ATTR_NO_OPT static void collapse_restore_id(BMIdMap *idmap, BMElem *elem)
-{
-  int id = BM_idmap_get_id(idmap, elem);
-
-  if (id < 0 || id >= idmap->map_size || idmap->map[id]) {
-    BM_idmap_alloc(idmap, elem);
-  }
-  else {
-    BM_idmap_assign(idmap, elem, id);
-  }
-}
-
-ATTR_NO_OPT void col_on_vert_add(BMesh *bm, BMVert *v, void *userdata)
-{
-  TraceData *data = (TraceData *)userdata;
-  PBVH *pbvh = data->pbvh;
-
-  if (!data->visit.add(static_cast<void *>(v))) {
-    //  return;
-  }
-
-  pbvh_boundary_update_bmesh(pbvh, v);
-
-  MSculptVert *mv = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, data->pbvh->cd_sculpt_vert);
-  mv->flag |= SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT;
-
-  collapse_restore_id(pbvh->bm_idmap, (BMElem *)v);
-  BM_log_vert_post(pbvh->bm_log, v);
-}
-
-ATTR_NO_OPT void col_on_edge_add(BMesh *bm, BMEdge *e, void *userdata)
-{
-  TraceData *data = (TraceData *)userdata;
-  PBVH *pbvh = data->pbvh;
-
-  if (!data->visit.add(static_cast<void *>(e))) {
-    // return;
-  }
-
-  collapse_restore_id(pbvh->bm_idmap, (BMElem *)e);
-  BM_log_edge_post(pbvh->bm_log, e);
-}
-
-ATTR_NO_OPT void col_on_face_add(BMesh *bm, BMFace *f, void *userdata)
-{
-  TraceData *data = (TraceData *)userdata;
-  PBVH *pbvh = data->pbvh;
-
-  if (!data->visit.add(static_cast<void *>(f))) {
-    // return;
-  }
-
-  if (bm_elem_is_free((BMElem *)f, BM_FACE)) {
-    printf("%s: error, f was freed!\n", __func__);
-    return;
-  }
-
-  if (BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset) != DYNTOPO_NODE_NONE) {
-    pbvh_bmesh_face_remove(pbvh, f, false, false, false);
-  }
-
-  collapse_restore_id(pbvh->bm_idmap, (BMElem *)f);
-  BM_log_face_post(pbvh->bm_log, f);
-  BKE_pbvh_bmesh_add_face(pbvh, f, false, false);
 }
 
 /* Faces *outside* the ring region are tagged with facetag, used to detect
@@ -382,31 +265,11 @@ ATTR_NO_OPT void vert_ring_do_apply(BMVert *v,
 const int COLLAPSE_TAG = BM_ELEM_INTERNAL_TAG;
 const int COLLAPSE_FACE_TAG = BM_ELEM_TAG_ALT;
 
-ATTR_NO_OPT static void vert_ring_do_old(BMVert *v,
-                                         void (*callback)(BMElem *elem, void *userdata),
-                                         void *userdata,
-                                         int tag,
-                                         int facetag,
-                                         int depth)
-{
-  if (!v->e) {
-    v->head.hflag &= ~tag;
-    callback((BMElem *)v, userdata);
-    return;
-  }
-
-  vert_ring_do_tag(v, tag, facetag, depth);
-  vert_ring_untag_inner_faces(v, tag, facetag, depth);
-  vert_ring_do_apply(v, callback, userdata, tag, facetag, depth);
-}
-
 ATTR_NO_OPT static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
 {
   TraceData *data = static_cast<TraceData *>(userdata);
 
-  if (!data->visit.add(static_cast<void *>(elem))) {
-    return;
-  }
+  BM_idmap_check_assign(data->pbvh->bm_idmap, elem);
 
   switch (elem->head.htype) {
     case BM_VERT: {
@@ -414,19 +277,45 @@ ATTR_NO_OPT static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
 
       BM_log_vert_removed(data->pbvh->bm_log, v, -1);
       pbvh_bmesh_vert_remove(data->pbvh, v);
+      BM_idmap_release(data->pbvh->bm_idmap, elem, false);
       break;
     }
     case BM_EDGE: {
       BMEdge *e = reinterpret_cast<BMEdge *>(elem);
       BM_log_edge_removed(data->pbvh->bm_log, e);
+      BM_idmap_release(data->pbvh->bm_idmap, elem, false);
       break;
     }
     case BM_FACE: {
       BMFace *f = reinterpret_cast<BMFace *>(elem);
       BM_log_face_removed(data->pbvh->bm_log, f);
       pbvh_bmesh_face_remove(data->pbvh, f, false, false, false);
+      BM_idmap_release(data->pbvh->bm_idmap, elem, false);
       break;
     }
+  }
+}
+
+ATTR_NO_OPT static void check_new_elem_id(BMElem *elem, TraceData *data)
+{
+  int id = BM_ELEM_CD_GET_INT(elem, data->pbvh->bm_idmap->cd_id_off[elem->head.htype]);
+  if (id >= 0) {
+    BMElem *existing = id < data->pbvh->bm_idmap->map_size ?
+                           BM_idmap_lookup(data->pbvh->bm_idmap, id) :
+                           nullptr;
+
+    if (existing) {
+      BM_idmap_release(data->pbvh->bm_idmap, existing, true);
+    }
+
+    BM_idmap_assign(data->pbvh->bm_idmap, elem, id);
+
+    if (existing) {
+      BM_idmap_check_assign(data->pbvh->bm_idmap, existing);
+    }
+  }
+  else {
+    BM_idmap_check_assign(data->pbvh->bm_idmap, elem);
   }
 }
 
@@ -434,24 +323,28 @@ ATTR_NO_OPT static void collapse_ring_callback_post(BMElem *elem, void *userdata
 {
   TraceData *data = static_cast<TraceData *>(userdata);
 
-  if (!data->visit.add(static_cast<void *>(elem))) {
-    return;
-  }
-
   switch (elem->head.htype) {
     case BM_VERT: {
       BMVert *v = reinterpret_cast<BMVert *>(elem);
 
+      MSculptVert *mv = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, data->pbvh->cd_sculpt_vert);
+      mv->flag |= SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT;
+
+      check_new_elem_id(elem, data);
       BM_log_vert_added(data->pbvh->bm_log, v, -1);
       break;
     }
     case BM_EDGE: {
       BMEdge *e = reinterpret_cast<BMEdge *>(elem);
+      check_new_elem_id(elem, data);
+
       BM_log_edge_added(data->pbvh->bm_log, e);
       break;
     }
     case BM_FACE: {
       BMFace *f = reinterpret_cast<BMFace *>(elem);
+      check_new_elem_id(elem, data);
+
       BM_log_face_added(data->pbvh->bm_log, f);
       BKE_pbvh_bmesh_add_face(data->pbvh, f, false, false);
       break;
@@ -485,14 +378,14 @@ ATTR_NO_OPT static void vert_ring_do(BMVert *v,
                                      int facetag,
                                      int depth)
 {
-  blender::Set<BMFace *> faces;
+  blender::Set<BMFace *, 128> faces;
 
   std::function<void(BMVert * v, int depth)> recurse = [&](BMVert *v, int depth) {
     if (!v->e) {
       return;
     }
 
-    const int max_depth = 2;
+    const int max_depth = 1;
     BMEdge *e = v->e;
     do {
       BMVert *v2 = BM_edge_other_vert(e, v);
@@ -520,8 +413,8 @@ ATTR_NO_OPT static void vert_ring_do(BMVert *v,
     recurse(v_extra, 0);
   }
 
-  blender::Set<BMVert *> verts;
-  blender::Set<BMEdge *> edges;
+  blender::Set<BMVert *, 64> verts;
+  blender::Set<BMEdge *, 128> edges;
 
   for (BMFace *f : faces) {
     BMLoop *l = f->l_first;
@@ -802,44 +695,14 @@ ATTR_NO_OPT BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   const int facetag = COLLAPSE_FACE_TAG;
   const int log_rings = 1;
 
-  blender::dyntopo::pbvh_bmesh_vert_remove(pbvh, v_del);
-
-  BM_log_edge_pre(pbvh->bm_log, e);
-  tdata.visit.add(static_cast<void *>(e));
-
-#ifdef USE_NEW_IDMAP
-  BM_idmap_release(pbvh->bm_idmap, (BMElem *)e, true);
-#endif
-
-  BM_log_vert_removed(pbvh->bm_log, v_del, pbvh->cd_vert_mask_offset);
-  tdata.visit.add(static_cast<void *>(v_del));
-#ifdef USE_NEW_IDMAP
-  BM_idmap_release(pbvh->bm_idmap, (BMElem *)v_del, true);
-#endif
-
   if (deleted_verts) {
     BLI_ghash_insert(deleted_verts, (void *)v_del, nullptr);
   }
 
-  pbvh_bmesh_check_nodes(pbvh);
-  validate_vert_faces(pbvh, pbvh->header.bm, v_conn, false, true);
-
   BMTracer tracer;
   BM_empty_tracer(&tracer, &tdata);
 
-  //#define USE_TRACER
-
-#ifdef USE_TRACER
-  tracer.on_vert_kill = col_on_vert_kill;
-  tracer.on_edge_kill = col_on_edge_kill;
-  tracer.on_face_kill = col_on_face_kill;
-
-  tracer.on_vert_create = col_on_vert_add;
-  tracer.on_edge_create = col_on_edge_add;
-  tracer.on_face_create = col_on_face_add;
-#else
   vert_ring_do(e->v1, e->v2, collapse_ring_callback_pre, &tdata, tag, facetag, log_rings - 1);
-#endif
 
   if (!uvs_snapped) {
     float co[3];
@@ -861,9 +724,6 @@ ATTR_NO_OPT BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     copy_v3_v3(v_conn->co, co);
   }
 
-#ifdef USE_TRACER
-#else
-  tdata.visit.clear();
   vert_ring_do(v_conn,
                nullptr,
                collapse_ring_callback_post,
@@ -871,7 +731,6 @@ ATTR_NO_OPT BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
                tag,
                facetag,
                log_rings - 1);
-#endif
 
   if (!v_conn->e) {
     printf("%s: pbvh error, v_conn->e was null\n", __func__);
@@ -942,13 +801,7 @@ ATTR_NO_OPT BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
       blender::dyntopo::pbvh_bmesh_vert_remove(pbvh, v_conn);
     }
 
-    // if (!tdata.visit.contains(static_cast<void *>(v_conn))) {
     BM_log_vert_removed(pbvh->bm_log, v_conn, 0);
-    //}
-
-#ifdef USE_NEW_IDMAP
-    BM_idmap_release(pbvh->bm_idmap, (BMElem *)v_conn, true);
-#endif
     BM_vert_kill(pbvh->header.bm, v_conn);
 
     bm_logstack_pop();
@@ -958,20 +811,6 @@ ATTR_NO_OPT BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
     printf("%s: error: failed to remove vert from pbvh?\n", __func__);
   }
-
-#if 0
-
-  e = v_conn->e;
-  if (e) {
-    do {
-      enext = BM_DISK_EDGE_NEXT(e, v_conn);
-      BMVert *v2 = BM_edge_other_vert(e, v_conn);
-
-      MSculptVert *mv4 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v2);
-
-    } while ((e = enext) != v_conn->e);
-  }
-#endif
 
   if (v_conn) {
     check_for_fins(pbvh, v_conn);

@@ -1164,7 +1164,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   const int mode = RNA_enum_get(op->ptr, "mode");
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
-  BKE_sculpt_face_sets_ensure(ob);
+  ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
 
   /* Dyntopo not supported. */
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {

@@ -246,7 +246,7 @@ ATTR_NO_OPT int BM_idmap_alloc(BMIdMap *idmap, BMElem *elem)
 
   while (idmap->freelist.size()) {
     id = idmap->freelist.pop_last();
-
+    
     if (id == -1) {
       continue;
     }
