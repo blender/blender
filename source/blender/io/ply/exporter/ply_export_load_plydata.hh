@@ -45,7 +45,7 @@ struct UV_vertex_key {
     return (UV == r.UV && mesh_vertex_index == r.mesh_vertex_index);
   }
 
-  uint64_t hash()
+  uint64_t hash() const
   {
     return ((std::hash<float>()(UV.x) ^ (std::hash<float>()(UV.y) << 1)) >> 1) ^
            (std::hash<int>()(mesh_vertex_index) << 1);
