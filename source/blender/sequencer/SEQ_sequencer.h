@@ -21,7 +21,6 @@ struct Depsgraph;
 struct Editing;
 struct Scene;
 struct Sequence;
-struct SequenceLookup;
 struct SequencerToolSettings;
 
 /* RNA enums, just to be more readable */

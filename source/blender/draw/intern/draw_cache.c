@@ -3371,7 +3371,7 @@ void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
 
   /* Active render layer name. */
   if (is_active_render) {
-    GPU_vertformat_alias_add(format, cl->type == CD_MLOOPUV ? "a" : base_name);
+    GPU_vertformat_alias_add(format, cl->type == CD_PROP_FLOAT2 ? "a" : base_name);
   }
 
   /* Active display layer name. */

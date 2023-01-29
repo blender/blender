@@ -13,8 +13,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supports_field()
       .description(N_("Output the handle positions relative to the corresponding control point "
                       "instead of in the local space of the geometry"));
-  b.add_output<decl::Vector>(N_("Left")).field_source();
-  b.add_output<decl::Vector>(N_("Right")).field_source();
+  b.add_output<decl::Vector>(N_("Left")).field_source_reference_all();
+  b.add_output<decl::Vector>(N_("Right")).field_source_reference_all();
 }
 
 class HandlePositionFieldInput final : public bke::CurvesFieldInput {
@@ -69,6 +69,11 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
     }
     return attributes.adapt_domain<float3>(
         VArray<float3>::ForContainer(std::move(output)), ATTR_DOMAIN_POINT, domain);
+  }
+
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
+  {
+    relative_.node().for_each_field_input_recursive(fn);
   }
 
   uint64_t hash() const override

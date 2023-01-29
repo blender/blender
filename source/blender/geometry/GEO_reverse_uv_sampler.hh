@@ -35,7 +35,7 @@ class ReverseUVSampler {
 
   struct Result {
     ResultType type = ResultType::None;
-    const MLoopTri *looptri = nullptr;
+    int looptri_index = -1;
     float3 bary_weights;
   };
 

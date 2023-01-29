@@ -4,6 +4,54 @@
 #include <strsafe.h>
 
 #include <PathCch.h>
+#include <tlhelp32.h>
+
+BOOL LaunchedFromSteam()
+{
+  HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+  BOOL isSteam = FALSE;
+  if (!hSnapShot)
+    return (FALSE);
+
+  PROCESSENTRY32 process_entry;
+  process_entry.dwSize = sizeof(PROCESSENTRY32);
+
+  if (!Process32First(hSnapShot, &process_entry)) {
+    CloseHandle(hSnapShot);
+    return (FALSE);
+  }
+
+  /* First find our parent process ID. */
+  DWORD our_pid = GetCurrentProcessId();
+  DWORD parent_pid = -1;
+
+  do {
+    if (process_entry.th32ProcessID == our_pid) {
+      parent_pid = process_entry.th32ParentProcessID;
+      break;
+    }
+  } while (Process32Next(hSnapShot, &process_entry));
+
+  if (parent_pid == -1 || !Process32First(hSnapShot, &process_entry)) {
+    CloseHandle(hSnapShot);
+    return (FALSE);
+  }
+  /* Then do another loop to find the process name of the parent.
+   * this is done in 2 loops, since the order of the processes is
+   * unknown and we may already have passed the parent process by
+   * the time we figure out its pid in the first loop. */
+  do {
+    if (process_entry.th32ProcessID == parent_pid) {
+      if (_wcsicmp(process_entry.szExeFile, L"steam.exe") == 0) {
+        isSteam = TRUE;
+      }
+      break;
+    }
+  } while (Process32Next(hSnapShot, &process_entry));
+
+  CloseHandle(hSnapShot);
+  return isSteam;
+}
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
@@ -68,9 +116,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   DWORD returnValue = success ? 0 : -1;
 
   if (success) {
-    /* If blender-launcher is called with background command line flag,
+    /* If blender-launcher is called with background command line flag or launched from steam,
      * wait for the blender process to exit and return its return value. */
-    BOOL background = FALSE;
+    BOOL background = LaunchedFromSteam();
     int argc = 0;
     LPWSTR *argv = CommandLineToArgvW(pCmdLine, &argc);
     for (int i = 0; i < argc; i++) {

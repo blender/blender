@@ -8,6 +8,8 @@
 #include "mtl_debug.hh"
 #include "mtl_framebuffer.hh"
 
+#include "intern/GHOST_ContextCGL.h"
+
 #include <fstream>
 
 using namespace blender;
@@ -45,9 +47,15 @@ id<MTLCommandBuffer> MTLCommandBufferManager::ensure_begin()
   if (active_command_buffer_ == nil) {
 
     /* Verify number of active command buffers is below limit.
-     * Exceeding this limit will mean we either have a leak/GPU hang
-     * or we should increase the command buffer limit during MTLQueue creation */
-    BLI_assert(MTLCommandBufferManager::num_active_cmd_bufs < MTL_MAX_COMMAND_BUFFERS);
+     * Exceeding this limit will mean we either have a command buffer leak/GPU hang
+     * or we should increase the command buffer limit during MTLQueue creation.
+     * Excessive command buffers can also be caused by frequent GPUContext switches, which cause
+     * the GPU pipeline to flush. This is common during indirect light baking operations.
+     *
+     * NOTE: We currently stall until completion of GPU work upon ::submit if we have reached the
+     * in-flight command buffer limit. */
+    BLI_assert(MTLCommandBufferManager::num_active_cmd_bufs <
+               GHOST_ContextCGL::max_command_buffer_count);
 
     if (G.debug & G_DEBUG_GPU) {
       /* Debug: Enable Advanced Errors for GPU work execution. */
@@ -115,7 +123,7 @@ bool MTLCommandBufferManager::submit(bool wait)
    * This ensures that in-use resources are not prematurely de-referenced and returned to the
    * available buffer pool while they are in-use by the GPU. */
   MTLSafeFreeList *cmd_free_buffer_list =
-      MTLContext::get_global_memory_manager().get_current_safe_list();
+      MTLContext::get_global_memory_manager()->get_current_safe_list();
   BLI_assert(cmd_free_buffer_list);
   cmd_free_buffer_list->increment_reference();
 
@@ -136,6 +144,19 @@ bool MTLCommandBufferManager::submit(bool wait)
 
   /* Submit command buffer to GPU. */
   [active_command_buffer_ commit];
+
+  /* If we have too many active command buffers in flight, wait until completed to avoid running
+   * out. We can increase */
+  if (MTLCommandBufferManager::num_active_cmd_bufs >=
+      (GHOST_ContextCGL::max_command_buffer_count - 1)) {
+    wait = true;
+    MTL_LOG_WARNING(
+        "Maximum number of command buffers in flight. Host will wait until GPU work has "
+        "completed. Consider increasing GHOST_ContextCGL::max_command_buffer_count or reducing "
+        "work fragmentation to better utilise system hardware. Command buffers are flushed upon "
+        "GPUContext switches, this is the most common cause of excessive command buffer "
+        "generation.\n");
+  }
 
   if (wait || (G.debug & G_DEBUG_GPU)) {
     /* Wait until current GPU work has finished executing. */
@@ -483,7 +504,7 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
     }
     if (barrier_bits & GPU_BARRIER_SHADER_STORAGE ||
         barrier_bits & GPU_BARRIER_VERTEX_ATTRIB_ARRAY ||
-        barrier_bits & GPU_BARRIER_ELEMENT_ARRAY) {
+        barrier_bits & GPU_BARRIER_ELEMENT_ARRAY || barrier_bits & GPU_BARRIER_UNIFORM) {
       scope = scope | MTLBarrierScopeBuffers;
     }
 
@@ -536,6 +557,24 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
   }
   /* No barrier support. */
   return false;
+}
+
+void MTLCommandBufferManager::encode_signal_event(id<MTLEvent> event, uint64_t signal_value)
+{
+  /* Ensure active command buffer. */
+  id<MTLCommandBuffer> cmd_buf = this->ensure_begin();
+  BLI_assert(cmd_buf);
+  this->end_active_command_encoder();
+  [cmd_buf encodeSignalEvent:event value:signal_value];
+}
+
+void MTLCommandBufferManager::encode_wait_for_event(id<MTLEvent> event, uint64_t signal_value)
+{
+  /* Ensure active command buffer. */
+  id<MTLCommandBuffer> cmd_buf = this->ensure_begin();
+  BLI_assert(cmd_buf);
+  this->end_active_command_encoder();
+  [cmd_buf encodeWaitForEvent:event value:signal_value];
 }
 
 /** \} */
@@ -658,7 +697,7 @@ void MTLRenderPassState::bind_fragment_sampler(MTLSamplerBinding &sampler_bindin
   BLI_assert(slot < MTL_MAX_TEXTURE_SLOTS);
   UNUSED_VARS_NDEBUG(shader_interface);
 
-  /* If sampler state has not changed for the given slot, we do not need to fetch*/
+  /* If sampler state has not changed for the given slot, we do not need to fetch. */
   if (this->cached_fragment_sampler_state_bindings[slot].sampler_state == nil ||
       !(this->cached_fragment_sampler_state_bindings[slot].binding_state ==
         sampler_binding.state) ||

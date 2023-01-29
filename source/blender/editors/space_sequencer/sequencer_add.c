@@ -201,7 +201,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     const int strip_end = SEQ_time_right_handle_frame_get(scene, seq);
-    if (ELEM(type, -1, seq->type) && (strip_end < timeline_frame) &&
+    if (ELEM(type, -1, seq->type) && (strip_end <= timeline_frame) &&
         (timeline_frame - strip_end < proximity)) {
       tgt = seq;
       proximity = timeline_frame - strip_end;
@@ -209,7 +209,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   }
 
   if (tgt) {
-    return tgt->machine + 1;
+    return (type == SEQ_TYPE_MOVIE) ? tgt->machine - 1 : tgt->machine;
   }
   return 1;
 }
@@ -587,7 +587,7 @@ void SEQUENCER_OT_scene_strip_add_new(struct wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Add Strip with a new Scene";
   ot->idname = "SEQUENCER_OT_scene_strip_add_new";
-  ot->description = "Create a new Strip and add a assign a new Scene as source";
+  ot->description = "Create a new Strip and assign a new Scene as source";
 
   /* Api callbacks. */
   ot->invoke = sequencer_add_scene_strip_new_invoke;

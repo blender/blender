@@ -143,6 +143,14 @@ class MixDifferenceOperation : public MixBaseOperation {
   void update_memory_buffer_row(PixelCursor &p) override;
 };
 
+class MixExclusionOperation : public MixBaseOperation {
+ public:
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_row(PixelCursor &p) override;
+};
+
 class MixDivideOperation : public MixBaseOperation {
  public:
   void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;

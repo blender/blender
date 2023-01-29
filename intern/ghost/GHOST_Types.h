@@ -156,6 +156,9 @@ typedef enum {
 #ifdef __APPLE__
   GHOST_kDrawingContextTypeMetal,
 #endif
+#ifdef WITH_VULKAN_BACKEND
+  GHOST_kDrawingContextTypeVulkan,
+#endif
 } GHOST_TDrawingContextType;
 
 typedef enum {
@@ -195,6 +198,8 @@ typedef enum {
   GHOST_kEventWindowActivate,
   GHOST_kEventWindowDeactivate,
   GHOST_kEventWindowUpdate,
+  /** Client side window decorations have changed and need to be redrawn. */
+  GHOST_kEventWindowUpdateDecor,
   GHOST_kEventWindowSize,
   GHOST_kEventWindowMove,
   GHOST_kEventWindowDPIHintChanged,

@@ -10,5 +10,5 @@ void main()
 #endif
   vec4 color = condition ? texture_load(first_image_tx, texel) :
                            texture_load(second_image_tx, texel);
-  imageStore(output_img, texel, color);
+  imageStore(output_img, texel + compositing_region_lower_bound, color);
 }

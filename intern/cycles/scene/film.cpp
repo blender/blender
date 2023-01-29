@@ -88,7 +88,7 @@ NODE_DEFINE(Film)
 {
   NodeType *type = NodeType::add("film", create);
 
-  SOCKET_FLOAT(exposure, "Exposure", 0.8f);
+  SOCKET_FLOAT(exposure, "Exposure", 1.0f);
   SOCKET_FLOAT(pass_alpha_threshold, "Pass Alpha Threshold", 0.0f);
 
   static NodeEnum filter_enum;
@@ -187,7 +187,6 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
   kfilm->pass_transmission_indirect = PASS_UNUSED;
   kfilm->pass_volume_direct = PASS_UNUSED;
   kfilm->pass_volume_indirect = PASS_UNUSED;
-  kfilm->pass_shadow = PASS_UNUSED;
   kfilm->pass_lightgroup = PASS_UNUSED;
 
   /* Mark passes as unused so that the kernel knows the pass is inaccessible. */
@@ -294,9 +293,6 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
         break;
       case PASS_AO:
         kfilm->pass_ao = kfilm->pass_stride;
-        break;
-      case PASS_SHADOW:
-        kfilm->pass_shadow = kfilm->pass_stride;
         break;
 
       case PASS_DIFFUSE_COLOR:
@@ -725,10 +721,6 @@ uint Film::get_kernel_features(const Scene *scene) const
 
     if (pass_type >= PASS_DIFFUSE && pass_type <= PASS_VOLUME_INDIRECT) {
       kernel_features |= KERNEL_FEATURE_LIGHT_PASSES;
-    }
-
-    if (pass_type == PASS_SHADOW) {
-      kernel_features |= KERNEL_FEATURE_SHADOW_PASS;
     }
 
     if (pass_type == PASS_AO) {

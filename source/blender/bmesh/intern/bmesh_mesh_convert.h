@@ -9,6 +9,10 @@
 
 #include "bmesh.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct CustomData_MeshMasks;
 struct Main;
 struct Mesh;
@@ -51,8 +55,8 @@ struct BMeshToMeshParams {
    */
   bool update_shapekey_indices;
   /**
-   * Instead of copying the basis shape-key into the #MVert array,
-   * copy the #BMVert.co directly to #MVert.co (used for reading undo data).
+   * Instead of copying the basis shape-key into the position array,
+   * copy the #BMVert.co directly to the #Mesh position (used for reading undo data).
    */
   bool active_shapekey_to_mvert;
   struct CustomData_MeshMasks cd_mask_extra;
@@ -87,3 +91,7 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm,
                                struct Mesh *me,
                                const struct CustomData_MeshMasks *cd_mask_extra)
     ATTR_NONNULL(1, 2);
+
+#ifdef __cplusplus
+}
+#endif

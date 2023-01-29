@@ -534,27 +534,6 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
     /* XXX(ton): temp, first hack to get auto-render in compositor work. */
     WM_event_add_notifier(C, NC_SCENE | ND_TRANSFORM_DONE, CTX_data_scene(C));
   }
-
-#if 0 /* TRANSFORM_FIX_ME */
-  if (t->spacetype == SPACE_VIEW3D) {
-    allqueue(REDRAWBUTSOBJECT, 0);
-    allqueue(REDRAWVIEW3D, 0);
-  }
-  else if (t->spacetype == SPACE_IMAGE) {
-    allqueue(REDRAWIMAGE, 0);
-    allqueue(REDRAWVIEW3D, 0);
-  }
-  else if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_GRAPH)) {
-    allqueue(REDRAWVIEW3D, 0);
-    allqueue(REDRAWACTION, 0);
-    allqueue(REDRAWNLA, 0);
-    allqueue(REDRAWIPO, 0);
-    allqueue(REDRAWTIME, 0);
-    allqueue(REDRAWBUTSOBJECT, 0);
-  }
-
-  scrarea_queue_headredraw(curarea);
-#endif
 }
 
 /* ************************************************* */
@@ -620,14 +599,9 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       }
       break;
     }
-    case TFM_MODAL_EDGESLIDE_UP:
-    case TFM_MODAL_EDGESLIDE_DOWN: {
-      if (t->mode != TFM_EDGE_SLIDE) {
-        return false;
-      }
-      break;
-    }
-    case TFM_MODAL_INSERTOFS_TOGGLE_DIR: {
+    case TFM_MODAL_INSERTOFS_TOGGLE_DIR:
+    case TFM_MODAL_NODE_ATTACH_ON:
+    case TFM_MODAL_NODE_ATTACH_OFF: {
       if (t->spacetype != SPACE_NODE) {
         return false;
       }
@@ -683,14 +657,14 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
        0,
        "Decrease Max AutoIK Chain Length",
        ""},
-      {TFM_MODAL_EDGESLIDE_UP, "EDGESLIDE_EDGE_NEXT", 0, "Select Next Edge Slide Edge", ""},
-      {TFM_MODAL_EDGESLIDE_DOWN, "EDGESLIDE_PREV_NEXT", 0, "Select Previous Edge Slide Edge", ""},
       {TFM_MODAL_PROPSIZE, "PROPORTIONAL_SIZE", 0, "Adjust Proportional Influence", ""},
       {TFM_MODAL_INSERTOFS_TOGGLE_DIR,
        "INSERTOFS_TOGGLE_DIR",
        0,
        "Toggle Direction for Node Auto-Offset",
        ""},
+      {TFM_MODAL_NODE_ATTACH_ON, "NODE_ATTACH_ON", 0, "Node Attachment", ""},
+      {TFM_MODAL_NODE_ATTACH_OFF, "NODE_ATTACH_OFF", 0, "Node Attachment (Off)", ""},
       {TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Move", ""},
       {TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
       {TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
@@ -1142,6 +1116,17 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           t->redraw |= TREDRAW_SOFT;
         }
         break;
+      case TFM_MODAL_NODE_ATTACH_ON:
+        t->modifiers |= MOD_NODE_ATTACH;
+        t->redraw |= TREDRAW_HARD;
+        handled = true;
+        break;
+      case TFM_MODAL_NODE_ATTACH_OFF:
+        t->modifiers &= ~MOD_NODE_ATTACH;
+        t->redraw |= TREDRAW_HARD;
+        handled = true;
+        break;
+
       case TFM_MODAL_AUTOCONSTRAINT:
       case TFM_MODAL_AUTOCONSTRAINTPLANE:
         if ((t->flag & T_RELEASE_CONFIRM) && (event->prev_val == KM_RELEASE) &&
@@ -1206,9 +1191,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           t->redraw |= TREDRAW_HARD;
         }
         break;
-      /* Those two are only handled in transform's own handler, see T44634! */
-      case TFM_MODAL_EDGESLIDE_UP:
-      case TFM_MODAL_EDGESLIDE_DOWN:
       default:
         break;
     }
@@ -1348,7 +1330,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
 
   t->state = TRANS_RUNNING;
 
-  /* avoid calculating PET */
+  /* Avoid calculating proportional editing. */
   t->options = CTX_NO_PET;
 
   t->mode = TFM_DUMMY;
@@ -1591,9 +1573,9 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     if ((prop = RNA_struct_find_property(op->ptr, "snap_elements"))) {
       RNA_property_enum_set(op->ptr, prop, t->tsnap.mode);
       RNA_boolean_set(op->ptr, "use_snap_project", t->tsnap.project);
-      RNA_enum_set(op->ptr, "snap_target", t->tsnap.source_select);
+      RNA_enum_set(op->ptr, "snap_target", t->tsnap.source_operation);
 
-      eSnapTargetSelect target = t->tsnap.target_select;
+      eSnapTargetOP target = t->tsnap.target_operation;
       RNA_boolean_set(op->ptr, "use_snap_self", (target & SCE_SNAP_TARGET_NOT_ACTIVE) == 0);
       RNA_boolean_set(op->ptr, "use_snap_edit", (target & SCE_SNAP_TARGET_NOT_EDITED) == 0);
       RNA_boolean_set(op->ptr, "use_snap_nonedit", (target & SCE_SNAP_TARGET_NOT_NONEDITED) == 0);
@@ -1604,7 +1586,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     /* Update `ToolSettings` for properties that change during modal. */
     if (t->flag & T_MODAL) {
       /* Do we check for parameter? */
-      if (transformModeUseSnap(t)) {
+      if (transformModeUseSnap(t) && !(t->tsnap.status & SNAP_FORCED)) {
         if (!(t->modifiers & MOD_SNAP) != !(t->tsnap.flag & SCE_SNAP)) {
           /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
           short *snap_flag_ptr;
@@ -1871,9 +1853,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
      * lead to keymap conflicts for other modes (see T31584)
      */
     if (ELEM(mode, TFM_TRANSLATION, TFM_ROTATION, TFM_RESIZE)) {
-      wmKeyMapItem *kmi;
-
-      for (kmi = t->keymap->items.first; kmi; kmi = kmi->next) {
+      LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &t->keymap->items) {
         if (kmi->flag & KMI_INACTIVE) {
           continue;
         }
@@ -1886,6 +1866,28 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
               (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event->modifier & KM_ALT)) ||
               ((kmi->type == EVT_OSKEY) && (event->modifier & KM_OSKEY))) {
             t->modifiers |= MOD_SNAP_INVERT;
+          }
+          break;
+        }
+      }
+    }
+    if (t->data_type == &TransConvertType_Node) {
+      /* Set the initial auto-attach flag based on whether the chosen keymap key is pressed at the
+       * start of the operator. */
+      t->modifiers |= MOD_NODE_ATTACH;
+      LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &t->keymap->items) {
+        if (kmi->flag & KMI_INACTIVE) {
+          continue;
+        }
+
+        if (kmi->propvalue == TFM_MODAL_NODE_ATTACH_OFF && kmi->val == KM_PRESS) {
+          if ((ELEM(kmi->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) &&
+               (event->modifier & KM_CTRL)) ||
+              (ELEM(kmi->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) &&
+               (event->modifier & KM_SHIFT)) ||
+              (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event->modifier & KM_ALT)) ||
+              ((kmi->type == EVT_OSKEY) && (event->modifier & KM_OSKEY))) {
+            t->modifiers &= ~MOD_NODE_ATTACH;
           }
           break;
         }

@@ -24,3 +24,14 @@ vec3 get_matcap_lighting(
 
   return diffuse * base_color + specular * float(world_data.use_specular);
 }
+
+vec3 get_matcap_lighting(sampler2DArray matcap, vec3 base_color, vec3 N, vec3 I)
+{
+  bool flipped = world_data.matcap_orientation != 0;
+  vec2 uv = matcap_uv_compute(I, N, flipped);
+
+  vec3 diffuse = textureLod(matcap, vec3(uv, 0.0), 0.0).rgb;
+  vec3 specular = textureLod(matcap, vec3(uv, 1.0), 0.0).rgb;
+
+  return diffuse * base_color + specular * float(world_data.use_specular);
+}

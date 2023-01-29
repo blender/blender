@@ -37,6 +37,9 @@
 #include "GHOST_WindowWin32.h"
 
 #include "GHOST_ContextWGL.h"
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_ContextVK.h"
+#endif
 
 #ifdef WITH_INPUT_NDOF
 #  include "GHOST_NDOFManagerWin32.h"
@@ -256,7 +259,20 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext(GHOST_GLSettings glSet
 {
   const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
 
-  GHOST_Context *context;
+  GHOST_Context *context = nullptr;
+
+#ifdef WITH_VULKAN_BACKEND
+  /* Vulkan does not need a window. */
+  if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
+    context = new GHOST_ContextVK(false, (HWND)0, 1, 0, debug_context);
+
+    if (!context->initializeDrawingContext()) {
+      delete context;
+      return nullptr;
+    }
+    return context;
+  }
+#endif
 
   HWND wnd = CreateWindowA("STATIC",
                            "BlenderGLEW",
@@ -1033,9 +1049,9 @@ void GHOST_SystemWin32::processPointerEvent(
   }
 }
 
-GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window)
+GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *window,
+                                                         const int32_t screen_co[2])
 {
-  int32_t x_screen, y_screen;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
   if (window->getTabletData().Active != GHOST_kTabletModeNone) {
@@ -1043,8 +1059,7 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
     return NULL;
   }
 
-  system->getCursorPosition(x_screen, y_screen);
-
+  int32_t x_screen = screen_co[0], y_screen = screen_co[1];
   if (window->getCursorGrabModeIsWarp()) {
     /* WORKAROUND:
      * Sometimes Windows ignores `SetCursorPos()` or `SendInput()` calls or the mouse event is
@@ -1055,16 +1070,45 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
     int32_t x_new = x_screen;
     int32_t y_new = y_screen;
     int32_t x_accum, y_accum;
-    GHOST_Rect bounds;
 
-    /* Fallback to window bounds. */
-    if (window->getCursorGrabBounds(bounds) == GHOST_kFailure) {
-      window->getClientBounds(bounds);
+    /* Warp within bounds. */
+    {
+      GHOST_Rect bounds;
+      int32_t bounds_margin = 0;
+      GHOST_TAxisFlag bounds_axis = GHOST_kAxisNone;
+
+      if (window->getCursorGrabMode() == GHOST_kGrabHide) {
+        window->getClientBounds(bounds);
+
+        /* WARNING(@campbellbarton): The current warping logic fails to warp on every event,
+         * so the box needs to small enough not to let the cursor escape the window but large
+         * enough that the cursor isn't being warped every time.
+         * If this was not the case it would be less trouble to simply warp the cursor to the
+         * center of the screen on every motion, see: D16558 (alternative fix for T102346). */
+        const int32_t subregion_div = 4; /* One quarter of the region. */
+        const int32_t size[2] = {bounds.getWidth(), bounds.getHeight()};
+        const int32_t center[2] = {(bounds.m_l + bounds.m_r) / 2, (bounds.m_t + bounds.m_b) / 2};
+        /* Shrink the box to prevent the cursor escaping. */
+        bounds.m_l = center[0] - (size[0] / (subregion_div * 2));
+        bounds.m_r = center[0] + (size[0] / (subregion_div * 2));
+        bounds.m_t = center[1] - (size[1] / (subregion_div * 2));
+        bounds.m_b = center[1] + (size[1] / (subregion_div * 2));
+        bounds_margin = 0;
+        bounds_axis = GHOST_TAxisFlag(GHOST_kAxisX | GHOST_kAxisY);
+      }
+      else {
+        /* Fallback to window bounds. */
+        if (window->getCursorGrabBounds(bounds) == GHOST_kFailure) {
+          window->getClientBounds(bounds);
+        }
+        bounds_margin = 2;
+        bounds_axis = window->getCursorGrabAxis();
+      }
+
+      /* Could also clamp to screen bounds wrap with a window outside the view will
+       * fail at the moment. Use inset in case the window is at screen bounds. */
+      bounds.wrapPoint(x_new, y_new, bounds_margin, bounds_axis);
     }
-
-    /* Could also clamp to screen bounds wrap with a window outside the view will
-     * fail at the moment. Use inset in case the window is at screen bounds. */
-    bounds.wrapPoint(x_new, y_new, 2, window->getCursorGrabAxis());
 
     window->getCursorGrabAccum(x_accum, y_accum);
     if (x_new != x_screen || y_new != y_screen) {
@@ -1166,16 +1210,16 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     const bool ctrl_pressed = has_state && state[VK_CONTROL] & 0x80;
     const bool alt_pressed = has_state && state[VK_MENU] & 0x80;
 
-    if (!key_down) {
-      /* Pass. */
-    }
+    /* We can be here with !key_down if processing dead keys (diacritics). See T103119. */
+
     /* No text with control key pressed (Alt can be used to insert special characters though!). */
-    else if (ctrl_pressed && !alt_pressed) {
+    if (ctrl_pressed && !alt_pressed) {
       /* Pass. */
     }
     /* Don't call #ToUnicodeEx on dead keys as it clears the buffer and so won't allow diacritical
-     * composition. */
-    else if (MapVirtualKeyW(vk, 2) != 0) {
+     * composition. XXX: we are not checking return of MapVirtualKeyW for high bit set, which is
+     * what is supposed to indicate dead keys. But this is working now so approach cautiously. */
+    else if (MapVirtualKeyW(vk, MAPVK_VK_TO_CHAR) != 0) {
       wchar_t utf16[3] = {0};
       int r;
       /* TODO: #ToUnicodeEx can respond with up to 4 utf16 chars (only 2 here).
@@ -1189,6 +1233,10 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
         else if (r == -1) {
           utf8_char[0] = '\0';
         }
+      }
+      if (!key_down) {
+        /* Clear or wm_event_add_ghostevent will warn of unexpected data on key up. */
+        utf8_char[0] = '\0';
       }
     }
 
@@ -1789,7 +1837,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
             }
           }
 
-          event = processCursorEvent(window);
+          const int32_t window_co[2] = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+          int32_t screen_co[2];
+          window->clientToScreen(UNPACK2(window_co), UNPACK2(screen_co));
+          event = processCursorEvent(window, screen_co);
 
           break;
         }
@@ -1831,7 +1882,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           WINTAB_PRINTF("HWND %p mouse leave\n", window->getHWND());
           window->m_mousePresent = false;
           if (window->getTabletData().Active == GHOST_kTabletModeNone) {
-            event = processCursorEvent(window);
+            /* FIXME: document why the cursor motion event on mouse leave is needed. */
+            int32_t screen_co[2] = {0, 0};
+            system->getCursorPosition(screen_co[0], screen_co[1]);
+            event = processCursorEvent(window, screen_co);
           }
           GHOST_Wintab *wt = window->getWintab();
           if (wt) {

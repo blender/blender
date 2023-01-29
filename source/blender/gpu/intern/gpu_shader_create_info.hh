@@ -189,10 +189,11 @@ ENUM_OPERATORS(BuiltinBits, BuiltinBits::USE_DEBUG_PRINT);
  * https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_conservative_depth.txt
  */
 enum class DepthWrite {
-  ANY = 0,
+  /* UNCHANGED specified as default to indicate gl_FragDepth is not used. */
+  UNCHANGED = 0,
+  ANY,
   GREATER,
   LESS,
-  UNCHANGED,
 };
 
 /* Samplers & images. */
@@ -343,7 +344,10 @@ struct ShaderCreateInfo {
   /** If true, force the use of the GL shader introspection for resource location. */
   bool legacy_resource_location_ = false;
   /** Allow optimization when fragment shader writes to `gl_FragDepth`. */
-  DepthWrite depth_write_ = DepthWrite::ANY;
+  DepthWrite depth_write_ = DepthWrite::UNCHANGED;
+  /** GPU Backend compatibility flag. Temporary requirement until Metal enablement is fully
+   * complete. */
+  bool metal_backend_only_ = false;
   /**
    * Maximum length of all the resource names including each null terminator.
    * Only for names used by #gpu::ShaderInterface.
@@ -376,7 +380,7 @@ struct ShaderCreateInfo {
     Type type;
     StringRefNull name;
 
-    bool operator==(const VertIn &b)
+    bool operator==(const VertIn &b) const
     {
       TEST_EQUAL(*this, b, index);
       TEST_EQUAL(*this, b, type);
@@ -425,7 +429,7 @@ struct ShaderCreateInfo {
     DualBlend blend;
     StringRefNull name;
 
-    bool operator==(const FragOut &b)
+    bool operator==(const FragOut &b) const
     {
       TEST_EQUAL(*this, b, index);
       TEST_EQUAL(*this, b, type);
@@ -479,7 +483,7 @@ struct ShaderCreateInfo {
 
     Resource(BindType type, int _slot) : bind_type(type), slot(_slot){};
 
-    bool operator==(const Resource &b)
+    bool operator==(const Resource &b) const
     {
       TEST_EQUAL(*this, b, bind_type);
       TEST_EQUAL(*this, b, slot);
@@ -524,7 +528,7 @@ struct ShaderCreateInfo {
     StringRefNull name;
     int array_size;
 
-    bool operator==(const PushConst &b)
+    bool operator==(const PushConst &b) const
     {
       TEST_EQUAL(*this, b, type);
       TEST_EQUAL(*this, b, name);
@@ -546,6 +550,10 @@ struct ShaderCreateInfo {
    * No data slot must overlap otherwise we throw an error.
    */
   Vector<StringRefNull> additional_infos_;
+
+  /* Transform feedback properties. */
+  eGPUShaderTFBType tf_type_ = GPU_SHADER_TFB_NONE;
+  Vector<const char *> tf_names_;
 
  public:
   ShaderCreateInfo(const char *name) : name_(name){};
@@ -789,6 +797,12 @@ struct ShaderCreateInfo {
     return *(Self *)this;
   }
 
+  Self &metal_backend_only(bool flag)
+  {
+    metal_backend_only_ = flag;
+    return *(Self *)this;
+  }
+
   /** \} */
 
   /* -------------------------------------------------------------------- */
@@ -826,6 +840,27 @@ struct ShaderCreateInfo {
     return *(Self *)this;
   }
 
+  /** \} */
+
+  /* -------------------------------------------------------------------- */
+  /** \name Transform feedback properties
+   *
+   * Transform feedback enablement and output binding assignment.
+   * \{ */
+
+  Self &transform_feedback_mode(eGPUShaderTFBType tf_mode)
+  {
+    BLI_assert(tf_mode != GPU_SHADER_TFB_NONE);
+    tf_type_ = tf_mode;
+    return *(Self *)this;
+  }
+
+  Self &transform_feedback_output_name(const char *name)
+  {
+    BLI_assert(tf_type_ != GPU_SHADER_TFB_NONE);
+    tf_names_.append(name);
+    return *(Self *)this;
+  }
   /** \} */
 
   /* -------------------------------------------------------------------- */

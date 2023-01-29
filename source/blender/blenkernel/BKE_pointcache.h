@@ -27,7 +27,7 @@ extern "C" {
 #define PTCACHE_RESET_DEPSGRAPH 0
 #define PTCACHE_RESET_BAKED 1
 #define PTCACHE_RESET_OUTDATED 2
-/* #define PTCACHE_RESET_FREE           3 */ /*UNUSED*/
+// #define PTCACHE_RESET_FREE 3  /*UNUSED*/
 
 /* Add the blend-file name after `blendcache_`. */
 #define PTCACHE_EXT ".bphys"

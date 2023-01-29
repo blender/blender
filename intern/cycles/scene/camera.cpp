@@ -32,7 +32,7 @@ static float shutter_curve_eval(float x, array<float> &shutter_curve)
     return 1.0f;
   }
 
-  x *= shutter_curve.size();
+  x = saturatef(x) * shutter_curve.size() - 1;
   int index = (int)x;
   float frac = x - index;
   if (index < shutter_curve.size() - 1) {

@@ -16,6 +16,7 @@
 
 #include "GPU_state.h"
 
+#include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 
 #include "gpu_state_private.hh"
@@ -371,6 +372,27 @@ bool GPU_bgl_get()
 void GPU_memory_barrier(eGPUBarrier barrier)
 {
   Context::get()->state_manager->issue_barrier(barrier);
+}
+
+GPUFence *GPU_fence_create()
+{
+  Fence *fence = GPUBackend::get()->fence_alloc();
+  return wrap(fence);
+}
+
+void GPU_fence_free(GPUFence *fence)
+{
+  delete unwrap(fence);
+}
+
+void GPU_fence_signal(GPUFence *fence)
+{
+  unwrap(fence)->signal();
+}
+
+void GPU_fence_wait(GPUFence *fence)
+{
+  unwrap(fence)->wait();
 }
 
 /** \} */

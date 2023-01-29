@@ -55,12 +55,13 @@ bool HdCyclesOutputDriver::update_render_tile(const Tile &tile)
           const bool isId = aovBinding.aovName == HdAovTokens->primId ||
                             aovBinding.aovName == HdAovTokens->elementId ||
                             aovBinding.aovName == HdAovTokens->instanceId;
-
+          renderBuffer->Map();
           renderBuffer->WritePixels(pixels.data(),
                                     GfVec2i(tile.offset.x, tile.offset.y),
                                     GfVec2i(tile.size.x, tile.size.y),
                                     channels,
                                     isId);
+          renderBuffer->Unmap();
         }
         else {
           // Do not warn on missing elementId, which is a standard AOV but is not implememted

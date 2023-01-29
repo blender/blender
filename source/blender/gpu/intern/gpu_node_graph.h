@@ -186,6 +186,7 @@ typedef struct GPUNodeGraph {
 
 /* Node Graph */
 
+void gpu_nodes_tag(GPUNodeLink *link, eGPUNodeTag tag);
 void gpu_node_graph_prune_unused(GPUNodeGraph *graph);
 void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph);
 
@@ -212,7 +213,7 @@ struct GPUTexture **gpu_material_ramp_texture_row_set(struct GPUMaterial *mat,
  * Returns the address of the future pointer to sky_tex
  */
 struct GPUTexture **gpu_material_sky_texture_layer_set(
-    struct GPUMaterial *mat, int width, int height, const float *pixels, float *layer);
+    struct GPUMaterial *mat, int width, int height, const float *pixels, float *row);
 
 #ifdef __cplusplus
 }

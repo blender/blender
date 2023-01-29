@@ -17,7 +17,7 @@ void main()
     discard;
   }
 
-  vec4 tex_color = texelFetch(imageTexture, uvs_clamped, 0);
+  vec4 tex_color = texelFetch(imageTexture, uvs_clamped - offset, 0);
 
   if ((drawFlags & IMAGE_DRAW_FLAG_APPLY_ALPHA) != 0) {
     if (!imgPremultiplied) {

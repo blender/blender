@@ -421,11 +421,11 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* XXX, workaround: active needs to be calculated before transforming,
    * since we're not reading from 'td->center' in this case. see: T40241 */
-  if (t->tsnap.source_select == SCE_SNAP_SOURCE_ACTIVE) {
+  if (t->tsnap.source_operation == SCE_SNAP_SOURCE_ACTIVE) {
     /* In camera view, tsnap callback is not set
      * (see #initSnappingMode() in transform_snap.c, and T40348). */
-    if (t->tsnap.targetSnap && ((t->tsnap.status & TARGET_INIT) == 0)) {
-      t->tsnap.targetSnap(t);
+    if (t->tsnap.snap_source_fn && ((t->tsnap.status & SNAP_SOURCE_FOUND) == 0)) {
+      t->tsnap.snap_source_fn(t);
     }
   }
 

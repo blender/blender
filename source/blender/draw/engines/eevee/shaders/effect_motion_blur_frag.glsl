@@ -10,27 +10,12 @@
  * Next Generation Post Processing in Call of Duty Advanced Warfare
  * by Jorge Jimenez
  */
-uniform sampler2D colorBuffer;
-uniform depth2D depthBuffer;
-uniform sampler2D velocityBuffer;
-uniform sampler2D tileMaxBuffer;
 
 #define KERNEL 8
-
-uniform float depthScale;
-uniform ivec2 tileBufferSize;
-uniform vec2 viewportSize;
-uniform vec2 viewportSizeInv;
-uniform bool isPerspective;
-uniform vec2 nearFar; /* Near & far view depths values */
 
 #define linear_depth(z) \
   ((isPerspective) ? (nearFar.x * nearFar.y) / (z * (nearFar.x - nearFar.y) + nearFar.y) : \
                      z * (nearFar.y - nearFar.x) + nearFar.x) /* Only true for camera view! */
-
-in vec4 uvcoordsvar;
-
-out vec4 fragColor;
 
 #define saturate(a) clamp(a, 0.0, 1.0)
 

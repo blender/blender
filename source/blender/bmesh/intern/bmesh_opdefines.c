@@ -447,7 +447,7 @@ static BMOpDefine bmo_pointmerge_def = {
 };
 
 /*
- * Collapse Connected UV's.
+ * Collapse Connected UVs.
  *
  * Collapses connected UV vertices.
  */
@@ -1373,7 +1373,7 @@ static BMOpDefine bmo_duplicate_def = {
   "duplicate",
   /* slots_in */
   {{"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}}, /* input geometry */
-   {"dest", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_BMESH}}, /* destination bmesh, if NULL will use current on */
+   {"dest", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_BMESH}}, /* destination bmesh, if None will use current on */
    {"use_select_history", BMO_OP_SLOT_BOOL},
    {"use_edge_flip_from_face", BMO_OP_SLOT_BOOL},
    {{'\0'}},
@@ -1405,7 +1405,7 @@ static BMOpDefine bmo_split_def = {
   "split",
   /* slots_in */
   {{"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}}, /* input geometry */
-   {"dest", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_BMESH}}, /* destination bmesh, if NULL will use current one */
+   {"dest", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_BMESH}}, /* destination bmesh, if None will use current one */
    {"use_only_faces", BMO_OP_SLOT_BOOL},  /* when enabled. don't duplicate loose verts/edges */
    {{'\0'}},
   },
@@ -1453,7 +1453,7 @@ static BMOpDefine bmo_spin_def = {
 /*
  * UV Rotation.
  *
- * Cycle the loop UV's
+ * Cycle the loop UVs
  */
 static BMOpDefine bmo_rotate_uvs_def = {
   "rotate_uvs",
@@ -1470,7 +1470,7 @@ static BMOpDefine bmo_rotate_uvs_def = {
 /*
  * UV Reverse.
  *
- * Reverse the UV's
+ * Reverse the UVs
  */
 static BMOpDefine bmo_reverse_uvs_def = {
   "reverse_uvs",
@@ -1780,7 +1780,7 @@ static BMOpDefine bmo_bevel_def = {
     bmo_enum_bevel_miter_type},           /* outer miter kind */
    {"spread", BMO_OP_SLOT_FLT},           /* amount to offset beveled edge */
    {"smoothresh", BMO_OP_SLOT_FLT},       /* for passing mesh's smoothresh, used in hardening */
-   {"custom_profile", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_STRUCT}}, /* CurveProfile */
+   {"custom_profile", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_STRUCT}}, /* CurveProfile, if None ignored */
    {"vmesh_method", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM},
     bmo_enum_bevel_vmesh_method},         /* The method to use to create meshes at intersections. */
    {{'\0'}},

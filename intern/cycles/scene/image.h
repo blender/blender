@@ -69,6 +69,7 @@ class ImageMetaData {
 
   /* Optional color space, defaults to raw. */
   ustring colorspace;
+  string colorspace_file_hint;
   const char *colorspace_file_format;
 
   /* Optional transform for 3D images. */
@@ -151,6 +152,8 @@ class ImageHandle {
   device_texture *image_memory(const int tile_index = 0) const;
 
   VDBImageLoader *vdb_loader(const int tile_index = 0) const;
+
+  ImageManager *get_manager() const;
 
  protected:
   vector<int> tile_slots;

@@ -47,7 +47,7 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 /* For key-map item access. */
 #include "wm_event_system.h"
@@ -1040,7 +1040,8 @@ static bool ui_search_menu_create_context_menu(struct bContext *C,
   MenuSearch_Item *item = (MenuSearch_Item *)active;
   bool has_menu = false;
 
-  memset(&data->context_menu_data, 0x0, sizeof(data->context_menu_data));
+  new (&data->context_menu_data.but) uiBut();
+  new (&data->context_menu_data.block) uiBlock();
   uiBut *but = &data->context_menu_data.but;
   uiBlock *block = &data->context_menu_data.block;
 
@@ -1083,7 +1084,8 @@ static struct ARegion *ui_search_menu_create_tooltip(struct bContext *C,
   MenuSearch_Data *data = (MenuSearch_Data *)arg;
   MenuSearch_Item *item = (MenuSearch_Item *)active;
 
-  memset(&data->context_menu_data, 0x0, sizeof(data->context_menu_data));
+  new (&data->context_menu_data.but) uiBut();
+  new (&data->context_menu_data.block) uiBlock();
   uiBut *but = &data->context_menu_data.but;
   uiBlock *block = &data->context_menu_data.block;
   unit_m4(block->winmat);

@@ -16,7 +16,7 @@ namespace blender::ed::outliner {
 /** \name Registration
  * \{ */
 
-void outliner_operatortypes(void)
+void outliner_operatortypes()
 {
   WM_operatortype_append(OUTLINER_OT_highlight_update);
   WM_operatortype_append(OUTLINER_OT_item_activate);

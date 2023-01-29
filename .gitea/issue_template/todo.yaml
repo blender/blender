@@ -1,0 +1,10 @@
+name: To Do
+about: Create a to do task (for developers only)
+labels:
+  - "type::To Do"
+body:
+  - type: textarea
+    id: body
+    attributes:
+      label: "Description"
+      hide_label: true

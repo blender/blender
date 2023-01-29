@@ -4,7 +4,7 @@
 #include "BLI_cpp_type_make.hh"
 #include "BLI_cpp_types_make.hh"
 #include "BLI_float4x4.hh"
-#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "FN_field_cpp_type_make.hh"
 #include "FN_init.h"

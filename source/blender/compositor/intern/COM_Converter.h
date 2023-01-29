@@ -20,7 +20,7 @@ class NodeOperationBuilder;
 /**
  * \brief Wraps a bNode in its Node instance.
  *
- * For all nodetypes a wrapper class is created.
+ * For all node-types a wrapper class is created.
  *
  * \note When adding a new node to blender, this method needs to be changed to return the correct
  * Node instance.

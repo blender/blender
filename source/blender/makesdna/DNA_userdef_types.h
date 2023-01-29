@@ -640,6 +640,7 @@ typedef struct UserDef_Experimental {
   char show_asset_debug_info;
   char no_asset_indexing;
   char use_viewport_debug;
+  char use_all_linked_data_direct;
   char SANITIZE_AFTER_HERE;
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
@@ -651,8 +652,7 @@ typedef struct UserDef_Experimental {
   char use_override_templates;
   char enable_eevee_next;
   char use_sculpt_texture_paint;
-  char use_draw_manager_acquire_lock;
-  char use_realtime_compositor;
+  char enable_workbench_next;
   char _pad[7];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
@@ -661,6 +661,8 @@ typedef struct UserDef_Experimental {
   (((userdef)->flag & USER_DEVELOPER_UI) && ((userdef)->experimental).member)
 
 typedef struct UserDef {
+  DNA_DEFINE_CXX_METHODS(UserDef)
+
   /** UserDef has separate do-version handling, and can be read from other files. */
   int versionfile, subversionfile;
 
@@ -828,7 +830,10 @@ typedef struct UserDef {
   /** Seconds to zoom around current frame. */
   float view_frame_seconds;
 
-  char _pad7[6];
+  /** #eGPUBackendType */
+  short gpu_backend;
+
+  char _pad7[4];
 
   /** Private, defaults to 20 for 72 DPI setting. */
   short widget_unit;
@@ -954,7 +959,7 @@ extern UserDef U;
 /* ***************** USERDEF ****************** */
 
 /* Toggles for unfinished 2.8 UserPref design. */
-//#define WITH_USERDEF_WORKSPACES
+// #define WITH_USERDEF_WORKSPACES
 
 /** #UserDef_SpaceData.section_active (UI active_section) */
 typedef enum eUserPref_Section {

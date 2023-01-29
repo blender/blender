@@ -61,7 +61,7 @@ struct AnimKeylist {
 
   /* Before initializing the runtime, the key_columns list base is used to quickly add columns.
    * Contains `ActKeyColumn`. Should not be used after runtime is initialized. */
-  ListBase /* ActKeyColumn */ key_columns;
+  ListBase /*ActKeyColumn*/ key_columns;
   /* Last accessed column in the key_columns list base. Inserting columns are typically done in
    * order. The last accessed column is used as starting point to search for a location to add or
    * update the next column. */
@@ -71,9 +71,9 @@ struct AnimKeylist {
     /* When initializing the runtime the columns from the list base `AnimKeyList.key_columns` are
      * transferred to an array to support binary searching and index based access. */
     blender::Array<ActKeyColumn> key_columns;
-    /* Wrapper around runtime.key_columns so it can still be accessed as a ListBase. Elements are
-     * owned by runtime.key_columns. */
-    ListBase /* ActKeyColumn */ list_wrapper;
+    /* Wrapper around runtime.key_columns so it can still be accessed as a ListBase.
+     * Elements are owned by `runtime.key_columns`. */
+    ListBase /*ActKeyColumn*/ list_wrapper;
   } runtime;
 
   AnimKeylist()

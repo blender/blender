@@ -92,10 +92,10 @@ static void OVERLAY_engine_init(void *vedata)
   }
 
   if (ts->sculpt) {
-    if (ts->sculpt->flags & SCULPT_HIDE_FACE_SETS) {
+    if (!(v3d->overlay.flag & int(V3D_OVERLAY_SCULPT_SHOW_FACE_SETS))) {
       pd->overlay.sculpt_mode_face_sets_opacity = 0.0f;
     }
-    if (ts->sculpt->flags & SCULPT_HIDE_MASK) {
+    if (!(v3d->overlay.flag & int(V3D_OVERLAY_SCULPT_SHOW_MASK))) {
       pd->overlay.sculpt_mode_mask_opacity = 0.0f;
     }
   }

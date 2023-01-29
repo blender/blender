@@ -8,7 +8,7 @@
 
 #include "WM_api.h"
 
-#include "interface_intern.h"
+#include "interface_intern.hh"
 
 void UI_but_drag_set_id(uiBut *but, ID *id)
 {

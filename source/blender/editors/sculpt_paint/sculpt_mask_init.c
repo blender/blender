@@ -95,7 +95,7 @@ static void mask_init_task_cb(void *__restrict userdata,
         break;
       }
       case SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART:
-        *vd.mask = BLI_hash_int_01(ss->vertex_info.connected_component[vd.index] + seed);
+        *vd.mask = BLI_hash_int_01(SCULPT_vertex_island_get(ss, vd.vertex) + seed);
         break;
     }
   }
@@ -128,7 +128,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_begin(ob, op);
 
   if (mode == SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART) {
-    SCULPT_connected_components_ensure(ob);
+    SCULPT_topology_islands_ensure(ob);
   }
 
   SculptThreadedTaskData data = {

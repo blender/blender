@@ -22,10 +22,8 @@ extern "C" {
 struct ARegion;
 struct AssetFilterSettings;
 struct AssetHandle;
-struct AssetMetaData;
 struct AutoComplete;
 struct EnumPropertyItem;
-struct FileDirEntry;
 struct FileSelectParams;
 struct ID;
 struct IDProperty;
@@ -48,7 +46,6 @@ struct bNodeTree;
 struct bScreen;
 struct rctf;
 struct rcti;
-struct uiBlockInteraction_Handle;
 struct uiButSearch;
 struct uiFontStyle;
 struct uiList;
@@ -79,7 +76,11 @@ typedef struct uiViewItemHandle uiViewItemHandle;
 
 /* Defines */
 
-/* char for splitting strings, aligning shortcuts in menus, users never see */
+/**
+ * Character used for splitting labels (right align text after this character).
+ * Users should never see this character.
+ * Only applied when #UI_BUT_HAS_SEP_CHAR flag is enabled, see it's doc-string for details.
+ */
 #define UI_SEP_CHAR '|'
 #define UI_SEP_CHAR_S "|"
 
@@ -220,7 +221,12 @@ enum {
   /** Use for popups to start editing the button on initialization. */
   UI_BUT_ACTIVATE_ON_INIT = 1 << 26,
 
-  /** #uiBut.str contains #UI_SEP_CHAR, used for key shortcuts */
+  /**
+   * #uiBut.str contains #UI_SEP_CHAR, used to show key-shortcuts right aligned.
+   *
+   * Since a label may contain #UI_SEP_CHAR, it's important to split on the last occurrence
+   * (meaning the right aligned text can't contain this character).
+   */
   UI_BUT_HAS_SEP_CHAR = 1 << 27,
   /** Don't run updates while dragging (needed in rare cases). */
   UI_BUT_UPDATE_DELAY = 1 << 28,
@@ -388,7 +394,7 @@ typedef enum {
   UI_BTYPE_SEPR_LINE = 55 << 9,
   /** Dynamically fill available space. */
   UI_BTYPE_SEPR_SPACER = 56 << 9,
-  /** Resize handle (resize uilist). */
+  /** Resize handle (resize UI-list). */
   UI_BTYPE_GRIP = 57 << 9,
   UI_BTYPE_DECORATOR = 58 << 9,
   /* An item a view (see #ui::AbstractViewItem). */
@@ -453,7 +459,7 @@ void UI_draw_safe_areas(uint pos,
                         const float title_aspect[2],
                         const float action_aspect[2]);
 
-/** State for scrolldrawing. */
+/** State for scroll-drawing. */
 enum {
   UI_SCROLL_PRESSED = 1 << 0,
   UI_SCROLL_ARROWS = 1 << 1,
@@ -2030,7 +2036,7 @@ enum {
   UI_TEMPLATE_OP_PROPS_NO_SPLIT_LAYOUT = 1 << 4,
 };
 
-/* used for transp checkers */
+/* Used for transparent checkers shown under color buttons that have an alpha component. */
 #define UI_ALPHA_CHECKER_DARK 100
 #define UI_ALPHA_CHECKER_LIGHT 160
 
@@ -3120,6 +3126,20 @@ void UI_butstore_register(uiButStore *bs_handle, uiBut **but_p);
  */
 bool UI_butstore_register_update(uiBlock *block, uiBut *but_dst, const uiBut *but_src);
 void UI_butstore_unregister(uiButStore *bs_handle, uiBut **but_p);
+
+/**
+ * A version of #WM_key_event_operator_string that's limited to UI elements.
+ *
+ * This supports showing shortcuts in context-menus (for example),
+ * for actions that can also be activated using shortcuts while the cursor is over the button.
+ * Without this those shortcuts aren't discoverable for users.
+ */
+const char *UI_key_event_operator_string(const struct bContext *C,
+                                         const char *opname,
+                                         IDProperty *properties,
+                                         const bool is_strict,
+                                         char *result,
+                                         const int result_len);
 
 /* ui_interface_region_tooltip.c */
 

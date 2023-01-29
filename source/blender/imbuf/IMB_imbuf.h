@@ -453,17 +453,6 @@ void IMB_remakemipmap(struct ImBuf *ibuf, int use_filter);
 struct ImBuf *IMB_getmipmap(struct ImBuf *ibuf, int level);
 
 /**
- * \attention Defined in cache.c
- */
-
-/**
- * Presumed to be called when no threads are running.
- */
-void IMB_tile_cache_params(int totthread, int maxmem);
-unsigned int *IMB_gettile(struct ImBuf *ibuf, int tx, int ty, int thread);
-void IMB_tiles_to_rect(struct ImBuf *ibuf);
-
-/**
  * \attention Defined in filter.c
  */
 void IMB_filtery(struct ImBuf *ibuf);
@@ -816,9 +805,6 @@ bool imb_addrectfloatImBuf(struct ImBuf *ibuf, const unsigned int channels);
 void imb_freerectfloatImBuf(struct ImBuf *ibuf);
 void imb_freemipmapImBuf(struct ImBuf *ibuf);
 
-bool imb_addtilesImBuf(struct ImBuf *ibuf);
-void imb_freetilesImBuf(struct ImBuf *ibuf);
-
 /** Free all pixel data (associated with image size). */
 void imb_freerectImbuf_all(struct ImBuf *ibuf);
 
@@ -860,6 +846,8 @@ typedef enum eIMBTransformMode {
  * - Only one data type buffer will be used (rect_float has priority over rect)
  * \param mode: Cropping/Wrap repeat effect to apply during transformation.
  * \param filter: Interpolation to use during sampling.
+ * \param num_subsamples: Number of subsamples to use. Increasing this would improve the quality,
+ * but reduces the performance.
  * \param transform_matrix: Transformation matrix to use.
  * The given matrix should transform between dst pixel space to src pixel space.
  * One unit is one pixel.
@@ -874,6 +862,7 @@ void IMB_transform(const struct ImBuf *src,
                    struct ImBuf *dst,
                    eIMBTransformMode mode,
                    eIMBInterpolationFilterMode filter,
+                   const int num_subsamples,
                    const float transform_matrix[4][4],
                    const struct rctf *src_crop);
 

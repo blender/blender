@@ -401,6 +401,8 @@ bool BKE_lib_override_library_status_check_reference(struct Main *bmain, struct 
  * Compare local and reference data-blocks and create new override operations as needed,
  * or reset to reference values if overriding is not allowed.
  *
+ * \param r_report_flags: #eRNAOverrideMatchResult flags giving info about the result of this call.
+ *
  * \note Defining override operations is only mandatory before saving a `.blend` file on disk
  * (not for undo!).
  * Knowing that info at runtime is only useful for UI/UX feedback.
@@ -408,14 +410,41 @@ bool BKE_lib_override_library_status_check_reference(struct Main *bmain, struct 
  * \note This is by far the biggest operation (the more time-consuming) of the three so far,
  * since it has to go over all properties in depth (all overridable ones at least).
  * Generating differential values and applying overrides are much cheaper.
- *
- * \return true if any library operation was created.
  */
-bool BKE_lib_override_library_operations_create(struct Main *bmain, struct ID *local);
+void BKE_lib_override_library_operations_create(struct Main *bmain,
+                                                struct ID *local,
+                                                int *r_report_flags);
 /**
  * Check all overrides from given \a bmain and create/update overriding operations as needed.
+ *
+ * \param r_report_flags: #eRNAOverrideMatchResult flags giving info about the result of this call.
  */
-bool BKE_lib_override_library_main_operations_create(struct Main *bmain, bool force_auto);
+void BKE_lib_override_library_main_operations_create(struct Main *bmain,
+                                                     bool force_auto,
+                                                     int *r_report_flags);
+
+/**
+ * Restore forbidden modified override properties to the values of their matching properties in the
+ * linked reference ID.
+ *
+ * \param r_report_flags: #eRNAOverrideMatchResult flags giving info about the result of this call.
+ *
+ * \note Typically used as part of BKE_lib_override_library_main_operations_create process, since
+ * modifying RNA properties from non-main threads is not safe.
+ */
+void BKE_lib_override_library_operations_restore(struct Main *bmain,
+                                                 struct ID *local,
+                                                 int *r_report_flags);
+/**
+ * Restore forbidden modified override properties to the values of their matching properties in the
+ * linked reference ID, for all liboverride IDs tagged as needing such process in given `bmain`.
+ *
+ * \param r_report_flags: #eRNAOverrideMatchResult flags giving info about the result of this call.
+ *
+ * \note Typically used as part of BKE_lib_override_library_main_operations_create process, since
+ * modifying RNA properties from non-main threads is not safe.
+ */
+void BKE_lib_override_library_main_operations_restore(struct Main *bmain, int *r_report_flags);
 
 /**
  * Reset all overrides in given \a id_root, while preserving ID relations.

@@ -19,6 +19,9 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   graph_buttons.c
   graph_draw.c
@@ -39,15 +42,18 @@ set(LIB
 )
 
 if(WITH_AUDASPACE)
+  list(APPEND LIB
+    bf_intern_audaspace
+  )
   list(APPEND INC_SYS
     ${AUDASPACE_C_INCLUDE_DIRS}
   )
-  list(APPEND LIB
-    bf_intern_audaspace
-
-    ${AUDASPACE_C_LIBRARIES}
-    ${AUDASPACE_PY_LIBRARIES}
-  )
+  if(WITH_SYSTEM_AUDASPACE)
+    list(APPEND LIB
+      ${AUDASPACE_C_LIBRARIES}
+      ${AUDASPACE_PY_LIBRARIES}
+    )
+  endif()
   add_definitions(-DWITH_AUDASPACE)
 endif()
 

@@ -17,6 +17,11 @@
 #include "RNA_types.h"
 
 #ifdef __cplusplus
+#  include "BLI_string_ref.hh"
+#  include "BLI_vector.hh"
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -84,22 +89,25 @@ typedef int /*eContextResult*/ (*bContextDataCallback)(const bContext *C,
                                                        const char *member,
                                                        bContextDataResult *result);
 
-typedef struct bContextStoreEntry {
-  struct bContextStoreEntry *next, *prev;
+#ifdef __cplusplus
 
-  char name[128];
+struct bContextStoreEntry {
+  std::string name;
   PointerRNA ptr;
-} bContextStoreEntry;
+};
 
-typedef struct bContextStore {
-  struct bContextStore *next, *prev;
+struct bContextStore {
+  bContextStore *next = nullptr;
+  bContextStore *prev = nullptr;
 
-  ListBase entries;
-  bool used;
-} bContextStore;
+  blender::Vector<bContextStoreEntry> entries;
+  bool used = false;
+};
+
+#endif
 
 /* for the context's rna mode enum
- * keep aligned with data_mode_strings in context.c */
+ * keep aligned with data_mode_strings in context.cc */
 typedef enum eContextObjectMode {
   CTX_MODE_EDIT_MESH = 0,
   CTX_MODE_EDIT_CURVE,
@@ -132,18 +140,23 @@ void CTX_free(bContext *C);
 
 bContext *CTX_copy(const bContext *C);
 
+#ifdef __cplusplus
+
 /* Stored Context */
 
-bContextStore *CTX_store_add(ListBase *contexts, const char *name, const PointerRNA *ptr);
+bContextStore *CTX_store_add(ListBase *contexts,
+                             blender::StringRefNull name,
+                             const PointerRNA *ptr);
 bContextStore *CTX_store_add_all(ListBase *contexts, bContextStore *context);
 bContextStore *CTX_store_get(bContext *C);
 void CTX_store_set(bContext *C, bContextStore *store);
 const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
-                                       const char *name,
-                                       const StructRNA *type CPP_ARG_DEFAULT(nullptr));
-bContextStore *CTX_store_copy(bContextStore *store);
+                                       blender::StringRefNull name,
+                                       const StructRNA *type = nullptr);
+bContextStore *CTX_store_copy(const bContextStore *store);
 void CTX_store_free(bContextStore *store);
-void CTX_store_free_list(ListBase *contexts);
+
+#endif
 
 /* need to store if python is initialized or not */
 bool CTX_py_init_get(bContext *C);

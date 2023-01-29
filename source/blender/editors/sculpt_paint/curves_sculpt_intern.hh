@@ -11,10 +11,11 @@
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 
+#include "ED_curves.h"
 #include "ED_curves_sculpt.h"
 
 struct ARegion;
@@ -92,15 +93,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
 
 Vector<float4x4> get_symmetry_brush_transforms(eCurvesSymmetryType symmetry);
 
-/**
- * Get the floating point selection on the curve domain, averaged from points if necessary.
- */
-VArray<float> get_curves_selection(const Curves &curves_id);
-
-/**
- * Get the floating point selection on the curve domain, copied from curves if necessary.
- */
-VArray<float> get_point_selection(const Curves &curves_id);
+bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id);
 
 /** See #move_last_point_and_resample. */
 struct MoveAndResampleBuffers {

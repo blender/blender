@@ -952,6 +952,7 @@ void uiTemplateImage(uiLayout *layout,
       }
 
       uiItemR(col, &imaptr, "use_view_as_render", 0, NULL, ICON_NONE);
+      uiItemR(col, &imaptr, "seam_margin", 0, NULL, ICON_NONE);
     }
   }
 

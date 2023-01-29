@@ -5,6 +5,6 @@ void main()
   gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 
 #ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance((clipPlanes.ModelMatrix * vec4(pos, 1.0)).xyz);
+  world_clip_planes_calc_clip_distance((clipPlanes.ClipModelMatrix * vec4(pos, 1.0)).xyz);
 #endif
 }

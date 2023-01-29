@@ -28,7 +28,6 @@ struct wmGizmoGroupType;
 struct wmGizmoType;
 struct wmKeyConfig;
 struct wmOperatorType;
-struct wmWindowManager;
 
 /* view3d_header.c */
 

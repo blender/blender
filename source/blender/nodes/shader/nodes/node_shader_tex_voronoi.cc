@@ -179,9 +179,9 @@ static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, outRadiusSock, storage.feature == SHD_VORONOI_N_SPHERE_RADIUS);
 }
 
-static MultiFunction::ExecutionHints voronoi_execution_hints{50, false};
+static mf::MultiFunction::ExecutionHints voronoi_execution_hints{50, false};
 
-class VoronoiMinowskiFunction : public fn::MultiFunction {
+class VoronoiMinowskiFunction : public mf::MultiFunction {
  private:
   int dimensions_;
   int feature_;
@@ -191,7 +191,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
   {
     BLI_assert(dimensions >= 2 && dimensions <= 4);
     BLI_assert(feature >= 0 && feature <= 2);
-    static std::array<fn::MFSignature, 9> signatures{
+    static std::array<mf::Signature, 9> signatures{
         create_signature(2, SHD_VORONOI_F1),
         create_signature(3, SHD_VORONOI_F1),
         create_signature(4, SHD_VORONOI_F1),
@@ -207,36 +207,37 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
     this->set_signature(&signatures[(dimensions - 1) + feature * 3 - 1]);
   }
 
-  static fn::MFSignature create_signature(int dimensions, int feature)
+  static mf::Signature create_signature(int dimensions, int feature)
   {
-    fn::MFSignatureBuilder signature{"voronoi_minowski"};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"voronoi_minowski", signature};
 
     if (ELEM(dimensions, 2, 3, 4)) {
-      signature.single_input<float3>("Vector");
+      builder.single_input<float3>("Vector");
     }
     if (ELEM(dimensions, 1, 4)) {
-      signature.single_input<float>("W");
+      builder.single_input<float>("W");
     }
-    signature.single_input<float>("Scale");
+    builder.single_input<float>("Scale");
     if (feature == SHD_VORONOI_SMOOTH_F1) {
-      signature.single_input<float>("Smoothness");
+      builder.single_input<float>("Smoothness");
     }
-    signature.single_input<float>("Exponent");
-    signature.single_input<float>("Randomness");
-    signature.single_output<float>("Distance");
-    signature.single_output<ColorGeometry4f>("Color");
+    builder.single_input<float>("Exponent");
+    builder.single_input<float>("Randomness");
+    builder.single_output<float>("Distance", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
 
     if (dimensions != 1) {
-      signature.single_output<float3>("Position");
+      builder.single_output<float3>("Position", mf::ParamFlag::SupportsUnusedOutput);
     }
     if (ELEM(dimensions, 1, 4)) {
-      signature.single_output<float>("W");
+      builder.single_output<float>("W", mf::ParamFlag::SupportsUnusedOutput);
     }
 
-    return signature.build();
+    return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -613,7 +614,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
   }
 };
 
-class VoronoiMetricFunction : public fn::MultiFunction {
+class VoronoiMetricFunction : public mf::MultiFunction {
  private:
   int dimensions_;
   int feature_;
@@ -625,7 +626,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
   {
     BLI_assert(dimensions >= 1 && dimensions <= 4);
     BLI_assert(feature >= 0 && feature <= 4);
-    static std::array<fn::MFSignature, 12> signatures{
+    static std::array<mf::Signature, 12> signatures{
         create_signature(1, SHD_VORONOI_F1),
         create_signature(2, SHD_VORONOI_F1),
         create_signature(3, SHD_VORONOI_F1),
@@ -644,35 +645,36 @@ class VoronoiMetricFunction : public fn::MultiFunction {
     this->set_signature(&signatures[dimensions + feature * 4 - 1]);
   }
 
-  static fn::MFSignature create_signature(int dimensions, int feature)
+  static mf::Signature create_signature(int dimensions, int feature)
   {
-    fn::MFSignatureBuilder signature{"voronoi_metric"};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"voronoi_metric", signature};
 
     if (ELEM(dimensions, 2, 3, 4)) {
-      signature.single_input<float3>("Vector");
+      builder.single_input<float3>("Vector");
     }
     if (ELEM(dimensions, 1, 4)) {
-      signature.single_input<float>("W");
+      builder.single_input<float>("W");
     }
-    signature.single_input<float>("Scale");
+    builder.single_input<float>("Scale");
     if (feature == SHD_VORONOI_SMOOTH_F1) {
-      signature.single_input<float>("Smoothness");
+      builder.single_input<float>("Smoothness");
     }
-    signature.single_input<float>("Randomness");
-    signature.single_output<float>("Distance");
-    signature.single_output<ColorGeometry4f>("Color");
+    builder.single_input<float>("Randomness");
+    builder.single_output<float>("Distance", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
 
     if (dimensions != 1) {
-      signature.single_output<float3>("Position");
+      builder.single_output<float3>("Position", mf::ParamFlag::SupportsUnusedOutput);
     }
     if (ELEM(dimensions, 1, 4)) {
-      signature.single_output<float>("W");
+      builder.single_output<float>("W", mf::ParamFlag::SupportsUnusedOutput);
     }
 
-    return signature.build();
+    return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -1132,7 +1134,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
   }
 };
 
-class VoronoiEdgeFunction : public fn::MultiFunction {
+class VoronoiEdgeFunction : public mf::MultiFunction {
  private:
   int dimensions_;
   int feature_;
@@ -1142,7 +1144,7 @@ class VoronoiEdgeFunction : public fn::MultiFunction {
   {
     BLI_assert(dimensions >= 1 && dimensions <= 4);
     BLI_assert(feature >= 3 && feature <= 4);
-    static std::array<fn::MFSignature, 8> signatures{
+    static std::array<mf::Signature, 8> signatures{
         create_signature(1, SHD_VORONOI_DISTANCE_TO_EDGE),
         create_signature(2, SHD_VORONOI_DISTANCE_TO_EDGE),
         create_signature(3, SHD_VORONOI_DISTANCE_TO_EDGE),
@@ -1156,30 +1158,31 @@ class VoronoiEdgeFunction : public fn::MultiFunction {
     this->set_signature(&signatures[dimensions + (feature - 3) * 4 - 1]);
   }
 
-  static fn::MFSignature create_signature(int dimensions, int feature)
+  static mf::Signature create_signature(int dimensions, int feature)
   {
-    fn::MFSignatureBuilder signature{"voronoi_edge"};
+    mf::Signature signature;
+    mf::SignatureBuilder builder{"voronoi_edge", signature};
 
     if (ELEM(dimensions, 2, 3, 4)) {
-      signature.single_input<float3>("Vector");
+      builder.single_input<float3>("Vector");
     }
     if (ELEM(dimensions, 1, 4)) {
-      signature.single_input<float>("W");
+      builder.single_input<float>("W");
     }
-    signature.single_input<float>("Scale");
-    signature.single_input<float>("Randomness");
+    builder.single_input<float>("Scale");
+    builder.single_input<float>("Randomness");
 
     if (feature == SHD_VORONOI_DISTANCE_TO_EDGE) {
-      signature.single_output<float>("Distance");
+      builder.single_output<float>("Distance");
     }
     if (feature == SHD_VORONOI_N_SPHERE_RADIUS) {
-      signature.single_output<float>("Radius");
+      builder.single_output<float>("Radius");
     }
 
-    return signature.build();
+    return signature;
   }
 
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");

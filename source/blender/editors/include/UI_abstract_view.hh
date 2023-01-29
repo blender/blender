@@ -27,7 +27,6 @@
 
 struct bContext;
 struct uiBlock;
-struct uiBut;
 struct uiLayout;
 struct uiViewItemHandle;
 struct wmDrag;

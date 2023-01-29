@@ -166,19 +166,22 @@ class MTLTexture : public Texture {
   /* 'baking' refers to the generation of GPU-backed resources. This flag ensures GPU resources are
    * ready. Baking is generally deferred until as late as possible, to ensure all associated
    * resource state has been specified up-front. */
-  bool is_baked_;
-  MTLTextureDescriptor *texture_descriptor_;
-  id<MTLTexture> texture_;
+  bool is_baked_ = false;
+  MTLTextureDescriptor *texture_descriptor_ = nullptr;
+  id<MTLTexture> texture_ = nil;
   MTLTextureUsage usage_;
 
   /* Texture Storage. */
-  id<MTLBuffer> texture_buffer_;
+  id<MTLBuffer> texture_buffer_ = nil;
   uint aligned_w_ = 0;
 
   /* Blit Frame-buffer. */
   GPUFrameBuffer *blit_fb_ = nullptr;
   uint blit_fb_slice_ = 0;
   uint blit_fb_mip_ = 0;
+
+  /* Non-SRGB texture view, used for when a framebuffer is bound with SRGB disabled. */
+  id<MTLTexture> texture_no_srgb_ = nil;
 
   /* Texture view properties */
   /* In Metal, we use texture views to either limit mipmap ranges,
@@ -212,13 +215,11 @@ class MTLTexture : public Texture {
 
   /* Max mip-maps for currently allocated texture resource. */
   int mtl_max_mips_ = 1;
+  bool has_generated_mips_ = false;
 
   /* VBO. */
   MTLVertBuf *vert_buffer_;
   id<MTLBuffer> vert_buffer_mtl_;
-
-  /* Core parameters and sub-resources. */
-  eGPUTextureUsage gpu_image_usage_flags_;
 
   /* Whether the texture's properties or state has changed (e.g. mipmap range), and re-baking of
    * GPU resource is required. */
@@ -235,6 +236,10 @@ class MTLTexture : public Texture {
 
   void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data) override;
+  void update_sub(int offset[3],
+                  int extent[3],
+                  eGPUDataFormat format,
+                  GPUPixelBuffer *pixbuf) override;
 
   void generate_mipmap() override;
   void copy_to(Texture *dst) override;
@@ -249,6 +254,7 @@ class MTLTexture : public Texture {
   /* Remove once no longer required -- will just return 0 for now in MTL path. */
   uint gl_bindcode_get() const override;
 
+  bool is_format_srgb();
   bool texture_is_baked();
   const char *get_name()
   {
@@ -303,6 +309,7 @@ class MTLTexture : public Texture {
 
   id<MTLTexture> get_metal_handle();
   id<MTLTexture> get_metal_handle_base();
+  id<MTLTexture> get_non_srgb_handle();
   MTLSamplerState get_sampler_state();
   void blit(id<MTLBlitCommandEncoder> blit_encoder,
             uint src_x_offset,
@@ -422,6 +429,24 @@ class MTLTexture : public Texture {
   GPUShader *fullscreen_blit_sh_get();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLTexture")
+};
+
+class MTLPixelBuffer : public PixelBuffer {
+ private:
+  id<MTLBuffer> buffer_ = nil;
+
+ public:
+  MTLPixelBuffer(uint size);
+  ~MTLPixelBuffer();
+
+  void *map() override;
+  void unmap() override;
+  int64_t get_native_handle() override;
+  uint get_size() override;
+
+  id<MTLBuffer> get_metal_buffer();
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("MTLPixelBuffer")
 };
 
 /* Utility */
@@ -585,6 +610,48 @@ inline eGPUDataFormat to_mtl_internal_data_format(eGPUTextureFormat tex_format)
       BLI_assert(false && "Texture not yet handled");
       return GPU_DATA_FLOAT;
   }
+}
+
+inline MTLTextureUsage mtl_usage_from_gpu(eGPUTextureUsage usage)
+{
+  MTLTextureUsage mtl_usage = MTLTextureUsageUnknown;
+  if (usage == GPU_TEXTURE_USAGE_GENERAL) {
+    return MTLTextureUsageUnknown;
+  }
+  if (usage & GPU_TEXTURE_USAGE_SHADER_READ) {
+    mtl_usage = mtl_usage | MTLTextureUsageShaderRead;
+  }
+  if (usage & GPU_TEXTURE_USAGE_SHADER_WRITE) {
+    mtl_usage = mtl_usage | MTLTextureUsageShaderWrite;
+  }
+  if (usage & GPU_TEXTURE_USAGE_ATTACHMENT) {
+    mtl_usage = mtl_usage | MTLTextureUsageRenderTarget;
+  }
+  if (usage & GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW) {
+    mtl_usage = mtl_usage | MTLTextureUsagePixelFormatView;
+  }
+  return mtl_usage;
+}
+
+inline eGPUTextureUsage gpu_usage_from_mtl(MTLTextureUsage mtl_usage)
+{
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
+  if (mtl_usage == MTLTextureUsageUnknown) {
+    return GPU_TEXTURE_USAGE_GENERAL;
+  }
+  if (mtl_usage & MTLTextureUsageShaderRead) {
+    usage = usage | GPU_TEXTURE_USAGE_SHADER_READ;
+  }
+  if (mtl_usage & MTLTextureUsageShaderWrite) {
+    usage = usage | GPU_TEXTURE_USAGE_SHADER_WRITE;
+  }
+  if (mtl_usage & MTLTextureUsageRenderTarget) {
+    usage = usage | GPU_TEXTURE_USAGE_ATTACHMENT;
+  }
+  if (mtl_usage & MTLTextureUsagePixelFormatView) {
+    usage = usage | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+  }
+  return usage;
 }
 
 }  // namespace blender::gpu

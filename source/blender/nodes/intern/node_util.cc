@@ -5,9 +5,9 @@
  * \ingroup nodes
  */
 
-#include <ctype.h>
-#include <limits.h>
-#include <string.h>
+#include <cctype>
+#include <climits>
+#include <cstring>
 
 #include "DNA_node_types.h"
 
@@ -19,6 +19,7 @@
 
 #include "BKE_colortools.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
 #include "RNA_access.h"
@@ -47,24 +48,22 @@ void node_free_standard_storage(bNode *node)
   }
 }
 
-void node_copy_curves(bNodeTree *UNUSED(dest_ntree), bNode *dest_node, const bNode *src_node)
+void node_copy_curves(bNodeTree * /*dest_ntree*/, bNode *dest_node, const bNode *src_node)
 {
   dest_node->storage = BKE_curvemapping_copy(static_cast<CurveMapping *>(src_node->storage));
 }
 
-void node_copy_standard_storage(bNodeTree *UNUSED(dest_ntree),
+void node_copy_standard_storage(bNodeTree * /*dest_ntree*/,
                                 bNode *dest_node,
                                 const bNode *src_node)
 {
   dest_node->storage = MEM_dupallocN(src_node->storage);
 }
 
-void *node_initexec_curves(bNodeExecContext *UNUSED(context),
-                           bNode *node,
-                           bNodeInstanceKey UNUSED(key))
+void *node_initexec_curves(bNodeExecContext * /*context*/, bNode *node, bNodeInstanceKey /*key*/)
 {
   BKE_curvemapping_init(static_cast<CurveMapping *>(node->storage));
-  return NULL; /* unused return */
+  return nullptr; /* unused return */
 }
 
 /** \} */
@@ -176,7 +175,7 @@ void node_math_update(bNodeTree *ntree, bNode *node)
 /** \name Labels
  * \{ */
 
-void node_blend_label(const bNodeTree *UNUSED(ntree), const bNode *node, char *label, int maxlen)
+void node_blend_label(const bNodeTree * /*ntree*/, const bNode *node, char *label, int maxlen)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_ramp_blend_items, node->custom1, &name);
@@ -186,14 +185,14 @@ void node_blend_label(const bNodeTree *UNUSED(ntree), const bNode *node, char *l
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-void node_image_label(const bNodeTree *UNUSED(ntree), const bNode *node, char *label, int maxlen)
+void node_image_label(const bNodeTree * /*ntree*/, const bNode *node, char *label, int maxlen)
 {
   /* If there is no loaded image, return an empty string,
    * and let nodeLabel() fill in the proper type translation. */
   BLI_strncpy(label, (node->id) ? node->id->name + 2 : "", maxlen);
 }
 
-void node_math_label(const bNodeTree *UNUSED(ntree), const bNode *node, char *label, int maxlen)
+void node_math_label(const bNodeTree * /*ntree*/, const bNode *node, char *label, int maxlen)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_math_items, node->custom1, &name);
@@ -203,7 +202,7 @@ void node_math_label(const bNodeTree *UNUSED(ntree), const bNode *node, char *la
   BLI_strncpy(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), maxlen);
 }
 
-void node_vector_math_label(const bNodeTree *UNUSED(ntree),
+void node_vector_math_label(const bNodeTree * /*ntree*/,
                             const bNode *node,
                             char *label,
                             int maxlen)
@@ -216,7 +215,7 @@ void node_vector_math_label(const bNodeTree *UNUSED(ntree),
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-void node_filter_label(const bNodeTree *UNUSED(ntree), const bNode *node, char *label, int maxlen)
+void node_filter_label(const bNodeTree * /*ntree*/, const bNode *node, char *label, int maxlen)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_filter_items, node->custom1, &name);
@@ -307,12 +306,12 @@ static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree,
 {
   bNodeSocket *first = to_socket->in_out == SOCK_IN ?
                            static_cast<bNodeSocket *>(node->inputs.first) :
-                           static_cast<bNodeSocket *>((node->outputs.first));
+                           static_cast<bNodeSocket *>(node->outputs.first);
 
   /* Wrap around the list end. */
   bNodeSocket *socket_iter = to_socket->next ? to_socket->next : first;
   while (socket_iter != to_socket) {
-    if (!nodeSocketIsHidden(socket_iter) && node_link_socket_match(socket_iter, to_socket)) {
+    if (socket_iter->is_visible() && node_link_socket_match(socket_iter, to_socket)) {
       const int link_count = node_count_links(ntree, socket_iter);
       /* Add one to account for the new link being added. */
       if (link_count + 1 <= nodeSocketLinkLimit(socket_iter)) {
@@ -322,22 +321,22 @@ static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree,
     socket_iter = socket_iter->next ? socket_iter->next : first; /* Wrap around the list end. */
   }
 
-  return NULL;
+  return nullptr;
 }
 
-void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
+bool node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
 {
   bNodeSocket *socket = link->tosock;
 
   if (node != link->tonode) {
-    return;
+    return true;
   }
 
   /* If we're not at the link limit of the target socket, we can skip
    * trying to move existing links to another socket. */
   const int to_link_limit = nodeSocketLinkLimit(socket);
-  if (socket->total_inputs + 1 < to_link_limit) {
-    return;
+  if (socket->runtime->total_inputs + 1 < to_link_limit) {
+    return true;
   }
 
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, to_link, &ntree->links) {
@@ -346,16 +345,17 @@ void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
       if (new_socket && new_socket != socket) {
         /* Attempt to redirect the existing link to the new socket. */
         to_link->tosock = new_socket;
-        return;
+        return true;
       }
 
-      if (new_socket == NULL) {
+      if (new_socket == nullptr) {
         /* No possible replacement, remove the existing link. */
         nodeRemLink(ntree, to_link);
-        return;
+        return true;
       }
     }
   }
+  return true;
 }
 
 /** \} */
@@ -364,21 +364,21 @@ void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
 /** \name Default value RNA access
  * \{ */
 
-float node_socket_get_float(bNodeTree *ntree, bNode *UNUSED(node), bNodeSocket *sock)
+float node_socket_get_float(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock)
 {
   PointerRNA ptr;
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
   return RNA_float_get(&ptr, "default_value");
 }
 
-void node_socket_set_float(bNodeTree *ntree, bNode *UNUSED(node), bNodeSocket *sock, float value)
+void node_socket_set_float(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock, float value)
 {
   PointerRNA ptr;
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
   RNA_float_set(&ptr, "default_value", value);
 }
 
-void node_socket_get_color(bNodeTree *ntree, bNode *UNUSED(node), bNodeSocket *sock, float *value)
+void node_socket_get_color(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock, float *value)
 {
   PointerRNA ptr;
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
@@ -386,7 +386,7 @@ void node_socket_get_color(bNodeTree *ntree, bNode *UNUSED(node), bNodeSocket *s
 }
 
 void node_socket_set_color(bNodeTree *ntree,
-                           bNode *UNUSED(node),
+                           bNode * /*node*/,
                            bNodeSocket *sock,
                            const float *value)
 {
@@ -395,7 +395,7 @@ void node_socket_set_color(bNodeTree *ntree,
   RNA_float_set_array(&ptr, "default_value", value);
 }
 
-void node_socket_get_vector(bNodeTree *ntree, bNode *UNUSED(node), bNodeSocket *sock, float *value)
+void node_socket_get_vector(bNodeTree *ntree, bNode * /*node*/, bNodeSocket *sock, float *value)
 {
   PointerRNA ptr;
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
@@ -403,7 +403,7 @@ void node_socket_get_vector(bNodeTree *ntree, bNode *UNUSED(node), bNodeSocket *
 }
 
 void node_socket_set_vector(bNodeTree *ntree,
-                            bNode *UNUSED(node),
+                            bNode * /*node*/,
                             bNodeSocket *sock,
                             const float *value)
 {

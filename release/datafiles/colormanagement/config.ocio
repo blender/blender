@@ -171,7 +171,7 @@ colorspaces:
     name: Non-Color
     family: raw
     description: |
-        Color space used for images which contains non-color data (i.e. normal maps)
+        Color space used for images which contain non-color data (e.g. normal maps)
     equalitygroup:
     bitdepth: 32f
     isdata: true

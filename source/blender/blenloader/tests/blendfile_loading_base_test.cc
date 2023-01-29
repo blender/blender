@@ -81,7 +81,7 @@ void BlendfileLoadingBaseTest::TearDownTestCase()
     G.main->wm.first = nullptr;
   }
 
-  /* Copied from WM_exit_ex() in wm_init_exit.c, and cherry-picked those lines that match the
+  /* Copied from WM_exit_ex() in wm_init_exit.cc, and cherry-picked those lines that match the
    * allocation/initialization done in SetUpTestCase(). */
   BKE_blender_free();
   RNA_exit();
@@ -103,8 +103,8 @@ void BlendfileLoadingBaseTest::TearDownTestCase()
 void BlendfileLoadingBaseTest::TearDown()
 {
   BKE_mball_cubeTable_free();
-  depsgraph_free();
   blendfile_free();
+  depsgraph_free();
 
   testing::Test::TearDown();
 }

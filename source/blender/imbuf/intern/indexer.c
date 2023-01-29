@@ -1040,16 +1040,6 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
     }
 
     if (next_packet->stream_index == context->videoStream) {
-      if (next_packet->flags & AV_PKT_FLAG_KEY) {
-        context->last_seek_pos = context->seek_pos;
-        context->last_seek_pos_pts = context->seek_pos_pts;
-        context->last_seek_pos_dts = context->seek_pos_dts;
-
-        context->seek_pos = next_packet->pos;
-        context->seek_pos_pts = next_packet->pts;
-        context->seek_pos_dts = next_packet->dts;
-      }
-
       int ret = avcodec_send_packet(context->iCodecCtx, next_packet);
       while (ret >= 0) {
         ret = avcodec_receive_frame(context->iCodecCtx, in_frame);
@@ -1062,6 +1052,17 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
           fprintf(stderr, "Error decoding proxy frame: %s\n", av_err2str(ret));
           break;
         }
+
+        if (next_packet->flags & AV_PKT_FLAG_KEY) {
+          context->last_seek_pos = context->seek_pos;
+          context->last_seek_pos_pts = context->seek_pos_pts;
+          context->last_seek_pos_dts = context->seek_pos_dts;
+
+          context->seek_pos = in_frame->pkt_pos;
+          context->seek_pos_pts = in_frame->pts;
+          context->seek_pos_dts = in_frame->pkt_dts;
+        }
+
         index_rebuild_ffmpeg_proc_decoded_frame(context, next_packet, in_frame);
       }
     }

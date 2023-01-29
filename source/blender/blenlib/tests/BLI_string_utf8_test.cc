@@ -463,7 +463,7 @@ TEST(string, StrCursorStepNextUtf32AllCombining)
 
 TEST(string, StrCursorStepNextUtf32Complex)
 {
-  /* Combining character, "A", two combining characters, "B".*/
+  /* Combining character, "A", two combining characters, "B". */
   const char32_t complex[] = U"\u0300\u0041\u0300\u0320\u0042";
   const size_t len = 5;
   int pos = 0;
@@ -486,7 +486,7 @@ TEST(string, StrCursorStepNextUtf32Complex)
 
 TEST(string, StrCursorStepNextUtf32Invalid)
 {
-  /* Latin1 "À", tab, carriage return, linefeed, separated by combining characters.*/
+  /* Latin1 "À", tab, carriage return, linefeed, separated by combining characters. */
   const char32_t invalid[] = U"\u00C0\u0300\u0009\u0300\u000D\u0300\u000A\u0300";
   const size_t len = 8;
   int pos = 0;
@@ -573,7 +573,7 @@ TEST(string, StrCursorStepPrevUtf32AllCombining)
 
 TEST(string, StrCursorStepPrevUtf32Complex)
 {
-  /* Combining character, "A", two combining characters, "B".*/
+  /* Combining character, "A", two combining characters, "B". */
   const char32_t complex[] = U"\u0300\u0041\u0300\u0320\u0042";
   const size_t len = 5;
   int pos = 5;
@@ -596,7 +596,7 @@ TEST(string, StrCursorStepPrevUtf32Complex)
 
 TEST(string, StrCursorStepPrevUtf32Invalid)
 {
-  /* Latin1 "À", tab, carriage return, linefeed, separated by combining characters.*/
+  /* Latin1 "À", tab, carriage return, linefeed, separated by combining characters. */
   const char32_t invalid[] = U"\u00C0\u0300\u0009\u0300\u000D\u0300\u000A\u0300";
   const size_t len = 8;
   int pos = 8;
@@ -690,7 +690,7 @@ TEST(string, StrCursorStepNextUtf8AllCombining)
 
 TEST(string, StrCursorStepNextUtf8AllComplex)
 {
-  /* Combining character, "A", "©", two combining characters, "B".*/
+  /* Combining character, "A", "©", two combining characters, "B". */
   const char complex[] = "\xCC\x80\x41\xC2\xA9\xCC\x80\xCC\xA0\x42";
   const size_t len = 10;
   int pos = 0;
@@ -723,7 +723,7 @@ TEST(string, StrCursorStepNextUtf8AllComplex)
 
 TEST(string, StrCursorStepNextUtf8Invalid)
 {
-  /* Latin1 "À", combining, tab, carriage return, linefeed, combining.*/
+  /* Latin1 "À", combining, tab, carriage return, linefeed, combining. */
   const char invalid[] = "\xC0\xCC\x80\x09\x0D\x0A\xCC\x80";
   const size_t len = 8;
   int pos = 0;
@@ -818,7 +818,7 @@ TEST(string, StrCursorStepPrevUtf8AllCombining)
 
 TEST(string, StrCursorStepPrevUtf8Complex)
 {
-  /* Combining character, "A", "©", two combining characters, "B".*/
+  /* Combining character, "A", "©", two combining characters, "B". */
   const char complex[] = "\xCC\x80\x41\xC2\xA9\xCC\x80\xCC\xA0\x42";
   const size_t len = 10;
   int pos = 10;
@@ -851,7 +851,7 @@ TEST(string, StrCursorStepPrevUtf8Complex)
 
 TEST(string, StrCursorStepPrevUtf8Invalid)
 {
-  /* Latin1 "À", combining, tab, carriage return, linefeed, combining.*/
+  /* Latin1 "À", combining, tab, carriage return, linefeed, combining. */
   const char invalid[] = "\xC0\xCC\x80\x09\x0D\x0A\xCC\x80";
   const size_t len = 8;
   int pos = 8;

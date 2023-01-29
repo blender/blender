@@ -5,6 +5,7 @@ set(INC
   .
   gizmo
   gizmo/intern
+  ../asset_system
   ../blenfont
   ../blenkernel
   ../blenlib
@@ -40,11 +41,11 @@ set(SRC
   intern/wm_draw.c
   intern/wm_event_query.c
   intern/wm_event_system.cc
-  intern/wm_files.c
+  intern/wm_files.cc
   intern/wm_files_link.c
   intern/wm_gesture.c
   intern/wm_gesture_ops.c
-  intern/wm_init_exit.c
+  intern/wm_init_exit.cc
   intern/wm_jobs.c
   intern/wm_keymap.c
   intern/wm_keymap_utils.c
@@ -104,20 +105,29 @@ set(LIB
   bf_sequencer
 )
 
-if(WITH_AUDASPACE)
-  add_definitions(-DWITH_AUDASPACE)
+if(WIN32)
+  add_definitions(-DNOMINMAX)
+endif()
 
+if(WITH_AUDASPACE)
   list(APPEND INC_SYS
     ${AUDASPACE_C_INCLUDE_DIRS}
   )
-  list(APPEND LIB
-    ${AUDASPACE_C_LIBRARIES}
-    ${AUDASPACE_PY_LIBRARIES}
-  )
+  if(WITH_SYSTEM_AUDASPACE)
+    list(APPEND LIB
+      ${AUDASPACE_C_LIBRARIES}
+      ${AUDASPACE_PY_LIBRARIES}
+    )
+  endif()
+  add_definitions(-DWITH_AUDASPACE)
 endif()
 
 if(WITH_CYCLES)
   add_definitions(-DWITH_CYCLES)
+endif()
+
+if(WITH_VULKAN_BACKEND)
+  add_definitions(-DWITH_VULKAN_BACKEND)
 endif()
 
 if(WITH_OPENCOLLADA)

@@ -137,7 +137,7 @@ void OSLShaderManager::device_update_specific(Device *device,
           compiler.compile(og, shader);
         });
 
-    if (shader->get_use_mis() && shader->has_surface_emission)
+    if (shader->emission_sampling != EMISSION_SAMPLING_NONE)
       scene->light_manager->tag_update(scene, LightManager::SHADER_COMPILED);
   }
 
@@ -184,9 +184,19 @@ void OSLShaderManager::device_update_specific(Device *device,
      * is being freed after the Session is freed.
      */
     thread_scoped_lock lock(ss_shared_mutex);
+
+    /* Set current image manager during the lock, so that there is no conflict with other shader
+     * manager instances.
+     *
+     * It is used in "OSLRenderServices::get_texture_handle" called during optimization below to
+     * load images for the GPU. */
+    OSLRenderServices::image_manager = scene->image_manager;
+
     for (const auto &[device_type, ss] : ss_shared) {
       ss->optimize_all_groups();
     }
+
+    OSLRenderServices::image_manager = nullptr;
   }
 
   /* load kernels */
@@ -213,6 +223,22 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
     og->bump_state.clear();
     og->background_state.reset();
   });
+
+  /* Remove any textures specific to an image manager from shared render services textures, since
+   * the image manager may get destroyed next. */
+  for (const auto &[device_type, ss] : ss_shared) {
+    OSLRenderServices *services = static_cast<OSLRenderServices *>(ss->renderer());
+
+    for (auto it = services->textures.begin(); it != services->textures.end(); ++it) {
+      if (it->second->handle.get_manager() == scene->image_manager) {
+        /* Don't lock again, since the iterator already did so. */
+        services->textures.erase(it->first, false);
+        it.clear();
+        /* Iterator was invalidated, start from the beginning again. */
+        it = services->textures.begin();
+      }
+    }
+  }
 }
 
 void OSLShaderManager::texture_system_init()
@@ -279,14 +305,15 @@ void OSLShaderManager::shading_system_init()
 
       /* our own ray types */
       static const char *raytypes[] = {
-          "camera",         /* PATH_RAY_CAMERA */
-          "reflection",     /* PATH_RAY_REFLECT */
-          "refraction",     /* PATH_RAY_TRANSMIT */
-          "diffuse",        /* PATH_RAY_DIFFUSE */
-          "glossy",         /* PATH_RAY_GLOSSY */
-          "singular",       /* PATH_RAY_SINGULAR */
-          "transparent",    /* PATH_RAY_TRANSPARENT */
-          "volume_scatter", /* PATH_RAY_VOLUME_SCATTER */
+          "camera",          /* PATH_RAY_CAMERA */
+          "reflection",      /* PATH_RAY_REFLECT */
+          "refraction",      /* PATH_RAY_TRANSMIT */
+          "diffuse",         /* PATH_RAY_DIFFUSE */
+          "glossy",          /* PATH_RAY_GLOSSY */
+          "singular",        /* PATH_RAY_SINGULAR */
+          "transparent",     /* PATH_RAY_TRANSPARENT */
+          "volume_scatter",  /* PATH_RAY_VOLUME_SCATTER */
+          "importance_bake", /* PATH_RAY_IMPORTANCE_BAKE */
 
           "shadow", /* PATH_RAY_SHADOW_OPAQUE */
           "shadow", /* PATH_RAY_SHADOW_TRANSPARENT */
@@ -297,7 +324,6 @@ void OSLShaderManager::shading_system_init()
           "diffuse_ancestor", /* PATH_RAY_DIFFUSE_ANCESTOR */
 
           /* Remaining irrelevant bits up to 32. */
-          "__unused__",
           "__unused__",
           "__unused__",
           "__unused__",
@@ -552,6 +578,7 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
 
     SocketType::Type socket_type;
 
+    /* Read type and default value. */
     if (param->isclosure) {
       socket_type = SocketType::CLOSURE;
     }
@@ -606,7 +633,21 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
       node->add_output(param->name, socket_type);
     }
     else {
-      node->add_input(param->name, socket_type);
+      /* Detect if we should leave parameter initialization to OSL, either though
+       * not constant default or widget metadata. */
+      int socket_flags = 0;
+      if (!param->validdefault) {
+        socket_flags |= SocketType::LINK_OSL_INITIALIZER;
+      }
+      for (const OSL::OSLQuery::Parameter &metadata : param->metadata) {
+        if (metadata.type == TypeDesc::STRING) {
+          if (metadata.name == "widget" && metadata.sdefault[0] == "null") {
+            socket_flags |= SocketType::LINK_OSL_INITIALIZER;
+          }
+        }
+      }
+
+      node->add_input(param->name, socket_type, socket_flags);
     }
   }
 
@@ -731,8 +772,12 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
   foreach (ShaderInput *input, node->inputs) {
     if (!input->link) {
       /* checks to untangle graphs */
-      if (node_skip_input(node, input))
+      if (node_skip_input(node, input)) {
         continue;
+      }
+      if ((input->flags() & SocketType::LINK_OSL_INITIALIZER) && !(input->constant_folded_in)) {
+        continue;
+      }
 
       string param_name = compatible_name(node, input);
       const SocketType &socket = input->socket_type;
@@ -800,8 +845,11 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 
   if (current_type == SHADER_TYPE_SURFACE) {
     if (info) {
-      if (info->has_surface_emission)
-        current_shader->has_surface_emission = true;
+      if (info->has_surface_emission && node->special_type == SHADER_SPECIAL_TYPE_OSL) {
+        /* Will be used by Shader::estimate_emission. */
+        OSLNode *oslnode = static_cast<OSLNode *>(node);
+        oslnode->has_emission = true;
+      }
       if (info->has_surface_transparent)
         current_shader->has_surface_transparent = true;
       if (info->has_surface_bssrdf) {
@@ -1101,8 +1149,6 @@ void OSLCompiler::generate_nodes(const ShaderNodeSet &nodes)
           done.insert(node);
 
           if (current_type == SHADER_TYPE_SURFACE) {
-            if (node->has_surface_emission())
-              current_shader->has_surface_emission = true;
             if (node->has_surface_transparent())
               current_shader->has_surface_transparent = true;
             if (node->get_feature() & KERNEL_FEATURE_NODE_RAYTRACE)
@@ -1194,8 +1240,8 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
     current_shader = shader;
 
     shader->has_surface = false;
-    shader->has_surface_emission = false;
     shader->has_surface_transparent = false;
+    shader->has_surface_raytrace = false;
     shader->has_surface_bssrdf = false;
     shader->has_bump = has_bump;
     shader->has_bssrdf_bump = has_bump;
@@ -1237,6 +1283,9 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
     }
     else
       shader->osl_displacement_ref = OSL::ShaderGroupRef();
+
+    /* Estimate emission for MIS. */
+    shader->estimate_emission();
   }
 
   /* push state to array for lookup */

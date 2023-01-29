@@ -1164,8 +1164,8 @@ void box_minmax_bounds_m4(float min[3], float max[3], float boundbox[2][3], floa
 /** \name Mapping
  * \{ */
 
-void map_to_tube(float *r_u, float *r_v, float x, float y, float z);
-void map_to_sphere(float *r_u, float *r_v, float x, float y, float z);
+bool map_to_tube(float *r_u, float *r_v, float x, float y, float z);
+bool map_to_sphere(float *r_u, float *r_v, float x, float y, float z);
 void map_to_plane_v2_v3v3(float r_co[2], const float co[3], const float no[3]);
 void map_to_plane_axis_angle_v2_v3v3fl(float r_co[2],
                                        const float co[3],

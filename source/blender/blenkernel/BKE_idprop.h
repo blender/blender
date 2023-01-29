@@ -28,18 +28,17 @@ typedef union IDPropertyTemplate {
   double d;
   struct {
     const char *str;
+    /** String length (including the null byte): `strlen(str) + 1`. */
     int len;
+    /** #eIDPropertySubType */
     char subtype;
   } string;
   struct ID *id;
   struct {
     int len;
+    /** #eIDPropertyType */
     char type;
   } array;
-  struct {
-    int matvec_size;
-    const float *example;
-  } matrix_or_vector;
 } IDPropertyTemplate;
 
 /* ----------- Property Array Type ---------- */
@@ -243,6 +242,7 @@ void IDP_ClearProperty(struct IDProperty *prop);
 void IDP_Reset(struct IDProperty *prop, const struct IDProperty *reference);
 
 #define IDP_Int(prop) ((prop)->data.val)
+#define IDP_Bool(prop) ((prop)->data.val)
 #define IDP_Array(prop) ((prop)->data.pointer)
 /* C11 const correctness for casts */
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
@@ -334,6 +334,8 @@ typedef enum eIDPropertyUIDataType {
   IDP_UI_DATA_TYPE_STRING = 2,
   /** IDP_ID. */
   IDP_UI_DATA_TYPE_ID = 3,
+  /** IDP_BOOLEAN or IDP_ARRAY with subtype IDP_BOOLEAN. */
+  IDP_UI_DATA_TYPE_BOOLEAN = 4,
 } eIDPropertyUIDataType;
 
 bool IDP_ui_data_supported(const struct IDProperty *prop);

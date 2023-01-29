@@ -2,6 +2,8 @@
 
 #include "BLI_index_mask.hh"
 
+#include "BKE_attribute.hh"
+
 #pragma once
 
 struct PointCloud;
@@ -17,8 +19,10 @@ namespace blender::geometry {
  * Merge selected points into other selected points within the \a merge_distance. The merged
  * indices favor speed over accuracy, since the results will depend on the order of the points.
  */
-PointCloud *point_merge_by_distance(const PointCloud &src_points,
-                                    const float merge_distance,
-                                    const IndexMask selection);
+PointCloud *point_merge_by_distance(
+    const PointCloud &src_points,
+    const float merge_distance,
+    const IndexMask selection,
+    const bke::AnonymousAttributePropagationInfo &propagation_info);
 
 }  // namespace blender::geometry

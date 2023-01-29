@@ -125,8 +125,9 @@ struct SnakeHookOperatorExecutor {
 
     transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
-    curve_factors_ = get_curves_selection(*curves_id_);
-    curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
+    curve_factors_ = curves_->attributes().lookup_or_default(
+        ".selection", ATTR_DOMAIN_CURVE, 1.0f);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 
     brush_pos_prev_re_ = self.last_mouse_position_re_;
     brush_pos_re_ = stroke_extension.mouse_position;
@@ -178,6 +179,7 @@ struct SnakeHookOperatorExecutor {
     const float4x4 brush_transform_inv = brush_transform.inverted();
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
@@ -190,7 +192,7 @@ struct SnakeHookOperatorExecutor {
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
       MoveAndResampleBuffers resample_buffer;
       for (const int curve_i : curves_range) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         const int last_point_i = points.last();
         const float3 old_pos_cu = deformation.positions[last_point_i];
         const float3 old_symm_pos_cu = brush_transform_inv * old_pos_cu;
@@ -263,6 +265,7 @@ struct SnakeHookOperatorExecutor {
   {
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+    const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
     const float3 brush_diff_cu = brush_end_cu - brush_start_cu;
@@ -271,7 +274,7 @@ struct SnakeHookOperatorExecutor {
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
       MoveAndResampleBuffers resample_buffer;
       for (const int curve_i : curves_range) {
-        const IndexRange points = curves_->points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         const int last_point_i = points.last();
         const float3 old_pos_cu = deformation.positions[last_point_i];
 

@@ -15,14 +15,16 @@ else()
 endif()
 
 if(WIN32)
-  set(PNG_LIBNAME libpng16_static${LIBEXT})
   set(OIIO_SIMD_FLAGS -DUSE_SIMD=sse2)
   set(OPENJPEG_POSTFIX _msvc)
   if(BUILD_MODE STREQUAL Debug)
     set(TIFF_POSTFIX d)
+    set(PNG_POSTFIX d)
   else()
     set(TIFF_POSTFIX)
+    set(PNG_POSTFIX)
   endif()
+  set(PNG_LIBNAME libpng16_static${PNG_POSTFIX}${LIBEXT})
 else()
   set(PNG_LIBNAME libpng${LIBEXT})
   set(OIIO_SIMD_FLAGS)
@@ -40,7 +42,7 @@ else()
 endif()
 
 set(OPENIMAGEIO_EXTRA_ARGS
-  -DBUILD_SHARED_LIBS=OFF
+  -DBUILD_SHARED_LIBS=ON
   ${OPENIMAGEIO_LINKSTATIC}
   ${DEFAULT_BOOST_FLAGS}
   -DUSE_LIBSQUISH=OFF
@@ -54,7 +56,7 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -DUSE_OPENGL=OFF
   -DUSE_TBB=OFF
   -DUSE_QT=OFF
-  -DUSE_PYTHON=OFF
+  -DUSE_PYTHON=ON
   -DUSE_GIF=OFF
   -DUSE_OPENCV=OFF
   -DUSE_OPENJPEG=ON
@@ -76,13 +78,14 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -DJPEG_LIBRARY=${LIBDIR}/jpeg/lib/${JPEG_LIBRARY}
   -DJPEG_INCLUDE_DIR=${LIBDIR}/jpeg/include
   ${OPENJPEG_FLAGS}
-  -DOPENEXR_ILMTHREAD_LIBRARY=${LIBDIR}/openexr/lib/${LIBPREFIX}IlmThread${OPENEXR_VERSION_POSTFIX}${LIBEXT}
-  -DOPENEXR_IEX_LIBRARY=${LIBDIR}/openexr/lib/${LIBPREFIX}Iex${OPENEXR_VERSION_POSTFIX}${LIBEXT}
-  -DOPENEXR_ILMIMF_LIBRARY=${LIBDIR}/openexr/lib/${LIBPREFIX}IlmImf${OPENEXR_VERSION_POSTFIX}${LIBEXT}
+  -DOPENEXR_ILMTHREAD_LIBRARY=${LIBDIR}/openexr/lib/${LIBPREFIX}IlmThread${OPENEXR_VERSION_POSTFIX}${SHAREDLIBEXT}
+  -DOPENEXR_IEX_LIBRARY=${LIBDIR}/openexr/lib/${LIBPREFIX}Iex${OPENEXR_VERSION_POSTFIX}${SHAREDLIBEXT}
+  -DOPENEXR_ILMIMF_LIBRARY=${LIBDIR}/openexr/lib/${LIBPREFIX}IlmImf${OPENEXR_VERSION_POSTFIX}${SHAREDLIBEXT}
   -DSTOP_ON_WARNING=OFF
   -DUSE_EXTERNAL_PUGIXML=ON
   -DPUGIXML_LIBRARY=${LIBDIR}/pugixml/lib/${LIBPREFIX}pugixml${LIBEXT}
   -DPUGIXML_INCLUDE_DIR=${LIBDIR}/pugixml/include/
+  -Dpugixml_DIR=${LIBDIR}/pugixml/lib/cmake/pugixml
   -DBUILD_MISSING_ROBINMAP=OFF
   -DBUILD_MISSING_FMT=OFF
   -DFMT_INCLUDE_DIR=${LIBDIR}/fmt/include/
@@ -91,12 +94,15 @@ set(OPENIMAGEIO_EXTRA_ARGS
   ${OIIO_SIMD_FLAGS}
   -DOpenEXR_ROOT=${LIBDIR}/openexr
   -DImath_ROOT=${LIBDIR}/imath
+  -Dpybind11_ROOT=${LIBDIR}/pybind11
+  -DPython_EXECUTABLE=${PYTHON_BINARY}
 )
 
 ExternalProject_Add(external_openimageio
   URL file://${PACKAGE_DIR}/${OPENIMAGEIO_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${OPENIMAGEIO_HASH_TYPE}=${OPENIMAGEIO_HASH}
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/openimageio
   PATCH_COMMAND ${PATCH_CMD} -p 1 -N -d ${BUILD_DIR}/openimageio/src/external_openimageio/ < ${PATCH_DIR}/openimageio.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimageio ${DEFAULT_CMAKE_FLAGS} ${OPENIMAGEIO_EXTRA_ARGS}
@@ -117,6 +123,8 @@ add_dependencies(
   external_robinmap
   external_openjpeg${OPENJPEG_POSTFIX}
   external_webp
+  external_python
+  external_pybind11
 )
 
 if(WIN32)
@@ -125,7 +133,8 @@ if(WIN32)
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/OpenImageIO/include ${HARVEST_TARGET}/OpenImageIO/include
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/OpenImageIO/lib ${HARVEST_TARGET}/OpenImageIO/lib
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/idiff.exe ${HARVEST_TARGET}/OpenImageIO/bin/idiff.exe
-
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/OpenImageIO.dll ${HARVEST_TARGET}/OpenImageIO/bin/OpenImageIO.dll
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/OpenImageIO_Util.dll ${HARVEST_TARGET}/OpenImageIO/bin/OpenImageIO_Util.dll
       DEPENDEES install
     )
   endif()
@@ -133,6 +142,9 @@ if(WIN32)
     ExternalProject_Add_Step(external_openimageio after_install
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openimageio/lib/OpenImageIO_d.lib ${HARVEST_TARGET}/openimageio/lib/OpenImageIO_d.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openimageio/lib/OpenImageIO_Util_d.lib ${HARVEST_TARGET}/openimageio/lib/OpenImageIO_Util_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/OpenImageIO_d.dll ${HARVEST_TARGET}/OpenImageIO/bin/OpenImageIO_d.dll
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/OpenImageIO_Util_d.dll ${HARVEST_TARGET}/OpenImageIO/bin/OpenImageIO_Util_d.dll
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/OpenImageIO/lib/python${PYTHON_SHORT_VERSION}/ ${HARVEST_TARGET}/OpenImageIO/lib/python${PYTHON_SHORT_VERSION}_debug/
       DEPENDEES install
     )
   endif()

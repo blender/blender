@@ -22,6 +22,8 @@
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_dependency_private.h"
 
+#include "GPU_context.h"
+
 extern "C" {
 #define SHADER_SOURCE(datatoc, filename, filepath) extern char datatoc[];
 #include "glsl_compositor_source_list.h"
@@ -267,6 +269,12 @@ struct GPUSource {
     int64_t cursor = -1;
     int64_t last_pos = 0;
     const bool is_cpp = filename.endswith(".hh");
+
+    /* Metal Shading language is based on C++ and supports C++-style enumerations.
+     * For these cases, we do not need to perform auto-replacement. */
+    if (is_cpp && GPU_backend_get_type() == GPU_BACKEND_METAL) {
+      return;
+    }
 
     while (true) {
       cursor = find_keyword(input, "enum ", cursor + 1);

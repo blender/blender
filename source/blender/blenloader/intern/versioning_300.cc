@@ -28,15 +28,18 @@
 #include "DNA_curves_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_light_types.h"
 #include "DNA_lineart_types.h"
 #include "DNA_listBase.h"
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
+#include "DNA_tracking_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BKE_action.h"
@@ -48,6 +51,7 @@
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_curve.h"
+#include "BKE_curves.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
@@ -58,6 +62,7 @@
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
@@ -243,6 +248,7 @@ static void version_idproperty_ui_data(IDProperty *idprop_group)
       case IDP_UI_DATA_TYPE_FLOAT:
         version_idproperty_move_data_float((IDPropertyUIDataFloat *)ui_data, prop_ui_data);
         break;
+      case IDP_UI_DATA_TYPE_BOOLEAN:
       case IDP_UI_DATA_TYPE_UNSUPPORTED:
         BLI_assert_unreachable();
         break;
@@ -650,6 +656,15 @@ static void seq_speed_factor_fix_rna_path(Sequence *seq, ListBase *fcurves)
   MEM_freeN(path);
 }
 
+static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
+{
+  Scene *scene = (Scene *)user_data;
+  if (seq->type == SEQ_TYPE_META) {
+    SEQ_time_update_meta_strip_range(scene, seq);
+  }
+  return true;
+}
+
 static bool seq_speed_factor_set(Sequence *seq, void *user_data)
 {
   const Scene *scene = static_cast<const Scene *>(user_data);
@@ -808,6 +823,99 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
     /* The storage must be freed manually because the node type isn't defined anymore. */
     MEM_freeN(node->storage);
     nodeRemoveNode(nullptr, ntree, node, false);
+  }
+}
+
+/**
+ * The mesh primitive nodes created a uv map with a hardcoded name. Now they are outputting the uv
+ * map as a socket instead. The versioning just inserts a Store Named Attribute node after
+ * primitive nodes.
+ */
+static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
+{
+  blender::Vector<bNode *> new_nodes;
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree.nodes) {
+    if (!ELEM(node->type,
+              GEO_NODE_MESH_PRIMITIVE_CONE,
+              GEO_NODE_MESH_PRIMITIVE_CUBE,
+              GEO_NODE_MESH_PRIMITIVE_CYLINDER,
+              GEO_NODE_MESH_PRIMITIVE_GRID,
+              GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE,
+              GEO_NODE_MESH_PRIMITIVE_UV_SPHERE)) {
+      continue;
+    }
+    bNodeSocket *primitive_output_socket = nullptr;
+    bNodeSocket *uv_map_output_socket = nullptr;
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+      if (STREQ(socket->name, "UV Map")) {
+        uv_map_output_socket = socket;
+      }
+      if (socket->type == SOCK_GEOMETRY) {
+        primitive_output_socket = socket;
+      }
+    }
+    if (uv_map_output_socket != nullptr) {
+      continue;
+    }
+    uv_map_output_socket = nodeAddStaticSocket(
+        &ntree, node, SOCK_OUT, SOCK_VECTOR, PROP_NONE, "UV Map", "UV Map");
+
+    bNode *store_attribute_node = nodeAddStaticNode(
+        nullptr, &ntree, GEO_NODE_STORE_NAMED_ATTRIBUTE);
+    new_nodes.append(store_attribute_node);
+    store_attribute_node->parent = node->parent;
+    store_attribute_node->locx = node->locx + 25;
+    store_attribute_node->locy = node->locy;
+    store_attribute_node->offsetx = node->offsetx;
+    store_attribute_node->offsety = node->offsety;
+    NodeGeometryStoreNamedAttribute &storage = *static_cast<NodeGeometryStoreNamedAttribute *>(
+        store_attribute_node->storage);
+    storage.domain = ATTR_DOMAIN_CORNER;
+    /* Intentionally use 3D instead of 2D vectors, because 2D vectors did not exist in older
+     * releases and would make the file crash when trying to open it. */
+    storage.data_type = CD_PROP_FLOAT3;
+
+    bNodeSocket *store_attribute_geometry_input = static_cast<bNodeSocket *>(
+        store_attribute_node->inputs.first);
+    bNodeSocket *store_attribute_name_input = store_attribute_geometry_input->next->next;
+    bNodeSocket *store_attribute_value_input = nullptr;
+    LISTBASE_FOREACH (bNodeSocket *, socket, &store_attribute_node->inputs) {
+      if (socket->type == SOCK_VECTOR) {
+        store_attribute_value_input = socket;
+        break;
+      }
+    }
+    bNodeSocket *store_attribute_geometry_output = static_cast<bNodeSocket *>(
+        store_attribute_node->outputs.first);
+    LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+      if (link->fromsock == primitive_output_socket) {
+        link->fromnode = store_attribute_node;
+        link->fromsock = store_attribute_geometry_output;
+      }
+    }
+
+    bNodeSocketValueString *name_value = static_cast<bNodeSocketValueString *>(
+        store_attribute_name_input->default_value);
+    const char *uv_map_name = node->type == GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE ? "UVMap" :
+                                                                                 "uv_map";
+    BLI_strncpy(name_value->value, uv_map_name, sizeof(name_value->value));
+
+    nodeAddLink(&ntree,
+                node,
+                primitive_output_socket,
+                store_attribute_node,
+                store_attribute_geometry_input);
+    nodeAddLink(
+        &ntree, node, uv_map_output_socket, store_attribute_node, store_attribute_value_input);
+  }
+
+  /* Move nodes to the front so that they are drawn behind existing nodes. */
+  for (bNode *node : new_nodes) {
+    BLI_remlink(&ntree.nodes, node);
+    BLI_addhead(&ntree.nodes, node);
+  }
+  if (!new_nodes.is_empty()) {
+    nodeRebuildIDVector(&ntree);
   }
 }
 
@@ -1043,6 +1151,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList * /*reports*/)
         continue;
       }
       SEQ_for_each_callback(&ed->seqbase, seq_speed_factor_set, scene);
+      SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
     }
   }
 
@@ -1481,15 +1590,6 @@ static void version_node_tree_socket_id_delim(bNodeTree *ntree)
       version_node_socket_id_delim(socket);
     }
   }
-}
-
-static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
-{
-  Scene *scene = (Scene *)user_data;
-  if (seq->type == SEQ_TYPE_META) {
-    SEQ_time_update_meta_strip_range(scene, seq);
-  }
-  return true;
 }
 
 static bool version_merge_still_offsets(Sequence *seq, void * /*user_data*/)
@@ -2813,17 +2913,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
-
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
-      /* Make sure range of meta strips is correct.
-       * It was possible to save .blend file with incorrect state of meta strip
-       * range. The root cause is expected to be fixed, but need to ensure files
-       * with invalid meta strip range are corrected. */
-      if (ed != nullptr) {
-        SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
-      }
-    }
   }
 
   /* Special case to handle older in-development 3.1 files, before change from 3.0 branch gets
@@ -2931,6 +3020,21 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
+    LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
+      LISTBASE_FOREACH (Nurb *, nurb, &curve->nurb) {
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagu & CU_NURB_CYCLIC) {
+          nurb->flagu = CU_NURB_CYCLIC;
+          BKE_nurb_knot_calc_u(nurb);
+        }
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagv & CU_NURB_CYCLIC) {
+          nurb->flagv = CU_NURB_CYCLIC;
+          BKE_nurb_knot_calc_v(nurb);
+        }
+      }
+    }
+
     /* Initialize the bone wireframe opacity setting. */
     if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "bone_wire_alpha")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
@@ -3006,32 +3110,35 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Alter NURBS knot mode flags to fit new modes. */
     LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
       LISTBASE_FOREACH (Nurb *, nurb, &curve->nurb) {
-        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
-        if (nurb->flagu & CU_NURB_CYCLIC) {
-          nurb->flagu = CU_NURB_CYCLIC;
-        }
         /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if combined. */
-        else if (nurb->flagu & CU_NURB_BEZIER && nurb->flagu & CU_NURB_ENDPOINT) {
+        if (nurb->flagu & CU_NURB_BEZIER && nurb->flagu & CU_NURB_ENDPOINT) {
           nurb->flagu &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
           BKE_nurb_knot_calc_u(nurb);
         }
+        else if (nurb->flagu & CU_NURB_CYCLIC) {
+          /* In 45d038181ae2 cyclic bezier support is added, but CU_NURB_ENDPOINT still ignored. */
+          nurb->flagu = CU_NURB_CYCLIC | (nurb->flagu & CU_NURB_BEZIER);
+          BKE_nurb_knot_calc_u(nurb);
+        }
         /* Bezier NURBS of order 3 were clamped to first control point. */
-        else if (nurb->orderu == 3 && (nurb->flagu & CU_NURB_BEZIER)) {
+        if (nurb->orderu == 3 && (nurb->flagu & CU_NURB_BEZIER)) {
           nurb->flagu |= CU_NURB_ENDPOINT;
+          BKE_nurb_knot_calc_u(nurb);
         }
-
-        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
-        if (nurb->flagv & CU_NURB_CYCLIC) {
-          nurb->flagv = CU_NURB_CYCLIC;
-        }
-        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if used together. */
-        else if (nurb->flagv & CU_NURB_BEZIER && nurb->flagv & CU_NURB_ENDPOINT) {
+        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if combined. */
+        if (nurb->flagv & CU_NURB_BEZIER && nurb->flagv & CU_NURB_ENDPOINT) {
           nurb->flagv &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
           BKE_nurb_knot_calc_v(nurb);
         }
+        else if (nurb->flagv & CU_NURB_CYCLIC) {
+          /* In 45d038181ae2 cyclic bezier support is added, but CU_NURB_ENDPOINT still ignored. */
+          nurb->flagv = CU_NURB_CYCLIC | (nurb->flagv & CU_NURB_BEZIER);
+          BKE_nurb_knot_calc_v(nurb);
+        }
         /* Bezier NURBS of order 3 were clamped to first control point. */
-        else if (nurb->orderv == 3 && (nurb->flagv & CU_NURB_BEZIER)) {
+        if (nurb->orderv == 3 && (nurb->flagv & CU_NURB_BEZIER)) {
           nurb->flagv |= CU_NURB_ENDPOINT;
+          BKE_nurb_knot_calc_v(nurb);
         }
       }
     }
@@ -3093,10 +3200,10 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
         if (actlayer) {
           if (step) {
-            BKE_id_attributes_render_color_set(&me->id, actlayer);
+            BKE_id_attributes_default_color_set(&me->id, actlayer->name);
           }
           else {
-            BKE_id_attributes_active_color_set(&me->id, actlayer);
+            BKE_id_attributes_active_color_set(&me->id, actlayer->name);
           }
         }
       }
@@ -3258,10 +3365,10 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
         if (actlayer) {
           if (step) {
-            BKE_id_attributes_render_color_set(&me->id, actlayer);
+            BKE_id_attributes_default_color_set(&me->id, actlayer->name);
           }
           else {
-            BKE_id_attributes_active_color_set(&me->id, actlayer);
+            BKE_id_attributes_active_color_set(&me->id, actlayer->name);
           }
         }
       }
@@ -3668,6 +3775,128 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         BLI_assert(curve_socket != nullptr);
         STRNCPY(curve_socket->name, "Curves");
         STRNCPY(curve_socket->identifier, "Curves");
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 1)) {
+    /* Reset edge visibility flag, since the base is meant to be "true" for original meshes. */
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      for (MEdge &edge : mesh->edges_for_write()) {
+        edge.flag |= ME_EDGEDRAW;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 2)) {
+    LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+      MovieTracking *tracking = &clip->tracking;
+
+      const float frame_center_x = float(clip->lastsize[0]) / 2;
+      const float frame_center_y = float(clip->lastsize[1]) / 2;
+
+      tracking->camera.principal_point[0] = (tracking->camera.principal_legacy[0] -
+                                             frame_center_x) /
+                                            frame_center_x;
+      tracking->camera.principal_point[1] = (tracking->camera.principal_legacy[1] -
+                                             frame_center_y) /
+                                            frame_center_y;
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 4)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_socket_name(ntree, GEO_NODE_COLLECTION_INFO, "Geometry", "Instances");
+      }
+    }
+
+    /* UVSeam fixing distance. */
+    if (!DNA_struct_elem_find(fd->filesdna, "Image", "short", "seam_margin")) {
+      LISTBASE_FOREACH (Image *, image, &bmain->images) {
+        image->seam_margin = 8;
+      }
+    }
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_geometry_nodes_primitive_uv_maps(*ntree);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 6)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_VIEW3D) {
+            View3D *v3d = (View3D *)sl;
+            v3d->overlay.flag |= int(V3D_OVERLAY_SCULPT_SHOW_MASK |
+                                     V3D_OVERLAY_SCULPT_SHOW_FACE_SETS);
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 7)) {
+    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+      light->radius = light->area_size;
+    }
+    /* Grease Pencil Build modifier:
+     * Set default value for new natural draw-speed factor and maximum gap. */
+    if (!DNA_struct_elem_find(fd->filesdna, "BuildGpencilModifierData", "float", "speed_fac") ||
+        !DNA_struct_elem_find(fd->filesdna, "BuildGpencilModifierData", "float", "speed_maxgap")) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
+          if (md->type == eGpencilModifierType_Build) {
+            BuildGpencilModifierData *mmd = (BuildGpencilModifierData *)md;
+            mmd->speed_fac = 1.2f;
+            mmd->speed_maxgap = 0.5f;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 8)) {
+    const int CV_SCULPT_SELECTION_ENABLED = (1 << 1);
+    LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
+      curves_id->flag &= ~CV_SCULPT_SELECTION_ENABLED;
+    }
+    LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
+      BKE_id_attribute_rename(&curves_id->id, ".selection_point_float", ".selection", nullptr);
+      BKE_id_attribute_rename(&curves_id->id, ".selection_curve_float", ".selection", nullptr);
+    }
+
+    /* Toggle the Invert Vertex Group flag on Armature modifiers in some cases. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      bool after_armature = false;
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Armature) {
+          ArmatureModifierData *amd = (ArmatureModifierData *)md;
+          if (amd->multi) {
+            /* Toggle the invert vertex group flag on operational Multi Modifier entries. */
+            if (after_armature && amd->defgrp_name[0]) {
+              amd->deformflag ^= ARM_DEF_INVERT_VGROUP;
+            }
+          }
+          else {
+            /* Disabled multi modifiers don't reset propagation, but non-multi ones do. */
+            after_armature = false;
+          }
+          /* Multi Modifier is only valid and operational after an active Armature modifier. */
+          if (md->mode & (eModifierMode_Realtime | eModifierMode_Render)) {
+            after_armature = true;
+          }
+        }
+        else if (ELEM(md->type, eModifierType_Lattice, eModifierType_MeshDeform)) {
+          /* These modifiers will also allow a following Multi Modifier to work. */
+          after_armature = (md->mode & (eModifierMode_Realtime | eModifierMode_Render)) != 0;
+        }
+        else {
+          after_armature = false;
+        }
       }
     }
   }

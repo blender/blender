@@ -125,4 +125,13 @@ TEST(math_vector, DivideCeil)
   EXPECT_FLOAT_EQ(result.z, 0);
 }
 
+TEST(math_vector, Sign)
+{
+  const int3 a(-21, 16, 0);
+  const int3 result = math::sign(a);
+  EXPECT_FLOAT_EQ(result.x, -1);
+  EXPECT_FLOAT_EQ(result.y, 1);
+  EXPECT_FLOAT_EQ(result.z, 0);
+}
+
 }  // namespace blender::tests

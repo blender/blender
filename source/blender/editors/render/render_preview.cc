@@ -57,6 +57,7 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_pose_backup.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
@@ -81,7 +82,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_armature.h"
 #include "ED_datafiles.h"
 #include "ED_render.h"
 #include "ED_screen.h"
@@ -955,7 +955,7 @@ static struct PoseBackup *action_preview_render_prepare(IconPreview *preview)
 
   /* Create a backup of the current pose. */
   struct bAction *action = (struct bAction *)preview->id;
-  struct PoseBackup *pose_backup = ED_pose_backup_create_all_bones(object, action);
+  struct PoseBackup *pose_backup = BKE_pose_backup_create_all_bones(object, action);
 
   /* Apply the Action as pose, so that it can be rendered. This assumes the Action represents a
    * single pose, and that thus the evaluation time doesn't matter. */
@@ -974,8 +974,8 @@ static void action_preview_render_cleanup(IconPreview *preview, struct PoseBacku
   if (pose_backup == nullptr) {
     return;
   }
-  ED_pose_backup_restore(pose_backup);
-  ED_pose_backup_free(pose_backup);
+  BKE_pose_backup_restore(pose_backup);
+  BKE_pose_backup_free(pose_backup);
 
   DEG_id_tag_update(&preview->active_object->id, ID_RECALC_GEOMETRY);
 }
@@ -1602,6 +1602,14 @@ static void icon_preview_startjob_all_sizes(void *customdata,
     const bool use_solid_render_mode = (ip->id != nullptr) && ELEM(GS(ip->id->name), ID_OB, ID_AC);
     if (!use_solid_render_mode && preview_method_is_render(pr_method) &&
         !check_engine_supports_preview(ip->scene)) {
+      continue;
+    }
+
+    /* Workaround: Skip preview renders for linked IDs. Preview rendering can be slow and even
+     * freeze the UI (e.g. on Eevee shader compilation). And since the result will never be stored
+     * in a file, it's done every time the file is reloaded, so this becomes a frequent annoyance.
+     */
+    if (!use_solid_render_mode && ip->id && ID_IS_LINKED(ip->id)) {
       continue;
     }
 

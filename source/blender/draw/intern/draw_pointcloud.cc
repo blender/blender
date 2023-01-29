@@ -3,18 +3,12 @@
 
 /** \file
  * \ingroup draw
- *
- * \brief Contains procedural GPU hair drawing methods.
  */
 
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_customdata_types.h"
 #include "DNA_pointcloud_types.h"
-
-#include "BKE_curves.hh"
-#include "BKE_geometry_set.hh"
 
 #include "GPU_batch.h"
 #include "GPU_capabilities.h"

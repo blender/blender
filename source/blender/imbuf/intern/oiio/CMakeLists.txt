@@ -28,8 +28,13 @@ set(LIB
 if(WITH_OPENIMAGEIO)
   list(APPEND INC_SYS
     ${OPENIMAGEIO_INCLUDE_DIRS}
-    ${BOOST_INCLUDE_DIR}
   )
+  if(WITH_BOOST)
+    list(APPEND INC_SYS
+      ${BOOST_INCLUDE_DIR}
+    )
+  endif()
+
   list(APPEND LIB
     ${OPENIMAGEIO_LIBRARIES}
     ${PUGIXML_LIBRARIES}
@@ -43,10 +48,11 @@ if(WITH_OPENIMAGEIO)
     )
   endif()
 
-  list(APPEND LIB
-    ${BOOST_LIBRARIES}
-  )
-
+  if(WITH_BOOST)
+    list(APPEND LIB
+      ${BOOST_LIBRARIES}
+    )
+  endif()
   add_definitions(-DWITH_OPENIMAGEIO)
 endif()
 

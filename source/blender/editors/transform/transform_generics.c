@@ -440,6 +440,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   {
     short orient_types[3];
+    short orient_type_apply = O_DEFAULT;
     float custom_matrix[3][3];
 
     int orient_type_scene = V3D_ORIENT_GLOBAL;
@@ -502,14 +503,23 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         t->is_orient_default_overwrite = true;
       }
     }
-    else if (t->con.mode & CON_APPLY) {
-      orient_type_set = orient_type_scene;
-    }
-    else if (orient_type_scene == V3D_ORIENT_GLOBAL) {
-      orient_type_set = V3D_ORIENT_LOCAL;
+
+    if (orient_type_set == -1) {
+      if (orient_type_scene == V3D_ORIENT_GLOBAL) {
+        orient_type_set = V3D_ORIENT_LOCAL;
+      }
+      else {
+        orient_type_set = V3D_ORIENT_GLOBAL;
+      }
+
+      if (t->con.mode & CON_APPLY) {
+        orient_type_apply = O_SCENE;
+      }
     }
     else {
-      orient_type_set = V3D_ORIENT_GLOBAL;
+      if (t->con.mode & CON_APPLY) {
+        orient_type_apply = O_SET;
+      }
     }
 
     BLI_assert(!ELEM(-1, orient_type_default, orient_type_set));
@@ -546,7 +556,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       }
     }
 
-    transform_orientations_current_set(t, (t->con.mode & CON_APPLY) ? 2 : 0);
+    transform_orientations_current_set(t, orient_type_apply);
   }
 
   if (op && ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) &&
@@ -578,7 +588,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->flag |= T_NO_MIRROR;
   }
 
-  /* setting PET flag only if property exist in operator. Otherwise, assume it's not supported */
+  /* Setting proportional editing flag only if property exist in operator. Otherwise, assume it's
+   * not supported. */
   if (op && (prop = RNA_struct_find_property(op->ptr, "use_proportional_edit"))) {
     if (RNA_property_is_set(op->ptr, prop)) {
       if (RNA_property_boolean_get(op->ptr, prop)) {
@@ -669,7 +680,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
 
-  /* Mirror is not supported with PET, turn it off. */
+  /* Mirror is not supported with proportional editing, turn it off. */
 #if 0
   if (t->flag & T_PROP_EDIT) {
     t->flag &= ~T_MIRROR;
@@ -810,8 +821,14 @@ void applyTransObjects(TransInfo *t)
 
 static void transdata_restore_basic(TransDataBasic *td_basic)
 {
-  /* TransData for crease has no loc */
-  if (td_basic->loc) {
+  if (td_basic->val) {
+    *td_basic->val = td_basic->ival;
+  }
+
+  /* TODO(mano-wii): Only use 3D or larger vectors in `td->loc`.
+   * If `loc` and `val` point to the same address, it may indicate that `loc` is not 3D which is
+   * not safe for `copy_v3_v3`. */
+  if (td_basic->loc && td_basic->val != td_basic->loc) {
     copy_v3_v3(td_basic->loc, td_basic->iloc);
   }
 }
@@ -819,10 +836,6 @@ static void transdata_restore_basic(TransDataBasic *td_basic)
 static void restoreElement(TransData *td)
 {
   transdata_restore_basic((TransDataBasic *)td);
-
-  if (td->val && td->val != td->loc) {
-    *td->val = td->ival;
-  }
 
   if (td->ext && (td->flag & TD_NO_EXT) == 0) {
     if (td->ext->rot) {

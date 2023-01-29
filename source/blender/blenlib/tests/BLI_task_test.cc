@@ -196,11 +196,9 @@ TEST(task, MempoolIterTLS)
   int i;
 
   /* Add numbers negative `1..ITEMS_NUM` inclusive. */
-  int items_num = 0;
   for (i = 0; i < ITEMS_NUM; i++) {
     data[i] = (int *)BLI_mempool_alloc(mempool);
     *data[i] = -(i + 1);
-    items_num++;
   }
 
   TaskParallelSettings settings;

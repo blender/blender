@@ -179,7 +179,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
   immUniform4f("color", 0.0f, 0.0f, 0.0f, alpha);
   immUniform4f("color2", 1.0f, 1.0f, 1.0f, alpha);
   immUniform1f("dash_width", 6.0f);
-  immUniform1f("dash_factor", 0.5f);
+  immUniform1f("udash_factor", 0.5f);
 
   immBegin(GPU_PRIM_LINES, 2);
 

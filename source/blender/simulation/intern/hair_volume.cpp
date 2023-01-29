@@ -1215,8 +1215,8 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
   colliders = BKE_collider_cache_create(depsgraph, NULL, NULL);
   if (colliders && collfac > 0.0f) {
     for (col = colliders->first; col; col = col->next) {
-      MVert *loc0 = col->collmd->x;
-      MVert *loc1 = col->collmd->xnew;
+      float3 *loc0 = col->collmd->x;
+      float3 *loc1 = col->collmd->xnew;
       float vel[3];
       float weights[8];
       int di, dj, dk;

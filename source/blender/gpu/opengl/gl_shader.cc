@@ -1051,6 +1051,10 @@ bool GLShader::transform_feedback_enable(GPUVertBuf *buf_)
 
   GLVertBuf *buf = static_cast<GLVertBuf *>(unwrap(buf_));
 
+  if (buf->vbo_id_ == 0) {
+    buf->bind();
+  }
+
   BLI_assert(buf->vbo_id_ != 0);
 
   glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf->vbo_id_);

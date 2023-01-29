@@ -51,6 +51,7 @@
 #include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
+#include "BLI_map.hh"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
@@ -229,119 +230,19 @@ static const char *library_parent_filepath(Library *lib)
 /** \name OldNewMap API
  * \{ */
 
-struct OldNew {
-  const void *oldp;
+struct NewAddress {
   void *newp;
   /* `nr` is "user count" for data, and ID code for libdata. */
   int nr;
 };
 
 struct OldNewMap {
-  /* Array that stores the actual entries. */
-  OldNew *entries;
-  int nentries;
-  /* Hash-map that stores indices into the `entries` array. */
-  int32_t *map;
-
-  int capacity_exp;
+  blender::Map<const void *, NewAddress> map;
 };
-
-#define ENTRIES_CAPACITY(onm) (1ll << (onm)->capacity_exp)
-#define MAP_CAPACITY(onm) (1ll << ((onm)->capacity_exp + 1))
-#define SLOT_MASK(onm) (MAP_CAPACITY(onm) - 1)
-#define DEFAULT_SIZE_EXP 6
-#define PERTURB_SHIFT 5
-
-/* based on the probing algorithm used in Python dicts. */
-#define ITER_SLOTS(onm, KEY, SLOT_NAME, INDEX_NAME) \
-  uint32_t hash = BLI_ghashutil_ptrhash(KEY); \
-  uint32_t mask = SLOT_MASK(onm); \
-  uint perturb = hash; \
-  int SLOT_NAME = mask & hash; \
-  int INDEX_NAME = onm->map[SLOT_NAME]; \
-  for (;; SLOT_NAME = mask & ((5 * SLOT_NAME) + 1 + perturb), \
-          perturb >>= PERTURB_SHIFT, \
-          INDEX_NAME = onm->map[SLOT_NAME])
-
-static void oldnewmap_insert_index_in_map(OldNewMap *onm, const void *ptr, int index)
-{
-  ITER_SLOTS (onm, ptr, slot, stored_index) {
-    if (stored_index == -1) {
-      onm->map[slot] = index;
-      break;
-    }
-  }
-}
-
-static void oldnewmap_insert_or_replace(OldNewMap *onm, OldNew entry)
-{
-  ITER_SLOTS (onm, entry.oldp, slot, index) {
-    if (index == -1) {
-      onm->entries[onm->nentries] = entry;
-      onm->map[slot] = onm->nentries;
-      onm->nentries++;
-      break;
-    }
-    if (onm->entries[index].oldp == entry.oldp) {
-      onm->entries[index] = entry;
-      break;
-    }
-  }
-}
-
-static OldNew *oldnewmap_lookup_entry(const OldNewMap *onm, const void *addr)
-{
-  ITER_SLOTS (onm, addr, slot, index) {
-    if (index >= 0) {
-      OldNew *entry = &onm->entries[index];
-      if (entry->oldp == addr) {
-        return entry;
-      }
-    }
-    else {
-      return nullptr;
-    }
-  }
-}
-
-static void oldnewmap_clear_map(OldNewMap *onm)
-{
-  memset(onm->map, 0xFF, MAP_CAPACITY(onm) * sizeof(*onm->map));
-}
-
-static void oldnewmap_increase_size(OldNewMap *onm)
-{
-  onm->capacity_exp++;
-  onm->entries = static_cast<OldNew *>(
-      MEM_reallocN(onm->entries, sizeof(*onm->entries) * ENTRIES_CAPACITY(onm)));
-  onm->map = static_cast<int32_t *>(MEM_reallocN(onm->map, sizeof(*onm->map) * MAP_CAPACITY(onm)));
-  oldnewmap_clear_map(onm);
-  for (int i = 0; i < onm->nentries; i++) {
-    oldnewmap_insert_index_in_map(onm, onm->entries[i].oldp, i);
-  }
-}
-
-/* Public OldNewMap API */
-
-static void oldnewmap_init_data(OldNewMap *onm, const int capacity_exp)
-{
-  memset(onm, 0x0, sizeof(*onm));
-
-  onm->capacity_exp = capacity_exp;
-  onm->entries = static_cast<OldNew *>(
-      MEM_malloc_arrayN(ENTRIES_CAPACITY(onm), sizeof(*onm->entries), "OldNewMap.entries"));
-  onm->map = static_cast<int32_t *>(
-      MEM_malloc_arrayN(MAP_CAPACITY(onm), sizeof(*onm->map), "OldNewMap.map"));
-  oldnewmap_clear_map(onm);
-}
 
 static OldNewMap *oldnewmap_new()
 {
-  OldNewMap *onm = static_cast<OldNewMap *>(MEM_mallocN(sizeof(*onm), "OldNewMap"));
-
-  oldnewmap_init_data(onm, DEFAULT_SIZE_EXP);
-
-  return onm;
+  return MEM_new<OldNewMap>(__func__);
 }
 
 static void oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr, int nr)
@@ -350,15 +251,7 @@ static void oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr,
     return;
   }
 
-  if (UNLIKELY(onm->nentries == ENTRIES_CAPACITY(onm))) {
-    oldnewmap_increase_size(onm);
-  }
-
-  OldNew entry;
-  entry.oldp = oldaddr;
-  entry.newp = newaddr;
-  entry.nr = nr;
-  oldnewmap_insert_or_replace(onm, entry);
+  onm->map.add_overwrite(oldaddr, NewAddress{newaddr, nr});
 }
 
 static void oldnewmap_lib_insert(FileData *fd, const void *oldaddr, ID *newaddr, int nr)
@@ -373,7 +266,7 @@ void blo_do_versions_oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void 
 
 static void *oldnewmap_lookup_and_inc(OldNewMap *onm, const void *addr, bool increase_users)
 {
-  OldNew *entry = oldnewmap_lookup_entry(onm, addr);
+  NewAddress *entry = onm->map.lookup_ptr(addr);
   if (entry == nullptr) {
     return nullptr;
   }
@@ -383,7 +276,7 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, const void *addr, bool inc
   return entry->newp;
 }
 
-/* for libdata, OldNew.nr has ID code, no increment */
+/* for libdata, NewAddress.nr has ID code, no increment */
 static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const void *lib)
 {
   if (addr == nullptr) {
@@ -403,33 +296,18 @@ static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const void *l
 static void oldnewmap_clear(OldNewMap *onm)
 {
   /* Free unused data. */
-  for (int i = 0; i < onm->nentries; i++) {
-    OldNew *entry = &onm->entries[i];
-    if (entry->nr == 0) {
-      MEM_freeN(entry->newp);
-      entry->newp = nullptr;
+  for (NewAddress &new_addr : onm->map.values()) {
+    if (new_addr.nr == 0) {
+      MEM_freeN(new_addr.newp);
     }
   }
-
-  MEM_freeN(onm->entries);
-  MEM_freeN(onm->map);
-
-  oldnewmap_init_data(onm, DEFAULT_SIZE_EXP);
+  onm->map.clear_and_shrink();
 }
 
 static void oldnewmap_free(OldNewMap *onm)
 {
-  MEM_freeN(onm->entries);
-  MEM_freeN(onm->map);
-  MEM_freeN(onm);
+  MEM_delete(onm);
 }
-
-#undef ENTRIES_CAPACITY
-#undef MAP_CAPACITY
-#undef SLOT_MASK
-#undef DEFAULT_SIZE_EXP
-#undef PERTURB_SHIFT
-#undef ITER_SLOTS
 
 /** \} */
 
@@ -846,13 +724,15 @@ static BHeadN *get_bhead(FileData *fd)
           new_bhead->has_data = false;
           new_bhead->is_memchunk_identical = false;
           new_bhead->bhead = bhead;
-          off64_t seek_new = fd->file->seek(fd->file, bhead.len, SEEK_CUR);
-          if (seek_new == -1) {
+          const off64_t seek_new = fd->file->seek(fd->file, bhead.len, SEEK_CUR);
+          if (UNLIKELY(seek_new == -1)) {
             fd->is_eof = true;
             MEM_freeN(new_bhead);
             new_bhead = nullptr;
           }
-          BLI_assert(fd->file->offset == seek_new);
+          else {
+            BLI_assert(fd->file->offset == seek_new);
+          }
         }
         else {
           fd->is_eof = true;
@@ -1555,13 +1435,11 @@ static void change_link_placeholder_to_real_ID_pointer_fd(FileData *fd,
                                                           const void *old,
                                                           void *newp)
 {
-  for (int i = 0; i < fd->libmap->nentries; i++) {
-    OldNew *entry = &fd->libmap->entries[i];
-
-    if (old == entry->newp && entry->nr == ID_LINK_PLACEHOLDER) {
-      entry->newp = newp;
+  for (NewAddress &entry : fd->libmap->map.values()) {
+    if (old == entry.newp && entry.nr == ID_LINK_PLACEHOLDER) {
+      entry.newp = newp;
       if (newp) {
-        entry->nr = GS(((ID *)newp)->name);
+        entry.nr = GS(((ID *)newp)->name);
       }
     }
   }
@@ -1640,12 +1518,10 @@ void blo_make_packed_pointer_map(FileData *fd, Main *oldmain)
 
 void blo_end_packed_pointer_map(FileData *fd, Main *oldmain)
 {
-  OldNew *entry = fd->packedmap->entries;
-
   /* used entries were restored, so we put them to zero */
-  for (int i = 0; i < fd->packedmap->nentries; i++, entry++) {
-    if (entry->nr > 0) {
-      entry->newp = nullptr;
+  for (NewAddress &entry : fd->packedmap->map.values()) {
+    if (entry.nr > 0) {
+      entry.newp = nullptr;
     }
   }
 
@@ -1730,7 +1606,7 @@ static void blo_cache_storage_entry_register(
 
 /** Restore a cache data entry from old ID into new one, when reading some undo memfile. */
 static void blo_cache_storage_entry_restore_in_new(
-    ID * /*id*/, const IDCacheKey *key, void **cache_p, uint flags, void *cache_storage_v)
+    ID *id, const IDCacheKey *key, void **cache_p, uint flags, void *cache_storage_v)
 {
   BLOCacheStorage *cache_storage = static_cast<BLOCacheStorage *>(cache_storage_v);
 
@@ -1741,6 +1617,15 @@ static void blo_cache_storage_entry_restore_in_new(
     if ((flags & IDTYPE_CACHE_CB_FLAGS_PERSISTENT) == 0) {
       *cache_p = nullptr;
     }
+    return;
+  }
+
+  /* Assume that when ID source is tagged as changed, its caches need to be cleared.
+   * NOTE: This is mainly a work-around for some IDs, like Image, which use a non-depsgraph-handled
+   * process for part of their updates.
+   */
+  if (id->recalc & ID_RECALC_SOURCE) {
+    *cache_p = nullptr;
     return;
   }
 
@@ -2146,7 +2031,16 @@ static void direct_link_id_common(
     /* When actually reading a file, we do want to reset/re-generate session UUIDS.
      * In undo case, we want to re-use existing ones. */
     id->session_uuid = MAIN_ID_SESSION_UUID_UNSET;
+
+    /* Runtime IDs should never be written in .blend files (except memfiles from undo). */
+    BLI_assert((id->tag & LIB_TAG_RUNTIME) == 0);
   }
+
+  /* No-main and other types of special IDs should never be written in .blend files. */
+  /* NOTE: `NO_MAIN` is commented for now as some code paths may still generate embedded IDs with
+   * this tag, see T103389. Related to T88555. */
+  BLI_assert(
+      (id->tag & (/*LIB_TAG_NO_MAIN |*/ LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
 
   if ((tag & LIB_TAG_TEMP_MAIN) == 0) {
     BKE_lib_libblock_session_uuid_ensure(id);
@@ -2160,7 +2054,12 @@ static void direct_link_id_common(
   id->py_instance = nullptr;
 
   /* Initialize with provided tag. */
-  id->tag = tag;
+  if (BLO_read_data_is_undo(reader)) {
+    id->tag = tag | (id->tag & LIB_TAG_KEEP_ON_UNDO);
+  }
+  else {
+    id->tag = tag;
+  }
 
   if (ID_IS_LINKED(id)) {
     id->library_weak_reference = nullptr;
@@ -2802,8 +2701,6 @@ void blo_lib_link_restore(Main *oldmain,
      * all workspaces), that one only focuses one current active screen, takes care of
      * potential local view, and needs window's scene pointer to be final... */
     lib_link_window_scene_data_restore(win, win->scene, cur_view_layer);
-
-    BLI_assert(win->screen == nullptr);
   }
 
   lib_link_wm_xr_data_restore(id_map, &curwm->xr);
@@ -3111,7 +3008,7 @@ static BHead *read_data_into_datamap(FileData *fd, BHead *bhead, const char *all
       SDNA_Struct *sp = fd->filesdna->structs[bhead->SDNAnr];
       allocname = fd->filesdna->types[sp->type];
       size_t allocname_size = strlen(allocname) + 1;
-      char *allocname_buf = malloc(allocname_size);
+      char *allocname_buf = static_cast<char *>(malloc(allocname_size));
       memcpy(allocname_buf, allocname, allocname_size);
       allocname = allocname_buf;
     }
@@ -3231,7 +3128,7 @@ static void read_libblock_undo_restore_identical(
   BLI_assert(id_old != nullptr);
 
   /* Some tags need to be preserved here. */
-  id_old->tag = tag | (id_old->tag & LIB_TAG_EXTRAUSER);
+  id_old->tag = tag | (id_old->tag & LIB_TAG_KEEP_ON_UNDO);
   id_old->lib = main->curlib;
   id_old->us = ID_FAKE_USERS(id_old);
   /* Do not reset id->icon_id here, memory allocated for it remains valid. */
@@ -3296,7 +3193,7 @@ static bool read_libblock_undo_restore(
 {
   /* Get pointer to memory of new ID that we will be reading. */
   const ID *id = static_cast<const ID *>(peek_struct_undo(fd, bhead));
-  const short idcode = GS(id->name);
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
 
   if (bhead->code == ID_LI) {
     /* Restore library datablock. */
@@ -3310,7 +3207,7 @@ static bool read_libblock_undo_restore(
       return true;
     }
   }
-  else if (ELEM(idcode, ID_WM, ID_SCR, ID_WS)) {
+  else if (id_type->flags & IDTYPE_FLAGS_NO_MEMFILE_UNDO) {
     /* Skip reading any UI datablocks, existing ones are kept. We don't
      * support pointers from other datablocks to UI datablocks so those
      * we also don't put UI datablocks in fd->libmap. */
@@ -3390,11 +3287,23 @@ static BHead *read_libblock(FileData *fd,
    * address and inherit recalc flags for the dependency graph. */
   ID *id_old = nullptr;
   if (fd->flags & FD_FLAGS_IS_MEMFILE) {
+    /* FIXME `read_libblock_undo_restore` currently often skips setting `id_old` even if there
+     * would be a valid matching old ID (libraries, linked data, and `IDTYPE_FLAGS_NO_MEMFILE_UNDO`
+     * id types, at least).
+     *
+     * It is unclear whether this is currently an issue:
+     *   * `r_id` is currently only requested by linking code (both independent one, and as part of
+     *     loading .blend file through `read_library_linked_ids`).
+     *   * `main->id_map` seems to always be `nullptr` in undo case at this point.
+     *
+     * So undo case does not seem to be affected by this. A future cleanup should try to remove
+     * most of this related code in the future, and instead assert that both `r_id` and
+     * `main->id_map` are `nullptr`. */
     if (read_libblock_undo_restore(fd, main, bhead, tag, &id_old)) {
       if (r_id) {
         *r_id = id_old;
       }
-      if (main->id_map != nullptr) {
+      if (main->id_map != nullptr && id_old != nullptr) {
         BKE_main_idmap_insert_id(main->id_map, id_old);
       }
 
@@ -3872,6 +3781,20 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 /** \name Read File (Internal)
  * \{ */
 
+/** Contains sanity/debug checks to be performed at the very end of the reading process (i.e. after
+ * data, liblink, linked data, etc. has been done). */
+static void blo_read_file_checks(Main *bmain)
+{
+#ifndef NDEBUG
+  LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+      /* This pointer is deprecated and should always be nullptr. */
+      BLI_assert(win->screen == nullptr);
+    }
+  }
+#endif
+}
+
 BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 {
   BHead *bhead = blo_bhead_first(fd);
@@ -4033,6 +3956,11 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       BKE_lib_override_library_main_validate(bfd->main, fd->reports->reports);
       BKE_lib_override_library_main_update(bfd->main);
 
+      /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
+       * `BKE_lib_override_library_main_update`, see T103062.
+       * Proper fix involves first addressing T90610. */
+      BKE_main_collections_parent_relations_rebuild(bfd->main);
+
       fd->reports->duration.lib_overrides = PIL_check_seconds_timer() -
                                             fd->reports->duration.lib_overrides;
     }
@@ -4048,6 +3976,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   fd->mainlist = nullptr; /* Safety, this is local variable, shall not be used afterward. */
 
   BLI_assert(bfd->main->id_map == nullptr);
+
+  /* Sanity checks. */
+  blo_read_file_checks(bfd->main);
 
   return bfd;
 }
@@ -4655,6 +4586,11 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
 
   BKE_main_id_tag_all(mainvar, LIB_TAG_NEW, false);
 
+  /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
+   * `BKE_lib_override_library_main_update`, see T103062.
+   * Proper fix involves first addressing T90610. */
+  BKE_main_collections_parent_relations_rebuild(mainvar);
+
   /* Make all relative paths, relative to the open blend file. */
   fix_relpaths_library(BKE_main_blendfile_path(mainvar), mainvar);
 
@@ -4663,6 +4599,9 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
     blo_filedata_free(*fd);
     *fd = nullptr;
   }
+
+  /* Sanity checks. */
+  blo_read_file_checks(mainvar);
 }
 
 void BLO_library_link_end(Main *mainl, BlendHandle **bh, const LibraryLink_Params *params)
@@ -5065,6 +5004,11 @@ void BLO_read_int32_array(BlendDataReader *reader, int array_size, int32_t **ptr
   if (BLO_read_requires_endian_switch(reader)) {
     BLI_endian_switch_int32_array(*ptr_p, array_size);
   }
+}
+
+void BLO_read_int8_array(BlendDataReader *reader, int /*array_size*/, int8_t **ptr_p)
+{
+  BLO_read_data_address(reader, ptr_p);
 }
 
 void BLO_read_uint32_array(BlendDataReader *reader, int array_size, uint32_t **ptr_p)

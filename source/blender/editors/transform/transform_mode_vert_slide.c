@@ -332,18 +332,6 @@ static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEven
             return TREDRAW_HARD;
           }
           break;
-#if 0
-        case EVT_MODAL_MAP:
-          switch (event->val) {
-            case TFM_MODAL_EDGESLIDE_DOWN:
-              sld->curr_sv_index = ((sld->curr_sv_index - 1) + sld->totsv) % sld->totsv;
-              break;
-            case TFM_MODAL_EDGESLIDE_UP:
-              sld->curr_sv_index = (sld->curr_sv_index + 1) % sld->totsv;
-              break;
-          }
-          break;
-#endif
         case MOUSEMOVE: {
           /* don't recalculate the best edge */
           const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
@@ -461,7 +449,7 @@ void drawVertSlide(TransInfo *t)
         immUniform1i("colors_len", 0); /* "simple" mode */
         immUniformColor4f(1.0f, 1.0f, 1.0f, 1.0f);
         immUniform1f("dash_width", 6.0f);
-        immUniform1f("dash_factor", 0.5f);
+        immUniform1f("udash_factor", 0.5f);
 
         immBegin(GPU_PRIM_LINES, 2);
         immVertex3fv(shdr_pos, curr_sv->co_orig_3d);
@@ -544,7 +532,7 @@ static void vert_slide_snap_apply(TransInfo *t, float *value)
   }
 
   getSnapPoint(t, dvec);
-  sub_v3_v3(dvec, t->tsnap.snapTarget);
+  sub_v3_v3(dvec, t->tsnap.snap_source);
   if (t->tsnap.snapElem & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE_RAYCAST)) {
     float co_dir[3];
     sub_v3_v3v3(co_dir, co_curr_3d, co_orig_3d);
@@ -574,7 +562,7 @@ static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
 
   final = t->values[0] + t->values_modal_offset[0];
 
-  applySnappingAsGroup(t, &final);
+  transform_snap_mixed_apply(t, &final);
   if (!validSnap(t)) {
     transform_snap_increment(t, &final);
   }
@@ -622,8 +610,9 @@ void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
   t->mode = TFM_VERT_SLIDE;
   t->transform = applyVertSlide;
   t->handleEvent = handleEventVertSlide;
-  t->tsnap.applySnap = vert_slide_snap_apply;
-  t->tsnap.distance = transform_snap_distance_len_squared_fn;
+  t->transform_matrix = NULL;
+  t->tsnap.snap_mode_apply_fn = vert_slide_snap_apply;
+  t->tsnap.snap_mode_distance_fn = transform_snap_distance_len_squared_fn;
 
   {
     VertSlideParams *slp = MEM_callocN(sizeof(*slp), __func__);

@@ -11,6 +11,10 @@
 #include "DNA_listBase.h"
 #include "RNA_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegionType;
 struct ID;
 struct SpaceProperties;
@@ -97,3 +101,7 @@ void BUTTONS_OT_file_browse(struct wmOperatorType *ot);
  */
 void BUTTONS_OT_directory_browse(struct wmOperatorType *ot);
 void BUTTONS_OT_context_menu(struct wmOperatorType *ot);
+
+#ifdef __cplusplus
+}
+#endif

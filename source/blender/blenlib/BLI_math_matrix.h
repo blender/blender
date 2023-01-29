@@ -83,16 +83,12 @@ void mul_m3_m4m4(float R[3][3], const float A[4][4], const float B[4][4]);
 
 /**
  * Special matrix multiplies
- * - uniq: `R <-- AB`, R is neither A nor B
  * - pre:  `R <-- AR`
  * - post: `R <-- RB`.
  */
-void mul_m3_m3m3_uniq(float R[3][3], const float A[3][3], const float B[3][3]);
 void mul_m3_m3_pre(float R[3][3], const float A[3][3]);
 void mul_m3_m3_post(float R[3][3], const float B[3][3]);
-void mul_m4_m4m4_uniq(float R[4][4], const float A[4][4], const float B[4][4]);
-void mul_m4_m4m4_db_uniq(double R[4][4], const double A[4][4], const double B[4][4]);
-void mul_m4db_m4db_m4fl_uniq(double R[4][4], const double A[4][4], const float B[4][4]);
+void mul_m4db_m4db_m4fl(double R[4][4], const double A[4][4], const float B[4][4]);
 void mul_m4_m4_pre(float R[4][4], const float A[4][4]);
 void mul_m4_m4_post(float R[4][4], const float B[4][4]);
 

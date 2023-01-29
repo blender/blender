@@ -9,9 +9,9 @@ if(UNIX AND NOT APPLE)
   add_definitions(-D_GLIBCXX_PERMIT_BACKWARD_HASH)
 endif()
 if(WIN32)
-  add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN)
+  add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN -DBOOST_DEBUG_PYTHON)
 endif()
-add_definitions(-DPXR_STATIC)
+add_definitions(-DBOOST_ALL_NO_LIB)
 
 # USD headers use deprecated TBB headers, silence warning.
 add_definitions(-DTBB_SUPPRESS_DEPRECATED_MESSAGES=1)
@@ -56,9 +56,11 @@ set(INC_SYS
   ${USD_INCLUDE_DIRS}
   ${BOOST_INCLUDE_DIR}
   ${TBB_INCLUDE_DIR}
+  ${PYTHON_INCLUDE_DIR}
 )
 
 set(SRC
+  intern/usd_asset_utils.cc
   intern/usd_capi_export.cc
   intern/usd_capi_import.cc
   intern/usd_common.cc
@@ -87,6 +89,7 @@ set(SRC
 
   usd.h
 
+  intern/usd_asset_utils.h
   intern/usd_common.h
   intern/usd_exporter_context.h
   intern/usd_hierarchy_iterator.h
@@ -122,6 +125,8 @@ set(LIB
 
 list(APPEND LIB
   ${BOOST_LIBRARIES}
+  ${BOOST_PYTHON_LIBRARIES}
+  ${PYTHON_LIBRARIES}
 )
 
 if(WITH_OPENVDB)
@@ -160,12 +165,17 @@ target_link_libraries(bf_usd INTERFACE ${TBB_LIBRARIES})
 if(WITH_GTESTS)
   set(TEST_SRC
     tests/usd_stage_creation_test.cc
+    tests/usd_export_test.cc
     tests/usd_tests_common.cc
     tests/usd_tests_common.h
+
+    intern/usd_writer_material.h
   )
   if(USD_IMAGING_HEADERS)
     list(APPEND TEST_SRC tests/usd_imaging_test.cc)
   endif()
+
+  include_directories(intern)
 
   set(TEST_INC
   )

@@ -49,6 +49,9 @@ typedef struct SubsurfRuntimeData {
   int stats_totloop;
 } SubsurfRuntimeData;
 
+SubdivSettings BKE_subsurf_modifier_settings_init(const struct SubsurfModifierData *smd,
+                                                  bool use_render_params);
+
 bool BKE_subsurf_modifier_runtime_init(struct SubsurfModifierData *smd, bool use_render_params);
 
 bool BKE_subsurf_modifier_use_custom_loop_normals(const struct SubsurfModifierData *smd,

@@ -6,16 +6,33 @@
  * \ingroup fn
  *
  * The signature of a multi-function contains the functions name and expected parameters. New
- * signatures should be build using the #MFSignatureBuilder class.
+ * signatures should be build using the #SignatureBuilder class.
  */
 
 #include "FN_multi_function_param_type.hh"
 
 #include "BLI_vector.hh"
 
-namespace blender::fn {
+namespace blender::fn::multi_function {
 
-struct MFSignature {
+enum class ParamFlag {
+  None = 0,
+  /**
+   * If set, the multi-function parameter can be accessed using
+   * #Params::uninitialized_single_output_if_required which can result in better performance
+   * because the output does not have to be computed when it is not needed.
+   */
+  SupportsUnusedOutput = 1 << 0,
+};
+ENUM_OPERATORS(ParamFlag, ParamFlag::SupportsUnusedOutput);
+
+struct Signature {
+  struct ParamInfo {
+    ParamType type;
+    const char *name;
+    ParamFlag flag = ParamFlag::None;
+  };
+
   /**
    * The name should be statically allocated so that it lives longer than this signature. This is
    * used instead of an #std::string because of the overhead when many functions are created.
@@ -24,39 +41,18 @@ struct MFSignature {
    * actually needed.
    */
   const char *function_name;
-  Vector<const char *> param_names;
-  Vector<MFParamType> param_types;
-  Vector<int> param_data_indices;
-  bool depends_on_context = false;
-
-  /**
-   * Number of elements of each of these types that has to be passed into the multi-function as an
-   * input or output.
-   */
-  int span_num = 0;
-  int virtual_array_num = 0;
-  int virtual_vector_array_num = 0;
-  int vector_array_num = 0;
-
-  int data_index(int param_index) const
-  {
-    return param_data_indices[param_index];
-  }
+  Vector<ParamInfo> params;
 };
 
-class MFSignatureBuilder {
+class SignatureBuilder {
  private:
-  MFSignature signature_;
+  Signature &signature_;
 
  public:
-  MFSignatureBuilder(const char *function_name)
+  SignatureBuilder(const char *function_name, Signature &signature_to_build)
+      : signature_(signature_to_build)
   {
     signature_.function_name = function_name;
-  }
-
-  MFSignature build() const
-  {
-    return std::move(signature_);
   }
 
   /* Input Parameter Types */
@@ -67,7 +63,7 @@ class MFSignatureBuilder {
   }
   void single_input(const char *name, const CPPType &type)
   {
-    this->input(name, MFDataType::ForSingle(type));
+    this->input(name, DataType::ForSingle(type));
   }
   template<typename T> void vector_input(const char *name)
   {
@@ -75,54 +71,36 @@ class MFSignatureBuilder {
   }
   void vector_input(const char *name, const CPPType &base_type)
   {
-    this->input(name, MFDataType::ForVector(base_type));
+    this->input(name, DataType::ForVector(base_type));
   }
-  void input(const char *name, MFDataType data_type)
+  void input(const char *name, DataType data_type)
   {
-    signature_.param_names.append(name);
-    signature_.param_types.append(MFParamType(MFParamType::Input, data_type));
-
-    switch (data_type.category()) {
-      case MFDataType::Single:
-        signature_.param_data_indices.append(signature_.virtual_array_num++);
-        break;
-      case MFDataType::Vector:
-        signature_.param_data_indices.append(signature_.virtual_vector_array_num++);
-        break;
-    }
+    signature_.params.append({ParamType(ParamType::Input, data_type), name});
   }
 
   /* Output Parameter Types */
 
-  template<typename T> void single_output(const char *name)
+  template<typename T> void single_output(const char *name, const ParamFlag flag = ParamFlag::None)
   {
-    this->single_output(name, CPPType::get<T>());
+    this->single_output(name, CPPType::get<T>(), flag);
   }
-  void single_output(const char *name, const CPPType &type)
+  void single_output(const char *name, const CPPType &type, const ParamFlag flag = ParamFlag::None)
   {
-    this->output(name, MFDataType::ForSingle(type));
+    this->output(name, DataType::ForSingle(type), flag);
   }
-  template<typename T> void vector_output(const char *name)
+  template<typename T> void vector_output(const char *name, const ParamFlag flag = ParamFlag::None)
   {
-    this->vector_output(name, CPPType::get<T>());
+    this->vector_output(name, CPPType::get<T>(), flag);
   }
-  void vector_output(const char *name, const CPPType &base_type)
+  void vector_output(const char *name,
+                     const CPPType &base_type,
+                     const ParamFlag flag = ParamFlag::None)
   {
-    this->output(name, MFDataType::ForVector(base_type));
+    this->output(name, DataType::ForVector(base_type), flag);
   }
-  void output(const char *name, MFDataType data_type)
+  void output(const char *name, DataType data_type, const ParamFlag flag = ParamFlag::None)
   {
-    signature_.param_names.append(name);
-    signature_.param_types.append(MFParamType(MFParamType::Output, data_type));
-
-    switch (data_type.category()) {
-      case MFDataType::Single:
-        signature_.param_data_indices.append(signature_.span_num++);
-        break;
-      case MFDataType::Vector:
-        signature_.param_data_indices.append(signature_.vector_array_num++);
-        break;
-    }
+    signature_.params.append({ParamType(ParamType::Output, data_type), name, flag});
   }
 
   /* Mutable Parameter Types */
@@ -133,7 +111,7 @@ class MFSignatureBuilder {
   }
   void single_mutable(const char *name, const CPPType &type)
   {
-    this->mutable_(name, MFDataType::ForSingle(type));
+    this->mutable_(name, DataType::ForSingle(type));
   }
   template<typename T> void vector_mutable(const char *name)
   {
@@ -141,72 +119,53 @@ class MFSignatureBuilder {
   }
   void vector_mutable(const char *name, const CPPType &base_type)
   {
-    this->mutable_(name, MFDataType::ForVector(base_type));
+    this->mutable_(name, DataType::ForVector(base_type));
   }
-  void mutable_(const char *name, MFDataType data_type)
+  void mutable_(const char *name, DataType data_type)
   {
-    signature_.param_names.append(name);
-    signature_.param_types.append(MFParamType(MFParamType::Mutable, data_type));
-
-    switch (data_type.category()) {
-      case MFDataType::Single:
-        signature_.param_data_indices.append(signature_.span_num++);
-        break;
-      case MFDataType::Vector:
-        signature_.param_data_indices.append(signature_.vector_array_num++);
-        break;
-    }
+    signature_.params.append({ParamType(ParamType::Mutable, data_type), name});
   }
 
-  void add(const char *name, const MFParamType &param_type)
+  void add(const char *name, const ParamType &param_type)
   {
     switch (param_type.interface_type()) {
-      case MFParamType::Input:
+      case ParamType::Input:
         this->input(name, param_type.data_type());
         break;
-      case MFParamType::Mutable:
+      case ParamType::Mutable:
         this->mutable_(name, param_type.data_type());
         break;
-      case MFParamType::Output:
+      case ParamType::Output:
         this->output(name, param_type.data_type());
         break;
     }
   }
 
-  template<MFParamCategory Category, typename T>
-  void add(MFParamTag<Category, T> /* tag */, const char *name)
+  template<ParamCategory Category, typename T>
+  void add(ParamTag<Category, T> /* tag */, const char *name)
   {
     switch (Category) {
-      case MFParamCategory::SingleInput:
+      case ParamCategory::SingleInput:
         this->single_input<T>(name);
         return;
-      case MFParamCategory::VectorInput:
+      case ParamCategory::VectorInput:
         this->vector_input<T>(name);
         return;
-      case MFParamCategory::SingleOutput:
+      case ParamCategory::SingleOutput:
         this->single_output<T>(name);
         return;
-      case MFParamCategory::VectorOutput:
+      case ParamCategory::VectorOutput:
         this->vector_output<T>(name);
         return;
-      case MFParamCategory::SingleMutable:
+      case ParamCategory::SingleMutable:
         this->single_mutable<T>(name);
         return;
-      case MFParamCategory::VectorMutable:
+      case ParamCategory::VectorMutable:
         this->vector_mutable<T>(name);
         return;
     }
     BLI_assert_unreachable();
   }
-
-  /* Context */
-
-  /** This indicates that the function accesses the context. This disables optimizations that
-   * depend on the fact that the function always performers the same operation. */
-  void depends_on_context()
-  {
-    signature_.depends_on_context = true;
-  }
 };
 
-}  // namespace blender::fn
+}  // namespace blender::fn::multi_function

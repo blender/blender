@@ -83,19 +83,19 @@ static VArray<float3> construct_edge_positions_gvarray(const Mesh &mesh,
                                                        const VertNumber vertex,
                                                        const eAttrDomain domain)
 {
-  const Span<MVert> verts = mesh.verts();
+  const Span<float3> positions = mesh.vert_positions();
   const Span<MEdge> edges = mesh.edges();
 
   if (vertex == VertNumber::V1) {
     return mesh.attributes().adapt_domain<float3>(
-        VArray<float3>::ForFunc(edges.size(),
-                                [verts, edges](const int i) { return verts[edges[i].v1].co; }),
+        VArray<float3>::ForFunc(
+            edges.size(), [positions, edges](const int i) { return positions[edges[i].v1]; }),
         ATTR_DOMAIN_EDGE,
         domain);
   }
   return mesh.attributes().adapt_domain<float3>(
       VArray<float3>::ForFunc(edges.size(),
-                              [verts, edges](const int i) { return verts[edges[i].v2].co; }),
+                              [positions, edges](const int i) { return positions[edges[i].v2]; }),
       ATTR_DOMAIN_EDGE,
       domain);
 }

@@ -225,7 +225,7 @@ static const uint half_octahedron_tris[4][3] = {
 
 static void pointcloud_extract_indices(const PointCloud &pointcloud, PointCloudBatchCache &cache)
 {
-  /** \note: Avoid modulo by non-power-of-two in shader. */
+  /** \note Avoid modulo by non-power-of-two in shader. */
   uint32_t vertid_max = pointcloud.totpoint * 32;
   uint32_t index_len = pointcloud.totpoint * ARRAY_SIZE(half_octahedron_tris);
 

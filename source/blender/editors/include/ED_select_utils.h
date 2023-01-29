@@ -13,7 +13,6 @@ extern "C" {
 #endif
 
 struct KDTree_1d;
-struct wmOperator;
 struct wmOperatorType;
 
 enum {

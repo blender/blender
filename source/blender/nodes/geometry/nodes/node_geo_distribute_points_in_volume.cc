@@ -19,11 +19,11 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_distribute_points_in_volume_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryDistributePointsInVolume)
 
-static void geo_node_distribute_points_in_volume_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Volume")).supported_type(GEO_COMPONENT_TYPE_VOLUME);
   b.add_input<decl::Float>(N_("Density"))
@@ -46,17 +46,15 @@ static void geo_node_distribute_points_in_volume_declare(NodeDeclarationBuilder 
       .min(0.0f)
       .max(FLT_MAX)
       .description(N_("Minimum density of a volume cell to contain a grid point"));
-  b.add_output<decl::Geometry>(N_("Points"));
+  b.add_output<decl::Geometry>(N_("Points")).propagate_all();
 }
 
-static void geo_node_distribute_points_in_volume_layout(uiLayout *layout,
-                                                        bContext * /*C*/,
-                                                        PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
 }
 
-static void node_distribute_points_in_volume_init(bNodeTree * /*tree*/, bNode *node)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryDistributePointsInVolume *data = MEM_cnew<NodeGeometryDistributePointsInVolume>(
       __func__);
@@ -64,7 +62,7 @@ static void node_distribute_points_in_volume_init(bNodeTree * /*tree*/, bNode *n
   node->storage = data;
 }
 
-static void node_distribute_points_in_volume_update(bNodeTree *ntree, bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryDistributePointsInVolume &storage = node_storage(*node);
   GeometryNodeDistributePointsInVolumeMode mode = GeometryNodeDistributePointsInVolumeMode(
@@ -181,7 +179,7 @@ static void point_scatter_density_grid(const openvdb::FloatGrid &grid,
 
 #endif /* WITH_OPENVDB */
 
-static void geo_node_distribute_points_in_volume_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume");
@@ -265,10 +263,12 @@ static void geo_node_distribute_points_in_volume_exec(GeoNodeExecParams params)
                            TIP_("Disabled, Blender was compiled without OpenVDB"));
 #endif
 }
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_distribute_points_in_volume_cc
 
 void register_node_type_geo_distribute_points_in_volume()
 {
+  namespace file_ns = blender::nodes::node_geo_distribute_points_in_volume_cc;
+
   static bNodeType ntype;
   geo_node_type_base(&ntype,
                      GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME,
@@ -278,11 +278,11 @@ void register_node_type_geo_distribute_points_in_volume()
                     "NodeGeometryDistributePointsInVolume",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.initfunc = blender::nodes::node_distribute_points_in_volume_init;
-  ntype.updatefunc = blender::nodes::node_distribute_points_in_volume_update;
+  ntype.initfunc = file_ns::node_init;
+  ntype.updatefunc = file_ns::node_update;
   node_type_size(&ntype, 170, 100, 320);
-  ntype.declare = blender::nodes::geo_node_distribute_points_in_volume_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_distribute_points_in_volume_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_distribute_points_in_volume_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

@@ -29,6 +29,7 @@ set(SRC
   nodes/node_geo_attribute_capture.cc
   nodes/node_geo_attribute_domain_size.cc
   nodes/node_geo_attribute_statistic.cc
+  nodes/node_geo_blur_attribute.cc
   nodes/node_geo_boolean.cc
   nodes/node_geo_bounding_box.cc
   nodes/node_geo_collection_info.cc
@@ -68,19 +69,22 @@ set(SRC
   nodes/node_geo_edge_paths_to_curves.cc
   nodes/node_geo_edge_paths_to_selection.cc
   nodes/node_geo_edge_split.cc
+  nodes/node_geo_evaluate_at_index.cc
+  nodes/node_geo_evaluate_on_domain.cc
   nodes/node_geo_extrude_mesh.cc
-  nodes/node_geo_field_at_index.cc
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_geometry_to_instance.cc
+  nodes/node_geo_image_info.cc
   nodes/node_geo_image_texture.cc
+  nodes/node_geo_image.cc
   nodes/node_geo_input_curve_handles.cc
   nodes/node_geo_input_curve_tilt.cc
   nodes/node_geo_input_id.cc
   nodes/node_geo_input_index.cc
   nodes/node_geo_input_instance_rotation.cc
   nodes/node_geo_input_instance_scale.cc
-  nodes/node_geo_input_material.cc
   nodes/node_geo_input_material_index.cc
+  nodes/node_geo_input_material.cc
   nodes/node_geo_input_mesh_edge_angle.cc
   nodes/node_geo_input_mesh_edge_neighbors.cc
   nodes/node_geo_input_mesh_edge_vertices.cc
@@ -102,13 +106,13 @@ set(SRC
   nodes/node_geo_input_tangent.cc
   nodes/node_geo_instance_on_points.cc
   nodes/node_geo_instances_to_points.cc
-  nodes/node_geo_interpolate_domain.cc
+  nodes/node_geo_interpolate_curves.cc
   nodes/node_geo_is_viewport.cc
   nodes/node_geo_join_geometry.cc
   nodes/node_geo_material_replace.cc
   nodes/node_geo_material_selection.cc
   nodes/node_geo_merge_by_distance.cc
-  nodes/node_geo_mesh_face_set_boundaries.cc
+  nodes/node_geo_mesh_face_group_boundaries.cc
   nodes/node_geo_mesh_primitive_circle.cc
   nodes/node_geo_mesh_primitive_cone.cc
   nodes/node_geo_mesh_primitive_cube.cc
@@ -130,17 +134,17 @@ set(SRC
   nodes/node_geo_mesh_topology_vertex_of_corner.cc
   nodes/node_geo_object_info.cc
   nodes/node_geo_offset_point_in_curve.cc
-  nodes/node_geo_points.cc
   nodes/node_geo_points_to_vertices.cc
   nodes/node_geo_points_to_volume.cc
+  nodes/node_geo_points.cc
   nodes/node_geo_proximity.cc
   nodes/node_geo_raycast.cc
   nodes/node_geo_realize_instances.cc
   nodes/node_geo_remove_attribute.cc
   nodes/node_geo_rotate_instances.cc
   nodes/node_geo_sample_index.cc
-  nodes/node_geo_sample_nearest.cc
   nodes/node_geo_sample_nearest_surface.cc
+  nodes/node_geo_sample_nearest.cc
   nodes/node_geo_sample_uv_surface.cc
   nodes/node_geo_scale_elements.cc
   nodes/node_geo_scale_instances.cc
@@ -152,8 +156,8 @@ set(SRC
   nodes/node_geo_set_curve_radius.cc
   nodes/node_geo_set_curve_tilt.cc
   nodes/node_geo_set_id.cc
-  nodes/node_geo_set_material.cc
   nodes/node_geo_set_material_index.cc
+  nodes/node_geo_set_material.cc
   nodes/node_geo_set_point_radius.cc
   nodes/node_geo_set_position.cc
   nodes/node_geo_set_shade_smooth.cc
@@ -164,7 +168,7 @@ set(SRC
   nodes/node_geo_string_to_curves.cc
   nodes/node_geo_subdivision_surface.cc
   nodes/node_geo_switch.cc
-  nodes/node_geo_transform.cc
+  nodes/node_geo_transform_geometry.cc
   nodes/node_geo_translate_instances.cc
   nodes/node_geo_triangulate.cc
   nodes/node_geo_uv_pack_islands.cc
@@ -173,9 +177,11 @@ set(SRC
   nodes/node_geo_volume_cube.cc
   nodes/node_geo_volume_to_mesh.cc
 
+  node_geometry_register.cc
   node_geometry_tree.cc
   node_geometry_util.cc
 
+  node_geometry_register.hh
   node_geometry_util.hh
 )
 
@@ -191,12 +197,6 @@ if(WITH_BULLET)
     ${BULLET_INCLUDE_DIRS}
     ../../../../intern/rigidbody
   )
-  if(NOT WITH_SYSTEM_BULLET)
-  list(APPEND LIB
-    extern_bullet
-    )
-  endif()
-
   list(APPEND LIB
     ${BULLET_LIBRARIES}
   )

@@ -14,6 +14,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
 
@@ -203,18 +204,14 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
   const int totedge = mesh->totedge;
   const int totloop = mesh->totloop;
   const int totpoly = mesh->totpoly;
-  const MVert *src_verts = BKE_mesh_verts(mesh);
   const MEdge *src_edges = BKE_mesh_edges(mesh);
   const MPoly *src_polys = BKE_mesh_polys(mesh);
   const MLoop *src_loops = BKE_mesh_loops(mesh);
 
   const int totvert_final = totvert - tot_vtargetmap;
 
-  const MVert *mv;
-  MVert *mvert = MEM_malloc_arrayN(totvert_final, sizeof(*mvert), __func__);
   int *oldv = MEM_malloc_arrayN(totvert_final, sizeof(*oldv), __func__);
   int *newv = MEM_malloc_arrayN(totvert, sizeof(*newv), __func__);
-  STACK_DECLARE(mvert);
   STACK_DECLARE(oldv);
 
   /* NOTE: create (totedge + totloop) elements because partially invalid polys due to merge may
@@ -256,18 +253,15 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
   STACK_INIT(oldl, totloop);
   STACK_INIT(oldp, totpoly);
 
-  STACK_INIT(mvert, totvert_final);
   STACK_INIT(medge, totedge);
   STACK_INIT(mloop, totloop);
   STACK_INIT(mpoly, totpoly);
 
   /* fill newv with destination vertex indices */
-  mv = src_verts;
   c = 0;
-  for (i = 0; i < totvert; i++, mv++) {
+  for (i = 0; i < totvert; i++) {
     if (vtargetmap[i] == -1) {
       STACK_PUSH(oldv, i);
-      STACK_PUSH(mvert, *mv);
       newv[i] = c++;
     }
     else {
@@ -347,7 +341,6 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
   BLI_bitmap *vert_tag = BLI_BITMAP_NEW(mesh->totvert, __func__);
 
   mp = src_polys;
-  mv = src_verts;
   for (i = 0; i < totpoly; i++, mp++) {
     MPoly *mp_new;
 
@@ -571,7 +564,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
 
   /* Create new cddm. */
   result = BKE_mesh_new_nomain_from_template(
-      mesh, STACK_SIZE(mvert), STACK_SIZE(medge), 0, STACK_SIZE(mloop), STACK_SIZE(mpoly));
+      mesh, totvert_final, STACK_SIZE(medge), 0, STACK_SIZE(mloop), STACK_SIZE(mpoly));
 
   /* Update edge indices and copy customdata. */
   MEdge *new_med = medge;
@@ -598,8 +591,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
   }
 
   /* Copy vertex customdata. */
-  mv = mvert;
-  for (i = 0; i < result->totvert; i++, mv++) {
+  for (i = 0; i < result->totvert; i++) {
     CustomData_copy_data(&mesh->vdata, &result->vdata, oldv[i], i, 1);
   }
 
@@ -610,9 +602,6 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
   }
 
   /* Copy over data. #CustomData_add_layer can do this, need to look it up. */
-  if (STACK_SIZE(mvert)) {
-    memcpy(BKE_mesh_verts_for_write(result), mvert, sizeof(MVert) * STACK_SIZE(mvert));
-  }
   if (STACK_SIZE(medge)) {
     memcpy(BKE_mesh_edges_for_write(result), medge, sizeof(MEdge) * STACK_SIZE(medge));
   }
@@ -623,7 +612,6 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
     memcpy(BKE_mesh_polys_for_write(result), mpoly, sizeof(MPoly) * STACK_SIZE(mpoly));
   }
 
-  MEM_freeN(mvert);
   MEM_freeN(medge);
   MEM_freeN(mloop);
   MEM_freeN(mpoly);

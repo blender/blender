@@ -339,10 +339,10 @@ class MTLSafeFreeList {
 class MTLBufferPool {
 
  private:
-  /* Memory statistics. */
-  int64_t total_allocation_bytes_ = 0;
-
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
+  /* Memory statistics. */
+  std::atomic<int64_t> total_allocation_bytes_;
+
   /* Debug statistics. */
   std::atomic<int> per_frame_allocation_count_;
   std::atomic<int64_t> allocations_in_pool_;
@@ -368,10 +368,14 @@ class MTLBufferPool {
    * - A size-ordered list (MultiSet) of allocated buffers is kept per MTLResourceOptions
    *   permutation. This allows efficient lookup for buffers of a given requested size.
    * - MTLBufferHandle wraps a gpu::MTLBuffer pointer to achieve easy size-based sorting
-   *   via CompareMTLBuffer. */
+   *   via CompareMTLBuffer.
+   *
+   * NOTE: buffer_pool_lock_ guards against concurrent access to the memory allocator. This
+   * can occur during light baking or rendering operations. */
   using MTLBufferPoolOrderedList = std::multiset<MTLBufferHandle, CompareMTLBuffer>;
   using MTLBufferResourceOptions = uint64_t;
 
+  std::mutex buffer_pool_lock_;
   blender::Map<MTLBufferResourceOptions, MTLBufferPoolOrderedList *> buffer_pools_;
   blender::Vector<gpu::MTLBuffer *> allocations_;
 

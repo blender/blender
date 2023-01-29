@@ -574,7 +574,8 @@ static void loose_data_instantiate_obdata_preprocess(
  * (return false). */
 static bool loose_data_instantiate_collection_parents_check_recursive(Collection *collection)
 {
-  for (CollectionParent *parent_collection = collection->parents.first; parent_collection != NULL;
+  for (CollectionParent *parent_collection = collection->runtime.parents.first;
+       parent_collection != NULL;
        parent_collection = parent_collection->next) {
     if ((parent_collection->collection->id.tag & LIB_TAG_DOIT) != 0) {
       return true;
@@ -996,14 +997,13 @@ static void blendfile_link_append_proxies_convert(Main *bmain, ReportList *repor
 
   if (bf_reports.count.proxies_to_lib_overrides_success != 0 ||
       bf_reports.count.proxies_to_lib_overrides_failures != 0) {
-    BKE_reportf(
-        bf_reports.reports,
-        RPT_WARNING,
-        "Proxies have been removed from Blender (%d proxies were automatically converted "
-        "to library overrides, %d proxies could not be converted and were cleared). "
-        "Please consider re-saving any library .blend file with the newest Blender version",
-        bf_reports.count.proxies_to_lib_overrides_success,
-        bf_reports.count.proxies_to_lib_overrides_failures);
+    BKE_reportf(bf_reports.reports,
+                RPT_WARNING,
+                "Proxies have been removed from Blender (%d proxies were automatically converted "
+                "to library overrides, %d proxies could not be converted and were cleared). "
+                "Consider re-saving any library .blend file with the newest Blender version",
+                bf_reports.count.proxies_to_lib_overrides_success,
+                bf_reports.count.proxies_to_lib_overrides_failures);
   }
 }
 
@@ -1425,7 +1425,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
   /* All override rules need to be up to date, since there will be no do_version here, otherwise
    * older, now-invalid rules might be applied and likely fail, or some changes might be missing,
    * etc. See T93353. */
-  BKE_lib_override_library_main_operations_create(bmain, true);
+  BKE_lib_override_library_main_operations_create(bmain, true, NULL);
 
   /* Remove all IDs to be reloaded from Main. */
   lba_idx = set_listbasepointers(bmain, lbarray);
@@ -1635,7 +1635,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
                                              .reports = reports,
                                          });
     /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
-    BKE_lib_override_library_main_operations_create(bmain, true);
+    BKE_lib_override_library_main_operations_create(bmain, true, NULL);
   }
 
   BKE_main_collection_sync(bmain);

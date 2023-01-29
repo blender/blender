@@ -368,6 +368,8 @@ bool gpencil_active_layer_poll(struct bContext *C);
 bool gpencil_active_brush_poll(struct bContext *C);
 bool gpencil_brush_create_presets_poll(bContext *C);
 
+int ED_gpencil_new_layer_dialog(bContext *C, wmOperator *op);
+
 /* Copy/Paste Buffer --------------------------------- */
 /* gpencil_edit.c */
 

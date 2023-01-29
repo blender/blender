@@ -87,27 +87,25 @@ static int gpu_shader_valtorgb(GPUMaterial *mat,
   return GPU_stack_link(mat, node, "valtorgb", in, out, tex, GPU_constant(&layer));
 }
 
-class ColorBandFunction : public fn::MultiFunction {
+class ColorBandFunction : public mf::MultiFunction {
  private:
   const ColorBand &color_band_;
 
  public:
   ColorBandFunction(const ColorBand &color_band) : color_band_(color_band)
   {
-    static fn::MFSignature signature = create_signature();
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Color Band", signature};
+      builder.single_input<float>("Value");
+      builder.single_output<ColorGeometry4f>("Color");
+      builder.single_output<float>("Alpha");
+      return signature;
+    }();
     this->set_signature(&signature);
   }
 
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Color Band"};
-    signature.single_input<float>("Value");
-    signature.single_output<ColorGeometry4f>("Color");
-    signature.single_output<float>("Alpha");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float> &values = params.readonly_single_input<float>(0, "Value");
     MutableSpan<ColorGeometry4f> colors = params.uninitialized_single_output<ColorGeometry4f>(

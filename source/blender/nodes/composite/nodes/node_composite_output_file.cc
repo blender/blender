@@ -11,6 +11,8 @@
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_image_format.h"
 
@@ -447,6 +449,7 @@ class OutputFileOperation : public NodeOperation {
 
   void execute() override
   {
+    context().set_info_message("Viewport compositor setup not fully supported");
   }
 };
 
@@ -472,6 +475,8 @@ void register_node_type_cmp_output_file()
       &ntype, "NodeImageMultiFile", file_ns::free_output_file, file_ns::copy_output_file);
   ntype.updatefunc = file_ns::update_output_file;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

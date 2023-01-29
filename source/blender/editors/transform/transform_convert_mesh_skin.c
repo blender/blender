@@ -94,7 +94,8 @@ static void createTransMeshSkin(bContext *UNUSED(C), TransInfo *t)
       continue;
     }
 
-    /* Support other objects using PET to adjust these, unless connected is enabled. */
+    /* Support other objects using proportional editing to adjust these, unless connected is
+     * enabled. */
     if ((!prop_mode || (prop_mode & T_PROP_CONNECTED)) && (bm->totvertsel == 0)) {
       continue;
     }
@@ -291,8 +292,8 @@ static void recalcData_mesh_skin(TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_MeshSkin = {
-    /* flags */ (T_EDIT | T_POINTS),
-    /* createTransData */ createTransMeshSkin,
-    /* recalcData */ recalcData_mesh_skin,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ (T_EDIT | T_POINTS),
+    /*createTransData*/ createTransMeshSkin,
+    /*recalcData*/ recalcData_mesh_skin,
+    /*special_aftertrans_update*/ NULL,
 };

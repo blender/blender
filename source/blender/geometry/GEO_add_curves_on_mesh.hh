@@ -30,6 +30,7 @@ struct AddCurvesOnMeshInputs {
 
   /** Information about the surface that the new curves are attached to. */
   const Mesh *surface = nullptr;
+  Span<MLoopTri> surface_looptris;
   const ReverseUVSampler *reverse_uv_sampler = nullptr;
   Span<float3> corner_normals_su;
 
@@ -46,6 +47,8 @@ struct AddCurvesOnMeshInputs {
 
 struct AddCurvesOnMeshOutputs {
   bool uv_error = false;
+  IndexRange new_curves_range;
+  IndexRange new_points_range;
 };
 
 /**

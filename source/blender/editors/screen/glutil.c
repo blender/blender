@@ -26,6 +26,7 @@
 #include "GPU_texture.h"
 
 #ifdef __APPLE__
+#  include "GPU_context.h"
 #  include "GPU_state.h"
 #endif
 
@@ -281,7 +282,9 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
        * This doesn't seem to be too slow,
        * but still would be nice to have fast and nice solution. */
 #ifdef __APPLE__
-      GPU_flush();
+      if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
+        GPU_flush();
+      }
 #endif
     }
   }

@@ -64,10 +64,6 @@ void HdCyclesDisplayDriver::gl_context_create()
 #endif
 
   if (!gl_pbo_id_) {
-    if (glewInit() != GLEW_OK) {
-      return;
-    }
-
     glGenBuffers(1, &gl_pbo_id_);
   }
 }

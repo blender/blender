@@ -100,9 +100,9 @@ class MTLFrameBuffer : public FrameBuffer {
   /** Whether `MTLRenderPassDescriptor[N]` requires updating with latest state. */
   bool descriptor_dirty_[MTL_FB_CONFIG_MAX];
   /** Whether SRGB is enabled for this frame-buffer configuration. */
-  bool srgb_enabled_;
+  bool enabled_srgb_;
   /** Whether the primary Frame-buffer attachment is an SRGB target or not. */
-  bool is_srgb_;
+  bool srgb_;
 
  public:
   /**
@@ -223,12 +223,12 @@ class MTLFrameBuffer : public FrameBuffer {
 
   bool get_srgb_enabled()
   {
-    return srgb_enabled_;
+    return enabled_srgb_;
   }
 
   bool get_is_srgb()
   {
-    return is_srgb_;
+    return srgb_;
   }
 
  private:

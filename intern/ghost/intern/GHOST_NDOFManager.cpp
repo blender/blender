@@ -464,12 +464,17 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, uint64_t tim
             ndof_button_names[button]);
 
   GHOST_IWindow *window = system_.getWindowManager()->getActiveWindow();
-  const GHOST_TKey key = ghost_map_keyboard_from_ndof_buttom(button);
-  if (key != GHOST_kKeyUnknown) {
-    sendKeyEvent(key, press, time, window);
-  }
-  else {
-    sendButtonEvent(button, press, time, window);
+
+  /* Delivery will fail, so don't bother sending.
+   * Do, however update the buttons internal depressed state. */
+  if (window != nullptr) {
+    const GHOST_TKey key = ghost_map_keyboard_from_ndof_buttom(button);
+    if (key != GHOST_kKeyUnknown) {
+      sendKeyEvent(key, press, time, window);
+    }
+    else {
+      sendButtonEvent(button, press, time, window);
+    }
   }
 
   int mask = 1 << button_number;
@@ -547,9 +552,11 @@ bool GHOST_NDOFManager::sendMotionEvent()
 
   GHOST_IWindow *window = system_.getWindowManager()->getActiveWindow();
 
+  /* Delivery will fail, so don't bother sending. */
   if (window == nullptr) {
-    motion_state_ = GHOST_kNotStarted; /* Avoid large `dt` times when changing windows. */
-    return false;                      /* Delivery will fail, so don't bother sending. */
+    /* Avoid large `dt` times when changing windows. */
+    motion_state_ = GHOST_kNotStarted;
+    return false;
   }
 
   GHOST_EventNDOFMotion *event = new GHOST_EventNDOFMotion(motion_time_, window);

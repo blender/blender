@@ -361,7 +361,6 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
 {
   const uint poly_num = (uint)sf_ctx->poly_nr + 1;
   uint eed_index = 0;
-  int totvert_new = 0;
   bool changed = false;
 
   PolyInfo *poly_info;
@@ -453,7 +452,6 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
       if (eve->user_flag != 1) {
         BLI_remlink(&sf_ctx->fillvertbase, eve);
         BLI_addtail(remvertbase, eve);
-        totvert_new--;
       }
       else {
         eve->user_flag = 0;

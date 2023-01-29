@@ -27,7 +27,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>(N_("Rotate"))
       .default_value(true)
       .description(N_("Rotate islands for best fit"));
-  b.add_output<decl::Vector>(N_("UV")).field_source();
+  b.add_output<decl::Vector>(N_("UV")).field_source_reference_all();
 }
 
 static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
@@ -37,7 +37,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
                                            const float margin,
                                            const eAttrDomain domain)
 {
-  const Span<MVert> verts = mesh.verts();
+  const Span<float3> positions = mesh.vert_positions();
   const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
@@ -67,7 +67,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
     for (const int i : IndexRange(mp.totloop)) {
       const MLoop &ml = loops[mp.loopstart + i];
       mp_vkeys[i] = ml.v;
-      mp_co[i] = verts[ml.v].co;
+      mp_co[i] = positions[ml.v];
       mp_uv[i] = uv[mp.loopstart + i];
       mp_pin[i] = false;
       mp_select[i] = false;
@@ -93,10 +93,10 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
 
 class PackIslandsFieldInput final : public bke::MeshFieldInput {
  private:
-  const Field<bool> selection_field;
-  const Field<float3> uv_field;
-  const bool rotate;
-  const float margin;
+  const Field<bool> selection_field_;
+  const Field<float3> uv_field_;
+  const bool rotate_;
+  const float margin_;
 
  public:
   PackIslandsFieldInput(const Field<bool> selection_field,
@@ -104,10 +104,10 @@ class PackIslandsFieldInput final : public bke::MeshFieldInput {
                         const bool rotate,
                         const float margin)
       : bke::MeshFieldInput(CPPType::get<float3>(), "Pack UV Islands Field"),
-        selection_field(selection_field),
-        uv_field(uv_field),
-        rotate(rotate),
-        margin(margin)
+        selection_field_(selection_field),
+        uv_field_(uv_field),
+        rotate_(rotate),
+        margin_(margin)
   {
     category_ = Category::Generated;
   }
@@ -116,7 +116,13 @@ class PackIslandsFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask /*mask*/) const final
   {
-    return construct_uv_gvarray(mesh, selection_field, uv_field, rotate, margin, domain);
+    return construct_uv_gvarray(mesh, selection_field_, uv_field_, rotate_, margin_, domain);
+  }
+
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
+  {
+    selection_field_.node().for_each_field_input_recursive(fn);
+    uv_field_.node().for_each_field_input_recursive(fn);
   }
 
   std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override

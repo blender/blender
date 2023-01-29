@@ -331,7 +331,8 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param window: The window receiving the event (the active window).
    * \return The event created.
    */
-  static GHOST_EventCursor *processCursorEvent(GHOST_WindowWin32 *window);
+  static GHOST_EventCursor *processCursorEvent(GHOST_WindowWin32 *window,
+                                               const int32_t screen_co[2]);
 
   /**
    * Handles a mouse wheel event.

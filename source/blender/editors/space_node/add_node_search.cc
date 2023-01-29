@@ -2,14 +2,15 @@
 
 #include <optional>
 
+#include "AS_asset_catalog.hh"
+#include "AS_asset_library.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_string_search.h"
 
 #include "DNA_space_types.h"
 
 #include "BKE_asset.h"
-#include "BKE_asset_catalog.hh"
-#include "BKE_asset_library.hh"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
@@ -66,7 +67,6 @@ static void add_node_search_listen_fn(const wmRegionListenerParams *params, void
 }
 
 static void search_items_for_asset_metadata(const bNodeTree &node_tree,
-                                            const AssetLibraryReference &library_ref,
                                             const AssetHandle asset,
                                             Vector<AddNodeItem> &search_items)
 {
@@ -81,10 +81,10 @@ static void search_items_for_asset_metadata(const bNodeTree &node_tree,
   item.identifier = node_tree.typeinfo->group_idname;
   item.description = asset_data.description == nullptr ? "" : asset_data.description;
   item.asset = asset;
-  item.after_add_fn = [asset, library_ref](const bContext &C, bNodeTree &node_tree, bNode &node) {
+  item.after_add_fn = [asset](const bContext &C, bNodeTree &node_tree, bNode &node) {
     Main &bmain = *CTX_data_main(&C);
     node.flag &= ~NODE_OPTIONS;
-    node.id = asset::get_local_id_from_asset_or_append_and_reuse(bmain, library_ref, asset);
+    node.id = asset::get_local_id_from_asset_or_append_and_reuse(bmain, asset);
     id_us_plus(node.id);
     BKE_ntree_update_tag_node_property(&node_tree, &node);
     DEG_relations_tag_update(&bmain);
@@ -93,12 +93,15 @@ static void search_items_for_asset_metadata(const bNodeTree &node_tree,
   search_items.append(std::move(item));
 }
 
-static void gather_search_items_for_asset_library(const bContext &C,
-                                                  const bNodeTree &node_tree,
-                                                  const AssetLibraryReference &library_ref,
-                                                  Set<std::string> &r_added_assets,
-                                                  Vector<AddNodeItem> &search_items)
+static void gather_search_items_for_all_assets(const bContext &C,
+                                               const bNodeTree &node_tree,
+                                               Set<std::string> &r_added_assets,
+                                               Vector<AddNodeItem> &search_items)
 {
+  AssetLibraryReference library_ref{};
+  library_ref.custom_library_index = -1;
+  library_ref.type = ASSET_LIBRARY_ALL;
+
   AssetFilterSettings filter_settings{};
   filter_settings.id_types = FILTER_ID_NT;
 
@@ -112,29 +115,9 @@ static void gather_search_items_for_asset_library(const bContext &C,
       /* If an asset with the same name has already been added, skip this. */
       return true;
     }
-    search_items_for_asset_metadata(node_tree, library_ref, asset, search_items);
+    search_items_for_asset_metadata(node_tree, asset, search_items);
     return true;
   });
-}
-
-static void gather_search_items_for_all_assets(const bContext &C,
-                                               const bNodeTree &node_tree,
-                                               Set<std::string> &r_added_assets,
-                                               Vector<AddNodeItem> &search_items)
-{
-  int i;
-  LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
-    AssetLibraryReference library_ref{};
-    library_ref.custom_library_index = i;
-    library_ref.type = ASSET_LIBRARY_CUSTOM;
-    /* Skip local assets to avoid duplicates when the asset is part of the local file library. */
-    gather_search_items_for_asset_library(C, node_tree, library_ref, r_added_assets, search_items);
-  }
-
-  AssetLibraryReference library_ref{};
-  library_ref.custom_library_index = -1;
-  library_ref.type = ASSET_LIBRARY_LOCAL;
-  gather_search_items_for_asset_library(C, node_tree, library_ref, r_added_assets, search_items);
 }
 
 static void gather_search_items_for_node_groups(const bContext &C,
@@ -178,7 +161,7 @@ static void gather_add_node_operations(const bContext &C,
     if (!(node_type->poll && node_type->poll(node_type, &node_tree, &disabled_hint))) {
       continue;
     }
-    if ((StringRefNull(node_tree.typeinfo->group_idname) == node_type->idname)) {
+    if (StringRefNull(node_tree.typeinfo->group_idname) == node_type->idname) {
       /* Skip the empty group type. */
       continue;
     }
@@ -247,7 +230,7 @@ static void add_node_search_exec_fn(bContext *C, void *arg1, void *arg2)
     return;
   }
 
-  node_deselect_all(snode);
+  node_deselect_all(node_tree);
   bNode *new_node = nodeAddNode(C, &node_tree, item->identifier.c_str());
   BLI_assert(new_node != nullptr);
 
@@ -256,7 +239,7 @@ static void add_node_search_exec_fn(bContext *C, void *arg1, void *arg2)
   }
 
   new_node->locx = storage.cursor.x / UI_DPI_FAC;
-  new_node->locy = storage.cursor.y / UI_DPI_FAC + 20 * UI_DPI_FAC;
+  new_node->locy = storage.cursor.y / UI_DPI_FAC + 20;
 
   nodeSetSelected(new_node, true);
   nodeSetActive(&node_tree, new_node);

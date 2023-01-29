@@ -627,33 +627,36 @@ void DRW_shgroup_buffer_texture_ref(DRWShadingGroup *shgroup,
 static void drw_call_calc_orco(Object *ob, float (*r_orcofacs)[4])
 {
   ID *ob_data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
-  float loc[3], size[3];
-  float *texcoloc = nullptr;
-  float *texcosize = nullptr;
+  struct {
+    float texspace_location[3], texspace_size[3];
+  } static_buf;
+  float *texspace_location = nullptr;
+  float *texspace_size = nullptr;
   if (ob_data != nullptr) {
     switch (GS(ob_data->name)) {
       case ID_VO: {
         BoundBox *bbox = BKE_volume_boundbox_get(ob);
-        mid_v3_v3v3(loc, bbox->vec[0], bbox->vec[6]);
-        sub_v3_v3v3(size, bbox->vec[0], bbox->vec[6]);
-        texcoloc = loc;
-        texcosize = size;
+        mid_v3_v3v3(static_buf.texspace_location, bbox->vec[0], bbox->vec[6]);
+        sub_v3_v3v3(static_buf.texspace_size, bbox->vec[0], bbox->vec[6]);
+        texspace_location = static_buf.texspace_location;
+        texspace_size = static_buf.texspace_size;
         break;
       }
       case ID_ME:
-        BKE_mesh_texspace_get_reference((Mesh *)ob_data, nullptr, &texcoloc, &texcosize);
+        BKE_mesh_texspace_get_reference(
+            (Mesh *)ob_data, nullptr, &texspace_location, &texspace_size);
         break;
       case ID_CU_LEGACY: {
         Curve *cu = (Curve *)ob_data;
         BKE_curve_texspace_ensure(cu);
-        texcoloc = cu->loc;
-        texcosize = cu->size;
+        texspace_location = cu->texspace_location;
+        texspace_size = cu->texspace_size;
         break;
       }
       case ID_MB: {
         MetaBall *mb = (MetaBall *)ob_data;
-        texcoloc = mb->loc;
-        texcosize = mb->size;
+        texspace_location = mb->texspace_location;
+        texspace_size = mb->texspace_size;
         break;
       }
       default:
@@ -661,10 +664,10 @@ static void drw_call_calc_orco(Object *ob, float (*r_orcofacs)[4])
     }
   }
 
-  if ((texcoloc != nullptr) && (texcosize != nullptr)) {
-    mul_v3_v3fl(r_orcofacs[1], texcosize, 2.0f);
+  if ((texspace_location != nullptr) && (texspace_size != nullptr)) {
+    mul_v3_v3fl(r_orcofacs[1], texspace_size, 2.0f);
     invert_v3(r_orcofacs[1]);
-    sub_v3_v3v3(r_orcofacs[0], texcoloc, texcosize);
+    sub_v3_v3v3(r_orcofacs[0], texspace_location, texspace_size);
     negate_v3(r_orcofacs[0]);
     mul_v3_v3(r_orcofacs[0], r_orcofacs[1]); /* result in a nice MADD in the shader */
   }
@@ -1220,10 +1223,12 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd,
   GPUBatch *geom;
 
   if (!scd->use_wire) {
-    geom = DRW_pbvh_tris_get(batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount);
+    geom = DRW_pbvh_tris_get(
+        batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount, scd->fast_mode);
   }
   else {
-    geom = DRW_pbvh_lines_get(batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount);
+    geom = DRW_pbvh_lines_get(
+        batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount, scd->fast_mode);
   }
 
   short index = 0;
@@ -1250,7 +1255,7 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd,
   }
 }
 
-static void sculpt_debug_cb(
+void DRW_sculpt_debug_cb(
     PBVHNode *node, void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag)
 {
   int *debug_node_nr = (int *)user_data;
@@ -1265,7 +1270,8 @@ static void sculpt_debug_cb(
     DRW_debug_bbox(&bb, (float[4]){0.5f, 0.5f, 0.5f, 0.6f});
   }
 #else /* Color coded leaf bounds. */
-  if (flag & PBVH_Leaf) {
+  if (flag & (PBVH_Leaf | PBVH_TexLeaf)) {
+    DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR((*debug_node_nr)++));
     int color = (*debug_node_nr)++;
     color += BKE_pbvh_debug_draw_gen_get(node);
 
@@ -1365,7 +1371,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
     BKE_pbvh_draw_debug_cb(
         pbvh,
         (void (*)(PBVHNode * n, void *d, const float min[3], const float max[3], PBVHNodeFlags f))
-            sculpt_debug_cb,
+            DRW_sculpt_debug_cb,
         &debug_node_nr);
   }
 }
@@ -1406,8 +1412,8 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   Mesh *me = BKE_object_get_original_mesh(ob);
 
   if (use_color) {
-    CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
-
+    const CustomDataLayer *layer = BKE_id_attributes_color_find(&me->id,
+                                                                me->active_color_attribute);
     if (layer) {
       eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
 
@@ -1420,11 +1426,11 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   }
 
   if (use_uv) {
-    int layer_i = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV);
+    int layer_i = CustomData_get_active_layer_index(&me->ldata, CD_PROP_FLOAT2);
     if (layer_i != -1) {
       CustomDataLayer *layer = me->ldata.layers + layer_i;
 
-      attrs[attrs_num].type = CD_MLOOPUV;
+      attrs[attrs_num].type = CD_PROP_FLOAT2;
       attrs[attrs_num].domain = ATTR_DOMAIN_CORNER;
       BLI_strncpy(attrs[attrs_num].name, layer->name, sizeof(attrs[attrs_num].name));
 
@@ -1481,11 +1487,11 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
 
   for (uint i = 0; i < 32; i++) {
     if (cd_needed.uv & (1 << i)) {
-      int layer_i = CustomData_get_layer_index_n(&me->ldata, CD_MLOOPUV, i);
+      int layer_i = CustomData_get_layer_index_n(&me->ldata, CD_PROP_FLOAT2, i);
       CustomDataLayer *layer = layer_i != -1 ? me->ldata.layers + layer_i : nullptr;
 
       if (layer) {
-        attrs[attrs_i].type = CD_MLOOPUV;
+        attrs[attrs_i].type = CD_PROP_FLOAT2;
         attrs[attrs_i].domain = ATTR_DOMAIN_CORNER;
         BLI_strncpy(attrs[attrs_i].name, layer->name, sizeof(PBVHAttrReq::name));
         attrs_i++;
@@ -1850,7 +1856,7 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, GPUMaterial *mater
     grp->uniform_attrs = uattrs;
   }
 
-  if (GPU_material_layer_attributes(material) != NULL) {
+  if (GPU_material_layer_attributes(material) != nullptr) {
     int loc = GPU_shader_get_uniform_block_binding(grp->shader,
                                                    GPU_LAYER_ATTRIBUTE_UBO_BLOCK_NAME);
     drw_shgroup_uniform_create_ex(

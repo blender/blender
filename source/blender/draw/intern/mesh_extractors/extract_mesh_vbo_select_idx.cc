@@ -169,7 +169,6 @@ static void extract_vert_idx_iter_ledge_mesh(const MeshRenderData *mr,
 }
 
 static void extract_vert_idx_iter_lvert_mesh(const MeshRenderData *mr,
-                                             const MVert * /*mv*/,
                                              const int lvert_index,
                                              void *data)
 {

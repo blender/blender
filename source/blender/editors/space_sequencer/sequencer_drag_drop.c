@@ -285,7 +285,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     /* We are dropped inside the preview region. Put the strip on top of the
      * current displayed frame. */
     Scene *scene = CTX_data_scene(C);
-    Editing *ed = SEQ_editing_get(scene);
+    Editing *ed = SEQ_editing_ensure(scene);
     ListBase *seqbase = SEQ_active_seqbase_get(ed);
     ListBase *channels = SEQ_channels_displayed_get(ed);
     SpaceSeq *sseq = CTX_wm_space_seq(C);

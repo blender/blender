@@ -2,6 +2,7 @@
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(raytrace_lib.glsl)
+#pragma BLENDER_REQUIRE(surface_lib.glsl)
 
 /* Based on Practical Realtime Strategies for Accurate Indirect Occlusion
  * http://blog.selfshadow.com/publications/s2016-shading-course/activision/s2016_pbs_activision_occlusion.pdf
@@ -29,8 +30,6 @@
 #ifndef GPU_FRAGMENT_SHADER
 #  define gl_FragCoord vec4(0.0)
 #endif
-
-uniform sampler2D horizonBuffer;
 
 /* aoSettings flags */
 #define USE_AO 1

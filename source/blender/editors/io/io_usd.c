@@ -72,6 +72,23 @@ const EnumPropertyItem rna_enum_usd_mtl_name_collision_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_usd_tex_import_mode_items[] = {
+    {USD_TEX_IMPORT_NONE, "IMPORT_NONE", 0, "None", "Don't import textures"},
+    {USD_TEX_IMPORT_PACK, "IMPORT_PACK", 0, "Packed", "Import textures as packed data"},
+    {USD_TEX_IMPORT_COPY, "IMPORT_COPY", 0, "Copy", "Copy files to Textures Directory"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_usd_tex_name_collision_mode_items[] = {
+    {USD_TEX_NAME_COLLISION_USE_EXISTING,
+     "USE_EXISTING",
+     0,
+     "Use Existing",
+     "If a file with the same name already exists, use that instead of copying"},
+    {USD_TEX_NAME_COLLISION_OVERWRITE, "OVERWRITE", 0, "Overwrite", "Overwrite existing files"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 /* Stored in the wmOperator's customdata field to indicate it should run as a background job.
  * This is set when the operator is invoked, and not set when it is only executed. */
 enum { AS_BACKGROUND_JOB = 1 };
@@ -381,6 +398,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   const bool import_proxy = RNA_boolean_get(op->ptr, "import_proxy");
   const bool import_render = RNA_boolean_get(op->ptr, "import_render");
 
+  const bool import_all_materials = RNA_boolean_get(op->ptr, "import_all_materials");
+
   const bool import_usd_preview = RNA_boolean_get(op->ptr, "import_usd_preview");
   const bool set_material_blend = RNA_boolean_get(op->ptr, "set_material_blend");
 
@@ -402,6 +421,14 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const bool validate_meshes = false;
   const bool use_instancing = false;
+
+  const eUSDTexImportMode import_textures_mode = RNA_enum_get(op->ptr, "import_textures_mode");
+
+  char import_textures_dir[FILE_MAXDIR];
+  RNA_string_get(op->ptr, "import_textures_dir", import_textures_dir);
+
+  const eUSDTexNameCollisionMode tex_name_collision_mode = RNA_enum_get(op->ptr,
+                                                                        "tex_name_collision_mode");
 
   struct USDImportParams params = {.scale = scale,
                                    .is_sequence = is_sequence,
@@ -427,9 +454,13 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .import_usd_preview = import_usd_preview,
                                    .set_material_blend = set_material_blend,
                                    .light_intensity_scale = light_intensity_scale,
-                                   .mtl_name_collision_mode = mtl_name_collision_mode};
+                                   .mtl_name_collision_mode = mtl_name_collision_mode,
+                                   .import_textures_mode = import_textures_mode,
+                                   .tex_name_collision_mode = tex_name_collision_mode,
+                                   .import_all_materials = import_all_materials};
 
   STRNCPY(params.prim_path_mask, prim_path_mask);
+  STRNCPY(params.import_textures_dir, import_textures_dir);
 
   const bool ok = USD_import(C, filename, &params, as_background_job);
 
@@ -477,15 +508,28 @@ static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
   uiItemR(col, ptr, "relative_path", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "create_collection", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "light_intensity_scale", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "mtl_name_collision_mode", 0, NULL, ICON_NONE);
 
   box = uiLayoutBox(layout);
-  col = uiLayoutColumnWithHeading(box, true, IFACE_("Experimental"));
+  col = uiLayoutColumnWithHeading(box, true, IFACE_("Materials"));
+  uiItemR(col, ptr, "import_all_materials", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "import_usd_preview", 0, NULL, ICON_NONE);
   uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
   uiLayout *row = uiLayoutRow(col, true);
   uiItemR(row, ptr, "set_material_blend", 0, NULL, ICON_NONE);
   uiLayoutSetEnabled(row, RNA_boolean_get(ptr, "import_usd_preview"));
+  uiItemR(col, ptr, "mtl_name_collision_mode", 0, NULL, ICON_NONE);
+
+  box = uiLayoutBox(layout);
+  col = uiLayoutColumn(box, true);
+  uiItemR(col, ptr, "import_textures_mode", 0, NULL, ICON_NONE);
+  bool copy_textures = RNA_enum_get(op->ptr, "import_textures_mode") == USD_TEX_IMPORT_COPY;
+  row = uiLayoutRow(col, true);
+  uiItemR(row, ptr, "import_textures_dir", 0, NULL, ICON_NONE);
+  uiLayoutSetEnabled(row, copy_textures);
+  row = uiLayoutRow(col, true);
+  uiItemR(row, ptr, "tex_name_collision_mode", 0, NULL, ICON_NONE);
+  uiLayoutSetEnabled(row, copy_textures);
+  uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
 }
 
 void WM_OT_usd_import(struct wmOperatorType *ot)
@@ -580,8 +624,16 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "import_render", true, "Render", "Import final render geometry");
 
   RNA_def_boolean(ot->srna,
-                  "import_usd_preview",
+                  "import_all_materials",
                   false,
+                  "Import All Materials",
+                  "Also import materials that are not used by any geometry.  "
+                  "Note that when this option is false, materials referenced "
+                  "by geometry will still be imported");
+
+  RNA_def_boolean(ot->srna,
+                  "import_usd_preview",
+                  true,
                   "Import USD Preview",
                   "Convert UsdPreviewSurface shaders to Principled BSDF shader networks");
 
@@ -610,6 +662,28 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
       USD_MTL_NAME_COLLISION_MAKE_UNIQUE,
       "Material Name Collision",
       "Behavior when the name of an imported material conflicts with an existing material");
+
+  RNA_def_enum(ot->srna,
+               "import_textures_mode",
+               rna_enum_usd_tex_import_mode_items,
+               USD_TEX_IMPORT_PACK,
+               "Import Textures",
+               "Behavior when importing textures from a USDZ archive");
+
+  RNA_def_string(ot->srna,
+                 "import_textures_dir",
+                 "//textures/",
+                 FILE_MAXDIR,
+                 "Textures Directory",
+                 "Path to the directory where imported textures will be copied ");
+
+  RNA_def_enum(
+      ot->srna,
+      "tex_name_collision_mode",
+      rna_enum_usd_tex_name_collision_mode_items,
+      USD_TEX_NAME_COLLISION_USE_EXISTING,
+      "File Name Collision",
+      "Behavior when the name of an imported texture file conflicts with an existing file");
 }
 
 #endif /* WITH_USD */

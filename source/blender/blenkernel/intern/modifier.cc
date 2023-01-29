@@ -349,7 +349,7 @@ void BKE_modifier_copydata_generic(const ModifierData *md_src,
   const size_t data_size = sizeof(ModifierData);
   const char *md_src_data = ((const char *)md_src) + data_size;
   char *md_dst_data = ((char *)md_dst) + data_size;
-  BLI_assert(data_size <= (size_t)mti->structSize);
+  BLI_assert(data_size <= size_t(mti->structSize));
   memcpy(md_dst_data, md_src_data, size_t(mti->structSize) - data_size);
 
   /* Runtime fields are never to be preserved. */
@@ -1189,8 +1189,8 @@ void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase 
       CollisionModifierData *collmd = (CollisionModifierData *)md;
       /* TODO: CollisionModifier should use pointcache
        * + have proper reset events before enabling this. */
-      writestruct(wd, DATA, MVert, collmd->numverts, collmd->x);
-      writestruct(wd, DATA, MVert, collmd->numverts, collmd->xnew);
+      writestruct(wd, DATA, float[3], collmd->numverts, collmd->x);
+      writestruct(wd, DATA, float[3], collmd->numverts, collmd->xnew);
       writestruct(wd, DATA, MFace, collmd->numfaces, collmd->mfaces);
 #endif
     }

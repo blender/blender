@@ -13,68 +13,50 @@ from modules.mesh_test import RunTest, ModifierSpec, SpecMeshTest
 seed(0)
 
 
-def get_generate_modifiers_list(test_object_name, randomize=False):
-    """
-    Construct a list of 'Generate' modifiers with default parameters.
-    :arg test_object_name: Name of test object. Some modifiers like boolean need an extra parameter beside
-       the default one. E.g. boolean needs object, mask needs vertex group etc...
-       The extra parameter name will be <test_object_name>_<modifier_type>
-    :type test_object_name: str
-    :arg randomize: If True shuffle the list of modifiers.
-    :type randomize: bool
-    :return: list of 'Generate' modifiers with default parameters.
-    """
-
-    boolean_test_object = bpy.data.objects[test_object_name + "_boolean"]
-
+def cube_mask_first_modifier_list():
     generate_modifiers = [
+        ModifierSpec('mask', 'MASK', {'vertex_group': "testCubeMaskFirst_mask"}),
+        ModifierSpec('solidify', 'SOLIDIFY', {}),
+        ModifierSpec('triangulate', 'TRIANGULATE', {}),
+        ModifierSpec('bevel', 'BEVEL', {'width': 0.1, 'limit_method': 'NONE'}),
+        ModifierSpec('boolean', 'BOOLEAN', {'object': bpy.data.objects["testCubeMaskFirst_boolean"], 'solver': 'FAST'}),
+        ModifierSpec('edge split', 'EDGE_SPLIT', {}),
+        ModifierSpec('build', 'BUILD', {'frame_start': 1, 'frame_duration': 1}, 2),
+        ModifierSpec('multires', 'MULTIRES', {}),
+        ModifierSpec('decimate', 'DECIMATE', {}),
+        ModifierSpec('array', 'ARRAY', {}),
+        ModifierSpec('wireframe', 'WIREFRAME', {}),
+        ModifierSpec('mirror', 'MIRROR', {}),
+    ]
+    return generate_modifiers
+
+
+def cube_random_modifier_list():
+    generate_modifiers = [
+        ModifierSpec('edge split', 'EDGE_SPLIT', {}),
+        ModifierSpec('decimate', 'DECIMATE', {}),
+        ModifierSpec('wireframe', 'WIREFRAME', {}),
+        ModifierSpec('mirror', 'MIRROR', {}),
         ModifierSpec('array', 'ARRAY', {}),
         ModifierSpec('bevel', 'BEVEL', {'width': 0.1, 'limit_method': 'NONE'}),
-        ModifierSpec('boolean', 'BOOLEAN', {'object': boolean_test_object, 'solver': 'FAST'}),
-        ModifierSpec('build', 'BUILD', {'frame_start': 1, 'frame_duration': 1}, 2),
-        ModifierSpec('decimate', 'DECIMATE', {}),
-        ModifierSpec('edge split', 'EDGE_SPLIT', {}),
-
-        # mask can effectively delete the mesh since the vertex group need to be updated after each
-        # applied modifier. Needs to be tested separately.
-        # ModifierSpec('mask', 'MASK', {'vertex_group': mask_vertex_group}, False),
-
-        ModifierSpec('mirror', 'MIRROR', {}),
         ModifierSpec('multires', 'MULTIRES', {}),
-
-        # remesh can also generate an empty mesh. Skip.
-        # ModifierSpec('remesh', 'REMESH', {}),
-
-        # ModifierSpec('screw', 'SCREW', {}), # screw can make the test very slow. Skipping for now.
-
+        ModifierSpec('boolean', 'BOOLEAN', {'object': bpy.data.objects["testCubeRandom_boolean"], 'solver': 'FAST'}),
         ModifierSpec('solidify', 'SOLIDIFY', {}),
-        # Opensubdiv results might differ slightly when compiled with different optimization flags.
-        #ModifierSpec('subsurf', 'SUBSURF', {}),
+        ModifierSpec('build', 'BUILD', {'frame_start': 1, 'frame_duration': 1}, 2),
         ModifierSpec('triangulate', 'TRIANGULATE', {}),
-        ModifierSpec('wireframe', 'WIREFRAME', {})
-
     ]
-
-    if randomize:
-        shuffle(generate_modifiers)
-
     return generate_modifiers
 
 
 def main():
-    mask_first_list = get_generate_modifiers_list("testCubeMaskFirst", randomize=True)
-    mask_vertex_group = "testCubeMaskFirst" + "_mask"
-    mask_first_list.insert(0, ModifierSpec('mask', 'MASK', {'vertex_group': mask_vertex_group}))
 
     tests = [
         ###############################
         # List of 'Generate' modifiers on a cube
         ###############################
         # 0
-        # SpecMeshTest("testCube", "expectedCube", get_generate_modifiers_list("testCube")),
-        SpecMeshTest("CubeRandom", "testCubeRandom", "expectedCubeRandom",
-                     get_generate_modifiers_list("testCubeRandom", randomize=True)),
-        SpecMeshTest("CubeMaskFirst", "testCubeMaskFirst", "expectedCubeMaskFirst", mask_first_list),
+        SpecMeshTest("CubeRandom", "testCubeRandom", "expectedCubeRandom", cube_random_modifier_list()),
+        SpecMeshTest("CubeMaskFirst", "testCubeMaskFirst", "expectedCubeMaskFirst", cube_mask_first_modifier_list()),
 
         SpecMeshTest("CollapseDecimate", "testCollapseDecimate", "expectedCollapseDecimate",
                      [ModifierSpec('decimate', 'DECIMATE',

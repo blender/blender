@@ -870,6 +870,26 @@ an issue but, due to internal implementation details, currently are:
   thus breaking any current iteration over ``Collection.all_objects``.
 
 
+.. rubric:: Do not:
+
+.. code-block:: python
+
+   # `all_objects` is an iterator. Using it directly while performing operations on its members that will update
+   # the memory accessed by the `all_objects` iterator will lead to invalid memory accesses and crashes.
+   for object in bpy.data.collections["Collection"].all_objects:
+        object.hide_viewport = True
+
+
+.. rubric:: Do:
+
+.. code-block:: python
+
+   # `all_objects[:]` is an independent list generated from the iterator. As long as no objects are deleted,
+   # its content will remain valid even if the data accessed by the `all_objects` iterator is modified.
+   for object in bpy.data.collections["Collection"].all_objects[:]:
+        object.hide_viewport = True
+
+
 sys.exit
 ========
 

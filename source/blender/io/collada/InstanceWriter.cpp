@@ -38,13 +38,13 @@ void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial &bind_materia
       // create <bind_vertex_input> for each uv map
       Mesh *me = (Mesh *)ob->data;
 
-      int num_layers = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
+      int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
 
       int map_index = 0;
-      int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV);
+      int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_PROP_FLOAT2);
       for (int b = 0; b < num_layers; b++) {
         if (!active_uv_only || b == active_uv_index) {
-          char *name = bc_CustomData_get_layer_name(&me->ldata, CD_MLOOPUV, b);
+          char *name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_FLOAT2, b);
           im.push_back(COLLADASW::BindVertexInput(name, "TEXCOORD", map_index++));
         }
       }

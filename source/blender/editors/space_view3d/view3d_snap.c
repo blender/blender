@@ -722,8 +722,6 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 static void bundle_midpoint(Scene *scene, Object *ob, float r_vec[3])
 {
   MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
-  MovieTracking *tracking;
-  MovieTrackingObject *object;
   bool ok = false;
   float min[3], max[3], mat[4][4], pos[3], cammat[4][4];
 
@@ -731,7 +729,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float r_vec[3])
     return;
   }
 
-  tracking = &clip->tracking;
+  MovieTracking *tracking = &clip->tracking;
 
   copy_m4_m4(cammat, ob->object_to_world);
 
@@ -739,31 +737,28 @@ static void bundle_midpoint(Scene *scene, Object *ob, float r_vec[3])
 
   INIT_MINMAX(min, max);
 
-  for (object = tracking->objects.first; object; object = object->next) {
-    ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
-    MovieTrackingTrack *track = tracksbase->first;
+  LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
     float obmat[4][4];
 
-    if (object->flag & TRACKING_OBJECT_CAMERA) {
+    if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
       copy_m4_m4(obmat, mat);
     }
     else {
       float imat[4][4];
 
-      BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, scene->r.cfra, imat);
+      BKE_tracking_camera_get_reconstructed_interpolate(
+          tracking, tracking_object, scene->r.cfra, imat);
       invert_m4(imat);
 
       mul_m4_m4m4(obmat, cammat, imat);
     }
 
-    while (track) {
+    LISTBASE_FOREACH (const MovieTrackingTrack *, track, &tracking_object->tracks) {
       if ((track->flag & TRACK_HAS_BUNDLE) && TRACK_SELECTED(track)) {
         ok = 1;
         mul_v3_m4v3(pos, obmat, track->bundle_pos);
         minmax_v3v3_v3(min, max, pos);
       }
-
-      track = track->next;
     }
   }
 

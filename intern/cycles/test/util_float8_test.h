@@ -22,13 +22,26 @@ static bool validate_cpu_capabilities()
 #endif
 }
 
+/* These are not just static variables because we don't want to run the
+ * constructor until we know the instructions are supported. */
+static vfloat8 float8_a()
+{
+  return make_vfloat8(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f);
+}
+
+static vfloat8 float8_b()
+{
+  return make_vfloat8(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
+}
+
+static vfloat8 float8_c()
+{
+  return make_vfloat8(1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f);
+}
+
 #define INIT_FLOAT8_TEST \
   if (!validate_cpu_capabilities()) \
-    return; \
-\
-  const vfloat8 float8_a = make_vfloat8(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f); \
-  const vfloat8 float8_b = make_vfloat8(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f); \
-  const vfloat8 float8_c = make_vfloat8(1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f);
+    return;
 
 #define compare_vector_scalar(a, b) \
   for (size_t index = 0; index < 8; index++) \
@@ -57,15 +70,15 @@ static bool validate_cpu_capabilities()
 
 static const float float_b = 1.5f;
 
-TEST(TEST_CATEGORY_NAME,
-     float8_add_vv){basic_test_vv(float8_a, float8_b, +)} TEST(TEST_CATEGORY_NAME, float8_sub_vv){
-    basic_test_vv(float8_a, float8_b, -)} TEST(TEST_CATEGORY_NAME, float8_mul_vv){
-    basic_test_vv(float8_a, float8_b, *)} TEST(TEST_CATEGORY_NAME, float8_div_vv){
-    basic_test_vv(float8_a, float8_b, /)} TEST(TEST_CATEGORY_NAME, float8_add_vf){
-    basic_test_vf(float8_a, float_b, +)} TEST(TEST_CATEGORY_NAME, float8_sub_vf){
-    basic_test_vf(float8_a, float_b, -)} TEST(TEST_CATEGORY_NAME, float8_mul_vf){
-    basic_test_vf(float8_a, float_b, *)} TEST(TEST_CATEGORY_NAME,
-                                              float8_div_vf){basic_test_vf(float8_a, float_b, /)}
+TEST(TEST_CATEGORY_NAME, float8_add_vv){
+    basic_test_vv(float8_a(), float8_b(), +)} TEST(TEST_CATEGORY_NAME, float8_sub_vv){
+    basic_test_vv(float8_a(), float8_b(), -)} TEST(TEST_CATEGORY_NAME, float8_mul_vv){
+    basic_test_vv(float8_a(), float8_b(), *)} TEST(TEST_CATEGORY_NAME, float8_div_vv){
+    basic_test_vv(float8_a(), float8_b(), /)} TEST(TEST_CATEGORY_NAME, float8_add_vf){
+    basic_test_vf(float8_a(), float_b, +)} TEST(TEST_CATEGORY_NAME, float8_sub_vf){
+    basic_test_vf(float8_a(), float_b, -)} TEST(TEST_CATEGORY_NAME, float8_mul_vf){
+    basic_test_vf(float8_a(), float_b, *)} TEST(TEST_CATEGORY_NAME, float8_div_vf){
+    basic_test_vf(float8_a(), float_b, /)}
 
 TEST(TEST_CATEGORY_NAME, float8_ctor)
 {
@@ -85,18 +98,18 @@ TEST(TEST_CATEGORY_NAME, float8_sqrt)
 TEST(TEST_CATEGORY_NAME, float8_min_max)
 {
   INIT_FLOAT8_TEST
-  compare_vector_vector(min(float8_a, float8_b), float8_a);
-  compare_vector_vector(max(float8_a, float8_b), float8_b);
+  compare_vector_vector(min(float8_a(), float8_b()), float8_a());
+  compare_vector_vector(max(float8_a(), float8_b()), float8_b());
 }
 
 TEST(TEST_CATEGORY_NAME, float8_shuffle)
 {
   INIT_FLOAT8_TEST
-  vfloat8 res0 = shuffle<0, 1, 2, 3, 1, 3, 2, 0>(float8_a);
+  vfloat8 res0 = shuffle<0, 1, 2, 3, 1, 3, 2, 0>(float8_a());
   compare_vector_vector(res0, make_vfloat8(0.1f, 0.2f, 0.3f, 0.4f, 0.6f, 0.8f, 0.7f, 0.5f));
-  vfloat8 res1 = shuffle<3>(float8_a);
+  vfloat8 res1 = shuffle<3>(float8_a());
   compare_vector_vector(res1, make_vfloat8(0.4f, 0.4f, 0.4f, 0.4f, 0.8f, 0.8f, 0.8f, 0.8f));
-  vfloat8 res2 = shuffle<3, 2, 1, 0>(float8_a, float8_b);
+  vfloat8 res2 = shuffle<3, 2, 1, 0>(float8_a(), float8_b());
   compare_vector_vector(res2, make_vfloat8(0.4f, 0.3f, 2.0f, 1.0f, 0.8f, 0.7f, 6.0f, 5.0f));
 }
 

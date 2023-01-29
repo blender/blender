@@ -8,6 +8,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "BLT_translation.h"
+
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -46,6 +48,7 @@ class DoubleEdgeMaskOperation : public NodeOperation {
   void execute() override
   {
     get_input("Inner Mask").pass_through(get_result("Mask"));
+    context().set_info_message("Viewport compositor setup not fully supported");
   }
 };
 
@@ -66,6 +69,8 @@ void register_node_type_cmp_doubleedgemask()
   ntype.declare = file_ns::cmp_node_double_edge_mask_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_double_edge_mask;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.realtime_compositor_unsupported_message = N_(
+      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

@@ -26,7 +26,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef map<void *, ShaderInput *> PtrInputMap;
+typedef unordered_multimap<void *, ShaderInput *> PtrInputMap;
 typedef map<void *, ShaderOutput *> PtrOutputMap;
 typedef map<string, ConvertNode *> ProxyMap;
 
@@ -59,6 +59,12 @@ static DisplacementMethod get_displacement_method(PointerRNA &ptr)
 {
   return (DisplacementMethod)get_enum(
       ptr, "displacement_method", DISPLACE_NUM_METHODS, DISPLACE_BUMP);
+}
+
+static EmissionSampling get_emission_sampling(PointerRNA &ptr)
+{
+  return (EmissionSampling)get_enum(
+      ptr, "emission_sampling", EMISSION_SAMPLING_NUM, EMISSION_SAMPLING_AUTO);
 }
 
 static int validate_enum_value(int value, int num_values, int default_value)
@@ -1245,7 +1251,9 @@ static void add_nodes(Scene *scene,
 
         ConvertNode *proxy = graph->create_node<ConvertNode>(to_socket_type, to_socket_type, true);
 
-        input_map[b_link.from_socket().ptr.data] = proxy->inputs[0];
+        /* Muted nodes can result in multiple Cycles input sockets mapping to the same Blender
+         * input socket, so this needs to be a multimap. */
+        input_map.emplace(b_link.from_socket().ptr.data, proxy->inputs[0]);
         output_map[b_link.to_socket().ptr.data] = proxy->outputs[0];
 
         graph->add(proxy);
@@ -1280,7 +1288,7 @@ static void add_nodes(Scene *scene,
         /* register the proxy node for internal binding */
         group_proxy_input_map[b_input.identifier()] = proxy;
 
-        input_map[b_input.ptr.data] = proxy->inputs[0];
+        input_map.emplace(b_input.ptr.data, proxy->inputs[0]);
 
         set_default_value(proxy->inputs[0], b_input, b_data, b_ntree);
       }
@@ -1332,7 +1340,7 @@ static void add_nodes(Scene *scene,
           if (proxy_it != proxy_output_map.end()) {
             ConvertNode *proxy = proxy_it->second;
 
-            input_map[b_input.ptr.data] = proxy->inputs[0];
+            input_map.emplace(b_input.ptr.data, proxy->inputs[0]);
 
             set_default_value(proxy->inputs[0], b_input, b_data, b_ntree);
           }
@@ -1363,7 +1371,7 @@ static void add_nodes(Scene *scene,
             /* XXX should not happen, report error? */
             continue;
           }
-          input_map[b_input.ptr.data] = input;
+          input_map.emplace(b_input.ptr.data, input);
 
           set_default_value(input, b_input, b_data, b_ntree);
         }
@@ -1395,20 +1403,23 @@ static void add_nodes(Scene *scene,
     BL::NodeSocket b_from_sock = b_link.from_socket();
     BL::NodeSocket b_to_sock = b_link.to_socket();
 
-    ShaderOutput *output = 0;
-    ShaderInput *input = 0;
-
+    ShaderOutput *output = nullptr;
     PtrOutputMap::iterator output_it = output_map.find(b_from_sock.ptr.data);
     if (output_it != output_map.end())
       output = output_it->second;
-    PtrInputMap::iterator input_it = input_map.find(b_to_sock.ptr.data);
-    if (input_it != input_map.end())
-      input = input_it->second;
 
-    /* either node may be NULL when the node was not exported, typically
+    /* either socket may be NULL when the node was not exported, typically
      * because the node type is not supported */
-    if (output && input)
-      graph->connect(output, input);
+    if (output != nullptr) {
+      ShaderOutput *output = output_it->second;
+      auto inputs = input_map.equal_range(b_to_sock.ptr.data);
+      for (PtrInputMap::iterator input_it = inputs.first; input_it != inputs.second; ++input_it) {
+        ShaderInput *input = input_it->second;
+        if (input != nullptr) {
+          graph->connect(output, input);
+        }
+      }
+    }
   }
 }
 
@@ -1559,7 +1570,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
 
       /* settings */
       PointerRNA cmat = RNA_pointer_get(&b_mat.ptr, "cycles");
-      shader->set_use_mis(get_boolean(cmat, "sample_as_light"));
+      shader->set_emission_sampling_method(get_emission_sampling(cmat));
       shader->set_use_transparent_shadow(get_boolean(cmat, "use_transparent_shadow"));
       shader->set_heterogeneous_volume(!get_boolean(cmat, "homogeneous_volume"));
       shader->set_volume_sampling_method(get_volume_sampling(cmat));

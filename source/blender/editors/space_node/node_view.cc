@@ -16,6 +16,7 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_screen.h"
 
 #include "ED_image.h"
@@ -61,7 +62,7 @@ bool space_node_view_flag(
   if (snode.edittree) {
     LISTBASE_FOREACH (const bNode *, node, &snode.edittree->nodes) {
       if ((node->flag & node_flag) == node_flag) {
-        BLI_rctf_union(&cur_new, &node->totr);
+        BLI_rctf_union(&cur_new, &node->runtime->totr);
         tot++;
 
         if (node->type == NODE_FRAME) {

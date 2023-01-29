@@ -16,7 +16,6 @@ struct Brush;
 struct CurveMapping;
 struct Depsgraph;
 struct GHash;
-struct GPencilUpdateCache;
 struct ListBase;
 struct MDeformVert;
 struct Main;

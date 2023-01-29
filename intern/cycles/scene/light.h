@@ -10,6 +10,7 @@
 
 /* included as Light::set_shader defined through NODE_SOCKET_API does not select
  * the right Node::set overload as it does not know that Shader is a Node */
+#include "scene/light_tree.h"
 #include "scene/shader.h"
 
 #include "util/ies.h"
@@ -44,12 +45,13 @@ class Light : public Node {
   NODE_SOCKET_API(float, sizeu)
   NODE_SOCKET_API(float3, axisv)
   NODE_SOCKET_API(float, sizev)
-  NODE_SOCKET_API(bool, round)
+  NODE_SOCKET_API(bool, ellipse)
   NODE_SOCKET_API(float, spread)
 
   NODE_SOCKET_API(Transform, tfm)
 
   NODE_SOCKET_API(int, map_resolution)
+  NODE_SOCKET_API(float, average_radiance)
 
   NODE_SOCKET_API(float, spot_angle)
   NODE_SOCKET_API(float, spot_smooth)
@@ -127,11 +129,12 @@ class LightManager {
    */
   void test_enabled_lights(Scene *scene);
 
-  void device_update_points(Device *device, DeviceScene *dscene, Scene *scene);
+  void device_update_lights(Device *device, DeviceScene *dscene, Scene *scene);
   void device_update_distribution(Device *device,
                                   DeviceScene *dscene,
                                   Scene *scene,
                                   Progress &progress);
+  void device_update_tree(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
   void device_update_background(Device *device,
                                 DeviceScene *dscene,
                                 Scene *scene,

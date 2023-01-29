@@ -9,6 +9,7 @@
 #include "BKE_image_format.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 
 #include "IMB_colormanagement.h"
 
@@ -59,7 +60,6 @@ static const pxr::TfToken out("out", pxr::TfToken::Immortal);
 static const pxr::TfToken normal("normal", pxr::TfToken::Immortal);
 static const pxr::TfToken ior("ior", pxr::TfToken::Immortal);
 static const pxr::TfToken file("file", pxr::TfToken::Immortal);
-static const pxr::TfToken preview("preview", pxr::TfToken::Immortal);
 static const pxr::TfToken raw("raw", pxr::TfToken::Immortal);
 static const pxr::TfToken sRGB("sRGB", pxr::TfToken::Immortal);
 static const pxr::TfToken sourceColorSpace("sourceColorSpace", pxr::TfToken::Immortal);
@@ -122,10 +122,6 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
   if (!material) {
     return;
   }
-
-  /* Define a 'preview' scope beneath the material which will contain the preview shaders. */
-  pxr::UsdGeomScope::Define(usd_export_context.stage,
-                            usd_material.GetPath().AppendChild(usdtokens::preview));
 
   /* Default map when creating UV primvar reader shaders. */
   pxr::TfToken default_uv_sampler = default_uv.empty() ? cyclestokens::UVMap :
@@ -454,7 +450,7 @@ static bNode *traverse_channel(bNodeSocket *input, const short target_type)
  * material's node tree.  Returns null if no instance of either type was found. */
 static bNode *find_bsdf_node(Material *material)
 {
-  LISTBASE_FOREACH (bNode *, node, &material->nodetree->nodes) {
+  for (bNode *node : material->nodetree->all_nodes()) {
     if (ELEM(node->type, SH_NODE_BSDF_PRINCIPLED, SH_NODE_BSDF_DIFFUSE)) {
       return node;
     }
@@ -469,9 +465,8 @@ static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &u
                                                      const char *name,
                                                      const int type)
 {
-  pxr::SdfPath shader_path = material.GetPath()
-                                 .AppendChild(usdtokens::preview)
-                                 .AppendChild(pxr::TfToken(pxr::TfMakeValidIdentifier(name)));
+  pxr::SdfPath shader_path = material.GetPath().AppendChild(
+      pxr::TfToken(pxr::TfMakeValidIdentifier(name)));
   pxr::UsdShadeShader shader = pxr::UsdShadeShader::Define(usd_export_context.stage, shader_path);
 
   switch (type) {
@@ -745,6 +740,18 @@ static void export_texture(bNode *node,
   else {
     copy_single_file(ima, dest_dir, allow_overwrite);
   }
+}
+
+const pxr::TfToken token_for_input(const char *input_name)
+{
+  const InputSpecMap &input_map = preview_surface_input_map();
+  const InputSpecMap::const_iterator it = input_map.find(input_name);
+
+  if (it == input_map.end()) {
+    return pxr::TfToken();
+  }
+
+  return it->second.input_name;
 }
 
 }  // namespace blender::io::usd

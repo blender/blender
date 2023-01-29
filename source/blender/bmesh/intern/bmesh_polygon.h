@@ -6,10 +6,13 @@
  * \ingroup bmesh
  */
 
-struct BMPartialUpdate;
 struct Heap;
 
 #include "BLI_compiler_attrs.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * For tools that insist on using triangles, ideally we would cache this data.
@@ -70,7 +73,12 @@ float BM_face_calc_area(const BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float BM_face_calc_area_with_mat3(const BMFace *f, const float mat3[3][3]) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 /**
- * get the area of UV face
+ * Calculate the signed area of UV face.
+ */
+float BM_face_calc_area_uv_signed(const BMFace *f, int cd_loop_uv_offset) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
+/**
+ * Calculate the area of UV face.
  */
 float BM_face_calc_area_uv(const BMFace *f, int cd_loop_uv_offset) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
@@ -277,3 +285,7 @@ void BM_vert_tri_calc_tangent_edge(BMVert *verts[3], float r_tangent[3]);
  * \param r_tangent: Calculated unit length tangent (return value).
  */
 void BM_vert_tri_calc_tangent_edge_pair(BMVert *verts[3], float r_tangent[3]);
+
+#ifdef __cplusplus
+}
+#endif

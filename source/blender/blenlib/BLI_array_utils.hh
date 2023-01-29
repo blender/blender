@@ -112,4 +112,6 @@ inline void gather(const VArray<T> &src,
   });
 }
 
+void invert_booleans(MutableSpan<bool> span);
+
 }  // namespace blender::array_utils
