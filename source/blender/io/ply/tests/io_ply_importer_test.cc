@@ -23,7 +23,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "IO_ply.h"
-#include "intern/ply_data.hh"
+#include "ply_data.hh"
 #include "ply_import.hh"
 #include "ply_import_binary.hh"
 

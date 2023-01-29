@@ -7,23 +7,22 @@
 #include <cstdio>
 
 #include "BKE_layer.h"
+#include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 
 #include "DNA_collection_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_math_vector.h"
 #include "BLI_memory_utils.hh"
 
-#include "DNA_object_types.h"
-
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "BKE_lib_id.h"
-#include "BKE_report.h"
-#include "intern/ply_data.hh"
+#include "ply_data.hh"
 #include "ply_functions.hh"
 #include "ply_import.hh"
 #include "ply_import_ascii.hh"
@@ -167,7 +166,7 @@ void importer_main(Main *bmain,
   BKE_view_layer_base_select_and_set_active(view_layer, base);
 
   try {
-    PlyData *data;
+    std::unique_ptr<PlyData> data;
     if (header.type == PlyFormatType::ASCII) {
       data = import_ply_ascii(infile, &header);
     }
@@ -179,7 +178,6 @@ void importer_main(Main *bmain,
     if (import_params.merge_verts && temp_val != mesh) {
       BKE_mesh_nomain_to_mesh(temp_val, mesh, obj);
     }
-    delete data;
   }
   catch (std::exception &e) {
     fprintf(stderr, "PLY Importer: failed to read file. %s.\n", e.what());
