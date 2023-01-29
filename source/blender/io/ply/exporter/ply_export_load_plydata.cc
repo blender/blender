@@ -37,7 +37,7 @@ float world_and_axes_transform_[4][4];
 float world_and_axes_normal_transform_[3][3];
 bool mirrored_transform_;
 
-Mesh *do_triangulation(Mesh *mesh, bool force_triangulation)
+Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation)
 {
   const BMeshCreateParams bm_create_params = {false};
   BMeshFromMeshParams bm_convert_params{};
@@ -115,11 +115,10 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       manually_free_mesh = true;
     }
 
-    const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
-        CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
+    const float2 *uv_map = static_cast<const float2 *>(
+        CustomData_get_layer(&mesh->ldata, CD_PROP_FLOAT2));
 
-    std::unordered_map<UV_vertex_key, int, UV_vertex_hash> vertex_map = generate_vertex_map(
-        mesh, mloopuv, export_params);
+    blender::Map<UV_vertex_key, int> vertex_map = generate_vertex_map(mesh, uv_map, export_params);
 
     set_world_axes_transform(
         &export_object_eval_, export_params.forward_axis, export_params.up_axis);
@@ -132,35 +131,35 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
 
       for (int i = 0; i < loopSpan.size(); ++i) {
         float2 uv;
-        if (export_params.export_uv && mloopuv) {
-          uv = mloopuv[i + loop_offset].uv;
+        if (export_params.export_uv && uv_map) {
+          uv = uv_map[i + loop_offset];
         }
         else {
           uv = {0, 0};
         }
         UV_vertex_key key = UV_vertex_key(uv, loopSpan[i].v);
-        auto ply_vertex_index = vertex_map.find(key);
-        polyVector.append(uint32_t(ply_vertex_index->second + vertex_offset));
+        int ply_vertex_index = vertex_map.lookup(key);
+        polyVector.append(uint32_t(ply_vertex_index + vertex_offset));
       }
       loop_offset += loopSpan.size();
 
       plyData.faces.append(polyVector);
     }
 
-    std::unique_ptr<int[]> mesh_vertex_index_LUT(new int[vertex_map.size()]);
-    std::unique_ptr<int[]> ply_vertex_index_LUT(new int[mesh->totvert]);
-    std::unique_ptr<float2[]> uv_coordinates(new float2[vertex_map.size()]);
+    Array<int> mesh_vertex_index_LUT(vertex_map.size());
+    Array<int> ply_vertex_index_LUT(mesh->totvert);
+    Array<float2> uv_coordinates(vertex_map.size());
 
-    for (auto const &[key, value] : vertex_map) {
-      mesh_vertex_index_LUT[value] = key.vertex_index;
-      ply_vertex_index_LUT[key.vertex_index] = value;
-      uv_coordinates[value] = key.UV;
+    for (auto const &[key, ply_vertex_index] : vertex_map.items()) {
+      mesh_vertex_index_LUT[ply_vertex_index] = key.mesh_vertex_index;
+      ply_vertex_index_LUT[key.mesh_vertex_index] = ply_vertex_index;
+      uv_coordinates[ply_vertex_index] = key.UV;
     }
 
     /* Vertices */
     for (int i = 0; i < vertex_map.size(); ++i) {
       float3 r_coords;
-      copy_v3_v3(r_coords, mesh->verts()[mesh_vertex_index_LUT[i]].co);
+      copy_v3_v3(r_coords, mesh->vert_positions()[mesh_vertex_index_LUT[i]]);
       mul_m4_v3(object->object_to_world, r_coords);
       mul_m4_v3(world_and_axes_transform_, r_coords);
       mul_v3_fl(r_coords, export_params.global_scale);
@@ -176,10 +175,11 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
 
     /* Normals */
     if (export_params.export_normals) {
-      const float(*vertex_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+      const Span<float3> vert_normals = mesh->vertex_normals();
       for (int i = 0; i < vertex_map.size(); i++) {
-        mul_m3_v3(world_and_axes_normal_transform_, (float3)vertex_normals);
-        plyData.vertex_normals.append(vertex_normals[mesh_vertex_index_LUT[i]]);
+        mul_m3_v3(world_and_axes_normal_transform_,
+                  (float3)vert_normals[mesh_vertex_index_LUT[i]]);
+        plyData.vertex_normals.append(vert_normals[mesh_vertex_index_LUT[i]]);
       }
     }
 
@@ -192,16 +192,18 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     }
 
     /* Edges */
-    for (auto &&edge : mesh->edges()) {
-      if ((edge.flag & ME_LOOSEEDGE) == ME_LOOSEEDGE) {
-        std::pair<uint32_t, uint32_t> edge_pair = std::make_pair(
-            ply_vertex_index_LUT[uint32_t(edge.v1)], ply_vertex_index_LUT[uint32_t(edge.v2)]);
-
-        plyData.edges.append(edge_pair);
+    const bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
+    if (loose_edges.count > 0) {
+      for (int i = 0; i < mesh->edges().size(); ++i) {
+        if (loose_edges.is_loose_bits[i]) {
+          int index_one = ply_vertex_index_LUT[mesh->edges()[i].v1];
+          int index_two = ply_vertex_index_LUT[mesh->edges()[i].v2];
+          plyData.edges.append({index_one, index_two});
+        }
       }
     }
 
-    vertex_offset = (int)plyData.vertices.size();
+    vertex_offset = int(plyData.vertices.size());
     if (manually_free_mesh) {
       BKE_id_free(nullptr, mesh);
     }
@@ -210,11 +212,12 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
   DEG_OBJECT_ITER_END;
 }
 
-std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertex_map(
-    const Mesh *mesh, const MLoopUV *mloopuv, const PLYExportParams &export_params)
+blender::Map<UV_vertex_key, int> generate_vertex_map(const Mesh *mesh,
+                                                     const float2 *uv_map,
+                                                     const PLYExportParams &export_params)
 {
 
-  std::unordered_map<UV_vertex_key, int, UV_vertex_hash> vertex_map;
+  blender::Map<UV_vertex_key, int> vertex_map;
 
   const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
@@ -222,10 +225,10 @@ std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertex_map(
 
   vertex_map.reserve(totvert);
 
-  if (!mloopuv || !export_params.export_uv) {
+  if (!uv_map || !export_params.export_uv) {
     for (int vertex_index = 0; vertex_index < totvert; ++vertex_index) {
       UV_vertex_key key = UV_vertex_key({0, 0}, vertex_index);
-      vertex_map.insert({key, vertex_map.size()});
+      vertex_map.add_new(key, vertex_map.size());
     }
     return vertex_map;
   }
@@ -235,7 +238,7 @@ std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertex_map(
                                                        nullptr,
                                                        nullptr,
                                                        loops.data(),
-                                                       mloopuv,
+                                                       reinterpret_cast<const float(*)[2]>(uv_map),
                                                        polys.size(),
                                                        totvert,
                                                        limit,
@@ -247,15 +250,15 @@ std::unordered_map<UV_vertex_key, int, UV_vertex_hash> generate_vertex_map(
 
     if (uv_vert == nullptr) {
       UV_vertex_key key = UV_vertex_key({0, 0}, vertex_index);
-      vertex_map.insert({key, vertex_map.size()});
+      vertex_map.add_new(key, vertex_map.size());
     }
 
     for (; uv_vert; uv_vert = uv_vert->next) {
       /* Store UV vertex coordinates. */
       const int loopstart = polys[uv_vert->poly_index].loopstart;
-      float2 vert_uv_coords(mloopuv[loopstart + uv_vert->loop_of_poly_index].uv);
+      float2 vert_uv_coords(uv_map[loopstart + uv_vert->loop_of_poly_index]);
       UV_vertex_key key = UV_vertex_key(vert_uv_coords, vertex_index);
-      vertex_map.insert({key, vertex_map.size()});
+      vertex_map.add(key, vertex_map.size());
     }
   }
   BKE_mesh_uv_vert_map_free(uv_vert_map);
