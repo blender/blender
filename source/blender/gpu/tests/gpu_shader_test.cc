@@ -218,30 +218,12 @@ static void test_gpu_shader_ssbo_binding()
   }
 
   /* Build compute shader. */
-  const char *compute_glsl = R"(
-
-layout(local_size_x = 1) in;
-
-layout(std430, binding = 0) buffer ssboBinding0
-{
-  int data0[];
-};
-layout(std430, binding = 1) buffer ssboBinding1
-{
-  int data1[];
-};
-
-void main() {
-}
-
-)";
-
-  GPUShader *shader = GPU_shader_create_compute(compute_glsl, nullptr, nullptr, "gpu_shader_ssbo");
+  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ssbo_binding_test");
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 
-  EXPECT_EQ(0, GPU_shader_get_ssbo(shader, "ssboBinding0"));
-  EXPECT_EQ(1, GPU_shader_get_ssbo(shader, "ssboBinding1"));
+  EXPECT_EQ(0, GPU_shader_get_ssbo(shader, "data0"));
+  EXPECT_EQ(1, GPU_shader_get_ssbo(shader, "data1"));
 
   /* Cleanup. */
   GPU_shader_unbind();
