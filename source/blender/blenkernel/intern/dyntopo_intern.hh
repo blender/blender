@@ -9,6 +9,15 @@ struct MinMaxHeap;
 struct GHash;
 struct BLI_Buffer;
 
+#define DYNTOPO_DISABLE_SPLIT_EDGES 1
+#define DYNTOPO_DISABLE_FIN_REMOVAL 2
+#define DYNTOPO_DISABLE_COLLAPSE 4
+#define DYNTOPO_DISABLE_TRIANGULATOR 8
+
+//#define DYNTOPO_DISABLE_FLAG \
+//  (DYNTOPO_DISABLE_FIN_REMOVAL | DYNTOPO_DISABLE_COLLAPSE | DYNTOPO_DISABLE_TRIANGULATOR)
+#define DYNTOPO_DISABLE_FLAG 0
+
 extern "C" {
 void bmesh_disk_edge_append(BMEdge *e, BMVert *v);
 void bmesh_radial_loop_append(BMEdge *e, BMLoop *l);

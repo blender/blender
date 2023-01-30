@@ -304,8 +304,7 @@ ATTR_NO_OPT void BM_idmap_release(BMIdMap *idmap, BMElem *elem, bool clear_id)
   if (id == -1) {
     printf("%s: unassigned id!\n", __func__);
     return;
-  }
-
+  };
   if (id < 0 || id >= idmap->map_size || (idmap->map[id] && idmap->map[id] != elem)) {
     printf("%s: id corruptions\n", __func__);
   }

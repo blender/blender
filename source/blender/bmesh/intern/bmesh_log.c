@@ -3516,7 +3516,7 @@ BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, fl
     newe = &tmp;
   }
 
-  BM_log_edge_pre(log, e);
+  BM_log_edge_removed(log, e);
   BM_idmap_release(log->idmap, (BMElem *)e, true);
 
   BMVert *newv = BM_edge_split(log->bm, e, v, newe, t);
@@ -3534,8 +3534,8 @@ BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, fl
 
   BM_log_vert_added(log, newv, -1);
 
-  BM_log_edge_post(log, e);
-  BM_log_edge_post(log, *newe);
+  BM_log_edge_added(log, e);
+  BM_log_edge_added(log, *newe);
 
   bm_logstack_pop();
 

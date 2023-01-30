@@ -726,9 +726,11 @@ static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_custo
     BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, ni);
   }
   else {
-    printf("%s: error: corrupted vertex.\n", __func__);
+    if (ni != DYNTOPO_NODE_NONE) {
+      printf("%s: error: corrupted vertex. ni: %d\n", __func__, ni);
+      BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, DYNTOPO_NODE_NONE);
+    }
 
-    BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
     data->regen_all_unique_verts = true;
   }
 

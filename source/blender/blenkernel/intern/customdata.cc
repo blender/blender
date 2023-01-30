@@ -4265,7 +4265,7 @@ void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
 }
 
 #ifndef USE_BMESH_PAGE_CUSTOMDATA
-static void CustomData_bmesh_set_default_n(CustomData *data, void **block, const int n)
+ATTR_NO_OPT static void CustomData_bmesh_set_default_n(CustomData *data, void **block, const int n)
 {
   if (ELEM(data->layers[n].type, CD_TOOLFLAGS, CD_MESH_ID)) {
     /* do not do toolflags or mesh ids */
@@ -4414,11 +4414,11 @@ void CustomData_bmesh_swap_data(CustomData *source,
   }
 }
 
-void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
-                                                CustomData *dest,
-                                                void *src_block,
-                                                void **dest_block,
-                                                const eCustomDataMask mask_exclude)
+ATTR_NO_OPT void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
+                                                            CustomData *dest,
+                                                            void *src_block,
+                                                            void **dest_block,
+                                                            const eCustomDataMask mask_exclude)
 {
   /* Note that having a version of this function without a 'mask_exclude'
    * would cause too much duplicate code, so add a check instead. */
@@ -4444,7 +4444,6 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
 
   for (int dest_i = 0; dest_i < dest->totlayer; dest_i++) {
     CustomData_bmesh_set_default_n(dest, dest_block, dest_i);
-    dest_i++;
   }
 
   /* copies a layer at a time */
