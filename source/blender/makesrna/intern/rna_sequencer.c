@@ -1416,7 +1416,7 @@ static void rna_SequenceTimelineChannel_name_set(PointerRNA *ptr, const char *va
                  sizeof(channel->name));
 }
 
-static void rna_SequenceTimelineChannel_mute_update(Main *bmain,
+static void rna_SequenceTimelineChannel_mute_update(Main *UNUSED(bmain),
                                                     Scene *UNUSED(active_scene),
                                                     PointerRNA *ptr)
 {

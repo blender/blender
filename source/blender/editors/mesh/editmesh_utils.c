@@ -455,7 +455,6 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
 
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
 
-  const int totfaces = bm->totface;
   const int totverts = bm->totvert;
   int totuv = 0;
 

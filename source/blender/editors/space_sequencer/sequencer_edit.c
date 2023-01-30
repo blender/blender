@@ -3570,7 +3570,7 @@ void SEQUENCER_OT_cursor_set(wmOperatorType *ot)
 /** \name Update scene strip frame range
  * \{ */
 
-static int sequencer_scene_frame_range_update_exec(bContext *C, wmOperator *op)
+static int sequencer_scene_frame_range_update_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
