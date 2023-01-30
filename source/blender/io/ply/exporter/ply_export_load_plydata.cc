@@ -131,7 +131,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
 
       for (int i = 0; i < loopSpan.size(); ++i) {
         float2 uv;
-        if (export_params.export_uv && uv_map) {
+        if (export_params.export_uv && uv_map != nullptr) {
           uv = uv_map[i + loop_offset];
         }
         else {
@@ -225,7 +225,7 @@ blender::Map<UV_vertex_key, int> generate_vertex_map(const Mesh *mesh,
 
   vertex_map.reserve(totvert);
 
-  if (!uv_map || !export_params.export_uv) {
+  if (uv_map == nullptr || !export_params.export_uv) {
     for (int vertex_index = 0; vertex_index < totvert; ++vertex_index) {
       UV_vertex_key key = UV_vertex_key({0, 0}, vertex_index);
       vertex_map.add_new(key, vertex_map.size());
