@@ -764,20 +764,13 @@ void BKE_nlastrips_sort_strips(ListBase *strips)
   strips->last = tmp.last;
 }
 
-bool BKE_nlastrips_add_strip(ListBase *strips, NlaStrip *strip)
+void BKE_nlastrips_add_strip_unsafe(ListBase *strips, NlaStrip *strip)
 {
   NlaStrip *ns;
   bool not_added = true;
 
   /* sanity checks */
-  if (ELEM(NULL, strips, strip)) {
-    return false;
-  }
-
-  /* check if any space to add */
-  if (BKE_nlastrips_has_space(strips, strip->start, strip->end) == 0) {
-    return false;
-  }
+  BLI_assert(!ELEM(NULL, strips, strip));
 
   /* find the right place to add the strip to the nominated track */
   for (ns = strips->first; ns; ns = ns->next) {
@@ -792,8 +785,20 @@ bool BKE_nlastrips_add_strip(ListBase *strips, NlaStrip *strip)
     /* just add to the end of the list of the strips then... */
     BLI_addtail(strips, strip);
   }
+}
 
-  /* added... */
+/** NULL and Space check before adding in nlastrip */
+bool BKE_nlastrips_add_strip(ListBase *strips, NlaStrip *strip)
+{
+  if (ELEM(NULL, strips, strip)) {
+    return false;
+  }
+
+  if (!BKE_nlastrips_has_space(strips, strip->start, strip->end)) {
+    return false;
+  }
+
+  BKE_nlastrips_add_strip_unsafe(strips, strip);
   return true;
 }
 

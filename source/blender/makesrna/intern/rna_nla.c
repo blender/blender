@@ -539,7 +539,7 @@ static NlaStrip *rna_NlaStrip_new(ID *id,
   strip->end += (start - strip->start);
   strip->start = start;
 
-  if (BKE_nlastrips_add_strip(&track->strips, strip) == 0) {
+  if (BKE_nlastrips_add_strip(&track->strips, strip)) {
     BKE_report(
         reports,
         RPT_ERROR,

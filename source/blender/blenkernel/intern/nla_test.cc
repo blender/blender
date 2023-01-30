@@ -39,4 +39,28 @@ TEST(nla_strip, BKE_nlastrip_recalculate_blend)
   EXPECT_FLOAT_EQ(strip.blendout, 0.1);
 }
 
+TEST(nla_strip, BKE_nlastrips_add_strip)
+{
+  ListBase strips{};
+  NlaStrip strip1{};
+  strip1.start = 0;
+  strip1.end = 10;
+  strips.first = &strip1;
+
+  NlaStrip strip2{};
+  strip2.start = 5;
+  strip2.end = 10;
+  
+  /*  can't add a null NLA strip to an NLA Track.   */
+  EXPECT_FALSE(BKE_nlastrips_add_strip(&strips, NULL));
+
+  /* can't add an NLA strip to an NLA Track that overlaps another NLA strip. */
+  EXPECT_FALSE(BKE_nlastrips_add_strip(&strips, &strip2));
+
+  strip2.start = 15;
+  strip2.end = 20;
+  /* can add an NLA strip to an NLA Track that doesn't overlaps another NLA strip. */
+  EXPECT_TRUE(BKE_nlastrips_add_strip(&strips, &strip2));
+}
+
 }  // namespace blender::bke::tests
