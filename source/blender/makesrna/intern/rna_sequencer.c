@@ -1416,6 +1416,28 @@ static void rna_SequenceTimelineChannel_name_set(PointerRNA *ptr, const char *va
                  sizeof(channel->name));
 }
 
+static void rna_SequenceTimelineChannel_mute_update(Main *bmain,
+                                                    Scene *UNUSED(active_scene),
+                                                    PointerRNA *ptr)
+{
+  Scene *scene = (Scene *)ptr->owner_id;
+  Editing *ed = SEQ_editing_get(scene);
+  SeqTimelineChannel *channel = (SeqTimelineChannel *)ptr;
+
+  Sequence *channel_owner = rna_SeqTimelineChannel_owner_get(ed, channel);
+  ListBase *seqbase;
+  if (channel_owner == NULL) {
+    seqbase = &ed->seqbase;
+  }
+  else {
+    seqbase = &channel_owner->seqbase;
+  }
+
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    SEQ_relations_invalidate_cache_composite(scene, seq);
+  }
+}
+
 static char *rna_SeqTimelineChannel_path(const PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
@@ -2165,7 +2187,8 @@ static void rna_def_channel(BlenderRNA *brna)
   prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_CHANNEL_MUTE);
   RNA_def_property_ui_text(prop, "Mute channel", "");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_sound_update");
+  RNA_def_property_update(
+      prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTimelineChannel_mute_update");
 }
 
 static void rna_def_editor(BlenderRNA *brna)
