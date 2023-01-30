@@ -6826,7 +6826,7 @@ static void rna_def_modifier_normaledit(BlenderRNA *brna)
   prop = RNA_def_property(srna, "mix_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_text(
-      prop, "Mix Factor", "How much of generated normals to mix with exiting ones");
+      prop, "Mix Factor", "How much of generated normals to mix with existing ones");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "mix_limit", PROP_FLOAT, PROP_ANGLE);
