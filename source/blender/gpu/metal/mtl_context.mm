@@ -1522,7 +1522,6 @@ void MTLContext::ensure_texture_bindings(
 
   @autoreleasepool {
     int compute_arg_buffer_bind_index = -1;
-    int null_index = -1;
 
     /* Argument buffers are used for samplers, when the limit of 16 is exceeded.
      * NOTE: Compute uses vertex argument for arg buffer bind index.*/
