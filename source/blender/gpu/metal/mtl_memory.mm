@@ -433,6 +433,7 @@ void MTLSafeFreeList::increment_reference()
   lock_.lock();
   BLI_assert(in_free_queue_ == false);
   reference_count_++;
+  referenced_by_workload_ = true;
   lock_.unlock();
 }
 
@@ -448,6 +449,17 @@ void MTLSafeFreeList::decrement_reference()
     MTLContext::get_global_memory_manager()->push_completed_safe_list(this);
   }
   lock_.unlock();
+}
+
+bool MTLSafeFreeList::should_flush()
+{
+  /* We should only consider refreshing a list if it has been referenced by active workloads, and
+   * contains a sufficient buffer count to avoid overheads associated with flushing the list. If
+   * the reference count is only equal to 1, buffers may have been added, but no command
+   * submissions will have been issued, hence buffers could be returned to the pool prematurely if
+   * associated workload submission occurs later. */
+  return ((reference_count_ > 1 || referenced_by_workload_) &&
+          current_list_index_ > MIN_BUFFER_FLUSH_COUNT);
 }
 
 /** \} */

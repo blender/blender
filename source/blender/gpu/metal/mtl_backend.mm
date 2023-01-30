@@ -152,8 +152,10 @@ void MTLBackend::render_step()
    * released. */
   MTLSafeFreeList *cmd_free_buffer_list =
       MTLContext::get_global_memory_manager()->get_current_safe_list();
-  MTLContext::get_global_memory_manager()->begin_new_safe_list();
-  cmd_free_buffer_list->decrement_reference();
+  if (cmd_free_buffer_list->should_flush()) {
+    MTLContext::get_global_memory_manager()->begin_new_safe_list();
+    cmd_free_buffer_list->decrement_reference();
+  }
 }
 
 bool MTLBackend::is_inside_render_boundary()
