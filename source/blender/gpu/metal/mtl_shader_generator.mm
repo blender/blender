@@ -108,7 +108,6 @@ static eMTLDataType to_mtl_type(Type type)
 
 static std::regex remove_non_numeric_characters("[^0-9]");
 
-#ifndef NDEBUG
 static void remove_multiline_comments_func(std::string &str)
 {
   char *current_str_begin = &*str.begin();
@@ -158,7 +157,6 @@ static void remove_singleline_comments_func(std::string &str)
     }
   }
 }
-#endif
 
 static bool is_program_word(const char *chr, int *len)
 {
@@ -207,15 +205,36 @@ static void replace_outvars(std::string &str)
         if (is_program_word(word_base2, &len2)) {
           /* Match found. */
           bool is_array = (*(word_base2 + len2) == '[');
-
-          /* Generate out-variable pattern of form `THD type&var` from original `out vec4 var`. */
-          *start = 'T';
-          *(start + 1) = 'H';
-          *(start + 2) = 'D';
-          for (char *clear = start + 3; clear < c + 4; clear++) {
-            *clear = ' ';
+          if (is_array) {
+            /* Generate out-variable pattern for arrays, of form
+             * `OUT(vec2,samples,CRYPTOMATTE_LEVELS_MAX)`
+             * replacing original `out vec2 samples[SAMPLE_LEN]`
+             * using 'OUT' macro declared in mtl_shader_defines.msl*/
+            char *array_end = strchr(word_base2 + len2, ']');
+            if (array_end != nullptr) {
+              *start = 'O';
+              *(start + 1) = 'U';
+              *(start + 2) = 'T';
+              *(start + 3) = '(';
+              for (char *clear = start + 4; clear < c + 4; clear++) {
+                *clear = ' ';
+              }
+              *(word_base2 - 1) = ',';
+              *(word_base2 + len2) = ',';
+              *array_end = ')';
+            }
           }
-          *(word_base2 - 1) = is_array ? '*' : '&';
+          else {
+            /* Generate out-variable pattern of form `THD type&var` from original `out vec4 var`.
+             */
+            *start = 'T';
+            *(start + 1) = 'H';
+            *(start + 2) = 'D';
+            for (char *clear = start + 3; clear < c + 4; clear++) {
+              *clear = ' ';
+            }
+            *(word_base2 - 1) = '&';
+          }
         }
       }
     }
@@ -387,6 +406,138 @@ static bool extract_ssbo_pragma_info(const MTLShader *shader,
   return false;
 }
 
+/* Extract shared memory declaration and their parameters.
+ * Inserts extracted cases as entries in MSLGeneratorInterface's shared memory block
+ * list. These will later be used to generate shared memory declarations within the entry point.
+ *
+ * TODO(Metal/GPU): Move shared memory declarations to GPUShaderCreateInfo. This is currently a
+ * necessary workaround to match GLSL functionality and enable full compute shader support. In the
+ * long term, best to avoid needing to perform this operation. */
+void extract_shared_memory_blocks(MSLGeneratorInterface &msl_iface,
+                                  std::string &glsl_compute_source)
+{
+  msl_iface.shared_memory_blocks.clear();
+  char *current_str_begin = &*glsl_compute_source.begin();
+  char *current_str_end = &*glsl_compute_source.end();
+
+  for (char *c = current_str_begin; c < current_str_end - 6; c++) {
+    /* Find first instance of "shared ". */
+    char *c_expr_start = strstr(c, "shared ");
+    if (c_expr_start == nullptr) {
+      break;
+    }
+    /* Check if "shared" was part of a previous word. If so, this is not valid. */
+    if (next_word_in_range(c_expr_start - 1, c_expr_start) != nullptr) {
+      c += 7; /* Jump forward by length of "shared ". */
+      continue;
+    }
+
+    /* Jump to shared declaration and detect end of statement. */
+    c = c_expr_start;
+    char *c_expr_end = strstr(c, ";");
+    if (c_expr_end == nullptr) {
+      break;
+    }
+
+    /* Prepare MSLSharedMemoryBlock instance. */
+    MSLSharedMemoryBlock new_shared_block;
+    char buf[256];
+
+    /* Read type-name. */
+    c += 7; /* Jump forward by length of "shared ". */
+    c = next_word_in_range(c, c_expr_end);
+    if (c == nullptr) {
+      c = c_expr_end + 1;
+      continue;
+    }
+
+    char *c_next_space = next_symbol_in_range(c, c_expr_end, ' ');
+    if (c_next_space == nullptr) {
+      c = c_expr_end + 1;
+      continue;
+    }
+    int len = c_next_space - c;
+    BLI_assert(len < 256);
+    strncpy(buf, c, len);
+    buf[len] = '\0';
+    new_shared_block.type_name = std::string(buf);
+
+    /* Read var-name.
+     * Varname can either come right before the final semi-colon, or
+     * with following array syntax.
+     * spaces may exist before closing symbol. */
+    c = c_next_space + 1;
+    c = next_word_in_range(c, c_expr_end);
+    if (c == nullptr) {
+      c = c_expr_end + 1;
+      continue;
+    }
+
+    char *c_array_begin = next_symbol_in_range(c, c_expr_end, '[');
+    c_next_space = next_symbol_in_range(c, c_expr_end, ' ');
+
+    char *varname_end = nullptr;
+    if (c_array_begin != nullptr) {
+      /* Array path. */
+      if (c_next_space != nullptr) {
+        varname_end = (c_next_space < c_array_begin) ? c_next_space : c_array_begin;
+      }
+      else {
+        varname_end = c_array_begin;
+      }
+      new_shared_block.is_array = true;
+    }
+    else {
+      /* Ending semi-colon. */
+      if (c_next_space != nullptr) {
+        varname_end = (c_next_space < c_expr_end) ? c_next_space : c_expr_end;
+      }
+      else {
+        varname_end = c_expr_end;
+      }
+      new_shared_block.is_array = false;
+    }
+    len = varname_end - c;
+    BLI_assert(len < 256);
+    strncpy(buf, c, len);
+    buf[len] = '\0';
+    new_shared_block.varname = std::string(buf);
+
+    /* Determine if array. */
+    if (new_shared_block.is_array) {
+      int len = c_expr_end - c_array_begin;
+      strncpy(buf, c_array_begin, len);
+      buf[len] = '\0';
+      new_shared_block.array_decl = std::string(buf);
+    }
+
+    /* Shared block is valid, add it to the list and replace declaration with class member.
+     * reference. This declaration needs to have one of the formats:
+     * TG int& varname;
+     * TG int (&varname)[len][len]
+     *
+     * In order to fit in the same space, replace `threadgroup` with `TG` macro.
+     */
+    for (char *c = c_expr_start; c <= c_expr_end; c++) {
+      *c = ' ';
+    }
+    std::string out_str = "TG ";
+    out_str += new_shared_block.type_name;
+    out_str += (new_shared_block.is_array) ? "(&" : "&";
+    out_str += new_shared_block.varname;
+    if (new_shared_block.is_array) {
+      out_str += ")" + new_shared_block.array_decl;
+    }
+    out_str += ";;";
+    strncpy(c_expr_start, out_str.c_str(), out_str.length() - 1);
+
+    /* Jump to end of statement. */
+    c = c_expr_end + 1;
+
+    msl_iface.shared_memory_blocks.append(new_shared_block);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -501,8 +652,9 @@ std::string MTLShader::geometry_layout_declare(const shader::ShaderCreateInfo &i
 
 std::string MTLShader::compute_layout_declare(const ShaderCreateInfo &info) const
 {
-  /* TODO(Metal): Metal compute layout pending compute support. */
-  BLI_assert_msg(false, "Compute shaders unsupported by Metal");
+  /* Metal supports compute shaders. THis function is a pass-through.
+   * Compute shader interface population happens during mtl_shader_generator, as part of GLSL
+   * conversion. */
   return "";
 }
 
@@ -541,6 +693,11 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
                     this->name_get());
     valid_ = false;
     return false;
+  }
+
+  /* Compute shaders use differing compilation path. */
+  if (shd_builder_->glsl_compute_source_.size() > 0) {
+    return this->generate_msl_from_glsl_compute(info);
   }
 
   /* #MSLGeneratorInterface is a class populated to describe all parameters, resources, bindings
@@ -1061,7 +1218,6 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
                                  ([NSString stringWithUTF8String:ss_fragment.str().c_str()]);
 
   this->shader_source_from_msl(msl_final_vert, msl_final_frag);
-  shader_debug_printf("[METAL] BSL Converted into MSL\n");
 
 #ifndef NDEBUG
   /* In debug mode, we inject the name of the shader into the entry-point function
@@ -1086,6 +1242,231 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
     ssbo_vertex_fetch_output_num_verts_ = vertex_fetch_ssbo_num_output_verts;
     this->prepare_ssbo_vertex_fetch_metadata();
   }
+
+  /* Successfully completed GLSL to MSL translation. */
+  return true;
+}
+
+bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *info)
+{
+  /* #MSLGeneratorInterface is a class populated to describe all parameters, resources, bindings
+   * and features used by the source GLSL shader. This information is then used to generate the
+   * appropriate Metal entry points and perform any required source translation. */
+  MSLGeneratorInterface msl_iface(*this);
+  BLI_assert(shd_builder_ != nullptr);
+
+  /* Populate #MSLGeneratorInterface from Create-Info.
+   * NOTE: this is a separate path as #MSLGeneratorInterface can also be manually populated
+   * from parsing, if support for shaders without create-info is required. */
+  msl_iface.prepare_from_createinfo(info);
+
+  /* Verify Source sizes are greater than zero. */
+  BLI_assert(shd_builder_->glsl_compute_source_.size() > 0);
+
+  /*** Regex Commands ***/
+  /* Source cleanup and syntax replacement. */
+  static std::regex remove_excess_newlines("\\n+");
+  static std::regex replace_matrix_construct("mat([234](x[234])?)\\s*\\(");
+
+  /* Special condition - mat3 and array constructor replacement.
+   * Also replace excessive new lines to ensure cases are not missed. */
+  shd_builder_->glsl_compute_source_ = std::regex_replace(
+      shd_builder_->glsl_compute_source_, remove_excess_newlines, "\n");
+  shd_builder_->glsl_compute_source_ = std::regex_replace(
+      shd_builder_->glsl_compute_source_, replace_matrix_construct, "MAT$1(");
+  replace_array_initializers_func(shd_builder_->glsl_compute_source_);
+
+  /**** Extract usage of GL globals. ****/
+  /* NOTE(METAL): Currently still performing fallback string scan, as info->builtins_ does
+   * not always contain the usage flag. This can be removed once all appropriate create-info's
+   * have been updated. In some cases, this may incur a false positive if access is guarded
+   * behind a macro. Though in these cases, unused code paths and parameters will be
+   * optimized out by the Metal shader compiler. */
+
+  /* gl_GlobalInvocationID. */
+  msl_iface.uses_gl_GlobalInvocationID =
+      bool(info->builtins_ & BuiltinBits::GLOBAL_INVOCATION_ID) ||
+      shd_builder_->glsl_compute_source_.find("gl_GlobalInvocationID") != std::string::npos;
+  /* gl_WorkGroupSize. */
+  msl_iface.uses_gl_WorkGroupSize = bool(info->builtins_ & BuiltinBits::WORK_GROUP_SIZE) ||
+                                    shd_builder_->glsl_compute_source_.find("gl_WorkGroupSize") !=
+                                        std::string::npos;
+  /* gl_WorkGroupID. */
+  msl_iface.uses_gl_WorkGroupID = bool(info->builtins_ & BuiltinBits::WORK_GROUP_ID) ||
+                                  shd_builder_->glsl_compute_source_.find("gl_WorkGroupID") !=
+                                      std::string::npos;
+  /* gl_NumWorkGroups. */
+  msl_iface.uses_gl_NumWorkGroups = bool(info->builtins_ & BuiltinBits::NUM_WORK_GROUP) ||
+                                    shd_builder_->glsl_compute_source_.find("gl_NumWorkGroups") !=
+                                        std::string::npos;
+  /* gl_LocalInvocationIndex. */
+  msl_iface.uses_gl_LocalInvocationIndex =
+      bool(info->builtins_ & BuiltinBits::LOCAL_INVOCATION_INDEX) ||
+      shd_builder_->glsl_compute_source_.find("gl_LocalInvocationIndex") != std::string::npos;
+  /* gl_LocalInvocationID. */
+  msl_iface.uses_gl_LocalInvocationID = bool(info->builtins_ & BuiltinBits::LOCAL_INVOCATION_ID) ||
+                                        shd_builder_->glsl_compute_source_.find(
+                                            "gl_LocalInvocationID") != std::string::npos;
+
+  /* Performance warning: Extract global-scope expressions.
+   * NOTE: This is dependent on stripping out comments
+   * to remove false positives. */
+  remove_multiline_comments_func(shd_builder_->glsl_compute_source_);
+  remove_singleline_comments_func(shd_builder_->glsl_compute_source_);
+
+  /** Extract usage of shared memory.
+   * For Metal shaders to compile, shared (threadgroup) memory cannot be declared globally.
+   * It must reside within a function scope. Hence, we need to extract these uses and generate
+   * shared memory blocks within the entry point function, which can then be passed as references
+   * to the remaining shader via the class function scope.
+   *
+   * The existing block definitions are then replaced with references to threadgroup memory blocks,
+   * but kept in-line in case external macros are used to declare the dimensions. */
+  extract_shared_memory_blocks(msl_iface, shd_builder_->glsl_compute_source_);
+
+  /* Replace 'out' attribute on function parameters with pass-by-reference. */
+  replace_outvars(shd_builder_->glsl_compute_source_);
+
+  /** Generate Compute shader stage. **/
+  std::stringstream ss_compute;
+
+#ifndef NDEBUG
+  extract_global_scope_constants(shd_builder_->glsl_compute_source_, ss_compute);
+#endif
+
+  /* Conditional defines. */
+  if (msl_iface.use_argument_buffer_for_samplers()) {
+    ss_compute << "#define USE_ARGUMENT_BUFFER_FOR_SAMPLERS 1" << std::endl;
+    ss_compute << "#define ARGUMENT_BUFFER_NUM_SAMPLERS "
+               << msl_iface.num_samplers_for_stage(ShaderStage::COMPUTE) << std::endl;
+  }
+
+  /* Inject static workgroup sizes. */
+  if (msl_iface.uses_gl_WorkGroupSize) {
+  }
+
+  /* Inject constant work group sizes. */
+  if (msl_iface.uses_gl_WorkGroupSize) {
+    ss_compute << "#define MTL_USE_WORKGROUP_SIZE 1" << std::endl;
+    ss_compute << "#define MTL_WORKGROUP_SIZE_X " << info->compute_layout_.local_size_x
+               << std::endl;
+    ss_compute << "#define MTL_WORKGROUP_SIZE_Y "
+               << ((info->compute_layout_.local_size_y != -1) ?
+                       info->compute_layout_.local_size_y :
+                       1)
+               << std::endl;
+    ss_compute << "#define MTL_WORKGROUP_SIZE_Z "
+               << ((info->compute_layout_.local_size_y != -1) ?
+                       info->compute_layout_.local_size_y :
+                       1)
+               << std::endl;
+  }
+
+  /* Inject common Metal header. */
+  ss_compute << msl_iface.msl_patch_default_get() << std::endl << std::endl;
+
+  /* Wrap entire GLSL source inside class to create
+   * a scope within the class to enable use of global variables.
+   * e.g. global access to attributes, uniforms, UBOs, textures etc; */
+  ss_compute << "class " << get_stage_class_name(ShaderStage::COMPUTE) << " {" << std::endl;
+  ss_compute << "public:" << std::endl;
+
+  /* Generate Uniform data structs. */
+  ss_compute << msl_iface.generate_msl_uniform_structs(ShaderStage::VERTEX);
+
+  /* Add Texture members.
+   * These members pack both a texture and a sampler into a single
+   * struct, as both are needed within texture functions.
+   * e.g. `_mtl_combined_image_sampler_2d<float, access::read>`
+   * The exact typename is generated inside `get_msl_typestring_wrapper()`. */
+  for (const MSLTextureSampler &tex : msl_iface.texture_samplers) {
+    if (bool(tex.stage & ShaderStage::COMPUTE)) {
+      ss_compute << "\tthread " << tex.get_msl_typestring_wrapper(false) << ";" << std::endl;
+    }
+  }
+  ss_compute << std::endl;
+
+  /* Conditionally use global GL variables. */
+  if (msl_iface.uses_gl_GlobalInvocationID) {
+    ss_compute << "uint3 gl_GlobalInvocationID;" << std::endl;
+  }
+  if (msl_iface.uses_gl_WorkGroupID) {
+    ss_compute << "uint3 gl_WorkGroupID;" << std::endl;
+  }
+  if (msl_iface.uses_gl_NumWorkGroups) {
+    ss_compute << "uint3 gl_NumWorkGroups;" << std::endl;
+  }
+  if (msl_iface.uses_gl_LocalInvocationIndex) {
+    ss_compute << "uint gl_LocalInvocationIndex;" << std::endl;
+  }
+  if (msl_iface.uses_gl_LocalInvocationID) {
+    ss_compute << "uint3 gl_LocalInvocationID;" << std::endl;
+  }
+
+  /* Inject main GLSL source into output stream. */
+  ss_compute << shd_builder_->glsl_compute_source_ << std::endl;
+
+  /* Compute constructor for Shared memory blocks, as we must pass
+   * local references from entry-point function scope into the class
+   * instantiation. */
+  ss_compute << get_stage_class_name(ShaderStage::COMPUTE) << "(";
+  bool first = true;
+  if (msl_iface.shared_memory_blocks.size() > 0) {
+    for (const MSLSharedMemoryBlock &block : msl_iface.shared_memory_blocks) {
+      if (!first) {
+        ss_compute << ",";
+      }
+      if (block.is_array) {
+        ss_compute << "TG " << block.type_name << " (&_" << block.varname << ")"
+                   << block.array_decl;
+      }
+      else {
+        ss_compute << "TG " << block.type_name << " &_" << block.varname;
+      }
+      ss_compute << std::endl;
+      first = false;
+    }
+    ss_compute << ") : ";
+    first = true;
+    for (const MSLSharedMemoryBlock &block : msl_iface.shared_memory_blocks) {
+      if (!first) {
+        ss_compute << ",";
+      }
+      ss_compute << block.varname << "(_" << block.varname << ")";
+      first = false;
+    }
+  }
+  else {
+    ss_compute << ") ";
+  }
+  ss_compute << "{ }" << std::endl;
+
+  /* Class Closing Bracket to end shader global scope. */
+  ss_compute << "};" << std::endl;
+
+  /* Generate Vertex shader entry-point function containing resource bindings. */
+  ss_compute << msl_iface.generate_msl_compute_entry_stub();
+
+#ifndef NDEBUG
+  /* In debug mode, we inject the name of the shader into the entry-point function
+   * name, as these are what show up in the Xcode GPU debugger. */
+  this->set_compute_function_name(
+      [[NSString stringWithFormat:@"compute_function_entry_%s", this->name] retain]);
+#else
+  this->set_compute_function_name(@"compute_function_entry");
+#endif
+
+  NSString *msl_final_compute = [NSString stringWithUTF8String:ss_compute.str().c_str()];
+  this->shader_compute_source_from_msl(msl_final_compute);
+
+  /* Bake shader interface. */
+  this->set_interface(msl_iface.bake_shader_interface(this->name));
+
+  /* Compute dims. */
+  this->compute_pso_instance_.set_compute_workgroup_size(
+      max_ii(info->compute_layout_.local_size_x, 1),
+      max_ii(info->compute_layout_.local_size_y, 1),
+      max_ii(info->compute_layout_.local_size_z, 1));
 
   /* Successfully completed GLSL to MSL translation. */
   return true;
@@ -1256,7 +1637,7 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
           }
 
           MSLTextureSampler msl_tex(
-              ShaderStage::BOTH, res.sampler.type, res.sampler.name, access, used_slot);
+              ShaderStage::ANY, res.sampler.type, res.sampler.name, access, used_slot);
           texture_samplers.append(msl_tex);
         } break;
 
@@ -1284,9 +1665,12 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
           }
           BLI_assert(used_slot >= 0 && used_slot < MTL_MAX_TEXTURE_SLOTS);
 
-          /* Writeable image targets only assigned to Fragment shader. */
-          MSLTextureSampler msl_tex(
-              ShaderStage::FRAGMENT, res.image.type, res.image.name, access, used_slot);
+          /* Writeable image targets only assigned to Fragment and compute shaders. */
+          MSLTextureSampler msl_tex(ShaderStage::FRAGMENT | ShaderStage::COMPUTE,
+                                    res.image.type,
+                                    res.image.name,
+                                    access,
+                                    used_slot);
           texture_samplers.append(msl_tex);
         } break;
 
@@ -1306,7 +1690,7 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
           else {
             ubo.name = res.uniformbuf.name;
           }
-          ubo.stage = ShaderStage::VERTEX | ShaderStage::FRAGMENT;
+          ubo.stage = ShaderStage::ANY;
           uniform_blocks.append(ubo);
         } break;
 
@@ -1381,7 +1765,10 @@ uint32_t MSLGeneratorInterface::num_samplers_for_stage(ShaderStage stage) const
 
 uint32_t MSLGeneratorInterface::get_sampler_argument_buffer_bind_index(ShaderStage stage)
 {
-  BLI_assert(stage == ShaderStage::VERTEX || stage == ShaderStage::FRAGMENT);
+  /* Note: Shader stage must be a singular index. Compound shader masks are not valid for this
+   * function. */
+  BLI_assert(stage == ShaderStage::VERTEX || stage == ShaderStage::FRAGMENT ||
+             stage == ShaderStage::COMPUTE);
   if (sampler_argument_buffer_bind_index[get_shader_stage_index(stage)] >= 0) {
     return sampler_argument_buffer_bind_index[get_shader_stage_index(stage)];
   }
@@ -1412,6 +1799,8 @@ void MSLGeneratorInterface::prepare_ssbo_vertex_fetch_uniforms()
 
 std::string MSLGeneratorInterface::generate_msl_vertex_entry_stub()
 {
+  static const char *shader_stage_inst_name = get_shader_stage_instance_name(ShaderStage::VERTEX);
+
   std::stringstream out;
   out << std::endl << "/*** AUTO-GENERATED MSL VERETX SHADER STUB. ***/" << std::endl;
 
@@ -1441,18 +1830,20 @@ std::string MSLGeneratorInterface::generate_msl_vertex_entry_stub()
 
   out << this->generate_msl_vertex_inputs_string();
   out << ") {" << std::endl << std::endl;
-  out << "\tMTLShaderVertexImpl::VertexOut output;" << std::endl
-      << "\tMTLShaderVertexImpl vertex_shader_instance;" << std::endl;
+  out << "\t" << get_stage_class_name(ShaderStage::VERTEX) << "::VertexOut output;" << std::endl
+      << "\t" << get_stage_class_name(ShaderStage::VERTEX) << " " << shader_stage_inst_name << ";"
+      << std::endl;
 
   /* Copy Vertex Globals. */
   if (this->uses_gl_VertexID) {
-    out << "vertex_shader_instance.gl_VertexID = gl_VertexID;" << std::endl;
+    out << shader_stage_inst_name << ".gl_VertexID = gl_VertexID;" << std::endl;
   }
   if (this->uses_gl_InstanceID) {
-    out << "vertex_shader_instance.gl_InstanceID = gl_InstanceID-gl_BaseInstanceARB;" << std::endl;
+    out << shader_stage_inst_name << ".gl_InstanceID = gl_InstanceID-gl_BaseInstanceARB;"
+        << std::endl;
   }
   if (this->uses_gl_BaseInstanceARB) {
-    out << "vertex_shader_instance.gl_BaseInstanceARB = gl_BaseInstanceARB;" << std::endl;
+    out << shader_stage_inst_name << ".gl_BaseInstanceARB = gl_BaseInstanceARB;" << std::endl;
   }
 
   /* Copy vertex attributes into local variables. */
@@ -1465,7 +1856,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_entry_stub()
 
   /* Execute original 'main' function within class scope. */
   out << "\t/* Execute Vertex main function */\t" << std::endl
-      << "\tvertex_shader_instance.main();" << std::endl
+      << "\t" << shader_stage_inst_name << ".main();" << std::endl
       << std::endl;
 
   /* Populate Output values. */
@@ -1492,6 +1883,8 @@ std::string MSLGeneratorInterface::generate_msl_vertex_entry_stub()
 
 std::string MSLGeneratorInterface::generate_msl_fragment_entry_stub()
 {
+  static const char *shader_stage_inst_name = get_shader_stage_instance_name(
+      ShaderStage::FRAGMENT);
   std::stringstream out;
   out << std::endl << "/*** AUTO-GENERATED MSL FRAGMENT SHADER STUB. ***/" << std::endl;
 
@@ -1515,15 +1908,17 @@ std::string MSLGeneratorInterface::generate_msl_fragment_entry_stub()
 #endif
   out << this->generate_msl_fragment_inputs_string();
   out << ") {" << std::endl << std::endl;
-  out << "\tMTLShaderFragmentImpl::FragmentOut output;" << std::endl
-      << "\tMTLShaderFragmentImpl fragment_shader_instance;" << std::endl;
+  out << "\t" << get_stage_class_name(ShaderStage::FRAGMENT) << "::FragmentOut output;"
+      << std::endl
+      << "\t" << get_stage_class_name(ShaderStage::FRAGMENT) << " " << shader_stage_inst_name
+      << ";" << std::endl;
 
   /* Copy Fragment Globals. */
   if (this->uses_gl_PointCoord) {
-    out << "fragment_shader_instance.gl_PointCoord = gl_PointCoord;" << std::endl;
+    out << shader_stage_inst_name << ".gl_PointCoord = gl_PointCoord;" << std::endl;
   }
   if (this->uses_gl_FrontFacing) {
-    out << "fragment_shader_instance.gl_FrontFacing = gl_FrontFacing;" << std::endl;
+    out << shader_stage_inst_name << ".gl_FrontFacing = gl_FrontFacing;" << std::endl;
   }
   if (this->uses_gl_PrimitiveID) {
     out << "fragment_shader_instance.gl_PrimitiveID = gl_PrimitiveID;" << std::endl;
@@ -1536,11 +1931,11 @@ std::string MSLGeneratorInterface::generate_msl_fragment_entry_stub()
   if (this->uses_barycentrics) {
 
     /* Main barycentrics. */
-    out << "fragment_shader_instance.gpu_BaryCoord = mtl_barycentric_coord.xyz;" << std::endl;
+    out << shader_stage_inst_name << ".gpu_BaryCoord = mtl_barycentric_coord.xyz;" << std::endl;
 
     /* barycentricDist represents the world-space distance from the current world-space position
      * to the opposite edge of the vertex. */
-    out << "float3 worldPos = fragment_shader_instance.worldPosition.xyz;" << std::endl;
+    out << "float3 worldPos = " << shader_stage_inst_name << ".worldPosition.xyz;" << std::endl;
     out << "float3 wpChange = (length(dfdx(worldPos))+length(dfdy(worldPos)));" << std::endl;
     out << "float3 bcChange = "
            "(length(dfdx(mtl_barycentric_coord))+length(dfdy(mtl_barycentric_coord)));"
@@ -1549,13 +1944,16 @@ std::string MSLGeneratorInterface::generate_msl_fragment_entry_stub()
 
     /* Distance to edge using inverse barycentric value, as rather than the length of 0.7
      * contribution, we'd want the distance to the opposite side. */
-    out << "fragment_shader_instance.gpu_BarycentricDist.x = length(rateOfChange * "
+    out << shader_stage_inst_name
+        << ".gpu_BarycentricDist.x = length(rateOfChange * "
            "(1.0-mtl_barycentric_coord.x));"
         << std::endl;
-    out << "fragment_shader_instance.gpu_BarycentricDist.y = length(rateOfChange * "
+    out << shader_stage_inst_name
+        << ".gpu_BarycentricDist.y = length(rateOfChange * "
            "(1.0-mtl_barycentric_coord.y));"
         << std::endl;
-    out << "fragment_shader_instance.gpu_BarycentricDist.z = length(rateOfChange * "
+    out << shader_stage_inst_name
+        << ".gpu_BarycentricDist.z = length(rateOfChange * "
            "(1.0-mtl_barycentric_coord.z));"
         << std::endl;
   }
@@ -1567,7 +1965,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_entry_stub()
 
   /* Execute original 'main' function within class scope. */
   out << "\t/* Execute Fragment main function */\t" << std::endl
-      << "\tfragment_shader_instance.main();" << std::endl
+      << "\t" << shader_stage_inst_name << ".main();" << std::endl
       << std::endl;
 
   /* Populate Output values. */
@@ -1577,11 +1975,98 @@ std::string MSLGeneratorInterface::generate_msl_fragment_entry_stub()
   return out.str();
 }
 
+std::string MSLGeneratorInterface::generate_msl_compute_entry_stub()
+{
+  static const char *shader_stage_inst_name = get_shader_stage_instance_name(ShaderStage::COMPUTE);
+  std::stringstream out;
+  out << std::endl << "/*** AUTO-GENERATED MSL COMPUTE SHADER STUB. ***/" << std::endl;
+
+  /* Un-define texture defines from main source - avoid conflict with MSL texture. */
+  out << "#undef texture" << std::endl;
+  out << "#undef textureLod" << std::endl;
+
+  /* Disable special case for booleans being treated as ints in GLSL. */
+  out << "#undef bool" << std::endl;
+
+  /* Un-define uniform mappings to avoid name collisions. */
+  out << generate_msl_uniform_undefs(ShaderStage::COMPUTE);
+
+  /* Generate function entry point signature w/ resource bindings and inputs. */
+  out << "kernel void ";
+#ifndef NDEBUG
+  out << "compute_function_entry_" << parent_shader_.name_get() << "(\n\t";
+#else
+  out << "compute_function_entry(\n\t";
+#endif
+
+  out << this->generate_msl_compute_inputs_string();
+  out << ") {" << std::endl << std::endl;
+  /* Generate Compute shader instance constructor. If shared memory blocks are used,
+   * these must be declared and then passed into the constructor. */
+  std::string stage_instance_constructor = "";
+  bool first = true;
+  if (shared_memory_blocks.size() > 0) {
+    stage_instance_constructor += "(";
+    for (const MSLSharedMemoryBlock &block : shared_memory_blocks) {
+      if (block.is_array) {
+        out << "TG " << block.type_name << " " << block.varname << block.array_decl << ";";
+      }
+      else {
+        out << "TG " << block.type_name << " " << block.varname << ";";
+      }
+      stage_instance_constructor += ((!first) ? "," : "") + block.varname;
+      first = false;
+
+      out << std::endl;
+    }
+    stage_instance_constructor += ")";
+  }
+  out << "\t" << get_stage_class_name(ShaderStage::COMPUTE) << " " << shader_stage_inst_name
+      << stage_instance_constructor << ";" << std::endl;
+
+  /* Copy global variables. */
+  /* Entry point parameters for gl Globals. */
+  if (this->uses_gl_GlobalInvocationID) {
+    out << shader_stage_inst_name << ".gl_GlobalInvocationID = gl_GlobalInvocationID;"
+        << std::endl;
+  }
+  if (this->uses_gl_WorkGroupID) {
+    out << shader_stage_inst_name << ".gl_WorkGroupID = gl_WorkGroupID;" << std::endl;
+  }
+  if (this->uses_gl_NumWorkGroups) {
+    out << shader_stage_inst_name << ".gl_NumWorkGroups = gl_NumWorkGroups;" << std::endl;
+  }
+  if (this->uses_gl_LocalInvocationIndex) {
+    out << shader_stage_inst_name << ".gl_LocalInvocationIndex = gl_LocalInvocationIndex;"
+        << std::endl;
+  }
+  if (this->uses_gl_LocalInvocationID) {
+    out << shader_stage_inst_name << ".gl_LocalInvocationID = gl_LocalInvocationID;" << std::endl;
+  }
+
+  /* Populate Uniforms and uniform blocks. */
+  out << this->generate_msl_texture_vars(ShaderStage::COMPUTE);
+  out << this->generate_msl_global_uniform_population(ShaderStage::COMPUTE);
+  out << this->generate_msl_uniform_block_population(ShaderStage::COMPUTE);
+  /* TODO(Metal): SSBO Population. */
+
+  /* Execute original 'main' function within class scope. */
+  out << "\t/* Execute Compute main function */\t" << std::endl
+      << "\t" << shader_stage_inst_name << ".main();" << std::endl
+      << std::endl;
+
+  out << "}";
+  return out.str();
+}
+
 void MSLGeneratorInterface::generate_msl_textures_input_string(std::stringstream &out,
                                                                ShaderStage stage)
 {
-  BLI_assert(stage == ShaderStage::VERTEX || stage == ShaderStage::FRAGMENT);
-  /* Generate texture signatures. */
+  /* Note: Shader stage must be specified as the singular stage index for which the input
+   * is generating. Compound stages are not valid inputs. */
+  BLI_assert(stage == ShaderStage::VERTEX || stage == ShaderStage::FRAGMENT ||
+             stage == ShaderStage::COMPUTE);
+  /* Generate texture signatures for textures used by this stage. */
   BLI_assert(this->texture_samplers.size() <= GPU_max_textures_vert());
   for (const MSLTextureSampler &tex : this->texture_samplers) {
     if (bool(tex.stage & stage)) {
@@ -1711,6 +2196,37 @@ std::string MSLGeneratorInterface::generate_msl_fragment_inputs_string()
   if (this->uses_barycentrics) {
     out << ",\n\tconst float3 mtl_barycentric_coord [[barycentric_coord]]";
   }
+  return out.str();
+}
+
+std::string MSLGeneratorInterface::generate_msl_compute_inputs_string()
+{
+  std::stringstream out;
+  out << "constant " << get_stage_class_name(ShaderStage::COMPUTE)
+      << "::PushConstantBlock* uniforms[[buffer(MTL_uniform_buffer_base_index)]]";
+
+  this->generate_msl_uniforms_input_string(out, ShaderStage::COMPUTE);
+
+  /* Generate texture signatures. */
+  this->generate_msl_textures_input_string(out, ShaderStage::COMPUTE);
+
+  /* Entry point parameters for gl Globals. */
+  if (this->uses_gl_GlobalInvocationID) {
+    out << ",\n\tconst uint3 gl_GlobalInvocationID [[thread_position_in_grid]]";
+  }
+  if (this->uses_gl_WorkGroupID) {
+    out << ",\n\tconst uint3 gl_WorkGroupID [[threadgroup_position_in_grid]]";
+  }
+  if (this->uses_gl_NumWorkGroups) {
+    out << ",\n\tconst uint3 gl_NumWorkGroups [[threadgroups_per_grid]]";
+  }
+  if (this->uses_gl_LocalInvocationIndex) {
+    out << ",\n\tconst uint gl_LocalInvocationIndex [[thread_index_in_threadgroup]]";
+  }
+  if (this->uses_gl_LocalInvocationID) {
+    out << ",\n\tconst uint3 gl_LocalInvocationID [[thread_position_in_threadgroup]]";
+  }
+
   return out.str();
 }
 
@@ -2029,8 +2545,7 @@ std::string MSLGeneratorInterface::generate_msl_global_uniform_population(Shader
 
   /* Copy UBO block ref. */
   out << "\t/* Copy Uniform block member reference */" << std::endl;
-  out << "\t"
-      << ((stage == ShaderStage::VERTEX) ? "vertex_shader_instance." : "fragment_shader_instance.")
+  out << "\t" << get_shader_stage_instance_name(stage) << "."
       << "global_uniforms = uniforms;" << std::endl;
 
   return out.str();
@@ -2050,10 +2565,7 @@ std::string MSLGeneratorInterface::generate_msl_uniform_block_population(ShaderS
        * for the ubo to avoid name collision with the UBO accessor macro.
        * We only need to add this post-fix for the non-array access variant,
        * as the array is indexed directly, rather than requiring a dereference. */
-      out << "\t"
-          << ((stage == ShaderStage::VERTEX) ? "vertex_shader_instance." :
-                                               "fragment_shader_instance.")
-          << ubo.name;
+      out << "\t" << get_shader_stage_instance_name(stage) << "." << ubo.name;
       if (!ubo.is_array) {
         out << "_local";
       }
@@ -2067,6 +2579,7 @@ std::string MSLGeneratorInterface::generate_msl_uniform_block_population(ShaderS
 /* Copy input attributes from stage_in into class local variables. */
 std::string MSLGeneratorInterface::generate_msl_vertex_attribute_input_population()
 {
+  static const char *shader_stage_inst_name = get_shader_stage_instance_name(ShaderStage::VERTEX);
 
   /* SSBO Vertex Fetch mode does not require local attribute population,
    * we only need to pass over the buffer pointer references. */
@@ -2079,9 +2592,11 @@ std::string MSLGeneratorInterface::generate_msl_vertex_attribute_input_populatio
       out << "\t\tMTL_VERTEX_DATA_" << i << delimiter << std::endl;
     }
     out << "};" << std::endl;
-    out << "\tvertex_shader_instance.MTL_VERTEX_DATA = GLOBAL_MTL_VERTEX_DATA;" << std::endl;
-    out << "\tvertex_shader_instance.MTL_INDEX_DATA_U16 = MTL_INDEX_DATA;" << std::endl;
-    out << "\tvertex_shader_instance.MTL_INDEX_DATA_U32 = reinterpret_cast<constant "
+    out << "\t" << shader_stage_inst_name << ".MTL_VERTEX_DATA = GLOBAL_MTL_VERTEX_DATA;"
+        << std::endl;
+    out << "\t" << shader_stage_inst_name << ".MTL_INDEX_DATA_U16 = MTL_INDEX_DATA;" << std::endl;
+    out << "\t" << shader_stage_inst_name
+        << ".MTL_INDEX_DATA_U32 = reinterpret_cast<constant "
            "uint32_t*>(MTL_INDEX_DATA);"
         << std::endl;
     return out.str();
@@ -2099,8 +2614,8 @@ std::string MSLGeneratorInterface::generate_msl_vertex_attribute_input_populatio
        *      v_in.__internal_mat_attribute_type1,
        *      v_in.__internal_mat_attribute_type2,
        *      v_in.__internal_mat_attribute_type3). */
-      out << "\tvertex_shader_instance." << this->vertex_input_attributes[attribute].name << " = "
-          << this->vertex_input_attributes[attribute].type << "(v_in.__internal_"
+      out << "\t" << shader_stage_inst_name << "." << this->vertex_input_attributes[attribute].name
+          << " = " << this->vertex_input_attributes[attribute].type << "(v_in.__internal_"
           << this->vertex_input_attributes[attribute].name << 0;
       for (int elem = 1;
            elem < get_matrix_location_count(this->vertex_input_attributes[attribute].type);
@@ -2131,13 +2646,14 @@ std::string MSLGeneratorInterface::generate_msl_vertex_attribute_input_populatio
 
       if (do_attribute_conversion_on_read) {
         out << "\t" << attribute_conversion_func_name << "(MTL_AttributeConvert" << attribute
-            << ", v_in." << this->vertex_input_attributes[attribute].name
-            << ", vertex_shader_instance." << this->vertex_input_attributes[attribute].name << ");"
-            << std::endl;
+            << ", v_in." << this->vertex_input_attributes[attribute].name << ", "
+            << shader_stage_inst_name << "." << this->vertex_input_attributes[attribute].name
+            << ");" << std::endl;
       }
       else {
-        out << "\tvertex_shader_instance." << this->vertex_input_attributes[attribute].name
-            << " = v_in." << this->vertex_input_attributes[attribute].name << ";" << std::endl;
+        out << "\t" << shader_stage_inst_name << "."
+            << this->vertex_input_attributes[attribute].name << " = v_in."
+            << this->vertex_input_attributes[attribute].name << ";" << std::endl;
       }
     }
   }
@@ -2148,13 +2664,14 @@ std::string MSLGeneratorInterface::generate_msl_vertex_attribute_input_populatio
 /* Copy post-main, modified, local class variables into vertex-output struct. */
 std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
 {
-
+  static const char *shader_stage_inst_name = get_shader_stage_instance_name(ShaderStage::VERTEX);
   std::stringstream out;
   out << "\t/* Copy Vertex Outputs into output struct */" << std::endl;
 
   /* Output gl_Position with conversion to Metal coordinate-space. */
   if (this->uses_gl_Position) {
-    out << "\toutput._default_position_ = vertex_shader_instance.gl_Position;" << std::endl;
+    out << "\toutput._default_position_ = " << shader_stage_inst_name << ".gl_Position;"
+        << std::endl;
 
     /* Invert Y and rescale depth range.
      * This is an alternative method to modifying all projection matrices. */
@@ -2166,14 +2683,14 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
 
   /* Output Point-size. */
   if (this->uses_gl_PointSize) {
-    out << "\toutput.pointsize = vertex_shader_instance.gl_PointSize;" << std::endl;
+    out << "\toutput.pointsize = " << shader_stage_inst_name << ".gl_PointSize;" << std::endl;
   }
 
   /* Output render target array Index. */
   if (uses_mtl_array_index_) {
     out << "\toutput.MTLRenderTargetArrayIndex = "
-           "vertex_shader_instance.MTLRenderTargetArrayIndex;"
-        << std::endl;
+           ""
+        << shader_stage_inst_name << ".MTLRenderTargetArrayIndex;" << std::endl;
   }
 
   /* Output clip-distances.
@@ -2186,12 +2703,13 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
     for (int cd = 0; cd < this->clip_distances.size(); cd++) {
       /* Default value when clipping is disabled >= 0.0 to ensure primitive is not clipped. */
       out << "\toutput.clipdistance[" << cd
-          << "] = (is_function_constant_defined(MTL_clip_distance_enabled" << cd
-          << "))?vertex_shader_instance.gl_ClipDistance_" << cd << ":1.0;" << std::endl;
+          << "] = (is_function_constant_defined(MTL_clip_distance_enabled" << cd << "))?"
+          << shader_stage_inst_name << ".gl_ClipDistance_" << cd << ":1.0;" << std::endl;
     }
   }
   else if (this->clip_distances.size() > 0) {
-    out << "\toutput.clipdistance = vertex_shader_instance.gl_ClipDistance_0;" << std::endl;
+    out << "\toutput.clipdistance = " << shader_stage_inst_name << ".gl_ClipDistance_0;"
+        << std::endl;
   }
   out << "}" << std::endl << "#endif" << std::endl;
 
@@ -2201,8 +2719,8 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
     if (v_out.is_array) {
 
       for (int i = 0; i < v_out.array_elems; i++) {
-        out << "\toutput." << v_out.instance_name << "_" << v_out.name << i
-            << " = vertex_shader_instance.";
+        out << "\toutput." << v_out.instance_name << "_" << v_out.name << i << " = "
+            << shader_stage_inst_name << ".";
 
         if (v_out.instance_name != "") {
           out << v_out.instance_name << ".";
@@ -2216,8 +2734,8 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
       /* Matrix types are split into vectors and need to be reconstructed. */
       if (is_matrix_type(v_out.type)) {
         for (int elem = 0; elem < get_matrix_location_count(v_out.type); elem++) {
-          out << "\toutput." << v_out.instance_name << "__matrix_" << v_out.name << elem
-              << " = vertex_shader_instance.";
+          out << "\toutput." << v_out.instance_name << "__matrix_" << v_out.name << elem << " = "
+              << shader_stage_inst_name << ".";
 
           if (v_out.instance_name != "") {
             out << v_out.instance_name << ".";
@@ -2231,8 +2749,8 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
          * Ensure it is vec4. If transform feedback is enabled, we do not need position. */
         if (!this->uses_gl_Position && output_id == 0 && !this->uses_transform_feedback) {
 
-          out << "\toutput." << v_out.instance_name << "_" << v_out.name
-              << " = to_vec4(vertex_shader_instance." << v_out.name << ");" << std::endl;
+          out << "\toutput." << v_out.instance_name << "_" << v_out.name << " = to_vec4("
+              << shader_stage_inst_name << "." << v_out.name << ");" << std::endl;
 
           /* Invert Y */
           out << "\toutput." << v_out.instance_name << "_" << v_out.name << ".y = -output."
@@ -2241,8 +2759,8 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
         else {
 
           /* Assign vertex output. */
-          out << "\toutput." << v_out.instance_name << "_" << v_out.name
-              << " = vertex_shader_instance.";
+          out << "\toutput." << v_out.instance_name << "_" << v_out.name << " = "
+              << shader_stage_inst_name << ".";
 
           if (v_out.instance_name != "") {
             out << v_out.instance_name << ".";
@@ -2261,7 +2779,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
 /* Copy desired output varyings into transform feedback structure */
 std::string MSLGeneratorInterface::generate_msl_vertex_output_tf_population()
 {
-
+  static const char *shader_stage_inst_name = get_shader_stage_instance_name(ShaderStage::VERTEX);
   std::stringstream out;
   out << "\t/* Copy Vertex TF Outputs into transform feedback buffer */" << std::endl;
 
@@ -2270,7 +2788,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_tf_population()
    * verify for other configurations if these occur in any cases. */
   for (int v_output = 0; v_output < this->vertex_output_varyings_tf.size(); v_output++) {
     out << "transform_feedback_results[gl_VertexID]."
-        << this->vertex_output_varyings_tf[v_output].name << " = vertex_shader_instance."
+        << this->vertex_output_varyings_tf[v_output].name << " = " << shader_stage_inst_name << "."
         << this->vertex_output_varyings_tf[v_output].name << ";" << std::endl;
   }
   out << std::endl;
@@ -2280,18 +2798,20 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_tf_population()
 /* Copy fragment stage inputs (Vertex Outputs) into local class variables. */
 std::string MSLGeneratorInterface::generate_msl_fragment_input_population()
 {
-
+  static const char *shader_stage_inst_name = get_shader_stage_instance_name(
+      ShaderStage::FRAGMENT);
   /* Populate local attribute variables. */
   std::stringstream out;
   out << "\t/* Copy Fragment input into local variables. */" << std::endl;
 
   /* Special common case for gl_FragCoord, assigning to input position. */
   if (this->uses_gl_Position) {
-    out << "\tfragment_shader_instance.gl_FragCoord = v_in._default_position_;" << std::endl;
+    out << "\t" << shader_stage_inst_name << ".gl_FragCoord = v_in._default_position_;"
+        << std::endl;
   }
   else {
     /* When gl_Position is not set, first VertexIn element is used for position. */
-    out << "\tfragment_shader_instance.gl_FragCoord = v_in."
+    out << "\t" << shader_stage_inst_name << ".gl_FragCoord = v_in."
         << this->vertex_output_varyings[0].name << ";" << std::endl;
   }
 
@@ -2323,7 +2843,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_input_population()
     }
     if (this->fragment_input_varyings[f_input].is_array) {
       for (int i = 0; i < this->fragment_input_varyings[f_input].array_elems; i++) {
-        out << "\tfragment_shader_instance.";
+        out << "\t" << shader_stage_inst_name << ".";
 
         if (this->fragment_input_varyings[f_input].instance_name != "") {
           out << this->fragment_input_varyings[f_input].instance_name << ".";
@@ -2337,7 +2857,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_input_population()
     else {
       /* Matrix types are split into components and need to be regrouped into a matrix. */
       if (is_matrix_type(this->fragment_input_varyings[f_input].type)) {
-        out << "\tfragment_shader_instance.";
+        out << "\t" << shader_stage_inst_name << ".";
 
         if (this->fragment_input_varyings[f_input].instance_name != "") {
           out << this->fragment_input_varyings[f_input].instance_name << ".";
@@ -2355,7 +2875,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_input_population()
         out << ");" << std::endl;
       }
       else {
-        out << "\tfragment_shader_instance.";
+        out << "\t" << shader_stage_inst_name << ".";
 
         if (this->fragment_input_varyings[f_input].instance_name != "") {
           out << this->fragment_input_varyings[f_input].instance_name << ".";
@@ -2374,21 +2894,22 @@ std::string MSLGeneratorInterface::generate_msl_fragment_input_population()
 /* Copy post-main, modified, local class variables into fragment-output struct. */
 std::string MSLGeneratorInterface::generate_msl_fragment_output_population()
 {
-
+  static const char *shader_stage_inst_name = get_shader_stage_instance_name(
+      ShaderStage::FRAGMENT);
   /* Populate output fragment variables. */
   std::stringstream out;
   out << "\t/* Copy Fragment Outputs into output struct. */" << std::endl;
 
   /* Output gl_FragDepth. */
   if (this->uses_gl_FragDepth) {
-    out << "\toutput.fragdepth = fragment_shader_instance.gl_FragDepth;" << std::endl;
+    out << "\toutput.fragdepth = " << shader_stage_inst_name << ".gl_FragDepth;" << std::endl;
   }
 
   /* Output attributes. */
   for (int f_output = 0; f_output < this->fragment_outputs.size(); f_output++) {
 
-    out << "\toutput." << this->fragment_outputs[f_output].name << " = fragment_shader_instance."
-        << this->fragment_outputs[f_output].name << ";" << std::endl;
+    out << "\toutput." << this->fragment_outputs[f_output].name << " = " << shader_stage_inst_name
+        << "." << this->fragment_outputs[f_output].name << ";" << std::endl;
   }
   out << std::endl;
   return out.str();
@@ -2396,7 +2917,10 @@ std::string MSLGeneratorInterface::generate_msl_fragment_output_population()
 
 std::string MSLGeneratorInterface::generate_msl_texture_vars(ShaderStage shader_stage)
 {
-  BLI_assert(shader_stage == ShaderStage::VERTEX || shader_stage == ShaderStage::FRAGMENT);
+  /* NOTE: Shader stage must be a singualr stage index. Compound stage is not valid for this
+   * function. */
+  BLI_assert(shader_stage == ShaderStage::VERTEX || shader_stage == ShaderStage::FRAGMENT ||
+             shader_stage == ShaderStage::COMPUTE);
 
   std::stringstream out;
   out << "\t/* Populate local texture and sampler members */" << std::endl;
@@ -2404,24 +2928,18 @@ std::string MSLGeneratorInterface::generate_msl_texture_vars(ShaderStage shader_
     if (bool(this->texture_samplers[i].stage & shader_stage)) {
 
       /* Assign texture reference. */
-      out << "\t"
-          << ((shader_stage == ShaderStage::VERTEX) ? "vertex_shader_instance." :
-                                                      "fragment_shader_instance.")
+      out << "\t" << get_shader_stage_instance_name(shader_stage) << "."
           << this->texture_samplers[i].name << ".texture = &" << this->texture_samplers[i].name
           << ";" << std::endl;
 
       /* Assign sampler reference. */
       if (this->use_argument_buffer_for_samplers()) {
-        out << "\t"
-            << ((shader_stage == ShaderStage::VERTEX) ? "vertex_shader_instance." :
-                                                        "fragment_shader_instance.")
+        out << "\t" << get_shader_stage_instance_name(shader_stage) << "."
             << this->texture_samplers[i].name << ".samp = &samplers.sampler_args["
             << this->texture_samplers[i].location << "];" << std::endl;
       }
       else {
-        out << "\t"
-            << ((shader_stage == ShaderStage::VERTEX) ? "vertex_shader_instance." :
-                                                        "fragment_shader_instance.")
+        out << "\t" << get_shader_stage_instance_name(shader_stage) << "."
             << this->texture_samplers[i].name << ".samp = &" << this->texture_samplers[i].name
             << "_sampler;" << std::endl;
       }
@@ -2659,7 +3177,8 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(const char *nam
   interface->set_sampler_properties(
       this->use_argument_buffer_for_samplers(),
       this->get_sampler_argument_buffer_bind_index(ShaderStage::VERTEX),
-      this->get_sampler_argument_buffer_bind_index(ShaderStage::FRAGMENT));
+      this->get_sampler_argument_buffer_bind_index(ShaderStage::FRAGMENT),
+      this->get_sampler_argument_buffer_bind_index(ShaderStage::COMPUTE));
 
   /* Map Metal bindings to standardized ShaderInput struct name/binding index. */
   interface->prepare_common_shader_inputs();

@@ -400,7 +400,7 @@ void gpu_shader_create_info_init()
   }
 
   /* TEST */
-  // gpu_shader_create_info_compile_all();
+  gpu_shader_create_info_compile_all();
 }
 
 void gpu_shader_create_info_exit()

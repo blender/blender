@@ -8,7 +8,7 @@ void main()
   vec4 color = vec4(0);
   for (int j = 0; j < 3; j++) {
     for (int i = 0; i < 3; i++) {
-      color += texture_load(input_tx, texel + ivec2(i - 1, j - 1)) * kernel[j][i];
+      color += texture_load(input_tx, texel + ivec2(i - 1, j - 1)) * ukernel[j][i];
     }
   }
 

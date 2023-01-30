@@ -22,7 +22,7 @@ vec3 compute_chromatic_distortion_scale(float distance_squared)
  * coordinates but outputs non-centered image coordinates. */
 vec2 compute_distorted_uv(vec2 uv, float uv_scale)
 {
-  return (uv * uv_scale + 0.5) * texture_size(input_tx) - 0.5;
+  return (uv * uv_scale + 0.5) * vec2(texture_size(input_tx)) - 0.5;
 }
 
 /* Compute the number of integration steps that should be used to approximate the distorted pixel
@@ -102,7 +102,7 @@ vec3 integrate_distortion(int start, int end, float distance_squared, vec2 uv, i
     /* Sample the color at the distorted coordinates and accumulate it weighted by the increment
      * value for both the start and end channels. */
     vec2 distorted_uv = compute_distorted_uv(uv, distortion_scale);
-    vec4 color = texture(input_tx, distorted_uv / texture_size(input_tx));
+    vec4 color = texture(input_tx, distorted_uv / vec2(texture_size(input_tx)));
     accumulated_color[start] += (1.0 - increment) * color[start];
     accumulated_color[end] += increment * color[end];
   }
@@ -115,8 +115,8 @@ void main()
 
   /* Compute the UV image coordinates in the range [-1, 1] as well as the squared distance to the
    * center of the image, which is at (0, 0) in the UV coordinates. */
-  vec2 center = texture_size(input_tx) / 2.0;
-  vec2 uv = scale * (texel + 0.5 - center) / center;
+  vec2 center = vec2(texture_size(input_tx)) / 2.0;
+  vec2 uv = scale * (vec2(texel) + vec2(0.5) - center) / center;
   float distance_squared = dot(uv, uv);
 
   /* If any of the color channels will get distorted outside of the screen beyond what is possible,

@@ -59,9 +59,122 @@ using uvec4 = uint4;
 #  define uniform
 #endif
 
+/* Compute decorators. */
+#define TG threadgroup
+#define barrier() threadgroup_barrier(mem_flags::mem_threadgroup)
+
+#ifdef MTL_USE_WORKGROUP_SIZE
+/* Compute workgroup size. */
+struct constexp_uvec3 {
+  /* Type union to cover all syntax accessors:
+   * .x, .y, .z, .xy, .xyz
+   * Swizzle types invalid.*/
+  union {
+    struct {
+      uint x, y, z;
+    };
+    struct {
+      uint2 xy;
+    };
+    uint3 xyz;
+  };
+
+  constexpr constexp_uvec3(uint _x, uint _y, uint _z) : x(_x), y(_y), z(_z)
+  {
+  }
+  constexpr uint operator[](int i)
+  {
+    /* Note: Need to switch on each elem value as array accessor triggers
+     * non-constant sizing error. This will be statically evaluated at compile time. */
+    switch (i) {
+      case 0:
+        return x;
+      case 1:
+        return y;
+      case 2:
+        return z;
+      default:
+        return 0;
+    }
+  }
+  inline operator uint3() const
+  {
+    return xyz;
+  }
+};
+
+constexpr constexp_uvec3 __internal_workgroupsize_get()
+{
+  return constexp_uvec3(MTL_WORKGROUP_SIZE_X, MTL_WORKGROUP_SIZE_Y, MTL_WORKGROUP_SIZE_Z);
+}
+
+#  define gl_WorkGroupSize __internal_workgroupsize_get()
+#endif
+
+/** Shader atomics:
+ * In order to emulate GLSL-style atomic operations, wherein variables can be used within atomic
+ * operations, even if they are not explicitly declared atomic, we can cast the pointer to atomic,
+ * to ensure that the load instruction follows atomic_load/store idioms.
+ *
+ * NOTE: We cannot hoist the address space into the template declaration, so these must be declared
+ * for each relevant address space. */
+
+/* Threadgroup memory. */
+template<typename T> T atomicMax(threadgroup T &mem, T data)
+{
+  return atomic_fetch_max_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+template<typename T> T atomicMin(threadgroup T &mem, T data)
+{
+  return atomic_fetch_min_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+template<typename T> T atomicAdd(threadgroup T &mem, T data)
+{
+  return atomic_fetch_add_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+template<typename T> T atomicSub(threadgroup T &mem, T data)
+{
+  return atomic_fetch_sub_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+template<typename T> T atomicOr(threadgroup T &mem, T data)
+{
+  return atomic_fetch_or_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+template<typename T> T atomicXor(threadgroup T &mem, T data)
+{
+  return atomic_fetch_xor_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+
+/* Device memory. */
+template<typename T> T atomicMax(device T &mem, T data)
+{
+  return atomic_fetch_max_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+template<typename T> T atomicMin(device T &mem, T data)
+{
+  return atomic_fetch_min_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+template<typename T> T atomicAdd(device T &mem, T data)
+{
+  return atomic_fetch_add_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+template<typename T> T atomicSub(device T &mem, T data)
+{
+  return atomic_fetch_sub_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+template<typename T> T atomicOr(device T &mem, T data)
+{
+  return atomic_fetch_or_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+template<typename T> T atomicXor(device T &mem, T data)
+{
+  return atomic_fetch_xor_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+
 /* Used to replace 'out' in function parameters with threadlocal reference
  * shortened to avoid expanding the glsl source string. */
 #define THD thread
+#define OUT(type, name, array) thread type(&name)[array]
 
 /* Generate wrapper structs for combined texture and sampler type. */
 #ifdef USE_ARGUMENT_BUFFER_FOR_SAMPLERS

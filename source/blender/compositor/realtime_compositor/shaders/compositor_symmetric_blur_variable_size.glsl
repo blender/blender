@@ -113,7 +113,7 @@ void main()
 
       /* Upper right quadrant. */
       float upper_right_size = load_size(texel + ivec2(x, y));
-      vec2 upper_right_blur_radius = upper_right_size * weights_size;
+      vec2 upper_right_blur_radius = upper_right_size * vec2(weights_size);
       if (x < upper_right_blur_radius.x && y < upper_right_blur_radius.y) {
         accumulated_color += load_input(texel + ivec2(x, y)) * weight;
         accumulated_weight += weight;
@@ -121,7 +121,7 @@ void main()
 
       /* Upper left quadrant. */
       float upper_left_size = load_size(texel + ivec2(-x, y));
-      vec2 upper_left_blur_radius = upper_left_size * weights_size;
+      vec2 upper_left_blur_radius = upper_left_size * vec2(weights_size);
       if (x < upper_left_blur_radius.x && y < upper_left_blur_radius.y) {
         accumulated_color += load_input(texel + ivec2(-x, y)) * weight;
         accumulated_weight += weight;
@@ -129,7 +129,7 @@ void main()
 
       /* Bottom right quadrant. */
       float bottom_right_size = load_size(texel + ivec2(x, -y));
-      vec2 bottom_right_blur_radius = bottom_right_size * weights_size;
+      vec2 bottom_right_blur_radius = bottom_right_size * vec2(weights_size);
       if (x < bottom_right_blur_radius.x && y < bottom_right_blur_radius.y) {
         accumulated_color += load_input(texel + ivec2(x, -y)) * weight;
         accumulated_weight += weight;
@@ -137,7 +137,7 @@ void main()
 
       /* Bottom left quadrant. */
       float bottom_left_size = load_size(texel + ivec2(-x, -y));
-      vec2 bottom_left_blur_radius = bottom_left_size * weights_size;
+      vec2 bottom_left_blur_radius = bottom_left_size * vec2(weights_size);
       if (x < bottom_left_blur_radius.x && y < bottom_left_blur_radius.y) {
         accumulated_color += load_input(texel + ivec2(-x, -y)) * weight;
         accumulated_weight += weight;

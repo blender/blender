@@ -73,7 +73,7 @@ float fast_luma(vec3 color)
   return (2.0 * color.g) + color.r + color.b;
 }
 
-const uint cache_size = gl_WorkGroupSize.x;
+#define cache_size (gl_WorkGroupSize.x)
 shared vec4 color_cache[cache_size][cache_size];
 shared float coc_cache[cache_size][cache_size];
 shared float do_scatter[cache_size][cache_size];
