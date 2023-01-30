@@ -2692,9 +2692,6 @@ void blo_lib_link_restore(Main *oldmain,
     }
     BKE_workspace_active_set(win->workspace_hook, workspace);
 
-    /* keep cursor location through undo */
-    memcpy(&win->scene->cursor, &oldscene->cursor, sizeof(win->scene->cursor));
-
     /* NOTE: even though that function seems to redo part of what is done by
      * `lib_link_workspace_layout_restore()` above, it seems to have a slightly different scope:
      * while the former updates the whole UI pointers from Main db (going over all layouts of
