@@ -3565,3 +3565,51 @@ void SEQUENCER_OT_cursor_set(wmOperatorType *ot)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Update scene strip frame range
+ * \{ */
+
+static int sequencer_scene_frame_range_update_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  Editing *ed = SEQ_editing_get(scene);
+  Sequence *seq = ed->act_seq;
+
+  const int old_start = SEQ_time_left_handle_frame_get(scene, seq);
+  const int old_end = SEQ_time_right_handle_frame_get(scene, seq);
+
+  Scene *target_scene = seq->scene;
+
+  seq->len = target_scene->r.efra - target_scene->r.sfra + 1;
+  SEQ_time_left_handle_frame_set(scene, seq, old_start);
+  SEQ_time_right_handle_frame_set(scene, seq, old_end);
+
+  SEQ_relations_invalidate_cache_raw(scene, seq);
+  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+  return OPERATOR_FINISHED;
+}
+
+static bool sequencer_scene_frame_range_update_poll(bContext *C)
+{
+  Editing *ed = SEQ_editing_get(CTX_data_scene(C));
+  return (ed->act_seq != NULL && (ed->act_seq->type & SEQ_TYPE_SCENE) != 0);
+}
+
+void SEQUENCER_OT_scene_frame_range_update(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Update Scene Frame Range";
+  ot->description = "Update frame range of scene strip";
+  ot->idname = "SEQUENCER_OT_scene_frame_range_update";
+
+  /* api callbacks */
+  ot->exec = sequencer_scene_frame_range_update_exec;
+  ot->poll = sequencer_scene_frame_range_update_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */

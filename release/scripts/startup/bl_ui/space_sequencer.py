@@ -946,6 +946,7 @@ class SEQUENCER_MT_strip(Menu):
 
         if strip and strip.type == 'SCENE':
             layout.operator("sequencer.delete", text="Delete Strip & Data").delete_data = True
+            layout.operator("sequencer.scene_frame_range_update")
 
         if has_sequencer:
             if strip:
@@ -1068,6 +1069,7 @@ class SEQUENCER_MT_context_menu(Menu):
         strip = context.active_sequence_strip
         if strip and strip.type == 'SCENE':
             layout.operator("sequencer.delete", text="Delete Strip & Data").delete_data = True
+            layout.operator("sequencer.scene_frame_range_update")
 
         layout.separator()
 
