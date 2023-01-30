@@ -210,31 +210,36 @@ void set_normal_texture_range(pxr::UsdShadeShader &usd_shader, const InputSpec &
    * The USD spec requires them to be within the -1 to 1 space
    * */
 
-  // Only run if this input_spec is for a normal
-  if (input_spec.input_name != usdtokens::normal)
+  /* Only run if this input_spec is for a normal. */
+  if (input_spec.input_name != usdtokens::normal) {
     return;
+  }
 
-  // Make sure this is a texture shader prim
+  /* Make sure this is a texture shader prim. */
   pxr::TfToken shader_id;
-  if (!usd_shader.GetIdAttr().Get(&shader_id) || shader_id != usdtokens::uv_texture)
+  if (!usd_shader.GetIdAttr().Get(&shader_id) || shader_id != usdtokens::uv_texture) {
     return;
+  }
 
-  // We should only be setting this if the colorspace is raw. sRGB will not map the same.
+  /* We should only be setting this if the colorspace is raw. sRGB will not map the same. */
   pxr::TfToken colorspace;
   auto colorspace_attr = usd_shader.GetInput(usdtokens::sourceColorSpace);
-  if (!colorspace_attr || !colorspace_attr.Get(&colorspace) || colorspace != usdtokens::raw)
+  if (!colorspace_attr || !colorspace_attr.Get(&colorspace) || colorspace != usdtokens::raw) {
     return;
+  }
 
-  // Get or Create the scale attribute and set it
+  /* Get or Create the scale attribute and set it. */
   auto scale_attr = usd_shader.GetInput(usdtokens::scale);
-  if (!scale_attr)
+  if (!scale_attr) {
     scale_attr = usd_shader.CreateInput(usdtokens::scale, pxr::SdfValueTypeNames->Float4);
+  }
   scale_attr.Set(pxr::GfVec4f(2.0f, 2.0f, 2.0f, 2.0f));
 
-  // Get or Create the bias attribute and set it
+  /* Get or Create the bias attribute and set it. */
   auto bias_attr = usd_shader.GetInput(usdtokens::bias);
-  if (!bias_attr)
+  if (!bias_attr) {
     bias_attr = usd_shader.CreateInput(usdtokens::bias, pxr::SdfValueTypeNames->Float4);
+  }
   bias_attr.Set(pxr::GfVec4f(-1.0f, -1.0f, -1.0f, -1.0f));
 }
 
