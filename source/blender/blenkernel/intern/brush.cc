@@ -75,7 +75,8 @@ static void brush_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
   brush_dst->automasking_cavity_curve = BKE_curvemapping_copy(brush_src->automasking_cavity_curve);
 
   if (brush_src->gpencil_settings != nullptr) {
-    brush_dst->gpencil_settings = MEM_cnew(__func__, *(brush_src->gpencil_settings));
+    brush_dst->gpencil_settings = MEM_cnew<BrushGpencilSettings>(__func__,
+                                                                 *(brush_src->gpencil_settings));
     brush_dst->gpencil_settings->curve_sensitivity = BKE_curvemapping_copy(
         brush_src->gpencil_settings->curve_sensitivity);
     brush_dst->gpencil_settings->curve_strength = BKE_curvemapping_copy(
@@ -97,7 +98,8 @@ static void brush_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
         brush_src->gpencil_settings->curve_rand_value);
   }
   if (brush_src->curves_sculpt_settings != nullptr) {
-    brush_dst->curves_sculpt_settings = MEM_cnew(__func__, *(brush_src->curves_sculpt_settings));
+    brush_dst->curves_sculpt_settings = MEM_cnew<BrushCurvesSculptSettings>(
+        __func__, *(brush_src->curves_sculpt_settings));
   }
 
   /* enable fake user by default */
