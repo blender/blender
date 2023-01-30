@@ -38,21 +38,7 @@ static void test_gpu_shader_compute_2d()
   static constexpr uint SIZE = 512;
 
   /* Build compute shader. */
-  const char *compute_glsl = R"(
-void main() {
-  vec4 pixel = vec4(1.0, 0.5, 0.2, 1.0);
-  imageStore(img_output, ivec2(gl_GlobalInvocationID.xy), pixel);
-}
-)";
-
-  ShaderCreateInfo info(__func__);
-  info.local_group_size(1, 1)
-      .image(0, GPU_RGBA32F, Qualifier::WRITE, ImageType::FLOAT_2D, "img_output")
-      /* Use actual file to not raise any asserts when checking for errors. */
-      .compute_source("gpu_shader_common_hash.glsl");
-  info.compute_source_generated = compute_glsl;
-
-  GPUShader *shader = GPU_shader_create_from_info((GPUShaderCreateInfo *)&info);
+  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_2d_test");
   EXPECT_NE(shader, nullptr);
 
   /* Create texture to store result and attach to shader. */
@@ -98,21 +84,7 @@ static void test_gpu_shader_compute_1d()
   static constexpr uint SIZE = 10;
 
   /* Build compute shader. */
-  const char *compute_glsl = R"(
-void main() {
-  int index = int(gl_GlobalInvocationID.x);
-  vec4 pos = vec4(gl_GlobalInvocationID.x);
-  imageStore(img_output, index, pos);
-}
-)";
-
-  ShaderCreateInfo info(__func__);
-  info.local_group_size(1)
-      .image(1, GPU_RGBA32F, Qualifier::WRITE, ImageType::FLOAT_1D, "img_output")
-      /* Use actual file to not raise any asserts when checking for errors. */
-      .compute_source("gpu_shader_common_hash.glsl");
-  info.compute_source_generated = compute_glsl;
-  GPUShader *shader = GPU_shader_create_from_info((GPUShaderCreateInfo *)&info);
+  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_1d_test");
   EXPECT_NE(shader, nullptr);
 
   /* Construct Texture. */
@@ -161,21 +133,7 @@ static void test_gpu_shader_compute_vbo()
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
-  const char *compute_glsl = R"(
-void main() {
-  uint index = gl_GlobalInvocationID.x;
-  vec4 pos = vec4(gl_GlobalInvocationID.x);
-  out_positions[index] = pos;
-}
-)";
-
-  ShaderCreateInfo info(__func__);
-  info.local_group_size(1)
-      .storage_buf(0, Qualifier::WRITE, "vec4", "out_positions[]")
-      /* Use actual file to not raise any asserts when checking for errors. */
-      .compute_source("gpu_shader_common_hash.glsl");
-  info.compute_source_generated = compute_glsl;
-  GPUShader *shader = GPU_shader_create_from_info((GPUShaderCreateInfo *)&info);
+  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_vbo_test");
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 
@@ -222,20 +180,7 @@ static void test_gpu_shader_compute_ibo()
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
-  const char *compute_glsl = R"(
-void main() {
-  uint store_index = int(gl_GlobalInvocationID.x);
-  out_indices[store_index] = store_index;
-}
-)";
-
-  ShaderCreateInfo info(__func__);
-  info.local_group_size(1)
-      .storage_buf(0, Qualifier::WRITE, "uint", "out_indices[]")
-      /* Use actual file to not raise any asserts when checking for errors. */
-      .compute_source("gpu_shader_common_hash.glsl");
-  info.compute_source_generated = compute_glsl;
-  GPUShader *shader = GPU_shader_create_from_info((GPUShaderCreateInfo *)&info);
+  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ibo_test");
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 

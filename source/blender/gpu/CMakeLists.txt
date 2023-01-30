@@ -495,9 +495,16 @@ set(GLSL_SRC
   shaders/gpu_shader_cfg_world_clip_lib.glsl
   shaders/gpu_shader_colorspace_lib.glsl
 
-  tests/gpu_math_test.glsl
 
   GPU_shader_shared_utils.h
+)
+
+set(GLSL_SRC_TEST
+  tests/shaders/gpu_math_test.glsl
+  tests/shaders/gpu_compute_1d_test.glsl
+  tests/shaders/gpu_compute_2d_test.glsl
+  tests/shaders/gpu_compute_ibo_test.glsl
+  tests/shaders/gpu_compute_vbo_test.glsl
 )
 
 set(MTL_BACKEND_GLSL_SRC
@@ -516,6 +523,12 @@ set(MSL_SRC
   shaders/metal/mtl_shader_common.msl
   metal/mtl_shader_shared.h
 )
+
+if(WITH_GTESTS)
+  if(WITH_OPENGL_DRAW_TESTS)
+    list(APPEND GLSL_SRC ${GLSL_SRC_TEST})
+  endif()
+endif()
 
 if(WITH_METAL_BACKEND)
   list(APPEND GLSL_SRC ${MTL_BACKEND_GLSL_SRC})
@@ -638,15 +651,25 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_keyframe_shape_info.hh
   shaders/infos/gpu_shader_line_dashed_uniform_color_info.hh
   shaders/infos/gpu_shader_simple_lighting_info.hh
-  shaders/infos/gpu_shader_test_info.hh
   shaders/infos/gpu_shader_text_info.hh
   shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
 )
+
+set(SRC_SHADER_CREATE_INFOS_TEST
+  shaders/infos/gpu_shader_test_info.hh
+)
+
 
 set(SRC_SHADER_CREATE_INFOS_MTL
   metal/kernels/depth_2d_update_info.hh
   metal/kernels/gpu_shader_fullscreen_blit_info.hh
 )
+
+if(WITH_GTESTS)
+  if(WITH_OPENGL_DRAW_TESTS)
+    list(APPEND SRC_SHADER_CREATE_INFOS ${SRC_SHADER_CREATE_INFOS_TEST})
+  endif()
+endif()
 
 if(WITH_METAL_BACKEND)
   list(APPEND SRC_SHADER_CREATE_INFOS ${SRC_SHADER_CREATE_INFOS_MTL})
