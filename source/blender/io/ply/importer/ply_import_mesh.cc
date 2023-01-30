@@ -22,7 +22,10 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
 
   /* Add vertices to the mesh. */
   mesh->totvert = int(data.vertices.size());
-  mesh->vert_positions_for_write().copy_from(data.vertices);
+  CustomData_add_layer_named(
+      &mesh->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, mesh->totvert, "position");
+  blender::MutableSpan<blender::float3> verts = mesh->vert_positions_for_write();
+  verts.copy_from(data.vertices);
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
@@ -74,6 +77,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
     for (int i = 0; i < data.vertex_colors.size(); i++) {
       copy_v4_v4(colors.span[i], data.vertex_colors[i]);
     }
+    colors.finish();
   }
 
   /* Uvmap */
@@ -100,19 +104,18 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
 
     /* Below code is necessary to access vertex normals within Blender.
      * Until Blender supports custom vertex normals, this is a workaround. */
-    float3 *normals = nullptr;
+    bke::SpanAttributeWriter<float3> normals;
     if (params.import_normals_as_attribute) {
-      CustomDataLayer *normal_layer = BKE_id_attribute_new(
-          &mesh->id, "Normal", CD_PROP_FLOAT3, ATTR_DOMAIN_POINT, nullptr);
-      normals = (float3 *)normal_layer->data;
+      normals = attributes.lookup_or_add_for_write_span<float3>("Normal", ATTR_DOMAIN_POINT);
     }
 
     for (int i = 0; i < data.vertex_normals.size(); i++) {
       copy_v3_v3(vertex_normals[i], data.vertex_normals[i]);
-      if (normals != nullptr) {
-        copy_v3_v3(normals[i], data.vertex_normals[i]);
+      if (normals) {
+        copy_v3_v3(normals.span[i], data.vertex_normals[i]);
       }
     }
+    normals.finish();
     BKE_mesh_set_custom_normals_from_verts(mesh, vertex_normals);
     MEM_freeN(vertex_normals);
   }
