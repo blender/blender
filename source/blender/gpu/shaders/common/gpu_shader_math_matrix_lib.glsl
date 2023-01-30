@@ -469,7 +469,7 @@ mat4x4 invert(mat4x4 mat, out bool r_success)
   return r_success ? inverse(mat) : mat4x4(0.0);
 }
 
-#  ifdef GPU_METAL
+#  if defined(GPU_OPENGL) || defined(GPU_METAL)
 vec2 normalize(vec2 a)
 {
   return a * inversesqrt(length_squared(a));
