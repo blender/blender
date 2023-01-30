@@ -33,7 +33,7 @@ namespace blender::io::ply {
  */
 class FileBuffer : private NonMovable {
  private:
-  typedef Vector<char> VectorChar;
+  using VectorChar = Vector<char>;
   Vector<VectorChar> blocks_;
   size_t buffer_chunk_size_;
   const char *filepath_;
