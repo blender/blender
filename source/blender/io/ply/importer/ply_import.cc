@@ -4,8 +4,6 @@
  * \ingroup ply
  */
 
-#include <cstdio>
-
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"

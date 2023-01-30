@@ -4,9 +4,6 @@
  * \ingroup ply
  */
 
-#include <cstdio>
-
-#include "IO_ply.h"
 #include "ply_data.hh"
 #include "ply_file_buffer.hh"
 

@@ -8,7 +8,6 @@
 
 #include "BKE_mesh.h"
 
-#include "IO_ply.h"
 #include "ply_data.hh"
 
 namespace blender::io::ply {

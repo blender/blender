@@ -4,25 +4,12 @@
  * \ingroup ply
  */
 
-#include <cstdio>
-
-#include "BKE_customdata.h"
 #include "BKE_layer.h"
-#include "BKE_mesh.h"
-#include "BKE_object.h"
 
 #include "DNA_collection_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_fileops.hh"
-#include "BLI_math_vector.h"
 #include "BLI_memory_utils.hh"
-
-#include "DNA_object_types.h"
-
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
 
 #include "ply_data.hh"
 #include "ply_export.hh"
