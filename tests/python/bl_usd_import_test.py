@@ -155,6 +155,39 @@ class USDImportTest(AbstractUSDTest):
         coords = list(filter(lambda x: x[0] > 1.0, coords))
         self.assertGreater(len(coords), 16)
 
+    def test_import_camera_properties(self):
+        """Test importing camera to ensure properties set correctly."""
+
+        # This file has metersPerUnit = 1
+        infile = str(self.testdir / "usd_camera_test_1.usda")
+        res = bpy.ops.wm.usd_import(filepath=infile)
+        self.assertEqual({'FINISHED'}, res)
+
+        camera_object = bpy.data.objects["Test_Camera"]
+        test_cam = camera_object.data
+
+        self.assertAlmostEqual(43.12, test_cam.lens, 2)
+        self.assertAlmostEqual(24.89, test_cam.sensor_width, 2)
+        self.assertAlmostEqual(14.00, test_cam.sensor_height, 2)
+        self.assertAlmostEqual(12.34, test_cam.shift_x, 2)
+        self.assertAlmostEqual(56.78, test_cam.shift_y, 2)
+
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
+        # This file has metersPerUnit = 0.1
+        infile = str(self.testdir / "usd_camera_test_2.usda")
+        res = bpy.ops.wm.usd_import(filepath=infile)
+        self.assertEqual({'FINISHED'}, res)
+
+        camera_object = bpy.data.objects["Test_Camera"]
+        test_cam = camera_object.data
+
+        self.assertAlmostEqual(4.312, test_cam.lens, 3)
+        self.assertAlmostEqual(2.489, test_cam.sensor_width, 3)
+        self.assertAlmostEqual(1.400, test_cam.sensor_height, 3)
+        self.assertAlmostEqual(1.234, test_cam.shift_x, 3)
+        self.assertAlmostEqual(5.678, test_cam.shift_y, 3)
 
 def main():
     global args

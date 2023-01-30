@@ -49,6 +49,10 @@ struct ImportSettings {
    * and is mutable similar to the map above. */
   mutable std::map<std::string, Material *> mat_name_to_mat;
 
+  /* We use the stage metersPerUnit to convert camera properties from USD scene units to the
+   * correct millimeter scale that Blender uses for camera parameters. */
+  double stage_meters_per_unit;
+
   ImportSettings()
       : do_convert_mat(false),
         from_up(0),
@@ -60,7 +64,8 @@ struct ImportSettings {
         sequence_offset(0),
         read_flag(0),
         validate_meshes(false),
-        cache_file(NULL)
+        cache_file(NULL),
+        stage_meters_per_unit(1.0)
   {
   }
 };
