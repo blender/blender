@@ -287,6 +287,8 @@ if(WITH_VULKAN_BACKEND)
   )
   list(APPEND INC_SYS
     ${VULKAN_INCLUDE_DIRS}
+    ${MOLTENVK_INCLUDE_DIRS}
+    ${SHADERC_INCLUDE_DIRS}
   )
   list(APPEND SRC
     ${VULKAN_SRC}
@@ -294,6 +296,8 @@ if(WITH_VULKAN_BACKEND)
 
   list(APPEND LIB
     ${VULKAN_LIBRARIES}
+    ${SHADERC_LIBRARIES}
+    ${MOLTENVK_LIBRARIES}
     extern_vulkan_memory_allocator
   )
   add_definitions(-DWITH_VULKAN_BACKEND)
