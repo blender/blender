@@ -291,7 +291,93 @@ union _msl_return_float {
 /* Add custom texture sampling/reading routines for each type to account for special return cases,
  * e.g. returning a float with an r parameter Note: Cannot use template specialization for input
  * type, as return types are specific to the signature of 'tex'. */
-/* Texture Read. */
+
+/* Use point sampler instead of texture read to benefit from texture caching and reduce branching
+ * through removal of bounds tests, as these are handled by the sample operation. */
+constexpr sampler _point_sample_(address::clamp_to_zero, filter::nearest, coord::pixel);
+
+/* Texture Read via point sampling.
+ * NOTE: These templates will evaluate first for texture resources bound with sample. */
+template<typename S, typename T>
+inline vec<S, 4> _texelFetch_internal(thread _mtl_combined_image_sampler_1d<S, access::sample> tex,
+                                      T texel,
+                                      uint lod = 0)
+{
+  return tex.texture->sample(_point_sample_, float(texel));
+}
+
+template<typename S, typename T>
+inline vec<S, 4> _texelFetch_internal(thread _mtl_combined_image_sampler_1d<S, access::sample> tex,
+                                      T texel,
+                                      uint lod,
+                                      T offset)
+{
+  return tex.texture->sample(_point_sample_, float(texel + offset));
+}
+
+template<typename S, typename T>
+inline vec<S, 4> _texelFetch_internal(
+    thread _mtl_combined_image_sampler_1d_array<S, access::sample> tex,
+    vec<T, 2> texel,
+    uint lod,
+    vec<T, 2> offset = vec<T, 2>(0, 0))
+{
+  return tex.texture->sample(_point_sample_, float(texel.x + offset.x), uint(texel.y + offset.y));
+}
+
+template<typename S, typename T>
+inline vec<S, 4> _texelFetch_internal(thread _mtl_combined_image_sampler_2d<S, access::sample> tex,
+                                      vec<T, 2> texel,
+                                      uint lod,
+                                      vec<T, 2> offset = vec<T, 2>(0))
+{
+  return tex.texture->sample(_point_sample_, float2(texel.xy + offset.xy), level(lod));
+}
+
+template<typename S, typename T>
+inline vec<S, 4> _texelFetch_internal(
+    thread _mtl_combined_image_sampler_2d_array<S, access::sample> tex,
+    vec<T, 3> texel,
+    uint lod,
+    vec<T, 3> offset = vec<T, 3>(0))
+{
+  return tex.texture->sample(
+      _point_sample_, float2(texel.xy + offset.xy), uint(texel.z + offset.z), level(lod));
+}
+
+template<typename S, typename T>
+inline vec<S, 4> _texelFetch_internal(thread _mtl_combined_image_sampler_3d<S, access::sample> tex,
+                                      vec<T, 3> texel,
+                                      uint lod,
+                                      vec<T, 3> offset = vec<T, 3>(0))
+{
+  return tex.texture->sample(_point_sample_, float3(texel.xyz + offset.xyz), level(lod));
+}
+
+template<typename T>
+inline _msl_return_float _texelFetch_internal(
+    thread _mtl_combined_image_sampler_depth_2d<float, access::sample> tex,
+    vec<T, 2> texel,
+    uint lod,
+    vec<T, 2> offset = vec<T, 2>(0))
+{
+  _msl_return_float fl = {
+      tex.texture->sample(_point_sample_, float2(texel.xy + offset.xy), level(lod))};
+  return fl;
+}
+
+template<typename S, typename T>
+inline vec<S, 4> _texture_internal_samp(
+    thread _mtl_combined_image_sampler_2d_array<S, access::sample> tex,
+    vec<T, 3> texel,
+    uint lod,
+    vec<T, 3> offset = vec<T, 3>(0))
+{
+  return tex.texture->sample(
+      _point_sample_, float2(texel.xy + offset.xy), uint(texel.z + offset.z), level(lod));
+}
+
+/* Texture Read via read operation. Required by compute/image-bindings. */
 template<typename S, typename T, access A>
 inline vec<S, 4> _texelFetch_internal(thread _mtl_combined_image_sampler_1d<S, A> tex,
                                       T texel,

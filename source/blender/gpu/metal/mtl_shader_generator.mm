@@ -1752,8 +1752,9 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
 bool MSLGeneratorInterface::use_argument_buffer_for_samplers() const
 {
   /* We can only use argument buffers IF sampler count exceeds static limit of 16,
-   * AND we can support more samplers with an argument buffer. */
-  return texture_samplers.size() >= 16 && GPU_max_samplers() > 16;
+   * AND we can support more samplers with an argument buffer.
+   * NOTE: We reserve one constant sampler within the shader for fast read via point-sampling. */
+  return texture_samplers.size() >= 15 && GPU_max_samplers() > 16;
 }
 
 uint32_t MSLGeneratorInterface::num_samplers_for_stage(ShaderStage stage) const
