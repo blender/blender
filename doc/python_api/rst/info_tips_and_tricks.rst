@@ -143,7 +143,7 @@ and then loads the script as a module.
    myscript.main()
 
 
-Use Blender without it's User Interface
+Use Blender Without Its User Interface
 =======================================
 
 While developing your own scripts Blender's interface can get in the way,
