@@ -121,7 +121,7 @@ static uiBut *ui_but_anim_decorate_find_attached_button(uiButDecorator *but)
   BLI_assert(but->rnapoin.data && but->rnaprop);
 
   LISTBASE_CIRCULAR_BACKWARD_BEGIN (uiBut *, &but->block->buttons, but_iter, but->prev) {
-    if (but_iter != (uiBut *)but &&
+    if (but_iter != but &&
         ui_but_rna_equals_ex(but_iter, &but->rnapoin, but->rnaprop, but->rnaindex)) {
       return but_iter;
     }

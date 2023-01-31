@@ -3982,8 +3982,6 @@ static uiBut *ui_but_new(const eButType type)
 {
   uiBut *but = nullptr;
 
-#define NEW_BUT(type_name) MEM_new<type_name>(#type_name)
-
   switch (type) {
     case UI_BTYPE_NUM:
       but = MEM_new<uiButNumber>("uiButNumber");
@@ -4022,10 +4020,9 @@ static uiBut *ui_but_new(const eButType type)
       but = MEM_new<uiButViewItem>("uiButViewItem");
       break;
     default:
-      but = NEW_BUT(uiBut);
+      but = MEM_new<uiBut>("uiBut");
       break;
   }
-#undef NEW_BUT
 
   but->type = type;
   return but;
