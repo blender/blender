@@ -27,11 +27,11 @@ class GHOST_ContextCGL : public GHOST_Context {
  public:
   /* Defines the number of simultaneous command buffers which can be in flight.
    * The default limit of `64` is considered to be optimal for Blender. Too many command buffers
-   * will result in workload fragmnetation and additional system-level overhead. This limit should
+   * will result in workload fragmentation and additional system-level overhead. This limit should
    * also only be increased if the application is consistently exceeding the limit, and there are
    * no command buffer leaks.
    *
-   * If this limit is reached, starting a new command buffer will fail. The Metal backend will
+   * If this limit is reached, starting a new command buffer will fail. The Metal back-end will
    * therefore stall until completion and log a warning when this limit is reached in order to
    * ensure correct function of the app.
    *

@@ -1,25 +1,5 @@
 #pragma BLENDER_REQUIRE(gpu_shader_colorspace_lib.glsl)
 
-const vec2 offsets4[4] = vec2[4](
-    vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(-0.5, -0.5), vec2(-0.5, -0.5));
-
-const vec2 offsets16[16] = vec2[16](vec2(-1.5, 1.5),
-                                    vec2(-0.5, 1.5),
-                                    vec2(0.5, 1.5),
-                                    vec2(1.5, 1.5),
-                                    vec2(-1.5, 0.5),
-                                    vec2(-0.5, 0.5),
-                                    vec2(0.5, 0.5),
-                                    vec2(1.5, 0.5),
-                                    vec2(-1.5, -0.5),
-                                    vec2(-0.5, -0.5),
-                                    vec2(0.5, -0.5),
-                                    vec2(1.5, -0.5),
-                                    vec2(-1.5, -1.5),
-                                    vec2(-0.5, -1.5),
-                                    vec2(0.5, -1.5),
-                                    vec2(1.5, -1.5));
-
 //#define GPU_NEAREST
 #define sample_glyph_offset(texel, ofs) \
   texture_1D_custom_bilinear_filter(texCoord_interp + ofs * texel)
@@ -92,6 +72,11 @@ void main()
     fragColor.a = 0.0;
 
     if (interp_size == 1) {
+      /* NOTE(Metal): Declaring constant array in function scope to avoid increasing local shader
+       * memory pressure.*/
+      const vec2 offsets4[4] = vec2[4](
+          vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(-0.5, -0.5), vec2(-0.5, -0.5));
+
       /* 3x3 blur */
       /* Manual unroll for perf. (stupid glsl compiler) */
       fragColor.a += sample_glyph_offset(texel, offsets4[0]);
@@ -101,6 +86,25 @@ void main()
       fragColor.a *= (1.0 / 4.0);
     }
     else {
+      /* NOTE(Metal): Declaring constant array in function scope to avoid increasing local shader
+       * memory pressure.*/
+      const vec2 offsets16[16] = vec2[16](vec2(-1.5, 1.5),
+                                          vec2(-0.5, 1.5),
+                                          vec2(0.5, 1.5),
+                                          vec2(1.5, 1.5),
+                                          vec2(-1.5, 0.5),
+                                          vec2(-0.5, 0.5),
+                                          vec2(0.5, 0.5),
+                                          vec2(1.5, 0.5),
+                                          vec2(-1.5, -0.5),
+                                          vec2(-0.5, -0.5),
+                                          vec2(0.5, -0.5),
+                                          vec2(1.5, -0.5),
+                                          vec2(-1.5, -1.5),
+                                          vec2(-0.5, -1.5),
+                                          vec2(0.5, -1.5),
+                                          vec2(1.5, -1.5));
+
       /* 5x5 blur */
       /* Manual unroll for perf. (stupid glsl compiler) */
       fragColor.a += sample_glyph_offset(texel, offsets16[0]);

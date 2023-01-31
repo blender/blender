@@ -8,8 +8,8 @@ void main()
   /* Add 0.5 to evaluate the input sampler at the center of the pixel and divide by the image size
    * to get the coordinates into the sampler's expected [0, 1] range. Similarly, transform the
    * vector into the sampler's space by dividing by the input size. */
-  vec2 coordinates = (vec2(texel) + vec2(0.5)) / input_size;
-  vec2 vector = streak_vector / input_size;
+  vec2 coordinates = (vec2(texel) + vec2(0.5)) / vec2(input_size);
+  vec2 vector = streak_vector / vec2(input_size);
 
   /* Load three equally spaced neighbours to the current pixel in the direction of the streak
    * vector. */

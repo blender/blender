@@ -1596,7 +1596,7 @@ typedef struct ToolSettings {
   /** Keyframe type (see DNA_curve_types.h). */
   char keyframe_type;
 
-  /* Multires. */
+  /** Multi-resolution meshes. */
   char multires_subdiv_type;
 
   /** Edge tagging, store operator settings (no UI access). */

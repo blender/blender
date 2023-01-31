@@ -111,6 +111,7 @@ find_package_wrapper(Epoxy REQUIRED)
 
 if(WITH_VULKAN_BACKEND)
   find_package_wrapper(Vulkan REQUIRED)
+  find_package_wrapper(ShaderC REQUIRED)
 endif()
 
 function(check_freetype_for_brotli)

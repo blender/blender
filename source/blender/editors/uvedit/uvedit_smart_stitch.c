@@ -1317,8 +1317,8 @@ static int stitch_process_data(StitchStateContainer *ssc,
     }
   }
 
-  /* take mean position here.
-   * For edge case, this can't be done inside the loop for shared uvverts */
+  /* Take mean position here.
+   * For edge case, this can't be done inside the loop for shared UV-verts. */
   if (ssc->mode == STITCH_EDGE && stitch_midpoints) {
     for (i = 0; i < state->total_separate_uvs; i++) {
       final_position[i].uv[0] /= final_position[i].count;

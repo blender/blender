@@ -195,9 +195,9 @@ using sycl::half;
 #define fmodf(x, y) sycl::fmod((x), (y))
 #define lgammaf(x) sycl::lgamma((x))
 
-/* sycl::native::cos precision is not sufficient and -ffast-math lets
- * the current DPC++ compiler overload sycl::cos with it.
- * We work around this issue by directly calling the spirv implementation which
+/* `sycl::native::cos` precision is not sufficient and `-ffast-math` lets
+ * the current DPC++ compiler overload `sycl::cos` with it.
+ * We work around this issue by directly calling the SPIRV implementation which
  * provides greater precision. */
 #if defined(__SYCL_DEVICE_ONLY__) && defined(__SPIR__)
 #  define cosf(x) __spirv_ocl_cos(((float)(x)))

@@ -436,8 +436,8 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
   }
 
   /* Store `F-Curves`, so original ones aren't renamed. */
-  ListBase fcurves_original_backup = {NULL, NULL};
-  SEQ_animation_backup_original(scene, &fcurves_original_backup);
+  SeqAnimationBackup animation_backup = {0};
+  SEQ_animation_backup_original(scene, &animation_backup);
 
   ListBase left_strips = {NULL, NULL};
   SEQ_ITERATOR_FOREACH (seq, collection) {
@@ -446,7 +446,7 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
     BLI_addtail(&left_strips, seq);
 
     /* Duplicate curves from backup, so they can be renamed along with split strips. */
-    SEQ_animation_duplicate(scene, seq, &fcurves_original_backup);
+    SEQ_animation_duplicate_backup_to_scene(scene, seq, &animation_backup);
   }
 
   SEQ_collection_free(collection);
@@ -489,7 +489,7 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
   }
 
   SEQ_edit_remove_flagged_sequences(scene, seqbase);
-  SEQ_animation_restore_original(scene, &fcurves_original_backup);
+  SEQ_animation_restore_original(scene, &animation_backup);
 
   return return_seq;
 }

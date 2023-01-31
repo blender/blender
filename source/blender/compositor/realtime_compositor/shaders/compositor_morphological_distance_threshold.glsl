@@ -78,7 +78,8 @@ void main()
 
   /* Compute the actual distance from the squared distance and assign it an appropriate sign
    * depending on whether it lies in a masked region or not. */
-  float signed_minimum_distance = sqrt(minimum_squared_distance) * (is_center_masked ? 1.0 : -1.0);
+  float signed_minimum_distance = sqrt(float(minimum_squared_distance)) *
+                                  (is_center_masked ? 1.0 : -1.0);
 
   /* Add the erode/dilate distance and divide by the inset amount as described in the discussion,
    * then clamp to the [0, 1] range. */

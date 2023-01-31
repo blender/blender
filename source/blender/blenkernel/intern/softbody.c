@@ -2800,9 +2800,9 @@ static void reference_to_scratch(Object *ob)
   // printf("reference_to_scratch\n");
 }
 
-/*
+/**
  * helper function to get proper spring length
- * when object is rescaled
+ * when object is re-scaled
  */
 static float globallen(float *v1, float *v2, Object *ob)
 {

@@ -75,7 +75,8 @@ static void brush_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
   brush_dst->automasking_cavity_curve = BKE_curvemapping_copy(brush_src->automasking_cavity_curve);
 
   if (brush_src->gpencil_settings != nullptr) {
-    brush_dst->gpencil_settings = MEM_cnew(__func__, *(brush_src->gpencil_settings));
+    brush_dst->gpencil_settings = MEM_cnew<BrushGpencilSettings>(__func__,
+                                                                 *(brush_src->gpencil_settings));
     brush_dst->gpencil_settings->curve_sensitivity = BKE_curvemapping_copy(
         brush_src->gpencil_settings->curve_sensitivity);
     brush_dst->gpencil_settings->curve_strength = BKE_curvemapping_copy(
@@ -97,7 +98,8 @@ static void brush_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
         brush_src->gpencil_settings->curve_rand_value);
   }
   if (brush_src->curves_sculpt_settings != nullptr) {
-    brush_dst->curves_sculpt_settings = MEM_cnew(__func__, *(brush_src->curves_sculpt_settings));
+    brush_dst->curves_sculpt_settings = MEM_cnew<BrushCurvesSculptSettings>(
+        __func__, *(brush_src->curves_sculpt_settings));
   }
 
   /* enable fake user by default */
@@ -149,7 +151,8 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
   BKE_lib_id_make_local_generic_action_define(bmain, id, flags, &force_local, &force_copy);
 
   if (brush->clone.image) {
-    /* Special case: ima always local immediately. Clone image should only have one user anyway. */
+    /* Special case: `ima` always local immediately.
+     * Clone image should only have one user anyway. */
     /* FIXME: Recursive calls affecting other non-embedded IDs are really bad and should be avoided
      * in IDType callbacks. Higher-level ID management code usually does not expect such things and
      * does not deal properly with it. */

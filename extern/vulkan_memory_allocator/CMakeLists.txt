@@ -7,6 +7,7 @@ set(INC
 
 set(INC_SYS
   ${VULKAN_INCLUDE_DIRS}
+  ${MOLTENVK_INCLUDE_DIRS}
 )
 
 set(SRC

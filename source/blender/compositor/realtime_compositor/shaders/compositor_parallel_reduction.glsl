@@ -44,7 +44,7 @@
  * for reduction, so we just load the data in a 1D array to simplify reduction. The developer is
  * expected to define the TYPE macro to be a float or a vec4, depending on the type of data being
  * reduced. */
-const uint reduction_size = gl_WorkGroupSize.x * gl_WorkGroupSize.y;
+#define reduction_size (gl_WorkGroupSize.x * gl_WorkGroupSize.y)
 shared TYPE reduction_data[reduction_size];
 
 void main()

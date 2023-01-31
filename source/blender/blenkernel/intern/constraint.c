@@ -4528,7 +4528,7 @@ static void damptrack_do_transform(float matrix[4][4], const float tarvec_in[3],
       }
     }
     else if (norm < 0.1f) {
-      /* near 0 and Pi arcsin has way better precision than arccos */
+      /* Near 0 and Pi `arcsin` has way better precision than `arccos`. */
       rangle = (rangle > M_PI_2) ? M_PI - asinf(norm) : asinf(norm);
     }
 

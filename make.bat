@@ -69,7 +69,7 @@ if "%BUILD_UPDATE%" == "1" (
 		REM Then update SVN platform libraries, since updating python while python is
 		REM running tends to be problematic. The python script that update_sources
 		REM calls later on may still try to switch branches and run into trouble,
-		REM but for *most* people this will side step the problem. 
+		REM but for *most* people this will side step the problem.
 		call "%BLENDER_DIR%\build_files\windows\svn_update.cmd"
 	)
 	REM Finally call the python script shared between all platforms that updates git

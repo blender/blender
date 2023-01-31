@@ -27,6 +27,7 @@
 #include "COM_evaluator.hh"
 #include "COM_texture_pool.hh"
 
+#include "GPU_context.h"
 #include "GPU_texture.h"
 
 #include "compositor_engine.h" /* Own include. */
@@ -226,12 +227,36 @@ static void compositor_engine_draw(void *data)
   COMPOSITOR_Data *compositor_data = static_cast<COMPOSITOR_Data *>(data);
 
 #if defined(__APPLE__)
-  blender::StringRef("Viewport compositor not supported on MacOS")
-      .copy(compositor_data->info, GPU_INFO_SIZE);
-  return;
+  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+    /* NOTE(Metal): Isolate Compositor compute work in individual command buffer to improve
+     * workload scheduling. When expensive compositor nodes are in the graph, these can stall out
+     * the GPU for extended periods of time and suboptimally schedule work for execution. */
+    GPU_flush();
+  }
+  else {
+    /* Realtime Compositor is not supported on macOS with the OpenGL backend. */
+    blender::StringRef("Viewport compositor is only supported on MacOS with the Metal Backend.")
+        .copy(compositor_data->info, GPU_INFO_SIZE);
+    return;
+  }
 #endif
 
+  /* Exceute Compositor render commands. */
   compositor_data->instance_data->draw();
+
+#if defined(__APPLE__)
+  /* NOTE(Metal): Following previous flush to break commmand stream, with compositor command
+   * buffers potentially being heavy, we avoid issuing subsequent commands until compositor work
+   * has completed. If subsequent work is prematurely queued up, the subsequent command buffers
+   * will be blocked behind compositor work and may trigger a command buffer time-out error. As a
+   * result, we should wait for compositor work to complete.
+   *
+   * This is not an efficient approach for peak performance, but a catch-all to prevent command
+   * buffer failure, until the offending cases can be resolved. */
+  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+    GPU_finish();
+  }
+#endif
 }
 
 static void compositor_engine_update(void *data)

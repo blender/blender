@@ -152,8 +152,10 @@ void MTLBackend::render_step()
    * released. */
   MTLSafeFreeList *cmd_free_buffer_list =
       MTLContext::get_global_memory_manager()->get_current_safe_list();
-  MTLContext::get_global_memory_manager()->begin_new_safe_list();
-  cmd_free_buffer_list->decrement_reference();
+  if (cmd_free_buffer_list->should_flush()) {
+    MTLContext::get_global_memory_manager()->begin_new_safe_list();
+    cmd_free_buffer_list->decrement_reference();
+  }
 }
 
 bool MTLBackend::is_inside_render_boundary()
@@ -398,7 +400,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
                                            MTLBackend::capabilities.supports_family_mac2);
   /* TODO(Metal): Add support? */
   GCaps.shader_draw_parameters_support = false;
-  GCaps.compute_shader_support = false; /* TODO(Metal): Add compute support. */
+  GCaps.compute_shader_support = true;
   GCaps.geometry_shader_support = false;
   GCaps.shader_storage_buffer_objects_support =
       false; /* TODO(Metal): implement Storage Buffer support. */
@@ -438,6 +440,24 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   /* Minimum per-vertex stride is 4 bytes in Metal.
    * A bound vertex buffer must contribute at least 4 bytes per vertex. */
   GCaps.minimum_per_vertex_stride = 4;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Compute dispatch.
+ * \{ */
+
+void MTLBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)
+{
+  /* Fetch Context.
+   * With Metal, workload submission and resource management occurs within the context.
+   * Call compute dispatch on valid context. */
+  MTLContext *ctx = MTLContext::get();
+  BLI_assert(ctx != nullptr);
+  if (ctx) {
+    ctx->compute_dispatch(groups_x_len, groups_y_len, groups_z_len);
+  }
 }
 
 /** \} */

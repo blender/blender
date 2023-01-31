@@ -1763,7 +1763,7 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Select Index", "Index of selection used for interpolation");
 
   /* Init time */
-  prop = RNA_def_property(srna, "init_time", PROP_FLOAT, PROP_TIME);
+  prop = RNA_def_property(srna, "time_start", PROP_FLOAT, PROP_TIME);
   RNA_def_property_float_sdna(prop, NULL, "inittime");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Init Time", "Initial time of the stroke");

@@ -71,6 +71,13 @@ Static Source Code Checking
    * check_mypy:            Checks all Python scripts using mypy,
                             see: source/tools/check_source/check_mypy_config.py scripts which are included.
 
+Documentation Checking
+
+   * check_wiki_file_structure:
+     Check the WIKI documentation for the source-tree's file structure
+     matches Blender's source-code.
+     See: https://wiki.blender.org/wiki/Source/File_Structure
+
 Spell Checkers
    This runs the spell checker from the developer tools repositor.
 
@@ -480,6 +487,10 @@ check_smatch: .FORCE
 
 check_mypy: .FORCE
 	@$(PYTHON) "$(BLENDER_DIR)/source/tools/check_source/check_mypy.py"
+
+check_wiki_file_structure: .FORCE
+	@PYTHONIOENCODING=utf_8 $(PYTHON) \
+	    "$(BLENDER_DIR)/source/tools/check_wiki/check_wiki_file_structure.py"
 
 check_spelling_py: .FORCE
 	@cd "$(BUILD_DIR)" ; \

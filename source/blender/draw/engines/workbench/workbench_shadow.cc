@@ -240,7 +240,7 @@ void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
   }
 
   if (do_visibility_) {
-    /* TODO(Miguel Pozo): Use regular culling for the caps pass */
+    /* TODO(@pragma37): Use regular culling for the caps pass. */
 
     if (dynamic_pass_type_shader_ == nullptr) {
       dynamic_pass_type_shader_ = GPU_shader_create_from_info_name(

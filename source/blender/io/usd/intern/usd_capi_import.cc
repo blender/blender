@@ -212,6 +212,7 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
   }
 
   convert_to_z_up(stage, &data->settings);
+  data->settings.stage_meters_per_unit = UsdGeomGetStageMetersPerUnit(stage);
 
   /* Set up the stage for animated data. */
   if (data->params.set_frame_range) {

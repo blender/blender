@@ -41,7 +41,7 @@ void SceneState::init(Object *camera_ob /*= nullptr*/)
 
   object_mode = CTX_data_mode_enum_ex(context->object_edit, context->obact, context->object_mode);
 
-  /* TODO(Miguel Pozo):
+  /* TODO(@pragma37):
    * Check why Workbench Next exposes OB_MATERIAL, and Workbench exposes OB_RENDER */
   bool is_render_mode = !v3d || ELEM(v3d->shading.type, OB_RENDER, OB_MATERIAL);
 
@@ -109,7 +109,7 @@ void SceneState::init(Object *camera_ob /*= nullptr*/)
   }
 
   float4x4 matrix;
-  /*TODO(Miguel Pozo): New API ?*/
+  /* TODO(@pragma37): New API? */
   DRW_view_persmat_get(nullptr, matrix.ptr(), false);
   if (matrix != view_projection_matrix) {
     view_projection_matrix = matrix;
@@ -158,7 +158,7 @@ void SceneState::init(Object *camera_ob /*= nullptr*/)
   }
   render_finished = sample >= samples_len && samples_len > 1;
 
-  /* TODO(Miguel Pozo) volumes_do */
+  /* TODO(@pragma37): volumes_do */
 
   draw_cavity = shading.flag & V3D_SHADING_CAVITY &&
                 ELEM(shading.cavity_type, V3D_SHADING_CAVITY_SSAO, V3D_SHADING_CAVITY_BOTH);
@@ -205,9 +205,8 @@ ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Mesh *me = (ob->type == OB_MESH) ? static_cast<Mesh *>(ob->data) : nullptr;
   const bool is_active = (ob == draw_ctx->obact);
-  /* TODO(Miguel Pozo) Is the double check needed?
-   * If it is, wouldn't be needed for sculpt_pbvh too?
-   */
+  /* TODO(@pragma37): Is the double check needed?
+   * If it is, wouldn't be needed for sculpt_pbvh too? */
   const bool is_render = DRW_state_is_image_render() && (draw_ctx->v3d == nullptr);
 
   color_type = (eV3DShadingColorType)scene_state.shading.color_type;

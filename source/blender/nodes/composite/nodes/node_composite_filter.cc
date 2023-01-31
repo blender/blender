@@ -49,7 +49,7 @@ class FilterOperation : public NodeOperation {
     GPUShader *shader = shader_manager().get(get_shader_name());
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_mat3_as_mat4(shader, "kernel", get_filter_kernel().ptr());
+    GPU_shader_uniform_mat3_as_mat4(shader, "ukernel", get_filter_kernel().ptr());
 
     const Result &input_image = get_input("Image");
     input_image.bind_as_texture(shader, "input_tx");
