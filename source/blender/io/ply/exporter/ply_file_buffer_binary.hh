@@ -71,7 +71,7 @@ class FileBufferBinary : public FileBuffer {
     /* In binary, there is no end to a vertex. */
   }
 
-    void write_face(char size, Vector<uint32_t> const &vertex_indices) override
+  void write_face(char size, Vector<uint32_t> const &vertex_indices) override
   {
     /* Pre allocate memory so no further allocation has to be done for typical faces. */
     Vector<char, 128> data;
