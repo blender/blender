@@ -88,7 +88,7 @@ void MeshPass::draw(ObjectRef &ref,
         }
         sub_pass->push_constant("isImageTile", tilemap != nullptr);
         sub_pass->push_constant("imagePremult", image && image->alpha_mode == IMA_ALPHA_PREMUL);
-        /* TODO(Miguel Pozo): This setting should be exposed on the user side,
+        /* TODO(@pragma37): This setting should be exposed on the user side,
          * either as a global parameter (and set it here)
          * or by reading the Material Clipping Threshold (and set it per material) */
         sub_pass->push_constant("imageTransparencyCutoff", 0.1f);

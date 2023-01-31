@@ -97,7 +97,7 @@ struct PBVHNode {
    * marking various updates that need to be applied. */
   PBVHNodeFlags flag : 32;
 
-  /* Used for raycasting: how close bb is to the ray point. */
+  /* Used for ray-casting: how close the bounding-box is to the ray point. */
   float tmin;
 
   /* Scalar displacements for sculpt mode's layer brush. */

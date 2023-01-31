@@ -287,7 +287,7 @@ class ShadowPass {
 
   UniformBuffer<ShadowPassData> pass_data_ = {};
 
-  /* Draws are added to both passes and the visibily compute shader selects one of them */
+  /* Draws are added to both passes and the visibly compute shader selects one of them */
   PassMain pass_ps_ = {"Shadow.Pass"};
   PassMain fail_ps_ = {"Shadow.Fail"};
 

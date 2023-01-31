@@ -692,7 +692,7 @@ int calculate_evaluated_num(int points_num, bool cyclic, int resolution);
 void interpolate_to_evaluated(GSpan src, bool cyclic, int resolution, GMutableSpan dst);
 
 /**
- * Evaluate the Catmull Rom curve. The placement of each segment in the #dst span is desribed by
+ * Evaluate the Catmull Rom curve. The placement of each segment in the #dst span is described by
  * #evaluated_offsets.
  */
 void interpolate_to_evaluated(const GSpan src,

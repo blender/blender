@@ -3234,7 +3234,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 
     tree = BLI_kdtree_3d_new(psys->totpart);
 
-    /* insert particles into kd tree */
+    /* Insert particles into KD-tree. */
     LOOP_SELECTED_POINTS {
       psys_mat_hair_to_object(
           ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);

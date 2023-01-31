@@ -221,7 +221,7 @@ void AntiAliasingPass::setup_view(View &view, int2 resolution)
 
   setup_taa_weights(sample_offset, weights_, weights_sum_);
 
-  /* TODO(Miguel Pozo): New API equivalent? */
+  /* TODO(@pragma37): New API equivalent? */
   const DRWView *default_view = DRW_view_default_get();
   float4x4 winmat, viewmat, persmat;
   /* Construct new matrices from transform delta */
@@ -243,7 +243,7 @@ void AntiAliasingPass::draw(Manager &manager,
                             GPUTexture *color_tx)
 {
   if (!enabled_) {
-    /* TODO(Miguel Pozo): Should render to the input color_tx and depth_tx in the first place.
+    /* TODO(@pragma37): Should render to the input color_tx and depth_tx in the first place.
      * This requires the use of TextureRefs with stencil_view() support,
      * but whether TextureRef will stay is still TBD. */
     GPU_texture_copy(color_tx, resources.color_tx);
@@ -274,7 +274,7 @@ void AntiAliasingPass::draw(Manager &manager,
     if (sample0_depth_tx_.is_valid()) {
       GPU_texture_copy(sample0_depth_tx_, resources.depth_tx);
     }
-    /* TODO(Miguel Pozo): Should render to the input depth_tx in the first place
+    /* TODO(@pragma37): Should render to the input depth_tx in the first place
      * This requires the use of TextureRef with stencil_view() support,
      * but whether TextureRef will stay is still TBD. */
 

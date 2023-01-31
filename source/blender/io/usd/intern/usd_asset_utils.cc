@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 NVIDIA Corportation. All rights reserved. */
+ * Copyright 2023 NVIDIA Corporation. All rights reserved. */
 
 #include "usd_asset_utils.h"
 
@@ -29,10 +29,12 @@ static const int UDIM_END_TILE = 1100;
 
 namespace blender::io::usd {
 
-/* The following is copied from _SplitUdimPattern() in
- * USD library source file materialParamsUtils.cpp.
- * Split a udim file path such as /someDir/myFile.<UDIM>.exr into a
- * prefix (/someDir/myFile.) and suffix (.exr). */
+/**
+ * The following is copied from `_SplitUdimPattern()` in
+ * USD library source file `materialParamsUtils.cpp`.
+ * Split a UDIM file path such as `/someDir/myFile.<UDIM>.exr` into a
+ * prefix `/someDir/myFile.` and suffix `.exr`.
+ */
 static std::pair<std::string, std::string> split_udim_pattern(const std::string &path)
 {
   static const std::vector<std::string> patterns = {UDIM_PATTERN, UDIM_PATTERN2};

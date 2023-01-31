@@ -29,7 +29,6 @@
 /** \name Mesh Connectivity Mapping
  * \{ */
 
-/* ngon version wip, based on BM_uv_vert_map_create */
 UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
                                        const bool *hide_poly,
                                        const bool *select_poly,
@@ -41,6 +40,8 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
                                        const bool selected,
                                        const bool use_winding)
 {
+  /* NOTE: N-gon version WIP, based on #BM_uv_vert_map_create. */
+
   UvVertMap *vmap;
   UvMapVert *buf;
   const MPoly *mp;

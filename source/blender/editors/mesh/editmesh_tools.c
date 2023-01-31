@@ -2061,7 +2061,7 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
     BMO_slot_buffer_hflag_enable(
         bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
 
-    /* rebuild editselection */
+    /* Rebuild edit-selection. */
     BM_SELECT_HISTORY_RESTORE(bm);
 
     if (!EDBM_op_finish(em, &bmop, op, true)) {
@@ -4348,7 +4348,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
     BMO_edge_flag_set(bm, be, ELE_EDGE_CUT, is_cut);
   }
 
-  /* free all allocs */
+  /* Free all allocations. */
   MEM_freeN(screen_vert_coords);
   MEM_freeN(mouse_path);
 
@@ -4434,7 +4434,7 @@ static Base *mesh_separate_tagged(
                                  &((struct BMeshCreateParams){
                                      .use_toolflags = true,
                                  }));
-  BM_mesh_elem_toolflags_ensure(bm_new); /* needed for 'duplicate' bmo */
+  BM_mesh_elem_toolflags_ensure(bm_new); /* Needed for 'duplicate' BMO. */
 
   BM_mesh_copy_init_customdata(bm_new, bm_old, &bm_mesh_allocsize_default);
 

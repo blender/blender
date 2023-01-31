@@ -1037,7 +1037,7 @@ static void weld_poly_loop_ctx_setup_collapsed_and_split(
 
   /* Setup Poly/Loop. */
   /* `wpoly.size()` may change during the loop,
-   * so make it clear that we are only working with the original wpolys. */
+   * so make it clear that we are only working with the original `wpoly` items. */
   IndexRange wpoly_original_range = r_weld_mesh->wpoly.index_range();
   for (const int i : wpoly_original_range) {
     WeldPoly &wp = wpoly[i];

@@ -13,23 +13,23 @@
  * A word on slot names:
  *
  * For geometry input slots, the following are valid names:
- * - verts
- * - edges
- * - faces
- * - edgefacein
- * - vertfacein
- * - vertedgein
- * - vertfacein
- * - geom
+ * - `verts`
+ * - `edges`
+ * - `faces`
+ * - `edge_face.in`
+ * - `vert_face.in`
+ * - `vert_edge.in`
+ * - `vert_face.in`
+ * - `geom`
  *
  * The basic rules are, for single-type geometry slots, use the plural of the
  * type name (e.g. edges).  for double-type slots, use the two type names plus
- * "in" (e.g. edgefacein).  for three-type slots, use geom.
+ * "in" (e.g. `edge_face.in`).  for three-type slots, use geom.
  *
  * for output slots, for single-type geometry slots, use the type name plus "out",
- * (e.g. verts.out), for double-type slots, use the two type names plus "out",
- * (e.g. vertfaces.out), for three-type slots, use geom.  note that you can also
- * use more esoteric names (e.g. geom_skirt.out) so long as the comment next to the
+ * (e.g. `verts.out`), for double-type slots, use the two type names plus "out",
+ * (e.g. `vert_faces.out`), for three-type slots, use geom.  note that you can also
+ * use more esoteric names (e.g. `geom_skirt.out`) so long as the comment next to the
  * slot definition tells you what types of elements are in it.
  */
 

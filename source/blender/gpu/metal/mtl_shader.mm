@@ -353,7 +353,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
           shader_library_compute_.label = [NSString stringWithUTF8String:this->name];
         } break;
         case ShaderStage::ANY: {
-          /* Supress warnings. */
+          /* Suppress warnings. */
           BLI_assert_unreachable();
         } break;
       }

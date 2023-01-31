@@ -1163,17 +1163,17 @@ static int mesh_tessface_calc(Mesh &mesh,
   CustomData_add_layer(fdata, CD_ORIGINDEX, CD_ASSIGN, mface_to_poly_map, totface);
   add_mface_layers(mesh, fdata, ldata, totface);
 
-  /* NOTE: quad detection issue - fourth vertidx vs fourth loopidx:
+  /* NOTE: quad detection issue - fourth vertex-index vs fourth loop-index:
    * Polygons take care of their loops ordering, hence not of their vertices ordering.
    * Currently, our tfaces' fourth vertex index might be 0 even for a quad.
    * However, we know our fourth loop index is never 0 for quads
    * (because they are sorted for polygons, and our quads are still mere copies of their polygons).
-   * So we pass nullptr as MFace pointer, and #mesh_loops_to_tessdata
+   * So we pass nullptr as #MFace pointer, and #mesh_loops_to_tessdata
    * will use the fourth loop index as quad test. */
   mesh_loops_to_tessdata(fdata, ldata, nullptr, mface_to_poly_map, lindices, totface);
 
-  /* NOTE: quad detection issue - fourth vertidx vs fourth loopidx:
-   * ...However, most TFace code uses 'MFace->v4 == 0' test to check whether it is a tri or quad.
+  /* NOTE: quad detection issue - fourth vert-index vs fourth loop-index:
+   * ...However, most #TFace code uses `MFace->v4 == 0` test to check whether it is a tri or quad.
    * BKE_mesh_mface_index_validate() will check this and rotate the tessellated face if needed.
    */
 #ifdef USE_TESSFACE_QUADS

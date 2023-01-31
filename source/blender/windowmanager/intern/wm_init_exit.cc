@@ -599,7 +599,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   (void)do_python;
 #endif
 
-  ED_file_exit(); /* for fsmenu */
+  ED_file_exit(); /* For file-selector menu data. */
 
   /* Delete GPU resources and context. The UI also uses GPU resources and so
    * is also deleted with the context active. */
