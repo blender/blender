@@ -446,6 +446,8 @@ void EDBM_flag_enable_all(BMEditMesh *em, const char hflag)
 
 UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
 {
+  /* NOTE: delimiting on alternate face-winding was once supported and could be useful
+   * in some cases. If this is need see: D17137 to restore support. */
   BMVert *ev;
   BMFace *efa;
   BMLoop *l;
