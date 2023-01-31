@@ -252,7 +252,7 @@ void main()
     result = transform_direction(m3, p);
     EXPECT_NEAR(result, expect, 1e-5);
 
-    expect = vec3(-0.5, -1, -1.7222222);
+    expect = vec3(-0.333333, -0.666667, -1.14815);
     result = project_point(pers4, p);
     EXPECT_NEAR(result, expect, 1e-5);
 
@@ -278,13 +278,13 @@ void main()
     expect = transpose(mat4x4(vec4(-0.8f, 0.0f, 0.2f, 0.0f),
                               vec4(0.0f, -0.666667f, 0.333333f, 0.0f),
                               vec4(0.0f, 0.0f, -2.33333f, 0.666667f),
-                              vec4(0.0f, 0.0f, -1.0f, 1.0f)));
+                              vec4(0.0f, 0.0f, -1.0f, 0.0f)));
     EXPECT_NEAR(pers1, expect, 1e-4);
 
     expect = transpose(mat4x4(vec4(4.0f, 0.0f, 0.2f, 0.0f),
                               vec4(0.0f, 3.33333f, 0.333333f, 0.0f),
                               vec4(0.0f, 0.0f, -2.33333f, 0.666667f),
-                              vec4(0.0f, 0.0f, -1.0f, 1.0f)));
+                              vec4(0.0f, 0.0f, -1.0f, 0.0f)));
     EXPECT_NEAR(pers2, expect, 1e-4);
   }
 
