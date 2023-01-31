@@ -848,6 +848,8 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
 
         MATCACHE_AS_ARRAY(matcache, shadow_grp, materials_len, shgrps_array);
         DRW_shgroup_call_sculpt_with_materials(shgrps_array, gpumat_array, materials_len, ob);
+
+        *cast_shadow = true;
       }
       else {
         struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
