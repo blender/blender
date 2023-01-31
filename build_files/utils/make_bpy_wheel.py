@@ -24,7 +24,7 @@ import os
 import re
 import platform
 import string
-import setuptools  # type: ignore
+import setuptools
 import sys
 
 from typing import (
@@ -208,7 +208,7 @@ def main() -> None:
         return paths
 
     # Ensure this wheel is marked platform specific.
-    class BinaryDistribution(setuptools.dist.Distribution):  # type: ignore
+    class BinaryDistribution(setuptools.dist.Distribution):
         def has_ext_modules(self) -> bool:
             return True
 
