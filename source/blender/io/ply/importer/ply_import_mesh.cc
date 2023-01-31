@@ -62,7 +62,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
       polys[i].totloop = size;
 
       for (int j = 0; j < size; j++) {
-        /* Set the vertex index of the edge to the one in PlyData. */
+        /* Set the vertex index of the loop to the one in PlyData. */
         loops[offset + j].v = data.faces[i][j];
       }
       offset += size;

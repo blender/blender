@@ -121,6 +121,10 @@ PlyData load_ply_ascii(std::ifstream &file, const PlyHeader *header)
     Vector<uint> vertex_indices;
 
     for (int j = 1; j <= std::stoi(value_vec[0]); j++) {
+      /* If the face has a vertex index that is outside the range. */
+      if (std::stoi(value_vec[j]) >= data.vertices.size()) {
+        throw std::runtime_error("Vertex index out of bounds");
+      }
       vertex_indices.append(std::stoi(value_vec[j]));
     }
     data.faces.append(vertex_indices);

@@ -118,6 +118,10 @@ PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header)
         /* Loop over the amount of vertex indices in this face. */
         for (uint8_t k = 0; k < count; k++) {
           uint32_t index = read<uint32_t>(file, isBigEndian);
+          /* If the face has a vertex index that is outside the range. */
+          if (index >= data.vertices.size()) {
+            throw std::runtime_error("Vertex index out of bounds");
+          }
           vertex_indices.append(index);
         }
         data.faces.append(vertex_indices);
