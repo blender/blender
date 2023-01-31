@@ -2246,6 +2246,7 @@ class VIEW3D_MT_camera_add(Menu):
 class VIEW3D_MT_volume_add(Menu):
     bl_idname = "VIEW3D_MT_volume_add"
     bl_label = "Volume"
+    bl_translation_context = i18n_contexts.id_id
 
     def draw(self, _context):
         layout = self.layout
@@ -4274,7 +4275,10 @@ class VIEW3D_MT_edit_mesh_faces_data(Menu):
 
         layout.separator()
 
+        layout.operator("mesh.flip_quad_tessellation")
+
         if with_freestyle:
+            layout.separator()
             layout.operator("mesh.mark_freestyle_face").clear = False
             layout.operator("mesh.mark_freestyle_face", text="Clear Freestyle Face").clear = True
 
@@ -6290,7 +6294,7 @@ class VIEW3D_PT_overlay_guides(Panel):
             (view.region_3d.is_orthographic_side_view and not view.region_3d.is_perspective)
         )
         row_el.active = grid_active
-        row.prop(overlay, "show_floor", text="Floor")
+        row.prop(overlay, "show_floor", text="Floor", text_ctxt=i18n_contexts.editor_view3d)
 
         if overlay.show_floor or overlay.show_ortho_grid:
             sub = col.row(align=True)

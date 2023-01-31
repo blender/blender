@@ -15,7 +15,3 @@ body:
     attributes:
       label: "Description"
       hide_label: true
-      value: |
-               Description of the problem that is addressed in the patch.
-
-               Description of the proposed solution and its implementation.

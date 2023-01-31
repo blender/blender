@@ -5934,7 +5934,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   /* Overlay settings. */
   prop = RNA_def_property(srna, "show_overlays", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_SHOW_OVERLAY);
-  RNA_def_property_ui_text(prop, "Show Overlay", "");
+  RNA_def_property_ui_text(prop, "Show Overlays", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
   prop = RNA_def_property(srna, "preview_overlay", PROP_POINTER, PROP_NONE);

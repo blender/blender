@@ -177,6 +177,7 @@ void BM_face_normal_flip_ex(BMesh *bm,
                             int cd_loop_mdisp_offset,
                             bool use_loop_mdisp_flip) ATTR_NONNULL();
 void BM_face_normal_flip(BMesh *bm, BMFace *f) ATTR_NONNULL();
+
 /**
  * BM POINT IN FACE
  *

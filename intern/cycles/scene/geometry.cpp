@@ -306,6 +306,11 @@ void GeometryManager::update_osl_globals(Device *device, Scene *scene)
 {
 #ifdef WITH_OSL
   OSLGlobals *og = (OSLGlobals *)device->get_cpu_osl_memory();
+  if (og == nullptr) {
+    /* Can happen when rendering with multiple GPUs, but no CPU (in which case the name maps filled
+     * below are not used anyway) */
+    return;
+  }
 
   og->object_name_map.clear();
   og->object_names.clear();

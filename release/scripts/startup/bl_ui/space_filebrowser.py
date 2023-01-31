@@ -8,6 +8,8 @@ from bpy_extras import (
     asset_utils,
 )
 
+from bpy.app.translations import contexts as i18n_contexts
+
 
 class FILEBROWSER_HT_header(Header):
     bl_space_type = 'FILE_BROWSER'
@@ -229,6 +231,7 @@ class FILEBROWSER_PT_bookmarks_volumes(Panel):
     bl_region_type = 'TOOLS'
     bl_category = "Bookmarks"
     bl_label = "Volumes"
+    bl_translation_context = i18n_contexts.editor_filebrowser
 
     @classmethod
     def poll(cls, context):

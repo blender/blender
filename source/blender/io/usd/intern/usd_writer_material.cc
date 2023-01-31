@@ -61,6 +61,8 @@ static const pxr::TfToken normal("normal", pxr::TfToken::Immortal);
 static const pxr::TfToken ior("ior", pxr::TfToken::Immortal);
 static const pxr::TfToken file("file", pxr::TfToken::Immortal);
 static const pxr::TfToken raw("raw", pxr::TfToken::Immortal);
+static const pxr::TfToken scale("scale", pxr::TfToken::Immortal);
+static const pxr::TfToken bias("bias", pxr::TfToken::Immortal);
 static const pxr::TfToken sRGB("sRGB", pxr::TfToken::Immortal);
 static const pxr::TfToken sourceColorSpace("sourceColorSpace", pxr::TfToken::Immortal);
 static const pxr::TfToken Shader("Shader", pxr::TfToken::Immortal);
@@ -114,6 +116,7 @@ static bNode *traverse_channel(bNodeSocket *input, short target_type);
 template<typename T1, typename T2>
 void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const void *value);
 
+void set_normal_texture_range(pxr::UsdShadeShader &usd_shader, const InputSpec &input_spec);
 void create_usd_preview_surface_material(const USDExporterContext &usd_export_context,
                                          Material *material,
                                          pxr::UsdShadeMaterial &usd_material,
@@ -162,6 +165,7 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
 
       preview_surface.CreateInput(input_spec.input_name, input_spec.input_type)
           .ConnectToSource(created_shader.ConnectableAPI(), input_spec.source_name);
+      set_normal_texture_range(created_shader, input_spec);
     }
     else if (input_spec.set_default_value) {
       /* Set hardcoded value. */
@@ -198,6 +202,45 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
     create_uvmap_shader(
         usd_export_context, input_node, usd_material, created_shader, default_uv_sampler);
   }
+}
+
+void set_normal_texture_range(pxr::UsdShadeShader &usd_shader, const InputSpec &input_spec)
+{
+  /* Set the scale and bias for normal map textures
+   * The USD spec requires them to be within the -1 to 1 space
+   * */
+
+  /* Only run if this input_spec is for a normal. */
+  if (input_spec.input_name != usdtokens::normal) {
+    return;
+  }
+
+  /* Make sure this is a texture shader prim. */
+  pxr::TfToken shader_id;
+  if (!usd_shader.GetIdAttr().Get(&shader_id) || shader_id != usdtokens::uv_texture) {
+    return;
+  }
+
+  /* We should only be setting this if the colorspace is raw. sRGB will not map the same. */
+  pxr::TfToken colorspace;
+  auto colorspace_attr = usd_shader.GetInput(usdtokens::sourceColorSpace);
+  if (!colorspace_attr || !colorspace_attr.Get(&colorspace) || colorspace != usdtokens::raw) {
+    return;
+  }
+
+  /* Get or Create the scale attribute and set it. */
+  auto scale_attr = usd_shader.GetInput(usdtokens::scale);
+  if (!scale_attr) {
+    scale_attr = usd_shader.CreateInput(usdtokens::scale, pxr::SdfValueTypeNames->Float4);
+  }
+  scale_attr.Set(pxr::GfVec4f(2.0f, 2.0f, 2.0f, 2.0f));
+
+  /* Get or Create the bias attribute and set it. */
+  auto bias_attr = usd_shader.GetInput(usdtokens::bias);
+  if (!bias_attr) {
+    bias_attr = usd_shader.CreateInput(usdtokens::bias, pxr::SdfValueTypeNames->Float4);
+  }
+  bias_attr.Set(pxr::GfVec4f(-1.0f, -1.0f, -1.0f, -1.0f));
 }
 
 void create_usd_viewport_material(const USDExporterContext &usd_export_context,

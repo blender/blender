@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 from bpy.types import Panel
+from bpy.app.translations import contexts as i18n_contexts
 
 
 class ObjectConstraintPanel:
@@ -397,7 +398,7 @@ class ConstraintButtonsPanel:
         sub.prop(con, "invert_z", text="Z", toggle=True)
         row.label(icon='BLANK1')
 
-        layout.prop(con, "mix_mode", text="Mix")
+        layout.prop(con, "mix_mode", text="Mix", text_ctxt=i18n_contexts.constraint)
 
         self.space_template(layout, con)
 
@@ -488,7 +489,7 @@ class ConstraintButtonsPanel:
         self.target_template(layout, con)
 
         layout.prop(con, "remove_target_shear")
-        layout.prop(con, "mix_mode", text="Mix")
+        layout.prop(con, "mix_mode", text="Mix", text_ctxt=i18n_contexts.constraint)
 
         self.space_template(layout, con)
 
@@ -513,7 +514,7 @@ class ConstraintButtonsPanel:
         subsub.prop(con, "eval_time", text="")
         row.prop_decorator(con, "eval_time")
 
-        layout.prop(con, "mix_mode", text="Mix")
+        layout.prop(con, "mix_mode", text="Mix", text_ctxt=i18n_contexts.constraint)
 
         self.draw_influence(layout, con)
 
@@ -1024,7 +1025,7 @@ class ConstraintButtonsSubPanel:
         col.prop(con, "to_min_z" + ext, text="Min")
         col.prop(con, "to_max_z" + ext, text="Max")
 
-        layout.prop(con, "mix_mode" + ext, text="Mix")
+        layout.prop(con, "mix_mode" + ext, text="Mix", text_ctxt=i18n_contexts.constraint)
 
     def draw_armature_bones(self, context):
         layout = self.layout

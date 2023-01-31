@@ -193,6 +193,16 @@ template<typename T> class Field : public GField, detail::TypedFieldBase {
     BLI_assert(this->cpp_type().template is<T>());
   }
 
+  /**
+   * Generally, the constructor above would be sufficient, but this additional constructor ensures
+   * that trying to create e.g. a `Field<int>` from a `Field<float>` does not compile (instead of
+   * only failing at run-time).
+   */
+  template<typename U> Field(Field<U> field) : GField(std::move(field))
+  {
+    static_assert(std::is_same_v<T, U>);
+  }
+
   Field(std::shared_ptr<FieldNode> node, const int node_output_index = 0)
       : Field(GField(std::move(node), node_output_index))
   {

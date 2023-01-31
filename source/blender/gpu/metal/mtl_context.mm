@@ -1034,6 +1034,7 @@ bool MTLContext::ensure_uniform_buffer_bindings(
     uint32_t block_size = push_constant_block.size;
     uint32_t buffer_index = pipeline_state_instance->base_uniform_buffer_index +
                             push_constant_block.buffer_index;
+    BLI_assert(buffer_index >= 0 && buffer_index < MTL_MAX_BUFFER_BINDINGS);
 
     /* Only need to rebind block if push constants have been modified -- or if no data is bound for
      * the current RenderCommandEncoder. */
@@ -1156,21 +1157,128 @@ bool MTLContext::ensure_uniform_buffer_bindings(
 
         /* Bind Vertex UBO. */
         if (bool(ubo.stage_mask & ShaderStage::VERTEX)) {
-          BLI_assert(buffer_bind_index >= 0 &&
-                     buffer_bind_index < MTL_MAX_UNIFORM_BUFFER_BINDINGS);
+          BLI_assert(buffer_bind_index >= 0 && buffer_bind_index < MTL_MAX_BUFFER_BINDINGS);
           rps.bind_vertex_buffer(ubo_buffer, ubo_offset, buffer_bind_index);
         }
 
         /* Bind Fragment UBOs. */
         if (bool(ubo.stage_mask & ShaderStage::FRAGMENT)) {
-          BLI_assert(buffer_bind_index >= 0 &&
-                     buffer_bind_index < MTL_MAX_UNIFORM_BUFFER_BINDINGS);
+          BLI_assert(buffer_bind_index >= 0 && buffer_bind_index < MTL_MAX_BUFFER_BINDINGS);
           rps.bind_fragment_buffer(ubo_buffer, ubo_offset, buffer_bind_index);
         }
       }
       else {
         MTL_LOG_WARNING(
             "[UBO] Shader '%s' has UBO '%s' bound at buffer index: %d -- but MTLBuffer "
+            "is NULL!\n",
+            shader_interface->get_name(),
+            shader_interface->get_name_at_offset(ubo.name_offset),
+            buffer_index);
+      }
+    }
+  }
+  return true;
+}
+
+/* Variant for compute. Bind uniform buffers to an active compute command encoder using the
+ * rendering state of the current context -> Active shader, Bound UBOs). */
+bool MTLContext::ensure_uniform_buffer_bindings(
+    id<MTLComputeCommandEncoder> rec,
+    const MTLShaderInterface *shader_interface,
+    const MTLComputePipelineStateInstance &pipeline_state_instance)
+{
+  /* Fetch Compute Pass state. */
+  MTLComputeState &cs = this->main_command_buffer.get_compute_state();
+
+  /* Fetch push constant block and bind. */
+  const MTLShaderUniformBlock &push_constant_block = shader_interface->get_push_constant_block();
+  if (push_constant_block.size > 0) {
+
+    /* Fetch uniform buffer base binding index from pipeline_state_instance - There buffer index
+     * will be offset by the number of bound VBOs. */
+    uint32_t block_size = push_constant_block.size;
+    uint32_t buffer_index = pipeline_state_instance.base_uniform_buffer_index +
+                            push_constant_block.buffer_index;
+    BLI_assert(buffer_index >= 0 && buffer_index < MTL_MAX_BUFFER_BINDINGS);
+
+    /* For compute, we must always re-bind the push constant block as other compute
+     * operations may have assigned reources over the top, outside of the compiled
+     * compute shader path. */
+    /* Bind push constant data. */
+    BLI_assert(this->pipeline_state.active_shader->get_push_constant_data() != nullptr);
+    cs.bind_compute_bytes(
+        this->pipeline_state.active_shader->get_push_constant_data(), block_size, buffer_index);
+
+    /* Only need to rebind block if it has been modified. */
+    this->pipeline_state.active_shader->push_constant_bindstate_mark_dirty(false);
+  }
+
+  /* Bind Global GPUUniformBuffers */
+  /* Iterate through expected UBOs in the shader interface, and check if the globally bound ones
+   * match. This is used to support the gpu_uniformbuffer module, where the uniform data is global,
+   * and not owned by the shader instance. */
+  for (const uint ubo_index : IndexRange(shader_interface->get_total_uniform_blocks())) {
+    const MTLShaderUniformBlock &ubo = shader_interface->get_uniform_block(ubo_index);
+
+    if (ubo.buffer_index >= 0) {
+
+      /* Uniform Buffer index offset by 1 as the first shader buffer binding slot is reserved for
+       * the uniform PushConstantBlock. */
+      const uint32_t buffer_index = ubo.buffer_index + 1;
+      int ubo_offset = 0;
+      id<MTLBuffer> ubo_buffer = nil;
+      int ubo_size = 0;
+
+      bool bind_dummy_buffer = false;
+      if (this->pipeline_state.ubo_bindings[ubo_index].bound) {
+
+        /* Fetch UBO global-binding properties from slot. */
+        ubo_offset = 0;
+        ubo_buffer = this->pipeline_state.ubo_bindings[ubo_index].ubo->get_metal_buffer(
+            &ubo_offset);
+        ubo_size = this->pipeline_state.ubo_bindings[ubo_index].ubo->get_size();
+        UNUSED_VARS_NDEBUG(ubo_size);
+
+        /* Use dummy zero buffer if no buffer assigned -- this is an optimization to avoid
+         * allocating zero buffers. */
+        if (ubo_buffer == nil) {
+          bind_dummy_buffer = true;
+        }
+        else {
+          BLI_assert(ubo_buffer != nil);
+          BLI_assert(ubo_size > 0);
+        }
+      }
+      else {
+        MTL_LOG_INFO(
+            "[Warning][UBO] Shader '%s' expected UBO '%s' to be bound at buffer index: %d -- but "
+            "nothing was bound -- binding dummy buffer\n",
+            shader_interface->get_name(),
+            shader_interface->get_name_at_offset(ubo.name_offset),
+            buffer_index);
+        bind_dummy_buffer = true;
+      }
+
+      if (bind_dummy_buffer) {
+        /* Perform Dummy binding. */
+        ubo_offset = 0;
+        ubo_buffer = this->get_null_buffer();
+        ubo_size = [ubo_buffer length];
+      }
+
+      if (ubo_buffer != nil) {
+        uint32_t buffer_bind_index = pipeline_state_instance.base_uniform_buffer_index +
+                                     buffer_index;
+
+        /* Bind Vertex UBO. */
+        if (bool(ubo.stage_mask & ShaderStage::COMPUTE)) {
+          BLI_assert(buffer_bind_index >= 0 && buffer_bind_index < MTL_MAX_BUFFER_BINDINGS);
+          cs.bind_compute_buffer(ubo_buffer, ubo_offset, buffer_bind_index);
+        }
+      }
+      else {
+        MTL_LOG_WARNING(
+            "[UBO] Compute Shader '%s' has UBO '%s' bound at buffer index: %d -- but MTLBuffer "
             "is NULL!\n",
             shader_interface->get_name(),
             shader_interface->get_name_at_offset(ubo.name_offset),
@@ -1198,8 +1306,11 @@ void MTLContext::ensure_texture_bindings(
     int fragment_arg_buffer_bind_index = -1;
 
     /* Argument buffers are used for samplers, when the limit of 16 is exceeded. */
-    bool use_argument_buffer_for_samplers = shader_interface->get_use_argument_buffer_for_samplers(
-        &vertex_arg_buffer_bind_index, &fragment_arg_buffer_bind_index);
+    bool use_argument_buffer_for_samplers = shader_interface->uses_argument_buffer_for_samplers();
+    vertex_arg_buffer_bind_index = shader_interface->get_argument_buffer_bind_index(
+        ShaderStage::VERTEX);
+    fragment_arg_buffer_bind_index = shader_interface->get_argument_buffer_bind_index(
+        ShaderStage::FRAGMENT);
 
     /* Loop through expected textures in shader interface and resolve bindings with currently
      * bound textures.. */
@@ -1396,6 +1507,199 @@ void MTLContext::ensure_texture_bindings(
   }
 }
 
+/* Texture binding variant for compute command encoder.
+ * Ensure bound texture resources are bound to the active MTLComputeCommandEncoder. */
+void MTLContext::ensure_texture_bindings(
+    id<MTLComputeCommandEncoder> rec,
+    MTLShaderInterface *shader_interface,
+    const MTLComputePipelineStateInstance &pipeline_state_instance)
+{
+  BLI_assert(shader_interface != nil);
+  BLI_assert(rec != nil);
+
+  /* Fetch Render Pass state. */
+  MTLComputeState &cs = this->main_command_buffer.get_compute_state();
+
+  @autoreleasepool {
+    int compute_arg_buffer_bind_index = -1;
+
+    /* Argument buffers are used for samplers, when the limit of 16 is exceeded.
+     * NOTE: Compute uses vertex argument for arg buffer bind index.*/
+    bool use_argument_buffer_for_samplers = shader_interface->uses_argument_buffer_for_samplers();
+    compute_arg_buffer_bind_index = shader_interface->get_argument_buffer_bind_index(
+        ShaderStage::COMPUTE);
+
+    /* Loop through expected textures in shader interface and resolve bindings with currently
+     * bound textures.. */
+    for (const uint t : IndexRange(shader_interface->get_max_texture_index() + 1)) {
+      /* Ensure the bound texture is compatible with the shader interface. If the
+       * shader does not expect a texture to be bound for the current slot, we skip
+       * binding.
+       * NOTE: Global texture bindings may be left over from prior draw calls. */
+      const MTLShaderTexture &shader_texture_info = shader_interface->get_texture(t);
+      if (!shader_texture_info.used) {
+        /* Skip unused binding points if explicit indices are specified. */
+        continue;
+      }
+
+      int slot = shader_texture_info.slot_index;
+      if (slot >= 0 && slot < GPU_max_textures()) {
+        bool bind_dummy_texture = true;
+        if (this->pipeline_state.texture_bindings[slot].used) {
+          gpu::MTLTexture *bound_texture =
+              this->pipeline_state.texture_bindings[slot].texture_resource;
+          MTLSamplerBinding &bound_sampler = this->pipeline_state.sampler_bindings[slot];
+          BLI_assert(bound_texture);
+          BLI_assert(bound_sampler.used);
+
+          if (shader_texture_info.type == bound_texture->type_) {
+            /* Bind texture and sampler if the bound texture matches the type expected by the
+             * shader. */
+            id<MTLTexture> tex = bound_texture->get_metal_handle();
+
+            if (bool(shader_texture_info.stage_mask & ShaderStage::COMPUTE)) {
+              cs.bind_compute_texture(tex, slot);
+              cs.bind_compute_sampler(bound_sampler, use_argument_buffer_for_samplers, slot);
+            }
+
+            /* Texture state resolved, no need to bind dummy texture */
+            bind_dummy_texture = false;
+          }
+          else {
+            /* Texture type for bound texture (e.g. Texture2DArray) does not match what was
+             * expected in the shader interface. This is a problem and we will need to bind
+             * a dummy texture to ensure correct API usage. */
+            MTL_LOG_WARNING(
+                "(Shader '%s') Texture %p bound to slot %d is incompatible -- Wrong "
+                "texture target type. (Expecting type %d, actual type %d) (binding "
+                "name:'%s')(texture name:'%s')\n",
+                shader_interface->get_name(),
+                bound_texture,
+                slot,
+                shader_texture_info.type,
+                bound_texture->type_,
+                shader_interface->get_name_at_offset(shader_texture_info.name_offset),
+                bound_texture->get_name());
+          }
+        }
+        else {
+          MTL_LOG_WARNING(
+              "Shader '%s' expected texture to be bound to slot %d -- No texture was "
+              "bound. (name:'%s')\n",
+              shader_interface->get_name(),
+              slot,
+              shader_interface->get_name_at_offset(shader_texture_info.name_offset));
+        }
+
+        /* Bind Dummy texture -- will temporarily resolve validation issues while incorrect formats
+         * are provided -- as certain configurations may not need any binding. These issues should
+         * be fixed in the high-level, if problems crop up. */
+        if (bind_dummy_texture) {
+          if (bool(shader_texture_info.stage_mask & ShaderStage::COMPUTE)) {
+            cs.bind_compute_texture(
+                get_dummy_texture(shader_texture_info.type, shader_texture_info.sampler_format)
+                    ->get_metal_handle(),
+                slot);
+
+            /* Bind default sampler state. */
+            MTLSamplerBinding default_binding = {true, DEFAULT_SAMPLER_STATE};
+            cs.bind_compute_sampler(default_binding, use_argument_buffer_for_samplers, slot);
+          }
+        }
+      }
+      else {
+        MTL_LOG_WARNING(
+            "Shader %p expected texture to be bound to slot %d -- Slot exceeds the "
+            "hardware/API limit of '%d'. (name:'%s')\n",
+            this->pipeline_state.active_shader,
+            slot,
+            GPU_max_textures(),
+            shader_interface->get_name_at_offset(shader_texture_info.name_offset));
+      }
+    }
+
+    /* Construct and Bind argument buffer.
+     * NOTE(Metal): Samplers use an argument buffer when the limit of 16 samplers is exceeded. */
+    if (use_argument_buffer_for_samplers) {
+#ifndef NDEBUG
+      /* Debug check to validate each expected texture in the shader interface has a valid
+       * sampler object bound to the context. We will need all of these to be valid
+       * when constructing the sampler argument buffer. */
+      for (const uint i : IndexRange(shader_interface->get_max_texture_index() + 1)) {
+        const MTLShaderTexture &texture = shader_interface->get_texture(i);
+        if (texture.used) {
+          BLI_assert(this->samplers_.mtl_sampler[i] != nil);
+        }
+      }
+#endif
+
+      /* Check to ensure the buffer binding index for the argument buffer has been assigned.
+       * This PSO property will be set if we expect to use argument buffers, and the shader
+       * uses any amount of textures. */
+      BLI_assert(compute_arg_buffer_bind_index >= 0);
+      if (compute_arg_buffer_bind_index >= 0) {
+        /* Offset binding index to be relative to the start of static uniform buffer binding slots.
+         * The first N slots, prior to `pipeline_state_instance->base_uniform_buffer_index` are
+         * used by vertex and index buffer bindings, and the number of buffers present will vary
+         * between PSOs. */
+        int arg_buffer_idx = (pipeline_state_instance.base_uniform_buffer_index +
+                              compute_arg_buffer_bind_index);
+        assert(arg_buffer_idx < 32);
+        id<MTLArgumentEncoder> argument_encoder = shader_interface->find_argument_encoder(
+            arg_buffer_idx);
+        if (argument_encoder == nil) {
+          argument_encoder = [pipeline_state_instance.compute
+              newArgumentEncoderWithBufferIndex:arg_buffer_idx];
+          shader_interface->insert_argument_encoder(arg_buffer_idx, argument_encoder);
+        }
+
+        /* Generate or Fetch argument buffer sampler configuration.
+         * NOTE(Metal): we need to base sampler counts off of the maximal texture
+         * index. This is not the most optimal, but in practice, not a use-case
+         * when argument buffers are required.
+         * This is because with explicit texture indices, the binding indices
+         * should match across draws, to allow the high-level to optimize bind-points. */
+        gpu::MTLBuffer *encoder_buffer = nullptr;
+        this->samplers_.num_samplers = shader_interface->get_max_texture_index() + 1;
+
+        gpu::MTLBuffer **cached_smp_buffer_search = this->cached_sampler_buffers_.lookup_ptr(
+            this->samplers_);
+        if (cached_smp_buffer_search != nullptr) {
+          encoder_buffer = *cached_smp_buffer_search;
+        }
+        else {
+          /* Populate argument buffer with current global sampler bindings. */
+          int size = [argument_encoder encodedLength];
+          int alignment = max_uu([argument_encoder alignment], 256);
+          int size_align_delta = (size % alignment);
+          int aligned_alloc_size = ((alignment > 1) && (size_align_delta > 0)) ?
+                                       size + (alignment - (size % alignment)) :
+                                       size;
+
+          /* Allocate buffer to store encoded sampler arguments. */
+          encoder_buffer = MTLContext::get_global_memory_manager()->allocate(aligned_alloc_size,
+                                                                             true);
+          BLI_assert(encoder_buffer);
+          BLI_assert(encoder_buffer->get_metal_buffer());
+          [argument_encoder setArgumentBuffer:encoder_buffer->get_metal_buffer() offset:0];
+          [argument_encoder
+              setSamplerStates:this->samplers_.mtl_sampler
+                     withRange:NSMakeRange(0, shader_interface->get_max_texture_index() + 1)];
+          encoder_buffer->flush();
+
+          /* Insert into cache. */
+          this->cached_sampler_buffers_.add_new(this->samplers_, encoder_buffer);
+        }
+
+        BLI_assert(encoder_buffer != nullptr);
+        int compute_buffer_index = (pipeline_state_instance.base_uniform_buffer_index +
+                                    compute_arg_buffer_bind_index);
+        cs.bind_compute_buffer(encoder_buffer->get_metal_buffer(), 0, compute_buffer_index);
+      }
+    }
+  }
+}
+
 /* Encode latest depth-stencil state. */
 void MTLContext::ensure_depth_stencil_state(MTLPrimitiveType prim_type)
 {
@@ -1526,6 +1830,81 @@ void MTLContext::ensure_depth_stencil_state(MTLPrimitiveType prim_type)
              slopeScale:(doBias) ? this->pipeline_state.depth_stencil_state.depth_slope_scale : 0
                   clamp:0];
     }
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Compute dispatch.
+ * \{ */
+
+bool MTLContext::ensure_compute_pipeline_state()
+{
+  /* Verify if bound shader is valid and fetch MTLComputePipelineStateInstance. */
+  /* Check if an active shader is bound. */
+  if (!this->pipeline_state.active_shader) {
+    MTL_LOG_WARNING("No Metal shader bound!\n");
+    return false;
+  }
+  /* Also ensure active shader is valid. */
+  if (!this->pipeline_state.active_shader->is_valid()) {
+    MTL_LOG_WARNING(
+        "Bound active shader is not valid (Missing/invalid implementation for Metal).\n", );
+    return false;
+  }
+  /* Verify this is a compute shader. */
+
+  /* Fetch shader interface. */
+  MTLShaderInterface *shader_interface = this->pipeline_state.active_shader->get_interface();
+  if (shader_interface == nullptr) {
+    MTL_LOG_WARNING("Bound active shader does not have a valid shader interface!\n", );
+    return false;
+  }
+
+  bool success = this->pipeline_state.active_shader->bake_compute_pipeline_state(this);
+  const MTLComputePipelineStateInstance &compute_pso_inst =
+      this->pipeline_state.active_shader->get_compute_pipeline_state();
+  if (!success || compute_pso_inst.pso == nil) {
+    MTL_LOG_WARNING("No valid compute PSO for compute dispatch!\n", );
+    return false;
+  }
+  return true;
+}
+
+void MTLContext::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)
+{
+  /* Ensure all resources required by upcoming compute submission are correctly bound. */
+  if (this->ensure_compute_pipeline_state()) {
+    /* Shader instance. */
+    MTLShaderInterface *shader_interface = this->pipeline_state.active_shader->get_interface();
+    const MTLComputePipelineStateInstance &compute_pso_inst =
+        this->pipeline_state.active_shader->get_compute_pipeline_state();
+
+    /* Begin compute encoder. */
+    id<MTLComputeCommandEncoder> compute_encoder =
+        this->main_command_buffer.ensure_begin_compute_encoder();
+    BLI_assert(compute_encoder != nil);
+
+    /* Bind PSO. */
+    MTLComputeState &cs = this->main_command_buffer.get_compute_state();
+    cs.bind_pso(compute_pso_inst.pso);
+
+    /* Bind buffers. */
+    this->ensure_uniform_buffer_bindings(compute_encoder, shader_interface, compute_pso_inst);
+    /** Ensure resource bindings. */
+    /* Texture Bindings. */
+    /* We will iterate through all texture bindings on the context and determine if any of the
+     * active slots match those in our shader interface. If so, textures will be bound. */
+    if (shader_interface->get_total_textures() > 0) {
+      this->ensure_texture_bindings(compute_encoder, shader_interface, compute_pso_inst);
+    }
+
+    /* Dispatch compute. */
+    [compute_encoder dispatchThreadgroups:MTLSizeMake(groups_x_len, groups_y_len, groups_z_len)
+                    threadsPerThreadgroup:MTLSizeMake(compute_pso_inst.threadgroup_x_len,
+                                                      compute_pso_inst.threadgroup_y_len,
+                                                      compute_pso_inst.threadgroup_z_len)];
   }
 }
 

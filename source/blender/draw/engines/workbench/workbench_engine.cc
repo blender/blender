@@ -117,11 +117,15 @@ class Instance {
         const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
         if (draw_as == PART_DRAW_PATH) {
-          /* TODO(Miguel Pozo):
-          workbench_cache_hair_populate(
-              wpd, ob, psys, md, object_state.color_type, object_state.texture_paint_mode,
-          part->omat);
-          */
+#if 0 /* TODO(@pragma37): */
+          workbench_cache_hair_populate(wpd,
+                                        ob,
+                                        psys,
+                                        md,
+                                        object_state.color_type,
+                                        object_state.texture_paint_mode,
+                                        part->omat);
+#endif
         }
       }
     }
@@ -131,9 +135,9 @@ class Instance {
       if (md && BKE_modifier_is_enabled(scene_state.scene, md, eModifierMode_Realtime)) {
         FluidModifierData *fmd = (FluidModifierData *)md;
         if (fmd->domain) {
-          /* TODO(Miguel Pozo):
+#if 0 /* TODO(@pragma37): */
           workbench_volume_cache_populate(vedata, wpd->scene, ob, md, V3D_SHADING_SINGLE_COLOR);
-          */
+#endif
           if (fmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
             return; /* Do not draw solid in this case. */
           }
@@ -153,17 +157,17 @@ class Instance {
       mesh_sync(manager, ob_ref, object_state);
     }
     else if (ob->type == OB_CURVES) {
-      /* TODO(Miguel Pozo):
+#if 0 /* TODO(@pragma37): */
       DRWShadingGroup *grp = workbench_material_hair_setup(
           wpd, ob, CURVES_MATERIAL_NR, object_state.color_type);
       DRW_shgroup_curves_create_sub(ob, grp, NULL);
-      */
+#endif
     }
     else if (ob->type == OB_VOLUME) {
       if (scene_state.shading.type != OB_WIRE) {
-        /* TODO(Miguel Pozo):
+#if 0 /* TODO(@pragma37): */
         workbench_volume_cache_populate(vedata, wpd->scene, ob, NULL, object_state.color_type);
-        */
+#endif
       }
     }
   }
@@ -174,9 +178,9 @@ class Instance {
     bool has_transparent_material = false;
 
     if (object_state.sculpt_pbvh) {
-      /* TODO(Miguel Pozo):
+#if 0 /* TODO(@pragma37): */
       workbench_cache_sculpt_populate(wpd, ob, object_state.color_type);
-      */
+#endif
     }
     else {
       if (object_state.use_per_material_batches) {
@@ -348,7 +352,7 @@ class Instance {
                                           GPU_TEXTURE_USAGE_SHADER_READ |
                                               GPU_TEXTURE_USAGE_ATTACHMENT);
       if (opaque_ps.gbuffer_in_front_ps_.is_empty()) {
-        /* Clear only if it wont be overwitten by opaque_ps */
+        /* Clear only if it wont be overwritten by `opaque_ps`. */
         Framebuffer fb = Framebuffer("Workbench.Clear");
         fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_in_front_tx));
         fb.bind();
@@ -665,7 +669,7 @@ static void workbench_render_to_image(void *vedata,
 
     /* Also we weed to have a correct FBO bound for #DRW_curves_update */
     // GPU_framebuffer_bind(dfbl->default_fb);
-    // DRW_curves_update(); /* TODO(Miguel Pozo): Check this once curves are implemented */
+    // DRW_curves_update(); /* TODO(@pragma37): Check this once curves are implemented */
 
     workbench_draw_scene(vedata);
 

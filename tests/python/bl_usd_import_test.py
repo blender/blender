@@ -111,11 +111,15 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual(1, len(objects), f"File {infile} should contain one object, found {len(objects)}")
 
         mesh = bpy.data.objects["uvmap_plane"].data
-        self.assertEqual(len(mesh.uv_layers), 2, f"Object uvmap_plane should have two uv layers, found {len(mesh.uv_layers)}")
-        
+        self.assertEqual(len(mesh.uv_layers), 2,
+                         f"Object uvmap_plane should have two uv layers, found {len(mesh.uv_layers)}")
+
         expected_layer_names = {"udim_map", "uvmap"}
         imported_layer_names = set(mesh.uv_layers.keys())
-        self.assertEqual(expected_layer_names, imported_layer_names, f"Expected layer names ({expected_layer_names}) not found on uvmap_plane.")
+        self.assertEqual(
+            expected_layer_names,
+            imported_layer_names,
+            f"Expected layer names ({expected_layer_names}) not found on uvmap_plane.")
 
         def get_coords(data):
             coords = [x.uv for x in uvmap]
@@ -123,13 +127,13 @@ class USDImportTest(AbstractUSDTest):
 
         def uv_min_max(data):
             coords = get_coords(data)
-            uv_min_x  = min([uv[0] for uv in coords])
-            uv_max_x  = max([uv[0] for uv in coords])
-            uv_min_y  = min([uv[1] for uv in coords])
-            uv_max_y  = max([uv[1] for uv in coords])
+            uv_min_x = min([uv[0] for uv in coords])
+            uv_max_x = max([uv[0] for uv in coords])
+            uv_min_y = min([uv[1] for uv in coords])
+            uv_max_y = max([uv[1] for uv in coords])
             return uv_min_x, uv_max_x, uv_min_y, uv_max_y
 
-        ## Quick tests for point range.
+        # Quick tests for point range.
         uvmap = mesh.uv_layers["uvmap"].data
         self.assertEqual(len(uvmap), 128)
         min_x, max_x, min_y, max_y = uv_min_max(uvmap)
@@ -145,11 +149,45 @@ class USDImportTest(AbstractUSDTest):
         self.assertGreaterEqual(min_y, 0.0)
         self.assertLessEqual(max_x, 2.0)
         self.assertLessEqual(max_y, 1.0)
-        
-        ## Make sure at least some points are in a udim tile.
+
+        # Make sure at least some points are in a udim tile.
         coords = get_coords(uvmap)
         coords = list(filter(lambda x: x[0] > 1.0, coords))
         self.assertGreater(len(coords), 16)
+
+    def test_import_camera_properties(self):
+        """Test importing camera to ensure properties set correctly."""
+
+        # This file has metersPerUnit = 1
+        infile = str(self.testdir / "usd_camera_test_1.usda")
+        res = bpy.ops.wm.usd_import(filepath=infile)
+        self.assertEqual({'FINISHED'}, res)
+
+        camera_object = bpy.data.objects["Test_Camera"]
+        test_cam = camera_object.data
+
+        self.assertAlmostEqual(43.12, test_cam.lens, 2)
+        self.assertAlmostEqual(24.89, test_cam.sensor_width, 2)
+        self.assertAlmostEqual(14.00, test_cam.sensor_height, 2)
+        self.assertAlmostEqual(12.34, test_cam.shift_x, 2)
+        self.assertAlmostEqual(56.78, test_cam.shift_y, 2)
+
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
+        # This file has metersPerUnit = 0.1
+        infile = str(self.testdir / "usd_camera_test_2.usda")
+        res = bpy.ops.wm.usd_import(filepath=infile)
+        self.assertEqual({'FINISHED'}, res)
+
+        camera_object = bpy.data.objects["Test_Camera"]
+        test_cam = camera_object.data
+
+        self.assertAlmostEqual(4.312, test_cam.lens, 3)
+        self.assertAlmostEqual(2.489, test_cam.sensor_width, 3)
+        self.assertAlmostEqual(1.400, test_cam.sensor_height, 3)
+        self.assertAlmostEqual(1.234, test_cam.shift_x, 3)
+        self.assertAlmostEqual(5.678, test_cam.shift_y, 3)
 
 def main():
     global args

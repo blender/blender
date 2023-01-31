@@ -120,9 +120,9 @@ struct SamplingData {
 BLI_STATIC_ASSERT_ALIGN(SamplingData, 16)
 
 /* Returns total sample count in a web pattern of the given size. */
-static inline int sampling_web_sample_count_get(int web_density, int ring_count)
+static inline int sampling_web_sample_count_get(int web_density, int in_ring_count)
 {
-  return ((ring_count * ring_count + ring_count) / 2) * web_density + 1;
+  return ((in_ring_count * in_ring_count + in_ring_count) / 2) * web_density + 1;
 }
 
 /* Returns lowest possible ring count that contains at least sample_count samples. */

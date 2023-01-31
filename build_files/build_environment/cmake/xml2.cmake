@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(WIN32)
-  set(XML2_EXTRA_ARGS 
+  set(XML2_EXTRA_ARGS
     -DLIBXML2_WITH_ZLIB=OFF
     -DLIBXML2_WITH_LZMA=OFF
     -DLIBXML2_WITH_PYTHON=OFF

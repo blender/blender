@@ -7,7 +7,7 @@ void main()
 
   /* Add 0.5 to evaluate the input sampler at the center of the pixel and divide by the image size
    * to get the coordinates into the sampler's expected [0, 1] range. */
-  vec2 coordinates = (vec2(texel) + vec2(0.5)) / input_size;
+  vec2 coordinates = (vec2(texel) + vec2(0.5)) / vec2(input_size);
 
   /* We accumulate four variants of the input ghost texture, each is scaled by some amount and
    * possibly multiplied by some color as a form of color modulation. */

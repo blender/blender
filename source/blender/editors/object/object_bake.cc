@@ -415,7 +415,9 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* Multiresbake adopted for job-system executing */
+/**
+ * Multi-resolution-bake adopted for job-system executing.
+ */
 static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 {
   Scene *scene = CTX_data_scene(C);

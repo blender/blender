@@ -54,14 +54,19 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
   pxr::VtValue horAp;
   cam_prim.GetHorizontalApertureAttr().Get(&horAp, motionSampleTime);
 
-  bcam->lens = val.Get<float>();
-  /* TODO(@makowalski): support sensor size. */
-#if 0
-   bcam->sensor_x = 0.0f;
-   bcam->sensor_y = 0.0f;
-#endif
-  bcam->shiftx = verApOffset.Get<float>();
-  bcam->shifty = horApOffset.Get<float>();
+  /*
+   * For USD, these camera properties are in tenths of a world unit.
+   * https://graphics.pixar.com/usd/release/api/class_usd_geom_camera.html#UsdGeom_CameraUnits
+   * tenth_of_unit      = stage_meters_per_unit / 10
+   * val_in_meters      = val.Get<float>() * tenth_of_unit
+   * val_in_millimeters = val_in_meters * 1000
+   */
+  const double scale_to_mm = 100.0 * settings_->stage_meters_per_unit;
+  bcam->lens = val.Get<float>() * scale_to_mm;
+  bcam->sensor_x = horAp.Get<float>() * scale_to_mm;
+  bcam->sensor_y = verAp.Get<float>() * scale_to_mm;
+  bcam->shiftx = verApOffset.Get<float>() * scale_to_mm;
+  bcam->shifty = horApOffset.Get<float>() * scale_to_mm;
 
   bcam->type = (projectionVal.Get<pxr::TfToken>().GetString() == "perspective") ? CAM_PERSP :
                                                                                   CAM_ORTHO;

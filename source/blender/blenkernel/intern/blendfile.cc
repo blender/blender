@@ -382,7 +382,7 @@ static void setup_app_data(bContext *C,
     STRNCPY(bmain->filepath, bfd->filepath);
   }
 
-  /* baseflags, groups, make depsgraph, etc */
+  /* Base-flags, groups, make depsgraph, etc. */
   /* first handle case if other windows have different scenes visible */
   if (mode == LOAD_UI) {
     wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);

@@ -62,8 +62,9 @@ void MTLShaderInterface::init()
   enabled_attribute_mask_ = 0;
   total_vert_stride_ = 0;
   sampler_use_argument_buffer_ = false;
-  sampler_argument_buffer_bind_index_vert_ = -1;
-  sampler_argument_buffer_bind_index_frag_ = -1;
+  for (int i = 0; i < ARRAY_SIZE(sampler_argument_buffer_bind_index_); i++) {
+    sampler_argument_buffer_bind_index_[i] = -1;
+  }
 
   /* NULL initialize uniform location markers for builtins. */
   for (const int u : IndexRange(GPU_NUM_UNIFORMS)) {
@@ -121,7 +122,7 @@ uint32_t MTLShaderInterface::add_uniform_block(uint32_t name_offset,
   uni_block.buffer_index = buffer_index;
   uni_block.size = size;
   uni_block.current_offset = 0;
-  uni_block.stage_mask = ShaderStage::BOTH;
+  uni_block.stage_mask = ShaderStage::ANY;
   max_uniformbuf_index_ = max_ii(max_uniformbuf_index_, buffer_index);
   return (total_uniform_blocks_++);
 }
@@ -135,7 +136,7 @@ void MTLShaderInterface::add_push_constant_block(uint32_t name_offset)
   push_constant_block_.size = 0;
 
   push_constant_block_.current_offset = 0;
-  push_constant_block_.stage_mask = ShaderStage::BOTH;
+  push_constant_block_.stage_mask = ShaderStage::ANY;
 }
 
 void MTLShaderInterface::add_uniform(uint32_t name_offset, eMTLDataType type, int array_len)
@@ -367,11 +368,16 @@ void MTLShaderInterface::prepare_common_shader_inputs()
 
 void MTLShaderInterface::set_sampler_properties(bool use_argument_buffer,
                                                 uint32_t argument_buffer_bind_index_vert,
-                                                uint32_t argument_buffer_bind_index_frag)
+                                                uint32_t argument_buffer_bind_index_frag,
+                                                uint32_t argument_buffer_bind_index_compute)
 {
   sampler_use_argument_buffer_ = use_argument_buffer;
-  sampler_argument_buffer_bind_index_vert_ = argument_buffer_bind_index_vert;
-  sampler_argument_buffer_bind_index_frag_ = argument_buffer_bind_index_frag;
+  sampler_argument_buffer_bind_index_[get_shader_stage_index(ShaderStage::VERTEX)] =
+      argument_buffer_bind_index_vert;
+  sampler_argument_buffer_bind_index_[get_shader_stage_index(ShaderStage::FRAGMENT)] =
+      argument_buffer_bind_index_frag;
+  sampler_argument_buffer_bind_index_[get_shader_stage_index(ShaderStage::COMPUTE)] =
+      argument_buffer_bind_index_compute;
 }
 
 /* Attributes. */
@@ -461,14 +467,14 @@ uint32_t MTLShaderInterface::get_max_texture_index() const
   return max_texture_index_;
 }
 
-bool MTLShaderInterface::get_use_argument_buffer_for_samplers(
-    int *vertex_arg_buffer_bind_index, int *fragment_arg_buffer_bind_index) const
+bool MTLShaderInterface::uses_argument_buffer_for_samplers() const
 {
-  /* Returns argument buffer binding slot for each shader stage.
-   * The exact bind slot may be different, as each stage has different buffer inputs. */
-  *vertex_arg_buffer_bind_index = sampler_argument_buffer_bind_index_vert_;
-  *fragment_arg_buffer_bind_index = sampler_argument_buffer_bind_index_frag_;
   return sampler_use_argument_buffer_;
+}
+
+int MTLShaderInterface::get_argument_buffer_bind_index(ShaderStage stage) const
+{
+  return sampler_argument_buffer_bind_index_[get_shader_stage_index(stage)];
 }
 
 id<MTLArgumentEncoder> MTLShaderInterface::find_argument_encoder(int buffer_index) const

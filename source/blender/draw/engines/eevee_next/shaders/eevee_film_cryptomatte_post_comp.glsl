@@ -45,7 +45,7 @@ void cryptomatte_normalize_weight(float total_weight, inout vec2 samples[CRYPTOM
   }
 }
 
-void cryptomatte_store_samples(ivec2 texel, int layer, in vec2 samples[CRYPTOMATTE_LEVELS_MAX])
+void cryptomatte_store_samples(ivec2 texel, int layer, vec2 samples[CRYPTOMATTE_LEVELS_MAX])
 {
   int pass_len = divide_ceil(cryptomatte_samples_per_layer, 2);
   int layer_id = layer * pass_len;

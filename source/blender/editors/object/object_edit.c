@@ -1927,7 +1927,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
                 RPT_ERROR,
                 "%s already in %s",
                 single_object->id.name + 2,
-                collection->id.name + 2);
+                BKE_collection_ui_name_get(collection));
     BLI_freelistN(&objects);
     return OPERATOR_CANCELLED;
   }
@@ -1944,12 +1944,32 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
   }
   BLI_freelistN(&objects);
 
-  BKE_reportf(op->reports,
-              RPT_INFO,
-              "%s %s to %s",
-              (single_object != NULL) ? single_object->id.name + 2 : "Objects",
-              is_link ? "linked" : "moved",
-              collection->id.name + 2);
+  if (is_link) {
+    if (single_object != NULL) {
+      BKE_reportf(op->reports,
+                  RPT_INFO,
+                  "%s linked to %s",
+                  single_object->id.name + 2,
+                  BKE_collection_ui_name_get(collection));
+    }
+    else {
+      BKE_reportf(
+          op->reports, RPT_INFO, "Objects linked to %s", BKE_collection_ui_name_get(collection));
+    }
+  }
+  else {
+    if (single_object != NULL) {
+      BKE_reportf(op->reports,
+                  RPT_INFO,
+                  "%s moved to %s",
+                  single_object->id.name + 2,
+                  BKE_collection_ui_name_get(collection));
+    }
+    else {
+      BKE_reportf(
+          op->reports, RPT_INFO, "Objects moved to %s", BKE_collection_ui_name_get(collection));
+    }
+  }
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);

@@ -298,7 +298,7 @@ typedef struct bNodeType {
                         const struct bNodeTree *nodetree,
                         const char **r_disabled_hint);
 
-  /* optional handling of link insertion. Returns false if the link shouldn't be created. */
+  /* Optional handling of link insertion. Returns false if the link shouldn't be created. */
   bool (*insert_link)(struct bNodeTree *ntree, struct bNode *node, struct bNodeLink *link);
 
   void (*free_self)(struct bNodeType *ntype);
