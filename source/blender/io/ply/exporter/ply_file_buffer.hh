@@ -101,7 +101,7 @@ class FileBuffer : private NonMovable {
 
   virtual void write_vertex_end() = 0;
 
-  virtual void write_face(int count, Vector<uint32_t> const &vertex_indices) = 0;
+  virtual void write_face(char count, Vector<uint32_t> const &vertex_indices) = 0;
 
   virtual void write_edge(int first, int second) = 0;
 
@@ -152,7 +152,7 @@ class FileBuffer : private NonMovable {
     bb.insert(bb.end(), buf.begin(), buf.end());
   }
 
-  void write_bytes(Vector<char, 128> &bytes)
+  void write_bytes(Span<char> &bytes)
   {
     ensure_space(bytes.size());
     VectorChar &bb = blocks_.last();
