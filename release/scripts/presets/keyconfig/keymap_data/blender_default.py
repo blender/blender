@@ -5048,7 +5048,7 @@ def km_sculpt(params):
          {"properties": [
              ("target", "MASK"),
              ("falloff_type", "GEODESIC"),
-             ("invert", True),
+             ("invert", False),
              ("use_auto_mask", False),
              ("use_mask_preserve", True),
          ]}),
