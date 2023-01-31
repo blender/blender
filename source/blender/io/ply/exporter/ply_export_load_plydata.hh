@@ -23,8 +23,6 @@
 
 #include "DNA_layer_types.h"
 
-#include "IO_ply.h"
-
 #include "ply_data.hh"
 
 namespace blender::io::ply {
