@@ -330,7 +330,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
   GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
 
   const Curves &curves_id = *geometry_set.get_curves_for_read();
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
   bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
   FieldEvaluator evaluator{field_context, curves.curves_num()};
@@ -363,7 +363,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
 
   Curves *new_curves_id = bke::curves_new_nomain(dst_points_num, dst_curves_num);
   bke::curves_copy_parameters(curves_id, *new_curves_id);
-  bke::CurvesGeometry &new_curves = bke::CurvesGeometry::wrap(new_curves_id->geometry);
+  bke::CurvesGeometry &new_curves = new_curves_id->geometry.wrap();
   MutableSpan<int> all_dst_offsets = new_curves.offsets_for_write();
 
   threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
@@ -811,7 +811,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
                                    const AnonymousAttributePropagationInfo &propagation_info)
 {
   const Curves &src_curves_id = *geometry_set.get_curves_for_read();
-  const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
+  const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
   if (src_curves.points_num() == 0) {
     return;
   }
@@ -833,7 +833,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
 
   Curves *new_curves_id = bke::curves_new_nomain(dst_num, dst_num);
   bke::curves_copy_parameters(src_curves_id, *new_curves_id);
-  bke::CurvesGeometry &new_curves = bke::CurvesGeometry::wrap(new_curves_id->geometry);
+  bke::CurvesGeometry &new_curves = new_curves_id->geometry.wrap();
   MutableSpan<int> new_curve_offsets = new_curves.offsets_for_write();
   for (const int i : new_curves.curves_range()) {
     new_curve_offsets[i] = i;

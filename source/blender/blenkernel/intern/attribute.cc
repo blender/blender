@@ -112,7 +112,7 @@ static std::optional<blender::bke::MutableAttributeAccessor> get_attribute_acces
     }
     case ID_CV: {
       Curves &curves_id = reinterpret_cast<Curves &>(id);
-      CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+      CurvesGeometry &curves = curves_id.geometry.wrap();
       return curves.attributes_for_write();
     }
     default: {

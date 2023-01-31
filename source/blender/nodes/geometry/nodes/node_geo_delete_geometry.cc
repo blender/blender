@@ -293,7 +293,7 @@ static void delete_curves_selection(GeometrySet &geometry_set,
                                     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const Curves &src_curves_id = *geometry_set.get_curves_for_read();
-  const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
+  const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
 
   const int domain_size = src_curves.attributes().domain_size(selection_domain);
   bke::CurvesFieldContext field_context{src_curves, selection_domain};
@@ -311,7 +311,7 @@ static void delete_curves_selection(GeometrySet &geometry_set,
 
   CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
   Curves &curves_id = *component.get_for_write();
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
   if (selection_domain == ATTR_DOMAIN_POINT) {
     curves.remove_points(selection, propagation_info);

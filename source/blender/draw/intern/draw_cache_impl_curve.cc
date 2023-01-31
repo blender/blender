@@ -213,11 +213,10 @@ static CurveRenderData *curve_render_data_create(Curve *cu,
 
   if (types & CU_DATATYPE_WIRE) {
     if (rdata->curve_eval != nullptr) {
-      curve_eval_render_wire_verts_edges_len_get(
-          blender::bke::CurvesGeometry::wrap(rdata->curve_eval->geometry),
-          &rdata->wire.curve_len,
-          &rdata->wire.vert_len,
-          &rdata->wire.edge_len);
+      curve_eval_render_wire_verts_edges_len_get(rdata->curve_eval->geometry.wrap(),
+                                                 &rdata->wire.curve_len,
+                                                 &rdata->wire.vert_len,
+                                                 &rdata->wire.edge_len);
     }
   }
 
@@ -473,8 +472,7 @@ static void curve_create_curves_pos(CurveRenderData *rdata, GPUVertBuf *vbo_curv
   GPU_vertbuf_init_with_format(vbo_curves_pos, &format);
   GPU_vertbuf_data_alloc(vbo_curves_pos, vert_len);
 
-  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
-      rdata->curve_eval->geometry);
+  const blender::bke::CurvesGeometry &curves = rdata->curve_eval->geometry.wrap();
   const Span<float3> positions = curves.evaluated_positions();
   GPU_vertbuf_attr_fill(vbo_curves_pos, attr_id.pos, positions.data());
 }
@@ -495,7 +493,7 @@ static void curve_create_attribute(CurveRenderData *rdata, GPUVertBuf *vbo_attr)
   GPU_vertbuf_init_with_format(vbo_attr, &format);
   GPU_vertbuf_data_alloc(vbo_attr, vert_len);
 
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(rdata->curve_eval->geometry);
+  const bke::CurvesGeometry &curves = rdata->curve_eval->geometry.wrap();
   curves.ensure_can_interpolate_to_evaluated();
   const VArraySpan<ColorGeometry4f> colors = curves.attributes().lookup<ColorGeometry4f>(
       ".viewer", ATTR_DOMAIN_POINT);
@@ -519,7 +517,7 @@ static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_c
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len);
 
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(rdata->curve_eval->geometry);
+  const bke::CurvesGeometry &curves = rdata->curve_eval->geometry.wrap();
   const OffsetIndices points_by_curve = curves.evaluated_points_by_curve();
   const VArray<bool> cyclic = curves.cyclic();
 

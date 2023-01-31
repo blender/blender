@@ -327,8 +327,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
 
   /* Use the radius of the root and tip of the first curve for now. This is a workaround that we
    * use for now because we can't use a per-point radius yet. */
-  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
-      curves_id.geometry);
+  const blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.curves_num() >= 1) {
     blender::VArray<float> radii = curves.attributes().lookup_or_default(
         "radius", ATTR_DOMAIN_POINT, 0.005f);

@@ -117,7 +117,7 @@ struct AddOperationExecutor {
     curves_ob_orig_ = CTX_data_active_object(&C);
 
     curves_id_orig_ = static_cast<Curves *>(curves_ob_orig_->data);
-    curves_orig_ = &CurvesGeometry::wrap(curves_id_orig_->geometry);
+    curves_orig_ = &curves_id_orig_->geometry.wrap();
 
     if (curves_id_orig_->surface == nullptr || curves_id_orig_->surface->type != OB_MESH) {
       report_missing_surface(stroke_extension.reports);

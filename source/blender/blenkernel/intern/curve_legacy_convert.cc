@@ -82,7 +82,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
   const Vector<const Nurb *> src_curves(nurbs_list);
 
   Curves *curves_id = curves_new_nomain(0, src_curves.size());
-  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+  CurvesGeometry &curves = curves_id->geometry.wrap();
   MutableAttributeAccessor curves_attributes = curves.attributes_for_write();
 
   MutableSpan<int8_t> types = curves.curve_types_for_write();

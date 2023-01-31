@@ -118,7 +118,7 @@ struct SnakeHookOperatorExecutor {
     falloff_shape_ = static_cast<eBrushFalloffShape>(brush_->falloff_shape);
 
     curves_id_ = static_cast<Curves *>(object_->data);
-    curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
+    curves_ = &curves_id_->geometry.wrap();
     if (curves_->curves_num() == 0) {
       return;
     }

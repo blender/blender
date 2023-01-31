@@ -17,6 +17,7 @@ extern "C" {
 
 #ifdef __cplusplus
 namespace blender::bke {
+class CurvesGeometry;
 class CurvesGeometryRuntime;
 }  // namespace blender::bke
 using CurvesGeometryRuntimeHandle = blender::bke::CurvesGeometryRuntime;
@@ -134,6 +135,11 @@ typedef struct CurvesGeometry {
    * Runtime data for curves, stored as a pointer to allow defining this as a C++ class.
    */
   CurvesGeometryRuntimeHandle *runtime;
+
+#ifdef __cplusplus
+  blender::bke::CurvesGeometry &wrap();
+  const blender::bke::CurvesGeometry &wrap() const;
+#endif
 } CurvesGeometry;
 
 /**

@@ -238,7 +238,7 @@ static void try_convert_single_object(Object &curves_ob,
     return;
   }
   Curves &curves_id = *static_cast<Curves *>(curves_ob.data);
-  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+  CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves_id.surface == nullptr) {
     return;
   }
@@ -521,7 +521,7 @@ static int curves_convert_from_particle_system_exec(bContext *C, wmOperator * /*
   Object *ob_new = BKE_object_add(&bmain, &scene, &view_layer, OB_CURVES, psys_eval->name);
   Curves *curves_id = static_cast<Curves *>(ob_new->data);
   BKE_object_apply_mat4(ob_new, ob_from_orig->object_to_world, true, false);
-  bke::CurvesGeometry::wrap(curves_id->geometry) = particles_to_curves(*ob_from_eval, *psys_eval);
+  curves_id->geometry.wrap() = particles_to_curves(*ob_from_eval, *psys_eval);
 
   DEG_relations_tag_update(&bmain);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
@@ -562,7 +562,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
                                                bool *r_missing_uvs)
 {
   Curves &curves_id = *static_cast<Curves *>(curves_ob.data);
-  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+  CurvesGeometry &curves = curves_id.geometry.wrap();
 
   const Mesh &surface_mesh = *static_cast<const Mesh *>(surface_ob.data);
   const Span<float3> surface_positions = surface_mesh.vert_positions();
@@ -774,7 +774,7 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
 
     curves_id->selection_domain = domain;
 
-    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+    CurvesGeometry &curves = curves_id->geometry.wrap();
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
     if (curves.points_num() == 0) {
       continue;
@@ -830,7 +830,7 @@ static void CURVES_OT_set_selection_domain(wmOperatorType *ot)
 static bool has_anything_selected(const Span<Curves *> curves_ids)
 {
   return std::any_of(curves_ids.begin(), curves_ids.end(), [](const Curves *curves_id) {
-    return has_anything_selected(CurvesGeometry::wrap(curves_id->geometry));
+    return has_anything_selected(curves_id->geometry.wrap());
   });
 }
 
@@ -846,9 +846,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 
   for (Curves *curves_id : unique_curves) {
     /* (De)select all the curves. */
-    select_all(CurvesGeometry::wrap(curves_id->geometry),
-               eAttrDomain(curves_id->selection_domain),
-               action);
+    select_all(curves_id->geometry.wrap(), eAttrDomain(curves_id->selection_domain), action);
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
      * attribute for now. */
@@ -881,7 +879,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
   const float probability = RNA_float_get(op->ptr, "probability");
 
   for (Curves *curves_id : unique_curves) {
-    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+    CurvesGeometry &curves = curves_id->geometry.wrap();
     select_random(curves, eAttrDomain(curves_id->selection_domain), uint32_t(seed), probability);
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -952,7 +950,7 @@ static int select_end_exec(bContext *C, wmOperator *op)
   const int amount = RNA_int_get(op->ptr, "amount");
 
   for (Curves *curves_id : unique_curves) {
-    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+    CurvesGeometry &curves = curves_id->geometry.wrap();
     select_ends(curves, eAttrDomain(curves_id->selection_domain), amount, end_points);
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic

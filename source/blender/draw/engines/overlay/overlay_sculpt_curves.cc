@@ -33,7 +33,7 @@ void OVERLAY_sculpt_curves_cache_init(OVERLAY_Data *vedata)
 static bool everything_selected(const Curves &curves_id)
 {
   using namespace blender;
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   const VArray<bool> selection = curves.attributes().lookup_or_default<bool>(
       ".selection", ATTR_DOMAIN_POINT, true);
   return selection.is_single() && selection.get_internal_single();

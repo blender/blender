@@ -48,7 +48,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
-      bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+      bke::CurvesGeometry &curves = curves_id->geometry.wrap();
       set_normal_mode(curves, mode, selection_field);
     }
   });
