@@ -29,6 +29,7 @@ set(INC
   # For *_info.hh includes.
   ../compositor/realtime_compositor
   ../draw/engines/eevee_next
+  ../draw/engines/workbench
   ../draw/intern
 
   # For node muting stuff.
@@ -43,7 +44,6 @@ set(INC
 
 set(INC_SYS
   ${Epoxy_INCLUDE_DIRS}
-  ${VULKAN_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -267,6 +267,10 @@ set(METAL_SRC
   metal/mtl_vertex_buffer.hh
 )
 
+set(LIB
+  ${Epoxy_LIBRARIES}
+)
+
 # Select Backend source based on availability
 if(WITH_OPENGL)
   list(APPEND SRC ${OPENGL_SRC})
@@ -276,27 +280,27 @@ if(WITH_METAL_BACKEND)
   list(APPEND SRC ${METAL_SRC})
 endif()
 
-set(LIB
-  ${Epoxy_LIBRARIES}
-  ${VULKAN_LIBRARIES}
-)
 
 if(WITH_VULKAN_BACKEND)
-  list(APPEND SRC ${VULKAN_SRC})
-
-  add_definitions(-DWITH_VULKAN_BACKEND)
-
-  list(APPEND INC_SYS
-    ${VULKAN_INCLUDE_DIRS}
-  )
-
   list(APPEND INC
     ../../../extern/vulkan_memory_allocator/
   )
+  list(APPEND INC_SYS
+    ${VULKAN_INCLUDE_DIRS}
+    ${MOLTENVK_INCLUDE_DIRS}
+    ${SHADERC_INCLUDE_DIRS}
+  )
+  list(APPEND SRC
+    ${VULKAN_SRC}
+  )
 
   list(APPEND LIB
+    ${VULKAN_LIBRARIES}
+    ${SHADERC_LIBRARIES}
+    ${MOLTENVK_LIBRARIES}
     extern_vulkan_memory_allocator
   )
+  add_definitions(-DWITH_VULKAN_BACKEND)
 endif()
 
 set(MSL_SRC
@@ -491,9 +495,17 @@ set(GLSL_SRC
   shaders/gpu_shader_cfg_world_clip_lib.glsl
   shaders/gpu_shader_colorspace_lib.glsl
 
-  tests/gpu_math_test.glsl
 
   GPU_shader_shared_utils.h
+)
+
+set(GLSL_SRC_TEST
+  tests/shaders/gpu_math_test.glsl
+  tests/shaders/gpu_compute_1d_test.glsl
+  tests/shaders/gpu_compute_2d_test.glsl
+  tests/shaders/gpu_compute_ibo_test.glsl
+  tests/shaders/gpu_compute_vbo_test.glsl
+  tests/shaders/gpu_compute_dummy_test.glsl
 )
 
 set(MTL_BACKEND_GLSL_SRC
@@ -512,6 +524,12 @@ set(MSL_SRC
   shaders/metal/mtl_shader_common.msl
   metal/mtl_shader_shared.h
 )
+
+if(WITH_GTESTS)
+  if(WITH_OPENGL_DRAW_TESTS)
+    list(APPEND GLSL_SRC ${GLSL_SRC_TEST})
+  endif()
+endif()
 
 if(WITH_METAL_BACKEND)
   list(APPEND GLSL_SRC ${MTL_BACKEND_GLSL_SRC})
@@ -634,15 +652,25 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_keyframe_shape_info.hh
   shaders/infos/gpu_shader_line_dashed_uniform_color_info.hh
   shaders/infos/gpu_shader_simple_lighting_info.hh
-  shaders/infos/gpu_shader_test_info.hh
   shaders/infos/gpu_shader_text_info.hh
   shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
 )
+
+set(SRC_SHADER_CREATE_INFOS_TEST
+  shaders/infos/gpu_shader_test_info.hh
+)
+
 
 set(SRC_SHADER_CREATE_INFOS_MTL
   metal/kernels/depth_2d_update_info.hh
   metal/kernels/gpu_shader_fullscreen_blit_info.hh
 )
+
+if(WITH_GTESTS)
+  if(WITH_OPENGL_DRAW_TESTS)
+    list(APPEND SRC_SHADER_CREATE_INFOS ${SRC_SHADER_CREATE_INFOS_TEST})
+  endif()
+endif()
 
 if(WITH_METAL_BACKEND)
   list(APPEND SRC_SHADER_CREATE_INFOS ${SRC_SHADER_CREATE_INFOS_MTL})

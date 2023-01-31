@@ -1498,6 +1498,7 @@ void initEdgeSlide_ex(
   t->mode = TFM_EDGE_SLIDE;
   t->transform = applyEdgeSlide;
   t->handleEvent = handleEventEdgeSlide;
+  t->transform_matrix = NULL;
   t->tsnap.snap_mode_apply_fn = edge_slide_snap_apply;
   t->tsnap.snap_mode_distance_fn = transform_snap_distance_len_squared_fn;
 

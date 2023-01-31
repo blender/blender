@@ -636,8 +636,6 @@ static bool layer_collection_hidden(ViewLayer *view_layer, LayerCollection *lc)
   }
 
   return false;
-
-  return false;
 }
 
 LayerCollection *BKE_layer_collection_from_index(ViewLayer *view_layer, const int index)
@@ -1210,6 +1208,7 @@ static void layer_collection_sync(ViewLayer *view_layer,
   layer_resync->layer->layer_collections = new_lb_layer;
   BLI_assert(BLI_listbase_count(&layer_resync->collection->children) - skipped_children ==
              BLI_listbase_count(&new_lb_layer));
+  UNUSED_VARS_NDEBUG(skipped_children);
 
   /* Update bases etc. for objects. */
   layer_collection_objects_sync(view_layer,

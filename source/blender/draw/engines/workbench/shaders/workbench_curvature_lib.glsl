@@ -1,6 +1,10 @@
 
 #pragma BLENDER_REQUIRE(workbench_common_lib.glsl)
 
+#ifdef WORKBENCH_CURVATURE
+#  define USE_CURVATURE
+#endif
+
 #ifdef USE_CURVATURE
 
 float curvature_soft_clamp(float curvature, float control)

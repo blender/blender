@@ -31,6 +31,14 @@ void View::sync(const float4x4 &view_mat, const float4x4 &win_mat, int view_id)
   dirty_ = true;
 }
 
+void View::sync(const DRWView *view)
+{
+  float4x4 view_mat, win_mat;
+  DRW_view_viewmat_get(view, view_mat.ptr(), false);
+  DRW_view_winmat_get(view, win_mat.ptr(), false);
+  this->sync(view_mat, win_mat);
+}
+
 void View::frustum_boundbox_calc(int view_id)
 {
   /* Extract the 8 corners from a Projection Matrix. */
@@ -295,6 +303,11 @@ void View::compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool d
   }
 
   GPU_debug_group_end();
+}
+
+VisibilityBuf &View::get_visibility_buffer()
+{
+  return visibility_buf_;
 }
 
 }  // namespace blender::draw

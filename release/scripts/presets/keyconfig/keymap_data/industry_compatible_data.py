@@ -3281,7 +3281,6 @@ def km_image_paint(params):
          {"properties": [("data_path", 'image_paint_object.data.use_paint_mask')]}),
         ("wm.context_toggle", {"type": 'S', "value": 'PRESS', "shift": True},
          {"properties": [("data_path", 'tool_settings.image_paint.brush.use_smooth_stroke')]}),
-        op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         *_template_items_context_panel("VIEW3D_PT_paint_texture_context_menu",
                                        {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         # Tools
@@ -3332,7 +3331,6 @@ def km_vertex_paint(params):
          {"properties": [("data_path", 'vertex_paint_object.data.use_paint_mask')]}),
         ("wm.context_toggle", {"type": 'S', "value": 'PRESS', "shift": True},
          {"properties": [("data_path", 'tool_settings.vertex_paint.brush.use_smooth_stroke')]}),
-        op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         ("paint.face_vert_reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
         *_template_items_context_panel("VIEW3D_PT_paint_vertex_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         # Tools

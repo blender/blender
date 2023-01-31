@@ -1586,7 +1586,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     /* Update `ToolSettings` for properties that change during modal. */
     if (t->flag & T_MODAL) {
       /* Do we check for parameter? */
-      if (transformModeUseSnap(t)) {
+      if (transformModeUseSnap(t) && !(t->tsnap.status & SNAP_FORCED)) {
         if (!(t->modifiers & MOD_SNAP) != !(t->tsnap.flag & SCE_SNAP)) {
           /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
           short *snap_flag_ptr;

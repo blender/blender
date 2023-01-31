@@ -4968,6 +4968,7 @@ static void def_float_to_int(StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_enum_node_float_to_int_items);
   RNA_def_property_ui_text(
       prop, "Rounding Mode", "Method used to convert the float to an integer");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -4979,6 +4980,7 @@ static void def_vector_math(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, rna_enum_node_vec_math_items);
   RNA_def_property_ui_text(prop, "Operation", "");
+  RNA_def_struct_translation_context(srna, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
 }
 
@@ -9197,11 +9199,13 @@ static void def_cmp_denoise(StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_hdr", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "hdr", 0);
+  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(prop, "HDR", "Process HDR images");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "prefilter", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prefilter_items);
+  RNA_def_property_enum_default(prop, CMP_NODE_DENOISE_PREFILTER_ACCURATE);
   RNA_def_property_ui_text(prop, "", "Denoising prefilter");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }

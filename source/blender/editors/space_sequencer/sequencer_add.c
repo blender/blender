@@ -201,7 +201,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     const int strip_end = SEQ_time_right_handle_frame_get(scene, seq);
-    if (ELEM(type, -1, seq->type) && (strip_end < timeline_frame) &&
+    if (ELEM(type, -1, seq->type) && (strip_end <= timeline_frame) &&
         (timeline_frame - strip_end < proximity)) {
       tgt = seq;
       proximity = timeline_frame - strip_end;
@@ -209,7 +209,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   }
 
   if (tgt) {
-    return tgt->machine + 1;
+    return (type == SEQ_TYPE_MOVIE) ? tgt->machine - 1 : tgt->machine;
   }
   return 1;
 }

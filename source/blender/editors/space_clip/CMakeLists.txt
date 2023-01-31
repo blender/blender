@@ -22,6 +22,9 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   clip_buttons.c
   clip_dopesheet_draw.c

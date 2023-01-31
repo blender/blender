@@ -89,6 +89,20 @@
  */
 #define USE_WIN_ACTIVATE
 
+/**
+ * When the window is de-activated, release all held modifiers.
+ *
+ * Needed so events generated over unfocused (non-active) windows don't have modifiers held.
+ * Since modifier press/release events aren't send to unfocused windows it's best to assume
+ * modifiers are not pressed. This means when modifiers *are* held, events will incorrectly
+ * reported as not being held. Since this is standard behavior for Linux/MS-Window,
+ * opt to use this.
+ *
+ * NOTE(@campbellbarton): Events generated for non-active windows are rare,
+ * this happens when using the mouse-wheel over an unfocused window, see: T103722.
+ */
+#define USE_WIN_DEACTIVATE
+
 /* the global to talk to ghost */
 static GHOST_SystemHandle g_system = NULL;
 #if !(defined(WIN32) || defined(__APPLE__))
@@ -1129,10 +1143,46 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
     wmWindow *win = GHOST_GetWindowUserData(ghostwin);
 
     switch (type) {
-      case GHOST_kEventWindowDeactivate:
+      case GHOST_kEventWindowDeactivate: {
+#ifdef USE_WIN_DEACTIVATE
+        /* Release all held modifiers before de-activating the window. */
+        if (win->eventstate->modifier != 0) {
+          const uint8_t keymodifier_eventstate = win->eventstate->modifier;
+          const uint8_t keymodifier_l = wm_ghost_modifier_query(MOD_SIDE_LEFT);
+          const uint8_t keymodifier_r = wm_ghost_modifier_query(MOD_SIDE_RIGHT);
+          /* NOTE(@campbellbarton): when non-zero, there are modifiers held in
+           * `win->eventstate` which are not considered held by the GHOST internal state.
+           * While this should not happen, it's important all modifier held in event-state
+           * receive release events. Without this, so any events generated while the window
+           * is *not* active will have modifiers held. */
+          const uint8_t keymodifier_unhandled = keymodifier_eventstate &
+                                                ~(keymodifier_l | keymodifier_r);
+          const uint8_t keymodifier_sided[2] = {
+              keymodifier_l | keymodifier_unhandled,
+              keymodifier_r,
+          };
+          GHOST_TEventKeyData kdata = {
+              .key = GHOST_kKeyUnknown,
+              .utf8_buf = {'\0'},
+              .is_repeat = false,
+          };
+          for (int i = 0; i < ARRAY_SIZE(g_modifier_table); i++) {
+            if (keymodifier_eventstate & g_modifier_table[i].flag) {
+              for (int side = 0; side < 2; side++) {
+                if ((keymodifier_sided[side] & g_modifier_table[i].flag) == 0) {
+                  kdata.key = g_modifier_table[i].ghost_key_pair[side];
+                  wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
+                }
+              }
+            }
+          }
+        }
+#endif /* USE_WIN_DEACTIVATE */
+
         wm_event_add_ghostevent(wm, win, type, data);
-        win->active = 0; /* XXX */
+        win->active = 0;
         break;
+      }
       case GHOST_kEventWindowActivate: {
 
         /* No context change! C->wm->windrawable is drawable, or for area queues. */
@@ -1226,6 +1276,22 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
 
         wm_window_make_drawable(wm, win);
         WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+        break;
+      }
+      case GHOST_kEventWindowUpdateDecor: {
+        if (G.debug & G_DEBUG_EVENTS) {
+          printf("%s: ghost redraw decor %d\n", __func__, win->winid);
+        }
+
+        wm_window_make_drawable(wm, win);
+#if 0
+        /* NOTE(@campbellbarton): Ideally we could swap-buffers to avoid a full redraw.
+         * however this causes window flickering on resize with LIBDECOR under WAYLAND. */
+        wm_window_swap_buffers(win);
+#else
+        WM_event_add_notifier(C, NC_WINDOW, NULL);
+#endif
 
         break;
       }
@@ -1579,7 +1645,7 @@ void wm_ghost_init(bContext *C)
   GHOST_UseWindowFocus(wm_init_state.window_focus);
 }
 
-/* TODO move this to wm_init_exit.c. */
+/* TODO move this to wm_init_exit.cc. */
 void wm_ghost_init_background(void)
 {
   if (g_system) {
@@ -1644,6 +1710,75 @@ GHOST_TDrawingContextType wm_ghost_drawing_context_type(const eGPUBackendType gp
    * to error. */
   BLI_assert_unreachable();
   return GHOST_kDrawingContextTypeNone;
+}
+
+static uiBlock *block_create_opengl_usage_warning(struct bContext *C,
+                                                  struct ARegion *region,
+                                                  void *UNUSED(arg1))
+{
+  uiBlock *block = UI_block_begin(C, region, "autorun_warning_popup", UI_EMBOSS);
+  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_emboss_set(block, UI_EMBOSS);
+
+  uiLayout *layout = uiItemsAlertBox(block, 44, ALERT_ICON_ERROR);
+
+  /* Title and explanation text. */
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiItemL_ex(col, TIP_("Python script uses OpenGL for drawing"), ICON_NONE, true, false);
+  uiItemL(col, TIP_("This may lead to unexpected behavior"), ICON_NONE);
+  uiItemL(col,
+          TIP_("One of the add-ons or scripts is using OpenGL and will not work correct on Metal"),
+          ICON_NONE);
+  uiItemL(col,
+          TIP_("Please contact the developer of the add-on to migrate to use 'gpu' module"),
+          ICON_NONE);
+  if (G.opengl_deprecation_usage_filename) {
+    char location[1024];
+    SNPRINTF(
+        location, "%s:%d", G.opengl_deprecation_usage_filename, G.opengl_deprecation_usage_lineno);
+    uiItemL(col, location, ICON_NONE);
+  }
+  uiItemL(col, TIP_("See system tab in preferences to switch to OpenGL backend"), ICON_NONE);
+
+  uiItemS(layout);
+
+  UI_block_bounds_set_centered(block, 14 * U.dpi_fac);
+
+  return block;
+}
+
+void wm_test_opengl_deprecation_warning(bContext *C)
+{
+  static bool message_shown = false;
+
+  /* Exit when no failure detected. */
+  if (!G.opengl_deprecation_usage_detected) {
+    return;
+  }
+
+  /* Have we already shown a message during this Blender session. `bgl` calls are done in a draw
+   * handler that will run many times. */
+  if (message_shown) {
+    return;
+  }
+
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindow *win = (wm->winactive) ? wm->winactive : wm->windows.first;
+
+  BKE_report(
+      &wm->reports,
+      RPT_ERROR,
+      TIP_("One of the add-ons or scripts is using OpenGL and will not work correct on Metal. "
+           "Please contact the developer of the add-on to migrate to use 'gpu' module"));
+
+  if (win) {
+    wmWindow *prevwin = CTX_wm_window(C);
+    CTX_wm_window_set(C, win);
+    UI_popup_block_invoke(C, block_create_opengl_usage_warning, NULL, NULL);
+    CTX_wm_window_set(C, prevwin);
+  }
+
+  message_shown = true;
 }
 
 eWM_CapabilitiesFlag WM_capabilities_flag(void)

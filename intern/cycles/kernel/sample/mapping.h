@@ -67,17 +67,18 @@ ccl_device_inline void sample_uniform_cone(const float3 N,
                                            ccl_private float3 *wo,
                                            ccl_private float *pdf)
 {
-  float zMin = cosf(angle);
-  float z = zMin - zMin * randu + randu;
-  float r = safe_sqrtf(1.0f - sqr(z));
-  float phi = M_2PI_F * randv;
-  float x = r * cosf(phi);
-  float y = r * sinf(phi);
+  const float cosThetaMin = cosf(angle);
+  const float cosTheta = mix(cosThetaMin, 1.0f, randu);
+  const float sinTheta = sin_from_cos(cosTheta);
+  const float phi = M_2PI_F * randv;
+  const float x = sinTheta * cosf(phi);
+  const float y = sinTheta * sinf(phi);
+  const float z = cosTheta;
 
   float3 T, B;
   make_orthonormals(N, &T, &B);
   *wo = x * T + y * B + z * N;
-  *pdf = M_1_2PI_F / (1.0f - zMin);
+  *pdf = M_1_2PI_F / (1.0f - cosThetaMin);
 }
 
 ccl_device_inline float pdf_uniform_cone(const float3 N, float3 D, float angle)

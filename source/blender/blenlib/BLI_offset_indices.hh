@@ -39,6 +39,18 @@ template<typename T> class OffsetIndices {
     return size;
   }
 
+  /** Return the total number of elements in the the referenced arrays. */
+  T total_size() const
+  {
+    return offsets_.last();
+  }
+
+  /** Return the number of ranges encoded by the offsets. */
+  T ranges_num() const
+  {
+    return offsets_.size() - 1;
+  }
+
   IndexRange operator[](const int64_t index) const
   {
     BLI_assert(index >= 0);
@@ -55,6 +67,17 @@ template<typename T> class OffsetIndices {
     const int64_t end = offsets_[indices.one_after_last()];
     const int64_t size = end - begin;
     return IndexRange(begin, size);
+  }
+
+  /**
+   * Return a subset of the offsets describing the specified range of source elements.
+   * This is a slice into the source ranges rather than the indexed elements described by the
+   * offset values.
+   */
+  OffsetIndices slice(const IndexRange range) const
+  {
+    BLI_assert(offsets_.index_range().drop_back(1).contains(range.last()));
+    return OffsetIndices(offsets_.slice(range.start(), range.one_after_last()));
   }
 };
 

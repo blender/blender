@@ -1,10 +1,10 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-/* TODO: Theme? */
-const vec4 pinned_col = vec4(1.0, 0.0, 0.0, 1.0);
-
 void main()
 {
+  /* TODO: Theme? */
+  const vec4 pinned_col = vec4(1.0, 0.0, 0.0, 1.0);
+
   bool is_selected = (flag & (VERT_UV_SELECT | FACE_UV_SELECT)) != 0u;
   bool is_pinned = (flag & VERT_UV_PINNED) != 0u;
   vec4 deselect_col = (is_pinned) ? pinned_col : vec4(color.rgb, 1.0);

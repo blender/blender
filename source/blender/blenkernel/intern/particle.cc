@@ -3513,7 +3513,8 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
         }
       }
 
-      /* lattices have to be calculated separately to avoid mixups between effector calculations */
+      /* Lattices have to be calculated separately to avoid mix-ups between effector calculations.
+       */
       if (psys->lattice_deform_data) {
         for (k = 0, ca = cache[p]; k <= segments; k++, ca++) {
           BKE_lattice_deform_data_eval_co(
@@ -4215,7 +4216,9 @@ static int get_particle_uv(Mesh *mesh,
   int i;
 
   tf = static_cast<const MTFace *>(CustomData_get_layer_named(&mesh->fdata, CD_MTFACE, name));
-
+  if (tf == nullptr) {
+    tf = static_cast<const MTFace *>(CustomData_get_layer(&mesh->fdata, CD_MTFACE));
+  }
   if (tf == nullptr) {
     return 0;
   }

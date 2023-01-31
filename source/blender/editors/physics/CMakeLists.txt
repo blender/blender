@@ -17,6 +17,9 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   dynamicpaint_ops.c
   particle_boids.c

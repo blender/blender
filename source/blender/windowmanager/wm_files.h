@@ -16,7 +16,7 @@ struct wmOperatorType;
 extern "C" {
 #endif
 
-/* wm_files.c */
+/* wm_files.cc */
 
 void wm_history_file_read(void);
 

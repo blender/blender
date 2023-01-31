@@ -34,8 +34,6 @@ CCL_NAMESPACE_BEGIN
 
 #define VOLUME_BOUNDS_MAX 1024
 
-#define BECKMANN_TABLE_SIZE 256
-
 #define SHADER_NONE (~0)
 #define OBJECT_NONE (~0)
 #define PRIM_NONE (~0)
@@ -208,23 +206,24 @@ enum PathRayFlag : uint32_t {
   PATH_RAY_SINGULAR = (1U << 5U),
   PATH_RAY_TRANSPARENT = (1U << 6U),
   PATH_RAY_VOLUME_SCATTER = (1U << 7U),
+  PATH_RAY_IMPORTANCE_BAKE = (1U << 8U),
 
   /* Shadow ray visibility. */
-  PATH_RAY_SHADOW_OPAQUE = (1U << 8U),
-  PATH_RAY_SHADOW_TRANSPARENT = (1U << 9U),
+  PATH_RAY_SHADOW_OPAQUE = (1U << 9U),
+  PATH_RAY_SHADOW_TRANSPARENT = (1U << 10U),
   PATH_RAY_SHADOW = (PATH_RAY_SHADOW_OPAQUE | PATH_RAY_SHADOW_TRANSPARENT),
 
   /* Subset of flags used for ray visibility for intersection.
    *
    * NOTE: SHADOW_CATCHER macros below assume there are no more than
    * 16 visibility bits. */
-  PATH_RAY_ALL_VISIBILITY = ((1U << 10U) - 1U),
+  PATH_RAY_ALL_VISIBILITY = ((1U << 11U) - 1U),
 
   /* Special flag to tag unaligned BVH nodes.
    * Only set and used in BVH nodes to distinguish how to interpret bounding box information stored
    * in the node (either it should be intersected as AABB or as OBBU).
    * So this can overlap with path flags. */
-  PATH_RAY_NODE_UNALIGNED = (1U << 10U),
+  PATH_RAY_NODE_UNALIGNED = (1U << 11U),
 
   /* --------------------------------------------------------------------
    * Path flags.
@@ -232,60 +231,59 @@ enum PathRayFlag : uint32_t {
 
   /* Surface had transmission component at previous bounce. Used for light tree
    * traversal and culling to be consistent with MIS PDF at the next bounce. */
-  PATH_RAY_MIS_HAD_TRANSMISSION = (1U << 10U),
+  PATH_RAY_MIS_HAD_TRANSMISSION = (1U << 11U),
 
   /* Don't apply multiple importance sampling weights to emission from
    * lamp or surface hits, because they were not direct light sampled. */
-  PATH_RAY_MIS_SKIP = (1U << 11U),
+  PATH_RAY_MIS_SKIP = (1U << 12U),
 
   /* Diffuse bounce earlier in the path, skip SSS to improve performance
    * and avoid branching twice with disk sampling SSS. */
-  PATH_RAY_DIFFUSE_ANCESTOR = (1U << 12U),
+  PATH_RAY_DIFFUSE_ANCESTOR = (1U << 13U),
 
   /* Single pass has been written. */
-  PATH_RAY_SINGLE_PASS_DONE = (1U << 13U),
+  PATH_RAY_SINGLE_PASS_DONE = (1U << 14U),
 
   /* Zero background alpha, for camera or transparent glass rays. */
-  PATH_RAY_TRANSPARENT_BACKGROUND = (1U << 14U),
+  PATH_RAY_TRANSPARENT_BACKGROUND = (1U << 15U),
 
   /* Terminate ray immediately at next bounce. */
-  PATH_RAY_TERMINATE_ON_NEXT_SURFACE = (1U << 15U),
-  PATH_RAY_TERMINATE_IN_NEXT_VOLUME = (1U << 16U),
+  PATH_RAY_TERMINATE_ON_NEXT_SURFACE = (1U << 16U),
+  PATH_RAY_TERMINATE_IN_NEXT_VOLUME = (1U << 17U),
 
   /* Ray is to be terminated, but continue with transparent bounces and
    * emission as long as we encounter them. This is required to make the
    * MIS between direct and indirect light rays match, as shadow rays go
    * through transparent surfaces to reach emission too. */
-  PATH_RAY_TERMINATE_AFTER_TRANSPARENT = (1U << 17U),
+  PATH_RAY_TERMINATE_AFTER_TRANSPARENT = (1U << 18U),
 
   /* Terminate ray immediately after volume shading. */
-  PATH_RAY_TERMINATE_AFTER_VOLUME = (1U << 18U),
+  PATH_RAY_TERMINATE_AFTER_VOLUME = (1U << 19U),
 
   /* Ray is to be terminated. */
   PATH_RAY_TERMINATE = (PATH_RAY_TERMINATE_ON_NEXT_SURFACE | PATH_RAY_TERMINATE_IN_NEXT_VOLUME |
                         PATH_RAY_TERMINATE_AFTER_TRANSPARENT | PATH_RAY_TERMINATE_AFTER_VOLUME),
 
   /* Path and shader is being evaluated for direct lighting emission. */
-  PATH_RAY_EMISSION = (1U << 19U),
+  PATH_RAY_EMISSION = (1U << 20U),
 
   /* Perform subsurface scattering. */
-  PATH_RAY_SUBSURFACE_RANDOM_WALK = (1U << 20U),
-  PATH_RAY_SUBSURFACE_DISK = (1U << 21U),
-  PATH_RAY_SUBSURFACE_USE_FRESNEL = (1U << 22U),
-  PATH_RAY_SUBSURFACE_BACKFACING = (1U << 23U),
+  PATH_RAY_SUBSURFACE_RANDOM_WALK = (1U << 21U),
+  PATH_RAY_SUBSURFACE_DISK = (1U << 22U),
+  PATH_RAY_SUBSURFACE_USE_FRESNEL = (1U << 23U),
+  PATH_RAY_SUBSURFACE_BACKFACING = (1U << 24U),
   PATH_RAY_SUBSURFACE = (PATH_RAY_SUBSURFACE_RANDOM_WALK | PATH_RAY_SUBSURFACE_DISK |
                          PATH_RAY_SUBSURFACE_USE_FRESNEL | PATH_RAY_SUBSURFACE_BACKFACING),
 
   /* Contribute to denoising features. */
-  PATH_RAY_DENOISING_FEATURES = (1U << 24U),
+  PATH_RAY_DENOISING_FEATURES = (1U << 25U),
 
   /* Render pass categories. */
-  PATH_RAY_SURFACE_PASS = (1U << 25U),
-  PATH_RAY_VOLUME_PASS = (1U << 26U),
+  PATH_RAY_SURFACE_PASS = (1U << 26U),
+  PATH_RAY_VOLUME_PASS = (1U << 27U),
   PATH_RAY_ANY_PASS = (PATH_RAY_SURFACE_PASS | PATH_RAY_VOLUME_PASS),
 
-  /* Shadow ray is for a light or surface, or AO. */
-  PATH_RAY_SHADOW_FOR_LIGHT = (1U << 27U),
+  /* Shadow ray is for AO. */
   PATH_RAY_SHADOW_FOR_AO = (1U << 28U),
 
   /* A shadow catcher object was hit and the path was split into two. */
@@ -1187,9 +1185,8 @@ typedef enum KernelBVHLayout {
 #include "kernel/data_template.h"
 
 typedef struct KernelTables {
-  int beckmann_offset;
   int filter_table_offset;
-  int pad1, pad2;
+  int pad1, pad2, pad3;
 } KernelTables;
 static_assert_align(KernelTables, 16);
 

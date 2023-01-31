@@ -472,7 +472,7 @@ struct AssetLibraryIndex {
     BLI_path_append(index_path, sizeof(index_path), "asset-library-indices");
 
     std::stringstream ss;
-    ss << std::setfill('0') << std::setw(16) << std::hex << hash() << "/";
+    ss << std::setfill('0') << std::setw(16) << std::hex << hash() << SEP_STR;
     BLI_path_append(index_path, sizeof(index_path), ss.str().c_str());
 
     indices_base_path = std::string(index_path);

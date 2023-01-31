@@ -288,8 +288,7 @@ static void add_stroke_extension(bGPDframe *gpf, bGPDstroke *gps, float p1[3], f
   pt->pressure = 1.0f;
 }
 
-static void add_endpoint_radius_help(tGPDfill *tgpf,
-                                     bGPDframe *gpf,
+static void add_endpoint_radius_help(bGPDframe *gpf,
                                      bGPDstroke *gps,
                                      const float endpoint[3],
                                      const float radius,
@@ -314,11 +313,6 @@ static void add_endpoint_radius_help(tGPDfill *tgpf,
     pt->z = endpoint[2] + radius * sinf(angle);
     pt->strength = 1.0f;
     pt->pressure = 1.0f;
-
-    /* Rotate to object rotation. */
-    sub_v3_v3(&pt->x, endpoint);
-    mul_mat3_m4_v3(tgpf->ob->object_to_world, &pt->x);
-    add_v3_v3(&pt->x, endpoint);
   }
 }
 
@@ -839,8 +833,8 @@ static void gpencil_create_extensions_radius(tGPDfill *tgpf)
 
     bool start_connected = BLI_gset_haskey(connected_endpoints, stroke1_start);
     bool end_connected = BLI_gset_haskey(connected_endpoints, stroke1_end);
-    add_endpoint_radius_help(tgpf, gpf, gps, stroke1_start, connection_dist, start_connected);
-    add_endpoint_radius_help(tgpf, gpf, gps, stroke1_end, connection_dist, end_connected);
+    add_endpoint_radius_help(gpf, gps, stroke1_start, connection_dist, start_connected);
+    add_endpoint_radius_help(gpf, gps, stroke1_end, connection_dist, end_connected);
   }
 
   BLI_gset_free(connected_endpoints, NULL);
@@ -2919,6 +2913,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
               }
 
               if (extend_lines) {
+                stroke_array_free(tgpf);
                 gpencil_delete_temp_stroke_extension(tgpf, true);
               }
 

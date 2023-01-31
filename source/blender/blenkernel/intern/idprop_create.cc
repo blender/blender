@@ -21,6 +21,15 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create(const StringRefNull prop_n
   return std::unique_ptr<IDProperty, IDPropertyDeleter>(property);
 }
 
+std::unique_ptr<IDProperty, IDPropertyDeleter> create_bool(const StringRefNull prop_name,
+                                                           bool value)
+{
+  IDPropertyTemplate prop_template{0};
+  prop_template.i = value;
+  IDProperty *property = IDP_New(IDP_BOOLEAN, &prop_template, prop_name.c_str());
+  return std::unique_ptr<IDProperty, IDPropertyDeleter>(property);
+}
+
 std::unique_ptr<IDProperty, IDPropertyDeleter> create(const StringRefNull prop_name, float value)
 {
   IDPropertyTemplate prop_template{0};

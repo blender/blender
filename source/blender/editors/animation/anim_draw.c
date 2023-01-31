@@ -343,8 +343,12 @@ static void fcurve_scene_coord_range_get(Scene *scene,
     int end = fcu->totvert;
 
     if (use_preview_only) {
-      start = scene->r.psfra;
-      end = min_ii(scene->r.pefra + 1, fcu->totvert);
+      /* Preview frame ranges need to be converted to bezt array indices. */
+      bool replace = false;
+      start = BKE_fcurve_bezt_binarysearch_index(
+          fcu->bezt, scene->r.psfra, fcu->totvert, &replace);
+
+      end = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, scene->r.pefra, fcu->totvert, &replace);
     }
 
     if (fcu->bezt) {

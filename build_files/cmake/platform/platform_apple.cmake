@@ -97,20 +97,8 @@ add_bundled_libraries(materialx/lib)
 
 if(WITH_VULKAN_BACKEND)
   find_package(MoltenVK REQUIRED)
-
-  if(EXISTS ${LIBDIR}/vulkan)
-    set(VULKAN_FOUND On)
-    set(VULKAN_ROOT_DIR ${LIBDIR}/vulkan/macOS)
-    set(VULKAN_INCLUDE_DIR ${VULKAN_ROOT_DIR}/include)
-    set(VULKAN_LIBRARY ${VULKAN_ROOT_DIR}/lib/libvulkan.1.dylib)
-    set(SHADERC_LIBRARY ${VULKAN_ROOT_DIR}/lib/libshaderc_combined.a)
-
-    set(VULKAN_INCLUDE_DIRS ${VULKAN_INCLUDE_DIR} ${MOLTENVK_INCLUDE_DIRS})
-    set(VULKAN_LIBRARIES ${VULKAN_LIBRARY} ${SHADERC_LIBRARY} ${MOLTENVK_LIBRARIES})
-  else()
-    message(WARNING "Vulkan SDK was not found, disabling WITH_VULKAN_BACKEND")
-    set(WITH_VULKAN_BACKEND OFF)
-  endif()
+  find_package(ShaderC REQUIRED)
+  find_package(Vulkan REQUIRED)
 endif()
 
 if(WITH_OPENSUBDIV)

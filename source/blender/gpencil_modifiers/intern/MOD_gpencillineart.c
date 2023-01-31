@@ -44,9 +44,6 @@
 #include "MOD_gpencil_ui_common.h"
 #include "lineart/MOD_lineart.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
-
 static void initData(GpencilModifierData *md)
 {
   LineartGpencilModifierData *gpmd = (LineartGpencilModifierData *)md;
@@ -92,7 +89,8 @@ static void generate_strokes_actual(
       lmd->silhouette_selection,
       lmd->source_vertex_group,
       lmd->vgname,
-      lmd->flags);
+      lmd->flags,
+      lmd->calculation_flags);
 }
 
 static bool isModifierDisabled(GpencilModifierData *md)
@@ -168,8 +166,6 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
      * cache. */
     lmd->cache = gpd->runtime.lineart_cache;
   }
-
-  WM_main_add_notifier(NA_EDITED | NC_GPENCIL, NULL);
 }
 
 static void bakeModifier(Main *UNUSED(bmain),

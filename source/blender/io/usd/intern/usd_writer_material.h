@@ -14,6 +14,10 @@ namespace blender::io::usd {
 
 struct USDExporterContext;
 
+/* Returns a USDPreviewSurface token name for a given Blender shader Socket name,
+ * or an empty TfToken if the input name is not found in the map. */
+const pxr::TfToken token_for_input(const char *input_name);
+
 /**
  * Entry point to create an approximate USD Preview Surface network from a Cycles node graph.
  * Due to the limited nodes in the USD Preview Surface specification, only the following nodes

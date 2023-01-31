@@ -193,7 +193,8 @@ IDTypeInfo IDType_ID_WS = {
     /*name*/ "WorkSpace",
     /*name_plural*/ "workspaces",
     /*translation_context*/ BLT_I18NCONTEXT_ID_WORKSPACE,
-    /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_ONLY_APPEND | IDTYPE_FLAGS_NO_ANIMDATA,
+    /*flags*/ IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_ONLY_APPEND | IDTYPE_FLAGS_NO_ANIMDATA |
+        IDTYPE_FLAGS_NO_MEMFILE_UNDO,
     /*asset_type_info*/ nullptr,
 
     /*init_data*/ workspace_init_data,

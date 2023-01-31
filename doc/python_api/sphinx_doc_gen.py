@@ -2098,6 +2098,8 @@ def write_rst_types_index(basepath):
         fw(title_string("Types (bpy.types)", "="))
         fw(".. module:: bpy.types\n\n")
         fw(".. toctree::\n")
+        # Only show top-level entries (avoids unreasonably large pages).
+        fw("   :maxdepth: 1\n")
         fw("   :glob:\n\n")
         fw("   bpy.types.*\n\n")
 
@@ -2124,6 +2126,8 @@ def write_rst_ops_index(basepath):
         write_example_ref("", fw, "bpy.ops")
         fw(".. toctree::\n")
         fw("   :caption: Submodules\n")
+        # Only show top-level entries (avoids unreasonably large pages).
+        fw("   :maxdepth: 1\n")
         fw("   :glob:\n\n")
         fw("   bpy.ops.*\n\n")
         file.close()

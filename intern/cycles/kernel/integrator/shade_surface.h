@@ -235,8 +235,6 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
     light_sample_to_surface_shadow_ray(kg, sd, &ls, &ray);
   }
 
-  const bool is_light = light_sample_is_light(&ls);
-
   /* Branch off shadow kernel. */
   IntegratorShadowState shadow_state = integrator_shadow_path_init(
       kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, false);
@@ -264,7 +262,6 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
 
   /* Copy state from main path to shadow path. */
   uint32_t shadow_flag = INTEGRATOR_STATE(state, path, flag);
-  shadow_flag |= (is_light) ? PATH_RAY_SHADOW_FOR_LIGHT : 0;
   const Spectrum unlit_throughput = INTEGRATOR_STATE(state, path, throughput);
   const Spectrum throughput = unlit_throughput * bsdf_eval_sum(&bsdf_eval);
 

@@ -210,6 +210,9 @@ GPU_SHADER_CREATE_INFO(draw_resource_id_fallback)
     .define("UNIFORM_RESOURCE_ID_NEW")
     .vertex_in(15, Type::INT, "drw_ResourceID");
 
+/** TODO mask view id bits. */
+GPU_SHADER_CREATE_INFO(draw_resource_handle_new).define("resource_handle", "drw_ResourceID");
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

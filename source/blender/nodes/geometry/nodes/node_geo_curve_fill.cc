@@ -43,15 +43,16 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 static meshintersect::CDT_result<double> do_cdt(const bke::CurvesGeometry &curves,
                                                 const CDT_output_type output_type)
 {
+  const OffsetIndices points_by_curve = curves.evaluated_points_by_curve();
+  const Span<float3> positions = curves.evaluated_positions();
+
   meshintersect::CDT_input<double> input;
   input.need_ids = false;
-  input.vert.reinitialize(curves.evaluated_points_num());
+  input.vert.reinitialize(points_by_curve.total_size());
   input.face.reinitialize(curves.curves_num());
 
-  Span<float3> positions = curves.evaluated_positions();
-
   for (const int i_curve : curves.curves_range()) {
-    const IndexRange points = curves.evaluated_points_for_curve(i_curve);
+    const IndexRange points = points_by_curve[i_curve];
 
     for (const int i : points) {
       input.vert[i] = double2(positions[i].x, positions[i].y);

@@ -88,13 +88,6 @@ light_sample_shader_eval(KernelGlobals kg,
   return eval;
 }
 
-/* Test if light sample is from a light or emission from geometry. */
-ccl_device_inline bool light_sample_is_light(ccl_private const LightSample *ccl_restrict ls)
-{
-  /* return if it's a lamp for shadow pass */
-  return (ls->prim == PRIM_NONE && ls->type != LIGHT_BACKGROUND);
-}
-
 /* Early path termination of shadow rays. */
 ccl_device_inline bool light_sample_terminate(KernelGlobals kg,
                                               ccl_private const LightSample *ccl_restrict ls,

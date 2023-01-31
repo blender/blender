@@ -35,7 +35,7 @@ static Array<float> accumulated_lengths_curve_domain(const bke::CurvesGeometry &
   curves.ensure_evaluated_lengths();
 
   Array<float> lengths(curves.curves_num());
-  VArray<bool> cyclic = curves.cyclic();
+  const VArray<bool> cyclic = curves.cyclic();
   float length = 0.0f;
   for (const int i : curves.curves_range()) {
     lengths[i] = length;
@@ -86,7 +86,7 @@ static Array<float> curve_length_point_domain(const bke::CurvesGeometry &curves)
         case CURVE_TYPE_BEZIER: {
           const Span<int> offsets = curves.bezier_evaluated_offsets_for_curve(i_curve);
           for (const int i : IndexRange(points.size()).drop_back(1)) {
-            lengths[i + 1] = evaluated_lengths[offsets[i] - 1];
+            lengths[i + 1] = evaluated_lengths[offsets[i + 1] - 1];
           }
           break;
         }
@@ -110,7 +110,7 @@ static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry 
                                                       const IndexMask /*mask*/,
                                                       const eAttrDomain domain)
 {
-  VArray<bool> cyclic = curves.cyclic();
+  const VArray<bool> cyclic = curves.cyclic();
 
   if (domain == ATTR_DOMAIN_POINT) {
     Array<float> result = curve_length_point_domain(curves);

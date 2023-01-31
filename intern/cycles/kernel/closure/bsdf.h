@@ -170,7 +170,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
     case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
       label = bsdf_microfacet_ggx_sample(
-          kg, sc, Ng, sd->wi, randu, randv, eval, wo, pdf, sampled_roughness, eta);
+          sc, Ng, sd->wi, randu, randv, eval, wo, pdf, sampled_roughness, eta);
       break;
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:
@@ -185,7 +185,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
       label = bsdf_microfacet_beckmann_sample(
-          kg, sc, Ng, sd->wi, randu, randv, eval, wo, pdf, sampled_roughness, eta);
+          sc, Ng, sd->wi, randu, randv, eval, wo, pdf, sampled_roughness, eta);
       break;
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
       label = bsdf_ashikhmin_shirley_sample(

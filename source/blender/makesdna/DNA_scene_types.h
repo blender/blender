@@ -1596,7 +1596,7 @@ typedef struct ToolSettings {
   /** Keyframe type (see DNA_curve_types.h). */
   char keyframe_type;
 
-  /* Multires. */
+  /** Multi-resolution meshes. */
   char multires_subdiv_type;
 
   /** Edge tagging, store operator settings (no UI access). */
@@ -2148,6 +2148,7 @@ enum {
 /** #RenderData.engine (scene.cc) */
 extern const char *RE_engine_id_BLENDER_EEVEE;
 extern const char *RE_engine_id_BLENDER_WORKBENCH;
+extern const char *RE_engine_id_BLENDER_WORKBENCH_NEXT;
 extern const char *RE_engine_id_CYCLES;
 
 /** \} */

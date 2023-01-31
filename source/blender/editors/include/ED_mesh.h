@@ -167,7 +167,7 @@ struct UvMapVert *BM_uv_vert_map_at_index(struct UvVertMap *vmap, unsigned int v
 /**
  * Return a new #UvVertMap from the edit-mesh.
  */
-struct UvVertMap *BM_uv_vert_map_create(struct BMesh *bm, bool use_select, bool use_winding);
+struct UvVertMap *BM_uv_vert_map_create(struct BMesh *bm, bool use_select);
 
 void EDBM_flag_enable_all(struct BMEditMesh *em, char hflag);
 void EDBM_flag_disable_all(struct BMEditMesh *em, char hflag);

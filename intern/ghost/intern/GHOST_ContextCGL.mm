@@ -529,7 +529,8 @@ void GHOST_ContextCGL::metalInit()
     id<MTLDevice> device = m_metalLayer.device;
 
     /* Create a command queue for blit/present operation. */
-    m_metalCmdQueue = (MTLCommandQueue *)[device newCommandQueue];
+    m_metalCmdQueue = (MTLCommandQueue *)[device
+        newCommandQueueWithMaxCommandBufferCount:GHOST_ContextCGL::max_command_buffer_count];
     [m_metalCmdQueue retain];
 
     /* Create shaders for blit operation. */

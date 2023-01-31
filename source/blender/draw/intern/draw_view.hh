@@ -32,7 +32,7 @@ using VisibilityBuf = StorageArrayBuffer<uint, 4, true>;
 class View {
   friend Manager;
 
- private:
+ protected:
   /** TODO(fclem): Maybe try to reduce the minimum cost if the number of view is lower. */
 
   UniformArrayBuffer<ViewMatrices, DRW_VIEW_MAX> data_;
@@ -64,13 +64,13 @@ class View {
   View(const char *name, const DRWView *view)
       : visibility_buf_(name), debug_name_(name), view_len_(1)
   {
-    float4x4 view_mat, win_mat;
-    DRW_view_viewmat_get(view, view_mat.ptr(), false);
-    DRW_view_winmat_get(view, win_mat.ptr(), false);
-    this->sync(view_mat, win_mat);
+    this->sync(view);
   }
 
   void sync(const float4x4 &view_mat, const float4x4 &win_mat, int view_id = 0);
+
+  /* For compatibility with old system. Will be removed at some point. */
+  void sync(const DRWView *view);
 
   /** Disable a range in the multi-view array. Disabled view will not produce any instances. */
   void disable(IndexRange range);
@@ -147,10 +147,11 @@ class View {
     return data_;
   }
 
- private:
+ protected:
   /** Called from draw manager. */
   void bind();
-  void compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool debug_freeze);
+  virtual void compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool debug_freeze);
+  virtual VisibilityBuf &get_visibility_buffer();
 
   void update_viewport_size();
 

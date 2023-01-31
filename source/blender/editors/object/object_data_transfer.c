@@ -60,6 +60,11 @@ static const EnumPropertyItem DT_layer_items[] = {
     {DT_TYPE_SKIN, "SKIN", 0, "Skin Weight", "Transfer skin weights"},
 #endif
     {DT_TYPE_BWEIGHT_VERT, "BEVEL_WEIGHT_VERT", 0, "Bevel Weight", "Transfer bevel weights"},
+    {DT_TYPE_MPROPCOL_VERT | DT_TYPE_MLOOPCOL_VERT,
+     "COLOR_VERTEX",
+     0,
+     "Colors",
+     "Color Attributes"},
 
     RNA_ENUM_ITEM_HEADING(N_("Edge Data"), NULL),
     {DT_TYPE_SHARP_EDGE, "SHARP_EDGE", 0, "Sharp", "Transfer sharp mark"},
@@ -74,7 +79,11 @@ static const EnumPropertyItem DT_layer_items[] = {
 
     RNA_ENUM_ITEM_HEADING(N_("Face Corner Data"), NULL),
     {DT_TYPE_LNOR, "CUSTOM_NORMAL", 0, "Custom Normals", "Transfer custom normals"},
-    {DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP, "VCOL", 0, "Colors", "Color Attributes"},
+    {DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP,
+     "COLOR_CORNER",
+     0,
+     "Colors",
+     "Color Attributes"},
     {DT_TYPE_UV, "UV", 0, "UVs", "Transfer UV layers"},
 
     RNA_ENUM_ITEM_HEADING(N_("Face Data"), NULL),
@@ -93,7 +102,7 @@ static void dt_add_vcol_layers(CustomData *cdata,
                                int *r_totitem)
 {
   int types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
-
+  int idx = 0;
   for (int i = 0; i < 2; i++) {
     eCustomDataType type = types[i];
 
@@ -106,9 +115,8 @@ static void dt_add_vcol_layers(CustomData *cdata,
     RNA_enum_item_add_separator(r_item, r_totitem);
 
     for (int j = 0; j < num_data; j++) {
-      EnumPropertyItem tmp_item;
-
-      tmp_item.value = j;
+      EnumPropertyItem tmp_item = {0};
+      tmp_item.value = idx++;
       tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(cdata, type, j);
       RNA_enum_item_add(r_item, r_totitem, &tmp_item);
     }

@@ -147,6 +147,14 @@ std::string Socket::name() const
   return fallback_name;
 }
 
+std::string Socket::detailed_name() const
+{
+  std::stringstream ss;
+  ss << node_->name() << ":" << (is_input_ ? "IN" : "OUT") << ":" << index_in_node_ << ":"
+     << this->name();
+  return ss.str();
+}
+
 std::string Node::name() const
 {
   if (this->is_function()) {

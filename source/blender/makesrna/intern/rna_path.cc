@@ -757,7 +757,6 @@ static char *rna_idp_path_create(IDP_Chain *child_link)
   char *path;
   bool is_first = true;
 
-  int tot = 0;
   IDP_Chain *link = child_link;
 
   /* reverse the list */
@@ -768,7 +767,6 @@ static char *rna_idp_path_create(IDP_Chain *child_link)
     link->up = link_prev;
     link_prev = link;
     link = link_next;
-    tot++;
   }
 
   for (link = link_prev; link; link = link->up) {

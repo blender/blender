@@ -751,7 +751,7 @@ static DerivedMesh *multires_dm_create_local(Scene *scene,
                                              bool alloc_paint_mask,
                                              MultiresFlags flags)
 {
-  MultiresModifierData mmd = {{nullptr}};
+  MultiresModifierData mmd{};
 
   mmd.lvl = lvl;
   mmd.sculptlvl = lvl;

@@ -230,9 +230,9 @@ MatBase<T, Size, Size> pseudo_invert(const MatBase<T, Size, Size> &mat, T epsilo
     JacobiSVD<MatrixDynamicT, NoQRPreconditioner> svd(
         Eigen::Map<const MatrixDynamicT>(mat.base_ptr(), Size, Size), ComputeThinU | ComputeThinV);
 
-    (Eigen::Map<MatrixT>(U.base_ptr())) = svd.matrixU();
+    Eigen::Map<MatrixT>(U.base_ptr()) = svd.matrixU();
     (Eigen::Map<VectorT>(S_val)) = svd.singularValues();
-    (Eigen::Map<MatrixT>(V.base_ptr())) = svd.matrixV();
+    Eigen::Map<MatrixT>(V.base_ptr()) = svd.matrixV();
   }
 
   /* Invert or nullify component based on epsilon comparison. */
@@ -290,9 +290,9 @@ static void polar_decompose(const MatBase<T, 3, 3> &mat3,
     JacobiSVD<MatrixDynamicT, NoQRPreconditioner> svd(
         Eigen::Map<const MatrixDynamicT>(mat3.base_ptr(), 3, 3), ComputeThinU | ComputeThinV);
 
-    (Eigen::Map<MatrixT>(W.base_ptr())) = svd.matrixU();
+    Eigen::Map<MatrixT>(W.base_ptr()) = svd.matrixU();
     (Eigen::Map<VectorT>(S_val)) = svd.singularValues();
-    (Map<MatrixT>(V.base_ptr())) = svd.matrixV();
+    Map<MatrixT>(V.base_ptr()) = svd.matrixV();
   }
 
   MatBase<T, 3, 3> S = from_scale<MatBase<T, 3, 3>>(S_val);

@@ -262,7 +262,7 @@ typedef struct wmWindow {
 
   struct bScreen *screen DNA_DEPRECATED;
 
-  /** Winid also in screens, is for retrieving this window after read. */
+  /** Window-ID also in screens, is for retrieving this window after read. */
   int winid;
   /** Window coords. */
   short posx, posy, sizex, sizey;
@@ -512,7 +512,7 @@ enum {
 
 /**
  * This is similar to addon-preferences,
- * however unlike add-ons key-config's aren't saved to disk.
+ * however unlike add-ons key-configurations aren't saved to disk.
  *
  * #wmKeyConfigPref is written to DNA,
  * #wmKeyConfigPrefType_Runtime has the RNA type.

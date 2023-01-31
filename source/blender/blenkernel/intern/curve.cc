@@ -2063,7 +2063,7 @@ static void bevel_list_calc_bisect(BevList *bl)
 {
   BevPoint *bevp2, *bevp1, *bevp0;
   int nr;
-  bool is_cyclic = bl->poly != -1;
+  const bool is_cyclic = bl->poly != -1;
 
   if (is_cyclic) {
     bevp2 = bl->bevpoints;
@@ -2229,19 +2229,19 @@ static void make_bevel_list_3D_zup(BevList *bl)
   }
 }
 
-static void minimum_twist_between_two_points(BevPoint *current_point, BevPoint *previous_point)
+static void minimum_twist_between_two_points(BevPoint *bevp_curr, const BevPoint *bevp_prev)
 {
-  float angle = angle_normalized_v3v3(previous_point->dir, current_point->dir);
-  float q[4];
+  float angle = angle_normalized_v3v3(bevp_prev->dir, bevp_curr->dir);
 
   if (angle > 0.0f) { /* otherwise we can keep as is */
+    float q[4];
     float cross_tmp[3];
-    cross_v3_v3v3(cross_tmp, previous_point->dir, current_point->dir);
+    cross_v3_v3v3(cross_tmp, bevp_prev->dir, bevp_curr->dir);
     axis_angle_to_quat(q, cross_tmp, angle);
-    mul_qt_qtqt(current_point->quat, q, previous_point->quat);
+    mul_qt_qtqt(bevp_curr->quat, q, bevp_prev->quat);
   }
   else {
-    copy_qt_qt(current_point->quat, previous_point->quat);
+    copy_qt_qt(bevp_curr->quat, bevp_prev->quat);
   }
 }
 
@@ -2250,6 +2250,19 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
   BevPoint *bevp2, *bevp1, *bevp0; /* Standard for all make_bevel_list_3D_* functions. */
   int nr;
   float q[4];
+  const bool is_cyclic = bl->poly != -1;
+  /* NOTE(@campbellbarton): For non-cyclic curves only initialize the first direction
+   * (via `vec_to_quat`), necessary for symmetry, see T71137.
+   * Otherwise initialize the first and second points before propagating rotation forward.
+   * This is historical as changing this can cause significantly different output.
+   * Specifically: `deform_modifiers` test: (`CurveMeshDeform`).
+   *
+   * While it would seem correct to only use the first point for non-cyclic curves as well
+   * the end-points direction is initialized from the input handles (instead of the directions
+   * between points), there is often a bigger difference in the first and second directions
+   * than you'd otherwise expect. So using only the first direction breaks compatibility
+   * enough it's best to leave it as-is. */
+  const int nr_init = bl->nr - (is_cyclic ? 1 : 2);
 
   bevel_list_calc_bisect(bl);
 
@@ -2257,21 +2270,18 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
   bevp1 = bevp2 + (bl->nr - 1);
   bevp0 = bevp1 - 1;
 
-  /* The ordinal of the point being adjusted (bevp2). First point is 1. */
+  nr = bl->nr;
+  while (nr--) {
 
-  /* First point is the reference, don't adjust.
-   * Skip this point in the following loop. */
-  if (bl->nr > 0) {
-    vec_to_quat(bevp2->quat, bevp2->dir, 5, 1);
+    if (nr >= nr_init) {
+      /* Initialize the rotation, otherwise propagate the previous rotation forward. */
+      vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
+    }
+    else {
+      minimum_twist_between_two_points(bevp1, bevp0);
+    }
 
-    bevp0 = bevp1; /* bevp0 is unused */
-    bevp1 = bevp2;
-    bevp2++;
-  }
-  for (nr = 1; nr < bl->nr; nr++) {
-    minimum_twist_between_two_points(bevp2, bevp1);
-
-    bevp0 = bevp1; /* bevp0 is unused */
+    bevp0 = bevp1;
     bevp1 = bevp2;
     bevp2++;
   }
@@ -2898,7 +2908,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
 
     /* Scale the threshold so high resolution shapes don't get over reduced, see: T49850. */
     const float threshold_resolu = 0.00001f / resolu;
-    bool is_cyclic = bl->poly != -1;
+    const bool is_cyclic = bl->poly != -1;
     nr = bl->nr;
     if (is_cyclic) {
       bevp1 = bl->bevpoints;

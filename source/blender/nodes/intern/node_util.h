@@ -70,9 +70,7 @@ void node_combsep_color_label(const ListBase *sockets, NodeCombSepColorMode mode
 /*** Link Handling */
 
 /**
- * The idea behind this is: When a user connects an input to a socket that is
- * already linked (and if its not an Multi Input Socket), we try to find a replacement socket for
- * the link that we try to overwrite and connect that previous link to the new socket.
+ * By default there are no links we don't want to connect, when inserting.
  */
 bool node_insert_link_default(struct bNodeTree *ntree, struct bNode *node, struct bNodeLink *link);
 

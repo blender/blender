@@ -311,10 +311,9 @@ enum eGWL_PendingWindowActions {
 #  ifdef GHOST_OPENGL_ALPHA
   PENDING_OPAQUE_SET,
 #  endif
-  PENDING_SWAP_BUFFERS,
   PENDING_SCALE_UPDATE,
 };
-#  define PENDING_NUM (PENDING_SWAP_BUFFERS + 1)
+#  define PENDING_NUM (PENDING_SCALE_UPDATE + 1)
 
 static void gwl_window_pending_actions_tag(GWL_Window *win, enum eGWL_PendingWindowActions type)
 {
@@ -338,9 +337,6 @@ static void gwl_window_pending_actions_handle(GWL_Window *win)
   if (win->pending_actions[PENDING_SCALE_UPDATE].exchange(false)) {
     win->ghost_window->outputs_changed_update_scale();
   }
-  if (win->pending_actions[PENDING_SWAP_BUFFERS].exchange(false)) {
-    win->ghost_window->swapBuffers();
-  }
 }
 
 #endif /* USE_EVENT_BACKGROUND_THREAD */
@@ -356,8 +352,6 @@ static void gwl_window_frame_update_from_pending_lockfree(GWL_Window *win)
 
 #endif
 
-  bool do_redraw = false;
-
   if (win->frame_pending.size[0] != 0 && win->frame_pending.size[1] != 0) {
     if ((win->frame.size[0] != win->frame_pending.size[0]) ||
         (win->frame.size[1] != win->frame_pending.size[1])) {
@@ -365,18 +359,11 @@ static void gwl_window_frame_update_from_pending_lockfree(GWL_Window *win)
     }
   }
 
-  bool is_active_ghost = (win->ghost_window ==
-                          win->ghost_system->getWindowManager()->getActiveWindow());
-
   if (win->frame_pending.is_active) {
     win->ghost_window->activate();
   }
   else {
     win->ghost_window->deactivate();
-  }
-
-  if (is_active_ghost != win->frame_pending.is_active) {
-    do_redraw = true;
   }
 
   win->frame_pending.size[0] = win->frame.size[0];
@@ -387,15 +374,6 @@ static void gwl_window_frame_update_from_pending_lockfree(GWL_Window *win)
   /* Signal not to apply the scale unless it's configured. */
   win->frame_pending.size[0] = 0;
   win->frame_pending.size[1] = 0;
-
-  if (do_redraw) {
-#ifdef USE_EVENT_BACKGROUND_THREAD
-    /* Could swap buffers, use pending to a redundant call in some cases. */
-    gwl_window_pending_actions_tag(win, PENDING_SWAP_BUFFERS);
-#else
-    win->ghost_window->swapBuffers();
-#endif
-  }
 }
 
 static void gwl_window_frame_update_from_pending(GWL_Window *win)
@@ -621,12 +599,11 @@ static void frame_handle_commit(struct libdecor_frame * /*frame*/, void *data)
 {
   CLOG_INFO(LOG, 2, "commit");
 
+#  if 0
   GWL_Window *win = static_cast<GWL_Window *>(data);
-
-#  ifdef USE_EVENT_BACKGROUND_THREAD
-  gwl_window_pending_actions_tag(win, PENDING_SWAP_BUFFERS);
+  win->ghost_window->notify_decor_redraw();
 #  else
-  win->ghost_window->swapBuffers();
+  (void)data;
 #  endif
 }
 
@@ -1321,8 +1298,17 @@ GHOST_TSuccess GHOST_WindowWayland::activate()
       return GHOST_kFailure;
     }
   }
-  return system_->pushEvent_maybe_pending(
+  const GHOST_TSuccess success = system_->pushEvent_maybe_pending(
       new GHOST_Event(system_->getMilliSeconds(), GHOST_kEventWindowActivate, this));
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (success == GHOST_kSuccess) {
+    if (use_libdecor) {
+      /* Ensure there is a swap-buffers, needed for the updated window borders to refresh. */
+      notify_decor_redraw();
+    }
+  }
+#endif
+  return success;
 }
 
 GHOST_TSuccess GHOST_WindowWayland::deactivate()
@@ -1335,8 +1321,17 @@ GHOST_TSuccess GHOST_WindowWayland::deactivate()
   {
     system_->getWindowManager()->setWindowInactive(this);
   }
-  return system_->pushEvent_maybe_pending(
+  const GHOST_TSuccess success = system_->pushEvent_maybe_pending(
       new GHOST_Event(system_->getMilliSeconds(), GHOST_kEventWindowDeactivate, this));
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (success == GHOST_kSuccess) {
+    if (use_libdecor) {
+      /* Ensure there is a swap-buffers, needed for the updated window borders to refresh. */
+      notify_decor_redraw();
+    }
+  }
+#endif
+  return success;
 }
 
 GHOST_TSuccess GHOST_WindowWayland::notify_size()
@@ -1356,6 +1351,14 @@ GHOST_TSuccess GHOST_WindowWayland::notify_size()
 
   return system_->pushEvent_maybe_pending(
       new GHOST_Event(system_->getMilliSeconds(), GHOST_kEventWindowSize, this));
+}
+
+GHOST_TSuccess GHOST_WindowWayland::notify_decor_redraw()
+{
+  /* NOTE: we want to `swapBuffers`, however this may run from a thread and
+   * when this windows OpenGL context is not active, so send and update event instead. */
+  return system_->pushEvent_maybe_pending(
+      new GHOST_Event(system_->getMilliSeconds(), GHOST_kEventWindowUpdateDecor, this));
 }
 
 /** \} */

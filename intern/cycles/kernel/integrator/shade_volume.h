@@ -821,7 +821,6 @@ ccl_device_forceinline void integrate_volume_direct_light(
   /* Create shadow ray. */
   Ray ray ccl_optional_struct_init;
   light_sample_to_volume_shadow_ray(kg, sd, &ls, P, &ray);
-  const bool is_light = light_sample_is_light(&ls);
 
   /* Branch off shadow kernel. */
   IntegratorShadowState shadow_state = integrator_shadow_path_init(
@@ -838,7 +837,6 @@ ccl_device_forceinline void integrate_volume_direct_light(
   const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);
   const uint16_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce);
   uint32_t shadow_flag = INTEGRATOR_STATE(state, path, flag);
-  shadow_flag |= (is_light) ? PATH_RAY_SHADOW_FOR_LIGHT : 0;
   const Spectrum throughput_phase = throughput * bsdf_eval_sum(&phase_eval);
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {

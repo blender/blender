@@ -4197,11 +4197,9 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
 
   /* compute max needed width and total height */
   int toth = 0;
-  int totitem = 0;
   LISTBASE_FOREACH (uiItem *, item, &litem->items) {
     ui_item_size(item, &itemw, &itemh);
     toth += itemh;
-    totitem++;
   }
 
   /* compute sizes */

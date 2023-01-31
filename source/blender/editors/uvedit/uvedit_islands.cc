@@ -336,6 +336,34 @@ static bool bm_loop_uv_shared_edge_check(const BMLoop *l_a, const BMLoop *l_b, v
 }
 
 /**
+ * Returns true if `efa` is able to be affected by a packing operation, given various parameters.
+ *
+ * Checks if it's (not) hidden, and optionally selected, and/or UV selected.
+ *
+ * Will eventually be superseded by `BM_uv_element_map_create()`.
+ *
+ * Loosely based on `uvedit_is_face_affected`, but "bug-compatible" with previous code.
+ */
+static bool uvedit_is_face_affected_for_calc_uv_islands(const Scene *scene,
+                                                        BMFace *efa,
+                                                        const bool only_selected_faces,
+                                                        const bool only_selected_uvs,
+                                                        const BMUVOffsets &uv_offsets)
+{
+  if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+    return false;
+  }
+  if (only_selected_faces) {
+    if (only_selected_uvs) {
+      return BM_elem_flag_test(efa, BM_ELEM_SELECT) &&
+             uvedit_face_select_test(scene, efa, uv_offsets);
+    }
+    return BM_elem_flag_test(efa, BM_ELEM_SELECT);
+  }
+  return true;
+}
+
+/**
  * Calculate islands and add them to \a island_list returning the number of items added.
  */
 int bm_mesh_calc_uv_islands(const Scene *scene,
@@ -356,28 +384,16 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
 
   int(*group_index)[2];
 
-  /* Calculate the tag to use. */
-  uchar hflag_face_test = 0;
-  if (only_selected_faces) {
-    if (only_selected_uvs) {
-      BMFace *f;
-      BMIter iter;
-      BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-        bool value = false;
-        if (BM_elem_flag_test(f, BM_ELEM_SELECT) &&
-            uvedit_face_select_test(scene, f, uv_offsets)) {
-          value = true;
-        }
-        BM_elem_flag_set(f, BM_ELEM_TAG, value);
-      }
-      hflag_face_test = BM_ELEM_TAG;
-    }
-    else {
-      hflag_face_test = BM_ELEM_SELECT;
-    }
+  /* Set the tag for `BM_mesh_calc_face_groups`. */
+  BMFace *f;
+  BMIter iter;
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    const bool face_affected = uvedit_is_face_affected_for_calc_uv_islands(
+        scene, f, only_selected_faces, only_selected_uvs, uv_offsets);
+    BM_elem_flag_set(f, BM_ELEM_TAG, face_affected);
   }
 
-  struct SharedUVLoopData user_data = {0};
+  struct SharedUVLoopData user_data = {{0}};
   user_data.offsets = uv_offsets;
   user_data.use_seams = use_seams;
 
@@ -387,7 +403,7 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
                                                  nullptr,
                                                  bm_loop_uv_shared_edge_check,
                                                  &user_data,
-                                                 hflag_face_test,
+                                                 BM_ELEM_TAG,
                                                  BM_EDGE);
 
   for (int i = 0; i < group_len; i++) {
@@ -445,8 +461,7 @@ static float pack_islands_margin_fraction(const blender::Vector<FaceIsland *> &i
    * First, use a robust search procedure to bracket the root within a factor of 10.
    * Then, use a modified-secant method to converge.
    *
-   * This is a specialized solver using domain knowledge to accelerate convergence.
-   */
+   * This is a specialized solver using domain knowledge to accelerate convergence. */
 
   float scale_low = 0.0f;
   float value_low = 0.0f;
@@ -553,11 +568,8 @@ static float calc_margin_from_aabb_length_sum(const blender::Vector<FaceIsland *
                                               const struct UVPackIsland_Params &params)
 {
   /* Logic matches behavior from #GEO_uv_parametrizer_pack.
-   * Attempt to give predictable results
-   * not dependent on current UV scale by using
-   * `aabb_length_sum` (was "`area`") to multiply
-   * the margin by the length (was "area").
-   */
+   * Attempt to give predictable results not dependent on current UV scale by using
+   * `aabb_length_sum` (was "`area`") to multiply the margin by the length (was "area"). */
   double aabb_length_sum = 0.0f;
   for (FaceIsland *island : island_vector) {
     float w = BLI_rctf_size_x(&island->bounds_rect);
@@ -675,14 +687,7 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
       continue;
     }
 
-    float aspect_y = 1.0f;
-    if (params->correct_aspect) {
-      float aspx, aspy;
-      ED_uvedit_get_aspect(obedit, &aspx, &aspy);
-      if (aspx != aspy) {
-        aspect_y = aspx / aspy;
-      }
-    }
+    const float aspect_y = params->correct_aspect ? ED_uvedit_get_aspect_y(obedit) : 1.0f;
 
     bool only_selected_faces = params->only_selected_faces;
     bool only_selected_uvs = params->only_selected_uvs;

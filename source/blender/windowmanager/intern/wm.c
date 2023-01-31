@@ -265,7 +265,8 @@ IDTypeInfo IDType_ID_WM = {
     .name = "WindowManager",
     .name_plural = "window_managers",
     .translation_context = BLT_I18NCONTEXT_ID_WINDOWMANAGER,
-    .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA,
+    .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA |
+             IDTYPE_FLAGS_NO_MEMFILE_UNDO,
     .asset_type_info = NULL,
 
     .init_data = NULL,

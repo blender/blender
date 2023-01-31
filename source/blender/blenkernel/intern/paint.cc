@@ -1454,7 +1454,6 @@ static void sculptsession_free_pbvh(Object *object)
   MEM_SAFE_FREE(ss->preview_vert_list);
   ss->preview_vert_count = 0;
 
-  MEM_SAFE_FREE(ss->vertex_info.connected_component);
   MEM_SAFE_FREE(ss->vertex_info.boundary);
 
   MEM_SAFE_FREE(ss->fake_neighbors.fake_neighbor_index);
@@ -2629,8 +2628,6 @@ bool BKE_sculpt_attribute_exists(Object *ob,
 
   CustomData *cdata = sculpt_get_cdata(ob, domain);
   return CustomData_get_named_layer_index(cdata, proptype, name) != -1;
-
-  return false;
 }
 
 static SculptAttribute *sculpt_alloc_attr(SculptSession *ss)

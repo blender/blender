@@ -11,7 +11,7 @@ __all__ = (
 # - This script should run without Blender (no references to the `bpy` module for example).
 # - All configuration must be passed into the `generate_keymaps` function (via `Params`).
 # - Supporting some combinations of options is becoming increasingly complex,
-#   especially `Params.select_mouse` & `Params.use_fallback_tool_rmb`.
+#   especially `Params.select_mouse` & `Params.use_fallback_tool`.
 #   To ensure changes don't unintentionally break other configurations, see:
 #   `source/tools/utils/blender_keyconfig_export_permutations.py --help`
 #
@@ -52,8 +52,6 @@ class Params:
         "use_gizmo_drag",
         # Use the fallback tool instead of tweak for RMB select.
         "use_fallback_tool",
-        # Only set for RMB select.
-        "use_fallback_tool_rmb",
         # Use pie menu for tab by default (swap 'Tab/Ctrl-Tab').
         "use_v3d_tab_menu",
         # Use extended pie menu for shading.
@@ -78,9 +76,9 @@ class Params:
         # (derived from other settings).
         #
         # The fallback tool is activated on the same button as selection.
-        # Shorthand for: `(True if (select_mouse == 'LEFT') else self.use_fallback_tool_rmb)`
+        # Shorthand for: `(True if (select_mouse == 'LEFT') else self.use_fallback_tool)`
         "use_fallback_tool_select_mouse",
-        # Shorthand for: `('CLICK' if self.use_fallback_tool_rmb else self.select_mouse_value)`.
+        # Shorthand for: `('CLICK' if self.use_fallback_tool and select_mouse == 'RIGHT' else self.select_mouse_value)`.
         "select_mouse_value_fallback",
         # Shorthand for: `{"type": params.select_mouse, "value": 'CLICK_DRAG'}`.
         "select_tweak_event",
@@ -110,7 +108,6 @@ class Params:
             use_select_all_toggle=False,
             use_gizmo_drag=True,
             use_fallback_tool=False,
-            use_fallback_tool_rmb=False,
             use_tweak_select_passthrough=False,
             use_tweak_tool_lmb_interaction=False,
             use_v3d_tab_menu=False,
@@ -202,11 +199,12 @@ class Params:
         self.use_tweak_select_passthrough = use_tweak_select_passthrough
 
         self.use_fallback_tool = use_fallback_tool
-        self.use_fallback_tool_rmb = use_fallback_tool_rmb
 
         # Convenience variables:
-        self.use_fallback_tool_select_mouse = True if (select_mouse == 'LEFT') else self.use_fallback_tool_rmb
-        self.select_mouse_value_fallback = 'CLICK' if self.use_fallback_tool_rmb else self.select_mouse_value
+        self.use_fallback_tool_select_mouse = True if (select_mouse == 'LEFT') else self.use_fallback_tool
+        self.select_mouse_value_fallback = (
+            'CLICK' if (self.use_fallback_tool and select_mouse == 'RIGHT') else self.select_mouse_value
+        )
         self.select_tweak_event = {"type": self.select_mouse, "value": 'CLICK_DRAG'}
         self.pie_value = 'CLICK_DRAG' if use_pie_click_drag else 'PRESS'
         self.tool_tweak_event = {"type": self.tool_mouse, "value": 'CLICK_DRAG'}
@@ -4720,7 +4718,7 @@ def _template_paint_radial_control(paint, rotation=False, secondary_rotation=Fal
 
 def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_mod=None):
     # NOTE: `exclude_mod` is needed since we don't want this tool to exclude Control-RMB actions when this is used
-    # as a tool key-map with RMB-select and `use_fallback_tool_rmb` is enabled. See T92467.
+    # as a tool key-map with RMB-select and `use_fallback_tool` is enabled with RMB select. See T92467.
 
     props_vert_without_handles = ()
     if select_passthrough:
@@ -4915,7 +4913,6 @@ def km_image_paint(params):
          {"properties": [("data_path", 'image_paint_object.data.use_paint_mask')]}),
         ("wm.context_toggle", {"type": 'S', "value": 'PRESS', "shift": True},
          {"properties": [("data_path", 'tool_settings.image_paint.brush.use_smooth_stroke')]}),
-        op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         ("wm.context_menu_enum", {"type": 'E', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.image_paint.brush.stroke_method')]}),
         *_template_items_context_panel("VIEW3D_PT_paint_texture_context_menu", params.context_menu_event),
@@ -4964,7 +4961,6 @@ def km_vertex_paint(params):
          {"properties": [("data_path", 'vertex_paint_object.data.use_paint_mask')]}),
         ("wm.context_toggle", {"type": 'S', "value": 'PRESS', "shift": True},
          {"properties": [("data_path", 'tool_settings.vertex_paint.brush.use_smooth_stroke')]}),
-        op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         ("wm.context_menu_enum", {"type": 'E', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.vertex_paint.brush.stroke_method')]}),
         ("paint.face_vert_reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
@@ -5110,11 +5106,11 @@ def km_sculpt(params):
          {"properties": [("data_path", 'scene.tool_settings.sculpt.show_mask')]}),
         # Dynamic topology
         ("sculpt.dynamic_topology_toggle", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
-        ("sculpt.dyntopo_detail_size_edit", {"type": 'D', "value": 'PRESS', "shift": True}, None),
+        ("sculpt.dyntopo_detail_size_edit", {"type": 'R', "value": 'PRESS'}, None),
         ("sculpt.set_detail_size", {"type": 'D', "value": 'PRESS', "shift": True, "alt": True}, None),
         # Remesh
         ("object.voxel_remesh", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),
-        ("object.voxel_size_edit", {"type": 'R', "value": 'PRESS', "shift": True}, None),
+        ("object.voxel_size_edit", {"type": 'R', "value": 'PRESS'}, None),
         ("object.quadriflow_remesh", {"type": 'R', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         # Color
         ("sculpt.sample_color", {"type": 'S', "value": 'PRESS'}, None),
@@ -5165,7 +5161,6 @@ def km_sculpt(params):
          {"properties": [("data_path", 'tool_settings.sculpt.brush.stroke_method')]}),
         ("wm.context_toggle", {"type": 'S', "value": 'PRESS', "shift": True},
          {"properties": [("data_path", 'tool_settings.sculpt.brush.use_smooth_stroke')]}),
-        op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         op_menu_pie("VIEW3D_MT_sculpt_mask_edit_pie", {"type": 'A', "value": 'PRESS'}),
         op_menu_pie("VIEW3D_MT_sculpt_automasking_pie", {"type": 'A', "alt": True, "value": 'PRESS'}),
         op_menu_pie("VIEW3D_MT_sculpt_face_sets_edit_pie", {"type": 'W', "value": 'PRESS'}),
@@ -5615,6 +5610,14 @@ def km_curves(params):
         {"items": items},
     )
 
+    items.extend([
+        ("curves.set_selection_domain", {"type": 'ONE', "value": 'PRESS'}, {"properties": [("domain", 'POINT')]}),
+        ("curves.set_selection_domain", {"type": 'TWO', "value": 'PRESS'}, {"properties": [("domain", 'CURVE')]}),
+        ("curves.disable_selection", {"type": 'ONE', "value": 'PRESS', "alt": True}, None),
+        ("curves.disable_selection", {"type": 'TWO', "value": 'PRESS', "alt": True}, None),
+        *_template_items_select_actions(params, "curves.select_all"),
+    ])
+
     return keymap
 
 
@@ -5637,7 +5640,7 @@ def km_sculpt_curves(params):
         ("curves.set_selection_domain", {"type": 'TWO', "value": 'PRESS'}, {"properties": [("domain", 'CURVE')]}),
         *_template_paint_radial_control("curves_sculpt"),
         *_template_items_select_actions(params, "curves.select_all"),
-        ("sculpt_curves.min_distance_edit", {"type": 'R', "value": 'PRESS', "shift": True}, {}),
+        ("sculpt_curves.min_distance_edit", {"type": 'R', "value": 'PRESS'}, {}),
         ("sculpt_curves.select_grow", {"type": 'A', "value": 'PRESS', "shift": True}, {}),
     ])
 
@@ -6269,6 +6272,7 @@ def km_sculpt_expand_modal(_params):
         ("CANCEL", {"type": 'ESC', "value": 'PRESS', "any": True}, None),
         ("CANCEL", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}, None),
         ("CONFIRM", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("CONFIRM", {"type": 'LEFTMOUSE', "value": 'RELEASE', "any": True}, None),
         ("INVERT", {"type": 'F', "value": 'PRESS', "any": True}, None),
         ("PRESERVE", {"type": 'E', "value": 'PRESS', "any": True}, None),
         ("GRADIENT", {"type": 'G', "value": 'PRESS', "any": True}, None),
@@ -6276,6 +6280,8 @@ def km_sculpt_expand_modal(_params):
         ("RECURSION_STEP_TOPOLOGY", {"type": 'R', "value": 'PRESS', "alt": True}, None),
         ("MOVE_TOGGLE", {"type": 'SPACE', "value": 'ANY', "any": True}, None),
         *((e, {"type": NUMBERS_1[i], "value": 'PRESS', "any": True}, None) for i, e in enumerate(
+            ("FALLOFF_GEODESICS", "FALLOFF_TOPOLOGY", "FALLOFF_TOPOLOGY_DIAGONALS", "FALLOFF_SPHERICAL"))),
+        *((e, {"type": "NUMPAD_%i" % (i + 1), "value": 'PRESS', "any": True}, None) for i, e in enumerate(
             ("FALLOFF_GEODESICS", "FALLOFF_TOPOLOGY", "FALLOFF_TOPOLOGY_DIAGONALS", "FALLOFF_SPHERICAL"))),
         ("SNAP_TOGGLE", {"type": 'LEFT_CTRL', "value": 'ANY'}, None),
         ("SNAP_TOGGLE", {"type": 'RIGHT_CTRL', "value": 'ANY'}, None),
@@ -6492,11 +6498,12 @@ def km_image_editor_tool_uv_select(params, *, fallback):
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "uv.select", "uv.cursor_set", fallback=fallback)),
-            *([] if (not params.use_fallback_tool_rmb) else _template_uv_select(
-                type=params.select_mouse,
-                value=params.select_mouse_value,
-                select_passthrough=params.use_tweak_select_passthrough,
-                legacy=params.legacy,
+            *([] if (not (params.use_fallback_tool and params.select_mouse == 'RIGHTMOUSE')) else
+              _template_uv_select(
+                  type=params.select_mouse,
+                  value=params.select_mouse_value,
+                  select_passthrough=params.use_tweak_select_passthrough,
+                  legacy=params.legacy,
             )),
         ]},
     )
@@ -6711,12 +6718,13 @@ def km_3d_view_tool_select(params, *, fallback):
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "view3d.select", "view3d.cursor3d", operator_props=operator_props, fallback=fallback)),
-            *([] if (not params.use_fallback_tool_rmb) else _template_view3d_select(
-                type=params.select_mouse,
-                value=params.select_mouse_value,
-                legacy=params.legacy,
-                select_passthrough=params.use_tweak_select_passthrough,
-                exclude_mod="ctrl",
+            *([] if (not (params.use_fallback_tool and params.select_mouse == 'RIGHTMOUSE')) else
+              _template_view3d_select(
+                  type=params.select_mouse,
+                  value=params.select_mouse_value,
+                  legacy=params.legacy,
+                  select_passthrough=params.use_tweak_select_passthrough,
+                  exclude_mod="ctrl",
             )),
         ]},
     )
@@ -7655,8 +7663,12 @@ def km_3d_view_tool_edit_gpencil_select(params, *, fallback):
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "gpencil.select", "view3d.cursor3d", fallback=fallback)),
-            *([] if (not params.use_fallback_tool_rmb) else _template_view3d_gpencil_select(
-                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+            *([] if (not (params.use_fallback_tool and params.select_mouse == 'RIGHTMOUSE')) else
+              _template_view3d_gpencil_select(
+                  type=params.select_mouse,
+                  value=params.select_mouse_value,
+                  legacy=params.legacy,
+            )),
         ]},
     )
 
@@ -7834,8 +7846,9 @@ def km_sequencer_editor_tool_generic_select(params, *, fallback):
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "sequencer.select", "sequencer.cursor_set", cursor_prioritize=True, fallback=fallback)),
 
-            *([] if (not params.use_fallback_tool_rmb) else _template_sequencer_preview_select(
-                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+            *([] if (not (params.use_fallback_tool and params.select_mouse == 'RIGHTMOUSE')) else
+              _template_sequencer_preview_select(
+                  type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
             # Ignored for preview.
             *_template_items_change_frame(params),
         ]},

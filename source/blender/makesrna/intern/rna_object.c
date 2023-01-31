@@ -1759,6 +1759,18 @@ static void rna_Object_modifier_clear(Object *object, bContext *C)
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
 
+static void rna_Object_modifier_move(Object *object, ReportList *reports, int from, int to)
+{
+  ModifierData *md = BLI_findlink(&object->modifiers, from);
+
+  if (!md) {
+    BKE_reportf(reports, RPT_ERROR, "Invalid original modifier index '%d'", from);
+    return;
+  }
+
+  ED_object_modifier_move_to_index(reports, RPT_ERROR, object, md, to, false);
+}
+
 static PointerRNA rna_Object_active_modifier_get(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
@@ -2634,6 +2646,16 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "clear", "rna_Object_modifier_clear");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   RNA_def_function_ui_description(func, "Remove all modifiers from the object");
+
+  /* move a modifier */
+  func = RNA_def_function(srna, "move", "rna_Object_modifier_move");
+  RNA_def_function_ui_description(func, "Move a modifier to a different position");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_int(
+      func, "from_index", -1, INT_MIN, INT_MAX, "From Index", "Index to move", 0, 10000);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_int(func, "to_index", -1, INT_MIN, INT_MAX, "To Index", "Target index", 0, 10000);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
   /* Active modifier. */
   prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);

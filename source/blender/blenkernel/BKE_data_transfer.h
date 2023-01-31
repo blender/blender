@@ -92,8 +92,10 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(int dtdata_type);
        DT_TYPE_SHAPEKEY, \
        DT_TYPE_MPROPCOL_VERT, \
        DT_TYPE_MLOOPCOL_VERT, \
+       DT_TYPE_MPROPCOL_VERT | DT_TYPE_MLOOPCOL_VERT, \
        DT_TYPE_MPROPCOL_LOOP, \
        DT_TYPE_MLOOPCOL_LOOP, \
+       DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP, \
        DT_TYPE_UV)
 
 enum {

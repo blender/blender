@@ -78,9 +78,9 @@ set(SRC
   intern/autoexec.c
   intern/blender.c
   intern/blender_copybuffer.c
-  intern/blender_undo.c
+  intern/blender_undo.cc
   intern/blender_user_menu.c
-  intern/blendfile.c
+  intern/blendfile.cc
   intern/blendfile_link_append.c
   intern/boids.c
   intern/bpath.c
@@ -89,7 +89,7 @@ set(SRC
   intern/cachefile.c
   intern/callbacks.c
   intern/camera.c
-  intern/cdderivedmesh.c
+  intern/cdderivedmesh.cc
   intern/cloth.cc
   intern/collection.c
   intern/collision.c
@@ -119,9 +119,9 @@ set(SRC
   intern/customdata.cc
   intern/customdata_file.c
   intern/data_transfer.cc
-  intern/deform.c
+  intern/deform.cc
   intern/displist.cc
-  intern/dynamicpaint.c
+  intern/dynamicpaint.cc
   intern/editlattice.c
   intern/editmesh.cc
   intern/editmesh_bvh.c
@@ -131,7 +131,7 @@ set(SRC
   intern/fcurve.c
   intern/fcurve_cache.c
   intern/fcurve_driver.c
-  intern/fluid.c
+  intern/fluid.cc
   intern/fmodifier.c
   intern/freestyle.c
   intern/geometry_component_curves.cc
@@ -216,16 +216,16 @@ set(SRC
   intern/modifier.cc
   intern/movieclip.c
   intern/multires.cc
-  intern/multires_reshape.c
-  intern/multires_reshape_apply_base.c
-  intern/multires_reshape_ccg.c
-  intern/multires_reshape_smooth.c
-  intern/multires_reshape_subdivide.c
-  intern/multires_reshape_util.c
-  intern/multires_reshape_vertcos.c
-  intern/multires_subdiv.c
-  intern/multires_unsubdivide.c
-  intern/multires_versioning.c
+  intern/multires_reshape.cc
+  intern/multires_reshape_apply_base.cc
+  intern/multires_reshape_ccg.cc
+  intern/multires_reshape_smooth.cc
+  intern/multires_reshape_subdivide.cc
+  intern/multires_reshape_util.cc
+  intern/multires_reshape_vertcos.cc
+  intern/multires_subdiv.cc
+  intern/multires_unsubdivide.cc
+  intern/multires_versioning.cc
   intern/nla.c
   intern/node.cc
   intern/node_runtime.cc
@@ -249,7 +249,7 @@ set(SRC
   intern/particle_distribute.c
   intern/particle_system.c
   intern/pbvh.c
-  intern/pbvh.cc
+  intern/pbvh_colors.cc
   intern/pbvh_bmesh.c
   intern/pbvh_pixels.cc
   intern/pbvh_uv_islands.cc
@@ -268,22 +268,22 @@ set(SRC
   intern/sound.c
   intern/speaker.c
   intern/studiolight.c
-  intern/subdiv.c
+  intern/subdiv.cc
   intern/subdiv_ccg.cc
-  intern/subdiv_ccg_mask.c
-  intern/subdiv_ccg_material.c
-  intern/subdiv_converter.c
-  intern/subdiv_converter_mesh.c
-  intern/subdiv_deform.c
-  intern/subdiv_displacement.c
-  intern/subdiv_displacement_multires.c
-  intern/subdiv_eval.c
-  intern/subdiv_foreach.c
+  intern/subdiv_ccg_mask.cc
+  intern/subdiv_ccg_material.cc
+  intern/subdiv_converter.cc
+  intern/subdiv_converter_mesh.cc
+  intern/subdiv_deform.cc
+  intern/subdiv_displacement.cc
+  intern/subdiv_displacement_multires.cc
+  intern/subdiv_eval.cc
+  intern/subdiv_foreach.cc
   intern/subdiv_mesh.cc
   intern/subdiv_modifier.cc
-  intern/subdiv_stats.c
-  intern/subdiv_topology.c
-  intern/subsurf_ccg.c
+  intern/subdiv_stats.cc
+  intern/subdiv_topology.cc
+  intern/subsurf_ccg.cc
   intern/text.c
   intern/text_suggestions.c
   intern/texture.cc
@@ -296,7 +296,7 @@ set(SRC
   intern/tracking_stabilize.c
   intern/tracking_util.c
   intern/type_conversions.cc
-  intern/undo_system.c
+  intern/undo_system.cc
   intern/unit.c
   intern/vfont.c
   intern/vfontdata_freetype.c
@@ -559,15 +559,16 @@ if(WIN32)
 endif()
 
 if(WITH_AUDASPACE)
-  add_definitions(-DWITH_AUDASPACE)
-
   list(APPEND INC_SYS
     ${AUDASPACE_C_INCLUDE_DIRS}
   )
-  list(APPEND LIB
-    ${AUDASPACE_C_LIBRARIES}
-    ${AUDASPACE_PY_LIBRARIES}
-  )
+  if(WITH_SYSTEM_AUDASPACE)
+    list(APPEND LIB
+      ${AUDASPACE_C_LIBRARIES}
+      ${AUDASPACE_PY_LIBRARIES}
+    )
+  endif()
+  add_definitions(-DWITH_AUDASPACE)
 endif()
 
 if(WITH_BULLET)
@@ -577,13 +578,6 @@ if(WITH_BULLET)
   list(APPEND INC
     ../../../intern/rigidbody
   )
-
-  if(NOT WITH_SYSTEM_BULLET)
-    list(APPEND LIB
-      extern_bullet
-    )
-  endif()
-
   list(APPEND LIB
     bf_intern_rigidbody
 
@@ -843,6 +837,7 @@ if(WITH_GTESTS)
     intern/lib_id_remapper_test.cc
     intern/lib_id_test.cc
     intern/lib_remap_test.cc
+    intern/nla_test.cc
     intern/tracking_test.cc
   )
   set(TEST_INC

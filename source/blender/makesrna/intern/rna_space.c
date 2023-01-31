@@ -371,7 +371,7 @@ static const EnumPropertyItem display_channels_items[] = {
     {SI_USE_ALPHA,
      "COLOR_ALPHA",
      ICON_IMAGE_RGB_ALPHA,
-     "Color and Alpha",
+     "Color & Alpha",
      "Display image with RGB colors and alpha transparency"},
     {0, "COLOR", ICON_IMAGE_RGB, "Color", "Display image with RGB colors"},
     {SI_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Display alpha transparency channel"},
@@ -1165,7 +1165,7 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA 
 
   View3DShading *shading = ptr->data;
   if (shading->type == OB_MATERIAL ||
-      (shading->type == OB_RENDER && !STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH))) {
+      (shading->type == OB_RENDER && !BKE_scene_uses_blender_workbench(scene))) {
     /* When switching from workbench to render or material mode the geometry of any
      * active sculpt session needs to be recalculated. */
     for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
@@ -5773,7 +5773,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
       {SEQ_USE_ALPHA,
        "COLOR_ALPHA",
        ICON_IMAGE_RGB_ALPHA,
-       "Color and Alpha",
+       "Color & Alpha",
        "Display image with RGB colors and alpha transparency"},
       {0, "COLOR", ICON_IMAGE_RGB, "Color", "Display image with RGB colors"},
       {0, NULL, 0, NULL, NULL},
@@ -5934,7 +5934,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   /* Overlay settings. */
   prop = RNA_def_property(srna, "show_overlays", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_SHOW_OVERLAY);
-  RNA_def_property_ui_text(prop, "Show Overlay", "");
+  RNA_def_property_ui_text(prop, "Show Overlays", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
   prop = RNA_def_property(srna, "preview_overlay", PROP_POINTER, PROP_NONE);
@@ -7363,7 +7363,7 @@ static void rna_def_space_node(BlenderRNA *brna)
       {SNODE_USE_ALPHA,
        "COLOR_ALPHA",
        ICON_IMAGE_RGB_ALPHA,
-       "Color and Alpha",
+       "Color & Alpha",
        "Display image with RGB colors and alpha transparency"},
       {0, "COLOR", ICON_IMAGE_RGB, "Color", "Display image with RGB colors"},
       {SNODE_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Display alpha transparency channel"},

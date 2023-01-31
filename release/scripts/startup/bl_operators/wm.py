@@ -1587,8 +1587,9 @@ class WM_OT_properties_edit(Operator):
         elif self.property_type == 'STRING':
             self.default_string = rna_data["default"]
         elif self.property_type in {'BOOL', 'BOOL_ARRAY'}:
-            self.default_int = self._convert_new_value_array(rna_data["default"], bool, 32)
-        elif self.property_type in {'FLOAT_ARRAY', 'INT_ARRAY', 'BOOL_ARRAY'}:
+            self.default_bool = self._convert_new_value_array(rna_data["default"], bool, 32)
+
+        if self.property_type in {'FLOAT_ARRAY', 'INT_ARRAY', 'BOOL_ARRAY'}:
             self.array_length = len(item[name])
 
         # The dictionary does not contain the description if it was empty.

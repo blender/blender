@@ -114,7 +114,9 @@ int BKE_volume_grid_channels(const struct VolumeGrid *grid);
  * Transformation from index space to object space.
  */
 void BKE_volume_grid_transform_matrix(const struct VolumeGrid *grid, float mat[4][4]);
-void BKE_volume_grid_transform_matrix_set(struct VolumeGrid *volume_grid, const float mat[4][4]);
+void BKE_volume_grid_transform_matrix_set(const struct Volume *volume,
+                                          struct VolumeGrid *volume_grid,
+                                          const float mat[4][4]);
 
 /* Volume Editing
  *

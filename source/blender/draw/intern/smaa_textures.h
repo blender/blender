@@ -7,6 +7,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define AREATEX_WIDTH 160
 #define AREATEX_HEIGHT 560
 #define AREATEX_PITCH (AREATEX_WIDTH * 2)
@@ -28,3 +32,7 @@ extern const unsigned char areaTexBytes[];
  *  - DX10: DXGI_FORMAT_R8_UNORM
  */
 extern const unsigned char searchTexBytes[];
+
+#ifdef __cplusplus
+}
+#endif

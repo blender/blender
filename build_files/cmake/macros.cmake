@@ -550,7 +550,9 @@ function(setup_platform_linker_libs
   endif()
 
   if(WIN32 AND NOT UNIX)
-    target_link_libraries(${target} ${PTHREADS_LIBRARIES})
+    if(DEFINED PTHREADS_LIBRARIES)
+      target_link_libraries(${target} ${PTHREADS_LIBRARIES})
+    endif()
   endif()
 
   # target_link_libraries(${target} ${PLATFORM_LINKLIBS} ${CMAKE_DL_LIBS})
@@ -1115,7 +1117,7 @@ function(find_python_package
     # endif()
     # Not set, so initialize.
   else()
-   string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
+    string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")
     list(GET _PY_VER_SPLIT 0 _PY_VER_MAJOR)
 
     # re-cache
@@ -1262,7 +1264,7 @@ endmacro()
 
 # Utility to gather and install precompiled shared libraries.
 macro(add_bundled_libraries library_dir)
-  if(EXISTS ${LIBDIR})
+  if(DEFINED LIBDIR)
     set(_library_dir ${LIBDIR}/${library_dir})
     if(WIN32)
       file(GLOB _all_library_versions ${_library_dir}/*\.dll)
@@ -1275,7 +1277,7 @@ macro(add_bundled_libraries library_dir)
     list(APPEND PLATFORM_BUNDLED_LIBRARY_DIRS ${_library_dir})
     unset(_all_library_versions)
     unset(_library_dir)
- endif()
+  endif()
 endmacro()
 
 macro(windows_install_shared_manifest)

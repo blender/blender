@@ -3803,8 +3803,6 @@ void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash,
 
 void ntreeUpdateAllNew(Main *main)
 {
-  Vector<bNodeTree *> new_ntrees;
-
   /* Update all new node trees on file read or append, to add/remove sockets
    * in groups nodes if the group changed, and handle any update flags that
    * might have been set in file reading or versioning. */

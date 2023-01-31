@@ -35,7 +35,6 @@ set(INC
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
-  ${OPENSUBDIV_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -158,15 +157,26 @@ set(SRC
   engines/eevee_next/eevee_world.cc
   engines/workbench/workbench_data.c
   engines/workbench/workbench_effect_antialiasing.c
+  engines/workbench/workbench_effect_antialiasing.cc
   engines/workbench/workbench_effect_cavity.c
+  engines/workbench/workbench_effect_cavity.cc
   engines/workbench/workbench_effect_dof.c
+  engines/workbench/workbench_effect_dof.cc
   engines/workbench/workbench_effect_outline.c
+  engines/workbench/workbench_effect_outline.cc
   engines/workbench/workbench_engine.c
+  engines/workbench/workbench_engine.cc
   engines/workbench/workbench_materials.cc
+  engines/workbench/workbench_materials_next.cc
+  engines/workbench/workbench_mesh_passes.cc
   engines/workbench/workbench_opaque.c
   engines/workbench/workbench_render.c
+  engines/workbench/workbench_resources.cc
   engines/workbench/workbench_shader.cc
+  engines/workbench/workbench_shader_cache.cc
   engines/workbench/workbench_shadow.c
+  engines/workbench/workbench_shadow.cc
+  engines/workbench/workbench_state.cc
   engines/workbench/workbench_transparent.c
   engines/workbench/workbench_volume.c
   engines/external/external_engine.c
@@ -290,8 +300,11 @@ set(SRC
   engines/image/image_space_node.hh
   engines/image/image_texture_info.hh
   engines/image/image_usage.hh
+  engines/workbench/workbench_defines.hh
   engines/workbench/workbench_engine.h
+  engines/workbench/workbench_enums.hh
   engines/workbench/workbench_private.h
+  engines/workbench/workbench_private.hh
   engines/workbench/workbench_shader_shared.h
   engines/select/select_engine.h
   engines/select/select_private.h
@@ -462,6 +475,7 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_cavity_lib.glsl
   engines/workbench/shaders/workbench_common_lib.glsl
   engines/workbench/shaders/workbench_composite_frag.glsl
+  engines/workbench/shaders/workbench_next_composite_frag.glsl
   engines/workbench/shaders/workbench_curvature_lib.glsl
   engines/workbench/shaders/workbench_effect_cavity_frag.glsl
   engines/workbench/shaders/workbench_effect_dof_frag.glsl
@@ -473,6 +487,7 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_matcap_lib.glsl
   engines/workbench/shaders/workbench_material_lib.glsl
   engines/workbench/shaders/workbench_merge_infront_frag.glsl
+  engines/workbench/shaders/workbench_next_merge_depth_frag.glsl
   engines/workbench/shaders/workbench_prepass_frag.glsl
   engines/workbench/shaders/workbench_prepass_hair_vert.glsl
   engines/workbench/shaders/workbench_prepass_pointcloud_vert.glsl
@@ -482,6 +497,7 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_shadow_debug_frag.glsl
   engines/workbench/shaders/workbench_shadow_geom.glsl
   engines/workbench/shaders/workbench_shadow_vert.glsl
+  engines/workbench/shaders/workbench_shadow_visibility_comp.glsl
   engines/workbench/shaders/workbench_shadow_vert_no_geom.glsl
   engines/workbench/shaders/workbench_transparent_accum_frag.glsl
   engines/workbench/shaders/workbench_transparent_resolve_frag.glsl
@@ -690,6 +706,7 @@ set(GLSL_SRC
 )
 
 set(GLSL_C)
+
 foreach(GLSL_FILE ${GLSL_SRC})
   data_to_c_simple(${GLSL_FILE} GLSL_C)
 endforeach()
@@ -701,6 +718,7 @@ list(APPEND LIB
 )
 
 set(GLSL_SOURCE_CONTENT "")
+
 foreach(GLSL_FILE ${GLSL_SRC})
   get_filename_component(GLSL_FILE_NAME ${GLSL_FILE} NAME)
   string(REPLACE "." "_" GLSL_FILE_NAME_UNDERSCORES ${GLSL_FILE_NAME})
@@ -722,6 +740,12 @@ if(WITH_DRAW_DEBUG)
     engines/select/select_debug_engine.c
   )
   add_definitions(-DWITH_DRAW_DEBUG)
+endif()
+
+if(WITH_OPENSUBDIV)
+  list(APPEND INC_SYS
+    ${OPENSUBDIV_INCLUDE_DIRS}
+  )
 endif()
 
 if(WITH_MOD_FLUID)
@@ -747,11 +771,13 @@ endif()
 
 if(WITH_TBB)
   add_definitions(-DWITH_TBB)
+
   if(WIN32)
     # TBB includes Windows.h which will define min/max macros
     # that will collide with the stl versions.
     add_definitions(-DNOMINMAX)
   endif()
+
   list(APPEND INC_SYS
     ${TBB_INCLUDE_DIRS}
   )

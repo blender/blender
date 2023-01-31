@@ -12,11 +12,11 @@ void main()
    * the number of input pixels that covers a single output pixel. In case the input and output
    * have the same size, this will be 0.5, which is the offset required to evaluate the sampler at
    * the center of the pixel. */
-  vec2 offset = (texture_size(input_tx) / imageSize(output_img)) / 2.0;
+  vec2 offset = vec2(texture_size(input_tx) / imageSize(output_img)) / 2.0;
 
   /* Add the aforementioned offset and divide by the output image size to get the coordinates into
    * the sampler's expected [0, 1] range. */
-  vec2 normalized_coordinates = (vec2(texel) + offset) / imageSize(output_img);
+  vec2 normalized_coordinates = (vec2(texel) + offset) / vec2(imageSize(output_img));
 
   vec4 input_color = texture(input_tx, normalized_coordinates);
   float luminance = dot(input_color.rgb, luminance_coefficients);

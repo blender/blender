@@ -358,7 +358,7 @@ DefNode(GeometryNode, GEO_NODE_JOIN_GEOMETRY, 0, "JOIN_GEOMETRY", JoinGeometry, 
 DefNode(GeometryNode, GEO_NODE_MATERIAL_SELECTION, 0, "MATERIAL_SELECTION", MaterialSelection, "Material Selection", "Provide a selection of faces that use the specified material")
 DefNode(GeometryNode, GEO_NODE_MERGE_BY_DISTANCE, def_geo_merge_by_distance,"MERGE_BY_DISTANCE", MergeByDistance, "Merge by Distance", "Merge vertices or points within a given distance")
 DefNode(GeometryNode, GEO_NODE_MESH_BOOLEAN, def_geo_boolean, "MESH_BOOLEAN", MeshBoolean, "Mesh Boolean", "Cut, subtract, or join multiple mesh inputs")
-DefNode(GeometryNode, GEO_NODE_MESH_FACE_SET_BOUNDARIES, 0, "MESH_FACE_SET_BOUNDARIES", MeshFaceSetBoundaries, "Face Set Boundaries", "Find edges on the boundaries between face sets")
+DefNode(GeometryNode, GEO_NODE_MESH_FACE_GROUP_BOUNDARIES, 0, "MESH_FACE_SET_BOUNDARIES", MeshFaceSetBoundaries, "Face Group Boundaries", "Find edges on the boundaries between groups of faces with the same ID value")
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CIRCLE, def_geo_mesh_circle, "MESH_PRIMITIVE_CIRCLE", MeshCircle, "Mesh Circle", "Generate a circular ring of edges")
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CONE, def_geo_mesh_cone, "MESH_PRIMITIVE_CONE",MeshCone, "Cone", "Generate a cone mesh")
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CUBE, 0, "MESH_PRIMITIVE_CUBE",MeshCube, "Cube", "Generate a cuboid mesh with variable side lengths and subdivisions")
@@ -384,11 +384,11 @@ DefNode(GeometryNode, GEO_NODE_POINTS_TO_VOLUME, def_geo_points_to_volume, "POIN
 DefNode(GeometryNode, GEO_NODE_POINTS, 0, "POINTS", Points, "Points", "Generate a point cloud with positions and radii defined by fields")
 DefNode(GeometryNode, GEO_NODE_PROXIMITY, def_geo_proximity, "PROXIMITY", Proximity, "Geometry Proximity", "Compute the closest location on the target geometry")
 DefNode(GeometryNode, GEO_NODE_RAYCAST, def_geo_raycast, "RAYCAST", Raycast, "Raycast", "Cast rays from the context geometry onto a target geometry, and retrieve information from each hit point")
-DefNode(GeometryNode, GEO_NODE_REALIZE_INSTANCES, def_geo_realize_instances,"REALIZE_INSTANCES", RealizeInstances, "Realize Instances", "Change the direction of the curve by swapping each spline's start and end data")
+DefNode(GeometryNode, GEO_NODE_REALIZE_INSTANCES, def_geo_realize_instances,"REALIZE_INSTANCES", RealizeInstances, "Realize Instances", "Convert instances into real geometry data")
 DefNode(GeometryNode, GEO_NODE_REMOVE_ATTRIBUTE, 0, "REMOVE_ATTRIBUTE", RemoveAttribute, "Remove Named Attribute", "Delete an attribute with a specified name from a geometry. Typically used to optimize performance")
 DefNode(GeometryNode, GEO_NODE_REPLACE_MATERIAL, 0, "REPLACE_MATERIAL", ReplaceMaterial, "Replace Material", "Swap one material with another")
 DefNode(GeometryNode, GEO_NODE_RESAMPLE_CURVE, def_geo_curve_resample, "RESAMPLE_CURVE", ResampleCurve, "Resample Curve", "Generate a poly spline for each input spline")
-DefNode(GeometryNode, GEO_NODE_REVERSE_CURVE, 0, "REVERSE_CURVE", ReverseCurve, "Reverse Curve", "Swap the start and end of splines")
+DefNode(GeometryNode, GEO_NODE_REVERSE_CURVE, 0, "REVERSE_CURVE", ReverseCurve, "Reverse Curve", "Change the direction of curves by swapping their start and end data")
 DefNode(GeometryNode, GEO_NODE_ROTATE_INSTANCES, 0, "ROTATE_INSTANCES", RotateInstances, "Rotate Instances", "Rotate geometry instances in local or global space")
 DefNode(GeometryNode, GEO_NODE_SAMPLE_CURVE, def_geo_curve_sample, "SAMPLE_CURVE", SampleCurve, "Sample Curve", "Retrieve data from a point on a curve at a certain distance from its start")
 DefNode(GeometryNode, GEO_NODE_SAMPLE_INDEX, def_geo_sample_index, "SAMPLE_INDEX", SampleIndex, "Sample Index", "Retrieve values from specific geometry elements")
@@ -429,6 +429,8 @@ DefNode(GeometryNode, GEO_NODE_UV_UNWRAP, def_geo_uv_unwrap, "UV_UNWRAP", UVUnwr
 DefNode(GeometryNode, GEO_NODE_VIEWER, def_geo_viewer, "VIEWER", Viewer, "Viewer", "Display the input data in the Spreadsheet Editor")
 DefNode(GeometryNode, GEO_NODE_VOLUME_CUBE, 0, "VOLUME_CUBE", VolumeCube, "Volume Cube", "Generate a dense volume with a field that controls the density at each grid voxel based on its position")
 DefNode(GeometryNode, GEO_NODE_VOLUME_TO_MESH, def_geo_volume_to_mesh, "VOLUME_TO_MESH", VolumeToMesh, "Volume to Mesh", "Generate a mesh on the \"surface\" of a volume")
+
+DefNode(GeometryNode, GEO_NODE_INTERPOLATE_CURVES, 0, "INTERPOLATE_CURVES", InterpolateCurves, "Interpolate Curves", "Generate new curves on points by interpolating between existing curves")
 
 /* undefine macros */
 #undef DefNode

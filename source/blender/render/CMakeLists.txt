@@ -24,6 +24,8 @@ set(INC
   ../../../intern/mantaflow/extern
 )
 
+set(INC_SYS
+)
 
 set(SRC
   intern/bake.cc

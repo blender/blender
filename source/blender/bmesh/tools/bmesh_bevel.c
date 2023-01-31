@@ -1385,7 +1385,7 @@ static void offset_meet(BevelParams *bp,
     copy_v3_v3(meetco, off1a);
   }
   else if (fabsf(ang - (float)M_PI) < BEVEL_EPSILON_ANG) {
-    /* Special case: e1 and e2 are antiparallel, so bevel is into a zero-area face.
+    /* Special case: e1 and e2 are anti-parallel, so bevel is into a zero-area face.
      * Just make the offset point on the common line, at offset distance from v. */
     float d = max_ff(e1->offset_r, e2->offset_l);
     slide_dist(e2, v, d, meetco);
@@ -1506,7 +1506,7 @@ static void offset_meet(BevelParams *bp,
  * Update: changed again from 0.0001f to fix bug T95335.
  * Original two bugs remained fixed.
  */
-#define BEVEL_GOOD_ANGLE 0.001f
+#define BEVEL_GOOD_ANGLE 0.1f
 
 /**
  * Calculate the meeting point between e1 and e2 (one of which should have zero offsets),
@@ -7600,14 +7600,14 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
   }
 
   /* Now check edge slide cases. */
-  if (kb > 0.0f && ka == 0.0f /*&& bvb->selcount == 1 && bvb->edgecount > 2 */) {
+  if (kb > 0.0f && ka == 0.0f /* `&& bvb->selcount == 1 && bvb->edgecount > 2` */) {
     float t = BM_edge_calc_length(ea->e);
     t *= sin1 / kb;
     if (t >= 0.0f && t < limit) {
       limit = t;
     }
   }
-  if (kb > 0.0f && kc == 0.0f /* && bvc && ec && bvc->selcount == 1 && bvc->edgecount > 2 */) {
+  if (kb > 0.0f && kc == 0.0f /* `&& bvc && ec && bvc->selcount == 1 && bvc->edgecount > 2` */) {
     float t = BM_edge_calc_length(ec->e);
     t *= sin2 / kb;
     if (t >= 0.0f && t < limit) {

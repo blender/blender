@@ -2668,7 +2668,7 @@ int ED_path_extension_type(const char *path)
   if (BLI_path_extension_check(path, ".abc")) {
     return FILE_TYPE_ALEMBIC;
   }
-  if (BLI_path_extension_check_n(path, ".usd", ".usda", ".usdc", nullptr)) {
+  if (BLI_path_extension_check_n(path, ".usd", ".usda", ".usdc", ".usdz", nullptr)) {
     return FILE_TYPE_USD;
   }
   if (BLI_path_extension_check(path, ".vdb")) {
@@ -3877,7 +3877,7 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
 
   filelist_readjob_main_assets_add_items(job_params, stop, do_update, progress);
 
-  /* When only doing partialy reload for main data, we're done. */
+  /* When only doing partially reload for main data, we're done. */
   if (job_params->only_main_data) {
     return;
   }

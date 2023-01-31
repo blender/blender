@@ -192,6 +192,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   const AnonymousAttributePropagationInfo &propagation_info = params.get_output_propagation_info(
       "Geometry");
 
+  for (GeometrySet &geometry : geometry_sets) {
+    GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry);
+  }
+
   GeometrySet geometry_set_result;
   join_component_type<MeshComponent>(geometry_sets, geometry_set_result, propagation_info);
   join_component_type<PointCloudComponent>(geometry_sets, geometry_set_result, propagation_info);

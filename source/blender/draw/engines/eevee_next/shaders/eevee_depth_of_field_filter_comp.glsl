@@ -9,13 +9,19 @@
 struct FilterSample {
   vec4 color;
   float weight;
+
+#ifdef GPU_METAL
+  inline FilterSample() = default;
+  inline FilterSample(vec4 in_color, float in_weight) : color(in_color), weight(in_weight)
+  {
+  }
+#endif
 };
 
 /* -------------------------------------------------------------------- */
 /** \name Pixel cache.
  * \{ */
-
-const uint cache_size = gl_WorkGroupSize.x + 2;
+#define cache_size (gl_WorkGroupSize.x + 2)
 shared vec4 color_cache[cache_size][cache_size];
 shared float weight_cache[cache_size][cache_size];
 

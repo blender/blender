@@ -114,7 +114,7 @@ void FLUID_OT_bake_guides(struct wmOperatorType *ot);
 void FLUID_OT_free_guides(struct wmOperatorType *ot);
 void FLUID_OT_pause_bake(struct wmOperatorType *ot);
 
-/* dynamicpaint.c */
+/* dynamicpaint.cc */
 
 void DPAINT_OT_bake(struct wmOperatorType *ot);
 /**

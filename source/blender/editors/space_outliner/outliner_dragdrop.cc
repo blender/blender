@@ -1027,8 +1027,12 @@ static void datastack_drop_reorder(bContext *C, ReportList *reports, StackDropDa
       }
       else {
         index = outliner_get_insert_index(drag_te, drop_te, insert_type, &ob->modifiers);
-        ED_object_modifier_move_to_index(
-            reports, ob, static_cast<ModifierData *>(drop_data->drag_directdata), index);
+        ED_object_modifier_move_to_index(reports,
+                                         RPT_WARNING,
+                                         ob,
+                                         static_cast<ModifierData *>(drop_data->drag_directdata),
+                                         index,
+                                         true);
       }
       break;
     case TSE_CONSTRAINT:

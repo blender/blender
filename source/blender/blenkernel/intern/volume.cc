@@ -1474,7 +1474,9 @@ void BKE_volume_grid_transform_matrix(const VolumeGrid *volume_grid, float mat[4
 #endif
 }
 
-void BKE_volume_grid_transform_matrix_set(struct VolumeGrid *volume_grid, const float mat[4][4])
+void BKE_volume_grid_transform_matrix_set(const Volume *volume,
+                                          VolumeGrid *volume_grid,
+                                          const float mat[4][4])
 {
 #ifdef WITH_OPENVDB
   openvdb::math::Mat4f mat_openvdb;
@@ -1483,11 +1485,11 @@ void BKE_volume_grid_transform_matrix_set(struct VolumeGrid *volume_grid, const 
       mat_openvdb(col, row) = mat[col][row];
     }
   }
-  openvdb::GridBase::Ptr grid = volume_grid->grid();
+  openvdb::GridBase::Ptr grid = BKE_volume_grid_openvdb_for_write(volume, volume_grid, false);
   grid->setTransform(std::make_shared<openvdb::math::Transform>(
       std::make_shared<openvdb::math::AffineMap>(mat_openvdb)));
 #else
-  UNUSED_VARS(volume_grid, mat);
+  UNUSED_VARS(volume, volume_grid, mat);
 #endif
 }
 

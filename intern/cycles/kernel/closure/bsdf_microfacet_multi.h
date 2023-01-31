@@ -43,7 +43,7 @@ ccl_device_forceinline float2 mf_sampleP22_11(const float cosI,
     return make_float2(r * cosf(phi), r * sinf(phi));
   }
 
-  const float sinI = safe_sqrtf(1.0f - cosI * cosI);
+  const float sinI = sin_from_cos(cosI);
   const float tanI = sinI / cosI;
   const float projA = 0.5f * (cosI + 1.0f);
   if (projA < 0.0001f)

@@ -51,23 +51,6 @@ static bool BLI_path_is_abs(const char *name);
 
 // #define DEBUG_STRSIZE
 
-/**
- * On UNIX it only makes sense to treat `/` as a path separator.
- * On WIN32 either may be used.
- */
-static bool is_sep_native_compat(const char ch)
-{
-  if (ch == SEP) {
-    return true;
-  }
-#ifdef WIN32
-  if (ch == ALTSEP) {
-    return true;
-  }
-#endif
-  return false;
-}
-
 /* implementation */
 
 int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort *r_digits_len)
@@ -1467,7 +1450,7 @@ size_t BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__
   size_t dirlen = BLI_strnlen(dst, maxlen);
 
   /* Inline #BLI_path_slash_ensure. */
-  if ((dirlen > 0) && !is_sep_native_compat(dst[dirlen - 1])) {
+  if ((dirlen > 0) && !BLI_path_slash_is_native_compat(dst[dirlen - 1])) {
     dst[dirlen++] = SEP;
     dst[dirlen] = '\0';
   }
@@ -1484,7 +1467,7 @@ size_t BLI_path_append_dir(char *__restrict dst, const size_t maxlen, const char
   size_t dirlen = BLI_path_append(dst, maxlen, dir);
   if (dirlen + 1 < maxlen) {
     /* Inline #BLI_path_slash_ensure. */
-    if ((dirlen > 0) && !is_sep_native_compat(dst[dirlen - 1])) {
+    if ((dirlen > 0) && !BLI_path_slash_is_native_compat(dst[dirlen - 1])) {
       dst[dirlen++] = SEP;
       dst[dirlen] = '\0';
     }
@@ -1539,7 +1522,7 @@ size_t BLI_path_join_array(char *__restrict dst,
   bool has_trailing_slash = false;
   if (ofs != 0) {
     size_t len = ofs;
-    while ((len != 0) && is_sep_native_compat(path[len - 1])) {
+    while ((len != 0) && BLI_path_slash_is_native_compat(path[len - 1])) {
       len -= 1;
     }
 
@@ -1553,18 +1536,18 @@ size_t BLI_path_join_array(char *__restrict dst,
     path = path_array[path_index];
     has_trailing_slash = false;
     const char *path_init = path;
-    while (is_sep_native_compat(path[0])) {
+    while (BLI_path_slash_is_native_compat(path[0])) {
       path++;
     }
     size_t len = strlen(path);
     if (len != 0) {
-      while ((len != 0) && is_sep_native_compat(path[len - 1])) {
+      while ((len != 0) && BLI_path_slash_is_native_compat(path[len - 1])) {
         len -= 1;
       }
 
       if (len != 0) {
         /* the very first path may have a slash at the end */
-        if (ofs && !is_sep_native_compat(dst[ofs - 1])) {
+        if (ofs && !BLI_path_slash_is_native_compat(dst[ofs - 1])) {
           dst[ofs++] = SEP;
           if (ofs == dst_last) {
             break;
@@ -1587,7 +1570,7 @@ size_t BLI_path_join_array(char *__restrict dst,
   }
 
   if (has_trailing_slash) {
-    if ((ofs != dst_last) && (ofs != 0) && !is_sep_native_compat(dst[ofs - 1])) {
+    if ((ofs != dst_last) && (ofs != 0) && !BLI_path_slash_is_native_compat(dst[ofs - 1])) {
       dst[ofs++] = SEP;
     }
   }
@@ -1615,7 +1598,7 @@ static bool path_name_at_index_forward(const char *__restrict path,
   int i = 0;
   while (true) {
     const char c = path[i];
-    if ((c == '\0') || is_sep_native_compat(c)) {
+    if ((c == '\0') || BLI_path_slash_is_native_compat(c)) {
       if (prev + 1 != i) {
         prev += 1;
         /* Skip '/./' (behave as if they don't exist). */
@@ -1650,7 +1633,7 @@ static bool path_name_at_index_backward(const char *__restrict path,
   int i = prev - 1;
   while (true) {
     const char c = i >= 0 ? path[i] : '\0';
-    if ((c == '\0') || is_sep_native_compat(c)) {
+    if ((c == '\0') || BLI_path_slash_is_native_compat(c)) {
       if (prev - 1 != i) {
         i += 1;
         /* Skip '/./' (behave as if they don't exist). */
@@ -1749,7 +1732,7 @@ int BLI_path_slash_ensure(char *string, size_t string_maxlen)
 {
   int len = strlen(string);
   BLI_assert(len < string_maxlen);
-  if (len == 0 || !is_sep_native_compat(string[len - 1])) {
+  if (len == 0 || !BLI_path_slash_is_native_compat(string[len - 1])) {
     /* Avoid unlikely buffer overflow. */
     if (len + 1 < string_maxlen) {
       string[len] = SEP;
@@ -1764,7 +1747,7 @@ void BLI_path_slash_rstrip(char *string)
 {
   int len = strlen(string);
   while (len) {
-    if (is_sep_native_compat(string[len - 1])) {
+    if (BLI_path_slash_is_native_compat(string[len - 1])) {
       string[len - 1] = '\0';
       len--;
     }

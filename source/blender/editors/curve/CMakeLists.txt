@@ -17,6 +17,9 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   curve_ops.c
   editcurve.c
@@ -25,7 +28,7 @@ set(SRC
   editcurve_pen.c
   editcurve_query.c
   editcurve_select.c
-  editcurve_undo.c
+  editcurve_undo.cc
   editfont.c
   editfont_undo.c
 

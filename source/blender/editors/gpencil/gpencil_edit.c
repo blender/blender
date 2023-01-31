@@ -5536,7 +5536,7 @@ static void gpencil_cutter_dissolve(bGPdata *gpd,
     }
 
     BKE_gpencil_stroke_delete_tagged_points(
-        gpd, hit_layer->actframe, hit_stroke, gpsn, GP_SPOINT_TAG, false, flat_caps, 1);
+        gpd, hit_layer->actframe, hit_stroke, gpsn, GP_SPOINT_TAG, false, false, 1);
   }
 }
 

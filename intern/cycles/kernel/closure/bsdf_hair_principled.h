@@ -41,11 +41,6 @@ static_assert(sizeof(ShaderClosure) >= sizeof(PrincipledHairBSDF),
 static_assert(sizeof(ShaderClosure) >= sizeof(PrincipledHairExtra),
               "PrincipledHairExtra is too large!");
 
-ccl_device_inline float cos_from_sin(const float s)
-{
-  return safe_sqrtf(1.0f - s * s);
-}
-
 /* Gives the change in direction in the normal plane for the given angles and p-th-order
  * scattering. */
 ccl_device_inline float delta_phi(int p, float gamma_o, float gamma_t)

@@ -212,7 +212,7 @@ void BKE_mesh_to_curve(struct Main *bmain,
                        struct Depsgraph *depsgraph,
                        struct Scene *scene,
                        struct Object *ob);
-void BKE_pointcloud_from_mesh(struct Mesh *me, struct PointCloud *pointcloud);
+void BKE_pointcloud_from_mesh(const struct Mesh *me, struct PointCloud *pointcloud);
 void BKE_mesh_to_pointcloud(struct Main *bmain,
                             struct Depsgraph *depsgraph,
                             struct Scene *scene,

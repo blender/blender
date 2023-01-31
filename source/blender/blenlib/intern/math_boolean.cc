@@ -501,11 +501,15 @@ static int fast_expansion_sum_zeroelim(
     while ((eindex < elen) && (findex < flen)) {
       if ((fnow > enow) == (fnow > -enow)) {
         Two_Sum(Q, enow, Qnew, hh);
-        enow = e[++eindex];
+        if (++eindex < elen) {
+          enow = e[eindex];
+        }
       }
       else {
         Two_Sum(Q, fnow, Qnew, hh);
-        fnow = f[++findex];
+        if (++findex < flen) {
+          fnow = f[findex];
+        }
       }
       Q = Qnew;
       if (hh != 0.0) {
@@ -515,7 +519,9 @@ static int fast_expansion_sum_zeroelim(
   }
   while (eindex < elen) {
     Two_Sum(Q, enow, Qnew, hh);
-    enow = e[++eindex];
+    if (++eindex < elen) {
+      enow = e[eindex];
+    }
     Q = Qnew;
     if (hh != 0.0) {
       h[hindex++] = hh;
@@ -523,7 +529,9 @@ static int fast_expansion_sum_zeroelim(
   }
   while (findex < flen) {
     Two_Sum(Q, fnow, Qnew, hh);
-    fnow = f[++findex];
+    if (++findex < flen) {
+      fnow = f[findex];
+    }
     Q = Qnew;
     if (hh != 0.0) {
       h[hindex++] = hh;

@@ -721,6 +721,7 @@ void LightManager::device_update_background(Device *device,
   int2 environment_res = make_int2(0, 0);
   Shader *shader = scene->background->get_shader(scene);
   int num_suns = 0;
+  float sun_average_radiance = 0.0f;
   foreach (ShaderNode *node, shader->graph->nodes) {
     if (node->type == EnvironmentTextureNode::get_node_type()) {
       EnvironmentTextureNode *env = (EnvironmentTextureNode *)node;
@@ -762,6 +763,7 @@ void LightManager::device_update_background(Device *device,
 
         /* empirical value */
         kbackground->sun_weight = 4.0f;
+        sun_average_radiance = sky->get_sun_average_radiance();
         environment_res.x = max(environment_res.x, 512);
         environment_res.y = max(environment_res.y, 256);
         num_suns++;
@@ -830,7 +832,18 @@ void LightManager::device_update_background(Device *device,
   float cdf_total = marg_cdf[res.y - 1].y + marg_cdf[res.y - 1].x / res.y;
   marg_cdf[res.y].x = cdf_total;
 
-  background_light->set_average_radiance(cdf_total * M_PI_2_F);
+  float map_average_radiance = cdf_total * M_PI_2_F;
+  if (sun_average_radiance > 0.0f) {
+    /* The weighting here is just a heuristic that was empirically determined.
+     * The sun's average radiance is much higher than the map's average radiance,
+     * but we don't want to weight the background light too much because
+     * visibility is not accounted for anyway. */
+    background_light->set_average_radiance(0.8f * map_average_radiance +
+                                           0.2f * sun_average_radiance);
+  }
+  else {
+    background_light->set_average_radiance(map_average_radiance);
+  }
 
   if (cdf_total > 0.0f)
     for (int i = 1; i < res.y; i++)

@@ -652,6 +652,8 @@ typedef struct UserDef_Experimental {
   char use_override_templates;
   char enable_eevee_next;
   char use_sculpt_texture_paint;
+  char enable_workbench_next;
+  char _pad[7];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -659,6 +661,8 @@ typedef struct UserDef_Experimental {
   (((userdef)->flag & USER_DEVELOPER_UI) && ((userdef)->experimental).member)
 
 typedef struct UserDef {
+  DNA_DEFINE_CXX_METHODS(UserDef)
+
   /** UserDef has separate do-version handling, and can be read from other files. */
   int versionfile, subversionfile;
 
@@ -955,7 +959,7 @@ extern UserDef U;
 /* ***************** USERDEF ****************** */
 
 /* Toggles for unfinished 2.8 UserPref design. */
-//#define WITH_USERDEF_WORKSPACES
+// #define WITH_USERDEF_WORKSPACES
 
 /** #UserDef_SpaceData.section_active (UI active_section) */
 typedef enum eUserPref_Section {

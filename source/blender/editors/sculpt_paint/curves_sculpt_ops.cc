@@ -363,7 +363,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 
   for (Curves *curves_id : unique_curves) {
     CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
-    const bool was_anything_selected = curves::has_anything_selected(*curves_id);
+    const bool was_anything_selected = curves::has_anything_selected(curves);
 
     bke::SpanAttributeWriter<float> attribute = float_selection_ensure(*curves_id);
     MutableSpan<float> selection = attribute.span;
@@ -517,90 +517,6 @@ static void SCULPT_CURVES_OT_select_random(wmOperatorType *ot)
                   "Constant per Curve",
                   "The generated random number is the same for every control point of a curve");
 }
-
-namespace select_end {
-static bool select_end_poll(bContext *C)
-{
-  if (!curves::editable_curves_poll(C)) {
-    return false;
-  }
-  const Curves *curves_id = static_cast<const Curves *>(CTX_data_active_object(C)->data);
-  if (curves_id->selection_domain != ATTR_DOMAIN_POINT) {
-    CTX_wm_operator_poll_msg_set(C, "Only available in point selection mode");
-    return false;
-  }
-  return true;
-}
-
-static int select_end_exec(bContext *C, wmOperator *op)
-{
-  VectorSet<Curves *> unique_curves = curves::get_unique_editable_curves(*C);
-  const bool end_points = RNA_boolean_get(op->ptr, "end_points");
-  const int amount = RNA_int_get(op->ptr, "amount");
-
-  for (Curves *curves_id : unique_curves) {
-    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
-    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-
-    const bool was_anything_selected = curves::has_anything_selected(*curves_id);
-    curves::ensure_selection_attribute(*curves_id, CD_PROP_BOOL);
-    bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection");
-    if (!was_anything_selected) {
-      curves::fill_selection_true(selection.span);
-    }
-    const OffsetIndices points_by_curve = curves.points_by_curve();
-    selection.span.type().to_static_type_tag<bool, float>([&](auto type_tag) {
-      using T = typename decltype(type_tag)::type;
-      if constexpr (std::is_void_v<T>) {
-        BLI_assert_unreachable();
-      }
-      else {
-        MutableSpan<T> selection_typed = selection.span.typed<T>();
-        threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
-          for (const int curve_i : range) {
-            const IndexRange points = points_by_curve[curve_i];
-            if (end_points) {
-              selection_typed.slice(points.drop_back(amount)).fill(T(0));
-            }
-            else {
-              selection_typed.slice(points.drop_front(amount)).fill(T(0));
-            }
-          }
-        });
-      }
-    });
-    selection.finish();
-
-    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
-     * attribute for now. */
-    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
-  }
-
-  return OPERATOR_FINISHED;
-}
-}  // namespace select_end
-
-static void SCULPT_CURVES_OT_select_end(wmOperatorType *ot)
-{
-  ot->name = "Select End";
-  ot->idname = __func__;
-  ot->description = "Select end points of curves";
-
-  ot->exec = select_end::select_end_exec;
-  ot->poll = select_end::select_end_poll;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  RNA_def_boolean(ot->srna,
-                  "end_points",
-                  true,
-                  "End Points",
-                  "Select points at the end of the curve as opposed to the beginning");
-  RNA_def_int(
-      ot->srna, "amount", 1, 0, INT32_MAX, "Amount", "Number of points to select", 0, INT32_MAX);
-}
-
 namespace select_grow {
 
 struct GrowOperatorDataPerCurve : NonCopyable, NonMovable {
@@ -1263,7 +1179,6 @@ void ED_operatortypes_sculpt_curves()
   WM_operatortype_append(SCULPT_CURVES_OT_brush_stroke);
   WM_operatortype_append(CURVES_OT_sculptmode_toggle);
   WM_operatortype_append(SCULPT_CURVES_OT_select_random);
-  WM_operatortype_append(SCULPT_CURVES_OT_select_end);
   WM_operatortype_append(SCULPT_CURVES_OT_select_grow);
   WM_operatortype_append(SCULPT_CURVES_OT_min_distance_edit);
 }

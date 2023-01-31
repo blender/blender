@@ -923,7 +923,8 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   uint8_t silhouette_mode,
                                   const char *source_vgname,
                                   const char *vgname,
-                                  int modifier_flags);
+                                  int modifier_flags,
+                                  int modifier_calculation_flags);
 
 /**
  * Length is in image space.

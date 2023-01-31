@@ -1094,6 +1094,8 @@ typedef struct ExplodeModifierData {
 } ExplodeModifierData;
 
 typedef struct MultiresModifierData {
+  DNA_DEFINE_CXX_METHODS(MultiresModifierData)
+
   ModifierData modifier;
 
   char lvl, sculptlvl, renderlvl, totlvl;

@@ -392,9 +392,6 @@ typedef struct SculptPersistentBase {
 } SculptPersistentBase;
 
 typedef struct SculptVertexInfo {
-  /* Indexed by vertex, stores and ID of its topologically connected component. */
-  int *connected_component;
-
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
   BLI_bitmap *boundary;
 } SculptVertexInfo;
@@ -558,6 +555,8 @@ typedef struct SculptAttributePointers {
   SculptAttribute *automasking_occlusion; /* CD_PROP_INT8. */
   SculptAttribute *automasking_stroke_id;
   SculptAttribute *automasking_cavity;
+
+  SculptAttribute *topology_island_key; /* CD_PROP_INT8 */
 
   /* BMesh */
   SculptAttribute *dyntopo_node_id_vertex;
@@ -756,6 +755,7 @@ typedef struct SculptSession {
 
   int last_automasking_settings_hash;
   uchar last_automask_stroke_id;
+  bool islands_valid; /* Is attrs.topology_island_key valid? */
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);

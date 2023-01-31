@@ -1255,7 +1255,7 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd,
   }
 }
 
-static void sculpt_debug_cb(
+void DRW_sculpt_debug_cb(
     PBVHNode *node, void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag)
 {
   int *debug_node_nr = (int *)user_data;
@@ -1270,7 +1270,8 @@ static void sculpt_debug_cb(
     DRW_debug_bbox(&bb, (float[4]){0.5f, 0.5f, 0.5f, 0.6f});
   }
 #else /* Color coded leaf bounds. */
-  if (flag & PBVH_Leaf) {
+  if (flag & (PBVH_Leaf | PBVH_TexLeaf)) {
+    DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR((*debug_node_nr)++));
     int color = (*debug_node_nr)++;
     color += BKE_pbvh_debug_draw_gen_get(node);
 
@@ -1370,7 +1371,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
     BKE_pbvh_draw_debug_cb(
         pbvh,
         (void (*)(PBVHNode * n, void *d, const float min[3], const float max[3], PBVHNodeFlags f))
-            sculpt_debug_cb,
+            DRW_sculpt_debug_cb,
         &debug_node_nr);
   }
 }

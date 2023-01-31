@@ -63,10 +63,8 @@ BMBackup EDBM_redo_state_store(BMEditMesh *em)
 
 void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_looptri)
 {
-  BMesh *tmpbm;
-
   BM_mesh_data_free(em->bm);
-  tmpbm = BM_mesh_copy(backup->bmcopy);
+  BMesh *tmpbm = BM_mesh_copy(backup->bmcopy);
   *em->bm = *tmpbm;
   MEM_freeN(tmpbm);
   tmpbm = NULL;
@@ -208,11 +206,9 @@ bool EDBM_op_call_and_selectf(BMEditMesh *em,
                               const char *fmt,
                               ...)
 {
-  BMOpSlot *slot_select_out;
   BMesh *bm = em->bm;
   BMOperator bmop;
   va_list list;
-  char hflag;
 
   va_start(list, fmt);
 
@@ -224,8 +220,8 @@ bool EDBM_op_call_and_selectf(BMEditMesh *em,
 
   BMO_op_exec(bm, &bmop);
 
-  slot_select_out = BMO_slot_get(bmop.slots_out, select_slot_out);
-  hflag = slot_select_out->slot_subtype.elem & BM_ALL_NOLOOP;
+  BMOpSlot *slot_select_out = BMO_slot_get(bmop.slots_out, select_slot_out);
+  char hflag = slot_select_out->slot_subtype.elem & BM_ALL_NOLOOP;
   BLI_assert(hflag != 0);
 
   if (select_extend == false) {
@@ -269,14 +265,12 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
 void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 {
   Mesh *me = ob->data;
-  BMesh *bm;
-
-  bm = BKE_mesh_to_bmesh(me,
-                         ob,
-                         add_key_index,
-                         &((struct BMeshCreateParams){
-                             .use_toolflags = true,
-                         }));
+  BMesh *bm = BKE_mesh_to_bmesh(me,
+                                ob,
+                                add_key_index,
+                                &((struct BMeshCreateParams){
+                                    .use_toolflags = true,
+                                }));
 
   if (me->edit_mesh) {
     /* this happens when switching shape keys */
@@ -450,27 +444,21 @@ void EDBM_flag_enable_all(BMEditMesh *em, const char hflag)
 /** \name UV Vertex Map API
  * \{ */
 
-UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool use_winding)
+UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
 {
+  /* NOTE: delimiting on alternate face-winding was once supported and could be useful
+   * in some cases. If this is need see: D17137 to restore support. */
   BMVert *ev;
   BMFace *efa;
   BMLoop *l;
   BMIter iter, liter;
-  /* vars from original func */
-  UvVertMap *vmap;
-  UvMapVert *buf;
-  const float(*luv)[2];
   uint a;
-  int totverts, i, totuv, totfaces;
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
-  bool *winding = NULL;
-  BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
 
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
 
-  totfaces = bm->totface;
-  totverts = bm->totvert;
-  totuv = 0;
+  const int totverts = bm->totvert;
+  int totuv = 0;
 
   /* generate UvMapVert array */
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
@@ -482,16 +470,13 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool us
   if (totuv == 0) {
     return NULL;
   }
-  vmap = (UvVertMap *)MEM_callocN(sizeof(*vmap), "UvVertMap");
+  UvVertMap *vmap = (UvVertMap *)MEM_callocN(sizeof(*vmap), "UvVertMap");
   if (!vmap) {
     return NULL;
   }
 
   vmap->vert = (UvMapVert **)MEM_callocN(sizeof(*vmap->vert) * totverts, "UvMapVert_pt");
-  buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * totuv, "UvMapVert");
-  if (use_winding) {
-    winding = MEM_callocN(sizeof(*winding) * totfaces, "winding");
-  }
+  UvMapVert *buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * totuv, "UvMapVert");
 
   if (!vmap->vert || !vmap->buf) {
     BKE_mesh_uv_vert_map_free(vmap);
@@ -500,12 +485,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool us
 
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, a) {
     if ((use_select == false) || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-      float(*tf_uv)[2] = NULL;
-
-      if (use_winding) {
-        tf_uv = (float(*)[2])BLI_buffer_reinit_data(&tf_uv_buf, vec2f, efa->len);
-      }
-
+      int i;
       BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
         buf->loop_of_poly_index = i;
         buf->poly_index = a;
@@ -514,15 +494,6 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool us
         buf->next = vmap->vert[BM_elem_index_get(l->v)];
         vmap->vert[BM_elem_index_get(l->v)] = buf;
         buf++;
-
-        if (use_winding) {
-          luv = BM_ELEM_CD_GET_FLOAT2_P(l, cd_loop_uv_offset);
-          copy_v2_v2(tf_uv[i], *luv);
-        }
-      }
-
-      if (use_winding) {
-        winding[a] = cross_poly_v2(tf_uv, efa->len) > 0;
       }
     }
   }
@@ -553,8 +524,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool us
         l = BM_iter_at_index(bm, BM_LOOPS_OF_FACE, efa, iterv->loop_of_poly_index);
         uv2 = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
 
-        if (compare_v2v2(uv2, uv, STD_UV_CONNECT_LIMIT) &&
-            (!use_winding || winding[iterv->poly_index] == winding[v->poly_index])) {
+        if (compare_v2v2(uv2, uv, STD_UV_CONNECT_LIMIT)) {
           if (lastv) {
             lastv->next = next;
           }
@@ -576,12 +546,6 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool us
 
     vmap->vert[a] = newvlist;
   }
-
-  if (use_winding) {
-    MEM_freeN(winding);
-  }
-
-  BLI_buffer_free(&tf_uv_buf);
 
   return vmap;
 }
@@ -887,7 +851,7 @@ static void bm_uv_build_islands(UvElementMap *element_map,
   MEM_SAFE_FREE(map);
 }
 
-/* return true if `loop` has UV co-ordinates which match `luv_a` and `luv_b` */
+/** Return true if `loop` has UV co-ordinates which match `luv_a` and `luv_b`. */
 static bool loop_uv_match(BMLoop *loop,
                           const float luv_a[2],
                           const float luv_b[2],
@@ -912,6 +876,7 @@ static bool loop_uv_match(BMLoop *loop,
  * \param edge: Search for `needle` in all loops connected to `edge` (recursively).
  * \param luv_anchor: The UV of the anchor (vertex that's being stepped around).
  * \param luv_fan: The UV of the outer edge, this changes as the fan is stepped over.
+ * \param needle: Search for this loop, also defines the vertex at the center of the face-fan.
  * \param visited: A set of edges to prevent recursing down the same edge multiple times.
  * \param cd_loop_uv_offset: The UV layer.
  * \return true if there are edges that fan between them that are seam-free.
@@ -1015,7 +980,6 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   BMVert *ev;
   BMFace *efa;
   BMIter iter, liter;
-  BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
 
   const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
   if (offsets.uv < 0) {
@@ -1073,12 +1037,6 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       continue;
     }
 
-    float(*tf_uv)[2] = NULL;
-
-    if (use_winding) {
-      tf_uv = (float(*)[2])BLI_buffer_reinit_data(&tf_uv_buf, vec2f, efa->len);
-    }
-
     int i;
     BMLoop *l;
     BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
@@ -1094,19 +1052,13 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       buf->next = element_map->vertex[BM_elem_index_get(l->v)];
       element_map->vertex[BM_elem_index_get(l->v)] = buf;
 
-      if (use_winding) {
-        const float *uv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
-        copy_v2_v2(tf_uv[i], uv);
-      }
-
       buf++;
     }
 
     if (winding) {
-      winding[j] = cross_poly_v2(tf_uv, efa->len) > 0;
+      winding[j] = BM_face_calc_area_uv_signed(efa, offsets.uv) > 0;
     }
   }
-  BLI_buffer_free(&tf_uv_buf);
 
   GSet *seam_visited_gset = use_seams ? BLI_gset_ptr_new(__func__) : NULL;
 
@@ -1262,14 +1214,10 @@ UvElement *BM_uv_element_get_head(UvElementMap *element_map, UvElement *child)
 
 BMFace *EDBM_uv_active_face_get(BMEditMesh *em, const bool sloppy, const bool selected)
 {
-  BMFace *efa = NULL;
-
   if (!EDBM_uv_check(em)) {
     return NULL;
   }
-
-  efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
-
+  BMFace *efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
   if (efa) {
     return efa;
   }
@@ -1764,10 +1712,10 @@ void EDBM_update_extern(struct Mesh *me, const bool do_tessellation, const bool 
 bool EDBM_view3d_poll(bContext *C)
 {
   if (ED_operator_editmesh(C) && ED_operator_view3d_active(C)) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /** \} */
@@ -1778,19 +1726,16 @@ bool EDBM_view3d_poll(bContext *C)
 
 BMElem *EDBM_elem_from_selectmode(BMEditMesh *em, BMVert *eve, BMEdge *eed, BMFace *efa)
 {
-  BMElem *ele = NULL;
-
   if ((em->selectmode & SCE_SELECT_VERTEX) && eve) {
-    ele = (BMElem *)eve;
+    return (BMElem *)eve;
   }
-  else if ((em->selectmode & SCE_SELECT_EDGE) && eed) {
-    ele = (BMElem *)eed;
+  if ((em->selectmode & SCE_SELECT_EDGE) && eed) {
+    return (BMElem *)eed;
   }
-  else if ((em->selectmode & SCE_SELECT_FACE) && efa) {
-    ele = (BMElem *)efa;
+  if ((em->selectmode & SCE_SELECT_FACE) && efa) {
+    return (BMElem *)efa;
   }
-
-  return ele;
+  return NULL;
 }
 
 int EDBM_elem_to_index_any(BMEditMesh *em, BMElem *ele)

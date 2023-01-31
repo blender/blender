@@ -142,7 +142,7 @@ static void transform_volume(GeoNodeExecParams &params,
         normalize_v3(grid_matrix.values[2]);
       }
     }
-    BKE_volume_grid_transform_matrix_set(volume_grid, grid_matrix.values);
+    BKE_volume_grid_transform_matrix_set(&volume, volume_grid, grid_matrix.values);
   }
   if (found_too_small_scale) {
     params.error_message_add(NodeWarningType::Warning,

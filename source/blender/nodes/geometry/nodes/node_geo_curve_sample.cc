@@ -313,6 +313,7 @@ class SampleCurveFunction : public mf::MultiFunction {
     }
 
     const OffsetIndices points_by_curve = curves.points_by_curve();
+    const OffsetIndices evaluated_points_by_curve = curves.evaluated_points_by_curve();
     const VArray<int> curve_indices = params.readonly_single_input<int>(0, "Curve Index");
     const VArraySpan<float> lengths = params.readonly_single_input<float>(1, "Length");
     const VArray<bool> cyclic = curves.cyclic();
@@ -354,7 +355,7 @@ class SampleCurveFunction : public mf::MultiFunction {
       sample_indices_and_factors_to_compressed(
           accumulated_lengths, lengths, length_mode_, mask, indices, factors);
 
-      const IndexRange evaluated_points = curves.evaluated_points_for_curve(curve_i);
+      const IndexRange evaluated_points = evaluated_points_by_curve[curve_i];
       if (!sampled_positions.is_empty()) {
         length_parameterize::interpolate_to_masked<float3>(
             evaluated_positions.slice(evaluated_points),
@@ -381,7 +382,7 @@ class SampleCurveFunction : public mf::MultiFunction {
         const IndexRange points = points_by_curve[curve_i];
         src_original_values.reinitialize(points.size());
         source_data_->materialize_compressed_to_uninitialized(points, src_original_values.data());
-        src_evaluated_values.reinitialize(curves.evaluated_points_for_curve(curve_i).size());
+        src_evaluated_values.reinitialize(evaluated_points.size());
         curves.interpolate_to_evaluated(curve_i, src_original_values, src_evaluated_values);
         attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
           using T = decltype(dummy);

@@ -116,19 +116,22 @@ static void set_computed_position_and_offset(GeometryComponent &component,
   }
 }
 
-static void set_position_in_component(GeometryComponent &component,
+static void set_position_in_component(GeometrySet &geometry,
+                                      GeometryComponentType component_type,
                                       const Field<bool> &selection_field,
                                       const Field<float3> &position_field,
                                       const Field<float3> &offset_field)
 {
-  eAttrDomain domain = component.type() == GEO_COMPONENT_TYPE_INSTANCES ? ATTR_DOMAIN_INSTANCE :
-                                                                          ATTR_DOMAIN_POINT;
-  bke::GeometryFieldContext field_context{component, domain};
+  const GeometryComponent &component = *geometry.get_component_for_read(component_type);
+  const eAttrDomain domain = component.type() == GEO_COMPONENT_TYPE_INSTANCES ?
+                                 ATTR_DOMAIN_INSTANCE :
+                                 ATTR_DOMAIN_POINT;
   const int domain_size = component.attribute_domain_size(domain);
   if (domain_size == 0) {
     return;
   }
 
+  bke::GeometryFieldContext field_context{component, domain};
   fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
   evaluator.add(position_field);
@@ -136,10 +139,14 @@ static void set_position_in_component(GeometryComponent &component,
   evaluator.evaluate();
 
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  if (selection.is_empty()) {
+    return;
+  }
 
+  GeometryComponent &mutable_component = geometry.get_component_for_write(component_type);
   const VArray<float3> positions_input = evaluator.get_evaluated<float3>(0);
   const VArray<float3> offsets_input = evaluator.get_evaluated<float3>(1);
-  set_computed_position_and_offset(component, positions_input, offsets_input, selection);
+  set_computed_position_and_offset(mutable_component, positions_input, offsets_input, selection);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -154,8 +161,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                            GEO_COMPONENT_TYPE_CURVE,
                                            GEO_COMPONENT_TYPE_INSTANCES}) {
     if (geometry.has(type)) {
-      set_position_in_component(
-          geometry.get_component_for_write(type), selection_field, position_field, offset_field);
+      set_position_in_component(geometry, type, selection_field, position_field, offset_field);
     }
   }
 

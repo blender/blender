@@ -63,13 +63,13 @@ enum eViewProj {
   VIEW_PROJ_PERSP = -1,
 };
 
-/* SnapObjectContext.cache.editmesh_map */
+/** #SnapObjectContext.editmesh_caches */
 struct SnapData_EditMesh {
   /* Verts, Edges. */
   BVHTree *bvhtree[2];
   bool cached[2];
 
-  /* Looptris. */
+  /* BVH tree from #BMEditMesh.looptris. */
   BVHTreeFromEditMesh treedata_editmesh;
 
   blender::bke::MeshRuntime *mesh_runtime;
@@ -729,7 +729,8 @@ static bool raycastMesh(SnapObjectContext *sctx,
    * very far away ray_start values (as returned in case of ortho view3d), see T50486, T38358.
    */
   if (len_diff > 400.0f) {
-    len_diff -= local_scale; /* make temp start point a bit away from bbox hit point. */
+    /* Make temporary start point a bit away from bounding-box hit point. */
+    len_diff -= local_scale;
     madd_v3_v3fl(ray_start_local, ray_normal_local, len_diff);
     local_depth -= len_diff;
   }

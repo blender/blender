@@ -9,7 +9,7 @@ void accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets, const int 
   int offset = start_offset;
   for (const int i : counts_to_offsets.index_range().drop_back(1)) {
     const int count = counts_to_offsets[i];
-    BLI_assert(count > 0);
+    BLI_assert(count >= 0);
     counts_to_offsets[i] = offset;
     offset += count;
   }

@@ -2291,8 +2291,7 @@ void uiTemplateModifiers(uiLayout * /*layout*/, bContext *C)
 
   if (!panels_match) {
     UI_panels_free_instanced(C, region);
-    ModifierData *md = static_cast<ModifierData *>(modifiers->first);
-    for (int i = 0; md; i++, md = md->next) {
+    for (ModifierData *md = static_cast<ModifierData *>(modifiers->first); md; md = md->next) {
       const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
       if (mti->panelRegister == nullptr) {
         continue;
@@ -2451,9 +2450,10 @@ void uiTemplateConstraints(uiLayout * /*layout*/, bContext *C, bool use_bone_con
 
   if (!panels_match) {
     UI_panels_free_instanced(C, region);
-    bConstraint *con = (constraints == nullptr) ? nullptr :
-                                                  static_cast<bConstraint *>(constraints->first);
-    for (int i = 0; con; i++, con = con->next) {
+    for (bConstraint *con =
+             (constraints == nullptr) ? nullptr : static_cast<bConstraint *>(constraints->first);
+         con;
+         con = con->next) {
       /* Don't show invalid/legacy constraints. */
       if (con->type == CONSTRAINT_TYPE_NULL) {
         continue;
@@ -2543,8 +2543,8 @@ void uiTemplateGpencilModifiers(uiLayout * /*layout*/, bContext *C)
 
   if (!panels_match) {
     UI_panels_free_instanced(C, region);
-    GpencilModifierData *md = static_cast<GpencilModifierData *>(modifiers->first);
-    for (int i = 0; md; i++, md = md->next) {
+    for (GpencilModifierData *md = static_cast<GpencilModifierData *>(modifiers->first); md;
+         md = md->next) {
       const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
           GpencilModifierType(md->type));
       if (mti->panelRegister == nullptr) {
@@ -2617,8 +2617,7 @@ void uiTemplateShaderFx(uiLayout * /*layout*/, bContext *C)
 
   if (!panels_match) {
     UI_panels_free_instanced(C, region);
-    ShaderFxData *fx = static_cast<ShaderFxData *>(shaderfx->first);
-    for (int i = 0; fx; i++, fx = fx->next) {
+    for (ShaderFxData *fx = static_cast<ShaderFxData *>(shaderfx->first); fx; fx = fx->next) {
       char panel_idname[MAX_NAME];
       shaderfx_panel_id(fx, panel_idname);
 
