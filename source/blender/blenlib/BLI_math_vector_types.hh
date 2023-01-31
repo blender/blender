@@ -178,12 +178,12 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
 
   template<BLI_ENABLE_IF_VEC(Size, >= 3)> VecBase<T, 2> xy() const
   {
-    return *reinterpret_cast<VecBase<T, 2> *>(&x);
+    return *reinterpret_cast<VecBase<T, 2> *>(this);
   }
 
   template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 3> xyz() const
   {
-    return *reinterpret_cast<VecBase<T, 3> *>(&x);
+    return *reinterpret_cast<VecBase<T, 3> *>(this);
   }
 
 #undef BLI_ENABLE_IF_VEC
