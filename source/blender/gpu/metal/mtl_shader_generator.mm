@@ -177,6 +177,70 @@ static bool is_program_word(const char *chr, int *len)
   return true;
 }
 
+static int backwards_program_word_scan(const char *array_loc, const char *min)
+{
+  const char *start;
+  char last_char = ' ';
+  int numchars = 0;
+  for (start = array_loc - 1; (start >= min) && (*start != '\0'); start--) {
+    char ch = *start;
+    if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') ||
+        ch == '_' || ch == '#') {
+      numchars++;
+      last_char = ch;
+    }
+    else {
+      break;
+    }
+  }
+
+  if (numchars > 0) {
+    /* cannot start with numbers, so we need to invalidate the word. */
+    if ((last_char >= '0' && last_char <= '9')) {
+      numchars = 0;
+    }
+  }
+  return numchars;
+}
+
+/* Extract clipping distance usage indices, and replace syntax with metal-compatible.
+ * We need to replace syntax gl_ClipDistance[N] with gl_ClipDistance_N such that it is compatible
+ * with the Metal shaders Vertex shader output struct. */
+static void extract_and_replace_clipping_distances(std::string &vertex_source,
+                                                   MSLGeneratorInterface &msl_iface)
+{
+  char *current_str_begin = &*vertex_source.begin();
+  char *current_str_end = &*vertex_source.end();
+
+  for (char *c = current_str_begin + 2; c < current_str_end - 18; c++) {
+    char *base_search = strstr(c, "gl_ClipDistance[");
+    if (base_search == nullptr) {
+      /* No clip distances found. */
+      return;
+    }
+    c = base_search + 16;
+
+    /* Ensure closing brace. */
+    if (*(c + 1) != ']') {
+      continue;
+    }
+
+    /* Extract ID betwen zero and 9. */
+    if ((*c >= '0') && (*c <= '9')) {
+      char clip_distance_id = ((*c) - '0');
+      auto found = std::find(
+          msl_iface.clip_distances.begin(), msl_iface.clip_distances.end(), clip_distance_id);
+      if (found == msl_iface.clip_distances.end()) {
+        msl_iface.clip_distances.append(clip_distance_id);
+      }
+
+      /* Replace syntax (array brace removal, and replacement with underscore). */
+      *(base_search + 15) = '_';
+      *(base_search + 17) = ' ';
+    }
+  }
+}
+
 /**
  * Replace function parameter patterns containing:
  * `out vec3 somevar` with `THD vec3&somevar`.
@@ -189,8 +253,12 @@ static void replace_outvars(std::string &str)
   char *current_str_end = &*str.end();
 
   for (char *c = current_str_begin + 2; c < current_str_end - 6; c++) {
-    char *start = c;
-    if (strncmp(c, "out ", 4) == 0) {
+    char *start = strstr(c, "out");
+    if (start == nullptr) {
+      return;
+    }
+    else {
+      c = start;
       if (strncmp(c - 2, "in", 2) == 0) {
         start = c - 2;
       }
@@ -241,19 +309,84 @@ static void replace_outvars(std::string &str)
   }
 }
 
+static void replace_matrix_constructors(std::string &str)
+{
+
+  /* Replace matrix constructors with GLSL-compatible constructors for Metal.
+   * Base matrix constructors e.g. mat3x3 do not have as many overload variants as GLSL.
+   * To add compatibility, we declare custom constuctors e.g. MAT3x3 in mtl_shader_defines.msl.
+   * If the GLSL syntax matches, we map mat3x3(..) -> MAT3x3(..) and implement a custom
+   * constructor. This supports both mat3(..) and mat3x3(..) style sytax.*/
+  char *current_str_begin = &*str.begin();
+  char *current_str_end = &*str.end();
+
+  for (char *c = current_str_begin; c < current_str_end - 10; c++) {
+    char *base_scan = strstr(c, "mat");
+    if (base_scan == nullptr) {
+      break;
+    }
+    /* Track end of constructor. */
+    char *constructor_end = nullptr;
+
+    /* check if next character is matrix dim. */
+    c = base_scan + 3;
+    if (!(*c == '2' || *c == '3' || *c == '4')) {
+      /* Not constructor, skip. */
+      continue;
+    }
+
+    /* Possible multiple dimensional matrix constructor. Verify if next char is a dim*/
+    c++;
+    if (*c == 'x') {
+      c++;
+      if (*c == '2' || *c == '3' || *c == '4') {
+        c++;
+      }
+      else {
+        /* Not matrix constructor, continue. */
+        continue;
+      }
+    }
+
+    /* Check for constructor opening brace. */
+    if (*c == '(') {
+      constructor_end = c;
+    }
+    else {
+      /* Not matrix constructor, continue. */
+      continue;
+    }
+
+    /* If is constructor, replace with MATN(..) syntax. */
+    if (constructor_end != nullptr) {
+      strncpy(base_scan, "MAT", 3);
+      continue;
+    }
+  }
+}
+
 static void replace_array_initializers_func(std::string &str)
 {
   char *current_str_begin = &*str.begin();
   char *current_str_end = &*str.end();
 
   for (char *c = current_str_begin; c < current_str_end - 6; c++) {
-    char *base_scan = c;
+
     int typelen = 0;
 
-    if (is_program_word(c, &typelen) && *(c + typelen) == '[') {
+    /* first find next array brace, then work backwards to find start of program word to check if
+     * valid array syntax. */
+    char *array_scan = strchr(c, '[');
+    if (array_scan == nullptr) {
+      return;
+    }
+    typelen = backwards_program_word_scan(array_scan - 1, current_str_begin);
+    char *base_type_name = array_scan - 1 - typelen;
 
-      char *array_len_start = c + typelen + 1;
-      c = array_len_start;
+    if (typelen > 0) {
+      // if (is_program_word(c, &typelen) && *(c + typelen) == '[') {
+
+      c = array_scan;
       char *closing_square_brace = strchr(c, ']');
       if (closing_square_brace != nullptr) {
         c = closing_square_brace;
@@ -267,7 +400,7 @@ static void replace_array_initializers_func(std::string &str)
             /* Resolve to MSL-compatible array formatting. */
             *first_bracket = '{';
             *closing_bracket = '}';
-            for (char *clear = base_scan; clear <= closing_square_brace; clear++) {
+            for (char *clear = base_type_name; clear <= closing_square_brace; clear++) {
               *clear = ' ';
             }
           }
@@ -276,6 +409,11 @@ static void replace_array_initializers_func(std::string &str)
       else {
         return;
       }
+    }
+    else {
+      /* Not an array initializer, continue scanning. */
+      c = array_scan + 1;
+      continue;
     }
   }
 }
@@ -329,7 +467,7 @@ static void extract_global_scope_constants(std::string &str, std::stringstream &
     /* Check For global const declarations */
     if (nested_bracket_depth == 0 && strncmp(c, "const ", 6) == 0 &&
         strncmp(c, "const constant ", 15) != 0) {
-      char *c_expr_end = strstr(c, ";");
+      char *c_expr_end = strchr(c, ';');
       if (c_expr_end != nullptr && balanced_braces(c, c_expr_end)) {
         MTL_LOG_INFO(
             "[PERFORMANCE WARNING] Global scope constant expression found - These get allocated "
@@ -347,7 +485,7 @@ static void extract_global_scope_constants(std::string &str, std::stringstream &
 #endif
 
 static bool extract_ssbo_pragma_info(const MTLShader *shader,
-                                     const MSLGeneratorInterface &,
+                                     const MSLGeneratorInterface &msl_iface,
                                      const std::string &in_vertex_src,
                                      MTLPrimitiveType &out_prim_tye,
                                      uint32_t &out_num_output_verts)
@@ -767,25 +905,12 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
         vertex_fetch_ssbo_num_output_verts);
   }
 
-  /*** Regex Commands ***/
-  /* Source cleanup and syntax replacement. */
-  static std::regex remove_excess_newlines("\\n+");
-  static std::regex replace_matrix_construct("mat([234](x[234])?)\\s*\\(");
-
-  /* Special condition - mat3 and array constructor replacement.
-   * Also replace excessive new lines to ensure cases are not missed.
-   * NOTE(Metal): May be able to skip excess-newline removal. */
-  shd_builder_->glsl_vertex_source_ = std::regex_replace(
-      shd_builder_->glsl_vertex_source_, remove_excess_newlines, "\n");
-  shd_builder_->glsl_vertex_source_ = std::regex_replace(
-      shd_builder_->glsl_vertex_source_, replace_matrix_construct, "MAT$1(");
+  /* Special condition - mat3 and array constructor replacement. */
+  replace_matrix_constructors(shd_builder_->glsl_vertex_source_);
   replace_array_initializers_func(shd_builder_->glsl_vertex_source_);
 
   if (!msl_iface.uses_transform_feedback) {
-    shd_builder_->glsl_fragment_source_ = std::regex_replace(
-        shd_builder_->glsl_fragment_source_, remove_excess_newlines, "\n");
-    shd_builder_->glsl_fragment_source_ = std::regex_replace(
-        shd_builder_->glsl_fragment_source_, replace_matrix_construct, "MAT$1(");
+    replace_matrix_constructors(shd_builder_->glsl_fragment_source_);
     replace_array_initializers_func(shd_builder_->glsl_fragment_source_);
   }
 
@@ -856,24 +981,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   }
 
   /* Extract gl_ClipDistances. */
-  static std::regex gl_clipdistance_find("gl_ClipDistance\\[([0-9])\\]");
-
-  std::string clip_search_str = shd_builder_->glsl_vertex_source_;
-  std::smatch vertex_clip_distances;
-
-  while (std::regex_search(clip_search_str, vertex_clip_distances, gl_clipdistance_find)) {
-    shader_debug_printf("VERTEX CLIP DISTANCES FOUND: str: %s\n",
-                        vertex_clip_distances[1].str().c_str());
-    auto found = std::find(msl_iface.clip_distances.begin(),
-                           msl_iface.clip_distances.end(),
-                           vertex_clip_distances[1].str());
-    if (found == msl_iface.clip_distances.end()) {
-      msl_iface.clip_distances.append(vertex_clip_distances[1].str());
-    }
-    clip_search_str = vertex_clip_distances.suffix();
-  }
-  shd_builder_->glsl_vertex_source_ = std::regex_replace(
-      shd_builder_->glsl_vertex_source_, gl_clipdistance_find, "gl_ClipDistance_$1");
+  extract_and_replace_clipping_distances(shd_builder_->glsl_vertex_source_, msl_iface);
 
   /* Replace 'out' attribute on function parameters with pass-by-reference. */
   replace_outvars(shd_builder_->glsl_vertex_source_);
@@ -972,7 +1080,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
         ss_vertex << to_string(inout.type) << " " << inout.name << ";" << std::endl;
       }
 
-      const char *arraystart = strstr(inout.name.c_str(), "[");
+      const char *arraystart = strchr(inout.name.c_str(), '[');
       bool is_array = (arraystart != nullptr);
       int array_len = (is_array) ? std::stoi(std::regex_replace(
                                        arraystart, remove_non_numeric_characters, "")) :
@@ -1263,17 +1371,8 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
   /* Verify Source sizes are greater than zero. */
   BLI_assert(shd_builder_->glsl_compute_source_.size() > 0);
 
-  /*** Regex Commands ***/
-  /* Source cleanup and syntax replacement. */
-  static std::regex remove_excess_newlines("\\n+");
-  static std::regex replace_matrix_construct("mat([234](x[234])?)\\s*\\(");
-
-  /* Special condition - mat3 and array constructor replacement.
-   * Also replace excessive new lines to ensure cases are not missed. */
-  shd_builder_->glsl_compute_source_ = std::regex_replace(
-      shd_builder_->glsl_compute_source_, remove_excess_newlines, "\n");
-  shd_builder_->glsl_compute_source_ = std::regex_replace(
-      shd_builder_->glsl_compute_source_, replace_matrix_construct, "MAT$1(");
+  /*** Source cleanup. ***/
+  replace_matrix_constructors(shd_builder_->glsl_compute_source_);
   replace_array_initializers_func(shd_builder_->glsl_compute_source_);
 
   /**** Extract usage of GL globals. ****/

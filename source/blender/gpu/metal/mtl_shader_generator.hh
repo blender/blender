@@ -382,7 +382,7 @@ class MSLGeneratorInterface {
   /* Transform feedback interface. */
   blender::Vector<MSLVertexOutputAttribute> vertex_output_varyings_tf;
   /* Clip Distances. */
-  blender::Vector<std::string> clip_distances;
+  blender::Vector<char> clip_distances;
   /* Shared Memory Blocks. */
   blender::Vector<MSLSharedMemoryBlock> shared_memory_blocks;
 
