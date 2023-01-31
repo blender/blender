@@ -19,6 +19,7 @@ struct GeometryAttributeInfo;
 
 struct StructRNA;
 struct uiBlock;
+struct uiBut;
 struct uiSearchItems;
 
 namespace blender::ui {

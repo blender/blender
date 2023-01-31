@@ -1658,8 +1658,8 @@ static void ui_editsource_active_but_set(uiBut *but)
 {
   BLI_assert(ui_editsource_info == nullptr);
 
-  ui_editsource_info = MEM_cnew<uiEditSourceStore>(__func__);
-  memcpy(&ui_editsource_info->but_orig, but, sizeof(uiBut));
+  ui_editsource_info = MEM_new<uiEditSourceStore>(__func__);
+  ui_editsource_info->but_orig = *but;
 
   ui_editsource_info->hash = BLI_ghash_ptr_new(__func__);
 }
