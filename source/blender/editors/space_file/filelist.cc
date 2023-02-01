@@ -2983,7 +2983,7 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
       entry->relpath = current_relpath_append(job_params, files[i].relname);
       entry->st = files[i].s;
 
-      BLI_path_join(full_path, FILE_MAX, root, entry->relpath);
+      BLI_path_join(full_path, FILE_MAX, root, files[i].relname);
       char *target = full_path;
 
       /* Set initial file type and attributes. */
