@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "BLI_compiler_attrs.h"
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
@@ -199,6 +201,9 @@ struct uiBut {
   uiButHandleFunc func = nullptr;
   void *func_arg1 = nullptr;
   void *func_arg2 = nullptr;
+  /** C++ version of #func above. Allows storing arbitrary data in a type safe way, no void
+   * pointer arguments.*/
+  std::function<void(bContext &)> apply_func;
 
   uiButHandleNFunc funcN = nullptr;
   void *func_argN = nullptr;
@@ -275,8 +280,7 @@ struct uiBut {
   double *editval = nullptr;
   float *editvec = nullptr;
 
-  uiButPushedStateFunc pushed_state_func = nullptr;
-  const void *pushed_state_arg = nullptr;
+  std::function<bool(const uiBut &)> pushed_state_func;
 
   /** Little indicator (e.g., counter) displayed on top of some icons. */
   IconTextOverlay icon_overlay_text = {};

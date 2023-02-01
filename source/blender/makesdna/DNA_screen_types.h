@@ -749,6 +749,7 @@ enum {
 typedef struct AssetShelfSettings {
   /* TODO make this per mode? (or use a custom identifier?) */
   ListBase enabled_catalog_paths; /* #LinkData */
+  const char *active_catalog_path;
 } AssetShelfSettings;
 
 #ifdef __cplusplus

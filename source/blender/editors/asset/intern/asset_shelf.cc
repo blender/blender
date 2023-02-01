@@ -104,9 +104,23 @@ static void asset_shelf_settings_clear_enabled_catalogs(AssetShelfSettings &shel
   BLI_assert(BLI_listbase_is_empty(&shelf_settings.enabled_catalog_paths));
 }
 
+static void asset_shelf_settings_set_active_catalog(AssetShelfSettings &shelf_settings,
+                                                    const asset_system::AssetCatalogPath &path)
+{
+  MEM_delete(shelf_settings.active_catalog_path);
+  shelf_settings.active_catalog_path = BLI_strdupn(path.c_str(), path.length());
+}
+
+static bool asset_shelf_settings_is_active_catalog(const AssetShelfSettings &shelf_settings,
+                                                   const asset_system::AssetCatalogPath &path)
+{
+  return shelf_settings.active_catalog_path && shelf_settings.active_catalog_path == path.str();
+}
+
 void ED_asset_shelf_settings_free(AssetShelfSettings *shelf_settings)
 {
   asset_shelf_settings_clear_enabled_catalogs(*shelf_settings);
+  MEM_delete(shelf_settings->active_catalog_path);
 }
 
 void ED_asset_shelf_settings_blend_write(BlendWriter *writer,
@@ -374,6 +388,50 @@ static uiBlock *asset_shelf_catalog_selector_block_draw(bContext *C,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Catalog toggle buttons
+ * \{ */
+
+static void add_catalog_toggle_buttons(AssetShelfSettings &shelf_settings, uiLayout &layout)
+{
+  uiBlock *block = uiLayoutGetBlock(&layout);
+  const uiStyle *style = UI_style_get_dpi();
+
+  asset_shelf_settings_foreach_enabled_catalog_path(
+      shelf_settings, [&shelf_settings, block, style](const asset_system::AssetCatalogPath &path) {
+        const char *name = path.name().c_str();
+        const int string_width = UI_fontstyle_string_width(&style->widget, name);
+        const int pad_x = UI_UNIT_X * 0.3f;
+        const int but_width = std::min(string_width + 2 * pad_x, UI_UNIT_X * 8);
+
+        uiBut *but = uiDefBut(
+            block,
+            UI_BTYPE_TAB,
+            0,
+            name,
+            0,
+            0,
+            but_width,
+            UI_UNIT_Y,
+            nullptr,
+            0,
+            0,
+            0,
+            0,
+            "Enable catalog, making contained assets visible in the asset shelf");
+
+        UI_but_drawflag_enable(but, UI_BUT_ALIGN_TOP);
+        UI_but_func_set(but, [&shelf_settings, path](bContext &) {
+          asset_shelf_settings_set_active_catalog(shelf_settings, path);
+        });
+        UI_but_func_pushed_state_set(but, [&shelf_settings, path](const uiBut &) -> bool {
+          return asset_shelf_settings_is_active_catalog(shelf_settings, path);
+        });
+      });
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Asset Shelf Footer
  *
  * Implemented as HeaderType for #RGN_TYPE_ASSET_SHELF_FOOTER.
@@ -399,10 +457,7 @@ static void asset_shelf_footer_draw(const bContext *C, Header *header)
 
   AssetShelfSettings *shelf_settings = get_asset_shelf_settings_from_context(C);
   if (shelf_settings) {
-    asset_shelf_settings_foreach_enabled_catalog_path(
-        *shelf_settings, [layout](const asset_system::AssetCatalogPath &path) {
-          uiItemL(layout, path.name().c_str(), ICON_NONE);
-        });
+    add_catalog_toggle_buttons(*shelf_settings, *layout);
   }
 }
 

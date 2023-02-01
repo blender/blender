@@ -17,6 +17,7 @@ namespace blender::nodes::geo_eval_log {
 struct GeometryAttributeInfo;
 }
 
+struct bContext;
 struct StructRNA;
 struct uiBlock;
 struct uiBut;
@@ -53,6 +54,9 @@ void attribute_search_add_items(StringRefNull str,
                                 bool is_first);
 
 }  // namespace blender::ui
+
+void UI_but_func_set(uiBut *but, std::function<void(bContext &)> func);
+void UI_but_func_pushed_state_set(uiBut *but, std::function<bool(const uiBut &)> func);
 
 /**
  * Override this for all available view types.

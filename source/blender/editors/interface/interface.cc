@@ -51,6 +51,7 @@
 #include "BLT_translation.h"
 
 #include "UI_interface.h"
+#include "UI_interface.hh"
 #include "UI_interface_icons.h"
 #include "UI_view2d.h"
 
@@ -747,6 +748,10 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
     return false;
   }
   if (but->func != oldbut->func) {
+    return false;
+  }
+  if (but->apply_func.target<void(bContext &)>() !=
+      oldbut->apply_func.target<void(bContext &)>()) {
     return false;
   }
   if (but->funcN != oldbut->funcN) {
@@ -2181,7 +2186,7 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
 {
   int is_push = 0;
   if (but->pushed_state_func) {
-    return but->pushed_state_func(but, but->pushed_state_arg);
+    return but->pushed_state_func(*but);
   }
 
   if (but->bit) {
@@ -6001,6 +6006,11 @@ void UI_but_func_set(uiBut *but, uiButHandleFunc func, void *arg1, void *arg2)
   but->func_arg2 = arg2;
 }
 
+void UI_but_func_set(uiBut *but, std::function<void(bContext &)> func)
+{
+  but->apply_func = func;
+}
+
 void UI_but_funcN_set(uiBut *but, uiButHandleNFunc funcN, void *argN, void *arg2)
 {
   if (but->func_argN) {
@@ -6033,10 +6043,9 @@ void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFre
   but->tip_arg_free = free_arg;
 }
 
-void UI_but_func_pushed_state_set(uiBut *but, uiButPushedStateFunc func, const void *arg)
+void UI_but_func_pushed_state_set(uiBut *but, std::function<bool(const uiBut &)> func)
 {
   but->pushed_state_func = func;
-  but->pushed_state_arg = arg;
   ui_but_update(but);
 }
 
