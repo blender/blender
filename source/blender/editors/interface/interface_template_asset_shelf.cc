@@ -4,8 +4,11 @@
  * \ingroup edinterface
  */
 
+#include "AS_asset_library.hh"
+
 #include "BKE_context.h"
 
+#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
 #include "ED_asset.h"
@@ -13,6 +16,10 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "interface_intern.hh"
+
+#include "RNA_prototypes.h"
+
+using namespace blender;
 
 /* TODO copy of #asset_view_item_but_drag_set(). */
 static void asset_tile_but_drag_set(uiBut &but, AssetHandle &asset_handle)
@@ -69,14 +76,44 @@ static void asset_tile_draw(uiLayout &layout,
   asset_tile_but_drag_set(*but, asset_handle);
 }
 
+static std::optional<asset_system::AssetCatalogFilter> catalog_filter_from_shelf_settings(
+    const AssetShelfSettings *shelf_settings, const asset_system::AssetLibrary *library)
+{
+  if (!shelf_settings || !shelf_settings->active_catalog_path) {
+    return {};
+  }
+
+  asset_system ::AssetCatalog *active_catalog = library->catalog_service->find_catalog_by_path(
+      shelf_settings->active_catalog_path);
+  if (!active_catalog) {
+    return {};
+  }
+
+  return library->catalog_service->create_catalog_filter(active_catalog->catalog_id);
+}
+
 void uiTemplateAssetShelf(uiLayout *layout,
                           const bContext *C,
                           const AssetFilterSettings *filter_settings)
 {
   const AssetLibraryReference *library_ref = CTX_wm_asset_library_ref(C);
+  const PointerRNA shelf_settings_ptr = CTX_data_pointer_get_type(
+      C, "asset_shelf_settings", &RNA_AssetShelfSettings);
+  const AssetShelfSettings *shelf_settings = static_cast<AssetShelfSettings *>(
+      shelf_settings_ptr.data);
 
   ED_assetlist_storage_fetch(library_ref, C);
   ED_assetlist_ensure_previews_job(library_ref, C);
+
+  const asset_system::AssetLibrary *library = ED_assetlist_library_get_once_available(
+      *library_ref);
+  if (!library) {
+    return;
+  }
+
+  std::optional<asset_system::AssetCatalogFilter> catalog_filter =
+      catalog_filter_from_shelf_settings(shelf_settings, library);
+
   uiLayoutSetScaleX(layout, 1.0f);
   uiLayoutSetScaleY(layout, 1.0f);
 
@@ -92,6 +129,11 @@ void uiTemplateAssetShelf(uiLayout *layout,
   ED_assetlist_iterate(*library_ref, [&](AssetHandle asset) {
     if (!ED_asset_filter_matches_asset(filter_settings, &asset)) {
       /* Don't do anything else, but return true to continue iterating. */
+      return true;
+    }
+    /* Filter by active catalog. */
+    const AssetMetaData *asset_data = ED_asset_handle_get_metadata(&asset);
+    if (catalog_filter && !catalog_filter->contains(asset_data->catalog_id)) {
       return true;
     }
 

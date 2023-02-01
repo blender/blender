@@ -34,18 +34,16 @@
 
 using namespace blender;
 
+static void asset_shelf_send_redraw_notifier(bContext &C)
+{
+  WM_event_add_notifier(&C, NC_SPACE | ND_SPACE_ASSET_SHELF, nullptr);
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Asset Shelf Regions
  * \{ */
 
-void ED_asset_shelf_region_listen(const wmRegionListenerParams *params)
-{
-  if (ED_assetlist_listen(params->notifier)) {
-    ED_region_tag_redraw_no_rebuild(params->region);
-  }
-}
-
-void ED_asset_shelf_footer_region_listen(const wmRegionListenerParams *params)
+static void asset_shelf_region_listen(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
   const wmNotifier *wmn = params->notifier;
@@ -57,6 +55,22 @@ void ED_asset_shelf_footer_region_listen(const wmRegionListenerParams *params)
       }
       break;
   }
+}
+
+void ED_asset_shelf_region_listen(const wmRegionListenerParams *params)
+{
+  if (ED_assetlist_listen(params->notifier)) {
+    ED_region_tag_redraw_no_rebuild(params->region);
+  }
+  /* If the asset list didn't catch the notifier, let the region itself listen. */
+  else {
+    asset_shelf_region_listen(params);
+  }
+}
+
+void ED_asset_shelf_footer_region_listen(const wmRegionListenerParams *params)
+{
+  asset_shelf_region_listen(params);
 }
 
 void ED_asset_shelf_footer_region_init(wmWindowManager * /*wm*/, ARegion *region)
@@ -265,7 +279,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
     return view_item;
   }
 
-  void update_shelf_settings_from_enabled_catalogs(const bContext *C);
+  void update_shelf_settings_from_enabled_catalogs();
 
   class Item : public ui::BasicTreeViewItem {
     asset_system::AssetCatalogTreeItem catalog_item_;
@@ -294,6 +308,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
 
     void build_row(uiLayout &row) override
     {
+      AssetCatalogSelectorTree &tree = dynamic_cast<AssetCatalogSelectorTree &>(get_tree_view());
       uiBlock *block = uiLayoutGetBlock(&row);
 
       uiLayoutSetEmboss(&row, UI_EMBOSS);
@@ -316,29 +331,23 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
                              0,
                              0,
                              TIP_("Toggle catalog visibility in the asset shelf"));
-      UI_but_func_set(
-          but,
-          [](bContext *C, void *selector_tree_ptr, void *) {
-            AssetCatalogSelectorTree &selector_tree = *static_cast<AssetCatalogSelectorTree *>(
-                selector_tree_ptr);
-            selector_tree.update_shelf_settings_from_enabled_catalogs(C);
-          },
-          &dynamic_cast<AssetCatalogSelectorTree &>(get_tree_view()),
-          nullptr);
+      UI_but_func_set(but, [&tree](bContext &C) {
+        tree.update_shelf_settings_from_enabled_catalogs();
+        asset_shelf_send_redraw_notifier(C);
+      });
       UI_but_flag_disable(but, UI_BUT_UNDO);
     }
   };
 };
 
-void AssetCatalogSelectorTree::update_shelf_settings_from_enabled_catalogs(const bContext *C)
+void AssetCatalogSelectorTree::update_shelf_settings_from_enabled_catalogs()
 {
   asset_shelf_settings_clear_enabled_catalogs(shelf_settings_);
-  foreach_item([C, this](ui::AbstractTreeViewItem &view_item) {
+  foreach_item([this](ui::AbstractTreeViewItem &view_item) {
     const auto &selector_tree_item = dynamic_cast<AssetCatalogSelectorTree::Item &>(view_item);
     if (selector_tree_item.is_catalog_path_enabled()) {
       asset_shelf_settings_set_catalog_path_enabled(shelf_settings_,
                                                     selector_tree_item.catalog_path());
-      WM_event_add_notifier(C, NC_SPACE | ND_SPACE_ASSET_SHELF, nullptr);
     }
   });
 }
@@ -420,8 +429,9 @@ static void add_catalog_toggle_buttons(AssetShelfSettings &shelf_settings, uiLay
             "Enable catalog, making contained assets visible in the asset shelf");
 
         UI_but_drawflag_enable(but, UI_BUT_ALIGN_TOP);
-        UI_but_func_set(but, [&shelf_settings, path](bContext &) {
+        UI_but_func_set(but, [&shelf_settings, path](bContext &C) {
           asset_shelf_settings_set_active_catalog(shelf_settings, path);
+          asset_shelf_send_redraw_notifier(C);
         });
         UI_but_func_pushed_state_set(but, [&shelf_settings, path](const uiBut &) -> bool {
           return asset_shelf_settings_is_active_catalog(shelf_settings, path);

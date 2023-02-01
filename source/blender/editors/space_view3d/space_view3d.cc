@@ -2186,6 +2186,7 @@ void ED_spacetype_view3d()
   art->prefsizey = HEADERY * 3.5f;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
   art->listener = ED_asset_shelf_region_listen;
+  art->context = view3d_asset_shelf_context;
   art->init = view3d_header_region_init;
   art->draw = ED_region_header;
   BLI_addhead(&st->regiontypes, art);
