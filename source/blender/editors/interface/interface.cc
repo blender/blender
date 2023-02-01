@@ -3474,7 +3474,7 @@ static void ui_but_free(const bContext *C, uiBut *but)
 
   BLI_assert(UI_butstore_is_registered(but->block, but) == false);
 
-  MEM_freeN(but);
+  MEM_delete(but);
 }
 
 void UI_block_free(const bContext *C, uiBlock *block)
@@ -3975,89 +3975,57 @@ void ui_block_cm_to_display_space_v3(uiBlock *block, float pixel[3])
   IMB_colormanagement_scene_linear_to_display_v3(pixel, display);
 }
 
-static void ui_but_alloc_info(const eButType type,
-                              size_t *r_alloc_size,
-                              const char **r_alloc_str,
-                              bool *r_has_custom_type)
+/**
+ * Factory function: Allocate button and set #uiBut.type.
+ */
+static uiBut *ui_but_new(const eButType type)
 {
-  size_t alloc_size;
-  const char *alloc_str;
-  bool has_custom_type = true;
+  uiBut *but = nullptr;
 
   switch (type) {
     case UI_BTYPE_NUM:
-      alloc_size = sizeof(uiButNumber);
-      alloc_str = "uiButNumber";
+      but = MEM_new<uiButNumber>("uiButNumber");
       break;
     case UI_BTYPE_COLOR:
-      alloc_size = sizeof(uiButColor);
-      alloc_str = "uiButColor";
+      but = MEM_new<uiButColor>("uiButColor");
       break;
     case UI_BTYPE_DECORATOR:
-      alloc_size = sizeof(uiButDecorator);
-      alloc_str = "uiButDecorator";
+      but = MEM_new<uiButDecorator>("uiButDecorator");
       break;
     case UI_BTYPE_TAB:
-      alloc_size = sizeof(uiButTab);
-      alloc_str = "uiButTab";
+      but = MEM_new<uiButTab>("uiButTab");
       break;
     case UI_BTYPE_SEARCH_MENU:
-      alloc_size = sizeof(uiButSearch);
-      alloc_str = "uiButSearch";
+      but = MEM_new<uiButSearch>("uiButSearch");
       break;
     case UI_BTYPE_PROGRESS_BAR:
-      alloc_size = sizeof(uiButProgressbar);
-      alloc_str = "uiButProgressbar";
+      but = MEM_new<uiButProgressbar>("uiButProgressbar");
       break;
     case UI_BTYPE_HSVCUBE:
-      alloc_size = sizeof(uiButHSVCube);
-      alloc_str = "uiButHSVCube";
+      but = MEM_new<uiButHSVCube>("uiButHSVCube");
       break;
     case UI_BTYPE_COLORBAND:
-      alloc_size = sizeof(uiButColorBand);
-      alloc_str = "uiButColorBand";
+      but = MEM_new<uiButColorBand>("uiButColorBand");
       break;
     case UI_BTYPE_CURVE:
-      alloc_size = sizeof(uiButCurveMapping);
-      alloc_str = "uiButCurveMapping";
+      but = MEM_new<uiButCurveMapping>("uiButCurveMapping");
       break;
     case UI_BTYPE_CURVEPROFILE:
-      alloc_size = sizeof(uiButCurveProfile);
-      alloc_str = "uiButCurveProfile";
+      but = MEM_new<uiButCurveProfile>("uiButCurveProfile");
       break;
     case UI_BTYPE_HOTKEY_EVENT:
-      alloc_size = sizeof(uiButHotkeyEvent);
-      alloc_str = "uiButHotkeyEvent";
+      but = MEM_new<uiButHotkeyEvent>("uiButHotkeyEvent");
       break;
     case UI_BTYPE_VIEW_ITEM:
-      alloc_size = sizeof(uiButViewItem);
-      alloc_str = "uiButViewItem";
+      but = MEM_new<uiButViewItem>("uiButViewItem");
       break;
     default:
-      alloc_size = sizeof(uiBut);
-      alloc_str = "uiBut";
-      has_custom_type = false;
+      but = MEM_new<uiBut>("uiBut");
       break;
   }
 
-  if (r_alloc_size) {
-    *r_alloc_size = alloc_size;
-  }
-  if (r_alloc_str) {
-    *r_alloc_str = alloc_str;
-  }
-  if (r_has_custom_type) {
-    *r_has_custom_type = has_custom_type;
-  }
-}
-
-static uiBut *ui_but_alloc(const eButType type)
-{
-  size_t alloc_size;
-  const char *alloc_str;
-  ui_but_alloc_info(type, &alloc_size, &alloc_str, nullptr);
-
-  return static_cast<uiBut *>(MEM_callocN(alloc_size, alloc_str));
+  but->type = type;
+  return but;
 }
 
 uiBut *ui_but_change_type(uiBut *but, eButType new_type)
@@ -4067,46 +4035,41 @@ uiBut *ui_but_change_type(uiBut *but, eButType new_type)
     return but;
   }
 
-  size_t alloc_size;
-  const char *alloc_str;
   uiBut *insert_after_but = but->prev;
-  bool new_has_custom_type, old_has_custom_type;
 
   /* Remove old button address */
   BLI_remlink(&but->block->buttons, but);
 
-  ui_but_alloc_info(but->type, nullptr, nullptr, &old_has_custom_type);
-  ui_but_alloc_info(new_type, &alloc_size, &alloc_str, &new_has_custom_type);
+  const uiBut *old_but_ptr = but;
+  /* Button may have pointer to a member within itself, this will have to be updated. */
+  const bool has_str_ptr_to_self = but->str == but->strdata;
+  const bool has_poin_ptr_to_self = but->poin == (char *)but;
 
-  if (new_has_custom_type || old_has_custom_type) {
-    const uiBut *old_but_ptr = but;
-    /* Button may have pointer to a member within itself, this will have to be updated. */
-    const bool has_str_ptr_to_self = but->str == but->strdata;
-    const bool has_poin_ptr_to_self = but->poin == (char *)but;
-
-    but = static_cast<uiBut *>(MEM_recallocN_id(but, alloc_size, alloc_str));
-    but->type = new_type;
-    if (has_str_ptr_to_self) {
-      but->str = but->strdata;
-    }
-    if (has_poin_ptr_to_self) {
-      but->poin = (char *)but;
-    }
-
-    BLI_insertlinkafter(&but->block->buttons, insert_after_but, but);
-
-    if (but->layout) {
-      const bool found_layout = ui_layout_replace_but_ptr(but->layout, old_but_ptr, but);
-      BLI_assert(found_layout);
-      UNUSED_VARS_NDEBUG(found_layout);
-      ui_button_group_replace_but_ptr(uiLayoutGetBlock(but->layout), old_but_ptr, but);
-    }
-#ifdef WITH_PYTHON
-    if (UI_editsource_enable_check()) {
-      UI_editsource_but_replace(old_but_ptr, but);
-    }
-#endif
+  /* Copy construct button with the new type. */
+  but = ui_but_new(new_type);
+  *but = *old_but_ptr;
+  if (has_str_ptr_to_self) {
+    but->str = but->strdata;
   }
+  if (has_poin_ptr_to_self) {
+    but->poin = (char *)but;
+  }
+
+  BLI_insertlinkafter(&but->block->buttons, insert_after_but, but);
+
+  if (but->layout) {
+    const bool found_layout = ui_layout_replace_but_ptr(but->layout, old_but_ptr, but);
+    BLI_assert(found_layout);
+    UNUSED_VARS_NDEBUG(found_layout);
+    ui_button_group_replace_but_ptr(uiLayoutGetBlock(but->layout), old_but_ptr, but);
+  }
+#ifdef WITH_PYTHON
+  if (UI_editsource_enable_check()) {
+    UI_editsource_but_replace(old_but_ptr, but);
+  }
+#endif
+
+  MEM_delete(old_but_ptr);
 
   return but;
 }
@@ -4152,14 +4115,11 @@ static uiBut *ui_def_but(uiBlock *block,
     }
   }
 
-  uiBut *but = ui_but_alloc((eButType)(type & BUTTYPE));
+  uiBut *but = ui_but_new((eButType)(type & BUTTYPE));
 
-  but->type = (eButType)(type & BUTTYPE);
   but->pointype = (eButPointerType)(type & UI_BUT_POIN_TYPES);
   but->bit = type & UI_BUT_POIN_BIT;
   but->bitnr = type & 31;
-  but->icon = ICON_NONE;
-  but->iconadd = 0;
 
   but->retval = retval;
 
@@ -4180,7 +4140,6 @@ static uiBut *ui_def_but(uiBlock *block,
 
   but->disabled_info = block->lockstr;
   but->emboss = block->emboss;
-  but->pie_dir = UI_RADIAL_NONE;
 
   but->block = block; /* pointer back, used for front-buffer status, and picker. */
 
@@ -6310,7 +6269,7 @@ void UI_but_func_search_set(uiBut *but,
 
   if (search_exec_fn) {
 #ifdef DEBUG
-    if (search_but->but.func) {
+    if (but->func) {
       /* watch this, can be cause of much confusion, see: T47691 */
       printf("%s: warning, overwriting button callback with search function callback!\n",
              __func__);
