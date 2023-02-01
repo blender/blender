@@ -581,7 +581,7 @@ static void rna_MeshLoop_normal_set(PointerRNA *ptr, const float *values)
   float(*layer)[3] = CustomData_get_layer_for_write(&me->ldata, CD_NORMAL, me->totloop);
 
   if (layer) {
-    normalize_v3_v3(*layer, values + index);
+    normalize_v3_v3(layer[index], values);
   }
 }
 
