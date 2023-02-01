@@ -1238,25 +1238,26 @@ int WM_modalkeymap_items_to_string(const wmKeyMap *km,
                                    char *result,
                                    const int result_len)
 {
-  int totlen = 0;
-  bool add_sep = false;
+  BLI_assert(result_len > 0);
 
-  if (km) {
-    const wmKeyMapItem *kmi;
-
-    /* Find all shortcuts related to that propvalue! */
-    for (kmi = WM_modalkeymap_find_propvalue(km, propvalue); kmi && totlen < (result_len - 2);
-         kmi = wm_modalkeymap_find_propvalue_iter(km, kmi, propvalue)) {
-      if (add_sep) {
-        result[totlen++] = '/';
-        result[totlen] = '\0';
-      }
-      else {
-        add_sep = true;
-      }
-      totlen += WM_keymap_item_to_string(kmi, compact, &result[totlen], result_len - totlen);
-    }
+  const wmKeyMapItem *kmi;
+  if (km == NULL || (kmi = WM_modalkeymap_find_propvalue(km, propvalue)) == NULL) {
+    *result = '\0';
+    return 0;
   }
+
+  int totlen = 0;
+  do {
+    totlen += WM_keymap_item_to_string(kmi, compact, &result[totlen], result_len - totlen);
+
+    if ((kmi = wm_modalkeymap_find_propvalue_iter(km, kmi, propvalue)) == NULL ||
+        totlen >= (result_len - 2)) {
+      break;
+    }
+
+    result[totlen++] = '/';
+    result[totlen] = '\0';
+  } while (true);
 
   return totlen;
 }
