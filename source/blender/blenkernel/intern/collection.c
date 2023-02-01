@@ -1214,6 +1214,28 @@ bool BKE_collection_object_remove(Main *bmain,
   return true;
 }
 
+bool BKE_collection_object_replace(Main *bmain,
+                                   Collection *collection,
+                                   Object *ob_old,
+                                   Object *ob_new)
+{
+  CollectionObject *cob = BLI_findptr(
+      &collection->gobject, ob_old, offsetof(CollectionObject, ob));
+  if (cob == NULL) {
+    return false;
+  }
+
+  id_us_min(&cob->ob->id);
+  cob->ob = ob_new;
+  id_us_plus(&cob->ob->id);
+
+  if (BKE_collection_is_in_scene(collection)) {
+    BKE_main_collection_sync(bmain);
+  }
+
+  return true;
+}
+
 /**
  * Remove object from all collections of scene
  * \param collection_skip: Don't remove base from this collection.
