@@ -513,7 +513,10 @@ id_property_create_from_socket(const bNodeSocket &socket)
     case SOCK_OBJECT: {
       const bNodeSocketValueObject *value = static_cast<const bNodeSocketValueObject *>(
           socket.default_value);
-      return bke::idprop::create(socket.identifier, reinterpret_cast<ID *>(value->value));
+      auto property = bke::idprop::create(socket.identifier, reinterpret_cast<ID *>(value->value));
+      IDPropertyUIDataID *ui_data = (IDPropertyUIDataID *)IDP_ui_data_ensure(property.get());
+      ui_data->id_type = ID_OB;
+      return property;
     }
     case SOCK_COLLECTION: {
       const bNodeSocketValueCollection *value = static_cast<const bNodeSocketValueCollection *>(

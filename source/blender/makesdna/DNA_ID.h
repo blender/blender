@@ -104,6 +104,12 @@ typedef struct IDPropertyUIDataString {
 /** For #IDP_UI_DATA_TYPE_ID. */
 typedef struct IDPropertyUIDataID {
   IDPropertyUIData base;
+  /**
+   * #ID_Type. This type type is not enforced. It is just a hint to the ui for what kind of ID is
+   * expected. If this is zero, any id type is expected.
+   */
+  short id_type;
+  char _pad[6];
 } IDPropertyUIDataID;
 
 typedef struct IDPropertyData {
