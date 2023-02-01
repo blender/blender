@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 class DeviceQueue;
 
-class HIPDevice : public Device {
+class HIPDevice : public GPUDevice {
 
   friend class HIPContextScope;
 
@@ -26,35 +26,10 @@ class HIPDevice : public Device {
   hipDevice_t hipDevice;
   hipCtx_t hipContext;
   hipModule_t hipModule;
-  size_t device_texture_headroom;
-  size_t device_working_headroom;
-  bool move_texture_to_host;
-  size_t map_host_used;
-  size_t map_host_limit;
-  int can_map_host;
   int pitch_alignment;
   int hipDevId;
   int hipDevArchitecture;
   bool first_error;
-
-  struct HIPMem {
-    HIPMem() : texobject(0), array(0), use_mapped_host(false)
-    {
-    }
-
-    hipTextureObject_t texobject;
-    hArray array;
-
-    /* If true, a mapped host memory in shared_pointer is being used. */
-    bool use_mapped_host;
-  };
-  typedef map<device_memory *, HIPMem> HIPMemMap;
-  HIPMemMap hip_mem_map;
-  thread_mutex hip_mem_map_mutex;
-
-  /* Bindless Textures */
-  device_vector<TextureInfo> texture_info;
-  bool need_texture_info;
 
   HIPDeviceKernels kernels;
 
@@ -81,17 +56,13 @@ class HIPDevice : public Device {
   virtual bool load_kernels(const uint kernel_features) override;
   void reserve_local_memory(const uint kernel_features);
 
-  void init_host_memory();
-
-  void load_texture_info();
-
-  void move_textures_to_host(size_t size, bool for_texture);
-
-  HIPMem *generic_alloc(device_memory &mem, size_t pitch_padding = 0);
-
-  void generic_copy_to(device_memory &mem);
-
-  void generic_free(device_memory &mem);
+  virtual void get_device_memory_info(size_t &total, size_t &free) override;
+  virtual bool alloc_device(void *&device_pointer, size_t size) override;
+  virtual void free_device(void *device_pointer) override;
+  virtual bool alloc_host(void *&shared_pointer, size_t size) override;
+  virtual void free_host(void *shared_pointer) override;
+  virtual bool transform_host_pointer(void *&device_pointer, void *&shared_pointer) override;
+  virtual void copy_host_to_device(void *device_pointer, void *host_pointer, size_t size) override;
 
   void mem_alloc(device_memory &mem) override;
 

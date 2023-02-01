@@ -309,6 +309,93 @@ class Device {
   static uint devices_initialized_mask;
 };
 
+/* Device, which is GPU, with some common functionality for GPU backends */
+class GPUDevice : public Device {
+ protected:
+  GPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_)
+      : Device(info_, stats_, profiler_),
+        texture_info(this, "texture_info", MEM_GLOBAL),
+        need_texture_info(false),
+        can_map_host(false),
+        map_host_used(0),
+        map_host_limit(0),
+        device_texture_headroom(0),
+        device_working_headroom(0),
+        device_mem_map(),
+        device_mem_map_mutex(),
+        move_texture_to_host(false),
+        device_mem_in_use(0)
+  {
+  }
+
+ public:
+  virtual ~GPUDevice() noexcept(false);
+
+  /* For GPUs that can use bindless textures in some way or another. */
+  device_vector<TextureInfo> texture_info;
+  bool need_texture_info;
+  /* Returns true if the texture info was copied to the device (meaning, some more
+   * re-initialization might be needed). */
+  virtual bool load_texture_info();
+
+ protected:
+  /* Memory allocation, only accessed through device_memory. */
+  friend class device_memory;
+
+  bool can_map_host;
+  size_t map_host_used;
+  size_t map_host_limit;
+  size_t device_texture_headroom;
+  size_t device_working_headroom;
+  typedef unsigned long long texMemObject;
+  typedef unsigned long long arrayMemObject;
+  struct Mem {
+    Mem() : texobject(0), array(0), use_mapped_host(false)
+    {
+    }
+
+    texMemObject texobject;
+    arrayMemObject array;
+
+    /* If true, a mapped host memory in shared_pointer is being used. */
+    bool use_mapped_host;
+  };
+  typedef map<device_memory *, Mem> MemMap;
+  MemMap device_mem_map;
+  thread_mutex device_mem_map_mutex;
+  bool move_texture_to_host;
+  /* Simple counter which will try to track amount of used device memory */
+  size_t device_mem_in_use;
+
+  virtual void init_host_memory(size_t preferred_texture_headroom = 0,
+                                size_t preferred_working_headroom = 0);
+  virtual void move_textures_to_host(size_t size, bool for_texture);
+
+  /* Allocation, deallocation and copy functions, with coresponding
+   * support of device/host allocations. */
+  virtual GPUDevice::Mem *generic_alloc(device_memory &mem, size_t pitch_padding = 0);
+  virtual void generic_free(device_memory &mem);
+  virtual void generic_copy_to(device_memory &mem);
+
+  /* total - amount of device memory, free - amount of available device memory */
+  virtual void get_device_memory_info(size_t &total, size_t &free) = 0;
+
+  virtual bool alloc_device(void *&device_pointer, size_t size) = 0;
+
+  virtual void free_device(void *device_pointer) = 0;
+
+  virtual bool alloc_host(void *&shared_pointer, size_t size) = 0;
+
+  virtual void free_host(void *shared_pointer) = 0;
+
+  /* This function should return device pointer coresponding to shared pointer, which
+   * is host buffer, allocated in `alloc_host`. The function should `true`, if such
+   * address transformation is possible and `false` overwise */
+  virtual bool transform_host_pointer(void *&device_pointer, void *&shared_pointer) = 0;
+
+  virtual void copy_host_to_device(void *device_pointer, void *host_pointer, size_t size) = 0;
+};
+
 CCL_NAMESPACE_END
 
 #endif /* __DEVICE_H__ */
