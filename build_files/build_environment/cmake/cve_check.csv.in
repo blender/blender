@@ -1,5 +1,10 @@
 vendor,product,version,cve_number,remarks,comment
+@FMT_ID@,OSV-2021-991,Ignored,CVE marked as invalid but OSV not updated
+@FREETYPE_ID@,CVE-2022-27404,Ignored,does not affect blender usage of freetype
+@FREETYPE_ID@,CVE-2022-27405,Ignored,does not affect blender usage of freetype
+@FREETYPE_ID@,CVE-2022-27406,Ignored,does not affect blender usage of freetype
 @OPENJPEG_ID@,CVE-2016-9675,Ignored,issue in convert command line tool not used by blender
+@OPENJPEG_ID@,OSV-2022-416,Mitigated,using newer git revision with fix included
 @PYTHON_ID@,CVE-2009-2940,Ignored,issue in pygresql not used by blender
 @PYTHON_ID@,CVE-2020-29396,Ignored,issue in odoo not used by blender
 @PYTHON_ID@,CVE-2021-32052,Ignored,issue in django not used by blender
@@ -23,7 +28,13 @@ vendor,product,version,cve_number,remarks,comment
 @TIFF_ID@,CVE-2022-3599,Ignored,issue in tiff command line tool not used by blender
 @TIFF_ID@,CVE-2022-3626,Ignored,issue in tiff command line tool not used by blender
 @TIFF_ID@,CVE-2022-3627,Ignored,issue in tiff command line tool not used by blender
+@TIFF_ID@,CVE-2022-48281,Ignored,issue in tiff command line tool not used by blender
 @XML2_ID@,CVE-2016-3709,Ignored,not affecting blender and not considered a security issue upstream
+@XML2_ID@,OSV-2021-777,Ignored,already fixed in version used so OSV invalid
+@XML2_ID@,CVE-2022-40303,Ignored,fixed and cve_check version comparison is wrong
+@XML2_ID@,CVE-2022-40304,Ignored,fixed and cve_check version comparison is wrong
 @GMP_ID@,CVE-2021-43618,Mitigated,patched using upstream commit 561a9c25298e
 @SQLITE_ID@,CVE-2022-35737,Ignored,only affects SQLITE_ENABLE_STAT4 compile option not used by blender or python
+@SQLITE_ID@,CVE-2022-46908,Ignored,only affects CLI tools not used by blender or python
+@BROTLI_ID@,CVE-2020-8927,Ignored,fixed and cve_check version comparison is wrong
 @SBOMCONTENTS@
