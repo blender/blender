@@ -24,7 +24,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
   mesh->totvert = int(data.vertices.size());
   CustomData_add_layer_named(
       &mesh->vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, nullptr, mesh->totvert, "position");
-  blender::MutableSpan<blender::float3> verts = mesh->vert_positions_for_write();
+  MutableSpan<float3> verts = mesh->vert_positions_for_write();
   verts.copy_from(data.vertices);
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
