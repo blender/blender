@@ -210,8 +210,8 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
                                   unit_scale,
                                   offset);
 
-        /* handles - only do them if they're visible */
-        if (fcurve_handle_sel_check(sipo, bezt1) && (fcu->totvert > 1)) {
+        /* Handles. */
+        if (fcurve_handle_sel_check(sipo, bezt1)) {
           /* first handle only visible if previous segment had handles */
           if ((!prevbezt && (bezt1->ipo == BEZT_IPO_BEZ)) ||
               (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))) {
