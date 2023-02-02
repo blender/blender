@@ -6,6 +6,7 @@
 
 #include "BLI_math.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
@@ -121,8 +122,9 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
 
     /* Load faces into plyData. */
     int loop_offset = 0;
+    Span<MLoop> loops = mesh->loops();
     for (auto &&poly : mesh->polys()) {
-      auto loopSpan = mesh->loops().slice(poly.loopstart, poly.totloop);
+      Span<MLoop> loopSpan = loops.slice(poly.loopstart, poly.totloop);
       Vector<uint32_t> polyVector;
 
       for (int i = 0; i < loopSpan.size(); ++i) {
@@ -180,20 +182,30 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     }
 
     /* Colors */
-    if (export_params.export_colors && CustomData_has_layer(&mesh->vdata, CD_PROP_COLOR)) {
-      const float4 *colors = (float4 *)CustomData_get_layer(&mesh->vdata, CD_PROP_COLOR);
-      for (int i = 0; i < vertex_map.size(); i++) {
-        plyData.vertex_colors.append(colors[mesh_vertex_index_LUT[i]]);
+    if (export_params.export_colors) {
+      const StringRef name = mesh->active_color_attribute;
+      if (!name.is_empty()) {
+        const bke::AttributeAccessor attributes = mesh->attributes();
+        const VArray<ColorGeometry4f> colorAttribute =
+            attributes.lookup_or_default<ColorGeometry4f>(
+                name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
+
+        for (int i = 0; i < vertex_map.size(); i++) {
+          ColorGeometry4f colorGeometry = colorAttribute[mesh_vertex_index_LUT[i]];
+          float4 vertColor(colorGeometry.r, colorGeometry.g, colorGeometry.b, colorGeometry.a);
+          plyData.vertex_colors.append(vertColor);
+        }
       }
     }
 
     /* Edges */
     const bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
     if (loose_edges.count > 0) {
-      for (int i = 0; i < mesh->edges().size(); ++i) {
+      Span<MEdge> edges = mesh->edges();
+      for (int i = 0; i < edges.size(); ++i) {
         if (loose_edges.is_loose_bits[i]) {
-          int index_one = ply_vertex_index_LUT[mesh->edges()[i].v1];
-          int index_two = ply_vertex_index_LUT[mesh->edges()[i].v2];
+          int index_one = ply_vertex_index_LUT[edges[i].v1];
+          int index_two = ply_vertex_index_LUT[edges[i].v2];
           plyData.edges.append({index_one, index_two});
         }
       }
