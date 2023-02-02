@@ -13371,8 +13371,8 @@ bool VmaDefragmentationContext_T::IncrementCounters(VkDeviceSize bytes)
     // Early return when max found
     if (++m_PassStats.allocationsMoved >= m_MaxPassAllocations || m_PassStats.bytesMoved >= m_MaxPassBytes)
     {
-        VMA_ASSERT(m_PassStats.allocationsMoved == m_MaxPassAllocations ||
-            m_PassStats.bytesMoved == m_MaxPassBytes && "Exceeded maximal pass threshold!");
+        VMA_ASSERT((m_PassStats.allocationsMoved == m_MaxPassAllocations ||
+            m_PassStats.bytesMoved == m_MaxPassBytes) && "Exceeded maximal pass threshold!");
         return true;
     }
     return false;
