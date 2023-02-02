@@ -42,7 +42,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
-      set_tilt(bke::CurvesGeometry::wrap(curves_id->geometry), selection_field, tilt_field);
+      set_tilt(curves_id->geometry.wrap(), selection_field, tilt_field);
     }
   });
 

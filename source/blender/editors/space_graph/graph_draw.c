@@ -389,10 +389,7 @@ static bool draw_fcurve_handles_check(SpaceGraph *sipo, FCurve *fcu)
       (fcu->flag & FCURVE_INT_VALUES) ||
 #endif
       /* group that curve belongs to is not editable */
-      ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
-      /* Do not show handles if there is only 1 keyframe,
-       * otherwise they all clump together in an ugly ball. */
-      (fcu->totvert <= 1)) {
+      ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED))) {
     return false;
   }
   return true;
@@ -707,7 +704,7 @@ static void draw_fcurve_curve_samples(bAnimContext *ac,
                                       const uint shdr_pos,
                                       const bool draw_extrapolation)
 {
-  if (!draw_extrapolation && fcu->totvert == 1) {
+  if (!draw_extrapolation) {
     return;
   }
 
@@ -820,7 +817,7 @@ static bool fcurve_can_use_simple_bezt_drawing(FCurve *fcu)
 static void draw_fcurve_curve_bezts(
     bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, uint pos, const bool draw_extrapolation)
 {
-  if (!draw_extrapolation && fcu->totvert == 1) {
+  if (!draw_extrapolation) {
     return;
   }
 
@@ -852,7 +849,7 @@ static void draw_fcurve_curve_bezts(
 
     /* y-value depends on the interpolation */
     if ((fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) || (prevbezt->ipo == BEZT_IPO_CONST) ||
-        (fcu->totvert == 1)) {
+        (prevbezt->ipo == BEZT_IPO_LIN && fcu->totvert == 1)) {
       /* just extend across the first keyframe's value */
       v1[1] = prevbezt->vec[1][1];
     }
@@ -971,7 +968,8 @@ static void draw_fcurve_curve_bezts(
 
     /* y-value depends on the interpolation */
     if ((fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) ||
-        (prevbezt->ipo == BEZT_IPO_CONST) || (fcu->totvert == 1)) {
+        (prevbezt->ipo == BEZT_IPO_CONST) ||
+        (prevbezt->ipo == BEZT_IPO_LIN && fcu->totvert == 1)) {
       /* based on last keyframe's value */
       v1[1] = prevbezt->vec[1][1];
     }

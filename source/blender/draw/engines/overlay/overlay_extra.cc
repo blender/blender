@@ -644,21 +644,24 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
     DRW_buffer_add_entry(cb->light_sun, color, &instdata);
   }
   else if (la->type == LA_SPOT) {
-    /* Previous implementation was using the clipend distance as cone size.
+    /* Previous implementation was using the clip-end distance as cone size.
      * We cannot do this anymore so we use a fixed size of 10. (see T72871) */
     const float3 scale_vec = {10.0f, 10.0f, 10.0f};
     rescale_m4(instdata.mat, scale_vec);
-    /* For cycles and eevee the spot attenuation is
-     * y = (1/(1 + x^2) - a)/((1 - a) b)
+    /* For cycles and EEVEE the spot attenuation is:
+     * `y = (1/sqrt(1 + x^2) - a)/((1 - a) b)`
+     * x being the tangent of the angle between the light direction and the generatrix of the cone.
      * We solve the case where spot attenuation y = 1 and y = 0
-     * root for y = 1 is  (-1 - c) / c
-     * root for y = 0 is  (1 - a) / a
+     * root for y = 1 is sqrt(1/c^2 - 1)
+     * root for y = 0 is sqrt(1/a^2 - 1)
      * and use that to position the blend circle. */
     float a = cosf(la->spotsize * 0.5f);
     float b = la->spotblend;
     float c = a * b - a - b;
+    float a2 = a * a;
+    float c2 = c * c;
     /* Optimized version or root1 / root0 */
-    instdata.spot_blend = sqrtf((-a - c * a) / (c - c * a));
+    instdata.spot_blend = sqrtf((a2 - a2 * c2) / (c2 - a2 * c2));
     instdata.spot_cosine = a;
     /* HACK: We pack the area size in alpha color. This is decoded by the shader. */
     color[3] = -max_ff(la->radius, FLT_MIN);

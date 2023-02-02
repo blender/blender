@@ -283,7 +283,7 @@ void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)
   if (ntype == nullptr) {
     return;
   }
-  if (ntype->declare != nullptr) {
+  if (ntype->declare || ntype->declare_dynamic) {
     nodeDeclarationEnsureOnOutdatedNode(ntree, node);
     refresh_node(*ntree, *node, *node->runtime->declaration, do_id_user);
     return;

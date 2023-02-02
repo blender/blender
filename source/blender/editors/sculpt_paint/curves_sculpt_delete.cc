@@ -94,7 +94,7 @@ struct DeleteOperationExecutor {
     object_ = CTX_data_active_object(&C);
 
     curves_id_ = static_cast<Curves *>(object_->data);
-    curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
+    curves_ = &curves_id_->geometry.wrap();
 
     selected_curve_indices_.clear();
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);

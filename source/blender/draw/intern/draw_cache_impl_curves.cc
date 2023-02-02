@@ -237,7 +237,7 @@ static void curves_batch_cache_fill_segments_proc_pos(
 {
   using namespace blender;
   /* TODO: use hair radius layer if available. */
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const Span<float3> positions = curves.positions();
 
@@ -305,7 +305,7 @@ static void curves_batch_cache_ensure_edit_points_pos(const Curves &curves_id,
                                                       CurvesBatchCache &cache)
 {
   using namespace blender;
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
   static GPUVertFormat format_pos = {0};
   static uint pos;
@@ -324,7 +324,7 @@ static void curves_batch_cache_ensure_edit_points_data(const Curves &curves_id,
                                                        CurvesBatchCache &cache)
 {
   using namespace blender;
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
   static GPUVertFormat format_data = {0};
   static uint color;
@@ -361,7 +361,7 @@ static void curves_batch_cache_ensure_edit_points_data(const Curves &curves_id,
 static void curves_batch_cache_ensure_edit_lines(const Curves &curves_id, CurvesBatchCache &cache)
 {
   using namespace blender;
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
   const int vert_len = curves.points_num();
   const int curve_len = curves.curves_num();
@@ -432,8 +432,7 @@ static void curves_batch_ensure_attribute(const Curves &curves,
                          request.domain == ATTR_DOMAIN_POINT ? curves.geometry.point_num :
                                                                curves.geometry.curve_num);
 
-  const bke::AttributeAccessor attributes =
-      bke::CurvesGeometry::wrap(curves.geometry).attributes();
+  const bke::AttributeAccessor attributes = curves.geometry.wrap().attributes();
 
   /* TODO(@kevindietrich): float4 is used for scalar attributes as the implicit conversion done
    * by OpenGL to vec4 for a scalar `s` will produce a `vec4(s, 0, 0, 1)`. However, following
@@ -463,8 +462,7 @@ static void curves_batch_cache_fill_strands_data(const Curves &curves_id,
                                                  GPUVertBufRaw &data_step,
                                                  GPUVertBufRaw &seg_step)
 {
-  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
-      curves_id.geometry);
+  const blender::bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   const blender::OffsetIndices points_by_curve = curves.points_by_curve();
 
   for (const int i : IndexRange(curves.curves_num())) {
@@ -694,8 +692,7 @@ static void request_attribute(Curves &curves, const char *name)
 
   DRW_Attributes attributes{};
 
-  blender::bke::CurvesGeometry &curves_geometry = blender::bke::CurvesGeometry::wrap(
-      curves.geometry);
+  blender::bke::CurvesGeometry &curves_geometry = curves.geometry.wrap();
   std::optional<blender::bke::AttributeMetaData> meta_data =
       curves_geometry.attributes().lookup_meta_data(name);
   if (!meta_data) {

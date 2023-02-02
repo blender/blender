@@ -922,7 +922,11 @@ void ntreeBlendReadLib(BlendLibReader *reader, bNodeTree *ntree)
    * to match the static layout. */
   if (!BLO_read_lib_is_undo(reader)) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      node_verify_sockets(ntree, node, false);
+      /* Don't update node groups here because they may depend on other node groups which are not
+       * fully versioned yet and don't have `typeinfo` pointers set. */
+      if (node->type != NODE_GROUP) {
+        node_verify_sockets(ntree, node, false);
+      }
     }
   }
 }
@@ -1075,7 +1079,7 @@ IDTypeInfo IDType_ID_NT = {
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
 {
-  if (ntype->declare != nullptr) {
+  if (ntype->declare || ntype->declare_dynamic) {
     node_verify_sockets(ntree, node, true);
     return;
   }
@@ -3587,31 +3591,43 @@ static void update_socket_declarations(ListBase *sockets,
   }
 }
 
+static void reset_socket_declarations(ListBase *sockets)
+{
+  LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
+    socket->runtime->declaration = nullptr;
+  }
+}
+
 void nodeSocketDeclarationsUpdate(bNode *node)
 {
   BLI_assert(node->runtime->declaration != nullptr);
-  update_socket_declarations(&node->inputs, node->runtime->declaration->inputs);
-  update_socket_declarations(&node->outputs, node->runtime->declaration->outputs);
+  if (node->runtime->declaration->skip_updating_sockets) {
+    reset_socket_declarations(&node->inputs);
+    reset_socket_declarations(&node->outputs);
+  }
+  else {
+    update_socket_declarations(&node->inputs, node->runtime->declaration->inputs);
+    update_socket_declarations(&node->outputs, node->runtime->declaration->outputs);
+  }
 }
 
-bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree * /*ntree*/, bNode *node)
+bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *ntree, bNode *node)
 {
   if (node->runtime->declaration != nullptr) {
     return false;
   }
-  if (node->typeinfo->declare == nullptr) {
-    return false;
-  }
   if (node->typeinfo->declare_dynamic) {
     node->runtime->declaration = new blender::nodes::NodeDeclaration();
-    blender::nodes::build_node_declaration(*node->typeinfo, *node->runtime->declaration);
+    blender::nodes::build_node_declaration_dynamic(*ntree, *node, *node->runtime->declaration);
+    return true;
   }
-  else {
+  if (node->typeinfo->declare) {
     /* Declaration should have been created in #nodeRegisterType. */
     BLI_assert(node->typeinfo->fixed_declaration != nullptr);
     node->runtime->declaration = node->typeinfo->fixed_declaration;
+    return true;
   }
-  return true;
+  return false;
 }
 
 bool nodeDeclarationEnsure(bNodeTree *ntree, bNode *node)

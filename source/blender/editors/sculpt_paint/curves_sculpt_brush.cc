@@ -177,7 +177,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
                                                     const float brush_radius_re)
 {
   const Curves &curves_id = *static_cast<Curves *>(curves_object.data);
-  const CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+  const CurvesGeometry &curves = curves_id.geometry.wrap();
   Object *surface_object = curves_id.surface;
   Object *surface_object_eval = DEG_get_evaluated_object(&depsgraph, surface_object);
 

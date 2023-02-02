@@ -33,7 +33,7 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
   for (const int i : trans_data_contrainers.index_range()) {
     TransDataContainer &tc = trans_data_contrainers[i];
     Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
-    bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
 
     selection_per_object[i] = ed::curves::retrieve_selected_points(curves,
                                                                    selected_indices_per_object[i]);
@@ -51,7 +51,7 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
       continue;
     }
     Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
-    bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     IndexMask selected_indices = selection_per_object[i];
 
     float mtx[3][3], smtx[3][3];
@@ -82,7 +82,7 @@ static void recalcData_curves(TransInfo *t)
   Span<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
   for (const TransDataContainer &tc : trans_data_contrainers) {
     Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
-    bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
 
     curves.calculate_bezier_auto_handles();
     curves.tag_positions_changed();

@@ -48,7 +48,7 @@ void GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(
   if (curves_id == nullptr) {
     return;
   }
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   const int points_num = curves.points_num();
   if (points_num != edit_component.curves_edit_hints_->curves_id_orig.geometry.point_num) {
     return;

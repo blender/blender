@@ -4421,6 +4421,11 @@ def km_weight_paint_vertex_selection(params):
         ("view3d.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True},
          {"properties": [("mode", 'SUB')]}),
         ("view3d.select_circle", {"type": 'C', "value": 'PRESS'}, None),
+        ("paint.vert_select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
+        ("paint.vert_select_linked_pick", {"type": 'L', "value": 'PRESS'},
+         {"properties": [("select", True)]}),
+        ("paint.vert_select_linked_pick", {"type": 'L', "value": 'PRESS', "shift": True},
+         {"properties": [("select", False)]}),
     ])
 
     return keymap
@@ -5048,7 +5053,7 @@ def km_sculpt(params):
          {"properties": [
              ("target", "MASK"),
              ("falloff_type", "GEODESIC"),
-             ("invert", True),
+             ("invert", False),
              ("use_auto_mask", False),
              ("use_mask_preserve", True),
          ]}),

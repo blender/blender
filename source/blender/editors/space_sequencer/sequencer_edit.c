@@ -3594,7 +3594,7 @@ static int sequencer_scene_frame_range_update_exec(bContext *C, wmOperator *UNUS
 static bool sequencer_scene_frame_range_update_poll(bContext *C)
 {
   Editing *ed = SEQ_editing_get(CTX_data_scene(C));
-  return (ed->act_seq != NULL && (ed->act_seq->type & SEQ_TYPE_SCENE) != 0);
+  return (ed != NULL && ed->act_seq != NULL && (ed->act_seq->type & SEQ_TYPE_SCENE) != 0);
 }
 
 void SEQUENCER_OT_scene_frame_range_update(wmOperatorType *ot)

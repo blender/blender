@@ -1075,13 +1075,10 @@ static bool modifier_apply_obdata(
     Curves &curves_eval = *geometry_set.get_curves_for_write();
 
     /* Anonymous attributes shouldn't be available on the applied geometry. */
-    blender::bke::CurvesGeometry::wrap(curves_eval.geometry)
-        .attributes_for_write()
-        .remove_anonymous();
+    curves_eval.geometry.wrap().attributes_for_write().remove_anonymous();
 
     /* Copy the relevant information to the original. */
-    blender::bke::CurvesGeometry::wrap(curves.geometry) = std::move(
-        blender::bke::CurvesGeometry::wrap(curves_eval.geometry));
+    curves.geometry.wrap() = std::move(curves_eval.geometry.wrap());
     Main *bmain = DEG_get_bmain(depsgraph);
     BKE_object_material_from_eval_data(bmain, ob, &curves_eval.id);
   }

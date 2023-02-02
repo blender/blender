@@ -67,8 +67,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       Field<int> count = params.extract_input<Field<int>>("Count");
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves_for_read()) {
-          const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(
-              src_curves_id->geometry);
+          const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
           bke::CurvesGeometry dst_curves = geometry::resample_to_count(
               src_curves, selection, count);
           Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
@@ -82,8 +81,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       Field<float> length = params.extract_input<Field<float>>("Length");
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves_for_read()) {
-          const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(
-              src_curves_id->geometry);
+          const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
           bke::CurvesGeometry dst_curves = geometry::resample_to_length(
               src_curves, selection, length);
           Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
@@ -96,8 +94,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     case GEO_NODE_CURVE_RESAMPLE_EVALUATED:
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves_for_read()) {
-          const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(
-              src_curves_id->geometry);
+          const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
           bke::CurvesGeometry dst_curves = geometry::resample_to_evaluated(src_curves, selection);
           Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
           bke::curves_copy_parameters(*src_curves_id, *dst_curves_id);

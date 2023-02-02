@@ -193,22 +193,9 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
     return true;
   }
 
-  CollectionObject *cob_dst = BLI_findptr(
-      &coll_dst->gobject, ob_dst, offsetof(CollectionObject, ob));
-
-  if (cob_dst == NULL) {
+  if (!BKE_collection_object_replace(bmain, coll_dst, ob_dst, ob_src)) {
     BLI_assert_msg(0, "Could not find destination object in destination collection!");
     return false;
-  }
-
-  /* XXX TODO: We most certainly rather want to have a 'swap object pointer in collection'
-   * util in BKE_collection. This is only temp quick dirty test! */
-  id_us_min(&cob_dst->ob->id);
-  cob_dst->ob = ob_src;
-  id_us_plus(&cob_dst->ob->id);
-
-  if (BKE_collection_is_in_scene(coll_dst)) {
-    BKE_main_collection_sync(bmain);
   }
 
   RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);

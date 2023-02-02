@@ -944,8 +944,8 @@ static int apply_objects_internal(bContext *C,
     }
     else if (ob->type == OB_CURVES) {
       Curves &curves = *static_cast<Curves *>(ob->data);
-      blender::bke::CurvesGeometry::wrap(curves.geometry).transform(mat);
-      blender::bke::CurvesGeometry::wrap(curves.geometry).calculate_bezier_auto_handles();
+      curves.geometry.wrap().transform(mat);
+      curves.geometry.wrap().calculate_bezier_auto_handles();
     }
     else if (ob->type == OB_POINTCLOUD) {
       PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
@@ -1674,7 +1674,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
     else if (ob->type == OB_CURVES) {
       using namespace blender;
       Curves &curves_id = *static_cast<Curves *>(ob->data);
-      bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+      bke::CurvesGeometry &curves = curves_id.geometry.wrap();
       if (ELEM(centermode, ORIGIN_TO_CENTER_OF_MASS_SURFACE, ORIGIN_TO_CENTER_OF_MASS_VOLUME) ||
           !ELEM(around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN)) {
         BKE_report(

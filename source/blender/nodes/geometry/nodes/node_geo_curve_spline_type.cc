@@ -46,7 +46,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
     const Curves &src_curves_id = *geometry_set.get_curves_for_read();
-    const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
+    const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
     if (src_curves.is_single_type(dst_type)) {
       return;
     }
@@ -62,7 +62,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
     if (geometry::try_curves_conversion_in_place(
             selection, dst_type, [&]() -> bke::CurvesGeometry & {
-              return bke::CurvesGeometry::wrap(geometry_set.get_curves_for_write()->geometry);
+              return geometry_set.get_curves_for_write()->geometry.wrap();
             })) {
       return;
     }

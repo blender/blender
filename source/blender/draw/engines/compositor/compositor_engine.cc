@@ -230,7 +230,7 @@ static void compositor_engine_draw(void *data)
   if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
     /* NOTE(Metal): Isolate Compositor compute work in individual command buffer to improve
      * workload scheduling. When expensive compositor nodes are in the graph, these can stall out
-     * the GPU for extended periods of time and suboptimally schedule work for execution. */
+     * the GPU for extended periods of time and sub-optimally schedule work for execution. */
     GPU_flush();
   }
   else {
@@ -241,11 +241,11 @@ static void compositor_engine_draw(void *data)
   }
 #endif
 
-  /* Exceute Compositor render commands. */
+  /* Execute Compositor render commands. */
   compositor_data->instance_data->draw();
 
 #if defined(__APPLE__)
-  /* NOTE(Metal): Following previous flush to break commmand stream, with compositor command
+  /* NOTE(Metal): Following previous flush to break command stream, with compositor command
    * buffers potentially being heavy, we avoid issuing subsequent commands until compositor work
    * has completed. If subsequent work is prematurely queued up, the subsequent command buffers
    * will be blocked behind compositor work and may trigger a command buffer time-out error. As a

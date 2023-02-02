@@ -301,7 +301,7 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
       continue;
     }
 
-    bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     BKE_nurbList_free(&cu.nurb);
 
     float4x4 size_matrix = float4x4::identity();

@@ -179,7 +179,7 @@ static void WIDGETGROUP_light_area_setup(const bContext *UNUSED(C), wmGizmoGroup
   wmGizmoWrapper *wwrapper = MEM_mallocN(sizeof(wmGizmoWrapper), __func__);
   wwrapper->gizmo = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, NULL);
   wmGizmo *gz = wwrapper->gizmo;
-  RNA_enum_set(gz->ptr, "transform", ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE);
+  RNA_enum_set(gz->ptr, "transform", ED_GIZMO_CAGE_XFORM_FLAG_SCALE);
 
   gzgroup->customdata = wwrapper;
 
@@ -201,9 +201,9 @@ static void WIDGETGROUP_light_area_refresh(const bContext *C, wmGizmoGroup *gzgr
 
   copy_m4_m4(gz->matrix_basis, ob->object_to_world);
 
-  int flag = ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE;
+  int flag = ED_GIZMO_CAGE_XFORM_FLAG_SCALE;
   if (ELEM(la->area_shape, LA_AREA_SQUARE, LA_AREA_DISK)) {
-    flag |= ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_UNIFORM;
+    flag |= ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM;
   }
   RNA_enum_set(gz->ptr, "transform", flag);
 

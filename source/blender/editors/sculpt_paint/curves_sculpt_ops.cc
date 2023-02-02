@@ -362,7 +362,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
   const auto next_bool_random_value = [&]() { return rng.get_float() <= probability; };
 
   for (Curves *curves_id : unique_curves) {
-    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+    CurvesGeometry &curves = curves_id->geometry.wrap();
     const bool was_anything_selected = curves::has_anything_selected(curves);
 
     bke::SpanAttributeWriter<float> attribute = float_selection_ensure(*curves_id);
@@ -581,7 +581,7 @@ static int select_grow_update(bContext *C, wmOperator *op, const float mouse_dif
 
   for (std::unique_ptr<GrowOperatorDataPerCurve> &curve_op_data : op_data.per_curve) {
     Curves &curves_id = *curve_op_data->curves_id;
-    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+    CurvesGeometry &curves = curves_id.geometry.wrap();
     const float distance = curve_op_data->pixel_to_distance_factor * mouse_diff_x;
 
     bke::SpanAttributeWriter<float> selection = float_selection_ensure(curves_id);
@@ -629,7 +629,7 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
                                          const RegionView3D &rv3d,
                                          GrowOperatorDataPerCurve &curve_op_data)
 {
-  const CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+  const CurvesGeometry &curves = curves_id.geometry.wrap();
   const Span<float3> positions = curves.positions();
 
   if (const bke::GAttributeReader original_selection = curves.attributes().lookup(".selection")) {
@@ -773,7 +773,7 @@ static int select_grow_modal(bContext *C, wmOperator *op, const wmEvent *event)
       /* Undo operator by resetting the selection to the original value. */
       for (std::unique_ptr<GrowOperatorDataPerCurve> &curve_op_data : op_data.per_curve) {
         Curves &curves_id = *curve_op_data->curves_id;
-        CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+        CurvesGeometry &curves = curves_id.geometry.wrap();
         bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
         attributes.remove(".selection");

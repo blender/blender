@@ -116,7 +116,7 @@ static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCu
   }
 
   const Curves &curves_id = *geometry_set.get_curves_for_read();
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.curves_num() == 0) {
     geometry_set.replace_curves(nullptr);
     return;

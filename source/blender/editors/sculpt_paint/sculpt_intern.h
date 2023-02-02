@@ -822,6 +822,7 @@ typedef struct ExpandCache {
   float (*original_colors)[4];
 
   bool check_islands;
+  int normal_falloff_blur_steps;
 } ExpandCache;
 /** \} */
 

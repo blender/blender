@@ -52,7 +52,7 @@ static void set_computed_position_and_offset(GeometryComponent &component,
       if (attributes.contains("handle_right") && attributes.contains("handle_left")) {
         CurveComponent &curve_component = static_cast<CurveComponent &>(component);
         Curves &curves_id = *curve_component.get_for_write();
-        bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+        bke::CurvesGeometry &curves = curves_id.geometry.wrap();
         SpanAttributeWriter<float3> handle_right_attribute =
             attributes.lookup_or_add_for_write_span<float3>("handle_right", ATTR_DOMAIN_POINT);
         SpanAttributeWriter<float3> handle_left_attribute =

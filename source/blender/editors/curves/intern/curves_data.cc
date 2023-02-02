@@ -8,7 +8,7 @@
 float (*ED_curves_point_normals_array_create(const Curves *curves_id))[3]
 {
   using namespace blender;
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   const int size = curves.points_num();
 
   float3 *data = static_cast<float3 *>(MEM_malloc_arrayN(size, sizeof(float3), __func__));

@@ -2972,6 +2972,11 @@ def km_weight_paint_vertex_selection(params):
         ("paint.vert_select_hide", {"type": 'H', "value": 'PRESS', "shift": True},
          {"properties": [("unselected", True)]}),
         ("paint.face_vert_reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
+        ("paint.vert_select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
+        ("paint.vert_select_linked_pick", {"type": 'L', "value": 'PRESS'},
+         {"properties": [("select", True)]}),
+        ("paint.vert_select_linked_pick", {"type": 'L', "value": 'PRESS', "shift": True},
+         {"properties": [("select", False)]}),
     ])
 
     return keymap

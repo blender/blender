@@ -70,8 +70,8 @@ static void curves_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, con
   const Curves *curves_src = (const Curves *)id_src;
   curves_dst->mat = static_cast<Material **>(MEM_dupallocN(curves_src->mat));
 
-  const bke::CurvesGeometry &src = bke::CurvesGeometry::wrap(curves_src->geometry);
-  bke::CurvesGeometry &dst = bke::CurvesGeometry::wrap(curves_dst->geometry);
+  const bke::CurvesGeometry &src = curves_src->geometry.wrap();
+  bke::CurvesGeometry &dst = curves_dst->geometry.wrap();
 
   /* We need special handling here because the generic ID management code has already done a
    * shallow copy from the source to the destination, and because the copy-on-write functionality
@@ -103,7 +103,7 @@ static void curves_free_data(ID *id)
   Curves *curves = (Curves *)id;
   BKE_animdata_free(&curves->id, false);
 
-  blender::bke::CurvesGeometry::wrap(curves->geometry).~CurvesGeometry();
+  curves->geometry.wrap().~CurvesGeometry();
 
   BKE_curves_batch_cache_free(curves);
 
@@ -174,7 +174,7 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
   curves->geometry.runtime = MEM_new<blender::bke::CurvesGeometryRuntime>(__func__);
 
   /* Recalculate curve type count cache that isn't saved in files. */
-  blender::bke::CurvesGeometry::wrap(curves->geometry).update_curve_types();
+  curves->geometry.wrap().update_curve_types();
 
   /* Materials */
   BLO_read_pointer_array(reader, (void **)&curves->mat);
@@ -247,8 +247,7 @@ BoundBox *BKE_curves_boundbox_get(Object *ob)
   if (ob->runtime.bb == nullptr) {
     ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
 
-    const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
-        curves_id->geometry);
+    const blender::bke::CurvesGeometry &curves = curves_id->geometry.wrap();
 
     float3 min(FLT_MAX);
     float3 max(-FLT_MAX);
@@ -372,7 +371,7 @@ Curves *curves_new_nomain(const int points_num, const int curves_num)
   BLI_assert(points_num >= 0);
   BLI_assert(curves_num >= 0);
   Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
-  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+  CurvesGeometry &curves = curves_id->geometry.wrap();
   curves.resize(points_num, curves_num);
   return curves_id;
 }
@@ -380,7 +379,7 @@ Curves *curves_new_nomain(const int points_num, const int curves_num)
 Curves *curves_new_nomain_single(const int points_num, const CurveType type)
 {
   Curves *curves_id = curves_new_nomain(points_num, 1);
-  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+  CurvesGeometry &curves = curves_id->geometry.wrap();
   curves.offsets_for_write().last() = points_num;
   curves.fill_curve_types(type);
   return curves_id;
@@ -389,7 +388,7 @@ Curves *curves_new_nomain_single(const int points_num, const CurveType type)
 Curves *curves_new_nomain(CurvesGeometry curves)
 {
   Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
-  bke::CurvesGeometry::wrap(curves_id->geometry) = std::move(curves);
+  curves_id->geometry.wrap() = std::move(curves);
   return curves_id;
 }
 

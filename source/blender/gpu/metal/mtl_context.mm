@@ -1202,7 +1202,7 @@ bool MTLContext::ensure_uniform_buffer_bindings(
     BLI_assert(buffer_index >= 0 && buffer_index < MTL_MAX_BUFFER_BINDINGS);
 
     /* For compute, we must always re-bind the push constant block as other compute
-     * operations may have assigned reources over the top, outside of the compiled
+     * operations may have assigned resources over the top, outside of the compiled
      * compute shader path. */
     /* Bind push constant data. */
     BLI_assert(this->pipeline_state.active_shader->get_push_constant_data() != nullptr);

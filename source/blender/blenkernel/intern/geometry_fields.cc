@@ -55,7 +55,7 @@ GeometryFieldContext::GeometryFieldContext(const GeometryComponent &component,
     case GEO_COMPONENT_TYPE_CURVE: {
       const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
       const Curves *curves = curve_component.get_for_read();
-      geometry_ = curves ? &CurvesGeometry::wrap(curves->geometry) : nullptr;
+      geometry_ = curves ? &curves->geometry.wrap() : nullptr;
       break;
     }
     case GEO_COMPONENT_TYPE_POINT_CLOUD: {
@@ -560,8 +560,7 @@ std::optional<eAttrDomain> try_detect_field_domain(const GeometryComponent &comp
       }
       else if (const auto *curves_field_input = dynamic_cast<const CurvesFieldInput *>(
                    &field_input)) {
-        if (!handle_domain(
-                curves_field_input->preferred_domain(CurvesGeometry::wrap(curves->geometry)))) {
+        if (!handle_domain(curves_field_input->preferred_domain(curves->geometry.wrap()))) {
           return std::nullopt;
         }
       }

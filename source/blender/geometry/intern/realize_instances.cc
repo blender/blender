@@ -1197,7 +1197,7 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
   for (const int curve_index : info.realize_info.index_range()) {
     RealizeCurveInfo &curve_info = info.realize_info[curve_index];
     const Curves *curves_id = info.order[curve_index];
-    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+    const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     curve_info.curves = curves_id;
 
     /* Access attributes. */
@@ -1258,7 +1258,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
 {
   const RealizeCurveInfo &curves_info = *task.curve_info;
   const Curves &curves_id = *curves_info.curves;
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
   const IndexRange dst_point_range{task.start_indices.point, curves.points_num()};
   const IndexRange dst_curve_range{task.start_indices.curve, curves.curves_num()};
@@ -1347,7 +1347,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
 
   /* Allocate new curves data-block. */
   Curves *dst_curves_id = bke::curves_new_nomain(points_num, curves_num);
-  bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id->geometry);
+  bke::CurvesGeometry &dst_curves = dst_curves_id->geometry.wrap();
   dst_curves.offsets_for_write().last() = points_num;
   CurveComponent &dst_component = r_realized_geometry.get_component_for_write<CurveComponent>();
   dst_component.replace(dst_curves_id);

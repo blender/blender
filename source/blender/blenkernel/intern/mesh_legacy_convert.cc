@@ -1228,12 +1228,19 @@ void BKE_mesh_legacy_face_set_from_generic(Mesh *mesh,
                                            blender::MutableSpan<CustomDataLayer> poly_layers)
 {
   using namespace blender;
+  void *faceset_data = nullptr;
   for (CustomDataLayer &layer : poly_layers) {
     if (StringRef(layer.name) == ".sculpt_face_set") {
-      layer.type = CD_SCULPT_FACE_SETS;
+      faceset_data = layer.data;
+      layer.data = nullptr;
+      CustomData_free_layer_named(&mesh->pdata, ".sculpt_face_set", mesh->totpoly);
+      break;
     }
   }
-  CustomData_update_typemap(&mesh->pdata);
+  if (faceset_data != nullptr) {
+    CustomData_add_layer(
+        &mesh->pdata, CD_SCULPT_FACE_SETS, CD_ASSIGN, faceset_data, mesh->totpoly);
+  }
 }
 
 void BKE_mesh_legacy_face_set_to_generic(Mesh *mesh)
@@ -1242,13 +1249,19 @@ void BKE_mesh_legacy_face_set_to_generic(Mesh *mesh)
   if (mesh->attributes().contains(".sculpt_face_set")) {
     return;
   }
-  for (CustomDataLayer &layer : MutableSpan(mesh->pdata.layers, mesh->pdata.totlayer)) {
-    if (layer.type == CD_SCULPT_FACE_SETS) {
-      BLI_strncpy(layer.name, ".sculpt_face_set", sizeof(layer.name));
-      layer.type = CD_PROP_INT32;
+  void *faceset_data = nullptr;
+  for (const int i : IndexRange(mesh->pdata.totlayer)) {
+    if (mesh->pdata.layers[i].type == CD_SCULPT_FACE_SETS) {
+      faceset_data = mesh->pdata.layers[i].data;
+      mesh->pdata.layers[i].data = nullptr;
+      CustomData_free_layer(&mesh->pdata, CD_SCULPT_FACE_SETS, mesh->totpoly, i);
+      break;
     }
   }
-  CustomData_update_typemap(&mesh->pdata);
+  if (faceset_data != nullptr) {
+    CustomData_add_layer_named(
+        &mesh->pdata, CD_PROP_INT32, CD_ASSIGN, faceset_data, mesh->totpoly, ".sculpt_face_set");
+  }
 }
 
 /** \} */

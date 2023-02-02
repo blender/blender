@@ -2159,9 +2159,8 @@ static void WIDGETGROUP_xform_cage_setup(const bContext *UNUSED(C), wmGizmoGroup
   xgzgroup->gizmo = WM_gizmo_new_ptr(gzt_cage, gzgroup, NULL);
   wmGizmo *gz = xgzgroup->gizmo;
 
-  RNA_enum_set(gz->ptr,
-               "transform",
-               ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE | ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE);
+  RNA_enum_set(
+      gz->ptr, "transform", ED_GIZMO_CAGE_XFORM_FLAG_SCALE | ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE);
 
   gz->color[0] = 1;
   gz->color_hi[0] = 1;

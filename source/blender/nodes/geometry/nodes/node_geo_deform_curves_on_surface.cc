@@ -278,7 +278,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const AttributeAccessor mesh_attributes_orig = surface_mesh_orig->attributes();
 
   Curves &curves_id = *curves_geometry.get_curves_for_write();
-  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+  CurvesGeometry &curves = curves_id.geometry.wrap();
 
   if (!mesh_attributes_eval.contains(uv_map_name)) {
     pass_through_input();
@@ -383,7 +383,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                   {},
                   invalid_uv_count);
     /* Then also deform edit curve information for use in sculpt mode. */
-    const CurvesGeometry &curves_orig = CurvesGeometry::wrap(edit_hints->curves_id_orig.geometry);
+    const CurvesGeometry &curves_orig = edit_hints->curves_id_orig.geometry.wrap();
     const VArraySpan<float2> surface_uv_coords_orig = curves_orig.attributes().lookup_or_default(
         "surface_uv_coordinate", ATTR_DOMAIN_CURVE, float2(0));
     if (!surface_uv_coords_orig.is_empty()) {

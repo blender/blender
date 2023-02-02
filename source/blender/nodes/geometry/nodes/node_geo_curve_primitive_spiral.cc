@@ -49,7 +49,7 @@ static Curves *create_spiral_curve(const float rotations,
                             (direction ? 1.0f : -1.0f);
 
   Curves *curves_id = bke::curves_new_nomain_single(totalpoints + 1, CURVE_TYPE_POLY);
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
 
   MutableSpan<float3> positions = curves.positions_for_write();
 

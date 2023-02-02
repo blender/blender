@@ -733,6 +733,53 @@ void PAINT_OT_vert_select_ungrouped(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
+static int paintvert_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  paintvert_select_linked(C, CTX_data_active_object(C));
+  ED_region_tag_redraw(CTX_wm_region(C));
+  return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_vert_select_linked(wmOperatorType *ot)
+{
+  ot->name = "Select Linked Vertices";
+  ot->description = "Select linked vertices";
+  ot->idname = "PAINT_OT_vert_select_linked";
+
+  ot->exec = paintvert_select_linked_exec;
+  ot->poll = vert_paint_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int paintvert_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const bool select = RNA_boolean_get(op->ptr, "select");
+  view3d_operator_needs_opengl(C);
+
+  paintvert_select_linked_pick(C, CTX_data_active_object(C), event->mval, select);
+  ED_region_tag_redraw(CTX_wm_region(C));
+  return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_vert_select_linked_pick(wmOperatorType *ot)
+{
+  ot->name = "Select Linked Vertices Pick";
+  ot->description = "Select linked vertices under the cursor";
+  ot->idname = "PAINT_OT_vert_select_linked_pick";
+
+  ot->invoke = paintvert_select_linked_pick_invoke;
+  ot->poll = vert_paint_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "select",
+                  true,
+                  "Select",
+                  "Whether to select or deselect linked vertices under the cursor");
+}
+
 static int face_select_hide_exec(bContext *C, wmOperator *op)
 {
   const bool unselected = RNA_boolean_get(op->ptr, "unselected");

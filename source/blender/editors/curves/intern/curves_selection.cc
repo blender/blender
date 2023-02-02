@@ -52,7 +52,7 @@ static IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves,
 
 IndexMask retrieve_selected_curves(const Curves &curves_id, Vector<int64_t> &r_indices)
 {
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   return retrieve_selected_curves(curves, r_indices);
 }
 
@@ -67,7 +67,7 @@ IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, Vector<int
 
 IndexMask retrieve_selected_points(const Curves &curves_id, Vector<int64_t> &r_indices)
 {
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   return retrieve_selected_points(curves, r_indices);
 }
 

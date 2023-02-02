@@ -174,6 +174,18 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     }
   }
 
+  /** Swizzling. */
+
+  template<BLI_ENABLE_IF_VEC(Size, >= 3)> VecBase<T, 2> xy() const
+  {
+    return *reinterpret_cast<const VecBase<T, 2> *>(this);
+  }
+
+  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 3> xyz() const
+  {
+    return *reinterpret_cast<const VecBase<T, 3> *>(this);
+  }
+
 #undef BLI_ENABLE_IF_VEC
 
   /** Conversion from pointers (from C-style vectors). */

@@ -929,7 +929,7 @@ static bool acf_group_setting_valid(bAnimContext *ac,
       return (ac->spacetype == SPACE_GRAPH);
 
     case ACHANNEL_SETTING_ALWAYS_VISIBLE:
-      return (ac->spacetype == SPACE_GRAPH);
+      return ELEM(ac->spacetype, SPACE_ACTION, SPACE_GRAPH);
 
     default: /* always supported */
       return true;
@@ -4434,7 +4434,7 @@ void ANIM_channel_draw(
    * - in Grease Pencil mode, color swatches for layer color
    */
   if (ac->sl) {
-    if ((ac->spacetype == SPACE_GRAPH) &&
+    if (ELEM(ac->spacetype, SPACE_ACTION, SPACE_GRAPH) &&
         (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE) ||
          acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE))) {
       /* for F-Curves, draw color-preview of curve left to the visibility icon */
@@ -5177,7 +5177,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
    * - in Grease Pencil mode, color swatches for layer color
    */
   if (ac->sl) {
-    if ((ac->spacetype == SPACE_GRAPH) &&
+    if (ELEM(ac->spacetype, SPACE_ACTION, SPACE_GRAPH) &&
         (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE) ||
          acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE))) {
       /* Pin toggle. */

@@ -23,7 +23,10 @@
 #include "subd/patch_table.h"
 #include "subd/split.h"
 
-#include "kernel/osl/globals.h"
+#ifdef WITH_OSL
+#  include "kernel/osl/globals.h"
+#  include "kernel/osl/services.h"
+#endif
 
 #include "util/foreach.h"
 #include "util/log.h"
@@ -1671,6 +1674,7 @@ void GeometryManager::device_update_displacement_images(Device *device,
   TaskPool pool;
   ImageManager *image_manager = scene->image_manager;
   set<int> bump_images;
+  bool has_osl_node = false;
   foreach (Geometry *geom, scene->geometry) {
     if (geom->is_modified()) {
       /* Geometry-level check for hair shadow transparency.
@@ -1690,6 +1694,9 @@ void GeometryManager::device_update_displacement_images(Device *device,
           continue;
         }
         foreach (ShaderNode *node, shader->graph->nodes) {
+          if (node->special_type == SHADER_SPECIAL_TYPE_OSL) {
+            has_osl_node = true;
+          }
           if (node->special_type != SHADER_SPECIAL_TYPE_IMAGE_SLOT) {
             continue;
           }
@@ -1705,6 +1712,28 @@ void GeometryManager::device_update_displacement_images(Device *device,
       }
     }
   }
+
+#ifdef WITH_OSL
+  /* If any OSL node is used for displacement, it may reference a texture. But it's
+   * unknown which ones, so have to load them all. */
+  if (has_osl_node) {
+    set<OSLRenderServices *> services_shared;
+    device->foreach_device([&services_shared](Device *sub_device) {
+      OSLGlobals *og = (OSLGlobals *)sub_device->get_cpu_osl_memory();
+      services_shared.insert(og->services);
+    });
+
+    for (OSLRenderServices *services : services_shared) {
+      for (auto it = services->textures.begin(); it != services->textures.end(); ++it) {
+        if (it->second->handle.get_manager() == image_manager) {
+          const int slot = it->second->handle.svm_slot();
+          bump_images.insert(slot);
+        }
+      }
+    }
+  }
+#endif
+
   foreach (int slot, bump_images) {
     pool.push(function_bind(
         &ImageManager::device_update_slot, image_manager, device, scene, slot, &progress));

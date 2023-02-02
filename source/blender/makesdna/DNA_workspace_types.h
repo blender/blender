@@ -186,7 +186,7 @@ typedef struct WorkSpaceDataRelation {
   /** The value for this parent-data/workspace relation. */
   void *value;
 
-  /** Reference to the actual parent window, wmWindow->winid. Used in read/write code. */
+  /** Reference to the actual parent window, #wmWindow.winid. Used in read/write code. */
   int parentid;
   char _pad_0[4];
 } WorkSpaceDataRelation;

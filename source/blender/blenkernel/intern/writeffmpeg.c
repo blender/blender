@@ -476,11 +476,12 @@ static const AVCodec *get_av1_encoder(
   const AVCodec *codec = NULL;
   switch (context->ffmpeg_preset) {
     case FFM_PRESET_BEST:
-      /* Default to libaom-av1 for BEST preset due to it performing better than rav1e in terms of
-       * video quality (VMAF scores). Fallback to rav1e if libaom-av1 isn't available. */
-      codec = avcodec_find_encoder_by_name("libaom-av1");
+      /* libaom-av1 may produce better VMAF-scoring videos in serveral cases, but there are cases
+       * where using a different encoder is desireable, such as in T103849. */
+      codec = avcodec_find_encoder_by_name("librav1e");
       if (!codec) {
-        codec = avcodec_find_encoder_by_name("librav1e");
+        /* Fallback to libaom-av1 if librav1e is not found. */
+        codec = avcodec_find_encoder_by_name("libaom-av1");
       }
       break;
     case FFM_PRESET_REALTIME:
