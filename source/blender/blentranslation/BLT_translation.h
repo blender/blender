@@ -126,6 +126,10 @@ const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid
 #define BLT_I18NCONTEXT_EDITOR_VIEW3D "View3D"
 #define BLT_I18NCONTEXT_EDITOR_FILEBROWSER "File browser"
 
+  /* Generic contexts. */
+#define BLT_I18NCONTEXT_VIRTUAL_REALITY "Virtual reality"
+#define BLT_I18NCONTEXT_CONSTRAINT "Constraint"
+
 /* Helper for bpy.app.i18n object... */
 typedef struct {
   const char *c_id;
@@ -190,6 +194,8 @@ typedef struct {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "id_windowmanager"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_VIEW3D, "editor_view3d"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_FILEBROWSER, "editor_filebrowser"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_VIRTUAL_REALITY, "virtual_reality"),  \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_CONSTRAINT, "constraint"), \
     { \
       NULL, NULL, NULL \
     } \
