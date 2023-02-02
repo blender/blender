@@ -68,7 +68,6 @@ class ShaderInterface {
 
  public:
   ShaderInterface();
-  ShaderInterface(const shader::ShaderCreateInfo &info);
   virtual ~ShaderInterface();
 
   void debug_print();
