@@ -221,7 +221,6 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
   }
 
   Volume *volume = reinterpret_cast<Volume *>(BKE_id_new_nomain(ID_VO, nullptr));
-  BKE_volume_init_grids(volume);
 
   const float density = params.get_input<float>("Density");
   convert_to_grid_index_space(voxel_size, positions, radii);

@@ -1506,7 +1506,6 @@ Volume *BKE_volume_new_for_eval(const Volume *volume_src)
   volume_dst->totcol = volume_src->totcol;
   volume_dst->render = volume_src->render;
   volume_dst->display = volume_src->display;
-  BKE_volume_init_grids(volume_dst);
 
   return volume_dst;
 }
