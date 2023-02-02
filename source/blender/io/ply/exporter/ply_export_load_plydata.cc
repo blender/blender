@@ -158,7 +158,6 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     for (int i = 0; i < vertex_map.size(); ++i) {
       float3 r_coords;
       copy_v3_v3(r_coords, mesh->vert_positions()[mesh_vertex_index_LUT[i]]);
-      mul_m4_v3(object->object_to_world, r_coords);
       mul_m4_v3(world_and_axes_transform_, r_coords);
       mul_v3_fl(r_coords, export_params.global_scale);
       plyData.vertices.append(r_coords);
