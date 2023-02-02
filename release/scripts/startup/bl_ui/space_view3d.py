@@ -2038,6 +2038,7 @@ class VIEW3D_MT_select_paint_mask_vertex(Menu):
         layout.separator()
 
         layout.operator("paint.vert_select_ungrouped", text="Ungrouped Vertices")
+        layout.operator("paint.vert_select_linked", text="Select Linked")
 
 
 class VIEW3D_MT_select_edit_curves(Menu):

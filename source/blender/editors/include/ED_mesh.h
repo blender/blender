@@ -437,7 +437,13 @@ void paintvert_select_ungrouped(struct Object *ob, bool extend, bool flush_flags
  */
 void paintvert_flush_flags(struct Object *ob);
 void paintvert_tag_select_update(struct bContext *C, struct Object *ob);
-
+/* Select vertices that are connected to already selected vertices. */
+void paintvert_select_linked(struct bContext *C, struct Object *ob);
+/* Select vertices that are linked to the vertex under the given region space coordinates. */
+void paintvert_select_linked_pick(struct bContext *C,
+                                  struct Object *ob,
+                                  const int region_coordinates[2],
+                                  bool select);
 void paintvert_hide(struct bContext *C, struct Object *ob, bool unselected);
 void paintvert_reveal(struct bContext *C, struct Object *ob, bool select);
 
