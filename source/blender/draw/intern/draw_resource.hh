@@ -10,8 +10,6 @@
  * Each of them are reference by resource index (#ResourceHandle).
  */
 
-#include "BLI_math_matrix.hh"
-
 #include "BKE_curve.h"
 #include "BKE_duplilist.h"
 #include "BKE_mesh.h"
@@ -33,14 +31,14 @@
 
 inline void ObjectMatrices::sync(const Object &object)
 {
-  model.view() = blender::float4x4_view(object.object_to_world);
-  model_inverse.view() = blender::float4x4_view(object.world_to_object);
+  model = object.object_to_world;
+  model_inverse = object.world_to_object;
 }
 
 inline void ObjectMatrices::sync(const float4x4 &model_matrix)
 {
   model = model_matrix;
-  model_inverse = blender::math::invert(model_matrix);
+  model_inverse = model_matrix.inverted();
 }
 
 inline std::ostream &operator<<(std::ostream &stream, const ObjectMatrices &matrices)

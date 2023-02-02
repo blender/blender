@@ -5,7 +5,8 @@
  * \ingroup cmpnodes
  */
 
-#include "BLI_math_matrix.hh"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "COM_node_operation.hh"
 
@@ -49,14 +50,14 @@ class PixelateOperation : public NodeOperation {
 
     /* Get the scaling component of the domain transformation, but make sure it doesn't exceed 1,
      * because pixelation should only happen if the input is scaled down. */
-    const float2 scale = math::min(float2(1.0f), math::to_scale(float2x2(domain.transformation)));
+    const float2 scale = math::min(float2(1.0f), domain.transformation.scale_2d());
 
     /* Multiply the size of the domain by its scale to match its apparent size, but make sure it is
      * at least 1 pixel in both axis. */
     domain.size = math::max(int2(float2(domain.size) * scale), int2(1));
 
     /* Reset the scale of the transformation by transforming it with the inverse of the scale. */
-    domain.transformation *= math::from_scale<float3x3>(math::safe_divide(float2(1.0f), scale));
+    domain.transformation *= float3x3::from_scale(math::safe_divide(float2(1.0f), scale));
 
     return domain;
   }

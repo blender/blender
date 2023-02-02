@@ -698,7 +698,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
   drw_call_calc_orco(ob, ob_infos->orcotexfac);
   /* Random float value. */
   uint random = (DST.dupli_source) ?
-                    DST.dupli_source->random_id :
+                     DST.dupli_source->random_id :
                      /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
                       * put it in ob->runtime and make depsgraph ensure it is up to date. */
                      BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
@@ -2169,14 +2169,14 @@ static void draw_view_matrix_state_update(DRWView *view,
 {
   ViewMatrices *storage = &view->storage;
 
-  copy_m4_m4(storage->viewmat.ptr(), viewmat);
-  invert_m4_m4(storage->viewinv.ptr(), storage->viewmat.ptr());
+  copy_m4_m4(storage->viewmat.values, viewmat);
+  invert_m4_m4(storage->viewinv.values, storage->viewmat.values);
 
-  copy_m4_m4(storage->winmat.ptr(), winmat);
-  invert_m4_m4(storage->wininv.ptr(), storage->winmat.ptr());
+  copy_m4_m4(storage->winmat.values, winmat);
+  invert_m4_m4(storage->wininv.values, storage->winmat.values);
 
-  mul_m4_m4m4(view->persmat.ptr(), winmat, viewmat);
-  invert_m4_m4(view->persinv.ptr(), view->persmat.ptr());
+  mul_m4_m4m4(view->persmat.values, winmat, viewmat);
+  invert_m4_m4(view->persinv.values, view->persmat.values);
 }
 
 DRWView *DRW_view_create(const float viewmat[4][4],
@@ -2280,7 +2280,7 @@ void DRW_view_update(DRWView *view,
     invert_m4_m4(wininv, winmat);
   }
   else {
-    copy_m4_m4(wininv, view->storage.wininv.ptr());
+    copy_m4_m4(wininv, view->storage.wininv.values);
   }
 
   float viewinv[4][4];
@@ -2289,11 +2289,11 @@ void DRW_view_update(DRWView *view,
     invert_m4_m4(viewinv, viewmat);
   }
   else {
-    copy_m4_m4(viewinv, view->storage.viewinv.ptr());
+    copy_m4_m4(viewinv, view->storage.viewinv.values);
   }
 
   draw_frustum_boundbox_calc(viewinv, winmat, &view->frustum_corners);
-  draw_frustum_culling_planes_calc(view->persmat.ptr(), view->frustum_planes);
+  draw_frustum_culling_planes_calc(view->persmat.values, view->frustum_planes);
   draw_frustum_bound_sphere_calc(
       &view->frustum_corners, viewinv, winmat, wininv, &view->frustum_bsphere);
 
@@ -2377,20 +2377,20 @@ void DRW_view_viewmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
   view = (view) ? view : DST.view_default;
   const ViewMatrices *storage = &view->storage;
-  copy_m4_m4(mat, (inverse) ? storage->viewinv.ptr() : storage->viewmat.ptr());
+  copy_m4_m4(mat, (inverse) ? storage->viewinv.values : storage->viewmat.values);
 }
 
 void DRW_view_winmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
   view = (view) ? view : DST.view_default;
   const ViewMatrices *storage = &view->storage;
-  copy_m4_m4(mat, (inverse) ? storage->wininv.ptr() : storage->winmat.ptr());
+  copy_m4_m4(mat, (inverse) ? storage->wininv.values : storage->winmat.values);
 }
 
 void DRW_view_persmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
   view = (view) ? view : DST.view_default;
-  copy_m4_m4(mat, (inverse) ? view->persinv.ptr() : view->persmat.ptr());
+  copy_m4_m4(mat, (inverse) ? view->persinv.values : view->persmat.values);
 }
 
 /** \} */

@@ -367,8 +367,7 @@ std::string PushConstant::serialize() const
             BLI_assert_unreachable();
             break;
           case Type::FloatValue:
-            ss << float4x4(
-                (&float4_value)[0], (&float4_value)[1], (&float4_value)[2], (&float4_value)[3]);
+            ss << *reinterpret_cast<const float4x4 *>(&float4_value);
             break;
           case Type::FloatReference:
             ss << *float4x4_ref;

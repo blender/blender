@@ -9,7 +9,6 @@
 
 #include "BKE_object.h"
 #include "BLI_link_utils.h"
-#include "BLI_math_matrix.hh"
 #include "GPU_batch.h"
 #include "GPU_capabilities.h"
 #include "GPU_debug.h"
@@ -99,7 +98,7 @@ void DebugDraw::modelmat_reset()
 
 void DebugDraw::modelmat_set(const float modelmat[4][4])
 {
-  model_mat_ = float4x4_view(modelmat);
+  model_mat_ = modelmat;
 }
 
 GPUStorageBuf *DebugDraw::gpu_draw_buf_get()
@@ -138,9 +137,9 @@ void DebugDraw::draw_polygon(Span<float3> poly_verts, float4 color)
   BLI_assert(!poly_verts.is_empty());
 
   uint col = color_pack(color);
-  float3 v0 = math::transform_point(model_mat_, poly_verts.last());
+  float3 v0 = model_mat_ * poly_verts.last();
   for (auto vert : poly_verts) {
-    float3 v1 = math::transform_point(model_mat_, vert);
+    float3 v1 = model_mat_ * vert;
     draw_line(v0, v1, col);
     v0 = v1;
   }
@@ -329,8 +328,8 @@ void DebugDraw::draw_line(float3 v1, float3 v2, uint color)
   DebugDrawBuf &buf = cpu_draw_buf_;
   uint index = buf.command.vertex_len;
   if (index + 2 < DRW_DEBUG_DRAW_VERT_MAX) {
-    buf.verts[index + 0] = vert_pack(math::transform_point(model_mat_, v1), color);
-    buf.verts[index + 1] = vert_pack(math::transform_point(model_mat_, v2), color);
+    buf.verts[index + 0] = vert_pack(model_mat_ * v1, color);
+    buf.verts[index + 1] = vert_pack(model_mat_ * v2, color);
     buf.command.vertex_len += 2;
   }
 }
@@ -705,7 +704,7 @@ void DRW_debug_m4(const float m[4][4])
   if (!GPU_shader_storage_buffer_objects_support()) {
     return;
   }
-  reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->draw_matrix(float4x4(m));
+  reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->draw_matrix(m);
 }
 
 void DRW_debug_m4_as_bbox(const float m[4][4], bool invert, const float color[4])
@@ -713,9 +712,9 @@ void DRW_debug_m4_as_bbox(const float m[4][4], bool invert, const float color[4]
   if (!GPU_shader_storage_buffer_objects_support()) {
     return;
   }
-  blender::float4x4 m4(m);
+  blender::float4x4 m4 = m;
   if (invert) {
-    m4 = blender::math::invert(m4);
+    m4 = m4.inverted();
   }
   reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->draw_matrix_as_bbox(m4, color);
 }

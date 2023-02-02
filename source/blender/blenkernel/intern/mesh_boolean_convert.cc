@@ -17,8 +17,9 @@
 
 #include "BLI_alloca.h"
 #include "BLI_array.hh"
+#include "BLI_float4x4.hh"
 #include "BLI_math.h"
-#include "BLI_math_matrix.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_mesh_boolean.hh"
 #include "BLI_mesh_intersect.hh"
 #include "BLI_span.hh"
@@ -44,7 +45,7 @@ static float4x4 clean_transform(const float4x4 &mat)
   const float fuzz = 1e-6f;
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
-      float f = mat[i][j];
+      float f = mat.values[i][j];
       if (fabsf(f) <= fuzz) {
         f = 0.0f;
       }
@@ -54,7 +55,7 @@ static float4x4 clean_transform(const float4x4 &mat)
       else if (fabsf(f + 1.0f) <= fuzz) {
         f = -1.0f;
       }
-      cleaned[i][j] = f;
+      cleaned.values[i][j] = f;
     }
   }
   return cleaned;
@@ -280,7 +281,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
    * of the target, multiply each transform by the inverse of the
    * target matrix. Exact Boolean works better if these matrices are 'cleaned'
    *  -- see the comment for the `clean_transform` function, above. */
-  const float4x4 inv_target_mat = math::invert(clean_transform(target_transform));
+  const float4x4 inv_target_mat = clean_transform(target_transform).inverted();
 
   /* For each input `Mesh`, make `Vert`s and `Face`s for the corresponding
    * vertices and `MPoly`s, and keep track of the original indices (using the
@@ -297,7 +298,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
     const float4x4 objn_mat = (obmats[mi] == nullptr) ? float4x4::identity() :
                                                         clean_transform(*obmats[mi]);
     r_info->to_target_transform[mi] = inv_target_mat * objn_mat;
-    r_info->has_negative_transform[mi] = math::is_negative(objn_mat);
+    r_info->has_negative_transform[mi] = objn_mat.is_negative();
 
     /* All meshes 1 and up will be transformed into the local space of operand 0.
      * Historical behavior of the modifier has been to flip the faces of any meshes
@@ -326,7 +327,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
     else {
       threading::parallel_for(vert_positions.index_range(), 2048, [&](IndexRange range) {
         for (int i : range) {
-          float3 co = math::transform_point(r_info->to_target_transform[mi], vert_positions[i]);
+          float3 co = r_info->to_target_transform[mi] * vert_positions[i];
           mpq3 mco = mpq3(co.x, co.y, co.z);
           double3 dco(mco[0].get_d(), mco[1].get_d(), mco[2].get_d());
           verts[i] = new Vert(mco, dco, NO_INDEX, i);
@@ -564,8 +565,8 @@ static void get_poly2d_cos(const Mesh *me,
   axis_dominant_v3_to_m3(r_axis_mat, axis_dominant);
   for (const int i : poly_loops.index_range()) {
     float3 co = positions[poly_loops[i].v];
-    co = math::transform_point(trans_mat, co);
-    *reinterpret_cast<float2 *>(&cos_2d[i]) = (float3x3(r_axis_mat) * co).xy();
+    co = trans_mat * co;
+    mul_v2_m3v3(cos_2d[i], r_axis_mat, co);
   }
 }
 

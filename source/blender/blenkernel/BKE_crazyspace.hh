@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include "BLI_math_matrix.hh"
+#include "BLI_float3x3.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
 struct Depsgraph;
@@ -37,7 +38,7 @@ struct GeometryDeformation {
       return translation;
     }
     const float3x3 &deform_mat = this->deform_mats[position_i];
-    return math::transform_point(math::invert(deform_mat), translation);
+    return deform_mat.inverted() * translation;
   }
 };
 

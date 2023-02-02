@@ -104,10 +104,10 @@ void Camera::sync()
   else {
     data.viewmat = float4x4::identity();
     data.viewinv = float4x4::identity();
-    data.winmat = math::projection::perspective(-0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 1.0f);
-    data.wininv = math::invert(data.winmat);
+    perspective_m4(data.winmat.ptr(), -0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 1.0f);
+    data.wininv = data.winmat.inverted();
     data.persmat = data.winmat * data.viewmat;
-    data.persinv = math::invert(data.persmat);
+    data.persinv = data.persmat.inverted();
     data.uv_scale = float2(1.0f);
     data.uv_bias = float2(0.0f);
   }
