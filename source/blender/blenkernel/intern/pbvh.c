@@ -554,7 +554,7 @@ static void build_sub(PBVH *pbvh,
   }
 
   /* Decide whether this is a leaf or not */
-  const bool below_leaf_limit = count <= pbvh->leaf_limit || depth == STACK_FIXED_DEPTH - 1;
+  const bool below_leaf_limit = count <= pbvh->leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(pbvh, offset, count)) {
       build_leaf(pbvh, node_index, prim_bbc, offset, count);
