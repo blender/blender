@@ -521,7 +521,9 @@ static char *glsl_patch_get()
 static std::string combine_sources(Span<const char *> sources)
 {
   char *sources_combined = BLI_string_join_arrayN((const char **)sources.data(), sources.size());
-  return std::string(sources_combined);
+  std::string result(sources_combined);
+  MEM_freeN(sources_combined);
+  return result;
 }
 
 Vector<uint32_t> VKShader::compile_glsl_to_spirv(Span<const char *> sources,
