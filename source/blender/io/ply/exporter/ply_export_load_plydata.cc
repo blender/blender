@@ -121,8 +121,9 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
 
     /* Load faces into plyData. */
     int loop_offset = 0;
+    Span<MLoop> loops = mesh->loops();
     for (auto &&poly : mesh->polys()) {
-      auto loopSpan = mesh->loops().slice(poly.loopstart, poly.totloop);
+      Span<MLoop> loopSpan = loops.slice(poly.loopstart, poly.totloop);
       Vector<uint32_t> polyVector;
 
       for (int i = 0; i < loopSpan.size(); ++i) {
