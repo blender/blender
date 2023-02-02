@@ -442,7 +442,7 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm,
 /**
  * Collapse and edge into a single vertex.
  */
-ATTR_NO_OPT BMVert *BM_edge_collapse(BMesh *bm,
+BMVert *BM_edge_collapse(BMesh *bm,
                          BMEdge *e_kill,
                          BMVert *v_kill,
                          const bool do_del,

@@ -237,13 +237,13 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root);
 bool check_face_is_tri(PBVH *pbvh, BMFace *f);
 bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v);
 
-ATTR_NO_OPT BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
-                                             BMEdge *e,
-                                             BMVert *v1,
-                                             BMVert *v2,
-                                             struct GHash *deleted_verts,
-                                             struct BLI_Buffer *deleted_faces,
-                                             struct EdgeQueueContext *eq_ctx);
+BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
+                                 BMEdge *e,
+                                 BMVert *v1,
+                                 BMVert *v2,
+                                 struct GHash *deleted_verts,
+                                 struct BLI_Buffer *deleted_faces,
+                                 struct EdgeQueueContext *eq_ctx);
 
 extern "C" void bm_log_message(const char *fmt, ...);
 void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v);

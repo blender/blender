@@ -4265,7 +4265,7 @@ void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
 }
 
 #ifndef USE_BMESH_PAGE_CUSTOMDATA
-ATTR_NO_OPT static void CustomData_bmesh_set_default_n(CustomData *data, void **block, const int n)
+static void CustomData_bmesh_set_default_n(CustomData *data, void **block, const int n)
 {
   if (ELEM(data->layers[n].type, CD_TOOLFLAGS, CD_MESH_ID)) {
     /* do not do toolflags or mesh ids */
@@ -4414,11 +4414,11 @@ void CustomData_bmesh_swap_data(CustomData *source,
   }
 }
 
-ATTR_NO_OPT void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
-                                                            CustomData *dest,
-                                                            void *src_block,
-                                                            void **dest_block,
-                                                            const eCustomDataMask mask_exclude)
+void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
+                                                CustomData *dest,
+                                                void *src_block,
+                                                void **dest_block,
+                                                const eCustomDataMask mask_exclude)
 {
   /* Note that having a version of this function without a 'mask_exclude'
    * would cause too much duplicate code, so add a check instead. */
@@ -4819,11 +4819,11 @@ void CustomData_bmesh_interp(CustomData *data,
   }
 }
 
-ATTR_NO_OPT void CustomData_to_bmesh_block(const CustomData *source,
-                                           CustomData *dest,
-                                           int src_index,
-                                           void **dest_block,
-                                           bool use_default_init)
+void CustomData_to_bmesh_block(const CustomData *source,
+                               CustomData *dest,
+                               int src_index,
+                               void **dest_block,
+                               bool use_default_init)
 {
   if (*dest_block == nullptr) {
     CustomData_bmesh_alloc_block(dest, dest_block);

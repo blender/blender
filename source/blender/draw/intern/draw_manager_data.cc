@@ -1441,10 +1441,10 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   drw_sculpt_generate_calls(&scd);
 }
 
-ATTR_NO_OPT void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
-                                                        GPUMaterial **gpumats,
-                                                        int num_shgroups,
-                                                        Object *ob)
+void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
+                                            GPUMaterial **gpumats,
+                                            int num_shgroups,
+                                            Object *ob)
 {
   DRW_Attributes draw_attrs;
   DRW_MeshCDMask cd_needed;

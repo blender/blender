@@ -1393,7 +1393,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
   return false;
 }
 
-ATTR_NO_OPT bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
+bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
 {
 #if !(DYNTOPO_DISABLE_FLAG & DYNTOPO_DISABLE_FIN_REMOVAL)
   bm_logstack_push();
@@ -3163,12 +3163,12 @@ static const int splitmap[43][16] = {
     {6, -1, 3, -1, 5, -1, 1},  // 42 0 1 0 1 0 1
 };
 
-ATTR_NO_OPT static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
-                                         PBVH *pbvh,
-                                         BMesh *bm,
-                                         BMEdge **edges1,
-                                         int totedge,
-                                         bool ignore_isolated_edges)
+static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
+                             PBVH *pbvh,
+                             BMesh *bm,
+                             BMEdge **edges1,
+                             int totedge,
+                             bool ignore_isolated_edges)
 {
   bm_logstack_push();
   bm_log_message("  == split edges == ");

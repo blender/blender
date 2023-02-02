@@ -1851,7 +1851,7 @@ void BKE_pbvh_set_flat_vcol_shading(PBVH *pbvh, bool value)
   pbvh->flat_vcol_shading = value;
 }
 
-ATTR_NO_OPT void pbvh_free_draw_buffers(PBVH *UNUSED(pbvh), PBVHNode *node)
+void pbvh_free_draw_buffers(PBVH *UNUSED(pbvh), PBVHNode *node)
 {
   if (node->draw_batches) {
     DRW_pbvh_node_free(node->draw_batches);
@@ -4374,7 +4374,7 @@ void BKE_pbvh_update_all_tri_areas(PBVH *pbvh)
   }
 }
 
-ATTR_NO_OPT void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
+void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
 {
   if (!(node->flag & PBVH_UpdateTriAreas)) {
     return;
@@ -4568,10 +4568,7 @@ void BKE_pbvh_set_vemap(PBVH *pbvh, MeshElemMap *vemap)
   pbvh->vemap = vemap;
 }
 
-ATTR_NO_OPT void BKE_pbvh_get_vert_face_areas(PBVH *pbvh,
-                                              PBVHVertRef vertex,
-                                              float *r_areas,
-                                              int valence)
+void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas, int valence)
 {
   const int cur_i = pbvh->face_area_i;
 

@@ -3629,7 +3629,7 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
   MEM_SAFE_FREE(depthmap);
 }
 
-ATTR_NO_OPT static void pbvh_bmesh_join_nodes(PBVH *bvh)
+static void pbvh_bmesh_join_nodes(PBVH *bvh)
 {
   if (bvh->totnode < 2) {
     return;

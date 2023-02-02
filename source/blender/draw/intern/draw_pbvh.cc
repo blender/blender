@@ -230,7 +230,7 @@ struct PBVHBatches {
     }
   }
 
-  ATTR_NO_OPT ~PBVHBatches()
+  ~PBVHBatches()
   {
     for (PBVHBatch &batch : batches.values()) {
       GPU_BATCH_DISCARD_SAFE(batch.tris);
@@ -760,7 +760,7 @@ struct PBVHBatches {
     }
   }
 
-  ATTR_NO_OPT void fill_vbo_bmesh(PBVHVbo &vbo, PBVH_GPU_Args *args)
+  void fill_vbo_bmesh(PBVHVbo &vbo, PBVH_GPU_Args *args)
   {
     auto foreach_bmesh_normal = [&](std::function<void(BMLoop * l)> callback) {
       for (int i : IndexRange(args->tribuf->tottri)) {
@@ -1099,10 +1099,7 @@ struct PBVHBatches {
     }
   }
 
-  ATTR_NO_OPT void create_vbo(eAttrDomain domain,
-                              const uint32_t type,
-                              string name,
-                              PBVH_GPU_Args *args)
+  void create_vbo(eAttrDomain domain, const uint32_t type, string name, PBVH_GPU_Args *args)
   {
     PBVHVbo vbo(domain, type, name);
     GPUVertFormat format;

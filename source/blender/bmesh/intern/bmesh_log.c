@@ -644,19 +644,19 @@ static bool log_ghash_ensure_p(BMLog *log, GHash *gh, void *key, void ***val)
 }
 
 #ifdef USE_NEW_IDMAP
-ATTR_NO_OPT static void bm_log_set_id_raw(BMLog *log, BMElem *elem, int id)
+static void bm_log_set_id_raw(BMLog *log, BMElem *elem, int id)
 {
   BM_ELEM_CD_SET_INT(elem, log->idmap->cd_id_off[elem->head.htype], id);
 }
 
 /* Get the vertex's unique ID from the log */
-ATTR_NO_OPT static uint bm_log_vert_id_get(BMLog *log, BMVert *v)
+static uint bm_log_vert_id_get(BMLog *log, BMVert *v)
 {
   return BM_idmap_get_id(log->idmap, (BMElem *)v);
 }
 
 /*Get a vertex from its unique ID */
-ATTR_NO_OPT static BMElem *bm_log_elem_from_id(BMLog *log, uint id)
+static BMElem *bm_log_elem_from_id(BMLog *log, uint id)
 {
 
   if (log->idmap->map && id >= ((unsigned int)log->idmap->map_size)) {
@@ -667,7 +667,7 @@ ATTR_NO_OPT static BMElem *bm_log_elem_from_id(BMLog *log, uint id)
 }
 
 /* Get a vertex from its unique ID */
-ATTR_NO_OPT static BMVert *bm_log_vert_from_id(BMLog *log, uint id)
+static BMVert *bm_log_vert_from_id(BMLog *log, uint id)
 {
   return (BMVert *)bm_log_elem_from_id(log, id);
 }
@@ -678,7 +678,7 @@ BMVert *BM_log_id_vert_get(BMLog *log, uint id)
 }
 
 /* Get the edges's unique ID from the log */
-ATTR_NO_OPT static uint bm_log_edge_id_get(BMLog *log, BMEdge *e)
+static uint bm_log_edge_id_get(BMLog *log, BMEdge *e)
 {
   return BM_idmap_get_id(log->idmap, (BMElem *)e);
 }
@@ -695,24 +695,24 @@ static BMEdge *bm_log_edge_from_id(BMLog *log, uint id)
 }
 
 /* Get the face's unique ID from the log */
-ATTR_NO_OPT static uint bm_log_face_id_get(BMLog *log, BMFace *f)
+static uint bm_log_face_id_get(BMLog *log, BMFace *f)
 {
   return BM_idmap_get_id(log->idmap, (BMElem *)f);
 }
 
-ATTR_NO_OPT static uint bm_log_elem_id_get(BMLog *log, BMElem *elem)
+static uint bm_log_elem_id_get(BMLog *log, BMElem *elem)
 {
   return BM_idmap_get_id(log->idmap, elem);
 }
 
 /* Get a face from its unique ID */
-ATTR_NO_OPT static BMFace *bm_log_face_from_id(BMLog *log, uint id)
+static BMFace *bm_log_face_from_id(BMLog *log, uint id)
 {
   return (BMFace *)bm_log_elem_from_id(log, id);
 }
 
 #else
-ATTR_NO_OPT static void bm_log_set_id_raw(BMLog *log, BMElem *elem, int id)
+static void bm_log_set_id_raw(BMLog *log, BMElem *elem, int id)
 {
   BM_ELEM_CD_SET_INT(elem, log->bm->idmap.cd_id_off[elem->head.htype], id);
 }
@@ -1456,7 +1456,7 @@ static void bm_log_edges_restore(
   }
 }
 
-ATTR_NO_OPT static void bm_log_faces_restore(
+static void bm_log_faces_restore(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -4022,7 +4022,7 @@ static bool check_log_elem(BMesh *bm, BMLog *newlog, int id, int type, bool expe
   return true;
 }
 
-ATTR_NO_OPT static bool bm_check_ghash_set(
+static bool bm_check_ghash_set(
     GHash *ghashes[4], BMesh *bm, BMLog *newlog, BMLogEntry *entry, bool shouldExist)
 {
   bool ok = true;
@@ -4062,7 +4062,7 @@ ATTR_NO_OPT static bool bm_check_ghash_set(
   return ok;
 }
 
-ATTR_NO_OPT static bool bm_log_validate_intern(
+static bool bm_log_validate_intern(
     BMesh *bm, BMLog *newlog, BMLogEntry *srcEntry, bool is_applied, bool do_apply)
 {
   bool precopy = do_apply;

@@ -30,8 +30,8 @@
 #include "BKE_mesh.h"
 
 #include "bmesh.h"
-#include "intern/bmesh_private.h"
 #include "bmesh_log_intern.h"
+#include "intern/bmesh_private.h"
 #include "range_tree.h"
 
 #include <stdarg.h>
@@ -2094,7 +2094,7 @@ static char *obj_append_line(const char *line, char *str, char *fixed, int *size
   return str;
 }
 
-ATTR_NO_OPT static char *bm_save_local_obj_text(
+static char *bm_save_local_obj_text(
     BMesh *bm, int depth, char buf[LOCAL_OBJ_SIZE], const char *fmt, ...)
 {
   va_list vl;
@@ -2442,7 +2442,7 @@ char *_last_local_obj = NULL;
 #  define JVKE_CHECK_ELEMENT(elem)
 #endif
 
-ATTR_NO_OPT static bool cleanup_vert(BMesh *bm, BMVert *v, const BMTracer *tracer)
+static bool cleanup_vert(BMesh *bm, BMVert *v, const BMTracer *tracer)
 {
   BMEdge *e = v->e;
 
@@ -2506,7 +2506,7 @@ ATTR_NO_OPT static bool cleanup_vert(BMesh *bm, BMVert *v, const BMTracer *trace
   return true;
 }
 
-ATTR_NO_OPT static void bmesh_kernel_check_val3_vert(BMesh *bm, BMEdge *e, const BMTracer *tracer)
+static void bmesh_kernel_check_val3_vert(BMesh *bm, BMEdge *e, const BMTracer *tracer)
 {
   if (!e->l) {
     return;
@@ -2544,12 +2544,12 @@ ATTR_NO_OPT static void bmesh_kernel_check_val3_vert(BMesh *bm, BMEdge *e, const
   bm_logstack_pop();
 }
 
-ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
-                                                     BMEdge *e,
-                                                     BMVert *v_kill,
-                                                     const bool do_del,
-                                                     const bool combine_flags,
-                                                     const BMTracer *tracer)
+BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
+                                         BMEdge *e,
+                                         BMVert *v_kill,
+                                         const bool do_del,
+                                         const bool combine_flags,
+                                         const BMTracer *tracer)
 {
   BMVert *v_conn = BM_edge_other_vert(e, v_kill);
 
@@ -2586,7 +2586,7 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
   JVKE_CHECK_ELEMENT(v_conn);
   JVKE_CHECK_ELEMENT(v_del);
 
-  #define _OTHER_TRACES  // paranoia (and likely duplicate) calls to tracer callbacks
+#define _OTHER_TRACES  // paranoia (and likely duplicate) calls to tracer callbacks
 
   /* first clear tags */
   for (int i = 0; i < 2; i++) {
@@ -2823,7 +2823,7 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
     } while (lnext && (l = lnext) != f->l_first);
 
     if (f->len <= 2) {
-#if 0 //def _OTHER_TRACES
+#if 0  // def _OTHER_TRACES
       if (tracer) {
         tracer->on_face_kill(bm, f, tracer->userdata);
       }
@@ -3330,7 +3330,7 @@ bool BM_vert_splice_check_double(BMVert *v_a, BMVert *v_b)
   return is_double;
 }
 
-ATTR_NO_OPT bool BM_vert_splice(BMesh *bm, BMVert *v_dst, BMVert *v_src)
+bool BM_vert_splice(BMesh *bm, BMVert *v_dst, BMVert *v_src)
 {
   BMEdge *e;
 

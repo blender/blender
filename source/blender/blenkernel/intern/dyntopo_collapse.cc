@@ -138,7 +138,7 @@ inline bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
 /* Faces *outside* the ring region are tagged with facetag, used to detect
  * border edges.
  */
-ATTR_NO_OPT static void vert_ring_do_tag(BMVert *v, int tag, int facetag, int depth)
+static void vert_ring_do_tag(BMVert *v, int tag, int facetag, int depth)
 {
 
   BMEdge *e = v->e;
@@ -178,7 +178,7 @@ ATTR_NO_OPT static void vert_ring_do_tag(BMVert *v, int tag, int facetag, int de
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 }
 
-ATTR_NO_OPT static void vert_ring_untag_inner_faces(BMVert *v, int tag, int facetag, int depth)
+static void vert_ring_untag_inner_faces(BMVert *v, int tag, int facetag, int depth)
 {
   if (!v->e) {
     return;
@@ -205,12 +205,12 @@ ATTR_NO_OPT static void vert_ring_untag_inner_faces(BMVert *v, int tag, int face
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 }
 
-ATTR_NO_OPT void vert_ring_do_apply(BMVert *v,
-                                    std::function<void(BMElem *elem, void *userdata)> callback,
-                                    void *userdata,
-                                    int tag,
-                                    int facetag,
-                                    int depth)
+void vert_ring_do_apply(BMVert *v,
+                        std::function<void(BMElem *elem, void *userdata)> callback,
+                        void *userdata,
+                        int tag,
+                        int facetag,
+                        int depth)
 {
   BMEdge *e = v->e;
 
@@ -265,7 +265,7 @@ ATTR_NO_OPT void vert_ring_do_apply(BMVert *v,
 const int COLLAPSE_TAG = BM_ELEM_INTERNAL_TAG;
 const int COLLAPSE_FACE_TAG = BM_ELEM_TAG_ALT;
 
-ATTR_NO_OPT static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
+static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
 {
   TraceData *data = static_cast<TraceData *>(userdata);
 
@@ -296,7 +296,7 @@ ATTR_NO_OPT static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
   }
 }
 
-ATTR_NO_OPT static void check_new_elem_id(BMElem *elem, TraceData *data)
+static void check_new_elem_id(BMElem *elem, TraceData *data)
 {
   int id = BM_ELEM_CD_GET_INT(elem, data->pbvh->bm_idmap->cd_id_off[elem->head.htype]);
   if (id >= 0) {
@@ -319,7 +319,7 @@ ATTR_NO_OPT static void check_new_elem_id(BMElem *elem, TraceData *data)
   }
 }
 
-ATTR_NO_OPT static void collapse_ring_callback_post(BMElem *elem, void *userdata)
+static void collapse_ring_callback_post(BMElem *elem, void *userdata)
 {
   TraceData *data = static_cast<TraceData *>(userdata);
 
@@ -370,13 +370,13 @@ static void edge_ring_do_old(BMEdge *e,
   vert_ring_do_apply(e->v2, callback, userdata, tag, facetag, depth);
 }
 
-ATTR_NO_OPT static void vert_ring_do(BMVert *v,
-                                     BMVert *v_extra,
-                                     void (*callback)(BMElem *elem, void *userdata),
-                                     void *userdata,
-                                     int tag,
-                                     int facetag,
-                                     int depth)
+static void vert_ring_do(BMVert *v,
+                         BMVert *v_extra,
+                         void (*callback)(BMElem *elem, void *userdata),
+                         void *userdata,
+                         int tag,
+                         int facetag,
+                         int depth)
 {
   blender::Set<BMFace *, 128> faces;
 
@@ -466,7 +466,7 @@ ATTR_NO_OPT static void vert_ring_do(BMVert *v,
   }
 }
 
-ATTR_NO_OPT bool pbvh_bmesh_collapse_edge_uvs(
+bool pbvh_bmesh_collapse_edge_uvs(
     PBVH *pbvh, BMEdge *e, BMVert *v_conn, BMVert *v_del, EdgeQueueContext *eq_ctx)
 {
   bm_logstack_push();
@@ -626,13 +626,13 @@ ATTR_NO_OPT bool pbvh_bmesh_collapse_edge_uvs(
  * This function is rather complicated.  It has to
  * snap UVs, log geometry and free ids.
  */
-ATTR_NO_OPT BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
-                                             BMEdge *e,
-                                             BMVert *v1,
-                                             BMVert *v2,
-                                             GHash *deleted_verts,
-                                             BLI_Buffer *deleted_faces,
-                                             EdgeQueueContext *eq_ctx)
+BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
+                                 BMEdge *e,
+                                 BMVert *v1,
+                                 BMVert *v2,
+                                 GHash *deleted_verts,
+                                 BLI_Buffer *deleted_faces,
+                                 EdgeQueueContext *eq_ctx)
 {
   bm_logstack_push();
 

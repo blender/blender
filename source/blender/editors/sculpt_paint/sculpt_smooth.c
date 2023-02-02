@@ -364,10 +364,10 @@ MINLINE float safe_shell_angle_to_dist(const float angle)
   return (UNLIKELY(angle < 1.e-8f)) ? 1.0f : fabsf(1.0f / th);
 }
 
-ATTR_NO_OPT static void SCULPT_neighbor_coords_average_interior_boundary(SculptSession *ss,
-                                                                         float result[3],
-                                                                         PBVHVertRef vertex,
-                                                                         SculptSmoothArgs *args)
+static void SCULPT_neighbor_coords_average_interior_boundary(SculptSession *ss,
+                                                             float result[3],
+                                                             PBVHVertRef vertex,
+                                                             SculptSmoothArgs *args)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
 
@@ -709,10 +709,10 @@ ATTR_NO_OPT static void SCULPT_neighbor_coords_average_interior_boundary(SculptS
   PBVH_CHECK_NAN(co);
 }
 
-ATTR_NO_OPT void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
-                                                         float result[3],
-                                                         PBVHVertRef vertex,
-                                                         SculptSmoothArgs *args)
+void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                             float result[3],
+                                             PBVHVertRef vertex,
+                                             SculptSmoothArgs *args)
 {
   if (args->bound_smooth > 0.0f && args->bound_scl) {
     SCULPT_neighbor_coords_average_interior_boundary(ss, result, vertex, args);
@@ -1991,14 +1991,14 @@ void SCULPT_bound_smooth_ensure(SculptSession *ss, Object *ob)
   }
 }
 
-ATTR_NO_OPT void SCULPT_smooth(Sculpt *sd,
-                               Object *ob,
-                               PBVHNode **nodes,
-                               const int totnode,
-                               float bstrength,
-                               const bool smooth_mask,
-                               float projection,
-                               bool do_origco)
+void SCULPT_smooth(Sculpt *sd,
+                   Object *ob,
+                   PBVHNode **nodes,
+                   const int totnode,
+                   float bstrength,
+                   const bool smooth_mask,
+                   float projection,
+                   bool do_origco)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = ss->cache && ss->cache->brush ? ss->cache->brush : BKE_paint_brush(&sd->paint);

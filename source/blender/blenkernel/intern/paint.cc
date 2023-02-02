@@ -1400,7 +1400,7 @@ bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
   return ok;
 }
 
-ATTR_NO_OPT static bool sculpt_boundary_flags_ensure(Object *ob, PBVH *pbvh, int totvert)
+static bool sculpt_boundary_flags_ensure(Object *ob, PBVH *pbvh, int totvert)
 {
   SculptSession *ss = ob->sculpt;
   bool ret = false;
@@ -1472,7 +1472,7 @@ void BKE_sculptsession_free_vwpaint_data(SculptSession *ss)
 /**
  * Write out the sculpt dynamic-topology #BMesh to the #Mesh.
  */
-ATTR_NO_OPT static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
+static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -3288,14 +3288,14 @@ static int sculpt_attr_elem_count_get(Object *ob, eAttrDomain domain)
   }
 }
 
-ATTR_NO_OPT static bool sculpt_attribute_create(SculptSession *ss,
-                                                Object *ob,
-                                                eAttrDomain domain,
-                                                eCustomDataType proptype,
-                                                const char *name,
-                                                SculptAttribute *out,
-                                                const SculptAttributeParams *params,
-                                                PBVHType pbvhtype)
+static bool sculpt_attribute_create(SculptSession *ss,
+                                    Object *ob,
+                                    eAttrDomain domain,
+                                    eCustomDataType proptype,
+                                    const char *name,
+                                    SculptAttribute *out,
+                                    const SculptAttributeParams *params,
+                                    PBVHType pbvhtype)
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
 
@@ -3426,7 +3426,7 @@ ATTR_NO_OPT static bool sculpt_attribute_create(SculptSession *ss,
   return true;
 }
 
-ATTR_NO_OPT static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
+static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
 {
   SculptSession *ss = ob->sculpt;
   int elem_num = sculpt_attr_elem_count_get(ob, attr->domain);
@@ -3581,12 +3581,12 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
   return nullptr;
 }
 
-ATTR_NO_OPT static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
-                                                               eAttrDomain domain,
-                                                               eCustomDataType proptype,
-                                                               const char *name,
-                                                               const SculptAttributeParams *params,
-                                                               PBVHType pbvhtype)
+static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
+                                                   eAttrDomain domain,
+                                                   eCustomDataType proptype,
+                                                   const char *name,
+                                                   const SculptAttributeParams *params,
+                                                   PBVHType pbvhtype)
 {
   SculptSession *ss = ob->sculpt;
   SculptAttribute *attr = BKE_sculpt_attribute_get(ob, domain, proptype, name);

@@ -284,9 +284,9 @@ static int new_fset_apply_curve(SculptSession *ss,
   return new_fset;
 }
 
-ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
-                                                    const int n,
-                                                    const TaskParallelTLS *__restrict tls)
+void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
+                                        const int n,
+                                        const TaskParallelTLS *__restrict tls)
 {
   SculptFaceSetDrawData *data = (SculptFaceSetDrawData *)userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -307,15 +307,13 @@ ATTR_NO_OPT void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  float (*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
+  float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
   const float test_limit = 0.05f;
   int cd_mask = -1;
 
   if (ss->bm) {
     cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
   }
-
-  SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_FACE_SETS);
 
   /*check if we need to sample the current face set*/
 
@@ -646,10 +644,7 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-ATTR_NO_OPT void SCULPT_do_draw_face_sets_brush(Sculpt *sd,
-                                                Object *ob,
-                                                PBVHNode **nodes,
-                                                int totnode)
+void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = ss->cache->brush ? ss->cache->brush : BKE_paint_brush(&sd->paint);
@@ -698,7 +693,7 @@ ATTR_NO_OPT void SCULPT_do_draw_face_sets_brush(Sculpt *sd,
 
   // ctrl-click is single threaded since the tasks will set the initial face set
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, threaded, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, threaded && false /* XXX */, totnode);
   if (ss->cache->alt_smooth) {
     SCULPT_boundary_info_ensure(ob);
     for (int i = 0; i < 4; i++) {
@@ -968,52 +963,64 @@ typedef bool (*face_sets_flood_fill_test)(
     BMesh *bm, BMFace *from_f, BMEdge *from_e, BMFace *to_f, const float threshold);
 
 static bool sculpt_face_sets_init_loose_parts_test(BMesh * /*bm*/,
-                                                   BMFace */*from_f*/,
-                                                   BMEdge */*from_e*/,
-                                                   BMFace */*UNUSED(to_f)*/,
+                                                   BMFace * /*from_f*/,
+                                                   BMEdge * /*from_e*/,
+                                                   BMFace * /*UNUSED(to_f)*/,
                                                    const float /*UNUSED(threshold)*/)
 {
   return true;
 }
 
-static bool sculpt_face_sets_init_normals_test(
-    BMesh */*bm*/, BMFace *from_f, BMEdge */*UNUSED(from_e)*/, BMFace *to_f, const float threshold)
+static bool sculpt_face_sets_init_normals_test(BMesh * /*bm*/,
+                                               BMFace *from_f,
+                                               BMEdge * /*UNUSED(from_e)*/,
+                                               BMFace *to_f,
+                                               const float threshold)
 {
   return fabsf(dot_v3v3(from_f->no, to_f->no)) > threshold;
 }
 
-static bool sculpt_face_sets_init_uv_seams_test(BMesh */*UNUSED(bm)*/,
-                                                BMFace */*UNUSED(from_f)*/,
+static bool sculpt_face_sets_init_uv_seams_test(BMesh * /*UNUSED(bm)*/,
+                                                BMFace * /*UNUSED(from_f)*/,
                                                 BMEdge *from_e,
-                                                BMFace */*UNUSED(to_f)*/,
+                                                BMFace * /*UNUSED(to_f)*/,
                                                 const float /*UNUSED(threshold)*/)
 {
   return !BM_elem_flag_test(from_e, BM_ELEM_SEAM);
 }
 
-static bool sculpt_face_sets_init_crease_test(
-    BMesh *bm, BMFace */*UNUSED(from_f)*/, BMEdge *from_e, BMFace */*UNUSED(to_f)*/, const float threshold)
+static bool sculpt_face_sets_init_crease_test(BMesh *bm,
+                                              BMFace * /*UNUSED(from_f)*/,
+                                              BMEdge *from_e,
+                                              BMFace * /*UNUSED(to_f)*/,
+                                              const float threshold)
 {
   return BM_elem_float_data_get(&bm->edata, from_e, CD_CREASE) < threshold;
 }
 
-static bool sculpt_face_sets_init_bevel_weight_test(
-    BMesh *bm, BMFace */*UNUSED(from_f)*/, BMEdge *from_e, BMFace */*UNUSED(to_f)*/, const float threshold)
+static bool sculpt_face_sets_init_bevel_weight_test(BMesh *bm,
+                                                    BMFace * /*UNUSED(from_f)*/,
+                                                    BMEdge *from_e,
+                                                    BMFace * /*UNUSED(to_f)*/,
+                                                    const float threshold)
 {
   return BM_elem_float_data_get(&bm->edata, from_e, CD_BWEIGHT) < threshold;
 }
 
-static bool sculpt_face_sets_init_sharp_edges_test(BMesh */*UNUSED(bm)*/,
-                                                   BMFace */*UNUSED(from_f)*/,
+static bool sculpt_face_sets_init_sharp_edges_test(BMesh * /*UNUSED(bm)*/,
+                                                   BMFace * /*UNUSED(from_f)*/,
                                                    BMEdge *from_e,
-                                                   BMFace */*UNUSED(to_f)*/,
+                                                   BMFace * /*UNUSED(to_f)*/,
                                                    const float /*UNUSED(threshold)*/)
 {
   return BM_elem_flag_test(from_e, BM_ELEM_SMOOTH);
 }
 
-static bool sculpt_face_sets_init_face_set_boundary_test(
-    BMesh *bm, BMFace *from_f, BMEdge */*UNUSED(from_e)*/, BMFace *to_f, const float /*UNUSED(threshold)*/)
+static bool sculpt_face_sets_init_face_set_boundary_test(BMesh *bm,
+                                                         BMFace *from_f,
+                                                         BMEdge * /*UNUSED(from_e)*/,
+                                                         BMFace *to_f,
+                                                         const float /*UNUSED(threshold)*/)
 {
   const int cd_face_sets_offset = CustomData_get_offset_named(
       &bm->pdata, CD_PROP_INT32, ".sculpt_face_sets");
@@ -1303,7 +1310,7 @@ static EnumPropertyItem prop_sculpt_face_sets_change_visibility_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-ATTR_NO_OPT void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool state)
+void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool state)
 {
   for (int i = 0; i < ss->totfaces; i++) {
     PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, i);
@@ -1965,8 +1972,9 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
     BKE_bmesh_prefair_and_fair_verts(ss->bm, fair_vertices, (eMeshFairingDepth)fair_order);
   }
   else {
-    float (*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
-    BKE_mesh_prefair_and_fair_verts(mesh, vert_positions, fair_vertices, (eMeshFairingDepth)fair_order);
+    float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
+    BKE_mesh_prefair_and_fair_verts(
+        mesh, vert_positions, fair_vertices, (eMeshFairingDepth)fair_order);
 
     MEM_freeN(fair_vertices);
   }
@@ -2852,7 +2860,7 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
   }
 
   if (!ss->bm) {
-    float (*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
+    float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
     for (int i = 0; i < fsecd->totvert; i++) {
       int idx = fsecd->verts[i];
 
