@@ -78,6 +78,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, Mesh *mesh, const PLYImportParams &para
       copy_v4_v4(colors.span[i], data.vertex_colors[i]);
     }
     colors.finish();
+    BKE_id_attributes_active_color_set(&mesh->id, "Col");
   }
 
   /* Uvmap */
