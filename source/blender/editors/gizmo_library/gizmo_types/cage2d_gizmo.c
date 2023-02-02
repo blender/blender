@@ -8,7 +8,7 @@
  *
  * 2D Gizmo
  *
- * \brief Rectangular gizmo acting as a 'cage' around its content.
+ * \brief Rectangular or circular gizmo acting as a 'cage' around its content.
  * Interacting scales or translates the gizmo.
  */
 
@@ -41,6 +41,8 @@
 #include "../gizmo_library_intern.h"
 
 #define GIZMO_MARGIN_OFFSET_SCALE 1.5f
+/* The same as in `draw_cache.c` */
+#define CIRCLE_RESOL 32
 
 static bool gizmo_calc_rect_view_scale(const wmGizmo *gz, const float dims[2], float scale[2])
 {
@@ -472,12 +474,12 @@ static void imm_draw_point_aspect_2d(
   }
 }
 
-static void cage2d_draw_circle_wire(const rctf *r,
-                                    const float margin[2],
-                                    const float color[3],
-                                    const int transform_flag,
-                                    const int draw_options,
-                                    const float line_width)
+static void cage2d_draw_rect_wire(const rctf *r,
+                                  const float margin[2],
+                                  const float color[3],
+                                  const int transform_flag,
+                                  const int draw_options,
+                                  const float line_width)
 {
   /* NOTE(Metal): Prefer using 3D coordinates with 3D shader input, even if rendering 2D gizmo's.
    */
@@ -533,11 +535,31 @@ static void cage2d_draw_circle_wire(const rctf *r,
   immUnbindProgram();
 }
 
-static void cage2d_draw_circle_handles(const rctf *r,
-                                       const float margin[2],
-                                       const float color[3],
-                                       const int transform_flag,
-                                       bool solid)
+static void cage2d_draw_circle_wire(const float color[3],
+                                    const float size[2],
+                                    const float margin,
+                                    const float line_width)
+{
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+  immUniformColor3fv(color);
+
+  float viewport[4];
+  GPU_viewport_size_get_f(viewport);
+  immUniform2fv("viewportSize", &viewport[2]);
+  immUniform1f("lineWidth", line_width * U.pixelsize + margin);
+
+  imm_draw_circle_wire_aspect_3d(pos, 0.0f, 0.0f, size[0], size[1], CIRCLE_RESOL);
+
+  immUnbindProgram();
+}
+
+static void cage2d_draw_rect_handles(const rctf *r,
+                                     const float margin[2],
+                                     const float color[3],
+                                     const int transform_flag,
+                                     bool solid)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   void (*circle_fn)(uint, float, float, float, float, int) = (solid) ?
@@ -609,39 +631,46 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
   if (select) {
     /* Expand for hot-spot. */
     const float size[2] = {size_real[0] + margin[0] / 2, size_real[1] + margin[1] / 2};
+    if (draw_style == ED_GIZMO_CAGE2D_STYLE_CIRCLE) {
+      /* Only scaling is needed for now. */
+      GPU_select_load_id(select_id | ED_GIZMO_CAGE2D_PART_SCALE);
+      cage2d_draw_circle_wire(
+          gz->color, size_real, 0.5f * (margin[0] + margin[1]), gz->line_width);
+    }
+    else {
+      if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE) {
+        int scale_parts[] = {
+            ED_GIZMO_CAGE2D_PART_SCALE_MIN_X,
+            ED_GIZMO_CAGE2D_PART_SCALE_MAX_X,
+            ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y,
+            ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y,
 
-    if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE) {
-      int scale_parts[] = {
-          ED_GIZMO_CAGE2D_PART_SCALE_MIN_X,
-          ED_GIZMO_CAGE2D_PART_SCALE_MAX_X,
-          ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y,
-          ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y,
-
-          ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y,
-          ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y,
-          ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y,
-          ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y,
-      };
-      for (int i = 0; i < ARRAY_SIZE(scale_parts); i++) {
-        GPU_select_load_id(select_id | scale_parts[i]);
-        cage2d_draw_box_interaction(
-            gz->color, scale_parts[i], size, margin, gz->line_width, true, draw_options);
+            ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y,
+            ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y,
+            ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y,
+            ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y,
+        };
+        for (int i = 0; i < ARRAY_SIZE(scale_parts); i++) {
+          GPU_select_load_id(select_id | scale_parts[i]);
+          cage2d_draw_box_interaction(
+              gz->color, scale_parts[i], size, margin, gz->line_width, true, draw_options);
+        }
       }
-    }
-    if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE) {
-      const int transform_part = ED_GIZMO_CAGE2D_PART_TRANSLATE;
-      GPU_select_load_id(select_id | transform_part);
-      cage2d_draw_box_interaction(
-          gz->color, transform_part, size, margin, gz->line_width, true, draw_options);
-    }
-    if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_ROTATE) {
-      cage2d_draw_box_interaction(gz->color,
-                                  ED_GIZMO_CAGE2D_PART_ROTATE,
-                                  size_real,
-                                  margin,
-                                  gz->line_width,
-                                  true,
-                                  draw_options);
+      if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE) {
+        const int transform_part = ED_GIZMO_CAGE2D_PART_TRANSLATE;
+        GPU_select_load_id(select_id | transform_part);
+        cage2d_draw_box_interaction(
+            gz->color, transform_part, size, margin, gz->line_width, true, draw_options);
+      }
+      if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_ROTATE) {
+        cage2d_draw_box_interaction(gz->color,
+                                    ED_GIZMO_CAGE2D_PART_ROTATE,
+                                    size_real,
+                                    margin,
+                                    gz->line_width,
+                                    true,
+                                    draw_options);
+      }
     }
   }
   else {
@@ -688,24 +717,30 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
                                     draw_options);
       }
     }
-    else if (draw_style == ED_GIZMO_CAGE2D_STYLE_CIRCLE) {
+    else {
       float color[4], black[3] = {0, 0, 0};
       gizmo_color_get(gz, highlight, color);
 
       GPU_blend(GPU_BLEND_ALPHA);
 
       float outline_line_width = gz->line_width + 3.0f;
-      cage2d_draw_circle_wire(&r, margin, black, transform_flag, draw_options, outline_line_width);
-      cage2d_draw_circle_wire(&r, margin, color, transform_flag, draw_options, gz->line_width);
 
-      /* corner gizmos */
-      cage2d_draw_circle_handles(&r, margin, color, transform_flag, true);
-      cage2d_draw_circle_handles(&r, margin, (const float[3]){0, 0, 0}, transform_flag, false);
+      if (draw_style == ED_GIZMO_CAGE2D_STYLE_RECTANGLE) {
+        cage2d_draw_rect_wire(&r, margin, black, transform_flag, draw_options, outline_line_width);
+        cage2d_draw_rect_wire(&r, margin, color, transform_flag, draw_options, gz->line_width);
 
+        /* corner gizmos */
+        cage2d_draw_rect_handles(&r, margin, color, transform_flag, true);
+        cage2d_draw_rect_handles(&r, margin, black, transform_flag, false);
+      }
+      else if (draw_style == ED_GIZMO_CAGE2D_STYLE_CIRCLE) {
+        cage2d_draw_circle_wire(black, size_real, 0.0f, outline_line_width);
+        cage2d_draw_circle_wire(color, size_real, 0.0f, gz->line_width);
+      }
+      else {
+        BLI_assert(0);
+      }
       GPU_blend(GPU_BLEND_NONE);
-    }
-    else {
-      BLI_assert(0);
     }
   }
 
@@ -1188,6 +1223,7 @@ static void GIZMO_GT_cage_2d(wmGizmoType *gzt)
   /* rna */
   static EnumPropertyItem rna_enum_draw_style[] = {
       {ED_GIZMO_CAGE2D_STYLE_BOX, "BOX", 0, "Box", ""},
+      {ED_GIZMO_CAGE2D_STYLE_RECTANGLE, "RECTANGLE", 0, "Rectangle", ""},
       {ED_GIZMO_CAGE2D_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
       {0, NULL, 0, NULL, NULL},
   };
@@ -1209,7 +1245,7 @@ static void GIZMO_GT_cage_2d(wmGizmoType *gzt)
   RNA_def_enum(gzt->srna,
                "draw_style",
                rna_enum_draw_style,
-               ED_GIZMO_CAGE2D_STYLE_CIRCLE,
+               ED_GIZMO_CAGE2D_STYLE_RECTANGLE,
                "Draw Style",
                "");
   RNA_def_enum_flag(gzt->srna,
