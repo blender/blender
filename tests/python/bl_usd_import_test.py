@@ -189,6 +189,7 @@ class USDImportTest(AbstractUSDTest):
         self.assertAlmostEqual(1.234, test_cam.shift_x, 3)
         self.assertAlmostEqual(5.678, test_cam.shift_y, 3)
 
+
 def main():
     global args
     import argparse
