@@ -1238,7 +1238,8 @@ void BKE_mesh_legacy_face_set_from_generic(Mesh *mesh,
     }
   }
   if (faceset_data != nullptr) {
-    CustomData_add_layer(&mesh->pdata, CD_SCULPT_FACE_SETS, CD_ASSIGN, faceset_data, mesh->totpoly);
+    CustomData_add_layer(
+        &mesh->pdata, CD_SCULPT_FACE_SETS, CD_ASSIGN, faceset_data, mesh->totpoly);
   }
 }
 
@@ -1249,7 +1250,7 @@ void BKE_mesh_legacy_face_set_to_generic(Mesh *mesh)
     return;
   }
   void *faceset_data = nullptr;
-  for (const int i : IndexRange(mesh->totpoly)) {
+  for (const int i : IndexRange(mesh->pdata.totlayer)) {
     if (mesh->pdata.layers[i].type == CD_SCULPT_FACE_SETS) {
       faceset_data = mesh->pdata.layers[i].data;
       mesh->pdata.layers[i].data = nullptr;
@@ -1258,7 +1259,8 @@ void BKE_mesh_legacy_face_set_to_generic(Mesh *mesh)
     }
   }
   if (faceset_data != nullptr) {
-    CustomData_add_layer_named(&mesh->pdata, CD_PROP_INT32, CD_ASSIGN, faceset_data, mesh->totpoly, ".sculpt_face_set");
+    CustomData_add_layer_named(
+        &mesh->pdata, CD_PROP_INT32, CD_ASSIGN, faceset_data, mesh->totpoly, ".sculpt_face_set");
   }
 }
 
