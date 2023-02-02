@@ -11,19 +11,20 @@
 #include "ply_data.hh"
 
 namespace blender::io::ply {
+
 /**
  * The function that gets called from the importer.
- * @param file The PLY file that was opened.
- * @param header The information in the PLY header.
- * @return The r_mesh that can be used inside blender.
+ * \param file The PLY file that was opened.
+ * \param header The information in the PLY header.
+ * \return The PlyData datastructure that can be used for conversion to a Mesh.
  */
 std::unique_ptr<PlyData> import_ply_binary(std::ifstream &file, const PlyHeader *header);
 
 /**
  * Loads the information from the PLY file in binary format to the PlyData datastructure.
- * @param file The PLY file that was opened.
- * @param header The information in the PLY header.
- * @return The PlyData datastructure that can be used for conversion to a Mesh.
+ * \param file The PLY file that was opened.
+ * \param header The information in the PLY header.
+ * \return The PlyData datastructure that can be used for conversion to a Mesh.
  */
 PlyData load_ply_binary(std::ifstream &file, const PlyHeader *header);
 
