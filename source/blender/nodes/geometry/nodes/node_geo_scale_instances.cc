@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
 
 #include "BKE_instances.hh"
@@ -42,15 +43,15 @@ static void scale_instances(GeoNodeExecParams &params, bke::Instances &instances
       float4x4 &instance_transform = transforms[i];
 
       if (local_spaces[i]) {
-        instance_transform *= float4x4::from_location(pivot);
-        rescale_m4(instance_transform.values, scales[i]);
-        instance_transform *= float4x4::from_location(-pivot);
+        instance_transform *= math::from_location<float4x4>(pivot);
+        rescale_m4(instance_transform.ptr(), scales[i]);
+        instance_transform *= math::from_location<float4x4>(-pivot);
       }
       else {
         const float4x4 original_transform = instance_transform;
-        instance_transform = float4x4::from_location(pivot);
-        rescale_m4(instance_transform.values, scales[i]);
-        instance_transform *= float4x4::from_location(-pivot);
+        instance_transform = math::from_location<float4x4>(pivot);
+        rescale_m4(instance_transform.ptr(), scales[i]);
+        instance_transform *= math::from_location<float4x4>(-pivot);
         instance_transform *= original_transform;
       }
     }

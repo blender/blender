@@ -37,8 +37,8 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
 
-#include "BLI_float4x4.hh"
 #include "BLI_index_range.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
 
 #include "RNA_access.h"

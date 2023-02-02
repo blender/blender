@@ -25,7 +25,7 @@
 #include "BLI_array.hh"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_math_vector.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -647,7 +647,7 @@ static void transform_positions(blender::MutableSpan<blender::float3> positions,
   using namespace blender;
   threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (float3 &position : positions.slice(range)) {
-      position = matrix * position;
+      position = math::transform_point(matrix, position);
     }
   });
 }
@@ -944,7 +944,7 @@ static int apply_objects_internal(bContext *C,
     }
     else if (ob->type == OB_CURVES) {
       Curves &curves = *static_cast<Curves *>(ob->data);
-      curves.geometry.wrap().transform(mat);
+      curves.geometry.wrap().transform(float4x4(mat));
       curves.geometry.wrap().calculate_bezier_auto_handles();
     }
     else if (ob->type == OB_POINTCLOUD) {

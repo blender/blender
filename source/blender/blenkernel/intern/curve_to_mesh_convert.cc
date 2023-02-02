@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 
@@ -183,25 +184,26 @@ static void fill_mesh_positions(const int main_point_num,
 {
   if (profile_point_num == 1) {
     for (const int i_ring : IndexRange(main_point_num)) {
-      float4x4 point_matrix = float4x4::from_normalized_axis_data(
+      float4x4 point_matrix = math::from_orthonormal_axes<float4x4>(
           main_positions[i_ring], normals[i_ring], tangents[i_ring]);
       if (!radii.is_empty()) {
-        point_matrix.apply_scale(radii[i_ring]);
+        point_matrix = math::scale(point_matrix, float3(radii[i_ring]));
       }
-      mesh_positions[i_ring] = point_matrix * profile_positions.first();
+      mesh_positions[i_ring] = math::transform_point(point_matrix, profile_positions.first());
     }
   }
   else {
     for (const int i_ring : IndexRange(main_point_num)) {
-      float4x4 point_matrix = float4x4::from_normalized_axis_data(
+      float4x4 point_matrix = math::from_orthonormal_axes<float4x4>(
           main_positions[i_ring], normals[i_ring], tangents[i_ring]);
       if (!radii.is_empty()) {
-        point_matrix.apply_scale(radii[i_ring]);
+        point_matrix = math::scale(point_matrix, float3(radii[i_ring]));
       }
 
       const int ring_vert_start = i_ring * profile_point_num;
       for (const int i_profile : IndexRange(profile_point_num)) {
-        mesh_positions[ring_vert_start + i_profile] = point_matrix * profile_positions[i_profile];
+        mesh_positions[ring_vert_start + i_profile] = math::transform_point(
+            point_matrix, profile_positions[i_profile]);
       }
     }
   }

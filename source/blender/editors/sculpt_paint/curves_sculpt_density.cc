@@ -178,7 +178,7 @@ struct DensityAddOperationExecutor {
       BLI_assert_unreachable();
     }
     for (float3 &pos : new_positions_cu) {
-      pos = transforms_.surface_to_curves * pos;
+      pos = math::transform_point(transforms_.surface_to_curves, pos);
     }
 
     if (stroke_extension.is_first) {
@@ -337,12 +337,12 @@ struct DensityAddOperationExecutor {
                                       Vector<float3> &r_positions_su)
   {
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_, projection.ptr());
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_orig_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      const float4x4 brush_transform_inv = brush_transform.inverted();
+      const float4x4 brush_transform_inv = math::invert(brush_transform);
       const float4x4 transform = transforms_.curves_to_surface * brush_transform *
                                  transforms_.world_to_curves;
       Vector<float3> positions_su;
@@ -358,8 +358,8 @@ struct DensityAddOperationExecutor {
             float3 start_wo, end_wo;
             ED_view3d_win_to_segment_clipped(
                 ctx_.depsgraph, ctx_.region, ctx_.v3d, pos_re, start_wo, end_wo, true);
-            r_start_su = transform * start_wo;
-            r_end_su = transform * end_wo;
+            r_start_su = math::transform_point(transform, start_wo);
+            r_end_su = math::transform_point(transform, end_wo);
           },
           true,
           brush_settings_->density_add_attempts,
@@ -371,9 +371,10 @@ struct DensityAddOperationExecutor {
       /* Remove some sampled points randomly based on the brush falloff and strength. */
       for (int i = new_points - 1; i >= 0; i--) {
         const float3 pos_su = positions_su[i];
-        const float3 pos_cu = brush_transform_inv * transforms_.surface_to_curves * pos_su;
+        const float3 pos_cu = math::transform_point(
+            brush_transform_inv, math::transform_point(transforms_.surface_to_curves, pos_su));
         float2 pos_re;
-        ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.values);
+        ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.ptr());
         const float dist_to_brush_re = math::distance(brush_pos_re_, pos_re);
         const float radius_falloff = BKE_brush_curve_strength(
             brush_, dist_to_brush_re, brush_radius_re_);
@@ -412,8 +413,9 @@ struct DensityAddOperationExecutor {
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_orig_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      const float3 brush_pos_cu = brush_transform * brush_3d->position_cu;
-      const float3 brush_pos_su = transforms_.curves_to_surface * brush_pos_cu;
+      const float3 brush_pos_cu = math::transform_point(brush_transform, brush_3d->position_cu);
+      const float3 brush_pos_su = math::transform_point(transforms_.curves_to_surface,
+                                                        brush_pos_cu);
       const float brush_radius_su = transform_brush_radius(
           transforms_.curves_to_surface, brush_pos_cu, brush_3d->radius_cu);
       const float brush_radius_sq_su = pow2f(brush_radius_su);
@@ -448,7 +450,7 @@ struct DensityAddOperationExecutor {
       /* Remove some sampled points randomly based on the brush falloff and strength. */
       for (int i = new_points - 1; i >= 0; i--) {
         const float3 pos_su = positions_su[i];
-        const float3 pos_cu = transforms_.surface_to_curves * pos_su;
+        const float3 pos_cu = math::transform_point(transforms_.surface_to_curves, pos_su);
         const float dist_to_brush_cu = math::distance(pos_cu, brush_pos_cu);
         const float radius_falloff = BKE_brush_curve_strength(
             brush_, dist_to_brush_cu, brush_3d->radius_cu);
@@ -644,7 +646,7 @@ struct DensitySubtractOperationExecutor {
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
 
     /* Randomly select the curves that are allowed to be removed, based on the brush radius and
      * strength. */
@@ -657,10 +659,11 @@ struct DensitySubtractOperationExecutor {
           allow_remove_curve[curve_i] = true;
           continue;
         }
-        const float3 pos_cu = brush_transform * self_->deformed_root_positions_[curve_i];
+        const float3 pos_cu = math::transform_point(brush_transform,
+                                                    self_->deformed_root_positions_[curve_i]);
 
         float2 pos_re;
-        ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.values);
+        ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.ptr());
         const float dist_to_brush_sq_re = math::distance_squared(brush_pos_re_, pos_re);
         if (dist_to_brush_sq_re > brush_radius_sq_re) {
           continue;
@@ -684,9 +687,9 @@ struct DensitySubtractOperationExecutor {
         continue;
       }
       const float3 orig_pos_cu = self_->deformed_root_positions_[curve_i];
-      const float3 pos_cu = brush_transform * orig_pos_cu;
+      const float3 pos_cu = math::transform_point(brush_transform, orig_pos_cu);
       float2 pos_re;
-      ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.values);
+      ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.ptr());
       const float dist_to_brush_sq_re = math::distance_squared(brush_pos_re_, pos_re);
       if (dist_to_brush_sq_re > brush_radius_sq_re) {
         continue;
@@ -724,7 +727,7 @@ struct DensitySubtractOperationExecutor {
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      const float3 brush_pos_cu = brush_transform * brush_3d->position_cu;
+      const float3 brush_pos_cu = math::transform_point(brush_transform, brush_3d->position_cu);
       this->reduce_density_spherical(brush_pos_cu, brush_3d->radius_cu, curves_to_delete);
     }
   }

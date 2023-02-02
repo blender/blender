@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_matrix.hh"
+
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_volume.h"
@@ -58,7 +60,8 @@ void OpenVDBMeshAdapter::getIndexSpacePoint(size_t polygon_index,
                                             openvdb::Vec3d &pos) const
 {
   const MLoopTri &looptri = looptris_[polygon_index];
-  const float3 transformed_co = transform_ * positions_[loops_[looptri.tri[vertex_index]].v];
+  const float3 transformed_co = math::transform_point(
+      transform_, positions_[loops_[looptri.tri[vertex_index]].v]);
   pos = &transformed_co.x;
 }
 
@@ -86,7 +89,8 @@ float volume_compute_voxel_size(const Depsgraph *depsgraph,
 
   /* Compute the voxel size based on the desired number of voxels and the approximated bounding
    * box of the volume. */
-  const float diagonal = math::distance(transform * bb_max, transform * bb_min);
+  const float diagonal = math::distance(math::transform_point(transform, bb_max),
+                                        math::transform_point(transform, bb_min));
   const float approximate_volume_side_length = diagonal + exterior_band_width * 2.0f;
   const float voxel_size = approximate_volume_side_length / res.settings.voxel_amount /
                            volume_simplify;
@@ -105,11 +109,10 @@ static openvdb::FloatGrid::Ptr mesh_to_volume_grid(const Mesh *mesh,
     return nullptr;
   }
 
-  float4x4 mesh_to_index_space_transform;
-  scale_m4_fl(mesh_to_index_space_transform.values, 1.0f / voxel_size);
-  mul_m4_m4_post(mesh_to_index_space_transform.values, mesh_to_volume_space_transform.values);
+  float4x4 mesh_to_index_space_transform = math::from_scale<float4x4>(float3(1.0f / voxel_size));
+  mesh_to_index_space_transform *= mesh_to_volume_space_transform;
   /* Better align generated grid with the source mesh. */
-  add_v3_fl(mesh_to_index_space_transform.values[3], -0.5f);
+  mesh_to_index_space_transform.location() -= 0.5f;
 
   OpenVDBMeshAdapter mesh_adapter{*mesh, mesh_to_index_space_transform};
 

@@ -58,10 +58,10 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
   const float brush_inner_radius_sq_re = pow2f(brush_inner_radius_re);
 
   float4x4 projection;
-  ED_view3d_ob_project_mat_get(&rv3d, &object, projection.values);
+  ED_view3d_ob_project_mat_get(&rv3d, &object, projection.ptr());
 
   float2 brush_pos_re;
-  ED_view3d_project_float_v2_m4(&region, ray_start_cu, brush_pos_re, projection.values);
+  ED_view3d_project_float_v2_m4(&region, ray_start_cu, brush_pos_re, projection.ptr());
 
   const float max_depth_sq_cu = math::distance_squared(ray_start_cu, ray_end_cu);
 
@@ -112,7 +112,7 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
             }
 
             float2 pos_re;
-            ED_view3d_project_float_v2_m4(&region, pos_cu, pos_re, projection.values);
+            ED_view3d_project_float_v2_m4(&region, pos_cu, pos_re, projection.ptr());
 
             BrushPositionCandidate candidate;
             candidate.position_cu = pos_cu;
@@ -128,8 +128,8 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
             const float3 &p2_cu = positions[segment_i + 1];
 
             float2 p1_re, p2_re;
-            ED_view3d_project_float_v2_m4(&region, p1_cu, p1_re, projection.values);
-            ED_view3d_project_float_v2_m4(&region, p2_cu, p2_re, projection.values);
+            ED_view3d_project_float_v2_m4(&region, p1_cu, p1_re, projection.ptr());
+            ED_view3d_project_float_v2_m4(&region, p2_cu, p2_re, projection.ptr());
 
             float2 closest_re;
             const float lambda = closest_to_line_segment_v2(
@@ -187,16 +187,17 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
 
   /* Shorten ray when the surface object is hit. */
   if (surface_object_eval != nullptr) {
-    const float4x4 surface_to_world_mat = surface_object->object_to_world;
-    const float4x4 world_to_surface_mat = surface_to_world_mat.inverted();
+    const float4x4 surface_to_world_mat(surface_object->object_to_world);
+    const float4x4 world_to_surface_mat = math::invert(surface_to_world_mat);
 
     Mesh *surface_eval = BKE_object_get_evaluated_mesh(surface_object_eval);
     BVHTreeFromMesh surface_bvh;
     BKE_bvhtree_from_mesh_get(&surface_bvh, surface_eval, BVHTREE_FROM_LOOPTRI, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
 
-    const float3 center_ray_start_su = world_to_surface_mat * center_ray_start_wo;
-    float3 center_ray_end_su = world_to_surface_mat * center_ray_end_wo;
+    const float3 center_ray_start_su = math::transform_point(world_to_surface_mat,
+                                                             center_ray_start_wo);
+    float3 center_ray_end_su = math::transform_point(world_to_surface_mat, center_ray_end_wo);
     const float3 center_ray_direction_su = math::normalize(center_ray_end_su -
                                                            center_ray_start_su);
 
@@ -215,16 +216,17 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
       if (math::distance(center_ray_start_su, center_ray_end_su) >
           math::distance(center_ray_start_su, hit_position_su)) {
         center_ray_end_su = hit_position_su;
-        center_ray_end_wo = surface_to_world_mat * center_ray_end_su;
+        center_ray_end_wo = math::transform_point(surface_to_world_mat, center_ray_end_su);
       }
     }
   }
 
-  const float4x4 curves_to_world_mat = curves_object.object_to_world;
-  const float4x4 world_to_curves_mat = curves_to_world_mat.inverted();
+  const float4x4 curves_to_world_mat(curves_object.object_to_world);
+  const float4x4 world_to_curves_mat = math::invert(curves_to_world_mat);
 
-  const float3 center_ray_start_cu = world_to_curves_mat * center_ray_start_wo;
-  const float3 center_ray_end_cu = world_to_curves_mat * center_ray_end_wo;
+  const float3 center_ray_start_cu = math::transform_point(world_to_curves_mat,
+                                                           center_ray_start_wo);
+  const float3 center_ray_end_cu = math::transform_point(world_to_curves_mat, center_ray_end_wo);
 
   const bke::crazyspace::GeometryDeformation deformation =
       bke::crazyspace::get_evaluated_curves_deformation(depsgraph, curves_object);
@@ -253,8 +255,9 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
                                    radius_ray_start_wo,
                                    radius_ray_end_wo,
                                    true);
-  const float3 radius_ray_start_cu = world_to_curves_mat * radius_ray_start_wo;
-  const float3 radius_ray_end_cu = world_to_curves_mat * radius_ray_end_wo;
+  const float3 radius_ray_start_cu = math::transform_point(world_to_curves_mat,
+                                                           radius_ray_start_wo);
+  const float3 radius_ray_end_cu = math::transform_point(world_to_curves_mat, radius_ray_end_wo);
 
   CurvesBrush3D brush_3d;
   brush_3d.position_cu = brush_position_cu;
@@ -274,8 +277,10 @@ std::optional<CurvesBrush3D> sample_curves_surface_3d_brush(
   float3 brush_ray_start_wo, brush_ray_end_wo;
   ED_view3d_win_to_segment_clipped(
       &depsgraph, &region, &v3d, brush_pos_re, brush_ray_start_wo, brush_ray_end_wo, true);
-  const float3 brush_ray_start_su = transforms.world_to_surface * brush_ray_start_wo;
-  const float3 brush_ray_end_su = transforms.world_to_surface * brush_ray_end_wo;
+  const float3 brush_ray_start_su = math::transform_point(transforms.world_to_surface,
+                                                          brush_ray_start_wo);
+  const float3 brush_ray_end_su = math::transform_point(transforms.world_to_surface,
+                                                        brush_ray_end_wo);
 
   const float3 brush_ray_direction_su = math::normalize(brush_ray_end_su - brush_ray_start_su);
 
@@ -301,11 +306,13 @@ std::optional<CurvesBrush3D> sample_curves_surface_3d_brush(
                                    brush_radius_ray_start_wo,
                                    brush_radius_ray_end_wo,
                                    true);
-  const float3 brush_radius_ray_start_cu = transforms.world_to_curves * brush_radius_ray_start_wo;
-  const float3 brush_radius_ray_end_cu = transforms.world_to_curves * brush_radius_ray_end_wo;
+  const float3 brush_radius_ray_start_cu = math::transform_point(transforms.world_to_curves,
+                                                                 brush_radius_ray_start_wo);
+  const float3 brush_radius_ray_end_cu = math::transform_point(transforms.world_to_curves,
+                                                               brush_radius_ray_end_wo);
 
   const float3 brush_pos_su = ray_hit.co;
-  const float3 brush_pos_cu = transforms.surface_to_curves * brush_pos_su;
+  const float3 brush_pos_cu = math::transform_point(transforms.surface_to_curves, brush_pos_su);
   const float brush_radius_cu = dist_to_line_v3(
       brush_pos_cu, brush_radius_ray_start_cu, brush_radius_ray_end_cu);
   return CurvesBrush3D{brush_pos_cu, brush_radius_cu};
@@ -328,9 +335,9 @@ Vector<float4x4> get_symmetry_brush_transforms(const eCurvesSymmetryType symmetr
     for (const float y : symmetry_to_factors(CURVES_SYMMETRY_Y)) {
       for (const float z : symmetry_to_factors(CURVES_SYMMETRY_Z)) {
         float4x4 matrix = float4x4::identity();
-        matrix.values[0][0] = x;
-        matrix.values[1][1] = y;
-        matrix.values[2][2] = z;
+        matrix.ptr()[0][0] = x;
+        matrix.ptr()[1][1] = y;
+        matrix.ptr()[2][2] = z;
         matrices.append(matrix);
       }
     }
@@ -344,8 +351,8 @@ float transform_brush_radius(const float4x4 &transform,
                              const float old_radius)
 {
   const float3 offset_position = brush_position + float3(old_radius, 0.0f, 0.0f);
-  const float3 new_position = transform * brush_position;
-  const float3 new_offset_position = transform * offset_position;
+  const float3 new_position = math::transform_point(transform, brush_position);
+  const float3 new_offset_position = math::transform_point(transform, offset_position);
   return math::distance(new_position, new_offset_position);
 }
 

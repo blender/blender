@@ -2,9 +2,9 @@
 
 #include <mutex>
 
-#include "BLI_float4x4.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_map.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
@@ -117,12 +117,12 @@ namespace blender::bke {
 
 static float3 get_transform_position(const float4x4 &transform)
 {
-  return transform.translation();
+  return transform.location();
 }
 
 static void set_transform_position(float4x4 &transform, const float3 position)
 {
-  copy_v3_v3(transform.values[3], position);
+  transform.location() = position;
 }
 
 class InstancePositionAttributeProvider final : public BuiltinAttributeProvider {

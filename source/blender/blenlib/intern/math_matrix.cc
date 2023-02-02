@@ -427,6 +427,8 @@ template void normalized_to_eul2(const double3x3 &mat,
 template detail::Quaternion<float> normalized_to_quat_with_checks(const float3x3 &mat);
 template detail::Quaternion<double> normalized_to_quat_with_checks(const double3x3 &mat);
 
+template MatBase<float, 2, 2> from_rotation(const detail::AngleRadian<float> &rotation);
+template MatBase<float, 3, 3> from_rotation(const detail::AngleRadian<float> &rotation);
 template MatBase<float, 3, 3> from_rotation(const detail::EulerXYZ<float> &rotation);
 template MatBase<float, 4, 4> from_rotation(const detail::EulerXYZ<float> &rotation);
 template MatBase<float, 3, 3> from_rotation(const detail::Quaternion<float> &rotation);

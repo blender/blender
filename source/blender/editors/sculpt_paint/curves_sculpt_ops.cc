@@ -693,11 +693,11 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
             });
       });
 
-  float4x4 curves_to_world_mat = curves_ob.object_to_world;
-  float4x4 world_to_curves_mat = curves_to_world_mat.inverted();
+  float4x4 curves_to_world_mat = float4x4(curves_ob.object_to_world);
+  float4x4 world_to_curves_mat = math::invert(curves_to_world_mat);
 
   float4x4 projection;
-  ED_view3d_ob_project_mat_get(&rv3d, &curves_ob, projection.values);
+  ED_view3d_ob_project_mat_get(&rv3d, &curves_ob, projection.ptr());
 
   /* Compute how mouse movements in screen space are converted into grow/shrink distances in
    * object space. */
@@ -711,7 +711,7 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
           const float3 &pos_cu = positions[point_i];
 
           float2 pos_re;
-          ED_view3d_project_float_v2_m4(&region, pos_cu, pos_re, projection.values);
+          ED_view3d_project_float_v2_m4(&region, pos_cu, pos_re, projection.ptr());
           if (pos_re.x < 0 || pos_re.y < 0 || pos_re.x > region.winx || pos_re.y > region.winy) {
             continue;
           }
@@ -719,9 +719,12 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
            * space. */
           const float2 pos_offset_re = pos_re + float2(1, 0);
           float3 pos_offset_wo;
-          ED_view3d_win_to_3d(
-              &v3d, &region, curves_to_world_mat * pos_cu, pos_offset_re, pos_offset_wo);
-          const float3 pos_offset_cu = world_to_curves_mat * pos_offset_wo;
+          ED_view3d_win_to_3d(&v3d,
+                              &region,
+                              math::transform_point(curves_to_world_mat, pos_cu),
+                              pos_offset_re,
+                              pos_offset_wo);
+          const float3 pos_offset_cu = math::transform_point(world_to_curves_mat, pos_offset_wo);
           const float dist_cu = math::distance(pos_cu, pos_offset_cu);
           const float dist_re = math::distance(pos_re, pos_offset_re);
           const float factor = dist_cu / dist_re;
@@ -934,7 +937,7 @@ static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *cust
 
       const float3 point_pos_cu = op_data.pos_cu + op_data.normal_cu * 0.0001f +
                                   x_iter * tangent_x_cu + y_iter * tangent_y_cu;
-      const float3 point_pos_wo = op_data.curves_to_world_mat * point_pos_cu;
+      const float3 point_pos_wo = math::transform_point(op_data.curves_to_world_mat, point_pos_cu);
       points_wo.append(point_pos_wo);
     }
   }
@@ -967,7 +970,7 @@ static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *cust
   GPU_point_size(3.0f);
   immBegin(GPU_PRIM_POINTS, points_wo.size());
 
-  float3 brush_origin_wo = op_data.curves_to_world_mat * op_data.pos_cu;
+  float3 brush_origin_wo = math::transform_point(op_data.curves_to_world_mat, op_data.pos_cu);
   float2 brush_origin_re;
   ED_view3d_project_v2(region, brush_origin_wo, brush_origin_re);
 
@@ -1045,8 +1048,8 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
 
   const CurvesSurfaceTransforms transforms{curves_ob_orig, &surface_ob_orig};
 
-  const float3 ray_start_su = transforms.world_to_surface * ray_start_wo;
-  const float3 ray_end_su = transforms.world_to_surface * ray_end_wo;
+  const float3 ray_start_su = math::transform_point(transforms.world_to_surface, ray_start_wo);
+  const float3 ray_end_su = math::transform_point(transforms.world_to_surface, ray_end_wo);
   const float3 ray_direction_su = math::normalize(ray_end_su - ray_start_su);
 
   BVHTreeRayHit ray_hit;
@@ -1067,9 +1070,9 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
   const float3 hit_pos_su = ray_hit.co;
   const float3 hit_normal_su = ray_hit.no;
 
-  const float3 hit_pos_cu = transforms.surface_to_curves * hit_pos_su;
-  const float3 hit_normal_cu = math::normalize(transforms.surface_to_curves_normal *
-                                               hit_normal_su);
+  const float3 hit_pos_cu = math::transform_point(transforms.surface_to_curves, hit_pos_su);
+  const float3 hit_normal_cu = math::normalize(
+      math::transform_direction(transforms.surface_to_curves_normal, hit_normal_su));
 
   MinDistanceEditData *op_data = MEM_new<MinDistanceEditData>(__func__);
   op_data->curves_to_world_mat = transforms.curves_to_world;

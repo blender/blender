@@ -3,8 +3,8 @@
 #include <algorithm>
 
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_float4x4.hh"
 #include "BLI_length_parameterize.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_vector.hh"
 
 #include "DEG_depsgraph.h"
@@ -348,13 +348,13 @@ struct CurvesEffectOperationExecutor {
     const OffsetIndices points_by_curve = curves_->points_by_curve();
 
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     Vector<float4x4> symmetry_brush_transforms_inv;
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      symmetry_brush_transforms_inv.append(brush_transform.inverted());
+      symmetry_brush_transforms_inv.append(math::invert(brush_transform));
     }
 
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
@@ -371,12 +371,14 @@ struct CurvesEffectOperationExecutor {
         float max_move_distance_cu = 0.0f;
         for (const float4x4 &brush_transform_inv : symmetry_brush_transforms_inv) {
           for (const int segment_i : points.drop_back(1)) {
-            const float3 p1_cu = brush_transform_inv * deformation.positions[segment_i];
-            const float3 p2_cu = brush_transform_inv * deformation.positions[segment_i + 1];
+            const float3 p1_cu = math::transform_point(brush_transform_inv,
+                                                       deformation.positions[segment_i]);
+            const float3 p2_cu = math::transform_point(brush_transform_inv,
+                                                       deformation.positions[segment_i + 1]);
 
             float2 p1_re, p2_re;
-            ED_view3d_project_float_v2_m4(ctx_.region, p1_cu, p1_re, projection.values);
-            ED_view3d_project_float_v2_m4(ctx_.region, p2_cu, p2_re, projection.values);
+            ED_view3d_project_float_v2_m4(ctx_.region, p1_cu, p1_re, projection.ptr());
+            ED_view3d_project_float_v2_m4(ctx_.region, p2_cu, p2_re, projection.ptr());
 
             float2 closest_on_brush_re;
             float2 closest_on_segment_re;
@@ -404,18 +406,22 @@ struct CurvesEffectOperationExecutor {
                 p1_cu, p2_cu, lambda_on_segment);
 
             float3 brush_start_pos_wo, brush_end_pos_wo;
-            ED_view3d_win_to_3d(ctx_.v3d,
-                                ctx_.region,
-                                transforms_.curves_to_world * closest_on_segment_cu,
-                                brush_pos_start_re_,
-                                brush_start_pos_wo);
-            ED_view3d_win_to_3d(ctx_.v3d,
-                                ctx_.region,
-                                transforms_.curves_to_world * closest_on_segment_cu,
-                                brush_pos_end_re_,
-                                brush_end_pos_wo);
-            const float3 brush_start_pos_cu = transforms_.world_to_curves * brush_start_pos_wo;
-            const float3 brush_end_pos_cu = transforms_.world_to_curves * brush_end_pos_wo;
+            ED_view3d_win_to_3d(
+                ctx_.v3d,
+                ctx_.region,
+                math::transform_point(transforms_.curves_to_world, closest_on_segment_cu),
+                brush_pos_start_re_,
+                brush_start_pos_wo);
+            ED_view3d_win_to_3d(
+                ctx_.v3d,
+                ctx_.region,
+                math::transform_point(transforms_.curves_to_world, closest_on_segment_cu),
+                brush_pos_end_re_,
+                brush_end_pos_wo);
+            const float3 brush_start_pos_cu = math::transform_point(transforms_.world_to_curves,
+                                                                    brush_start_pos_wo);
+            const float3 brush_end_pos_cu = math::transform_point(transforms_.world_to_curves,
+                                                                  brush_end_pos_wo);
 
             const float move_distance_cu = weight *
                                            math::distance(brush_start_pos_cu, brush_end_pos_cu);
@@ -436,19 +442,17 @@ struct CurvesEffectOperationExecutor {
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
 
+    float3 brush_pos_wo = math::transform_point(transforms_.curves_to_world,
+                                                self_->brush_3d_.position_cu);
+
     float3 brush_pos_start_wo, brush_pos_end_wo;
-    ED_view3d_win_to_3d(ctx_.v3d,
-                        ctx_.region,
-                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
-                        brush_pos_start_re_,
-                        brush_pos_start_wo);
-    ED_view3d_win_to_3d(ctx_.v3d,
-                        ctx_.region,
-                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
-                        brush_pos_end_re_,
-                        brush_pos_end_wo);
-    const float3 brush_pos_start_cu = transforms_.world_to_curves * brush_pos_start_wo;
-    const float3 brush_pos_end_cu = transforms_.world_to_curves * brush_pos_end_wo;
+    ED_view3d_win_to_3d(
+        ctx_.v3d, ctx_.region, brush_pos_wo, brush_pos_start_re_, brush_pos_start_wo);
+    ED_view3d_win_to_3d(ctx_.v3d, ctx_.region, brush_pos_wo, brush_pos_end_re_, brush_pos_end_wo);
+    const float3 brush_pos_start_cu = math::transform_point(transforms_.world_to_curves,
+                                                            brush_pos_start_wo);
+    const float3 brush_pos_end_cu = math::transform_point(transforms_.world_to_curves,
+                                                          brush_pos_end_wo);
     const float3 brush_pos_diff_cu = brush_pos_end_cu - brush_pos_start_cu;
     const float brush_pos_diff_length_cu = math::length(brush_pos_diff_cu);
     const float brush_radius_cu = self_->brush_3d_.radius_cu * brush_radius_factor_;
@@ -469,8 +473,10 @@ struct CurvesEffectOperationExecutor {
         const float curve_selection_factor = curve_selection_factors_[curve_i];
 
         for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-          const float3 brush_pos_start_transformed_cu = brush_transform * brush_pos_start_cu;
-          const float3 brush_pos_end_transformed_cu = brush_transform * brush_pos_end_cu;
+          const float3 brush_pos_start_transformed_cu = math::transform_point(brush_transform,
+                                                                              brush_pos_start_cu);
+          const float3 brush_pos_end_transformed_cu = math::transform_point(brush_transform,
+                                                                            brush_pos_end_cu);
 
           for (const int segment_i : points.drop_back(1)) {
             const float3 &p1_cu = deformation.positions[segment_i];

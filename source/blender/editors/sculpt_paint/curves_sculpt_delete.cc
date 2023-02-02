@@ -4,9 +4,9 @@
 
 #include "curves_sculpt_intern.hh"
 
-#include "BLI_float4x4.hh"
 #include "BLI_index_mask_ops.hh"
 #include "BLI_kdtree.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_rand.hh"
 #include "BLI_vector.hh"
 
@@ -166,10 +166,10 @@ struct DeleteOperationExecutor {
 
   void delete_projected(const float4x4 &brush_transform, MutableSpan<bool> curves_to_delete)
   {
-    const float4x4 brush_transform_inv = brush_transform.inverted();
+    const float4x4 brush_transform_inv = math::invert(brush_transform);
 
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
 
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
@@ -179,9 +179,10 @@ struct DeleteOperationExecutor {
       for (const int curve_i : curve_selection_.slice(range)) {
         const IndexRange points = points_by_curve[curve_i];
         if (points.size() == 1) {
-          const float3 pos_cu = brush_transform_inv * self_->deformed_positions_[points.first()];
+          const float3 pos_cu = math::transform_point(brush_transform_inv,
+                                                      self_->deformed_positions_[points.first()]);
           float2 pos_re;
-          ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.values);
+          ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.ptr());
 
           if (math::distance_squared(brush_pos_re_, pos_re) <= brush_radius_sq_re) {
             curves_to_delete[curve_i] = true;
@@ -190,12 +191,14 @@ struct DeleteOperationExecutor {
         }
 
         for (const int segment_i : points.drop_back(1)) {
-          const float3 pos1_cu = brush_transform_inv * self_->deformed_positions_[segment_i];
-          const float3 pos2_cu = brush_transform_inv * self_->deformed_positions_[segment_i + 1];
+          const float3 pos1_cu = math::transform_point(brush_transform_inv,
+                                                       self_->deformed_positions_[segment_i]);
+          const float3 pos2_cu = math::transform_point(brush_transform_inv,
+                                                       self_->deformed_positions_[segment_i + 1]);
 
           float2 pos1_re, pos2_re;
-          ED_view3d_project_float_v2_m4(ctx_.region, pos1_cu, pos1_re, projection.values);
-          ED_view3d_project_float_v2_m4(ctx_.region, pos2_cu, pos2_re, projection.values);
+          ED_view3d_project_float_v2_m4(ctx_.region, pos1_cu, pos1_re, projection.ptr());
+          ED_view3d_project_float_v2_m4(ctx_.region, pos2_cu, pos2_re, projection.ptr());
 
           const float dist_sq_re = dist_squared_to_line_segment_v2(
               brush_pos_re_, pos1_re, pos2_re);
@@ -211,21 +214,22 @@ struct DeleteOperationExecutor {
   void delete_spherical_with_symmetry(MutableSpan<bool> curves_to_delete)
   {
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
 
     float3 brush_wo;
-    ED_view3d_win_to_3d(ctx_.v3d,
-                        ctx_.region,
-                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
-                        brush_pos_re_,
-                        brush_wo);
-    const float3 brush_cu = transforms_.world_to_curves * brush_wo;
+    ED_view3d_win_to_3d(
+        ctx_.v3d,
+        ctx_.region,
+        math::transform_point(transforms_.curves_to_world, self_->brush_3d_.position_cu),
+        brush_pos_re_,
+        brush_wo);
+    const float3 brush_cu = math::transform_point(transforms_.world_to_curves, brush_wo);
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
 
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      this->delete_spherical(brush_transform * brush_cu, curves_to_delete);
+      this->delete_spherical(math::transform_point(brush_transform, brush_cu), curves_to_delete);
     }
   }
 

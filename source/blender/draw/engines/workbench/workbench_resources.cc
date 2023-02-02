@@ -56,7 +56,7 @@ static LightData get_light_data_from_studio_solidlight(const SolidLight *sl,
 {
   LightData light = {};
   if (sl && sl->flag) {
-    float3 direction = world_shading_rotation.ref_3x3() * float3(sl->vec);
+    float3 direction = math::transform_direction(world_shading_rotation, float3(sl->vec));
     light.direction = float4(direction, 0.0f);
     /* We should pre-divide the power by PI but that makes the lights really dim. */
     light.specular_color = float4(float3(sl->spec), 0.0f);

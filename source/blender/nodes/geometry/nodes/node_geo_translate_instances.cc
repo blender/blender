@@ -36,10 +36,10 @@ static void translate_instances(GeoNodeExecParams &params, bke::Instances &insta
     for (const int i_selection : range) {
       const int i = selection[i_selection];
       if (local_spaces[i]) {
-        transforms[i] *= float4x4::from_location(translations[i]);
+        transforms[i] *= math::from_location<float4x4>(translations[i]);
       }
       else {
-        add_v3_v3(transforms[i].values[3], translations[i]);
+        transforms[i].location() += translations[i];
       }
     }
   });

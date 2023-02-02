@@ -27,7 +27,7 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   Manager &manager = *inst_.manager;
   RenderBuffers &rbufs = inst_.render_buffers;
 
-  ResourceHandle handle = manager.resource_handle(float4x4::identity().ptr());
+  ResourceHandle handle = manager.resource_handle(float4x4::identity());
 
   world_ps_.init();
   world_ps_.state_set(DRW_STATE_WRITE_COLOR);

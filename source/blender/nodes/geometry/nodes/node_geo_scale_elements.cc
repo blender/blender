@@ -2,6 +2,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_disjoint_set.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
@@ -123,25 +124,25 @@ static float4x4 create_single_axis_transform(const float3 &center,
   float4x4 transform = float4x4::identity();
 
   /* Move scaling center to the origin. */
-  sub_v3_v3(transform.values[3], center);
+  transform.location() -= center;
 
   /* `base_change` and `base_change_inv` are used to rotate space so that scaling along the
    * provided axis is the same as scaling along the x axis. */
   float4x4 base_change = float4x4::identity();
-  copy_v3_v3(base_change.values[0], x_axis);
-  copy_v3_v3(base_change.values[1], y_axis);
-  copy_v3_v3(base_change.values[2], z_axis);
+  base_change.x_axis() = x_axis;
+  base_change.y_axis() = y_axis;
+  base_change.z_axis() = z_axis;
 
   /* Can invert by transposing, because the matrix is orthonormal. */
-  float4x4 base_change_inv = base_change.transposed();
+  float4x4 base_change_inv = math::transpose(base_change);
 
   float4x4 scale_transform = float4x4::identity();
-  scale_transform.values[0][0] = scale;
+  scale_transform[0][0] = scale;
 
   transform = base_change * scale_transform * base_change_inv * transform;
 
   /* Move scaling center back to where it was. */
-  add_v3_v3(transform.values[3], center);
+  transform.location() += center;
 
   return transform;
 }
@@ -228,7 +229,7 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
 
       const float4x4 transform = create_single_axis_transform(center, axis, scale);
       for (const int vert_index : vertex_indices) {
-        positions[vert_index] = transform * positions[vert_index];
+        positions[vert_index] = math::transform_point(transform, positions[vert_index]);
       }
     }
   });
