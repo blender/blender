@@ -613,7 +613,7 @@ static void wm_keymap_diff(
       BLI_addtail(&diff_km->diff_items, kmdi);
     }
 
-    /* sync expanded flag back to original so we don't lose it on repatch */
+    /* Sync expanded flag back to original so we don't lose it on re-patch. */
     if (to_kmi) {
       wmKeyMapItem *orig_kmi = WM_keymap_item_find_id(orig_km, kmi->id);
 
@@ -1130,7 +1130,7 @@ const char *WM_key_event_string(const short type, const bool compact)
   }
   it = &rna_enum_event_type_items[i];
 
-  /* We first try enum items' description (abused as shortname here),
+  /* We first try enum items' description (abused as short-name here),
    * and fall back to usual name if empty. */
   if (compact && it->description[0]) {
     /* XXX No context for enum descriptions... In practice shall not be an issue though. */

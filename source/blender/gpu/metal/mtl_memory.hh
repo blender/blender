@@ -309,7 +309,7 @@ class MTLSafeFreeList {
    * Performs a lockless list insert. */
   void insert_buffer(gpu::MTLBuffer *buffer);
 
-  /* Whether we need ot start a new safe free list, or can carry on using the existing one. */
+  /* Whether we need to start a new safe free list, or can carry on using the existing one. */
   bool should_flush();
 
   /* Increments command buffer reference count. */

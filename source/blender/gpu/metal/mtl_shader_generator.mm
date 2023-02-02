@@ -225,7 +225,7 @@ static void extract_and_replace_clipping_distances(std::string &vertex_source,
       continue;
     }
 
-    /* Extract ID betwen zero and 9. */
+    /* Extract ID between zero and 9. */
     if ((*c >= '0') && (*c <= '9')) {
       char clip_distance_id = ((*c) - '0');
       auto found = std::find(
@@ -314,9 +314,9 @@ static void replace_matrix_constructors(std::string &str)
 
   /* Replace matrix constructors with GLSL-compatible constructors for Metal.
    * Base matrix constructors e.g. mat3x3 do not have as many overload variants as GLSL.
-   * To add compatibility, we declare custom constuctors e.g. MAT3x3 in mtl_shader_defines.msl.
+   * To add compatibility, we declare custom constructors e.g. MAT3x3 in `mtl_shader_defines.msl`.
    * If the GLSL syntax matches, we map mat3x3(..) -> MAT3x3(..) and implement a custom
-   * constructor. This supports both mat3(..) and mat3x3(..) style sytax.*/
+   * constructor. This supports both mat3(..) and mat3x3(..) style syntax. */
   char *current_str_begin = &*str.begin();
   char *current_str_end = &*str.end();
 
@@ -335,7 +335,7 @@ static void replace_matrix_constructors(std::string &str)
       continue;
     }
 
-    /* Possible multiple dimensional matrix constructor. Verify if next char is a dim*/
+    /* Possible multiple dimensional matrix constructor. Verify if next char is a dim. */
     c++;
     if (*c == 'x') {
       c++;
@@ -601,7 +601,7 @@ void extract_shared_memory_blocks(MSLGeneratorInterface &msl_iface,
     new_shared_block.type_name = std::string(buf);
 
     /* Read var-name.
-     * Varname can either come right before the final semi-colon, or
+     * `varname` can either come right before the final semi-colon, or
      * with following array syntax.
      * spaces may exist before closing symbol. */
     c = c_next_space + 1;
@@ -3017,7 +3017,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_output_population()
 
 std::string MSLGeneratorInterface::generate_msl_texture_vars(ShaderStage shader_stage)
 {
-  /* NOTE: Shader stage must be a singualr stage index. Compound stage is not valid for this
+  /* NOTE: Shader stage must be a singular stage index. Compound stage is not valid for this
    * function. */
   BLI_assert(shader_stage == ShaderStage::VERTEX || shader_stage == ShaderStage::FRAGMENT ||
              shader_stage == ShaderStage::COMPUTE);

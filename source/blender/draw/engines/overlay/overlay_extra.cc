@@ -644,12 +644,12 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
     DRW_buffer_add_entry(cb->light_sun, color, &instdata);
   }
   else if (la->type == LA_SPOT) {
-    /* Previous implementation was using the clipend distance as cone size.
+    /* Previous implementation was using the clip-end distance as cone size.
      * We cannot do this anymore so we use a fixed size of 10. (see T72871) */
     const float3 scale_vec = {10.0f, 10.0f, 10.0f};
     rescale_m4(instdata.mat, scale_vec);
-    /* For cycles and eevee the spot attenuation is
-     * y = (1/sqrt(1 + x^2) - a)/((1 - a) b)
+    /* For cycles and EEVEE the spot attenuation is:
+     * `y = (1/sqrt(1 + x^2) - a)/((1 - a) b)`
      * x being the tangent of the angle between the light direction and the generatrix of the cone.
      * We solve the case where spot attenuation y = 1 and y = 0
      * root for y = 1 is sqrt(1/c^2 - 1)
