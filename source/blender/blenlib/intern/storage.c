@@ -209,7 +209,14 @@ eFileAttributes BLI_file_attributes(const char *path)
   if (conv_utf_8_to_16(path, wline, ARRAY_SIZE(wline)) != 0) {
     return ret;
   }
+
   DWORD attr = GetFileAttributesW(wline);
+  BLI_assert_msg(attr != INVALID_FILE_ATTRIBUTES,
+                 "BLI_file_attributes should only be called on existing files.");
+  if (attr == INVALID_FILE_ATTRIBUTES) {
+    return ret;
+  }
+
   if (attr & FILE_ATTRIBUTE_READONLY) {
     ret |= FILE_ATTR_READONLY;
   }
