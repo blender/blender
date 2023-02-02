@@ -13,7 +13,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Radius"))
       .min(0.0f)
       .default_value(0.005f)
-      .supports_field()
+      .field_on_all()
       .subtype(PROP_DISTANCE);
   b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
 }
