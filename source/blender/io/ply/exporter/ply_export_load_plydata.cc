@@ -191,10 +191,11 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     /* Edges */
     const bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
     if (loose_edges.count > 0) {
-      for (int i = 0; i < mesh->edges().size(); ++i) {
+      Span<MEdge> edges = mesh->edges();
+      for (int i = 0; i < edges.size(); ++i) {
         if (loose_edges.is_loose_bits[i]) {
-          int index_one = ply_vertex_index_LUT[mesh->edges()[i].v1];
-          int index_two = ply_vertex_index_LUT[mesh->edges()[i].v2];
+          int index_one = ply_vertex_index_LUT[edges[i].v1];
+          int index_two = ply_vertex_index_LUT[edges[i].v2];
           plyData.edges.append({index_one, index_two});
         }
       }
