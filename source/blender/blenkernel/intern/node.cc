@@ -3591,11 +3591,24 @@ static void update_socket_declarations(ListBase *sockets,
   }
 }
 
+static void reset_socket_declarations(ListBase *sockets)
+{
+  LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
+    socket->runtime->declaration = nullptr;
+  }
+}
+
 void nodeSocketDeclarationsUpdate(bNode *node)
 {
   BLI_assert(node->runtime->declaration != nullptr);
-  update_socket_declarations(&node->inputs, node->runtime->declaration->inputs);
-  update_socket_declarations(&node->outputs, node->runtime->declaration->outputs);
+  if (node->runtime->declaration->skip_updating_sockets) {
+    reset_socket_declarations(&node->inputs);
+    reset_socket_declarations(&node->outputs);
+  }
+  else {
+    update_socket_declarations(&node->inputs, node->runtime->declaration->inputs);
+    update_socket_declarations(&node->outputs, node->runtime->declaration->outputs);
+  }
 }
 
 bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *ntree, bNode *node)
