@@ -2021,7 +2021,8 @@ void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wm
     kmi->oskey = orig->oskey;
     kmi->keymodifier = orig->keymodifier;
     kmi->maptype = orig->maptype;
-    kmi->flag = (kmi->flag & ~KMI_REPEAT_IGNORE) | (orig->flag & KMI_REPEAT_IGNORE);
+    kmi->flag = (kmi->flag & ~(KMI_REPEAT_IGNORE | KMI_INACTIVE)) |
+                (orig->flag & KMI_REPEAT_IGNORE);
 
     WM_keyconfig_update_tag(keymap, kmi);
   }
