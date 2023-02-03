@@ -944,9 +944,14 @@ static void fullscreen_azone_init(ScrArea *area, ARegion *region)
 #define AZONEPAD_ICON (0.45f * U.widget_unit)
 static void region_azone_edge(AZone *az, ARegion *region)
 {
-  /* If region is overlapped (transparent background), move #AZone to content.
-   * Note this is an arbitrary amount that matches nicely with numbers elsewhere. */
-  int overlap_padding = (region->overlap) ? (int)(0.4f * U.widget_unit) : 0;
+  /* If there is no visible region background, users typically expect the #AZone to be closer to
+   * the content, so move it a bit. Headers-like regions are usually thin and there's not much
+   * padding around them, so don't touch the #AZone there (also avoids mouse hover conflicts with
+   * actual contents).
+   * Note that this is an arbitrary amount that matches nicely with numbers elsewhere. */
+  const int overlap_padding = (region->overlap && !RGN_TYPE_IS_HEADER_ANY(region->regiontype)) ?
+                                  (int)(0.4f * U.widget_unit) :
+                                  0;
 
   switch (az->edge) {
     case AE_TOP_TO_BOTTOMRIGHT:
