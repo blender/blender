@@ -2390,31 +2390,26 @@ static eSnapMode snap_object_center(const SnapObjectContext *sctx,
   }
 
   /* for now only vertex supported */
-  if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) {
-    DistProjectedAABBPrecalc neasrest_precalc;
-    dist_squared_to_projected_aabb_precalc(
-        &neasrest_precalc, sctx->runtime.pmat, sctx->runtime.win_size, sctx->runtime.mval);
+  if ((sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) == 0) {
+    return retval;
+  }
 
-    float tobmat[4][4], clip_planes_local[MAX_CLIPPLANE_LEN][4];
-    transpose_m4_m4(tobmat, obmat);
-    for (int i = sctx->runtime.clip_plane_len; i--;) {
-      mul_v4_m4v4(clip_planes_local[i], tobmat, sctx->runtime.clip_plane[i]);
-    }
+  DistProjectedAABBPrecalc neasrest_precalc;
+  dist_squared_to_projected_aabb_precalc(
+      &neasrest_precalc, sctx->runtime.pmat, sctx->runtime.win_size, sctx->runtime.mval);
 
-    bool is_persp = sctx->runtime.view_proj == VIEW_PROJ_PERSP;
-    float dist_px_sq = square_f(*dist_px);
-    float co[3];
-    copy_v3_v3(co, obmat[3]);
-    if (test_projected_vert_dist(&neasrest_precalc,
-                                 clip_planes_local,
-                                 sctx->runtime.clip_plane_len,
-                                 is_persp,
-                                 co,
-                                 &dist_px_sq,
-                                 r_loc)) {
-      *dist_px = sqrtf(dist_px_sq);
-      retval = SCE_SNAP_MODE_VERTEX;
-    }
+  bool is_persp = sctx->runtime.view_proj == VIEW_PROJ_PERSP;
+  float dist_px_sq = square_f(*dist_px);
+
+  if (test_projected_vert_dist(&neasrest_precalc,
+                               sctx->runtime.clip_plane,
+                               sctx->runtime.clip_plane_len,
+                               is_persp,
+                               obmat[3],
+                               &dist_px_sq,
+                               r_loc)) {
+    *dist_px = sqrtf(dist_px_sq);
+    retval = SCE_SNAP_MODE_VERTEX;
   }
 
   if (retval) {
