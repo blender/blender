@@ -520,7 +520,8 @@ static GHOST_TSuccess getGraphicQueueFamily(VkPhysicalDevice device, uint32_t *r
 
   *r_queue_index = 0;
   for (const auto &queue_family : queue_families) {
-    if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+    if ((queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
+        (queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
       return GHOST_kSuccess;
     }
     (*r_queue_index)++;
