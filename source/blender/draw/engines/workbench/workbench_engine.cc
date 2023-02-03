@@ -15,6 +15,8 @@
 
 #include "workbench_private.hh"
 
+#include "workbench_engine.h" /* Own include. */
+
 namespace blender::workbench {
 
 using namespace draw;
