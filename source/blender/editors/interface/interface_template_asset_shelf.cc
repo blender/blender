@@ -66,11 +66,13 @@ static void asset_tile_draw(uiLayout &layout,
   uiLayoutSetContextPointer(&layout, "active_file", &file_ptr);
 
   uiBlock *block = uiLayoutGetBlock(&layout);
+  const StringRefNull name = ED_asset_handle_get_name(&asset_handle);
+
   uiBut *but = uiDefIconTextBut(block,
                                 UI_BTYPE_PREVIEW_TILE,
                                 0,
                                 ED_asset_handle_get_preview_icon_id(&asset_handle),
-                                show_names ? ED_asset_handle_get_name(&asset_handle) : "",
+                                show_names ? name.c_str() : "",
                                 0,
                                 0,
                                 width,
@@ -80,7 +82,7 @@ static void asset_tile_draw(uiLayout &layout,
                                 0,
                                 0,
                                 0,
-                                "");
+                                name.c_str());
   ui_def_but_icon(but,
                   ED_asset_handle_get_preview_icon_id(&asset_handle),
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */

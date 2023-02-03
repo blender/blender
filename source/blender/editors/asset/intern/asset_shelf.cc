@@ -488,6 +488,8 @@ static void asset_shelf_footer_draw(const bContext *C, Header *header)
                     UI_UNIT_Y,
                     TIP_("Select catalogs to display"));
 
+  uiItemS(layout);
+
   AssetShelfSettings *shelf_settings = get_asset_shelf_settings_from_context(C);
   if (shelf_settings) {
     add_catalog_toggle_buttons(*shelf_settings, *layout);
