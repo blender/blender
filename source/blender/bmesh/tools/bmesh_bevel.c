@@ -307,7 +307,10 @@ typedef struct BevelParams {
   GHash *vert_hash;
   /** Records new faces: key BMFace*, value one of {VERT/EDGE/RECON}_POLY. */
   GHash *face_hash;
-  /** Use for all allocs while bevel runs. NOTE: If we need to free we can switch to mempool. */
+  /**
+   * Use for all allocations while bevel runs.
+   * \note If we need to free we can switch to `BLI_mempool`.
+   */
   MemArena *mem_arena;
   /** Profile vertex location and spacings. */
   ProfileSpacing pro_spacing;

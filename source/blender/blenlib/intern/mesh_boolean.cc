@@ -1746,7 +1746,7 @@ static int find_containing_cell(const Vert *v,
  * (Adapted from #closest_on_tri_to_point_v3()).
  * The arguments ab, ac, ..., r are used as temporaries
  * in this routine. Passing them in from the caller can
- * avoid many allocs and frees of temporary mpq3 values
+ * avoid many allocations and frees of temporary mpq3 values
  * and the mpq_class values within them.
  */
 static mpq_class closest_on_tri_to_point(const mpq3 &p,

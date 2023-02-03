@@ -1150,7 +1150,7 @@ static void vgroup_duplicate(Object *ob)
       MDeformVert *dv = dvert_array[i];
       dw_org = BKE_defvert_find_index(dv, idg);
       if (dw_org) {
-        /* BKE_defvert_ensure_index re-allocs org so need to store the weight first */
+        /* #BKE_defvert_ensure_index re-allocates org so need to store the weight first. */
         const float weight = dw_org->weight;
         dw_cpy = BKE_defvert_ensure_index(dv, icdg);
         dw_cpy->weight = weight;

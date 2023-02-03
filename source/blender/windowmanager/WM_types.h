@@ -588,13 +588,13 @@ typedef struct wmGesture {
   /**
    * customdata
    * - for border is a #rcti.
-   * - for circle is recti, (xmin, ymin) is center, xmax radius.
+   * - for circle is #rcti, (xmin, ymin) is center, xmax radius.
    * - for lasso is short array.
-   * - for straight line is a recti: (xmin,ymin) is start, (xmax, ymax) is end.
+   * - for straight line is a #rcti: (xmin, ymin) is start, (xmax, ymax) is end.
    */
   void *customdata;
 
-  /** Free pointer to use for operator allocs (if set, its freed on exit). */
+  /** Free pointer to use for operator allocations (if set, its freed on exit). */
   wmGenericUserData user_data;
 } wmGesture;
 

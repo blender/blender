@@ -377,7 +377,7 @@ void OneapiDevice::tex_alloc(device_texture &mem)
   generic_alloc(mem);
   generic_copy_to(mem);
 
-  /* Resize if needed. Also, in case of resize - allocate in advance for future allocs. */
+  /* Resize if needed. Also, in case of resize - allocate in advance for future allocations. */
   const uint slot = mem.slot;
   if (slot >= texture_info_.size()) {
     texture_info_.resize(slot + 128);

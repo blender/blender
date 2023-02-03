@@ -824,12 +824,12 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
     alpha = 1.0f;
   }
 
-  /* Not the same layout as rectf/recti. */
+  /* Not the same layout as #rctf/#rcti. */
   const float rectt[4] = {rect_tex.xmin, rect_tex.ymin, rect_tex.xmax, rect_tex.ymax};
   const float rectg[4] = {rect_geo.xmin, rect_geo.ymin, rect_geo.xmax, rect_geo.ymax};
 
   if (blend) {
-    /* Regions drawn offscreen have premultiplied alpha. */
+    /* Regions drawn off-screen have pre-multiplied alpha. */
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
   }
 

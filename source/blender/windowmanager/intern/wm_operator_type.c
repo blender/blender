@@ -187,7 +187,7 @@ static void operatortype_ghash_free_cb(wmOperatorType *ot)
   }
 
   if (ot->rna_ext.srna) {
-    /* python operator, allocs own string */
+    /* A Python operator, allocates it's own string. */
     MEM_freeN((void *)ot->idname);
   }
 

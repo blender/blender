@@ -237,8 +237,8 @@ static void layerInterp_mdeformvert(const void **sources,
                                     const int count,
                                     void *dest)
 {
-  /* a single linked list of MDeformWeight's
-   * use this to avoid double allocs (which LinkNode would do) */
+  /* A single linked list of #MDeformWeight's.
+   * use this to avoid double allocations (which #LinkNode would do). */
   struct MDeformWeight_Link {
     struct MDeformWeight_Link *next;
     MDeformWeight dw;

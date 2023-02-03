@@ -34,7 +34,7 @@ struct HeapNode_Chunk {
  * Number of nodes to include per #HeapNode_Chunk when no reserved size is passed,
  * or we allocate past the reserved number.
  *
- * \note Optimize number for 64kb allocs.
+ * \note Optimize number for 64kb allocations.
  * \note keep type in sync with nodes_num in heap_node_alloc_chunk.
  */
 #define HEAP_CHUNK_DEFAULT_NUM \

@@ -355,9 +355,9 @@ static void imm_draw_circle_3D(GPUPrimType prim_type,
       if (i) {
         immVertex3f(pos, x + xr, y + yr, 0.0f);
       }
-      /* cos[(n + 1)a] = 2cos(a)cos(na) - cos[(n - 1)a]. */
+      /* `cos[(n + 1)a] = 2cos(a)cos(na) - cos[(n - 1)a]`. */
       const float xnext = alpha * xr - xprev;
-      /* sin[(n + 1)a] = 2cos(a)sin(na) - sin[(n - 1)a]. */
+      /* `sin[(n + 1)a] = 2cos(a)sin(na) - sin[(n - 1)a]`. */
       const float ynext = alpha * yr - yprev;
       xprev = xr;
       yprev = yr;
