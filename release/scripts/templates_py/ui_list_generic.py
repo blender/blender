@@ -19,7 +19,7 @@ class MyPanel(bpy.types.Panel):
             layout,
             context,
             list_context_path="scene.my_list",
-            active_idx_context_path="scene.my_list_active_idx"
+            active_index_context_path="scene.my_list_active_index"
         )
 
 
@@ -34,13 +34,13 @@ class_register, class_unregister = bpy.utils.register_classes_factory(classes)
 def register():
     class_register()
     bpy.types.Scene.my_list = bpy.props.CollectionProperty(type=MyPropGroup)
-    bpy.types.Scene.my_list_active_idx = bpy.props.IntProperty()
+    bpy.types.Scene.my_list_active_index = bpy.props.IntProperty()
 
 
 def unregister():
     class_unregister()
     del bpy.types.Scene.my_list
-    del bpy.types.Scene.my_list_active_idx
+    del bpy.types.Scene.my_list_active_index
 
 
 register()
