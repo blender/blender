@@ -843,24 +843,6 @@ static void draw_draglink_tooltip_deactivate(const ARegion &region, bNodeLinkDra
   }
 }
 
-static void node_link_update_header(bContext *C, bNodeLinkDrag & /*nldrag*/)
-{
-  char header[UI_MAX_DRAW_STR];
-
-  const char *str_lmb = WM_key_event_string(LEFTMOUSE, true);
-  const char *str_rmb = WM_key_event_string(RIGHTMOUSE, true);
-  const char *str_alt = WM_key_event_string(EVT_LEFTALTKEY, true);
-
-  BLI_snprintf(header,
-               sizeof(header),
-               TIP_("%s: drag node link, %s: cancel, %s: swap node links"),
-               str_lmb,
-               str_rmb,
-               str_alt);
-
-  ED_workspace_status_text(C, header);
-}
-
 static int node_socket_count_links(const bNodeTree &ntree, const bNodeSocket &socket)
 {
   int count = 0;
@@ -1162,6 +1144,37 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
   }
 }
 
+enum class NodeLinkAction : int {
+  Begin,
+  Cancel,
+  Swap,
+  Confirm,
+};
+
+wmKeyMap *node_link_modal_keymap(wmKeyConfig *keyconf)
+{
+  static const EnumPropertyItem modal_items[] = {
+      {int(NodeLinkAction::Begin), "BEGIN", 0, "Drag Node-link", ""},
+      {int(NodeLinkAction::Confirm), "CONFIRM", 0, "Confirm Link", ""},
+      {int(NodeLinkAction::Cancel), "CANCEL", 0, "Cancel", ""},
+      {int(NodeLinkAction::Swap), "SWAP", 0, "Swap Links", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "Node Link Modal Map");
+
+  /* This function is called for each space-type, only needs to add map once. */
+  if (keymap && keymap->modal_items) {
+    return nullptr;
+  }
+
+  keymap = WM_modalkeymap_ensure(keyconf, "Node Link Modal Map", modal_items);
+
+  WM_modalkeymap_assign(keymap, "NODE_OT_link");
+
+  return keymap;
+}
+
 static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   bNodeLinkDrag &nldrag = *static_cast<bNodeLinkDrag *>(op->customdata);
@@ -1175,27 +1188,12 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
   nldrag.cursor[0] = event->mval[0];
   nldrag.cursor[1] = event->mval[1];
 
-  switch (event->type) {
-    case MOUSEMOVE:
-      if (nldrag.start_socket->is_multi_input() && nldrag.links.is_empty()) {
-        pick_input_link_by_link_intersect(*C, *op, nldrag, cursor);
+  if (event->type == EVT_MODAL_MAP) {
+    switch (event->val) {
+      case int(NodeLinkAction::Begin): {
+        return OPERATOR_RUNNING_MODAL;
       }
-      else {
-        node_link_find_socket(*C, *op, cursor);
-
-        node_link_update_header(C, nldrag);
-        ED_region_tag_redraw(region);
-      }
-
-      if (need_drag_link_tooltip(*snode.edittree, nldrag)) {
-        draw_draglink_tooltip_activate(*region, nldrag);
-      }
-      else {
-        draw_draglink_tooltip_deactivate(*region, nldrag);
-      }
-      break;
-    case LEFTMOUSE:
-      if (event->val == KM_RELEASE) {
+      case int(NodeLinkAction::Confirm): {
         /* Add a search menu for compatible sockets if the drag released on empty space. */
         if (should_create_drag_link_search_menu(*snode.edittree, nldrag)) {
           bNodeLink &link = nldrag.links.first();
@@ -1206,25 +1204,37 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
             invoke_node_link_drag_add_menu(*C, *link.tonode, *link.tosock, cursor);
           }
         }
-
         add_dragged_links_to_tree(*C, nldrag);
         return OPERATOR_FINISHED;
       }
-      break;
-    case RIGHTMOUSE:
-    case MIDDLEMOUSE: {
-      if (event->val == KM_RELEASE) {
+      case int(NodeLinkAction::Cancel): {
         node_link_cancel(C, op);
         return OPERATOR_CANCELLED;
       }
-      break;
+      case int(NodeLinkAction::Swap):
+        if (event->prev_val == KM_PRESS) {
+          nldrag.swap_links = true;
+        }
+        else if (event->prev_val == KM_RELEASE) {
+          nldrag.swap_links = false;
+        }
+        return OPERATOR_RUNNING_MODAL;
     }
-    case EVT_LEFTALTKEY:
-      nldrag.swap_links = (event->val == KM_PRESS);
-      break;
-    case EVT_ESCKEY: {
-      node_link_cancel(C, op);
-      return OPERATOR_CANCELLED;
+  }
+  else if (event->type == MOUSEMOVE) {
+    if (nldrag.start_socket->is_multi_input() && nldrag.links.is_empty()) {
+      pick_input_link_by_link_intersect(*C, *op, nldrag, cursor);
+    }
+    else {
+      node_link_find_socket(*C, *op, cursor);
+      ED_region_tag_redraw(region);
+    }
+
+    if (need_drag_link_tooltip(*snode.edittree, nldrag)) {
+      draw_draglink_tooltip_activate(*region, nldrag);
+    }
+    else {
+      draw_draglink_tooltip_deactivate(*region, nldrag);
     }
   }
 

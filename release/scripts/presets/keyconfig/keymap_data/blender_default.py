@@ -6318,6 +6318,25 @@ def km_curve_pen_modal_map(_params):
     return keymap
 
 
+def km_node_link_modal_map(_params):
+    items = []
+    keymap = (
+        "Node Link Modal Map",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": items},
+    )
+
+    items.extend([
+        ("BEGIN", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("CONFIRM", {"type": 'LEFTMOUSE', "value": 'RELEASE', "any": True}, None),
+        ("CANCEL", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("CANCEL", {"type": 'ESC', "value": 'PRESS', "any": True}, None),
+        ("SWAP", {"type": 'LEFT_ALT', "value": 'ANY', "any": True}, None),
+        ("SWAP", {"type": 'RIGHT_ALT', "value": 'ANY', "any": True}, None),
+    ])
+
+    return keymap
+
 # Fallback for gizmos that don't have custom a custom key-map.
 def km_generic_gizmo(_params):
     keymap = (
@@ -8087,6 +8106,7 @@ def generate_keymaps(params=None):
         km_paint_stroke_modal(params),
         km_sculpt_expand_modal(params),
         km_curve_pen_modal_map(params),
+        km_node_link_modal_map(params),
 
         # Gizmos.
         km_generic_gizmo(params),
