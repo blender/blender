@@ -31,7 +31,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "multires_reshape.h"
+#include "multires_reshape.hh"
 #include "multires_unsubdivide.h"
 
 /* This is done in the following steps:

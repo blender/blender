@@ -502,7 +502,7 @@ set(SRC
   intern/data_transfer_intern.h
   intern/lib_intern.h
   intern/multires_inline.h
-  intern/multires_reshape.h
+  intern/multires_reshape.hh
   intern/multires_unsubdivide.h
   intern/ocean_intern.h
   intern/pbvh_intern.h

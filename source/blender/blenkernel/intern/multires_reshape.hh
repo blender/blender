@@ -23,26 +23,26 @@ struct Object;
 struct Subdiv;
 struct SubdivCCG;
 
-typedef struct MultiresReshapeContext {
+struct MultiresReshapeContext {
   /* NOTE: Only available when context is initialized from object. */
-  struct Depsgraph *depsgraph;
-  struct Object *object;
+  Depsgraph *depsgraph;
+  Object *object;
 
-  struct MultiresModifierData *mmd;
+  MultiresModifierData *mmd;
 
   /* Base mesh from original object.
    * NOTE: Does NOT include any leading modifiers in it. */
-  struct Mesh *base_mesh;
+  Mesh *base_mesh;
   const float (*base_positions)[3];
-  const struct MEdge *base_edges;
-  const struct MPoly *base_polys;
-  const struct MLoop *base_loops;
+  const MEdge *base_edges;
+  const MPoly *base_polys;
+  const MLoop *base_loops;
 
   /* Subdivision surface created for multires modifier.
    *
    * The coarse mesh of this subdivision surface is a base mesh with all deformation modifiers
    * leading multires applied on it. */
-  struct Subdiv *subdiv;
+  Subdiv *subdiv;
   bool need_free_subdiv;
 
   struct {
@@ -65,8 +65,8 @@ typedef struct MultiresReshapeContext {
 
   struct {
     /* Copy of original displacement and painting masks. */
-    struct MDisps *mdisps;
-    struct GridPaintMask *grid_paint_masks;
+    MDisps *mdisps;
+    GridPaintMask *grid_paint_masks;
   } orig;
 
   /* Number of grids which are required for base_mesh. */
@@ -74,8 +74,8 @@ typedef struct MultiresReshapeContext {
 
   /* Destination displacement and mask.
    * Points to a custom data on a destination mesh. */
-  struct MDisps *mdisps;
-  struct GridPaintMask *grid_paint_masks;
+  MDisps *mdisps;
+  GridPaintMask *grid_paint_masks;
 
   /* Indexed by face index, gives first grid index of the face. */
   int *face_start_grid_index;
@@ -102,38 +102,38 @@ typedef struct MultiresReshapeContext {
   const float *cd_vertex_crease;
   /* Edge crease custom data layer, null if none is present. */
   const float *cd_edge_crease;
-} MultiresReshapeContext;
+};
 
 /**
  * Coordinate which identifies element of a grid.
  * This is directly related on how #CD_MDISPS stores displacement.
  */
-typedef struct GridCoord {
+struct GridCoord {
   int grid_index;
   float u, v;
-} GridCoord;
+};
 
 /**
  * Coordinate within ptex, which is what OpenSubdiv API operates on.
  */
-typedef struct PTexCoord {
+struct PTexCoord {
   int ptex_face_index;
   float u, v;
-} PTexCoord;
+};
 
 /**
  * Element of a grid data stored in the destination mesh.
  * This is where reshaped coordinates and mask values will be written to.
  */
-typedef struct ReshapeGridElement {
+struct ReshapeGridElement {
   float *displacement;
   float *mask;
-} ReshapeGridElement;
+};
 
-typedef struct ReshapeConstGridElement {
+struct ReshapeConstGridElement {
   float displacement[3];
   float mask;
-} ReshapeConstGridElement;
+};
 
 /* --------------------------------------------------------------------
  * Construct/destruct reshape context.
@@ -143,9 +143,9 @@ typedef struct ReshapeConstGridElement {
  * Create subdivision surface descriptor which is configured for surface evaluation at a given
  * multi-res modifier.
  */
-struct Subdiv *multires_reshape_create_subdiv(struct Depsgraph *depsgraph,
-                                              struct Object *object,
-                                              const struct MultiresModifierData *mmd);
+Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgraph,
+                                       Object *object,
+                                       const MultiresModifierData *mmd);
 
 /**
  * \note Initialized base mesh to object's mesh, the Subdivision is created from the deformed
@@ -153,29 +153,29 @@ struct Subdiv *multires_reshape_create_subdiv(struct Depsgraph *depsgraph,
  * then Subdivision is created from base mesh (without any deformation applied).
  */
 bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape_context,
-                                                 struct Depsgraph *depsgraph,
-                                                 struct Object *object,
-                                                 struct MultiresModifierData *mmd);
+                                                 Depsgraph *depsgraph,
+                                                 Object *object,
+                                                 MultiresModifierData *mmd);
 
 bool multires_reshape_context_create_from_base_mesh(MultiresReshapeContext *reshape_context,
-                                                    struct Depsgraph *depsgraph,
-                                                    struct Object *object,
-                                                    struct MultiresModifierData *mmd);
+                                                    Depsgraph *depsgraph,
+                                                    Object *object,
+                                                    MultiresModifierData *mmd);
 
 bool multires_reshape_context_create_from_ccg(MultiresReshapeContext *reshape_context,
-                                              struct SubdivCCG *subdiv_ccg,
-                                              struct Mesh *base_mesh,
+                                              SubdivCCG *subdiv_ccg,
+                                              Mesh *base_mesh,
                                               int top_level);
 
 bool multires_reshape_context_create_from_modifier(MultiresReshapeContext *reshape_context,
-                                                   struct Object *object,
-                                                   struct MultiresModifierData *mmd,
+                                                   Object *object,
+                                                   MultiresModifierData *mmd,
                                                    int top_level);
 
 bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape_context,
-                                                 struct Object *object,
-                                                 struct MultiresModifierData *mmd,
-                                                 struct Subdiv *subdiv,
+                                                 Object *object,
+                                                 MultiresModifierData *mmd,
+                                                 Subdiv *subdiv,
                                                  int top_level);
 
 void multires_reshape_free_original_grids(MultiresReshapeContext *reshape_context);
@@ -262,7 +262,7 @@ void multires_reshape_evaluate_limit_at_grid(const MultiresReshapeContext *resha
 /**
  * Make sure custom data is allocated for the given level.
  */
-void multires_reshape_ensure_grids(struct Mesh *mesh, int level);
+void multires_reshape_ensure_grids(Mesh *mesh, int level);
 
 /* --------------------------------------------------------------------
  * Functions specific to reshaping from a set of vertices in a object position.
@@ -295,7 +295,7 @@ bool multires_reshape_assign_final_coords_from_vertcos(
  * \return truth if all coordinates have been updated.
  */
 bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext *reshape_context,
-                                                   struct SubdivCCG *subdiv_ccg);
+                                                   SubdivCCG *subdiv_ccg);
 
 /* --------------------------------------------------------------------
  * Functions specific to reshaping from MDISPS.

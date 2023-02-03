@@ -5,7 +5,7 @@
  * \ingroup bke
  */
 
-#include "multires_reshape.h"
+#include "multires_reshape.hh"
 
 #include <cstring>
 
