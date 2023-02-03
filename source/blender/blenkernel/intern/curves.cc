@@ -93,7 +93,13 @@ static void curves_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, con
   dst.runtime = MEM_new<bke::CurvesGeometryRuntime>(__func__);
 
   dst.runtime->type_counts = src.runtime->type_counts;
+  dst.runtime->evaluated_offsets_cache = src.runtime->evaluated_offsets_cache;
+  dst.runtime->nurbs_basis_cache = src.runtime->nurbs_basis_cache;
+  dst.runtime->evaluated_position_cache = src.runtime->evaluated_position_cache;
   dst.runtime->bounds_cache = src.runtime->bounds_cache;
+  dst.runtime->evaluated_length_cache = src.runtime->evaluated_length_cache;
+  dst.runtime->evaluated_tangent_cache = src.runtime->evaluated_tangent_cache;
+  dst.runtime->evaluated_normal_cache = src.runtime->evaluated_normal_cache;
 
   curves_dst->batch_cache = nullptr;
 }

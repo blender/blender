@@ -69,21 +69,24 @@ class CurvesGeometryRuntime {
    * Cache of offsets into the evaluated array for each curve, accounting for all previous
    * evaluated points, Bezier curve vector segments, different resolutions per curve, etc.
    */
-  mutable Vector<int> evaluated_offsets_cache;
-  mutable Vector<int> all_bezier_evaluated_offsets;
-  mutable CacheMutex offsets_cache_mutex;
+  struct EvaluatedOffsets {
+    Vector<int> evaluated_offsets;
+    Vector<int> all_bezier_offsets;
+  };
+  mutable SharedCache<EvaluatedOffsets> evaluated_offsets_cache;
 
-  mutable Vector<curves::nurbs::BasisCache> nurbs_basis_cache;
-  mutable CacheMutex nurbs_basis_cache_mutex;
+  mutable SharedCache<Vector<curves::nurbs::BasisCache>> nurbs_basis_cache;
 
   /** Cache of evaluated positions. */
-  mutable Vector<float3> evaluated_position_cache;
-  mutable CacheMutex position_cache_mutex;
-  /**
-   * The evaluated positions result, using a separate span in case all curves are poly curves,
-   * in which case a separate array of evaluated positions is unnecessary.
-   */
-  mutable Span<float3> evaluated_positions_span;
+  struct EvaluatedPositions {
+    Vector<float3> vector;
+    /**
+     * The evaluated positions result, using a separate span in case all curves are poly curves,
+     * in which case a separate array of evaluated positions is unnecessary.
+     */
+    Span<float3> span;
+  };
+  mutable SharedCache<EvaluatedPositions> evaluated_position_cache;
 
   /**
    * A cache of bounds shared between data-blocks with unchanged positions and radii.
@@ -97,16 +100,13 @@ class CurvesGeometryRuntime {
    * cyclic, it needs one more length value to correspond to the last segment, so in order to
    * make slicing this array for a curve fast, an extra float is stored for every curve.
    */
-  mutable Vector<float> evaluated_length_cache;
-  mutable CacheMutex length_cache_mutex;
+  mutable SharedCache<Vector<float>> evaluated_length_cache;
 
   /** Direction of the curve at each evaluated point. */
-  mutable Vector<float3> evaluated_tangent_cache;
-  mutable CacheMutex tangent_cache_mutex;
+  mutable SharedCache<Vector<float3>> evaluated_tangent_cache;
 
   /** Normal direction vectors for each evaluated point. */
-  mutable Vector<float3> evaluated_normal_cache;
-  mutable CacheMutex normal_cache_mutex;
+  mutable SharedCache<Vector<float3>> evaluated_normal_cache;
 };
 
 /**
@@ -866,7 +866,8 @@ inline Span<int> CurvesGeometry::bezier_evaluated_offsets_for_curve(const int cu
   const OffsetIndices points_by_curve = this->points_by_curve();
   const IndexRange points = points_by_curve[curve_index];
   const IndexRange range = curves::per_curve_point_offsets_range(points, curve_index);
-  return this->runtime->all_bezier_evaluated_offsets.as_span().slice(range);
+  const Span<int> offsets = this->runtime->evaluated_offsets_cache.data().all_bezier_offsets;
+  return offsets.slice(range);
 }
 
 inline IndexRange CurvesGeometry::lengths_range_for_curve(const int curve_index,
@@ -881,9 +882,8 @@ inline IndexRange CurvesGeometry::lengths_range_for_curve(const int curve_index,
 inline Span<float> CurvesGeometry::evaluated_lengths_for_curve(const int curve_index,
                                                                const bool cyclic) const
 {
-  BLI_assert(this->runtime->length_cache_mutex.is_cached());
   const IndexRange range = this->lengths_range_for_curve(curve_index, cyclic);
-  return this->runtime->evaluated_length_cache.as_span().slice(range);
+  return this->runtime->evaluated_length_cache.data().as_span().slice(range);
 }
 
 inline float CurvesGeometry::evaluated_length_total_for_curve(const int curve_index,
