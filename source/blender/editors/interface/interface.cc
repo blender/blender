@@ -4048,6 +4048,8 @@ uiBut *ui_but_change_type(uiBut *but, eButType new_type)
   /* Copy construct button with the new type. */
   but = ui_but_new(new_type);
   *but = *old_but_ptr;
+  /* We didn't mean to override this :) */
+  but->type = new_type;
   if (has_str_ptr_to_self) {
     but->str = but->strdata;
   }
