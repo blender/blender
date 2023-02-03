@@ -6531,14 +6531,14 @@ static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
                                     const enum eSnapType snap,
                                     const bool shift)
 {
-  ColorPicker *cpicker = static_cast<ColorPicker *>(hsv_but->but.custom_data);
+  ColorPicker *cpicker = static_cast<ColorPicker *>(hsv_but->custom_data);
   float *hsv = cpicker->hsv_perceptual;
-  const float hsv_v_max = max_ff(hsv[2], hsv_but->but.softmax);
+  const float hsv_v_max = max_ff(hsv[2], hsv_but->softmax);
   float rgb[3];
   const float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
 
-  ui_but_v3_get(&hsv_but->but, rgb);
-  ui_scene_linear_to_perceptual_space(&hsv_but->but, rgb);
+  ui_but_v3_get(hsv_but, rgb);
+  ui_scene_linear_to_perceptual_space(hsv_but, rgb);
   ui_rgb_to_color_picker_HSVCUBE_compat_v(hsv_but, rgb, hsv);
 
   switch (hsv_but->gradient_type) {
@@ -6570,7 +6570,7 @@ static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
       /* exception only for value strip - use the range set in but->min/max */
       hsv[2] += ndof->rvec[0] * sensitivity;
 
-      CLAMP(hsv[2], hsv_but->but.softmin, hsv_but->but.softmax);
+      CLAMP(hsv[2], hsv_but->softmin, hsv_but->softmax);
       break;
     default:
       BLI_assert_msg(0, "invalid hsv type");
@@ -6587,10 +6587,10 @@ static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
   hsv_clamp_v(hsv, hsv_v_max);
 
   ui_color_picker_to_rgb_HSVCUBE_v(hsv_but, hsv, rgb);
-  ui_perceptual_to_scene_linear_space(&hsv_but->but, rgb);
+  ui_perceptual_to_scene_linear_space(hsv_but, rgb);
 
   copy_v3_v3(data->vec, rgb);
-  ui_but_v3_set(&hsv_but->but, data->vec);
+  ui_but_v3_set(hsv_but, data->vec);
 }
 #endif /* WITH_INPUT_NDOF */
 
