@@ -25,7 +25,7 @@ class VKContext : public Context {
   VkInstance instance_ = VK_NULL_HANDLE;
   VkPhysicalDevice physical_device_ = VK_NULL_HANDLE;
   VkDevice device_ = VK_NULL_HANDLE;
-  uint32_t graphic_queue_familly_ = 0;
+  uint32_t graphic_queue_family_ = 0;
 
   /** Allocator used for texture and buffers and other resources. */
   VmaAllocator mem_allocator_ = VK_NULL_HANDLE;

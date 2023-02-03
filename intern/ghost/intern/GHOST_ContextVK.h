@@ -113,7 +113,7 @@ class GHOST_ContextVK : public GHOST_Context {
   GHOST_TSuccess getVulkanHandles(void *r_instance,
                                   void *r_physical_device,
                                   void *r_device,
-                                  uint32_t *r_graphic_queue_familly);
+                                  uint32_t *r_graphic_queue_family);
   /**
    * Gets the Vulkan framebuffer related resource handles associated with the Vulkan context.
    * Needs to be called after each swap events as the framebuffer will change.
