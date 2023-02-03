@@ -3152,7 +3152,7 @@ void ui_hsvcube_pos_from_vals(
     case UI_GRAD_V_ALT:
       x = 0.5f;
       /* exception only for value strip - use the range set in but->min/max */
-      y = (hsv[2] - hsv_but->but.softmin) / (hsv_but->but.softmax - hsv_but->but.softmin);
+      y = (hsv[2] - hsv_but->softmin) / (hsv_but->softmax - hsv_but->softmin);
       break;
   }
 

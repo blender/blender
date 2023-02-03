@@ -322,6 +322,8 @@ enum {
  * - bit  9-15: button type (now 6 bits, 64 types)
  */
 typedef enum {
+  UI_BUT_POIN_NONE = 0,
+
   UI_BUT_POIN_CHAR = 32,
   UI_BUT_POIN_SHORT = 64,
   UI_BUT_POIN_INT = 96,
