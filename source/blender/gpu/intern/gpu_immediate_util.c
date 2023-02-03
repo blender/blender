@@ -398,6 +398,12 @@ void imm_draw_circle_fill_3d(uint pos, float x, float y, float radius, int nsegm
   imm_draw_circle_3D(GPU_PRIM_TRI_FAN, pos, x, y, radius, radius, nsegments);
 }
 
+void imm_draw_circle_fill_aspect_3d(
+    uint pos, float x, float y, float radius_x, float radius_y, int nsegments)
+{
+  imm_draw_circle_3D(GPU_PRIM_TRI_FAN, pos, x, y, radius_x, radius_y, nsegments);
+}
+
 void imm_draw_box_wire_2d(uint pos, float x1, float y1, float x2, float y2)
 {
   /* NOTE(Metal/AMD): For small primitives, line list more efficient than line-strip. */

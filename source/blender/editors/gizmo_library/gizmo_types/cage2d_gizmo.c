@@ -590,6 +590,20 @@ static void cage2d_draw_rect_handles(const rctf *r,
   immUnbindProgram();
 }
 
+static void cage2d_draw_central_handle(const float color[3], const float margin[2])
+{
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  const float rad[2] = {margin[0] * 0.25f, margin[1] * 0.25f};
+
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor3fv(color);
+
+  imm_draw_circle_fill_aspect_3d(pos, 0.0f, 0.0f, rad[0], rad[1], CIRCLE_RESOL);
+
+  immUnbindProgram();
+}
+
 /** \} */
 
 static void gizmo_cage2d_draw_intern(wmGizmo *gz,
@@ -636,6 +650,8 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
       GPU_select_load_id(select_id | ED_GIZMO_CAGE2D_PART_SCALE);
       cage2d_draw_circle_wire(
           gz->color, size_real, 0.5f * (margin[0] + margin[1]), gz->line_width);
+
+      cage2d_draw_central_handle(gz->color, margin);
     }
     else {
       if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE) {
@@ -736,6 +752,8 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
       else if (draw_style == ED_GIZMO_CAGE2D_STYLE_CIRCLE) {
         cage2d_draw_circle_wire(black, size_real, 0.0f, outline_line_width);
         cage2d_draw_circle_wire(color, size_real, 0.0f, gz->line_width);
+
+        cage2d_draw_central_handle(color, margin);
       }
       else {
         BLI_assert(0);
