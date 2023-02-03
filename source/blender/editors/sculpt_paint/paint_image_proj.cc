@@ -508,11 +508,6 @@ struct VertSeam {
 /** \name MLoopTri accessor functions.
  * \{ */
 
-BLI_INLINE const MPoly *ps_tri_index_to_mpoly(const ProjPaintState *ps, int tri_index)
-{
-  return &ps->mpoly_eval[ps->mlooptri_eval[tri_index].poly];
-}
-
 #define PS_LOOPTRI_AS_VERT_INDEX_3(ps, lt) \
   int(ps->mloop_eval[lt->tri[0]].v), int(ps->mloop_eval[lt->tri[1]].v), \
       int(ps->mloop_eval[lt->tri[2]].v),
