@@ -725,7 +725,7 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
 
       float outline_line_width = gz->line_width + 3.0f;
 
-      if (draw_style == ED_GIZMO_CAGE2D_STYLE_RECTANGLE) {
+      if (draw_style == ED_GIZMO_CAGE2D_STYLE_BOX_TRANSFORM) {
         cage2d_draw_rect_wire(&r, margin, black, transform_flag, draw_options, outline_line_width);
         cage2d_draw_rect_wire(&r, margin, color, transform_flag, draw_options, gz->line_width);
 
@@ -1223,7 +1223,7 @@ static void GIZMO_GT_cage_2d(wmGizmoType *gzt)
   /* rna */
   static EnumPropertyItem rna_enum_draw_style[] = {
       {ED_GIZMO_CAGE2D_STYLE_BOX, "BOX", 0, "Box", ""},
-      {ED_GIZMO_CAGE2D_STYLE_RECTANGLE, "RECTANGLE", 0, "Rectangle", ""},
+      {ED_GIZMO_CAGE2D_STYLE_BOX_TRANSFORM, "BOX_TRANSFORM", 0, "Box Transform", ""},
       {ED_GIZMO_CAGE2D_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
       {0, NULL, 0, NULL, NULL},
   };
@@ -1245,7 +1245,7 @@ static void GIZMO_GT_cage_2d(wmGizmoType *gzt)
   RNA_def_enum(gzt->srna,
                "draw_style",
                rna_enum_draw_style,
-               ED_GIZMO_CAGE2D_STYLE_RECTANGLE,
+               ED_GIZMO_CAGE2D_STYLE_BOX_TRANSFORM,
                "Draw Style",
                "");
   RNA_def_enum_flag(gzt->srna,
