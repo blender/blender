@@ -180,8 +180,6 @@ static bool particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *ps
   }
 
   return true;
-
-  return false;
 }
 
 static void store_float_in_vcol(MLoopCol *vcol, float float_value)
