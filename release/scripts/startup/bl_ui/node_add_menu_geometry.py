@@ -46,6 +46,7 @@ class NODE_MT_geometry_node_GEO_CURVE(Menu):
     def draw(self, _context):
         layout = self.layout
         layout.menu("NODE_MT_geometry_node_GEO_CURVE_READ")
+        layout.menu("NODE_MT_geometry_node_GEO_CURVE_SAMPLE")
         layout.menu("NODE_MT_geometry_node_GEO_CURVE_WRITE")
         layout.separator()
         layout.menu("NODE_MT_geometry_node_GEO_CURVE_OPERATIONS")
@@ -70,6 +71,16 @@ class NODE_MT_geometry_node_GEO_CURVE_READ(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeSplineLength")
         node_add_menu.add_node_type(layout, "GeometryNodeSplineParameter")
         node_add_menu.add_node_type(layout, "GeometryNodeInputSplineResolution")
+        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+
+
+class NODE_MT_geometry_node_GEO_CURVE_SAMPLE(Menu):
+    bl_idname = "NODE_MT_geometry_node_GEO_CURVE_SAMPLE"
+    bl_label = "Sample"
+
+    def draw(self, _context):
+        layout = self.layout
+        node_add_menu.add_node_type(layout, "GeometryNodeSampleCurve")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -104,7 +115,6 @@ class NODE_MT_geometry_node_GEO_CURVE_OPERATIONS(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeInterpolateCurves")
         node_add_menu.add_node_type(layout, "GeometryNodeResampleCurve")
         node_add_menu.add_node_type(layout, "GeometryNodeReverseCurve")
-        node_add_menu.add_node_type(layout, "GeometryNodeSampleCurve")
         node_add_menu.add_node_type(layout, "GeometryNodeSubdivideCurve")
         node_add_menu.add_node_type(layout, "GeometryNodeTrimCurve")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
@@ -146,10 +156,10 @@ class NODE_MT_geometry_node_GEO_GEOMETRY(Menu):
     def draw(self, _context):
         layout = self.layout
         layout.menu("NODE_MT_geometry_node_GEO_GEOMETRY_READ")
+        layout.menu("NODE_MT_geometry_node_GEO_GEOMETRY_SAMPLE")
         layout.menu("NODE_MT_geometry_node_GEO_GEOMETRY_WRITE")
         layout.separator()
         layout.menu("NODE_MT_geometry_node_GEO_GEOMETRY_OPERATIONS")
-        layout.menu("NODE_MT_geometry_node_GEO_GEOMETRY_SAMPLE")
         layout.separator()
         node_add_menu.add_node_type(layout, "GeometryNodeJoinGeometry")
         node_add_menu.add_node_type(layout, "GeometryNodeGeometryToInstance")
@@ -309,6 +319,7 @@ class NODE_MT_geometry_node_GEO_MESH(Menu):
     def draw(self, _context):
         layout = self.layout
         layout.menu("NODE_MT_geometry_node_GEO_MESH_READ")
+        layout.menu("NODE_MT_geometry_node_GEO_MESH_SAMPLE")
         layout.menu("NODE_MT_geometry_node_GEO_MESH_WRITE")
         layout.separator()
         layout.menu("NODE_MT_geometry_node_GEO_MESH_OPERATIONS")
@@ -338,6 +349,17 @@ class NODE_MT_geometry_node_GEO_MESH_READ(Menu):
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
+class NODE_MT_geometry_node_GEO_MESH_SAMPLE(Menu):
+    bl_idname = "NODE_MT_geometry_node_GEO_MESH_SAMPLE"
+    bl_label = "Sample"
+
+    def draw(self, _context):
+        layout = self.layout
+        node_add_menu.add_node_type(layout, "GeometryNodeSampleNearestSurface")
+        node_add_menu.add_node_type(layout, "GeometryNodeSampleUVSurface")
+        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+
+
 class NODE_MT_geometry_node_GEO_MESH_WRITE(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_MESH_WRITE"
     bl_label = "Write"
@@ -363,8 +385,6 @@ class NODE_MT_geometry_node_GEO_MESH_OPERATIONS(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeMeshToCurve")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshToPoints")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshToVolume")
-        node_add_menu.add_node_type(layout, "GeometryNodeSampleNearestSurface")
-        node_add_menu.add_node_type(layout, "GeometryNodeSampleUVSurface")
         node_add_menu.add_node_type(layout, "GeometryNodeScaleElements")
         node_add_menu.add_node_type(layout, "GeometryNodeSplitEdges")
         node_add_menu.add_node_type(layout, "GeometryNodeSubdivideMesh")
@@ -629,6 +649,7 @@ classes = (
     NODE_MT_category_GEO_OUTPUT,
     NODE_MT_geometry_node_GEO_CURVE,
     NODE_MT_geometry_node_GEO_CURVE_READ,
+    NODE_MT_geometry_node_GEO_CURVE_SAMPLE,
     NODE_MT_geometry_node_GEO_CURVE_WRITE,
     NODE_MT_geometry_node_GEO_CURVE_OPERATIONS,
     NODE_MT_geometry_node_GEO_PRIMITIVES_CURVE,
@@ -641,6 +662,7 @@ classes = (
     NODE_MT_geometry_node_GEO_INSTANCE,
     NODE_MT_geometry_node_GEO_MESH,
     NODE_MT_geometry_node_GEO_MESH_READ,
+    NODE_MT_geometry_node_GEO_MESH_SAMPLE,
     NODE_MT_geometry_node_GEO_MESH_WRITE,
     NODE_MT_geometry_node_GEO_MESH_OPERATIONS,
     NODE_MT_category_GEO_UV,
