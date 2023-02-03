@@ -701,7 +701,7 @@ enum {
   ED_KEYMAP_FOOTER = (1 << 9),
   ED_KEYMAP_GPENCIL = (1 << 10),
   ED_KEYMAP_NAVBAR = (1 << 11),
-  ED_KEYMAP_ASSET_SHELF_FOOTER = (1 << 12),
+  ED_KEYMAP_ASSET_SHELF = (1 << 12),
 };
 
 /** #SCREEN_OT_space_context_cycle direction. */

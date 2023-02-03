@@ -1743,9 +1743,9 @@ static void ed_default_handlers(
     wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Region Context Menu", 0, 0);
     WM_event_add_keymap_handler(&region->handlers, keymap);
   }
-  if (flag & ED_KEYMAP_ASSET_SHELF_FOOTER) {
+  if (flag & ED_KEYMAP_ASSET_SHELF) {
     /* standard keymap for Navigation bar regions */
-    wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Region Context Menu", 0, 0);
+    wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Asset Shelf", 0, 0);
     WM_event_add_keymap_handler(&region->handlers, keymap);
   }
 

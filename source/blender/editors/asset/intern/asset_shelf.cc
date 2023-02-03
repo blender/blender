@@ -207,6 +207,7 @@ int ED_asset_shelf_context(const bContext *C,
 {
   static const char *context_dir[] = {
       "asset_shelf_settings",
+      "active_file", /* XXX yuk... */
       nullptr,
   };
 
@@ -220,6 +221,28 @@ int ED_asset_shelf_context(const bContext *C,
   if (CTX_data_equals(member, "asset_shelf_settings")) {
     CTX_data_pointer_set(result, &screen->id, &RNA_AssetShelfSettings, shelf_settings);
 
+    return CTX_RESULT_OK;
+  }
+
+  /* XXX hack. Get the asset from the hovered button, but needs to be the file... */
+  if (CTX_data_equals(member, "active_file")) {
+    const uiBut *but = UI_context_active_but_get(C);
+    if (!but) {
+      return CTX_RESULT_NO_DATA;
+    }
+
+    const bContextStore *but_context = UI_but_context_get(but);
+    if (!but_context) {
+      return CTX_RESULT_NO_DATA;
+    }
+
+    const PointerRNA *file_ptr = CTX_store_ptr_lookup(
+        but_context, "active_file", &RNA_FileSelectEntry);
+    if (!file_ptr) {
+      return CTX_RESULT_NO_DATA;
+    }
+
+    CTX_data_pointer_set_ptr(result, file_ptr);
     return CTX_RESULT_OK;
   }
 

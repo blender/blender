@@ -13,6 +13,8 @@
 
 #include "ED_asset.h"
 
+#include "RNA_access.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "interface_intern.hh"
@@ -53,6 +55,16 @@ static void asset_tile_draw(uiLayout &layout,
                             const int height,
                             const bool show_names)
 {
+  PointerRNA file_ptr;
+  RNA_pointer_create(
+      nullptr,
+      &RNA_FileSelectEntry,
+      /* XXX passing file pointer here, should be asset handle or asset representation. */
+      const_cast<FileDirEntry *>(asset_handle.file_data),
+      &file_ptr);
+
+  uiLayoutSetContextPointer(&layout, "active_file", &file_ptr);
+
   uiBlock *block = uiLayoutGetBlock(&layout);
   uiBut *but = uiDefIconTextBut(block,
                                 UI_BTYPE_PREVIEW_TILE,
