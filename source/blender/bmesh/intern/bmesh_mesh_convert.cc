@@ -1325,8 +1325,8 @@ static void bm_vert_table_build(BMesh &bm,
     table[i] = vert;
     hflag |= vert->head.hflag;
   }
-  need_select_vert |= (hflag & BM_ELEM_SELECT);
-  need_hide_vert |= (hflag & BM_ELEM_HIDDEN);
+  need_select_vert = (hflag & BM_ELEM_SELECT) != 0;
+  need_hide_vert = (hflag & BM_ELEM_HIDDEN) != 0;
 }
 
 static void bm_edge_table_build(BMesh &bm,
@@ -1344,9 +1344,9 @@ static void bm_edge_table_build(BMesh &bm,
     table[i] = edge;
     hflag |= edge->head.hflag;
   }
-  need_select_edge |= (hflag & BM_ELEM_SELECT);
-  need_hide_edge |= (hflag & BM_ELEM_HIDDEN);
-  need_sharp_edge |= (hflag & BM_ELEM_SMOOTH);
+  need_select_edge = (hflag & BM_ELEM_SELECT) != 0;
+  need_hide_edge = (hflag & BM_ELEM_HIDDEN) != 0;
+  need_sharp_edge = (hflag & BM_ELEM_SMOOTH) != 0;
 }
 
 static void bm_face_loop_table_build(BMesh &bm,
@@ -1375,8 +1375,8 @@ static void bm_face_loop_table_build(BMesh &bm,
       loop_i++;
     }
   }
-  need_select_poly |= (hflag & BM_ELEM_SELECT);
-  need_hide_poly |= (hflag & BM_ELEM_HIDDEN);
+  need_select_poly = (hflag & BM_ELEM_SELECT) != 0;
+  need_hide_poly = (hflag & BM_ELEM_HIDDEN) != 0;
 }
 
 static void bm_to_mesh_verts(const BMesh &bm,
