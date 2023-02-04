@@ -2352,7 +2352,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   }
 }
 
-void BKE_pbvh_set_bm_log(PBVH *pbvh, struct BMLog *log)
+void BKE_pbvh_set_bm_log(PBVH *pbvh, BMLog *log)
 {
   pbvh->bm_log = log;
   BM_log_set_idmap(log, pbvh->bm_idmap);
@@ -5567,7 +5567,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   cd_face_area = bm->pdata.layers[cd_face_area].offset;
 
   const int cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
-  BMLog *bmlog = BM_log_create(bm, idmap, cd_sculpt_vert);
+  BMLog *bmlog = BM_log_create(bm, idmap);
 
   PBVH *pbvh = BKE_pbvh_new(PBVH_BMESH);
 

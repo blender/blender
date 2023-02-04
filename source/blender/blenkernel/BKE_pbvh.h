@@ -12,6 +12,7 @@
 #include "BLI_ghash.h"
 
 #include "bmesh.h"
+#include "bmesh_log.h"
 
 /* For embedding CCGKey in iterator. */
 #include "BKE_attribute.h"
@@ -93,7 +94,6 @@ typedef struct PBVHTriBuf {
 
 //#define WITH_PBVH_CACHE
 
-struct BMLog;
 struct BMesh;
 struct BMVert;
 struct BMEdge;
@@ -434,7 +434,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           struct Mesh *me,
                           struct BMesh *bm,
                           bool smooth_shading,
-                          struct BMLog *log,
+                          BMLog *log,
                           struct BMIdMap *idmap,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset,
@@ -462,8 +462,8 @@ void BKE_pbvh_build_pixels(PBVH *pbvh,
                            struct ImageUser *image_user);
 void BKE_pbvh_free(PBVH *pbvh);
 
-void BKE_pbvh_set_bm_log(PBVH *pbvh, struct BMLog *log);
-struct BMLog *BKE_pbvh_get_bm_log(PBVH *pbvh);
+void BKE_pbvh_set_bm_log(PBVH *pbvh, BMLog *log);
+BMLog *BKE_pbvh_get_bm_log(PBVH *pbvh);
 
 /* update MSculptVerts, doesn't take pbvh argument to allow usage if pbvh doesn't currently exist
  */

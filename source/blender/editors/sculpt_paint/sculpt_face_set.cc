@@ -2299,13 +2299,13 @@ static void sculpt_face_set_extrude_id(Object *ob,
 
       if (remove) {
         if (!BM_elem_flag_test(e->v1, tag3)) {
-          BM_log_vert_removed(ss->bm_log, e->v1, ss->cd_vert_mask_offset);
+          BM_log_vert_removed(ss->bm, ss->bm_log, e->v1);
           // BKE_pbvh_bmesh_remove_vertex(ss->pbvh, e->v1, true);
           BM_elem_flag_enable(e->v1, tag3);
         }
 
         if (!BM_elem_flag_test(e->v2, tag3)) {
-          BM_log_vert_removed(ss->bm_log, e->v2, ss->cd_vert_mask_offset);
+          BM_log_vert_removed(ss->bm, ss->bm_log, e->v2);
           // BKE_pbvh_bmesh_remove_vertex(ss->pbvh, e->v2, true);
           BM_elem_flag_enable(e->v2, tag3);
         }
@@ -2335,7 +2335,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
 
       if (remove) {
         // BKE_pbvh_bmesh_remove_vertex(ss->pbvh, v, true);
-        BM_log_vert_removed(ss->bm_log, v, ss->cd_vert_mask_offset);
+        BM_log_vert_removed(ss->bm, ss->bm_log, v);
       }
     }
   }
@@ -2423,7 +2423,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
       switch (ele->head.htype) {
         case BM_VERT:
           if (ss->bm) {
-            BM_log_vert_added(ss->bm_log, (BMVert *)ele, ss->cd_vert_mask_offset);
+            BM_log_vert_added(ss->bm, ss->bm_log, (BMVert *)ele);
           }
 
           if (step == 0) {
@@ -2435,16 +2435,16 @@ static void sculpt_face_set_extrude_id(Object *ob,
           BMEdge *e = (BMEdge *)ele;
 
           if (ss->bm) {
-            BM_log_edge_added(ss->bm_log, e);
+            BM_log_edge_added(ss->bm, ss->bm_log, e);
 
             if (!BM_elem_flag_test(e->v1, tag1)) {
               BM_elem_flag_enable(e->v1, tag1);
-              BM_log_vert_added(ss->bm_log, e->v1, ss->cd_vert_mask_offset);
+              BM_log_vert_added(ss->bm, ss->bm_log, e->v1);
             }
 
             if (!BM_elem_flag_test(e->v2, tag1)) {
               BM_elem_flag_enable(e->v2, tag1);
-              BM_log_vert_added(ss->bm_log, e->v2, ss->cd_vert_mask_offset);
+              BM_log_vert_added(ss->bm, ss->bm_log, e->v2);
             }
 
             if (1 || step == 1) {
@@ -2454,7 +2454,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
                 do {
                   if (!BM_elem_flag_test(l->f, tag1)) {
                     BKE_pbvh_bmesh_add_face(ss->pbvh, l->f, false, false);
-                    BM_log_face_added(ss->bm_log, l->f);
+                    BM_log_face_added(ss->bm, ss->bm_log, l->f);
                   }
 
                   BM_elem_flag_enable(l->f, tag1);
@@ -2497,7 +2497,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
 
     if (ss->bm) {
       BKE_pbvh_bmesh_add_face(ss->pbvh, f, false, false);
-      BM_log_face_added(ss->bm_log, f);
+      BM_log_face_added(ss->bm, ss->bm_log, f);
     }
   }
 #endif

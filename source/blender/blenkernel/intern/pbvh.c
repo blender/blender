@@ -5275,7 +5275,7 @@ void BKE_pbvh_free_bmesh(PBVH *pbvh, BMesh *bm)
   BLI_array_free(keys);
 }
 
-struct BMLog *BKE_pbvh_get_bm_log(PBVH *pbvh)
+BMLog *BKE_pbvh_get_bm_log(PBVH *pbvh)
 {
   return pbvh->bm_log;
 }

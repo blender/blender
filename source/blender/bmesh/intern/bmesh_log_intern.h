@@ -41,8 +41,18 @@ struct BMesh;
 struct RangeTreeUInt;
 struct BMIdMap;
 
+#ifdef __cplusplus
+namespace blender {
+struct BMLog;
+struct BMLogEntry;
+}  // namespace blender
+
+using BMLog = blender::BMLog;
+using BMLogEntry = blender::BMLogEntry;
+#else
 typedef struct BMLog BMLog;
 typedef struct BMLogEntry BMLogEntry;
+#endif
 
 typedef struct BMLogCallbacks {
   void (*on_vert_add)(struct BMVert *v, void *userdata);
@@ -79,8 +89,7 @@ void _bm_logstack_push(const char *name);
 struct BMIdMap;
 
 /* Allocate and initialize a new BMLog */
-BMLog *BM_log_create(BMesh *bm, struct BMIdMap *idmap, int cd_sculpt_vert);
-void BM_log_set_cd_offsets(BMLog *log, int cd_sculpt_vert);
+BMLog *BM_log_create(BMesh *bm, struct BMIdMap *idmap);
 
 /* Allocate and initialize a new BMLog using existing BMLogEntries */
 /* Allocate and initialize a new BMLog using existing BMLogEntries
@@ -131,10 +140,7 @@ void BM_log_undo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks);
 void BM_log_redo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks);
 
 /* Log a vertex before it is modified */
-void BM_log_vert_before_modified(BMLog *log,
-                                 struct BMVert *v,
-                                 const int cd_vert_mask_offset,
-                                 bool log_customdata);
+void BM_log_vert_before_modified(BMesh *bm, BMLog *log, BMVert *v);
 
 /* Log a vertex before it is modified
  *
@@ -168,12 +174,10 @@ void BM_log_edge_before_modified(BMLog *log, BMEdge *v, bool log_customdata);
  * of added vertices, with the key being its ID and the value
  * containing everything needed to reconstruct that vertex.
  */
-void _BM_log_vert_added(BMLog *log, struct BMVert *v, int cd_vert_mask_offset BMLOG_DEBUG_ARGS);
-#define BM_log_vert_added(log, v, off) _BM_log_vert_added(log, v, off BMLOG_DEBUG_ARGS_INVOKE)
+void BM_log_vert_added(BMesh *bm, BMLog *log, struct BMVert *v);
 
 /* Log a new edge as added to the BMesh */
-void _BM_log_edge_added(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS);
-#define BM_log_edge_added(log, e) _BM_log_edge_added(log, e BMLOG_DEBUG_ARGS_INVOKE)
+void BM_log_edge_added(BMesh *bm, BMLog *log, BMEdge *e);
 
 /* Log a face before it is modified */
 /* Log a face before it is modified
@@ -181,8 +185,7 @@ void _BM_log_edge_added(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS);
  * This is intended to handle only header flags and we always
  * assume face has been added before
  */
-void _BM_log_face_modified(BMLog *log, struct BMFace *f BMLOG_DEBUG_ARGS);
-#define BM_log_face_modified(log, v) _BM_log_face_modified(log, v BMLOG_DEBUG_ARGS_INVOKE)
+void BM_log_face_modified(BMesh *bm, BMLog *log, struct BMFace *f);
 
 /* Log a new face as added to the BMesh */
 /* Log a new face as added to the BMesh
@@ -191,8 +194,7 @@ void _BM_log_face_modified(BMLog *log, struct BMFace *f BMLOG_DEBUG_ARGS);
  * of added faces, with the key being its ID and the value containing
  * everything needed to reconstruct that face.
  */
-void _BM_log_face_added(BMLog *log, struct BMFace *f BMLOG_DEBUG_ARGS);
-#define BM_log_face_added(log, f) _BM_log_face_added(log, f BMLOG_DEBUG_ARGS_INVOKE)
+void BM_log_face_added(BMesh *bm, BMLog *log, struct BMFace *f);
 
 /* Log a vertex as removed from the BMesh */
 /* Log a vertex as removed from the BMesh
@@ -211,12 +213,10 @@ void _BM_log_face_added(BMLog *log, struct BMFace *f BMLOG_DEBUG_ARGS);
  * If there's a move record for the vertex, that's used as the
  * vertices original location, then the move record is deleted.
  */
-void _BM_log_vert_removed(BMLog *log, struct BMVert *v, int cd_vert_mask_offset BMLOG_DEBUG_ARGS);
-#define BM_log_vert_removed(log, v, off) _BM_log_vert_removed(log, v, off BMLOG_DEBUG_ARGS_INVOKE)
+void BM_log_vert_removed(BMesh *bm, BMLog *log, struct BMVert *v);
 
 /* Log an edge as removed from the BMesh */
-void _BM_log_edge_removed(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS);
-#define BM_log_edge_removed(log, e) _BM_log_edge_removed(log, e BMLOG_DEBUG_ARGS_INVOKE)
+void BM_log_edge_removed(BMesh *bm, BMLog *log, BMEdge *e);
 
 /* Log a face as removed from the BMesh */
 /* Log a face as removed from the BMesh
@@ -232,8 +232,8 @@ void _BM_log_edge_removed(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS);
  * its ID and the value containing everything needed to reconstruct
  * that face.
  */
-void _BM_log_face_removed(BMLog *log, struct BMFace *f BMLOG_DEBUG_ARGS);
-#define BM_log_face_removed(log, f) _BM_log_face_removed(log, f BMLOG_DEBUG_ARGS_INVOKE)
+void BM_log_face_removed(BMesh *bm, BMLog *log, struct BMFace *f);
+void BM_log_face_removed_no_check(BMesh *bm, BMLog *log, struct BMFace *f);
 
 /* Log all vertices/faces in the BMesh as added */
 /* Log all vertices/faces in the BMesh as added */
@@ -272,10 +272,10 @@ void BM_log_set_current_entry(BMLog *log, BMLogEntry *entry);
 BMLogEntry *BM_log_entry_prev(BMLogEntry *entry);
 BMLogEntry *BM_log_entry_next(BMLogEntry *entry);
 
-uint BM_log_vert_id_get(BMLog *log, BMVert *v);
-BMVert *BM_log_id_vert_get(BMLog *log, uint id);
-uint BM_log_face_id_get(BMLog *log, BMFace *f);
-BMFace *BM_log_id_face_get(BMLog *log, uint id);
+uint BM_log_vert_id_get(BMesh *bm, BMLog *log, BMVert *v);
+BMVert *BM_log_id_vert_get(BMesh *bm, BMLog *log, uint id);
+uint BM_log_face_id_get(BMesh *bm, BMLog *log, BMFace *f);
+BMFace *BM_log_id_face_get(BMesh *bm, BMLog *log, uint id);
 
 void BM_log_print_entry(BMLog *log, BMLogEntry *entry);
 void BM_log_redo_skip(BMesh *bm, BMLog *log);
@@ -297,28 +297,6 @@ bool BM_log_has_face_post(BMLog *log, BMFace *f);
 bool BM_log_has_vert_pre(BMLog *log, BMVert *v);
 bool BM_log_has_edge_pre(BMLog *log, BMEdge *e);
 bool BM_log_has_face_pre(BMLog *log, BMFace *f);
-
-/*Log an edge before changing its topological connections*/
-void _BM_log_edge_pre(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS);
-#define BM_log_edge_pre(log, e) _BM_log_edge_pre(log, e BMLOG_DEBUG_ARGS_INVOKE)
-
-/*Log an edge after changing its topological connections*/
-void _BM_log_edge_post(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS);
-#define BM_log_edge_post(log, e) _BM_log_edge_post(log, e BMLOG_DEBUG_ARGS_INVOKE)
-
-/*Log a face before changing its topological connections*/
-void _BM_log_face_pre(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS);
-#define BM_log_face_pre(log, f) _BM_log_face_pre(log, f BMLOG_DEBUG_ARGS_INVOKE)
-
-/*Log a face after changing its topological connections*/
-void _BM_log_face_post(BMLog *log, BMFace *f BMLOG_DEBUG_ARGS);
-#define BM_log_face_post(log, f) _BM_log_face_post(log, f BMLOG_DEBUG_ARGS_INVOKE)
-
-void _BM_log_vert_pre(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS);
-#define BM_log_vert_pre(log, v) _BM_log_vert_pre(log, v BMLOG_DEBUG_ARGS_INVOKE)
-
-void _BM_log_vert_post(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS);
-#define BM_log_vert_post(log, v) _BM_log_vert_post(log, v BMLOG_DEBUG_ARGS_INVOKE)
 
 bool BM_log_validate(BMesh *inbm, BMLogEntry *entry, bool is_applied);
 bool BM_log_validate_cur(BMLog *log);

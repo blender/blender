@@ -123,7 +123,7 @@ typedef struct SculptFaceSetIslands {
 
 /* Sculpt Original Data */
 typedef struct {
-  struct BMLog *bm_log;
+  BMLog *bm_log;
 
   struct SculptUndoNode *unode;
   int datatype;
@@ -156,7 +156,7 @@ typedef struct SculptSmoothArgs {
 
 typedef struct SculptOrigFaceData {
   struct SculptUndoNode *unode;
-  struct BMLog *bm_log;
+  BMLog *bm_log;
   const int *face_sets;
   int face_set;
 } SculptOrigFaceData;
@@ -223,8 +223,8 @@ typedef struct SculptUndoNode {
   int totloop;
 
   /* non-multires */
-  int maxvert;        /* to verify if totvert it still the same */
-  int *index; /* to restore into right location */
+  int maxvert; /* to verify if totvert it still the same */
+  int *index;  /* to restore into right location */
   int maxloop;
   int *loop_index;
 
@@ -238,7 +238,8 @@ typedef struct SculptUndoNode {
   BLI_bitmap **grid_hidden;
 
   /* bmesh */
-  struct BMLogEntry *bm_entry;
+  BMLogEntry *bm_entry;
+  BMLog *bm_log;
   bool applied;
 
   /* shape keys */

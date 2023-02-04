@@ -2581,7 +2581,6 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
   const int tag = _FLAG_WALK_ALT;  // using bmhead.api_flag here
   const int dup_tag = _FLAG_OVERLAP;
   const int final_tag = _FLAG_JF;
-  const int deleted_tag = _FLAG_WALK;
 
   JVKE_CHECK_ELEMENT(v_conn);
   JVKE_CHECK_ELEMENT(v_del);

@@ -524,8 +524,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
 
         /* Create an empty log if reconstruction failed. */
         if (!ob->sculpt->bm_log) {
-          ob->sculpt->bm_log = BM_log_create(
-              ob->sculpt->bm, ob->sculpt->bm_idmap, ob->sculpt->cd_sculpt_vert);
+          ob->sculpt->bm_log = BM_log_create(ob->sculpt->bm, ob->sculpt->bm_idmap);
         }
       }
     }
@@ -2002,10 +2001,10 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
     const int cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
 
     BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-      BM_log_vert_before_modified(ss->bm_log, v, cd_mask, true);
+      BM_log_vert_before_modified(ss->bm, ss->bm_log, v);
     }
     BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-      BM_log_face_modified(ss->bm_log, f);
+      BM_log_face_modified(ss->bm, ss->bm_log, f);
     }
 
     SCULPT_face_visibility_all_set(ss, true);

@@ -680,7 +680,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
   /* Enable logging for undo/redo. */
   if (!ss->bm_log) {
-    ss->bm_log = BM_log_create(ss->bm, ss->bm_idmap, ss->cd_sculpt_vert);
+    ss->bm_log = BM_log_create(ss->bm, ss->bm_idmap);
   }
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
@@ -1595,10 +1595,10 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
     mul_v3_fl(cent, 1.0f / (float)tot);
 
     if (!sculpt_brush_test_sq_fn(&test, cent)) {
-      continue;
+      continue; 
     }
 
-    BM_log_face_modified(ss->bm_log, f);
+    BM_log_face_modified(ss->bm, ss->bm_log, f);
     uvsolver_ensure_face(data1->solver, f);
 
     do {

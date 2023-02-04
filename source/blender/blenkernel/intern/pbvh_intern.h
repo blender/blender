@@ -252,7 +252,7 @@ struct PBVH {
   int symmetry;
   int boundary_symmetry;
 
-  struct BMLog *bm_log;
+  BMLog *bm_log;
   struct SubdivCCG *subdiv_ccg;
 
   bool flat_vcol_shading;

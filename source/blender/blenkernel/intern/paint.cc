@@ -3206,7 +3206,7 @@ BMesh *BKE_sculptsession_empty_bmesh_create()
   params.id_map = true;
   params.temporary_ids = false;
 
-  params.no_reuse_ids = true;  // XXX
+  params.no_reuse_ids = false;
 
   BMesh *bm = BM_mesh_create(&allocsize, &params);
 

@@ -313,7 +313,7 @@ void bm_free_id(BMesh *bm, BMElem *elem)
   }
 #else
   if (!(bm->idmap.flag & BM_NO_REUSE_IDS)) {
-  bm_id_freelist_push(bm, id);
+    bm_id_freelist_push(bm, id);
   }
 #endif
 

@@ -44,7 +44,7 @@
 #include "dyntopo_intern.hh"
 #include "pbvh_intern.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 namespace blender::dyntopo {
 
@@ -205,13 +205,13 @@ static void pbvh_kill_vert(PBVH *pbvh, BMVert *v, bool log_vert, bool log_edges)
   if (log_edges) {
     if (e) {
       do {
-        BM_log_edge_removed(pbvh->bm_log, e);
+        BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e);
       } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
     }
   }
 
   if (log_vert) {
-    BM_log_vert_removed(pbvh->bm_log, v, -1);
+    BM_log_vert_removed(pbvh->header.bm, pbvh->bm_log, v);
   }
 
 #ifdef USE_NEW_IDMAP
@@ -300,7 +300,7 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
   node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_UpdateTris | PBVH_UpdateOtherVerts;
 
   /* Log the new vertex */
-  BM_log_vert_added(pbvh->bm_log, v, cd_vert_mask_offset);
+  BM_log_vert_added(pbvh->header.bm, pbvh->bm_log, v);
   v->head.index = pbvh->header.bm->totvert;  // set provisional index
 
   return v;
@@ -324,7 +324,7 @@ static BMFace *bmesh_face_create_edge_log(PBVH *pbvh,
 
       if (!e) {
         e = BM_edge_create(pbvh->header.bm, v1, v2, nullptr, BM_CREATE_NOP);
-        BM_log_edge_added(pbvh->bm_log, e);
+        BM_log_edge_added(pbvh->header.bm, pbvh->bm_log, e);
       }
 
       e_tri2[i] = e;
@@ -372,7 +372,7 @@ static BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
 
   /* Log the new face */
   if (log_face) {
-    BM_log_face_added(pbvh->bm_log, f);
+    BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f);
   }
 
   int cd_vert_node = pbvh->cd_vert_node_offset;
@@ -687,7 +687,7 @@ void pbvh_bmesh_face_remove(
 
   /* Log removed face */
   if (log_face) {
-    BM_log_face_removed(pbvh->bm_log, f);
+    BM_log_face_removed(pbvh->header.bm, pbvh->bm_log, f);
   }
 
   /* mark node for update */
@@ -1229,7 +1229,7 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
         int randval = (seed = dyntopo_thread_rand(seed)) & 255;
 
         if (do_smooth && randval > 127) {
-          PBVHVertRef sv = {.i = (intptr_t)l_iter->v};
+          PBVHVertRef sv = {(intptr_t)l_iter->v};
           surface_smooth_v_safe(tdata->pbvh,
                                 l_iter->v,
                                 eq_ctx->surface_smooth_fac *
@@ -1289,7 +1289,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 
   // BKE_pbvh_bmesh_remove_face(pbvh, f, true);
   pbvh_bmesh_face_remove(pbvh, f, false, true, true);
-  BM_log_face_pre(pbvh->bm_log, f);
+  BM_log_face_removed(pbvh->header.bm, pbvh->bm_log, f);
 #ifdef USE_NEW_IDMAP
   BM_idmap_release(pbvh->bm_idmap, (BMElem *)f, true);
 #endif
@@ -1333,8 +1333,8 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
     }
 
     if (f == f2) {
-      BM_log_face_post(pbvh->bm_log, f);
-      BM_log_face_removed(pbvh->bm_log, f);
+      BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f);
+      BM_log_face_removed_no_check(pbvh->header.bm, pbvh->bm_log, f);
       f = nullptr;
     }
 
@@ -1363,7 +1363,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
     BMLoop *l = f2->l_first;
     do {
       if (l->e->head.index == -1) {
-        BM_log_edge_added(pbvh->bm_log, l->e);
+        BM_log_edge_added(pbvh->header.bm, pbvh->bm_log, l->e);
         l->e->head.index = 0;
       }
     } while ((l = l->next) != f2->l_first);
@@ -1372,12 +1372,12 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 
     BKE_pbvh_bmesh_add_face(pbvh, f2, false, true);
     // BM_log_face_post(pbvh->bm_log, f2);
-    BM_log_face_added(pbvh->bm_log, f2);
+    BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f2);
   }
 
   if (f) {
     BKE_pbvh_bmesh_add_face(pbvh, f, false, true);
-    BM_log_face_post(pbvh->bm_log, f);
+    BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f);
   }
 
   if (arena) {
@@ -1547,7 +1547,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     BMEdge *e = es[i];
 
     if (!e->l) {
-      BM_log_edge_removed(pbvh->bm_log, e);
+      BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e);
 #  ifdef USE_NEW_IDMAP
       BM_idmap_release(pbvh->bm_idmap, (BMElem *)e, true);
 #  endif
@@ -1561,7 +1561,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     if (!v->e) {
       pbvh_bmesh_vert_remove(pbvh, v);
 
-      BM_log_vert_removed(pbvh->bm_log, v, pbvh->cd_vert_mask_offset);
+      BM_log_vert_removed(pbvh->header.bm, pbvh->bm_log, v);
 #  ifdef USE_NEW_IDMAP
       BM_idmap_release(pbvh->bm_idmap, (BMElem *)v, true);
 #  endif
@@ -1829,11 +1829,11 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
       MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, e->v2);
 
       if (mv1->flag & SCULPTVERT_NEED_VALENCE) {
-        BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){.i = (intptr_t)e->v1});
+        BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, {(intptr_t)e->v1});
       }
 
       if (mv2->flag & SCULPTVERT_NEED_VALENCE) {
-        BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){.i = (intptr_t)e->v2});
+        BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, {(intptr_t)e->v2});
       }
 
       // check_vert_fan_are_tris(pbvh, e->v1);
@@ -2005,7 +2005,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
           MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
 
           if (mv->flag & SCULPTVERT_NEED_VALENCE) {
-            BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){.i = (intptr_t)v});
+            BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, {(intptr_t)v});
           }
 
           edge_queue_insert_val34_vert(eq_ctx, v);
@@ -2209,14 +2209,14 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
 
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
 
-    BKE_pbvh_bmesh_check_valence(pbvh, (PBVHVertRef){.i = (intptr_t)v});
+    BKE_pbvh_bmesh_check_valence(pbvh, {(intptr_t)v});
 
     int val = mv->valence;
     if (val != 4 && val != 3) {
       continue;
     }
 
-    PBVHVertRef sv = {.i = (intptr_t)v};
+    PBVHVertRef sv = {(intptr_t)v};
 
     if (len_squared_v3v3(v->co, center) >= rsqr || !v->e ||
         ectx->mask_cb(sv, ectx->mask_cb_data) < 0.5f) {
@@ -2355,7 +2355,7 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
         pbvh_bmesh_face_remove(pbvh, f, true, true, true);
       }
       else {
-        BM_log_face_removed(pbvh->bm_log, f);
+        BM_log_face_removed(pbvh->header.bm, pbvh->bm_log, f);
       }
     }
 
@@ -2471,7 +2471,7 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
 
       normal_tri_v3(
           f2->no, f2->l_first->v->co, f2->l_first->next->v->co, f2->l_first->prev->v->co);
-      BM_log_face_added(pbvh->bm_log, f2);
+      BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f2);
 
       validate_face(pbvh, pbvh->header.bm, f2, false, false);
     }
@@ -2484,7 +2484,7 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
       CustomData_bmesh_swap_data_simple(
           &pbvh->header.bm->ldata, &f1->l_first->prev->head.data, &ls[2]->head.data);
 
-      BM_log_face_added(pbvh->bm_log, f1);
+      BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f1);
     }
 
     validate_vert(pbvh, pbvh->header.bm, v, false, false);
@@ -2605,7 +2605,7 @@ static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx,
         MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
 
         if (mv->flag & SCULPTVERT_NEED_VALENCE) {
-          BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){.i = (intptr_t)v});
+          BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, {(intptr_t)v});
         }
 
         if (mv->valence < 5) {
@@ -2717,22 +2717,23 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     safe_smooth = DYNTOPO_SAFE_SMOOTH_FAC;
   }
 
-  EdgeQueueContext eq_ctx = {.pool = nullptr,
-                             .bm = pbvh->header.bm,
-                             .mask_cb = mask_cb,
-                             .mask_cb_data = mask_cb_data,
+  EdgeQueueContext eq_ctx;
+  eq_ctx.pool = nullptr;
+  eq_ctx.bm = pbvh->header.bm;
+  eq_ctx.mask_cb = mask_cb;
+  eq_ctx.mask_cb_data = mask_cb_data;
 
-                             .cd_sculpt_vert = cd_sculpt_vert,
-                             .cd_vert_mask_offset = cd_vert_mask_offset,
-                             .cd_vert_node_offset = cd_vert_node_offset,
-                             .cd_face_node_offset = cd_face_node_offset,
-                             .avg_elen = 0.0f,
-                             .max_elen = -1e17,
-                             .min_elen = 1e17,
-                             .totedge = 0.0f,
-                             .local_mode = false,
-                             .surface_smooth_fac = safe_smooth,
-                             .mode = mode};
+  eq_ctx.cd_sculpt_vert = cd_sculpt_vert;
+  eq_ctx.cd_vert_mask_offset = cd_vert_mask_offset;
+  eq_ctx.cd_vert_node_offset = cd_vert_node_offset;
+  eq_ctx.cd_face_node_offset = cd_face_node_offset;
+  eq_ctx.avg_elen = 0.0f;
+  eq_ctx.max_elen = -1e17;
+  eq_ctx.min_elen = 1e17;
+  eq_ctx.totedge = 0.0f;
+  eq_ctx.local_mode = false;
+  eq_ctx.surface_smooth_fac = safe_smooth;
+  eq_ctx.mode = mode;
 
 #ifdef DYNTOPO_USE_MINMAX_HEAP
   eq_ctx.heap_mm = BLI_mm_heap_new_ex(max_ii(DYNTOPO_MAX_ITER, custom_max_steps));
@@ -3255,7 +3256,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
     if (!ignore_isolated_edges) {
       f->head.hflag |= SPLIT_TAG;
-      BM_log_face_removed(pbvh->bm_log, f);
+      BM_log_face_removed(pbvh->header.bm, pbvh->bm_log, f);
       BM_idmap_release(pbvh->bm_idmap, (BMElem *)f, true);
     }
     else {
@@ -3305,7 +3306,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
       do {
         if (!(l->f->head.hflag & SPLIT_TAG)) {
           l->f->head.hflag |= SPLIT_TAG;
-          BM_log_face_removed(pbvh->bm_log, l->f);
+          BM_log_face_removed(pbvh->header.bm, pbvh->bm_log, l->f);
         }
       } while ((l = l->radial_next) != e->l);
     }
@@ -3341,7 +3342,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
     BM_idmap_check_assign(pbvh->bm_idmap, (BMElem *)e->v1);
     BM_idmap_check_assign(pbvh->bm_idmap, (BMElem *)e->v2);
-    BM_log_edge_removed(pbvh->bm_log, e);
+    BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e);
 
     BM_idmap_release(pbvh->bm_idmap, (BMElem *)e, true);
 
@@ -3349,9 +3350,9 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
     BMVert *newv = BM_edge_split(pbvh->header.bm, e, e->v1, &newe, 0.5f);
     newe->head.hflag &= ~SPLIT_TAG;
 
-    BM_log_vert_added(pbvh->bm_log, newv, -1);
-    BM_log_edge_added(pbvh->bm_log, e);
-    BM_log_edge_added(pbvh->bm_log, newe);
+    BM_log_vert_added(bm, pbvh->bm_log, newv);
+    BM_log_edge_added(bm, pbvh->bm_log, e);
+    BM_log_edge_added(bm, pbvh->bm_log, newe);
 
     edge_queue_insert_val34_vert(eq_ctx, newv);
 
@@ -3613,7 +3614,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
         validate_face(pbvh, bm, newf, false, true);
 
         if (log_edge) {
-          BM_log_edge_added(pbvh->bm_log, rl->e);
+          BM_log_edge_added(bm, pbvh->bm_log, rl->e);
         }
 
         bool ok = ni != DYNTOPO_NODE_NONE;
@@ -3652,7 +3653,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
       }
 
       if (newfaces[j] != f) {
-        BM_log_face_added(pbvh->bm_log, newfaces[j]);
+        BM_log_face_added(bm, pbvh->bm_log, newfaces[j]);
       }
 #if 1
       if (newfaces[j]->len != 3) {
@@ -3669,7 +3670,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
       BKE_pbvh_bmesh_add_face(pbvh, f, false, true);
     }
 
-    BM_log_face_post(pbvh->bm_log, f);
+    BM_log_face_added(bm, pbvh->bm_log, f);
   }
 
   bm_logstack_pop();
@@ -3745,7 +3746,7 @@ DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
   pbvh->cd_vcol_offset = -1;
 
   if (isfake) {
-    pbvh->bm_log = BM_log_create(bm, pbvh->bm_idmap, pbvh->cd_sculpt_vert);
+    pbvh->bm_log = BM_log_create(bm, pbvh->bm_idmap);
   }
 
   BMVert *v;
@@ -3962,7 +3963,7 @@ void BKE_pbvh_bmesh_remove_edge(PBVH *pbvh, BMEdge *e, bool log_edge)
 {
   if (log_edge) {
     bm_logstack_push();
-    BM_log_edge_removed(pbvh->bm_log, e);
+    BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e);
     bm_logstack_pop();
   }
 }
@@ -3972,7 +3973,7 @@ void BKE_pbvh_bmesh_remove_vertex(PBVH *pbvh, BMVert *v, bool log_vert)
   blender::dyntopo::pbvh_bmesh_vert_remove(pbvh, v);
 
   if (log_vert) {
-    BM_log_vert_removed(pbvh->bm_log, v, pbvh->cd_vert_mask_offset);
+    BM_log_vert_removed(pbvh->header.bm, pbvh->bm_log, v);
   }
 }
 
@@ -3986,7 +3987,7 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
     bke_pbvh_insert_face(pbvh, f);
 
     if (log_face) {
-      BM_log_face_added(pbvh->bm_log, f);
+      BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f);
     }
 
     bm_logstack_pop();
@@ -4020,7 +4021,7 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
   }
 
   if (log_face) {
-    BM_log_face_added(pbvh->bm_log, f);
+    BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f);
   }
 
   bm_logstack_pop();

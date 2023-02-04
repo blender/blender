@@ -22,6 +22,8 @@
 #include "BKE_attribute.h"
 #include "BKE_pbvh.h"
 
+#include "bmesh_log.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -847,7 +849,7 @@ typedef struct SculptSession {
   bool ignore_uvs;
 
   /* Undo/redo log for dynamic topology sculpting */
-  struct BMLog *bm_log;
+  BMLog *bm_log;
 
   /* Limit surface/grids. */
   struct SubdivCCG *subdiv_ccg;

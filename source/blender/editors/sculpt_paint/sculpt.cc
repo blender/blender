@@ -1533,8 +1533,9 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
   iter->has_edge = true;
   iter->no_free = false;
 
-  int *edges = BLI_array_alloca(edges, SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY);
-  int *unused_polys = BLI_array_alloca(unused_polys, SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY * 2);
+  int *edges = (int *)BLI_array_alloca(edges, SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY);
+  int *unused_polys = (int *)BLI_array_alloca(unused_polys,
+                                              SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY * 2);
   bool heap_alloc = false;
   int len = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
 

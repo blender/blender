@@ -270,25 +270,26 @@ static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
   TraceData *data = static_cast<TraceData *>(userdata);
 
   BM_idmap_check_assign(data->pbvh->bm_idmap, elem);
+  BMesh *bm = data->pbvh->header.bm;
 
   switch (elem->head.htype) {
     case BM_VERT: {
       BMVert *v = reinterpret_cast<BMVert *>(elem);
 
-      BM_log_vert_removed(data->pbvh->bm_log, v, -1);
+      BM_log_vert_removed(bm, data->pbvh->bm_log, v);
       pbvh_bmesh_vert_remove(data->pbvh, v);
       BM_idmap_release(data->pbvh->bm_idmap, elem, false);
       break;
     }
     case BM_EDGE: {
       BMEdge *e = reinterpret_cast<BMEdge *>(elem);
-      BM_log_edge_removed(data->pbvh->bm_log, e);
+      BM_log_edge_removed(bm, data->pbvh->bm_log, e);
       BM_idmap_release(data->pbvh->bm_idmap, elem, false);
       break;
     }
     case BM_FACE: {
       BMFace *f = reinterpret_cast<BMFace *>(elem);
-      BM_log_face_removed(data->pbvh->bm_log, f);
+      BM_log_face_removed(bm, data->pbvh->bm_log, f);
       pbvh_bmesh_face_remove(data->pbvh, f, false, false, false);
       BM_idmap_release(data->pbvh->bm_idmap, elem, false);
       break;
@@ -322,6 +323,7 @@ static void check_new_elem_id(BMElem *elem, TraceData *data)
 static void collapse_ring_callback_post(BMElem *elem, void *userdata)
 {
   TraceData *data = static_cast<TraceData *>(userdata);
+  BMesh *bm = data->pbvh->header.bm;
 
   switch (elem->head.htype) {
     case BM_VERT: {
@@ -331,21 +333,21 @@ static void collapse_ring_callback_post(BMElem *elem, void *userdata)
       mv->flag |= SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT;
 
       check_new_elem_id(elem, data);
-      BM_log_vert_added(data->pbvh->bm_log, v, -1);
+      BM_log_vert_added(bm, data->pbvh->bm_log, v);
       break;
     }
     case BM_EDGE: {
       BMEdge *e = reinterpret_cast<BMEdge *>(elem);
       check_new_elem_id(elem, data);
 
-      BM_log_edge_added(data->pbvh->bm_log, e);
+      BM_log_edge_added(bm, data->pbvh->bm_log, e);
       break;
     }
     case BM_FACE: {
       BMFace *f = reinterpret_cast<BMFace *>(elem);
       check_new_elem_id(elem, data);
 
-      BM_log_face_added(data->pbvh->bm_log, f);
+      BM_log_face_added(bm, data->pbvh->bm_log, f);
       BKE_pbvh_bmesh_add_face(data->pbvh, f, false, false);
       break;
     }
@@ -544,7 +546,7 @@ bool pbvh_bmesh_collapse_edge_uvs(
       } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
     }
 
-    float(*uv)[2] = BLI_array_alloca(uv, 4 * totuv);
+    float(*uv)[2] = static_cast<float(*)[2]>(BLI_array_alloca(uv, 4 * totuv));
 
     do {
       const void *ls2[2] = {l->head.data, l->next->head.data};
@@ -783,7 +785,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
     // kill wire edge
     if (!e2->l) {
-      BM_log_edge_pre(pbvh->bm_log, e2);
+      BM_log_edge_pre(pbvh->header.bm, pbvh->bm_log, e2);
       BM_idmap_release(pbvh->bm_idmap, (BMElem *)e2, true);
       BM_edge_kill(pbvh->header.bm, e2);
     }
@@ -801,7 +803,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
       blender::dyntopo::pbvh_bmesh_vert_remove(pbvh, v_conn);
     }
 
-    BM_log_vert_removed(pbvh->bm_log, v_conn, 0);
+    BM_log_vert_removed(pbvh->header.bm, pbvh->bm_log, v_conn);
     BM_vert_kill(pbvh->header.bm, v_conn);
 
     bm_logstack_pop();
