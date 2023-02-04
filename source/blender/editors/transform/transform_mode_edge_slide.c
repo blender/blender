@@ -1375,16 +1375,16 @@ static void edge_slide_apply_elem(const TransDataEdgeSlideVert *sv,
      */
     if (sv->edge_len > FLT_EPSILON) {
       float co_a[3], co_b[3];
-      const float fac = min_ff(sv->edge_len, curr_length_fac) / sv->edge_len;
+      const float fac_final = min_ff(sv->edge_len, curr_length_fac) / sv->edge_len;
 
       add_v3_v3v3(co_a, sv->v_co_orig, sv->dir_side[0]);
       add_v3_v3v3(co_b, sv->v_co_orig, sv->dir_side[1]);
 
       if (use_flip) {
-        interp_line_v3_v3v3v3(r_co, co_b, sv->v_co_orig, co_a, fac);
+        interp_line_v3_v3v3v3(r_co, co_b, sv->v_co_orig, co_a, fac_final);
       }
       else {
-        interp_line_v3_v3v3v3(r_co, co_a, sv->v_co_orig, co_b, fac);
+        interp_line_v3_v3v3v3(r_co, co_a, sv->v_co_orig, co_b, fac_final);
       }
     }
   }
