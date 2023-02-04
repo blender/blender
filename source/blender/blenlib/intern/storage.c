@@ -211,9 +211,9 @@ eFileAttributes BLI_file_attributes(const char *path)
   }
 
   DWORD attr = GetFileAttributesW(wline);
-  BLI_assert_msg(attr != INVALID_FILE_ATTRIBUTES,
-                 "BLI_file_attributes should only be called on existing files.");
   if (attr == INVALID_FILE_ATTRIBUTES) {
+    BLI_assert_msg(GetLastError() != ERROR_FILE_NOT_FOUND,
+                   "BLI_file_attributes should only be called on existing files.");
     return ret;
   }
 
