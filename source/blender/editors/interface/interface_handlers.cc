@@ -9449,10 +9449,10 @@ static int ui_list_handle_click_drag(bContext *C,
                                      const wmEvent *event)
 {
   if (event->type != LEFTMOUSE) {
-    return WM_HANDLER_CONTINUE;
+    return WM_UI_HANDLER_CONTINUE;
   }
 
-  int retval = WM_HANDLER_CONTINUE;
+  int retval = WM_UI_HANDLER_CONTINUE;
 
   const bool is_draggable = ui_list_is_hovering_draggable_but(C, ui_list, region, event);
   bool activate = false;

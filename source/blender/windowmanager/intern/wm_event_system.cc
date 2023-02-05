@@ -96,6 +96,17 @@
  */
 #define USE_GIZMO_MOUSE_PRIORITY_HACK
 
+/**
+ * Return value of handler-operator call.
+ */
+enum {
+  WM_HANDLER_CONTINUE = 0,
+  WM_HANDLER_BREAK = 1 << 0,
+  WM_HANDLER_HANDLED = 1 << 1,
+  /** `WM_HANDLER_MODAL | WM_HANDLER_BREAK` means unhandled. */
+  WM_HANDLER_MODAL = 1 << 2,
+};
+
 static void wm_notifier_clear(wmNotifier *note);
 static bool wm_notifier_is_clear(const wmNotifier *note);
 
