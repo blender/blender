@@ -81,8 +81,22 @@ static OffsetIndices<int> accumulate_counts_to_offsets(const IndexMask selection
                                                        Array<int> &r_offset_data)
 {
   r_offset_data.reinitialize(selection.size() + 1);
-  counts.materialize_compressed(selection, r_offset_data);
-  offset_indices::accumulate_counts_to_offsets(r_offset_data);
+  if (counts.is_single()) {
+    const int count = counts.get_internal_single();
+    threading::parallel_for(selection.index_range(), 1024, [&](const IndexRange range) {
+      for (const int64_t i : range) {
+        r_offset_data[i] = count * i;
+      }
+    });
+    r_offset_data.last() = count * selection.size();
+  }
+  else {
+    threading::parallel_for(selection.index_range(), 1024, [&](const IndexRange range) {
+      counts.materialize_compressed(selection.slice(range),
+                                    r_offset_data.as_mutable_span().slice(range));
+    });
+    offset_indices::accumulate_counts_to_offsets(r_offset_data);
+  }
   return OffsetIndices<int>(r_offset_data);
 }
 
