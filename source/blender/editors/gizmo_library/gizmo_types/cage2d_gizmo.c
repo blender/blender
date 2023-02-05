@@ -592,7 +592,7 @@ static void cage2d_draw_rect_handles(const rctf *r,
 
 static void cage2d_draw_central_handle(const float color[3], const float margin[2])
 {
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   const float rad[2] = {margin[0] * 0.25f, margin[1] * 0.25f};
 
