@@ -2643,7 +2643,7 @@ static int wm_handler_fileselect_do(bContext *C,
       }
       else {
         BKE_report(&wm->reports, RPT_ERROR, "Failed to open window!");
-        return OPERATOR_CANCELLED;
+        return WM_HANDLER_BREAK;
       }
 
       action = WM_HANDLER_BREAK;
