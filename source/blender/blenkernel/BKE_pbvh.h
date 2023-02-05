@@ -167,6 +167,7 @@ typedef enum {
   PBVH_TopologyUpdated = 1 << 17, /* Used internally by pbvh_bmesh.c */
 
 } PBVHNodeFlags;
+ENUM_OPERATORS(PBVHNodeFlags, PBVH_TopologyUpdated);
 
 typedef struct PBVHFrustumPlanes {
   float (*planes)[4];

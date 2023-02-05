@@ -2,37 +2,31 @@
 
 #pragma once
 
-struct PBVHGPUFormat;
-
 /** \file
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+struct PBVHGPUFormat;
 struct MLoop;
 struct MLoopTri;
 struct MPoly;
+struct MeshElemMap;
 
 /* Axis-aligned bounding box */
-typedef struct {
+struct BB {
   float bmin[3], bmax[3];
-} BB;
+};
 
 /* Axis-aligned bounding box with centroid */
-typedef struct {
+struct BBC {
   float bmin[3], bmax[3], bcentroid[3];
-} BBC;
-
-struct MeshElemMap;
+};
 
 /* NOTE: this structure is getting large, might want to split it into
  * union'd structs */
 struct PBVHNode {
   /* Opaque handle for drawing code */
-  struct PBVHBatches *draw_batches;
+  PBVHBatches *draw_batches;
 
   /* Voxel bounds */
   BB vb;
@@ -95,7 +89,7 @@ struct PBVHNode {
 
   /* Indicates whether this node is a leaf or not; also used for
    * marking various updates that need to be applied. */
-  PBVHNodeFlags flag : 32;
+  PBVHNodeFlags flag;
 
   /* Used for ray-casting: how close the bounding-box is to the ray point. */
   float tmin;
@@ -132,12 +126,15 @@ struct PBVHNode {
   int debug_draw_gen;
 };
 
-typedef enum { PBVH_DYNTOPO_SMOOTH_SHADING = 1 } PBVHFlags;
+enum PBVHFlags {
+  PBVH_DYNTOPO_SMOOTH_SHADING = 1,
+};
+ENUM_OPERATORS(PBVHFlags, PBVH_DYNTOPO_SMOOTH_SHADING);
 
 typedef struct PBVHBMeshLog PBVHBMeshLog;
 
 struct PBVH {
-  struct PBVHPublic header;
+  PBVHPublic header;
   PBVHFlags flags;
 
   PBVHNode *nodes;
@@ -154,18 +151,18 @@ struct PBVH {
   int depth_limit;
 
   /* Mesh data */
-  struct Mesh *mesh;
+  Mesh *mesh;
 
   /* NOTE: Normals are not `const` because they can be updated for drawing by sculpt code. */
   float (*vert_normals)[3];
   bool *hide_vert;
   float (*vert_positions)[3];
-  const struct MPoly *mpoly;
+  const MPoly *mpoly;
   bool *hide_poly;
   /** Material indices. Only valid for polygon meshes. */
   const int *material_indices;
-  const struct MLoop *mloop;
-  const struct MLoopTri *looptri;
+  const MLoop *mloop;
+  const MLoopTri *looptri;
   CustomData *vdata;
   CustomData *ldata;
   CustomData *pdata;
@@ -203,10 +200,10 @@ struct PBVH {
   float planes[6][4];
   int num_planes;
 
-  struct BMLog *bm_log;
-  struct SubdivCCG *subdiv_ccg;
+  BMLog *bm_log;
+  SubdivCCG *subdiv_ccg;
 
-  const struct MeshElemMap *pmap;
+  const MeshElemMap *pmap;
 
   CustomDataLayer *color_layer;
   eAttrDomain color_domain;
@@ -216,12 +213,12 @@ struct PBVH {
   /* Used by DynTopo to invalidate the draw cache. */
   bool draw_cache_invalid;
 
-  struct PBVHGPUFormat *vbo_id;
+  PBVHGPUFormat *vbo_id;
 
   PBVHPixels pixels;
 };
 
-/* pbvh.c */
+/* pbvh.cc */
 
 void BB_reset(BB *bb);
 /**
@@ -239,14 +236,14 @@ void BBC_update_centroid(BBC *bbc);
 int BB_widest_axis(const BB *bb);
 void pbvh_grow_nodes(PBVH *bvh, int totnode);
 bool ray_face_intersection_quad(const float ray_start[3],
-                                struct IsectRayPrecalc *isect_precalc,
+                                IsectRayPrecalc *isect_precalc,
                                 const float t0[3],
                                 const float t1[3],
                                 const float t2[3],
                                 const float t3[3],
                                 float *depth);
 bool ray_face_intersection_tri(const float ray_start[3],
-                               struct IsectRayPrecalc *isect_precalc,
+                               IsectRayPrecalc *isect_precalc,
                                const float t0[3],
                                const float t1[3],
                                const float t2[3],
@@ -270,12 +267,12 @@ bool ray_face_nearest_tri(const float ray_start[3],
 
 void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
 
-/* pbvh_bmesh.c */
+/* pbvh_bmesh.cc */
 
 bool pbvh_bmesh_node_raycast(PBVHNode *node,
                              const float ray_start[3],
                              const float ray_normal[3],
-                             struct IsectRayPrecalc *isect_precalc,
+                             IsectRayPrecalc *isect_precalc,
                              float *dist,
                              bool use_original,
                              PBVHVertRef *r_active_vertex,
@@ -295,7 +292,3 @@ void pbvh_node_pixels_free(PBVHNode *node);
 void pbvh_pixels_free(PBVH *pbvh);
 void pbvh_pixels_free_brush_test(PBVHNode *node);
 void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node);
-
-#ifdef __cplusplus
-}
-#endif

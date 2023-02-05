@@ -22,7 +22,7 @@
 
 #include "bmesh.h"
 
-#include "pbvh_intern.h"
+#include "pbvh_intern.hh"
 #include "pbvh_uv_islands.hh"
 
 namespace blender::bke::pbvh::pixels {
@@ -800,7 +800,6 @@ void BKE_pbvh_pixels_mark_image_dirty(PBVHNode &node, Image &image, ImageUser &i
 }
 }  // namespace blender::bke::pbvh::pixels
 
-extern "C" {
 using namespace blender::bke::pbvh::pixels;
 
 void BKE_pbvh_build_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image_user)
@@ -827,5 +826,4 @@ void pbvh_pixels_free(PBVH *pbvh)
   PBVHData *pbvh_data = static_cast<PBVHData *>(pbvh->pixels.data);
   MEM_delete(pbvh_data);
   pbvh->pixels.data = nullptr;
-}
 }
