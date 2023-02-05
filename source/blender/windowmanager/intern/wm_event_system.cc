@@ -762,7 +762,7 @@ BLI_INLINE void wm_event_handler_return_value_check(const bContext *C,
 static eHandlerActionFlag wm_handler_ui_call(bContext *C,
                                              wmEventHandler_UI *handler,
                                              const wmEvent *event,
-                                             int always_pass)
+                                             const bool always_pass)
 {
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
@@ -783,7 +783,7 @@ static eHandlerActionFlag wm_handler_ui_call(bContext *C,
     if (is_wheel) {
       return WM_HANDLER_CONTINUE;
     }
-    if (wm_event_always_pass(event) == 0) {
+    if (!wm_event_always_pass(event)) {
       do_wheel_ui = true;
     }
   }
@@ -1039,7 +1039,10 @@ void WM_operator_region_active_win_set(bContext *C)
 /**
  * \param caller_owns_reports: True when called from Python.
  */
-static void wm_operator_reports(bContext *C, wmOperator *op, int retval, bool caller_owns_reports)
+static void wm_operator_reports(bContext *C,
+                                wmOperator *op,
+                                const int retval,
+                                const bool caller_owns_reports)
 {
   if (G.background == 0 && caller_owns_reports == false) { /* Popup. */
     if (op->reports->list.first) {
@@ -3255,7 +3258,7 @@ static eHandlerActionFlag wm_handlers_do_intern(bContext *C,
     }
     else if (handler_base->poll == nullptr || handler_base->poll(CTX_wm_region(C), event)) {
       /* In advance to avoid access to freed event on window close. */
-      const int always_pass = wm_event_always_pass(event);
+      const bool always_pass = wm_event_always_pass(event);
 
       /* Modal+blocking handler_base. */
       if (handler_base->flag & WM_HANDLER_BLOCKING) {
@@ -4154,7 +4157,7 @@ void wm_event_do_handlers(bContext *C)
 /** \name File Selector Handling
  * \{ */
 
-void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval)
+void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, const int eventval)
 {
   /* Add to all windows! */
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
@@ -4301,7 +4304,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 
 #if 0
 /* Lets not expose struct outside wm? */
-static void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
+static void WM_event_set_handler_flag(wmEventHandler *handler, const int flag)
 {
   handler->flag = flag;
 }
@@ -5204,7 +5207,7 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
 {
   /* Ignore in between track-pad events for performance, we only need high accuracy
    * for painting with mouse moves, for navigation using the accumulated value is ok. */
-  wmEvent *event_last = static_cast<wmEvent *>(win->event_queue.last);
+  const wmEvent *event_last = static_cast<wmEvent *>(win->event_queue.last);
   if (event_last && event_last->type == event->type) {
     deltax += event_last->xy[0] - event_last->prev_xy[0];
     deltay += event_last->xy[1] - event_last->prev_xy[1];
@@ -5320,7 +5323,7 @@ static bool wm_event_is_ignorable_key_press(const wmWindow *win, const wmEvent &
   return wm_event_is_same_key_press(last_event, event);
 }
 
-void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata)
+void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type, void *customdata)
 {
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
     return;
