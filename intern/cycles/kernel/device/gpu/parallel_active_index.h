@@ -178,7 +178,7 @@ __device__
                                          simd_lane_index, \
                                          simd_group_index, \
                                          num_simd_groups, \
-                                         simdgroup_offset)
+                                         (threadgroup int *)threadgroup_array)
 #elif defined(__KERNEL_ONEAPI__)
 
 #  define gpu_parallel_active_index_array(num_states, indices, num_indices, is_active_op) \

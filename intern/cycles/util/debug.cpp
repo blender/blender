@@ -69,6 +69,9 @@ void DebugFlags::Metal::reset()
 {
   if (getenv("CYCLES_METAL_ADAPTIVE_COMPILE") != NULL)
     adaptive_compile = true;
+
+  if (auto str = getenv("CYCLES_METAL_LOCAL_ATOMIC_SORT"))
+    use_local_atomic_sort = (atoi(str) != 0);
 }
 
 DebugFlags::OptiX::OptiX()

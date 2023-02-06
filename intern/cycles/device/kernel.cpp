@@ -73,6 +73,10 @@ const char *device_kernel_as_string(DeviceKernel kernel)
       return "integrator_terminated_paths_array";
     case DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY:
       return "integrator_sorted_paths_array";
+    case DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS:
+      return "integrator_sort_bucket_pass";
+    case DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS:
+      return "integrator_sort_write_pass";
     case DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY:
       return "integrator_compact_paths_array";
     case DEVICE_KERNEL_INTEGRATOR_COMPACT_STATES:

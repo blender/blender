@@ -105,6 +105,8 @@ class MetalDevice : public Device {
 
   bool use_adaptive_compilation();
 
+  bool use_local_atomic_sort() const;
+
   bool make_source_and_check_if_compile_needed(MetalPipelineType pso_type);
 
   void make_source(MetalPipelineType pso_type, const uint kernel_features);

@@ -401,6 +401,71 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)
 }
 ccl_gpu_kernel_postfix
 
+ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
+    ccl_gpu_kernel_signature(integrator_sort_bucket_pass,
+                             int num_states,
+                             int partition_size,
+                             int num_states_limit,
+                             ccl_global int *indices,
+                             int kernel_index)
+{
+#if defined(__KERNEL_LOCAL_ATOMIC_SORT__)
+  int max_shaders = context.launch_params_metal.data.max_shaders;
+  ccl_global ushort *d_queued_kernel = (ccl_global ushort *)
+                                           kernel_integrator_state.path.queued_kernel;
+  ccl_global uint *d_shader_sort_key = (ccl_global uint *)
+                                           kernel_integrator_state.path.shader_sort_key;
+  ccl_global int *key_offsets = (ccl_global int *)
+                                    kernel_integrator_state.sort_partition_key_offsets;
+
+  gpu_parallel_sort_bucket_pass(num_states,
+                                partition_size,
+                                max_shaders,
+                                kernel_index,
+                                d_queued_kernel,
+                                d_shader_sort_key,
+                                key_offsets,
+                                (threadgroup int *)threadgroup_array,
+                                metal_local_id,
+                                metal_local_size,
+                                metal_grid_id);
+#endif
+}
+
+ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
+    ccl_gpu_kernel_signature(integrator_sort_write_pass,
+                             int num_states,
+                             int partition_size,
+                             int num_states_limit,
+                             ccl_global int *indices,
+                             int kernel_index)
+{
+#if defined(__KERNEL_LOCAL_ATOMIC_SORT__)
+  int max_shaders = context.launch_params_metal.data.max_shaders;
+  ccl_global ushort *d_queued_kernel = (ccl_global ushort *)
+                                           kernel_integrator_state.path.queued_kernel;
+  ccl_global uint *d_shader_sort_key = (ccl_global uint *)
+                                           kernel_integrator_state.path.shader_sort_key;
+  ccl_global int *key_offsets = (ccl_global int *)
+                                    kernel_integrator_state.sort_partition_key_offsets;
+
+  gpu_parallel_sort_write_pass(num_states,
+                               partition_size,
+                               max_shaders,
+                               kernel_index,
+                               num_states_limit,
+                               indices,
+                               d_queued_kernel,
+                               d_shader_sort_key,
+                               key_offsets,
+                               (threadgroup int *)threadgroup_array,
+                               metal_local_id,
+                               metal_local_size,
+                               metal_grid_id);
+#endif
+}
+ccl_gpu_kernel_postfix
+
 ccl_gpu_kernel_threads(GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_compact_paths_array,
                              int num_states,

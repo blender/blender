@@ -105,10 +105,11 @@ struct kernel_gpu_##name \
 { \
   PARAMS_MAKER(__VA_ARGS__)(__VA_ARGS__) \
   void run(thread MetalKernelContext& context, \
-           threadgroup int *simdgroup_offset, \
+           threadgroup atomic_int *threadgroup_array, \
            const uint metal_global_id, \
            const ushort metal_local_id, \
            const ushort metal_local_size, \
+           const ushort metal_grid_id, \
            uint simdgroup_size, \
            uint simd_lane_index, \
            uint simd_group_index, \
@@ -117,22 +118,24 @@ struct kernel_gpu_##name \
 kernel void cycles_metal_##name(device const kernel_gpu_##name *params_struct, \
                                 constant KernelParamsMetal &ccl_restrict   _launch_params_metal, \
                                 constant MetalAncillaries *_metal_ancillaries, \
-                                threadgroup int *simdgroup_offset[[ threadgroup(0) ]], \
+                                threadgroup atomic_int *threadgroup_array[[ threadgroup(0) ]], \
                                 const uint metal_global_id [[thread_position_in_grid]], \
                                 const ushort metal_local_id   [[thread_position_in_threadgroup]], \
                                 const ushort metal_local_size [[threads_per_threadgroup]], \
+                                const ushort metal_grid_id    [[threadgroup_position_in_grid]], \
                                 uint simdgroup_size [[threads_per_simdgroup]], \
                                 uint simd_lane_index [[thread_index_in_simdgroup]], \
                                 uint simd_group_index [[simdgroup_index_in_threadgroup]], \
                                 uint num_simd_groups [[simdgroups_per_threadgroup]]) { \
   MetalKernelContext context(_launch_params_metal, _metal_ancillaries); \
-  params_struct->run(context, simdgroup_offset, metal_global_id, metal_local_id, metal_local_size, simdgroup_size, simd_lane_index, simd_group_index, num_simd_groups); \
+  params_struct->run(context, threadgroup_array, metal_global_id, metal_local_id, metal_local_size, metal_grid_id, simdgroup_size, simd_lane_index, simd_group_index, num_simd_groups); \
 } \
 void kernel_gpu_##name::run(thread MetalKernelContext& context, \
-                  threadgroup int *simdgroup_offset, \
+                  threadgroup atomic_int *threadgroup_array, \
                   const uint metal_global_id, \
                   const ushort metal_local_id, \
                   const ushort metal_local_size, \
+                  const ushort metal_grid_id, \
                   uint simdgroup_size, \
                   uint simd_lane_index, \
                   uint simd_group_index, \

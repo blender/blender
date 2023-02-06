@@ -87,6 +87,9 @@ struct ShaderCache {
           break;
       }
     }
+
+    occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS] = {1024, 1024};
+    occupancy_tuning[DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS] = {1024, 1024};
   }
   ~ShaderCache();
 
