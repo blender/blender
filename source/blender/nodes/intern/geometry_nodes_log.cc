@@ -526,6 +526,11 @@ std::optional<ComputeContextHash> GeoModifierLog::get_compute_context_hash_for_n
   for (const int i : tree_path.index_range().drop_back(1)) {
     /* The tree path contains the name of the node but not its ID. */
     const bNode *node = nodeFindNodebyName(tree_path[i]->nodetree, tree_path[i + 1]->node_name);
+    if (node == nullptr) {
+      /* The current tree path is invalid, probably because some parent group node has been
+       * deleted. */
+      return std::nullopt;
+    }
     compute_context_builder.push<bke::NodeGroupComputeContext>(*node);
   }
   return compute_context_builder.hash();
