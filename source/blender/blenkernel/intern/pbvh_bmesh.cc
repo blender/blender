@@ -1528,7 +1528,7 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
             if (j == 0 || len_squared_v3v3(location, cos[j]) <
                               len_squared_v3v3(location, nearest_vertex_co)) {
               copy_v3_v3(nearest_vertex_co, cos[j]);
-              r_active_vertex->i = (intptr_t)node->bm_orvert[node->bm_ortri[i][j]];
+              r_active_vertex->i = intptr_t(node->bm_orvert[node->bm_ortri[i][j]]);
             }
           }
         }
@@ -1560,7 +1560,7 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
               if (j == 0 || len_squared_v3v3(location, v_tri[j]->co) <
                                 len_squared_v3v3(location, nearest_vertex_co)) {
                 copy_v3_v3(nearest_vertex_co, v_tri[j]->co);
-                r_active_vertex->i = (intptr_t)v_tri[j];
+                r_active_vertex->i = intptr_t(v_tri[j]);
               }
             }
           }

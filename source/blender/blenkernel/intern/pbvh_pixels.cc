@@ -116,7 +116,7 @@ static void split_pixel_node(
   const int axis = BB_widest_axis(&cb);
   const float mid = (cb.bmax[axis] + cb.bmin[axis]) * 0.5f;
 
-  node->flag = (PBVHNodeFlags)((int)node->flag & (int)~PBVH_TexLeaf);
+  node->flag = (PBVHNodeFlags)(int(node->flag) & int(~PBVH_TexLeaf));
 
   SplitNodePair *split1 = MEM_new<SplitNodePair>("split_pixel_node split1", split);
   SplitNodePair *split2 = MEM_new<SplitNodePair>("split_pixel_node split1", split);
@@ -188,7 +188,7 @@ static void split_pixel_node(
 
       float2 delta = uv_prim.delta_barycentric_coord_u;
       float2 uv1 = row.start_barycentric_coord;
-      float2 uv2 = row.start_barycentric_coord + delta * (float)row.num_pixels;
+      float2 uv2 = row.start_barycentric_coord + delta * float(row.num_pixels);
 
       float co1[3];
       float co2[3];
@@ -210,7 +210,7 @@ static void split_pixel_node(
           t = (mid - co1[axis]) / (co2[axis] - co1[axis]);
         }
 
-        int num_pixels = (int)floorf((float)row.num_pixels * t);
+        int num_pixels = int(floorf(float(row.num_pixels) * t));
 
         if (num_pixels) {
           row1.num_pixels = num_pixels;
@@ -223,7 +223,7 @@ static void split_pixel_node(
           row2.num_pixels = row.num_pixels - num_pixels;
 
           row2.start_barycentric_coord = row.start_barycentric_coord +
-                                         uv_prim.delta_barycentric_coord_u * (float)num_pixels;
+                                         uv_prim.delta_barycentric_coord_u * float(num_pixels);
           row2.start_image_coordinate = row.start_image_coordinate;
           row2.start_image_coordinate[0] += num_pixels;
 
@@ -731,7 +731,7 @@ static bool update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
     PBVHNode &node = pbvh->nodes[i];
 
     if (node.flag & PBVH_Leaf) {
-      node.flag = (PBVHNodeFlags)((int)node.flag | (int)PBVH_TexLeaf);
+      node.flag = (PBVHNodeFlags)(int(node.flag) | int(PBVH_TexLeaf));
     }
   }
 

@@ -393,8 +393,8 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
   /* grid hidden layer is present, so have to check each grid for
    * visibility */
 
-  int depth1 = int(log2((double)gridsize - 1.0) + DBL_EPSILON);
-  int depth2 = int(log2((double)display_gridsize - 1.0) + DBL_EPSILON);
+  int depth1 = int(log2(double(gridsize) - 1.0) + DBL_EPSILON);
+  int depth2 = int(log2(double(display_gridsize) - 1.0) + DBL_EPSILON);
 
   int skip = depth2 < depth1 ? 1 << (depth1 - depth2 - 1) : 1;
 
@@ -3667,7 +3667,7 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
       }
 
       BMFace *f = (BMFace *)BLI_gsetIterator_getKey(&fd->bm_faces_iter_);
-      fd->face.i = (intptr_t)f;
+      fd->face.i = intptr_t(f);
       fd->index = f->head.index;
 
       if (fd->cd_face_set_ != -1) {
@@ -3683,7 +3683,7 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
 
       BMLoop *l = f->l_first;
       do {
-        fd->verts[vertex_i++].i = (intptr_t)l->v;
+        fd->verts[vertex_i++].i = intptr_t(l->v);
       } while ((l = l->next) != f->l_first);
 
       break;
