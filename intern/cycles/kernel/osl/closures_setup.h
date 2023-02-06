@@ -336,9 +336,9 @@ ccl_device void osl_closure_microfacet_ggx_fresnel_setup(
     return;
   }
 
-  ccl_private MicrofacetExtra *extra = (ccl_private MicrofacetExtra *)closure_alloc_extra(
-      sd, sizeof(MicrofacetExtra));
-  if (!extra) {
+  ccl_private FresnelPrincipledV1 *fresnel = (ccl_private FresnelPrincipledV1 *)
+      closure_alloc_extra(sd, sizeof(FresnelPrincipledV1));
+  if (!fresnel) {
     return;
   }
 
@@ -346,14 +346,13 @@ ccl_device void osl_closure_microfacet_ggx_fresnel_setup(
   bsdf->alpha_x = closure->alpha_x;
   bsdf->alpha_y = bsdf->alpha_x;
   bsdf->ior = closure->ior;
-
-  bsdf->extra = extra;
-  bsdf->extra->color = rgb_to_spectrum(closure->color);
-  bsdf->extra->cspec0 = rgb_to_spectrum(closure->cspec0);
-
   bsdf->T = zero_float3();
 
-  sd->flag |= bsdf_microfacet_ggx_fresnel_setup(bsdf, sd);
+  sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+
+  fresnel->color = rgb_to_spectrum(closure->color);
+  fresnel->cspec0 = rgb_to_spectrum(closure->cspec0);
+  bsdf_microfacet_setup_fresnel_principledv1(bsdf, sd, fresnel);
 }
 
 ccl_device void osl_closure_microfacet_ggx_aniso_fresnel_setup(
@@ -373,9 +372,9 @@ ccl_device void osl_closure_microfacet_ggx_aniso_fresnel_setup(
     return;
   }
 
-  ccl_private MicrofacetExtra *extra = (ccl_private MicrofacetExtra *)closure_alloc_extra(
-      sd, sizeof(MicrofacetExtra));
-  if (!extra) {
+  ccl_private FresnelPrincipledV1 *fresnel = (ccl_private FresnelPrincipledV1 *)
+      closure_alloc_extra(sd, sizeof(FresnelPrincipledV1));
+  if (!fresnel) {
     return;
   }
 
@@ -383,14 +382,13 @@ ccl_device void osl_closure_microfacet_ggx_aniso_fresnel_setup(
   bsdf->alpha_x = closure->alpha_x;
   bsdf->alpha_y = closure->alpha_y;
   bsdf->ior = closure->ior;
-
-  bsdf->extra = extra;
-  bsdf->extra->color = rgb_to_spectrum(closure->color);
-  bsdf->extra->cspec0 = rgb_to_spectrum(closure->cspec0);
-
   bsdf->T = closure->T;
 
-  sd->flag |= bsdf_microfacet_ggx_fresnel_setup(bsdf, sd);
+  sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+
+  fresnel->color = rgb_to_spectrum(closure->color);
+  fresnel->cspec0 = rgb_to_spectrum(closure->cspec0);
+  bsdf_microfacet_setup_fresnel_principledv1(bsdf, sd, fresnel);
 }
 
 /* Multi-scattering GGX closures */
@@ -415,9 +413,9 @@ ccl_device void osl_closure_microfacet_multi_ggx_setup(
     return;
   }
 
-  ccl_private MicrofacetExtra *extra = (ccl_private MicrofacetExtra *)closure_alloc_extra(
-      sd, sizeof(MicrofacetExtra));
-  if (!extra) {
+  ccl_private FresnelConstant *fresnel = (ccl_private FresnelConstant *)closure_alloc_extra(
+      sd, sizeof(FresnelConstant));
+  if (!fresnel) {
     return;
   }
 
@@ -426,9 +424,8 @@ ccl_device void osl_closure_microfacet_multi_ggx_setup(
   bsdf->alpha_y = bsdf->alpha_x;
   bsdf->ior = 1.0f;
 
-  bsdf->extra = extra;
-  bsdf->extra->color = rgb_to_spectrum(closure->color);
-  bsdf->extra->cspec0 = zero_spectrum();
+  bsdf->fresnel = fresnel;
+  fresnel->color = rgb_to_spectrum(closure->color);
 
   bsdf->T = zero_float3();
 
@@ -455,9 +452,9 @@ ccl_device void osl_closure_microfacet_multi_ggx_glass_setup(
     return;
   }
 
-  ccl_private MicrofacetExtra *extra = (ccl_private MicrofacetExtra *)closure_alloc_extra(
-      sd, sizeof(MicrofacetExtra));
-  if (!extra) {
+  ccl_private FresnelConstant *fresnel = (ccl_private FresnelConstant *)closure_alloc_extra(
+      sd, sizeof(FresnelConstant));
+  if (!fresnel) {
     return;
   }
 
@@ -466,9 +463,8 @@ ccl_device void osl_closure_microfacet_multi_ggx_glass_setup(
   bsdf->alpha_y = bsdf->alpha_x;
   bsdf->ior = closure->ior;
 
-  bsdf->extra = extra;
-  bsdf->extra->color = rgb_to_spectrum(closure->color);
-  bsdf->extra->cspec0 = zero_spectrum();
+  bsdf->fresnel = fresnel;
+  fresnel->color = rgb_to_spectrum(closure->color);
 
   bsdf->T = zero_float3();
 
@@ -495,9 +491,9 @@ ccl_device void osl_closure_microfacet_multi_ggx_aniso_setup(
     return;
   }
 
-  ccl_private MicrofacetExtra *extra = (ccl_private MicrofacetExtra *)closure_alloc_extra(
-      sd, sizeof(MicrofacetExtra));
-  if (!extra) {
+  ccl_private FresnelConstant *fresnel = (ccl_private FresnelConstant *)closure_alloc_extra(
+      sd, sizeof(FresnelConstant));
+  if (!fresnel) {
     return;
   }
 
@@ -506,9 +502,8 @@ ccl_device void osl_closure_microfacet_multi_ggx_aniso_setup(
   bsdf->alpha_y = closure->alpha_y;
   bsdf->ior = 1.0f;
 
-  bsdf->extra = extra;
-  bsdf->extra->color = rgb_to_spectrum(closure->color);
-  bsdf->extra->cspec0 = zero_spectrum();
+  bsdf->fresnel = fresnel;
+  fresnel->color = rgb_to_spectrum(closure->color);
 
   bsdf->T = closure->T;
 
@@ -537,9 +532,9 @@ ccl_device void osl_closure_microfacet_multi_ggx_fresnel_setup(
     return;
   }
 
-  ccl_private MicrofacetExtra *extra = (ccl_private MicrofacetExtra *)closure_alloc_extra(
-      sd, sizeof(MicrofacetExtra));
-  if (!extra) {
+  ccl_private FresnelPrincipledV1 *fresnel = (ccl_private FresnelPrincipledV1 *)
+      closure_alloc_extra(sd, sizeof(FresnelPrincipledV1));
+  if (!fresnel) {
     return;
   }
 
@@ -548,9 +543,9 @@ ccl_device void osl_closure_microfacet_multi_ggx_fresnel_setup(
   bsdf->alpha_y = bsdf->alpha_x;
   bsdf->ior = closure->ior;
 
-  bsdf->extra = extra;
-  bsdf->extra->color = rgb_to_spectrum(closure->color);
-  bsdf->extra->cspec0 = rgb_to_spectrum(closure->cspec0);
+  bsdf->fresnel = fresnel;
+  fresnel->color = rgb_to_spectrum(closure->color);
+  fresnel->cspec0 = rgb_to_spectrum(closure->cspec0);
 
   bsdf->T = zero_float3();
 
@@ -577,9 +572,9 @@ ccl_device void osl_closure_microfacet_multi_ggx_glass_fresnel_setup(
     return;
   }
 
-  ccl_private MicrofacetExtra *extra = (ccl_private MicrofacetExtra *)closure_alloc_extra(
-      sd, sizeof(MicrofacetExtra));
-  if (!extra) {
+  ccl_private FresnelPrincipledV1 *fresnel = (ccl_private FresnelPrincipledV1 *)
+      closure_alloc_extra(sd, sizeof(FresnelPrincipledV1));
+  if (!fresnel) {
     return;
   }
 
@@ -588,9 +583,9 @@ ccl_device void osl_closure_microfacet_multi_ggx_glass_fresnel_setup(
   bsdf->alpha_y = bsdf->alpha_x;
   bsdf->ior = closure->ior;
 
-  bsdf->extra = extra;
-  bsdf->extra->color = rgb_to_spectrum(closure->color);
-  bsdf->extra->cspec0 = rgb_to_spectrum(closure->cspec0);
+  bsdf->fresnel = fresnel;
+  fresnel->color = rgb_to_spectrum(closure->color);
+  fresnel->cspec0 = rgb_to_spectrum(closure->cspec0);
 
   bsdf->T = zero_float3();
 
@@ -617,9 +612,9 @@ ccl_device void osl_closure_microfacet_multi_ggx_aniso_fresnel_setup(
     return;
   }
 
-  ccl_private MicrofacetExtra *extra = (ccl_private MicrofacetExtra *)closure_alloc_extra(
-      sd, sizeof(MicrofacetExtra));
-  if (!extra) {
+  ccl_private FresnelPrincipledV1 *fresnel = (ccl_private FresnelPrincipledV1 *)
+      closure_alloc_extra(sd, sizeof(FresnelPrincipledV1));
+  if (!fresnel) {
     return;
   }
 
@@ -628,9 +623,9 @@ ccl_device void osl_closure_microfacet_multi_ggx_aniso_fresnel_setup(
   bsdf->alpha_y = closure->alpha_y;
   bsdf->ior = closure->ior;
 
-  bsdf->extra = extra;
-  bsdf->extra->color = rgb_to_spectrum(closure->color);
-  bsdf->extra->cspec0 = rgb_to_spectrum(closure->cspec0);
+  bsdf->fresnel = fresnel;
+  fresnel->color = rgb_to_spectrum(closure->color);
+  fresnel->cspec0 = rgb_to_spectrum(closure->cspec0);
 
   bsdf->T = closure->T;
 

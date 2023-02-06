@@ -264,16 +264,15 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
 
           ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
               sd, sizeof(MicrofacetBsdf), spec_weight);
-          ccl_private MicrofacetExtra *extra =
-              (bsdf != NULL) ?
-                  (ccl_private MicrofacetExtra *)closure_alloc_extra(sd, sizeof(MicrofacetExtra)) :
-                  NULL;
+          ccl_private FresnelPrincipledV1 *fresnel =
+              (bsdf != NULL) ? (ccl_private FresnelPrincipledV1 *)closure_alloc_extra(
+                                   sd, sizeof(FresnelPrincipledV1)) :
+                               NULL;
 
-          if (bsdf && extra) {
+          if (bsdf && fresnel) {
             bsdf->N = N;
             bsdf->ior = (2.0f / (1.0f - safe_sqrtf(0.08f * specular))) - 1.0f;
             bsdf->T = T;
-            bsdf->extra = extra;
 
             float aspect = safe_sqrtf(1.0f - anisotropic * 0.9f);
             float r2 = roughness * roughness;
@@ -287,16 +286,20 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
                                               one_float3();  // normalize lum. to isolate hue+sat
             float3 tmp_col = make_float3(1.0f - specular_tint) + m_ctint * specular_tint;
 
-            bsdf->extra->cspec0 = rgb_to_spectrum(
-                (specular * 0.08f * tmp_col) * (1.0f - metallic) + base_color * metallic);
-            bsdf->extra->color = rgb_to_spectrum(base_color);
+            fresnel->cspec0 = rgb_to_spectrum((specular * 0.08f * tmp_col) * (1.0f - metallic) +
+                                              base_color * metallic);
+            fresnel->color = rgb_to_spectrum(base_color);
 
             /* setup bsdf */
             if (distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID ||
-                roughness <= 0.075f) /* use single-scatter GGX */
-              sd->flag |= bsdf_microfacet_ggx_fresnel_setup(bsdf, sd);
-            else /* use multi-scatter GGX */
+                roughness <= 0.075f) { /* use single-scatter GGX */
+              sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+              bsdf_microfacet_setup_fresnel_principledv1(bsdf, sd, fresnel);
+            }
+            else { /* use multi-scatter GGX */
+              bsdf->fresnel = fresnel;
               sd->flag |= bsdf_microfacet_multi_ggx_fresnel_setup(bsdf, sd);
+            }
           }
         }
 #ifdef __CAUSTICS_TRICKS__
@@ -323,25 +326,26 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
             {
               ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
                   sd, sizeof(MicrofacetBsdf), glass_weight * fresnel);
-              ccl_private MicrofacetExtra *extra =
-                  (bsdf != NULL) ? (ccl_private MicrofacetExtra *)closure_alloc_extra(
-                                       sd, sizeof(MicrofacetExtra)) :
+              ccl_private FresnelPrincipledV1 *fresnel =
+                  (bsdf != NULL) ? (ccl_private FresnelPrincipledV1 *)closure_alloc_extra(
+                                       sd, sizeof(FresnelPrincipledV1)) :
                                    NULL;
 
-              if (bsdf && extra) {
+              if (bsdf && fresnel) {
                 bsdf->N = N;
                 bsdf->T = zero_float3();
-                bsdf->extra = extra;
+                bsdf->fresnel = fresnel;
 
                 bsdf->alpha_x = refl_roughness * refl_roughness;
                 bsdf->alpha_y = refl_roughness * refl_roughness;
                 bsdf->ior = ior;
 
-                bsdf->extra->color = rgb_to_spectrum(base_color);
-                bsdf->extra->cspec0 = rgb_to_spectrum(cspec0);
-
                 /* setup bsdf */
-                sd->flag |= bsdf_microfacet_ggx_fresnel_setup(bsdf, sd);
+                sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+
+                fresnel->color = rgb_to_spectrum(base_color);
+                fresnel->cspec0 = rgb_to_spectrum(cspec0);
+                bsdf_microfacet_setup_fresnel_principledv1(bsdf, sd, fresnel);
               }
             }
 
@@ -359,7 +363,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
               if (bsdf) {
                 bsdf->N = N;
                 bsdf->T = zero_float3();
-                bsdf->extra = NULL;
+                bsdf->fresnel = NULL;
 
                 if (distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID)
                   transmission_roughness = 1.0f - (1.0f - refl_roughness) *
@@ -379,22 +383,22 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
           else { /* use multi-scatter GGX */
             ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
                 sd, sizeof(MicrofacetBsdf), glass_weight);
-            ccl_private MicrofacetExtra *extra =
-                (bsdf != NULL) ? (ccl_private MicrofacetExtra *)closure_alloc_extra(
-                                     sd, sizeof(MicrofacetExtra)) :
+            ccl_private FresnelPrincipledV1 *fresnel =
+                (bsdf != NULL) ? (ccl_private FresnelPrincipledV1 *)closure_alloc_extra(
+                                     sd, sizeof(FresnelPrincipledV1)) :
                                  NULL;
 
-            if (bsdf && extra) {
+            if (bsdf && fresnel) {
               bsdf->N = N;
-              bsdf->extra = extra;
+              bsdf->fresnel = fresnel;
               bsdf->T = zero_float3();
 
               bsdf->alpha_x = roughness * roughness;
               bsdf->alpha_y = roughness * roughness;
               bsdf->ior = ior;
 
-              bsdf->extra->color = rgb_to_spectrum(base_color);
-              bsdf->extra->cspec0 = rgb_to_spectrum(cspec0);
+              fresnel->color = rgb_to_spectrum(base_color);
+              fresnel->cspec0 = rgb_to_spectrum(cspec0);
 
               /* setup bsdf */
               sd->flag |= bsdf_microfacet_multi_ggx_glass_fresnel_setup(bsdf, sd);
@@ -487,7 +491,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
 
       bsdf->N = N;
       bsdf->ior = 1.0f;
-      bsdf->extra = NULL;
+      bsdf->fresnel = NULL;
 
       if (data_node.y == SVM_STACK_INVALID) {
         bsdf->T = zero_float3();
@@ -523,11 +527,11 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
         sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
       else if (type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID) {
         kernel_assert(stack_valid(data_node.w));
-        bsdf->extra = (ccl_private MicrofacetExtra *)closure_alloc_extra(sd,
-                                                                         sizeof(MicrofacetExtra));
-        if (bsdf->extra) {
-          bsdf->extra->color = rgb_to_spectrum(stack_load_float3(stack, data_node.w));
-          bsdf->extra->cspec0 = zero_spectrum();
+        ccl_private FresnelConstant *fresnel = (ccl_private FresnelConstant *)closure_alloc_extra(
+            sd, sizeof(FresnelConstant));
+        if (fresnel) {
+          bsdf->fresnel = fresnel;
+          fresnel->color = rgb_to_spectrum(stack_load_float3(stack, data_node.w));
           sd->flag |= bsdf_microfacet_multi_ggx_setup(bsdf);
         }
       }
@@ -551,7 +555,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       if (bsdf) {
         bsdf->N = N;
         bsdf->T = zero_float3();
-        bsdf->extra = NULL;
+        bsdf->fresnel = NULL;
 
         float eta = fmaxf(param2, 1e-5f);
         eta = (sd->flag & SD_BACKFACING) ? 1.0f / eta : eta;
@@ -594,7 +598,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       if (bsdf) {
         bsdf->N = N;
         bsdf->T = zero_float3();
-        bsdf->extra = NULL;
+        bsdf->fresnel = NULL;
 
         float eta = fmaxf(param2, 1e-5f);
         eta = (sd->flag & SD_BACKFACING) ? 1.0f / eta : eta;
@@ -635,14 +639,14 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
         break;
       }
 
-      ccl_private MicrofacetExtra *extra = (ccl_private MicrofacetExtra *)closure_alloc_extra(
-          sd, sizeof(MicrofacetExtra));
-      if (!extra) {
+      ccl_private FresnelConstant *fresnel = (ccl_private FresnelConstant *)closure_alloc_extra(
+          sd, sizeof(FresnelConstant));
+      if (!fresnel) {
         break;
       }
 
       bsdf->N = N;
-      bsdf->extra = extra;
+      bsdf->fresnel = fresnel;
       bsdf->T = zero_float3();
 
       float roughness = sqr(param1);
@@ -652,8 +656,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       bsdf->ior = (sd->flag & SD_BACKFACING) ? 1.0f / eta : eta;
 
       kernel_assert(stack_valid(data_node.z));
-      bsdf->extra->color = rgb_to_spectrum(stack_load_float3(stack, data_node.z));
-      bsdf->extra->cspec0 = zero_spectrum();
+      fresnel->color = rgb_to_spectrum(stack_load_float3(stack, data_node.z));
 
       /* setup bsdf */
       sd->flag |= bsdf_microfacet_multi_ggx_glass_setup(bsdf);

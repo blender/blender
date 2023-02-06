@@ -22,15 +22,28 @@ enum MicrofacetType {
   SHARP,
 };
 
-typedef struct MicrofacetExtra {
-  Spectrum color, cspec0;
-} MicrofacetExtra;
+enum MicrofacetFresnel {
+  NONE = 0,
+  DIELECTRIC,
+  CONSTANT, /* only needed by MultiGGX */
+  PRINCIPLED_V1,
+};
+
+typedef struct FresnelPrincipledV1 {
+  Spectrum color; /* only needed by MultiGGX */
+  Spectrum cspec0;
+} FresnelPrincipledV1;
+
+typedef struct FresnelConstant {
+  Spectrum color;
+} FresnelConstant;
 
 typedef struct MicrofacetBsdf {
   SHADER_CLOSURE_BASE;
 
   float alpha_x, alpha_y, ior;
-  ccl_private MicrofacetExtra *extra;
+  int fresnel_type;
+  ccl_private void *fresnel;
   float3 T;
 } MicrofacetBsdf;
 
@@ -188,14 +201,19 @@ ccl_device_forceinline Spectrum microfacet_fresnel(ccl_private const MicrofacetB
                                                    const float3 H,
                                                    const bool refraction)
 {
-  if (CLOSURE_IS_BSDF_MICROFACET_FRESNEL(bsdf->type)) {
+  if (bsdf->fresnel_type == MicrofacetFresnel::PRINCIPLED_V1) {
     kernel_assert(!refraction);
-    return interpolate_fresnel_color(wi, H, bsdf->ior, bsdf->extra->cspec0);
+    ccl_private FresnelPrincipledV1 *fresnel = (ccl_private FresnelPrincipledV1 *)bsdf->fresnel;
+    return interpolate_fresnel_color(wi, H, bsdf->ior, fresnel->cspec0);
   }
-  else if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID ||
-           CLOSURE_IS_GLASS(bsdf->type)) {
+  else if (bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC) {
     const float F = fresnel_dielectric_cos(dot(wi, H), bsdf->ior);
     return make_spectrum(refraction ? 1.0f - F : F);
+  }
+  else if (bsdf->fresnel_type == MicrofacetFresnel::CONSTANT) {
+    kernel_assert(!refraction);
+    ccl_private FresnelConstant *fresnel = (ccl_private FresnelConstant *)bsdf->fresnel;
+    return fresnel->color;
   }
   else {
     return one_spectrum();
@@ -567,6 +585,21 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
   return label;
 }
 
+/* Fresnel term setup functions. These get called after the distribution-specific setup functions
+ * like bsdf_microfacet_ggx_setup. */
+
+ccl_device void bsdf_microfacet_setup_fresnel_principledv1(
+    ccl_private MicrofacetBsdf *bsdf,
+    ccl_private const ShaderData *sd,
+    ccl_private FresnelPrincipledV1 *fresnel)
+{
+  fresnel->cspec0 = saturate(fresnel->cspec0);
+
+  bsdf->fresnel_type = MicrofacetFresnel::PRINCIPLED_V1;
+  bsdf->fresnel = fresnel;
+  bsdf_microfacet_adjust_weight(sd, bsdf);
+}
+
 /* GGX microfacet with Smith shadow-masking from:
  *
  * Microfacet Models for Refraction through Rough Surfaces
@@ -582,27 +615,11 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
 
 ccl_device int bsdf_microfacet_ggx_setup(ccl_private MicrofacetBsdf *bsdf)
 {
-  bsdf->extra = NULL;
-
   bsdf->alpha_x = saturatef(bsdf->alpha_x);
   bsdf->alpha_y = saturatef(bsdf->alpha_y);
 
+  bsdf->fresnel_type = MicrofacetFresnel::NONE;
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_ID;
-
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
-}
-
-ccl_device int bsdf_microfacet_ggx_fresnel_setup(ccl_private MicrofacetBsdf *bsdf,
-                                                 ccl_private const ShaderData *sd)
-{
-  bsdf->extra->cspec0 = saturate(bsdf->extra->cspec0);
-
-  bsdf->alpha_x = saturatef(bsdf->alpha_x);
-  bsdf->alpha_y = saturatef(bsdf->alpha_y);
-
-  bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID;
-
-  bsdf_microfacet_adjust_weight(sd, bsdf);
 
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
@@ -613,6 +630,7 @@ ccl_device int bsdf_microfacet_ggx_clearcoat_setup(ccl_private MicrofacetBsdf *b
   bsdf->alpha_x = saturatef(bsdf->alpha_x);
   bsdf->alpha_y = bsdf->alpha_x;
 
+  bsdf->fresnel_type = MicrofacetFresnel::DIELECTRIC;
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID;
 
   bsdf_microfacet_adjust_weight(sd, bsdf);
@@ -622,11 +640,10 @@ ccl_device int bsdf_microfacet_ggx_clearcoat_setup(ccl_private MicrofacetBsdf *b
 
 ccl_device int bsdf_microfacet_ggx_refraction_setup(ccl_private MicrofacetBsdf *bsdf)
 {
-  bsdf->extra = NULL;
-
   bsdf->alpha_x = saturatef(bsdf->alpha_x);
   bsdf->alpha_y = bsdf->alpha_x;
 
+  bsdf->fresnel_type = MicrofacetFresnel::NONE;
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 
   return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
@@ -634,11 +651,10 @@ ccl_device int bsdf_microfacet_ggx_refraction_setup(ccl_private MicrofacetBsdf *
 
 ccl_device int bsdf_microfacet_ggx_glass_setup(ccl_private MicrofacetBsdf *bsdf)
 {
-  bsdf->extra = NULL;
-
   bsdf->alpha_x = saturatef(bsdf->alpha_x);
   bsdf->alpha_y = bsdf->alpha_x;
 
+  bsdf->fresnel_type = MicrofacetFresnel::DIELECTRIC;
   bsdf->type = CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID;
 
   return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
@@ -688,6 +704,7 @@ ccl_device int bsdf_microfacet_beckmann_setup(ccl_private MicrofacetBsdf *bsdf)
   bsdf->alpha_x = saturatef(bsdf->alpha_x);
   bsdf->alpha_y = saturatef(bsdf->alpha_y);
 
+  bsdf->fresnel_type = MicrofacetFresnel::NONE;
   bsdf->type = CLOSURE_BSDF_MICROFACET_BECKMANN_ID;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
@@ -697,6 +714,7 @@ ccl_device int bsdf_microfacet_beckmann_refraction_setup(ccl_private MicrofacetB
   bsdf->alpha_x = saturatef(bsdf->alpha_x);
   bsdf->alpha_y = bsdf->alpha_x;
 
+  bsdf->fresnel_type = MicrofacetFresnel::NONE;
   bsdf->type = CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
   return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
 }
@@ -706,6 +724,7 @@ ccl_device int bsdf_microfacet_beckmann_glass_setup(ccl_private MicrofacetBsdf *
   bsdf->alpha_x = saturatef(bsdf->alpha_x);
   bsdf->alpha_y = bsdf->alpha_x;
 
+  bsdf->fresnel_type = MicrofacetFresnel::DIELECTRIC;
   bsdf->type = CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID;
   return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
 }
@@ -749,6 +768,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(ccl_private const ShaderClosure *
 
 ccl_device int bsdf_reflection_setup(ccl_private MicrofacetBsdf *bsdf)
 {
+  bsdf->fresnel_type = MicrofacetFresnel::NONE;
   bsdf->type = CLOSURE_BSDF_REFLECTION_ID;
   bsdf->alpha_x = 0.0f;
   bsdf->alpha_y = 0.0f;
@@ -757,6 +777,7 @@ ccl_device int bsdf_reflection_setup(ccl_private MicrofacetBsdf *bsdf)
 
 ccl_device int bsdf_refraction_setup(ccl_private MicrofacetBsdf *bsdf)
 {
+  bsdf->fresnel_type = MicrofacetFresnel::NONE;
   bsdf->type = CLOSURE_BSDF_REFRACTION_ID;
   bsdf->alpha_x = 0.0f;
   bsdf->alpha_y = 0.0f;
@@ -765,6 +786,7 @@ ccl_device int bsdf_refraction_setup(ccl_private MicrofacetBsdf *bsdf)
 
 ccl_device int bsdf_sharp_glass_setup(ccl_private MicrofacetBsdf *bsdf)
 {
+  bsdf->fresnel_type = MicrofacetFresnel::DIELECTRIC;
   bsdf->type = CLOSURE_BSDF_SHARP_GLASS_ID;
   bsdf->alpha_x = 0.0f;
   bsdf->alpha_y = 0.0f;
