@@ -19,10 +19,9 @@ CCL_NAMESPACE_BEGIN
 #  define GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE 512
 #endif
 #define GPU_PARALLEL_SORTED_INDEX_INACTIVE_KEY (~0)
+#define GPU_PARALLEL_SORT_BLOCK_SIZE 1024
 
 #if defined(__KERNEL_LOCAL_ATOMIC_SORT__)
-
-#  define GPU_PARALLEL_SORT_BLOCK_SIZE 1024
 
 #  define atomic_store_local(p, x) \
     atomic_store_explicit((threadgroup atomic_int *)p, x, memory_order_relaxed)
