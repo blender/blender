@@ -431,6 +431,7 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
                                 metal_grid_id);
 #endif
 }
+ccl_gpu_kernel_postfix
 
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_sort_write_pass,
