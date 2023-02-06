@@ -204,7 +204,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
   /* Subdivision-surface for eg won't have mesh data in the custom-data arrays.
    * Now add position/#MEdge/#MPoly layers. */
-  if (BKE_mesh_vert_positions(mesh) != NULL) {
+  if (BKE_mesh_vert_positions(mesh) != nullptr) {
     memcpy(BKE_mesh_vert_positions_for_write(result),
            BKE_mesh_vert_positions(mesh),
            sizeof(float[3]) * mesh->totvert);

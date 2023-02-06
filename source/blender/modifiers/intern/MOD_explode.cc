@@ -1125,7 +1125,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 static ParticleSystemModifierData *findPrecedingParticlesystem(Object *ob, ModifierData *emd)
 {
   ModifierData *md;
-  ParticleSystemModifierData *psmd = NULL;
+  ParticleSystemModifierData *psmd = nullptr;
 
   for (md = static_cast<ModifierData *>(ob->modifiers.first); emd != md; md = md->next) {
     if (md->type == eModifierType_ParticleSystem) {

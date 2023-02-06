@@ -242,7 +242,7 @@ ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
     /* Bad call C is required to access the tool system that is context aware. Cast to non-const
      * due to current API. */
     bContext *C = (bContext *)DRW_context_state_get()->evil_C;
-    if (C != NULL) {
+    if (C != nullptr) {
       color_type = ED_paint_shading_color_override(
           C, &scene_state.scene->toolsettings->paint_mode, ob, color_type);
     }

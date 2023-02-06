@@ -351,7 +351,7 @@ void ShadowPass::init(const SceneState &scene_state, SceneResources &resources)
 
   /* Shadow direction. */
   float4x4 view_matrix;
-  DRW_view_viewmat_get(NULL, view_matrix.ptr(), false);
+  DRW_view_viewmat_get(nullptr, view_matrix.ptr(), false);
   resources.world_buf.shadow_direction_vs = float4(view_matrix.ref_3x3() * direction_ws);
 
   /* Clamp to avoid overshadowing and shading errors. */

@@ -131,7 +131,7 @@ static void cdDM_recalc_looptri(DerivedMesh *dm)
   BLI_assert(cddm->dm.looptris.array == NULL);
   atomic_cas_ptr(
       (void **)&cddm->dm.looptris.array, cddm->dm.looptris.array, cddm->dm.looptris.array_wip);
-  cddm->dm.looptris.array_wip = NULL;
+  cddm->dm.looptris.array_wip = nullptr;
 }
 
 static void cdDM_free_internal(CDDerivedMesh *cddm)
@@ -232,7 +232,7 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
 #if 0
   cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 #else
-  cddm->mface = NULL;
+  cddm->mface = nullptr;
 #endif
 
   /* commented since even when CD_ORIGINDEX was first added this line fails

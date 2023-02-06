@@ -161,7 +161,7 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter, int manif
     return 10.0f;
   }
 #endif
-  if (!storage->settings.use_creases || storage->cd_edge_crease == NULL) {
+  if (!storage->settings.use_creases || storage->cd_edge_crease == nullptr) {
     return 0.0f;
   }
   const int edge_index = storage->manifold_edge_index_reverse[manifold_edge_index];
@@ -184,7 +184,7 @@ static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
 static float get_vertex_sharpness(const OpenSubdiv_Converter *converter, int manifold_vertex_index)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  if (!storage->settings.use_creases || storage->cd_vertex_crease == NULL) {
+  if (!storage->settings.use_creases || storage->cd_vertex_crease == nullptr) {
     return 0.0f;
   }
   const int vertex_index = storage->manifold_vertex_index_reverse[manifold_vertex_index];
@@ -208,7 +208,7 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
   const int num_vert = mesh->totvert;
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
   /* Initialize memory required for the operations. */
-  if (storage->loop_uv_indices == NULL) {
+  if (storage->loop_uv_indices == nullptr) {
     storage->loop_uv_indices = static_cast<int *>(
         MEM_malloc_arrayN(mesh->totloop, sizeof(int), "loop uv vertex index"));
   }
@@ -227,7 +227,7 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
   storage->num_uv_coordinates = -1;
   for (int vertex_index = 0; vertex_index < num_vert; vertex_index++) {
     const UvMapVert *uv_vert = BKE_mesh_uv_vert_map_get_vert(uv_vert_map, vertex_index);
-    while (uv_vert != NULL) {
+    while (uv_vert != nullptr) {
       if (uv_vert->separate) {
         storage->num_uv_coordinates++;
       }
@@ -287,17 +287,17 @@ static void init_functions(OpenSubdiv_Converter *converter)
 
   converter->getNumFaceVertices = get_num_face_vertices;
   converter->getFaceVertices = get_face_vertices;
-  converter->getFaceEdges = NULL;
+  converter->getFaceEdges = nullptr;
 
   converter->getEdgeVertices = get_edge_vertices;
-  converter->getNumEdgeFaces = NULL;
-  converter->getEdgeFaces = NULL;
+  converter->getNumEdgeFaces = nullptr;
+  converter->getEdgeFaces = nullptr;
   converter->getEdgeSharpness = get_edge_sharpness;
 
-  converter->getNumVertexEdges = NULL;
-  converter->getVertexEdges = NULL;
-  converter->getNumVertexFaces = NULL;
-  converter->getVertexFaces = NULL;
+  converter->getNumVertexEdges = nullptr;
+  converter->getVertexEdges = nullptr;
+  converter->getNumVertexFaces = nullptr;
+  converter->getVertexFaces = nullptr;
   converter->isInfiniteSharpVertex = is_infinite_sharp_vertex;
   converter->getVertexSharpness = get_vertex_sharpness;
 
@@ -316,36 +316,36 @@ static void initialize_manifold_index_array(const BLI_bitmap *used_map,
                                             int **r_indices_reverse,
                                             int *r_num_manifold_elements)
 {
-  int *indices = NULL;
-  if (r_indices != NULL) {
+  int *indices = nullptr;
+  if (r_indices != nullptr) {
     indices = static_cast<int *>(MEM_malloc_arrayN(num_elements, sizeof(int), "manifold indices"));
   }
-  int *indices_reverse = NULL;
-  if (r_indices_reverse != NULL) {
+  int *indices_reverse = nullptr;
+  if (r_indices_reverse != nullptr) {
     indices_reverse = static_cast<int *>(
         MEM_malloc_arrayN(num_elements, sizeof(int), "manifold indices reverse"));
   }
   int offset = 0;
   for (int i = 0; i < num_elements; i++) {
     if (BLI_BITMAP_TEST_BOOL(used_map, i)) {
-      if (indices != NULL) {
+      if (indices != nullptr) {
         indices[i] = i - offset;
       }
-      if (indices_reverse != NULL) {
+      if (indices_reverse != nullptr) {
         indices_reverse[i - offset] = i;
       }
     }
     else {
-      if (indices != NULL) {
+      if (indices != nullptr) {
         indices[i] = -1;
       }
       offset++;
     }
   }
-  if (r_indices != NULL) {
+  if (r_indices != nullptr) {
     *r_indices = indices;
   }
-  if (r_indices_reverse != NULL) {
+  if (r_indices_reverse != nullptr) {
     *r_indices_reverse = indices_reverse;
   }
   *r_num_manifold_elements = num_elements - offset;
@@ -375,7 +375,7 @@ static void initialize_manifold_indices(ConverterStorage *storage)
                                   &storage->num_manifold_vertices);
   initialize_manifold_index_array(edge_used_map,
                                   mesh->totedge,
-                                  NULL,
+                                  nullptr,
                                   &storage->manifold_edge_index_reverse,
                                   &storage->num_manifold_edges);
   /* Initialize infinite sharp mapping. */
@@ -408,7 +408,7 @@ static void init_user_data(OpenSubdiv_Converter *converter,
       CustomData_get_layer(&mesh->vdata, CD_CREASE));
   user_data->cd_edge_crease = static_cast<const float *>(
       CustomData_get_layer(&mesh->edata, CD_CREASE));
-  user_data->loop_uv_indices = NULL;
+  user_data->loop_uv_indices = nullptr;
   initialize_manifold_indices(user_data);
   converter->user_data = user_data;
 }
