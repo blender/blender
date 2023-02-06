@@ -51,12 +51,12 @@ static const pxr::TfToken blenderDataNS("data:", pxr::TfToken::Immortal);
 
 /* check if the mesh is a subsurf, ignoring disabled modifiers and
  * displace if it's after subsurf. */
-static ModifierData *get_subsurf_modifier(Scene *scene, Object *ob)
+static ModifierData *get_subsurf_modifier(Object *ob, ModifierMode mode)
 {
   ModifierData *md = static_cast<ModifierData *>(ob->modifiers.last);
 
   for (; md; md = md->prev) {
-    if (BKE_modifier_is_enabled(scene, md, eModifierMode_Render)) {
+    if (!BKE_modifier_is_enabled(nullptr, md, mode)) {
       continue;
     }
 
@@ -120,10 +120,15 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
 {
   Object *object_eval = context.object;
 
-  m_subsurf_mod = get_subsurf_modifier(DEG_get_evaluated_scene(usd_export_context_.depsgraph),
-                                       context.object);
+  const ModifierMode mode = usd_export_context_.export_params.evaluation_mode ==
+                                    DAG_EVAL_VIEWPORT ?
+                                eModifierMode_Realtime :
+                                eModifierMode_Render;
 
-  if (m_subsurf_mod && !usd_export_context_.export_params.apply_subdiv) {
+  m_subsurf_mod = get_subsurf_modifier(context.object, mode);
+  const bool should_disable_temporary = m_subsurf_mod && !usd_export_context_.export_params.apply_subdiv;
+
+  if (should_disable_temporary) {
     m_subsurf_mod->mode |= eModifierMode_DisableTemporary;
   }
 
@@ -178,7 +183,7 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
   if (usd_export_context_.export_params.export_custom_properties && mesh)
     write_id_properties(prim, mesh->id, get_export_time_code());
 
-  if (m_subsurf_mod && !usd_export_context_.export_params.apply_subdiv) {
+  if (should_disable_temporary) {
     m_subsurf_mod->mode &= ~eModifierMode_DisableTemporary;
   }
 }
