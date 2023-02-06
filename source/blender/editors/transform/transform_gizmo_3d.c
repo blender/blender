@@ -1081,7 +1081,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   return totsel;
 }
 
-static void gizmo_get_idot(RegionView3D *rv3d, float r_idot[3])
+static void gizmo_get_idot(const RegionView3D *rv3d, float r_idot[3])
 {
   float view_vec[3], axis_vec[3];
   ED_view3d_global_to_vector(rv3d, rv3d->twmat[3], view_vec);
@@ -2015,6 +2015,31 @@ static void gizmo_3d_draw_invoke(wmGizmoGroup *gzgroup,
     gizmogroup_hide_all(ggd);
     WM_gizmo_set_flag(axis_active, WM_GIZMO_HIDDEN, false);
     WM_gizmo_set_flag(ggd->gizmos[MAN_AXIS_ROT_C], WM_GIZMO_HIDDEN, false);
+  }
+  else {
+    /* We switch from a modal gizmo to another. So make sure the gizmos are visible and have the
+     * default properties. */
+
+    const int twtype_expected = (axis_active_type == MAN_AXES_TRANSLATE ?
+                                     V3D_GIZMO_SHOW_OBJECT_TRANSLATE :
+                                     V3D_GIZMO_SHOW_OBJECT_SCALE);
+
+    const int twtype = (ggd->twtype & twtype_expected) ? ggd->twtype : twtype_expected;
+
+    float idot[3];
+    gizmo_get_idot(rv3d, idot);
+    MAN_ITER_AXES_BEGIN (axis, axis_idx) {
+      const short axis_type = gizmo_get_axis_type(axis_idx);
+      if (gizmo_is_axis_visible(rv3d, twtype, idot, axis_type, axis_idx)) {
+        WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, false);
+        gizmo_3d_setup_draw_default(axis, axis_idx);
+        gizmo_3d_setup_draw_from_twtype(axis, axis_idx, twtype);
+      }
+      else {
+        WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, true);
+      }
+    }
+    MAN_ITER_AXES_END;
   }
 
   MAN_ITER_AXES_BEGIN (axis, axis_idx) {
