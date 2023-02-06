@@ -26,7 +26,7 @@
 #include "BKE_pbvh.h"
 #include "BKE_subdiv_ccg.h"
 
-#include "DRW_pbvh.h"
+#include "DRW_pbvh.hh"
 
 #include "PIL_time.h"
 

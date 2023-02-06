@@ -44,7 +44,7 @@
 #include "GPU_batch.h"
 
 #include "DRW_engine.h"
-#include "DRW_pbvh.h"
+#include "DRW_pbvh.hh"
 
 #include "bmesh.h"
 #include "draw_pbvh.h"

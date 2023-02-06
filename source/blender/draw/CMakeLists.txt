@@ -220,7 +220,7 @@ set(SRC
   engines/overlay/overlay_wireframe.cc
 
   DRW_engine.h
-  DRW_pbvh.h
+  DRW_pbvh.hh
   DRW_select_buffer.h
   intern/DRW_gpu_wrapper.hh
   intern/DRW_render.h

@@ -17,7 +17,7 @@
 #include "BKE_ccg.h"
 #include "BKE_pbvh.h"
 
-#include "DRW_pbvh.h"
+#include "DRW_pbvh.hh"
 
 #include "bmesh.h"
 #include "pbvh_intern.hh"
