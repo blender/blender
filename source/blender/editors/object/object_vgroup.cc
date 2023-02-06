@@ -2130,8 +2130,8 @@ static void vgroup_smooth_subset(Object *ob,
 
 static int inv_cmp_mdef_vert_weights(const void *a1, const void *a2)
 {
-  /* qsort sorts in ascending order.  We want descending order to save a memcopy
-   * so this compare function is inverted from the standard greater than comparison qsort needs.
+  /* #qsort sorts in ascending order. We want descending order to save a #memcpy
+   * so this compare function is inverted from the standard greater than comparison #qsort needs.
    * A normal compare function is called with two pointer arguments and should return an integer
    * less than, equal to, or greater than zero corresponding to whether its first argument is
    * considered less than, equal to, or greater than its second argument.

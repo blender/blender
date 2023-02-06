@@ -127,8 +127,8 @@ void SCULPT_filter_cache_init(bContext *C,
     BKE_pbvh_node_mark_normals_update(ss->filter_cache->nodes[i]);
   }
 
-  /* mesh->runtime.subdiv_ccg is not available. Updating of the normals is done during drawing.
-   * Filters can't use normals in multires. */
+  /* `mesh->runtime.subdiv_ccg` is not available. Updating of the normals is done during drawing.
+   * Filters can't use normals in multi-resolution. */
   if (BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
     BKE_pbvh_update_normals(ss->pbvh, NULL);
   }
@@ -438,7 +438,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
       case MESH_FILTER_RANDOM: {
         float normal[3];
         copy_v3_v3(normal, orig_data.no);
-        /* Index is not unique for multires, so hash by vertex coordinates. */
+        /* Index is not unique for multi-resolution, so hash by vertex coordinates. */
         const uint *hash_co = (const uint *)orig_co;
         const uint hash = BLI_hash_int_2d(hash_co[0], hash_co[1]) ^
                           BLI_hash_int_2d(hash_co[2], ss->filter_cache->random_seed);

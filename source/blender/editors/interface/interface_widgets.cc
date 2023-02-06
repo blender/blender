@@ -5022,7 +5022,7 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
                                       const float unit_size,
                                       const float mval_origin[2])
 {
-  /* tsk, this isn't nice. */
+  /* Alas, this isn't nice. */
   const float unit_half = unit_size / 2;
   const float cent_x = mval_origin ? CLAMPIS(mval_origin[0],
                                              rect->xmin + unit_size,

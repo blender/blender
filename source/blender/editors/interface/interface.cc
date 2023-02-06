@@ -3955,7 +3955,7 @@ void UI_block_align_begin(uiBlock *block)
   block->flag |= UI_BUT_ALIGN_DOWN;
   block->alignnr++;
 
-  /* buttons declared after this call will get this align nr */ /* XXX flag? */
+  /* Buttons declared after this call will get this `alignnr`. */ /* XXX flag? */
 }
 
 void UI_block_align_end(uiBlock *block)
