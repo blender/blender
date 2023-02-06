@@ -1348,6 +1348,10 @@ bGPDframe *BKE_gpencil_layer_frame_get(bGPDlayer *gpl, int cframe, eGP_GetFrame_
           gpl->actframe = gpf;
         }
         else if (addnew == GP_GETFRAME_ADD_COPY) {
+          /* The frame_addcopy function copies the active frame of gpl,
+             so we need to set the active frame before copying.
+          */
+          gpl->actframe = gpf;
           gpl->actframe = BKE_gpencil_frame_addcopy(gpl, cframe);
         }
         else {
@@ -1375,6 +1379,10 @@ bGPDframe *BKE_gpencil_layer_frame_get(bGPDlayer *gpl, int cframe, eGP_GetFrame_
           gpl->actframe = gpf;
         }
         else if (addnew == GP_GETFRAME_ADD_COPY) {
+          /* The frame_addcopy function copies the active frame of gpl;
+             so we need to set the active frame before copying.
+          */
+          gpl->actframe = gpf;
           gpl->actframe = BKE_gpencil_frame_addcopy(gpl, cframe);
         }
         else {
