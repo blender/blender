@@ -90,8 +90,10 @@ ccl_device float schlick_fresnel(float u)
 }
 
 /* Calculate the fresnel color, which is a blend between white and the F0 color */
-ccl_device_forceinline Spectrum
-interpolate_fresnel_color(float3 L, float3 H, float ior, Spectrum F0)
+ccl_device_forceinline Spectrum interpolate_fresnel_color(float3 L,
+                                                          float3 H,
+                                                          float ior,
+                                                          Spectrum F0)
 {
   /* Compute the real Fresnel term and remap it from real_F0..1 to F0..1.
    * The reason why we use this remapping instead of directly doing the

@@ -50,7 +50,7 @@ TEST(nla_strip, BKE_nlastrips_add_strip)
   NlaStrip strip2{};
   strip2.start = 5;
   strip2.end = 10;
-  
+
   /*  can't add a null NLA strip to an NLA Track.   */
   EXPECT_FALSE(BKE_nlastrips_add_strip(&strips, NULL));
 

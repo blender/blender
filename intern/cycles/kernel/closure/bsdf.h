@@ -661,7 +661,8 @@ ccl_device void bsdf_blur(KernelGlobals kg, ccl_private ShaderClosure *sc, float
 #endif
 }
 
-ccl_device_inline Spectrum bsdf_albedo(ccl_private const ShaderData *sd, ccl_private const ShaderClosure *sc)
+ccl_device_inline Spectrum bsdf_albedo(ccl_private const ShaderData *sd,
+                                       ccl_private const ShaderClosure *sc)
 {
   Spectrum albedo = sc->weight;
   /* Some closures include additional components such as Fresnel terms that cause their albedo to

@@ -170,7 +170,6 @@ void BM_mesh_copy_init_customdata_all_layers(BMesh *bm_dst,
                                              const struct BMAllocTemplate *allocsize);
 BMesh *BM_mesh_copy(BMesh *bm_old);
 
-
 #ifdef __cplusplus
 }
 #endif
