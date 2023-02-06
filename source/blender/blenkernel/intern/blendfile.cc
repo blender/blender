@@ -214,6 +214,8 @@ static void setup_app_data(bContext *C,
     SWAP(ListBase, bmain->wm, bfd->main->wm);
     SWAP(ListBase, bmain->workspaces, bfd->main->workspaces);
     SWAP(ListBase, bmain->screens, bfd->main->screens);
+    /* NOTE: UI IDs are assumed to be only local data-blocks, so no need to call
+     * #BKE_main_namemap_clear here (otherwise, the swapping would fail in many funny ways). */
     if (bmain->name_map != nullptr) {
       BKE_main_namemap_destroy(&bmain->name_map);
     }

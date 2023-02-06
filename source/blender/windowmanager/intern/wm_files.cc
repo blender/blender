@@ -207,6 +207,8 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 
   BLI_listbase_clear(&G_MAIN->wm);
   if (G_MAIN->name_map != nullptr) {
+    /* NOTE: UI IDs are assumed to be only local data-blocks, so no need to call
+     * #BKE_main_namemap_clear here. */
     BKE_main_namemap_destroy(&G_MAIN->name_map);
   }
 
