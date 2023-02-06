@@ -478,6 +478,28 @@ class BitVector {
     this->realloc_to_at_least(new_capacity_in_bits);
   }
 
+  /**
+   * Reset the size of the vector to zero elements, but keep the same memory capacity to be
+   * refilled again.
+   */
+  void clear()
+  {
+    size_in_bits_ = 0;
+  }
+
+  /**
+   * Free memory and reset the vector to zero elements.
+   */
+  void clear_and_shrink()
+  {
+    size_in_bits_ = 0;
+    capacity_in_bits_ = 0;
+    if (!this->is_inline()) {
+      allocator_.deallocate(data_);
+    }
+    data_ = inline_buffer_;
+  }
+
  private:
   void ensure_space_for_one()
   {

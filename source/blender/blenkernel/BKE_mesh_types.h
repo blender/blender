@@ -25,6 +25,7 @@
 
 struct BVHCache;
 struct EditMeshData;
+struct Mesh;
 struct MLoopTri;
 struct ShrinkwrapBoundaryData;
 struct SubdivCCG;
@@ -167,10 +168,11 @@ struct MeshRuntime {
   SharedCache<LooseEdgeCache> loose_edges_cache;
 
   /**
-   * A #BLI_bitmap containing tags for the center vertices of subdivided polygons, set by the
-   * subdivision surface modifier and used by drawing code instead of polygon center face dots.
+   * A bit vector the size of the number of vertices, set to true for the center vertices of
+   * subdivided polygons. The values are set by the subdivision surface modifier and used by
+   * drawing code instead of polygon center face dots. Otherwise this will be empty.
    */
-  uint32_t *subsurf_face_dot_tags = nullptr;
+  BitVector<> subsurf_face_dot_tags;
 
   MeshRuntime() = default;
   ~MeshRuntime();

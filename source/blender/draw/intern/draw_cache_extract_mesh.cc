@@ -684,7 +684,8 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   MeshRenderData *mr = mesh_render_data_create(
       object, me, is_editmode, is_paint_mode, is_mode_active, obmat, do_final, do_uvedit, ts);
   mr->use_hide = use_hide;
-  mr->use_subsurf_fdots = mr->me && mr->me->runtime->subsurf_face_dot_tags != nullptr;
+  mr->use_subsurf_fdots = mr->me &&
+                          mr->me->runtime->subsurf_face_dot_tags.size() == mr->me->totvert;
   mr->use_final_mesh = do_final;
 
 #ifdef DEBUG_TIME
