@@ -787,7 +787,6 @@ void BKE_nlastrips_add_strip_unsafe(ListBase *strips, NlaStrip *strip)
   }
 }
 
-/** NULL and Space check before adding in nlastrip */
 bool BKE_nlastrips_add_strip(ListBase *strips, NlaStrip *strip)
 {
   if (ELEM(NULL, strips, strip)) {

@@ -133,19 +133,19 @@ void BKE_nlastrips_sort_strips(ListBase *strips);
 
 /**
  * Add the given NLA-Strip to the given list of strips, assuming that it
- * isn't currently a member of another list, NULL, or conflicting with existing 
- * strips position. 
+ * isn't currently a member of another list, NULL, or conflicting with existing
+ * strips position.
  */
 void BKE_nlastrips_add_strip_unsafe(ListBase *strips, struct NlaStrip *strip);
 
 /**
- * @brief NULL checks incoming strip and verifies no overlap / invalid 
- *  configuration against other strips in NLA Track.
+ * \brief NULL checks incoming strip and verifies no overlap / invalid
+ * configuration against other strips in NLA Track.
  *
- * @param strips
- * @param strip
- * @return true
- * @return false
+ * \param strips:
+ * \param strip:
+ * \return true
+ * \return false
  */
 bool BKE_nlastrips_add_strip(ListBase *strips, struct NlaStrip *strip);
 
