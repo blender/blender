@@ -80,6 +80,7 @@ void main()
   float transparency = avg(g_transmittance);
   if (transparency > random_threshold) {
     discard;
+    return;
   }
 #endif
 

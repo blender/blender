@@ -37,6 +37,7 @@ void main()
   /* Outside of bokeh shape. Try to avoid overloading ROPs. */
   if (max_v4(shapes) == 0.0) {
     discard;
+    return;
   }
 
   if (!no_scatter_occlusion) {
