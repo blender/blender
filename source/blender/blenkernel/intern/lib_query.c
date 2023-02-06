@@ -294,8 +294,9 @@ static bool library_foreach_ID_link(Main *bmain,
       continue;
     }
 
-    /* NOTE: ID.lib pointer is purposefully fully ignored here...
-     * We may want to add it at some point? */
+    if (flag & IDWALK_DO_LIBRARY_POINTER) {
+      CALLBACK_INVOKE(id->lib, IDWALK_CB_NEVER_SELF);
+    }
 
     if (flag & IDWALK_DO_INTERNAL_RUNTIME_POINTERS) {
       CALLBACK_INVOKE_ID(id->newid, IDWALK_CB_INTERNAL);
