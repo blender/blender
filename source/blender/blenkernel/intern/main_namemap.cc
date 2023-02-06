@@ -195,6 +195,22 @@ void BKE_main_namemap_destroy(struct UniqueName_Map **r_name_map)
   *r_name_map = nullptr;
 }
 
+void BKE_main_namemap_clear(Main *bmain)
+{
+  for (Main *bmain_iter = bmain; bmain_iter != nullptr; bmain_iter = bmain_iter->next) {
+    if (bmain_iter->name_map != nullptr) {
+      BKE_main_namemap_destroy(&bmain_iter->name_map);
+    }
+    for (Library *lib_iter = static_cast<Library *>(bmain_iter->libraries.first);
+         lib_iter != nullptr;
+         lib_iter = static_cast<Library *>(lib_iter->id.next)) {
+      if (lib_iter->runtime.name_map != nullptr) {
+        BKE_main_namemap_destroy(&lib_iter->runtime.name_map);
+      }
+    }
+  }
+}
+
 static void main_namemap_populate(UniqueName_Map *name_map, struct Main *bmain, ID *ignore_id)
 {
   BLI_assert_msg(name_map != nullptr, "name_map should not be null");
