@@ -222,8 +222,12 @@ void BKE_id_remapper_clear(struct IDRemapper *id_remapper);
 bool BKE_id_remapper_is_empty(const struct IDRemapper *id_remapper);
 /** Free the given ID Remapper. */
 void BKE_id_remapper_free(struct IDRemapper *id_remapper);
-/** Add a new remapping. */
+/** Add a new remapping. Does not replace an existing mapping for `old_id`, if any. */
 void BKE_id_remapper_add(struct IDRemapper *id_remapper, struct ID *old_id, struct ID *new_id);
+/** Add a new remapping, replacing a potential already existing mapping of `old_id`. */
+void BKE_id_remapper_add_overwrite(struct IDRemapper *id_remapper,
+                                   struct ID *old_id,
+                                   struct ID *new_id);
 
 /**
  * Apply a remapping.
