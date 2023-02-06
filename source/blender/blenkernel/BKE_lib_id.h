@@ -497,6 +497,7 @@ void BKE_lib_id_expand_local(struct Main *bmain, struct ID *id, int flags);
  *
  * Only for local IDs (linked ones already have a unique ID in their library).
  *
+ * \param name: The new name of the given ID, if NULL the current given ID name is used instead.
  * \param do_linked_data: if true, also ensure a unique name in case the given \a id is linked
  * (otherwise, just ensure that it is properly sorted).
  *
