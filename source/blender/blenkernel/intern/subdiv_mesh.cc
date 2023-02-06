@@ -786,10 +786,10 @@ static void subdiv_mesh_vertex_inner(const SubdivForeachContext *foreach_context
 
 static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
                                   MEdge *subdiv_edge,
-                                  const MEdge *coarse_edge)
+                                  const int coarse_edge_index)
 {
   const int subdiv_edge_index = subdiv_edge - ctx->subdiv_edges;
-  if (coarse_edge == nullptr) {
+  if (coarse_edge_index == ORIGINDEX_NONE) {
     subdiv_edge->flag = 0;
     if (!ctx->settings->use_optimal_display) {
       subdiv_edge->flag |= ME_EDGEDRAW;
@@ -799,7 +799,6 @@ static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
     }
     return;
   }
-  const int coarse_edge_index = coarse_edge - ctx->coarse_edges;
   CustomData_copy_data(
       &ctx->coarse_mesh->edata, &ctx->subdiv_mesh->edata, coarse_edge_index, subdiv_edge_index, 1);
   subdiv_edge->flag |= ME_EDGEDRAW;
@@ -816,12 +815,7 @@ static void subdiv_mesh_edge(const SubdivForeachContext *foreach_context,
   SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
   MEdge *subdiv_medge = ctx->subdiv_edges;
   MEdge *subdiv_edge = &subdiv_medge[subdiv_edge_index];
-  const MEdge *coarse_edge = nullptr;
-  if (coarse_edge_index != ORIGINDEX_NONE) {
-    const MEdge *coarse_medge = ctx->coarse_edges;
-    coarse_edge = &coarse_medge[coarse_edge_index];
-  }
-  subdiv_copy_edge_data(ctx, subdiv_edge, coarse_edge);
+  subdiv_copy_edge_data(ctx, subdiv_edge, coarse_edge_index);
   subdiv_edge->v1 = subdiv_v1;
   subdiv_edge->v2 = subdiv_v2;
 }
