@@ -1017,6 +1017,9 @@ void BKE_modifier_deform_verts(ModifierData *md,
     modwrap_dependsOnNormals(me);
   }
   mti->deformVerts(md, ctx, me, vertexCos, numVerts);
+  if (me) {
+    BKE_mesh_tag_coords_changed(me);
+  }
 }
 
 void BKE_modifier_deform_vertsEM(ModifierData *md,
