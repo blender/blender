@@ -221,7 +221,7 @@ struct BMLogSetDiff : public BMLogSetBase {
   void remove_edge(BMesh *bm, BMEdge *e);
   void modify_edge(BMesh *bm, BMEdge *e);
   void add_face(BMesh *bm, BMFace *f);
-  void remove_face(BMesh *bm, BMFace *f);
+  void remove_face(BMesh *bm, BMFace *f, bool no_check = false);
   void modify_face(BMesh *bm, BMFace *f);
 
   void undo(BMesh *bm, BMLogCallbacks *callbacks) override;
@@ -529,6 +529,23 @@ struct BMLogEntry {
       CustomData_bmesh_swap_data(&pdata, &bm->pdata, lf->customdata, &f->head.data);
     }
 
+    if (f->len != lf->verts.size()) {
+      printf("%s: error: wrong length for face, was %d, should be %d\n",
+             __func__,
+             f->len,
+             lf->verts.size());
+      return;
+    }
+
+    if (lf->loop_customdata[0]) {
+      BMLoop *l = f->l_first;
+
+      int i = 0;
+      do {
+        CustomData_bmesh_swap_data(&ldata, &bm->ldata, lf->loop_customdata[i], &l->head.data);
+        i++;
+      } while ((l = l->next) != f->l_first);
+    }
     std::swap(f->head.hflag, lf->flag);
   }
 
@@ -682,9 +699,9 @@ struct BMLogEntry {
   {
     current_diff_set(bm)->add_face(bm, f);
   }
-  void remove_face(BMesh *bm, BMFace *f)
+  void remove_face(BMesh *bm, BMFace *f, bool no_check = false)
   {
-    current_diff_set(bm)->remove_face(bm, f);
+    current_diff_set(bm)->remove_face(bm, f, no_check);
   }
   void modify_face(BMesh *bm, BMFace *f)
   {
@@ -856,10 +873,10 @@ struct BMLog {
     current_entry->add_face(bm, f);
   }
 
-  void remove_face(BMesh *bm, BMFace *f)
+  void remove_face(BMesh *bm, BMFace *f, bool no_check = false)
   {
     ensure_entry(bm);
-    current_entry->remove_face(bm, f);
+    current_entry->remove_face(bm, f, no_check);
   }
 
   void modify_face(BMesh *bm, BMFace *f)
@@ -1020,11 +1037,11 @@ void BMLogSetDiff::add_face(BMesh *bm, BMFace *f)
   added_faces.add(id, lf);
 }
 
-ATTR_NO_OPT void BMLogSetDiff::remove_face(BMesh *bm, BMFace *f)
+ATTR_NO_OPT void BMLogSetDiff::remove_face(BMesh *bm, BMFace *f, bool no_check)
 {
   BMID<BMFace> id = entry->get_elem_id<BMFace>(bm, f);
 
-  if (added_faces.remove(id) || removed_faces.contains(id)) {
+  if (!no_check && (added_faces.remove(id) || removed_faces.contains(id))) {
     return;
   }
 
@@ -1508,7 +1525,7 @@ ATTR_NO_OPT void BM_log_face_added(BMesh *bm, BMLog *log, BMFace *f)
 {
   log->add_face(bm, f);
 }
-void BM_log_face_modified(BMesh *bm, BMLog *log, BMFace *f)
+ATTR_NO_OPT void BM_log_face_modified(BMesh *bm, BMLog *log, BMFace *f)
 {
   log->modify_face(bm, f);
 }
@@ -1518,7 +1535,7 @@ void BM_log_face_removed(BMesh *bm, BMLog *log, BMFace *f)
 }
 void BM_log_face_removed_no_check(BMesh *bm, BMLog *log, BMFace *f)
 {
-  // XXX
+  log->remove_face(bm, f, true);
 }
 
 void BM_log_full_mesh(BMesh *bm, BMLog *log)

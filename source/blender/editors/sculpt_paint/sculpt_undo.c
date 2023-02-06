@@ -2028,7 +2028,9 @@ void SCULPT_undo_ensure_bmlog(Object *ob)
   }
 }
 
-static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, SculptUndoType type)
+ATTR_NO_OPT static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob,
+                                                          PBVHNode *node,
+                                                          SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
   SculptSession *ss = ob->sculpt;
@@ -2116,12 +2118,35 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       }
 
       case SCULPT_UNDO_COLOR: {
-        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-          bm_logstack_push();
-          BM_log_vert_before_modified(ss->bm, ss->bm_log, vd.bm_vert);
-          bm_logstack_pop();
+        Mesh *mesh = BKE_object_get_original_mesh(ob);
+        CustomDataLayer *color_layer = BKE_id_attributes_active_color_get(&mesh->id);
+        if (!color_layer) {
+          break;
         }
-        BKE_pbvh_vertex_iter_end;
+        eAttrDomain domain = BKE_id_attribute_domain(&mesh->id, color_layer);
+
+        switch (domain) {
+          case ATTR_DOMAIN_POINT: {
+            BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+              bm_logstack_push();
+              BM_log_vert_before_modified(ss->bm, ss->bm_log, vd.bm_vert);
+              bm_logstack_pop();
+            }
+            BKE_pbvh_vertex_iter_end;
+            break;
+          }
+          case ATTR_DOMAIN_CORNER: {
+            TableGSet *faces = BKE_pbvh_bmesh_node_faces(node);
+            BMFace *f;
+
+            TGSET_ITER (f, faces) {
+              BM_log_face_modified(ss->bm, ss->bm_log, f);
+            }
+            TGSET_ITER_END
+
+            break;
+          }
+        }
         break;
       }
       case SCULPT_UNDO_FACE_SETS: {
