@@ -4751,11 +4751,11 @@ static void view3d_circle_select_recalc(void *user_data)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
-  em_setup_viewcontext(C, &vc);
 
   if (vc.obedit) {
     switch (vc.obedit->type) {
       case OB_MESH: {
+        vc.em = BKE_editmesh_from_object(vc.obedit);
         FOREACH_OBJECT_IN_MODE_BEGIN (
             vc.scene, vc.view_layer, vc.v3d, vc.obact->type, vc.obact->mode, ob_iter) {
           ED_view3d_viewcontext_init_object(&vc, ob_iter);
