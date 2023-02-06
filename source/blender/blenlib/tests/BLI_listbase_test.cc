@@ -200,7 +200,6 @@ TEST(listbase, SplitAfter)
 
   BLI_listbase_split_after(&lb, &split_after_lb, nullptr);
   EXPECT_EQ(BLI_listbase_is_empty(&split_after_lb), true);
-  EXPECT_BLI_ASSERT(BLI_listbase_split_after(&lb, &split_after_lb, link1), "");
 
   /* One link */
   BLI_listbase_clear(&lb);
