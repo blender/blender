@@ -60,7 +60,7 @@ static bool sculpt_geodesic_mesh_test_dist_add(float (*cos)[3],
 
   float *co0 = cos[v0];
   float *co1 = cos[v1];
-  float *co2 = v2 != SCULPT_GEODESIC_VERTEX_NONE ? cos[v2] : NULL;
+  float *co2 = v2 != SCULPT_GEODESIC_VERTEX_NONE ? cos[v2] : nullptr;
 
   float dist0;
   if (v2 != SCULPT_GEODESIC_VERTEX_NONE) {
@@ -133,7 +133,7 @@ static bool sculpt_geodesic_grids_test_dist_add(SculptSession *ss,
   const float *co2 = v2 != SCULPT_GEODESIC_VERTEX_NONE ?
                          (cos ? cos[v2] :
                                 SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, v2))) :
-                         NULL;
+                         nullptr;
 
   float dist0;
   if (v2 != SCULPT_GEODESIC_VERTEX_NONE) {
@@ -196,7 +196,7 @@ static bool sculpt_geodesic_mesh_test_dist_add_bmesh(BMVert *v0,
 
   const float *v0co = cos ? cos[BM_elem_index_get(v0)] : v0->co;
   const float *v1co = cos ? cos[BM_elem_index_get(v1)] : v1->co;
-  const float *v2co = v2 ? (cos ? cos[BM_elem_index_get(v2)] : v2->co) : NULL;
+  const float *v2co = v2 ? (cos ? cos[BM_elem_index_get(v2)] : v2->co) : nullptr;
 
   if (BM_elem_flag_test(v0, BMESH_INITIAL_VERT_TAG)) {
     return false;
@@ -281,7 +281,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
 
-  float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");
+  float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), "distances"));
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
 
   if (!ss->epmap) {
@@ -397,7 +397,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
               continue;
             }
             if (sculpt_geodesic_mesh_test_dist_add(
-                    cos, v_other, v1, v2, dists, initial_verts, NULL)) {
+                    cos, v_other, v1, v2, dists, initial_verts, nullptr)) {
               for (int edge_map_index = 0; edge_map_index < ss->vemap[v_other].count;
                    edge_map_index++) {
                 const int e_other = ss->vemap[v_other].indices[edge_map_index];
@@ -449,7 +449,7 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
   SculptSession *ss = ob->sculpt;
 
   if (!ss->bm) {
-    return NULL;
+    return nullptr;
   }
 
   BM_mesh_elem_index_ensure(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
@@ -465,7 +465,7 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
 
   const float limit_radius_sq = limit_radius * limit_radius;
 
-  float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");
+  float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), "distances"));
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
 
   BLI_LINKSTACK_DECLARE(queue, BMEdge *);
@@ -558,7 +558,7 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
           SWAP(int, v1_i, v2_i);
         }
         sculpt_geodesic_mesh_test_dist_add_bmesh(
-            v2, v1, NULL, dists, initial_verts, r_closest_verts, cos);
+            v2, v1, nullptr, dists, initial_verts, r_closest_verts, cos);
       }
 
       BMLoop *l = e->l;
@@ -688,7 +688,7 @@ static float *SCULPT_geodesic_grids_create(Object *ob,
 
   const float limit_radius_sq = limit_radius * limit_radius;
 
-  float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");
+  float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), "distances"));
 
   /* Both contain edge indices encoded as *void. */
   BLI_LINKSTACK_DECLARE(queue, void *);
@@ -745,11 +745,12 @@ static float *SCULPT_geodesic_grids_create(Object *ob,
 
   SculptVertexNeighborIter ni;
 
-  TempEdge *edges = NULL;
+  TempEdge *edges = nullptr;
   BLI_array_declare(edges);
   GHash *ehash = BLI_ghash_ptr_new("geodesic multigrids ghash");
 
-  MeshElemMap *vmap = MEM_calloc_arrayN(totvert, sizeof(*vmap), "geodesic grids vmap");
+  MeshElemMap *vmap = static_cast<float *>(
+      MEM_calloc_arrayN(totvert, sizeof(*vmap), "geodesic grids vmap"));
 
   int totedge = 0;
   MemArena *ma = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "geodesic grids memarena");
@@ -782,7 +783,8 @@ static float *SCULPT_geodesic_grids_create(Object *ob,
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
 
-  int(*e_otherv_map)[4] = MEM_malloc_arrayN(totedge, sizeof(*e_otherv_map), "e_otherv_map");
+  int(*e_otherv_map)[4] = static_cast<float *>(
+      MEM_malloc_arrayN(totedge, sizeof(*e_otherv_map), "e_otherv_map"));
 
   // create an edge map of opposite edge verts in (up to 2) adjacent faces
   for (int i = 0; i < totedge; i++) {
@@ -916,7 +918,7 @@ static float *SCULPT_geodesic_grids_create(Object *ob,
   MEM_SAFE_FREE(affected_vertex);
 
   BLI_memarena_free(ma);
-  BLI_ghash_free(ehash, NULL, NULL);
+  BLI_ghash_free(ehash, nullptr, nullptr);
   MEM_SAFE_FREE(edges);
   MEM_SAFE_FREE(vmap);
   MEM_SAFE_FREE(e_otherv_map);
@@ -932,7 +934,7 @@ static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_verts)
 
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
-  float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");
+  float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), "distances"));
   int first_affected = SCULPT_GEODESIC_VERTEX_NONE;
 
   GSetIterator gs_iter;
@@ -978,7 +980,7 @@ float *SCULPT_geodesic_distances_create(Object *ob,
       // return SCULPT_geodesic_fallback_create(ob, initial_verts);
   }
   BLI_assert(false);
-  return NULL;
+  return nullptr;
 }
 
 float *SCULPT_geodesic_from_vertex_and_symm(struct Sculpt *sd,
@@ -1008,8 +1010,9 @@ float *SCULPT_geodesic_from_vertex_and_symm(struct Sculpt *sd,
     }
   }
 
-  float *dists = SCULPT_geodesic_distances_create(ob, initial_verts, limit_radius, NULL, NULL);
-  BLI_gset_free(initial_verts, NULL);
+  float *dists = SCULPT_geodesic_distances_create(
+      ob, initial_verts, limit_radius, nullptr, nullptr);
+  BLI_gset_free(initial_verts, nullptr);
   return dists;
 }
 
@@ -1023,8 +1026,9 @@ float *SCULPT_geodesic_from_vertex(Object *ob, const PBVHVertRef vertex, const f
 
   BLI_gset_add(initial_verts, POINTER_FROM_INT(BKE_pbvh_vertex_to_index(ss->pbvh, vertex)));
 
-  float *dists = SCULPT_geodesic_distances_create(ob, initial_verts, limit_radius, NULL, NULL);
-  BLI_gset_free(initial_verts, NULL);
+  float *dists = SCULPT_geodesic_distances_create(
+      ob, initial_verts, limit_radius, nullptr, nullptr);
+  BLI_gset_free(initial_verts, nullptr);
 
   return dists;
 }
