@@ -9,6 +9,7 @@
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BLI_math_matrix.hh"
 #include "BLI_noise.hh"
 #include "BLI_task.hh"
 
@@ -276,7 +277,7 @@ static void copy_transformed_positions(const Span<float3> src,
 {
   threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
-      dst[i] = transform * src[i];
+      dst[i] = math::transform_point(transform, src[i]);
     }
   });
 }
@@ -430,11 +431,12 @@ static void foreach_geometry_in_reference(
     case InstanceReference::Type::Collection: {
       Collection &collection = reference.collection();
       float4x4 offset_matrix = float4x4::identity();
-      sub_v3_v3(offset_matrix.values[3], collection.instance_offset);
+      offset_matrix.location() -= collection.instance_offset;
       int index = 0;
       FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
         const GeometrySet object_geometry_set = object_get_evaluated_geometry_set(*object);
-        const float4x4 matrix = base_transform * offset_matrix * object->object_to_world;
+        const float4x4 matrix = base_transform * offset_matrix *
+                                float4x4_view(object->object_to_world);
         const int sub_id = noise::hash(id, index);
         fn(object_geometry_set, matrix, sub_id);
         index++;
@@ -963,7 +965,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
 
   threading::parallel_for(src_positions.index_range(), 1024, [&](const IndexRange vert_range) {
     for (const int i : vert_range) {
-      dst_positions[i] = task.transform * src_positions[i];
+      dst_positions[i] = math::transform_point(task.transform, src_positions[i]);
     }
   });
   threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange edge_range) {

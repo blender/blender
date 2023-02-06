@@ -6,8 +6,8 @@
  */
 
 #include "BLI_assert.h"
-#include "BLI_float3x3.hh"
 #include "BLI_math_base.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "RNA_access.h"
@@ -84,8 +84,8 @@ class ScaleOperation : public NodeOperation {
     Result &result = get_result("Image");
     input.pass_through(result);
 
-    const float3x3 transformation = float3x3::from_translation_rotation_scale(
-        get_translation(), 0.0f, get_scale());
+    const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
+        get_translation(), math::AngleRadian(0.0f), get_scale());
 
     result.transform(transformation);
   }

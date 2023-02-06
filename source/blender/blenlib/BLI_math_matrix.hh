@@ -176,7 +176,7 @@ template<typename T, int Size>
 /**
  * Create a translation only matrix. Matrix dimensions should be at least 4 col x 3 row.
  */
-template<typename MatT> [[nodiscard]] MatT from_location(const typename MatT::vec3_type &location);
+template<typename MatT> [[nodiscard]] MatT from_location(const typename MatT::loc_type &location);
 
 /**
  * Create a matrix whose diagonal is defined by the given scale vector.
@@ -201,14 +201,14 @@ template<typename MatT, typename RotationT, typename VectorT>
  * Create a transform matrix with translation and rotation applied in this order.
  */
 template<typename MatT, typename RotationT>
-[[nodiscard]] MatT from_loc_rot(const typename MatT::vec3_type &location,
+[[nodiscard]] MatT from_loc_rot(const typename MatT::loc_type &location,
                                 const RotationT &rotation);
 
 /**
  * Create a transform matrix with translation, rotation and scale applied in this order.
  */
 template<typename MatT, typename RotationT, int ScaleDim>
-[[nodiscard]] MatT from_loc_rot_scale(const typename MatT::vec3_type &location,
+[[nodiscard]] MatT from_loc_rot_scale(const typename MatT::loc_type &location,
                                       const RotationT &rotation,
                                       const VecBase<typename MatT::base_type, ScaleDim> &scale);
 
@@ -228,6 +228,14 @@ template<typename MatT, typename VectorT>
 [[nodiscard]] MatT from_orthonormal_axes(const VectorT location,
                                          const VectorT forward,
                                          const VectorT up);
+
+/**
+ * Construct a transformation that is pivoted around the given origin point. So for instance,
+ * from_origin_transform<MatT>(from_rotation(M_PI_2), float2(0.0f, 2.0f))
+ * will construct a transformation representing a 90 degree rotation around the point (0, 2).
+ */
+template<typename MatT, typename VectorT>
+[[nodiscard]] MatT from_origin_transform(const MatT &transform, const VectorT origin);
 
 /** \} */
 
@@ -259,6 +267,8 @@ template<typename T, bool Normalized = false>
  */
 template<bool AllowNegativeScale = false, typename T, int NumCol, int NumRow>
 [[nodiscard]] inline VecBase<T, 3> to_scale(const MatBase<T, NumCol, NumRow> &mat);
+template<bool AllowNegativeScale = false, typename T>
+[[nodiscard]] inline VecBase<T, 2> to_scale(const MatBase<T, 2, 2> &mat);
 
 /**
  * Decompose a matrix into location, rotation, and scale components.
@@ -465,6 +475,9 @@ inline bool is_zero(const MatBase<T, NumCol, NumRow> &mat)
 namespace detail {
 
 template<typename T, int NumCol, int NumRow>
+[[nodiscard]] MatBase<T, NumCol, NumRow> from_rotation(const AngleRadian<T> &rotation);
+
+template<typename T, int NumCol, int NumRow>
 [[nodiscard]] MatBase<T, NumCol, NumRow> from_rotation(const EulerXYZ<T> &rotation);
 
 template<typename T, int NumCol, int NumRow>
@@ -491,7 +504,8 @@ template<typename T, int Size>
 [[nodiscard]] MatBase<T, Size, Size> invert(const MatBase<T, Size, Size> &mat)
 {
   bool success;
-  return invert(mat, success);
+  /* Explicit template parameter to please MSVC. */
+  return invert<T, Size>(mat, success);
 }
 
 template<typename T, int NumCol, int NumRow>
@@ -798,7 +812,7 @@ MatBase<T, NumCol, NumRow> from_rotation(const EulerXYZ<T> &rotation)
   DoublePrecision sc = si * ch;
   DoublePrecision ss = si * sh;
 
-  MatT mat;
+  MatT mat = MatT::identity();
   mat[0][0] = T(cj * ch);
   mat[1][0] = T(sj * sc - cs);
   mat[2][0] = T(sj * cc + ss);
@@ -833,7 +847,7 @@ MatBase<T, NumCol, NumRow> from_rotation(const Quaternion<T> &rotation)
   DoublePrecision qbc = q2 * q3;
   DoublePrecision qcc = q3 * q3;
 
-  MatT mat;
+  MatT mat = MatT::identity();
   mat[0][0] = T(1.0 - qbb - qcc);
   mat[0][1] = T(qdc + qab);
   mat[0][2] = T(-qdb + qac);
@@ -877,7 +891,25 @@ MatBase<T, NumCol, NumRow> from_rotation(const AxisAngle<T> &rotation)
   return mat;
 }
 
+template<typename T, int NumCol, int NumRow>
+MatBase<T, NumCol, NumRow> from_rotation(const AngleRadian<T> &rotation)
+{
+  using MatT = MatBase<T, NumCol, NumRow>;
+  T ci = math::cos(rotation.value);
+  T si = math::sin(rotation.value);
+
+  MatT mat = MatT::identity();
+  mat[0][0] = ci;
+  mat[1][0] = -si;
+
+  mat[0][1] = si;
+  mat[1][1] = ci;
+  return mat;
+}
+
 /* Using explicit template instantiations in order to reduce compilation time. */
+extern template MatBase<float, 2, 2> from_rotation(const AngleRadian<float> &rotation);
+extern template MatBase<float, 3, 3> from_rotation(const AngleRadian<float> &rotation);
 extern template MatBase<float, 3, 3> from_rotation(const EulerXYZ<float> &rotation);
 extern template MatBase<float, 4, 4> from_rotation(const EulerXYZ<float> &rotation);
 extern template MatBase<float, 3, 3> from_rotation(const Quaternion<float> &rotation);
@@ -940,6 +972,18 @@ template<bool AllowNegativeScale, typename T, int NumCol, int NumRow>
   return result;
 }
 
+template<bool AllowNegativeScale, typename T>
+[[nodiscard]] inline VecBase<T, 2> to_scale(const MatBase<T, 2, 2> &mat)
+{
+  VecBase<T, 2> result = {length(mat.x), length(mat.y)};
+  if constexpr (AllowNegativeScale) {
+    if (UNLIKELY(is_negative(mat))) {
+      result = -result;
+    }
+  }
+  return result;
+}
+
 /* Implementation details. Use `to_euler` and `to_quaternion` instead. */
 namespace detail {
 
@@ -982,7 +1026,7 @@ inline void to_loc_rot_scale(const MatBase<T, 4, 4> &mat,
   to_rot_scale<AllowNegativeScale>(MatBase<T, 3, 3>(mat), r_rotation, r_scale);
 }
 
-template<typename MatT> [[nodiscard]] MatT from_location(const typename MatT::vec3_type &location)
+template<typename MatT> [[nodiscard]] MatT from_location(const typename MatT::loc_type &location)
 {
   MatT mat = MatT::identity();
   mat.location() = location;
@@ -1013,22 +1057,23 @@ template<typename MatT, typename RotationT, typename VectorT>
 }
 
 template<typename MatT, typename RotationT, int ScaleDim>
-[[nodiscard]] MatT from_loc_rot_scale(const typename MatT::vec3_type &location,
+[[nodiscard]] MatT from_loc_rot_scale(const typename MatT::loc_type &location,
                                       const RotationT &rotation,
                                       const VecBase<typename MatT::base_type, ScaleDim> &scale)
 {
-  using Mat3x3 = MatBase<typename MatT::base_type, 3, 3>;
-  MatT mat = MatT(from_rot_scale<Mat3x3>(rotation, scale));
+  using MatRotT =
+      MatBase<typename MatT::base_type, MatT::loc_type::type_length, MatT::loc_type::type_length>;
+  MatT mat = MatT(from_rot_scale<MatRotT>(rotation, scale));
   mat.location() = location;
   return mat;
 }
 
 template<typename MatT, typename RotationT>
-[[nodiscard]] MatT from_loc_rot(const typename MatT::vec3_type &location,
-                                const RotationT &rotation)
+[[nodiscard]] MatT from_loc_rot(const typename MatT::loc_type &location, const RotationT &rotation)
 {
-  using Mat3x3 = MatBase<typename MatT::base_type, 3, 3>;
-  MatT mat = MatT(from_rotation<Mat3x3>(rotation));
+  using MatRotT =
+      MatBase<typename MatT::base_type, MatT::loc_type::type_length, MatT::loc_type::type_length>;
+  MatT mat = MatT(from_rotation<MatRotT>(rotation));
   mat.location() = location;
   return mat;
 }
@@ -1057,6 +1102,12 @@ template<typename MatT, typename VectorT>
   MatT matrix = MatT(from_orthonormal_axes<Mat3x3>(forward, up));
   matrix.location() = location;
   return matrix;
+}
+
+template<typename MatT, typename VectorT>
+[[nodiscard]] MatT from_origin_transform(const MatT &transform, const VectorT origin)
+{
+  return from_location<MatT>(origin) * transform * from_location<MatT>(-origin);
 }
 
 template<typename T>

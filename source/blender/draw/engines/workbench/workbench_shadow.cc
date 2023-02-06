@@ -187,7 +187,7 @@ bool ShadowPass::ShadowView::debug_object_culling(Object *ob)
     float4 plane = extruded_frustum_.planes[p];
     bool separating_axis = true;
     for (float3 corner : _bbox->vec) {
-      corner = float4x4(ob->object_to_world) * corner;
+      corner = math::transform_point(float4x4(ob->object_to_world), corner);
       float signed_distance = math::dot(corner, float3(plane)) - plane.w;
       if (signed_distance <= 0) {
         separating_axis = false;
@@ -352,7 +352,8 @@ void ShadowPass::init(const SceneState &scene_state, SceneResources &resources)
   /* Shadow direction. */
   float4x4 view_matrix;
   DRW_view_viewmat_get(nullptr, view_matrix.ptr(), false);
-  resources.world_buf.shadow_direction_vs = float4(view_matrix.ref_3x3() * direction_ws);
+  resources.world_buf.shadow_direction_vs = float4(
+      math::transform_direction(view_matrix, direction_ws));
 
   /* Clamp to avoid overshadowing and shading errors. */
   float focus = clamp_f(scene.display.shadow_focus, 0.0001f, 0.99999f);

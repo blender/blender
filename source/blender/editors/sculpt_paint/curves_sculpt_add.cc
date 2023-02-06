@@ -4,8 +4,8 @@
 
 #include "curves_sculpt_intern.hh"
 
-#include "BLI_float4x4.hh"
 #include "BLI_kdtree.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
 #include "BLI_vector.hh"
 
@@ -266,15 +266,17 @@ struct AddOperationExecutor {
     float3 ray_start_wo, ray_end_wo;
     ED_view3d_win_to_segment_clipped(
         ctx_.depsgraph, ctx_.region, ctx_.v3d, brush_pos_re_, ray_start_wo, ray_end_wo, true);
-    const float3 ray_start_cu = transforms_.world_to_curves * ray_start_wo;
-    const float3 ray_end_cu = transforms_.world_to_curves * ray_end_wo;
+    const float3 ray_start_cu = math::transform_point(transforms_.world_to_curves, ray_start_wo);
+    const float3 ray_end_cu = math::transform_point(transforms_.world_to_curves, ray_end_wo);
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_orig_->symmetry));
 
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
       const float4x4 transform = transforms_.curves_to_surface * brush_transform;
-      this->sample_in_center(r_sampled_uvs, transform * ray_start_cu, transform * ray_end_cu);
+      this->sample_in_center(r_sampled_uvs,
+                             math::transform_point(transform, ray_start_cu),
+                             math::transform_point(transform, ray_end_cu));
     }
   }
 
@@ -348,10 +350,12 @@ struct AddOperationExecutor {
             float3 start_wo, end_wo;
             ED_view3d_win_to_segment_clipped(
                 ctx_.depsgraph, ctx_.region, ctx_.v3d, pos_re, start_wo, end_wo, true);
-            const float3 start_cu = brush_transform * (transforms_.world_to_curves * start_wo);
-            const float3 end_cu = brush_transform * (transforms_.world_to_curves * end_wo);
-            r_start_su = transforms_.curves_to_surface * start_cu;
-            r_end_su = transforms_.curves_to_surface * end_cu;
+            const float3 start_cu = math::transform_point(transforms_.world_to_curves, start_wo);
+            const float3 start_cu_tx = math::transform_point(brush_transform, start_cu);
+            const float3 end_cu = math::transform_point(transforms_.world_to_curves, end_wo);
+            const float3 end_cu_tx = math::transform_point(brush_transform, end_cu);
+            r_start_su = math::transform_point(transforms_.curves_to_surface, start_cu_tx);
+            r_end_su = math::transform_point(transforms_.curves_to_surface, end_cu_tx);
           },
           use_front_face_,
           add_amount_,
@@ -393,17 +397,20 @@ struct AddOperationExecutor {
                                      view_ray_end_wo,
                                      true);
 
-    const float3 view_ray_start_cu = transforms_.world_to_curves * view_ray_start_wo;
-    const float3 view_ray_end_cu = transforms_.world_to_curves * view_ray_end_wo;
+    const float3 view_ray_start_cu = math::transform_point(transforms_.world_to_curves,
+                                                           view_ray_start_wo);
+    const float3 view_ray_end_cu = math::transform_point(transforms_.world_to_curves,
+                                                         view_ray_end_wo);
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_orig_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
       const float4x4 transform = transforms_.curves_to_surface * brush_transform;
 
-      const float3 brush_pos_su = transform * brush_3d->position_cu;
-      const float3 view_direction_su = math::normalize(transform * view_ray_end_cu -
-                                                       transform * view_ray_start_cu);
+      const float3 brush_pos_su = math::transform_point(transform, brush_3d->position_cu);
+      const float3 view_direction_su = math::normalize(
+          math::transform_point(transform, view_ray_end_cu) -
+          math::transform_point(transform, view_ray_start_cu));
       const float brush_radius_su = transform_brush_radius(
           transform, brush_3d->position_cu, brush_3d->radius_cu);
 

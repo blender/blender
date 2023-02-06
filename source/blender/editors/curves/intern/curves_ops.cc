@@ -10,6 +10,7 @@
 #include "BLI_devirtualize_parameters.hh"
 #include "BLI_index_mask_ops.hh"
 #include "BLI_kdtree.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
@@ -314,7 +315,7 @@ static void try_convert_single_object(Object &curves_ob,
     const IndexRange points = points_by_curve[curve_i];
 
     const float3 &root_pos_cu = positions_cu[points.first()];
-    const float3 root_pos_su = transforms.curves_to_surface * root_pos_cu;
+    const float3 root_pos_su = math::transform_point(transforms.curves_to_surface, root_pos_cu);
 
     BVHTreeNearest nearest;
     nearest.dist_sq = FLT_MAX;
@@ -346,15 +347,15 @@ static void try_convert_single_object(Object &curves_ob,
 
     float4x4 hair_to_surface_mat;
     psys_mat_hair_to_object(
-        &surface_ob, &surface_me, PART_FROM_FACE, &particle, hair_to_surface_mat.values);
+        &surface_ob, &surface_me, PART_FROM_FACE, &particle, hair_to_surface_mat.ptr());
     /* In theory, #psys_mat_hair_to_object should handle this, but it doesn't right now. */
-    copy_v3_v3(hair_to_surface_mat.values[3], root_pos_su);
-    const float4x4 surface_to_hair_mat = hair_to_surface_mat.inverted();
+    hair_to_surface_mat.location() = root_pos_su;
+    const float4x4 surface_to_hair_mat = math::invert(hair_to_surface_mat);
 
     for (const int key_i : hair_keys.index_range()) {
       const float3 &key_pos_cu = positions_cu[points[key_i]];
-      const float3 key_pos_su = transforms.curves_to_surface * key_pos_cu;
-      const float3 key_pos_ha = surface_to_hair_mat * key_pos_su;
+      const float3 key_pos_su = math::transform_point(transforms.curves_to_surface, key_pos_cu);
+      const float3 key_pos_ha = math::transform_point(surface_to_hair_mat, key_pos_su);
 
       HairKey &key = hair_keys[key_i];
       copy_v3_v3(key.co, key_pos_ha);
@@ -457,8 +458,8 @@ static bke::CurvesGeometry particles_to_curves(Object &object, ParticleSystem &p
   bke::CurvesGeometry curves(points_num, curves_num);
   curves.offsets_for_write().copy_from(curve_offsets);
 
-  const float4x4 object_to_world_mat = object.object_to_world;
-  const float4x4 world_to_object_mat = object_to_world_mat.inverted();
+  const float4x4 object_to_world_mat(object.object_to_world);
+  const float4x4 world_to_object_mat = math::invert(object_to_world_mat);
 
   MutableSpan<float3> positions = curves.positions_for_write();
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -474,7 +475,7 @@ static bke::CurvesGeometry particles_to_curves(Object &object, ParticleSystem &p
         const Span<ParticleCacheKey> keys{hair_cache[hair_i], points.size()};
         for (const int key_i : keys.index_range()) {
           const float3 key_pos_wo = keys[key_i].co;
-          positions[points[key_i]] = world_to_object_mat * key_pos_wo;
+          positions[points[key_i]] = math::transform_point(world_to_object_mat, key_pos_wo);
         }
       }
     });
@@ -593,8 +594,8 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
           const IndexRange points = points_by_curve[curve_i];
           const int first_point_i = points.first();
           const float3 old_first_point_pos_cu = positions_cu[first_point_i];
-          const float3 old_first_point_pos_su = transforms.curves_to_surface *
-                                                old_first_point_pos_cu;
+          const float3 old_first_point_pos_su = math::transform_point(transforms.curves_to_surface,
+                                                                      old_first_point_pos_cu);
 
           BVHTreeNearest nearest;
           nearest.index = -1;
@@ -610,8 +611,8 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
           }
 
           const float3 new_first_point_pos_su = nearest.co;
-          const float3 new_first_point_pos_cu = transforms.surface_to_curves *
-                                                new_first_point_pos_su;
+          const float3 new_first_point_pos_cu = math::transform_point(transforms.surface_to_curves,
+                                                                      new_first_point_pos_su);
           const float3 pos_diff_cu = new_first_point_pos_cu - old_first_point_pos_cu;
 
           for (float3 &pos_cu : positions_cu.slice(points)) {
@@ -668,8 +669,8 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
 
           float3 new_first_point_pos_su;
           interp_v3_v3v3v3(new_first_point_pos_su, p0_su, p1_su, p2_su, bary_coords);
-          const float3 new_first_point_pos_cu = transforms.surface_to_curves *
-                                                new_first_point_pos_su;
+          const float3 new_first_point_pos_cu = math::transform_point(transforms.surface_to_curves,
+                                                                      new_first_point_pos_su);
 
           const float3 pos_diff_cu = new_first_point_pos_cu - old_first_point_pos_cu;
           for (float3 &pos_cu : positions_cu.slice(points)) {

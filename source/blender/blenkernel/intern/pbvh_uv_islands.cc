@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_matrix.hh"
+
 #include "pbvh_uv_islands.hh"
 
 #include <optional>
@@ -1243,14 +1245,14 @@ UVBorderCorner::UVBorderCorner(UVBorderEdge *first, UVBorderEdge *second, float 
 
 float2 UVBorderCorner::uv(float factor, float min_uv_distance)
 {
+  using namespace blender::math;
   float2 origin = first->get_uv_vertex(1)->uv;
   float angle_between = angle * factor;
   float desired_len = max_ff(second->length() * factor + first->length() * (1.0 - factor),
                              min_uv_distance);
-  float2 v = first->get_uv_vertex(0)->uv - origin;
-  normalize_v2(v);
+  float2 v = normalize(first->get_uv_vertex(0)->uv - origin);
 
-  float3x3 rot_mat = float3x3::from_rotation(angle_between);
+  float2x2 rot_mat = from_rotation<float2x2>(AngleRadian(angle_between));
   float2 rotated = rot_mat * v;
   float2 result = rotated * desired_len + first->get_uv_vertex(1)->uv;
   return result;

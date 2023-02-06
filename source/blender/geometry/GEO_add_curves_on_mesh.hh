@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "BLI_float4x4.hh"
 #include "BLI_kdtree.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_span.hh"
 

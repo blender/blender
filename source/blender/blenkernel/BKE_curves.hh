@@ -13,10 +13,9 @@
 
 #include "BLI_bounds_types.hh"
 #include "BLI_cache_mutex.hh"
-#include "BLI_float3x3.hh"
-#include "BLI_float4x4.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_index_mask.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_shared_cache.hh"

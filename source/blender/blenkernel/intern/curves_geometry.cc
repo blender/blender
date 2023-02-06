@@ -13,6 +13,7 @@
 #include "BLI_bounds.hh"
 #include "BLI_index_mask_ops.hh"
 #include "BLI_length_parameterize.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_task.hh"
 
@@ -997,7 +998,7 @@ static void transform_positions(MutableSpan<float3> positions, const float4x4 &m
 {
   threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (float3 &position : positions.slice(range)) {
-      position = matrix * position;
+      position = math::transform_point(matrix, position);
     }
   });
 }

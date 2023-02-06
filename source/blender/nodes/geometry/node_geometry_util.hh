@@ -4,7 +4,7 @@
 
 #include <string.h>
 
-#include "BLI_float4x4.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 

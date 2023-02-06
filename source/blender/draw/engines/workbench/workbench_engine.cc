@@ -641,7 +641,7 @@ static void workbench_render_to_image(void *vedata,
   float4x4 winmat, viewmat, viewinv;
   RE_GetCameraWindow(engine->re, camera_ob, winmat.ptr());
   RE_GetCameraModelMatrix(engine->re, camera_ob, viewinv.ptr());
-  viewmat = viewinv.inverted();
+  viewmat = math::invert(viewinv);
 
   DRWView *view = DRW_view_create(viewmat.ptr(), winmat.ptr(), nullptr, nullptr, nullptr);
   DRW_view_default_set(view);

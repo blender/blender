@@ -5,7 +5,7 @@
  * \ingroup cmpnodes
  */
 
-#include "BLI_float3x3.hh"
+#include "BLI_math_matrix_types.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

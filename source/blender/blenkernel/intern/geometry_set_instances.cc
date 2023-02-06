@@ -78,7 +78,7 @@ static void geometry_set_collect_recursive_collection_instance(
     const Collection &collection, const float4x4 &transform, Vector<GeometryInstanceGroup> &r_sets)
 {
   float4x4 offset_matrix = float4x4::identity();
-  sub_v3_v3(offset_matrix.values[3], collection.instance_offset);
+  offset_matrix.location() -= float3(collection.instance_offset);
   const float4x4 instance_transform = transform * offset_matrix;
   geometry_set_collect_recursive_collection(collection, instance_transform, r_sets);
 }
@@ -98,7 +98,7 @@ static void geometry_set_collect_recursive_collection(const Collection &collecti
   LISTBASE_FOREACH (const CollectionObject *, collection_object, &collection.gobject) {
     BLI_assert(collection_object->ob != nullptr);
     const Object &object = *collection_object->ob;
-    const float4x4 object_transform = transform * object.object_to_world;
+    const float4x4 object_transform = transform * float4x4_view(object.object_to_world);
     geometry_set_collect_recursive_object(object, object_transform, r_sets);
   }
   LISTBASE_FOREACH (const CollectionChild *, collection_child, &collection.children) {
@@ -220,9 +220,9 @@ void Instances::ensure_geometry_instances()
         Collection &collection = reference.collection();
         FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
           const int handle = instances->add_reference(*object);
-          instances->add_instance(handle, object->object_to_world);
+          instances->add_instance(handle, float4x4(object->object_to_world));
           float4x4 &transform = instances->transforms().last();
-          sub_v3_v3(transform.values[3], collection.instance_offset);
+          transform.location() -= collection.instance_offset;
         }
         FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
         instances->ensure_geometry_instances();

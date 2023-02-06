@@ -4,7 +4,7 @@
 #  include <openvdb/openvdb.h>
 #endif
 
-#include "BLI_float4x4.hh"
+#include "BLI_math_matrix_types.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
@@ -47,7 +47,7 @@ static void transform_positions(MutableSpan<float3> positions, const float4x4 &m
 {
   threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (float3 &position : positions.slice(range)) {
-      position = matrix * position;
+      position = math::transform_point(matrix, position);
     }
   });
 }
@@ -122,27 +122,27 @@ static void transform_volume(GeoNodeExecParams &params,
   for (const int i : IndexRange(grids_num)) {
     VolumeGrid *volume_grid = BKE_volume_grid_get_for_write(&volume, i);
     float4x4 grid_matrix;
-    BKE_volume_grid_transform_matrix(volume_grid, grid_matrix.values);
-    mul_m4_m4_pre(grid_matrix.values, transform.values);
-    const float determinant = determinant_m4(grid_matrix.values);
+    BKE_volume_grid_transform_matrix(volume_grid, grid_matrix.ptr());
+    grid_matrix *= transform;
+    const float determinant = math::determinant(grid_matrix);
     if (!BKE_volume_grid_determinant_valid(determinant)) {
       found_too_small_scale = true;
       /* Clear the tree because it is too small. */
       BKE_volume_grid_clear_tree(volume, *volume_grid);
       if (determinant == 0) {
         /* Reset rotation and scale. */
-        copy_v3_fl3(grid_matrix.values[0], 1, 0, 0);
-        copy_v3_fl3(grid_matrix.values[1], 0, 1, 0);
-        copy_v3_fl3(grid_matrix.values[2], 0, 0, 1);
+        grid_matrix.x_axis() = float3(1, 0, 0);
+        grid_matrix.y_axis() = float3(0, 1, 0);
+        grid_matrix.z_axis() = float3(0, 0, 1);
       }
       else {
         /* Keep rotation but reset scale. */
-        normalize_v3(grid_matrix.values[0]);
-        normalize_v3(grid_matrix.values[1]);
-        normalize_v3(grid_matrix.values[2]);
+        grid_matrix.x_axis() = math::normalize(grid_matrix.x_axis());
+        grid_matrix.y_axis() = math::normalize(grid_matrix.y_axis());
+        grid_matrix.z_axis() = math::normalize(grid_matrix.z_axis());
       }
     }
-    BKE_volume_grid_transform_matrix_set(&volume, volume_grid, grid_matrix.values);
+    BKE_volume_grid_transform_matrix_set(&volume, volume_grid, grid_matrix.ptr());
   }
   if (found_too_small_scale) {
     params.error_message_add(NodeWarningType::Warning,
@@ -158,7 +158,7 @@ static void translate_volume(GeoNodeExecParams &params,
                              const float3 translation,
                              const Depsgraph &depsgraph)
 {
-  transform_volume(params, volume, float4x4::from_location(translation), depsgraph);
+  transform_volume(params, volume, math::from_location<float4x4>(translation), depsgraph);
 }
 
 static void transform_curve_edit_hints(bke::CurvesEditHints &edit_hints, const float4x4 &transform)
@@ -167,7 +167,7 @@ static void transform_curve_edit_hints(bke::CurvesEditHints &edit_hints, const f
     transform_positions(*edit_hints.positions, transform);
   }
   float3x3 deform_mat;
-  copy_m3_m4(deform_mat.values, transform.values);
+  copy_m3_m4(deform_mat.ptr(), transform.ptr());
   if (edit_hints.deform_mats.has_value()) {
     MutableSpan<float3x3> deform_mats = *edit_hints.deform_mats;
     threading::parallel_for(deform_mats.index_range(), 1024, [&](const IndexRange range) {
@@ -243,7 +243,7 @@ void transform_mesh(Mesh &mesh,
                     const float3 rotation,
                     const float3 scale)
 {
-  const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
+  const float4x4 matrix = math::from_loc_rot_scale<float4x4>(translation, rotation, scale);
   transform_mesh(mesh, matrix);
 }
 
@@ -274,7 +274,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   else {
     transform_geometry_set(params,
                            geometry_set,
-                           float4x4::from_loc_eul_scale(translation, rotation, scale),
+                           math::from_loc_rot_scale<float4x4>(translation, rotation, scale),
                            *params.depsgraph());
   }
 

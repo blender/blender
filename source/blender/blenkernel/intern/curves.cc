@@ -17,7 +17,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
-#include "BLI_math_vector.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
@@ -419,15 +419,15 @@ void curves_copy_parameters(const Curves &src, Curves &dst)
 
 CurvesSurfaceTransforms::CurvesSurfaceTransforms(const Object &curves_ob, const Object *surface_ob)
 {
-  this->curves_to_world = curves_ob.object_to_world;
-  this->world_to_curves = this->curves_to_world.inverted();
+  this->curves_to_world = float4x4_view(curves_ob.object_to_world);
+  this->world_to_curves = math::invert(this->curves_to_world);
 
   if (surface_ob != nullptr) {
-    this->surface_to_world = surface_ob->object_to_world;
-    this->world_to_surface = this->surface_to_world.inverted();
+    this->surface_to_world = float4x4_view(surface_ob->object_to_world);
+    this->world_to_surface = math::invert(this->surface_to_world);
     this->surface_to_curves = this->world_to_curves * this->surface_to_world;
     this->curves_to_surface = this->world_to_surface * this->curves_to_world;
-    this->surface_to_curves_normal = this->surface_to_curves.inverted().transposed();
+    this->surface_to_curves_normal = math::transpose(math::invert(this->surface_to_curves));
   }
 }
 

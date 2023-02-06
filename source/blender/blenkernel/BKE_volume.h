@@ -161,7 +161,7 @@ bool BKE_volume_save(const struct Volume *volume,
  * file or copy shared grids to make them writeable. */
 
 #ifdef __cplusplus
-#  include "BLI_float4x4.hh"
+#  include "BLI_math_matrix_types.hh"
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_string_ref.hh"
 

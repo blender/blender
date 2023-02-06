@@ -4,8 +4,7 @@
 
 #include "curves_sculpt_intern.hh"
 
-#include "BLI_float3x3.hh"
-#include "BLI_float4x4.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_vector.hh"
 
 #include "DEG_depsgraph.h"
@@ -255,7 +254,7 @@ struct SlideOperationExecutor {
       self_->slide_info_.append_as();
       SlideInfo &slide_info = self_->slide_info_.last();
       slide_info.brush_transform = brush_transform;
-      this->find_curves_to_slide(brush_transform * brush_3d->position_cu,
+      this->find_curves_to_slide(math::transform_point(brush_transform, brush_3d->position_cu),
                                  brush_3d->radius_cu,
                                  reverse_uv_sampler_orig,
                                  slide_info.curves_to_slide);
@@ -291,11 +290,12 @@ struct SlideOperationExecutor {
         continue;
       }
       /* Compute the normal at the initial surface position. */
+      const float3 point_no = geometry::compute_surface_point_normal(
+          surface_looptris_orig_[result.looptri_index],
+          result.bary_weights,
+          corner_normals_orig_su_);
       const float3 normal_cu = math::normalize(
-          transforms_.surface_to_curves_normal *
-          geometry::compute_surface_point_normal(surface_looptris_orig_[result.looptri_index],
-                                                 result.bary_weights,
-                                                 corner_normals_orig_su_));
+          math::transform_point(transforms_.surface_to_curves_normal, point_no));
 
       r_curves_to_slide.append({curve_i, radius_falloff, normal_cu});
     }
@@ -313,7 +313,7 @@ struct SlideOperationExecutor {
              const ReverseUVSampler &reverse_uv_sampler_orig,
              const float4x4 &brush_transform)
   {
-    const float4x4 brush_transform_inv = brush_transform.inverted();
+    const float4x4 brush_transform_inv = math::invert(brush_transform);
 
     const Span<float3> positions_orig_su = surface_orig_->vert_positions();
     const Span<MLoop> loops_orig = surface_orig_->loops();
@@ -323,7 +323,7 @@ struct SlideOperationExecutor {
     MutableSpan<float2> surface_uv_coords = curves_orig_->surface_uv_coords_for_write();
 
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, curves_ob_orig_, projection.ptr());
 
     const float2 brush_pos_diff_re = brush_pos_re_ - self_->initial_brush_pos_re_;
 
@@ -339,14 +339,14 @@ struct SlideOperationExecutor {
         const int first_point_i = points[0];
 
         const float3 old_first_pos_eval_cu = self_->initial_deformed_positions_cu_[first_point_i];
-        const float3 old_first_symm_pos_eval_cu = brush_transform_inv * old_first_pos_eval_cu;
-        const float3 old_first_pos_eval_su = transforms_.curves_to_surface * old_first_pos_eval_cu;
+        const float3 old_first_symm_pos_eval_cu = math::transform_point(brush_transform_inv,
+                                                                        old_first_pos_eval_cu);
+        const float3 old_first_pos_eval_su = math::transform_point(transforms_.curves_to_surface,
+                                                                   old_first_pos_eval_cu);
 
         float2 old_first_symm_pos_eval_re;
-        ED_view3d_project_float_v2_m4(ctx_.region,
-                                      old_first_symm_pos_eval_cu,
-                                      old_first_symm_pos_eval_re,
-                                      projection.values);
+        ED_view3d_project_float_v2_m4(
+            ctx_.region, old_first_symm_pos_eval_cu, old_first_symm_pos_eval_re, projection.ptr());
 
         const float radius_falloff = slide_curve_info.radius_falloff;
         const float curve_weight = brush_strength_ * radius_falloff * curve_factors_[curve_i];
@@ -362,8 +362,10 @@ struct SlideOperationExecutor {
                                          ray_start_wo,
                                          ray_end_wo,
                                          true);
-        const float3 ray_start_su = world_to_surface_with_symmetry_mat * ray_start_wo;
-        const float3 ray_end_su = world_to_surface_with_symmetry_mat * ray_end_wo;
+        const float3 ray_start_su = math::transform_point(world_to_surface_with_symmetry_mat,
+                                                          ray_start_wo);
+        const float3 ray_end_su = math::transform_point(world_to_surface_with_symmetry_mat,
+                                                        ray_end_wo);
         const float3 ray_direction_su = math::normalize(ray_end_su - ray_start_su);
 
         /* Find the ray hit that is closest to the initial curve root position. */
@@ -397,25 +399,27 @@ struct SlideOperationExecutor {
 
         /* Gather old and new surface normal. */
         const float3 &initial_normal_cu = slide_curve_info.initial_normal_cu;
-        const float3 new_normal_cu = math::normalize(
-            transforms_.surface_to_curves_normal *
+        const float3 new_normal_cu = math::normalize(math::transform_point(
+            transforms_.surface_to_curves_normal,
             geometry::compute_surface_point_normal(
-                looptri_orig, result.bary_weights, corner_normals_orig_su_));
+                looptri_orig, result.bary_weights, corner_normals_orig_su_)));
 
         /* Gather old and new surface position. */
+        const float3 new_first_pos_orig_su = attribute_math::mix3<float3>(
+            bary_weights_orig,
+            positions_orig_su[loops_orig[looptri_orig.tri[0]].v],
+            positions_orig_su[loops_orig[looptri_orig.tri[1]].v],
+            positions_orig_su[loops_orig[looptri_orig.tri[2]].v]);
         const float3 old_first_pos_orig_cu = self_->initial_positions_cu_[first_point_i];
-        const float3 new_first_pos_orig_cu =
-            transforms_.surface_to_curves *
-            attribute_math::mix3<float3>(bary_weights_orig,
-                                         positions_orig_su[loops_orig[looptri_orig.tri[0]].v],
-                                         positions_orig_su[loops_orig[looptri_orig.tri[1]].v],
-                                         positions_orig_su[loops_orig[looptri_orig.tri[2]].v]);
+        const float3 new_first_pos_orig_cu = math::transform_point(transforms_.surface_to_curves,
+                                                                   new_first_pos_orig_su);
 
         /* Actually transform curve points. */
         const float4x4 slide_transform = this->get_slide_transform(
             old_first_pos_orig_cu, new_first_pos_orig_cu, initial_normal_cu, new_normal_cu);
         for (const int point_i : points) {
-          positions_orig_cu[point_i] = slide_transform * self_->initial_positions_cu_[point_i];
+          positions_orig_cu[point_i] = math::transform_point(
+              slide_transform, self_->initial_positions_cu_[point_i]);
         }
         surface_uv_coords[curve_i] = uv;
       }
@@ -465,14 +469,12 @@ struct SlideOperationExecutor {
                                const float3 &new_normal)
   {
     float3x3 rotation_3x3;
-    rotation_between_vecs_to_mat3(rotation_3x3.values, old_normal, new_normal);
-    float4x4 rotation_4x4;
-    copy_m4_m3(rotation_4x4.values, rotation_3x3.values);
+    rotation_between_vecs_to_mat3(rotation_3x3.ptr(), old_normal, new_normal);
 
     float4x4 transform = float4x4::identity();
-    sub_v3_v3(transform.values[3], old_root_pos);
-    mul_m4_m4_pre(transform.values, rotation_4x4.values);
-    add_v3_v3(transform.values[3], new_root_pos);
+    transform.location() -= old_root_pos;
+    transform = float4x4(rotation_3x3) * transform;
+    transform.location() += new_root_pos;
     return transform;
   }
 };

@@ -11,6 +11,7 @@
 
 #include "BLI_bounds.hh"
 #include "BLI_hash.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 
@@ -304,8 +305,7 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     BKE_nurbList_free(&cu.nurb);
 
-    float4x4 size_matrix = float4x4::identity();
-    size_matrix.apply_scale(layout.final_font_size);
+    float4x4 size_matrix = math::from_scale<float4x4>(float3(layout.final_font_size));
     curves.transform(size_matrix);
 
     if (pivot_required) {
@@ -330,7 +330,8 @@ static void add_instances_from_handles(bke::Instances &instances,
   threading::parallel_for(IndexRange(layout.positions.size()), 256, [&](IndexRange range) {
     for (const int i : range) {
       handles[i] = char_handles.lookup(layout.char_codes[i]);
-      transforms[i] = float4x4::from_location({layout.positions[i].x, layout.positions[i].y, 0});
+      transforms[i] = math::from_location<float4x4>(
+          {layout.positions[i].x, layout.positions[i].y, 0});
     }
   });
 }

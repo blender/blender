@@ -51,7 +51,7 @@ static Mesh *create_ico_sphere_mesh(const int subdivisions,
                "create_icosphere subdivisions=%i radius=%f matrix=%m4 calc_uvs=%b",
                subdivisions,
                std::abs(radius),
-               transform.values,
+               transform.ptr(),
                create_uv_map);
 
   BMeshToMeshParams params{};

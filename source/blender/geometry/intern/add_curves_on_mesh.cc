@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_length_parameterize.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"
@@ -126,7 +127,8 @@ static void interpolate_position_without_interpolation(
       const float3 &root_cu = root_positions_cu[i];
       const float length = new_lengths_cu[i];
       const float3 &normal_su = new_normals_su[i];
-      const float3 normal_cu = math::normalize(surface_to_curves_normal_mat * normal_su);
+      const float3 normal_cu = math::normalize(
+          math::transform_direction(surface_to_curves_normal_mat, normal_su));
       const float3 tip_cu = root_cu + length * normal_cu;
 
       initialize_straight_curve_positions(root_cu, tip_cu, positions_cu.slice(points));
@@ -159,7 +161,8 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
 
       const float length_cu = new_lengths_cu[added_curve_i];
       const float3 &normal_su = new_normals_su[added_curve_i];
-      const float3 normal_cu = math::normalize(transforms.surface_to_curves_normal * normal_su);
+      const float3 normal_cu = math::normalize(
+          math::transform_direction(transforms.surface_to_curves_normal, normal_su));
 
       const float3 &root_cu = root_positions_cu[added_curve_i];
 
@@ -182,8 +185,8 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
 
         const float3 neighbor_normal_su = compute_surface_point_normal(
             looptris[result.looptri_index], result.bary_weights, corner_normals_su);
-        const float3 neighbor_normal_cu = math::normalize(transforms.surface_to_curves_normal *
-                                                          neighbor_normal_su);
+        const float3 neighbor_normal_cu = math::normalize(
+            math::transform_direction(transforms.surface_to_curves_normal, neighbor_normal_su));
 
         /* The rotation matrix used to transform relative coordinates of the neighbor curve
          * to the new curve. */
@@ -265,7 +268,8 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
         surface_positions[surface_loops[looptri.tri[0]].v],
         surface_positions[surface_loops[looptri.tri[1]].v],
         surface_positions[surface_loops[looptri.tri[2]].v]);
-    root_positions_cu.append(inputs.transforms->surface_to_curves * root_position_su);
+    root_positions_cu.append(
+        math::transform_point(inputs.transforms->surface_to_curves, root_position_su));
     used_uvs.append(uv);
   }
 

@@ -20,6 +20,7 @@
 #include "WM_api.h"
 
 #include "BLI_length_parameterize.hh"
+#include "BLI_math_matrix.hh"
 
 #include "GEO_add_curves_on_mesh.hh"
 
@@ -173,10 +174,10 @@ struct PuffOperationExecutor {
   void find_curve_weights_projected(const float4x4 &brush_transform,
                                     MutableSpan<float> r_curve_weights)
   {
-    const float4x4 brush_transform_inv = brush_transform.inverted();
+    const float4x4 brush_transform_inv = math::invert(brush_transform);
 
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
 
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
@@ -189,13 +190,15 @@ struct PuffOperationExecutor {
       for (const int curve_selection_i : range) {
         const int curve_i = curve_selection_[curve_selection_i];
         const IndexRange points = points_by_curve[curve_i];
-        const float3 first_pos_cu = brush_transform_inv * deformation.positions[points[0]];
+        const float3 first_pos_cu = math::transform_point(brush_transform_inv,
+                                                          deformation.positions[points[0]]);
         float2 prev_pos_re;
-        ED_view3d_project_float_v2_m4(ctx_.region, first_pos_cu, prev_pos_re, projection.values);
+        ED_view3d_project_float_v2_m4(ctx_.region, first_pos_cu, prev_pos_re, projection.ptr());
         for (const int point_i : points.drop_front(1)) {
-          const float3 pos_cu = brush_transform_inv * deformation.positions[point_i];
+          const float3 pos_cu = math::transform_point(brush_transform_inv,
+                                                      deformation.positions[point_i]);
           float2 pos_re;
-          ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.values);
+          ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.ptr());
           BLI_SCOPED_DEFER([&]() { prev_pos_re = pos_re; });
 
           const float dist_to_brush_sq_re = dist_squared_to_line_segment_v2(
@@ -217,22 +220,23 @@ struct PuffOperationExecutor {
   void find_curves_weights_spherical_with_symmetry(MutableSpan<float> r_curve_weights)
   {
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
 
     float3 brush_pos_wo;
-    ED_view3d_win_to_3d(ctx_.v3d,
-                        ctx_.region,
-                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
-                        brush_pos_re_,
-                        brush_pos_wo);
-    const float3 brush_pos_cu = transforms_.world_to_curves * brush_pos_wo;
+    ED_view3d_win_to_3d(
+        ctx_.v3d,
+        ctx_.region,
+        math::transform_point(transforms_.curves_to_world, self_->brush_3d_.position_cu),
+        brush_pos_re_,
+        brush_pos_wo);
+    const float3 brush_pos_cu = math::transform_point(transforms_.world_to_curves, brush_pos_wo);
     const float brush_radius_cu = self_->brush_3d_.radius_cu * brush_radius_factor_;
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
       this->find_curves_weights_spherical(
-          brush_transform * brush_pos_cu, brush_radius_cu, r_curve_weights);
+          math::transform_point(brush_transform, brush_pos_cu), brush_radius_cu, r_curve_weights);
     }
   }
 
@@ -282,7 +286,8 @@ struct PuffOperationExecutor {
         const IndexRange points = points_by_curve[curve_i];
         const int first_point_i = points[0];
         const float3 first_pos_cu = positions_cu[first_point_i];
-        const float3 first_pos_su = transforms_.curves_to_surface * first_pos_cu;
+        const float3 first_pos_su = math::transform_point(transforms_.curves_to_surface,
+                                                          first_pos_cu);
 
         /* Find the nearest position on the surface. The curve will be aligned to the normal of
          * that point. */
@@ -303,7 +308,8 @@ struct PuffOperationExecutor {
         interp_weights_tri_v3(bary_coords, v0_su, v1_su, v2_su, closest_pos_su);
         const float3 normal_su = geometry::compute_surface_point_normal(
             looptri, bary_coords, corner_normals_su_);
-        const float3 normal_cu = math::normalize(transforms_.surface_to_curves_normal * normal_su);
+        const float3 normal_cu = math::normalize(
+            math::transform_direction(transforms_.surface_to_curves_normal, normal_su));
 
         accumulated_lengths_cu.reinitialize(points.size() - 1);
         length_parameterize::accumulate_lengths<float3>(
