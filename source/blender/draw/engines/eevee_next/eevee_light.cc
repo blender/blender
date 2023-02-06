@@ -67,8 +67,8 @@ void Light::sync(/* ShadowModule &shadows , */ const Object *ob, float threshold
 
   shape_parameters_set(la, scale);
 
-  float shape_power = shape_power_get(la);
-  float point_power = point_power_get(la);
+  float shape_power = shape_radiance_get(la);
+  float point_power = point_radiance_get(la);
   this->diffuse_power = la->diff_fac * shape_power;
   this->transmit_power = la->diff_fac * point_power;
   this->specular_power = la->spec_fac * shape_power;
@@ -185,64 +185,68 @@ void Light::shape_parameters_set(const ::Light *la, const float scale[3])
   }
 }
 
-float Light::shape_power_get(const ::Light *la)
+float Light::shape_radiance_get(const ::Light *la)
 {
-  /* Make illumination power constant */
+  /* Make illumination power constant. */
   switch (la->type) {
     case LA_AREA: {
-      float area = _area_size_x * _area_size_y;
-      float power = 1.0f / (area * 4.0f * float(M_PI));
-      /* FIXME : Empirical, Fit cycles power */
-      power *= 0.8f;
+      /* Rectangle area. */
+      float area = (_area_size_x * 2.0f) * (_area_size_y * 2.0f);
+      /* Scale for the lower area of the ellipse compared to the surrounding rectangle. */
       if (ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
-        /* Scale power to account for the lower area of the ellipse compared to the surrounding
-         * rectangle. */
-        power *= 4.0f / M_PI;
+        area *= M_PI / 4.0f;
       }
-      return power;
+      /* NOTE: The 4 factor is from Cycles definition of power. */
+      /* NOTE: Missing a factor of PI here to match Cycles. */
+      return 1.0f / (4.0f * area);
     }
     case LA_SPOT:
     case LA_LOCAL: {
-      return 1.0f / (4.0f * square_f(_radius) * float(M_PI * M_PI));
+      /* Sphere area. */
+      float area = 4.0f * float(M_PI) * square_f(_radius);
+      /* NOTE: Presence of a factor of PI here to match Cycles. But it should be missing to be
+       * consistent with the other cases. */
+      return 1.0f / (area * float(M_PI));
     }
     default:
     case LA_SUN: {
-      float power = 1.0f / (square_f(_radius) * float(M_PI));
+      /* Disk area. */
+      float area = float(M_PI) * square_f(_radius);
       /* Make illumination power closer to cycles for bigger radii. Cycles uses a cos^3 term that
        * we cannot reproduce so we account for that by scaling the light power. This function is
        * the result of a rough manual fitting. */
-      /* Simplification of: power *= 1 + r²/2 */
-      power += 1.0f / (2.0f * M_PI);
-
-      return power;
+      float sun_scaling = 1.0f + square_f(_radius) / 2.0f;
+      /* NOTE: Missing a factor of PI here to match Cycles. */
+      return sun_scaling / area;
     }
   }
 }
 
-float Light::point_power_get(const ::Light *la)
+float Light::point_radiance_get(const ::Light *la)
 {
-  /* Volume light is evaluated as point lights. Remove the shape power. */
+  /* Volume light is evaluated as point lights. */
   switch (la->type) {
     case LA_AREA: {
-      /* Match cycles. Empirical fit... must correspond to some constant. */
-      float power = 0.0792f * M_PI;
-
-      /* This corrects for area light most representative point trick. The fit was found by
-       * reducing the average error compared to cycles. */
-      float area = _area_size_x * _area_size_y;
+      /* This corrects for area light most representative point trick.
+       * The fit was found by reducing the average error compared to cycles. */
+      float area = (_area_size_x * 2.0) * (_area_size_y * 2.0f);
       float tmp = M_PI_2 / (M_PI_2 + sqrtf(area));
       /* Lerp between 1.0 and the limit (1 / pi). */
-      power *= tmp + (1.0f - tmp) * M_1_PI;
-
-      return power;
+      float mrp_scaling = tmp + (1.0f - tmp) * M_1_PI;
+      /* NOTE: The 4 factor is from Cycles definition of power. */
+      /* NOTE: Missing a factor of PI here to match Cycles. */
+      return mrp_scaling / 4.0f;
     }
     case LA_SPOT:
     case LA_LOCAL: {
-      /* Match cycles. Empirical fit... must correspond to some constant. */
-      return 0.0792f;
+      /* Sphere solid angle. */
+      float area = 4.0f * float(M_PI);
+      /* NOTE: Missing a factor of PI here to match Cycles. */
+      return 1.0f / area;
     }
     default:
     case LA_SUN: {
+      /* NOTE: Missing a factor of PI here to match Cycles. */
       return 1.0f;
     }
   }

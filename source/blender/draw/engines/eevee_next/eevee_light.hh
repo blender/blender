@@ -59,8 +59,8 @@ struct Light : public LightData {
  private:
   float attenuation_radius_get(const ::Light *la, float light_threshold, float light_power);
   void shape_parameters_set(const ::Light *la, const float scale[3]);
-  float shape_power_get(const ::Light *la);
-  float point_power_get(const ::Light *la);
+  float shape_radiance_get(const ::Light *la);
+  float point_radiance_get(const ::Light *la);
 };
 
 /** \} */
