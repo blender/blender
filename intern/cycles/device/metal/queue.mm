@@ -482,6 +482,12 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
       if (metal_device_->bvhMetalRT) {
         id<MTLAccelerationStructure> accel_struct = metal_device_->bvhMetalRT->accel_struct;
         [metal_device_->mtlAncillaryArgEncoder setAccelerationStructure:accel_struct atIndex:2];
+        [metal_device_->mtlAncillaryArgEncoder setBuffer:metal_device_->blas_buffer
+                                                  offset:0
+                                                 atIndex:7];
+        [metal_device_->mtlAncillaryArgEncoder setBuffer:metal_device_->blas_lookup_buffer
+                                                  offset:0
+                                                 atIndex:8];
       }
 
       for (int table = 0; table < METALRT_TABLE_NUM; table++) {
@@ -532,6 +538,10 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
       if (bvhMetalRT) {
         /* Mark all Accelerations resources as used */
         [mtlComputeCommandEncoder useResource:bvhMetalRT->accel_struct usage:MTLResourceUsageRead];
+        [mtlComputeCommandEncoder useResource:metal_device_->blas_buffer
+                                        usage:MTLResourceUsageRead];
+        [mtlComputeCommandEncoder useResource:metal_device_->blas_lookup_buffer
+                                        usage:MTLResourceUsageRead];
         [mtlComputeCommandEncoder useResources:bvhMetalRT->blas_array.data()
                                          count:bvhMetalRT->blas_array.size()
                                          usage:MTLResourceUsageRead];

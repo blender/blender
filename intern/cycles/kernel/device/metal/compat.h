@@ -266,13 +266,25 @@ ccl_device_forceinline uchar4 make_uchar4(const uchar x,
 
 #  if defined(__METALRT_MOTION__)
 #    define METALRT_TAGS instancing, instance_motion, primitive_motion
+#    define METALRT_BLAS_TAGS , primitive_motion
 #  else
 #    define METALRT_TAGS instancing
+#    define METALRT_BLAS_TAGS
 #  endif /* __METALRT_MOTION__ */
 
 typedef acceleration_structure<METALRT_TAGS> metalrt_as_type;
 typedef intersection_function_table<triangle_data, METALRT_TAGS> metalrt_ift_type;
 typedef metal::raytracing::intersector<triangle_data, METALRT_TAGS> metalrt_intersector_type;
+#  if defined(__METALRT_MOTION__)
+typedef acceleration_structure<primitive_motion> metalrt_blas_as_type;
+typedef intersection_function_table<triangle_data, primitive_motion> metalrt_blas_ift_type;
+typedef metal::raytracing::intersector<triangle_data, primitive_motion>
+    metalrt_blas_intersector_type;
+#  else
+typedef acceleration_structure<> metalrt_blas_as_type;
+typedef intersection_function_table<triangle_data> metalrt_blas_ift_type;
+typedef metal::raytracing::intersector<triangle_data> metalrt_blas_intersector_type;
+#  endif
 
 #endif /* __METALRT__ */
 
@@ -285,6 +297,12 @@ struct Texture3DParamsMetal {
   texture3d<float, access::sample> tex;
 };
 
+#ifdef __METALRT__
+struct MetalRTBlasWrapper {
+  metalrt_blas_as_type blas;
+};
+#endif
+
 struct MetalAncillaries {
   device Texture2DParamsMetal *textures_2d;
   device Texture3DParamsMetal *textures_3d;
@@ -294,6 +312,9 @@ struct MetalAncillaries {
   metalrt_ift_type ift_default;
   metalrt_ift_type ift_shadow;
   metalrt_ift_type ift_local;
+  metalrt_blas_ift_type ift_local_prim;
+  constant MetalRTBlasWrapper *blas_accel_structs;
+  constant int *blas_userID_to_index_lookUp;
 #endif
 };
 
