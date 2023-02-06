@@ -155,18 +155,18 @@ typedef enum {
   MOD_SNAP_INVERT = 1 << 3,
   MOD_CONSTRAINT_SELECT_PLANE = 1 << 4,
   MOD_NODE_ATTACH = 1 << 5,
+  MOD_SNAP_FORCED = 1 << 6,
 } eTModifier;
 ENUM_OPERATORS(eTModifier, MOD_NODE_ATTACH)
 
 /** #TransSnap.status */
 typedef enum eTSnap {
   SNAP_RESETTED = 0,
-  SNAP_FORCED = 1 << 0,
-  SNAP_SOURCE_FOUND = 1 << 1,
+  SNAP_SOURCE_FOUND = 1 << 0,
   /* Special flag for snap to grid. */
-  SNAP_TARGET_GRID_FOUND = 1 << 2,
-  SNAP_TARGET_FOUND = 1 << 3,
-  SNAP_MULTI_POINTS = 1 << 4,
+  SNAP_TARGET_GRID_FOUND = 1 << 1,
+  SNAP_TARGET_FOUND = 1 << 2,
+  SNAP_MULTI_POINTS = 1 << 3,
 } eTSnap;
 ENUM_OPERATORS(eTSnap, SNAP_MULTI_POINTS)
 

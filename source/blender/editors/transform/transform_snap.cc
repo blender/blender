@@ -147,7 +147,7 @@ bool transformModeUseSnap(const TransInfo *t)
 
 static bool doForceIncrementSnap(const TransInfo *t)
 {
-  if (t->tsnap.status & SNAP_FORCED) {
+  if (t->modifiers & MOD_SNAP_FORCED) {
     return false;
   }
 
@@ -808,7 +808,8 @@ void initSnapping(TransInfo *t, wmOperator *op)
       if ((prop = RNA_struct_find_property(op->ptr, "snap_point")) &&
           RNA_property_is_set(op->ptr, prop)) {
         RNA_property_float_get_array(op->ptr, prop, t->tsnap.snap_target);
-        t->tsnap.status |= SNAP_FORCED | SNAP_TARGET_FOUND;
+        t->modifiers |= MOD_SNAP_FORCED;
+        t->tsnap.status |= SNAP_TARGET_FOUND;
       }
 
       /* snap align only defined in specific cases */
