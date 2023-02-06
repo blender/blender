@@ -82,6 +82,8 @@
 #include "CLG_log.h"
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
+#  include "GHOST_TimerTask.h"
+
 #  include <pthread.h>
 #endif
 
@@ -848,7 +850,14 @@ static void gwl_seat_key_repeat_timer_add(GWL_Seat *seat,
   GHOST_SystemWayland *system = seat->system;
   const uint64_t time_step = 1000 / seat->key_repeat.rate;
   const uint64_t time_start = use_delay ? seat->key_repeat.delay : time_step;
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  GHOST_TimerTask *timer = new GHOST_TimerTask(
+      system->getMilliSeconds() + time_start, time_step, key_repeat_fn, payload);
+  seat->key_repeat.timer = timer;
+  system->ghost_timer_manager()->addTimer(timer);
+#else
   seat->key_repeat.timer = system->installTimer(time_start, time_step, key_repeat_fn, payload);
+#endif
 }
 
 /**
@@ -857,7 +866,12 @@ static void gwl_seat_key_repeat_timer_add(GWL_Seat *seat,
 static void gwl_seat_key_repeat_timer_remove(GWL_Seat *seat)
 {
   GHOST_SystemWayland *system = seat->system;
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  system->ghost_timer_manager()->removeTimer(
+      static_cast<GHOST_TimerTask *>(seat->key_repeat.timer));
+#else
   system->removeTimer(seat->key_repeat.timer);
+#endif
   seat->key_repeat.timer = nullptr;
 }
 
@@ -935,6 +949,16 @@ struct GWL_Display {
   /** Guard against multiple threads accessing `events_pending` at once. */
   std::mutex events_pending_mutex;
 
+  /**
+   * A separate timer queue, needed so the WAYLAND thread can lock access.
+   * Using the system's #GHOST_Sysem::getTimerManager is not thread safe because
+   * access to the timer outside of WAYLAND specific logic will not lock.
+   *
+   * Needed because #GHOST_System::dispatchEvents fires timers
+   * outside of WAYLAND (without locking the `timer_mutex`).
+   */
+  GHOST_TimerManager *ghost_timer_manager;
+
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 };
 
@@ -951,6 +975,9 @@ static void gwl_display_destroy(GWL_Display *display)
     ghost_wl_display_lock_without_input(display->wl_display, display->system->server_mutex);
     display->events_pthread_is_active = false;
   }
+
+  delete display->ghost_timer_manager;
+  display->ghost_timer_manager = nullptr;
 #endif
 
   /* For typical WAYLAND use this will always be set.
@@ -5453,6 +5480,8 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
   gwl_display_event_thread_create(display_);
+
+  display_->ghost_timer_manager = new GHOST_TimerManager();
 #endif
 }
 
@@ -5533,10 +5562,16 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
   {
+    const uint64_t now = getMilliSeconds();
 #ifdef USE_EVENT_BACKGROUND_THREAD
-    std::lock_guard lock_timer_guard{*display_->system->timer_mutex};
+    {
+      std::lock_guard lock_timer_guard{*display_->system->timer_mutex};
+      if (ghost_timer_manager()->fireTimers(now)) {
+        any_processed = true;
+      }
+    }
 #endif
-    if (getTimerManager()->fireTimers(getMilliSeconds())) {
+    if (getTimerManager()->fireTimers(now)) {
       any_processed = true;
     }
   }
@@ -6758,6 +6793,13 @@ struct wl_shm *GHOST_SystemWayland::wl_shm() const
 {
   return display_->wl_shm;
 }
+
+#ifdef USE_EVENT_BACKGROUND_THREAD
+GHOST_TimerManager *GHOST_SystemWayland::ghost_timer_manager()
+{
+  return display_->ghost_timer_manager;
+}
+#endif
 
 /** \} */
 
