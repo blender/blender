@@ -532,13 +532,16 @@ typedef struct LibblockRemapMultipleUserData {
 
 static void libblock_remap_foreach_idpair_cb(ID *old_id, ID *new_id, void *user_data)
 {
+  if (old_id == new_id) {
+    return;
+  }
+
   LibBlockRemapMultipleUserData *data = user_data;
   Main *bmain = data->bmain;
   const short remap_flags = data->remap_flags;
 
   BLI_assert(old_id != NULL);
   BLI_assert((new_id == NULL) || GS(old_id->name) == GS(new_id->name));
-  BLI_assert(old_id != new_id);
 
   if (free_notifier_reference_cb) {
     free_notifier_reference_cb(old_id);
