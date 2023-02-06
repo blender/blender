@@ -759,7 +759,7 @@ static void edge_queue_insert_val34_vert(EdgeQueueContext *eq_ctx, BMVert *v)
   // BLI_table_gset_add(eq_ctx->used_verts, v);
   eq_ctx->tot_used_verts++;
 
-  if (!eq_ctx->used_verts || eq_ctx->tot_used_verts > eq_ctx->used_verts_size) {
+  if (!eq_ctx->used_verts || eq_ctx->tot_used_verts >= eq_ctx->used_verts_size) {
     int newlen = (eq_ctx->tot_used_verts + 1);
     newlen += newlen >> 1;
 
@@ -2718,6 +2718,8 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   }
 
   EdgeQueueContext eq_ctx;
+  memset(static_cast<void*>(&eq_ctx), 0, sizeof(eq_ctx));
+
   eq_ctx.pool = nullptr;
   eq_ctx.bm = pbvh->header.bm;
   eq_ctx.mask_cb = mask_cb;
