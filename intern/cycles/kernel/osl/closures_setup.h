@@ -209,14 +209,7 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
   if (closure->distribution == make_string("ggx", 11253504724482777663ull) ||
       closure->distribution == make_string("default", 4430693559278735917ull)) {
     if (!closure->refract) {
-      if (closure->alpha_x == closure->alpha_y) {
-        /* Isotropic */
-        sd->flag |= bsdf_microfacet_ggx_isotropic_setup(bsdf);
-      }
-      else {
-        /* Anisotropic */
-        sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
-      }
+      sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
     }
     else {
       sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
@@ -225,14 +218,7 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
   /* Beckmann */
   else {
     if (!closure->refract) {
-      if (closure->alpha_x == closure->alpha_y) {
-        /* Isotropic */
-        sd->flag |= bsdf_microfacet_beckmann_isotropic_setup(bsdf);
-      }
-      else {
-        /* Anisotropic */
-        sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
-      }
+      sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
     }
     else {
       sd->flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
@@ -258,9 +244,9 @@ ccl_device void osl_closure_microfacet_ggx_setup(
   }
 
   bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
-  bsdf->alpha_x = closure->alpha_x;
+  bsdf->alpha_x = bsdf->alpha_y = closure->alpha_x;
 
-  sd->flag |= bsdf_microfacet_ggx_isotropic_setup(bsdf);
+  sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
 }
 
 ccl_device void osl_closure_microfacet_ggx_aniso_setup(
@@ -652,9 +638,9 @@ ccl_device void osl_closure_microfacet_beckmann_setup(
   }
 
   bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
-  bsdf->alpha_x = closure->alpha_x;
+  bsdf->alpha_x = bsdf->alpha_y = closure->alpha_x;
 
-  sd->flag |= bsdf_microfacet_beckmann_isotropic_setup(bsdf);
+  sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
 }
 
 ccl_device void osl_closure_microfacet_beckmann_aniso_setup(
