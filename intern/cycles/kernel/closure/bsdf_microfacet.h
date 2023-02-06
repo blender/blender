@@ -25,6 +25,9 @@ enum MicrofacetType {
 enum MicrofacetFresnel {
   NONE = 0,
   DIELECTRIC,
+  DIELECTRIC_TINT, /* used by the OSL MaterialX closures */
+  CONDUCTOR,
+  GENERALIZED_SCHLICK,
   CONSTANT, /* only needed by MultiGGX */
   PRINCIPLED_V1,
 };
@@ -37,6 +40,22 @@ typedef struct FresnelPrincipledV1 {
 typedef struct FresnelConstant {
   Spectrum color;
 } FresnelConstant;
+
+typedef struct FresnelDielectricTint {
+  Spectrum reflection_tint;
+  Spectrum transmission_tint;
+} FresnelDielectricTint;
+
+typedef struct FresnelConductor {
+  Spectrum n, k;
+} FresnelConductor;
+
+typedef struct FresnelGeneralizedSchlick {
+  Spectrum reflection_tint;
+  Spectrum transmission_tint;
+  Spectrum f0, f90;
+  float exponent;
+} FresnelGeneralizedSchlick;
 
 typedef struct MicrofacetBsdf {
   SHADER_CLOSURE_BASE;
@@ -209,6 +228,40 @@ ccl_device_forceinline Spectrum microfacet_fresnel(ccl_private const MicrofacetB
   else if (bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC) {
     const float F = fresnel_dielectric_cos(dot(wi, H), bsdf->ior);
     return make_spectrum(refraction ? 1.0f - F : F);
+  }
+  else if (bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC_TINT) {
+    ccl_private FresnelDielectricTint *fresnel = (ccl_private FresnelDielectricTint *)
+                                                     bsdf->fresnel;
+    const float F = fresnel_dielectric_cos(dot(wi, H), bsdf->ior);
+    return refraction ? (1.0f - F) * fresnel->transmission_tint : F * fresnel->reflection_tint;
+  }
+  else if (bsdf->fresnel_type == MicrofacetFresnel::CONDUCTOR) {
+    kernel_assert(!refraction);
+    ccl_private FresnelConductor *fresnel = (ccl_private FresnelConductor *)bsdf->fresnel;
+    return fresnel_conductor(dot(wi, H), fresnel->n, fresnel->k);
+  }
+  else if (bsdf->fresnel_type == MicrofacetFresnel::GENERALIZED_SCHLICK) {
+    ccl_private FresnelGeneralizedSchlick *fresnel = (ccl_private FresnelGeneralizedSchlick *)
+                                                         bsdf->fresnel;
+    float cosI = dot(wi, H);
+    if (bsdf->ior < 1.0f) {
+      /* When going from a higher to a lower IOR, we must use the transmitted angle. */
+      float sinT2 = (1.0f - sqr(cosI)) / sqr(bsdf->ior);
+      if (sinT2 >= 1.0f) {
+        /* Total internal reflection */
+        return refraction ? zero_spectrum() : fresnel->reflection_tint;
+      }
+      cosI = safe_sqrtf(1.0f - sinT2);
+    }
+    /* TODO(lukas): Is a special case for exponent==5 worth it? */
+    const float s = powf(1.0f - cosI, fresnel->exponent);
+    const Spectrum F = mix(fresnel->f0, fresnel->f90, s);
+    if (refraction) {
+      return (one_spectrum() - F) * fresnel->transmission_tint;
+    }
+    else {
+      return F * fresnel->reflection_tint;
+    }
   }
   else if (bsdf->fresnel_type == MicrofacetFresnel::CONSTANT) {
     kernel_assert(!refraction);
@@ -596,6 +649,35 @@ ccl_device void bsdf_microfacet_setup_fresnel_principledv1(
   fresnel->cspec0 = saturate(fresnel->cspec0);
 
   bsdf->fresnel_type = MicrofacetFresnel::PRINCIPLED_V1;
+  bsdf->fresnel = fresnel;
+  bsdf_microfacet_adjust_weight(sd, bsdf);
+}
+
+ccl_device void bsdf_microfacet_setup_fresnel_conductor(ccl_private MicrofacetBsdf *bsdf,
+                                                        ccl_private const ShaderData *sd,
+                                                        ccl_private FresnelConductor *fresnel)
+{
+  bsdf->fresnel_type = MicrofacetFresnel::CONDUCTOR;
+  bsdf->fresnel = fresnel;
+  bsdf_microfacet_adjust_weight(sd, bsdf);
+}
+
+ccl_device void bsdf_microfacet_setup_fresnel_dielectric_tint(
+    ccl_private MicrofacetBsdf *bsdf,
+    ccl_private const ShaderData *sd,
+    ccl_private FresnelDielectricTint *fresnel)
+{
+  bsdf->fresnel_type = MicrofacetFresnel::DIELECTRIC_TINT;
+  bsdf->fresnel = fresnel;
+  bsdf_microfacet_adjust_weight(sd, bsdf);
+}
+
+ccl_device void bsdf_microfacet_setup_fresnel_generalized_schlick(
+    ccl_private MicrofacetBsdf *bsdf,
+    ccl_private const ShaderData *sd,
+    ccl_private FresnelGeneralizedSchlick *fresnel)
+{
+  bsdf->fresnel_type = MicrofacetFresnel::GENERALIZED_SCHLICK;
   bsdf->fresnel = fresnel;
   bsdf_microfacet_adjust_weight(sd, bsdf);
 }

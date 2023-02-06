@@ -178,6 +178,184 @@ ccl_device void osl_closure_transparent_setup(KernelGlobals kg,
   bsdf_transparent_setup(sd, rgb_to_spectrum(weight), path_flag);
 }
 
+/* MaterialX closures */
+ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
+                                                  ccl_private ShaderData *sd,
+                                                  uint32_t path_flag,
+                                                  float3 weight,
+                                                  ccl_private const DielectricBSDFClosure *closure)
+{
+  const bool has_reflection = !is_zero(closure->reflection_tint);
+  const bool has_transmission = !is_zero(closure->transmission_tint);
+
+  if (osl_closure_skip(kg, sd, path_flag, LABEL_GLOSSY | LABEL_REFLECT)) {
+    return;
+  }
+
+  ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
+      sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(weight));
+  if (!bsdf) {
+    return;
+  }
+
+  ccl_private FresnelDielectricTint *fresnel = (ccl_private FresnelDielectricTint *)
+      closure_alloc_extra(sd, sizeof(FresnelDielectricTint));
+  if (!fresnel) {
+    return;
+  }
+
+  bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
+  bsdf->alpha_x = closure->alpha_x;
+  bsdf->alpha_y = closure->alpha_y;
+  bsdf->ior = closure->ior;
+  if (sd->flag & SD_BACKFACING) {
+    bsdf->ior = 1.0f / bsdf->ior;
+  }
+  bsdf->T = closure->T;
+
+  /* GGX */
+  if (closure->distribution == make_string("ggx", 11253504724482777663ull) ||
+      closure->distribution == make_string("default", 4430693559278735917ull)) {
+    if (has_reflection && has_transmission) {
+      sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
+    }
+    else if (has_transmission) {
+      sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
+    }
+    else {
+      sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+    }
+  }
+  /* Beckmann */
+  else {
+    if (has_reflection && has_transmission) {
+      sd->flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);
+    }
+    else if (has_transmission) {
+      sd->flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
+    }
+    else {
+      sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
+    }
+  }
+
+  fresnel->reflection_tint = rgb_to_spectrum(closure->reflection_tint);
+  fresnel->transmission_tint = rgb_to_spectrum(closure->transmission_tint);
+  bsdf_microfacet_setup_fresnel_dielectric_tint(bsdf, sd, fresnel);
+}
+
+ccl_device void osl_closure_conductor_bsdf_setup(KernelGlobals kg,
+                                                 ccl_private ShaderData *sd,
+                                                 uint32_t path_flag,
+                                                 float3 weight,
+                                                 ccl_private const ConductorBSDFClosure *closure)
+{
+  if (osl_closure_skip(kg, sd, path_flag, LABEL_GLOSSY | LABEL_REFLECT)) {
+    return;
+  }
+
+  ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
+      sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(weight));
+  if (!bsdf) {
+    return;
+  }
+
+  ccl_private FresnelConductor *fresnel = (ccl_private FresnelConductor *)closure_alloc_extra(
+      sd, sizeof(FresnelConductor));
+  if (!fresnel) {
+    return;
+  }
+
+  bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
+  bsdf->alpha_x = closure->alpha_x;
+  bsdf->alpha_y = closure->alpha_y;
+  bsdf->ior = 0.0f;
+  bsdf->T = closure->T;
+
+  /* GGX */
+  if (closure->distribution == make_string("ggx", 11253504724482777663ull) ||
+      closure->distribution == make_string("default", 4430693559278735917ull)) {
+    sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+  }
+  /* Beckmann */
+  else {
+    sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
+  }
+
+  fresnel->n = rgb_to_spectrum(closure->ior);
+  fresnel->k = rgb_to_spectrum(closure->extinction);
+  bsdf_microfacet_setup_fresnel_conductor(bsdf, sd, fresnel);
+}
+
+ccl_device void osl_closure_generalized_schlick_bsdf_setup(
+    KernelGlobals kg,
+    ccl_private ShaderData *sd,
+    uint32_t path_flag,
+    float3 weight,
+    ccl_private const GeneralizedSchlickBSDFClosure *closure)
+{
+  const bool has_reflection = !is_zero(closure->reflection_tint);
+  const bool has_transmission = !is_zero(closure->transmission_tint);
+
+  if (osl_closure_skip(kg, sd, path_flag, LABEL_GLOSSY | LABEL_REFLECT)) {
+    return;
+  }
+
+  ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
+      sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(weight));
+  if (!bsdf) {
+    return;
+  }
+
+  ccl_private FresnelGeneralizedSchlick *fresnel = (ccl_private FresnelGeneralizedSchlick *)
+      closure_alloc_extra(sd, sizeof(FresnelGeneralizedSchlick));
+  if (!fresnel) {
+    return;
+  }
+
+  bsdf->N = ensure_valid_reflection(sd->Ng, sd->wi, closure->N);
+  bsdf->alpha_x = closure->alpha_x;
+  bsdf->alpha_y = closure->alpha_y;
+  bsdf->ior = ior_from_F0(closure->f0);
+  if (sd->flag & SD_BACKFACING) {
+    bsdf->ior = 1.0f / bsdf->ior;
+  }
+  bsdf->T = closure->T;
+
+  /* GGX */
+  if (closure->distribution == make_string("ggx", 11253504724482777663ull) ||
+      closure->distribution == make_string("default", 4430693559278735917ull)) {
+    if (has_reflection && has_transmission) {
+      sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
+    }
+    else if (has_transmission) {
+      sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
+    }
+    else {
+      sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+    }
+  }
+  /* Beckmann */
+  else {
+    if (has_reflection && has_transmission) {
+      sd->flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);
+    }
+    else if (has_transmission) {
+      sd->flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
+    }
+    else {
+      sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
+    }
+  }
+
+  fresnel->reflection_tint = rgb_to_spectrum(closure->reflection_tint);
+  fresnel->transmission_tint = rgb_to_spectrum(closure->transmission_tint);
+  fresnel->f0 = rgb_to_spectrum(closure->f0);
+  fresnel->f90 = rgb_to_spectrum(closure->f90);
+  fresnel->exponent = closure->exponent;
+  bsdf_microfacet_setup_fresnel_generalized_schlick(bsdf, sd, fresnel);
+}
+
 /* Standard microfacet closures */
 
 ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
