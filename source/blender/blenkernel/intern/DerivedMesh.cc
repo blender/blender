@@ -760,6 +760,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       }
 
       if (mti->type == eModifierTypeType_OnlyDeform && !sculpt_dyntopo) {
+        blender::bke::ScopedModifierTimer modifier_timer{*md};
         if (!deformed_verts) {
           deformed_verts = BKE_mesh_vert_coords_alloc(mesh_input, &num_deformed_verts);
         }
@@ -845,6 +846,8 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
     if (need_mapping && !BKE_modifier_supports_mapping(md)) {
       continue;
     }
+
+    blender::bke::ScopedModifierTimer modifier_timer{*md};
 
     /* Add orco mesh as layer if needed by this modifier. */
     if (mesh_final && mesh_orco && mti->requiredDataMask) {
@@ -1322,6 +1325,8 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
     if (!editbmesh_modifier_is_enabled(scene, ob, md, mesh_final != nullptr)) {
       continue;
     }
+
+    blender::bke::ScopedModifierTimer modifier_timer{*md};
 
     /* Add an orco mesh as layer if needed by this modifier. */
     if (mesh_final && mesh_orco && mti->requiredDataMask) {

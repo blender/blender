@@ -11,6 +11,7 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include <cfloat>
+#include <chrono>
 #include <cmath>
 #include <cstdarg>
 #include <cstddef>
@@ -1514,3 +1515,28 @@ void BKE_modifier_blend_read_lib(BlendLibReader *reader, Object *ob)
     }
   }
 }
+
+namespace blender::bke {
+
+using Clock = std::chrono::high_resolution_clock;
+
+static double get_current_time_in_seconds()
+{
+  return std::chrono::duration<double, std::chrono::seconds::period>(
+             Clock::now().time_since_epoch())
+      .count();
+}
+
+ScopedModifierTimer::ScopedModifierTimer(ModifierData &md) : md_(md)
+{
+  start_time_ = get_current_time_in_seconds();
+}
+
+ScopedModifierTimer::~ScopedModifierTimer()
+{
+  const double end_time = get_current_time_in_seconds();
+  const double duration = end_time - start_time_;
+  md_.execution_time = duration;
+}
+
+}  // namespace blender::bke
