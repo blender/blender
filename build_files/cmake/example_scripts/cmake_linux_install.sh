@@ -11,7 +11,7 @@
 mkdir ~/blender-git
 cd ~/blender-git
 
-git clone http://git.blender.org/blender.git
+git clone https://projects.blender.org/blender/blender.git
 cd blender
 git submodule update --init --recursive
 git submodule foreach git checkout main

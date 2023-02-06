@@ -10,7 +10,7 @@ fi
 
 BRANCH="main"
 
-# repo="git://git.blender.org/libmv.git"
+# repo="https://projects.blender.org/blender/libmv.git"
 repo="/home/sergey/Developer/libmv"
 tmp=`mktemp -d`
 
