@@ -975,9 +975,6 @@ static void gwl_display_destroy(GWL_Display *display)
     ghost_wl_display_lock_without_input(display->wl_display, display->system->server_mutex);
     display->events_pthread_is_active = false;
   }
-
-  delete display->ghost_timer_manager;
-  display->ghost_timer_manager = nullptr;
 #endif
 
   /* For typical WAYLAND use this will always be set.
@@ -1015,6 +1012,11 @@ static void gwl_display_destroy(GWL_Display *display)
     gwl_display_event_thread_destroy(display);
     display->system->server_mutex->unlock();
   }
+
+  /* Important to remove after the seats which may have key repeat timers active. */
+  delete display->ghost_timer_manager;
+  display->ghost_timer_manager = nullptr;
+
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
   if (display->wl_display) {
