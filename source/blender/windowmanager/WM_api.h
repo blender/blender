@@ -1257,7 +1257,26 @@ void WM_event_fileselect_event(struct wmWindowManager *wm, void *ophandle, int e
 void WM_operator_region_active_win_set(struct bContext *C);
 
 /**
- * Only finish + pass through for press events (allowing press-tweak).
+ * Indented for use in a selection (picking) operators #wmOperatorType::invoke callback
+ * to implement click-drag, where the initial click selects and the drag action
+ * grabs or performs box-select (for example).
+ *
+ * - In this case, returning `OPERATOR_FINISHED` causes the PRESS event
+ *   to be handled and prevents further CLICK (on release) or DRAG (on cursor motion)
+ *   from being generated & handled.
+ *
+ * - Returning `OPERATOR_FINISHED | OPERATOR_PASS_THROUGH` allows for CLICK/DRAG but only makes
+ *   sense if the event's value is PRESS. If the operator was already mapped to a CLICK/DRAG event,
+ *   a single CLICK/DRAG could invoke multiple operators.
+ *
+ * This function handles the details of checking the operator return value,
+ * clearing #OPERATOR_PASS_THROUGH when the #wmEvent::val is not #KM_PRESS.
+ *
+ * \note Combining selection with other actions should only be used
+ * in situations where selecting doesn't change the visibility of other items.
+ * Since it means for example click-drag to box select could hide-show elements the user
+ * intended to box-select. In this case it's preferred to select on CLICK instead of PRESS
+ * (see the Outliner use of click-drag).
  */
 int WM_operator_flag_only_pass_through_on_press(int retval, const struct wmEvent *event);
 
