@@ -371,7 +371,7 @@ class GPUDevice : public Device {
                                 size_t preferred_working_headroom = 0);
   virtual void move_textures_to_host(size_t size, bool for_texture);
 
-  /* Allocation, deallocation and copy functions, with coresponding
+  /* Allocation, deallocation and copy functions, with corresponding
    * support of device/host allocations. */
   virtual GPUDevice::Mem *generic_alloc(device_memory &mem, size_t pitch_padding = 0);
   virtual void generic_free(device_memory &mem);
@@ -388,9 +388,9 @@ class GPUDevice : public Device {
 
   virtual void free_host(void *shared_pointer) = 0;
 
-  /* This function should return device pointer coresponding to shared pointer, which
+  /* This function should return device pointer corresponding to shared pointer, which
    * is host buffer, allocated in `alloc_host`. The function should `true`, if such
-   * address transformation is possible and `false` overwise */
+   * address transformation is possible and `false` otherwise. */
   virtual bool transform_host_pointer(void *&device_pointer, void *&shared_pointer) = 0;
 
   virtual void copy_host_to_device(void *device_pointer, void *host_pointer, size_t size) = 0;

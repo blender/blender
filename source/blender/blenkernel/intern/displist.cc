@@ -1204,7 +1204,7 @@ static GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
         }
 
         LISTBASE_FOREACH (DispList *, dlb, &dlbev) {
-          /* for each part of the bevel use a separate displblock */
+          /* For each part of the bevel use a separate display-block. */
           DispList *dl = MEM_cnew<DispList>(__func__);
           dl->verts = data = (float *)MEM_mallocN(sizeof(float[3]) * dlb->nr * steps, __func__);
           BLI_addtail(r_dispbase, dl);

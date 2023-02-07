@@ -103,7 +103,7 @@ vector<id<MTLDevice>> const &MetalInfo::get_usable_devices()
   }
 
   /* If the system has both an AMD GPU (discrete) and an Intel one (integrated), prefer the AMD
-   * one. This can be overriden with CYCLES_METAL_FORCE_INTEL. */
+   * one. This can be overridden with CYCLES_METAL_FORCE_INTEL. */
   bool has_usable_amd_gpu = false;
   if (@available(macos 12.3, *)) {
     for (id<MTLDevice> device in MTLCopyAllDevices()) {

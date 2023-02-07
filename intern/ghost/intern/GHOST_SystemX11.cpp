@@ -2015,8 +2015,8 @@ void GHOST_SystemX11::getClipboard_xcout(
         return;
       }
 
-      /* if it's not incr, and not format == 8, then there's
-       * nothing in the selection (that xclip understands, anyway) */
+      /* If it's not INCR, and not `format == 8`, then there's
+       * nothing in the selection (that `xclip` understands, anyway). */
 
       if (pty_format != 8) {
         *context = XCLIB_XCOUT_NONE;
