@@ -1161,9 +1161,6 @@ static void drw_update_view(void)
   GPU_uniformbuf_update(G_draw.view_ubo, &DST.view_active->storage);
   GPU_uniformbuf_update(G_draw.clipping_ubo, &DST.view_active->clip_planes);
 
-  /* TODO: get rid of this. */
-  DST.view_storage_cpy = DST.view_active->storage;
-
   draw_compute_culling(DST.view_active);
 }
 
