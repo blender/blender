@@ -1722,19 +1722,21 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             row.prop(self, "peer_memory")
 
         if compute_device_type == 'METAL':
-            import platform, re
-            isNavi2 = False
+            import platform
+            import re
+            is_navi_2 = False
             for device in devices:
-                obj = re.search("((RX)|(Pro)|(PRO))\s+W?6\d00X",device.name)
-                if obj:
-                    isNavi2 = True
+                if re.search(r"((RX)|(Pro)|(PRO))\s+W?6\d00X", device.name):
+                    is_navi_2 = True
+                    break
 
-            # MetalRT only works on Apple Silicon and Navi2
-            if platform.machine() == 'arm64' or isNavi2:
+            # MetalRT only works on Apple Silicon and Navi2.
+            is_arm64 = platform.machine() == 'arm64'
+            if is_arm64 or is_navi_2:
                 col = layout.column()
                 col.use_property_split = True
                 # Kernel specialization is only supported on Apple Silicon
-                if platform.machine() == 'arm64':
+                if is_arm64:
                     col.prop(self, "kernel_optimization_level")
                 col.prop(self, "use_metalrt")
 
