@@ -73,6 +73,7 @@ set(SRC
 )
 
 set(LIB
+  bf_editor_curves
   bf_editor_lattice
   bf_editor_mesh
 )
