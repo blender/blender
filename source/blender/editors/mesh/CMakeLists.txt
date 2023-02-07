@@ -39,7 +39,7 @@ set(SRC
   editmesh_knife.c
   editmesh_knife_project.c
   editmesh_loopcut.c
-  editmesh_mask_extract.c
+  editmesh_mask_extract.cc
   editmesh_path.c
   editmesh_polybuild.c
   editmesh_preselect_edgering.c

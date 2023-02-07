@@ -24,23 +24,24 @@
 
 #include "bmesh.h"
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
-typedef struct MultiplaneScrapeSampleData {
+struct MultiplaneScrapeSampleData {
   float area_cos[2][3];
   float area_nos[2][3];
   int area_count[2];
-} MultiplaneScrapeSampleData;
+};
 
 static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
                                                    const int n,
                                                    const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
-  MultiplaneScrapeSampleData *mssd = tls->userdata_chunk;
+  MultiplaneScrapeSampleData *mssd = static_cast<MultiplaneScrapeSampleData *>(
+      tls->userdata_chunk);
   float(*mat)[4] = data->mat;
 
   PBVHVertexIter vd;
@@ -98,12 +99,12 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
   }
 }
 
-static void calc_multiplane_scrape_surface_reduce(const void *__restrict UNUSED(userdata),
+static void calc_multiplane_scrape_surface_reduce(const void *__restrict /*userdata*/,
                                                   void *__restrict chunk_join,
                                                   void *__restrict chunk)
 {
-  MultiplaneScrapeSampleData *join = chunk_join;
-  MultiplaneScrapeSampleData *mssd = chunk;
+  MultiplaneScrapeSampleData *join = static_cast<MultiplaneScrapeSampleData *>(chunk_join);
+  MultiplaneScrapeSampleData *mssd = static_cast<MultiplaneScrapeSampleData *>(chunk);
 
   add_v3_v3(join->area_cos[0], mssd->area_cos[0]);
   add_v3_v3(join->area_cos[1], mssd->area_cos[1]);
@@ -119,7 +120,7 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
                                                   const int n,
                                                   const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   float(*mat)[4] = data->mat;
@@ -275,14 +276,13 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
   if (brush->flag2 & BRUSH_MULTIPLANE_SCRAPE_DYNAMIC) {
     /* Sample the individual normal and area center of the two areas at both sides of the cursor.
      */
-    SculptThreadedTaskData sample_data = {
-        .sd = NULL,
-        .ob = ob,
-        .brush = brush,
-        .nodes = nodes,
-        .totnode = totnode,
-        .mat = mat,
-    };
+    SculptThreadedTaskData sample_data{};
+    sample_data.sd = nullptr;
+    sample_data.ob = ob;
+    sample_data.brush = brush;
+    sample_data.nodes = nodes;
+    sample_data.totnode = totnode;
+    sample_data.mat = mat;
 
     MultiplaneScrapeSampleData mssd = {{{0}}};
 
@@ -302,13 +302,13 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
 
     /* Use the area center of both planes to detect if we are sculpting along a concave or convex
      * edge. */
-    mul_v3_v3fl(sampled_plane_co[0], mssd.area_cos[0], 1.0f / (float)mssd.area_count[0]);
-    mul_v3_v3fl(sampled_plane_co[1], mssd.area_cos[1], 1.0f / (float)mssd.area_count[1]);
+    mul_v3_v3fl(sampled_plane_co[0], mssd.area_cos[0], 1.0f / float(mssd.area_count[0]));
+    mul_v3_v3fl(sampled_plane_co[1], mssd.area_cos[1], 1.0f / float(mssd.area_count[1]));
     mid_v3_v3v3(mid_co, sampled_plane_co[0], sampled_plane_co[1]);
 
     /* Calculate the scrape planes angle based on the sampled normals. */
-    mul_v3_v3fl(sampled_plane_normals[0], mssd.area_nos[0], 1.0f / (float)mssd.area_count[0]);
-    mul_v3_v3fl(sampled_plane_normals[1], mssd.area_nos[1], 1.0f / (float)mssd.area_count[1]);
+    mul_v3_v3fl(sampled_plane_normals[0], mssd.area_nos[0], 1.0f / float(mssd.area_count[0]));
+    mul_v3_v3fl(sampled_plane_normals[1], mssd.area_nos[1], 1.0f / float(mssd.area_count[1]));
     normalize_v3(sampled_plane_normals[0]);
     normalize_v3(sampled_plane_normals[1]);
 
@@ -347,14 +347,13 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
     }
   }
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .mat = mat,
-      .multiplane_scrape_angle = ss->cache->multiplane_scrape_angle,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.mat = mat;
+  data.multiplane_scrape_angle = ss->cache->multiplane_scrape_angle;
 
   /* Calculate the final left and right scrape planes. */
   float plane_no[3];

@@ -29,14 +29,14 @@
 
 #include "bmesh.h"
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 static void do_color_smooth_task_cb_exec(void *__restrict userdata,
                                          const int n,
                                          const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float bstrength = ss->cache->bstrength;
@@ -85,7 +85,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
                                       const int n,
                                       const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float bstrength = fabsf(ss->cache->bstrength);
@@ -168,7 +168,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     float noise = 1.0f;
     const float density = ss->cache->paint_brush.density;
     if (density < 1.0f) {
-      const float hash_noise = (float)BLI_hash_int_01(ss->cache->density_seed * 1000 * vd.index);
+      const float hash_noise = float(BLI_hash_int_01(ss->cache->density_seed * 1000 * vd.index));
       if (hash_noise > density) {
         noise = density * hash_noise;
         fade = fade * noise;
@@ -196,25 +196,25 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
 
     float col[4];
     SCULPT_vertex_color_get(ss, vd.vertex, col);
-    IMB_blend_color_float(col, orig_data.col, buffer_color, brush->blend);
+    IMB_blend_color_float(col, orig_data.col, buffer_color, IMB_BlendMode(brush->blend));
     CLAMP4(col, 0.0f, 1.0f);
     SCULPT_vertex_color_set(ss, vd.vertex, col);
   }
   BKE_pbvh_vertex_iter_end;
 }
 
-typedef struct SampleWetPaintTLSData {
+struct SampleWetPaintTLSData {
   int tot_samples;
   float color[4];
-} SampleWetPaintTLSData;
+};
 
 static void do_sample_wet_paint_task_cb(void *__restrict userdata,
                                         const int n,
                                         const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
-  SampleWetPaintTLSData *swptd = tls->userdata_chunk;
+  SampleWetPaintTLSData *swptd = static_cast<SampleWetPaintTLSData *>(tls->userdata_chunk);
   PBVHVertexIter vd;
 
   SculptBrushTest test;
@@ -238,12 +238,12 @@ static void do_sample_wet_paint_task_cb(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void sample_wet_paint_reduce(const void *__restrict UNUSED(userdata),
+static void sample_wet_paint_reduce(const void *__restrict /*userdata*/,
                                     void *__restrict chunk_join,
                                     void *__restrict chunk)
 {
-  SampleWetPaintTLSData *join = chunk_join;
-  SampleWetPaintTLSData *swptd = chunk;
+  SampleWetPaintTLSData *join = static_cast<SampleWetPaintTLSData *>(chunk_join);
+  SampleWetPaintTLSData *swptd = static_cast<SampleWetPaintTLSData *>(chunk);
 
   join->tot_samples += swptd->tot_samples;
   add_v4_v4(join->color, swptd->color);
@@ -271,7 +271,7 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-      ss->cache->density_seed = (float)BLI_hash_int_01(ss->cache->location[0] * 1000);
+      ss->cache->density_seed = float(BLI_hash_int_01(ss->cache->location[0] * 1000));
     }
     return;
   }
@@ -309,13 +309,12 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
 
   /* Smooth colors mode. */
   if (ss->cache->alt_smooth) {
-    SculptThreadedTaskData data = {
-        .sd = sd,
-        .ob = ob,
-        .brush = brush,
-        .nodes = nodes,
-        .mat = mat,
-    };
+    SculptThreadedTaskData data{};
+    data.sd = sd;
+    data.ob = ob;
+    data.brush = brush;
+    data.nodes = nodes;
+    data.mat = mat;
 
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -328,12 +327,11 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
   /* Wet paint color sampling. */
   float wet_color[4] = {0.0f};
   if (ss->cache->paint_brush.wet_mix > 0.0f) {
-    SculptThreadedTaskData task_data = {
-        .sd = sd,
-        .ob = ob,
-        .nodes = nodes,
-        .brush = brush,
-    };
+    SculptThreadedTaskData task_data{};
+    task_data.sd = sd;
+    task_data.ob = ob;
+    task_data.nodes = nodes;
+    task_data.brush = brush;
 
     SampleWetPaintTLSData swptd;
     swptd.tot_samples = 0;
@@ -364,14 +362,13 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
   }
 
   /* Threaded loop over nodes. */
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .wet_mix_sampled_color = wet_color,
-      .mat = mat,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.wet_mix_sampled_color = wet_color;
+  data.mat = mat;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -382,7 +379,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
                                         const int n,
                                         const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float bstrength = ss->cache->bstrength;
@@ -533,9 +530,9 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
 
 static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
                                                     const int n,
-                                                    const TaskParallelTLS *__restrict UNUSED(tls))
+                                                    const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
 
   PBVHVertexIter vd;
@@ -557,7 +554,7 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   const int totvert = SCULPT_vertex_count_get(ss);
 
   if (!ss->cache->prev_colors) {
-    ss->cache->prev_colors = MEM_callocN(sizeof(float[4]) * totvert, "prev colors");
+    ss->cache->prev_colors = MEM_cnew_array<float[4]>(totvert, __func__);
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
@@ -567,12 +564,11 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   BKE_curvemapping_init(brush->curve);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);

@@ -30,10 +30,10 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
-typedef enum eSculptColorFilterTypes {
+enum eSculptColorFilterTypes {
   COLOR_FILTER_FILL,
   COLOR_FILTER_HUE,
   COLOR_FILTER_SATURATION,
@@ -44,7 +44,7 @@ typedef enum eSculptColorFilterTypes {
   COLOR_FILTER_GREEN,
   COLOR_FILTER_BLUE,
   COLOR_FILTER_SMOOTH,
-} eSculptColorFilterTypes;
+};
 
 static EnumPropertyItem prop_color_filter_types[] = {
     {COLOR_FILTER_FILL, "FILL", 0, "Fill", "Fill with a specific color"},
@@ -60,14 +60,14 @@ static EnumPropertyItem prop_color_filter_types[] = {
     {COLOR_FILTER_RED, "RED", 0, "Red", "Change red channel"},
     {COLOR_FILTER_GREEN, "GREEN", 0, "Green", "Change green channel"},
     {COLOR_FILTER_BLUE, "BLUE", 0, "Blue", "Change blue channel"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static void color_filter_task_cb(void *__restrict userdata,
                                  const int n,
-                                 const TaskParallelTLS *__restrict UNUSED(tls))
+                                 const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
 
   const int mode = data->filter_type;
@@ -222,8 +222,8 @@ static void sculpt_color_presmooth_init(SculptSession *ss)
   int totvert = SCULPT_vertex_count_get(ss);
 
   if (!ss->filter_cache->pre_smoothed_color) {
-    ss->filter_cache->pre_smoothed_color = MEM_malloc_arrayN(
-        totvert, sizeof(float) * 4, "ss->filter_cache->pre_smoothed_color");
+    ss->filter_cache->pre_smoothed_color = static_cast<float(*)[4]>(
+        MEM_malloc_arrayN(totvert, sizeof(float[4]), __func__));
   }
 
   for (int i = 0; i < totvert; i++) {
@@ -248,7 +248,7 @@ static void sculpt_color_presmooth_init(SculptSession *ss)
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
       if (total > 0) {
-        mul_v4_fl(avg, 1.0f / (float)total);
+        mul_v4_fl(avg, 1.0f / float(total));
         interp_v4_v4v4(ss->filter_cache->pre_smoothed_color[i],
                        ss->filter_cache->pre_smoothed_color[i],
                        avg,
@@ -288,14 +288,13 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
     sculpt_color_presmooth_init(ss);
   }
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .nodes = ss->filter_cache->nodes,
-      .filter_type = mode,
-      .filter_strength = filter_strength,
-      .filter_fill_color = fill_color,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.nodes = ss->filter_cache->nodes;
+  data.filter_type = mode;
+  data.filter_strength = filter_strength;
+  data.filter_fill_color = fill_color;
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
@@ -319,14 +318,14 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
     v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
   }
 
-  const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, NULL);
+  const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, nullptr);
   if (use_automasking) {
     /* Increment stroke id for auto-masking system. */
     SCULPT_stroke_id_next(ob);
 
     /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
      * Filter Tool. */
-    float mval_fl[2] = {UNPACK2(event->mval)};
+    float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
     SculptCursorGeometryInfo sgi;
     SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
   }
@@ -352,14 +351,14 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
       C, ob, sd, SCULPT_UNDO_COLOR, event->mval, RNA_float_get(op->ptr, "area_normal_radius"));
   FilterCache *filter_cache = ss->filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
-  filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);
+  filter_cache->automasking = SCULPT_automasking_cache_init(sd, nullptr, ob);
   ED_paint_tool_update_sticky_shading_color(C, ob);
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
 }
 
-void SCULPT_OT_color_filter(struct wmOperatorType *ot)
+void SCULPT_OT_color_filter(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Filter Color";
@@ -379,6 +378,6 @@ void SCULPT_OT_color_filter(struct wmOperatorType *ot)
   RNA_def_enum(ot->srna, "type", prop_color_filter_types, COLOR_FILTER_HUE, "Filter Type", "");
 
   PropertyRNA *prop = RNA_def_float_color(
-      ot->srna, "fill_color", 3, NULL, 0.0f, FLT_MAX, "Fill Color", "", 0.0f, 1.0f);
+      ot->srna, "fill_color", 3, nullptr, 0.0f, FLT_MAX, "Fill Color", "", 0.0f, 1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
 }

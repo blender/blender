@@ -26,8 +26,8 @@
 
 #include "bmesh.h"
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 static void pose_solve_ik_chain(SculptPoseIKChain *ik_chain,
                                 const float initial_target[3],
@@ -136,9 +136,9 @@ static void pose_solve_scale_chain(SculptPoseIKChain *ik_chain, const float scal
 
 static void do_pose_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
-                                     const TaskParallelTLS *__restrict UNUSED(tls))
+                                     const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
   SculptPoseIKChainSegment *segments = ik_chain->segments;
@@ -169,9 +169,9 @@ static void do_pose_brush_task_cb_ex(void *__restrict userdata,
 
       /* Get the transform matrix for the vertex symmetry area to calculate a displacement in the
        * vertex. */
-      mul_m4_v3(segments[ik].pivot_mat_inv[(int)symm_area], new_co);
-      mul_m4_v3(segments[ik].trans_mat[(int)symm_area], new_co);
-      mul_m4_v3(segments[ik].pivot_mat[(int)symm_area], new_co);
+      mul_m4_v3(segments[ik].pivot_mat_inv[int(symm_area)], new_co);
+      mul_m4_v3(segments[ik].trans_mat[int(symm_area)], new_co);
+      mul_m4_v3(segments[ik].pivot_mat[int(symm_area)], new_co);
 
       /* Apply the segment weight of the vertex to the displacement. */
       sub_v3_v3v3(disp, new_co, orig_data.co);
@@ -200,17 +200,17 @@ static void do_pose_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-typedef struct PoseGrowFactorTLSData {
+struct PoseGrowFactorTLSData {
   float pos_avg[3];
   int pos_count;
-} PoseGrowFactorTLSData;
+};
 
 static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
                                               const int n,
                                               const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
-  PoseGrowFactorTLSData *gftd = tls->userdata_chunk;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
+  PoseGrowFactorTLSData *gftd = static_cast<PoseGrowFactorTLSData *>(tls->userdata_chunk);
   SculptSession *ss = data->ob->sculpt;
   const char symm = SCULPT_mesh_symmetry_xyz_get(data->ob);
   PBVHVertexIter vd;
@@ -238,12 +238,12 @@ static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void pose_brush_grow_factor_reduce(const void *__restrict UNUSED(userdata),
+static void pose_brush_grow_factor_reduce(const void *__restrict /*userdata*/,
                                           void *__restrict chunk_join,
                                           void *__restrict chunk)
 {
-  PoseGrowFactorTLSData *join = chunk_join;
-  PoseGrowFactorTLSData *gftd = chunk;
+  PoseGrowFactorTLSData *join = static_cast<PoseGrowFactorTLSData *>(chunk_join);
+  PoseGrowFactorTLSData *gftd = static_cast<PoseGrowFactorTLSData *>(chunk);
   add_v3_v3(join->pos_avg, gftd->pos_avg);
   join->pos_count += gftd->pos_count;
 }
@@ -263,14 +263,13 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
   PBVH *pbvh = ob->sculpt->pbvh;
   int totnode;
 
-  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .nodes = nodes,
-      .totnode = totnode,
-      .pose_factor = pose_factor,
-  };
+  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.nodes = nodes;
+  data.totnode = totnode;
+  data.pose_factor = pose_factor;
 
   data.pose_initial_co = pose_target;
   TaskParallelSettings settings;
@@ -284,7 +283,8 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
 
   bool grow_next_iteration = true;
   float prev_len = FLT_MAX;
-  data.prev_mask = MEM_mallocN(SCULPT_vertex_count_get(ss) * sizeof(float), "prev mask");
+  data.prev_mask = static_cast<float *>(
+      MEM_malloc_arrayN(SCULPT_vertex_count_get(ss), sizeof(float), __func__));
   while (grow_next_iteration) {
     zero_v3(gftd.pos_avg);
     gftd.pos_count = 0;
@@ -292,7 +292,7 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
     BLI_task_parallel_range(0, totnode, &data, pose_brush_grow_factor_task_cb_ex, &settings);
 
     if (gftd.pos_count != 0) {
-      mul_v3_fl(gftd.pos_avg, 1.0f / (float)gftd.pos_count);
+      mul_v3_fl(gftd.pos_avg, 1.0f / float(gftd.pos_count));
       if (pose_origin) {
         /* Test with pose origin. Used when growing the factors to compensate the Origin Offset. */
         /* Stop when the factor's avg_pos starts moving away from the origin instead of getting
@@ -344,7 +344,7 @@ static bool sculpt_pose_brush_is_vertex_inside_brush_radius(const float vertex[3
   for (char i = 0; i <= symm; ++i) {
     if (SCULPT_is_symmetry_iteration_valid(i, symm)) {
       float location[3];
-      flip_v3_v3(location, br_co, (char)i);
+      flip_v3_v3(location, br_co, ePaintSymmetryFlags(i));
       if (len_v3v3(location, vertex) < radius) {
         return true;
       }
@@ -353,7 +353,7 @@ static bool sculpt_pose_brush_is_vertex_inside_brush_radius(const float vertex[3
   return false;
 }
 
-typedef struct PoseFloodFillData {
+struct PoseFloodFillData {
   float pose_initial_co[3];
   float radius;
   int symm;
@@ -393,17 +393,14 @@ typedef struct PoseFloodFillData {
   int masked_face_set_it;
   int masked_face_set;
   int target_face_set;
-} PoseFloodFillData;
+};
 
-static bool pose_topology_floodfill_cb(SculptSession *ss,
-                                       PBVHVertRef UNUSED(from_v),
-                                       PBVHVertRef to_v,
-                                       bool is_duplicate,
-                                       void *userdata)
+static bool pose_topology_floodfill_cb(
+    SculptSession *ss, PBVHVertRef /*from_v*/, PBVHVertRef to_v, bool is_duplicate, void *userdata)
 {
   int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
 
-  PoseFloodFillData *data = userdata;
+  PoseFloodFillData *data = static_cast<PoseFloodFillData *>(userdata);
   const float *co = SCULPT_vertex_co_get(ss, to_v);
 
   if (data->pose_factor) {
@@ -429,13 +426,10 @@ static bool pose_topology_floodfill_cb(SculptSession *ss,
   return false;
 }
 
-static bool pose_face_sets_floodfill_cb(SculptSession *ss,
-                                        PBVHVertRef UNUSED(from_v),
-                                        PBVHVertRef to_v,
-                                        bool is_duplicate,
-                                        void *userdata)
+static bool pose_face_sets_floodfill_cb(
+    SculptSession *ss, PBVHVertRef /*from_v*/, PBVHVertRef to_v, bool is_duplicate, void *userdata)
 {
-  PoseFloodFillData *data = userdata;
+  PoseFloodFillData *data = static_cast<PoseFloodFillData *>(userdata);
 
   const int index = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
   const PBVHVertRef vertex = to_v;
@@ -547,12 +541,12 @@ void SCULPT_pose_calc_pose_data(Sculpt *sd,
   SCULPT_floodfill_init(ss, &flood);
   SCULPT_floodfill_add_active(sd, ob, ss, &flood, (r_pose_factor) ? radius : 0.0f);
 
-  PoseFloodFillData fdata = {
-      .radius = radius,
-      .symm = SCULPT_mesh_symmetry_xyz_get(ob),
-      .pose_factor = r_pose_factor,
-      .tot_co = 0,
-  };
+  PoseFloodFillData fdata{};
+  fdata.radius = radius;
+  fdata.symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  fdata.pose_factor = r_pose_factor;
+  fdata.tot_co = 0;
+
   zero_v3(fdata.pose_origin);
   copy_v3_v3(fdata.pose_initial_co, initial_location);
   copy_v3_v3(fdata.fallback_floodfill_origin, initial_location);
@@ -560,7 +554,7 @@ void SCULPT_pose_calc_pose_data(Sculpt *sd,
   SCULPT_floodfill_free(&flood);
 
   if (fdata.tot_co > 0) {
-    mul_v3_fl(fdata.pose_origin, 1.0f / (float)fdata.tot_co);
+    mul_v3_fl(fdata.pose_origin, 1.0f / float(fdata.tot_co));
   }
   else {
     copy_v3_v3(fdata.pose_origin, fdata.fallback_floodfill_origin);
@@ -577,15 +571,15 @@ void SCULPT_pose_calc_pose_data(Sculpt *sd,
    */
   if (pose_offset != 0.0f && r_pose_factor) {
     sculpt_pose_grow_pose_factor(
-        sd, ob, ss, fdata.pose_origin, fdata.pose_origin, 0, NULL, r_pose_factor);
+        sd, ob, ss, fdata.pose_origin, fdata.pose_origin, 0, nullptr, r_pose_factor);
   }
 }
 
 static void pose_brush_init_task_cb_ex(void *__restrict userdata,
                                        const int n,
-                                       const TaskParallelTLS *__restrict UNUSED(tls))
+                                       const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
@@ -608,12 +602,11 @@ static void pose_brush_init_task_cb_ex(void *__restrict userdata,
 /* Init the IK chain with empty weights. */
 static SculptPoseIKChain *pose_ik_chain_new(const int totsegments, const int totverts)
 {
-  SculptPoseIKChain *ik_chain = MEM_callocN(sizeof(SculptPoseIKChain), "Pose IK Chain");
+  SculptPoseIKChain *ik_chain = MEM_cnew<SculptPoseIKChain>(__func__);
   ik_chain->tot_segments = totsegments;
-  ik_chain->segments = MEM_callocN(totsegments * sizeof(SculptPoseIKChainSegment),
-                                   "Pose IK Chain Segments");
+  ik_chain->segments = MEM_cnew_array<SculptPoseIKChainSegment>(totsegments, __func__);
   for (int i = 0; i < totsegments; i++) {
-    ik_chain->segments[i].weights = MEM_callocN(totverts * sizeof(float), "Pose IK weights");
+    ik_chain->segments[i].weights = MEM_cnew_array<float>(totverts, __func__);
   }
   return ik_chain;
 }
@@ -674,11 +667,10 @@ static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
    * added to the IK chain. */
 
   /* This stores the whole pose factors values as they grow through the mesh. */
-  float *pose_factor_grow = MEM_callocN(totvert * sizeof(float), "Pose Factor Grow");
+  float *pose_factor_grow = MEM_cnew_array<float>(totvert, __func__);
 
   /* This stores the previous status of the factors when growing a new iteration. */
-  float *pose_factor_grow_prev = MEM_callocN(totvert * sizeof(float),
-                                             "Pose Factor Grow Prev Iteration");
+  float *pose_factor_grow_prev = MEM_cnew_array<float>(totvert, __func__);
 
   pose_factor_grow[nearest_vertex_index] = 1.0f;
 
@@ -712,7 +704,7 @@ static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
     sculpt_pose_grow_pose_factor(sd,
                                  ob,
                                  ss,
-                                 NULL,
+                                 nullptr,
                                  next_chain_segment_target,
                                  chain_segment_len,
                                  ik_chain->segments[i].orig,
@@ -763,19 +755,19 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
 
     BLI_gset_add(visited_face_sets, POINTER_FROM_INT(current_face_set));
 
-    PoseFloodFillData fdata = {
-        .radius = radius,
-        .symm = SCULPT_mesh_symmetry_xyz_get(ob),
-        .pose_factor = ik_chain->segments[s].weights,
-        .tot_co = 0,
-        .fallback_count = 0,
-        .current_face_set = current_face_set,
-        .prev_face_set = prev_face_set,
-        .visited_face_sets = visited_face_sets,
-        .is_weighted = is_weighted,
-        .next_face_set_found = false,
-        .is_first_iteration = s == 0,
-    };
+    PoseFloodFillData fdata{};
+    fdata.radius = radius;
+    fdata.symm = SCULPT_mesh_symmetry_xyz_get(ob);
+    fdata.pose_factor = ik_chain->segments[s].weights;
+    fdata.tot_co = 0;
+    fdata.fallback_count = 0;
+    fdata.current_face_set = current_face_set;
+    fdata.prev_face_set = prev_face_set;
+    fdata.visited_face_sets = visited_face_sets;
+    fdata.is_weighted = is_weighted;
+    fdata.next_face_set_found = false;
+    fdata.is_first_iteration = s == 0;
+
     zero_v3(fdata.pose_origin);
     zero_v3(fdata.fallback_origin);
     copy_v3_v3(fdata.pose_initial_co, SCULPT_vertex_co_get(ss, current_vertex));
@@ -783,11 +775,11 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
     SCULPT_floodfill_free(&flood);
 
     if (fdata.tot_co > 0) {
-      mul_v3_fl(fdata.pose_origin, 1.0f / (float)fdata.tot_co);
+      mul_v3_fl(fdata.pose_origin, 1.0f / float(fdata.tot_co));
       copy_v3_v3(ik_chain->segments[s].orig, fdata.pose_origin);
     }
     else if (fdata.fallback_count > 0) {
-      mul_v3_fl(fdata.fallback_origin, 1.0f / (float)fdata.fallback_count);
+      mul_v3_fl(fdata.fallback_origin, 1.0f / float(fdata.fallback_count));
       copy_v3_v3(ik_chain->segments[s].orig, fdata.fallback_origin);
     }
     else {
@@ -799,7 +791,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
     current_vertex = fdata.next_vertex;
   }
 
-  BLI_gset_free(visited_face_sets, NULL);
+  BLI_gset_free(visited_face_sets, nullptr);
 
   pose_ik_chain_origin_heads_init(ik_chain, SCULPT_active_vertex_co_get(ss));
 
@@ -811,7 +803,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
 static bool pose_face_sets_fk_find_masked_floodfill_cb(
     SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate, void *userdata)
 {
-  PoseFloodFillData *data = userdata;
+  PoseFloodFillData *data = static_cast<PoseFloodFillData *>(userdata);
 
   int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
   int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
@@ -846,12 +838,12 @@ static bool pose_face_sets_fk_find_masked_floodfill_cb(
 }
 
 static bool pose_face_sets_fk_set_weights_floodfill_cb(SculptSession *ss,
-                                                       PBVHVertRef UNUSED(from_v),
+                                                       PBVHVertRef /*from_v*/,
                                                        PBVHVertRef to_v,
-                                                       bool UNUSED(is_duplicate),
+                                                       bool /*is_duplicate*/,
                                                        void *userdata)
 {
-  PoseFloodFillData *data = userdata;
+  PoseFloodFillData *data = static_cast<PoseFloodFillData *>(userdata);
 
   int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
 
@@ -875,7 +867,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
   SCULPT_floodfill_init(ss, &flood);
   SCULPT_floodfill_add_initial(&flood, active_vertex);
   PoseFloodFillData fdata;
-  fdata.floodfill_it = MEM_calloc_arrayN(totvert, sizeof(int), "floodfill iteration");
+  fdata.floodfill_it = static_cast<int *>(MEM_calloc_arrayN(totvert, sizeof(int), __func__));
   fdata.floodfill_it[active_vertex_index] = 1;
   fdata.initial_face_set = active_face_set;
   fdata.masked_face_set = SCULPT_FACE_SET_NONE;
@@ -884,7 +876,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
   fdata.visited_face_sets = BLI_gset_int_new_ex("visited_face_sets", 3);
   SCULPT_floodfill_execute(ss, &flood, pose_face_sets_fk_find_masked_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
-  BLI_gset_free(fdata.visited_face_sets, NULL);
+  BLI_gset_free(fdata.visited_face_sets, nullptr);
 
   int origin_count = 0;
   float origin_acc[3] = {0.0f};
@@ -950,7 +942,7 @@ SculptPoseIKChain *SCULPT_pose_ik_chain_init(Sculpt *sd,
                                              const float initial_location[3],
                                              const float radius)
 {
-  SculptPoseIKChain *ik_chain = NULL;
+  SculptPoseIKChain *ik_chain = nullptr;
 
   const bool use_fake_neighbors = !(br->flag2 & BRUSH_USE_CONNECTED_ONLY);
 
@@ -984,14 +976,13 @@ void SCULPT_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br
   PBVH *pbvh = ob->sculpt->pbvh;
   int totnode;
 
-  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = br,
-      .nodes = nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = br;
+  data.nodes = nodes;
 
   /* Init the IK chain that is going to be used to deform the vertices. */
   ss->cache->pose_ik_chain = SCULPT_pose_ik_chain_init(
@@ -1094,7 +1085,7 @@ static void sculpt_pose_do_scale_translate_deform(SculptSession *ss, Brush *brus
   }
 }
 
-static void sculpt_pose_do_squash_stretch_deform(SculptSession *ss, Brush *UNUSED(brush))
+static void sculpt_pose_do_squash_stretch_deform(SculptSession *ss, Brush * /*brush*/)
 {
   float ik_target[3];
   SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
@@ -1169,7 +1160,7 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       float symm_orig[3];
       float symm_initial_orig[3];
 
-      ePaintSymmetryAreas symm_area = symm_it;
+      ePaintSymmetryAreas symm_area = ePaintSymmetryAreas(symm_it);
 
       copy_qt_qt(symm_rot, ik_chain->segments[i].rot);
       copy_v3_v3(symm_orig, ik_chain->segments[i].orig);
@@ -1218,12 +1209,11 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
     }
   }
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);

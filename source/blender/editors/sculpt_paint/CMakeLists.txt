@@ -62,26 +62,26 @@ set(SRC
   paint_vertex_weight_utils.c
   sculpt.cc
   sculpt_automasking.cc
-  sculpt_boundary.c
-  sculpt_brush_types.c
-  sculpt_cloth.c
-  sculpt_detail.c
+  sculpt_boundary.cc
+  sculpt_brush_types.cc
+  sculpt_cloth.cc
+  sculpt_detail.cc
   sculpt_dyntopo.cc
   sculpt_expand.cc
   sculpt_face_set.cc
-  sculpt_filter_color.c
-  sculpt_filter_mask.c
-  sculpt_filter_mesh.c
+  sculpt_filter_color.cc
+  sculpt_filter_mask.cc
+  sculpt_filter_mesh.cc
   sculpt_geodesic.cc
-  sculpt_mask_expand.c
-  sculpt_mask_init.c
-  sculpt_multiplane_scrape.c
-  sculpt_ops.c
-  sculpt_paint_color.c
+  sculpt_mask_expand.cc
+  sculpt_mask_init.cc
+  sculpt_multiplane_scrape.cc
+  sculpt_ops.cc
+  sculpt_paint_color.cc
   sculpt_paint_image.cc
-  sculpt_pose.c
-  sculpt_smooth.c
-  sculpt_transform.c
+  sculpt_pose.cc
+  sculpt_smooth.cc
+  sculpt_transform.cc
   sculpt_undo.cc
   sculpt_uv.c
 

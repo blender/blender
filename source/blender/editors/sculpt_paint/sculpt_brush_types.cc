@@ -35,9 +35,9 @@
 
 #include "bmesh.h"
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 /* -------------------------------------------------------------------- */
 /** \name SculptProjectVector
@@ -45,13 +45,12 @@
  * Fast-path for #project_plane_v3_v3v3
  * \{ */
 
-typedef struct SculptProjectVector {
+struct SculptProjectVector {
   float plane[3];
   float len_sq;
   float len_sq_inv_neg;
   bool is_valid;
-
-} SculptProjectVector;
+};
 
 static bool plane_point_side_flip(const float co[3], const float plane[4], const bool flip)
 {
@@ -239,7 +238,7 @@ static void do_draw_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
                                      const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float *offset = data->offset;
@@ -305,13 +304,12 @@ void SCULPT_do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BKE_curvemapping_init(brush->curve);
 
   /* Threaded loop over nodes. */
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .offset = offset,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.offset = offset;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -328,7 +326,7 @@ static void do_fill_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
                                      const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float *area_no = data->area_no;
@@ -416,14 +414,13 @@ void SCULPT_do_fill_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   mul_v3_fl(temp, displace);
   add_v3_v3(area_co, temp);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .area_no = area_no,
-      .area_co = area_co,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.area_no = area_no;
+  data.area_co = area_co;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -434,7 +431,7 @@ static void do_scrape_brush_task_cb_ex(void *__restrict userdata,
                                        const int n,
                                        const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float *area_no = data->area_no;
@@ -521,14 +518,13 @@ void SCULPT_do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
   mul_v3_fl(temp, displace);
   add_v3_v3(area_co, temp);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .area_no = area_no,
-      .area_co = area_co,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.area_no = area_no;
+  data.area_co = area_co;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -545,7 +541,7 @@ static void do_clay_thumb_brush_task_cb_ex(void *__restrict userdata,
                                            const int n,
                                            const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   float(*mat)[4] = data->mat;
@@ -700,16 +696,15 @@ void SCULPT_do_clay_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   float clay_strength = ss->cache->bstrength *
                         SCULPT_clay_thumb_get_stabilized_pressure(ss->cache);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .area_no_sp = area_no_sp,
-      .area_co = ss->cache->location,
-      .mat = mat,
-      .clay_strength = clay_strength,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.area_no_sp = area_no_sp;
+  data.area_co = ss->cache->location;
+  data.mat = mat;
+  data.clay_strength = clay_strength;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -726,7 +721,7 @@ static void do_flatten_brush_task_cb_ex(void *__restrict userdata,
                                         const int n,
                                         const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float *area_no = data->area_no;
@@ -808,14 +803,13 @@ void SCULPT_do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
   mul_v3_fl(temp, displace);
   add_v3_v3(area_co, temp);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .area_no = area_no,
-      .area_co = area_co,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.area_no = area_no;
+  data.area_co = area_co;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -828,18 +822,18 @@ void SCULPT_do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 /** \name Sculpt Clay Brush
  * \{ */
 
-typedef struct ClaySampleData {
+struct ClaySampleData {
   float plane_dist[2];
-} ClaySampleData;
+};
 
 static void calc_clay_surface_task_cb(void *__restrict userdata,
                                       const int n,
                                       const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
-  ClaySampleData *csd = tls->userdata_chunk;
+  ClaySampleData *csd = static_cast<ClaySampleData *>(tls->userdata_chunk);
   const float *area_no = data->area_no;
   const float *area_co = data->area_co;
   float plane[4];
@@ -877,12 +871,12 @@ static void calc_clay_surface_task_cb(void *__restrict userdata,
   }
 }
 
-static void calc_clay_surface_reduce(const void *__restrict UNUSED(userdata),
+static void calc_clay_surface_reduce(const void *__restrict /*userdata*/,
                                      void *__restrict chunk_join,
                                      void *__restrict chunk)
 {
-  ClaySampleData *join = chunk_join;
-  ClaySampleData *csd = chunk;
+  ClaySampleData *join = static_cast<ClaySampleData *>(chunk_join);
+  ClaySampleData *csd = static_cast<ClaySampleData *>(chunk);
   join->plane_dist[0] = MIN2(csd->plane_dist[0], join->plane_dist[0]);
   join->plane_dist[1] = MIN2(csd->plane_dist[1], join->plane_dist[1]);
 }
@@ -891,7 +885,7 @@ static void do_clay_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
                                      const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float *area_no = data->area_no;
@@ -965,15 +959,14 @@ void SCULPT_do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
   SCULPT_calc_brush_plane(sd, ob, nodes, totnode, area_no, area_co);
 
-  SculptThreadedTaskData sample_data = {
-      .sd = NULL,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .totnode = totnode,
-      .area_no = area_no,
-      .area_co = ss->cache->location,
-  };
+  SculptThreadedTaskData sample_data{};
+  sample_data.sd = nullptr;
+  sample_data.ob = ob;
+  sample_data.brush = brush;
+  sample_data.nodes = nodes;
+  sample_data.totnode = totnode;
+  sample_data.area_no = area_no;
+  sample_data.area_co = ss->cache->location;
 
   ClaySampleData csd = {{0}};
 
@@ -999,14 +992,13 @@ void SCULPT_do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   copy_v3_v3(area_co, ss->cache->location);
   add_v3_v3(area_co, temp);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .area_no = area_no,
-      .area_co = area_co,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.area_no = area_no;
+  data.area_co = area_co;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1017,7 +1009,7 @@ static void do_clay_strips_brush_task_cb_ex(void *__restrict userdata,
                                             const int n,
                                             const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   float(*mat)[4] = data->mat;
@@ -1159,15 +1151,14 @@ void SCULPT_do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 
   invert_m4_m4(mat, tmat);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .area_no_sp = area_no_sp,
-      .area_co = area_co,
-      .mat = mat,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.area_no_sp = area_no_sp;
+  data.area_co = area_co;
+  data.mat = mat;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1178,7 +1169,7 @@ static void do_snake_hook_brush_task_cb_ex(void *__restrict userdata,
                                            const int n,
                                            const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   SculptProjectVector *spvc = data->spvc;
@@ -1314,14 +1305,13 @@ void SCULPT_do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
     sculpt_project_v3_cache_init(&spvc, grab_delta);
   }
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .spvc = &spvc,
-      .grab_delta = grab_delta,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.spvc = &spvc;
+  data.grab_delta = grab_delta;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1332,7 +1322,7 @@ static void do_thumb_brush_task_cb_ex(void *__restrict userdata,
                                       const int n,
                                       const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float *cono = data->cono;
@@ -1368,7 +1358,7 @@ static void do_thumb_brush_task_cb_ex(void *__restrict userdata,
                                                                 orig_data.co,
                                                                 sqrtf(test.dist),
                                                                 orig_data.no,
-                                                                NULL,
+                                                                nullptr,
                                                                 vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
                                                                 thread_id,
@@ -1395,13 +1385,12 @@ void SCULPT_do_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   cross_v3_v3v3(tmp, ss->cache->sculpt_normal_symm, grab_delta);
   cross_v3_v3v3(cono, tmp, ss->cache->sculpt_normal_symm);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .cono = cono,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.cono = cono;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1412,7 +1401,7 @@ static void do_rotate_brush_task_cb_ex(void *__restrict userdata,
                                        const int n,
                                        const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float angle = data->angle;
@@ -1450,7 +1439,7 @@ static void do_rotate_brush_task_cb_ex(void *__restrict userdata,
                                                                 orig_data.co,
                                                                 sqrtf(test.dist),
                                                                 orig_data.no,
-                                                                NULL,
+                                                                nullptr,
                                                                 vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
                                                                 thread_id,
@@ -1477,13 +1466,12 @@ void SCULPT_do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
   static const int flip[8] = {1, -1, -1, 1, -1, 1, 1, -1};
   const float angle = ss->cache->vertex_rotation * flip[ss->cache->mirror_symmetry_pass];
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .angle = angle,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.angle = angle;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1494,7 +1482,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
                                       const int n,
                                       const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   Sculpt *sd = data->sd;
   const Brush *brush = data->brush;
@@ -1598,17 +1586,16 @@ void SCULPT_do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  if (ss->cache->layer_displacement_factor == NULL) {
-    ss->cache->layer_displacement_factor = MEM_callocN(sizeof(float) * SCULPT_vertex_count_get(ss),
-                                                       "layer displacement factor");
+  if (ss->cache->layer_displacement_factor == nullptr) {
+    ss->cache->layer_displacement_factor = MEM_cnew_array<float>(SCULPT_vertex_count_get(ss),
+                                                                 __func__);
   }
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1619,7 +1606,7 @@ static void do_inflate_brush_task_cb_ex(void *__restrict userdata,
                                         const int n,
                                         const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
 
@@ -1677,12 +1664,11 @@ void SCULPT_do_inflate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1693,7 +1679,7 @@ static void do_nudge_brush_task_cb_ex(void *__restrict userdata,
                                       const int n,
                                       const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float *cono = data->cono;
@@ -1751,13 +1737,12 @@ void SCULPT_do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   cross_v3_v3v3(tmp, ss->cache->sculpt_normal_symm, grab_delta);
   cross_v3_v3v3(cono, tmp, ss->cache->sculpt_normal_symm);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .cono = cono,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.cono = cono;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1777,7 +1762,7 @@ static void do_crease_brush_task_cb_ex(void *__restrict userdata,
                                        const int n,
                                        const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   SculptProjectVector *spvc = data->spvc;
@@ -1878,15 +1863,14 @@ void SCULPT_do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
   sculpt_project_v3_cache_init(&spvc, ss->cache->sculpt_normal_symm);
 
   /* Threaded loop over nodes. */
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .spvc = &spvc,
-      .offset = offset,
-      .flippedbstrength = flippedbstrength,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.spvc = &spvc;
+  data.offset = offset;
+  data.flippedbstrength = flippedbstrength;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1897,7 +1881,7 @@ static void do_pinch_brush_task_cb_ex(void *__restrict userdata,
                                       const int n,
                                       const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   float(*stroke_xz)[3] = data->stroke_xz;
@@ -2001,13 +1985,12 @@ void SCULPT_do_pinch_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   normalize_v3_v3(stroke_xz[0], mat[0]);
   normalize_v3_v3(stroke_xz[1], mat[2]);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .stroke_xz = stroke_xz,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.stroke_xz = stroke_xz;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -2018,7 +2001,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
                                      const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float *grab_delta = data->grab_delta;
@@ -2056,7 +2039,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
                                                           orig_data.co,
                                                           sqrtf(test.dist),
                                                           orig_data.no,
-                                                          NULL,
+                                                          nullptr,
                                                           vd.mask ? *vd.mask : 0.0f,
                                                           vd.vertex,
                                                           thread_id,
@@ -2094,13 +2077,12 @@ void SCULPT_do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
     sculpt_project_v3_normal_align(ss, ss->cache->normal_weight, grab_delta);
   }
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .grab_delta = grab_delta,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.grab_delta = grab_delta;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -2109,9 +2091,9 @@ void SCULPT_do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
                                                const int n,
-                                               const TaskParallelTLS *__restrict UNUSED(tls))
+                                               const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float *grab_delta = data->grab_delta;
@@ -2209,13 +2191,12 @@ void SCULPT_do_elastic_deform_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
     sculpt_project_v3_normal_align(ss, ss->cache->normal_weight, grab_delta);
   }
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .grab_delta = grab_delta,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.grab_delta = grab_delta;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -2232,7 +2213,7 @@ static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
                                            const int n,
                                            const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float *offset = data->offset;
@@ -2267,7 +2248,7 @@ static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
                                                     orig_data.co,
                                                     sqrtf(test.dist),
                                                     orig_data.no,
-                                                    NULL,
+                                                    nullptr,
                                                     vd.mask ? *vd.mask : 0.0f,
                                                     vd.vertex,
                                                     thread_id,
@@ -2301,13 +2282,12 @@ void SCULPT_do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   BKE_curvemapping_init(brush->curve);
 
   /* Threaded loop over nodes. */
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-      .offset = offset,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.offset = offset;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -2324,7 +2304,7 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
                                          const int n,
                                          const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
 
@@ -2357,7 +2337,7 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
                                                     orig_data.co,
                                                     sqrtf(test.dist),
                                                     orig_data.no,
-                                                    NULL,
+                                                    nullptr,
                                                     vd.mask ? *vd.mask : 0.0f,
                                                     vd.vertex,
                                                     thread_id,
@@ -2488,7 +2468,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
                                          const int n,
                                          const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float bstrength = ss->cache->bstrength;
@@ -2521,7 +2501,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
                                                     orig_data.co,
                                                     sqrtf(test.dist),
                                                     orig_data.no,
-                                                    NULL,
+                                                    nullptr,
                                                     vd.mask ? *vd.mask : 0.0f,
                                                     vd.vertex,
                                                     thread_id,
@@ -2546,12 +2526,11 @@ void SCULPT_do_slide_relax_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 
   BKE_curvemapping_init(brush->curve);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -2576,7 +2555,7 @@ static void do_displacement_eraser_brush_task_cb_ex(void *__restrict userdata,
                                                     const int n,
                                                     const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float bstrength = clamp_f(ss->cache->bstrength, 0.0f, 1.0f);
@@ -2629,12 +2608,11 @@ void SCULPT_do_displacement_eraser_brush(Sculpt *sd, Object *ob, PBVHNode **node
   BKE_curvemapping_init(brush->curve);
 
   /* Threaded loop over nodes. */
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -2651,7 +2629,7 @@ static void do_displacement_smear_brush_task_cb_ex(void *__restrict userdata,
                                                    const int n,
                                                    const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float bstrength = clamp_f(ss->cache->bstrength, 0.0f, 1.0f);
@@ -2743,9 +2721,9 @@ static void do_displacement_smear_brush_task_cb_ex(void *__restrict userdata,
 }
 
 static void do_displacement_smear_store_prev_disp_task_cb_ex(
-    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
+    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
 
   PBVHVertexIter vd;
@@ -2766,9 +2744,10 @@ void SCULPT_do_displacement_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes
 
   const int totvert = SCULPT_vertex_count_get(ss);
   if (!ss->cache->prev_displacement) {
-    ss->cache->prev_displacement = MEM_malloc_arrayN(
-        totvert, sizeof(float[3]), "prev displacement");
-    ss->cache->limit_surface_co = MEM_malloc_arrayN(totvert, sizeof(float[3]), "limit surface co");
+    ss->cache->prev_displacement = static_cast<float(*)[3]>(
+        MEM_malloc_arrayN(totvert, sizeof(float[3]), __func__));
+    ss->cache->limit_surface_co = static_cast<float(*)[3]>(
+        MEM_malloc_arrayN(totvert, sizeof(float[3]), __func__));
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
@@ -2779,12 +2758,11 @@ void SCULPT_do_displacement_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes
     }
   }
   /* Threaded loop over nodes. */
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -2803,7 +2781,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
                                               const int n,
                                               const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   Sculpt *sd = data->sd;
   const Brush *brush = data->brush;
@@ -2885,13 +2863,13 @@ void SCULPT_bmesh_topology_rake(
 
   for (iteration = 0; iteration <= count; iteration++) {
 
-    SculptThreadedTaskData data = {
-        .sd = sd,
-        .ob = ob,
-        .brush = brush,
-        .nodes = nodes,
-        .strength = factor,
-    };
+    SculptThreadedTaskData data{};
+    data.sd = sd;
+    data.ob = ob;
+    data.brush = brush;
+    data.nodes = nodes;
+    data.strength = factor;
+
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
 
@@ -2909,7 +2887,7 @@ static void do_mask_brush_draw_task_cb_ex(void *__restrict userdata,
                                           const int n,
                                           const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float bstrength = ss->cache->bstrength;
@@ -2958,12 +2936,11 @@ void SCULPT_do_mask_brush_draw(Sculpt *sd, Object *ob, PBVHNode **nodes, int tot
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   /* Threaded loop over nodes. */
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);

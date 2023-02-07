@@ -30,17 +30,17 @@
 
 #include "bmesh.h"
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
-typedef enum eSculptMaskFilterTypes {
+enum eSculptMaskFilterTypes {
   MASK_FILTER_SMOOTH = 0,
   MASK_FILTER_SHARPEN = 1,
   MASK_FILTER_GROW = 2,
   MASK_FILTER_SHRINK = 3,
   MASK_FILTER_CONTRAST_INCREASE = 5,
   MASK_FILTER_CONTRAST_DECREASE = 6,
-} eSculptMaskFilterTypes;
+};
 
 static EnumPropertyItem prop_mask_filter_types[] = {
     {MASK_FILTER_SMOOTH, "SMOOTH", 0, "Smooth Mask", "Smooth mask"},
@@ -57,14 +57,14 @@ static EnumPropertyItem prop_mask_filter_types[] = {
      0,
      "Decrease Contrast",
      "Decrease the contrast of the paint mask"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static void mask_filter_task_cb(void *__restrict userdata,
                                 const int i,
-                                const TaskParallelTLS *__restrict UNUSED(tls))
+                                const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   PBVHNode *node = data->nodes[i];
   bool update = false;
@@ -182,14 +182,14 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   int num_verts = SCULPT_vertex_count_get(ss);
 
-  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
   SCULPT_undo_push_begin(ob, op);
 
   for (int i = 0; i < totnode; i++) {
     SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
   }
 
-  float *prev_mask = NULL;
+  float *prev_mask = nullptr;
   int iterations = RNA_int_get(op->ptr, "iterations");
 
   /* Auto iteration count calculates the number of iteration based on the vertices of the mesh to
@@ -197,25 +197,24 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
    * One iteration per 50000 vertices in the mesh should be fine in most cases.
    * Maybe we want this to be configurable. */
   if (RNA_boolean_get(op->ptr, "auto_iteration_count")) {
-    iterations = (int)(num_verts / 50000.0f) + 1;
+    iterations = int(num_verts / 50000.0f) + 1;
   }
 
   for (int i = 0; i < iterations; i++) {
     if (ELEM(filter_type, MASK_FILTER_GROW, MASK_FILTER_SHRINK)) {
-      prev_mask = MEM_mallocN(num_verts * sizeof(float), "prevmask");
+      prev_mask = static_cast<float *>(MEM_mallocN(num_verts * sizeof(float), __func__));
       for (int j = 0; j < num_verts; j++) {
         PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, j);
         prev_mask[j] = SCULPT_vertex_mask_get(ss, vertex);
       }
     }
 
-    SculptThreadedTaskData data = {
-        .sd = sd,
-        .ob = ob,
-        .nodes = nodes,
-        .filter_type = filter_type,
-        .prev_mask = prev_mask,
-    };
+    SculptThreadedTaskData data{};
+    data.sd = sd;
+    data.ob = ob;
+    data.nodes = nodes;
+    data.filter_type = filter_type;
+    data.prev_mask = prev_mask;
 
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -238,12 +237,11 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 void SCULPT_mask_filter_smooth_apply(
     Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, const int smooth_iterations)
 {
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .nodes = nodes,
-      .filter_type = MASK_FILTER_SMOOTH,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.nodes = nodes;
+  data.filter_type = MASK_FILTER_SMOOTH;
 
   for (int i = 0; i < smooth_iterations; i++) {
     TaskParallelSettings settings;
@@ -252,7 +250,7 @@ void SCULPT_mask_filter_smooth_apply(
   }
 }
 
-void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
+void SCULPT_OT_mask_filter(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Mask Filter";

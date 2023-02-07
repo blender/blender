@@ -34,13 +34,10 @@
 
 #include "bmesh.h"
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
-void ED_sculpt_init_transform(struct bContext *C,
-                              Object *ob,
-                              const int mval[2],
-                              const char *undo_name)
+void ED_sculpt_init_transform(bContext *C, Object *ob, const int mval[2], const char *undo_name)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
@@ -72,7 +69,7 @@ void ED_sculpt_init_transform(struct bContext *C,
 }
 
 static void sculpt_transform_matrices_init(SculptSession *ss,
-                                           const char symm,
+                                           const ePaintSymmetryFlags symm,
                                            const SculptTransformDisplacementMode t_mode,
                                            float r_transform_mats[8][4][4])
 {
@@ -96,7 +93,7 @@ static void sculpt_transform_matrices_init(SculptSession *ss,
   }
 
   for (int i = 0; i < PAINT_SYMM_AREAS; i++) {
-    ePaintSymmetryAreas v_symm = i;
+    ePaintSymmetryAreas v_symm = ePaintSymmetryAreas(i);
 
     copy_v3_v3(final_pivot_pos, ss->pivot_pos);
 
@@ -137,10 +134,10 @@ static void sculpt_transform_matrices_init(SculptSession *ss,
 
 static void sculpt_transform_task_cb(void *__restrict userdata,
                                      const int i,
-                                     const TaskParallelTLS *__restrict UNUSED(tls))
+                                     const TaskParallelTLS *__restrict /*tls*/)
 {
 
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   PBVHNode *node = data->nodes[i];
 
@@ -168,7 +165,7 @@ static void sculpt_transform_task_cb(void *__restrict userdata,
     }
 
     copy_v3_v3(transformed_co, start_co);
-    mul_m4_v3(data->transform_mats[(int)symm_area], transformed_co);
+    mul_m4_v3(data->transform_mats[int(symm_area)], transformed_co);
     sub_v3_v3v3(disp, transformed_co, start_co);
     mul_v3_fl(disp, 1.0f - fade);
     add_v3_v3v3(vd.co, start_co, disp);
@@ -185,13 +182,12 @@ static void sculpt_transform_task_cb(void *__restrict userdata,
 static void sculpt_transform_all_vertices(Sculpt *sd, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
-  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .nodes = ss->filter_cache->nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.nodes = ss->filter_cache->nodes;
 
   sculpt_transform_matrices_init(
       ss, symm, ss->filter_cache->transform_displacement_mode, data.transform_mats);
@@ -206,10 +202,10 @@ static void sculpt_transform_all_vertices(Sculpt *sd, Object *ob)
 
 static void sculpt_elastic_transform_task_cb(void *__restrict userdata,
                                              const int i,
-                                             const TaskParallelTLS *__restrict UNUSED(tls))
+                                             const TaskParallelTLS *__restrict /*tls*/)
 {
 
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   PBVHNode *node = data->nodes[i];
 
@@ -262,14 +258,13 @@ static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float 
   BLI_assert(ss->filter_cache->transform_displacement_mode ==
              SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL);
 
-  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .nodes = ss->filter_cache->nodes,
-      .elastic_transform_radius = transform_radius,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.nodes = ss->filter_cache->nodes;
+  data.elastic_transform_radius = transform_radius;
 
   sculpt_transform_matrices_init(
       ss, symm, ss->filter_cache->transform_displacement_mode, data.transform_mats);
@@ -279,7 +274,7 @@ static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float 
 
   /* Elastic transform needs to apply all transform matrices to all vertices and then combine the
    * displacement proxies as all vertices are modified by all symmetry passes. */
-  for (ePaintSymmetryFlags symmpass = 0; symmpass <= symm; symmpass++) {
+  for (ePaintSymmetryFlags symmpass = PAINT_SYMM_NONE; symmpass <= symm; symmpass++) {
     if (SCULPT_is_symmetry_iteration_valid(symmpass, symm)) {
       flip_v3_v3(data.elastic_transform_pivot, ss->pivot_pos, symmpass);
       flip_v3_v3(data.elastic_transform_pivot_init, ss->init_pivot_pos, symmpass);
@@ -293,7 +288,7 @@ static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float 
   SCULPT_combine_transform_proxies(sd, ob);
 }
 
-void ED_sculpt_update_modal_transform(struct bContext *C, Object *ob)
+void ED_sculpt_update_modal_transform(bContext *C, Object *ob)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
@@ -340,7 +335,7 @@ void ED_sculpt_update_modal_transform(struct bContext *C, Object *ob)
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
 }
 
-void ED_sculpt_end_transform(struct bContext *C, Object *ob)
+void ED_sculpt_end_transform(bContext *C, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   if (ss->filter_cache) {
@@ -349,13 +344,13 @@ void ED_sculpt_end_transform(struct bContext *C, Object *ob)
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
 }
 
-typedef enum eSculptPivotPositionModes {
+enum eSculptPivotPositionModes {
   SCULPT_PIVOT_POSITION_ORIGIN = 0,
   SCULPT_PIVOT_POSITION_UNMASKED = 1,
   SCULPT_PIVOT_POSITION_MASK_BORDER = 2,
   SCULPT_PIVOT_POSITION_ACTIVE_VERTEX = 3,
   SCULPT_PIVOT_POSITION_CURSOR_SURFACE = 4,
-} eSculptPivotPositionModes;
+};
 
 static EnumPropertyItem prop_sculpt_pivot_position_types[] = {
     {SCULPT_PIVOT_POSITION_ORIGIN,
@@ -383,7 +378,7 @@ static EnumPropertyItem prop_sculpt_pivot_position_types[] = {
      0,
      "Surface",
      "Sets the pivot position to the surface under the cursor"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
@@ -420,7 +415,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
   else {
     PBVHNode **nodes;
     int totnode;
-    BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+    BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
 
     float avg[3];
     int total = 0;

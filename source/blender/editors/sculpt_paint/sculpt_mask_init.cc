@@ -36,17 +36,17 @@
 
 #include "bmesh.h"
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 /* Mask Init operator. */
 /* Initializes mask values for the entire mesh depending on the mode. */
 
-typedef enum eSculptMaskInitMode {
+enum eSculptMaskInitMode {
   SCULPT_MASK_INIT_RANDOM_PER_VERTEX,
   SCULPT_MASK_INIT_RANDOM_PER_FACE_SET,
   SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART,
-} eSculptMaskInitMode;
+};
 
 static EnumPropertyItem prop_sculpt_mask_init_mode_types[] = {
     {
@@ -70,14 +70,14 @@ static EnumPropertyItem prop_sculpt_mask_init_mode_types[] = {
         "Random per Loose Part",
         "",
     },
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static void mask_init_task_cb(void *__restrict userdata,
                               const int i,
-                              const TaskParallelTLS *__restrict UNUSED(tls))
+                              const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   PBVHNode *node = data->nodes[i];
   PBVHVertexIter vd;
@@ -119,7 +119,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;
   int totnode;
-  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
 
   if (totnode == 0) {
     return OPERATOR_CANCELLED;
@@ -131,12 +131,11 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
     SCULPT_topology_islands_ensure(ob);
   }
 
-  SculptThreadedTaskData data = {
-      .ob = ob,
-      .nodes = nodes,
-      .mask_init_mode = mode,
-      .mask_init_seed = PIL_check_seconds_timer(),
-  };
+  SculptThreadedTaskData data{};
+  data.ob = ob;
+  data.nodes = nodes;
+  data.mask_init_mode = mode;
+  data.mask_init_seed = PIL_check_seconds_timer();
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);

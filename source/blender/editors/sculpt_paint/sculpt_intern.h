@@ -908,7 +908,7 @@ float SCULPT_raycast_init(struct ViewContext *vc,
                           bool original);
 
 /* Symmetry */
-char SCULPT_mesh_symmetry_xyz_get(Object *object);
+ePaintSymmetryFlags SCULPT_mesh_symmetry_xyz_get(Object *object);
 
 /**
  * Returns true when the step belongs to the stroke that is directly performed by the brush and
@@ -1711,7 +1711,7 @@ void SCULPT_OT_dyntopo_detail_size_edit(struct wmOperatorType *ot);
 
 void SCULPT_OT_dynamic_topology_toggle(struct wmOperatorType *ot);
 
-/* sculpt_brush_types.c */
+/* sculpt_brush_types.cc */
 
 /* -------------------------------------------------------------------- */
 /** \name Brushes
@@ -1918,13 +1918,13 @@ void SCULPT_do_mask_brush(struct Sculpt *sd,
 void SCULPT_bmesh_topology_rake(
     struct Sculpt *sd, struct Object *ob, struct PBVHNode **nodes, int totnode, float bstrength);
 
-/* end sculpt_brush_types.c */
+/* end sculpt_brush_types.cc */
 
-/* sculpt_ops.c */
+/* sculpt_ops.cc */
 
 void SCULPT_OT_brush_stroke(struct wmOperatorType *ot);
 
-/* end sculpt_ops.c */
+/* end sculpt_ops.cc */
 
 BLI_INLINE bool SCULPT_tool_is_paint(int tool)
 {

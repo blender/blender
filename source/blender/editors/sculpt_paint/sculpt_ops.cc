@@ -67,13 +67,13 @@
 
 #include "bmesh.h"
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 /* Reset the copy of the mesh that is being sculpted on (currently just for the layer brush). */
 
-static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
+static int sculpt_set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
@@ -127,7 +127,7 @@ static void SCULPT_OT_set_persistent_base(wmOperatorType *ot)
 
 /************************* SCULPT_OT_optimize *************************/
 
-static int sculpt_optimize_exec(bContext *C, wmOperator *UNUSED(op))
+static int sculpt_optimize_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = CTX_data_active_object(C);
 
@@ -180,7 +180,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
   }
 
   switch (BKE_pbvh_type(pbvh)) {
-    case PBVH_BMESH:
+    case PBVH_BMESH: {
       /* Dyntopo Symmetrize. */
 
       /* To simplify undo for symmetrize, all BMesh elements are logged
@@ -188,7 +188,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
        * are logged as added (as opposed to attempting to store just the
        * parts that symmetrize modifies). */
       SCULPT_undo_push_begin(ob, op);
-      SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_SYMMETRIZE);
+      SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_SYMMETRIZE);
       BM_log_before_all_removed(ss->bm, ss->bm_log);
 
       BM_mesh_toolflags_set(ss->bm, true);
@@ -212,17 +212,19 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
       SCULPT_undo_push_end(ob);
 
       break;
-    case PBVH_FACES:
+    }
+    case PBVH_FACES: {
       /* Mesh Symmetrize. */
       ED_sculpt_undo_geometry_begin(ob, op);
-      Mesh *mesh = ob->data;
+      Mesh *mesh = static_cast<Mesh *>(ob->data);
 
       BKE_mesh_mirror_apply_mirror_on_axis(bmain, mesh, sd->symmetrize_direction, dist);
 
       ED_sculpt_undo_geometry_end(ob);
-      BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+      BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
 
       break;
+    }
     case PBVH_GRIDS:
       return OPERATOR_CANCELLED;
   }
@@ -266,10 +268,10 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   BKE_sculpt_toolsettings_data_ensure(scene);
 
   /* Create sculpt mode session data. */
-  if (ob->sculpt != NULL) {
+  if (ob->sculpt != nullptr) {
     BKE_sculptsession_free(ob);
   }
-  ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
+  ob->sculpt = MEM_cnew<SculptSession>(__func__);
   ob->sculpt->mode_type = OB_MODE_SCULPT;
 
   /* Trigger evaluation of modifier stack to ensure
@@ -359,11 +361,11 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
   if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
     MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 
-    const char *message_unsupported = NULL;
+    const char *message_unsupported = nullptr;
     if (me->totloop != me->totpoly * 3) {
       message_unsupported = TIP_("non-triangle face");
     }
-    else if (mmd != NULL) {
+    else if (mmd != nullptr) {
       message_unsupported = TIP_("multi-res modifier");
     }
     else {
@@ -388,17 +390,17 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       }
     }
 
-    if ((message_unsupported == NULL) || force_dyntopo) {
+    if ((message_unsupported == nullptr) || force_dyntopo) {
       /* Needed because we may be entering this mode before the undo system loads. */
-      wmWindowManager *wm = bmain->wm.first;
-      bool has_undo = wm->undo_stack != NULL;
+      wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+      bool has_undo = wm->undo_stack != nullptr;
       /* Undo push is needed to prevent memory leak. */
       if (has_undo) {
         SCULPT_undo_push_begin_ex(ob, "Dynamic topology enable");
       }
       SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
       if (has_undo) {
-        SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
+        SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_BEGIN);
         SCULPT_undo_push_end(ob);
       }
     }
@@ -415,7 +417,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 }
 
-void ED_object_sculptmode_enter(struct bContext *C, Depsgraph *depsgraph, ReportList *reports)
+void ED_object_sculptmode_enter(bContext *C, Depsgraph *depsgraph, ReportList *reports)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -480,7 +482,7 @@ void ED_object_sculptmode_exit(bContext *C, Depsgraph *depsgraph)
 
 static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 {
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
   Scene *scene = CTX_data_scene(C);
@@ -492,7 +494,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
   const bool is_mode_set = (ob->mode & mode_flag) != 0;
 
   if (!is_mode_set) {
-    if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
+    if (!ED_object_mode_compat_set(C, ob, eObjectMode(mode_flag), op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -508,7 +510,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_toolslots_brush_validate(bmain, &ts->sculpt->paint);
 
     if (ob->mode & mode_flag) {
-      Mesh *me = ob->data;
+      Mesh *me = static_cast<Mesh *>(ob->data);
       /* Dyntopo adds its own undo step. */
       if ((me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) == 0) {
         /* Without this the memfile undo step is used,
@@ -580,8 +582,8 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
   /* Assuming an average of 6 edges per vertex in a triangulated mesh. */
   const int max_preview_verts = SCULPT_vertex_count_get(ss) * 3 * 2;
 
-  if (ss->preview_vert_list == NULL) {
-    ss->preview_vert_list = MEM_callocN(max_preview_verts * sizeof(PBVHVertRef), "preview lines");
+  if (ss->preview_vert_list == nullptr) {
+    ss->preview_vert_list = MEM_cnew_array<PBVHVertRef>(max_preview_verts, __func__);
   }
 
   GSQueue *non_visited_verts = BLI_gsqueue_new(sizeof(PBVHVertRef));
@@ -621,7 +623,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
   ss->preview_vert_count = totpoints;
 }
 
-static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e))
+static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Scene *scene = CTX_data_scene(C);
@@ -718,17 +720,18 @@ static float sculpt_mask_by_color_final_mask_get(const float current_mask,
   return new_mask;
 }
 
-typedef struct MaskByColorContiguousFloodFillData {
+struct MaskByColorContiguousFloodFillData {
   float threshold;
   bool invert;
   float *new_mask;
   float initial_color[3];
-} MaskByColorContiguousFloodFillData;
+};
 
-static void do_mask_by_color_contiguous_update_nodes_cb(
-    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
+static void do_mask_by_color_contiguous_update_nodes_cb(void *__restrict userdata,
+                                                        const int n,
+                                                        const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
 
   SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_MASK);
@@ -759,7 +762,8 @@ static bool sculpt_mask_by_color_contiguous_floodfill_cb(
   int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
   int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
 
-  MaskByColorContiguousFloodFillData *data = userdata;
+  MaskByColorContiguousFloodFillData *data = static_cast<MaskByColorContiguousFloodFillData *>(
+      userdata);
   float current_color[4];
 
   SCULPT_vertex_color_get(ss, to_v, current_color);
@@ -786,7 +790,7 @@ static void sculpt_mask_by_color_contiguous(Object *object,
   SculptSession *ss = object->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  float *new_mask = MEM_calloc_arrayN(totvert, sizeof(float), "new mask");
+  float *new_mask = MEM_cnew_array<float>(totvert, __func__);
 
   if (invert) {
     for (int i = 0; i < totvert; i++) {
@@ -813,17 +817,16 @@ static void sculpt_mask_by_color_contiguous(Object *object,
 
   int totnode;
   PBVHNode **nodes;
-  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
 
-  SculptThreadedTaskData data = {
-      .ob = object,
-      .nodes = nodes,
-      .mask_by_color_floodfill = new_mask,
-      .mask_by_color_vertex = vertex,
-      .mask_by_color_threshold = threshold,
-      .mask_by_color_invert = invert,
-      .mask_by_color_preserve_mask = preserve_mask,
-  };
+  SculptThreadedTaskData data{};
+  data.ob = object;
+  data.nodes = nodes;
+  data.mask_by_color_floodfill = new_mask;
+  data.mask_by_color_vertex = vertex;
+  data.mask_by_color_threshold = threshold;
+  data.mask_by_color_invert = invert;
+  data.mask_by_color_preserve_mask = preserve_mask;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -837,9 +840,9 @@ static void sculpt_mask_by_color_contiguous(Object *object,
 
 static void do_mask_by_color_task_cb(void *__restrict userdata,
                                      const int n,
-                                     const TaskParallelTLS *__restrict UNUSED(tls))
+                                     const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
 
   SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_MASK);
@@ -882,16 +885,15 @@ static void sculpt_mask_by_color_full_mesh(Object *object,
 
   int totnode;
   PBVHNode **nodes;
-  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
 
-  SculptThreadedTaskData data = {
-      .ob = object,
-      .nodes = nodes,
-      .mask_by_color_vertex = vertex,
-      .mask_by_color_threshold = threshold,
-      .mask_by_color_invert = invert,
-      .mask_by_color_preserve_mask = preserve_mask,
-  };
+  SculptThreadedTaskData data{};
+  data.ob = object;
+  data.nodes = nodes;
+  data.mask_by_color_vertex = vertex;
+  data.mask_by_color_threshold = threshold;
+  data.mask_by_color_invert = invert;
+  data.mask_by_color_preserve_mask = preserve_mask;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -924,7 +926,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
    * so it needs to be updated here. */
   SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {UNPACK2(event->mval)};
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
 
   SCULPT_undo_push_begin(ob, op);
@@ -990,34 +992,34 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
                 1.0f);
 }
 
-typedef enum {
+enum CavityBakeMixMode {
   AUTOMASK_BAKE_MIX,
   AUTOMASK_BAKE_MULTIPLY,
   AUTOMASK_BAKE_DIVIDE,
   AUTOMASK_BAKE_ADD,
   AUTOMASK_BAKE_SUBTRACT,
-} CavityBakeMixMode;
+};
 
-typedef enum {
+enum CavityBakeSettingsSource {
   AUTOMASK_SETTINGS_OPERATOR,
   AUTOMASK_SETTINGS_SCENE,
   AUTOMASK_SETTINGS_BRUSH
-} CavityBakeSettingsSource;
+};
 
-typedef struct AutomaskBakeTaskData {
+struct AutomaskBakeTaskData {
   SculptSession *ss;
   AutomaskingCache *automasking;
   PBVHNode **nodes;
   CavityBakeMixMode mode;
   float factor;
   Object *ob;
-} AutomaskBakeTaskData;
+};
 
 static void sculpt_bake_cavity_exec_task_cb(void *__restrict userdata,
                                             const int n,
-                                            const TaskParallelTLS *__restrict UNUSED(tls))
+                                            const TaskParallelTLS *__restrict /*tls*/)
 {
-  AutomaskBakeTaskData *tdata = userdata;
+  AutomaskBakeTaskData *tdata = static_cast<AutomaskBakeTaskData *>(userdata);
   SculptSession *ss = tdata->ss;
   PBVHNode *node = tdata->nodes[n];
   PBVHVertexIter vd;
@@ -1072,7 +1074,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  const Brush *brush = BKE_paint_brush(&sd->paint);
 
   MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
   BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
@@ -1082,13 +1084,13 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
 
   SCULPT_undo_push_begin(ob, op);
 
-  CavityBakeMixMode mode = RNA_enum_get(op->ptr, "mix_mode");
+  CavityBakeMixMode mode = CavityBakeMixMode(RNA_enum_get(op->ptr, "mix_mode"));
   float factor = RNA_float_get(op->ptr, "mix_factor");
 
   PBVHNode **nodes;
   int totnode;
 
-  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
 
   AutomaskBakeTaskData tdata;
 
@@ -1096,9 +1098,9 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
    */
   Sculpt sd2 = *sd;
 
-  CavityBakeSettingsSource source = (CavityBakeSettingsSource)RNA_enum_get(op->ptr,
-                                                                           "settings_source");
-  switch (source) {
+  CavityBakeSettingsSource src = (CavityBakeSettingsSource)RNA_enum_get(op->ptr,
+                                                                        "settings_source");
+  switch (src) {
     case AUTOMASK_SETTINGS_OPERATOR:
       if (RNA_boolean_get(op->ptr, "invert")) {
         sd2.automasking_flags = BRUSH_AUTOMASKING_CAVITY_INVERTED;
@@ -1146,7 +1148,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   }
 
   /* Create copy of brush with cleared automasking settings. */
-  Brush brush2 = *brush;
+  Brush brush2 = blender::dna::shallow_copy(*brush);
   brush2.automasking_flags = 0;
   brush2.automasking_boundary_edges_propagation_steps = 1;
   brush2.automasking_cavity_curve = sd2.automasking_cavity_curve;
@@ -1180,7 +1182,7 @@ static void cavity_bake_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   Scene *scene = CTX_data_scene(C);
-  Sculpt *sd = scene->toolsettings ? scene->toolsettings->sculpt : NULL;
+  Sculpt *sd = scene->toolsettings ? scene->toolsettings->sculpt : nullptr;
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -1193,13 +1195,13 @@ static void cavity_bake_ui(bContext *C, wmOperator *op)
 
   switch (source) {
     case AUTOMASK_SETTINGS_OPERATOR: {
-      uiItemR(layout, op->ptr, "mix_mode", 0, NULL, ICON_NONE);
-      uiItemR(layout, op->ptr, "mix_factor", 0, NULL, ICON_NONE);
-      uiItemR(layout, op->ptr, "settings_source", 0, NULL, ICON_NONE);
-      uiItemR(layout, op->ptr, "factor", 0, NULL, ICON_NONE);
-      uiItemR(layout, op->ptr, "blur_steps", 0, NULL, ICON_NONE);
-      uiItemR(layout, op->ptr, "invert", 0, NULL, ICON_NONE);
-      uiItemR(layout, op->ptr, "use_curve", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_mode", 0, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_factor", 0, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "settings_source", 0, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "factor", 0, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "blur_steps", 0, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "invert", 0, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "use_curve", 0, nullptr, ICON_NONE);
 
       if (sd && RNA_boolean_get(op->ptr, "use_curve")) {
         PointerRNA sculpt_ptr;
@@ -1212,9 +1214,9 @@ static void cavity_bake_ui(bContext *C, wmOperator *op)
     }
     case AUTOMASK_SETTINGS_BRUSH:
     case AUTOMASK_SETTINGS_SCENE:
-      uiItemR(layout, op->ptr, "mix_mode", 0, NULL, ICON_NONE);
-      uiItemR(layout, op->ptr, "mix_factor", 0, NULL, ICON_NONE);
-      uiItemR(layout, op->ptr, "settings_source", 0, NULL, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_mode", 0, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_factor", 0, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "settings_source", 0, nullptr, ICON_NONE);
 
       break;
   }
@@ -1234,7 +1236,7 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
       {AUTOMASK_BAKE_DIVIDE, "DIVIDE", ICON_NONE, "Divide", ""},
       {AUTOMASK_BAKE_ADD, "ADD", ICON_NONE, "Add", ""},
       {AUTOMASK_BAKE_SUBTRACT, "SUBTRACT", ICON_NONE, "Subtract", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* api callbacks */
@@ -1254,7 +1256,7 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
        "Use settings from operator properties"},
       {AUTOMASK_SETTINGS_BRUSH, "BRUSH", ICON_NONE, "Brush", "Use settings from brush"},
       {AUTOMASK_SETTINGS_SCENE, "SCENE", ICON_NONE, "Scene", "Use settings from scene"},
-      {0, NULL, 0, NULL, NULL}};
+      {0, nullptr, 0, nullptr, nullptr}};
 
   RNA_def_enum(ot->srna,
                "settings_source",
@@ -1304,7 +1306,7 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
   int totnode;
   bool with_bmesh = BKE_pbvh_type(ss->pbvh) == PBVH_BMESH;
 
-  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
 
   if (!totnode) {
     return OPERATOR_CANCELLED;
@@ -1330,7 +1332,7 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
      * reduced memory usage without manually clearing it later, and allows sculpt operations to
      * avoid checking element's hide status. */
     CustomData_free_layer_named(&mesh->pdata, ".hide_poly", mesh->totpoly);
-    ss->hide_poly = NULL;
+    ss->hide_poly = nullptr;
   }
   else {
     SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_HIDDEN);

@@ -28,13 +28,13 @@
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 #define BOUNDARY_VERTEX_NONE -1
 #define BOUNDARY_STEPS_NONE -1
 
-typedef struct BoundaryInitialVertexFloodFillData {
+struct BoundaryInitialVertexFloodFillData {
   PBVHVertRef initial_vertex;
   int initial_vertex_i;
   int boundary_initial_vertex_steps;
@@ -42,12 +42,13 @@ typedef struct BoundaryInitialVertexFloodFillData {
   int boundary_initial_vertex_i;
   int *floodfill_steps;
   float radius_sq;
-} BoundaryInitialVertexFloodFillData;
+};
 
 static bool boundary_initial_vertex_floodfill_cb(
     SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate, void *userdata)
 {
-  BoundaryInitialVertexFloodFillData *data = userdata;
+  BoundaryInitialVertexFloodFillData *data = static_cast<BoundaryInitialVertexFloodFillData *>(
+      userdata);
 
   int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
   int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
@@ -91,15 +92,13 @@ static PBVHVertRef sculpt_boundary_get_closest_boundary_vertex(SculptSession *ss
   SCULPT_floodfill_init(ss, &flood);
   SCULPT_floodfill_add_initial(&flood, initial_vertex);
 
-  BoundaryInitialVertexFloodFillData fdata = {
-      .initial_vertex = initial_vertex,
-      .boundary_initial_vertex = {BOUNDARY_VERTEX_NONE},
-      .boundary_initial_vertex_steps = INT_MAX,
-      .radius_sq = radius * radius,
-  };
+  BoundaryInitialVertexFloodFillData fdata{};
+  fdata.initial_vertex = initial_vertex;
+  fdata.boundary_initial_vertex = {BOUNDARY_VERTEX_NONE};
+  fdata.boundary_initial_vertex_steps = INT_MAX;
+  fdata.radius_sq = radius * radius;
 
-  fdata.floodfill_steps = MEM_calloc_arrayN(
-      SCULPT_vertex_count_get(ss), sizeof(int), "floodfill steps");
+  fdata.floodfill_steps = MEM_cnew_array<int>(SCULPT_vertex_count_get(ss), __func__);
 
   SCULPT_floodfill_execute(ss, &flood, boundary_initial_vertex_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
@@ -131,8 +130,8 @@ static void sculpt_boundary_index_add(SculptBoundary *boundary,
   boundary->verts_num++;
   if (boundary->verts_num >= boundary->verts_capacity) {
     boundary->verts_capacity += BOUNDARY_INDICES_BLOCK_SIZE;
-    boundary->verts = MEM_reallocN_id(
-        boundary->verts, boundary->verts_capacity * sizeof(PBVHVertRef), "boundary indices");
+    boundary->verts = static_cast<PBVHVertRef *>(MEM_reallocN_id(
+        boundary->verts, boundary->verts_capacity * sizeof(PBVHVertRef), "boundary indices"));
   }
 };
 
@@ -147,9 +146,10 @@ static void sculpt_boundary_preview_edge_add(SculptBoundary *boundary,
 
   if (boundary->edges_num >= boundary->edges_capacity) {
     boundary->edges_capacity += BOUNDARY_INDICES_BLOCK_SIZE;
-    boundary->edges = MEM_reallocN_id(boundary->edges,
-                                      boundary->edges_capacity * sizeof(SculptBoundaryPreviewEdge),
-                                      "boundary edges");
+    boundary->edges = static_cast<SculptBoundaryPreviewEdge *>(
+        MEM_reallocN_id(boundary->edges,
+                        boundary->edges_capacity * sizeof(SculptBoundaryPreviewEdge),
+                        "boundary edges"));
   }
 };
 
@@ -196,14 +196,13 @@ static bool sculpt_boundary_is_vertex_in_editable_boundary(SculptSession *ss,
 /* Flood fill that adds to the boundary data all the vertices from a boundary and its duplicates.
  */
 
-typedef struct BoundaryFloodFillData {
+struct BoundaryFloodFillData {
   SculptBoundary *boundary;
   GSet *included_verts;
   EdgeSet *preview_edges;
 
   PBVHVertRef last_visited_vertex;
-
-} BoundaryFloodFillData;
+};
 
 static bool boundary_floodfill_cb(
     SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate, void *userdata)
@@ -211,7 +210,7 @@ static bool boundary_floodfill_cb(
   int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
   int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
 
-  BoundaryFloodFillData *data = userdata;
+  BoundaryFloodFillData *data = static_cast<BoundaryFloodFillData *>(userdata);
   SculptBoundary *boundary = data->boundary;
   if (!SCULPT_vertex_is_boundary(ss, to_v)) {
     return false;
@@ -236,14 +235,14 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
 {
 
   const int totvert = SCULPT_vertex_count_get(ss);
-  boundary->verts = MEM_malloc_arrayN(
-      BOUNDARY_INDICES_BLOCK_SIZE, sizeof(PBVHVertRef), "boundary indices");
+  boundary->verts = static_cast<PBVHVertRef *>(
+      MEM_malloc_arrayN(BOUNDARY_INDICES_BLOCK_SIZE, sizeof(PBVHVertRef), __func__));
 
   if (init_boundary_distances) {
-    boundary->distance = MEM_calloc_arrayN(totvert, sizeof(float), "boundary distances");
+    boundary->distance = static_cast<float *>(MEM_calloc_arrayN(totvert, sizeof(float), __func__));
   }
-  boundary->edges = MEM_malloc_arrayN(
-      BOUNDARY_INDICES_BLOCK_SIZE, sizeof(SculptBoundaryPreviewEdge), "boundary edges");
+  boundary->edges = static_cast<SculptBoundaryPreviewEdge *>(
+      MEM_malloc_arrayN(BOUNDARY_INDICES_BLOCK_SIZE, sizeof(SculptBoundaryPreviewEdge), __func__));
 
   GSet *included_verts = BLI_gset_int_new_ex("included verts", BOUNDARY_INDICES_BLOCK_SIZE);
   SculptFloodFill flood;
@@ -260,12 +259,10 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
       boundary, initial_boundary_vertex, initial_boundary_index, 0.0f, included_verts);
   SCULPT_floodfill_add_initial(&flood, boundary->initial_vertex);
 
-  BoundaryFloodFillData fdata = {
-      .boundary = boundary,
-      .included_verts = included_verts,
-      .last_visited_vertex = {BOUNDARY_VERTEX_NONE},
-
-  };
+  BoundaryFloodFillData fdata{};
+  fdata.boundary = boundary;
+  fdata.included_verts = included_verts;
+  fdata.last_visited_vertex = {BOUNDARY_VERTEX_NONE};
 
   SCULPT_floodfill_execute(ss, &flood, boundary_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
@@ -284,7 +281,7 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
 
-  BLI_gset_free(included_verts, NULL);
+  BLI_gset_free(included_verts, nullptr);
 }
 
 /**
@@ -302,8 +299,8 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
 
   const bool has_duplicates = BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS;
 
-  boundary->edit_info = MEM_malloc_arrayN(
-      totvert, sizeof(SculptBoundaryEditInfo), "Boundary edit info");
+  boundary->edit_info = static_cast<SculptBoundaryEditInfo *>(
+      MEM_malloc_arrayN(totvert, sizeof(SculptBoundaryEditInfo), __func__));
 
   for (int i = 0; i < totvert; i++) {
     boundary->edit_info[i].original_vertex_i = BOUNDARY_VERTEX_NONE;
@@ -496,7 +493,7 @@ SculptBoundary *SCULPT_boundary_data_init(Object *object,
   SculptSession *ss = object->sculpt;
 
   if (initial_vertex.i == PBVH_REF_NONE) {
-    return NULL;
+    return nullptr;
   }
 
   SCULPT_vertex_random_access_ensure(ss);
@@ -506,16 +503,16 @@ SculptBoundary *SCULPT_boundary_data_init(Object *object,
       ss, initial_vertex, radius);
 
   if (boundary_initial_vertex.i == BOUNDARY_VERTEX_NONE) {
-    return NULL;
+    return nullptr;
   }
 
-  /* Starting from a vertex that is the limit of a boundary is ambiguous, so return NULL instead of
-   * forcing a random active boundary from a corner. */
+  /* Starting from a vertex that is the limit of a boundary is ambiguous, so return nullptr instead
+   * of forcing a random active boundary from a corner. */
   if (!sculpt_boundary_is_vertex_in_editable_boundary(ss, initial_vertex)) {
-    return NULL;
+    return nullptr;
   }
 
-  SculptBoundary *boundary = MEM_callocN(sizeof(SculptBoundary), "Boundary edit data");
+  SculptBoundary *boundary = MEM_cnew<SculptBoundary>(__func__);
 
   const bool init_boundary_distances = brush ? brush->boundary_falloff_type !=
                                                    BRUSH_BOUNDARY_FALLOFF_CONSTANT :
@@ -548,9 +545,10 @@ void SCULPT_boundary_data_free(SculptBoundary *boundary)
 static void sculpt_boundary_bend_data_init(SculptSession *ss, SculptBoundary *boundary)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
-  boundary->bend.pivot_rotation_axis = MEM_calloc_arrayN(
-      totvert, sizeof(float[3]), "pivot rotation axis");
-  boundary->bend.pivot_positions = MEM_calloc_arrayN(totvert, sizeof(float[3]), "pivot positions");
+  boundary->bend.pivot_rotation_axis = static_cast<float(*)[3]>(
+      MEM_calloc_arrayN(totvert, sizeof(float[3]), __func__));
+  boundary->bend.pivot_positions = static_cast<float(*)[3]>(
+      MEM_calloc_arrayN(totvert, sizeof(float[3]), __func__));
 
   for (int i = 0; i < totvert; i++) {
     if (boundary->edit_info[i].propagation_steps_num != boundary->max_propagation_steps) {
@@ -588,7 +586,8 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss, SculptBoundary *bo
 static void sculpt_boundary_slide_data_init(SculptSession *ss, SculptBoundary *boundary)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
-  boundary->slide.directions = MEM_calloc_arrayN(totvert, sizeof(float[3]), "slide directions");
+  boundary->slide.directions = static_cast<float(*)[3]>(
+      MEM_calloc_arrayN(totvert, sizeof(float[3]), "slide directions"));
 
   for (int i = 0; i < totvert; i++) {
     if (boundary->edit_info[i].propagation_steps_num != boundary->max_propagation_steps) {
@@ -614,7 +613,8 @@ static void sculpt_boundary_slide_data_init(SculptSession *ss, SculptBoundary *b
 static void sculpt_boundary_twist_data_init(SculptSession *ss, SculptBoundary *boundary)
 {
   zero_v3(boundary->twist.pivot_position);
-  float(*poly_verts)[3] = MEM_malloc_arrayN(boundary->verts_num, sizeof(float[3]), "poly verts");
+  float(*poly_verts)[3] = static_cast<float(*)[3]>(
+      MEM_malloc_arrayN(boundary->verts_num, sizeof(float[3]), "poly verts"));
   for (int i = 0; i < boundary->verts_num; i++) {
     add_v3_v3(boundary->twist.pivot_position, SCULPT_vertex_co_get(ss, boundary->verts[i]));
     copy_v3_v3(poly_verts[i], SCULPT_vertex_co_get(ss, boundary->verts[i]));
@@ -648,9 +648,9 @@ static float sculpt_boundary_displacement_from_grab_delta_get(SculptSession *ss,
 /* Deformation tasks callbacks. */
 static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
                                               const int n,
-                                              const TaskParallelTLS *__restrict UNUSED(tls))
+                                              const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
@@ -707,9 +707,9 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
 
 static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
                                                const int n,
-                                               const TaskParallelTLS *__restrict UNUSED(tls))
+                                               const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
@@ -758,9 +758,9 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
 
 static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
                                                  const int n,
-                                                 const TaskParallelTLS *__restrict UNUSED(tls))
+                                                 const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
@@ -809,9 +809,9 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
 
 static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
                                               const int n,
-                                              const TaskParallelTLS *__restrict UNUSED(tls))
+                                              const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
@@ -857,9 +857,9 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
 
 static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
                                                const int n,
-                                               const TaskParallelTLS *__restrict UNUSED(tls))
+                                               const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
@@ -916,9 +916,9 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
 
 static void do_boundary_brush_smooth_task_cb_ex(void *__restrict userdata,
                                                 const int n,
-                                                const TaskParallelTLS *__restrict UNUSED(tls))
+                                                const TaskParallelTLS *__restrict /*tls*/)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const int symmetry_pass = ss->cache->mirror_symmetry_pass;
   const SculptBoundary *boundary = ss->cache->boundaries[symmetry_pass];
@@ -978,7 +978,7 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  const int symm_area = ss->cache->mirror_symmetry_pass;
+  const ePaintSymmetryFlags symm_area = ss->cache->mirror_symmetry_pass;
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
 
     PBVHVertRef initial_vertex;
@@ -1024,12 +1024,11 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
     return;
   }
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);

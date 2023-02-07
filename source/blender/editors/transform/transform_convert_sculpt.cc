@@ -43,8 +43,8 @@ static void createTransSculpt(bContext *C, TransInfo *t)
     TransDataContainer *tc = t->data_container;
     tc->data_len = 1;
     tc->is_active = 1;
-    td = tc->data = MEM_callocN(sizeof(TransData), "TransSculpt");
-    td->ext = tc->data_ext = MEM_callocN(sizeof(TransDataExtension), "TransSculpt");
+    td = tc->data = MEM_cnew<TransData>(__func__);
+    td->ext = tc->data_ext = MEM_cnew<TransDataExtension>(__func__);
   }
 
   td->flag = TD_SELECTED;
@@ -63,9 +63,9 @@ static void createTransSculpt(bContext *C, TransInfo *t)
   copy_m3_m4(obmat_inv, ob->object_to_world);
   invert_m3(obmat_inv);
 
-  td->ext->rot = NULL;
-  td->ext->rotAxis = NULL;
-  td->ext->rotAngle = NULL;
+  td->ext->rot = nullptr;
+  td->ext->rotAxis = nullptr;
+  td->ext->rotAngle = nullptr;
   td->ext->quat = ss->pivot_rot;
   copy_m4_m4(td->ext->obmat, ob->object_to_world);
   copy_m3_m3(td->ext->l_smtx, obmat_inv);

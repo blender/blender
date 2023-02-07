@@ -21,8 +21,8 @@
 
 #include "bmesh.h"
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float result[3],
@@ -180,7 +180,7 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
                                                 const int n,
                                                 const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   Sculpt *sd = data->sd;
   const Brush *brush = data->brush;
@@ -241,8 +241,8 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     const int totvert = SCULPT_vertex_count_get(ss);
-    ss->cache->detail_directions = MEM_malloc_arrayN(
-        totvert, sizeof(float[3]), "details directions");
+    ss->cache->detail_directions = static_cast<float(*)[3]>(
+        MEM_malloc_arrayN(totvert, sizeof(float[3]), "details directions"));
 
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
@@ -253,12 +253,11 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
     }
   }
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -269,7 +268,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
                                        const int n,
                                        const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   Sculpt *sd = data->sd;
   const Brush *brush = data->brush;
@@ -345,7 +344,7 @@ void SCULPT_smooth(Sculpt *sd,
 
   CLAMP(bstrength, 0.0f, 1.0f);
 
-  count = (int)(bstrength * max_iterations);
+  count = int(bstrength * max_iterations);
   last = max_iterations * (bstrength - count * fract);
 
   if (type == PBVH_FACES && !ss->pmap) {
@@ -359,14 +358,13 @@ void SCULPT_smooth(Sculpt *sd,
   for (iteration = 0; iteration <= count; iteration++) {
     const float strength = (iteration != count) ? 1.0f : last;
 
-    SculptThreadedTaskData data = {
-        .sd = sd,
-        .ob = ob,
-        .brush = brush,
-        .nodes = nodes,
-        .smooth_mask = smooth_mask,
-        .strength = strength,
-    };
+    SculptThreadedTaskData data{};
+    data.sd = sd;
+    data.ob = ob;
+    data.brush = brush;
+    data.nodes = nodes;
+    data.smooth_mask = smooth_mask;
+    data.strength = strength;
 
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -447,7 +445,7 @@ void SCULPT_surface_smooth_displace_step(SculptSession *ss,
 static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
     void *__restrict userdata, const int n, const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float bstrength = ss->cache->bstrength;
@@ -499,7 +497,7 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
 static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
     void *__restrict userdata, const int n, const TaskParallelTLS *__restrict tls)
 {
-  SculptThreadedTaskData *data = userdata;
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   const float bstrength = ss->cache->bstrength;
@@ -543,12 +541,11 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   /* Threaded loop over nodes. */
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  SculptThreadedTaskData data{};
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);

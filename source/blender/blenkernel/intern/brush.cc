@@ -1598,7 +1598,7 @@ struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mo
 void BKE_brush_debug_print_state(Brush *br)
 {
   /* create a fake brush and set it to the defaults */
-  Brush def = {{nullptr}};
+  Brush def = blender::dna::shallow_zero_initialize();
   brush_defaults(&def);
 
 #define BR_TEST(field, t) \
