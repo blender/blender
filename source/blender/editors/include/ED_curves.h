@@ -146,7 +146,6 @@ bool select_pick(const ViewContext &vc,
                  const SelectPick_Params &params,
                  const int2 mval);
 
-
 /** \} */
 
 }  // namespace blender::ed::curves

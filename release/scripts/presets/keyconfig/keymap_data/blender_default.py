@@ -6344,6 +6344,8 @@ def km_node_link_modal_map(_params):
     return keymap
 
 # Fallback for gizmos that don't have custom a custom key-map.
+
+
 def km_generic_gizmo(_params):
     keymap = (
         "Generic Gizmo",

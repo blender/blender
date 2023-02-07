@@ -3,6 +3,7 @@
 
 import requests
 
+
 class ReleaseLogLine:
     """
     Class containing the information of a single line of the release log
