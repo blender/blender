@@ -4,6 +4,7 @@
 #  include <openvdb/openvdb.h>
 #endif
 
+#include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
 
 #include "DNA_mesh_types.h"
