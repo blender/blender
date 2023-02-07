@@ -24,7 +24,7 @@ Development
 -----------
 
 - [Build Instructions](https://wiki.blender.org/wiki/Building_Blender)
-- [Code Review & Bug Tracker](https://developer.blender.org)
+- [Code Review & Bug Tracker](https://projects.blender.org)
 - [Developer Forum](https://devtalk.blender.org)
 - [Developer Documentation](https://wiki.blender.org)
 

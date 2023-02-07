@@ -202,8 +202,8 @@ def submodules_update(
         sys.exit(1)
 
     # Update submodules to appropriate given branch,
-    # falling back to master if none is given and/or found in a sub-repository.
-    branch_fallback = "master"
+    # falling back to main if none is given and/or found in a sub-repository.
+    branch_fallback = "main"
     if not branch:
         branch = branch_fallback
 

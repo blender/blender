@@ -1816,9 +1816,9 @@ def pyrna2sphinx(basepath):
 
     # operators
     def write_ops():
-        API_BASEURL = "https://developer.blender.org/diffusion/B/browse/master/release/scripts"
-        API_BASEURL_ADDON = "https://developer.blender.org/diffusion/BA"
-        API_BASEURL_ADDON_CONTRIB = "https://developer.blender.org/diffusion/BAC"
+        API_BASEURL = "https://projects.blender.org/blender/blender/src/branch/main/release/scripts"
+        API_BASEURL_ADDON = "https://projects.blender.org/blender/blender-addons"
+        API_BASEURL_ADDON_CONTRIB = "https://projects.blender.org/blender/blender-addons-contrib"
 
         op_modules = {}
         op = None

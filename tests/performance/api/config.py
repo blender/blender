@@ -150,7 +150,7 @@ class TestConfig:
         default_config += """tests = ['*']\n"""
         default_config += """categories = ['*']\n"""
         default_config += """builds = {\n"""
-        default_config += """    'master': '/home/user/blender-git/build/bin/blender',"""
+        default_config += """    'main': '/home/user/blender-git/build/bin/blender',"""
         default_config += """    '2.93': '/home/user/blender-2.93/blender',"""
         default_config += """}\n"""
         default_config += """revisions = {\n"""
