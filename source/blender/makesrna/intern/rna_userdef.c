@@ -6227,7 +6227,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
       prop,
       "Python Scripts Directory",
       "Alternate script path, matching the default layout with subdirectories: "
-      "startup, add-ons, modules, and presets (requires restart)");
+      "`startup`, `addons`, `modules`, and `presets` (requires restart)");
   /* TODO: editing should reset sys.path! */
 
   prop = RNA_def_property(srna, "i18n_branches_directory", PROP_STRING, PROP_DIRPATH);
