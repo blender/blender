@@ -214,7 +214,7 @@ static void ed_undo_step_post(bContext *C,
     Object *obact = CTX_data_active_object(C);
     if (obact && (obact->type == OB_GPENCIL)) {
       /* set cursor */
-      if ((obact->mode & OB_MODE_ALL_PAINT_GPENCIL)) {
+      if (obact->mode & OB_MODE_ALL_PAINT_GPENCIL) {
         ED_gpencil_toggle_brush_cursor(C, true, nullptr);
       }
       else {

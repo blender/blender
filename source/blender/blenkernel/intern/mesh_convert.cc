@@ -359,10 +359,10 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
               (*mloopuv)[1] = (v % dl->nr) / float(orco_sizeu);
 
               /* cyclic correction */
-              if ((ELEM(i, 1, 2)) && (*mloopuv)[0] == 0.0f) {
+              if (ELEM(i, 1, 2) && (*mloopuv)[0] == 0.0f) {
                 (*mloopuv)[0] = 1.0f;
               }
-              if ((ELEM(i, 0, 1)) && (*mloopuv)[1] == 0.0f) {
+              if (ELEM(i, 0, 1) && (*mloopuv)[1] == 0.0f) {
                 (*mloopuv)[1] = 1.0f;
               }
             }

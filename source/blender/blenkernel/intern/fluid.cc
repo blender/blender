@@ -93,8 +93,8 @@ static CLG_LogRef LOG = {"bke.fluid"};
 
 static ThreadMutex object_update_lock = BLI_MUTEX_INITIALIZER;
 
-#  define ADD_IF_LOWER_POS(a, b) (min_ff((a) + (b), max_ff((a), (b))))
-#  define ADD_IF_LOWER_NEG(a, b) (max_ff((a) + (b), min_ff((a), (b))))
+#  define ADD_IF_LOWER_POS(a, b) min_ff((a) + (b), max_ff((a), (b)))
+#  define ADD_IF_LOWER_NEG(a, b) max_ff((a) + (b), min_ff((a), (b)))
 #  define ADD_IF_LOWER(a, b) (((b) > 0) ? ADD_IF_LOWER_POS((a), (b)) : ADD_IF_LOWER_NEG((a), (b)))
 
 bool BKE_fluid_reallocate_fluid(FluidDomainSettings *fds, int res[3], int free_old)
@@ -1484,7 +1484,7 @@ static void emit_from_particles_task_cb(void *__restrict userdata,
     for (int y = data->min[1]; y < data->max[1]; y++) {
       const int index = manta_get_index(
           x - bb->min[0], bb->res[0], y - bb->min[1], bb->res[1], z - bb->min[2]);
-      const float ray_start[3] = {(float(x)) + 0.5f, (float(y)) + 0.5f, (float(z)) + 0.5f};
+      const float ray_start[3] = {float(x) + 0.5f, float(y) + 0.5f, float(z) + 0.5f};
 
       /* Find particle distance from the kdtree. */
       KDTreeNearest_3d nearest;
@@ -2008,7 +2008,7 @@ static void emit_from_mesh_task_cb(void *__restrict userdata,
     for (int y = data->min[1]; y < data->max[1]; y++) {
       const int index = manta_get_index(
           x - bb->min[0], bb->res[0], y - bb->min[1], bb->res[1], z - bb->min[2]);
-      const float ray_start[3] = {(float(x)) + 0.5f, (float(y)) + 0.5f, (float(z)) + 0.5f};
+      const float ray_start[3] = {float(x) + 0.5f, float(y) + 0.5f, float(z) + 0.5f};
 
       /* Compute emission only for flow objects that produce fluid (i.e. skip outflow objects).
        * Result in bb->influence. Also computes initial velocities. Result in bb->velocity. */
@@ -4394,9 +4394,9 @@ float BKE_fluid_get_velocity_at(Object *ob, float position[3], float velocity[3]
     }
 
     /* map pos between 0.0 - 1.0 */
-    pos[0] = (pos[0] - fds->res_min[0]) / (float(fds->res[0]));
-    pos[1] = (pos[1] - fds->res_min[1]) / (float(fds->res[1]));
-    pos[2] = (pos[2] - fds->res_min[2]) / (float(fds->res[2]));
+    pos[0] = (pos[0] - fds->res_min[0]) / float(fds->res[0]);
+    pos[1] = (pos[1] - fds->res_min[1]) / float(fds->res[1]);
+    pos[2] = (pos[2] - fds->res_min[2]) / float(fds->res[2]);
 
     /* Check if position is outside active area. */
     if (fds->type == FLUID_DOMAIN_TYPE_GAS && fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) {

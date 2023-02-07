@@ -21,7 +21,7 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
   BKE_subdiv_ccg_key(&reshape_level_key, subdiv_ccg, reshape_context->reshape.level);
 
   const int reshape_grid_size = reshape_context->reshape.grid_size;
-  const float reshape_grid_size_1_inv = 1.0f / ((float(reshape_grid_size)) - 1.0f);
+  const float reshape_grid_size_1_inv = 1.0f / (float(reshape_grid_size) - 1.0f);
 
   int num_grids = subdiv_ccg->num_grids;
   for (int grid_index = 0; grid_index < num_grids; ++grid_index) {

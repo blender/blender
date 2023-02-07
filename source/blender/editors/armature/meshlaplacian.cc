@@ -111,7 +111,7 @@ static void laplacian_increase_edge_count(EdgeHash *edgehash, int v1, int v2)
     *p = (void *)(intptr_t(*p) + intptr_t(1));
   }
   else {
-    *p = (void *)(intptr_t(1));
+    *p = (void *)intptr_t(1);
   }
 }
 

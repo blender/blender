@@ -919,7 +919,7 @@ static void loop_manifold_fan_around_vert_next(const Span<MLoop> loops,
   const uint vert_fan_next = loops[*r_mlfan_curr_index].v;
   const MPoly &mpfan_next = polys[*r_mpfan_curr_index];
   if ((vert_fan_orig == vert_fan_next && vert_fan_orig == mv_pivot_index) ||
-      (!ELEM(vert_fan_orig, vert_fan_next, mv_pivot_index))) {
+      !ELEM(vert_fan_orig, vert_fan_next, mv_pivot_index)) {
     /* We need the previous loop, but current one is our vertex's loop. */
     *r_mlfan_vert_index = *r_mlfan_curr_index;
     if (--(*r_mlfan_curr_index) < mpfan_next.loopstart) {

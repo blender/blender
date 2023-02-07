@@ -667,7 +667,7 @@ static void foreach_grid_face_coordinate_task(void *__restrict userdata_v,
 
   const MPoly *mpoly = reshape_context->base_polys;
   const int grid_size = data->grid_size;
-  const float grid_size_1_inv = 1.0f / ((float(grid_size)) - 1.0f);
+  const float grid_size_1_inv = 1.0f / (float(grid_size) - 1.0f);
 
   const int num_corners = mpoly[face_index].totloop;
   int grid_index = reshape_context->face_start_grid_index[face_index];
@@ -697,7 +697,7 @@ static void foreach_grid_coordinate(const MultiresReshapeContext *reshape_contex
   ForeachGridCoordinateTaskData data;
   data.reshape_context = reshape_context;
   data.grid_size = BKE_subdiv_grid_size_from_level(level);
-  data.grid_size_1_inv = 1.0f / ((float(data.grid_size)) - 1.0f);
+  data.grid_size_1_inv = 1.0f / (float(data.grid_size) - 1.0f);
   data.callback = callback;
   data.callback_userdata_v = userdata_v;
 
