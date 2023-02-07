@@ -1299,6 +1299,8 @@ def km_uv_editor(params):
          {"properties": [("data_path", 'tool_settings.snap_uv_element')]}),
         ("wm.context_toggle", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.show_gizmo')]}),
+        ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
+         {"properties": [("data_path", "space_data.overlay.show_overlays")]}),
         *_template_items_context_menu("IMAGE_MT_uvs_context_menu", params.context_menu_event),
     ])
 
@@ -1968,6 +1970,8 @@ def km_image(params):
         ("image.clear_render_border", {"type": 'B', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         ("wm.context_toggle", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.show_gizmo')]}),
+        ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
+         {"properties": [("data_path", "space_data.overlay.show_overlays")]}),
         *_template_items_context_menu("IMAGE_MT_mask_context_menu", params.context_menu_event),
     ])
 
@@ -2914,6 +2918,8 @@ def km_sequencer(params):
          {"properties": [("side", 'RIGHT')]}),
         ("wm.context_toggle", {"type": 'TAB', "value": 'PRESS', "shift": True},
          {"properties": [("data_path", 'tool_settings.use_snap_sequencer')]}),
+        ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
+         {"properties": [("data_path", "space_data.show_overlays")]}),
         *_template_items_context_menu("SEQUENCER_MT_context_menu", params.context_menu_event),
     ])
 
