@@ -139,15 +139,48 @@ static int pyrna_WindowManager_clipboard_set(PyObject *UNUSED(self),
 /** \name Window Manager Type
  * \{ */
 
+PyDoc_STRVAR(
+    pyrna_draw_cursor_add_doc,
+    ".. method:: draw_cursor_add(callback, args, space_type, region_type)\n"
+    "\n"
+    "   Add a new draw cursor handler to this space type.\n"
+    "   It will be called every time the cursor for the specified region in the space "
+    "type will be drawn.\n"
+    "   Note: All arguments are positional only for now.\n"
+    "\n"
+    "   :param callback:\n"
+    "      A function that will be called when the cursor is drawn.\n"
+    "      It gets the specified arguments as input with the mouse position (tuple) as last "
+    "argument.\n"
+    "   :type callback: function\n"
+    "   :param args: Arguments that will be passed to the callback.\n"
+    "   :type args: tuple\n"
+    "   :param space_type: The space type the callback draws in; for example ``VIEW_3D``. "
+    "(:class:`bpy.types.Space.type`)\n"
+    "   :type space_type: str\n"
+    "   :param region_type: The region type the callback draws in; usually ``WINDOW``. "
+    "(:class:`bpy.types.Region.type`)\n"
+    "   :type region_type: str\n"
+    "   :return: Handler that can be removed later on.\n"
+    "   :rtype: object\n");
+
+PyDoc_STRVAR(pyrna_draw_cursor_remove_doc,
+             ".. method:: draw_cursor_remove(handler)\n"
+             "\n"
+             "   Remove a draw cursor handler that was added previously.\n"
+             "\n"
+             "   :param handler: The draw cursor handler that should be removed.\n"
+             "   :type handler: object\n");
+
 static struct PyMethodDef pyrna_windowmanager_methods[] = {
     {"draw_cursor_add",
      (PyCFunction)pyrna_callback_classmethod_add,
      METH_VARARGS | METH_CLASS,
-     ""},
+     pyrna_draw_cursor_add_doc},
     {"draw_cursor_remove",
      (PyCFunction)pyrna_callback_classmethod_remove,
      METH_VARARGS | METH_CLASS,
-     ""},
+     pyrna_draw_cursor_remove_doc},
     {NULL, NULL, 0, NULL},
 };
 
