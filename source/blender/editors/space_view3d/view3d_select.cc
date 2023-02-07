@@ -4748,14 +4748,13 @@ static bool object_circle_select(ViewContext *vc,
 static void view3d_circle_select_recalc(void *user_data)
 {
   bContext *C = static_cast<bContext *>(user_data);
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc;
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  Object *obedit_active = CTX_data_edit_object(C);
 
-  if (vc.obedit) {
-    switch (vc.obedit->type) {
+  if (obedit_active) {
+    switch (obedit_active->type) {
       case OB_MESH: {
-        vc.em = BKE_editmesh_from_object(vc.obedit);
+        ViewContext vc;
+        em_setup_viewcontext(C, &vc);
         FOREACH_OBJECT_IN_MODE_BEGIN (
             vc.scene, vc.view_layer, vc.v3d, vc.obact->type, vc.obact->mode, ob_iter) {
           ED_view3d_viewcontext_init_object(&vc, ob_iter);
@@ -4766,8 +4765,11 @@ static void view3d_circle_select_recalc(void *user_data)
         break;
       }
 
-      default:
+      default: {
+        /* TODO: investigate if this is needed for other object types. */
+        CTX_data_ensure_evaluated_depsgraph(C);
         break;
+      }
     }
   }
 }
