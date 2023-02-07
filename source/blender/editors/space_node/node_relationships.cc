@@ -538,6 +538,11 @@ static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
           /* This socket is linked to a deactivated viewer, the viewer should be activated. */
           return socket;
         }
+        if (socket->type == SOCK_GEOMETRY && (target_node.flag & NODE_DO_OUTPUT)) {
+          /* Skip geometry sockets connected to viewer nodes when deciding whether to cycle through
+           * outputs. */
+          continue;
+        }
         last_linked_socket_index = socket->index();
       }
     }
