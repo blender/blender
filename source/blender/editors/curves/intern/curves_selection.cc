@@ -338,7 +338,10 @@ static bool find_closest_point_to_screen_co(const Depsgraph &depsgraph,
         return best_match;
       },
       [](const FindClosestPointData &a, const FindClosestPointData &b) {
-        return std::min(a.distance, b.distance);
+        if (a.distance < b.distance) {
+          return a;
+        }
+        return b;
       });
 
   if (min_point_index > 0) {
