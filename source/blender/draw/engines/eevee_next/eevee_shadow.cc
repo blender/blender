@@ -632,8 +632,18 @@ ShadowModule::ShadowModule(Instance &inst) : inst_(inst)
 void ShadowModule::init()
 {
   ::Scene &scene = *inst_.scene;
-  shadow_page_len_ = clamp_i(
-      scene.eevee.shadow_pool_size * 4, SHADOW_PAGE_PER_ROW, SHADOW_MAX_PAGE);
+  bool enabled = (scene.eevee.flag & SCE_EEVEE_SHADOW_ENABLED) != 0;
+  if (assign_if_different(enabled_, enabled)) {
+    inst_.sampling.reset();
+    /* Force light reset. */
+    for (Light &light : inst_.lights.light_map_.values()) {
+      light.initialized = false;
+    }
+  }
+
+  int pool_size = enabled_ ? scene.eevee.shadow_pool_size : 0;
+  shadow_page_len_ = clamp_i(pool_size * 4, SHADOW_PAGE_PER_ROW, SHADOW_MAX_PAGE);
+
   float simplify_shadows = 1.0f;
   if (scene.r.mode & R_SIMPLIFY) {
     simplify_shadows = inst_.is_viewport() ? scene.r.simplify_shadows :
@@ -670,7 +680,7 @@ void ShadowModule::init()
     statistics_buf_.current().read();
     ShadowStatistics stats = statistics_buf_.current();
 
-    if (stats.page_used_count > shadow_page_len_) {
+    if (stats.page_used_count > shadow_page_len_ && enabled_) {
       std::stringstream ss;
       ss << "Error: Shadow buffer full, may result in missing shadows and lower performance. ("
          << stats.page_used_count << " / " << shadow_page_len_ << ")\n";
@@ -761,7 +771,7 @@ void ShadowModule::end_sync()
 {
   /* Delete unused shadows first to release tilemaps that could be reused for new lights. */
   for (Light &light : inst_.lights.light_map_.values()) {
-    if (!light.used) {
+    if (!light.used || !enabled_) {
       light.shadow_discard_safe(*this);
     }
     else if (light.directional != nullptr) {

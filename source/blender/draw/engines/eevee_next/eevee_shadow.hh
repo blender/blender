@@ -281,6 +281,8 @@ class ShadowModule {
   float lod_bias_ = 0.0f;
   /** Maximum number of allocated pages. Maximum value is SHADOW_MAX_TILEMAP. */
   int shadow_page_len_ = SHADOW_MAX_TILEMAP;
+  /** Global switch. */
+  bool enabled_ = true;
 
  public:
   ShadowModule(Instance &inst);
