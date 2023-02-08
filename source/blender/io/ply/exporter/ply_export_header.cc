@@ -13,7 +13,9 @@
 
 namespace blender::io::ply {
 
-void write_header(FileBuffer &buffer, const PlyData &ply_data, const PLYExportParams &export_params)
+void write_header(FileBuffer &buffer,
+                  const PlyData &ply_data,
+                  const PLYExportParams &export_params)
 {
   buffer.write_string("ply");
 

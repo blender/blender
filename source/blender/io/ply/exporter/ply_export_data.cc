@@ -16,14 +16,14 @@ void write_vertices(FileBuffer &buffer, const PlyData &ply_data)
 
     if (!ply_data.vertex_normals.is_empty())
       buffer.write_vertex_normal(ply_data.vertex_normals[i].x,
-                                  ply_data.vertex_normals[i].y,
-                                  ply_data.vertex_normals[i].z);
+                                 ply_data.vertex_normals[i].y,
+                                 ply_data.vertex_normals[i].z);
 
     if (!ply_data.vertex_colors.is_empty())
       buffer.write_vertex_color(uchar(ply_data.vertex_colors[i].x * 255),
-                                 uchar(ply_data.vertex_colors[i].y * 255),
-                                 uchar(ply_data.vertex_colors[i].z * 255),
-                                 uchar(ply_data.vertex_colors[i].w * 255));
+                                uchar(ply_data.vertex_colors[i].y * 255),
+                                uchar(ply_data.vertex_colors[i].z * 255),
+                                uchar(ply_data.vertex_colors[i].w * 255));
 
     if (!ply_data.UV_coordinates.is_empty())
       buffer.write_UV(ply_data.UV_coordinates[i].x, ply_data.UV_coordinates[i].y);
