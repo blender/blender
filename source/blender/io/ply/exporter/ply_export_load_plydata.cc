@@ -40,8 +40,6 @@ Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation)
   BMeshFromMeshParams bm_convert_params{};
   bm_convert_params.calc_face_normal = true;
   bm_convert_params.calc_vert_normal = true;
-  bm_convert_params.add_key_index = false;
-  bm_convert_params.use_shapekey = false;
   const int triangulation_threshold = force_triangulation ? 4 : 255;
 
   BMesh *bmesh = BKE_mesh_to_bmesh_ex(mesh, &bm_create_params, &bm_convert_params);
