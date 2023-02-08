@@ -160,14 +160,13 @@ static void pf_ear_tip_cut(PolyFill *pf, PolyIndex *pi_ear_tip);
 
 BLI_INLINE eSign signum_enum(float a)
 {
-  if (UNLIKELY(a == 0.0f)) {
-    return 0;
-  }
   if (a > 0.0f) {
-    return 1;
+    return CONVEX;
   }
-
-  return -1;
+  if (UNLIKELY(a == 0.0f)) {
+    return TANGENTIAL;
+  }
+  return CONCAVE;
 }
 
 /**
