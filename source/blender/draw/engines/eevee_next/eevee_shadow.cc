@@ -381,8 +381,8 @@ IndexRange ShadowDirectional::cascade_level_range(const Camera &camera, float lo
   /* Tilemaps "rotate" around the first one so their effective range is only half their size. */
   float per_tilemap_coverage = ShadowDirectional::coverage_get(lod_level) * 0.5f;
   /* Number of tilemaps needed to cover the whole view. */
-  /* Note: floor + 1 to avoid 0 when parallel. */
-  int tilemap_len = floor(depth_range_in_shadow_space / per_tilemap_coverage) + 1;
+  /* Note: floor + 0.5 to avoid 0 when parallel. */
+  int tilemap_len = ceil(0.5f + depth_range_in_shadow_space / per_tilemap_coverage);
   return IndexRange(lod_level, tilemap_len);
 }
 
@@ -490,7 +490,7 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light,
     float tile_size = ShadowDirectional::tile_size_get(level);
     /* Moving to light space by multiplying by the transpose (which is the inverse). */
     float2 light_space_camera_position = camera.position() * float2x3(object_mat_.view<2, 3>());
-    int2 level_offset = int2(math::round(light_space_camera_position) / tile_size);
+    int2 level_offset = int2(math::round(light_space_camera_position / tile_size));
 
     tilemap->sync_orthographic(
         object_mat_, level_offset, level, lod_bias, SHADOW_PROJECTION_CLIPMAP);
