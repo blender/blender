@@ -155,7 +155,7 @@ static PolyIndex *pf_ear_tip_find(PolyFill *pf
 #endif
 );
 
-static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip);
+static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip, const eSign sign_accept);
 static void pf_ear_tip_cut(PolyFill *pf, PolyIndex *pi_ear_tip);
 
 BLI_INLINE eSign signum_enum(float a)
@@ -590,22 +590,44 @@ static PolyIndex *pf_ear_tip_find(PolyFill *pf
 
   uint i;
 
+  /* Use two passes when looking for an ear.
+   *
+   * - The first pass only picks *good* (concave) choices.
+   *   For polygons which aren't degenerate this works well
+   *   since it avoids creating any zero area faces.
+   *
+   * - The second pass is only met if no concave choices are possible,
+   *   so the cost of a second pass is only incurred for degenerate polygons.
+   *   In this case accept zero area faces as better alternatives aren't available.
+   *
+   * See: #103913 for reference.
+   *
+   * NOTE: these passes draw a distinction between zero area faces and concave
+   * which is susceptible minor differences in float precision
+   * (since #TANGENTIAL compares with 0.0f).
+   *
+   * While it's possible to compute an error threshold and run a pass that picks
+   * ears which are more likely not to appear as zero area from a users perspective,
+   * this API prioritizes performance (for real-time updates).
+   * Higher quality tessellation can always be achieved using #BLI_polyfill_beautify.
+   */
+  for (eSign sign_accept = CONVEX; sign_accept >= TANGENTIAL; sign_accept--) {
 #ifdef USE_CLIP_EVEN
-  pi_ear = pi_ear_init;
+    pi_ear = pi_ear_init;
 #else
-  pi_ear = pf->indices;
+    pi_ear = pf->indices;
 #endif
-
-  i = coords_num;
-  while (i--) {
-    if (pf_ear_tip_check(pf, pi_ear)) {
-      return pi_ear;
-    }
+    i = coords_num;
+    while (i--) {
+      if (pf_ear_tip_check(pf, pi_ear, sign_accept)) {
+        return pi_ear;
+      }
 #ifdef USE_CLIP_SWEEP
-    pi_ear = reverse ? pi_ear->prev : pi_ear->next;
+      pi_ear = reverse ? pi_ear->prev : pi_ear->next;
 #else
-    pi_ear = pi_ear->next;
+      pi_ear = pi_ear->next;
 #endif
+    }
   }
 
   /* Desperate mode: if no vertex is an ear tip,
@@ -638,7 +660,7 @@ static PolyIndex *pf_ear_tip_find(PolyFill *pf
   return pi_ear;
 }
 
-static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip)
+static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip, const eSign sign_accept)
 {
 #ifndef USE_KDTREE
   /* localize */
@@ -674,7 +696,7 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip)
   }
 #endif
 
-  if (UNLIKELY(pi_ear_tip->sign == CONCAVE)) {
+  if (UNLIKELY(pi_ear_tip->sign != sign_accept)) {
     return false;
   }
 
