@@ -2,17 +2,12 @@
 
 #pragma once
 
-#include "BKE_curves.h"
-
 /** \file
  * \ingroup bke
  * \brief Low-level operations for curves.
  */
 
-#include <mutex>
-
 #include "BLI_bounds_types.hh"
-#include "BLI_cache_mutex.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_math_matrix_types.hh"
@@ -20,12 +15,12 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_span.hh"
-#include "BLI_task.hh"
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
+#include "BKE_curves.h"
 
 namespace blender::bke {
 

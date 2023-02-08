@@ -2,6 +2,7 @@
 
 #include "BLI_kdtree.h"
 #include "BLI_rand.hh"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 

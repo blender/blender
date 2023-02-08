@@ -4,6 +4,8 @@
  * \ingroup edcurves
  */
 
+#include "BLI_task.hh"
+
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 #include "BKE_main.h"

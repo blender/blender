@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_task.hh"
+
 #include "BKE_curves.hh"
 
 #include "UI_interface.h"

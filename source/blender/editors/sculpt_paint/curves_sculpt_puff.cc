@@ -21,6 +21,7 @@
 
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_matrix.hh"
+#include "BLI_task.hh"
 
 #include "GEO_add_curves_on_mesh.hh"
 
