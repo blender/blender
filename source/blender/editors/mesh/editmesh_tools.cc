@@ -3703,7 +3703,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
  * \{ */
 
 /* BMESH_TODO this should be properly encapsulated in a bmop.  but later. */
-static bool shape_propagate(BMEditMesh *em)
+static bool shape_propagate(BMEditMesh *em, bool use_symmetry)
 {
   BMIter iter;
   BMVert *eve = nullptr;
@@ -3716,7 +3716,12 @@ static bool shape_propagate(BMEditMesh *em)
 
   BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
     if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-      continue;
+      BMVert *mirr = use_symmetry ? EDBM_verts_mirror_get(em, eve) : NULL;
+
+      if (!mirr || !BM_elem_flag_test(mirr, BM_ELEM_SELECT) ||
+          BM_elem_flag_test(mirr, BM_ELEM_HIDDEN)) {
+        continue;
+      }
     }
 
     for (int i = 0; i < totshape; i++) {
@@ -3748,8 +3753,20 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
     }
     tot_selected_verts_objects++;
 
-    if (shape_propagate(em)) {
+    const bool use_symmetry = (me->symmetry & ME_SYMMETRY_X) != 0;
+
+    if (use_symmetry) {
+      const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+
+      EDBM_verts_mirror_cache_begin(em, 0, false, true, false, use_topology);
+    }
+
+    if (shape_propagate(em, use_symmetry)) {
       tot_shapekeys++;
+    }
+
+    if (use_symmetry) {
+      EDBM_verts_mirror_cache_end(em);
     }
 
     EDBMUpdate_Params params{};
