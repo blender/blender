@@ -185,12 +185,12 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       const StringRef name = mesh->active_color_attribute;
       if (!name.is_empty()) {
         const bke::AttributeAccessor attributes = mesh->attributes();
-        const VArray<ColorGeometry4f> colorAttribute =
+        const VArray<ColorGeometry4f> color_attribute =
             attributes.lookup_or_default<ColorGeometry4f>(
                 name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
 
         for (int i = 0; i < vertex_map.size(); i++) {
-          ColorGeometry4f colorGeometry = colorAttribute[mesh_vertex_index_LUT[i]];
+          ColorGeometry4f colorGeometry = color_attribute[mesh_vertex_index_LUT[i]];
           float4 vertColor(colorGeometry.r, colorGeometry.g, colorGeometry.b, colorGeometry.a);
           plyData.vertex_colors.append(vertColor);
         }
