@@ -120,7 +120,7 @@ void CACHEFILE_OT_open(wmOperatorType *ot)
   ot->cancel = open_cancel;
 
   WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_ALEMBIC | FILE_TYPE_FOLDER,
+                                 FILE_TYPE_ALEMBIC | FILE_TYPE_USD | FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
@@ -218,7 +218,7 @@ void CACHEFILE_OT_layer_add(wmOperatorType *ot)
   ot->exec = cachefile_layer_add_exec;
 
   WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_ALEMBIC | FILE_TYPE_FOLDER,
+                                 FILE_TYPE_ALEMBIC | FILE_TYPE_USD | FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
