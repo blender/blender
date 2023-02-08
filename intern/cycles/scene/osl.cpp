@@ -665,6 +665,27 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
   return node;
 }
 
+/* Static function, so only this file needs to be compile with RTTT. */
+void OSLShaderManager::osl_image_slots(Device *device,
+                                       ImageManager *image_manager,
+                                       set<int> &image_slots)
+{
+  set<OSLRenderServices *> services_shared;
+  device->foreach_device([&services_shared](Device *sub_device) {
+    OSLGlobals *og = (OSLGlobals *)sub_device->get_cpu_osl_memory();
+    services_shared.insert(og->services);
+  });
+
+  for (OSLRenderServices *services : services_shared) {
+    for (auto it = services->textures.begin(); it != services->textures.end(); ++it) {
+      if (it->second->handle.get_manager() == image_manager) {
+        const int slot = it->second->handle.svm_slot();
+        image_slots.insert(slot);
+      }
+    }
+  }
+}
+
 /* Graph Compiler */
 
 OSLCompiler::OSLCompiler(OSLShaderManager *manager, OSL::ShadingSystem *ss, Scene *scene)
