@@ -1,7 +1,7 @@
 diff -Naur external_igc_opencl_clang.orig/CMakeLists.txt external_igc_opencl_clang/CMakeLists.txt
 --- external_igc_opencl_clang.orig/CMakeLists.txt	2022-03-16 05:51:10 -0600
 +++ external_igc_opencl_clang/CMakeLists.txt	2022-05-23 10:40:09 -0600
-@@ -126,22 +126,24 @@
+@@ -147,22 +147,24 @@
          )
      endif()
  
