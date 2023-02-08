@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "BLI_array.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
@@ -20,7 +21,7 @@ struct PlyData {
   Vector<float4> vertex_colors;
   Vector<std::pair<int, int>> edges;
   Vector<float3> edge_colors;
-  Vector<Vector<uint32_t>> faces;
+  Vector<Array<uint32_t>> faces;
   Vector<float2> UV_coordinates;
 };
 

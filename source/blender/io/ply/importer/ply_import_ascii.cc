@@ -118,14 +118,16 @@ PlyData load_ply_ascii(std::ifstream &file, const PlyHeader *header)
     std::string line;
     getline(file, line);
     Vector<std::string> value_vec = explode(line, ' ');
-    Vector<uint> vertex_indices;
+    int count = std::stoi(value_vec[0]);
+    Array<uint> vertex_indices(count);
 
-    for (int j = 1; j <= std::stoi(value_vec[0]); j++) {
+    for (int j = 1; j <= count; j++) {
+      int index = std::stoi(value_vec[j]);
       /* If the face has a vertex index that is outside the range. */
-      if (std::stoi(value_vec[j]) >= data.vertices.size()) {
+      if (index >= data.vertices.size()) {
         throw std::runtime_error("Vertex index out of bounds");
       }
-      vertex_indices.append(std::stoi(value_vec[j]));
+      vertex_indices[j - 1] = index;
     }
     data.faces.append(vertex_indices);
   }

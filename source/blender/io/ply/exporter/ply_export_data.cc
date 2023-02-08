@@ -35,7 +35,7 @@ void write_vertices(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData
 
 void write_faces(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData)
 {
-  for (const Vector<uint32_t> &face : plyData->faces) {
+  for (const Array<uint32_t> &face : plyData->faces) {
     buffer->write_face(char(face.size()), face);
   }
   buffer->write_to_file();

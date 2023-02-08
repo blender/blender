@@ -53,7 +53,7 @@ class FileBufferAscii : public FileBuffer {
     write_fstring("\n");
   }
 
-  void write_face(char count, Vector<uint32_t> const &vertex_indices) override
+  void write_face(char count, Array<uint32_t> const &vertex_indices) override
   {
     write_fstring("{}", int(count));
 

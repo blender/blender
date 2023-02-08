@@ -101,7 +101,7 @@ class FileBuffer : private NonMovable {
 
   virtual void write_vertex_end() = 0;
 
-  virtual void write_face(char count, Vector<uint32_t> const &vertex_indices) = 0;
+  virtual void write_face(char count, Array<uint32_t> const &vertex_indices) = 0;
 
   virtual void write_edge(int first, int second) = 0;
 
