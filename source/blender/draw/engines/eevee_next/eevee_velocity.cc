@@ -261,7 +261,7 @@ void VelocityModule::end_sync()
 {
   Vector<ObjectKey, 0> deleted_obj;
 
-  uint32_t max_resource_id_ = 0u;
+  uint32_t max_resource_id_ = 1u;
 
   for (Map<ObjectKey, VelocityObjectData>::Item item : velocity_map.items()) {
     if (item.value.obj.resource_id == uint32_t(-1)) {

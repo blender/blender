@@ -41,7 +41,7 @@ static eLightType to_light_type(short blender_light_type, short blender_area_typ
 /** \name Light Object
  * \{ */
 
-void Light::sync(/* ShadowModule &shadows , */ const Object *ob, float threshold)
+void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
 {
   const ::Light *la = (const ::Light *)ob->data;
   float scale[3];
@@ -75,67 +75,49 @@ void Light::sync(/* ShadowModule &shadows , */ const Object *ob, float threshold
   this->volume_power = la->volume_fac * point_power;
 
   eLightType new_type = to_light_type(la->type, la->area_shape);
-  if (this->type != new_type) {
-    /* shadow_discard_safe(shadows); */
-    this->type = new_type;
+  if (assign_if_different(this->type, new_type)) {
+    shadow_discard_safe(shadows);
   }
 
-#if 0
   if (la->mode & LA_SHADOW) {
-    if (la->type == LA_SUN) {
-      if (this->shadow_id == LIGHT_NO_SHADOW) {
-        this->shadow_id = shadows.directionals.alloc();
-      }
-
-      ShadowDirectional &shadow = shadows.directionals[this->shadow_id];
-      shadow.sync(this->object_mat, la->bias * 0.05f, 1.0f);
+    shadow_ensure(shadows);
+    if (is_sun_light(this->type)) {
+      this->directional->sync(this->object_mat, 1.0f);
     }
     else {
-      float cone_aperture = DEG2RAD(360.0);
-      if (la->type == LA_SPOT) {
-        cone_aperture = min_ff(DEG2RAD(179.9), la->spotsize);
-      }
-      else if (la->type == LA_AREA) {
-        cone_aperture = DEG2RAD(179.9);
-      }
-
-      if (this->shadow_id == LIGHT_NO_SHADOW) {
-        this->shadow_id = shadows.punctuals.alloc();
-      }
-
-      ShadowPunctual &shadow = shadows.punctuals[this->shadow_id];
-      shadow.sync(this->type,
-                  this->object_mat,
-                  cone_aperture,
-                  la->clipsta,
-                  this->influence_radius_max,
-                  la->bias * 0.05f);
+      this->punctual->sync(
+          this->type, this->object_mat, la->spotsize, la->clipsta, this->influence_radius_max);
     }
   }
   else {
     shadow_discard_safe(shadows);
   }
-#endif
 
   this->initialized = true;
 }
 
-#if 0
 void Light::shadow_discard_safe(ShadowModule &shadows)
 {
-  if (shadow_id != LIGHT_NO_SHADOW) {
-    if (this->type != LIGHT_SUN) {
-      shadows.punctuals.free(shadow_id);
-    }
-    else {
-      shadows.directionals.free(shadow_id);
-    }
-    shadow_id = LIGHT_NO_SHADOW;
+  if (this->directional != nullptr) {
+    shadows.directional_pool.destruct(*directional);
+    this->directional = nullptr;
+  }
+  if (this->punctual != nullptr) {
+    shadows.punctual_pool.destruct(*punctual);
+    this->punctual = nullptr;
   }
 }
-#endif
 
-/* Returns attenuation radius inverted & squared for easy bound checking inside the shader. */
+void Light::shadow_ensure(ShadowModule &shadows)
+{
+  if (is_sun_light(this->type) && this->directional == nullptr) {
+    this->directional = &shadows.directional_pool.construct(shadows);
+  }
+  else if (this->punctual == nullptr) {
+    this->punctual = &shadows.punctual_pool.construct(shadows);
+  }
+}
+
 float Light::attenuation_radius_get(const ::Light *la, float light_threshold, float light_power)
 {
   if (la->type == LA_SUN) {
@@ -265,6 +247,14 @@ void Light::debug_draw()
 /** \name LightModule
  * \{ */
 
+LightModule::~LightModule()
+{
+  /* WATCH: Destructor order. Expect shadow module to be destructed later. */
+  for (Light &light : light_map_.values()) {
+    light.shadow_discard_safe(inst_.shadows);
+  }
+};
+
 void LightModule::begin_sync()
 {
   use_scene_lights_ = inst_.use_scene_lights();
@@ -286,60 +276,43 @@ void LightModule::sync_light(const Object *ob, ObjectHandle &handle)
   Light &light = light_map_.lookup_or_add_default(handle.object_key);
   light.used = true;
   if (handle.recalc != 0 || !light.initialized) {
-    light.sync(/* inst_.shadows, */ ob, light_threshold_);
+    light.initialized = true;
+    light.sync(inst_.shadows, ob, light_threshold_);
   }
-  sun_lights_len_ += int(light.type == LIGHT_SUN);
-  local_lights_len_ += int(light.type != LIGHT_SUN);
+  sun_lights_len_ += int(is_sun_light(light.type));
+  local_lights_len_ += int(!is_sun_light(light.type));
 }
 
 void LightModule::end_sync()
 {
-  // ShadowModule &shadows = inst_.shadows;
-
   /* NOTE: We resize this buffer before removing deleted lights. */
   int lights_allocated = ceil_to_multiple_u(max_ii(light_map_.size(), 1), LIGHT_CHUNK);
   light_buf_.resize(lights_allocated);
 
   /* Track light deletion. */
-  Vector<ObjectKey, 0> deleted_keys;
   /* Indices inside GPU data array. */
   int sun_lights_idx = 0;
   int local_lights_idx = sun_lights_len_;
 
   /* Fill GPU data with scene data. */
-  for (auto item : light_map_.items()) {
-    Light &light = item.value;
+  auto it_end = light_map_.items().end();
+  for (auto it = light_map_.items().begin(); it != it_end; ++it) {
+    Light &light = (*it).value;
 
     if (!light.used) {
-      /* Deleted light. */
-      deleted_keys.append(item.key);
-      // light.shadow_discard_safe(shadows);
+      light_map_.remove(it);
       continue;
     }
 
-    int dst_idx = (light.type == LIGHT_SUN) ? sun_lights_idx++ : local_lights_idx++;
+    int dst_idx = is_sun_light(light.type) ? sun_lights_idx++ : local_lights_idx++;
     /* Put all light data into global data SSBO. */
     light_buf_[dst_idx] = light;
 
-#if 0
-    if (light.shadow_id != LIGHT_NO_SHADOW) {
-      if (light.type == LIGHT_SUN) {
-        light_buf_[dst_idx].shadow_data = shadows.directionals[light.shadow_id];
-      }
-      else {
-        light_buf_[dst_idx].shadow_data = shadows.punctuals[light.shadow_id];
-      }
-    }
-#endif
     /* Untag for next sync. */
     light.used = false;
   }
   /* This scene data buffer is then immutable after this point. */
   light_buf_.push_update();
-
-  for (auto &key : deleted_keys) {
-    light_map_.remove(key);
-  }
 
   /* Update sampling on deletion or un-hiding (use_scene_lights). */
   if (assign_if_different(light_map_size_, light_map_.size())) {

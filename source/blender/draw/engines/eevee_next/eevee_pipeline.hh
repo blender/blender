@@ -44,6 +44,28 @@ class WorldPipeline {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Shadow Pass
+ *
+ * \{ */
+
+class ShadowPipeline {
+ private:
+  Instance &inst_;
+
+  PassMain surface_ps_ = {"Shadow.Surface"};
+
+ public:
+  ShadowPipeline(Instance &inst) : inst_(inst){};
+
+  PassMain::Sub *surface_material_add(GPUMaterial *gpumat);
+
+  void sync();
+  void render(View &view);
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Forward Pass
  *
  * Handles alpha blended surfaces and NPR materials (using Closure to RGBA).
@@ -177,19 +199,19 @@ class PipelineModule {
   WorldPipeline world;
   // DeferredPipeline deferred;
   ForwardPipeline forward;
-  // ShadowPipeline shadow;
+  ShadowPipeline shadow;
   // VelocityPipeline velocity;
 
   UtilityTexture utility_tx;
 
  public:
-  PipelineModule(Instance &inst) : world(inst), forward(inst){};
+  PipelineModule(Instance &inst) : world(inst), forward(inst), shadow(inst){};
 
   void sync()
   {
     // deferred.sync();
     forward.sync();
-    // shadow.sync();
+    shadow.sync();
     // velocity.sync();
   }
 
@@ -227,8 +249,7 @@ class PipelineModule {
         /* TODO(fclem) volume pass. */
         return nullptr;
       case MAT_PIPE_SHADOW:
-        // return shadow.material_add(blender_mat, gpumat);
-        break;
+        return shadow.surface_material_add(gpumat);
     }
     return nullptr;
   }

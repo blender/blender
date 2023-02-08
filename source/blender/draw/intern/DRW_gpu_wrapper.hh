@@ -460,6 +460,13 @@ class StorageBuffer : public T, public detail::StorageCommon<T, 1, device_only> 
     *static_cast<T *>(this) = other;
     return *this;
   }
+
+  static void swap(StorageBuffer<T> &a, StorageBuffer<T> &b)
+  {
+    /* Swap content, but not `data_` pointers since they point to `this`. */
+    SWAP(T, static_cast<T>(a), static_cast<T>(b));
+    std::swap(a.ssbo_, b.ssbo_);
+  }
 };
 
 /** \} */
@@ -1160,6 +1167,11 @@ template<typename T, int64_t len> class SwapChain {
         T::swap(chain_[i], chain_[i_next]);
       }
     }
+  }
+
+  constexpr int64_t size()
+  {
+    return len;
   }
 
   T &current()

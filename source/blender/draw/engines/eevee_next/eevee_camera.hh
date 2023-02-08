@@ -94,6 +94,11 @@ class Camera {
 
   CameraDataBuf data_;
 
+  struct {
+    float3 center;
+    float radius;
+  } bound_sphere;
+
  public:
   Camera(Instance &inst) : inst_(inst){};
   ~Camera(){};
@@ -133,6 +138,17 @@ class Camera {
   {
     return data_.viewinv.z_axis();
   }
+  const float3 &bound_center() const
+  {
+    return bound_sphere.center;
+  }
+  const float &bound_radius() const
+  {
+    return bound_sphere.radius;
+  }
+
+ private:
+  void update_bounds();
 };
 
 /** \} */

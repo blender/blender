@@ -43,9 +43,15 @@ void Manager::begin_sync()
 
 #ifdef DEBUG
   /* Detect uninitialized data. */
-  memset(matrix_buf.current().data(), 0xF0, resource_len_ * sizeof(*matrix_buf.current().data()));
-  memset(bounds_buf.current().data(), 0xF0, resource_len_ * sizeof(*bounds_buf.current().data()));
-  memset(infos_buf.current().data(), 0xF0, resource_len_ * sizeof(*infos_buf.current().data()));
+  memset(matrix_buf.current().data(),
+         0xF0,
+         matrix_buf.current().size() * sizeof(*matrix_buf.current().data()));
+  memset(bounds_buf.current().data(),
+         0xF0,
+         matrix_buf.current().size() * sizeof(*bounds_buf.current().data()));
+  memset(infos_buf.current().data(),
+         0xF0,
+         matrix_buf.current().size() * sizeof(*infos_buf.current().data()));
 #endif
   resource_len_ = 0;
   attribute_len_ = 0;
