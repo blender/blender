@@ -115,7 +115,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     const float2 *uv_map = static_cast<const float2 *>(
         CustomData_get_layer(&mesh->ldata, CD_PROP_FLOAT2));
 
-    blender::Map<UV_vertex_key, int> vertex_map = generate_vertex_map(mesh, uv_map, export_params);
+    Map<UV_vertex_key, int> vertex_map = generate_vertex_map(mesh, uv_map, export_params);
 
     set_world_axes_transform(
         &export_object_eval_, export_params.forward_axis, export_params.up_axis);
