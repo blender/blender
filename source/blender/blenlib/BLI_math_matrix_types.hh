@@ -910,6 +910,27 @@ struct MutableMatView
     unroll<NumCol>([&](auto i) { (*this)[i] *= b; });
     return *this;
   }
+
+  /** Vector operators. Need to be redefined to avoid operator priority issue. */
+
+  friend col_type operator*(MutableMatView &a, const row_type &b)
+  {
+    /* This is the reference implementation.
+     * Might be overloaded with vectorized / optimized code. */
+    col_type result(0);
+    unroll<NumCol>([&](auto c) { result += b[c] * a[c]; });
+    return result;
+  }
+
+  /** Multiply by the transposed. */
+  friend row_type operator*(const col_type &a, MutableMatView &b)
+  {
+    /* This is the reference implementation.
+     * Might be overloaded with vectorized / optimized code. */
+    row_type result(0);
+    unroll<NumCol>([&](auto c) { unroll<NumRow>([&](auto r) { result[c] += b[c][r] * a[r]; }); });
+    return result;
+  }
 };
 
 using float2x2 = MatBase<float, 2, 2>;
