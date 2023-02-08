@@ -50,16 +50,16 @@ void exporter_main(Main *bmain,
   }
 
   /* Generate and write header. */
-  write_header(buffer, plyData, export_params);
+  write_header(*buffer.get(), *plyData.get(), export_params);
 
   /* Generate and write vertices. */
-  write_vertices(buffer, plyData);
+  write_vertices(*buffer.get(), *plyData.get());
 
   /* Generate and write faces. */
-  write_faces(buffer, plyData);
+  write_faces(*buffer.get(), *plyData.get());
 
   /* Generate and write edges. */
-  write_edges(buffer, plyData);
+  write_edges(*buffer.get(), *plyData.get());
 
   /* Clean up. */
   buffer->close_file();
