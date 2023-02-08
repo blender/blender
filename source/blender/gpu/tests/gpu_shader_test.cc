@@ -24,6 +24,8 @@
 
 namespace blender::gpu::tests {
 
+using namespace blender::gpu::shader;
+
 static void test_gpu_shader_compute_2d()
 {
 
@@ -36,20 +38,7 @@ static void test_gpu_shader_compute_2d()
   static constexpr uint SIZE = 512;
 
   /* Build compute shader. */
-  const char *compute_glsl = R"(
-
-layout(local_size_x = 1, local_size_y = 1) in;
-layout(rgba32f, binding = 0) uniform image2D img_output;
-
-void main() {
-  vec4 pixel = vec4(1.0, 0.5, 0.2, 1.0);
-  imageStore(img_output, ivec2(gl_GlobalInvocationID.xy), pixel);
-}
-
-)";
-
-  GPUShader *shader = GPU_shader_create_compute(
-      compute_glsl, nullptr, nullptr, "gpu_shader_compute_2d");
+  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_2d_test");
   EXPECT_NE(shader, nullptr);
 
   /* Create texture to store result and attach to shader. */
@@ -95,22 +84,7 @@ static void test_gpu_shader_compute_1d()
   static constexpr uint SIZE = 10;
 
   /* Build compute shader. */
-  const char *compute_glsl = R"(
-
-layout(local_size_x = 1) in;
-
-layout(rgba32f, binding = 1) uniform image1D outputVboData;
-
-void main() {
-  int index = int(gl_GlobalInvocationID.x);
-  vec4 pos = vec4(gl_GlobalInvocationID.x);
-  imageStore(outputVboData, index, pos);
-}
-
-)";
-
-  GPUShader *shader = GPU_shader_create_compute(
-      compute_glsl, nullptr, nullptr, "gpu_shader_compute_1d");
+  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_1d_test");
   EXPECT_NE(shader, nullptr);
 
   /* Construct Texture. */
@@ -119,7 +93,7 @@ void main() {
   EXPECT_NE(texture, nullptr);
 
   GPU_shader_bind(shader);
-  GPU_texture_image_bind(texture, GPU_shader_get_texture_binding(shader, "outputVboData"));
+  GPU_texture_image_bind(texture, GPU_shader_get_texture_binding(shader, "img_output"));
 
   /* Dispatch compute task. */
   GPU_compute_dispatch(shader, SIZE, 1, 1);
@@ -159,25 +133,7 @@ static void test_gpu_shader_compute_vbo()
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
-  const char *compute_glsl = R"(
-
-layout(local_size_x = 1) in;
-
-layout(std430, binding = 0) writeonly buffer outputVboData
-{
-  vec4 out_positions[];
-};
-
-void main() {
-  uint index = gl_GlobalInvocationID.x;
-  vec4 pos = vec4(gl_GlobalInvocationID.x);
-  out_positions[index] = pos;
-}
-
-)";
-
-  GPUShader *shader = GPU_shader_create_compute(
-      compute_glsl, nullptr, nullptr, "gpu_shader_compute_vbo");
+  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_vbo_test");
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 
@@ -186,7 +142,7 @@ void main() {
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   GPUVertBuf *vbo = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_DEVICE_ONLY);
   GPU_vertbuf_data_alloc(vbo, SIZE);
-  GPU_vertbuf_bind_as_ssbo(vbo, GPU_shader_get_ssbo(shader, "outputVboData"));
+  GPU_vertbuf_bind_as_ssbo(vbo, GPU_shader_get_ssbo(shader, "out_positions"));
 
   /* Dispatch compute task. */
   GPU_compute_dispatch(shader, SIZE, 1, 1);
@@ -224,30 +180,13 @@ static void test_gpu_shader_compute_ibo()
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
-  const char *compute_glsl = R"(
-
-layout(local_size_x = 1) in;
-
-layout(std430, binding = 1) writeonly buffer outputIboData
-{
-  uint out_indexes[];
-};
-
-void main() {
-  uint store_index = int(gl_GlobalInvocationID.x);
-  out_indexes[store_index] = store_index;
-}
-
-)";
-
-  GPUShader *shader = GPU_shader_create_compute(
-      compute_glsl, nullptr, nullptr, "gpu_shader_compute_vbo");
+  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ibo_test");
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 
   /* Construct IBO. */
   GPUIndexBuf *ibo = GPU_indexbuf_build_on_device(SIZE);
-  GPU_indexbuf_bind_as_ssbo(ibo, GPU_shader_get_ssbo(shader, "outputIboData"));
+  GPU_indexbuf_bind_as_ssbo(ibo, GPU_shader_get_ssbo(shader, "out_indices"));
 
   /* Dispatch compute task. */
   GPU_compute_dispatch(shader, SIZE, 1, 1);
@@ -270,6 +209,48 @@ void main() {
 }
 GPU_TEST(gpu_shader_compute_ibo)
 
+static void test_gpu_shader_compute_ssbo()
+{
+
+  if (!GPU_compute_shader_support()) {
+    /* We can't test as a the platform does not support compute shaders. */
+    std::cout << "Skipping compute shader test: platform not supported";
+    return;
+  }
+
+  static constexpr uint SIZE = 128;
+
+  /* Build compute shader. */
+  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ibo_test");
+  EXPECT_NE(shader, nullptr);
+  GPU_shader_bind(shader);
+
+  /* Construct IBO. */
+  GPUStorageBuf *ssbo = GPU_storagebuf_create_ex(
+      SIZE * sizeof(uint32_t), nullptr, GPU_USAGE_DEVICE_ONLY, __func__);
+  GPU_storagebuf_bind(ssbo, GPU_shader_get_ssbo(shader, "out_indices"));
+
+  /* Dispatch compute task. */
+  GPU_compute_dispatch(shader, SIZE, 1, 1);
+
+  /* Check if compute has been done. */
+  GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+
+  /* Download the index buffer. */
+  uint32_t data[SIZE];
+  GPU_storagebuf_read(ssbo, data);
+  for (int index = 0; index < SIZE; index++) {
+    uint32_t expected = index;
+    EXPECT_EQ(data[index], expected);
+  }
+
+  /* Cleanup. */
+  GPU_shader_unbind();
+  GPU_storagebuf_free(ssbo);
+  GPU_shader_free(shader);
+}
+GPU_TEST(gpu_shader_compute_ssbo)
+
 static void test_gpu_shader_ssbo_binding()
 {
   if (!GPU_compute_shader_support()) {
@@ -279,30 +260,12 @@ static void test_gpu_shader_ssbo_binding()
   }
 
   /* Build compute shader. */
-  const char *compute_glsl = R"(
-
-layout(local_size_x = 1) in;
-
-layout(std430, binding = 0) buffer ssboBinding0
-{
-  int data0[];
-};
-layout(std430, binding = 1) buffer ssboBinding1
-{
-  int data1[];
-};
-
-void main() {
-}
-
-)";
-
-  GPUShader *shader = GPU_shader_create_compute(compute_glsl, nullptr, nullptr, "gpu_shader_ssbo");
+  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ssbo_binding_test");
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 
-  EXPECT_EQ(0, GPU_shader_get_ssbo(shader, "ssboBinding0"));
-  EXPECT_EQ(1, GPU_shader_get_ssbo(shader, "ssboBinding1"));
+  EXPECT_EQ(0, GPU_shader_get_ssbo(shader, "data0"));
+  EXPECT_EQ(1, GPU_shader_get_ssbo(shader, "data1"));
 
   /* Cleanup. */
   GPU_shader_unbind();

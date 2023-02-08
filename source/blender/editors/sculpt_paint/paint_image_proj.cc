@@ -191,7 +191,7 @@ BLI_INLINE uchar f_to_char(const float val)
 
 /**
  * This is mainly a convenience struct used so we can keep an array of images we use -
- * their imbufs, etc, in 1 array, When using threads this array is copied for each thread
+ * their #ImBuf's, etc, in 1 array, When using threads this array is copied for each thread
  * because 'partRedrawRect' and 'touch' values would not be thread safe.
  */
 struct ProjPaintImage {
@@ -507,11 +507,6 @@ struct VertSeam {
 /* -------------------------------------------------------------------- */
 /** \name MLoopTri accessor functions.
  * \{ */
-
-BLI_INLINE const MPoly *ps_tri_index_to_mpoly(const ProjPaintState *ps, int tri_index)
-{
-  return &ps->mpoly_eval[ps->mlooptri_eval[tri_index].poly];
-}
 
 #define PS_LOOPTRI_AS_VERT_INDEX_3(ps, lt) \
   int(ps->mloop_eval[lt->tri[0]].v), int(ps->mloop_eval[lt->tri[1]].v), \
@@ -2896,7 +2891,8 @@ static void project_bucket_clip_face(const bool is_ortho,
 #endif
 }
 
-/*
+/**
+ * \code{.py}
  * # This script creates faces in a blender scene from printed data above.
  *
  * project_ls = [
@@ -2910,7 +2906,7 @@ static void project_bucket_clip_face(const bool is_ortho,
  * V = Mathutils.Vector
  *
  * def main():
- *     sce = bpy.data.scenes.active
+ *     scene = bpy.data.scenes.active
  *
  *     for item in project_ls:
  *         bb = item[0]
@@ -2918,7 +2914,7 @@ static void project_bucket_clip_face(const bool is_ortho,
  *         poly = item[2]
  *
  *         me = bpy.data.meshes.new()
- *         ob = sce.objects.new(me)
+ *         ob = scene.objects.new(me)
  *
  *         me.verts.extend([V(bb[0]).xyz, V(bb[1]).xyz, V(bb[2]).xyz, V(bb[3]).xyz])
  *         me.faces.extend([(0,1,2,3),])
@@ -2940,6 +2936,7 @@ static void project_bucket_clip_face(const bool is_ortho,
  *
  * if __name__ == '__main__':
  *     main()
+ * \endcode
  */
 
 #undef ISECT_1

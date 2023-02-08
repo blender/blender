@@ -34,7 +34,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1)
       .supports_field()
       .description(N_(value_in_description));
-  b.add_input<decl::Int>(N_("Group Index"))
+  b.add_input<decl::Int>(N_("Group ID"), "Group Index")
       .supports_field()
       .description(
           N_("An index used to group values together for multiple separate accumulations"));
@@ -182,7 +182,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
         0);
 
     params.add_item(
-        IFACE_("Group Index"),
+        IFACE_("Group ID"),
         [type](LinkSearchOpParams &params) {
           bNode &node = params.add_node("GeometryNodeAccumulateField");
           node_storage(node).data_type = *type;

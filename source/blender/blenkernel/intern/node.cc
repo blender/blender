@@ -922,7 +922,11 @@ void ntreeBlendReadLib(BlendLibReader *reader, bNodeTree *ntree)
    * to match the static layout. */
   if (!BLO_read_lib_is_undo(reader)) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      node_verify_sockets(ntree, node, false);
+      /* Don't update node groups here because they may depend on other node groups which are not
+       * fully versioned yet and don't have `typeinfo` pointers set. */
+      if (node->type != NODE_GROUP) {
+        node_verify_sockets(ntree, node, false);
+      }
     }
   }
 }
@@ -1040,42 +1044,42 @@ static void node_tree_asset_pre_save(void *asset_ptr, AssetMetaData *asset_data)
 }  // namespace blender::bke
 
 static AssetTypeInfo AssetType_NT = {
-    /* pre_save_fn */ blender::bke::node_tree_asset_pre_save,
+    /*pre_save_fn*/ blender::bke::node_tree_asset_pre_save,
 };
 
 IDTypeInfo IDType_ID_NT = {
-    /* id_code */ ID_NT,
-    /* id_filter */ FILTER_ID_NT,
-    /* main_listbase_index */ INDEX_ID_NT,
-    /* struct_size */ sizeof(bNodeTree),
-    /* name */ "NodeTree",
-    /* name_plural */ "node_groups",
-    /* translation_context */ BLT_I18NCONTEXT_ID_NODETREE,
-    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /* asset_type_info */ &AssetType_NT,
+    /*id_code*/ ID_NT,
+    /*id_filter*/ FILTER_ID_NT,
+    /*main_listbase_index*/ INDEX_ID_NT,
+    /*struct_size*/ sizeof(bNodeTree),
+    /*name*/ "NodeTree",
+    /*name_plural*/ "node_groups",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_NODETREE,
+    /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /*asset_type_info*/ &AssetType_NT,
 
-    /* init_data */ ntree_init_data,
-    /* copy_data */ ntree_copy_data,
-    /* free_data */ ntree_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ node_foreach_id,
-    /* foreach_cache */ node_foreach_cache,
-    /* foreach_path */ node_foreach_path,
-    /* owner_pointer_get */ node_owner_pointer_get,
+    /*init_data*/ ntree_init_data,
+    /*copy_data*/ ntree_copy_data,
+    /*free_data*/ ntree_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ node_foreach_id,
+    /*foreach_cache*/ node_foreach_cache,
+    /*foreach_path*/ node_foreach_path,
+    /*owner_pointer_get*/ node_owner_pointer_get,
 
-    /* blend_write */ ntree_blend_write,
-    /* blend_read_data */ ntree_blend_read_data,
-    /* blend_read_lib */ ntree_blend_read_lib,
-    /* blend_read_expand */ ntree_blend_read_expand,
+    /*blend_write*/ ntree_blend_write,
+    /*blend_read_data*/ ntree_blend_read_data,
+    /*blend_read_lib*/ ntree_blend_read_lib,
+    /*blend_read_expand*/ ntree_blend_read_expand,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
 {
-  if (ntype->declare != nullptr) {
+  if (ntype->declare || ntype->declare_dynamic) {
     node_verify_sockets(ntree, node, true);
     return;
   }
@@ -1378,7 +1382,7 @@ void nodeRegisterType(bNodeType *nt)
   BLI_assert(nt->idname[0] != '\0');
   BLI_assert(nt->poll != nullptr);
 
-  if (nt->declare && !nt->declaration_is_dynamic) {
+  if (nt->declare && !nt->declare_dynamic) {
     if (nt->fixed_declaration == nullptr) {
       nt->fixed_declaration = new blender::nodes::NodeDeclaration();
       blender::nodes::build_node_declaration(*nt, *nt->fixed_declaration);
@@ -2990,7 +2994,7 @@ void node_free_node(bNodeTree *ntree, bNode *node)
     MEM_freeN(node->prop);
   }
 
-  if (node->typeinfo->declaration_is_dynamic) {
+  if (node->typeinfo->declare_dynamic) {
     delete node->runtime->declaration;
   }
 
@@ -3587,31 +3591,43 @@ static void update_socket_declarations(ListBase *sockets,
   }
 }
 
+static void reset_socket_declarations(ListBase *sockets)
+{
+  LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
+    socket->runtime->declaration = nullptr;
+  }
+}
+
 void nodeSocketDeclarationsUpdate(bNode *node)
 {
   BLI_assert(node->runtime->declaration != nullptr);
-  update_socket_declarations(&node->inputs, node->runtime->declaration->inputs);
-  update_socket_declarations(&node->outputs, node->runtime->declaration->outputs);
+  if (node->runtime->declaration->skip_updating_sockets) {
+    reset_socket_declarations(&node->inputs);
+    reset_socket_declarations(&node->outputs);
+  }
+  else {
+    update_socket_declarations(&node->inputs, node->runtime->declaration->inputs);
+    update_socket_declarations(&node->outputs, node->runtime->declaration->outputs);
+  }
 }
 
-bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree * /*ntree*/, bNode *node)
+bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *ntree, bNode *node)
 {
   if (node->runtime->declaration != nullptr) {
     return false;
   }
-  if (node->typeinfo->declare == nullptr) {
-    return false;
-  }
-  if (node->typeinfo->declaration_is_dynamic) {
+  if (node->typeinfo->declare_dynamic) {
     node->runtime->declaration = new blender::nodes::NodeDeclaration();
-    blender::nodes::build_node_declaration(*node->typeinfo, *node->runtime->declaration);
+    blender::nodes::build_node_declaration_dynamic(*ntree, *node, *node->runtime->declaration);
+    return true;
   }
-  else {
+  if (node->typeinfo->declare) {
     /* Declaration should have been created in #nodeRegisterType. */
     BLI_assert(node->typeinfo->fixed_declaration != nullptr);
     node->runtime->declaration = node->typeinfo->fixed_declaration;
+    return true;
   }
-  return true;
+  return false;
 }
 
 bool nodeDeclarationEnsure(bNodeTree *ntree, bNode *node)
@@ -3803,8 +3819,6 @@ void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash,
 
 void ntreeUpdateAllNew(Main *main)
 {
-  Vector<bNodeTree *> new_ntrees;
-
   /* Update all new node trees on file read or append, to add/remove sockets
    * in groups nodes if the group changed, and handle any update flags that
    * might have been set in file reading or versioning. */

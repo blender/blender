@@ -15,6 +15,7 @@
 #include "BLI_rand.h"
 #include "BLI_string_utils.h"
 
+#include "BKE_global.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 
@@ -847,6 +848,8 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
 
         MATCACHE_AS_ARRAY(matcache, shadow_grp, materials_len, shgrps_array);
         DRW_shgroup_call_sculpt_with_materials(shgrps_array, gpumat_array, materials_len, ob);
+
+        *cast_shadow = true;
       }
       else {
         struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
@@ -882,6 +885,12 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
             ADD_SHGROUP_CALL_SAFE(matcache[i].shadow_grp, ob, mat_geom[i], oedata);
             *cast_shadow = *cast_shadow || (matcache[i].shadow_grp != NULL);
           }
+        }
+
+        if (G.debug_value == 889 && ob->sculpt && ob->sculpt->pbvh) {
+          int debug_node_nr = 0;
+          DRW_debug_modelmat(ob->object_to_world);
+          BKE_pbvh_draw_debug_cb(ob->sculpt->pbvh, DRW_sculpt_debug_cb, &debug_node_nr);
         }
       }
 

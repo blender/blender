@@ -41,7 +41,7 @@ def get_download_url(version: Version, file_name: str) -> str:
     """
     Get the download url for the given version and file_name
     """
-    return (f"https://www.blender.org/download/Blender{version.major}"
+    return (f"https://www.blender.org/download/release/Blender{version.major}"
             f".{version.minor}/{file_name}")
 
 

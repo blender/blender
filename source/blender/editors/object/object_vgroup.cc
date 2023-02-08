@@ -1150,7 +1150,7 @@ static void vgroup_duplicate(Object *ob)
       MDeformVert *dv = dvert_array[i];
       dw_org = BKE_defvert_find_index(dv, idg);
       if (dw_org) {
-        /* BKE_defvert_ensure_index re-allocs org so need to store the weight first */
+        /* #BKE_defvert_ensure_index re-allocates org so need to store the weight first. */
         const float weight = dw_org->weight;
         dw_cpy = BKE_defvert_ensure_index(dv, icdg);
         dw_cpy->weight = weight;
@@ -2131,8 +2131,8 @@ static void vgroup_smooth_subset(Object *ob,
 
 static int inv_cmp_mdef_vert_weights(const void *a1, const void *a2)
 {
-  /* qsort sorts in ascending order.  We want descending order to save a memcopy
-   * so this compare function is inverted from the standard greater than comparison qsort needs.
+  /* #qsort sorts in ascending order. We want descending order to save a #memcpy
+   * so this compare function is inverted from the standard greater than comparison #qsort needs.
    * A normal compare function is called with two pointer arguments and should return an integer
    * less than, equal to, or greater than zero corresponding to whether its first argument is
    * considered less than, equal to, or greater than its second argument.

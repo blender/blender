@@ -12,8 +12,8 @@ void main()
   for (int j = 0; j < 3; j++) {
     for (int i = 0; i < 3; i++) {
       vec3 color = texture_load(input_tx, texel + ivec2(i - 1, j - 1)).rgb;
-      color_x += color * kernel[j][i];
-      color_y += color * kernel[i][j];
+      color_x += color * ukernel[j][i];
+      color_y += color * ukernel[i][j];
     }
   }
 

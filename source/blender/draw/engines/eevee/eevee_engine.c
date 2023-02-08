@@ -11,6 +11,8 @@
 
 #include "BLI_rand.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_object.h"
 
 #include "DEG_depsgraph_query.h"
@@ -174,7 +176,7 @@ static void eevee_cache_finish(void *vedata)
   }
 
   if (g_data->queued_shaders_count > 0) {
-    SNPRINTF(ved->info, "Compiling Shaders (%d remaining)", g_data->queued_shaders_count);
+    SNPRINTF(ved->info, TIP_("Compiling Shaders (%d remaining)"), g_data->queued_shaders_count);
   }
 }
 
@@ -622,7 +624,7 @@ DrawEngineType draw_engine_eevee_type = {
     &eevee_data_size,
     &eevee_engine_init,
     &eevee_engine_free,
-    NULL, /* instance_free */
+    /*instance_free*/ NULL,
     &eevee_cache_init,
     &EEVEE_cache_populate,
     &eevee_cache_finish,

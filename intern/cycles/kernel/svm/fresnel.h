@@ -22,7 +22,7 @@ ccl_device_noinline void svm_node_fresnel(ccl_private ShaderData *sd,
   eta = fmaxf(eta, 1e-5f);
   eta = (sd->flag & SD_BACKFACING) ? 1.0f / eta : eta;
 
-  float f = fresnel_dielectric_cos(dot(sd->I, normal_in), eta);
+  float f = fresnel_dielectric_cos(dot(sd->wi, normal_in), eta);
 
   stack_store_float(stack, out_offset, f);
 }
@@ -50,10 +50,10 @@ ccl_device_noinline void svm_node_layer_weight(ccl_private ShaderData *sd,
     float eta = fmaxf(1.0f - blend, 1e-5f);
     eta = (sd->flag & SD_BACKFACING) ? eta : 1.0f / eta;
 
-    f = fresnel_dielectric_cos(dot(sd->I, normal_in), eta);
+    f = fresnel_dielectric_cos(dot(sd->wi, normal_in), eta);
   }
   else {
-    f = fabsf(dot(sd->I, normal_in));
+    f = fabsf(dot(sd->wi, normal_in));
 
     if (blend != 0.5f) {
       blend = clamp(blend, 0.0f, 1.0f - 1e-5f);

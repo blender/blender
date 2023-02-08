@@ -18,7 +18,6 @@ extern "C" {
 struct Brush;
 struct ImBuf;
 struct ImagePool;
-struct Object;
 struct Main;
 struct MTex;
 struct Scene;

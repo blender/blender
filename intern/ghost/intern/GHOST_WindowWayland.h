@@ -150,6 +150,7 @@ class GHOST_WindowWayland : public GHOST_Window {
   GHOST_TSuccess activate();
   GHOST_TSuccess deactivate();
   GHOST_TSuccess notify_size();
+  GHOST_TSuccess notify_decor_redraw();
 
   /* WAYLAND utility functions. */
 

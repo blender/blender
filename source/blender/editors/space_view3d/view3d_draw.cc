@@ -2407,7 +2407,8 @@ void ED_view3d_depths_free(ViewDepths *depths)
 /** \name Custom-data Utilities
  * \{ */
 
-void ED_view3d_datamask(const ViewLayer *view_layer,
+void ED_view3d_datamask(const Scene *scene,
+                        ViewLayer *view_layer,
                         const View3D *v3d,
                         CustomData_MeshMasks *r_cddata_masks)
 {
@@ -2428,6 +2429,7 @@ void ED_view3d_datamask(const ViewLayer *view_layer,
     }
   }
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
   if (obact) {
     switch (obact->type) {
@@ -2450,7 +2452,8 @@ void ED_view3d_datamask(const ViewLayer *view_layer,
   }
 }
 
-void ED_view3d_screen_datamask(const ViewLayer *view_layer,
+void ED_view3d_screen_datamask(const Scene *scene,
+                               ViewLayer *view_layer,
                                const bScreen *screen,
                                CustomData_MeshMasks *r_cddata_masks)
 {
@@ -2459,7 +2462,8 @@ void ED_view3d_screen_datamask(const ViewLayer *view_layer,
   /* Check if we need UV or color data due to the view mode. */
   LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
     if (area->spacetype == SPACE_VIEW3D) {
-      ED_view3d_datamask(view_layer, static_cast<View3D *>(area->spacedata.first), r_cddata_masks);
+      ED_view3d_datamask(
+          scene, view_layer, static_cast<View3D *>(area->spacedata.first), r_cddata_masks);
     }
   }
 }

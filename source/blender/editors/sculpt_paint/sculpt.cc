@@ -29,10 +29,12 @@
 #include "BLI_math_color_blend.h"
 #include "BLI_memarena.h"
 #include "BLI_rand.h"
+#include "BLI_set.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "PIL_time.h"
 
@@ -261,6 +263,8 @@ BrushChannel *SCULPT_get_final_channel_intern(const SculptSession *ss,
 
 using blender::float3;
 using blender::MutableSpan;
+using blender::Set;
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt PBVH Abstraction API
@@ -812,6 +816,8 @@ void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visibl
 
 void SCULPT_face_visibility_all_invert(SculptSession *ss)
 {
+  SCULPT_topology_islands_invalidate(ss);
+
   BLI_assert(ss->face_sets != nullptr);
   BLI_assert(ss->hide_poly != nullptr);
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -843,6 +849,7 @@ void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible)
     /* This case is allowed. */
     return;
   }
+  SCULPT_topology_islands_invalidate(ss);
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
@@ -1214,6 +1221,9 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
+
+  SCULPT_topology_islands_invalidate(ss);
+
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       /* We may have adjusted the ".hide_poly" attribute, now make the hide status attributes for
@@ -4180,15 +4190,21 @@ static PBVHNode **sculpt_pbvh_gather_cursor_update(Object *ob,
   return nodes;
 }
 
-static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
-                                             Sculpt *sd,
-                                             const Brush *brush,
-                                             bool use_original,
-                                             float radius_scale,
-                                             int *r_totnode)
+static PBVHNode **sculpt_pbvh_gather_generic_intern(Object *ob,
+                                                    Sculpt *sd,
+                                                    const Brush *brush,
+                                                    bool use_original,
+                                                    float radius_scale,
+                                                    int *r_totnode,
+                                                    PBVHNodeFlags flag)
 {
   SculptSession *ss = ob->sculpt;
   PBVHNode **nodes = nullptr;
+  PBVHNodeFlags leaf_flag = PBVH_Leaf;
+
+  if (flag & PBVH_TexLeaf) {
+    leaf_flag = PBVH_TexLeaf;
+  }
 
   /* Build a list of all nodes that are potentially within the cursor or brush's area of
    * influence.
@@ -4201,8 +4217,8 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
     data.original = use_original;
     data.ignore_fully_ineffective = SCULPT_get_tool(ss, brush) != SCULPT_TOOL_MASK;
     data.center = nullptr;
-
-    BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, r_totnode);
+    BKE_pbvh_search_gather_ex(
+        ss->pbvh, SCULPT_search_sphere_cb, &data, &nodes, r_totnode, leaf_flag);
   }
   else {
     DistRayAABB_Precalc dist_ray_to_aabb_precalc;
@@ -4216,11 +4232,33 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
                                       ss->cursor_radius;
     data.original = use_original;
     data.dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc;
-    data.ignore_fully_ineffective = SCULPT_get_tool(ss, brush) != SCULPT_TOOL_MASK;
-
-    BKE_pbvh_search_gather(ss->pbvh, SCULPT_search_circle_cb, &data, &nodes, r_totnode);
+    data.ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK;
+    BKE_pbvh_search_gather_ex(
+        ss->pbvh, SCULPT_search_circle_cb, &data, &nodes, r_totnode, leaf_flag);
   }
   return nodes;
+}
+
+static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
+                                             Sculpt *sd,
+                                             const Brush *brush,
+                                             bool use_original,
+                                             float radius_scale,
+                                             int *r_totnode)
+{
+  return sculpt_pbvh_gather_generic_intern(
+      ob, sd, brush, use_original, radius_scale, r_totnode, PBVH_Leaf);
+}
+
+static PBVHNode **sculpt_pbvh_gather_texpaint(Object *ob,
+                                              Sculpt *sd,
+                                              const Brush *brush,
+                                              bool use_original,
+                                              float radius_scale,
+                                              int *r_totnode)
+{
+  return sculpt_pbvh_gather_generic_intern(
+      ob, sd, brush, use_original, radius_scale, r_totnode, PBVH_TexLeaf);
 }
 
 /* Calculate primary direction of movement for many brushes. */
@@ -4869,7 +4907,6 @@ static void sculpt_topology_update(Sculpt *sd,
    * the stroke. */
   MEM_SAFE_FREE(ss->vertex_info.boundary);
   MEM_SAFE_FREE(ss->vertex_info.symmetrize_map);
-  MEM_SAFE_FREE(ss->vertex_info.connected_component);
 
   PBVHTopologyUpdateMode mode = PBVHTopologyUpdateMode(0);
   float location[3];
@@ -5043,6 +5080,8 @@ typedef struct BrushRunCommandData {
   BrushCommand *cmd;
   PBVHNode **nodes;
   int totnode;
+  PBVHNode **texnodes;
+  int texnodes_num;
   float radius_max;
 } BrushRunCommandData;
 
@@ -5075,6 +5114,8 @@ static void get_nodes_undo(Sculpt *sd,
   const bool use_pixels = sculpt_needs_pbvh_pixels(paint_mode_settings, brush, ob);
   if (use_pixels) {
     sculpt_pbvh_update_pixels(paint_mode_settings, ss, ob);
+
+    data->texnodes = sculpt_pbvh_gather_texpaint(ob, sd, brush, use_original, 1.0f, &data->texnodes_num);
   }
 
   if (SCULPT_tool_needs_all_pbvh_nodes(brush)) {
@@ -5505,7 +5546,7 @@ static void SCULPT_run_command(Sculpt *sd,
       SCULPT_do_displacement_smear_brush(sd, ob, nodes, totnode);
       break;
     case SCULPT_TOOL_PAINT:
-      SCULPT_do_paint_brush(paint_mode_settings, sd, ob, nodes, totnode);
+      SCULPT_do_paint_brush(paint_mode_settings, sd, ob, nodes, totnode, data->texnodes, data->texnodes_num);
       break;
     case SCULPT_TOOL_SMEAR:
       SCULPT_do_smear_brush(sd, ob, nodes, totnode);
@@ -7908,8 +7949,6 @@ bool all_nodes_callback(PBVHNode *node, void *data)
   return true;
 }
 
-extern "C" void sculpt_undo_print_nodes(void *active);
-
 void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType update_flags)
 {
   /* After we are done drawing the stroke, check if we need to do a more
@@ -7990,8 +8029,6 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
       }
     }
 #endif
-
-    sculpt_undo_print_nodes(nullptr);
   }
 
   if (update_flags & SCULPT_UPDATE_COLOR) {
@@ -8752,18 +8789,6 @@ enum {
   SCULPT_TOPOLOGY_ID_DEFAULT,
 };
 
-static int SCULPT_vertex_get_connected_component(SculptSession *ss, PBVHVertRef vertex)
-{
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    vertex.i = BM_elem_index_get((BMVert *)vertex.i);
-  }
-
-  if (ss->vertex_info.connected_component) {
-    return ss->vertex_info.connected_component[vertex.i];
-  }
-  return SCULPT_TOPOLOGY_ID_DEFAULT;
-}
-
 static void SCULPT_fake_neighbor_init(SculptSession *ss, const float max_dist)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
@@ -8818,7 +8843,7 @@ static void do_fake_neighbor_search_task_cb(void *__restrict userdata,
   SCULPT_vertex_random_access_ensure(ss);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    int vd_topology_id = SCULPT_vertex_get_connected_component(ss, vd.vertex);
+    int vd_topology_id = SCULPT_vertex_island_get(ss, vd.vertex);
     if (vd_topology_id != nvtd->current_topology_id &&
         ss->fake_neighbors.fake_neighbor_index[vd.index].i == FAKE_NEIGHBOR_NONE) {
       float distance_squared = len_squared_v3v3(vd.co, data->nearest_vertex_search_co);
@@ -8881,7 +8906,7 @@ static PBVHVertRef SCULPT_fake_neighbor_search(Sculpt *sd,
   NearestVertexFakeNeighborTLSData nvtd;
   nvtd.nearest_vertex.i = -1;
   nvtd.nearest_vertex_distance_squared = FLT_MAX;
-  nvtd.current_topology_id = SCULPT_vertex_get_connected_component(ss, vertex);
+  nvtd.current_topology_id = SCULPT_vertex_island_get(ss, vertex);
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -8898,61 +8923,6 @@ static PBVHVertRef SCULPT_fake_neighbor_search(Sculpt *sd,
 struct SculptTopologyIDFloodFillData {
   int next_id;
 };
-
-static bool SCULPT_connected_components_floodfill_cb(
-    SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool /*is_duplicate*/, void *userdata)
-{
-  SculptTopologyIDFloodFillData *data = static_cast<SculptTopologyIDFloodFillData *>(userdata);
-
-  int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
-  int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
-
-  ss->vertex_info.connected_component[from_v_i] = data->next_id;
-  ss->vertex_info.connected_component[to_v_i] = data->next_id;
-  return true;
-}
-
-void SCULPT_connected_components_ensure(Object *ob)
-{
-  SculptSession *ss = ob->sculpt;
-
-  SCULPT_vertex_random_access_ensure(ss);
-
-  /* Topology IDs already initialized. They only need to be recalculated when the PBVH is
-   * rebuild.
-   */
-  if (ss->vertex_info.connected_component) {
-    return;
-  }
-
-  const int totvert = SCULPT_vertex_count_get(ss);
-  ss->vertex_info.connected_component = static_cast<int *>(
-      MEM_malloc_arrayN(totvert, sizeof(int), "topology ID"));
-
-  for (int i = 0; i < totvert; i++) {
-    ss->vertex_info.connected_component[i] = SCULPT_TOPOLOGY_ID_NONE;
-  }
-
-  int next_id = 0;
-  for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-
-    if (!SCULPT_vertex_visible_get(ss, vertex)) {
-      continue;
-    }
-
-    if (ss->vertex_info.connected_component[i] == SCULPT_TOPOLOGY_ID_NONE) {
-      SculptFloodFill flood;
-      SCULPT_floodfill_init(ss, &flood);
-      SCULPT_floodfill_add_initial(&flood, vertex);
-      SculptTopologyIDFloodFillData data;
-      data.next_id = next_id;
-      SCULPT_floodfill_execute(ss, &flood, SCULPT_connected_components_floodfill_cb, &data);
-      SCULPT_floodfill_free(&flood);
-      next_id++;
-    }
-  }
-}
 
 /* builds topological boundary bitmap. TODO: eliminate this function
    and just used modern boundary API */
@@ -9006,7 +8976,7 @@ void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)
     return;
   }
 
-  SCULPT_connected_components_ensure(ob);
+  SCULPT_topology_islands_ensure(ob);
   SCULPT_fake_neighbor_init(ss, max_dist);
 
   for (int i = 0; i < totvert; i++) {
@@ -9560,4 +9530,70 @@ void SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset)
   }
 }
 
+int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex)
+{
+  if (ss->attrs.topology_island_key) {
+    return *static_cast<uint8_t *>(SCULPT_vertex_attr_get(vertex, ss->attrs.topology_island_key));
+  }
+
+  return -1;
+}
+
+void SCULPT_topology_islands_invalidate(SculptSession *ss)
+{
+  ss->islands_valid = false;
+}
+
+void SCULPT_topology_islands_ensure(Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+
+  if (ss->attrs.topology_island_key && ss->islands_valid &&
+      BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+    return;
+  }
+
+  SculptAttributeParams params;
+  params.permanent = params.stroke_only = params.simple_array = false;
+
+  ss->attrs.topology_island_key = BKE_sculpt_attribute_ensure(
+      ob, ATTR_DOMAIN_POINT, CD_PROP_INT8, SCULPT_ATTRIBUTE_NAME(topology_island_key), &params);
+  SCULPT_vertex_random_access_ensure(ss);
+
+  int totvert = SCULPT_vertex_count_get(ss);
+  Set<PBVHVertRef> visit;
+  Vector<PBVHVertRef> stack;
+  uint8_t island_nr = 0;
+
+  for (int i = 0; i < totvert; i++) {
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+    if (visit.contains(vertex)) {
+      continue;
+    }
+
+    stack.clear();
+    stack.append(vertex);
+    visit.add(vertex);
+
+    while (stack.size()) {
+      PBVHVertRef vertex2 = stack.pop_last();
+      SculptVertexNeighborIter ni;
+
+      *static_cast<uint8_t *>(
+          SCULPT_vertex_attr_get(vertex2, ss->attrs.topology_island_key)) = island_nr;
+
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex2, ni) {
+        if (visit.add(ni.vertex) && SCULPT_vertex_any_face_visible_get(ss, ni.vertex)) {
+          stack.append(ni.vertex);
+        }
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+    }
+
+    island_nr++;
+  }
+
+  ss->islands_valid = true;
+}
 /** \} */

@@ -17,12 +17,10 @@
 #include "UI_resources.h"
 
 struct bContext;
-struct PreviewImage;
 struct uiBlock;
 struct uiButViewItem;
 struct uiLayout;
 struct View2D;
-struct wmNotifier;
 
 namespace blender::ui {
 

@@ -210,8 +210,8 @@ static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *gzgroup)
 
   RNA_enum_set(ggd->cage->ptr,
                "transform",
-               ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE | ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE |
-                   ED_GIZMO_CAGE2D_XFORM_FLAG_ROTATE);
+               ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE | ED_GIZMO_CAGE_XFORM_FLAG_SCALE |
+                   ED_GIZMO_CAGE_XFORM_FLAG_ROTATE);
 
   return ggd;
 }
@@ -604,8 +604,11 @@ static void gizmo2d_xform_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
   UI_view2d_view_to_region_m4(&region->v2d, ggd->cage->matrix_space);
   /* Define the bounding box of the gizmo in the offset transform matrix. */
   unit_m4(ggd->cage->matrix_offset);
-  ggd->cage->matrix_offset[0][0] = (ggd->max[0] - ggd->min[0]);
-  ggd->cage->matrix_offset[1][1] = (ggd->max[1] - ggd->min[1]);
+  const float min_gizmo_pixel_size = 0.001f; /* Draw Gizmo larger than this many pixels. */
+  const float min_scale_axis_x = min_gizmo_pixel_size / ggd->cage->matrix_space[0][0];
+  const float min_scale_axis_y = min_gizmo_pixel_size / ggd->cage->matrix_space[1][1];
+  ggd->cage->matrix_offset[0][0] = max_ff(min_scale_axis_x, ggd->max[0] - ggd->min[0]);
+  ggd->cage->matrix_offset[1][1] = max_ff(min_scale_axis_y, ggd->max[1] - ggd->min[1]);
 
   ScrArea *area = CTX_wm_area(C);
 

@@ -115,7 +115,7 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiLayout *box, *col, *sub, *row;
+  uiLayout *box, *col, *sub;
 
   /* Object Transform options. */
   box = uiLayoutBox(layout);
@@ -123,11 +123,8 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
   uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
   uiItemR(sub, imfptr, "global_scale", 0, NULL, ICON_NONE);
-
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "forward_axis", UI_ITEM_R_EXPAND, IFACE_("Forward Axis"), ICON_NONE);
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "up_axis", UI_ITEM_R_EXPAND, IFACE_("Up Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Forward Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up Axis"), ICON_NONE);
 
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumn(col, false);
@@ -466,10 +463,8 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "clamp_size", 0, NULL, ICON_NONE);
   sub = uiLayoutColumn(col, false);
 
-  uiLayout *row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "forward_axis", UI_ITEM_R_EXPAND, IFACE_("Forward Axis"), ICON_NONE);
-  row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "up_axis", UI_ITEM_R_EXPAND, IFACE_("Up Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Forward Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up Axis"), ICON_NONE);
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Options"), ICON_EXPORT);

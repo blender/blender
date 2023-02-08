@@ -500,6 +500,7 @@ typedef struct AutomaskingSettings {
   int initial_face_set;
   int current_face_set;  // used by faceset draw tool
   bool original_normal;
+  int initial_island_nr;
 
   float cavity_factor;
   int cavity_blur_steps;
@@ -507,6 +508,8 @@ typedef struct AutomaskingSettings {
 
   float start_normal_limit, start_normal_falloff;
   float view_normal_limit, view_normal_falloff;
+
+  bool topology_use_brush_limit;
 } AutomaskingSettings;
 
 typedef struct AutomaskingCache {
@@ -953,11 +956,11 @@ typedef struct ExpandCache {
    * initial position of Expand. */
   float original_mouse_move[2];
 
-  /* Active components checks. */
-  /* Indexed by symmetry pass index, contains the connected component ID found in
-   * SculptSession->vertex_info.connected_component. Other connected components not found in this
+  /* Active island checks. */
+  /* Indexed by symmetry pass index, contains the connected island ID for that
+   * symmetry pass. Other connected island IDs not found in this
    * array will be ignored by Expand. */
-  int active_connected_components[EXPAND_SYMM_AREAS];
+  int active_connected_islands[EXPAND_SYMM_AREAS];
 
   /* Snapping. */
   /* GSet containing all Face Sets IDs that Expand will use to snap the new data. */
@@ -1030,6 +1033,9 @@ typedef struct ExpandCache {
   float *original_mask;
   int *original_face_sets;
   float (*original_colors)[4];
+
+  bool check_islands;
+  int normal_falloff_blur_steps;
 } ExpandCache;
 
 typedef struct MaskFilterDeltaStep {
@@ -1068,6 +1074,7 @@ enum eDynTopoWarnFlag {
   DYNTOPO_WARN_MODIFIER = (1 << 3),
   DYNTOPO_ERROR_MULTIRES = (1 << 4)
 };
+ENUM_OPERATORS(eDynTopoWarnFlag, DYNTOPO_ERROR_MULTIRES);
 
 /** \} */
 
@@ -1310,8 +1317,6 @@ eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
 eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
                                           const PBVHVertRef index,
                                           eSculptBoundary boundary_types);
-
-void SCULPT_connected_components_ensure(Object *ob);
 
 /** \} */
 
@@ -2190,7 +2195,9 @@ void SCULPT_do_paint_brush(struct PaintModeSettings *paint_mode_settings,
                            Sculpt *sd,
                            Object *ob,
                            PBVHNode **nodes,
-                           int totnode) ATTR_NONNULL();
+                           int totnode,
+                           PBVHNode **texnodes,
+                           int texnodes_num) ATTR_NONNULL();
 
 /**
  * \brief Get the image canvas for painting on the given object.
@@ -2206,8 +2213,8 @@ bool SCULPT_paint_image_canvas_get(struct PaintModeSettings *paint_mode_settings
 void SCULPT_do_paint_brush_image(struct PaintModeSettings *paint_mode_settings,
                                  Sculpt *sd,
                                  Object *ob,
-                                 PBVHNode **nodes,
-                                 int totnode) ATTR_NONNULL();
+                                 PBVHNode **texnodes,
+                                 int texnode_num) ATTR_NONNULL();
 bool SCULPT_use_image_paint_brush(struct PaintModeSettings *settings, Object *ob) ATTR_NONNULL();
 
 /* Smear Brush. */
@@ -2568,6 +2575,27 @@ void SCULPT_stroke_id_next(struct Object *ob);
 bool SCULPT_tool_can_reuse_automask(int sculpt_tool);
 
 void SCULPT_ensure_valid_pivot(const struct Object *ob, struct Scene *scene);
+
+/* -------------------------------------------------------------------- */
+/** \name Topology island API
+ * \{
+ * Each mesh island shell gets its own integer
+ * key; these are temporary and internally limited to 8 bits.
+ * Uses the `ss->topology_island_key` attribute.
+ */
+
+/* Ensures vertex island keys exist and are valid. */
+void SCULPT_topology_islands_ensure(struct Object *ob);
+
+/* Mark vertex island keys as invalid.  Call when adding or hiding
+ * geometry.
+ */
+void SCULPT_topology_islands_invalidate(SculptSession *ss);
+
+/* Get vertex island key.*/
+int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
+
+/** \} */
 
 /* Make SCULPT_ alias to a few blenkernel sculpt methods. */
 

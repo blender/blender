@@ -224,20 +224,20 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
     }
     builder.single_input<float>("Exponent");
     builder.single_input<float>("Randomness");
-    builder.single_output<float>("Distance");
-    builder.single_output<ColorGeometry4f>("Color");
+    builder.single_output<float>("Distance", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
 
     if (dimensions != 1) {
-      builder.single_output<float3>("Position");
+      builder.single_output<float3>("Position", mf::ParamFlag::SupportsUnusedOutput);
     }
     if (ELEM(dimensions, 1, 4)) {
-      builder.single_output<float>("W");
+      builder.single_output<float>("W", mf::ParamFlag::SupportsUnusedOutput);
     }
 
     return signature;
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -661,20 +661,20 @@ class VoronoiMetricFunction : public mf::MultiFunction {
       builder.single_input<float>("Smoothness");
     }
     builder.single_input<float>("Randomness");
-    builder.single_output<float>("Distance");
-    builder.single_output<ColorGeometry4f>("Color");
+    builder.single_output<float>("Distance", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<ColorGeometry4f>("Color", mf::ParamFlag::SupportsUnusedOutput);
 
     if (dimensions != 1) {
-      builder.single_output<float3>("Position");
+      builder.single_output<float3>("Position", mf::ParamFlag::SupportsUnusedOutput);
     }
     if (ELEM(dimensions, 1, 4)) {
-      builder.single_output<float>("W");
+      builder.single_output<float>("W", mf::ParamFlag::SupportsUnusedOutput);
     }
 
     return signature;
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -1182,7 +1182,7 @@ class VoronoiEdgeFunction : public mf::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");

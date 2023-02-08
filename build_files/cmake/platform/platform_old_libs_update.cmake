@@ -1,7 +1,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright 2022 Blender Foundation. All rights reserved.
 
-# Auto update existing CMake caches for new libraries
+# Auto update existing CMake caches for new libraries.
+
+# Assert that `LIBDIR` is defined.
+if(NOT (DEFINED LIBDIR))
+  message(FATAL_ERROR "Logical error, expected 'LIBDIR' to be defined!")
+endif()
 
 # Clear cached variables whose name matches `pattern`.
 function(unset_cache_variables pattern)

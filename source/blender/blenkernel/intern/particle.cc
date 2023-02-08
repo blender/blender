@@ -3513,7 +3513,8 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
         }
       }
 
-      /* lattices have to be calculated separately to avoid mixups between effector calculations */
+      /* Lattices have to be calculated separately to avoid mix-ups between effector calculations.
+       */
       if (psys->lattice_deform_data) {
         for (k = 0, ca = cache[p]; k <= segments; k++, ca++) {
           BKE_lattice_deform_data_eval_co(
@@ -4215,7 +4216,9 @@ static int get_particle_uv(Mesh *mesh,
   int i;
 
   tf = static_cast<const MTFace *>(CustomData_get_layer_named(&mesh->fdata, CD_MTFACE, name));
-
+  if (tf == nullptr) {
+    tf = static_cast<const MTFace *>(CustomData_get_layer(&mesh->fdata, CD_MTFACE));
+  }
   if (tf == nullptr) {
     return 0;
   }
@@ -4451,15 +4454,15 @@ void psys_get_texture(
                                    texvec);
 
           BKE_mesh_texspace_ensure(me);
-          sub_v3_v3(texvec, me->loc);
-          if (me->size[0] != 0.0f) {
-            texvec[0] /= me->size[0];
+          sub_v3_v3(texvec, me->texspace_location);
+          if (me->texspace_size[0] != 0.0f) {
+            texvec[0] /= me->texspace_size[0];
           }
-          if (me->size[1] != 0.0f) {
-            texvec[1] /= me->size[1];
+          if (me->texspace_size[1] != 0.0f) {
+            texvec[1] /= me->texspace_size[1];
           }
-          if (me->size[2] != 0.0f) {
-            texvec[2] /= me->size[2];
+          if (me->texspace_size[2] != 0.0f) {
+            texvec[2] /= me->texspace_size[2];
           }
           break;
         case TEXCO_PARTICLE:

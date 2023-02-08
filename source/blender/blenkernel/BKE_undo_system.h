@@ -93,6 +93,7 @@ typedef enum eUndoPushReturn {
   UNDO_PUSH_RET_SUCCESS = (1 << 0),
   UNDO_PUSH_RET_OVERRIDE_CHANGED = (1 << 1),
 } eUndoPushReturn;
+ENUM_OPERATORS(eUndoPushReturn, UNDO_PUSH_RET_OVERRIDE_CHANGED)
 
 typedef void (*UndoTypeForEachIDRefFn)(void *user_data, struct UndoRefID *id_ref);
 
@@ -137,7 +138,7 @@ typedef struct UndoType {
 
   /**
    * The size of the undo struct 'inherited' from #UndoStep for that specific type. Used for
-   * generic allocation in BKE's `undo_system.c`. */
+   * generic allocation in BKE's `undo_system.cc`. */
   size_t step_size;
 } UndoType;
 

@@ -20,7 +20,6 @@ extern "C" {
 #endif
 
 struct BoundBox;
-struct CustomDataLayer;
 struct Depsgraph;
 struct Main;
 struct Object;

@@ -47,7 +47,9 @@ typedef struct BevPoint {
 typedef struct BevList {
   struct BevList *next, *prev;
   int nr, dupe_nr;
-  int poly, hole;
+  /** Cyclic when set to any value besides -1. */
+  int poly;
+  int hole;
   int charidx;
   int *segbevcount;
   float *seglen;
@@ -211,14 +213,13 @@ typedef struct Curve {
 
   struct CurveProfile *bevel_profile;
 
-  /* texture space, copied as one block in editobject.c */
-  float loc[3];
-  float size[3];
+  float texspace_location[3];
+  float texspace_size[3];
 
   /** Creation-time type of curve datablock. */
   short type;
 
-  char texflag;
+  char texspace_flag;
   char _pad0[7];
   short twist_mode;
   float twist_smooth, smallcaps_scale;
@@ -313,10 +314,10 @@ typedef struct Curve {
 
 /* **************** CURVE ********************* */
 
-/** #Curve.texflag */
+/** #Curve.texspace_flag */
 enum {
-  CU_AUTOSPACE = 1,
-  CU_AUTOSPACE_EVALUATED = 2,
+  CU_TEXSPACE_FLAG_AUTO = 1 << 0,
+  CU_TEXSPACE_FLAG_AUTO_EVALUATED = 1 << 1,
 };
 
 /** #Curve.flag */

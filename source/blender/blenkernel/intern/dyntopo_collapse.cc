@@ -32,7 +32,7 @@
 #include "bmesh_log.h"
 
 #include "dyntopo_intern.hh"
-#include "pbvh_intern.h"
+#include "pbvh_intern.hh"
 
 #include <functional>
 #include <stdio.h>

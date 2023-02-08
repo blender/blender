@@ -2520,7 +2520,6 @@ bool RE_layers_have_name(struct RenderResult *result)
     default:
       return true;
   }
-  return false;
 }
 
 bool RE_passes_have_name(struct RenderLayer *rl)

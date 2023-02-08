@@ -26,11 +26,14 @@ function(add_blender_test testname)
     COMMAND "${TEST_BLENDER_EXE}" ${TEST_BLENDER_EXE_PARAMS} ${ARGN}
   )
 
-  # Don't fail tests on leaks since these often happen in external libraries
-  # that we can't fix.
-  set_tests_properties(${testname} PROPERTIES ENVIRONMENT
-    LSAN_OPTIONS=exitcode=0:$ENV{LSAN_OPTIONS}
-  )
+  # Don't fail tests on leaks since these often happen in external libraries that we can't fix.
+  set(_lsan_options "exitcode=0")
+  if(DEFINED ENV{LSAN_OPTIONS})
+    set(_lsan_options "${_lsan_options}:$ENV{LSAN_OPTIONS}")
+  endif()
+  set_tests_properties(${testname} PROPERTIES ENVIRONMENT "LSAN_OPTIONS=${_lsan_options}")
+  unset(_lsan_options)
+
   if(PLATFORM_ENV_INSTALL)
     set_tests_properties(${testname} PROPERTIES ENVIRONMENT "${PLATFORM_ENV_INSTALL}")
   endif()
@@ -47,9 +50,14 @@ function(add_python_test testname testscript)
     COMMAND ${TEST_PYTHON_EXE} ${TEST_PYTHON_EXE_EXTRA_ARGS} ${testscript} ${ARGN}
     WORKING_DIRECTORY $<TARGET_FILE_DIR:blender>
   )
-  set_tests_properties(${testname} PROPERTIES ENVIRONMENT
-    LSAN_OPTIONS=exitcode=0:$ENV{LSAN_OPTIONS}
-  )
+
+  set(_lsan_options "exitcode=0")
+  if(DEFINED ENV{LSAN_OPTIONS})
+    set(_lsan_options "${_lsan_options}:$ENV{LSAN_OPTIONS}")
+  endif()
+  set_tests_properties(${testname} PROPERTIES ENVIRONMENT "LSAN_OPTIONS=${_lsan_options}")
+  unset(_lsan_options)
+
   if(PLATFORM_ENV_INSTALL)
     set_tests_properties(${testname} PROPERTIES ENVIRONMENT "${PLATFORM_ENV_INSTALL}")
   endif()
@@ -639,20 +647,24 @@ endif()
 
 # SVG Import
 if(True)
-  set(_svg_render_tests complex path)
+  if(NOT OPENIMAGEIO_IDIFF)
+    message(WARNING "Disabling SVG tests because OIIO idiff does not exist")
+  else()
+    set(_svg_render_tests complex path)
 
-  foreach(render_test ${_svg_render_tests})
-    add_python_test(
-      io_curve_svg_${render_test}
-      ${CMAKE_CURRENT_LIST_DIR}/bl_io_curve_svg_test.py
-      -blender "${TEST_BLENDER_EXE}"
-      -testdir "${TEST_SRC_DIR}/io_tests/svg/${render_test}"
-      -idiff "${OPENIMAGEIO_IDIFF}"
-      -outdir "${TEST_OUT_DIR}/io_curve_svg"
-    )
-  endforeach()
+    foreach(render_test ${_svg_render_tests})
+      add_python_test(
+        io_curve_svg_${render_test}
+        ${CMAKE_CURRENT_LIST_DIR}/bl_io_curve_svg_test.py
+        -blender "${TEST_BLENDER_EXE}"
+        -testdir "${TEST_SRC_DIR}/io_tests/svg/${render_test}"
+        -idiff "${OPENIMAGEIO_IDIFF}"
+        -outdir "${TEST_OUT_DIR}/io_curve_svg"
+      )
+    endforeach()
 
-  unset(_svg_render_tests)
+    unset(_svg_render_tests)
+  endif()
 endif()
 
 if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
@@ -715,6 +727,7 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
 
     # Cycles
     if(WITH_CYCLES)
+      set(_cycles_blacklist "")
       if(NOT WITH_CYCLES_OSL)
         set(_cycles_blacklist OSL)
       endif()
@@ -735,6 +748,7 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
           )
         endforeach()
       endforeach()
+      unset(_cycles_blacklist)
     endif()
 
     if(WITH_OPENGL_RENDER_TESTS)
@@ -766,38 +780,42 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
 endif()
 
 if(WITH_COMPOSITOR_CPU)
-  set(compositor_tests
-    color
-    converter
-    filter
-    input
-    output
-    vector
+  if(NOT OPENIMAGEIO_IDIFF)
+    message(WARNING "Disabling Compositor CPU tests because OIIO idiff does not exist")
+  else()
+    set(compositor_tests
+      color
+      converter
+      filter
+      input
+      output
+      vector
 
-    multiple_node_setups
-  )
-
-  if(WITH_LIBMV)
-    list(APPEND compositor_tests distort matte)
-  endif()
-
-  foreach(comp_test ${compositor_tests})
-    add_python_test(
-      compositor_${comp_test}_test
-      ${CMAKE_CURRENT_LIST_DIR}/compositor_render_tests.py
-      -blender "${TEST_BLENDER_EXE}"
-      -testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
-      -idiff "${OPENIMAGEIO_IDIFF}"
-      -outdir "${TEST_OUT_DIR}/compositor"
+      multiple_node_setups
     )
-  endforeach()
 
+    if(WITH_LIBMV)
+      list(APPEND compositor_tests distort matte)
+    endif()
+
+    foreach(comp_test ${compositor_tests})
+      add_python_test(
+        compositor_${comp_test}_test
+        ${CMAKE_CURRENT_LIST_DIR}/compositor_render_tests.py
+        -blender "${TEST_BLENDER_EXE}"
+        -testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
+        -idiff "${OPENIMAGEIO_IDIFF}"
+        -outdir "${TEST_OUT_DIR}/compositor"
+      )
+    endforeach()
+  endif()
 endif()
 
 set(geo_node_tests
   attributes
   curve_primitives
   curves
+  curves/interpolate_curves
   geometry
   instance
   mesh_primitives

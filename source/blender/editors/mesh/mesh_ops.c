@@ -198,6 +198,7 @@ void ED_operatortypes_mesh(void)
   WM_operatortype_append(MESH_OT_mod_weighted_strength);
   WM_operatortype_append(MESH_OT_mres_test);
   WM_operatortype_append(MESH_OT_dump_mres_grids);
+  WM_operatortype_append(MESH_OT_flip_quad_tessellation);
 }
 
 #if 0 /* UNUSED, remove? */

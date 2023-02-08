@@ -1587,7 +1587,7 @@ class WM_OT_properties_edit(Operator):
         elif self.property_type == 'STRING':
             self.default_string = rna_data["default"]
         elif self.property_type in {'BOOL', 'BOOL_ARRAY'}:
-            self.default_int = self._convert_new_value_array(rna_data["default"], bool, 32)
+            self.default_bool = self._convert_new_value_array(rna_data["default"], bool, 32)
 
         if self.property_type in {'FLOAT_ARRAY', 'INT_ARRAY', 'BOOL_ARRAY'}:
             self.array_length = len(item[name])
@@ -1604,33 +1604,26 @@ class WM_OT_properties_edit(Operator):
     def _get_converted_value(self, item, name_old, prop_type_new):
         if prop_type_new == 'INT':
             return self._convert_new_value_single(item[name_old], int)
-
-        if prop_type_new == 'FLOAT':
+        elif prop_type_new == 'FLOAT':
             return self._convert_new_value_single(item[name_old], float)
-
-        if prop_type_new == 'BOOL':
+        elif prop_type_new == 'BOOL':
             return self._convert_new_value_single(item[name_old], bool)
-
-        if prop_type_new == 'INT_ARRAY':
+        elif prop_type_new == 'INT_ARRAY':
             prop_type_old = self.get_property_type(item, name_old)
             if prop_type_old in {'INT', 'FLOAT', 'INT_ARRAY', 'FLOAT_ARRAY', 'BOOL_ARRAY'}:
                 return self._convert_new_value_array(item[name_old], int, self.array_length)
-
-        if prop_type_new == 'FLOAT_ARRAY':
+        elif prop_type_new == 'FLOAT_ARRAY':
             prop_type_old = self.get_property_type(item, name_old)
             if prop_type_old in {'INT', 'FLOAT', 'FLOAT_ARRAY', 'INT_ARRAY', 'BOOL_ARRAY'}:
                 return self._convert_new_value_array(item[name_old], float, self.array_length)
-
-        if prop_type_new == 'BOOL_ARRAY':
+        elif prop_type_new == 'BOOL_ARRAY':
             prop_type_old = self.get_property_type(item, name_old)
-            if prop_type_old in {'INT', 'FLOAT', 'FLOAT_ARRAY', 'INT_ARRAY'}:
+            if prop_type_old in {'INT', 'FLOAT', 'FLOAT_ARRAY', 'INT_ARRAY', 'BOOL_ARRAY'}:
                 return self._convert_new_value_array(item[name_old], bool, self.array_length)
             else:
                 return [False] * self.array_length
-
-        if prop_type_new == 'STRING':
+        elif prop_type_new == 'STRING':
             return self.convert_custom_property_to_string(item, name_old)
-
         # If all else fails, create an empty string property. That should avoid errors later on anyway.
         return ""
 
@@ -1667,7 +1660,7 @@ class WM_OT_properties_edit(Operator):
                 default=self.default_int[0] if prop_type_new == 'INT' else self.default_int[:self.array_length],
                 description=self.description,
             )
-        if prop_type_new in {'BOOL', 'BOOL_ARRAY'}:
+        elif prop_type_new in {'BOOL', 'BOOL_ARRAY'}:
             ui_data = item.id_properties_ui(name)
             ui_data.update(
                 default=self.default_bool[0] if prop_type_new == 'BOOL' else self.default_bool[:self.array_length],

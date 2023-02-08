@@ -913,38 +913,6 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
   return attributes;
 }
 
-void copy_attribute_domain(const AttributeAccessor src_attributes,
-                           MutableAttributeAccessor dst_attributes,
-                           const IndexMask selection,
-                           const eAttrDomain domain,
-                           const AnonymousAttributePropagationInfo &propagation_info,
-                           const Set<std::string> &skip)
-{
-  src_attributes.for_all(
-      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData &meta_data) {
-        if (meta_data.domain != domain) {
-          return true;
-        }
-        if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
-          return true;
-        }
-        if (skip.contains(id.name())) {
-          return true;
-        }
-
-        const GVArray src = src_attributes.lookup(id, meta_data.domain);
-        BLI_assert(src);
-
-        /* Copy attribute. */
-        GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-            id, domain, meta_data.data_type);
-        array_utils::copy(src, selection, dst.span);
-        dst.finish();
-
-        return true;
-      });
-}
-
 }  // namespace blender::bke
 
 /** \} */

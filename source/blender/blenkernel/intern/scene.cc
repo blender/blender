@@ -278,7 +278,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
                    (ID *)scene_src->master_collection,
                    (ID **)&scene_dst->master_collection,
                    flag_private_id_data);
-    scene_dst->master_collection->owner_id = &scene_dst->id;
+    scene_dst->master_collection->runtime.owner_id = &scene_dst->id;
   }
 
   /* View Layers */
@@ -1774,6 +1774,7 @@ IDTypeInfo IDType_ID_SCE = get_type_info();
 
 const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
 const char *RE_engine_id_BLENDER_WORKBENCH = "BLENDER_WORKBENCH";
+const char *RE_engine_id_BLENDER_WORKBENCH_NEXT = "BLENDER_WORKBENCH_NEXT";
 const char *RE_engine_id_CYCLES = "CYCLES";
 
 void free_avicodecdata(AviCodecData *acd)
@@ -2978,7 +2979,8 @@ bool BKE_scene_uses_blender_eevee(const Scene *scene)
 
 bool BKE_scene_uses_blender_workbench(const Scene *scene)
 {
-  return STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH);
+  return STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH) ||
+         STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH_NEXT);
 }
 
 bool BKE_scene_uses_cycles(const Scene *scene)

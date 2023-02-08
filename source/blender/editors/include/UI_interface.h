@@ -22,10 +22,8 @@ extern "C" {
 struct ARegion;
 struct AssetFilterSettings;
 struct AssetHandle;
-struct AssetMetaData;
 struct AutoComplete;
 struct EnumPropertyItem;
-struct FileDirEntry;
 struct FileSelectParams;
 struct ID;
 struct IDProperty;
@@ -48,7 +46,6 @@ struct bNodeTree;
 struct bScreen;
 struct rctf;
 struct rcti;
-struct uiBlockInteraction_Handle;
 struct uiButSearch;
 struct uiFontStyle;
 struct uiList;
@@ -325,6 +322,8 @@ enum {
  * - bit  9-15: button type (now 6 bits, 64 types)
  */
 typedef enum {
+  UI_BUT_POIN_NONE = 0,
+
   UI_BUT_POIN_CHAR = 32,
   UI_BUT_POIN_SHORT = 64,
   UI_BUT_POIN_INT = 96,
@@ -397,7 +396,7 @@ typedef enum {
   UI_BTYPE_SEPR_LINE = 55 << 9,
   /** Dynamically fill available space. */
   UI_BTYPE_SEPR_SPACER = 56 << 9,
-  /** Resize handle (resize uilist). */
+  /** Resize handle (resize UI-list). */
   UI_BTYPE_GRIP = 57 << 9,
   UI_BTYPE_DECORATOR = 58 << 9,
   /* An item a view (see #ui::AbstractViewItem). */
@@ -462,7 +461,7 @@ void UI_draw_safe_areas(uint pos,
                         const float title_aspect[2],
                         const float action_aspect[2]);
 
-/** State for scrolldrawing. */
+/** State for scroll-drawing. */
 enum {
   UI_SCROLL_PRESSED = 1 << 0,
   UI_SCROLL_ARROWS = 1 << 1,
@@ -2039,7 +2038,7 @@ enum {
   UI_TEMPLATE_OP_PROPS_NO_SPLIT_LAYOUT = 1 << 4,
 };
 
-/* used for transp checkers */
+/* Used for transparent checkers shown under color buttons that have an alpha component. */
 #define UI_ALPHA_CHECKER_DARK 100
 #define UI_ALPHA_CHECKER_LIGHT 160
 

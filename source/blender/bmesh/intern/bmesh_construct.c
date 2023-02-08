@@ -1228,29 +1228,16 @@ BMesh *BM_mesh_copy_ex(BMesh *bm_old, struct BMeshCreateParams *params)
 
 BMesh *BM_mesh_copy(BMesh *bm_old)
 {
-  return BM_mesh_copy_ex(bm_old, NULL);
-}
+  struct BMeshCreateParams params = {0};
+#ifndef USE_NEW_IDMAP
+  params.create_unique_ids = bm_old->idmap.flag &BM_HAS_IDS;
+  params.id_elem_mask = bm_old->idmap.flag & (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE);
+  params.id_map = bm_old->idmap.flag & BM_HAS_ID_MAP;
+  params.no_reuse_ids = bm_old->idmap.flag & BM_NO_REUSE_IDS;
+#endif
 
-char BM_edge_flag_from_mflag(const short mflag)
-{
-  return (((mflag & ME_SEAM) ? BM_ELEM_SEAM : 0) | ((mflag & ME_EDGEDRAW) ? BM_ELEM_DRAW : 0));
-}
-char BM_face_flag_from_mflag(const char mflag)
-{
-  return ((mflag & ME_SMOOTH) ? BM_ELEM_SMOOTH : 0);
-}
-
-short BM_edge_flag_to_mflag(BMEdge *e)
-{
-  const char hflag = e->head.hflag;
-
-  return (((hflag & BM_ELEM_SEAM) ? ME_SEAM : 0) | ((hflag & BM_ELEM_DRAW) ? ME_EDGEDRAW : 0));
-}
-char BM_face_flag_to_mflag(BMFace *f)
-{
-  const char hflag = f->head.hflag;
-
-  return ((hflag & BM_ELEM_SMOOTH) ? ME_SMOOTH : 0);
+  params.copy_all_layers = true;
+  return BM_mesh_copy_ex(bm_old, &params);
 }
 
 void bm_init_idmap_cdlayers(BMesh *bm)

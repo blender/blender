@@ -271,8 +271,8 @@ static void layerInterp_mdeformvert(const void **sources,
                                     const int count,
                                     void *dest)
 {
-  /* a single linked list of MDeformWeight's
-   * use this to avoid double allocs (which LinkNode would do) */
+  /* A single linked list of #MDeformWeight's.
+   * use this to avoid double allocations (which #LinkNode would do). */
   struct MDeformWeight_Link {
     struct MDeformWeight_Link *next;
     MDeformWeight dw;
@@ -2197,80 +2197,81 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {/*   0-4 */
                                                   "CDPropInt16"};
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
-    /* vmask */ CD_MASK_PROP_FLOAT3 | CD_MASK_MESH_ID,
-    /* emask */ CD_MASK_MEDGE | CD_MASK_MESH_ID,
-    /* fmask */ 0,
-    /* pmask */ CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_MESH_ID,
-    /* lmask */ CD_MASK_MLOOP | CD_MASK_MESH_ID,
+    /*vmask*/ CD_MASK_PROP_FLOAT3 | CD_MASK_MESH_ID,
+    /*emask*/ CD_MASK_MEDGE | CD_MASK_MESH_ID,
+    /*fmask*/ 0,
+    /*pmask*/ CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_MESH_ID,
+    /*lmask*/ CD_MASK_MLOOP | CD_MASK_MESH_ID,
 };
 const CustomData_MeshMasks CD_MASK_BAREMESH_ORIGINDEX = {
-    /* vmask */ CD_MASK_PROP_FLOAT3 | CD_MASK_ORIGINDEX | CD_MASK_MESH_ID,
-    /* emask */ CD_MASK_MEDGE | CD_MASK_ORIGINDEX | CD_MASK_MESH_ID,
-    /* fmask */ 0,
-    /* pmask */ CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_ORIGINDEX | CD_MASK_MESH_ID,
-    /* lmask */ CD_MASK_MLOOP | CD_MASK_MESH_ID,
+    /*vmask*/ CD_MASK_PROP_FLOAT3 | CD_MASK_ORIGINDEX | CD_MASK_MESH_ID,
+    /*emask*/ CD_MASK_MEDGE | CD_MASK_ORIGINDEX | CD_MASK_MESH_ID,
+    /*fmask*/ 0,
+    /*pmask*/ CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_ORIGINDEX | CD_MASK_MESH_ID,
+    /*lmask*/ CD_MASK_MLOOP | CD_MASK_MESH_ID,
 };
 const CustomData_MeshMasks CD_MASK_MESH = {
-    /* vmask */ (CD_MASK_PROP_FLOAT3 | CD_MASK_MDEFORMVERT | CD_MASK_MVERT_SKIN |
-                 CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE | CD_MASK_BWEIGHT |
-                 CD_MASK_MESH_ID),
-    /* emask */
+    /*vmask*/ (CD_MASK_PROP_FLOAT3 | CD_MASK_MDEFORMVERT | CD_MASK_MVERT_SKIN |
+               CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE | CD_MASK_BWEIGHT |
+               CD_MASK_MESH_ID),
+    /*emask*/
     (CD_MASK_MEDGE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_BWEIGHT | CD_MASK_CREASE |
      CD_MASK_MESH_ID),
-    /* fmask */ 0,
-    /* pmask */
+    /*fmask*/ 0,
+    /*pmask*/
     (CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL |
      CD_MASK_MESH_ID),
-    /* lmask */
+    /*lmask*/
     (CD_MASK_MLOOP | CD_MASK_MDISPS | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK |
      CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
 };
 
 const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
-    /* vmask */ (CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_SHAPEKEY | CD_MASK_MVERT_SKIN |
-                 CD_MASK_PAINT_MASK | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_PROP_ALL |
-                 CD_MASK_CREASE | CD_MASK_BWEIGHT | CD_MASK_MESH_ID),
-    /* emask */
+    /*vmask*/ (CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_SHAPEKEY | CD_MASK_MVERT_SKIN |
+               CD_MASK_PAINT_MASK | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_PROP_ALL |
+               CD_MASK_CREASE | CD_MASK_BWEIGHT | CD_MASK_MESH_ID),
+    /*emask*/
     (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_BWEIGHT | CD_MASK_PROP_ALL |
      CD_MASK_CREASE | CD_MASK_MESH_ID),
-    /* fmask */ (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_PREVIEW_MCOL | CD_MASK_TANGENT),
-    /* pmask */
+    /*fmask*/ (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_PREVIEW_MCOL | CD_MASK_TANGENT),
+    /*pmask*/
     (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL |
      CD_MASK_MESH_ID),
-    /* lmask */
+    /*lmask*/
     (CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP |
-     CD_MASK_PROP_ALL | CD_MASK_MESH_ID), /* XXX MISSING CD_MASK_MLOOPTANGENT ? */
+     CD_MASK_PROP_ALL | CD_MASK_MESH_ID), /* XXX: MISSING #CD_MASK_MLOOPTANGENT ? */
 };
 const CustomData_MeshMasks CD_MASK_BMESH = {
-    /* vmask */ (CD_MASK_MDEFORMVERT | CD_MASK_BWEIGHT | CD_MASK_MVERT_SKIN | CD_MASK_SHAPEKEY |
-                 CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE |
-                 CD_MASK_MESH_ID | CD_MASK_DYNTOPO_VERT),
-    /* emask */
+    /*vmask*/ (CD_MASK_MDEFORMVERT | CD_MASK_BWEIGHT | CD_MASK_MVERT_SKIN | CD_MASK_SHAPEKEY |
+               CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE |
+               CD_MASK_MESH_ID),
+    /*emask*/
     (CD_MASK_BWEIGHT | CD_MASK_CREASE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL |
      CD_MASK_MESH_ID),
-    /* fmask */ 0,
-    /* pmask */
+    /*fmask*/ 0,
+    /*pmask*/
     (CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
-    /* lmask */
+    /*lmask*/
     (CD_MASK_MDISPS | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL |
      CD_MASK_MESH_ID),
 };
 const CustomData_MeshMasks CD_MASK_EVERYTHING = {
-    /* vmask */ (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT |
-                 CD_MASK_BWEIGHT | CD_MASK_MVERT_SKIN | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO |
-                 CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK |
-                 CD_MASK_PROP_ALL | CD_MASK_CREASE | CD_MASK_MESH_ID | CD_MASK_DYNTOPO_VERT),
-    /* emask */
+    /*vmask*/ (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_BWEIGHT |
+               CD_MASK_MVERT_SKIN | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_SHAPEKEY |
+               CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE |
+               CD_MASK_MESH_ID),
+    /*emask*/
     (CD_MASK_MEDGE | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_BWEIGHT | CD_MASK_CREASE |
      CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
-    /* fmask */
+    /*fmask*/
     (CD_MASK_MFACE | CD_MASK_ORIGINDEX | CD_MASK_NORMAL | CD_MASK_MTFACE | CD_MASK_MCOL |
      CD_MASK_ORIGSPACE | CD_MASK_TANGENT | CD_MASK_TESSLOOPNORMAL | CD_MASK_PREVIEW_MCOL |
-     CD_MASK_PROP_ALL),
-    /* pmask */
+     CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
+    /*pmask*/
     (CD_MASK_MPOLY | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_FACEMAP |
+
      CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
-    /* lmask */
+    /*lmask*/
     (CD_MASK_MLOOP | CD_MASK_BM_ELEM_PYPTR | CD_MASK_MDISPS | CD_MASK_NORMAL |
      CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_MLOOPTANGENT | CD_MASK_PREVIEW_MLOOPCOL |
      CD_MASK_ORIGSPACE_MLOOP | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
@@ -6096,7 +6097,6 @@ const blender::CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
     default:
       return nullptr;
   }
-  return nullptr;
 }
 
 eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)

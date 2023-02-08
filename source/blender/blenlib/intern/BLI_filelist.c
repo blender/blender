@@ -4,6 +4,7 @@
  * \ingroup bli
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -37,6 +38,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 
 #include "../imbuf/IMB_imbuf.h"
 
@@ -44,7 +46,7 @@
  * Ordering function for sorting lists of files/directories. Returns -1 if
  * entry1 belongs before entry2, 0 if they are equal, 1 if they should be swapped.
  */
-static int bli_compare(struct direntry *entry1, struct direntry *entry2)
+static int direntry_cmp(struct direntry *entry1, struct direntry *entry2)
 {
   /* type is equal to stat.st_mode */
 
@@ -106,113 +108,119 @@ struct BuildDirCtx {
  */
 static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 {
+  DIR *dir = opendir(dirname);
+  if (UNLIKELY(dir == NULL)) {
+    fprintf(stderr,
+            "Failed to open dir (%s): %s\n",
+            errno ? strerror(errno) : "unknown error",
+            dirname);
+    return;
+  }
+
   struct ListBase dirbase = {NULL, NULL};
   int newnum = 0;
-  DIR *dir;
+  const struct dirent *fname;
+  bool has_current = false, has_parent = false;
 
-  if ((dir = opendir(dirname)) != NULL) {
-    const struct dirent *fname;
-    bool has_current = false, has_parent = false;
+  char dirname_with_slash[FILE_MAXDIR + 1];
+  size_t dirname_with_slash_len = BLI_strncpy_rlen(
+      dirname_with_slash, dirname, sizeof(dirname_with_slash) - 1);
 
-    while ((fname = readdir(dir)) != NULL) {
+  if ((dirname_with_slash_len > 0) &&
+      (BLI_path_slash_is_native_compat(dirname[dirname_with_slash_len - 1]) == false)) {
+    dirname_with_slash[dirname_with_slash_len++] = SEP;
+    dirname_with_slash[dirname_with_slash_len] = '\0';
+  }
+
+  while ((fname = readdir(dir)) != NULL) {
+    struct dirlink *const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
+    if (dlink != NULL) {
+      dlink->name = BLI_strdup(fname->d_name);
+      if (FILENAME_IS_PARENT(dlink->name)) {
+        has_parent = true;
+      }
+      else if (FILENAME_IS_CURRENT(dlink->name)) {
+        has_current = true;
+      }
+      BLI_addhead(&dirbase, dlink);
+      newnum++;
+    }
+  }
+
+  if (!has_parent) {
+    char pardir[FILE_MAXDIR];
+
+    BLI_strncpy(pardir, dirname, sizeof(pardir));
+    if (BLI_path_parent_dir(pardir) && (BLI_access(pardir, R_OK) == 0)) {
       struct dirlink *const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
       if (dlink != NULL) {
-        dlink->name = BLI_strdup(fname->d_name);
-        if (FILENAME_IS_PARENT(dlink->name)) {
-          has_parent = true;
-        }
-        else if (FILENAME_IS_CURRENT(dlink->name)) {
-          has_current = true;
-        }
+        dlink->name = BLI_strdup(FILENAME_PARENT);
         BLI_addhead(&dirbase, dlink);
         newnum++;
       }
     }
+  }
+  if (!has_current) {
+    struct dirlink *const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
+    if (dlink != NULL) {
+      dlink->name = BLI_strdup(FILENAME_CURRENT);
+      BLI_addhead(&dirbase, dlink);
+      newnum++;
+    }
+  }
 
-    if (!has_parent) {
-      char pardir[FILE_MAXDIR];
-
-      BLI_strncpy(pardir, dirname, sizeof(pardir));
-      if (BLI_path_parent_dir(pardir) && (BLI_access(pardir, R_OK) == 0)) {
-        struct dirlink *const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-        if (dlink != NULL) {
-          dlink->name = BLI_strdup(FILENAME_PARENT);
-          BLI_addhead(&dirbase, dlink);
-          newnum++;
-        }
+  if (newnum) {
+    if (dir_ctx->files) {
+      void *const tmp = MEM_reallocN(dir_ctx->files,
+                                     (dir_ctx->files_num + newnum) * sizeof(struct direntry));
+      if (tmp) {
+        dir_ctx->files = (struct direntry *)tmp;
+      }
+      else { /* Reallocation may fail. */
+        MEM_freeN(dir_ctx->files);
+        dir_ctx->files = NULL;
       }
     }
-    if (!has_current) {
-      struct dirlink *const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-      if (dlink != NULL) {
-        dlink->name = BLI_strdup(FILENAME_CURRENT);
-        BLI_addhead(&dirbase, dlink);
-        newnum++;
-      }
+
+    if (dir_ctx->files == NULL) {
+      dir_ctx->files = (struct direntry *)MEM_mallocN(newnum * sizeof(struct direntry), __func__);
     }
 
-    if (newnum) {
-      if (dir_ctx->files) {
-        void *const tmp = MEM_reallocN(dir_ctx->files,
-                                       (dir_ctx->files_num + newnum) * sizeof(struct direntry));
-        if (tmp) {
-          dir_ctx->files = (struct direntry *)tmp;
-        }
-        else { /* realloc fail */
-          MEM_freeN(dir_ctx->files);
-          dir_ctx->files = NULL;
-        }
-      }
-
-      if (dir_ctx->files == NULL) {
-        dir_ctx->files = (struct direntry *)MEM_mallocN(newnum * sizeof(struct direntry),
-                                                        __func__);
-      }
-
-      if (dir_ctx->files) {
-        struct dirlink *dlink = (struct dirlink *)dirbase.first;
-        struct direntry *file = &dir_ctx->files[dir_ctx->files_num];
-        while (dlink) {
-          char fullname[PATH_MAX];
-          BLI_path_join(fullname, sizeof(fullname), dirname, dlink->name);
-          memset(file, 0, sizeof(struct direntry));
-          file->relname = dlink->name;
-          file->path = BLI_strdup(fullname);
-          if (BLI_stat(fullname, &file->s) != -1) {
-            file->type = file->s.st_mode;
-          }
-          else if (FILENAME_IS_CURRPAR(file->relname)) {
-            /* Hack around for UNC paths on windows:
-             * does not support stat on '\\SERVER\foo\..', sigh... */
-            file->type |= S_IFDIR;
-          }
-          dir_ctx->files_num++;
-          file++;
-          dlink = dlink->next;
-        }
-      }
-      else {
-        printf("Couldn't get memory for dir\n");
-        exit(1);
-      }
-
-      BLI_freelist(&dirbase);
-      if (dir_ctx->files) {
-        qsort(dir_ctx->files,
-              dir_ctx->files_num,
-              sizeof(struct direntry),
-              (int (*)(const void *, const void *))bli_compare);
-      }
+    if (UNLIKELY(dir_ctx->files == NULL)) {
+      fprintf(stderr, "Couldn't get memory for dir: %s\n", dirname);
+      dir_ctx->files_num = 0;
     }
     else {
-      printf("%s empty directory\n", dirname);
+      struct dirlink *dlink = (struct dirlink *)dirbase.first;
+      struct direntry *file = &dir_ctx->files[dir_ctx->files_num];
+
+      while (dlink) {
+        memset(file, 0, sizeof(struct direntry));
+        file->relname = dlink->name;
+        file->path = BLI_string_joinN(dirname_with_slash, dlink->name);
+        if (BLI_stat(file->path, &file->s) != -1) {
+          file->type = file->s.st_mode;
+        }
+        else if (FILENAME_IS_CURRPAR(file->relname)) {
+          /* Unfortunately a hack around UNC paths on WIN32,
+           * which does not support `stat` on `\\SERVER\foo\..`. */
+          file->type |= S_IFDIR;
+        }
+        dir_ctx->files_num++;
+        file++;
+        dlink = dlink->next;
+      }
+
+      qsort(dir_ctx->files,
+            dir_ctx->files_num,
+            sizeof(struct direntry),
+            (int (*)(const void *, const void *))direntry_cmp);
     }
 
-    closedir(dir);
+    BLI_freelist(&dirbase);
   }
-  else {
-    printf("%s non-existent directory\n", dirname);
-  }
+
+  closedir(dir);
 }
 
 uint BLI_filelist_dir_contents(const char *dirname, struct direntry **r_filelist)

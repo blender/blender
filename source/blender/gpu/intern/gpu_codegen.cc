@@ -169,7 +169,7 @@ static bool gpu_pass_is_valid(GPUPass *pass)
 /** \name Type > string conversion
  * \{ */
 
-#ifdef DEBUG
+#if 0
 #  define SRC_NAME(io, link, list, type) \
     link->node->name << "_" << io << BLI_findindex(&link->node->list, (const void *)link) << "_" \
                      << type

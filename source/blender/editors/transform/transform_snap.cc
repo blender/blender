@@ -147,6 +147,10 @@ bool transformModeUseSnap(const TransInfo *t)
 
 static bool doForceIncrementSnap(const TransInfo *t)
 {
+  if (t->tsnap.status & SNAP_FORCED) {
+    return false;
+  }
+
   return !transformModeUseSnap(t);
 }
 
@@ -525,13 +529,7 @@ void transform_snap_mixed_apply(TransInfo *t, float *vec)
     return;
   }
 
-  if (t->tsnap.status & SNAP_FORCED) {
-    t->tsnap.snap_source_fn(t);
-
-    t->tsnap.snap_mode_apply_fn(t, vec);
-  }
-  else if (((t->tsnap.mode & ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) != 0) &&
-           transform_snap_is_active(t)) {
+  if (t->tsnap.mode & ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) {
     double current = PIL_check_seconds_timer();
 
     /* Time base quirky code to go around find-nearest slowness. */

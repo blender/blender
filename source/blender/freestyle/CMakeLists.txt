@@ -556,7 +556,6 @@ set(INC
 
 set(INC_SYS
   ${PYTHON_INCLUDE_DIRS}
-  ${PNG_INC}
 )
 
 add_definitions(-DWITH_FREESTYLE)

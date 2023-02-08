@@ -54,7 +54,7 @@ extern "C" {
 #    include "bmesh.h"
 
 /* clang-format off */
-#include "../../blenkernel/intern/pbvh_intern.h"
+#include "../../blenkernel/intern/pbvh_intern.hh"
 /* clang-format on */
 
 #  else

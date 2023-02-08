@@ -90,12 +90,13 @@ void register_geometry_nodes()
   register_node_type_geo_input_tangent();
   register_node_type_geo_instance_on_points();
   register_node_type_geo_instances_to_points();
+  register_node_type_geo_interpolate_curves();
   register_node_type_geo_is_viewport();
   register_node_type_geo_join_geometry();
   register_node_type_geo_material_replace();
   register_node_type_geo_material_selection();
   register_node_type_geo_merge_by_distance();
-  register_node_type_geo_mesh_face_set_boundaries();
+  register_node_type_geo_mesh_face_group_boundaries();
   register_node_type_geo_mesh_primitive_circle();
   register_node_type_geo_mesh_primitive_cone();
   register_node_type_geo_mesh_primitive_cube();

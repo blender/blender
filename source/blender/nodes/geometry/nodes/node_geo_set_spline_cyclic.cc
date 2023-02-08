@@ -42,7 +42,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
-      set_cyclic(bke::CurvesGeometry::wrap(curves_id->geometry), selection_field, cyclic_field);
+      set_cyclic(curves_id->geometry.wrap(), selection_field, cyclic_field);
     }
   });
 

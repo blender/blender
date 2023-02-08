@@ -17,6 +17,8 @@ set(INC
   ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
 )
 
+set(INC_SYS
+)
 
 set(SRC
   space_text.c
@@ -30,7 +32,7 @@ set(SRC
   text_format_py.c
   text_header.c
   text_ops.c
-  text_undo.c
+  text_undo.cc
 
   text_format.h
   text_intern.h

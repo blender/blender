@@ -475,7 +475,7 @@ void MTLIndexBuf::strip_restart_indices()
 
       /* Find swap index at end of index buffer. */
       int swap_index = -1;
-      for (uint j = index_len_ - 1; j >= i; j--) {
+      for (uint j = index_len_ - 1; j >= i && index_len_ > 0; j--) {
         /* If end index is restart, just reduce length. */
         if (uint_idx[j] == 0xFFFFFFFFu) {
           index_len_--;
@@ -486,22 +486,26 @@ void MTLIndexBuf::strip_restart_indices()
         break;
       }
 
-      /* If swap index is not valid, then there were no valid non-restart indices
-       * to swap with. However, the above loop will have removed these indices by
-       * reducing the length of indices. Debug assertions verify that the restart
-       * index is no longer included. */
-      if (swap_index == -1) {
-        BLI_assert(index_len_ <= i);
-      }
-      else {
-        /* If we have found an index we can swap with, flip the values.
-         * We also reduce the length. As per above loop, swap_index should
-         * now be outside the index length range. */
-        uint32_t swap_index_value = uint_idx[swap_index];
-        uint_idx[i] = swap_index_value;
-        uint_idx[swap_index] = 0xFFFFFFFFu;
-        index_len_--;
-        BLI_assert(index_len_ <= swap_index);
+      /* If index_len_ == 0, this means all indices were flagged as hidden, with restart index
+       * values. Hence we will entirely skip the draw. */
+      if (index_len_ > 0) {
+        /* If swap index is not valid, then there were no valid non-restart indices
+         * to swap with. However, the above loop will have removed these indices by
+         * reducing the length of indices. Debug assertions verify that the restart
+         * index is no longer included. */
+        if (swap_index == -1) {
+          BLI_assert(index_len_ <= i);
+        }
+        else {
+          /* If we have found an index we can swap with, flip the values.
+           * We also reduce the length. As per above loop, swap_index should
+           * now be outside the index length range. */
+          uint32_t swap_index_value = uint_idx[swap_index];
+          uint_idx[i] = swap_index_value;
+          uint_idx[swap_index] = 0xFFFFFFFFu;
+          index_len_--;
+          BLI_assert(index_len_ <= swap_index);
+        }
       }
     }
   }

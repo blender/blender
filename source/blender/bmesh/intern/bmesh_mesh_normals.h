@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+struct BMPartialUpdate;
+
 struct BMeshNormalsUpdate_Params {
   /**
    * When calculating tessellation as well as normals, tessellate & calculate face normals

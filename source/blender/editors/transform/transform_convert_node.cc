@@ -303,8 +303,8 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_Node = {
-    /* flags */ (T_POINTS | T_2D_EDIT),
-    /* createTransData */ createTransNodeData,
-    /* recalcData */ flushTransNodes,
-    /* special_aftertrans_update */ special_aftertrans_update__node,
+    /*flags*/ (T_POINTS | T_2D_EDIT),
+    /*createTransData*/ createTransNodeData,
+    /*recalcData*/ flushTransNodes,
+    /*special_aftertrans_update*/ special_aftertrans_update__node,
 };

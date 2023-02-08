@@ -397,6 +397,16 @@ extern AUD_API AUD_Sound* AUD_Sound_mutable(AUD_Sound* sound);
 #ifdef WITH_CONVOLUTION
 	extern AUD_API AUD_Sound* AUD_Sound_Convolver(AUD_Sound* sound, AUD_ImpulseResponse* filter, AUD_ThreadPool* threadPool);
 	extern AUD_API AUD_Sound* AUD_Sound_Binaural(AUD_Sound* sound, AUD_HRTF* hrtfs, AUD_Source* source, AUD_ThreadPool* threadPool);
+
+	/**
+	 * Creates an Equalizer for the sound
+	 * \param sound The handle of the sound
+	 * \param definition buffer of size*sizeof(float) with the array of equalization values
+	 * \param maxFreqEq Maximum frequency refered by the array
+	 * \param sizeConversion Size of the transformation. Must be 2^number (for example 1024, 2048,...)
+	 * \return A handle to the Equalizer refered to that sound
+	 */
+	extern AUD_API AUD_Sound* AUD_Sound_equalize(AUD_Sound* sound, float *definition, int size, float maxFreqEq, int sizeConversion);
 #endif
 
 #ifdef __cplusplus

@@ -900,8 +900,7 @@ static void create_inspection_string_for_field_info(const bNodeSocket &socket,
 }
 
 static void create_inspection_string_for_geometry_info(const geo_log::GeometryInfoLog &value_log,
-                                                       std::stringstream &ss,
-                                                       const nodes::decl::Geometry *socket_decl)
+                                                       std::stringstream &ss)
 {
   Span<GeometryComponentType> component_types = value_log.component_types;
   if (component_types.is_empty()) {
@@ -917,7 +916,6 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
 
   ss << TIP_("Geometry:\n");
   for (GeometryComponentType type : component_types) {
-    const char *line_end = (type == component_types.last()) ? "" : ".\n";
     switch (type) {
       case GEO_COMPONENT_TYPE_MESH: {
         const geo_log::GeometryInfoLog::MeshInfo &mesh_info = *value_log.mesh_info;
@@ -928,7 +926,7 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
                      to_string(mesh_info.verts_num).c_str(),
                      to_string(mesh_info.edges_num).c_str(),
                      to_string(mesh_info.faces_num).c_str());
-        ss << line << line_end;
+        ss << line;
         break;
       }
       case GEO_COMPONENT_TYPE_POINT_CLOUD: {
@@ -939,7 +937,7 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
                      sizeof(line),
                      TIP_("\u2022 Point Cloud: %s points"),
                      to_string(pointcloud_info.points_num).c_str());
-        ss << line << line_end;
+        ss << line;
         break;
       }
       case GEO_COMPONENT_TYPE_CURVE: {
@@ -947,9 +945,10 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
         char line[256];
         BLI_snprintf(line,
                      sizeof(line),
-                     TIP_("\u2022 Curve: %s splines"),
+                     TIP_("\u2022 Curve: %s points, %s splines"),
+                     to_string(curve_info.points_num).c_str(),
                      to_string(curve_info.splines_num).c_str());
-        ss << line << line_end;
+        ss << line;
         break;
       }
       case GEO_COMPONENT_TYPE_INSTANCES: {
@@ -959,11 +958,11 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
                      sizeof(line),
                      TIP_("\u2022 Instances: %s"),
                      to_string(instances_info.instances_num).c_str());
-        ss << line << line_end;
+        ss << line;
         break;
       }
       case GEO_COMPONENT_TYPE_VOLUME: {
-        ss << TIP_("\u2022 Volume") << line_end;
+        ss << TIP_("\u2022 Volume");
         break;
       }
       case GEO_COMPONENT_TYPE_EDIT: {
@@ -975,26 +974,38 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
                        TIP_("\u2022 Edit Curves: %s, %s"),
                        edit_info.has_deformed_positions ? TIP_("positions") : TIP_("no positions"),
                        edit_info.has_deform_matrices ? TIP_("matrices") : TIP_("no matrices"));
-          ss << line << line_end;
+          ss << line;
         }
         break;
       }
     }
+    if (type != component_types.last()) {
+      ss << ".\n";
+    }
   }
+}
 
+static void create_inspection_string_for_geometry_socket(std::stringstream &ss,
+                                                         const nodes::decl::Geometry *socket_decl,
+                                                         const bool after_log)
+{
   /* If the geometry declaration is null, as is the case for input to group output,
    * or it is an output socket don't show supported types. */
   if (socket_decl == nullptr || socket_decl->in_out == SOCK_OUT) {
     return;
   }
 
+  if (after_log) {
+    ss << ".\n\n";
+  }
+
   Span<GeometryComponentType> supported_types = socket_decl->supported_types();
   if (supported_types.is_empty()) {
-    ss << ".\n\n" << TIP_("Supported: All Types");
+    ss << TIP_("Supported: All Types");
     return;
   }
 
-  ss << ".\n\n" << TIP_("Supported: ");
+  ss << TIP_("Supported: ");
   for (GeometryComponentType type : supported_types) {
     switch (type) {
       case GEO_COMPONENT_TYPE_MESH: {
@@ -1021,7 +1032,9 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
         break;
       }
     }
-    ss << ((type == supported_types.last()) ? "" : ", ");
+    if (type != supported_types.last()) {
+      ss << ", ";
+    }
   }
 }
 
@@ -1036,9 +1049,6 @@ static std::optional<std::string> create_socket_inspection_string(TreeDrawContex
 
   tree_draw_ctx.geo_tree_log->ensure_socket_values();
   ValueLog *value_log = tree_draw_ctx.geo_tree_log->find_socket_value_log(socket);
-  if (value_log == nullptr) {
-    return std::nullopt;
-  }
   std::stringstream ss;
   if (const geo_log::GenericValueLog *generic_value_log =
           dynamic_cast<const geo_log::GenericValueLog *>(value_log)) {
@@ -1050,10 +1060,13 @@ static std::optional<std::string> create_socket_inspection_string(TreeDrawContex
   }
   else if (const geo_log::GeometryInfoLog *geo_value_log =
                dynamic_cast<const geo_log::GeometryInfoLog *>(value_log)) {
-    create_inspection_string_for_geometry_info(
-        *geo_value_log,
-        ss,
-        dynamic_cast<const nodes::decl::Geometry *>(socket.runtime->declaration));
+    create_inspection_string_for_geometry_info(*geo_value_log, ss);
+  }
+
+  if (const nodes::decl::Geometry *socket_decl = dynamic_cast<const nodes::decl::Geometry *>(
+          socket.runtime->declaration)) {
+    const bool after_log = value_log != nullptr;
+    create_inspection_string_for_geometry_socket(ss, socket_decl, after_log);
   }
 
   std::string str = ss.str();
@@ -2609,8 +2622,10 @@ int node_get_resize_cursor(NodeResizeDirection directions)
 
 static const bNode *find_node_under_cursor(SpaceNode &snode, const float2 &cursor)
 {
-  /* Check nodes front to back. */
   const Span<bNode *> nodes = snode.edittree->all_nodes();
+  if (nodes.is_empty()) {
+    return nullptr;
+  }
   for (int i = nodes.index_range().last(); i >= 0; i--) {
     if (BLI_rctf_isect_pt(&nodes[i]->runtime->totr, cursor[0], cursor[1])) {
       return nodes[i];

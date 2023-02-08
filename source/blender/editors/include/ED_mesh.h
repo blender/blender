@@ -167,7 +167,7 @@ struct UvMapVert *BM_uv_vert_map_at_index(struct UvVertMap *vmap, unsigned int v
 /**
  * Return a new #UvVertMap from the edit-mesh.
  */
-struct UvVertMap *BM_uv_vert_map_create(struct BMesh *bm, bool use_select, bool use_winding);
+struct UvVertMap *BM_uv_vert_map_create(struct BMesh *bm, bool use_select);
 
 void EDBM_flag_enable_all(struct BMEditMesh *em, char hflag);
 void EDBM_flag_disable_all(struct BMEditMesh *em, char hflag);
@@ -437,7 +437,13 @@ void paintvert_select_ungrouped(struct Object *ob, bool extend, bool flush_flags
  */
 void paintvert_flush_flags(struct Object *ob);
 void paintvert_tag_select_update(struct bContext *C, struct Object *ob);
-
+/* Select vertices that are connected to already selected vertices. */
+void paintvert_select_linked(struct bContext *C, struct Object *ob);
+/* Select vertices that are linked to the vertex under the given region space coordinates. */
+void paintvert_select_linked_pick(struct bContext *C,
+                                  struct Object *ob,
+                                  const int region_coordinates[2],
+                                  bool select);
 void paintvert_hide(struct bContext *C, struct Object *ob, bool unselected);
 void paintvert_reveal(struct bContext *C, struct Object *ob, bool select);
 

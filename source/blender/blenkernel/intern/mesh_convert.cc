@@ -401,9 +401,9 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
  */
 static void mesh_copy_texture_space_from_curve_type(const Curve *cu, Mesh *me)
 {
-  me->texflag = cu->texflag & ~CU_AUTOSPACE;
-  copy_v3_v3(me->loc, cu->loc);
-  copy_v3_v3(me->size, cu->size);
+  me->texspace_flag = cu->texspace_flag & ~CU_TEXSPACE_FLAG_AUTO;
+  copy_v3_v3(me->texspace_location, cu->texspace_location);
+  copy_v3_v3(me->texspace_size, cu->texspace_size);
   BKE_mesh_texspace_calc(me);
 }
 
@@ -627,29 +627,11 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Obj
   }
 }
 
-void BKE_pointcloud_from_mesh(Mesh *me, PointCloud *pointcloud)
+void BKE_pointcloud_from_mesh(const Mesh *me, PointCloud *pointcloud)
 {
-  using namespace blender;
-
-  BLI_assert(me != nullptr);
-  /* The pointcloud should only contain the position attribute, otherwise more attributes would
-   * need to be initialized below. */
-  BLI_assert(pointcloud->attributes().all_ids().size() == 1);
-  CustomData_realloc(&pointcloud->pdata, pointcloud->totpoint, me->totvert);
+  CustomData_free(&pointcloud->pdata, pointcloud->totpoint);
   pointcloud->totpoint = me->totvert;
-
-  /* Copy over all attributes. */
   CustomData_merge(&me->vdata, &pointcloud->pdata, CD_MASK_PROP_ALL, CD_DUPLICATE, me->totvert);
-
-  bke::AttributeAccessor mesh_attributes = me->attributes();
-  bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
-
-  const VArray<float3> vert_positions = mesh_attributes.lookup_or_default<float3>(
-      "position", ATTR_DOMAIN_POINT, float3(0));
-  bke::SpanAttributeWriter<float3> point_positions =
-      point_attributes.lookup_or_add_for_write_only_span<float3>("position", ATTR_DOMAIN_POINT);
-  vert_positions.materialize(point_positions.span);
-  point_positions.finish();
 }
 
 void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
@@ -675,10 +657,7 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
 
 void BKE_mesh_from_pointcloud(const PointCloud *pointcloud, Mesh *me)
 {
-  BLI_assert(pointcloud != nullptr);
-
   me->totvert = pointcloud->totpoint;
-
   CustomData_merge(
       &pointcloud->pdata, &me->vdata, CD_MASK_PROP_ALL, CD_DUPLICATE, pointcloud->totpoint);
 }
@@ -823,8 +802,7 @@ static Mesh *mesh_new_from_evaluated_curve_type_object(const Object *evaluated_o
   }
   if (const Curves *curves = get_evaluated_curves_from_object(evaluated_object)) {
     const blender::bke::AnonymousAttributePropagationInfo propagation_info;
-    return blender::bke::curve_to_wire_mesh(blender::bke::CurvesGeometry::wrap(curves->geometry),
-                                            propagation_info);
+    return blender::bke::curve_to_wire_mesh(curves->geometry.wrap(), propagation_info);
   }
   return nullptr;
 }

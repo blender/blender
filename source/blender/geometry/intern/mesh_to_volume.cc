@@ -159,12 +159,14 @@ VolumeGrid *volume_grid_add_from_mesh(Volume *volume,
                                                           interior_band_width,
                                                           density);
 
-  /* Merge the generated grid. Should be cheap because grid has just been created. */
-  grid->merge(*mesh_grid);
+  if (mesh_grid != nullptr) {
+    /* Merge the generated grid. Should be cheap because grid has just been created. */
+    grid->merge(*mesh_grid);
+    /* Change transform so that the index space is correctly transformed to object space. */
+    grid->transform().postScale(voxel_size);
+  }
   /* Set class to "Fog Volume". */
   grid->setGridClass(openvdb::GRID_FOG_VOLUME);
-  /* Change transform so that the index space is correctly transformed to object space. */
-  grid->transform().postScale(voxel_size);
   return c_grid;
 }
 }  // namespace blender::geometry

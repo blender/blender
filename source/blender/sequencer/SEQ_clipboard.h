@@ -18,6 +18,7 @@ struct Sequence;
 
 extern struct ListBase seqbase_clipboard;
 extern struct ListBase fcurves_clipboard;
+extern struct ListBase drivers_clipboard;
 extern int seqbase_clipboard_frame;
 void SEQ_clipboard_pointers_store(struct Main *bmain, struct ListBase *seqbase);
 void SEQ_clipboard_pointers_restore(struct ListBase *seqbase, struct Main *bmain);

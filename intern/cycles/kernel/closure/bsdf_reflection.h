@@ -19,8 +19,8 @@ ccl_device int bsdf_reflection_setup(ccl_private MicrofacetBsdf *bsdf)
 }
 
 ccl_device Spectrum bsdf_reflection_eval(ccl_private const ShaderClosure *sc,
-                                         const float3 I,
-                                         const float3 omega_in,
+                                         const float3 wi,
+                                         const float3 wo,
                                          ccl_private float *pdf)
 {
   *pdf = 0.0f;
@@ -29,11 +29,11 @@ ccl_device Spectrum bsdf_reflection_eval(ccl_private const ShaderClosure *sc,
 
 ccl_device int bsdf_reflection_sample(ccl_private const ShaderClosure *sc,
                                       float3 Ng,
-                                      float3 I,
+                                      float3 wi,
                                       float randu,
                                       float randv,
                                       ccl_private Spectrum *eval,
-                                      ccl_private float3 *omega_in,
+                                      ccl_private float3 *wo,
                                       ccl_private float *pdf,
                                       ccl_private float *eta)
 {
@@ -42,10 +42,10 @@ ccl_device int bsdf_reflection_sample(ccl_private const ShaderClosure *sc,
   *eta = bsdf->ior;
 
   // only one direction is possible
-  float cosNO = dot(N, I);
-  if (cosNO > 0) {
-    *omega_in = (2 * cosNO) * N - I;
-    if (dot(Ng, *omega_in) > 0) {
+  float cosNI = dot(N, wi);
+  if (cosNI > 0) {
+    *wo = (2 * cosNI) * N - wi;
+    if (dot(Ng, *wo) > 0) {
       /* Some high number for MIS. */
       *pdf = 1e6f;
       *eval = make_spectrum(1e6f);

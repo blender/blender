@@ -235,8 +235,6 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
     light_sample_to_surface_shadow_ray(kg, sd, &ls, &ray);
   }
 
-  const bool is_light = light_sample_is_light(&ls);
-
   /* Branch off shadow kernel. */
   IntegratorShadowState shadow_state = integrator_shadow_path_init(
       kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, false);
@@ -264,7 +262,6 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
 
   /* Copy state from main path to shadow path. */
   uint32_t shadow_flag = INTEGRATOR_STATE(state, path, flag);
-  shadow_flag |= (is_light) ? PATH_RAY_SHADOW_FOR_LIGHT : 0;
   const Spectrum unlit_throughput = INTEGRATOR_STATE(state, path, throughput);
   const Spectrum throughput = unlit_throughput * bsdf_eval_sum(&bsdf_eval);
 
@@ -364,7 +361,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   /* BSDF closure, sample direction. */
   float bsdf_pdf = 0.0f, unguided_bsdf_pdf = 0.0f;
   BsdfEval bsdf_eval ccl_optional_struct_init;
-  float3 bsdf_omega_in ccl_optional_struct_init;
+  float3 bsdf_wo ccl_optional_struct_init;
   int label;
 
   float2 bsdf_sampled_roughness = make_float2(1.0f, 1.0f);
@@ -378,7 +375,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
                                                       sc,
                                                       rand_bsdf,
                                                       &bsdf_eval,
-                                                      &bsdf_omega_in,
+                                                      &bsdf_wo,
                                                       &bsdf_pdf,
                                                       &unguided_bsdf_pdf,
                                                       &bsdf_sampled_roughness,
@@ -398,7 +395,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
                                                sc,
                                                rand_bsdf,
                                                &bsdf_eval,
-                                               &bsdf_omega_in,
+                                               &bsdf_wo,
                                                &bsdf_pdf,
                                                &bsdf_sampled_roughness,
                                                &bsdf_eta);
@@ -416,7 +413,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   }
   else {
     /* Setup ray with changed origin and direction. */
-    const float3 D = normalize(bsdf_omega_in);
+    const float3 D = normalize(bsdf_wo);
     INTEGRATOR_STATE_WRITE(state, ray, P) = integrate_surface_ray_offset(kg, sd, sd->P, D);
     INTEGRATOR_STATE_WRITE(state, ray, D) = D;
     INTEGRATOR_STATE_WRITE(state, ray, tmin) = 0.0f;
@@ -455,7 +452,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
                                 bsdf_weight,
                                 bsdf_pdf,
                                 sd->N,
-                                normalize(bsdf_omega_in),
+                                normalize(bsdf_wo),
                                 bsdf_sampled_roughness,
                                 bsdf_eta);
 

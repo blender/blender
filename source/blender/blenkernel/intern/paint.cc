@@ -76,7 +76,6 @@
 #include "bmesh_log.h"
 
 // TODO: figure out bad cross module refs
-extern "C" void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
 extern "C" void SCULPT_undo_ensure_bmlog(Object *ob);
 
 static void init_sculptvert_layer(SculptSession *ss, PBVH *pbvh, int totvert);
@@ -150,33 +149,33 @@ static void palette_undo_preserve(BlendLibReader * /*reader*/, ID *id_new, ID *i
 }
 
 IDTypeInfo IDType_ID_PAL = {
-    /* id_code */ ID_PAL,
-    /* id_filter */ FILTER_ID_PAL,
-    /* main_listbase_index */ INDEX_ID_PAL,
-    /* struct_size */ sizeof(Palette),
-    /* name */ "Palette",
-    /* name_plural */ "palettes",
-    /* translation_context */ BLT_I18NCONTEXT_ID_PALETTE,
-    /* flags */ IDTYPE_FLAGS_NO_ANIMDATA,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_PAL,
+    /*id_filter*/ FILTER_ID_PAL,
+    /*main_listbase_index*/ INDEX_ID_PAL,
+    /*struct_size*/ sizeof(Palette),
+    /*name*/ "Palette",
+    /*name_plural*/ "palettes",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_PALETTE,
+    /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ palette_init_data,
-    /* copy_data */ palette_copy_data,
-    /* free_data */ palette_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ nullptr,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ nullptr,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ palette_init_data,
+    /*copy_data*/ palette_copy_data,
+    /*free_data*/ palette_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ nullptr,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ nullptr,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ palette_blend_write,
-    /* blend_read_data */ palette_blend_read_data,
-    /* blend_read_lib */ nullptr,
-    /* blend_read_expand */ nullptr,
+    /*blend_write*/ palette_blend_write,
+    /*blend_read_data*/ palette_blend_read_data,
+    /*blend_read_lib*/ nullptr,
+    /*blend_read_expand*/ nullptr,
 
-    /* blend_read_undo_preserve */ palette_undo_preserve,
+    /*blend_read_undo_preserve*/ palette_undo_preserve,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 static void paint_curve_copy_data(Main * /*bmain*/,
@@ -218,33 +217,33 @@ static void paint_curve_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_PC = {
-    /* id_code */ ID_PC,
-    /* id_filter */ FILTER_ID_PC,
-    /* main_listbase_index */ INDEX_ID_PC,
-    /* struct_size */ sizeof(PaintCurve),
-    /* name */ "PaintCurve",
-    /* name_plural */ "paint_curves",
-    /* translation_context */ BLT_I18NCONTEXT_ID_PAINTCURVE,
-    /* flags */ IDTYPE_FLAGS_NO_ANIMDATA,
-    /* asset_type_info */ nullptr,
+    /*id_code*/ ID_PC,
+    /*id_filter*/ FILTER_ID_PC,
+    /*main_listbase_index*/ INDEX_ID_PC,
+    /*struct_size*/ sizeof(PaintCurve),
+    /*name*/ "PaintCurve",
+    /*name_plural*/ "paint_curves",
+    /*translation_context*/ BLT_I18NCONTEXT_ID_PAINTCURVE,
+    /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA,
+    /*asset_type_info*/ nullptr,
 
-    /* init_data */ nullptr,
-    /* copy_data */ paint_curve_copy_data,
-    /* free_data */ paint_curve_free_data,
-    /* make_local */ nullptr,
-    /* foreach_id */ nullptr,
-    /* foreach_cache */ nullptr,
-    /* foreach_path */ nullptr,
-    /* owner_pointer_get */ nullptr,
+    /*init_data*/ nullptr,
+    /*copy_data*/ paint_curve_copy_data,
+    /*free_data*/ paint_curve_free_data,
+    /*make_local*/ nullptr,
+    /*foreach_id*/ nullptr,
+    /*foreach_cache*/ nullptr,
+    /*foreach_path*/ nullptr,
+    /*owner_pointer_get*/ nullptr,
 
-    /* blend_write */ paint_curve_blend_write,
-    /* blend_read_data */ paint_curve_blend_read_data,
-    /* blend_read_lib */ nullptr,
-    /* blend_read_expand */ nullptr,
+    /*blend_write*/ paint_curve_blend_write,
+    /*blend_read_data*/ paint_curve_blend_read_data,
+    /*blend_read_lib*/ nullptr,
+    /*blend_read_expand*/ nullptr,
 
-    /* blend_read_undo_preserve */ nullptr,
+    /*blend_read_undo_preserve*/ nullptr,
 
-    /* lib_override_apply_post */ nullptr,
+    /*lib_override_apply_post*/ nullptr,
 };
 
 const uchar PAINT_CURSOR_SCULPT[3] = {255, 100, 100};
@@ -1546,7 +1545,6 @@ static void sculptsession_free_pbvh(Object *object)
   MEM_SAFE_FREE(ss->preview_vert_list);
   ss->preview_vert_count = 0;
 
-  MEM_SAFE_FREE(ss->vertex_info.connected_component);
   MEM_SAFE_FREE(ss->vertex_info.boundary);
   MEM_SAFE_FREE(ss->vertex_info.symmetrize_map);
 
@@ -1597,8 +1595,6 @@ void BKE_sculptsession_free(Object *ob)
     BKE_sculpt_attribute_destroy_temporary_all(ob);
 
     if (ss->bm) {
-      SCULPT_on_sculptsession_bmesh_free(ss);
-
       BKE_sculptsession_bm_to_me(ob, true);
       ss->bm = nullptr;
       // BM_mesh_free(ss->bm);
@@ -3517,8 +3513,6 @@ bool BKE_sculpt_attribute_exists(Object *ob,
 
   CustomData *cdata = sculpt_get_cdata(ob, domain);
   return CustomData_get_named_layer_index(cdata, proptype, name) != -1;
-
-  return false;
 }
 
 static SculptAttribute *sculpt_alloc_attr(SculptSession *ss)

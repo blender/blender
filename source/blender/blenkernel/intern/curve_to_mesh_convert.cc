@@ -166,7 +166,7 @@ static void mark_bezier_vector_edges_sharp(const int profile_point_num,
 
   for (const int i : IndexRange(profile_point_num).drop_front(1)) {
     if (curves::bezier::point_is_sharp(handle_types_left, handle_types_right, i)) {
-      const int offset = main_edges_start + main_segment_num * control_point_offsets[i - 1];
+      const int offset = main_edges_start + main_segment_num * control_point_offsets[i];
       sharp_edges.slice(offset, main_segment_num).fill(true);
     }
   }
@@ -246,8 +246,8 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
   result.main_indices.reinitialize(result.total);
   result.profile_indices.reinitialize(result.total);
 
-  info.main.ensure_evaluated_offsets();
-  info.profile.ensure_evaluated_offsets();
+  const OffsetIndices<int> main_offsets = info.main.evaluated_points_by_curve();
+  const OffsetIndices<int> profile_offsets = info.profile.evaluated_points_by_curve();
 
   int mesh_index = 0;
   int vert_offset = 0;
@@ -256,7 +256,7 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
   int poly_offset = 0;
   for (const int i_main : info.main.curves_range()) {
     const bool main_cyclic = info.main_cyclic[i_main];
-    const int main_point_num = info.main.evaluated_points_for_curve(i_main).size();
+    const int main_point_num = main_offsets.size(i_main);
     const int main_segment_num = curves::segments_num(main_point_num, main_cyclic);
     for (const int i_profile : info.profile.curves_range()) {
       result.vert[mesh_index] = vert_offset;
@@ -268,7 +268,7 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
       result.profile_indices[mesh_index] = i_profile;
 
       const bool profile_cyclic = info.profile_cyclic[i_profile];
-      const int profile_point_num = info.profile.evaluated_points_for_curve(i_profile).size();
+      const int profile_point_num = profile_offsets.size(i_profile);
       const int profile_segment_num = curves::segments_num(profile_point_num, profile_cyclic);
 
       const bool has_caps = fill_caps && !main_cyclic && profile_cyclic;
@@ -377,13 +377,19 @@ static void foreach_curve_combination(const CurvesInfo &info,
                                       const ResultOffsets &offsets,
                                       const Fn &fn)
 {
+  const OffsetIndices<int> main_offsets = info.main.evaluated_points_by_curve();
+  const OffsetIndices<int> profile_offsets = info.profile.evaluated_points_by_curve();
+  const OffsetIndices<int> vert_offsets(offsets.vert);
+  const OffsetIndices<int> edge_offsets(offsets.edge);
+  const OffsetIndices<int> poly_offsets(offsets.poly);
+  const OffsetIndices<int> loop_offsets(offsets.loop);
   threading::parallel_for(IndexRange(offsets.total), 512, [&](IndexRange range) {
     for (const int i : range) {
       const int i_main = offsets.main_indices[i];
       const int i_profile = offsets.profile_indices[i];
 
-      const IndexRange main_points = info.main.evaluated_points_for_curve(i_main);
-      const IndexRange profile_points = info.profile.evaluated_points_for_curve(i_profile);
+      const IndexRange main_points = main_offsets[i_main];
+      const IndexRange profile_points = profile_offsets[i_profile];
 
       const bool main_cyclic = info.main_cyclic[i_main];
       const bool profile_cyclic = info.profile_cyclic[i_profile];
@@ -399,10 +405,10 @@ static void foreach_curve_combination(const CurvesInfo &info,
                          profile_cyclic,
                          curves::segments_num(main_points.size(), main_cyclic),
                          curves::segments_num(profile_points.size(), profile_cyclic),
-                         offsets_to_range(offsets.vert.as_span(), i),
-                         offsets_to_range(offsets.edge.as_span(), i),
-                         offsets_to_range(offsets.poly.as_span(), i),
-                         offsets_to_range(offsets.loop.as_span(), i)});
+                         vert_offsets[i],
+                         edge_offsets[i],
+                         poly_offsets[i],
+                         loop_offsets[i]});
     }
   });
 }
@@ -570,7 +576,7 @@ static void copy_profile_point_domain_attribute_to_mesh(const CurvesInfo &curves
 template<typename T>
 static void copy_indices_to_offset_ranges(const VArray<T> &src,
                                           const Span<int> curve_indices,
-                                          const Span<int> mesh_offsets,
+                                          const OffsetIndices<int> mesh_offsets,
                                           MutableSpan<T> dst)
 {
   /* This unnecessarily instantiates the "is single" case (which should be handled elsewhere if
@@ -579,7 +585,7 @@ static void copy_indices_to_offset_ranges(const VArray<T> &src,
   devirtualize_varray(src, [&](const auto &src) {
     threading::parallel_for(curve_indices.index_range(), 512, [&](IndexRange range) {
       for (const int i : range) {
-        dst.slice(offsets_to_range(mesh_offsets, i)).fill(src[curve_indices[i]]);
+        dst.slice(mesh_offsets[i]).fill(src[curve_indices[i]]);
       }
     });
   });
@@ -633,10 +639,11 @@ static void write_sharp_bezier_edges(const CurvesInfo &curves_info,
 
   sharp_edges = mesh_attributes.lookup_or_add_for_write_span<bool>("sharp_edge", ATTR_DOMAIN_EDGE);
 
+  const OffsetIndices profile_points_by_curve = profile.points_by_curve();
   const VArray<int8_t> types = profile.curve_types();
   foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
     if (types[info.i_profile] == CURVE_TYPE_BEZIER) {
-      const IndexRange points = profile.points_for_curve(info.i_profile);
+      const IndexRange points = profile_points_by_curve[info.i_profile];
       mark_bezier_vector_edges_sharp(points.size(),
                                      info.main_segment_num,
                                      profile.bezier_evaluated_offsets_for_curve(info.i_profile),

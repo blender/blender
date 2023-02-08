@@ -230,24 +230,24 @@ class RaycastFunction : public mf::MultiFunction {
     builder.single_input<float3>("Source Position");
     builder.single_input<float3>("Ray Direction");
     builder.single_input<float>("Ray Length");
-    builder.single_output<bool>("Is Hit");
+    builder.single_output<bool>("Is Hit", mf::ParamFlag::SupportsUnusedOutput);
     builder.single_output<float3>("Hit Position");
-    builder.single_output<float3>("Hit Normal");
-    builder.single_output<float>("Distance");
+    builder.single_output<float3>("Hit Normal", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<float>("Distance", mf::ParamFlag::SupportsUnusedOutput);
     if (target_data_) {
-      builder.single_output("Attribute", target_data_->type());
+      builder.single_output(
+          "Attribute", target_data_->type(), mf::ParamFlag::SupportsUnusedOutput);
     }
     this->set_signature(&signature_);
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     /* Hit positions are always necessary for retrieving the attribute from the target if that
      * output is required, so always retrieve a span from the evaluator in that case (it's
      * expected that the evaluator is more likely to have a spare buffer that could be used). */
-    MutableSpan<float3> hit_positions =
-        (target_data_) ? params.uninitialized_single_output<float3>(4, "Hit Position") :
-                         params.uninitialized_single_output_if_required<float3>(4, "Hit Position");
+    MutableSpan<float3> hit_positions = params.uninitialized_single_output<float3>(4,
+                                                                                   "Hit Position");
 
     Array<int> hit_indices;
     if (target_data_) {

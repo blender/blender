@@ -489,9 +489,6 @@ typedef struct SculptClothSimulation {
 } SculptClothSimulation;
 
 typedef struct SculptVertexInfo {
-  /* Indexed by vertex, stores and ID of its topologically connected component. */
-  int *connected_component;
-
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
   BLI_bitmap *boundary;
 
@@ -732,6 +729,8 @@ typedef struct SculptAttributePointers {
   SculptAttribute *automasking_occlusion; /* CD_PROP_INT8. */
   SculptAttribute *automasking_stroke_id;
   SculptAttribute *automasking_cavity;
+
+  SculptAttribute *topology_island_key; /* CD_PROP_INT8 */
 
   /* BMesh */
   SculptAttribute *dyntopo_node_id_vertex;
@@ -1014,6 +1013,7 @@ typedef struct SculptSession {
   int last_automasking_settings_hash;
   uchar last_automask_stroke_id;
   bool *sharp_edge;
+  bool islands_valid; /* Is attrs.topology_island_key valid? */
 } SculptSession;
 
 typedef enum eSculptBoundary {
@@ -1051,7 +1051,7 @@ int BKE_sculptsession_vertex_count(const SculptSession *ss);
 
 void BKE_sculpt_ensure_idmap(struct Object *ob);
 
-    /* Ensure an attribute layer exists. */
+/* Ensure an attribute layer exists. */
 SculptAttribute *BKE_sculpt_attribute_ensure(struct Object *ob,
                                              eAttrDomain domain,
                                              eCustomDataType proptype,

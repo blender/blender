@@ -1563,7 +1563,7 @@ static void createTransEditVerts(bContext *UNUSED(C), TransInfo *t)
 
       if (mirror_data.vert_map) {
         tc->data_mirror_len = mirror_data.mirror_elem_len;
-        tc->data_mirror = MEM_mallocN(mirror_data.mirror_elem_len * sizeof(*tc->data_mirror),
+        tc->data_mirror = MEM_callocN(mirror_data.mirror_elem_len * sizeof(*tc->data_mirror),
                                       __func__);
 
         BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, a) {
@@ -2139,8 +2139,8 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_Mesh = {
-    /* flags */ (T_EDIT | T_POINTS),
-    /* createTransData */ createTransEditVerts,
-    /* recalcData */ recalcData_mesh,
-    /* special_aftertrans_update */ special_aftertrans_update__mesh,
+    /*flags*/ (T_EDIT | T_POINTS),
+    /*createTransData*/ createTransEditVerts,
+    /*recalcData*/ recalcData_mesh,
+    /*special_aftertrans_update*/ special_aftertrans_update__mesh,
 };

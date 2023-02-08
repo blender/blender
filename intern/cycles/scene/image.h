@@ -153,6 +153,8 @@ class ImageHandle {
 
   VDBImageLoader *vdb_loader(const int tile_index = 0) const;
 
+  ImageManager *get_manager() const;
+
  protected:
   vector<int> tile_slots;
   ImageManager *manager;

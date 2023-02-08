@@ -445,8 +445,14 @@ static void sequencer_thumbnail_transform(ImBuf *in, ImBuf *out)
                        (const float[]){scale_x, scale_y, 1.0f});
   transform_pivot_set_m4(transform_matrix, pivot);
   invert_m4(transform_matrix);
-
-  IMB_transform(in, out, IMB_TRANSFORM_MODE_REGULAR, IMB_FILTER_NEAREST, transform_matrix, NULL);
+  const int num_subsamples = 1;
+  IMB_transform(in,
+                out,
+                IMB_TRANSFORM_MODE_REGULAR,
+                IMB_FILTER_NEAREST,
+                num_subsamples,
+                transform_matrix,
+                NULL);
 }
 
 /* Check whether transform introduces transparent ares in the result (happens when the transformed
@@ -509,16 +515,31 @@ static void sequencer_preprocess_transform_crop(
   const float crop_scale_factor = do_scale_to_render_size ? preview_scale_factor : 1.0f;
   sequencer_image_crop_init(seq, in, crop_scale_factor, &source_crop);
 
-  eIMBInterpolationFilterMode filter;
   const StripTransform *transform = seq->strip->transform;
-  if (transform->filter == SEQ_TRANSFORM_FILTER_NEAREST) {
-    filter = IMB_FILTER_NEAREST;
-  }
-  else {
-    filter = IMB_FILTER_BILINEAR;
+  eIMBInterpolationFilterMode filter;
+  int num_subsamples = 1;
+  switch (transform->filter) {
+    case SEQ_TRANSFORM_FILTER_NEAREST:
+      filter = IMB_FILTER_NEAREST;
+      num_subsamples = 1;
+      break;
+    case SEQ_TRANSFORM_FILTER_BILINEAR:
+      filter = IMB_FILTER_BILINEAR;
+      num_subsamples = 1;
+      break;
+    case SEQ_TRANSFORM_FILTER_NEAREST_3x3:
+      filter = IMB_FILTER_NEAREST;
+      num_subsamples = context->for_render ? 3 : 1;
+      break;
   }
 
-  IMB_transform(in, out, IMB_TRANSFORM_MODE_CROP_SRC, filter, transform_matrix, &source_crop);
+  IMB_transform(in,
+                out,
+                IMB_TRANSFORM_MODE_CROP_SRC,
+                filter,
+                num_subsamples,
+                transform_matrix,
+                &source_crop);
 
   if (!seq_image_transform_transparency_gained(context, seq)) {
     out->planes = in->planes;

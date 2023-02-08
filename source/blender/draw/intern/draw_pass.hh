@@ -55,11 +55,14 @@
 #include "intern/gpu_codegen.h"
 
 namespace blender::draw {
-
 using namespace blender::draw;
 using namespace blender::draw::command;
 
 class Manager;
+
+namespace command {
+class DrawCommandBuf;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Pass API
@@ -112,6 +115,7 @@ template<
     typename DrawCommandBufType>
 class PassBase {
   friend Manager;
+  friend DrawCommandBuf;
 
   /** Will use texture own sampler state. */
   static constexpr eGPUSamplerState sampler_auto = GPU_SAMPLER_MAX;
@@ -252,6 +256,7 @@ class PassBase {
   /**
    * Record a compute dispatch call.
    */
+  void dispatch(int2 group_len);
   void dispatch(int3 group_len);
   void dispatch(int3 *group_len);
   void dispatch(StorageBuffer<DispatchCommand> &indirect_buffer);
@@ -704,6 +709,12 @@ inline void PassBase<T>::draw_procedural_indirect(
 /* -------------------------------------------------------------------- */
 /** \name Compute Dispatch Implementation
  * \{ */
+
+template<class T> inline void PassBase<T>::dispatch(int2 group_len)
+{
+  BLI_assert(shader_);
+  create_command(Type::Dispatch).dispatch = {int3(group_len.x, group_len.y, 1)};
+}
 
 template<class T> inline void PassBase<T>::dispatch(int3 group_len)
 {

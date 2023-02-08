@@ -69,7 +69,7 @@ class ImageFieldsFunction : public mf::MultiFunction {
       mf::SignatureBuilder builder{"ImageFunction", signature};
       builder.single_input<float3>("Vector");
       builder.single_output<ColorGeometry4f>("Color");
-      builder.single_output<float>("Alpha");
+      builder.single_output<float>("Alpha", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
     }();
     this->set_signature(&signature);
@@ -316,7 +316,7 @@ class ImageFieldsFunction : public mf::MultiFunction {
     }
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vectors = params.readonly_single_input<float3>(0, "Vector");
     MutableSpan<ColorGeometry4f> r_color = params.uninitialized_single_output<ColorGeometry4f>(

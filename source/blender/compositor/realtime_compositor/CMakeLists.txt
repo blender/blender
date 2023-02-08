@@ -16,6 +16,8 @@ set(INC
   ../../../../intern/guardedalloc
 )
 
+set(INC_SYS
+)
 
 set(SRC
   intern/compile_state.cc

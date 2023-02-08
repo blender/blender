@@ -1226,7 +1226,7 @@ bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
         proj, -ld->w, ld->w, -ld->h, ld->h, ld->conf.near_clip, ld->conf.far_clip);
   }
   invert_m4_m4(inv, ld->conf.cam_obmat);
-  mul_m4db_m4db_m4fl_uniq(result, proj, inv);
+  mul_m4db_m4db_m4fl(result, proj, inv);
   copy_m4_m4_db(proj, result);
   copy_m4_m4_db(ld->conf.view_projection, proj);
   unit_m4_db(view);

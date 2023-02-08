@@ -10,9 +10,11 @@
 
 #include "DRW_render.h"
 
+#include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
+#include "BKE_pbvh.h"
 
 #include "BLI_alloca.h"
 
@@ -219,6 +221,12 @@ static void basic_cache_populate(void *vedata, Object *ob)
         DRW_shgroup_call(shgrp, geom, ob);
       }
     }
+
+    if (G.debug_value == 889 && ob->sculpt && ob->sculpt->pbvh) {
+      int debug_node_nr = 0;
+      DRW_debug_modelmat(ob->object_to_world);
+      BKE_pbvh_draw_debug_cb(ob->sculpt->pbvh, DRW_sculpt_debug_cb, &debug_node_nr);
+    }
   }
 }
 
@@ -255,7 +263,7 @@ DrawEngineType draw_engine_basic_type = {
     &basic_data_size,
     NULL,
     &basic_engine_free,
-    NULL, /* instance_free */
+    /*instance_free*/ NULL,
     &basic_cache_init,
     &basic_cache_populate,
     &basic_cache_finish,

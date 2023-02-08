@@ -1220,11 +1220,12 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
     }
   }
   else {
-    /* Same as mesh_calc_modifiers. If using loop normals, poly nors have already been computed. */
+    /* Same as #mesh_calc_modifiers.
+     * If using loop normals, poly normals have already been computed. */
     BKE_mesh_ensure_normals_for_display(mesh_final);
 
     /* Some modifiers, like data-transfer, may generate those data, we do not want to keep them,
-     * as they are used by display code when available (i.e. even if autosmooth is disabled). */
+     * as they are used by display code when available (i.e. even if auto-smooth is disabled). */
     if (CustomData_has_layer(&mesh_final->ldata, CD_NORMAL)) {
       CustomData_free_layers(&mesh_final->ldata, CD_NORMAL, mesh_final->totloop);
     }

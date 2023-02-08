@@ -30,11 +30,15 @@ bke::CurvesGeometry create_curve_from_vert_indices(
   curves.offsets_for_write().last() = vert_indices.size();
   curves.fill_curve_types(CURVE_TYPE_POLY);
 
-  curves.cyclic_for_write().fill(false);
-  curves.cyclic_for_write().slice(cyclic_curves).fill(true);
-
   const bke::AttributeAccessor mesh_attributes = mesh.attributes();
   bke::MutableAttributeAccessor curves_attributes = curves.attributes_for_write();
+
+  if (!cyclic_curves.is_empty()) {
+    bke::SpanAttributeWriter cyclic = curves_attributes.lookup_or_add_for_write_span<bool>(
+        "cyclic", ATTR_DOMAIN_CURVE);
+    cyclic.span.slice(cyclic_curves).fill(true);
+    cyclic.finish();
+  }
 
   Set<bke::AttributeIDRef> source_attribute_ids = mesh_attributes.all_ids();
 

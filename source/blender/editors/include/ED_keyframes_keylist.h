@@ -15,7 +15,6 @@ extern "C" {
 
 struct AnimData;
 struct CacheFile;
-struct DLRBT_Tree;
 struct FCurve;
 struct MaskLayer;
 struct Object;

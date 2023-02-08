@@ -3,7 +3,7 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "bmesh.h"
-#include "pbvh_intern.h"
+#include "pbvh_intern.hh"
 
 struct MinMaxHeap;
 struct GHash;

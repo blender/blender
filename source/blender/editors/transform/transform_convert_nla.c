@@ -542,8 +542,8 @@ static void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
 /** \} */
 
 TransConvertTypeInfo TransConvertType_NLA = {
-    /* flags */ (T_POINTS | T_2D_EDIT),
-    /* createTransData */ createTransNlaData,
-    /* recalcData */ recalcData_nla,
-    /* special_aftertrans_update */ special_aftertrans_update__nla,
+    /*flags*/ (T_POINTS | T_2D_EDIT),
+    /*createTransData*/ createTransNlaData,
+    /*recalcData*/ recalcData_nla,
+    /*special_aftertrans_update*/ special_aftertrans_update__nla,
 };

@@ -44,7 +44,7 @@
 
 #include "atomic_ops.h"
 
-#include "pbvh_intern.h"
+#include "pbvh_intern.hh"
 
 #include <limits.h>
 
@@ -1250,9 +1250,9 @@ static void pbvh_stack_push(PBVHIter *iter, PBVHNode *node, bool revisiting)
   iter->stacksize++;
 }
 
-static PBVHNode *pbvh_iter_next(PBVHIter *iter)
+static PBVHNode *pbvh_iter_next(PBVHIter *iter, PBVHNodeFlags leaf_flag = PBVH_Leaf)
 {
-  /* purpose here is to traverse tree, visiting child nodes before their
+  /* purpose here is to traverse tree, visiting child nodes beforse their
    * parents, this order is necessary for e.g. computing bounding boxes */
 
   while (iter->stacksize) {
@@ -1277,7 +1277,7 @@ static PBVHNode *pbvh_iter_next(PBVHIter *iter)
       continue; /* don't traverse, outside of search zone */
     }
 
-    if (node->flag & PBVH_Leaf) {
+    if (node->flag & leaf_flag) {
       /* immediately hit leaf node */
       return node;
     }
@@ -1327,8 +1327,12 @@ static PBVHNode *pbvh_iter_next_occluded(PBVHIter *iter)
   return NULL;
 }
 
-void BKE_pbvh_search_gather(
-    PBVH *pbvh, BKE_pbvh_SearchCallback scb, void *search_data, PBVHNode ***r_array, int *r_tot)
+void BKE_pbvh_search_gather_ex(PBVH *pbvh,
+                               BKE_pbvh_SearchCallback scb,
+                               void *search_data,
+                               PBVHNode ***r_array,
+                               int *r_tot,
+                               PBVHNodeFlags leaf_flag)
 {
   PBVHIter iter;
   PBVHNode **array = NULL, *node;
@@ -1336,8 +1340,8 @@ void BKE_pbvh_search_gather(
 
   pbvh_iter_begin(&iter, pbvh, scb, search_data);
 
-  while ((node = pbvh_iter_next(&iter))) {
-    if (node->flag & PBVH_Leaf) {
+  while ((node = pbvh_iter_next(&iter, leaf_flag))) {
+    if (node->flag & leaf_flag) {
       if (UNLIKELY(tot == space)) {
         /* resize array if needed */
         space = (tot == 0) ? 32 : space * 2;
@@ -1358,6 +1362,12 @@ void BKE_pbvh_search_gather(
 
   *r_array = array;
   *r_tot = tot;
+}
+
+void BKE_pbvh_search_gather(
+    PBVH *pbvh, BKE_pbvh_SearchCallback scb, void *search_data, PBVHNode ***r_array, int *r_tot)
+{
+  BKE_pbvh_search_gather_ex(pbvh, scb, search_data, r_array, r_tot, PBVH_Leaf);
 }
 
 void BKE_pbvh_search_callback(PBVH *pbvh,

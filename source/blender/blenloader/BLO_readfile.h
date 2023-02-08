@@ -16,13 +16,11 @@ extern "C" {
 
 struct BHead;
 struct BlendThumbnail;
-struct Collection;
 struct FileData;
 struct LinkNode;
 struct ListBase;
 struct Main;
 struct MemFile;
-struct Object;
 struct ReportList;
 struct Scene;
 struct UserDef;
@@ -124,6 +122,7 @@ typedef enum eBLOReadSkip {
   /** Do not attempt to re-use IDs from old bmain for unchanged ones in case of undo. */
   BLO_READ_SKIP_UNDO_OLD_MAIN = (1 << 2),
 } eBLOReadSkip;
+ENUM_OPERATORS(eBLOReadSkip, BLO_READ_SKIP_UNDO_OLD_MAIN)
 #define BLO_READ_SKIP_ALL (BLO_READ_SKIP_USERDEF | BLO_READ_SKIP_DATA)
 
 /**

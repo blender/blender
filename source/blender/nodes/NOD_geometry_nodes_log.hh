@@ -40,8 +40,6 @@
 #include "DNA_node_types.h"
 
 struct SpaceNode;
-struct SpaceSpreadsheet;
-struct NodesModifierData;
 
 namespace blender::nodes::geo_eval_log {
 
@@ -128,6 +126,7 @@ class GeometryInfoLog : public ValueLog {
     int verts_num, edges_num, faces_num;
   };
   struct CurveInfo {
+    int points_num;
     int splines_num;
   };
   struct PointCloudInfo {

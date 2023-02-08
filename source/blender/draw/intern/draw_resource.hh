@@ -114,14 +114,14 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
     case ID_CU_LEGACY: {
       Curve &cu = *static_cast<Curve *>(ref.object->data);
       BKE_curve_texspace_ensure(&cu);
-      orco_add = cu.loc;
-      orco_mul = cu.size;
+      orco_add = cu.texspace_location;
+      orco_mul = cu.texspace_size;
       break;
     }
     case ID_MB: {
       MetaBall &mb = *static_cast<MetaBall *>(ref.object->data);
-      orco_add = mb.loc;
-      orco_mul = mb.size;
+      orco_add = mb.texspace_location;
+      orco_mul = mb.texspace_size;
       break;
     }
     default:

@@ -10,6 +10,8 @@
 /** Temp constant defined for these functions only. */
 #define NLASTRIP_MIN_LEN_THRESH 0.1f
 
+#include "DNA_listBase.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -131,7 +133,19 @@ void BKE_nlastrips_sort_strips(ListBase *strips);
 
 /**
  * Add the given NLA-Strip to the given list of strips, assuming that it
- * isn't currently a member of another list
+ * isn't currently a member of another list, NULL, or conflicting with existing
+ * strips position.
+ */
+void BKE_nlastrips_add_strip_unsafe(ListBase *strips, struct NlaStrip *strip);
+
+/**
+ * \brief NULL checks incoming strip and verifies no overlap / invalid
+ * configuration against other strips in NLA Track.
+ *
+ * \param strips:
+ * \param strip:
+ * \return true
+ * \return false
  */
 bool BKE_nlastrips_add_strip(ListBase *strips, struct NlaStrip *strip);
 
@@ -294,6 +308,11 @@ void BKE_nlastrip_recalculate_bounds(struct NlaStrip *strip);
  * the overall NLA animation result is unchanged.
  */
 void BKE_nlastrip_recalculate_bounds_sync_action(struct NlaStrip *strip);
+
+/**
+ * Recalculate the blend-in and blend-out values after a strip transform update.
+ */
+void BKE_nlastrip_recalculate_blend(struct NlaStrip *strip);
 
 /**
  * Find (and set) a unique name for a strip from the whole AnimData block

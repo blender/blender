@@ -626,15 +626,14 @@ static bool layer_collection_hidden(ViewLayer *view_layer, LayerCollection *lc)
   }
 
   /* Restriction flags stay set, so we need to check parents */
-  CollectionParent *parent = static_cast<CollectionParent *>(lc->collection->parents.first);
+  CollectionParent *parent = static_cast<CollectionParent *>(
+      lc->collection->runtime.parents.first);
 
   if (parent) {
     lc = BKE_layer_collection_first_from_scene_collection(view_layer, parent->collection);
 
     return lc && layer_collection_hidden(view_layer, lc);
   }
-
-  return false;
 
   return false;
 }
@@ -662,7 +661,8 @@ bool BKE_layer_collection_activate(ViewLayer *view_layer, LayerCollection *lc)
 
 LayerCollection *BKE_layer_collection_activate_parent(ViewLayer *view_layer, LayerCollection *lc)
 {
-  CollectionParent *parent = static_cast<CollectionParent *>(lc->collection->parents.first);
+  CollectionParent *parent = static_cast<CollectionParent *>(
+      lc->collection->runtime.parents.first);
 
   if (parent) {
     lc = BKE_layer_collection_first_from_scene_collection(view_layer, parent->collection);
@@ -1208,6 +1208,7 @@ static void layer_collection_sync(ViewLayer *view_layer,
   layer_resync->layer->layer_collections = new_lb_layer;
   BLI_assert(BLI_listbase_count(&layer_resync->collection->children) - skipped_children ==
              BLI_listbase_count(&new_lb_layer));
+  UNUSED_VARS_NDEBUG(skipped_children);
 
   /* Update bases etc. for objects. */
   layer_collection_objects_sync(view_layer,

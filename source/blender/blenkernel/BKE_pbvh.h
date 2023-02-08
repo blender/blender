@@ -30,28 +30,6 @@ extern "C" {
 
 /* Experimental feature to detect quad diagonals and mark (but not dissolve) them. */
 //#define SCULPT_DIAGONAL_EDGE_MARKS
-
-/*
-   These structs represent logical verts/edges/faces.
-   for PBVH_GRIDS and PBVH_FACES they store integer
-   offsets, PBVH_BMESH stores pointers.
-
-   The idea is to enforce stronger type checking by encapsulating
-   intptr_t's in structs.*/
-typedef struct PBVHVertRef {
-  intptr_t i;
-} PBVHVertRef;
-
-typedef struct PBVHEdgeRef {
-  intptr_t i;
-} PBVHEdgeRef;
-
-typedef struct PBVHFaceRef {
-  intptr_t i;
-} PBVHFaceRef;
-
-#define PBVH_REF_NONE ((intptr_t)-1)
-
 typedef struct SculptPMap {
   struct MeshElemMap *pmap;
   int *pmap_mem;
@@ -67,30 +45,6 @@ typedef struct SculptLoopRef {
 #ifdef DEFRAGMENT_MEMORY
 #  include "BLI_smallhash.h"
 #endif
-
-typedef struct PBVHTri {
-  int v[3];       // references into PBVHTriBuf->verts
-  int eflag;      // bitmask of which edges in the tri are real edges in the mesh
-  intptr_t l[3];  // loops
-
-  float no[3];
-  PBVHFaceRef f;
-} PBVHTri;
-
-typedef struct PBVHTriBuf {
-  PBVHTri *tris;
-  PBVHVertRef *verts;
-  int *edges;
-  int totvert, totedge, tottri;
-  int verts_size, edges_size, tris_size;
-
-  SmallHash vertmap;  // maps vertex ptrs to indices within verts
-
-  // private field
-  intptr_t *loops;
-  int totloop, mat_nr;
-  float min[3], max[3];
-} PBVHTriBuf;
 
 //#define WITH_PBVH_CACHE
 
@@ -212,6 +166,83 @@ struct PBVHPublic {
   BMesh *bm;
 };
 
+/*
+ * These structs represent logical verts/edges/faces.
+ * for PBVH_GRIDS and PBVH_FACES they store integer
+ * offsets, PBVH_BMESH stores pointers.
+ *
+ * The idea is to enforce stronger type checking by encapsulating
+ * intptr_t's in structs.
+ */
+
+/* A generic PBVH vertex.
+ *
+ * NOTE: in PBVH_GRIDS we consider the final grid points
+ * to be vertices.  This is not true of edges or faces which are pulled from
+ * the base mesh.
+ */
+
+#ifdef __cplusplus
+/* A few C++ methods to play nice with sets and maps. */
+#  define PBVH_REF_CXX_METHODS(Class) \
+    bool operator==(const Class b) const \
+    { \
+      return i == b.i; \
+    } \
+    uint64_t hash() const \
+    { \
+      return i; \
+    }
+#else
+#  define PBVH_REF_CXX_METHODS(cls)
+#endif
+
+typedef struct PBVHVertRef {
+  intptr_t i;
+
+  PBVH_REF_CXX_METHODS(PBVHVertRef)
+} PBVHVertRef;
+
+/* NOTE: edges in PBVH_GRIDS are always pulled from the base mesh. */
+typedef struct PBVHEdgeRef {
+  intptr_t i;
+
+  PBVH_REF_CXX_METHODS(PBVHVertRef)
+} PBVHEdgeRef;
+
+/* NOTE: faces in PBVH_GRIDS are always puled from the base mesh. */
+typedef struct PBVHFaceRef {
+  intptr_t i;
+
+  PBVH_REF_CXX_METHODS(PBVHVertRef)
+} PBVHFaceRef;
+
+#define PBVH_REF_NONE -1LL
+
+typedef struct PBVHTri {
+  int v[3];       // references into PBVHTriBuf->verts
+  int eflag;      // bitmask of which edges in the tri are real edges in the mesh
+  intptr_t l[3];  // loops
+
+  float no[3];
+  PBVHFaceRef f;
+} PBVHTri;
+
+typedef struct PBVHTriBuf {
+  PBVHTri *tris;
+  PBVHVertRef *verts;
+  int *edges;
+  int totvert, totedge, tottri;
+  int verts_size, edges_size, tris_size;
+
+  SmallHash vertmap;  // maps vertex ptrs to indices within verts
+
+  // private field
+  intptr_t *loops;
+  int totloop, mat_nr;
+  float min[3], max[3];
+} PBVHTriBuf;
+
 typedef struct {
   float (*co)[3];
 } PBVHProxyNode;
@@ -273,10 +304,11 @@ typedef enum {
   /* tri areas are not guaranteed to be up to date, tools should
      update all nodes on first step of brush*/
   PBVH_UpdateTriAreas = 1 << 20,
-  PBVH_UpdateOtherVerts = 1 << 21
+  PBVH_UpdateOtherVerts = 1 << 21,
+  PBVH_TexLeaf = 1 << 22,
+  PBVH_TopologyUpdated = 1 << 23, /* Used internally by pbvh_bmesh.c */
 } PBVHNodeFlags;
-
-ENUM_OPERATORS(PBVHNodeFlags, PBVH_UpdateOtherVerts);
+ENUM_OPERATORS(PBVHNodeFlags, PBVH_TopologyUpdated);
 
 typedef struct PBVHFrustumPlanes {
   float (*planes)[4];
@@ -496,7 +528,12 @@ void BKE_pbvh_search_callback(PBVH *pbvh,
 
 void BKE_pbvh_search_gather(
     PBVH *pbvh, BKE_pbvh_SearchCallback scb, void *search_data, PBVHNode ***array, int *tot);
-
+void BKE_pbvh_search_gather_ex(PBVH *pbvh,
+                               BKE_pbvh_SearchCallback scb,
+                               void *search_data,
+                               PBVHNode ***r_array,
+                               int *r_tot,
+                               PBVHNodeFlags leaf_flag);
 /* Ray-cast
  * the hit callback is called for all leaf nodes intersecting the ray;
  * it's up to the callback to find the primitive within the leaves that is

@@ -18,9 +18,7 @@ extern "C" {
 
 struct Curves;
 struct GPUVertBuf;
-struct GPUIndexBuf;
 struct GPUBatch;
-struct GPUTexture;
 
 #define MAX_THICKRES 2    /* see eHairType */
 #define MAX_HAIR_SUBDIV 4 /* see hair_subdiv rna */

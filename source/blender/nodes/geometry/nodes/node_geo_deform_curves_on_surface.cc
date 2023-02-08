@@ -74,6 +74,8 @@ static void deform_curves(const CurvesGeometry &curves,
   const Span<MLoop> surface_loops_new = surface_mesh_new.loops();
   const Span<MLoopTri> surface_looptris_new = surface_mesh_new.looptris();
 
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+
   threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
     for (const int curve_i : range) {
       const ReverseUVSampler::Result &surface_sample_old = surface_samples_old[curve_i];
@@ -197,7 +199,7 @@ static void deform_curves(const CurvesGeometry &curves,
       const float4x4 curve_transform = surface_to_curves * surface_transform * curves_to_surface;
 
       /* Actually transform all points. */
-      const IndexRange points = curves.points_for_curve(curve_i);
+      const IndexRange points = points_by_curve[curve_i];
       for (const int point_i : points) {
         const float3 old_point_pos = r_positions[point_i];
         const float3 new_point_pos = curve_transform * old_point_pos;
@@ -276,7 +278,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const AttributeAccessor mesh_attributes_orig = surface_mesh_orig->attributes();
 
   Curves &curves_id = *curves_geometry.get_curves_for_write();
-  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+  CurvesGeometry &curves = curves_id.geometry.wrap();
 
   if (!mesh_attributes_eval.contains(uv_map_name)) {
     pass_through_input();
@@ -381,7 +383,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                   {},
                   invalid_uv_count);
     /* Then also deform edit curve information for use in sculpt mode. */
-    const CurvesGeometry &curves_orig = CurvesGeometry::wrap(edit_hints->curves_id_orig.geometry);
+    const CurvesGeometry &curves_orig = edit_hints->curves_id_orig.geometry.wrap();
     const VArraySpan<float2> surface_uv_coords_orig = curves_orig.attributes().lookup_or_default(
         "surface_uv_coordinate", ATTR_DOMAIN_CURVE, float2(0));
     if (!surface_uv_coords_orig.is_empty()) {

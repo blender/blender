@@ -157,7 +157,7 @@ void register_node_type_tex_group(void)
 
   node_type_size(&ntype, 140, 60, 400);
   ntype.labelfunc = node_group_label;
-  ntype.group_update_func = node_group_update;
+  ntype.declare_dynamic = blender::nodes::node_group_declare_dynamic;
   ntype.init_exec_fn = group_initexec;
   ntype.free_exec_fn = group_freeexec;
   ntype.exec_fn = group_execute;

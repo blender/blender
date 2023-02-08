@@ -16,9 +16,17 @@ namespace gpu {
 #define MTL_MAX_SAMPLER_SLOTS MTL_MAX_TEXTURE_SLOTS
 /* Max limit without using bind-less for samplers. */
 #define MTL_MAX_DEFAULT_SAMPLERS 16
-#define MTL_MAX_UNIFORM_BUFFER_BINDINGS 31
+/* Total maximum buffers which can be bound to an encoder, for use within a shader.
+ * MTL_MAX_UNIFORM_BUFFER_BINDINGS + MTL_MAX_STORAGE_BUFFER_BINDINGS must be <=
+ * than MTL_MAX_BUFFER_BINDINGS. */
+#define MTL_MAX_BUFFER_BINDINGS 31
+#define MTL_MAX_UNIFORM_BUFFER_BINDINGS 16
+#define MTL_MAX_STORAGE_BUFFER_BINDINGS 12
 #define MTL_MAX_VERTEX_INPUT_ATTRIBUTES 31
 #define MTL_MAX_UNIFORMS_PER_BLOCK 64
+
+static_assert((MTL_MAX_UNIFORM_BUFFER_BINDINGS + MTL_MAX_STORAGE_BUFFER_BINDINGS) <=
+              MTL_MAX_BUFFER_BINDINGS);
 
 /* Context-specific limits -- populated in 'MTLBackend::platform_init' */
 struct MTLCapabilities {
@@ -36,6 +44,7 @@ struct MTLCapabilities {
   bool supports_memory_barriers = false;
   bool supports_sampler_border_color = false;
   bool supports_argument_buffers_tier2 = false;
+  bool supports_texture_gather = false;
 
   /* GPU Family */
   bool supports_family_mac1 = false;

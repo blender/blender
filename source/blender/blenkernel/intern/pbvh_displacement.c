@@ -33,7 +33,7 @@
 #  include "DNA_object_types.h"
 #  include "DNA_scene_types.h"
 
-#  include "pbvh_intern.h"
+#  include "pbvh_intern.hh"
 
 #  include "bmesh.h"
 

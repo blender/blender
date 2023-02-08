@@ -143,6 +143,8 @@ namespace blender::bke {
 
 static Array<float3> curve_normal_point_domain(const bke::CurvesGeometry &curves)
 {
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  const OffsetIndices evaluated_points_by_curve = curves.evaluated_points_by_curve();
   const VArray<int8_t> types = curves.curve_types();
   const VArray<int> resolutions = curves.resolution();
   const VArray<bool> curves_cyclic = curves.cyclic();
@@ -158,8 +160,8 @@ static Array<float3> curve_normal_point_domain(const bke::CurvesGeometry &curves
     Vector<float3> nurbs_tangents;
 
     for (const int i_curve : range) {
-      const IndexRange points = curves.points_for_curve(i_curve);
-      const IndexRange evaluated_points = curves.evaluated_points_for_curve(i_curve);
+      const IndexRange points = points_by_curve[i_curve];
+      const IndexRange evaluated_points = evaluated_points_by_curve[i_curve];
 
       MutableSpan<float3> curve_normals = results.as_mutable_span().slice(points);
 
@@ -180,7 +182,7 @@ static Array<float3> curve_normal_point_domain(const bke::CurvesGeometry &curves
           curve_normals.first() = normals.first();
           const Span<int> offsets = curves.bezier_evaluated_offsets_for_curve(i_curve);
           for (const int i : IndexRange(points.size()).drop_front(1)) {
-            curve_normals[i] = normals[offsets[i - 1]];
+            curve_normals[i] = normals[offsets[i]];
           }
           break;
         }
@@ -241,7 +243,7 @@ static VArray<float> construct_curve_length_gvarray(const CurvesGeometry &curves
 {
   curves.ensure_evaluated_lengths();
 
-  VArray<bool> cyclic = curves.cyclic();
+  const VArray<bool> cyclic = curves.cyclic();
   VArray<float> lengths = VArray<float>::ForFunc(
       curves.curves_num(), [&curves, cyclic = std::move(cyclic)](int64_t index) {
         return curves.evaluated_length_total_for_curve(index, cyclic[index]);

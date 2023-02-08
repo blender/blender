@@ -15,10 +15,22 @@
 
 namespace blender::fn::multi_function {
 
+enum class ParamFlag {
+  None = 0,
+  /**
+   * If set, the multi-function parameter can be accessed using
+   * #Params::uninitialized_single_output_if_required which can result in better performance
+   * because the output does not have to be computed when it is not needed.
+   */
+  SupportsUnusedOutput = 1 << 0,
+};
+ENUM_OPERATORS(ParamFlag, ParamFlag::SupportsUnusedOutput);
+
 struct Signature {
   struct ParamInfo {
     ParamType type;
     const char *name;
+    ParamFlag flag = ParamFlag::None;
   };
 
   /**
@@ -68,25 +80,27 @@ class SignatureBuilder {
 
   /* Output Parameter Types */
 
-  template<typename T> void single_output(const char *name)
+  template<typename T> void single_output(const char *name, const ParamFlag flag = ParamFlag::None)
   {
-    this->single_output(name, CPPType::get<T>());
+    this->single_output(name, CPPType::get<T>(), flag);
   }
-  void single_output(const char *name, const CPPType &type)
+  void single_output(const char *name, const CPPType &type, const ParamFlag flag = ParamFlag::None)
   {
-    this->output(name, DataType::ForSingle(type));
+    this->output(name, DataType::ForSingle(type), flag);
   }
-  template<typename T> void vector_output(const char *name)
+  template<typename T> void vector_output(const char *name, const ParamFlag flag = ParamFlag::None)
   {
-    this->vector_output(name, CPPType::get<T>());
+    this->vector_output(name, CPPType::get<T>(), flag);
   }
-  void vector_output(const char *name, const CPPType &base_type)
+  void vector_output(const char *name,
+                     const CPPType &base_type,
+                     const ParamFlag flag = ParamFlag::None)
   {
-    this->output(name, DataType::ForVector(base_type));
+    this->output(name, DataType::ForVector(base_type), flag);
   }
-  void output(const char *name, DataType data_type)
+  void output(const char *name, DataType data_type, const ParamFlag flag = ParamFlag::None)
   {
-    signature_.params.append({ParamType(ParamType::Output, data_type), name});
+    signature_.params.append({ParamType(ParamType::Output, data_type), name, flag});
   }
 
   /* Mutable Parameter Types */
@@ -128,7 +142,7 @@ class SignatureBuilder {
   }
 
   template<ParamCategory Category, typename T>
-  void add(MFParamTag<Category, T> /* tag */, const char *name)
+  void add(ParamTag<Category, T> /* tag */, const char *name)
   {
     switch (Category) {
       case ParamCategory::SingleInput:

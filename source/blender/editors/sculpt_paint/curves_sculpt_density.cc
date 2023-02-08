@@ -102,7 +102,7 @@ struct DensityAddOperationExecutor {
     self_ = &self;
     curves_ob_orig_ = CTX_data_active_object(&C);
     curves_id_orig_ = static_cast<Curves *>(curves_ob_orig_->data);
-    curves_orig_ = &CurvesGeometry::wrap(curves_id_orig_->geometry);
+    curves_orig_ = &curves_id_orig_->geometry.wrap();
 
     if (stroke_extension.is_first) {
       self_->original_curve_num_ = curves_orig_->curves_num();
@@ -540,7 +540,7 @@ struct DensitySubtractOperationExecutor {
     object_ = CTX_data_active_object(&C);
 
     curves_id_ = static_cast<Curves *>(object_->data);
-    curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
+    curves_ = &curves_id_->geometry.wrap();
     if (curves_->curves_num() == 0) {
       return;
     }
@@ -834,7 +834,7 @@ static bool use_add_density_mode(const BrushStrokeMode brush_mode,
   if (surface_ob_eval == nullptr) {
     return true;
   }
-  const CurvesGeometry &curves = CurvesGeometry::wrap(curves_id_orig.geometry);
+  const CurvesGeometry &curves = curves_id_orig.geometry.wrap();
   if (curves.curves_num() <= 1) {
     return true;
   }

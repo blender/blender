@@ -10,6 +10,7 @@
 
 #include "DNA_customdata_types.h"
 
+#include "GPU_context.h"
 #include "GPU_material.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -329,8 +330,11 @@ void ShaderOperation::generate_code(void *thunk,
   shader_create_info.compute_source("gpu_shader_compositor_main.glsl");
 
   /* The main function is emitted in the shader before the evaluate function, so the evaluate
-   * function needs to be forward declared here. */
-  shader_create_info.typedef_source_generated += "void evaluate();\n";
+   * function needs to be forward declared here.
+   * NOTE(Metal): Metal does not require forward declarations. */
+  if (GPU_backend_get_type() != GPU_BACKEND_METAL) {
+    shader_create_info.typedef_source_generated += "void evaluate();\n";
+  }
 
   operation->generate_code_for_outputs(shader_create_info);
 
@@ -383,10 +387,13 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
 
   /* The store functions are used by the node_compositor_store_output_[float|vector|color]
    * functions but are only defined later as part of the compute source, so they need to be forward
-   * declared. */
-  shader_create_info.typedef_source_generated += store_float_function_header + ";\n";
-  shader_create_info.typedef_source_generated += store_vector_function_header + ";\n";
-  shader_create_info.typedef_source_generated += store_color_function_header + ";\n";
+   * declared.
+   * NOTE(Metal): Metal does not require forward declarations. */
+  if (GPU_backend_get_type() != GPU_BACKEND_METAL) {
+    shader_create_info.typedef_source_generated += store_float_function_header + ";\n";
+    shader_create_info.typedef_source_generated += store_vector_function_header + ";\n";
+    shader_create_info.typedef_source_generated += store_color_function_header + ";\n";
+  }
 
   /* Each of the store functions is essentially a single switch case on the given ID, so start by
    * opening the function with a curly bracket followed by opening a switch statement in each of

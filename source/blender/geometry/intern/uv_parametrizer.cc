@@ -1168,7 +1168,6 @@ static float p_edge_boundary_angle(PEdge *e)
   PEdge *we;
   PVert *v, *v1, *v2;
   float angle;
-  int n = 0;
 
   v = e->vert;
 
@@ -1182,7 +1181,6 @@ static float p_edge_boundary_angle(PEdge *e)
     angle -= angle_v3v3v3(v1->co, v->co, v2->co);
 
     we = we->next->next->pair;
-    n++;
   } while (we && (we != v->edge));
 
   return angle;

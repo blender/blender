@@ -468,7 +468,7 @@ class TOPBAR_MT_file_import(Menu):
             self.layout.operator("wm.alembic_import", text="Alembic (.abc)")
         if bpy.app.build_options.usd:
             self.layout.operator(
-                "wm.usd_import", text="Universal Scene Description (.usd, .usdc, .usda)")
+                "wm.usd_import", text="Universal Scene Description (.usd*)")
 
         if bpy.app.build_options.io_gpencil:
             self.layout.operator("wm.gpencil_import_svg", text="SVG as Grease Pencil")

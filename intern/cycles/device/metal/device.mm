@@ -55,6 +55,10 @@ void device_metal_info(vector<DeviceInfo> &devices)
     info.denoisers = DENOISER_NONE;
     info.id = id;
 
+    if (MetalInfo::get_device_vendor(device) == METAL_GPU_AMD) {
+      info.has_light_tree = false;
+    }
+
     devices.push_back(info);
     device_index++;
   }

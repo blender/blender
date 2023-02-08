@@ -1465,7 +1465,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     } /* sequencer changes */
   }
 
-  if (bmain->versionfile <= 251) { /* 2.5.1 had no subversions */
+  if (bmain->versionfile <= 251) { /* 2.5.1 had no sub-versions */
     bScreen *screen;
 
     /* Blender 2.5.2 - subversion 0 introduced a new setting: V3D_HIDE_OVERLAYS.

@@ -29,7 +29,7 @@ elseif(UNIX)
   set(USD_PLATFORM_FLAGS
     -DPYTHON_INCLUDE_DIR=${LIBDIR}/python/include/python${PYTHON_SHORT_VERSION}/
     -DPYTHON_LIBRARY=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
-   )
+  )
 
   if(APPLE)
     set(USD_SHARED_LINKER_FLAGS "-Xlinker -undefined -Xlinker dynamic_lookup")

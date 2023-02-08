@@ -317,11 +317,11 @@ class AddPresetCamera(AddPresetBase, Operator):
         return preset_values
 
 
-class AddPresetSafeAreas(AddPresetBase, Operator):
+class AddPresetCameraSafeAreas(AddPresetBase, Operator):
     """Add or remove a Safe Areas Preset"""
-    bl_idname = "safe_areas.preset_add"
+    bl_idname = "camera.safe_areas_preset_add"
     bl_label = "Add Safe Area Preset"
-    preset_menu = "SAFE_AREAS_PT_presets"
+    preset_menu = "CAMERA_PT_safe_areas_presets"
 
     preset_defines = [
         "safe_areas = bpy.context.scene.safe_areas"
@@ -691,7 +691,7 @@ classes = (
     AddPresetNodeColor,
     AddPresetOperator,
     AddPresetRender,
-    AddPresetSafeAreas,
+    AddPresetCameraSafeAreas,
     AddPresetTrackingCamera,
     AddPresetTrackingSettings,
     AddPresetTrackingTrackColor,

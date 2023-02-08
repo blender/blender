@@ -146,7 +146,7 @@ void ycca_to_rgba_itu_601(vec4 ycca, out vec4 color)
 {
   ycca.xyz *= 255.0;
   ycca.xyz -= vec3(16.0, 128.0, 128.0);
-  color.rgb = mat3(vec3(1.164), 0.0, -0.392, 2.017, 1.596, -0.813, 0.0) * ycca.xyz;
+  color.rgb = mat3(1.164, 1.164, 1.164, 0.0, -0.392, 2.017, 1.596, -0.813, 0.0) * ycca.xyz;
   color.rgb /= 255.0;
   color.a = ycca.a;
 }
@@ -155,7 +155,7 @@ void ycca_to_rgba_itu_709(vec4 ycca, out vec4 color)
 {
   ycca.xyz *= 255.0;
   ycca.xyz -= vec3(16.0, 128.0, 128.0);
-  color.rgb = mat3(vec3(1.164), 0.0, -0.213, 2.115, 1.793, -0.534, 0.0) * ycca.xyz;
+  color.rgb = mat3(1.164, 1.164, 1.164, 0.0, -0.213, 2.115, 1.793, -0.534, 0.0) * ycca.xyz;
   color.rgb /= 255.0;
   color.a = ycca.a;
 }
@@ -163,7 +163,7 @@ void ycca_to_rgba_itu_709(vec4 ycca, out vec4 color)
 void ycca_to_rgba_jpeg(vec4 ycca, out vec4 color)
 {
   ycca.xyz *= 255.0;
-  color.rgb = mat3(vec3(1.0), 0.0, -0.34414, 1.772, 1.402, -0.71414, 0.0) * ycca.xyz;
+  color.rgb = mat3(1.0, 1.0, 1.0, 0.0, -0.34414, 1.772, 1.402, -0.71414, 0.0) * ycca.xyz;
   color.rgb += vec3(-179.456, 135.45984, -226.816);
   color.rgb /= 255.0;
   color.a = ycca.a;
@@ -203,7 +203,7 @@ void rgba_to_ycca_jpeg(vec4 rgba, out vec4 ycca)
 
 void yuva_to_rgba_itu_709(vec4 yuva, out vec4 color)
 {
-  color.rgb = mat3(vec3(1.0), 0.0, -0.21482, 2.12798, 1.28033, -0.38059, 0.0) * yuva.xyz;
+  color.rgb = mat3(1.0, 1.0, 1.0, 0.0, -0.21482, 2.12798, 1.28033, -0.38059, 0.0) * yuva.xyz;
   color.a = yuva.a;
 }
 

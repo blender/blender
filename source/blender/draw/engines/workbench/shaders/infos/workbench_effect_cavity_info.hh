@@ -5,7 +5,7 @@
 GPU_SHADER_CREATE_INFO(workbench_effect_cavity_common)
     .fragment_out(0, Type::VEC4, "fragColor")
     .sampler(0, ImageType::FLOAT_2D, "normalBuffer")
-    .uniform_buf(4, "WorldData", "world_data", Frequency::PASS)
+    .uniform_buf(WB_WORLD_SLOT, "WorldData", "world_data")
     .typedef_source("workbench_shader_shared.h")
     .fragment_source("workbench_effect_cavity_frag.glsl")
     .additional_info("draw_fullscreen")

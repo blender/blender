@@ -22,6 +22,7 @@
 #include "MOD_nodes.h"
 
 #include "NOD_node_declaration.hh"
+#include "NOD_socket.h"
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph_query.h"
@@ -538,7 +539,6 @@ class NodeTreeMainUpdater {
 
   void update_individual_nodes(bNodeTree &ntree)
   {
-    Vector<bNode *> group_inout_nodes;
     for (bNode *node : ntree.all_nodes()) {
       nodeDeclarationEnsure(&ntree, node);
       if (this->should_update_individual_node(ntree, *node)) {
@@ -549,18 +549,9 @@ class NodeTreeMainUpdater {
         if (ntype.updatefunc) {
           ntype.updatefunc(&ntree, node);
         }
-      }
-      if (ELEM(node->type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
-        group_inout_nodes.append(node);
-      }
-    }
-    /* The update function of group input/output nodes may add new interface sockets. When that
-     * happens, all the input/output nodes have to be updated again. In the future it would be
-     * better to move this functionality out of the node update function into the operator that's
-     * supposed to create the new interface socket. */
-    if (ntree.runtime->changed_flag & NTREE_CHANGED_INTERFACE) {
-      for (bNode *node : group_inout_nodes) {
-        node->typeinfo->updatefunc(&ntree, node);
+        if (ntype.declare_dynamic) {
+          nodes::update_node_declaration_and_sockets(ntree, *node);
+        }
       }
     }
   }
@@ -574,23 +565,8 @@ class NodeTreeMainUpdater {
       return true;
     }
     if (ntree.runtime->changed_flag & NTREE_CHANGED_LINK) {
-      ntree.ensure_topology_cache();
-      /* Node groups currently always rebuilt their sockets when they are updated.
-       * So avoid calling the update method when no new link was added to it. */
-      if (node.type == NODE_GROUP_INPUT) {
-        if (node.output_sockets().last()->is_directly_linked()) {
-          return true;
-        }
-      }
-      else if (node.type == NODE_GROUP_OUTPUT) {
-        if (node.input_sockets().last()->is_directly_linked()) {
-          return true;
-        }
-      }
-      else {
-        /* Currently we have no way to tell if a node needs to be updated when a link changed. */
-        return true;
-      }
+      /* Currently we have no way to tell if a node needs to be updated when a link changed. */
+      return true;
     }
     if (ntree.runtime->changed_flag & NTREE_CHANGED_INTERFACE) {
       if (ELEM(node.type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
@@ -1155,7 +1131,11 @@ void BKE_ntree_update_tag_node_removed(bNodeTree *ntree)
 
 void BKE_ntree_update_tag_node_reordered(bNodeTree *ntree)
 {
-  add_tree_tag(ntree, NTREE_CHANGED_ANY);
+  /* Don't add a tree update tag to avoid reevaluations for trivial operations like selection or
+   * parenting that typically influence the node order. This means the node order can be different
+   * for original and evaluated trees. A different solution might avoid sorting nodes based on UI
+   * states like selection, which would require not tying the node order to the drawing order. */
+  ntree->runtime->topology_cache_mutex.tag_dirty();
 }
 
 void BKE_ntree_update_tag_node_mute(bNodeTree *ntree, bNode *node)

@@ -5,6 +5,9 @@ set(INC
   ..
 )
 
+set(INC_SYS
+)
+
 set(SRC
   node.cpp
   node_type.cpp

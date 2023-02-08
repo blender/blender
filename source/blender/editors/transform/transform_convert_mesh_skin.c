@@ -292,8 +292,8 @@ static void recalcData_mesh_skin(TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_MeshSkin = {
-    /* flags */ (T_EDIT | T_POINTS),
-    /* createTransData */ createTransMeshSkin,
-    /* recalcData */ recalcData_mesh_skin,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ (T_EDIT | T_POINTS),
+    /*createTransData*/ createTransMeshSkin,
+    /*recalcData*/ recalcData_mesh_skin,
+    /*special_aftertrans_update*/ NULL,
 };

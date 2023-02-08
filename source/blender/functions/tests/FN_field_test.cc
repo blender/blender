@@ -164,7 +164,7 @@ class TwoOutputFunction : public mf::MultiFunction {
     this->set_signature(&signature_);
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<int> &in1 = params.readonly_single_input<int>(0, "In1");
     const VArray<int> &in2 = params.readonly_single_input<int>(1, "In2");

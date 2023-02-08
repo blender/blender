@@ -23,7 +23,6 @@
 extern "C" {
 #endif
 
-struct BLI_mmap_file;
 struct BLOCacheStorage;
 struct IDNameLib_Map;
 struct Key;

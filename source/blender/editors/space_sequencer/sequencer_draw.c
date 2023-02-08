@@ -978,7 +978,8 @@ static void draw_sequence_extensions_overlay(
     immUniformColor4ubv(col);
     immRectf(pos, x2, y2 + pixely, strip_content_end, y2 + SEQ_STRIP_OFSBOTTOM);
 
-    /* Outline. */ immUniformColor3ubv(blend_col);
+    /* Outline. */
+    immUniformColor3ubv(blend_col);
     imm_draw_box_wire_2d(pos, x2, y2 + pixely, strip_content_end, y2 + SEQ_STRIP_OFSBOTTOM);
   }
   GPU_blend(GPU_BLEND_NONE);

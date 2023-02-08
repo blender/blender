@@ -516,6 +516,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                   &texture_buffer,
                   transform_mode,
                   IMB_FILTER_NEAREST,
+                  1,
                   uv_to_texel.ptr(),
                   crop_rect_ptr);
   }

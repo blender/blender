@@ -87,10 +87,6 @@ static void save_selection_as_attribute(Mesh &mesh,
   attribute.finish();
 }
 
-/**
- * \note Some areas in this file rely on the new sections of attributes from #CustomData_realloc
- * to be zeroed.
- */
 static void expand_mesh(Mesh &mesh,
                         const int vert_expand,
                         const int edge_expand,
@@ -389,7 +385,7 @@ static void extrude_mesh_edges(Mesh &mesh,
   const Array<Vector<int, 2>> edge_to_poly_map = mesh_calculate_polys_of_edge(mesh);
 
   /* Find the offsets on the vertex domain for translation. This must be done before the mesh's
-   * custom data layers are reallocated, in case the virtual array references on of them. */
+   * custom data layers are reallocated, in case the virtual array references one of them. */
   Array<float3> vert_offsets;
   if (!edge_offsets.is_single()) {
     vert_offsets.reinitialize(orig_vert_size);
@@ -1367,8 +1363,6 @@ static void node_geo_exec(GeoNodeExecParams params)
           break;
         }
       }
-
-      BLI_assert(BKE_mesh_is_valid(mesh));
     }
   });
 

@@ -764,20 +764,13 @@ void BKE_nlastrips_sort_strips(ListBase *strips)
   strips->last = tmp.last;
 }
 
-bool BKE_nlastrips_add_strip(ListBase *strips, NlaStrip *strip)
+void BKE_nlastrips_add_strip_unsafe(ListBase *strips, NlaStrip *strip)
 {
   NlaStrip *ns;
   bool not_added = true;
 
   /* sanity checks */
-  if (ELEM(NULL, strips, strip)) {
-    return false;
-  }
-
-  /* check if any space to add */
-  if (BKE_nlastrips_has_space(strips, strip->start, strip->end) == 0) {
-    return false;
-  }
+  BLI_assert(!ELEM(NULL, strips, strip));
 
   /* find the right place to add the strip to the nominated track */
   for (ns = strips->first; ns; ns = ns->next) {
@@ -792,8 +785,19 @@ bool BKE_nlastrips_add_strip(ListBase *strips, NlaStrip *strip)
     /* just add to the end of the list of the strips then... */
     BLI_addtail(strips, strip);
   }
+}
 
-  /* added... */
+bool BKE_nlastrips_add_strip(ListBase *strips, NlaStrip *strip)
+{
+  if (ELEM(NULL, strips, strip)) {
+    return false;
+  }
+
+  if (!BKE_nlastrips_has_space(strips, strip->start, strip->end)) {
+    return false;
+  }
+
+  BKE_nlastrips_add_strip_unsafe(strips, strip);
   return true;
 }
 
@@ -1521,6 +1525,30 @@ void BKE_nlastrip_recalculate_bounds(NlaStrip *strip)
   nlastrip_fix_resize_overlaps(strip);
 }
 
+void BKE_nlastrip_recalculate_blend(NlaStrip *strip)
+{
+
+  /* check if values need to be re-calculated. */
+  if (strip->blendin == 0 && strip->blendout == 0) {
+    return;
+  }
+
+  const double strip_len = strip->end - strip->start;
+  double blend_in = strip->blendin;
+  double blend_out = strip->blendout;
+
+  double blend_in_max = strip_len - blend_out;
+
+  CLAMP_MIN(blend_in_max, 0);
+
+  /* blend-out is limited to the length of the strip. */
+  CLAMP(blend_in, 0, blend_in_max);
+  CLAMP(blend_out, 0, strip_len - blend_in);
+
+  strip->blendin = blend_in;
+  strip->blendout = blend_out;
+}
+
 /* Animated Strips ------------------------------------------- */
 
 bool BKE_nlatrack_has_animated_strips(NlaTrack *nlt)
@@ -1854,6 +1882,7 @@ void BKE_nla_validate_state(AnimData *adt)
     for (strip = nlt->strips.first; strip; strip = strip->next) {
       /* auto-blending first */
       BKE_nlastrip_validate_autoblends(nlt, strip);
+      BKE_nlastrip_recalculate_blend(strip);
     }
   }
 }

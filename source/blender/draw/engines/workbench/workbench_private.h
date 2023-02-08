@@ -200,8 +200,12 @@ typedef struct WORKBENCH_UBO_World {
 
   int matcap_orientation;
   int use_specular; /* Bools are 32bit ints in GLSL. */
-  int _pad1;
+  float xray_alpha; /* Workbench Next */
   int _pad2;
+
+  /* Workbench Next data
+   * (Not used here, but needs to be kept in sync with workbench_shader_shared WorldData) */
+  float background_color[4];
 } WORKBENCH_UBO_World;
 
 BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)

@@ -613,7 +613,7 @@ static void wm_keymap_diff(
       BLI_addtail(&diff_km->diff_items, kmdi);
     }
 
-    /* sync expanded flag back to original so we don't lose it on repatch */
+    /* Sync expanded flag back to original so we don't lose it on re-patch. */
     if (to_kmi) {
       wmKeyMapItem *orig_kmi = WM_keymap_item_find_id(orig_km, kmi->id);
 
@@ -1130,7 +1130,7 @@ const char *WM_key_event_string(const short type, const bool compact)
   }
   it = &rna_enum_event_type_items[i];
 
-  /* We first try enum items' description (abused as shortname here),
+  /* We first try enum items' description (abused as short-name here),
    * and fall back to usual name if empty. */
   if (compact && it->description[0]) {
     /* XXX No context for enum descriptions... In practice shall not be an issue though. */
@@ -1238,25 +1238,26 @@ int WM_modalkeymap_items_to_string(const wmKeyMap *km,
                                    char *result,
                                    const int result_len)
 {
-  int totlen = 0;
-  bool add_sep = false;
+  BLI_assert(result_len > 0);
 
-  if (km) {
-    const wmKeyMapItem *kmi;
-
-    /* Find all shortcuts related to that propvalue! */
-    for (kmi = WM_modalkeymap_find_propvalue(km, propvalue); kmi && totlen < (result_len - 2);
-         kmi = wm_modalkeymap_find_propvalue_iter(km, kmi, propvalue)) {
-      if (add_sep) {
-        result[totlen++] = '/';
-        result[totlen] = '\0';
-      }
-      else {
-        add_sep = true;
-      }
-      totlen += WM_keymap_item_to_string(kmi, compact, &result[totlen], result_len - totlen);
-    }
+  const wmKeyMapItem *kmi;
+  if (km == NULL || (kmi = WM_modalkeymap_find_propvalue(km, propvalue)) == NULL) {
+    *result = '\0';
+    return 0;
   }
+
+  int totlen = 0;
+  do {
+    totlen += WM_keymap_item_to_string(kmi, compact, &result[totlen], result_len - totlen);
+
+    if ((kmi = wm_modalkeymap_find_propvalue_iter(km, kmi, propvalue)) == NULL ||
+        totlen >= (result_len - 2)) {
+      break;
+    }
+
+    result[totlen++] = '/';
+    result[totlen] = '\0';
+  } while (true);
 
   return totlen;
 }
@@ -2020,7 +2021,8 @@ void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wm
     kmi->oskey = orig->oskey;
     kmi->keymodifier = orig->keymodifier;
     kmi->maptype = orig->maptype;
-    kmi->flag = (kmi->flag & ~KMI_REPEAT_IGNORE) | (orig->flag & KMI_REPEAT_IGNORE);
+    kmi->flag = (kmi->flag & ~(KMI_REPEAT_IGNORE | KMI_INACTIVE)) |
+                (orig->flag & KMI_REPEAT_IGNORE);
 
     WM_keyconfig_update_tag(keymap, kmi);
   }

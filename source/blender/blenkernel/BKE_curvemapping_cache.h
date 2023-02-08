@@ -1,3 +1,9 @@
+#pragma once;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct GHash;
 struct CurveMapping;
 
@@ -22,3 +28,6 @@ bool BKE_curvemapping_in_cache(CurveMapping *curve);
 void BKE_curvemapping_cache_release_or_free(CurveMappingCache *cache, CurveMapping *curve);
 
 void BKE_curvemapping_cache_exit();
+#ifdef __cplusplus
+}
+#endif

@@ -672,7 +672,7 @@ DrawEngineType draw_engine_workbench = {
     &workbench_data_size,
     &workbench_engine_init,
     &workbench_engine_free,
-    NULL, /* instance_free */
+    /*instance_free*/ NULL,
     &workbench_cache_init,
     &workbench_cache_populate,
     &workbench_cache_finish,

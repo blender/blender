@@ -598,7 +598,7 @@ class USERPREF_PT_system_cycles_devices(SystemPanel, CenterAlignMixIn, Panel):
 
 
 class USERPREF_PT_system_gpu_backend(SystemPanel, CenterAlignMixIn, Panel):
-    bl_label = "GPU Back end"
+    bl_label = "GPU Backend"
 
     @classmethod
     def poll(cls, _context):
@@ -2283,6 +2283,7 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "use_sculpt_texture_paint"}, "T96225"),
                 ({"property": "use_full_frame_compositor"}, "T88150"),
                 ({"property": "enable_eevee_next"}, "T93220"),
+                ({"property": "enable_workbench_next"}, "T101619"),
             ),
         )
 

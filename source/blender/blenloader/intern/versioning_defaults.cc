@@ -494,7 +494,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     return;
   }
 
-  /* Workspaces. */
+  /* Work-spaces. */
   LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {

@@ -366,7 +366,7 @@ void BKE_cachefile_eval(Main *bmain, Depsgraph *depsgraph, CacheFile *cache_file
   }
 #endif
 #ifdef WITH_USD
-  if (BLI_path_extension_check_glob(filepath, "*.usd;*.usda;*.usdc")) {
+  if (BLI_path_extension_check_glob(filepath, "*.usd;*.usda;*.usdc;*.usdz")) {
     cache_file->type = CACHEFILE_TYPE_USD;
     cache_file->handle = USD_create_handle(bmain, filepath, &cache_file->object_paths);
     BLI_strncpy(cache_file->handle_filepath, filepath, FILE_MAX);

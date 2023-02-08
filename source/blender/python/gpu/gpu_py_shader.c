@@ -625,7 +625,7 @@ static PyObject *pygpu_shader_attrs_info_get(BPyGPUShader *self, PyObject *UNUSE
 {
   uint attr_len = GPU_shader_get_attribute_len(self->shader);
   int location_test = 0, attrs_added = 0;
-  ;
+
   PyObject *ret = PyTuple_New(attr_len);
   while (attrs_added < attr_len) {
     char name[256];

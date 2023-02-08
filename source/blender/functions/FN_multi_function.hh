@@ -18,8 +18,8 @@
  * combination of input and output).
  *
  * To call a multi-function, one has to provide three things:
- * - `MFParams`: This references the input and output arrays that the function works with. The
- *      arrays are not owned by MFParams.
+ * - `Params`: This references the input and output arrays that the function works with. The
+ *      arrays are not owned by Params.
  * - `IndexMask`: An array of indices indicating which indices in the provided arrays should be
  *      touched/processed.
  * - `Context`: Further information for the called function.
@@ -52,8 +52,8 @@ class MultiFunction {
    * - Automatic index mask offsetting to avoid large temporary intermediate arrays that are mostly
    *   unused.
    */
-  void call_auto(IndexMask mask, MFParams params, Context context) const;
-  virtual void call(IndexMask mask, MFParams params, Context context) const = 0;
+  void call_auto(IndexMask mask, Params params, Context context) const;
+  virtual void call(IndexMask mask, Params params, Context context) const = 0;
 
   virtual uint64_t hash() const
   {

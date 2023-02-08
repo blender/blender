@@ -983,13 +983,6 @@ static void region_azone_tab_plus(ScrArea *area, AZone *az, ARegion *region)
   const float tab_size_x = 0.7f * U.widget_unit;
   const float tab_size_y = 0.4f * U.widget_unit;
 
-  int tot = 0;
-  LISTBASE_FOREACH (AZone *, azt, &area->actionzones) {
-    if (azt->edge == az->edge) {
-      tot++;
-    }
-  }
-
   switch (az->edge) {
     case AE_TOP_TO_BOTTOMRIGHT: {
       int add = (region->winrct.ymax == area->totrct.ymin) ? 1 : 0;
@@ -2953,7 +2946,7 @@ void ED_region_panels_layout_ex(const bContext *C,
     margin_x = category_tabs_width;
   }
 
-  const int width_no_header = BLI_rctf_size_x(&v2d->cur) - margin_x;
+  const int max_panel_width = BLI_rctf_size_x(&v2d->cur) - margin_x;
   /* Works out to 10 * UI_UNIT_X or 20 * UI_UNIT_X. */
   const int em = (region->type->prefsizex) ? 10 : 20;
 
@@ -2981,22 +2974,14 @@ void ED_region_panels_layout_ex(const bContext *C,
         continue;
       }
     }
-    const int width = panel_draw_width_from_max_width_get(region, pt, width_no_header);
+    const int width = panel_draw_width_from_max_width_get(region, pt, max_panel_width);
 
     if (panel && UI_panel_is_dragging(panel)) {
       /* Prevent View2d.tot rectangle size changes while dragging panels. */
       update_tot_size = false;
     }
 
-    ed_panel_draw(C,
-                  region,
-                  &region->panels,
-                  pt,
-                  panel,
-                  (pt->flag & PANEL_TYPE_NO_HEADER) ? width_no_header : width,
-                  em,
-                  NULL,
-                  search_filter);
+    ed_panel_draw(C, region, &region->panels, pt, panel, width, em, NULL, search_filter);
   }
 
   /* Draw "poly-instantiated" panels that don't have a 1 to 1 correspondence with their types. */
@@ -3012,7 +2997,7 @@ void ED_region_panels_layout_ex(const bContext *C,
           !STREQ(category, panel->type->category)) {
         continue;
       }
-      const int width = panel_draw_width_from_max_width_get(region, panel->type, width_no_header);
+      const int width = panel_draw_width_from_max_width_get(region, panel->type, max_panel_width);
 
       if (panel && UI_panel_is_dragging(panel)) {
         /* Prevent View2d.tot rectangle size changes while dragging panels. */
@@ -3028,7 +3013,7 @@ void ED_region_panels_layout_ex(const bContext *C,
                     &region->panels,
                     panel->type,
                     panel,
-                    (panel->type->flag & PANEL_TYPE_NO_HEADER) ? width_no_header : width,
+                    width,
                     em,
                     unique_panel_str,
                     search_filter);

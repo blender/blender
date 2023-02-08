@@ -226,12 +226,12 @@ class ReturnInstruction : public Instruction {
 /**
  * Inputs and outputs of the entire procedure network.
  */
-struct MFParameter {
+struct Parameter {
   ParamType::InterfaceType type;
   Variable *variable;
 };
 
-struct ConstMFParameter {
+struct ConstParameter {
   ParamType::InterfaceType type;
   const Variable *variable;
 };
@@ -253,7 +253,7 @@ class Procedure : NonCopyable, NonMovable {
   Vector<DummyInstruction *> dummy_instructions_;
   Vector<ReturnInstruction *> return_instructions_;
   Vector<Variable *> variables_;
-  Vector<MFParameter> params_;
+  Vector<Parameter> params_;
   Vector<destruct_ptr<MultiFunction>> owned_functions_;
   Instruction *entry_ = nullptr;
 
@@ -271,7 +271,7 @@ class Procedure : NonCopyable, NonMovable {
   ReturnInstruction &new_return_instruction();
 
   void add_parameter(ParamType::InterfaceType interface_type, Variable &variable);
-  Span<ConstMFParameter> params() const;
+  Span<ConstParameter> params() const;
 
   template<typename T, typename... Args> const MultiFunction &construct_function(Args &&...args);
 
@@ -502,10 +502,10 @@ inline const Instruction *DummyInstruction::next() const
 /** \name #Procedure Inline Methods
  * \{ */
 
-inline Span<ConstMFParameter> Procedure::params() const
+inline Span<ConstParameter> Procedure::params() const
 {
-  static_assert(sizeof(MFParameter) == sizeof(ConstMFParameter));
-  return params_.as_span().cast<ConstMFParameter>();
+  static_assert(sizeof(Parameter) == sizeof(ConstParameter));
+  return params_.as_span().cast<ConstParameter>();
 }
 
 inline Instruction *Procedure::entry()

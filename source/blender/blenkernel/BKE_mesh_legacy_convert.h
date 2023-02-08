@@ -36,7 +36,7 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh);
  * Move face sets to the legacy type from a generic type.
  */
 void BKE_mesh_legacy_face_set_from_generic(
-    Mesh *mesh, blender::MutableSpan<CustomDataLayer> poly_layers_to_write);
+    blender::MutableSpan<CustomDataLayer> poly_layers_to_write);
 /**
  * Copy face sets to the generic data type from the legacy type.
  */

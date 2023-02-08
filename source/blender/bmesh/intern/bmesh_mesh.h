@@ -31,9 +31,6 @@ extern "C" {
 #endif
 
 struct BMAllocTemplate;
-struct BMLoopNorEditDataArray;
-struct BMPartialUpdate;
-struct MLoopNorSpaceArray;
 
 void BM_empty_tracer(BMTracer *tracer, void *userdata);
 

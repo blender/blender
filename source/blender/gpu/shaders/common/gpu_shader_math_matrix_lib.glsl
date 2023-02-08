@@ -469,6 +469,7 @@ mat4x4 invert(mat4x4 mat, out bool r_success)
   return r_success ? inverse(mat) : mat4x4(0.0);
 }
 
+#  if defined(GPU_OPENGL) || defined(GPU_METAL)
 vec2 normalize(vec2 a)
 {
   return a * inversesqrt(length_squared(a));
@@ -481,6 +482,7 @@ vec4 normalize(vec4 a)
 {
   return a * inversesqrt(length_squared(a));
 }
+#  endif
 
 mat2x2 normalize(mat2x2 mat)
 {
@@ -1343,6 +1345,7 @@ mat4x4 projection_perspective(
     mat[2][2] = -(far_clip + near_clip) / z_delta;
     mat[2][3] = -1.0;
     mat[3][2] = (-2.0 * near_clip * far_clip) / z_delta;
+    mat[3][3] = 0.0;
   }
   return mat;
 }

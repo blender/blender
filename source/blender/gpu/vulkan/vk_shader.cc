@@ -521,7 +521,9 @@ static char *glsl_patch_get()
 static std::string combine_sources(Span<const char *> sources)
 {
   char *sources_combined = BLI_string_join_arrayN((const char **)sources.data(), sources.size());
-  return std::string(sources_combined);
+  std::string result(sources_combined);
+  MEM_freeN(sources_combined);
+  return result;
 }
 
 Vector<uint32_t> VKShader::compile_glsl_to_spirv(Span<const char *> sources,
@@ -633,14 +635,15 @@ void VKShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
   build_shader_module(sources, shaderc_compute_shader, &compute_module_);
 }
 
-bool VKShader::finalize(const shader::ShaderCreateInfo * /*info*/)
+bool VKShader::finalize(const shader::ShaderCreateInfo *info)
 {
   if (compilation_failed_) {
     return false;
   }
 
   if (vertex_module_ != VK_NULL_HANDLE) {
-    BLI_assert(fragment_module_ != VK_NULL_HANDLE);
+    BLI_assert((fragment_module_ != VK_NULL_HANDLE && info->tf_type_ == GPU_SHADER_TFB_NONE) ||
+               (fragment_module_ == VK_NULL_HANDLE && info->tf_type_ != GPU_SHADER_TFB_NONE));
     BLI_assert(compute_module_ == VK_NULL_HANDLE);
 
     VkPipelineShaderStageCreateInfo vertex_stage_info = {};
@@ -658,12 +661,14 @@ bool VKShader::finalize(const shader::ShaderCreateInfo * /*info*/)
       geo_stage_info.pName = "main";
       pipeline_infos_.append(geo_stage_info);
     }
-    VkPipelineShaderStageCreateInfo fragment_stage_info = {};
-    fragment_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    fragment_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    fragment_stage_info.module = fragment_module_;
-    fragment_stage_info.pName = "main";
-    pipeline_infos_.append(fragment_stage_info);
+    if (fragment_module_ != VK_NULL_HANDLE) {
+      VkPipelineShaderStageCreateInfo fragment_stage_info = {};
+      fragment_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+      fragment_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+      fragment_stage_info.module = fragment_module_;
+      fragment_stage_info.pName = "main";
+      pipeline_infos_.append(fragment_stage_info);
+    }
   }
   else {
     BLI_assert(vertex_module_ == VK_NULL_HANDLE);
@@ -678,6 +683,10 @@ bool VKShader::finalize(const shader::ShaderCreateInfo * /*info*/)
     compute_stage_info.pName = "main";
     pipeline_infos_.append(compute_stage_info);
   }
+
+#ifdef NDEBUG
+  UNUSED_VARS(info);
+#endif
 
   return true;
 }

@@ -14,9 +14,7 @@ set(INC_SYS
 set(SRC_KERNEL_DEVICE_CPU
   device/cpu/kernel.cpp
   device/cpu/kernel_sse2.cpp
-  device/cpu/kernel_sse3.cpp
   device/cpu/kernel_sse41.cpp
-  device/cpu/kernel_avx.cpp
   device/cpu/kernel_avx2.cpp
 )
 
@@ -736,25 +734,25 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   endif()
   # SYCL_CPP_FLAGS is a variable that the user can set to pass extra compiler options
   set(sycl_compiler_flags
-      ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_KERNEL_DEVICE_ONEAPI}
-      -fsycl
-      -fsycl-unnamed-lambda
-      -fdelayed-template-parsing
-      -mllvm -inlinedefault-threshold=250
-      -mllvm -inlinehint-threshold=350
-      -fsycl-device-code-split=per_kernel
-      -fsycl-max-parallel-link-jobs=${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS}
-      -shared
-      -DWITH_ONEAPI
-      -ffast-math
-      -DNDEBUG
-      -O2
-      -o ${cycles_kernel_oneapi_lib}
-      -I${CMAKE_CURRENT_SOURCE_DIR}/..
-      ${SYCL_CPP_FLAGS}
-      )
+    ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_KERNEL_DEVICE_ONEAPI}
+    -fsycl
+    -fsycl-unnamed-lambda
+    -fdelayed-template-parsing
+    -mllvm -inlinedefault-threshold=250
+    -mllvm -inlinehint-threshold=350
+    -fsycl-device-code-split=per_kernel
+    -fsycl-max-parallel-link-jobs=${SYCL_OFFLINE_COMPILER_PARALLEL_JOBS}
+    -shared
+    -DWITH_ONEAPI
+    -ffast-math
+    -DNDEBUG
+    -O2
+    -o ${cycles_kernel_oneapi_lib}
+    -I${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${SYCL_CPP_FLAGS}
+  )
 
-  if (WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
+  if(WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
     list(APPEND sycl_compiler_flags -DWITH_ONEAPI_SYCL_HOST_TASK)
   endif()
 
@@ -942,12 +940,7 @@ set_source_files_properties(device/cpu/kernel.cpp PROPERTIES COMPILE_FLAGS "${CY
 
 if(CXX_HAS_SSE)
   set_source_files_properties(device/cpu/kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
-  set_source_files_properties(device/cpu/kernel_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
   set_source_files_properties(device/cpu/kernel_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
-endif()
-
-if(CXX_HAS_AVX)
-  set_source_files_properties(device/cpu/kernel_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
 endif()
 
 if(CXX_HAS_AVX2)

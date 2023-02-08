@@ -343,8 +343,8 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 
   /* we only include bones that are part of a continual connected chain */
   do {
-    /* here, we set ik-settings for bone from pchan->protectflag */
-    /* XXX: careful with quats/axis-angle rotations where we're locking 4d components. */
+    /* Here, we set IK-settings for bone from `pchan->protectflag`. */
+    /* XXX: careful with quaternion/axis-angle rotations where we're locking 4D components. */
     if (pchan->protectflag & OB_LOCK_ROTX) {
       pchan->ikflag |= BONE_IK_NO_XDOF_TEMP;
     }
@@ -864,7 +864,7 @@ static void createTransPose(bContext *UNUSED(C), TransInfo *t)
     }
   }
 
-  /* initialize initial auto=ik chainlen's? */
+  /* Initialize initial auto=IK chain-length's? */
   if (t->flag & T_AUTOIK) {
     transform_autoik_update(t, 0);
   }
@@ -1771,15 +1771,15 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_EditArmature = {
-    /* flags */ (T_EDIT | T_POINTS),
-    /* createTransData */ createTransArmatureVerts,
-    /* recalcData */ recalcData_edit_armature,
-    /* special_aftertrans_update */ NULL,
+    /*flags*/ (T_EDIT | T_POINTS),
+    /*createTransData*/ createTransArmatureVerts,
+    /*recalcData*/ recalcData_edit_armature,
+    /*special_aftertrans_update*/ NULL,
 };
 
 TransConvertTypeInfo TransConvertType_Pose = {
-    /* flags */ 0,
-    /* createTransData */ createTransPose,
-    /* recalcData */ recalcData_pose,
-    /* special_aftertrans_update */ special_aftertrans_update__pose,
+    /*flags*/ 0,
+    /*createTransData*/ createTransPose,
+    /*recalcData*/ recalcData_pose,
+    /*special_aftertrans_update*/ special_aftertrans_update__pose,
 };

@@ -223,7 +223,7 @@ class SampleFloatSegmentsFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArraySpan<float> lengths = params.readonly_single_input<float>(0, "Length");
     MutableSpan<int> indices = params.uninitialized_single_output<int>(1, "Curve Index");
@@ -261,16 +261,16 @@ class SampleCurveFunction : public mf::MultiFunction {
     mf::SignatureBuilder builder{"Sample Curve", signature_};
     builder.single_input<int>("Curve Index");
     builder.single_input<float>("Length");
-    builder.single_output<float3>("Position");
-    builder.single_output<float3>("Tangent");
-    builder.single_output<float3>("Normal");
-    builder.single_output("Value", src_field_.cpp_type());
+    builder.single_output<float3>("Position", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<float3>("Tangent", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output<float3>("Normal", mf::ParamFlag::SupportsUnusedOutput);
+    builder.single_output("Value", src_field_.cpp_type(), mf::ParamFlag::SupportsUnusedOutput);
     this->set_signature(&signature_);
 
     this->evaluate_source();
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context /*context*/) const override
+  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
   {
     MutableSpan<float3> sampled_positions = params.uninitialized_single_output_if_required<float3>(
         2, "Position");
@@ -297,7 +297,7 @@ class SampleCurveFunction : public mf::MultiFunction {
     }
 
     const Curves &curves_id = *geometry_set_.get_curves_for_read();
-    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+    const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     if (curves.points_num() == 0) {
       return return_default();
     }
@@ -312,6 +312,8 @@ class SampleCurveFunction : public mf::MultiFunction {
       evaluated_normals = curves.evaluated_normals();
     }
 
+    const OffsetIndices points_by_curve = curves.points_by_curve();
+    const OffsetIndices evaluated_points_by_curve = curves.evaluated_points_by_curve();
     const VArray<int> curve_indices = params.readonly_single_input<int>(0, "Curve Index");
     const VArraySpan<float> lengths = params.readonly_single_input<float>(1, "Length");
     const VArray<bool> cyclic = curves.cyclic();
@@ -353,7 +355,7 @@ class SampleCurveFunction : public mf::MultiFunction {
       sample_indices_and_factors_to_compressed(
           accumulated_lengths, lengths, length_mode_, mask, indices, factors);
 
-      const IndexRange evaluated_points = curves.evaluated_points_for_curve(curve_i);
+      const IndexRange evaluated_points = evaluated_points_by_curve[curve_i];
       if (!sampled_positions.is_empty()) {
         length_parameterize::interpolate_to_masked<float3>(
             evaluated_positions.slice(evaluated_points),
@@ -377,10 +379,10 @@ class SampleCurveFunction : public mf::MultiFunction {
         }
       }
       if (!sampled_values.is_empty()) {
-        const IndexRange points = curves.points_for_curve(curve_i);
+        const IndexRange points = points_by_curve[curve_i];
         src_original_values.reinitialize(points.size());
         source_data_->materialize_compressed_to_uninitialized(points, src_original_values.data());
-        src_evaluated_values.reinitialize(curves.evaluated_points_for_curve(curve_i).size());
+        src_evaluated_values.reinitialize(evaluated_points.size());
         curves.interpolate_to_evaluated(curve_i, src_original_values, src_evaluated_values);
         attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
           using T = decltype(dummy);
@@ -426,7 +428,7 @@ class SampleCurveFunction : public mf::MultiFunction {
   void evaluate_source()
   {
     const Curves &curves_id = *geometry_set_.get_curves_for_read();
-    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+    const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     source_context_.emplace(bke::CurvesFieldContext{curves, ATTR_DOMAIN_POINT});
     source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, curves.points_num());
     source_evaluator_->add(src_field_);
@@ -504,7 +506,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   const Curves &curves_id = *geometry_set.get_curves_for_read();
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.points_num() == 0) {
     params.set_default_remaining_outputs();
     return;

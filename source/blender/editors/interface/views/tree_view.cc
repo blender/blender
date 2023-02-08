@@ -136,7 +136,7 @@ void AbstractTreeViewItem::add_treerow_button(uiBlock &block)
       &block, UI_BTYPE_VIEW_ITEM, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
 
   view_item_but_->view_item = reinterpret_cast<uiViewItemHandle *>(this);
-  UI_but_func_set(&view_item_but_->but, tree_row_click_fn, view_item_but_, nullptr);
+  UI_but_func_set(view_item_but_, tree_row_click_fn, view_item_but_, nullptr);
 }
 
 void AbstractTreeViewItem::add_indent(uiLayout &row) const
@@ -322,8 +322,8 @@ bool AbstractTreeViewItem::is_hovered() const
   /* The new layout hasn't finished construction yet, so the final state of the button is unknown.
    * Get the matching button from the previous redraw instead. */
   uiButViewItem *old_item_but = ui_block_view_find_matching_view_item_but_in_old_block(
-      view_item_but_->but.block, this_item_handle);
-  return old_item_but && (old_item_but->but.flag & UI_ACTIVE);
+      view_item_but_->block, this_item_handle);
+  return old_item_but && (old_item_but->flag & UI_ACTIVE);
 }
 
 bool AbstractTreeViewItem::is_collapsed() const

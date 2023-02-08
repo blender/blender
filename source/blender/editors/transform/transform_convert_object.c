@@ -1006,8 +1006,8 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 /** \} */
 
 TransConvertTypeInfo TransConvertType_Object = {
-    /* flags */ 0,
-    /* createTransData */ createTransObject,
-    /* recalcData */ recalcData_objects,
-    /* special_aftertrans_update */ special_aftertrans_update__object,
+    /*flags*/ 0,
+    /*createTransData*/ createTransObject,
+    /*recalcData*/ recalcData_objects,
+    /*special_aftertrans_update*/ special_aftertrans_update__object,
 };

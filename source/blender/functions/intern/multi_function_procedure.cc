@@ -373,7 +373,7 @@ bool Procedure::validate_same_variables_in_one_call() const
 bool Procedure::validate_parameters() const
 {
   Set<const Variable *> variables;
-  for (const MFParameter &param : params_) {
+  for (const Parameter &param : params_) {
     /* One variable cannot be used as multiple parameters. */
     if (!variables.add(param.variable)) {
       return false;
@@ -430,7 +430,7 @@ bool Procedure::validate_initialization() const
     }
   }
   Set<const Variable *> variables_that_should_be_initialized_on_return;
-  for (const MFParameter &param : params_) {
+  for (const Parameter &param : params_) {
     if (ELEM(param.type, ParamType::Mutable, ParamType::Output)) {
       variables_that_should_be_initialized_on_return.add_new(param.variable);
     }
@@ -461,7 +461,7 @@ Procedure::InitState Procedure::find_initialization_state_before_instruction(
 
   auto check_entry_instruction = [&]() {
     bool caller_initialized_variable = false;
-    for (const MFParameter &param : params_) {
+    for (const Parameter &param : params_) {
       if (param.variable == &target_variable) {
         if (ELEM(param.type, ParamType::Input, ParamType::Mutable)) {
           caller_initialized_variable = true;
@@ -810,14 +810,14 @@ class ProcedureDotExport {
   {
     instruction_name_format("Return ", ss);
 
-    Vector<ConstMFParameter> outgoing_parameters;
-    for (const ConstMFParameter &param : procedure_.params()) {
+    Vector<ConstParameter> outgoing_parameters;
+    for (const ConstParameter &param : procedure_.params()) {
       if (ELEM(param.type, ParamType::Mutable, ParamType::Output)) {
         outgoing_parameters.append(param);
       }
     }
     for (const int param_index : outgoing_parameters.index_range()) {
-      const ConstMFParameter &param = outgoing_parameters[param_index];
+      const ConstParameter &param = outgoing_parameters[param_index];
       variable_to_string(param.variable, ss);
       if (param_index < outgoing_parameters.size() - 1) {
         ss << ", ";
@@ -835,14 +835,14 @@ class ProcedureDotExport {
   {
     std::stringstream ss;
     ss << "Entry: ";
-    Vector<ConstMFParameter> incoming_parameters;
-    for (const ConstMFParameter &param : procedure_.params()) {
+    Vector<ConstParameter> incoming_parameters;
+    for (const ConstParameter &param : procedure_.params()) {
       if (ELEM(param.type, ParamType::Input, ParamType::Mutable)) {
         incoming_parameters.append(param);
       }
     }
     for (const int param_index : incoming_parameters.index_range()) {
-      const ConstMFParameter &param = incoming_parameters[param_index];
+      const ConstParameter &param = incoming_parameters[param_index];
       variable_to_string(param.variable, ss);
       if (param_index < incoming_parameters.size() - 1) {
         ss << ", ";

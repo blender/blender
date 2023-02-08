@@ -70,7 +70,9 @@ blender_target_include_dirs(makesdna ${INC})
 blender_target_include_dirs_sys(makesdna ${INC_SYS})
 
 if(WIN32 AND NOT UNIX)
-  target_link_libraries(makesdna ${PTHREADS_LIBRARIES})
+  if(DEFINED PTHREADS_LIBRARIES)
+    target_link_libraries(makesdna ${PTHREADS_LIBRARIES})
+  endif()
 endif()
 
 # Output dna.c

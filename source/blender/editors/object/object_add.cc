@@ -2048,7 +2048,7 @@ static int object_curves_random_add_exec(bContext *C, wmOperator *op)
   Object *object = ED_object_add_type(C, OB_CURVES, nullptr, loc, rot, false, local_view_bits);
 
   Curves *curves_id = static_cast<Curves *>(object->data);
-  bke::CurvesGeometry::wrap(curves_id->geometry) = ed::curves::primitive_random_sphere(500, 8);
+  curves_id->geometry.wrap() = ed::curves::primitive_random_sphere(500, 8);
 
   return OPERATOR_FINISHED;
 }
@@ -3091,8 +3091,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         newob->data = new_curves;
         newob->type = OB_CURVES;
 
-        blender::bke::CurvesGeometry::wrap(
-            new_curves->geometry) = blender::bke::CurvesGeometry::wrap(curves_eval->geometry);
+        new_curves->geometry.wrap() = curves_eval->geometry.wrap();
         BKE_object_material_from_eval_data(bmain, newob, &curves_eval->id);
 
         BKE_object_free_derived_caches(newob);
@@ -3392,8 +3391,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       else if (const Curves *curves_eval = geometry.get_curves_for_read()) {
         bke::AnonymousAttributePropagationInfo propagation_info;
         propagation_info.propagate_all = false;
-        Mesh *mesh = bke::curve_to_wire_mesh(bke::CurvesGeometry::wrap(curves_eval->geometry),
-                                             propagation_info);
+        Mesh *mesh = bke::curve_to_wire_mesh(curves_eval->geometry.wrap(), propagation_info);
         BKE_mesh_nomain_to_mesh(mesh, new_mesh, newob);
         BKE_object_material_from_eval_data(bmain, newob, &curves_eval->id);
       }

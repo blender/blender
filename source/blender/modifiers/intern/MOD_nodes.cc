@@ -496,10 +496,8 @@ id_property_create_from_socket(const bNodeSocket &socket)
     case SOCK_BOOLEAN: {
       const bNodeSocketValueBoolean *value = static_cast<const bNodeSocketValueBoolean *>(
           socket.default_value);
-      auto property = bke::idprop::create(socket.identifier, int(value->value));
-      IDPropertyUIDataInt *ui_data = (IDPropertyUIDataInt *)IDP_ui_data_ensure(property.get());
-      ui_data->min = ui_data->soft_min = 0;
-      ui_data->max = ui_data->soft_max = 1;
+      auto property = bke::idprop::create_bool(socket.identifier, value->value);
+      IDPropertyUIDataBool *ui_data = (IDPropertyUIDataBool *)IDP_ui_data_ensure(property.get());
       ui_data->default_value = value->value != 0;
       return property;
     }
@@ -515,7 +513,10 @@ id_property_create_from_socket(const bNodeSocket &socket)
     case SOCK_OBJECT: {
       const bNodeSocketValueObject *value = static_cast<const bNodeSocketValueObject *>(
           socket.default_value);
-      return bke::idprop::create(socket.identifier, reinterpret_cast<ID *>(value->value));
+      auto property = bke::idprop::create(socket.identifier, reinterpret_cast<ID *>(value->value));
+      IDPropertyUIDataID *ui_data = (IDPropertyUIDataID *)IDP_ui_data_ensure(property.get());
+      ui_data->id_type = ID_OB;
+      return property;
     }
     case SOCK_COLLECTION: {
       const bNodeSocketValueCollection *value = static_cast<const bNodeSocketValueCollection *>(
@@ -553,7 +554,7 @@ static bool id_property_type_matches_socket(const bNodeSocket &socket, const IDP
     case SOCK_RGBA:
       return property.type == IDP_ARRAY && property.subtype == IDP_FLOAT && property.len == 4;
     case SOCK_BOOLEAN:
-      return property.type == IDP_INT;
+      return property.type == IDP_BOOLEAN;
     case SOCK_STRING:
       return property.type == IDP_STRING;
     case SOCK_OBJECT:
@@ -601,7 +602,7 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
       break;
     }
     case SOCK_BOOLEAN: {
-      bool value = IDP_Int(&property) != 0;
+      const bool value = IDP_Bool(&property);
       new (r_value) ValueOrField<bool>(value);
       break;
     }
@@ -682,16 +683,23 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
 
     if (old_properties != nullptr) {
       IDProperty *old_prop = IDP_GetPropertyFromGroup(old_properties, socket->identifier);
-      if (old_prop != nullptr && id_property_type_matches_socket(*socket, *old_prop)) {
-        /* #IDP_CopyPropertyContent replaces the UI data as well, which we don't (we only
-         * want to replace the values). So release it temporarily and replace it after. */
-        IDPropertyUIData *ui_data = new_prop->ui_data;
-        new_prop->ui_data = nullptr;
-        IDP_CopyPropertyContent(new_prop, old_prop);
-        if (new_prop->ui_data != nullptr) {
-          IDP_ui_data_free(new_prop);
+      if (old_prop != nullptr) {
+        if (id_property_type_matches_socket(*socket, *old_prop)) {
+          /* #IDP_CopyPropertyContent replaces the UI data as well, which we don't (we only
+           * want to replace the values). So release it temporarily and replace it after. */
+          IDPropertyUIData *ui_data = new_prop->ui_data;
+          new_prop->ui_data = nullptr;
+          IDP_CopyPropertyContent(new_prop, old_prop);
+          if (new_prop->ui_data != nullptr) {
+            IDP_ui_data_free(new_prop);
+          }
+          new_prop->ui_data = ui_data;
         }
-        new_prop->ui_data = ui_data;
+        else if (old_prop->type == IDP_INT && new_prop->type == IDP_BOOLEAN) {
+          /* Support versioning from integer to boolean property values. The actual value is stored
+           * in the same variable for both types. */
+          new_prop->data.val = old_prop->data.val != 0;
+        }
       }
     }
 
@@ -1275,9 +1283,6 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
       BKE_modifier_set_error(ob, md, "Node group's geometry input must be the first");
     }
   }
-  else if (geometry_socket_count > 1) {
-    BKE_modifier_set_error(ob, md, "Node group can only have one geometry input");
-  }
 }
 
 static void modifyGeometry(ModifierData *md,
@@ -1575,9 +1580,30 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
   uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
   uiLayout *name_row = uiLayoutRow(split, false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
-  uiItemL(name_row, socket.name, ICON_NONE);
+
+  const int use_attribute = RNA_int_get(md_ptr, rna_path_use_attribute.c_str()) != 0;
+  if (socket.type == SOCK_BOOLEAN && !use_attribute) {
+    uiItemL(name_row, "", ICON_NONE);
+  }
+  else {
+    uiItemL(name_row, socket.name, ICON_NONE);
+  }
 
   uiLayout *prop_row = uiLayoutRow(split, true);
+  if (socket.type == SOCK_BOOLEAN) {
+    uiLayoutSetPropSep(prop_row, false);
+    uiLayoutSetAlignment(prop_row, UI_LAYOUT_ALIGN_EXPAND);
+  }
+
+  if (use_attribute) {
+    add_attribute_search_button(C, prop_row, nmd, md_ptr, rna_path_attribute_name, socket, false);
+    uiItemL(layout, "", ICON_BLANK1);
+  }
+  else {
+    const char *name = socket.type == SOCK_BOOLEAN ? socket.name : "";
+    uiItemR(prop_row, md_ptr, rna_path.c_str(), 0, name, ICON_NONE);
+    uiItemDecoratorR(layout, md_ptr, rna_path.c_str(), -1);
+  }
 
   PointerRNA props;
   uiItemFullO(prop_row,
@@ -1590,16 +1616,6 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
               &props);
   RNA_string_set(&props, "modifier_name", nmd.modifier.name);
   RNA_string_set(&props, "prop_path", rna_path_use_attribute.c_str());
-
-  const int use_attribute = RNA_int_get(md_ptr, rna_path_use_attribute.c_str()) != 0;
-  if (use_attribute) {
-    add_attribute_search_button(C, prop_row, nmd, md_ptr, rna_path_attribute_name, socket, false);
-    uiItemL(layout, "", ICON_BLANK1);
-  }
-  else {
-    uiItemR(prop_row, md_ptr, rna_path.c_str(), 0, "", ICON_NONE);
-    uiItemDecoratorR(layout, md_ptr, rna_path.c_str(), -1);
-  }
 }
 
 /* Drawing the properties manually with #uiItemR instead of #uiDefAutoButsRNA allows using
@@ -1664,6 +1680,9 @@ static void draw_property_for_socket(const bContext &C,
         uiItemR(row, md_ptr, rna_path, 0, socket.name, ICON_NONE);
       }
     }
+  }
+  if (!input_has_attribute_toggle(*nmd->node_group, socket_index)) {
+    uiItemL(row, "", ICON_BLANK1);
   }
 }
 
@@ -1854,9 +1873,37 @@ static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const Modif
   BLO_write_struct(writer, NodesModifierData, nmd);
 
   if (nmd->settings.properties != nullptr) {
+    Map<IDProperty *, IDPropertyUIDataBool *> boolean_props;
+    if (!BLO_write_is_undo(writer)) {
+      /* Boolean properties are added automatically for boolean node group inputs. Integer
+       * properties are automatically converted to boolean sockets where applicable as well.
+       * However, boolean properties will crash old versions of Blender, so convert them to integer
+       * properties for writing. The actual value is stored in the same variable for both types */
+      LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
+        if (prop->type == IDP_BOOLEAN) {
+          boolean_props.add_new(prop, reinterpret_cast<IDPropertyUIDataBool *>(prop->ui_data));
+          prop->type = IDP_INT;
+          prop->ui_data = nullptr;
+        }
+      }
+    }
+
     /* Note that the property settings are based on the socket type info
      * and don't necessarily need to be written, but we can't just free them. */
     IDP_BlendWrite(writer, nmd->settings.properties);
+
+    if (!BLO_write_is_undo(writer)) {
+      LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
+        if (prop->type == IDP_INT) {
+          if (IDPropertyUIDataBool **ui_data = boolean_props.lookup_ptr(prop)) {
+            prop->type = IDP_BOOLEAN;
+            if (ui_data) {
+              prop->ui_data = reinterpret_cast<IDPropertyUIData *>(*ui_data);
+            }
+          }
+        }
+      }
+    }
   }
 }
 
@@ -1907,38 +1954,38 @@ static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cdda
 }
 
 ModifierTypeInfo modifierType_Nodes = {
-    /* name */ N_("GeometryNodes"),
-    /* structName */ "NodesModifierData",
-    /* structSize */ sizeof(NodesModifierData),
-    /* srna */ &RNA_NodesModifier,
-    /* type */ eModifierTypeType_Constructive,
-    /* flags */
+    /*name*/ N_("GeometryNodes"),
+    /*structName*/ "NodesModifierData",
+    /*structSize*/ sizeof(NodesModifierData),
+    /*srna*/ &RNA_NodesModifier,
+    /*type*/ eModifierTypeType_Constructive,
+    /*flags*/
     static_cast<ModifierTypeFlag>(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
                                   eModifierTypeFlag_SupportsEditmode |
                                   eModifierTypeFlag_EnableInEditmode |
                                   eModifierTypeFlag_SupportsMapping),
-    /* icon */ ICON_GEOMETRY_NODES,
+    /*icon*/ ICON_GEOMETRY_NODES,
 
-    /* copyData */ copyData,
+    /*copyData*/ copyData,
 
-    /* deformVerts */ nullptr,
-    /* deformMatrices */ nullptr,
-    /* deformVertsEM */ nullptr,
-    /* deformMatricesEM */ nullptr,
-    /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ modifyGeometrySet,
+    /*deformVerts*/ nullptr,
+    /*deformMatrices*/ nullptr,
+    /*deformVertsEM*/ nullptr,
+    /*deformMatricesEM*/ nullptr,
+    /*modifyMesh*/ modifyMesh,
+    /*modifyGeometrySet*/ modifyGeometrySet,
 
-    /* initData */ initData,
-    /* requiredDataMask */ requiredDataMask,
-    /* freeData */ freeData,
-    /* isDisabled */ isDisabled,
-    /* updateDepsgraph */ updateDepsgraph,
-    /* dependsOnTime */ dependsOnTime,
-    /* dependsOnNormals */ nullptr,
-    /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ foreachTexLink,
-    /* freeRuntimeData */ nullptr,
-    /* panelRegister */ panelRegister,
-    /* blendWrite */ blendWrite,
-    /* blendRead */ blendRead,
+    /*initData*/ initData,
+    /*requiredDataMask*/ requiredDataMask,
+    /*freeData*/ freeData,
+    /*isDisabled*/ isDisabled,
+    /*updateDepsgraph*/ updateDepsgraph,
+    /*dependsOnTime*/ dependsOnTime,
+    /*dependsOnNormals*/ nullptr,
+    /*foreachIDLink*/ foreachIDLink,
+    /*foreachTexLink*/ foreachTexLink,
+    /*freeRuntimeData*/ nullptr,
+    /*panelRegister*/ panelRegister,
+    /*blendWrite*/ blendWrite,
+    /*blendRead*/ blendRead,
 };

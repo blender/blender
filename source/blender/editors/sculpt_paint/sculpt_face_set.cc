@@ -1727,7 +1727,7 @@ static void sculpt_face_set_fill_component(Object *ob,
                                            const int active_face_set_id,
                                            const bool /*UNUSED(modify_hidden)*/)
 {
-  SCULPT_connected_components_ensure(ob);
+  SCULPT_topology_islands_ensure(ob);
   GSet *connected_components = BLI_gset_int_new("affected_components");
 
   const int totvert = SCULPT_vertex_count_get(ss);
@@ -1737,7 +1737,7 @@ static void sculpt_face_set_fill_component(Object *ob,
     if (!SCULPT_vertex_has_face_set(ss, vertex, active_face_set_id)) {
       continue;
     }
-    const int vertex_connected_component = ss->vertex_info.connected_component[i];
+    const int vertex_connected_component = SCULPT_vertex_island_get(ss, vertex);
     if (BLI_gset_haskey(connected_components, POINTER_FROM_INT(vertex_connected_component))) {
       continue;
     }
@@ -1747,7 +1747,7 @@ static void sculpt_face_set_fill_component(Object *ob,
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-    const int vertex_connected_component = ss->vertex_info.connected_component[i];
+    const int vertex_connected_component = SCULPT_vertex_island_get(ss, vertex);
     if (!BLI_gset_haskey(connected_components, POINTER_FROM_INT(vertex_connected_component))) {
       continue;
     }
@@ -2057,9 +2057,9 @@ static bool sculpt_face_set_edit_is_operation_valid(SculptSession *ss,
 
   if (ELEM(mode, SCULPT_FACE_SET_EDIT_FAIR_POSITIONS, SCULPT_FACE_SET_EDIT_FAIR_TANGENCY)) {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-      /* TODO: Multires topology representation using grids and duplicates can't be used directly
-       * by the fair algorithm. Multires topology needs to be exposed in a different way or
-       * converted to a mesh for this operation. */
+      /* TODO: Multi-resolution topology representation using grids and duplicates can't be used
+       * directly by the fair algorithm. Multi-resolution topology needs to be exposed in a
+       * different way or converted to a mesh for this operation. */
       return false;
     }
   }

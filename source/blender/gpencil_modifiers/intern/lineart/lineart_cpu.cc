@@ -2447,8 +2447,8 @@ static void lineart_object_load_single_instance(LineartData *ld,
 
   /* Prepare the matrix used for transforming this specific object (instance). This has to be
    * done before mesh boundbox check because the function needs that. */
-  mul_m4db_m4db_m4fl_uniq(obi->model_view_proj, ld->conf.view_projection, use_mat);
-  mul_m4db_m4db_m4fl_uniq(obi->model_view, ld->conf.view, use_mat);
+  mul_m4db_m4db_m4fl(obi->model_view_proj, ld->conf.view_projection, use_mat);
+  mul_m4db_m4db_m4fl(obi->model_view, ld->conf.view, use_mat);
 
   if (!ELEM(ob->type, OB_MESH, OB_MBALL, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
     return;
@@ -2524,7 +2524,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
     }
 
     invert_m4_m4(inv, ld->conf.cam_obmat);
-    mul_m4db_m4db_m4fl_uniq(result, proj, inv);
+    mul_m4db_m4db_m4fl(result, proj, inv);
     copy_m4_m4_db(proj, result);
     copy_m4_m4_db(ld->conf.view_projection, proj);
 
@@ -4506,7 +4506,7 @@ LineartBoundingArea *MOD_lineart_get_bounding_area(LineartData *ld, double x, do
 static void lineart_add_triangles_worker(TaskPool *__restrict /*pool*/, LineartIsecThread *th)
 {
   LineartData *ld = th->ld;
-  int _dir_control = 0;
+  // int _dir_control = 0; /* UNUSED */
   while (lineart_schedule_new_triangle_task(th)) {
     for (LineartElementLinkNode *eln = th->pending_from; eln != th->pending_to->next;
          eln = eln->next) {
@@ -4522,7 +4522,7 @@ static void lineart_add_triangles_worker(TaskPool *__restrict /*pool*/, LineartI
           continue;
         }
         if (lineart_get_triangle_bounding_areas(ld, tri, &y1, &y2, &x1, &x2)) {
-          _dir_control++;
+          // _dir_control++;
           for (co = x1; co <= x2; co++) {
             for (r = y1; r <= y2; r++) {
               lineart_bounding_area_link_triangle(ld,
@@ -5156,7 +5156,8 @@ static void lineart_gpencil_generate(LineartCache *cache,
                                      uchar silhouette_mode,
                                      const char *source_vgname,
                                      const char *vgname,
-                                     int modifier_flags)
+                                     int modifier_flags,
+                                     int modifier_calculation_flags)
 {
   if (cache == nullptr) {
     if (G.debug_value == 4000) {
@@ -5182,8 +5183,8 @@ static void lineart_gpencil_generate(LineartCache *cache,
   /* (!orig_col && !orig_ob) means the whole scene is selected. */
 
   int enabled_types = cache->all_enabled_edge_types;
-  bool invert_input = modifier_flags & LRT_GPENCIL_INVERT_SOURCE_VGROUP;
-  bool match_output = modifier_flags & LRT_GPENCIL_MATCH_OUTPUT_VGROUP;
+  bool invert_input = modifier_calculation_flags & LRT_GPENCIL_INVERT_SOURCE_VGROUP;
+  bool match_output = modifier_calculation_flags & LRT_GPENCIL_MATCH_OUTPUT_VGROUP;
   bool inverse_silhouette = modifier_flags & LRT_GPENCIL_INVERT_SILHOUETTE_FILTER;
 
   LISTBASE_FOREACH (LineartEdgeChain *, ec, &cache->chains) {
@@ -5381,7 +5382,8 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   uchar silhouette_mode,
                                   const char *source_vgname,
                                   const char *vgname,
-                                  int modifier_flags)
+                                  int modifier_flags,
+                                  int modifier_calculation_flags)
 {
 
   if (!gpl || !gpf || !ob) {
@@ -5427,5 +5429,6 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                            silhouette_mode,
                            source_vgname,
                            vgname,
-                           modifier_flags);
+                           modifier_flags,
+                           modifier_calculation_flags);
 }

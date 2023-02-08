@@ -43,6 +43,10 @@ update-code:
             branch: trunk
             commit_id: HEAD
             path: lib/benchmarks
+        assets:
+            branch: trunk
+            commit_id: HEAD
+            path: lib/assets
 
 #
 # Buildbot only configs
@@ -59,7 +63,7 @@ buildbot:
     optix:
         version: '7.3.0'
     ocloc:
-        version: '101.3430'
+        version: '101.4032'
     cmake:
         default:
             version: any

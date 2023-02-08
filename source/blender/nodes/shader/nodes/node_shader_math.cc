@@ -150,7 +150,7 @@ class ClampWrapperFunction : public mf::MultiFunction {
     this->set_signature(&fn.signature());
   }
 
-  void call(IndexMask mask, mf::MFParams params, mf::Context context) const override
+  void call(IndexMask mask, mf::Params params, mf::Context context) const override
   {
     fn_.call(mask, params, context);
 

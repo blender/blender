@@ -52,7 +52,7 @@
 
 #include "bmesh.h"
 #include "multires_inline.h"
-#include "multires_reshape.h"
+#include "multires_reshape.hh"
 
 #include <cmath>
 #include <cstring>
@@ -482,7 +482,7 @@ void multires_force_sculpt_rebuild(Object *object)
   }
 
   BKE_pbvh_pmap_release(ss->pmap);
-  ss->pmap = NULL;
+  ss->pmap = nullptr;
 }
 
 void multires_force_external_reload(Object *object)
@@ -761,7 +761,7 @@ static DerivedMesh *multires_dm_create_local(Scene *scene,
                                              bool alloc_paint_mask,
                                              MultiresFlags flags)
 {
-  MultiresModifierData mmd = {{nullptr}};
+  MultiresModifierData mmd{};
 
   mmd.lvl = lvl;
   mmd.sculptlvl = lvl;
@@ -884,7 +884,7 @@ extern "C" Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm)
 {
   if (!CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
     printf("multires_dump_grids_bmesh: error: no multires grids\n");
-    return NULL;
+    return nullptr;
   }
 
   bool spaceset = false;
@@ -917,11 +917,11 @@ extern "C" Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm)
 
   DEG_id_type_tag(bmain, ID_OB);
   DEG_relations_tag_update(bmain);
-  if (ob->data != NULL) {
+  if (ob->data != nullptr) {
     DEG_id_tag_update_ex(bmain, (ID *)ob->data, ID_RECALC_EDITORS);
   }
 
-  ob->modifiers.first = ob->modifiers.last = NULL;
+  ob->modifiers.first = ob->modifiers.last = nullptr;
   zero_v3(ob->loc);
 
   printf("users: %d\n", ob->id.us);
@@ -943,7 +943,7 @@ extern "C" Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm)
 
   if (!dimen) {
     printf("multires_dump_grids_bmesh: error: corrupted multires data\n");
-    return NULL;
+    return nullptr;
   }
 
   int totvert = bm->totloop * dimen * dimen;
@@ -1113,7 +1113,7 @@ static void multires_bmesh_space_set_cb(void *__restrict userdata,
   S = 0;
   do {
     MDisps *mdisp = (MDisps *)BM_ELEM_CD_GET_VOID_P(l, cd_mdisps_off);
-    float(*dispgrid)[3] = NULL;
+    float(*dispgrid)[3] = nullptr;
 
     dispgrid = mdisp->disps;
 
@@ -1198,10 +1198,10 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
   }
 
   // get multires settings
-  MultiresModifierData *mmd = bm->haveMultiResSettings ? &bm->multires : NULL;
+  MultiresModifierData *mmd = bm->haveMultiResSettings ? &bm->multires : nullptr;
 
   if (!mmd && ob) {
-    mmd = get_multires_modifier(NULL, ob, true);
+    mmd = get_multires_modifier(nullptr, ob, true);
   }
 
   if (!mmd || !CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
@@ -1227,19 +1227,19 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
   SubdivSettings settings2;
 
   // copy the settings and then set subdivision level to max
-  MultiresModifierData mmdcpy = *mmd;
+  MultiresModifierData mmdcpy = blender::dna::shallow_copy(*mmd);
   mmdcpy.lvl = mmdcpy.sculptlvl = mmdcpy.renderlvl = mmdcpy.totlvl;
 
   // set up subdivision surface
   BKE_multires_subdiv_settings_init(&settings2, &mmdcpy);
   Subdiv *sd = BKE_subdiv_new_from_mesh(&settings2, me);
-  BKE_subdiv_eval_begin_from_mesh(sd, me, NULL, SUBDIV_EVALUATOR_TYPE_CPU, NULL);
+  BKE_subdiv_eval_begin_from_mesh(sd, me, nullptr, SUBDIV_EVALUATOR_TYPE_CPU, nullptr);
 
-  // create a fake object with .sculpt set to NULL
+  // create a fake object with .sculpt set to nullptr
   Object fakeob;
   if (ob) {
     memcpy(static_cast<void *>(&fakeob), static_cast<void *>(ob), sizeof(*ob));
-    fakeob.sculpt = NULL;
+    fakeob.sculpt = nullptr;
   }
   else {
     memset(&fakeob, 0, sizeof(fakeob));

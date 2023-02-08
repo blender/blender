@@ -105,7 +105,7 @@ inline void sample_at_length(const Span<float> accumulated_segment_lengths,
 
   BLI_assert(lengths.size() > 0);
   BLI_assert(sample_length >= 0.0f);
-  BLI_assert(sample_length <= lengths.last());
+  BLI_assert(sample_length <= lengths.last() + 0.00001f);
 
   if (hint != nullptr && hint->segment_index >= 0) {
     const float length_in_segment = sample_length - hint->segment_start;
