@@ -17,15 +17,15 @@ namespace blender::io::ply {
 
 /**
  * The function that gets called from the importer.
- * \param file The PLY file that was opened.
- * \param header The information in the PLY header.
+ * \param file: The PLY file that was opened.
+ * \param header: The information in the PLY header.
  */
 std::unique_ptr<PlyData> import_ply_ascii(std::ifstream &file, PlyHeader *header);
 
 /**
  * Loads the information from the PLY file in ASCII format to the PlyData datastructure.
- * \param file The PLY file that was opened.
- * \param header The information in the PLY header.
+ * \param file: The PLY file that was opened.
+ * \param header: The information in the PLY header.
  * \return The PlyData datastructure that can be used for conversion to a Mesh.
  */
 PlyData load_ply_ascii(std::ifstream &file, const PlyHeader *header);
