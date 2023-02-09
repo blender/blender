@@ -137,7 +137,7 @@ void ShadowTileMap::debug_draw() const
 ShadowTileMapPool::ShadowTileMapPool()
 {
   free_indices.reserve(SHADOW_MAX_TILEMAP);
-  /* Reverse order to help debugging (first allocated tilemap will get 0). */
+  /* Reverse order to help debugging (first allocated tile-map will get 0). */
   for (int i = SHADOW_MAX_TILEMAP - 1; i >= 0; i--) {
     free_indices.append(i * SHADOW_TILEDATA_PER_TILEMAP);
   }
@@ -154,7 +154,7 @@ ShadowTileMapPool::ShadowTileMapPool()
 ShadowTileMap *ShadowTileMapPool::acquire()
 {
   if (free_indices.is_empty()) {
-    /* Grow the tilemap buffer. See `end_sync`. */
+    /* Grow the tile-map buffer. See `end_sync`. */
     for (auto i : IndexRange(free_indices.size(), SHADOW_MAX_TILEMAP)) {
       free_indices.append(i * SHADOW_TILEDATA_PER_TILEMAP);
     }
@@ -180,7 +180,7 @@ void ShadowTileMapPool::end_sync(ShadowModule &module)
     tiles_data.resize(needed_tilemap_capacity * SHADOW_TILEDATA_PER_TILEMAP);
     tilemaps_clip.resize(needed_tilemap_capacity);
     /* We reallocated the tile-map buffer, discarding all the data it contained.
-     * We need to re-init the page heaps. */
+     * We need to re-initialize the page heaps. */
     module.do_full_update = true;
   }
 
@@ -191,8 +191,8 @@ void ShadowTileMapPool::end_sync(ShadowModule &module)
     Span<uint> newly_unused_indices = free_indices.as_span().slice(last_free_len,
                                                                    newly_unused_count);
     for (uint index : newly_unused_indices) {
-      /* Push a dummy tilemap to a unused tilemap buffer. It is then processed through the some of
-       * the setup steps to release the pages. */
+      /* Push a dummy tile-map to a unused tile-map buffer. It is then processed through the some
+       * of the setup steps to release the pages. */
       ShadowTileMapData tilemap_data = {};
       tilemap_data.tiles_index = index;
       tilemap_data.clip_data_index = 0;
@@ -261,7 +261,7 @@ void ShadowPunctual::end_sync(Light &light, float lod_bias)
   obmat_tmp[0][3] = obmat_tmp[1][3] = obmat_tmp[2][3] = 0.0f;
   obmat_tmp[3][3] = 1.0f;
 
-  /* Acquire missing tilemaps. */
+  /* Acquire missing tile-maps. */
   while (tilemaps_.size() < tilemaps_needed_) {
     tilemaps_.append(tilemap_pool.acquire());
   }
@@ -311,23 +311,23 @@ void ShadowPunctual::end_sync(Light &light, float lod_bias)
 /* -------------------------------------------------------------------- */
 /** \name Directional Shadow Maps
  *
- * In order to inprove shadow map density, we switch between two tilemap distribution mode.
- * One is beter suited for large FOV (clipmap), the other for really small FOV or Orthographic
+ * In order to improve shadow map density, we switch between two tile-map distribution mode.
+ * One is beater suited for large FOV (clip-map), the other for really small FOV or Orthographic
  * projections (cascade).
  *
- * Clipmap distribution centers a number of log2 sized tilemaps around the view position.
+ * Clip-map distribution centers a number of log2 sized tile-maps around the view position.
  * https://developer.nvidia.com/gpugems/gpugems2/part-i-geometric-complexity/chapter-2-terrain-rendering-using-gpu-based-geometry
  *
- * Cascade distribution puts tilemaps along the frustum projection to the light space.
+ * Cascade distribution puts tile-maps along the frustum projection to the light space.
  * https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-10-parallel-split-shadow-maps-programmable-gpus
  *
- * We choose to distribute cascades linearly to acheive uniform density and simplify lookup.
- * Using clipmap instead of cascades for perspective view also allows for better caching.
+ * We choose to distribute cascades linearly to achieve uniform density and simplify lookup.
+ * Using clip-map instead of cascades for perspective view also allows for better caching.
  * \{ */
 
 eShadowProjectionType ShadowDirectional::directional_distribution_type_get(const Camera &camera)
 {
-  /* TODO(fclem): Enable the cascade projection if the fov is tiny in perspective mode. */
+  /* TODO(fclem): Enable the cascade projection if the FOV is tiny in perspective mode. */
   return camera.is_perspective() ? SHADOW_PROJECTION_CLIPMAP : SHADOW_PROJECTION_CASCADE;
 }
 
@@ -347,24 +347,24 @@ void ShadowDirectional::cascade_tilemaps_distribution_near_far_points(const Came
                float3x3(object_mat_.view<3, 3>());
 }
 
-/* \note All tilemaps are meant to have the same LOD but we still return a range starting at the
+/* \note All tile-maps are meant to have the same LOD but we still return a range starting at the
  * unique LOD. */
 IndexRange ShadowDirectional::cascade_level_range(const Camera &camera, float lod_bias)
 {
   using namespace blender::math;
 
-  /* 16 is arbitrary. To avoid too much tilemap per directional lights. */
+  /* 16 is arbitrary. To avoid too much tile-map per directional lights. */
   const int max_tilemap_per_shadows = 16;
   const CameraData &cam_data = camera.data_get();
 
   float3 near_point, far_point;
   cascade_tilemaps_distribution_near_far_points(camera, near_point, far_point);
 
-  /* This gives the maximum resolution in depth we can have with a fixed set of tilemaps. Gives
+  /* This gives the maximum resolution in depth we can have with a fixed set of tile-maps. Gives
    * the best results when view direction is orthogonal to the light direction. */
   float depth_range_in_shadow_space = distance(far_point.xy(), near_point.xy());
   float min_depth_tilemap_size = 2 * (depth_range_in_shadow_space / max_tilemap_per_shadows);
-  /* This allow coverage of the whole view with a single tilemap if camera forward is colinear
+  /* This allow coverage of the whole view with a single tile-map if camera forward is colinear
    * with the light direction. */
   float min_diagonal_tilemap_size = cam_data.screen_diagonal_length;
 
@@ -373,28 +373,28 @@ IndexRange ShadowDirectional::cascade_level_range(const Camera &camera, float lo
     min_diagonal_tilemap_size *= cam_data.clip_far / cam_data.clip_near;
   }
 
-  /* Allow better tilemap usage without missing pages near end of view. */
+  /* Allow better tile-map usage without missing pages near end of view. */
   lod_bias += 0.5f;
-  /* Level of detail (or size) of every tilemaps of this light. */
+  /* Level of detail (or size) of every tile-maps of this light. */
   int lod_level = ceil(log2(max_ff(min_depth_tilemap_size, min_diagonal_tilemap_size)) + lod_bias);
 
-  /* Tilemaps "rotate" around the first one so their effective range is only half their size. */
+  /* Tile-maps "rotate" around the first one so their effective range is only half their size. */
   float per_tilemap_coverage = ShadowDirectional::coverage_get(lod_level) * 0.5f;
-  /* Number of tilemaps needed to cover the whole view. */
+  /* Number of tile-maps needed to cover the whole view. */
   /* Note: floor + 0.5 to avoid 0 when parallel. */
   int tilemap_len = ceil(0.5f + depth_range_in_shadow_space / per_tilemap_coverage);
   return IndexRange(lod_level, tilemap_len);
 }
 
 /**
- * Distribute tilemaps in a linear pattern along camera forward vector instead of a clipmap
+ * Distribute tile-maps in a linear pattern along camera forward vector instead of a clipmap
  * centered on camera position.
  */
 void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera &camera)
 {
   using namespace blender::math;
 
-  /* All tilemaps use the first level size. */
+  /* All tile-maps use the first level size. */
   float half_size = ShadowDirectional::coverage_get(levels_range.first()) / 2.0f;
   float tile_size = ShadowDirectional::tile_size_get(levels_range.first());
 
@@ -407,14 +407,14 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
   /* Offset for smooth level transitions. */
   light.object_mat.location() = near_point;
 
-  /* Offset in tiles from the origin to the center of the first tilemaps. */
+  /* Offset in tiles from the origin to the center of the first tile-maps. */
   int2 origin_offset = int2(round(float2(near_point) / tile_size));
-  /* Offset in tiles between the first andlod the last tilemaps. */
+  /* Offset in tiles between the first andlod the last tile-maps. */
   int2 offset_vector = int2(round(farthest_tilemap_center / tile_size));
 
   light.clipmap_base_offset = (offset_vector * (1 << 16)) / max_ii(levels_range.size() - 1, 1);
 
-  /* \note: cascade_level_range starts the range at the unique LOD to apply to all tilemaps. */
+  /* \note: cascade_level_range starts the range at the unique LOD to apply to all tile-maps. */
   int level = levels_range.first();
   for (int i : IndexRange(levels_range.size())) {
     ShadowTileMap *tilemap = tilemaps_[i];
@@ -433,8 +433,8 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
 
   light.type = LIGHT_SUN_ORTHO;
 
-  /* Not really clipmaps, but this is in order to make light_tilemap_max_get() work and determine
-   * the scalling. */
+  /* Not really clip-maps, but this is in order to make #light_tilemap_max_get() work and determine
+   * the scaling. */
   light.clipmap_lod_min = levels_range.first();
   light.clipmap_lod_max = levels_range.last();
 
@@ -505,7 +505,7 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light,
   for (int lod : IndexRange(levels_range.size() - 1)) {
     /* Since offset can only differ by one tile from the higher level, we can compress that as a
      * single integer where one bit contains offset between 2 levels. Then a single bit shift in
-     * the shader gives the number of tile to offset in the given tilemap space. However we need
+     * the shader gives the number of tile to offset in the given tile-map space. However we need
      * also the sign of the offset for each level offset. To this end, we split the negative
      * offsets to a separate int.
      * Recovering the offset with: (pos_offset >> lod) - (neg_offset >> lod). */
@@ -583,7 +583,7 @@ void ShadowDirectional::end_sync(Light &light, const Camera &camera, float lod_b
                               clipmap_level_range(camera);
 
   if (levels_range != levels_new) {
-    /* Acquire missing tilemaps. */
+    /* Acquire missing tile-maps. */
     IndexRange isect_range = levels_new.intersect(levels_range);
     int64_t before_range = isect_range.start() - levels_new.start();
     int64_t after_range = levels_new.one_after_last() - isect_range.one_after_last();
@@ -666,7 +666,7 @@ void ShadowModule::init()
     inst_.info = "Error: Could not allocate shadow atlas. Most likely out of GPU memory.";
   }
 
-  /* Read end of the swapchain to avoid stall. */
+  /* Read end of the swap-chain to avoid stall. */
   {
     if (inst_.sampling.finished_viewport()) {
       /* Swap enough to read the last one. */
@@ -769,7 +769,7 @@ void ShadowModule::sync_object(const ObjectHandle &handle,
 
 void ShadowModule::end_sync()
 {
-  /* Delete unused shadows first to release tilemaps that could be reused for new lights. */
+  /* Delete unused shadows first to release tile-maps that could be reused for new lights. */
   for (Light &light : inst_.lights.light_map_.values()) {
     if (!light.used || !enabled_) {
       light.shadow_discard_safe(*this);
@@ -782,7 +782,7 @@ void ShadowModule::end_sync()
     }
   }
 
-  /* Allocate new tilemaps and fill shadow data of the lights. */
+  /* Allocate new tile-maps and fill shadow data of the lights. */
   tilemap_pool.tilemaps_data.clear();
   for (Light &light : inst_.lights.light_map_.values()) {
     if (light.directional != nullptr) {
@@ -831,7 +831,7 @@ void ShadowModule::end_sync()
     /* Clear tiles to not reference any page. */
     tilemap_pool.tiles_data.clear_to_zero();
 
-    /* Clear tilemap clip buffer. */
+    /* Clear tile-map clip buffer. */
     union {
       ShadowTileMapClip clip;
       int4 i;
@@ -877,7 +877,7 @@ void ShadowModule::end_sync()
         sub.barrier(GPU_BARRIER_SHADER_STORAGE);
       }
       {
-        /** Clear usage bits. Tag update from the tilemap for sun shadow clip-maps shifting. */
+        /** Clear usage bits. Tag update from the tile-map for sun shadow clip-maps shifting. */
         PassSimple::Sub &sub = pass.sub("Init");
         sub.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_INIT));
         sub.bind_ssbo("tilemaps_buf", tilemap_pool.tilemaps_data);
@@ -1120,15 +1120,15 @@ void ShadowModule::set_view(View &view)
       tile_update_remains = false;
     }
     else {
-      /* This provoke a GPU/CPU sync. Avoid it if we are sure that all tilemaps will be rendered in
-       * a single iteration. */
+      /* This provoke a GPU/CPU sync. Avoid it if we are sure that all tile-maps will be rendered
+       * in a single iteration. */
       bool enough_tilemap_for_single_iteration = tilemap_pool.tilemaps_data.size() <=
                                                  SHADOW_VIEW_MAX;
       if (enough_tilemap_for_single_iteration) {
         tile_update_remains = false;
       }
       else {
-        /* Readback and check if there is still tilemap to update. */
+        /* Read back and check if there is still tile-map to update. */
         tile_update_remains = false;
         statistics_buf_.current().read();
         ShadowStatistics stats = statistics_buf_.current();

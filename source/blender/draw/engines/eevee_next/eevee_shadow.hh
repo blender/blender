@@ -123,7 +123,7 @@ struct ShadowTileMapPool {
   Vector<uint> free_indices;
   /** Pool containing shadow tile structure on CPU. */
   Pool<ShadowTileMap> tilemap_pool;
-  /** Sorted descriptions for each tilemap in the pool. Updated each frame. */
+  /** Sorted descriptions for each tile-map in the pool. Updated each frame. */
   ShadowTileMapDataBuf tilemaps_data = {"tilemaps_data"};
   /** Previously used tile-maps that needs to release their tiles/pages. Updated each frame. */
   ShadowTileMapDataBuf tilemaps_unused = {"tilemaps_unused"};
@@ -190,7 +190,7 @@ class ShadowModule {
   Map<ObjectKey, ShadowObject> objects_;
 
   /* -------------------------------------------------------------------- */
-  /** \name Tilemap Management
+  /** \name Tile-map Management
    * \{ */
 
   PassSimple tilemap_setup_ps_ = {"TilemapSetup"};
@@ -214,7 +214,7 @@ class ShadowModule {
   StorageArrayBuffer<uint, SHADOW_MAX_PAGE> clear_page_buf_ = {"clear_page_buf"};
 
   int3 dispatch_depth_scan_size_;
-  /* Ratio between tilemap pixel world "radius" and film pixel world "radius". */
+  /* Ratio between tile-map pixel world "radius" and film pixel world "radius". */
   float tilemap_projection_ratio_;
 
   /* Statistics that are read back to CPU after a few frame (to avoid stall). */
@@ -230,7 +230,7 @@ class ShadowModule {
   /** Atlas containing all physical pages. */
   Texture atlas_tx_ = {"shadow_atlas_tx_"};
 
-  /** Pool of unallocated pages waiting to be assigned to specific tiles in the tilemap atlas. */
+  /** Pool of unallocated pages waiting to be assigned to specific tiles in the tile-map atlas. */
   ShadowPageHeapBuf pages_free_data_ = {"PagesFreeBuf"};
   /** Pool of cached tiles waiting to be reused. */
   ShadowPageCacheBuf pages_cached_data_ = {"PagesCachedBuf"};
@@ -259,7 +259,7 @@ class ShadowModule {
                             64,
                             nullptr,
                             SHADOW_TILEMAP_LOD + 1};
-  /** An empty frame-buffer (no attachment) the size of a whole tilemap. */
+  /** An empty frame-buffer (no attachment) the size of a whole tile-map. */
   Framebuffer render_fb_;
 
   /** \} */
@@ -416,7 +416,7 @@ class ShadowDirectional : public NonCopyable, NonMovable {
    */
   void end_sync(Light &light, const Camera &camera, float lod_bias);
 
-  /* Return coverage of the whole tilemap in world unit. */
+  /* Return coverage of the whole tile-map in world unit. */
   static float coverage_get(int lvl)
   {
     /* This function should be kept in sync with shadow_directional_level(). */
@@ -424,7 +424,7 @@ class ShadowDirectional : public NonCopyable, NonMovable {
     return exp2(lvl);
   }
 
-  /* Return coverage of a single tile for a tilemap of this LOD in world unit. */
+  /* Return coverage of a single tile for a tile-map of this LOD in world unit. */
   static float tile_size_get(int lvl)
   {
     return coverage_get(lvl) / SHADOW_TILEMAP_RES;
@@ -441,8 +441,8 @@ class ShadowDirectional : public NonCopyable, NonMovable {
                                                      float3 &near_point,
                                                      float3 &far_point);
 
-  /* Choose between clipmap and cascade distribution of shadowmap precision depending on the camera
-   * projection type and bounds. */
+  /* Choose between clip-map and cascade distribution of shadow-map precision depending on the
+   * camera projection type and bounds. */
   static eShadowProjectionType directional_distribution_type_get(const Camera &camera);
 };
 

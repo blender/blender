@@ -470,7 +470,7 @@ static void sculpt_boundary_falloff_factor_init(SculptSession *ss,
         const int div = boundary_distance / radius;
         const float mod = fmodf(boundary_distance, radius);
         falloff_distance = div % 2 == 0 ? mod : radius - mod;
-        /* Inverts the faloff in the intervals 1 2 5 6 9 10 ... */
+        /* Inverts the falloff in the intervals 1 2 5 6 9 10 ... etc. */
         if (((div - 1) & 2) == 0) {
           direction = -1.0f;
         }

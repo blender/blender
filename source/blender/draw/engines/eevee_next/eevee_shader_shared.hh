@@ -631,7 +631,7 @@ struct LightData {
   float2 spot_size_inv;
   /** Spot angle tangent. */
   float spot_tan;
-  /** Reuse for directionnal lod bias. */
+  /** Reuse for directional LOD bias. */
 #define _clipmap_lod_bias spot_tan
   /** Power depending on shader type. */
   float diffuse_power;
@@ -643,12 +643,12 @@ struct LightData {
   /** Directional : Near clip distance. Float stored as int for atomic operations. */
   int clip_near;
   int clip_far;
-  /** Directional : Clip-map lod range to avoid sampling outside of valid range. */
+  /** Directional : Clip-map LOD range to avoid sampling outside of valid range. */
   int clipmap_lod_min;
   int clipmap_lod_max;
   /** Index of the first tile-map. */
   int tilemap_index;
-  /** Directional : Offset of the lod min in lod min tile units. */
+  /** Directional : Offset of the LOD min in LOD min tile units. */
   int2 clipmap_base_offset;
   /** Punctual & Directional : Normal matrix packed for automatic bias. */
   float2 normal_mat_packed;
@@ -758,7 +758,7 @@ struct ShadowTileData {
   uint2 page;
   /** Page index inside pages_cached_buf. Only valid if `is_cached` is true. */
   uint cache_index;
-  /** Lod pointed to LOD 0 tile page. (cubemap only) */
+  /** LOD pointed to LOD 0 tile page. (cube-map only). */
   uint lod;
   /** If the tile is needed for rendering. */
   bool is_used;
