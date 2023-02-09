@@ -2432,7 +2432,7 @@ ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int f
     psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches, flag);
   }
 
-  /* XXX(@campbellbarton): from reading existing code this seems correct but intended usage of
+  /* XXX(@ideasman42): from reading existing code this seems correct but intended usage of
    * point-cache should with cloth should be added in 'ParticleSystem'. */
   if (psysn->clmd) {
     psysn->clmd->point_cache = psysn->pointcache;

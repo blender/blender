@@ -1690,7 +1690,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
 
   {
     /* Free images which can have changed on frame-change.
-     * WARNING(@campbellbarton): can be slow so only free animated images. */
+     * WARNING(@ideasman42): can be slow so only free animated images. */
     BKE_image_free_anim_gputextures(G.main);
   }
 
@@ -2412,7 +2412,7 @@ void ED_view3d_datamask(const Scene *scene,
                         const View3D *v3d,
                         CustomData_MeshMasks *r_cddata_masks)
 {
-  /* NOTE(@campbellbarton): as this function runs continuously while idle
+  /* NOTE(@ideasman42): as this function runs continuously while idle
    * (from #wm_event_do_depsgraph) take care to avoid expensive lookups.
    * While they won't hurt performance noticeably, they will increase CPU usage while idle. */
   if (ELEM(v3d->shading.type, OB_TEXTURE, OB_MATERIAL, OB_RENDER)) {

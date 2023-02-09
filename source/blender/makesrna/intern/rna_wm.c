@@ -2752,7 +2752,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "OS Key", "Operating system key pressed, -1 for any state");
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
-  /* XXX(@campbellbarton): the `*_ui` suffix is only for the UI, may be removed,
+  /* XXX(@ideasman42): the `*_ui` suffix is only for the UI, may be removed,
    * since this is only exposed so the UI can show these settings as toggle-buttons. */
   prop = RNA_def_property(srna, "shift_ui", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "shift", 0);

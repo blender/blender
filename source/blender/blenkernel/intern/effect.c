@@ -1122,7 +1122,7 @@ void BKE_effectors_apply(ListBase *effectors,
                          float *wind_force,
                          float *impulse)
 {
-  /* WARNING(@campbellbarton): historic comment?
+  /* WARNING(@ideasman42): historic comment?
    * Many of these parameters don't exist!
    *
    * scene        = scene where it runs in, for time and stuff.

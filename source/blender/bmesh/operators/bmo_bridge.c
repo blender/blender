@@ -15,7 +15,7 @@
 #include "intern/bmesh_operators_private.h" /* own include */
 
 /**
- * TODO(@campbellbarton): Many connected edge loops can cause an error attempting
+ * TODO(@ideasman42): Many connected edge loops can cause an error attempting
  * to create faces with duplicate vertices. While this needs to be investigated,
  * it's simple enough to check for this case, see: T102232.
  */

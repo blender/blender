@@ -1206,7 +1206,7 @@ static void wm_draw_surface(bContext *C, wmSurface *surface)
 
 uint *WM_window_pixels_read_offscreen(bContext *C, wmWindow *win, int r_size[2])
 {
-  /* NOTE(@campbellbarton): There is a problem reading the windows front-buffer after redrawing
+  /* NOTE(@ideasman42): There is a problem reading the windows front-buffer after redrawing
    * the window in some cases (typically to clear UI elements such as menus or search popup).
    * With EGL `eglSurfaceAttrib(..)` may support setting the `EGL_SWAP_BEHAVIOR` attribute to
    * `EGL_BUFFER_PRESERVED` however not all implementations support this.

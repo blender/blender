@@ -259,7 +259,7 @@ bool WM_gizmomap_minmax(const wmGizmoMap *gzmap,
  * \param poll: Polling function for excluding gizmos.
  * \param data: Custom data passed to \a poll
  *
- * TODO(@campbellbarton): this uses unreliable order,
+ * TODO(@ideasman42): this uses unreliable order,
  * best we use an iterator function instead of a hash.
  */
 static GHash *WM_gizmomap_gizmo_hash_new(const bContext *C,
@@ -430,7 +430,7 @@ static void gizmos_draw_list(const wmGizmoMap *gzmap, const bContext *C, ListBas
     return;
   }
 
-  /* TODO(@campbellbarton): This will need it own shader probably?
+  /* TODO(@ideasman42): This will need it own shader probably?
    * Don't think it can be handled from that point though. */
   // const bool use_lighting = (U.gizmo_flag & V3D_GIZMO_SHADED) != 0;
 
@@ -501,7 +501,7 @@ static void gizmo_draw_select_3d_loop(const bContext *C,
                                       bool *r_use_select_bias)
 {
 
-  /* TODO(@campbellbarton): this depends on depth buffer being written to,
+  /* TODO(@ideasman42): this depends on depth buffer being written to,
    * currently broken for the 3D view. */
   bool is_depth_prev = false;
   bool is_depth_skip_prev = false;

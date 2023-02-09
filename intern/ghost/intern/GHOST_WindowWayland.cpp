@@ -669,7 +669,7 @@ static void xdg_surface_handle_configure(void *data,
   GHOST_SystemWayland *system = win->ghost_system;
   const bool is_main_thread = system->main_thread_id == std::this_thread::get_id();
   if (!is_main_thread) {
-    /* NOTE(@campbellbarton): this only gets one redraw,
+    /* NOTE(@ideasman42): this only gets one redraw,
      * I could not find a case where this causes problems. */
     gwl_window_pending_actions_tag(win, PENDING_FRAME_CONFIGURE);
   }
@@ -774,7 +774,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   window_->ghost_window = this;
   window_->ghost_system = system;
 
-  /* NOTE(@campbellbarton): The scale set here to avoid flickering on startup.
+  /* NOTE(@ideasman42): The scale set here to avoid flickering on startup.
    * When all monitors use the same scale (which is quite common) there aren't any problems.
    *
    * When monitors have different scales there may still be a visible window resize on startup.
@@ -1078,7 +1078,7 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
 
   wl_surface_destroy(window_->wl_surface);
 
-  /* NOTE(@campbellbarton): Flushing will often run the appropriate handlers event
+  /* NOTE(@ideasman42): Flushing will often run the appropriate handlers event
    * (#wl_surface_listener.leave in particular) to avoid attempted access to the freed surfaces.
    * This is not fool-proof though, hence the call to #window_surface_unref, see: T99078. */
   wl_display_flush(system_->wl_display());

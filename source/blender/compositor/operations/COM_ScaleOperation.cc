@@ -7,7 +7,7 @@
 namespace blender::compositor {
 
 #define USE_FORCE_BILINEAR
-/* XXX(@campbellbarton): ignore input and use default from old compositor,
+/* XXX(@ideasman42): ignore input and use default from old compositor,
  * could become an option like the transform node.
  *
  * NOTE: use bilinear because bicubic makes fuzzy even when not scaling at all (1:1)

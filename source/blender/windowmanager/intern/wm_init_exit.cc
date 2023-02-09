@@ -270,7 +270,7 @@ void WM_init(bContext *C, int argc, const char **argv)
   BLI_assert((G.fileflags & G_FILE_NO_UI) == 0);
 
   /**
-   * NOTE(@campbellbarton): Startup file and order of initialization.
+   * NOTE(@ideasman42): Startup file and order of initialization.
    *
    * Loading #BLENDER_STARTUP_FILE, #BLENDER_USERPREF_FILE, starting Python and other sub-systems,
    * have inter-dependencies, for example.

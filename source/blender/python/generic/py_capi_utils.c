@@ -835,7 +835,7 @@ static void pyc_exception_buffer_handle_system_exit(PyObject *error_type,
     return;
   }
 
-  /* NOTE(@campbellbarton): A `SystemExit` exception will exit immediately (unless inspecting).
+  /* NOTE(@ideasman42): A `SystemExit` exception will exit immediately (unless inspecting).
    * So print the error and exit now. This is necessary as the call to #PyErr_Print exits,
    * the temporary `sys.stderr` assignment causes the output to be suppressed, failing silently.
    * Instead, restore the error and print it. If Python changes it's behavior and doesn't exit in

@@ -3327,7 +3327,7 @@ static void redraw_timer_step(bContext *C,
 static bool redraw_timer_poll(bContext *C)
 {
   /* Check background mode as many of these actions use redrawing.
-   * NOTE(@campbellbarton): if it's useful to support undo or animation step this could
+   * NOTE(@ideasman42): if it's useful to support undo or animation step this could
    * be allowed at the moment this seems like a corner case that isn't needed. */
   return !G.background && WM_operator_winactive(C);
 }

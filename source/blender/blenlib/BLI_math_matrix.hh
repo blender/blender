@@ -757,7 +757,7 @@ template<typename T> detail::Quaternion<T> normalized_to_quat_fast(const MatBase
       }
     }
     else {
-      /* NOTE(@campbellbarton): A zero matrix will fall through to this block,
+      /* NOTE(@ideasman42): A zero matrix will fall through to this block,
        * needed so a zero scaled matrices to return a quaternion without rotation, see: T101848.
        */
       const T trace = 1.0f + mat[0][0] + mat[1][1] + mat[2][2];

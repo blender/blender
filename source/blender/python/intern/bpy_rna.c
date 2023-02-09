@@ -780,7 +780,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
   return ret;
 }
 
-/* NOTE(@campbellbarton): Regarding comparison `__cmp__`:
+/* NOTE(@ideasman42): Regarding comparison `__cmp__`:
  * checking the 'ptr->data' matches works in almost all cases,
  * however there are a few RNA properties that are fake sub-structs and
  * share the pointer with the parent, in those cases this happens 'a.b == a'
@@ -8152,7 +8152,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
       continue;
     }
 
-    /* TODO(@campbellbarton): this is used for classmethod's too,
+    /* TODO(@ideasman42): this is used for classmethod's too,
      * even though class methods should have 'FUNC_USE_SELF_TYPE' set, see Operator.poll for eg.
      * Keep this as-is since it's working, but we should be using
      * 'FUNC_USE_SELF_TYPE' for many functions. */
@@ -8243,7 +8243,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
       continue;
     }
 
-    /* TODO(@campbellbarton): Use Python3.7x _PyObject_LookupAttr(), also in the macro below. */
+    /* TODO(@ideasman42): Use Python3.7x _PyObject_LookupAttr(), also in the macro below. */
     identifier = RNA_property_identifier(prop);
     item = PyObject_GetAttrString(py_class, identifier);
 

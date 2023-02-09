@@ -859,7 +859,7 @@ static void bm_to_mesh_shape(BMesh *bm,
             ((keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset)) != ORIGINDEX_NONE) &&
             (keyi < currkey->totelem)) {
           /* Reconstruct keys via vertices original key indices.
-           * WARNING(@campbellbarton): `currkey->data` is known to be unreliable as the edit-mesh
+           * WARNING(@ideasman42): `currkey->data` is known to be unreliable as the edit-mesh
            * coordinates may be flushed back to the shape-key when exporting or rendering.
            * This is a last resort! If this branch is running as part of regular usage
            * it can be considered a bug. */

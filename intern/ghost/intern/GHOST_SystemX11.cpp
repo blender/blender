@@ -278,7 +278,7 @@ uint8_t GHOST_SystemX11::getNumDisplays() const
 void GHOST_SystemX11::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
   if (m_display) {
-    /* NOTE(@campbellbarton): for this to work as documented,
+    /* NOTE(@ideasman42): for this to work as documented,
      * we would need to use Xinerama check r54370 for code that did this,
      * we've since removed since its not worth the extra dependency. */
     getAllDisplayDimensions(width, height);
@@ -927,7 +927,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           if (window->getCursorGrabMode() == GHOST_kGrabHide) {
             window->getClientBounds(bounds);
 
-            /* TODO(@campbellbarton): warp the cursor to `window->getCursorGrabInitPos`,
+            /* TODO(@ideasman42): warp the cursor to `window->getCursorGrabInitPos`,
              * on every motion event, see: D16557 (alternative fix for T102346). */
             const int32_t subregion_div = 4; /* One quarter of the region. */
             const int32_t size[2] = {bounds.getWidth(), bounds.getHeight()};

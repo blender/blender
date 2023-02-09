@@ -9,7 +9,7 @@
 
 #include "DNA_defs.h"
 
-/* XXX(@campbellbarton): temp feature. */
+/* XXX(@ideasman42): temp feature. */
 #define DURIAN_CAMERA_SWITCH
 
 /**

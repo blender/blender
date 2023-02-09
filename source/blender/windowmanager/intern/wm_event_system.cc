@@ -2782,7 +2782,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
 
         if (handler->op->reports->list.first) {
 
-          /* FIXME(@campbellbarton): temp setting window, this is really bad!
+          /* FIXME(@ideasman42): temp setting window, this is really bad!
            * only have because lib linking errors need to be seen by users :(
            * it can be removed without breaking anything but then no linking errors. */
           wmWindow *win_prev = CTX_wm_window(C);
@@ -3422,7 +3422,7 @@ static eHandlerActionFlag wm_handlers_do(bContext *C, wmEvent *event, ListBase *
   if (ISMOUSE_MOTION(event->type)) {
     /* Test for #KM_CLICK_DRAG events. */
 
-    /* NOTE(@campbellbarton): Needed so drag can be used for editors that support both click
+    /* NOTE(@ideasman42): Needed so drag can be used for editors that support both click
      * selection and passing through the drag action to box select. See #WM_generic_select_modal.
      * Unlike click, accept `action` when break isn't set.
      * Operators can return `OPERATOR_FINISHED | OPERATOR_PASS_THROUGH` which results
@@ -4421,7 +4421,7 @@ static void wm_event_get_keymap_from_toolsystem_ex(wmWindowManager *wm,
   const char *keymap_id_list[ARRAY_SIZE(km_result->keymaps)];
   int keymap_id_list_len = 0;
 
-  /* NOTE(@campbellbarton): If `win` is nullptr, this function may not behave as expected.
+  /* NOTE(@ideasman42): If `win` is nullptr, this function may not behave as expected.
    * Assert since this should not happen in practice.
    * If it does, the window could be looked up in `wm` using the `area`.
    * Keep nullptr checks in run-time code since any crashes here are difficult to redo. */
@@ -5556,7 +5556,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
       }
 
       if (event.utf8_buf[0]) {
-        /* NOTE(@campbellbarton): Detect non-ASCII characters stored in `utf8_buf`,
+        /* NOTE(@ideasman42): Detect non-ASCII characters stored in `utf8_buf`,
          * ideally this would never happen but it can't be ruled out for X11 which has
          * special handling of Latin1 when building without UTF8 support.
          * Avoid regressions by adding this conversions, it should eventually be removed. */
@@ -5580,7 +5580,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, const int type,
         }
       }
 
-      /* NOTE(@campbellbarton): Setting the modifier state based on press/release
+      /* NOTE(@ideasman42): Setting the modifier state based on press/release
        * is technically incorrect.
        *
        * - The user might hold both left/right modifier keys, then only release one.

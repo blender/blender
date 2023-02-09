@@ -17,7 +17,7 @@
 
 #include "sequencer_intern.h"
 
-/* XXX(@campbellbarton): why is this function better than BLI_math version?
+/* XXX(@ideasman42): why is this function better than BLI_math version?
  * only difference is it does some normalize after, need to double check on this. */
 static void rgb_to_yuv_normalized(const float rgb[3], float yuv[3])
 {

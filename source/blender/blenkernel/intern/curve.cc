@@ -2251,7 +2251,7 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
   int nr;
   float q[4];
   const bool is_cyclic = bl->poly != -1;
-  /* NOTE(@campbellbarton): For non-cyclic curves only initialize the first direction
+  /* NOTE(@ideasman42): For non-cyclic curves only initialize the first direction
    * (via `vec_to_quat`), necessary for symmetry, see T71137.
    * Otherwise initialize the first and second points before propagating rotation forward.
    * This is historical as changing this can cause significantly different output.
@@ -2480,7 +2480,7 @@ static void make_bevel_list_segment_2D(BevList *bl)
 
 static void make_bevel_list_2D(BevList *bl)
 {
-  /* NOTE(@campbellbarton): `bevp->dir` and `bevp->quat` are not needed for beveling but are
+  /* NOTE(@ideasman42): `bevp->dir` and `bevp->quat` are not needed for beveling but are
    * used when making a path from a 2D curve, therefore they need to be set. */
 
   BevPoint *bevp0, *bevp1, *bevp2;

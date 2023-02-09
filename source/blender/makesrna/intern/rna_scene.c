@@ -1318,7 +1318,7 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
   ID *id = ptr->owner_id;
   const bool is_render = (id && GS(id->name) == ID_SCE);
 
-  /* NOTE(@campbellbarton): we need to act differently for render
+  /* NOTE(@ideasman42): we need to act differently for render
    * where 'BW' will force grayscale even if the output format writes
    * as RGBA, this is age old blender convention and not sure how useful
    * it really is but keep it for now. */

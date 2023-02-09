@@ -322,7 +322,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
     return;
   }
 
-  /* FIXME(@campbellbarton): swapping active pointer is weak. */
+  /* FIXME(@ideasman42): swapping active pointer is weak. */
   std::swap(but_anim->active, but_decorate->active);
   wm->op_undo_depth++;
 

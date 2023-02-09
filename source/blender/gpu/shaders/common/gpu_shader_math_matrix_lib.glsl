@@ -1121,9 +1121,8 @@ Quaternion normalized_to_quat_fast(mat3 mat)
       }
     }
     else {
-      /* NOTE(@campbellbarton): A zero matrix will fall through to this block,
-       * needed so a zero scaled matrices to return a quaternion without rotation, see: T101848.
-       */
+      /* NOTE(@ideasman42): A zero matrix will fall through to this block,
+       * needed so a zero scaled matrices to return a quaternion without rotation, see: T101848. */
       float trace = 1.0f + mat[0][0] + mat[1][1] + mat[2][2];
       float s = 2.0f * sqrt(trace);
       q.x = 0.25f * s;

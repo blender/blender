@@ -402,7 +402,7 @@ bool BLI_str_quoted_substr_range(const char *__restrict str,
   return true;
 }
 
-/* NOTE(@campbellbarton): in principal it should be possible to access a quoted string
+/* NOTE(@ideasman42): in principal it should be possible to access a quoted string
  * with an arbitrary size, currently all callers for this functionality
  * happened to use a fixed size buffer, so only #BLI_str_quoted_substr is needed. */
 #if 0

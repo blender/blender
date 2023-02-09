@@ -34,7 +34,7 @@ static int compare_v2_classify(const float uv_a[2], const float uv_b[2])
   if (uv_a[0] == uv_b[0] && uv_a[1] == uv_b[1]) {
     return CMP_EQUAL;
   }
-  /* NOTE(@campbellbarton): that the ULP value is the primary value used to compare relative
+  /* NOTE(@ideasman42): that the ULP value is the primary value used to compare relative
    * values as the absolute value doesn't account for float precision at difference scales.
    * - For subdivision-surface ULP of 3 is sufficient,
    *   although this value is extremely small.

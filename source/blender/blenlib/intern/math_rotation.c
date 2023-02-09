@@ -334,7 +334,7 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
       }
     }
     else {
-      /* NOTE(@campbellbarton): A zero matrix will fall through to this block,
+      /* NOTE(@ideasman42): A zero matrix will fall through to this block,
        * needed so a zero scaled matrices to return a quaternion without rotation, see: T101848. */
       const float trace = 1.0f + mat[0][0] + mat[1][1] + mat[2][2];
       float s = 2.0f * sqrtf(trace);

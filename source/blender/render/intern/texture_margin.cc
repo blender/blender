@@ -558,7 +558,7 @@ static void generate_margin(ImBuf *ibuf,
     for (int a = 0; a < 3; a++) {
       const float *uv = mloopuv[lt->tri[a]];
 
-      /* NOTE(@campbellbarton): workaround for pixel aligned UVs which are common and can screw up
+      /* NOTE(@ideasman42): workaround for pixel aligned UVs which are common and can screw up
        * our intersection tests where a pixel gets in between 2 faces or the middle of a quad,
        * camera aligned quads also have this problem but they are less common.
        * Add a small offset to the UVs, fixes bug T18685. */

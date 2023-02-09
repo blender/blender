@@ -8793,7 +8793,7 @@ void UI_context_active_but_prop_handle(bContext *C, const bool handle_undo)
 {
   uiBut *activebut = ui_context_rna_button_active(C);
   if (activebut) {
-    /* TODO(@campbellbarton): look into a better way to handle the button change
+    /* TODO(@ideasman42): look into a better way to handle the button change
      * currently this is mainly so reset defaults works for the
      * operator redo panel. */
     uiBlock *block = activebut->block;

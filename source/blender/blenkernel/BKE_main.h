@@ -425,7 +425,7 @@ int set_listbasepointers(struct Main *main, struct ListBase *lb[]);
 /**
  * The size of thumbnails (optionally) stored in the `.blend` files header.
  *
- * NOTE(@campbellbarton): This is kept small as it's stored uncompressed in the `.blend` file,
+ * NOTE(@ideasman42): This is kept small as it's stored uncompressed in the `.blend` file,
  * where a larger size would increase the size of every `.blend` file unreasonably.
  * If we wanted to increase the size, we'd want to use compression (JPEG or similar).
  */

@@ -241,7 +241,7 @@ enum {
   BTN_STYLUS = 0x14b,
   /** Use as right-mouse. */
   BTN_STYLUS2 = 0x14c,
-  /** NOTE(@campbellbarton): Map to an additional button (not sure which hardware uses this). */
+  /** NOTE(@ideasman42): Map to an additional button (not sure which hardware uses this). */
   BTN_STYLUS3 = 0x149,
 };
 
@@ -916,7 +916,7 @@ struct GWL_Display {
    * The main purpose of having an active seat is an alternative from always using the first
    * seat which prevents events from any other seat.
    *
-   * NOTE(@campbellbarton): This could be extended and developed further extended to support
+   * NOTE(@ideasman42): This could be extended and developed further extended to support
    * an active seat per window (for e.g.), basic support is sufficient for now as currently isn't
    * a widely used feature.
    */
@@ -1237,7 +1237,7 @@ static void gwl_registry_entry_remove_all(GWL_Display *display)
 {
   const bool on_exit = true;
 
-  /* NOTE(@campbellbarton): Free by slot instead of simply looping over
+  /* NOTE(@ideasman42): Free by slot instead of simply looping over
    * `display->registry_entry` so the order of freeing is always predictable.
    * Otherwise global objects would be feed in the order they are registered.
    * While this works in my tests, it could cause difficult to reproduce bugs
@@ -1267,7 +1267,7 @@ static void gwl_registry_entry_remove_all(GWL_Display *display)
  * so there is no reason to update all other outputs that an output was removed (for e.g.).
  * Pass as -1 to update all slots.
  *
- * NOTE(@campbellbarton): Updating all other items on a single change is typically worth avoiding.
+ * NOTE(@ideasman42): Updating all other items on a single change is typically worth avoiding.
  * In practice this isn't a problem as so there are so few elements in `display->registry_entry`,
  * so few use update functions and adding/removal at runtime is rarely called (plugging/unplugging)
  * hardware for e.g. So while it's possible to store dependency links to avoid unnecessary
@@ -1316,7 +1316,7 @@ static void ghost_wl_display_report_error(struct wl_display *display)
     fprintf(stderr, "The Wayland connection experienced a fatal error: %s\n", strerror(ecode));
   }
 
-  /* NOTE(@campbellbarton): The application is running,
+  /* NOTE(@ideasman42): The application is running,
    * however an error closes all windows and most importantly:
    * shuts down the GPU context (loosing all GPU state - shaders, bind codes etc),
    * so recovering from this effectively involves restarting.
@@ -2968,7 +2968,7 @@ static void gesture_pinch_handle_begin(void *data,
   if (wl_surface *wl_surface_focus = seat->pointer.wl_surface_window) {
     win = ghost_wl_surface_user_data(wl_surface_focus);
   }
-  /* NOTE(@campbellbarton): Blender's use of track-pad coordinates is inconsistent and needs work.
+  /* NOTE(@ideasman42): Blender's use of track-pad coordinates is inconsistent and needs work.
    * This isn't specific to WAYLAND, in practice they tend to work well enough in most cases.
    * Some operators scale by the UI scale, some don't.
    * Even this window scale is not correct because it doesn't account for:
@@ -2982,7 +2982,7 @@ static void gesture_pinch_handle_begin(void *data,
    */
   const wl_fixed_t win_scale = win ? win->scale() : 1;
 
-  /* NOTE(@campbellbarton): Scale factors match Blender's operators & default preferences.
+  /* NOTE(@ideasman42): Scale factors match Blender's operators & default preferences.
    * For these values to work correctly, operator logic will need to be changed not to scale input
    * by the region size (as with 3D view zoom) or preference for 3D view orbit sensitivity.
    *
@@ -3145,7 +3145,7 @@ static const struct zwp_pointer_gesture_swipe_v1_listener gesture_swipe_listener
 /* -------------------------------------------------------------------- */
 /** \name Listener (Touch Seat), #wl_touch_listener
  *
- * NOTE(@campbellbarton): It's not clear if this interface is used by popular compositors.
+ * NOTE(@ideasman42): It's not clear if this interface is used by popular compositors.
  * It looks like GNOME/KDE only support `zwp_pointer_gestures_v1_interface`.
  * If this isn't used anywhere, it could be removed.
  * \{ */
@@ -3806,7 +3806,7 @@ static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(
   /* Use an empty keyboard state to access key symbol without modifiers. */
   xkb_keysym_t sym = xkb_state_key_get_one_sym(xkb_state_empty, key);
 
-  /* NOTE(@campbellbarton): Only perform the number-locked lookup as a fallback
+  /* NOTE(@ideasman42): Only perform the number-locked lookup as a fallback
    * when a number-pad key has been pressed. This is important as some key-maps use number lock
    * for switching other layers (in particular `de(neo_qwertz)` turns on layer-4), see: T96170.
    * Alternative solutions could be to inspect the layout however this could get involved
@@ -3936,7 +3936,7 @@ static void keyboard_handle_key(void *data,
       else {
         /* Key-up from keys that were not repeating cause the repeat timer to pause.
          *
-         * NOTE(@campbellbarton): This behavior isn't universal, some text input systems will
+         * NOTE(@ideasman42): This behavior isn't universal, some text input systems will
          * stop the repeat entirely. Choose to pause repeat instead as this is what GTK/WIN32 do,
          * and it fits better for keyboard input that isn't related to text entry. */
         timer_action = RESET;
@@ -7035,7 +7035,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
                                                          UNPACK2(xy_next));
           wl_surface_commit(wl_surface);
 
-          /* NOTE(@campbellbarton): The new cursor position is a hint,
+          /* NOTE(@ideasman42): The new cursor position is a hint,
            * it's possible the hint is ignored. It doesn't seem like there is a good way to
            * know if the hint will be used or not, at least not immediately. */
           xy_motion[0] = xy_next[0];
@@ -7078,7 +7078,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
   if (mode != GHOST_kGrabDisable) {
     if (grab_state_next.use_lock) {
       if (!grab_state_prev.use_lock) {
-        /* TODO(@campbellbarton): As WAYLAND does not support warping the pointer it may not be
+        /* TODO(@ideasman42): As WAYLAND does not support warping the pointer it may not be
          * possible to support #GHOST_kGrabWrap by pragmatically settings it's coordinates.
          * An alternative could be to draw the cursor in software (and hide the real cursor),
          * or just accept a locked cursor on WAYLAND. */

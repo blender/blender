@@ -374,7 +374,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
     /* Allow the user site directory because this is used
      * when PIP installing packages from Blender, see: T104000.
      *
-     * NOTE(@campbellbarton): While an argument can be made for isolating Blender's Python
+     * NOTE(@ideasman42): While an argument can be made for isolating Blender's Python
      * from the users home directory entirely, an alternative directory should be used in that
      * case - so PIP can be used to install packages. Otherwise PIP will install packages to a
      * directory which us not in the users `sys.path`, see `site.USER_BASE` for details. */

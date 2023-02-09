@@ -1012,7 +1012,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   if (do_rim) {
     uint i;
 
-    /* NOTE(@campbellbarton): Unfortunately re-calculate the normals for the new edge
+    /* NOTE(@ideasman42): Unfortunately re-calculate the normals for the new edge
      * faces is necessary. This could be done in many ways, but probably the quickest
      * way is to calculate the average normals for side faces only.
      * Then blend them with the normals of the edge verts.

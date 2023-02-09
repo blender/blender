@@ -1890,7 +1890,7 @@ static void icon_draw_size(float x,
   }
   else if (di->type == ICON_TYPE_GEOM) {
 #ifdef USE_UI_TOOLBAR_HACK
-    /* TODO(@campbellbarton): scale icons up for toolbar,
+    /* TODO(@ideasman42): scale icons up for toolbar,
      * we need a way to detect larger buttons and do this automatic. */
     {
       float scale = float(ICON_DEFAULT_HEIGHT_TOOLBAR) / float(ICON_DEFAULT_HEIGHT);
@@ -1905,7 +1905,7 @@ static void icon_draw_size(float x,
     const bool geom_inverted = di->data.geom.inverted;
 
     /* This could re-generate often if rendered at different sizes in the one interface.
-     * TODO(@campbellbarton): support caching multiple sizes. */
+     * TODO(@ideasman42): support caching multiple sizes. */
     ImBuf *ibuf = di->data.geom.image_cache;
     if ((ibuf == nullptr) || (ibuf->x != w) || (ibuf->y != h) || (invert != geom_inverted)) {
       if (ibuf) {

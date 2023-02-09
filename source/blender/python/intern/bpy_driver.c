@@ -346,7 +346,7 @@ static const bool secure_opcodes[255] = {
     OK_OP(RESUME),
     OK_OP(LIST_EXTEND),
     OK_OP(SET_UPDATE),
-/* NOTE(@campbellbarton): Don't enable dict manipulation, unless we can prove there is not way it
+/* NOTE(@ideasman42): Don't enable dict manipulation, unless we can prove there is not way it
  * can be used to manipulate the name-space (potentially allowing malicious code). */
 #    if 0
     OK_OP(DICT_MERGE),
@@ -430,7 +430,7 @@ static const bool secure_opcodes[255] = {
     OK_OP(STORE_DEREF),
     OK_OP(LIST_EXTEND),
     OK_OP(SET_UPDATE),
-/* NOTE(@campbellbarton): Don't enable dict manipulation, unless we can prove there is not way it
+/* NOTE(@ideasman42): Don't enable dict manipulation, unless we can prove there is not way it
  * can be used to manipulate the name-space (potentially allowing malicious code). */
 #    if 0
     OK_OP(DICT_MERGE),

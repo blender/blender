@@ -1619,7 +1619,7 @@ char WM_event_utf8_to_ascii(const struct wmEvent *event) ATTR_NONNULL(1) ATTR_WA
  * \param mval: Region relative coordinates, call with (-1, -1) resets the last cursor location.
  * \returns True when there was motion since last called.
  *
- * NOTE(@campbellbarton): The logic used here isn't foolproof.
+ * NOTE(@ideasman42): The logic used here isn't foolproof.
  * It's possible that users move the cursor past #WM_EVENT_CURSOR_MOTION_THRESHOLD then back to
  * a position within the threshold (between mouse clicks).
  * In practice users never reported this since the threshold is very small (a few pixels).

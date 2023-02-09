@@ -98,7 +98,7 @@
  * reported as not being held. Since this is standard behavior for Linux/MS-Window,
  * opt to use this.
  *
- * NOTE(@campbellbarton): Events generated for non-active windows are rare,
+ * NOTE(@ideasman42): Events generated for non-active windows are rare,
  * this happens when using the mouse-wheel over an unfocused window, see: T103722.
  */
 #define USE_WIN_DEACTIVATE
@@ -1150,7 +1150,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
           const uint8_t keymodifier_eventstate = win->eventstate->modifier;
           const uint8_t keymodifier_l = wm_ghost_modifier_query(MOD_SIDE_LEFT);
           const uint8_t keymodifier_r = wm_ghost_modifier_query(MOD_SIDE_RIGHT);
-          /* NOTE(@campbellbarton): when non-zero, there are modifiers held in
+          /* NOTE(@ideasman42): when non-zero, there are modifiers held in
            * `win->eventstate` which are not considered held by the GHOST internal state.
            * While this should not happen, it's important all modifier held in event-state
            * receive release events. Without this, so any events generated while the window
@@ -1286,7 +1286,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
 
         wm_window_make_drawable(wm, win);
 #if 0
-        /* NOTE(@campbellbarton): Ideally we could swap-buffers to avoid a full redraw.
+        /* NOTE(@ideasman42): Ideally we could swap-buffers to avoid a full redraw.
          * however this causes window flickering on resize with LIBDECOR under WAYLAND. */
         wm_window_swap_buffers(win);
 #else

@@ -1095,7 +1095,7 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
       /* Can only add this F-Curve if it is selected. */
       if (ads->filterflag & ADS_FILTER_ONLYSEL) {
 
-        /* NOTE(@campbellbarton): The `seq == NULL` check doesn't look right
+        /* NOTE(@ideasman42): The `seq == NULL` check doesn't look right
          * (compared to other checks in this function which skip data that can't be found).
          *
          * This is done since the search for sequence strips doesn't use a global lookup:
