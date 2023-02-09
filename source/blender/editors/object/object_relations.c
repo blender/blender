@@ -99,6 +99,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "MOD_nodes.h"
+
 #include "object_intern.h"
 
 /* ------------------------------------------------------------------- */
@@ -2863,6 +2865,119 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 
   /* properties */
   WM_operator_properties_id_lookup(ot, true);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Drop Geometry Nodes on Object Operator
+ * \{ */
+
+char *ED_object_ot_drop_geometry_nodes_tooltip(const bContext *C,
+                                               const PointerRNA *properties,
+                                               const int mval[2])
+{
+  const Object *ob = ED_view3d_give_object_under_cursor(C, mval);
+  if (ob == NULL) {
+    return BLI_strdup("");
+  }
+
+  const uint32_t session_uuid = RNA_int_get(properties, "session_uuid");
+  const ID *id = BKE_libblock_find_session_uuid(CTX_data_main(C), ID_NT, session_uuid);
+  if (!id) {
+    return BLI_strdup("");
+  }
+
+  const char *tooltip = TIP_("Add modifier with node group \"%s\" on object \"%s\"");
+  return BLI_sprintfN(tooltip, id->name, ob->id.name);
+}
+
+static bool check_geometry_node_group_sockets(wmOperator *op, const bNodeTree *tree)
+{
+  const bNodeSocket *first_input = (const bNodeSocket *)tree->inputs.first;
+  if (!first_input) {
+    BKE_report(op->reports, RPT_ERROR, "The node group must have a geometry input socket");
+    return false;
+  }
+  if (first_input->type != SOCK_GEOMETRY) {
+    BKE_report(op->reports, RPT_ERROR, "The first input must be a geometry socket");
+    return false;
+  }
+  const bNodeSocket *first_output = (const bNodeSocket *)tree->outputs.first;
+  if (!first_output) {
+    BKE_report(op->reports, RPT_ERROR, "The node group must have a geometry output socket");
+    return false;
+  }
+  if (first_output->type != SOCK_GEOMETRY) {
+    BKE_report(op->reports, RPT_ERROR, "The first output must be a geometry socket");
+    return false;
+  }
+  return true;
+}
+
+static int drop_geometry_nodes_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *ob = ED_view3d_give_object_under_cursor(C, event->mval);
+  if (!ob) {
+    return OPERATOR_CANCELLED;
+  }
+
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+
+  const uint32_t uuid = RNA_int_get(op->ptr, "session_uuid");
+  bNodeTree *node_tree = (bNodeTree *)BKE_libblock_find_session_uuid(bmain, ID_NT, uuid);
+  if (!node_tree) {
+    return OPERATOR_CANCELLED;
+  }
+  if (node_tree->type != NTREE_GEOMETRY) {
+    BKE_report(op->reports, RPT_ERROR, "Node group must be a geometry node tree");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!check_geometry_node_group_sockets(op, node_tree)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  NodesModifierData *nmd = (NodesModifierData *)ED_object_modifier_add(
+      op->reports, bmain, scene, ob, node_tree->id.name + 2, eModifierType_Nodes);
+  if (!nmd) {
+    BKE_report(op->reports, RPT_ERROR, "Could not add geometry nodes modifier");
+    return OPERATOR_CANCELLED;
+  }
+
+  nmd->node_group = node_tree;
+  id_us_plus(&node_tree->id);
+  MOD_nodes_update_interface(ob, nmd);
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+/** \} */
+
+void OBJECT_OT_drop_geometry_nodes(wmOperatorType *ot)
+{
+  ot->name = "Drop Geometry Node Group on Object";
+  ot->idname = "OBJECT_OT_drop_geometry_nodes";
+
+  ot->invoke = drop_geometry_nodes_invoke;
+  ot->poll = ED_operator_view3d_active;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  PropertyRNA *prop = RNA_def_int(ot->srna,
+                                  "session_uuid",
+                                  0,
+                                  INT32_MIN,
+                                  INT32_MAX,
+                                  "Session UUID",
+                                  "Session UUID of the geometry node group being dropped",
+                                  INT32_MIN,
+                                  INT32_MAX);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /** \} */
