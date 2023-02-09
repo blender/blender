@@ -4407,7 +4407,7 @@ float ANIM_UI_get_channel_step(void)
 
 float ANIM_UI_get_channels_total_height(View2D *v2d, const int item_count)
 {
-  return ANIM_UI_get_first_channel_top(v2d) + ANIM_UI_get_channel_step() * (item_count + 1);
+  return -ANIM_UI_get_first_channel_top(v2d) + ANIM_UI_get_channel_step() * (item_count + 1);
 }
 
 float ANIM_UI_get_channel_name_width(void)
