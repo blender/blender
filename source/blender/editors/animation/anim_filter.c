@@ -92,26 +92,6 @@
 /* ************************************************************ */
 /* Blender Context <-> Animation Context mapping */
 
-/* ----------- Private Stuff - General -------------------- */
-
-/* Get vertical scaling factor (i.e. typically used for keyframe size) */
-static void animedit_get_yscale_factor(bAnimContext *ac)
-{
-  bTheme *btheme = UI_GetTheme();
-
-  /* grab scale factor directly from action editor setting
-   * NOTE: This theme setting doesn't have an ID, as it cannot be accessed normally
-   *       since it is a float, and the theme settings methods can only handle chars.
-   */
-  ac->yscale_fac = btheme->space_action.keyframe_scale_fac;
-
-  /* clamp to avoid problems with uninitialized values... */
-  if (ac->yscale_fac < 0.1f) {
-    ac->yscale_fac = 1.0f;
-  }
-  // printf("yscale_fac = %f\n", ac->yscale_fac);
-}
-
 /* ----------- Private Stuff - Action Editor ------------- */
 
 /* Get shapekey data being edited (for Action Editor -> ShapeKey mode) */
@@ -407,9 +387,6 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
   ac->sl = sl;
   ac->spacetype = (area) ? area->spacetype : 0;
   ac->regiontype = (region) ? region->regiontype : 0;
-
-  /* Initialize default y-scale factor. */
-  animedit_get_yscale_factor(ac);
 
   /* get data context info */
   /* XXX: if the below fails, try to grab this info from context instead...
