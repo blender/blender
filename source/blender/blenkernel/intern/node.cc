@@ -2342,8 +2342,10 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
     node_dst->typeinfo->copyfunc_api(&ptr, &node_src);
   }
 
-  /* Reset the declaration of the new node. */
-  nodeDeclarationEnsure(dst_tree, node_dst);
+  /* Reset the declaration of the new node in real tree. */
+  if (dst_tree != nullptr) {
+    nodeDeclarationEnsure(dst_tree, node_dst);
+  }
 
   return node_dst;
 }
@@ -3617,6 +3619,8 @@ bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *ntree, bNode *node)
     return false;
   }
   if (node->typeinfo->declare_dynamic) {
+    BLI_assert(ntree != nullptr);
+    BLI_assert(node != nullptr);
     node->runtime->declaration = new blender::nodes::NodeDeclaration();
     blender::nodes::build_node_declaration_dynamic(*ntree, *node, *node->runtime->declaration);
     return true;
