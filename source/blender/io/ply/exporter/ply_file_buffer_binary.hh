@@ -9,12 +9,12 @@
 #include <string>
 #include <type_traits>
 
+#include "BLI_array.hh"
 #include "BLI_compiler_attrs.h"
 #include "BLI_fileops.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
-#include "BLI_vector.hh"
 
 #include "ply_file_buffer.hh"
 
@@ -72,17 +72,11 @@ class FileBufferBinary : public FileBuffer {
 
   void write_face(char size, Array<uint32_t> const &vertex_indices) override
   {
-    /* Pre allocate memory so no further allocation has to be done for typical faces. */
-    Vector<char, 128> data;
-    data.append(size);
-    for (auto &&vertexIndex : vertex_indices) {
-      uint32_t x = vertexIndex;
-      auto *vtxbits = static_cast<char *>(static_cast<void *>(&x));
-      data.insert(data.end(), vtxbits, vtxbits + sizeof(uint32_t));
-    }
+    write_bytes(Span<char>({size}));
 
-    Span<char> span(data);
-    write_bytes(span);
+    Span<char> dataSpan(reinterpret_cast<const char *>(vertex_indices.data()),
+                        vertex_indices.size() * sizeof(uint32_t));
+    write_bytes(dataSpan);
   }
 
   void write_edge(int first, int second) override
