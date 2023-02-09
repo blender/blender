@@ -749,10 +749,7 @@ void RE_bake_pixels_populate(Mesh *me,
     bd.primitive_id = i;
 
     /* Find images matching this material. */
-    const int material_index = (materials_num) ? clamp_i(targets->material_to_image[mp->mat_nr],
-                                                         0,
-                                                         materials_num - 1) :
-                                                 0;
+    const int material_index = (materials_num) ? clamp_i(mp->mat_nr, 0, materials_num - 1) : 0;
     Image *image = targets->material_to_image[material_index];
     for (int image_id = 0; image_id < targets->images_num; image_id++) {
       BakeImage *bk_image = &targets->images[image_id];
