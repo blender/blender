@@ -610,6 +610,20 @@ Array<Vector<int>> build_edge_to_loop_map(const Span<MLoop> loops, const int edg
   return map;
 }
 
+Array<Vector<int, 2>> build_edge_to_poly_map(const Span<MPoly> polys,
+                                             const Span<MLoop> loops,
+                                             const int edges_num)
+{
+  Array<Vector<int, 2>> map(edges_num);
+  for (const int64_t i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
+      map[loop.e].append(int(i));
+    }
+  }
+  return map;
+}
+
 Vector<Vector<int>> build_edge_to_loop_map_resizable(const Span<MLoop> loops, const int edges_num)
 {
   Vector<Vector<int>> map(edges_num);

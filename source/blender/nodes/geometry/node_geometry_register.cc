@@ -53,6 +53,7 @@ void register_geometry_nodes()
   register_node_type_geo_edge_paths_to_curves();
   register_node_type_geo_edge_paths_to_selection();
   register_node_type_geo_edge_split();
+  register_node_type_geo_edges_to_face_groups();
   register_node_type_geo_evaluate_at_index();
   register_node_type_geo_evaluate_on_domain();
   register_node_type_geo_extrude_mesh();

@@ -10,6 +10,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 
 #include "UI_interface.h"
@@ -288,22 +289,6 @@ static void extrude_mesh_vertices(Mesh &mesh,
   BKE_mesh_runtime_clear_cache(&mesh);
 }
 
-static Array<Vector<int, 2>> mesh_calculate_polys_of_edge(const Mesh &mesh)
-{
-  const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
-  Array<Vector<int, 2>> polys_of_edge(mesh.totedge);
-
-  for (const int i_poly : polys.index_range()) {
-    const MPoly &poly = polys[i_poly];
-    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-      polys_of_edge[loop.e].append(i_poly);
-    }
-  }
-
-  return polys_of_edge;
-}
-
 static void fill_quad_consistent_direction(Span<MLoop> other_poly_loops,
                                            MutableSpan<MLoop> new_loops,
                                            const int vert_connected_to_poly_1,
@@ -382,7 +367,8 @@ static void extrude_mesh_edges(Mesh &mesh,
     return;
   }
 
-  const Array<Vector<int, 2>> edge_to_poly_map = mesh_calculate_polys_of_edge(mesh);
+  const Array<Vector<int, 2>> edge_to_poly_map = bke::mesh_topology::build_edge_to_poly_map(
+      orig_polys, mesh.loops(), mesh.totedge);
 
   /* Find the offsets on the vertex domain for translation. This must be done before the mesh's
    * custom data layers are reallocated, in case the virtual array references one of them. */
@@ -684,7 +670,8 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   }
 
   /* All of the faces (selected and deselected) connected to each edge. */
-  const Array<Vector<int, 2>> edge_to_poly_map = mesh_calculate_polys_of_edge(mesh);
+  const Array<Vector<int, 2>> edge_to_poly_map = bke::mesh_topology::build_edge_to_poly_map(
+      orig_polys, orig_loops, orig_edges.size());
 
   /* All vertices that are connected to the selected polygons.
    * Start the size at one vert per poly to reduce unnecessary reallocation. */

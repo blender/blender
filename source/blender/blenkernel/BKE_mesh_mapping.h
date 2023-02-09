@@ -353,6 +353,7 @@ Array<Vector<int>> build_vert_to_edge_map(Span<MEdge> edges, int verts_num);
 Array<Vector<int>> build_vert_to_poly_map(Span<MPoly> polys, Span<MLoop> loops, int verts_num);
 Array<Vector<int>> build_vert_to_loop_map(Span<MLoop> loops, int verts_num);
 Array<Vector<int>> build_edge_to_loop_map(Span<MLoop> loops, int edges_num);
+Array<Vector<int, 2>> build_edge_to_poly_map(Span<MPoly> polys, Span<MLoop> loops, int edges_num);
 Vector<Vector<int>> build_edge_to_loop_map_resizable(Span<MLoop> loops, int edges_num);
 
 inline int poly_loop_prev(const MPoly &poly, int loop_i)

@@ -1534,6 +1534,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_BLUR_ATTRIBUTE 1190
 #define GEO_NODE_IMAGE 1191
 #define GEO_NODE_INTERPOLATE_CURVES 1192
+#define GEO_NODE_EDGES_TO_FACE_GROUPS 1193
 
 /** \} */
 

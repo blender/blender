@@ -314,6 +314,7 @@ DefNode(GeometryNode, GEO_NODE_DUAL_MESH, 0, "DUAL_MESH", DualMesh, "Dual Mesh",
 DefNode(GeometryNode, GEO_NODE_DUPLICATE_ELEMENTS, def_geo_duplicate_elements, "DUPLICATE_ELEMENTS", DuplicateElements, "Duplicate Elements", "Generate an arbitrary number copies of each selected input element")
 DefNode(GeometryNode, GEO_NODE_EDGE_PATHS_TO_CURVES, 0, "EDGE_PATHS_TO_CURVES", EdgePathsToCurves, "Edge Paths to Curves", "")
 DefNode(GeometryNode, GEO_NODE_EDGE_PATHS_TO_SELECTION, 0, "EDGE_PATHS_TO_SELECTION", EdgePathsToSelection, "Edge Paths to Selection", "")
+DefNode(GeometryNode, GEO_NODE_EDGES_TO_FACE_GROUPS, 0, "EDGES_TO_FACE_GROUPS", EdgesToFaceGroups, "Edges to Face Groups", "Group faces into regions surrounded by the selected boundary edges")
 DefNode(GeometryNode, GEO_NODE_EVALUATE_AT_INDEX, def_geo_evaluate_at_index, "FIELD_AT_INDEX", FieldAtIndex, "Evaluate at Index", "Retrieve data of other elements in the context's geometry")
 DefNode(GeometryNode, GEO_NODE_EVALUATE_ON_DOMAIN, def_geo_evaluate_on_domain, "FIELD_ON_DOMAIN", FieldOnDomain, "Evaluate on Domain", "Retrieve values from a field on a different domain besides the domain from the context")
 DefNode(GeometryNode, GEO_NODE_EXTRUDE_MESH, def_geo_extrude_mesh, "EXTRUDE_MESH", ExtrudeMesh, "Extrude Mesh", "Generate new vertices, edges, or faces from selected elements and move them based on an offset while keeping them connected by their boundary")
