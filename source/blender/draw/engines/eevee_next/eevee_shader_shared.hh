@@ -811,11 +811,11 @@ static inline ShadowTileDataPacked shadow_tile_pack(ShadowTileData tile)
   data |= (tile.page.y & 63u) << 6u;
   data |= (tile.lod & 7u) << 12u;
   data |= (tile.cache_index & 4095u) << 15u;
-  data |= (tile.is_used ? SHADOW_IS_USED : 0);
-  data |= (tile.is_allocated ? SHADOW_IS_ALLOCATED : 0);
-  data |= (tile.is_cached ? SHADOW_IS_CACHED : 0);
-  data |= (tile.is_rendered ? SHADOW_IS_RENDERED : 0);
-  data |= (tile.do_update ? SHADOW_DO_UPDATE : 0);
+  data |= (tile.is_used ? uint(SHADOW_IS_USED) : 0);
+  data |= (tile.is_allocated ? uint(SHADOW_IS_ALLOCATED) : 0);
+  data |= (tile.is_cached ? uint(SHADOW_IS_CACHED) : 0);
+  data |= (tile.is_rendered ? uint(SHADOW_IS_RENDERED) : 0);
+  data |= (tile.do_update ? uint(SHADOW_DO_UPDATE) : 0);
   return data;
 }
 
