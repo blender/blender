@@ -2873,8 +2873,8 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 /** \name Drop Geometry Nodes on Object Operator
  * \{ */
 
-char *ED_object_ot_drop_geometry_nodes_tooltip(const bContext *C,
-                                               const PointerRNA *properties,
+char *ED_object_ot_drop_geometry_nodes_tooltip(bContext *C,
+                                               PointerRNA *properties,
                                                const int mval[2])
 {
   const Object *ob = ED_view3d_give_object_under_cursor(C, mval);

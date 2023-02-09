@@ -241,8 +241,8 @@ void ED_object_parent(struct Object *ob, struct Object *parent, int type, const 
 char *ED_object_ot_drop_named_material_tooltip(struct bContext *C,
                                                const char *name,
                                                const int mval[2]);
-char *ED_object_ot_drop_geometry_nodes_tooltip(const struct bContext *C,
-                                               const struct PointerRNA *properties,
+char *ED_object_ot_drop_geometry_nodes_tooltip(struct bContext *C,
+                                               struct PointerRNA *properties,
                                                const int mval[2]);
 
 /* bitflags for enter/exit editmode */
