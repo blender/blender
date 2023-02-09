@@ -71,7 +71,7 @@ BLI_INLINE void DRW_vbo_request(GPUBatch *batch, GPUVertBuf **vbo)
   }
   if (batch != NULL) {
     /* HACK we set VBO's that may not yet be valid. */
-    GPU_batch_vertbuf_add(batch, *vbo);
+    GPU_batch_vertbuf_add(batch, *vbo, false);
   }
 }
 

@@ -197,7 +197,7 @@ static void drw_volume_wireframe_cb(
         GPU_PRIM_LINES, cache->face_wire.pos_nor_in_order, ibo, GPU_BATCH_OWNS_INDEX);
   }
 
-  GPU_batch_vertbuf_add_ex(cache->face_wire.batch, vbo_wiredata, true);
+  GPU_batch_vertbuf_add(cache->face_wire.batch, vbo_wiredata, true);
 }
 
 GPUBatch *DRW_volume_batch_cache_get_wireframes_face(Volume *volume)

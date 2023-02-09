@@ -1303,10 +1303,10 @@ struct PBVHBatches {
       int vbo_i = get_vbo_index(vbo);
 
       batch.vbos.append(vbo_i);
-      GPU_batch_vertbuf_add_ex(batch.tris, vbo->vert_buf, false);
+      GPU_batch_vertbuf_add(batch.tris, vbo->vert_buf, false);
 
       if (batch.lines) {
-        GPU_batch_vertbuf_add_ex(batch.lines, vbo->vert_buf, false);
+        GPU_batch_vertbuf_add(batch.lines, vbo->vert_buf, false);
       }
     }
 
