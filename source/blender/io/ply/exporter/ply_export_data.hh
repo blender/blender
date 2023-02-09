@@ -11,10 +11,10 @@
 
 namespace blender::io::ply {
 
-void write_vertices(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData);
+void write_vertices(FileBuffer &buffer, const PlyData &ply_data);
 
-void write_faces(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData);
+void write_faces(FileBuffer &buffer, const PlyData &ply_data);
 
-void write_edges(std::unique_ptr<FileBuffer> &buffer, std::unique_ptr<PlyData> &plyData);
+void write_edges(FileBuffer &buffer, const PlyData &ply_data);
 
 }  // namespace blender::io::ply

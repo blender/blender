@@ -40,8 +40,6 @@ Mesh *do_triangulation(const Mesh *mesh, bool force_triangulation)
   BMeshFromMeshParams bm_convert_params{};
   bm_convert_params.calc_face_normal = true;
   bm_convert_params.calc_vert_normal = true;
-  bm_convert_params.add_key_index = false;
-  bm_convert_params.use_shapekey = false;
   const int triangulation_threshold = force_triangulation ? 4 : 255;
 
   BMesh *bmesh = BKE_mesh_to_bmesh_ex(mesh, &bm_create_params, &bm_convert_params);
@@ -115,7 +113,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     const float2 *uv_map = static_cast<const float2 *>(
         CustomData_get_layer(&mesh->ldata, CD_PROP_FLOAT2));
 
-    blender::Map<UV_vertex_key, int> vertex_map = generate_vertex_map(mesh, uv_map, export_params);
+    Map<UV_vertex_key, int> vertex_map = generate_vertex_map(mesh, uv_map, export_params);
 
     set_world_axes_transform(
         &export_object_eval_, export_params.forward_axis, export_params.up_axis);
@@ -123,7 +121,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     /* Load faces into plyData. */
     int loop_offset = 0;
     Span<MLoop> loops = mesh->loops();
-    for (auto &&poly : mesh->polys()) {
+    for (const MPoly poly : mesh->polys()) {
       Span<MLoop> loopSpan = loops.slice(poly.loopstart, poly.totloop);
       Vector<uint32_t> polyVector;
 
@@ -185,12 +183,12 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       const StringRef name = mesh->active_color_attribute;
       if (!name.is_empty()) {
         const bke::AttributeAccessor attributes = mesh->attributes();
-        const VArray<ColorGeometry4f> colorAttribute =
+        const VArray<ColorGeometry4f> color_attribute =
             attributes.lookup_or_default<ColorGeometry4f>(
                 name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
 
         for (int i = 0; i < vertex_map.size(); i++) {
-          ColorGeometry4f colorGeometry = colorAttribute[mesh_vertex_index_LUT[i]];
+          ColorGeometry4f colorGeometry = color_attribute[mesh_vertex_index_LUT[i]];
           float4 vertColor(colorGeometry.r, colorGeometry.g, colorGeometry.b, colorGeometry.a);
           plyData.vertex_colors.append(vertColor);
         }
