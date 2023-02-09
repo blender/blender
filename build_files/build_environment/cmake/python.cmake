@@ -95,8 +95,9 @@ else()
       # Used on most release Linux builds (Fedora for e.g.),
       # increases build times noticeably with the benefit of a modest speedup at runtime.
       --enable-optimizations
-      # Also used for Fedora's release builds.
-      --with-lto
+      # While LTO is OK when building on the same system, it's incompatible across GCC versions,
+      # making it impractical for developers to build against, so keep it disabled.
+      # `--with-lto`
     )
   endif()
 
