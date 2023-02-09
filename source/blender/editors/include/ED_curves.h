@@ -155,7 +155,7 @@ bool select_pick(const ViewContext &vc,
 bool select_box(const ViewContext &vc,
                 bke::CurvesGeometry &curves,
                 const eAttrDomain selection_domain,
-                const rcti& rect,
+                const rcti &rect,
                 const eSelectOp sel_op);
 /** \} */
 
