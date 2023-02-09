@@ -21,8 +21,8 @@
 
 namespace blender::eevee {
 
-struct ShadowDirectional;
-struct ShadowPunctual;
+class ShadowDirectional;
+class ShadowPunctual;
 
 using namespace draw;
 
