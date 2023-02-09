@@ -31,7 +31,7 @@
 #include "ED_view3d.h"
 
 #include "paint_intern.h"
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 #include "bmesh.h"
 

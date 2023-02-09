@@ -97,7 +97,7 @@ static const char *object_mode_op_string(eObjectMode mode)
   if (mode == OB_MODE_SCULPT_CURVES) {
     return "CURVES_OT_sculptmode_toggle";
   }
-  return NULL;
+  return nullptr;
 }
 
 bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
@@ -160,9 +160,9 @@ bool ED_object_mode_compat_set(bContext *C, Object *ob, eObjectMode mode, Report
 {
   bool ok;
   if (!ELEM(ob->mode, mode, OB_MODE_OBJECT)) {
-    const char *opstring = object_mode_op_string(ob->mode);
+    const char *opstring = object_mode_op_string(eObjectMode(ob->mode));
 
-    WM_operator_name_call(C, opstring, WM_OP_EXEC_REGION_WIN, NULL, NULL);
+    WM_operator_name_call(C, opstring, WM_OP_EXEC_REGION_WIN, nullptr, nullptr);
     ok = ELEM(ob->mode, mode, OB_MODE_OBJECT);
     if (!ok) {
       wmOperatorType *ot = WM_operatortype_find(opstring, false);
@@ -194,7 +194,7 @@ bool ED_object_mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportL
 
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  if (ob == NULL) {
+  if (ob == nullptr) {
     return (mode == OB_MODE_OBJECT);
   }
 
@@ -210,13 +210,14 @@ bool ED_object_mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportL
     return false;
   }
 
-  const char *opstring = object_mode_op_string((mode == OB_MODE_OBJECT) ? ob->mode : mode);
+  const char *opstring = object_mode_op_string((mode == OB_MODE_OBJECT) ? eObjectMode(ob->mode) :
+                                                                          mode);
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
 
   if (!use_undo) {
     wm->op_undo_depth++;
   }
-  WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_REGION_WIN, NULL, NULL);
+  WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_REGION_WIN, nullptr, nullptr);
   if (!use_undo) {
     wm->op_undo_depth--;
   }
@@ -232,20 +233,17 @@ bool ED_object_mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportL
 bool ED_object_mode_set(bContext *C, eObjectMode mode)
 {
   /* Don't do undo push by default, since this may be called by lower level code. */
-  return ED_object_mode_set_ex(C, mode, true, NULL);
+  return ED_object_mode_set_ex(C, mode, true, nullptr);
 }
 
 /**
  * Use for changing works-paces or changing active object.
  * Caller can check #OB_MODE_ALL_MODE_DATA to test if this needs to be run.
  */
-static bool ed_object_mode_generic_exit_ex(struct Main *bmain,
-                                           struct Depsgraph *depsgraph,
-                                           struct Scene *scene,
-                                           struct Object *ob,
-                                           bool only_test)
+static bool ed_object_mode_generic_exit_ex(
+    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, bool only_test)
 {
-  BLI_assert((bmain == NULL) == only_test);
+  BLI_assert((bmain == nullptr) == only_test);
   if (ob->mode & OB_MODE_EDIT) {
     if (BKE_object_is_in_editmode(ob)) {
       if (only_test) {
@@ -279,7 +277,7 @@ static bool ed_object_mode_generic_exit_ex(struct Main *bmain,
     }
   }
   else if (ob->mode & OB_MODE_POSE) {
-    if (ob->pose != NULL) {
+    if (ob->pose != nullptr) {
       if (only_test) {
         return true;
       }
@@ -332,7 +330,7 @@ static void ed_object_posemode_set_for_weight_paint_ex(bContext *C,
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  if (ob_arm != NULL) {
+  if (ob_arm != nullptr) {
     BKE_view_layer_synced_ensure(scene, view_layer);
     const Base *base_arm = BKE_view_layer_base_find(view_layer, ob_arm);
     if (base_arm && BASE_VISIBLE(v3d, base_arm)) {
@@ -387,17 +385,14 @@ void ED_object_posemode_set_for_weight_paint(bContext *C,
   }
 }
 
-void ED_object_mode_generic_exit(struct Main *bmain,
-                                 struct Depsgraph *depsgraph,
-                                 struct Scene *scene,
-                                 struct Object *ob)
+void ED_object_mode_generic_exit(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   ed_object_mode_generic_exit_ex(bmain, depsgraph, scene, ob, false);
 }
 
-bool ED_object_mode_generic_has_data(struct Depsgraph *depsgraph, const struct Object *ob)
+bool ED_object_mode_generic_has_data(Depsgraph *depsgraph, const Object *ob)
 {
-  return ed_object_mode_generic_exit_ex(NULL, depsgraph, NULL, (Object *)ob, true);
+  return ed_object_mode_generic_exit_ex(nullptr, depsgraph, nullptr, (Object *)ob, true);
 }
 
 /** \} */
@@ -425,7 +420,7 @@ static void object_transfer_mode_reposition_view_pivot(bContext *C, const int mv
   Scene *scene = CTX_data_scene(C);
 
   float global_loc[3];
-  if (!ED_view3d_autodist_simple(region, mval, global_loc, 0, NULL)) {
+  if (!ED_view3d_autodist_simple(region, mval, global_loc, 0, nullptr)) {
     return;
   }
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -446,7 +441,7 @@ static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  if (base_dst == NULL) {
+  if (base_dst == nullptr) {
     return false;
   }
 

@@ -79,7 +79,7 @@
 #include "ED_undo.h"
 
 #include "bmesh.h"
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 /* Uncomment to print the undo stack in the console on push/undo/redo. */
 //#define SCULPT_UNDO_DEBUG

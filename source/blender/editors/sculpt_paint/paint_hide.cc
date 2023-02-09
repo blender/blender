@@ -41,7 +41,7 @@
 #include "paint_intern.h"
 
 /* For undo push. */
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 /* Return true if the element should be hidden/shown. */
 static bool is_effected(PartialVisArea area,
@@ -67,21 +67,21 @@ static void partialvis_update_mesh(Object *ob,
                                    PartialVisArea area,
                                    float planes[4][4])
 {
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   const float(*positions)[3] = BKE_pbvh_get_vert_positions(pbvh);
   const float *paint_mask;
   int totvert, i;
   bool any_changed = false, any_visible = false;
 
-  BKE_pbvh_node_num_verts(pbvh, node, NULL, &totvert);
+  BKE_pbvh_node_num_verts(pbvh, node, nullptr, &totvert);
   const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
-  paint_mask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
+  paint_mask = static_cast<const float *>(CustomData_get_layer(&me->vdata, CD_PAINT_MASK));
 
-  bool *hide_vert = CustomData_get_layer_named_for_write(
-      &me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert);
-  if (hide_vert == NULL) {
-    hide_vert = CustomData_add_layer_named(
-        &me->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, me->totvert, ".hide_vert");
+  bool *hide_vert = static_cast<bool *>(
+      CustomData_get_layer_named_for_write(&me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert));
+  if (hide_vert == nullptr) {
+    hide_vert = static_cast<bool *>(CustomData_add_layer_named(
+        &me->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, nullptr, me->totvert, ".hide_vert"));
   }
 
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
@@ -122,7 +122,7 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
   bool any_changed = false, any_visible = false;
 
   /* Get PBVH data. */
-  BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, NULL, NULL, &grids);
+  BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, nullptr, nullptr, &grids);
   grid_hidden = BKE_pbvh_grid_hidden(pbvh);
   CCGKey key = *BKE_pbvh_get_grid_key(pbvh);
 
@@ -147,7 +147,7 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
     else if (action == PARTIALVIS_SHOW && area == PARTIALVIS_ALL) {
       /* Special case if we're showing all, just free the grid. */
       MEM_freeN(gh);
-      grid_hidden[g] = NULL;
+      grid_hidden[g] = nullptr;
       any_changed = true;
       any_visible = true;
       continue;
@@ -180,7 +180,7 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
     /* If everything in the grid is now visible, free the grid flags. */
     if (!any_hidden) {
       MEM_freeN(gh);
-      grid_hidden[g] = NULL;
+      grid_hidden[g] = nullptr;
     }
   }
 
@@ -203,8 +203,9 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
   GSetIterator gs_iter;
 
   GSET_ITER (gs_iter, verts) {
-    BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
-    float *vmask = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK);
+    BMVert *v = static_cast<BMVert *>(BLI_gsetIterator_getKey(&gs_iter));
+    float *vmask = static_cast<float *>(
+        CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK));
 
     /* Hide vertex if in the hide volume. */
     if (is_effected(area, planes, v->co, *vmask)) {
@@ -228,7 +229,7 @@ static void partialvis_update_bmesh_faces(GSet *faces)
   GSetIterator gs_iter;
 
   GSET_ITER (gs_iter, faces) {
-    BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
+    BMFace *f = static_cast<BMFace *>(BLI_gsetIterator_getKey(&gs_iter));
 
     if (paint_is_bmesh_face_hidden(f)) {
       BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
@@ -298,7 +299,7 @@ static void clip_planes_from_rect(bContext *C,
 static void get_pbvh_nodes(
     PBVH *pbvh, PBVHNode ***nodes, int *totnode, float clip_planes[4][4], PartialVisArea mode)
 {
-  BKE_pbvh_SearchCallback cb = NULL;
+  BKE_pbvh_SearchCallback cb = nullptr;
 
   /* Select search callback. */
   switch (mode) {
@@ -313,7 +314,9 @@ static void get_pbvh_nodes(
       break;
   }
 
-  PBVHFrustumPlanes frustum = {.planes = clip_planes, .num_planes = 4};
+  PBVHFrustumPlanes frustum{};
+  frustum.planes = clip_planes;
+  frustum.num_planes = 4;
   BKE_pbvh_search_gather(pbvh, cb, &frustum, nodes, totnode);
 }
 
@@ -322,7 +325,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   ARegion *region = CTX_wm_region(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   PartialVisAction action;
   PartialVisArea area;
   PBVH *pbvh;
@@ -333,8 +336,8 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   int totnode;
 
   /* Read operator properties. */
-  action = RNA_enum_get(op->ptr, "action");
-  area = RNA_enum_get(op->ptr, "area");
+  action = PartialVisAction(RNA_enum_get(op->ptr, "action"));
+  area = PartialVisArea(RNA_enum_get(op->ptr, "area"));
   rect_from_props(&rect, op->ptr);
 
   clip_planes_from_rect(C, depsgraph, clip_planes, &rect);
@@ -395,7 +398,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
 static int hide_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  PartialVisArea area = RNA_enum_get(op->ptr, "area");
+  PartialVisArea area = PartialVisArea(RNA_enum_get(op->ptr, "area"));
 
   if (!ELEM(area, PARTIALVIS_ALL, PARTIALVIS_MASKED)) {
     return WM_gesture_box_invoke(C, op, event);
@@ -403,12 +406,12 @@ static int hide_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return op->type->exec(C, op);
 }
 
-void PAINT_OT_hide_show(struct wmOperatorType *ot)
+void PAINT_OT_hide_show(wmOperatorType *ot)
 {
   static const EnumPropertyItem action_items[] = {
       {PARTIALVIS_HIDE, "HIDE", 0, "Hide", "Hide vertices"},
       {PARTIALVIS_SHOW, "SHOW", 0, "Show", "Show vertices"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem area_items[] = {
@@ -420,7 +423,7 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
        0,
        "Masked",
        "Hide or show vertices that are masked (minimum mask value of 0.5)"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* Identifiers. */

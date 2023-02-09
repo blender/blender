@@ -25,7 +25,7 @@
 #include "WM_types.h"
 
 #include "ED_paint.h"
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

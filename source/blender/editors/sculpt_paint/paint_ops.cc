@@ -4,13 +4,16 @@
  * \ingroup edsculpt
  */
 
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-#include <stdlib.h>
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -41,13 +44,10 @@
 
 #include "curves_sculpt_intern.h"
 #include "paint_intern.h"
-#include "sculpt_intern.h"
-
-#include <stddef.h>
-#include <string.h>
+#include "sculpt_intern.hh"
 
 /* Brush operators */
-static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))
+static int brush_add_exec(bContext *C, wmOperator * /*op*/)
 {
   // int type = RNA_enum_get(op->ptr, "type");
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -158,7 +158,7 @@ static eGPBrush_Presets gpencil_get_brush_preset_from_tool(bToolRef *tool,
   return GP_BRUSH_PRESET_UNKNOWN;
 }
 
-static int brush_add_gpencil_exec(bContext *C, wmOperator *UNUSED(op))
+static int brush_add_gpencil_exec(bContext *C, wmOperator * /*op*/)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *br = BKE_paint_brush(paint);
@@ -170,11 +170,11 @@ static int brush_add_gpencil_exec(bContext *C, wmOperator *UNUSED(op))
   else {
     /* Get the active tool to determine what type of brush is active. */
     bScreen *screen = CTX_wm_screen(C);
-    if (screen == NULL) {
+    if (screen == nullptr) {
       return OPERATOR_CANCELLED;
     }
 
-    bToolRef *tool = NULL;
+    bToolRef *tool = nullptr;
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (area->spacetype == SPACE_VIEW3D) {
         /* Check the current tool is a brush. */
@@ -186,7 +186,7 @@ static int brush_add_gpencil_exec(bContext *C, wmOperator *UNUSED(op))
       }
     }
 
-    if (tool == NULL) {
+    if (tool == nullptr) {
       return OPERATOR_CANCELLED;
     }
 
@@ -255,7 +255,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
-  const bool is_gpencil = (brush && brush->gpencil_settings != NULL);
+  const bool is_gpencil = (brush && brush->gpencil_settings != nullptr);
   // Object *ob = CTX_data_active_object(C);
   float scalar = RNA_float_get(op->ptr, "scalar");
 
@@ -318,7 +318,7 @@ static void BRUSH_OT_scale_size(wmOperatorType *ot)
 
 /* Palette operators */
 
-static int palette_new_exec(bContext *C, wmOperator *UNUSED(op))
+static int palette_new_exec(bContext *C, wmOperator * /*op*/)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Main *bmain = CTX_data_main(C);
@@ -349,7 +349,7 @@ static bool palette_poll(bContext *C)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
 
-  if (paint && paint->palette != NULL && !ID_IS_LINKED(paint->palette) &&
+  if (paint && paint->palette != nullptr && !ID_IS_LINKED(paint->palette) &&
       !ID_IS_OVERRIDE_LIBRARY(paint->palette)) {
     return true;
   }
@@ -357,7 +357,7 @@ static bool palette_poll(bContext *C)
   return false;
 }
 
-static int palette_color_add_exec(bContext *C, wmOperator *UNUSED(op))
+static int palette_color_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -401,11 +401,12 @@ static void PALETTE_OT_color_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int palette_color_delete_exec(bContext *C, wmOperator *UNUSED(op))
+static int palette_color_delete_exec(bContext *C, wmOperator * /*op*/)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Palette *palette = paint->palette;
-  PaletteColor *color = BLI_findlink(&palette->colors, palette->active_color);
+  PaletteColor *color = static_cast<PaletteColor *>(
+      BLI_findlink(&palette->colors, palette->active_color));
 
   if (color) {
     BKE_palette_color_remove(palette, color);
@@ -432,7 +433,7 @@ static void PALETTE_OT_color_delete(wmOperatorType *ot)
 static bool palette_extract_img_poll(bContext *C)
 {
   SpaceLink *sl = CTX_wm_space_data(C);
-  if ((sl != NULL) && (sl->spacetype == SPACE_IMAGE)) {
+  if ((sl != nullptr) && (sl->spacetype == SPACE_IMAGE)) {
     SpaceImage *sima = CTX_wm_space_image(C);
     Image *image = sima->image;
     ImageUser iuser = sima->iuser;
@@ -480,7 +481,7 @@ static int palette_extract_img_exec(bContext *C, wmOperator *op)
   }
 
   /* Free memory. */
-  BLI_ghash_free(color_table, NULL, NULL);
+  BLI_ghash_free(color_table, nullptr, nullptr);
   BKE_image_release_ibuf(image, ibuf, lock);
 
   if (done) {
@@ -508,7 +509,7 @@ static void PALETTE_OT_extract_from_image(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_int(ot->srna, "threshold", 1, 1, 1, "Threshold", "", 1, 1);
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /* Sort Palette color by Hue and Saturation. */
@@ -519,17 +520,17 @@ static int palette_sort_exec(bContext *C, wmOperator *op)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Palette *palette = paint->palette;
 
-  if (palette == NULL) {
+  if (palette == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  tPaletteColorHSV *color_array = NULL;
-  tPaletteColorHSV *col_elm = NULL;
+  tPaletteColorHSV *color_array = nullptr;
+  tPaletteColorHSV *col_elm = nullptr;
 
   const int totcol = BLI_listbase_count(&palette->colors);
 
   if (totcol > 0) {
-    color_array = MEM_calloc_arrayN(totcol, sizeof(tPaletteColorHSV), __func__);
+    color_array = MEM_cnew_array<tPaletteColorHSV>(totcol, __func__);
     /* Put all colors in an array. */
     int t = 0;
     LISTBASE_FOREACH (PaletteColor *, color, &palette->colors) {
@@ -558,9 +559,7 @@ static int palette_sort_exec(bContext *C, wmOperator *op)
     }
 
     /* Clear old color swatches. */
-    PaletteColor *color_next = NULL;
-    for (PaletteColor *color = palette->colors.first; color; color = color_next) {
-      color_next = color->next;
+    LISTBASE_FOREACH_MUTABLE (PaletteColor *, color, &palette->colors) {
       BKE_palette_color_remove(palette, color);
     }
 
@@ -579,7 +578,7 @@ static int palette_sort_exec(bContext *C, wmOperator *op)
     MEM_SAFE_FREE(color_array);
   }
 
-  WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -591,7 +590,7 @@ static void PALETTE_OT_sort(wmOperatorType *ot)
       {2, "SVH", 0, "Saturation, Value, Hue", ""},
       {3, "VHS", 0, "Value, Hue, Saturation", ""},
       {4, "LUMINANCE", 0, "Luminance", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
@@ -614,9 +613,10 @@ static int palette_color_move_exec(bContext *C, wmOperator *op)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Palette *palette = paint->palette;
-  PaletteColor *palcolor = BLI_findlink(&palette->colors, palette->active_color);
+  PaletteColor *palcolor = static_cast<PaletteColor *>(
+      BLI_findlink(&palette->colors, palette->active_color));
 
-  if (palcolor == NULL) {
+  if (palcolor == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -625,7 +625,7 @@ static int palette_color_move_exec(bContext *C, wmOperator *op)
   BLI_assert(ELEM(direction, -1, 0, 1)); /* we use value below */
   if (BLI_listbase_link_move(&palette->colors, palcolor, direction)) {
     palette->active_color += direction;
-    WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, nullptr);
   }
 
   return OPERATOR_FINISHED;
@@ -636,7 +636,7 @@ static void PALETTE_OT_color_move(wmOperatorType *ot)
   static const EnumPropertyItem slot_move[] = {
       {-1, "UP", 0, "Up", ""},
       {1, "DOWN", 0, "Down", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
@@ -660,18 +660,18 @@ static int palette_join_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
   Palette *palette = paint->palette;
-  Palette *palette_join = NULL;
+  Palette *palette_join = nullptr;
   bool done = false;
 
   char name[MAX_ID_NAME - 2];
   RNA_string_get(op->ptr, "palette", name);
 
-  if ((palette == NULL) || (name[0] == '\0')) {
+  if ((palette == nullptr) || (name[0] == '\0')) {
     return OPERATOR_CANCELLED;
   }
 
   palette_join = (Palette *)BKE_libblock_find_name(bmain, ID_PAL, name);
-  if (palette_join == NULL) {
+  if (palette_join == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -690,14 +690,12 @@ static int palette_join_exec(bContext *C, wmOperator *op)
 
   if (done) {
     /* Clear old color swatches. */
-    PaletteColor *color_next = NULL;
-    for (PaletteColor *color = palette_join->colors.first; color; color = color_next) {
-      color_next = color->next;
+    LISTBASE_FOREACH_MUTABLE (PaletteColor *, color, &palette_join->colors) {
       BKE_palette_color_remove(palette_join, color);
     }
 
     /* Notifier. */
-    WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, nullptr);
   }
 
   return OPERATOR_FINISHED;
@@ -718,10 +716,10 @@ static void PALETTE_OT_join(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_string(ot->srna, "palette", NULL, MAX_ID_NAME - 2, "Palette", "Name of the Palette");
+  RNA_def_string(ot->srna, "palette", nullptr, MAX_ID_NAME - 2, "Palette", "Name of the Palette");
 }
 
-static int brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
+static int brush_reset_exec(bContext *C, wmOperator * /*op*/)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
@@ -771,8 +769,8 @@ static Brush *brush_tool_cycle(Main *bmain, Paint *paint, Brush *brush_orig, con
 {
   Brush *brush, *first_brush;
 
-  if (!brush_orig && !(brush_orig = bmain->brushes.first)) {
-    return NULL;
+  if (!brush_orig && !(brush_orig = static_cast<Brush *>(bmain->brushes.first))) {
+    return nullptr;
   }
 
   if (brush_tool(brush_orig, paint->runtime.tool_offset) != tool) {
@@ -784,8 +782,8 @@ static Brush *brush_tool_cycle(Main *bmain, Paint *paint, Brush *brush_orig, con
 
     /* Try to tool-slot first. */
     first_brush = BKE_paint_toolslots_brush_get(paint, tool);
-    if (first_brush == NULL) {
-      first_brush = bmain->brushes.first;
+    if (first_brush == nullptr) {
+      first_brush = static_cast<Brush *>(bmain->brushes.first);
     }
   }
   else {
@@ -793,7 +791,8 @@ static Brush *brush_tool_cycle(Main *bmain, Paint *paint, Brush *brush_orig, con
      * currently active brush do a cycling via all possible
      * brushes with requested tool.
      */
-    first_brush = brush_orig->id.next ? brush_orig->id.next : bmain->brushes.first;
+    first_brush = brush_orig->id.next ? static_cast<Brush *>(brush_orig->id.next) :
+                                        static_cast<Brush *>(bmain->brushes.first);
   }
 
   /* get the next brush with the active tool */
@@ -804,10 +803,11 @@ static Brush *brush_tool_cycle(Main *bmain, Paint *paint, Brush *brush_orig, con
       return brush;
     }
 
-    brush = brush->id.next ? brush->id.next : bmain->brushes.first;
+    brush = brush->id.next ? static_cast<Brush *>(brush->id.next) :
+                             static_cast<Brush *>(bmain->brushes.first);
   } while (brush != first_brush);
 
-  return NULL;
+  return nullptr;
 }
 
 static Brush *brush_tool_toggle(Main *bmain, Paint *paint, Brush *brush_orig, const int tool)
@@ -829,7 +829,7 @@ static Brush *brush_tool_toggle(Main *bmain, Paint *paint, Brush *brush_orig, co
      * back to the previously selected brush. */
     return brush_orig->toggle_brush;
   }
-  return NULL;
+  return nullptr;
 }
 
 static bool brush_generic_tool_set(bContext *C,
@@ -849,9 +849,9 @@ static bool brush_generic_tool_set(bContext *C,
     brush = brush_tool_cycle(bmain, paint, brush_orig, tool);
   }
 
-  if (((brush == NULL) && create_missing) &&
-      ((brush_orig == NULL) || brush_tool(brush_orig, paint->runtime.tool_offset) != tool)) {
-    brush = BKE_brush_add(bmain, tool_name, paint->runtime.ob_mode);
+  if (((brush == nullptr) && create_missing) &&
+      ((brush_orig == nullptr) || brush_tool(brush_orig, paint->runtime.tool_offset) != tool)) {
+    brush = BKE_brush_add(bmain, tool_name, eObjectMode(paint->runtime.ob_mode));
     id_us_min(&brush->id); /* fake user only */
     brush_tool_set(brush, paint->runtime.tool_offset, tool);
     brush->toggle_brush = brush_orig;
@@ -918,7 +918,7 @@ static int brush_select_exec(bContext *C, wmOperator *op)
   }
 
   Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
-  if (paint == NULL) {
+  if (paint == nullptr) {
     return OPERATOR_CANCELLED;
   }
   const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
@@ -957,34 +957,34 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 
   prop = RNA_def_boolean(
       ot->srna, "toggle", 0, "Toggle", "Toggle between two brushes rather than cycling");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
   prop = RNA_def_boolean(ot->srna,
                          "create_missing",
                          0,
                          "Create Missing",
                          "If the requested brush type does not exist, create a new brush");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /***** Stencil Control *****/
 
-typedef enum {
+enum StencilControlMode {
   STENCIL_TRANSLATE,
   STENCIL_SCALE,
   STENCIL_ROTATE,
-} StencilControlMode;
+};
 
-typedef enum {
+enum StencilTextureMode {
   STENCIL_PRIMARY = 0,
   STENCIL_SECONDARY = 1,
-} StencilTextureMode;
+};
 
-typedef enum {
+enum StencilConstraint {
   STENCIL_CONSTRAINT_X = 1,
   STENCIL_CONSTRAINT_Y = 2,
-} StencilConstraint;
+};
 
-typedef struct {
+struct StencilControlData {
   float init_mouse[2];
   float init_spos[2];
   float init_sdim[2];
@@ -1001,7 +1001,7 @@ typedef struct {
   float *rot_target;
   float *pos_target;
   short launch_event;
-} StencilControlData;
+};
 
 static void stencil_set_target(StencilControlData *scd)
 {
@@ -1039,7 +1039,7 @@ static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *br = BKE_paint_brush(paint);
-  const float mvalf[2] = {event->mval[0], event->mval[1]};
+  const float mvalf[2] = {float(event->mval[0]), float(event->mval[1])};
   ARegion *region = CTX_wm_region(C);
   StencilControlData *scd;
   int mask = RNA_enum_get(op->ptr, "texmode");
@@ -1055,7 +1055,7 @@ static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *ev
     }
   }
 
-  scd = MEM_mallocN(sizeof(StencilControlData), "stencil_control");
+  scd = static_cast<StencilControlData *>(MEM_mallocN(sizeof(StencilControlData), __func__));
   scd->mask = mask;
   scd->br = br;
 
@@ -1063,7 +1063,7 @@ static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   stencil_set_target(scd);
 
-  scd->mode = RNA_enum_get(op->ptr, "mode");
+  scd->mode = StencilControlMode(RNA_enum_get(op->ptr, "mode"));
   scd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
   scd->area_size[0] = region->winx;
   scd->area_size[1] = region->winy;
@@ -1081,12 +1081,11 @@ static void stencil_restore(StencilControlData *scd)
   *scd->rot_target = scd->init_rot;
 }
 
-static void stencil_control_cancel(bContext *UNUSED(C), wmOperator *op)
+static void stencil_control_cancel(bContext * /*C*/, wmOperator *op)
 {
-  StencilControlData *scd = op->customdata;
-
+  StencilControlData *scd = static_cast<StencilControlData *>(op->customdata);
   stencil_restore(scd);
-  MEM_freeN(op->customdata);
+  MEM_freeN(scd);
 }
 
 static void stencil_control_calculate(StencilControlData *scd, const int mval[2])
@@ -1094,7 +1093,7 @@ static void stencil_control_calculate(StencilControlData *scd, const int mval[2]
 #define PIXEL_MARGIN 5
 
   float mdiff[2];
-  const float mvalf[2] = {mval[0], mval[1]};
+  const float mvalf[2] = {float(mval[0]), float(mval[1])};
   switch (scd->mode) {
     case STENCIL_TRANSLATE:
       sub_v2_v2v2(mdiff, mvalf, scd->init_mouse);
@@ -1144,11 +1143,11 @@ static void stencil_control_calculate(StencilControlData *scd, const int mval[2]
 
 static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  StencilControlData *scd = op->customdata;
+  StencilControlData *scd = static_cast<StencilControlData *>(op->customdata);
 
   if (event->type == scd->launch_event && event->val == KM_RELEASE) {
     MEM_freeN(op->customdata);
-    WM_event_add_notifier(C, NC_WINDOW, NULL);
+    WM_event_add_notifier(C, NC_WINDOW, nullptr);
     return OPERATOR_FINISHED;
   }
 
@@ -1159,7 +1158,7 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
     case EVT_ESCKEY:
       if (event->val == KM_PRESS) {
         stencil_control_cancel(C, op);
-        WM_event_add_notifier(C, NC_WINDOW, NULL);
+        WM_event_add_notifier(C, NC_WINDOW, nullptr);
         return OPERATOR_CANCELLED;
       }
       break;
@@ -1167,7 +1166,7 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
       if (event->val == KM_PRESS) {
 
         if (scd->constrain_mode == STENCIL_CONSTRAINT_X) {
-          scd->constrain_mode = 0;
+          scd->constrain_mode = StencilConstraint(0);
         }
         else {
           scd->constrain_mode = STENCIL_CONSTRAINT_X;
@@ -1179,7 +1178,7 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
     case EVT_YKEY:
       if (event->val == KM_PRESS) {
         if (scd->constrain_mode == STENCIL_CONSTRAINT_Y) {
-          scd->constrain_mode = 0;
+          scd->constrain_mode = StencilConstraint(0);
         }
         else {
           scd->constrain_mode = STENCIL_CONSTRAINT_Y;
@@ -1220,13 +1219,13 @@ static void BRUSH_OT_stencil_control(wmOperatorType *ot)
       {STENCIL_TRANSLATE, "TRANSLATION", 0, "Translation", ""},
       {STENCIL_SCALE, "SCALE", 0, "Scale", ""},
       {STENCIL_ROTATE, "ROTATION", 0, "Rotation", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem stencil_texture_items[] = {
       {STENCIL_PRIMARY, "PRIMARY", 0, "Primary", ""},
       {STENCIL_SECONDARY, "SECONDARY", 0, "Secondary", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
   /* identifiers */
   ot->name = "Stencil Brush Control";
@@ -1244,9 +1243,9 @@ static void BRUSH_OT_stencil_control(wmOperatorType *ot)
 
   PropertyRNA *prop;
   prop = RNA_def_enum(ot->srna, "mode", stencil_control_items, STENCIL_TRANSLATE, "Tool", "");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
   prop = RNA_def_enum(ot->srna, "texmode", stencil_texture_items, STENCIL_PRIMARY, "Tool", "");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 static int stencil_fit_image_aspect_exec(bContext *C, wmOperator *op)
@@ -1256,8 +1255,8 @@ static int stencil_fit_image_aspect_exec(bContext *C, wmOperator *op)
   bool use_scale = RNA_boolean_get(op->ptr, "use_scale");
   bool use_repeat = RNA_boolean_get(op->ptr, "use_repeat");
   bool do_mask = RNA_boolean_get(op->ptr, "mask");
-  Tex *tex = NULL;
-  MTex *mtex = NULL;
+  Tex *tex = nullptr;
+  MTex *mtex = nullptr;
   if (br) {
     mtex = do_mask ? &br->mask_mtex : &br->mtex;
     tex = mtex->tex;
@@ -1267,7 +1266,7 @@ static int stencil_fit_image_aspect_exec(bContext *C, wmOperator *op)
     float aspx, aspy;
     Image *ima = tex->ima;
     float orig_area, stencil_area, factor;
-    ED_image_get_uv_aspect(ima, NULL, &aspx, &aspy);
+    ED_image_get_uv_aspect(ima, nullptr, &aspx, &aspy);
 
     if (use_scale) {
       aspx *= mtex->size[0];
@@ -1300,7 +1299,7 @@ static int stencil_fit_image_aspect_exec(bContext *C, wmOperator *op)
     }
   }
 
-  WM_event_add_notifier(C, NC_WINDOW, NULL);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -1355,7 +1354,7 @@ static int stencil_reset_transform_exec(bContext *C, wmOperator *op)
     br->mtex.rot = 0;
   }
 
-  WM_event_add_notifier(C, NC_WINDOW, NULL);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   return OPERATOR_FINISHED;
 }

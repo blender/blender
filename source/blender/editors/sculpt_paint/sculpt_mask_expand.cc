@@ -31,7 +31,7 @@
 #include "RNA_define.h"
 
 #include "ED_screen.h"
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 #include "bmesh.h"
 

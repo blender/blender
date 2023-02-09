@@ -46,7 +46,7 @@ typedef struct CoNo {
   float no[3];
 } CoNo;
 
-/* paint_stroke.c */
+/* paint_stroke.cc */
 
 typedef bool (*StrokeGetLocation)(struct bContext *C,
                                   float location[3],
@@ -87,7 +87,7 @@ bool paint_supports_texture(enum ePaintMode mode);
 bool paint_supports_jitter(enum ePaintMode mode);
 
 /**
- * Called in paint_ops.c, on each regeneration of key-maps.
+ * Called in paint_ops.cc, on each regeneration of key-maps.
  */
 struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf);
 int paint_stroke_modal(struct bContext *C,
@@ -457,7 +457,7 @@ typedef enum BrushStrokeMode {
   BRUSH_STROKE_SMOOTH,
 } BrushStrokeMode;
 
-/* paint_hide.c */
+/* paint_hide.cc */
 
 typedef enum {
   PARTIALVIS_HIDE,

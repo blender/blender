@@ -65,7 +65,7 @@
 #include "bmesh.h"
 
 #include "paint_intern.h" /* own include */
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 using blender::IndexRange;
 using namespace blender;

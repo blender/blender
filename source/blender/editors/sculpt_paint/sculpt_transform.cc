@@ -27,7 +27,7 @@
 #include "ED_sculpt.h"
 #include "ED_view3d.h"
 #include "paint_intern.h"
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

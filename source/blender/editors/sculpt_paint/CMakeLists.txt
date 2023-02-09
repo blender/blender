@@ -45,15 +45,15 @@ set(SRC
   paint_cursor.cc
   paint_curve.c
   paint_curve_undo.c
-  paint_hide.c
+  paint_hide.cc
   paint_image.cc
   paint_image_2d.c
   paint_image_2d_curve_mask.cc
   paint_image_ops_paint.cc
   paint_image_proj.cc
   paint_mask.cc
-  paint_ops.c
-  paint_stroke.c
+  paint_ops.cc
+  paint_stroke.cc
   paint_utils.c
   paint_vertex.cc
   paint_vertex_color_ops.cc
@@ -88,7 +88,7 @@ set(SRC
   curves_sculpt_intern.h
   curves_sculpt_intern.hh
   paint_intern.h
-  sculpt_intern.h
+  sculpt_intern.hh
 )
 
 set(LIB

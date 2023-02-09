@@ -5,9 +5,9 @@
  * \ingroup edutil
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -59,7 +59,7 @@
 
 void ED_editors_init_for_undo(Main *bmain)
 {
-  wmWindowManager *wm = bmain->wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     Scene *scene = WM_window_get_active_scene(win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -67,14 +67,14 @@ void ED_editors_init_for_undo(Main *bmain)
     Object *ob = BKE_view_layer_active_object_get(view_layer);
     if (ob && (ob->mode & OB_MODE_TEXTURE_PAINT)) {
       BKE_texpaint_slots_refresh_object(scene, ob);
-      ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+      ED_paint_proj_mesh_data_check(scene, ob, nullptr, nullptr, nullptr, nullptr);
     }
   }
 }
 
 void ED_editors_init(bContext *C)
 {
-  struct Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -92,12 +92,12 @@ void ED_editors_init(bContext *C)
    * e.g. linked objects we have to ensure that they are actually the
    * active object in this scene. */
   Object *obact = CTX_data_active_object(C);
-  for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
     int mode = ob->mode;
     if (mode == OB_MODE_OBJECT) {
       continue;
     }
-    if (BKE_object_has_mode_data(ob, mode)) {
+    if (BKE_object_has_mode_data(ob, eObjectMode(mode))) {
       /* For multi-edit mode we may already have mode data. */
       continue;
     }
@@ -113,25 +113,25 @@ void ED_editors_init(bContext *C)
         DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
       }
       else if (mode & OB_MODE_ALL_PAINT_GPENCIL) {
-        ED_gpencil_toggle_brush_cursor(C, true, NULL);
+        ED_gpencil_toggle_brush_cursor(C, true, nullptr);
       }
       continue;
     }
 
     /* Reset object to Object mode, so that code below can properly re-switch it to its
      * previous mode if possible, re-creating its mode data, etc. */
-    ID *ob_data = ob->data;
+    ID *ob_data = static_cast<ID *>(ob->data);
     ob->mode = OB_MODE_OBJECT;
     DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 
     /* Object mode is enforced if there is no active object, or if the active object's type is
      * different. */
-    if (obact == NULL || ob->type != obact->type) {
+    if (obact == nullptr || ob->type != obact->type) {
       continue;
     }
     /* Object mode is enforced for non-editable data (or their obdata). */
     if (!BKE_id_is_editable(bmain, &ob->id) ||
-        (ob_data != NULL && !BKE_id_is_editable(bmain, ob_data))) {
+        (ob_data != nullptr && !BKE_id_is_editable(bmain, ob_data))) {
       continue;
     }
 
@@ -180,7 +180,7 @@ void ED_editors_init(bContext *C)
     else {
       /* TODO(@ideasman42): avoid operator calls. */
       if (obact == ob) {
-        ED_object_mode_set(C, mode);
+        ED_object_mode_set(C, eObjectMode(mode));
       }
     }
   }
@@ -216,12 +216,12 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
 
   /* Frees all edit-mode undo-steps. */
   if (do_undo_system && G_MAIN->wm.first) {
-    wmWindowManager *wm = G_MAIN->wm.first;
-    /* normally we don't check for NULL undo stack,
+    wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+    /* normally we don't check for null undo stack,
      * do here since it may run in different context. */
     if (wm->undo_stack) {
       BKE_undosys_stack_destroy(wm->undo_stack);
-      wm->undo_stack = NULL;
+      wm->undo_stack = nullptr;
     }
   }
 
@@ -236,7 +236,7 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
    * don't handle modes either (doing so isn't always practical).
    *
    * To reproduce the problem where stale data is used, see: T84920. */
-  for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
     if (ED_object_editmode_free_ex(bmain, ob)) {
       if (do_undo_system == false) {
         DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
@@ -245,8 +245,8 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
   }
 
   /* global in meshtools... */
-  ED_mesh_mirror_spatial_table_end(NULL);
-  ED_mesh_mirror_topo_table_end(NULL);
+  ED_mesh_mirror_spatial_table_end(nullptr);
+  ED_mesh_mirror_topo_table_end(nullptr);
 }
 
 bool ED_editors_flush_edits_for_object_ex(Main *bmain,
@@ -259,7 +259,7 @@ bool ED_editors_flush_edits_for_object_ex(Main *bmain,
     /* Don't allow flushing while in the middle of a stroke (frees data in use).
      * Auto-save prevents this from happening but scripts
      * may cause a flush on saving: T53986. */
-    if (ob->sculpt != NULL && ob->sculpt->cache == NULL) {
+    if (ob->sculpt != nullptr && ob->sculpt->cache == nullptr) {
       char *needs_flush_ptr = &ob->sculpt->needs_flush_to_id;
       if (check_needs_flush && (*needs_flush_ptr == 0)) {
         return false;
@@ -283,8 +283,8 @@ bool ED_editors_flush_edits_for_object_ex(Main *bmain,
   }
   else if (ob->mode & OB_MODE_EDIT) {
 
-    char *needs_flush_ptr = BKE_object_data_editmode_flush_ptr_get(ob->data);
-    if (needs_flush_ptr != NULL) {
+    char *needs_flush_ptr = BKE_object_data_editmode_flush_ptr_get(static_cast<ID *>(ob->data));
+    if (needs_flush_ptr != nullptr) {
       if (check_needs_flush && (*needs_flush_ptr == 0)) {
         return false;
       }
@@ -306,12 +306,11 @@ bool ED_editors_flush_edits_for_object(Main *bmain, Object *ob)
 bool ED_editors_flush_edits_ex(Main *bmain, bool for_render, bool check_needs_flush)
 {
   bool has_edited = false;
-  Object *ob;
 
   /* loop through all data to find edit mode or object mode, because during
    * exiting we might not have a context for edit object and multiple sculpt
    * objects can exist at the same time */
-  for (ob = bmain->objects.first; ob; ob = ob->id.next) {
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
     has_edited |= ED_editors_flush_edits_for_object_ex(bmain, ob, for_render, check_needs_flush);
   }
 
@@ -357,7 +356,7 @@ void unpack_menu(bContext *C,
                  const char *id_name,
                  const char *abs_name,
                  const char *folder,
-                 struct PackedFile *pf)
+                 PackedFile *pf)
 {
   Main *bmain = CTX_data_main(C);
   PointerRNA props_ptr;
@@ -371,7 +370,7 @@ void unpack_menu(bContext *C,
   layout = UI_popup_menu_layout(pup);
 
   uiItemFullO_ptr(
-      layout, ot, IFACE_("Remove Pack"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
+      layout, ot, IFACE_("Remove Pack"), ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
   RNA_enum_set(&props_ptr, "method", PF_REMOVE);
   RNA_string_set(&props_ptr, "id", id_name);
 
@@ -384,7 +383,7 @@ void unpack_menu(bContext *C,
       switch (BKE_packedfile_compare_to_file(blendfile_path, local_name, pf)) {
         case PF_CMP_NOFILE:
           BLI_snprintf(line, sizeof(line), TIP_("Create %s"), local_name);
-          uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
+          uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
           RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
 
@@ -392,7 +391,7 @@ void unpack_menu(bContext *C,
         case PF_CMP_EQUAL:
           BLI_snprintf(line, sizeof(line), TIP_("Use %s (identical)"), local_name);
           // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_USE_LOCAL);
-          uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
+          uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
           RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
 
@@ -400,13 +399,13 @@ void unpack_menu(bContext *C,
         case PF_CMP_DIFFERS:
           BLI_snprintf(line, sizeof(line), TIP_("Use %s (differs)"), local_name);
           // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_USE_LOCAL);
-          uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
+          uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
           RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
 
           BLI_snprintf(line, sizeof(line), TIP_("Overwrite %s"), local_name);
           // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_WRITE_LOCAL);
-          uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
+          uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
           RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
           break;
@@ -418,27 +417,27 @@ void unpack_menu(bContext *C,
     case PF_CMP_NOFILE:
       BLI_snprintf(line, sizeof(line), TIP_("Create %s"), abs_name);
       // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_WRITE_ORIGINAL);
-      uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
+      uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
       RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
       break;
     case PF_CMP_EQUAL:
       BLI_snprintf(line, sizeof(line), TIP_("Use %s (identical)"), abs_name);
       // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_USE_ORIGINAL);
-      uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
+      uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
       RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
       break;
     case PF_CMP_DIFFERS:
       BLI_snprintf(line, sizeof(line), TIP_("Use %s (differs)"), abs_name);
       // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_USE_ORIGINAL);
-      uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
+      uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
       RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
 
       BLI_snprintf(line, sizeof(line), TIP_("Overwrite %s"), abs_name);
       // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_WRITE_ORIGINAL);
-      uiItemFullO_ptr(layout, ot, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
+      uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
       RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
       break;
@@ -447,9 +446,7 @@ void unpack_menu(bContext *C,
   UI_popup_menu_end(C, pup);
 }
 
-void ED_spacedata_id_remap(struct ScrArea *area,
-                           struct SpaceLink *sl,
-                           const struct IDRemapper *mappings)
+void ED_spacedata_id_remap(ScrArea *area, SpaceLink *sl, const IDRemapper *mappings)
 {
   SpaceType *st = BKE_spacetype_from_id(sl->spacetype);
   if (st && st->id_remap) {
@@ -457,15 +454,12 @@ void ED_spacedata_id_remap(struct ScrArea *area,
   }
 }
 
-void ED_spacedata_id_remap_single(struct ScrArea *area,
-                                  struct SpaceLink *sl,
-                                  ID *old_id,
-                                  ID *new_id)
+void ED_spacedata_id_remap_single(ScrArea *area, SpaceLink *sl, ID *old_id, ID *new_id)
 {
   SpaceType *st = BKE_spacetype_from_id(sl->spacetype);
 
   if (st && st->id_remap) {
-    struct IDRemapper *mappings = BKE_id_remapper_create();
+    IDRemapper *mappings = BKE_id_remapper_create();
     BKE_id_remapper_add(mappings, old_id, new_id);
     st->id_remap(area, sl, mappings);
     BKE_id_remapper_free(mappings);

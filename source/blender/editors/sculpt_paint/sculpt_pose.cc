@@ -22,7 +22,7 @@
 #include "BKE_pbvh.h"
 
 #include "paint_intern.h"
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 #include "bmesh.h"
 

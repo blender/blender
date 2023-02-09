@@ -478,7 +478,7 @@ void ED_object_constraint_copy_for_pose(struct Main *bmain,
                                         struct bPoseChannel *pchan,
                                         struct bConstraint *con);
 
-/* object_modes.c */
+/* object_modes.cc */
 
 /**
  * Checks the mode to be set is compatible with the object

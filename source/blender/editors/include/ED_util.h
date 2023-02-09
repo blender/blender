@@ -18,7 +18,7 @@ struct IDRemapper;
 struct Main;
 struct bContext;
 
-/* ed_util.c */
+/* ed_util.cc */
 
 void ED_editors_init_for_undo(struct Main *bmain);
 void ED_editors_init(struct bContext *C);

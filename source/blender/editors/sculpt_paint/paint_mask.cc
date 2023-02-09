@@ -52,7 +52,7 @@
 #include "paint_intern.h"
 
 /* For undo push. */
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 static const EnumPropertyItem mode_items[] = {
     {PAINT_MASK_FLOOD_VALUE,

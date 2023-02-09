@@ -34,7 +34,7 @@
 #include "WM_types.h"
 
 #include "ED_undo.h"
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

@@ -44,7 +44,7 @@ set(SRC
   object_facemap_ops.c
   object_gpencil_modifier.c
   object_hook.c
-  object_modes.c
+  object_modes.cc
   object_modifier.cc
   object_ops.c
   object_random.c

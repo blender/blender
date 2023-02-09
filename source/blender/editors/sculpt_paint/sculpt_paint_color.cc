@@ -23,7 +23,7 @@
 
 #include "IMB_colormanagement.h"
 
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 #include "IMB_imbuf.h"
 

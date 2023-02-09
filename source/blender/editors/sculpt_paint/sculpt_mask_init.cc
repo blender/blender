@@ -32,7 +32,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "sculpt_intern.h"
+#include "sculpt_intern.hh"
 
 #include "bmesh.h"
 
