@@ -230,6 +230,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   mesh->runtime->loose_edges_cache.tag_dirty();
   mesh->runtime->looptris_cache.tag_dirty();
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
+  mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   if (mesh->runtime->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
   }
@@ -245,6 +246,7 @@ void BKE_mesh_tag_edges_split(struct Mesh *mesh)
   free_subdiv_ccg(*mesh->runtime);
   mesh->runtime->loose_edges_cache.tag_dirty();
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
+  mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   if (mesh->runtime->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(mesh->runtime->shrinkwrap_data);
   }

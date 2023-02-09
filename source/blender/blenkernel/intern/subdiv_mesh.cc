@@ -536,6 +536,10 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
   subdiv_mesh_prepare_accumulator(subdiv_context, num_vertices);
   subdiv_context->subdiv_mesh->runtime->subsurf_face_dot_tags.clear();
   subdiv_context->subdiv_mesh->runtime->subsurf_face_dot_tags.resize(num_vertices);
+  if (subdiv_context->settings->use_optimal_display) {
+    subdiv_context->subdiv_mesh->runtime->subsurf_optimal_display_edges.clear();
+    subdiv_context->subdiv_mesh->runtime->subsurf_optimal_display_edges.resize(num_edges);
+  }
   return true;
 }
 
@@ -784,15 +788,10 @@ static void subdiv_mesh_vertex_inner(const SubdivForeachContext *foreach_context
  * \{ */
 
 static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
-                                  MEdge *subdiv_edge,
+                                  const int subdiv_edge_index,
                                   const int coarse_edge_index)
 {
-  const int subdiv_edge_index = subdiv_edge - ctx->subdiv_edges;
   if (coarse_edge_index == ORIGINDEX_NONE) {
-    subdiv_edge->flag = 0;
-    if (!ctx->settings->use_optimal_display) {
-      subdiv_edge->flag |= ME_EDGEDRAW;
-    }
     if (ctx->edge_origindex != nullptr) {
       ctx->edge_origindex[subdiv_edge_index] = ORIGINDEX_NONE;
     }
@@ -800,7 +799,9 @@ static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
   }
   CustomData_copy_data(
       &ctx->coarse_mesh->edata, &ctx->subdiv_mesh->edata, coarse_edge_index, subdiv_edge_index, 1);
-  subdiv_edge->flag |= ME_EDGEDRAW;
+  if (ctx->settings->use_optimal_display) {
+    ctx->subdiv_mesh->runtime->subsurf_optimal_display_edges[subdiv_edge_index].set();
+  }
 }
 
 static void subdiv_mesh_edge(const SubdivForeachContext *foreach_context,
@@ -814,7 +815,7 @@ static void subdiv_mesh_edge(const SubdivForeachContext *foreach_context,
   SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
   MEdge *subdiv_medge = ctx->subdiv_edges;
   MEdge *subdiv_edge = &subdiv_medge[subdiv_edge_index];
-  subdiv_copy_edge_data(ctx, subdiv_edge, coarse_edge_index);
+  subdiv_copy_edge_data(ctx, subdiv_edge_index, coarse_edge_index);
   subdiv_edge->v1 = subdiv_v1;
   subdiv_edge->v2 = subdiv_v2;
 }

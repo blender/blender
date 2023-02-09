@@ -39,7 +39,6 @@ typedef struct MEdge {
 enum {
   /** Deprecated selection status. Now stored in ".select_edge" attribute. */
   /*  SELECT = (1 << 0), */
-  ME_EDGEDRAW = (1 << 1),
   ME_SEAM = (1 << 2),
 /** Deprecated hide status. Now stored in ".hide_edge" attribute. */
 /*  ME_HIDE = (1 << 4), */

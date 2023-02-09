@@ -43,8 +43,6 @@ static Mesh *triangulate_mesh(Mesh *mesh,
 {
   Mesh *result;
   BMesh *bm;
-  int edges_num, i;
-  MEdge *me;
   CustomData_MeshMasks cd_mask_extra{};
   cd_mask_extra.vmask = CD_MASK_ORIGINDEX;
   cd_mask_extra.emask = CD_MASK_ORIGINDEX;
@@ -83,14 +81,6 @@ static Mesh *triangulate_mesh(Mesh *mesh,
     /* Do some cleanup, we do not want those temp data to stay around. */
     CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
     CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
-  }
-
-  edges_num = result->totedge;
-  me = BKE_mesh_edges_for_write(result);
-
-  /* force drawing of all edges (seems to be omitted in CDDM_from_bmesh) */
-  for (i = 0; i < edges_num; i++, me++) {
-    me->flag |= ME_EDGEDRAW;
   }
 
   return result;

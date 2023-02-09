@@ -89,7 +89,6 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
                                   int totface,
                                   int /*totloop*/,
                                   int totpoly,
-                                  const bool use_old,
                                   MEdge **r_medge,
                                   int *r_totedge)
 {
@@ -156,9 +155,6 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
     if (ed->v1 != (ed + 1)->v1 || ed->v2 != (ed + 1)->v2) {
       med->v1 = ed->v1;
       med->v2 = ed->v2;
-      if (use_old == false || ed->is_draw) {
-        med->flag = ME_EDGEDRAW;
-      }
 
       /* order is swapped so extruding this edge as a surface won't flip face normals
        * with cyclic curves */
@@ -175,7 +171,6 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   /* last edge */
   med->v1 = ed->v1;
   med->v2 = ed->v2;
-  med->flag = ME_EDGEDRAW;
 
   MEM_freeN(edsort);
 
@@ -206,7 +201,7 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   *r_totedge = totedge_final;
 }
 
-void BKE_mesh_calc_edges_legacy(Mesh *me, const bool use_old)
+void BKE_mesh_calc_edges_legacy(Mesh *me)
 {
   using namespace blender;
   MEdge *medge;
@@ -224,7 +219,6 @@ void BKE_mesh_calc_edges_legacy(Mesh *me, const bool use_old)
                         me->totface,
                         loops.size(),
                         polys.size(),
-                        use_old,
                         &medge,
                         &totedge);
 

@@ -82,7 +82,6 @@ void BM_mesh_bm_to_me(struct Main *bmain,
  * - Ignore shape-keys.
  * - Ignore vertex-parents.
  * - Ignore selection history.
- * - Uses simpler method to calculate #ME_EDGEDRAW
  * - Uses #CD_MASK_DERIVEDMESH instead of #CD_MASK_MESH.
  *
  * \note Was `cddm_from_bmesh_ex` in 2.7x, removed `MFace` support.

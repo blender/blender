@@ -113,7 +113,7 @@ using blender::StringRef;
 
 static char bm_edge_flag_from_mflag(const short mflag)
 {
-  return ((mflag & ME_SEAM) ? BM_ELEM_SEAM : 0) | ((mflag & ME_EDGEDRAW) ? BM_ELEM_DRAW : 0);
+  return ((mflag & ME_SEAM) ? BM_ELEM_SEAM : 0) | BM_ELEM_DRAW;
 }
 static char bm_face_flag_from_mflag(const char mflag)
 {
@@ -124,7 +124,7 @@ static short bm_edge_flag_to_mflag(const BMEdge *e)
 {
   const char hflag = e->head.hflag;
 
-  return ((hflag & BM_ELEM_SEAM) ? ME_SEAM : 0) | ((hflag & BM_ELEM_DRAW) ? ME_EDGEDRAW : 0);
+  return (hflag & BM_ELEM_SEAM) ? ME_SEAM : 0;
 }
 static char bm_face_flag_to_mflag(const BMFace *f)
 {
@@ -1420,15 +1420,6 @@ static void bm_to_mesh_edges(const BMesh &bm,
       dst_edge.v1 = BM_elem_index_get(src_edge.v1);
       dst_edge.v2 = BM_elem_index_get(src_edge.v2);
       dst_edge.flag = bm_edge_flag_to_mflag(&src_edge);
-
-      /* Handle this differently to editmode switching; only enable draw for single user
-       * edges rather than calculating angle. */
-      if ((dst_edge.flag & ME_EDGEDRAW) == 0) {
-        if (src_edge.l && src_edge.l == src_edge.l->radial_next) {
-          dst_edge.flag |= ME_EDGEDRAW;
-        }
-      }
-
       CustomData_from_bmesh_block(&bm.edata, &mesh.edata, src_edge.head.data, edge_i);
     }
     if (!select_edge.is_empty()) {
