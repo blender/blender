@@ -957,7 +957,7 @@ struct GWL_Display {
    * Needed because #GHOST_System::dispatchEvents fires timers
    * outside of WAYLAND (without locking the `timer_mutex`).
    */
-  GHOST_TimerManager *ghost_timer_manager;
+  GHOST_TimerManager *ghost_timer_manager = nullptr;
 
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 };
@@ -1014,8 +1014,10 @@ static void gwl_display_destroy(GWL_Display *display)
   }
 
   /* Important to remove after the seats which may have key repeat timers active. */
-  delete display->ghost_timer_manager;
-  display->ghost_timer_manager = nullptr;
+  if (display->ghost_timer_manager) {
+    delete display->ghost_timer_manager;
+    display->ghost_timer_manager = nullptr;
+  }
 
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
