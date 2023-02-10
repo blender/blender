@@ -1056,7 +1056,7 @@ class WM_OT_url_open_preset(Operator):
         return "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
 
     def _url_from_manual(self, _context):
-        return "https://docs.blender.org/manual/en/%d.%d/" % bpy.app.version[:2]
+        return "https://docs.blender.org/manual/%s/%d.%d/" % (bpy.utils.manual_language_code(), *bpy.app.version[:2])
 
     def _url_from_api(self, _context):
         return "https://docs.blender.org/api/%d.%d/" % bpy.app.version[:2]
