@@ -762,6 +762,13 @@ static const EnumPropertyItem *rna_lang_enum_properties_itemf(bContext *UNUSED(C
   }
   return items;
 }
+#  else
+static int rna_lang_enum_properties_get_no_international(PointerRNA *UNUSED(ptr))
+{
+  /* This simply prevents warnings when accessing language
+   * (since the actual value wont be in the enum, unless already `DEFAULT`). */
+  return 0;
+}
 #  endif
 
 static IDProperty **rna_AddonPref_idprops(PointerRNA *ptr)
@@ -4880,6 +4887,8 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_language_default_items);
 #  ifdef WITH_INTERNATIONAL
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_lang_enum_properties_itemf");
+#  else
+  RNA_def_property_enum_funcs(prop, "rna_lang_enum_properties_get_no_international", NULL, NULL);
 #  endif
   RNA_def_property_ui_text(prop, "Language", "Language used for translation");
   RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
