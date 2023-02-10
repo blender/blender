@@ -133,6 +133,20 @@ static char bm_face_flag_to_mflag(const BMFace *f)
   return ((hflag & BM_ELEM_SMOOTH) ? ME_SMOOTH : 0);
 }
 
+bool BM_attribute_stored_in_bmesh_builtin(const StringRef name)
+{
+  return ELEM(name,
+              "position",
+              ".hide_vert",
+              ".hide_edge",
+              ".hide_poly",
+              ".select_vert",
+              ".select_edge",
+              ".select_poly",
+              "material_index",
+              "sharp_edge");
+}
+
 /* Static function for alloc (duplicate in modifiers_bmesh.c) */
 static BMFace *bm_face_create_from_mpoly(BMesh &bm,
                                          Span<MLoop> loops,

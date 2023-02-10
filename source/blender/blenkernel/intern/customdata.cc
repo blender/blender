@@ -2289,26 +2289,12 @@ bool CustomData_merge(const CustomData *source,
   return changed;
 }
 
-static bool attribute_stored_in_bmesh_flag(const StringRef name)
-{
-  return ELEM(name,
-              "position",
-              ".hide_vert",
-              ".hide_edge",
-              ".hide_poly",
-              ".select_vert",
-              ".select_edge",
-              ".select_poly",
-              "material_index",
-              "sharp_edge");
-}
-
 CustomData CustomData_shallow_copy_remove_non_bmesh_attributes(const CustomData *src,
                                                                const eCustomDataMask mask)
 {
   Vector<CustomDataLayer> dst_layers;
   for (const CustomDataLayer &layer : Span<CustomDataLayer>{src->layers, src->totlayer}) {
-    if (attribute_stored_in_bmesh_flag(layer.name)) {
+    if (BM_attribute_stored_in_bmesh_builtin(layer.name)) {
       continue;
     }
     if (!(mask & CD_TYPE_AS_MASK(layer.type))) {
