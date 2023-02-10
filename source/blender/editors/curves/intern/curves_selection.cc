@@ -164,6 +164,21 @@ bool has_anything_selected(const bke::CurvesGeometry &curves)
   return !selection || contains(selection, true);
 }
 
+bool has_anything_selected(const GSpan selection)
+{
+  if (selection.type().is<bool>()) {
+    return selection.typed<bool>().contains(true);
+  }
+  else if (selection.type().is<float>()) {
+    for (const float elem : selection.typed<float>()) {
+      if (elem > 0.0f) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 static void invert_selection(MutableSpan<float> selection)
 {
   threading::parallel_for(selection.index_range(), 2048, [&](IndexRange range) {
@@ -203,14 +218,12 @@ void select_all(bke::CurvesGeometry &curves, const eAttrDomain selection_domain,
   }
 }
 
-void select_ends(bke::CurvesGeometry &curves,
-                 const eAttrDomain selection_domain,
-                 int amount,
-                 bool end_points)
+void select_ends(bke::CurvesGeometry &curves, int amount, bool end_points)
 {
   const bool was_anything_selected = has_anything_selected(curves);
+  const OffsetIndices points_by_curve = curves.points_by_curve();
   bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-      curves, selection_domain, CD_PROP_BOOL);
+      curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
   if (!was_anything_selected) {
     fill_selection_true(selection.span);
   }
@@ -223,7 +236,6 @@ void select_ends(bke::CurvesGeometry &curves,
       MutableSpan<T> selection_typed = selection.span.typed<T>();
       threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
         for (const int curve_i : range) {
-          const OffsetIndices points_by_curve = curves.points_by_curve();
           if (end_points) {
             selection_typed.slice(points_by_curve[curve_i].drop_back(amount)).fill(T(0));
           }
@@ -232,6 +244,23 @@ void select_ends(bke::CurvesGeometry &curves,
           }
         }
       });
+    }
+  });
+  selection.finish();
+}
+
+void select_linked(bke::CurvesGeometry &curves)
+{
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  bke::GSpanAttributeWriter selection = ensure_selection_attribute(
+      curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
+
+  threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
+    for (const int curve_i : range) {
+      GMutableSpan selection_curve = selection.span.slice(points_by_curve[curve_i]);
+      if (has_anything_selected(selection_curve)) {
+        fill_selection_true(selection_curve);
+      }
     }
   });
   selection.finish();

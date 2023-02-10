@@ -90,6 +90,11 @@ void fill_selection_true(GMutableSpan span);
 bool has_anything_selected(const bke::CurvesGeometry &curves);
 
 /**
+ * Return true if any element in the span is selected, on either domain with either type.
+ */
+bool has_anything_selected(GSpan selection);
+
+/**
  * Find curves that have any point selected (a selection factor greater than zero),
  * or curves that have their own selection factor greater than zero.
  */
@@ -123,10 +128,12 @@ void select_all(bke::CurvesGeometry &curves, const eAttrDomain selection_domain,
  * \param amount: The amount of points to select from the front or back.
  * \param end_points: If true, select the last point(s), if false, select the first point(s).
  */
-void select_ends(bke::CurvesGeometry &curves,
-                 const eAttrDomain selection_domain,
-                 int amount,
-                 bool end_points);
+void select_ends(bke::CurvesGeometry &curves, int amount, bool end_points);
+
+/**
+ * Select the points of all curves that have at least one point selected.
+ */
+void select_linked(bke::CurvesGeometry &curves);
 
 /**
  * Select random points or curves.

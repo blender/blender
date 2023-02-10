@@ -2052,6 +2052,7 @@ class VIEW3D_MT_select_edit_curves(Menu):
         layout.operator("curves.select_all", text="Invert").action = 'INVERT'
         layout.operator("curves.select_random", text="Random")
         layout.operator("curves.select_end", text="Endpoints")
+        layout.operator("curves.select_linked", text="Linked")
 
 
 class VIEW3D_MT_select_sculpt_curves(Menu):
