@@ -3499,7 +3499,8 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmE
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | notifierFlags, NULL);
 
-  return OPERATOR_FINISHED;
+  return WM_operator_flag_only_pass_through_on_press(OPERATOR_FINISHED | OPERATOR_PASS_THROUGH,
+                                                     event);
 }
 
 static void ANIM_OT_channels_click(wmOperatorType *ot)
