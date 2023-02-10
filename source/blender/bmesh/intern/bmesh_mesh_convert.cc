@@ -1011,6 +1011,8 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
 
   const int ototvert = me->totvert;
 
+  blender::Vector<int> ldata_layers_marked_nocopy;
+
   /* Free custom data. */
   CustomData_free(&me->vdata, me->totvert);
   CustomData_free(&me->edata, me->totedge);
@@ -1063,18 +1065,21 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     }
     else {
       bm->ldata.layers[vertsel_layer_index].flag |= CD_FLAG_NOCOPY;
+      ldata_layers_marked_nocopy.append(vertsel_layer_index);
     }
     if (need_edgesel) {
       bm->ldata.layers[edgesel_layer_index].flag &= ~CD_FLAG_NOCOPY;
     }
     else {
       bm->ldata.layers[edgesel_layer_index].flag |= CD_FLAG_NOCOPY;
+      ldata_layers_marked_nocopy.append(edgesel_layer_index);
     }
     if (need_pin) {
       bm->ldata.layers[pin_layer_index].flag &= ~CD_FLAG_NOCOPY;
     }
     else {
       bm->ldata.layers[pin_layer_index].flag |= CD_FLAG_NOCOPY;
+      ldata_layers_marked_nocopy.append(pin_layer_index);
     }
   }
 
@@ -1085,6 +1090,12 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     CustomData_copy(&bm->edata, &me->edata, mask.emask, CD_SET_DEFAULT, me->totedge);
     CustomData_copy(&bm->ldata, &me->ldata, mask.lmask, CD_SET_DEFAULT, me->totloop);
     CustomData_copy(&bm->pdata, &me->pdata, mask.pmask, CD_SET_DEFAULT, me->totpoly);
+  }
+
+
+  /* Clear the CD_FLAG_NOCOPY flags for the layers they were temporarily set on */
+  for (const int i : ldata_layers_marked_nocopy) {
+    bm->ldata.layers[i].flag &= ~CD_FLAG_NOCOPY;
   }
 
   CustomData_add_layer_named(
