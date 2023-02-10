@@ -772,7 +772,7 @@ bool get_effector_data(EffectorCache *eff,
       if (eff->pd->forcefield == PFIELD_VORTEX || eff->pd->shape == PFIELD_SHAPE_LINE) {
         add_v3_v3v3(efd->loc, ob->object_to_world[3], translate);
       }
-      else { /* normally efd->loc is closest point on effector xy-plane */
+      else { /* Normally `efd->loc` is closest point on effector XY-plane. */
         sub_v3_v3v3(efd->loc, point->loc, translate);
       }
     }
@@ -1125,31 +1125,31 @@ void BKE_effectors_apply(ListBase *effectors,
   /* WARNING(@ideasman42): historic comment?
    * Many of these parameters don't exist!
    *
-   * scene        = scene where it runs in, for time and stuff.
-   * lb           = listbase with objects that take part in effecting.
-   * opco         = global coord, as input.
-   * force        = accumulator for force.
-   * wind_force   = accumulator for force only acting perpendicular to a surface.
-   * speed        = actual current speed which can be altered.
-   * cur_time     = "external" time in frames, is constant for static particles.
-   * loc_time     = "local" time in frames, range <0-1> for the lifetime of particle.
-   * par_layer    = layer the caller is in.
-   * flags        = only used for soft-body wind now.
-   * guide        = old speed of particle.
+   * `scene`      = scene where it runs in, for time and stuff.
+   * `lb`         = listbase with objects that take part in effecting.
+   * `opco`       = global coord, as input.
+   * `force`      = accumulator for force.
+   * `wind_force` = accumulator for force only acting perpendicular to a surface.
+   * `speed`      = actual current speed which can be altered.
+   * `cur_time`   = "external" time in frames, is constant for static particles.
+   * `loc_time`   = "local" time in frames, range <0-1> for the lifetime of particle.
+   * `par_layer`  = layer the caller is in.
+   * `flags`      = only used for soft-body wind now.
+   * `guide`      = old speed of particle.
    */
 
   /*
    * Modifies the force on a particle according to its
    * relation with the effector object
    * Different kind of effectors include:
-   *     Force-fields: Gravity-like attractor
-   *     (force power is related to the inverse of distance to the power of a falloff value)
-   *     Vortex fields: swirling effectors
-   *     (particles rotate around Z-axis of the object. otherwise, same relation as)
-   *     (Force-fields, but this is not done through a force/acceleration)
-   *     Guide: particles on a path
-   *     (particles are guided along a curve bezier or old nurbs)
-   *     (is independent of other effectors)
+   * - Force-fields: Gravity-like attractor
+   *   (force power is related to the inverse of distance to the power of a falloff value)
+   * - Vortex fields: swirling effectors
+   *   (particles rotate around Z-axis of the object. otherwise, same relation as)
+   *   (Force-fields, but this is not done through a force/acceleration)
+   * - Guide: particles on a path
+   *   (particles are guided along a curve bezier or old nurbs)
+   *   (is independent of other effectors)
    */
   EffectorCache *eff;
   EffectorData efd;

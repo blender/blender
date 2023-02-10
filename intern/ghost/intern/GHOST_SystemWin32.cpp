@@ -424,10 +424,9 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 
     processTrackpad();
 
-    /* PeekMessage above is allowed to dispatch messages to the wndproc without us
+    /* `PeekMessage` above is allowed to dispatch messages to the `wndproc` without us
      * noticing, so we need to check the event manager here to see if there are
-     * events waiting in the queue.
-     */
+     * events waiting in the queue. */
     hasEventHandled |= this->m_eventManager->getNumEvents() > 0;
 
   } while (waitForEvent && !hasEventHandled);

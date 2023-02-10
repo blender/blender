@@ -590,7 +590,7 @@ static void initialize_all_particles(ParticleSimulationData *sim)
 {
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = psys->part;
-  /* Grid distributionsets UNEXIST flag, need to take care of
+  /* Grid distribution-sets UNEXIST flag, need to take care of
    * it here because later this flag is being reset.
    *
    * We can't do it for any distribution, because it'll then
@@ -1931,7 +1931,7 @@ static void sphclassical_density_accum_cb(void *userdata,
     return;
   }
 
-  /* Smoothing factor. Utilize the Wendland kernel. gnuplot:
+  /* Smoothing factor. Utilize the Wendland kernel. `gnuplot`:
    *     q1(x) = (2.0 - x)**4 * ( 1.0 + 2.0 * x)
    *     plot [0:2] q1(x) */
   q = qfac / pow3f(pfr->h) * pow4f(2.0f - rij_h) * (1.0f + 2.0f * rij_h);
@@ -2021,7 +2021,7 @@ static void sphclassical_force_cb(void *sphdata_v,
       NULL, psys, state->co, &pfr, interaction_radius, sphclassical_neighbor_accum_cb);
   pressure = stiffness * (pow7f(pa->sphdensity / rest_density) - 1.0f);
 
-  /* multiply by mass so that we return a force, not accel */
+  /* Multiply by mass so that we return a force, not acceleration. */
   qfac2 *= sphdata->mass / pow3f(pfr.h);
 
   pfn = pfr.neighbors;
@@ -2047,7 +2047,7 @@ static void sphclassical_force_cb(void *sphdata_v,
     npressure = stiffness * (pow7f(npa->sphdensity / rest_density) - 1.0f);
 
     /* First derivative of smoothing factor. Utilize the Wendland kernel.
-     * gnuplot:
+     * `gnuplot`:
      *     q2(x) = 2.0 * (2.0 - x)**4 - 4.0 * (2.0 - x)**3 * (1.0 + 2.0 * x)
      *     plot [0:2] q2(x)
      * Particles > 2h away are excluded above. */
@@ -2438,15 +2438,17 @@ static float nr_distance_to_vert(float *p,
 {
   return len_v3v3(p, pce->x0) - radius;
 }
+/**
+ * \param t: is the current time for newton rhapson.
+ * \param fac: is the starting factor for current collision iteration.
+ * \param col: The particle collision, `col->fac's` are factors for the
+ * particle sub-frame step start and end during collision modifier step.
+ */
 static void collision_interpolate_element(ParticleCollisionElement *pce,
                                           float t,
                                           float fac,
                                           ParticleCollision *col)
 {
-  /* t is the current time for newton rhapson */
-  /* fac is the starting factor for current collision iteration */
-  /* The col->fac's are factors for the particle subframe step start
-   * and end during collision modifier step. */
   float f = fac + t * (1.0f - fac);
   float mul = col->fac1 + f * (col->fac2 - col->fac1);
   if (pce->tot > 0) {
@@ -3598,19 +3600,21 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
   psys_sim_data_free(sim);
 }
 
-/* Code for an adaptive time step based on the Courant-Friedrichs-Lewy
- * condition. */
+/** Code for an adaptive time step based on the Courant-Friedrichs-Lewy condition. */
 static const float MIN_TIMESTEP = 1.0f / 101.0f;
-/* Tolerance of 1.5 means the last subframe neither favors growing nor
- * shrinking (e.g if it were 1.3, the last subframe would tend to be too
- * small). */
+/**
+ * Tolerance of 1.5 means the last sub-frame neither favors growing nor shrinking
+ * (e.g if it were 1.3, the last sub-frame would tend to be too small).
+ */
 static const float TIMESTEP_EXPANSION_FACTOR = 0.1f;
 static const float TIMESTEP_EXPANSION_TOLERANCE = 1.5f;
 
-/* Calculate the speed of the particle relative to the local scale of the
+/**
+ * Calculate the speed of the particle relative to the local scale of the
  * simulation. This should be called once per particle during a simulation
  * step, after the velocity has been updated. element_size defines the scale of
- * the simulation, and is typically the distance to neighboring particles. */
+ * the simulation, and is typically the distance to neighboring particles.
+ */
 static void update_courant_num(
     ParticleSimulationData *sim, ParticleData *pa, float dtime, SPHData *sphdata, SpinLock *spin)
 {

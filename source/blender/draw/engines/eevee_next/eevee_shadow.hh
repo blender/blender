@@ -268,7 +268,7 @@ class ShadowModule {
   /** \name Debugging
    * \{ */
 
-  /** Display informations about the virtual shadows. */
+  /** Display information about the virtual shadows. */
   PassSimple debug_draw_ps_ = {"Shadow.Debug"};
 
   /** \} */

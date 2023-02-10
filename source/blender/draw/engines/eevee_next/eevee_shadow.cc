@@ -449,7 +449,7 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
 }
 
 /************************************************************************
- *                         Clipmap Distribution                         *
+ *                         Clip-map Distribution                        *
  ************************************************************************/
 
 IndexRange ShadowDirectional::clipmap_level_range(const Camera &camera)
@@ -593,7 +593,7 @@ void ShadowDirectional::end_sync(Light &light, const Camera &camera, float lod_b
     for (int64_t i = 0; i < before_range; i++) {
       tilemaps_.append(tilemap_pool.acquire());
     }
-    /* Keep cached lods. */
+    /* Keep cached LOD's. */
     tilemaps_.extend(cached_tilemaps);
     for (int64_t i = 0; i < after_range; i++) {
       tilemaps_.append(tilemap_pool.acquire());

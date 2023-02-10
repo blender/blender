@@ -150,7 +150,7 @@ bool select_pick(const ViewContext &vc,
                  const int2 mval);
 
 /**
- * Select points or curves in a (screenspace) rectangle.
+ * Select points or curves in a (screen-space) rectangle.
  */
 bool select_box(const ViewContext &vc,
                 bke::CurvesGeometry &curves,

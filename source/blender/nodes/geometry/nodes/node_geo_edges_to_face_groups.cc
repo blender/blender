@@ -21,7 +21,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("Index of the face group inside each boundary edge region"));
 }
 
-/* Join all uinque unordered combinations of indices. */
+/** Join all unique unordered combinations of indices. */
 static void join_indices(AtomicDisjointSet &set, const Span<int> indices)
 {
   for (const int i : indices.index_range()) {
