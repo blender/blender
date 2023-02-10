@@ -105,6 +105,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     }
     case METAL_GPU_AMD: {
       max_threads_per_threadgroup = 128;
+      use_metalrt = info.use_metalrt;
       break;
     }
     case METAL_GPU_APPLE: {
