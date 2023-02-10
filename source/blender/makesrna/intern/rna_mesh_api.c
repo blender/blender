@@ -93,8 +93,7 @@ static void rna_Mesh_calc_smooth_groups(
   *r_poly_group_len = mesh->totpoly;
   const bool *sharp_edges = (const bool *)CustomData_get_layer_named(
       &mesh->edata, CD_PROP_BOOL, "sharp_edge");
-  *r_poly_group = BKE_mesh_calc_smoothgroups(BKE_mesh_edges(mesh),
-                                             mesh->totedge,
+  *r_poly_group = BKE_mesh_calc_smoothgroups(mesh->totedge,
                                              BKE_mesh_polys(mesh),
                                              mesh->totpoly,
                                              BKE_mesh_loops(mesh),

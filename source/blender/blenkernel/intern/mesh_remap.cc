@@ -1424,7 +1424,6 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     /* Needed for islands (or plain mesh) to AStar graph conversion. */
     BKE_mesh_edge_poly_map_create(&edge_to_poly_map_src,
                                   &edge_to_poly_map_src_buff,
-                                  edges_src,
                                   num_edges_src,
                                   polys_src,
                                   num_polys_src,

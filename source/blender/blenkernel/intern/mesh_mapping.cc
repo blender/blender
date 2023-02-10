@@ -15,6 +15,7 @@
 #include "BLI_array.hh"
 #include "BLI_bitmap.h"
 #include "BLI_buffer.h"
+#include "BLI_function_ref.hh"
 #include "BLI_math.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
@@ -385,7 +386,6 @@ void BKE_mesh_vert_edge_vert_map_create(
 
 void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map,
                                    int **r_mem,
-                                   const MEdge * /*medge*/,
                                    const int totedge,
                                    const MPoly *mpoly,
                                    const int totpoly,
@@ -438,7 +438,6 @@ void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map,
 
 void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map,
                                    int **r_mem,
-                                   const MEdge * /*medge*/,
                                    const int totedge,
                                    const MPoly *mpoly,
                                    const int totpoly,
@@ -645,27 +644,19 @@ Vector<Vector<int>> build_edge_to_loop_map_resizable(const Span<MLoop> loops, co
 /**
  * Callback deciding whether the given poly/loop/edge define an island boundary or not.
  */
-using MeshRemap_CheckIslandBoundary = bool (*)(const MPoly *mpoly,
-                                               const MLoop *mloop,
-                                               const MEdge *medge,
-                                               const int edge_index,
-                                               const bool *sharp_edges,
-                                               const int edge_user_count,
-                                               const MPoly *mpoly_array,
-                                               const MeshElemMap *edge_poly_map,
-                                               void *user_data);
+using MeshRemap_CheckIslandBoundary =
+    blender::FunctionRef<bool(int poly_index,
+                              int loop_index,
+                              int edge_index,
+                              int edge_user_count,
+                              const MeshElemMap &edge_poly_map_elem)>;
 
-static void poly_edge_loop_islands_calc(const MEdge *medge,
-                                        const int totedge,
-                                        const MPoly *mpoly,
-                                        const int totpoly,
-                                        const MLoop *mloop,
-                                        const int totloop,
-                                        const bool *sharp_edges,
+static void poly_edge_loop_islands_calc(const int totedge,
+                                        const blender::Span<MPoly> polys,
+                                        const blender::Span<MLoop> loops,
                                         MeshElemMap *edge_poly_map,
                                         const bool use_bitflags,
                                         MeshRemap_CheckIslandBoundary edge_boundary_check,
-                                        void *edge_boundary_check_data,
                                         int **r_poly_groups,
                                         int *r_totgroup,
                                         BLI_bitmap **r_edge_borders,
@@ -689,7 +680,7 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
   /* map vars */
   int *edge_poly_mem = nullptr;
 
-  if (totpoly == 0) {
+  if (polys.size() == 0) {
     *r_totgroup = 0;
     *r_poly_groups = nullptr;
     if (r_edge_borders) {
@@ -705,12 +696,17 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
   }
 
   if (!edge_poly_map) {
-    BKE_mesh_edge_poly_map_create(
-        &edge_poly_map, &edge_poly_mem, medge, totedge, mpoly, totpoly, mloop, totloop);
+    BKE_mesh_edge_poly_map_create(&edge_poly_map,
+                                  &edge_poly_mem,
+                                  totedge,
+                                  polys.data(),
+                                  int(polys.size()),
+                                  loops.data(),
+                                  int(loops.size()));
   }
 
-  poly_groups = static_cast<int *>(MEM_callocN(sizeof(int) * size_t(totpoly), __func__));
-  poly_stack = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(totpoly), __func__));
+  poly_groups = static_cast<int *>(MEM_callocN(sizeof(int) * size_t(polys.size()), __func__));
+  poly_stack = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(polys.size()), __func__));
 
   while (true) {
     int poly;
@@ -718,13 +714,13 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
     int poly_group_id;
     int ps_curr_idx = 0, ps_end_idx = 0; /* stack indices */
 
-    for (poly = poly_prev; poly < totpoly; poly++) {
+    for (poly = poly_prev; poly < int(polys.size()); poly++) {
       if (poly_groups[poly] == 0) {
         break;
       }
     }
 
-    if (poly == totpoly) {
+    if (poly == int(polys.size())) {
       /* all done */
       break;
     }
@@ -738,23 +734,16 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
     poly_stack[ps_end_idx++] = poly;
 
     while (ps_curr_idx != ps_end_idx) {
-      const MPoly *mp;
-      const MLoop *ml;
-      int j;
-
       poly = poly_stack[ps_curr_idx++];
       BLI_assert(poly_groups[poly] == poly_group_id);
 
-      mp = &mpoly[poly];
-      for (ml = &mloop[mp->loopstart], j = mp->totloop; j--; ml++) {
+      for (const int64_t loop : blender::IndexRange(polys[poly].loopstart, polys[poly].totloop)) {
+        const int edge = int(loops[loop].e);
         /* loop over poly users */
-        const int me_idx = int(ml->e);
-        const MEdge *me = &medge[me_idx];
-        const MeshElemMap *map_ele = &edge_poly_map[me_idx];
-        const int *p = map_ele->indices;
-        int i = map_ele->count;
-        if (!edge_boundary_check(
-                mp, ml, me, me_idx, sharp_edges, i, mpoly, map_ele, edge_boundary_check_data)) {
+        const MeshElemMap &map_ele = edge_poly_map[edge];
+        const int *p = map_ele.indices;
+        int i = map_ele.count;
+        if (!edge_boundary_check(poly, int(loop), edge, i, map_ele)) {
           for (; i--; p++) {
             /* if we meet other non initialized its a bug */
             BLI_assert(ELEM(poly_groups[*p], 0, poly_group_id));
@@ -766,8 +755,8 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
           }
         }
         else {
-          if (edge_borders && !BLI_BITMAP_TEST(edge_borders, me_idx)) {
-            BLI_BITMAP_ENABLE(edge_borders, me_idx);
+          if (edge_borders && !BLI_BITMAP_TEST(edge_borders, edge)) {
+            BLI_BITMAP_ENABLE(edge_borders, edge);
             num_edgeborders++;
           }
           if (use_bitflags) {
@@ -828,7 +817,7 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
   }
 
   if (UNLIKELY(group_id_overflow)) {
-    int i = totpoly, *gid = poly_groups;
+    int i = int(polys.size()), *gid = poly_groups;
     for (; i--; gid++) {
       if (*gid == poly_group_id_overflowed) {
         *gid = 0;
@@ -852,31 +841,7 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
   }
 }
 
-static bool poly_is_island_boundary_smooth_cb(const MPoly *mp,
-                                              const MLoop * /*ml*/,
-                                              const MEdge * /*me*/,
-                                              const int edge_index,
-                                              const bool *sharp_edges,
-                                              const int edge_user_count,
-                                              const MPoly *mpoly_array,
-                                              const MeshElemMap *edge_poly_map,
-                                              void * /*user_data*/)
-{
-  /* Edge is sharp if one of its polys is flat, or edge itself is sharp,
-   * or edge is not used by exactly two polygons. */
-  if ((mp->flag & ME_SMOOTH) && !(sharp_edges && sharp_edges[edge_index]) &&
-      (edge_user_count == 2)) {
-    /* In that case, edge appears to be smooth, but we need to check its other poly too. */
-    const MPoly *mp_other = (mp == &mpoly_array[edge_poly_map->indices[0]]) ?
-                                &mpoly_array[edge_poly_map->indices[1]] :
-                                &mpoly_array[edge_poly_map->indices[0]];
-    return (mp_other->flag & ME_SMOOTH) == 0;
-  }
-  return true;
-}
-
-int *BKE_mesh_calc_smoothgroups(const MEdge *medge,
-                                const int totedge,
+int *BKE_mesh_calc_smoothgroups(const int totedge,
                                 const MPoly *mpoly,
                                 const int totpoly,
                                 const MLoop *mloop,
@@ -887,17 +852,30 @@ int *BKE_mesh_calc_smoothgroups(const MEdge *medge,
 {
   int *poly_groups = nullptr;
 
-  poly_edge_loop_islands_calc(medge,
-                              totedge,
-                              mpoly,
-                              totpoly,
-                              mloop,
-                              totloop,
-                              sharp_edges,
+  auto poly_is_island_boundary_smooth = [&](const int poly_index,
+                                            const int /*loop_index*/,
+                                            const int edge_index,
+                                            const int edge_user_count,
+                                            const MeshElemMap &edge_poly_map_elem) {
+    /* Edge is sharp if one of its polys is flat, or edge itself is sharp,
+     * or edge is not used by exactly two polygons. */
+    if ((mpoly[poly_index].flag & ME_SMOOTH) && !(sharp_edges && sharp_edges[edge_index]) &&
+        (edge_user_count == 2)) {
+      /* In that case, edge appears to be smooth, but we need to check its other poly too. */
+      const int other_poly_index = (poly_index == edge_poly_map_elem.indices[0]) ?
+                                       edge_poly_map_elem.indices[1] :
+                                       edge_poly_map_elem.indices[0];
+      return (mpoly[other_poly_index].flag & ME_SMOOTH) == 0;
+    }
+    return true;
+  };
+
+  poly_edge_loop_islands_calc(totedge,
+                              {mpoly, totpoly},
+                              {mloop, totloop},
                               nullptr,
                               use_bitflags,
-                              poly_is_island_boundary_smooth_cb,
-                              nullptr,
+                              poly_is_island_boundary_smooth,
                               &poly_groups,
                               r_totgroup,
                               nullptr,
@@ -1021,64 +999,6 @@ void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
          sizeof(*innrcut->indices) * size_t(num_innercut_items));
 }
 
-/* TODO: I'm not sure edge seam flag is enough to define UV islands?
- *       Maybe we should also consider UV-maps values
- *       themselves (i.e. different UV-edges for a same mesh-edge => boundary edge too?).
- *       Would make things much more complex though,
- *       and each UVMap would then need its own mesh mapping, not sure we want that at all!
- */
-struct MeshCheckIslandBoundaryUv {
-  const MLoop *loops;
-  const float (*luvs)[2];
-  const MeshElemMap *edge_loop_map;
-};
-
-static bool mesh_check_island_boundary_uv(const MPoly * /*mp*/,
-                                          const MLoop *ml,
-                                          const MEdge *me,
-                                          const int /*edge_index*/,
-                                          const bool * /*sharp_edges*/,
-                                          const int /*edge_user_count*/,
-                                          const MPoly * /*mpoly_array*/,
-                                          const MeshElemMap * /*edge_poly_map*/,
-                                          void *user_data)
-{
-  if (user_data) {
-    const MeshCheckIslandBoundaryUv *data = static_cast<const MeshCheckIslandBoundaryUv *>(
-        user_data);
-    const MLoop *loops = data->loops;
-    const float(*luvs)[2] = data->luvs;
-    const MeshElemMap *edge_to_loops = &data->edge_loop_map[ml->e];
-
-    BLI_assert(edge_to_loops->count >= 2 && (edge_to_loops->count % 2) == 0);
-
-    const uint v1 = loops[edge_to_loops->indices[0]].v;
-    const uint v2 = loops[edge_to_loops->indices[1]].v;
-    const float *uvco_v1 = luvs[edge_to_loops->indices[0]];
-    const float *uvco_v2 = luvs[edge_to_loops->indices[1]];
-    for (int i = 2; i < edge_to_loops->count; i += 2) {
-      if (loops[edge_to_loops->indices[i]].v == v1) {
-        if (!equals_v2v2(uvco_v1, luvs[edge_to_loops->indices[i]]) ||
-            !equals_v2v2(uvco_v2, luvs[edge_to_loops->indices[i + 1]])) {
-          return true;
-        }
-      }
-      else {
-        BLI_assert(loops[edge_to_loops->indices[i]].v == v2);
-        UNUSED_VARS_NDEBUG(v2);
-        if (!equals_v2v2(uvco_v2, luvs[edge_to_loops->indices[i]]) ||
-            !equals_v2v2(uvco_v1, luvs[edge_to_loops->indices[i + 1]])) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /* Edge is UV boundary if tagged as seam. */
-  return (me->flag & ME_SEAM) != 0;
-}
-
 static bool mesh_calc_islands_loop_poly_uv(const MEdge *edges,
                                            const int totedge,
                                            const MPoly *polys,
@@ -1097,8 +1017,6 @@ static bool mesh_calc_islands_loop_poly_uv(const MEdge *edges,
 
   MeshElemMap *edge_loop_map;
   int *edge_loop_mem;
-
-  MeshCheckIslandBoundaryUv edge_boundary_check_data;
 
   int *poly_indices;
   int *loop_indices;
@@ -1120,27 +1038,62 @@ static bool mesh_calc_islands_loop_poly_uv(const MEdge *edges,
       r_island_store, MISLAND_TYPE_LOOP, totloop, MISLAND_TYPE_POLY, MISLAND_TYPE_EDGE);
 
   BKE_mesh_edge_poly_map_create(
-      &edge_poly_map, &edge_poly_mem, edges, totedge, polys, totpoly, loops, totloop);
+      &edge_poly_map, &edge_poly_mem, totedge, polys, totpoly, loops, totloop);
 
   if (luvs) {
     BKE_mesh_edge_loop_map_create(
-        &edge_loop_map, &edge_loop_mem, edges, totedge, polys, totpoly, loops, totloop);
-    edge_boundary_check_data.loops = loops;
-    edge_boundary_check_data.luvs = luvs;
-    edge_boundary_check_data.edge_loop_map = edge_loop_map;
+        &edge_loop_map, &edge_loop_mem, totedge, polys, totpoly, loops, totloop);
   }
 
-  poly_edge_loop_islands_calc(edges,
-                              totedge,
-                              polys,
-                              totpoly,
-                              loops,
-                              totloop,
-                              nullptr,
+  /* TODO: I'm not sure edge seam flag is enough to define UV islands?
+   *       Maybe we should also consider UV-maps values
+   *       themselves (i.e. different UV-edges for a same mesh-edge => boundary edge too?).
+   *       Would make things much more complex though,
+   *       and each UVMap would then need its own mesh mapping, not sure we want that at all!
+   */
+  auto mesh_check_island_boundary_uv = [&](const int /*poly_index*/,
+                                           const int loop_index,
+                                           const int edge_index,
+                                           const int /*edge_user_count*/,
+                                           const MeshElemMap & /*edge_poly_map_elem*/) -> bool {
+    if (luvs) {
+      const MeshElemMap &edge_to_loops = edge_loop_map[loops[loop_index].e];
+
+      BLI_assert(edge_to_loops.count >= 2 && (edge_to_loops.count % 2) == 0);
+
+      const uint v1 = loops[edge_to_loops.indices[0]].v;
+      const uint v2 = loops[edge_to_loops.indices[1]].v;
+      const float *uvco_v1 = luvs[edge_to_loops.indices[0]];
+      const float *uvco_v2 = luvs[edge_to_loops.indices[1]];
+      for (int i = 2; i < edge_to_loops.count; i += 2) {
+        if (loops[edge_to_loops.indices[i]].v == v1) {
+          if (!equals_v2v2(uvco_v1, luvs[edge_to_loops.indices[i]]) ||
+              !equals_v2v2(uvco_v2, luvs[edge_to_loops.indices[i + 1]])) {
+            return true;
+          }
+        }
+        else {
+          BLI_assert(loops[edge_to_loops.indices[i]].v == v2);
+          UNUSED_VARS_NDEBUG(v2);
+          if (!equals_v2v2(uvco_v2, luvs[edge_to_loops.indices[i]]) ||
+              !equals_v2v2(uvco_v1, luvs[edge_to_loops.indices[i + 1]])) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    /* Edge is UV boundary if tagged as seam. */
+    return (edges[edge_index].flag & ME_SEAM) != 0;
+  };
+
+  poly_edge_loop_islands_calc(totedge,
+                              {polys, totpoly},
+                              {loops, totloop},
                               edge_poly_map,
                               false,
                               mesh_check_island_boundary_uv,
-                              luvs ? &edge_boundary_check_data : nullptr,
                               &poly_groups,
                               &num_poly_groups,
                               &edge_borders,

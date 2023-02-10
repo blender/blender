@@ -95,14 +95,8 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
 
   if (!ss->epmap) {
-    BKE_mesh_edge_poly_map_create(&ss->epmap,
-                                  &ss->epmap_mem,
-                                  edges,
-                                  mesh->totedge,
-                                  polys,
-                                  mesh->totpoly,
-                                  loops,
-                                  mesh->totloop);
+    BKE_mesh_edge_poly_map_create(
+        &ss->epmap, &ss->epmap_mem, mesh->totedge, polys, mesh->totpoly, loops, mesh->totloop);
   }
   if (!ss->vemap) {
     BKE_mesh_vert_edge_map_create(&ss->vemap, &ss->vemap_mem, edges, mesh->totvert, mesh->totedge);
