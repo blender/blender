@@ -10711,16 +10711,16 @@ static void def_geo_string_to_curves(StructRNA *srna)
   };
 
   static const EnumPropertyItem rna_node_geometry_string_to_curves_align_y_items[] = {
-      {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE,
-       "TOP_BASELINE",
-       ICON_ALIGN_TOP,
-       "Top Baseline",
-       "Align text to the top baseline"},
       {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP,
        "TOP",
        ICON_ALIGN_TOP,
        "Top",
        "Align text to the top"},
+      {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE,
+       "TOP_BASELINE",
+       ICON_ALIGN_TOP,
+       "Top Baseline",
+       "Align text to the top line's baseline"},
       {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_MIDDLE,
        "MIDDLE",
        ICON_ALIGN_MIDDLE,
@@ -10730,7 +10730,7 @@ static void def_geo_string_to_curves(StructRNA *srna)
        "BOTTOM_BASELINE",
        ICON_ALIGN_BOTTOM,
        "Bottom Baseline",
-       "Align text to the bottom baseline"},
+       "Align text to the bottom line's baseline"},
       {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_BOTTOM,
        "BOTTOM",
        ICON_ALIGN_BOTTOM,
@@ -10782,21 +10782,23 @@ static void def_geo_string_to_curves(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, NULL, "overflow");
   RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_overflow_items);
   RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
-  RNA_def_property_ui_text(prop, "Overflow", "");
+  RNA_def_property_ui_text(prop, "Textbox Overflow", "Handle the text behavior when it doesn't fit in the text boxes");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
   prop = RNA_def_property(srna, "align_x", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "align_x");
   RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_align_x_items);
   RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_ALIGN_X_LEFT);
-  RNA_def_property_ui_text(prop, "Align X", "");
+  RNA_def_property_ui_text(
+      prop, "Horizontal Alignment", "Text horizontal alignment from the object center");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "align_y", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "align_y");
   RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_align_y_items);
   RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE);
-  RNA_def_property_ui_text(prop, "Align Y", "");
+  RNA_def_property_ui_text(
+      prop, "Vertical Alignment", "Text vertical alignment from the object center");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "pivot_mode", PROP_ENUM, PROP_NONE);

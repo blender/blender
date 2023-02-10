@@ -1073,19 +1073,19 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
   };
 
   static const EnumPropertyItem prop_align_y_items[] = {
+      {CU_ALIGN_Y_TOP, "TOP", ICON_ALIGN_TOP, "Top", "Align text to the top"},
       {CU_ALIGN_Y_TOP_BASELINE,
        "TOP_BASELINE",
        ICON_ALIGN_TOP,
-       "Top Base-Line",
-       "Align to top but use the base-line of the text"},
-      {CU_ALIGN_Y_TOP, "TOP", ICON_ALIGN_TOP, "Top", "Align text to the top"},
-      {CU_ALIGN_Y_CENTER, "CENTER", ICON_ALIGN_MIDDLE, "Center", "Align text to the middle"},
-      {CU_ALIGN_Y_BOTTOM, "BOTTOM", ICON_ALIGN_BOTTOM, "Bottom", "Align text to the bottom"},
+       "Top Baseline",
+       "Align text to the top line's baseline"},
+      {CU_ALIGN_Y_CENTER, "CENTER", ICON_ALIGN_MIDDLE, "Middle", "Align text to the middle"},
       {CU_ALIGN_Y_BOTTOM_BASELINE,
        "BOTTOM_BASELINE",
        ICON_ALIGN_BOTTOM,
-       "Bottom Base-Line",
-       "Align text to the bottom but use the base-line of the text"},
+       "Bottom Baseline",
+       "Align text to the bottom line's baseline"},
+      {CU_ALIGN_Y_BOTTOM, "BOTTOM", ICON_ALIGN_BOTTOM, "Bottom", "Align text to the bottom"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1109,14 +1109,14 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
   RNA_def_property_enum_sdna(prop, NULL, "spacemode");
   RNA_def_property_enum_items(prop, prop_align_items);
   RNA_def_property_ui_text(
-      prop, "Text Horizontal Align", "Text horizontal align from the object center");
+      prop, "Horizontal Alignment", "Text horizontal alignment from the object center");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "align_y", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "align_y");
   RNA_def_property_enum_items(prop, prop_align_y_items);
   RNA_def_property_ui_text(
-      prop, "Text Vertical Align", "Text vertical align from the object center");
+      prop, "Vertical Alignment", "Text vertical alignment from the object center");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "overflow", PROP_ENUM, PROP_NONE);
