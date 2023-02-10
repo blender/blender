@@ -263,9 +263,7 @@ vec3 dF_impl(vec3 v)
       g_derivative_flag = -1; \
       result.y = (fn); \
       g_derivative_flag = 0; \
-      result -= vec2((fn)); \
     }
-
 #endif
 
 /* TODO(fclem): Remove. */
