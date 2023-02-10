@@ -1076,7 +1076,7 @@ static std::string bc_get_active_uvlayer_name(Mesh *me)
 {
   int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
   if (num_layers) {
-    char *layer_name = bc_CustomData_get_active_layer_name(&me->ldata, CD_PROP_FLOAT2);
+    const char *layer_name = bc_CustomData_get_active_layer_name(&me->ldata, CD_PROP_FLOAT2);
     if (layer_name) {
       return std::string(layer_name);
     }
@@ -1101,7 +1101,7 @@ static std::string bc_get_uvlayer_name(Mesh *me, int layer)
 {
   int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
   if (num_layers && layer < num_layers) {
-    char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_FLOAT2, layer);
+    const char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_FLOAT2, layer);
     if (layer_name) {
       return std::string(layer_name);
     }
