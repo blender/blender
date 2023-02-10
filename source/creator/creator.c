@@ -584,9 +584,13 @@ int main(int argc,
     }
     WM_main(C);
   }
-#endif /* WITH_PYTHON_MODULE */
+  /* Neither #WM_exit, #WM_main return, this quiets CLANG's `unreachable-code-return` warning. */
+  BLI_assert_unreachable();
+
+#endif /* !WITH_PYTHON_MODULE */
 
   return 0;
+
 } /* End of `int main(...)` function. */
 
 #ifdef WITH_PYTHON_MODULE

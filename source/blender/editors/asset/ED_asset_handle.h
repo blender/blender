@@ -25,8 +25,11 @@ struct AssetMetaData *ED_asset_handle_get_metadata(const struct AssetHandle *ass
 struct ID *ED_asset_handle_get_local_id(const struct AssetHandle *asset);
 ID_Type ED_asset_handle_get_id_type(const struct AssetHandle *asset);
 int ED_asset_handle_get_preview_icon_id(const struct AssetHandle *asset);
-void ED_asset_handle_get_full_library_path(const struct AssetHandle *asset,
-                                           char r_full_lib_path[]);
+void ED_asset_handle_get_full_library_path(
+    const struct AssetHandle *asset,
+    /* `1090` for #FILE_MAX_LIBEXTRA,
+     * rely on warnings to let us know if this gets out of sync. */
+    char r_full_lib_path[1090]);
 
 #ifdef __cplusplus
 }
