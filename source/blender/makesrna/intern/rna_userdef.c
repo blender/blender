@@ -6456,6 +6456,10 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       "All Linked Data Direct",
       "Forces all linked data to be considered as directly linked. Workaround for current "
       "issues/limitations in BAT (Blender studio pipeline tool)");
+
+  prop = RNA_def_property(srna, "use_new_volume_nodes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "New Volume Nodes", "Enables visibility of the new Volume nodes in the UI");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)

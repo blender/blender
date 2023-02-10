@@ -2329,6 +2329,9 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                              ({"property": "use_override_templates"},
                               ("blender/blender/issues/73318",
                                  "Milestone 4")),
+                             ({"property": "use_new_volume_nodes"}, 
+                              ("blender/blender/issues/103248", 
+                                 "#103248")),
                           ),
                          )
 
