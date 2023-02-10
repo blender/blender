@@ -3327,6 +3327,14 @@ void ED_gpencil_layer_merge(bGPdata *gpd,
       gpf_dst->key_type = gpf_src->key_type;
       BLI_ghash_insert(gh_frames_dst, POINTER_FROM_INT(gpf_src->framenum), gpf_dst);
     }
+
+    /* Copy current source frame to further frames
+     * that are keyframes in destination layer and not in source layer
+     * to keep the image equals. */
+    if (gpf_dst->next && (!gpf_src->next || (gpf_dst->next->framenum < gpf_src->next->framenum))) {
+      gpf_dst = gpf_dst->next;
+      BKE_gpencil_layer_frame_get(gpl_src, gpf_dst->framenum, GP_GETFRAME_ADD_COPY);
+    }
   }
 
   /* Read all frames from merge layer and add strokes. */
