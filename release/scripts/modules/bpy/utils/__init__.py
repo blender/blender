@@ -26,6 +26,7 @@ __all__ = (
     "register_tool",
     "make_rna_paths",
     "manual_map",
+    "manual_language_code",
     "previews",
     "resource_path",
     "script_path_user",
@@ -1033,6 +1034,53 @@ def manual_map():
             continue
 
         yield prefix, url_manual_mapping
+
+
+# Languages which are supported by the user manual (commented when there is no translation).
+_manual_language_codes = {
+    "ar_EG": "ar",  # Arabic
+    # "bg_BG": "bg",  # Bulgarian
+    # "ca_AD": "ca",  # Catalan
+    # "cs_CZ": "cz",  # Czech
+    "de_DE": "de",  # German
+    # "el_GR": "el",  # Greek
+    "es": "es",  # Spanish
+    "fi_FI": "fi",  # Finnish
+    "fr_FR": "fr",  # French
+    "id_ID": "id",  # Indonesian
+    "it_IT": "it",  # Italian
+    "ja_JP": "ja",  # Japanese
+    "ko_KR": "ko",  # Korean
+    # "nb": "nb",  # Norwegian
+    # "nl_NL": "nl",  # Dutch
+    # "pl_PL": "pl",  # Polish
+    "pt_PT": "pt",  # Portuguese
+    # Portuguese - Brazil, for until we have a pt_BR version.
+    "pt_BR": "pt",
+    "ru_RU": "ru",  # Russian
+    "sk_SK": "sk",  # Slovak
+    # "sl": "sl",  # Slovenian
+    "sr_RS": "sr",  # Serbian
+    # "sv_SE": "sv",  # Swedish
+    # "tr_TR": "th",  # Thai
+    "uk_UA": "uk",  # Ukrainian
+    "vi_VN": "vi",  # Vietnamese
+    "zh_CN": "zh-hans",  # Simplified Chinese
+    "zh_TW": "zh-hant",  # Traditional Chinese
+}
+
+
+def manual_language_code(default="en"):
+    """
+    :return:
+       The language code used for user manual URL component based on the current language user-preference,
+       falling back to the ``default`` when unavailable.
+    :rtype: str
+    """
+    language = _bpy.context.preferences.view.language
+    if language == 'DEFAULT':
+        language = _os.getenv("LANG", "").split(".")[0]
+    return _manual_language_codes.get(language, default)
 
 
 # Build an RNA path from struct/property/enum names.

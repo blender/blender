@@ -4,38 +4,10 @@
 # autopep8: off
 import bpy
 
-manual_version = '%d.%d' % bpy.app.version[:2]
-
-url_manual_prefix = "https://docs.blender.org/manual/en/" + manual_version + "/"
-
-language = bpy.context.preferences.view.language
-if language == 'DEFAULT':
-    import os
-    language = os.getenv('LANG', '').split('.')[0]
-
-LANG = {
-"ar_EG":        "ar",
-"de_DE":        "de",
-"es":           "es",
-"fi_FI":        "fi",
-"fr_FR":        "fr",
-"id_ID":        "id",
-"it_IT":        "it",
-"ja_JP":        "ja",
-"ko_KR":        "ko",
-"pt_PT":        "pt",
-"pt_BR":        "pt",
-"ru_RU":        "ru",
-"sk_SK":        "sk",
-"sr_RS":        "sr",
-"uk_UA":        "uk",
-"vi_VN":        "vi",
-"zh_CN":        "zh-hans",
-"zh_TW":        "zh-hant",
-}.get(language)
-
-if LANG is not None:
-    url_manual_prefix = url_manual_prefix.replace("manual/en", "manual/" + LANG)
+url_manual_prefix = "https://docs.blender.org/manual/%s/%d.%d/" % (
+    bpy.utils.manual_language_code(),
+    *bpy.app.version[:2],
+)
 
 url_manual_mapping = (
     ("bpy.types.movietrackingsettings.refine_intrinsics_tangential_distortion*", "movie_clip/tracking/clip/toolbar/solve.html#bpy-types-movietrackingsettings-refine-intrinsics-tangential-distortion"),
