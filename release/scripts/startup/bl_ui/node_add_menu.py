@@ -35,19 +35,10 @@ def draw_node_group_add_menu(context, layout):
     if node_tree:
         from nodeitems_builtins import node_tree_group_type
 
-        def contains_group(nodetree, group):
-            if nodetree == group:
-                return True
-            for node in nodetree.nodes:
-                if node.bl_idname in node_tree_group_type.values() and node.node_tree is not None:
-                    if contains_group(node.node_tree, group):
-                        return True
-            return False
-
         groups = [
             group for group in context.blend_data.node_groups
             if (group.bl_idname == node_tree.bl_idname and
-                not contains_group(group, node_tree) and
+                not group.contains_tree(node_tree) and
                 not group.name.startswith('.'))
         ]
         if groups:

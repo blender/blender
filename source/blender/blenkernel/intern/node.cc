@@ -3457,19 +3457,39 @@ bNode *ntreeFindType(bNodeTree *ntree, int type)
   return nullptr;
 }
 
-bool ntreeHasTree(const bNodeTree *ntree, const bNodeTree *lookup)
+static bool ntree_contains_tree_exec(const bNodeTree *tree_to_search_in,
+                                     const bNodeTree *tree_to_search_for,
+                                     Set<const bNodeTree *> &already_passed)
 {
-  if (ntree == lookup) {
+  if (tree_to_search_in == tree_to_search_for) {
     return true;
   }
-  for (const bNode *node : ntree->all_nodes()) {
-    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
-      if (ntreeHasTree((bNodeTree *)node->id, lookup)) {
-        return true;
-      }
+
+  tree_to_search_in->ensure_topology_cache();
+  for (const bNode *node_group : tree_to_search_in->group_nodes()) {
+    const bNodeTree *sub_tree_search_in = reinterpret_cast<const bNodeTree *>(node_group->id);
+    if (!sub_tree_search_in) {
+      continue;
+    }
+    if (!already_passed.add(sub_tree_search_in)) {
+      continue;
+    }
+    if (ntree_contains_tree_exec(sub_tree_search_in, tree_to_search_for, already_passed)) {
+      return true;
     }
   }
+
   return false;
+}
+
+bool ntreeContainsTree(const bNodeTree *tree_to_search_in, const bNodeTree *tree_to_search_for)
+{
+  if (tree_to_search_in == tree_to_search_for) {
+    return true;
+  }
+
+  Set<const bNodeTree *> already_passed;
+  return ntree_contains_tree_exec(tree_to_search_in, tree_to_search_for, already_passed);
 }
 
 bNodeLink *nodeFindLink(bNodeTree *ntree, const bNodeSocket *from, const bNodeSocket *to)
