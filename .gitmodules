@@ -2,15 +2,19 @@
 	path = release/scripts/addons
 	url = ../blender-addons.git
 	branch = main
+	ignore = all
 [submodule "release/scripts/addons_contrib"]
 	path = release/scripts/addons_contrib
 	url = ../blender-addons-contrib.git
 	branch = main
+	ignore = all
 [submodule "release/datafiles/locale"]
 	path = release/datafiles/locale
 	url = ../blender-translations.git
 	branch = main
+	ignore = all
 [submodule "source/tools"]
 	path = source/tools
 	url = ../blender-dev-tools.git
 	branch = main
+	ignore = all
