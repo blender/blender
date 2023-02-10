@@ -1043,9 +1043,17 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
         &bm->ldata, CD_PROP_BOOL, BKE_uv_map_edge_select_name_get(layer_name, sub_layer_name));
     int pin_layer_index = CustomData_get_named_layer_index(
         &bm->ldata, CD_PROP_BOOL, BKE_uv_map_pin_name_get(layer_name, sub_layer_name));
-    int vertsel_offset = bm->ldata.layers[vertsel_layer_index].offset;
-    int edgesel_offset = bm->ldata.layers[edgesel_layer_index].offset;
-    int pin_offset = bm->ldata.layers[pin_layer_index].offset;
+
+    /* If ever the uv map associated bool layers become optional in BMesh as well (like in Mesh)
+     * this assert needs to be removed. For now it is a bug if they doin't exist. */
+    BLI_assert(vertsel_layer_index >= 0 && edgesel_layer_index >= 0 && pin_layer_index >= 0);
+
+    int vertsel_offset = vertsel_layer_index >= 0 ? bm->ldata.layers[vertsel_layer_index].offset :
+                                                    -1;
+    int edgesel_offset = edgesel_layer_index >= 0 ? bm->ldata.layers[edgesel_layer_index].offset :
+                                                    -1;
+    int pin_offset = pin_layer_index >= 0 ? bm->ldata.layers[pin_layer_index].offset : -1;
+
     bool need_vertsel = false;
     bool need_edgesel = false;
     bool need_pin = false;
@@ -1053,10 +1061,20 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
       BMIter liter;
       BMLoop *l;
-      BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-        need_vertsel |= BM_ELEM_CD_GET_BOOL(l, vertsel_offset);
-        need_edgesel |= BM_ELEM_CD_GET_BOOL(l, edgesel_offset);
-        need_pin |= BM_ELEM_CD_GET_BOOL(l, pin_offset);
+      if (vertsel_layer_index >= 0) {
+        BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+          need_vertsel |= BM_ELEM_CD_GET_BOOL(l, vertsel_offset);
+        }
+      }
+      if (edgesel_layer_index >= 0) {
+        BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+          need_edgesel |= BM_ELEM_CD_GET_BOOL(l, edgesel_offset);
+        }
+      }
+      if (pin_layer_index) {
+        BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+          need_pin |= BM_ELEM_CD_GET_BOOL(l, pin_offset);
+        }
       }
     }
 
@@ -1091,7 +1109,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     CustomData_copy(&bm->ldata, &me->ldata, mask.lmask, CD_SET_DEFAULT, me->totloop);
     CustomData_copy(&bm->pdata, &me->pdata, mask.pmask, CD_SET_DEFAULT, me->totpoly);
   }
-
 
   /* Clear the CD_FLAG_NOCOPY flags for the layers they were temporarily set on */
   for (const int i : ldata_layers_marked_nocopy) {
