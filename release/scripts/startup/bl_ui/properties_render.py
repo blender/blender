@@ -641,7 +641,6 @@ class RENDER_PT_eevee_next_film(RenderButtonsPanel, Panel):
 
         scene = context.scene
         rd = scene.render
-        props = scene.eevee
 
         col = layout.column()
         col.prop(rd, "filter_size")

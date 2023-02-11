@@ -74,8 +74,6 @@ def test_lookup_coverage():
     print("----------------------------------")
     print("RNA Patterns Unknown to the Manual")
 
-    unknown_rna_list = []
-
     for rna_group, rna_id in rna_ids():
         # Correct but slower & doesn't track usage.
         # url = wm.WM_OT_doc_view_manual._lookup_rna_url(rna_id, verbose=False)

@@ -485,7 +485,6 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        obj = context.object
         me = context.mesh
         col = layout.column()
 

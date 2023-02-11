@@ -6707,13 +6707,12 @@ class VIEW3D_PT_overlay_sculpt(Panel):
     def poll(cls, context):
         return (
             context.mode == 'SCULPT' and
-            (context.sculpt_object and context.tool_settings.sculpt)
+            context.sculpt_object
         )
 
     def draw(self, context):
         layout = self.layout
         tool_settings = context.tool_settings
-        sculpt = tool_settings.sculpt
 
         view = context.space_data
         overlay = view.overlay
