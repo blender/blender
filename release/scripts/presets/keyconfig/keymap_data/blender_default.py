@@ -3478,7 +3478,7 @@ def km_animation_channels(params):
         # Selection.
         *_template_items_select_actions(params, "anim.channels_select_all"),
         ("anim.channels_select_box", {"type": 'B', "value": 'PRESS'}, None),
-        ("anim.channels_select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, 
+        ("anim.channels_select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
          {"properties": [("extend", False)]}),
         ("anim.channels_select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True},
          {"properties": [("extend", True)]}),

@@ -10782,7 +10782,8 @@ static void def_geo_string_to_curves(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, NULL, "overflow");
   RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_overflow_items);
   RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
-  RNA_def_property_ui_text(prop, "Textbox Overflow", "Handle the text behavior when it doesn't fit in the text boxes");
+  RNA_def_property_ui_text(
+      prop, "Textbox Overflow", "Handle the text behavior when it doesn't fit in the text boxes");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
   prop = RNA_def_property(srna, "align_x", PROP_ENUM, PROP_NONE);
