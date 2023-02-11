@@ -2265,7 +2265,7 @@ static void snap_to_superellipsoid(float co[3], const float super_r, bool midlin
   co[2] = z;
 }
 
-#define BEV_EXTEND_EDGE_DATA_CHECK(eh, flag) (BM_elem_flag_test(eh->e, flag))
+#define BEV_EXTEND_EDGE_DATA_CHECK(eh, flag) BM_elem_flag_test(eh->e, flag)
 
 static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 {

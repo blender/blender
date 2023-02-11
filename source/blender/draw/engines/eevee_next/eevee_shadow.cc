@@ -1044,7 +1044,7 @@ void ShadowModule::debug_end_sync()
 
   debug_draw_ps_.state_set(state);
   debug_draw_ps_.shader_set(inst_.shaders.static_shader_get(SHADOW_DEBUG));
-  debug_draw_ps_.push_constant("debug_mode", (int)inst_.debug_mode);
+  debug_draw_ps_.push_constant("debug_mode", int(inst_.debug_mode));
   debug_draw_ps_.push_constant("debug_tilemap_index", light.tilemap_index);
   debug_draw_ps_.bind_ssbo("tilemaps_buf", &tilemap_pool.tilemaps_data);
   debug_draw_ps_.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);

@@ -285,7 +285,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
   // BKE_subdiv_stats_print(&subdiv->stats);
-  if (subdiv != runtime_data->subdiv_cpu && subdiv != runtime_data->subdiv_gpu) {
+  if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {
     BKE_subdiv_free(subdiv);
   }
   return result;
@@ -317,7 +317,7 @@ static void deformMatrices(ModifierData *md,
     return;
   }
   BKE_subdiv_deform_coarse_vertices(subdiv, mesh, vertex_cos, verts_num);
-  if (subdiv != runtime_data->subdiv_cpu && subdiv != runtime_data->subdiv_gpu) {
+  if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {
     BKE_subdiv_free(subdiv);
   }
 }

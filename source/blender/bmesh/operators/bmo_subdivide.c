@@ -1062,7 +1062,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
         matched = 1;
         for (j = 0; j < pat->len; j++) {
           a = (j + i) % pat->len;
-          if ((!!BMO_edge_flag_test(bm, edges[a], SUBD_SPLIT)) != (!!pat->seledges[j])) {
+          if (!!BMO_edge_flag_test(bm, edges[a], SUBD_SPLIT) != (!!pat->seledges[j])) {
             matched = 0;
             break;
           }
@@ -1095,7 +1095,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
           matched = 1;
           for (b = 0; b < pat->len; b++) {
             j = (b + a) % pat->len;
-            if ((!!BMO_edge_flag_test(bm, edges[j], SUBD_SPLIT)) != (!!pat->seledges[b])) {
+            if (!!BMO_edge_flag_test(bm, edges[j], SUBD_SPLIT) != (!!pat->seledges[b])) {
               matched = 0;
               break;
             }

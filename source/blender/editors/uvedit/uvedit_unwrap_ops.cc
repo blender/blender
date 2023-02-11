@@ -2769,7 +2769,7 @@ static void uv_map_mirror(BMFace *efa,
       pole_count++;
     }
   }
-  if (pole_count == 0 || pole_count == efa->len) {
+  if (ELEM(pole_count, 0, efa->len)) {
     return;
   }
   for (int i = 0; i < efa->len; i++) {

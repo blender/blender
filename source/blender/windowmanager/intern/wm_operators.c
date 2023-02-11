@@ -504,7 +504,7 @@ static const char *wm_context_member_from_ptr(const bContext *C,
       }
       case ID_MA: {
 #  define ID_CAST_OBMATACT(id_pt) \
-    (BKE_object_material_get(((Object *)id_pt), ((Object *)id_pt)->actcol))
+    BKE_object_material_get(((Object *)id_pt), ((Object *)id_pt)->actcol)
         CTX_TEST_PTR_ID_CAST(
             C, "object", "object.active_material", ID_CAST_OBMATACT, ptr->owner_id);
         break;

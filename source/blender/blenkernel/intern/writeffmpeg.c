@@ -527,7 +527,7 @@ static const AVCodec *get_av1_encoder(
       if (context->ffmpeg_crf >= 0) {
         /* librav1e does not use `-crf`, but uses `-qp` in the range of 0-255.
          * Calculates the roughly equivalent float, and truncates it to an integer. */
-        unsigned int qp_value = ((float)context->ffmpeg_crf) * 255.0F / 51.0F;
+        uint qp_value = ((float)context->ffmpeg_crf) * 255.0f / 51.0f;
         if (qp_value > 255) {
           qp_value = 255;
         }

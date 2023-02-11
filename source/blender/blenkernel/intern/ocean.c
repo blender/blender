@@ -222,9 +222,9 @@ void BKE_ocean_eval_uv(struct Ocean *oc, struct OceanResult *ocr, float u, float
   j1 = j1 % oc->_N;
 
 #  define BILERP(m) \
-    (interpf(interpf(m[i1 * oc->_N + j1], m[i0 * oc->_N + j1], frac_x), \
-             interpf(m[i1 * oc->_N + j0], m[i0 * oc->_N + j0], frac_x), \
-             frac_z))
+    interpf(interpf(m[i1 * oc->_N + j1], m[i0 * oc->_N + j1], frac_x), \
+            interpf(m[i1 * oc->_N + j0], m[i0 * oc->_N + j0], frac_x), \
+            frac_z)
 
   {
     if (oc->_do_disp_y) {

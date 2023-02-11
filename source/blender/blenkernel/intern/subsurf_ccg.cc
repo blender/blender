@@ -1363,7 +1363,7 @@ static void ccgdm_create_grids(DerivedMesh *dm)
   gridFlagMats = static_cast<DMFlagMat *>(
       MEM_mallocN(sizeof(DMFlagMat) * numGrids, "ccgdm.gridFlagMats"));
 
-  ccgdm->gridHidden = static_cast<unsigned int **>(
+  ccgdm->gridHidden = static_cast<uint **>(
       MEM_callocN(sizeof(*ccgdm->gridHidden) * numGrids, "ccgdm.gridHidden"));
 
   for (gIndex = 0, index = 0; index < numFaces; index++) {

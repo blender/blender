@@ -257,7 +257,7 @@ void shuffle_m4(float R[4][4], const int index[4])
 
 void mul_m4_m4m4(float R[4][4], const float A[4][4], const float B[4][4])
 {
-  if (R == A || R == B) {
+  if (ELEM(R, A, B)) {
     float T[4][4];
     mul_m4_m4m4(T, A, B);
     copy_m4_m4(R, T);
@@ -359,7 +359,7 @@ void mul_m3_m3_post(float R[3][3], const float B[3][3])
 
 void mul_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3])
 {
-  if (R == A || R == B) {
+  if (ELEM(R, A, B)) {
     float T[3][3];
     mul_m3_m3m3(T, A, B);
     copy_m3_m3(R, T);

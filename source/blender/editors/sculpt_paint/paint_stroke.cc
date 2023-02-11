@@ -175,7 +175,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
   immUniform1i("colors_len", 2); /* "advanced" mode */
-  const float alpha = (float)paint->paint_cursor_col[3] / 255.0f;
+  const float alpha = float(paint->paint_cursor_col[3]) / 255.0f;
   immUniform4f("color", 0.0f, 0.0f, 0.0f, alpha);
   immUniform4f("color2", 1.0f, 1.0f, 1.0f, alpha);
   immUniform1f("dash_width", 6.0f);
@@ -394,7 +394,7 @@ static bool paint_brush_update(bContext *C,
 
     ups->anchored_size = ups->pixel_radius = sqrtf(dx * dx + dy * dy);
 
-    ups->brush_rotation = ups->brush_rotation_sec = atan2f(dx, dy) + (float)M_PI;
+    ups->brush_rotation = ups->brush_rotation_sec = atan2f(dx, dy) + float(M_PI);
 
     if (brush->flag & BRUSH_EDGE_TO_EDGE) {
       halfway[0] = dx * 0.5f + stroke->initial_mouse[0];
@@ -454,8 +454,8 @@ static bool paint_brush_update(bContext *C,
 
   if ((do_random || do_random_mask) && stroke->rng == nullptr) {
     /* Lazy initialization. */
-    uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
-    rng_seed ^= (uint)POINTER_AS_INT(brush);
+    uint rng_seed = uint(PIL_check_seconds_timer_i() & UINT_MAX);
+    rng_seed ^= uint(POINTER_AS_INT(brush));
     stroke->rng = BLI_rng_new(rng_seed);
   }
 
@@ -608,7 +608,7 @@ static void paint_brush_stroke_add_step(
   bool add_step = true;
   if (paint_stroke_use_dash(brush)) {
     int dash_samples = stroke->tot_samples % brush->dash_samples;
-    float dash = (float)dash_samples / (float)brush->dash_samples;
+    float dash = float(dash_samples) / float(brush->dash_samples);
     if (dash > brush->dash_ratio) {
       add_step = false;
     }
@@ -938,7 +938,7 @@ PaintStroke *paint_stroke_new(bContext *C,
    * ups->average_stroke_counter to 1.
    */
   if (ups->average_stroke_counter) {
-    mul_v3_fl(ups->average_stroke_accum, 1.0f / (float)ups->average_stroke_counter);
+    mul_v3_fl(ups->average_stroke_accum, 1.0f / float(ups->average_stroke_counter));
     ups->average_stroke_counter = 1;
   }
 
@@ -1402,17 +1402,17 @@ static void paint_stroke_line_constrain(PaintStroke *stroke, float mouse[2])
     len = len_v2(line);
 
     /* divide angle by PI/4 */
-    angle = 4.0f * angle / (float)M_PI;
+    angle = 4.0f * angle / float(M_PI);
 
     /* now take residue */
     res = angle - floorf(angle);
 
     /* residue decides how close we are at a certain angle */
     if (res <= 0.5f) {
-      angle = floorf(angle) * (float)M_PI_4;
+      angle = floorf(angle) * float(M_PI_4);
     }
     else {
-      angle = (floorf(angle) + 1.0f) * (float)M_PI_4;
+      angle = (floorf(angle) + 1.0f) * float(M_PI_4);
     }
 
     mouse[0] = stroke->constrained_pos[0] = len * cosf(angle) + stroke->last_mouse_position[0];

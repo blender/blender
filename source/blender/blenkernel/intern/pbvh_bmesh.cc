@@ -738,7 +738,7 @@ struct EdgeQueueContext {
 
 /* Only tagged edges are in the queue. */
 #ifdef USE_EDGEQUEUE_TAG
-#  define EDGE_QUEUE_TEST(e) (BM_elem_flag_test((CHECK_TYPE_INLINE(e, BMEdge *), e), BM_ELEM_TAG))
+#  define EDGE_QUEUE_TEST(e) BM_elem_flag_test((CHECK_TYPE_INLINE(e, BMEdge *), e), BM_ELEM_TAG)
 #  define EDGE_QUEUE_ENABLE(e) \
     BM_elem_flag_enable((CHECK_TYPE_INLINE(e, BMEdge *), e), BM_ELEM_TAG)
 #  define EDGE_QUEUE_DISABLE(e) \

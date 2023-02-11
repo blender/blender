@@ -263,7 +263,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
     /* pixel radius */
     {
       const int old_size = (!is_gpencil) ? BKE_brush_size_get(scene, brush) : brush->size;
-      int size = (int)(scalar * old_size);
+      int size = int(scalar * old_size);
 
       if (abs(old_size - size) < U.pixelsize) {
         if (scalar > 1) {
@@ -461,11 +461,11 @@ static int palette_extract_img_exec(bContext *C, wmOperator *op)
 
   if (ibuf && ibuf->rect) {
     /* Extract all colors. */
-    const int range = (int)pow(10.0f, threshold);
+    const int range = int(pow(10.0f, threshold));
     for (int row = 0; row < ibuf->y; row++) {
       for (int col = 0; col < ibuf->x; col++) {
         float color[4];
-        IMB_sampleImageAtLocation(ibuf, (float)col, (float)row, false, color);
+        IMB_sampleImageAtLocation(ibuf, float(col), float(row), false, color);
         for (int i = 0; i < 3; i++) {
           color[i] = truncf(color[i] * range) / range;
         }
@@ -1129,10 +1129,10 @@ static void stencil_control_calculate(StencilControlData *scd, const int mval[2]
       angle = atan2f(mdiff[1], mdiff[0]);
       angle = scd->init_rot + angle - scd->init_angle;
       if (angle < 0.0f) {
-        angle += (float)(2 * M_PI);
+        angle += float(2 * M_PI);
       }
-      if (angle > (float)(2 * M_PI)) {
-        angle -= (float)(2 * M_PI);
+      if (angle > float(2 * M_PI)) {
+        angle -= float(2 * M_PI);
       }
       *scd->rot_target = angle;
       break;

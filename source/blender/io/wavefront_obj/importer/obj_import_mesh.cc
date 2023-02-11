@@ -286,7 +286,7 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
         added_uv = true;
       }
       else {
-        uv_map.span[tot_loop_idx] = {0.f, 0.f};
+        uv_map.span[tot_loop_idx] = {0.0f, 0.0f};
       }
       tot_loop_idx++;
     }
