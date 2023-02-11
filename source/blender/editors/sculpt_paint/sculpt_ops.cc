@@ -1311,7 +1311,7 @@ static int sculpt_set_limit_surface_exec(bContext *C, wmOperator * /* op */)
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  SculptAttributeParams params = {.permanent = false, .simple_array = false};
+  SculptAttributeParams params = {};
 
   if (!ss->attrs.limit_surface) {
     ss->attrs.limit_surface = BKE_sculpt_attribute_ensure(
