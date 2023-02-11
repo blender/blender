@@ -89,7 +89,6 @@ set(SRC
   intern/kdtree_3d.c
   intern/kdtree_4d.c
   intern/lasso_2d.c
-  intern/lockfree_mempool.cc
   intern/lazy_threading.cc
   intern/length_parameterize.cc
   intern/listbase.cc
@@ -296,7 +295,6 @@ set(SRC
   BLI_memory_utils.h
   BLI_memory_utils.hh
   BLI_mempool.h
-  BLI_mempool_lockfree.h
   BLI_mesh_boolean.hh
   BLI_mesh_intersect.hh
   BLI_mmap.h
