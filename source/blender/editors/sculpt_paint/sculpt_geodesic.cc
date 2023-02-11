@@ -926,7 +926,6 @@ static float *SCULPT_geodesic_grids_create(Object *ob,
 
   BLI_memarena_free(ma);
   BLI_ghash_free(ehash, nullptr, nullptr);
-  MEM_SAFE_FREE(edges);
   MEM_SAFE_FREE(vmap);
   MEM_SAFE_FREE(e_otherv_map);
 

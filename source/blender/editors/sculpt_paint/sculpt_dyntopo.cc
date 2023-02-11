@@ -405,7 +405,7 @@ void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
   }
 
   MemArena *pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
-  LinkNode *f_double = NULL;
+  LinkNode *f_double = nullptr;
 
   Vector<BMFace *>(faces_array);
 
@@ -423,14 +423,14 @@ void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
                         f,
                         faces_array.data(),
                         &faces_array_tot,
-                        NULL,
-                        NULL,
+                        nullptr,
+                        nullptr,
                         &f_double,
                         MOD_TRIANGULATE_QUAD_BEAUTY,
                         MOD_TRIANGULATE_NGON_EARCLIP,
                         true,
                         pf_arena,
-                        NULL);
+                        nullptr);
 
     for (int i = 0; i < faces_array_tot; i++) {
       BMFace *f2 = faces_array[i];
@@ -456,14 +456,13 @@ void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
   }
 
   BLI_memarena_free(pf_arena);
-  MEM_SAFE_FREE(faces_array);
 
   ss->totfaces = ss->totpoly = ss->bm->totface;
   ss->totvert = ss->bm->totvert;
 
   //  BM_mesh_triangulate(
-  //      bm, MOD_TRIANGULATE_QUAD_BEAUTY, MOD_TRIANGULATE_NGON_EARCLIP, 4, false, NULL, NULL,
-  //      NULL);
+  //      bm, MOD_TRIANGULATE_QUAD_BEAUTY, MOD_TRIANGULATE_NGON_EARCLIP, 4, false, nullptr, nullptr,
+  //      nullptr);
 }
 
 void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh)
@@ -471,7 +470,7 @@ void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh)
   SculptSession *ss = ob->sculpt;
 
   BKE_pbvh_pmap_release(ss->pmap);
-  ss->pmap = NULL;
+  ss->pmap = nullptr;
 
   /* Clear out any existing DM and PBVH. */
   if (ss->pbvh) {
@@ -710,7 +709,7 @@ static void SCULPT_dynamic_topology_disable_ex(
     ss->bm_log = nullptr;
   }
 
-  /* Typically valid but with global-undo they can be NULL, see: T36234. */
+  /* Typically valid but with global-undo they can be nullptr, see: T36234. */
   if (ss->bm) {
     // PBVH now frees this
     // BM_mesh_free(ss->bm);
@@ -1053,8 +1052,8 @@ static void uvsolver_free(UVSolver *solver)
   BLI_mempool_destroy(solver->tris);
   BLI_mempool_destroy(solver->constraints);
 
-  BLI_ghash_free(solver->vhash, NULL, NULL);
-  BLI_ghash_free(solver->fhash, NULL, NULL);
+  BLI_ghash_free(solver->vhash, nullptr, nullptr);
+  BLI_ghash_free(solver->fhash, nullptr, nullptr);
 
   MEM_freeN(solver);
 }
@@ -1088,7 +1087,7 @@ static UVSmoothVert *uvsolver_get_vert(UVSolver *solver, BMLoop *l)
   float *uv = (float *)BM_ELEM_CD_GET_VOID_P(l, solver->cd_uv);
 
   void *pkey = uvsolver_calc_loop_key(solver, l);
-  void **entry = NULL;
+  void **entry = nullptr;
   UVSmoothVert *v;
 
   if (!BLI_ghash_ensure_p(solver->vhash, pkey, &entry)) {
@@ -1168,7 +1167,7 @@ double area_tri_v3_db(const double v1[3], const double v2[3], const double v3[3]
 
 static UVSmoothTri *uvsolver_ensure_face(UVSolver *solver, BMFace *f)
 {
-  void **entry = NULL;
+  void **entry = nullptr;
 
   if (BLI_ghash_ensure_p(solver->fhash, (void *)f, &entry)) {
     return (UVSmoothTri *)*entry;
@@ -1623,7 +1622,7 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
       int tot2 = 0;
       float uv[2] = {0};
       bool ok = true;
-      UVSmoothVert *lastv = NULL;
+      UVSmoothVert *lastv = nullptr;
 
       BM_ITER_ELEM (l2, &iter, l->v, BM_LOOPS_OF_VERT) {
         if (l2->v != l->v) {
@@ -1686,7 +1685,7 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
       const float fade =
           bstrength *
           SCULPT_brush_strength_factor(
-              ss, brush, vd.co, sqrtf(test.dist), NULL, l->v->no, mask, vertex, thread_id) *
+              ss, brush, vd.co, sqrtf(test.dist), nullptr, l->v->no, mask, vertex, thread_id) *
           ss->cache->pressure;
 
     } while ((l = l->next) != f->l_first);
@@ -1756,16 +1755,9 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       continue;
     }
 
-    sv->brushfade = SCULPT_brush_strength_factor(ss,
-                                                 brush,
-                                                 sv->v->co,
-                                                 sqrtf(test.dist),
-                                                 NULL,
-                                                 sv->v->no,
-                                                 0.0f,
-                                                 (PBVHVertRef){.i = (intptr_t)sv->v},
-                                                 0,
-                                                 &automask_data);
+    PBVHVertRef vertex = {(intptr_t)sv->v};
+    sv->brushfade = SCULPT_brush_strength_factor(
+        ss, brush, sv->v->co, sqrtf(test.dist), nullptr, sv->v->no, 0.0f, vertex, 0, &automask_data);
   }
 
   for (int i = 0; i < 5; i++) {
