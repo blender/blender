@@ -20,6 +20,7 @@
 #include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_task.h"
+#include "BLI_index_range.hh"
 
 #include "BLT_translation.h"
 
@@ -64,6 +65,7 @@
 #include <stdlib.h>
 
 using blender::Vector;
+using blender::IndexRange;
 
 BMesh *SCULPT_dyntopo_empty_bmesh()
 {

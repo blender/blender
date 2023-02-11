@@ -219,7 +219,6 @@ class MeshFairingContext : public FairingContext {
 
     BKE_mesh_edge_loop_map_create(&elmap_,
                                   &elmap_mem_,
-                                  mesh->medge,
                                   mesh->totedge,
                                   mesh->mpoly,
                                   mesh->totpoly,

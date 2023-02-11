@@ -2665,7 +2665,6 @@ SculptFaceSetIslands *SCULPT_face_set_islands_get(SculptSession *ss, int fset)
   if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH && !ss->epmap) {
     BKE_mesh_edge_poly_map_create(&ss->epmap,
                                   &ss->epmap_mem,
-                                  ss->medge,
                                   ss->totedges,
                                   ss->mpoly,
                                   ss->totfaces,
