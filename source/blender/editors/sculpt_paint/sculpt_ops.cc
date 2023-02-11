@@ -1497,7 +1497,7 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
         float tanco[3];
         add_v3_v3v3(tanco, v2->co, dir2);
 
-        SCULPT_dyntopo_check_disk_sort(ss, (PBVHVertRef){.i = (intptr_t)v2});
+        SCULPT_dyntopo_check_disk_sort(ss, BKE_pbvh_make_vref((intptr_t)v2));
 
         float lastdir3[3];
         float firstdir3[3];

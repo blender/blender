@@ -1165,7 +1165,7 @@ static bool sculpt_walk_scalar_field(SculptSession *ss,
   return true;
 }
 
-Object *sculpt_get_vis_object(bContext *C, SculptSession *ss, char *name)
+Object *sculpt_get_vis_object(bContext *C, SculptSession *ss, const char *name)
 {
   if (!C) {
     C = ss->cache->C;

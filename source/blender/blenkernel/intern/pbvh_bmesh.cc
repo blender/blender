@@ -362,9 +362,9 @@ static void pbvh_print_mem_size(PBVH *pbvh)
 
   int ptrsize = (int)sizeof(void *);
 
-  float memsize3[3] = {(float)(ptrsize * bm->idmap.map_size) / 1024.0 / 1024.0,
-                       (float)(ptrsize * bm->idmap.freelist_len) / 1024.0 / 1024.0,
-                       (float)(4 * bm->idmap.free_ids_size) / 1024.0 / 1024.0};
+  float memsize3[3] = {(float)(ptrsize * bm->idmap.map_size) / 1024.0f / 1024.0f,
+                       (float)(ptrsize * bm->idmap.freelist_len) / 1024.0f / 1024.0f,
+                       (float)(4 * bm->idmap.free_ids_size) / 1024.0f / 1024.0f};
 
   printf("idmap sizes:\n  map_size: %.2fmb freelist_len: %.2fmb free_ids_size: %.2fmb\n",
          memsize3[0],
@@ -4366,10 +4366,7 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
   MEM_SAFE_FREE(lidx);
   MEM_SAFE_FREE(fidx);
 
-  MEM_SAFE_FREE(nstack);
-  MEM_SAFE_FREE(roots);
   BLI_mempool_destroy(pool);
-  MEM_SAFE_FREE(stack);
   MEM_SAFE_FREE(vnodemap);
 
   return pbvh->header.bm;

@@ -155,10 +155,10 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
 
   if (useAccurateSolver) {
     int val = SCULPT_vertex_valence_get(ss, vertex);
-    float *ws = BLI_array_alloca(ws, val);
-    float *cot1 = BLI_array_alloca(cot1, val);
-    float *cot2 = BLI_array_alloca(cot2, val);
-    float *areas = BLI_array_alloca(areas, val);
+    float *ws = (float *)BLI_array_alloca(ws, val);
+    float *cot1 = (float *)BLI_array_alloca(cot1, val);
+    float *cot2 = (float *)BLI_array_alloca(cot2, val);
+    float *areas = (float *)BLI_array_alloca(areas, val);
     float totarea = 0.0f;
 
     SCULPT_get_cotangents(ss, vertex, ws, cot1, cot2, areas, &totarea);
