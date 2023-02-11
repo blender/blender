@@ -439,6 +439,7 @@ typedef struct ColorMapping {
 #define MTEX_MAP_MODE_AREA 3
 #define MTEX_MAP_MODE_RANDOM 4
 #define MTEX_MAP_MODE_STENCIL 5
+#define MTEX_MAP_MODE_ROLL 6
 
 /* brush_angle_mode */
 #define MTEX_ANGLE_RANDOM 1

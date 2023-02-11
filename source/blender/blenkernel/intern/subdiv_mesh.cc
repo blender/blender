@@ -1103,9 +1103,11 @@ static void subdiv_mesh_vertex_of_loose_edge(const SubdivForeachContext *foreach
     if (ctx->vert_to_edge_map == nullptr) {
       BKE_mesh_vert_edge_map_create(&ctx->vert_to_edge_map,
                                     &ctx->vert_to_edge_buffer,
+                                    ctx->coarse_positions,
                                     ctx->coarse_edges,
                                     coarse_mesh->totvert,
-                                    ctx->coarse_mesh->totedge);
+                                    ctx->coarse_mesh->totedge,
+                                    false);
     }
   }
 

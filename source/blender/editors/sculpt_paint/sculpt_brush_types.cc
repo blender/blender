@@ -1033,7 +1033,7 @@ static void do_clay_strips_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    if (!SCULPT_brush_test_cube(&test, vd.co, mat, brush->tip_roundness)) {
+    if (!SCULPT_brush_test_cube(&test, vd.co, mat, brush->tip_roundness, true)) {
       continue;
     }
 
@@ -1346,7 +1346,7 @@ static void do_thumb_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -1425,7 +1425,7 @@ static void do_rotate_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -1505,7 +1505,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -1526,7 +1526,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     const int vi = vd.index;
     float *disp_factor;
     if (use_persistent_base) {
-      disp_factor = (float *)SCULPT_vertex_attr_get(vd.vertex, ss->attrs.persistent_disp);
+      disp_factor = SCULPT_vertex_attr_get<float *>(vd.vertex, ss->attrs.persistent_disp);
     }
     else {
       disp_factor = &ss->cache->layer_displacement_factor[vi];
@@ -2027,7 +2027,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
 
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
@@ -2133,7 +2133,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
       &params, ss->cache->radius, force, 1.0f, brush->elastic_deform_volume_preservation);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     float final_disp[3];
@@ -2236,7 +2236,7 @@ static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
     }
@@ -2326,7 +2326,7 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
     }
@@ -2385,52 +2385,65 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
 void SCULPT_relax_vertex(SculptSession *ss,
                          PBVHVertexIter *vd,
                          float factor,
-                         bool filter_boundary_face_sets,
+                         eSculptBoundary boundary_mask,
                          float *r_final_pos)
 {
   float smooth_pos[3];
   float final_disp[3];
-  float boundary_normal[3];
   int avg_count = 0;
   int neighbor_count = 0;
   zero_v3(smooth_pos);
-  zero_v3(boundary_normal);
-  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vd->vertex);
+
+  eSculptBoundary bset = boundary_mask;
+
+  // forcibly enable if no ss->cache
+  if (ss->cache && (ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS)) {
+    bset |= SCULPT_BOUNDARY_FACE_SET;
+  }
+
+  if (SCULPT_vertex_is_corner(ss, vd->vertex, (eSculptCorner)bset)) {
+    copy_v3_v3(r_final_pos, vd->co);
+    return;
+  }
+
+  const eSculptBoundary is_boundary = SCULPT_vertex_is_boundary(ss, vd->vertex, bset);
+
+  float boundary_tan_a[3];
+  float boundary_tan_b[3];
+  bool have_boundary_tan_a = false;
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd->vertex, ni) {
     neighbor_count++;
-    if (!filter_boundary_face_sets ||
-        (filter_boundary_face_sets && !SCULPT_vertex_has_unique_face_set(ss, ni.vertex))) {
 
-      /* When the vertex to relax is boundary, use only connected boundary vertices for the average
-       * position. */
-      if (is_boundary) {
-        if (!SCULPT_vertex_is_boundary(ss, ni.vertex)) {
-          continue;
-        }
-        add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
-        avg_count++;
+    /* When the vertex to relax is boundary, use only connected boundary vertices for the
+     * average position. */
+    if (is_boundary) {
+      if (SCULPT_vertex_is_boundary(ss, ni.vertex, bset) == SCULPT_BOUNDARY_NONE) {
+        continue;
+      }
+      add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
+      avg_count++;
 
-        /* Calculate a normal for the constraint plane using the edges of the boundary. */
-        float to_neighbor[3];
-        sub_v3_v3v3(to_neighbor, SCULPT_vertex_co_get(ss, ni.vertex), vd->co);
-        normalize_v3(to_neighbor);
-        add_v3_v3(boundary_normal, to_neighbor);
+      /* Calculate a normal for the constraint plane using the edges of the boundary. */
+      float to_neighbor[3];
+      sub_v3_v3v3(to_neighbor, SCULPT_vertex_co_get(ss, ni.vertex), vd->co);
+      normalize_v3(to_neighbor);
+
+      if (!have_boundary_tan_a) {
+        copy_v3_v3(boundary_tan_a, to_neighbor);
+        have_boundary_tan_a = true;
       }
       else {
-        add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
-        avg_count++;
+        copy_v3_v3(boundary_tan_b, to_neighbor);
       }
+    }
+    else {
+      add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
+      avg_count++;
     }
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-  /* Don't modify corner vertices. */
-  if (neighbor_count <= 2) {
-    copy_v3_v3(r_final_pos, vd->co);
-    return;
-  }
 
   if (avg_count > 0) {
     mul_v3_fl(smooth_pos, 1.0f / avg_count);
@@ -2444,8 +2457,9 @@ void SCULPT_relax_vertex(SculptSession *ss,
   float smooth_closest_plane[3];
   float vno[3];
 
-  if (is_boundary && avg_count == 2) {
-    normalize_v3_v3(vno, boundary_normal);
+  if ((is_boundary) && avg_count == 2 && fabsf(dot_v3v3(boundary_tan_a, boundary_tan_b)) < 0.99f) {
+    cross_v3_v3v3(vno, boundary_tan_a, boundary_tan_b);
+    normalize_v3(vno);
   }
   else {
     SCULPT_vertex_normal_get(ss, vd->vertex, vno);
@@ -2490,7 +2504,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
       continue;
     }
@@ -2507,7 +2521,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
                                                     thread_id,
                                                     &automask_data);
 
-    SCULPT_relax_vertex(ss, &vd, fade * bstrength, false, vd.co);
+    SCULPT_relax_vertex(ss, &vd, fade * bstrength, SCULPT_BOUNDARY_MESH, vd.co);
     if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
@@ -2833,7 +2847,9 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
 
     float avg[3], val[3];
 
-    SCULPT_bmesh_four_neighbor_average(avg, direction, vd.bm_vert);
+    int cd_temp = data->scl->bmesh_cd_offset;
+    SCULPT_bmesh_four_neighbor_average(
+        ss, avg, direction, vd.bm_vert, 1.0f, true, cd_temp, ss->cd_sculpt_vert, false);
 
     sub_v3_v3v3(val, avg, vd.co);
 
@@ -2852,6 +2868,7 @@ void SCULPT_bmesh_topology_rake(
     Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, float bstrength)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
+  SculptSession *ss = ob->sculpt;
   const float strength = clamp_f(bstrength, 0.0f, 1.0f);
 
   /* Interactions increase both strength and quality. */
@@ -2861,6 +2878,10 @@ void SCULPT_bmesh_topology_rake(
   const int count = iterations * strength + 1;
   const float factor = iterations * strength / count;
 
+  SculptAttributeParams params = {};
+  ss->attrs.rake_temp = BKE_sculpt_attribute_ensure(
+      ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, SCULPT_ATTRIBUTE_NAME(rake_temp), &params);
+
   for (iteration = 0; iteration <= count; iteration++) {
 
     SculptThreadedTaskData data{};
@@ -2869,6 +2890,7 @@ void SCULPT_bmesh_topology_rake(
     data.brush = brush;
     data.nodes = nodes;
     data.strength = factor;
+    data.scl = ss->attrs.rake_temp;
 
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);

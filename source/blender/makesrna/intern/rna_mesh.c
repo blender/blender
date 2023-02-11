@@ -1220,7 +1220,10 @@ static bool rna_MeshVertColorLayer_active_get(PointerRNA *ptr)
 
 static void rna_MeshVertColorLayer_active_render_set(PointerRNA *ptr, bool value)
 {
-  rna_CustomDataLayer_active_set(ptr, rna_mesh_vdata(ptr), value, CD_PROP_COLOR, 1);
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+
+  //XXX
+  printf("%s: error!\n", __func__);
 }
 
 static void rna_MeshVertColorLayer_active_set(PointerRNA *ptr, bool value)
@@ -4023,7 +4026,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "vertex_normals", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshNormalValue");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+
   RNA_def_property_ui_text(prop,
                            "Vertex Normals",
                            "The normal direction of each vertex, defined as the average of the "
@@ -4417,6 +4420,12 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
+  prop = RNA_def_property(srna, "use_remesh_preserve_materials", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_REMESH_REPROJECT_MATERIALS);
+  RNA_def_property_boolean_default(prop, false);
+  RNA_def_property_ui_text(prop, "Preserve Materials", "Keep the current material slots");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
   prop = RNA_def_property(srna, "remesh_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "remesh_mode");
   RNA_def_property_enum_items(prop, rna_enum_mesh_remesh_mode_items);
@@ -4449,6 +4458,19 @@ static void rna_def_mesh(BlenderRNA *brna)
                            "Mirror the left/right vertex groups when painting. The symmetry axis "
                            "is determined by the symmetry settings");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
+  prop = RNA_def_property(srna, "use_fset_boundary_mirror", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SCULPT_MIRROR_FSET_BOUNDARIES);
+  RNA_def_property_ui_text(
+      prop,
+      "Split Face Sets",
+      "Use mirroring to split face sets for some tools (e.g. boundary smoothing)");
+  // RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
+  prop = RNA_def_property(srna, "sculpt_ignore_uvs", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SCULPT_IGNORE_UVS);
+  RNA_def_property_ui_text(prop, "Ignore UVs", "");
+
   /* End Symmetry */
 
   prop = RNA_def_property(srna, "use_auto_smooth", PROP_BOOLEAN, PROP_NONE);

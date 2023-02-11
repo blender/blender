@@ -1143,7 +1143,17 @@ bool ED_object_modifier_apply(Main *bmain,
     BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in edit mode");
     return false;
   }
-  if (mode != MODIFIER_APPLY_SHAPE && ID_REAL_USERS(ob->data) > 1) {
+
+  bool allow_multi_user = mode == MODIFIER_APPLY_SHAPE;
+  if (md) {
+    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
+
+    allow_multi_user |= ELEM(
+        mti->type, eModifierTypeType_NonGeometrical, eModifierTypeType_OnlyDeform);
+  }
+
+  // bool allow_multi_user = md && md->type == eModifierType_DataTransfer || md->flag & ;
+  if (!allow_multi_user && ID_REAL_USERS(ob->data) > 1) {
     BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied to multi-user data");
     return false;
   }
@@ -2954,7 +2964,8 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
       CustomData_get_layer_for_write(&me->vdata, CD_MVERT_SKIN, me->totvert));
   int *emap_mem;
   MeshElemMap *emap;
-  BKE_mesh_vert_edge_map_create(&emap, &emap_mem, me_edges.data(), me->totvert, me->totedge);
+  BKE_mesh_vert_edge_map_create(
+      &emap, &emap_mem, nullptr, me_edges.data(), me->totvert, me->totedge, false);
 
   BLI_bitmap *edges_visited = BLI_BITMAP_NEW(me->totedge, "edge_visited");
 

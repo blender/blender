@@ -145,6 +145,17 @@ typedef struct BrushGpencilSettings {
   struct Material *material_alt;
 } BrushGpencilSettings;
 
+typedef struct DynTopoSettings {
+  float detail_range;
+  float detail_percent;
+  float detail_size;
+  float constant_detail;
+  short flag, mode;
+  int inherit;
+  int spacing;
+  float radius_scale;
+} DynTopoSettings;
+
 typedef struct BrushCurvesSculptSettings {
   /** Number of curves added by the add brush. */
   int add_amount;
@@ -175,6 +186,10 @@ typedef struct Brush {
   struct CurveMapping *curve;
   struct MTex mtex;
   struct MTex mask_mtex;
+
+  /** Pen Input curves */
+  struct CurveMapping *pressure_size_curve;
+  struct CurveMapping *pressure_strength_curve;
 
   struct Brush *toggle_brush;
 
@@ -260,7 +275,7 @@ typedef struct Brush {
   /** Source for fill tool color gradient application. */
   char gradient_fill_mode;
 
-  char _pad0[5];
+  char _pad0[1];
 
   /** Projection shape (sphere, circle). */
   char falloff_shape;
@@ -288,13 +303,24 @@ typedef struct Brush {
   char gpencil_weight_tool;
   /** Active curves sculpt tool (#eBrushCurvesSculptTool). */
   char curves_sculpt_tool;
-  char _pad1[5];
+  char _pad1[1];
 
   float autosmooth_factor;
+  float autosmooth_radius_factor;
+  float autosmooth_projection;
+  int autosmooth_spacing;  // spacing for BRUSH_CUSTOM_AUTOSMOOTH_SPACING
+  float boundary_smooth_factor;
+  float autosmooth_fset_slide;
 
   float tilt_strength_factor;
 
   float topology_rake_factor;
+  float topology_rake_radius_factor;
+  float topology_rake_projection;
+  int topology_rake_spacing;  // spacing for BRUSH_CUSTOM_TOPOLOGY_RAKE_SPACING
+
+  float vcol_boundary_factor;
+  float vcol_boundary_exponent;
 
   float crease_pinch_factor;
 
@@ -350,6 +376,10 @@ typedef struct Brush {
 
   float cloth_constraint_softbody_strength;
 
+  /* array */
+  int array_deform_type;
+  int array_count;
+
   /* smooth */
   int smooth_deform_type;
   float surface_smooth_shape_preservation;
@@ -362,8 +392,13 @@ typedef struct Brush {
   /* smear */
   int smear_deform_type;
 
+  float smear_deform_blend;
+
   /* slide/relax */
   int slide_deform_type;
+
+  /* scene_project */
+  int scene_project_direction_type;
 
   /* overlay */
   int texture_overlay_alpha;
@@ -389,7 +424,15 @@ typedef struct Brush {
   float mask_stencil_pos[2];
   float mask_stencil_dimension[2];
 
+  float concave_mask_factor;
+
+  char _pad2[4];
   struct BrushGpencilSettings *gpencil_settings;
+
+  DynTopoSettings dyntopo, cached_dyntopo;
+
+  /* new brush engine stuff */
+
   struct BrushCurvesSculptSettings *curves_sculpt_settings;
 
   int automasking_cavity_blur_steps;

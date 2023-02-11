@@ -61,6 +61,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
+#include "BKE_pbvh.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -799,6 +800,12 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
     CLOG_WARN(&LOG, "Unable to enter edit-mode on library data for object '%s'", ob->id.name + 2);
     return false;
   }
+
+#ifdef WITH_PBVH_CACHE
+  if (ob->type == OB_MESH) {
+    BKE_pbvh_invalidate_cache(ob);
+  }
+#endif
 
   ob->restore_mode = ob->mode;
 

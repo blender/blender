@@ -30,6 +30,7 @@ struct MLoopTri;
 struct ShrinkwrapBoundaryData;
 struct SubdivCCG;
 struct SubsurfRuntimeData;
+struct Mesh;
 
 #endif
 
@@ -85,7 +86,7 @@ struct MeshRuntime {
   /* Evaluated mesh for objects which do not have effective modifiers.
    * This mesh is used as a result of modifier stack evaluation.
    * Since modifier stack evaluation is threaded on object level we need some synchronization. */
-  Mesh *mesh_eval = nullptr;
+  struct Mesh *mesh_eval = nullptr;
   std::mutex eval_mutex;
 
   /* A separate mutex is needed for normal calculation, because sometimes

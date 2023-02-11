@@ -10,7 +10,9 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
+#include "BKE_lib_id.h"
 #include "DNA_object_enums.h"
+#include "DNA_userdef_types.h"
 
 #ifdef __cplusplus
 extern "C" {

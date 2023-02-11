@@ -53,8 +53,7 @@ typedef enum eAttrDomainMask {
 bool BKE_id_attributes_supported(const struct ID *id);
 bool BKE_attribute_allow_procedural_access(const char *attribute_name);
 
-/**
- * Create a new attribute layer.
+/**  Create a new attribute layer.
  */
 struct CustomDataLayer *BKE_id_attribute_new(
     struct ID *id, const char *name, int type, eAttrDomain domain, struct ReportList *reports);
@@ -87,7 +86,8 @@ bool BKE_id_attribute_rename(struct ID *id,
 
 int BKE_id_attributes_length(const struct ID *id,
                              eAttrDomainMask domain_mask,
-                             eCustomDataMask mask);
+                             eCustomDataMask mask,
+                             bool skip_temporary);
 
 struct CustomDataLayer *BKE_id_attributes_active_get(struct ID *id);
 void BKE_id_attributes_active_set(struct ID *id, const char *name);
@@ -106,11 +106,11 @@ int BKE_id_attribute_to_index(const struct ID *id,
                               eCustomDataMask layer_mask);
 
 /**
- * Sets up a temporary ID with arbitrary CustomData domains. `r_id` will
+ * Sets up a temporary ID with arbitrary CustomData domains.  r_id will
  * be zero initialized with ID type id_type and any non-nullptr
  * CustomData parameter will be copied into the appropriate struct members.
  *
- * \param r_id: Pointer to storage sufficient for ID type-code id_type.
+ * \param r_id Pointer to storage sufficient for ID typecode id_type.
  */
 void BKE_id_attribute_copy_domains_temp(short id_type,
                                         const struct CustomData *vdata,
@@ -130,6 +130,7 @@ void BKE_id_attributes_default_color_set(struct ID *id, const char *name);
 struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const char *name);
 
 bool BKE_id_attribute_calc_unique_name(struct ID *id, const char *name, char *outname);
+struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const char *name);
 
 const char *BKE_uv_map_vert_select_name_get(const char *uv_map_name, char *buffer);
 const char *BKE_uv_map_edge_select_name_get(const char *uv_map_name, char *buffer);

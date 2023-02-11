@@ -712,7 +712,7 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
  * used when creating pdata and ldata for pre-bmesh
  * meshes and needed to preserve active/render/clone/stencil flags set in pre-bmesh files.
  */
-static void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata, CustomData *ldata)
+void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata, CustomData *ldata)
 {
   int act;
 

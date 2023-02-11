@@ -613,6 +613,7 @@ static bool rna_property_override_operation_apply(Main *bmain,
   return success;
 }
 
+#include "stdio.h"
 bool RNA_struct_override_matches(Main *bmain,
                                  PointerRNA *ptr_local,
                                  PointerRNA *ptr_reference,

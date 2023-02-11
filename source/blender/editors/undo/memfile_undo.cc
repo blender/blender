@@ -54,6 +54,11 @@ typedef struct MemFileUndoStep {
   MemFileUndoData *data;
 } MemFileUndoStep;
 
+MemFileUndoData *memfile_get_step_data(MemFileUndoStep *us)
+{
+  return us->data;
+}
+
 static bool memfile_undosys_poll(bContext *C)
 {
   /* other poll functions must run first, this is a catch-all. */

@@ -3176,7 +3176,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
   BMeshFromMeshParams bm_from_me_params{};
   bm_from_me_params.calc_face_normal = true;
   bm_from_me_params.calc_vert_normal = true;
-  BM_mesh_bm_from_me(bm, me, &bm_from_me_params);
+  BM_mesh_bm_from_me(nullptr, bm, me, &bm_from_me_params);
 
   /* Select all UVs for cube_project. */
   ED_uvedit_select_all(bm);
@@ -3197,7 +3197,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
 
   /* Write back from BMesh to Mesh. */
   BMeshToMeshParams bm_to_me_params{};
-  BM_mesh_bm_to_me(bmain, bm, me, &bm_to_me_params);
+  BM_mesh_bm_to_me(bmain, nullptr, bm, me, &bm_to_me_params);
   BM_mesh_free(bm);
 
   if (sync_selection) {

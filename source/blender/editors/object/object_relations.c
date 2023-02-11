@@ -22,6 +22,7 @@
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
@@ -48,6 +49,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_curves.h"
+#include "BKE_customdata.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_fcurve.h"
@@ -69,9 +71,11 @@
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_speaker.h"
 #include "BKE_texture.h"
 #include "BKE_volume.h"
@@ -97,6 +101,7 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 #include "ED_view3d.h"
 
 #include "MOD_nodes.h"
@@ -2825,6 +2830,73 @@ char *ED_object_ot_drop_named_material_tooltip(bContext *C, const char *name, co
   return result;
 }
 
+static void drop_named_material_face_set_slots_update(bContext *C,
+                                                      Object *ob,
+                                                      const wmEvent *event)
+{
+  Main *bmain = CTX_data_main(C);
+  Mesh *mesh = BKE_mesh_from_object(ob);
+
+  bScreen *screen = CTX_wm_screen(C);
+  ARegion *region = BKE_screen_find_main_region_at_xy(screen, SPACE_VIEW3D, event->xy);
+
+  const float mval[2] = {event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin};
+  const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
+
+  int *face_sets = (int *)CustomData_get_layer_named(
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_sets");
+  int *mat_nr = (int *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index");
+
+  if (!mat_nr) {
+    printf("%s: no material index!\n", __func__);
+    return;
+  }
+
+  bool create_new_slot = false;
+  short face_set_nr = -1;
+
+  if (face_sets) {
+    for (int i = 0; i < mesh->totpoly; i++) {
+      if (face_sets[i] != face_set_id) {
+        continue;
+      }
+      face_set_nr = mat_nr[i];
+      break;
+    }
+
+    for (int i = 0; i < mesh->totpoly; i++) {
+      if (face_sets[i] == face_set_id) {
+        if (mat_nr[i] != face_set_nr) {
+          create_new_slot = true;
+          break;
+        }
+      }
+      else {
+        if (mat_nr[i] == face_set_nr) {
+          create_new_slot = true;
+          break;
+        }
+      }
+    }
+  }
+
+  if (create_new_slot) {
+    BKE_object_material_slot_add(bmain, ob);
+  }
+  else {
+    ob->actcol = face_set_nr + 1;
+  }
+
+  const short active_mat_slot = ob->actcol;
+  const short material_nr = active_mat_slot - 1;
+  for (int i = 0; i < mesh->totpoly; i++) {
+    if (face_sets[i] != face_set_id) {
+      continue;
+    }
+    mat_nr[i] = material_nr;
+  }
+}
+
 static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);
@@ -2839,6 +2911,10 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
+  if (ob->mode == OB_MODE_SCULPT) {
+    drop_named_material_face_set_slots_update(C, ob, event);
+  }
+
   BKE_object_material_assign(CTX_data_main(C), ob, ma, mat_slot, BKE_MAT_ASSIGN_USERPREF);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
@@ -2850,6 +2926,32 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
   return OPERATOR_FINISHED;
 }
 
+bool ED_operator_drop_material_poll(bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  Object *obact = CTX_data_active_object(C);
+
+  if (scene == NULL || ID_IS_LINKED(scene)) {
+    CTX_wm_operator_poll_msg_set(C, "Missing scene in context");
+    return false;
+  }
+  if (CTX_data_edit_object(C)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot be used in edit mode");
+    return false;
+  }
+
+  if (obact && !ELEM(obact->mode, OB_MODE_OBJECT, OB_MODE_SCULPT)) {
+    CTX_wm_operator_poll_msg_set(C, "Only supported in object and sculpt modes");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Used for drop-box.
+ * Assigns to object under cursor, only first material slot.
+ */
 void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 {
   /* identifiers */
@@ -2858,7 +2960,7 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = drop_named_material_invoke;
-  ot->poll = ED_operator_objectmode_poll_msg;
+  ot->poll = ED_operator_drop_material_poll;
 
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;

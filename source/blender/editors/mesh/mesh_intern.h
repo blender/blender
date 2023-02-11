@@ -294,6 +294,7 @@ void MESH_OT_set_normals_from_faces(struct wmOperatorType *ot);
 void MESH_OT_average_normals(struct wmOperatorType *ot);
 void MESH_OT_smooth_normals(struct wmOperatorType *ot);
 void MESH_OT_mod_weighted_strength(struct wmOperatorType *ot);
+void MESH_OT_mres_test(struct wmOperatorType *ot);
 void MESH_OT_flip_quad_tessellation(struct wmOperatorType *ot);
 
 /* *** editmesh_mask_extract.cc *** */
@@ -301,6 +302,9 @@ void MESH_OT_flip_quad_tessellation(struct wmOperatorType *ot);
 void MESH_OT_paint_mask_extract(struct wmOperatorType *ot);
 void MESH_OT_face_set_extract(struct wmOperatorType *ot);
 void MESH_OT_paint_mask_slice(struct wmOperatorType *ot);
+
+/* *** editmesh_fair.c *** */
+void MESH_OT_fair_vertices(struct wmOperatorType *ot);
 
 /** Called in transform_ops.c, on each regeneration of key-maps. */
 struct wmKeyMap *point_normals_modal_keymap(wmKeyConfig *keyconf);
@@ -319,6 +323,8 @@ void MESH_OT_customdata_skin_add(struct wmOperatorType *ot);
 void MESH_OT_customdata_skin_clear(struct wmOperatorType *ot);
 void MESH_OT_customdata_custom_splitnormals_add(struct wmOperatorType *ot);
 void MESH_OT_customdata_custom_splitnormals_clear(struct wmOperatorType *ot);
+void MESH_OT_dump_mres_grids(struct wmOperatorType *ot);
+void MESH_OT_customdata_ids_clear(struct wmOperatorType *ot);
 void MESH_OT_customdata_bevel_weight_vertex_add(struct wmOperatorType *ot);
 void MESH_OT_customdata_bevel_weight_vertex_clear(struct wmOperatorType *ot);
 void MESH_OT_customdata_bevel_weight_edge_add(struct wmOperatorType *ot);

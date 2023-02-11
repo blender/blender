@@ -6,7 +6,25 @@
  * \ingroup bmesh
  */
 
+#include "BLI_compiler_compat.h"
 #include "bmesh_class.h"
+
+typedef struct BMTracer {
+  void (*on_vert_kill)(BMesh *bm, BMVert *v, void *userdata);
+  void (*on_edge_kill)(BMesh *bm, BMEdge *e, void *userdata);
+  void (*on_face_kill)(BMesh *bm, BMFace *f, void *userdata);
+
+  void (*on_vert_create)(BMesh *bm, BMVert *v, void *userdata);
+  void (*on_edge_create)(BMesh *bm, BMEdge *v, void *userdata);
+  void (*on_face_create)(BMesh *bm, BMFace *v, void *userdata);
+
+  void *userdata;
+} BMTracer;
+
+typedef enum {
+  MULTIRES_SPACE_TANGENT,  // convert absolute to tangent
+  MULTIRES_SPACE_ABSOLUTE  // convert tangent to absolute
+} MultiResSpace;
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,12 +32,26 @@ extern "C" {
 
 struct BMAllocTemplate;
 
+void BM_empty_tracer(BMTracer *tracer, void *userdata);
+
 void BM_mesh_elem_toolflags_ensure(BMesh *bm);
 void BM_mesh_elem_toolflags_clear(BMesh *bm);
 
 struct BMeshCreateParams {
+  bool create_unique_ids : 1;
+  int id_elem_mask : 8;  // which element types to make unique ids for
+  bool id_map : 1;       // maintain an id to element lookup table
   bool use_toolflags : 1;
+  bool no_reuse_ids : 1;  // do not reuse IDs; a GHash will be used internally instead of a lookup
+                          // array
+  bool temporary_ids : 1;
+  bool copy_all_layers : 1;  // used by BM_mesh_copy_ex
 };
+
+// used to temporary save/restore element IDs
+// when changing out customdata
+int bm_save_id(BMesh *bm, BMElem *elem);
+void bm_restore_id(BMesh *bm, BMElem *elem, int id);
 
 /**
  * \brief BMesh Make Mesh
@@ -155,7 +187,11 @@ int BM_mesh_elem_count(BMesh *bm, char htype);
  * \warning Be careful if you keep pointers to affected BM elements,
  * or arrays, when using this func!
  */
-void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const uint *face_idx);
+void BM_mesh_remap(BMesh *bm,
+                   const uint *vert_idx,
+                   const uint *edge_idx,
+                   const uint *face_idx,
+                   const uint *loop_idx);
 
 /**
  * Use new memory pools for this mesh.
@@ -205,6 +241,16 @@ void BM_mesh_vert_coords_apply(BMesh *bm, const float (*vert_coords)[3]);
 void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
                                          const float (*vert_coords)[3],
                                          const float mat[4][4]);
+
+#define BM_ELEM_FROM_ID(bm, id) \
+  ((bm->idmap.flag & BM_NO_REUSE_IDS) ? \
+       BLI_ghash_lookup(bm->idmap.ghash, POINTER_FROM_UINT(id)) : \
+       bm->idmap.map[id])
+
+#define BM_ELEM_FROM_ID_SAFE(bm, id) \
+  (((id) >= 0 && (id) < (bm)->idmap.maxid) ? (BM_ELEM_FROM_ID(bm, id)) : NULL)
+
+bool BM_elem_is_free(BMElem *elem, int htype);
 
 #ifdef __cplusplus
 }

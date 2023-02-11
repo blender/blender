@@ -8,9 +8,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
 #include "BLI_math.h"
+#include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
@@ -28,12 +31,14 @@
 
 #include "BKE_attribute.h"
 #include "BKE_brush.h"
+#include "BKE_bvhutils.h"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mirror.h"
+#include "BKE_mesh_types.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_object.h"
@@ -43,6 +48,7 @@
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "IMB_colormanagement.h"
 
@@ -55,17 +61,30 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
+#include "ED_space_api.h"
+#include "ED_transform_snap_object_context.h"
+#include "ED_view3d.h"
 
 #include "paint_intern.h"
 #include "sculpt_intern.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "GPU_immediate.h"
+#include "GPU_state.h"
+#include "GPU_vertex_buffer.h"
+#include "GPU_vertex_format.h"
+
 #include "bmesh.h"
+#include "bmesh_log.h"
+#include "bmesh_tools.h"
+
+#include "../../bmesh/intern/bmesh_idmap.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -79,8 +98,7 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
-  /* Do not allow in DynTopo just yet. */
-  if (!ss || (ss && ss->bm)) {
+  if (!ss) {
     return OPERATOR_FINISHED;
   }
   SCULPT_vertex_random_access_ensure(ss);
@@ -101,11 +119,11 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-    copy_v3_v3((float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_co),
+    copy_v3_v3(SCULPT_vertex_attr_get<float *>(vertex, ss->attrs.persistent_co),
                SCULPT_vertex_co_get(ss, vertex));
     SCULPT_vertex_normal_get(
-        ss, vertex, (float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_no));
-    (*(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_disp)) = 0.0f;
+        ss, vertex, SCULPT_vertex_attr_get<float *>(vertex, ss->attrs.persistent_no));
+    (*SCULPT_vertex_attr_get<float *>(vertex, ss->attrs.persistent_disp)) = 0.0f;
   }
 
   return OPERATOR_FINISHED;
@@ -131,7 +149,7 @@ static int sculpt_optimize_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = CTX_data_active_object(C);
 
-  SCULPT_pbvh_clear(ob);
+  SCULPT_pbvh_clear(ob, false);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
   return OPERATOR_FINISHED;
@@ -166,6 +184,69 @@ static bool sculpt_no_multires_poll(bContext *C)
   return false;
 }
 
+static bool sculpt_only_bmesh_poll(bContext *C)
+{
+  Object *ob = CTX_data_active_object(C);
+  if (SCULPT_mode_poll(C) && ob->sculpt && ob->sculpt->pbvh) {
+    return BKE_pbvh_type(ob->sculpt->pbvh) == PBVH_BMESH;
+  }
+  return false;
+}
+
+static int sculpt_spatial_sort_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+  PBVH *pbvh = ss->pbvh;
+
+  if (!pbvh) {
+    return OPERATOR_CANCELLED;
+  }
+
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_BMESH:
+      SCULPT_undo_push_begin(ob, op);
+      SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_GEOMETRY);
+
+      BKE_pbvh_reorder_bmesh(ss->pbvh);
+
+      BKE_pbvh_bmesh_on_mesh_change(ss->pbvh);
+      BM_log_full_mesh(ss->bm, ss->bm_log);
+
+      ss->active_vertex.i = 0;
+      ss->active_face.i = 0;
+
+      BKE_pbvh_free(ss->pbvh);
+      ss->pbvh = nullptr;
+
+      /* Finish undo. */
+      SCULPT_undo_push_end(ob);
+
+      break;
+    case PBVH_FACES:
+      return OPERATOR_CANCELLED;
+    case PBVH_GRIDS:
+      return OPERATOR_CANCELLED;
+  }
+
+  /* Redraw. */
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, ND_DATA | NC_OBJECT | ND_DRAW, ob);
+
+  return OPERATOR_FINISHED;
+}
+static void SCULPT_OT_spatial_sort_mesh(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Spatially Sort Mesh";
+  ot->idname = "SCULPT_OT_spatial_sort_mesh";
+  ot->description = "Spatially sort mesh to improve memory coherency";
+
+  /* API callbacks. */
+  ot->exec = sculpt_spatial_sort_exec;
+  ot->poll = sculpt_only_bmesh_poll;
+}
+
 static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -189,7 +270,6 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
        * parts that symmetrize modifies). */
       SCULPT_undo_push_begin(ob, op);
       SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_SYMMETRIZE);
-      BM_log_before_all_removed(ss->bm, ss->bm_log);
 
       BM_mesh_toolflags_set(ss->bm, true);
 
@@ -200,15 +280,23 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
                    sd->symmetrize_direction,
                    dist,
                    true);
-      SCULPT_dynamic_topology_triangulate(ss->bm);
-
+#ifndef DYNTOPO_DYNAMIC_TESS
+      SCULPT_dynamic_topology_triangulate(ss, ss->bm);
+#endif
       /* Bisect operator flags edges (keep tags clean for edge queue). */
       BM_mesh_elem_hflag_disable_all(ss->bm, BM_EDGE, BM_ELEM_TAG, false);
 
       BM_mesh_toolflags_set(ss->bm, false);
 
+      BKE_pbvh_recalc_bmesh_boundary(ss->pbvh);
+      SCULT_dyntopo_flag_all_disk_sort(ss);
+
+      // symmetrize is messing up ids, regenerate them from scratch
+      BM_reassign_ids(ss->bm);
+      BM_mesh_toolflags_set(ss->bm, false);
+      BM_log_full_mesh(ss->bm, ss->bm_log);
+
       /* Finish undo. */
-      BM_log_all_added(ss->bm, ss->bm_log);
       SCULPT_undo_push_end(ob);
 
       break;
@@ -230,7 +318,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
   }
 
   /* Redraw. */
-  SCULPT_pbvh_clear(ob);
+  SCULPT_pbvh_clear(ob, false);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
   return OPERATOR_FINISHED;
@@ -271,8 +359,14 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   if (ob->sculpt != nullptr) {
     BKE_sculptsession_free(ob);
   }
-  ob->sculpt = MEM_cnew<SculptSession>(__func__);
+  BKE_object_sculpt_data_create(ob);
+
   ob->sculpt->mode_type = OB_MODE_SCULPT;
+  ob->sculpt->active_face.i = PBVH_REF_NONE;
+  ob->sculpt->active_vertex.i = PBVH_REF_NONE;
+
+  CustomData_reset(&ob->sculpt->temp_vdata);
+  CustomData_reset(&ob->sculpt->temp_pdata);
 
   /* Trigger evaluation of modifier stack to ensure
    * multires modifier sets .runtime.ccg in
@@ -285,8 +379,10 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   /* This function expects a fully evaluated depsgraph. */
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
+  BKE_sculptsession_update_attr_refs(ob);
+
   SculptSession *ss = ob->sculpt;
-  if (ss->face_sets) {
+  if (ss->face_sets || (ss->bm && ss->cd_faceset_offset != -1)) {
     /* Here we can detect geometry that was just added to Sculpt Mode as it has the
      * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
     /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
@@ -297,10 +393,16 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
     /* TODO(pablodp606): Based on this we can improve the UX in future tools for creating new
      * objects, like moving the transform pivot position to the new area or masking existing
      * geometry. */
+
+    SCULPT_face_random_access_ensure(ss);
     const int new_face_set = SCULPT_face_set_next_available_get(ss);
+
     for (int i = 0; i < ss->totfaces; i++) {
-      if (ss->face_sets[i] == SCULPT_FACE_SET_NONE) {
-        ss->face_sets[i] = new_face_set;
+      PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, i);
+
+      int fset = SCULPT_face_set_get(ss, face);
+      if (fset == SCULPT_FACE_SET_NONE) {
+        SCULPT_face_set_set(ss, face, new_face_set);
       }
     }
   }
@@ -332,7 +434,8 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
                                    Scene *scene,
                                    Object *ob,
                                    const bool force_dyntopo,
-                                   ReportList *reports)
+                                   ReportList *reports,
+                                   bool do_undo)
 {
   const int mode_flag = OB_MODE_SCULPT;
   Mesh *me = BKE_mesh_from_object(ob);
@@ -356,31 +459,25 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
 
   ED_paint_cursor_start(paint, SCULPT_mode_poll_view3d);
 
+  bool has_multires = false;
+
   /* Check dynamic-topology flag; re-enter dynamic-topology mode when changing modes,
    * As long as no data was added that is not supported. */
   if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
     MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 
     const char *message_unsupported = nullptr;
-    if (me->totloop != me->totpoly * 3) {
-      message_unsupported = TIP_("non-triangle face");
-    }
-    else if (mmd != nullptr) {
+    if (mmd != nullptr) {
       message_unsupported = TIP_("multi-res modifier");
+      has_multires = true;
     }
     else {
       enum eDynTopoWarnFlag flag = SCULPT_dynamic_topology_check(scene, ob);
       if (flag == 0) {
         /* pass */
       }
-      else if (flag & DYNTOPO_WARN_VDATA) {
-        message_unsupported = TIP_("vertex data");
-      }
       else if (flag & DYNTOPO_WARN_EDATA) {
         message_unsupported = TIP_("edge data");
-      }
-      else if (flag & DYNTOPO_WARN_LDATA) {
-        message_unsupported = TIP_("face data");
       }
       else if (flag & DYNTOPO_WARN_MODIFIER) {
         message_unsupported = TIP_("constructive modifier");
@@ -390,18 +487,46 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       }
     }
 
-    if ((message_unsupported == nullptr) || force_dyntopo) {
+    if (!has_multires && ((message_unsupported == nullptr) || force_dyntopo)) {
       /* Needed because we may be entering this mode before the undo system loads. */
       wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-      bool has_undo = wm->undo_stack != nullptr;
+      bool has_undo = do_undo && wm->undo_stack != nullptr;
+
       /* Undo push is needed to prevent memory leak. */
       if (has_undo) {
         SCULPT_undo_push_begin_ex(ob, "Dynamic topology enable");
       }
+
+      bool need_bmlog = !ob->sculpt->bm_log;
+
       SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
+
       if (has_undo) {
         SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_BEGIN);
         SCULPT_undo_push_end(ob);
+      }
+      else if (need_bmlog) {
+        if (ob->sculpt->bm_log) {
+          BM_log_free(ob->sculpt->bm_log, true);
+          ob->sculpt->bm_log = nullptr;
+        }
+
+        if (ob->sculpt->bm_idmap) {
+          BM_idmap_destroy(ob->sculpt->bm_idmap);
+          ob->sculpt->bm_idmap = nullptr;
+        }
+
+        /* Recreate idmap and log. */
+
+        BKE_sculpt_ensure_idmap(ob);
+
+        /* See if we can rebuild the log from the undo stack. */
+        SCULPT_undo_ensure_bmlog(ob);
+
+        /* Create an empty log if reconstruction failed. */
+        if (!ob->sculpt->bm_log) {
+          ob->sculpt->bm_log = BM_log_create(ob->sculpt->bm, ob->sculpt->bm_idmap);
+        }
       }
     }
     else {
@@ -424,7 +549,7 @@ void ED_object_sculptmode_enter(bContext *C, Depsgraph *depsgraph, ReportList *r
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, false, reports);
+  ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, false, reports, true);
 }
 
 void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
@@ -446,6 +571,11 @@ void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scen
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 
+  /* Leave sculpt mode. We do this here to prevent
+   * the depsgraph spawning a PBVH_FACES after disabling
+   * dynamic topology below. */
+  ob->mode &= ~mode_flag;
+
   if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
     /* Dynamic topology must be disabled before exiting sculpt
      * mode to ensure the undo stack stays in a consistent
@@ -455,9 +585,6 @@ void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scen
     /* Store so we know to re-enable when entering sculpt mode. */
     me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
   }
-
-  /* Leave sculpt mode. */
-  ob->mode &= ~mode_flag;
 
   BKE_sculptsession_free(ob);
 
@@ -506,7 +633,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
     if (depsgraph) {
       depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     }
-    ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, false, op->reports);
+    ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, false, op->reports, true);
     BKE_paint_toolslots_brush_validate(bmain, &ts->sculpt->paint);
 
     if (ob->mode & mode_flag) {
@@ -599,6 +726,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
       if (totpoints + (ni.size * 2) < max_preview_verts) {
         PBVHVertRef to_v = ni.vertex;
         int to_v_i = ni.index;
+
         ss->preview_vert_list[totpoints] = from_v;
         totpoints++;
         ss->preview_vert_list[totpoints] = to_v;
@@ -623,15 +751,153 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
   ss->preview_vert_count = totpoints;
 }
 
-static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+#define SAMPLE_COLOR_PREVIEW_SIZE 60
+#define SAMPLE_COLOR_OFFSET_X -15
+#define SAMPLE_COLOR_OFFSET_Y -15
+typedef struct SampleColorCustomData {
+  void *draw_handle;
+  Object *active_object;
+
+  float mval[2];
+
+  float initial_color[4];
+  float sampled_color[4];
+} SampleColorCustomData;
+
+static void sculpt_sample_color_draw(const bContext * /* C */, ARegion * /* ar */, void *arg)
 {
+  SampleColorCustomData *sccd = (SampleColorCustomData *)arg;
+  GPU_line_width(2.0f);
+  GPU_line_smooth(true);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
+
+  immUniform1f("size", 16.0f);
+
+  const float origin_x = sccd->mval[0] + SAMPLE_COLOR_OFFSET_X;
+  const float origin_y = sccd->mval[1] + SAMPLE_COLOR_OFFSET_Y;
+
+  immUniformColor3fvAlpha(sccd->sampled_color, 1.0f);
+  immRectf(pos,
+           origin_x,
+           origin_y,
+           origin_x - SAMPLE_COLOR_PREVIEW_SIZE,
+           origin_y - SAMPLE_COLOR_PREVIEW_SIZE);
+
+  immUniformColor3fvAlpha(sccd->initial_color, 1.0f);
+  immRectf(pos,
+           origin_x - SAMPLE_COLOR_PREVIEW_SIZE,
+           origin_y,
+           origin_x - 2.0f * SAMPLE_COLOR_PREVIEW_SIZE,
+           origin_y - SAMPLE_COLOR_PREVIEW_SIZE);
+
+  immUnbindProgram();
+  GPU_line_smooth(false);
+}
+
+static bool sculpt_sample_color_update_from_base(bContext *C,
+                                                 const wmEvent *event,
+                                                 SampleColorCustomData *sccd)
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Base *base_sample = ED_view3d_give_base_under_cursor(C, event->mval);
+  if (base_sample == nullptr) {
+    return false;
+  }
+
+  Object *object_sample = base_sample->object;
+  if (object_sample->type != OB_MESH) {
+    return false;
+  }
+
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, object_sample);
+  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  MPropCol *vcol = static_cast<MPropCol *>(
+      CustomData_get_layer_for_write(&me_eval->vdata, CD_PROP_COLOR, me_eval->totvert));
+
+  if (!vcol) {
+    return false;
+  }
+
+  ARegion *region = CTX_wm_region(C);
+  float global_loc[3];
+  if (!ED_view3d_autodist_simple(region, event->mval, global_loc, 0, nullptr)) {
+    return false;
+  }
+
+  float object_loc[3];
+  mul_v3_m4v3(object_loc, ob_eval->world_to_object, global_loc);
+
+  BVHTreeFromMesh bvh;
+  BKE_bvhtree_from_mesh_get(&bvh, me_eval, BVHTREE_FROM_VERTS, 2);
+  BVHTreeNearest nearest;
+  nearest.index = -1;
+  nearest.dist_sq = FLT_MAX;
+  BLI_bvhtree_find_nearest(bvh.tree, object_loc, &nearest, bvh.nearest_callback, &bvh);
+  if (nearest.index == -1) {
+    return false;
+  }
+  free_bvhtree_from_mesh(&bvh);
+
+  copy_v4_v4(sccd->sampled_color, vcol[nearest.index].color);
+  IMB_colormanagement_scene_linear_to_srgb_v3(sccd->sampled_color, sccd->sampled_color);
+  return true;
+}
+
+static int sculpt_sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion *region = CTX_wm_region(C);
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Scene *scene = CTX_data_scene(C);
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+
+  SampleColorCustomData *sccd = (SampleColorCustomData *)op->customdata;
+
+  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+
+  /* Finish operation on release. */
+  if (event->val == KM_RELEASE) {
+    float color_srgb[3];
+    copy_v3_v3(color_srgb, sccd->sampled_color);
+    BKE_brush_color_set(scene, brush, sccd->sampled_color);
+    WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
+    ED_region_draw_cb_exit(region->type, sccd->draw_handle);
+    ED_region_tag_redraw(region);
+    MEM_freeN(sccd);
+    ss->draw_faded_cursor = false;
+    return OPERATOR_FINISHED;
+  }
+
+  SculptCursorGeometryInfo sgi;
+  sccd->mval[0] = event->mval[0];
+  sccd->mval[1] = event->mval[1];
+
+  const bool over_mesh = SCULPT_cursor_geometry_info_update(C, &sgi, sccd->mval, false, false);
+  if (over_mesh) {
+    PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
+    SCULPT_vertex_color_get(ss, active_vertex, sccd->sampled_color);
+    IMB_colormanagement_scene_linear_to_srgb_v3(sccd->sampled_color, sccd->sampled_color);
+  }
+  else {
+    sculpt_sample_color_update_from_base(C, event, sccd);
+  }
+
+  ss->draw_faded_cursor = true;
+  ED_region_tag_redraw(region);
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent * /* event */)
+{
+  ARegion *region = CTX_wm_region(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
-  PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
-  float active_vertex_color[4];
 
   if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
@@ -639,21 +905,28 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
 
   BKE_sculpt_update_object_for_edit(CTX_data_depsgraph_pointer(C), ob, true, false, false);
 
-  /* No color attribute? Set color to white. */
-  if (!SCULPT_has_colors(ss)) {
-    copy_v4_fl(active_vertex_color, 1.0f);
-  }
-  else {
-    SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color);
-  }
+  const PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  float active_vertex_color[4];
+
+  SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color);
 
   float color_srgb[3];
   IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb, active_vertex_color);
   BKE_brush_color_set(scene, brush, color_srgb);
 
-  WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
+  SampleColorCustomData *sccd = MEM_cnew<SampleColorCustomData>("Sample Color Custom Data");
+  copy_v4_v4(sccd->sampled_color, active_vertex_color);
+  copy_v4_v4(sccd->initial_color, BKE_brush_color_get(scene, brush));
 
-  return OPERATOR_FINISHED;
+  sccd->draw_handle = ED_region_draw_cb_activate(
+      region->type, sculpt_sample_color_draw, sccd, REGION_DRAW_POST_PIXEL);
+
+  op->customdata = sccd;
+
+  WM_event_add_modal_handler(C, op);
+  ED_region_tag_redraw(region);
+
+  return OPERATOR_RUNNING_MODAL;
 }
 
 static void SCULPT_OT_sample_color(wmOperatorType *ot)
@@ -665,6 +938,7 @@ static void SCULPT_OT_sample_color(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = sculpt_sample_color_invoke;
+  ot->modal = sculpt_sample_color_modal;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER;
@@ -724,7 +998,7 @@ struct MaskByColorContiguousFloodFillData {
   float threshold;
   bool invert;
   float *new_mask;
-  float initial_color[3];
+  float initial_color[4];
 };
 
 static void do_mask_by_color_contiguous_update_nodes_cb(void *__restrict userdata,
@@ -759,11 +1033,11 @@ static void do_mask_by_color_contiguous_update_nodes_cb(void *__restrict userdat
 static bool sculpt_mask_by_color_contiguous_floodfill_cb(
     SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate, void *userdata)
 {
-  int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
-  int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
-
   MaskByColorContiguousFloodFillData *data = static_cast<MaskByColorContiguousFloodFillData *>(
       userdata);
+  int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
+  int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
+
   float current_color[4];
 
   SCULPT_vertex_color_get(ss, to_v, current_color);
@@ -857,11 +1131,12 @@ static void do_mask_by_color_task_cb(void *__restrict userdata,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    float col[4];
-    SCULPT_vertex_color_get(ss, vd.vertex, col);
-
     const float current_mask = *vd.mask;
-    const float new_mask = sculpt_mask_by_color_delta_get(active_color, col, threshold, invert);
+    float vcolor[4];
+
+    SCULPT_vertex_color_get(ss, vd.vertex, vcolor);
+
+    const float new_mask = sculpt_mask_by_color_delta_get(active_color, vcolor, threshold, invert);
     *vd.mask = sculpt_mask_by_color_final_mask_get(current_mask, new_mask, invert, preserve_mask);
 
     if (current_mask == *vd.mask) {
@@ -923,11 +1198,11 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
   SCULPT_vertex_random_access_ensure(ss);
 
-  /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
-   * so it needs to be updated here. */
+  /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse
+   * move, so it needs to be updated here. */
   SculptCursorGeometryInfo sgi;
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
-  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
+  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false, false);
 
   SCULPT_undo_push_begin(ob, op);
   BKE_sculpt_color_layer_create_if_needed(ob);
@@ -940,6 +1215,8 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   if (SCULPT_has_loop_colors(ob)) {
     BKE_pbvh_ensure_node_loops(ss->pbvh);
   }
+
+  BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, ss->multires.modifier);
 
   if (RNA_boolean_get(op->ptr, "contiguous")) {
     sculpt_mask_by_color_contiguous(ob, active_vertex, threshold, invert, preserve_mask);
@@ -990,6 +1267,378 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
                 "How much changes in color affect the mask generation",
                 0.0f,
                 1.0f);
+}
+
+static int sculpt_reset_brushes_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+
+  LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
+    if (br->ob_mode != OB_MODE_SCULPT) {
+      continue;
+    }
+    BKE_brush_sculpt_reset(br);
+    WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, br);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void SCULPT_OT_reset_brushes(struct wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Reset Sculpt Brushes";
+  ot->idname = "SCULPT_OT_reset_brushes";
+  ot->description = "Resets all sculpt brushes to their default value";
+
+  /* API callbacks. */
+  ot->exec = sculpt_reset_brushes_exec;
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER;
+}
+
+static int sculpt_set_limit_surface_exec(bContext *C, wmOperator * /* op */)
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Object *ob = CTX_data_active_object(C);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  SculptSession *ss = ob->sculpt;
+
+  if (!ss) {
+    return OPERATOR_FINISHED;
+  }
+
+  SCULPT_vertex_random_access_ensure(ss);
+
+  SculptAttributeParams params = {.permanent = false, .simple_array = false};
+
+  if (!ss->attrs.limit_surface) {
+    ss->attrs.limit_surface = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(limit_surface), &params);
+  }
+
+  const SculptAttribute *scl = ss->attrs.limit_surface;
+
+  const int totvert = SCULPT_vertex_count_get(ss);
+  const bool weighted = false;
+  for (int i = 0; i < totvert; i++) {
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    float *f = SCULPT_vertex_attr_get<float *>(vertex, scl);
+
+    SCULPT_neighbor_coords_average(ss, f, vertex, 0.0, true, weighted);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void SCULPT_OT_set_limit_surface(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Set Limit Surface";
+  ot->idname = "SCULPT_OT_set_limit_surface";
+  ot->description = "Calculates and stores a limit surface from the current mesh";
+
+  /* API callbacks. */
+  ot->exec = sculpt_set_limit_surface_exec;
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+typedef struct BMLinkItem {
+  struct BMLinkItem *next, *prev;
+  BMVert *item;
+  int depth;
+} BMLinkItem;
+
+static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+
+  Object *sculpt_get_vis_object(bContext * C, SculptSession * ss, char *name);
+  void sculpt_end_vis_object(bContext * C, SculptSession * ss, Object * ob, BMesh * bm);
+
+  BMeshCreateParams params = {};
+  params.create_unique_ids = params.use_toolflags = false;
+
+  Object *visob = sculpt_get_vis_object(C, ss, "rakevis");
+  BMesh *visbm = BM_mesh_create(&bm_mesh_allocsize_default, &params);
+
+  if (!ss) {
+    printf("mising sculpt session\n");
+    return OPERATOR_CANCELLED;
+  }
+  if (!ss->bm) {
+    printf("bmesh only!\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  BMesh *bm = ss->bm;
+  BMIter iter;
+  BMVert *v;
+
+  PBVHNode **nodes = nullptr;
+  int totnode;
+
+  int idx = CustomData_get_named_layer_index(&bm->vdata, CD_PROP_COLOR, "_rake_temp");
+  if (idx < 0) {
+    printf("no rake temp\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  int cd_vcol = bm->vdata.layers[idx].offset;
+  int cd_vcol_vis = -1;
+
+  idx = CustomData_get_named_layer_index(&bm->vdata, CD_PROP_COLOR, "_rake_vis");
+  if (idx >= 0) {
+    cd_vcol_vis = bm->vdata.layers[idx].offset;
+  }
+
+  for (int step = 0; step < 33; step++) {
+    BLI_mempool *nodepool = BLI_mempool_create(sizeof(BMLinkItem), bm->totvert, 4196, 0);
+
+    BKE_pbvh_get_nodes(ss->pbvh, PBVH_Leaf, &nodes, &totnode);
+
+    SCULPT_undo_push_begin(ob, op);
+    for (int i = 0; i < totnode; i++) {
+      SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR, -1);
+      BKE_pbvh_node_mark_update_color(nodes[i]);
+    }
+    SCULPT_undo_push_end(ob);
+
+    MEM_SAFE_FREE(nodes);
+
+    BMVert **stack = nullptr;
+    BLI_array_declare(stack);
+
+    bm->elem_index_dirty |= BM_VERT;
+    BM_mesh_elem_index_ensure(bm, BM_VERT);
+
+    BLI_bitmap *visit = BLI_BITMAP_NEW(bm->totvert, "regularize rake visit bitmap");
+
+    BMVert **verts = MEM_cnew_array<BMVert *>(bm->totvert, "verts");
+    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+      verts[v->head.index] = v;
+      v->head.hflag &= ~BM_ELEM_SELECT;
+    }
+
+    RNG *rng = BLI_rng_new((uint)BLI_thread_rand(0));
+    BLI_rng_shuffle_array(rng, verts, sizeof(void *), bm->totvert);
+
+    for (int i = 0; i < bm->totvert; i++) {
+      BMVert *v = verts[i];
+      PBVHVertRef vertex = {(intptr_t)v};
+
+      MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
+      int *boundflag = SCULPT_vertex_attr_get<int *>(vertex, ss->attrs.boundary_flags);
+
+      if (*boundflag & (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SHARP |
+                        SCULPT_CORNER_SEAM)) {
+        continue;
+      }
+
+      if (BLI_BITMAP_TEST(visit, v->head.index)) {
+        continue;
+      }
+
+      // v->head.hflag |= BM_ELEM_SELECT;
+
+      float *dir = BM_ELEM_CD_PTR<float *>(v, cd_vcol);
+      normalize_v3(dir);
+
+      BMLinkItem *node = static_cast<BMLinkItem *>(BLI_mempool_alloc(nodepool));
+      node->next = node->prev = nullptr;
+      node->item = v;
+      node->depth = 0;
+
+      BLI_BITMAP_SET(visit, v->head.index, true);
+
+      ListBase queue = {node, node};
+      const int boundtest = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET |
+                            SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_SHARP;
+      while (queue.first) {
+        BMLinkItem *node2 = static_cast<BMLinkItem *>(BLI_poptail(&queue));
+        BMVert *v2 = node2->item;
+
+        float *dir2 = BM_ELEM_CD_PTR<float *>(v2, cd_vcol);
+
+        if (cd_vcol_vis >= 0) {
+          float *color = BM_ELEM_CD_PTR<float *>(v2, cd_vcol_vis);
+          color[0] = color[1] = color[2] = (float)(node2->depth % 5) / 5.0f;
+          color[3] = 1.0f;
+        }
+
+        if (step % 5 != 0 && node2->depth > 15) {
+          // break;
+        }
+        // dir2[0] = dir2[1] = dir2[2] = (float)(node2->depth % 5) / 5.0f;
+        // dir2[3] = 1.0f;
+
+        BMIter viter;
+        BMEdge *e;
+
+        int closest_vec_to_perp(
+            float dir[3], float r_dir2[3], float no[3], float *buckets, float w);
+
+        // float buckets[8] = {0};
+        float tmp[3];
+        float dir32[3];
+        float avg[3] = {0.0f};
+        float tot = 0.0f;
+
+        // angle_on_axis_v3v3v3_v3
+        float tco[3];
+        zero_v3(tco);
+        add_v3_fl(tco, 1000.0f);
+        // madd_v3_v3fl(tco, v2->no, -dot_v3v3(v2->no, tco));
+
+        float tanco[3];
+        add_v3_v3v3(tanco, v2->co, dir2);
+
+        SCULPT_dyntopo_check_disk_sort(ss, (PBVHVertRef){.i = (intptr_t)v2});
+
+        float lastdir3[3];
+        float firstdir3[3];
+        bool first = true;
+        float thsum = 0.0f;
+
+        // don't propegate across singularities
+
+        BM_ITER_ELEM (e, &viter, v2, BM_EDGES_OF_VERT) {
+          // e = l->e;
+          BMVert *v3 = BM_edge_other_vert(e, v2);
+          float *dir3 = BM_ELEM_CD_PTR<float *>(v3, cd_vcol);
+          float dir32[3];
+
+          copy_v3_v3(dir32, dir3);
+
+          if (first) {
+            first = false;
+            copy_v3_v3(firstdir3, dir32);
+          }
+          else {
+            float th = saacos(dot_v3v3(dir32, lastdir3));
+            thsum += th;
+          }
+
+          copy_v3_v3(lastdir3, dir32);
+
+          add_v3_v3(avg, dir32);
+          tot += 1.0f;
+        }
+
+        thsum += saacos(dot_v3v3(lastdir3, firstdir3));
+        bool sing = thsum >= M_PI * 0.5f;
+
+        // still apply smoothing even with singularity?
+        if (tot > 0.0f && !(*boundflag & boundtest)) {
+          mul_v3_fl(avg, 1.0 / tot);
+          interp_v3_v3v3(dir2, dir2, avg, sing ? 0.15 : 0.25);
+          normalize_v3(dir2);
+        }
+
+        if (sing) {
+          v2->head.hflag |= BM_ELEM_SELECT;
+
+          if (node2->depth == 0) {
+            continue;
+          }
+        }
+
+        BM_ITER_ELEM (e, &viter, v2, BM_EDGES_OF_VERT) {
+          BMVert *v3 = BM_edge_other_vert(e, v2);
+          float *dir3 = BM_ELEM_CD_PTR<float *>(v3, cd_vcol);
+
+          if (BLI_BITMAP_TEST(visit, v3->head.index)) {
+            continue;
+          }
+
+          copy_v3_v3(dir32, dir3);
+          madd_v3_v3fl(dir32, v2->no, -dot_v3v3(dir3, v2->no));
+          normalize_v3(dir32);
+
+          if (dot_v3v3(dir32, dir2) < 0) {
+            negate_v3(dir32);
+          }
+
+          cross_v3_v3v3(tmp, dir32, v2->no);
+          normalize_v3(tmp);
+
+          if (dot_v3v3(tmp, dir2) < 0) {
+            negate_v3(tmp);
+          }
+
+          float th1 = fabsf(saacos(dot_v3v3(dir2, dir32)));
+          float th2 = fabsf(saacos(dot_v3v3(dir2, tmp)));
+
+          if (th2 < th1) {
+            copy_v3_v3(dir32, tmp);
+          }
+
+          madd_v3_v3fl(dir32, v3->no, -dot_v3v3(dir32, v3->no));
+          normalize_v3(dir32);
+          copy_v3_v3(dir3, dir32);
+
+          // int bits = closest_vec_to_perp(dir2, dir32, v2->no, buckets, 1.0f);
+
+#if 0
+          MSculptVert *mv3 = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v3);
+          PBVHVertRef vertex3 = {(intptr_t)v3};
+
+          int *boundflag3 = (int *)SCULPT_vertex_attr_get(vertex3, ss->attrs.boundary_flags);
+          if (*boundflag3 & boundtest) {
+             continue;
+          }
+#endif
+
+          BLI_BITMAP_SET(visit, v3->head.index, true);
+
+          BMLinkItem *node3 = (BMLinkItem *)BLI_mempool_alloc(nodepool);
+          node3->next = node3->prev = nullptr;
+          node3->item = v3;
+          node3->depth = node2->depth + 1;
+
+          BLI_addhead(&queue, node3);
+        }
+
+        BLI_mempool_free(nodepool, node2);
+      }
+    }
+
+    MEM_SAFE_FREE(verts);
+    BLI_array_free(stack);
+    BLI_mempool_destroy(nodepool);
+    MEM_SAFE_FREE(visit);
+  }
+
+  BMVert *v3;
+  BM_ITER_MESH (v3, &iter, bm, BM_VERTS_OF_MESH) {
+    float visco[3];
+    float *dir3 = BM_ELEM_CD_PTR<float *>(v3, cd_vcol);
+
+    madd_v3_v3v3fl(visco, v3->co, v3->no, 0.001);
+    BMVert *vis1 = BM_vert_create(visbm, visco, nullptr, BM_CREATE_NOP);
+
+    madd_v3_v3v3fl(visco, visco, dir3, 0.003);
+    BMVert *vis2 = BM_vert_create(visbm, visco, nullptr, BM_CREATE_NOP);
+    BM_edge_create(visbm, vis1, vis2, nullptr, BM_CREATE_NOP);
+
+    float tan[3];
+    cross_v3_v3v3(tan, dir3, v3->no);
+    madd_v3_v3fl(visco, tan, 0.001);
+
+    vis1 = BM_vert_create(visbm, visco, nullptr, BM_CREATE_NOP);
+    BM_edge_create(visbm, vis1, vis2, nullptr, BM_CREATE_NOP);
+  }
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+
+  sculpt_end_vis_object(C, ss, visob, visbm);
+
+  return OPERATOR_FINISHED;
 }
 
 enum CavityBakeMixMode {
@@ -1167,7 +1816,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   BLI_task_parallel_range(0, totnode, &tdata, sculpt_bake_cavity_exec_task_cb, &settings);
 
   MEM_SAFE_FREE(nodes);
-  SCULPT_automasking_cache_free(tdata.automasking);
+  SCULPT_automasking_cache_free(ss, ob, tdata.automasking);
 
   BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
   SCULPT_undo_push_end(ob);
@@ -1176,6 +1825,18 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
+}
+
+void SCULPT_OT_regularize_rake_directions(wmOperatorType *ot)
+{
+  ot->name = "Regularize Rake Directions";
+  ot->idname = "SCULPT_OT_regularize_rake_directions";
+  ot->description = "Development operator";
+
+  /* API callbacks. */
+  ot->poll = SCULPT_mode_poll;
+  ot->exec = sculpt_regularize_rake_exec;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static void cavity_bake_ui(bContext *C, wmOperator *op)
@@ -1343,10 +2004,10 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
     const int cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
 
     BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-      BM_log_vert_before_modified(ss->bm_log, v, cd_mask);
+      BM_log_vert_before_modified(ss->bm, ss->bm_log, v);
     }
     BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-      BM_log_face_modified(ss->bm_log, f);
+      BM_log_face_modified(ss->bm, ss->bm_log, f);
     }
 
     SCULPT_face_visibility_all_set(ss, true);
@@ -1393,6 +2054,7 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_brush_stroke);
   WM_operatortype_append(SCULPT_OT_sculptmode_toggle);
   WM_operatortype_append(SCULPT_OT_set_persistent_base);
+  WM_operatortype_append(SCULPT_OT_set_limit_surface);
   WM_operatortype_append(SCULPT_OT_dynamic_topology_toggle);
   WM_operatortype_append(SCULPT_OT_optimize);
   WM_operatortype_append(SCULPT_OT_symmetrize);
@@ -1406,7 +2068,6 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_face_sets_create);
   WM_operatortype_append(SCULPT_OT_face_sets_change_visibility);
   WM_operatortype_append(SCULPT_OT_face_sets_randomize_colors);
-  WM_operatortype_append(SCULPT_OT_face_sets_init);
   WM_operatortype_append(SCULPT_OT_cloth_filter);
   WM_operatortype_append(SCULPT_OT_face_sets_edit);
   WM_operatortype_append(SCULPT_OT_face_set_lasso_gesture);
@@ -1421,7 +2082,14 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_dyntopo_detail_size_edit);
   WM_operatortype_append(SCULPT_OT_mask_init);
 
+  WM_operatortype_append(SCULPT_OT_face_sets_init);
+  WM_operatortype_append(SCULPT_OT_reset_brushes);
+  WM_operatortype_append(SCULPT_OT_ipmask_filter);
+
+  WM_operatortype_append(SCULPT_OT_spatial_sort_mesh);
+
   WM_operatortype_append(SCULPT_OT_expand);
   WM_operatortype_append(SCULPT_OT_mask_from_cavity);
+  WM_operatortype_append(SCULPT_OT_regularize_rake_directions);
   WM_operatortype_append(SCULPT_OT_reveal_all);
 }

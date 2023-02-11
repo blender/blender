@@ -28,8 +28,12 @@ struct Main;
 struct Mesh;
 
 struct BMeshFromMeshParams {
+  /* automatically create shapekey layers */
+  uint create_shapekey_layers;
+
   bool calc_face_normal;
   bool calc_vert_normal;
+
   /* add a vertex CD_SHAPE_KEYINDEX layer */
   bool add_key_index;
   /* set vertex coordinates from the shapekey */
@@ -37,7 +41,11 @@ struct BMeshFromMeshParams {
   /* define the active shape key (index + 1) */
   int active_shapekey;
   struct CustomData_MeshMasks cd_mask_extra;
+  uint copy_temp_cdlayers : 1;
+  uint ignore_id_layers : 1;
 };
+
+struct Object;
 /**
  * \brief Mesh -> BMesh
  * \param bm: The mesh to write into, while this is typically a newly created BMesh,
@@ -48,8 +56,10 @@ struct BMeshFromMeshParams {
  *
  * \warning This function doesn't calculate face normals.
  */
-void BM_mesh_bm_from_me(BMesh *bm, const struct Mesh *me, const struct BMeshFromMeshParams *params)
-    ATTR_NONNULL(1, 3);
+void BM_mesh_bm_from_me(struct Object *ob,
+                        BMesh *bm,
+                        const struct Mesh *me,
+                        const struct BMeshFromMeshParams *params) ATTR_NONNULL(2, 4);
 
 struct BMeshToMeshParams {
   /** Update object hook indices & vertex parents. */
@@ -70,15 +80,20 @@ struct BMeshToMeshParams {
    */
   bool active_shapekey_to_mvert;
   struct CustomData_MeshMasks cd_mask_extra;
+  uint copy_temp_cdlayers : 1;
+  uint ignore_mesh_id_layers : 1;
 };
+
+void BM_enter_multires_space(struct Object *ob, struct BMesh *bm, int space);
 
 /**
  * \param bmain: May be NULL in case \a calc_object_remap parameter option is not set.
  */
 void BM_mesh_bm_to_me(struct Main *bmain,
+                      struct Object *ob,
                       BMesh *bm,
                       struct Mesh *me,
-                      const struct BMeshToMeshParams *params) ATTR_NONNULL(2, 3, 4);
+                      const struct BMeshToMeshParams *params) ATTR_NONNULL(3, 4, 5);
 
 /**
  * A version of #BM_mesh_bm_to_me intended for getting the mesh

@@ -67,7 +67,7 @@ static void sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
   if (!create_face_set) {
     SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
   }
-  SCULPT_filter_cache_free(ss);
+  SCULPT_filter_cache_free(ss, ob);
   SCULPT_undo_push_end(ob);
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
   ED_workspace_status_text(C, nullptr);
@@ -162,7 +162,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
     SculptCursorGeometryInfo sgi;
 
     const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
-    if (SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false)) {
+    if (SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false, false)) {
       int active_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, SCULPT_active_vertex_get(ss));
 
       /* The cursor is over the mesh, get the update iteration from the updated active vertex. */
@@ -229,7 +229,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
       BKE_pbvh_node_mark_redraw(ss->filter_cache->nodes[i]);
     }
 
-    SCULPT_filter_cache_free(ss);
+    SCULPT_filter_cache_free(ss, ob);
 
     SCULPT_undo_push_end(ob);
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
@@ -349,7 +349,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   op->customdata = MEM_mallocN(sizeof(float[2]), "initial mouse position");
   copy_v2_v2(static_cast<float *>(op->customdata), mval_fl);
 
-  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
+  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false, false);
 
   int vertex_count = SCULPT_vertex_count_get(ss);
 

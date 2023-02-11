@@ -17,6 +17,7 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/clog
+  ../../../../intern/atomic
   ../../../../intern/guardedalloc
 
   # dna_type_offsets.h

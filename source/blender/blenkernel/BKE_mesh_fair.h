@@ -21,6 +21,7 @@ extern "C" {
 typedef enum eMeshFairingDepth {
   MESH_FAIRING_DEPTH_POSITION = 1,
   MESH_FAIRING_DEPTH_TANGENCY = 2,
+  MESH_FAIRING_DEPTH_CURVATURE = 3,
 } eMeshFairingDepth;
 
 /* affect_vertices is used to define the fairing area. Indexed by vertex index, set to true when

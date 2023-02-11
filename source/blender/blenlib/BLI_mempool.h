@@ -19,11 +19,29 @@ struct BLI_mempool_chunk;
 
 typedef struct BLI_mempool BLI_mempool;
 
+BLI_mempool *BLI_mempool_create_ex(unsigned int esize,
+                                   unsigned int totelem,
+                                   unsigned int pchunk,
+                                   unsigned int flag,
+                                   const char *tag)
+    ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+;
+
+//#define DEBUG_MEMPOOL_LEAKS
+
+#ifdef DEBUG_MEMPOOL_LEAKS
+ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+
+#  define BLI_mempool_create(esize, totelem, pchunk, flag) \
+    BLI_mempool_create_ex(esize, totelem, pchunk, flag, __func__)
+#else
 BLI_mempool *BLI_mempool_create(unsigned int esize,
                                 unsigned int elem_num,
                                 unsigned int pchunk,
                                 unsigned int flag)
     ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+#endif
+
 void *BLI_mempool_alloc(BLI_mempool *pool) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL
     ATTR_NONNULL(1);
 void *BLI_mempool_calloc(BLI_mempool *pool)
@@ -105,6 +123,10 @@ enum {
    * order of allocation when no chunks have been freed.
    */
   BLI_MEMPOOL_ALLOW_ITER = (1 << 0),
+
+  /* allow random access, implies BLI_MEMPOOL_ALLOW_ITER since we
+     need the freewords to detect free state of elements*/
+  BLI_MEMPOOL_RANDOM_ACCESS = (1 << 1) | (1 << 0)
 };
 
 /**
@@ -115,6 +137,26 @@ void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter) ATTR_NONNULL
  * Step over the iterator, returning the mempool item or NULL.
  */
 void *BLI_mempool_iterstep(BLI_mempool_iter *iter) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+
+/*
+This preallocates a mempool suitable for threading.  totelem elements are preallocated
+in chunks of size pchunk, and returned in r_chunks.
+*/
+
+BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
+                                          int totelem,
+                                          const int pchunk,
+                                          void ***r_chunks,
+                                          int *r_totchunk,
+                                          int *r_esize,
+                                          int flag);
+
+// memory coherence stuff
+int BLI_mempool_find_elems_fuzzy(
+    BLI_mempool *pool, int idx, int range, void **r_elems, int r_elems_size);
+
+int BLI_mempool_get_size(BLI_mempool *pool);
+int BLI_mempool_find_real_index(BLI_mempool *pool, void *ptr);
 
 #ifdef __cplusplus
 }

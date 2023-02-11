@@ -14,6 +14,7 @@
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
+#include "intern/bmesh_structure.h"
 
 /* local flag define */
 #define DUPE_INPUT 1 /* input from operator */
@@ -46,6 +47,13 @@ static BMVert *bmo_vert_copy(BMOperator *op,
   /* Copy attributes */
   BM_elem_attrs_copy(bm_src, bm_dst, v_src, v_dst);
 
+  /* Handle Ids */
+  bm_alloc_id(bm_dst, (BMElem *)v_dst);
+  // short **flags = BM_ELEM_CD_GET_VOID_P(
+  //    v_dst, bm_dst->vdata.layers[bm_dst->vdata.typemap[CD_TOOLFLAGS]].offset);
+
+  bm_elem_check_toolflags(bm_dst, (BMElem *)v_dst);
+  // printf("%p\n", flags);
   /* Mark the vert for output */
   BMO_vert_flag_enable(bm_dst, v_dst, DUPE_NEW);
 
@@ -108,6 +116,10 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
   /* Copy attributes */
   BM_elem_attrs_copy(bm_src, bm_dst, e_src, e_dst);
 
+  /* Handle Ids */
+  bm_alloc_id(bm_dst, (BMElem *)e_dst);
+  bm_elem_check_toolflags(bm_dst, (BMElem *)e_dst);
+
   /* Mark the edge for output */
   BMO_edge_flag_enable(bm_dst, e_dst, DUPE_NEW);
 
@@ -160,11 +172,16 @@ static BMFace *bmo_face_copy(BMOperator *op,
   /* Copy attributes */
   BM_elem_attrs_copy(bm_src, bm_dst, f_src, f_dst);
 
+  /* Handle Ids and toolflags */
+  bm_alloc_id(bm_dst, (BMElem *)f_dst);
+  bm_elem_check_toolflags(bm_dst, (BMElem *)f_dst);
+
   /* copy per-loop custom data */
   l_iter_src = l_first_src;
   l_iter_dst = BM_FACE_FIRST_LOOP(f_dst);
   do {
     BM_elem_attrs_copy(bm_src, bm_dst, l_iter_src, l_iter_dst);
+    bm_alloc_id(bm_dst, (BMElem *)l_iter_dst);
   } while ((void)(l_iter_dst = l_iter_dst->next), (l_iter_src = l_iter_src->next) != l_first_src);
 
   /* Mark the face for output */
@@ -576,7 +593,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
             BMEdge *e_src = (BMEdge *)elem_array[i];
             BMEdge *e_dst = BM_edge_find_double(e_src);
             if (e_dst != NULL) {
-              BM_edge_splice(bm, e_dst, e_src);
+              BM_edge_splice(bm, e_dst, e_src, false);
               elem_array_len--;
               elem_array[i] = elem_array[elem_array_len];
               continue;

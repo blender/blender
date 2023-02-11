@@ -12,8 +12,10 @@ TEST(bmesh_core, BMVertCreate)
   BMVert *bv1, *bv2, *bv3;
   const float co1[3] = {1.0f, 2.0f, 0.0f};
 
-  BMeshCreateParams bmesh_create_params{};
+  BMeshCreateParams bmesh_create_params = {0};
+
   bmesh_create_params.use_toolflags = true;
+
   bm = BM_mesh_create(&bm_mesh_allocsize_default, &bmesh_create_params);
   EXPECT_EQ(bm->totvert, 0);
   /* make a custom layer so we can see if it is copied properly */

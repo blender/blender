@@ -46,6 +46,8 @@
 
 #include "mesh_intern.h" /* own include */
 
+#include "../sculpt_paint/sculpt_intern.hh"
+
 static bool geometry_extract_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
@@ -106,7 +108,7 @@ static int geometry_extract_apply(bContext *C,
   BMeshFromMeshParams mesh_to_bm_params{};
   mesh_to_bm_params.calc_face_normal = true;
   mesh_to_bm_params.calc_vert_normal = true;
-  BM_mesh_bm_from_me(bm, new_mesh, &mesh_to_bm_params);
+  BM_mesh_bm_from_me(nullptr, bm, new_mesh, &mesh_to_bm_params);
 
   BMEditMesh *em = BKE_editmesh_create(bm);
 
@@ -363,6 +365,7 @@ static int face_set_extract_invoke(bContext *C, wmOperator *op, const wmEvent * 
   ED_workspace_status_text(C, TIP_("Click on the mesh to select a Face Set"));
   WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EYEDROPPER);
   WM_event_add_modal_handler(C, op);
+
   return OPERATOR_RUNNING_MODAL;
 }
 
@@ -496,14 +499,23 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
     ED_sculpt_undo_geometry_begin(ob, op);
   }
 
+  BMesh *bm;
+
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(new_mesh);
   BMeshCreateParams bm_create_params{};
   bm_create_params.use_toolflags = true;
-  BMesh *bm = BM_mesh_create(&allocsize, &bm_create_params);
-
   BMeshFromMeshParams mesh_to_bm_params{};
   mesh_to_bm_params.calc_face_normal = true;
-  BM_mesh_bm_from_me(bm, new_mesh, &mesh_to_bm_params);
+
+  if (ob->sculpt && ob->sculpt->bm) {
+    bm = ob->sculpt->bm;
+    BM_mesh_elem_toolflags_ensure(bm);
+  }
+  else {
+    bm = BM_mesh_create(&allocsize, &bm_create_params);
+
+    BM_mesh_bm_from_me(nullptr, bm, new_mesh, &mesh_to_bm_params);
+  }
 
   slice_paint_mask(
       bm, false, RNA_boolean_get(op->ptr, "fill_holes"), RNA_float_get(op->ptr, "mask_threshold"));
@@ -511,7 +523,13 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   BMeshToMeshParams bm_to_mesh_params{};
   bm_to_mesh_params.calc_object_remap = false;
   new_mesh = BKE_mesh_from_bmesh_nomain(bm, &bm_to_mesh_params, mesh);
-  BM_mesh_free(bm);
+
+  if (!ob->sculpt || !ob->sculpt->bm) {
+    BM_mesh_free(bm);
+  }
+  else {
+    BM_mesh_elem_toolflags_clear(bm);
+  }
 
   if (RNA_boolean_get(op->ptr, "new_object")) {
     ushort local_view_bits = 0;
@@ -525,7 +543,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
     const BMAllocTemplate allocsize_new_ob = BMALLOC_TEMPLATE_FROM_ME(new_ob_mesh);
     bm = BM_mesh_create(&allocsize_new_ob, &bm_create_params);
 
-    BM_mesh_bm_from_me(bm, new_ob_mesh, &mesh_to_bm_params);
+    BM_mesh_bm_from_me(nullptr, bm, new_ob_mesh, &mesh_to_bm_params);
 
     slice_paint_mask(bm,
                      true,
@@ -553,15 +571,65 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 
   if (ob->mode == OB_MODE_SCULPT) {
     SculptSession *ss = ob->sculpt;
-    ss->face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-        &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly));
-    if (ss->face_sets) {
-      /* Assign a new Face Set ID to the new faces created by the slice operation. */
-      const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
-      ED_sculpt_face_sets_initialize_none_to_id(mesh, next_face_set_id);
+    BKE_sculptsession_update_attr_refs(ob);
+
+    /* Assign a new Face Set ID to the new faces created by the slice operation. */
+    switch (BKE_pbvh_type(ss->pbvh)) {
+      case PBVH_GRIDS:
+      case PBVH_FACES:
+        ss->face_sets = (int *)CustomData_get_layer_named(
+            &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set");
+
+        if (ss->face_sets) {
+          const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
+          ED_sculpt_face_sets_initialize_none_to_id(mesh, next_face_set_id);
+        }
+        break;
+      case PBVH_BMESH: {
+        const int cd_fset = CustomData_get_named_offset(
+            &ss->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
+        const int cd_boundary_flag = CustomData_get_offset_named(
+            &ss->bm->vdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(boundary_flags));
+
+        if (ss->bm && cd_fset != -1) {
+          const int cd_sculptvert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
+
+          BMFace *f;
+          BMVert *v;
+          BMIter iter;
+
+          const int next_face_set_id = SCULPT_face_set_next_available_get(ss);
+
+          const int updateflag = SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_TRIANGULATE |
+                                 SCULPTVERT_NEED_DISK_SORT;
+
+          BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+            MSculptVert *mv = (MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, cd_sculptvert);
+
+            if (cd_boundary_flag != -1) {
+              int *flag = (int *)BM_ELEM_CD_GET_VOID_P(v, cd_boundary_flag);
+              *flag |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+            }
+
+            mv->flag |= updateflag;
+          }
+
+          BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+            int fset = BM_ELEM_CD_GET_INT(f, cd_fset);
+
+            if (fset == SCULPT_FACE_SET_NONE) {
+              BM_ELEM_CD_SET_INT(f, cd_fset, next_face_set_id);
+            }
+          }
+        }
+        break;
+      }
     }
-    ED_sculpt_undo_geometry_end(ob);
+
+    ss->needs_pbvh_rebuild = true;
   }
+
+  ED_sculpt_undo_geometry_end(ob);
 
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

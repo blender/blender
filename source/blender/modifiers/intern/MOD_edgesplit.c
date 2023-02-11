@@ -53,7 +53,8 @@ Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd)
   const bool do_split_all = do_split_angle && emd->split_angle < FLT_EPSILON;
   const bool calc_face_normals = do_split_angle && !do_split_all;
 
-  bm = BKE_mesh_to_bmesh_ex(mesh,
+  bm = BKE_mesh_to_bmesh_ex(NULL,
+                            mesh,
                             &(struct BMeshCreateParams){0},
                             &(struct BMeshFromMeshParams){
                                 .calc_face_normal = calc_face_normals,

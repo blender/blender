@@ -23,6 +23,9 @@ struct MTex;
 struct Scene;
 struct ToolSettings;
 struct UnifiedPaintSettings;
+struct DynTopoSettings;
+struct Sculpt;
+struct CurveMapping;
 
 // enum eCurveMappingPreset;
 
@@ -168,7 +171,6 @@ void BKE_brush_weight_set(const struct Scene *scene, struct Brush *brush, float 
 bool BKE_brush_use_locked_size(const struct Scene *scene, const struct Brush *brush);
 bool BKE_brush_use_alpha_pressure(const struct Brush *brush);
 bool BKE_brush_use_size_pressure(const struct Brush *brush);
-
 bool BKE_brush_sculpt_has_secondary_color(const struct Brush *brush);
 
 /**
@@ -185,6 +187,8 @@ void BKE_brush_scale_size(int *r_brush_size,
                           float new_unprojected_radius,
                           float old_unprojected_radius);
 
+void BKE_brush_default_input_curves_set(struct Brush *brush);
+
 /* Accessors */
 #define BKE_brush_tool_get(brush, p) \
   (CHECK_TYPE_ANY(brush, struct Brush *, const struct Brush *), \
@@ -192,12 +196,30 @@ void BKE_brush_scale_size(int *r_brush_size,
 #define BKE_brush_tool_set(brush, p, tool) \
   { \
     CHECK_TYPE_ANY(brush, struct Brush *); \
+    char _old = *(char *)POINTER_OFFSET(brush, (p)->runtime.tool_offset); \
     *(char *)POINTER_OFFSET(brush, (p)->runtime.tool_offset) = tool; \
+    if ((p)->runtime.ob_mode == OB_MODE_SCULPT) { \
+      if (_old != tool) { \
+        BKE_brush_sculpt_reset(brush); \
+      } \
+    } \
   } \
   ((void)0)
 
 /* debugging only */
 void BKE_brush_debug_print_state(struct Brush *br);
+
+void BKE_brush_get_dyntopo(struct Brush *brush, struct Sculpt *sd, struct DynTopoSettings *out);
+
+bool BKE_brush_hard_edge_mode_get(const struct Scene *scene, const struct Brush *brush);
+void BKE_brush_hard_edge_mode_set(struct Scene *scene, struct Brush *brush, bool val);
+
+float BKE_brush_fset_slide_get(const struct Scene *scene, const struct Brush *brush);
+float BKE_brush_curve_strength_ex(int curve_preset,
+                                  const struct CurveMapping *curve,
+                                  float p,
+                                  const float len,
+                                  const bool invert);
 
 #ifdef __cplusplus
 }

@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+struct BMTracer;
+
 BMFace *BM_face_copy(BMesh *bm_dst, BMesh *bm_src, BMFace *f, bool copy_verts, bool copy_edges);
 
 typedef enum eBMCreateFlag {
@@ -21,8 +23,13 @@ typedef enum eBMCreateFlag {
    * use if we immediately write custom-data into the element so this skips copying from 'example'
    * arguments or setting defaults, speeds up conversion when data is converted all at once.
    */
-  BM_CREATE_SKIP_CD = (1 << 2),
+  BM_CREATE_SKIP_CD = (1 << 2), /* if true, you must call bm_elem_check_toolflags(bm, elem) later
+                                   if toolflags are on */
+  BM_CREATE_SKIP_ID = (1 << 3)
 } eBMCreateFlag;
+
+/* if toolflags are enabled, checks that internal pointer to toolflags it not null */
+void bm_elem_check_toolflags(BMesh *bm, BMElem *elem);
 
 /**
  * \brief Main function for creating a new vertex.
@@ -104,7 +111,8 @@ void BM_vert_kill(BMesh *bm, BMVert *v);
  *
  * \note Edges must already have the same vertices.
  */
-bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src);
+bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src, bool combine_flags);
+
 /**
  * \brief Splice Vert
  *
@@ -336,9 +344,18 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
 BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
                                          BMEdge *e_kill,
                                          BMVert *v_kill,
-                                         bool do_del,
-                                         bool check_edge_exists,
-                                         bool kill_degenerate_faces);
+                                         const bool do_del,
+                                         const bool combine_flags,
+                                         const struct BMTracer *tracer);
+
+BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
+                                              BMEdge *e_kill,
+                                              BMVert *v_kill,
+                                              const bool do_del,
+                                              const bool check_edge_exists,
+                                              const bool kill_degenerate_faces,
+                                              const bool combine_flags);
+
 /**
  * \brief Join Face Kill Edge (JFKE)
  *
@@ -396,6 +413,8 @@ BMVert *bmesh_kernel_unglue_region_make_vert_multi(BMesh *bm, BMLoop **larr, int
  */
 BMVert *bmesh_kernel_unglue_region_make_vert_multi_isolated(BMesh *bm, BMLoop *l_sep);
 
+void BM_reassign_ids(BMesh *bm);
+void BM_clear_ids(BMesh *bm);
 #ifdef __cplusplus
 }
 #endif

@@ -672,6 +672,7 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
                             do_undo_restore,
                             reader,
                             &toolsett_old->sculpt->paint));
+
     BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER(data,
                                                     toolsett->sculpt->gravity_object,
                                                     do_undo_restore,
@@ -680,6 +681,7 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
                                                     toolsett_old->sculpt->gravity_object,
                                                     IDWALK_CB_NOP);
   }
+
   if (toolsett->uvsculpt) {
     BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL(
         data,
@@ -972,6 +974,7 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
   if (tos->sculpt) {
     BLO_write_struct(writer, Sculpt, tos->sculpt);
+
     if (tos->sculpt->automasking_cavity_curve) {
       BKE_curvemapping_blend_write(writer, tos->sculpt->automasking_cavity_curve);
     }
@@ -1797,6 +1800,7 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
   }
   if (ts->sculpt) {
     ts->sculpt = static_cast<Sculpt *>(MEM_dupallocN(ts->sculpt));
+
     BKE_paint_copy(&ts->sculpt->paint, &ts->sculpt->paint, flag);
 
     if (ts->sculpt->automasking_cavity_curve) {
@@ -1875,6 +1879,7 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
     }
 
     BKE_paint_free(&toolsettings->sculpt->paint);
+
     MEM_freeN(toolsettings->sculpt);
   }
   if (toolsettings->uvsculpt) {
@@ -2613,7 +2618,7 @@ static void prepare_mesh_for_viewport_render(Main *bmain,
         BMeshToMeshParams params{};
         params.calc_object_remap = true;
         params.update_shapekey_indices = true;
-        BM_mesh_bm_to_me(bmain, bm, mesh, &params);
+        BM_mesh_bm_to_me(bmain, nullptr, bm, mesh, &params);
         DEG_id_tag_update(&mesh->id, 0);
       }
     }

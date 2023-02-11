@@ -17,6 +17,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_ID.h"
+#include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -177,6 +178,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
     }
     else {
       const ePaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
+      const eObjectMode ob_paint_mode = BKE_paint_object_mode_from_paintmode(paint_mode);
       BLI_assert(paint_mode != PAINT_MODE_INVALID);
       const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
       BLI_assert(items != NULL);
@@ -194,7 +196,8 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
             if (brush == NULL) {
               /* Could make into a function. */
               brush = (struct Brush *)BKE_libblock_find_name(bmain, ID_BR, items[i].name);
-              if (brush && slot_index == BKE_brush_tool_get(brush, paint)) {
+              if (brush && (brush->ob_mode & ob_paint_mode) &&
+                  slot_index == BKE_brush_tool_get(brush, paint)) {
                 /* pass */
               }
               else {

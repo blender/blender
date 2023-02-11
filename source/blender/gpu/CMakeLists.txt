@@ -35,11 +35,11 @@ set(INC
   # For node muting stuff.
   ../nodes
 
-  ../../../intern/atomic
   ../../../intern/clog
   ../../../intern/ghost
   ../../../intern/guardedalloc
   ../../../intern/mantaflow/extern
+  ../../../intern/atomic
 )
 
 set(INC_SYS
@@ -697,6 +697,9 @@ endif()
 if(WITH_OPENCOLORIO)
   add_definitions(-DWITH_OCIO)
 endif()
+
+remove_cc_flag("-fsanitize=address")
+remove_cc_flag("/fsanitize=address")
 
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 target_link_libraries(bf_gpu PUBLIC

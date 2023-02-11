@@ -676,7 +676,7 @@ ID *BKE_id_copy(Main *bmain, const ID *id)
 
 ID *BKE_id_copy_for_duplicate(Main *bmain,
                               ID *id,
-                              const eDupli_ID_Flags duplicate_flags,
+                              const uint duplicate_flags,
                               const int copy_flags)
 {
   if (id == NULL) {

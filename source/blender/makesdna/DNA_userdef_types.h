@@ -650,11 +650,18 @@ typedef struct UserDef_Experimental {
   char use_sculpt_tools_tilt;
   char use_extended_asset_browser;
   char use_override_templates;
+
+  char use_sculpt_uvsmooth;
+
+  char _pad[6];
+
+  char use_named_attribute_nodes;
+
   char enable_eevee_next;
   char use_sculpt_texture_paint;
   char enable_workbench_next;
   char use_new_volume_nodes;
-  char _pad[6];
+  char _pad2[6];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -950,6 +957,7 @@ typedef struct UserDef {
 
   UserDef_Experimental experimental;
 
+  char _pad15[8];
   /** Runtime data (keep last). */
   UserDef_Runtime runtime;
 } UserDef;

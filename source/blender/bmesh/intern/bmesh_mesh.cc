@@ -11,17 +11,28 @@
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_alloca.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_rand.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
 
+#include "DNA_meshdata_types.h"
+
 #include "bmesh.h"
+#include "bmesh_private.h"
+#include "range_tree.h"
+
+using blender::Vector;
 
 const BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
 const BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
+
+static void bm_alloc_toolflags(BMesh *bm);
 
 static void bm_mempool_init_ex(const BMAllocTemplate *allocsize,
                                const bool use_toolflags,
@@ -55,7 +66,7 @@ static void bm_mempool_init_ex(const BMAllocTemplate *allocsize,
   }
   if (r_lpool) {
     *r_lpool = BLI_mempool_create(
-        loop_size, allocsize->totloop, bm_mesh_chunksize_default.totloop, BLI_MEMPOOL_NOP);
+        loop_size, allocsize->totloop, bm_mesh_chunksize_default.totloop, BLI_MEMPOOL_ALLOW_ITER);
   }
   if (r_fpool) {
     *r_fpool = BLI_mempool_create(
@@ -76,6 +87,16 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
 {
   BLI_assert(bm->use_toolflags);
 
+  if (!CustomData_has_layer(&bm->vdata, CD_TOOLFLAGS)) {
+    if (bm->vtoolflagpool) {
+      printf("%s: Error: toolflags were deallocated improperly\n", __func__);
+
+      BM_mesh_elem_toolflags_clear(bm);
+
+      bm_alloc_toolflags_cdlayers(bm, true);
+    }
+  }
+
   if (bm->vtoolflagpool && bm->etoolflagpool && bm->ftoolflagpool) {
     return;
   }
@@ -84,30 +105,15 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
   bm->etoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), bm->totedge, 512, BLI_MEMPOOL_NOP);
   bm->ftoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), bm->totface, 512, BLI_MEMPOOL_NOP);
 
-  BMIter iter;
-  BMVert_OFlag *v_olfag;
-  BLI_mempool *toolflagpool = bm->vtoolflagpool;
-  BM_ITER_MESH (v_olfag, &iter, bm, BM_VERTS_OF_MESH) {
-    v_olfag->oflags = static_cast<BMFlagLayer *>(BLI_mempool_calloc(toolflagpool));
-  }
-
-  BMEdge_OFlag *e_olfag;
-  toolflagpool = bm->etoolflagpool;
-  BM_ITER_MESH (e_olfag, &iter, bm, BM_EDGES_OF_MESH) {
-    e_olfag->oflags = static_cast<BMFlagLayer *>(BLI_mempool_calloc(toolflagpool));
-  }
-
-  BMFace_OFlag *f_olfag;
-  toolflagpool = bm->ftoolflagpool;
-  BM_ITER_MESH (f_olfag, &iter, bm, BM_FACES_OF_MESH) {
-    f_olfag->oflags = static_cast<BMFlagLayer *>(BLI_mempool_calloc(toolflagpool));
-  }
+  bm_alloc_toolflags(bm);
 
   bm->totflags = 1;
 }
 
 void BM_mesh_elem_toolflags_clear(BMesh *bm)
 {
+  bool haveflags = bm->vtoolflagpool || bm->etoolflagpool || bm->ftoolflagpool;
+
   if (bm->vtoolflagpool) {
     BLI_mempool_destroy(bm->vtoolflagpool);
     bm->vtoolflagpool = nullptr;
@@ -120,6 +126,29 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
     BLI_mempool_destroy(bm->ftoolflagpool);
     bm->ftoolflagpool = nullptr;
   }
+
+  if (haveflags) {
+    BM_data_layer_free(bm, &bm->vdata, CD_TOOLFLAGS);
+    BM_data_layer_free(bm, &bm->edata, CD_TOOLFLAGS);
+    BM_data_layer_free(bm, &bm->pdata, CD_TOOLFLAGS);
+  }
+}
+
+// int cdmap[8] = {0, 1, -1, -1, 2, -1, -1, -1, 3};
+
+static void bm_swap_cd_data(int htype, BMesh *bm, CustomData *cd, void *a, void *b)
+{
+  int tot = cd->totsize;
+  // int cd_id = bm->idmap.cd_id_off[htype];
+
+  char *sa = (char *)a;
+  char *sb = (char *)b;
+
+  for (int i = 0; i < tot; i++, sa++, sb++) {
+    char tmp = *sa;
+    *sa = *sb;
+    *sb = tmp;
+  }
 }
 
 BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreateParams *params)
@@ -130,6 +159,45 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
   /* allocate the memory pools for the mesh elements */
   bm_mempool_init(bm, allocsize, params->use_toolflags);
 
+  bm->idmap.flag = 0;
+
+  if (!params->temporary_ids) {
+    bm->idmap.flag |= BM_PERMANENT_IDS;
+  }
+
+  if (params->id_map) {
+    bm->idmap.flag |= BM_HAS_ID_MAP;
+  }
+
+  if (params->no_reuse_ids) {
+    bm->idmap.flag |= BM_NO_REUSE_IDS;
+  }
+
+  if (params->create_unique_ids) {
+    bm->idmap.flag |= BM_HAS_IDS;
+
+    bm->idmap.flag |= params->id_elem_mask;
+
+#ifndef WITH_BM_ID_FREELIST
+    bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
+#endif
+  }
+
+  if (bm->idmap.flag & BM_HAS_ID_MAP) {
+    if (bm->idmap.flag & BM_NO_REUSE_IDS) {
+      bm->idmap.ghash = BLI_ghash_ptr_new("idmap.ghash");
+    }
+    else {
+      bm->idmap.map_size = BM_DEFAULT_IDMAP_SIZE;
+      bm->idmap.map = (BMElem **)MEM_callocN(sizeof(void *) * bm->idmap.map_size, "bmesh idmap");
+      bm->idmap.ghash = nullptr;
+    }
+  }
+  else {
+    bm->idmap.map = nullptr;
+    bm->idmap.ghash = nullptr;
+  }
+
   /* allocate one flag pool that we don't get rid of. */
   bm->use_toolflags = params->use_toolflags;
   bm->toolflag_index = 0;
@@ -139,6 +207,42 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
   CustomData_reset(&bm->edata);
   CustomData_reset(&bm->ldata);
   CustomData_reset(&bm->pdata);
+
+  bool init_cdata_pools = false;
+
+  if (bm->use_toolflags) {
+    init_cdata_pools = true;
+    bm_alloc_toolflags_cdlayers(bm, false);
+  }
+
+  if (params->create_unique_ids) {
+    bm_init_idmap_cdlayers(bm);
+    init_cdata_pools = true;
+  }
+
+  if (init_cdata_pools) {
+    if (bm->vdata.totlayer) {
+      CustomData_bmesh_init_pool_ex(&bm->vdata, 0, BM_VERT, __func__);
+    }
+    if (bm->edata.totlayer) {
+      CustomData_bmesh_init_pool_ex(&bm->edata, 0, BM_EDGE, __func__);
+    }
+    if (bm->ldata.totlayer) {
+      CustomData_bmesh_init_pool_ex(&bm->ldata, 0, BM_LOOP, __func__);
+    }
+    if (bm->pdata.totlayer) {
+      CustomData_bmesh_init_pool_ex(&bm->pdata, 0, BM_FACE, __func__);
+    }
+  }
+
+  if (bm->use_toolflags) {
+    BM_mesh_elem_toolflags_ensure(bm);
+  }
+
+#ifdef USE_BMESH_PAGE_CUSTOMDATA
+  bmesh_update_attr_refs(bm);
+  BMAttr_init(bm);
+#endif
 
   return bm;
 }
@@ -152,6 +256,30 @@ void BM_mesh_data_free(BMesh *bm)
 
   BMIter iter;
   BMIter itersub;
+
+#ifndef WITH_BM_ID_FREELIST
+  if (bm->idmap.idtree) {
+    range_tree_uint_free(bm->idmap.idtree);
+  }
+#else
+  MEM_SAFE_FREE(bm->idmap.free_ids);
+  MEM_SAFE_FREE(bm->idmap.freelist);
+  bm->idmap.freelist = nullptr;
+  bm->idmap.free_ids = nullptr;
+#endif
+
+  MEM_SAFE_FREE(bm->idmap.map);
+
+  if (bm->idmap.ghash) {
+    BLI_ghash_free(bm->idmap.ghash, nullptr, nullptr);
+  }
+
+#ifdef WITH_BM_ID_FREELIST
+  if (bm->idmap.free_idx_map) {
+    BLI_ghash_free(bm->idmap.free_idx_map, nullptr, nullptr);
+    bm->idmap.free_idx_map = nullptr;
+  }
+#endif
 
   const bool is_ldata_free = CustomData_bmesh_has_free(&bm->ldata);
   const bool is_pdata_free = CustomData_bmesh_has_free(&bm->pdata);
@@ -217,8 +345,20 @@ void BM_mesh_data_free(BMesh *bm)
     MEM_freeN(bm->ftable);
   }
 
-  /* destroy flag pool */
-  BM_mesh_elem_toolflags_clear(bm);
+  /* destroy flag pools */
+
+  if (bm->vtoolflagpool) {
+    BLI_mempool_destroy(bm->vtoolflagpool);
+    bm->vtoolflagpool = nullptr;
+  }
+  if (bm->etoolflagpool) {
+    BLI_mempool_destroy(bm->etoolflagpool);
+    bm->etoolflagpool = nullptr;
+  }
+  if (bm->ftoolflagpool) {
+    BLI_mempool_destroy(bm->ftoolflagpool);
+    bm->ftoolflagpool = nullptr;
+  }
 
 #ifdef USE_BMESH_HOLES
   BLI_mempool_destroy(bm->looplistpool);
@@ -232,11 +372,17 @@ void BM_mesh_data_free(BMesh *bm)
   }
 
   BMO_error_clear(bm);
+
+#ifdef USE_BMESH_PAGE_CUSTOMDATA
+  BMAttr_free(bm->attr_list);
+  bm->attr_list = nullptr;
+#endif
 }
 
 void BM_mesh_clear(BMesh *bm)
 {
   const bool use_toolflags = bm->use_toolflags;
+  const int idmap_flags = bm->idmap.flag;
 
   /* free old mesh */
   BM_mesh_data_free(bm);
@@ -253,6 +399,37 @@ void BM_mesh_clear(BMesh *bm)
   CustomData_reset(&bm->edata);
   CustomData_reset(&bm->ldata);
   CustomData_reset(&bm->pdata);
+
+  bm->idmap.flag = idmap_flags;
+
+  if (bm->idmap.flag & BM_HAS_IDS) {
+    bm->idmap.map = nullptr;
+    bm->idmap.ghash = nullptr;
+    bm->idmap.map_size = 0;
+
+#ifndef WITH_BM_ID_FREELIST
+    bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
+#else
+    MEM_SAFE_FREE(bm->idmap.free_ids);
+    MEM_SAFE_FREE(bm->idmap.freelist);
+
+    bm->idmap.freelist_len = bm->idmap.freelist_size = 0;
+    bm->idmap.free_ids = nullptr;
+    bm->idmap.freelist = nullptr;
+#endif
+    bm_init_idmap_cdlayers(bm);
+  }
+
+#ifdef USE_BMESH_PAGE_CUSTOMDATA
+  if (!bm->attr_list) {
+    bm->attr_list = BMAttr_new();
+  }
+  else {
+    BMAttr_reset(bm->attr_list);
+  }
+
+  BMAttr_init(bm);
+#endif
 }
 
 void BM_mesh_free(BMesh *bm)
@@ -269,42 +446,34 @@ void BM_mesh_free(BMesh *bm)
   MEM_freeN(bm);
 }
 
-void bmesh_edit_begin(BMesh * /*bm*/, BMOpTypeFlag /*type_flag*/)
+/**
+ * \brief BMesh Begin Edit
+ *
+ * Functions for setting up a mesh for editing and cleaning up after
+ * the editing operations are done. These are called by the tools/operator
+ * API for each time a tool is executed.
+ */
+void bmesh_edit_begin(BMesh *bm, BMOpTypeFlag type_flag)
 {
-  /* Most operators seem to be using BMO_OPTYPE_FLAG_UNTAN_MULTIRES to change the MDisps to
-   * absolute space during mesh edits. With this enabled, changes to the topology
-   * (loop cuts, edge subdivides, etc) are not reflected in the higher levels of
-   * the mesh at all, which doesn't seem right. Turning off completely for now,
-   * until this is shown to be better for certain types of mesh edits. */
-#ifdef BMOP_UNTAN_MULTIRES_ENABLED
   /* switch multires data out of tangent space */
   if ((type_flag & BMO_OPTYPE_FLAG_UNTAN_MULTIRES) &&
       CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-    bmesh_mdisps_space_set(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
-
+    BM_enter_multires_space(nullptr, bm, MULTIRES_SPACE_ABSOLUTE);
     /* ensure correct normals, if possible */
-    bmesh_rationalize_normals(bm, 0);
-    BM_mesh_normals_update(bm);
+    // bmesh_rationalize_normals(bm, 0);
+    // BM_mesh_normals_update(bm);
   }
-#endif
 }
 
 void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
 {
   ListBase select_history;
 
-  /* BMO_OPTYPE_FLAG_UNTAN_MULTIRES disabled for now, see comment above in bmesh_edit_begin. */
-#ifdef BMOP_UNTAN_MULTIRES_ENABLED
   /* switch multires data into tangent space */
-  if ((flag & BMO_OPTYPE_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-    /* set normals to their previous winding */
-    bmesh_rationalize_normals(bm, 1);
-    bmesh_mdisps_space_set(bm, MULTIRES_SPACE_ABSOLUTE, MULTIRES_SPACE_TANGENT);
+  if ((type_flag & BMO_OPTYPE_FLAG_UNTAN_MULTIRES) &&
+      CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+    BM_enter_multires_space(nullptr, bm, MULTIRES_SPACE_TANGENT);
   }
-  else if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
-    bmesh_rationalize_normals(bm, 1);
-  }
-#endif
 
   /* compute normals, clear temp flags and flush selections */
   if (type_flag & BMO_OPTYPE_FLAG_NORMALS_CALC) {
@@ -726,7 +895,25 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
   }
 }
 
-void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const uint *face_idx)
+/**
+ * Remaps the vertices, edges and/or faces of the bmesh as indicated by vert/edge/face_idx arrays
+ * (xxx_idx[org_index] = new_index).
+ *
+ * A nullptr array means no changes.
+ *
+ * \note
+ * - Does not mess with indices, just sets elem_index_dirty flag.
+ * - For verts/edges/faces only (as loops must remain "ordered" and "aligned"
+ *   on a per-face basis...).
+ *
+ * \warning Be careful if you keep pointers to affected BM elements,
+ * or arrays, when using this func!
+ */
+void BM_mesh_remap(BMesh *bm,
+                   const uint *vert_idx,
+                   const uint *edge_idx,
+                   const uint *face_idx,
+                   const uint *loop_idx)
 {
   /* Mapping old to new pointers. */
   GHash *vptr_map = nullptr, *eptr_map = nullptr, *fptr_map = nullptr;
@@ -742,6 +929,21 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
   BM_mesh_elem_table_ensure(
       bm, (vert_idx ? BM_VERT : 0) | (edge_idx ? BM_EDGE : 0) | (face_idx ? BM_FACE : 0));
+
+  CustomData *cdatas[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+
+#define DO_SWAP(ci, cdata, v, vp) *(v) = *(vp);
+
+// NOT WORKING
+/* unswaps customdata blocks*/
+#define DO_SWAP2(ci, cdata, v, vp) \
+  void *cdold = (v)->head.data; \
+  void *cdnew = (vp)->head.data; \
+  *(v) = *(vp); \
+  if (cdold) { \
+    (v)->head.data = cdold; \
+    memcpy(cdold, cdnew, bm->cdata.totsize); \
+  }
 
   /* Remap Verts */
   if (vert_idx) {
@@ -764,7 +966,9 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
                         nullptr;
     for (i = totvert, ve = verts_copy + totvert - 1, vep = verts_pool + totvert - 1; i--;
          ve--, vep--) {
+
       *ve = **vep;
+
       // printf("*vep: %p, verts_pool[%d]: %p\n", *vep, i, verts_pool[i]);
       if (cd_vert_pyptr != -1) {
         void **pyptr = static_cast<void **>(BM_ELEM_CD_GET_VOID_P(((BMElem *)ve), cd_vert_pyptr));
@@ -778,12 +982,15 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     vep = verts_pool + totvert - 1; /* old, org pointer */
     for (i = totvert; i--; new_idx--, ve--, vep--) {
       BMVert *new_vep = verts_pool[*new_idx];
-      *new_vep = *ve;
+
+      DO_SWAP(0, vdata, new_vep, ve);
+
+      BLI_ghash_insert(vptr_map, *vep, new_vep);
 #if 0
       printf(
           "mapping vert from %d to %d (%p/%p to %p)\n", i, *new_idx, *vep, verts_pool[i], new_vep);
 #endif
-      BLI_ghash_insert(vptr_map, *vep, new_vep);
+
       if (cd_vert_pyptr != -1) {
         void **pyptr = static_cast<void **>(
             BM_ELEM_CD_GET_VOID_P(((BMElem *)new_vep), cd_vert_pyptr));
@@ -797,6 +1004,77 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     if (pyptrs) {
       MEM_freeN(pyptrs);
     }
+  }
+
+  GHash *lptr_map = nullptr;
+
+  /* Remap Loops */
+  if (loop_idx) {
+    BMLoop **ltable = (BMLoop **)MEM_malloc_arrayN(bm->totloop, sizeof(*ltable), "ltable");
+
+    BMLoop *ed;
+    BLI_mempool_iter liter;
+    BLI_mempool_iternew(bm->lpool, &liter);
+    BMLoop *l = (BMLoop *)BLI_mempool_iterstep(&liter);
+
+    int i = 0;
+    for (; l; l = (BMLoop *)BLI_mempool_iterstep(&liter), i++) {
+      l->head.index = i;
+      ltable[i] = l;
+    }
+
+    BMLoop **loops_pool, *loops_copy, **edl;
+    int totloop = bm->totloop;
+    const uint *new_idx;
+    /* Special case: Python uses custom data layers to hold PyObject references.
+     * These have to be kept in place, else the PyObjects we point to, won't point back to us. */
+    const int cd_loop_pyptr = CustomData_get_offset(&bm->ldata, CD_BM_ELEM_PYPTR);
+
+    /* Init the old-to-new vert pointers mapping */
+    lptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap loop pointers mapping", bm->totloop);
+
+    /* Make a copy of all vertices. */
+    loops_pool = ltable;
+    loops_copy = (BMLoop *)MEM_mallocN(sizeof(BMLoop) * totloop, "BM_mesh_remap loops copy");
+
+    void **pyptrs = (cd_loop_pyptr != -1) ?
+                        (void **)MEM_mallocN(sizeof(void *) * totloop, __func__) :
+                        nullptr;
+    for (i = totloop, ed = loops_copy + totloop - 1, edl = loops_pool + totloop - 1; i--;
+         ed--, edl--) {
+
+      *ed = **edl;
+
+      if (cd_loop_pyptr != -1) {
+        void **pyptr = (void **)BM_ELEM_CD_GET_VOID_P(((BMElem *)ed), cd_loop_pyptr);
+        pyptrs[i] = *pyptr;
+      }
+    }
+
+    /* Copy back verts to their new place, and update old2new pointers mapping. */
+    new_idx = loop_idx + totloop - 1;
+    ed = loops_copy + totloop - 1;
+    edl = loops_pool + totloop - 1; /* old, org pointer */
+    for (i = totloop; i--; new_idx--, ed--, edl--) {
+      BMLoop *new_edl = loops_pool[*new_idx];
+      *new_edl = *ed;
+
+      DO_SWAP(2, ldata, new_edl, ed);
+
+      BLI_ghash_insert(lptr_map, *edl, new_edl);
+#if 0
+      printf(
+          "mapping loop from %d to %d (%p/%p to %p)\n", i, *new_idx, *edl, loops_pool[i], new_edl);
+#endif
+      if (cd_loop_pyptr != -1) {
+        void **pyptr = (void **)BM_ELEM_CD_GET_VOID_P(((BMElem *)new_edl), cd_loop_pyptr);
+        *pyptr = pyptrs[*new_idx];
+      }
+    }
+
+    MEM_SAFE_FREE(ltable);
+    MEM_SAFE_FREE(loops_copy);
+    MEM_SAFE_FREE(pyptrs);
   }
 
   /* Remap Edges */
@@ -833,7 +1111,13 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     edp = edges_pool + totedge - 1; /* old, org pointer */
     for (i = totedge; i--; new_idx--, ed--, edp--) {
       BMEdge *new_edp = edges_pool[*new_idx];
-      *new_edp = *ed;
+
+      DO_SWAP(1, edata, new_edp, ed);
+
+      if (new_edp->l && lptr_map) {
+        new_edp->l = (BMLoop *)BLI_ghash_lookup(lptr_map, (BMLoop *)new_edp->l);
+      }
+
       BLI_ghash_insert(eptr_map, *edp, new_edp);
 #if 0
       printf(
@@ -890,6 +1174,24 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
       BMFace *new_fap = faces_pool[*new_idx];
       *new_fap = *fa;
       BLI_ghash_insert(fptr_map, *fap, new_fap);
+
+      DO_SWAP(3, pdata, new_fap, fa);
+
+      if (lptr_map) {
+        new_fap->l_first = (BMLoop *)BLI_ghash_lookup(lptr_map, (void *)new_fap->l_first);
+
+        BMLoop *l = new_fap->l_first;
+
+        do {
+          l->next = (BMLoop *)BLI_ghash_lookup(lptr_map, (void *)l->next);
+          l->prev = (BMLoop *)BLI_ghash_lookup(lptr_map, (void *)l->prev);
+          l->radial_next = (BMLoop *)BLI_ghash_lookup(lptr_map, (void *)l->radial_next);
+          l->radial_prev = (BMLoop *)BLI_ghash_lookup(lptr_map, (void *)l->radial_prev);
+
+          l = l->next;
+        } while (l != new_fap->l_first);
+      }
+
       if (cd_poly_pyptr != -1) {
         void **pyptr = static_cast<void **>(
             BM_ELEM_CD_GET_VOID_P(((BMElem *)new_fap), cd_poly_pyptr));
@@ -1028,6 +1330,69 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
   if (fptr_map) {
     BLI_ghash_free(fptr_map, nullptr, nullptr);
   }
+
+  // regenerate idmap
+  if ((bm->idmap.flag & BM_HAS_IDS) && (bm->idmap.flag & BM_HAS_ID_MAP) && bm->idmap.map) {
+    memset(bm->idmap.map, 0, sizeof(void *) * bm->idmap.map_size);
+
+    char iters[4] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, 0, BM_FACES_OF_MESH};
+    const bool have_loop = bm->idmap.flag & BM_LOOP;
+
+    for (int i = 0; i < 4; i++) {
+      int type = 1 << i;
+
+      if (type == BM_LOOP) {  // handle loops with faces
+        continue;
+      }
+
+      int cd_id = CustomData_get_offset(cdatas[i], CD_MESH_ID);
+      int cd_loop_id = CustomData_get_offset(&bm->ldata, CD_MESH_ID);
+
+      BMIter iter;
+      BMElem *elem;
+
+      if (cd_id < 0 && !(type == BM_FACE && have_loop)) {
+        continue;
+      }
+
+      BM_ITER_MESH (elem, &iter, bm, iters[i]) {
+        if (type == BM_FACE && have_loop) {
+          BMFace *f = (BMFace *)elem;
+          BMLoop *l = f->l_first;
+
+          do {
+            int id_loop = BM_ELEM_CD_GET_INT(l, cd_loop_id);
+
+            if (bm->idmap.ghash) {
+              void **l_val;
+
+              BLI_ghash_ensure_p(bm->idmap.ghash, POINTER_FROM_INT(id_loop), &l_val);
+              *l_val = (void *)l;
+            }
+            else {
+              bm->idmap.map[id_loop] = (BMElem *)l;
+            }
+          } while ((l = l->next) != f->l_first);
+        }
+
+        if (cd_id < 0) {
+          continue;
+        }
+
+        int id = BM_ELEM_CD_GET_INT(elem, cd_id);
+
+        if (bm->idmap.ghash) {
+          void **val;
+
+          BLI_ghash_ensure_p(bm->idmap.ghash, POINTER_FROM_INT(id), &val);
+          *val = (void *)elem;
+        }
+        else {
+          bm->idmap.map[id] = elem;
+        }
+      }
+    }
+  }
 }
 
 void BM_mesh_rebuild(BMesh *bm,
@@ -1063,10 +1428,10 @@ void BM_mesh_rebuild(BMesh *bm,
       BMVert *v_dst = static_cast<BMVert *>(BLI_mempool_alloc(vpool_dst));
       memcpy(v_dst, v_src, sizeof(BMVert));
       if (use_toolflags) {
-        ((BMVert_OFlag *)v_dst)->oflags = bm->vtoolflagpool ?
-                                              static_cast<BMFlagLayer *>(
-                                                  BLI_mempool_calloc(bm->vtoolflagpool)) :
-                                              nullptr;
+        MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
+            v_dst, bm->vdata.layers[bm->vdata.typemap[CD_TOOLFLAGS]].offset);
+
+        flags->flag = bm->vtoolflagpool ? (short *)BLI_mempool_calloc(bm->vtoolflagpool) : nullptr;
       }
 
       vtable_dst[index] = v_dst;
@@ -1082,10 +1447,10 @@ void BM_mesh_rebuild(BMesh *bm,
       BMEdge *e_dst = static_cast<BMEdge *>(BLI_mempool_alloc(epool_dst));
       memcpy(e_dst, e_src, sizeof(BMEdge));
       if (use_toolflags) {
-        ((BMEdge_OFlag *)e_dst)->oflags = bm->etoolflagpool ?
-                                              static_cast<BMFlagLayer *>(
-                                                  BLI_mempool_calloc(bm->etoolflagpool)) :
-                                              nullptr;
+        MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
+            e_dst, bm->edata.layers[bm->edata.typemap[CD_TOOLFLAGS]].offset);
+
+        flags->flag = bm->etoolflagpool ? (short *)BLI_mempool_calloc(bm->etoolflagpool) : nullptr;
       }
 
       etable_dst[index] = e_dst;
@@ -1102,11 +1467,13 @@ void BM_mesh_rebuild(BMesh *bm,
       if (remap & BM_FACE) {
         BMFace *f_dst = static_cast<BMFace *>(BLI_mempool_alloc(fpool_dst));
         memcpy(f_dst, f_src, sizeof(BMFace));
+
         if (use_toolflags) {
-          ((BMFace_OFlag *)f_dst)->oflags = bm->ftoolflagpool ?
-                                                static_cast<BMFlagLayer *>(
-                                                    BLI_mempool_calloc(bm->ftoolflagpool)) :
-                                                nullptr;
+          MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
+              f_dst, bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset);
+
+          flags->flag = bm->ftoolflagpool ? (short *)BLI_mempool_calloc(bm->ftoolflagpool) :
+                                            nullptr;
         }
 
         ftable_dst[index] = f_dst;
@@ -1286,6 +1653,68 @@ void BM_mesh_rebuild(BMesh *bm,
     BLI_mempool_destroy(bm->fpool);
     bm->fpool = fpool_dst;
   }
+
+  bm_rebuild_idmap(bm);
+}
+
+void bm_alloc_toolflags_cdlayers(BMesh *bm, bool set_elems)
+{
+  CustomData *cdatas[3] = {&bm->vdata, &bm->edata, &bm->pdata};
+  int iters[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+
+  for (int i = 0; i < 3; i++) {
+    CustomData *cdata = cdatas[i];
+    int cd_tflags = CustomData_get_offset(cdata, CD_TOOLFLAGS);
+
+    if (cd_tflags == -1) {
+      if (set_elems) {
+        BM_data_layer_add(bm, cdata, CD_TOOLFLAGS);
+      }
+      else {
+        CustomData_add_layer(cdata, CD_TOOLFLAGS, CD_ASSIGN, nullptr, 0);
+      }
+
+      int idx = CustomData_get_layer_index(cdata, CD_TOOLFLAGS);
+
+      cdata->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY | CD_FLAG_ELEM_NOCOPY;
+      cd_tflags = cdata->layers[idx].offset;
+
+      if (set_elems) {
+        BMIter iter;
+        BMElem *elem;
+
+        BM_ITER_MESH (elem, &iter, bm, iters[i]) {
+          MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(elem, cd_tflags);
+
+          flags->flag = nullptr;
+        }
+      }
+    }
+  }
+}
+
+static void bm_alloc_toolflags(BMesh *bm)
+{
+  bm_alloc_toolflags_cdlayers(bm, true);
+
+  CustomData *cdatas[3] = {&bm->vdata, &bm->edata, &bm->pdata};
+  BLI_mempool *flagpools[3] = {bm->vtoolflagpool, bm->etoolflagpool, bm->ftoolflagpool};
+  BLI_mempool *elempools[3] = {bm->vpool, bm->epool, bm->fpool};
+
+  for (int i = 0; i < 3; i++) {
+    CustomData *cdata = cdatas[i];
+    int cd_tflags = CustomData_get_offset(cdata, CD_TOOLFLAGS);
+
+    BLI_mempool_iter iter;
+    BLI_mempool_iternew(elempools[i], &iter);
+    BMElem *elem = (BMElem *)BLI_mempool_iterstep(&iter);
+
+    for (; elem; elem = (BMElem *)BLI_mempool_iterstep(&iter)) {
+      MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(elem, cd_tflags);
+
+      flags->flag = (short *)BLI_mempool_calloc(flagpools[i]);
+    }
+  }
 }
 
 void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags)
@@ -1293,14 +1722,6 @@ void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags)
   if (bm->use_toolflags == use_toolflags) {
     return;
   }
-
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_BM(bm);
-
-  BLI_mempool *vpool_dst = nullptr;
-  BLI_mempool *epool_dst = nullptr;
-  BLI_mempool *fpool_dst = nullptr;
-
-  bm_mempool_init_ex(&allocsize, use_toolflags, &vpool_dst, &epool_dst, nullptr, &fpool_dst);
 
   if (use_toolflags == false) {
     BLI_mempool_destroy(bm->vtoolflagpool);
@@ -1310,13 +1731,20 @@ void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags)
     bm->vtoolflagpool = nullptr;
     bm->etoolflagpool = nullptr;
     bm->ftoolflagpool = nullptr;
-  }
-  struct BMeshCreateParams params = {};
-  params.use_toolflags = use_toolflags;
 
-  BM_mesh_rebuild(bm, &params, vpool_dst, epool_dst, nullptr, fpool_dst);
+    BM_data_layer_free(bm, &bm->vdata, CD_TOOLFLAGS);
+    BM_data_layer_free(bm, &bm->edata, CD_TOOLFLAGS);
+    BM_data_layer_free(bm, &bm->pdata, CD_TOOLFLAGS);
+  }
+  else {
+    bm_alloc_toolflags_cdlayers(bm, true);
+  }
 
   bm->use_toolflags = use_toolflags;
+
+  if (use_toolflags) {
+    BM_mesh_elem_toolflags_ensure(bm);
+  }
 }
 
 /* -------------------------------------------------------------------- */
@@ -1364,4 +1792,411 @@ void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
   }
 }
 
+void bm_swap_ids(BMesh *bm, BMElem *e1, BMElem *e2)
+{
+  int cd_id = bm->idmap.cd_id_off[e1->head.htype];
+
+  if (cd_id < 0) {
+    return;
+  }
+
+  int id1 = BM_ELEM_CD_GET_INT(e1, cd_id);
+  int id2 = BM_ELEM_CD_GET_INT(e2, cd_id);
+
+  if (bm->idmap.map) {
+    SWAP(BMElem *, bm->idmap.map[id1], bm->idmap.map[id2]);
+  }
+  else if (bm->idmap.ghash) {
+    void **val1, **val2;
+
+    BLI_ghash_ensure_p(bm->idmap.ghash, POINTER_FROM_INT(id1), &val1);
+    BLI_ghash_ensure_p(bm->idmap.ghash, POINTER_FROM_INT(id2), &val2);
+
+    *val1 = (void *)e2;
+    *val2 = (void *)e1;
+  }
+}
+static void bm_swap_elements_post(BMesh *bm, CustomData *cdata, BMElem *e1, BMElem *e2)
+{
+  // unswap customdata pointers
+  SWAP(void *, e1->head.data, e2->head.data);
+
+  // swap contents of customdata instead
+  bm_swap_cd_data(e1->head.htype, bm, cdata, e1->head.data, e2->head.data);
+
+  // unswap index
+  SWAP(int, e1->head.index, e2->head.index);
+
+  bm_swap_ids(bm, e1, e2);
+}
+
+void BM_swap_verts(BMesh *bm, BMVert *v1, BMVert *v2)
+{
+  if (v1 == v2) {
+    return;
+  }
+
+  Vector<BMLoop *, 64> ls1;
+  Vector<BMLoop *, 64> ls2;
+  Vector<BMEdge *, 32> es1;
+  Vector<BMEdge *, 32> es2;
+  Vector<int, 32> sides1;
+  Vector<int, 32> sides2;
+
+  for (int i = 0; i < 2; i++) {
+    BMVert *v = i ? v2 : v1;
+
+    BMEdge *e = v->e, *starte = e;
+
+    if (!e) {
+      continue;
+    }
+
+    // int count = 0;
+
+    do {
+      // if (count++ > 10000) {
+      // printf("error!\n");
+      //        break;
+      //    }
+
+      int side = 0;
+      if (e->v1 == v) {
+        side |= 1;
+      }
+
+      if (e->v2 == v) {
+        side |= 2;
+      }
+
+      if (i) {
+        es2.append(e);
+        sides2.append(side);
+      }
+      else {
+        es1.append(e);
+        sides1.append(side);
+      }
+    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != starte);
+  }
+
+  for (int i = 0; i < 2; i++) {
+    BMVert *v = i ? v2 : v1;
+    BMVert *v_2 = i ? v1 : v2;
+
+    auto &es = i ? es2 : es1;
+    auto &sides = i ? sides2 : sides1;
+
+    int elen = i = es.size();
+    for (int j = 0; j < elen; j++) {
+      BMEdge *e = es[j];
+      int side = sides[j];
+
+      // if (side == 3) {
+      // printf("edge had duplicate verts!\n");
+      //}
+
+      if (side & 1) {
+        e->v1 = v_2;
+      }
+
+      if (side & 2) {
+        e->v2 = v_2;
+      }
+
+#if 1
+      BMLoop *l = e->l;
+      if (l) {
+
+        do {
+          BMLoop *l2 = l;
+
+          do {
+            if (l2->v == v) {
+              if (i) {
+                ls2.append(l2);
+              }
+              else {
+                ls1.append(l2);
+              }
+            }
+          } while ((l2 = l2->next) != l);
+        } while ((l = l->radial_next) != e->l);
+      }
+#endif
+      // e = enext;
+    }  // while (e != starte);
+  }
+
+  for (int i = 0; i < 2; i++) {
+    BMVert *v_2 = i ? v1 : v2;
+    auto &ls = i ? ls2 : ls1;
+
+    int llen = ls.size();
+    for (int j = 0; j < llen; j++) {
+      ls[j]->v = v_2;
+    }
+  }
+
+  SWAP(BMVert, (*v1), (*v2));
+  // swap contents of customdata, don't swap pointers
+  bm_swap_elements_post(bm, &bm->vdata, (BMElem *)v1, (BMElem *)v2);
+
+  bm->elem_table_dirty |= BM_VERT;
+  bm->elem_index_dirty |= BM_VERT;
+}
+
+void BM_swap_edges(BMesh *bm, BMEdge *e1, BMEdge *e2)
+{
+  for (int i = 0; i < 2; i++) {
+    BMEdge *e = i ? e2 : e1;
+    BMEdge *e_2 = i ? e1 : e2;
+
+    for (int j = 0; j < 2; j++) {
+      BMVert *v = j ? e->v2 : e->v1;
+
+      if (v->e == e) {
+        v->e = e_2;
+      }
+    }
+
+    BMLoop *l = e->l;
+    if (l) {
+      do {
+        l->e = e_2;
+      } while ((l = l->radial_next) != e->l);
+    }
+  }
+
+  SWAP(BMEdge, *e1, *e2);
+  // swap contents of customdata, don't swap pointers
+  bm_swap_elements_post(bm, &bm->edata, (BMElem *)e1, (BMElem *)e2);
+}
+
+void BM_swap_loops(BMesh *bm, BMLoop *l1, BMLoop *l2)
+{
+  for (int i = 0; i < 2; i++) {
+    BMLoop *l = i ? l2 : l1;
+
+    l->prev->next = l2;
+    l->next->prev = l2;
+
+    if (l != l->radial_next) {
+      l->radial_next->radial_prev = l2;
+      l->radial_prev->radial_next = l2;
+    }
+
+    if (l == l->e->l) {
+      l->e->l = l2;
+    }
+
+    if (l == l->f->l_first) {
+      l->f->l_first = l2;
+    }
+  }
+
+  // swap contents of customdata, don't swap pointers
+  SWAP(BMLoop, *l1, *l2);
+  // swap contents of customdata, don't swap pointers
+  bm_swap_elements_post(bm, &bm->ldata, (BMElem *)l1, (BMElem *)l2);
+}
+
+// memory coherence defragmentation
+
+#ifndef ABSLL
+#  define ABSLL(a) ((a) < 0LL ? -(a) : (a))
+#endif
+
+#define DEFRAG_FLAG BM_ELEM_TAG_ALT
+
+bool BM_defragment_vertex(BMesh *bm,
+                          BMVert *v,
+                          RNG *rand,
+                          void (*on_vert_swap)(BMVert *a, BMVert *b, void *userdata),
+                          void *userdata)
+{
+  BMEdge *e = v->e;
+
+#if 1
+  int cd_vcol = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
+
+  if (cd_vcol >= 0) {
+    float *color = (float *)BM_ELEM_CD_GET_VOID_P(v, cd_vcol);
+    int idx = BLI_mempool_find_real_index(bm->vpool, (void *)v);
+    int size = BLI_mempool_get_size(bm->vpool);
+
+    float f = (float)idx / (float)size / 2.0f;
+
+    color[0] = color[1] = color[2] = f;
+    color[3] = 1.0f;
+  }
+#endif
+
+  // return false;
+
+  // return false;
+
+  // BM_mesh_elem_table_ensure(bm, BM_VERT|BM_EDGE|BM_FACE);
+  if (!e) {
+    return false;
+  }
+
+  bool bad = false;
+  int limit = 128;
+
+  int vlimit = sizeof(BMVert *) * limit;
+  int elimit = sizeof(BMEdge *) * limit;
+  int llimit = sizeof(BMLoop *) * limit;
+  // int flimit = sizeof(BMFace *) * limit;
+
+  intptr_t iv = (intptr_t)v;
+
+  BMEdge *laste = nullptr;
+  do {
+    BMVert *v2 = BM_edge_other_vert(e, v);
+    intptr_t iv2 = (intptr_t)v2;
+    intptr_t ie = (intptr_t)e;
+
+    v2->head.hflag &= DEFRAG_FLAG;
+    e->head.hflag &= ~DEFRAG_FLAG;
+
+    if (ABSLL(iv2 - iv) > vlimit) {
+      bad = true;
+      break;
+    }
+
+    if (laste) {
+      intptr_t ilaste = (intptr_t)laste;
+      if (ABSLL(ilaste - ie) > elimit) {
+        bad = true;
+        break;
+      }
+    }
+
+    BMLoop *l = e->l;
+    if (l) {
+      do {
+        intptr_t il = (intptr_t)l;
+        intptr_t ilnext = (intptr_t)l->next;
+
+        if (ABSLL(il - ilnext) > llimit) {
+          bad = true;
+          break;
+        }
+
+        BMLoop *l2 = l->f->l_first;
+        do {
+          l2->head.hflag &= ~DEFRAG_FLAG;
+        } while ((l2 = l2->next) != l->f->l_first);
+
+        l2->f->head.hflag &= ~DEFRAG_FLAG;
+
+        l = l->radial_next;
+      } while (l != e->l);
+    }
+    laste = e;
+  } while (!bad && (e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  float prob = 1.0;
+
+  if (!bad || BLI_rng_get_float(rand) > prob) {
+    return false;
+  }
+
+  // find sort candidates
+  // BLI_mempool_find_elems_fuzzy
+
+  int vidx = BLI_mempool_find_real_index(bm->vpool, (void *)v);
+  const int count = 5;
+  BMVert **elems = static_cast<BMVert **>(BLI_array_alloca(elems, count));
+
+  do {
+    BMVert *v2 = BM_edge_other_vert(e, v);
+    int totelem = BLI_mempool_find_elems_fuzzy(bm->vpool, vidx, 4, (void **)elems, count);
+
+    for (int i = 0; i < totelem; i++) {
+      if (elems[i] == v2 || elems[i] == v) {
+        continue;
+      }
+
+      elems[i]->head.hflag &= ~DEFRAG_FLAG;
+    }
+
+    bool ok = false;
+
+    for (int i = 0; i < totelem; i++) {
+      if (elems[i] == v2 || elems[i] == v || (elems[i]->head.hflag & DEFRAG_FLAG)) {
+        continue;
+      }
+
+      if (elems[i]->head.htype != BM_VERT) {
+        printf("ERROR!\n");
+      }
+      // found one
+      v2->head.hflag |= DEFRAG_FLAG;
+      elems[i]->head.hflag |= DEFRAG_FLAG;
+
+      on_vert_swap(v2, elems[i], userdata);
+      BM_swap_verts(bm, v2, elems[i]);
+
+#if 0
+      BMIter iter;
+      BMEdge *et;
+      int f = 0;
+      BM_ITER_ELEM (et, &iter, v2, BM_EDGES_OF_VERT) {
+        printf("an edge %d\n", f++);
+      }
+
+      f = 0;
+      BM_ITER_ELEM (et, &iter, v, BM_EDGES_OF_VERT) {
+        printf("an 1edge %d\n", f++);
+      }
+#endif
+
+      // BM_swap_verts(bm, v2, elems[i]);
+
+      ok = true;
+      break;
+    }
+
+    if (ok) {
+      break;
+    }
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  return true;
+}
+
+static void on_vert_kill(BMesh *bm, BMVert *v, void *userdata)
+{
+}
+static void on_edge_kill(BMesh *bm, BMEdge *e, void *userdata)
+{
+}
+static void on_face_kill(BMesh *bm, BMFace *f, void *userdata)
+{
+}
+
+static void on_vert_create(BMesh *bm, BMVert *v, void *userdata)
+{
+}
+static void on_edge_create(BMesh *bm, BMEdge *v, void *userdata)
+{
+}
+static void on_face_create(BMesh *bm, BMFace *v, void *userdata)
+{
+}
+
+void BM_empty_tracer(BMTracer *tracer, void *userdata)
+{
+  tracer->userdata = userdata;
+
+  tracer->on_vert_create = on_vert_create;
+  tracer->on_edge_create = on_edge_create;
+  tracer->on_face_create = on_face_create;
+
+  tracer->on_vert_kill = on_vert_kill;
+  tracer->on_edge_kill = on_edge_kill;
+  tracer->on_face_kill = on_face_kill;
+}
 /** \} */

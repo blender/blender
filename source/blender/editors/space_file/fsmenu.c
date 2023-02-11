@@ -671,7 +671,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
                   CoTaskMemFree(volume_name_wchar);
                 }
               }
-              CoTaskMemFree(volume);
+              CoTaskMemFree((void *)volume);
             }
             desktop->lpVtbl->Release(desktop);
           }

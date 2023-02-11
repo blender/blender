@@ -2,6 +2,8 @@
 
 #pragma once
 
+struct BMTracer;
+
 /** \file
  * \ingroup bmesh
  */
@@ -155,8 +157,14 @@ BMEdge *BM_vert_collapse_edge(BMesh *bm,
 /**
  * Collapse and edge into a single vertex.
  */
-BMVert *BM_edge_collapse(
-    BMesh *bm, BMEdge *e_kill, BMVert *v_kill, bool do_del, bool kill_degenerate_faces);
+BMVert *BM_edge_collapse(BMesh *bm,
+                         BMEdge *e_kill,
+                         BMVert *v_kill,
+                         const bool do_del,
+                         const bool kill_degenerate_faces,
+                         const bool combine_flags,
+                         const bool full_non_manifold_collapse,
+                         const struct BMTracer *tracer);
 
 /**
  * \brief Edge Split

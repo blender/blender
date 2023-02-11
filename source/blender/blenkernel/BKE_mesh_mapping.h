@@ -99,8 +99,11 @@ typedef struct MeshElemMap {
   int count;
 } MeshElemMap;
 
-/* mapping */
-
+/**
+ * Generates a map where the key is the vertex and the value
+ * is a list of polys that use that vertex as a corner.
+ * The lists are allocated from one memory pool.
+ */
 UvVertMap *BKE_mesh_uv_vert_map_create(const struct MPoly *mpoly,
                                        const bool *hide_poly,
                                        const bool *select_poly,
@@ -116,33 +119,38 @@ void BKE_mesh_uv_vert_map_free(UvVertMap *vmap);
 
 /**
  * Generates a map where the key is the vertex and the value
- * is a list of polys that use that vertex as a corner.
- * The lists are allocated from one memory pool.
- */
-void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map,
-                                   int **r_mem,
-                                   const struct MPoly *mpoly,
-                                   const struct MLoop *mloop,
-                                   int totvert,
-                                   int totpoly,
-                                   int totloop);
-/**
- * Generates a map where the key is the vertex and the value
  * is a list of loops that use that vertex as a corner.
  * The lists are allocated from one memory pool.
  */
-void BKE_mesh_vert_loop_map_create(MeshElemMap **r_map,
-                                   int **r_mem,
-                                   const struct MPoly *mpoly,
-                                   const struct MLoop *mloop,
-                                   int totvert,
-                                   int totpoly,
-                                   int totloop);
+void BKE_mesh_vert_poly_map_create(
+    MeshElemMap **r_map,
+    int **r_mem,
+    const float (*vert_positions)[3],  // only needed if sort_disk_cycles is true
+    const struct MEdge *medge,         // only needed if sort_disk_cycles is true
+    const struct MPoly *mpoly,
+    const struct MLoop *mloop,
+    int totvert,
+    int totpoly,
+    int totloop,
+    const bool sort_disk_cycles);  // put polys in sorted geometric order
+
 /**
  * Generates a map where the key is the edge and the value
  * is a list of looptris that use that edge.
  * The lists are allocated from one memory pool.
  */
+void BKE_mesh_vert_loop_map_create(
+    MeshElemMap **r_map,
+    int **r_mem,
+    const float (*vert_cos)[3],  // only needed if sort_disk_cycles is true
+    const struct MEdge *medge,   // only needed if sort_disk_cycles is true
+    const struct MPoly *mpoly,
+    const struct MLoop *mloop,
+    int totvert,
+    int totpoly,
+    int totloop,
+    const bool sort_disk_cycles);  // put loops in sorted geometric order
+
 void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
                                       int **r_mem,
                                       int totvert,
@@ -156,11 +164,14 @@ void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
  * The lists are allocated from one memory pool.
  */
 void BKE_mesh_vert_edge_map_create(
-    MeshElemMap **r_map, int **r_mem, const struct MEdge *medge, int totvert, int totedge);
-/**
- * A version of #BKE_mesh_vert_edge_map_create that references connected vertices directly
- * (not their edges).
- */
+    MeshElemMap **r_map,
+    int **r_mem,
+    const float (*vert_cos)[3],  // only needed if sort_disk_cycles is true
+    const struct MEdge *medge,
+    int totvert,
+    int totedge,
+    bool sort_disk_cycles);  // sort verts in geometric order around edges
+
 void BKE_mesh_vert_edge_vert_map_create(
     MeshElemMap **r_map, int **r_mem, const struct MEdge *medge, int totvert, int totedge);
 /**

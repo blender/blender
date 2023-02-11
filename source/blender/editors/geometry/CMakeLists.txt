@@ -9,6 +9,7 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../windowmanager
+  ../../../../intern/atomic
   ../../../../intern/guardedalloc
   ../../bmesh
 )

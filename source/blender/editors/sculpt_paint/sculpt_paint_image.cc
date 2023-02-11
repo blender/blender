@@ -175,22 +175,24 @@ template<typename ImageBuffer> class PaintingKernel {
         continue;
       }
 
+      PBVHVertRef fakevert = BKE_pbvh_make_vref(0LL);
+
       float4 color = image_accessor.read_pixel(image_buffer);
       const float3 normal(0.0f, 0.0f, 0.0f);
       const float3 face_normal(0.0f, 0.0f, 0.0f);
       const float mask = 0.0f;
 
-      const float falloff_strength = SCULPT_brush_strength_factor(
-          ss,
-          brush,
-          pixel_pos,
-          sqrtf(test.dist),
-          normal,
-          face_normal,
-          mask,
-          BKE_pbvh_make_vref(PBVH_REF_NONE),
-          thread_id,
-          automask_data);
+      const float falloff_strength = SCULPT_brush_strength_factor(ss,
+                                                                  brush,
+                                                                  pixel_pos,
+                                                                  sqrtf(test.dist),
+                                                                  normal,
+                                                                  face_normal,
+                                                                  mask,
+                                                                  fakevert,
+                                                                  thread_id,
+                                                                  automask_data);
+
       float4 paint_color = brush_color * falloff_strength * brush_strength;
       float4 buffer_color;
 
@@ -244,7 +246,7 @@ template<typename ImageBuffer> class PaintingKernel {
   }
   void init_brush_test()
   {
-    brush_test_fn = SCULPT_brush_test_init_with_falloff_shape(ss, &test, brush->falloff_shape);
+    brush_test_fn = SCULPT_brush_test_init(ss, &test);
   }
 
   /**

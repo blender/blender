@@ -340,7 +340,10 @@ static void crazyspace_init_verts_and_matrices(const Mesh *mesh,
 
 static bool crazyspace_modifier_supports_deform_matrices(ModifierData *md)
 {
-  if (ELEM(md->type, eModifierType_Subsurf, eModifierType_Multires)) {
+  if (md->type == eModifierType_Multires) {
+    return true;
+  }
+  if (md->type == eModifierType_Subsurf && md->mode & eModifierMode_OnCage) {
     return true;
   }
   const ModifierTypeInfo *mti = BKE_modifier_get_info(static_cast<ModifierType>(md->type));

@@ -18,7 +18,16 @@
 #include "DNA_scene_types.h"
 
 #ifdef __cplusplus
+namespace blender {
+template<typename Float, int axes> class BezierSpline;
+}
+
+using BezierSpline2f = blender::BezierSpline<float, 2>;
+using BezierSpline3f = blender::BezierSpline<float, 3>;
 extern "C" {
+#else
+typedef struct BezierSpline2f BezierSpline2f;
+typedef struct BezierSpline3f BezierSpline3f;
 #endif
 
 struct ARegion;
@@ -46,6 +55,10 @@ typedef struct CoNo {
   float no[3];
 } CoNo;
 
+#include "DNA_listBase.h"
+#include "DNA_scene_types.h"
+#include "ED_view3d.h"
+
 /* paint_stroke.cc */
 
 typedef bool (*StrokeGetLocation)(struct bContext *C,
@@ -58,7 +71,7 @@ typedef void (*StrokeUpdateStep)(struct bContext *C,
                                  struct PaintStroke *stroke,
                                  struct PointerRNA *itemptr);
 typedef void (*StrokeRedraw)(const struct bContext *C, struct PaintStroke *stroke, bool final);
-typedef void (*StrokeDone)(const struct bContext *C, struct PaintStroke *stroke);
+typedef void (*StrokeDone)(const struct bContext *C, struct PaintStroke *stroke);;
 
 struct PaintStroke *paint_stroke_new(struct bContext *C,
                                      struct wmOperator *op,
@@ -109,6 +122,19 @@ bool PAINT_brush_tool_poll(struct bContext *C);
  * Delete overlay cursor textures to preserve memory and invalidate all overlay flags.
  */
 void paint_cursor_delete_textures(void);
+
+/**
+ * used by various actions that have their own spacing that
+ * is coarser then the brush spacing. e.g. sculpt dyntopo.
+ *
+ * \param state: pointer to a float used for internal state, should be initialized to zero at start
+ * of stroke \return false if the action should be skipped.
+ *
+ */
+bool paint_stroke_apply_subspacing(struct PaintStroke *stroke,
+                                   const float spacing,
+                                   const enum ePaintMode mode,
+                                   float *state);
 
 /* paint_vertex.c */
 
@@ -369,9 +395,10 @@ void paint_get_tex_pixel_col(const struct MTex *mtex,
 void paint_sample_color(
     struct bContext *C, struct ARegion *region, int x, int y, bool texpaint_proj, bool palette);
 
-void paint_stroke_operator_properties(struct wmOperatorType *ot);
+void paint_stroke_operator_properties(struct wmOperatorType *ot, bool mode_skip_save);
 
 void BRUSH_OT_curve_preset(struct wmOperatorType *ot);
+void BRUSH_OT_curve_preset_load(struct wmOperatorType *ot);
 
 void PAINT_OT_face_select_linked(struct wmOperatorType *ot);
 void PAINT_OT_face_select_linked_pick(struct wmOperatorType *ot);
@@ -391,6 +418,7 @@ bool mask_paint_poll(struct bContext *C);
 bool paint_curve_poll(struct bContext *C);
 
 bool facemask_paint_poll(struct bContext *C);
+
 /**
  * Uses symm to selectively flip any axis of a coordinate.
  */
@@ -524,6 +552,22 @@ void paint_init_pivot(struct Object *ob, struct Scene *scene);
 
 /* paint curve defines */
 #define PAINT_CURVE_NUM_SEGMENTS 40
+
+bool paint_stroke_has_cubic(const struct PaintStroke *stroke);
+float bezier3_arclength_v2(const float control[4][2]);
+float bezier3_arclength_v3(const float control[4][3]);
+void evaluate_cubic_bezier(const float control[4][3], float t, float r_pos[3], float r_tangent[3]);
+
+void paint_project_spline(struct bContext *C,
+                          struct StrokeCache *cache,
+                          struct PaintStroke *stroke);
+;
+void paint_calc_cubic_uv_v3(struct PaintStroke *stroke,
+                            struct StrokeCache *cache,
+                            const float co[3],
+                            float r_out[3],
+                            float r_tan[3]);
+float paint_stroke_spline_length(struct PaintStroke *stroke);
 
 #ifdef __cplusplus
 }

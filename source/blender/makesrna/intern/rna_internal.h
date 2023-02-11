@@ -29,6 +29,7 @@ struct Object;
 struct ReportList;
 struct SDNA;
 struct ViewLayer;
+struct BrushChannel;
 
 /* Data structures used during define */
 
@@ -144,6 +145,11 @@ void RNA_def_attribute(struct BlenderRNA *brna);
 void RNA_def_asset(struct BlenderRNA *brna);
 void RNA_def_boid(struct BlenderRNA *brna);
 void RNA_def_brush(struct BlenderRNA *brna);
+void RNA_def_brush_engine(struct BlenderRNA *brna);
+void RNA_def_brush_channelset(struct BlenderRNA *brna,
+                              struct PropertyRNA *cprop,
+                              const char *type_prefix,
+                              char name_mem[256]);
 void RNA_def_cachefile(struct BlenderRNA *brna);
 void RNA_def_camera(struct BlenderRNA *brna);
 void RNA_def_cloth(struct BlenderRNA *brna);
@@ -664,6 +670,16 @@ const char *rna_translate_ui_text(const char *text,
 
 /* Internal functions that cycles uses so we need to declare (not ideal!). */
 void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
+
+int rna_BrushChannelSet_channels_assignint(struct PointerRNA *ptr,
+                                           int key,
+                                           const struct PointerRNA *assign_ptr);
+int rna_BrushChannelSet_channels_begin(struct CollectionPropertyIterator *iter,
+                                       struct PointerRNA *ptr);
+int rna_BrushChannelSet_length(struct PointerRNA *rna);
+void rna_BrushChannelSet_ensure(struct ID *id, struct BrushChannel *channel);
+
+/* internal brush channel functions */
 
 #ifdef RNA_RUNTIME
 #  ifdef __GNUC__

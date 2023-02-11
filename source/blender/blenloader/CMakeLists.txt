@@ -20,6 +20,7 @@ set(INC
   ../windowmanager
   ../../../intern/clog
   ../../../intern/guardedalloc
+  ../../../intern/atomic
   ../bmesh
 
   # for writefile.c: dna_type_offsets.h

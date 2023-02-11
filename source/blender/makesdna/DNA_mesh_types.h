@@ -46,6 +46,11 @@ struct MFace;
 struct MLoopTri;
 struct Material;
 
+typedef struct AttributeRef {
+  int domain, type;
+  char name[64];
+} AttributeRef;
+
 typedef struct Mesh {
   DNA_DEFINE_CXX_METHODS(Mesh)
 
@@ -339,12 +344,12 @@ enum {
   ME_FLAG_UNUSED_3 = 1 << 3,     /* cleared */
   ME_FLAG_UNUSED_4 = 1 << 4,     /* cleared */
   ME_AUTOSMOOTH = 1 << 5,
-  ME_FLAG_UNUSED_6 = 1 << 6, /* cleared */
-  ME_FLAG_UNUSED_7 = 1 << 7, /* cleared */
+  ME_SCULPT_IGNORE_UVS = 1 << 6, /* cleared */
+  ME_REMESH_REPROJECT_MATERIALS = 1 << 7,
   ME_REMESH_REPROJECT_VERTEX_COLORS = 1 << 8,
   ME_DS_EXPAND = 1 << 9,
   ME_SCULPT_DYNAMIC_TOPOLOGY = 1 << 10,
-  ME_FLAG_UNUSED_8 = 1 << 11, /* cleared */
+  ME_SCULPT_MIRROR_FSET_BOUNDARIES = 1 << 11, /* cleared */
   ME_REMESH_REPROJECT_PAINT_MASK = 1 << 12,
   ME_REMESH_FIX_POLES = 1 << 13,
   ME_REMESH_REPROJECT_VOLUME = 1 << 14,

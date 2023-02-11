@@ -1717,6 +1717,9 @@ void BKE_brush_sculpt_reset(Brush *br)
    * assign this so logic below can remain the same. */
   br->alpha = 0.5f;
 
+  br->flag2 |= BRUSH_SMOOTH_PRESERVE_FACE_SETS | BRUSH_SMOOTH_USE_AREA_WEIGHT;
+  bool disable_dyntopo = false;
+
   /* Brush settings */
   switch (br->sculpt_tool) {
     case SCULPT_TOOL_DRAW_SHARP:
@@ -1728,11 +1731,13 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->curve_preset = BRUSH_CURVE_SMOOTHER;
       br->spacing = 10;
       br->alpha = 1.0f;
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
       br->spacing = 10;
       br->alpha = 1.0f;
       br->slide_deform_type = BRUSH_SLIDE_DEFORM_DRAG;
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_CLAY:
       br->flag |= BRUSH_SIZE_PRESSURE;
@@ -1780,6 +1785,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       break;
     case SCULPT_TOOL_ROTATE:
       br->alpha = 1.0;
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_SMOOTH:
       br->flag &= ~BRUSH_SPACE_ATTEN;
@@ -1792,6 +1798,11 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_SNAKE_HOOK:
       br->alpha = 1.0f;
       br->rake_factor = 1.0f;
+      br->dyntopo.inherit = DYNTOPO_INHERIT_BITMASK &
+                            ~(DYNTOPO_INHERIT_ALL | DYNTOPO_LOCAL_COLLAPSE |
+                              DYNTOPO_INHERIT_DETAIL_RANGE);
+      br->dyntopo.flag |= DYNTOPO_LOCAL_COLLAPSE;
+      br->dyntopo.detail_range = 0.4f;
       break;
     case SCULPT_TOOL_THUMB:
       br->size = 75;
@@ -1832,6 +1843,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_CLOTH:
       br->cloth_mass = 1.0f;
@@ -1840,6 +1852,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->cloth_sim_falloff = 0.75f;
       br->cloth_deform_type = BRUSH_CLOTH_DEFORM_DRAG;
       br->flag &= ~(BRUSH_ALPHA_PRESSURE | BRUSH_SIZE_PRESSURE);
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_LAYER:
       br->flag &= ~BRUSH_SPACE_ATTEN;
@@ -1856,6 +1869,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->tip_roundness = 1.0f;
       br->density = 1.0f;
       br->flag &= ~BRUSH_SPACE_ATTEN;
+      disable_dyntopo = true;
       copy_v3_fl(br->rgb, 1.0f);
       zero_v3(br->secondary_rgb);
       break;
@@ -1925,6 +1939,7 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_POSE:
     case SCULPT_TOOL_BOUNDARY:
     case SCULPT_TOOL_SLIDE_RELAX:
+      disable_dyntopo = true;
       br->add_col[0] = 1.0f;
       br->add_col[1] = 0.95f;
       br->add_col[2] = 0.005f;
@@ -1957,6 +1972,11 @@ void BKE_brush_sculpt_reset(Brush *br)
       break;
     default:
       break;
+  }
+
+  if (disable_dyntopo) {
+    // disabled flag is never inherited
+    br->dyntopo.flag |= DYNTOPO_DISABLED;
   }
 }
 
@@ -2560,4 +2580,35 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool
   }
 
   return im;
+}
+
+bool BKE_brush_hard_edge_mode_get(const Scene *scene, const Brush *brush)
+{
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  bool ret = (ups->flag & UNIFIED_PAINT_FLAG_HARD_EDGE_MODE) ? ups->hard_edge_mode :
+                                                               brush->flag2 & BRUSH_HARD_EDGE_MODE;
+
+  return ret;
+}
+
+void BKE_brush_hard_edge_mode_set(Scene *scene, Brush *brush, bool val)
+{
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+
+  if (ups->flag & UNIFIED_PAINT_FLAG_HARD_EDGE_MODE) {
+    ups->hard_edge_mode = val;
+  }
+  else {
+    if (val) {
+      brush->flag2 |= BRUSH_HARD_EDGE_MODE;
+    }
+    else {
+      brush->flag2 &= ~BRUSH_HARD_EDGE_MODE;
+    }
+  }
+}
+
+float BKE_brush_fset_slide_get(const Scene *scene, const Brush *brush)
+{
+  return BKE_brush_hard_edge_mode_get(scene, brush) ? 0.0f : brush->autosmooth_fset_slide;
 }

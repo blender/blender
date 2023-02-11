@@ -923,6 +923,7 @@ typedef struct PaintToolSlot {
 /** Paint Tool Base. */
 typedef struct Paint {
   struct Brush *brush;
+  struct Brush *brush_eval;
 
   /**
    * Each tool has its own active brush,
@@ -1052,6 +1053,7 @@ typedef struct ParticleEditSettings {
 /** \name Sculpt
  * \{ */
 
+/* ------------------------------------------- */
 /** Sculpt. */
 typedef struct Sculpt {
   Paint paint;
@@ -1062,6 +1064,11 @@ typedef struct Sculpt {
 
   /** Transform tool. */
   int transform_mode;
+  int transform_deform_target;
+
+  /* Factor to tweak the stregtn of alt-smoothing. */
+  float smooth_strength_factor;
+  char _pad0[4];
 
   int automasking_flags;
 
@@ -1071,6 +1078,7 @@ typedef struct Sculpt {
 
   /** Maximum edge length for dynamic topology sculpting (in pixels). */
   float detail_size;
+  float detail_range;
 
   /** Direction used for `SCULPT_OT_symmetrize` operator. */
   int symmetrize_direction;
@@ -1082,7 +1090,9 @@ typedef struct Sculpt {
   /** Constant detail resolution (Blender unit / constant_detail). */
   float constant_detail;
   float detail_percent;
+  int dyntopo_spacing;
 
+  float dyntopo_radius_scale;
   int automasking_cavity_blur_steps;
   float automasking_cavity_factor;
   char _pad[4];
@@ -1363,6 +1373,10 @@ typedef struct UnifiedPaintSettings {
    */
   float pixel_radius;
   float initial_pixel_radius;
+
+  char _pad[7];
+  char hard_edge_mode;
+
   float start_pixel_radius;
 
   /** Drawing pressure. */
@@ -1387,9 +1401,9 @@ typedef enum {
 
   /** Only used if unified size is enabled, mirrors the brush flag #BRUSH_LOCK_SIZE. */
   UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1 << 2),
-  UNIFIED_PAINT_FLAG_UNUSED_0 = (1 << 3),
+  UNIFIED_PAINT_FLAG_HARD_EDGE_MODE = (1 << 3),
 
-  UNIFIED_PAINT_FLAG_UNUSED_1 = (1 << 4),
+  UNIFIED_PAINT_FLAG_UI_ADVANCED = (1 << 4),
 } eUnifiedPaintSettingsFlags;
 
 typedef struct CurvePaintSettings {
@@ -1682,7 +1696,9 @@ typedef struct ToolSettings {
 
   /** Normal Editing. */
   float normal_vector[3];
-  char _pad6[4];
+  char save_temp_layers, show_origco;
+
+  char _pad6[2];
 
   /**
    * Custom Curve Profile for bevel tool:
@@ -2426,6 +2442,7 @@ typedef enum ePaintFlags {
   PAINT_SHOW_BRUSH_ON_SURFACE = (1 << 2),
   PAINT_USE_CAVITY_MASK = (1 << 3),
   PAINT_SCULPT_DELAY_UPDATES = (1 << 4),
+  PAINT_SCULPT_SHOW_PIVOT = (1 << 5),
 } ePaintFlags;
 
 /**
@@ -2483,8 +2500,20 @@ typedef enum eSculptFlags {
   /** If set, dynamic-topology detail size will be constant in object space. */
   SCULPT_DYNTOPO_DETAIL_CONSTANT = (1 << 13),
   SCULPT_DYNTOPO_DETAIL_BRUSH = (1 << 14),
-  /* unused = (1 << 15), */
+  /* Don't display mask in viewport, but still use it for strokes. */
+  SCULPT_HIDE_MASK = (1 << 15),
   SCULPT_DYNTOPO_DETAIL_MANUAL = (1 << 16),
+
+  /* Don't display face sets in viewport. */
+  SCULPT_HIDE_FACE_SETS = (1 << 17),
+  SCULPT_DYNTOPO_FLAT_VCOL_SHADING = (1 << 18),
+  SCULPT_DYNTOPO_CLEANUP = (1 << 19),
+
+  // hides facesets/masks and forces indexed mode to save GPU bandwidth
+  SCULPT_FAST_DRAW = (1 << 20),
+  SCULPT_DYNTOPO_LOCAL_SUBDIVIDE = (1 << 21),
+  SCULPT_DYNTOPO_LOCAL_COLLAPSE = (1 << 22),
+  SCULPT_DYNTOPO_ENABLED = (1 << 23),
 } eSculptFlags;
 
 /** #Sculpt.transform_mode */
@@ -2492,6 +2521,12 @@ typedef enum eSculptTransformMode {
   SCULPT_TRANSFORM_MODE_ALL_VERTICES = 0,
   SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC = 1,
 } eSculptTrasnformMode;
+
+/** #Sculpt.transform_deform_target */
+typedef enum eSculptTransformDeformTarget {
+  SCULPT_TRANSFORM_DEFORM_TARGET_GEOMETRY = 0,
+  SCULPT_TRANSFORM_DEFORM_TARGET_CLOTH_SIM = 1,
+} eSculptTransformDeformTarget;
 
 /** #PaintModeSettings.mode */
 typedef enum ePaintCanvasSource {

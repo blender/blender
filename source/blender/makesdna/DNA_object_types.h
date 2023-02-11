@@ -37,6 +37,7 @@ struct LightgroupMembership;
 struct Material;
 struct Mesh;
 struct Object;
+struct PBVH;
 struct PartDeflect;
 struct Path;
 struct RigidBodyOb;
@@ -218,6 +219,9 @@ typedef struct Object_Runtime {
   int crazyspace_verts_num;
 
   int _pad3[3];
+
+  struct PBVH *cached_pbvh;
+  void *_pad5;
 } Object_Runtime;
 
 typedef struct ObjectLineArt {
@@ -453,8 +457,11 @@ typedef struct Object {
   /** Lightgroup membership information. */
   struct LightgroupMembership *lightgroup;
 
+  struct PBVH *cached_pbvh;
+
   /** Runtime evaluation data (keep last). */
   Object_Runtime runtime;
+  void *_pad9;
 } Object;
 
 /** DEPRECATED: this is not used anymore because hooks are now modifiers. */

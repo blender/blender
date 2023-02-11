@@ -61,6 +61,7 @@
 #include "BKE_appdir.h"
 #include "BKE_autoexec.h"
 #include "BKE_blender.h"
+#include "BKE_blender_undo.h"
 #include "BKE_blendfile.h"
 #include "BKE_callbacks.h"
 #include "BKE_context.h"
@@ -71,7 +72,9 @@
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
+#include "BKE_multires.h"
 #include "BKE_packedFile.h"
+#include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -1963,7 +1966,12 @@ static void wm_autosave_location(char filepath[FILE_MAX])
   BLI_path_join(filepath, FILE_MAX, tempdir_base, path);
 }
 
-static void wm_autosave_write(Main *bmain, wmWindowManager *wm)
+/* TODO: Move to appropriate headers */
+void ED_sculpt_fast_save_bmesh(Object *ob);
+struct MemFileUndoStep;
+MemFileUndoData *memfile_get_step_data(struct MemFileUndoStep *us);
+
+extern "C" void wm_autosave_write(Main *bmain, wmWindowManager *wm)
 {
   char filepath[FILE_MAX];
 
@@ -1972,8 +1980,41 @@ static void wm_autosave_write(Main *bmain, wmWindowManager *wm)
   /* Fast save of last undo-buffer, now with UI. */
   const bool use_memfile = (U.uiflag & USER_GLOBALUNDO) != 0;
   MemFile *memfile = use_memfile ? ED_undosys_stack_memfile_get_active(wm->undo_stack) : nullptr;
+  bool update = false;
+
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    if (ob->mode != OB_MODE_SCULPT || !ob->sculpt) {
+      continue;
+    }
+
+    /* Flush sculpt data to the mesh, we will append it to the undo memfile. */
+    if (ob->sculpt->bm) {
+      ED_sculpt_fast_save_bmesh(ob);
+    }
+    else {
+      multires_flush_sculpt_updates(ob);
+    }
+
+    update = true;
+  }
+
+  MemFileUndoData *mus = NULL;
+
+  if (update && memfile) {
+    UndoStep *us = BKE_undosys_stack_active_with_type(wm->undo_stack, BKE_UNDOSYS_TYPE_MEMFILE);
+
+    if (us) {
+      mus = memfile_get_step_data((struct MemFileUndoStep *)us);
+      mus = BKE_memfile_undo_encode(bmain, mus);
+      memfile = &mus->memfile;
+    }
+  }
   if (memfile != nullptr) {
     BLO_memfile_write_file(memfile, filepath);
+
+    if (update) {
+      BKE_memfile_undo_free(mus);
+    }
   }
   else {
     if (use_memfile) {

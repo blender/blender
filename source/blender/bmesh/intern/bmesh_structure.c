@@ -7,6 +7,7 @@
  * Low level routines for manipulating the BM structure.
  */
 
+#include "BLI_asan.h"
 #include "BLI_utildefines.h"
 
 #include "bmesh.h"
@@ -565,4 +566,27 @@ bool bmesh_loop_validate(BMFace *f)
   }
 
   return true;
+}
+
+static int sizes[] = {-1,
+                      (int)sizeof(BMVert),
+                      (int)sizeof(BMEdge),
+                      0,
+                      (int)sizeof(BMLoop),
+                      -1,
+                      -1,
+                      -1,
+                      (int)sizeof(BMFace)};
+
+bool BM_elem_is_free(BMElem *elem, int htype)
+{
+  BLI_asan_unpoison(elem, sizes[htype]);
+
+  bool ret = elem->head.htype != htype;
+
+  if (ret) {
+    BLI_asan_poison(elem, sizes[htype]);
+  }
+
+  return ret;
 }

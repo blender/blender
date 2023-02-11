@@ -373,6 +373,8 @@ static bool rna_Brush_mode_with_tool_poll(PointerRNA *ptr, PointerRNA value)
   return brush->ob_mode & mode;
 }
 
+void SCULPT_update_flat_vcol_shading(Object *ob, Scene *scene);
+
 static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
   Scene *scene = CTX_data_scene(C);
@@ -381,13 +383,16 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob) {
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
-
     if (ob->sculpt) {
+      SCULPT_update_flat_vcol_shading(ob, scene);
+
       ob->sculpt->bm_smooth_shading = ((scene->toolsettings->sculpt->flags &
                                         SCULPT_DYNTOPO_SMOOTH_SHADING) != 0);
+      ob->sculpt->fast_draw = ((scene->toolsettings->sculpt->flags & SCULPT_FAST_DRAW) != 0);
     }
+
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | ND_DRAW, ob);
   }
 }
 
@@ -554,6 +559,12 @@ static bool rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
   return imapaint->missing_data == 0;
 }
 
+void SCULPT_substep_undo(bContext *ctx, int dir);
+static void rna_SCULPT_substep_undo(bContext *ctx, int dir)
+{
+  SCULPT_substep_undo(ctx, dir);
+}
+
 static char *rna_GPencilSculptSettings_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_sculpt");
@@ -562,6 +573,24 @@ static char *rna_GPencilSculptSettings_path(const PointerRNA *UNUSED(ptr))
 static char *rna_GPencilSculptGuide_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_sculpt.guide");
+}
+
+bool SCULPT_has_persistent_base(SculptSession *ss);
+
+bool rna_Sculpt_has_persistent_base(bContext *C)
+{
+  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+
+  if (mode != PAINT_MODE_SCULPT) {
+    return false;
+  }
+
+  Object *ob = CTX_data_active_object(C);
+  if (!ob || ob->type != OB_MESH || !ob->sculpt) {
+    return false;
+  }
+
+  return SCULPT_has_persistent_base(ob->sculpt);
 }
 
 static void rna_Sculpt_automasking_invert_cavity_set(PointerRNA *ptr, bool val)
@@ -657,6 +686,11 @@ static void rna_def_paint(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flags", PAINT_FAST_NAVIGATE);
   RNA_def_property_ui_text(
       prop, "Fast Navigate", "For multires, show low resolution while navigating the view");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "show_sculpt_pivot", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", PAINT_SCULPT_SHOW_PIVOT);
+  RNA_def_property_ui_text(prop, "Show Pivot", "Show Transform Tool Sculpt Pivot");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   prop = RNA_def_property(srna, "use_sculpt_delay_updates", PROP_BOOLEAN, PROP_NONE);
@@ -789,6 +823,20 @@ static void rna_def_sculpt(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem sculpt_transform_deform_target_items[] = {
+      {SCULPT_TRANSFORM_DEFORM_TARGET_GEOMETRY,
+       "GEOMETRY",
+       0,
+       "Geometry",
+       "Transform displaces the vertices of the mesh"},
+      {SCULPT_TRANSFORM_DEFORM_TARGET_CLOTH_SIM,
+       "CLOTH_SIM",
+       0,
+       "Cloth Simulation",
+       "Transform displaces the positions of the cloth simulation"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   StructRNA *srna;
   PropertyRNA *prop;
 
@@ -828,6 +876,11 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
+  prop = RNA_def_property(srna, "use_dyntopo", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_ENABLED);
+  RNA_def_property_ui_text(prop, "DynTopo", "Enable DynTopo remesher in dynamic topology mode.");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+
   prop = RNA_def_property(srna, "detail_size", PROP_FLOAT, PROP_PIXEL);
   RNA_def_property_ui_range(prop, 0.5, 40.0, 0.1, 2);
   RNA_def_property_ui_scale_type(prop, PROP_SCALE_CUBIC);
@@ -841,6 +894,21 @@ static void rna_def_sculpt(BlenderRNA *brna)
       prop,
       "Detail Percentage",
       "Maximum edge length for dynamic topology sculpting (in brush percenage)");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "dyntopo_spacing", PROP_INT, PROP_PERCENTAGE);
+  RNA_def_property_int_sdna(prop, NULL, "dyntopo_spacing");
+  RNA_def_property_range(prop, 1, 1000);
+  RNA_def_property_ui_range(prop, 1, 500, 5, -1);
+  RNA_def_property_ui_text(
+      prop, "DynTopo Spacing", "Spacing between DynTopo daubs as a percentage of brush diameter");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "dyntopo_radius_scale", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "dyntopo_radius_scale");
+  RNA_def_property_range(prop, 0.0001f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.001f, 15.0f, 0.001f, 4.0f);
+  RNA_def_property_ui_text(prop, "Radius Scale", "Scale dyntopo brush radius");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   prop = RNA_def_property(srna, "constant_detail_resolution", PROP_FLOAT, PROP_NONE);
@@ -859,6 +927,31 @@ static void rna_def_sculpt(BlenderRNA *brna)
                            "Smooth Shading",
                            "Show faces in dynamic-topology mode with smooth "
                            "shading rather than flat shaded");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
+
+  prop = RNA_def_property(srna, "use_fast_draw", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_FAST_DRAW);
+  RNA_def_property_ui_text(prop,
+                           "Fast Draw Mode",
+                           "Forces smooth shading"
+                           "and disables drawing of masks and face sets"
+                           "to speed up drawing. Useful for posing"
+                           "high-poly meshes.");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
+
+  prop = RNA_def_property(srna, "use_dyntopo_cleanup", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_CLEANUP);
+  RNA_def_property_ui_text(prop, "Cleanup", "Removes verts surrounded by only 3 or 4 edges");
+
+  prop = RNA_def_property(srna, "use_flat_vcol_shading", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_FLAT_VCOL_SHADING);
+  RNA_def_property_ui_text(
+      prop,
+      "Draw Color Cells",
+      "Draw vertex colors in flat cells instead of smoothly interpolating."
+      "For debugging purposes only, does not effect rendering in eevee or cycles");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
@@ -981,10 +1074,24 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Gravity", "Amount of gravity after each dab");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
+  prop = RNA_def_property(srna, "smooth_strength_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "smooth_strength_factor");
+  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 2.0f, 0.1, 3);
+  RNA_def_property_ui_text(
+      prop, "Smooth Strength", "Factor to control the strength of alt-smooth");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
   prop = RNA_def_property(srna, "transform_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, sculpt_transform_mode_items);
   RNA_def_property_ui_text(
       prop, "Transform Mode", "How the transformation is going to be applied to the target");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "transform_deform_target", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, sculpt_transform_deform_target_items);
+  RNA_def_property_ui_text(
+      prop, "Deformation Target", "Target for the displacement of the transformation");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   prop = RNA_def_property(srna, "gravity_object", PROP_POINTER, PROP_NONE);
@@ -992,6 +1099,19 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Orientation", "Object whose Z axis defines orientation of gravity");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  /* functions */
+  FunctionRNA *func;
+
+  func = RNA_def_function(srna, "has_persistent_base", "rna_Sculpt_has_persistent_base");
+  RNA_def_function_ui_description(func, "Test if sculpt has persistent base (sculpt mode only)");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_NO_SELF);
+  RNA_def_function_return(func, RNA_def_boolean(func, "has", 1, "Has persistent Base", ""));
+
+  func = RNA_def_function(srna, "debug_substep_undo", "rna_SCULPT_substep_undo");
+  RNA_def_function_ui_description(func, "Test function");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  RNA_def_int(func, "dir", -1, -1, 1, "dir", "dir", -1, 1);
 }
 
 static void rna_def_uv_sculpt(BlenderRNA *brna)

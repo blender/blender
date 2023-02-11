@@ -1358,7 +1358,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   bool cd_uv_update = false;
 
   /* Early out */
-  if (cache->batch_requested == 0) {
+  if (!cache || cache->batch_requested == 0) {
 #ifdef DEBUG
     drw_mesh_batch_cache_check_available(task_graph, me);
 #endif

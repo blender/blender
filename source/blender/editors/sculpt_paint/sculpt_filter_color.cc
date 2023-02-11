@@ -81,7 +81,7 @@ static void color_filter_task_cb(void *__restrict userdata,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     float orig_color[3], final_color[4], hsv_color[3];
@@ -268,7 +268,7 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     SCULPT_undo_push_end(ob);
-    SCULPT_filter_cache_free(ss);
+    SCULPT_filter_cache_free(ss, ob);
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COLOR);
     return OPERATOR_FINISHED;
   }
@@ -327,7 +327,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
      * Filter Tool. */
     float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
     SculptCursorGeometryInfo sgi;
-    SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
+    SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false, false);
   }
 
   /* Disable for multires and dyntopo for now */

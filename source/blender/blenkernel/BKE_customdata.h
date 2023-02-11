@@ -126,6 +126,8 @@ bool CustomData_has_interp(const struct CustomData *data);
  */
 bool CustomData_bmesh_has_free(const struct CustomData *data);
 
+bool CustomData_layout_is_same(const struct CustomData *_a, const struct CustomData *_b);
+
 /**
  * Checks if any of the custom-data layers is referenced.
  */
@@ -169,6 +171,10 @@ void CustomData_copy(const struct CustomData *source,
 
 /* BMESH_TODO, not really a public function but readfile.c needs it */
 void CustomData_update_typemap(struct CustomData *data);
+
+/* copies all customdata layers without allocating data,
+ * and without respect to type masks or NO_COPY/etc flags*/
+void CustomData_copy_all_layout(const struct CustomData *source, struct CustomData *dest);
 
 /**
  * Same as the above, except that this will preserve existing layers, and only
@@ -281,7 +287,9 @@ bool CustomData_has_layer(const struct CustomData *data, int type);
  * Returns the number of layers with this type.
  */
 int CustomData_number_of_layers(const struct CustomData *data, int type);
-int CustomData_number_of_layers_typemask(const struct CustomData *data, eCustomDataMask mask);
+int CustomData_number_of_layers_typemask(const struct CustomData *data,
+                                         eCustomDataMask mask,
+                                         bool skip_temporary);
 
 /**
  * Duplicate all the layers with flag NOFREE, and remove the flag from duplicated layers.
@@ -317,6 +325,16 @@ void CustomData_copy_data_named(const struct CustomData *source,
                                 int dest_index,
                                 int count);
 void CustomData_copy_elements(int type, void *src_data_ofs, void *dst_data_ofs, int count);
+
+// ignores CD_MESH_ID layer if it exists
+void CustomData_bmesh_swap_data(struct CustomData *source,
+                                struct CustomData *dest,
+                                void *src_block,
+                                void **dest_block);
+
+// simple pointer swap; will unswaps ids if a CD_MESH_ID layer exists
+void CustomData_bmesh_swap_data_simple(CustomData *data, void **block1, void **block2);
+
 void CustomData_bmesh_copy_data(const struct CustomData *source,
                                 struct CustomData *dest,
                                 void *src_block,
@@ -572,6 +590,14 @@ int CustomData_name_max_length_calc(blender::StringRef name);
  */
 void CustomData_set_layer_unique_name(struct CustomData *data, int index);
 
+/* get unique layer name for a layer that doesn't currently exist */
+void CustomData_find_unique_layer_name(CustomData *data,
+                                       int type,
+                                       const char *name,
+                                       char *outname);
+
+/* try to find layer with name name; if it does not exist,
+   load the active layer name into outname*/
 void CustomData_validate_layer_name(const struct CustomData *data,
                                     int type,
                                     const char *name,
@@ -584,6 +610,22 @@ void CustomData_validate_layer_name(const struct CustomData *data,
 bool CustomData_verify_versions(struct CustomData *data, int index);
 
 /* BMesh specific custom-data stuff. */
+
+void CustomData_bmesh_update_active_layers(struct CustomData *fdata, struct CustomData *ldata);
+
+/**
+ * Update active indices for active/render/clone/stencil custom data layers
+ * based on indices from fdata layers
+ * used by do_versions in `readfile.c` when creating pdata and ldata for pre-bmesh
+ * meshes and needed to preserve active/render/clone/stencil flags set in pre-bmesh files.
+ */
+void CustomData_bmesh_do_versions_update_active_layers(struct CustomData *fdata,
+                                                       struct CustomData *ldata);
+
+void CustomData_bmesh_init_pool_ex(CustomData *data,
+                                   int totelem,
+                                   const char htype,
+                                   const char *memtag);
 
 void CustomData_bmesh_init_pool(struct CustomData *data, int totelem, char htype);
 
@@ -743,7 +785,25 @@ void CustomData_blend_write(BlendWriter *writer,
 
 void CustomData_blend_read(struct BlendDataReader *reader, struct CustomData *data, int count);
 
-size_t CustomData_get_elem_size(struct CustomDataLayer *layer);
+void CustomData_unmark_temporary_nocopy(struct CustomData *data);
+void CustomData_mark_temporary_nocopy(struct CustomData *data);
+
+int CustomData_get_elem_size(CustomDataLayer *layer);
+void CustomData_regen_active_refs(CustomData *data);
+
+void CustomData_bmesh_asan_poison(const CustomData *data, void *block);
+void CustomData_bmesh_asan_unpoison(const CustomData *data, void *block);
+int CustomData_get_named_offset(const CustomData *data, int type, const char *name);
+
+void CustomData_setDefaultData(eCustomDataType type, void *block, int totelem);
+size_t CustomData_getTypeSize(eCustomDataType type);
+void CustomData_freeData(eCustomDataType type, void *block, int totelem);
+void CustomData_interpData(eCustomDataType type,
+                           void *block,
+                           int tot,
+                           const void **srcs,
+                           const float *ws,
+                           const float *sub_ws);
 
 #ifndef NDEBUG
 struct DynStr;

@@ -135,6 +135,7 @@ void ED_operatortypes_mesh(void)
   WM_operatortype_append(MESH_OT_uv_texture_add);
   WM_operatortype_append(MESH_OT_uv_texture_remove);
   WM_operatortype_append(MESH_OT_customdata_mask_clear);
+  WM_operatortype_append(MESH_OT_customdata_ids_clear);
   WM_operatortype_append(MESH_OT_customdata_skin_add);
   WM_operatortype_append(MESH_OT_customdata_skin_clear);
   WM_operatortype_append(MESH_OT_customdata_custom_splitnormals_add);
@@ -162,6 +163,8 @@ void ED_operatortypes_mesh(void)
   WM_operatortype_append(MESH_OT_knife_project);
 
   WM_operatortype_append(MESH_OT_bevel);
+
+  WM_operatortype_append(MESH_OT_fair_vertices);
 
   WM_operatortype_append(MESH_OT_bridge_edge_loops);
   WM_operatortype_append(MESH_OT_inset);
@@ -193,6 +196,8 @@ void ED_operatortypes_mesh(void)
   WM_operatortype_append(MESH_OT_average_normals);
   WM_operatortype_append(MESH_OT_smooth_normals);
   WM_operatortype_append(MESH_OT_mod_weighted_strength);
+  WM_operatortype_append(MESH_OT_mres_test);
+  WM_operatortype_append(MESH_OT_dump_mres_grids);
   WM_operatortype_append(MESH_OT_flip_quad_tessellation);
 }
 

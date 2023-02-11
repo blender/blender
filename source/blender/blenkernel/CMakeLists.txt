@@ -48,6 +48,8 @@ set(INC_SYS
 
   # For `vfontdata_freetype.c`.
   ${FREETYPE_INCLUDE_DIRS}
+
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -121,6 +123,8 @@ set(SRC
   intern/data_transfer.cc
   intern/deform.cc
   intern/displist.cc
+  intern/dyntopo.cc
+  intern/dyntopo_collapse.cc
   intern/dynamicpaint.cc
   intern/editlattice.c
   intern/editmesh.cc
@@ -249,8 +253,9 @@ set(SRC
   intern/particle_distribute.c
   intern/particle_system.c
   intern/pbvh.cc
-  intern/pbvh_colors.cc
   intern/pbvh_bmesh.cc
+  intern/pbvh_displacement.c
+  intern/pbvh_colors.cc
   intern/pbvh_pixels.cc
   intern/pbvh_uv_islands.cc
   intern/pointcache.c
@@ -498,6 +503,7 @@ set(SRC
   intern/CCGSubSurf.h
   intern/CCGSubSurf_inline.h
   intern/CCGSubSurf_intern.h
+  intern/dyntopo_intern.hh
   intern/attribute_access_intern.hh
   intern/data_transfer_intern.h
   intern/lib_intern.h
@@ -773,6 +779,16 @@ if(WITH_OPENVDB)
   add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
 endif()
 
+if(WITH_INSTANT_MESHES)
+  list(APPEND INC
+    ../../../intern/instant-meshes
+  )
+  list(APPEND LIB
+    bf_intern_instant_meshes
+  )
+  add_definitions(-DWITH_INSTANT_MESHES)
+endif()
+
 if(WITH_QUADRIFLOW)
   list(APPEND INC
     ../../../intern/quadriflow
@@ -848,4 +864,76 @@ if(WITH_GTESTS)
 
   # RNA_prototypes.h
   add_dependencies(bf_blenkernel_tests bf_rna)
+endif()
+
+if(false)
+  set(PBVH_CACHE_TEST_INC
+    .
+    ../blenfont
+    ../blenlib
+    ../blenloader
+    ../blentranslation
+    ../bmesh
+    ../depsgraph
+    ../draw
+    ../functions
+    ../gpencil_modifiers
+    ../gpu
+    ../ikplugin
+    ../imbuf
+    ../makesdna
+    ../makesrna
+    ../modifiers
+    ../nodes
+    ../render
+    ../sequencer
+    ../shader_fx
+    ../simulation
+    ../../../intern/eigen
+    ../../../intern/ghost
+    ../../../intern/glew-mx
+    ../../../intern/guardedalloc
+    ../../../intern/iksolver/extern
+    ../../../intern/atomic
+    ../../../intern/clog
+    ../../../intern/libmv
+    ../../../intern/mantaflow/extern
+    ../../../intern/memutil
+    ../../../intern/mikktspace
+    ../../../intern/opensubdiv
+    ../../../extern/curve_fit_nd
+  )
+
+  set(PBVH_CACHE_TEST_SRC
+    intern/pbvh_cache_test_main.c
+  )
+
+  setup_libdirs()
+
+  add_executable(pbvh_cache_test ${PBVH_CACHE_TEST_SRC} ${PBVH_CACHE_TEST_INC})
+  setup_platform_linker_flags(pbvh_cache_test)
+
+  target_link_libraries(pbvh_cache_test bf_blenkernel bf_bmesh bf_intern_ghost bf_blenlib bf_intern_guardedalloc)
+
+  if(WIN32)
+    set_target_properties(pbvh_cache_test PROPERTIES VS_GLOBAL_VcpkgEnabled "false")
+    set_target_properties(pbvh_cache_test PROPERTIES
+      PDB_NAME "pbvh_cache_test_private"
+      PDB_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
+      if(WITH_WINDOWS_PDB AND WITH_WINDOWS_STRIPPED_PDB)
+        # This is slightly messy, but single target generators like ninja will not have the
+        # CMAKE_CFG_INTDIR variable and multitarget generators like msbuild will not have
+        # CMAKE_BUILD_TYPE. This can be simplified by target_link_options and the $<CONFIG>
+        # generator expression in newer cmake (2.13+) but until that time this fill have suffice.
+        if(CMAKE_BUILD_TYPE)
+          set_property(TARGET pbvh_cache_test APPEND_STRING PROPERTY LINK_FLAGS  " /PDBSTRIPPED:${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/pbvh_cache_test_public.pdb")
+        else()
+          set_property(TARGET pbvh_cache_test APPEND_STRING PROPERTY LINK_FLAGS  " /PDBSTRIPPED:${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/pbvh_cache_test_public.pdb")
+        endif()
+    endif()
+  endif()
+
+  if (WIN32)
+  target_link_libraries(pbvh_cache_test Vfw32.lib Imm32.lib Version.lib Comctl32.lib Shcore.lib Pathcch.lib)
+  endif()
 endif()

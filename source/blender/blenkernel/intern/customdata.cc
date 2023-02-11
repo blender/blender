@@ -17,8 +17,10 @@
 #include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_asan.h"
 #include "BLI_bitmap.h"
 #include "BLI_color.hh"
+#include "BLI_compiler_attrs.h"
 #include "BLI_endian_switch.h"
 #include "BLI_index_range.hh"
 #include "BLI_math.h"
@@ -68,10 +70,41 @@ using blender::Vector;
 /* number of layers to add when growing a CustomData object */
 #define CUSTOMDATA_GROW 5
 
+#define BM_ASAN_PAD 32
+#if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)
+#  define CD_HAVE_ASAN
+#endif
+
 /* ensure typemap size is ok */
 BLI_STATIC_ASSERT(ARRAY_SIZE(((CustomData *)nullptr)->typemap) == CD_NUMTYPES, "size mismatch");
 
 static CLG_LogRef LOG = {"bke.customdata"};
+
+bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
+{
+  CustomData a = *_a;
+  CustomData b = *_b;
+
+  a.layers = b.layers = NULL;
+  a.pool = b.pool = NULL;
+
+  if (memcmp((void *)&a, (void *)&b, sizeof(CustomData)) != 0) {
+    return false;
+  }
+
+  for (int i = 0; i < a.totlayer; i++) {
+    CustomDataLayer cla = _a->layers[i];
+    CustomDataLayer clb = _b->layers[i];
+
+    cla.data = clb.data = NULL;
+
+    if (memcmp((void *)&cla, (void *)&clb, sizeof(CustomDataLayer)) != 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Mask Utilities
@@ -188,6 +221,7 @@ struct LayerTypeInfo {
   /** a function to determine max allowed number of layers,
    * should be null or return -1 if no limit */
   int (*layers_max)();
+  bool use_default_data;
 };
 
 /** \} */
@@ -1516,6 +1550,87 @@ static bool layerValidate_propfloat2(void *data, const uint totitems, const bool
   return has_errors;
 }
 
+static void layerDynTopoVert_copy(const void *source, void *dest, int count)
+{
+  memcpy(dest, source, count * sizeof(MSculptVert));
+}
+
+static void layerDynTopoVert_interp(
+    const void **sources, const float *weights, const float *sub_weights, int count, void *dest)
+{
+  float co[3], no[3], origmask, color[4], curv;
+  MSculptVert *mv = (MSculptVert *)dest;
+
+  // float totweight = 0.0f;
+
+  if (count == 0) {
+    memset(mv, 0, sizeof(*mv));
+    return;
+  }
+
+  zero_v3(co);
+  zero_v3(no);
+  origmask = 0.0f;
+  curv = 0.0f;
+  zero_v4(color);
+
+  for (int i = 0; i < count; i++) {
+    MSculptVert *mv2 = (MSculptVert *)sources[i];
+    float w;
+
+    if (i == 0) {  // copy flag from first source
+      mv->flag = mv2->flag;
+      mv->stroke_id = mv2->stroke_id;
+    }
+
+    w = weights[i];
+
+    madd_v3_v3fl(co, mv2->origco, w);
+    madd_v3_v3fl(no, mv2->origno, w);
+    madd_v4_v4fl(color, mv2->origcolor, w);
+    origmask += (float)mv2->origmask * w;
+    curv += (float)mv2->curv * w;
+
+    // totweight += w;
+  }
+
+  normalize_v3(no);
+
+#if 0
+  if (fabsf(totweight - 1.0) > 0.001) {
+    printf("eek\n");
+  }
+  float mul = 1.0f / totweight;
+
+  mul_v3_fl(co, mul);
+
+  mul_v4_fl(color, mul);
+  origmask *= mul;
+#endif
+
+  copy_v3_v3(mv->origco, co);
+  copy_v3_v3(mv->origno, no);
+  copy_v4_v4(mv->origcolor, color);
+
+  mv->curv = (short)curv;
+  mv->origmask = (short)origmask;
+}
+
+static void layerInterp_noop(const void **, const float *, const float *, int, void *)
+{
+  // do nothing
+}
+
+static void layerDefault_mesh_id(void *data, int count)
+{
+  int *val = (int *)data;
+
+  for (int i = 0; i < count; i++) {
+    // val[i] = -1;
+    val[i] = 0;
+  }
+}
+
 static bool layerEqual_propfloat2(const void *data1, const void *data2)
 {
   const float2 &a = *static_cast<const float2 *>(data1);
@@ -1671,7 +1786,21 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr,
      layerInterp_propInt,
-     nullptr},
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     true},
     /* 12: CD_PROP_STRING */
     {sizeof(MStringProperty),
      "MStringProperty",
@@ -1968,133 +2097,184 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr},
     /* 51: CD_HAIRLENGTH */
     {sizeof(float), "float", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
+    /*52 CD_MESH_ID */
+    {sizeof(unsigned int),
+     "MIntProperty",
+     1,
+     nullptr,  // flag singleton layer
+     nullptr,
+     nullptr,
+     layerInterp_noop,
+     nullptr,
+     layerDefault_mesh_id},
+    /* 53 CD_DYNTOPO_VERT */
+    {sizeof(MSculptVert),
+     "MSculptVert",
+     1,
+     nullptr,  // flag singleton layer
+     layerDynTopoVert_copy,
+     nullptr,
+     layerDynTopoVert_interp},
+    /*54 CD_BMESH_TOOLFLAGS */
+    {sizeof(MToolFlags),
+     "MToolFlags",
+     1,
+     nullptr,  // flag singleton layer
+     nullptr,
+     nullptr,
+     layerInterp_noop},
 };
 
-static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
-    /*   0-4 */ "CDMVert",
-    "CDMSticky",
-    "CDMDeformVert",
-    "CDMEdge",
-    "CDMFace",
-    /*   5-9 */ "CDMTFace",
-    "CDMCol",
-    "CDOrigIndex",
-    "CDNormal",
-    "CDFaceMap",
-    /* 10-14 */ "CDMFloatProperty",
-    "CDMIntProperty",
-    "CDMStringProperty",
-    "CDOrigSpace",
-    "CDOrco",
-    /* 15-19 */ "CDMTexPoly",
-    "CDMLoopUV",
-    "CDMloopCol",
-    "CDTangent",
-    "CDMDisps",
-    /* 20-24 */ "CDPreviewMCol",
-    "CDIDMCol",
-    "CDTextureMCol",
-    "CDClothOrco",
-    "CDMRecast",
+static const char *LAYERTYPENAMES[CD_NUMTYPES] = {/*   0-4 */
+                                                  "CDMVert",
+                                                  "CDMSticky",
+                                                  "CDMDeformVert",
+                                                  "CDMEdge",
+                                                  "CDMFace",
+                                                  /*   5-9 */
+                                                  "CDMTFace",
+                                                  "CDMCol",
+                                                  "CDOrigIndex",
+                                                  "CDNormal",
+                                                  "CDFaceMap",
+                                                  /* 10-14 */
+                                                  "CDMFloatProperty",
+                                                  "CDMIntProperty",
+                                                  "CDMStringProperty",
+                                                  "CDOrigSpace",
+                                                  "CDOrco",
+                                                  /* 15-19 */
+                                                  "CDMTexPoly",
+                                                  "CDMLoopUV",
+                                                  "CDMloopCol",
+                                                  "CDTangent",
+                                                  "CDMDisps",
+                                                  /* 20-24 */
+                                                  "CDPreviewMCol",
+                                                  "CDIDMCol",
+                                                  "CDTextureMCol",
+                                                  "CDClothOrco",
+                                                  "CDMRecast",
 
-    /* BMESH ONLY */
-    /* 25-29 */ "CDMPoly",
-    "CDMLoop",
-    "CDShapeKeyIndex",
-    "CDShapeKey",
-    "CDBevelWeight",
-    /* 30-34 */ "CDSubSurfCrease",
-    "CDOrigSpaceLoop",
-    "CDPreviewLoopCol",
-    "CDBMElemPyPtr",
-    "CDPaintMask",
-    /* 35-36 */ "CDGridPaintMask",
-    "CDMVertSkin",
-    /* 37-38 */ "CDFreestyleEdge",
-    "CDFreestyleFace",
-    /* 39-42 */ "CDMLoopTangent",
-    "CDTessLoopNormal",
-    "CDCustomLoopNormal",
-    "CDSculptFaceGroups",
-    /* 43-46 */ "CDHairPoint",
-    "CDPropInt8",
-    "CDHairMapping",
-    "CDPoint",
-    "CDPropCol",
-    "CDPropFloat3",
-    "CDPropFloat2",
-    "CDPropBoolean",
-    "CDHairLength",
-};
+                                                  /* BMESH ONLY */
+                                                  /* 25-29 */
+                                                  "CDMPoly",
+                                                  "CDMLoop",
+                                                  "CDShapeKeyIndex",
+                                                  "CDShapeKey",
+                                                  "CDBevelWeight",
+                                                  /* 30-34 */
+                                                  "CDSubSurfCrease",
+                                                  "CDOrigSpaceLoop",
+                                                  "CDPreviewLoopCol",
+                                                  "CDBMElemPyPtr",
+                                                  "CDPaintMask",
+                                                  /* 35-36 */
+                                                  "CDGridPaintMask",
+                                                  "CDMVertSkin",
+                                                  /* 37-38 */
+                                                  "CDFreestyleEdge",
+                                                  "CDFreestyleFace",
+                                                  /* 39-42 */
+                                                  "CDMLoopTangent",
+                                                  "CDTessLoopNormal",
+                                                  "CDCustomLoopNormal",
+                                                  "CDSculptFaceGroups",
+                                                  /* 43-46 */
+                                                  "CDHairPoint",
+                                                  "CDHairMapping",
+                                                  "CDPropInt8",
+                                                  "CDPoint",
+                                                  /* 47-50 */
+                                                  "CDPropCol",
+                                                  "CDPropFloat3",
+                                                  "CDPropFloat2",
+                                                  "CDPropBoolean",
+                                                  /*51-53*/
+                                                  "CDHairLength",
+                                                  "CDMeshID",
+                                                  "CDDyntopoVert",
+                                                  "CDPropInt16"};
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
-    /*vmask*/ CD_MASK_PROP_FLOAT3,
-    /*emask*/ CD_MASK_MEDGE,
+    /*vmask*/ CD_MASK_PROP_FLOAT3 | CD_MASK_MESH_ID,
+    /*emask*/ CD_MASK_MEDGE | CD_MASK_MESH_ID,
     /*fmask*/ 0,
-    /*pmask*/ CD_MASK_MPOLY | CD_MASK_FACEMAP,
-    /*lmask*/ CD_MASK_MLOOP,
+    /*pmask*/ CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_MESH_ID,
+    /*lmask*/ CD_MASK_MLOOP | CD_MASK_MESH_ID,
 };
 const CustomData_MeshMasks CD_MASK_BAREMESH_ORIGINDEX = {
-    /*vmask*/ CD_MASK_PROP_FLOAT3 | CD_MASK_ORIGINDEX,
-    /*emask*/ CD_MASK_MEDGE | CD_MASK_ORIGINDEX,
+    /*vmask*/ CD_MASK_PROP_FLOAT3 | CD_MASK_ORIGINDEX | CD_MASK_MESH_ID,
+    /*emask*/ CD_MASK_MEDGE | CD_MASK_ORIGINDEX | CD_MASK_MESH_ID,
     /*fmask*/ 0,
-    /*pmask*/ CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_ORIGINDEX,
-    /*lmask*/ CD_MASK_MLOOP,
+    /*pmask*/ CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_ORIGINDEX | CD_MASK_MESH_ID,
+    /*lmask*/ CD_MASK_MLOOP | CD_MASK_MESH_ID,
 };
 const CustomData_MeshMasks CD_MASK_MESH = {
     /*vmask*/ (CD_MASK_PROP_FLOAT3 | CD_MASK_MDEFORMVERT | CD_MASK_MVERT_SKIN |
-               CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE | CD_MASK_BWEIGHT),
+               CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE | CD_MASK_BWEIGHT |
+               CD_MASK_MESH_ID),
     /*emask*/
-    (CD_MASK_MEDGE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_BWEIGHT | CD_MASK_CREASE),
+    (CD_MASK_MEDGE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_BWEIGHT | CD_MASK_CREASE |
+     CD_MASK_MESH_ID),
     /*fmask*/ 0,
     /*pmask*/
-    (CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
+    (CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL |
+     CD_MASK_MESH_ID),
     /*lmask*/
     (CD_MASK_MLOOP | CD_MASK_MDISPS | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK |
-     CD_MASK_PROP_ALL),
+     CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
 };
+
 const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
     /*vmask*/ (CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_SHAPEKEY | CD_MASK_MVERT_SKIN |
                CD_MASK_PAINT_MASK | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_PROP_ALL |
-               CD_MASK_CREASE | CD_MASK_BWEIGHT),
+               CD_MASK_CREASE | CD_MASK_BWEIGHT | CD_MASK_MESH_ID),
     /*emask*/
     (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_BWEIGHT | CD_MASK_PROP_ALL |
-     CD_MASK_CREASE),
+     CD_MASK_CREASE | CD_MASK_MESH_ID),
     /*fmask*/ (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_PREVIEW_MCOL | CD_MASK_TANGENT),
     /*pmask*/
-    (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL),
+    (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL |
+     CD_MASK_MESH_ID),
     /*lmask*/
     (CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP |
-     CD_MASK_PROP_ALL), /* XXX: MISSING #CD_MASK_MLOOPTANGENT ? */
+     CD_MASK_PROP_ALL | CD_MASK_MESH_ID), /* XXX: MISSING #CD_MASK_MLOOPTANGENT ? */
 };
 const CustomData_MeshMasks CD_MASK_BMESH = {
     /*vmask*/ (CD_MASK_MDEFORMVERT | CD_MASK_BWEIGHT | CD_MASK_MVERT_SKIN | CD_MASK_SHAPEKEY |
-               CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE),
-    /*emask*/ (CD_MASK_BWEIGHT | CD_MASK_CREASE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
+               CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE |
+               CD_MASK_MESH_ID),
+    /*emask*/
+    (CD_MASK_BWEIGHT | CD_MASK_CREASE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL |
+     CD_MASK_MESH_ID),
     /*fmask*/ 0,
     /*pmask*/
-    (CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL),
+    (CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
     /*lmask*/
-    (CD_MASK_MDISPS | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
+    (CD_MASK_MDISPS | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL |
+     CD_MASK_MESH_ID),
 };
 const CustomData_MeshMasks CD_MASK_EVERYTHING = {
     /*vmask*/ (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_BWEIGHT |
                CD_MASK_MVERT_SKIN | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_SHAPEKEY |
-               CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE),
+               CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE |
+               CD_MASK_MESH_ID),
     /*emask*/
     (CD_MASK_MEDGE | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_BWEIGHT | CD_MASK_CREASE |
-     CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
+     CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
     /*fmask*/
     (CD_MASK_MFACE | CD_MASK_ORIGINDEX | CD_MASK_NORMAL | CD_MASK_MTFACE | CD_MASK_MCOL |
      CD_MASK_ORIGSPACE | CD_MASK_TANGENT | CD_MASK_TESSLOOPNORMAL | CD_MASK_PREVIEW_MCOL |
-     CD_MASK_PROP_ALL),
+     CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
     /*pmask*/
     (CD_MASK_MPOLY | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_FACEMAP |
-     CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
+
+     CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
     /*lmask*/
     (CD_MASK_MLOOP | CD_MASK_BM_ELEM_PYPTR | CD_MASK_MDISPS | CD_MASK_NORMAL |
      CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_MLOOPTANGENT | CD_MASK_PREVIEW_MLOOPCOL |
-     CD_MASK_ORIGSPACE_MLOOP | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
+     CD_MASK_ORIGSPACE_MLOOP | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
 };
 
 static const LayerTypeInfo *layerType_getInfo(int type)
@@ -2185,6 +2365,95 @@ void CustomData_update_typemap(CustomData *data)
   }
 }
 
+void CustomData_regen_active_refs(CustomData *data)
+{
+  int i, j;
+
+  for (int i = 0; i < CD_NUMTYPES; i++) {
+    data->typemap[i] = -1;
+  }
+
+  for (i = 0, j = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = &data->layers[i];
+
+    if (data->typemap[layer->type] == -1) {
+      data->typemap[layer->type] = i;
+    }
+  }
+
+  /* explicitly flag active layers */
+  for (i = 0, j = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = &data->layers[i];
+    CustomDataLayer *base = data->layers + data->typemap[layer->type];
+    int n = layer - base;
+
+    if (layer == base) {
+      continue;
+    }
+
+    layer->active = n == base->active;
+    layer->active_clone = n == base->active_clone;
+    layer->active_mask = n == base->active_mask;
+    layer->active_rnd = n == base->active_rnd;
+  }
+
+  /* handle case of base layers being active */
+  for (int i = 0; i < CD_NUMTYPES; i++) {
+    if (data->typemap[i] == -1) {
+      continue;
+    }
+
+    CustomDataLayer *base = data->layers + data->typemap[i];
+
+    base->active = !base->active;
+    base->active_mask = !base->active_mask;
+    base->active_clone = !base->active_clone;
+    base->active_rnd = !base->active_rnd;
+  }
+
+  /* regenerate active refs */
+  /* set active n in base layer for all types */
+  for (i = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = data->layers + i;
+    CustomDataLayer *base = data->layers + data->typemap[layer->type];
+
+    int n = layer - base;
+
+    if (n < 0) {
+      printf("error!\n");
+      for (int j = 0; j < data->totlayer; j++) {
+        printf("%s", i == j ? "->" : "  ");
+        printf("%d : \"%s\"\n",
+               data->layers[i].type,
+               data->layers[i].name ? data->layers[i].name : "");
+      }
+    }
+    if (layer->active) {
+      base->active = n;
+    }
+    if (layer->active_mask) {
+      base->active_mask = n;
+    }
+    if (layer->active_clone) {
+      base->active_clone = n;
+    }
+    if (layer->active_rnd) {
+      base->active_rnd = n;
+    }
+  }
+
+  /* set active n in all layers */
+  for (i = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = &data->layers[i];
+    CustomDataLayer *base = data->layers + data->typemap[layer->type];
+
+    layer->active = base->active;
+    layer->active_mask = base->active_mask;
+    layer->active_clone = base->active_clone;
+    layer->active_rnd = base->active_rnd;
+  }
+}
+
 /* currently only used in BLI_assert */
 #ifndef NDEBUG
 static bool customdata_typemap_is_valid(const CustomData *data)
@@ -2194,6 +2463,29 @@ static bool customdata_typemap_is_valid(const CustomData *data)
   return (memcmp(data->typemap, data_copy.typemap, sizeof(data->typemap)) == 0);
 }
 #endif
+
+/* copies all customdata layers without allocating data,
+ * and without respect to type masks or NO_COPY/etc flags*/
+void CustomData_copy_all_layout(const struct CustomData *source, struct CustomData *dest)
+{
+  *dest = *source;
+
+  if (dest->pool) {
+    dest->pool = NULL;
+  }
+
+  if (source->layers) {
+    dest->layers = static_cast<CustomDataLayer *>(
+        MEM_mallocN(sizeof(*dest->layers) * source->totlayer, __func__));
+
+    for (int i = 0; i < source->totlayer; i++) {
+      dest->layers[i] = source->layers[i];
+      dest->layers[i].data = NULL;
+    }
+  }
+
+  CustomData_regen_active_refs(dest);
+}
 
 bool CustomData_merge(const CustomData *source,
                       CustomData *dest,
@@ -2213,6 +2505,10 @@ bool CustomData_merge(const CustomData *source,
 
     int type = layer->type;
     int flag = layer->flag;
+
+    if (flag & CD_FLAG_NOCOPY) {
+      continue;
+    }
 
     if (type != lasttype) {
       number = 0;
@@ -2261,6 +2557,10 @@ bool CustomData_merge(const CustomData *source,
     }
 
     if (newlayer) {
+      if (layer->default_data) {
+        newlayer->default_data = MEM_dupallocN(layer->default_data);
+      }
+
       newlayer->uid = layer->uid;
 
       newlayer->active = lastactive;
@@ -2286,6 +2586,8 @@ bool CustomData_merge(const CustomData *source,
   }
 
   CustomData_update_typemap(dest);
+  CustomData_regen_active_refs(dest);
+
   return changed;
 }
 
@@ -2381,6 +2683,10 @@ static void customData_free_layer__internal(CustomDataLayer *layer, const int to
     if (layer->data) {
       MEM_freeN(layer->data);
     }
+
+    if (layer->default_data) {
+      MEM_freeN(layer->default_data);
+    }
   }
 }
 
@@ -2435,15 +2741,128 @@ static void customData_update_offsets(CustomData *data)
   const LayerTypeInfo *typeInfo;
   int offset = 0;
 
-  for (int i = 0; i < data->totlayer; i++) {
-    typeInfo = layerType_getInfo(data->layers[i].type);
+  // sort by alignment
+  int aligns[] = {16, 8, 4, 2, 1};
+  BLI_bitmap *donemap = BLI_BITMAP_NEW_ALLOCA(data->totlayer);
+  int alignment = 1;
 
-    data->layers[i].offset = offset;
-    offset += typeInfo->size;
+  // do large structs first
+  for (int j = 0; j < data->totlayer; j++) {
+    CustomDataLayer *layer = data->layers + j;
+
+    typeInfo = layerType_getInfo(layer->type);
+    int size = (int)typeInfo->size;
+
+    /* Float vectors get 4-byte alignment. */
+    if (ELEM(layer->type, CD_PROP_COLOR, CD_PROP_FLOAT2, CD_PROP_FLOAT3)) {
+      alignment = max_ii(alignment, 4);
+    }
+    else if (size > 4) {
+      alignment = max_ii(alignment, 8);
+    }
+    else if (size > 2) {
+      alignment = max_ii(alignment, 4);
+    }
+    else if (size > 1) {
+      alignment = max_ii(alignment, 2);
+    }
+    else {
+      alignment = max_ii(alignment, 1);
+    }
+
+    /* Detect large structures */
+    if (size > 8) {
+      BLI_BITMAP_SET(donemap, j, true);
+
+      // align to 8-byte boundary
+      if (size & 7) {
+        size += 8 - (size & 7);
+      }
+
+#ifdef CD_HAVE_ASAN
+      offset += BM_ASAN_PAD;
+#endif
+
+      layer->offset = offset;
+      offset += size;
+
+#ifdef CD_HAVE_ASAN
+      offset += BM_ASAN_PAD;
+#endif
+    }
+  }
+
+  for (int i = 0; i < ARRAY_SIZE(aligns) + 1; i++) {
+    for (int j = 0; j < data->totlayer; j++) {
+      CustomDataLayer *layer = data->layers + j;
+
+      if (BLI_BITMAP_TEST(donemap, j)) {
+        continue;
+      }
+
+      typeInfo = layerType_getInfo(layer->type);
+      int size = (int)typeInfo->size;
+
+      if (i < ARRAY_SIZE(aligns) && (size % aligns[i]) != 0) {
+        continue;
+      }
+
+#ifdef CD_HAVE_ASAN
+      offset += BM_ASAN_PAD;
+#endif
+
+      BLI_BITMAP_SET(donemap, j, true);
+
+      int align2 = aligns[i] - (offset % aligns[i]);
+      if (align2 != aligns[i]) {
+        offset += align2;
+      }
+
+      layer->offset = offset;
+      offset += size;
+
+#ifdef CD_HAVE_ASAN
+      offset += BM_ASAN_PAD;
+#endif
+    }
+  }
+
+  if (offset % alignment != 0) {
+    offset += alignment - (offset % alignment);
   }
 
   data->totsize = offset;
+
   CustomData_update_typemap(data);
+}
+
+void CustomData_bmesh_asan_poison(const CustomData *data, void *block)
+{
+#ifdef CD_HAVE_ASAN
+  if (!block) {
+    return;
+  }
+
+  char *ptr = (char *)block;
+
+  BLI_asan_unpoison(block, data->totsize);
+
+  for (int i = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = data->layers + i;
+    const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+    BLI_asan_poison((ptr + layer->offset - BM_ASAN_PAD), BM_ASAN_PAD);
+    BLI_asan_poison((ptr + layer->offset + typeInfo->size), BM_ASAN_PAD);
+  }
+#endif
+}
+
+void CustomData_bmesh_asan_unpoison(const CustomData *data, void *block)
+{
+  if (!block) {
+    return;
+  }
+  BLI_asan_unpoison(block, data->totsize);
 }
 
 /* to use when we're in the middle of modifying layers */
@@ -2991,12 +3410,17 @@ int CustomData_number_of_layers(const CustomData *data, const int type)
   return number;
 }
 
-int CustomData_number_of_layers_typemask(const CustomData *data, const eCustomDataMask mask)
+int CustomData_number_of_layers_typemask(const CustomData *data,
+                                         eCustomDataMask mask,
+                                         bool skip_temporary)
 {
   int number = 0;
 
   for (int i = 0; i < data->totlayer; i++) {
-    if (mask & CD_TYPE_AS_MASK(data->layers[i].type)) {
+    bool ok = mask & CD_TYPE_AS_MASK(data->layers[i].type);
+    ok = ok && (!skip_temporary || !(data->layers[i].flag & (int)CD_FLAG_TEMPORARY));
+
+    if (ok) {
       number++;
     }
   }
@@ -3045,10 +3469,42 @@ void CustomData_duplicate_referenced_layers(CustomData *data, const int totelem)
   }
 }
 
+bool CustomData_is_referenced_layer(CustomData *data, const int type)
+{
+  int layer_index = CustomData_get_active_layer_index(data, type);
+  if (layer_index == -1) {
+    return false;
+  }
+
+  CustomDataLayer *layer = &data->layers[layer_index];
+
+  return (layer->flag & CD_FLAG_NOFREE) != 0;
+}
+
+void CustomData_unmark_temporary_nocopy(CustomData *data)
+{
+  for (int i = 0; i < data->totlayer; i++) {
+    if (data->layers[i].flag & CD_FLAG_TEMPORARY) {
+      data->layers[i].flag &= ~CD_FLAG_NOCOPY;
+    }
+  }
+}
+
+void CustomData_mark_temporary_nocopy(CustomData *data)
+{
+  for (int i = 0; i < data->totlayer; i++) {
+    if (data->layers[i].flag & CD_FLAG_TEMPORARY) {
+      data->layers[i].flag |= CD_FLAG_NOCOPY;
+    }
+  }
+}
+
 void CustomData_free_temporary(CustomData *data, const int totelem)
 {
   int i, j;
   bool changed = false;
+
+  /* free temp layers */
   for (i = 0, j = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &data->layers[i];
 
@@ -3059,6 +3515,8 @@ void CustomData_free_temporary(CustomData *data, const int totelem)
     if ((layer->flag & CD_FLAG_TEMPORARY) == CD_FLAG_TEMPORARY) {
       customData_free_layer__internal(layer, totelem);
       changed = true;
+
+      // compact data->layers by not incrementing j here
     }
     else {
       j++;
@@ -3071,6 +3529,9 @@ void CustomData_free_temporary(CustomData *data, const int totelem)
     customData_resize(data, -CUSTOMDATA_GROW);
     changed = true;
   }
+
+  CustomData_update_typemap(data);
+  CustomData_regen_active_refs(data);
 
   if (changed) {
     customData_update_offsets(data);
@@ -3292,8 +3753,30 @@ void CustomData_interp(const CustomData *source,
     if (dest->layers[dest_i].type == source->layers[src_i].type) {
       void *src_data = source->layers[src_i].data;
 
+      if (dest->layers[dest_i].type == CD_MESH_ID) {
+        continue;  // paranoia check that we don't process id layers
+      }
+
       for (int j = 0; j < count; j++) {
         sources[j] = POINTER_OFFSET(src_data, size_t(src_indices[j]) * typeInfo->size);
+      }
+
+      if (dest->layers[dest_i].flag & CD_FLAG_ELEM_NOINTERP) {
+        if (!(dest->layers[dest_i].flag & CD_FLAG_ELEM_NOCOPY)) {
+          if (typeInfo->copy) {
+            typeInfo->copy(
+                sources[0],
+                POINTER_OFFSET(dest->layers[dest_i].data, (size_t)dest_index * typeInfo->size),
+                1);
+          }
+          else {
+            memcpy(POINTER_OFFSET(dest->layers[dest_i].data, (size_t)dest_index * typeInfo->size),
+                   sources[0],
+                   typeInfo->size);
+          }
+        }
+
+        continue;
       }
 
       typeInfo->interp(
@@ -3445,6 +3928,13 @@ int CustomData_get_offset(const CustomData *data, const int type)
   return data->layers[layer_index].offset;
 }
 
+int CustomData_get_named_offset(const CustomData *data, int type, const char *name)
+{
+  int idx = CustomData_get_named_layer_index(data, type, name);
+
+  return idx == -1 ? -1 : data->layers[idx].offset;
+}
+
 int CustomData_get_n_offset(const CustomData *data, const int type, const int n)
 {
   int layer_index = CustomData_get_layer_index_n(data, type, n);
@@ -3487,7 +3977,49 @@ const char *CustomData_get_layer_name(const CustomData *data, const int type, co
 
 /* BMesh functions */
 
+void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *ldata)
+{
+  int act;
+
+  if (CustomData_has_layer(ldata, CD_MLOOPUV)) {
+    act = CustomData_get_active_layer(ldata, CD_MLOOPUV);
+    CustomData_set_layer_active(fdata, CD_MTFACE, act);
+
+    act = CustomData_get_render_layer(ldata, CD_MLOOPUV);
+    CustomData_set_layer_render(fdata, CD_MTFACE, act);
+
+    act = CustomData_get_clone_layer(ldata, CD_MLOOPUV);
+    CustomData_set_layer_clone(fdata, CD_MTFACE, act);
+
+    act = CustomData_get_stencil_layer(ldata, CD_MLOOPUV);
+    CustomData_set_layer_stencil(fdata, CD_MTFACE, act);
+  }
+
+  if (CustomData_has_layer(ldata, CD_PROP_BYTE_COLOR)) {
+    act = CustomData_get_active_layer(ldata, CD_PROP_BYTE_COLOR);
+    CustomData_set_layer_active(fdata, CD_MCOL, act);
+
+    act = CustomData_get_render_layer(ldata, CD_PROP_BYTE_COLOR);
+    CustomData_set_layer_render(fdata, CD_MCOL, act);
+
+    act = CustomData_get_clone_layer(ldata, CD_PROP_BYTE_COLOR);
+    CustomData_set_layer_clone(fdata, CD_MCOL, act);
+
+    act = CustomData_get_stencil_layer(ldata, CD_PROP_BYTE_COLOR);
+    CustomData_set_layer_stencil(fdata, CD_MCOL, act);
+  }
+}
+
+#ifndef USE_BMESH_PAGE_CUSTOMDATA
 void CustomData_bmesh_init_pool(CustomData *data, const int totelem, const char htype)
+{
+  CustomData_bmesh_init_pool_ex(data, totelem, htype, __func__);
+}
+
+void CustomData_bmesh_init_pool_ex(CustomData *data,
+                                   int totelem,
+                                   const char htype,
+                                   const char *memtag)
 {
   int chunksize;
 
@@ -3515,9 +4047,10 @@ void CustomData_bmesh_init_pool(CustomData *data, const int totelem, const char 
 
   /* If there are no layers, no pool is needed just yet */
   if (data->totlayer) {
-    data->pool = BLI_mempool_create(data->totsize, totelem, chunksize, BLI_MEMPOOL_NOP);
+    data->pool = BLI_mempool_create_ex(data->totsize, totelem, chunksize, BLI_MEMPOOL_NOP, memtag);
   }
 }
+#endif
 
 bool CustomData_bmesh_merge(const CustomData *source,
                             CustomData *dest,
@@ -3527,7 +4060,7 @@ bool CustomData_bmesh_merge(const CustomData *source,
                             const char htype)
 {
 
-  if (CustomData_number_of_layers_typemask(source, mask) == 0) {
+  if (CustomData_number_of_layers_typemask(source, mask, false) == 0) {
     return false;
   }
 
@@ -3617,6 +4150,8 @@ void CustomData_bmesh_free_block(CustomData *data, void **block)
     return;
   }
 
+  CustomData_bmesh_asan_unpoison(data, *block);
+
   for (int i = 0; i < data->totlayer; i++) {
     if (!(data->layers[i].flag & CD_FLAG_NOFREE)) {
       const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[i].type);
@@ -3640,6 +4175,9 @@ void CustomData_bmesh_free_block_data(CustomData *data, void *block)
   if (block == nullptr) {
     return;
   }
+
+  CustomData_bmesh_asan_unpoison(data, block);
+
   for (int i = 0; i < data->totlayer; i++) {
     if (!(data->layers[i].flag & CD_FLAG_NOFREE)) {
       const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[i].type);
@@ -3649,11 +4187,15 @@ void CustomData_bmesh_free_block_data(CustomData *data, void *block)
       }
     }
   }
+
   if (data->totsize) {
     memset(block, 0, data->totsize);
   }
+
+  CustomData_bmesh_asan_poison(data, block);
 }
 
+#ifndef USE_BMESH_PAGE_CUSTOMDATA
 static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
 {
   if (*block) {
@@ -3662,11 +4204,26 @@ static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
 
   if (data->totsize > 0) {
     *block = BLI_mempool_alloc(data->pool);
+
+    CustomData_bmesh_asan_poison(data, *block);
+
+    /*clear toolflags pointer when created for the first time*/
+    int cd_tflags = data->typemap[CD_TOOLFLAGS];
+    if (cd_tflags != -1) {
+      cd_tflags = data->layers[cd_tflags].offset;
+
+      char *ptr = (char *)*block;
+      ptr += cd_tflags;
+
+      MToolFlags *flags = (MToolFlags *)ptr;
+      flags->flag = nullptr;
+    }
   }
   else {
     *block = nullptr;
   }
 }
+#endif
 
 void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
                                                       void *block,
@@ -3675,6 +4232,9 @@ void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
   if (block == nullptr) {
     return;
   }
+
+  CustomData_bmesh_asan_unpoison(data, block);
+
   for (int i = 0; i < data->totlayer; i++) {
     if ((CD_TYPE_AS_MASK(data->layers[i].type) & mask_exclude) == 0) {
       const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[i].type);
@@ -3687,10 +4247,18 @@ void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
       memset(POINTER_OFFSET(block, offset), 0, typeInfo->size);
     }
   }
+
+  CustomData_bmesh_asan_poison(data, block);
 }
 
+#ifndef USE_BMESH_PAGE_CUSTOMDATA
 static void CustomData_bmesh_set_default_n(CustomData *data, void **block, const int n)
 {
+  if (ELEM(data->layers[n].type, CD_TOOLFLAGS, CD_MESH_ID)) {
+    /* do not do toolflags or mesh ids */
+    return;
+  }
+
   int offset = data->layers[n].offset;
   const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[n].type);
 
@@ -3698,7 +4266,12 @@ static void CustomData_bmesh_set_default_n(CustomData *data, void **block, const
     typeInfo->set_default_value(POINTER_OFFSET(*block, offset), 1);
   }
   else {
-    memset(POINTER_OFFSET(*block, offset), 0, typeInfo->size);
+    if (typeInfo->use_default_data && data->layers[n].default_data) {
+      memcpy(POINTER_OFFSET(*block, offset), data->layers[n].default_data, typeInfo->size);
+    }
+    else {
+      memset(POINTER_OFFSET(*block, offset), 0, typeInfo->size);
+    }
   }
 }
 
@@ -3712,6 +4285,121 @@ void CustomData_bmesh_set_default(CustomData *data, void **block)
     CustomData_bmesh_set_default_n(data, block, i);
   }
 }
+#endif
+
+void CustomData_bmesh_swap_data_simple(CustomData *data, void **block1, void **block2)
+{
+  CustomData_bmesh_asan_unpoison(data, *block1);
+  CustomData_bmesh_asan_unpoison(data, *block2);
+
+  int cd_id = data->typemap[CD_MESH_ID];
+  cd_id = cd_id >= 0 ? data->layers[cd_id].offset : -1;
+
+  void *tmp = *block1;
+  *block1 = *block2;
+  *block2 = tmp;
+
+  int cd_tflags = data->typemap[CD_TOOLFLAGS];
+  cd_tflags = cd_tflags != -1 ? data->layers[cd_tflags].offset : -1;
+
+  // unswap ids if they exist
+  if (*block1 && *block2) {
+    if (cd_id != -1) {
+      int itmp;
+      int *id1 = (int *)(((char *)*block1) + cd_id);
+      int *id2 = (int *)(((char *)*block2) + cd_id);
+
+      itmp = *id1;
+      *id1 = *id2;
+      *id2 = itmp;
+    }
+
+    if (cd_tflags != -1) {
+      MToolFlags tmp;
+      MToolFlags *flags1 = (MToolFlags *)(((char *)*block1) + cd_tflags);
+      MToolFlags *flags2 = (MToolFlags *)(((char *)*block2) + cd_tflags);
+
+      tmp = *flags1;
+      *flags1 = *flags2;
+      *flags2 = tmp;
+    }
+  }
+
+  CustomData_bmesh_asan_poison(data, *block1);
+  CustomData_bmesh_asan_poison(data, *block2);
+}
+
+void CustomData_bmesh_swap_data(CustomData *source,
+                                CustomData *dest,
+                                void *src_block,
+                                void **dest_block)
+{
+  int src_i = 0;
+  int dest_i = 0;
+  int dest_i_start = 0;
+
+  if (*dest_block == NULL) {
+    CustomData_bmesh_alloc_block(dest, dest_block);
+
+    if (*dest_block) {
+      CustomData_bmesh_asan_unpoison(dest, *dest_block);
+      memset(*dest_block, 0, dest->totsize);
+      CustomData_bmesh_asan_poison(dest, *dest_block);
+
+      CustomData_bmesh_set_default(dest, dest_block);
+    }
+  }
+
+  for (src_i = 0; src_i < source->totlayer; src_i++) {
+    /* find the first dest layer with type >= the source type
+     * (this should work because layers are ordered by type)
+     */
+    while (dest_i_start < dest->totlayer &&
+           dest->layers[dest_i_start].type < source->layers[src_i].type) {
+      dest_i_start++;
+    }
+
+    if (ELEM(source->layers[src_i].type, CD_MESH_ID, CD_TOOLFLAGS)) {
+      // do not swap ids or toolflags
+      continue;
+    }
+
+    /* if there are no more dest layers, we're done */
+    if (dest_i_start >= dest->totlayer) {
+      return;
+    }
+
+    dest_i = dest_i_start;
+
+    while (dest_i < dest->totlayer && dest->layers[dest_i].type == source->layers[src_i].type) {
+      /* if we found a matching layer, copy the data */
+      if (dest->layers[dest_i].type == source->layers[src_i].type &&
+          STREQ(dest->layers[dest_i].name, source->layers[src_i].name)) {
+        void *src_data = POINTER_OFFSET(src_block, source->layers[src_i].offset);
+        void *dest_data = POINTER_OFFSET(*dest_block, dest->layers[dest_i].offset);
+        const LayerTypeInfo *typeInfo = layerType_getInfo(source->layers[src_i].type);
+        const uint size = typeInfo->size;
+
+        // swap data
+        char *bsrc = (char *)src_data;
+        char *bdst = (char *)dest_data;
+
+        for (int j = 0; j < size; j++) {
+          char t = *bsrc;
+          *bsrc = *bdst;
+          *bdst = t;
+
+          bsrc++;
+          bdst++;
+        }
+
+        break;
+      }
+
+      dest_i++;
+    }
+  }
+}
 
 void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
                                                 CustomData *dest,
@@ -3723,56 +4411,78 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
    * would cause too much duplicate code, so add a check instead. */
   const bool no_mask = (mask_exclude == 0);
 
+  /*
+  Note that we don't handle id/toolflag layers as a special case,
+  instead relying on CD_ELEM_NO_COPY semantics.
+
+  This is so BM_data_layer_add can reallocate customdata blocks without
+  zeroing those two layers.
+  */
+
   if (*dest_block == nullptr) {
     CustomData_bmesh_alloc_block(dest, dest_block);
+
     if (*dest_block) {
+      CustomData_bmesh_asan_unpoison(dest, *dest_block);
       memset(*dest_block, 0, dest->totsize);
+      CustomData_bmesh_asan_poison(dest, *dest_block);
     }
   }
 
+  for (int dest_i = 0; dest_i < dest->totlayer; dest_i++) {
+    CustomData_bmesh_set_default_n(dest, dest_block, dest_i);
+  }
+
   /* copies a layer at a time */
-  int dest_i = 0;
+  int dest_i_start = 0;
+
   for (int src_i = 0; src_i < source->totlayer; src_i++) {
 
     /* find the first dest layer with type >= the source type
      * (this should work because layers are ordered by type)
      */
-    while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
-      CustomData_bmesh_set_default_n(dest, dest_block, dest_i);
-      dest_i++;
+    while (dest_i_start < dest->totlayer &&
+           dest->layers[dest_i_start].type < source->layers[src_i].type) {
+      dest_i_start++;
     }
 
     /* if there are no more dest layers, we're done */
-    if (dest_i >= dest->totlayer) {
+    if (dest_i_start >= dest->totlayer) {
       return;
     }
 
-    /* if we found a matching layer, copy the data */
-    if (dest->layers[dest_i].type == source->layers[src_i].type &&
-        STREQ(dest->layers[dest_i].name, source->layers[src_i].name)) {
-      if (no_mask || ((CD_TYPE_AS_MASK(dest->layers[dest_i].type) & mask_exclude) == 0)) {
-        const void *src_data = POINTER_OFFSET(src_block, source->layers[src_i].offset);
-        void *dest_data = POINTER_OFFSET(*dest_block, dest->layers[dest_i].offset);
-        const LayerTypeInfo *typeInfo = layerType_getInfo(source->layers[src_i].type);
-        if (typeInfo->copy) {
-          typeInfo->copy(src_data, dest_data, 1);
+    int dest_i = dest_i_start;
+
+    /*Previously this code was only checking one source layer against one destination.
+      Now it scans all the layers of that type.  - joeedh
+    */
+    while (dest_i < dest->totlayer && dest->layers[dest_i].type == source->layers[src_i].type) {
+      /* if we found a matching layer, copy the data */
+      if (STREQ(dest->layers[dest_i].name, source->layers[src_i].name)) {
+        if (no_mask || ((CD_TYPE_AS_MASK(dest->layers[dest_i].type) & mask_exclude) == 0)) {
+          /* CD_FLAG_ELEM_NOCOPY is used to forcibly exclude copying CD_MESH_ID and CD_TOOLFLAGS
+             layers */
+
+          if (dest->layers[dest_i].flag & CD_FLAG_ELEM_NOCOPY) {
+            break;
+          }
+
+          const void *src_data = POINTER_OFFSET(src_block, source->layers[src_i].offset);
+          void *dest_data = POINTER_OFFSET(*dest_block, dest->layers[dest_i].offset);
+          const LayerTypeInfo *typeInfo = layerType_getInfo(source->layers[src_i].type);
+          if (typeInfo->copy) {
+            typeInfo->copy(src_data, dest_data, 1);
+          }
+          else {
+            memcpy(dest_data, src_data, typeInfo->size);
+          }
         }
-        else {
-          memcpy(dest_data, src_data, typeInfo->size);
-        }
+
+        break;
       }
 
-      /* if there are multiple source & dest layers of the same type,
-       * we don't want to copy all source layers to the same dest, so
-       * increment dest_i
-       */
       dest_i++;
     }
-  }
-
-  while (dest_i < dest->totlayer) {
-    CustomData_bmesh_set_default_n(dest, dest_block, dest_i);
-    dest_i++;
   }
 }
 
@@ -4016,6 +4726,7 @@ void CustomData_bmesh_interp_n(CustomData *data,
   typeInfo->interp(src_blocks_ofs, weights, sub_weights, count, dst_block_ofs);
 }
 
+#ifndef USE_BMESH_PAGE_CUSTOMDATA
 void CustomData_bmesh_interp(CustomData *data,
                              const void **src_blocks,
                              const float *weights,
@@ -4050,6 +4761,34 @@ void CustomData_bmesh_interp(CustomData *data,
   for (int i = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &data->layers[i];
     const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+    // ignore id and toolflag layers
+    if (ELEM(layer->type, CD_MESH_ID, CD_TOOLFLAGS)) {
+      continue;
+    }
+
+    if (layer->flag & CD_FLAG_ELEM_NOINTERP) {
+      if (!(layer->flag & CD_FLAG_ELEM_NOCOPY)) {
+        if (typeInfo->copy) {
+          typeInfo->copy(POINTER_OFFSET(src_blocks[0], layer->offset),
+                         POINTER_OFFSET(dst_block, layer->offset),
+                         1);
+        }
+        else {
+          if (layer->default_data && typeInfo->use_default_data) {
+            memcpy(POINTER_OFFSET(dst_block, layer->offset), layer->default_data, typeInfo->size);
+          }
+          else {
+            memcpy(POINTER_OFFSET(dst_block, layer->offset),
+                   POINTER_OFFSET(src_blocks[0], layer->offset),
+                   typeInfo->size);
+          }
+        }
+      }
+
+      continue;
+    }
+
     if (typeInfo->interp) {
       for (int j = 0; j < count; j++) {
         sources[j] = POINTER_OFFSET(src_blocks[j], layer->offset);
@@ -4175,6 +4914,7 @@ void CustomData_from_bmesh_block(const CustomData *source,
     }
   }
 }
+#endif
 
 void CustomData_file_write_info(int type, const char **r_struct_name, int *r_struct_num)
 {
@@ -4189,7 +4929,7 @@ void CustomData_blend_write_prepare(CustomData &data,
                                     const Set<std::string> &skip_names)
 {
   for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
-    if (layer.flag & CD_FLAG_NOCOPY) {
+    if (layer.flag & (CD_FLAG_NOCOPY | CD_FLAG_TEMPORARY)) {
       continue;
     }
     if (layer.anonymous_id != nullptr) {
@@ -5052,6 +5792,12 @@ void CustomData_blend_write(BlendWriter *writer,
       writer, CustomDataLayer, data->totlayer, data->layers, layers_to_write.data());
 
   for (const CustomDataLayer &layer : layers_to_write) {
+    const LayerTypeInfo *typeInfo = layerType_getInfo(layer.type);
+
+    if (typeInfo->use_default_data && layer.default_data) {
+      BLO_write_struct_by_name(writer, typeInfo->structname, layer.default_data);
+    }
+
     switch (layer.type) {
       case CD_MDEFORMVERT:
         BKE_defvert_blend_write(writer, count, static_cast<const MDeformVert *>(layer.data));
@@ -5162,6 +5908,14 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
   int i = 0;
   while (i < data->totlayer) {
     CustomDataLayer *layer = &data->layers[i];
+    const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+    if (layer->default_data && typeInfo->use_default_data) {
+      BLO_read_data_address(reader, &layer->default_data);
+    }
+    else {
+      layer->default_data = nullptr;
+    }
 
     if (layer->flag & CD_FLAG_EXTERNAL) {
       layer->flag &= ~CD_FLAG_IN_MEMORY;
@@ -5200,6 +5954,65 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
   data->maxlayer = data->totlayer;
 
   CustomData_update_typemap(data);
+  CustomData_regen_active_refs(data);  // check for corrupted active layer refs
+}
+
+size_t CustomData_getTypeSize(eCustomDataType type)
+{
+  const LayerTypeInfo *info = layerType_getInfo(type);
+
+  return info ? info->size : 0ULL;
+}
+
+void CustomData_setDefaultData(eCustomDataType type, void *block, int totelem)
+{
+  const LayerTypeInfo *info = layerType_getInfo(type);
+
+  if (info->set_default_value) {
+    info->set_default_value(block, totelem);
+  }
+  else {
+    memset(block, 0, info->size * totelem);
+  }
+}
+
+void CustomData_freeData(eCustomDataType type, void *block, int totelem)
+{
+  const LayerTypeInfo *info = layerType_getInfo(type);
+
+  if (info->free) {
+    info->free(block, totelem, info->size);
+  }
+}
+
+#include "BLI_alloca.h"
+
+void CustomData_interpData(eCustomDataType type,
+                           void *block,
+                           int tot,
+                           const void **srcs,
+                           const float *ws,
+                           const float *sub_ws)
+{
+  const LayerTypeInfo *info = layerType_getInfo(type);
+
+  if (!info->interp) {
+    return;
+  }
+
+  if (!ws) {
+    float *ws2 = static_cast<float *>(BLI_array_alloca(ws2, tot));
+    float w = 1.0f / (float)tot;
+
+    for (int i = 0; i < tot; i++) {
+      ws2[i] = w;
+    }
+
+    info->interp(srcs, ws2, sub_ws, 1, block);
+  }
+  else {
+    info->interp(srcs, ws, sub_ws, 1, block);
+  }
 }
 
 /** \} */
@@ -5308,7 +6121,7 @@ eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
 
 }  // namespace blender::bke
 
-size_t CustomData_get_elem_size(CustomDataLayer *layer)
+int CustomData_get_elem_size(CustomDataLayer *layer)
 {
   return LAYERTYPEINFO[layer->type].size;
 }

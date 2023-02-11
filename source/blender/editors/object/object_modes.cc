@@ -7,10 +7,16 @@
  * actual mode switching logic is per-object type.
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_gpencil_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_workspace_types.h"
+
+#include "PIL_time.h"
 
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"
@@ -24,6 +30,8 @@
 #include "BKE_gpencil_modifier.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_types.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -36,6 +44,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -43,9 +52,12 @@
 #include "ED_armature.h"
 #include "ED_gpencil.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_undo.h"
 #include "ED_view3d.h"
+
+#include "UI_resources.h"
 
 #include "WM_toolsystem.h"
 

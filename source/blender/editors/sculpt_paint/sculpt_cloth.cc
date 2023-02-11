@@ -1245,14 +1245,16 @@ void SCULPT_cloth_simulation_free(SculptClothSimulation *cloth_sim)
   MEM_SAFE_FREE(cloth_sim);
 }
 
-void SCULPT_cloth_simulation_limits_draw(const uint gpuattr,
+void SCULPT_cloth_simulation_limits_draw(const SculptSession *ss,
+                                         const Sculpt *sd,
+                                         const uint gpuattr,
                                          const Brush *brush,
                                          const float location[3],
                                          const float normal[3],
-                                         const float rds,
-                                         const float line_width,
+                                         float rds,
+                                         float line_width,
                                          const float outline_col[3],
-                                         const float alpha)
+                                         float alpha)
 {
   float cursor_trans[4][4], cursor_rot[4][4];
   const float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
@@ -1497,7 +1499,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   float filter_strength = RNA_float_get(op->ptr, "strength");
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
-    SCULPT_filter_cache_free(ss);
+    SCULPT_filter_cache_free(ss, ob);
     SCULPT_undo_push_end(ob);
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
     return OPERATOR_FINISHED;
@@ -1561,7 +1563,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   /* Update the active vertex */
   float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SculptCursorGeometryInfo sgi;
-  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
+  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false, false);
 
   SCULPT_vertex_random_access_ensure(ss);
 

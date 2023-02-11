@@ -13,6 +13,7 @@ set(INC
   ../../../intern/eigen
   ../../../intern/guardedalloc
   ../../../extern/rangetree
+  ../python/bmesh
 )
 
 set(INC_SYS
@@ -66,22 +67,27 @@ set(SRC
   intern/bmesh_construct.h
   intern/bmesh_core.c
   intern/bmesh_core.h
+  intern/bmesh_data_attr.h
+  intern/bmesh_data_attr.cc
   intern/bmesh_delete.c
   intern/bmesh_delete.h
   intern/bmesh_edgeloop.c
   intern/bmesh_edgeloop.h
+  intern/bmesh_idmap.cc
+  intern/bmesh_idmap.h
   intern/bmesh_inline.h
   intern/bmesh_interp.c
   intern/bmesh_interp.h
   intern/bmesh_iterators.cc
   intern/bmesh_iterators.h
   intern/bmesh_iterators_inline.h
-  intern/bmesh_log.c
-  intern/bmesh_log.h
+  intern/bmesh_log.cc
+  intern/bmesh_log_intern.h
   intern/bmesh_marking.c
   intern/bmesh_marking.h
   intern/bmesh_mesh.cc
   intern/bmesh_mesh.h
+  intern/bmesh_mesh_convert_threaded.cc
   intern/bmesh_mesh_convert.cc
   intern/bmesh_mesh_convert.h
   intern/bmesh_mesh_debug.c
@@ -162,6 +168,7 @@ set(SRC
   tools/bmesh_wireframe.h
 
   bmesh_class.h
+  bmesh_log.h
 
   # public includes
   bmesh.h

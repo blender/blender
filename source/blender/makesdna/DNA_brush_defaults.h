@@ -28,7 +28,13 @@
     .size = 35,     /* radius of the brush in pixels */ \
     .alpha = 1.0f,  /* brush strength/intensity probably variable should be renamed? */ \
     .autosmooth_factor = 0.0f, \
+    .autosmooth_projection = 0.0f,\
+    .autosmooth_radius_factor = 1.0f,\
+    .autosmooth_spacing = 12,\
     .topology_rake_factor = 0.0f, \
+    .topology_rake_projection = 1.0f,\
+    .topology_rake_radius_factor = 1.0f,\
+    .topology_rake_spacing = 12,\
     .crease_pinch_factor = 0.5f, \
     .normal_radius_factor = 0.5f, \
     .wet_paint_radius_factor = 0.5f, \
@@ -59,6 +65,7 @@
     .smooth_stroke_radius = 75, \
     .smooth_stroke_factor = 0.9f, \
  \
+    .smear_deform_blend = 0.5f,\
     /* Time delay between dots of paint or sculpting when doing airbrush mode. */ \
     .rate = 0.1f, \
  \
@@ -99,6 +106,18 @@
  \
     .mtex = _DNA_DEFAULT_MTex, \
     .mask_mtex = _DNA_DEFAULT_MTex, \
+    .dyntopo = {\
+      .detail_range = 0.4f,\
+      .detail_percent = 25.0f,\
+      .detail_size = 12.0f,\
+      .constant_detail = 3.0f,\
+      .flag = DYNTOPO_COLLAPSE|DYNTOPO_SUBDIVIDE,\
+      .mode = DYNTOPO_DETAIL_RELATIVE,\
+      .inherit = DYNTOPO_INHERIT_ALL,\
+      .spacing = 25,\
+      .radius_scale = 1.0f\
+    },\
+    .concave_mask_factor = 0.75f\
   }
 
 /** \} */

@@ -14,6 +14,7 @@
 #include "BLI_math.h"
 #include "BLI_stack.h"
 #include "BLI_utildefines_stack.h"
+#include "DNA_meshdata_types.h"
 
 #include "BKE_customdata.h"
 
@@ -276,7 +277,12 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
             bmesh_face_swap_data(f_new, f);
 
             if (bm->use_toolflags) {
-              SWAP(BMFlagLayer *, ((BMFace_OFlag *)f)->oflags, ((BMFace_OFlag *)f_new)->oflags);
+              MToolFlags *flags = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
+                  f, bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset);
+              MToolFlags *flags_new = (MToolFlags *)BM_ELEM_CD_GET_VOID_P(
+                  f_new, bm->pdata.layers[bm->pdata.typemap[CD_TOOLFLAGS]].offset);
+
+              SWAP(short *, flags->flag, flags_new->flag);
             }
 
             BMO_face_flag_disable(bm, f, ELE_DEL);
@@ -435,6 +441,8 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
   BMO_op_finish(bm, &weldop);
 }
 
+#define USE_BM_EDGE_COLLAPSE
+
 void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 {
   BMOperator weldop;
@@ -501,6 +509,12 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
         uint j;
         BLI_stack_pop(edge_stack, &e);
 
+#ifdef USE_BM_EDGE_COLLAPSE
+        if (e->head.htype != BM_EDGE) {
+          continue;
+        }
+#endif
+
         for (j = 0; j < 2; j++) {
           BMVert *v_src = *((&e->v1) + j);
 
@@ -508,6 +522,11 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
           if ((v_src != v_tar) && !BM_elem_flag_test(v_src, BM_ELEM_TAG)) {
             BM_elem_flag_enable(v_src, BM_ELEM_TAG);
             BMO_slot_map_elem_insert(&weldop, slot_targetmap, v_src, v_tar);
+
+#ifdef USE_BM_EDGE_COLLAPSE
+            BM_edge_collapse(bm, e, v_src, true, true, true, true, NULL);
+            break;
+#endif
           }
         }
       }
@@ -516,7 +535,10 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 
   BLI_stack_free(edge_stack);
 
+#ifndef USE_BM_EDGE_COLLAPSE
   BMO_op_exec(bm, &weldop);
+#endif
+
   BMO_op_finish(bm, &weldop);
 
   BMW_end(&walker);

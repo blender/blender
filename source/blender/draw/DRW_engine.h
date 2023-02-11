@@ -27,6 +27,9 @@ struct GPUVertFormat;
 struct CustomDataLayer;
 struct CustomData;
 struct GPUViewport;
+struct GPUVertFormat;
+struct CustomData;
+struct CustomDataLayer;
 struct ID;
 struct Main;
 struct Object;
@@ -74,6 +77,12 @@ void DRW_draw_view(const struct bContext *C);
  * Draw render engine info.
  */
 void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height);
+void DRW_make_cdlayer_attr_aliases(struct GPUVertFormat *format,
+                                   char *base_name,
+                                   const struct CustomData *data,
+                                   const struct CustomDataLayer *cl,
+                                   bool is_active_render,
+                                   bool is_active_layer);
 
 /**
  * Used for both regular and off-screen drawing.

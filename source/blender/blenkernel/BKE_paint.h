@@ -7,22 +7,31 @@
  * \ingroup bke
  */
 
+#include "BKE_attribute.h"
+#include "BKE_pbvh.h"
+
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_enums.h"
+#include "DNA_customdata_types.h"
 #include "DNA_object_enums.h"
 
 #include "BKE_attribute.h"
 #include "BKE_pbvh.h"
 
+#include "bmesh_log.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct SculptAttribute;
+struct MSculptVert;
 struct BMFace;
 struct BMesh;
+struct BMIdMap;
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
@@ -237,7 +246,8 @@ void BKE_paint_face_set_overlay_color_get(int face_set, int seed, uchar r_color[
 
 bool paint_calculate_rake_rotation(struct UnifiedPaintSettings *ups,
                                    struct Brush *brush,
-                                   const float mouse_pos[2]);
+                                   const float mouse_pos[2],
+                                   const float initial_mouse_pos[2]);
 void paint_update_brush_rake_rotation(struct UnifiedPaintSettings *ups,
                                       struct Brush *brush,
                                       float rotation);
@@ -300,6 +310,11 @@ typedef struct SculptPoseIKChain {
   SculptPoseIKChainSegment *segments;
   int tot_segments;
   float grab_delta_offset[3];
+  float bend_mat[4][4];
+  float bend_mat_inv[4][4];
+  float bend_factor;
+  float bend_limit;
+  float bend_upper_limit;
 } SculptPoseIKChain;
 
 /* Cloth Brush */
@@ -328,6 +343,59 @@ typedef enum eSculptClothConstraintType {
   /* Constraint that references the vertex position and its initial position. */
   SCULPT_CLOTH_CONSTRAINT_PIN = 3,
 } eSculptClothConstraintType;
+
+#define CLOTH_NO_POS_PTR
+
+typedef struct SculptClothConstraint {
+  signed char ctype, thread_nr;
+
+  /* Index in #SculptClothSimulation.node_state of the node from where this constraint was
+   * created. This constraints will only be used by the solver if the state is active. */
+  short node;
+
+  float strength;
+
+  /* Elements that are affected by the constraint. */
+  /* Element a should always be a mesh vertex
+   * with the index stored in elem_index_a as
+   * it is \
+   * always deformed. Element b could be
+   * another vertex of the same mesh or any
+   * other position \
+   * (arbitrary point, position for a previous
+   * state). In that case, elem_index_a and \
+   * elem_index_b should be the same to avoid
+   * affecting two different vertices when
+   * solving the \
+   * constraints. *elem_position points to the
+   * position which is owned by the element. */
+
+  struct {
+    int index;
+#ifndef CLOTH_NO_POS_PTR
+    float *position;
+#endif
+  } elems[];
+} SculptClothConstraint;
+
+#ifndef CLOTH_NO_POS_PTR
+#  define MAKE_CONSTRAINT_STRUCT(totelem) \
+    signed char ctype, thread_nr; \
+    short node; \
+    float strength; \
+    struct { \
+      int index; \
+      float *position; \
+    } elems[totelem]
+#else
+#  define MAKE_CONSTRAINT_STRUCT(totelem) \
+    signed char ctype, thread_nr; \
+    short node; \
+    float strength; \
+    struct { \
+      int index; \
+    } elems[totelem]
+#endif
 
 typedef struct SculptClothLengthConstraint {
   /* Elements that are affected by the constraint. */
@@ -385,19 +453,17 @@ typedef struct SculptClothSimulation {
   eSculptClothNodeSimState *node_state;
 } SculptClothSimulation;
 
-typedef struct SculptPersistentBase {
-  float co[3];
-  float no[3];
-  float disp;
-} SculptPersistentBase;
-
 typedef struct SculptVertexInfo {
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
   BLI_bitmap *boundary;
+
+  /* Indexed by vertex, stores the symmetrical topology vertex index found by symmetrize. */
+  int *symmetrize_map;
 } SculptVertexInfo;
 
 typedef struct SculptBoundaryEditInfo {
   /* Vertex index from where the topology propagation reached this vertex. */
+  PBVHVertRef original_vertex;
   int original_vertex_i;
 
   /* How many steps were needed to reach this vertex from the boundary. */
@@ -413,6 +479,14 @@ typedef struct SculptBoundaryPreviewEdge {
   PBVHVertRef v2;
 } SculptBoundaryPreviewEdge;
 
+#define MAX_STORED_COTANGENTW_EDGES 7
+
+typedef struct StoredCotangentW {
+  float static_weights[MAX_STORED_COTANGENTW_EDGES];
+  float *weights;
+  int length;
+} StoredCotangentW;
+
 typedef struct SculptBoundary {
   /* Vertex indices of the active boundary. */
   PBVHVertRef *verts;
@@ -423,6 +497,14 @@ typedef struct SculptBoundary {
    * account the length of all edges between them. Any vertex that is not in the boundary will have
    * a distance of 0. */
   float *distance;
+
+  float (*smoothco)[3];
+  float *boundary_dist;  // distances from verts to boundary
+  float (*boundary_tangents)[3];
+
+  StoredCotangentW *boundary_cotangents;
+  PBVHVertRef *boundary_closest;
+  int sculpt_totvert;
 
   /* Data for drawing the preview. */
   SculptBoundaryPreviewEdge *edges;
@@ -457,7 +539,7 @@ typedef struct SculptBoundary {
   /* Bend Deform type. */
   struct {
     float (*pivot_rotation_axis)[3];
-    float (*pivot_positions)[3];
+    float (*pivot_positions)[4];
   } bend;
 
   /* Slide Deform type. */
@@ -470,7 +552,62 @@ typedef struct SculptBoundary {
     float rotation_axis[3];
     float pivot_position[3];
   } twist;
+
+  /* Cicrle Deform type. */
+  struct {
+    float (*origin)[3];
+    float *radius;
+  } circle;
+
+  int deform_target;
 } SculptBoundary;
+
+/* Array Brush. */
+typedef struct SculptArrayCopy {
+  int index;
+  int symm_pass;
+  float mat[4][4];
+  float imat[4][4];
+  float origin[3];
+} SculptArrayCopy;
+
+typedef struct ScultpArrayPathPoint {
+  float length;
+  float strength;
+  float co[3];
+  float orco[3];
+  float direction[3];
+} ScultpArrayPathPoint;
+
+typedef struct SculptArray {
+  SculptArrayCopy *copies[PAINT_SYMM_AREAS];
+  int num_copies;
+
+  struct {
+    ScultpArrayPathPoint *points;
+    int tot_points;
+    int capacity;
+    float total_length;
+  } path;
+
+  int mode;
+  float normal[3];
+  float direction[3];
+  float radial_angle;
+  float initial_radial_angle;
+
+  bool source_mat_valid;
+  float source_origin[3];
+  float source_mat[4][4];
+  float source_imat[4][4];
+  float (*orco)[3];
+
+  int *copy_index;
+  int *symmetry_pass;
+
+  float *smooth_strength;
+  struct SculptAttribute *scl_inst, *scl_sym;
+} SculptArray;
 
 typedef struct SculptFakeNeighbors {
   bool use_fake_neighbors;
@@ -479,7 +616,7 @@ typedef struct SculptFakeNeighbors {
   float current_max_distance;
 
   /* Indexed by vertex, stores the vertex index of its fake neighbor if available. */
-  int *fake_neighbor_index;
+  PBVHVertRef *fake_neighbor_index;
 
 } SculptFakeNeighbors;
 
@@ -496,6 +633,8 @@ typedef struct SculptAttributeParams {
    */
   int permanent : 1;   /* Cannot be combined with simple_array. */
   int stroke_only : 1; /* Release layer at end of struct */
+  int nointerp : 1;
+  int nocopy : 1;
 } SculptAttributeParams;
 
 typedef struct SculptAttribute {
@@ -561,6 +700,32 @@ typedef struct SculptAttributePointers {
   /* BMesh */
   SculptAttribute *dyntopo_node_id_vertex;
   SculptAttribute *dyntopo_node_id_face;
+  SculptAttribute *rake_temp;
+
+  SculptAttribute *face_areas;
+
+  SculptAttribute *smooth_bdist;
+  SculptAttribute *smooth_vel;
+
+  SculptAttribute *boundary_flags;
+  SculptAttribute *sculpt_vert;
+  SculptAttribute *stroke_id;
+
+  SculptAttribute *smear_previous;
+  SculptAttribute *hide_poly;
+  SculptAttribute *limit_surface;
+
+  SculptAttribute *orig_fsets;
+
+  SculptAttribute *layer_disp;
+  SculptAttribute *layer_id;
+
+  SculptAttribute *prefairing_co;
+  SculptAttribute *fairing_fade;
+  SculptAttribute *fairing_mask;
+
+  /* Stores the displacement produced by the laplacian step of HC smooth. */
+  SculptAttribute *laplacian_disp;
 } SculptAttributePointers;
 
 typedef struct SculptSession {
@@ -574,10 +739,19 @@ typedef struct SculptSession {
   /* Depsgraph for the Cloth Brush solver to get the colliders. */
   struct Depsgraph *depsgraph;
 
-  /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
+  CustomData temp_vdata, temp_pdata;
+  int temp_vdata_elems, temp_pdata_elems;
+
   float (*vert_positions)[3];
+
+  const struct MVert *mvert;
+  const struct MEdge *medge;
   const struct MPoly *mpoly;
   const struct MLoop *mloop;
+
+  const int *material_index;
+
+  CustomData *vdata, *edata, *ldata, *pdata;
 
   /* These contain the vertex and poly counts of the final mesh. */
   int totvert, totpoly;
@@ -593,8 +767,7 @@ typedef struct SculptSession {
 
   /* Mesh connectivity maps. */
   /* Vertices to adjacent polys. */
-  struct MeshElemMap *pmap;
-  int *pmap_mem;
+  SculptPMap *pmap;
 
   /* Edges to adjacent polys. */
   struct MeshElemMap *epmap;
@@ -606,7 +779,7 @@ typedef struct SculptSession {
 
   /* Mesh Face Sets */
   /* Total number of polys of the base mesh. */
-  int totfaces;
+  int totedges, totloops, totfaces;
 
   /* The 0 ID is not used by the tools or the visibility system, it is just used when creating new
    * geometry (the trim tool, for example) to detect which geometry was just added, so it can be
@@ -619,23 +792,49 @@ typedef struct SculptSession {
    */
   bool *hide_poly;
 
+  bool *select_poly;
+
   /* BMesh for dynamic topology sculpting */
   struct BMesh *bm;
+  struct BMIdMap *bm_idmap;
+
+  /* TODO: get rid of these cd_ members and use
+   * .attrs.XXX.bmesh_cd_offset directly.
+   */
+  int cd_sculpt_vert;
+  int cd_vert_node_offset;
+  int cd_face_node_offset;
+  int cd_vcol_offset;
+  int cd_vert_mask_offset;
+  int cd_faceset_offset;
+  int cd_face_areas;
+  int cd_hide_poly;
+
+  int totuv;
+
   bool bm_smooth_shading;
+  bool ignore_uvs;
+
   /* Undo/redo log for dynamic topology sculpting */
-  struct BMLog *bm_log;
+  BMLog *bm_log;
 
   /* Limit surface/grids. */
   struct SubdivCCG *subdiv_ccg;
 
   /* PBVH acceleration structure */
   struct PBVH *pbvh;
+  struct PBVH *last_pbvh;
+
+  /* Setting this to true allows a PBVH rebuild when evaluating the object even if the stroke or
+   * filter caches are active. */
+  bool needs_pbvh_rebuild;
 
   /* Painting on deformed mesh */
   bool deform_modifiers_active; /* Object is deformed with some modifiers. */
   float (*orig_cos)[3];         /* Coords of un-deformed mesh. */
   float (*deform_cos)[3];       /* Coords of deformed mesh but without stroke displacement. */
   float (*deform_imats)[3][3];  /* Crazy-space deformation matrices. */
+  float *face_areas;            /* cached face areas for PBVH_FACES and PBVH_GRIDS */
 
   /* Pool for texture evaluations. */
   struct ImagePool *tex_pool;
@@ -646,8 +845,8 @@ typedef struct SculptSession {
 
   /* Cursor data and active vertex for tools */
   PBVHVertRef active_vertex;
+  PBVHFaceRef active_face;
 
-  int active_face_index;
   int active_grid_index;
 
   /* When active, the cursor draws with faded colors, indicating that there is an action
@@ -664,6 +863,7 @@ typedef struct SculptSession {
    * when
    * the gesture starts (intersection with the surface and if they ray hit the surface or not).
    */
+  float gesture_initial_back_location[3];
   float gesture_initial_location[3];
   float gesture_initial_normal[3];
   bool gesture_initial_hit;
@@ -672,6 +872,14 @@ typedef struct SculptSession {
   struct RegionView3D *rv3d;
   struct View3D *v3d;
   struct Scene *scene;
+  int cd_origvcol_offset;
+  int cd_origco_offset;
+  int cd_origno_offset;
+
+  /* Face Sets by topology. */
+  int face_set_last_created;
+  PBVHFaceRef face_set_last_poly;
+  PBVHEdgeRef face_set_last_edge;
 
   /* Dynamic mesh preview */
   PBVHVertRef *preview_vert_list;
@@ -687,18 +895,21 @@ typedef struct SculptSession {
   SculptVertexInfo vertex_info;
   SculptFakeNeighbors fake_neighbors;
 
+  /* Array. */
+  SculptArray *array;
+
   /* Transform operator */
   float pivot_pos[3];
   float pivot_rot[4];
   float pivot_scale[3];
 
-  float init_pivot_pos[3];
-  float init_pivot_rot[4];
-  float init_pivot_scale[3];
-
   float prev_pivot_pos[3];
   float prev_pivot_rot[4];
   float prev_pivot_scale[3];
+
+  float init_pivot_pos[3];
+  float init_pivot_rot[4];
+  float init_pivot_scale[3];
 
   union {
     struct {
@@ -729,6 +940,14 @@ typedef struct SculptSession {
    */
   char needs_flush_to_id;
 
+  // id of current stroke, used to detect
+  // if vertex original data needs to be updated
+  int boundary_symmetry;
+
+  bool fast_draw;  // hides facesets/masks and forces smooth to save GPU bandwidth
+  struct MSculptVert *msculptverts;  // for non-bmesh
+  int last_msculptverts_count;
+
   /* This is a fixed-size array so we can pass pointers to its elements
    * to client code. This is important to keep bmesh offsets up to date.
    */
@@ -745,7 +964,7 @@ typedef struct SculptSession {
    */
   bool sticky_shading_color;
 
-  uchar stroke_id;
+  ushort stroke_id;
 
   /**
    * Last used painting canvas key.
@@ -753,17 +972,55 @@ typedef struct SculptSession {
   char *last_paint_canvas_key;
   float last_normal[3];
 
+  /* Used to derive initial tip rotation. */
+  float last_grab_delta[3];
+
+  bool save_temp_layers;
+  const float (*vert_normals)[3];
+
   int last_automasking_settings_hash;
   uchar last_automask_stroke_id;
+  bool *sharp_edge;
   bool islands_valid; /* Is attrs.topology_island_key valid? */
+
+  bool hard_edge_mode;
 } SculptSession;
+
+typedef enum eSculptBoundary {
+  SCULPT_BOUNDARY_NONE = 0,
+  SCULPT_BOUNDARY_MESH = 1 << 0,
+  SCULPT_BOUNDARY_FACE_SET = 1 << 1,
+  SCULPT_BOUNDARY_SEAM = 1 << 2,
+  SCULPT_BOUNDARY_SHARP = 1 << 3,
+  SCULPT_BOUNDARY_UV = 1 << 4,
+  SCULPT_BOUNDARY_NEEDS_UPDATE = 1 << 5,
+  SCULPT_BOUNDARY_ALL = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4),
+  SCULPT_BOUNDARY_DEFAULT = (1 << 0) | (1 << 3) | (1 << 4)  // mesh and sharp
+} eSculptBoundary;
+
+ENUM_OPERATORS(eSculptBoundary, SCULPT_BOUNDARY_NEEDS_UPDATE);
+
+/* Note: This is stored in a single attribute with boundary flags */
+typedef enum eSculptCorner {
+  SCULPT_CORNER_NONE = 0,
+  SCULPT_CORNER_MESH = 1 << 6,
+  SCULPT_CORNER_FACE_SET = 1 << 7,
+  SCULPT_CORNER_SEAM = 1 << 8,
+  SCULPT_CORNER_SHARP = 1 << 9,
+  SCULPT_CORNER_UV = 1 << 10,
+} eSculptCorner;
+
+ENUM_OPERATORS(eSculptCorner, SCULPT_CORNER_UV);
 
 void BKE_sculptsession_free(struct Object *ob);
 void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
 void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
+
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
 int BKE_sculptsession_vertex_count(const SculptSession *ss);
+
+void BKE_sculpt_ensure_idmap(struct Object *ob);
 
 /* Ensure an attribute layer exists. */
 SculptAttribute *BKE_sculpt_attribute_ensure(struct Object *ob,
@@ -791,52 +1048,33 @@ void BKE_sculpt_attribute_destroy_temporary_all(struct Object *ob);
 /* Destroy attributes that were marked as stroke only in SculptAttributeParams. */
 void BKE_sculpt_attributes_destroy_temporary_stroke(struct Object *ob);
 
-BLI_INLINE void *BKE_sculpt_vertex_attr_get(const PBVHVertRef vertex, const SculptAttribute *attr)
-{
-  if (attr->data) {
-    char *p = (char *)attr->data;
-    int idx = (int)vertex.i;
+bool BKE_sculptsession_check_sculptverts(struct Object *ob, struct PBVH *pbvh, int totvert);
 
-    if (attr->data_for_bmesh) {
-      BMElem *v = (BMElem *)vertex.i;
-      idx = v->head.index;
-    }
+struct BMesh *BKE_sculptsession_empty_bmesh_create(void);
+void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);
 
-    return p + attr->elem_size * (int)idx;
-  }
-  else {
-    BMElem *v = (BMElem *)vertex.i;
-    return BM_ELEM_CD_GET_VOID_P(v, attr->bmesh_cd_offset);
-  }
+void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me);
 
-  return NULL;
-}
+void BKE_sculptsession_bmesh_add_layers(struct Object *ob);
+SculptAttribute *BKE_sculptsession_attr_layer_get(struct Object *ob,
+                                                  eAttrDomain domain,
+                                                  int proptype,
+                                                  const char *name,
+                                                  SculptAttributeParams *params,
+                                                  bool *r_is_new);
+bool BKE_sculptsession_attr_release_layer(struct Object *ob, SculptAttribute *scl);
+void BKE_sculptsession_update_attr_refs(struct Object *ob);
 
-BLI_INLINE void *BKE_sculpt_face_attr_get(const PBVHFaceRef vertex, const SculptAttribute *attr)
-{
-  if (attr->data) {
-    char *p = (char *)attr->data;
-    int idx = (int)vertex.i;
+int BKE_sculptsession_get_totvert(const SculptSession *ss);
 
-    if (attr->data_for_bmesh) {
-      BMElem *v = (BMElem *)vertex.i;
-      idx = v->head.index;
-    }
-
-    return p + attr->elem_size * (int)idx;
-  }
-  else {
-    BMElem *v = (BMElem *)vertex.i;
-    return BM_ELEM_CD_GET_VOID_P(v, attr->bmesh_cd_offset);
-  }
-
-  return NULL;
-}
+void BKE_sculptsession_ignore_uvs_set(struct Object *ob, bool value);
+void BKE_sculptsession_free_attribute_refs(struct Object *ob);
 
 /**
  * Create new color layer on object if it doesn't have one and if experimental feature set has
  * sculpt vertex color enabled. Returns truth if new layer has been added, false otherwise.
  */
+
 void BKE_sculpt_color_layer_create_if_needed(struct Object *object);
 
 /**
@@ -856,13 +1094,13 @@ void BKE_sculpt_update_object_after_eval(struct Depsgraph *depsgraph, struct Obj
  */
 struct MultiresModifierData *BKE_sculpt_multires_active(const struct Scene *scene,
                                                         struct Object *ob);
-int *BKE_sculpt_face_sets_ensure(struct Mesh *mesh);
+int *BKE_sculpt_face_sets_ensure(struct Object *ob);
 /**
  * Create the attribute used to store face visibility and retrieve its data.
  * Note that changes to the face visibility have to be propagated to other domains
  * (see #SCULPT_visibility_sync_all_from_faces).
  */
-bool *BKE_sculpt_hide_poly_ensure(struct Mesh *mesh);
+bool *BKE_sculpt_hide_poly_ensure(struct Object *ob);
 
 /**
  * Ensures a mask layer exists. If depsgraph and bmain are non-null,
@@ -890,6 +1128,8 @@ void BKE_sculpt_sync_face_visibility_to_grids(struct Mesh *mesh, struct SubdivCC
  * drawing the mesh and all updates that come with it.
  */
 bool BKE_sculptsession_use_pbvh_draw(const struct Object *ob, const struct RegionView3D *rv3d);
+
+char BKE_get_fset_boundary_symflag(struct Object *object);
 
 enum {
   SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
@@ -930,4 +1170,59 @@ struct CurveMapping *BKE_sculpt_default_cavity_curve(void);
 
 #ifdef __cplusplus
 }
+
+template<typename Tptr>
+Tptr BKE_sculpt_vertex_attr_get(const PBVHVertRef vertex, const SculptAttribute *attr)
+{
+  void *ptr = nullptr;
+
+  if (attr->data) {
+    char *p = (char *)attr->data;
+    int idx = (int)vertex.i;
+
+    if (attr->data_for_bmesh) {
+      BMElem *v = (BMElem *)vertex.i;
+      idx = v->head.index;
+    }
+
+    ptr = p + attr->elem_size * (int)idx;
+  }
+  else {
+    BMElem *v = (BMElem *)vertex.i;
+    ptr = BM_ELEM_CD_GET_VOID_P(v, attr->bmesh_cd_offset);
+  }
+
+  return static_cast<Tptr>(ptr);
+}
+
+template<typename Tptr>
+static Tptr BKE_sculpt_face_attr_get(const PBVHFaceRef face, const SculptAttribute *attr)
+{
+  void *ptr = nullptr;
+
+  if (attr->data) {
+    char *p = (char *)attr->data;
+    int idx = (int)face.i;
+
+    if (attr->data_for_bmesh) {
+      BMElem *v = (BMElem *)face.i;
+      idx = v->head.index;
+    }
+
+    ptr = p + attr->elem_size * (int)idx;
+  }
+  else {
+    BMElem *v = (BMElem *)face.i;
+    ptr = BM_ELEM_CD_GET_VOID_P(v, attr->bmesh_cd_offset);
+  }
+
+  return static_cast<Tptr>(ptr);
+}
+
+BLI_INLINE void BKE_sculpt_boundary_flag_update(SculptSession *ss, PBVHVertRef vertex)
+{
+  int *flags = BKE_sculpt_vertex_attr_get<int *>(vertex, ss->attrs.boundary_flags);
+  *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+}
+
 #endif

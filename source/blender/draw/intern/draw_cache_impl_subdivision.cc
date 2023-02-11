@@ -2208,9 +2208,11 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
   MeshElemMap *vert_to_edge_map;
   BKE_mesh_vert_edge_map_create(&vert_to_edge_map,
                                 &vert_to_edge_buffer,
+                                reinterpret_cast<const float(*)[3]>(coarse_positions.data()),
                                 coarse_edges.data(),
-                                coarse_mesh->totvert,
-                                coarse_edges.size());
+                                coarse_positions.size(),
+                                coarse_edges.size(),
+                                false);
 
   for (int i = 0; i < coarse_loose_edge_len; i++) {
     const int coarse_edge_index = cache->loose_geom.edges[i];

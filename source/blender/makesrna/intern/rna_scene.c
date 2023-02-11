@@ -3053,6 +3053,15 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_ToolSettings_path");
   RNA_def_struct_ui_text(srna, "Tool Settings", "");
 
+  prop = RNA_def_property(srna, "save_temp_layers", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "save_temp_layers", 1);
+  RNA_def_property_ui_text(prop, "Save Temp Layers", "");
+
+  prop = RNA_def_property(srna, "show_origco", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "show_origco", 1);
+  RNA_def_property_ui_text(prop, "Show Original", "");
+
+
   prop = RNA_def_property(srna, "sculpt", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Sculpt");
   RNA_def_property_ui_text(prop, "Sculpt", "");
@@ -3876,6 +3885,12 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
                            "Use Unified Radius",
                            "Instead of per-brush radius, the radius is shared across brushes");
 
+  /* high-level flags to enable or disable unified paint settings */
+  prop = RNA_def_property(srna, "use_unified_hard_edge_mode", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_FLAG_HARD_EDGE_MODE);
+  RNA_def_property_ui_text(
+      prop, "Use Unified Hard Edge Mode", "Use global setting for hard edge mode");
+
   prop = RNA_def_property(srna, "use_unified_strength", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_ALPHA);
   RNA_def_property_ui_text(prop,
@@ -3948,6 +3963,23 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, brush_size_unit_items);
   RNA_def_property_ui_text(
       prop, "Radius Unit", "Measure brush size relative to the view or the scene");
+
+  prop = RNA_def_property(srna, "hard_edge_mode", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "hard_edge_mode", 1);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_ui_text(
+      prop, "Hard Edge Mode", "Hard edge mode; treat all face set boundaries as hard edges");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "brush_editor_mode", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_FLAG_UI_ADVANCED);
+  RNA_def_property_ui_text(prop, "Workspace Edit Mode", "Brush editor mode");
+  RNA_def_property_update(prop, NC_BRUSH | NA_EDITED, NULL);
+
+  prop = RNA_def_property(srna, "brush_editor_advanced", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", 1 << 7);
+  RNA_def_property_ui_text(prop, "Show Advanced", "Show Advanced Settings");
+  RNA_def_property_update(prop, NC_BRUSH | NA_EDITED, NULL);
 }
 
 static void rna_def_curve_paint_settings(BlenderRNA *brna)

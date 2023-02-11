@@ -14,6 +14,7 @@ set(INC
   ../../windowmanager
   ../../../../intern/clog
   ../../../../intern/guardedalloc
+  ../../../../intern/atomic
   ../../bmesh
 
   # RNA_prototypes.h

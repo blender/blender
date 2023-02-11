@@ -318,8 +318,10 @@ void ED_object_sculptmode_enter_ex(struct Main *bmain,
                                    struct Depsgraph *depsgraph,
                                    struct Scene *scene,
                                    struct Object *ob,
-                                   bool force_dyntopo,
-                                   struct ReportList *reports);
+                                   const bool force_dyntopo,
+                                   struct ReportList *reports,
+                                   bool do_undo);
+
 void ED_object_sculptmode_enter(struct bContext *C,
                                 struct Depsgraph *depsgraph,
                                 struct ReportList *reports);

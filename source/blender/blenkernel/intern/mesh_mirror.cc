@@ -25,7 +25,8 @@
 
 #include "MOD_modifiertypes.h"
 
-Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mmd,
+Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(Object *ob,
+                                                          MirrorModifierData *mmd,
                                                           const Mesh *mesh,
                                                           int axis,
                                                           const float plane_co[3],
@@ -51,7 +52,7 @@ Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mm
   bmesh_from_mesh_params.cd_mask_extra.emask = CD_MASK_ORIGINDEX;
   bmesh_from_mesh_params.cd_mask_extra.pmask = CD_MASK_ORIGINDEX;
 
-  bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
+  bm = BKE_mesh_to_bmesh_ex(nullptr, mesh, &bmesh_create_params, &bmesh_from_mesh_params);
 
   /* Define bisecting plane (aka mirror plane). */
   float plane[4];
@@ -96,7 +97,8 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
   bmesh_from_mesh_params.calc_vert_normal = true;
   bmesh_from_mesh_params.cd_mask_extra.vmask = CD_MASK_SHAPEKEY;
 
-  BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
+  BMesh *bm = BKE_mesh_to_bmesh_ex(nullptr, mesh, &bmesh_create_params, &bmesh_from_mesh_params);
+
   BMO_op_callf(bm,
                (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
                "symmetrize input=%avef direction=%i dist=%f use_shapekey=%b",
@@ -107,7 +109,7 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
   BMeshToMeshParams bmesh_to_mesh_params{};
   bmesh_to_mesh_params.calc_object_remap = true;
 
-  BM_mesh_bm_to_me(bmain, bm, mesh, &bmesh_to_mesh_params);
+  BM_mesh_bm_to_me(bmain, nullptr, bm, mesh, &bmesh_to_mesh_params);
   BM_mesh_free(bm);
 }
 
@@ -184,7 +186,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   Mesh *mesh_bisect = nullptr;
   if (do_bisect) {
     mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(
-        mmd, mesh, axis, plane_co, plane_no);
+        ob, mmd, mesh, axis, plane_co, plane_no);
     mesh = mesh_bisect;
   }
 

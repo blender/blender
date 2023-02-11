@@ -421,19 +421,25 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
       if (!source_lmap) {
         BKE_mesh_vert_loop_map_create(&source_lmap,
                                       &source_lmap_mem,
+                                      nullptr,
+                                      source->edges().data(),
                                       source->polys().data(),
                                       source->loops().data(),
                                       source->totvert,
                                       source->totpoly,
-                                      source->totloop);
+                                      source->totloop,
+                                      false);
 
         BKE_mesh_vert_loop_map_create(&target_lmap,
                                       &target_lmap_mem,
+                                      nullptr,
+                                      target->edges().data(),
                                       target->polys().data(),
                                       target->loops().data(),
                                       target->totvert,
                                       target->totpoly,
-                                      target->totloop);
+                                      target->totloop,
+                                      false);
       }
 
       blender::threading::parallel_for(
@@ -511,7 +517,7 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
   BMeshFromMeshParams bmesh_from_mesh_params{};
   bmesh_from_mesh_params.calc_face_normal = true;
   bmesh_from_mesh_params.calc_vert_normal = true;
-  BM_mesh_bm_from_me(bm, mesh, &bmesh_from_mesh_params);
+  BM_mesh_bm_from_me(nullptr, bm, mesh, &bmesh_from_mesh_params);
 
   BMVert *v;
   BMEdge *ed, *ed_next;
@@ -545,7 +551,7 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
     if (BM_elem_flag_test(ed, BM_ELEM_TAG)) {
       float co[3];
       mid_v3_v3v3(co, ed->v1->co, ed->v2->co);
-      BMVert *vc = BM_edge_collapse(bm, ed, ed->v1, true, true);
+      BMVert *vc = BM_edge_collapse(bm, ed, ed->v1, true, true, true, true, nullptr);
       copy_v3_v3(vc->co, co);
     }
   }

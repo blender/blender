@@ -81,6 +81,7 @@ set(SRC
   intern/hash_md5.c
   intern/hash_mm2a.c
   intern/hash_mm3.c
+  intern/heap_minmax.c
   intern/index_mask.cc
   intern/jitter_2d.c
   intern/kdtree_1d.c
@@ -88,6 +89,7 @@ set(SRC
   intern/kdtree_3d.c
   intern/kdtree_4d.c
   intern/lasso_2d.c
+  intern/lockfree_mempool.cc
   intern/lazy_threading.cc
   intern/length_parameterize.cc
   intern/listbase.cc
@@ -139,6 +141,7 @@ set(SRC
   intern/string_search.cc
   intern/string_utf8.c
   intern/string_utils.c
+  #intern/string_regex.cc
   intern/system.c
   intern/task_graph.cc
   intern/task_iterator.c
@@ -155,6 +158,7 @@ set(SRC
   intern/voxel.c
   intern/winstuff.c
   intern/winstuff_dir.c
+  intern/BLI_table_gset.c
 
   # Private headers.
   intern/BLI_mempool_private.h
@@ -237,6 +241,7 @@ set(SRC
   BLI_hash_tables.hh
   BLI_heap.h
   BLI_heap_simple.h
+  BLI_heap_minmax.h
   BLI_index_mask.hh
   BLI_index_mask_ops.hh
   BLI_index_range.hh
@@ -291,6 +296,7 @@ set(SRC
   BLI_memory_utils.h
   BLI_memory_utils.hh
   BLI_mempool.h
+  BLI_mempool_lockfree.h
   BLI_mesh_boolean.hh
   BLI_mesh_intersect.hh
   BLI_mmap.h
@@ -321,6 +327,7 @@ set(SRC
   BLI_sort.h
   BLI_sort.hh
   BLI_sort_utils.h
+  BLI_even_spline.hh
   BLI_span.hh
   BLI_stack.h
   BLI_stack.hh
@@ -331,6 +338,7 @@ set(SRC
   BLI_string_search.h
   BLI_string_utf8.h
   BLI_string_utils.h
+  #BLI_string_regex.h
   BLI_sys_types.h
   BLI_system.h
   BLI_task.h

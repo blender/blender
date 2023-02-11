@@ -53,6 +53,7 @@ typedef struct CustomDataLayer {
    * attribute was created.
    */
   const AnonymousAttributeIDHandle *anonymous_id;
+  void *default_data;
 } CustomDataLayer;
 
 #define MAX_CUSTOMDATA_LAYER_NAME 68
@@ -76,8 +77,8 @@ typedef struct CustomData {
    * MUST be >= CD_NUMTYPES, but we can't use a define here.
    * Correct size is ensured in CustomData_update_typemap assert().
    */
-  int typemap[52];
-  char _pad[4];
+  int typemap[55];
+
   /** Number of layers, size of layers array. */
   int totlayer, maxlayer;
   /** In editmode, total size of all data layers. */
@@ -86,6 +87,9 @@ typedef struct CustomData {
   struct BLI_mempool *pool;
   /** External file storing customdata layers. */
   CustomDataExternal *external;
+
+  /** for use with USE_BMESH_PAGE_CUSTOMDATA test, remove later*/
+  void *bm_attrs, *_pad[1];
 } CustomData;
 
 /** #CustomData.type */
@@ -162,8 +166,10 @@ typedef enum eCustomDataType {
   CD_PROP_BOOL = 50,
 
   CD_HAIRLENGTH = 51,
-
-  CD_NUMTYPES = 52,
+  CD_MESH_ID = 52,
+  CD_DYNTOPO_VERT = 53,
+  CD_TOOLFLAGS = 54,
+  CD_NUMTYPES = 55,
 } eCustomDataType;
 
 /* Bits for eCustomDataMask */
@@ -214,7 +220,10 @@ typedef enum eCustomDataType {
 #define CD_MASK_PROP_BOOL (1ULL << CD_PROP_BOOL)
 #define CD_MASK_PROP_INT8 (1ULL << CD_PROP_INT8)
 
+#define CD_MASK_DYNTOPO_VERT (1ULL << CD_DYNTOPO_VERT)
+#define CD_MASK_MESH_ID (1ULL << CD_MESH_ID)
 #define CD_MASK_HAIRLENGTH (1ULL << CD_HAIRLENGTH)
+#define CD_MASK_TOOLFLAGS (1ULL << CD_TOOLFLAGS)
 
 /** Multi-resolution loop data. */
 #define CD_MASK_MULTIRES_GRIDS (CD_MASK_MDISPS | CD_GRID_PAINT_MASK)
@@ -246,15 +255,18 @@ enum {
   /* Indicates layer should not be freed (for layers backed by external data) */
   CD_FLAG_NOFREE = (1 << 1),
   /* Indicates the layer is only temporary, also implies no copy */
-  CD_FLAG_TEMPORARY = ((1 << 2) | CD_FLAG_NOCOPY),
+  CD_FLAG_TEMPORARY = ((1 << 2)),  // CD_FLAG_TEMPORARY no longer implies CD_FLAG_NOCOPY, this
+                                   // wasn't enforced for bmesh
   /* Indicates the layer is stored in an external file */
   CD_FLAG_EXTERNAL = (1 << 3),
   /* Indicates external data is read into memory */
   CD_FLAG_IN_MEMORY = (1 << 4),
 #ifdef DNA_DEPRECATED_ALLOW
   CD_FLAG_COLOR_ACTIVE = (1 << 5),
-  CD_FLAG_COLOR_RENDER = (1 << 6)
+  CD_FLAG_COLOR_RENDER = (1 << 6),
 #endif
+  CD_FLAG_ELEM_NOCOPY = (1 << 8),  // disables CustomData_bmesh_copy_data.
+  CD_FLAG_ELEM_NOINTERP = (1 << 9),
 };
 
 /* Limits */

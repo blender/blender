@@ -27,6 +27,8 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
+#include "BKE_paint.h"
+#include "BKE_pbvh.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 

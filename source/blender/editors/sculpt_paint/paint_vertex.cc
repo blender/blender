@@ -40,6 +40,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_mesh_types.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
@@ -1177,7 +1179,7 @@ static void vertex_paint_init_session(Depsgraph *depsgraph,
   BKE_sculpt_toolsettings_data_ensure(scene);
 
   BLI_assert(ob->sculpt == nullptr);
-  ob->sculpt = (SculptSession *)MEM_callocN(sizeof(SculptSession), "sculpt session");
+  BKE_object_sculpt_data_create(ob);
   ob->sculpt->mode_type = object_mode;
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, true);
 
@@ -1250,18 +1252,24 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
     gmap->vert_to_poly = nullptr;
     BKE_mesh_vert_loop_map_create(&gmap->vert_to_loop,
                                   &gmap->vert_map_mem,
-                                  polys.data(),
-                                  loops.data(),
+                                  reinterpret_cast<const float(*)[3]>(me->vert_positions().data()),
+                                  me->medge,
+                                  me->mpoly,
+                                  me->mloop,
                                   me->totvert,
                                   me->totpoly,
-                                  me->totloop);
+                                  me->totloop,
+                                  false);
     BKE_mesh_vert_poly_map_create(&gmap->vert_to_poly,
                                   &gmap->poly_map_mem,
-                                  polys.data(),
-                                  loops.data(),
+                                  BKE_mesh_vert_positions(me),
+                                  me->medge,
+                                  me->mpoly,
+                                  me->mloop,
                                   me->totvert,
                                   me->totpoly,
-                                  me->totloop);
+                                  me->totloop,
+                                  false);
   }
 
   /* Create average brush arrays */
@@ -1337,7 +1345,7 @@ static void ed_vwpaintmode_enter_generic(
   /* Create vertex/weight paint mode session data */
   if (ob->sculpt) {
     if (ob->sculpt->cache) {
-      SCULPT_cache_free(ob->sculpt->cache);
+      SCULPT_cache_free(ob->sculpt, ob, ob->sculpt->cache);
       ob->sculpt->cache = nullptr;
     }
     BKE_sculptsession_free(ob);
@@ -1406,7 +1414,7 @@ static void ed_vwpaintmode_exit_generic(Object *ob, const eObjectMode mode_flag)
 
   /* If the cache is not released by a cancel or a done, free it now. */
   if (ob->sculpt && ob->sculpt->cache) {
-    SCULPT_cache_free(ob->sculpt->cache);
+    SCULPT_cache_free(ob->sculpt, ob, ob->sculpt->cache);
     ob->sculpt->cache = nullptr;
   }
 
@@ -1645,7 +1653,8 @@ static void vwpaint_update_cache_invariants(
   }
 
   copy_v2_v2(cache->mouse, cache->initial_mouse);
-  const Brush *brush = vp->paint.brush;
+  Brush *brush = vp->paint.brush;
+
   /* Truly temporary data that isn't stored in properties */
   cache->vc = vc;
   cache->brush = brush;
@@ -1956,8 +1965,7 @@ static void do_wpaint_brush_blur_task_cb_ex(void *__restrict userdata,
   const bool use_vert_sel = (data->me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, data->brush->falloff_shape);
 
@@ -2058,8 +2066,7 @@ static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
   if (cache->is_last_valid && (normalize_v3(brush_dir) != 0.0f)) {
 
     SculptBrushTest test;
-    SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-        ss, &test, data->brush->falloff_shape);
+    SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
     const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
         ss, data->brush->falloff_shape);
 
@@ -2163,8 +2170,7 @@ static void do_wpaint_brush_draw_task_cb_ex(void *__restrict userdata,
   const bool use_vert_sel = (data->me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, data->brush->falloff_shape);
 
@@ -2233,8 +2239,7 @@ static void do_wpaint_brush_calc_average_weight_cb_ex(void *__restrict userdata,
   accum->value = 0.0;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, data->brush->falloff_shape);
 
@@ -2639,7 +2644,7 @@ static void wpaint_stroke_done(const bContext *C, PaintStroke *stroke)
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
-  SCULPT_cache_free(ob->sculpt->cache);
+  SCULPT_cache_free(ob->sculpt, ob, ob->sculpt->cache);
   ob->sculpt->cache = nullptr;
 }
 
@@ -2690,7 +2695,7 @@ static void wpaint_cancel(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob->sculpt->cache) {
-    SCULPT_cache_free(ob->sculpt->cache);
+    SCULPT_cache_free(ob->sculpt, ob, ob->sculpt->cache);
     ob->sculpt->cache = nullptr;
   }
 
@@ -2719,7 +2724,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
-  paint_stroke_operator_properties(ot);
+  paint_stroke_operator_properties(ot, false);
 }
 
 /** \} */
@@ -2993,8 +2998,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
       const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
       SculptBrushTest test;
-      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-          ss, &test, brush->falloff_shape);
+      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
       const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
           ss, brush->falloff_shape);
 
@@ -3138,8 +3142,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
       const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
       SculptBrushTest test;
-      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-          ss, &test, brush->falloff_shape);
+      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
       const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
           ss, brush->falloff_shape);
 
@@ -3292,8 +3295,7 @@ static void do_vpaint_brush_smear(bContext *C,
       if (cache->is_last_valid && (normalize_v3(brush_dir) != 0.0f)) {
 
         SculptBrushTest test;
-        SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-            ss, &test, brush->falloff_shape);
+        SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
         const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
             ss, brush->falloff_shape);
 
@@ -3460,8 +3462,7 @@ static void calculate_average_color(VPaintData<Color, Traits, domain> *vpd,
       memset(accum2->value, 0, sizeof(accum2->value));
 
       SculptBrushTest test;
-      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-          ss, &test, brush->falloff_shape);
+      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
 
       /* For each vertex */
       PBVHVertexIter vd;
@@ -3577,8 +3578,7 @@ static void vpaint_do_draw(bContext *C,
       const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
       SculptBrushTest test;
-      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-          ss, &test, brush->falloff_shape);
+      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
       const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
           ss, brush->falloff_shape);
 
@@ -3984,7 +3984,7 @@ static void vpaint_stroke_done(const bContext *C, PaintStroke *stroke)
 
   SCULPT_undo_push_end(ob);
 
-  SCULPT_cache_free(ob->sculpt->cache);
+  SCULPT_cache_free(ob->sculpt, ob, ob->sculpt->cache);
   ob->sculpt->cache = nullptr;
 }
 
@@ -4044,7 +4044,7 @@ static void vpaint_cancel(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob->sculpt->cache) {
-    SCULPT_cache_free(ob->sculpt->cache);
+    SCULPT_cache_free(ob->sculpt, ob, ob->sculpt->cache);
     ob->sculpt->cache = nullptr;
   }
 
@@ -4073,7 +4073,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
-  paint_stroke_operator_properties(ot);
+  paint_stroke_operator_properties(ot, false);
 }
 
 /** \} */

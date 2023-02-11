@@ -865,6 +865,7 @@ static BMesh *get_bmesh_from_mesh(Mesh *mesh)
 {
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
 
+
   BMeshCreateParams bm_create_params{};
   bm_create_params.use_toolflags = true;
   BMesh *bm = BM_mesh_create(&allocsize, &bm_create_params);
@@ -872,7 +873,7 @@ static BMesh *get_bmesh_from_mesh(Mesh *mesh)
   BMeshFromMeshParams bm_from_me_params{};
   bm_from_me_params.calc_face_normal = true;
   bm_from_me_params.calc_vert_normal = true;
-  BM_mesh_bm_from_me(bm, mesh, &bm_from_me_params);
+  BM_mesh_bm_from_me(nullptr, bm, mesh, &bm_from_me_params);
 
   return bm;
 }
@@ -1150,7 +1151,7 @@ bool multires_unsubdivide_to_basemesh(MultiresUnsubdivideContext *context)
 
   BMeshToMeshParams bm_to_me_params{};
   bm_to_me_params.calc_object_remap = true;
-  BM_mesh_bm_to_me(nullptr, bm_base_mesh, context->base_mesh, &bm_to_me_params);
+  BM_mesh_bm_to_me(nullptr, nullptr, bm_base_mesh, context->base_mesh, &bm_to_me_params);
   BM_mesh_free(bm_base_mesh);
 
   /* Initialize bmesh and maps for the original mesh and extract the grids. */

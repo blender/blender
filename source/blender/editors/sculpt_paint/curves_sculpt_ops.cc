@@ -266,7 +266,7 @@ static void SCULPT_CURVES_OT_brush_stroke(struct wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  paint_stroke_operator_properties(ot);
+  paint_stroke_operator_properties(ot, false);
 }
 
 /** \} */

@@ -213,7 +213,7 @@ static int edbm_polybuild_delete_at_cursor_invoke(bContext *C,
   if (ele_act->head.htype == BM_VERT) {
     BMVert *v_act = (BMVert *)ele_act;
     if (BM_vert_is_edge_pair(v_act) && !BM_vert_is_wire(v_act)) {
-      BM_edge_collapse(bm, v_act->e, v_act, true, true);
+      BM_edge_collapse(bm, v_act->e, v_act, true, true, false, false, NULL);
       changed = true;
     }
     else {
@@ -565,7 +565,7 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(bContext *C,
   else if (ele_act->head.htype == BM_VERT) {
     BMVert *v_act = (BMVert *)ele_act;
     if (BM_vert_is_edge_pair(v_act)) {
-      BM_edge_collapse(bm, v_act->e, v_act, true, true);
+      BM_edge_collapse(bm, v_act->e, v_act, true, true, false, false, NULL);
     }
     else {
       /* too involved to do inline */

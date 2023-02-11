@@ -288,6 +288,9 @@ void GPU_batch_draw_advanced(GPUBatch *gpu_batch,
     if (batch->elem) {
       vertex_count = batch->elem_()->index_len_get();
     }
+    else if (!batch->verts_(0)) {
+      return;
+    }
     else {
       vertex_count = batch->verts_(0)->vertex_len;
     }

@@ -480,6 +480,7 @@ const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
  * but helps for context-less access (e.g. doc, i18n...). */
 static const EnumPropertyItem buttons_context_items[] = {
     {BCONTEXT_TOOL, "TOOL", ICON_TOOL_SETTINGS, "Tool", "Active Tool and Workspace settings"},
+    {BCONTEXT_BRUSH_EDITOR, "BRUSH_EDITOR", ICON_BRUSH_DATA, "Brush", "Brush Settings"},
     {BCONTEXT_SCENE, "SCENE", ICON_SCENE_DATA, "Scene", "Scene Properties"},
     {BCONTEXT_RENDER, "RENDER", ICON_SCENE, "Render", "Render Properties"},
     {BCONTEXT_OUTPUT, "OUTPUT", ICON_OUTPUT, "Output", "Output Properties"},
@@ -3394,8 +3395,9 @@ static struct IDFilterEnumPropertyItem rna_enum_space_file_id_filter_categories[
      ICON_WORLD_DATA,
      "Environment",
      "Show worlds, lights, cameras and speakers"},
-    {FILTER_ID_BR | FILTER_ID_GD | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT |
-         FILTER_ID_VF | FILTER_ID_CF | FILTER_ID_WS,
+    {FILTER_ID_BR, "category_brush", ICON_GREASEPENCIL, "Brushes", "Show brushes"},
+    {FILTER_ID_GD | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT | FILTER_ID_VF |
+         FILTER_ID_CF | FILTER_ID_WS,
      "category_misc",
      ICON_GREASEPENCIL,
      "Miscellaneous",
@@ -4719,6 +4721,22 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Sculpt Face Sets Opacity", "");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "sculpt_mode_face_sets_moire_seed", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "overlay.sculpt_mode_face_sets_moire_seed");
+  RNA_def_property_ui_text(prop, "Pattern Seed", "Sculpt Face Sets Pattern Seed");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "sculpt_mode_use_face_set_moire", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.sculpt_flag", V3D_OVERLAY_SCULPT_FSET_MOIRE);
+  RNA_def_property_ui_text(prop, "Moire", "Draw face sets with moire pattern");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "sculpt_mode_face_sets_moire_scale", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "overlay.sculpt_mode_face_sets_moire_scale");
+  RNA_def_property_ui_text(prop, "Pattern Scale", "Sculpt Face Sets Pattern Scale");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
 
   prop = RNA_def_property(srna, "sculpt_show_mask", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_SHOW_MASK);

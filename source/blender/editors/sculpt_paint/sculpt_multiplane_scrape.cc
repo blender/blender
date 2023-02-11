@@ -47,8 +47,7 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
   PBVHVertexIter vd;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, brush->falloff_shape);
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   /* Apply the brush normal radius to the test before sampling. */
@@ -135,8 +134,7 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   AutomaskingNodeData automask_data;
@@ -144,7 +142,6 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }

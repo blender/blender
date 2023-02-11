@@ -14,6 +14,7 @@
 #include "BLI_string.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 #include "BLF_api.h"
 

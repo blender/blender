@@ -23,6 +23,7 @@ set(INC
   ../render
   ../sequencer
   ../../../intern/clog
+  ../../../intern/atomic
   ../../../intern/ghost
   ../../../intern/guardedalloc
   ../../../intern/memutil

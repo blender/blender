@@ -61,6 +61,8 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 
 #ifdef RNA_RUNTIME
 
+void wm_autosave_write(Main *bmain, wmWindowManager *wm);
+
 #  include "BKE_context.h"
 #  include "BKE_undo_system.h"
 
@@ -112,6 +114,11 @@ static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
 static bool rna_event_modal_handler_add(struct bContext *C, struct wmOperator *operator)
 {
   return WM_event_add_modal_handler(C, operator) != NULL;
+}
+
+static void rna_WindowManager_autosave_write(struct wmWindowManager *wm, Main *main)
+{
+  wm_autosave_write(main, wm);
 }
 
 /* XXX, need a way for python to know event types, 0x0110 is hard coded */
@@ -762,6 +769,10 @@ void RNA_api_wm(StructRNA *srna)
 {
   FunctionRNA *func;
   PropertyRNA *parm;
+
+  func = RNA_def_function(srna, "autosave_write", "rna_WindowManager_autosave_write");
+  RNA_def_function_ui_description(func, "Force autosave ");
+  RNA_def_function_flag(func, FUNC_USE_MAIN);
 
   func = RNA_def_function(srna, "fileselect_add", "WM_event_add_fileselect");
   RNA_def_function_ui_description(

@@ -170,6 +170,9 @@ void BM_mesh_copy_init_customdata_all_layers(BMesh *bm_dst,
                                              const struct BMAllocTemplate *allocsize);
 BMesh *BM_mesh_copy(BMesh *bm_old);
 
+/* BM -> ME */
+void BM_sort_disk_cycle(BMVert *v);
+
 #ifdef __cplusplus
 }
 #endif

@@ -112,7 +112,8 @@ void OBJMesh::triangulate_mesh_eval()
    * triangulated here. */
   const int triangulate_min_verts = 4;
 
-  BMesh *bmesh = BKE_mesh_to_bmesh_ex(export_mesh_, &bm_create_params, &bm_convert_params);
+  BMesh *bmesh = BKE_mesh_to_bmesh_ex(
+      nullptr, export_mesh_, &bm_create_params, &bm_convert_params);
   BM_mesh_triangulate(bmesh,
                       MOD_TRIANGULATE_NGON_BEAUTY,
                       MOD_TRIANGULATE_QUAD_SHORTEDGE,

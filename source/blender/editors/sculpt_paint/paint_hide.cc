@@ -193,17 +193,15 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 }
 
 static void partialvis_update_bmesh_verts(BMesh *bm,
-                                          GSet *verts,
+                                          TableGSet *verts,
                                           PartialVisAction action,
                                           PartialVisArea area,
                                           float planes[4][4],
                                           bool *any_changed,
                                           bool *any_visible)
 {
-  GSetIterator gs_iter;
-
-  GSET_ITER (gs_iter, verts) {
-    BMVert *v = static_cast<BMVert *>(BLI_gsetIterator_getKey(&gs_iter));
+  BMVert *v;
+  TGSET_ITER (v, verts) {
     float *vmask = static_cast<float *>(
         CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK));
 
@@ -222,14 +220,16 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
       (*any_visible) = true;
     }
   }
+  TGSET_ITER_END
 }
 
-static void partialvis_update_bmesh_faces(GSet *faces)
+static void partialvis_update_bmesh_faces(TableGSet *faces, int cd_hide_poly)
 {
-  GSetIterator gs_iter;
-
-  GSET_ITER (gs_iter, faces) {
-    BMFace *f = static_cast<BMFace *>(BLI_gsetIterator_getKey(&gs_iter));
+  BMFace *f;
+  
+  TGSET_ITER (f, faces) {
+    bool hidden = paint_is_bmesh_face_hidden(f);
+    BM_ELEM_CD_SET_BOOL(f, cd_hide_poly, hidden);
 
     if (paint_is_bmesh_face_hidden(f)) {
       BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
@@ -238,6 +238,7 @@ static void partialvis_update_bmesh_faces(GSet *faces)
       BM_elem_flag_disable(f, BM_ELEM_HIDDEN);
     }
   }
+  TGSET_ITER_END
 }
 
 static void partialvis_update_bmesh(Object *ob,
@@ -248,7 +249,7 @@ static void partialvis_update_bmesh(Object *ob,
                                     float planes[4][4])
 {
   BMesh *bm;
-  GSet *unique, *other, *faces;
+  TableGSet *unique, *other, *faces;
   bool any_changed = false, any_visible = false;
 
   bm = BKE_pbvh_get_bmesh(pbvh);
@@ -263,11 +264,12 @@ static void partialvis_update_bmesh(Object *ob,
   partialvis_update_bmesh_verts(bm, other, action, area, planes, &any_changed, &any_visible);
 
   /* Finally loop over node faces and tag the ones that are fully hidden. */
-  partialvis_update_bmesh_faces(faces);
+  partialvis_update_bmesh_faces(faces, ob->sculpt->attrs.hide_poly->bmesh_cd_offset);
 
   if (any_changed) {
     BKE_pbvh_node_mark_rebuild_draw(node);
     BKE_pbvh_node_fully_hidden_set(node, !any_visible);
+    BKE_pbvh_vert_tag_update_normal_triangulation(node);
   }
 }
 
@@ -343,6 +345,8 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   clip_planes_from_rect(C, depsgraph, clip_planes, &rect);
 
   pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
+  BKE_sculpt_hide_poly_ensure(ob);
+
   BLI_assert(ob->sculpt->pbvh == pbvh);
 
   get_pbvh_nodes(pbvh, &nodes, &totnode, clip_planes, area);

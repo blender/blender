@@ -283,6 +283,12 @@ extern "C" {
   (_VA_ELEM15(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n) || _VA_ELEM2(v, o))
 #define _VA_ELEM17(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) \
   (_VA_ELEM16(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) || _VA_ELEM2(v, p))
+#define _VA_ELEM18(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q) \
+  (_VA_ELEM17(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) || _VA_ELEM2(v, q))
+#define _VA_ELEM19(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) \
+  (_VA_ELEM18(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q) || _VA_ELEM2(v, r))
+#define _VA_ELEM20(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) \
+  (_VA_ELEM19(v, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) || _VA_ELEM2(v, s))
 /* clang-format on */
 
 /* reusable ELEM macro */
@@ -844,7 +850,7 @@ extern bool BLI_memory_is_zero(const void *arr, size_t arr_size);
  */
 #define BLI_ENABLE_IF(condition) typename std::enable_if_t<(condition)> * = nullptr
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
 #  define BLI_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
 #elif defined(__has_cpp_attribute)
 #  if __has_cpp_attribute(no_unique_address)

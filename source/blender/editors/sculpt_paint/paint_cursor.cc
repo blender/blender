@@ -1375,7 +1375,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
   pcontext->prev_active_vertex = ss->active_vertex;
   if (!ups->stroke_active) {
     pcontext->is_cursor_over_mesh = SCULPT_cursor_geometry_info_update(
-        C, &gi, mval_fl, (pcontext->brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
+        C, &gi, mval_fl, (pcontext->brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE), false);
     copy_v3_v3(pcontext->location, gi.location);
     copy_v3_v3(pcontext->normal, gi.normal);
   }
@@ -1459,6 +1459,99 @@ static void paint_draw_3D_view_inactive_brush_cursor(PaintCursorContext *pcontex
                           pcontext->translation[1],
                           pcontext->final_radius * clamp_f(pcontext->brush->alpha, 0.0f, 1.0f),
                           80);
+}
+
+static void sculpt_cursor_draw_active_face_set_color_set(PaintCursorContext *pcontext)
+{
+
+  SculptSession *ss = pcontext->ss;
+
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    return;
+  }
+
+  const int active_face_set = SCULPT_active_face_set_get(ss);
+  uchar color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
+  Object *ob = CTX_data_active_object(pcontext->C);
+  Mesh *mesh = (Mesh *)ob->data;
+  if (active_face_set != mesh->face_sets_color_default) {
+    BKE_paint_face_set_overlay_color_get(active_face_set, mesh->face_sets_color_seed, color);
+    color[3] = UCHAR_MAX;
+  }
+  else {
+    color[3] /= 2;
+  }
+
+  immUniformColor4ubv(color);
+}
+
+static void sculpt_cursor_draw_3D_face_set_preview(PaintCursorContext *pcontext)
+{
+
+  SculptSession *ss = pcontext->ss;
+
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    return;
+  }
+
+  GPU_line_width(1.0f);
+  sculpt_cursor_draw_active_face_set_color_set(pcontext);
+
+  /*
+  MPoly *poly = &ss->mpoly[fi];
+  MLoop *loops = ss->mloop;
+  const int totpoints = poly->totloop;
+
+  immBegin(GPU_PRIM_LINE_STRIP, totpoints + 1);
+  for (int i = 0; i < totpoints; i++) {
+    float co[3];
+    copy_v3_v3(co, SCULPT_vertex_co_get(ss, loops[poly->loopstart + i].v));
+    immVertex3fv(pcontext->pos, co);
+  }
+  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, loops[poly->loopstart].v));
+  immEnd();
+  */
+
+  /*
+  int v_in_poly = 0;
+  for (int i = 0; i < totpoints; i++) {
+    if (ss->active_vertex == loops[poly->loopstart + i].v) {
+      v_in_poly = i;
+    }
+  }
+  const int next_v = v_in_poly == poly->totloop - 1? 0 : v_in_poly + 1;
+  const int prev_v = v_in_poly == 0? poly->totloop - 1 : v_in_poly  - 1;
+
+
+  immBegin(GPU_PRIM_LINES, 4);
+  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, ss->active_vertex));
+  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, loops[poly->loopstart + next_v].v));
+
+
+  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, ss->active_vertex));
+  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, loops[poly->loopstart + prev_v].v));
+
+  immEnd();
+  */
+
+  if (!ss->pmap) {
+    return;
+  }
+
+  int total = 0;
+  SculptVertexNeighborIter ni;
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ss->active_vertex, ni) {
+    total++;
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  immBegin(GPU_PRIM_LINES, total * 2);
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ss->active_vertex, ni) {
+    immVertex3fv(pcontext->pos, SCULPT_active_vertex_co_get(ss));
+    immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, ni.vertex));
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+  immEnd();
 }
 
 static void paint_cursor_update_object_space_radius(PaintCursorContext *pcontext)
@@ -1560,7 +1653,7 @@ static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pconte
   }
 
   ss->boundary_preview = SCULPT_boundary_data_init(
-      pcontext->vc.obact, pcontext->brush, ss->active_vertex, pcontext->radius);
+      pcontext->sd, pcontext->vc.obact, pcontext->brush, ss->active_vertex, pcontext->radius);
 }
 
 static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *pcontext)
@@ -1606,6 +1699,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
   }
   if (len_v3v3(active_vertex_co, pcontext->location) < pcontext->radius) {
     immUniformColor3fvAlpha(pcontext->outline_col, pcontext->outline_alpha);
+    sculpt_cursor_draw_active_face_set_color_set(pcontext);
     cursor_draw_point_with_symmetry(pcontext->pos,
                                     pcontext->region,
                                     active_vertex_co,
@@ -1651,6 +1745,15 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
         2);
   }
 
+  /* Transform Pivot. */
+  if (pcontext->paint && pcontext->paint->flags & PAINT_SCULPT_SHOW_PIVOT) {
+    cursor_draw_point_screen_space(pcontext->pos,
+                                   pcontext->region,
+                                   pcontext->ss->pivot_pos,
+                                   pcontext->vc.obact->object_to_world,
+                                   2);
+  }
+
   if (is_brush_tool && brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) {
     paint_cursor_preview_boundary_data_update(pcontext, update_previews);
     paint_cursor_preview_boundary_data_pivot_draw(pcontext);
@@ -1689,6 +1792,9 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
     SCULPT_boundary_pivot_line_preview_draw(pcontext->pos, pcontext->ss);
   }
 
+  /* Face Set Preview. */
+  sculpt_cursor_draw_3D_face_set_preview(pcontext);
+
   GPU_matrix_pop();
 
   /* Drawing Cursor overlays in Paint Cursor space (as additional info on top of the brush cursor)
@@ -1706,8 +1812,16 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
     /* This functions sets its own drawing space in order to draw the simulation limits when the
      * cursor is active. When used here, this cursor overlay is already in cursor space, so its
      * position and normal should be set to 0. */
-    SCULPT_cloth_simulation_limits_draw(
-        pcontext->pos, brush, zero_v, zero_v, pcontext->radius, 1.0f, white, 0.25f);
+    SCULPT_cloth_simulation_limits_draw(pcontext->ss,
+                                        pcontext->sd,
+                                        pcontext->pos,
+                                        brush,
+                                        zero_v,
+                                        zero_v,
+                                        pcontext->radius,
+                                        1.0f,
+                                        white,
+                                        0.25f);
   }
 
   /* Layer brush height. */
@@ -1786,7 +1900,9 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
       if (len_v3v3(ss->cache->true_location, ss->cache->true_initial_location) >
           ss->cache->radius * (1.0f + brush->cloth_sim_limit)) {
         const float red[3] = {1.0f, 0.2f, 0.2f};
-        SCULPT_cloth_simulation_limits_draw(pcontext->pos,
+        SCULPT_cloth_simulation_limits_draw(pcontext->ss,
+                                            pcontext->sd,
+                                            pcontext->pos,
                                             brush,
                                             ss->cache->true_initial_location,
                                             ss->cache->true_initial_normal,
@@ -1848,7 +1964,8 @@ static void paint_cursor_update_rake_rotation(PaintCursorContext *pcontext)
    * and we may get interference with the stroke itself.
    * For line strokes, such interference is visible. */
   if (!pcontext->ups->stroke_active) {
-    paint_calculate_rake_rotation(pcontext->ups, pcontext->brush, pcontext->translation);
+    paint_calculate_rake_rotation(
+        pcontext->ups, pcontext->brush, pcontext->translation, pcontext->translation);
   }
 }
 
@@ -1954,3 +2071,4 @@ void ED_paint_cursor_start(Paint *p, bool (*poll)(bContext *C))
   /* Invalidate the paint cursors. */
   BKE_paint_invalidate_overlay_all();
 }
+

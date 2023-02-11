@@ -75,11 +75,14 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   int *pmap_mem;
   BKE_mesh_vert_poly_map_create(&pmap,
                                 &pmap_mem,
+                                reshape_context->base_positions,
+                                reshape_context->base_edges,
                                 reshape_context->base_polys,
                                 reshape_context->base_loops,
                                 base_mesh->totvert,
                                 base_mesh->totpoly,
-                                base_mesh->totloop);
+                                base_mesh->totloop,
+                                false);
 
   float(*origco)[3] = static_cast<float(*)[3]>(
       MEM_calloc_arrayN(base_mesh->totvert, sizeof(float[3]), __func__));

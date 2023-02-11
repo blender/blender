@@ -862,6 +862,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       alpha = BKE_brush_alpha_get(scene, brush);
 
       radius = BKE_brush_size_get(scene, brush);
+      sima = CTX_wm_space_image(C);
       ED_space_image_get_size(sima, &width, &height);
       ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
 

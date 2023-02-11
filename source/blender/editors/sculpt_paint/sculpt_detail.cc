@@ -50,16 +50,19 @@ struct SculptDetailRaycastData {
   float depth;
   float edge_length;
 
-  IsectRayPrecalc isect_precalc;
+  struct IsectRayPrecalc isect_precalc;
+  SculptSession *ss;
 };
 
 static bool sculpt_and_constant_or_manual_detail_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  // Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
-  return SCULPT_mode_poll(C) && ob->sculpt->bm &&
-         (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL));
+  /*checking for constant/manual mode isn't necassary since we do this on the python side
+    in the ui scripts*/
+  return SCULPT_mode_poll(C) && ob->sculpt->bm; /*&&
+         (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL));*/
 }
 
 static bool sculpt_and_dynamic_topology_poll(bContext *C)
@@ -79,6 +82,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
   SculptSession *ss = ob->sculpt;
   float size;
   float bb_min[3], bb_max[3], center[3], dim[3];
@@ -101,26 +106,104 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   sub_v3_v3v3(dim, bb_max, bb_min);
   size = max_fff(dim[0], dim[1], dim[2]);
 
+  float constant_detail = brush->dyntopo.constant_detail;
+  float detail_range = brush->dyntopo.detail_range;
+
   /* Update topology size. */
   float object_space_constant_detail = 1.0f /
                                        (sd->constant_detail * mat4_to_scale(ob->object_to_world));
-  BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail);
+  BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail, detail_range);
+  BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
+
+  bool enable_surface_relax = true; /* XXX should be user-configurable. */
 
   SCULPT_undo_push_begin(ob, op);
   SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_COORDS);
 
-  while (BKE_pbvh_bmesh_update_topology(
-      ss->pbvh, PBVH_Collapse | PBVH_Subdivide, center, nullptr, size, false, false)) {
-    for (int i = 0; i < totnodes; i++) {
-      BKE_pbvh_node_mark_topology_update(nodes[i]);
+  DyntopoMaskCB mask_cb;
+  void *mask_cb_data;
+
+  SCULPT_dyntopo_automasking_init(ss, sd, nullptr, ob, &mask_cb, &mask_cb_data);
+
+  const int max_steps = 2;
+  const int max_dyntopo_steps_coll = 1 << 13;
+  const int max_dyntopo_steps_subd = 1 << 15;
+
+  int i = 0;
+  bool modified = true;
+
+  while (modified) {
+    modified = BKE_pbvh_bmesh_update_topology(ss->pbvh,
+                                              PBVH_Collapse,
+                                              center,
+                                              nullptr,
+                                              size,
+                                              false,
+                                              false,
+                                              -1,
+                                              false,
+                                              mask_cb,
+                                              mask_cb_data,
+                                              max_dyntopo_steps_coll,
+                                              enable_surface_relax,
+                                              false);
+
+    for (int j = 0; j < totnodes; j++) {
+      BKE_pbvh_node_mark_topology_update(nodes[j]);
+    }
+
+    modified |= BKE_pbvh_bmesh_update_topology(ss->pbvh,
+                                               PBVH_Subdivide,
+                                               center,
+                                               nullptr,
+                                               size,
+                                               false,
+                                               false,
+                                               -1,
+                                               false,
+                                               mask_cb,
+                                               mask_cb_data,
+                                               max_dyntopo_steps_subd,
+                                               enable_surface_relax,
+                                               false);
+    for (int j = 0; j < totnodes; j++) {
+      BKE_pbvh_node_mark_topology_update(nodes[j]);
+    }
+
+    if (i++ > max_steps) {
+      break;
     }
   }
+
+  /* one more time, but with cleanup valence 3/4 verts enabled */
+  for (i = 0; i < 2; i++) {
+    for (int j = 0; j < totnodes; j++) {
+      BKE_pbvh_node_mark_topology_update(nodes[j]);
+    }
+
+    BKE_pbvh_bmesh_update_topology(ss->pbvh,
+                                   PBVH_Cleanup,
+                                   center,
+                                   nullptr,
+                                   size,
+                                   false,
+                                   false,
+                                   -1,
+                                   false,
+                                   mask_cb,
+                                   mask_cb_data,
+                                   max_dyntopo_steps_coll,
+                                   enable_surface_relax,
+                                   false);
+  }
+
+  SCULPT_dyntopo_automasking_end(mask_cb_data);
 
   MEM_SAFE_FREE(nodes);
   SCULPT_undo_push_end(ob);
 
   /* Force rebuild of PBVH for better BB placement. */
-  SCULPT_pbvh_clear(ob);
+  SCULPT_pbvh_clear(ob, false);
   /* Redraw. */
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
@@ -170,7 +253,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
 
   /* Update the active vertex. */
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
-  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
+  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false, false);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
   /* Average the edge length of the connected edges to the active vertex. */
@@ -193,8 +276,13 @@ static void sculpt_raycast_detail_cb(PBVHNode *node, void *data_v, float *tmin)
 {
   if (BKE_pbvh_node_get_tmin(node) < *tmin) {
     SculptDetailRaycastData *srd = static_cast<SculptDetailRaycastData *>(data_v);
-    if (BKE_pbvh_bmesh_node_raycast_detail(
-            node, srd->ray_start, &srd->isect_precalc, &srd->depth, &srd->edge_length)) {
+
+    if (BKE_pbvh_bmesh_node_raycast_detail(srd->ss->pbvh,
+                                           node,
+                                           srd->ray_start,
+                                           &srd->isect_precalc,
+                                           &srd->depth,
+                                           &srd->edge_length)) {
       srd->hit = true;
       *tmin = srd->depth;
     }
@@ -215,16 +303,24 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
 
   SculptDetailRaycastData srd;
   srd.hit = 0;
+  srd.ss = ob->sculpt;
+
   srd.ray_start = ray_start;
   srd.depth = depth;
   srd.edge_length = 0.0f;
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
 
-  BKE_pbvh_raycast(ob->sculpt->pbvh, sculpt_raycast_detail_cb, &srd, ray_start, ray_normal, false);
+  BKE_pbvh_raycast(ob->sculpt->pbvh,
+                   sculpt_raycast_detail_cb,
+                   &srd,
+                   ray_start,
+                   ray_normal,
+                   false,
+                   srd.ss->stroke_id);
 
   if (srd.hit && srd.edge_length > 0.0f) {
     /* Convert edge length to world space detail resolution. */
-    sd->constant_detail = 1 / (srd.edge_length * mat4_to_scale(ob->object_to_world));
+    brush->dyntopo.constant_detail = 1.0f / (srd.edge_length * mat4_to_scale(ob->object_to_world));
   }
 }
 

@@ -31,13 +31,13 @@ struct BMesh;
 struct PBVH_GPU_Args {
   int pbvh_type;
 
-  BMesh *bm;
-  const Mesh *me;
+  struct BMesh *bm;
+  const struct Mesh *me;
   const float (*vert_positions)[3];
-  const MLoop *mloop;
-  const MPoly *mpoly;
+  const struct MLoop *mloop;
+  const struct MPoly *mpoly;
   int mesh_verts_num, mesh_faces_num, mesh_grids_num;
-  CustomData *vdata, *ldata, *pdata;
+  struct CustomData *vdata, *ldata, *pdata;
   const float (*vert_normals)[3];
 
   const char *active_color;
@@ -46,8 +46,8 @@ struct PBVH_GPU_Args {
   int face_sets_color_seed, face_sets_color_default;
   int *face_sets; /* for PBVH_FACES and PBVH_GRIDS */
 
-  SubdivCCG *subdiv_ccg;
-  const DMFlagMat *grid_flag_mats;
+  struct SubdivCCG *subdiv_ccg;
+  const struct DMFlagMat *grid_flag_mats;
   const int *grid_indices;
   CCGKey ccg_key;
   CCGElem **grids;
@@ -61,12 +61,18 @@ struct PBVH_GPU_Args {
 
   int node_verts_num;
 
-  const MLoopTri *mlooptri;
-  PBVHNode *node;
+  const struct MLoopTri *mlooptri;
+  struct PBVHNode *node;
+
+  bool flat_vcol_shading;
+  bool show_orig;
 
   /* BMesh. */
-  GSet *bm_unique_vert, *bm_other_verts, *bm_faces;
+  struct TableGSet *bm_unique_vert, *bm_other_verts, *bm_faces;
   int cd_mask_layer;
+  struct PBVHTriBuf *tribuf, *tri_buffers;
+  int tot_tri_buffers, updategen;
+  struct MSculptVert *msculptverts;
 };
 
 void DRW_pbvh_node_update(PBVHBatches *batches, PBVH_GPU_Args *args);

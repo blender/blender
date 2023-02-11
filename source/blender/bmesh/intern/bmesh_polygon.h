@@ -9,6 +9,7 @@
 struct Heap;
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -248,12 +249,18 @@ void BM_face_splits_check_optimal(BMFace *f, BMLoop *(*loops)[2], int len) ATTR_
  * faster alternative to:
  * BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void **)v, 3);
  */
-void BM_face_as_array_vert_tri(BMFace *f, BMVert *r_verts[3]) ATTR_NONNULL();
-/**
- * faster alternative to:
- * BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void **)v, 4);
- */
-void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4]) ATTR_NONNULL();
+BLI_INLINE void BM_face_as_array_vert_tri(BMFace *f, BMVert *r_verts[3])
+{
+  BMLoop *l = BM_FACE_FIRST_LOOP(f);
+
+  BLI_assert(f->len == 3);
+
+  r_verts[0] = l->v;
+  l = l->next;
+  r_verts[1] = l->v;
+  l = l->next;
+  r_verts[2] = l->v;
+}
 
 /**
  * Small utility functions for fast access
@@ -261,7 +268,24 @@ void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4]) ATTR_NONNULL();
  * faster alternative to:
  * BM_iter_as_array(bm, BM_LOOPS_OF_FACE, f, (void **)l, 3);
  */
-void BM_face_as_array_loop_tri(BMFace *f, BMLoop *r_loops[3]) ATTR_NONNULL();
+BLI_INLINE void BM_face_as_array_loop_tri(BMFace *f, BMLoop *r_loops[3])
+{
+  BMLoop *l = BM_FACE_FIRST_LOOP(f);
+
+  BLI_assert(f->len == 3);
+
+  r_loops[0] = l;
+  l = l->next;
+  r_loops[1] = l;
+  l = l->next;
+  r_loops[2] = l;
+}
+
+/**
+ * faster alternative to:
+ * BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void **)v, 4);
+ */
+void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4]) ATTR_NONNULL();
 /**
  * faster alternative to:
  * BM_iter_as_array(bm, BM_LOOPS_OF_FACE, f, (void **)l, 4);
@@ -286,6 +310,8 @@ void BM_vert_tri_calc_tangent_edge(BMVert *verts[3], float r_tangent[3]);
  * \param r_tangent: Calculated unit length tangent (return value).
  */
 void BM_vert_tri_calc_tangent_edge_pair(BMVert *verts[3], float r_tangent[3]);
+
+void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4]);
 
 #ifdef __cplusplus
 }

@@ -1061,10 +1061,26 @@ static BMOpDefine bmo_extrude_face_region_def = {
   },
   /* slots_out */
   {{"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
+   {"side_geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
    {{'\0'}},
   },
   bmo_extrude_face_region_exec,
   (BMO_OPTYPE_FLAG_NORMALS_CALC),
+};
+
+extern void bmo_test_mres_smooth_exec(BMesh *bm, BMOperator *op);
+
+static BMOpDefine bmo_test_mres_smooth_def = {
+  "test_mres_smooth",
+  /* slots_in */
+  {{{'\0'}}},  /* no input */
+  {{{'\0'}}},  /* no output */
+  bmo_test_mres_smooth_exec,
+  (
+  BMO_OPTYPE_FLAG_UNTAN_MULTIRES |
+   BMO_OPTYPE_FLAG_NORMALS_CALC |
+    BMO_OPTYPE_FLAG_SELECT_FLUSH |
+    BMO_OPTYPE_FLAG_SELECT_VALIDATE)
 };
 
 /*
@@ -1915,7 +1931,7 @@ static BMOpDefine bmo_inset_individual_def = {
   },
   bmo_inset_individual_exec,
   /* caller needs to handle BMO_OPTYPE_FLAG_SELECT_FLUSH */
-  (BMO_OPTYPE_FLAG_NORMALS_CALC),
+  (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_UNTAN_MULTIRES),
 };
 
 /*
@@ -1944,7 +1960,7 @@ static BMOpDefine bmo_inset_region_def = {
   },
   bmo_inset_region_exec,
   (BMO_OPTYPE_FLAG_NORMALS_CALC |
-   BMO_OPTYPE_FLAG_SELECT_FLUSH),
+   BMO_OPTYPE_FLAG_SELECT_FLUSH | BMO_OPTYPE_FLAG_UNTAN_MULTIRES),
 };
 
 /*
@@ -1965,7 +1981,7 @@ static BMOpDefine bmo_offset_edgeloops_def = {
   },
   bmo_offset_edgeloops_exec,
   (BMO_OPTYPE_FLAG_NORMALS_CALC |
-   BMO_OPTYPE_FLAG_SELECT_FLUSH),
+   BMO_OPTYPE_FLAG_SELECT_FLUSH | BMO_OPTYPE_FLAG_UNTAN_MULTIRES),
 };
 
 /*
@@ -2185,6 +2201,7 @@ const BMOpDefine *bmo_opdefines[] = {
     &bmo_unsubdivide_def,
     &bmo_weld_verts_def,
     &bmo_wireframe_def,
+    &bmo_test_mres_smooth_def,
 };
 
 const int bmo_opdefines_total = ARRAY_SIZE(bmo_opdefines);

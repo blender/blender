@@ -149,6 +149,7 @@ static void rna_Material_texpaint_begin(CollectionPropertyIterator *iter, Pointe
 
 static void rna_Material_active_paint_texture_index_update(bContext *C, PointerRNA *ptr)
 {
+  bScreen *screen;
   Main *bmain = CTX_data_main(C);
   Material *ma = (Material *)ptr->owner_id;
 

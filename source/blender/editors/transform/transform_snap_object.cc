@@ -826,6 +826,12 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
                             ListBase *r_hit_list)
 {
   bool retval = false;
+
+  if (!em) {
+    printf("%s: em was NULL!\n", __func__);
+    return false;
+  }
+
   if (em->bm->totface == 0) {
     return retval;
   }

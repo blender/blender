@@ -224,11 +224,14 @@ typedef enum eBrushClothDeformType {
   BRUSH_CLOTH_DEFORM_INFLATE = 5,
   BRUSH_CLOTH_DEFORM_EXPAND = 6,
   BRUSH_CLOTH_DEFORM_SNAKE_HOOK = 7,
+  BRUSH_CLOTH_DEFORM_ELASTIC_DRAG = 8,
 } eBrushClothDeformType;
 
 typedef enum eBrushSmoothDeformType {
   BRUSH_SMOOTH_DEFORM_LAPLACIAN = 0,
   BRUSH_SMOOTH_DEFORM_SURFACE = 1,
+  BRUSH_SMOOTH_DEFORM_DIRECTIONAL = 2,
+  BRUSH_SMOOTH_DEFORM_UNIFORM_WEIGHTS = 3,
 } eBrushSmoothDeformType;
 
 typedef enum eBrushClothForceFalloffType {
@@ -246,6 +249,7 @@ typedef enum eBrushPoseDeformType {
   BRUSH_POSE_DEFORM_ROTATE_TWIST = 0,
   BRUSH_POSE_DEFORM_SCALE_TRASLATE = 1,
   BRUSH_POSE_DEFORM_SQUASH_STRETCH = 2,
+  BRUSH_POSE_DEFORM_BEND = 3,
 } eBrushPoseDeformType;
 
 typedef enum eBrushPoseOriginType {
@@ -260,6 +264,12 @@ typedef enum eBrushSmearDeformType {
   BRUSH_SMEAR_DEFORM_EXPAND = 2,
 } eBrushSmearDeformType;
 
+typedef enum eBrushArrayDeformType {
+  BRUSH_ARRAY_DEFORM_LINEAR = 0,
+  BRUSH_ARRAY_DEFORM_RADIAL = 1,
+  BRUSH_ARRAY_DEFORM_PATH = 2,
+} eBrushArrayDeformType;
+
 typedef enum eBrushSlideDeformType {
   BRUSH_SLIDE_DEFORM_DRAG = 0,
   BRUSH_SLIDE_DEFORM_PINCH = 1,
@@ -273,6 +283,7 @@ typedef enum eBrushBoundaryDeformType {
   BRUSH_BOUNDARY_DEFORM_GRAB = 3,
   BRUSH_BOUNDARY_DEFORM_TWIST = 4,
   BRUSH_BOUNDARY_DEFORM_SMOOTH = 5,
+  BRUSH_BOUNDARY_DEFORM_CIRCLE = 6,
 } eBrushBushBoundaryDeformType;
 
 typedef enum eBrushBoundaryFalloffType {
@@ -281,6 +292,12 @@ typedef enum eBrushBoundaryFalloffType {
   BRUSH_BOUNDARY_FALLOFF_LOOP = 2,
   BRUSH_BOUNDARY_FALLOFF_LOOP_INVERT = 3,
 } eBrushBoundaryFalloffType;
+
+typedef enum eBrushSceneProjectDirectionType {
+  BRUSH_SCENE_PROJECT_DIRECTION_VIEW = 0,
+  BRUSH_SCENE_PROJECT_DIRECTION_VERTEX_NORMAL = 1,
+  BRUSH_SCENE_PROJECT_DIRECTION_BRUSH_NORMAL = 2,
+} eBrushSceneProjectDirectionType;
 
 typedef enum eBrushSnakeHookDeformType {
   BRUSH_SNAKE_HOOK_DEFORM_FALLOFF = 0,
@@ -412,6 +429,25 @@ typedef enum eBrushFlags2 {
   BRUSH_CLOTH_USE_COLLISION = (1 << 6),
   BRUSH_AREA_RADIUS_PRESSURE = (1 << 7),
   BRUSH_GRAB_SILHOUETTE = (1 << 8),
+
+  BRUSH_USE_SURFACE_FALLOFF = (1 << 9),
+  BRUSH_ARRAY_LOCK_ORIENTATION = (1 << 10),
+  BRUSH_ARRAY_FILL_HOLES = (1 << 11),
+
+  BRUSH_CURVATURE_RAKE = (1 << 12),
+  BRUSH_CUSTOM_AUTOSMOOTH_SPACING = (1 << 13),
+  BRUSH_CUSTOM_TOPOLOGY_RAKE_SPACING = (1 << 14),
+  BRUSH_TOPOLOGY_RAKE_IGNORE_BRUSH_FALLOFF = (1 << 15),
+  BRUSH_SMOOTH_USE_AREA_WEIGHT = (1 << 16),
+
+  /*preserve face set boundaries*/
+  BRUSH_SMOOTH_PRESERVE_FACE_SETS = (1 << 17),
+
+  /*topology rake in dynamic mode*/
+  BRUSH_DYNAMIC_RAKE = (1 << 18),
+
+  /* sets face set slide to 0.0 */
+  BRUSH_HARD_EDGE_MODE = (1 << 19),
 } eBrushFlags2;
 
 typedef enum {
@@ -467,6 +503,20 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_BOUNDARY = 30,
   SCULPT_TOOL_DISPLACEMENT_ERASER = 31,
   SCULPT_TOOL_DISPLACEMENT_SMEAR = 32,
+  SCULPT_TOOL_FAIRING = 33,
+  SCULPT_TOOL_SCENE_PROJECT = 34,
+  SCULPT_TOOL_SYMMETRIZE = 35,
+  SCULPT_TOOL_TWIST = 36,
+  SCULPT_TOOL_ARRAY = 37,
+  SCULPT_TOOL_VCOL_BOUNDARY = 38,
+  SCULPT_TOOL_UV_SMOOTH = 39,
+
+  SCULPT_TOOL_TOPOLOGY_RAKE = 40,
+  SCULPT_TOOL_DYNTOPO = 41,
+  SCULPT_TOOL_AUTO_FSET = 42,
+  SCULPT_TOOL_RELAX = 43,
+  SCULPT_TOOL_ENHANCE_DETAILS = 44,
+  SCULPT_TOOL_DISPLACEMENT_HEAL = 45
 } eBrushSculptTool;
 
 /** #Brush.uv_sculpt_tool */
@@ -490,6 +540,8 @@ typedef enum eBrushCurvesSculptTool {
   CURVES_SCULPT_TOOL_DENSITY = 9,
   CURVES_SCULPT_TOOL_SLIDE = 10,
 } eBrushCurvesSculptTool;
+
+#define SCULPT_TOOL_HAS_VCOL_BOUNDARY_SMOOTH(t) ELEM(t, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)
 
 /** When #BRUSH_ACCUMULATE is used */
 #define SCULPT_TOOL_HAS_ACCUMULATE(t) \
@@ -515,31 +567,24 @@ typedef enum eBrushCurvesSculptTool {
 #define SCULPT_TOOL_HAS_DYNTOPO(t) \
   (ELEM(t, /* These brushes, as currently coded, cannot support dynamic topology */ \
         SCULPT_TOOL_GRAB, \
-        SCULPT_TOOL_ROTATE, \
         SCULPT_TOOL_CLOTH, \
-        SCULPT_TOOL_THUMB, \
-        SCULPT_TOOL_LAYER, \
         SCULPT_TOOL_DISPLACEMENT_ERASER, \
-        SCULPT_TOOL_DRAW_SHARP, \
-        SCULPT_TOOL_SLIDE_RELAX, \
+        SCULPT_TOOL_FAIRING, \
         SCULPT_TOOL_ELASTIC_DEFORM, \
         SCULPT_TOOL_BOUNDARY, \
         SCULPT_TOOL_POSE, \
         SCULPT_TOOL_DRAW_FACE_SETS, \
-        SCULPT_TOOL_PAINT, \
-        SCULPT_TOOL_SMEAR, \
+        SCULPT_TOOL_UV_SMOOTH, \
 \
         /* These brushes could handle dynamic topology, \ \
          * but user feedback indicates it's better not to */ \
-        SCULPT_TOOL_SMOOTH, \
         SCULPT_TOOL_MASK) == 0)
 
 #define SCULPT_TOOL_HAS_TOPOLOGY_RAKE(t) \
   (ELEM(t, /* These brushes, as currently coded, cannot support topology rake. */ \
         SCULPT_TOOL_GRAB, \
+        SCULPT_TOOL_ELASTIC_DEFORM, \
         SCULPT_TOOL_ROTATE, \
-        SCULPT_TOOL_THUMB, \
-        SCULPT_TOOL_DRAW_SHARP, \
         SCULPT_TOOL_DISPLACEMENT_ERASER, \
         SCULPT_TOOL_SLIDE_RELAX, \
         SCULPT_TOOL_MASK) == 0)
@@ -632,7 +677,43 @@ typedef enum eBlurKernelType {
 typedef enum eBrushFalloffShape {
   PAINT_FALLOFF_SHAPE_SPHERE = 0,
   PAINT_FALLOFF_SHAPE_TUBE = 1,
+  PAINT_FALLOFF_NOOP = 2,
 } eBrushFalloffShape;
+
+// dyntopo flags
+// synced with PBVHTopologyUpdateMode
+enum {
+  DYNTOPO_SUBDIVIDE = 1 << 0,
+  DYNTOPO_COLLAPSE = 1 << 1,
+  DYNTOPO_DISABLED = 1 << 2,
+  DYNTOPO_CLEANUP = 1 << 3,
+  DYNTOPO_LOCAL_COLLAPSE = 1 << 4,
+  DYNTOPO_LOCAL_SUBDIVIDE = 1 << 5
+};
+
+// dyntopo override flags, copies all flags from dyntopo flags
+enum {
+  DYNTOPO_INHERIT_ALL = 1 << 10,
+  DYNTOPO_INHERIT_DETAIL_RANGE = 1 << 11,
+  DYNTOPO_INHERIT_DETAIL_PERCENT = 1 << 12,
+  DYNTOPO_INHERIT_MODE = 1 << 13,
+  DYNTOPO_INHERIT_CONSTANT_DETAIL = 1 << 14,
+  DYNTOPO_INHERIT_SPACING = 1 << 15,
+  DYNTOPO_INHERIT_DETAIL_SIZE = 1 << 16,
+  DYNTOPO_INHERIT_RADIUS_SCALE = 1 << 17,
+  // make sure to update DYNTOPO_INHERIT_BITMASK when adding flags here
+};
+
+// represents all possible inherit flags
+#define DYNTOPO_INHERIT_BITMASK ((1 << 18) - 1)
+
+// dyntopo mode
+enum {
+  DYNTOPO_DETAIL_RELATIVE = 0,
+  DYNTOPO_DETAIL_MANUAL = 1,
+  DYNTOPO_DETAIL_BRUSH = 2,
+  DYNTOPO_DETAIL_CONSTANT = 3
+};
 
 typedef enum eBrushCurvesSculptFlag {
   BRUSH_CURVES_SCULPT_FLAG_SCALE_UNIFORM = (1 << 0),

@@ -179,6 +179,7 @@ struct PBVHBatches {
   bool needs_tri_index = false;
 
   int material_index = 0;
+  bool freed = false;
 
   /* Stuff for displaying coarse multires grids. */
   GPUIndexBuf *tri_index_coarse = nullptr;
@@ -213,12 +214,7 @@ struct PBVHBatches {
         break;
       }
       case PBVH_BMESH: {
-        GSET_FOREACH_BEGIN (BMFace *, f, args->bm_faces) {
-          if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-            count++;
-          }
-        }
-        GSET_FOREACH_END();
+        count = args->flat_vcol_shading ? args->tribuf->tottri * 6 : args->tribuf->tottri;
       }
     }
 
@@ -247,6 +243,8 @@ struct PBVHBatches {
 
     GPU_INDEXBUF_DISCARD_SAFE(tri_index);
     GPU_INDEXBUF_DISCARD_SAFE(lines_index);
+
+    freed = true;
     GPU_INDEXBUF_DISCARD_SAFE(tri_index_coarse);
     GPU_INDEXBUF_DISCARD_SAFE(lines_index_coarse);
   }
@@ -585,11 +583,21 @@ struct PBVHBatches {
 
     switch (vbo.type) {
       case CD_PBVH_CO_TYPE:
-        foreach_faces(
-            [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
-              *static_cast<float3 *>(
-                  GPU_vertbuf_raw_step(&access)) = args->vert_positions[vertex_i];
-            });
+        if (args->show_orig) {
+          foreach_faces(
+              [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
+                MSculptVert *mv = args->msculptverts + vertex_i;
+
+                *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = mv->origco;
+              });
+        }
+        else {
+          foreach_faces(
+              [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
+                *static_cast<float3 *>(
+                    GPU_vertbuf_raw_step(&access)) = args->vert_positions[vertex_i];
+              });
+        }
         break;
       case CD_PBVH_NO_TYPE:
         fill_vbo_normal_faces(vbo, args, foreach_faces, &access);
@@ -754,21 +762,119 @@ struct PBVHBatches {
 
   void fill_vbo_bmesh(PBVHVbo &vbo, PBVH_GPU_Args *args)
   {
-    auto foreach_bmesh = [&](std::function<void(BMLoop * l)> callback) {
-      GSET_FOREACH_BEGIN (BMFace *, f, args->bm_faces) {
-        if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-          continue;
-        }
+    auto foreach_bmesh_normal = [&](std::function<void(BMLoop * l)> callback) {
+      for (int i : IndexRange(args->tribuf->tottri)) {
+        PBVHTri *tri = args->tribuf->tris + i;
 
-        BMLoop *l = f->l_first;
-        callback(l->prev);
-        callback(l);
-        callback(l->next);
+        for (int j = 0; j < 3; j++) {
+          callback(reinterpret_cast<BMLoop *>(tri->l[j]));
+        }
       }
-      GSET_FOREACH_END();
     };
 
-    faces_count = tris_count = count_faces(args);
+    BMVert v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12;
+
+    auto foreach_bmesh_flat_vcol = [&](std::function<void(BMLoop * l)> callback) {
+      for (int i : IndexRange(args->tribuf->tottri)) {
+        PBVHTri *tri = args->tribuf->tris + i;
+
+        BMLoop *la = reinterpret_cast<BMLoop *>(tri->l[0]);
+        BMLoop *lb = reinterpret_cast<BMLoop *>(tri->l[1]);
+        BMLoop *lc = reinterpret_cast<BMLoop *>(tri->l[2]);
+
+        BMLoop l9 = *la, l1 = *la, l2 = *la;
+        BMLoop l3 = *lb, l4 = *lb, l5 = *lb;
+        BMLoop l6 = *lc, l7 = *lc, l8 = *lc;
+        BMLoop l10 = *la, l11 = *lb, l12 = *lc;
+
+        v9 = *la->v, v1 = *la->v, v2 = *la->v;
+        v3 = *lb->v, v4 = *lb->v, v5 = *lb->v;
+        v6 = *lc->v, v7 = *lc->v, v8 = *lc->v;
+        v10 = *la->v, v11 = *lb->v, v12 = *lc->v;
+
+        if (vbo.type == CD_PBVH_CO_TYPE) {
+          l1.v = &v1;
+          l2.v = &v2;
+          l3.v = &v3;
+          l4.v = &v4;
+          l5.v = &v5;
+          l6.v = &v6;
+          l7.v = &v7;
+          l8.v = &v8;
+          l9.v = &v9;
+          l10.v = &v10;
+          l11.v = &v11;
+          l12.v = &v12;
+
+          float3 cent = la->v->co;
+          cent += lb->v->co;
+          cent += lc->v->co;
+          cent *= 1.0f / 3.0f;
+
+          copy_v3_v3(v10.co, cent);
+          copy_v3_v3(v11.co, cent);
+          copy_v3_v3(v12.co, cent);
+
+          float3 cent1 = la->v->co;
+          cent1 += lb->v->co;
+          cent1 *= 0.5f;
+          copy_v3_v3(v2.co, cent1);
+          copy_v3_v3(v3.co, cent1);
+
+          float3 cent2 = lb->v->co;
+          cent2 += lc->v->co;
+          cent2 *= 0.5f;
+          copy_v3_v3(v5.co, cent2);
+          copy_v3_v3(v6.co, cent2);
+
+          float3 cent3 = lc->v->co;
+          cent3 += la->v->co;
+          cent3 *= 0.5f;
+          copy_v3_v3(v8.co, cent3);
+          copy_v3_v3(v9.co, cent3);
+        }
+
+        /*    v4
+              b
+           v3   v5
+          v2 cents v6
+          a          c
+        v1   v9  v8   v7
+        */
+        callback(&l7);
+        callback(&l8);
+        callback(&l6);
+        callback(&l8);
+        callback(&l12);
+        callback(&l6);
+
+        callback(&l1);
+        callback(&l2);
+        callback(&l9);
+        callback(&l2);
+        callback(&l10);
+        callback(&l9);
+
+        callback(&l4);
+        callback(&l5);
+        callback(&l3);
+        callback(&l5);
+        callback(&l11);
+        callback(&l3);
+      }
+    };
+
+    std::function<void(std::function<void(BMLoop *)>)> foreach_bmesh;
+
+    if (args->flat_vcol_shading) {
+      foreach_bmesh = foreach_bmesh_flat_vcol;
+    }
+    else {
+      foreach_bmesh = foreach_bmesh_normal;
+    }
+
+    faces_count = args->flat_vcol_shading ? args->tribuf->tottri * 6 : args->tribuf->tottri;
+    tris_count = faces_count;
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
     void *existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
@@ -783,6 +889,22 @@ struct PBVHBatches {
     GPUVertBufRaw access;
     GPU_vertbuf_attr_get_raw_data(vbo.vert_buf, 0, &access);
 
+    CustomData *cdata = nullptr;
+    switch (vbo.domain) {
+      case ATTR_DOMAIN_POINT:
+        cdata = &args->bm->vdata;
+        break;
+      case ATTR_DOMAIN_EDGE:
+        cdata = &args->bm->edata;
+        break;
+      case ATTR_DOMAIN_CORNER:
+        cdata = &args->bm->ldata;
+        break;
+      case ATTR_DOMAIN_FACE:
+        cdata = &args->bm->pdata;
+        break;
+    }
+
 #if 0 /* Enable to fuzz GPU data (to check for over-allocation). */
     existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
     uchar *c = static_cast<uchar *>(existing_data);
@@ -792,18 +914,86 @@ struct PBVHBatches {
 #endif
 
     switch (vbo.type) {
-      case CD_PROP_COLOR:
-      case CD_PROP_BYTE_COLOR: {
-        ushort4 white = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
+      case CD_PROP_FLOAT2: {
+        const int cd_uv = CustomData_get_offset_named(
+            &args->bm->ldata, CD_PROP_FLOAT2, vbo.name.c_str());
 
-        foreach_bmesh([&](BMLoop * /*l*/) {
-          *static_cast<ushort4 *>(GPU_vertbuf_raw_step(&access)) = white;
+        foreach_bmesh([&](BMLoop *l) {
+          float *uv = static_cast<float *> BM_ELEM_CD_GET_VOID_P(l, cd_uv);
+
+          *static_cast<float2 *>(GPU_vertbuf_raw_step(&access)) = uv;
         });
+
+        break;
+      }
+      case CD_PROP_COLOR: {
+        ushort color[4];
+        const bool do_loop = vbo.domain == ATTR_DOMAIN_CORNER;
+
+        const int cd_color = CustomData_get_offset_named(cdata, CD_PROP_COLOR, vbo.name.c_str());
+
+        foreach_bmesh([&](BMLoop *l) {
+          MPropCol *col;
+
+          if (do_loop) {
+            col = static_cast<MPropCol *>(BM_ELEM_CD_GET_VOID_P(l, cd_color));
+          }
+          else {
+            col = static_cast<MPropCol *>(BM_ELEM_CD_GET_VOID_P(l->v, cd_color));
+          }
+
+          color[0] = unit_float_to_ushort_clamp(col->color[0]);
+          color[1] = unit_float_to_ushort_clamp(col->color[1]);
+          color[2] = unit_float_to_ushort_clamp(col->color[2]);
+          color[3] = unit_float_to_ushort_clamp(col->color[3]);
+
+          *static_cast<ushort4 *>(GPU_vertbuf_raw_step(&access)) = color;
+        });
+
+        break;
+      }
+      case CD_PROP_BYTE_COLOR: {
+        ushort color[4];
+        const bool do_loop = vbo.domain == ATTR_DOMAIN_CORNER;
+
+        const int cd_color = CustomData_get_offset_named(
+            cdata, CD_PROP_BYTE_COLOR, vbo.name.c_str());
+        foreach_bmesh([&](BMLoop *l) {
+          MLoopCol *col;
+
+          if (do_loop) {
+            col = static_cast<MLoopCol *>(BM_ELEM_CD_GET_VOID_P(l, cd_color));
+          }
+          else {
+            col = static_cast<MLoopCol *>(BM_ELEM_CD_GET_VOID_P(l->v, cd_color));
+          }
+
+          color[0] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[col->r]);
+          color[1] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[col->g]);
+          color[2] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[col->b]);
+          color[3] = col->a * 257;
+
+          *static_cast<ushort4 *>(GPU_vertbuf_raw_step(&access)) = color;
+        });
+
         break;
       }
       case CD_PBVH_CO_TYPE:
-        foreach_bmesh(
-            [&](BMLoop *l) { *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = l->v->co; });
+        if (args->show_orig) {
+          int cd_sculpt_vert = CustomData_get_offset(&args->bm->vdata, CD_DYNTOPO_VERT);
+
+          foreach_bmesh([&](BMLoop *l) {
+            MSculptVert *mv = static_cast<MSculptVert *>(
+                BM_ELEM_CD_GET_VOID_P(l->v, cd_sculpt_vert));
+
+            *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = mv->origco;
+          });
+        }
+        else {
+          foreach_bmesh([&](BMLoop *l) {
+            *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = l->v->co;
+          });
+        }
         break;
 
       case CD_PBVH_NO_TYPE:
@@ -833,11 +1023,63 @@ struct PBVHBatches {
         break;
       }
       case CD_PBVH_FSET_TYPE: {
-        uchar3 white(UCHAR_MAX, UCHAR_MAX, UCHAR_MAX);
+        int cd_fset = CustomData_get_offset_named(
+            &args->bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
-        foreach_bmesh([&](BMLoop * /*l*/) {
-          *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = white;
+        if (cd_fset == -1) {
+          uchar3 white(UCHAR_MAX, UCHAR_MAX, UCHAR_MAX);
+
+          foreach_bmesh([&](BMLoop * /*l*/) {
+            *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = white;
+          });
+        }
+        else {
+          foreach_bmesh([&](BMLoop *l) {
+            uchar face_set_color[4];
+            int fset = BM_ELEM_CD_GET_INT(l->f, cd_fset);
+
+            if (fset != args->face_sets_color_default) {
+              BKE_paint_face_set_overlay_color_get(
+                  fset, args->face_sets_color_seed, face_set_color);
+            }
+            else {
+              face_set_color[0] = face_set_color[1] = face_set_color[2] = 255;
+            }
+
+            *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = face_set_color;
+          });
+        }
+
+        break;
+      }
+      case CD_PROP_INT32: {
+        const int cd_prop = CustomData_get_offset_named(cdata, CD_PROP_INT32, vbo.name.c_str());
+
+        foreach_bmesh([&](BMLoop *l) {
+          BMElem *elem;
+
+          switch (vbo.domain) {
+            case ATTR_DOMAIN_POINT:
+              elem = reinterpret_cast<BMElem *>(l->v);
+              break;
+            case ATTR_DOMAIN_EDGE:
+              elem = reinterpret_cast<BMElem *>(l->e);
+              break;
+            case ATTR_DOMAIN_CORNER:
+              elem = reinterpret_cast<BMElem *>(l);
+              break;
+            case ATTR_DOMAIN_FACE:
+              elem = reinterpret_cast<BMElem *>(l->f);
+              break;
+            default:
+              return;
+          }
+
+          int val = BM_ELEM_CD_GET_INT(elem, cd_prop);
+          *static_cast<int *>(GPU_vertbuf_raw_step(&access)) = val;
         });
+
+        break;
       }
     }
   }
@@ -892,6 +1134,16 @@ struct PBVHBatches {
         GPU_vertformat_attr_add(&format, "f", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
         need_aliases = true;
         break;
+      case CD_PROP_INT32: {
+        char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
+        GPU_vertformat_safe_attr_name(name.c_str(), attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+        /* Attributes use auto-name. */
+        BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
+
+        GPU_vertformat_attr_add(&format, attr_name, GPU_COMP_I32, 1, GPU_FETCH_INT_TO_FLOAT);
+        need_aliases = true;
+        break;
+      }
       case CD_PROP_COLOR:
       case CD_PROP_BYTE_COLOR: {
         GPU_vertformat_attr_add(&format, "c", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
@@ -923,6 +1175,9 @@ struct PBVHBatches {
           switch (type) {
             case CD_PROP_FLOAT2:
               prefix = "u";
+              break;
+            case CD_PROP_INT32:
+              prefix = "a";
               break;
             default:
               break;
@@ -1043,19 +1298,26 @@ struct PBVHBatches {
     int v_index = 0;
     lines_count = 0;
 
-    GSET_FOREACH_BEGIN (BMFace *, f, args->bm_faces) {
-      if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-        continue;
+    for (int i : IndexRange(args->tribuf->tottri)) {
+      PBVHTri *tri = args->tribuf->tris + i;
+
+      if (tri->eflag & 1) {
+        GPU_indexbuf_add_line_verts(&elb_lines, v_index, v_index + 1);
+        lines_count++;
       }
 
-      GPU_indexbuf_add_line_verts(&elb_lines, v_index, v_index + 1);
-      GPU_indexbuf_add_line_verts(&elb_lines, v_index + 1, v_index + 2);
-      GPU_indexbuf_add_line_verts(&elb_lines, v_index + 2, v_index);
+      if (tri->eflag & 2) {
+        GPU_indexbuf_add_line_verts(&elb_lines, v_index + 1, v_index + 2);
+        lines_count++;
+      }
 
-      lines_count += 3;
+      if (tri->eflag & 4) {
+        GPU_indexbuf_add_line_verts(&elb_lines, v_index + 2, v_index);
+        lines_count++;
+      }
+
       v_index += 3;
     }
-    GSET_FOREACH_END();
 
     lines_index = GPU_indexbuf_build(&elb_lines);
   }
@@ -1126,7 +1388,7 @@ struct PBVHBatches {
       uint offset = 0;
       const uint grid_vert_len = gridsize * gridsize;
       for (int i = 0; i < totgrid; i++, offset += grid_vert_len) {
-        uint v0, v1, v2, v3;
+        uint v0 = 0, v1 = 0, v2 = 0, v3 = 0;
         bool grid_visible = false;
 
         BLI_bitmap *gh = args->grid_hidden[args->grid_indices[i]];
@@ -1137,6 +1399,7 @@ struct PBVHBatches {
             if (gh && paint_is_grid_face_hidden(gh, gridsize, k, j)) {
               continue;
             }
+
             /* Indices in a Clockwise QUAD disposition. */
             v0 = offset + j * gridsize + k;
             v1 = offset + j * gridsize + k + skip;

@@ -60,6 +60,9 @@ set(SRC
   paint_vertex_proj.c
   paint_vertex_weight_ops.cc
   paint_vertex_weight_utils.c
+
+  sculpt_api.cc
+  sculpt_curvature.cc
   sculpt.cc
   sculpt_automasking.cc
   sculpt_boundary.cc
@@ -84,6 +87,11 @@ set(SRC
   sculpt_transform.cc
   sculpt_undo.cc
   sculpt_uv.c
+
+  sculpt_new.cc
+  sculpt_new.hh
+
+  sculpt_brush_machine.c
 
   curves_sculpt_intern.h
   curves_sculpt_intern.hh

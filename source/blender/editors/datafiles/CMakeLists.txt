@@ -729,7 +729,6 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.particle.puff
   brush.particle.smooth
   brush.particle.weight
-  brush.sculpt.blob
   brush.sculpt.boundary
   brush.sculpt.clay
   brush.sculpt.clay_strips

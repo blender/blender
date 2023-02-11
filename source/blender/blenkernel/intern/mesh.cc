@@ -40,6 +40,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_bpath.h"
 #include "BKE_deform.h"
@@ -1135,14 +1136,15 @@ Mesh *BKE_mesh_copy_for_eval(const Mesh *source, bool reference)
   return result;
 }
 
-BMesh *BKE_mesh_to_bmesh_ex(const Mesh *me,
+BMesh *BKE_mesh_to_bmesh_ex(const Object *ob,
+                            const Mesh *me,
                             const struct BMeshCreateParams *create_params,
                             const struct BMeshFromMeshParams *convert_params)
 {
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
 
   BMesh *bm = BM_mesh_create(&allocsize, create_params);
-  BM_mesh_bm_from_me(bm, me, convert_params);
+  BM_mesh_bm_from_me((Object *)ob, bm, me, convert_params);
 
   return bm;
 }
@@ -1158,7 +1160,7 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me,
   bmesh_from_mesh_params.add_key_index = add_key_index;
   bmesh_from_mesh_params.use_shapekey = true;
   bmesh_from_mesh_params.active_shapekey = ob->shapenr;
-  return BKE_mesh_to_bmesh_ex(me, params, &bmesh_from_mesh_params);
+  return BKE_mesh_to_bmesh_ex(ob, me, params, &bmesh_from_mesh_params);
 }
 
 Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm,
@@ -1166,9 +1168,14 @@ Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm,
                                  const Mesh *me_settings)
 {
   BLI_assert(params->calc_object_remap == false);
+
   Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
-  BM_mesh_bm_to_me(nullptr, bm, mesh, params);
-  BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
+  BM_mesh_bm_to_me(nullptr, nullptr, bm, mesh, params);
+
+  if (me_settings) {
+    BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
+  }
+
   return mesh;
 }
 
@@ -1178,7 +1185,11 @@ Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm,
 {
   Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
   BM_mesh_bm_to_me_for_eval(bm, mesh, cd_mask_extra);
-  BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
+
+  if (me_settings) {
+    BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
+  }
+
   return mesh;
 }
 

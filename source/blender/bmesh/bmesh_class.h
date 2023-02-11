@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "DNA_modifier_types.h"
+
 /** \file
  * \ingroup bmesh
  *
@@ -10,6 +12,9 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_compiler_compat.h"
+#include "BLI_compiler_typecheck.h"
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,6 +29,7 @@ struct BMFace;
 struct BMLoop;
 struct BMVert;
 struct BMesh;
+struct GSet;
 
 struct MLoopNorSpaceArray;
 
@@ -101,10 +107,9 @@ typedef struct BMVert {
   struct BMEdge *e;
 } BMVert;
 
-typedef struct BMVert_OFlag {
-  BMVert base;
-  struct BMFlagLayer *oflags;
-} BMVert_OFlag;
+#define BMVert_OFlag BMVert
+#define BMEdge_OFlag BMEdge
+#define BMFace_OFlag BMFace
 
 /* disk link structure, only used by edges */
 typedef struct BMDiskLink {
@@ -139,11 +144,6 @@ typedef struct BMEdge {
    */
   BMDiskLink v1_disk_link, v2_disk_link;
 } BMEdge;
-
-typedef struct BMEdge_OFlag {
-  BMEdge base;
-  struct BMFlagLayer *oflags;
-} BMEdge_OFlag;
 
 typedef struct BMLoop {
   BMHeader head;
@@ -286,16 +286,15 @@ typedef struct BMFace {
   //  short _pad[3];
 } BMFace;
 
-typedef struct BMFace_OFlag {
-  BMFace base;
-  struct BMFlagLayer *oflags;
-} BMFace_OFlag;
-
 typedef struct BMFlagLayer {
   short f; /* flags */
 } BMFlagLayer;
 
 // #pragma GCC diagnostic ignored "-Wpadded"
+
+struct RangeTreeUInt;
+
+#define WITH_BM_ID_FREELIST
 
 typedef struct BMesh {
   int totvert, totedge, totloop, totface;
@@ -380,7 +379,43 @@ typedef struct BMesh {
    * instead of crashing on invalid memory access.
    */
   void *py_handle;
+  MultiresModifierData multires;  // copy of multires settings
+  bool haveMultiResSettings;
+  int multiresSpace;
+
+  struct {
+    int flag;
+#ifdef WITH_BM_ID_FREELIST
+    uint *freelist;
+    int freelist_len, freelist_size;
+    uint *free_ids, free_ids_size;
+
+    /* maps ids to their position within the freelist
+       only used if freelist is bigger then a certain size,
+       see FREELIST_HASHMAP_THRESHOLD_HIGH in bmesh_construct.c.*/
+    struct GHash *free_idx_map;
+#else
+    struct RangeTreeUInt *idtree;
+#endif
+    uint maxid;
+    struct BMElem **map;  // used if BM_NO_REUSE_IDS is false
+    struct GHash *ghash;  // used if BM_NO_REUSE_IDS is true
+    int map_size;
+    int cd_id_off[15];
+  } idmap;
+
+#ifdef USE_BMESH_PAGE_CUSTOMDATA
+  struct BMeshAttrList *attr_list;
+#endif
 } BMesh;
+
+enum {
+  // firsst four bits are reserved for BM_VERT/EDGE/LOOP/FACE
+  BM_HAS_IDS = 1 << 4,
+  BM_HAS_ID_MAP = 1 << 5,
+  BM_NO_REUSE_IDS = 1 << 6,
+  BM_PERMANENT_IDS = 1 << 7
+};
 
 /** #BMHeader.htype (char) */
 enum {
@@ -423,12 +458,10 @@ enum {
 
 /* args for _Generic */
 #define _BM_GENERIC_TYPE_ELEM_NONCONST \
-  void *, BMVert *, BMEdge *, BMLoop *, BMFace *, BMVert_OFlag *, BMEdge_OFlag *, BMFace_OFlag *, \
-      BMElem *, BMElemF *, BMHeader *
+  void *, BMVert *, BMEdge *, BMLoop *, BMFace *, BMElem *, BMElemF *, BMHeader *
 
 #define _BM_GENERIC_TYPE_ELEM_CONST \
-  const void *, const BMVert *, const BMEdge *, const BMLoop *, const BMFace *, \
-      const BMVert_OFlag *, const BMEdge_OFlag *, const BMFace_OFlag *, const BMElem *, \
+  const void *, const BMVert *, const BMEdge *, const BMLoop *, const BMFace *, const BMElem *, \
       const BMElemF *, const BMHeader *, void *const, BMVert *const, BMEdge *const, \
       BMLoop *const, BMFace *const, BMElem *const, BMElemF *const, BMHeader *const
 
@@ -440,22 +473,22 @@ enum {
   CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST, _BM_GENERIC_TYPE_ELEM_CONST)
 
 /* vert */
-#define _BM_GENERIC_TYPE_VERT_NONCONST BMVert *, BMVert_OFlag *
-#define _BM_GENERIC_TYPE_VERT_CONST const BMVert *, const BMVert_OFlag *
+#define _BM_GENERIC_TYPE_VERT_NONCONST BMVert *
+#define _BM_GENERIC_TYPE_VERT_CONST const BMVert *
 #define BM_CHECK_TYPE_VERT_CONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_VERT_CONST)
 #define BM_CHECK_TYPE_VERT_NONCONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST)
 #define BM_CHECK_TYPE_VERT(ele) \
   CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_VERT_NONCONST, _BM_GENERIC_TYPE_VERT_CONST)
 /* edge */
-#define _BM_GENERIC_TYPE_EDGE_NONCONST BMEdge *, BMEdge_OFlag *
-#define _BM_GENERIC_TYPE_EDGE_CONST const BMEdge *, const BMEdge_OFlag *
+#define _BM_GENERIC_TYPE_EDGE_NONCONST BMEdge *
+#define _BM_GENERIC_TYPE_EDGE_CONST const BMEdge *
 #define BM_CHECK_TYPE_EDGE_CONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_EDGE_CONST)
 #define BM_CHECK_TYPE_EDGE_NONCONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST)
 #define BM_CHECK_TYPE_EDGE(ele) \
   CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_EDGE_NONCONST, _BM_GENERIC_TYPE_EDGE_CONST)
 /* face */
-#define _BM_GENERIC_TYPE_FACE_NONCONST BMFace *, BMFace_OFlag *
-#define _BM_GENERIC_TYPE_FACE_CONST const BMFace *, const BMFace_OFlag *
+#define _BM_GENERIC_TYPE_FACE_NONCONST BMFace *
+#define _BM_GENERIC_TYPE_FACE_CONST const BMFace *
 #define BM_CHECK_TYPE_FACE_CONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_FACE_CONST)
 #define BM_CHECK_TYPE_FACE_NONCONST(ele) CHECK_TYPE_ANY(ele, _BM_GENERIC_TYPE_ELEM_NONCONST)
 #define BM_CHECK_TYPE_FACE(ele) \
@@ -557,6 +590,17 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 #else
 #  define BM_ELEM_CD_GET_VOID_P(ele, offset) \
     (BLI_assert(offset != -1), (void *)((char *)(ele)->head.data + (offset)))
+#endif
+
+#ifdef __cplusplus
+}
+
+template<typename Tptr, typename ElemType> inline Tptr BM_ELEM_CD_PTR(ElemType e, int offset)
+{
+  return reinterpret_cast<Tptr>(BM_ELEM_CD_GET_VOID_P(e, offset));
+}
+
+extern "C" {
 #endif
 
 #define BM_ELEM_CD_SET_FLOAT(ele, offset, f) \
@@ -672,6 +716,10 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 #else
 #  define BM_OMP_LIMIT 10000
 #endif
+
+/* note does not check if ids are enabled for a given element type */
+#define BM_ELEM_GET_ID(bm, elem) \
+  BM_ELEM_CD_GET_INT(elem, bm->idmap.cd_id_off[(int)(elem)->head.htype])
 
 #ifdef __cplusplus
 }

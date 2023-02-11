@@ -273,6 +273,10 @@ void gmp_blender_init_allocator()
  * - run #WM_main() event loop,
  *   or exit immediately when running in background-mode.
  */
+
+void BKE_pbvh_system_init(void);
+void BKE_pbvh_system_exit(void);
+
 int main(int argc,
 #ifdef USE_WIN32_UNICODE_ARGS
          const char **UNUSED(argv_c)
@@ -326,7 +330,7 @@ int main(int argc,
     LocalFree(argv_16);
 
     /* free on early-exit */
-    app_init_data.argv = argv;
+    app_init_data.argv = (const char **)argv;
     app_init_data.argv_num = argv_num;
   }
 #  endif /* USE_WIN32_UNICODE_ARGS */
@@ -440,6 +444,7 @@ int main(int argc,
   DEG_register_node_types();
 
   BKE_brush_system_init();
+  BKE_pbvh_system_init();
   RE_texture_rng_init();
 
   BKE_callback_global_init();

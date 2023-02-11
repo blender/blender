@@ -35,6 +35,7 @@ struct ImBuf;
 struct ImageFormatData;
 struct Main;
 struct MenuType;
+struct PBVH;
 struct PointerRNA;
 struct PropertyRNA;
 struct ScrArea;

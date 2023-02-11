@@ -134,6 +134,75 @@ static void pose_solve_scale_chain(SculptPoseIKChain *ik_chain, const float scal
   }
 }
 
+static void do_pose_brush_bend_task_cb_ex(void *__restrict userdata,
+                                          const int n,
+                                          const TaskParallelTLS *__restrict /* tls */)
+{
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
+  SculptSession *ss = data->ob->sculpt;
+  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+  SculptPoseIKChainSegment *segments = ik_chain->segments;
+  const Brush *brush = data->brush;
+
+  if (fabsf(ik_chain->bend_factor) <= 0.00001f) {
+    return;
+  }
+
+  float final_pos[3];
+
+  SculptOrigVertData orig_data;
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+
+    const float ik_chain_weight = segments[0].weights[vd.index] *
+                                  (1.0f - SCULPT_vertex_mask_get(ss, vd.vertex));
+    if (ik_chain_weight == 0.0f) {
+      continue;
+    }
+
+    float orig_co[3];
+    mul_v3_m4v3(orig_co, ik_chain->bend_mat_inv, orig_data.co);
+
+    const float bend_factor = ik_chain->bend_factor;
+
+    if (fabsf(bend_factor) <= 0.0000001f) {
+      continue;
+    }
+
+    if (orig_co[0] < 0.0f) {
+      continue;
+    }
+
+    const float theta = orig_co[0] * bend_factor;
+    const float sint = sinf(theta);
+    const float cost = cosf(theta);
+
+    float new_co[3];
+    new_co[0] = -(orig_co[1] - 1.0f / bend_factor) * sint;
+    new_co[1] = (orig_co[1] - 1.0f / bend_factor) * cost + 1.0f / bend_factor;
+    new_co[2] = orig_co[2];
+
+    float final_co[3];
+    float disp[3];
+    mul_v3_m4v3(final_co, ik_chain->bend_mat, new_co);
+
+    sub_v3_v3v3(disp, final_co, orig_data.co);
+    mul_v3_fl(disp, ik_chain_weight);
+    add_v3_v3v3(final_pos, orig_data.co, disp);
+
+    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
+    copy_v3_v3(target_co, final_pos);
+
+    if (vd.is_mesh) {
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
 static void do_pose_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
                                      const TaskParallelTLS *__restrict /*tls*/)
@@ -155,7 +224,7 @@ static void do_pose_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     float total_disp[3];
@@ -534,8 +603,6 @@ void SCULPT_pose_calc_pose_data(Sculpt *sd,
                                 float *r_pose_origin,
                                 float *r_pose_factor)
 {
-  SCULPT_vertex_random_access_ensure(ss);
-
   /* Calculate the pose rotation point based on the boundaries of the brush factor. */
   SculptFloodFill flood;
   SCULPT_floodfill_init(ss, &flood);
@@ -642,6 +709,7 @@ static int pose_brush_num_effective_segments(const Brush *brush)
    * artifacts in the areas affected by multiple segments. */
   if (ELEM(brush->pose_deform_type,
            BRUSH_POSE_DEFORM_SCALE_TRASLATE,
+           BRUSH_POSE_DEFORM_BEND,
            BRUSH_POSE_DEFORM_SQUASH_STRETCH)) {
     return 1;
   }
@@ -655,6 +723,7 @@ static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
                                                       const float initial_location[3],
                                                       const float radius)
 {
+  SCULPT_vertex_random_access_ensure(ss);
 
   const float chain_segment_len = radius * (1.0f + br->pose_offset);
   float next_chain_segment_target[3];
@@ -773,6 +842,13 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
     copy_v3_v3(fdata.pose_initial_co, SCULPT_vertex_co_get(ss, current_vertex));
     SCULPT_floodfill_execute(ss, &flood, pose_face_sets_floodfill_cb, &fdata);
     SCULPT_floodfill_free(&flood);
+
+    if (!fdata.next_face_set_found) {
+      for (int i = s; i < ik_chain->tot_segments; i++) {
+        zero_v3(ik_chain->segments[i].orig);
+      }
+      break;
+    }
 
     if (fdata.tot_co > 0) {
       mul_v3_fl(fdata.pose_origin, 1.0f / float(fdata.tot_co));
@@ -946,6 +1022,8 @@ SculptPoseIKChain *SCULPT_pose_ik_chain_init(Sculpt *sd,
 
   const bool use_fake_neighbors = !(br->flag2 & BRUSH_USE_CONNECTED_ONLY);
 
+  SCULPT_boundary_info_ensure(ob);
+
   if (use_fake_neighbors) {
     SCULPT_fake_neighbors_ensure(sd, ob, br->disconnected_distance_max);
     SCULPT_fake_neighbors_enable(ob);
@@ -1101,6 +1179,61 @@ static void sculpt_pose_do_squash_stretch_deform(SculptSession *ss, Brush * /*br
   pose_solve_scale_chain(ik_chain, scale);
 }
 
+static void sculpt_pose_do_bend_deform(SculptSession *ss, Brush * /* brush */)
+{
+  const int totvert = SCULPT_vertex_count_get(ss);
+  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+
+  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
+    sub_v3_v3v3(ik_chain->bend_mat[0],
+                ik_chain->segments[0].initial_head,
+                ik_chain->segments[0].initial_orig);
+    normalize_v3(ik_chain->bend_mat[0]);
+    copy_v3_v3(ik_chain->bend_mat[2], ss->cache->view_normal);
+    normalize_v3(ik_chain->bend_mat[2]);
+    cross_v3_v3v3(ik_chain->bend_mat[1], ik_chain->bend_mat[0], ik_chain->bend_mat[2]);
+    normalize_v3(ik_chain->bend_mat[1]);
+    copy_v3_v3(ik_chain->bend_mat[3], ik_chain->segments[0].initial_orig);
+    ik_chain->bend_mat[3][3] = 1.0f;
+    invert_m4_m4(ik_chain->bend_mat_inv, ik_chain->bend_mat);
+
+    float lower = FLT_MAX;
+    float upper = -FLT_MAX;
+
+    float smd_limit[2];
+
+    for (int i = 0; i < totvert; i++) {
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+      if (ik_chain->segments[0].weights[i] == 0.0f) {
+        continue;
+      }
+      float bend_space_vert_co[3];
+      mul_v3_m4v3(bend_space_vert_co, ik_chain->bend_mat_inv, SCULPT_vertex_co_get(ss, vertex));
+      lower = min_ff(lower, bend_space_vert_co[0]);
+      upper = max_ff(upper, bend_space_vert_co[0]);
+    }
+
+    ik_chain->bend_upper_limit = upper;
+    smd_limit[1] = lower + (upper - lower) * 1.0f;
+    smd_limit[0] = lower + (upper - lower) * 0.0f;
+    ik_chain->bend_limit = max_ff(FLT_EPSILON, smd_limit[1] - smd_limit[0]);
+  }
+
+  float *original_dir = ik_chain->bend_mat[0];
+  float current_dir[3];
+  float brush_location[3];
+  add_v3_v3v3(brush_location, ss->cache->initial_location, ss->cache->grab_delta);
+  sub_v3_v3v3(current_dir, brush_location, ik_chain->segments[0].initial_orig);
+  ik_chain->bend_factor = angle_signed_on_axis_v3v3_v3(
+      original_dir, current_dir, ss->cache->view_normal);
+  if (ik_chain->bend_factor > M_PI) {
+    ik_chain->bend_factor = ik_chain->bend_factor - (M_PI * 2.0f);
+  }
+
+  ik_chain->bend_factor = 2.0f * (ik_chain->bend_factor / ik_chain->bend_limit);
+}
+
 static void sculpt_pose_align_pivot_local_space(float r_mat[4][4],
                                                 ePaintSymmetryFlags symm,
                                                 ePaintSymmetryAreas symm_area,
@@ -1147,6 +1280,9 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       break;
     case BRUSH_POSE_DEFORM_SQUASH_STRETCH:
       sculpt_pose_do_squash_stretch_deform(ss, brush);
+      break;
+    case BRUSH_POSE_DEFORM_BEND:
+      sculpt_pose_do_bend_deform(ss, brush);
       break;
   }
 
@@ -1217,7 +1353,13 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_pose_brush_task_cb_ex, &settings);
+
+  if (brush->pose_deform_type == BRUSH_POSE_DEFORM_BEND) {
+    BLI_task_parallel_range(0, totnode, &data, do_pose_brush_bend_task_cb_ex, &settings);
+  }
+  else {
+    BLI_task_parallel_range(0, totnode, &data, do_pose_brush_task_cb_ex, &settings);
+  }
 }
 
 void SCULPT_pose_ik_chain_free(SculptPoseIKChain *ik_chain)

@@ -1088,10 +1088,11 @@ static bool pixel_bounds_uv(const float uv_quad[4][2],
 #endif
 
 static bool pixel_bounds_array(
-    float (*uv)[2], rcti *bounds_px, const int ibuf_x, const int ibuf_y, int tot)
+    float (*in_uv)[2], rcti *bounds_px, const int ibuf_x, const int ibuf_y, int tot)
 {
   /* UV bounds */
   float min_uv[2], max_uv[2];
+  float(*uv)[2] = in_uv;
 
   if (tot == 0) {
     return false;
@@ -1099,9 +1100,8 @@ static bool pixel_bounds_array(
 
   INIT_MINMAX2(min_uv, max_uv);
 
-  while (tot--) {
+  for (int i = 0; i < tot; i++, uv++) {
     minmax_v2v2_v2(min_uv, max_uv, (*uv));
-    uv++;
   }
 
   bounds_px->xmin = int(ibuf_x * min_uv[0]);
@@ -1109,6 +1109,15 @@ static bool pixel_bounds_array(
 
   bounds_px->xmax = int(ibuf_x * max_uv[0]) + 1;
   bounds_px->ymax = int(ibuf_y * max_uv[1]) + 1;
+
+  const int d = -1000;
+  if (bounds_px->xmin < d || bounds_px->ymin < d || bounds_px->xmax < d || bounds_px->ymax < d) {
+    printf("error! xmin %d xmax %d ymin %d ymax %d\n",
+           bounds_px->xmin,
+           bounds_px->xmax,
+           bounds_px->ymin,
+           bounds_px->ymax);
+  }
 
   // printf("%d %d %d %d\n", min_px[0], min_px[1], max_px[0], max_px[1]);
 
@@ -5933,6 +5942,7 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
   ProjStrokeHandle *ps_handle;
   Scene *scene = CTX_data_scene(C);
   ToolSettings *settings = scene->toolsettings;
+  ePaintMode paintmode = BKE_paintmode_get_active_from_context(C);
   char symmetry_flag_views[ARRAY_SIZE(ps_handle->ps_views)] = {0};
 
   ps_handle = MEM_cnew<ProjStrokeHandle>("ProjStrokeHandle");

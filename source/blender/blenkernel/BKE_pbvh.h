@@ -12,29 +12,63 @@
 #include "BLI_ghash.h"
 
 #include "bmesh.h"
+#include "bmesh_log.h"
 
 /* For embedding CCGKey in iterator. */
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
+
+#include <stdint.h>
+
+//#define DEFRAGMENT_MEMORY
+
 #include "DNA_customdata_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct BMLog;
+/* Experimental feature to detect quad diagonals and mark (but not dissolve) them. */
+//#define SCULPT_DIAGONAL_EDGE_MARKS
+typedef struct SculptPMap {
+  struct MeshElemMap *pmap;
+  int *pmap_mem;
+  int refcount;
+} SculptPMap;
+
+#if 0
+typedef struct SculptLoopRef {
+  intptr_t i;
+} SculptLoopRef;
+#endif
+
+#ifdef DEFRAGMENT_MEMORY
+#  include "BLI_smallhash.h"
+#endif
+
+//#define WITH_PBVH_CACHE
+
 struct BMesh;
+struct BMVert;
+struct BMEdge;
+struct BMFace;
+struct BMIdMap;
+struct Scene;
 struct CCGElem;
+struct MeshElemMap;
 struct CCGKey;
 struct CustomData;
+struct TableGSet;
 struct DMFlagMat;
 struct IsectRayPrecalc;
 struct MLoop;
 struct MLoopTri;
+struct MSculptVert;
 struct MPoly;
 struct Mesh;
 struct MeshElemMap;
 struct PBVH;
+struct MEdge;
 struct PBVHBatches;
 struct PBVHNode;
 struct PBVH_GPU_Args;
@@ -46,6 +80,79 @@ struct MeshElemMap;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
+
+//#define PROXY_ADVANCED
+
+// experimental performance test of "data-based programming" approach
+#ifdef PROXY_ADVANCED
+typedef struct ProxyKey {
+  int node;
+  int pindex;
+} ProxyKey;
+
+#  define MAX_PROXY_NEIGHBORS 12
+
+typedef struct ProxyVertArray {
+  float **ownerco;
+  short **ownerno;
+  float (*co)[3];
+  float (*fno)[3];
+  short (*no)[3];
+  float *mask, **ownermask;
+  PBVHVertRef *index;
+  float **ownercolor, (*color)[4];
+
+  ProxyKey (*neighbors)[MAX_PROXY_NEIGHBORS];
+
+  int size;
+  int datamask;
+  bool neighbors_dirty;
+
+  GHash *indexmap;
+} ProxyVertArray;
+
+typedef enum {
+  PV_OWNERCO = 1,
+  PV_OWNERNO = 2,
+  PV_CO = 4,
+  PV_NO = 8,
+  PV_MASK = 16,
+  PV_OWNERMASK = 32,
+  PV_INDEX = 64,
+  PV_OWNERCOLOR = 128,
+  PV_COLOR = 256,
+  PV_NEIGHBORS = 512
+} ProxyVertField;
+
+typedef struct ProxyVertUpdateRec {
+  float *co, *no, *mask, *color;
+  PBVHVertRef index, newindex;
+} ProxyVertUpdateRec;
+
+#  define PBVH_PROXY_DEFAULT CO | INDEX | MASK
+
+struct SculptSession;
+
+void BKE_pbvh_ensure_proxyarrays(
+    struct SculptSession *ss, PBVH *pbvh, PBVHNode **nodes, int totnode, int mask);
+void BKE_pbvh_load_proxyarrays(PBVH *pbvh, PBVHNode **nodes, int totnode, int mask);
+
+void BKE_pbvh_ensure_proxyarray(
+    struct SculptSession *ss,
+    struct PBVH *pbvh,
+    struct PBVHNode *node,
+    int mask,
+    struct GHash
+        *vert_node_map,  // vert_node_map maps vertex PBVHVertRefs to PBVHNode indices; optional
+    bool check_indexmap,
+    bool force_update);
+void BKE_pbvh_gather_proxyarray(PBVH *pbvh, PBVHNode **nodes, int totnode);
+
+void BKE_pbvh_free_proxyarray(struct PBVH *pbvh, struct PBVHNode *node);
+void BKE_pbvh_update_proxyvert(struct PBVH *pbvh, struct PBVHNode *node, ProxyVertUpdateRec *rec);
+ProxyVertArray *BKE_pbvh_get_proxyarrays(struct PBVH *pbvh, struct PBVHNode *node);
+
+#endif
 
 typedef enum {
   PBVH_FACES,
@@ -112,12 +219,37 @@ typedef struct PBVHFaceRef {
 
 #define PBVH_REF_NONE -1LL
 
+typedef struct PBVHTri {
+  int v[3];       // references into PBVHTriBuf->verts
+  int eflag;      // bitmask of which edges in the tri are real edges in the mesh
+  intptr_t l[3];  // loops
+
+  float no[3];
+  PBVHFaceRef f;
+} PBVHTri;
+
+typedef struct PBVHTriBuf {
+  PBVHTri *tris;
+  PBVHVertRef *verts;
+  int *edges;
+  int totvert, totedge, tottri;
+  int verts_size, edges_size, tris_size;
+
+  SmallHash vertmap;  // maps vertex ptrs to indices within verts
+
+  // private field
+  intptr_t *loops;
+  int totloop, mat_nr;
+  float min[3], max[3];
+} PBVHTriBuf;
+
 typedef struct {
   float (*co)[3];
 } PBVHProxyNode;
 
 typedef struct {
   float (*color)[4];
+  int size;
 } PBVHColorBufferNode;
 
 typedef struct PBVHPixels {
@@ -162,10 +294,19 @@ typedef enum {
 
   PBVH_UpdateTopology = 1 << 13,
   PBVH_UpdateColor = 1 << 14,
-  PBVH_RebuildPixels = 1 << 15,
-  PBVH_TexLeaf = 1 << 16,
-  PBVH_TopologyUpdated = 1 << 17, /* Used internally by pbvh_bmesh.c */
 
+  PBVH_RebuildPixels = 1 << 15,
+  PBVH_Delete = 1 << 16,
+  PBVH_UpdateCurvatureDir = 1 << 17,
+  PBVH_UpdateTris = 1 << 18,
+  PBVH_RebuildNodeVerts = 1 << 19,
+
+  /* tri areas are not guaranteed to be up to date, tools should
+     update all nodes on first step of brush*/
+  PBVH_UpdateTriAreas = 1 << 20,
+  PBVH_UpdateOtherVerts = 1 << 21,
+  PBVH_TexLeaf = 1 << 22,
+  PBVH_TopologyUpdated = 1 << 23, /* Used internally by pbvh_bmesh.c */
 } PBVHNodeFlags;
 ENUM_OPERATORS(PBVHNodeFlags, PBVH_TopologyUpdated);
 
@@ -277,6 +418,9 @@ typedef void (*BKE_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float *
 
 typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float *tmin);
 
+void BKE_pbvh_get_nodes(PBVH *pbvh, int flag, PBVHNode ***r_array, int *r_totnode);
+PBVHNode *BKE_pbvh_get_node(PBVH *pbvh, int node);
+
 /* Building */
 
 PBVH *BKE_pbvh_new(PBVHType type);
@@ -291,12 +435,16 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          const struct MPoly *mpoly,
                          const struct MLoop *mloop,
                          float (*vert_positions)[3],
+                         struct MSculptVert *msculptverts,
                          int totvert,
                          struct CustomData *vdata,
                          struct CustomData *ldata,
                          struct CustomData *pdata,
                          const struct MLoopTri *looptri,
-                         int looptri_num);
+                         int looptri_num,
+                         bool fast_draw,
+                         float *face_areas,
+                         SculptPMap *pmap);
 /**
  * Do a full rebuild with on Grids data structure.
  */
@@ -307,17 +455,36 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           void **gridfaces,
                           struct DMFlagMat *flagmats,
                           unsigned int **grid_hidden,
+                          bool fast_draw,
+                          float *face_areas,
                           struct Mesh *me,
                           struct SubdivCCG *subdiv_ccg);
 /**
  * Build a PBVH from a BMesh.
  */
 void BKE_pbvh_build_bmesh(PBVH *pbvh,
+                          struct Mesh *me,
                           struct BMesh *bm,
                           bool smooth_shading,
-                          struct BMLog *log,
-                          int cd_vert_node_offset,
-                          int cd_face_node_offset);
+                          BMLog *log,
+                          struct BMIdMap *idmap,
+                          const int cd_vert_node_offset,
+                          const int cd_face_node_offset,
+                          const int cd_sculpt_vert,
+                          const int cd_face_areas,
+                          const int cd_boundary_flag,
+                          bool fast_draw,
+                          bool update_sculptverts);
+
+void BKE_pbvh_set_idmap(PBVH *pbvh, struct BMIdMap *idmap);
+
+void BKE_pbvh_update_offsets(PBVH *pbvh,
+                             const int cd_vert_node_offset,
+                             const int cd_face_node_offset,
+                             const int cd_sculpt_vert,
+                             const int cd_face_areas,
+                             const int cd_hide_poly,
+                             const int cd_boudnary_flags);
 
 void BKE_pbvh_update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_face_node_offset);
 
@@ -326,6 +493,28 @@ void BKE_pbvh_build_pixels(PBVH *pbvh,
                            struct Image *image,
                            struct ImageUser *image_user);
 void BKE_pbvh_free(PBVH *pbvh);
+
+void BKE_pbvh_set_bm_log(PBVH *pbvh, BMLog *log);
+BMLog *BKE_pbvh_get_bm_log(PBVH *pbvh);
+
+/* update MSculptVerts, doesn't take pbvh argument to allow usage if pbvh doesn't currently exist
+ */
+void BKE_pbvh_update_sculpt_verts(PBVH *pbvh);
+
+/** update original data, only data whose r_** parameters are passed in will be updated*/
+bool BKE_pbvh_get_origvert(
+    PBVH *pbvh, PBVHVertRef vertex, const float **r_co, float **r_no, float **r_color);
+
+/**
+checks if original data needs to be updated for v, and if so updates it.  Stroke_id
+is provided by the sculpt code and is used to detect updates.  The reason we do it
+inside the verts and not in the nodes is to allow splitting of the pbvh during the stroke.
+*/
+bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, struct BMVert *v, int stroke_id);
+
+/** used so pbvh can differentiate between different strokes,
+    see BKE_pbvh_bmesh_check_origdata */
+void BKE_pbvh_set_stroke_id(PBVH *pbvh, int stroke_id);
 
 /* Hierarchical Search in the BVH, two methods:
  * - For each hit calling a callback.
@@ -355,7 +544,8 @@ void BKE_pbvh_raycast(PBVH *pbvh,
                       void *data,
                       const float ray_start[3],
                       const float ray_normal[3],
-                      bool original);
+                      bool original,
+                      int stroke_id);
 
 bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            PBVHNode *node,
@@ -364,12 +554,16 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            const float ray_start[3],
                            const float ray_normal[3],
                            struct IsectRayPrecalc *isect_precalc,
+                           int *hit_count,
                            float *depth,
-                           PBVHVertRef *active_vertex,
-                           int *active_face_grid_index,
-                           float *face_normal);
+                           float *back_depth,
+                           PBVHVertRef *active_vertex_index,
+                           PBVHFaceRef *active_face_grid_index,
+                           float *face_normal,
+                           int stroke_id);
 
-bool BKE_pbvh_bmesh_node_raycast_detail(PBVHNode *node,
+bool BKE_pbvh_bmesh_node_raycast_detail(PBVH *pbvh,
+                                        PBVHNode *node,
                                         const float ray_start[3],
                                         struct IsectRayPrecalc *isect_precalc,
                                         float *depth,
@@ -396,11 +590,13 @@ bool BKE_pbvh_node_find_nearest_to_ray(PBVH *pbvh,
                                        const float ray_start[3],
                                        const float ray_normal[3],
                                        float *depth,
-                                       float *dist_sq);
+                                       float *dist_sq,
+                                       int stroke_id);
 
 /* Drawing */
 
 void BKE_pbvh_draw_cb(PBVH *pbvh,
+                      struct Mesh *me,
                       bool update_only_visible,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
@@ -458,30 +654,77 @@ int BKE_pbvh_get_grid_num_faces(const PBVH *pbvh);
 /**
  * Only valid for type == #PBVH_BMESH.
  */
-void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size);
+void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size, float detail_range);
 
 typedef enum {
-  PBVH_Subdivide = 1,
-  PBVH_Collapse = 2,
+  PBVH_Subdivide = 1 << 0,
+  PBVH_Collapse = 1 << 1,
+  PBVH_Cleanup = 1 << 2,  // dissolve verts surrounded by either 3 or 4 triangles then triangulate
+  PBVH_LocalSubdivide = 1 << 3,
+  PBVH_LocalCollapse = 1 << 4
 } PBVHTopologyUpdateMode;
-ENUM_OPERATORS(PBVHTopologyUpdateMode, PBVH_Collapse);
 
-/**
- * Collapse short edges, subdivide long edges.
- */
-bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
-                                    PBVHTopologyUpdateMode mode,
-                                    const float center[3],
-                                    const float view_normal[3],
-                                    float radius,
-                                    bool use_frontface,
-                                    bool use_projected);
+ENUM_OPERATORS(PBVHTopologyUpdateMode, PBVH_LocalCollapse);
 
+typedef float (*DyntopoMaskCB)(PBVHVertRef vertex, void *userdata);
+
+bool BKE_pbvh_bmesh_update_topology(
+    PBVH *pbvh,
+    PBVHTopologyUpdateMode mode,
+    const float center[3],
+    const float view_normal[3],
+    float radius,
+    const bool use_frontface,
+    const bool use_projected,
+    int symaxis,
+    bool updatePBVH,
+    DyntopoMaskCB mask_cb,
+    void *mask_cb_data,
+    int custom_max_steps,  // if 0, will use defaul hueristics for max steps
+    bool disable_surface_relax,
+    bool is_snake_hook);
+
+bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
+                                          bool (*searchcb)(PBVHNode *node, void *data),
+                                          void (*undopush)(PBVHNode *node, void *data),
+                                          void *searchdata,
+                                          PBVHTopologyUpdateMode mode,
+                                          const float center[3],
+                                          const float view_normal[3],
+                                          float radius,
+                                          const bool use_frontface,
+                                          const bool use_projected,
+                                          int sym_axis,
+                                          bool updatePBVH,
+                                          DyntopoMaskCB mask_cb,
+                                          void *mask_cb_data,
+                                          bool disable_surface_relax,
+                                          bool is_snake_hook);
 /* Node Access */
 
+void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node);
+void BKE_pbvh_face_areas_begin(PBVH *pbvh);
+
+// updates boundaries and valences for whole mesh
+void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh);
+bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, PBVHVertRef vertex);
+void BKE_pbvh_bmesh_update_valence(int cd_sculpt_vert, PBVHVertRef vertex);
+void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh);
+void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh);
+bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, PBVHVertRef vertex);
+
+/* if pbvh uses a split index buffer, will call BKE_pbvh_vert_tag_update_normal_triangulation;
+   otherwise does nothing.  returns true if BKE_pbvh_vert_tag_update_normal_triangulation was
+   called.*/
+bool BKE_pbvh_node_mark_update_index_buffer(PBVH *pbvh, PBVHNode *node);
+void BKE_pbvh_vert_tag_update_normal_triangulation(PBVHNode *node);
+void BKE_pbvh_node_mark_original_update(PBVHNode *node);
+void BKE_pbvh_vert_tag_update_normal_tri_area(PBVHNode *node);
+void BKE_pbvh_update_all_tri_areas(PBVH *pbvh);
 void BKE_pbvh_node_mark_update(PBVHNode *node);
 void BKE_pbvh_node_mark_update_mask(PBVHNode *node);
 void BKE_pbvh_node_mark_update_color(PBVHNode *node);
+void BKE_pbvh_vert_tag_update_normal_visibility(PBVHNode *node);
 void BKE_pbvh_node_mark_update_face_sets(PBVHNode *node);
 void BKE_pbvh_node_mark_update_visibility(PBVHNode *node);
 void BKE_pbvh_node_mark_rebuild_draw(PBVHNode *node);
@@ -494,6 +737,7 @@ void BKE_pbvh_node_fully_masked_set(PBVHNode *node, int fully_masked);
 bool BKE_pbvh_node_fully_masked_get(PBVHNode *node);
 void BKE_pbvh_node_fully_unmasked_set(PBVHNode *node, int fully_masked);
 bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node);
+void BKE_pbvh_node_mark_curvature_update(PBVHNode *node);
 
 void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh);
 void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex);
@@ -531,20 +775,14 @@ bool BKE_pbvh_node_frustum_contain_AABB(PBVHNode *node, void *frustum);
  */
 bool BKE_pbvh_node_frustum_exclude_AABB(PBVHNode *node, void *frustum);
 
-struct GSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
-struct GSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
-struct GSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
-/**
- * In order to perform operations on the original node coordinates
- * (currently just ray-cast), store the node's triangles and vertices.
- *
- * Skips triangles that are hidden.
- */
-void BKE_pbvh_bmesh_node_save_orig(struct BMesh *bm,
-                                   struct BMLog *log,
-                                   PBVHNode *node,
-                                   bool use_original);
-void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh);
+struct TableGSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
+struct TableGSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
+struct TableGSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
+
+void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh);
+void BKE_pbvh_bmesh_mark_node_regen(PBVH *pbvh, PBVHNode *node);
+
+void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh, bool force_balance);
 
 /* Update Bounding Box/Redraw and clear flags. */
 
@@ -560,7 +798,7 @@ void BKE_pbvh_grids_update(PBVH *pbvh,
                            struct DMFlagMat *flagmats,
                            unsigned int **grid_hidden,
                            struct CCGKey *key);
-void BKE_pbvh_subdiv_cgg_set(PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
+void BKE_pbvh_subdiv_ccg_set(PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
 void BKE_pbvh_face_sets_set(PBVH *pbvh, int *face_sets);
 
 /**
@@ -575,9 +813,9 @@ void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide);
 
 /* Vertex Deformer. */
 
-float (*BKE_pbvh_vert_coords_alloc(struct PBVH *pbvh))[3];
-void BKE_pbvh_vert_coords_apply(struct PBVH *pbvh, const float (*vertCos)[3], int totvert);
-bool BKE_pbvh_is_deformed(struct PBVH *pbvh);
+float (*BKE_pbvh_vert_coords_alloc(PBVH *pbvh))[3];
+void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], int totvert);
+bool BKE_pbvh_is_deformed(PBVH *pbvh);
 
 /* Vertex Iterator. */
 
@@ -621,10 +859,14 @@ typedef struct PBVHVertexIter {
   bool is_mesh;
 
   /* bmesh */
-  struct GSetIterator bm_unique_verts;
-  struct GSetIterator bm_other_verts;
+  int bi;
+  struct TableGSet *bm_cur_set;
+  struct TableGSet *bm_unique_verts, *bm_other_verts;
+
   struct CustomData *bm_vdata;
+  int cd_sculpt_vert;
   int cd_vert_mask_offset;
+  int cd_vcol_offset;
 
   /* result: these are all computed in the macro, but we assume
    * that compiler optimization's will skip the ones we don't use */
@@ -635,6 +877,9 @@ typedef struct PBVHVertexIter {
   float *mask;
   bool visible;
 } PBVHVertexIter;
+
+#define BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v) \
+  ((MSculptVert *)BM_ELEM_CD_GET_VOID_P(v, cd_sculpt_vert))
 
 void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int mode);
 
@@ -690,22 +935,36 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           } \
         } \
         else { \
-          if (!BLI_gsetIterator_done(&vi.bm_unique_verts)) { \
-            vi.bm_vert = (BMVert *)BLI_gsetIterator_getKey(&vi.bm_unique_verts); \
-            BLI_gsetIterator_step(&vi.bm_unique_verts); \
+          BMVert *bv = NULL; \
+          while (!bv) { \
+            if (!vi.bm_cur_set->elems || vi.bi >= vi.bm_cur_set->cur) { \
+              if (vi.bm_cur_set != vi.bm_other_verts && mode != PBVH_ITER_UNIQUE) { \
+                vi.bm_cur_set = vi.bm_other_verts; \
+                vi.bi = 0; \
+                if (!vi.bm_cur_set->elems || vi.bi >= vi.bm_other_verts->cur) { \
+                  break; \
+                } \
+              } \
+              else { \
+                break; \
+              } \
+            } \
+            else { \
+              bv = (BMVert *)vi.bm_cur_set->elems[vi.bi++]; \
+            } \
           } \
-          else { \
-            vi.bm_vert = (BMVert *)BLI_gsetIterator_getKey(&vi.bm_other_verts); \
-            BLI_gsetIterator_step(&vi.bm_other_verts); \
+          if (!bv) { \
+            continue; \
           } \
+          vi.bm_vert = bv; \
+          vi.vertex.i = (intptr_t)bv; \
+          vi.index = BM_elem_index_get(vi.bm_vert); \
           vi.visible = !BM_elem_flag_test_bool(vi.bm_vert, BM_ELEM_HIDDEN); \
           if (mode == PBVH_ITER_UNIQUE && !vi.visible) { \
             continue; \
           } \
           vi.co = vi.bm_vert->co; \
           vi.fno = vi.bm_vert->no; \
-          vi.vertex = BKE_pbvh_make_vref((intptr_t)vi.bm_vert); \
-          vi.index = BM_elem_index_get(vi.bm_vert); \
           vi.mask = (float *)BM_ELEM_CD_GET_VOID_P(vi.bm_vert, vi.cd_vert_mask_offset); \
         }
 
@@ -714,6 +973,18 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   } \
   } \
   ((void)0)
+
+#define BKE_pbvh_vertex_to_index(pbvh, v) \
+  (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != -1 ? BM_elem_index_get((BMVert *)(v.i)) : (v.i))
+PBVHVertRef BKE_pbvh_index_to_vertex(PBVH *pbvh, int idx);
+
+#define BKE_pbvh_edge_to_index(pbvh, v) \
+  (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != -1 ? BM_elem_index_get((BMEdge *)(v.i)) : (v.i))
+PBVHEdgeRef BKE_pbvh_index_to_edge(PBVH *pbvh, int idx);
+
+#define BKE_pbvh_face_to_index(pbvh, v) \
+  (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != -1 ? BM_elem_index_get((BMFace *)(v.i)) : (v.i))
+PBVHFaceRef BKE_pbvh_index_to_face(PBVH *pbvh, int idx);
 
 #define PBVH_FACE_ITER_VERTS_RESERVED 8
 
@@ -731,7 +1002,8 @@ typedef struct PBVHFaceIter {
   const PBVHNode *node_;
   PBVHType pbvh_type_;
   int verts_size_;
-  GSetIterator bm_faces_iter_;
+  int bm_faces_iter_;
+  const struct TableGSet *bm_faces_;
   int cd_hide_poly_, cd_face_set_;
   bool *hide_poly_;
   int *face_sets_;
@@ -766,11 +1038,6 @@ void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *pro
 void BKE_pbvh_node_free_proxies(PBVHNode *node);
 PBVHProxyNode *BKE_pbvh_node_add_proxy(PBVH *pbvh, PBVHNode *node);
 void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***r_array, int *r_tot);
-void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
-                                    int (**r_orco_tris)[3],
-                                    int *r_orco_tris_num,
-                                    float (**r_orco_coords)[3],
-                                    struct BMVert ***r_orco_verts);
 
 /**
  * \note doing a full search on all vertices here seems expensive,
@@ -782,10 +1049,12 @@ bool BKE_pbvh_node_has_vert_with_normal_update_tag(PBVH *pbvh, PBVHNode *node);
 // void BKE_pbvh_node_BB_reset(PBVHNode *node);
 // void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
 
-bool pbvh_has_mask(const PBVH *pbvh);
+bool BKE_pbvh_draw_mask(const PBVH *pbvh);
+bool BKE_pbvh_has_mask(const PBVH *pbvh);
+
 void pbvh_show_mask_set(PBVH *pbvh, bool show_mask);
 
-bool pbvh_has_face_sets(PBVH *pbvh);
+bool BKE_pbvh_draw_face_sets(PBVH *pbvh);
 void pbvh_show_face_sets_set(PBVH *pbvh, bool show_face_sets);
 
 /* Parallelization. */
@@ -801,27 +1070,25 @@ bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh);
 
 const bool *BKE_pbvh_get_poly_hide(const PBVH *pbvh);
 
-PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
-void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
 bool BKE_pbvh_get_color_layer(const struct Mesh *me,
                               CustomDataLayer **r_layer,
                               eAttrDomain *r_attr);
 
 /* Swaps colors at each element in indices (of domain pbvh->vcol_domain)
- * with values in colors. */
+ * with values in colors. PBVH_FACES only.*/
 void BKE_pbvh_swap_colors(PBVH *pbvh,
                           const int *indices,
                           const int indices_num,
                           float (*colors)[4]);
 
 /* Stores colors from the elements in indices (of domain pbvh->vcol_domain)
- * into colors. */
+ * into colors. PBVH_FACES only.*/
 void BKE_pbvh_store_colors(PBVH *pbvh,
                            const int *indices,
                            const int indices_num,
                            float (*colors)[4]);
 
-/* Like BKE_pbvh_store_colors but handles loop->vert conversion */
+/* Like BKE_pbvh_store_colors but handles loop->vert conversion. PBVH_FACES only. */
 void BKE_pbvh_store_colors_vertex(PBVH *pbvh,
                                   const int *indices,
                                   const int indices_num,
@@ -834,7 +1101,6 @@ void BKE_pbvh_is_drawing_set(PBVH *pbvh, bool val);
 void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop);
 
 void BKE_pbvh_update_active_vcol(PBVH *pbvh, const struct Mesh *mesh);
-void BKE_pbvh_pmap_set(PBVH *pbvh, const struct MeshElemMap *pmap);
 
 void BKE_pbvh_vertex_color_set(PBVH *pbvh, PBVHVertRef vertex, const float color[4]);
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_color[4]);
@@ -842,6 +1108,320 @@ void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_col
 void BKE_pbvh_ensure_node_loops(PBVH *pbvh);
 bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh);
 int BKE_pbvh_debug_draw_gen_get(PBVHNode *node);
+
+int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node);
+int BKE_pbvh_get_node_id(PBVH *pbvh, PBVHNode *node);
+void BKE_pbvh_set_flat_vcol_shading(PBVH *pbvh, bool value);
+
+#define DYNTOPO_CD_INTERP
+
+void SCULPT_update_flat_vcol_shading(struct Object *ob, struct Scene *scene);
+
+void BKE_pbvh_curvature_update_set(PBVHNode *node, bool state);
+bool BKE_pbvh_curvature_update_get(PBVHNode *node);
+
+int BKE_pbvh_get_totnodes(PBVH *pbvh);
+
+bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node);
+PBVHTriBuf *BKE_pbvh_bmesh_get_tris(PBVH *pbvh, PBVHNode *node);
+void BKE_pbvh_bmesh_free_tris(PBVH *pbvh, PBVHNode *node);
+
+/*recalculates boundary flags for *all* vertices.  used by
+  symmetrize.*/
+void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh);
+void BKE_pbvh_set_boundary_flags(PBVH *pbvh, int *boundary_flags);
+
+/* saves all bmesh references to internal indices, to be restored later */
+void BKE_pbvh_bmesh_save_indices(PBVH *pbvh);
+
+/* restore bmesh references from previously indices saved by BKE_pbvh_bmesh_save_indices */
+void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh);
+
+/* wraps calls to BM_mesh_toolflags_set in BKE_pbvh_bmesh_save_indices and
+ * BKE_pbvh_bmesh_from_saved_indices */
+void BKE_pbvh_bmesh_set_toolflags(PBVH *pbvh, bool use_toolflags);
+
+void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, struct BMFace *f, bool log_face);
+void BKE_pbvh_bmesh_remove_edge(PBVH *pbvh, struct BMEdge *e, bool log_vert);
+void BKE_pbvh_bmesh_remove_vertex(PBVH *pbvh, struct BMVert *v, bool log_vert);
+
+void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool force_tree_walk);
+
+// note that e_tri and f_example are allowed to be NULL
+struct BMFace *BKE_pbvh_face_create_bmesh(PBVH *pbvh,
+                                          struct BMVert *v_tri[3],
+                                          struct BMEdge *e_tri[3],
+                                          const struct BMFace *f_example);
+
+// if node is NULL, one will be foudn in the pbvh, which potentially can be slow
+struct BMVert *BKE_pbvh_vert_create_bmesh(
+    PBVH *pbvh, float co[3], float no[3], PBVHNode *node, struct BMVert *v_example);
+PBVHNode *BKE_pbvh_node_from_face_bmesh(PBVH *pbvh, struct BMFace *f);
+PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i);
+
+struct BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh);
+void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
+                                   int cd_faceset_offset,
+                                   int cd_vert_node_offset,
+                                   int cd_face_node_offset,
+                                   int cd_vcol,
+                                   int cd_boundary_flag,
+                                   struct BMVert *v,
+                                   int bound_symmetry,
+                                   const CustomData *ldata,
+                                   const int totuv,
+                                   const bool do_uvs);
+
+#define DYNTOPO_DYNAMIC_TESS
+
+PBVHNode *BKE_pbvh_get_node_leaf_safe(PBVH *pbvh, int i);
+
+void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas, int valence);
+void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry);
+
+#if 0
+typedef enum {
+  SCULPT_TEXTURE_UV = 1 << 0,  // per-uv
+  SCULPT_TEXTURE_GRIDS = 1<<1
+} SculptTextureType;
+
+typedef int TexLayerRef;
+
+/*
+Texture points are texels projected into 3d.
+*/
+typedef intptr_t TexPointRef;
+
+void *BKE_pbvh_get_tex_settings(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
+void *BKE_pbvh_get_tex_data(PBVH *pbvh, PBVHNode *node, TexPointRef vdm);
+
+typedef struct SculptTextureDef {
+  SculptTextureType type;
+  int settings_size;
+
+  void (*build_begin)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
+
+  void (*calc_bounds)(PBVH *pbvh, PBVHNode *node, float r_min[3], float r_max[3], TexLayerRef vdm);
+
+  /*vdms can cache data per node, which is freed to maintain memory limit.
+    they store cache in the same structure they return in buildNodeData.*/
+  void (*freeCachedData)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
+  void (*ensuredCachedData)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
+
+  /*builds all data that isn't cached.*/
+  void *(*buildNodeData)(PBVH *pbvh, PBVHNode *node);
+  bool (*validate)(PBVH *pbvh, TexLayerRef vdm);
+
+  void (*setVertexCos)(PBVH *pbvh, PBVHNode *node, PBVHVertRef *verts, int totvert, TexLayerRef vdm);
+
+  void (*getPointsFromNode)(PBVH *pbvh,
+                            PBVHNode *node,
+                            TexLayerRef vdm,
+                            TexPointRef **r_ids,
+                            float ***r_cos,
+                            float ***r_nos,
+                            int *r_totpoint);
+  void (*releaseNodePoints)(
+      PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, float **cos, float **nos);
+
+#  if 0
+  int (*getTrisFromNode)(PBVH *pbvh,
+                         PBVHNode *node,
+                         TexLayerRef vdm,
+                         TexPointRef *((*r_tris)[3]),
+                         TexPointRef **r_ids,
+                         int tottri,
+                         int totid);
+  void (*getTriInterpWeightsFromNode)(PBVH *pbvh,
+                                      PBVHNode *node,
+                                      TexLayerRef vdm,
+                                      float *((*r_tris)[3]),
+                                      SculptLoopRef ***r_src_loops,
+                                      int tottri,
+                                      int totloop);
+  int (*getTriCount)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
+#  endif
+
+  void (*getPointNeighbors)(PBVH *pbvh,
+                            PBVHNode *node,
+                            TexLayerRef vdm,
+                            TexPointRef id,
+                            TexPointRef **r_neighbor_ids,
+                            int *r_totneighbor,
+                            int maxneighbors,
+                            TexPointRef **r_duplicates_id,
+                            int r_totduplicate,
+                            int maxduplicates);
+  void (*getPointValence)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef id);
+  void (*freeNodeData)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, void *settings);
+
+  void (*getPointsFromIds)(
+      PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, int totid);
+
+  /*displacement texture stuff*/
+  // can be tangent, object space displacement
+  void (*worldToDelta)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, int totid);
+  void (*deltaToWorld)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, int totid);
+} SculptDisplacementDef;
+
+typedef struct SculptLayerEntry {
+  char name[64];
+  int type;
+  void *settings;
+  float factor;
+  struct SculptLayerEntry *parent;
+} SculptLayerEntry;
+
+#endif
+
+int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co);
+bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v);
+
+void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
+                                         const int *face_sets,
+                                         const bool *hide_poly,
+                                         const float (*vert_positions)[3],
+                                         const struct MEdge *medge,
+                                         const struct MLoop *mloop,
+                                         const struct MPoly *mpoly,
+                                         struct MSculptVert *msculptverts,
+                                         const struct MeshElemMap *pmap,
+                                         PBVHVertRef vertex,
+                                         const bool *sharp_edges);
+void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
+                                         struct SubdivCCG *subdiv_ccg,
+                                         PBVHVertRef vertex);
+
+#if 0
+#  include "DNA_meshdata_types.h"
+ATTR_NO_OPT static void MV_ADD_FLAG(MSculptVert *mv, int flag)
+{
+  if (flag & SCULPTVERT_NEED_BOUNDARY) {
+    flag |= flag;
+  }
+
+  mv->flag |= flag;
+}
+#else
+#  define MV_ADD_FLAG(mv, flag1) (mv)->flag |= (flag1)
+#endif
+
+#if 1
+#  include "atomic_ops.h"
+#  include <float.h>
+#  include <math.h>
+
+/*why is atomic_ops defining near & far macros?*/
+#  ifdef near
+#    undef near
+#  endif
+#  ifdef far
+#    undef far
+#  endif
+
+// static global to limit the number of reports per source file
+static int _bke_pbvh_report_count = 0;
+
+#  define PBVH_NAN_REPORT_LIMIT 16
+
+// for debugging NaNs that don't appear on developer's machines
+BLI_INLINE bool _pbvh_nan_check(const float *co, const char *func, const char *file, int line)
+{
+  bool bad = false;
+
+  if (_bke_pbvh_report_count > PBVH_NAN_REPORT_LIMIT) {
+    return false;
+  }
+
+  for (int i = 0; i < 3; i++) {
+    if (isnan(co[i]) || !isfinite(co[i])) {
+      const char *type = !isfinite(co[i]) ? "infinity" : "nan";
+      printf("float corruption (vector[%d] was %s): %s:%d\n\t%s\n", i, type, func, line, file);
+      bad = true;
+    }
+  }
+
+  if (bad) {
+    atomic_add_and_fetch_int32(&_bke_pbvh_report_count, 1);
+  }
+
+  return bad;
+}
+#  define PBVH_CHECK_NAN(co) _pbvh_nan_check(co, __func__, __FILE__, __LINE__)
+#else
+#  define PBVH_CHECK_NAN(co)
+#endif
+
+typedef struct DynTopoState DynTopoState;
+
+typedef struct DynRemeshParams {
+  float edge_size;
+  float detail_range;
+  float relax_strength;
+} DynRemeshParams;
+
+/*
+Simple wrapper api to use the dyntopo remesher in
+non-sculpt contexts.
+
+existing_pbvh can be NULL.
+
+Note that all the sculpt customdata layers will be created
+if they don't exist, so cd_vert/face_node_offset, cd_mask_offset,
+cd_sculpt_vert, etc*/
+DynTopoState *BKE_dyntopo_init(struct BMesh *bm, PBVH *existing_pbvh);
+void BKE_dyntopo_free(DynTopoState *ds);
+void BKE_dyntopo_default_params(DynRemeshParams *params, float edge_size);
+void BKE_dyntopo_remesh(DynTopoState *ds,
+                        DynRemeshParams *params,
+                        int steps,
+                        PBVHTopologyUpdateMode mode);
+/*
+
+use pmap to build an array of edge indices surrounding vertex
+r_edges, r_edges_size, heap_alloc define an existing array to put data in.
+
+final array is similarly put in these pointers.  note that calling code
+may pass a stack allocated array (*heap_alloc should be false), and must
+check if heap_alloc is true afterwards and free *r_edges.
+
+r_polys is an array of integer pairs and must be same logical size as r_edges
+*/
+void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
+                            PBVHVertRef vertex,
+                            int **r_edges,
+                            int *r_edges_size,
+                            bool *heap_alloc,
+                            int **r_polys);
+void BKE_pbvh_set_vemap(PBVH *pbvh, struct MeshElemMap *vemap);
+
+void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value);
+bool BKE_pbvh_cache_is_valid(const struct Object *ob,
+                             const struct Mesh *me,
+                             const PBVH *pbvh,
+                             int pbvh_type);
+
+#ifdef WITH_PBVH_CACHE
+bool BKE_pbvh_cache(const struct Mesh *me, PBVH *pbvh);
+PBVH *BKE_pbvh_get_or_free_cached(struct Object *ob, struct Mesh *me, PBVHType pbvh_type);
+void BKE_pbvh_invalidate_cache(struct Object *ob);
+void BKE_pbvh_set_cached(struct Object *ob, PBVH *pbvh);
+#endif
+
+void BKE_pbvh_set_face_areas(PBVH *pbvh, float *face_areas);
+void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, struct MSculptVert *sverts);
+void BKE_pbvh_set_pmap(PBVH *pbvh, SculptPMap *pmap);
+SculptPMap *BKE_pbvh_get_pmap(PBVH *pbvh);
+void BKE_pbvh_cache_remove(PBVH *pbvh);
+void BKE_pbvh_set_bmesh(PBVH *pbvh, struct BMesh *bm);
+void BKE_pbvh_free_bmesh(PBVH *pbvh, struct BMesh *bm);
+void BKE_pbvh_system_init(void);
+void BKE_pbvh_system_exit(void);
+
+SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me);
+void BKE_pbvh_pmap_aquire(SculptPMap *pmap);
+bool BKE_pbvh_pmap_release(SculptPMap *pmap);
+void BKE_pbvh_clear_cache(PBVH *preserve);
 
 #ifdef __cplusplus
 }
