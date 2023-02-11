@@ -603,9 +603,9 @@ void SCULPT_stroke_id_ensure(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
-  if (!ss->attrs.automasking_stroke_id) {
+  if (!ss->attrs.stroke_id) {
     SculptAttributeParams params = {0};
-    ss->attrs.automasking_stroke_id = BKE_sculpt_attribute_ensure(
+    ss->attrs.stroke_id = BKE_sculpt_attribute_ensure(
         ob,
         ATTR_DOMAIN_POINT,
         CD_PROP_INT32,
@@ -625,7 +625,8 @@ int SCULPT_get_tool(const SculptSession *ss, const Brush *br)
 
 void SCULPT_ensure_persistent_layers(SculptSession *ss, Object *ob)
 {
-  SculptAttributeParams params = {.permanent = true, .simple_array = false};
+  SculptAttributeParams params = {};
+  params.permanent = true;
 
   if (!ss->attrs.persistent_co) {
     ss->attrs.persistent_co = BKE_sculpt_attribute_ensure(

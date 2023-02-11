@@ -791,10 +791,6 @@ struct StrokeCache {
   /* Boundary brush */
   SculptBoundary *boundaries[PAINT_SYMM_AREAS];
 
-  /* Layer brush */
-  float *layer_displacement_factor;
-  int *layer_stroke_id;
-
   float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
   Dial *dial;
 
@@ -2541,6 +2537,7 @@ enum StrokeIDUser {
   STROKEID_USER_PREV_COLOR = 1 << 3,
   STROKEID_USER_SMOOTH = 1 << 4,
   STROKEID_USER_OCCLUSION = 1 << 5,
+  STROKEID_USER_LAYER_BRUSH = 1 << 6,
 };
 
 BLI_INLINE bool SCULPT_stroke_id_test(SculptSession *ss, PBVHVertRef vertex, StrokeIDUser user)

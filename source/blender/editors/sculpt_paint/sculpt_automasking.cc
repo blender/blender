@@ -791,7 +791,7 @@ static void sculpt_normal_occlusion_automasking_fill(AutomaskingCache *automaski
       f *= automasking_view_normal_factor(automasking, ss, vertex, &nodedata);
     }
 
-    if (ss->attrs.automasking_stroke_id) {
+    if (ss->attrs.stroke_id) {
       SCULPT_stroke_id_test(ss, vertex, STROKEID_USER_AUTOMASKING);
     }
 

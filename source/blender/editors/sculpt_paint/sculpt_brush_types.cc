@@ -1487,8 +1487,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
   Sculpt *sd = data->sd;
   const Brush *brush = data->brush;
 
-  const bool use_persistent_base = !ss->bm && ss->attrs.persistent_co &&
-                                   brush->flag & BRUSH_PERSISTENT;
+  const bool use_persistent_base = ss->attrs.persistent_co && brush->flag & BRUSH_PERSISTENT;
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
@@ -1529,7 +1528,11 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
       disp_factor = SCULPT_vertex_attr_get<float *>(vd.vertex, ss->attrs.persistent_disp);
     }
     else {
-      disp_factor = &ss->cache->layer_displacement_factor[vi];
+      disp_factor = SCULPT_vertex_attr_get<float *>(vd.vertex, ss->attrs.layer_displayment);
+
+      if (SCULPT_stroke_id_test(ss, vd.vertex, STROKEID_USER_LAYER_BRUSH)) {
+        *disp_factor = 0.0f;
+      }
     }
 
     /* When using persistent base, the layer brush (holding Control) invert mode resets the
@@ -1586,16 +1589,22 @@ void SCULPT_do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  if (ss->cache->layer_displacement_factor == nullptr) {
-    ss->cache->layer_displacement_factor = MEM_cnew_array<float>(SCULPT_vertex_count_get(ss),
-                                                                 __func__);
-  }
+  const bool use_persistent_base = ss->attrs.persistent_co && brush->flag & BRUSH_PERSISTENT;
 
   SculptThreadedTaskData data{};
   data.sd = sd;
   data.ob = ob;
   data.brush = brush;
   data.nodes = nodes;
+
+  if (!use_persistent_base) {
+    SculptAttributeParams params = {};
+
+    ss->attrs.layer_displayment = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(layer_displayment), &params);
+  }
+
+  SCULPT_stroke_id_ensure(ob);
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);

@@ -1856,33 +1856,20 @@ enum StrokeFlags {
   CLIP_Z = 4,
 };
 
-void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, SculptUndoNode *unode)
-{
-  SculptSession *ss = ob->sculpt;
-  BMesh *bm = ss->bm;
-
-  memset(data, 0, sizeof(*data));
-  data->unode = unode;
-
-  if (bm) {
-    data->bm_log = ss->bm_log;
-  }
-  else {
-    data->coords = data->unode->co;
-    data->normals = data->unode->no;
-    data->vmasks = data->unode->mask;
-    data->colors = data->unode->col;
-  }
-}
-
 void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
                                 Object *ob,
                                 PBVHNode *node,
                                 SculptUndoType type)
 {
-  SculptUndoNode *unode;
-  unode = SCULPT_undo_push_node(ob, node, type);
-  SCULPT_orig_vert_data_unode_init(data, ob, unode);
+  SculptSession *ss = ob->sculpt;
+  BMesh *bm = ss->bm;
+
+  data->ss = ss;
+  data->datatype = type;
+
+  if (bm) {
+    data->bm_log = ss->bm_log;
+  }
 }
 
 /**
@@ -4034,6 +4021,7 @@ static void sculpt_topology_update(Sculpt *sd,
   PBVHTopologyUpdateMode mode = PBVHTopologyUpdateMode(0);
   float location[3];
 
+#if 0
   int dyntopo_mode = brush->dyntopo.flag;
   int dyntopo_detail_mode = brush->dyntopo.mode;
 
@@ -4055,6 +4043,14 @@ static void sculpt_topology_update(Sculpt *sd,
 
   if (dyntopo_mode & DYNTOPO_CLEANUP) {
     mode |= PBVH_Cleanup;
+  }
+#endif
+
+  if (sd->flags & SCULPT_DYNTOPO_COLLAPSE) {
+    mode |= PBVH_Collapse;
+  }
+  if (sd->flags & SCULPT_DYNTOPO_SUBDIVIDE) {
+    mode |= PBVH_Subdivide;
   }
 
   SculptSearchSphereData sdata{};
@@ -5050,7 +5046,6 @@ static const char *sculpt_tool_name(Sculpt *sd)
 void SCULPT_cache_free(SculptSession *ss, struct Object *ob, StrokeCache *cache)
 {
   MEM_SAFE_FREE(cache->dial);
-  MEM_SAFE_FREE(cache->layer_displacement_factor);
   MEM_SAFE_FREE(cache->prev_colors);
   MEM_SAFE_FREE(cache->detail_directions);
   MEM_SAFE_FREE(cache->prev_displacement);
@@ -6141,10 +6136,6 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
       (brush->flag & BRUSH_DRAG_DOT)) {
 
     paint_mesh_restore_co(sd, ob);
-
-    if (ss->cache) {
-      MEM_SAFE_FREE(ss->cache->layer_displacement_factor);
-    }
   }
 }
 

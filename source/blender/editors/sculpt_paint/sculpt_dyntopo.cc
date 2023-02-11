@@ -1748,7 +1748,7 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BLI_mempool_iternew(solver->verts, &iter);
   UVSmoothVert *sv = (UVSmoothVert *)BLI_mempool_iterstep(&iter);
 
-  AutomaskingNodeData automask_data = {0};
+  AutomaskingNodeData automask_data = {};
   automask_data.have_orig_data = false;
 
   for (; sv; sv = (UVSmoothVert *)BLI_mempool_iterstep(&iter)) {

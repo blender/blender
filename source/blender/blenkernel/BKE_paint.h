@@ -688,6 +688,9 @@ typedef struct SculptAttributePointers {
   SculptAttribute *persistent_no;
   SculptAttribute *persistent_disp;
 
+  /* Layer brush. */
+  SculptAttribute *layer_displayment;
+
   /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
    * initialized in #SCULPT_automasking_cache_init when needed. */
   SculptAttribute *automasking_factor;

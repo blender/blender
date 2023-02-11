@@ -1956,9 +1956,6 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
 
-  SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_unode_init(&orig_data, ob, unode);
-
   int totvert, allvert;
   BKE_pbvh_node_num_verts(ss->pbvh, (PBVHNode *)unode->node, &totvert, &allvert);
 
