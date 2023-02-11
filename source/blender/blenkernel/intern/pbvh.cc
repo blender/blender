@@ -2876,8 +2876,8 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
         if (j == 0 ||
             len_squared_v3v3(location, co[j]) < len_squared_v3v3(location, nearest_vertex_co)) {
           copy_v3_v3(nearest_vertex_co, co[j]);
-          *r_active_vertex_index = (PBVHVertRef){.i = mloop[lt->tri[j]].v};
-          *r_active_face_index = (PBVHFaceRef){.i = lt->poly};
+          r_active_vertex_index->i = mloop[lt->tri[j]].v;
+          r_active_face_index->i = lt->poly;
         }
       }
     }
@@ -4636,7 +4636,7 @@ bool BKE_pbvh_cache_is_valid(const struct Object *ob,
   return ok;
 }
 
-GHash *cached_pbvhs = nullptr;
+static GHash *cached_pbvhs = nullptr;
 static void pbvh_clear_cached_pbvhs(PBVH *exclude)
 {
   Vector<PBVH *, 8> pbvhs;
