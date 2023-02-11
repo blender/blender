@@ -3892,6 +3892,21 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 305, 9)) {
+    /* Enable legacy normal and rotation outputs in Distribute Points on Faces node. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != GEO_NODE_DISTRIBUTE_POINTS_ON_FACES) {
+          continue;
+        }
+        node->custom2 = true;
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
