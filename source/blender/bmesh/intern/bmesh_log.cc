@@ -1634,3 +1634,4 @@ bool BM_log_entry_drop(BMLogEntry *entry)
   MEM_delete<BMLogEntry>(entry);
   return true;
 }
+

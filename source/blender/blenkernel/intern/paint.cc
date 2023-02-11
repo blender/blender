@@ -2604,10 +2604,6 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool update_sculptverts
       printf("%s: ss->bm != bm!\n", __func__);
 
       ob->sculpt->bm = bm;
-
-      if (ob->sculpt->bm_log) {
-        BM_log_set_bm(bm, ob->sculpt->bm_log);
-      }
     }
     else if (!bm) {
       BKE_pbvh_set_bmesh(pbvh, ob->sculpt->bm);

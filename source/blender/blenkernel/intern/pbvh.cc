@@ -25,9 +25,9 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_modifier_types.h"
 
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
@@ -3828,8 +3828,12 @@ bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh)
   if (pbvh->hide_vert) {
     return pbvh->hide_vert;
   }
-  pbvh->hide_vert = (bool *)CustomData_add_layer_named(
-      &pbvh->mesh->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, nullptr, pbvh->mesh->totvert, ".hide_vert");
+  pbvh->hide_vert = (bool *)CustomData_add_layer_named(&pbvh->mesh->vdata,
+                                                       CD_PROP_BOOL,
+                                                       CD_SET_DEFAULT,
+                                                       nullptr,
+                                                       pbvh->mesh->totvert,
+                                                       ".hide_vert");
   return pbvh->hide_vert;
 }
 
@@ -4696,9 +4700,11 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas
       const int grid_index = index / key->grid_area;
       const int vertex_index = index - grid_index * key->grid_area;
 
-      SubdivCCGCoord coord = {.grid_index = grid_index,
-                              .x = vertex_index % key->grid_size,
-                              .y = vertex_index / key->grid_size};
+      SubdivCCGCoord coord = {};
+
+      coord.grid_index = grid_index;
+      coord.x = short(vertex_index % key->grid_size);
+      coord.y = short(vertex_index / key->grid_size);
 
       SubdivCCGNeighbors neighbors;
       BKE_subdiv_ccg_neighbor_coords_get(pbvh->subdiv_ccg, &coord, false, &neighbors);
@@ -4710,7 +4716,7 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas
       for (i = 0; i < neighbors.size; i++) {
         SubdivCCGCoord *coord2 = neighbors.coords + i;
 
-        int vertex_index2 = coord2->y * key->grid_size + coord2->x;
+        int vertex_index2 = int(coord2->y) * key->grid_size + int(coord2->x);
 
         float *co2 = CCG_elem_co(
             key, CCG_elem_offset(key, pbvh->grids[coord2->grid_index], vertex_index2));
@@ -4804,9 +4810,11 @@ void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
   const int grid_index = index / key->grid_area;
   const int vertex_index = index - grid_index * key->grid_area;
 
-  SubdivCCGCoord coord = {.grid_index = grid_index,
-                          .x = vertex_index % key->grid_size,
-                          .y = vertex_index / key->grid_size};
+  SubdivCCGCoord coord = {};
+
+  coord.grid_index = grid_index;
+  coord.x = short(vertex_index % key->grid_size);
+  coord.y = short(vertex_index / key->grid_size);
 
   SubdivCCGNeighbors neighbors;
   BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, &coord, false, &neighbors);

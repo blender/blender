@@ -1357,7 +1357,7 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
-  Object *sculpt_get_vis_object(bContext * C, SculptSession * ss, char *name);
+  Object *sculpt_get_vis_object(bContext * C, SculptSession * ss, const char *name);
   void sculpt_end_vis_object(bContext * C, SculptSession * ss, Object * ob, BMesh * bm);
 
   BMeshCreateParams params = {};

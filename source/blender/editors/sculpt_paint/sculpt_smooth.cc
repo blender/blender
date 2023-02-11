@@ -760,7 +760,7 @@ void SCULPT_reproject_cdata(SculptSession *ss,
   /* original (l->prev, l, l->next) projections for each loop ('l' remains unchanged) */
 
   char *_blocks = (char *)alloca(ldata->totsize * totloop);
-  void **blocks = BLI_array_alloca(blocks, totloop);
+  void **blocks = (void **)BLI_array_alloca(blocks, totloop);
 
   for (int i = 0; i < totloop; i++, _blocks += ldata->totsize) {
     blocks[i] = (void *)_blocks;
@@ -803,8 +803,8 @@ void SCULPT_reproject_cdata(SculptSession *ss,
     BMLoop *l = ls[i];
     float no[3] = {0.0f, 0.0f, 0.0f};
 
-    BMLoop *fakels = BLI_array_alloca(fakels, l->f->len);
-    BMVert *fakevs = BLI_array_alloca(fakevs, l->f->len);
+    BMLoop *fakels = (BMLoop *)BLI_array_alloca(fakels, l->f->len);
+    BMVert *fakevs = (BMVert *)BLI_array_alloca(fakevs, l->f->len);
     BMLoop *l2 = l->f->l_first;
     BMLoop *fakel = fakels;
     BMVert *fakev = fakevs;
@@ -818,7 +818,7 @@ void SCULPT_reproject_cdata(SculptSession *ss,
       *fakev = *l2->v;
       fakel->v = fakev;
 
-      SCULPT_vertex_check_origdata(ss, (PBVHVertRef){.i = (intptr_t)l2->v});
+      SCULPT_vertex_check_origdata(ss, BKE_pbvh_make_vref((intptr_t)l2->v));
 
       if (l2->v == v) {
         copy_v3_v3(fakev->co, origco);
@@ -857,7 +857,7 @@ void SCULPT_reproject_cdata(SculptSession *ss,
     CustomData_bmesh_copy_data(&ss->bm->ldata, &ss->bm->ldata, interpl->head.data, &l->head.data);
   }
 
-  int *tots = BLI_array_alloca(tots, totuv);
+  int *tots = (int *)BLI_array_alloca(tots, totuv);
 
   for (int i = 0; i < totuv; i++) {
     lastuvs[i * 2] = lastuvs[i * 2 + 1] = 0.0f;

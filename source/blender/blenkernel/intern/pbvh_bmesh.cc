@@ -5438,7 +5438,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
 
   // randomize
   uint *rands[4];
-  uint tots[4] = {bm->totvert, bm->totedge, bm->totloop, bm->totface};
+  uint tots[4] = {(uint)bm->totvert, (uint)bm->totedge, (uint)bm->totloop, (uint)bm->totface};
 
   RNG *rng = BLI_rng_new(0);
 

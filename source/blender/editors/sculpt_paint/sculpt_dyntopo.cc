@@ -382,9 +382,6 @@ void SCULPT_reorder_bmesh(SculptSession *ss)
 
   BKE_sculptsession_update_attr_refs(ob);
 
-  if (ss->bm_log) {
-    BM_log_set_bm(ss->bm, ss->bm_log);
-  }
 #endif
 }
 

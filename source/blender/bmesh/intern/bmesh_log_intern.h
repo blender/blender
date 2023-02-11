@@ -107,8 +107,6 @@ bool BM_log_free(BMLog *log, bool safe_mode);
 
 BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry);
 
-void BM_log_set_bm(BMesh *bm, BMLog *log);
-
 /* Get the number of log entries */
 /* Get the number of log entries */
 int BM_log_length(const BMLog *log);
