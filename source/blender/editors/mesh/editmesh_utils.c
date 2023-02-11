@@ -1924,31 +1924,40 @@ void EDBM_project_snap_verts(
 
   ED_view3d_init_mats_rv3d(obedit, region->regiondata);
 
-  struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create(
-      CTX_data_scene(C), 0);
+  Scene *scene = CTX_data_scene(C);
+  struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create(scene, 0);
+
+  eSnapTargetOP target_op = SCE_SNAP_TARGET_NOT_ACTIVE;
+  const int snap_flag = scene->toolsettings->snap_flag;
+
+  SET_FLAG_FROM_TEST(
+      target_op, !(snap_flag & SCE_SNAP_TO_INCLUDE_EDITED), SCE_SNAP_TARGET_NOT_EDITED);
+  SET_FLAG_FROM_TEST(
+      target_op, !(snap_flag & SCE_SNAP_TO_INCLUDE_NONEDITED), SCE_SNAP_TARGET_NOT_NONEDITED);
+  SET_FLAG_FROM_TEST(
+      target_op, (snap_flag & SCE_SNAP_TO_ONLY_SELECTABLE), SCE_SNAP_TARGET_ONLY_SELECTABLE);
 
   BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
     if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
       float mval[2], co_proj[3];
       if (ED_view3d_project_float_object(region, eve->co, mval, V3D_PROJ_TEST_NOP) ==
           V3D_PROJ_RET_OK) {
-        if (ED_transform_snap_object_project_view3d(
-                snap_context,
-                depsgraph,
-                region,
-                CTX_wm_view3d(C),
-                SCE_SNAP_MODE_FACE_RAYCAST,
-                &(const struct SnapObjectParams){
-                    .snap_target_select = SCE_SNAP_TARGET_NOT_ACTIVE,
-                    .edit_mode_type = SNAP_GEOM_FINAL,
-                    .use_occlusion_test = true,
-                },
-                NULL,
-                mval,
-                NULL,
-                NULL,
-                co_proj,
-                NULL)) {
+        if (ED_transform_snap_object_project_view3d(snap_context,
+                                                    depsgraph,
+                                                    region,
+                                                    CTX_wm_view3d(C),
+                                                    SCE_SNAP_MODE_FACE_RAYCAST,
+                                                    &(const struct SnapObjectParams){
+                                                        .snap_target_select = target_op,
+                                                        .edit_mode_type = SNAP_GEOM_FINAL,
+                                                        .use_occlusion_test = true,
+                                                    },
+                                                    NULL,
+                                                    mval,
+                                                    NULL,
+                                                    NULL,
+                                                    co_proj,
+                                                    NULL)) {
           mul_v3_m4v3(eve->co, obedit->world_to_object, co_proj);
         }
       }
