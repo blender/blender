@@ -161,6 +161,8 @@ class VIEW3D_HT_tool_header(Header):
             sub.prop(context.object.data, "use_mirror_y", text="Y", toggle=True)
             sub.prop(context.object.data, "use_mirror_z", text="Z", toggle=True)
 
+            layout.prop(context.object.data, "use_sculpt_collision", icon='MOD_PHYSICS', icon_only=True, toggle=True)
+
         # Expand panels from the side-bar as popovers.
         popover_kw = {"space_type": 'VIEW_3D', "region_type": 'UI', "category": "Tool"}
 

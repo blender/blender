@@ -71,4 +71,9 @@ IndexMask find_indices_from_virtual_array(IndexMask indices_to_check,
                                           int64_t parallel_grain_size,
                                           Vector<int64_t> &r_indices);
 
+/**
+ * Find the true indices in a boolean span.
+ */
+IndexMask find_indices_from_array(Span<bool> array, Vector<int64_t> &r_indices);
+
 }  // namespace blender::index_mask_ops

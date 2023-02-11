@@ -1736,7 +1736,9 @@ static void panel_draw(const bContext *C, Panel *panel)
 
     int socket_index;
     LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &nmd->node_group->inputs, socket_index) {
-      draw_property_for_socket(*C, layout, nmd, &bmain_ptr, ptr, *socket, socket_index);
+      if (!(socket->flag & SOCK_HIDE_IN_MODIFIER)) {
+        draw_property_for_socket(*C, layout, nmd, &bmain_ptr, ptr, *socket, socket_index);
+      }
     }
   }
 

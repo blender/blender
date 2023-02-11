@@ -331,7 +331,7 @@ static void apply_selection_operation_at_index(GMutableSpan selection,
         selection_typed[index] = false;
         break;
       case SEL_OP_XOR:
-        selection_typed[index] ^= selection_typed[index];
+        selection_typed[index] = !selection_typed[index];
         break;
       default:
         break;

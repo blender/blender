@@ -1165,6 +1165,7 @@ void setNearestAxis(TransInfo *t)
 
   if (mode_prev != t->con.mode) {
     projection_matrix_calc(t, t->con.pmtx);
+    transform_gizmo_3d_model_from_constraint_and_mode_set(t);
   }
 }
 

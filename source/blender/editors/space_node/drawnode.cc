@@ -1464,7 +1464,13 @@ static void std_node_socket_interface_draw(bContext * /*C*/, uiLayout *layout, P
     }
   }
 
-  uiItemR(layout, ptr, "hide_value", DEFAULT_FLAGS, nullptr, 0);
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, ptr, "hide_value", DEFAULT_FLAGS, nullptr, 0);
+
+  const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(ptr->owner_id);
+  if (sock->in_out == SOCK_IN && node_tree->type == NTREE_GEOMETRY) {
+    uiItemR(col, ptr, "hide_in_modifier", DEFAULT_FLAGS, nullptr, 0);
+  }
 }
 
 static void node_socket_virtual_draw_color(bContext * /*C*/,
