@@ -553,7 +553,7 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
 
   do {
     while (BLI_LINKSTACK_SIZE(queue)) {
-      BMEdge *e = BLI_LINKSTACK_POP(queue);
+      BMEdge *e = (BMEdge *)BLI_LINKSTACK_POP(queue);
 
       BMVert *v1 = e->v1, *v2 = e->v2;
       int v1_i = BM_elem_index_get(e->v1);
