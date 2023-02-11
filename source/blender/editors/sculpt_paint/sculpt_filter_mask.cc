@@ -539,12 +539,12 @@ static float *sculpt_ipmask_step_compute(SculptSession *ss,
   const int totvert = SCULPT_vertex_count_get(ss);
   float *next_mask = MEM_cnew_array<float>(totvert, "delta values");
 
-  SculptIPMaskFilterTaskData data = {
-      .ss = ss,
-      .next_mask = next_mask,
-      .current_mask = current_mask,
-      .direction = direction,
-  };
+  SculptIPMaskFilterTaskData data = {};
+  data.ss = ss;
+  data.next_mask = next_mask;
+  data.current_mask = current_mask;
+  data.direction = direction;
+
   TaskParallelSettings settings;
   memset(&settings, 0, sizeof(TaskParallelSettings));
   settings.use_threading = totvert > SCULPT_IPMASK_FILTER_MIN_MULTITHREAD;
@@ -635,13 +635,12 @@ static void sculpt_ipmask_apply_mask_data(SculptSession *ss,
                                           const float interpolation)
 {
   FilterCache *filter_cache = ss->filter_cache;
-  SculptThreadedTaskData data = {
-      .ss = ss,
-      .nodes = filter_cache->nodes,
-      .new_mask = new_mask,
-      .next_mask = next_mask,
-      .mask_interpolation = interpolation,
-  };
+  SculptThreadedTaskData data = {};
+  data.ss = ss;
+  data.nodes = filter_cache->nodes;
+  data.new_mask = new_mask;
+  data.next_mask = next_mask;
+  data.mask_interpolation = interpolation;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, filter_cache->totnode);

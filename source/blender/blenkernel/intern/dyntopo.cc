@@ -1179,8 +1179,8 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
       BMEdge edge = *l->e;
       edge.head.hflag &= ~BM_ELEM_TAG;
 
-      intptr_t *t1 = (intptr_t *)&edge.head.index;
-      intptr_t *t2 = (intptr_t *)&l->e->head.index;
+      int64_t *t1 = (int64_t *)&edge.head.index;
+      int64_t *t2 = (int64_t *)&l->e->head.index;
 
       atomic_cas_int64(t2, *t2, *t1);
 
@@ -2718,7 +2718,7 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   }
 
   EdgeQueueContext eq_ctx;
-  memset(static_cast<void*>(&eq_ctx), 0, sizeof(eq_ctx));
+  memset(static_cast<void *>(&eq_ctx), 0, sizeof(eq_ctx));
 
   eq_ctx.pool = nullptr;
   eq_ctx.bm = pbvh->header.bm;
