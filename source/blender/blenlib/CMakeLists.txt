@@ -327,7 +327,6 @@ set(SRC
   BLI_sort.h
   BLI_sort.hh
   BLI_sort_utils.h
-  BLI_even_spline.hh
   BLI_span.hh
   BLI_stack.h
   BLI_stack.hh

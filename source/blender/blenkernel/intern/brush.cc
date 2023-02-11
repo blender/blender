@@ -1717,7 +1717,7 @@ void BKE_brush_sculpt_reset(Brush *br)
    * assign this so logic below can remain the same. */
   br->alpha = 0.5f;
 
-  br->flag2 |= BRUSH_SMOOTH_PRESERVE_FACE_SETS | BRUSH_SMOOTH_USE_AREA_WEIGHT;
+  br->flag2 |= BRUSH_SMOOTH_USE_AREA_WEIGHT;
   bool disable_dyntopo = false;
 
   /* Brush settings */

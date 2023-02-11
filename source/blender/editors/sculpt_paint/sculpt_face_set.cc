@@ -379,9 +379,9 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
           int fset = abs(ss->face_sets[vert_map->indices[j]]);
 
-          // XXX kind of hackish, tries to sample faces that are within
-          // 8 pixels of the center of the brush, and using a crude linear
-          // scale at that - joeedh
+          /* Sample faces that are within
+           * 8 pixels of the center of the brush.
+           */
           if (set_active_faceset &&
               fset != abs(ss->cache->automasking->settings.initial_face_set)) {
 
@@ -475,9 +475,9 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
             bool ok = true;
 
-            // XXX kind of hackish, tries to sample faces that are within
-            // 8 pixels of the center of the brush, and using a crude linear
-            // scale at that - joeedh
+            /* Sample faces that are within
+             * 8 pixels of the center of the brush.
+             */
             if (set_active_faceset &&
                 abs(fset) != abs(ss->cache->automasking->settings.initial_face_set)) {
 

@@ -7,7 +7,6 @@
 
 #include "BKE_global.h"
 
-#include "BLI_compiler_attrs.h"
 #include "BLI_string.h"
 #include "BLI_vector.hh"
 
@@ -19,14 +18,6 @@
 
 #include "gl_shader.hh"
 #include "gl_shader_interface.hh"
-
-#if defined(__clang__) || defined(__GCC__)
-#  define ATTR_NO_ASAN __attribute__((no_sanitize("address")))
-#elif _MSC_VER
-#  define ATTR_NO_ASAN __declspec(no_sanitize_address)
-#else
-#  define ATTR_NO_ASAN
-#endif
 
 using namespace blender;
 using namespace blender::gpu;
@@ -980,7 +971,7 @@ void GLShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
   compute_shader_ = this->create_shader_stage(GL_COMPUTE_SHADER, sources);
 }
 
-ATTR_NO_ASAN bool GLShader::finalize(const shader::ShaderCreateInfo *info)
+bool GLShader::finalize(const shader::ShaderCreateInfo *info)
 {
   if (compilation_failed_) {
     return false;

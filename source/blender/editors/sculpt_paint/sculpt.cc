@@ -1992,9 +1992,6 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
     case SCULPT_TOOL_SMEAR:
       type |= SCULPT_UNDO_COLOR;
       break;
-    case SCULPT_TOOL_VCOL_BOUNDARY:
-      type |= SCULPT_UNDO_COLOR | SCULPT_UNDO_COORDS;
-      break;
     case SCULPT_TOOL_DRAW_FACE_SETS:
       type = ss->cache->alt_smooth ? SCULPT_UNDO_COORDS : SCULPT_UNDO_FACE_SETS;
       break;

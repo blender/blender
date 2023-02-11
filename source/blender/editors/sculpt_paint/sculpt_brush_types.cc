@@ -2395,11 +2395,7 @@ void SCULPT_relax_vertex(SculptSession *ss,
   zero_v3(smooth_pos);
 
   eSculptBoundary bset = boundary_mask;
-
-  // forcibly enable if no ss->cache
-  if (ss->cache && (ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS)) {
-    bset |= SCULPT_BOUNDARY_FACE_SET;
-  }
+  bset |= SCULPT_BOUNDARY_FACE_SET;
 
   if (SCULPT_vertex_is_corner(ss, vd->vertex, (eSculptCorner)bset)) {
     copy_v3_v3(r_final_pos, vd->co);

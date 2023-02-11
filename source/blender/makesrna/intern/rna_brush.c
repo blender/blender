@@ -118,8 +118,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_CREASE, "CREASE", ICON_BRUSH_CREASE, "Crease", ""},
     RNA_ENUM_ITEM_SEPR,
     {SCULPT_TOOL_SMOOTH, "SMOOTH", ICON_BRUSH_SMOOTH, "Smooth", ""},
-    {SCULPT_TOOL_ENHANCE_DETAILS, "ENHANCE_DETAILS", ICON_BRUSH_SCULPT_DRAW, "Enhance Details", ""},
-    {SCULPT_TOOL_FLATTEN, "FLATTEN", ICON_BRUSH_FLATTEN, "Flatten", ""},
+     {SCULPT_TOOL_FLATTEN, "FLATTEN", ICON_BRUSH_FLATTEN, "Flatten", ""},
     {SCULPT_TOOL_FILL, "FILL", ICON_BRUSH_FILL, "Fill", ""},
     {SCULPT_TOOL_SCRAPE, "SCRAPE", ICON_BRUSH_SCRAPE, "Scrape", ""},
     {SCULPT_TOOL_MULTIPLANE_SCRAPE, "MULTIPLANE_SCRAPE", ICON_BRUSH_SCRAPE, "Multi-plane Scrape", ""},
@@ -134,7 +133,6 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_ROTATE, "ROTATE", ICON_BRUSH_ROTATE, "Rotate", ""},
     {SCULPT_TOOL_SLIDE_RELAX, "TOPOLOGY", ICON_BRUSH_GRAB, "Slide Relax", ""},
     {SCULPT_TOOL_BOUNDARY, "BOUNDARY", ICON_BRUSH_GRAB, "Boundary", ""},
-    {SCULPT_TOOL_TWIST, "TWIST", ICON_BRUSH_GRAB, "Twist", ""},
     RNA_ENUM_ITEM_SEPR,
     {SCULPT_TOOL_CLOTH, "CLOTH", ICON_BRUSH_SCULPT_DRAW, "Cloth", ""},
     {SCULPT_TOOL_SIMPLIFY, "SIMPLIFY", ICON_BRUSH_DATA, "Simplify", ""},
@@ -145,13 +143,6 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
 
     {SCULPT_TOOL_PAINT, "PAINT", ICON_BRUSH_SCULPT_DRAW, "Paint", ""},
     {SCULPT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SCULPT_DRAW, "Smear", ""},
-    {SCULPT_TOOL_FAIRING, "FAIRING", ICON_BRUSH_MASK, "Fairing", ""},
-    {SCULPT_TOOL_SCENE_PROJECT, "SCENE_PROJECT", ICON_BRUSH_MASK, "Scene Project", ""},
-    {SCULPT_TOOL_SYMMETRIZE, "SYMMETRIZE", ICON_BRUSH_SCULPT_DRAW, "Symmetrize", ""},
-    {SCULPT_TOOL_ARRAY, "ARRAY", ICON_BRUSH_SCULPT_DRAW, "Array", ""},
-    {SCULPT_TOOL_VCOL_BOUNDARY, "VCOL_BOUNDARY", ICON_BRUSH_SCULPT_DRAW, "Sharpen Color Boundary", ""},
-    {SCULPT_TOOL_UV_SMOOTH, "UV_SMOOTH", ICON_BRUSH_GRAB, "UV Smooth", ""},
-    {SCULPT_TOOL_DISPLACEMENT_HEAL, "DISPLACEMENT_HEAL", ICON_BRUSH_GRAB, "Displacement Heal", ""},
     {0, NULL, 0, NULL, NULL},
 };
 /* clang-format on */
@@ -639,7 +630,6 @@ static bool rna_BrushCapabilitiesSculpt_has_direction_get(PointerRNA *ptr)
                SCULPT_TOOL_DRAW_SHARP,
                SCULPT_TOOL_CLAY,
                SCULPT_TOOL_CLAY_STRIPS,
-               SCULPT_TOOL_TWIST,
                SCULPT_TOOL_SMOOTH,
                SCULPT_TOOL_LAYER,
                SCULPT_TOOL_INFLATE,
@@ -929,7 +919,6 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
         case SCULPT_TOOL_LAYER:
         case SCULPT_TOOL_CLAY:
         case SCULPT_TOOL_CLAY_STRIPS:
-        case SCULPT_TOOL_TWIST:
           return prop_direction_items;
         case SCULPT_TOOL_SMOOTH:
           return prop_smooth_direction_items;
@@ -2514,7 +2503,6 @@ static void rna_def_brush(BlenderRNA *brna)
       {BRUSH_CLOTH_DEFORM_GRAB, "GRAB", 0, "Grab", ""},
       {BRUSH_CLOTH_DEFORM_EXPAND, "EXPAND", 0, "Expand", ""},
       {BRUSH_CLOTH_DEFORM_SNAKE_HOOK, "SNAKE_HOOK", 0, "Snake Hook", ""},
-      {BRUSH_CLOTH_DEFORM_ELASTIC_DRAG, "ELASTIC", 0, "Elastic Drag", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -2575,16 +2563,6 @@ static void rna_def_brush(BlenderRNA *brna)
        0,
        "Surface",
        "Smooths the surface of the mesh, preserving the volume"},
-      {BRUSH_SMOOTH_DEFORM_DIRECTIONAL,
-       "DIRECTIONAL",
-       0,
-       "Directional",
-       "Smooths the surface taking into account the direction of the stroke"},
-      {BRUSH_SMOOTH_DEFORM_UNIFORM_WEIGHTS,
-       "UNIFORM_WEIGHTS",
-       0,
-       "Uniform Weights",
-       "Smooths the surface considering that all edges have the same length"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -2593,13 +2571,6 @@ static void rna_def_brush(BlenderRNA *brna)
       {BRUSH_POSE_DEFORM_SCALE_TRASLATE, "SCALE_TRANSLATE", 0, "Scale/Translate", ""},
       {BRUSH_POSE_DEFORM_SQUASH_STRETCH, "SQUASH_STRETCH", 0, "Squash & Stretch", ""},
       {BRUSH_POSE_DEFORM_BEND, "BEND", 0, "Bend", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
-  static const EnumPropertyItem brush_array_deform_type_items[] = {
-      {BRUSH_ARRAY_DEFORM_LINEAR, "LINEAR", 0, "Linear", ""},
-      {BRUSH_ARRAY_DEFORM_RADIAL, "RADIAL", 0, "Radial", ""},
-      {BRUSH_ARRAY_DEFORM_PATH, "PATH", 0, "Path", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -2645,13 +2616,6 @@ static void rna_def_brush(BlenderRNA *brna)
       {BRUSH_BOUNDARY_DEFORM_TWIST, "TWIST", 0, "Twist", ""},
       {BRUSH_BOUNDARY_DEFORM_SMOOTH, "SMOOTH", 0, "Smooth", ""},
       {BRUSH_BOUNDARY_DEFORM_CIRCLE, "CIRCLE", 0, "Circle", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
-  static const EnumPropertyItem brush_scene_project_direction_type_items[] = {
-      {BRUSH_SCENE_PROJECT_DIRECTION_VIEW, "VIEW", 0, "View", ""},
-      {BRUSH_SCENE_PROJECT_DIRECTION_VERTEX_NORMAL, "VERTEX_NORMAL", 0, "Vertex Normal", ""},
-      {BRUSH_SCENE_PROJECT_DIRECTION_BRUSH_NORMAL, "BRUSH_NORMAL", 0, "Brush Normal", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -2837,26 +2801,6 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Rotation Origins",
                            "Method to set the rotation origins for the segments of the brush");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-  prop = RNA_def_property(srna, "scene_project_direction_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, brush_scene_project_direction_type_items);
-  RNA_def_property_ui_text(
-      prop,
-      "Project Direction",
-      "Direction that is going to be used to project the vertices into the scene");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-  prop = RNA_def_property(srna, "array_deform_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, brush_array_deform_type_items);
-  RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-  prop = RNA_def_property(srna, "array_count", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, NULL, "array_count");
-  RNA_def_property_range(prop, 1, 10000);
-  RNA_def_property_ui_range(prop, 1, 50, 1, -1);
-  RNA_def_property_ui_text(prop, "Count", "Number of copies");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "jitter_unit", PROP_ENUM, PROP_NONE); /* as an enum */
@@ -3628,12 +3572,6 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Weight By Area", "Weight by face area to get a smoother result");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "preserve_faceset_boundary", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_SMOOTH_PRESERVE_FACE_SETS);
-  RNA_def_property_ui_text(
-      prop, "Preserve Face Sets", "Preserve face set boundaries when smoothing");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
-
   prop = RNA_def_property(srna, "hard_edge_mode", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_HARD_EDGE_MODE);
   RNA_def_property_ui_text(
@@ -3645,22 +3583,6 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Grab Silhouette", "Grabs trying to automask the silhouette of the object");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-  prop = RNA_def_property(srna, "use_surface_falloff", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_USE_SURFACE_FALLOFF);
-  RNA_def_property_ui_text(prop,
-                           "Use Surface Falloff",
-                           "Propagate the falloff of the brush trough the surface of the mesh");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-  prop = RNA_def_property(srna, "use_array_lock_orientation", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_ARRAY_LOCK_ORIENTATION);
-  RNA_def_property_ui_text(prop, "Lock Orientation", "");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-  prop = RNA_def_property(srna, "use_array_fill_holes", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_ARRAY_FILL_HOLES);
-  RNA_def_property_ui_text(prop, "Fill Holes", "");
 
   prop = RNA_def_property(srna, "use_curvature_rake", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_CURVATURE_RAKE);

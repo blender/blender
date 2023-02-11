@@ -224,14 +224,11 @@ typedef enum eBrushClothDeformType {
   BRUSH_CLOTH_DEFORM_INFLATE = 5,
   BRUSH_CLOTH_DEFORM_EXPAND = 6,
   BRUSH_CLOTH_DEFORM_SNAKE_HOOK = 7,
-  BRUSH_CLOTH_DEFORM_ELASTIC_DRAG = 8,
 } eBrushClothDeformType;
 
 typedef enum eBrushSmoothDeformType {
   BRUSH_SMOOTH_DEFORM_LAPLACIAN = 0,
   BRUSH_SMOOTH_DEFORM_SURFACE = 1,
-  BRUSH_SMOOTH_DEFORM_DIRECTIONAL = 2,
-  BRUSH_SMOOTH_DEFORM_UNIFORM_WEIGHTS = 3,
 } eBrushSmoothDeformType;
 
 typedef enum eBrushClothForceFalloffType {
@@ -264,12 +261,6 @@ typedef enum eBrushSmearDeformType {
   BRUSH_SMEAR_DEFORM_EXPAND = 2,
 } eBrushSmearDeformType;
 
-typedef enum eBrushArrayDeformType {
-  BRUSH_ARRAY_DEFORM_LINEAR = 0,
-  BRUSH_ARRAY_DEFORM_RADIAL = 1,
-  BRUSH_ARRAY_DEFORM_PATH = 2,
-} eBrushArrayDeformType;
-
 typedef enum eBrushSlideDeformType {
   BRUSH_SLIDE_DEFORM_DRAG = 0,
   BRUSH_SLIDE_DEFORM_PINCH = 1,
@@ -292,12 +283,6 @@ typedef enum eBrushBoundaryFalloffType {
   BRUSH_BOUNDARY_FALLOFF_LOOP = 2,
   BRUSH_BOUNDARY_FALLOFF_LOOP_INVERT = 3,
 } eBrushBoundaryFalloffType;
-
-typedef enum eBrushSceneProjectDirectionType {
-  BRUSH_SCENE_PROJECT_DIRECTION_VIEW = 0,
-  BRUSH_SCENE_PROJECT_DIRECTION_VERTEX_NORMAL = 1,
-  BRUSH_SCENE_PROJECT_DIRECTION_BRUSH_NORMAL = 2,
-} eBrushSceneProjectDirectionType;
 
 typedef enum eBrushSnakeHookDeformType {
   BRUSH_SNAKE_HOOK_DEFORM_FALLOFF = 0,
@@ -430,24 +415,17 @@ typedef enum eBrushFlags2 {
   BRUSH_AREA_RADIUS_PRESSURE = (1 << 7),
   BRUSH_GRAB_SILHOUETTE = (1 << 8),
 
-  BRUSH_USE_SURFACE_FALLOFF = (1 << 9),
-  BRUSH_ARRAY_LOCK_ORIENTATION = (1 << 10),
-  BRUSH_ARRAY_FILL_HOLES = (1 << 11),
-
-  BRUSH_CURVATURE_RAKE = (1 << 12),
-  BRUSH_CUSTOM_AUTOSMOOTH_SPACING = (1 << 13),
-  BRUSH_CUSTOM_TOPOLOGY_RAKE_SPACING = (1 << 14),
-  BRUSH_TOPOLOGY_RAKE_IGNORE_BRUSH_FALLOFF = (1 << 15),
-  BRUSH_SMOOTH_USE_AREA_WEIGHT = (1 << 16),
-
-  /*preserve face set boundaries*/
-  BRUSH_SMOOTH_PRESERVE_FACE_SETS = (1 << 17),
+  BRUSH_CURVATURE_RAKE = (1 << 9),
+  BRUSH_CUSTOM_AUTOSMOOTH_SPACING = (1 << 10),
+  BRUSH_CUSTOM_TOPOLOGY_RAKE_SPACING = (1 << 11),
+  BRUSH_TOPOLOGY_RAKE_IGNORE_BRUSH_FALLOFF = (1 << 12),
+  BRUSH_SMOOTH_USE_AREA_WEIGHT = (1 << 13),
 
   /*topology rake in dynamic mode*/
-  BRUSH_DYNAMIC_RAKE = (1 << 18),
+  BRUSH_DYNAMIC_RAKE = (1 << 14),
 
-  /* sets face set slide to 0.0 */
-  BRUSH_HARD_EDGE_MODE = (1 << 19),
+  /* Forces face set boundaries to be treated as hard edges. */
+  BRUSH_HARD_EDGE_MODE = (1 << 15),
 } eBrushFlags2;
 
 typedef enum {
@@ -503,20 +481,6 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_BOUNDARY = 30,
   SCULPT_TOOL_DISPLACEMENT_ERASER = 31,
   SCULPT_TOOL_DISPLACEMENT_SMEAR = 32,
-  SCULPT_TOOL_FAIRING = 33,
-  SCULPT_TOOL_SCENE_PROJECT = 34,
-  SCULPT_TOOL_SYMMETRIZE = 35,
-  SCULPT_TOOL_TWIST = 36,
-  SCULPT_TOOL_ARRAY = 37,
-  SCULPT_TOOL_VCOL_BOUNDARY = 38,
-  SCULPT_TOOL_UV_SMOOTH = 39,
-
-  SCULPT_TOOL_TOPOLOGY_RAKE = 40,
-  SCULPT_TOOL_DYNTOPO = 41,
-  SCULPT_TOOL_AUTO_FSET = 42,
-  SCULPT_TOOL_RELAX = 43,
-  SCULPT_TOOL_ENHANCE_DETAILS = 44,
-  SCULPT_TOOL_DISPLACEMENT_HEAL = 45
 } eBrushSculptTool;
 
 /** #Brush.uv_sculpt_tool */
@@ -569,12 +533,10 @@ typedef enum eBrushCurvesSculptTool {
         SCULPT_TOOL_GRAB, \
         SCULPT_TOOL_CLOTH, \
         SCULPT_TOOL_DISPLACEMENT_ERASER, \
-        SCULPT_TOOL_FAIRING, \
         SCULPT_TOOL_ELASTIC_DEFORM, \
         SCULPT_TOOL_BOUNDARY, \
         SCULPT_TOOL_POSE, \
         SCULPT_TOOL_DRAW_FACE_SETS, \
-        SCULPT_TOOL_UV_SMOOTH, \
 \
         /* These brushes could handle dynamic topology, \ \
          * but user feedback indicates it's better not to */ \

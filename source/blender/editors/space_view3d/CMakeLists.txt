@@ -17,8 +17,8 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/guardedalloc
-  ../../../../intern/atomic
   ../../../../intern/mantaflow/extern
+  ../../../../intern/atomic
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern

@@ -10,8 +10,8 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/atomic
   ../../../../intern/guardedalloc
+  ../../../../intern/atomic
   ../../bmesh
 
   # dna_type_offsets.h
