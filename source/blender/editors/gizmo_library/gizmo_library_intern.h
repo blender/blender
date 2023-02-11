@@ -74,6 +74,13 @@ bool gizmo_window_project_3d(
     bContext *C, const struct wmGizmo *gz, const float mval[2], bool use_offset, float r_co[3]);
 
 /* -------------------------------------------------------------------- */
+/* Gizmo RNA Utils. */
+
+struct wmGizmo *gizmo_find_from_properties(const struct IDProperty *properties,
+                                           const int spacetype,
+                                           const int regionid);
+
+/* -------------------------------------------------------------------- */
 /* Gizmo drawing */
 
 #include "gizmo_geometry.h"
