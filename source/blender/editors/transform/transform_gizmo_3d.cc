@@ -2776,15 +2776,17 @@ void transform_gizmo_3d_model_from_constraint_and_mode_set(TransInfo *t)
   wmGizmo *gizmo_modal_current = WM_gizmomap_get_modal(t->region->gizmo_map);
   if (axis_idx != -1) {
     RegionView3D *rv3d = static_cast<RegionView3D *>(t->region->regiondata);
-    bool update_orientation = !(equals_v3v3(rv3d->twmat[0], t->spacemtx[0]) &&
-                                equals_v3v3(rv3d->twmat[1], t->spacemtx[1]) &&
-                                equals_v3v3(rv3d->twmat[2], t->spacemtx[2]));
+    float(*mat_cmp)[3] = t->orient[t->orient_curr != O_DEFAULT ? t->orient_curr : O_SCENE].matrix;
+
+    bool update_orientation = !(equals_v3v3(rv3d->twmat[0], mat_cmp[0]) &&
+                                equals_v3v3(rv3d->twmat[1], mat_cmp[1]) &&
+                                equals_v3v3(rv3d->twmat[2], mat_cmp[2]));
 
     GizmoGroup *ggd = static_cast<GizmoGroup *>(gzgroup_xform->customdata);
     wmGizmo *gizmo_expected = ggd->gizmos[axis_idx];
     if (update_orientation || gizmo_modal_current != gizmo_expected) {
       if (update_orientation) {
-        copy_m4_m3(rv3d->twmat, t->spacemtx);
+        copy_m4_m3(rv3d->twmat, mat_cmp);
         copy_v3_v3(rv3d->twmat[3], t->center_global);
       }
 

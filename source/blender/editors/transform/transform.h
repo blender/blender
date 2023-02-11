@@ -211,6 +211,12 @@ typedef enum {
   HLP_TRACKBALL = 6,
 } eTHelpline;
 
+typedef enum {
+  O_DEFAULT = 0,
+  O_SCENE,
+  O_SET,
+} eTOType;
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -607,11 +613,7 @@ typedef struct TransInfo {
     float matrix[3][3];
   } orient[3];
 
-  enum {
-    O_DEFAULT = 0,
-    O_SCENE,
-    O_SET,
-  } orient_curr;
+  eTOType orient_curr;
 
   /**
    * All values from `TransInfo.orient[].type` converted into a flag
