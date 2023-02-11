@@ -29,6 +29,8 @@ def file_list_py(path):
     for dirpath, dirnames, filenames in os.walk(path):
         dirnames[:] = [d for d in dirnames if not d.startswith(".")]
         for filename in filenames:
+            if filename.startswith("."):
+                continue
             if filename.endswith((".py", ".cfg")):
                 yield os.path.join(dirpath, filename)
 
