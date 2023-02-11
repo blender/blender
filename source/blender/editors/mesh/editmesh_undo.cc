@@ -610,7 +610,7 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key, Undo
   params.update_shapekey_indices = false;
   params.cd_mask_extra = cd_mask_extra;
   params.active_shapekey_to_mvert = true;
-  BM_mesh_bm_to_me(nullptr, nullptr, em->bm, &um->me, &params);
+  BM_mesh_bm_to_me(nullptr, em->bm, &um->me, &params);
 
   um->selectmode = em->selectmode;
   um->shapenr = em->bm->shapenr;
@@ -678,7 +678,7 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em)
   convert_params.calc_face_normal = false;
   convert_params.calc_vert_normal = false;
   convert_params.active_shapekey = um->shapenr;
-  BM_mesh_bm_from_me(nullptr, bm, &um->me, &convert_params);
+  BM_mesh_bm_from_me(bm, &um->me, &convert_params);
 
   em_tmp = BKE_editmesh_create(bm);
   *em = *em_tmp;

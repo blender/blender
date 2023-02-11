@@ -289,8 +289,7 @@ struct BMLogSetFull : public BMLogSetBase {
         params2.ignore_id_layers = false;
 
     BM_mesh_clear(bm);
-    BM_mesh_bm_from_me(nullptr,
-                       bm,
+    BM_mesh_bm_from_me(bm,
                        mesh,  // note we stored shapekeys as customdata layers,
                               // that's why the shapekey params are false
                        &params2);
@@ -712,7 +711,7 @@ struct BMLogEntry {
   ATTR_NO_OPT void undo(BMesh *bm, BMLogCallbacks *callbacks)
   {
     for (int i = sets.size() - 1; i >= 0; i--) {
-      //printf("  - %d of %d\n", i, (int)(sets.size() - 1));
+      // printf("  - %d of %d\n", i, (int)(sets.size() - 1));
       sets[i]->undo(bm, callbacks);
     }
   }

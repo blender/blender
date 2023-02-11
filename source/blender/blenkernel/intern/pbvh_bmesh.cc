@@ -4359,7 +4359,7 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
 
   printf("roots: %d\n", (int)roots.size());
 
-  BM_mesh_remap(pbvh->header.bm, vidx, eidx, fidx, lidx);
+  BM_mesh_remap(pbvh->header.bm, vidx, eidx, lidx, fidx);
 
   MEM_SAFE_FREE(vidx);
   MEM_SAFE_FREE(eidx);
@@ -4720,7 +4720,7 @@ BMesh *BKE_pbvh_reorder_bmesh1(PBVH *pbvh)
     faces[i].elem->head.index = faces[i].index;
   }
 
-  BM_mesh_remap(bm, vs, es, fs, nullptr);
+  BM_mesh_remap(bm, vs, es, nullptr, fs);
 
   // create new mappings
   BMVert **mapvs = MEM_cnew_array<BMVert *>(bm->totvert, __func__);
@@ -5471,7 +5471,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
     }
   }
 
-  BM_mesh_remap(bm, rands[0], rands[1], rands[3], rands[2]);
+  BM_mesh_remap(bm, rands[0], rands[1], rands[2], rands[3]);
 
   for (int i = 0; i < 4; i++) {
     MEM_SAFE_FREE(rands[i]);

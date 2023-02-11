@@ -26,10 +26,6 @@
 
 #include "range_tree.h"
 
-#ifdef USE_BMESH_PAGE_CUSTOMDATA
-#  include "intern/bmesh_data_attr.h"
-#endif
-
 #define SELECT 1
 
 #ifdef WITH_BM_ID_FREELIST
@@ -1230,7 +1226,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 {
   struct BMeshCreateParams params = {0};
 #ifndef USE_NEW_IDMAP
-  params.create_unique_ids = bm_old->idmap.flag &BM_HAS_IDS;
+  params.create_unique_ids = bm_old->idmap.flag & BM_HAS_IDS;
   params.id_elem_mask = bm_old->idmap.flag & (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE);
   params.id_map = bm_old->idmap.flag & BM_HAS_ID_MAP;
   params.no_reuse_ids = bm_old->idmap.flag & BM_NO_REUSE_IDS;
@@ -1360,5 +1356,30 @@ void bm_rebuild_idmap(BMesh *bm)
         bm->idmap.map[BM_ELEM_CD_GET_INT(elem, cd_off)] = elem;
       }
     }
+  }
+}
+
+int bm_save_id(BMesh *bm, BMElem *elem)
+{
+  if (!elem->head.data) {
+    return -1;
+  }
+
+  if (bm->idmap.flag & elem->head.htype) {
+    return BM_ELEM_GET_ID(bm, elem);
+  }
+  else {
+    return -1;
+  }
+}
+
+void bm_restore_id(BMesh *bm, BMElem *elem, int id)
+{
+  if (!elem->head.data || id == -1) {
+    return;
+  }
+
+  if (bm->idmap.flag & elem->head.htype) {
+    BM_ELEM_CD_SET_INT(elem, bm->idmap.cd_id_off[elem->head.htype], id);
   }
 }

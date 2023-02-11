@@ -786,7 +786,7 @@ void SCULPT_replay_make_cube(struct bContext *C, int steps)
     }
   }
 
-  BM_mesh_remap(bm, rands[0], rands[1], rands[3], rands[2]);
+  BM_mesh_remap(bm, rands[0], rands[1], rands[2], rands[3]);
 
   for (int i = 0; i < 4; i++) {
     MEM_SAFE_FREE(rands[i]);
@@ -798,7 +798,7 @@ void SCULPT_replay_make_cube(struct bContext *C, int steps)
   BKE_pbvh_free(ss->pbvh);
   ss->pbvh = NULL;
 
-  //XXX call BKE_sculptsession_update_attr_refs here?
+  // XXX call BKE_sculptsession_update_attr_refs here?
 
   /* Redraw. */
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

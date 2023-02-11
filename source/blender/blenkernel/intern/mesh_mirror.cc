@@ -109,7 +109,7 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
   BMeshToMeshParams bmesh_to_mesh_params{};
   bmesh_to_mesh_params.calc_object_remap = true;
 
-  BM_mesh_bm_to_me(bmain, nullptr, bm, mesh, &bmesh_to_mesh_params);
+  BM_mesh_bm_to_me(bmain, bm, mesh, &bmesh_to_mesh_params);
   BM_mesh_free(bm);
 }
 

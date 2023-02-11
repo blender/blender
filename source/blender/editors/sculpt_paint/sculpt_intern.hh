@@ -1686,9 +1686,6 @@ void SCULPT_automasking_cache_settings_update(AutomaskingCache *automasking,
                                               const Sculpt *sd,
                                               const Brush *brush);
 
-void SCULPT_boundary_automasking_init(Object *ob,
-                                      eBoundaryAutomaskMode mode,
-                                      int propagation_steps);
 bool SCULPT_automasking_needs_normal(const SculptSession *ss,
                                      const Sculpt *sculpt,
                                      const Brush *brush);

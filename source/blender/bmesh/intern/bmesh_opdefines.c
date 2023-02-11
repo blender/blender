@@ -1068,21 +1068,6 @@ static BMOpDefine bmo_extrude_face_region_def = {
   (BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
-extern void bmo_test_mres_smooth_exec(BMesh *bm, BMOperator *op);
-
-static BMOpDefine bmo_test_mres_smooth_def = {
-  "test_mres_smooth",
-  /* slots_in */
-  {{{'\0'}}},  /* no input */
-  {{{'\0'}}},  /* no output */
-  bmo_test_mres_smooth_exec,
-  (
-  BMO_OPTYPE_FLAG_UNTAN_MULTIRES |
-   BMO_OPTYPE_FLAG_NORMALS_CALC |
-    BMO_OPTYPE_FLAG_SELECT_FLUSH |
-    BMO_OPTYPE_FLAG_SELECT_VALIDATE)
-};
-
 /*
  * Dissolve Verts.
  */
@@ -2201,7 +2186,6 @@ const BMOpDefine *bmo_opdefines[] = {
     &bmo_unsubdivide_def,
     &bmo_weld_verts_def,
     &bmo_wireframe_def,
-    &bmo_test_mres_smooth_def,
 };
 
 const int bmo_opdefines_total = ARRAY_SIZE(bmo_opdefines);

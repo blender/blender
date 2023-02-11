@@ -1222,7 +1222,7 @@ void sculpt_end_vis_object(bContext *C, SculptSession *ss, Object *ob, BMesh *bm
   params.update_shapekey_indices = false;
   params.copy_temp_cdlayers = false;
 
-  BM_mesh_bm_to_me(bmain, nullptr, bm, me, &params);
+  BM_mesh_bm_to_me(bmain, bm, me, &params);
 
   DEG_id_tag_update(&me->id, ID_RECALC_ALL);
 }

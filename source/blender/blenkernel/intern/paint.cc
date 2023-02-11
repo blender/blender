@@ -1480,7 +1480,7 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
       params.cd_mask_extra.emask = CD_MASK_MESH_ID;
       params.cd_mask_extra.pmask = CD_MASK_MESH_ID;
 
-      BM_mesh_bm_to_me(nullptr, nullptr, ss->bm, static_cast<Mesh *>(ob->data), &params);
+      BM_mesh_bm_to_me(nullptr, ss->bm, static_cast<Mesh *>(ob->data), &params);
     }
   }
 }
@@ -2922,7 +2922,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
         params.cd_mask_extra.vmask = CD_MASK_DYNTOPO_VERT;
 
-        BM_mesh_bm_from_me(nullptr, bm, mesh_orig, &params);
+        BM_mesh_bm_from_me(bm, mesh_orig, &params);
       }
 
       ob->sculpt->bm = bm;

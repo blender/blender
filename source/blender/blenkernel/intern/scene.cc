@@ -2618,7 +2618,7 @@ static void prepare_mesh_for_viewport_render(Main *bmain,
         BMeshToMeshParams params{};
         params.calc_object_remap = true;
         params.update_shapekey_indices = true;
-        BM_mesh_bm_to_me(bmain, nullptr, bm, mesh, &params);
+        BM_mesh_bm_to_me(bmain, bm, mesh, &params);
         DEG_id_tag_update(&mesh->id, 0);
       }
     }

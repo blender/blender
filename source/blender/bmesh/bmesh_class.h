@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "DNA_modifier_types.h"
-
 /** \file
  * \ingroup bmesh
  *
@@ -379,9 +377,6 @@ typedef struct BMesh {
    * instead of crashing on invalid memory access.
    */
   void *py_handle;
-  MultiresModifierData multires;  // copy of multires settings
-  bool haveMultiResSettings;
-  int multiresSpace;
 
   struct {
     int flag;

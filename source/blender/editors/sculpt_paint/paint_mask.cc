@@ -1024,7 +1024,7 @@ static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
   BMeshFromMeshParams bm_from_me_params{};
   bm_from_me_params.calc_face_normal = true;
   bm_from_me_params.calc_vert_normal = true;
-  BM_mesh_bm_from_me(nullptr, bm, trim_mesh, &bm_from_me_params);
+  BM_mesh_bm_from_me(bm, trim_mesh, &bm_from_me_params);
 
   BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, false);
   BMO_op_callf(bm,
@@ -1391,7 +1391,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
     bm = BM_mesh_create(&allocsize, &params);
 
-    BM_mesh_bm_from_me(nullptr, bm, sculpt_mesh, &params2);
+    BM_mesh_bm_from_me(bm, sculpt_mesh, &params2);
   }
 
   BMeshCreateParams params1 = {0};
@@ -1404,7 +1404,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
   BMeshFromMeshParams params3 = {0};
   params3.calc_face_normal = params3.calc_vert_normal = true;
 
-  BM_mesh_bm_from_me(nullptr, trimbm, trim_mesh, &params3);
+  BM_mesh_bm_from_me(trimbm, trim_mesh, &params3);
 
   BM_mesh_normals_update(bm);
 
@@ -1429,7 +1429,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
   BMeshFromMeshParams params2 = {0};
   params2.calc_face_normal = params2.calc_vert_normal = true;
-  BM_mesh_bm_from_me(nullptr, bm, sculpt_mesh, &params2);
+  BM_mesh_bm_from_me(bm, sculpt_mesh, &params2);
 
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
   BMLoop *(*looptris)[3] = static_cast<BMLoop *(*)[3]>(

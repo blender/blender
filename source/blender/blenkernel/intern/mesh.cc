@@ -1144,7 +1144,7 @@ BMesh *BKE_mesh_to_bmesh_ex(const Object *ob,
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
 
   BMesh *bm = BM_mesh_create(&allocsize, create_params);
-  BM_mesh_bm_from_me((Object *)ob, bm, me, convert_params);
+  BM_mesh_bm_from_me(bm, me, convert_params);
 
   return bm;
 }
@@ -1170,7 +1170,7 @@ Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm,
   BLI_assert(params->calc_object_remap == false);
 
   Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
-  BM_mesh_bm_to_me(nullptr, nullptr, bm, mesh, params);
+  BM_mesh_bm_to_me(nullptr, bm, mesh, params);
 
   if (me_settings) {
     BKE_mesh_copy_parameters_for_eval(mesh, me_settings);

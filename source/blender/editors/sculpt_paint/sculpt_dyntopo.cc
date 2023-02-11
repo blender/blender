@@ -15,12 +15,12 @@
 #include "BLI_blenlib.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_hash.h"
+#include "BLI_index_range.hh"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_task.h"
-#include "BLI_index_range.hh"
 
 #include "BLT_translation.h"
 
@@ -64,8 +64,8 @@
 #include <math.h>
 #include <stdlib.h>
 
-using blender::Vector;
 using blender::IndexRange;
+using blender::Vector;
 
 BMesh *SCULPT_dyntopo_empty_bmesh()
 {
@@ -504,11 +504,6 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
   BKE_sculptsession_sync_attributes(ob, me);
 }
 
-BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
-                                   Object *ob,
-                                   const Mesh *me,
-                                   const struct BMeshFromMeshParams *params);
-
 static void customdata_strip_templayers(CustomData *cdata, int totelem)
 {
   for (int i = 0; i < cdata->totlayer; i++) {
@@ -605,8 +600,6 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   /* Dynamic topology doesn't ensure selection state is valid, so remove T36280. */
   BKE_mesh_mselect_clear(me);
 
-#if 1
-
   if (!ss->bm) {
     ss->bm = BKE_sculptsession_empty_bmesh_create();
 
@@ -616,23 +609,13 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     params.create_shapekey_layers = true;
     params.active_shapekey = ob->shapenr;
 
-    BM_mesh_bm_from_me(nullptr, ss->bm, me, &params);
+    BM_mesh_bm_from_me(ss->bm, me, &params);
 
     if (ss->pbvh) {
       BKE_sculptsession_update_attr_refs(ob);
       BKE_pbvh_set_bmesh(ss->pbvh, ss->bm);
     }
   }
-#else
-  ss->bm = BM_mesh_bm_from_me_threaded(nullptr,
-                                       nullptr,
-                                       me,
-                                       (&(struct BMeshFromMeshParams){
-                                           .calc_face_normal = true,
-                                           .use_shapekey = true,
-                                           .active_shapekey = ob->shapenr,
-                                       }));
-#endif
 
 #ifndef DYNTOPO_DYNAMIC_TESS
   SCULPT_dynamic_topology_triangulate(ss, ss->bm);

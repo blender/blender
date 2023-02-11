@@ -190,8 +190,8 @@ int BM_mesh_elem_count(BMesh *bm, char htype);
 void BM_mesh_remap(BMesh *bm,
                    const uint *vert_idx,
                    const uint *edge_idx,
-                   const uint *face_idx,
-                   const uint *loop_idx);
+                   const uint *loop_idx,
+                   const uint *face_idx);
 
 /**
  * Use new memory pools for this mesh.

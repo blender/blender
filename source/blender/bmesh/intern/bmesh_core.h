@@ -10,6 +10,12 @@
 extern "C" {
 #endif
 
+typedef struct BMCustomLayerReq {
+  int type;
+  const char *name;  // can be NULL
+  int flag;
+} BMCustomLayerReq;
+
 struct BMTracer;
 
 BMFace *BM_face_copy(BMesh *bm_dst, BMesh *bm_src, BMFace *f, bool copy_verts, bool copy_edges);

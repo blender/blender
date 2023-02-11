@@ -517,7 +517,7 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
   BMeshFromMeshParams bmesh_from_mesh_params{};
   bmesh_from_mesh_params.calc_face_normal = true;
   bmesh_from_mesh_params.calc_vert_normal = true;
-  BM_mesh_bm_from_me(nullptr, bm, mesh, &bmesh_from_mesh_params);
+  BM_mesh_bm_from_me(bm, mesh, &bmesh_from_mesh_params);
 
   BMVert *v;
   BMEdge *ed, *ed_next;

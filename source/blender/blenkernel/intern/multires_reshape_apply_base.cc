@@ -76,7 +76,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   BKE_mesh_vert_poly_map_create(&pmap,
                                 &pmap_mem,
                                 reshape_context->base_positions,
-                                reshape_context->base_edges,
+                                +reshape_context->base_edges,
                                 reshape_context->base_polys,
                                 reshape_context->base_loops,
                                 base_mesh->totvert,

@@ -210,7 +210,7 @@ static BMesh *sculpt_faceset_bm_begin(Object *ob, SculptSession *ss, Mesh *mesh)
   cparams.use_shapekey = true;
   cparams.create_shapekey_layers = true;
 
-  BM_mesh_bm_from_me(NULL, bm, mesh, &cparams);
+  BM_mesh_bm_from_me(bm, mesh, &cparams);
   return bm;
 }
 
@@ -740,7 +740,7 @@ static EnumPropertyItem prop_sculpt_face_set_create_types[] = {
         "Face Set from Edit Mode Selection",
         "Create an Face Set corresponding to the Edit Mode face selection",
     },
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
@@ -763,7 +763,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;
   int totnode;
-  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
 
   if (!nodes) {
     return OPERATOR_CANCELLED;
@@ -953,7 +953,7 @@ static EnumPropertyItem prop_sculpt_face_sets_init_types[] = {
         "Face Sets from Face Set Boundaries",
         "Create a Face Set per isolated Face Set",
     },
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 typedef bool (*face_sets_flood_fill_test)(
@@ -1115,8 +1115,8 @@ static void sculpt_face_sets_init_loop(Object *ob, const int mode)
     cd_fmaps_offset = CustomData_get_offset(&ss->bm->pdata, CD_FACEMAP);
   }
 
-  Mesh *me = NULL;
-  int *fmaps = NULL;
+  Mesh *me = nullptr;
+  int *fmaps = nullptr;
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
     me = (Mesh *)ob->data;
@@ -1178,7 +1178,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;
   int totnode;
-  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
 
   if (!nodes) {
     return OPERATOR_CANCELLED;
@@ -1535,7 +1535,7 @@ static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator * /*op
   }
   BKE_pbvh_face_sets_color_set(pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
 
-  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_redraw(nodes[i]);
   }
@@ -1642,7 +1642,7 @@ static EnumPropertyItem prop_sculpt_face_sets_edit_types[] = {
         "All tangency",
         "Extrude a Face Set along the normals of the faces",
     },
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static void sculpt_face_set_grow_bmesh(Object *ob,
@@ -1750,7 +1750,7 @@ static void sculpt_face_set_fill_component(Object *ob,
     SCULPT_vertex_face_set_set(ss, vertex, active_face_set_id);
   }
 
-  BLI_gset_free(connected_components, NULL);
+  BLI_gset_free(connected_components, nullptr);
 }
 
 static void sculpt_face_set_shrink_bmesh(Object *ob,
@@ -1916,7 +1916,7 @@ static void sculpt_face_set_delete_geometry(Object *ob,
     cparams.use_shapekey = true;
     cparams.create_shapekey_layers = true;
 
-    BM_mesh_bm_from_me(ob, bm, mesh, &cparams);
+    BM_mesh_bm_from_me(bm, mesh, &cparams);
 
     BM_mesh_elem_table_init(bm, BM_FACE);
     BM_mesh_elem_table_ensure(bm, BM_FACE);
@@ -1934,7 +1934,7 @@ static void sculpt_face_set_delete_geometry(Object *ob,
 
     BMeshToMeshParams tparams = {0};
 
-    BM_mesh_bm_to_me(NULL, ob, bm, (Mesh *)ob->data, &tparams);
+    BM_mesh_bm_to_me(nullptr, bm, (Mesh *)ob->data, &tparams);
 
     BM_mesh_free(bm);
   }
@@ -1983,13 +1983,13 @@ static void sculpt_face_set_apply_edit(Object *ob,
 
   switch (mode) {
     case SCULPT_FACE_SET_EDIT_GROW: {
-      int *prev_face_sets = ss->face_sets ? (int *)MEM_dupallocN(ss->face_sets) : NULL;
+      int *prev_face_sets = ss->face_sets ? (int *)MEM_dupallocN(ss->face_sets) : nullptr;
       sculpt_face_set_grow(ob, ss, prev_face_sets, active_face_set_id, modify_hidden);
       MEM_SAFE_FREE(prev_face_sets);
       break;
     }
     case SCULPT_FACE_SET_EDIT_SHRINK: {
-      int *prev_face_sets = ss->face_sets ? (int *)MEM_dupallocN(ss->face_sets) : NULL;
+      int *prev_face_sets = ss->face_sets ? (int *)MEM_dupallocN(ss->face_sets) : nullptr;
       sculpt_face_set_shrink(ob, ss, prev_face_sets, active_face_set_id, modify_hidden);
       MEM_SAFE_FREE(prev_face_sets);
       break;
@@ -2019,7 +2019,7 @@ static void sculpt_face_set_apply_edit(Object *ob,
         sculpt_face_set_edit_fair_face_set(ob, face_set_id, MESH_FAIRING_DEPTH_TANGENCY);
       }
 
-      BLI_gset_free(face_sets_ids, NULL);
+      BLI_gset_free(face_sets_ids, nullptr);
     } break;
     case SCULPT_FACE_SET_EDIT_FAIR_CURVATURE:
       sculpt_face_set_edit_fair_face_set(ob, active_face_set_id, MESH_FAIRING_DEPTH_CURVATURE);
@@ -2097,7 +2097,7 @@ static void sculpt_face_set_edit_modify_face_sets(Object *ob,
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;
   int totnode;
-  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
 
   if (!nodes) {
     return;
@@ -2123,7 +2123,7 @@ static void sculpt_face_set_edit_modify_coordinates(bContext *C,
   PBVH *pbvh = ss->pbvh;
   PBVHNode **nodes;
   int totnode;
-  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
   SCULPT_undo_push_begin(ob, op);
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_update(nodes[i]);
@@ -2185,7 +2185,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
   Mesh *mesh = (Mesh *)ob->data;
   int next_face_set_id = SCULPT_face_set_next_available_get(ss) + 1;
 
-  SculptFaceSetIsland *island = NULL;
+  SculptFaceSetIsland *island = nullptr;
 
   if (no_islands && ss->active_face.i != PBVH_REF_NONE) {
     island = SCULPT_face_set_island_get(ss, ss->active_face, active_face_set_id);
@@ -2201,7 +2201,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
     }
   }
 
-  no_islands = no_islands && island != NULL;
+  no_islands = no_islands && island != nullptr;
 
   BMesh *bm = sculpt_faceset_bm_begin(ob, ss, mesh);
   if (ss->bm) {
@@ -2603,7 +2603,7 @@ static void sculpt_face_set_extrude_id(Object *ob,
   if (!ss->bm) {
     BMeshToMeshParams params = {0};
 
-    BM_mesh_bm_to_me(NULL, NULL, bm, (Mesh *)ob->data, &params);
+    BM_mesh_bm_to_me(nullptr, bm, (Mesh *)ob->data, &params);
   }
 
   sculpt_faceset_bm_end(ss, bm);
@@ -2762,7 +2762,7 @@ SculptFaceSetIsland *SCULPT_face_set_island_get(SculptSession *ss, PBVHFaceRef f
         *ret = *island;
 
         // prevent faces from freeing
-        island->faces = NULL;
+        island->faces = nullptr;
 
         SCULPT_face_set_islands_free(ss, islands);
         return ret;
@@ -2771,7 +2771,7 @@ SculptFaceSetIsland *SCULPT_face_set_island_get(SculptSession *ss, PBVHFaceRef f
   }
 
   SCULPT_face_set_islands_free(ss, islands);
-  return NULL;
+  return nullptr;
 }
 
 void SCULPT_face_set_island_free(SculptFaceSetIsland *island)
@@ -2858,7 +2858,7 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
 
     PBVHNode **nodes;
     int totnode;
-    BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+    BKE_pbvh_search_gather(ss->pbvh, nullptr, nullptr, &nodes, &totnode);
     for (int i = 0; i < totnode; i++) {
       BKE_pbvh_node_mark_update(nodes[i]);
     }
@@ -2908,7 +2908,7 @@ static void sculpt_face_set_extrude(bContext *C,
   }
   else {
     SCULPT_undo_push_begin(ob, op);
-    SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_COORDS);
+    SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_COORDS);
   }
 
   sculpt_face_set_extrude_id(ob, no_islands, ob->sculpt, active_face_set, fsecd);

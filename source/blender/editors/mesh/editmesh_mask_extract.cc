@@ -108,7 +108,7 @@ static int geometry_extract_apply(bContext *C,
   BMeshFromMeshParams mesh_to_bm_params{};
   mesh_to_bm_params.calc_face_normal = true;
   mesh_to_bm_params.calc_vert_normal = true;
-  BM_mesh_bm_from_me(nullptr, bm, new_mesh, &mesh_to_bm_params);
+  BM_mesh_bm_from_me(bm, new_mesh, &mesh_to_bm_params);
 
   BMEditMesh *em = BKE_editmesh_create(bm);
 
@@ -514,7 +514,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   else {
     bm = BM_mesh_create(&allocsize, &bm_create_params);
 
-    BM_mesh_bm_from_me(nullptr, bm, new_mesh, &mesh_to_bm_params);
+    BM_mesh_bm_from_me(bm, new_mesh, &mesh_to_bm_params);
   }
 
   slice_paint_mask(
@@ -543,7 +543,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
     const BMAllocTemplate allocsize_new_ob = BMALLOC_TEMPLATE_FROM_ME(new_ob_mesh);
     bm = BM_mesh_create(&allocsize_new_ob, &bm_create_params);
 
-    BM_mesh_bm_from_me(nullptr, bm, new_ob_mesh, &mesh_to_bm_params);
+    BM_mesh_bm_from_me(bm, new_ob_mesh, &mesh_to_bm_params);
 
     slice_paint_mask(bm,
                      true,

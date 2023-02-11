@@ -1012,7 +1012,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
   params.create_shapekey_layers = true;
   params.active_shapekey = ob->shapenr;
 
-  BM_mesh_bm_from_me(nullptr, ss->bm, me, &params);
+  BM_mesh_bm_from_me(ss->bm, me, &params);
 
   BKE_sculptsession_update_attr_refs(ob);
 
@@ -3233,7 +3233,7 @@ void ED_sculpt_fast_save_bmesh(Object *ob)
   params.cd_mask_extra.pmask = CD_MASK_MESH_ID;
 
   // BM_mesh_bm_to_me_threaded(nullptr, ob, bm, (Mesh *)ob->data, &params);
-  BM_mesh_bm_to_me(nullptr, ob, bm, (Mesh *)ob->data, &params);
+  BM_mesh_bm_to_me(nullptr, bm, (Mesh *)ob->data, &params);
 #else
   SculptUndoStep *last_step = nullptr;
 
@@ -3288,7 +3288,7 @@ void ED_sculpt_fast_save_bmesh(Object *ob)
 
     /* Just save everything */
     struct BMeshToMeshParams params = {0};
-    BM_mesh_bm_to_me(nullptr, ob, bm, (Mesh *)ob->data, &params);
+    BM_mesh_bm_to_me(nullptr, bm, (Mesh *)ob->data, &params);
     return;
   }
 

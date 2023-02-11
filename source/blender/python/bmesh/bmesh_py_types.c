@@ -1043,7 +1043,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
     params.calc_object_remap = true;
   }
 
-  BM_mesh_bm_to_me(bmain, NULL, bm, me, &params);
+  BM_mesh_bm_to_me(bmain, bm, me, &params);
 
   /* we could have the user do this but if they forget blender can easy crash
    * since the references arrays for the objects derived meshes are now invalid */
@@ -1143,8 +1143,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 
   bm = self->bm;
 
-  BM_mesh_bm_from_me(NULL,
-                     bm,
+  BM_mesh_bm_from_me(bm,
                      me_eval,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = use_fnorm,
@@ -1211,8 +1210,7 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 
   bm = self->bm;
 
-  BM_mesh_bm_from_me(NULL,
-                     bm,
+  BM_mesh_bm_from_me(bm,
                      me,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = use_fnorm,

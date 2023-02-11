@@ -248,7 +248,7 @@ static BMesh *BMD_mesh_bm_create(
   BMeshFromMeshParams bmesh_from_mesh_params{};
   bmesh_from_mesh_params.calc_face_normal = true;
   bmesh_from_mesh_params.calc_vert_normal = true;
-  BM_mesh_bm_from_me(nullptr, bm, mesh_operand_ob, &bmesh_from_mesh_params);
+  BM_mesh_bm_from_me(bm, mesh_operand_ob, &bmesh_from_mesh_params);
 
   if (UNLIKELY(*r_is_flip)) {
     const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -259,7 +259,7 @@ static BMesh *BMD_mesh_bm_create(
     }
   }
 
-  BM_mesh_bm_from_me(nullptr, bm, mesh, &bmesh_from_mesh_params);
+  BM_mesh_bm_from_me(bm, mesh, &bmesh_from_mesh_params);
 
   return bm;
 }
@@ -589,7 +589,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         else {
           BMeshToMeshParams bmesh_to_mesh_params{};
           bmesh_to_mesh_params.calc_object_remap = false;
-          BM_mesh_bm_to_me(nullptr, nullptr, bm, result, &bmesh_to_mesh_params);
+          BM_mesh_bm_to_me(nullptr, bm, result, &bmesh_to_mesh_params);
         }
         BM_mesh_free(bm);
       }

@@ -239,11 +239,6 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
     BM_mesh_elem_toolflags_ensure(bm);
   }
 
-#ifdef USE_BMESH_PAGE_CUSTOMDATA
-  bmesh_update_attr_refs(bm);
-  BMAttr_init(bm);
-#endif
-
   return bm;
 }
 
@@ -372,11 +367,6 @@ void BM_mesh_data_free(BMesh *bm)
   }
 
   BMO_error_clear(bm);
-
-#ifdef USE_BMESH_PAGE_CUSTOMDATA
-  BMAttr_free(bm->attr_list);
-  bm->attr_list = nullptr;
-#endif
 }
 
 void BM_mesh_clear(BMesh *bm)
@@ -419,17 +409,6 @@ void BM_mesh_clear(BMesh *bm)
 #endif
     bm_init_idmap_cdlayers(bm);
   }
-
-#ifdef USE_BMESH_PAGE_CUSTOMDATA
-  if (!bm->attr_list) {
-    bm->attr_list = BMAttr_new();
-  }
-  else {
-    BMAttr_reset(bm->attr_list);
-  }
-
-  BMAttr_init(bm);
-#endif
 }
 
 void BM_mesh_free(BMesh *bm)
@@ -445,35 +424,42 @@ void BM_mesh_free(BMesh *bm)
 
   MEM_freeN(bm);
 }
-
-/**
- * \brief BMesh Begin Edit
- *
- * Functions for setting up a mesh for editing and cleaning up after
- * the editing operations are done. These are called by the tools/operator
- * API for each time a tool is executed.
- */
-void bmesh_edit_begin(BMesh *bm, BMOpTypeFlag type_flag)
+void bmesh_edit_begin(BMesh * /*bm*/, BMOpTypeFlag /*type_flag*/)
 {
+  /* Most operators seem to be using BMO_OPTYPE_FLAG_UNTAN_MULTIRES to change the MDisps to
+   * absolute space during mesh edits. With this enabled, changes to the topology
+   * (loop cuts, edge subdivides, etc) are not reflected in the higher levels of
+   * the mesh at all, which doesn't seem right. Turning off completely for now,
+   * until this is shown to be better for certain types of mesh edits. */
+#ifdef BMOP_UNTAN_MULTIRES_ENABLED
   /* switch multires data out of tangent space */
   if ((type_flag & BMO_OPTYPE_FLAG_UNTAN_MULTIRES) &&
       CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-    BM_enter_multires_space(nullptr, bm, MULTIRES_SPACE_ABSOLUTE);
+    bmesh_mdisps_space_set(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
+
     /* ensure correct normals, if possible */
-    // bmesh_rationalize_normals(bm, 0);
-    // BM_mesh_normals_update(bm);
+    bmesh_rationalize_normals(bm, 0);
+    BM_mesh_normals_update(bm);
   }
+#endif
 }
 
 void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
 {
   ListBase select_history;
 
+  /* BMO_OPTYPE_FLAG_UNTAN_MULTIRES disabled for now, see comment above in bmesh_edit_begin. */
+#ifdef BMOP_UNTAN_MULTIRES_ENABLED
   /* switch multires data into tangent space */
-  if ((type_flag & BMO_OPTYPE_FLAG_UNTAN_MULTIRES) &&
-      CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-    BM_enter_multires_space(nullptr, bm, MULTIRES_SPACE_TANGENT);
+  if ((flag & BMO_OPTYPE_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+    /* set normals to their previous winding */
+    bmesh_rationalize_normals(bm, 1);
+    bmesh_mdisps_space_set(bm, MULTIRES_SPACE_ABSOLUTE, MULTIRES_SPACE_TANGENT);
   }
+  else if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
+    bmesh_rationalize_normals(bm, 1);
+  }
+#endif
 
   /* compute normals, clear temp flags and flush selections */
   if (type_flag & BMO_OPTYPE_FLAG_NORMALS_CALC) {
@@ -895,25 +881,11 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
   }
 }
 
-/**
- * Remaps the vertices, edges and/or faces of the bmesh as indicated by vert/edge/face_idx arrays
- * (xxx_idx[org_index] = new_index).
- *
- * A nullptr array means no changes.
- *
- * \note
- * - Does not mess with indices, just sets elem_index_dirty flag.
- * - For verts/edges/faces only (as loops must remain "ordered" and "aligned"
- *   on a per-face basis...).
- *
- * \warning Be careful if you keep pointers to affected BM elements,
- * or arrays, when using this func!
- */
 void BM_mesh_remap(BMesh *bm,
                    const uint *vert_idx,
                    const uint *edge_idx,
-                   const uint *face_idx,
-                   const uint *loop_idx)
+                   const uint *loop_idx,
+                   const uint *face_idx)
 {
   /* Mapping old to new pointers. */
   GHash *vptr_map = nullptr, *eptr_map = nullptr, *fptr_map = nullptr;

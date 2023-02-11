@@ -306,7 +306,6 @@ void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 #endif
 
   BM_mesh_bm_to_me(bmain,
-                   ob,
                    bm,
                    me,
                    (&(struct BMeshToMeshParams){
