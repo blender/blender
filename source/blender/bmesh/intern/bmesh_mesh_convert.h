@@ -57,7 +57,7 @@ struct Object;
  * \warning This function doesn't calculate face normals.
  */
 void BM_mesh_bm_from_me(BMesh *bm, const struct Mesh *me, const struct BMeshFromMeshParams *params)
-    ATTR_NONNULL(2, 4);
+    ATTR_NONNULL(2, 3);
 
 struct BMeshToMeshParams {
   /** Update object hook indices & vertex parents. */
@@ -90,7 +90,7 @@ void BM_enter_multires_space(struct Object *ob, struct BMesh *bm, int space);
 void BM_mesh_bm_to_me(struct Main *bmain,
                       BMesh *bm,
                       struct Mesh *me,
-                      const struct BMeshToMeshParams *params) ATTR_NONNULL(3, 4, 5);
+                      const struct BMeshToMeshParams *params) ATTR_NONNULL(2, 3, 4);
 
 /**
  * A version of #BM_mesh_bm_to_me intended for getting the mesh
