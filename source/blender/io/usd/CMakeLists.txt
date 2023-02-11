@@ -127,6 +127,8 @@ list(APPEND LIB
   ${BOOST_LIBRARIES}
   ${BOOST_PYTHON_LIBRARIES}
   ${PYTHON_LIBRARIES}
+  ${USD_LIBRARIES}
+  ${TBB_LIBRARIES}
 )
 
 if(WITH_OPENVDB)
@@ -140,27 +142,6 @@ if(WITH_OPENVDB)
 endif()
 
 blender_add_lib(bf_usd "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-
-if(WIN32)
-  set_property(TARGET bf_usd APPEND_STRING PROPERTY INTERFACE_LINK_OPTIONS "$<$<CONFIG:Debug>:/WHOLEARCHIVE:${USD_DEBUG_LIB}>")
-  set_property(TARGET bf_usd APPEND_STRING PROPERTY INTERFACE_LINK_OPTIONS "$<$<CONFIG:Release>:/WHOLEARCHIVE:${USD_RELEASE_LIB}>")
-  set_property(TARGET bf_usd APPEND_STRING PROPERTY INTERFACE_LINK_OPTIONS "$<$<CONFIG:RelWithDebInfo>:/WHOLEARCHIVE:${USD_RELEASE_LIB}>")
-  set_property(TARGET bf_usd APPEND_STRING PROPERTY INTERFACE_LINK_OPTIONS "$<$<CONFIG:MinSizeRel>:/WHOLEARCHIVE:${USD_RELEASE_LIB}>")
-endif()
-
-# Source:
-# https://github.com/PixarAnimationStudios/USD/blob/master/BUILDING.md#linking-whole-archives
-if(WIN32)
-  target_link_libraries(bf_usd INTERFACE ${USD_LIBRARIES})
-elseif(APPLE)
-  target_link_libraries(bf_usd INTERFACE -Wl,-force_load ${USD_LIBRARIES})
-elseif(UNIX)
-  target_link_libraries(bf_usd INTERFACE "-Wl,--whole-archive ${USD_LIBRARIES} -Wl,--no-whole-archive ${TBB_LIBRARIES}")
-else()
-  message(FATAL_ERROR "Unknown how to link USD with your compiler ${CMAKE_CXX_COMPILER_ID}")
-endif()
-
-target_link_libraries(bf_usd INTERFACE ${TBB_LIBRARIES})
 
 if(WITH_GTESTS)
   set(TEST_SRC
