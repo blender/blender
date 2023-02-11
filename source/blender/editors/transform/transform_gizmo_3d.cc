@@ -2730,7 +2730,7 @@ void transform_gizmo_3d_model_from_constraint_and_mode_set(TransInfo *t)
 
   int axis_idx = -1;
   if (t->mode == TFM_TRACKBALL) {
-    axis_idx = MAN_AXIS_ROT_T;
+    /* Pass. Do not display gizmo. */
   }
   else if (ELEM(t->mode, TFM_TRANSLATION, TFM_ROTATION, TFM_RESIZE)) {
     const int axis_map[3][7] = {
