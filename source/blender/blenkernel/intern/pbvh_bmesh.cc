@@ -4572,19 +4572,6 @@ BMesh *BKE_pbvh_reorder_bmesh2(PBVH *pbvh)
     node->flag |= PBVH_UpdateTris | PBVH_UpdateRedraw;
   }
 
-  MEM_SAFE_FREE(fvs);
-  MEM_SAFE_FREE(fes);
-
-  for (int i = 0; i < pbvh->totnode; i++) {
-    MEM_SAFE_FREE(nodedata[i].verts);
-    MEM_SAFE_FREE(nodedata[i].edges);
-    MEM_SAFE_FREE(nodedata[i].faces);
-  }
-
-  MEM_SAFE_FREE(verts);
-  MEM_SAFE_FREE(edges);
-  MEM_SAFE_FREE(faces);
-
   BM_mesh_free(pbvh->header.bm);
   pbvh->header.bm = bm2;
 
