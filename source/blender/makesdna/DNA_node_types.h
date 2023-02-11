@@ -282,6 +282,10 @@ typedef enum eNodeSocketFlag {
    * type is obvious and the name takes up too much space.
    */
   SOCK_HIDE_LABEL = (1 << 12),
+  /**
+   * Only used for geometry nodes. Don't show the socket value in the modifier interface.
+   */
+  SOCK_HIDE_IN_MODIFIER = (1 << 13),
 } eNodeSocketFlag;
 
 typedef struct bNode {
