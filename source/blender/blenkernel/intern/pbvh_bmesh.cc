@@ -2999,7 +2999,7 @@ void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh)
   BMVert *v;
 
   BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-    BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){(intptr_t)v});
+    BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, BKE_pbvh_make_vref((intptr_t)v));
   }
 }
 
@@ -3024,7 +3024,7 @@ void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh)
     *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
     MV_ADD_FLAG(mv, SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE);
-    BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){.i = (intptr_t)v});
+    BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, BKE_pbvh_make_vref((intptr_t)v));
   }
 }
 

@@ -1181,9 +1181,6 @@ void BKE_pbvh_free(PBVH *pbvh)
         BKE_pbvh_bmesh_free_tris(pbvh, node);
       }
 
-#ifdef PROXY_ADVANCED
-      BKE_pbvh_free_proxyarray(pbvh, node);
-#endif
       pbvh_node_pixels_free(node);
     }
   }
@@ -1640,11 +1637,10 @@ static void pbvh_faces_update_normals(PBVH *pbvh, PBVHNode **nodes, int totnode)
    *   can only update vertices marked in the `vert_bitmap`.
    */
 
-  PBVHUpdateData data = {
-      .pbvh = pbvh,
-      .nodes = nodes,
-      .vert_normals = pbvh->vert_normals,
-  };
+  PBVHUpdateData data = {};
+  data.pbvh = pbvh;
+  data.nodes = nodes;
+  data.vert_normals = pbvh->vert_normals;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1693,11 +1689,10 @@ static void pbvh_update_mask_redraw_task_cb(void *__restrict userdata,
 
 static void pbvh_update_mask_redraw(PBVH *pbvh, PBVHNode **nodes, int totnode, int flag)
 {
-  PBVHUpdateData data = {
-      .pbvh = pbvh,
-      .nodes = nodes,
-      .flag = flag,
-  };
+  PBVHUpdateData data = {};
+  data.pbvh = pbvh;
+  data.nodes = nodes;
+  data.flag = flag;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1730,11 +1725,10 @@ static void pbvh_update_visibility_redraw_task_cb(void *__restrict userdata,
 
 static void pbvh_update_visibility_redraw(PBVH *pbvh, PBVHNode **nodes, int totnode, int flag)
 {
-  PBVHUpdateData data = {
-      .pbvh = pbvh,
-      .nodes = nodes,
-      .flag = flag,
-  };
+  PBVHUpdateData data = {};
+  data.pbvh = pbvh;
+  data.nodes = nodes;
+  data.flag = flag;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1760,11 +1754,10 @@ static void pbvh_update_BB_redraw_task_cb(void *__restrict userdata,
 void pbvh_update_BB_redraw(PBVH *pbvh, PBVHNode **nodes, int totnode, int flag)
 {
   /* update BB, redraw flag */
-  PBVHUpdateData data = {
-      .pbvh = pbvh,
-      .nodes = nodes,
-      .flag = flag,
-  };
+  PBVHUpdateData data = {};
+  data.pbvh = pbvh;
+  data.nodes = nodes;
+  data.flag = flag;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1921,8 +1914,11 @@ static void pbvh_update_draw_buffers(
   }
 
   /* Parallel creation and update of draw buffers. */
-  PBVHUpdateData data = {
-      .pbvh = pbvh, .nodes = nodes, .flat_vcol_shading = pbvh->flat_vcol_shading, .mesh = me};
+  PBVHUpdateData data = {};
+  data.pbvh = pbvh;
+  data.nodes = nodes;
+  data.mesh = me;
+  data.flat_vcol_shading = pbvh->flat_vcol_shading;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -2126,10 +2122,9 @@ static void pbvh_update_visibility_task_cb(void *__restrict userdata,
 
 static void pbvh_update_visibility(PBVH *pbvh, PBVHNode **nodes, int totnode)
 {
-  PBVHUpdateData data = {
-      .pbvh = pbvh,
-      .nodes = nodes,
-  };
+  PBVHUpdateData data = {};
+  data.pbvh = pbvh;
+  data.nodes = nodes;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -3453,8 +3448,11 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
   /* Search for nodes that need updates. */
   if (update_only_visible) {
     /* Get visible nodes with draw updates. */
-    PBVHDrawSearchData data = {
-        .frustum = update_frustum, .accum_update_flag = 0, attrs, attrs_num};
+    PBVHDrawSearchData data = {};
+    data.frustum = update_frustum;
+    data.accum_update_flag = 0;
+    data.attrs = attrs;
+    data.attrs_num = attrs_num;
     BKE_pbvh_search_gather(pbvh, pbvh_draw_search_cb, &data, &nodes, &totnode);
     update_flag = data.accum_update_flag;
   }
@@ -3475,7 +3473,10 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
   MEM_SAFE_FREE(nodes);
 
   /* Draw visible nodes. */
-  PBVHDrawSearchData draw_data = {.frustum = draw_frustum, .accum_update_flag = 0};
+  PBVHDrawSearchData draw_data = {};
+  draw_data.frustum = draw_frustum;
+  draw_data.accum_update_flag = 0;
+
   BKE_pbvh_search_gather(pbvh, pbvh_draw_search_cb, &draw_data, &nodes, &totnode);
 
   PBVH_GPU_Args args;
@@ -3891,450 +3892,6 @@ PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i)
   return pbvh->nodes + node_i;
 }
 
-#ifdef PROXY_ADVANCED
-// TODO: if this really works, make sure to pull the neighbor iterator out of sculpt.c and put it
-// here
-/* clang-format off */
-#  include "BKE_context.h"
-#  include "DNA_object_types.h"
-#  include "DNA_scene_types.h"
-#  include "../../editors/sculpt_paint/sculpt_intern.h"
-/* clang-format on */
-
-int checkalloc(void **data, int esize, int oldsize, int newsize, int emask, int umask)
-{
-  // update channel if it already was allocated once, or is requested by umask
-  if (newsize != oldsize && (*data || (emask & umask))) {
-    if (*data) {
-      *data = MEM_reallocN(*data, newsize * esize);
-    }
-    else {
-      *data = MEM_mallocN(newsize * esize, "pbvh proxy vert arrays");
-    }
-    return emask;
-  }
-
-  return 0;
-}
-
-void BKE_pbvh_ensure_proxyarray_indexmap(PBVH *pbvh, PBVHNode *node, GHash *vert_node_map)
-{
-  ProxyVertArray *p = &node->proxyverts;
-
-  int totvert = 0;
-  BKE_pbvh_node_num_verts(pbvh, node, &totvert, nullptr);
-
-  bool update = !p->indexmap || p->size != totvert;
-  update = update || (p->indexmap && BLI_ghash_len(p->indexmap) != totvert);
-
-  if (!update) {
-    return;
-  }
-
-  if (p->indexmap) {
-    BLI_ghash_free(p->indexmap, nullptr, nullptr);
-  }
-
-  GHash *gs = p->indexmap = BLI_ghash_ptr_new("BKE_pbvh_ensure_proxyarray_indexmap");
-
-  PBVHVertexIter vd;
-
-  int i = 0;
-  BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    BLI_ghash_insert(gs, (void *)vd.vertex.i, (void *)i);
-    i++;
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-bool pbvh_proxyarray_needs_update(PBVH *pbvh, PBVHNode *node, int mask)
-{
-  ProxyVertArray *p = &node->proxyverts;
-  int totvert = 0;
-
-  if (!(node->flag & PBVH_Leaf) || !node->bm_unique_verts) {
-    return false;
-  }
-
-  BKE_pbvh_node_num_verts(pbvh, node, &totvert, nullptr);
-
-  bool bad = p->size != totvert;
-  bad = bad || ((mask & PV_NEIGHBORS) && p->neighbors_dirty);
-  bad = bad || (p->datamask & mask) != mask;
-
-  bad = bad && totvert > 0;
-
-  return bad;
-}
-
-GHash *pbvh_build_vert_node_map(PBVH *pbvh, PBVHNode **nodes, int totnode, int mask)
-{
-  GHash *vert_node_map = BLI_ghash_ptr_new("BKE_pbvh_ensure_proxyarrays");
-
-  for (int i = 0; i < totnode; i++) {
-    PBVHVertexIter vd;
-    PBVHNode *node = nodes[i];
-
-    if (!(node->flag & PBVH_Leaf)) {
-      continue;
-    }
-
-    BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_UNIQUE) {
-      BLI_ghash_insert(vert_node_map, (void *)vd.vertex.i, (void *)(node - pbvh->nodes));
-    }
-    BKE_pbvh_vertex_iter_end;
-  }
-
-  return vert_node_map;
-}
-
-void BKE_pbvh_ensure_proxyarrays(
-    SculptSession *ss, PBVH *pbvh, PBVHNode **nodes, int totnode, int mask)
-{
-
-  bool update = false;
-
-  for (int i = 0; i < totnode; i++) {
-    if (pbvh_proxyarray_needs_update(pbvh, nodes[i], mask)) {
-      update = true;
-      break;
-    }
-  }
-
-  if (!update) {
-    return;
-  }
-
-  GHash *vert_node_map = pbvh_build_vert_node_map(pbvh, nodes, totnode, mask);
-
-  for (int i = 0; i < totnode; i++) {
-    if (nodes[i]->flag & PBVH_Leaf) {
-      BKE_pbvh_ensure_proxyarray_indexmap(pbvh, nodes[i], vert_node_map);
-    }
-  }
-
-  for (int i = 0; i < totnode; i++) {
-    if (nodes[i]->flag & PBVH_Leaf) {
-      BKE_pbvh_ensure_proxyarray(ss, pbvh, nodes[i], mask, vert_node_map, false, false);
-    }
-  }
-
-  if (vert_node_map) {
-    BLI_ghash_free(vert_node_map, nullptr, nullptr);
-  }
-}
-
-void BKE_pbvh_ensure_proxyarray(SculptSession *ss,
-                                PBVH *pbvh,
-                                PBVHNode *node,
-                                int mask,
-                                GHash *vert_node_map,
-                                bool check_indexmap,
-                                bool force_update)
-{
-  ProxyVertArray *p = &node->proxyverts;
-
-  if (check_indexmap) {
-    BKE_pbvh_ensure_proxyarray_indexmap(pbvh, node, vert_node_map);
-  }
-
-  GHash *gs = p->indexmap;
-
-  int totvert = 0;
-  BKE_pbvh_node_num_verts(pbvh, node, &totvert, nullptr);
-
-  if (!totvert) {
-    return;
-  }
-
-  int updatemask = 0;
-
-#  define UPDATETEST(name, emask, esize) \
-    if (mask & emask) { \
-      updatemask |= checkalloc((void **)&p->name, esize, p->size, totvert, emask, mask); \
-    }
-
-  UPDATETEST(ownerco, PV_OWNERCO, sizeof(void *))
-  UPDATETEST(ownerno, PV_OWNERNO, sizeof(void *))
-  UPDATETEST(ownermask, PV_OWNERMASK, sizeof(void *))
-  UPDATETEST(ownercolor, PV_OWNERCOLOR, sizeof(void *))
-  UPDATETEST(co, PV_CO, sizeof(float) * 3)
-  UPDATETEST(no, PV_NO, sizeof(short) * 3)
-  UPDATETEST(fno, PV_NO, sizeof(float) * 3)
-  UPDATETEST(mask, PV_MASK, sizeof(float))
-  UPDATETEST(color, PV_COLOR, sizeof(float) * 4)
-  UPDATETEST(index, PV_INDEX, sizeof(PBVHVertRef))
-  UPDATETEST(neighbors, PV_NEIGHBORS, sizeof(ProxyKey) * MAX_PROXY_NEIGHBORS)
-
-  p->size = totvert;
-
-  if (force_update) {
-    updatemask |= mask;
-  }
-
-  if ((mask & PV_NEIGHBORS) && p->neighbors_dirty) {
-    updatemask |= PV_NEIGHBORS;
-  }
-
-  if (!updatemask) {
-    return;
-  }
-
-  p->datamask |= mask;
-
-  PBVHVertexIter vd;
-
-  int i = 0;
-
-#  if 1
-  BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    void **val;
-
-    if (!BLI_ghash_ensure_p(gs, (void *)vd.vertex.i, &val)) {
-      *val = (void *)i;
-    };
-    i++;
-  }
-  BKE_pbvh_vertex_iter_end;
-#  endif
-
-  if (updatemask & PV_NEIGHBORS) {
-    p->neighbors_dirty = false;
-  }
-
-  i = 0;
-  BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    if (i >= p->size) {
-      printf("error!! %s\n", __func__);
-      break;
-    }
-
-    if (updatemask & PV_OWNERCO) {
-      p->ownerco[i] = vd.co;
-    }
-    if (updatemask & PV_INDEX) {
-      p->index[i] = vd.vertex;
-    }
-    if (updatemask & PV_OWNERNO) {
-      p->ownerno[i] = vd.no;
-    }
-    if (updatemask & PV_NO) {
-      if (vd.fno) {
-        if (p->fno) {
-          copy_v3_v3(p->fno[i], vd.fno);
-        }
-        normal_float_to_short_v3(p->no[i], vd.fno);
-      }
-      else if (vd.no) {
-        copy_v3_v3_short(p->no[i], vd.no);
-        if (p->fno) {
-          normal_short_to_float_v3(p->fno[i], vd.no);
-        }
-      }
-      else {
-        p->no[i][0] = p->no[i][1] = p->no[i][2] = 0;
-        if (p->fno) {
-          zero_v3(p->fno[i]);
-        }
-      }
-    }
-    if (updatemask & PV_CO) {
-      copy_v3_v3(p->co[i], vd.co);
-    }
-    if (updatemask & PV_OWNERMASK) {
-      p->ownermask[i] = vd.mask;
-    }
-    if (updatemask & PV_MASK) {
-      p->mask[i] = vd.mask ? *vd.mask : 0.0f;
-    }
-    if (updatemask & PV_COLOR) {
-      if (vd.vcol) {
-        copy_v4_v4(p->color[i], vd.vcol->color);
-      }
-    }
-
-    if (updatemask & PV_NEIGHBORS) {
-      int j = 0;
-      SculptVertexNeighborIter ni;
-
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
-        if (j >= MAX_PROXY_NEIGHBORS - 1) {
-          break;
-        }
-
-        ProxyKey key;
-
-        int *pindex = (int *)BLI_ghash_lookup_p(gs, (void *)ni.vertex.i);
-
-        if (!pindex) {
-          if (vert_node_map) {
-            int *nindex = (int *)BLI_ghash_lookup_p(vert_node_map, (void *)ni.vertex.i);
-
-            if (!nindex) {
-              p->neighbors_dirty = true;
-              continue;
-            }
-
-            PBVHNode *node2 = pbvh->nodes + *nindex;
-            if (node2->proxyverts.indexmap) {
-              pindex = (int *)BLI_ghash_lookup_p(node2->proxyverts.indexmap, (void *)ni.vertex.i);
-            }
-            else {
-              pindex = nullptr;
-            }
-
-            if (!pindex) {
-              p->neighbors_dirty = true;
-              continue;
-            }
-
-            key.node = (int)(node2 - pbvh->nodes);
-            key.pindex = *pindex;
-            //*
-            if (node2->proxyverts.size != 0 &&
-                (key.pindex < 0 || key.pindex >= node2->proxyverts.size)) {
-              printf("error! %s\n", __func__);
-              fflush(stdout);
-              p->neighbors_dirty = true;
-              continue;
-            }
-            //*/
-          }
-          else {
-            p->neighbors_dirty = true;
-            continue;
-          }
-        }
-        else {
-          key.node = (int)(node - pbvh->nodes);
-          key.pindex = *pindex;
-        }
-
-        p->neighbors[i][j++] = key;
-      }
-      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-      p->neighbors[i][j].node = -1;
-    }
-
-    i++;
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-typedef struct GatherProxyThread {
-  PBVHNode **nodes;
-  PBVH *pbvh;
-  int mask;
-} GatherProxyThread;
-
-static void pbvh_load_proxyarray_exec(void *__restrict userdata,
-                                      const int n,
-                                      const TaskParallelTLS *__restrict tls)
-{
-  GatherProxyThread *data = (GatherProxyThread *)userdata;
-  PBVHNode *node = data->nodes[n];
-  PBVHVertexIter vd;
-  ProxyVertArray *p = &node->proxyverts;
-  int i = 0;
-
-  int mask = p->datamask;
-
-  BKE_pbvh_ensure_proxyarray(nullptr, data->pbvh, node, data->mask, nullptr, false, true);
-}
-
-void BKE_pbvh_load_proxyarrays(PBVH *pbvh, PBVHNode **nodes, int totnode, int mask)
-{
-  GatherProxyThread data = {.nodes = nodes, .pbvh = pbvh, .mask = mask};
-
-  mask = mask & ~PV_NEIGHBORS;  // don't update neighbors in threaded code?
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, pbvh_load_proxyarray_exec, &settings);
-}
-
-static void pbvh_gather_proxyarray_exec(void *__restrict userdata,
-                                        const int n,
-                                        const TaskParallelTLS *__restrict tls)
-{
-  GatherProxyThread *data = (GatherProxyThread *)userdata;
-  PBVHNode *node = data->nodes[n];
-  PBVHVertexIter vd;
-  ProxyVertArray *p = &node->proxyverts;
-  int i = 0;
-
-  int mask = p->datamask;
-
-  BKE_pbvh_vertex_iter_begin (data->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    if (mask & PV_CO) {
-      copy_v3_v3(vd.co, p->co[i]);
-    }
-
-    if (mask & PV_COLOR && vd.col) {
-      copy_v4_v4(vd.col, p->color[i]);
-    }
-
-    if (vd.mask && (mask & PV_MASK)) {
-      *vd.mask = p->mask[i];
-    }
-
-    i++;
-  }
-  BKE_pbvh_vertex_iter_end;
-}
-
-void BKE_pbvh_gather_proxyarray(PBVH *pbvh, PBVHNode **nodes, int totnode)
-{
-  GatherProxyThread data = {.nodes = nodes, .pbvh = pbvh};
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, pbvh_gather_proxyarray_exec, &settings);
-}
-
-void BKE_pbvh_free_proxyarray(PBVH *pbvh, PBVHNode *node)
-{
-  ProxyVertArray *p = &node->proxyverts;
-
-  if (p->indexmap) {
-    BLI_ghash_free(p->indexmap, nullptr, nullptr);
-  }
-  if (p->co)
-    MEM_freeN(p->co);
-  if (p->no)
-    MEM_freeN(p->no);
-  if (p->index)
-    MEM_freeN(p->index);
-  if (p->mask)
-    MEM_freeN(p->mask);
-  if (p->ownerco)
-    MEM_freeN(p->ownerco);
-  if (p->ownerno)
-    MEM_freeN(p->ownerno);
-  if (p->ownermask)
-    MEM_freeN(p->ownermask);
-  if (p->ownercolor)
-    MEM_freeN(p->ownercolor);
-  if (p->color)
-    MEM_freeN(p->color);
-  if (p->neighbors)
-    MEM_freeN(p->neighbors);
-
-  memset(p, 0, sizeof(*p));
-}
-
-void BKE_pbvh_update_proxyvert(PBVH *pbvh, PBVHNode *node, ProxyVertUpdateRec *rec)
-{
-}
-
-ProxyVertArray *BKE_pbvh_get_proxyarrays(PBVH *pbvh, PBVHNode *node)
-{
-  return &node->proxyverts;
-}
-
-#endif
-
 /* checks if pbvh needs to sync its flat vcol shading flag with scene tool settings
    scene and ob are allowd to be nullptr (in which case nothing is done).
 */
@@ -4603,8 +4160,8 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas
 
   switch (BKE_pbvh_type(pbvh)) {
     case PBVH_FACES: {
-      int *edges = BLI_array_alloca(edges, 16);
-      int *polys = BLI_array_alloca(polys, 32);
+      int *edges = (int *)BLI_array_alloca(edges, 16);
+      int *polys = (int *)BLI_array_alloca(polys, 32);
       bool heap_alloc = false;
       int len = 16;
 
@@ -4615,7 +4172,7 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas
         /* sort poly references by vemap edge ordering */
         MeshElemMap *emap = pbvh->vemap + vertex.i;
 
-        int *polys_old = BLI_array_alloca(polys, len * 2);
+        int *polys_old = (int *)BLI_array_alloca(polys, len * 2);
         memcpy((void *)polys_old, (void *)polys, sizeof(int) * len * 2);
 
         /* note that wire edges will break this, but

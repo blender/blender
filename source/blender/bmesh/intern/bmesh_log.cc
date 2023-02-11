@@ -1635,3 +1635,6 @@ bool BM_log_entry_drop(BMLogEntry *entry)
   return true;
 }
 
+void BM_log_print_entry(BMLog *log, BMLogEntry *entry)
+{
+}
