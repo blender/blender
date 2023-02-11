@@ -4,6 +4,7 @@
 
 #include "curves_sculpt_intern.hh"
 
+#include "BLI_index_mask_ops.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
@@ -42,7 +43,9 @@ namespace blender::ed::sculpt_paint {
 class PinchOperation : public CurvesSculptStrokeOperation {
  private:
   bool invert_pinch_;
-  Array<float> segment_lengths_cu_;
+
+  /** Solver for length and collision constraints. */
+  CurvesConstraintSolver constraint_solver_;
 
   /** Only used when a 3D brush is used. */
   CurvesBrush3D brush_3d_;
@@ -115,8 +118,6 @@ struct PinchOperationExecutor {
         brush_->falloff_shape);
 
     if (stroke_extension.is_first) {
-      this->initialize_segment_lengths();
-
       if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
         self_->brush_3d_ = *sample_curves_3d_brush(*ctx_.depsgraph,
                                                    *ctx_.region,
@@ -126,6 +127,9 @@ struct PinchOperationExecutor {
                                                    brush_pos_re_,
                                                    brush_radius_base_re_);
       }
+
+      self_->constraint_solver_.initialize(
+          *curves_, curve_selection_, curves_id_->flag & CV_SCULPT_COLLISION_ENABLED);
     }
 
     Array<bool> changed_curves(curves_->curves_num(), false);
@@ -139,7 +143,14 @@ struct PinchOperationExecutor {
       BLI_assert_unreachable();
     }
 
-    this->restore_segment_lengths(changed_curves);
+    Vector<int64_t> indices;
+    const IndexMask changed_curves_mask = index_mask_ops::find_indices_from_array(changed_curves,
+                                                                                  indices);
+    const Mesh *surface = curves_id_->surface && curves_id_->surface->type == OB_MESH ?
+                              static_cast<const Mesh *>(curves_id_->surface->data) :
+                              nullptr;
+    self_->constraint_solver_.solve_step(*curves_, changed_curves_mask, surface, transforms_);
+
     curves_->tag_positions_changed();
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
@@ -266,47 +277,6 @@ struct PinchOperationExecutor {
           positions_cu[point_i] += translation_orig;
 
           r_changed_curves[curve_i] = true;
-        }
-      }
-    });
-  }
-
-  void initialize_segment_lengths()
-  {
-    const Span<float3> positions_cu = curves_->positions();
-    const OffsetIndices points_by_curve = curves_->points_by_curve();
-    self_->segment_lengths_cu_.reinitialize(curves_->points_num());
-    threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
-      for (const int curve_i : curve_selection_.slice(range)) {
-        const IndexRange points = points_by_curve[curve_i];
-        for (const int point_i : points.drop_back(1)) {
-          const float3 &p1_cu = positions_cu[point_i];
-          const float3 &p2_cu = positions_cu[point_i + 1];
-          const float length_cu = math::distance(p1_cu, p2_cu);
-          self_->segment_lengths_cu_[point_i] = length_cu;
-        }
-      }
-    });
-  }
-
-  void restore_segment_lengths(const Span<bool> changed_curves)
-  {
-    const Span<float> expected_lengths_cu = self_->segment_lengths_cu_;
-    const OffsetIndices points_by_curve = curves_->points_by_curve();
-    MutableSpan<float3> positions_cu = curves_->positions_for_write();
-
-    threading::parallel_for(changed_curves.index_range(), 256, [&](const IndexRange range) {
-      for (const int curve_i : range) {
-        if (!changed_curves[curve_i]) {
-          continue;
-        }
-        const IndexRange points = points_by_curve[curve_i];
-        for (const int segment_i : IndexRange(points.size() - 1)) {
-          const float3 &p1_cu = positions_cu[points[segment_i]];
-          float3 &p2_cu = positions_cu[points[segment_i] + 1];
-          const float3 direction = math::normalize(p2_cu - p1_cu);
-          const float expected_length_cu = expected_lengths_cu[points[segment_i]];
-          p2_cu = p1_cu + direction * expected_length_cu;
         }
       }
     });

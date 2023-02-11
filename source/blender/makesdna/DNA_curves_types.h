@@ -197,6 +197,7 @@ typedef struct Curves {
 /** #Curves.flag */
 enum {
   HA_DS_EXPAND = (1 << 0),
+  CV_SCULPT_COLLISION_ENABLED = (1 << 1),
 };
 
 /** #Curves.symmetry */
