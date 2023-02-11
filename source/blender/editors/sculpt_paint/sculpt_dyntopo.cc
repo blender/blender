@@ -1724,14 +1724,13 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   solver->strength = ss->cache->bstrength;
 
   /* Threaded loop over nodes. */
-  SculptUVThreadData data = {.solver = solver,
-                             .data = {
-                                 .sd = sd,
-                                 .ob = ob,
-                                 .brush = brush,
-                                 .nodes = nodes,
-                                 .offset = offset,
-                             }};
+  SculptUVThreadData data = {};
+  data.solver = solver;
+  data.data.sd = sd;
+  data.data.ob = ob;
+  data.data.brush = brush;
+  data.data.nodes = nodes;
+  data.data.offset = offset;
 
   TaskParallelSettings settings;
 
